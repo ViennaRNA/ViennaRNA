@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-Perl-*-
-# Last changed Time-stamp: <2001-10-22 14:58:18 ivo>
+# Last changed Time-stamp: <2001-10-30 16:43:21 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -177,8 +177,23 @@ sub do_work {
    
    if ($q->param('Temp') =~ /([-+]?\d+\.?\d*)/) {
       $RNA::temperature = $1;
-	$options .= " -T $1" if ($1 != 37);
+      $options .= " -T $1" if ($1 != 37);
    }
+
+   if ($q->param('cv')) {
+      my $cv = $q->param('cv')*1.0;
+      $cv = 0 if $cv <0;
+      $cv = 10 if $cv>10;
+      $options .= " -cv $cv" if $cv != 1;
+   }
+
+   if ($q->param('nc')) {
+      my $nc = $q->param('nc')*1.0;
+      $nc = 0 if $nc <0;
+      $nc = 10 if $nc>10;
+      $options .= " -nc $nc" if $nc != 1;
+   }
+
    
    # remove strange characters, so we can pass strings to shell
    $options =~ s/[^$OK_CHARS]//go;
