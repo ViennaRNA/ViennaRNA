@@ -5,6 +5,7 @@
 		 c  Ivo Hofacker and Peter F Stadler
 			  Vienna RNA package
 */
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -12,7 +13,8 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.15 2001/07/20 10:59:45 ivo Exp $";
+
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.16 2001/09/17 10:19:41 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -23,7 +25,8 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.15 2001/07/20 10:59:45 ivo Exp $";
 #define  PIHALF       PI/2.
 
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
-PUBLIC int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post);
+PUBLIC int   PS_rna_plot_a(char *string, char *structure, char *ssfile, 
+			   char *pre, char *post);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
@@ -40,9 +43,9 @@ PRIVATE void   loop(int i, int j, short *pair_table);
 
 /* local variables for parsing routines */
 
-PRIVATE  float  *angle;
-PRIVATE  int    *loop_size, *stack_size;
-PRIVATE  int     lp, stk;
+PRIVATE float  *angle;
+PRIVATE int    *loop_size, *stack_size;
+PRIVATE int     lp, stk;
 
 /*---------------------------------------------------------------------------*/
 
@@ -53,7 +56,7 @@ PRIVATE  int     lp, stk;
    x X  simple xy plot
    (nothing else implemented at present)
    default:           no graphics data at all
-   */
+*/
 
 PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 {
@@ -95,13 +98,12 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
     Y = NULL; 
   }
 
-  /* */
   fprintf(gmlfile, 
-	  "# Vienna RNA Package (rna2glm)\n"
+	  "# Vienna RNA Package %s\n"
           "# GML Output\n"
 	  "# CreationDate: %s\n"
 	  "# Name: %s\n"
-	  "# Options: %s\n", time_stamp(), ssfile, option_string());
+	  "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
   fprintf(gmlfile, 
           "graph [\n"
           " directed 0\n");
@@ -174,14 +176,14 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   
   fprintf(xyplot,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%Creator: PS_dot.c, ViennaRNA Package\n"
+	  "%%%%Creator: %s, ViennaRNA-%s\n"
 	  "%%%%CreationDate: %s"
 	  "%%%%Title: Rna secondary Structure Plot\n"
 	  "%%%%BoundingBox: 66 210 518 662\n"
 	  "%%%%DocumentFonts: Helvetica\n"
 	  "%%%%Pages: 1\n"
 	  "%%%%EndComments\n\n"
-          "%%Options: %s\n", time_stamp(), option_string());
+          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
   
   fprintf(xyplot,"100 dict begin\n");  /* DSC says EPS should create a dict */
   fprintf(xyplot,
@@ -413,11 +415,11 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   /* */
  
   fprintf(ssvfile, 
-	  "# Vienna RNA Package (rna2ssv)\n"
+	  "# Vienna RNA Package %s\n"
           "# SStructView Output\n"
 	  "# CreationDate: %s\n"
 	  "# Name: %s\n"
-	  "# Options: %s\n", time_stamp(), ssfile, option_string());
+	  "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
   for (i=1; i<=length; i++)
     fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
 	    i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
@@ -461,9 +463,9 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
     fprintf(stderr,"strange things happening in xrna_plot...\n");
  
   fprintf(ss_file, 
-	  "# Vienna RNA Package XRNA output\n"
+	  "# Vienna RNA Package %s, XRNA output\n"
 	  "# CreationDate: %s\n"
-	  "# Options: %s\n", time_stamp(), option_string());
+	  "# Options: %s\n", VERSION, time_stamp(), option_string());
   for (i=1; i<=length; i++)
     /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
     fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i-1],
@@ -496,7 +498,7 @@ int PS_dot_plot(char *string, char *wastlfile)
   if ((c=strrchr(name, '_'))!=0) *c='\0';
   fprintf(wastl,"%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(wastl,"%%%%Title: RNA DotPlot\n");
-  fprintf(wastl,"%%%%Creator: PS_dot.c, ViennaRNA Package\n");
+  fprintf(wastl,"%%%%Creator: %s, ViennaRNA-%s\n", rcsid+5, VERSION);
   fprintf(wastl,"%%%%CreationDate: %s", time_stamp());
   fprintf(wastl,"%%%%BoundingBox: 66 211 518 662\n");
   fprintf(wastl,"%%%%DocumentFonts: Helvetica\n");
