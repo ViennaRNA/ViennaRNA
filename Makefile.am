@@ -15,7 +15,7 @@ if MAKE_KINFOLD
    KINDIR = Kinfold
 endif
 
-SUBDIRS = lib Progs man Utils AliFold H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
+SUBDIRS = lib Progs man Utils H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
 
 #DIST_SUBDIRS = lib Progs man Utils AliFold H Perl Cluster
 

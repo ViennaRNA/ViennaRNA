@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.5 2003/02/13 12:29:47 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.6 2005/02/10 09:51:13 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))

@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.9 2003/09/15 11:34:42 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.10 2005/02/10 09:51:13 ivo Exp $";
 
 #define PRIVATE static
 
