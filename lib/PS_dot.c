@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.12 1999/10/27 10:38:31 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.13 2000/10/10 12:25:05 ivo Rel $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -35,8 +35,6 @@ PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
 
 /* local functions */
 
-PRIVATE void   init_aux_arrays(int length);
-PRIVATE void   free_aux_arrays(void);
 PRIVATE void   loop(int i, int j, short *pair_table);
 
 /* local variables for parsing routines */
@@ -66,7 +64,13 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   float *X, *Y;
   
   if (isupper(option)) labels = 1;
-  
+   
+  gmlfile = fopen(ssfile, "w");
+  if (gmlfile == NULL) {
+     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     return 0;
+  }
+
   length = strlen(string);
 
   pair_table = make_pair_table(structure);
@@ -91,17 +95,12 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   }
 
   /* */
- 
-  gmlfile = fopen(ssfile, "w");
-  if (gmlfile == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return 0;
-  }
   fprintf(gmlfile, 
 	  "# Vienna RNA Package (rna2glm)\n"
           "# GML Output\n"
 	  "# CreationDate: %s\n"
-	  "# Name: %s\n", time_stamp(), ssfile);
+	  "# Name: %s\n"
+	  "# Options: %s\n", time_stamp(), ssfile, option_string());
   fprintf(gmlfile, 
           "graph [\n"
           " directed 0\n");
@@ -143,6 +142,12 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
 
   length = strlen(string);
 
+  xyplot = fopen(ssfile, "w");
+  if (xyplot == NULL) {
+    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    return 0;
+  }
+  
   pair_table = make_pair_table(structure);
   
   X = (float *) space((length+1)*sizeof(float));
@@ -163,37 +168,33 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
   }
   size = MAX((xmax-xmin),(ymax-ymin));
   
-  xyplot = fopen(ssfile, "w");
-  if (xyplot == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return 0;
-  }
   fprintf(xyplot,
-	  "%%!PS-Adobe-2.0 EPSF-1.2\n"
-	  "%%%%Creator: He Himself\n"
+	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
+	  "%%%%Creator: PS_dot.c, ViennaRNA Package\n"
 	  "%%%%CreationDate: %s"
 	  "%%%%Title: Rna secondary Structure Plot\n"
 	  "%%%%BoundingBox: 66 210 518 662\n"
 	  "%%%%DocumentFonts: Helvetica\n"
 	  "%%%%Pages: 1\n"
-	  "%%%%EndComments\n\n", time_stamp());
-
+	  "%%%%EndComments\n\n"
+          "%%Options: %s\n", time_stamp(), option_string());
+  
   fprintf(xyplot,"100 dict begin\n");  /* DSC says EPS should create a dict */
   fprintf(xyplot,
-	  "/fsize  {14} def\n"
+	  "/fsize  14 def\n"
 	  "%% toggles: if you set them all to  false  the plot stays empty\n"
 	  "/drawbases   true def  %% set to  false  to leave out sequence\n"
 	  "/drawoutline true def  %% set to  false  to leave out backbone\n"
 	  "/drawpairs   true def  %% set to  false  to not draw lines connecting pairs\n"
 	  "%% data start here\n");
   /* sequence */
-  fprintf(xyplot,"/sequence { (\\\n");  
+  fprintf(xyplot,"/sequence (\\\n");  
   i=0;
   while (i<length) {
     fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
     i+=255;
   }
-  fprintf(xyplot,") } def\n");
+  fprintf(xyplot,") def\n");
   /* coordinates */
   fprintf(xyplot, "/coor [\n");
   for (i = 0; i < length; i++) 
@@ -208,7 +209,7 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
    /* setup */
    fprintf(xyplot,
 	   "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
-	   "          rmoveto show} def\n"
+	   "          rmoveto show} bind def\n"
 	   "1 setlinejoin\n"
 	   "1 setlinecap\n"
 	   "0.8 setlinewidth\n");
@@ -270,6 +271,11 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   float *X, *Y;
   float xmin, xmax, ymin, ymax;
   
+  ssvfile = fopen(ssfile, "w");
+  if (ssvfile == NULL) {
+     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     return 0;
+  }
   length = strlen(string);
   pair_table = make_pair_table(structure);
 
@@ -319,16 +325,12 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
 #endif
   /* */
  
-  ssvfile = fopen(ssfile, "w");
-  if (ssvfile == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return 0;
-  }
   fprintf(ssvfile, 
 	  "# Vienna RNA Package (rna2ssv)\n"
           "# SStructView Output\n"
 	  "# CreationDate: %s\n"
-	  "# Name: %s\n", time_stamp(), ssfile);
+	  "# Name: %s\n"
+	  "# Options: %s\n", time_stamp(), ssfile, option_string());
   for (i=1; i<=length; i++)
     fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
 	    i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
@@ -350,7 +352,13 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   int length;
   short *pair_table;
   float *X, *Y;
-  
+
+  ss_file = fopen(ssfile, "w");
+  if (ss_file == NULL) {
+    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    return 0;
+  }
+
   length = strlen(string);
   pair_table = make_pair_table(structure);
 
@@ -365,14 +373,10 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   if (i!=length)
     fprintf(stderr,"strange things happening in xrna_plot...\n");
  
-  ss_file = fopen(ssfile, "w");
-  if (ss_file == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-    return 0;
-  }
   fprintf(ss_file, 
 	  "# Vienna RNA Package XRNA output\n"
-	  "# CreationDate: %s\n", time_stamp());
+	  "# CreationDate: %s\n"
+	  "# Options: %s\n", time_stamp(), option_string());
   for (i=1; i<=length; i++)
     /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
     fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i-1],
@@ -388,283 +392,269 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 #define PMIN 0.00001
 int PS_dot_plot(char *string, char *wastlfile)
 {
-   /* produce PostScript dot plot from probabilities in pr[] array */
+  /* produce PostScript dot plot from probabilities in pr[] array */
    
-   FILE *wastl;
-   char name[31], *c;
-   int i, j, length;
-   double tmp;
+  FILE *wastl;
+  char name[31], *c;
+  int i, j, length;
+  double tmp;
    
-   length= strlen(string);
-   wastl = fopen(wastlfile,"w");
-   if (wastl==NULL) {
-     fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
-     return 0; /* return 0 for failure */
-   }
-   strncpy(name, wastlfile, 30);
-   if ((c=strrchr(name, '_'))!=0) *c='\0';
-   fprintf(wastl,"%%!PS-Adobe-2.0 EPSF-1.2\n");
-   fprintf(wastl,"%%%%Title: RNA DotPlot\n");
-   fprintf(wastl,"%%%%Creator: PS_dot.c, ViennaRNA package\n");
-   fprintf(wastl,"%%%%CreationDate: %s", time_stamp());
-   fprintf(wastl,"%%%%BoundingBox: 66 211 518 662\n");
-   fprintf(wastl,"%%%%DocumentFonts: Times-Roman\n");
-   fprintf(wastl,"%%%%Pages: 1\n");
-   fprintf(wastl,"%%%%EndComments\n\n");
-   
-   fprintf(wastl,"%%This file contains the square roots "
-	   "of the base pair probabilities in the form\n");
-   fprintf(wastl,"%% i  j  sqrt(p(i,j)) ubox\n");
-   
-   fprintf(wastl,"100 dict begin\n");  /* DSC says EPS should create a dict */
-   fprintf(wastl,"\n/logscale false def\n\n");
-   fprintf(wastl,"%%delete next line to get rid of title\n"
-	   "270 665 moveto /Times-Roman findfont 14 scalefont setfont "
-	   "(%s) show\n\n", name);
-   fprintf(wastl,"/lpmin {\n"
-	   "   %g log  %% log(pmin) only probs>pmin will be shown\n"
-	   "} bind def\n\n",PMIN);
+  length= strlen(string);
+  wastl = fopen(wastlfile,"w");
+  if (wastl==NULL) {
+    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    return 0; /* return 0 for failure */
+  }
+  strncpy(name, wastlfile, 30);
+  if ((c=strrchr(name, '_'))!=0) *c='\0';
+  fprintf(wastl,"%%!PS-Adobe-3.0 EPSF-3.0\n");
+  fprintf(wastl,"%%%%Title: RNA DotPlot\n");
+  fprintf(wastl,"%%%%Creator: PS_dot.c, ViennaRNA Package\n");
+  fprintf(wastl,"%%%%CreationDate: %s", time_stamp());
+  fprintf(wastl,"%%%%BoundingBox: 66 211 518 662\n");
+  fprintf(wastl,"%%%%DocumentFonts: Helvetica\n");
+  fprintf(wastl,"%%%%Pages: 1\n");
+  fprintf(wastl,"%%%%EndComments\n\n");
+  fprintf(wastl,"%%Options: %s\n", option_string());
 
-   fprintf(wastl,"/ubox {\n"     /* upper triangle matrix */
-	   "   logscale {\n"
-	   "      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
-	   "   } if\n"
-	   "   3 1 roll\n"
-	   "   exch len exch sub 1 add box\n"
-	   "} bind def\n\n");
-
-   fprintf(wastl,"/lbox {\n"     /* lower triangle matrix */
-	   "   3 1 roll\n"
-	   "   len exch sub 1 add box\n"
-	   "} bind def\n\n");
-
-   fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
-	   "   2 index 0.5 mul add            %% x += 0.5\n"
-	   "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
-	   "   newpath\n"
-	   "   moveto\n"
-	   "   dup neg   0 rlineto\n"
-	   "   dup neg   0 exch rlineto\n"
-	   "             0 rlineto\n"
-	   "   closepath\n"
-	   "   fill\n"
-	   "} def\n\n");
-
-   /* EPS should not contain lines >255 characters */
-   fprintf(wastl,"/sequence { (\\\n");
-   i=0;
-   while (i<length) {
-      fprintf(wastl, "%.255s\\\n", string+i);
-      i+=255;
-   }
-   fprintf(wastl,") } def\n");
-   fprintf(wastl,"/len { sequence length } def\n\n");
+  fprintf(wastl,"%%This file contains the square roots "
+	  "of the base pair probabilities in the form\n");
+  fprintf(wastl,"%% i  j  sqrt(p(i,j)) ubox\n");
    
-   fprintf(wastl,"72 216 translate\n");
-   fprintf(wastl,"72 6 mul len 1 add div dup scale\n");
-   fprintf(wastl,"/Times-Roman findfont 0.95 scalefont setfont\n\n");
+  fprintf(wastl,"100 dict begin\n");  /* DSC says EPS should create a dict */
+  fprintf(wastl,"\n/logscale false def\n\n");
+  fprintf(wastl,"%%delete next line to get rid of title\n"
+	  "270 665 moveto /Helvetica findfont 14 scalefont setfont "
+	  "(%s) show\n\n", name);
+  fprintf(wastl,"/lpmin {\n"
+	  "   %g log  %% log(pmin) only probs>pmin will be shown\n"
+	  "} bind def\n\n",PMIN);
+
+  /* EPS should not contain lines >255 characters */
+  fprintf(wastl,"/sequence { (\\\n");
+  i=0;
+  while (i<length) {
+    fprintf(wastl, "%.255s\\\n", string+i);
+    i+=255;
+  }
+  fprintf(wastl,") } def\n");
+  fprintf(wastl,"/len { sequence length } def\n\n");
+   
+  fprintf(wastl,"/ubox {\n"     /* upper triangle matrix */
+	  "   logscale {\n"
+	  "      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
+	  "   } if\n"
+	  "   3 1 roll\n"
+	  "   exch len exch sub 1 add box\n"
+	  "} bind def\n\n");
+
+  fprintf(wastl,"/lbox {\n"     /* lower triangle matrix */
+	  "   3 1 roll\n"
+	  "   len exch sub 1 add box\n"
+	  "} bind def\n\n");
+
+  fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
+	  "   2 index 0.5 mul add            %% x += 0.5\n"
+	  "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
+	  "   newpath\n"
+	  "   moveto\n"
+	  "   dup neg   0 rlineto\n"
+	  "   dup neg   0 exch rlineto\n"
+	  "             0 rlineto\n"
+	  "   closepath\n"
+	  "   fill\n"
+	  "} def\n\n");
+
+  fprintf(wastl,"72 216 translate\n");
+  fprintf(wastl,"72 6 mul len 1 add div dup scale\n");
+  fprintf(wastl,"/Helvetica findfont 0.95 scalefont setfont\n\n");
 
    /* print sequence along all 4 sides */
-   fprintf(wastl,"%% print sequence along all 4 sides\n");
-   fprintf(wastl,"0 1 len 1 sub {\n");
-   fprintf(wastl,"    dup\n");
-   fprintf(wastl,"    0.7 add -0.3 moveto\n");
-   fprintf(wastl,"    sequence exch 1 getinterval\n");
-   fprintf(wastl,"    show\n");
-   fprintf(wastl,"} for\n");
-   fprintf(wastl,"\n");
-   fprintf(wastl,"0 1 len 1 sub {\n");
-   fprintf(wastl,"    dup\n");
-   fprintf(wastl,"    0.7 add 0.7 len add moveto\n");
-   fprintf(wastl,"    sequence exch 1 getinterval\n");
-   fprintf(wastl,"    show\n");
-   fprintf(wastl,"} for\n\n");
+  fprintf(wastl,"%% print sequence along all 4 sides\n");
+  fprintf(wastl,"0 1 len 1 sub {\n");
+  fprintf(wastl,"    dup\n");
+  fprintf(wastl,"    0.7 add -0.3 moveto\n");
+  fprintf(wastl,"    sequence exch 1 getinterval\n");
+  fprintf(wastl,"    show\n");
+  fprintf(wastl,"} for\n");
+  fprintf(wastl,"\n");
+  fprintf(wastl,"0 1 len 1 sub {\n");
+  fprintf(wastl,"    dup\n");
+  fprintf(wastl,"    0.7 add 0.7 len add moveto\n");
+  fprintf(wastl,"    sequence exch 1 getinterval\n");
+  fprintf(wastl,"    show\n");
+  fprintf(wastl,"} for\n\n");
 
-   fprintf(wastl,"90  rotate\n");
-   fprintf(wastl,"0 1 len 1 sub {\n");
-   fprintf(wastl,"    dup\n");
-   fprintf(wastl,"    0.7 add -0.2 moveto\n");
-   fprintf(wastl,"    len 1 sub exch sub\n");
-   fprintf(wastl,"    sequence exch 1 getinterval\n");
-   fprintf(wastl,"    show\n");
-   fprintf(wastl,"} for\n");
-   fprintf(wastl,"270 rotate\n\n");
+  fprintf(wastl,"90  rotate\n");
+  fprintf(wastl,"0 1 len 1 sub {\n");
+  fprintf(wastl,"    dup\n");
+  fprintf(wastl,"    0.7 add -0.2 moveto\n");
+  fprintf(wastl,"    len 1 sub exch sub\n");
+  fprintf(wastl,"    sequence exch 1 getinterval\n");
+  fprintf(wastl,"    show\n");
+  fprintf(wastl,"} for\n");
+  fprintf(wastl,"270 rotate\n\n");
 
-   fprintf(wastl,"270 rotate\n");
-   fprintf(wastl,"0 1 len 1 sub {\n");
-   fprintf(wastl,"    dup\n");
-   fprintf(wastl,"    -0.3 add len sub  0.7 len add  moveto\n");
-   fprintf(wastl,"    sequence exch 1 getinterval\n");
-   fprintf(wastl,"    show\n");
-   fprintf(wastl,"} for\n");
-   fprintf(wastl,"90 rotate\n\n");
+  fprintf(wastl,"270 rotate\n");
+  fprintf(wastl,"0 1 len 1 sub {\n");
+  fprintf(wastl,"    dup\n");
+  fprintf(wastl,"    -0.3 add len sub  0.7 len add  moveto\n");
+  fprintf(wastl,"    sequence exch 1 getinterval\n");
+  fprintf(wastl,"    show\n");
+  fprintf(wastl,"} for\n");
+  fprintf(wastl,"90 rotate\n\n");
 
-   /* do grid */
-   fprintf(wastl,"0.5 dup translate\n"
-	   "%% draw diagonal\n"
-	   "0.04 setlinewidth\n"
-	   "0 len moveto len 0 lineto stroke \n\n");
-   fprintf(wastl,"%%draw grid\n"
-	   "0.01 setlinewidth\n"
-	   "len log 0.9 sub cvi 10 exch exp  %% grid spacing\n"
-           "dup 1 gt {\n"
-	   "   dup dup 20 div dup 2 array astore exch 40 div setdash\n"
-	   "} { [0.3 0.7] 0.1 setdash } ifelse\n"
-	   "0 exch len {\n"      /* for (i=0; i<=len; i++) */
-	   "   dup dup\n"        
-	   "   0 moveto\n"                     /* i 0 moveto   */
-	   "   len lineto \n"                  /* i len lineto */
-	   "   dup\n"
-	   "   len exch sub 0 exch moveto\n"   /* 0 i moveto   */
-	   "   len exch len exch sub lineto\n" /* len i lineto */
-	   "   stroke\n"
-	   "} for\n"
-	   "0.5 neg dup translate\n\n");
+  /* do grid */
+  fprintf(wastl,"0.5 dup translate\n"
+	  "%% draw diagonal\n"
+	  "0.04 setlinewidth\n"
+	  "0 len moveto len 0 lineto stroke \n\n");
+  fprintf(wastl,"%%draw grid\n"
+	  "0.01 setlinewidth\n"
+	  "len log 0.9 sub cvi 10 exch exp  %% grid spacing\n"
+	  "dup 1 gt {\n"
+	  "   dup dup 20 div dup 2 array astore exch 40 div setdash\n"
+	  "} { [0.3 0.7] 0.1 setdash } ifelse\n"
+	  "0 exch len {\n"      /* for (i=0; i<=len; i++) */
+	  "   dup dup\n"        
+	  "   0 moveto\n"                     /* i 0 moveto   */
+	  "   len lineto \n"                  /* i len lineto */
+	  "   dup\n"
+	  "   len exch sub 0 exch moveto\n"   /* 0 i moveto   */
+	  "   len exch len exch sub lineto\n" /* len i lineto */
+	  "   stroke\n"
+	  "} for\n"
+	  "0.5 neg dup translate\n\n");
 
-   /* print boxes */
-   for (i=1; i<length; i++)
-      for (j=i+1; j<=length; j++) {
-	 if (pr[iindx[i]-j]<PMIN) continue;
-	 tmp = sqrt(pr[iindx[i]-j]);
-	 fprintf(wastl,"%d %d %1.5f ubox\n", i, j, tmp);
-      }
-   /* do mfe */
-   if (base_pair) for(i=1; i<=base_pair[0].i; i++) 
+  /* print boxes */
+  for (i=1; i<length; i++)
+    for (j=i+1; j<=length; j++) {
+      if (pr[iindx[i]-j]<PMIN) continue;
+      tmp = sqrt(pr[iindx[i]-j]);
+      fprintf(wastl,"%d %d %1.5f ubox\n", i, j, tmp);
+    }
+  /* do mfe */
+  if (base_pair)
+    for(i=1; i<=base_pair[0].i; i++) 
       fprintf(wastl,"%d %d 0.95 lbox\n",
 	      base_pair[i].i, base_pair[i].j); 
 
-   fprintf(wastl,"showpage\n");
-   fprintf(wastl,"end\n");
-   fprintf(wastl,"%%%%EOF\n");
-   fclose(wastl);
-   return 1; /* success */
+  fprintf(wastl,"showpage\n");
+  fprintf(wastl,"end\n");
+  fprintf(wastl,"%%%%EOF\n");
+  fclose(wastl);
+  return 1; /* success */
 }
 
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
 {
-   float INIT_ANGLE=0.;     /* initial bending angle */
-   float INIT_X = 100.;     /* coordinate of first digit */
-   float INIT_Y = 100.;     /* see above */
-   float RADIUS =  15.;
+  float INIT_ANGLE=0.;     /* initial bending angle */
+  float INIT_X = 100.;     /* coordinate of first digit */
+  float INIT_Y = 100.;     /* see above */
+  float RADIUS =  15.;
 
-   int i, length;
-   float  alpha;
+  int i, length;
+  float  alpha;
 
-   length = pair_table[0];
-   init_aux_arrays(length);
-   lp = stk = 0;
-   loop(0, length+1, pair_table);
-   loop_size[lp] -= 2;     /* correct for cheating with function loop */
-  
-   alpha = INIT_ANGLE;
-   x[0]  = INIT_X;
-   y[0]  = INIT_Y;   
-
-   for (i = 1; i <= length; i++) {
-     x[i] = x[i-1]+RADIUS*cos(alpha);
-     y[i] = y[i-1]+RADIUS*sin(alpha);
-     alpha += PI-angle[i+1];
-   }
-   free_aux_arrays();
-
-   return length;
-
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE  void init_aux_arrays(int length) 
-{
+  length = pair_table[0];
   angle =      (float*) space( (length+5)*sizeof(float) );
   loop_size  =   (int*) space( 16+(length/5)*sizeof(int) );
   stack_size =   (int*) space( 16+(length/5)*sizeof(int) );
-}
+  lp = stk = 0;
+  loop(0, length+1, pair_table);
+  loop_size[lp] -= 2;     /* correct for cheating with function loop */
+  
+  alpha = INIT_ANGLE;
+  x[0]  = INIT_X;
+  y[0]  = INIT_Y;   
 
-/*---------------------------------------------------------------------------*/
+  for (i = 1; i <= length; i++) {
+    x[i] = x[i-1]+RADIUS*cos(alpha);
+    y[i] = y[i-1]+RADIUS*sin(alpha);
+    alpha += PI-angle[i+1];
+  }
+  free(angle);
+  free(loop_size);  
+  free(stack_size); 
 
-PRIVATE  void free_aux_arrays(void) 
-{ 
-   free(angle);
-   free(loop_size);  
-   free(stack_size); 
+  return length;
+
 }
 
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void loop(int i, int j, short *pair_table)
-
              /* i, j are the positions AFTER the last pair of a stack; i.e
 		i-1 and j+1 are paired. */
-
 {
-    int    count = 2;   /* counts the VERTICES of a loop polygon; that's
+  int    count = 2;   /* counts the VERTICES of a loop polygon; that's
 			   NOT necessarily the number of unpaired bases!
 			   Upon entry the loop has already 2 vertices, namely
 			   the pair i-1/j+1.  */
 
-    int    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
+  int    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
 
-    int    i_old, partner, k, l, start_k, start_l, fill, ladder;
-    int    begin, v, diff;
-    float  polygon;
+  int    i_old, partner, k, l, start_k, start_l, fill, ladder;
+  int    begin, v, diff;
+  float  polygon;
 
-    short *remember;  
+  short *remember;  
 
-    remember = (short *) space((1+(j-i)/5)*2*sizeof(short));
+  remember = (short *) space((1+(j-i)/5)*2*sizeof(short));
     
-    i_old = i-1, j++;         /* j has now been set to the partner of the
+  i_old = i-1, j++;         /* j has now been set to the partner of the
 			       previous pair for correct while-loop
 			       termination.  */
-    while (i != j) {
-	partner = pair_table[i];
-	if ((!partner) || (i==0))
-	    i++, count++, bubble++;
-	else {
-	    count += 2;
-	    k = i, l = partner;    /* beginning of stack */
-	    remember[++r] = k;
-	    remember[++r] = l;
-	    i = partner+1;         /* next i for the current loop */
+  while (i != j) {
+    partner = pair_table[i];
+    if ((!partner) || (i==0))
+      i++, count++, bubble++;
+    else {
+      count += 2;
+      k = i, l = partner;    /* beginning of stack */
+      remember[++r] = k;
+      remember[++r] = l;
+      i = partner+1;         /* next i for the current loop */
 
-	    start_k = k, start_l = l;
-	    ladder = 0;
-	    do {
-		k++, l--, ladder++;        /* go along the stack region */
-	    }
-	    while (pair_table[k] == l);
+      start_k = k, start_l = l;
+      ladder = 0;
+      do {
+	k++, l--, ladder++;        /* go along the stack region */
+      }
+      while (pair_table[k] == l);
 
-	    fill = ladder-2;
-	    if (ladder >= 2) {
-	       angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
-	       angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
-	       angle[start_k]        += PIHALF;   /*  additional PI/2.    */
-	       angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
-	       if (ladder > 2) {
-		  for (; fill >= 1; fill--) {
-		     angle[start_k+fill] = PI;    /*  fill in the angles  */
-		     angle[start_l-fill] = PI;    /*  for the backbone    */
-		  }
-	       }
-	    }
-	    stack_size[++stk] = ladder;
-	    loop(k, l, pair_table);
+      fill = ladder-2;
+      if (ladder >= 2) {
+	angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
+	angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
+	angle[start_k]        += PIHALF;   /*  additional PI/2.    */
+	angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
+	if (ladder > 2) {
+	  for (; fill >= 1; fill--) {
+	    angle[start_k+fill] = PI;    /*  fill in the angles  */
+	    angle[start_l-fill] = PI;    /*  for the backbone    */
+	  }
 	}
+      }
+      stack_size[++stk] = ladder;
+      loop(k, l, pair_table);
     }
-    polygon = PI*(count-2)/(float)count; /* bending angle in loop polygon */
-    remember[++r] = j;
-    begin = i_old < 0 ? 0 : i_old;
-    for (v = 1; v <= r; v++) {
-	diff  = remember[v]-begin;
-	for (fill = 0; fill <= diff; fill++)
-	    angle[begin+fill] += polygon;
-	if (v > r)
-	    break;
-	begin = remember[++v];
-    }
-    loop_size[++lp] = bubble;
-    free(remember);
+  }
+  polygon = PI*(count-2)/(float)count; /* bending angle in loop polygon */
+  remember[++r] = j;
+  begin = i_old < 0 ? 0 : i_old;
+  for (v = 1; v <= r; v++) {
+    diff  = remember[v]-begin;
+    for (fill = 0; fill <= diff; fill++)
+      angle[begin+fill] += polygon;
+    if (v > r)
+      break;
+    begin = remember[++v];
+  }
+  loop_size[++lp] = bubble;
+  free(remember);
 }
 
 /*---------------------------------------------------------------------------*/
