@@ -1,10 +1,12 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-11-27 16:39:03 ivo>
+# Last changed Time-stamp: <2003-09-02 09:36:04 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.
 # Input is a colour _dp.ps file from alidot (aka read_ali) or dp_zoom
 # definition: mm[i],mp[i]=number of base pairs enclosing base i
 
+use strict;
+use vars qw(@mm @mp @hue @sat @pair @pr);
 sub usage {
     die "Usage: $0 alidot.ps\n";
 }
@@ -14,8 +16,8 @@ usage() if eof();
 print "%!PS-Adobe-2.0 EPSF-1.2
 %%Title: Mount Ali
 %%Creator: in hiding
-%%BoundingBox:66 209 518 686
-%%%%Pages: 1
+%%BoundingBox: 66 209 518 686
+%%Pages: 1
 %%EndComments\n";
 
 
@@ -40,7 +42,8 @@ print <<EOF; # PS macros
 } def
 EOF
 
-$from=1;
+my ($from, $to)=(1,0);
+my ($seq, $length);
 while (<>) {
     chomp;
     if (/^% Subsequence from (\d+) to (\d+)/) { # get start and end 
@@ -60,7 +63,17 @@ while (<>) {
         next;
     }
 
-    ($i, $j, $p, $h, $s, $tok) = split;
+    next if /^%/;
+    next unless /[ul]box$/;
+    # Damn! alidot and alifold use different postscript macros.
+    # Try to recognize both
+    my ($h, $s, $blah, $i, $j, $p, $tok);
+    if (/ hsb /) { # alifold version
+	($h, $s, $blah, $i, $j, $p, $tok) = split;
+
+    } else {             # alidot version
+	($i, $j, $p, $h, $s, $tok) = split;
+    }
 
     if ($tok eq "lbox") { # only read lbox entries
 	$mp[$i+1]+=$p*$p; 
@@ -71,7 +84,9 @@ while (<>) {
 	$pr[$i]   = $p*$p;
     }
 }
-for ($i=1; $i<=$length; $i++) { #find maximum for scaling
+my $max=0;
+$mp[0]=$mm[0]=0;
+for (my $i=1; $i<=$length; $i++) { #find maximum for scaling
     $mp[$i]+=$mp[$i-1];
     $max = $mp[$i] if ($mp[$i]>$max);
     $mm[$i]+=$mm[$i-1];
@@ -105,7 +120,7 @@ stroke
 grestore\n";
    
 
-for ($i=1; $i<=$length; $i++) { # print pairs as coloured trapezes
+for (my $i=1; $i<=$length; $i++) { # print pairs as coloured trapezes
     next unless ($pair[$i]);
     print "$i $pair[$i] ";
     printf "%6.4f %6.4f $hue[$i] $sat[$i] trapez\n", $mp[$i], $pr[$i] ;
