@@ -73,7 +73,7 @@ int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 %new void  *space(unsigned size);           /* allocate space safely */
 void   nrerror(const char message[]);  /* die with error message */
 void   init_rand(void);                /* make random number seeds */
-unsigned short xsubi[3];               /* current 48bit random number */
+short xsubi[3];               	       /* current 48bit random number */
 double urn(void);                      /* random number from [0..1] */
 int    int_urn(int from, int to);      /* random integer */
 void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
