@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(Progs/RNAfold.c)
+AC_INIT(ViennaRNA, 1.5, rna@tbi.univie.ac.at)
 dnl Every other copy of the package version number gets its value from here
-AM_INIT_AUTOMAKE(ViennaRNA, 1.5)
+AM_INIT_AUTOMAKE
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 
