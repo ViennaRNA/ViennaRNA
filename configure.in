@@ -49,16 +49,8 @@ if test -z "$PerlCmd"; then
     with_perl="no"
 fi
 
-AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
-
-AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
-
-AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
-
-AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
-
 if test "$with_forester" != "no"; then
-   if test -d $srcdir/RNAforester-1.4; then
+   if test -d $srcdir/RNAforester-1.4/Makefile.am; then
      AC_CONFIG_SUBDIRS(RNAforester-1.4)
    else 
      AC_MSG_WARN([RNAforester subdirectory does not exist])
@@ -67,13 +59,21 @@ if test "$with_forester" != "no"; then
 fi
 
 if test "$with_kinfold" != "no"; then
-   if test -d $srcdir/Kinfold; then
+   if test -f $srcdir/Kinfold/Makefile.am; then
      AC_CONFIG_SUBDIRS(Kinfold)
    else
      AC_MSG_WARN([Kinfold subdirectory does not exist])
      with_kinfold="no"
    fi
 fi
+
+AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
+
+AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
+
+AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
+
+AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 
 dnl Checks for libraries.
 dnl AC_REPLACE_GNU_GETOPT
