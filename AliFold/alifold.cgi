@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-Perl-*-
-# Last changed Time-stamp: <2001-10-30 16:43:21 ivo>
+# Last changed Time-stamp: <2002-01-24 19:59:39 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -48,13 +48,13 @@ sub print_form {
    print $q->start_html(-title=>"RNAalifold input form",
 			-author=>'ivo@tbi.univie.ac.at',
 			-BGCOLOR=>'#f8f8ff');
-   print "\n<H1 align=center>Vienna RNA Secondary Structure Prediction</H1>\n";
-   print "<H2 align=center><a name=top>",
+   print "\n<H1 align=center>Vienna RNA Secondary Structure Prediction</H1>\n",
+   "<H2 align=center><a name=top>",
    "A Web Interface for the Prediction Consensus Structures of Aligned Sequences</a></H2>\n";
    
    print "This server will predict secondary structures of single stranded\n",
    "RNA or DNA sequences. If the options look confusing <strong>read the\n",
-   "<a href=\"http://www.tbi.univie.ac.at/~ivo/RNA/RNAcgi.html\">",
+   "<a href=\"http://www.tbi.univie.ac.at/~ivo/RNA/alifoldcgi.html\">",
    "help page</a></strong><p>\n";
    
    print "<b><u>News</u></b> This service is brand new and probably still has lots of bugs<p>\n",
@@ -115,7 +115,7 @@ sub print_form {
 				      '-noLP', 'avoid isolated base pairs'
 				       },
 			    -linebreak=>'yes',
-			    -defaults=>[]);
+			    -defaults=>['-noLP']);
    
    print "<P>\n",$q->reset;
    print $q->submit('Action','Fold it');
@@ -157,6 +157,7 @@ sub do_work {
    my $l=0;
    open(ALN, ">alifold.aln");
    while (<$clustal_file>) {
+      s/\r\n?/\n/g;   # repair dos line endings
       print ALN $_;
       $l += length;
    }
@@ -194,17 +195,16 @@ sub do_work {
       $options .= " -nc $nc" if $nc != 1;
    }
 
-   
    # remove strange characters, so we can pass strings to shell
-   $options =~ s/[^$OK_CHARS]//go;
-   
+   $options =~ s/[^$OK_CHARS]//go;   
 
    my $the_cookie = $q->cookie(-name=>'alifold_result',
 			       -value=>$name,
 			       -expires=>'+1d',
 			       -path=>'/cgi-bin');
-   my $time = int($l*$l/1000000);   # crude estimate
-   $time += 3;
+   my $time = int($l*$l/3000000);   # very crude estimate
+   $time *= 3  if ($options =~ /-p/);
+   $time += 5;
    print $q->header(-refresh=>"$time; URL=$hdir/$name",
 		    -expires=>'+1m',
 		    -cookie=>$the_cookie,
@@ -230,7 +230,9 @@ sub do_work {
 
    print 
        "<H1>Your Alifold Results</H1>\n",
-       "For more information on the alifold method see ???<br>\n",
+       'For detailed information on the alifold method see <a href=',
+       '"http://www.tbi.univie.ac.at/papers/Abstracts/01-11-067abs.html">',
+       "this manuscript</a><br>\n",
        "If the output seems incomplete press relaod after a few seconds<p>\n";
    
    if ($q->param('Params') eq 'DNA') {
@@ -251,17 +253,8 @@ sub do_work {
 	  "JMB, 288, pp 911-940, 1999<hr>\n";
    }
    
-#   print $q->query_string, "<br>\n";
-#   my $length = length($Sequence);
-#   if ($length>$maxlength) {
-#      print "Sorry, this interface is still being tested.\n",
-#      "Currently, sequences longer than $maxlength bases will currently ",
-#      "not be processed. Your sequence has length $length.<HR>\n";
-#      return;
-#   }
-   
-   print "An equivalent RNAalifold command line would have been<BR>\n";
-   print "<kbd>RNAalifold $options alifold.aln</kbd><P>\n";
+   print "An equivalent RNAalifold command line would have been<BR>\n",
+   "<kbd>RNAalifold $options alifold.aln</kbd><P>\n";
    $| = 1;
    print "<P><PRE>\n";
 #   print STDERR "/home/blini/ivo/RNA/ViennaRNA/AliFold/RNAalifold $options alifold.aln\n";
