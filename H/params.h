@@ -19,6 +19,7 @@ typedef struct {
   int MLintern[NBPAIRS+1];
   int MLclosing;
   int TerminalAU;
+  int DuplexInit;
   int TETRA_ENERGY[200];
   char Tetraloops[1401];
   int Triloop_E[40];

@@ -48,7 +48,8 @@ extern int F_ninio37[5];
 
 /* penalty for helices terminated by AU (actually not GC) */
 extern int TerminalAU;
-
+/* penalty for forming bi-molecular duplex */
+extern int DuplexInit;
 /* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
 extern char Tetraloops[];  /* string containing the special tetraloops */
 extern int  TETRA_ENERGY37[];  /* Bonus energy for special tetraloops */

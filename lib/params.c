@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-05-28 01:32:15 ivo> */
+/* Last changed Time-stamp: <2004-08-12 13:04:16 ivo> */
 /*                
 
 		  c Ivo Hofacker
@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "params.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.6 2004/06/18 13:33:41 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.7 2004/08/12 12:11:57 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -59,6 +59,8 @@ PUBLIC paramT *scale_parameters(void)
   p.MLclosing = ML_closing37*tempf;
 
   p.TerminalAU = TerminalAU;
+  
+  p.DuplexInit = DuplexInit*tempf;
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
   for (i=0; i<=NBPAIRS; i++)
