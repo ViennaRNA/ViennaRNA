@@ -1,0 +1,594 @@
+=head1 RNA
+
+ RNA  interface to the Vienna RNA library (libRNA.a)
+ Version 0.3
+
+=head1 SYNOPSIS
+
+ use RNA;
+ $seq = "CGCAGGGAUACCCGCG";
+ ($struct, $mfe) = RNA::fold($seq);  #predict mfe structure of $seq
+ RNA::PS_rna_plot($seq, $struct, "rna.ps");  # write PS plot to rna.ps
+ $F = RNA::pf_fold($seq);   # compute partition function and pair pobabilities
+ RNA::PS_dot_plot($sseq, "dot.ps");          # write dot plot to dot.ps
+ ...
+
+=head1 DESCRIPTION
+
+The RNA.pm package gives access to almost all functions in the libRNA.a
+library of the Vienna RNA PACKAGE. The Perl wrapper is generated using
+SWIG http://www.swig.org/ with relatively little manual intervention.
+For each C function in the library the perl package provides a function
+of the same name and calling convention (with few exceptions). For
+detailed information you should therefore also consult the documentation
+of the library (info RNAlib).
+
+Note that in general C arrays are wrapped into opaque objects that can
+only be accessed via helper functions. SWIG provides a couple of general
+purpose helper functions, see the section at the end of this file. C
+structures are wrapped into Perl objects using SWIG's shadow class
+mechanism, resulting in a tied hash with keys named after the structure
+members.
+
+For the interrested reader we list for each scalar type of the
+corepsonding C variable in brackets, and point out the header files
+containing the C declaration.
+
+=head2 Folding Routines
+
+Minimum free Energy Folding (from fold.h)
+
+=over 4
+
+=item fold SEQUENCE
+
+=item fold SEQUENCE, CONSTRAINTS
+
+computes the minimum free energy structure of the string SEQUENCE and returns
+the predicted structure and energy, e.g.
+
+($structure, $mfe) = RNA::fold("UGUGUCGAUGUGCUAU");
+
+If a second argument is supplied and
+L<$fold_constrained|/$fold_constrained>==1 the CONSTRAINTS string is
+used to specify constraints on the predicted structure.  The
+characters '|', 'x', '<', '>' mark bases that are paired, unpaired,
+paired upstream, or downstream, respectively; matching brackets "( )"
+denote base pairs, dots '.' are used for unconstrained bases.
+
+In the two argument version the CONSTRAINTS string is modified and holds the
+predicted structure upon return. This is done for backwards compatibility only,
+and might change in future versions.
+
+=item energy_of_struct SEQUENCE, STRUCTURE
+
+returns the energy of SEQUENCE on STRUCTURE (in kcal/mol). The string structure
+must hold a valid secondary structure in bracket notation.
+
+=item update_fold_params
+
+recalculate the pair matrix and energy parameters after a change in folding
+parameters. In many cases (such as changes to
+L<$temperature|/$temperature>) the fold() routine will call
+update_fold_params automatically when necessary.
+
+=item free_arrays
+
+frees memory allocated internally when calling L<fold|/fold>.
+
+=back
+
+Partition function Folding (from part_func.h)
+
+=over 4
+
+=item pf_fold SEQUENCE
+
+=item pf_fold SEQUENCE, CONSTRAINTS
+
+calculates the partition function over all possible secondary
+structures and the matrix of pair probabilities for SEQUENCE and
+returns a two element list consisting of a string summarizing possible
+structures. See below on how to access the pair probability matrix. As
+with L<fold|/fold> the second argument can be used to specify folding
+constraints. Constraints are implemented by excluding base pairings
+that contradict the constraint, but without bonus
+energies. Constraints of type '|' (paired base) are ignored.  In the
+two argument version CONSTRAINTS is modified to contain the structure
+string on return (obsolete feature, for backwards compatibility only)
+
+=item get_pr I, J
+
+After calling C<pf_fold> the global C variable C<pr> points to the
+computed pair probabilities. Perl access to the C is facilitated by
+the C<get_pr> helper function that looks up and returns the
+probability of the pair (I,J).
+
+=item free_pf_arrays
+
+frees memory allocated for pf_fold
+
+=item update_pf_params LENGTH
+
+recalculate energy parameters for pf_fold. In most cases (such as
+simple changes to L<$temperature|/$temperature>) C<pf_fold>
+will take appropriate action automatically.
+
+=back
+
+Suboptimal Folding (from subopt.h)
+
+=over 4
+
+=item subopt SEQUENCE, DELTA
+
+=item subopt SEQUENCE, CONSTRAINTS, DELTA
+
+=item subopt SEQUENCE, CONSTRAINTS, DELTA, FILEHANDLE
+
+compute all structures of SEQUENCE within DELTA*0.01 kcal/mol of the
+optimum. If specified, results are written to FILEHANDLE and nothing
+is returned. Else, the C function returnes a list of C structs of type
+SOLUTION. The list is wrapped by SWIG as a perl object that can be
+accesses as follows:
+
+	 $solution = subopt($seq, 500);
+	 for (0..$solution->size()-1) {
+	   printf "%s %6.2f\n",  $solution->get($_)->{structure},
+		                 $solution->get($_)->{energy};
+	 }
+
+=back
+
+Inverse Folding (from inverse.h)
+
+=over 4
+
+=item inverse_fold START, TARGET
+
+find a sequence that folds into structure TARGET, by optimizing the
+sequence until its mfe structure (as returned by L<fold|/fold>) is
+TARGET. Startpoint of the optimization is the sequence START. Returns
+a list containing the sequence found and the final value of the cost
+function, i.e. 0 if the search was successful. A random start sequence
+can be generated using L<random_string|/random_string>.
+
+=item inverse_pf_fold START, TARGET
+
+optimizes a sequence (beginning with START) by maximising the
+frequency of the structure TARGET in the thermodynamic ensemble
+of structures. Returns a list containing the optimized sequence and
+the final value of the cost function. The cost function is given by
+C<energy_of_struct(seq, TARGET) - pf_fold(seq)>, i.e.C<-RT*log(p(TARGET))>
+
+=item $final_cost [float]
+
+holds the value of the cost function where the optimization in
+C<inverse_pf_fold> should stop. For values <=0 the optimization will
+only terminate at a local optimimum (which might take very long to reach).
+
+=item $symbolset [char *]
+
+the string symbolset holds the allowed characters to be used by
+C<inverse_fold> and C<inverse_pf_fold>, the default alphabet is "AUGC"
+
+
+=item $give_up [int]
+
+If non-zero stop optimization when its clear that no exact solution
+can be found. Else continue and eventually return an approximate
+solution. Default 0.
+
+=back
+
+Global Variables to Modify Folding (from fold_vars.h)
+
+=over 4
+
+=item $noGU [int]
+
+Do not allow GU pairs to form, default 0.
+
+=item $no_closingGU [int]
+
+allow GU only inside stacks, default 0.
+
+=item $tetra_loop [int]
+
+Fold with specially stable 4-loops, default 1.
+
+=item $energy_set [int]
+
+0 = BP; 1=any mit GC; 2=any mit AU-parameter, default 0.
+
+=item $dangles [int]
+
+How to compute dangling ends. 0: no dangling end energies, 1: "normal"
+dangling ends (default), 2: simplified dangling ends, 3: "normal" +
+co-axial stacking. Note that L<pf_fold|/pf_fold> treats cases 1 and 3
+as 2. The same holds for the main computation in L<subopt|/subopt>,
+however subopt will re-evalute energies using
+L<energy_of_struct|energy_of_struct> for cases 1 and 3. See the more
+detailed discussion in RNAlib.texinfo.
+
+=item $nonstandards [char *]
+
+        contains allowed non standard bases, default empty string ""
+
+=item $temperature [double]
+
+        temperature in degrees Celsius for rescaling parameters, default
+        37C.
+
+=item $logML [int]
+
+        use logarithmic multiloop energy function in
+        L<energy_of_struct|/energy_of_struct>, default 0.
+
+=item $noLonelyPairs [int]
+
+	consider only structures without isolated base pairs (helices
+        of length 1). For L<pf_fold|/pf_fold> only eliminates pairs
+        that can B<only> occur as isolated pairs. Default 0.
+
+=item $base_pair [struct bond *]
+
+        list of base pairs from last call to L<fold|/fold>. Better use
+        the structure string returned by  L<fold|/fold>.
+
+=item $pf_scale [double]
+
+scaling factor used by L<pf_fold|/pf_fold> to avoid overflows. Should
+be set to exp(-F/(RT*length)) where F is a guess for the ensmble free
+energy (e.g. use the mfe).
+
+
+=item $fold_constrained [int]
+
+apply constraints in the folding algorithms, default 0.
+
+=item $do_backtrack [int]
+
+If 0 do not compute the pair probabilities in L<pf_fold|/pf_fold>
+(only the partition function). Default 1.
+
+=item $backtrack_type [char]
+
+usually 'F'; 'C' require (1,N) to be bonded; 'M' backtrack as if the
+sequence was part of a multi loop. Used by L<inverse_fold|/inverse_fold>
+
+=item $pr [double *]
+
+the base pairing prob. matrix computed by L<pf_fold|/pf_fold>.
+
+=item $iindx [int *]
+
+Array of indices for moving withing the C<pr> array. Better use
+L<get_pr|/get_pr>.
+
+
+=back
+
+=head2 Parsing and Comparing Structures
+
+from RNAstruct.h: these functions convert between strings
+representating secondary structures with various levels of coarse
+graining. See the documentation of the C library for details
+
+=over 4
+
+=item b2HIT STRUCTURE
+
+Full -> HIT [incl. root]
+
+=item b2C STRUCTURE
+
+Full -> Coarse [incl. root]
+
+=item b2Shapiro STRUCTURE
+
+Full -> weighted Shapiro [i.r.]
+
+=item add_root STRUCTURE
+
+{Tree} -> ({Tree}R)
+
+=item expand_Shapiro COARSE
+
+add S for stacks to coarse struct
+
+=item expand_Full STRUCTURE
+
+Full -> FFull
+
+=item unexpand_Full FSTRUCTURE
+
+FFull -> Full
+
+=item unweight WCOARSE
+
+remove weights from coarse struct
+
+=item unexpand_aligned_F ALIGN
+
+
+
+=item parse_structure STRUCTURE
+
+computes structure statistics, and fills the following global variables:
+
+$loops    [int] number of loops (and stacks)
+$unpaired [int] number of unpaired positions
+$pairs    [int] number of paired positions
+$loop_size[int *]  holds all loop sizes
+$loop_degree[int *] holds all loop degrees
+$helix_size[int *] holds all helix lengths
+
+=back
+
+from treedist.h: routines for computing tree-edit distances between structures
+
+=over 4
+
+=item make_tree STRUCTURE
+
+make input for tree_edit_distance (a Tree * pointer).
+
+=item tree_edit_distance T1, T2
+
+compare to structures using tree editing. C<T1>, C<T2> must have been
+created using C<tree_edit_distance>
+
+=item print_tree T
+
+mainly for debugging
+
+=item free_tree T
+
+free space allocated by make_tree
+
+=back
+
+from stringdist.h routines to compute structure distances via string-editing
+
+=over 4
+
+=item Make_swString STRUCTURE
+
+[ returns swString * ]
+make input for string_edit_distance
+
+=item string_edit_distance S1, S2
+
+[ returns float  ]
+compare to structures using string alignment. C<S1>, C<S2> should be
+created using C<Make_swString>
+
+=back
+
+from profiledist
+
+=over
+
+=item Make_bp_profile LENGTH
+
+[ returns (float [3])* ]
+condense pair probability matrix C<pr> into a vector containing
+probabilities for upstream paired, downstream paired and
+unpaired. This resulting probability profile is used as input for
+profile_edit_distance
+
+=item profile_edit_distance T1, T2
+
+[ returns float ]
+align two probability profiles produced by C<Make_bp_profile>
+
+=item print_bppm T
+
+[ returns void ]
+print string representation of probability profile
+
+=item free_profile T
+
+[ returns void ]
+free space allocated in Make_bp_profile
+
+=back
+
+Global variables for computing structure distances
+
+=over 4
+
+=item $edit_backtrack [int]
+
+set to 1 if you want backtracking
+
+=item $aligned_line [(char *)[2]]
+
+containes alignmed structures after computing structure distance with
+C<edit_backtrack==1>
+
+=item $cost_matrix [int]
+
+0 usual costs (default), 1 Shapiro's costs
+
+=back
+
+=head2 Utilities (from utils.h)
+
+=over 4
+
+=item space SIZE
+
+allocate memory from C. Usually not needed in Perl
+
+=item nrerror MESSGAE
+
+die with error message. Better use Perl's C<die>
+
+=item $xsubi [unsigned short[3]]
+
+libRNA uses the rand48 48bit random number generator if available, the
+current random  number is always stored in $xsubi.
+
+=item init_rand
+
+initialize the $xsubi random number from current time
+
+
+=item urn
+
+returns a random number between 0 and 1 using the random number
+generator from the RNA library.
+
+=item int_urn FROM, TO
+
+returns random integer in the range [FROM..TO]
+
+=item time_stamp
+
+current date in a string. In perl you might as well use C<locatime>
+
+=item random_string LENGTH, SYMBOLS
+
+returns a string of length LENGTH using characters from the string
+SYMBOLS
+
+=item hamming S1, S2
+
+calculate hamming distance of the strings C<S1> and C<S2>.
+
+
+=item pack_structure STRUCTURE
+
+pack secondary structure, using a 5:1 compression via 3
+encoding. Returns the packed string.
+
+=item unpack_structure PACKED
+
+unpacks a secondary structure packed with pack_structure
+
+=item make_pair_table STRUCTURE
+
+returns a pair table as a newly allocated (short *) C array, such
+that: table[i]=j if (i.j) pair or 0 if i is unpaired, table[0]
+contains the length of the structure.
+
+=item bp_distance STRUCTURE1, STRUCTURE2
+
+returns the base pair distance of the two STRUCTURES. dist = {number
+of base pairs in one structure but not in the other} same as edit
+distance with open-pair close-pair as move-set
+
+=back
+
+from PS_plot.h
+
+=over 4
+
+=item PS_rna_plot SEQUENCE, STRUCTURE, FILENAME
+
+write PostScript drawing of structure to FILENAME. Returns 1 on
+sucess, 0 else.
+
+=item PS_rna_plot_a SEQUENCE, STRUCTURE, FILENAME, PRE, POST
+
+write PostScript drawing of structure to FILENAME. The strings PRE and
+POST contain PostScript code that is included verbatim in the plot just
+before (after) the data.  Returns 1 on sucess, 0 else.
+
+=item gmlRNA SEQUENCE, STRUCTURE, FILENAME, OPTION
+
+write structure drawing in gml (Graph Meta Language) to
+FILENAME. OPTION should be a single character. If uppercase the gml
+output will include the SEQUENCE as node labels. IF OPTION equal 'x'
+or 'X' write graph with coordinates (else only connectivity
+information). Returns 1 on sucess, 0 else.
+
+=item ssv_rna_plot SEQUENCE, STRUCTURE, SSFILE
+
+write structure drfawing as coord file for SStructView Returns 1 on
+sucess, 0 else.
+
+=item xrna_plot SEQUENCE, STRUCTURE, SSFILE
+
+write structure drawing as ".ss" file for further editing in XRNA.
+Returns 1 on sucess, 0 else.
+
+=item PS_dot_plot SEQUENCE, FILENAME
+
+write a PostScript dot plot of the pair probability matix to
+FILENAME. Returns 1 on sucess, 0 else.
+
+=item $rna_plot_type [int]
+
+Select layout algorithm for structure drawings. Currently available
+0= simple coordinates, 1= naview, default 1.
+
+=back
+
+from read_epars.c
+
+=over 4
+
+=item read_parameter_file FILENAME
+
+read energy parameters from FILENAME
+
+=item write_parameter_file FILENAME
+
+write energy parameters to FILENAME
+
+=back
+
+=head2 SWIG helper functions
+
+The package includes generic helper functions to access C arrays 
+of type C<int>, C<float> and C<double>, such as:
+
+=over 4 
+
+=item intP_getitem POINTER, INDEX
+
+return the element INDEX from the array
+
+=item intP_setitem POINTER, INDEX, VALUE
+
+set element INDEX to VALUE
+
+=item new_intP NELEM
+
+allocate a new C array of integers with NELEM elements and return the pointer
+
+=item delete_intP POINTER
+
+deletes the C array by calling free()
+
+=back
+
+substituting C<intP> with C<floatP> or C<doubleP> gives the corresponding
+functions for arrays of float or double. You need to know the correct C
+type however, and the function work only for arrays of simple types.
+
+On the lowest level the C<cdata> function gives direct access to any data
+in the form of a Perl string.
+
+=over
+
+=item cdata POINTER, SIZE
+
+returns a string containing SIZE bytes 
+
+=back
+
+In combination with Perl's C<unpack> this provides a generic way to convert
+C data structures to Perl. E.g.
+
+  RNA::parse_structure($structure);  # fills the $RNA::loop_degree array
+  @ldegrees = unpack "I*", RNA::cdata($RNA::loop_degree, ($RNA::loops+1)*4);
+
+=head1 AUTHOR
+
+Ivo L. Hofacker <ivo@tbi.univie.ac.at>
+
+=cut
