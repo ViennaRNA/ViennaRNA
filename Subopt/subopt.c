@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.3  1997/08/18 19:09:32  walter
+  *** empty log message ***
+
   Revision 1.2  1997/08/05 00:02:44  walter
   *** empty log message ***
 
@@ -8,7 +11,7 @@
 
 */
 /*
-   suboptimal folding - Stefan Wuchty & Walter Fontana & Ivo Hofacker
+   suboptimal folding - Stefan Wuchty, Walter Fontana & Ivo Hofacker
 
                       subopt.c
  */
@@ -23,7 +26,7 @@
 #include "fold_vars.h"
 #include "list.h"
 
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.2 1997/08/05 00:02:44 walter Exp $";
+PRIVATE char rcsid[] = "$Id: subopt.c,v 1.3 1997/08/18 19:09:32 walter Exp $";
 
 /*Typedefinitions ----------------------------------------------------------- */
 
@@ -50,10 +53,18 @@ typedef struct interval
   }
 INTERVAL;
 
+typedef struct enerstruct
+  {
+    float e_o_s;                              /* e_o_s ... energy of structure */
+    char *structure;
+  }
+ENERSTRUCT;
+
 
 PUBLIC PAIR *make_pair (int i, int j);
 PUBLIC INTERVAL *make_interval (int i, int j, int ml);
 PUBLIC STATE *make_state (LIST * Intervals, LIST * BasePairs, int partial_energy);
+PUBLIC ENERSTRUCT *make_enerstruct (float e, char* structure);
 PUBLIC STATE *copy_state (STATE * state);
 PUBLIC void print_state (STATE * state);
 PUBLIC void print_stack (LIST * list);
@@ -66,16 +77,20 @@ PUBLIC void scan_interval (int i, int j, int array_flag, STATE * state);
 PUBLIC void free_pair_node (PAIR * node);
 PUBLIC void free_interval_node (INTERVAL * node);
 PUBLIC void free_state_node (STATE * node);
+PUBLIC void free_enerstruct_node (ENERSTRUCT* node);
 PUBLIC void push_back (STATE * state);
-PUBLIC void get_structure (STATE * state, char *solution);
+PUBLIC char* get_structure (STATE * state);
+PUBLIC int compare (ENERSTRUCT * enerstruct1, ENERSTRUCT* enerstruct2);
+PUBLIC void make_output (LIST *Enerstruct);
+PUBLIC void kill_pointer (LIST *Enerstruct);
 PRIVATE void repeat (int i, int j, STATE * state, int part_energy, int temp_energy);
-PRIVATE int check_ML (int i, int j, int k);
 
 /*Globals -------------------------------------------------------------------- */
 
 #define MAXALPHA 20		                 /* maximal length of alphabet */
 
 PRIVATE LIST *Stack;
+PRIVATE LIST *Enerstruct;
 PRIVATE int nopush;
 PRIVATE int best_energy;		     /* best_energy = remaining energy */
 
@@ -83,18 +98,20 @@ extern int pair[MAXALPHA + 1][MAXALPHA + 1];
 extern int MLbase;
 extern int length;
 extern int delta; 
-extern int *f3;                                             /* energy of 3 end */
 extern int *f5;                                             /* energy of 5 end */
 extern int *c;		                  /* energy array, given that i-j pair */
 extern int *fML;		          /* multi-loop auxiliary energy array */
 extern int *fM1;                  /* another multi-loop auxiliary energy array */
 extern int *indx;     /* index for moving in the triangle matrices c[] and f[] */
 extern short *S, *S1;
+extern char* sequence;
+extern int GAPS;
+extern int LODOS_ONLY;
 
 extern float energy_of_struct (char *, char *);
 
 int minimal_energy;                                     /* minimum free energy */
-int element_energy;                /* internal energy of a structural  element */
+int element_energy;                 /* internal energy of a structural element */
 
 
 /*-----------------------------------------------------------------------------*/
@@ -128,6 +145,20 @@ make_interval (int i, int j, int array_flag)
 
 /*-----------------------------------------------------------------------------*/
 
+PUBLIC ENERSTRUCT *
+make_enerstruct (float e_o_s, char* structure)
+{
+  ENERSTRUCT* enerstruct;
+  
+  enerstruct = lst_newnode (sizeof (ENERSTRUCT));
+  enerstruct->e_o_s = e_o_s;
+  enerstruct->structure = structure;
+
+  return enerstruct;
+}
+
+/*-----------------------------------------------------------------------------*/
+
 PUBLIC void
 free_pair_node (PAIR * node)
 {
@@ -138,6 +169,14 @@ free_pair_node (PAIR * node)
 
 PUBLIC void
 free_interval_node (INTERVAL * node)
+{
+  lst_freenode (node);
+}
+
+/*-----------------------------------------------------------------------------*/
+
+PUBLIC void
+free_enerstruct_node (ENERSTRUCT * node)
 {
   lst_freenode (node);
 }
@@ -307,12 +346,12 @@ pop (LIST * list)
 PUBLIC int
 best_attainable_energy (STATE * state)
 {
-  /* evaluation of best possible energy attainable within remaining intervals */
+   /* evaluation of best possible energy attainable within remaining intervals */
   
   register int sum;
   INTERVAL *next;
 
-  sum = state->partial_energy; /* energy of already found elements of structure */
+  sum = state->partial_energy;/* energy of already found elements of structure */
 
   for (next = lst_first (state->Intervals); next; next = lst_next (next))
     {
@@ -338,52 +377,140 @@ push_back (STATE * state)
 
 /*-----------------------------------------------------------------------------*/
 
-PUBLIC void
-get_structure (STATE * state, char *solution)
+PUBLIC char*
+get_structure (STATE * state)
 {
-  int x;
   PAIR *rec;
+  char* structure;
+  int x;
+
+  structure = (char *) space (sizeof (char) * (length + 1)); 
 
   for (x = 0; x < length; x++)
-    solution[x] = '.';
+    structure[x] = '.';
   for (rec = lst_first (state->BasePairs); rec; rec = lst_next (rec))
     {
-      solution[rec->i - 1] = '(';
-      solution[rec->j - 1] = ')';
+      structure[rec->i - 1] = '(';
+      structure[rec->j - 1] = ')';
     }
   
+  return structure;
+}
+
+/*-----------------------------------------------------------------------------*/
+PUBLIC int 
+compare (ENERSTRUCT * enerstruct1, ENERSTRUCT * enerstruct2)
+{
+  int c = 0;
+
+  if (enerstruct1->e_o_s >= enerstruct2->e_o_s)
+    c = 1;
+  if (enerstruct1->e_o_s <= enerstruct2->e_o_s)
+    c = -1;
+  if (enerstruct1->e_o_s == enerstruct2->e_o_s)
+    c = 0;
+
+  return c;
+}
+
+/*-----------------------------------------------------------------------------*/
+PUBLIC void 
+make_output (LIST *Enerstruct)  /* prints MFEstructure, 1st excited structure, */
+                                                           /* energies and gap */
+{
+  ENERSTRUCT *next, *nnext, *old_ptr;
+  int degeneracy, state;
+  float gap, gap_to_ground, this_energy;
+
+  if (!LODOS_ONLY)
+    printf ("\n\n     %s\n", sequence);
+  
+  gap_to_ground = 0.;
+  gap = 0.;
+  state = -1;
+  for (next = lst_first(Enerstruct); next; next = lst_next (next))
+    {
+      state++;
+      degeneracy = 1;
+      this_energy = next->e_o_s;
+      old_ptr = next;
+      for (nnext = lst_next(next); nnext; nnext = lst_next (nnext))
+	{
+	  if (nnext->e_o_s == this_energy)
+	    {
+	      degeneracy++;
+	      old_ptr = nnext;
+	    }
+	  else
+	    {
+	      if (LODOS_ONLY)
+		{
+		  printf("%6.4f %d", this_energy, degeneracy);
+		}
+	      else
+		{
+		  printf("%4d %s %6.4f %d", state, next->structure, this_energy, degeneracy);
+		}
+
+	      printf(" %6.4f %6.4f", gap, gap_to_ground);
+	      
+	      if (GAPS)
+		{
+		  if (state >= GAPS)
+		    goto quit;
+		  gap = nnext->e_o_s - this_energy;
+		  gap_to_ground += gap;
+		}
+
+	      printf("\n");
+	      next = old_ptr;
+	      break;
+	    }
+	}
+    }
+ quit:
+  printf ("\n\n");
+  fflush (stdout);
+}
+
+/*-----------------------------------------------------------------------------*/
+
+PUBLIC void
+kill_pointer (LIST *Enerstruct)
+{
+  ENERSTRUCT *next;
+
+  for (next = lst_first(Enerstruct); next; next = lst_next (next))
+    free (next->structure);
   return;
 }
 
 /*-----------------------------------------------------------------------------*/
-/* start of subopt backtracking- ----------------------------------------------*/
+
+/*-----------------------------------------------------------------------------*/
+/* start of subopt backtracking -----------------------------------------------*/
 /*-----------------------------------------------------------------------------*/
 
 PUBLIC void
 subopt (void)
 {
-  extern char *sequence;
-  extern int PRINT;
-  
   STATE *state;
   LIST *Intervals, *BasePairs;
   INTERVAL *interval;
   PAIR *rec;
+  ENERSTRUCT *enerstruct, *new_enerstruct;
+
   int partial_energy;
-  char *solution, *empty;
   float structure_energy;
   register int l, maxlevel, count;
+  register int scan_level;
+  char* structure;
 
   /* Initialize -------------------------------------------------------------- */
   
-  solution = (char *) space (sizeof (char) * (length + 1));
-  empty = (char *) space (sizeof (char) * (length + 1));
   maxlevel = 0;
   count = 0;
   partial_energy = 0;
-
-  for (l = 0; l < length; l++)
-    empty[l] = '.';
 
   /* Initialize the stack ---------------------------------------------------- */
 
@@ -396,78 +523,81 @@ subopt (void)
   state = make_state (Intervals, NULL, partial_energy);
   push (Stack, state);
 
+  /* Initialize the stack "Enerstruct" --------------------------------------- */
+               /* The stack Enerstruct stores the found suboptimal  structures */
+                            
+  Enerstruct = make_list ();                                         /* anchor */
+  
   /* end initialize ---------------------------------------------------------- */
 
-  while (1)			      /* forever, til nothing remains on stack */
-    {
-      maxlevel = (Stack->count > maxlevel ? Stack->count : maxlevel);
-      
-      if (LST_EMPTY (Stack))	             /* we are done! clean up and quit */
+  
+      while (1)			      /* forever, til nothing remains on stack */
 	{
-	  lst_kill (Stack, free_state_node);
-	  free (solution);
-	  free (empty);
-
-	  printf ("\n\n%d solutions \n", count);
-	  printf ("(max stack level was %d)\n", maxlevel);
-	  fflush (stdout);
-	  return;
-	}
-
-  /* pop the last element ---------------------------------------------------- */
-      
-      state = pop (Stack);	                 /* current state to work with */
-      
-      if (LST_EMPTY (state->Intervals))   
-	{
-	  /* state has no intervals left: we got a solution */
+	  maxlevel = (Stack->count > maxlevel ? Stack->count : maxlevel);
 	  
-	  count++;		                          
-	  get_structure (state, solution);
-	  structure_energy = 0.;
-	  
-	  structure_energy = energy_of_struct (sequence, solution);
+	  if (LST_EMPTY (Stack))	     /* we are done! clean up and quit */
+	   {
+	     lst_kill (Stack, free_state_node);
+	     
+	     lst_mergesort (Enerstruct, compare);     /* sorting of structures */
+                                                          /* by their energies */
+	    
+	  /* outputroutines -------------------------------------------------- */ 
 
-	  if (PRINT)
+	     make_output (Enerstruct);
+
+	  /* listkillroutines  ----------------------------------------------- */ 
+	     
+	     kill_pointer (Enerstruct); 	    
+	     lst_kill (Enerstruct, free_enerstruct_node);
+
+	     return;
+	   }
+	    
+	  /* pop the last element -------------------------------------------- */
+	  
+	  state = pop (Stack);	                 /* current state to work with */
+	  
+	  if (LST_EMPTY (state->Intervals))   
 	    {
-	      printf ("%d %s %6.2f %6.2f\n",
-		      count,
-		      solution, (float) (state->partial_energy / 100.),
-		      structure_energy);
-	      fflush (stdout);
-	    }
-	  else /* print a dot for every 1000 solutions found */
-	    {
-	      if (count % 1000 == 0)
+	                     /* state has no intervals left: we got a solution */
+	      count++;		                          
+	      
+	      structure = get_structure (state);
+	      structure_energy = 0.;
+	      
+	      structure_energy = energy_of_struct (sequence, structure);
+	      
+	      if ((float) (state->partial_energy / 100.) != structure_energy)
 		{
-		  printf (".");
-		  fflush (stdout);
+		  printf ("                A BUG ! ! ! ! ! !\n");
+		  printf ("partial_energy and energy of structure are not equal!!!\n");
+		  printf ("         Calculation terminated!\n");
+		  exit (1);
 		}
+
+	      new_enerstruct = make_enerstruct (structure_energy, structure);
+
+	      push (Enerstruct, new_enerstruct);
+	      
+	    }
+	   	    
+	  else
+	    {
+	                 /* get (and remove) next interval of state to analyze */
+	      interval = pop (state->Intervals);  
+	      
+	      scan_interval (interval->i, interval->j, interval->array_flag, state);
+	      
+	      free_interval_node (interval);	  /* free the current interval */
+	      
 	    }
 	  
-	  if ((float) (state->partial_energy / 100.) != structure_energy)
-	    {
-	      printf ("                A BUG ! ! ! ! ! !\n");
-	      printf ("partial_energy and energy of structure are not equal!!!\n");
-	      printf ("         Calculation terminated!\n");
-	      exit (1);
-	    } 
-	}
-      else
-	{
-	  /* get (and remove) next interval of state to analyze */
-	  
-	  interval = pop (state->Intervals);  
-	  
-	  scan_interval (interval->i, interval->j, interval->array_flag, state);
-	         	  
-	  free_interval_node (interval);	  /* free the current interval */
-	}
-      
-      free_state_node (state);	                     /* free the current state */
-    }                                                      /* end of while (1) */
-}
+	  free_state_node (state);	             /* free the current state */
+	}                                                  /* end of while (1) */
+    }
 
+ 
 /*-----------------------------------------------------------------------------*/
 /* Definitions-----------------------------------------------------------------*/
 
@@ -509,17 +639,17 @@ scan_interval (int i, int j, int array_flag, STATE * state)
       return;
     }
 
-   /* 1313131313131313131313131313131313131313131313131313131313131313131313 */
+   /* 13131313131313131313131313131313131313131313131313131313131313131313131 */
 
   if (array_flag == 3 || array_flag == 1)
     {
-      /* array_flag = 3: interval i,j was generated during */
-      /* a multiloop decomposition using array fM1 in repeat() */
-      /* or in this block */
+      /* array_flag = 3:                    interval i,j was generated during */
+                     /* a multiloop decomposition using array fM1 in repeat() */
+                                                          /* or in this block */
       
-      /* array_flag = 1: interval i,j was generated from a */
-      /* stack, bulge, or internal loop in repeat() */
-      /* or in this block */
+      /* array_flag = 1:                    interval i,j was generated from a */
+                                /* stack, bulge, or internal loop in repeat() */
+                                                          /* or in this block */
 
       if (array_flag == 3)
 	{
@@ -532,7 +662,7 @@ scan_interval (int i, int j, int array_flag, STATE * state)
       
       if (fi + best_energy <= minimal_energy + delta)                                      
 	{
-	  /* no basepair, nibbling of 3'-end */
+	                                   /* no basepair, nibbling of 3'-end */
 	  
 	  new_state = copy_state (state);
 	  new_interval = make_interval (i, j-1, array_flag);
@@ -546,7 +676,7 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 
       if (type)
 	{
-	  if (dangles)  /* dangling ends */
+	  if (dangles)                                       /* dangling ends */
 	    {
 	      if ((i > 1) && (j < length))
 		{
@@ -566,26 +696,26 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	    }
 	}
 
-      /* i,j may pair */
+                                                              /* i,j may pair */
       
       cij = c[indx[j] + i] + element_energy;           
       if (cij + best_energy <= minimal_energy + delta)                   
 	{
 	  repeat (i, j, state, element_energy, 0);
 	}
-    }  /* array_flag == 3 || array_flag == 1 */
+    }                                   /* array_flag == 3 || array_flag == 1 */
 
-   /* 1111111111111111111111111111111111111111111111111111111111111111111111 */
+   /* 11111111111111111111111111111111111111111111111111111111111111111111111 */
 
    if (array_flag == 1)
      {
-       /* array_flag = 1: interval i,j was generated from a */
-       /* stack, bulge, or internal loop in repeat() */
-       /* or in this block */
+       /* array_flag = 1:                   interval i,j was generated from a */
+                                /* stack, bulge, or internal loop in repeat() */
+                                                          /* or in this block */
 
        for ( k = i+TURN+1 ; k <= j-1-TURN ; k++)    
 	 {
-	   /* Multiloop decomposition if i,j contains more than 1 stack */
+	         /* Multiloop decomposition if i,j contains more than 1 stack */
 	   
 	   type = pair [S[k+1]][S[j]];
 	   if (type==0) continue;
@@ -612,7 +742,7 @@ scan_interval (int i, int j, int array_flag, STATE * state)
       
        for (k = i ; k <= j-1-TURN; k++)       
 	 {
-	   /* Multiloop decomposition if i,j contains only 1 stack */
+	             /* Multiloop decomposition if i,j contains only 1 stack */
 	   
 	   type = pair [S[k+1]][S[j]];
 	   if (type==0) continue;
@@ -632,14 +762,14 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	       repeat (k+1, j, state, element_energy, 0);
 	     }
 	 }
-     } /* array_flag == 1 */
+     }                                                    /* array_flag == 1 */
 
    /* 2222222222222222222222222222222222222222222222222222222222222222222222 */
    
    if (array_flag == 2)   	  
      {
-       /* array_flag = 2: interval i,j was generated from a */
-       /* stack, bulge, or internal loop in repeat() */            
+       /* array_flag = 2:                  interval i,j was generated from a */
+                               /* stack, bulge, or internal loop in repeat() */            
        
        repeat (i, j, state, 0, 0);
 
@@ -652,13 +782,13 @@ scan_interval (int i, int j, int array_flag, STATE * state)
    
    if (array_flag == 0)
     {
-      /* array_flag = 0: interval i,j was found while */
-      /* tracing back through f5-array and c-array */
-      /* or within this block */
+      /* array_flag = 0:                        interval i,j was found while */
+                                /* tracing back through f5-array and c-array */
+                                                     /* or within this block */
       
       if (f5[j-1] + best_energy <= minimal_energy + delta)
         {
-	  /* no basepair, nibbling of 3'-end */
+	                                  /* no basepair, nibbling of 3'-end */
 	  
 	  new_state = copy_state (state);
 	  new_interval = make_interval (i, j-1 , 0);
@@ -672,7 +802,7 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	  if (type==0)
 	      continue;
 
-	  /* k and j pair */
+	                                                     /* k and j pair */
 	  
 	  if (dangles)
 	    {                   
@@ -680,12 +810,12 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 		{
 		  element_energy = dangle3[type][S1[j+1]] + dangle5[type][S1[k-1]];
 		}
-	      else  /* j == length */
+	      else                                            /* j == length */
 		{
 		  element_energy =  dangle5[type][S1[k - 1]];
 		}
 	    }
-	  else  /* no dangles */
+	  else                                                 /* no dangles */
 	    {
 	      element_energy = 0;
 	    }
@@ -714,7 +844,7 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	{
 	  repeat (1, j, state, element_energy, 0);
 	}
-    } /* array_flag == 0 */
+    }                                                       /* array_flag == 0 */
    
   if (nopush)
     push_back (state);
@@ -726,8 +856,8 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 PRIVATE void
 repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 {
-  /* routine to find stacks, bulges, internal loops and  multiloops */
-  /* within interval closed by basepair i,j */
+             /* routine to find stacks, bulges, internal loops and  multiloops */
+                                     /* within interval closed by basepair i,j */
   
   extern int stack[NBPAIRS + 1][NBPAIRS + 1];
   extern int hairpin[31];
@@ -750,8 +880,8 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
     
   no_close_2 = 0;
   
-  best_energy += part_energy;             /* energy of current structural element */ 
-  best_energy += temp_energy;             /* energy from unpushed interval */
+  best_energy += part_energy;          /* energy of current structural element */ 
+  best_energy += temp_energy;                 /* energy from unpushed interval */
   
   type = pair[S[i]][S[j]];
   no_close = (((type == 3) || (type == 4)) && no_closingGU);
@@ -777,8 +907,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 	}
     }
 
-  /* these are the wrong mismatches !! */
-  mm = (unpaired > 3) ? mismatch[S1[i]][S1[j]][S1[i + 1]][S1[j - 1]] : 0;
+  mm = (unpaired > 3) ? mismatch[S1[j-1]][S1[i+1]][S1[j]][S1[i]] : 0;
 
   if (no_close)
     {
@@ -794,7 +923,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
       element_energy = sizecorr + tetracorr + mm;
       if (hairpin[unpaired] + element_energy + best_energy <= minimal_energy + delta)
 	{
-	  /* hairpin structure */
+	                                                 /* hairpin structure */
 	  
 	  new_state = copy_state (state);
 	  new_basepair = make_pair (i, j);
@@ -836,7 +965,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 	  
 	  else if (n1 == 0)
 	    {
-	      /* bulge */
+	                                                           /* bulge */
 	      
 	      if (!no_close_2)
 		energy = bulge[n2];
@@ -849,7 +978,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 	    }
 	  else
 	    {
-	      /* interior loop */
+	                                                   /* interior loop */
 	      
 	      if (!no_close_2)
 		{
@@ -857,8 +986,8 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 
 		  m = MIN2 (4, n1);
 		  energy += MIN2 (MAX_NINIO, (abs (n1-n2) * F_ninio[m]));
-		  /* wrong mismatches !! */
-		  energy += mismatch[S1[i]][S1[j]][S1[i+1]][S1[j-1]] +
+		                                     
+		  energy += mismatch[S1[j-1]][S1[i+1]][S1[j]][S1[i]] +
 		    mismatch[S1[p-1]][S1[q+1]][S1[p]][S1[q]];
 		}
 	      else
@@ -869,7 +998,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 
 	  if (new + best_energy <= minimal_energy + delta)
 	    {
-	      /* stack, bulge, or interior loop */
+	                                  /* stack, bulge, or interior loop */
 	      
 	      new_state = copy_state (state);
 	      new_basepair = make_pair (i, j);
@@ -882,15 +1011,15 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 	      new_state->partial_energy += energy;
 	      push (Stack, new_state);
 	    }
-	} /* end of q-loop */ 
-    } /* end of p-loop */
+	}                                                  /* end of q-loop */ 
+    }                                                      /* end of p-loop */
  
   mm = MLclosing[type];
   type = pair[S[j]][S[i]];
 
   for (k = i + 1 + TURN; k <= j - 1 - TURN; k++)
     {
-      /* multiloop decomposition */
+                                                 /* multiloop decomposition */
       
       if (dangles)
 	{
@@ -915,7 +1044,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 	  new_state->partial_energy += element_energy;
 	  push (Stack, new_state);
 	}
-    }                                                         /* end of k-loop */
+    }                                                     /* end of k-loop */
   
   best_energy -= part_energy;
   best_energy -= temp_energy;
