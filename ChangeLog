@@ -1,3 +1,18 @@
+2003-08-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* stochastic backtracking finally works. Try e.g.
+	  RNAsubopt -p 10
+
+2003-07-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add relplot.pl and rotate_ss.pl utilities for reliability
+	  annotation and rotation of rna structure plots  
+
+2003-01-29  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add RNALfold program to compute locally optimal structures with
+	  maximum pair span.
+
 2002-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* change Make_bp_profile() and profile_edit_distance() to use

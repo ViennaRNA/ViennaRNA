@@ -13,12 +13,14 @@
 #include <ctype.h>
 #include <string.h>
 #include "part_func.h"
+#include "fold.h"
 #include "fold_vars.h"
 #include "utils.h"
 #include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
+extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.8 2001/11/16 17:29:27 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.9 2003/08/04 09:14:09 ivo Exp $";
 
 #define PRIVATE static
 
@@ -137,9 +139,6 @@ int main(int argc, char *argv[])
       /* printf("| : paired with another base\n"); */
       printf(". : no constraint at all\n");
       printf("x : base must not pair\n");
-      /* printf("< : base i is paired with a base j<i\n"); */
-      /* printf("> : base i is paired with a base j>i\n"); */
-      /* printf("matching brackets ( ): base i pairs base j\n"); */
    } 
 	
    do {				/* main loop: continue until end of file */
@@ -193,6 +192,13 @@ int main(int argc, char *argv[])
 
       if (n_back>0) {
 	int i;
+	double mfe, kT;
+	char *ss;
+	st_back=1;
+	ss = (char *) space(strlen(sequence)+1);
+	mfe = fold(sequence, ss);
+	kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+	pf_scale = exp(-(1.03*mfe)/kT/length);
 	(void) pf_fold(sequence, NULL);
 	init_rand();
 	for (i=0; i<n_back; i++) {
@@ -202,9 +208,9 @@ int main(int argc, char *argv[])
 	  free(s);
 	}
 	free_pf_arrays();
+      } else {
+	subopt(sequence, structure, delta, stdout);
       }
-      subopt(sequence, structure, delta, stdout);
-      
       (void)fflush(stdout);
       
       free(sequence);
