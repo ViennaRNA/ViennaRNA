@@ -1,5 +1,7 @@
 /* Header file for utils.c */
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #include "dmalloc.h"
