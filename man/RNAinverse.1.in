@@ -4,7 +4,7 @@
 RNAINVERSE \- find RNA sequences with given secondary structure
 .SH SYNOPSIS
 .B RNAinverse [\-F[mp]] [\-R \fIrepeats\fB]] [\-v] [\-a \fIalphabet\fB]
-.B [\-f \fIfinal\fB] [\-T \fItemp\fB] [\-d] [\-4] [\-noGU] [\-noCloseGU]
+.B [\-f \fIfinal\fB] [\-T \fItemp\fB] [\-d[0|1|2|3] [\-4] [\-noGU] [\-noCloseGU]
 .B [\-P \fIparamfile\fB] [\-e \fI1|2\fP] [\-nsp \fIpairs\fP]
 .SH DESCRIPTION
 .I RNAinverse
@@ -98,7 +98,7 @@ prediction, Ann Rev Biophys Biophys Chem 17: 167-192
 .br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents version 1.2 Vienna RNA Package.
+This man page documents version 1.4 Vienna RNA Package.
 .SH AUTHOR
 Ivo L Hofacker.
 .SH BUGS
