@@ -1,0 +1,28 @@
+#ifdef  LARGE_PF
+#define FLT_OR_DBL double
+#else
+#define FLT_OR_DBL float
+#endif
+
+extern int  noGU;           /* GU not allowed at all */
+extern int  no_closingGU;   /* GU allowed only inside stacks */
+extern int  tetra_loop;     /* Fold with specially stable 4-loops */
+extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
+extern int  dangles;	    /* use dangling end energies (not in part_func!) */
+extern char *nonstandards;  /* contains allowed non standard bases */
+extern float temperature;
+
+struct bond {         /* bonding list */
+   int i;
+   int j;
+};
+            
+extern struct bond  *base_pair;
+
+extern FLT_OR_DBL *pr;          /* base pairing prob. matrix */
+extern int   *iindx;            /* pr[i,j] -> pr[iindx[i]-j] */
+extern float  pf_scale;         /* scaling factor to avoid float overflows*/
+extern int    fold_constrained;
+extern int    do_backtrack;     /* calculate pair prob matrix in part_func() */
+extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
+				   'M' seq is part of s multi loop */

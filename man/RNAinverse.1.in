@@ -1,0 +1,83 @@
+.TH RNAINVERSE l
+.ER
+.SH NAME
+RNAINVERSE \- find RNA sequences with given secondary structure
+.SH SYNOPSIS
+\fBRNAinverse [\-F[mp]] [\-R [repeats]] [\-a ALPHABET] [\-T \fItemp\fP]
+	      [-f final] [\-4] [\-noGU] [-e \fI1|2\fP] [\-d]
+.SH DESCRIPTION
+.I RNAinverse
+searches for sequences folding into  given structures, thereby
+inverting the folding algorithm. Target structures and starting
+sequences for the search are read alternately from stdin. If a "0" is 
+given instead of a starting sequence a random sequence is used. 
+The found sequences, their Hamming distance to the start sequence and,
+if the search was unsuccessful, the distance to the target structure
+are written to stdout. 
+.br
+The program will continue to read new structures and sequences until a
+line consisting of the single character @ or an end of file condition
+is encountered. 
+.SH OPTIONS
+.IP \fB\-F[mp]\fP
+Use minimum energy (-Fm), partition function fold (-Fp) or both (-Fmp).
+If \fIp\fP is specified the probability of the target structure
+exp(-E(S)/kT)/Q is maximized. This probability is written in brackets
+after the found sequence and Hamming distance. This can take along time,
+unless the -f option is used as well, see below. 
+.IP \fB\-f\ \fIfinal\fP
+In combination with -Fp stop search when sequence is found with E(s)-F is
+smaller than \fIfinal\fP, where F=-kT*ln(Q). 
+.IP \fB\-R\ \fIrepeats\fP
+Search repeatedly for the same structure. If "0" was given instead of
+a starting sequence, a new random starting sequences is used for each
+subsequent trial. If \fIrepeats\fP is negative search 
+until -\fIrepeats\fP exact solutions are found, no output is done for
+unsuccessful searches. The program will not terminate if
+the target can not be found.
+.IP \fB\-a\ \fIalphabet\fP
+Find sequences using only bases from \fIalphabet\fP.
+.IP \fB\-T\ \fItemp\fP
+Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
+.IP \fB\-4\fB
+Do not include special stabilizing energies for certain tetraloops.
+.IP \fB\-noGU\fB
+Do not allow GU pairs.
+.IP \fB\-e\ \fI1|2\fP\fB
+Fold sequences from the artificial ABCD... alphabet, where A pairs B,
+C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
+Only makes sense in conjunction with the -a option.
+.IP \fB-d\fB
+Don't give stabilizing energies to single stacked bases in free ends and 
+multiloops (dangling ends). 
+.SH REFERENCES
+The calculation of minimum free energy structures is based on dynamic
+programming algorithm originally developed by M. Zuker and P. Stiegler.
+The partition function algorithm is based on work by J.S. McCaskill.
+.br
+If this Program proves useful for your work, you might want to cite:
+.PP
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+(1994)
+Fast Folding and Comparison of RNA Secondary Structures.
+Monatshefte f. Chemie 125: 167-188
+.br
+M. Zuker, P. Stiegler (1981) Optimal computer folding of large RNA
+sequences using thermodynamic and auxiliary information, Nucl Acid Res
+9: 133-148
+.br
+J.S. McCaskill (1990) The equilibrium partition function and base pair
+binding probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
+.br
+D.H. Turner N. Sugimoto and S.M. Freier (1988) RNA structure
+prediction, Ann Rev Biophys Biophys Chem 17: 167-192
+.br
+D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
+.SH VERSION
+This man page documents RNAinverse 1.10.42  09/21/94
+.SH AUTHOR
+Ivo L Hofacker.
+.SH BUGS
+If in doubt our program is right nature is at fault.
+Comments should be sent to ivo@tbi.univie.ac.at.
+.br

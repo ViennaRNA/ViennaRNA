@@ -1,0 +1,78 @@
+.TH RNADISTANCE l
+.ER
+.SH NAME
+RNAdistance \- calculate distances of RNA secondary structures
+.SH SYNOPSIS
+\fBRNAdistance [\-D[fhwcFHWC] [\-X[p|m|f|c]] [\-S] [\-B [\fIfile\fP]]
+.SH DESCRIPTION
+.I RNAdistance
+reads RNA secondary structures from stdin and calculates one or more
+measures for their dissimilarity, based on tree editing or string
+alignment.
+It accepts structures in bracket format, where matching brackets
+symbolize base pairs and unpaired bases are represented by a dot '.',
+or coarse grained representations where hairpins, interior loops,
+bulges, multiloops, stacks and external bases are represented by
+(H), (I), (B), (M), (S), and (E), respectively. These can be optionally
+weighted. Full structures can be represented in the same fashion using
+the identifiers (U) and (P) for unpaired and paired bases, respectively.
+We call this the HIT representation (you don't want to know what this means).
+For example the following structure consists of 2 hairpins joined by
+a multiloop:
+.br
+
+  .((..(((...)))..((..)))).       full structure;
+  (U)((U2)((U3)P3)(U2)((U2)P2)P2) HIT structure;
+  ((H)(H)M)  or
+  ((((H)S)((H)S)M)S)              coarse grained structure;
+  (((((H3)S3)((H2)S2)M4)S2)E2)    weighted coarse grained.
+.br
+
+The program will continue to read new structures until a line consisting
+of the single character @ or an end of file condition is encountered.
+.SH OPTIONS
+.IP -D[fhwcFHWC]
+use the full, HIT, weighted coarse, or coarse representation to
+calculate the distance. Capital letters indicate string alignment
+otherwise tree editing is used. Any combination of distances can be
+specified. The default if 'f'.
+.IP -Xp
+compare the structures pairwise (p), that is first with 2nd, third
+with 4th etc. This is the default.
+.IP -Xm
+calculate the distance matrix between all structures. The output is
+formatted as a lower triangle matrix.
+.IP -Xf
+compare each structure to the first one.
+.IP -Xc
+compare continuously, that is i-th with (i+1)th structure.
+.IP -S
+Use the Bruce Shapiro's cost matrix for comparing coarse structures.
+.IP -B\ [file]
+Print an "alignment" with gaps of the structures, to show matching
+substructures. The aligned structures are written to \fIfile\fP, if
+specified. Otherwise output is written to stdout, unless the -Xm
+option is set in which case "backtrack.file" is used.
+.SH REFERENCES
+Shapiro B A, (1988) An algorithm for comparing multiple RNA secondary
+structures, CABIOS 4, 381-393
+.br
+Shapiro B A, Zhang K (1990) Comparing multiple RNA secondary
+structures using tree comparison, CABIOS 6, 309-318
+.br
+Fontana W, Konings D A M, Stadler P F, Schuster P, (1993)
+Statistics of RNA secondary structures, Biopolymers 33, 1389-1404
+.br
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+(1994)
+Fast Folding and Comparison of RNA Secondary Structures.
+Monatshefte f. Chemie 125, 167-188
+.SH VERSION
+This man page documents RNAdistance 1.00.42  09/21/94
+.SH AUTHORS
+Walter Fontana, Ivo L Hofacker, Peter F Stadler.
+.SH BUGS
+We hoped you wouldn't find them.
+Comments should be sent to ivo@tbi.univie.ac.at
+.br
+

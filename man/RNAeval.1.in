@@ -1,0 +1,52 @@
+.TH RNAEVAL l
+.ER
+.SH NAME
+RNAEVAL \- calculate energy of RNA sequences on given secondary structure
+.SH SYNOPSIS
+\fBRNAeval [\-T \fItemp\fP] [\-4] [-e \fI1|2\fP] [\-d]
+.SH DESCRIPTION
+.I RNAeval
+evaluates the free energy of an RNA molecule in fixed secondary
+structure. Sequences and structures are read alternately from stdin. 
+The energy in Kcal/Mol is written to stdout.
+.br
+The program will continue to read new sequences and structures until a
+line consisting of the single character @ or an end of file condition
+is encountered. 
+.SH OPTIONS
+.IP \fB\-T\ \fItemp\fP
+Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
+.IP \fB\-4\fB
+Do not include special stabilizing energies for certain tetraloops.
+.IP \fB\-e\ \fI1|2\fP\fB
+Fold sequences from the artificial ABCD... alphabet, where A pairs B,
+C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
+.IP \fB-d\fB
+Don't give stabilizing energies to single stacked bases in free ends and 
+multiloops (dangling ends).
+.SH REFERENCES
+The energy parameters are taken from:
+.br 
+Jaeger et al Proc.Nat.Acad.Sci (1989) 86, p. 7706
+.br
+He et al Biochemistry (1991) 30, p. 11124
+.PP
+If you use this program in your work you might want to cite:
+.PP
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+(1994)
+Fast Folding and Comparison of RNA Secondary Structures.
+Monatshefte f. Chemie 125: 167-188
+.br
+D.H. Turner N. Sugimoto and S.M. Freier (1988) RNA structure
+prediction, Ann Rev Biophys Biophys Chem 17: 167-192
+.br
+D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
+.SH VERSION
+This man page documents RNAeval 1.10.42  09/21/94
+.SH AUTHOR
+Ivo L Hofacker and Peter F Stadler.
+.SH BUGS
+If in doubt our program is right nature is at fault.
+Comments should be sent to ivo@tbi.univie.ac.at.
+.br

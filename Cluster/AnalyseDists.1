@@ -1,0 +1,71 @@
+.TH ANALYSEDISTS l
+.ER
+.SH NAME
+AnalyseDists \- Analyse a distance matrix 
+.SH SYNOPSIS
+\fBAnalyseDists [\-X[\fIswn\fP]]
+.SH DESCRIPTION
+.I AnalyseDists
+reads a distance matrix (given as lower triangle matrix)
+from stdin and writes a split decomposition and a cluster 
+analysis of this distance matrix to stdout.
+The line before the distance matrix must be of the form
+.br
+> Y x [comments]
+.br
+where 'x' gives the number of taxa, 'Y' is a single character that
+indicates the type of distance and 'comment' is an arbitrary comment.
+This matches the output format of, e.g., RNAdistance. 
+The input data file may contain arbitrary lines before and after the 
+distance matrix. All lines beginning with '> ' that are not of the 
+above form are written to stdout. The programm continues reading
+until it encounters an EOF condition or the terminator character '@'.
+.br
+A list of taxa names can be specified in the input stream. The list 
+must begin with a line of the form
+.br
+* [fname]
+.br
+if fname is present, it will be used to name the postscript output files.
+The entries have the form 'x : Taxon',
+where x is the number of taxon, i.e., the corresponding row and column
+of the distance matrix. The taxa list need not be complete. It must
+end however with a line beginning with '*' or any of the separator
+characters. The taxa list is printed on top of the output.
+
+.SH OPTIONS
+
+.IP \fB\-X[swn]\fI \fP
+specifies the analysis methods to be used. 
+.IP \fB[s]\fI \fP 
+Split decomposition.
+.IP \fB[w]\fI \fP 
+Cluster analysis using Ward's method. A PostScript file named '[fname_]wards.ps'
+is created containing a drawing of the tree.
+.IP \fB[n]\fI \fP
+Cluster analysis using Saitou's neighbour joining method.
+ A PostScript file named '[fname_]nj.ps' is created containing a drawing of the tree.
+
+.SH REFERENCES
+
+The method of split decomposition was proposed by H.J. Bandelt and
+A.W.M. Dress (Adv Math, 92:1992,47).
+.br
+The variance method for cluster analysis is due to H.J. Ward. 
+(J Amer Stat Ass, 58:1963,236).
+.br
+The neighbour joining method was published by Saitou and Nei
+(Mol Biol Evol, 4:1987,406).  
+.br
+This program is part of the Vienna RNA Package.
+
+.SH WARNING
+This a beta test version.
+
+.SH VERSION
+This man page documents AnalyseDists 0.42  03/29/93
+.SH AUTHOR
+Peter F Stadler and Ivo L Hofacker.
+.SH BUGS
+Comments should be sent to ivo@tbi.univie.ac.at.
+.br

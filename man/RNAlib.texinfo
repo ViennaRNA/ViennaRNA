@@ -1,0 +1,829 @@
+\input texinfo   @c -*-texinfo-*-
+@c Last changed Time-stamp: <95/08/09 14:43:21 ivo>
+@setfilename RNAlib.info
+@settitle Vienna RNA Package
+@ifinfo
+@setchapternewpage odd
+@end ifinfo
+@titlepage
+@sp 10
+@title{Vienna RNA Package}
+@sp
+@subtitle{A Library for folding and comparing RNA secondary structures}
+
+@vskip 0pt plus 1filll
+Copyright @copyright{1994} Ivo Hofacker and Peter Stadler
+@end titlepage
+
+@node Top, Folding Routines, (dir), (dir)
+@comment node-name, next,          previous, up
+
+@ifinfo
+This file documents the Vienna RNA Package Version 1.10
+
+Copyright @copyright{} 1994,1995 Ivo Hofacker and Peter Stadler
+@end ifinfo
+     
+@menu
+* Folding Routines::		Functions for Folding RNA Secondary Structures
+* Parsing and Comparing::	Functions to Manipulate Structures
+* Utilities::			Odds and Ends
+* Example::			A Small Example Program
+* References::
+* Function Index::
+* Variable Index::
+@end menu
+
+
+@node Folding Routines, Parsing and Comparing, Top, Top
+@comment  node-name,  next,  previous,  up
+@chapter  Folding Routines
+
+@menu
+* mfe Fold::     Calculate minimum free Energy Structures
+* PF Fold::      Calculate partition Functions and Pair Probabilities
+* Inverse Fold:: Search for given Structures
+* Fold Params::  Global Variables for the Folding Routines
+@end menu
+
+@node mfe Fold, PF Fold, Folding Routines, Folding Routines
+
+@section Minimum free Energy Folding
+The library provides a fast dynamic programming minimum free energy
+folding algorithm as described by M. Zuker, P. Stiegler (1981)
+(@pxref{References}). The energy parameters are taken from Freier et al.
+(1986), Jaeger et al. (1989) and He et al. (1991). If you want to try other
+energy parameters look at @code{energy_par.h} in the source files.
+Associated functions are: 
+
+@itemize @bullet
+@item
+@code{float  fold(char *sequence, char *structure)}@*
+@findex fold
+folds the @code{sequence} and returns the minimum free energy in
+Kcal/Mol; @code{structure} contains the mfe structure in bracket
+notation (@pxref{notations}). The @code{structure} have the same length as
+the @code{sequence}. If @code{fold_constrained} (@pxref{Fold Params}) is 1,
+the @code{structure} string is interpreted on input as a list of
+constraints for the folding. The characters `` | x < > `` mark bases that
+are paired, unpaired, paired upstream, or downstream, respectively;
+matching brackets `` ( ) `` denote base pairs, dots ``.'' are used for
+unconstrained bases. Constrained folding works by assigning bonus energies
+to all structures compliing with the constraint.
+
+@item
+@code{float  energy_of_struct(char *sequence, char *structure)} @*
+@findex energy_of_struct
+calculates the energy of @code{structure} on the @code{sequence}
+
+@item
+@code{void   initialize_fold(int length)} @*
+@findex initialize_fold
+allocates memory for folding sequences not longer than @code{length};
+sets up pairing matrix and energy parameters. Has to be called before
+the first call to @code{fold()}.
+
+@item
+@code{void   free_arrays(void)}@*
+@findex free_arrays
+frees the memory allocated by @code{initialize_fold}.
+
+@item
+@code{void   update_fold_params(void)}@*
+@findex update_fold_params
+call this to recalculate the pair matrix and energy parameters after a
+change in folding parameters like temperature (@pxref{Fold Params}). 
+@end itemize
+
+Prototypes for these functions are declared in @code{fold.h}.
+
+@node PF Fold, Inverse Fold, mfe Fold, Folding Routines
+@section Partition Function Folding
+
+Instead of the minimum free energy structure the partition function of
+all possible structures and from that the pairing probability for every
+possible pair can be calculated, using again a dynamic programming
+algorithm described by J.S. McCaskill (1990) (@pxref{References}). The
+following functions are provided. 
+
+@itemize @bullet
+
+@item
+@code{float pf_fold(char *sequence, char *structure)}@*
+@findex pf_fold
+calculates the partition function of @code{sequence} and returns the free
+energy of the ensemble in Kcal/Mol. If @code{structure} is not a NULL
+pointer on input, it contains on return a string consisting of the letters
+`` . , | @{ @} ( ) `` denoting bases that are essentially unpaired, weakly
+paired, strongly paired without preference, weakly upstream
+(downstream) paired, or strongly up- (down-)stream paired bases,
+respectively.
+If @code{fold_constrained} (@pxref{Fold Params}) is 1,
+the @code{structure} string is interpreted on input as a list of
+constraints for the folding. The character ``x`` marks bases that must be
+unpaired, matching brackets `` ( ) `` denote base pairs, all other
+characters are ignored. Any pairs conflicting with the constraint will be
+forbidden. This usually sufficient to ensure the constraints are honoured.
+Unless @code{do_backtrack} has been set to 0 (@pxref{Fold Params}),
+@code{pr[iindx[i]-j]} contains the probability that bases i and j pair.
+
+@item
+@code{void init_pf_fold(int length)}@*
+@findex init_pf_fold
+allocates memory for folding sequences not longer than @code{length};
+sets up pairing matrix and energy parameters. Has to be called before
+the first call to @code{pf_fold()}.
+
+@item
+@code{void free_pf_arrays(void)}@*
+@findex free_pf_arrays
+frees the memory allocated by @code{init_pf_fold()}.
+
+@item
+@code{void update_pf_params(int length)}@*
+@findex update_pf_params
+Call this function to recalculate the pair matrix and energy parameters 
+after a change in folding parameters like temperature (@pxref{Fold Params}). 
+@end itemize
+
+Prototypes for these functions are declared in @code{part_func.h}.
+
+@node Inverse Fold, Fold Params, PF Fold, Folding Routines
+@section  Inverse Folding
+
+We provide two functions that search for sequences with a given
+structure, thereby inverting the folding routines.
+
+@itemize @bullet
+@item
+@code{float inverse_fold(char *start, char *target)}@*
+@findex inverse_fold
+searches for a sequence with minimum free energy structure 
+@code{target}, starting with sequence @code{start}. It returns 0 if the
+search was successful, otherwise a structure distance to @code{target}
+is returned. The found sequence is returned in @code{start}. If @code{give_up}
+@vindex give_up
+is set to 1, the function will return as soon as it is
+clear that the search will be unsuccessful, this speeds up the algorithm
+if you are only interested in exact solutions.
+Since @code{inverse_fold()} calls @code{fold()} you have to allocate memory
+for folding by calling @code{initialize_fold()}
+
+@item
+@code{float inverse_pf_fold(char *start, char *target)}@*
+@findex inverse_pf_fold
+searches for a sequence with maximum probability to fold into structure
+@code{target} using the partition function algorithm. It returns
+-kT log(p) where p is the frequency of @code{target} in the ensemble of
+possible structures. This is usually much slower than @code{inverse_fold()}.
+Since @code{inverse_pf_fold()} calls @code{pf_fold()} you have to allocate
+memory for folding by calling @code{init_pf_fold()}
+@end itemize
+
+@vindex symbolset[]
+The global variable @code{char symbolset[]} contains the allowed bases. 
+
+Prototypes for these functions are declared in @code{inverse.h}.
+
+@node Fold Params,  , Inverse Fold, Folding Routines
+@section   Global Variables for the Folding Routines
+
+The following global variables change the behaviour the folding
+algorithms or contain additional information after folding.
+
+@itemize @bullet
+
+@item
+@code{int  noGU} @*
+@vindex noGU 
+do not allow GU pairs if equal 1; default is 0.
+
+@item
+@code{int  no_closingGU}@*
+@vindex no_closingGU
+if 1 allow GU pairs only inside stacks, not as closing pairs;
+default is 0.
+
+@item
+@code{int  tetra_loop}@*
+@vindex tetra_loop
+include special stabilising energies for some tetra loops; default is 1.
+
+@item
+@code{int  energy_set}@*
+@vindex energy_set
+if 1 or 2: fold sequences from an artificial alphabet ABCD..., where A
+pairs B, C pairs D, etc. using either GC (1) or AU parameters (2);
+default is 0.
+
+@item
+@code{float temperature}@*
+@vindex temperature
+rescale energy parameters to a temperature of @code{temperature} C.
+Default is 37C. You have to call the update@{*@}params() functions after
+changing this parameter. 
+
+@item
+@code{int dangles}
+if set to 0 no stabilizing energies are assigned to unpaired bases adjacent
+to helices in free ends and multiloops (so called dangling ends).
+Dangling ends are not treated accurately by the partition function, only if
+dangles=0 do the two algorithms use the same energy model.
+Default is 1.
+
+@item
+@code{char *nonstandards}
+If not @code{NULL} allow bases other than AU,UA,GC,CG,GU,UG to form pairs.
+The additional pairs are listed in @code{nonstandards}. For instance "GAAG"
+would allow GA and AG pairs. Nonstandard base pairs are given a stacking
+energy of 0.
+
+@item
+@code{struct bond @{ int i,j;@} *base_pair}@*
+@vindex base_pair
+Contains a list of base pairs after a call to fold().
+@code{base_pair[0].i} contains the total number of pairs.
+
+@item
+@code{float *pr}@*
+@vindex pr
+contains the base pair probability matrix after a call to pf_fold().
+
+@item
+@code{int   *iindx}@*
+@vindex iindx
+index array to move through pr. The probability for base i and j to form
+a pair is in pr[iindx[i]-j].
+
+@item
+@code{float  pf_scale}@*
+@vindex pf_scale
+a scaling factor used by pf_fold() to avoid overflows. Should be set
+to exp((F/kT)/length) where F is an estimate for the ensemble free
+energy, for example the minimum free energy. You must call
+@code{update_pf_params()} or @code{init_pf_fold()} after changing this
+parameter. If pf_scale is -1 (the default) , an estimate will be provided
+automatically when calling @code{init_pf_fold()} or
+@code{update_pf_params()}. 
+
+@item
+@code{int    fold_constrained}@*
+@vindex fold_constrained
+calculate constrained minimum free energy structures. @xref{mfe Fold},
+for more information. Default is 0;
+
+@item
+@code{int    do_backtrack}@*
+@vindex do_backtrack
+if 0, do not calculate pair probabilities in pf_fold(); this is about
+twice as fast. Default is 1.
+
+@item
+@code{char backtrack_type}@*
+@vindex backtrack_type
+only for use by inverse_fold(); 'C': force (1,N) to be paired,
+'M' fold as if the sequence were inside a multi-loop. Otherwise the
+usual mfe structure is computed.
+@end itemize
+
+include @code{fold_vars.h} if you want to change any of these variables
+form their defaults.
+
+@node Parsing and Comparing, Utilities, Folding Routines, Top
+@chapter Parsing and Comparing of Structures
+
+@menu
+* notations::			Representations of Secondary Structures.
+* Parsing::			Functions for Parsing and Coarse Graining.
+* Distances::			Distances for RNA Secondary Structures
+@end menu
+
+@node notations, Parsing, Parsing and Comparing, Parsing and Comparing
+@section Representations of Secondary Structures
+
+The most simple way to represent a secondary structure is the ``bracket
+notation'', where matching brackets symbolise base pairs and unpaired
+bases are shown as dots. Alternatively, one may use two types of node
+labels, 'P' for paired and 'U' for unpaired; a dot is then replaced by
+'(U)', and each closed bracket is assigned an additional identifier 'P'.
+We call this the expanded notation. In (Fontana et al. 1993) a condensed
+representation of the secondary 
+structure is proposed, the so-called homeomorphically irreducible tree
+(HIT) representation. Here a stack is represented as a single pair of
+matching brackets labelled 'P' and weighted by the number of base pairs.
+Correspondingly, a contiguous strain of unpaired bases is shown as one
+pair of matching brackets labelled 'U' and weighted by its length.
+Generally any string consisting of matching brackets and identifiers is
+equivalent to a plane tree with as many different types of nodes as
+there are identifiers.
+
+Bruce Shapiro (1988) proposed another representation, which, however,
+does not retain the full information of the secondary structure. He
+represents the different structure elements by single matching brackets
+and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
+(bulge), 'M' (multi-loop), and 'S' (stack). We extend his alphabet by an
+extra letter for external elements 'E'. Again these identifiers may be
+followed by a weight corresponding to the number of unpaired bases or
+base pairs in the structure element.  All tree representations (except
+for the dot-bracket form) can be encapsulated into a virtual root
+(labeled 'R'), see the example below.
+
+The following example illustrates the different linear tree representations
+used by the package. All lines show the same secondary structure.
+
+@example
+a) .((((..(((...)))..((..)))).)).
+   (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
+b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
+c) (((H)(H)M)B)
+   ((((((H)S)((H)S)M)S)B)S)
+   (((((((H)S)((H)S)M)S)B)S)E)
+d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@end example
+
+Above: Tree representations of secondary structures.  a) Full structure:
+the first line shows the more convenient condensed notation which is
+used by our programs; the second line shows the rather clumsy expanded
+notation for completeness, b) HIT structure, c) different versions of
+coarse grained structures: the second line is exactly Shapiro's
+representation, the first line is obtained by neglecting the stems.
+Since each loop is closed by a unique stem, these two lines are
+equivalent.  The third line is an extension taking into account also the
+external digits.  d) weighted coarse structure, this time including the
+virtual root.
+
+For the output of aligned structures from string editing, different
+representations are needed, where we put the label on both sides.
+The above examples for tree representations would then look like:
+
+@example
+a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
+b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
+c) (B(M(HH)(HH)M)B)
+   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
+   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
+d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@end example
+
+Aligned structures additionally contain the gap character '_'.
+
+
+@node Parsing, Distances, notations, Parsing and Comparing
+@section Parsing and Coarse Graining of Structures
+
+Several functions are provided for parsing structures and converting to
+different representations.
+
+@itemize @bullet
+@item
+@code{char  *expand_Full(char *full)}@*
+@findex expand_Full
+converts the @code{full} structure from bracket notation to the
+expanded notation including root.
+
+@item
+@code{char *b2HIT(char *full)}@*
+@findex b2HIT
+converts the @code{full} structure from bracket notation to the HIT
+notation including root.
+
+@item
+@code{char *b2C(char *full)}@*
+@findex b2C
+converts the @code{full} structure from bracket notation to the a
+coarse grained notation using the 'H' 'B' 'I' 'M' and 'R' identifiers. 
+
+@item
+@code{char *b2Shapiro(char *full)}@*
+@findex b2Shapiro
+converts the @code{full} structure from bracket notation to the
+@emph{weighted} coarse grained notation using the 'H' 'B' 'I' 'M' 'S' 'E' and
+'R' identifiers.
+
+@item
+@code{char  *expand_Shapiro(char *coarse)}@*
+@findex expand_Shapiro
+inserts missing 'S' identifiers in unweighted coarse grained structures
+as obtained from @code{b2C()}.
+
+@item
+@code{char  *add_root(char *any)}@*
+@findex add_root
+adds a root to an un-rooted tree in any except bracket notation.
+
+@item
+@code{char *unexpand_Full(char *expanded)}@*
+@findex unexpand_Full
+restores the bracket notation from an expanded full or HIT tree, that is
+any tree using only identifiers 'U' 'P' and 'R'.
+
+@item
+@code{char *unweight(char *expanded)}@*
+@findex unweight
+strip weights from any weighted tree.
+@end itemize
+
+All the above functions allocate memory for the strings they return.
+
+@itemize @bullet
+@item
+@code{void unexpand_aligned_F(char *align[2])}@*
+@findex unexpand_aligned_F
+converts two aligned structures in expanded notation as produced by
+@code{tree_edit_distance()} function back to bracket notation with '_'
+as the gap character. The result overwrites the input.
+
+@item
+@code{void parse_structure(char *full)}@*
+@findex parse_structure
+Collects a statistic of structure elements of the @code{full} structure in
+bracket notation, writing to the following global variables.
+
+@itemize -
+@item
+@code{int    loop_size[]}@*
+@vindex loop_size[]
+contains a list of all loop sizes. @code{loop_size[0]} contains the
+number of external bases.
+@item
+@code{int    loop_degree[]}@*
+@vindex loop_degree[]
+contains the corresponding list of loop degrees.
+@item
+@code{int    helix_size[]}@*
+@vindex helix_size[]
+contains a list of all stack sizes.
+@item
+@code{int    loops}@*
+@vindex loops
+contains the number of loops ( and therefore of stacks ).
+@item
+@code{int    pairs}@*
+@vindex pairs
+contains the number of base pairs in the last parsed structure.
+@item
+@code{int unpaired}@*
+@vindex unpaired
+contains the number of unpaired bases.
+@end itemize
+@end itemize
+
+Prototypes for the above functions can be found in @code{RNAstruct.h}.
+
+@node Distances,  , Parsing, Parsing and Comparing
+@section Distance Measures
+
+@menu
+* Tree Distances::		Using Tree Edit Distances to Compare Structures
+* String Distances::		Using String Alignment for Comparison
+* Profile Distances::		Comparing Pair probability Matrices
+@end menu
+
+We can now define distances between structures as edit distances between
+trees or their string representations. Given a set of edit operations
+and edit costs, the edit distance is given by the minimum sum of the
+costs along an edit path converting one object into the other. The edit
+operations used by us are insertion, deletion and replacement of nodes.
+String editing does not pay attention to the matching of brackets, while
+in tree editing matching brackets represent a single node of the tree.
+Tree editing is therefore usually preferable. String edit distances are
+always smaller or equal to tree edit distances.
+
+For full structures we use a cost of 1 for deletion or insertion of an
+unpaired base and 2 for a base pair. Replacing an unpaired base for a
+pair incurs a cost of 1.
+
+Two cost matrices are provided for coarse grained structures:
+
+@example
+/*  Null,   H,   B,   I,   M,   S,   E     */
+   @{   0,   2,   2,   2,   2,   1,   1@},   /* Null replaced */
+   @{   2,   0,   2,   2,   2, INF, INF@},   /* H    replaced */
+   @{   2,   2,   0,   1,   2, INF, INF@},   /* B    replaced */
+   @{   2,   2,   1,   0,   2, INF, INF@},   /* I    replaced */
+   @{   2,   2,   2,   2,   0, INF, INF@},   /* M    replaced */
+   @{   1, INF, INF, INF, INF,   0, INF@},   /* S    replaced */
+   @{   1, INF, INF, INF, INF, INF,   0@},   /* E    replaced */
+
+
+/*  Null,   H,   B,   I,   M,   S,   E    */
+   @{   0, 100,   5,   5,  75,   5,   5@},   /* Null replaced */
+   @{ 100,   0,   8,   8,   8, INF, INF@},   /* H    replaced */
+   @{   5,   8,   0,   3,   8, INF, INF@},   /* B    replaced */
+   @{   5,   8,   3,   0,   8, INF, INF@},   /* I    replaced */
+   @{  75,   8,   8,   8,   0, INF, INF@},   /* M    replaced */
+   @{   5, INF, INF, INF, INF,   0, INF@},   /* S    replaced */
+   @{   5, INF, INF, INF, INF, INF,   0@},   /* E    replaced */
+@end example
+
+The lower matrix uses the costs given in Shapiro (1990).
+All distance functions use the following global variables:
+
+@itemize @bullet
+@item
+@code{int   cost_matrix}@*
+@vindex cost_matrix
+if 0, use the default cost matrix (upper matrix in example); otherwise
+use Shapiro's costs (lower matrix).
+
+@item
+@code{int   edit_backtrack}@*
+@vindex edit_backtrack
+produce an alignment of the two structures being compared by
+tracing the editing path giving the minimum distance.
+
+@item
+@code{char *aligned_line[2]}@*
+@vindex aligned_line[2]
+contains the two aligned structures after a call to one of the distance
+functions with
+@code{edit_backtrack} set to 1. @xref{notations}, for
+details on the representation of structures.
+@end itemize
+
+@node Tree Distances, String Distances, Distances, Distances
+@subsection Functions for Tree Edit Distances
+
+@itemize @bullet
+@item
+@code{Tree *make_tree(char *xstruc)}@*
+@findex make_tree
+constructs a @code{Tree} ( essentially the postorder list ) of the
+structure @code{xstruc}, for use in
+@code{tree_edit_distance()}.
+@code{xstruc} may be any rooted structure representation.
+
+@item
+@code{float tree_edit_distance(Tree *T1, Tree *T2)}@*
+@findex tree_edit_distance
+calculates the edit distance of the two trees @code{T1} and @code{T2}.
+
+@item
+@code{void free_tree(Tree *t)}@*
+@findex free_tree
+frees the memory allocated for @code{t}. 
+@end itemize
+
+Prototypes for the above functions can be found in @code{treedist.h}.
+
+@node String Distances, Profile Distances, Tree Distances, Distances
+@subsection Functions for String Alignment
+@itemize @bullet
+@item
+@code{swString  *Make_swString(char *xstruc)}@*
+@findex Make_swString
+converts the structure @code{xstruc} into a format suitable for 
+@code{string_edit_distance()}.
+
+@item
+@code{float string_edit_distance(swString *T1, swString *T2)}@*
+@findex string_edit_distance
+calculates the string edit distance of @code{T1} and @code{T2}.
+@end itemize
+
+Prototypes for the above functions can be found in @code{stringdist.h}.
+
+@node Profile Distances,  , String Distances, Distances
+@subsection Functions for Comparison of Base Pair Probabilities
+
+@itemize @bullet
+@item
+@code{float  **Make_bp_profile(int length)}@*
+@findex Make_bp_profile
+reads the base pair probability matrix @code{pr} (@pxref{Fold Params})
+and calculates a profile, i.e. the probabilities of being unpaired,
+upstream, or downstream paired, respectively. The returned array is
+suitable for @code{profile_edit_distance}.
+
+@item
+@code{float    profile_edit_distance(float **T1, float **T2)}@*
+@findex profile_edit_distance
+calculates an alignment distance of the two profiles @code{T1} and @code{T2}.
+
+@item
+@code{void     free_profile(float **T)}@*
+@findex free_profile
+frees the memory allocated for the profile @code{T}.
+@end itemize
+
+Prototypes for the above functions can be found in @code{profiledist.h}.
+
+
+@node Utilities, Example, Parsing and Comparing, Top
+@chapter Utilities
+
+The following utilities are used and therefore provided by the library:
+
+@itemize @bullet
+@item
+@code{void PS_dot_plot(char *sequence, char *filename)}@*
+@findex PS_dot_plot
+reads base pair probabilities produced by @code{pf_fold()} from the
+global array @code{pr} and the pair list @code{base_pair} produced by 
+@code{fold()} and produces a postscript ``dot plot'' that is written to
+@code{filename}. The ``dot plot'' represents each base pairing
+probability by a square of corresponding area in a upper triangle
+matrix. The lower part of the matrix contains the minimum free energy
+structure.
+
+@item
+@code{void PS_rna_plot(char *sequence, char *filename)}@*
+@findex PS_rna_plot
+reads the pair list @code{base_pair} produced by @code{fold()} and
+produces a conventional secondary structure graph in postscript, and
+writes it to @code{filename}.
+
+@item
+@code{char  *random_string(int l, char *symbols)}@*
+@findex random_string
+generates a ``random'' string of characters from @code{symbols} with
+length @code{l}.
+
+@item
+@code{int    hamming(char *s1, char *s2)}@*
+@findex hamming
+returns the number of positions in which @code{s1} and @code{s2} differ,
+the so called ``Hamming'' distance.
+
+@item
+@code{char  *time_stamp()}@*
+@findex time_stamp
+returns a string containing the current date in the format
+``Fri Mar 19 21:10:57 1993''.
+
+@item
+@code{void   nrerror(char *message)}@*
+@findex nrerror
+writes @code{message} to stderr and aborts the program.
+
+@item
+@code{double urn()}@*
+@findex urn
+returns a pseudo random number in the range [0..1[, using a 48bit linear
+congruential method.
+@item
+@code{unsigned short xsubi[3]}@*
+@vindex xsubi[]
+is used by @code{urn()}. These should be set to some random number seeds
+before the first call to @code{urn()}.
+
+@item
+@code{int    int_urn(int from, int to)}@*
+@findex int_urn
+generates a pseudo random integer in the range [@code{from}, @code{to}].
+
+@item
+@code{void  *space(unsigned int size)}@*
+@findex space
+returns a pointer to @code{size} bytes of allocated and 0 initialised
+memory; aborts with an error if memory is not available.
+
+@item
+@code{char *get_line(FILE *fp)}@*
+@findex get_line
+reads a line of arbitrary length from the stream @code{*fp}, and returns
+a pointer to the resulting string. The necessary memory is allocated and
+should be released using @code{free()} when the string is no longer needed.
+@end itemize
+
+@node Example, References, Utilities, Top
+@chapter A Small Example Program
+
+This program folds two sequences using the mfe and partition function
+algorithms and calculates the tree edit and profile distance of the
+resulting structures and structure ensembles.
+
+
+@example
+#include  <stdio.h>
+#include  "utils.h"
+#include  "fold_vars.h"
+#include  "fold.h"
+#include  "part_func.h"
+#include  "inverse.h"
+#include  "RNAstruct.h"
+#include  "dist_vars.h"
+#include  "treedist.h"
+#include  "stringdist.h"
+#include  "profiledist.h"
+
+main()
+@{
+   char *seq1="CGCAGGGAUACCCGCG", *seq2="GCGCCCAUAGGGACGC",
+        *struct1, *struct2, *xstruc;
+   float e1, e2, tree_dist, string_dist, profile_dist;
+   Tree *T1, *T2;
+   swString *S1, *S2;
+   float **pf1, **pf2;
+
+   temperature = 30.;   /* set temperature *before* initialising */
+   initialize_fold(strlen(seq1)); /* must be called before calling fold() */
+
+   struct1 = (char *) space(sizeof(char)*(strlen(seq1)+1));
+   e1 =  fold(seq1, struct1);
+
+   struct2 = (char *) space(sizeof(char)*(strlen(seq2)+1));
+   e2 =  fold(seq2, struct2);
+
+   free_arrays();
+
+   xstruc = expand_Full(struct1);
+   T1 = make_tree(xstruc);
+   S1 = Make_swString(xstruc);
+   free(xstruc);
+
+   xstruc = expand_Full(struct2);
+   T2 = make_tree(xstruc);
+   S2 = Make_swString(xstruc);
+   free(xstruc);
+
+   edit_backtrack = 1;
+   tree_dist = tree_edit_distance(T1, T2);
+   free_tree(T1); free_tree(T2);
+   unexpand_aligned_F(aligned_line);  
+   printf("%s\n%s  %3.2f\n", aligned_line[0], aligned_line[1],tree_dist);
+
+   string_dist = string_edit_distance(S1, S2);
+   free(S1); free(S2);
+   printf("%s\n%s  %3.2f\n", aligned_line[0], aligned_line[1], string_dist);
+
+   init_pf_fold(strlen(seq1)); /* must be called before pf_fold() */
+   
+   e1 = pf_fold(seq1, struct1);
+   pf1 = Make_bp_profile(strlen(seq1));
+
+   e2 = pf_fold(seq2, struct2);
+   pf2 = Make_bp_profile(strlen(seq2));
+   
+   free_pf_arrays();
+
+   profile_dist = profile_edit_distance(pf1, pf2);
+
+   printf("%s\n%s  %3.2f\n", aligned_line[0], aligned_line[1], profile_dist);
+   
+   free_profile(pf1); free_profile(pf2);
+@}
+@end example
+
+
+@node References, Function Index, Example, Top
+@chapter References
+@itemize -
+@item M. Zuker, P. Stiegler (1981)@*
+   Optimal  computer  folding  of large RNA sequences using
+   thermodynamic and auxiliary information, Nucl Acid Res 9: 133-148
+
+@item J.S. McCaskill (1990)@*
+   The equilibrium partition function and base pair binding
+   probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
+
+@item D.H. Turner, N. Sugimoto and S.M. Freier (1988)@*
+   RNA structure prediction, Ann Rev Biophys Biophys Chem 17: 167-192
+
+@item J.A. Jaeger, D.H. Turner and M. Zuker (1989)@*
+   Improved predictions of secondary structures for RNA, 
+   Proc. Natl. Sci. USA 86: 7706-7710 
+
+@item L. He, R. Kierzek, J. SantaLucia, A.E. Walter and D.H. Turner (1991)@*
+   Nearest-Neighbor Parameters For GU Mismatches, 
+   Biochemisrty 30: 11124-11132
+
+@item B.A. Shapiro, (1988)@*
+   An algorithm for comparing multiple  RNA secondary structures,
+   CABIOS 4, 381-393 
+
+@item B.A. Shapiro, K. Zhang  (1990)@*
+   Comparing multiple RNA secondary structures using tree comparison,
+   CABIOS 6, 309-318 
+
+@item W. Fontana , D.A.M. Konings, P.F. Stadler, P. Schuster (1993) @*
+   Statistics of RNA secondary structures, Biopolymers 33, 1389-1404
+
+@item W. Fontana, P.F. Stadler, E.G. Bornberg-Bauer, T. Griesmacher, I.L.
+   Hofacker, M. Tacker, P. Tarazona, E.D. Weinberger, P. Schuster (1993)@*
+   RNA folding and combinatory landscapes, Phys. Rev. E 47: 2083-2099
+
+@item I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P.
+   Schuster (1994) Fast Folding and Comparison of RNA Secondary Structures.
+   Monatshefte f. Chemie 125: 167-188
+
+@item I.L. Hofacker (1994) The Rules of the Evolutionary Game for RNA:
+   A Statistical Characterization of the Sequence to Structure Mapping in RNA.
+   PhD Thesis, University of Vienna.
+
+@item D. Adams (1979) @*
+   The hitchhiker's guide to the galaxy, Pan Books, London
+@end itemize
+
+@node Function Index, Variable Index, References, Top
+
+@unnumbered Function Index
+@printindex fn
+
+@node Variable Index,  , Function Index, Top
+
+@unnumbered Variable Index
+@printindex vr
+     
+@contents
+@bye
