@@ -1,9 +1,15 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2001-10-09 18:59:47 ivo>
+# Last changed Time-stamp: <2002-04-04 18:00:13 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.
 # Input is a colour _dp.ps file from alidot (aka read_ali) or dp_zoom
 # definition: mm[i],mp[i]=number of base pairs enclosing base i
+
+sub usage {
+    die "Usage: $0 alidot.ps\n";
+}
+
+usage() if eof();
 
 print "%!PS-Adobe-2.0 EPSF-1.2
 %%Title: Mount Ali
@@ -99,3 +105,4 @@ for ($i=1; $i<=$length; $i++) { # print pairs as coloured trapezes
 }
 
 print "showpage\n";
+
