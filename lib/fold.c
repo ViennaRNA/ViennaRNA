@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <95/09/28 15:52:16 ivo> */
+/* Last changed Time-stamp: <96/01/24 18:52:24 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -156,6 +156,7 @@ float fold(char *string, char *structure)
     
    S = (short *) space(sizeof(short)*(length+2));
    S1= (short *) space(sizeof(short)*(length+2));
+   /* S1 exists only for the special X K and I bases and energy_set!=0 */
    
    for (l=1; l<=length; l++) { /* make numerical encoding of sequence */
 	 if (energy_set>0) S[l]=string[l-1]-'A'+1;
@@ -187,8 +188,8 @@ float fold(char *string, char *structure)
 
 	 /* enforcing structure constraints */
 	 if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
-	 if ((BP[i]==j)||(BP[j]==-1)||(BP[i]==-2)||(BP[j]==-3))
-	    bonus -= BONUS;
+	 if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
+	 if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
 	 if ((BP[i]==-4)||(BP[j]==-4)) bonus +=BONUS;
 	 	 
 	 no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
@@ -552,9 +553,9 @@ float fold(char *string, char *structure)
       mm = (unpaired>3) ? mismatch[S1[i]][S1[j]][S1[i+1]][S1[j-1]] : 0;
       
       bonus = 0;
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[j]==-1)||(BP[i]==-2)||(BP[j]==-3))
+      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2))
 	 bonus -= BONUS;
-
+      if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if (no_close) {
 	 if (c[indx[j]+i] == FORBIDDEN) continue;
       } else
