@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-10-22 13:40:05 ivo> */
+/* Last changed Time-stamp: <2002-07-29 21:10:25 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,15 +21,16 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAalifold.c,v 1.5 2001/10/22 11:45:37 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.6 2002/08/15 16:33:55 ivo Exp $";
 
 #define PRIVATE static
 
-static char  scale1[] = "....,....1....,....2....,....3....,....4";
-static char  scale2[] = "....,....5....,....6....,....7....,....8";
+static const char scale[] = "....,....1....,....2....,....3....,....4"
+                            "....,....5....,....6....,....7....,....8";
 
-PRIVATE void usage(void);
-PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
+PRIVATE void /*@exits@*/ usage(void);
+PRIVATE int read_clustal(FILE *clust, char /*@out@*/ *AlignedSeqs[],
+			 char /*@out@*/ *names[]);
 PRIVATE char *consensus(const char *AS[]);
 PRIVATE char *annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(const pair_info pi, FILE *file);
@@ -119,12 +120,14 @@ int main(int argc, char *argv[])
     else { /* doesn't start with '-' should be filename */ 
       if (i!=argc-1) usage();
       clust_file = fopen(argv[i], "r");
-      if (!clust_file) {
+      if (clust_file == NULL) {
 	fprintf(stderr, "can't open %s\n", argv[i]);
 	usage();
       }
+      
     }
   }
+  
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
@@ -161,10 +164,11 @@ int main(int argc, char *argv[])
 
   if (istty && (clust_file == stdin)) {
     printf("\nInput aligned sequences in clustalw format\n");
-    printf("%s%s\n", scale1, scale2);
+    printf("%s\n", scale);
   }
   
   n_seq = read_clustal(clust_file, AS, names);
+  if (clust_file != stdin) fclose(clust_file);
   if (n_seq==0)
     nrerror("no sequences found");
 
@@ -206,7 +210,7 @@ int main(int argc, char *argv[])
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
     bp = base_pair; base_pair = space(16);
-    free_arrays();  /* free's base_pair */
+    free_alifold_arrays();  /* free's base_pair */
     base_pair = bp;
   }
   if (pf) {
@@ -275,77 +279,74 @@ int main(int argc, char *argv[])
   free(base_pair);
   (void) fflush(stdout);
   free(string);
-  free(structure); 
+  free(structure);
+  for (i=0; AS[i]; i++) {
+    free(AS[i]); free(names[i]);
+  }
   return 0;
 }
 
 PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
-   char *line, workstr[100]={'\0'}, *strg;
-   int i, n, nn;
+   char *line, name[100]={'\0'}, *seq;
+   int  n, nn=0, num_seq = 0;
    
-   line=get_line(clust);
-   sscanf(line,"%99s",workstr);
-   
-   if(strncmp(workstr,"CLUSTAL", 7) !=0) {
-     fprintf(stderr,"Sorry. Expecting CLUSTAL file.\n");
-     return 0;
+   if ((line=get_line(clust)) == NULL) {
+     fprintf(stderr, "Empty CLUSTAL file\n"); return 0;
+   }
+
+   if (strncmp(line,"CLUSTAL", 7) !=0) {
+     fprintf(stderr, "This doesn't look like a CLUSTAL file, sorry\n");
+     free(line); return 0;
    }
    free(line);
-
    line = get_line(clust);
-   while (line && strlen(line)<4) {
-     free(line); /* skip empty line */
-     line = get_line(clust);
-   }
-   
-   nn=0;
-   while (((n=strlen(line))>3) && !isspace((int)line[0]) ) {
-     strg = (char *) space( (n+1)*sizeof(char) );
-     sscanf(line,"%99s %s",workstr, strg);
-     names[nn] = strdup(workstr);
-     AlignedSeqs[nn] =  strg;
-     nn++;
-     free(line);
-     line = get_line(clust);
-   }
 
-   /* ignore the consensus-line for the moment */
-   free(line);
-   line = get_line(clust);  
-
-   while(line!=NULL) { 
-     while (((n=strlen(line))<4) || isspace((int)line[0])){
-       free(line);
-       line = get_line(clust); 
+   while (line!=NULL) {
+     if (((n=strlen(line))<4) || isspace((int)line[0])) {
+       /* skip non-sequence line */
+       free(line); line = get_line(clust);
+       nn=0; /* reset seqence number */
+       continue;
      } 
      
-     nn=0;
-     while ((n>3) && !isspace((int)line[0])) {
-       strg = (char *) space( (n+1)*sizeof(char) );
-       sscanf(line,"%s %s", workstr, strg);
-       if (strcmp(workstr,names[nn])==0) {
-	 AlignedSeqs[nn] = (char *)
-	   realloc(AlignedSeqs[nn], strlen(strg)+strlen(AlignedSeqs[nn])+1);
-	 strcat(AlignedSeqs[nn],strg);   
-       } else {
-	 fprintf(stderr, "Sorry, your file is fucked up.\n");
+     seq = (char *) space( (n+1)*sizeof(char) );
+     sscanf(line,"%99s %s", name, seq);
+     if (nn == num_seq) { /* first time */
+       names[nn] = strdup(name);
+       AlignedSeqs[nn] = strdup(seq);
+     }
+     else {
+       if (strcmp(name, names[nn])!=0) {
+	 /* name doesn't match */
+	 fprintf(stderr,
+		 "Sorry, your file is fucked up (inconsitent seq-names)\n");
+	 free(line); free(seq);
 	 return 0;
        }
-       nn++;
-       free(strg);
-       free(line);
-       line = get_line(clust);
-       n = strlen(line);
+       AlignedSeqs[nn] = (char *)
+	 xrealloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
+       strcat(AlignedSeqs[nn], seq);
      }
-     /* ignore the consensus-line for the moment */
+     nn++;
+     if (nn>num_seq) num_seq = nn;
+     free(seq);
      free(line);
+     if (num_seq>=MAX_NUM_NAMES) {
+       fprintf(stderr, "Too many sequences in CLUSTAL file");
+       return 0;
+     }
+
      line = get_line(clust);
-   }   
+   }
    
-   AlignedSeqs[nn] = NULL;
+   AlignedSeqs[num_seq] = NULL;
+   if (num_seq == 0) {
+     fprintf(stderr, "No sequences found in CLSUATL file\n");
+     return 0;
+   }
    n = strlen(AlignedSeqs[0]); 
-   for (i=1; i<nn; i++) {
-     if (strlen(AlignedSeqs[i])!=n) {
+   for (nn=1; nn<num_seq; nn++) {
+     if (strlen(AlignedSeqs[nn])!=n) {
        fprintf(stderr, "Sorry, your file is fucked up.\n"
 	       "Unequal lengths!\n\n");
        return 0;
@@ -353,11 +354,11 @@ PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    }
    
    fprintf(stderr, "%d sequences; length of alignment %d.\n", nn, n);
-   return nn;
+   return num_seq;
 }
  
 void print_pi(const pair_info pi, FILE *file) {
-  char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
+  const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
   
   /* numbering starts with 1 in output */
