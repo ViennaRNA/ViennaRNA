@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-11-08 14:17:45 ivo> */
+/* Last changed Time-stamp: <2004-05-28 01:32:15 ivo> */
 /*                
 
 		  c Ivo Hofacker
@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "params.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.5 2002/11/08 19:05:19 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.6 2004/06/18 13:33:41 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -29,7 +29,7 @@ PUBLIC paramT *scale_parameters(void)
 {
   unsigned int i,j,k,l;
   double tempf;
-  if ((fabs(p.temperature - temperature)<1e-6)&&(id == p.id)) return &p;
+  /* if ((fabs(p.temperature - temperature)<1e-6)&&(id == p.id)) return &p; */
 
   tempf = ((temperature+K0)/Tmeasure);
   for (i=0; i<31; i++) 
