@@ -1,5 +1,5 @@
 /* prototypes from inverse.c */
-extern char symbolset[];    /* alphabet default is "AUGC" */
+extern char *symbolset;    /* alphabet default is "AUGC" */
 extern float inverse_fold(char *start, char *target);  
 /* find sequences with predefined structure.
    the found sequence is written to start,
