@@ -14,25 +14,28 @@
 #include  "../H/dist_vars.h"
 %}
 //
+%include typemaps.i 
 %title "Interface to the Vienna RNA library"
 %section "Folding Routines"
 %subsection "Minimum free Energy Folding"
+%apply char *BOTH {char *structure};
 %include  "../H/fold.h"
 %subsection "Partition function Folding"
 %include  "../H/part_func.h"
+%clear char *structure;
 %subsection "Inverse Folding"
 %include  "../H/inverse.h"
 %subsection "Global Variables to Modify Folding"
-extern float *pr;  /*  base pairing prob. matrix */
+extern double *pr;  /*  base pairing prob. matrix */
 %include  "../H/fold_vars.h"
 %{
-float get_pr(int i, int j) {
+double get_pr(int i, int j) {
    int ii;
   if (i>j) {ii=i; i=j; j=ii;}
   return pr[iindx[i]-j];
 }
 %}
-float get_pr(int i, int j);
+double get_pr(int i, int j);
 /* Get probability of pair i.j from the pr array */
 
 %section "Parsing and Comparing Structures"
