@@ -7,6 +7,8 @@
 #else
 /*@only@*/ /*@notnull@*/
 extern void  *space(unsigned size);           /* allocate space safely */
+/*@only@*/ /*@notnull@*/
+extern void  *xrealloc(void *p, unsigned size);
 #endif
 /*@exits@*/
 extern void   nrerror(const char message[]);  /* die with error message */

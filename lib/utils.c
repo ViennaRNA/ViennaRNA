@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-07-11 13:31:29 ivo> */
+/* Last changed Time-stamp: <2001-08-30 10:33:47 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.12 2001/07/20 11:00:54 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.13 2001/08/31 14:55:53 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -53,9 +53,30 @@ PUBLIC void *space(unsigned size) {
   }
   return  pointer;
 }
+
 #ifdef WITH_DMALLOC
 #define space(S) calloc(1,(S))
 #endif
+
+#undef xrealloc
+/* dmalloc.h #define's xrealloc */
+void *xrealloc (void *p, unsigned size) {
+  if (p == 0)
+    return space(size);
+  p = (void *) realloc(p, size);
+  if (p == NULL) {
+#ifdef EINVAL
+    if (errno==EINVAL) {
+      fprintf(stderr,"xrealloc: requested size: %d\n", size);
+      nrerror("xrealloc allocation failure -> EINVAL");
+    }
+    if (errno==ENOMEM)
+#endif
+      nrerror("xrealloc allocation failure -> no memory");  
+  }
+  return p;
+}
+
 /*------------------------------------------------------------------------*/
 
 PUBLIC void nrerror(const char message[])       /* output message upon error */
@@ -160,7 +181,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
     if (line==NULL)
       line = space(strlen(s)+1);
     else
-      line = (char *) realloc(line, strlen(s)+strlen(line)+1);
+      line = (char *) xrealloc(line, strlen(s)+strlen(line)+1);
     strcat(line, s);
   } while(cp==NULL);
   
