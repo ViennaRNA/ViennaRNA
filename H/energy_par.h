@@ -25,6 +25,8 @@ extern int dangle3_37[NBPAIRS+1][5];      /* 3' dangle */
 extern int dangle3_H[NBPAIRS+1][5];       /* corresponding enthalpies */
 extern int dangle5_H[NBPAIRS+1][5];
 
+extern int Sint2_37[NBPAIRS+1][NBPAIRS+1][5][5]; /* interior llops of length 2 */
+extern int Sint2_H[NBPAIRS+1][NBPAIRS+1][5][5];  /* corresp. enthalpies */
 
 /* constants for linearly destabilizing contributions for multi-loops
    F = ML_closing + ML_intern*(k-1) + ML_BASE*u  */
@@ -42,4 +44,7 @@ extern int F_ninio37[5];
 extern char Tetraloops[201]; /* string containing the special tetraloops */
 extern int  TETRA_ENERGY37[40];  /* Bonus energy for special tetraloops */
 extern int  TETRA_ENTH37;
+extern char Triloops[241];   /* string containing the special triloops */
+extern int  Triloop_E37[40]; /* Bonus energy for special Triloops */  
+
 extern double Tmeasure;       /* temperature of param measurements */
