@@ -1,5 +1,4 @@
-PLDIR = 
-CLDIR = 
+
 if MAKE_PERL_EXT
    PLDIR = Perl
 endif
