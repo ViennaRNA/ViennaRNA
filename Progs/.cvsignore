@@ -1,3 +1,3 @@
-RNAeval RNAheat RNApdist RNAdistance RNAfold RNAinverse RNAplot 
+RNAeval RNAheat RNApdist RNAdistance RNAfold RNAinverse RNAplot RNApaln RNAcofold RNAduplex RNAsubopt RNALfold
 .cvsignore
 Makefile.in Makefile
