@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/04 18:54:53 ivo> */
+/* Last changed Time-stamp: <97/11/05 22:24:48 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -15,7 +15,7 @@
 #include "fold.h"
 #include "utils.h"
 
-static char rcsid[] = "$Id: RNAeval.c,v 1.4 1997/11/04 17:55:37 ivo Exp $";
+static char rcsid[] = "$Id: RNAeval.c,v 1.5 1997/11/05 21:25:53 ivo Rel $";
 
 #define  PUBLIC
 #define  PRIVATE   static
@@ -25,6 +25,7 @@ char  scale[] = "....,....1....,....2....,....3....,....4"
 
 PRIVATE void usage(void);
 extern int logML;
+extern void  read_parameter_file(const char fname[]);
 
 int main(int argc, char *argv[])
 {
