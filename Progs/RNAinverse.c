@@ -1,8 +1,9 @@
 /*
-
-                   interactive access to inverse.c
+	    Interactive access to inverse folding routines
+		    c Ivo Hofacker, Peter Stadler
+			  Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/11/04 16:07:41 ivo> */
+/* Last changed Time-stamp: <97/11/04 19:30:04 ivo> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -13,10 +14,14 @@
 #include "fold.h"
 #include "part_func.h"
 #include "utils.h"
+#ifdef dmalloc
+#include  "/usr/local/include/dmalloc.h"
+#define space(X) calloc(1,(X))
+#endif
 
 #define  PUBLIC
 #define  PRIVATE   static
-static char rcsid[] = "$Id: RNAinverse.c,v 1.5 1997/11/04 15:15:30 ivo Exp $";
+static char rcsid[] = "$Id: RNAinverse.c,v 1.6 1997/11/04 18:30:26 ivo Exp $";
 static char scale[] = "....,....1....,....2....,....3....,....4"
                       "....,....5....,....6....,....7....,....8";
 
@@ -161,7 +166,7 @@ int main(int argc, char *argv[])
       if (repeat!=0) found = (repeat>0)? repeat : (-repeat);
       else found = 1;
 
-      if (mfe) initialize_fold(length2);
+      initialize_fold(length2);
 
       while(found>0){
 	 if (rstart) {
@@ -207,7 +212,7 @@ int main(int argc, char *argv[])
 	 }
 	 fflush(stdout);
       }
-      if (mfe) free_arrays();
+      free_arrays();
 
       free(string);
       free(structure);
