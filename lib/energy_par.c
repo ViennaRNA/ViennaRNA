@@ -1,6 +1,12 @@
 /* 
-    Current energy set taken from:
+    Current energy set summarized in:
   
+    A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
+    "Coaxial stckaing of helices enhances binding of oligoribonucleotides.."
+    PNAS, 91, pp 9218-9222, 1994
+
+    For more detail see e.g.:
+    
     D.H. Turner, N. Sugimoto, and S.M. Freier.
     "RNA Structure Prediction",
     Ann. Rev. Biophys. Biophys. Chem. 17, 167-192, 1988.
@@ -9,26 +15,19 @@
     "Improved predictions of secondary structures for RNA",
     PNAS, 86, 7706-7710, October 1989.
     
-    GU stacking energies from:
     L. He, R. Kierzek, J. SantaLucia, A.E. Walter, D.H. Turner
     "Nearest-Neughbor Parameters for GU Mismatches...."
     Biochemistry 1991, 30 11124-11132
 
-    asymetry corrections:
     A.E. Peritz, R. Kierzek, N, Sugimoto, D.H. Turner
     "Thermodynamic Study of Internal Loops in Oligoribonucleotides..."
     Biochemistry 1991, 30, 6428--6435
 
-    See also:
-    A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
-    "Coaxial stckaing of helices enhances binding of oligoribonucleotides.."
-    PNAS, 91, pp 9218-9222, 1994
-
-    Unpublished parameters taken from mfold-2.3
+    
 */
 
 #include "energy_const.h"
-static char rcsid[] = "$Id: energy_par.c,v 1.1 1997/10/27 13:22:33 ivo Exp $";
+static char rcsid[] = "$Id: energy_par.c,v 1.2 1997/11/05 14:38:04 ivo Rel $";
 
 #define NST 0     /* Energy for nonstandard stacked pairs */
 #define DEF -50   /* Default terminal mismatch, used for I */
@@ -99,7 +98,8 @@ PUBLIC int internal_loop37[31] = {
    INF, INF, 410, 510, 490, 530, 570, 587, 601, 614, 625,
         635, 645, 653, 661, 669, 676, 682, 688, 694, 700,
         705, 710, 715, 720, 724, 728, 732, 736, 740, 744};
-
+/* energy of size 2 internal loop if using James' rule */
+PUBLIC int internal2_energy = 80;  
 
 /* terminal mismatches */
 /* internal loops, free energies at 37C */
@@ -349,7 +349,7 @@ PUBLIC int F_ninio37[5] = { 0, 40, 30, 20, 10 };      /* not used anymore */
 
 /* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
 
-PUBLIC char Tetraloops[200] =
+PUBLIC char Tetraloops[201] =  /* place for up to 40 tetra loops */
 "GAAA "
 "GCAA "
 "GAGA "
@@ -364,5 +364,8 @@ PUBLIC char Tetraloops[200] =
 "AUUU "
 "UUUA ";
 
-PUBLIC int   TETRA_ENERGY37 = -200;
+PUBLIC int   TETRA_ENERGY37[40] = {
+  -200, -200, -200, -200, -200, -200, -200, -200, -200, -200,
+  -200, -200, -200 }; 
 PUBLIC int   TETRA_ENTH37   = -400;
+
