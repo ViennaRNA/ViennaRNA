@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-07-07 16:45:23 ivo> */
+/* Last changed Time-stamp: <1999-02-27 18:37:37 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,7 +16,9 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAfold.c,v 1.9 1998/07/19 16:15:49 ivo Exp $";
+extern void  read_parameter_file(const char fname[]);
+
+static char rcsid[] = "$Id: RNAfold.c,v 1.10 1999/05/06 09:52:29 ivo Exp $";
 
 #define PRIVATE static
 
