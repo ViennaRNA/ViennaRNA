@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/03 17:41:33 ivo> */
+/* Last changed Time-stamp: <1998-03-31 17:51:36 ivo> */
 /*                
 	    partiton function for RNA secondary structures
 
@@ -7,12 +7,6 @@
 			 and Peter F Stadler
 			  Vienna RNA package
 */
-
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
-#else
-#define FLT_OR_DBL float
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +18,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: part_func.c,v 1.3 1997/11/03 17:05:33 ivo Rel $";
+static char rcsid[] = "$Id: part_func.c,v 1.4 1998/03/31 15:53:31 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
