@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-11-06 17:25:21 ivo> */
+/* Last changed Time-stamp: <2002-12-12 12:51:44 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.26 2002/11/07 11:48:06 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.27 2002/12/13 17:26:20 ivo Exp $";
 
 #define PAREN
 
@@ -1110,7 +1110,8 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   int mlintern[NBPAIRS+1], mlclosing, mlbase;
 
   if (is_extloop) {
-    for (x = 0; x <= NBPAIRS+1; x++) mlintern[x] = P->MLintern[x]-P->MLintern[1];
+    for (x = 0; x <= NBPAIRS+1; x++)
+      mlintern[x] = P->MLintern[x]-P->MLintern[1]; /* 0 or TerminalAU */
     mlclosing = mlbase = 0; 
   } else {
     for (x = 0; x <= NBPAIRS+1; x++) mlintern[x] = P->MLintern[x];
@@ -1159,7 +1160,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
       
       if (dangles) {
         int dang5=0, dang3=0, dang;
-	if ((SAME_STRAND(p-1,p))&&(p))
+	if ((SAME_STRAND(p-1,p))&&(p>1))
 	  dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
 	if ((SAME_STRAND(i1,i1+1))&&(i1<S[0]))
 	  dang3 = P->dangle3[type][S1[i1+1]];   /* 3' dangle of previous pair */
@@ -1246,10 +1247,10 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   int n,i,j,k,l;
   
   n=S[0];
-  for (k=1; k<n-TURN-1; k++) 
+  for (k=1; k<n-TURN; k++) 
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l;
+      i=k; j = i+TURN+l; if (j>n) continue;
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
         if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
