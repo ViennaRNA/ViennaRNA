@@ -3,7 +3,8 @@
 .SH NAME
 RNAplot \- Draw RNA Secondary Structures
 .SH SYNOPSIS
-\fBRNAplot [\-t\ \fI0|1\fP] [\-o\ \fIps|gml|xrna|svg\fP]
+\fBRNAplot [\-t\ \fI0|1\fP] [\-o\ \fIps|gml|xrna|svg\fP] 
+[\--pre\ \fIstring\fP] [\--post \fIstring\fP] 
 
 .SH DESCRIPTION
 .I RNAplot
@@ -32,6 +33,12 @@ Specify output format. Available formats are: PostScript (ps), Graph
 Meta Language (gml), Scalage Vector Graphics (svg), and XRNA save file
 (xrna). Output filenames will end in '.ps' '.gml' '.svg' '.ss',
 respectively. Default is ps.
+.TP
+.B \--pre \fIstring\fP   \--post \fIstring\fP
+Add annotation macros to postscript file, and add the postscript code
+in 'string' just before (--pre) or after (--post) the code to draw the
+structure. This is an easy way to add annotation, e.g to mark position
+15 with circle use \--post "15 cmark" 
 
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
