@@ -3,13 +3,16 @@
 .SH NAME
 RNAdistance \- calculate distances of RNA secondary structures
 .SH SYNOPSIS
-\fBRNAdistance [\-D[fhwcFHWC] [\-X[p|m|f|c]] [\-S] [\-B [\fIfile\fP]]
+\fBRNAdistance [\-D[fhwcFHWCP] [\-X[p|m|f|c]] [\-S] [\-B [\fIfile\fP]]
 .SH DESCRIPTION
 .I RNAdistance
 reads RNA secondary structures from stdin and calculates one or more
-measures for their dissimilarity, based on tree editing or string
-alignment.
-It accepts structures in bracket format, where matching brackets
+measures for their dissimilarity, based on tree or string editing
+(alignment). In addition it calculates a "base pair distance" given by the
+number of base pairs present in one structure, but not the other. For
+structures of different length base pair distance is not recommended.
+
+RNAdistance accepts structures in bracket format, where matching brackets
 symbolize base pairs and unpaired bases are represented by a dot '.',
 or coarse grained representations where hairpins, interior loops,
 bulges, multiloops, stacks and external bases are represented by
@@ -33,11 +36,11 @@ of the single character @ or an end of file condition is encountered. Input
 lines neither containing a valid structure nor starting with > are ignored.
 
 .SH OPTIONS
-.IP -D[fhwcFHWC]
+.IP -D[fhwcFHWCP]
 use the full, HIT, weighted coarse, or coarse representation to
 calculate the distance. Capital letters indicate string alignment
 otherwise tree editing is used. Any combination of distances can be
-specified. The default if 'f'.
+specified. \fB-DP\fP selects the base pair distance. The default if 'f'.
 .IP -Xp
 compare the structures pairwise (p), that is first with 2nd, third
 with 4th etc. This is the default.
