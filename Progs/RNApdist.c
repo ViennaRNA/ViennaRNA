@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <ctype.h>
-#include <malloc.h>
 #include <errno.h>
 #include <string.h>
 #include "part_func.h"
@@ -21,7 +20,7 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 
-static char rcsid[] = "$Id: RNApdist.c,v 1.3 1997/11/06 17:40:46 ivo Rel $";
+static char rcsid[] = "$Id: RNApdist.c,v 1.4 1998/07/19 16:16:30 ivo Exp $";
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
@@ -211,7 +210,8 @@ PRIVATE void command_line(int argc, char *argv[])
 	  case 'n':
             if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
             if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
-            if ( strcmp(argv[i], "-nsp") ==0) {
+       	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
+	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
               r=sscanf(argv[++i], "%32s", ns_bases);
               if (!r) usage();
@@ -271,7 +271,7 @@ PRIVATE void command_line(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage: RNApdist [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
-	  "                [-noCloseGU] [-e e_set] [-P paramfile] [-nsp pairs]");
+	  "                [-noCloseGU] [-noLP] [-e e_set] [-P paramfile] [-nsp pairs]");
 }
 
 /*--------------------------------------------------------------------------*/
