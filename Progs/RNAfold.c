@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <96/10/07 12:10:40 ivo> */
+/* Last changed Time-stamp: <97/07/28 20:48:07 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -14,6 +14,7 @@
 #include "fold.h"
 #include "part_func.h"
 #include "fold_vars.h"
+#include "PS_dot.h"
 #include "utils.h"
 
 #define PRIVATE static
@@ -21,8 +22,6 @@
 static char  scale1[] = "....,....1....,....2....,....3....,....4";
 static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
-extern void PS_rna_plot(char *string, char *file);
-extern void PS_dot_plot(char *string, char *file);
 PRIVATE void usage(void);
 
 static struct bond  *bp, *bpp;
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
 	 strcat(ffname, "_ss.ps");
       } else
 	 strcpy(ffname, "rna.ps");
-      PS_rna_plot(string, ffname);
+      PS_rna_plot(string, structure, ffname);
       bp = base_pair;
       bpp= space(16);
       base_pair=bpp;
