@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-09-24 11:17:15 ivo> */
+/* Last changed Time-stamp: <2004-10-01 15:03:15 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.30 2004/09/24 09:17:39 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.31 2004/10/01 13:04:52 ivo Exp $";
 
 #define PAREN
 
@@ -1010,7 +1010,7 @@ int energy_of_struct_pt(const char *string, short * ptable,
     energy += stack_energy(i, string);          
     i=pair_table[i];
   }
-  for (i=1; SAME_STRAND(1,i); i++) {
+  for (i=1; !SAME_STRAND(i,length); i++) {
     if (!SAME_STRAND(i,pair_table[i])) {
       energy+=P->DuplexInit;
       break;
