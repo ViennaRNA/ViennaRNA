@@ -16,7 +16,7 @@
 #include "/usr/local/include/dmalloc.h"
 #define space(S) calloc(1,(S))
 #endif
-static char rcsid[] = "$Id: PS_dot.c,v 1.5 1997/11/03 19:16:18 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.6 1997/11/06 17:13:12 ivo Rel $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -347,7 +347,7 @@ void PS_dot_plot(char *string, char *wastlfile)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC short *make_pair_table(char *structure)
+PRIVATE short *make_pair_table(char *structure)
 {
    int i,j,hx;
    int length;
