@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-01-29 11:39:42 ivo> */
+/* Last changed Time-stamp: <2004-02-05 15:29:47 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -21,7 +21,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAcofold.c,v 1.1 2003/01/29 15:24:07 ivo Exp $";
+static char rcsid[] = "$Id: RNAcofold.c,v 1.2 2004/02/09 16:52:51 ivo Exp $";
 
 #define PRIVATE static
 
@@ -163,8 +163,13 @@ int main(int argc, char *argv[])
     length = (int) strlen(string);
 
     structure = (char *) space((unsigned) length+1);
-    if (fold_constrained) 
+    if (fold_constrained) { 
       cstruc = tokenize(get_line(stdin));
+      if (cstruc!=NULL)
+        strncpy(structure, cstruc, length);
+      else
+        fprintf(stderr, "constraints missing\n");
+    }
     
     for (l = 0; l < length; l++) {
       string[l] = toupper(string[l]);
