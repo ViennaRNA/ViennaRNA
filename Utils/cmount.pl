@@ -49,7 +49,7 @@ while (<>) {
 
     ($i, $j, $p, $h, $s, $tok) = split;
 
-    if ($tok eq "ubox") { # only read ubox entries ( should it be only lbox?)
+    if ($tok eq "lbox") { # only read lbox entries
 	$mp[$i+1]+=$p*$p; 
 	$mp[$j]  -=$p*$p;
 	$pair[$i] = $j;
