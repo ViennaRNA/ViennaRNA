@@ -3,7 +3,7 @@
 .SH NAME
 RNAfold \- calculate secondary structures of RNAs
 .SH SYNOPSIS
-\fBRNAfold [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[2]] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
+\fBRNAfold [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
 
 .SH DESCRIPTION
 .I RNAfold
@@ -53,28 +53,36 @@ x (the base is unpaired)
 < (base i is paired with a base j>i)
 > (base i is paired with a base j<i)
 and matching brackets ( ) (base i pairs base j)
-Pf folding ignores constraints of type "|" "<" and ">", but disallow all
-pairs conflicting with a constraint of type "x" or "( )". This is usually
-sufficient to enforce the constraint.
+With the exception of "|", constraints will disallow all pairs conflicting
+with the constraint. This is usually sufficient to enforce the constraint,
+but occasionally a base may stay unpaired in spite of constraints. PF
+folding ignores constraints of type "|".
 .TP
 .B \-T\ \fItemp\fP
 Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
 .TP
 .B \-4
-Do not include special stabilizing energies for certain tetraloops.
+Do not include special stabilizing energies for certain tetraloops. Mostly
+for tesing.
 .TP
-.B \-d[2]
+.B \-d[0|1|2|3]
 How to treat "dangling end" energies for bases adjacent to helices in free
-ends and multiloops: Normally only unpaired bases can participate in at
-most one dangling end. With \fB-d2\fP this check is ignored, this is the
-default for partition function folding (-p). \fB-d\fP ignores dangling ends
-altogether. Note that by default pf and mfe folding treat dangling ends
-differently, use -d2 (or -d) in addition to -p to ensure that both
-algorithms use the same energy model.  
+ends and multiloops: Normally (-d1) only unpaired bases can participate in
+at most one dangling end. With \fB-d2\fP this check is ignored, this is the
+default for partition function folding (-p). \fB-d\fP or \FB-d0\fP ignores
+dangling ends altogether. Note that by default pf and mfe folding treat
+dangling ends differently, use -d2 in addition to -p to ensure that
+both algorithms use the same energy model.
+.br
+With \fB-d3\fP mfe folding will allow coaxial stacking of adjacent helices
+in multi-loops. At the moment the implementation will not allow coaxial
+stacking of the two interior pairs in a loop of degree 3. PF folding will
+work as with \fB-d2\fP.
 .TP
 .B \-noLP
-Avoid lonely pairs (helices of length 1). This works by disallowing pairs
-that can \fBonly\fP occur isolated. Other pairs may still occasionally
+Produce structures without lonely pairs (helices of length 1). 
+For partition function folding this only disallows pairs that can 
+\fBonly\fP occur isolated. Other pairs may still occasionally 
 occur as helices of length 1.
 .TP
 .B \-noGU
@@ -113,6 +121,11 @@ programming algorithm originally developed by M. Zuker and P. Stiegler.
 The partition function algorithm is based on work by J.S. McCaskill.
 The energy parameters are taken from:
 .br
+D.H. Mathews, J. Sabina, M. Zucker and H. Turner
+"Expanded Sequence Dependence of Thermodynamic Parameters Provides 
+Robust Prediction of RNA Secondary Structure"
+JMB, 288, pp 911-940, 1999
+.br
 A. Walter, D Turner, J Kim, M Lyttle, P Müller, D Mathews, M Zuker
 "Coaxial stacking of helices enhances binding of oligoribonucleotides.."
 PNAS, 91, pp 9218-9222, 1994
@@ -131,12 +144,9 @@ sequences using thermodynamic and auxiliary information, Nucl Acid Res
 J.S. McCaskill (1990) The equilibrium partition function and base pair
 binding probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
 .br
-D.H. Turner N. Sugimoto and S.M. Freier (1988) RNA structure
-prediction, Ann Rev Biophys Biophys Chem 17: 167-192
-.br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents version 1.2 Vienna RNA Package.
+This man page documents version 1.4 Vienna RNA Package.
 .SH AUTHORS
 Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.
 .SH BUGS
