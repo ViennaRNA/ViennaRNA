@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2000-10-05 10:14:16 ivo> */
+/* Last changed Time-stamp: <2002-11-06 17:09:27 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -28,20 +28,17 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: inverse.c,v 1.10 2000/10/05 08:42:22 ivo Rel $";
+static char rcsid[] = "$Id: inverse.c,v 1.11 2002/11/07 11:48:07 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
-PRIVATE double  adaptive_walk(char *start, char *target);
+PRIVATE double  adaptive_walk(char *start, const char *target);
 PRIVATE void   shuffle(int *list, int len);
-PRIVATE void   make_start(char* start, char *structure);
-PRIVATE void   make_ptable(char *structure, int *table);
+PRIVATE void   make_start(char* start, const char *structure);
+PRIVATE void   make_ptable(const char *structure, int *table);
 PRIVATE void   make_pairset(void);
-PRIVATE double  mfe_cost(char *, char*, char *);
-PRIVATE double  pf_cost(char *, char *, char *);
-PRIVATE char  *aux_struct( char* structure );
-#if 0
-PRIVATE int    bp_distance(char *str1, char *str2);
-#endif
+PRIVATE double  mfe_cost(const char *, char*, const char *);
+PRIVATE double  pf_cost(const char *, char *, const char *);
+PRIVATE char  *aux_struct(const char* structure );
 
 /* for backward compatibility, make sure symbolset can hold 20 characters */
 PRIVATE char   default_alpha[21] = "AUGC"; 
@@ -61,7 +58,7 @@ PRIVATE Tree *T0;
 #endif
 PRIVATE double cost2;
 
-PRIVATE double adaptive_walk(char *start, char *target)
+PRIVATE double adaptive_walk(char *start, const char *target)
 {
 #ifdef DUMMY
    printf("%s\n%s %c\n", start, target, backtrack_type ); 
@@ -75,7 +72,7 @@ PRIVATE double adaptive_walk(char *start, char *target)
    int *target_table, *test_table;
    char cont;
    double cost, current_cost, ccost2;
-   double (*cost_function)(char *, char *, char *);
+   double (*cost_function)(const char *, char *, const char *);
 
    len = strlen(start);
    if (strlen(target)!=len) {
@@ -245,7 +242,7 @@ PRIVATE void shuffle(int *list, int len)
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void make_ptable(char *structure, int *table)
+PRIVATE void make_ptable(const char *structure, int *table)
 {
    int i,j,hx;
    int *stack;
@@ -383,7 +380,7 @@ PUBLIC float inverse_pf_fold(char *start, char *target)
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void make_start(char* start, char *structure)
+PRIVATE void make_start(char* start, const char *structure)
 {
    int i,j,k,l,r,length;
    int *table, *S, sym[MAXALPHA], ss;
@@ -445,7 +442,7 @@ PRIVATE void make_pairset(void)
 }
 /*---------------------------------------------------------------------------*/
 
-PRIVATE double mfe_cost(char *string, char *structure, char *target)
+PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
 {
 #if TDIST
    Tree *T1;
@@ -478,7 +475,7 @@ PRIVATE double mfe_cost(char *string, char *structure, char *target)
 }
 /*---------------------------------------------------------------------------*/
 
-PRIVATE double pf_cost(char *string, char *structure, char *target)
+PRIVATE double pf_cost(const char *string, char *structure, const char *target)
 {
 #if PF
    double  f, e;
@@ -494,7 +491,7 @@ PRIVATE double pf_cost(char *string, char *structure, char *target)
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE char *aux_struct( char* structure )
+PRIVATE char *aux_struct(const char* structure )
 {  
    int       *match_paren;
    int          i, o, p;

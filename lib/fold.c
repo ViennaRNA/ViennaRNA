@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-01-22 11:09:19 ivo> */
+/* Last changed Time-stamp: <2002-11-06 17:25:21 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.25 2002/10/29 12:56:55 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.26 2002/11/07 11:48:06 ivo Exp $";
 
 #define PAREN
 
@@ -33,9 +33,9 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.25 2002/10/29 12:56:55 ivo Exp $";
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 
-PUBLIC float  fold(char *string, char *structure);
-PUBLIC float  energy_of_struct(char *string, char *structure);
-PUBLIC int    energy_of_struct_pt(char *string, short *ptable,
+PUBLIC float  fold(const char *string, char *structure);
+PUBLIC float  energy_of_struct(const char *string, const char *structure);
+PUBLIC int    energy_of_struct_pt(const char *string, short *ptable,
 				  short *s, short *s1);
 PUBLIC void   free_arrays(void);
 PUBLIC void   initialize_fold(int length);
@@ -49,12 +49,12 @@ PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
-PRIVATE int   stack_energy(int i, char *string);
+PRIVATE int   stack_energy(int i, const char *string);
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  encode_seq(char *sequence);
-PRIVATE void backtrack(char *sequence);
-PRIVATE int fill_arrays(char *sequence);
+PRIVATE void  encode_seq(const char *sequence);
+PRIVATE void backtrack(const char *sequence);
+PRIVATE int fill_arrays(const char *sequence);
 /*@unused@*/
 inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 inline int  LoopEnergy(int n1, int n2, int type, int type_2,
@@ -83,7 +83,6 @@ PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE char  *ptype;   /* precomputed array of pair types */ 
 PRIVATE short  *S, *S1;
-PRIVATE short  *pair_table;
 PRIVATE int   init_length=-1;
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -162,7 +161,7 @@ PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
 			-4: x = base must not pair
 			positive int: base is paired with int      */
 
-float fold(char *string, char *structure) {
+float fold(const char *string, char *structure) {
   int i, length, energy, bonus=0, bonus_cnt=0;
   
   length = (int) strlen(string);
@@ -216,7 +215,7 @@ float fold(char *string, char *structure) {
     return (float) energy/100.;
 }
 
-PRIVATE int fill_arrays(char *string) {
+PRIVATE int fill_arrays(const char *string) {
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
@@ -467,7 +466,7 @@ PRIVATE int fill_arrays(char *string) {
   return f5[length];
 }
 
-PRIVATE void backtrack(char *string) {
+PRIVATE void backtrack(const char *string) {
    
   /*------------------------------------------------------------------
     trace back through the "c", "f5" and "fML" arrays to get the
@@ -895,7 +894,7 @@ inline int LoopEnergy(int n1, int n2, int type, int type_2,
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void encode_seq(char *sequence) {
+PRIVATE void encode_seq(const char *sequence) {
   unsigned int i,l;
 
   l = strlen(sequence);
@@ -964,8 +963,9 @@ PUBLIC void update_fold_params(void)
 }
 
 /*---------------------------------------------------------------------------*/
+PRIVATE short  *pair_table;
 
-float energy_of_struct(char *string, char *structure)
+float energy_of_struct(const char *string, const char *structure)
 {
   int   energy;
   short *ss, *ss1;
@@ -990,7 +990,8 @@ float energy_of_struct(char *string, char *structure)
   return  (float) energy/100.;
 }
 
-int energy_of_struct_pt(char *string, short * ptable, short *s, short *s1) {
+int energy_of_struct_pt(const char *string, short * ptable,
+			short *s, short *s1) {
   /* auxiliary function for kinfold,
      for most purposes call energy_of_struct instead */
   
@@ -1014,7 +1015,7 @@ int energy_of_struct_pt(char *string, short * ptable, short *s, short *s1) {
 }
 
 /*---------------------------------------------------------------------------*/
-PRIVATE int stack_energy(int i, char *string)  
+PRIVATE int stack_energy(int i, const char *string)  
 {
   /* calculate energy of substructure enclosed by (i,j) */
   int ee, energy = 0;

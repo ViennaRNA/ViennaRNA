@@ -23,7 +23,7 @@ extern /*@only@*/ /*@notnull@*/ char  *random_string(int l, const char symbols[]
 /* random string of length l using characters from symbols[] */
 extern int    hamming(const char *s1, const char *s2);
 /* calculate hamming distance */
-extern /*@only@*/ /*@null@*/ char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
+extern /*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
 
 
 extern char *pack_structure(const char *struc);

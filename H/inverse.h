@@ -1,13 +1,13 @@
 /* prototypes from inverse.c */
 extern char *symbolset;    /* alphabet default is "AUGC" */
-extern float inverse_fold(char *start, char *target);  
+extern float inverse_fold(char *start, const char *target);  
 /* find sequences with predefined structure.
    the found sequence is written to start,
    return value is
       energy_of_struct(start, target) - fold(start, structure),
    i.e. 0. if search was successful; */
    
-extern float inverse_pf_fold(char *start, char *target);
+extern float inverse_pf_fold(char *start, const char *target);
 /*  inverse folding maximising the frequency of target in the
     ensemble of structures, final sequence is written to start, returns 
        energy_of_struct(start, target) - part_func(start, structure)
