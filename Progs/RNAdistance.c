@@ -4,6 +4,7 @@
 			  Vienna RNA Package
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
 #include <malloc.h>
@@ -19,7 +20,7 @@
 
 #define PUBLIC
 #define PRIVATE     static
-
+static char rcsid[] = "$Id:";
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);
@@ -31,10 +32,6 @@ PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 PRIVATE int types=1; 
 PRIVATE int task; 
-PRIVATE int full; 
-PRIVATE int hit;
-PRIVATE int weighted; 
-PRIVATE int coarse;
 PRIVATE int taxa_list;
 PRIVATE char outfile[50], *list_title;
 
@@ -324,8 +321,7 @@ PRIVATE int parse_input(char *line)
 	 printf("%s\n", line);
 	 return 0;
       } else {
-	 list_title = (char *) space(strlen(line));
-	 strcpy(list_title, line);
+	 list_title = strdup(line);
 	 return 888;
       }
    }
@@ -480,7 +476,6 @@ PRIVATE void command_line(int argc, char *argv[])
 {
    int i,j;
    
-   full=1; hit=coarse=0;
    edit_backtrack = 0;
    types=1; ttype[0]='f'; task=1;
    
@@ -488,18 +483,8 @@ PRIVATE void command_line(int argc, char *argv[])
       if (argv[i][0]=='-')
 	 switch (argv[i][1]) {
 	  case 'D':
-	    full=0; types=0;
-	    for (j=2; j<strlen(argv[i]); j++)
-	       switch (argv[i][j]) {
-		case 'f': full=1; ttype[types++]='f'; break;
-		case 'h': hit=1; ttype[types++]='h'; break;
-		case 'w': weighted=1; ttype[types++]='w'; break;
-		case 'c': coarse=1; ttype[types++]='c'; break;
-                case 'F': full=1; ttype[types++]='F'; break;
-		case 'H': hit=1; ttype[types++]='H'; break;
-		case 'W': weighted=1; ttype[types++]='W'; break;
-		case 'C': coarse=1; ttype[types++]='C'; break;
-	       }
+	    strncpy(ttype, argv[i]+2, 9);
+	    types=strlen(ttype);
 	    break;
 	  case 'X':
 	    switch (argv[i][2]) {
@@ -518,7 +503,7 @@ PRIVATE void command_line(int argc, char *argv[])
             else if (argv[i+1][0]=='-') outfile[0] = '\0';
             else {
                i++;
-               strcpy(outfile,argv[i]);
+               strncpy(outfile,argv[i],49);
             }
             edit_backtrack = 1;   
 	    break;
