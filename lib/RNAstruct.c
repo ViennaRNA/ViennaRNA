@@ -3,7 +3,7 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/11/04 20:03:16 ivo> */
+/* Last changed Time-stamp: <97/11/05 14:55:26 ivo> */
 
 
 #include <stdio.h>
@@ -11,14 +11,17 @@
 #include <string.h>
 #include <ctype.h>
 #include "utils.h"
-
+#ifdef dmalloc
+#include  "/usr/local/include/dmalloc.h"
+#define space(X) calloc(1,(X))
+#endif
 #define PRIVATE  static
 #define PUBLIC
 
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.2 1997/11/04 19:05:59 ivo Exp $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.3 1997/11/05 14:03:29 ivo Rel $";
 
 PUBLIC char *b2HIT(char *structure);             /* Full   -> HIT    [incl. root]         */
 PUBLIC char *b2C(char *structure);               /* Full   -> Coarse [incl. root]         */
@@ -152,8 +155,8 @@ PUBLIC char *b2C( char *structure )
    int    i, lp, p, l;
    char  *string, *Coarse, *temp;
 
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    temp = (char *) space(4*strlen(structure)+1);
    
    for (i = 0; i < STRUC; i++) {
@@ -225,8 +228,8 @@ PUBLIC char *b2Shapiro( char *structure )
    int            i, lp, p, l, k;
    char          *string, *Shapiro, *temp, tt[10];
 
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    temp = (char *) space(4*strlen(structure)+1);
    
    for (i = 0; i < STRUC; i++) {
@@ -332,8 +335,8 @@ PUBLIC void parse_structure(char *structure)
    char          *string, *temp;
 
    temp = (char *)  space(strlen(structure)*4+1);
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
 
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
