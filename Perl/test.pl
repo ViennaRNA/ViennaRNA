@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2003-02-03 18:28:39 ivo>
+# Last changed Time-stamp: <2004-09-23 19:37:39 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN {  plan tests => 14; }
+BEGIN {  plan tests => 19; }
 
 use RNA;
 use warnings;
@@ -39,9 +39,22 @@ ok($struct, $struc1);
 # new better interface
 ($struct, $mfe) = RNA::fold($seq1);
 ok($struct eq $struc1);
-
 # check energy
 ok(RNA::energy_of_struct($seq1,$struc1), $mfe);
+
+# check constrained folding
+$RNA::fold_constrained = 1;
+my($struct3, $cmfe) = RNA::fold($seq1, '....xx....xx...');
+ok($struct3, '(((..........)))');
+ok(RNA::energy_of_struct($seq1,$struct3), $cmfe);
+$RNA::fold_constrained = 0;
+
+# test cofold
+$RNA::cut_point = length($seq1)+1;
+my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
+ok($costruct, '(((.((....)).)))((((((...))).)))');
+ok(RNA::energy_of_struct($seq1 . $seq2, $costruct), $cmfe);
+$RNA::cut_point=-1;
 
 # pf_fold
 my $f = RNA::pf_fold($seq1, $struct);

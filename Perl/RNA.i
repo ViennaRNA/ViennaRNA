@@ -6,6 +6,7 @@
 #include  "../H/fold_vars.h"
 #undef fold
 #include  "../H/fold.h"
+#include  "../H/cofold.h"
 #include  "../H/part_func.h"
 #include  "../H/PS_dot.h"
 #include  "../H/inverse.h"
@@ -62,6 +63,27 @@
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
 %include  "../H/fold.h"
+
+%rename (cofold) my_cofold;
+
+%{
+  char *my_cofold(char *string, char *constraints, float *energy) {
+    char *struc;
+    float en;
+    struc = calloc(strlen(string)+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(string));
+    *energy = cofold(string, struc);
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    return(struc);
+  }
+%}
+
+%newobject my_cofold;
+char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
+%ignore cofold;
+%include  "../H/cofold.h"
 
 //%subsection "Partition function Folding"
 
