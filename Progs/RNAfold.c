@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/10/13 17:08:49 ivo> */
+/* Last changed Time-stamp: <97/10/27 15:45:08 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,6 +16,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
+static char rcsid[] = "$Id: RNAfold.c,v 1.5 1997/10/27 14:45:17 ivo Exp $";
 
 #define PRIVATE static
 
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
 {
    char *string, *line;
    char *structure=NULL, *cstruc=NULL;
-   char  fname[13], ffname[20];
+   char  fname[13], ffname[20], gfname[20];
    char  ParamFile[256]="";
    char  ns_bases[33]="", *c;
    int   i, length, l, sym, r;
@@ -167,9 +168,16 @@ int main(int argc, char *argv[])
       if (fname[0]!='\0') {
 	 strcpy(ffname, fname);
 	 strcat(ffname, "_ss.ps");
-      } else
+	 strcpy(gfname, fname);
+	 strcat(gfname, "_ss.g");
+      } else {
 	 strcpy(ffname, "rna.ps");
+	 strcpy(gfname, "rna.g");
+      }
       PS_rna_plot(string, structure, ffname);
+#ifdef GML_OUTPUT
+      gmlRNA(string, structure, gfname, 'X');
+#endif
       bp = base_pair;
       bpp= space(16);
       base_pair=bpp;
@@ -177,9 +185,8 @@ int main(int argc, char *argv[])
       base_pair = bp;
        
       if (pf) {
-	 extern int pf_dangl;
 
-	 pf_dangl=1;   /* get min_en using energy_rules as in pf_fold() */
+	 if (dangles) dangles=2;   /* recompute with dangles as in pf_fold() */
 	 min_en = energy_of_struct(string, structure); 
 	 
 	 kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
