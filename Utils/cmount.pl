@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-04-04 18:00:13 ivo>
+# Last changed Time-stamp: <2002-11-27 16:39:03 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.
 # Input is a colour _dp.ps file from alidot (aka read_ali) or dp_zoom
 # definition: mm[i],mp[i]=number of base pairs enclosing base i
@@ -46,11 +46,18 @@ while (<>) {
     if (/^% Subsequence from (\d+) to (\d+)/) { # get start and end 
 	$from=$1; $to=$2;
     }
-    if (/\/sequence \{ \((.*)\)/) {
-	print "$_\n/len { sequence length } def\n";
-	$seq = $1;
-	$seq =~ s/\\//g;
-        $length = length $seq;
+    if (/\/sequence \{ \((\S*)[\\\)]/) {
+	print "$_\n";
+        $seq = $1;              # empty for new version
+        while (!/\) \} def/) {  # read until end of definition
+            $_ = <>;
+	    print $_;
+            /(\S*)[\\\)]/;      # ends either with `)' or `\'
+            $seq .= $1;
+        }
+	print "/len { sequence length } def\n";
+        $length = length($seq);
+        next;
     }
 
     ($i, $j, $p, $h, $s, $tok) = split;
