@@ -62,8 +62,8 @@ typedef int LOGICAL;
 	     } \
 	}
 
-static float pi = 3.141592653589793;
-static float anum = 9999.0;
+static double pi = 3.141592653589793;
+static double anum = 9999.0;
 
 
 /*
@@ -75,7 +75,7 @@ static float anum = 9999.0;
 
 static struct base {
   int mate;
-  float x,y;
+  double x,y;
   logical extracted;
   struct region *region;
 } *bases;
@@ -90,14 +90,14 @@ struct loop {
   int number;
   int depth;
   logical mark;
-  float x,y,radius;
+  double x,y,radius;
 };
     
 struct connection {
   struct loop *loop;
   struct region *region;
   int start,end;       /* Start and end form the 1st base pair of the region. */
-  float xrad,yrad,angle;
+  double xrad,yrad,angle;
   logical extruded;	  /* True if segment between this connection and
 			     the next must be extruded out of the circle */
   logical broken;	  /* True if the extruded segment must be drawn long. */
@@ -112,14 +112,14 @@ static struct region *regions;
 static struct loop *construct_loop(int ibase);
 
 struct radloop {
-  float radius;
+  double radius;
   int loopnumber;
   struct radloop *next, *prev;
 };
 
 static struct radloop *rlphead;
 
-static float lencut;
+static double lencut;
 
 static logical debug = false;
 
@@ -129,10 +129,10 @@ static void dump_loops(void);
 static void find_central_loop(void);
 static void determine_depths(void);
 static void traverse_loop(struct loop *lp,struct connection *anchor_connection);
-static void determine_radius(struct loop *lp,float lencut);
+static void determine_radius(struct loop *lp,double lencut);
 static void generate_region(struct connection *cp);
 static void construct_extruded_segment(struct connection *cp,struct connection *cpnext);
-static void find_center_for_arc(int n,float b,float *hp,float *thetap);
+static void find_center_for_arc(int n,double b,double *hp,double *thetap);
 static int depth(struct loop *lp);
 
 static logical connected_connection(struct connection *cp, struct connection *cpnext);
@@ -271,7 +271,7 @@ static struct loop *construct_loop(int ibase)
 	  lp = construct_loop(rp->end2 < nbase ? rp->end2+1 : 0);
 	}
 	else {
-	  printf("\n\nError detected in construct_loop. i = %d not found in region table.\n",i);
+	  fprintf(stderr, "naview: Error detected in construct_loop. i = %d not found in region table.\n",i);
 	  exit(FATAL_ERROR);
 	}
 	retloop->connections = (struct connection **) 
@@ -432,18 +432,18 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
 */
 
 {
-  float xs,ys,xe,ye,xn,yn,angleinc,r;
-  float radius,xc,yc,xo,yo,astart,aend,a;
+  double xs,ys,xe,ye,xn,yn,angleinc,r;
+  double radius,xc,yc,xo,yo,astart,aend,a;
   struct connection *cp,*cpnext,**cpp,*acp,*cpprev;
   int i,j,n,ic;
-  float da,maxang;
+  double da,maxang;
   int count,icstart,icend,icmiddle,icroot;
   logical done,done_all_connections,rooted;
   int sign;
-  float midx,midy,nrx,nry,mx,my,vx,vy,dotmv,nmidx,nmidy;
+  double midx,midy,nrx,nry,mx,my,vx,vy,dotmv,nmidx,nmidy;
   int icstart1,icup,icdown,icnext,direction;
-  float dan,dx,dy,rr;
-  float cpx,cpy,cpnextx,cpnexty,cnx,cny,rcn,rc,lnx,lny,rl,ac,acn,sx,sy,dcp;
+  double dan,dx,dy,rr;
+  double cpx,cpy,cpnextx,cpnexty,cnx,cny,rcn,rc,lnx,lny,rl,ac,acn,sx,sy,dcp;
   int imaxloop;
     
   angleinc = 2 * pi / (nbase+1);
@@ -753,10 +753,10 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
     if (dcp <= 0.0) dcp += 2*pi;
     if (fabs(dan-dcp) > pi) {
       if (cp->extruded) {
-	printf("Warning from traverse_loop. Loop %d has crossed regions\n",
+	fprintf(stderr, "Warning from traverse_loop. Loop %d has crossed regions\n",
 	       lp->number);
       }
-      else {
+      else if ((cpnext->start - cp->end) != 1) {
 	cp->extruded = true;
 	goto set_radius;	    /* Forever shamed */
       }
@@ -815,7 +815,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
 }
 
 
-static void determine_radius(struct loop *lp,float lencut)
+static void determine_radius(struct loop *lp,double lencut)
 /*
 *   For the loop pointed to by lp, determine the radius of
 *   the loop that will ensure that each base around the loop will
@@ -830,10 +830,10 @@ static void determine_radius(struct loop *lp,float lencut)
 */
 
 {
-  float mindit,ci,dt,sumn,sumd,radius,dit;
+  double mindit,ci,dt,sumn,sumd,radius,dit;
   int i,j,end,start,imindit;
   struct connection *cp,*cpnext;
-  static float rt2_2 = 0.7071068;
+  static double rt2_2 = 0.7071068;
 
   do {
     mindit = 1.0e10;
@@ -973,7 +973,7 @@ static void construct_circle_segment(int start, int end)
 */
 
 {
-  float dx,dy,rr,h,angleinc,midx,midy,xn,yn,nrx,nry,mx,my,a;
+  double dx,dy,rr,h,angleinc,midx,midy,xn,yn,nrx,nry,mx,my,a;
   int l,j,i;
 
   dx = bases[end].x - bases[start].x;
@@ -987,8 +987,8 @@ static void construct_circle_segment(int start, int end)
     for (j = 1;  j < l;  j++) {
       i = start + j;
       if (i > nbase) i -= nbase + 1;
-      bases[i].x = bases[start].x + dx*(float)j/(float)l;
-      bases[i].y = bases[start].y + dy*(float)j/(float)l;
+      bases[i].x = bases[start].x + dx*(double)j/(double)l;
+      bases[i].y = bases[start].y + dy*(double)j/(double)l;
     }
   }
   else {
@@ -1023,7 +1023,7 @@ static void construct_extruded_segment(struct connection *cp, struct connection 
 */
 
 {
-  float astart,aend1,aend2,aave,dx,dy,a1,a2,ac,rr,da,dac;
+  double astart,aend1,aend2,aave,dx,dy,a1,a2,ac,rr,da,dac;
   int start,end,n,nstart,nend;
   logical collision;
 
@@ -1094,7 +1094,7 @@ static void construct_extruded_segment(struct connection *cp, struct connection 
   }
 }
 
-static void find_center_for_arc(int n,float b,float *hp,float *thetap)
+static void find_center_for_arc(int n,double b,double *hp,double *thetap)
 /*
 *   Given n points to be placed equidistantly and equiangularly on a
 *   polygon which has a chord of length, b, find the distance, h, from the
@@ -1110,22 +1110,25 @@ static void find_center_for_arc(int n,float b,float *hp,float *thetap)
 */
 
 {
-  float h,hhi,hlow,r,disc,theta,e,phi;
+  double h,hhi,hlow,r,disc,theta,e,phi;
   int iter;
 #define maxiter 500
-
+  
   hhi = (n+1) / pi;
   hlow = - hhi - b/(n+1-b);
+  if (b<1) hlow = 0;  /* otherwise we might fail below (ih) */
   iter = 0;
   do {
     h = (hhi + hlow) / 2.0;
     r = sqrt(h*h + b*b/4.0);
-    disc = 1.0 - 1.0/2.0/(r*r);
-    if (fabs(disc) > 1.0) {
-      printf("Unexpected large magnitude discriminant = %g\n",disc);
-      exit(FATAL_ERROR);
-    }
-    theta = acos(disc);
+    /*  if (r<0.5) {r = 0.5; h = 0.5*sqrt(1-b*b);} */
+    disc = 1.0 - 0.5/(r*r); 
+    if (fabs(disc) > 1.0) { 
+      fprintf(stderr, "Unexpected large magnitude discriminant = %g\n", disc); 
+      exit(FATAL_ERROR); 
+    } 
+    theta = acos(disc); 
+    /*    theta = 2*acos(sqrt(1-1/(4*r*r))); */
     phi = acos(h/r);
     e = theta * (n+1) + 2*phi - 2*pi;
     if (e > 0.0) {
@@ -1136,7 +1139,7 @@ static void find_center_for_arc(int n,float b,float *hp,float *thetap)
     }
   } while    (fabs(e) > 0.0001 && ++iter < maxiter);
   if (iter >= maxiter) {
-    printf("Iteration failed in find_center_for_arc\n");
+    fprintf(stderr, "Iteration failed in find_center_for_arc\n");
     h = 0.0;
     theta = 0.0;
   }
