@@ -5,12 +5,13 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <97/11/04 19:15:02 ivo> */
+/* Last changed Time-stamp: <1998-03-07 13:11:28 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -31,18 +32,20 @@
 #define space(X) calloc(1,(X))
 #endif
 
-static char rcsid[] = "$Id: inverse.c,v 1.4 1997/11/04 18:33:10 ivo Rel $";
+static char rcsid[] = "$Id: inverse.c,v 1.5 1998/03/25 15:56:26 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
 PRIVATE void   shuffle(short int *list, short int len);
 PRIVATE void   make_start(char* start, char *structure);
-PRIVATE void   make_pair_table(char *structure, short *table);
+PRIVATE void   make_ptable(char *structure, short *table);
 PRIVATE void   make_pairset(void);
 PRIVATE float  mfe_cost(char *, char*, char *);
 PRIVATE float  pf_cost(char *, char *, char *);
 PRIVATE char  *aux_struct( char* structure );
+#if 0
 PRIVATE int    bp_distance(char *str1, char *str2);
+#endif
 
 PUBLIC  char   symbolset[MAXALPHA+1] = "AUGC";
 PUBLIC  int    give_up = 0;
@@ -92,7 +95,7 @@ PRIVATE float adaptive_walk(char *start, char *target)
    target_table = (short *) space(sizeof(short)*len);
    test_table = (short *) space(sizeof(short)*len);
    
-   make_pair_table(target, target_table);
+   make_ptable(target, target_table);
    
    for (i=0; i<base; i++) mut_sym_list[i] = i;
    for (i=0; i<npairs; i++) mut_pair_list[i] = i;
@@ -116,7 +119,7 @@ PRIVATE float adaptive_walk(char *start, char *target)
       cont=0;
 
       if (fold_type==0) { /* min free energy fold */
-	 make_pair_table(structure, test_table);
+	 make_ptable(structure, test_table);
 	 for (j=w1=w2=flag=0; j<len; j++)
 	    if ((tt=target_table[j])!=test_table[j]) {
 	       if ((tt<j)&&(isupper(start[j]))) w1_list[w1++] = j;   /* incorrectly paired */
@@ -243,7 +246,7 @@ PRIVATE void shuffle(short int *list, short int len)
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void make_pair_table(char *structure, short *table)
+PRIVATE void make_ptable(char *structure, short *table)
 {
    int i,j,hx;
    short *stack;
@@ -263,7 +266,7 @@ PRIVATE void make_pair_table(char *structure, short *table)
 	 j = stack[--hx];
 	 if (hx<0) {
 	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_pair_table");
+	    nrerror("unbalanced brackets in make_ptable");
 	 }
 	 table[i]=j;
 	 table[j]=i;
@@ -272,7 +275,7 @@ PRIVATE void make_pair_table(char *structure, short *table)
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
+      nrerror("unbalanced brackets in make_ptable");
    }
    free(stack);
 }
@@ -313,7 +316,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    make_pairset();
    make_start(string, structure);
    
-   make_pair_table(structure, pt);
+   make_ptable(structure, pt);
    
    while (j<len) {
       while ((j<len)&&(structure[j]!=')')) {
@@ -385,7 +388,7 @@ PRIVATE void make_start(char* start, char *structure)
    table = (short *) space(sizeof(short)*length);
    S = (short *) space(sizeof(short)*length);
    
-   make_pair_table(structure, table);
+   make_ptable(structure, table);
    for (i=0; i<strlen(start); i++) S[i] = ENCODE(toupper(start[i]));
    for (i=0; i<strlen(symbolset); i++) sym[i] = i;
 
@@ -522,6 +525,7 @@ PRIVATE char *aux_struct( char* structure )
    return(string);
 }
 
+#if 0
 PRIVATE int bp_distance(char *str1, char *str2)
 {
    int dist,i;
@@ -530,11 +534,12 @@ PRIVATE int bp_distance(char *str1, char *str2)
    dist = 0;
    t1 = (short *) space(sizeof(short)*strlen(str1));
    t2 = (short *) space(sizeof(short)*strlen(str2));
-   make_pair_table(str1, t1);
-   make_pair_table(str2, t2);
+   make_ptable(str1, t1);
+   make_ptable(str2, t2);
 
    for (i=0; i<strlen(str1); i++)
       dist += (t1[i]!=t2[i]);
    free(t1); free(t2);
    return dist;
 }
+#endif
