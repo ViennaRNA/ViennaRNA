@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-07-18 20:24:30 ivo> */
+/* Last changed Time-stamp: <2004-08-12 14:02:11 ivo> */
 /*                
 	     Compute duplex structure of two RNA strands
 
@@ -17,16 +17,15 @@
 #include "utils.h"
 
 extern void  read_parameter_file(const char fname[]);
-
+extern int subopt_sorted;
+static void  print_struc(duplexT const *dup);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAduplex.c,v 1.1 2004/07/21 14:04:30 ivo Exp $";
-
-#define PRIVATE static
+static char rcsid[] = "$Id: RNAduplex.c,v 1.2 2004/08/12 12:10:31 ivo Exp $";
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 
-PRIVATE void usage(void);
+static void usage(void);
 
 /*--------------------------------------------------------------------------*/
 
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   int   i, l, sym, r;
-  double min_en, deltaf;
+  double deltaf;
   double kT, sfact=1.07;
   int   pf=0, istty, delta=-1;
   int noconv=0;
@@ -76,6 +75,8 @@ int main(int argc, char *argv[])
 	  r=sscanf(argv[++i], "%lf", &deltaf);
 	  if (r!=1) usage();
 	  delta = (int) (0.1+deltaf*100);
+	  break;
+	case 's': subopt_sorted=1;
 	  break;
 	case 'd': dangles=0;
 	  if (argv[i][2]!='\0') {
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 	
   do {				/* main loop: continue until end of file */
+    duplexT mfe, *subopt;
     if (istty) {
       printf("\nInput two sequences (one line each); @ to quit\n");
       printf("%s\n", scale);
@@ -157,11 +159,19 @@ int main(int argc, char *argv[])
 
     /* initialize_fold(length); */
     update_fold_params();
-    if (delta>=0) 
-      duplex_subopt(s1, s2, delta, 0);
-    else
-      min_en = duplexfold(s1, s2);
-       
+    if (delta>=0) {
+      duplexT *sub;
+      subopt = duplex_subopt(s1, s2, delta, 0);
+      for (sub=subopt; sub->i >0; sub++) {
+	print_struc(sub);
+	free(sub->structure);
+      }
+      free(subopt);
+    }
+    else {
+      mfe = duplexfold(s1, s2);
+      print_struc(&mfe);
+    }
     (void) fflush(stdout);
        
     (void) fflush(stdout);
@@ -170,9 +180,17 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-PRIVATE void usage(void)
+static void print_struc(duplexT const *dup) {
+  int l1;
+  l1 = strchr(dup->structure, '&')-dup->structure;
+  printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", dup->structure, dup->i+1-l1,
+	 dup->i, dup->j, dup->j+strlen(dup->structure)-l1-2, dup->energy);
+}
+    
+static void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAduplex [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "RNAduplex [-e range] [-s]\n"
+	  "          [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }

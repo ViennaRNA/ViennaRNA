@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-07-19 00:13:44 ivo> */
+/* Last changed Time-stamp: <2004-08-12 14:06:41 ivo> */
 /*                
 	   compute the duplex structure of two RNA strands,
 		allowing only inter-strand base pairs.
@@ -20,9 +20,9 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
-
+#include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.1 2004/07/21 14:04:30 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: duplex.c,v 1.2 2004/08/12 12:10:40 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -30,11 +30,13 @@ static char rcsid[] UNUSED = "$Id: duplex.c,v 1.1 2004/07/21 14:04:30 ivo Exp $"
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 
-PUBLIC float  duplexfold(const char *s1, const char *s2);
-
 PRIVATE void  encode_seq(const char *s1, const char *s2);
 PRIVATE char * backtrack(int i, int j);
 PRIVATE void update_dfold_params(void);
+PRIVATE int compare(const void *sub1, const void *sub2);
+
+extern int subopt_sorted; /* from subopt.c */
+
 /*@unused@*/
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
@@ -54,10 +56,11 @@ extern  int  LoopEnergy(int n1, int n2, int type, int type_2,
 /*--------------------------------------------------------------------------*/
 
 
-float duplexfold(const char *s1, const char *s2) {
+duplexT duplexfold(const char *s1, const char *s2) {
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
-
+  duplexT mfe;
+  
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
   
@@ -102,20 +105,29 @@ float duplexfold(const char *s1, const char *s2) {
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
   l1 = strchr(struc, '&')-struc;
-  printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min, 
-	 j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
-  free(struc);
-  
-  return (float) Emin/100.;
+  /*
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min, 
+       j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
+  */
+  mfe.i = i_min;
+  mfe.j = j_min;
+  mfe.energy = (float) Emin/100.;
+  mfe.structure = struc;
+  return mfe;
 }
 
-PUBLIC void duplex_subopt(const char *s1, const char *s2, int delta, int w) {
-  float Emin;
-  int i,j, n1, n2, thresh, E;
+PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) {
+  int i,j, n1, n2, thresh, E, n_subopt=0, n_max;
   char *struc;
+  duplexT mfe;
+  duplexT *subopt;
+
+  n_max=16;
+  subopt = (duplexT *) space(n_max*sizeof(duplexT));
+  mfe = duplexfold(s1, s2);
+  free(mfe.structure);
   
-  Emin = duplexfold(s1, s2);
-  thresh = (int) Emin*100+0.1 + delta;
+  thresh = (int) mfe.energy*100+0.1 + delta;
   n1 = strlen(s1); n2=strlen(s2);
   for (i=n1-1; i>0; i--) {
     for (j=2; j<=n2; j++) {
@@ -125,15 +137,29 @@ PUBLIC void duplex_subopt(const char *s1, const char *s2, int delta, int w) {
       E = c[i][j]+P->dangle3[type][SS1[i+1]]+P->dangle5[type][SS2[j-1]];
       if (type>2) E += P->TerminalAU;
       if (E<=thresh) {
-	int l1;
 	struc = backtrack(i,j);
+#if 0
+	int l1;
 	l1 = strchr(struc, '&')-struc;
 	printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i+2-l1, i+1, 
 	       j-1, j+strlen(struc)-l1-3, E*0.01);
-	free(struc);
+#endif	
+	if (n_subopt+1>=n_max) {
+	  n_max *= 2;
+	  subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+	}
+	subopt[n_subopt].i = i;
+	subopt[n_subopt].j = j;
+	subopt[n_subopt].energy = E * 0.01;
+	subopt[n_subopt++].structure = struc;
       }
     }
   }
+  if (subopt_sorted) qsort(subopt, n_subopt, sizeof(duplexT), compare);
+  subopt[n_subopt].i =0;
+  subopt[n_subopt].j =0;
+  subopt[n_subopt].structure = NULL;
+  return subopt;
 }
 
 PRIVATE char *backtrack(int i, int j) {
@@ -228,3 +254,15 @@ PRIVATE void update_dfold_params(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+PRIVATE int compare(const void *sub1, const void *sub2) {
+  int d;
+  if (((duplexT *) sub1)->energy > ((duplexT *) sub2)->energy)
+    return 1;
+  if (((duplexT *) sub1)->energy < ((duplexT *) sub2)->energy)
+    return -1;
+  d = ((duplexT *) sub1)->i - ((duplexT *) sub2)->i;
+  if (d!=0) return d;
+  return  ((duplexT *) sub1)->j - ((duplexT *) sub2)->j;
+}
+
