@@ -2,8 +2,9 @@
 
                    interactive access to inverse.c
 */
-/* Last changed Time-stamp: <97/10/13 19:20:15 ivo> */
+/* Last changed Time-stamp: <97/11/04 16:07:41 ivo> */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
@@ -15,15 +16,16 @@
 
 #define  PUBLIC
 #define  PRIVATE   static
-
-char  scale[] = "....,....1....,....2....,....3....,....4"
-                "....,....5....,....6....,....7....,....8";
+static char rcsid[] = "$Id: RNAinverse.c,v 1.5 1997/11/04 15:15:30 ivo Exp $";
+static char scale[] = "....,....1....,....2....,....3....,....4"
+                      "....,....5....,....6....,....7....,....8";
 
 #define  REPEAT_DEFAULT  100
 #define  INFINITY        100000
 
+extern void  read_parameter_file(const char fname[]);
+
 PRIVATE void usage(void);
-extern int pf_dangl;
 
 int main(int argc, char *argv[])
 {
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
 	   {
 	   case 'a':
 	     i++;
-	     strcpy(symbolset,argv[i]);
+	     strncpy(symbolset,argv[i],20);
 	     break;
 	   case 'T':  if (argv[i][2]!='\0') usage(); 
 	     if (sscanf(argv[++i], "%f", &temperature)==0)
@@ -73,7 +75,7 @@ int main(int argc, char *argv[])
 	     tetra_loop=0;
 	     break;
 	   case 'e':
-	     if (sscanf(argv[++i],"%d", &energy_set)==)
+	     if (sscanf(argv[++i],"%d", &energy_set)==0)
 	       usage();
 	     break;
 	   case 'd': dangles=0;
@@ -83,7 +85,7 @@ int main(int argc, char *argv[])
 	       usage(); 
 	     break;
 	   case 'P':
-	     if (sscanf(argv[++i], "%255s", ParamFile)==)
+	     if (sscanf(argv[++i], "%255s", ParamFile)==0)
 	       usage();
 	     break;
 	   default: usage();
@@ -192,13 +194,13 @@ int main(int argc, char *argv[])
 	       min_en = fold(string,str2); 
 	       pf_scale = exp(-(sfact*min_en)/kT/length2);
 	       init_pf_fold(length2);
+
 	       
-	       if (dangles) pf_dangl = 1; /* for energy_of_struct */
+	       if (dangles) dangles = 2; /* for energy_of_struct */
 	       energy = inverse_pf_fold(string, structure);
 	       prob = exp(-energy/kT);
 	       hd = hamming(start, string);
 	       printf("%s  %3d  (%g)\n", string, hd, prob);
-	       if (dangles) pf_dangl = 0; /* reset to default */
 	       free_pf_arrays();
 	    }
 	    if (!mfe) found--;
