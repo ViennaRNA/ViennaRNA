@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.14 2001/04/05 07:31:10 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.15 2001/07/20 10:59:45 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -23,7 +23,7 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.14 2001/04/05 07:31:10 ivo Exp $";
 #define  PIHALF       PI/2.
 
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
-PUBLIC int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A);
+PUBLIC int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
@@ -133,10 +133,10 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
 /*---------------------------------------------------------------------------*/
 int PS_rna_plot(char *string, char *structure, char *ssfile) {
-  return PS_rna_plot_a(string, structure, ssfile, NULL);
+  return PS_rna_plot_a(string, structure, ssfile, NULL, NULL);
 }
 
-int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A)
+int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post)
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
@@ -214,7 +214,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A)
    fprintf(xyplot,
 	   "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
 	   "          rmoveto show} bind def\n\n");
-   if (A) {  /* macros for annotations */
+   if (pre || post) {  /* macros for annotations */
      fprintf(xyplot,
 	     "%% extra definitions for standard anotations\n"
 	     "/min { 2 copy gt { exch } if pop } bind def\n"
@@ -295,13 +295,9 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A)
 	  (size-xmin-xmax)/2, (size-ymin-ymax)/2);
   fprintf(xyplot, "/Helvetica findfont fsize scalefont setfont\n");
   /* draw the data */
-  if (A) {
+  if (pre) {
     fprintf(xyplot, "%% Start Annotations\n");
-    while (*A) {
-      if (**A=='\n') {A++; break;}
-      fprintf(xyplot, "%s\n", *A);
-      A++;
-    }
+    fprintf(xyplot, "%s\n", pre);
     fprintf(xyplot, "%% End Annotations\n");
   }
   fprintf(xyplot,
@@ -335,12 +331,9 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A)
 	  "} if\n"
 	  "[] 0 setdash\n");
   
-  if (A) {
+  if (post) {
     fprintf(xyplot, "%% Start Annotations\n");
-    while (*A) {
-      fprintf(xyplot, "%s\n", *A);
-      A++;
-    }
+    fprintf(xyplot, "%s\n", post);
     fprintf(xyplot, "%% End Annotations\n");
   }
   fprintf(xyplot, "%% show it\nshowpage\n");
