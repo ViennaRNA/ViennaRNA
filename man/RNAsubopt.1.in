@@ -3,7 +3,7 @@
 .SH NAME
 RNAsubopt \- calculate suboptimal secondary structures of RNAs
 .SH SYNOPSIS
-\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep prange] [\-s] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
+\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep \fIprange\fP] [\-s] [\-p\ \fIn\fP] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
 
 .SH DESCRIPTION
 .I RNAsubopt 
@@ -22,6 +22,12 @@ Default is 1.
 Sort the structures by energy. Since the sort in is done in memory,
 this becomes inparctical when the number of structures produced goes
 into millions. In such cases better pipe the output through `sort +1n'. 
+.TP
+.B \-p \fIn\fP
+Instead of producing all suboptimals in a range, produce a random sample 
+of \fIn\fP suboptimal structures, drawn with probabilities equal to
+their Boltzmann weights via stochastic backtracking in the partition
+function. 
 .TP
 .B \-d[0|1|2|3]
 Change treatment of dangling ends, as in RNAfold and RNAeval.  The
