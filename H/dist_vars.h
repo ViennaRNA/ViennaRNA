@@ -4,7 +4,7 @@
 
 extern int   edit_backtrack;  /* set to 1 if you want backtracking */ 
    
-extern char *aligned_line[2]; /* containes alignment after backtracking */
+extern char *aligned_line[4]; /* containes alignment after backtracking */
 
 extern int  cost_matrix;     /* 0 usual costs (default), 1 Shapiro's costs */
 
