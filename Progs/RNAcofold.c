@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-12-11 10:29:31 berni> */
+/* Last changed Time-stamp: <2005-02-16 14:58:00 ivo> */
 
 /*                
 		  Ineractive Access to folding Routines
@@ -24,7 +24,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAcofold.c,v 1.3 2004/12/22 11:04:14 berni Exp $";
+static char rcsid[] = "$Id: RNAcofold.c,v 1.4 2005/02/16 13:59:19 ivo Exp $";
 
 #define PRIVATE static
 
@@ -36,8 +36,6 @@ PRIVATE char *tokenize(char *line);
 PRIVATE void usage(void);
 PRIVATE double do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf);
 PRIVATE void free_franz(char *Astring, char *Bstring, plist *prAB, plist *prAA, plist *prBB, plist *prA, plist *prB, struct plist *mfAB, struct plist *mfAA, struct plist *mfBB, struct plist *mfA, struct plist *mfB);
-PRIVATE struct plist *get_plist(plist *pl, int length, double cut_off);
-PRIVATE struct plist *get_mfe_plist(struct plist *pl);
 PRIVATE int read_concentrationfile(char *fname, double *startc);
 PRIVATE struct ConcEnt *do_the_concenratinger(char *Conc_file,double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
 
@@ -261,12 +259,12 @@ int main(int argc, char *argv[])
     mfAB=(struct plist *) space(sizeof(struct plist) * (length+1));
     mfAB=get_mfe_plist(mfAB);
     
-    for (l=0; mfAB[l].i!=0; l++) {
-      if (!SAME_STRAND(mfAB[l].i,mfAB[l].j)) {
-	min_en += 4.1; /*can i use DuplexInit there? if not: Ivooo??*/
-	break;
-      }
-    }
+/*     for (l=0; mfAB[l].i!=0; l++) { */
+/*       if (!SAME_STRAND(mfAB[l].i,mfAB[l].j)) { */
+/* 	min_en += 4.1; /\*can i use DuplexInit there? if not: Ivooo??*\/ */
+/* 	break; */
+/*       } */
+/*     } */
     if (cut_point == -1)    printf("%s\n%s", string, structure); /*no cofold*/
       
     else {
@@ -277,7 +275,12 @@ int main(int argc, char *argv[])
       free(pstring);
       free(pstruct);
     }
-    if (istty)(void) fflush(stdout);
+    if (istty) 
+      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+    else
+      printf(" (%6.2f)\n", min_en);
+    
+      (void) fflush(stdout);
        
     if (fname[0]!='\0') {
       strcpy(ffname, fname);
@@ -513,7 +516,6 @@ int main(int argc, char *argv[])
     
       
     if (cstruc!=NULL) free(cstruc);
-    if (length>=2000) free(base_pair);
     (void) fflush(stdout);
     free(string);
     free(structure); 
@@ -640,46 +642,6 @@ PRIVATE void free_franz(char *Astring, char *Bstring, struct plist *prAB, struct
   free(mfA);
   free(mfB);
   return;
-}
-
-PRIVATE struct plist *get_plist(struct plist *pl, int length, double cut_off) {
-  int i, j,n, count;
-  /*get pair probibilities out of pr array*/
-  count=0;
-  n=2;
-  for (i=1; i<length; i++) {
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<cut_off) continue; 
-      if (count==n*length-1) {
-	n*=2;
-	pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
-      }
-      pl[count].i=i;
-      pl[count].j=j; /*->??*/
-      pl[count++].p=pr[iindx[i]-j];
-    }
-  }
-  pl[count].i=0;
-  pl[count].j=0; /*->??*/
-  pl[count++].p=0.;
-  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
-  return pl;
-}
-
-PRIVATE struct plist *get_mfe_plist(struct plist *pl) {
-  /*get list of mfe structure out of base_pairs array*/
-  int l;
-  for(l=1; l<=base_pair[0].i; l++)
-    {
-      pl[l-1].i=base_pair[l].i;
-      pl[l-1].j=base_pair[l].j;
-      pl[l-1].p=0.95;
-    }
-  pl[l-1].i=0;
-  pl[l-1].j=0;
-  pl[l-1].p=0.;
-  pl=(struct plist *)xrealloc(pl,l*sizeof(struct plist));
-  return pl;
 }
 
 PRIVATE struct ConcEnt *do_the_concenratinger(char *Conc_file,double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces) {
