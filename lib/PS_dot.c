@@ -16,7 +16,7 @@
 #include "/usr/local/include/dmalloc.h"
 #define space(S) calloc(1,(S))
 #endif
-static char rcsid[] = "$Id: PS_dot.c,v 1.8 1998/03/25 15:58:20 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.9 1998/05/19 17:40:32 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -27,9 +27,13 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.8 1998/03/25 15:58:20 ivo Exp $";
 
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
+PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
-PUBLIC  int    simple_xy_coordinates(int length, short *pair_table, 
-                                     float *X, float *Y); 
+
+PUBLIC int   simple_xy_coordinates(short *pair_table, float *X, float *Y);
+extern int   naview_xy_coordinates(short *pair_table, float *X, float *Y);
+
+PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
 
 /* local functions */
 
@@ -43,6 +47,7 @@ PRIVATE  float  *angle;
 PRIVATE  int    *loop_size, *stack_size;
 PRIVATE  int     lp, stk;
 
+PRIVATE  float RADIUS =  15.;   /* for simple_xy_coordinates */
 /*---------------------------------------------------------------------------*/
 
 /* options for gml output: 
@@ -75,8 +80,12 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   case 'x' :
     /* Simple XY Plot */
     X = (float *) space((length+1)*sizeof(float));
-    Y = (float *) space((length+1)*sizeof(float));   
-    i=simple_xy_coordinates(length, pair_table, X, Y); 
+    Y = (float *) space((length+1)*sizeof(float));
+    if (rna_plot_type == 0) 
+      i = simple_xy_coordinates(pair_table, X, Y);
+    else
+      i = naview_xy_coordinates(pair_table, X, Y);
+    
     if(i!=length) fprintf(stderr,"strange things happening in gmlRNA ...\n");
     break;
   default:
@@ -146,7 +155,10 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
   
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));   
-  i=simple_xy_coordinates(length, pair_table, X, Y); 
+  if (rna_plot_type == 0) 
+    i = simple_xy_coordinates(pair_table, X, Y);
+  else
+    i = naview_xy_coordinates(pair_table, X, Y);
   if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
 
   xmin = xmax = X[0];
@@ -170,30 +182,81 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
 	  "%%%%CreationDate: %s"
 	  "%%%%Title: Rna secondary Structure Plot\n"
 	  "%%%%BoundingBox: 66 210 518 662\n"
-	  "%%%%DocumentFonts: Courier\n"
+	  "%%%%DocumentFonts: Helvetica\n"
 	  "%%%%Pages: 1\n"
 	  "%%%%EndComments\n\n", time_stamp());
 
   fprintf(xyplot,"100 dict begin\n");  /* DSC says EPS should create a dict */
   fprintf(xyplot,
-	  "/fsize  {15} def\n"
-	  "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
-	  "          rmoveto show} def\n"
-	  "/smurgl { lineto gsave cshow grestore } def\n");
+	  "/fsize  {14} def\n"
+	  "%% toggles: if you set them all to  false  the plot stays empty\n"
+	  "/drawbases   true def  %% set to  false  to leave out sequence\n"
+	  "/drawoutline true def  %% set to  false  to leave out backbone\n"
+	  "/drawpairs   true def  %% set to  false  to not draw lines connecting pairs\n"
+	  "%% data start here\n");
+  /* sequence */
+  fprintf(xyplot,"/sequence { (\\\n");  
+  i=0;
+  while (i<length) {
+    fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
+    i+=255;
+  }
+  fprintf(xyplot,") } def\n");
+  /* coordinates */
+  fprintf(xyplot, "/coor [\n");
+  for (i = 0; i < length; i++) 
+    fprintf(xyplot, "[%3.3f %3.3f]\n", X[i], Y[i]);
+  fprintf(xyplot, "] def\n");
+  /* base pairs */
+  fprintf(xyplot, "/pairs [\n");
+  for (i = 1; i <= length; i++)
+    if (pair_table[i]>i)
+      fprintf(xyplot, "[%d %d]\n", i, pair_table[i]);
+   fprintf(xyplot, "] def\n\n");
+   /* setup */
+   fprintf(xyplot,
+	   "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
+	   "          rmoveto show} def\n"
+	   "1 setlinejoin\n"
+	   "1 setlinecap\n"
+	   "0.8 setlinewidth\n");
 
   fprintf(xyplot, "72 216 translate\n");
   fprintf(xyplot, "72 6 mul %3.3f div dup scale\n", size);
   fprintf(xyplot, "%4.3f %4.3f translate\n",
 	  (size-xmin-xmax)/2, (size-ymin-ymax)/2);
-  fprintf(xyplot, "/Courier findfont fsize scalefont setfont\n");
-  fprintf(xyplot, "100 100 moveto\n");
-  fprintf(xyplot, "99.4 100 0.6 0 360 arc");
-  
-  for (i = 0; i < length; i++) 
-     fprintf(xyplot, "(%c) %3.3f %3.3f smurgl\n", *(string+i), X[i], Y[i]);
-
-  fprintf(xyplot, "stroke\n");
-  fprintf(xyplot, "showpage\n");
+  fprintf(xyplot, "/Helvetica findfont fsize scalefont setfont\n");
+  /* draw the data */
+  fprintf(xyplot,
+	  "%% draw the outline\n"
+	  "drawoutline {\n"
+	  "  newpath\n"
+	  "  coor 0 get aload pop 0.8 0 360 arc\n"
+	  "  coor {aload pop lineto} forall\n"
+	  "  stroke\n"
+	  "} if\n"
+	  "%% draw bases\n"
+	  "drawbases {\n"
+	  "  0\n"
+	  "  coor {\n"
+	  "    aload pop moveto\n"
+	  "    dup sequence exch 1 getinterval  cshow\n"
+	  "    1 add\n"
+	  "  } forall\n"
+	  "  pop\n"
+	  "} if\n"
+	  "%% draw base pairs\n"
+	  "drawpairs {\n"
+	  "  0.7 setlinewidth\n"
+	  "  [9 3.01] 9 setdash\n"
+	  "  newpath\n"
+	  "  pairs {aload pop\n"
+	  "     coor exch 1 sub get aload pop moveto\n"
+	  "     coor exch 1 sub get aload pop lineto\n"
+	  "  } forall\n"
+	  "  stroke\n"
+	  "} if\n");
+  fprintf(xyplot, "%% show it\nshowpage\n");
   fprintf(xyplot, "end\n");
   fprintf(xyplot, "%%%%EOF\n");
   
@@ -205,6 +268,90 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
 }
 
 /*--------------------------------------------------------------------------*/
+
+PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
+{           /* produce input for the SStructView java applet */
+  FILE *ssvfile;
+  int i, bp;
+  int length;
+  int labels=0;
+  int graphics=0;
+  short *pair_table;
+  float *X, *Y;
+  float xmin, xmax, ymin, ymax, size, xoff, yoff;
+  float JSIZE = 500; /* size of the java applet window */
+  float rad;
+  
+  length = strlen(string);
+  pair_table = make_pair_table(structure);
+
+  /* make coordinates */
+  X = (float *) space((length+1)*sizeof(float));
+  Y = (float *) space((length+1)*sizeof(float));
+  rad = RADIUS;
+  RADIUS = 10.;
+  if (rna_plot_type == 0) 
+    i = simple_xy_coordinates(pair_table, X, Y);
+  else
+    i = naview_xy_coordinates(pair_table, X, Y);
+  if(i!=length) fprintf(stderr,"strange things happening in ssv_rna_plot...\n");
+  RADIUS = rad;
+
+  /* make coords nonegative */
+  xmin = xmax = X[0];
+  ymin = ymax = Y[0];
+  for (i = 1; i <= length; i++) {
+     xmin = X[i] < xmin ? X[i] : xmin;
+     xmax = X[i] > xmax ? X[i] : xmax;
+     ymin = Y[i] < ymin ? Y[i] : ymin;
+     ymax = Y[i] > ymax ? Y[i] : ymax;
+  }
+  if (xmin<1) {
+    for (i = 0; i <= length; i++)
+      X[i] -= xmin-1;
+    xmin = 1;
+  }
+  if (ymin<1) {
+    for (i = 0; i <= length; i++)
+      Y[i] -= ymin-1;
+    ymin = 1;
+  }
+#if 0
+  /* rescale coordinates, center on square of size HSIZE */
+  size = MAX((xmax-xmin),(ymax-ymin));
+  xoff = (size - xmax + xmin)/2;
+  yoff = (size - ymax + ymin)/2;
+  for (i = 0; i <= length; i++) {
+    X[i] = (X[i]-xmin+xoff)*(JSIZE-10)/size + 5;
+    Y[i] = (Y[i]-ymin+yoff)*(JSIZE-10)/size + 5;
+  }
+#endif
+  /* */
+ 
+  ssvfile = fopen(ssfile, "w");
+  if (ssvfile == NULL) {
+     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     return 0;
+  }
+  fprintf(ssvfile, 
+	  "# Vienna RNA Package (rna2ssv)\n"
+          "# SStructView Output\n"
+	  "# CreationDate: %s\n"
+	  "# Name: %s\n", time_stamp(), ssfile);
+  for (i=1; i<=length; i++)
+    fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
+	    i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
+  for (bp=1, i=1; i<=length; i++)
+    if (pair_table[i]>i) 
+      fprintf(ssvfile, "BASE-PAIR\tbp%d\t%d\t%d\n", bp++, i, pair_table[i]);
+  fclose(ssvfile);
+
+  free(pair_table);
+  free(X); free(Y);
+  return 1; /* success */
+}
+
+/*---------------------------------------------------------------------------*/
 
 int PS_dot_plot(char *string, char *wastlfile)
 {
@@ -354,17 +501,17 @@ int PS_dot_plot(char *string, char *wastlfile)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int simple_xy_coordinates(int length, short *pair_table,
-				 float *x, float *y)
+PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
 {
    float INIT_ANGLE=0.;     /* initial bending angle */
    float INIT_X = 100.;     /* coordinate of first digit */
    float INIT_Y = 100.;     /* see above */
    float RADIUS =  15.;
 
-   int i;
+   int i, length;
    float  alpha;
 
+   length = pair_table[0];
    init_aux_arrays(length);
    lp = stk = 0;
    loop(0, length+1, pair_table);
