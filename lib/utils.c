@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-03-31 14:17:52 ivo> */
+/* Last changed Time-stamp: <1998-03-31 23:20:22 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "/usr/local/debug_include/malloc.h"
 #endif
 
-static char rcsid[] = "$Id: utils.c,v 1.3 1998/03/31 15:20:04 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.4 1998/03/31 21:36:46 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -28,7 +28,7 @@ PUBLIC int    int_urn(int from, int to);
 PUBLIC void   filecopy(FILE *from, FILE *to);
 PUBLIC char  *time_stamp(void);
 PUBLIC char  *random_string(int l, const char symbols[]);
-PUBLIC int    hamming(const char s1[], const char s2[]);
+PUBLIC int    hamming(const char *s1, const char *s2);
 PUBLIC char  *get_line(FILE *fp);
 
 PUBLIC unsigned short xsubi[3];
@@ -131,12 +131,12 @@ PUBLIC char *random_string(int l, const char symbols[])
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC int   hamming(const char s1[], const char s2[])
+PUBLIC int   hamming(const char *s1, const char *s2)
 {
    int h=0,i;
    
-   for (i=0; i<strlen(s1); i++)
-      if (s1[i]!=s2[i]) h++;
+   for (; *s1 && *s2; s1++, s2++)
+     if (*s1 != *s2) h++;
    return h;
 }
 /*-----------------------------------------------------------------*/
@@ -163,7 +163,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC unsigned char *pack_structure(char *struc) {
+PUBLIC unsigned char *pack_structure(const char *struc) {
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   unsigned char *packed;
@@ -196,7 +196,7 @@ PUBLIC unsigned char *pack_structure(char *struc) {
   return packed;
 }
 
-PUBLIC char *unpack_structure(unsigned char *packed) {
+PUBLIC char *unpack_structure(const unsigned char *packed) {
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   char *struc;
@@ -228,7 +228,7 @@ PUBLIC char *unpack_structure(unsigned char *packed) {
 				   
 /*---------------------------------------------------------------------------*/ 
 
-PUBLIC short *make_pair_table(char *structure)
+PUBLIC short *make_pair_table(const char *structure)
 {
     /* returns array representation of structure.
        table[i] is 0 if unpaired or j if (i.j) pair.  */
@@ -271,7 +271,7 @@ PUBLIC short *make_pair_table(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int bp_distance(char *str1, char *str2)
+PUBLIC int bp_distance(const char *str1, const char *str2)
 {
   /* dist = {number of base pairs in one structure but not in the other} */
   /* same as edit distance with pair_open pair_close as move set */
