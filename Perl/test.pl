@@ -110,3 +110,8 @@ for (0..$solution->size()-1) {
   printf "%s %6.2f\n",  $solution->get($_)->{structure},
   			$solution->get($_)->{energy};
 }
+
+$RNA::cut_point = 3;
+$e =  RNA::energy_of_struct("GCGC", "(())");
+print  ((int($e*100)==-340)?'':'not ');
+print "ok 14\n";
