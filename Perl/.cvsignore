@@ -1,0 +1,3 @@
+Makefile Makefile.in
+blib RNA_wrap.c RNA.bs RNA.pm Makefile.perl pm_to_blib
+rna.ps test_ss.ps test_dp.ps test.coord test.par

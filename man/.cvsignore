@@ -1,0 +1,4 @@
+.deps .cvsignore
+RNAdistance.1  RNAfold.1      RNAinverse.1   RNAplot.1      
+RNAeval.1      RNAheat.1      RNApdist.1     RNAsubopt.1    
+RNAlib.info Makefile Makefile.in
