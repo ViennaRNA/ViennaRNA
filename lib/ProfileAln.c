@@ -27,7 +27,7 @@
 #include "part_func.h"
 #include "utils.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.3 2005/02/10 09:59:58 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.4 2005/03/11 19:09:41 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
@@ -228,7 +228,7 @@ PRIVATE double PrfEditScore(const float *p1, const float *p2, char c1, char c2)
 	   ((c1=='C') && (c2=='U')) ||
 	   ((c1=='U') && (c2=='C')))
     score += 0.5*seqw;
-	   
+  else score -= 0.9*seqw;
   return score;
 }
 

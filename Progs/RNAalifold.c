@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-03-01 20:19:36 ivo> */
+/* Last changed Time-stamp: <2005-03-09 18:48:27 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -19,9 +19,10 @@
 #include "utils.h"
 #include "pair_mat.h"
 #include "alifold.h"
+#include "aln_util.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.11 2005/03/04 17:09:59 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.12 2005/03/11 19:09:41 ivo Exp $";
 
 #define PRIVATE static
 
@@ -29,9 +30,6 @@ static const char scale[] = "....,....1....,....2....,....3....,....4"
                             "....,....5....,....6....,....7....,....8";
 
 PRIVATE void /*@exits@*/ usage(void);
-PRIVATE int read_clustal(FILE *clust, char /*@out@*/ *AlignedSeqs[],
-			 char /*@out@*/ *names[]);
-PRIVATE char *consensus(const char *AS[]);
 PRIVATE char *annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(const pair_info pi, FILE *file);
 PRIVATE cpair *make_color_pinfo(const pair_info *pi);
@@ -82,6 +80,9 @@ int main(int argc, char *argv[])
 	    if (!r) usage();
 	  }
 	  break;
+	case 'm':
+	  if ( strcmp(argv[i], "-mis")==0) mis=1;
+	  else usage();
 	case '4':
 	  tetra_loop=0;
 	  break;
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
       s += energy_of_struct(AS[i], structure);
     real_en = s/i;
   }
-  string = consensus((const char **) AS);
+  string = consens_mis((const char **) AS);
   printf("%s\n%s", string, structure);
   if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n", 
@@ -281,6 +282,7 @@ int main(int argc, char *argv[])
 	fprintf(aliout, "%s\n", structure);
 	free(ptable);
       }
+      fclose(aliout);
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_dp.ps");
@@ -301,77 +303,6 @@ int main(int argc, char *argv[])
     free(AS[i]); free(names[i]);
   }
   return 0;
-}
-
-PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
-   char *line, name[100]={'\0'}, *seq;
-   int  n, nn=0, num_seq = 0;
-   
-   if ((line=get_line(clust)) == NULL) {
-     fprintf(stderr, "Empty CLUSTAL file\n"); return 0;
-   }
-
-   if (strncmp(line,"CLUSTAL", 7) !=0) {
-     fprintf(stderr, "This doesn't look like a CLUSTAL file, sorry\n");
-     free(line); return 0;
-   }
-   free(line);
-   line = get_line(clust);
-
-   while (line!=NULL) {
-     if (((n=strlen(line))<4) || isspace((int)line[0])) {
-       /* skip non-sequence line */
-       free(line); line = get_line(clust);
-       nn=0; /* reset seqence number */
-       continue;
-     } 
-     
-     seq = (char *) space( (n+1)*sizeof(char) );
-     sscanf(line,"%99s %s", name, seq);
-     if (nn == num_seq) { /* first time */
-       names[nn] = strdup(name);
-       AlignedSeqs[nn] = strdup(seq);
-     }
-     else {
-       if (strcmp(name, names[nn])!=0) {
-	 /* name doesn't match */
-	 fprintf(stderr,
-		 "Sorry, your file is fucked up (inconsitent seq-names)\n");
-	 free(line); free(seq);
-	 return 0;
-       }
-       AlignedSeqs[nn] = (char *)
-	 xrealloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
-       strcat(AlignedSeqs[nn], seq);
-     }
-     nn++;
-     if (nn>num_seq) num_seq = nn;
-     free(seq);
-     free(line);
-     if (num_seq>=MAX_NUM_NAMES) {
-       fprintf(stderr, "Too many sequences in CLUSTAL file");
-       return 0;
-     }
-
-     line = get_line(clust);
-   }
-   
-   AlignedSeqs[num_seq] = NULL;
-   if (num_seq == 0) {
-     fprintf(stderr, "No sequences found in CLSUATL file\n");
-     return 0;
-   }
-   n = strlen(AlignedSeqs[0]); 
-   for (nn=1; nn<num_seq; nn++) {
-     if (strlen(AlignedSeqs[nn])!=n) {
-       fprintf(stderr, "Sorry, your file is fucked up.\n"
-	       "Unequal lengths!\n\n");
-       return 0;
-     }
-   }
-   
-   fprintf(stderr, "%d sequences; length of alignment %d.\n", nn, n);
-   return num_seq;
 }
 
 void mark_endgaps(char *seq, char egap) {
@@ -418,25 +349,6 @@ PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
   }
   return cp;
 }
-
-
-PRIVATE char *consensus(const char *AS[]) {
-  char *string;
-  int i,n;
-  n = strlen(AS[0]);
-  string = (char *) space((n+1)*sizeof(char));
-  for (i=0; i<n; i++) {
-    int s,c,fm, freq[8] = {0,0,0,0,0,0,0,0};
-    for (s=0; AS[s]!=NULL; s++) 
-      freq[encode_char(AS[s][i])]++;
-    for (s=c=fm=0; s<8; s++) /* find the most frequent char */
-      if (freq[s]>fm) {c=s, fm=freq[c];}
-    if (s>4) s++; /* skip T */
-    string[i]=Law_and_Order[c];
-  }
-  return string;
-}
-
 
 PRIVATE char *annote(const char *structure, const char *AS[]) {
   char *ps;
@@ -486,7 +398,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E]\n"
+	  "RNAalifold [-cv float] [-nc float] [-E] [-mis]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  );
