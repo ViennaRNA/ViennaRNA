@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-09-15 18:17:36 ivo> */
+/* Last changed Time-stamp: <2003-04-23 11:56:44 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -21,7 +21,7 @@ extern float Lfold(char *string, char *structure, int maxdist);
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNALfold.c,v 1.1 2003/01/29 15:33:53 ivo Exp $";
+static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
 
 #define PRIVATE static
 
@@ -57,7 +57,10 @@ int main(int argc, char *argv[])
 	  r=sscanf(argv[++i], "%lf", &temperature);
 	  if (!r) usage();
 	  break;
-	case 'p':  pf=1;
+	case 'p':
+	  fprintf(stderr, "partition function folding not yet implemented\n");
+	  usage();
+	  pf=1;
 	  if (argv[i][2]!='\0')
 	    (void) sscanf(argv[i]+2, "%d", &do_backtrack);
 	  break;
@@ -238,7 +241,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
-	  "[-noconv]\n");
+	  "RNALfold [-L span]\n"
+	  "         [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "         [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }
