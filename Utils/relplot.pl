@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-07-19 19:54:11 ivo>
+# Last changed Time-stamp: <2003-08-10 14:37:13 ivo>
 
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
@@ -33,6 +33,28 @@ if (!$macro_seen) {
     fill
     1 add
   } forall
+} bind def
+/colorbar { % xloc yloc colorbar -> []
+  gsave
+    xmin xmax add size sub 2 div
+    ymin ymax add size sub 2 div translate
+    size dup scale
+    translate
+    0.01 dup scale
+    /tics 64 def
+    gsave
+      10 tics div 1 scale
+      0 1 tics {
+          dup 0 moveto
+          0.9 tics div mul 1 1 sethsbcolor
+          1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
+      } for
+    grestore
+    0 setgray
+    0 1.01 moveto (0) gsave 0.1 dup scale show grestore
+    10 1.01 moveto Smax 10 mul round 10 div STR cvs
+    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
+  grestore
 } bind def
 _E_O_F_
 }
