@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 17:08:35 ivo> */
+/* Last changed Time-stamp: <2000-10-30 10:13:19 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -27,7 +27,7 @@
 #define UNUSED
 #endif
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.18 2000/10/10 15:42:21 ivo Rel $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.19 2001/04/05 07:30:29 ivo Exp $";
 
 #define PAREN
 
@@ -88,7 +88,7 @@ PRIVATE double lxc;
 PRIVATE int MLbase;
 PRIVATE int MLintern[NBPAIRS+1];
 PRIVATE int MLclosing;
-PRIVATE int TETRA_ENERGY[40];
+PRIVATE int TETRA_ENERGY[200];
 PRIVATE int Triloop_E[40];
 
 PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
