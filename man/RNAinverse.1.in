@@ -24,7 +24,7 @@ Use minimum energy (-Fm), partition function fold (-Fp) or both (-Fmp).
 If \fIp\fP is specified the probability of the target structure
 exp(-E(S)/kT)/Q is maximized. This probability is written in brackets
 after the found sequence and Hamming distance. This can take along time,
-unless the -f option is used as well, see below. 
+unless the -f option is used as well, see below. The default is -Fm.
 .IP \fB\-f\ \fIfinal\fP
 In combination with -Fp stop search when sequence is found with E(s)-F is
 smaller than \fIfinal\fP, where F=-kT*ln(Q). 

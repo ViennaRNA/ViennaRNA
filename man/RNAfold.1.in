@@ -74,8 +74,10 @@ sufficient to enforce the constraint.
 .TP
 .B \-S\ \fIscale\fP
 In the calculation of the pf use \fIscale\fP*E_min as an estimate for the
-ensemble free energy (used to avoid overflows). Default is 1.07.
-Occasionally needed for very long sequences. 
+ensemble free energy (used to avoid overflows). The default is 1.07,
+usefull values are 1.0 to 1.2. Occasionally needed for long sequences.
+You can also recompile the programm to use double precision (see the README
+file). 
 .TP
 .B \-d
 Don't give stabilizing energies to single stacked bases in free ends and 
