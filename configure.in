@@ -24,9 +24,9 @@ AC_CANONICAL_HOST
 dnl Checks for programs.
 AC_PROG_CC
 if test "$GCC" = yes; then
-   AC_DEFINE(UNUSED, __attribute__ ((unused)), "avoid warning about unused variables")
+   AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
 else    
-   AC_DEFINE(UNUSED)
+   AC_DEFINE(UNUSED,)
 fi   		
 AC_PROG_INSTALL
 AC_PROG_RANLIB
