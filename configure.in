@@ -28,8 +28,9 @@ AC_PROG_RANLIB
 
 AC_PATH_PROG(PerlCmd, perl)
 if test -n "$PerlCmd"; then
-  if ! $PerlCmd -e 'require 5.005'; then
-     AC_MSG_RESULT(You need Perl version 5.005 or higher for the Perl module)
+  if $PerlCmd -e 'require 5.004'; then :
+  else
+     AC_MSG_RESULT(You need Perl version 5.004 or higher for the Perl module)
      with_perl="no"
    fi
 fi
