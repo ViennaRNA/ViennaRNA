@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/10/13 17:14:44 ivo> */
+/* Last changed Time-stamp: <97/11/04 14:21:06 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -14,7 +14,6 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "utils.h"
-extern int pf_dangl;
 
 #define  PUBLIC
 #define  PRIVATE   static
@@ -23,6 +22,7 @@ char  scale[] = "....,....1....,....2....,....3....,....4"
                 "....,....5....,....6....,....7....,....8";
 
 PRIVATE void usage(void);
+extern int logML;
 
 int main(int argc, char *argv[])
 {
@@ -48,16 +48,19 @@ int main(int argc, char *argv[])
 	   if (sscanf(argv[++i],"%d", &energy_set)==0)
 	     usage();
 	   break;
-	 case 'd':
-	   dangles=0;
-	   break;
-	 case 'p':
-	   pf_dangl=1;
+	 case 'd': dangles=0;
+	   if (argv[i][2]!='\0')
+              sscanf(argv[i]+2, "%d", &dangles);
 	   break;
 	 case 'P':
 	   if (sscanf(argv[++i], "%255s", ParamFile)==0)
 	     usage();
 	   break;
+	 case 'l':
+	   if (strcmp(argv[i],"-logML")==0) {
+	     logML=1;
+	     break;
+	   }
 	 default: usage();
 	 }
    }
@@ -132,5 +135,5 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: RNAeval  [-T temp] [-4] [-e e_set] [-d]");
+  nrerror("usage: RNAeval  [-T temp] [-4] [-d[0|1|2]] [-e e_set] [-logML] [-P paramfile]");
 }
