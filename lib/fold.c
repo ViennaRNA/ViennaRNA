@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/10/27 15:11:48 ivo> */
+/* Last changed Time-stamp: <97/10/28 17:18:32 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.5 1997/10/27 14:12:41 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.6 1997/11/03 17:10:02 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -69,7 +69,7 @@ PRIVATE double lxc;
 PRIVATE int MLbase;
 PRIVATE int MLintern;
 PRIVATE int MLclosing;
-PRIVATE int TETRA_ENERGY;
+PRIVATE int TETRA_ENERGY[40];
 
 PRIVATE int *indx;  /* index for moving in the triangle matrices c[] and fMl[]*/
 
@@ -236,10 +236,10 @@ float fold(char *string, char *structure)
 		  hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
 	       if (tetra_loop)
 		  if (j-i-1 == 4) { /* check for tetraloop bonus */
-		    char tl[5]={0,0,0,0,0};
+		    char tl[5]={0,0,0,0,0}, *ts;
 		    strncpy(tl, string+i, 4);
-		    if (strstr(Tetraloops, tl))
-		      new_c += TETRA_ENERGY;
+		    if ((ts=strstr(Tetraloops, tl))) 
+		      new_c += TETRA_ENERGY[(ts-Tetraloops)/5];
 		  }
 	       new_c += mismatchH[type][S1[i+1]][S1[j-1]];
 	    }
@@ -572,10 +572,10 @@ float fold(char *string, char *structure)
 	 sizecorr = (int)(lxc*log((double)(j-i-1)/30.));
       }
       else if (tetra_loop) if (unpaired == 4) {
-	char tl[5];
+	char tl[5] = {0,0,0,0,0}, *ts;
 	strncpy(tl, string+i, 4);
-	if (strstr(Tetraloops, tl))
-	  tetracorr = TETRA_ENERGY;
+	if (ts=strstr(Tetraloops, tl))
+	  tetracorr = TETRA_ENERGY[(ts-Tetraloops)/5];
       }
       mm = (unpaired>3) ? mismatchH[type][S1[i+1]][S1[j-1]] : 0;
       
@@ -803,7 +803,9 @@ PRIVATE void scale_parameters(void)
    }
    for (i=0; i<5; i++)
       F_ninio[i] = (int) F_ninio37[i]*tempf;
-   TETRA_ENERGY = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37)*tempf;
+   
+   for (i=0; (i*5)<strlen(Tetraloops); i++) 
+     TETRA_ENERGY[i] = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*tempf;
    
    MLbase = ML_BASE37*tempf;
    MLintern = ML_intern37*tempf;
@@ -985,10 +987,10 @@ PRIVATE int stack_energy(int i, char *string)
 	 hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
       if (tetra_loop) 
 	 if (j-i-1 == 4) {
-	   char tl[5]={0,0,0,0,0};
+	   char tl[5]={0,0,0,0,0}, *ts;
 	   strncpy(tl, string+i, 4); 
-	   if (strstr(Tetraloops, tl))
-	     energy += TETRA_ENERGY;
+	   if (ts=strstr(Tetraloops, tl))
+	     energy += TETRA_ENERGY[(ts-Tetraloops)/5];
 	 }
       if ((type)&&(j-i-1>3))
 	 energy += mismatchH[type][S1[i+1]][S1[j-1]];
