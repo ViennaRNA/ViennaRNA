@@ -32,7 +32,6 @@ PRIVATE void  usage(void);
 PRIVATE void heat_capacity(char *string, float T_min, float T_max,
 			  float h, int m)
 {
-   extern int pf_dangl;
    int length, i;
    char *structure=NULL;
    float hc, kT, min_en;
@@ -45,7 +44,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    initialize_fold(length);
    structure = (char *) space(length+1);
    min_en = fold(string, structure);
-   pf_dangl=1;
+   dangles= 2; /* recompute energy treating dangles as in pf_fold() */
    min_en = energy_of_struct(string,structure);
    free(structure); structure=NULL; free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
@@ -118,7 +117,7 @@ int main(int argc, char *argv[])
 	 switch ( argv[i][1] ) {
 	  case 'T':
 	    if (strncmp(argv[i], "-Tmin", 5)==0) {
-	       if (sscanf(argv[++i], "%f", &T_min)==)
+	       if (sscanf(argv[++i], "%f", &T_min)==0)
 		 usage();
 	    }
 	    if (strncmp(argv[i], "-Tmax",5)==0) {
@@ -143,7 +142,7 @@ int main(int argc, char *argv[])
 	    tetra_loop=0;
 	    break;
 	  case 'e':
-	    if (sscanf(argv[++i],"%d", &energy_set)==)
+	    if (sscanf(argv[++i],"%d", &energy_set)==0)
 	      usage();
 	    break;
 	  case 'm':
@@ -221,8 +220,6 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: RNAheat [-Tmin t1] [-Tmax t2] [-h stepsize] "
-	   "[-m ipoints] [-4]\n"
-	   "               [-noGU] [noCloseGU] [-d] [-nsp pairs] "
-	   "[-e e_set] \n");
+  nrerror("usage: RNAheat [-Tmin t1] [-Tmax t2] [-h stepsize] [-m ipoints] [-4] [-d]\n"
+	  "               [-noGU] [noCloseGU] [-e 1|2] [-P paramfile] [-nsp pairs]");
 }
