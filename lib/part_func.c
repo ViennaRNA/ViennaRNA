@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-05-10 00:10:36 ivo> */
+/* Last changed Time-stamp: <1998-07-18 21:04:46 ivo> */
 /*                
 	    partiton function for RNA secondary structures
 
@@ -18,7 +18,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: part_func.c,v 1.5 1998/05/10 01:19:23 ivo Exp $";
+static char rcsid[] = "$Id: part_func.c,v 1.6 1998/07/19 14:23:25 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -55,12 +55,13 @@ PRIVATE char msg[200];
 PRIVATE FLT_OR_DBL *scale;
 PRIVATE int *jindx;
 PRIVATE int init_length; /* length in last call to init_pf_fold() */
-     
+#define ISOLATED  256.0
+
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(char *sequence, char *structure)
 {
    short *S, *S1;
-   int n, i,j,k,l, m, ij,kl, u,u1,u2,d,ii,ll, type, type_2, tt, ov=0;
+   int n, i,j,k,l,  ij,kl, u,u1,u2,d,ii,ll, type, type_2, tt, ov=0;
    FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
    FLT_OR_DBL prmt,prmt1;
    FLT_OR_DBL qbt1,s1temp, *tmp;
@@ -109,6 +110,24 @@ PUBLIC float pf_fold(char *sequence, char *structure)
    for (i=1; i<=n; i++) 
       qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
 
+   if (noLonelyPairs) { /* mark isolated pairs */
+     for (k=2; k<n-TURN-1; k++) 
+       for (l=1; l<=2; l++) {
+	 int ntype,otype=0;
+	 i = k; j = i+TURN+l;
+	 type = pair[S[i]][S[j]];
+	 while ((i>1)&&(j<n)) {
+	   ntype = pair[S[i-1]][S[j+1]];
+	   if (type&&(!otype)&&(!ntype)) /* i.j can only form isolated pairs */
+	     qb[iindx[i]-j] = ISOLATED;
+	   else qb[iindx[i]-j] = 0.;
+	   otype =  type;
+	   type  = ntype;
+	   i--; j++;
+	 }
+       }
+   } 
+
    for (j=TURN+2;j<=n; j++) {
       if (fold_constrained) {
 	 cforbid=0; cpos=n+1;
@@ -124,6 +143,9 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	 /*firstly that given i bound to j : qb(i,j) */
 	 u = j-i-1;
 	 type = pair[S[i]][S[j]];
+	 if (noLonelyPairs && (qb[iindx[i]-j]==ISOLATED))
+	   type=0; /* don't allow this pair */
+	   
 	 if (fold_constrained) {
 	    if (BP[i]>j) cforbid=1;         /* no more pairs for this j */
 	    if ((BP[i]<i)&&(BP[i]>0))
@@ -145,7 +167,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    if ((tetra_loop)&&(u==4)) {
 	      char tl[5]={0,0,0,0,0}, *ts;
 	      strncpy(tl, sequence+i, 4);
-	      if (ts=strstr(Tetraloops, tl))
+	      if ((ts=strstr(Tetraloops, tl)))
 		qbt1 *= exptetra[(ts-Tetraloops)/5];
 	    }
 	    qbt1 *= scale[u+2];
@@ -291,7 +313,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    ij = iindx[i]-j;
 	    if (fold_constrained)
 	       if ((BP[i]==j)&&(type==0)) type=7;
-	    if (type) {
+	    if (type&&(qb[ij]>0.)) {
 	       pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
 	       if (i>1) pr[ij] *= expdangle5[type][S1[i-1]];
 	       if (j<n) pr[ij] *= expdangle3[type][S1[j+1]];
@@ -433,7 +455,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 
 PRIVATE void scale_pf_params(int length)
 {
-   int i, j, k, l /*, tint */;
+   int i, j, k /*, tint */;
    double  kT, TT;
    double  GT;
 
