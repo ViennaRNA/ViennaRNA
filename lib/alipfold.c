@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-12 15:34:53 ivo> */
+/* Last changed Time-stamp: <2001-08-02 17:14:46 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -17,8 +17,9 @@
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
+#include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.2 2001/04/05 07:28:34 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.3 2001/08/02 15:36:42 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -28,14 +29,6 @@ static char rcsid[] = "$Id: alipfold.c,v 1.2 2001/04/05 07:28:34 ivo Exp $";
 #define NEW_NINIO     1   /* new asymetry penalty */
 
 
-typedef struct {
-   short i;        /* i,j in [0, n-1] */
-   short j;
-   float p;      /* probability */
-   float ent;    /* pseudo entropy for p(i,j) = S_i + S_j - p_ij*ln(p_ij) */
-   short bp[8];    /* frequencies of pair_types */
-   char comp;    /* 1 iff compatible with all bp with higher score */
-}  pair_info;
 
 PUBLIC  float alipf_fold(char **sequences, char *structure, pair_info **pi);
 PRIVATE void  init_alipf_fold(int length, int n_seq);

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-04-05 09:33:03 ivo> */
+/* Last changed Time-stamp: <2001-08-02 17:04:09 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAalifold.c,v 1.2 2001/04/05 07:33:16 ivo Exp $";
+static char rcsid[] = "$Id: RNAalifold.c,v 1.3 2001/08/02 15:36:42 ivo Exp $";
 
 #define PRIVATE static
 
@@ -31,7 +31,7 @@ static char  scale2[] = "....,....5....,....6....,....7....,....8";
 PRIVATE void usage(void);
 PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
 PRIVATE char *consensus(const char *AS[]);
-PRIVATE char **annote(const char *structure, const char *AS[]);
+PRIVATE char *annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(pair_info pi, FILE *file);
 /*--------------------------------------------------------------------------*/
 #define MAX_NUM_NAMES    500
@@ -194,11 +194,10 @@ int main(int argc, char *argv[])
     strcpy(gfname, "alirna.g");
   }
   if (length<2000) {
-    char **A, **a;
-    a = A = annote(structure, (const char**) AS);
-    (void) PS_rna_plot_a(string, structure, ffname, A);
-    while (*A) {free(*A); A++;}
-    free(a);
+    char *A;
+    A = annote(structure, (const char**) AS);
+    (void) PS_rna_plot_a(string, structure, ffname, NULL, A);
+    free(A);
   } else 
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
   
@@ -387,18 +386,17 @@ PRIVATE char *consensus(const char *AS[]) {
   return string;
 }
 
-PRIVATE char **annote(const char *structure, const char *AS[]) {
-  char **A;
-  int i,n,s,n_A, i_A=0;
+PRIVATE char *annote(const char *structure, const char *AS[]) {
+  char *ps;
+  int i, n, s, maxl;
   short *ptable;
   make_pair_matrix();
   n = strlen(AS[0]);
-  n_A = 128;
-  A = (char **) space(n_A*sizeof(char *));
+  maxl = 1024;
+  ps = (char *) space(maxl);
   ptable = make_pair_table(structure);
-  A[i_A++] = strdup("\n");
   for (i=1; i<=n; i++) {
-    char ps[256], ci='\0', cj='\0';
+    char pps[256], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
     if ((j=ptable[i])<i) continue;
     for (s=0; AS[s]!=NULL; s++) {
@@ -409,28 +407,28 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
-    if (i_A>=n_A-3) {
-      n_A *= 2; A = realloc(A, n_A *sizeof(char *));
-      if (A==NULL) nrerror("out of memory in annote");
+    if (maxl - strlen(ps) < 128) { 
+      maxl *= 2;
+      ps = realloc(ps, maxl);
+      if (ps==NULL) nrerror("out of memory in realloc");
     }
     if (pfreq[0]>0) {
-      sprintf(ps, "%d %d %d gmark", i, j, pfreq[0]);
-      A[i_A++] = strdup(ps);
+      sprintf(pps, "%d %d %d gmark\n", i, j, pfreq[0]);
+      strcat(ps, pps);
     }
     if (vi>1) {
-      sprintf(ps, "%d cmark", i);
-      A[i_A++] = strdup(ps);
+      sprintf(pps, "%d cmark\n", i);
+      strcat(ps, pps);
     }
     if (vj>1) {
-      sprintf(ps, "%d cmark", j);
-      A[i_A++] = strdup(ps);
+      sprintf(pps, "%d cmark\n", j);
+      strcat(ps, pps);
     }
   }
-  
-  A[i_A] = NULL;
   free(ptable);
-  return A;
+  return ps;
 }
+
 /*-------------------------------------------------------------------------*/
 
 PRIVATE void usage(void)
