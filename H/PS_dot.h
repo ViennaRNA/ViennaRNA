@@ -17,3 +17,4 @@ typedef struct cpair {
   int i,j,mfe;
   float p, hue, sat;
 } cpair;
+extern int PS_color_dot_plot(char *string, cpair *pi, char *filename);
