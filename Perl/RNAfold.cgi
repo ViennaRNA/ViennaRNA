@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-Perl-*-
-# Last changed Time-stamp: <1998-05-19 13:04:46 ivo>
+# Last changed Time-stamp: <1999-08-06 13:59:45 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -13,10 +13,13 @@ use RNA;
 use Chart::Lines;
 
 # please configure these variables
-$hdir = "/RNAfold_dir";      # were the output files are stored
-$maxlength = 300;            # only process sequences up to this length
-$ssv_home = "http://smi-web.stanford.edu/projects/helix/sstructview/home.html";
-$ssv_url  = "/~ivo/RNA/SStructView.zip";
+$server = 'http://www.tbi.univie.ac.at';  # server name
+$www_root = '/u/www';    # www root     
+$hdir = '/RNAfold_dir';  # were the output files are stored
+                         # (relative to $www_root)
+$maxlength = 300;        # only process sequences up to this length
+$ssv_home = 'http://smi-web.stanford.edu/projects/helix/sstructview/home.html';
+$ssv_url  = '/~ivo/RNA/SStructView.zip';
 
 
 $query = new CGI;
@@ -129,7 +132,7 @@ sub do_work {
     my($query) = @_;
     my($OK_CHARS)='-a-zA-Z0-9_.@ ';  
     my($RNAfold_id, $junk);
-    my($WORK_DIR)="/usr/local/etc/httpd/htdocs" . $hdir;
+    my($WORK_DIR)= $www_root . $hdir;
     my($sfact)=1.02;
     chdir $WORK_DIR || die("can't change directory");
 
