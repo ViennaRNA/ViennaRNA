@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/03 19:40:40 ivo> */
+/* Last changed Time-stamp: <97/11/06 11:52:29 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,7 +16,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAfold.c,v 1.6 1997/11/03 19:13:07 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.7 1997/11/06 17:40:46 ivo Rel $";
 
 #define PRIVATE static
 
@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 	switch ( argv[i][1] )
 	  {
 	  case 'T':  if (argv[i][2]!='\0') usage();
+	    if(i==argc-1) usage();
 	    r=sscanf(argv[++i], "%f", &temperature);
 	    if (!r) usage();
 	    break;
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
+	      if (i==argc-1) usage();
 	      r=sscanf(argv[++i], "%32s", ns_bases);
 	      if (!r) usage();
 	    }
@@ -68,6 +70,7 @@ int main(int argc, char *argv[])
 	    tetra_loop=0;
 	    break;
 	  case 'e':
+	    if(i==argc-1) usage();
 	    r=sscanf(argv[++i],"%d", &energy_set);
 	    if (!r) usage();
 	    break;
@@ -75,12 +78,14 @@ int main(int argc, char *argv[])
 	    fold_constrained=1;
 	    break;
 	  case 'S':
+	    if(i==argc-1) usage();
 	    r=sscanf(argv[++i],"%f", &sfact);
 	    if (!r) usage();
 	    break;
 	  case 'd': dangles=0;
 	    break;
 	  case 'P':
+	    if (i==argc-1) usage();
 	    r=sscanf(argv[++i], "%255s", ParamFile);
 	    if (!r) usage();
 	    break;

@@ -22,7 +22,7 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.5 1997/11/04 18:08:23 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.6 1997/11/06 17:40:46 ivo Rel $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -119,16 +119,18 @@ int main(int argc, char *argv[])
 	 switch ( argv[i][1] ) {
 	  case 'T':
 	    if (strncmp(argv[i], "-Tmin", 5)==0) {
+	       if (i==argc-1) usage();
 	       if (sscanf(argv[++i], "%f", &T_min)==0)
 		 usage();
 	    }
 	    if (strncmp(argv[i], "-Tmax",5)==0) {
+	       if (i==argc-1) usage();
 	       if (sscanf(argv[++i], "%f", &T_max)==2)
 		 usage();
 	    }
 	    break;
 	  case 'h':
-	    if (i>argc-2) usage();
+	    if (i==argc-1) usage();
 	    if (sscanf(argv[++i],"%f",&h)==2)
 	      usage();
 	    break;
@@ -136,18 +138,21 @@ int main(int argc, char *argv[])
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
-	       if (sscanf(argv[++i], "%32s", ns_bases)==0)
-		 usage();
+	      if (i==argc-1) usage();
+	      if (sscanf(argv[++i], "%32s", ns_bases)==0)
+		usage();
 	    }
 	    break;
 	  case '4':
 	    tetra_loop=0;
 	    break;
 	  case 'e':
+	    if (i==argc-1) usage();
 	    if (sscanf(argv[++i],"%d", &energy_set)==0)
 	      usage();
 	    break;
 	  case 'm':
+	    if (i==argc-1) usage();
 	    if (sscanf(argv[++i],"%d", &m_points)==0)
 	      usage();
 	    if (m_points<1) m_points=1;
@@ -156,6 +161,7 @@ int main(int argc, char *argv[])
 	  case 'd': dangles=0;
 	    break;
 	  case 'P':
+	    if (i==argc-1) usage();
 	    if (sscanf(argv[++i], "%255s", ParamFile)==0)
 	      usage();
 	    break;
@@ -224,5 +230,5 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage: RNAheat [-Tmin t1] [-Tmax t2] [-h stepsize] [-m ipoints] [-4] [-d]\n"
-	  "               [-noGU] [noCloseGU] [-e 1|2] [-P paramfile] [-nsp pairs]");
+	  "               [-noGU] [-noCloseGU] [-e 1|2] [-P paramfile] [-nsp pairs]");
 }

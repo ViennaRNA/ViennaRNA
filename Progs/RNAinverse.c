@@ -3,7 +3,7 @@
 		    c Ivo Hofacker, Peter Stadler
 			  Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/11/04 19:30:04 ivo> */
+/* Last changed Time-stamp: <97/11/06 11:17:37 ivo> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -21,7 +21,7 @@
 
 #define  PUBLIC
 #define  PRIVATE   static
-static char rcsid[] = "$Id: RNAinverse.c,v 1.6 1997/11/04 18:30:26 ivo Exp $";
+static char rcsid[] = "$Id: RNAinverse.c,v 1.7 1997/11/06 17:40:46 ivo Rel $";
 static char scale[] = "....,....1....,....2....,....3....,....4"
                       "....,....5....,....6....,....7....,....8";
 
@@ -226,6 +226,6 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNAinverse [-F[mp]] [-a ALPHABET] [-R [repeats]]\n"
-          "                  [-T temp] [-4] [-noGU] [-e e_set] [-f final]");
+  nrerror("usage: RNAinverse [-F[mp]] [-a ALPHABET] [-R [repeats]] [-f final]\n"
+          "                  [-T temp] [-4] [-d] [-noGU] [-P paramfile] [-e e_set]");
 }
