@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-CPerl-*-
-# Last changed Time-stamp: <2002-08-01 18:13:45 ivo>
+# Last changed Time-stamp: <2002-10-25 16:23:00 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -10,15 +10,15 @@ use CGI qw/ :standard /;
 use CGI::Carp;# qw(fatalsToBrowser);
 use HTML::Entities;
 use URI::Escape;
-use RNA;
-use Chart::Lines;
+#use RNA;
+#use Chart::Lines;
 
-use vars qw/$hdir $maxlength $ssv_home $ssv_url $help_url $RNAalifold $ServerRoot/;
+use vars qw/$hdir $maxlength $ssv_home $ssv_url $help_url $RNAalifold $ServerRoot $RNAdir/;
 
 # please configure these variables
 $ServerRoot = '/u/www';
 $hdir = '/RNAfold_dir';      # were the output files are stored
-$RNAalifold = '/var/www/RNA/RNAalifold';  # full path to the executable
+$RNAdir = '/var/www/RNA/';   # where the RNAalifold executable lives
 $help_url = 'http://www.tbi.univie.ac.at/~ivo/RNA/alifoldcgi.html';
 $CGI::POST_MAX = 4096;       # maximum filsize for the alignment
 #$maxlength = 300;           # only process sequences up to this length
@@ -178,14 +178,14 @@ sub do_work {
   $options .= ' -P vienna13.par'
     if ($q->param('Params') eq 'oldRNA');
   $options .= " " . join(' ', $q->param('toggles'));
-  $RNA::tetra_loop = 0 if ($options =~ /-4/);
-  $RNA::dangles = 0 if ($options =~ /-d/);
-  $RNA::noGU = 1 if ($options =~ /-noGU/);
-  $RNA::no_closingGU = 1 if ($options =~ /-noCloseGU/);
-  $RNA::noLonelyPairs = 1 if ($options =~ /-noLP/);
+#  $RNA::tetra_loop = 0 if ($options =~ /-4/);
+#  $RNA::dangles = 0 if ($options =~ /-d/);
+#  $RNA::noGU = 1 if ($options =~ /-noGU/);
+#  $RNA::no_closingGU = 1 if ($options =~ /-noCloseGU/);
+#  $RNA::noLonelyPairs = 1 if ($options =~ /-noLP/);
   
   if ($q->param('Temp') =~ /([-+]?\d+\.?\d*)/) {
-    $RNA::temperature = $1;
+#    $RNA::temperature = $1;
     $options .= " -T $1" if ($1 != 37);
   }
   
@@ -264,7 +264,7 @@ sub do_work {
     "<kbd>RNAalifold $options alifold.aln</kbd><P>\n";
   $| = 1;
   print "<P><PRE>\n";
-  print `$RNAalifold $options alifold.aln 2>&1`;
+  print `$RNAdir/RNAalifold $options alifold.aln 2>&1`;
   print "</PRE><P>\n";
   
   print "RNAalifold returned $?, maybe something went wrong.<br>\n" if ($?);
@@ -276,8 +276,8 @@ sub do_work {
       "of pair probabilities<br>\n";
     
     print '<dd><a href="alifold.out">text output</a> with detailed ',
-      'information about each base pair<br>\n';
-    `/home/blini/ivo/RNA/ViennaRNA/AliFold/cmt.pl alifold.out > cmount.eps`;
+      "information about each base pair<br>\n";
+    `$RNAdir/cmt.pl alifold.out > cmount.eps`;
     print "<dd>colored <a href=\"cmount.eps\">mountain plot</a> in postscript";
   }
   print "</dl>\n";
