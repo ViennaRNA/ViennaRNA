@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-12-12 12:51:44 ivo> */
+/* Last changed Time-stamp: <2003-09-13 19:10:00 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.27 2002/12/13 17:26:20 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.28 2003/09/15 11:35:29 ivo Exp $";
 
 #define PAREN
 
@@ -1003,7 +1003,7 @@ int energy_of_struct_pt(const char *string, short * ptable,
   
   length = S[0];
   energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
-  if (eos_debug)
+  if (eos_debug>0)
     printf("External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
     if (pair_table[i]==0) continue;
@@ -1025,8 +1025,9 @@ PRIVATE int stack_energy(int i, const char *string)
   type = pair[S[i]][S[j]];
   if (type==0) {
     type=7;
-    fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-            string[i-1],string[j-1]);
+    if (eos_debug>=0)
+      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
+	      string[i-1],string[j-1]);
   }
    
   p=i; q=j;
@@ -1038,8 +1039,9 @@ PRIVATE int stack_energy(int i, const char *string)
     type_2 = pair[S[q]][S[p]];
     if (type_2==0) {
       type_2=7;
-      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              string[p-1],string[q-1]);
+      if (eos_debug>=0)
+	fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
+		string[p-1],string[q-1]);
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
@@ -1047,7 +1049,7 @@ PRIVATE int stack_energy(int i, const char *string)
 		      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
     else 
       ee = ML_Energy(cut_in_loop(i), 1);
-    if (eos_debug)
+    if (eos_debug>0)
       printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
 	     i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
     energy += ee;    
@@ -1062,7 +1064,7 @@ PRIVATE int stack_energy(int i, const char *string)
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     energy += ee;
-    if (eos_debug)
+    if (eos_debug>0)
       printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
 	     i, j, string[i-1],string[j-1], ee);
     
@@ -1083,7 +1085,7 @@ PRIVATE int stack_energy(int i, const char *string)
     ee = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
   }
   energy += ee;
-  if (eos_debug)
+  if (eos_debug>0)
     printf("Multi    loop (%3d,%3d) %c%c              : %5d\n",
 	   i,j,string[i-1],string[j-1],ee);
   
