@@ -1,10 +1,14 @@
 
 if MAKE_PERL_EXT
    PLDIR = Perl
+else
+   PLDIR = 
 endif
 
 if MAKE_CLUSTER
   CLDIR = Cluster
+else
+  CLDIR = 
 endif
 
 SUBDIRS = lib Progs man Utils AliFold H $(PLDIR) $(CLDIR)
