@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-02 22:45:04 ivo> */
+/* Last changed Time-stamp: <2001-03-05 13:36:14 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -26,7 +26,7 @@
 #define UNUSED
 #endif
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.1 2001/03/03 17:40:43 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.2 2001/04/05 07:27:14 ivo Exp $";
 
 #define PAREN
 
@@ -45,6 +45,9 @@ PUBLIC float  alifold(char **strings, char *structure);
 PRIVATE void   init_alifold(int length);
 PUBLIC  void   free_alifold_arrays(void);
 PUBLIC  void   update_alifold_params(void);
+
+PUBLIC double cv_fact=1;
+PUBLIC double nc_fact=1;
 
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
@@ -206,7 +209,7 @@ float alifold(char **strings, char *structure)
  
       psc = pscore[indx[j]+i];
 		 
-      if (psc>=MINPSCORE) {   /* a pair to consider */
+      if (psc>=cv_fact*MINPSCORE) {   /* a pair to consider */
 	int stackEnergy = INF;
 	/* hairpin ----------------------------------------------*/
 	
@@ -815,8 +818,8 @@ PRIVATE void make_pscores(const short *const* S, int n_seq, const char *structur
 	  /* consistent or compensatory mutations score 1 or 2  */
 	  score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j]+i] = 
-	(UNIT*score)/n_seq - UNIT*pfreq[0]*1 - UNIT*pfreq[7]*0.25;
+      pscore[indx[j]+i] = cv_fact *
+	((UNIT*score)/n_seq - UNIT*pfreq[0]*nc_fact - UNIT*pfreq[7]*0.25);
     }
   }
   
