@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-03-06 20:10:12 ivo> */
+/* Last changed Time-stamp: <1998-03-26 00:39:50 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.8 1998/03/24 17:47:00 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.9 1998/03/31 15:25:50 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -28,7 +28,11 @@ static char rcsid[] = "$Id: fold.c,v 1.8 1998/03/24 17:47:00 ivo Exp $";
 #endif
 
 #define PUBLIC
+#ifdef SUBOPT
+#define PRIVATE
+#else
 #define PRIVATE static
+#endif
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
@@ -70,12 +74,15 @@ PRIVATE int MLintern;
 PRIVATE int MLclosing;
 PRIVATE int TETRA_ENERGY[40];
 
-PRIVATE int *indx;  /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
 
 PRIVATE int   *c;       /* energy array, given that i-j pair */
 PRIVATE int   *f5;      /* energy of 5' end */
 PRIVATE int   *f3;      /* energy of 3' end */
 PRIVATE int   *fML;     /* multi-loop auxiliary energy array */
+#ifdef SUBOPT
+PRIVATE int   *fM1;     /* another multi-loop for subopt */
+#endif
 PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
 PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
@@ -106,6 +113,9 @@ PRIVATE void get_arrays(int size)
    indx = (int *) space(sizeof(int)*(size+1));
    c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
    fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+#ifdef SUBOPT
+   fM1    = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+#endif   
    f5    = (int *) space(sizeof(int)*(size+2));
    f3    = (int *) space(sizeof(int)*(size+2));
    Fmi   = (int *) space(sizeof(int)*(size+1));
@@ -120,6 +130,9 @@ PRIVATE void get_arrays(int size)
 void free_arrays(void)
 {
    free(indx); free(c); free(fML); free(f5); free(f3);
+#ifdef SUBOPT
+   free(fM1);
+#endif
    free(base_pair); free(Fmi);
    free(DMLi); free(DMLi1);free(DMLi2);
    init_length=0;
@@ -136,6 +149,13 @@ PRIVATE void initialize(int length)
 }
 
 /*----------------------------------------------------------------------------*/
+
+PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
+                      -1: | = base must be paired
+                      -2: < = base must be paired with j<i
+                      -3: > = base must be paired with j>i
+                      -4: x = base must not pair
+	    positive int: base is paired with int      */
 
 float fold(char *string, char *structure)
 {
@@ -155,13 +175,7 @@ float fold(char *string, char *structure)
    char *pos;
    int  *FF;
    int   bonus=0, bonus_cnt=0;
-   int   *BP; /* contains the structure constrainsts: BP[i]
-                      -1: | = base must be paired
-                      -2: < = base must be paired with j<i
-                      -3: > = base must be paired with j>i
-                      -4: x = base must not pair
-		 positive int: base is paired with int      */
-   
+
    length = strlen(string);
    if (length>init_length) initialize_fold(length);
    
@@ -192,8 +206,12 @@ float fold(char *string, char *structure)
    }
    
    for (j = 1; j<=length; j++)
-      for (i=(j>TURN?(j-TURN):1); i<j; i++)
-	 c[indx[j]+i] = fML[indx[j]+i] = INF;
+     for (i=(j>TURN?(j-TURN):1); i<j; i++) {
+       c[indx[j]+i] = fML[indx[j]+i] = INF;
+#ifdef SUBOPT
+       fM1[indx[j]+i] = INF;
+#endif
+     }       
 
    for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
       
@@ -211,38 +229,25 @@ float fold(char *string, char *structure)
 	 	 
 	 no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
 		 
-	 /* smallest hairpin case ------------------------------------*/
-      
-	 if (i == j-TURN-1) {
-	    c[indx[j]+i] = (type) ? hairpin[TURN] /* +
-	       mismatchH[type][S1[i+1]][S1[j-1]]*/ : INF;
-
-	    c[indx[j]+i] += bonus;
-	    
-	    if (no_close) c[indx[j]+i] = FORBIDDEN;
-	    
-	    fML[indx[j]+i] = Fmi[j] = c[indx[j]+i]+MLintern;
-	    continue;
-	 }
-	    
 	 if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
-	    
-	 if (type!=0) {
 
-	    /* hairpin ----------------------------------------------*/
+	 if (type) {   /* we have a pair */
+      
+	   /* hairpin ----------------------------------------------*/
 		
 	    if (no_close) new_c = FORBIDDEN;
 	    else {
-	       new_c = (j-i-1 <= 30) ? hairpin[j-i-1] :
-		  hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
-	       if (tetra_loop)
-		  if (j-i-1 == 4) { /* check for tetraloop bonus */
-		    char tl[5]={0,0,0,0,0}, *ts;
-		    strncpy(tl, string+i, 4);
-		    if ((ts=strstr(Tetraloops, tl))) 
-		      new_c += TETRA_ENERGY[(ts-Tetraloops)/5];
-		  }
-	       new_c += mismatchH[type][S1[i+1]][S1[j-1]];
+	      new_c = (j-i-1 <= 30) ? hairpin[j-i-1] :
+		hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
+	      if (tetra_loop)
+		if (j-i-1 == 4) { /* check for tetraloop bonus */
+		  char tl[5]={0,0,0,0,0}, *ts;
+		  strncpy(tl, string+i, 4);
+		  if ((ts=strstr(Tetraloops, tl))) 
+		    new_c += TETRA_ENERGY[(ts-Tetraloops)/5];
+		}
+	      if (j-i-1 > TURN)  /* no mismatch for smallest hairpin */
+		new_c += mismatchH[type][S1[i+1]][S1[j-1]];
 	    }
 	    
 	    /*--------------------------------------------------------
@@ -293,7 +298,7 @@ float fold(char *string, char *structure)
 			 energy = internal_loop[n1+n2];
 			 
 #if NEW_NINIO
-			   energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
+			 energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
 #else
 			 m       = MIN2(4, n1);
 			 energy += MIN2(MAX_NINIO,((n2-n1)*F_ninio[m]));
@@ -315,18 +320,22 @@ float fold(char *string, char *structure)
 	    /* multi-loop decomposition ------------------------*/
 
 	    if (!no_close) {
-	       decomp = DMLi1[j-1];
-	       if (dangles) {
-		  tt = rtype[type]; if ((tt==0)&&(bonus!=0)) tt=7;
+	      decomp = DMLi1[j-1];
+	      if (dangles) {
+		tt = rtype[type]; if ((tt==0)&&(bonus!=0)) tt=7;
+		if (dangles==2) /* double dangles */
+		  decomp += dangle5[tt][S1[j-1]]+dangle3[tt][S1[i+1]];
+		else {          /* normal dangles */
 		  decomp = MIN2(DMLi2[j-1]+dangle3[tt][S1[i+1]]+MLbase, decomp);
 		  decomp = MIN2(DMLi1[j-2]+dangle5[tt][S1[j-1]]+MLbase, decomp);
 		  decomp = MIN2(DMLi2[j-2]+dangle5[tt][S1[j-1]]+
 				dangle3[tt][S1[i+1]] + 2*MLbase, decomp);
-	       }
+		}
+	      }
 
-	       MLenergy = MLclosing+MLintern+decomp;
-
-	       new_c = MLenergy < new_c ? MLenergy : new_c;
+	      MLenergy = MLclosing+MLintern+decomp;
+	      
+	      new_c = MLenergy < new_c ? MLenergy : new_c;
 	    }
 	    
 	    c[indx[j]+i] = new_c + bonus;
@@ -339,16 +348,22 @@ float fold(char *string, char *structure)
 
 	 new_fML = fML[indx[j]+i+1]+MLbase;
 	 new_fML = MIN2(fML[indx[j-1]+i]+MLbase, new_fML);
-	 new_fML = MIN2(c[indx[j]+i]+MLintern, new_fML);
-	 if (dangles) {
+	 energy = c[indx[j]+i]+MLintern;
+	 if (dangles==2) {  /* double dangles */
+	   if (i>1)      energy += dangle5[type][S1[i-1]];
+	   if (j<length) energy += dangle3[type][S1[j+1]];
+	 }
+	 new_fML = MIN2(energy, new_fML);
+#ifdef SUBOPT
+	  fM1[indx[j]+i] = MIN2(fM1[indx[j-1]+i] + MLbase, energy);
+#endif
+	 if (dangles==1) {  /* normal dangles */
 	    tt = pair[S[i+1]][S[j]]; if ((tt==0)&&(BP[i+1]==j)) tt=7;
 	    new_fML = MIN2(c[indx[j]+i+1]+dangle5[tt][S1[i]]
 			   +MLintern+MLbase,new_fML);
 	    tt = pair[S[i]][S[j-1]]; if ((tt==0)&&(BP[i]==j-1)) tt=7;
 	    new_fML = MIN2(c[indx[j-1]+i]+dangle3[tt][S1[j]]
 			   +MLintern+MLbase, new_fML);
-	 }
-	 if (dangles) {
 	    tt = pair[S[i+1]][S[j-1]]; if ((tt==0)&&(BP[i+1]==j-1)) tt=7;
 	    new_fML = MIN2(c[indx[j-1]+i+1]+dangle5[tt][S1[i]]+
 			   dangle3[tt][S1[j]]+MLintern+2*MLbase, new_fML);
@@ -378,22 +393,33 @@ float fold(char *string, char *structure)
    f5[TURN+1]=0;
    for (j=TURN+2; j<=length; j++) {
       f5[j] = f5[j-1];
-      f5[j] = MIN2(f5[j], c[indx[j]+1]);
+      type=pair[S[1]][S[j]]; if ((type==0)&&(BP[1]==j)) type=7;
+      if (type) {
+	energy = c[indx[j]+1];
+	if ((dangles==2)&&(j<length))  /* double dangles */
+	  energy += dangle3[type][S1[j+1]];
+	f5[j] = MIN2(f5[j], energy);
+      }
       type=pair[S[1]][S[j-1]]; if ((type==0)&&(BP[1]==j-1)) type=7;
-      if ((type)&&(dangles))
-	 f5[j] = MIN2(f5[j], c[indx[j-1]+1]+dangle3[type][S1[j]]);
+      if ((type)&&(dangles==1))
+	f5[j] = MIN2(f5[j], c[indx[j-1]+1]+dangle3[type][S1[j]]);
       for (i=j-TURN-1; i>1; i--) {
 	 type = pair[S[i]][S[j]]; if ((type==0)&&(BP[i]==j)) type=7;
 	 if (type) {
-	    f5[j] = MIN2(f5[j], f5[i-1]+c[indx[j]+i]);
-	    if (dangles)
-	       f5[j] = MIN2(f5[j], f5[i-2]+c[indx[j]+i]+dangle5[type][S1[i-1]]);
+	   energy = f5[i-1]+c[indx[j]+i];
+	   if (dangles==2) {
+	     energy += dangle5[type][S1[i-1]];
+	     if (j<length) energy += dangle3[type][S1[j+1]];
+	   }
+	   f5[j] = MIN2(f5[j], energy);
+	   if (dangles==1)
+	     f5[j] = MIN2(f5[j], f5[i-2]+c[indx[j]+i]+dangle5[type][S1[i-1]]);
 	 }
 	 type = pair[S[i]][S[j-1]]; if ((type==0)&&(BP[i]==j-1)) type=7;
-	 if ((type)&&(dangles)) {
-	    f5[j] = MIN2(f5[j], f5[i-1]+c[indx[j-1]+i]+dangle3[type][S1[j]]);
-	    f5[j] = MIN2(f5[j], f5[i-2]+c[indx[j-1]+i]+
-			 dangle5[type][S1[i-1]]+dangle3[type][S1[j]]);
+	 if ((type)&&(dangles==1)) {
+	   f5[j] = MIN2(f5[j], f5[i-1]+c[indx[j-1]+i]+dangle3[type][S1[j]]);
+	   f5[j] = MIN2(f5[j], f5[i-2]+c[indx[j-1]+i]+
+			dangle5[type][S1[i-1]]+dangle3[type][S1[j]]);
 	 }
       }
    }
@@ -467,7 +493,7 @@ float fold(char *string, char *structure)
 	    for (k=j-TURN-1,traced=0; k>1; k--) {
 	       jj = k-1;
 	       type = pair[S[k]][S[j-1]]; if ((type==0)&&(BP[k]==j-1)) type=7;
-	       if((type)&&(dangles)) {
+	       if((type)&&(dangles==1)) {
 		  if (f5[j] == f5[k-1]+c[indx[j-1]+k]+dangle3[type][S1[j]])
 		     traced=j-1;
 		  if (f5[j] == f5[k-2]+c[indx[j-1]+k]+
@@ -476,20 +502,33 @@ float fold(char *string, char *structure)
 		  }
 	       }
 	       type = pair[S[k]][S[j]]; if ((type==0)&&(BP[k]==j)) type=7;
-	       if(type) {
-		  if (f5[j] == f5[k-1]+c[indx[j]+k]) traced=j;
-		  if (dangles)
-		     if (f5[j] == f5[k-2]+c[indx[j]+k]+dangle5[type][S1[k-1]]) {
-			traced=j; jj=k-2;
-		     }
+	       if (type) {
+		 int en;
+		 en = f5[k-1]+c[indx[j]+k];
+		 if (dangles==2) {
+		   en += dangle5[type][S1[k-1]];
+		   if (j<length) en += dangle3[type][S1[j+1]];
+		 }
+		 if (f5[j] == en) traced=j;
+		 if (dangles==1)
+		   if (f5[j] == f5[k-2]+c[indx[j]+k]+dangle5[type][S1[k-1]]) {
+		     traced=j; jj=k-2;
+		   }
 	       }
 	       if (traced) break;
 	    }
 	    if (!traced) {
-	       k=1; jj=k-1; if (f5[j] == c[indx[j]+k]) traced=j;
-	       type=pair[S[1]][S[j-1]];if ((type==0)&&(BP[1]==j-1)) type=7;
-	       if ((type)&&(dangles))
-		  if (f5[j] == c[indx[j-1]+k]+dangle3[type][S1[j]]) traced=j-1;
+	       k=1; jj=k-1;
+	       if (f5[j] == c[indx[j]+k]) traced=j;
+	       if ((dangles==2)&&(j<length)) {
+		 type=pair[S[1]][S[j]];if ((type==0)&&(BP[1]==j)) type=7;
+		 if (f5[j] == c[indx[j]+k]+dangle3[type][S1[j+1]]) traced=j;
+	       }
+	       else if (dangles==1) {
+		 type=pair[S[1]][S[j-1]];if ((type==0)&&(BP[1]==j-1)) type=7;
+		 if (type)
+		   if (f5[j] == c[indx[j-1]+k]+dangle3[type][S1[j]]) traced=j-1;
+	       }
 	    }
 	    if (!traced) nrerror("backtrack failed");
 	    sector[++s].i = 1;
@@ -508,7 +547,11 @@ float fold(char *string, char *structure)
 	 fi  = fML[indx[j-1]+i]+MLbase;
 	 tt  = pair[S[i]][S[j]]; if ((tt==0)&&(BP[i]==j)) tt=7;
 	 cij = c[indx[j]+i] + MLintern;
-	 if (dangles) {
+	 if (dangles==2) {       /* double dangles */
+	   if (i>1)      cij += dangle5[tt][S1[i-1]];
+	   if (j<length) cij += dangle3[tt][S1[j+1]];
+	 }
+	 else if (dangles==1) {  /* normal dangles */
 	    tt = pair[S[i+1]][S[j]]; if ((tt==0)&&(BP[i+1]==j)) tt=7;
 	    ci1j= c[indx[j]+i+1] + dangle5[tt][S1[i]] + MLintern+MLbase;
 	    tt = pair[S[i]][S[j-1]]; if ((tt==0)&&(BP[i]==j-1)) tt=7;
@@ -661,12 +704,16 @@ float fold(char *string, char *structure)
       tt = pair[S[j]][S[i]]; if ((tt==0)&&(BP[i]==j)) tt=7;
 
       for (k = i+2+TURN; k <= j-3-TURN; k++) {
-	 if (c[indx[j]+i] == (fML[indx[k]+i+1]+fML[indx[j-1]+k+1]+mm)) {
+	int en;
+	en = fML[indx[k]+i+1]+fML[indx[j-1]+k+1]+mm;
+	if (dangles==2) /* double dangles */
+	  en += dangle5[tt][S1[j-1]] + dangle3[tt][S1[i+1]];
+	 if (c[indx[j]+i] == en) {
 	    sector[++s].i = i+1;
 	    sector[s+1].j = j-1;
 	    break;
 	 }
-	 if (dangles) {
+	 if (dangles==1) { /* normal dangles */
 	    if (c[indx[j]+i] == (fML[indx[k]+i+2]+fML[indx[j-1]+k+1]+mm+
 				 dangle3[tt][S1[i+1]]+MLbase)) {
 	       sector[++s].i = i+2;
@@ -706,8 +753,6 @@ float fold(char *string, char *structure)
    parenthesis_structure(structure, length);
 #endif
 
-   free(S); free(S1);
-  
    bonus=0;
    bonus_cnt = 0;
    for(l=1;l<=length;l++) {
@@ -730,7 +775,10 @@ float fold(char *string, char *structure)
    if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
    bonus*=BONUS;
 
+#ifndef SUBOPT
+   free(S); free(S1);
    free(BP);
+#endif   
    
    f5[length] += bonus;      
 
@@ -824,23 +872,23 @@ PRIVATE void scale_parameters(void)
 
    /* mismatches */
    for (i=0; i<=NBPAIRS; i++)
-      for (j=0; j<5; j++)
-	for (k=0; k<5; k++) {
-	  mismatchI[i][j][k] = mism_H[i][j][k] -
-	    (mism_H[i][j][k] - mismatchI37[i][j][k])*tempf;
-	  mismatchH[i][j][k] = mism_H[i][j][k] -
-	    (mism_H[i][j][k] - mismatchH37[i][j][k])*tempf;
-	}
-
-   /* danlges */
+     for (j=0; j<5; j++)
+       for (k=0; k<5; k++) {
+	 mismatchI[i][j][k] = mism_H[i][j][k] -
+	   (mism_H[i][j][k] - mismatchI37[i][j][k])*tempf;
+	 mismatchH[i][j][k] = mism_H[i][j][k] -
+	   (mism_H[i][j][k] - mismatchH37[i][j][k])*tempf;
+       }
+   
+   /* dangles */
    for (i=0; i<=NBPAIRS; i++)
      for (j=0; j<5; j++) {
-       dangle5[i][j] = dangle5_H[i][j] -
-	 (dangle5_H[i][j] - dangle5_37[i][j])*tempf;
-       dangle3[i][j] = dangle3_H[i][j] -
-	 (dangle3_H[i][j] - dangle3_37[i][j])*tempf;
-	 }
-   
+       int dd;
+       dd = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*tempf; 
+       dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
+       dd = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*tempf;
+       dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
+     }
 }
 
 /*---------------------------------------------------------------------------*/
