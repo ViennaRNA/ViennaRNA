@@ -1,24 +1,27 @@
 Version 1.5pre 
 -----------
 - ViennaRNA now uses autoconfig generated configure scripts for even better
-  portability .
-- The new RNAalifold program predicts consensus structures for a set of aligned
-  sequences.
+  portability (should compile on any UNIX, Linux, MacOS X, Windows with
+  Cygwin).
+- The new RNAalifold program predicts consensus structures for a set of
+  aligned sequences.
 - Complete suboptimal folding is now integrated in the library.
 - Beginning support for co-folding of two strands: energy_of_struct() and
   RNAeval can now compute energies of duplex structures.
-- Major changes to Perl module. See the pod documentation (perldoc RNA).  
+- Major changes to Perl module. See the pod documentation (perldoc RNA).
+- RNAsubopt can do stochastic backtracking to produce samples of suboptimal
+  structures with Boltzmann statistics.
+- New utilities to rotate secondary structure plots and annotate them with
+  reliability data.
 - Various small bug fixes
 
 Version 1.4
 -----------
 - New Turner parameters as described in Mathews et.al. JMB v288, 1999.
-  Small changes to fromat of parameter files (old param files won't work!)
-
+  Small changes to format of parameter files (old param files won't work!)
 - mfe and suboptimal folding will produce only structures without isolated
   pairs if noLonelyPairs=1 (-noLP option), for partition function folding
   pairs that can only occur as isolated pairs are not formed.
-
 - setting dangles=3 (-d3 option) will allow co-axial stacking of adjacent
   helices in mfe folding and energy_of_struct().
 
@@ -38,14 +41,10 @@ Version 1.3
   energy_of_struct() and fold() treat dangling ends as in pf_fold().
   -noLP option in RNAfold etc sets noLonelyPairs=1, which avoids most
   structures containing lonely base pairs (helices of length 1).
-
 - new utility functions pack_structure() unpack_structure() make_pair_table()
   and bp_distance().  RNAdistance adds bp_distance() via -DP switch.
-
 - First release of RNAsubopt for complete suboptimal folding.
-
-- fixed bug in asymetry penalty for interior loops. 
-
+- fixed bug in asymmetry penalty for interior loops. 
 - Default compilation now uses doubles for partition function folding.
 
 Version 1.2.1
