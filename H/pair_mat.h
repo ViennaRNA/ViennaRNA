@@ -40,7 +40,7 @@ static int encode_char(char c) {
 /*@+boolint +charint@*/
 /*@null@*/
 extern char *nonstandards;
-extern extern void   nrerror(const char message[]);
+extern void   nrerror(const char message[]);
 static void make_pair_matrix(void) 
 {
    int i,j;
