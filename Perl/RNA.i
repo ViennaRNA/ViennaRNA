@@ -1,4 +1,5 @@
 %module RNA
+//%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %{
 #include  "../H/utils.h"
 #include  "../H/fold_vars.h"
@@ -20,9 +21,9 @@
 %constant double VERSION = 0.3;
 %include typemaps.i
 %typemap(perl5,in) FILE * {
-  if (SvOK($source)) /* check for undef */
-	$target = IoIFP(sv_2io($source));
-  else  $target = NULL;
+  if (SvOK($input)) /* check for undef */
+	$1 = IoIFP(sv_2io($input));
+  else  $1 = NULL;
 }
 
 %title "Interface to the Vienna RNA library"
@@ -264,20 +265,21 @@ strcpy(symbolset, "AUGC");
   I32 len;
   int i;
   SV **tv;
-  if (!SvROK($source)) croak("$source is not a reference.");
-  if (SvTYPE(SvRV($source)) != SVt_PVAV) croak("$source is not an array.");
-  tempav = (AV*)SvRV($source);
+  if (!SvROK($input)) croak("$input is not a reference.");
+  if (SvTYPE(SvRV($input)) != SVt_PVAV) croak("$input is not an array.");
+  tempav = (AV*)SvRV($input);
   len = av_len(tempav);
-  $target = (char **) malloc((len+2)*sizeof(char *));
+  $1 = (char **) malloc((len+2)*sizeof(char *));
   for (i = 0; i <= len; i++) {
     tv = av_fetch(tempav, i, 0);
-    $target[i] = (char *) SvPV(*tv,PL_na);
+    $1[i] = (char *) SvPV(*tv,PL_na);
   }
-  $target[i] = 0;
+  $1[i] = 0;
 }
 // This cleans up our char ** array after the function call
 %typemap(perl5,freearg) char ** {
-  free($source);
+  free($1);
 }
 %include  "../H/PS_dot.h"
+
 

@@ -119,8 +119,8 @@ static AV *_ptr2array(SV *_PTRVALUE, int index, int len, char *type) {
 
 %typemap(perl5, out) AV *ptr2array
 {
-  $target = newRV_noinc((SV*) $source);
-  sv_2mortal($target);
+  $result = newRV_noinc((SV*) $1);
+  sv_2mortal($result);
   argvi++;
 }
 
