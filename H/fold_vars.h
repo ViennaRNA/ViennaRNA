@@ -29,5 +29,6 @@ extern int   *iindx;            /* pr[i,j] -> pr[iindx[i]-j] */
 extern float  pf_scale;         /* scaling factor to avoid float overflows*/
 extern int    fold_constrained; /* fold with constraints */
 extern int    do_backtrack;     /* calculate pair prob matrix in part_func() */
+extern int    noLonelyPairs;    /* avoid helices of length 1 */
 extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
 				   'M' seq is part of a multi loop */
