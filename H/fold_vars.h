@@ -1,3 +1,5 @@
+/* to use doubles instead of floats in pf_fold() uncomment next line */
+/* #define LARGE_PF */
 #ifdef  LARGE_PF
 #define FLT_OR_DBL double
 #else
