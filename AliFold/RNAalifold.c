@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-07-18 10:14:15 ivo> */
+/* Last changed Time-stamp: <2003-08-29 18:15:58 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.7 2003/07/18 08:14:40 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.8 2003/09/02 08:17:28 ivo Exp $";
 
 #define PRIVATE static
 
@@ -384,6 +384,7 @@ PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
     for (ncomp=0, j=1; j<=6; j++) if (pi[i].bp[j]) ncomp++;
     cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
     cp[i].sat = 1 - MIN2( 1.0, pi[i].bp[0]/2.5);
+    cp[i].mfe = pi[i].comp;
   }
   return cp;
 }
