@@ -15,6 +15,8 @@ static int BP_pair[NBASES][NBASES]=
 
 static short alias[MAXALPHA+1];
 static int pair[MAXALPHA+1][MAXALPHA+1];
+/* rtype[pair[i][j]]:=pair[j][i] */
+static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
 
 #define ENCODE(C) (energy_set>0)?((C)-'A'+1): \
    ((strchr(Law_and_Order, (C))==0)?0:(strchr(Law_and_Order, (C))-Law_and_Order))
@@ -30,8 +32,9 @@ static void make_pair_matrix(void)
       alias[6] = 2; /* K <-> C */
       alias[7] = 0; /* I <-> default base '@' */
       for (i=0; i<NBASES; i++) {
-	 for (j=0; j<NBASES; j++) 
+ 	 for (j=0; j<NBASES; j++) {
 	    pair[i][j] = BP_pair[i][j];
+	    rtype[pair[i][j]] = pair[j][i];
       }
       if (noGU) pair[3][4] = pair[4][3] =0;
       if (nonstandards!=NULL) {  /* allow nonstandard bp's */ 
