@@ -1,17 +1,17 @@
-=head1 RNA
+=head1 NAME
 
- RNA  interface to the Vienna RNA library (libRNA.a)
- Version 0.3
+RNA - interface to the Vienna RNA library (libRNA.a)
+Version 0.3
 
 =head1 SYNOPSIS
 
- use RNA;
- $seq = "CGCAGGGAUACCCGCG";
- ($struct, $mfe) = RNA::fold($seq);  #predict mfe structure of $seq
- RNA::PS_rna_plot($seq, $struct, "rna.ps");  # write PS plot to rna.ps
- $F = RNA::pf_fold($seq);   # compute partition function and pair pobabilities
- RNA::PS_dot_plot($sseq, "dot.ps");          # write dot plot to dot.ps
- ...
+  use RNA;
+  $seq = "CGCAGGGAUACCCGCG";
+  ($struct, $mfe) = RNA::fold($seq);  #predict mfe structure of $seq
+  RNA::PS_rna_plot($seq, $struct, "rna.ps");  # write PS plot to rna.ps
+  $F = RNA::pf_fold($seq);   # compute partition function and pair pobabilities
+  RNA::PS_dot_plot($sseq, "dot.ps");          # write dot plot to dot.ps
+  ...
 
 =head1 DESCRIPTION
 
@@ -47,7 +47,7 @@ Minimum free Energy Folding (from fold.h)
 computes the minimum free energy structure of the string SEQUENCE and returns
 the predicted structure and energy, e.g.
 
-($structure, $mfe) = RNA::fold("UGUGUCGAUGUGCUAU");
+  ($structure, $mfe) = RNA::fold("UGUGUCGAUGUGCUAU");
 
 If a second argument is supplied and
 L<$fold_constrained|/$fold_constrained>==1 the CONSTRAINTS string is
@@ -132,11 +132,11 @@ is returned. Else, the C function returnes a list of C structs of type
 SOLUTION. The list is wrapped by SWIG as a perl object that can be
 accesses as follows:
 
-	 $solution = subopt($seq, 500);
-	 for (0..$solution->size()-1) {
-	   printf "%s %6.2f\n",  $solution->get($_)->{structure},
-		                 $solution->get($_)->{energy};
-	 }
+  $solution = subopt($seq, 500);
+  for (0..$solution->size()-1) {
+     printf "%s %6.2f\n",  $solution->get($_)->{structure},
+			   $solution->get($_)->{energy};
+  }
 
 =back
 
@@ -213,28 +213,27 @@ detailed discussion in RNAlib.texinfo.
 
 =item $nonstandards [char *]
 
-        contains allowed non standard bases, default empty string ""
+contains allowed non standard bases, default empty string ""
 
 =item $temperature [double]
 
-        temperature in degrees Celsius for rescaling parameters, default
-        37C.
+temperature in degrees Celsius for rescaling parameters, default 37C.
 
 =item $logML [int]
 
-        use logarithmic multiloop energy function in
-        L<energy_of_struct|/energy_of_struct>, default 0.
+use logarithmic multiloop energy function in 
+L<energy_of_struct|/energy_of_struct>, default 0.
 
 =item $noLonelyPairs [int]
 
-	consider only structures without isolated base pairs (helices
-        of length 1). For L<pf_fold|/pf_fold> only eliminates pairs
-        that can B<only> occur as isolated pairs. Default 0.
+consider only structures without isolated base pairs (helices of length 1).
+For L<pf_fold|/pf_fold> only eliminates pairs
+that can B<only> occur as isolated pairs. Default 0.
 
 =item $base_pair [struct bond *]
 
-        list of base pairs from last call to L<fold|/fold>. Better use
-        the structure string returned by  L<fold|/fold>.
+list of base pairs from last call to L<fold|/fold>. Better use
+the structure string returned by  L<fold|/fold>.
 
 =item $pf_scale [double]
 
@@ -372,7 +371,7 @@ from profiledist
 
 =item Make_bp_profile LENGTH
 
-[ returns (float [3])* ]
+[ returns (float *) ]
 condense pair probability matrix C<pr> into a vector containing
 probabilities for upstream paired, downstream paired and
 unpaired. This resulting probability profile is used as input for
@@ -434,7 +433,6 @@ current random  number is always stored in $xsubi.
 =item init_rand
 
 initialize the $xsubi random number from current time
-
 
 =item urn
 
@@ -577,7 +575,13 @@ in the form of a Perl string.
 
 =item cdata POINTER, SIZE
 
-returns a string containing SIZE bytes 
+copies SIZE bytes at POINTER to a Perl string (with binary data)
+
+=item memmove POINTER, STRING
+
+copies the (binary) string STRING to the memory location pointed to by
+POINTER.
+
 
 =back
 
@@ -587,6 +591,9 @@ C data structures to Perl. E.g.
   RNA::parse_structure($structure);  # fills the $RNA::loop_degree array
   @ldegrees = unpack "I*", RNA::cdata($RNA::loop_degree, ($RNA::loops+1)*4);
 
+Warning: using these functions with wrong arguments will corrupt your
+memory and lead to a segmentation fault.
+  
 =head1 AUTHOR
 
 Ivo L. Hofacker <ivo@tbi.univie.ac.at>

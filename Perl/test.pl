@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2002-10-19 11:13:42 ivo>
+# Last changed Time-stamp: <2002-11-07 15:05:18 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -64,12 +64,11 @@ my $ii = RNA::intP_getitem($RNA::iindx, 2);
 my $p2 = RNA::doubleP_getitem($RNA::pr, $ii-15);
 ok(($p1<0.999) && ($p1>0.99) && (abs($p1-$p2)<1.2e-7));
 
-
 my $bpf = RNA::Make_bp_profile(length($seq1));
 my @bpf = unpack("f*",RNA::cdata($bpf, length($seq1)*4*3));
-if (($bpf[2*3]+$bpf[2*3+1]>.99999)&&$bpf[2*3+2]==0 &&
-    ($bpf[2*3+1]>=$p1)) {
-   print "ok 10\n"; }
+ok (($bpf[2*3]+$bpf[2*3+1]>.99999)&&$bpf[2*3+2]==0 &&
+    ($bpf[2*3+1]>=$p1));
+
 my $pack = RNA::pack_structure($struc1);
 ok (RNA::unpack_structure($pack), $struc1);
 
