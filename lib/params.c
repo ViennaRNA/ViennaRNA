@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "params.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.3 2002/03/19 16:48:18 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.4 2002/10/02 17:24:51 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -57,6 +57,8 @@ PUBLIC paramT *scale_parameters(void)
     p.MLintern[i] +=  (i>2)?TerminalAU:0;
   }
   p.MLclosing = ML_closing37*tempf;
+
+  p.TerminalAU = TerminalAU;
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
   for (i=0; i<=NBPAIRS; i++)
