@@ -22,7 +22,7 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.8 1998/04/09 15:55:19 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.9 1998/07/19 17:47:20 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
+	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
 	      if (sscanf(argv[++i], "%32s", ns_bases)==0)
@@ -230,5 +231,5 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage: RNAheat [-Tmin t1] [-Tmax t2] [-h stepsize] [-m ipoints] [-4] [-d]\n"
-	  "               [-noGU] [-noCloseGU] [-e 1|2] [-P paramfile] [-nsp pairs]");
+	  "               [-noGU] [-noCloseGU] [-noLP] [-e 1|2] [-P paramfile] [-nsp pairs]");
 }

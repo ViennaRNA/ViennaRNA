@@ -3,7 +3,7 @@
 .SH NAME
 RNAfold \- calculate secondary structures of RNAs
 .SH SYNOPSIS
-\fBRNAfold [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[2]] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
+\fBRNAfold [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[2]] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
 
 .SH DESCRIPTION
 .I RNAfold
@@ -71,6 +71,11 @@ default for partition function folding (-p). \fB-d\fP ignores dangling ends
 altogether. Note that by default pf and mfe folding treat dangling ends
 differently, use -d2 (or -d) in addition to -p to ensure that both
 algorithms use the same energy model.  
+.TP
+.B \-noLP
+Avoid lonely pairs (helices of length 1). This works by disallowing pairs
+that can \fBonly\fP occur isolated. Other pairs may still occasionally
+occur as helices of length 1.
 .TP
 .B \-noGU
 Do not allow GU pairs.
