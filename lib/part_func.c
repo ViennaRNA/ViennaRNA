@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1999-04-16 16:57:53 ivo> */
+/* Last changed Time-stamp: <1999-05-06 11:58:09 ivo> */
 /*                
 	    partiton function for RNA secondary structures
 
@@ -18,7 +18,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: part_func.c,v 1.7 1999/05/06 09:49:17 ivo Exp $";
+static char rcsid[] = "$Id: part_func.c,v 1.8 1999/05/06 09:58:27 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -459,6 +459,14 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 }
 
 /*------------------------------------------------------------------------*/
+/* dangling ends should never be destabilizing, i.e. expdangle>=1         */
+/* specific heat needs smooth function (2nd derivative)                   */
+/* we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,       */
+/* in the interval b<x<sqrt(3)/2                                          */
+
+#define SCALE 10
+#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
+          SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
 
 PRIVATE void scale_pf_params(int length)
 {
@@ -532,13 +540,14 @@ PRIVATE void scale_pf_params(int length)
    }
 
    /* if dangles==0 just set their energy to 0,
-      don't let dangle energies become > 0 (at large temps) */
+      don't let dangle energies become > 0 (at large temps),
+      but make sure go smoothly to 0                        */
    for (i=0; i<=NBPAIRS; i++)
       for (j=0; j<=4; j++) {
 	GT = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*TT;
-	expdangle5[i][j] = (dangles&&(GT<0))?exp(-GT*10/kT):1.;
+	expdangle5[i][j] = dangles?exp(SMOOTH(-GT)*10/kT):1.;
 	GT = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*TT;
-	expdangle3[i][j] = (dangles&&(GT<0))?exp(-GT*10/kT):1.;
+	expdangle3[i][j] =  dangles?exp(SMOOTH(-GT)*10/kT):1.;
       }
 
    /* stacking energies */
