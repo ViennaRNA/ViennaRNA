@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-06-28 17:12:11 ivo> */
+/* Last changed Time-stamp: <1999-11-02 15:02:44 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -28,7 +28,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: inverse.c,v 1.7 1999/05/06 09:50:09 ivo Exp $";
+static char rcsid[] = "$Id: inverse.c,v 1.8 1999/11/02 14:04:28 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
@@ -390,23 +390,24 @@ PRIVATE void make_start(char* start, char *structure)
 
    for (k=0; k<length; k++) {
       if (table[k]<k) continue;
-      if (urn()<0.5) {
-	 i = k; j = table[k];
+      if (((urn()<0.5) && isupper(start[k])) ||
+	  islower(start[table[k]])) { 
+	i = table[k]; j = k;
       } else {
-	 i = table[k]; j = k;
+	i = k; j = table[k];
       }
 
-      if (!pair[S[i]][S[j]]) {
-	 shuffle(sym, (short) base);
-	 for (l=0; l<base; l++) {
-	    ss = ENCODE(symbolset[sym[l]]);
-	    if (pair[S[i]][ss]) break;
-	 }
-	 if (l==base) { /* nothing pairs start[i] */
-	    r = 2*int_urn(0, npairs-1);
-	    start[i] = pairset[r];
-	    start[j] = pairset[r+1];
-	 } else start[j] = symbolset[sym[l]];
+      if (!pair[S[i]][S[j]]) {   /* make a valid pair by mutating j */
+	shuffle(sym, (short) base);
+	for (l=0; l<base; l++) {
+	  ss = ENCODE(symbolset[sym[l]]);
+	  if (pair[S[i]][ss]) break;
+	}
+	if (l==base) { /* nothing pairs start[i] */
+	  r = 2*int_urn(0, npairs-1);
+	  start[i] = pairset[r];
+	  start[j] = pairset[r+1];
+	} else start[j] = symbolset[sym[l]];
       }
    }
    free(table);
