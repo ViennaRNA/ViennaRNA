@@ -11,6 +11,8 @@ extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
 extern int  dangles;	    /* use dangling end energies (not in part_func!) */
 extern char *nonstandards;  /* contains allowed non standard bases */
 extern float temperature;
+extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
+			       no mismatches, default 1 */
 
 struct bond {         /* bonding list */
    int i;
