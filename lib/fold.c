@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-08-20 14:30:37 ivo> */
+/* Last changed Time-stamp: <2000-10-10 16:37:33 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -27,7 +27,7 @@
 #define UNUSED
 #endif
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.16 2000/08/20 13:05:42 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.17 2000/10/10 14:37:45 ivo Exp $";
 
 #define PAREN
 
@@ -58,8 +58,7 @@ PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  scale_parameters(void);
 PRIVATE int   stack_energy(int i, char *string);
 PRIVATE int   ML_Energy(int i);
-
-PRIVATE void  BP_calculate(char *structure, int *BP, int length);
+PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(char *sequence);
 /*@unused@*/
 INLINE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
@@ -107,6 +106,7 @@ PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
 PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE char  *ptype;   /* precomputed array of pair types */ 
 PRIVATE short  *S, *S1;
 PRIVATE short  *pair_table;
 PRIVATE int   init_length=-1;
@@ -139,7 +139,8 @@ PRIVATE void get_arrays(unsigned int size)
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 #ifdef SUBOPT
   fM1    = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-#endif   
+#endif
+  ptype = (char *) space(sizeof(char)*((size*(size+1))/2+2));
   f5    = (int *) space(sizeof(int)*(size+2));
   f3    = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
@@ -155,7 +156,7 @@ PRIVATE void get_arrays(unsigned int size)
 
 void free_arrays(void)
 {
-  free(indx); free(c); free(fML); free(f5); free(f3); free(cc); free(cc1);
+  free(indx); free(c); free(fML); free(ptype); free(f5); free(f3); free(cc); free(cc1); 
 #ifdef SUBOPT
   free(fM1);
 #endif
@@ -192,11 +193,12 @@ float fold(char *string, char *structure)
   length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
    
-  BP = (int *)space(sizeof(int)*(length+2));
-  if (fold_constrained) BP_calculate(structure,BP,length);
-
+  
   encode_seq(string);
-   
+
+  BP = (int *)space(sizeof(int)*(length+2));
+  make_ptypes(S, structure);
+
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
   for (j=1; j<=length; j++) {
@@ -210,36 +212,16 @@ float fold(char *string, char *structure)
       fM1[indx[j]+i] = INF;
 #endif
     }       
-
-  if (noLonelyPairs) { /* mark isolated pairs */
-    for (k=2; k<length-TURN-1; k++) 
-      for (l=1; l<=2; l++) {
-	int ntype,otype=0;
-	i = k; j = i+TURN+l;
-	type = pair[S[i]][S[j]];
-	while ((i>1)&&(j<length)) {
-	  ntype = pair[S[i-1]][S[j+1]];
-	  if (type&&(!otype)&&(!ntype)) /* i.j can only form isolated pairs */
-	    c[indx[j]+i] = FORBIDDEN;
-	  else c[indx[j]+i] = 0;
-	  otype =  type;
-	  type  = ntype;
-	  i--; j++;
-	}
-      }
-  } 
-   
+  
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
       
     for (j = i+TURN+1; j <= length; j++) {
-
+      int ij;
+      ij = indx[j]+i;
       bonus = 0;
-      type = pair[S[i]][S[j]];
-      if (noLonelyPairs && (c[indx[j]+i]==FORBIDDEN))
-	type=0;  /* don't allow this pair */
+      type = ptype[ij];
 
       /* enforcing structure constraints */
-      if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if ((BP[i]==-4)||(BP[j]==-4)) type=0;
@@ -265,12 +247,11 @@ float fold(char *string, char *structure)
 	  int minq = j-i+p-MAXLOOP-2;
 	  if (minq<p+1+TURN) minq = p+1+TURN;
 	  for (q = minq; q < j; q++) {
-	    type_2 = pair[S[p]][S[q]];
-	       
-	    if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
+	    type_2 = ptype[indx[q]+p];
 	       
 	    if (type_2==0) continue;
-	       
+	    type_2 = rtype[type_2];
+
 	    if (no_closingGU) 
 	      if (no_close||(type_2==3)||(type_2==4))
 		if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
@@ -289,18 +270,21 @@ float fold(char *string, char *structure)
 	} /* end p-loop */
 	   
 	/* multi-loop decomposition ------------------------*/
-	   
+
+	
 	if (!no_close) {
 	  decomp = DMLi1[j-1];
 	  if (dangles) {
-	    tt = rtype[type]; if ((tt==0)&&(bonus!=0)) tt=7;
+	    int d3=0, d5=0; 
+	    tt = rtype[type];
+	    d3 = dangle3[tt][S1[i+1]];
+	    d5 = dangle5[tt][S1[j-1]];
 	    if (dangles==2) /* double dangles */
-	      decomp += dangle5[tt][S1[j-1]]+dangle3[tt][S1[i+1]];
+	      decomp += d5 + d3;
 	    else {          /* normal dangles */
-	      decomp = MIN2(DMLi2[j-1]+dangle3[tt][S1[i+1]]+MLbase, decomp);
-	      decomp = MIN2(DMLi1[j-2]+dangle5[tt][S1[j-1]]+MLbase, decomp);
-	      decomp = MIN2(DMLi2[j-2]+dangle5[tt][S1[j-1]]+
-			    dangle3[tt][S1[i+1]] + 2*MLbase, decomp);
+	      decomp = MIN2(DMLi2[j-1]+d3+MLbase, decomp);
+	      decomp = MIN2(DMLi1[j-2]+d5+MLbase, decomp);
+	      decomp = MIN2(DMLi2[j-2]+d5+d3+2*MLbase, decomp);
 	    }
 	  }
 	     
@@ -314,58 +298,58 @@ float fold(char *string, char *structure)
 	if (dangles==3) {
 	  decomp = INF;
 	  for (k = i+2+TURN; k < j-2-TURN; k++) {
-	    type_2 = pair[S[i+1]][S[k]]; 
+	    type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2]; 
 	    if (type_2)
 	      decomp = MIN2(decomp, c[indx[k]+i+1]+stack[type][type_2]+
 			    fML[indx[j-1]+k+1]);
-	    type_2 = pair[S[k+1]][S[j-1]]; 
+	    type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2]; 
 	    if (type_2)
 	      decomp = MIN2(decomp, c[indx[j-1]+k+1]+stack[type][type_2]+
 			    fML[indx[k]+i+1]);
 	  }
 	  /* no TermAU penalty if coax stack */
-	  if (new_c>decomp+2*MLintern[1]+MLclosing)
-	    new_c = decomp+2*MLintern[1]+MLclosing;
+	  decomp += 2*MLintern[1] + MLclosing;
+	  new_c = MIN2(new_c, decomp);
 	}
-
+	
 	new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
 	cc[j] = new_c + bonus;
 	if (noLonelyPairs)
-	  c[indx[j]+i] = cc1[j-1]+stackEnergy+bonus;
+	  c[ij] = cc1[j-1]+stackEnergy+bonus;
 	else
-	  c[indx[j]+i] = cc[j];
+	  c[ij] = cc[j];
 	   
       } /* end >> if (pair) << */
 	 
-      else c[indx[j]+i] = INF;
+      else c[ij] = INF;
 
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      new_fML = fML[indx[j]+i+1]+MLbase;
+      new_fML = fML[ij+1]+MLbase;
       new_fML = MIN2(fML[indx[j-1]+i]+MLbase, new_fML);
-      energy = c[indx[j]+i]+MLintern[type];
+      energy = c[ij]+MLintern[type];
       if (dangles==2) {  /* double dangles */
 	if (i>1)      energy += dangle5[type][S1[i-1]];
 	if (j<length) energy += dangle3[type][S1[j+1]];
       }
       new_fML = MIN2(energy, new_fML);
 #ifdef SUBOPT
-      fM1[indx[j]+i] = MIN2(fM1[indx[j-1]+i] + MLbase, energy);
+      fM1[ij] = MIN2(fM1[indx[j-1]+i] + MLbase, energy);
 #endif
       if (dangles%2==1) {  /* normal dangles */
-	tt = pair[S[i+1]][S[j]]; if ((tt==0)&&(BP[i+1]==j)) tt=7;
-	new_fML = MIN2(c[indx[j]+i+1]+dangle5[tt][S1[i]]
+	tt = ptype[ij+1]; /* i+1,j */
+	new_fML = MIN2(c[ij+1]+dangle5[tt][S1[i]]
 		       +MLintern[tt]+MLbase,new_fML);
-	tt = pair[S[i]][S[j-1]]; if ((tt==0)&&(BP[i]==j-1)) tt=7;
+	tt = ptype[indx[j-1]+i]; 
 	new_fML = MIN2(c[indx[j-1]+i]+dangle3[tt][S1[j]]
 		       +MLintern[tt]+MLbase, new_fML);
-	tt = pair[S[i+1]][S[j-1]]; if ((tt==0)&&(BP[i+1]==j-1)) tt=7;
+	tt = ptype[indx[j-1]+i+1];
 	new_fML = MIN2(c[indx[j-1]+i+1]+dangle5[tt][S1[i]]+
 		       dangle3[tt][S1[j]]+MLintern[tt]+2*MLbase, new_fML);
       }
-		 
+      
       /* modular decomposition -------------------------------*/
     
       for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
@@ -375,31 +359,36 @@ float fold(char *string, char *structure)
       new_fML = MIN2(new_fML,decomp);
       
       /* coaxial stacking */
-      if (dangles==3) {
+      if (dangles==3) { /* additional ML decomposition as two coaxially stacked helices */
 	for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++) {
-	  type = pair[S[i]][S[k]];
-	  type_2 = pair[S[j]][S[k+1]];
+	  type = ptype[indx[k]+i]; type = rtype[type];
+	  type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
 	  if (type && type_2)
 	    decomp = MIN2(decomp, 
 			  c[indx[k]+i]+c[indx[j]+k+1]+stack[type][type_2]);
 	}
-	/* no TermAU penalty if coax stack */
-	if (new_fML>decomp+2*MLintern[1])
-	  new_fML = decomp+2*MLintern[1];
+
+	decomp += 2*MLintern[1];  	/* no TermAU penalty if coax stack */
+#if 0
+	/* This is needed for Y shaped ML loops with coax stacking of
+	   interior pairts, but backtracking will fail if activated */
+	DMLi[j] = MIN2(DMLi[j], decomp);
+	DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+MLbase);
+	DMLi[j] = MIN2(DMLi[j], DMLi1[j]+MLbase);
+	new_fML = MIN2(new_fML, DMLi[j]);
+#endif
+	new_fML = MIN2(new_fML, decomp);
       }
       
-      fML[indx[j]+i] = Fmi[j] = new_fML;     /* substring energy */
+      fML[ij] = Fmi[j] = new_fML;     /* substring energy */
   
     }
 
     {
       int *FF; /* rotate the auxilliary arrays */
-      FF = DMLi2;
-      DMLi2 = DMLi1;
-      DMLi1 = DMLi;
-      DMLi = FF;
+      FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
       FF = cc1; cc1=cc; cc=FF;
-      for (j=1; j<=length; j++) { cc[j]=Fmi[j]=DMLi[j]=INF; }
+      for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
     }
   }
   
@@ -408,7 +397,7 @@ float fold(char *string, char *structure)
   f5[TURN+1]=0;
   for (j=TURN+2; j<=length; j++) {
     f5[j] = f5[j-1];
-    type=pair[S[1]][S[j]]; if ((type==0)&&(BP[1]==j)) type=7;
+    type=ptype[indx[j]+1];
     if (type) {
       energy = c[indx[j]+1];
       if (type>2) energy += TerminalAU;
@@ -416,14 +405,14 @@ float fold(char *string, char *structure)
 	energy += dangle3[type][S1[j+1]];
       f5[j] = MIN2(f5[j], energy);
     }
-    type=pair[S[1]][S[j-1]]; if ((type==0)&&(BP[1]==j-1)) type=7;
+    type=ptype[indx[j-1]+1];
     if ((type)&&(dangles%2==1)) {
       energy = c[indx[j-1]+1]+dangle3[type][S1[j]];
       if (type>2) energy += TerminalAU;
       f5[j] = MIN2(f5[j], energy);
     }
     for (i=j-TURN-1; i>1; i--) {
-      type = pair[S[i]][S[j]]; if ((type==0)&&(BP[i]==j)) type=7;
+      type = ptype[indx[j]+i];
       if (type) {
 	energy = f5[i-1]+c[indx[j]+i];
 	if (type>2) energy += TerminalAU;
@@ -438,7 +427,7 @@ float fold(char *string, char *structure)
 	  f5[j] = MIN2(f5[j], energy);
 	}
       }
-      type = pair[S[i]][S[j-1]]; if ((type==0)&&(BP[i]==j-1)) type=7;
+      type = ptype[indx[j-1]+i];
       if ((type)&&(dangles%2==1)) {
 	energy = c[indx[j-1]+i]+dangle3[type][S1[j]];
 	if (type>2) energy += TerminalAU;
@@ -448,32 +437,6 @@ float fold(char *string, char *structure)
     }
   }
 
-#if 0
-  for (i=length-TURN-1; i>0; i--) {
-    f3[i] = f3[i+1];
-    for (j=i+TURN+1; j<length; j++) {
-      type = pair[S[i]][S[j]]; if ((type==0)&&(BP[i]==j)) type=7;
-      if (type) {
-	f3[i] = MIN2(f3[i], c[indx[j]+i] + f3[j+1]);
-	if(dangles)
-	  f3[i] = MIN2(f3[i], c[indx[j]+i] + f3[j+2] +dangle3[type][S1[j+1]]);
-      }
-      type = pair[S[i+1]][S[j]]; if ((type==0)&&(BP[i+1]==j)) type=7;
-      if((type)&&(dangles)) {
-	f3[i] = MIN2(f3[i], c[indx[j]+i+1] + f3[j+1] +dangle5[type][S1[i]]);
-	f3[i] = MIN2(f3[i], c[indx[j]+i+1] + f3[j+2] +
-		     dangle5[type][S1[i]] + dangle3[type][S1[j+1]]);
-      }
-    }
-    f3[i] = MIN2(f3[i], c[indx[length]+i]);
-    type=pair[S[i+1]][S[length]]; if ((type==0)&&(BP[i+1]==j)) type=7;
-    if ((type)&&(dangles))
-      f3[i] = MIN2(f3[i], c[indx[length]+i+1] +dangle5[type][S1[i]]);
-  }
-   
-  if (f3[1]!=f5[length])
-    fprintf(stderr, "f3[1]!=f5[n]! %d  %d\n",f3[1],f5[length]);
-#endif
    
   /*------------------------------------------------------------------
     trace back through the "c", "f5" and "fML" arrays to get the
@@ -487,7 +450,7 @@ float fold(char *string, char *structure)
   sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
    
   while (s>0) {
-    int ml, fij, fi, cij, traced, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, d3, d5, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -516,7 +479,7 @@ float fold(char *string, char *structure)
       for (k=j-TURN-1,traced=0; k>=1; k--) {
 	int cc, en;
 	jj = k-1; 
-	type = pair[S[k]][S[j-1]]; if ((type==0)&&(BP[k]==j-1)) type=7;
+	type = ptype[indx[j-1]+k];
 	if((type)&&(dangles%2==1)) {
 	  cc = c[indx[j-1]+k]+dangle3[type][S1[j]];
 	  if (type>2) cc += TerminalAU;
@@ -527,7 +490,7 @@ float fold(char *string, char *structure)
 	      traced=j-1; jj=k-2;
 	    }
 	}
-	type = pair[S[k]][S[j]]; if ((type==0)&&(BP[k]==j)) type=7;
+	type = ptype[indx[j]+k];
 	if (type) {
 	  cc = c[indx[j]+k];
 	  if (type>2) cc += TerminalAU; 
@@ -564,18 +527,18 @@ float fold(char *string, char *structure)
 	continue;
       } 
 
-      tt  = pair[S[i]][S[j]]; if ((tt==0)&&(BP[i]==j)) tt=7;
+      tt  = ptype[indx[j]+i];
       cij = c[indx[j]+i] + MLintern[tt];
       if (dangles==2) {       /* double dangles */
 	if (i>1)      cij += dangle5[tt][S1[i-1]];
 	if (j<length) cij += dangle3[tt][S1[j+1]];
       }
       else if (dangles%2==1) {  /* normal dangles */
-	tt = pair[S[i+1]][S[j]]; if ((tt==0)&&(BP[i+1]==j)) tt=7;
+	tt = ptype[indx[j]+i+1];
 	ci1j= c[indx[j]+i+1] + dangle5[tt][S1[i]] + MLintern[tt]+MLbase;
-	tt = pair[S[i]][S[j-1]]; if ((tt==0)&&(BP[i]==j-1)) tt=7;
+	tt = ptype[indx[j-1]+i];
 	cij1= c[indx[j-1]+i] + dangle3[tt][S1[j]] + MLintern[tt]+MLbase;
-	tt = pair[S[i+1]][S[j-1]]; if ((tt==0)&&(BP[i+1]==j-1)) tt=7;
+	tt = ptype[indx[j-1]+i+1];
 	ci1j1=c[indx[j-1]+i+1] + dangle5[tt][S1[i]] + dangle3[tt][S1[j]]
 	  +  MLintern[tt] + 2*MLbase;
       }
@@ -597,8 +560,8 @@ float fold(char *string, char *structure)
       if ((dangles==3)&&(k>j-2-TURN)) { /* must be coax stack */
 	ml = 2;
 	for (k = i+1+TURN; k <= j-2-TURN; k++) {
-	  type = pair[S[i]][S[k]];
-	  type_2 = pair[S[j]][S[k+1]];
+	  type = ptype[indx[k]+i];  type= rtype[type]; 
+	  type_2 = ptype[indx[j]+k+1]; type_2= rtype[type_2];
 	  if (type && type_2)
 	    if (fij == c[indx[k]+i]+c[indx[j]+k+1]+stack[type][type_2]+
 		       2*MLintern[1])
@@ -622,20 +585,19 @@ float fold(char *string, char *structure)
     /*----- begin of "repeat:" -----*/
     if (canonical)  cij = c[indx[j]+i];
      
-    type = pair[S[i]][S[j]];
-    if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
+    type = ptype[indx[j]+i];
      
     bonus = 0;
      
     if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
     if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-    if ((BP[i]==-4)||(BP[j]==-4)) type=0;
      
     if (noLonelyPairs) 
       if (cij == c[indx[j]+i]) {
 	/* (i.j) closes canonical structures, thus
 	   (i+1.j-1) must be a pair                */
-	cij -= stack[type][pair[S[i+1]][S[j-1]]] + bonus;
+	type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
+	cij -= stack[type][type_2] + bonus;
 	base_pair[++b].i = i+1;
 	base_pair[b].j   = j-1;
 	i++; j--;
@@ -657,11 +619,9 @@ float fold(char *string, char *structure)
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
 	 
-	type_2 = pair[S[p]][S[q]];
-	if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
-	 
+	type_2 = ptype[indx[q]+p];
 	if (type_2==0) continue;
-	 
+	type_2 = rtype[type_2]; 
 	if (no_closingGU) 
 	  if (no_close||(type_2==3)||(type_2==4))
 	    if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
@@ -684,71 +644,86 @@ float fold(char *string, char *structure)
     /* end of repeat: --------------------------------------------------*/
      
     /* (i.j) must close a multi-loop */
-    tt = pair[S[j]][S[i]]; if ((tt==0)&&(BP[i]==j)) tt=7;
+    tt = rtype[type];
     mm = bonus+MLclosing+MLintern[tt];
-     
+    d5 = dangle5[tt][S1[j-1]];
+    d3 = dangle3[tt][S1[i+1]];
+    i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1; 
 
     for (k = i+2+TURN; k < j-2-TURN; k++) {
       int en;
       en = fML[indx[k]+i+1]+fML[indx[j-1]+k+1]+mm;
       if (dangles==2) /* double dangles */
-	en += dangle5[tt][S1[j-1]] + dangle3[tt][S1[i+1]];
-      if (cij == en) {
-	sector[++s].i = i+1;
-	sector[s+1].j = j-1;
+	en += d5+d3;
+      if (cij == en) 
 	break;
-      }
       if (dangles%2==1) { /* normal dangles */
-	if (cij == (fML[indx[k]+i+2]+fML[indx[j-1]+k+1]+mm+
-		    dangle3[tt][S1[i+1]]+MLbase)) {
-	  sector[++s].i = i+2;
-	  sector[s+1].j = j-1;
+	if (cij == (fML[indx[k]+i+2]+fML[indx[j-1]+k+1]+mm+d3+MLbase)) {
+	  i1 = i+2;
 	  break;
 	}
-	if (cij == (fML[indx[k]+i+1]+fML[indx[j-2]+k+1]+mm+
-		    dangle5[tt][S1[j-1]]+MLbase)) {
-	  sector[++s].i = i+1;
-	  sector[s+1].j = j-2;
+	if (cij == (fML[indx[k]+i+1]+fML[indx[j-2]+k+1]+mm+d5+MLbase)) {
+	  j1 = j-2;
 	  break;
 	}
-	if (cij == (fML[indx[k]+i+2]+fML[indx[j-2]+k+1]+mm+
-		    dangle3[tt][S1[i+1]]+dangle5[tt][S1[j-1]]+
-		    2*MLbase)) {
-	  sector[++s].i = i+2;
-	  sector[s+1].j = j-2;
+	if (cij == (fML[indx[k]+i+2]+fML[indx[j-2]+k+1]+mm+d3+d5+MLbase+MLbase)) {
+	  i1 = i+2; j1 = j-2;
 	  break;
 	}
       }
       /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
+      /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
       if (dangles==3) {
-	type_2 = pair[S[i+1]][S[k]]; 
+	type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
 	if (type_2) {
 	  en = c[indx[k]+i+1]+stack[type][type_2]+fML[indx[j-1]+k+1];
 	  if (cij == en+2*MLintern[1]+MLclosing) {
-	    sector[++s].i = i+1;
-	    sector[s].ml  = 2;
-	    sector[s+1].j = j-1;
+	    ml = 2;
+	    sector[s+1].ml  = 2;
 	    break;
 	  }
 	}
-	type_2 = pair[S[k+1]][S[j-1]]; 
+	type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2];
 	if (type_2) {
 	  en = c[indx[j-1]+k+1]+stack[type][type_2]+fML[indx[k]+i+1];
 	  if (cij == en+2*MLintern[1]+MLclosing) {
-	    sector[++s].i = i+1;
-	    sector[s+1].j = j-1;
-	    sector[s+1].ml = 2;
+	    sector[s+2].ml = 2;
 	    break;
 	  }
 	}
       }
 
     }
-    sector[s].j   = k;
-    sector[++s].i = k+1;
+    if (k<=j-3-TURN) { /* found the decomposition */
+      sector[++s].i = i1;
+      sector[s].j   = k;
+      sector[++s].i = k+1;
+      sector[s].j   = j1;
+    } else {
+#if 0
+      /* Y shaped ML loops fon't work yet */
+      if (dangles==3) {
+	/* (i,j) must close a Y shaped ML loop with coax stacking */
+	if (cij ==  fML[indx[j-2]+i+2] + mm + d3 + d5 + MLbase + MLbase) {
+	  i1 = i+2;
+	  j1 = j-2;
+	} else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + MLbase) 
+	  j1 = j-2;
+	else if (cij ==  fML[indx[j-1]+i+2] + mm + d3 + MLbase) 
+	  i1 = i+2;
+	else /* last chance */
+	  if (cij != fML[indx[j-1]+i+1] + mm + MLbase)
+	    fprintf(stderr,  "backtracking failed in repeat");
+	/* if we arrive here we can express cij via fML[i1,j1]+dangles */
+	sector[++s].i = i1;
+	sector[s].j   = j1;
+      }
+      else
+#endif
+	nrerror("backtracking failed in repeat");
+    } 
      
-    if (k>j-3-TURN) fprintf(stderr, "backtracking failed\n%s\n", string);
   }
 
   base_pair[0].i = b;    /* save the total number of base pairs */
@@ -781,8 +756,8 @@ float fold(char *string, char *structure)
 
 #ifndef SUBOPT
   free(S); free(S1);
-  free(BP);
 #endif   
+  free(BP);
    
   f5[length] += bonus;      
 
@@ -842,12 +817,10 @@ INLINE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
     if (n2==1) energy+=stack[type][type_2];
 #endif
   } else {                           /* interior loop */
-    int rtype2;
-    rtype2  = rtype[type_2];
 
     if ((n1+n2==2)&&(james_rule))
       /* special case for loop size 2 */
-      energy = int11[type][rtype2][S1[i+1]][S1[j-1]];
+      energy = int11[type][type_2][S1[i+1]][S1[j-1]];
     else {
       energy = (n1+n2<=MAXLOOP)?(internal_loop[n1+n2]):
 	(internal_loop[30]+(int)(lxc*log((n1+n2)/30.)));
@@ -859,7 +832,7 @@ INLINE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
       energy += MIN2(MAX_NINIO,((n2-n1)*F_ninio[m]));
 #endif
       energy += mismatchI[type][S1[i+1]][S1[j-1]]+
-	mismatchI[rtype2][S1[q+1]][S1[p-1]];
+	mismatchI[type_2][S1[q+1]][S1[p-1]];
     }
   }
   return energy;
@@ -871,37 +844,37 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
 		      int si1, int sj1, int sp1, int sq1) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
-
   
   if (n1>n2) { nl=n1; ns=n2;}
   else {nl=n2; ns=n1;}
 
   if (nl == 0)
     return stack[type][type_2];    /* stack */
-  
+
   if (ns==0) {                       /* bulge */
     energy = (nl<=MAXLOOP)?bulge[nl]:
-      (bulge[30]+(int)(lxc*log(n2/30.)));
+      (bulge[30]+(int)(lxc*log(nl/30.)));
     if (nl==1) energy += stack[type][type_2];
+    else {
+      if (type>2) energy += TerminalAU;
+      if (type_2>2) energy += TerminalAU;
+    }
     return energy;
   }
   else {                             /* interior loop */
-    int rtype2;
-    rtype2  = rtype[type_2];
-
     if (ns==1) { 
       if (nl==1)                     /* 1x1 loop */
-	return int11[type][rtype2][si1][sj1];
+	return int11[type][type_2][si1][sj1];
       if (nl==2) {                   /* 2x1 loop */
 	if (n1==1)
-	  energy = int21[type][rtype2][si1][sq1][sj1];
+	  energy = int21[type][type_2][si1][sq1][sj1];
 	else
-	  energy = int21[rtype2][type][sq1][si1][sp1];
+	  energy = int21[type_2][type][sq1][si1][sp1];
 	return energy;
       }
     }
     else if (n1==2 && n2==2)         /* 2x2 loop */
-      return int22[type][rtype2][si1][sp1][sq1][sj1];
+      return int22[type][type_2][si1][sp1][sq1][sj1];
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(internal_loop[n1+n2]):
 	(internal_loop[30]+(int)(lxc*log((n1+n2)/30.)));
@@ -909,7 +882,7 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
       energy += MIN2(MAX_NINIO, (nl-ns)*F_ninio[2]);
       
       energy += mismatchI[type][si1][sj1]+
-	mismatchI[rtype2][sq1][sp1];
+	mismatchI[type_2][sq1][sp1];
     }
   }
   return energy;
@@ -1166,7 +1139,7 @@ PRIVATE int stack_energy(int i, char *string)
     while (pair_table[++p]==0);
     while (pair_table[--q]==0);
     if ((pair_table[q]!=(short)p)||(p>q)) break;
-    type_2 = pair[S[p]][S[q]];
+    type_2 = pair[S[q]][S[p]];
     if (type_2==0) {
       type_2=7;
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
@@ -1179,7 +1152,7 @@ PRIVATE int stack_energy(int i, char *string)
     if (eos_debug)
       printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
 	     i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
-    i=p; j=q; type = type_2;
+    i=p; j=q; type = rtype[type_2];
   } /* end while */
 
   /* p,q don't pair must have found hairpin or multiloop */
@@ -1254,7 +1227,7 @@ PRIVATE int ML_Energy(int i) {
         case 0: /* adjacent helices */
           if (dangles==2) energy += dang3+dang5;
           else if (dangles==3) {
-            new_cx = energy + stack[rtype[type]][tt];
+            new_cx = energy + stack[rtype[type]][rtype[tt]];
 	    /* subtract 5'dangle and TerminalAU penalty */
 	    new_cx += -ld5 - MLintern[tt]-MLintern[type]+2*MLintern[1];
             energy = MIN2(energy, cx_energy);
@@ -1264,9 +1237,16 @@ PRIVATE int ML_Energy(int i) {
         case 1:
           dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
           if (dangles==3) {
-            energy = MIN2(energy + dang, cx_energy + dang5);
+	    energy = energy +dang; ld5 = dang - dang3;
+	    /* may be problem here: Suppose
+	       cx_energy>energy, cx_energy+dang5<energy
+	       and the following helices are also stacked (i.e.
+	       we'll subtract the dang5 again */
+	    if (cx_energy+dang5 < energy) {
+	      energy = cx_energy+dang5;
+	      ld5 = dang5;
+	    }
             new_cx = INF;  /* no coax stacking with mismatch for now */
-            ld5 = dang - dang3;
           } else
             energy += dang;
           break;
@@ -1285,6 +1265,7 @@ PRIVATE int ML_Energy(int i) {
     } while (q!=i);
     best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
     /* fprintf(stderr, "%6.2d\t", energy); */
+    if (dangles!=3) break;
     /* skip a helix and start again */
     while (pair_table[p]==0) p++;
     i = pair_table[p]; 
@@ -1302,28 +1283,68 @@ PRIVATE int ML_Energy(int i) {
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void BP_calculate(char *structure, int *BP, int length)
-{
-  int i,j,ct;
-   
-  for(i=0;i<length;i++) {
-    switch (structure[i]) {
-    case '|': BP[i+1] = -1; break;
-    case '<': BP[i+1] = -2; break;
-    case '>': BP[i+1] = -3; break;
-    case 'x': BP[i+1] = -4; break;
-    case '(': 
-      ct = 1;
-      for(j=i+1;j<length;j++) {
-	if(structure[j]==')') ct--;
-	if(structure[j]=='(') ct++;
-	if(ct==0) {
-	  BP[i+1]=j+1;
-	  BP[j+1]=i+1;
-	  break;
-	}
+PRIVATE void make_ptypes(const short *S, const char *structure) {
+  int n,i,j,k,l;
+  
+  n=S[0];
+  for (k=1; k<n-TURN-1; k++) 
+    for (l=1; l<=2; l++) {
+      int type,ntype=0,otype=0;
+      i=k; j = i+TURN+l;
+      type = pair[S[i]][S[j]];
+      while ((i>=1)&&(j<=n)) {
+        if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
+        if (noLonelyPairs && (!otype) && (!ntype)) 
+          type = 0; /* i.j can only form isolated pairs */
+        ptype[indx[j]+i] = (char) type;
+        otype =  type;
+        type  = ntype;
+        i--; j++;
       }
-      break;
     }
+  
+  if (fold_constrained&&(structure!=NULL)) {
+    int hx, *stack;
+    char type;
+    stack = (int *) space(sizeof(int)*(n+1));
+    
+    for(hx=0, j=1; j<=n; j++) {
+      switch (structure[j-1]) {
+      case '|': BP[j] = -1; break;
+      case 'x': /* can't pair */ 
+        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
+        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
+        break;
+      case '(':
+        stack[hx++]=j;
+        /* fallthrough */
+      case '<': /* pairs upstream */
+        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
+        break;
+      case ')':
+        if (hx<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack[--hx];
+        type = ptype[indx[j]+i];
+	for (k=i+1; k<=n; k++) ptype[indx[i]+k] = 0;
+        for (l=i+1; l<=j; l++) 
+	  for (k=j; k<=n; k++) ptype[indx[l]+k] = 0;
+	for (k=1; k<=i; k++) 
+	  for (l=i; l<=j; l++) ptype[indx[k]+l] = 0;
+	for (k=1; k<j; k++) ptype[indx[k]+j] = 0;
+        ptype[indx[j]+i] = (type==0)?7:type;
+        /* fallthrough */
+      case '>': /* pairs downstream */
+        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
+        break;
+      }
+    }
+    if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced brackets in constraint string");
+    }
+    free(stack);
   }
 }
