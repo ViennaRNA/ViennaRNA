@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 18:05:48 ivo> */
+/* Last changed Time-stamp: <2001-09-09 10:06:42 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -6,25 +6,23 @@
 		  Vienna RNA package
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <float.h>    /* #defines FLT_MIN */
+#include <float.h>    /* #defines FLT_MAX ... */
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: part_func.c,v 1.10 2000/10/10 16:29:00 ivo Rel $";
+static char UNUSED rcsid[] = "$Id: part_func.c,v 1.11 2001/09/17 10:21:13 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
 #define PRIVATE static
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
-
 
 PUBLIC  float pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_pf_fold(int length);
@@ -69,7 +67,10 @@ PUBLIC float pf_fold(char *sequence, char *structure)
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
    
-  float free_energy;
+  double free_energy;
+  double max_real;
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   n = (int) strlen(sequence);
   if (n>init_length) init_pf_fold(n);  /* (re)allocate space */
@@ -184,19 +185,17 @@ PUBLIC float pf_fold(char *sequence, char *structure)
       for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
       q[ij] = temp;
 
-#ifndef LARGE_PF
       if (temp>Qmax) {
 	Qmax = temp;
-	if (Qmax>FLT_MAX/10.)
-	  fprintf(stderr, "%d %d %g\n", i,j,temp);
+	if (Qmax>max_real/10.)
+	  fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
       }
-      if (temp>FLT_MAX) {
+      if (temp>=max_real) {
 	PRIVATE char msg[128];
 	sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
 		"use larger pf_scale", i,j);
 	nrerror(msg);
       }
-#endif
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
@@ -298,17 +297,18 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	if (k>1) temp *= expdangle5[tt][S1[k-1]];
 	if (l<n) temp *= expdangle3[tt][S1[l+1]];
 	pr[kl] += temp;
-#ifndef LARGE_PF
+
 	if (pr[kl]>Qmax) {
 	  Qmax = pr[kl];
-	  if (Qmax>FLT_MAX/10.)
-	    fprintf(stderr, "%d %d %g %g\n", i,j,pr[kl],qb[kl]);
+	  if (Qmax>max_real/10.)
+	    fprintf(stderr, "P close to overflow: %d %d %g %g\n", 
+		    i, j, pr[kl], qb[kl]);
 	}
-	if (pr[kl]>FLT_MAX) {
+	if (pr[kl]>=max_real) {
 	  ov++;
 	  pr[kl]=FLT_MAX;
 	}
-#endif
+
       } /* end for (k=..) */
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
