@@ -4,19 +4,15 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-07-03 16:38:38 ivo> */
+/* Last changed Time-stamp: <1998-07-18 20:53:29 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
-#ifdef DBMALLOC
-#include "/usr/local/debug_include/malloc.h"
-#endif
 
-static char rcsid[] = "$Id: utils.c,v 1.5 1998/07/03 14:38:55 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.6 1998/07/19 14:31:15 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -133,7 +129,7 @@ PUBLIC char *random_string(int l, const char symbols[])
 
 PUBLIC int   hamming(const char *s1, const char *s2)
 {
-   int h=0,i;
+   int h=0;
    
    for (; *s1 && *s2; s1++, s2++)
      if (*s1 != *s2) h++;
@@ -163,7 +159,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC unsigned char *pack_structure(const char *struc) {
+PUBLIC char *pack_structure(const char *struc) {
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   unsigned char *packed;
@@ -193,16 +189,18 @@ PUBLIC unsigned char *pack_structure(const char *struc) {
     packed[j++] = p+1;   /* never use 0, so we can use strcmp() etc. */
   }
   packed[j] = '\0';      /* for str*() functions */
-  return packed;
+  return (char *) packed;
 }
 
-PUBLIC char *unpack_structure(const unsigned char *packed) {
+PUBLIC char *unpack_structure(const char *packed) {
   /* 5:1 compression using base 3 encoding */
-  int i,j,l,pi;
+  int i,j,l;
   char *struc;
+  unsigned const char *pp;
   char code[3] = {'(', '.', ')'};
 
   l = strlen(packed);
+  pp = (unsigned char *) packed;
   struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
   j=0;
@@ -210,7 +208,7 @@ PUBLIC char *unpack_structure(const unsigned char *packed) {
     unsigned char p;
     int k, c;
     
-    p = packed[i]-1;
+    p = pp[i]-1;
     for (k=4; k>=0; k--) {
       c = p % 3;
       p /= 3;
