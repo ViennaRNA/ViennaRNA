@@ -3,7 +3,7 @@
 		Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			     Vienna RNA Package
 */
-/* Last changed Time-stamp: <> */
+/* Last changed Time-stamp: <97/10/27 14:10:47 ivo> */
 
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +11,7 @@
 #include  "edit_cost.h"
 #include  "dist_vars.h"
 #include  "utils.h"
+static char rcsid[] = "$Id: treedist.c,v 1.2 1997/10/27 13:10:54 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
