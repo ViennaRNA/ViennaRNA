@@ -1,5 +1,5 @@
 .\" .ER
-.TH "RNAFOLD" "l" "1.4" "Ivo Hofacker" "ViennaRNA"
+.TH "RNAFOLD" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
 RNAfold \- calculate secondary structures of RNAs
 .SH "SYNOPSIS"
@@ -37,11 +37,14 @@ of the single character @ or an end of file condition is encountered.
 .TP 
 .B \-p
 Calculate the partition function and base pairing probability matrix in
-addition to the mfe structure. Default is calculation of mfe structure only.
+addition to the mfe structure. Default is calculation of mfe structure
+only. Note that unless you also specify \-d2 or \-d0, the partition
+function and mfe calculations will use a slightly different energy
+model. See the discussion of dangling end options below.
 .TP 
 .B \-p0
-Calculate the pf without pairing matrix and print the ensemble free energy
-\-kT ln(Z). This is much faster.
+Calculate the partition function but not the pair probabilities,
+saving about 50% in runtime. Prints the ensemble free energy \-kT ln(Z).
 .TP 
 .B \-C
 Calculate structures subject to constraints. 
@@ -66,18 +69,23 @@ Do not include special stabilizing energies for certain tetraloops. Mostly
 for tesing.
 .TP 
 .B \-d[0|1|2|3]
-How to treat "dangling end" energies for bases adjacent to helices in free
-ends and multiloops: Normally (\-d1) only unpaired bases can participate in
-at most one dangling end. With \fB\-d2\fP this check is ignored, this is the
-default for partition function folding (\-p). \fB\-d\fP or \fB\-d0\fP ignores
-dangling ends altogether. Note that by default pf and mfe folding treat
-dangling ends differently, use \fB\-d2\fR in addition to \fB\-p\fR to ensure that
-both algorithms use the same energy model.
+How to treat "dangling end" energies for bases adjacent to helices in
+free ends and multiloops: With (\-d1) only unpaired bases can
+participate in at most one dangling end, this is the default for mfe
+folding but unsupported for the partition function folding. With
+\fB\-d2\fP this check is ignored, dangling energies will be added for
+the bases adjacent to a helix on both sides in any case; this is the
+default for partition function folding (\-p). \fB\-d\fP or \fB\-d0\fP
+ignores dangling ends altogether (mostly for mdebugging).
 .br 
 With \fB\-d3\fP mfe folding will allow coaxial stacking of adjacent helices
 in multi\-loops. At the moment the implementation will not allow coaxial
-stacking of the two interior pairs in a loop of degree 3. PF folding will
-work as with \fB\-d2\fP.
+stacking of the two interior pairs in a loop of degree 3 and works
+only for mfe folding.
+.br
+Note that by default (as well as with \-d1 and \-d3) pf and mfe
+folding treat dangling ends differently. Use \fB\-d2\fR in addition to
+\fB\-p\fR to ensure that both algorithms use the same energy model.
 .TP 
 .B \-noLP
 Produce structures without lonely pairs (helices of length 1). 
