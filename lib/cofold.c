@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-01-30 13:09:49 ivo> */
+/* Last changed Time-stamp: <2003-09-11 11:00:43 xtof> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.2 2003/02/16 12:27:06 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.3 2003/09/11 09:27:28 xtof Exp $";
 
 #define PAREN
 
@@ -236,7 +236,7 @@ PRIVATE int fill_arrays(const char *string) {
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
   for (j=1; j<=length; j++) {
-    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
+    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=fc[j]=INF;
   }
    
   for (j = 1; j<=length; j++)
@@ -358,7 +358,7 @@ PRIVATE int fill_arrays(const char *string) {
 	  
 	  new_c = MLenergy < new_c ? MLenergy : new_c;
 	  
-	  if (!SAME_STRAND(i,j)) {
+	  if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
 	    decomp = fc[i+1]+fc[j-1];
 	    if (dangles==2)
 	      decomp+=d5+d3;
@@ -370,7 +370,7 @@ PRIVATE int fill_arrays(const char *string) {
 	    if (type>2) decomp+=P->TerminalAU;
 	    new_c = MIN2(new_c, decomp);  
 	  }
-	}
+	} /* end >> if (!no_close) << */
 	
 	/* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
@@ -490,7 +490,7 @@ PRIVATE int fill_arrays(const char *string) {
 PRIVATE void backtrack(const char *string) {
    
   /*------------------------------------------------------------------
-    trace back through the "c", "f5" and "fML" arrays to get the
+    trace back through the "c", "fc", "f5" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
@@ -508,8 +508,8 @@ PRIVATE void backtrack(const char *string) {
 
   length = strlen(string);
   sector[++s].i = 1;
-  sector[s].j = length;
-  sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
+  sector[s].j   = length;
+  sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
    
   while (s>0) {
     int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
@@ -521,14 +521,18 @@ PRIVATE void backtrack(const char *string) {
     if (ml==2) {
       base_pair[++b].i = i;
       base_pair[b].j   = j;
-      goto repeat1; 
+      goto repeat1;
     }
 
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
-    fij = (ml)? fML[indx[j]+i] : f5[j];
-    fi  = (ml)?(fML[indx[j-1]+i]+P->MLbase):f5[j-1];
-
+    
+    if (ml==0) {fij = f5[j]; fi = f5[j-1];}
+    else if (ml==1) {fij = fML[indx[j]+i]; fi = fML[indx[j-1]+i]+P->MLbase;}
+    else /* 3 or 4 */ {
+      fij = fc[j];
+      fi = (ml==3) ? INF : fc[j-1];
+    }
     if (fij == fi) {  /* 3' end is unpaired */
       sector[++s].i = i;
       sector[s].j   = j-1;
@@ -536,19 +540,21 @@ PRIVATE void backtrack(const char *string) {
       continue;
     }
      
-    if (ml == 0) { /* backtrack in f5 */
+    if (ml==0 || ml==4) { /* backtrack in f5 or fc[i=cut,j>cut] */
+      int *ff;
+      ff = (ml==4) ? fc : f5;
       /* j or j-1 is paired. Find pairing partner */
-      for (k=j-TURN-1,traced=0; k>=1; k--) {
+      for (k=j-TURN-1,traced=0; k>=i; k--) {
 	int cc, en;
 	jj = k-1; 
 	type = ptype[indx[j-1]+k];
 	if((type)&&(dangles%2==1)&&SAME_STRAND(j-1,j)) {
 	  cc = c[indx[j-1]+k]+P->dangle3[type][S1[j]];
 	  if (type>2) cc += P->TerminalAU;
-	  if (fij == cc + f5[k-1]) 
+	  if (fij == cc + ff[k-1]) 
 	    traced=j-1;
 	  if (k>i) 
-	    if (fij == f5[k-2] + cc + P->dangle5[type][S1[k-1]]) {
+	    if (fij == ff[k-2] + cc + P->dangle5[type][S1[k-1]]) {
 	      traced=j-1; jj=k-2;
 	    }
 	}
@@ -556,22 +562,22 @@ PRIVATE void backtrack(const char *string) {
 	if (type) {
 	  cc = c[indx[j]+k];
 	  if (type>2) cc += P->TerminalAU; 
-	  en = cc + f5[k-1];
+	  en = cc + ff[k-1];
 	  if (dangles==2) {
 	    if (k>1 &&SAME_STRAND(k-1,k)) en += P->dangle5[type][S1[k-1]];
-	    if (j<length &&SAME_STRAND(j,j+1)) en += P->dangle3[type][S1[j+1]]; 
+	    if (j<length &&SAME_STRAND(j,j+1)) en += P->dangle3[type][S1[j+1]];
 	  }
 	  if (fij == en) traced=j;
-	  if ((dangles%2==1) && (k>1)&&SAME_STRAND(k-1,k))
-	    if (fij == f5[k-2]+cc+P->dangle5[type][S1[k-1]]) {
+	  if ((dangles%2==1) && (k>1) && SAME_STRAND(k-1,k))
+	    if (fij == ff[k-2]+cc+P->dangle5[type][S1[k-1]]) {
 	      traced=j; jj=k-2;
 	    }
 	}
 	if (traced) break;
       }
 
-      if (!traced) nrerror("backtrack failed in f5");
-      sector[++s].i = 1;
+      if (!traced) nrerror("backtrack failed in f5 (or fc)");
+      sector[++s].i = i;
       sector[s].j   = jj;
       sector[s].ml  = ml;
        
@@ -580,7 +586,66 @@ PRIVATE void backtrack(const char *string) {
       base_pair[b].j   = j;
       goto repeat1;
     }
-    else { /* trace back in fML array */
+    else if (ml==3) { /* backtrack in fc[i<cut,j=cut-1] */
+      if (fc[i] == fc[i+1]) { /* 5' end is unpaired */
+	sector[++s].i = i+1;
+	sector[s].j   = j;
+	sector[s].ml  = ml;
+	continue;
+      }
+      /* i or i+1 is paired. Find pairing partner */
+      for (k=i+TURN+1, traced=0; k<=j; k++) {
+	jj=k+1;
+	type = ptype[indx[k]+i];
+	if (type) {
+	  int d5, d3, en;
+	  d5 = (i>1 && SAME_STRAND(i-1,i)) ? P->dangle5[type][S1[i-1]] : 0;
+	  d3 = (SAME_STRAND(k,k+1)) ? P->dangle3[type][S1[k+1]] : 0;
+	  en = fc[k+1]+c[indx[k]+i];
+	  if (type>2) en+=P->TerminalAU;
+	  
+	  if (dangles==2) en += d5+d3;
+	  if (fc[i]==en) traced=i;
+	  else if (dangles%2==1) {
+	    int tau;
+	    tau = (type>2) ? P->TerminalAU : 0;
+	    if (fc[i]==fc[k+2]+c[indx[k]+i]+d3+tau)
+	      traced=i; jj=k+2;
+	  }
+	}
+	if (traced) break;
+	
+	if (dangles%2==1) {
+	  int tau;  
+	  type = ptype[indx[k]+i+1];
+	  tau = (type>2) ? P->TerminalAU : 0;
+	  if (type) {
+	    d5 = (SAME_STRAND(i, i+1)) ? P->dangle5[type][S1[i]] : 0;
+	    if (fc[i] == fc[k+1]+c[indx[k]+i+1]+d5+tau)
+	      traced=i+1;
+	    if (k<j) {
+	      d3 = (SAME_STRAND(k, k+1)) ? P->dangle3[type][S1[k+1]] : 0;
+	      if (fc[i] == fc[k+2]+c[indx[k]+i+1]+d5+d3+tau)
+		traced=i+1; jj=k+2;
+	    }
+	  }
+	}
+	if (traced) break;
+      }
+      
+      if (!traced) nrerror("backtrack failed in fc[] 5' of cut");
+
+      sector[++s].i = jj;
+      sector[s].j   = j;
+      sector[s].ml  = ml;
+
+      j=k; i=traced;
+      base_pair[++b].i = i;
+      base_pair[b].j   = j;
+      goto repeat1;
+    }
+
+    else { /* true multi-loop backtrack in fML */
       int cij1=INF, ci1j=INF, ci1j1=INF;
       if (fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
 	sector[++s].i = i+1;
@@ -597,12 +662,12 @@ PRIVATE void backtrack(const char *string) {
       }
       else if (dangles%2==1) {  /* normal dangles */
 	tt = ptype[indx[j]+i+1];
-	ci1j= c[indx[j]+i+1] + P->dangle5[tt][S1[i]] + P->MLintern[tt]+P->MLbase;
+	ci1j = c[indx[j]+i+1]+P->dangle5[tt][S1[i]]+P->MLintern[tt]+P->MLbase;
 	tt = ptype[indx[j-1]+i];
-	cij1= c[indx[j-1]+i] + P->dangle3[tt][S1[j]] + P->MLintern[tt]+P->MLbase;
+	cij1 = c[indx[j-1]+i]+P->dangle3[tt][S1[j]]+P->MLintern[tt]+P->MLbase;
 	tt = ptype[indx[j-1]+i+1];
-	ci1j1=c[indx[j-1]+i+1] + P->dangle5[tt][S1[i]] + P->dangle3[tt][S1[j]]
-	  +  P->MLintern[tt] + 2*P->MLbase;
+	ci1j1 = c[indx[j-1]+i+1]+P->dangle5[tt][S1[i]]+P->dangle3[tt][S1[j]]
+	  + P->MLintern[tt]+2*P->MLbase;
       }
        
       if ((fij==cij)||(fij==ci1j)||(fij==cij1)||(fij==ci1j1)) {
@@ -614,7 +679,8 @@ PRIVATE void backtrack(const char *string) {
 	base_pair[b].j   = j;
 	goto repeat1;
       } 
-       
+
+      /* find next coponent of multiloop */
       for (k = i+1+TURN; k <= j-2-TURN; k++) 
 	if (fij == (fML[indx[k]+i]+fML[indx[j]+k+1])) 
 	  break;
@@ -626,7 +692,7 @@ PRIVATE void backtrack(const char *string) {
 	  type_2 = ptype[indx[j]+k+1]; type_2= rtype[type_2];
 	  if (type && type_2)
 	    if (fij == c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]+
-		       2*P->MLintern[1])
+		2*P->MLintern[1])
 	      break;
 	}
       }
@@ -678,10 +744,12 @@ PRIVATE void backtrack(const char *string) {
 	if (cij == HairpinE(j-i-1, type, S1[i+1], S1[j-1],string+i-1)+bonus)
 	  continue;
     }
-    else if (dangles) {
+    else {
       int ee = 0;
-      if (SAME_STRAND(i,i+1)) ee  = P->dangle3[rtype[type]][S1[i+1]];
-      if (SAME_STRAND(j-1,j)) ee += P->dangle5[rtype[type]][S1[j-1]];
+      if (dangles) {
+	if (SAME_STRAND(i,i+1)) ee  = P->dangle3[rtype[type]][S1[i+1]];
+	if (SAME_STRAND(j-1,j)) ee += P->dangle5[rtype[type]][S1[j-1]];
+      }
       if (type>2) ee += P->TerminalAU;
       if (cij == ee) continue;
     }
@@ -736,14 +804,43 @@ PRIVATE void backtrack(const char *string) {
      
     /* end of repeat: --------------------------------------------------*/
      
-    /* (i.j) must close a multi-loop */
+    /* (i.j) must close a fake or true multi-loop */
     tt = rtype[type];
     mm = bonus+P->MLclosing+P->MLintern[tt];
-    d5 = P->dangle5[tt][S1[j-1]];
-    d3 = P->dangle3[tt][S1[i+1]];
+    d5 = (SAME_STRAND(j-1,j) && dangles) ? P->dangle5[tt][S1[j-1]] : 0;
+    d3 = (SAME_STRAND(i,i+1) && dangles) ? P->dangle3[tt][S1[i+1]] : 0;
     i1 = i+1; j1 = j-1;
-    sector[s+1].ml  = sector[s+2].ml = 1; 
+    sector[s+1].ml  = sector[s+2].ml = 1;
 
+    /* fake multi-loop */
+    if (!SAME_STRAND(i,j)) {
+      int ii=0, jj=0, decomp=0;
+      decomp = fc[i+1]+fc[j-1];
+      if (type>2) decomp+=P->TerminalAU;
+      if (dangles==2) /* double dangles */
+	decomp+=d5+d3;
+      if (decomp==cij) ii=i+1, jj=j-1;
+      else {
+	if (dangles%2==1) { /* normal dangles */
+	  int tau;
+	  tau = (type>2) ? P->TerminalAU : 0;
+	  if (cij == fc[i+2]+fc[j-1]+d3+tau) ii=i+2, jj=j-1;
+	  if (cij == fc[i+1]+fc[j-2]+d5+tau) ii=i+1, jj=j-2;
+	  if (cij == fc[i+2]+fc[j-2]+d3+d5+tau) ii=i+2, jj=j-2;
+	}
+      }
+      if (ii) {
+	sector[++s].i = ii;
+	sector[s].j   = cut_point-1;
+	sector[s].ml  = 3;
+	sector[++s].i = cut_point;
+	sector[s].j   = jj;
+	sector[s].ml  = 4;
+	continue;
+      }
+    }
+
+    /* true multi-loop */
     for (k = i+2+TURN; k < j-2-TURN; k++) {
       int en;
       en = fML[indx[k]+i+1]+fML[indx[j-1]+k+1]+mm;
@@ -786,8 +883,8 @@ PRIVATE void backtrack(const char *string) {
 	  }
 	}
       }
-
     }
+
     if (k<=j-3-TURN) { /* found the decomposition */
       sector[++s].i = i1;
       sector[s].j   = k;
@@ -795,10 +892,10 @@ PRIVATE void backtrack(const char *string) {
       sector[s].j   = j1;
     } else {
 #if 0
-      /* Y shaped ML loops fon't work yet */
+      /* Y shaped ML loops don't work yet */
       if (dangles==3) {
 	/* (i,j) must close a Y shaped ML loop with coax stacking */
-	if (cij ==  fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
+	if (cij == fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
 	  i1 = i+2;
 	  j1 = j-2;
 	} else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + P->MLbase) 
@@ -817,7 +914,7 @@ PRIVATE void backtrack(const char *string) {
 	nrerror("backtracking failed in repeat");
     } 
      
-  }
+  } /* end >> while (s>0) << */
 
   base_pair[0].i = b;    /* save the total number of base pairs */
 }
