@@ -1,15 +1,17 @@
 Installation:
 
 This package uses GNU autoconf generated configure scripts, see the
-file INSTALL.gnu for generic configure documentation.
+file INSTALL.configure for generic configure documentation.
 
-Usually you'll just have to type:
+Quickstart: Usually you'll just have to type:
+----------
 	./configure
 	make
 and (as root)
 	make install 
 
 Install Paths:
+-------------
 The main programs, library, man, and info pages are
 installed in the usual places by default
 (i.e. /usr/local/{bin,lib,man,info}). In addition the following
@@ -21,6 +23,11 @@ documentation   /usr/local/share/ViennaRNA/doc  [datadir/ViennaRNA/doc]
 
 All these locations can be changed by calling ./configure with
 appropriate options.
+
+If you like having all software packages separated in their own directories
+you could run e.g.:
+./configure --prefix=/opt/packages/ViennaRNA --datadir=/opt/packages/ViennaRNA 
+resulting in /opt/packages/ViennaRNA/{bin,lib,man,info,include,doc} directories
 
 The installed location of the Perl module is determined by Perl's own
 configuration, independent of any configure options. 
