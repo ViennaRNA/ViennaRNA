@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.24 2003/08/07 09:01:00 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.25 2004/07/29 13:26:51 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -696,7 +696,7 @@ PRIVATE void print_PSdot_header(FILE *wastl, char *title, char *seq) {
 	  "%% print sequence along all 4 sides\n"
 	  "[ [0.7 -0.3 0 ]\n"
 	  "  [0.7 0.7 len add 0]\n"
-	  "  [0.7 -0.2 90]\n" 
+	  "  [-0.3 len sub -0.4 -90]\n" 
 	  "  [-0.3 len sub 0.7 len add -90]\n"
 	  "] {\n"
 	  "  gsave\n"
