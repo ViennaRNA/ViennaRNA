@@ -10,7 +10,7 @@ AM_WITH_DMALLOC
 AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDists])
 AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
 AC_ARG_WITH(forester, [  --without-forester          don't build RNAforester program])
-AC_ARG_WITH(kinfold, [  --without-kinfold          don't build RNAforester program])
+AC_ARG_WITH(kinfold, [  --without-kinfold          don't build Kinfold program])
 AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
@@ -90,7 +90,7 @@ AC_C_INLINE([])
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
-AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1 man/RNALfold.1 man/RNAalifold.1 man/RNAduplex.1])
+AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1 man/RNALfold.1 man/RNAalifold.1 man/RNAduplex.1 man/RNAcofold.1])
 AC_OUTPUT
 
 eval _bindir=$(eval echo $bindir)
