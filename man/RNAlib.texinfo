@@ -1,10 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <1998-03-31 23:45:42 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.5 1998/03/31 21:48:16 ivo Exp $
+@c Last changed Time-stamp: <1998-07-07 18:45:23 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.6 1998/07/07 16:46:21 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
-@set Version 1.2
+@set Version 1.3
 @end ifclear
 @iftex
 @afourpaper
@@ -95,8 +95,7 @@ Please send comments and bug reports to
 
 @section Minimum free Energy Folding
 The library provides a fast dynamic programming minimum free energy
-folding algorithm as described by M. Zuker, P. Stiegler (1981)
-(@pxref{References}).
+folding algorithm as described by @cite{Zuker & Stiegler (1981)}.
 Associated functions are: 
 
 
@@ -141,7 +140,7 @@ Prototypes for these functions are declared in @file{fold.h}.
 Instead of the minimum free energy structure the partition function of
 all possible structures and from that the pairing probability for every
 possible pair can be calculated, using a dynamic programming algorithm
-as described by J.S. McCaskill (1990) (@pxref{References}). The  following
+as described by @cite{McCaskill (1990)}. The  following
 functions are provided:
 
 
@@ -235,6 +234,12 @@ if 1 allow GU pairs only inside stacks, not as closing pairs;
 default is 0.
 @end deftypevar
 
+@deftypevar int  noLonelyPairs
+Disallow all pairs which can @strong{only} occur as lonely pairs (i.e. as helix
+of length 1). This avoids lonely base pairs in the predicted structures in
+most cases.
+@end deftypevar
+
 @deftypevar int  tetra_loop
 include special stabilizing energies for some tetra loops; default is 1.
 @end deftypevar
@@ -255,7 +260,7 @@ changing this parameter.
 if set to 0 no stabilizing energies are assigned to bases adjacent to
 helices in free ends and multiloops (so called dangling ends). Normally
 (@code{dangles = 1}) dangling end energies are assigned only to unpaired
-bases and a base cannot participate simutaneously in two dangling ends. In
+bases and a base cannot participate simultaneously in two dangling ends. In
 the partition function algorithm @code{pf_fold()} these checks are neglected.
 If @code{dangles} is set to 2, the @code{fold()} and
 @code{energy_of_struct()} function will also follow this convention. This
@@ -318,8 +323,8 @@ from their defaults.
 @node Param Files, , Fold Vars, Folding Routines
 @section Energy Parameter Files
 
-A default set of parameters, identical to the one described in A. Walter
-et.al. (1994) @pxref{References}, is compiled into the library.
+A default set of parameters, identical to the one described in @cite{Walter
+et.al. (1994)}, is compiled into the library.
 Alternately, parameters can be read from and written to a file.
 
 @deftypefun void read_parameter_file (const char @var{fname}[])
@@ -461,7 +466,8 @@ notation'', where matching brackets symbolize base pairs and unpaired
 bases are shown as dots. Alternatively, one may use two types of node
 labels, 'P' for paired and 'U' for unpaired; a dot is then replaced by
 '(U)', and each closed bracket is assigned an additional identifier 'P'.
-We call this the expanded notation. In (Fontana et al. 1993) a condensed
+We call this the expanded notation. In @cite{Fontana et al. (1993)} a
+condensed
 representation of the secondary structure is proposed, the so-called
 homeomorphically irreducible tree (HIT) representation. Here a stack is
 represented as a single pair of matching brackets labeled 'P' and
@@ -471,7 +477,7 @@ labeled 'U' and weighted by its length.  Generally any string consisting
 of matching brackets and identifiers is equivalent to a plane tree with
 as many different types of nodes as there are identifiers.
 
-Bruce Shapiro (1988) proposed a coarse grained representation, which,
+@cite{Bruce Shapiro (1988)} proposed a coarse grained representation, which,
 does not retain the full information of the secondary structure. He
 represents the different structure elements by single matching brackets
 and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
@@ -672,7 +678,7 @@ Two cost matrices are provided for coarse grained structures:
    @{   5, INF, INF, INF, INF, INF,   0@},   /* E    replaced */
 @end example
 
-The lower matrix uses the costs given in Shapiro (1990).
+The lower matrix uses the costs given in @cite{Shapiro (1990)}.
 All distance functions use the following global variables:
 
 
@@ -784,6 +790,13 @@ writes it to @var{filename}. If @code{option} is an uppercase letter the
 or @kbd{'x'} the resulting file will coordinates for an initial layout of
 the graph.
 @end deftypefun
+
+@deftypevar int rna_plot_type
+switches between different layout algorithms for drawing secondary
+structures in @code{PS_rna_plot} and @code{gmlRNA}. Current possibility are
+0 for a simple radial drawing or 1 for the modified radial drawing taken from
+the @code{naview} program of @cite{Bruccoleri & Heinrich (1988)}.
+@end deftypevar
 
 @deftypefun char* random_string (int @var{l}, char* @var{symbols})
 generates a ``random'' string of characters from @var{symbols} with
@@ -953,7 +966,7 @@ files and library, respectively.
 @chapter References
 
 @itemize -
-@item M. Zuker, P. Stiegler (1981)@*
+@item M. Zuker and P. Stiegler (1981)@*
    Optimal  computer  folding  of large RNA sequences using
    thermodynamic and auxiliary information, Nucl Acid Res 9: 133-148
 
@@ -976,7 +989,7 @@ files and library, respectively.
    Thermodynamic Study of Internal Loops in Oligoribonucleotides ... ,
    Biochemistry 30: 6428--6435
 
-@item A. Walter, D Turner, J Kim, M Lyttle, P M@"uller, D Mathews, M Zuker (1994)@*
+@item A. Walter, D. Turner, J. Kim, M. Lyttle, P. M@"uller, D. Mathews and M. Zuker (1994)@*
    Coaxial stacking of helices enhances binding of Oligoribonucleotides..,
    Proc. Natl. Acad. Sci. 91: 9218-9222
 
@@ -984,9 +997,13 @@ files and library, respectively.
    An algorithm for comparing multiple  RNA secondary structures,
    CABIOS 4, 381-393 
 
-@item B.A. Shapiro, K. Zhang  (1990)@*
+@item B.A. Shapiro and K. Zhang (1990)@*
    Comparing multiple RNA secondary structures using tree comparison,
    CABIOS 6, 309-318 
+
+@item R. Bruccoleri and G. Heinrich (1988)@*
+   An improved algorithm for nucleic acid secondary structure display,
+   CABIOS 4, 167-173
 
 @item W. Fontana , D.A.M. Konings, P.F. Stadler, P. Schuster (1993) @*
    Statistics of RNA secondary structures, Biopolymers 33, 1389-1404
@@ -1036,4 +1053,7 @@ files and library, respectively.
 @c  LocalWords:  Chemie hitchhiker's printindex ci cc Tetraloops tetraloops url
 @c  LocalWords:  GAAA html http www tbi univie ac ivo Param deftypefun var ln
 @c  LocalWords:  deftypevar const fname samp erand kbd hpath lpath lRNA lm Acad
-@c  LocalWords:  Peritz Oligoribonucleotides Lyttle uller Bonhoeffer
+@c  LocalWords:  Peritz Oligoribonucleotides Lyttle uller Bonhoeffer ifclear lt
+@c  LocalWords:  smallexample texi ifset ifhtml href ViennaRNA mailto gt noLP
+@c  LocalWords:  initially co noindent gmlRNA gml naview Bruccoleri struc
+@c  LocalWords:  strcmp LocalWords
