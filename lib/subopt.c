@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.18  2003/10/06 08:56:45  ivo
+  use P->TerminalAU
+
   Revision 1.17  2003/08/26 09:26:08  ivo
   don't modify print_energy in subopt(); use doubles instead of floats
 
@@ -74,7 +77,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.17 2003/08/26 09:26:08 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.18 2003/10/06 08:56:45 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -760,7 +763,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	  element_energy = 0;
 	
 	if (type>2)
-	  element_energy += TerminalAU;
+	  element_energy += P->TerminalAU;
 
 	if (f5[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold)
 	  {
@@ -780,7 +783,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	  element_energy = 0;
 	
 	if (type>2)
-	  element_energy += TerminalAU;
+	  element_energy += P->TerminalAU;
 	
 	if (c[indx[j]+1] + element_energy + best_energy <= threshold)
 	  repeat(1, j, state, element_energy, 0);
