@@ -10,7 +10,7 @@ Version 0.3
   ($struct, $mfe) = RNA::fold($seq);  #predict mfe structure of $seq
   RNA::PS_rna_plot($seq, $struct, "rna.ps");  # write PS plot to rna.ps
   $F = RNA::pf_fold($seq);   # compute partition function and pair pobabilities
-  RNA::PS_dot_plot($sseq, "dot.ps");          # write dot plot to dot.ps
+  RNA::PS_dot_plot($seq, "dot.ps");          # write dot plot to dot.ps
   ...
 
 =head1 DESCRIPTION
