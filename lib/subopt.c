@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.13  2001/04/05 07:35:08  ivo
+  remove uneeded declaration of TETRA_ENERGY
+
   Revision 1.12  2000/10/10 08:53:20  ivo
   adapted for new Turner energy parameters
   supports all constraints that forbid pairs
@@ -56,7 +59,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.12 2000/10/10 08:53:20 ivo Rel $";
+PRIVATE char rcsid[] = "$Id: subopt.c,v 1.13 2001/04/05 07:35:08 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -142,7 +145,6 @@ extern double lxc;
 extern int MLbase;
 extern int MLintern[];
 extern int MLclosing;
-extern int TETRA_ENERGY[40];
 extern char *ptype;
 
 extern float energy_of_struct(char *, char *);
