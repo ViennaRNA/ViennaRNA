@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <95/07/10 01:05:42 ivo> */
+/* Last changed Time-stamp: <97/10/27 14:44:55 ivo> */
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
@@ -16,7 +16,8 @@ int  energy_set = 0;     /* 0 = BP; 1=any with GC; 2=any with AU parameters */
 int  dangles = 1;	 /* use dangling end energies */
 char *nonstandards = (char *)0; /* contains allowed non standard bases */
 float temperature = 37.0;
-
+int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
+			    no mismatches */
 struct bond {         /* bonding list */
    int i;
    int j;
