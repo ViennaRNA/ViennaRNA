@@ -1,6 +1,6 @@
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
-		RNAplot RNAsubopt
+		RNAplot RNAsubopt RNAcofold
 
-LDADD = -L../lib -lRNA -lm
+LDADD = ../lib/libRNA.a -lm
 
 INCLUDES = -I../H
