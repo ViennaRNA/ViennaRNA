@@ -1,10 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-10-19 11:08:27 ivo>
+# Last changed Time-stamp: <2003-02-03 18:27:19 ivo>
 
 use RNA;
 use Getopt::Long;
 use strict;
+use warnings;
 
  Getopt::Long::config("no_ignore_case");
 
