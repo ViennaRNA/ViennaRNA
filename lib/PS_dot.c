@@ -16,7 +16,7 @@
 #include "/usr/local/include/dmalloc.h"
 #define space(S) calloc(1,(S))
 #endif
-static char rcsid[] = "$Id: PS_dot.c,v 1.6 1997/11/06 17:13:12 ivo Rel $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.7 1997/12/16 12:14:12 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -25,9 +25,9 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.6 1997/11/06 17:13:12 ivo Rel $";
 #define  PI       3.141592654
 #define  PIHALF       PI/2.
 
-PUBLIC void   gmlRNA(char *string, char *structure, char *ssfile, char option);
-PUBLIC void   PS_rna_plot(char *string, char *structure, char *ssfile);
-PUBLIC void   PS_dot_plot(char *string, char *wastlfile);
+PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
+PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
+PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
 PRIVATE short *make_pair_table(char *structure);
 PUBLIC  int    simple_xy_coordinates(int length, short *pair_table, 
                                      float *X, float *Y); 
@@ -55,7 +55,7 @@ PRIVATE  int     lp, stk;
    default:           no graphics data at all
    */
 
-PUBLIC void gmlRNA(char *string, char *structure, char *ssfile, char option)
+PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 {
   FILE *gmlfile;
   int i;
@@ -91,7 +91,7 @@ PUBLIC void gmlRNA(char *string, char *structure, char *ssfile, char option)
   gmlfile = fopen(ssfile, "w");
   if (gmlfile == NULL) {
      fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return;
+     return 0;
   }
   fprintf(gmlfile, 
 	  "# Vienna RNA Package (rna2glm)\n"
@@ -124,11 +124,12 @@ PUBLIC void gmlRNA(char *string, char *structure, char *ssfile, char option)
 
   free(pair_table);
   free(X); free(Y);
+  return 1; /* success */
 }
 
 /*---------------------------------------------------------------------------*/
 
-void PS_rna_plot(char *string, char *structure, char *ssfile)
+int PS_rna_plot(char *string, char *structure, char *ssfile)
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
@@ -139,7 +140,7 @@ void PS_rna_plot(char *string, char *structure, char *ssfile)
   length = strlen(string);
   if (length>MAXLENGTH) {
      fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-     return;
+     return 2;
   }
 
   pair_table = make_pair_table(structure);
@@ -162,7 +163,7 @@ void PS_rna_plot(char *string, char *structure, char *ssfile)
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
      fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return;
+     return 0;
   }
   fprintf(xyplot,
 	  "%%!PS-Adobe-2.0 EPSF-1.2\n"
@@ -201,11 +202,12 @@ void PS_rna_plot(char *string, char *structure, char *ssfile)
 
   free(pair_table);
   free(X); free(Y);
+  return 1; /* success */
 }
 
 /*--------------------------------------------------------------------------*/
 
-void PS_dot_plot(char *string, char *wastlfile)
+int PS_dot_plot(char *string, char *wastlfile)
 {
    /* produce PostScript dot plot from probabilities in pr[] array */
    
@@ -216,7 +218,10 @@ void PS_dot_plot(char *string, char *wastlfile)
    
    length= strlen(string);
    wastl = fopen(wastlfile,"w");
-   if (wastl==NULL) nrerror("can't open file for dot plot");
+   if (wastl==NULL) {
+     fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+     return 0; /* return 0 for failure */
+   }
    strncpy(name, wastlfile, 30);
    if ((c=strrchr(name, '_'))!=0) *c='\0';
    fprintf(wastl,"%%!PS-Adobe-2.0 EPSF-1.2\n");
@@ -314,8 +319,10 @@ void PS_dot_plot(char *string, char *wastlfile)
 	   "0 len moveto len 0 lineto stroke \n\n");
    fprintf(wastl,"%%draw grid\n"
 	   "0.01 setlinewidth\n"
-	   "len log 1 sub cvi 10 exch exp  %% grid spacing\n"
-           "dup dup 20 div dup 2 array astore exch 40 div setdash\n"
+	   "len log 0.9 sub cvi 10 exch exp  %% grid spacing\n"
+           "dup 1 gt {\n"
+	   "   dup dup 20 div dup 2 array astore exch 40 div setdash\n"
+	   "} { [0.3 0.7] 0.1 setdash } ifelse\n"
 	   "0 exch len {\n"      /* for (i=0; i<=len; i++) */
 	   "   dup dup\n"        
 	   "   0 moveto\n"                     /* i 0 moveto   */
@@ -323,8 +330,8 @@ void PS_dot_plot(char *string, char *wastlfile)
 	   "   dup\n"
 	   "   len exch sub 0 exch moveto\n"   /* 0 i moveto   */
 	   "   len exch len exch sub lineto\n" /* len i lineto */
+	   "   stroke\n"
 	   "} for\n"
-	   "stroke\n"
 	   "0.5 neg dup translate\n\n");
 
    /* print boxes */
@@ -343,6 +350,7 @@ void PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"end\n");
    fprintf(wastl,"%%%%EOF\n");
    fclose(wastl);
+   return 1; /* success */
 }
 
 /*---------------------------------------------------------------------------*/
