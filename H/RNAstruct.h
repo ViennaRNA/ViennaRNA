@@ -1,19 +1,19 @@
 #define STRUC     1000
 
-extern char *b2HIT(char *structure);  /* Full   -> HIT    [incl. root]      */
-extern char *b2C(char *structure);    /* Full   -> Coarse [incl. root]      */
-extern char *b2Shapiro(char *structure); /* Full -> weighted Shapiro [i.r.] */
-extern char *add_root(char *);        /* {Tree} -> ({Tree}R)                */
+extern char *b2HIT(const char *structure); /* Full   -> HIT    [incl. root] */
+extern char *b2C(const char *structure);   /* Full   -> Coarse [incl. root] */
+extern char *b2Shapiro(const char *structure); /* Full -> weighted Shapiro [i.r.] */
+extern char *add_root(const char *);        /* {Tree} -> ({Tree}R)          */
 
-extern char  *expand_Shapiro(char *coarse);
+extern char  *expand_Shapiro(const char *coarse);
 /* add S for stacks to coarse struct */
-extern char  *expand_Full(char *structure); /* Full   -> FFull              */
-extern char  *unexpand_Full(char *ffull);   /* FFull  -> Full               */
-extern char  *unweight(char *wcoarse);   /* remove weights from coarse struct */
+extern char  *expand_Full(const char *structure); /* Full   -> FFull         */
+extern char  *unexpand_Full(const char *ffull);   /* FFull  -> Full          */
+extern char  *unweight(const char *wcoarse);   /* remove weights from coarse struct */
 
 extern void   unexpand_aligned_F(char *align[2]);
 
-extern void   parse_structure(char *structure); /* make structure statistics */
+extern void   parse_structure(const char *structure); /* make structure statistics */
 
 extern int    loop_size[STRUC];       /* loop sizes of a structure */
 extern int    helix_size[STRUC];      /* helix sizes of a structure */
