@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-12-13 14:58:29 ivo> */
+/* Last changed Time-stamp: <2004-01-04 18:52:35 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.17  2004/02/09 18:37:59  ivo
+  new mean_bp_dist() function to compute ensemble diversity
+
   Revision 1.16  2003/08/04 09:14:09  ivo
   finish up stochastic backtracking
 
@@ -29,7 +32,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.16 2003/08/04 09:14:09 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.17 2004/02/09 18:37:59 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -611,7 +614,7 @@ PUBLIC void init_pf_fold(int length)
 
 PUBLIC void free_pf_arrays(void)
 {
-  free(q);
+  free(q); q=pr=NULL;
   free(qb);
   free(qm);
   if (qm1 != NULL) {free(qm1); qm1 = NULL;}
@@ -903,4 +906,21 @@ static void backtrack(int i, int j) {
       j = k-1;
     } 
   }
+}
+
+PUBLIC double mean_bp_dist(int length) {
+  /* compute the mean base pair distance in the thermodynamic ensemble */
+  /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b) 
+     this can be computed from the pair probs p_ij as 
+     <d> = \sum_{ij} p_{ij}(1-p_{ij}) */
+  int i,j;
+  double d=0;
+  
+  if (pr==NULL) 
+    nrerror("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
+
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++)
+      d += pr[iindx[i]-j] * (1-pr[iindx[i]-j]);
+  return d;
 }

@@ -4,4 +4,5 @@ extern float  pf_fold(char *sequence, char *structure);
 extern void   init_pf_fold(int length);    /* allocate space for pf_fold() */
 extern void   free_pf_arrays(void);        /* free arrays from pf_fold() */
 extern void   update_pf_params(int length); /*recalculate energy parameters */
-extern char   bppm_symbol(float *x);    /* string representation of structure */
+extern char   bppm_symbol(float *x);   /* string representation of structure */
+extern double mean_bp_dist(int length); /* mean pair distance of ensemble */

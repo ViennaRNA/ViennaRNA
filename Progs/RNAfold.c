@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-09-15 18:17:36 ivo> */
+/* Last changed Time-stamp: <2004-01-04 18:01:55 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.14 2001/09/17 10:30:42 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.15 2004/02/09 18:37:59 ivo Exp $";
 
 #define PRIVATE static
 
@@ -226,9 +226,9 @@ int main(int argc, char *argv[])
       }
       if ((istty)||(!do_backtrack)) 
 	printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-      printf(" frequency of mfe structure in ensemble %g\n",
-	     exp((energy-min_en)/kT));
-	 
+      printf(" frequency of mfe structure in ensemble %g; "
+	     "ensemble diversity %-6.2f\n", exp((energy-min_en)/kT),
+	     mean_bp_dist(length));
       if (do_backtrack) {
 	if (fname[0]!='\0') {
 	  strcpy(ffname, fname);
