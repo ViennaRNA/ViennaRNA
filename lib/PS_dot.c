@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.28 2004/09/29 09:10:57 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.29 2004/10/01 13:05:24 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -618,6 +618,7 @@ const char *RNAdp_prolog =
 "%%BeginProlog\n"
 "/DPdict 100 dict def\n"
 "DPdict begin\n"
+"/logscale false def\n"
 "/box { %size x y box - draws box centered on x,y\n"
 "   2 index 0.5 mul add            % x += 0.5\n"
 "   exch 2 index 0.5 mul add exch  % x += 0.5\n"
