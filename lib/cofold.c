@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-02-09 17:09:47 ivo> */
+/* Last changed Time-stamp: <2004-07-29 15:23:17 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.4 2004/02/09 16:50:48 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.5 2004/07/29 13:26:06 ivo Exp $";
 
 #define PAREN
 
@@ -149,14 +149,16 @@ PUBLIC void free_arrays(void)
   init_length=0;
 }
 
+
 /*--------------------------------------------------------------------------*/
 
 void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, 
-			int **indx_p, char **ptype_p) {
+			int **fc_p, int **indx_p, char **ptype_p) {
   /* make the DP arrays available to routines such as subopt() */ 
   *f5_p = f5; *c_p = c;
   *fML_p = fML; *fM1_p = fM1;
   *indx_p = indx; *ptype_p = ptype;
+  *fc_p =fc;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -341,22 +343,22 @@ PRIVATE int fill_arrays(const char *string) {
 	  int MLenergy;
 	  int d3=0, d5=0; 
 	  decomp = DMLi1[j-1];
-	  if (dangles) {
-	    tt = rtype[type];
-	    d3 = SAME_STRAND(i,i+1) ? P->dangle3[tt][S1[i+1]] : 0;
-	    d5 = SAME_STRAND(j-1,j) ? P->dangle5[tt][S1[j-1]] : 0;
-	    if (dangles==2) /* double dangles */
-	      decomp += d5 + d3;
-	    else {          /* normal dangles */
-	      decomp = MIN2(DMLi2[j-1]+d3+P->MLbase, decomp);
-	      decomp = MIN2(DMLi1[j-2]+d5+P->MLbase, decomp);
-	      decomp = MIN2(DMLi2[j-2]+d5+d3+2*P->MLbase, decomp);
+	  if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
+	    if (dangles) {
+	      tt = rtype[type];
+	      d3 = P->dangle3[tt][S1[i+1]];
+	      d5 = P->dangle5[tt][S1[j-1]];
+	      if (dangles==2) /* double dangles */
+		decomp += d5 + d3;
+	      else {          /* normal dangles */
+		decomp = MIN2(DMLi2[j-1]+d3+P->MLbase, decomp);
+		decomp = MIN2(DMLi1[j-2]+d5+P->MLbase, decomp);
+		decomp = MIN2(DMLi2[j-2]+d5+d3+2*P->MLbase, decomp);
+	      }
 	    }
+	    MLenergy = P->MLclosing+P->MLintern[type]+decomp;
+	    new_c = MLenergy < new_c ? MLenergy : new_c;
 	  }
-	  
-	  MLenergy = P->MLclosing+P->MLintern[type]+decomp;
-	  
-	  new_c = MLenergy < new_c ? MLenergy : new_c;
 	  
 	  if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
 	    decomp = fc[i+1]+fc[j-1];
@@ -405,56 +407,83 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
-
-      new_fML = fML[ij+1]+P->MLbase;
-      new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-      energy = c[ij]+P->MLintern[type];
-      if (dangles==2) {  /* double dangles */
-	if (i>1)      energy += P->dangle5[type][S1[i-1]];
-	if (j<length) energy += P->dangle3[type][S1[j+1]];
-      }
-      new_fML = MIN2(energy, new_fML);
-      if (uniq_ML)
-	fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, energy);
-
-      if (dangles%2==1) {  /* normal dangles */
-	tt = ptype[ij+1]; /* i+1,j */
-	new_fML = MIN2(c[ij+1]+P->dangle5[tt][S1[i]]
-		       +P->MLintern[tt]+P->MLbase,new_fML);
-	tt = ptype[indx[j-1]+i]; 
-	new_fML = MIN2(c[indx[j-1]+i]+P->dangle3[tt][S1[j]]
-		       +P->MLintern[tt]+P->MLbase, new_fML);
-	tt = ptype[indx[j-1]+i+1];
-	new_fML = MIN2(c[indx[j-1]+i+1]+P->dangle5[tt][S1[i]]+
-		       P->dangle3[tt][S1[j]]+P->MLintern[tt]+2*P->MLbase, new_fML);
+      new_fML=INF;
+      if (SAME_STRAND(i-1,i)) {
+	if (SAME_STRAND(i,i+1)) new_fML = fML[ij+1]+P->MLbase;
+	if (SAME_STRAND(j-1,j)) new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
+	if (SAME_STRAND(j,j+1)) {
+	  energy = c[ij]+P->MLintern[type];
+	  if (dangles==2) {  /* double dangles */
+	    if (i>1)      energy += P->dangle5[type][S1[i-1]];
+	    if (j<length) energy += P->dangle3[type][S1[j+1]];
+	  }
+	  new_fML = MIN2(energy, new_fML);
+	  if (uniq_ML) fM1[ij]=energy;
+	  if ((uniq_ML)&&(SAME_STRAND(j-1,j))) 
+	    fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, energy);
+	}
+	if (dangles%2==1) {  /* normal dangles */
+	  if (SAME_STRAND(i,i+1)) {
+	    tt = ptype[ij+1]; /* i+1,j */
+	    new_fML = MIN2(c[ij+1]+P->dangle5[tt][S1[i]]
+			   +P->MLintern[tt]+P->MLbase,new_fML);
+	  }
+	  if (SAME_STRAND(j-1,j)) {
+	    tt = ptype[indx[j-1]+i]; 
+	    new_fML = MIN2(c[indx[j-1]+i]+P->dangle3[tt][S1[j]]
+			   +P->MLintern[tt]+P->MLbase, new_fML);
+	  }
+	  if ((SAME_STRAND(j-1,j))&&(SAME_STRAND(i,i+1))) {
+	    tt = ptype[indx[j-1]+i+1];
+	    new_fML = MIN2(c[indx[j-1]+i+1]+P->dangle5[tt][S1[i]]+
+			   P->dangle3[tt][S1[j]]+P->MLintern[tt]+2*P->MLbase, new_fML);
+	  }
+	}
       }
       
       /* modular decomposition -------------------------------*/
-    
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-	decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
       
+      {
+	int stopp;     /*loop 1 up to cut, then loop 2*/
+	stopp=(cut_point>0)? (cut_point):(j-2-TURN);
+	for (decomp=INF, k = i+1+TURN; k<stopp; k++) 
+	  decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+	k++;
+	for (;k <= j-2-TURN;k++)
+	  decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+      }
       DMLi[j] = decomp;               /* store for use in ML decompositon */
       new_fML = MIN2(new_fML,decomp);
       
       /* coaxial stacking */
       if (dangles==3) { 
+	int stopp;
+	stopp=(cut_point>0)? (cut_point):(j-2-TURN);
 	/* additional ML decomposition as two coaxially stacked helices */
-	for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++) {
+	for (decomp = INF, k = i+1+TURN; k<stopp; k++) {
 	  type = ptype[indx[k]+i]; type = rtype[type];
 	  type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
 	  if (type && type_2)
+	    decomp = MIN2(decomp,
+			  c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]);
+	}
+	k++; 
+	for (;k <= j-2-TURN; k++) {
+	  type = ptype[indx[k]+i]; type = rtype[type];
+	  type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
+	  if (type && type_2) 
 	    decomp = MIN2(decomp, 
 			  c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]);
 	}
-
-	decomp += 2*P->MLintern[1];  	/* no TermAU penalty if coax stack */
+	
+	decomp += 2*P->MLintern[1];  
+	
 #if 0
 	/* This is needed for Y shaped ML loops with coax stacking of
-	   interior pairts, but backtracking will fail if activated */
+	   interior pairs, but backtracking will fail if activated */
 	DMLi[j] = MIN2(DMLi[j], decomp);
-	DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
-	DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
+	if (SAME_STRAND(j-1,j)) DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
+	if (SAME_STRAND(i,i+1)) DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
 	new_fML = MIN2(new_fML, DMLi[j]);
 #endif
 	new_fML = MIN2(new_fML, decomp);
@@ -609,8 +638,9 @@ PRIVATE void backtrack(const char *string) {
 	  else if (dangles%2==1) {
 	    int tau;
 	    tau = (type>2) ? P->TerminalAU : 0;
-	    if (fc[i]==fc[k+2]+c[indx[k]+i]+d3+tau)
+	    if (fc[i]==fc[k+2]+c[indx[k]+i]+d3+tau) {
 	      traced=i; jj=k+2;
+	    }
 	  }
 	}
 	if (traced) break;
@@ -625,8 +655,9 @@ PRIVATE void backtrack(const char *string) {
 	      traced=i+1;
 	    if (k<j) {
 	      d3 = (SAME_STRAND(k, k+1)) ? P->dangle3[type][S1[k+1]] : 0;
-	      if (fc[i] == fc[k+2]+c[indx[k]+i+1]+d5+d3+tau)
+	      if (fc[i] == fc[k+2]+c[indx[k]+i+1]+d5+d3+tau) {
 		traced=i+1; jj=k+2;
+	      }
 	    }
 	  }
 	}
@@ -1561,7 +1592,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
         break;
       case ')':
         if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
+	  fprintf(stderr, "%s\n", structure);
           nrerror("unbalanced brackets in constraints");
         }
         i = stack[--hx];
