@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-10-01 15:47:53 ivo> */
+/* Last changed Time-stamp: <2001-11-15 12:25:06 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -12,12 +12,13 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include "part_func.h"
 #include "fold_vars.h"
 #include "utils.h"
 #include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.7 2001/10/01 13:50:04 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.8 2001/11/16 17:29:27 ivo Exp $";
 
 #define PRIVATE static
 
@@ -26,7 +27,7 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 
 extern float print_energy;
 PRIVATE void usage(void);
-
+extern char *pbacktrack(char *sequence);
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -41,6 +42,7 @@ int main(int argc, char *argv[])
    int   istty;
    float deltaf, deltap=0;
    int delta=100;
+   int n_back = 0;
    
    do_backtrack = 1;
    dangles = 2;
@@ -52,6 +54,11 @@ int main(int argc, char *argv[])
 	    if(i==argc-1) usage();
 	    r=sscanf(argv[++i], "%lf", &temperature);
 	    if (r!=1) usage();
+	    break;
+	  case 'p':
+	    if (argv[i][2]!='\0') usage();
+	    if(i==argc-1) usage();
+	    (void) sscanf(argv[++i], "%d", &n_back);
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
@@ -184,6 +191,18 @@ int main(int argc, char *argv[])
       if (fname[0] != '\0')
 	printf("> %s [%d]\n", fname, delta);
 
+      if (n_back>0) {
+	int i;
+	(void) pf_fold(sequence, NULL);
+	init_rand();
+	for (i=0; i<n_back; i++) {
+	  char *s;
+	  s = pbacktrack(sequence);
+	  printf("%s\n", s);
+	  free(s);
+	}
+	free_pf_arrays();
+      }
       subopt(sequence, structure, delta, stdout);
       
       (void)fflush(stdout);
