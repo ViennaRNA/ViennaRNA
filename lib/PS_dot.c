@@ -14,8 +14,9 @@
 #include "utils.h"
 #include "fold_vars.h"
 #include "PS_dot.h"
+#include "co_part_func.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.26 2004/08/09 10:22:14 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.27 2004/09/24 09:09:39 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -38,12 +39,14 @@ extern int   naview_xy_coordinates(short *pair_table, float *X, float *Y);
 
 PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
 
-/* local functions */
 
+PUBLIC int PS_dot_plot_list(char *string, char *wastlfile,
+			    struct plist *pl, struct plist *mf, char *comment);
+
+/* local functions */
 PRIVATE void   loop(int i, int j, short *pair_table);
 
 /* local variables for parsing routines */
-
 PRIVATE float  *angle;
 PRIVATE int    *loop_size, *stack_size;
 PRIVATE int     lp, stk;
@@ -607,14 +610,145 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   return 1; /* success */
 }
 
+
 /*---------------------------------------------------------------------------*/
 #define PMIN 0.00001
-PRIVATE void print_PSdot_header(FILE *wastl, char *title, char *seq) {
-  int i;
+const char *RNAdp_prolog =
+"%This file contains the square roots of the base pair probabilities in the form\n"
+"% i  j  sqrt(p(i,j)) ubox\n\n"
+"%%BeginProlog\n"
+"/DPdict 100 dict def\n"
+"DPdict begin\n"
+"/box { %size x y box - draws box centered on x,y\n"
+"   2 index 0.5 mul add            % x += 0.5\n"
+"   exch 2 index 0.5 mul add exch  % x += 0.5\n"
+"   newpath\n"
+"   moveto\n"
+"   dup neg   0 rlineto\n"
+"   dup neg   0 exch rlineto\n"
+"             0 rlineto\n"
+"   closepath\n"
+"   fill\n"
+"} bind def\n\n"
+"/ubox {\n"
+"   logscale {\n"
+"      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
+"   } if\n"
+"   3 1 roll\n"
+"   exch len exch sub 1 add box\n"
+"} bind def\n\n"
+"/lbox {\n"
+"   3 1 roll\n"
+"   len exch sub 1 add box\n"
+"} bind def\n\n"
+"/drawseq {\n"
+"% print sequence along all 4 sides\n"
+"[ [0.7 -0.3 0 ]\n"
+"  [0.7 0.7 len add 0]\n"
+"  [-0.3 len sub -0.4 -90]\n"
+"  [-0.3 len sub 0.7 len add -90]\n"
+"] {\n"
+"   gsave\n"
+"    aload pop rotate translate\n"
+"    0 1 len 1 sub {\n"
+"     dup 0 moveto\n"
+"     sequence exch 1 getinterval\n"
+"     show\n"
+"    } for\n"
+"   grestore\n"
+"  } forall\n"
+"} bind def\n\n"
+"/drawgrid{\n"
+"  0.01 setlinewidth\n"
+"  len log 0.9 sub cvi 10 exch exp  % grid spacing\n"
+"  dup 1 gt {\n"
+"     dup dup 20 div dup 2 array astore exch 40 div setdash\n"
+"  } { [0.3 0.7] 0.1 setdash } ifelse\n"
+"  0 exch len {\n"
+"     dup dup\n"
+"     0 moveto\n"
+"     len lineto \n"
+"     dup\n"
+"     len exch sub 0 exch moveto\n"
+"     len exch len exch sub lineto\n"
+"     stroke\n"
+"  } for\n"
+"  [] 0 setdash\n"
+"  0.04 setlinewidth \n"
+"  currentdict /cutpoint known {\n"
+"    cutpoint 1 sub\n"
+"    dup dup -1 moveto len 1 add lineto\n"
+"    len exch sub dup\n"
+"    -1 exch moveto len 1 add exch lineto\n"
+"    stroke\n"
+"  } if\n"
+"  0.5 neg dup translate\n"
+"} bind def\n\n"
+"end\n"
+"%%EndProlog\n";
+
+int PS_dot_plot(char *string, char *wastlfile) {
+  /* this is just a wrapper to call PS_dot_plot_list */
+  int i, j, k, length, maxl;
+  struct plist *pl;
+  struct plist *mf;
+
+  length = strlen(string);
+  maxl = 2*length;
+  pl = (struct plist *)space(maxl*sizeof(struct plist));
+  k=0;
+  /*make plist out of pr array*/
+  for (i=1; i<length; i++)
+    for (j=i+1; j<=length; j++) {
+      if (pr[iindx[i]-j]<PMIN) continue;
+      if (k>=maxl-1) {
+	maxl *= 2;
+	pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+      }
+      pl[k].i = i;
+      pl[k].j = j;
+      pl[k++].p = pr[iindx[i]-j];
+    }
+  pl[k].i=0;
+  pl[k].j=0;
+  pl[k++].p=0.;
+  /*make plist out of base_pair array*/
+  mf = (struct plist *)space((base_pair[0].i+1)*sizeof(struct plist));
+  for (k=0; k<base_pair[0].i; k++) {
+    mf[k].i = base_pair[k+1].i;
+    mf[k].j = base_pair[k+1].j;
+    mf[k].p = 0.95;
+  }
+  mf[k].i=0;
+  mf[k].j=0;
+  mf[k].p=0.;
+  i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
+  free(mf);
+  free(pl);
+  return (i);
+}
+ 
+
+/*---------------------------------------------------------------------------*/
+int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
+  /* produce color PostScript dot plot from cpair */
+  
+  FILE *wastl;
+  char name[31], *c;
+  int i, length;
+   
+  length= strlen(seq);
+  wastl = fopen(wastlfile,"w");
+  if (wastl==NULL) {
+    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    return 0; /* return 0 for failure */
+  }
+  strncpy(name, wastlfile, 30);
+  if ((c=strrchr(name, '_'))!=0) *c='\0';
 
   fprintf(wastl,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%Title: RNA DotPlot\n"
+	  "%%%%Title: RNA Color DotPlot\n"
 	  "%%%%Creator: %s, ViennaRNA-%s\n"
 	  "%%%%CreationDate: %s"
 	  "%%%%BoundingBox: 66 211 518 662\n"
@@ -623,160 +757,31 @@ PRIVATE void print_PSdot_header(FILE *wastl, char *title, char *seq) {
 	  "%%%%EndComments\n\n"
 	  "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
 
-  fprintf(wastl,
-	  "%%This file contains the square roots "
-	  "of the base pair probabilities in the form\n"
-	  "%% i  j  sqrt(p(i,j)) ubox\n");
-   
-  fprintf(wastl,"100 dict begin\n"  /* DSC says EPS should create a dict */
-	  "\n/logscale false def\n\n"
+  fprintf(wastl,"%s", RNAdp_prolog);
+
+  fprintf(wastl,"DPdict begin\n"
 	  "%%delete next line to get rid of title\n"
 	  "270 665 moveto /Helvetica findfont 14 scalefont setfont "
-	  "(%s) show\n\n", title);
-
-  fprintf(wastl,"/lpmin {\n"
-	  "   %g log  %% log(pmin) only probs>pmin will be shown\n"
-	  "} bind def\n\n",PMIN);
-   
-  fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
-	  "   2 index 0.5 mul add            %% x += 0.5\n"
-	  "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
-	  "   newpath\n"
-	  "   moveto\n"
-	  "   dup neg   0 rlineto\n"
-	  "   dup neg   0 exch rlineto\n"
-	  "             0 rlineto\n"
-	  "   closepath\n"
-	  "   fill\n"
-	  "} bind def\n\n");
-
-  /* EPS should not contain lines >255 characters */
+	  "(%s) show\n\n", name);
+  
   fprintf(wastl,"/sequence { (\\\n");
-  i=0;
-  while (i<strlen(seq)) {
+  for (i=0; i<strlen(seq); i+=255) 
     fprintf(wastl, "%.255s\\\n", seq+i);
-    i+=255;
-  }
   fprintf(wastl,") } def\n");
   fprintf(wastl,"/len { sequence length } bind def\n\n");
-
-
-  fprintf(wastl,"/ubox {\n"     /* upper triangle matrix */
-	  "   logscale {\n"
-	  "      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
-	  "   } if\n"
-	  "   3 1 roll\n"
-	  "   exch len exch sub 1 add box\n"
-	  "} bind def\n\n");
-
-  fprintf(wastl,"/lbox {\n"     /* lower triangle matrix */
-	  "   3 1 roll\n"
-	  "   len exch sub 1 add box\n"
-	  "} bind def\n\n");
+  /* if (cutpoint>0) fprintf(wastl,"/cutpoint %d def\n\n",cut_point); */
 
   fprintf(wastl,"72 216 translate\n"
 	  "72 6 mul len 1 add div dup scale\n"
 	  "/Helvetica findfont 0.95 scalefont setfont\n\n");
 
-  fprintf(wastl,
-	  "%% print sequence along all 4 sides\n"
-	  "[ [0.7 -0.3 0 ]\n"
-	  "  [0.7 0.7 len add 0]\n"
-	  "  [-0.3 len sub -0.4 -90]\n" 
-	  "  [-0.3 len sub 0.7 len add -90]\n"
-	  "] {\n"
-	  "  gsave\n"
-	  "    aload pop rotate translate\n"
-	  "    0 1 len 1 sub {\n"
-	  "     dup 0 moveto\n"
-	  "     sequence exch 1 getinterval\n"
-	  "     show\n"
-	  "    } for\n"
-	  "  grestore\n"
-	  "} forall\n\n");
-
-  /* do grid */
-  fprintf(wastl,"0.5 dup translate\n"
+  fprintf(wastl,"drawseq\n"
+	  "0.5 dup translate\n"
 	  "%% draw diagonal\n"
 	  "0.04 setlinewidth\n"
-	  "0 len moveto len 0 lineto stroke \n\n");
-  fprintf(wastl,"%%draw grid\n"
-	  "0.01 setlinewidth\n"
-	  "len log 0.9 sub cvi 10 exch exp  %% grid spacing\n"
-	  "dup 1 gt {\n"
-	  "   dup dup 20 div dup 2 array astore exch 40 div setdash\n"
-	  "} { [0.3 0.7] 0.1 setdash } ifelse\n"
-	  "0 exch len {\n"      /* for (i=0; i<=len; i++) */
-	  "   dup dup\n"        
-	  "   0 moveto\n"                     /* i 0 moveto   */
-	  "   len lineto \n"                  /* i len lineto */
-	  "   dup\n"
-	  "   len exch sub 0 exch moveto\n"   /* 0 i moveto   */
-	  "   len exch len exch sub lineto\n" /* len i lineto */
-	  "   stroke\n"
-	  "} for\n"
-	  "0.5 neg dup translate\n\n");
-}
-
-int PS_dot_plot(char *string, char *wastlfile)
-{
-  /* produce PostScript dot plot from probabilities in pr[] array */
-   
-  FILE *wastl;
-  char name[31], *c;
-  int i, j, length;
-  double tmp;
-   
-  length= strlen(string);
-  wastl = fopen(wastlfile,"w");
-  if (wastl==NULL) {
-    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
-    return 0; /* return 0 for failure */
-  }
-  strncpy(name, wastlfile, 30);
-  if ((c=strrchr(name, '_'))!=0) *c='\0';
-
-  print_PSdot_header(wastl, name, string);
-
-  /* print boxes */
-  for (i=1; i<length; i++)
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<PMIN) continue;
-      tmp = sqrt(pr[iindx[i]-j]);
-      fprintf(wastl,"%d %d %1.5f ubox\n", i, j, tmp);
-    }
-  /* do mfe */
-  if (base_pair)
-    for(i=1; i<=base_pair[0].i; i++) 
-      fprintf(wastl,"%d %d 0.95 lbox\n",
-	      base_pair[i].i, base_pair[i].j); 
-
-  fprintf(wastl,"showpage\n"
-	  "end\n"
-	  "%%%%EOF\n");
-  fclose(wastl);
-  return 1; /* success */
-}
-
-/*---------------------------------------------------------------------------*/
-int PS_color_dot_plot(char *string, cpair *pi, char *wastlfile)
-{
-  /* produce color PostScript dot plot from cpair */
+	  "0 len moveto len 0 lineto stroke \n\n"
+	  "drawgrid\n");
   
-  FILE *wastl;
-  char name[31], *c;
-  int i, length;
-   
-  length= strlen(string);
-  wastl = fopen(wastlfile,"w");
-  if (wastl==NULL) {
-    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
-    return 0; /* return 0 for failure */
-  }
-  strncpy(name, wastlfile, 30);
-  if ((c=strrchr(name, '_'))!=0) *c='\0';
-
-  print_PSdot_header(wastl, name, string);
 
   fprintf(wastl, "/hsb {\n"
 	  "dup 0.3 mul 1 exch sub sethsbcolor\n"
@@ -913,3 +918,79 @@ PRIVATE void loop(int i, int j, short *pair_table)
 }
 
 /*---------------------------------------------------------------------------*/
+
+
+PUBLIC int PS_dot_plot_list(char *sequence, char *wastlfile,
+			    struct plist *pl, struct plist *mf, char *comment) {
+  FILE *wastl;
+  char name[31], *c;
+  int i, length;
+  double tmp;
+  struct plist *pl1;
+  
+  length= strlen(sequence);
+  wastl = fopen(wastlfile,"w");
+  if (wastl==NULL) {
+    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    return 0; /* return 0 for failure */
+  }
+  strncpy(name, wastlfile, 30);
+  if ((c=strrchr(name, '_'))!=0) *c='\0';
+
+  fprintf(wastl,
+	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
+	  "%%%%Title: RNA DotPlot\n"
+	  "%%%%Creator: %s, ViennaRNA-%s\n"
+	  "%%%%CreationDate: %s"
+	  "%%%%BoundingBox: 66 211 518 662\n"
+	  "%%%%DocumentFonts: Helvetica\n"
+	  "%%%%Pages: 1\n"
+	  "%%%%EndComments\n\n"
+	  "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+
+  if (comment) fprintf(wastl,"%% %s\n",comment);
+   
+  fprintf(wastl,"%s", RNAdp_prolog);
+
+  fprintf(wastl,"DPdict begin\n"
+	  "%%delete next line to get rid of title\n"
+	  "270 665 moveto /Helvetica findfont 14 scalefont setfont "
+	  "(%s) show\n\n", name);
+  
+  fprintf(wastl,"/sequence { (\\\n");
+  for (i=0; i<strlen(sequence); i+=255) 
+    fprintf(wastl, "%.255s\\\n", sequence+i);
+  fprintf(wastl,") } def\n");
+  fprintf(wastl,"/len { sequence length } bind def\n\n");
+  if (cut_point>0) fprintf(wastl,"/cutpoint %d def\n\n", cut_point); 
+
+  fprintf(wastl,"72 216 translate\n"
+	  "72 6 mul len 1 add div dup scale\n"
+	  "/Helvetica findfont 0.95 scalefont setfont\n\n");
+
+  fprintf(wastl,"drawseq\n"
+	  "0.5 dup translate\n"
+	  "%% draw diagonal\n"
+	  "0.04 setlinewidth\n"
+	  "0 len moveto len 0 lineto stroke \n\n"
+	  "drawgrid\n");
+  
+  fprintf(wastl,"%%data starts here\n");
+  /* print boxes in upper right half*/
+  for (pl1=pl; pl1->i>0; pl1++) {
+    tmp = sqrt(pl1->p);
+    fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
+  }
+  
+  /* print boxes in lower left half (mfe) */
+  for (pl1=mf; pl1->i>0; pl1++) {
+    tmp=pl1->p;
+    fprintf(wastl,"%d %d %1.9f lbox\n", pl1->i, pl1->j, tmp); 
+  }
+
+  fprintf(wastl,"showpage\n"
+	  "end\n"
+	  "%%%%EOF\n");
+  fclose(wastl);
+  return 1; /* success */
+}
