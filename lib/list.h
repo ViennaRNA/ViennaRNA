@@ -1,5 +1,8 @@
 /*
   $Log: list.h,v $
+  Revision 1.2  2000/10/10 08:50:01  ivo
+  some annotation for lclint
+
   Revision 1.1  1997/08/04 21:05:32  walter
   Initial revision
 
@@ -8,23 +11,19 @@
 #ifndef	__LIST_H
 #define	__LIST_H
 
-#include "include.h"
-
 /*---------------------- Macros and type definitions ----------------------*/
 
-typedef struct LST_BUCKET
-  {
-    struct LST_BUCKET *next;
-  }
+typedef struct LST_BUCKET {
+  struct LST_BUCKET *next;
+}
 LST_BUCKET;
 
-typedef struct
-  {
-    int count;			/* Number of elements currently in list */
-    LST_BUCKET *head;		/* Pointer to head element of list      */
-    LST_BUCKET *z;		/* Pointer to last node of list         */
-    LST_BUCKET hz[2];		/* Space for head and z nodes           */
-  }
+typedef struct {
+  int count;			/* Number of elements currently in list */
+  LST_BUCKET *head;		/* Pointer to head element of list      */
+  LST_BUCKET *z;		/* Pointer to last node of list         */
+  LST_BUCKET hz[2];		/* Space for head and z nodes           */
+}
 LIST;
 
 /* Return a pointer to the user space given the address of the header of
@@ -53,14 +52,14 @@ LIST;
 
 /*-------------------------- Function Prototypes --------------------------*/
 
-void *lst_newnode (int size);
-void lst_freenode (void *node);
-LIST *lst_init (void);
+/*@only@*//*@out@*/ void *lst_newnode (int size);
+void lst_freenode (/*@only@*/ void *node);
+/*@only@*//*@out@*/  LIST *lst_init (void);
 void lst_kill (LIST * l, void (*freeNode) ());
-void lst_insertafter (LIST * l, void *node, void *after);
-void *lst_deletenext (LIST * l, void *node);
-void *lst_first (LIST * l);
-void *lst_next (void *prev);
+void lst_insertafter (LIST * l, /*@keep@*/ void *node, void *after);
+void *lst_deletenext (/*@only@*/ LIST * l, void *node);
+/*@dependent@*/ void *lst_first (LIST * l);
+/*@dependent@*/ void *lst_next (void *prev);
 void lst_mergesort (LIST * l, int (*cmp_func) ());
 
 #endif
