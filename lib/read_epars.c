@@ -16,7 +16,7 @@
 #include "energy_const.h"
 #include "energy_par.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.6 2000/10/10 12:21:59 ivo Rel $";
+static char rcsid[] = "$Id: read_epars.c,v 1.7 2000/11/22 08:33:21 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
@@ -36,13 +36,13 @@ enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MMM, MM_H,
 PUBLIC  void  read_parameter_file(const char fname[]);
 PUBLIC  void  write_parameter_file(const char fname[]);
   
-PRIVATE void  rd_stacks(int stack[NBPAIRS+1][]);
-PRIVATE void  rd_loop(int looparray[]);
-PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][]);
-PRIVATE void  rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][]);
-PRIVATE void  rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][]);
-PRIVATE void  rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][]);
-PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][]);
+PRIVATE void  rd_stacks(int stack[NBPAIRS+1][NBPAIRS+1]);
+PRIVATE void  rd_loop(int looparray[31]);
+PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][5]);
+PRIVATE void  rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][5]);
+PRIVATE void  rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5]);
+PRIVATE void  rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5]);
+PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][5]);
 PRIVATE void  rd_MLparams(void);
 PRIVATE void  rd_ninio(void);
 PRIVATE void  rd_Tetra_loop(void);
@@ -372,7 +372,7 @@ PRIVATE void  rd_Tetra_loop(void)
     Tetraloops[7*i+6]=' ';
     free(buf);
     i++;
-  } while((r==2)&&(i<80));
+  } while((r==2)&&(i<200));
   return;
 }
 
