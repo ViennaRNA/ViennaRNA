@@ -21,7 +21,7 @@
 #define space(X) calloc(1,(X))
 #endif
 
-static char rcsid[] = "$Id: read_epars.c,v 1.3 1997/11/05 21:20:35 ivo Exp $";
+static char rcsid[] = "$Id: read_epars.c,v 1.4 1997/11/06 16:46:07 ivo Rel $";
 
 #define PUBLIC
 #define PRIVATE   static
@@ -149,11 +149,11 @@ PRIVATE void display_array(int *p, int size, int nl, FILE *fp)
 
 PRIVATE char *get_array1(int *arr, int size)
 {
-  int    i, p, pos, pp, r;
+  int    i, p, pos, pp, r, last;
   char  *line, buf[16];
 
 
-  i = 0;
+  i = last = 0; 
   while( i<size ) {
     line = get_line(fp);
     if (!line) nrerror("unexpected end of file in get_array1");
@@ -161,10 +161,10 @@ PRIVATE char *get_array1(int *arr, int size)
     pos=0;
     while ((i<size)&&(sscanf(line+pos,"%15s%n", buf, &pp)==1)) {
       pos += pp;
-      if (buf[0]=='*') continue;
+      if (buf[0]=='*') {i++; continue;}
       else if (buf[0]=='x') { /* should only be used for loop parameters */
 	if (i==0) nrerror("can't extrapolate first value");
-	p = arr[i-1] + lxc37*log(((double) i)/(double)(i-1));
+	p = arr[last] + rint(lxc37*log(((double) i)/(double)(last)));
       }
       else if (strcmp(buf,"DEF") == 0) p = DEF;
       else if (strcmp(buf,"INF") == 0) p = INF;
@@ -176,6 +176,7 @@ PRIVATE char *get_array1(int *arr, int size)
 	  fprintf(stderr, "can't interpret `%s' in get_array1\n", buf);
 	  exit(1);
 	}
+	last = i;
       }
       arr[i++]=p;
     }
