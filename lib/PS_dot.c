@@ -12,12 +12,14 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.10 1998/07/19 14:10:38 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.11 1999/05/06 09:59:42 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
 #define  MAX(A,B)    (A)>(B)?(A):(B)
+#ifndef PI
 #define  PI       3.141592654
+#endif
 #define  PIHALF       PI/2.
 
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
@@ -343,7 +345,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
 }
 
 /*---------------------------------------------------------------------------*/
-
+#define PMIN 0.00001
 int PS_dot_plot(char *string, char *wastlfile)
 {
    /* produce PostScript dot plot from probabilities in pr[] array */
@@ -375,31 +377,39 @@ int PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"%% i  j  sqrt(p(i,j)) ubox\n");
    
    fprintf(wastl,"100 dict begin\n");  /* DSC says EPS should create a dict */
+   fprintf(wastl,"\n/logscale false def\n\n");
    fprintf(wastl,"%%delete next line to get rid of title\n"
 	   "270 665 moveto /Times-Roman findfont 14 scalefont setfont "
-	   "(%s) show\n", name);
-   fprintf(wastl,"/ubox {\n");     /* upper triangle matrix */
-   fprintf(wastl,"   3 1 roll\n");
-   fprintf(wastl,"   exch len exch sub 1 add box\n");
-   fprintf(wastl,"} def\n\n");
+	   "(%s) show\n\n", name);
+   fprintf(wastl,"/lpmin {\n"
+	   "   %g log  %% log(pmin) only probs>pmin will be shown\n"
+	   "} bind def\n\n",PMIN);
 
-   fprintf(wastl,"/lbox {\n");     /* lower triangle matrix */
-   fprintf(wastl,"   3 1 roll\n");
-   fprintf(wastl,"   len exch sub 1 add box\n");
-   fprintf(wastl,"} def\n\n");
+   fprintf(wastl,"/ubox {\n"     /* upper triangle matrix */
+	   "   logscale {\n"
+	   "      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
+	   "   } if\n"
+	   "   3 1 roll\n"
+	   "   exch len exch sub 1 add box\n"
+	   "} bind def\n\n");
 
-   fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n");
-   fprintf(wastl,"   2 index 0.5 mul add            %% x += 0.5\n");
-   fprintf(wastl,"   exch 2 index 0.5 mul add exch  %% x += 0.5\n");
-   fprintf(wastl,"   newpath\n");
-   fprintf(wastl,"   moveto\n");
-   fprintf(wastl,"   dup neg   0 rlineto\n");
-   fprintf(wastl,"   dup neg   0 exch rlineto\n");
-   fprintf(wastl,"             0 rlineto\n");
-   fprintf(wastl,"   closepath\n");
-   fprintf(wastl,"   fill\n");
-   fprintf(wastl,"} def\n");
-   fprintf(wastl,"\n");
+   fprintf(wastl,"/lbox {\n"     /* lower triangle matrix */
+	   "   3 1 roll\n"
+	   "   len exch sub 1 add box\n"
+	   "} bind def\n\n");
+
+   fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
+	   "   2 index 0.5 mul add            %% x += 0.5\n"
+	   "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
+	   "   newpath\n"
+	   "   moveto\n"
+	   "   dup neg   0 rlineto\n"
+	   "   dup neg   0 exch rlineto\n"
+	   "             0 rlineto\n"
+	   "   closepath\n"
+	   "   fill\n"
+	   "} def\n\n");
+
    /* EPS should not contain lines >255 characters */
    fprintf(wastl,"/sequence { (\\\n");
    i=0;
@@ -474,7 +484,7 @@ int PS_dot_plot(char *string, char *wastlfile)
    /* print boxes */
    for (i=1; i<length; i++)
       for (j=i+1; j<=length; j++) {
-	 if (pr[iindx[i]-j]<1e-5) continue;
+	 if (pr[iindx[i]-j]<PMIN) continue;
 	 tmp = sqrt(pr[iindx[i]-j]);
 	 fprintf(wastl,"%d %d %1.5f ubox\n", i, j, tmp);
       }
