@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <1998-07-07 18:45:23 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.6 1998/07/07 16:46:21 ivo Exp $
+@c Last changed Time-stamp: <2000-09-28 11:34:14 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.7 2000/09/28 09:37:22 ivo Rel $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -19,7 +19,7 @@
 @subtitle{A Library for folding and comparing RNA secondary structures}
 
 @vskip 0pt plus 1filll
-Copyright @copyright{1994-1998} @author{Ivo Hofacker and Peter Stadler}
+Copyright @copyright{1994-2000} @author{Ivo Hofacker and Peter Stadler}
 @c @smallexample
 Revision @value{revision}
 @c @end smallexample
@@ -211,10 +211,10 @@ Since @code{inverse_pf_fold()} calls @code{pf_fold()} you have to allocate
 memory for folding by calling @code{init_pf_fold()}
 @end deftypefun
 
-
-@deftypevar char symbolset[]
-The global variable @code{char symbolset[]} contains the allowed bases, and
-is initially set to ``AUGC''. 
+@deftypevar char *symbolset
+The global variable @code{char *symbolset} points to the allowed bases, 
+initially @code{"AUGC"}.  It can be used to design sequences from reduced
+alphabets. 
 @end deftypevar
 
 Prototypes for these functions are declared in @file{inverse.h}.
@@ -267,7 +267,14 @@ If @code{dangles} is set to 2, the @code{fold()} and
 treatment of dangling ends gives more favorable energies to helices
 directly adjacent to one another, which can be beneficial since such
 helices often do engage in stabilizing interactions through co-axial
-stacking.   Default is 1, @code{pf_fold()} treats 1 as 2. 
+stacking.@*
+If @code{dangles = 3} co-axial stacking is explicitely included for
+adjacent helices in mutli-loops. The option affects only mfe folding
+and energy evaluation (@code{fold()} and @code{energy_of_struct()}), as
+well as suboptimal folding via re-evaluation of energies.
+Co-axial stacking with one intervening mismatch is not considered so far.
+
+Default is 1, @code{pf_fold()} treats 1 as 2. 
 @end deftypevar
 
 @deftypevar char* nonstandards
@@ -281,7 +288,7 @@ Contains a list of base pairs after a call to @code{fold()}.
 @code{base_pair[0].i} contains the total number of pairs.
 @end deftypevar
 
-@deftypevar float* pr
+@deftypevar double* pr
 contains the base pair probability matrix after a call to @code{pf_fold()}.
 @end deftypevar
 
@@ -323,8 +330,8 @@ from their defaults.
 @node Param Files, , Fold Vars, Folding Routines
 @section Energy Parameter Files
 
-A default set of parameters, identical to the one described in @cite{Walter
-et.al. (1994)}, is compiled into the library.
+A default set of parameters, identical to the one described in @cite{Mathews
+et.al. (1999)}, is compiled into the library.
 Alternately, parameters can be read from and written to a file.
 
 @deftypefun void read_parameter_file (const char @var{fname}[])
@@ -339,6 +346,33 @@ The following describes the file format expected by
 @code{read_parameter_file()}. All energies should be given as integers in
 units of 0.01kcal/mol.
 
+Various loop parameters depend in general on the pairs closing the loops,
+as well as unpaired bases in the loops. Internally, the library
+distinguishes 8 types of pairs (CG=1, GC=2, GU=3, UG=4, AU=5, UA=6,
+nonstandard=7, 0= no pair), and 5 types of bases (A=1, C=2, G=3, U=4 and 0
+for anything else). Parameters belonging to pairs of type 0 are not listed
+in the parameter files, but values for nonstandard pairs (type 7) and
+nonstandard bases (type 0) are. Thus, a table for symmetric size 2 interior
+loops would have 7*7*5*5 entries (2 pairs, two unpaired bases). 
+
+The order of entries always uses the closing pair or pairs as the first
+indices followed by the unpaired bases in 5' to 3' direction.  To determine
+the type of a pair consider the base at the (local) 5' end of each strand
+first, i.e. use the pairs @math{(i,j)} and @math{(q,p)} for an interior
+loop with @math{i<p<q<j}. This is probably better explained by an example.
+Consider the symmetric size 4 interior loop
+@example
+                      5'-GAUA-3' 
+                      3'-CGCU-5' 
+@end example
+the first pair is GC, the second UA (not AU!) the unpaired bases are (in 5'
+to 3' direction, starting at the first pair) A U C G. Thus we need entry
+[2,6,1,4,2,3] of the corresponding table. Because the loop is
+symmetric you could equally well describe it by UA GC C G A U, i.e. entry
+[6,2,2,3,1,4]. Be careful to preserve this symmetry when editing
+parameter tables!
+
+
 @need 1000
 The first line of the file should read
 @*@t{## RNAfold parameter file}
@@ -349,16 +383,16 @@ mark the beginning of a list of energy parameters of the type specified by
 token. The following tokens are recognized:
 
 @noindent @t{# stack_energies}@*
-The list of free energies for stacked pairs. Since the library
-distinguishes 8 types of pairs (no pair=0, CG=1, GC=2, GU=3, UG=4, AU=5,
-UA=6, nonstandard=7), the list should be formated as an 8*8 matrix. As an
-example the stacked pair 
+The list of free energies for stacked pairs, indexed by the two closing
+pairs. The list should be formated as symmetric an 7*7 matrix,conforming 
+to the order explained above. As an example the stacked pair 
 @example
                       5'-GU-3'        5'-AC-3'
                       3'-CA-5'        3'-UG-5'  
 @end example
-@noindent corresponds to the entry [2,6], which should be identical to [5,1]. Be
-careful to preserve the symmetry when editing parameter files.
+@noindent corresponds to the entry [2,5], which should be identical to [5,2]. 
+Note that the format has changed from previous releases, to make it
+consistent with other loop parameters.
 
 @noindent @t{# stack_enthalpies}@*
 enthalpies for stacked pairs, used to rescale stacking energies to
@@ -375,29 +409,52 @@ Free energies of bulge loops. Should contain 31 entries, the first one
 being INF. 
 
 @noindent @t{# internal_loop}@*
-Free energies of internal loops. Should contain 31 entries, the first 2
-being INF. 
+Free energies of internal loops. Should contain 31 entries, the first 4
+being INF (since smaller loops are tabulated). 
 
 @noindent @t{# mismatch_interior}@*
-Free energies for the interaction between the closing pair of an interior loop
-and the two unpaired bases adjacent to the helix. This is a three
+Free energies for the interaction between the closing pair of an interior
+loop and the two unpaired bases adjacent to the helix. This is a three
 dimensional array indexed by the type of the closing pair (see above) and
-the two unpaired bases. The library distinguishes 5 bases: A=1, C=2, G=3,
-U=4 and 0 for anything else. The list therefore contains 8*5*5 entries and
-should be formated either as an 8*25 matrix or 8 5*5 matrices. The order is
-such that for example the mismatch 
+the two unpaired bases. Since we distinguish 5 bases the list contains
+8*5*5 entries and should be formated either as an 8*25 matrix or 8 5*5
+matrices. The order is such that for example the mismatch
 @example
                                5'-CU-3'
                                3'-GC-5'
 @end example
-
-@noindent corresponds to entry [1,4,2] (CG=1, U=4, C=2).
+@noindent corresponds to entry [1,4,2] (CG=1, U=4, C=2), (in this notation
+the first index runs from 1 to 7, second and third from 0 to 4)
 
 @noindent @t{# mismatch_hairpin}@*
 Same as above for hairpin loops.
 
 @noindent @t{# mismatch_enthalpies}@*
 Corresponding enthalpies for rescaling to temperatures other than 37C.
+
+@noindent @t{# int11_energies}@*
+Free energies for symmetric size 2 interior loops. 7*7*5*5 entries formated
+as 49 5*5 matrices, or seven 7*25 matrices. Example:
+@example
+                               5'-CUU-3'
+                               3'-GCA-5'
+@end example
+corresponds to entry [1,5,4,2], which should be identical to [5,1,2,4].
+
+@noindent @t{# int21_energies}@*
+Free energies for size 3 (2+1) interior loops. 7*7*5*5*5 entries formated
+in 5*5 or 5*25 matrices. The strand with a single unpaired base is listed
+first, example:
+@example
+                               5'-CU U-3'
+                               3'-GCCA-5'
+@end example
+corresponds to entry [1,5,4,2,2].
+
+@noindent @t{# int22_energies}@*
+Free energies for symmetric size 4 interior loops. To reduce the size of
+parameter files this table only lists canonical bases (A,C,G,U) resulting in
+a 7*7*4*4*4*4 table. See above for an example.
 
 @noindent @t{# dangle5}@*
 Energies for the interaction of an unpaired base on the 5' side and
@@ -418,8 +475,12 @@ Same as above for bases on the 3' side of a helix.
 For the energy of a multi-loop a function of the form
 @code{E = cu*n_unpaired + ci*loop_degree + cc}
 is used where n_unpaired is the number of unpaired bases in the loop and
-loop_degree is the number of helices forming the loop. The line following
-the token should contain the values cu cc ci (in that order).
+loop_degree is the number of helices forming the loop. In addition a
+``terminal AU'' penalty is applied to AU and GU pairs in the loop.
+The line following the token should contain these four values, in the order
+@code{cu cc ci termAU}. Ther terminal AU penalty is also used for the
+exterior loop and size 3 hairpins, for other loop types it is already
+included in the mismatch energies.
 
 @noindent @t{# Tetraloops}@*
 Some tetraloops particularly stable tetraloops are assigned an energy
@@ -575,7 +636,7 @@ strip weights from any weighted tree.
 
 All the above functions allocate memory for the strings they return.
 
-@deftypefun void unexpand_aligned_F (char* @var{align[2]})
+@deftypefun void unexpand_aligned_F (char* @var{align}[2])
 converts two aligned structures in expanded notation as produced by
 @code{tree_edit_distance()} function back to bracket notation with '_'
 as the gap character. The result overwrites the input.
@@ -966,6 +1027,9 @@ files and library, respectively.
 @chapter References
 
 @itemize -
+@item D.H. Mathews, J. Sabina, M. Zucker and H. Turner (1999)@*
+   Expanded sequence dependence of thermodynamic parameters provides
+   robust prediction of RNA secondary structure, JMB, 288: 911-940
 @item M. Zuker and P. Stiegler (1981)@*
    Optimal  computer  folding  of large RNA sequences using
    thermodynamic and auxiliary information, Nucl Acid Res 9: 133-148
