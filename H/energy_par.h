@@ -18,6 +18,7 @@ extern int internal2_energy;
 extern int old_mismatch_37[NBPAIRS+1][5][5];
 extern int mismatchI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
 extern int mismatchH37[NBPAIRS+1][5][5];  /* same for hairpins */
+extern int mismatchM37[NBPAIRS+1][5][5];  /* same for multiloops */
 extern int mism_H[NBPAIRS+1][5][5];       /* mismatch enthalpies */
 
 extern int dangle5_37[NBPAIRS+1][5];      /* 5' dangle exterior of pair */
@@ -25,8 +26,14 @@ extern int dangle3_37[NBPAIRS+1][5];      /* 3' dangle */
 extern int dangle3_H[NBPAIRS+1][5];       /* corresponding enthalpies */
 extern int dangle5_H[NBPAIRS+1][5];
 
-extern int Sint2_37[NBPAIRS+1][NBPAIRS+1][5][5]; /* interior llops of length 2 */
-extern int Sint2_H[NBPAIRS+1][NBPAIRS+1][5][5];  /* corresp. enthalpies */
+extern int int11_37[NBPAIRS+1][NBPAIRS+1][5][5]; /* 1x1 interior loops */
+extern int int11_H[NBPAIRS+1][NBPAIRS+1][5][5];
+
+extern int int21_37[NBPAIRS+1][NBPAIRS+1][5][5][5]; /* 2x1 interior loops */
+extern int int21_H[NBPAIRS+1][NBPAIRS+1][5][5][5];
+
+extern int int22_37[NBPAIRS+1][NBPAIRS+1][5][5][5][5]; /* 2x2 interior loops */
+extern int int22_H[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
 
 /* constants for linearly destabilizing contributions for multi-loops
    F = ML_closing + ML_intern*(k-1) + ML_BASE*u  */
@@ -39,12 +46,14 @@ extern int ML_intern37;
 extern int         MAX_NINIO;                   /* maximum correction */
 extern int F_ninio37[5];
 
-/* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
+/* penalty for helices terminated by AU (actually not GC) */
+extern int TerminalAU;
 
-extern char Tetraloops[201]; /* string containing the special tetraloops */
-extern int  TETRA_ENERGY37[40];  /* Bonus energy for special tetraloops */
+/* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
+extern char Tetraloops[];  /* string containing the special tetraloops */
+extern int  TETRA_ENERGY37[];  /* Bonus energy for special tetraloops */
 extern int  TETRA_ENTH37;
-extern char Triloops[241];   /* string containing the special triloops */
-extern int  Triloop_E37[40]; /* Bonus energy for special Triloops */  
+extern char Triloops[];    /* string containing the special triloops */
+extern int  Triloop_E37[]; /* Bonus energy for special Triloops */  
 
 extern double Tmeasure;       /* temperature of param measurements */
