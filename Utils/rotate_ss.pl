@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2003-07-18 09:42:38 xtof>
-# $Id: rotate_ss.pl,v 1.1 2003/07/18 07:53:20 xtof Exp $
+# Last changed Time-stamp: <2003-07-18 18:26:40 ivo>
+# $Id: rotate_ss.pl,v 1.2 2003/07/18 18:29:43 ivo Exp $
 
 use Getopt::Long;
 use strict;
-use vars qw/$ss_ps $opt_a/;
+use vars qw/$ss_ps $opt_a $opt_m/;
 use constant PI => 3.14159265;
 
 my $ss_ps = { Header  => [],
@@ -13,15 +13,18 @@ my $ss_ps = { Header  => [],
 	      BPairs  => [],
 	      Tailer  => [] };
 $opt_a = 0;
-usage() unless GetOptions("a=i" => \$opt_a);
+usage() unless GetOptions("a=i" => \$opt_a, "m");
 
 swallow_ss_ps();
 my $ar = to_Array($ss_ps->{Coords});
-print_ss_ps( rot_Array( get_Midpt($ar), $ar ) );
+my $mp = get_Midpt($ar);
+$ar = flip_Array($mp, $ar) if $opt_m;
+$ar = rot_Array($mp, $ar) if $opt_a;
+print_ss_ps($ar);
 
 #---
 sub usage {
-  printf STDERR "\nusage: $0 [-a ANGLE] FOO_ss.ps > BAR_ss.ps\n";
+  printf STDERR "\nusage: $0 [-a ANGLE] [-m] FOO_ss.ps > BAR_ss.ps\n";
   exit(1);
 }
 
@@ -71,6 +74,12 @@ sub rot_Array {
 	       ($sa*($_->[0]-$mp->[0]) +   $ca*($_->[1]-$mp->[1])) +$mp->[1]
 	       ] } @$ar ];
 }
+#---
+sub flip_Array {
+  my ($mp, $ar) = @_;
+  return
+      [ map { [ ($mp->[0]-$_->[0]), $_->[1]] } @$ar ];
+}
 
 #---
 sub print_ss_ps {
@@ -80,7 +89,7 @@ sub print_ss_ps {
     if ($_ eq 'Coords') {
       print "/coor [\n";
       for my $xy (@$ar) {
-       print sprintf("[%7.3f %7.3f]\n", $xy->[0], $xy->[1]);
+        print sprintf("[%7.3f %7.3f]\n", $xy->[0], $xy->[1]);
       }
       print "] def\n";
       next;
