@@ -12,16 +12,11 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-#ifdef dmalloc
-#include "/usr/local/include/dmalloc.h"
-#define space(S) calloc(1,(S))
-#endif
-static char rcsid[] = "$Id: PS_dot.c,v 1.9 1998/05/19 17:40:32 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.10 1998/07/19 14:10:38 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
 #define  MAX(A,B)    (A)>(B)?(A):(B)
-#define  MAXLENGTH 2000
 #define  PI       3.141592654
 #define  PIHALF       PI/2.
 
@@ -146,10 +141,6 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
   short *pair_table;
 
   length = strlen(string);
-  if (length>MAXLENGTH) {
-     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-     return 2;
-  }
 
   pair_table = make_pair_table(structure);
   
