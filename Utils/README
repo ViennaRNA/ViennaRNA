@@ -1,9 +1,6 @@
+# -*-Text-*-
 This directory contains a few scripts, you might find useful. They're not 
 installed by default.
-
-RNAplot produce postscript (default) or gml output from structures in 
-	bracket notation, using two different layout algorithms. The
-	default layout now uses E. Bruccoleris naview method.
 
 Fold	automatically converts sequence files from databanks using readseq
 	and feeds the converted sequence to RNAfold
@@ -23,7 +20,22 @@ mountain.pl
 	RNAfold < foo.seq; mountain.pl dot.ps | xmgr -pipe
 
 dpzoom.pl	extract a portion of a dot plot produced by RNAfold -p
-	e.g.: to extract the structure of bases 7361 to 7600 from the folding 
-	of a complete HIV sequence use
+	e.g.: to extract the structure of bases 7361 to 7600 from the
+	folding of a complete HIV sequence use
 		dpzoom.pl -f 7361 -l 7600 HIV_dp.ps > RRE_dp.ps
 	
+rotate_ss.pl
+	rotate or flip the coordinates of an RNA secondary structure plot.
+	E.g. to rotate the file foo_ss.ps by 90 degrees and get a
+	clockwise drawing (instead of the default counter-clockwise), use
+	        rotate_ss.pl -a 90 -m foo_ss.ps >  foo90_ss.ps
+
+relplot.pl
+	add reliability information to a RNA seondary structure plot
+	in the form of color annotation. The script computes the 
+	"positional entropy" S(i) = - Sum p(ij) log(p(ij)) and encodes
+	it as color hue, ranging from red (low entropy, well-defined) via
+	green to blue and violet (high entropy, ill-defined). Apart
+	from the secondary structure plot the dot plot containing the
+	pair probabilities p(ij) is needed. Use as
+	        replot.pl foo_ss.ps foo_dp.ps > foo_rss.ps 
