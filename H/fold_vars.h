@@ -13,6 +13,7 @@ extern char *nonstandards;  /* contains allowed non standard bases */
 extern float temperature;   /* rescale parameters to this temperature */
 extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
 			       no mismatches, default 1 */
+extern int  logML;          /* use logarithmic multiloop energy function */
 
 struct bond {               /* base pair */
    int i;
