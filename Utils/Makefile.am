@@ -1,7 +1,7 @@
 pkgbindir = $(pkgdatadir)/bin
 pkgbin_PROGRAMS = b2ct popt
 
-pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl 
+pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl relplot.pl roatate_ss.pl
 pkgbin_SCRIPTS = $(pscript) Fold
 
 EXTRA_DIST = $(pscript) Fold
