@@ -1,6 +1,6 @@
 /*
   Plot RNA structures using different layout algorithms
-  Last changed Time-stamp: <2000-03-30 13:42:09 ivo> 
+  Last changed Time-stamp: <2002-10-21 17:55:44 ivo> 
 */
 
 #include <stdio.h>
@@ -20,6 +20,8 @@ PRIVATE void usage(void);
 
 
 /*--------------------------------------------------------------------------*/
+
+extern int svg_rna_plot(char *string, char *structure, char *ssfile);
 
 int main(int argc, char *argv[])
 {
@@ -100,6 +102,10 @@ int main(int argc, char *argv[])
        strcat(ffname, ".ss");
        xrna_plot(string, structure, ffname);
        break;
+     case 's':
+       strcat(ffname, ".svg");
+       svg_rna_plot(string, structure, ffname);
+       break;
      default:
        usage();
      }
@@ -112,5 +118,5 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNAplot [-t 0|1] [-o ps|gml|xrna]");
+  nrerror("usage: RNAplot [-t 0|1] [-o ps|gml|xrna|svg]");
 }
