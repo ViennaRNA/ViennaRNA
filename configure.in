@@ -26,8 +26,8 @@ AC_PROG_CC
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
 else    
-   AC_DEFINE(UNUSED,)
-fi   		
+   AC_DEFINE(UNUSED,, only for gcc)
+fi 
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
