@@ -1,6 +1,6 @@
-/* Last changed Time-stamp: <2003-08-26 11:13:31 ivo> */
+/* Last changed Time-stamp: <2004-08-12 12:45:17 ivo> */
 /*                
-		Ineractive Access to suboptimal folding
+		Ineractive access to suboptimal folding
 
 			   c Ivo L Hofacker
 			  Vienna RNA package
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.10 2003/08/26 09:26:23 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.11 2004/08/12 10:59:31 ivo Exp $";
 
 #define PRIVATE static
 
@@ -196,11 +196,14 @@ int main(int argc, char *argv[])
 	char *ss;
 	st_back=1;
 	ss = (char *) space(strlen(sequence)+1);
+	strncpy(ss, structure, length);
 	mfe = fold(sequence, ss);
 	kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
 	pf_scale = exp(-(1.03*mfe)/kT/length);
-	(void) pf_fold(sequence, NULL);
+	strncpy(ss, structure, length);
+	(void) pf_fold(sequence, ss);
 	init_rand();
+	free(ss);
 	for (i=0; i<n_back; i++) {
 	  char *s;
 	  s = pbacktrack(sequence);
