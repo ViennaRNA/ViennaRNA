@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-08-02 17:14:46 ivo> */
+/* Last changed Time-stamp: <2002-07-29 21:03:00 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.3 2001/08/02 15:36:42 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.4 2002/08/15 16:32:55 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -88,7 +88,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
   kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
   
-  S = (short **) space(sizeof(short)*(n+1));
+  S = (short **) space(sizeof(short *)*(n_seq+1));
   type = (int *) space(n_seq*sizeof(int));
   for (s=0; s<n_seq; s++) { 
     if (strlen(sequences[s]) != n) nrerror("uneqal seqence lengths");
@@ -377,12 +377,14 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
     if (structure!=NULL)
       sprintf_bppm(n, structure);
   }   /* end if (do_backtrack)*/
-   
+
+  for (i=0; i<n_seq; i++) free(S[i]);
   free(S);
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
 		    "you might try a smaller pf_scale than %g\n",
 		    ov, pf_scale);
-   
+  free(type);
+  free_alipf_arrays();
   return (free_energy); 
 }
 
