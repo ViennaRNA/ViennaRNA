@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-02-17 11:45:38 ivo> */
+/* Last changed Time-stamp: <2004-05-12 17:24:50 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.19  2004/05/14 16:28:05  ivo
+  fix the bug in make_ptype here too (fixed in 1.27 of fold.c)
+
   Revision 1.18  2004/02/17 10:46:52  ivo
   make sure init_pf_fold is called before scale_parameters
 
@@ -35,7 +38,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.18 2004/02/17 10:46:52 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.19 2004/05/14 16:28:05 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -698,10 +701,10 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   int n,i,j,k,l;
   
   n=S[0];
-  for (k=1; k<n-TURN-1; k++) 
+  for (k=1; k<n-TURN; k++) 
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l;
+      i=k; j = i+TURN+l; if (j>n) continue; 
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
 	if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
@@ -713,7 +716,6 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 	type  = ntype;
 	i--; j++;
       }
-      
     }
   
   if (fold_constrained&&(structure!=NULL)) {
