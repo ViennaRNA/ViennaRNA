@@ -12,3 +12,8 @@ extern int xrna_plot(char *string, char *structure, char *ssfile);
 extern int PS_dot_plot(char *string, char *file);
 /* produce a PostScript dot plot of the pair probability matix */
 extern int rna_plot_type;   /* 0= simple coordinates, 1= naview */
+
+typedef struct cpair {
+  int i,j,mfe;
+  float p, hue, sat;
+} cpair;
