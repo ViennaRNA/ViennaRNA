@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.3 2001/09/17 10:30:42 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.4 2001/10/22 11:23:50 ivo Exp $";
 
 #define PAREN
 
@@ -140,8 +140,9 @@ float alifold(char **strings, char *structure)
 
   length = (int) strlen(strings[0]);
   if (length>init_length) init_alifold(length);
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
-
+  if ((P==NULL)||(fabs(P->temperature - temperature)>1e-6)) { 
+  	update_fold_params();  P = scale_parameters();
+  }
   for (s=0; strings[s]!=NULL; s++); 
   n_seq = s;
   S = (short **) space(n_seq*sizeof(short *));
