@@ -22,7 +22,7 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.4 1997/11/04 17:56:28 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.5 1997/11/04 18:08:23 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
      }
    }
    
-   istty = isatty(fileno(stdout));
+   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
    
    do {
       if (istty) {
@@ -215,6 +215,7 @@ int main(int argc, char *argv[])
 	 printf("length = %d\n", length);
       
       heat_capacity(string, T_min, T_max, h, m_points);
+      free(string);
       fflush(stdout);
    } while (1);
    return 0;
