@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1999-11-03 19:17:11 ivo> */
+/* Last changed Time-stamp: <2000-10-05 10:14:16 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -27,23 +27,25 @@
 #include "utils.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
-
-static char rcsid[] = "$Id: inverse.c,v 1.9 1999/11/04 12:08:50 ivo Exp $";
+/*@unused@*/
+static char rcsid[] = "$Id: inverse.c,v 1.10 2000/10/05 08:42:22 ivo Rel $";
 #define PUBLIC
 #define PRIVATE static
-PRIVATE float  adaptive_walk(char *start, char *target);
-PRIVATE void   shuffle(short int *list, short int len);
+PRIVATE double  adaptive_walk(char *start, char *target);
+PRIVATE void   shuffle(int *list, int len);
 PRIVATE void   make_start(char* start, char *structure);
-PRIVATE void   make_ptable(char *structure, short *table);
+PRIVATE void   make_ptable(char *structure, int *table);
 PRIVATE void   make_pairset(void);
-PRIVATE float  mfe_cost(char *, char*, char *);
-PRIVATE float  pf_cost(char *, char *, char *);
+PRIVATE double  mfe_cost(char *, char*, char *);
+PRIVATE double  pf_cost(char *, char *, char *);
 PRIVATE char  *aux_struct( char* structure );
 #if 0
 PRIVATE int    bp_distance(char *str1, char *str2);
 #endif
 
-PUBLIC  char   symbolset[MAXALPHA+1] = "AUGC";
+/* for backward compatibility, make sure symbolset can hold 20 characters */
+PRIVATE char   default_alpha[21] = "AUGC"; 
+PUBLIC  char   *symbolset = default_alpha;
 PUBLIC  int    give_up = 0;
 PUBLIC  float  final_cost = 0; /* when to stop inverse_pf_fold */
 PUBLIC  int    inv_verbose=0;  /* print out substructure on which inverse_fold() fails */
@@ -57,9 +59,9 @@ PRIVATE int fold_type;
 #if TDIST
 PRIVATE Tree *T0;
 #endif
-PRIVATE float cost2;
+PRIVATE double cost2;
 
-PRIVATE float adaptive_walk(char *start, char *target)
+PRIVATE double adaptive_walk(char *start, char *target)
 {
 #ifdef DUMMY
    printf("%s\n%s %c\n", start, target, backtrack_type ); 
@@ -68,12 +70,12 @@ PRIVATE float adaptive_walk(char *start, char *target)
    int i,j,p,tt,w1,w2, n_pos, len, flag;
    long  walk_len;
    char *string, *string2, *cstring, *structure, *struct2;
-   short *mut_pos_list, mut_sym_list[MAXALPHA+1], mut_pair_list[2*MAXALPHA+1];
-   short *w1_list, *w2_list, mut_position, symbol, bp;
-   short *target_table, *test_table;
+   int *mut_pos_list, mut_sym_list[MAXALPHA+1], mut_pair_list[2*MAXALPHA+1];
+   int *w1_list, *w2_list, mut_position, symbol, bp;
+   int *target_table, *test_table;
    char cont;
-   float cost, current_cost, ccost2;
-   float (*cost_function)(char *, char *, char *);
+   double cost, current_cost, ccost2;
+   double (*cost_function)(char *, char *, char *);
 
    len = strlen(start);
    if (strlen(target)!=len) {
@@ -85,11 +87,11 @@ PRIVATE float adaptive_walk(char *start, char *target)
    string2   = (char *) space(sizeof(char)*(len+1));
    structure = (char *) space(sizeof(char)*(len+1));
    struct2   = (char *) space(sizeof(char)*(len+1)); 
-   mut_pos_list = (short *) space(sizeof(short)*len);
-   w1_list = (short *) space(sizeof(short)*len);
-   w2_list = (short *) space(sizeof(short)*len);
-   target_table = (short *) space(sizeof(short)*len);
-   test_table = (short *) space(sizeof(short)*len);
+   mut_pos_list = (int *) space(sizeof(int)*len);
+   w1_list = (int *) space(sizeof(int)*len);
+   w2_list = (int *) space(sizeof(int)*len);
+   target_table = (int *) space(sizeof(int)*len);
+   test_table = (int *) space(sizeof(int)*len);
    
    make_ptable(target, target_table);
    
@@ -113,7 +115,7 @@ PRIVATE float adaptive_walk(char *start, char *target)
       
    if (cost>0) do {
       cont=0;
-
+      
       if (fold_type==0) { /* min free energy fold */
 	 make_ptable(structure, test_table);
 	 for (j=w1=w2=flag=0; j<len; j++)
@@ -130,22 +132,22 @@ PRIVATE float adaptive_walk(char *start, char *target)
 		  w2_list[w2++] = j;                          /* adjacent to incorrect position */
 	       flag = 0;
 	    }
-	 shuffle(w1_list, (short) w1);
-	 shuffle(w2_list, (short) w2);
+	 shuffle(w1_list, w1);
+	 shuffle(w2_list, w2);
 	 for (j=n_pos=0; j<w1; j++) mut_pos_list[n_pos++] = w1_list[j];
 	 for (j=0; j<w2; j++) mut_pos_list[n_pos++] = w2_list[j];
       } else { /* partition_function */
 	 for (j=n_pos=0; j<len; j++) if (isupper(start[j]))
 	    if (target_table[j]<=j) mut_pos_list[n_pos++] = j;
-	 shuffle(mut_pos_list, (short) n_pos);
+	 shuffle(mut_pos_list, n_pos);
       }
 
       string2[0]='\0';
       for (mut_position=0; mut_position<n_pos; mut_position++){
 	 
 	 strcpy(string, cstring);
-	 shuffle(mut_sym_list, (short) base);
-	 shuffle(mut_pair_list, (short) npairs);
+	 shuffle(mut_sym_list,  base);
+	 shuffle(mut_pair_list, npairs);
 	 
 	 i = mut_pos_list[mut_position];
 
@@ -226,29 +228,30 @@ PRIVATE float adaptive_walk(char *start, char *target)
 
 /*-------------------------------------------------------------------------*/
 
-
-PRIVATE void shuffle(short int *list, short int len)
+/* shuffle produces a ronaom list by doing len exchanges */
+PRIVATE void shuffle(int *list, int len)
 {
-   short i, temp, rn;
+   int i, rn;
    
-   for (i=0;i<len;i++)
-       {
-	  temp = list[i];
-	  rn = i + (int) (urn()*(len-i));   /* [i..len-1] */
-	  list[i] = list[rn];
-	  list[rn] = temp;
-       }
+   for (i=0;i<len;i++) {
+     int temp;
+     rn = i + (int) (urn()*(len-i));   /* [i..len-1] */
+     /* swap element i and rn */
+     temp = list[i];
+     list[i] = list[rn];
+     list[rn] = temp;
+   }
 }
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void make_ptable(char *structure, short *table)
+PRIVATE void make_ptable(char *structure, int *table)
 {
    int i,j,hx;
-   short *stack;
+   int *stack;
    
    hx=0;
-   stack = (short *) space(sizeof(short)*(strlen(structure)+1));
+   stack = (int *) space(sizeof(int)*(strlen(structure)+1));
 	     
    for (i=0; i<strlen(structure); i++) {
       switch (structure[i]) {
@@ -290,9 +293,9 @@ PRIVATE void make_ptable(char *structure, short *table)
 PUBLIC float inverse_fold(char *start, char *structure)
 {
    int i, j, jj, len, o;
-   short *pt;
+   int *pt;
    char *string, *wstring, *wstruct, *aux;
-   float dist=0;
+   double dist=0;
    
    nc2 = j = o = fold_type = 0;
    
@@ -304,7 +307,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    string = (char *) space(len+1);
    wstring = (char *) space(len+1);
    wstruct = (char *) space(len+1);
-   pt = (short *) space(sizeof(short)*(len+1));
+   pt = (int *) space(sizeof(int)*(len+1));
    pt[len] = len+1;
    
    aux = aux_struct(structure);
@@ -325,12 +328,12 @@ PUBLIC float inverse_fold(char *start, char *structure)
       if (aux[i]!='[') { i--; j++;}
       while (pt[j]==i) {
 	 backtrack_type='C';
-	 WALK(i,j);
 	 if (aux[i]!='[') {
 	    while (aux[--i]!='[');
 	    while (aux[++j]!=']');
-	    WALK(i,j);
+	    /* WALK(i,j); */
 	 }
+	 WALK(i,j);
 	 o--;
 	 jj = j; i--;
 	 while (aux[++j]=='.');
@@ -362,11 +365,11 @@ PUBLIC float inverse_fold(char *start, char *structure)
 
 PUBLIC float inverse_pf_fold(char *start, char *target)
 {
-   float dist;
+   double dist;
    int dang;
 
    dang=dangles;
-   if (dangles==1) dangles=2;
+   if (dangles!=0) dangles=2;
 
    update_fold_params();    /* make sure there is a valid pair matrix */
    make_pairset();
@@ -383,14 +386,14 @@ PUBLIC float inverse_pf_fold(char *start, char *target)
 PRIVATE void make_start(char* start, char *structure)
 {
    int i,j,k,l,r,length;
-   short *table, *S, sym[MAXALPHA], ss;
+   int *table, *S, sym[MAXALPHA], ss;
 
    length=strlen(start);
-   table = (short *) space(sizeof(short)*length);
-   S = (short *) space(sizeof(short)*length);
+   table = (int *) space(sizeof(int)*length);
+   S = (int *) space(sizeof(int)*length);
    
    make_ptable(structure, table);
-   for (i=0; i<strlen(start); i++) S[i] = ENCODE(toupper(start[i]));
+   for (i=0; i<strlen(start); i++) S[i] = encode_char(toupper(start[i]));
    for (i=0; i<strlen(symbolset); i++) sym[i] = i;
 
    for (k=0; k<length; k++) {
@@ -403,9 +406,9 @@ PRIVATE void make_start(char* start, char *structure)
       }
 
       if (!pair[S[i]][S[j]]) {   /* make a valid pair by mutating j */
-	shuffle(sym, (short) base);
+	shuffle(sym, (int) base);
 	for (l=0; l<base; l++) {
-	  ss = ENCODE(symbolset[sym[l]]);
+	  ss = encode_char(symbolset[sym[l]]);
 	  if (pair[S[i]][ss]) break;
 	}
 	if (l==base) { /* nothing pairs start[i] */
@@ -424,12 +427,12 @@ PRIVATE void make_start(char* start, char *structure)
 PRIVATE void make_pairset(void)
 {
    int i,j;
-   short sym[MAXALPHA];
+   int sym[MAXALPHA];
    
    make_pair_matrix();
    base = strlen(symbolset);
 
-   for (i=0; i< base; i++) sym[i] = ENCODE(symbolset[i]);
+   for (i=0; i< base; i++) sym[i] = encode_char(symbolset[i]);
    
    for (i=npairs=0; i< base; i++)
       for (j=0; j<base; j++) 
@@ -442,13 +445,13 @@ PRIVATE void make_pairset(void)
 }
 /*---------------------------------------------------------------------------*/
 
-PRIVATE float mfe_cost(char *string, char *structure, char *target)
+PRIVATE double mfe_cost(char *string, char *structure, char *target)
 {
 #if TDIST
    Tree *T1;
    char *xstruc;
 #endif
-   float energy, distance;
+   double energy, distance;
 
    if (strlen(string)!=strlen(target)) {
       fprintf(stderr, "%s\n%s\n", string, target);
@@ -468,21 +471,21 @@ PRIVATE float mfe_cost(char *string, char *structure, char *target)
    free(xstruc);
    free_tree(T1);
 #else
-   distance = bp_distance(target, structure);
+   distance = (double) bp_distance(target, structure);
 #endif
    cost2 = energy_of_struct(string, target) - energy;
-   return (float) distance;
+   return (double) distance;
 }
 /*---------------------------------------------------------------------------*/
 
-PRIVATE float pf_cost(char *string, char *structure, char *target)
+PRIVATE double pf_cost(char *string, char *structure, char *target)
 {
 #if PF
-   float  f, e;
+   double  f, e;
    
    f = pf_fold(string, structure);
    e = energy_of_struct(string, target);
-   return (float) (e-f-final_cost);
+   return (double) (e-f-final_cost);
 #else
    nrerror("this version not linked with pf_fold");
    return 0;
@@ -493,12 +496,12 @@ PRIVATE float pf_cost(char *string, char *structure, char *target)
 
 PRIVATE char *aux_struct( char* structure )
 {  
-   short       *match_paren;
+   int       *match_paren;
    int          i, o, p;
    char        *string;
    
    string = (char *) space(sizeof(char)*(strlen(structure)+1));
-   match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
+   match_paren = (int *) space(sizeof(int)*(strlen(structure)/2+1));
    strcpy(string, structure);
    
    i = o = 0;
@@ -527,21 +530,3 @@ PRIVATE char *aux_struct( char* structure )
    return(string);
 }
 
-#if 0
-PRIVATE int bp_distance(char *str1, char *str2)
-{
-   int dist,i;
-   short *t1, *t2;
-
-   dist = 0;
-   t1 = (short *) space(sizeof(short)*strlen(str1));
-   t2 = (short *) space(sizeof(short)*strlen(str2));
-   make_ptable(str1, t1);
-   make_ptable(str2, t2);
-
-   for (i=0; i<strlen(str1); i++)
-      dist += (t1[i]!=t2[i]);
-   free(t1); free(t2);
-   return dist;
-}
-#endif
