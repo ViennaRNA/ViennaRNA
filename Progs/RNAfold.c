@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1999-09-17 16:17:28 ivo> */
+/* Last changed Time-stamp: <2000-08-14 20:50:23 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <string.h>
 #include "fold.h"
 #include "part_func.h"
@@ -18,7 +19,8 @@
 #include "utils.h"
 extern void  read_parameter_file(const char fname[]);
 
-static char rcsid[] = "$Id: RNAfold.c,v 1.11 1999/11/04 12:15:35 ivo Exp $";
+/*@unused@*/
+static char rcsid[] = "$Id: RNAfold.c,v 1.12 2000/08/14 18:53:26 ivo Exp $";
 
 #define PRIVATE static
 
@@ -37,8 +39,8 @@ int main(int argc, char *argv[])
    char *string, *line;
    char *structure=NULL, *cstruc=NULL;
    char  fname[13], ffname[20], gfname[20];
-   char  ParamFile[256]="";
-   char  ns_bases[33]="", *c;
+   char  *ParamFile=NULL;
+   char  *ns_bases=NULL, *c;
    int   i, length, l, sym, r;
    float energy, min_en;
    float kT, sfact=1.07;
@@ -53,12 +55,12 @@ int main(int argc, char *argv[])
 	  {
 	  case 'T':  if (argv[i][2]!='\0') usage();
 	    if(i==argc-1) usage();
-	    r=sscanf(argv[++i], "%f", &temperature);
+	    r=sscanf(argv[++i], "%lf", &temperature);
 	    if (!r) usage();
 	    break;
 	  case 'p':  pf=1;
 	    if (argv[i][2]!='\0')
-	      sscanf(argv[i]+2, "%d", &do_backtrack);
+	      (void) sscanf(argv[i]+2, "%d", &do_backtrack);
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU")==0) noGU=1;
@@ -66,8 +68,7 @@ int main(int argc, char *argv[])
 	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
-	      r=sscanf(argv[++i], "%32s", ns_bases);
-	      if (!r) usage();
+	      ns_bases = argv[++i];
 	    }
 	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	    break;
@@ -93,17 +94,16 @@ int main(int argc, char *argv[])
 	    break;
 	  case 'P':
 	    if (i==argc-1) usage();
-	    r=sscanf(argv[++i], "%255s", ParamFile);
-	    if (!r) usage();
+	    ParamFile = argv[++i];
 	    break;
 	  default: usage();
 	  } 
    }
 
-   if (ParamFile[0])
+   if (ParamFile != NULL)
      read_parameter_file(ParamFile);
    
-   if (ns_bases[0]) {
+   if (ns_bases != NULL) {
       nonstandards = space(33);
       c=ns_bases;
       i=sym=0;
@@ -144,23 +144,24 @@ int main(int argc, char *argv[])
       /* skip comment lines and get filenames */
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
 	 if (*line=='>')
-	    sscanf(line, ">%12s", fname);
+	   (void) sscanf(line, ">%12s", fname);
 	 printf("%s\n", line);
 	 free(line);
-	 if ((line = get_line(stdin))==NULL) line = "@";
+	 if ((line = get_line(stdin))==NULL) break;
       } 
 
-      if (strcmp(line, "@") == 0) break;
+      if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
 
       string = (char *) space(strlen(line)+1);
-      sscanf(line,"%s",string);
+      (void) sscanf(line,"%s",string);
       free(line);
       length = strlen(string);
 
-      if (fold_constrained) 
-	 cstruc = get_line(stdin);
-      structure = (char *) space(length+1);
-      
+      structure = (char *) space((unsigned) length+1);
+      if (fold_constrained) {
+	cstruc = get_line(stdin);
+	strncpy(structure, cstruc, length+1);
+      }
       for (l = 0; l < length; l++) {
 	string[l] = toupper(string[l]);
 	if (!noconv && string[l] == 'T') string[l] = 'U';
@@ -169,8 +170,6 @@ int main(int argc, char *argv[])
 	 printf("length = %d\n", length);
 
       initialize_fold(length);
-      if (fold_constrained) 
-	strncpy(structure, cstruc, length+1);
       min_en = fold(string, structure);
       printf("%s\n%s", string, structure);
       if (istty)
@@ -238,8 +237,7 @@ int main(int argc, char *argv[])
 	 free_pf_arrays();
 
       }
-      if (fold_constrained)
-	free(cstruc);
+      if (fold_constrained) free(cstruc);
       free(base_pair);
       fflush(stdout);
       free(string);
