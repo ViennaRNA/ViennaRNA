@@ -1,6 +1,6 @@
-/* Last changed Time-stamp: <2001-03-02 23:57:17 ivo> */
+/* Last changed Time-stamp: <2001-04-05 09:33:03 ivo> */
 /*                
-		  Ineractive Access to folding Routines
+		  Access to alifold Routines
 
 		  c Ivo L Hofacker
 		  Vienna RNA package
@@ -18,20 +18,10 @@
 #include "PS_dot.h"
 #include "utils.h"
 #include "pair_mat.h"
-typedef struct {
-   short i;        /* i,j in [0, n-1] */
-   short j;
-   float p;      /* probability */
-   float ent;    /* pseudo entropy for p(i,j) = S_i + S_j - p_ij*ln(p_ij) */
-   short bp[8];    /* frequencies of pair_types */
-   char comp;    /* 1 iff compatible with all bp with higher score */
-}  pair_info;
-
+#include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
-extern float alifold(char **strings, char *structure);
-extern float alipf_fold(char **strings, char *structure, pair_info **pi);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAalifold.c,v 1.1 2001/03/03 17:45:15 ivo Exp $";
+static char rcsid[] = "$Id: RNAalifold.c,v 1.2 2001/04/05 07:33:16 ivo Exp $";
 
 #define PRIVATE static
 
@@ -84,6 +74,10 @@ int main(int argc, char *argv[])
 	    ns_bases = argv[++i];
 	  }
 	  if ( strcmp(argv[i], "-noconv")==0) noconv=1;
+	  if ( strcmp(argv[i], "-nc")==0) {
+	    r=sscanf(argv[++i], "%lf", &nc_fact);
+	    if (!r) usage();
+	  }
 	  break;
 	case '4':
 	  tetra_loop=0;
@@ -110,6 +104,12 @@ int main(int argc, char *argv[])
 	case 'P':
 	  if (i==argc-1) usage();
 	  ParamFile = argv[++i];
+	  break;
+	case 'c':
+	  if ( strcmp(argv[i], "-cv")==0) {
+	    r=sscanf(argv[++i], "%lf", &cv_fact);
+	    if (!r) usage();
+	  }
 	  break;
 	default: usage();
 	}
@@ -211,10 +211,14 @@ int main(int argc, char *argv[])
   if (pf) {
     double energy, kT;
     pair_info *pi;
+    char * mfe_struc;
+
+    mfe_struc = strdup(structure);
     	 
     kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
     pf_scale = exp(-(sfact*min_en)/kT/length);
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+    fflush(stdout);
     
     /* init_alipf_fold(length); */
     
@@ -247,12 +251,19 @@ int main(int argc, char *argv[])
       if (!aliout) {
 	fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
+	short *ptable; int k;
+	ptable = make_pair_table(mfe_struc);
 	fprintf(aliout, "%d sequence; length of alignment %d\n", n_seq, length);
 	fprintf(aliout, "alifold output\n");
-	for (i=0; pi[i].i>0; i++) print_pi(pi[i], aliout);
+	for (k=0; pi[k].i>0; k++) {
+	  pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
+	  print_pi(pi[k], aliout);
+	}
 	fprintf(aliout, "%s\n", structure);
+	free(ptable);
       }
     }
+    free(mfe_struc);
     free(pi);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -351,11 +362,11 @@ void print_pi(pair_info pi, FILE *file) {
   
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-	  pi.i, pi.j, pi.bp[0], 100*pi.p, 0.);
+	  pi.i, pi.j, pi.bp[0], 100*pi.p, pi.ent);
   for (i=1; i<=7; i++) 
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
-  /* if ((!pi.sym)&&(pi.j>=0)) printf(" *");
-     if (!pi.comp) printf(" +"); */
+  /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
+  if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
 
@@ -425,7 +436,8 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "RNAalifold [-cv float] [-nc float]\n"
+	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
 	  "[-noconv]\n");
 }
