@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(ViennaRNA, 1.5, rna@tbi.univie.ac.at, ViennaRNA)
+AC_INIT([ViennaRNA],[1.5],[rna@tbi.univie.ac.at],[ViennaRNA])
 dnl Every other copy of the package version number gets its value from here
 AM_INIT_AUTOMAKE
 dnl change the default installation prefix
@@ -12,7 +12,7 @@ AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
 AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 AC_SUBST(VERSION)
 
@@ -61,10 +61,11 @@ AC_CHECK_HEADERS(malloc.h strings.h unistd.h)
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
-AC_INLINE
+AC_C_INLINE([])
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
-AC_OUTPUT(Makefile ViennaRNA.spec AliFold/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1 man/RNALfold.1 man/RNAalifold.1)
+AC_CONFIG_FILES([Makefile ViennaRNA.spec AliFold/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1 man/RNALfold.1 man/RNAalifold.1 man/RNAduplex.1])
+AC_OUTPUT
 
