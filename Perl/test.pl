@@ -1,6 +1,6 @@
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
-# Last changed Time-stamp: <2001-05-12 14:43:43 ivo>
+# Last changed Time-stamp: <2001-07-20 12:57:10 ivo>
 
 ######################### We start with some black magic to print on failure.
 # Change 1..1 below to 1..last_test_to_print .
@@ -85,8 +85,8 @@ if (($RNA::loops==2) && ($RNA::pairs==5)&&($RNA::unpaired==6)&&
 }
 
 RNA::PS_rna_plot($seq1, $struc1, "test_ss.ps");
-@anote = ("2 15 1 gmark", "3 cmark");
-RNA::PS_rna_plot_a($seq1, $struc1, "test_ss_a.ps", \@anote);
+$anote = "2 15 1 gmark\n" . "3 cmark\n";
+RNA::PS_rna_plot_a($seq1, $struc1, "test_ss_a.ps", undef, $anote);
 RNA::PS_dot_plot($seq1, "test_dp.ps");
 RNA::ssv_rna_plot($seq1, $struct, "test.coord");
 # print "$seq1, $struct, $mfe, $f\n";
