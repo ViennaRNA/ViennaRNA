@@ -14,6 +14,11 @@ To do this the partition function and base pairing probability matrix
 are computed, and for each base the probabilities of being unpaired,
 paired upstream, and paired downstream, respectively, are obtained.
 These profiles are compared by a standard alignment algorithm.
+
+The pase pair probabilties are also saved postscript "dot plots" (as in
+RNAfold) in the files  name_dp.ps , where name is the name of the sequence,
+or a number if unnamed.
+
 .SH OPTIONS
 .IP \fB\-T\ \fItemp\fP
 Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
