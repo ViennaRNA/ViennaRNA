@@ -86,6 +86,9 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore pf_fold;
 %include  "../H/part_func.h"
 
+%newobject pbacktrack;
+extern char *pbacktrack(char *sequence);
+
 //%subsection "Inverse Folding"
 
 %rename (inverse_fold) my_inverse_fold;
