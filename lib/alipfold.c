@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-07-29 21:03:00 ivo> */
+/* Last changed Time-stamp: <2003-02-13 13:03:19 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.4 2002/08/15 16:32:55 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.5 2003/02/13 12:29:47 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -256,7 +256,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       for (j=i+TURN+1; j<=n; j++) {
 	ij = iindx[i]-j;
 	if (qb[ij]>0.) {
-	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
+	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[ij]/kTn);
 	  for (s=0; s<n_seq; s++) {
 	    int typ;
 	    typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
@@ -273,6 +273,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
+	double pp = 0;
 	kl = iindx[k]-l;
 	if (qb[kl]==0) continue;
 	for (s=0; s<n_seq; s++) {
@@ -291,10 +292,10 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 		qloop *=  expLoopEnergy(k-i-1, j-l-1, typ, type[s],
 				S[s][i+1], S[s][j-1], S[s][k-1], S[s][l+1]);
 	      }
-	      pr[kl] += pr[ij]*qloop*scale[k-i-1 + j-l-1 + 2]*
-		exp(pscore[ij]/kTn);
+	      pp += pr[ij]*qloop*scale[k-i-1 + j-l-1 + 2];
 	    } 
 	  }
+	pr[kl] += pp * exp(pscore[kl]/kTn);
       }
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
@@ -304,7 +305,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	    
 	ii = iindx[i];     /* ii-j=[i,j]     */
 	ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
-	prmt1 = pr[ii-(l+1)]*exp(pscore[ii-(l+1)]/kTn);
+	prmt1 = pr[ii-(l+1)];
 	for (s=0; s<n_seq; s++) {
 	  tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
 	  prmt1 *= expMLclosing*expMLintern[tt]*
@@ -318,7 +319,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	    pp *=  expdangle3[tt][S[s][i+1]]*
 	      expdangle5[tt][S[s][j-1]];
 	  }
-	  prmt +=  pr[ii-j]*pp*qm[ll-(j-1)]*exp(pscore[ii-j]/kTn);
+	  prmt +=  pr[ii-j]*pp*qm[ll-(j-1)];
 	}
 	kl = iindx[k]-l;
 	for (s=0; s<n_seq; s++) {
@@ -348,7 +349,8 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	  if (k>1) temp *= expdangle5[tt][S[s][k-1]];
 	  if (l<n) temp *= expdangle3[tt][S[s][l+1]];
 	}
-	pr[kl] += temp*scale[2];
+	pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
+	
 #ifndef LARGE_PF
 	if (pr[kl]>Qmax) {
 	  Qmax = pr[kl];
@@ -368,7 +370,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
 	ij = iindx[i]-j;
-	pr[ij] *= qb[ij];
+	pr[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
       }
 
     if (pi != NULL)
