@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-05-12 14:42:58 ivo> */
+/* Last changed Time-stamp: <2001-07-11 13:31:29 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.11 2001/05/14 10:49:24 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.12 2001/07/20 11:00:54 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -69,9 +69,12 @@ PUBLIC void init_rand(void)
 {
   time_t t;
   (void) time(&t);
-  xsubi[0] = (unsigned short) t;
-  xsubi[1] = (unsigned short) ((unsigned)t >> 16);
-  xsubi[2] = 5246;
+  xsubi[0] = xsubi[1] = xsubi[2] = (unsigned short) t;  /* lower 16 bit */
+  xsubi[1] += (unsigned short) ((unsigned)t >> 6);
+  xsubi[2] += (unsigned short) ((unsigned)t >> 12);
+#ifndef HAVE_ERAND48
+  srand((unsigned int) t);
+#endif
 }
 
 /*------------------------------------------------------------------------*/
