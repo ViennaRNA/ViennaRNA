@@ -2,7 +2,7 @@
 
                    interactive access to inverse.c
 */
-/* Last changed Time-stamp: <96/06/18 14:09:35 ivo> */
+/* Last changed Time-stamp: <97/03/24 17:42:48 ivo> */
 #include <stdio.h>
 #include <math.h>
 #include <ctype.h>
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
    char *string, *start, *structure, *str2, *line;
    int   i,j,length1, length2, l, hd;
-   float energy, kT, p;
+   float energy, kT;
    int   pf, mfe, istty, rstart=0;
    int   repeat, found;
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
       else found = 1;
 
       if (mfe) initialize_fold(length2);
-      if (pf)  init_pf_fold(length2);
+
       while(found>0){
 	 if (rstart) {
 	    free(string);
@@ -174,19 +174,26 @@ int main(int argc, char *argv[])
 	 }
 	 if (pf) {
 	    if( (!mfe) || (repeat >= 0) || (energy==0.) ) {
-	       if (dangles) pf_dangl = 1;
+	       float prob, min_en, sfact=1.07;
+
+	       /* get a reasonable pf_scale */
+	       min_en = fold(string,str2); 
+	       pf_scale = exp(-(sfact*min_en)/kT/length2);
+	       init_pf_fold(length2);
+	       
+	       if (dangles) pf_dangl = 1; /* for energy_of_struct */
 	       energy = inverse_pf_fold(string, structure);
-	       p = exp(-energy/kT);
+	       prob = exp(-energy/kT);
 	       hd = hamming(start, string);
-	       printf("%s  %3d  (%g)\n", string, hd, p);
-	       if (dangles) pf_dangl = 0;
+	       printf("%s  %3d  (%g)\n", string, hd, prob);
+	       if (dangles) pf_dangl = 0; /* reset to default */
+	       free_pf_arrays();
 	    }
 	    if (!mfe) found--;
 	 }
 	 fflush(stdout);
       }
       if (mfe) free_arrays();
-      if (pf)  free_pf_arrays();
 
       free(string);
       free(structure);
