@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <95/09/03 18:21:16 ivo> */
+/* Last changed Time-stamp: <97/10/13 17:14:44 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -28,34 +28,44 @@ int main(int argc, char *argv[])
 {
    char *line, *string, *structure;
    char  fname[12];
+   char  ParamFile[256]="";
    int   i, l, length1, length2;
    float energy;
    int   istty;
       
    string=NULL;
    for (i=1; i<argc; i++) {
-      if (argv[i][0]=='-')
-	 switch ( argv[i][1] ) {
-	  case 'T':  if (argv[i][2]!='\0') usage();
-	    sscanf(argv[++i], "%f", &temperature);
-	    break;
-	  case '4':
-	    tetra_loop=0;
-	    break;
-	  case 'e':
-	    sscanf(argv[++i],"%d", &energy_set);
-	    break;
-	  case 'd':
-	    dangles=0;
-            break;
-	  case 'p':
-	    pf_dangl=1;
-	    break;
-	  default: usage();
+     if (argv[i][0]=='-')
+       switch ( argv[i][1] )
+	 {
+	 case 'T':  if (argv[i][2]!='\0') usage();
+	   sscanf(argv[++i], "%f", &temperature);
+	   break;
+	 case '4':
+	   tetra_loop=0;
+	   break;
+	 case 'e':
+	   if (sscanf(argv[++i],"%d", &energy_set)==0)
+	     usage();
+	   break;
+	 case 'd':
+	   dangles=0;
+	   break;
+	 case 'p':
+	   pf_dangl=1;
+	   break;
+	 case 'P':
+	   if (sscanf(argv[++i], "%255s", ParamFile)==0)
+	     usage();
+	   break;
+	 default: usage();
 	 }
    }
 
    istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+
+   if (ParamFile[0])
+     read_parameter_file(ParamFile);
 
    update_fold_params();
 
