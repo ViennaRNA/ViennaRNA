@@ -20,3 +20,11 @@ typedef struct cpair {
   float p, hue, sat;
 } cpair;
 extern int PS_color_dot_plot(char *string, cpair *pi, char *filename);
+
+typedef struct plist {
+  int i;
+  int j;
+  float p;
+}plist;
+extern int PS_dot_plot_list(char *string, char *filename, struct plist *pl,
+			    struct plist *mf, char *comment);
