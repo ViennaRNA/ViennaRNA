@@ -1,5 +1,8 @@
 /*
   $Log: list.c,v $
+  Revision 1.5  2003/07/14 13:36:58  ivo
+  use space() instead of malloc
+
   Revision 1.4  2000/10/10 08:53:52  ivo
   include dmalloc.h header if DMALLOC defined
 
@@ -21,17 +24,12 @@
 */
 
 #include <stdio.h>
-#ifdef DMALLOC
-#include "/usr/local/include/dmalloc.h"
-#else
-#include <malloc.h>
-#endif
-#include <signal.h>
+#include <stdlib.h>
+#include "utils.h"
 #include "list.h"
-#include "utils.h"		/* use space() to get cleared nodes; WF */
 
 /*@unused@*/
-static char rcsid[] = "$Id: list.c,v 1.4 2000/10/10 08:53:52 ivo Rel $";
+static char rcsid[] = "$Id: list.c,v 1.5 2003/07/14 13:36:58 ivo Exp $";
 
 #define PUBLIC
 PUBLIC void *
@@ -51,13 +49,8 @@ lst_newnode (int size)
 {
   LST_BUCKET *node;
 
-  if (!(node = (LST_BUCKET *) space (size + sizeof (LST_BUCKET))))
-    {
-      fprintf (stderr, "Not enough memory to allocate list node.\n");
-      raise (SIGABRT);
-      return NULL;
-    }
-
+  node = (LST_BUCKET *) space (size + sizeof (LST_BUCKET));
+  
   return LST_USERSPACE (node);	/* Return pointer to user space */
 }
 
@@ -94,12 +87,6 @@ lst_init (void)
       l->head = &(l->hz[0]);
       l->z = &(l->hz[1]);
       l->head->next = l->z->next = l->z;
-    }
-  else
-    {
-      fprintf (stderr, "Insufficient memory to allocate list\n");
-      raise (SIGABRT);
-      return NULL;
     }
 
   return l;
