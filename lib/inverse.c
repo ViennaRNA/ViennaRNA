@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-03-07 13:11:28 ivo> */
+/* Last changed Time-stamp: <1998-05-12 15:10:48 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -32,7 +32,7 @@
 #define space(X) calloc(1,(X))
 #endif
 
-static char rcsid[] = "$Id: inverse.c,v 1.5 1998/03/25 15:56:26 ivo Exp $";
+static char rcsid[] = "$Id: inverse.c,v 1.6 1998/05/19 17:41:59 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
@@ -50,7 +50,7 @@ PRIVATE int    bp_distance(char *str1, char *str2);
 PUBLIC  char   symbolset[MAXALPHA+1] = "AUGC";
 PUBLIC  int    give_up = 0;
 PUBLIC  float  final_cost = 0; /* when to stop inverse_pf_fold */
-PUBLIC  int    inv_verbose=1;
+PUBLIC  int    inv_verbose=0;  /* print out substructure on which inverse_fold() fails */
 
 PRIVATE char   pairset[2*MAXALPHA+1];
 PRIVATE int    base, npairs;
