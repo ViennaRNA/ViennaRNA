@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <96/06/12 17:48:01 ivo> */
+/* Last changed Time-stamp: <97/03/24 17:33:43 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -45,6 +45,7 @@ PRIVATE int    bp_distance(char *str1, char *str2);
 PUBLIC  char   symbolset[MAXALPHA+1] = "AUGC";
 PUBLIC  int    give_up = 0;
 PUBLIC  float  final_cost = 0; /* when to stop inverse_pf_fold */
+PUBLIC  int    inv_verbose=1;
 
 PRIVATE char   pairset[2*MAXALPHA+1];
 PRIVATE int    base, npairs;
@@ -194,6 +195,9 @@ PRIVATE float adaptive_walk(char *start, char *target)
 	 }
       }
       if ((current_cost>0)&&(cont==0)&&(string2[0])) {
+	 /* no mutation that decreased cost was found, 
+	    but the the sequence in string2 decreases cost2 while keeping
+	    cost constant */
 	 strcpy(cstring, string2);
 	 strcpy(structure, struct2);
 	 nc2++; cont=1;
@@ -284,7 +288,7 @@ PRIVATE void make_pair_table(char *structure, short *table)
  
 PUBLIC float inverse_fold(char *start, char *structure)
 {
-   int i, j, ii, jj, len, o;
+   int i, j, jj, len, o;
    short *pt;
    char *string, *wstring, *wstruct, *aux;
    float dist=0;
@@ -327,7 +331,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
 	    WALK(i,j);
 	 }
 	 o--;
-	 jj = j; ii=i--;
+	 jj = j; i--;
 	 while (aux[++j]=='.');
 	 while ((i>=0)&&(aux[i]=='.')) i--;
 	 if (pt[j]!=i) {
@@ -344,6 +348,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    }
  adios:
    backtrack_type='F';
+   if ((dist>0)&&(inv_verbose)) printf("%s\n%s\n", wstring, wstruct);
    /*if ((dist==0)||(give_up==0))*/ strcpy(start, string);
    free(wstring); free(wstruct);
    free(string); free(aux);
