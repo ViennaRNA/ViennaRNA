@@ -52,7 +52,9 @@ my $xstruc = RNA::expand_Full($struc1);
 my $T1 = RNA::make_tree($xstruc);
 $xstruc = RNA::expand_Full($struc2);
 my $T2 = RNA::make_tree($xstruc);
+$RNA::edit_backtrack = 1;
 my $tree_dist = RNA::tree_edit_distance($T1, $T2); 
+print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n";
 ok($tree_dist,4);
 
 # check access to a C array

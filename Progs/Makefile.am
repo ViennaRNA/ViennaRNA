@@ -1,5 +1,5 @@
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
-		RNAplot RNAsubopt RNALfold RNAcofold
+		RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex
 
 LDADD = ../lib/libRNA.a -lm
 

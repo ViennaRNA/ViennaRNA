@@ -248,8 +248,20 @@ void *deref_any(void **ptr, int index) {
 extern paramT *scale_parameters(void);
 extern paramT *copy_parameters(void);
 extern paramT *set_parameters(paramT *dest);
+%{
+char *get_aligned_line(int i) {
+  i = i % 2;
+  return aligned_line[i];
+}
+%}
+
+char *get_aligned_line(int);
+
+
 
 //%include ptr2array.i
+
+
 
 %inline %{
   short *make_loop_index(const char *structure) {
