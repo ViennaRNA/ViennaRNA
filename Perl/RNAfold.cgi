@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-Perl-*-
-# Last changed Time-stamp: <97/12/18 18:35:26 ivo>
+# Last changed Time-stamp: <1998-05-19 13:04:46 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -14,7 +14,9 @@ use Chart::Lines;
 
 # please configure these variables
 $hdir = "/RNAfold_dir";      # were the output files are stored
-$maxlength = 250;            # only process sequences up to this length
+$maxlength = 300;            # only process sequences up to this length
+$ssv_home = "http://smi-web.stanford.edu/projects/helix/sstructview/home.html";
+$ssv_url  = "/~ivo/RNA/SStructView.zip";
 
 
 $query = new CGI;
@@ -38,19 +40,23 @@ sub print_header {
 	print $query->header(-expires=>'+1m');
 #	print "not setting cookie\n";
     }
-    print $query->start_html("RNAfold input form");
+    print $query->start_html(-title=>"RNAfold input form",
+			     -author=>'ivo@tbi.univie.ac.at',
+			     -BGCOLOR=>'#f8f8ff');
     print "\n<H1 align=center>Vienna RNA Secondary Structure Prediction</H1>\n";
     print "<H2 align=center><a name=top>",
     "A web interface to the RNAfold programm</a></H2>\n";
-    print "<H3 align=center>Experimental version, not for heavy use</H3>\n";
-    print "If this looks confusing read the <a href=\"http://www.tbi.univie.ac.at/~ivo/RNA/RNAcgi.html\">help page</a><p>\n";
+#    print "<H3 align=center>Experimental version, not for heavy use</H3>\n";
+    print "If this looks confusing <strong>read the ",
+    "<a href=\"http://www.tbi.univie.ac.at/~ivo/RNA/RNAcgi.html\">",
+    "help page</a></strong><p>\n";
     &print_prompt($query);
 }
 
 sub print_prompt {
     my($query) = @_;
     
-    print $query->startform(-action=>'/cgi-bin/RNAtest.cgi#Results');
+    print $query->startform(-action=>'/cgi-bin/RNAfold.cgi#Results');
     print "<strong>Name of sequence</strong> ",
     "(choose a unique identifier)<BR>\n&gt; ";
     print $query->textfield('name');
@@ -58,7 +64,8 @@ sub print_prompt {
     
     print "<P>\n<strong>Type in your sequence</strong>\n<kbd>T</kbd>s will be ",
     "automatically replaced by <kbd>U</kbd>s.\nAny symbols except ",
-    "<kbd>AUCGTXKI</kbd> will be interpreted as nonbonding bases<BR>\n";
+    "<kbd>AUCGTXKI</kbd> will be interpreted as nonbonding bases. ",
+    "Maximum sequence length is currently $maxlength <BR>\n";
     
     print $query->textarea(-name=>'Sequence',
 			   -rows=>5,
@@ -97,7 +104,9 @@ sub print_prompt {
 
     print "\n<BR><strong>",
     "Should we produce a mountain plot of the structure?</strong> \n";
-    print $query->checkbox(-name=>'plot');
+    print $query->checkbox(-name=>'plot', -checked=>'ON');
+    print "\n<BR>View the mfe structure in the SStructView java applet?\n";
+    print $query->checkbox(-name=>'SSview');
 
     print "<P>\n",$query->reset;
     print $query->submit('Action','Fold it');
@@ -125,8 +134,8 @@ sub do_work {
     chdir $WORK_DIR || die("can't change directory");
 
     # clean old files
-    foreach $f (<*.ps *.gif>) {
-	unlink($f) if ((-M $f)>1);
+    foreach $f (<*.ps *.gif *.coords>) {
+	unlink($f) if ((-M $f)>1.2);
     }
     
     $Sequence = $query->param('Sequence');
@@ -164,6 +173,7 @@ sub do_work {
     $name =~ s/\///g;    # no / allowed in file names
     $fname_ss = $name . "_ss.ps";
     $fname_dp = ($options =~ /-p /)?($name . "_dp.ps"):"";
+    $fname_co = $name . ".coords";
     $ss_escaped = uri_escape($fname_ss);
     $dp_escaped = uri_escape($fname_dp);
     $gif_escaped = uri_escape($name . ".gif")
@@ -201,6 +211,7 @@ sub do_work {
     print "</PRE><P>\n";
     print "The minimum free energy in kcal/mol is given in parenthesis.\n"; 
 #    print `pwd`," $fname_ss";
+    if (!($structure =~ /\(/)) {$RNA::rna_plot_type=0};
   RNA::PS_rna_plot($Sequence, $structure, $fname_ss);
     print "You may look at the PostScript drawing of the structure\n";
     $efname = $fname_ss; encode_entities($efname);
@@ -211,7 +222,8 @@ sub do_work {
 	$min_en = RNA::energy_of_struct($Sequence, $structure);
 	$kT = ($RNA::temperature+273.15)*1.98717/1000.; # in Kcal 
 	$RNA::pf_scale = exp(-($sfact*$min_en)/$kT/$length);
-	$energy = RNA::pf_fold($Sequence, $structure);
+	$pf_struct = $structure;
+	$energy = RNA::pf_fold($Sequence, $pf_struct);
 	print "The free energy of the thermodynamic ensemble is ";
 	printf "<b>%6.2f</b> kcal/mol\n", $energy;
       RNA::PS_dot_plot($Sequence, $fname_dp);
@@ -222,12 +234,31 @@ sub do_work {
     print "<P>";
     
     mountain($name, $length, $options) if ($query->param('plot') eq 'on');
-    
+
+    if ($query->param('SSview') eq 'on') {
+	$ret = RNA::ssv_rna_plot($Sequence, $structure, $fname_co);
+	if ($ret == 0) {
+	    print "error: ssv_rna_plot plot failed, sorry<HR>\n";
+	    return;
+	}
+	$co_escaped = uri_escape($fname_co);
+	print "Please be patient while the applet is loading<br>\n";
+	print "<APPLET ARCHIVE=\"$ssv_url\" CODE=\"SStructView.class\" ",
+	"name=\"SSApplet\" WIDTH=500 HEIGHT=450>\n",
+	"<PARAM name=\"structure-data-URL\" ",
+	"value=\"http://www.tbi.univie.ac.at$hdir/$co_escaped\">\n",
+	"<PARAM name=\"show-controls\" value=\"true\">\n",
+	"<PARAM name=\"result-display-frame\" value=\"_blank\">\n",
+	"</APPLET><HR>\n";
+	print "For information on the java applet see the ",
+	"<A href=\"$ssv_home\">SStructView</a> home page<p>\n";
+    }
+
     print "Your output files will be deleted from this server after one day.\n";
 
 #    $myself = $query->self_url;
 #    print "<BR><A HREF=$myself#top>Back to the input form</A>";
-    print "Scroll back to the top to submit another sequence.\n";
+    print "<BR>Scroll back to the top to submit another sequence.\n";
 
     ($user,$system,$cuser,$csystem) = times;
     print "<BR>Time used for this call ",$user+$system, " seconds\n"; 
@@ -237,7 +268,7 @@ sub do_work {
 
 sub print_tail {
     print <<END;
-We'd appreciate your feedback. Please send comments to    
+We appreciate your feedback. Please send comments to    
 <ADDRESS>Ivo Hofacker
 <A HREF="mailto:ivo\@tbi.univie.ac.at">&lt;ivo\@tbi.univie.ac.at&gt;</A>
 </ADDRESS><BR>
@@ -288,6 +319,6 @@ sub mountain {
 
     $name .= ".gif";
     $obj->gif ("$name");
-    print "<IMG ALT=\"Mountain Representation\" HEIGHT=\"$height\" WIDTH=\"$width\" SRC=\"$hdir/$name\"><P>\n"
+    print "<IMG ALT=\"Mountain Representation\" HEIGHT=\"$height\" ",
+    "WIDTH=\"$width\" SRC=\"$hdir/$gif_escaped\"><P>\n";
 }
-
