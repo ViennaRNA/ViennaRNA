@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-09-24 11:53:33 ivo> */
+/* Last changed Time-stamp: <2004-12-10 17:32:10 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.6 2004/09/24 09:57:13 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.7 2004/12/10 16:32:57 ivo Exp $";
 
 #define PAREN
 
@@ -334,10 +334,10 @@ PRIVATE int fill_arrays(const char *string) {
 	
 	if (!no_close) {
 	  int MLenergy;
-	  int d3=0, d5=0; 
 	  decomp = DMLi1[j-1];
 	  if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
 	    if (dangles) {
+	      int d3, d5; 
 	      tt = rtype[type];
 	      d3 = P->dangle3[tt][S1[i+1]];
 	      d5 = P->dangle5[tt][S1[j-1]];
@@ -354,6 +354,7 @@ PRIVATE int fill_arrays(const char *string) {
 	  }
 	  
 	  if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
+	    int d3=0, d5=0;
 	    tt = rtype[type];
 	    decomp = fc[i+1]+fc[j-1];
 	    if (SAME_STRAND(i,i+1)) d3 = P->dangle3[tt][S1[i+1]];
