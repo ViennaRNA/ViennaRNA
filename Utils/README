@@ -1,0 +1,29 @@
+This directory contains a few scripts, you might find useful. They're not 
+installed by default.
+
+RNAplot produce postscript (default) or gml output from structures in 
+	bracket notation, using two different layout algorithms. The
+	default layout now uses E. Bruccoleris naview method.
+
+Fold	automatically converts sequence files from databanks using readseq
+	and feeds the converted sequence to RNAfold
+
+b2ct.c  converts the bracket notation produced by RNAfold into an '.ct' file,
+	as produced by Zukers mfold.
+
+b2mt.pl	perl script that converts a secondary structure in bracket notation 
+	into a list of x y values that can be plotted to obtain the 
+	"mountain"-representation of an RNA secondary structure. E.g.:
+	RNAfold < foo.seq | b2mt.pl | xmgr -pipe
+
+mountain.pl
+	produces a generalized mountain presentation and the pre postion
+	entropy as a measure of well-definedness from the base pair 
+	probabilities contained in an PostScript dotplot. E.g:
+	RNAfold < foo.seq; mountain.pl dot.ps | xmgr -pipe
+
+dpzoom.pl	extract a portion of a dot plot produced by RNAfold -p
+	e.g.: to extract the structure of bases 7361 to 7600 from the folding 
+	of a complete HIV sequence use
+		dpzoom.pl -f 7361 -l 7600 HIV_dp.ps > RRE_dp.ps
+	

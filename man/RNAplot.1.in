@@ -1,0 +1,33 @@
+.TH RNAPLOT l
+.ER
+.SH NAME
+RNAplot \- Draw RNA Secondary Structures
+.SH SYNOPSIS
+\fBRNAplot [\-t\ \fI0|1\fP] [\-o\ \fIps|gml|xrna\fP]
+
+.SH DESCRIPTION
+.I RNAplot
+reads RNA sequences and structures from stdin in the format as produced by
+e.g. RNAfold and produces drawings of the secondary structure graph.
+The coordinates are produced using either E. Bruccoleris naview routines,
+or a simple radial layout method.
+
+If the sequence was preceded by a line of the form
+.br
+> name
+.br
+the output file will be named  name_ss.ps  (or name_ss.gml etc.) otherwise
+rna.ps (or rna.gml) is used. Existing files of the same name will be
+overwritten.
+
+
+.SH OPTIONS
+.B \-t\ \fI0|1\fP
+Choose the layout algorithm. Simple radial layout if 0, or naview if 1.
+Default is 1.
+.TP
+.B \-o\ \fIps|gml|xrna\fP
+Specify output format. Available formats are: PostScript (ps), Graph Meta 
+Language (gml), and XRNA save file (xrna). Output filenames will end
+in '.ps' '.gml' '.ss', respectively. Default is ps.
+.TP

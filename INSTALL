@@ -1,0 +1,59 @@
+Installation:
+
+To compile this package you need a compiler that understands ANSI C.
+
+Check the makefiles in the subdirectories, and edit the
+CC CFLAGS BINDIR MANDIR and LIBDIR variables to suit your system.
+
+Type
+        make all
+to build the library and the programs in the ./Progs, ./Cluster and ./Utils 
+directories.
+Type
+        make install
+to copy the executables and man pages to the directories specified by
+BINDIR and MANDIR (./bin and ./man/man1 by default, edit makefiles to change). 
+If you plan on using the library, you'll also want to install the header 
+files from ./H in a suitable place. This is not done by the makefile. 
+Also feel free to copy all header files into a single one, if you dislike 
+using a lot of #includes in your programs.
+
+To install the Perl module you need root priviledges, just type
+make install in the Perl directory. To install the readseq program,
+follow the instructions in the readseq directory.
+
+There are man pages for all executables, the library is documented in
+./man/RNAlib.texinfo. You can either print this file as a manual using
+TeX (if you don't have texinfo.tex installed use the .dvi file) or use
+it as online documentation if you have the GNU texinfo package installed.
+Documentation in HTML can be found at http://www.tbi.univie.ac.at/~ivo/RNA/
+
+
+System specific notes:
+calculating the partition function for long sequences ( >400 bases)
+generates a lot of floating point underflows. On some system this can slow
+down the calculation dramatically because an exception is invoked for each 
+underflow. How to avoid this problem is highly system specific:
+
+On SunOS 4.1 the remedy is calling nonstandard_arithmetic() add a -DSUN4 to
+the CFLAGS in lib/makefile to do this. Use CC=gcc since SUN's standard cc
+doesn't understand ANSI C.
+
+On HP machines running hpux-9 or hpux-10 add -DHP9 to the CFLAGS so that
+fpsetfastmode() will be called.
+
+Nothing special has to be done for AIX-3.2 and OSF/1. 
+
+Partition function folding (via RNAfold -p) of long sequences can fail
+because of overflow errors. To avoid this double precision floating point 
+numbers can be used at the expense of doubling memory requirements.
+If your machine has little memory and you dont't plan to fold sequences
+several 1000 bases in length you can compile the package to do the compautions 
+in single precision by editing the file ./H/fold_vars.h and deleting the second 
+line, which normally reads
+#define LARGE_PF
+
+Memory requirements for a sequence of length n will be approximately
+12*n^2 bytes for RNAfold -p in the double precision version, and
+ 4*n^2 bytes for the minimum free energy alone.
+

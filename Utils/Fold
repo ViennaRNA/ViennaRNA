@@ -1,0 +1,15 @@
+#!/bin/csh -f
+# This is an example script that demonstrates how to automatically convert 
+# seqences from databanks into a format suitable for RNAfold and pipe the 
+# result to RNAfold. 
+@ n=$#argv
+if ( $n == 0 ) goto usage
+if !( -f $argv[$n] ) goto nofile
+readseq -f19 -pipe $argv[$n] | sed -e "/^>/\!s/[Tt]/U/g" | RNAfold $argv[1-$n]
+exit
+nofile:
+echo "couldn't open file " $argv[$n]
+usage:
+echo "usage: Fold [RNAfold_options] sequence_file"
+exit -1
+

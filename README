@@ -1,0 +1,77 @@
+This is Version 1.4 of the Vienna RNA Package.
+------------------------------------------------
+See the CHANGES file for differences to previous versions.
+
+The Vienna RNA packages consists of a few stand alone programs and a 
+library that you can link your own programs with. The package allows you to
+
+- predict minimum free energy secondary structures
+- calculate the partition function for the ensemble of structures
+- calculate suboptimal structures in given energy range
+- predict melting curves
+- search for sequences folding into a given structure
+- compare secondary structures including pairwise alignment.
+
+There is also a set of programs for analysing sequence and distance
+data using split decomposition, statistical geometry, and cluster methods.
+
+This version contains a Perl 5 module that allows to access all functions
+of the library from perl scripts, see the Perl subdirectory. 
+In addition a new program for calculating all suboptimal structures within 
+a given energy range can be found in the Subopt directory.
+
+Please read the copyright notice in the file COPYING.
+
+The package is known to compile under
+SunOS 4.1, AIX 3.2, hpux8 and hpux9, IRIX 4.05 and IRIX 5, DEC OSF/1 and linux.
+Other UN*X flavours should present no problems. Several people have 
+reported successful compiles under Windows.
+You need a compiler that understands ANSI C. See the INSTALL file for details.
+
+The following executables are provided:
+RNAfold		predict secondary structures
+RNAsubopt	calulate suboptimal structures in a given energy range
+RNAeval		evaluate energy for given sequence and structure
+RNAheat		calculate melting curves
+RNAdistance	compare secondary structures
+RNApdist	compare ensembles of secondary structures
+RNAinverse	find sequences folding into given structures
+AnalyseSeqs	analyse sequence data
+AnalyseDists	analyse distance matrices
+
+The RNAplot program and other useful utililities can be found in the 
+Utils directory.
+
+All executables read from stdin and write to stdout and use command line
+switches rather than menus to be easily usable in pipes.
+
+For more detailed information see the man pages.
+
+We have included a patched version of D.G. Gilbert's readseq program
+for those who often process sequence files from databanks. See the
+the documentation in that directory for details.
+
+
+Versions since 1.4 feature new energy parameters as described in Mathews
+et.al, JMB, 1999. For backward compatibility a parameter file with the
+version 1.3 parameter set (as described in Walter et.al (1994)) can be
+found in the file vienna13.par. The standard energy set is compiled in, but
+can also be found in the file default.par. Note that only free energies at
+37C are new. Temperature dependencies are still derived from the old
+parameter set.
+The code very rarely uses static arrays, and all programs should work for 
+sequences up to a length of  32700 (if you have huge amounts of memory that
+is).
+
+If you're a commercial user and find these programs useful, please consider
+supporting further developments with a donation.
+
+The most recent source code and documentation should always be available on
+the web at 
+http://www.tbi.univie.ac.at/~ivo/RNA/
+
+We need your feedback! Send your comments, suggestions, and questions to
+rna@tbi.univie.ac.at
+
+Ivo Hofacker, Summer 2000
+
