@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-09-28 11:20:30 ivo> */
+/* Last changed Time-stamp: <2001-08-23 10:19:23 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -15,9 +15,14 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "utils.h"
+#ifdef __GNUC__
+#define UNUSED __attribute__ ((unused))
+#else
+#define UNUSED
+#endif
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAeval.c,v 1.7 2000/09/28 09:30:29 ivo Rel $";
+static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.8 2001/08/23 08:31:13 ivo Exp $";
 
 #define  PUBLIC
 #define  PRIVATE   static
@@ -25,8 +30,12 @@ static char rcsid[] = "$Id: RNAeval.c,v 1.7 2000/09/28 09:30:29 ivo Rel $";
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 
+PRIVATE char *costring(char *string);
+PRIVATE char *tokenize(char *line);
 PRIVATE void usage(void);
 extern int logML;
+extern int cut_point;
+extern int eos_debug;
 extern void  read_parameter_file(const char fname[]);
 
 int main(int argc, char *argv[])
@@ -72,6 +81,11 @@ int main(int argc, char *argv[])
 	   break;
 	 case 'n':
 	   if ( strcmp(argv[i], "-noconv")==0) noconv=1;
+	   else usage();
+	   break;
+	 case 'v':
+	   if ( strcmp(argv[i], "-v")==0) eos_debug=1;
+	   else usage();
 	   break;
 	 default: usage();
 	 }
@@ -85,8 +99,10 @@ int main(int argc, char *argv[])
    update_fold_params();
 
    do {
+     cut_point = -1;
       if (istty) {
 	 printf("\nInput sequence & structure;   @ to quit\n");
+       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
 	 printf("%s\n", scale);
       }
 
@@ -105,8 +121,7 @@ int main(int argc, char *argv[])
       if (line==NULL) break;
       if (strcmp(line, "@") == 0) {free(line); break;}
 
-      string = (char *) space(strlen(line)+1);
-      (void) sscanf(line,"%s",string);
+      string = tokenize(line);
       free(line);
       length2 = (int) strlen(string);
 
@@ -120,8 +135,7 @@ int main(int argc, char *argv[])
       if (line==NULL) break;
       if (strcmp(line, "@") == 0) {free(line); break;}
       
-      structure = (char *) space(strlen(line)+1);
-      (void) sscanf(line, "%s", structure);
+      structure = tokenize(line);
       free(line);
       length1 = (int) strlen(structure);
       
@@ -133,14 +147,29 @@ int main(int argc, char *argv[])
         if (!noconv && string[l] == 'T') string[l] = 'U';
       }
 
-      if (istty) printf("length = %d\n", length1);
+      if (istty) {
+	if (cut_point == -1)
+	  printf("length = %d\n", length1);
+	else
+	  printf("length1 = %d\nlength2 = %d\n",
+		 cut_point-1, length1-cut_point+1);
+      }
       
       energy = energy_of_struct(string, structure);
+      if (cut_point == -1)
       printf("%s\n%s", string, structure);
+      else {
+	char *pstring, *pstruct;
+	pstring = costring(string);
+	pstruct = costring(structure);
+	printf("%s\n%s", pstring,  pstruct);
+	free(pstring);
+	free(pstruct);
+      }
       if (istty)
-	 printf("\n energy = %6.2f\n", energy);
+	printf("\n energy = %6.2f\n", energy);
       else
-	 printf(" (%6.2f)\n", energy);
+	printf(" (%6.2f)\n", energy);
       
       free(string);
       free(structure);
@@ -149,6 +178,50 @@ int main(int argc, char *argv[])
    return 0;
 }
 
+PRIVATE char *tokenize(char *line)
+{
+  char *token, *copy, *ctmp;
+  int cut = -1;
+
+  copy = (char *) space(strlen(line)+1);
+  ctmp = (char *) space(strlen(line)+1);
+  (void) sscanf(line, "%s", copy);
+  ctmp[0] = '\0';
+  token = strtok(copy, "&");
+  cut = strlen(token)+1;
+  while (token) {
+    strcat(ctmp, token);
+    token = strtok(NULL, "&");
+  }
+  if (cut > strlen(ctmp)) cut = -1;
+  if (cut > -1) {
+    if (cut_point==-1) cut_point = cut;
+    else if (cut_point != cut) {
+      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+      nrerror("Sequence and Structure have different cut points.");
+    }
+  }
+  free(copy);
+  
+  return ctmp;
+}
+
+PRIVATE char *costring(char *string)
+{
+  char *ctmp;
+  int len;
+  
+  len = strlen(string);
+  ctmp = (char *)space((len+2) * sizeof(char));
+  /* first sequence */
+  (void) strncpy(ctmp, string, cut_point-1);
+  /* spacer */
+  ctmp[cut_point-1] = '&';
+  /* second sequence */
+  (void) strcat(ctmp, string+cut_point-1);
+
+  return ctmp;
+}
 
 PRIVATE void usage(void)
 {
