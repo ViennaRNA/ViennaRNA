@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-08-30 10:33:47 ivo> */
+/* Last changed Time-stamp: <2002-11-07 11:34:11 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.13 2001/08/31 14:55:53 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.14 2002/11/07 12:04:55 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -320,3 +320,13 @@ PUBLIC int bp_distance(const char *str1, const char *str2)
    free(t1); free(t2);
    return dist;
 }
+
+#ifndef HAVE_STRDUP
+char *strdup(const char *s) {
+  char *dup;
+
+  dup = space(strlen(s)+1);
+  strcpy(dup, s);
+  return(new);
+}
+#endif

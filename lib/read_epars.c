@@ -16,7 +16,7 @@
 #include "energy_const.h"
 #include "energy_par.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.8 2001/08/31 14:55:27 ivo Exp $";
+static char rcsid[] = "$Id: read_epars.c,v 1.9 2002/11/07 12:04:55 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
@@ -173,7 +173,7 @@ PRIVATE char *get_array1(int *arr, int size)
       if (buf[0]=='*') {i++; continue;}
       else if (buf[0]=='x') { /* should only be used for loop parameters */
 	if (i==0) nrerror("can't extrapolate first value");
-	p = arr[last] + rint(lxc37*log(((double) i)/(double)(last)));
+	p = arr[last] + (int) (0.5+ lxc37*log(((double) i)/(double)(last)));
       }
       else if (strcmp(buf,"DEF") == 0) p = DEF;
       else if (strcmp(buf,"INF") == 0) p = INF;
