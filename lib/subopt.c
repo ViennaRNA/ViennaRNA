@@ -1,5 +1,9 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.15  2001/09/17 10:30:42  ivo
+  move scale_parameters() into params.c
+  returns pointer to paramT structure
+
   Revision 1.14  2001/08/31 15:02:19  ivo
   Let subopt either write to file pointer or return a list of structures,
   so we can nicely integrate it into the library
@@ -42,7 +46,7 @@
 
                        Vienna RNA package
 */
-
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -55,6 +59,7 @@
 #include "pair_mat.h"
 #include "list.h"
 #include "subopt.h"
+#include "params.h"
 
 #define true	  1
 #define false	  0
@@ -63,7 +68,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.14 2001/08/31 15:02:19 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.15 2001/09/17 10:30:42 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -93,7 +98,7 @@ PRIVATE  INTERVAL *make_interval (int i, int j, int ml);
 			  int partial_energy);
 PRIVATE  STATE *copy_state(STATE * state);
 PRIVATE  void print_state(STATE * state);
-PRIVATE  void print_stack(LIST * list);
+PRIVATE  void UNUSED print_stack(LIST * list);
 /*@only@*/ PRIVATE LIST *make_list(void);
 PRIVATE  void push(LIST * list, /*@only@*/ void *data);
 PRIVATE  void *pop(LIST * list);
@@ -119,32 +124,23 @@ PRIVATE LIST *Stack;
 PRIVATE int nopush;
 PRIVATE int best_energy;                /* best_energy = remaining energy */
 
-extern int *f5;                         /* energy of 5 end */
-extern int *c;		                /* energy array, given that i-j pair */
-extern int *fML;		        /* multi-loop auxiliary energy array */
-extern int *fM1;                /* another multi-loop auxiliary energy array */
-extern int *indx;   /* index for moving in the triangle matrices c[] and f[] */
-extern short *S, *S1;
+PRIVATE int *f5;                         /* energy of 5 end */
+PRIVATE int *c;		                /* energy array, given that i-j pair */
+PRIVATE int *fML;		        /* multi-loop auxiliary energy array */
+PRIVATE int *fM1;                /* another multi-loop auxiliary energy array */
+PRIVATE int *indx;   /* index for moving in the triangle matrices c[] and f[] */
+PRIVATE short *S, *S1;
 
-extern int stack[NBPAIRS+1][NBPAIRS+1];
-extern int hairpin[31];
-extern int bulge[MAXLOOP+1];
-extern int internal_loop[MAXLOOP+1];
-extern int mismatchI[NBPAIRS+1][5][5];
-extern int mismatchH[NBPAIRS+1][5][5];
-extern int dangle5[NBPAIRS+1][5];
-extern int dangle3[NBPAIRS+1][5];
-extern int F_ninio[5];
-extern double lxc;
-extern int MLbase;
-extern int MLintern[];
-extern int MLclosing;
-extern char *ptype;
+PRIVATE char *ptype;
 
+PRIVATE const paramT *P;
 /* extern float energy_of_struct(char *, char *); */
-extern int   LoopEnergy(int n1, int n2, int type, int type_2,
+extern int  LoopEnergy(int n1, int n2, int type, int type_2,
                          int si1, int sj1, int sp1, int sq1);
-extern int   HairpinE(int i, int j, int type, const char *string);
+extern int  HairpinE(int size, int type, int si1, int sj1, const char *string);
+extern void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, 
+				int **fM1_p, int **indx_p, char **ptype_p);
+extern int  uniq_ML;
 
 PRIVATE int length;
 PRIVATE int minimal_energy;                           /* minimum free energy */
@@ -152,6 +148,22 @@ PRIVATE int element_energy;       /* internal energy of a structural element */
 PRIVATE int threshold;                             /* minimal_energy + delta */
 PRIVATE char *sequence;
 PUBLIC  float print_energy = 9999;  /* printing threshold for use with logML */
+
+
+PRIVATE void encode_seq(char *sequence) {
+  unsigned int i,l;
+
+  l = strlen(sequence);
+  S = (short *) space(sizeof(short)*(l+1));
+  S1= (short *) space(sizeof(short)*(l+1));
+  /* S1 exists only for the special X K and I bases and energy_set!=0 */
+  S[0] = S1[0] = (short) l;
+  
+  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
+    S[i]= (short) encode_char(toupper(sequence[i-1]));
+    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
+  }
+}
 
 /*---------------------------------------------------------------------------*/
 /*List routines--------------------------------------------------------------*/
@@ -433,9 +445,10 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   old_dangles = dangles;
   if ((dangles!=0) && (dangles != 2)) dangles = 2;
   
+  uniq_ML = 1;  
   initialize_fold(length);
   min_en = fold(sequence, struc);
-  
+  export_fold_arrays(&f5, &c, &fML, &fM1, &indx, &ptype);
   dangles = old_dangles;
   /* re-evaluate in case we're using logML etc */
   min_en = energy_of_struct(sequence, struc);
@@ -443,6 +456,10 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   print_energy += min_en;
   if (fp)
     fprintf(fp, "%s %6d %6d\n", sequence, (int) (-0.1+100*min_en), delta); 
+  
+  make_pair_matrix();  
+  encode_seq(sequence);
+  P = scale_parameters();
 
   /* Initialize ------------------------------------------------------------ */
   
@@ -450,8 +467,6 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   count = 0;
   partial_energy = 0;
 
-  make_pair_matrix();
-  
   /* Initialize the stack ------------------------------------------------- */
 
   minimal_energy = f5[length];
@@ -615,9 +630,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     /*                 or in this block */
     
     if (array_flag == 3)
-      fi = fM1[indx[j-1] + i] + MLbase;
+      fi = fM1[indx[j-1] + i] + P->MLbase;
     else
-      fi = fML[indx[j-1] + i] + MLbase;
+      fi = fML[indx[j-1] + i] + P->MLbase;
     
     if (fi + best_energy <= threshold) {
       /* no basepair, nibbling of 3'-end */
@@ -625,7 +640,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       new_state = copy_state(state);
       new_interval = make_interval(i, j-1, array_flag);
       push(new_state->Intervals, new_interval);
-      new_state->partial_energy += MLbase;
+      new_state->partial_energy += P->MLbase;
       /* new_state->best_energy = fi + best_energy; */
       push(Stack, new_state);
     }
@@ -634,13 +649,13 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     
     if (type) { /* i,j may pair */
       
-      element_energy = MLintern[type];
+      element_energy = P->MLintern[type];
       
       if ( type && dangles ) {                        /* dangling ends */
 	if (i > 1)
-	  element_energy +=  dangle5[type][S1[i-1]];
+	  element_energy +=  P->dangle5[type][S1[i-1]];
 	if (j < length)
-	  element_energy += dangle3[type][S1[j+1]];
+	  element_energy += P->dangle3[type][S1[j+1]];
       }
       
       cij = c[indx[j] + i] + element_energy;           
@@ -662,9 +677,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
       
-      element_energy = MLintern[type];
+      element_energy = P->MLintern[type];
       if (dangles)
-	element_energy += dangle3[type][S1[j+1]] + dangle5[type][S1[k]];
+	element_energy += P->dangle3[type][S1[j+1]] + P->dangle5[type][S1[k]];
       
       
       if (fML[indx[k]+i] + c[indx[j] + k+1] +
@@ -682,9 +697,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
       
-      element_energy = MLintern[type] + MLbase*(k-i+1);
+      element_energy = P->MLintern[type] + P->MLbase*(k-i+1);
       if (dangles)
-	element_energy += dangle3[type][S1[j+1]] + dangle5[type][S1[k]];
+	element_energy += P->dangle3[type][S1[j+1]] + P->dangle5[type][S1[k]];
       
       if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
 	repeat(k+1, j, state, element_energy, 0);
@@ -731,9 +746,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	
 	/* k and j pair */
 	if (dangles) {
-	  element_energy =  dangle5[type][S1[k - 1]];
+	  element_energy =  P->dangle5[type][S1[k - 1]];
 	  if (j < length)
-	    element_energy += dangle3[type][S1[j+1]];
+	    element_energy += P->dangle3[type][S1[j+1]];
 	}
 	else                                                 /* no dangles */
 	  element_energy = 0;
@@ -753,7 +768,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       type = ptype[indx[j]+1];
       if (type) {
 	if (dangles && (j < length)) {
-	  element_energy = dangle3[type][S1[j+1]];
+	  element_energy = P->dangle3[type][S1[j+1]];
 	}
 	else
 	  element_energy = 0;
@@ -850,7 +865,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     }                                                  /* end of q-loop */ 
   }                                                    /* end of p-loop */
   
-  mm = MLclosing + MLintern[type];
+  mm = P->MLclosing + P->MLintern[type];
   rt = rtype[type];
   
   for (k = i + 1 + TURN; k <= j - 1 - TURN; k++)  {
@@ -858,7 +873,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     
     element_energy = mm;
     if (dangles)
-      element_energy += dangle3[rt][S1[i+1]] + dangle5[rt][S1[j-1]];
+      element_energy += P->dangle3[rt][S1[i+1]] + P->dangle5[rt][S1[j-1]];
     
     if (fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
 	element_energy + best_energy  <= threshold)
@@ -887,7 +902,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
   
   if (no_close) energy = FORBIDDEN;
   else
-    energy = HairpinE(i, j, type, sequence);
+    energy = HairpinE(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1);
   
   if (energy + best_energy <= threshold) {
     /* hairpin structure */

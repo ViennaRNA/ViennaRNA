@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-09-28 14:31:01 ivo> */
+/* Last changed Time-stamp: <2001-09-15 18:17:36 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.13 2000/09/28 12:31:55 ivo Rel $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.14 2001/09/17 10:30:42 ivo Exp $";
 
 #define PRIVATE static
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     if (istty)
       printf("length = %d\n", length);
 
-    initialize_fold(length);
+    /* initialize_fold(length); */
     min_en = fold(string, structure);
     printf("%s\n%s", string, structure);
     if (istty)
@@ -192,11 +192,11 @@ int main(int argc, char *argv[])
     }
     if (length<2000)
       (void) PS_rna_plot(string, structure, ffname);
-    else 
+    else { 
+      struct bond  *bp;
       fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
 
-    { /* free mfe arrays but preserve base_pair for PS_dot_plot */
-      struct bond  *bp;
+      /* free mfe arrays but preserve base_pair for PS_dot_plot */
       bp = base_pair; base_pair = space(16);
       free_arrays();  /* free's base_pair */
       base_pair = bp;
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 
     }
     if (cstruc!=NULL) free(cstruc);
-    free(base_pair);
+    if (length>=2000) free(base_pair);
     (void) fflush(stdout);
     free(string);
     free(structure); 

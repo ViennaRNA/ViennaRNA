@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2000-09-28 11:34:14 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.7 2000/09/28 09:37:22 ivo Rel $
+@c Last changed Time-stamp: <2001-09-14 17:58:41 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.8 2001/09/17 10:30:44 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -118,18 +118,19 @@ calculates the energy of @var{sequence} on the @var{structure}
 @end deftypefun
 
 @deftypefun void   initialize_fold (int @var{length})
-allocates memory for folding sequences not longer than @var{length};
-sets up pairing matrix and energy parameters. Has to be called before
-the first call to @code{fold()}.
+Obsolete function kept for backward compatibility.
+Allocates memory for mfe folding sequences not longer than @var{length},
+and sets up pairing matrix and energy parameters.
 @end deftypefun
 
 @deftypefun void   free_arrays ()
-frees the memory allocated by @code{initialize_fold()}.
+frees the memory allocated by @code{fold()}.
 @end deftypefun
 
 @deftypefun void   update_fold_params ()
 call this to recalculate the pair matrix and energy parameters after a
-change in folding parameters like @code{temperature} (@pxref{Fold Vars,,Variables}). 
+change in folding parameters like @code{temperature} 
+(@pxref{Fold Vars,,Variables}). 
 @end deftypefun
 
 Prototypes for these functions are declared in @file{fold.h}.

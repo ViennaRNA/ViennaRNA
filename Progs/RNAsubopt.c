@@ -1,11 +1,11 @@
-/* Last changed Time-stamp: <2001-08-30 10:53:22 ivo> */
+/* Last changed Time-stamp: <2001-09-15 10:56:22 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
 			   c Ivo L Hofacker
 			  Vienna RNA package
 */
-
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,7 +17,7 @@
 #include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAsubopt.c,v 1.5 2001/08/31 15:02:19 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.6 2001/09/17 10:30:42 ivo Exp $";
 
 #define PRIVATE static
 

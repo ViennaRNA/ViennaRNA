@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-05 13:36:14 ivo> */
+/* Last changed Time-stamp: <2001-09-14 18:44:55 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -8,6 +8,7 @@
 		  Vienna RNA package
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,24 +19,15 @@
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
-#ifdef __GNUC__
-#define INLINE inline PRIVATE
-#define UNUSED __attribute__ ((unused))
-#else
-#define INLINE PRIVATE
-#define UNUSED
-#endif
+#include "params.h"
+
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.2 2001/04/05 07:27:14 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.3 2001/09/17 10:30:42 ivo Exp $";
 
 #define PAREN
 
 #define PUBLIC
-#ifdef SUBOPT
-#define PRIVATE
-#else
 #define PRIVATE static
-#endif
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
@@ -51,40 +43,20 @@ PUBLIC double nc_fact=1;
 
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
-PRIVATE void  scale_parameters(void);
 PRIVATE void  make_pscores(const short *const *S, int n_seq,
 			   const char *structure);
 PRIVATE short *encode_seq(const char *sequence);
 /*@unused@*/
-INLINE  int   LoopEnergy(int n1, int n2, int type, int type_2,
-			 int si1, int sj1, int sp1, int sq1);
-INLINE  int   HairpinE(int i, int j, int type, int si1, int sj1, 
-		       const char *string);
+extern  int LoopEnergy(int n1, int n2, int type, int type_2,
+		       int si1, int sj1, int sp1, int sq1);
+extern  int HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
-PRIVATE int stack[NBPAIRS+1][NBPAIRS+1];
-PRIVATE int hairpin[31];
-PRIVATE int bulge[MAXLOOP+1];
-PRIVATE int internal_loop[MAXLOOP+1];
-PRIVATE int mismatchI[NBPAIRS+1][5][5];
-PRIVATE int mismatchH[NBPAIRS+1][5][5];
-PRIVATE int mismatchM[NBPAIRS+1][5][5];
-PRIVATE int dangle5[NBPAIRS+1][5];
-PRIVATE int dangle3[NBPAIRS+1][5];
-PRIVATE int int11[NBPAIRS+1][NBPAIRS+1][5][5];
-PRIVATE int int21[NBPAIRS+1][NBPAIRS+1][5][5][5];
-PRIVATE int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
-PRIVATE int F_ninio[5];
-PRIVATE double lxc;
-PRIVATE int MLbase;
-PRIVATE int MLintern[NBPAIRS+1];
-PRIVATE int MLclosing;
-PRIVATE int TETRA_ENERGY[40];
-PRIVATE int Triloop_E[40];
+PRIVATE const paramT *P;
 
 PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
 
@@ -92,11 +64,8 @@ PRIVATE int   *c;       /* energy array, given that i-j pair */
 PRIVATE int   *cc;      /* linear array for calculating canonical structures */
 PRIVATE int   *cc1;     /*   "     "        */
 PRIVATE int   *f5;      /* energy of 5' end */
-PRIVATE int   *f3;      /* energy of 3' end */
 PRIVATE int   *fML;     /* multi-loop auxiliary energy array */
-#ifdef SUBOPT
-PRIVATE int   *fM1;     /* another multi-loop for subopt */
-#endif
+
 PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
 PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
@@ -110,14 +79,15 @@ PRIVATE void init_alifold(int length)
 {
   unsigned int n;
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  if (init_length>0) free_arrays();
+  if (init_length>0) free_alifold_arrays();
   get_arrays((unsigned) length);
-  scale_parameters();
   make_pair_matrix();
   init_length=length;
 
   for (n = 1; n <= (unsigned) length; n++)
     indx[n] = (n*(n-1)) >> 1;        /* n(n-1)/2 */
+  
+  update_fold_params();
 }
 
 /*--------------------------------------------------------------------------*/
@@ -127,12 +97,9 @@ PRIVATE void get_arrays(unsigned int size)
   indx = (int *) space(sizeof(int)*(size+1));
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-#ifdef SUBOPT
-  fM1    = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-#endif
+
   pscore = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   f5    = (int *) space(sizeof(int)*(size+2));
-  f3    = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
   cc1   = (int *) space(sizeof(int)*(size+2));
   Fmi   = (int *) space(sizeof(int)*(size+1));
@@ -144,12 +111,10 @@ PRIVATE void get_arrays(unsigned int size)
 
 /*--------------------------------------------------------------------------*/
 
-void free_arrays(void)
+void free_alifold_arrays(void)
 {
-  free(indx); free(c); free(fML); free(pscore); free(f5); free(f3); free(cc); free(cc1); 
-#ifdef SUBOPT
-  free(fM1);
-#endif
+  free(indx); free(c); free(fML); free(f5); free(cc); free(cc1); 
+  free(pscore);
   free(base_pair); free(Fmi);
   free(DMLi); free(DMLi1);free(DMLi2);
   init_length=0;
@@ -166,14 +131,17 @@ float alifold(char **strings, char *structure)
     int ml;
   } 
   sector[MAXSECTORS];   /* backtracking sectors */
-  int   i, j, k, p, q, length, n_seq, energy, new_c, new;
+
+  int   i, j, k, p, q, length, energy, new_c, new;
   int   decomp, MLenergy, new_fML;
-  int   s, b, mm;
-  int   *type, type_2, tt;
+  int   s, b, mm, max_separation;
+  int   n_seq, *type, type_2, tt;
   short **S;
 
   length = (int) strlen(strings[0]);
   if (length>init_length) init_alifold(length);
+  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+
   for (s=0; strings[s]!=NULL; s++); 
   n_seq = s;
   S = (short **) space(n_seq*sizeof(short *));
@@ -191,9 +159,7 @@ float alifold(char **strings, char *structure)
   for (j = 1; j<=length; j++)
     for (i=(j>TURN?(j-TURN):1); i<j; i++) {
       c[indx[j]+i] = fML[indx[j]+i] = INF;
-#ifdef SUBOPT
-      fM1[indx[j]+i] = INF;
-#endif
+
     }       
   
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
@@ -215,7 +181,7 @@ float alifold(char **strings, char *structure)
 	
 	
 	for (new_c=s=0; s<n_seq; s++)
-	  new_c += HairpinE(i, j, type[s], S[s][i+1], S[s][j-1], strings[s]);
+	  new_c += HairpinE(j-i-1,type[s],S[s][i+1],S[s][j-1],strings[s]+i-1);
 	   
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
@@ -249,23 +215,20 @@ float alifold(char **strings, char *structure)
 	  int d3=0, d5=0; 
 	  for (s=0; s<n_seq; s++) {
 	    tt = rtype[type[s]];
-	    d3 = dangle3[tt][S[s][i+1]];
-	    d5 = dangle5[tt][S[s][j-1]];
+	    d3 = P->dangle3[tt][S[s][i+1]];
+	    d5 = P->dangle5[tt][S[s][j-1]];
 	    decomp += d5 + d3;
 	  }
 	}
 	
-	MLenergy = decomp + n_seq*MLclosing;
+	MLenergy = decomp + n_seq*P->MLclosing;
 	for (s=0; s<n_seq; s++) 
-	  MLenergy += MLintern[type[s]];
+	  MLenergy += P->MLintern[type[s]];
 	
 	new_c = MLenergy < new_c ? MLenergy : new_c;
 	
 	new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-
-	new_c -= psc;  /* add covariance bonnus/penalty */
-	
-	cc[j] = new_c;
+	cc[j] = new_c - psc; /* add covariance bonnus/penalty */
 	if (noLonelyPairs)
 	  c[ij] = cc1[j-1]+stackEnergy-psc;
 	else
@@ -279,20 +242,18 @@ float alifold(char **strings, char *structure)
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      new_fML = fML[ij+1]+n_seq*MLbase;
-      new_fML = MIN2(fML[indx[j-1]+i]+n_seq*MLbase, new_fML);
+      new_fML = fML[ij+1]+n_seq*P->MLbase;
+      new_fML = MIN2(fML[indx[j-1]+i]+n_seq*P->MLbase, new_fML);
       energy = c[ij];
       for (s=0; s<n_seq; s++) {
-	energy += MLintern[type[s]];
+	energy += P->MLintern[type[s]];
 	if (dangles) {  /* double dangles */
-	  if (i>1)      energy += dangle5[type[s]][S[s][i-1]];
-	  if (j<length) energy += dangle3[type[s]][S[s][j+1]];
+	  if (i>1)      energy += P->dangle5[type[s]][S[s][i-1]];
+	  if (j<length) energy += P->dangle3[type[s]][S[s][j+1]];
 	}
       }
       new_fML = MIN2(energy, new_fML);
-#ifdef SUBOPT
-      fM1[ij] = MIN2(fM1[indx[j-1]+i] + n_seq*MLbase, energy);
-#endif
+
       
       /* modular decomposition -------------------------------*/
     
@@ -327,7 +288,7 @@ float alifold(char **strings, char *structure)
 	type = pair[S[s][1]][S[s][j]]; if (type==0) type=7;
 	if (type>2) energy += TerminalAU;
 	if ((dangles)&&(j<length))  /* double dangles */
-	  energy += dangle3[type][S[s][j+1]];
+	  energy += P->dangle3[type][S[s][j+1]];
       }
       f5[j] = MIN2(f5[j], energy);
     }
@@ -339,8 +300,8 @@ float alifold(char **strings, char *structure)
 	  type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
 	  if (type>2) energy += TerminalAU;
 	  if (dangles) {
-	    energy += dangle5[type][S[s][i-1]];
-	    if (j<length) energy += dangle3[type][S[s][j+1]];
+	    energy += P->dangle5[type][S[s][i-1]];
+	    if (j<length) energy += P->dangle3[type][S[s][j+1]];
 	  }
 	}
 	f5[j] = MIN2(f5[j], energy);
@@ -376,7 +337,7 @@ float alifold(char **strings, char *structure)
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
     fij = (ml)? fML[indx[j]+i] : f5[j];
-    fi  = (ml)?(fML[indx[j-1]+i]+MLbase):f5[j-1];
+    fi  = (ml)?(fML[indx[j-1]+i]+P->MLbase):f5[j-1];
 
     if (fij == fi) {  /* 3' end is unpaired */
       sector[++s].i = i;
@@ -400,8 +361,8 @@ float alifold(char **strings, char *structure)
 	  en = cc + f5[i-1];
 	  if (dangles) {
 	    for (ss=0; ss<n_seq; ss++) {
-	      if (i>1)      en += dangle5[type[ss]][S[ss][i-1]];
-	      if (j<length) en += dangle3[type[ss]][S[ss][j+1]]; 
+	      if (i>1)      en += P->dangle5[type[ss]][S[ss][i-1]];
+	      if (j<length) en += P->dangle3[type[ss]][S[ss][j+1]]; 
 	    }
 	  }
 	  if (fij == en) traced=j;
@@ -421,7 +382,7 @@ float alifold(char **strings, char *structure)
     }
     else { /* trace back in fML array */
       int cij1=INF, ci1j=INF, ci1j1=INF;
-      if (fML[indx[j]+i+1]+n_seq*MLbase == fij) { /* 5' end is unpaired */
+      if (fML[indx[j]+i+1]+n_seq*P->MLbase == fij) { /* 5' end is unpaired */
 	sector[++s].i = i+1;
 	sector[s].j   = j;
 	sector[s].ml  = ml;
@@ -432,10 +393,10 @@ float alifold(char **strings, char *structure)
       for (ss=0; ss<n_seq; ss++) {
 	tt  = pair[S[ss][i]][S[ss][j]];
 	if (tt==0) tt=7;
-	cij += MLintern[tt];      
+	cij += P->MLintern[tt];      
 	if (dangles) {       /* double dangles */
-	  if (i>1)      cij += dangle5[tt][S[ss][i-1]];
-	  if (j<length) cij += dangle3[tt][S[ss][j+1]];
+	  if (i>1)      cij += P->dangle5[tt][S[ss][i-1]];
+	  if (j<length) cij += P->dangle3[tt][S[ss][j+1]];
 	}
       }
 
@@ -481,7 +442,7 @@ float alifold(char **strings, char *structure)
 	for (ss=0; ss<n_seq; ss++) {
 	  type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
 	  if (type_2==0) type_2 = 7;
-	  cij -= stack[type[ss]][type_2];
+	  cij -= P->stack[type[ss]][type_2];
 	}
 	cij += pscore[indx[j]+i];
 	base_pair[++b].i = i+1;
@@ -495,7 +456,7 @@ float alifold(char **strings, char *structure)
 
     {int cc=0;
     for (ss=0; ss<n_seq; ss++) 
-      cc += HairpinE(i, j, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]);
+      cc += HairpinE(j-i-1, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]+i-1);
     if (cij == cc) /* found hairpin */ 
       continue;
     }
@@ -528,12 +489,12 @@ float alifold(char **strings, char *structure)
 
     /* (i.j) must close a multi-loop */
 
-    mm = n_seq*MLclosing;
+    mm = n_seq*P->MLclosing;
     for (ss=d3=d5=0; ss<n_seq; ss++) {
       tt = rtype[type[ss]];
-      mm += MLintern[tt];
-      d5 += dangle5[tt][S[ss][j-1]];
-      d3 += dangle3[tt][S[ss][i+1]];
+      mm += P->MLintern[tt];
+      d5 += P->dangle5[tt][S[ss][j-1]];
+      d3 += P->dangle3[tt][S[ss][i+1]];
     }
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1; 
@@ -576,84 +537,6 @@ float alifold(char **strings, char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-INLINE int HairpinE(int i, int j, int type, int si1, int sj1, const char *string) {
-  int energy;
-  energy = (j-i-1 <= 30) ? hairpin[j-i-1] :
-    hairpin[30]+(int)(lxc*log((j-i-1)/30.));
-  if (tetra_loop)
-    if (j-i-1 == 4) { /* check for tetraloop bonus */
-      char tl[7]={0}, *ts;
-      strncpy(tl, string+i-1, 6);
-      if ((ts=strstr(Tetraloops, tl))) 
-	energy += TETRA_ENERGY[(ts-Tetraloops)/7];
-    }
-  if (j-i-1 == 3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string+i-1, 5);
-    if ((ts=strstr(Triloops, tl))) 
-      energy += Triloop_E[(ts-Triloops)/6];
-    if (type>2)  /* neither CG nor GC */
-      energy += TerminalAU; /* penalty for closing AU GU pair */
-  }
-  else  /* no mismatches for tri-loops */
-    energy += mismatchH[type][si1][sj1];
-  
-  return energy;
-}
-
-/*---------------------------------------------------------------------------*/
-
-INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
-		      int si1, int sj1, int sp1, int sq1) {
-  /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, energy;
-  
-  if (n1>n2) { nl=n1; ns=n2;}
-  else {nl=n2; ns=n1;}
-
-  if (nl == 0)
-    return stack[type][type_2];    /* stack */
-
-  if (ns==0) {                       /* bulge */
-    energy = (nl<=MAXLOOP)?bulge[nl]:
-      (bulge[30]+(int)(lxc*log(nl/30.)));
-    if (nl==1) energy += stack[type][type_2];
-    else {
-      if (type>2) energy += TerminalAU;
-      if (type_2>2) energy += TerminalAU;
-    }
-    return energy;
-  }
-  else {                             /* interior loop */
-    if (ns==1) { 
-      if (nl==1)                     /* 1x1 loop */
-	return int11[type][type_2][si1][sj1];
-      if (nl==2) {                   /* 2x1 loop */
-	if (n1==1)
-	  energy = int21[type][type_2][si1][sq1][sj1];
-	else
-	  energy = int21[type_2][type][sq1][si1][sp1];
-	return energy;
-      }
-    }
-    else if (n1==2 && n2==2)         /* 2x2 loop */
-      return int22[type][type_2][si1][sp1][sq1][sj1];
-    { /* generic interior loop (no else here!)*/
-      energy = (n1+n2<=MAXLOOP)?(internal_loop[n1+n2]):
-	(internal_loop[30]+(int)(lxc*log((n1+n2)/30.)));
-      
-      energy += MIN2(MAX_NINIO, (nl-ns)*F_ninio[2]);
-      
-      energy += mismatchI[type][si1][sj1]+
-	mismatchI[type_2][sq1][sp1];
-    }
-  }
-  return energy;
-}
-
-
-/*---------------------------------------------------------------------------*/
-
 PRIVATE short * encode_seq(const char *sequence) {
   unsigned int i,l;
   short *S;
@@ -682,107 +565,6 @@ PRIVATE void parenthesis_structure(char *structure, int length)
     structure[base_pair[k].j-1] = ')';
   }
 }
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void scale_parameters(void)
-{
-  unsigned int i,j,k,l;
-  double tempf;
-
-  tempf = ((temperature+K0)/Tmeasure);
-  for (i=0; i<31; i++) 
-    hairpin[i] = (int) hairpin37[i]*(tempf);
-  for (i=0; i<=MIN2(30,MAXLOOP); i++) {
-    bulge[i] = (int) bulge37[i]*tempf;
-    internal_loop[i]= (int) internal_loop37[i]*tempf;
-  }
-  lxc = lxc37*tempf;
-  for (; i<=MAXLOOP; i++) {
-    bulge[i] = bulge[30]+(int)(lxc*log((double)(i)/30.));
-    internal_loop[i] = internal_loop[30]+(int)(lxc*log((double)(i)/30.));
-  }
-  for (i=0; i<5; i++)
-    F_ninio[i] = (int) F_ninio37[i]*tempf;
-   
-  for (i=0; (i*7)<strlen(Tetraloops); i++) 
-    TETRA_ENERGY[i] = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*tempf;
-  for (i=0; (i*5)<strlen(Triloops); i++) 
-    Triloop_E[i] =  Triloop_E37[i];
-   
-  MLbase = ML_BASE37*tempf;
-  for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
-    MLintern[i] = ML_intern37*tempf;
-    MLintern[i] +=  (i>2)?TerminalAU:0;
-  }
-  MLclosing = ML_closing37*tempf;
-
-  /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      stack[i][j] = enthalpies[i][j] -
-	(enthalpies[i][j] - stack37[i][j])*tempf;
-
-  /* mismatches */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<5; j++)
-      for (k=0; k<5; k++) {
-	mismatchI[i][j][k] = mism_H[i][j][k] -
-	  (mism_H[i][j][k] - mismatchI37[i][j][k])*tempf;
-	mismatchH[i][j][k] = mism_H[i][j][k] -
-	  (mism_H[i][j][k] - mismatchH37[i][j][k])*tempf;
-	mismatchM[i][j][k] = mism_H[i][j][k] -
-	  (mism_H[i][j][k] - mismatchM37[i][j][k])*tempf;
-      }
-   
-  /* dangles */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<5; j++) {
-      int dd;
-      dd = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*tempf; 
-      dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
-      dd = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*tempf;
-      dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
-    }
-  /* interior 1x1 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) 
-	  int11[i][j][k][l] = int11_H[i][j][k][l] -
-	    (int11_H[i][j][k][l] - int11_37[i][j][k][l])*tempf;
-
-  /* interior 2x1 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m;
-	  for (m=0; m<5; m++)
-	    int21[i][j][k][l][m] = int21_H[i][j][k][l][m] -
-	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
-	}
-  /* interior 2x2 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m,n;
-	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++)	     
-	      int22[i][j][k][l][m][n] = int22_H[i][j][k][l][m][n] -
-		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
-	}
-}
-
-/*---------------------------------------------------------------------------*/
-	   
-PUBLIC void update_alifold_params(void)
-{
-  scale_parameters();
-  make_pair_matrix();
-  if (init_length < 0) init_length=0;
-}
-
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void make_pscores(const short *const* S, int n_seq, const char *structure) {
