@@ -1,3 +1,5 @@
+#ifndef DIST_VARS_H
+#define DIST_VARS_H
 /*  Global variables for Distance-Package */
 
 extern int   edit_backtrack;  /* set to 1 if you want backtracking */ 
@@ -26,3 +28,4 @@ typedef struct {
                  int    sign;
                  float  weight; 
                } swString;
+#endif
