@@ -1,29 +1,29 @@
 /* Header file for utils.c */
-
+#include <config.h>
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #include "dmalloc.h"
 #define space(S) calloc(1,(S))
 #else
-/*@only@*/ /*@notnull@*/
-extern void  *space(unsigned size);           /* allocate space safely */
-/*@only@*/ /*@notnull@*/
-extern void  *xrealloc(void *p, unsigned size);
+extern /*@only@*/ /*@notnull@*/
+void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
+                            /* allocate space safely */ 
+extern /*@only@*/ /*@notnull@*/
+void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p, unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
 #endif
-/*@exits@*/
-extern void   nrerror(const char message[]);  /* die with error message */
+
+extern /*@exits@*/ void nrerror(const char message[]);  /* die with error message */
 extern void   init_rand(void);                /* make random number seeds */
 extern unsigned short xsubi[3];               /* current 48bit random number */
 extern double urn(void);                      /* random number from [0..1] */
 extern int    int_urn(int from, int to);      /* random integer */
 extern void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
-/*@observer@*/
-extern char  *time_stamp(void);               /* current date in a string */
-extern char  *random_string(int l, const char symbols[]);
+extern /*@observer@*/ char  *time_stamp(void);               /* current date in a string */
+extern /*@only@*/ /*@notnull@*/ char  *random_string(int l, const char symbols[]);
 /* random string of length l using characters from symbols[] */
 extern int    hamming(const char *s1, const char *s2);
 /* calculate hamming distance */
-extern char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
+extern /*@only@*/ /*@null@*/ char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
 
 
 extern char *pack_structure(const char *struc);
