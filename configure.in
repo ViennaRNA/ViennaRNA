@@ -35,7 +35,9 @@ fi
     
 if test -z "$PerlCmd"; then
     AC_MSG_RESULT(No suitable Perl found -- will not build Perl module)
-    AC_MSG_RESULT(You may set the PerlCmd environment variable to point to a suitable perl binary) 
+    AC_MSG_RESULT(You may set the PerlCmd environment variable to point to
+    a suitable perl binary)
+    with_perl="no"
 fi
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 
