@@ -1,5 +1,8 @@
-extern float  fold(char *string, char *structure);
+/* function from fold.c */
+extern float  fold(char *sequence, char *structure); 
+/* calculate mfe-structure of sequence */
 extern float  energy_of_struct(char *string, char *structure);
-extern void   free_arrays(void);
-extern void   initialize_fold(int length);
-extern void   update_fold_params(void);
+/* calculate energy of string on structure */
+extern void   free_arrays(void);           /* free arrays for mfe folding */
+extern void   initialize_fold(int length); /* allocate arrays for folding */
+extern void   update_fold_params(void);    /* recalculate parameters */

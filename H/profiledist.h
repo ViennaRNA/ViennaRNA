@@ -1,5 +1,14 @@
-extern float    profile_edit_distance(float **T1, float **T2);
+
 extern float  **Make_bp_profile(int length);
-extern void     sprint_aligned_bppm(float **T1, float **T2);
+/* condense pair probability matrix pr into a vector containing probabilities
+   for upstream paired, downstream paired and unpaired. This resulting
+   probability profile is used as input for profile_edit_distance */
+
+extern float    profile_edit_distance(float **T1, float **T2);
+/* align two probability profiles */
+
 extern void     print_bppm(float **T);
+/* print string representation of probability profile */
+
 extern void     free_profile(float **T);
+/* free space allocated in Make_bp_profile */

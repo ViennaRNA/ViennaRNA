@@ -10,21 +10,21 @@ extern int  tetra_loop;     /* Fold with specially stable 4-loops */
 extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
 extern int  dangles;	    /* use dangling end energies (not in part_func!) */
 extern char *nonstandards;  /* contains allowed non standard bases */
-extern float temperature;
+extern float temperature;   /* rescale parameters to this temperature */
 extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
 			       no mismatches, default 1 */
 
-struct bond {         /* bonding list */
+struct bond {               /* base pair */
    int i;
    int j;
 };
             
-extern struct bond  *base_pair;
+extern struct bond  *base_pair; /* list of base pairs */
 
 extern FLT_OR_DBL *pr;          /* base pairing prob. matrix */
 extern int   *iindx;            /* pr[i,j] -> pr[iindx[i]-j] */
 extern float  pf_scale;         /* scaling factor to avoid float overflows*/
-extern int    fold_constrained;
+extern int    fold_constrained; /* fold with constraints */
 extern int    do_backtrack;     /* calculate pair prob matrix in part_func() */
 extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
-				   'M' seq is part of s multi loop */
+				   'M' seq is part of a multi loop */
