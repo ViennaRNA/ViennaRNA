@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-04-30 18:41:36 ivo> */
+/* Last changed Time-stamp: <2001-05-08 09:24:47 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.9 2001/05/03 10:21:12 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.10 2001/05/08 07:26:12 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -75,13 +75,18 @@ PUBLIC void init_rand(void)
 }
 
 /*------------------------------------------------------------------------*/
-extern double erand48(unsigned short[]); 
+
 PUBLIC double urn(void)    
      /* uniform random number generator; urn() is in [0,1] */
      /* uses a linear congruential library routine */ 
      /* 48 bit arithmetic */
 { 
+#ifdef HAVE_ERAND48
+  extern double erand48(unsigned short[]); 
   return erand48(xsubi);
+#else
+  return ((double) rand())/RAND_MAX;
+#endif
 }
 
 /*------------------------------------------------------------------------*/
@@ -207,7 +212,7 @@ PUBLIC char *unpack_structure(const char *packed) {
   struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
   for (i=j=0; i<l; i++) {
-    register int k,p, j, c;
+    register int p, j, c, k;
     
     p = (int) pp[i] - 1;
     for (k=4; k>=0; k--) {
