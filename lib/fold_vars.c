@@ -1,13 +1,9 @@
-/* Last changed Time-stamp: <97/10/27 14:44:55 ivo> */
+/* Last changed Time-stamp: <1998-03-04 12:35:12 ivo> */
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
 */
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
-#else
-#define FLT_OR_DBL float
-#endif
+#include "fold_vars.h"
 
 int  noGU = 0;           /* GU not allowed at all */
 int  no_closingGU = 0;   /* GU allowed only inside stacks */
@@ -18,11 +14,6 @@ char *nonstandards = (char *)0; /* contains allowed non standard bases */
 float temperature = 37.0;
 int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
 			    no mismatches */
-struct bond {         /* bonding list */
-   int i;
-   int j;
-};
-	    
 struct bond  *base_pair;
 
 FLT_OR_DBL *pr;           /* base pairing prob. matrix */
