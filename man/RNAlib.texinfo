@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c Last changed Time-stamp: <2002-12-13 19:25:58 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.12 2003/01/30 09:06:35 ivo Exp $
+@set revision $Id: RNAlib.texinfo,v 1.13 2003/02/07 19:02:32 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -857,7 +857,7 @@ and now expects the structure to be plotted in dot-bracket notation as an
 argument. It does not make use of the global @code{base_pair} array anymore.
 @end deftypefun
 
-@deftypefun int PS_rna_plot_a (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char* @var{pre}), char* @var{post}))
+@deftypefun int PS_rna_plot_a (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char* @var{pre}, char* @var{post})
 Same as @code{PS_rna_plot} but adds extra PostScript macros for various
 annotations (see generated PS code). The @var{pre} and @var{post}
 variables contain PostScript code that is verbatim copied in the
