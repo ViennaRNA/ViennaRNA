@@ -8,8 +8,6 @@
 #include <math.h>
 #include <ctype.h>
 #include <unistd.h>
-#include <malloc.h>
-#include <errno.h>
 #include <string.h>
 #include "dist_vars.h"
 #include "RNAstruct.h"
@@ -22,7 +20,7 @@
 #define PUBLIC
 #define PRIVATE     static
 /*@unused@*/
-static char rcsid[] = "$Id: RNAdistance.c,v 1.4 2000/09/28 08:20:48 ivo Rel $";
+static char rcsid[] = "$Id: RNAdistance.c,v 1.5 2001/04/30 16:38:58 ivo Exp $";
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);

@@ -4,18 +4,19 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2000-10-05 15:15:20 ivo> */
+/* Last changed Time-stamp: <2001-04-29 12:22:21 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
-#ifdef DMALLOC
+#include "../config.h"
+#ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.7 2000/10/05 13:16:23 ivo Rel $";
+static char rcsid[] = "$Id: utils.c,v 1.8 2001/04/30 16:38:58 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -36,11 +37,8 @@ PUBLIC char  *get_line(FILE *fp);
 PUBLIC unsigned short xsubi[3];
 
 /*-------------------------------------------------------------------------*/
-#ifdef DMALLOC
-#define space(S) calloc(1,(S))
-#else
-PUBLIC void *space(unsigned size)
-{
+
+PUBLIC void *space(unsigned size) {
   void *pointer;
   
   if ( (pointer = (void *) calloc(1, (size_t) size)) == NULL) {
@@ -55,6 +53,8 @@ PUBLIC void *space(unsigned size)
   }
   return  pointer;
 }
+#ifdef WITH_DMALLOC
+#define space(S) calloc(1,(S))
 #endif
 /*------------------------------------------------------------------------*/
 
@@ -153,12 +153,11 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
       line = space(strlen(s)+1);
     else
       line = (char *) realloc(line, strlen(s)+strlen(line)+1);
-    strcat(line,s);
+    strcat(line, s);
   } while(cp==NULL);
   
   return line;
 }
-
 
 /*-----------------------------------------------------------------*/
 
@@ -204,13 +203,11 @@ PUBLIC char *unpack_structure(const char *packed) {
   char code[3] = {'(', '.', ')'};
 
   l = (int) strlen(packed);
-  pp = (unsigned char *) packed;
+  pp = (const unsigned char *) packed;
   struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
-  j=0;
   for (i=j=0; i<l; i++) {
-    register int p;
-    int k, c;
+    register int p, j, c;
     
     p = (int) pp[i] - 1;
     for (k=4; k>=0; k--) {
@@ -227,8 +224,7 @@ PUBLIC char *unpack_structure(const char *packed) {
   return struc;
 }
 
-				   
-/*---------------------------------------------------------------------------*/ 
+/*--------------------------------------------------------------------------*/ 
 
 PUBLIC short *make_pair_table(const char *structure)
 {

@@ -1,26 +1,51 @@
 Installation:
 
-To compile this package you need a compiler that understands ANSI C.
+This package uses GNU autoconf generated configure scripts, see the
+file INSTALL.gnu for generic configure documentation.
 
-Check the makefiles in the subdirectories, and edit the
-CC CFLAGS BINDIR MANDIR and LIBDIR variables to suit your system.
+Usually you'll just have to type:
+	./configure
+	make
+and (as root)
+	make install 
 
-Type
-        make all
-to build the library and the programs in the ./Progs, ./Cluster and ./Utils 
-directories.
-Type
-        make install
-to copy the executables and man pages to the directories specified by
-BINDIR and MANDIR (./bin and ./man/man1 by default, edit makefiles to change). 
-If you plan on using the library, you'll also want to install the header 
-files from ./H in a suitable place. This is not done by the makefile. 
-Also feel free to copy all header files into a single one, if you dislike 
-using a lot of #includes in your programs.
+Install Paths:
+The main programs, library, man, and info pages are
+installed in the usual places by default
+(i.e. /usr/local/{bin,lib,man,info}). In addition the following
+install paths are used:
+header files	/usr/local/include/ViennaRNA	[includedir/ViennaRNA]
+parameter files	/usr/local/share/ViennaRNA      [datadir/ViennaRNA]
+extra scripts	/usr/local/share/ViennaRNA/bin  [datadir/ViennaRNA/bin]
+documentation   /usr/local/share/ViennaRNA/doc  [datadir/ViennaRNA/doc]
 
-To install the Perl module you need root priviledges, just type
-make install in the Perl directory. To install the readseq program,
-follow the instructions in the readseq directory.
+All these locations can be changed by calling ./configure with
+appropriate options.
+
+The installed location of the Perl module is determined by Perl's own
+configuration, independent of any configure options. 
+To leave out the Perl modules run
+   ./configure --without-perl
+
+The programs AnalyseSeqs and AnalyseDists offer some cluster analysis
+tools (split decomposition, statistical geometry, neighbor joining,
+Ward's method) for sequences and distance data. To also build these
+programs add  --with-cluster  to your configure options.
+
+Calculation of partition functions (via RNAfold -p) uses double
+precision floats by default, to avoid overflow errors on longer sequences.  
+If your machine has little memory and you dont't plan to fold sequences
+over 1000 bases in length you can compile the package to do the computions 
+in single precision by ....
+
+Memory requirements for a sequence of length n will be approximately
+12*n^2 bytes for RNAfold -p in the double precision version, and
+ 4*n^2 bytes for the minimum free energy alone.
+  
+
+The readseq program is not integrated in the build process. If desired,
+install readseq manually, following the instructions in the readseq
+directory.
 
 There are man pages for all executables, the library is documented in
 ./man/RNAlib.texinfo. You can either print this file as a manual using
@@ -42,18 +67,4 @@ doesn't understand ANSI C.
 On HP machines running hpux-9 or hpux-10 add -DHP9 to the CFLAGS so that
 fpsetfastmode() will be called.
 
-Nothing special has to be done for AIX-3.2 and OSF/1. 
-
-Partition function folding (via RNAfold -p) of long sequences can fail
-because of overflow errors. To avoid this double precision floating point 
-numbers can be used at the expense of doubling memory requirements.
-If your machine has little memory and you dont't plan to fold sequences
-several 1000 bases in length you can compile the package to do the compautions 
-in single precision by editing the file ./H/fold_vars.h and deleting the second 
-line, which normally reads
-#define LARGE_PF
-
-Memory requirements for a sequence of length n will be approximately
-12*n^2 bytes for RNAfold -p in the double precision version, and
- 4*n^2 bytes for the minimum free energy alone.
 

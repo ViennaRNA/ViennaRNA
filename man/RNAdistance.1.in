@@ -73,7 +73,7 @@ I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125, 167-188
 .SH VERSION
-This man page documents version 1.2 Vienna RNA Package
+This man page documents version @VERSION@ Vienna RNA Package
 .SH AUTHORS
 Walter Fontana, Ivo L Hofacker, Peter F Stadler.
 .SH BUGS

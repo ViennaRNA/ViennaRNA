@@ -31,3 +31,5 @@ Specify output format. Available formats are: PostScript (ps), Graph Meta
 Language (gml), and XRNA save file (xrna). Output filenames will end
 in '.ps' '.gml' '.ss', respectively. Default is ps.
 .TP
+.SH "VERSION"
+This man page documents version @VERSION@ Vienna RNA Package.

@@ -49,7 +49,7 @@ binding probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
 .br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents version 1.3 Vienna RNA Package.
+This man page documents version @VERSION@ Vienna RNA Package.
 .SH AUTHORS
 Ivo L Hofacker, Peter F Stadler.
 .SH SEE ALSO

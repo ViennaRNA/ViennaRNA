@@ -1,8 +1,8 @@
 /* Header file for utils.c */
 
-#ifdef DMALLOC
+#ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
-#include "/usr/local/include/dmalloc.h"
+#include "dmalloc.h"
 #define space(S) calloc(1,(S))
 #else
 /*@only@*/ /*@notnull@*/

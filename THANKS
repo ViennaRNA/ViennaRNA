@@ -1,15 +1,7 @@
-These people have written parts of or otherwise contributed to this software: 
-
-Ivo Hofacker   (all parts)
-Peter Stadler  (design, documentation, cluster algorithms)
-Walter Fontana (suboptimal folding, pre-historic implementation of mfe folding)
-Stefan Wuchty  (suboptimal folding)
-
-Smaller contributions:
-Manfred Tacker hacked constrained folding into fold.c for the first time
 Sebastian Bonhoeffer's implementation of partition function folding served
 	  as a precursor to our part_func.c
-
+Manfred Tacker hacked constrained folding into fold.c for the first time
+Martin Fekete made the first attempts at "alignment folding"
 
 Thanks also to everyone who helped testing and finding bugs, especially
-Christoph Flamm, Martijn Huynen, ....
+Christoph Flamm, Martijn Huynen, Baerbel Krakhofer, and many more

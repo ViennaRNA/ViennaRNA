@@ -60,8 +60,11 @@ S. Wuchty, W. Fontana, I. L. Hofacker and P. Schuster
 Secondary Structures",
 Biopolymers, 49, 145-165 (1999)
 
+.SH "VERSION"
+This man page documents version @VERSION@ Vienna RNA Package.
+
 .SH AUTHORS
-Stefan Wuchty, Ivo L Hofacker, Walter Fontana.
+Ivo L Hofacker, Stefan Wuchty, Walter Fontana.
 \"  LocalWords:  RNASUBOPT RNAsubopt suboptimal RNAs fBRNAsubopt fIrange fP ep
 \"  LocalWords:  prange lodos fItemp noGU noCloseGU paramfile logML nsp stdin
 \"  LocalWords:  mfe kcal mol stdout TP RNAfold RNAeval multi fIprange noLP fB

@@ -1,0 +1,59 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(Progs/RNAfold.c)
+dnl Every other copy of the package version number gets its value from here
+AM_INIT_AUTOMAKE(ViennaRNA, 1.5)
+dnl change the default installation prefix
+dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
+
+dnl configure options
+AM_WITH_DMALLOC
+AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDists])
+AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
+
+dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
+AM_CONFIG_HEADER(config.h)
+
+AC_SUBST(VERSION)
+
+ISODATE=`date +%Y-%m-%d`
+AC_SUBST(ISODATE)
+
+AC_CANONICAL_HOST
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+AC_PATH_PROG(PerlCmd, perl)
+if test -n "$PerlCmd"; then
+  if ! $PerlCmd -e 'require 5.005'; then
+     AC_MSG_RESULT(You need Perl version 5.005 or higher for the Perl module)
+     with_perl="no"
+   fi
+fi
+    
+if test -z "$PerlCmd"; then
+    AC_MSG_RESULT(No suitable Perl found -- will not build Perl module)
+    AC_MSG_RESULT(You may set the PerlCmd environment variable to point to a suitable perl binary) 
+fi
+AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
+
+AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
+
+dnl Checks for libraries.
+dnl AC_REPLACE_GNU_GETOPT
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(malloc.h strings.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_INLINE
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(strdup strstr strchr erand48)
+
+AC_OUTPUT(Makefile ViennaRNA.spec AliFold/Makefile Subopt/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1)
