@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.18 2002/10/24 17:53:29 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.19 2002/11/06 13:28:28 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -399,13 +399,14 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
     Y[i] = ymin+ymax - Y[i]; /* mirror coordinates so they look as in PS */
 
   size = MAX((xmax-xmin),(ymax-ymin));
-  
+  size += 10; /* add some so the bounding box isn't too tight */
+
   fprintf(xyplot,
 	  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
 	  "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n"
 	  "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" />\n"
-	  "  <g transform=\"translate (10,10) scale(%f,%f) translate(%f,%f)\">\n",
-	  432./size, 432./size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
+	  "  <g transform=\"scale(%7f,%7f) translate(%7f,%7f)\">\n",
+	  SIZE/size, SIZE/size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
   
   fprintf(xyplot,
 	  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
@@ -568,7 +569,6 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 #define PMIN 0.00001
 PRIVATE void print_PSdot_header(FILE *wastl, char *title, char *seq) {
   int i;
-  char *escaped;
 
   fprintf(wastl,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
