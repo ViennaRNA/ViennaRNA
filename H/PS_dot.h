@@ -7,6 +7,8 @@ extern int gmlRNA(char *string, char *structure, char *ssfile, char option);
 /* structure drawing in gml */
 extern int ssv_rna_plot(char *string, char *structure, char *ssfile);
 /*write coord file for SStructView */
+extern int svg_rna_plot(char *string, char *structure, char *ssfile);
+/*write RNAplot in SVG */
 extern int xrna_plot(char *string, char *structure, char *ssfile);
 /*write .ss file for further editing in XRNA */
 extern int PS_dot_plot(char *string, char *file);
