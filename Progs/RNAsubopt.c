@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-11-15 12:25:06 ivo> */
+/* Last changed Time-stamp: <2003-08-26 11:13:31 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -20,14 +20,14 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.9 2003/08/04 09:14:09 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.10 2003/08/26 09:26:23 ivo Exp $";
 
 #define PRIVATE static
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 
-extern float print_energy;
+extern double print_energy;
 PRIVATE void usage(void);
 extern char *pbacktrack(char *sequence);
 /*--------------------------------------------------------------------------*/
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
    char  *ns_bases = NULL, *c;
    int   i, length, l, sym, r;
    int   istty;
-   float deltaf, deltap=0;
+   double deltaf, deltap=0;
    int delta=100;
    int n_back = 0;
    
@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
 	  case 'e':
 	    if (i>=argc-1) usage();
 	    if (strcmp(argv[i],"-ep")==0) 
-	      r=sscanf(argv[++i], "%f", &deltap);
+	      r=sscanf(argv[++i], "%lf", &deltap);
 	    else {
-	      r=sscanf(argv[++i], "%f", &deltaf);
+	      r=sscanf(argv[++i], "%lf", &deltaf);
 	      delta = (int) (0.1+deltaf*100);
 	    }
 	    if (r!=1) usage();
