@@ -5,7 +5,15 @@ EXTRA_DIST = RNA.pm RNA_wrap.doc RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi
 Makefile.perl: Makefile.PL Makefile
 	@PerlCmd@ Makefile.PL
 
-all-local: Makefile.perl
+# the perl command repairs some errors in the SWIG CVS version
+RNA_wrap.c: RNA.i
+	swig -perl5 -shadow RNA.i
+	@PerlCmd@ -i -npe \
+	's/^\s+\;\s+$//; \
+	 s/SWIGTYPE_p_unsigned_short/SWIGTYPE_p_short/' \
+	RNA_wrap.c
+
+all-local: Makefile.perl RNA_wrap.c
 	$(MAKE) -f Makefile.perl
 
 install-exec-local: all-local

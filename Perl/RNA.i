@@ -29,7 +29,7 @@ const double VERSION = 0.2;
 %subsection "Inverse Folding"
 %include  "../H/inverse.h"
 %subsection "Global Variables to Modify Folding"
-extern double *pr;  /*  base pairing prob. matrix */
+//extern double *pr;  /*  base pairing prob. matrix */
 %include  "../H/fold_vars.h"
 %{
 double get_pr(int i, int j) {
@@ -96,9 +96,9 @@ int bp_distance(const char *str1, const char *str2);
 %include  "../H/PS_dot.h"
 
 // from read_epars.c
-extern void  read_parameter_file(const char fname[]);
+extern void  read_parameter_file(char *fname);
 /* read energy parameters from file */
-extern void  write_parameter_file(const char fname[]);
+extern void  write_parameter_file(char *fname);
 /* write energy parameters to file */
 //%include array.i
 %include pointer.i

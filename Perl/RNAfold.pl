@@ -8,8 +8,8 @@ use strict;
 
  Getopt::Long::config("no_ignore_case");
 
-use vars qw/$opt_debug $opt_v $ParamFile $pf $sfact $ns_bases/;
-
+use vars qw/$opt_debug $opt_v $ParamFile $pf $ns_bases/;
+my $sfact=1.07;
 &usage() unless GetOptions("p|p1" => \$pf,
 			   "p0" => sub {$pf=1; $RNA::do_backtrack=0},
 			   "C"   => \$RNA::fold_constrained,
