@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-04-08 22:44:40 ivo> */
+/* Last changed Time-stamp: <1999-04-06 18:06:16 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -14,7 +14,7 @@
 #include "fold.h"
 #include "fold_vars.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAsubopt.c,v 1.2 1998/05/19 16:31:17 ivo rel $";
+static char rcsid[] = "$Id: RNAsubopt.c,v 1.3 1999/05/06 10:11:32 ivo Exp $";
 
 #define PRIVATE static
 
@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
    int   i, length, l, sym, r;
    float energy, min_en;
    int   istty;
-   float deltaf;
+   float deltaf, deltap=0;
+   extern float print_energy;
    
    do_backtrack = 1;
    dangles = 2;
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
+	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
 	      r=sscanf(argv[++i], "%32s", ns_bases);
@@ -90,12 +92,22 @@ int main(int argc, char *argv[])
 	      LODOS_ONLY=1;
 	      sorted = 1;
 	    }
-	    else usage();
+	    else {
+	      if (strcmp(argv[i],"-logML")==0) {
+		logML=1;
+		break;
+	      }
+	      else usage();
+	    }
 	    break;
 	  case 'e':
-	    r=sscanf(argv[++i], "%f", &deltaf);
-	    if (!r) usage();
-	    delta = (int) (0.1+deltaf*100);
+	    if (strcmp(argv[i],"-ep")==0) {
+	      r=sscanf(argv[++i], "%f", &deltap);
+	    } else {
+	      r=sscanf(argv[++i], "%f", &deltaf);
+	      delta = (int) (0.1+deltaf*100);
+	    }
+	    if (r!=1) usage();
 	    break;
 	  default: usage();
 	  } 
@@ -174,6 +186,10 @@ int main(int argc, char *argv[])
 	    nrerror("only constraints of type 'x' allowed");
       }
       min_en = fold(sequence, structure);
+      if (logML) {
+	if (deltap==0) deltap=delta/100.;
+	print_energy = min_en + deltap;
+      }
       /* first lines of output (suitable  for sort +1n) */
       if (fname[0] != '\0')
 	printf("> %s [%6.2f to %6.2f]\n", fname, min_en, min_en+delta/100.);
@@ -195,7 +211,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
    nrerror("usage: "
-	   "RNAsubopt [-e range] [-s] [-lodos]\n"
+	   "RNAsubopt [-e range] [-ep prange] [-s] [-lodos] [-logML]\n"
 	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
-	   "          [-P paramfile] [-nsp pairs]");
+	   "          [-noLP] [-P paramfile] [-nsp pairs]");
 }
