@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-13 17:34:43 ivo> */
+/* Last changed Time-stamp: <2003-12-16 11:36:01 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.6 2003/09/15 11:34:42 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.7 2004/02/09 16:47:11 ivo Exp $";
 
 #define PAREN
 
@@ -340,7 +340,7 @@ float alifold(char **strings, char *structure)
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
     fij = (ml)? fML[indx[j]+i] : f5[j];
-    fi  = (ml)?(fML[indx[j-1]+i]+P->MLbase):f5[j-1];
+    fi  = (ml)?(fML[indx[j-1]+i]+n_seq*P->MLbase):f5[j-1];
 
     if (fij == fi) {  /* 3' end is unpaired */
       sector[++s].i = i;
