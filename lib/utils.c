@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-03-31 23:20:22 ivo> */
+/* Last changed Time-stamp: <1998-07-03 16:38:38 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "/usr/local/debug_include/malloc.h"
 #endif
 
-static char rcsid[] = "$Id: utils.c,v 1.4 1998/03/31 21:36:46 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.5 1998/07/03 14:38:55 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
