@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.20 2003/02/16 12:28:19 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.21 2003/07/14 13:37:30 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -218,8 +218,8 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
    fprintf(xyplot, "] def\n\n");
    /* setup */
    fprintf(xyplot,
-	   "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
-	   "          rmoveto show} bind def\n\n");
+	   "/cshow  { dup stringwidth pop -2 div fsize -3 div "
+	   " rmoveto show} bind def\n\n");
    if (pre || post) {  /* macros for annotations */
      fprintf(xyplot,
 	     "%% extra definitions for standard anotations\n"
@@ -334,7 +334,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 	  "  0\n"
 	  "  coor {\n"
 	  "    aload pop moveto\n"
-	  "    dup sequence exch 1 getinterval  cshow\n"
+	  "    dup sequence exch 1 getinterval cshow\n"
 	  "    1 add\n"
 	  "  } forall\n"
 	  "  pop\n"
