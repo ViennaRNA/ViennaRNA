@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-11-15 12:09:22 ivo> */
+/* Last changed Time-stamp: <2001-12-13 14:58:29 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -18,7 +18,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.13 2001/11/16 17:30:04 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.14 2002/02/08 17:37:23 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -613,8 +613,8 @@ PUBLIC void free_pf_arrays(void)
 #endif
 #endif
   init_length=0;
-  free(S);
-  free(S1);
+  free(S); S=NULL;
+  free(S1); S1=NULL;
 }
 /*---------------------------------------------------------------------------*/
 
@@ -735,6 +735,9 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 /* -*-C-*- */
 /*
   $Log: part_func.c,v $
+  Revision 1.14  2002/02/08 17:37:23  ivo
+  set freed S,S1 pointers to NULL
+
   Revision 1.13  2001/11/16 17:30:04  ivo
   add stochastic backtracking (still incomplete)
 
