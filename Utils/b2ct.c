@@ -1,4 +1,4 @@
-/* Last Changed Time-stamp: <1999-09-17 16:10:55 ivo> */
+/* Last Changed Time-stamp: <2001-09-07 10:17:47 ivo> */
 /* This program converts the bracket notation for RNA secondary structures
    produced by RNAfold to .ct files used by Michael Zukers Program.
    To compile enter:
@@ -10,6 +10,8 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define MAXLENGTH 30000
 
 void write_ct_file(char *fname, char *sequence, char *structure, char *name,
@@ -18,14 +20,14 @@ short *make_pair_table(const char *structure);
 void *space(unsigned size);
 void nrerror(char *message);
 
-main(void)
+int main(void)
 {
    char line[MAXLENGTH+1];
    char *string=NULL, *structure=NULL, *name=NULL;
    float energy;
    int n=0;
    
-   while (gets(line)!=NULL) {
+   while (fgets(line, MAXLENGTH, stdin)!=NULL) {
        if (strcmp(line,"@")==0) break;
       
        switch (line[0]) {
@@ -55,12 +57,13 @@ main(void)
 	 string = structure = name = NULL;
        }
    }
+   return 0;
 }
 
 void write_ct_file(char *fname, char *sequence, char *structure, char *name,
 		   float energy)
 {
-   int i,j,length;
+   int i, length;
    short *table;
    FILE *ct;
 
