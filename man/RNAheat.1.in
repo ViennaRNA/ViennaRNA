@@ -31,7 +31,7 @@ The \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP, \fB\-e\fP,
 \fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.
 .SH EXAMPLES
 .nf
-	RNAheat -Tmin -30 -Tmax 120 -h0.1 -m4 < tRNA.seq | xvgr -pipe
+	RNAheat -Tmin -30 -Tmax 120 -h 0.1 -m 4 < tRNA.seq | xmgr -pipe
 .nf
 produces plots of the specific heat of the sequences in tRNA.seq.
 .SH REFERENCES
@@ -49,7 +49,7 @@ binding probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
 .br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents version 1.2 Vienna RNA Package.
+This man page documents version 1.3 Vienna RNA Package.
 .SH AUTHORS
 Ivo L Hofacker, Peter F Stadler.
 .SH SEE ALSO
