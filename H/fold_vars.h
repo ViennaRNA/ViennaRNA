@@ -17,7 +17,7 @@ extern double temperature;   /* rescale parameters to this temperature */
 extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
 			       no mismatches, default 1 */
 extern int  logML;          /* use logarithmic multiloop energy function */
-
+extern int  cut_point;      /* first position of 2nd strand for co-folding */
 struct bond {               /* base pair */
    int i;
    int j;
