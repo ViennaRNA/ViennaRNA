@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.13 2000/10/10 12:25:05 ivo Rel $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.14 2001/04/05 07:31:10 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -23,6 +23,7 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.13 2000/10/10 12:25:05 ivo Rel $";
 #define  PIHALF       PI/2.
 
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
+PUBLIC int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
@@ -131,8 +132,11 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 }
 
 /*---------------------------------------------------------------------------*/
+int PS_rna_plot(char *string, char *structure, char *ssfile) {
+  return PS_rna_plot_a(string, structure, ssfile, NULL);
+}
 
-int PS_rna_plot(char *string, char *structure, char *ssfile)
+int PS_rna_plot_a(char *string, char *structure, char *ssfile, char **A)
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
@@ -209,17 +213,97 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
    /* setup */
    fprintf(xyplot,
 	   "/cshow  { dup stringwidth pop fsize neg 3 div exch neg 2 div exch\n"
-	   "          rmoveto show} bind def\n"
+	   "          rmoveto show} bind def\n\n");
+   if (A) {  /* macros for annotations */
+     fprintf(xyplot,
+	     "%% extra definitions for standard anotations\n"
+	     "/min { 2 copy gt { exch } if pop } bind def\n"
+	     "/BLACK { 0 0 0 } def\n"
+	     "/RED   { 1 0 0 } def\n"
+	     "/GREEN { 0 1 0 } def\n"
+	     "/BLUE  { 0 0 1 } def\n"
+	     "/WHITE { 1 1 1 } def\n"
+	     "/LabelFont { %% font size LabelFont\n"
+	     "   exch findfont exch fsize mul scalefont setfont\n"
+	     "} bind def\n"
+	     "/Label { %% i dx dy (text) Label\n"
+	     "   %% write text at base i plus offset dx, dy\n"
+	     "   4 3 roll 1 sub coor exch get aload pop moveto\n"
+	     "   3 1 roll fsize mul exch fsize mul exch rmoveto\n"
+	     "   show\n"
+	     "} bind def\n"
+	     "/cmark { %% i cmark   draw circle around base i\n"
+	     "   newpath 1 sub coor exch get aload pop\n"
+	     "   fsize 2 div 0 360 arc stroke\n"
+	     "} bind def\n"
+	     "/gmark { %% i j c cmark\n"
+	     "   %% draw basepair i,j with c counter examples in gray\n"
+	     "   gsave\n"
+	     "   3 min [0 0.33 0.66 0.9] exch get setgray\n"
+	     "   1 sub dup coor exch get aload pop moveto\n"
+	     "   sequence exch 1 getinterval cshow\n"
+	     "   1 sub dup coor exch get aload pop moveto\n"
+	     "   sequence exch 1 getinterval cshow\n"
+	     "   grestore\n"
+	     "} bind def\n"
+	     "/segmark { %% f i j lw r g b segmark\n"
+	     "   %% mark segment [i,j] with outline width lw and color rgb\n"
+	     "   %% use omark and Fomark instead\n"
+	     "   gsave\n"
+	     "    setrgbcolor setlinewidth\n"
+	     "    newpath\n"
+	     "    1 sub exch 1 sub dup\n"
+	     "    coor exch get aload pop moveto\n"
+	     "    exch 1 exch {\n"
+	     "	    coor exch get aload pop lineto\n"
+	     "    } for\n"
+	     "    { closepath fill } if  stroke\n"
+	     "   grestore\n"
+	     "} bind def\n"
+	     "/omark { %% i j lw r g b omark\n"
+	     "   %% stroke segment [i..j] with linewidth lw, color rgb\n"
+	     "   false 7 1 roll segmark\n"
+	     "} bind def\n"
+	     "/Fomark { %% i j r g b Fomark\n"
+	     "   %% fill segment [i..j] with color rgb\n"
+             "   %% should precede drawbases\n"
+	     "   1 4 1 roll true 7 1 roll segmark\n"
+	     "} bind def\n"
+	     "/BFmark{ %% i j k l r g b BFmark\n"
+	     "   %% fill block between pairs (i,j) and (k,l) with color rgb\n"
+	     "   %% should precede drawbases\n"
+	     "   gsave\n"
+	     "    setrgbcolor\n"
+	     "    newpath\n"
+	     "    exch 4 3 roll exch 1 sub exch 1 sub dup\n"
+	     "    coor exch get aload pop moveto\n"
+	     "    exch 1 exch { coor exch get aload pop lineto } for\n"
+	     "    exch 1 sub exch 1 sub dup\n"
+	     "    coor exch get aload pop lineto\n"
+	     "    exch 1 exch { coor exch get aload pop lineto } for\n"
+	     "    closepath fill stroke\n"
+	     "   grestore\n"
+	     "} bind def\n\n");
+   }
+   fprintf(xyplot,
 	   "1 setlinejoin\n"
 	   "1 setlinecap\n"
 	   "0.8 setlinewidth\n");
-
   fprintf(xyplot, "72 216 translate\n");
   fprintf(xyplot, "72 6 mul %3.3f div dup scale\n", size);
   fprintf(xyplot, "%4.3f %4.3f translate\n",
 	  (size-xmin-xmax)/2, (size-ymin-ymax)/2);
   fprintf(xyplot, "/Helvetica findfont fsize scalefont setfont\n");
   /* draw the data */
+  if (A) {
+    fprintf(xyplot, "%% Start Annotations\n");
+    while (*A) {
+      if (**A=='\n') {A++; break;}
+      fprintf(xyplot, "%s\n", *A);
+      A++;
+    }
+    fprintf(xyplot, "%% End Annotations\n");
+  }
   fprintf(xyplot,
 	  "%% draw the outline\n"
 	  "drawoutline {\n"
@@ -248,7 +332,17 @@ int PS_rna_plot(char *string, char *structure, char *ssfile)
 	  "     coor exch 1 sub get aload pop lineto\n"
 	  "  } forall\n"
 	  "  stroke\n"
-	  "} if\n");
+	  "} if\n"
+	  "[] 0 setdash\n");
+  
+  if (A) {
+    fprintf(xyplot, "%% Start Annotations\n");
+    while (*A) {
+      fprintf(xyplot, "%s\n", *A);
+      A++;
+    }
+    fprintf(xyplot, "%% End Annotations\n");
+  }
   fprintf(xyplot, "%% show it\nshowpage\n");
   fprintf(xyplot, "end\n");
   fprintf(xyplot, "%%%%EOF\n");
