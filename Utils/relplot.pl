@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2004-08-09 11:34:11 ivo>
-# $Id: relplot.pl,v 1.4 2004/08/09 09:52:22 ivo Exp $
+# Last changed Time-stamp: <2005-03-04 11:36:56 ivo>
+# $Id: relplot.pl,v 1.5 2005/03/04 17:54:55 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
 use strict;
@@ -29,20 +29,22 @@ if (!$opt_p) {
   foreach (@sp) {
     $Smax = $_ if $_>$Smax;
   }
-  $Smax = sprintf("%3.1f", $Smax);
+  $Smax = ($Smax>0.2) ? sprintf("%3.1f", $Smax) : 0.2 ;
+
 }
 print $ss_ps[0];     # print head
 if (!$macro_seen) {
   print <<_E_O_F_
+/range 0.8 def
 /drawreliability {
   /Smax $Smax def
   0
   coor {
     aload pop
     S 3 index get
-    invert { Smax exch sub } if
-    Smax div
-    0.9 min 1 1 sethsbcolor
+    Smax div range mul
+    invert {range exch sub} if
+    1 1 sethsbcolor
     newpath
     fsize 2 div 0 360 arc
     fill
@@ -60,10 +62,11 @@ if (!$macro_seen) {
     /tics 64 def
     gsave
       10 tics div 1 scale
-      invert {tics -1 0} {0 1 tics} ifelse
+      0 1 tics
       {
-          dup 0 moveto
-          0.9 tics div mul 
+          dup 0 moveto 0.5 add
+          tics div range mul
+          invert {range exch sub} if
           1 1 sethsbcolor
           1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
       } for
