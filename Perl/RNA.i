@@ -20,7 +20,9 @@
 %constant double VERSION = 0.3;
 %include typemaps.i
 %typemap(perl5,in) FILE * {
-$target = IoIFP(sv_2io($source));
+  if (SvOK($source)) /* check for undef */
+	$target = IoIFP(sv_2io($source));
+  else  $target = NULL;
 }
 
 %title "Interface to the Vienna RNA library"

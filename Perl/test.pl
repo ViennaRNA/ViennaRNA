@@ -101,5 +101,12 @@ print 'not ' if ($ss ne $struc1);
 print "ok 13\n";
 RNA::free_arrays();
 
-$solution = RNA::subopt($seq1, undef, 100, undef);
-print $solution->energy;
+$RNA::sorted = 1;
+$RNA::noLonelyPairs = 1;
+$solution = RNA::subopt($seq1, undef, 500, undef);
+
+printf "%d suboptimals\n", $solution->size();
+for (0..$solution->size()-1) {
+  printf "%s %6.2f\n",  $solution->get($_)->{structure},
+  			$solution->get($_)->{energy};
+}

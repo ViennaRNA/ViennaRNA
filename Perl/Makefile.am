@@ -7,8 +7,8 @@ Makefile.perl: Makefile.PL Makefile
 
 # the perl command repairs some errors in the SWIG CVS version
 RNA_wrap.c: RNA.i
-	swig -perl5 RNA.i
-	@PerlCmd@ -i -npe 's/\A\s+\;\s+\Z//; s/SWIGTYPE_p_unsigned_short/SWIGTYPE_p_short/' RNA_wrap.c
+	swig -perl5 -shadow RNA.i
+#	@PerlCmd@ -i -npe 's/\A\s+\;\s+\Z//; s/SWIGTYPE_p_unsigned_short/SWIGTYPE_p_short/' RNA_wrap.c
 
 all-local: Makefile.perl RNA_wrap.c
 	$(MAKE) -f Makefile.perl
