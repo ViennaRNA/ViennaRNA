@@ -93,7 +93,6 @@ int    hamming(const char *s1, const char *s2);
 int bp_distance(const char *str1, const char *str2);
 /* dist = {number of base pairs in one structure but not in the other} 
    same as edit distance with open-pair close-pair as move-set */
-%include  "../H/PS_dot.h"
 
 // from read_epars.c
 extern void  read_parameter_file(char *fname);
@@ -238,3 +237,28 @@ symbolset = (char *) space(21);
 strcpy(symbolset, "AUGC");
 
 %}
+
+
+// Convert Perl array reference int a char ** 
+%typemap(perl5,in) char ** {
+  AV *tempav;
+  I32 len;
+  int i;
+  SV **tv;
+  if (!SvROK($source)) croak("$source is not a reference.");
+  if (SvTYPE(SvRV($source)) != SVt_PVAV) croak("$source is not an array.");
+  tempav = (AV*)SvRV($source);
+  len = av_len(tempav);
+  $target = (char **) malloc((len+2)*sizeof(char *));
+  for (i = 0; i <= len; i++) {
+    tv = av_fetch(tempav, i, 0);
+    $target[i] = (char *) SvPV(*tv,PL_na);
+  }
+  $target[i] = 0;
+}
+// This cleans up our char ** array after the function call
+%typemap(perl5,freearg) char ** {
+  free($source);
+}
+%include  "../H/PS_dot.h"
+

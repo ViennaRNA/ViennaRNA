@@ -85,6 +85,8 @@ if (($RNA::loops==2) && ($RNA::pairs==5)&&($RNA::unpaired==6)&&
 }
 
 RNA::PS_rna_plot($seq1, $struc1, "test_ss.ps");
+@anote = ("2 15 1 gmark", "3 cmark");
+RNA::PS_rna_plot_a($seq1, $struc1, "test_ss_a.ps", \@anote);
 RNA::PS_dot_plot($seq1, "test_dp.ps");
 RNA::ssv_rna_plot($seq1, $struct, "test.coord");
 # print "$seq1, $struct, $mfe, $f\n";
@@ -97,3 +99,4 @@ $ss = $seq1;
 RNA::fold($seq1, $ss);
 print 'not ' if ($ss ne $struc1);
 print "ok 13\n";
+RNA::free_arrays();
