@@ -19,11 +19,10 @@ extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
 extern int  logML;          /* use logarithmic multiloop energy function */
 extern int  cut_point;      /* first position of 2nd strand for co-folding */
 
-struct bond {               /* base pair */
+typedef struct bond {               /* base pair */
    int i;
    int j;
-};
-typedef struct bond bondT;            
+} bondT;
 extern bondT  *base_pair; /* list of base pairs */
 
 extern FLT_OR_DBL *pr;          /* base pairing prob. matrix */

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-05-12 17:24:50 ivo> */
+/* Last changed Time-stamp: <2004-05-14 18:28:57 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.20  2004/08/12 12:14:46  ivo
+  update
+
   Revision 1.19  2004/05/14 16:28:05  ivo
   fix the bug in make_ptype here too (fixed in 1.27 of fold.c)
 
@@ -21,6 +24,9 @@
 
   Revision 1.15  2002/03/19 16:51:12  ivo
   more on stochastic backtracking (still incomplete)
+
+  Revision 1.14  2002/02/08 17:37:23  ivo
+  set freed S,S1 pointers to NULL
 
   Revision 1.13  2001/11/16 17:30:04  ivo
   add stochastic backtracking (still incomplete)
@@ -38,7 +44,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.19 2004/05/14 16:28:05 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.20 2004/08/12 12:14:46 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
