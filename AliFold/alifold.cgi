@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl 
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-01-24 19:59:39 ivo>
+# Last changed Time-stamp: <2002-07-08 16:11:23 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -40,10 +40,9 @@ if ($q->param) {
 sub print_form {
    my($q, $cookie) = @_;
    if ($cookie) {
-      print $q->header(-expires=>'+1m',
-		       -cookie=>$cookie);
+      print $q->header(-cookie=>$cookie);
    } else {
-      print $q->header(-expires=>'+1m');
+      print $q->header();
    }
    print $q->start_html(-title=>"RNAalifold input form",
 			-author=>'ivo@tbi.univie.ac.at',
@@ -150,7 +149,7 @@ sub do_work {
    # clean old files
    foreach my $f (<../alifold*>) {
       print STDERR "removing $f\n";
-      system('/bin/rm', '-r', $f) if ((-M $f)>1.2);
+      system('/bin/rm', '-r', $f) if ((-M $f)>2);
    }
    
    my $clustal_file = $q->param('clustal_file');
@@ -206,7 +205,6 @@ sub do_work {
    $time *= 3  if ($options =~ /-p/);
    $time += 5;
    print $q->header(-refresh=>"$time; URL=$hdir/$name",
-		    -expires=>'+1m',
 		    -cookie=>$the_cookie,
 		    -type=>'text/html');
    print $q->start_html(-title=>"Alifold in progress",
@@ -215,7 +213,7 @@ sub do_work {
 
    print "<H2>Now folding... </H2>\n";
 
-   print "if all goes well you should be automatically forwarded to your",
+   print "if all goes well you should be automatically forwarded to your ",
    "results page after $time seconds.<br>\n",
    "Otherwise, click <a href=\"$hdir/$name/\">here</a> to view your ",
    "results after a few seconds<p>\n";
