@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-09-15 10:56:22 ivo> */
+/* Last changed Time-stamp: <2001-10-01 15:47:53 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -17,7 +17,7 @@
 #include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.6 2001/09/17 10:30:42 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.7 2001/10/01 13:50:04 ivo Exp $";
 
 #define PRIVATE static
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	    ParamFile = argv[++i];
 	    break;
 	  case 's':
-	    sorted=1;
+	    subopt_sorted=1;
 	    break;
 	  case 'l':
 	    if (strcmp(argv[i],"-logML")==0) {

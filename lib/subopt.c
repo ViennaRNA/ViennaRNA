@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.16  2001/10/01 13:50:00  ivo
+  sorted -> subopt_sorted
+
   Revision 1.15  2001/09/17 10:30:42  ivo
   move scale_parameters() into params.c
   returns pointer to paramT structure
@@ -68,7 +71,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.15 2001/09/17 10:30:42 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.16 2001/10/01 13:50:00 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -116,7 +119,7 @@ PRIVATE  void repeat(int i, int j, STATE * state,
 
 /*Globals ------------------------------------------------------------------ */
 /* options that may be modified by RNAsubopt.c */
-int sorted=0;                           /* output sorted by energy */
+int subopt_sorted=0;                           /* output sorted by energy */
 
 #define MAXALPHA 20	                /* maximal length of alphabet */
 
@@ -499,7 +502,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 	
 	SolutionList[n_sol].structure = NULL; /* NULL terminate list */
 	
-	if (sorted) { 
+	if (subopt_sorted) { 
 	  /* sort structures by energy */
 	  qsort(SolutionList, n_sol, sizeof(SOLUTION), compare);    
 	  
@@ -538,7 +541,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 	if (structure_energy>print_energy) {
 	  free(structure);
 	} else {
-	  if (!sorted && fp) { 
+	  if (!subopt_sorted && fp) { 
 	    /* print and forget */
 	    fprintf(fp, "%s %6.2f\n", structure, structure_energy);
 	    free(structure);
