@@ -13,8 +13,9 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
+#include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.16 2001/09/17 10:19:41 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.17 2001/10/22 11:16:11 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -479,56 +480,59 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 
 /*---------------------------------------------------------------------------*/
 #define PMIN 0.00001
-int PS_dot_plot(char *string, char *wastlfile)
-{
-  /* produce PostScript dot plot from probabilities in pr[] array */
-   
-  FILE *wastl;
-  char name[31], *c;
-  int i, j, length;
-  double tmp;
-   
-  length= strlen(string);
-  wastl = fopen(wastlfile,"w");
-  if (wastl==NULL) {
-    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
-    return 0; /* return 0 for failure */
-  }
-  strncpy(name, wastlfile, 30);
-  if ((c=strrchr(name, '_'))!=0) *c='\0';
-  fprintf(wastl,"%%!PS-Adobe-3.0 EPSF-3.0\n");
-  fprintf(wastl,"%%%%Title: RNA DotPlot\n");
-  fprintf(wastl,"%%%%Creator: %s, ViennaRNA-%s\n", rcsid+5, VERSION);
-  fprintf(wastl,"%%%%CreationDate: %s", time_stamp());
-  fprintf(wastl,"%%%%BoundingBox: 66 211 518 662\n");
-  fprintf(wastl,"%%%%DocumentFonts: Helvetica\n");
-  fprintf(wastl,"%%%%Pages: 1\n");
-  fprintf(wastl,"%%%%EndComments\n\n");
-  fprintf(wastl,"%%Options: %s\n", option_string());
+PRIVATE void print_PSdot_header(FILE *wastl, char *title, char *seq) {
+  int i;
+  char *escaped;
 
-  fprintf(wastl,"%%This file contains the square roots "
-	  "of the base pair probabilities in the form\n");
-  fprintf(wastl,"%% i  j  sqrt(p(i,j)) ubox\n");
+  fprintf(wastl,
+	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
+	  "%%%%Title: RNA DotPlot\n"
+	  "%%%%Creator: %s, ViennaRNA-%s\n"
+	  "%%%%CreationDate: %s"
+	  "%%%%BoundingBox: 66 211 518 662\n"
+	  "%%%%DocumentFonts: Helvetica\n"
+	  "%%%%Pages: 1\n"
+	  "%%%%EndComments\n\n"
+	  "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+
+  fprintf(wastl,
+	  "%%This file contains the square roots "
+	  "of the base pair probabilities in the form\n"
+	  "%% i  j  sqrt(p(i,j)) ubox\n");
    
-  fprintf(wastl,"100 dict begin\n");  /* DSC says EPS should create a dict */
-  fprintf(wastl,"\n/logscale false def\n\n");
-  fprintf(wastl,"%%delete next line to get rid of title\n"
+  fprintf(wastl,"100 dict begin\n"  /* DSC says EPS should create a dict */
+	  "\n/logscale false def\n\n"
+	  "%%delete next line to get rid of title\n"
 	  "270 665 moveto /Helvetica findfont 14 scalefont setfont "
-	  "(%s) show\n\n", name);
+	  "(%s) show\n\n", title);
+
   fprintf(wastl,"/lpmin {\n"
 	  "   %g log  %% log(pmin) only probs>pmin will be shown\n"
 	  "} bind def\n\n",PMIN);
+   
+  fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
+	  "   2 index 0.5 mul add            %% x += 0.5\n"
+	  "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
+	  "   newpath\n"
+	  "   moveto\n"
+	  "   dup neg   0 rlineto\n"
+	  "   dup neg   0 exch rlineto\n"
+	  "             0 rlineto\n"
+	  "   closepath\n"
+	  "   fill\n"
+	  "} bind def\n\n");
 
   /* EPS should not contain lines >255 characters */
   fprintf(wastl,"/sequence { (\\\n");
   i=0;
-  while (i<length) {
-    fprintf(wastl, "%.255s\\\n", string+i);
+  while (i<strlen(seq)) {
+    fprintf(wastl, "%.255s\\\n", seq+i);
     i+=255;
   }
   fprintf(wastl,") } def\n");
-  fprintf(wastl,"/len { sequence length } def\n\n");
-   
+  fprintf(wastl,"/len { sequence length } bind def\n\n");
+
+
   fprintf(wastl,"/ubox {\n"     /* upper triangle matrix */
 	  "   logscale {\n"
 	  "      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if\n"
@@ -542,56 +546,26 @@ int PS_dot_plot(char *string, char *wastlfile)
 	  "   len exch sub 1 add box\n"
 	  "} bind def\n\n");
 
-  fprintf(wastl,"/box { %%size x y box - draws box centered on x,y\n"
-	  "   2 index 0.5 mul add            %% x += 0.5\n"
-	  "   exch 2 index 0.5 mul add exch  %% x += 0.5\n"
-	  "   newpath\n"
-	  "   moveto\n"
-	  "   dup neg   0 rlineto\n"
-	  "   dup neg   0 exch rlineto\n"
-	  "             0 rlineto\n"
-	  "   closepath\n"
-	  "   fill\n"
-	  "} def\n\n");
+  fprintf(wastl,"72 216 translate\n"
+	  "72 6 mul len 1 add div dup scale\n"
+	  "/Helvetica findfont 0.95 scalefont setfont\n\n");
 
-  fprintf(wastl,"72 216 translate\n");
-  fprintf(wastl,"72 6 mul len 1 add div dup scale\n");
-  fprintf(wastl,"/Helvetica findfont 0.95 scalefont setfont\n\n");
-
-   /* print sequence along all 4 sides */
-  fprintf(wastl,"%% print sequence along all 4 sides\n");
-  fprintf(wastl,"0 1 len 1 sub {\n");
-  fprintf(wastl,"    dup\n");
-  fprintf(wastl,"    0.7 add -0.3 moveto\n");
-  fprintf(wastl,"    sequence exch 1 getinterval\n");
-  fprintf(wastl,"    show\n");
-  fprintf(wastl,"} for\n");
-  fprintf(wastl,"\n");
-  fprintf(wastl,"0 1 len 1 sub {\n");
-  fprintf(wastl,"    dup\n");
-  fprintf(wastl,"    0.7 add 0.7 len add moveto\n");
-  fprintf(wastl,"    sequence exch 1 getinterval\n");
-  fprintf(wastl,"    show\n");
-  fprintf(wastl,"} for\n\n");
-
-  fprintf(wastl,"90  rotate\n");
-  fprintf(wastl,"0 1 len 1 sub {\n");
-  fprintf(wastl,"    dup\n");
-  fprintf(wastl,"    0.7 add -0.2 moveto\n");
-  fprintf(wastl,"    len 1 sub exch sub\n");
-  fprintf(wastl,"    sequence exch 1 getinterval\n");
-  fprintf(wastl,"    show\n");
-  fprintf(wastl,"} for\n");
-  fprintf(wastl,"270 rotate\n\n");
-
-  fprintf(wastl,"270 rotate\n");
-  fprintf(wastl,"0 1 len 1 sub {\n");
-  fprintf(wastl,"    dup\n");
-  fprintf(wastl,"    -0.3 add len sub  0.7 len add  moveto\n");
-  fprintf(wastl,"    sequence exch 1 getinterval\n");
-  fprintf(wastl,"    show\n");
-  fprintf(wastl,"} for\n");
-  fprintf(wastl,"90 rotate\n\n");
+  fprintf(wastl,
+	  "%% print sequence along all 4 sides\n"
+	  "[ [0.7 -0.3 0 ]\n"
+	  "  [0.7 0.7 len add 0]\n"
+	  "  [0.7 -0.2 90]\n" 
+	  "  [-0.3 len sub 0.7 len add -90]\n"
+	  "] {\n"
+	  "  gsave\n"
+	  "    aload pop rotate translate\n"
+	  "    0 1 len 1 sub {\n"
+	  "     dup 0 moveto\n"
+	  "     sequence exch 1 getinterval\n"
+	  "     show\n"
+	  "    } for\n"
+	  "  grestore\n"
+	  "} forall\n\n");
 
   /* do grid */
   fprintf(wastl,"0.5 dup translate\n"
@@ -614,6 +588,27 @@ int PS_dot_plot(char *string, char *wastlfile)
 	  "   stroke\n"
 	  "} for\n"
 	  "0.5 neg dup translate\n\n");
+}
+
+int PS_dot_plot(char *string, char *wastlfile)
+{
+  /* produce PostScript dot plot from probabilities in pr[] array */
+   
+  FILE *wastl;
+  char name[31], *c;
+  int i, j, length;
+  double tmp;
+   
+  length= strlen(string);
+  wastl = fopen(wastlfile,"w");
+  if (wastl==NULL) {
+    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    return 0; /* return 0 for failure */
+  }
+  strncpy(name, wastlfile, 30);
+  if ((c=strrchr(name, '_'))!=0) *c='\0';
+
+  print_PSdot_header(wastl, name, string);
 
   /* print boxes */
   for (i=1; i<length; i++)
@@ -628,11 +623,54 @@ int PS_dot_plot(char *string, char *wastlfile)
       fprintf(wastl,"%d %d 0.95 lbox\n",
 	      base_pair[i].i, base_pair[i].j); 
 
-  fprintf(wastl,"showpage\n");
-  fprintf(wastl,"end\n");
-  fprintf(wastl,"%%%%EOF\n");
+  fprintf(wastl,"showpage\n"
+	  "end\n"
+	  "%%%%EOF\n");
   fclose(wastl);
   return 1; /* success */
+}
+
+/*---------------------------------------------------------------------------*/
+int PS_color_dot_plot(char *string, cpair *pi, char *wastlfile)
+{
+  /* produce color PostScript dot plot from cpair */
+  
+  FILE *wastl;
+  char name[31], *c;
+  int i, length;
+   
+  length= strlen(string);
+  wastl = fopen(wastlfile,"w");
+  if (wastl==NULL) {
+    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    return 0; /* return 0 for failure */
+  }
+  strncpy(name, wastlfile, 30);
+  if ((c=strrchr(name, '_'))!=0) *c='\0';
+
+  print_PSdot_header(wastl, name, string);
+
+  fprintf(wastl, "/hsb {\n"
+	  "dup 0.3 mul 1 exch sub sethsbcolor\n"
+	  "} bind def\n\n");
+
+  /* print boxes */
+   i=0;
+   while (pi[i].j>0) {
+     fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f ubox\n",
+	     pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
+     
+     if (pi[i].mfe)
+       fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f lbox\n",
+	       pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
+     i++;
+   }
+
+   fprintf(wastl,"showpage\n"
+	   "end\n"
+	   "%%%%EOF\n");
+   fclose(wastl);
+   return 1; /* success */
 }
 
 /*---------------------------------------------------------------------------*/
