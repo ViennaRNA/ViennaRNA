@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/06 11:52:29 ivo> */
+/* Last changed Time-stamp: <1998-03-31 17:42:27 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,7 +16,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAfold.c,v 1.7 1997/11/06 17:40:46 ivo Rel $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.8 1998/03/31 15:44:55 ivo Exp $";
 
 #define PRIVATE static
 
@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
 	    if (!r) usage();
 	    break;
 	  case 'd': dangles=0;
+	    if (strcmp(argv[i],"-d2")==0) dangles=2;
+	    if (strcmp(argv[i],"-d1")==0) dangles=1;
 	    break;
 	  case 'P':
 	    if (i==argc-1) usage();
@@ -237,6 +239,6 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
    nrerror("usage: "
-	   "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
+	   "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
 	   "               [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]");
 }
