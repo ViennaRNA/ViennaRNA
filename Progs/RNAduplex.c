@@ -20,7 +20,7 @@ extern void  read_parameter_file(const char fname[]);
 extern int subopt_sorted;
 static void  print_struc(duplexT const *dup);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAduplex.c,v 1.2 2004/08/12 12:10:31 ivo Exp $";
+static char rcsid[] = "$Id: RNAduplex.c,v 1.3 2005/02/10 09:47:18 ivo Exp $";
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
@@ -191,6 +191,6 @@ static void usage(void)
 {
   nrerror("usage:\n"
 	  "RNAduplex [-e range] [-s]\n"
-	  "          [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "          [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }
