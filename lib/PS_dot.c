@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.17 2001/10/22 11:16:11 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.18 2002/10/24 17:53:29 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -167,7 +167,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 
   xmin = xmax = X[0];
   ymin = ymax = Y[0];
-  for (i = 1; i <= length; i++) {
+  for (i = 1; i < length; i++) {
      xmin = X[i] < xmin ? X[i] : xmin;
      xmax = X[i] > xmax ? X[i] : xmax;
      ymin = Y[i] < ymin ? Y[i] : ymin;
@@ -193,6 +193,9 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 	  "/drawbases   true def  %% set to  false  to leave out sequence\n"
 	  "/drawoutline true def  %% set to  false  to leave out backbone\n"
 	  "/drawpairs   true def  %% set to  false  to not draw lines connecting pairs\n"
+	  "/outlinecolor {0.2 setgray} bind def\n"
+	  "/paircolor    {0.2 setgray} bind def\n"
+	  "/seqcolor     {0   setgray} bind def\n"
 	  "%% data start here\n");
   /* sequence */
   fprintf(xyplot,"/sequence (\\\n");  
@@ -306,23 +309,15 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   fprintf(xyplot,
 	  "%% draw the outline\n"
 	  "drawoutline {\n"
+	  "  outlinecolor\n"
 	  "  newpath\n"
 	  "  coor 0 get aload pop 0.8 0 360 arc\n"
 	  "  coor {aload pop lineto} forall\n"
 	  "  stroke\n"
 	  "} if\n"
-	  "%% draw bases\n"
-	  "drawbases {\n"
-	  "  0\n"
-	  "  coor {\n"
-	  "    aload pop moveto\n"
-	  "    dup sequence exch 1 getinterval  cshow\n"
-	  "    1 add\n"
-	  "  } forall\n"
-	  "  pop\n"
-	  "} if\n"
 	  "%% draw base pairs\n"
 	  "drawpairs {\n"
+	  "  paircolor\n"
 	  "  0.7 setlinewidth\n"
 	  "  [9 3.01] 9 setdash\n"
 	  "  newpath\n"
@@ -332,7 +327,18 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 	  "  } forall\n"
 	  "  stroke\n"
 	  "} if\n"
-	  "[] 0 setdash\n");
+	  "[] 0 setdash\n"
+	  "%% draw bases\n"
+	  "drawbases {\n"
+	  "  seqcolor\n"
+	  "  0\n"
+	  "  coor {\n"
+	  "    aload pop moveto\n"
+	  "    dup sequence exch 1 getinterval  cshow\n"
+	  "    1 add\n"
+	  "  } forall\n"
+	  "  pop\n"
+	  "} if\n");
   
   if (post) {
     fprintf(xyplot, "%% Start Annotations\n");
@@ -342,6 +348,86 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   fprintf(xyplot, "%% show it\nshowpage\n");
   fprintf(xyplot, "end\n");
   fprintf(xyplot, "%%%%EOF\n");
+  
+  fclose(xyplot);
+
+  free(pair_table);
+  free(X); free(Y);
+  return 1; /* success */
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define SIZE 452
+
+int svg_rna_plot(char *string, char *structure, char *ssfile)
+{
+  float  xmin, xmax, ymin, ymax, size;
+  int    i, length;
+  float *X, *Y;
+  FILE  *xyplot;
+  short *pair_table;
+
+  length = strlen(string);
+
+  xyplot = fopen(ssfile, "w");
+  if (xyplot == NULL) {
+    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    return 0;
+  }
+  
+  pair_table = make_pair_table(structure);
+  
+  X = (float *) space((length+1)*sizeof(float));
+  Y = (float *) space((length+1)*sizeof(float));   
+  if (rna_plot_type == 0) 
+    i = simple_xy_coordinates(pair_table, X, Y);
+  else
+    i = naview_xy_coordinates(pair_table, X, Y);
+  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+
+
+  xmin = xmax = X[0];
+  ymin = ymax = Y[0];
+  for (i = 1; i < length; i++) {
+     xmin = X[i] < xmin ? X[i] : xmin;
+     xmax = X[i] > xmax ? X[i] : xmax;
+     ymin = Y[i] < ymin ? Y[i] : ymin;
+     ymax = Y[i] > ymax ? Y[i] : ymax;
+  }
+  for (i = 0; i < length; i++)
+    Y[i] = ymin+ymax - Y[i]; /* mirror coordinates so they look as in PS */
+
+  size = MAX((xmax-xmin),(ymax-ymin));
+  
+  fprintf(xyplot,
+	  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+	  "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n"
+	  "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" />\n"
+	  "  <g transform=\"translate (10,10) scale(%f,%f) translate(%f,%f)\">\n",
+	  432./size, 432./size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
+  
+  fprintf(xyplot,
+	  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
+  for (i = 0; i < length; i++) 
+    fprintf(xyplot, "      %3.3f,%3.3f\n", X[i], Y[i]);
+  fprintf(xyplot,"    \" />\n");
+
+  fprintf(xyplot,"    <g style=\"stroke: black; stroke-width: 1\" id=\"pairs\">\n");
+  for (i = 1; i <= length; i++) {
+    int j;
+    if ((j=pair_table[i])>i)
+      fprintf(xyplot,
+	      "      \"<line id=\"%d,%d\" x1=\"%6.3f\" y1=\"%6.3f\" x2=\"%6.3f\" y2=\"%6.3f\" />\n",
+	      i,j, X[i-1], Y[i-1], X[j-1], Y[j-1]);
+  }
+  fprintf(xyplot, "    </g>\n");
+  fprintf(xyplot, "    <g style=\"font-family: SansSerif\" transform=\"translate(-4.6, 4)\" id=\"seq\">\n");
+  for (i = 0; i < length; i++)
+    fprintf(xyplot, "      <text x=\"%.3f\" y=\"%.3f\">%c</text>\n", X[i], Y[i], string[i]);
+  fprintf(xyplot, "    </g>\n");
+  fprintf(xyplot, "  </g>\n");
+  fprintf(xyplot, "</svg>\n");
   
   fclose(xyplot);
 
@@ -383,7 +469,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   /* make coords nonegative */
   xmin = xmax = X[0];
   ymin = ymax = Y[0];
-  for (i = 1; i <= length; i++) {
+  for (i = 1; i < length; i++) {
      xmin = X[i] < xmin ? X[i] : xmin;
      xmax = X[i] > xmax ? X[i] : xmax;
      ymin = Y[i] < ymin ? Y[i] : ymin;
