@@ -1,6 +1,6 @@
-/* Last changed Time-stamp: <1998-03-30 16:59:53 ivo> */
+/* Last changed Time-stamp: <1998-04-08 22:44:40 ivo> */
 /*                
-		Ineractive Access to folding Routines
+		Ineractive Access to suboptimal folding
 
 			   c Ivo L Hofacker
 			  Vienna RNA package
@@ -14,7 +14,7 @@
 #include "fold.h"
 #include "fold_vars.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAsubopt.c,v 1.1 1998/03/30 15:00:32 ivo Exp $";
+static char rcsid[] = "$Id: RNAsubopt.c,v 1.2 1998/05/19 16:31:17 ivo rel $";
 
 #define PRIVATE static
 
@@ -69,9 +69,9 @@ int main(int argc, char *argv[])
 	  case '4':
 	    tetra_loop=0;
 	    break;
-	  case 'C':
-	    fold_constrained=1;
-	    break;
+ 	  case 'C': 
+ 	    fold_constrained=1; 
+ 	    break; 
 	  case 'd': dangles=0;
 	    if (strcmp(argv[i],"-d2")==0) dangles=2;
 	    /* danlges == 1 not allowed in subopt() */
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	  case 'e':
 	    r=sscanf(argv[++i], "%f", &deltaf);
 	    if (!r) usage();
-	    delta = (int) deltaf*100;
+	    delta = (int) (0.1+deltaf*100);
 	    break;
 	  default: usage();
 	  } 
@@ -126,12 +126,12 @@ int main(int argc, char *argv[])
    istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
    if ((fold_constrained)&&(istty)) {
       printf("Input constraints using the following notation:\n");
-      printf("| : paired with another base\n");
+      /* printf("| : paired with another base\n"); */
       printf(". : no constraint at all\n");
       printf("x : base must not pair\n");
-      printf("< : base i is paired with a base j<i\n");
-      printf("> : base i is paired with a base j>i\n");
-      printf("matching brackets ( ): base i pairs base j\n");
+      /* printf("< : base i is paired with a base j<i\n"); */
+      /* printf("> : base i is paired with a base j>i\n"); */
+      /* printf("matching brackets ( ): base i pairs base j\n"); */
    } 
 	
    do {				/* main loop: continue until end of file */
@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
 
       if (fold_constrained) 
 	 cstruc = get_line(stdin);
+      
       structure = (char *) space(length+1);
       
       for (l = 0; l < length; l++) sequence[l] = toupper(sequence[l]);
@@ -166,13 +167,17 @@ int main(int argc, char *argv[])
 	printf("length = %d\n", length);
 
       initialize_fold(length);
-      if (fold_constrained) 
+      if (fold_constrained) {
 	strncpy(structure, cstruc, length+1);
+	for (i=0; i<length; i++)
+	  if ((structure[i]!='.')&&(structure[i]!='x'))
+	    nrerror("only constraints of type 'x' allowed");
+      }
       min_en = fold(sequence, structure);
       /* first lines of output (suitable  for sort +1n) */
       if (fname[0] != '\0')
 	printf("> %s [%6.2f to %6.2f]\n", fname, min_en, min_en+delta/100.);
-      printf("%s %6d %6d\n", sequence, (int) (100*min_en), delta); 
+      printf("%s %6d %6d\n", sequence, (int) (-0.1+100*min_en), delta); 
        
       subopt(delta);
       
