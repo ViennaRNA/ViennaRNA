@@ -16,7 +16,7 @@
 #include "/usr/local/include/dmalloc.h"
 #define space(S) calloc(1,(S))
 #endif
-static char rcsid[] = "$Id: PS_dot.c,v 1.7 1997/12/16 12:14:12 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.8 1998/03/25 15:58:20 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -28,7 +28,6 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.7 1997/12/16 12:14:12 ivo Exp $";
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
-PRIVATE short *make_pair_table(char *structure);
 PUBLIC  int    simple_xy_coordinates(int length, short *pair_table, 
                                      float *X, float *Y); 
 
@@ -355,47 +354,6 @@ int PS_dot_plot(char *string, char *wastlfile)
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE short *make_pair_table(char *structure)
-{
-   int i,j,hx;
-   int length;
-   short *stack;
-   short *table;
-
-   
-   hx=0;
-   length = strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
-   for (i=1; i<=strlen(structure); i++) {
-      switch (structure[i-1]) {
-       case '(': 
-	 stack[hx++]=i;
-	 break;
-       case ')':
-	 j = stack[--hx];
-	 if (hx<0) {
-	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_pair_table");
-	 }
-	 table[i]=j;
-	 table[j]=i;
-	 break;
-       default:   /* unpaired base, usually '.' */
-	 table[i]= 0;
-	 break;
-      }
-   }
-   if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
-   }
-   free(stack);
-   return(table);
-}
-
-/*---------------------------------------------------------------------------*/
-
 PUBLIC int simple_xy_coordinates(int length, short *pair_table,
 				 float *x, float *y)
 {
@@ -473,7 +431,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
 			       termination.  */
     while (i != j) {
 	partner = pair_table[i];
-	if (!partner)
+	if ((!partner) || (i==0))
 	    i++, count++, bubble++;
 	else {
 	    count += 2;
