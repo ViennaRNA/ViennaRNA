@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1999-03-19 19:38:51 ivo> */
+/* Last changed Time-stamp: <1999-07-29 14:50:17 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.12 1999/05/06 09:38:41 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.13 1999/10/27 10:48:14 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -782,8 +782,9 @@ PRIVATE int LoopEnergy(int i, int j, int p, int q, int type, int type_2) {
     energy = stack[type][type_2];   /* stack */
   
   else if (n1==0) {                  /* bulge */
-    energy = bulge[n2];
-
+    energy = (n2<=MAXLOOP)?bulge[n2]:
+      (bulge[30]+(int)(lxc*log(n2/30.)));
+    
 #if STACK_BULGE1
     if (n2==1) energy+=stack[type][type_2];
 #endif
