@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-10-20 23:09:12 ivo> */
+/* Last changed Time-stamp: <2001-10-22 13:40:05 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAalifold.c,v 1.4 2001/10/22 11:25:11 ivo Exp $";
+static char rcsid[] = "$Id: RNAalifold.c,v 1.5 2001/10/22 11:45:37 ivo Exp $";
 
 #define PRIVATE static
 
@@ -32,9 +32,9 @@ PRIVATE void usage(void);
 PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
 PRIVATE char *consensus(const char *AS[]);
 PRIVATE char *annote(const char *structure, const char *AS[]);
-PRIVATE void print_pi(pair_info pi, FILE *file);
+PRIVATE void print_pi(const pair_info pi, FILE *file);
 PRIVATE cpair *make_color_pinfo(const pair_info *pi);
-extern int PS_color_dot_plot(char *string, cpair *pi, char *filename);
+
 /*--------------------------------------------------------------------------*/
 #define MAX_NUM_NAMES    500
 int main(int argc, char *argv[])
@@ -280,34 +280,31 @@ int main(int argc, char *argv[])
 }
 
 PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
-   char *line, workstr[100], *strg;
+   char *line, workstr[100]={'\0'}, *strg;
    int i, n, nn;
    
    line=get_line(clust);
    sscanf(line,"%99s",workstr);
    
-   if(strcmp(workstr,"CLUSTAL") !=0) {
-      fprintf(stderr,"Sorry. Expecting CLUSTAL file.\n");
-      return 0;
+   if(strncmp(workstr,"CLUSTAL", 7) !=0) {
+     fprintf(stderr,"Sorry. Expecting CLUSTAL file.\n");
+     return 0;
    }
-   free(line); 
-   line = get_line(clust); 
-   while ( (line[0]=='\0') || isspace((int)line[0])){
-      free(line);
-      line = get_line(clust); 
-   } 
+   free(line);
 
+   line = get_line(clust);
+   while (line && strlen(line)<4) {
+     free(line); /* skip empty line */
+     line = get_line(clust);
+   }
+   
    nn=0;
-   while (!isspace((int)line[0]) ) {
-     n = strlen(line);
+   while (((n=strlen(line))>3) && !isspace((int)line[0]) ) {
      strg = (char *) space( (n+1)*sizeof(char) );
-     sscanf(line,"%99s %s",workstr,strg);
-     names[nn] = (char *) space(strlen(workstr)+1);
-     strcpy(names[nn],workstr); 
-     AlignedSeqs[nn] =  (char *)space(strlen(strg)+1);
-     strcat(AlignedSeqs[nn],strg);
+     sscanf(line,"%99s %s",workstr, strg);
+     names[nn] = strdup(workstr);
+     AlignedSeqs[nn] =  strg;
      nn++;
-     free(strg);
      free(line);
      line = get_line(clust);
    }
@@ -317,46 +314,44 @@ PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    line = get_line(clust);  
 
    while(line!=NULL) { 
-
-      while ( (line[0]=='\0') || isspace((int)line[0])){
-         free(line);
-         line = get_line(clust); 
-      } 
-
-      nn=0;
-      while (!isspace((int)line[0])) {
-         n = strlen(line);
-         strg = (char *) space( (n+1)*sizeof(char) );
-         sscanf(line,"%s %s",workstr,strg);
-         if (strcmp(workstr,names[nn])==0) {
-            AlignedSeqs[nn] = (char *)
-               realloc(AlignedSeqs[nn], 
-                       strlen(strg)+strlen(AlignedSeqs[nn])+1);
-            strcat(AlignedSeqs[nn],strg);   
-         } else {
-            fprintf(stderr, "Sorry, your file is fucked up.\n");
-            return 0;
-         }
-         nn++;
-         free(strg);
-         free(line);
-         line = get_line(clust);
+     while (((n=strlen(line))<4) || isspace((int)line[0])){
+       free(line);
+       line = get_line(clust); 
+     } 
+     
+     nn=0;
+     while ((n>3) && !isspace((int)line[0])) {
+       strg = (char *) space( (n+1)*sizeof(char) );
+       sscanf(line,"%s %s", workstr, strg);
+       if (strcmp(workstr,names[nn])==0) {
+	 AlignedSeqs[nn] = (char *)
+	   realloc(AlignedSeqs[nn], strlen(strg)+strlen(AlignedSeqs[nn])+1);
+	 strcat(AlignedSeqs[nn],strg);   
+       } else {
+	 fprintf(stderr, "Sorry, your file is fucked up.\n");
+	 return 0;
+       }
+       nn++;
+       free(strg);
+       free(line);
+       line = get_line(clust);
+       n = strlen(line);
      }
      /* ignore the consensus-line for the moment */
      free(line);
-     line = get_line(clust);      
+     line = get_line(clust);
    }   
    
    AlignedSeqs[nn] = NULL;
    n = strlen(AlignedSeqs[0]); 
    for (i=1; i<nn; i++) {
-      if (strlen(AlignedSeqs[i])!=n) {
-         fprintf(stderr, "Sorry, your file is fucked up.\n"
-                 "Unequal lengths!\n\n");
-         return 0;
-      }
+     if (strlen(AlignedSeqs[i])!=n) {
+       fprintf(stderr, "Sorry, your file is fucked up.\n"
+	       "Unequal lengths!\n\n");
+       return 0;
+     }
    }
-
+   
    fprintf(stderr, "%d sequences; length of alignment %d.\n", nn, n);
    return nn;
 }
