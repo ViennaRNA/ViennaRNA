@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.5  1997/08/26 12:57:55  walter
+  *** empty log message ***
+
   Revision 1.4  1997/08/20 15:06:02  walter
   *** empty log message ***
 
@@ -32,7 +35,7 @@
 #include "fold_vars.h"
 #include "list.h"
 
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.4 1997/08/20 15:06:02 walter Exp $";
+PRIVATE char rcsid[] = "$Id: subopt.c,v 1.5 1997/08/26 12:57:55 walter Exp $";
 
 /*Typedefinitions ----------------------------------------------------------- */
 
@@ -109,9 +112,13 @@ extern int *fML;		          /* multi-loop auxiliary energy array */
 extern int *fM1;                  /* another multi-loop auxiliary energy array */
 extern int *indx;     /* index for moving in the triangle matrices c[] and f[] */
 extern short *S, *S1;
+
 extern char* sequence;
 extern int GAPS;
+extern int GAPSTAT;
 extern int LODOS_ONLY;
+extern FILE *struc[3];
+extern int **Gap;
 
 extern float energy_of_struct (char *, char *);
 
@@ -416,6 +423,7 @@ compare (SOLUTION * solution1, SOLUTION * solution2)
 }
 
 /*-----------------------------------------------------------------------------*/
+
 PUBLIC void 
 make_output ()  /* prints stuff */
 {
@@ -423,10 +431,20 @@ make_output ()  /* prints stuff */
   int degeneracy, state;
   float gap, gap_to_ground, this_energy;
 
-  if (!LODOS_ONLY)
+  if (!LODOS_ONLY && !GAPSTAT)
     {
-      printf ("\n\n all structures between %4.2f and %4.2f kcal", minimal_energy/100.,
-	      threshold/100.);
+      if (GAPS >= 0)
+	{
+	  printf ("\n\n the %d best structures between %4.2f and %4.2f kcal", GAPS+1,
+		  minimal_energy/100.,
+		  threshold/100.);
+	}
+      else
+	{
+	  printf ("\n\n all best structures between %4.2f and %4.2f kcal", GAPS,
+		  minimal_energy/100.,
+		  threshold/100.);
+	}
       printf ("\n\n    %s\n", sequence);
     }
   
@@ -445,7 +463,19 @@ make_output ()  /* prints stuff */
 	  if (nnext->e_o_s == this_energy)
 	    {
 	      degeneracy++;
-	      if (!LODOS_ONLY)
+
+	      if (GAPSTAT)
+		{
+		  if (state)
+		    {
+		      /* Gap[state][(int)(gap_to_ground*100+0.5)]++; */
+		      fprintf (struc[state], "%s %4.2f %4.2f %4.2f %4.2f\n",
+			       nnext->structure,
+			       minimal_energy/100., this_energy, gap, gap_to_ground);
+		      fflush (struc[state]);
+		    }
+		}
+	      else if (!LODOS_ONLY)
 		{
 		  printf("%3d %s\n", state, nnext->structure);
 		}
@@ -455,17 +485,31 @@ make_output ()  /* prints stuff */
 	    break;
 	}
 
-      if (LODOS_ONLY)
+      if (GAPSTAT)
 	{
-	  printf("%4.2f %d", this_energy, degeneracy);
+	  if (state)
+	    {
+	      Gap[state][(int)(gap_to_ground*100+0.5)]++;
+	      fprintf (struc[state], "%s %4.2f %4.2f %4.2f %4.2f\n",
+		       next->structure,
+		       minimal_energy/100., this_energy, gap, gap_to_ground);
+	      fflush (struc[state]);
+	    }
 	}
-      else
+
+      if (!GAPSTAT)
 	{
-	  printf("%3d %s %4.2f %d", state, next->structure, this_energy, degeneracy);
+	  if (LODOS_ONLY)
+	    {
+	      printf("%4.2f %d", this_energy, degeneracy);
+	    }
+	  else
+	    {
+	      printf("%3d %s %4.2f %d", state, next->structure, this_energy, degeneracy);
+	    }
+	  printf(" %4.2f %4.2f", gap, gap_to_ground);
 	}
       
-      printf(" %4.2f %4.2f", gap, gap_to_ground);
-	      
       if (GAPS)
 	{
 	  if (state >= GAPS && GAPS != -1)
@@ -477,11 +521,13 @@ make_output ()  /* prints stuff */
 	    }
 	}
       
-      printf("\n");
+      if (!GAPSTAT)
+	  printf("\n");
       next = old_ptr;
     }
  quit:
-  printf ("\n\n");
+  if (!GAPSTAT)
+      printf ("\n\n");
   fflush (stdout);
 }
 
