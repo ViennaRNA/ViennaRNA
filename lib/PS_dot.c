@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
-static char rcsid[] = "$Id: PS_dot.c,v 1.11 1999/05/06 09:59:42 ivo Exp $";
+static char rcsid[] = "$Id: PS_dot.c,v 1.12 1999/10/27 10:38:31 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -25,6 +25,7 @@ static char rcsid[] = "$Id: PS_dot.c,v 1.11 1999/05/06 09:59:42 ivo Exp $";
 PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
 PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
+PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
 PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
 
 PUBLIC int   simple_xy_coordinates(short *pair_table, float *X, float *Y);
@@ -44,7 +45,6 @@ PRIVATE  float  *angle;
 PRIVATE  int    *loop_size, *stack_size;
 PRIVATE  int     lp, stk;
 
-PRIVATE  float RADIUS =  15.;   /* for simple_xy_coordinates */
 /*---------------------------------------------------------------------------*/
 
 /* options for gml output: 
@@ -62,7 +62,6 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   int i;
   int length;
   int labels=0;
-  int graphics=0;
   short *pair_table;
   float *X, *Y;
   
@@ -267,13 +266,9 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   FILE *ssvfile;
   int i, bp;
   int length;
-  int labels=0;
-  int graphics=0;
   short *pair_table;
   float *X, *Y;
-  float xmin, xmax, ymin, ymax, size, xoff, yoff;
-  float JSIZE = 500; /* size of the java applet window */
-  float rad;
+  float xmin, xmax, ymin, ymax;
   
   length = strlen(string);
   pair_table = make_pair_table(structure);
@@ -281,14 +276,13 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   /* make coordinates */
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
-  rad = RADIUS;
-  RADIUS = 10.;
+
   if (rna_plot_type == 0) 
     i = simple_xy_coordinates(pair_table, X, Y);
   else
     i = naview_xy_coordinates(pair_table, X, Y);
-  if(i!=length) fprintf(stderr,"strange things happening in ssv_rna_plot...\n");
-  RADIUS = rad;
+  if (i!=length)
+    fprintf(stderr,"strange things happening in ssv_rna_plot...\n");
 
   /* make coords nonegative */
   xmin = xmax = X[0];
@@ -310,13 +304,17 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
     ymin = 1;
   }
 #if 0
-  /* rescale coordinates, center on square of size HSIZE */
-  size = MAX((xmax-xmin),(ymax-ymin));
-  xoff = (size - xmax + xmin)/2;
-  yoff = (size - ymax + ymin)/2;
-  for (i = 0; i <= length; i++) {
-    X[i] = (X[i]-xmin+xoff)*(JSIZE-10)/size + 5;
-    Y[i] = (Y[i]-ymin+yoff)*(JSIZE-10)/size + 5;
+  {
+    float size, xoff, yoff;
+    float JSIZE = 500; /* size of the java applet window */
+    /* rescale coordinates, center on square of size HSIZE */
+    size = MAX((xmax-xmin),(ymax-ymin));
+    xoff = (size - xmax + xmin)/2;
+    yoff = (size - ymax + ymin)/2;
+    for (i = 0; i <= length; i++) {
+      X[i] = (X[i]-xmin+xoff)*(JSIZE-10)/size + 5;
+      Y[i] = (Y[i]-ymin+yoff)*(JSIZE-10)/size + 5;
+    }
   }
 #endif
   /* */
@@ -338,6 +336,48 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
     if (pair_table[i]>i) 
       fprintf(ssvfile, "BASE-PAIR\tbp%d\t%d\t%d\n", bp++, i, pair_table[i]);
   fclose(ssvfile);
+
+  free(pair_table);
+  free(X); free(Y);
+  return 1; /* success */
+}
+
+/*---------------------------------------------------------------------------*/
+PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
+{           /* produce input for XRNA RNA drawing program */
+  FILE *ss_file;
+  int i;
+  int length;
+  short *pair_table;
+  float *X, *Y;
+  
+  length = strlen(string);
+  pair_table = make_pair_table(structure);
+
+  /* make coordinates */
+  X = (float *) space((length+1)*sizeof(float));
+  Y = (float *) space((length+1)*sizeof(float));
+
+  if (rna_plot_type == 0) 
+    i = simple_xy_coordinates(pair_table, X, Y);
+  else
+    i = naview_xy_coordinates(pair_table, X, Y);
+  if (i!=length)
+    fprintf(stderr,"strange things happening in xrna_plot...\n");
+ 
+  ss_file = fopen(ssfile, "w");
+  if (ss_file == NULL) {
+    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    return 0;
+  }
+  fprintf(ss_file, 
+	  "# Vienna RNA Package XRNA output\n"
+	  "# CreationDate: %s\n", time_stamp());
+  for (i=1; i<=length; i++)
+    /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
+    fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i-1],
+	    -X[i-1], Y[i-1], (pair_table[i]?1:0), pair_table[i]);
+  fclose(ss_file);
 
   free(pair_table);
   free(X); free(Y);
@@ -603,8 +643,8 @@ PRIVATE void loop(int i, int j, short *pair_table)
 	       angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
 	       if (ladder > 2) {
 		  for (; fill >= 1; fill--) {
-		     angle[start_k+fill] = PI;  /*  fill in the angles  */
-		     angle[start_l-fill] = PI;  /*  for the backbone    */
+		     angle[start_k+fill] = PI;    /*  fill in the angles  */
+		     angle[start_l-fill] = PI;    /*  for the backbone    */
 		  }
 	       }
 	    }
