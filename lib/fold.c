@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/03/24 17:03:58 ivo> */
+/* Last changed Time-stamp: <97/07/28 20:41:22 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -138,7 +138,7 @@ float fold(char *string, char *structure)
    } 
    sector[MAXSECTORS];   /* backtracking sectors */
    
-   int   i, j, k, l, p, q, length, energy, new_f, new_c, new;
+   int   i, j, k, l, p, q, length, energy, new_c, new;
    int   fij, fi, fj, cij, ci1j, cij1, ci1j1, max_separation;
    int   decomp, MLenergy, new_fML, ml;
    int   s, b, unpaired, traced, sizecorr, mm;
