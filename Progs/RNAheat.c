@@ -23,7 +23,7 @@ extern void  read_parameter_file(const char fname[]);
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.10 1999/05/06 09:51:07 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.11 1999/11/04 12:15:35 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
    float T_min, T_max, h;
    int m_points;
    int istty;
+   int noconv = 0;
    
    T_min=0.; T_max=100.; h=1; m_points=2;
    string=NULL;
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
 	      if (sscanf(argv[++i], "%32s", ns_bases)==0)
 		usage();
 	    }
+	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	    break;
 	  case '4':
 	    tetra_loop=0;
@@ -218,7 +220,11 @@ int main(int argc, char *argv[])
       free(line);
       length = strlen(string);
        
-      for (l = 0; l < length; l++) string[l] = toupper(string[l]);
+      for (l = 0; l < length; l++) {
+        string[l] = toupper(string[l]);
+        if (!noconv && string[l] == 'T') string[l] = 'U';
+      }
+
       if (istty)
 	 printf("length = %d\n", length);
       

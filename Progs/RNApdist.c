@@ -20,7 +20,7 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 
-static char rcsid[] = "$Id: RNApdist.c,v 1.5 1999/05/06 09:51:46 ivo Exp $";
+static char rcsid[] = "$Id: RNApdist.c,v 1.6 1999/11/04 12:15:35 ivo Exp $";
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
@@ -34,6 +34,7 @@ PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
 
 extern void PS_dot_plot(char *string, char *file);
 extern void  read_parameter_file(const char fname[]);
+int noconv = 0;
 
 int main(int argc, char *argv[])
      
@@ -122,7 +123,10 @@ int main(int argc, char *argv[])
       }
       
       length = strlen(line);
-      for (i=0; i<length; i++) line[i]=toupper(line[i]);
+      for (i=0; i<length; i++) {
+	line[i]=toupper(line[i]);
+	if (!noconv && line[i] == 'T') line[i] = 'U';
+      }
       
       init_pf_fold(length);
       structure = (char *) space((length+1)*sizeof(char));
@@ -217,6 +221,7 @@ PRIVATE void command_line(int argc, char *argv[])
               r=sscanf(argv[++i], "%32s", ns_bases);
               if (!r) usage();
             }
+	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
             break;
 	  case 'X':
 	    switch (task = argv[i][2]) {

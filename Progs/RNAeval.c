@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/05 22:24:48 ivo> */
+/* Last changed Time-stamp: <1999-09-17 16:18:59 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -15,7 +15,7 @@
 #include "fold.h"
 #include "utils.h"
 
-static char rcsid[] = "$Id: RNAeval.c,v 1.5 1997/11/05 21:25:53 ivo Rel $";
+static char rcsid[] = "$Id: RNAeval.c,v 1.6 1999/11/04 12:14:34 ivo Exp $";
 
 #define  PUBLIC
 #define  PRIVATE   static
@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
    int   i, l, length1, length2;
    float energy;
    int   istty;
+   int   noconv=0;
       
    string=NULL;
    for (i=1; i<argc; i++) {
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
 	     logML=1;
 	     break;
 	   }
+	 case 'n':
+	   if ( strcmp(argv[i], "-noconv")==0) noconv=1;
+	   break;
 	 default: usage();
 	 }
    }
@@ -118,7 +122,11 @@ int main(int argc, char *argv[])
       if(length1!=length2)
 	 nrerror("Sequence and Structure have unequal length.");
 
-      for (l = 0; l < length1; l++) string[l] = toupper(string[l]);
+      for (l = 0; l < length1; l++) {
+        string[l] = toupper(string[l]);
+        if (!noconv && string[l] == 'T') string[l] = 'U';
+      }
+
       if (istty) printf("length = %d\n", length1);
       
       energy = energy_of_struct(string, structure);

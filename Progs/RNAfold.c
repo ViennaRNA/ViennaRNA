@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1999-02-27 18:37:37 ivo> */
+/* Last changed Time-stamp: <1999-09-17 16:17:28 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -18,7 +18,7 @@
 #include "utils.h"
 extern void  read_parameter_file(const char fname[]);
 
-static char rcsid[] = "$Id: RNAfold.c,v 1.10 1999/05/06 09:52:29 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.11 1999/11/04 12:15:35 ivo Exp $";
 
 #define PRIVATE static
 
@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
    float energy, min_en;
    float kT, sfact=1.07;
    int   pf=0, istty;
+   int noconv=0;
    
    do_backtrack = 1; 
    string=NULL;
@@ -68,6 +69,7 @@ int main(int argc, char *argv[])
 	      r=sscanf(argv[++i], "%32s", ns_bases);
 	      if (!r) usage();
 	    }
+	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	    break;
 	  case '4':
 	    tetra_loop=0;
@@ -159,7 +161,10 @@ int main(int argc, char *argv[])
 	 cstruc = get_line(stdin);
       structure = (char *) space(length+1);
       
-      for (l = 0; l < length; l++) string[l] = toupper(string[l]);
+      for (l = 0; l < length; l++) {
+	string[l] = toupper(string[l]);
+	if (!noconv && string[l] == 'T') string[l] = 'U';
+      }
       if (istty)
 	 printf("length = %d\n", length);
 
@@ -247,5 +252,6 @@ PRIVATE void usage(void)
 {
    nrerror("usage:\n"
 	   "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
-	   "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]");
+	   "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
+	   "[-noconv]\n");
 }
