@@ -3,7 +3,7 @@
 .SH NAME
 RNAINVERSE \- find RNA sequences with given secondary structure
 .SH SYNOPSIS
-\fBRNAinverse [\-F[mp]] [\-R [repeats]] [\-a ALPHABET] [-f\ final] [\-T\ \fItemp\fP] [\-d] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-e\ \fI1|2\fP] [\-nsp\ pairs]
+\fBRNAinverse [\-F[mp]] [\-R [repeats]] [-v] [\-a ALPHABET] [-f\ final] [\-T\ \fItemp\fP] [\-d] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-e\ \fI1|2\fP] [\-nsp\ pairs]
 .SH DESCRIPTION
 .I RNAinverse
 searches for sequences folding into  given structures, thereby
@@ -35,6 +35,9 @@ subsequent trial. If \fIrepeats\fP is negative search
 until -\fIrepeats\fP exact solutions are found, no output is done for
 unsuccessful searches. The program will not terminate if
 the target can not be found.
+.IP \fB\-v\fP
+in conjunction with -R with a negative \fIrepeats\fP, print the
+last subsequence and substructure for each unsuccessful search.
 .IP \fB\-a\ \fIalphabet\fP
 Find sequences using only bases from \fIalphabet\fP.
 .IP \fB\-T\ \fItemp\fP
