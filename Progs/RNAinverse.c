@@ -2,7 +2,7 @@
 
                    interactive access to inverse.c
 */
-/* Last changed Time-stamp: <97/03/24 17:42:48 ivo> */
+/* Last changed Time-stamp: <97/10/13 19:20:15 ivo> */
 #include <stdio.h>
 #include <math.h>
 #include <ctype.h>
@@ -28,6 +28,7 @@ extern int pf_dangl;
 int main(int argc, char *argv[])
 {
    char *string, *start, *structure, *str2, *line;
+   char  ParamFile[256]="";
    int   i,j,length1, length2, l, hd;
    float energy, kT;
    int   pf, mfe, istty, rstart=0;
@@ -40,50 +41,61 @@ int main(int argc, char *argv[])
    string=NULL;
    for (i=1; i<argc; i++) {
       if (argv[i][0]=='-')
-	 switch ( argv[i][1] ) {
-	  case 'a':
-	    i++;
-	    strcpy(symbolset,argv[i]);
-	    break;
-	  case 'T':  if (argv[i][2]!='\0') usage(); 
-	    sscanf(argv[++i], "%f", &temperature);
-	    break;
-	  case 'F':
-	    mfe = 0; pf = 0;
-	    for(j=2;j<strlen(argv[i]);j++){
+	 switch ( argv[i][1] )
+	   {
+	   case 'a':
+	     i++;
+	     strcpy(symbolset,argv[i]);
+	     break;
+	   case 'T':  if (argv[i][2]!='\0') usage(); 
+	     if (sscanf(argv[++i], "%f", &temperature)==0)
+	       usage();
+	     break;
+	   case 'F':
+	     mfe = 0; pf = 0;
+	     for(j=2;j<strlen(argv[i]);j++){
 	       switch( argv[i][j] ) {
-		case 'm' :  mfe = 1;
-		  break;
-		case 'p' :  pf = 1; /* old version had dangles=0 here */
-		  break;
-		  default : usage();
+	       case 'm' :  mfe = 1;
+		 break;
+	       case 'p' :  pf = 1; /* old version had dangles=0 here */
+		 break;
+	       default : usage();
 	       }
-	    }
-	    break;
-	  case 'R': repeat = REPEAT_DEFAULT;
-            if(++i<argc) sscanf(argv[i], "%d", &repeat);
-	    break;
-	  case 'n':
-	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
-	    break;
-	  case '4':
-	    tetra_loop=0;
-	    break;
-	  case 'e':
-	    sscanf(argv[++i],"%d", &energy_set);
-	    break;
-	  case 'd': dangles=0;
-	    break;
-	 case 'f': /* when to stop RNAfold -p */
-	    sscanf(argv[++i],"%f", &final_cost); 
- 	    break;
-	  default: usage();
-	 }
+	     }
+	     break;
+	   case 'R': repeat = REPEAT_DEFAULT;
+	     if(++i<argc) sscanf(argv[i], "%d", &repeat);
+	     break;
+	   case 'n':
+	     if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
+	     break;
+	   case '4':
+	     tetra_loop=0;
+	     break;
+	   case 'e':
+	     if (sscanf(argv[++i],"%d", &energy_set)==)
+	       usage();
+	     break;
+	   case 'd': dangles=0;
+	     break;
+	   case 'f': /* when to stop RNAfold -p */
+	     if (sscanf(argv[++i],"%f", &final_cost)==0)
+	       usage(); 
+	     break;
+	   case 'P':
+	     if (sscanf(argv[++i], "%255s", ParamFile)==)
+	       usage();
+	     break;
+	   default: usage();
+	   }
    }
 
    kT = (temperature+273.15)*1.98717/1000.0;
 
    istty = (isatty(fileno(stdout))&&isatty(fileno(stdin)));
+
+   if (ParamFile[0])
+     read_parameter_file(ParamFile);
 
    give_up = (repeat<0);
 

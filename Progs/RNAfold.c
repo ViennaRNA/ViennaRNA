@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/07/28 20:48:07 ivo> */
+/* Last changed Time-stamp: <97/10/13 17:08:49 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
    char *string, *line;
    char *structure=NULL, *cstruc=NULL;
    char  fname[13], ffname[20];
+   char  ParamFile[256]="";
    char  ns_bases[33]="", *c;
    int   i, length, l, sym, r;
    float energy, min_en;
@@ -44,21 +45,22 @@ int main(int argc, char *argv[])
    string=NULL;
    for (i=1; i<argc; i++) {
       if (argv[i][0]=='-') 
-	 switch ( argv[i][1] ) {
+	switch ( argv[i][1] )
+	  {
 	  case 'T':  if (argv[i][2]!='\0') usage();
 	    r=sscanf(argv[++i], "%f", &temperature);
 	    if (!r) usage();
 	    break;
 	  case 'p':  pf=1;
 	    if (argv[i][2]!='\0')
-	       sscanf(argv[i]+2, "%d", &do_backtrack);
+	      sscanf(argv[i]+2, "%d", &do_backtrack);
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
-	       r=sscanf(argv[++i], "%32s", ns_bases);
-	       if (!r) usage();
+	      r=sscanf(argv[++i], "%32s", ns_bases);
+	      if (!r) usage();
 	    }
 	    break;
 	  case '4':
@@ -76,11 +78,18 @@ int main(int argc, char *argv[])
 	    if (!r) usage();
 	    break;
 	  case 'd': dangles=0;
-	    break;   
+	    break;
+	  case 'P':
+	    r=sscanf(argv[++i], "%255s", ParamFile);
+	    if (!r) usage();
+	    break;
 	  default: usage();
-	 } 
+	  } 
    }
 
+   if (ParamFile[0])
+     read_parameter_file(ParamFile);
+   
    if (ns_bases[0]) {
       nonstandards = space(33);
       c=ns_bases;
