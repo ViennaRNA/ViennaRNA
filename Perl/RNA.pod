@@ -120,8 +120,6 @@ Suboptimal Folding (from subopt.h)
 
 =over 4
 
-=item subopt SEQUENCE, DELTA
-
 =item subopt SEQUENCE, CONSTRAINTS, DELTA
 
 =item subopt SEQUENCE, CONSTRAINTS, DELTA, FILEHANDLE
@@ -132,7 +130,7 @@ is returned. Else, the C function returnes a list of C structs of type
 SOLUTION. The list is wrapped by SWIG as a perl object that can be
 accesses as follows:
 
-  $solution = subopt($seq, 500);
+  $solution = subopt($seq, undef, 500);
   for (0..$solution->size()-1) {
      printf "%s %6.2f\n",  $solution->get($_)->{structure},
 			   $solution->get($_)->{energy};
