@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-09-17 11:29:04 ivo> */
+/* Last changed Time-stamp: <2002-01-22 11:09:19 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.22 2001/09/17 10:30:43 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.23 2002/02/08 17:35:46 ivo Exp $";
 
 #define PAREN
 
@@ -53,6 +53,8 @@ PRIVATE int   stack_energy(int i, char *string);
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(char *sequence);
+PRIVATE void backtrack(char *sequence);
+PRIVATE int fill_arrays(char *sequence);
 /*@unused@*/
 inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 inline int  LoopEnergy(int n1, int n2, int type, int type_2,
@@ -84,12 +86,12 @@ PRIVATE short  *S, *S1;
 PRIVATE short  *pair_table;
 PRIVATE int   init_length=-1;
 
-PUBLIC int   eos_debug=0;
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 /* needed by cofold/eval */
 PRIVATE int cut_in_loop(int i);
 PRIVATE int min_hairpin = TURN;
 PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
+PUBLIC int   eos_debug=0;  /* verbose info from energy_of_struct */
 
 /*--------------------------------------------------------------------------*/
 
@@ -161,27 +163,68 @@ PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
 			positive int: base is paired with int      */
 
 float fold(char *string, char *structure) {
-  struct sect {
-    int  i;
-    int  j;
-    int ml;
-  } 
-  sector[MAXSECTORS];   /* backtracking sectors */
-   
-  int   i, j, k, p, q, length, energy, new_c, new;
-  int   decomp, MLenergy, new_fML;
-  int   s, b, mm, max_separation;
-  int   no_close, type, type_2, tt;
-  int   bonus=0, bonus_cnt=0;
-
+  int i, length, energy, bonus=0, bonus_cnt=0;
+  
   length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
   
   encode_seq(string);
-
+  
   BP = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
+  
+  energy = fill_arrays(string);
+
+  backtrack(string);
+
+#ifdef PAREN
+  parenthesis_structure(structure, length);
+#else
+  letter_structure(structure, length);
+#endif
+
+  /* check constraints */ 
+  for(i=1;i<=length;i++) {
+    if((BP[i]<0)&&(BP[i]>-4)) {
+      bonus_cnt++;
+      if((BP[i]==-3)&&(structure[i-1]==')')) bonus++;
+      if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
+      if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
+    }
+    
+    if(BP[i]>i) {
+      int l;
+      bonus_cnt++;
+      for(l=1; l<=base_pair[0].i; l++)
+	if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
+    }
+  }
+  
+  if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
+  bonus*=BONUS;
+
+  free(S); free(S1); free(BP);
+
+  energy += bonus;      /*remove bonus energies from result */
+
+  if (backtrack_type=='C')
+    return (float) c[indx[length]+1]/100.;
+  else if (backtrack_type=='M')
+    return (float) fML[indx[length]+1]/100.;
+  else
+    return (float) energy/100.;
+}
+
+PRIVATE int fill_arrays(char *string) {
+  /* fill "c", "fML" and "f5" arrays and return  optimal energy */
+
+  int   i, j, k, length, energy;
+  int   decomp, new_fML, max_separation;
+  int   no_close, type, type_2, tt;
+  int   bonus=0;
+
+  length = (int) strlen(string);
 
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
@@ -198,7 +241,7 @@ float fold(char *string, char *structure) {
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
       
     for (j = i+TURN+1; j <= length; j++) {
-      int ij;
+      int p, q, ij;
       ij = indx[j]+i;
       bonus = 0;
       type = ptype[ij];
@@ -213,7 +256,7 @@ float fold(char *string, char *structure) {
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
       if (type) {   /* we have a pair */
-	int stackEnergy = INF;
+	int new_c=0, stackEnergy=INF;
 	/* hairpin ----------------------------------------------*/
 	   
 	if (no_close) new_c = FORBIDDEN;
@@ -255,6 +298,7 @@ float fold(char *string, char *structure) {
 
 	
 	if (!no_close) {
+	  int MLenergy;
 	  decomp = DMLi1[j-1];
 	  if (dangles) {
 	    int d3=0, d5=0; 
@@ -420,20 +464,35 @@ float fold(char *string, char *structure) {
     }
   }
 
+  return f5[length];
+}
+
+PRIVATE void backtrack(char *string) {
    
   /*------------------------------------------------------------------
     trace back through the "c", "f5" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
-    This inverts the folding procedure, hence it's very fast.
+    This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
+  struct sect {
+    int  i;
+    int  j;
+    int ml;
+  } 
+  sector[MAXSECTORS];   /* backtracking sectors */
 
-  b = s = 0;
+  int   i, j, k, length, energy, new;
+  int   no_close, type, type_2, tt;
+  int   bonus;
+  int   s=0, b=0;
+
+  length = strlen(string);
   sector[++s].i = 1;
   sector[s].j = length;
   sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
    
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, d3, d5, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -598,7 +657,8 @@ float fold(char *string, char *structure) {
 	continue;
      
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
-      int minq = j-i+p-MAXLOOP-2;
+      int minq;
+      minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
 	 
@@ -710,45 +770,6 @@ float fold(char *string, char *structure) {
   }
 
   base_pair[0].i = b;    /* save the total number of base pairs */
-
-#ifdef PAREN
-  parenthesis_structure(structure, length);
-#else
-  letter_structure(structure, length);
-#endif
-
-  bonus=0;
-  bonus_cnt = 0;
-  for(i=1;i<=length;i++) {
-    if((BP[i]<0)&&(BP[i]>-4)) {
-      bonus_cnt++;
-      if((BP[i]==-3)&&(structure[i-1]==')')) bonus++;
-      if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
-      if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
-    }
-     
-    if(BP[i]>i) {
-      int l;
-      bonus_cnt++;
-      for(l=1; l<=b; l++)
-	if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
-    }
-  }
-
-  if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
-  bonus*=BONUS;
-
-  free(S); free(S1);
-  free(BP);
-   
-  f5[length] += bonus;      
-
-  if (backtrack_type=='C')
-    return (float) c[indx[length]+1]/100.;
-  else if (backtrack_type=='M')
-    return (float) fML[indx[length]+1]/100.;
-  else
-    return (float) f5[length]/100.;
 }
 
 /*---------------------------------------------------------------------------*/
