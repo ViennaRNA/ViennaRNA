@@ -1,6 +1,6 @@
 #!/usr/bin/perl  -T
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-02-14 09:08:01 ivo>
+# Last changed Time-stamp: <2003-10-09 12:15:02 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -168,26 +168,30 @@ sub do_work {
 
   # clean old files
   foreach my $f (<../alifold*>) {
-    #print STDERR "removing $f\n";
-    system('/bin/rm', '-r', $f) if ((-M $f)>2);
+    if ($f =~ /(\.\.\/alifold\d+)/) {
+      system('/bin/rm', '-r', $1) if (-d $1) && (-M $1)>3;
+    }
   }
 
   my $clustal_fh = $q->upload('clustal_file');
+  errorpage(0) unless defined($clustal_fh);
   my ($size, $num_seq, $length) = (0,0,0);
   open(ALN, ">alifold.aln") or croak("can't write alignment");
+  undef($/); # slurp mode
   $_ = <$clustal_fh>; error_page('firstline') unless /^CLUSTAL/;
-  print ALN $_;
+  close($clustal_fh);
+  my @lines =  split /\015\012?|\012/;
   my %l = ();
-  while (<$clustal_fh>) {
-    s/\r\n?/\n/g;   # repair dos line endings
-    print ALN $_;
+  print ALN shift(@lines), "\n";
+  foreach (@lines) {
+    print ALN $_, "\n";
     if (/^\S+\s+\S+/) {
       my($name, $sseq) = split;
-      $l{$name} += length $sseq; 
+      $l{$name} += length $sseq;
     }
     $size += length;
   }
-  close(ALN); close($clustal_fh) if $clustal_fh;
+  close(ALN); 
   error_page($size) if $size<14;
   $num_seq = scalar(keys %l);
   error_page('numseq') if $num_seq<2;
@@ -404,8 +408,8 @@ sub estimate {
   # adjust these parameters for your server machine!
   my ($N, $l, $pf) = @_;
   my $t = 1 + $N * 8e-6 * $l*$l + 9e-9 * $l*$l*$l;
-  $t *= $N;
-  $t *= 4 if ($pf eq 'pf');
+#  $t *= $N;
+  $t = 4*$t + $N * 9e-9 * $l*$l*$l if ($pf eq 'pf');
   $t += 100 if $l > $maxlength1; # extra time for batch submission
   return int($t+1);
 }
