@@ -1,3 +1,21 @@
+Version 1.6
+-----------
+- The RNAforester program for tree-alignments of RNA structures is now
+  distributed with the Vienna RNA package, see the RNAforester
+  subdirectory for more information. RNAforester was written by Matthias
+  Hoechsmann <mhoechsm@techfak.uni-bielefeld.de> 
+- The Kinfold program for stochastic simulation of folding trajectories is
+  no included in the package, see the Kinfold subdirectory.
+- The Vienna RNA package now includes a freely distributable set of DNA
+  energy parameters. These parameters were compiled by David Mathews 
+  <David_Mathews@urmc.rochester.edu>, by re-analysing published data. 
+  The parameters are not heavily tested yet, beware of errors I might have
+  introduced when converting them into ViennaRNA format
+- cofolding of two structures now supports suboptimal folding and 
+  partition function folding. 
+  ATTENTION: Energies of hybrid structures now inlcude the Duplex-initiation
+  energy, which was neglected in previous version.
+
 Version 1.5pre 
 -----------
 - ViennaRNA now uses autoconfig generated configure scripts for even better

@@ -39,11 +39,25 @@ tools (split decomposition, statistical geometry, neighbor joining,
 Ward's method) for sequences and distance data. To also build these
 programs add  --with-cluster  to your configure options.
 
+This release includes the RNAforester and Kinfold programs, which can also 
+be obtained as independent packages. Running ./configure in the ViennaRNA 
+directory will configure those two packages as well. However, for detailed
+information and compile time options, see the README and INSTALL files in 
+the respective subdirectories. 
+
+The Kinfold program can be used to simulate the folding dynamics of an 
+RNA molecule, and is compiled by default. Use the --without-kinfold
+option to skip compiling Kinfold.
+
+The RNAforester program is used for comparing secondary structures using 
+tree alignment. To compile RNAforester you'll need to first install the
+g2 graphic library, then run configure with the --with-forester option.
+
 Calculation of partition functions (via RNAfold -p) uses double
 precision floats by default, to avoid overflow errors on longer sequences.  
 If your machine has little memory and you dont't plan to fold sequences
 over 1000 bases in length you can compile the package to do the computions 
-in single precision by ....
+in single precision by giving ./configure the --enable-floatpf option.
 
 Memory requirements for a sequence of length n will be approximately
 12*n^2 bytes for RNAfold -p in the double precision version, and

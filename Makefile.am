@@ -1,18 +1,23 @@
 
 if MAKE_PERL_EXT
    PLDIR = Perl
-else
-   PLDIR = 
 endif
 
 if MAKE_CLUSTER
   CLDIR = Cluster
-else
-  CLDIR = 
 endif
 
-SUBDIRS = lib Progs man Utils AliFold H $(PLDIR) $(CLDIR)
-DIST_SUBDIRS = lib Progs man Utils AliFold H Perl Cluster
+if MAKE_FORESTER
+   FDIR = RNAforester-1.4
+endif
+
+if MAKE_KINFOLD
+   KINDIR = Kinfold
+endif
+
+SUBDIRS = lib Progs man Utils AliFold H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
+
+#DIST_SUBDIRS = lib Progs man Utils AliFold H Perl Cluster
 
 pkgdata_DATA = vienna13.par default.par
 
