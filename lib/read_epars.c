@@ -16,13 +16,13 @@
 #include "energy_const.h"
 #include "energy_par.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.9 2002/11/07 12:04:55 ivo Exp $";
+static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
 #define PARSET 20
 enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MMM, MM_H,
-	     DE5, DE3, DE5_H, DE3_H, ML, TL, TRI, TE, NIN,
+	     DE5, DE3, DE5_H, DE3_H, ML, TL, TRI, TE, NIN, MISC,
 	     INT11, INT11_H, INT21, INT21_H, INT22, INT22_H, DUMP, HELP}; 
 
 
@@ -44,6 +44,7 @@ PRIVATE void  rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5]);
 PRIVATE void  rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5]);
 PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][5]);
 PRIVATE void  rd_MLparams(void);
+PRIVATE void  rd_misc(void);
 PRIVATE void  rd_ninio(void);
 PRIVATE void  rd_Tetra_loop(void);
 PRIVATE void  rd_Tri_loop(void);
@@ -120,6 +121,8 @@ PUBLIC void read_parameter_file(const char fname[])
 	case NIN:    rd_ninio();	       changed |= NIN; break;
 	case TL:     rd_Tetra_loop();          changed |= TL; break;
 	case TRI:    rd_Tri_loop();            changed |= TRI; break;
+	case MISC:   rd_misc();                changed |= MISC; break;
+	  
 	default: /* maybe it's a temperature */
 	  r=sscanf(ident, "%f", &rtemp);
 	  if (r!=1) fprintf(stderr," Unknown field identifier in `%s'\n", line);
@@ -336,6 +339,24 @@ PRIVATE void  rd_MLparams(void)
   ML_closing37 = values[1];
   ML_intern37  = values[2];
   TerminalAU   = values[3];
+  
+  return;
+}
+
+/*------------------------------------------------------------*/
+
+PRIVATE void  rd_misc(void)
+{
+  char *cp;
+  int values[1]; /* so far just one */
+
+  cp   = get_array1(values,1);
+  if (cp) {
+    fprintf(stderr,"rd_misc: %s\n", cp);
+    exit(1);
+  }
+
+  DuplexInit = values[0];
   
   return;
 }
