@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 16:37:33 ivo> */
+/* Last changed Time-stamp: <2000-10-10 17:08:35 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -27,7 +27,7 @@
 #define UNUSED
 #endif
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.17 2000/10/10 14:37:45 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.18 2000/10/10 15:42:21 ivo Rel $";
 
 #define PAREN
 
@@ -1328,12 +1328,14 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
         }
         i = stack[--hx];
         type = ptype[indx[j]+i];
-	for (k=i+1; k<=n; k++) ptype[indx[i]+k] = 0;
-        for (l=i+1; l<=j; l++) 
-	  for (k=j; k<=n; k++) ptype[indx[l]+k] = 0;
-	for (k=1; k<=i; k++) 
-	  for (l=i; l<=j; l++) ptype[indx[k]+l] = 0;
-	for (k=1; k<j; k++) ptype[indx[k]+j] = 0;
+	for (k=i+1; k<=n; k++) ptype[indx[k]+i] = 0;
+	/* don't allow pairs i<k<j<l */
+        for (l=j; l<=n; l++)
+	  for (k=i+1; k<=j; k++) ptype[indx[l]+k] = 0;
+	/* don't allow pairs k<i<l<j */
+	for (l=i; l<=j; l++)
+	  for (k=1; k<=i; k++) ptype[indx[l]+k] = 0;
+	for (k=1; k<j; k++) ptype[indx[j]+k] = 0;
         ptype[indx[j]+i] = (type==0)?7:type;
         /* fallthrough */
       case '>': /* pairs downstream */
