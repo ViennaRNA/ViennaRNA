@@ -1,6 +1,6 @@
 #!/usr/bin/perl  -T
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-10-09 12:15:02 ivo>
+# Last changed Time-stamp: <2003-12-10 12:43:58 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -41,7 +41,7 @@ if ($q->cgi_error) {
   exit 0;
 }
 
-if ($q->param) {
+if ($q->param &&  $q->param('Action') =~ /Fold/) {
   do_work($q);
 } else {
   print_form($q);
@@ -74,16 +74,23 @@ sub print_form {
 
   print $q->start_multipart_form();
 
-  print "<P><b>Enter</b> the file containing your <b>aligned sequences</b> ",
-    "for uploading.<br>\n",
+  if ($q->param('aln')) {
+    my @aln = split(' ',$q->param('aln'));
+    print "Alignment from cgi arguments is:<p><PRE>";
+    print join "\n", @aln;
+    print "</PRE>\n";
+    print $q->hidden(-name=>'aln', -default=>$q->param('aln'));
+  } else {
+    print "<P><b>Enter</b> the file containing your <b>aligned sequences</b> ",
+      "for uploading.<br>\n",
       "The alignment file <b>must</b> be in <kbd>Clustalw</kbd> format.<br>\n",
-	"Maximum file size is ", int($CGI::POST_MAX/1024 -1.1), "KB.<BR>\n";
+      "Maximum file size is ", int($CGI::POST_MAX/1024 -1.1), "KB.<BR>\n";
 
-  print $q->filefield(-name=>'clustal_file',
-		      -default=>'starting value',
-		      -size=>50,
-		      -maxlength=>80);
-
+    print $q->filefield(-name=>'clustal_file',
+			-default=>'starting value',
+			-size=>50,
+			-maxlength=>80);
+  }
   print "<P>\n<strong>Choose Fold Algorithm</strong><BR>\n";
 
   print $q->popup_menu(-name => 'pffold',
@@ -173,16 +180,27 @@ sub do_work {
     }
   }
 
-  my $clustal_fh = $q->upload('clustal_file');
-  errorpage(0) unless defined($clustal_fh);
-  my ($size, $num_seq, $length) = (0,0,0);
   open(ALN, ">alifold.aln") or croak("can't write alignment");
-  undef($/); # slurp mode
-  $_ = <$clustal_fh>; error_page('firstline') unless /^CLUSTAL/;
-  close($clustal_fh);
-  my @lines =  split /\015\012?|\012/;
+  my @lines;
+  if ($q->param('aln')) {
+    my @aln = split(' ', $q->param('aln'));
+    print ALN "CLUSTAL W alignment from pmmatch\n\n";
+    my $sn=1;
+    foreach (@aln) {
+      push @lines, sprintf "%-10s %s", $sn++, $_;
+    }
+    push @lines, '          ';
+  } else {
+    my $clustal_fh = $q->upload('clustal_file');
+    error_page(0) unless defined($clustal_fh);
+    undef($/); # slurp mode
+    $_ = <$clustal_fh>; error_page('firstline') unless /^CLUSTAL/;
+    close($clustal_fh);
+    @lines =  split /\015\012?|\012/;
+    print ALN shift(@lines), "\n";
+  }
+  my ($size, $num_seq, $length) = (0,0,0);
   my %l = ();
-  print ALN shift(@lines), "\n";
   foreach (@lines) {
     print ALN $_, "\n";
     if (/^\S+\s+\S+/) {
