@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2003-07-18 09:50:16 ivo>
+# Last changed Time-stamp: <2004-07-19 10:36:39 ivo>
 # produce Pauline Hogeweg's mountain representation *_dp.ps files
 # writes 3 sets of x y data separated by a "&"
 # the first two sets are mountain representations from base pair probabilities
@@ -12,9 +12,19 @@
 # use e.g. as  mountain.pl dot.ps | xmgrace -pipe
 
 use strict;
-our (@mm, @mp, @pp, @sp, @p0, $i, $max, $length);  # perl5 only
+our (@mm, @mp, @pp, @sp, @p0, $i, $max, $length, $do_png);  # perl5 only
 
 my $sep = "&";   # xmgr uses & to separate data sets  
+
+if (@ARGV && ($ARGV[0] eq '-png')) {
+    eval "use Chart::Lines";
+    die($@, 
+	"\nCould not load the Chart::Lines module required with -png option\n")
+	if $@;
+    $do_png=1;
+    shift;
+}
+
 
 while (<>) {
     my ($seq,$i,$j,$p,$id);
@@ -57,17 +67,40 @@ for ($i=1; $i<=$length; $i++) {
     $sp[$i] += (1-$pp[$i])*log(1-$pp[$i]);
 }
 
-# print the results for plotting
-for ($i=1; $i<=$length; $i++) {
-    printf("%4d  %7.5g\n", $i, $mp[$i]);
-}			
-print "$sep\n";
+if ($do_png) {
+    my $width =  800;
+    my $height = 600;
+    
+    # FIXME: legend_lables when doing mfe only
+    my $skip = 10**(int (log($length)/log(10.) - 0.5));
+    my $obj = Chart::Lines->new( $width, $height );
+    $obj->set ('title' => $ARGV,
+	       'x_label' => 'Position',
+	       'y_label' => 'Height',
+	       'min_val' => 0,
+	       'precision' => 0,
+	       'legend_labels' => ['mfe', 'pf'],
+	       'skip_x_ticks' => $skip);
+    
+    $obj->add_dataset ((0..$length));
+    
+    $obj->add_dataset (@mp);
+    $obj->add_dataset (@mm);
+    $obj->png("mountain.png");
 
-for ($i=1; $i<=$length; $i++) {
-    printf("%4d  %4d\n", $i, $mm[$i]);
-}	
-print "&\n";
-my $log2 = log(2);
-for ($i=1; $i<=$length; $i++) {
-    printf("%4d  %7.5g\n", $i, -$sp[$i]/$log2);
-}	
+} else {
+    # print the results for plotting
+    for ($i=1; $i<=$length; $i++) {
+	printf("%4d  %7.5g\n", $i, $mp[$i]);
+    }			
+    print "$sep\n";
+    
+    for ($i=1; $i<=$length; $i++) {
+	printf("%4d  %4d\n", $i, $mm[$i]);
+    }	
+    print "&\n";
+    my $log2 = log(2);
+    for ($i=1; $i<=$length; $i++) {
+	printf("%4d  %7.5g\n", $i, -$sp[$i]/$log2);
+    }	
+}
