@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-12-14 17:57:21 berni> */
+/* Last changed Time-stamp: <2004-12-23 13:13:55 berni> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.2  2004/12/23 12:14:41  berni
+  *** empty log message ***
+
   Revision 1.1  2004/12/22 10:46:17  berni
 
   Partition function Cofolding 0.9, Computation of concentrations.
@@ -35,7 +38,7 @@
 #include "PS_dot.h"
 #include "co_part_func.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.1 2004/12/22 10:46:17 berni Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.2 2004/12/23 12:14:41 berni Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1411,186 +1414,4 @@ PUBLIC int make_probsum(int length, char *name) {
   free(filename);
   if (cut_point>0) free(Pprob);
   return 1;
-}
-
-void Duplexthingy(double *ConcAandB, char *Concfile, char *string, double FEAB, struct plist *prAB, struct plist *mfAB)
-{ /*cofold of all dimers, monomers*/
-  int Blength, Alength;
-  char  *Astring, *Bstring;
-  char *Newstring;
-  char *Newname;
-  char *comment;
-  struct plist *prAA;   /*pair probabilities of AA dimer*/
-  struct plist *prBB;
-  struct plist *prA;
-  struct plist *prB;
-  
-  struct plist *mfAA;   /*pair mfobabilities of AA dimer*/
-  struct plist *mfBB;
-  struct plist *mfA;
-  struct plist *mfB;
-
-  double FEAA; /*free energy  of AA dimer*/
-  double FEBB; /*free energy  of BB dimer*/
-  double FEA;
-  double FEB;
-
-  struct ConcEnt *Conc;
-  if (cut_point<0) {
-    printf("Sorry, i cannot do that with only one molecule, please give me two or leave it\n");
-    free(mfAB);
-    free(prAB);
-    /*    continue;*/ return;
-  }
-  if (dangles==1) dangles=2; /*merkmas??*/
-  Alength=cut_point-1;    /*length of first molecule*/
-  Blength=length-cut_point+1; /*length of 2nd molecule*/
-  
-  Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
-  Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
-  strncat(Astring,string,Alength);      
-  strncat(Bstring,string+Alength,Blength);
-  
-  
-  
-  /*compute AA dimer*/
-  prAA=(struct plist *) space(sizeof(struct plist) * (4*Alength));
-  mfAA=(struct plist *) space(sizeof(struct plist) * (Alength+1));
-  FEAA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA);
-  /*compute BB dimer*/
-  prBB=(struct plist *) space(sizeof(struct plist) * (4*Blength));
-  mfBB=(struct plist *) space(sizeof(struct plist) * (Blength+1));
-  FEBB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB);
-  /*free_co_pf_arrays();*/
-  
-  /*compute A monomer*/
-  prA=(struct plist *) space(sizeof(struct plist) * (2*Alength));
-  mfA=(struct plist *) space(sizeof(struct plist) * (Alength+1));
-  if (Alength>4) {  /*only if sec_struc is possible*/
-    FEA=do_partfunc(Astring, Alength, 1, &prA, &mfA);
-    /*	  free_pf_arrays();*/
-    
-  }
-  else { /*no secondary structure*/
-    FEA=0.;
-    prA=(struct plist *)xrealloc(prA,sizeof(struct plist));
-    mfA=(struct plist *)xrealloc(mfA,sizeof(struct plist));
-    prA[0].i=mfA[0].i=0;
-    prA[0].j=mfA[0].j=0;
-    prA[0].p=mfA[0].p=0.;
-  }
-  /*compute B monomer*/
-  prB=(struct plist *) space(sizeof(struct plist) * (2*Blength));
-  mfB=(struct plist *) space(sizeof(struct plist) * (Blength+1));
-  
-  if (Blength>4) {
-    
-    FEB=do_partfunc(Bstring, Blength, 1, &prB, &mfB); 
-    /*	  free_pf_arrays();*/
-    
-    
-  }
-  else {
-    FEB=0.;
-    prB=(struct plist *)xrealloc(prB,sizeof(struct plist));
-    mfB=(struct plist *)xrealloc(mfB,sizeof(struct plist));
-    prB[0].i=mfB[0].i=0;
-    prB[0].j=mfB[0].j=0;
-    prB[0].p=mfB[0].p=0.;
-    
-  } 
-  
-  compute_probabilities(&FEAB,&FEAA,&FEBB,&FEA,&FEB,
-			prAB,prAA,prBB,prA,prB,
-			Alength,Blength);
-  printf("\nFree Energies:\nblubAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",FEAB,FEAA,FEBB,FEA,FEB);
-  
-  if (doC) {
-    Conc=do_the_concenratinger(Concfile,FEAB, FEAA, FEBB, FEA, FEB, ConcAandB);
-    free(Conc);/*freeen*/
-  }
-  
-  if (fname[0]!='\0') {
-    strcpy(ffname, fname);
-    strcat(ffname, "_dp5.ps");
-  } else strcpy(ffname, "dot5.ps");
-  /*output of the 5 dot plots*/
-  
-  /*AB dot_plot*/
-  /*write Free Energy into comment*/ 
-  comment=(char *)space(80*sizeof(char));
-  sprintf(comment,"\n%%FreeEnergy= %.9f\n",FEAB);
-  /*reset cut_point*/
-  cut_point=Alength+1;
-  /*write New name*/
-  Newname=(char*)space((strlen(ffname)+3)*sizeof(char));
-  sprintf(Newname,"AB");
-  strcat(Newname,ffname);
-  (void)PS_dot_plot_list(string, Newname, prAB, mfAB, comment);
-  free(comment);
-  free(Newname);
-  
-  /*AA dot_plot*/
-  comment=(char *)space(80*sizeof(char));
-  sprintf(comment,"\n%%FreeEnergy= %.9f\n",FEAA);
-  /*write New name*/
-  Newname=(char*)space((strlen(ffname)+3)*sizeof(char));
-  sprintf(Newname,"AA");
-  strcat(Newname,ffname);
-  /*write AA sequence*/
-  Newstring=(char*)space((2*Alength+1)*sizeof(char));
-  strcat(Newstring,Astring);
-  strcat(Newstring,Astring);
-  (void)PS_dot_plot_list(Newstring, Newname, prAA, mfAA, comment);
-  free(comment);
-  free(Newname);
-  free(Newstring);
-  
-  /*BB dot_plot*/
-  comment=(char *)space(80*sizeof(char));
-  sprintf(comment,"\n%%FreeEnergy= %.9f\n",FEBB);
-  /*write New name*/
-  Newname=(char*)space((strlen(ffname)+3)*sizeof(char));
-  sprintf(Newname,"BB");
-  strcat(Newname,ffname);
-  /*write BB sequence*/
-  Newstring=(char*)space((2*Blength+1)*sizeof(char));
-  strcat(Newstring,Bstring);
-  strcat(Newstring,Bstring);
-  /*reset cut_point*/
-  cut_point=Blength+1;
-  (void)PS_dot_plot_list(Newstring, Newname, prBB, mfBB, comment);
-  free(comment);
-  free(Newname);
-  free(Newstring);
-  
-  /*A dot plot*/
-  /*reset cut_point*/
-  cut_point=-1;
-  comment=(char *)space(80*sizeof(char));
-  sprintf(comment,"\n%%FreeEnergy= %.9f\n",FEA);
-  /*write New name*/
-  Newname=(char*)space((strlen(ffname)+2)*sizeof(char));
-  sprintf(Newname,"A");
-  strcat(Newname,ffname);
-  /*write BB sequence*/
-  (void)PS_dot_plot_list(Astring, Newname, prA, mfA, comment);
-  free(comment);
-  free(Newname);
-  
-  /*B monomer dot plot*/
-  comment=(char *)space(80*sizeof(char));
-  sprintf(comment,"\n%%FreeEnergy= %.9f\n",FEB);
-  /*write New name*/
-  Newname=(char*)space((strlen(ffname)+2)*sizeof(char));
-  sprintf(Newname,"B");
-  strcat(Newname,ffname);
-  /*write BB sequence*/
-  (void)PS_dot_plot_list(Bstring, Newname, prB, mfB, comment);
-  free(comment);
-  free(Newname);
-  
-  free_franz(Astring, Bstring,  prAB, prAA, prBB, prA, prB,  mfAB, mfAA, mfBB, mfA, mfB);
-  
-  
 }
