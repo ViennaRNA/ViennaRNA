@@ -32,10 +32,9 @@ static void make_pair_matrix(void)
       alias[6] = 2; /* K <-> C */
       alias[7] = 0; /* I <-> default base '@' */
       for (i=0; i<NBASES; i++) {
- 	 for (j=0; j<NBASES; j++) {
+ 	 for (j=0; j<NBASES; j++) 
 	    pair[i][j] = BP_pair[i][j];
-	    rtype[pair[i][j]] = pair[j][i];
-      }
+      }      
       if (noGU) pair[3][4] = pair[4][3] =0;
       if (nonstandards!=NULL) {  /* allow nonstandard bp's */ 
 	 for (i=0; i<strlen(nonstandards); i+=2) 
