@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-08-23 10:20:03 ivo> */
+/* Last changed Time-stamp: <2001-08-23 16:56:59 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -27,7 +27,7 @@
 #define UNUSED
 #endif
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.20 2001/08/23 08:32:12 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.21 2001/08/23 15:49:01 ivo Exp $";
 
 #define PAREN
 
@@ -264,7 +264,7 @@ float fold(char *string, char *structure)
 	       
 #if 1
 	    energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-				S1[i+1], S1[j-1], S1[p-1], S[q+1]);
+				S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
 #else
 	    /* duplicated code is faster than function call */
 	       
