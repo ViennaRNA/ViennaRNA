@@ -8,14 +8,14 @@ extern double lxc37;   /* parameter for logarithmic loop
 			  energy extrapolation            */
 
 extern int stack37[NBPAIRS+1][NBPAIRS+1];
-extern int enthalpies[NBPAIRS+1][NBPAIRS+1]; /* stack enthalpies *
+extern int enthalpies[NBPAIRS+1][NBPAIRS+1]; /* stack enthalpies */
 extern int entropies[NBPAIRS+1][NBPAIRS+1];  /* not used anymore */
 
 extern int hairpin37[31];
 extern int bulge37[31];
 extern int internal_loop37[31];
 extern int internal2_energy;
-extern old_mismatch_37[NBPAIRS+1][5][5];
+extern int old_mismatch_37[NBPAIRS+1][5][5];
 extern int mismatchI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
 extern int mismatchH37[NBPAIRS+1][5][5];  /* same for hairpins */
 extern int mism_H[NBPAIRS+1][5][5];       /* mismatch enthalpies */
