@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/10/27 15:45:08 ivo> */
+/* Last changed Time-stamp: <97/11/03 19:40:40 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,7 +16,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAfold.c,v 1.5 1997/10/27 14:45:17 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.6 1997/11/03 19:13:07 ivo Exp $";
 
 #define PRIVATE static
 
@@ -154,8 +154,8 @@ int main(int argc, char *argv[])
 	 printf("length = %d\n", length);
 
       initialize_fold(length);
-      if (fold_constrained)
-	 strcpy(structure,cstruc);
+      if (fold_constrained) 
+	strncpy(structure, cstruc, length+1);
       min_en = fold(string, structure);
       printf("%s\n%s", string, structure);
       if (istty)
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 	 init_pf_fold(length);
 
 	 if (fold_constrained)
-	    strcpy(structure,cstruc);
+	    strncpy(structure, cstruc, length+1);
 	 energy = pf_fold(string, structure);
 	 
 	 if (do_backtrack) {
@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
 	 free_pf_arrays();
 
       }
+      if (fold_constrained)
+	free(cstruc);
       free(base_pair);
       fflush(stdout);
       free(string);
@@ -229,6 +231,7 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: RNAfold [-p[0]] [-T temp] [-4] [-noGU] [-noCloseGU]\n" 
-	   "               [-e e_set] [-C] [-S scale] [-d] [-nsp pairs]");
+   nrerror("usage: "
+	   "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
+	   "               [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]");
 }
