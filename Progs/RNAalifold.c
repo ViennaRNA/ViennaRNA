@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-13 19:08:37 ivo> */
+/* Last changed Time-stamp: <2005-03-01 20:19:36 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.10 2005/02/10 09:51:13 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.11 2005/03/04 17:09:59 ivo Exp $";
 
 #define PRIVATE static
 
@@ -35,7 +35,7 @@ PRIVATE char *consensus(const char *AS[]);
 PRIVATE char *annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(const pair_info pi, FILE *file);
 PRIVATE cpair *make_color_pinfo(const pair_info *pi);
-
+PRIVATE void mark_endgaps(char *seq, char egap);
 /*--------------------------------------------------------------------------*/
 #define MAX_NUM_NAMES    500
 int main(int argc, char *argv[])
@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   int   n_seq, i, length, sym, r;
+  int   endgaps=0;
   double min_en, real_en, sfact=1.07;
   int   pf=0, istty;
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -88,6 +89,9 @@ int main(int argc, char *argv[])
 	  if(i==argc-1) usage();
 	  r=sscanf(argv[++i],"%d", &energy_set);
 	  if (!r) usage();
+	  break;
+	case 'E':
+	  endgaps=1;
 	  break;
 	case 'C':
 	  fold_constrained=1;
@@ -160,13 +164,19 @@ int main(int argc, char *argv[])
     printf("> : base i is paired with a base j>i\n");
     printf("matching brackets ( ): base i pairs base j\n");
   } 
+  if (fold_constrained) {
+    if (istty) printf("%s\n", scale);
+    cstruc = get_line(stdin);
+  }
 
   if (istty && (clust_file == stdin)) {
     printf("\nInput aligned sequences in clustalw format\n");
-    printf("%s\n", scale);
+    if (!fold_constrained) printf("%s\n", scale);
   }
   
   n_seq = read_clustal(clust_file, AS, names);
+  if (endgaps)
+    for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
   if (clust_file != stdin) fclose(clust_file);
   if (n_seq==0)
     nrerror("no sequences found");
@@ -174,7 +184,6 @@ int main(int argc, char *argv[])
   length = (int) strlen(AS[0]);
   structure = (char *) space((unsigned) length+1);
   if (fold_constrained) {
-    cstruc = get_line(stdin);
     if (cstruc!=NULL) 
       strncpy(structure, cstruc, length);
     else
@@ -364,6 +373,17 @@ PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    fprintf(stderr, "%d sequences; length of alignment %d.\n", nn, n);
    return num_seq;
 }
+
+void mark_endgaps(char *seq, char egap) {
+  int i,n;
+  n = strlen(seq);
+  for (i=0; i<n && (seq[i]=='-'); i++) {
+    seq[i] = egap;
+  }
+  for (i=n-1; i>0 && (seq[i]=='-'); i--) {
+    seq[i] = egap;
+  }
+}
  
 void print_pi(const pair_info pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
@@ -466,7 +486,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float]\n"
+	  "RNAalifold [-cv float] [-nc float] [-E]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  );

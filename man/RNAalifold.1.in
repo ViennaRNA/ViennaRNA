@@ -3,7 +3,8 @@
 .SH "NAME"
 RNAalifold \- calculate secondary structures for a set of aligned RNAs
 .SH "SYNOPSIS"
-\fBRNAalifold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
+\fBRNAalifold\fP [\-cv \ \fIweight\fP] [\-nc \ \fIweight\fP] [\-E] 
+[\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
 [\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
 \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fI<file.aln>\fP]
 
@@ -29,6 +30,9 @@ Set the weight of the covariance term in the energy function to
 Set the penalty for non\-compatible sequences in the covariance term of the
 energy function to \fIfactor\fP. Default is 1.
 .TP 
+.B \-E
+Score pairs with endgaps same as gap-gap pairs.
+.TP 
 .B \-p
 Calculate the partition function and base pairing probability matrix in
 addition to the mfe structure. Default is calculation of mfe structure only.
@@ -41,6 +45,9 @@ Setting this option provides a significant speedup.
 .PP 
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options \fUshould\fP work as in RNAfold
+
+If using \fB\-C\fP constraints will be read from stdin, the alignment
+has to given as a filename on the command line. 
 
 .SH "CAVEATS"
 Since gaps are not removed for the evaluation of energies, it may be

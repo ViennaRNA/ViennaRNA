@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-02-13 13:03:19 ivo> */
+/* Last changed Time-stamp: <2005-02-28 20:43:17 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.6 2005/02/10 09:51:13 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.7 2005/03/04 17:09:59 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -39,9 +39,10 @@ PRIVATE void  scale_pf_params(unsigned int length, int n_seq);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
 			     short si1, short sj1, short sp1, short sq1);
-PRIVATE void make_pscores(const short *const *S, int n_seq,
-			  const char *structure);
-PRIVATE pair_info *make_pairinfo(const short *const* S, int n_seq);
+PRIVATE void make_pscores(const short *const *S, const char *const* AS,
+			  int n_seq, const char *structure);
+PRIVATE pair_info *make_pairinfo(const short *const* S, char **AS, 
+				 int n_seq);
 PRIVATE short * encode_seq(const char *sequence);
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
 PRIVATE FLT_OR_DBL expTermAU;
@@ -94,7 +95,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
     if (strlen(sequences[s]) != n) nrerror("uneqal seqence lengths");
     S[s] = encode_seq(sequences[s]);
   }
-  make_pscores((const short *const*)S, n_seq, structure);
+  make_pscores((const short *const*)S, sequences, n_seq, structure);
    
   /* array initialization ; qb,qm,q
      qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -374,7 +375,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       }
 
     if (pi != NULL)
-      *pi = make_pairinfo((const short **)S, n_seq);
+      *pi = make_pairinfo((const short **)S, sequences, n_seq);
   
     if (structure!=NULL)
       sprintf_bppm(n, structure);
@@ -674,7 +675,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-pair_info *make_pairinfo(const short *const* S, int n_seq) {
+pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
   int i,j,n, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
@@ -699,7 +700,10 @@ pair_info *make_pairinfo(const short *const* S, int n_seq) {
 	for (type=0; type<8; type++) pi[num_p].bp[type]=0;
 	for (s=0; s<n_seq; s++) {
 	  if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */  
-	  else type = pair[S[s][i]][S[s][j]];
+	  else {
+	    if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
+	    else type = pair[S[s][i]][S[s][j]];
+	  }
 	  pi[num_p].bp[type]++;
 	}
 	num_p++;
@@ -759,7 +763,8 @@ PRIVATE short * encode_seq(const char *sequence) {
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structure) {
+PRIVATE void make_pscores(const short *const *S, const char *const *AS,
+			  int n_seq, const char *structure) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
@@ -782,8 +787,10 @@ PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structur
       for (s=0; s<n_seq; s++) {
 	int type;
 	if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */	
-	else type = pair[S[s][i]][S[s][j]];
-	
+	else {
+	  if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
+	  else type = pair[S[s][i]][S[s][j]];
+	}
 	pfreq[type]++;
       }
       if (pfreq[0]*2>n_seq) { pscore[iindx[i]-j] = NONE; continue;}
@@ -795,7 +802,7 @@ PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structur
 	  score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25  */
       pscore[iindx[i]-j] = cv_fact *
-	((UNIT*score)/n_seq - nc_fact*(UNIT*pfreq[0] + UNIT*pfreq[7]*0.25));
+	((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
     }
   }
 

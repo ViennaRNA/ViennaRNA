@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-12-16 11:36:01 ivo> */
+/* Last changed Time-stamp: <2005-02-28 20:43:26 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.8 2005/02/10 09:51:13 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.9 2005/03/04 17:09:59 ivo Exp $";
 
 #define PAREN
 
@@ -43,8 +43,8 @@ PUBLIC double nc_fact=1.;
 
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
-PRIVATE void  make_pscores(const short *const *S, int n_seq,
-			   const char *structure);
+PRIVATE void  make_pscores(const short *const *S, const char *const *AS,
+			   int n_seq, const char *structure);
 PRIVATE short *encode_seq(const char *sequence);
 /*@unused@*/
 extern  int LoopEnergy(int n1, int n2, int type, int type_2,
@@ -152,7 +152,7 @@ float alifold(char **strings, char *structure)
     if (strlen(strings[s]) != length) nrerror("uneqal seqence lengths");
     S[s] = encode_seq(strings[s]);
   }
-  make_pscores((const short **) S, n_seq, structure);
+  make_pscores((const short **) S, strings, n_seq, structure);
 
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -573,7 +573,8 @@ PRIVATE void parenthesis_structure(char *structure, int length)
 }
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void make_pscores(const short *const* S, int n_seq, const char *structure) {
+PRIVATE void make_pscores(const short *const* S, const char *const* AS, 
+			  int n_seq, const char *structure) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
@@ -595,7 +596,10 @@ PRIVATE void make_pscores(const short *const* S, int n_seq, const char *structur
       for (s=0; s<n_seq; s++) {
 	int type;
 	if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */	
-	else type = pair[S[s][i]][S[s][j]];
+	else {
+	  if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
+	  else type = pair[S[s][i]][S[s][j]];
+	}
 	
 	pfreq[type]++;
       }
@@ -607,7 +611,7 @@ PRIVATE void make_pscores(const short *const* S, int n_seq, const char *structur
 	  score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25   */
       pscore[indx[j]+i] = cv_fact *
-	((UNIT*score)/n_seq - UNIT*pfreq[0]*nc_fact - UNIT*pfreq[7]*0.25);
+	((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
     }
   }
   
