@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/10/28 17:18:32 ivo> */
+/* Last changed Time-stamp: <97/11/12 13:32:36 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.6 1997/11/03 17:10:02 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.7 1997/11/16 20:18:16 ivo Rel $";
 
 #define PAREN
 #ifdef LETTER
@@ -206,7 +206,8 @@ float fold(char *string, char *structure)
 	 if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
 	 if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
 	 if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-	 if ((BP[i]==-4)||(BP[j]==-4)) bonus +=BONUS;
+	 if (BP[i]==-4) bonus +=BONUS;
+	 if (BP[j]==-4) bonus +=BONUS;
 	 	 
 	 no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
 		 
@@ -580,9 +581,11 @@ float fold(char *string, char *structure)
       mm = (unpaired>3) ? mismatchH[type][S1[i+1]][S1[j-1]] : 0;
       
       bonus = 0;
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2))
-	 bonus -= BONUS;
+      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
+      if (BP[i]==-4) bonus += BONUS;
+      if (BP[j]==-4) bonus += BONUS;
+      
       if (no_close) {
 	 if (c[indx[j]+i] == FORBIDDEN) continue;
       } else
@@ -712,9 +715,11 @@ float fold(char *string, char *structure)
 	 bonus_cnt++;
 	 if((BP[l]==-3)&&(structure[l-1]==')')) bonus++;
 	 if((BP[l]==-2)&&(structure[l-1]=='(')) bonus++;
-	 if((BP[l]==-1)&&(structure[l-1]=='(')) bonus++;
-	 if((BP[l]==-1)&&(structure[l-1]==')')) bonus++;
+	 if((BP[l]==-1)&&(structure[l-1]!='.')) bonus++;
       }
+      /* 'x' constraints give penalty instead of bonus */
+      if ((BP[l]==-4)&&(structure[l-1]!='.')) bonus--; 
+      
       if(BP[l]>l) {
 	 bonus_cnt++;
 	 for(i=1;i<=b;i++)
