@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-08-15 18:27:50 ivo> */
+/* Last changed Time-stamp: <2003-09-13 17:34:43 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.5 2002/08/15 16:30:30 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.6 2003/09/15 11:34:42 ivo Exp $";
 
 #define PAREN
 
@@ -137,6 +137,7 @@ float alifold(char **strings, char *structure)
   int   s, b, mm, max_separation;
   int   n_seq, *type, type_2, tt;
   short **S;
+  int cov_en = 0;
 
   length = (int) strlen(strings[0]);
   if (length>init_length) init_alifold(length);
@@ -332,6 +333,7 @@ float alifold(char **strings, char *structure)
     if (ml==2) {
       base_pair[++b].i = i;
       base_pair[b].j   = j;
+      cov_en += pscore[indx[j]+i];
       goto repeat1; 
     }
 
@@ -379,6 +381,7 @@ float alifold(char **strings, char *structure)
       j=traced;
       base_pair[++b].i = i;
       base_pair[b].j   = j;
+      cov_en += pscore[indx[j]+i];
       goto repeat1;
     }
     else { /* trace back in fML array */
@@ -408,6 +411,7 @@ float alifold(char **strings, char *structure)
 	else if (fij==ci1j1) {i++; j--;}
 	base_pair[++b].i = i;
 	base_pair[b].j   = j;
+	cov_en += pscore[indx[j]+i];
 	goto repeat1;
       } 
        
@@ -448,7 +452,8 @@ float alifold(char **strings, char *structure)
 	cij += pscore[indx[j]+i];
 	base_pair[++b].i = i+1;
 	base_pair[b].j   = j-1;
-	i++; j--;
+	cov_en += pscore[indx[j-1]+i+1];
+	i++; j--; 
 	canonical=0;
 	goto repeat1;
       }
@@ -479,6 +484,7 @@ float alifold(char **strings, char *structure)
 	if (traced) {
 	  base_pair[++b].i = p;
 	  base_pair[b].j   = q;
+	  cov_en += pscore[indx[q]+p];
 	  i = p, j = q;
 	  goto repeat1;
 	}
@@ -526,7 +532,7 @@ float alifold(char **strings, char *structure)
   free(type);
   for (s=0; s<n_seq; s++) free(S[s]); 
   free(S);
-
+  /* fprintf(stderr, "covariance energy %6.2f\n", cov_en/100.); */
   if (backtrack_type=='C')
     return (float) c[indx[length]+1]/(n_seq*100.);
   else if (backtrack_type=='M')

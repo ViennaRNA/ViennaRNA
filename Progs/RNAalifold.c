@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-08-29 18:15:58 ivo> */
+/* Last changed Time-stamp: <2003-09-13 19:08:37 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.8 2003/09/02 08:17:28 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.9 2003/09/15 11:34:42 ivo Exp $";
 
 #define PRIVATE static
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   int   n_seq, i, length, sym, r;
-  double min_en, sfact=1.07;
+  double min_en, real_en, sfact=1.07;
   int   pf=0, istty;
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char     *names[MAX_NUM_NAMES];       /* sequence names */
@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 
   do_backtrack = 1; 
   string=NULL;
+  dangles=2;
   for (i=1; i<argc; i++) {
     if (argv[i][0]=='-') {
       switch ( argv[i][1] )
@@ -181,12 +182,21 @@ int main(int argc, char *argv[])
   }
   
   min_en = alifold(AS, structure);
+  {
+    int i; double s=0;
+    extern int eos_debug;
+    eos_debug=-1; /* shut off warnings about nonstandard pairs */
+    for (i=0; AS[i]!=NULL; i++) 
+      s += energy_of_struct(AS[i], structure);
+    real_en = s/i;
+  }
   string = consensus((const char **) AS);
   printf("%s\n%s", string, structure);
   if (istty)
-    printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n", 
+	   min_en, real_en, min_en - real_en);
   else
-    printf(" (%6.2f)\n", min_en);
+    printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
   
   if (fname[0]!='\0') {
     strcpy(ffname, fname);
