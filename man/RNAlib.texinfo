@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <95/08/09 14:43:21 ivo>
+@c Last changed Time-stamp: <96/11/01 18:45:33 ivo>
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifinfo
@@ -259,7 +259,7 @@ a pair is in pr[iindx[i]-j].
 @code{float  pf_scale}@*
 @vindex pf_scale
 a scaling factor used by pf_fold() to avoid overflows. Should be set
-to exp((F/kT)/length) where F is an estimate for the ensemble free
+to exp((-F/kT)/length) where F is an estimate for the ensemble free
 energy, for example the minimum free energy. You must call
 @code{update_pf_params()} or @code{init_pf_fold()} after changing this
 parameter. If pf_scale is -1 (the default) , an estimate will be provided

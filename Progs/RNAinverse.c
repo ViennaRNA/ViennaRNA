@@ -2,7 +2,7 @@
 
                    interactive access to inverse.c
 */
-/* Last changed Time-stamp: <95/11/24 14:12:32 ivo> */
+/* Last changed Time-stamp: <96/06/18 14:09:35 ivo> */
 #include <stdio.h>
 #include <math.h>
 #include <ctype.h>
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	    i++;
 	    strcpy(symbolset,argv[i]);
 	    break;
-	  case 'T':  if (argv[i][2]!='\0') usage();
+	  case 'T':  if (argv[i][2]!='\0') usage(); 
 	    sscanf(argv[++i], "%f", &temperature);
 	    break;
 	  case 'F':
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	       switch( argv[i][j] ) {
 		case 'm' :  mfe = 1;
 		  break;
-		case 'p' :  pf = 1; /* dangles=0; old version */
+		case 'p' :  pf = 1; /* old version had dangles=0 here */
 		  break;
 		  default : usage();
 	       }
@@ -74,7 +74,8 @@ int main(int argc, char *argv[])
 	    break;
 	  case 'd': dangles=0;
 	    break;
-	 case 'f': sscanf(argv[++i],"%f", &final_cost);
+	 case 'f': /* when to stop RNAfold -p */
+	    sscanf(argv[++i],"%f", &final_cost); 
  	    break;
 	  default: usage();
 	 }

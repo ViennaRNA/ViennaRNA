@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <95/10/26 16:56:17 ivo> */
+/* Last changed Time-stamp: <96/06/12 17:48:01 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -364,7 +364,7 @@ PUBLIC float inverse_pf_fold(char *start, char *target)
    fold_type=1;
    do_backtrack = 0;
    dist = adaptive_walk(start, target);
-   return dist;
+   return (dist+final_cost);
 }
 
 /*-------------------------------------------------------------------------*/

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <95/08/09 18:17:21 ivo> */
+/* Last changed Time-stamp: <96/10/07 12:10:40 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -175,8 +175,8 @@ int main(int argc, char *argv[])
 	 min_en = energy_of_struct(string, structure); 
 	 
 	 kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
-	 pf_scale = exp((sfact*min_en)/kT/length);
-	 if (length>1600) fprintf(stderr, "scaling factor %f\n", pf_scale);
+	 pf_scale = exp(-(sfact*min_en)/kT/length);
+	 if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
 	 init_pf_fold(length);
 
