@@ -23,7 +23,17 @@
 %subsection "Inverse Folding"
 %include  "../H/inverse.h"
 %subsection "Global Variables to Modify Folding"
+extern float *pr;  /*  base pairing prob. matrix */
 %include  "../H/fold_vars.h"
+%{
+float get_pr(int i, int j) {
+   int ii;
+  if (i>j) {ii=i; i=j; j=ii;}
+  return pr[iindx[i]-j];
+}
+%}
+float get_pr(int i, int j);
+/* Get probability of pair i.j from the pr array */
 
 %section "Parsing and Comparing Structures"
 %include  "../H/RNAstruct.h"
@@ -44,3 +54,11 @@ extern void  read_parameter_file(const char fname[]);
 /* read energy parameters from file */
 extern void  write_parameter_file(const char fname[]);
 /* write energy parameters to file */
+//%include array.i
+%include pointer.i
+%inline %{
+void *deref_any(void **ptr, int index) {
+   /* dereference arbitray pointer */
+   return (void *) ptr[index];
+}
+%}
