@@ -1,5 +1,7 @@
+#include <ctype.h>
 #define NBASES 8
-static char Law_and_Order[] = "_ACGUXKI";
+/*@notnull@*/
+static const char Law_and_Order[] = "_ACGUTXKI";
 static int BP_pair[NBASES][NBASES]=
 /* _  A  C  G  U  X  K  I */
 {{ 0, 0, 0, 0, 0, 0, 0, 0},
@@ -18,16 +20,32 @@ static int pair[MAXALPHA+1][MAXALPHA+1];
 /* rtype[pair[i][j]]:=pair[j][i] */
 static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
 
-#define ENCODE(C) (energy_set>0)?((C)-'A'+1): \
-   ((strchr(Law_and_Order, (C))==0)?0:(strchr(Law_and_Order, (C))-Law_and_Order))
+/* for backward compatibility */
+#define ENCODE(C) encode_char(c)
 
+static int encode_char(char c) {
+  /* return numerical representation of base used e.g. in pair[][] */
+  int code;
+  if (energy_set>0) code = (int) (c-'A')+1;
+  else {
+    char *pos;
+    pos = strchr(Law_and_Order, c);
+    if (pos==NULL) code=0;
+    else code = (int) (pos-Law_and_Order);
+    if (code>4) code--; /* make T and U equivalent */
+  }
+  return code;
+}
+
+/*@+boolint +charint@*/
+/*@null@*/
 extern char *nonstandards;
 static void make_pair_matrix(void)
 {
    int i,j;
    
    if (energy_set==0) {
-      for (i=0; i<5; i++) alias[i] = i;
+      for (i=0; i<5; i++) alias[i] = (short) i;
       alias[5] = 3; /* X <-> G */
       alias[6] = 2; /* K <-> C */
       alias[7] = 0; /* I <-> default base '@' */
@@ -37,9 +55,14 @@ static void make_pair_matrix(void)
       }      
       if (noGU) pair[3][4] = pair[4][3] =0;
       if (nonstandards!=NULL) {  /* allow nonstandard bp's */ 
-	 for (i=0; i<strlen(nonstandards); i+=2) 
-	    pair[ENCODE(nonstandards[i])][ENCODE(nonstandards[i+1])]=7;
+	 for (i=0; i<(int)strlen(nonstandards); i+=2) 
+	    pair[encode_char(nonstandards[i])]
+	      [encode_char(nonstandards[i+1])]=7;
       }
+      for (i=0; i<NBASES; i++) {
+ 	 for (j=0; j<NBASES; j++) 
+	   rtype[pair[i][j]] = pair[j][i];
+      }      
    } else {
       for (i=0; i<=MAXALPHA; i++) {
 	 for (j=0; j<=MAXALPHA; j++) 
@@ -67,6 +90,10 @@ static void make_pair_matrix(void)
 	    pair[i][i-1] = 6;    /* BA <-> UA */
 	 }
       } else nrerror("What energy_set are YOU using??");
+      for (i=0; i<=MAXALPHA; i++) {
+	for (j=0; j<=MAXALPHA; j++) 
+	  rtype[pair[i][j]] = pair[j][i];
+      }
    }
 }
 
