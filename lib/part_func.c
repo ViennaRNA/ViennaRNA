@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-01-04 18:52:35 ivo> */
+/* Last changed Time-stamp: <2004-02-17 11:45:38 ivo> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.18  2004/02/17 10:46:52  ivo
+  make sure init_pf_fold is called before scale_parameters
+
   Revision 1.17  2004/02/09 18:37:59  ivo
   new mean_bp_dist() function to compute ensemble diversity
 
@@ -32,7 +35,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.17 2004/02/09 18:37:59 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.18 2004/02/17 10:46:52 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -73,7 +76,8 @@ PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
 PRIVATE char *ptype; /* precomputed array of pair types */ 
 PRIVATE int *jindx;
-PRIVATE int init_length; /* length in last call to init_pf_fold() */
+PRIVATE int init_length;  /* length in last call to init_pf_fold() */
+PRIVATE double init_temp; /* temperature in last call to scale_pf_params */
 #define ISOLATED  256.0
 
 /*-----------------------------------------------------------------*/
@@ -93,6 +97,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 
   n = (int) strlen(sequence);
   if (n>init_length) init_pf_fold(n);  /* (re)allocate space */
+  if ((init_temp - temperature)>1e-6) update_pf_params(n);
 
   S = (short *) xrealloc(S, sizeof(short)*(n+1));
   S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
@@ -353,7 +358,7 @@ PRIVATE void scale_pf_params(unsigned int length)
   double  GT;
 
    
-   
+  init_temp = temperature;
   kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (temperature+K0)/(Tmeasure);
 
@@ -642,8 +647,11 @@ PUBLIC void free_pf_arrays(void)
 
 PUBLIC void update_pf_params(int length)
 {
-  make_pair_matrix();
-  scale_pf_params((unsigned) length);
+  if (length>init_length) init_pf_fold(length);  /* init not update */
+  else {
+    make_pair_matrix();
+    scale_pf_params((unsigned) length);
+  }
 }
 
 /*---------------------------------------------------------------------------*/
