@@ -27,19 +27,23 @@
 #include "part_func.h"
 #include "utils.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.1 2004/08/03 10:47:55 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.2 2004/11/02 11:45:35 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
 #define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
 #define MAX(x,y)       (((x)>(y)) ? (x) : (y))
 #define MAX3(x,y,z)    (MAX(  (MAX((x),(y))) ,(z)))
-#define EQUAL(x,y)     (fabs((x)-(y)) < fabs(x)*2*FLT_EPSILON)
+#define EQUAL(x,y)     (fabs((x)-(y)) <= fabs(x)*2*FLT_EPSILON)
 
 PRIVATE int *alignment[2];
 
 PUBLIC float    profile_aln(const float *T1, const char *seq1, 
 			    const float *T2, const char *seq2);
+
+PUBLIC int set_paln_params(double gap_open, double gap_ext, 
+			   double seqweight, int free_ends);
+
 PRIVATE void    sprint_aligned_bppm(const float *T1, const char *seq1,
 				    const float *T2, const char *seq2);
 PRIVATE double  PrfEditScore(const float *p1, const float *p2,
@@ -48,7 +52,7 @@ PRIVATE double  average(double x, double y);
 
 PRIVATE double  open=-1.5, ext=-0.666;  /* defaults from clustalw */
 PRIVATE double  seqw=0.5;
-PRIVATE int     free_ends=1;            /* whether to use free ened gaps */
+PRIVATE int     free_ends=1;            /* whether to use free end gaps */
 extern float    *Make_bp_profile(int length);
 
 /*---------------------------------------------------------------------------*/
@@ -219,6 +223,12 @@ PRIVATE double PrfEditScore(const float *p1, const float *p2, char c1, char c2)
 
   score *= (1- seqw);
   if (c1==c2) score +=  seqw;
+  else if ((c1=='A') && (c2=='G') ||
+	   (c1=='G') && (c2=='A') ||
+	   (c1=='C') && (c2=='U') ||
+	   (c1=='U') && (c2=='C'))
+    score += 0.5*seqw;
+	   
   return score;
 }
 
@@ -246,6 +256,24 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
 	aligned_line[3][i-1] = seq2[alignment[1][i]-1];
       }
    }
+}
+
+PUBLIC int set_paln_params(double gap_open, double gap_ext, 
+			   double seq_weight, int freeends) {
+  open = (gap_open>0) ? -gap_open : gap_open;
+  ext = (gap_ext>0) ? -gap_ext : gap_ext;
+  if (open > ext) fprintf(stderr, "Gap extension penalty is smaller than " 
+			  "gap open. Do you realy want this?\n");
+  seqw = seq_weight;
+  if (seqw<0) {
+    seqw = 0;
+    fprintf(stderr, "Sequence weight set to 0 (must be in [0..1])\n");
+  } else 
+  if (seqw>1) {
+    seqw = 1;
+    fprintf(stderr, "Sequence weight set to 1 (must be in [0..1])\n");
+  }
+  free_ends = (freeends) ? 1 : 0;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -16,6 +16,7 @@
 #include "profiledist.h"
 #include "dist_vars.h"
 #include "utils.h"
+#include "ProfileAln.h"
 
 #define PUBLIC
 #define PRIVATE    static
@@ -23,7 +24,10 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 /*@unused@*/
-static char rcsid[] = "$Id: RNApaln.c,v 1.1 2004/08/03 10:47:48 ivo Exp $";
+static char rcsid[] = "$Id: RNApaln.c,v 1.2 2004/11/02 11:45:35 ivo Exp $";
+
+static  double gapo=1.5, gape=0.666, seqw=0.5;
+static  int endgaps=0;  
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
   FILE      *somewhere=NULL;
   char      *structure;
   char      *line=NULL, fname[20], *list_title=NULL;
-   
+
   command_line(argc, argv);
    
   if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack)) 
@@ -261,11 +265,33 @@ PRIVATE void command_line(int argc, char *argv[])
 	  ParamFile=argv[i];
 	else usage();
 	break;
+      case '-':
+	if (strcmp(argv[i], "--gapo")==0) {
+	  if (sscanf(argv[++i],"%lf", &gapo)==0)
+	    usage();
+	} else {
+	  if (strcmp(argv[i], "--gape")==0) {
+	    if (sscanf(argv[++i],"%lf", &gape)==0)
+	      usage();
+	  } else {
+	    if (strcmp(argv[i], "--seqw")==0) {
+	      if (sscanf(argv[++i],"%lf", &seqw)==0)
+		usage();
+	    } else {
+	      if (strcmp(argv[i], "--endgaps")==0) 
+		endgaps=1;
+	    }
+	  }
+	}
+	break;
+	
       default:
 	usage();
       }
     }
   }
+  /* fprintf(stderr, "%f %f %f %d\n", gapo, gape, seqw, -endgaps); */
+  set_paln_params(gapo, gape, seqw, 1-endgaps);
 
   if (ParamFile!=NULL)
     read_parameter_file(ParamFile);
@@ -295,8 +321,10 @@ PRIVATE void command_line(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNApdist [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
-	  "                [-noCloseGU] [-noLP] [-e e_set] [-P paramfile] [-nsp pairs]");
+  nrerror
+    ("usage: RNApaln [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
+     "               [-noCloseGU] [-noLP] [-P paramfile] [-nsp pairs]\n"
+     "               [--gapo open] [--gape ext] [--seqw w] [--endgaps]\n");
 }
 
 /*--------------------------------------------------------------------------*/
@@ -305,8 +333,8 @@ PRIVATE void print_aligned_lines(FILE *somewhere)
 {
   if (edit_backtrack)
     fprintf(somewhere, "%s\n%s\n%s\n%s\n",
-	    aligned_line[0], aligned_line[1],
-	    aligned_line[2], aligned_line[3]);
+	    aligned_line[2], aligned_line[0],
+	    aligned_line[3], aligned_line[1]);
 }
 
 /*--------------------------------------------------------------------------*/
