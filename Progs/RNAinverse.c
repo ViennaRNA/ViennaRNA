@@ -3,11 +3,12 @@
 		    c Ivo Hofacker, Peter Stadler
 			  Vienna RNA Package
 */
-/* Last changed Time-stamp: <1998-05-12 15:12:53 ivo> */
+/* Last changed Time-stamp: <1999-11-03 19:27:01 ivo> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <string.h>
 #include "inverse.h"
 #include "fold_vars.h"
@@ -21,7 +22,7 @@
 
 #define  PUBLIC
 #define  PRIVATE   static
-static char rcsid[] = "$Id: RNAinverse.c,v 1.9 1998/05/19 17:44:29 ivo Exp $";
+static char rcsid[] = "$Id: RNAinverse.c,v 1.10 1999/11/04 12:16:37 ivo Exp $";
 static char scale[] = "....,....1....,....2....,....3....,....4"
                       "....,....5....,....6....,....7....,....8";
 
@@ -35,33 +36,32 @@ extern int inv_verbose;
 
 int main(int argc, char *argv[])
 {
-   char *string, *start, *structure, *str2, *line;
-   char  ParamFile[256]="";
-   int   i,j,length1, length2, l, hd;
-   float energy, kT;
-   int   pf, mfe, istty, rstart=0;
-   int   repeat, found;
-
-   do_backtrack = 0; pf = 0; mfe = 1;
-   repeat = 0;
-   init_rand();
-   strcpy(symbolset,"GCAU");
-   string=NULL;
-   for (i=1; i<argc; i++) {
-      if (argv[i][0]=='-')
-	 switch ( argv[i][1] )
-	   {
-	   case 'a':
-	     i++;
-	     strncpy(symbolset,argv[i],20);
-	     break;
-	   case 'T':  if (argv[i][2]!='\0') usage(); 
-	     if (sscanf(argv[++i], "%f", &temperature)==0)
-	       usage();
-	     break;
-	   case 'F':
-	     mfe = 0; pf = 0;
-	     for(j=2;j<strlen(argv[i]);j++){
+  char *start, *structure, *rstart, *str2, *line;
+  char  ParamFile[256]="";
+  int   i,j, length, l, hd;
+  float energy=0., kT;
+  int   pf, mfe, istty;
+  int   repeat, found;
+  
+  do_backtrack = 0; pf = 0; mfe = 1;
+  repeat = 0;
+  init_rand();
+  strcpy(symbolset,"GCAU");
+  for (i=1; i<argc; i++) {
+    if (argv[i][0]=='-')
+      switch ( argv[i][1] )
+	{
+	case 'a':
+	  i++;
+	  strncpy(symbolset,argv[i],20);
+	  break;
+	case 'T':  if (argv[i][2]!='\0') usage(); 
+	  if (sscanf(argv[++i], "%f", &temperature)==0)
+	    usage();
+	  break;
+	case 'F':
+	  mfe = 0; pf = 0;
+	  for(j=2;j<strlen(argv[i]);j++){
 	       switch( argv[i][j] ) {
 	       case 'm' :  mfe = 1;
 		 break;
@@ -122,105 +122,97 @@ int main(int argc, char *argv[])
       
       if ((line = get_line(stdin))==NULL) break;
 
-      /* skip comment lines and get filenames */
+      /* read structure, skipping over comment lines */
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	 printf("%s\n", line);
-	 free(line);
-	 if ((line = get_line(stdin))==NULL) line = "@";
+	printf("%s\n", line);
+	free(line);
+	if ((line = get_line(stdin))==NULL) line = "@";
       } 
-
+      /* stop at eof or '@' */
       if (strcmp(line, "@") == 0) break;
 
       structure = (char *) space(strlen(line)+1);
-      sscanf(line,"%s",structure);
+      sscanf(line,"%s",structure); /* scanf gets rid of trailing junk */
       free(line);
       
-      length2    = strlen(structure);
-      str2 = (char *) space(length2+1);
+      length    = strlen(structure);
+      str2 = (char *) space(length+1);
 
-      if ((line = get_line(stdin))==NULL) break;
-
-      /* skip comment lines and get filenames */
-      while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	 printf("%s\n", line);
-	 free(line);
-	 if ((line = get_line(stdin))==NULL) line = "@";
-      } 
-      
+      if ((line = get_line(stdin))==NULL)
+	line = "@";
       if (strcmp(line, "@") == 0) break;
 
-      string = (char *) space(strlen(line)+1);
-      sscanf(line,"%s",string);
+      start = (char *) space(strlen(line)+1);
+      sscanf(line,"%s",start);
       free(line);
-      length1 = strlen(string);
+      
+      if(strlen(start)>length)
+	nrerror("Sequence is longer than Structure");
 
-      if (string[0]=='0') {
-	 rstart = 1;
-	 length1 = length2;
-      }
-
-      if(length1!=length2)
-	 nrerror("Sequence and Structure have unequal length.");
-
+      /* symbolset should only have uppercase characters */
       for (l = 0; l < strlen(symbolset); l++)
-	 symbolset[l] = toupper(symbolset[l]);
-      if (istty) printf("length = %d\n", length1);
-
-      start = (char *) space(sizeof(char)*(length2+1));
-      if (!rstart) strcpy(start, string);
+	symbolset[l] = toupper(symbolset[l]);
+      if (istty) printf("length = %d\n", length);
 
       if (repeat!=0) found = (repeat>0)? repeat : (-repeat);
       else found = 1;
+      
+      initialize_fold(length);
 
-      initialize_fold(length2);
+      rstart = (char *) space(length+1);
+      while(found>0) {
+	char *string;
+	string = (char *) space(length+1);
+	strcpy(string, start);
+	for (i=0; i<length; i++) {
+	  /* lower case characters are kept fixed, any other character
+	     not in symbolset is replaced by a random character */
+	  if (islower(string[i])) continue;
 
-      while(found>0){
-	 if (rstart) {
-	    free(string);
-	    string = random_string(length2, symbolset);
-	    strcpy(start, string);
-	 } else
-	    strcpy(string, start);
-	 
-	 if (mfe) {
-            energy = inverse_fold(string, structure);
-            if( (repeat>=0) || (energy==0.0) ) {
-	       found--;
-               hd = hamming(start, string);
-	       printf("%s  %3d", string, hd);
-	       if (energy>0.) {
-	          printf("   d= %g\n", energy);
-                  if(istty) {
-                     energy = fold(string,str2);
-	             printf("%s\n", str2);
-                  }
-               } else printf("\n");
-            }
-	 }
-	 if (pf) {
-	    if( (!mfe) || (repeat >= 0) || (energy==0.) ) {
-	       float prob, min_en, sfact=1.07;
-
-	       /* get a reasonable pf_scale */
-	       min_en = fold(string,str2); 
-	       pf_scale = exp(-(sfact*min_en)/kT/length2);
-	       init_pf_fold(length2);
-
-	       
-	       if (dangles) dangles = 2; /* for energy_of_struct */
-	       energy = inverse_pf_fold(string, structure);
-	       prob = exp(-energy/kT);
-	       hd = hamming(start, string);
-	       printf("%s  %3d  (%g)\n", string, hd, prob);
-	       free_pf_arrays();
-	    }
-	    if (!mfe) found--;
-	 }
-	 fflush(stdout);
+	  if (string[i]=='\0' || (strchr(symbolset,string[i])==NULL))
+	    string[i]=symbolset[int_urn(0,strlen(symbolset)-1)];
+	}
+	strcpy(rstart, string); /* remember start string */
+	
+	if (mfe) {
+	  energy = inverse_fold(string, structure);
+	  if( (repeat>=0) || (energy==0.0) ) {
+	    found--;
+	    hd = hamming(rstart, string);
+	    printf("%s  %3d", string, hd);
+	    if (energy>0.) { /* no solution found */
+	      printf("   d= %g\n", energy);
+	      if(istty) {
+		energy = fold(string,str2);
+		printf("%s\n", str2);
+	      }
+	    } else printf("\n");
+	  }
+	}
+	if (pf) {
+	  if (!(mfe && give_up && (energy>0))) {
+	    /* unless we gave up in the mfe part */
+	    float prob, min_en, sfact=1.07;
+	    
+	    /* get a reasonable pf_scale */
+	    min_en = fold(string,str2); 
+	    pf_scale = exp(-(sfact*min_en)/kT/length);
+	    init_pf_fold(length);
+	    
+	    energy = inverse_pf_fold(string, structure);
+	    prob = exp(-energy/kT);
+	    hd = hamming(rstart, string);
+	    printf("%s  %3d  (%g)\n", string, hd, prob);
+	    free_pf_arrays();
+	  }
+	  if (!mfe) found--;
+	}
+	fflush(stdout);
+	free(string);
       }
+      free(rstart);
       free_arrays();
-
-      free(string);
+      
       free(structure);
       free(str2);
       free(start);
