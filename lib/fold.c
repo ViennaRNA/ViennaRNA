@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-04-08 22:26:02 ivo> */
+/* Last changed Time-stamp: <1998-07-18 21:00:47 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.10 1998/04/09 11:22:03 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.11 1998/07/19 14:18:00 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -39,6 +39,8 @@ static char rcsid[] = "$Id: fold.c,v 1.10 1998/04/09 11:22:03 ivo Exp $";
 
 PUBLIC float  fold(char *string, char *structure);
 PUBLIC float  energy_of_struct(char *string, char *structure);
+PUBLIC int    energy_of_struct_pt(char *string, short *ptable,
+				  short *s, short *s1);
 PUBLIC void   free_arrays(void);
 PUBLIC void   initialize_fold(int length);
 PUBLIC void   update_fold_params(void);
@@ -53,6 +55,15 @@ PRIVATE void    initialize(int length);
 PRIVATE void    scale_parameters(void);
 PRIVATE int     stack_energy(int i, char *string);
 PRIVATE void    BP_calculate(char *structure, int *BP, int length);
+PRIVATE void    encode_seq(char *sequence);
+#ifdef __GNUC__
+inline
+#endif
+PRIVATE int     LoopEnergy(int i, int j, int p, int q, int type, int type_2);
+#ifdef __GNUC__
+inline
+#endif
+PRIVATE int     HairpinE(int i, int j, int type, const char *string);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
@@ -169,35 +180,19 @@ float fold(char *string, char *structure)
    int   i, j, k, l, p, q, length, energy, new_c, new;
    int   fij, fi, fj, cij, ci1j, cij1, ci1j1, max_separation;
    int   decomp, MLenergy, new_fML, ml;
-   int   s, b, unpaired, traced, sizecorr, mm;
-   int   no_close, no_close_2, type, type_2, tt;
-   int   n1, n2, m, tetracorr;
-   char *pos;
+   int   s, b, traced, mm;
+   int   no_close, type, type_2, tt;
+   int   n1, n2, m;
    int  *FF;
    int   bonus=0, bonus_cnt=0;
 
    length = strlen(string);
    if (length>init_length) initialize_fold(length);
    
-   no_close_2=0;
    BP = (int *)space(sizeof(int)*(length+2));
    if (fold_constrained) BP_calculate(structure,BP,length);
-    
-   S = (short *) space(sizeof(short)*(length+2));
-   S1= (short *) space(sizeof(short)*(length+2));
-   /* S1 exists only for the special X K and I bases and energy_set!=0 */
-   S[0] = S1[0] = length;
-   
-   for (l=1; l<=length; l++) { /* make numerical encoding of sequence */
-	 if (energy_set>0) S[l]=string[l-1]-'A'+1;
-      else {
-	 pos = strchr(Law_and_Order, string[l-1]);
-	 if (pos==NULL) S[l]=0;
-	 else S[l]= pos-Law_and_Order;
-      }
-      S1[l] = alias[S[l]];   /* for mismatches of nostandard bases */
-   }
-   S[l]=S1[l]=0;
+
+   encode_seq(string);
    
    max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
@@ -213,12 +208,32 @@ float fold(char *string, char *structure)
 #endif
      }       
 
+   if (noLonelyPairs) { /* mark isolated pairs */
+     for (k=2; k<length-TURN-1; k++) 
+       for (l=1; l<=2; l++) {
+	 int ntype,otype=0;
+	 i = k; j = i+TURN+l;
+	 type = pair[S[i]][S[j]];
+	 while ((i>1)&&(j<length)) {
+	   ntype = pair[S[i-1]][S[j+1]];
+	   if (type&&(!otype)&&(!ntype)) /* i.j can only form isolated pairs */
+	     c[indx[j]+i] = FORBIDDEN;
+	   else c[indx[j]+i] = 0;
+	   otype =  type;
+	   type  = ntype;
+	   i--; j++;
+	 }
+       }
+   } 
+   
    for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
       
       for (j = i+TURN+1; j <= length; j++) {
 
 	 bonus = 0;
 	 type = pair[S[i]][S[j]];
+	 if (noLonelyPairs && (c[indx[j]+i]==FORBIDDEN))
+	   type=0;  /* don't allow this pair */
 
 	 /* enforcing structure constraints */
 	 if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
@@ -235,19 +250,8 @@ float fold(char *string, char *structure)
 	   /* hairpin ----------------------------------------------*/
 		
 	    if (no_close) new_c = FORBIDDEN;
-	    else {
-	      new_c = (j-i-1 <= 30) ? hairpin[j-i-1] :
-		hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
-	      if (tetra_loop)
-		if (j-i-1 == 4) { /* check for tetraloop bonus */
-		  char tl[5]={0,0,0,0,0}, *ts;
-		  strncpy(tl, string+i, 4);
-		  if ((ts=strstr(Tetraloops, tl))) 
-		    new_c += TETRA_ENERGY[(ts-Tetraloops)/5];
-		}
-	      if (j-i-1 > TURN)  /* no mismatch for smallest hairpin */
-		new_c += mismatchH[type][S1[i+1]][S1[j-1]];
-	    }
+	    else
+	      new_c = HairpinE(i, j, type, string);
 	    
 	    /*--------------------------------------------------------
 	      check for elementary structures involving more than one
@@ -255,65 +259,64 @@ float fold(char *string, char *structure)
 	      --------------------------------------------------------*/
 	    
 	    for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-	       
-	       for (q = j-1; q >= p+1+TURN; q--) {
+	      int minq = j-i+p-MAXLOOP-2;
+	      if (minq<p+1+TURN) minq = p+1+TURN;
+	      for (q = minq; q < j; q++) {
+		
+		type_2 = pair[S[p]][S[q]];
 
-		  n1 = p-i-1;
-		  n2 = j-q-1;
+		if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
 
-		  if (n1+n2 > MAXLOOP) break;
+		if (type_2==0) continue;
 
-		  if (n1>n2) { m=n1; n1=n2; n2=m; } /* so that n2>=n1 */
+		if (no_closingGU) 
+		  if (no_close||(type_2==3)||(type_2==4))
+		    if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-		  type_2 = pair[S[p]][S[q]];
-
-		  if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
-
-		  if (type_2==0) continue;
-
-		  if (no_closingGU)
-		     no_close_2 = (no_close || ((type_2==3)||(type_2==4)));
-
-		  if (n2 == 0)
-		     energy = stack[type][type_2];   /* stack */
-
-		  else if (n1==0) {                  /* bulge */
-
-		     if (!no_close_2) 
-			energy = bulge[n2];
-		     else
-			energy = FORBIDDEN;
-#if STACK_BULGE1
-		     if (n2==1) energy+=stack[type][type_2];
-#endif
-		  } else {                           /* interior loop */
-		    
-		     if (!no_close_2) {
-		       if ((n1+n2==2)&&(james_rule))
-			 /* special case for loop size 2 */
-			 energy = internal2_energy;
-		       else {
-			 register int rt;
-			 energy = internal_loop[n1+n2];
-			 
-#if NEW_NINIO
-			 energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
+#if 0
+		energy = LoopEnergy(i, j, p, q, type, type_2);
 #else
-			 m       = MIN2(4, n1);
-			 energy += MIN2(MAX_NINIO,((n2-n1)*F_ninio[m]));
-#endif
-			 rt  = rtype[type_2];
-			 energy += mismatchI[type][S1[i+1]][S1[j-1]]+
-			   mismatchI[rt][S1[q+1]][S1[p-1]];
-		       }
-		     }
-		     else
-		       energy = FORBIDDEN;
-		  }
+		/* duplicated code is faster than function call */
+		n1 = p-i-1;
+		n2 = j-q-1;
+		
+		/*  if (n1+n2 > MAXLOOP) break; */
+		
+		if (n1>n2) { m=n1; n1=n2; n2=m; } /* so that n2>=n1 */
+		if (n2 == 0)
+		  energy = stack[type][type_2];   /* stack */
+		
+		else if (n1==0) {                  /* bulge */
 		  
-		  new_c = MIN2(energy+c[indx[q]+p], new_c);
-			
-	       } /* end q-loop */
+		  energy = bulge[n2];
+		  
+#if STACK_BULGE1
+		  if (n2==1) energy+=stack[type][type_2];
+#endif
+		} else {                           /* interior loop */
+		  
+		  if ((n1+n2==2)&&(james_rule))
+		    /* special case for loop size 2 */
+		    energy = internal2_energy;
+		  else {
+		    register int rt;
+		    energy = internal_loop[n1+n2];
+		    
+#if NEW_NINIO
+		    energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
+#else
+		    m       = MIN2(4, n1);
+		    energy += MIN2(MAX_NINIO,((n2-n1)*F_ninio[m]));
+#endif
+		    rt  = rtype[type_2];
+		    energy += mismatchI[type][S1[i+1]][S1[j-1]]+
+		      mismatchI[rt][S1[q+1]][S1[p-1]];
+		  }
+		}
+#endif
+		new_c = MIN2(energy+c[indx[q]+p], new_c);
+		
+	      } /* end q-loop */
 	    } /* end p-loop */
 
 	    /* multi-loop decomposition ------------------------*/
@@ -605,95 +608,44 @@ float fold(char *string, char *structure)
       type = pair[S[i]][S[j]];
       if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
       
-      no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
-
-      unpaired = j-i-1;
-      sizecorr = 0;
-      tetracorr = 0;
-      if (unpaired > 30) {
-	 unpaired = 30;
-	 sizecorr = (int)(lxc*log((double)(j-i-1)/30.));
-      }
-      else if (tetra_loop) if (unpaired == 4) {
-	char tl[5] = {0,0,0,0,0}, *ts;
-	strncpy(tl, string+i, 4);
-	if (ts=strstr(Tetraloops, tl))
-	  tetracorr = TETRA_ENERGY[(ts-Tetraloops)/5];
-      }
       bonus = 0;
 
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if ((BP[i]==-4)||(BP[j]==-4)) type=0;
       
-      mm = (unpaired>3) ? mismatchH[type][S1[i+1]][S1[j-1]] : 0;
-      
+      no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
       if (no_close) {
-	 if (c[indx[j]+i] == FORBIDDEN) continue;
+	if (c[indx[j]+i] == FORBIDDEN) continue;
       } else
-	 if (c[indx[j]+i] == hairpin[unpaired]+sizecorr+tetracorr+bonus+mm)
-	    continue;
+	if (c[indx[j]+i] == HairpinE(i, j, type, string)+bonus)
+	  continue;
    
       for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
-	 
-	 for (q = j-1; q >= p+1+TURN; q--) {
-
-	    n1 = p-i-1;
-	    n2 = j-q-1;
-	    if (n1+n2 > MAXLOOP) break;
-	    
-	    if (n1>n2) { m=n1; n1=n2; n2=m; }
-	    
-	    type_2 = pair[S[p]][S[q]];
-	    if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
-	    
-	    if (type_2==0) continue;
-	    
-	    if (no_closingGU)
-	       no_close_2 = (no_close || ((type_2==3)||(type_2==4)));
-
-	    if (n2 == 0) energy = stack[type][type_2]; 
-	    else if (n1==0) {                    /* bulge */
-	       if (!no_close_2) 
-		  energy = bulge[n2];
-	       else
-		  energy = FORBIDDEN;
-#if STACK_BULGE1
-	       if (n2==1) energy+=stack[type][type_2];
-#endif
-	    } else {                             /* interior loop */
-	       if (!no_close_2) {
-		 if ((n1+n2==2)&&(james_rule)) {
-		   /* special case for size 2 loop */
-		   energy = internal2_energy;
-		 } else {
-		   register int rt;
-		   energy = internal_loop[n1+n2];
-		   
-#if NEW_NINIO
-		     energy += MIN2(MAX_NINIO,(abs(n1-n2)*F_ninio[2]));
-#else
-		   m       = MIN2(4, n1);
-		   energy += MIN2(MAX_NINIO,(abs(n1-n2)*F_ninio[m]));
-#endif	  
-		   rt  = rtype[type_2];
-		   energy += mismatchI[type][S1[i+1]][S1[j-1]]+
-		     mismatchI[rt][S1[q+1]][S1[p-1]];
-		 }
-	       }
-	       else
-		  energy = FORBIDDEN;
-	    }
-	    
-	    new = energy+c[indx[q]+p]+bonus;
-	    traced = (c[indx[j]+i] == new);
-	    if (traced) {
-	       base_pair[++b].i = p;
-	       base_pair[b].j   = q;
-	       i = p, j = q;
-	       goto repeat1;
-	    }
-	 }
+	int minq = j-i+p-MAXLOOP-2;
+	if (minq<p+1+TURN) minq = p+1+TURN;
+	for (q = j-1; q >= minq; q--) {
+	  
+	  type_2 = pair[S[p]][S[q]];
+	  if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
+	  
+	  if (type_2==0) continue;
+	  
+	  if (no_closingGU) 
+	    if (no_close||(type_2==3)||(type_2==4))
+	      if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+	  
+	  energy = LoopEnergy(i, j, p, q, type, type_2);
+	  
+	  new = energy+c[indx[q]+p]+bonus;
+	  traced = (c[indx[j]+i] == new);
+	  if (traced) {
+	    base_pair[++b].i = p;
+	    base_pair[b].j   = q;
+	    i = p, j = q;
+	    goto repeat1;
+	  }
+	}
       }
       
       /* end of repeat: --------------------------------------------------*/
@@ -788,7 +740,94 @@ float fold(char *string, char *structure)
 }
 
 /*---------------------------------------------------------------------------*/
+#ifdef __GNUC__
+inline
+#endif
+PRIVATE int HairpinE(int i, int j, int type, const char *string) {
+  int energy;
+  energy = (j-i-1 <= 30) ? hairpin[j-i-1] :
+    hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
+  if (tetra_loop)
+    if (j-i-1 == 4) { /* check for tetraloop bonus */
+      char tl[5]={0,0,0,0,0}, *ts;
+      strncpy(tl, string+i, 4);
+      if ((ts=strstr(Tetraloops, tl))) 
+	energy += TETRA_ENERGY[(ts-Tetraloops)/5];
+    }
+  if (j-i-1 > TURN)  /* no mismatch for smallest hairpin */
+    energy += mismatchH[type][S1[i+1]][S1[j-1]];
+  
+  return energy;
+}
 
+/*---------------------------------------------------------------------------*/
+#ifdef __GNUC__
+inline
+#endif
+PRIVATE int LoopEnergy(int i, int j, int p, int q, int type, int type_2) {
+  /* compute energy of degree 2 loop (stack bulge or interior) */
+  int n1, n2, m, energy;
+  n1 = p-i-1;
+  n2 = j-q-1;
+
+  if (n1>n2) { m=n1; n1=n2; n2=m; } /* so that n2>=n1 */
+
+  if (n2 == 0)
+    energy = stack[type][type_2];   /* stack */
+  
+  else if (n1==0) {                  /* bulge */
+    energy = bulge[n2];
+
+#if STACK_BULGE1
+    if (n2==1) energy+=stack[type][type_2];
+#endif
+  } else {                           /* interior loop */
+    
+    if ((n1+n2==2)&&(james_rule))
+      /* special case for loop size 2 */
+      energy = internal2_energy;
+    else {
+      register int rt;
+      energy = internal_loop[n1+n2];
+      
+#if NEW_NINIO
+      energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
+#else
+      m       = MIN2(4, n1);
+      energy += MIN2(MAX_NINIO,((n2-n1)*F_ninio[m]));
+#endif
+      rt  = rtype[type_2];
+      energy += mismatchI[type][S1[i+1]][S1[j-1]]+
+	mismatchI[rt][S1[q+1]][S1[p-1]];
+    }
+  }
+  return energy;
+}
+
+/*---------------------------------------------------------------------------*/
+
+PRIVATE void encode_seq(char *sequence) {
+  int i,l;
+
+  l = strlen(sequence);
+  S = (short *) space(sizeof(short)*(l+1));
+  S1= (short *) space(sizeof(short)*(l+1));
+  /* S1 exists only for the special X K and I bases and energy_set!=0 */
+  S[0] = S1[0] = l;
+  
+  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
+    if (energy_set>0) S[i]=sequence[i-1]-'A'+1;
+    else {
+      char *pos;
+      pos = strchr(Law_and_Order, sequence[i-1]);
+      if (pos==NULL) S[i]=0;
+      else S[i]= pos-Law_and_Order;
+    }
+    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
+  }
+}
+
+/*---------------------------------------------------------------------------*/
 
 PRIVATE void letter_structure(char *structure, int length)
 {
@@ -898,6 +937,24 @@ PUBLIC void update_fold_params(void)
 
 /*---------------------------------------------------------------------------*/
 
+float energy_of_struct(char *string, char *structure)
+{
+   int   energy;
+
+   if (strlen(structure)!=strlen(string))
+      nrerror("energy_of_struct: string and structure have unequal length");
+
+   encode_seq(string);
+   
+   pair_table = make_pair_table(structure);
+
+   energy = energy_of_struct_pt(string, pair_table, S, S1);
+   
+   free(pair_table);
+   free(S); free(S1);
+   return  (float) energy/100.;
+}
+
 int energy_of_struct_pt(char *string, short * ptable, short *s, short *s1) {
    /* auxiliary function for kinfold,
       for most purposes call energy_of_struct instead */
@@ -939,39 +996,6 @@ int energy_of_struct_pt(char *string, short * ptable, short *s, short *s1) {
    return energy;
 }
 
-float energy_of_struct(char *string, char *structure)
-{
-   int   l, length, energy;
-   char *pos;
-
-
-   length = strlen(string);
-   if (strlen(structure)!=length)
-      nrerror("energy_of_struct: string and structure have unequal length");
-
-   S = (short *) space(sizeof(short)*(length+1));
-   S1= (short *) space(sizeof(short)*(length+1));
-
-   S[0] = S1[0] = length;
-   for (l=1; l<=length; l++) {
-      if (energy_set>0) S[l]=string[l-1]-'A'+1;
-      else {
-	 pos = strchr(Law_and_Order, string[l-1]);
-	 if (pos==NULL) S[l]=0;
-	 else S[l]= pos-Law_and_Order;
-      }
-      S1[l] = alias[S[l]];   /* for mismatches of non standard bases */
-   }
-   
-   pair_table = make_pair_table(structure);
-
-   energy = energy_of_struct_pt(string, pair_table, S, S1);
-   
-   free(pair_table);
-   free(S); free(S1);
-   return  (float) energy/100.;
-}
-
 /*---------------------------------------------------------------------------*/
 
 PRIVATE int stack_energy(int i, char *string)  
@@ -979,7 +1003,7 @@ PRIVATE int stack_energy(int i, char *string)
    /* calculate energy of substructure enclosed by (i,j) */
    
    int energy;
-   int j,p,q,u,type,type_2,i1,q2,n1,n2,m,k,tetra;
+   int j,p,q,u,type,type_2,i1,q2,k;
    int ld3, ee, lastd, tt;
 
    energy = lastd = ld3 = 0;
@@ -988,56 +1012,20 @@ PRIVATE int stack_energy(int i, char *string)
    while (pair_table[++p]==0);
    while (pair_table[--q]==0);
    while (pair_table[p]==q) {
-      if (p>q) break;
-      type = pair[S[i]][S[j]]; if (type==0) type=7;
-      
-      if (type==7) 
-	 fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-		 string[i-1],string[j-1]);
-
-      type_2 = pair[S[p]][S[q]]; if (type_2==0) type_2=7;
-      
-      
-      n1 = p-i-1;
-      n2 = j-q-1;
-
-      if (n1>n2) { m=n1; n1=n2; n2=m;}
-
-      if (n2 == 0) {
-	 if ((type)&&(type_2))
-	    energy += stack[type][type_2];       /* stack */
-      }
-      else if (n1==0) {                          /* bulge */
-	 energy += (n2<=30) ? bulge[n2] :     
-	    bulge[30]+(int)(lxc*log((double)(n2)/30.));
-#if STACK_BULGE1
-	 if ((n2==1)&&(type)&&(type_2)) energy+=stack[type][type_2];
-#endif
-      } else {                                   /* interior loop */
-	if ((n1+n2==2)&&(james_rule)) /* special case */
-	  energy += internal2_energy;
-	else {
-	  energy += (n1+n2<=30) ? internal_loop[n1+n2] :
-	    internal_loop[30]+(int)(lxc*log((double)(n1+n2)/30.));
-	  
-#if NEW_NINIO
-	    energy += MIN2(MAX_NINIO, (n2-n1)*F_ninio[2]);
-#else
-	  m       = MIN2(4, n1);
-	  energy += MIN2(MAX_NINIO,(abs(n2-n1)*F_ninio[m]));
-#endif
-	  if (type)
-	    energy += mismatchI[type][S1[i+1]][S1[j-1]];
-	  if (type_2) {
-	    register int rt;
-	    rt = rtype[type_2];
-	    energy += mismatchI[rt][S1[q+1]][S1[p-1]];
-	  }
-	}
-      }
-      i=p; j=q;
-      while (pair_table[++p]==0);    /* find next pair */
-      while (pair_table[--q]==0);
+     if (p>q) break;
+     type = pair[S[i]][S[j]];
+     if (type==0) {
+       type=7;
+       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
+	       string[i-1],string[j-1]);
+     }
+     type_2 = pair[S[p]][S[q]]; if (type_2==0) type_2=7;
+     
+     energy += LoopEnergy(i, j, p, q, type, type_2);
+     
+     i=p; j=q;
+     while (pair_table[++p]==0);    /* find next pair */
+     while (pair_table[--q]==0);
    } /* end while */
 
    /* p,q don't pair must have found hairpin or multiloop */
@@ -1050,59 +1038,49 @@ PRIVATE int stack_energy(int i, char *string)
    }
    
    if (p>q) {                       /* hair pin */
-      energy += (j-i-1 <= 30) ? hairpin[j-i-1] :
-	 hairpin[30]+(int)(lxc*log((double)(j-i-1)/30.));
-      if (tetra_loop) 
-	 if (j-i-1 == 4) {
-	   char tl[5]={0,0,0,0,0}, *ts;
-	   strncpy(tl, string+i, 4); 
-	   if (ts=strstr(Tetraloops, tl))
-	     energy += TETRA_ENERGY[(ts-Tetraloops)/5];
-	 }
-      if ((type)&&(j-i-1>3))
-	 energy += mismatchH[type][S1[i+1]][S1[j-1]];
-      return energy;
+     energy += HairpinE(i, j, type, string);
+     return energy;
    }
    
    /* (i,j) is exterior pair of multiloop */
-
+   
    tt = pair[S[j]][S[i]]; if (tt==0) tt=7;
    if ((dangles) && ((pair_table[i+1]==0)||(dangles==2))) {
-      ld3 = dangle3[tt][S1[i+1]];
-      energy += ld3; 
-      lastd = i+1;
+     ld3 = dangle3[tt][S1[i+1]];
+     energy += ld3; 
+     lastd = i+1;
    }
    energy += MLclosing + MLintern;
-
+   
    k=1; u=0; i1=i;
    while (p<q) {
-      u+=p-i1-1; k++;
-      q2=pair_table[p];
-
-      tt = pair[S[p]][S[q2]]; if (tt==0) tt=7;
-      if (dangles) {
-	 if ((pair_table[p-1]==0)||(dangles==2)) {
-	    ee = dangle5[tt][S1[p-1]];
-	    if ((p-1==lastd)&&(dangles!=2)) ee -= ld3;
-	    energy += (ee<0)?ee:0;
-	 }
-	 if ((pair_table[q2+1]==0)||(dangles==2)) {
-	    ld3 = dangle3[tt][S1[q2+1]];
-	    energy += ld3;
-	    lastd = q2+1;
-	 }
-      }
-      energy += MLintern;
-      energy += stack_energy(p, string);
-      p=q2+1; i1=q2;
-      while (pair_table[p]==0) p++;
+     u+=p-i1-1; k++;
+     q2=pair_table[p];
+     
+     tt = pair[S[p]][S[q2]]; if (tt==0) tt=7;
+     if (dangles) {
+       if ((pair_table[p-1]==0)||(dangles==2)) {
+	 ee = dangle5[tt][S1[p-1]];
+	 if ((p-1==lastd)&&(dangles!=2)) ee -= ld3;
+	 energy += (ee<0)?ee:0;
+       }
+       if ((pair_table[q2+1]==0)||(dangles==2)) {
+	 ld3 = dangle3[tt][S1[q2+1]];
+	 energy += ld3;
+	 lastd = q2+1;
+       }
+     }
+     energy += MLintern;
+     energy += stack_energy(p, string);
+     p=q2+1; i1=q2;
+     while (pair_table[p]==0) p++;
    }
-
+   
    tt = pair[S[j]][S[i]]; if (tt==0) tt=7;
    if ((dangles) && ((pair_table[j-1]==0)||(dangles==2))) {
-      ee = dangle5[tt][S1[j-1]];
-      if ((j-1==lastd)&&(dangles!=2)) ee -= ld3;
-      energy += (ee<0)?ee:0;
+     ee = dangle5[tt][S1[j-1]];
+     if ((j-1==lastd)&&(dangles!=2)) ee -= ld3;
+     energy += (ee<0)?ee:0;
    }
 
    u+=p-i1-1;
