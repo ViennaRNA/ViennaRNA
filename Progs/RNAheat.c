@@ -105,7 +105,8 @@ int main(int argc, char *argv[])
 {
    char *string, *line;
    char  ns_bases[33]="", *c;
-   int  i, length, l, sym, r;
+   char  ParamFile[256]="";
+   int  i, length, l, sym;
    float T_min, T_max, h;
    int m_points;
    int istty;
@@ -117,63 +118,71 @@ int main(int argc, char *argv[])
 	 switch ( argv[i][1] ) {
 	  case 'T':
 	    if (strncmp(argv[i], "-Tmin", 5)==0) {
-	       r=sscanf(argv[++i], "%f", &T_min);
-	       if (!r) usage();
+	       if (sscanf(argv[++i], "%f", &T_min)==)
+		 usage();
 	    }
 	    if (strncmp(argv[i], "-Tmax",5)==0) {
-	       r=sscanf(argv[++i], "%f", &T_max);
-	       if (!r) usage();
+	       if (sscanf(argv[++i], "%f", &T_max)==2)
+		 usage();
 	    }
 	    break;
 	  case 'h':
 	    if (i>argc-2) usage();
-	    r=sscanf(argv[++i],"%f",&h);
-	    if (!r) usage();
+	    if (sscanf(argv[++i],"%f",&h)==2)
+	      usage();
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
 	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
-	       r=sscanf(argv[++i], "%32s", ns_bases);
-	       if (!r) usage();
+	       if (sscanf(argv[++i], "%32s", ns_bases)==0)
+		 usage();
 	    }
 	    break;
 	  case '4':
 	    tetra_loop=0;
 	    break;
 	  case 'e':
-	    r=sscanf(argv[++i],"%d", &energy_set);
-	    if (!r) usage();
+	    if (sscanf(argv[++i],"%d", &energy_set)==)
+	      usage();
 	    break;
 	  case 'm':
-	    r=sscanf(argv[++i],"%d", &m_points);
-	    if (!r) usage();
+	    if (sscanf(argv[++i],"%d", &m_points)==0)
+	      usage();
 	    if (m_points<1) m_points=1;
 	    if (m_points>100) m_points=100;
 	    break;
 	  case 'd': dangles=0;
-	    break;   
+	    break;
+	  case 'P':
+	    if (sscanf(argv[++i], "%255s", ParamFile)==0)
+	      usage();
+	    break;
 	  default: usage();
 	 }
    }
+
+   if (ParamFile[0])
+     read_parameter_file(ParamFile);
+   
    if (ns_bases[0]) {
-      nonstandards = space(33);
-      c=ns_bases;
-      i=sym=0;
-      if (*c=='-') {
-	 sym=1; c++;
-      }
-      while (*c) {
-	 if (*c!=',') {
-	    nonstandards[i++]=*c++;
-	    nonstandards[i++]=*c;
-	    if ((sym)&&(*c!=*(c-1))) {
-	       nonstandards[i++]=*c;
-	       nonstandards[i++]=*(c-1);
-	    }
+     nonstandards = space(33);
+     c=ns_bases;
+     i=sym=0;
+     if (*c=='-') {
+       sym=1; c++;
+     }
+     while (*c) {
+       if (*c!=',') {
+	 nonstandards[i++]=*c++;
+	 nonstandards[i++]=*c;
+	 if ((sym)&&(*c!=*(c-1))) {
+	   nonstandards[i++]=*c;
+	   nonstandards[i++]=*(c-1);
 	 }
-	 c++;
-      }
+       }
+       c++;
+     }
    }
    
    istty = isatty(fileno(stdout));
