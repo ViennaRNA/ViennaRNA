@@ -70,35 +70,35 @@ static void make_pair_matrix(void)
 	    pair[i][j] = 0;
       }
       if (energy_set==1) {
-	 for (i=1; i<=MAXALPHA;) {
+	 for (i=1; i<MAXALPHA;) {
 	    alias[i++] = 3;  /* A <-> G */
 	    alias[i++] = 2;  /* B <-> C */
 	 }
-	 for (i=1; i<=MAXALPHA; i++) {
+	 for (i=1; i<MAXALPHA; i++) {
 	    pair[i][i+1] = 2;    /* AB <-> GC */
 	    i++;
 	    pair[i][i-1] = 1;    /* BA <-> CG */
 	 }
       }
       else if (energy_set==2) {
-	 {
+	for (i=1; i<MAXALPHA;) {
 	    alias[i++] = 1;  /* A <-> A*/
 	    alias[i++] = 4;  /* B <-> U */
 	 }
-	 for (i=1; i<=MAXALPHA; i++) {
+	 for (i=1; i<MAXALPHA; i++) {
 	    pair[i][i+1] = 5;    /* AB <-> AU */
 	    i++;
 	    pair[i][i-1] = 6;    /* BA <-> UA */
 	 }
       }
       else if (energy_set==3) {
-	for (i=1; i<=MAXALPHA; i++) {
+	for (i=1; i<MAXALPHA-2; ) {
 	  alias[i++] = 3;  /* A <-> G */
 	  alias[i++] = 2;  /* B <-> C */
 	  alias[i++] = 1;  /* C <-> A */
 	  alias[i++] = 4;  /* D <-> U */
 	}
-	for (i=1; i<=MAXALPHA; i++) {
+	for (i=1; i<MAXALPHA-2; i++) {
 	  pair[i][i+1] = 2;    /* AB <-> GC */
 	  i++;
 	  pair[i][i-1] = 1;    /* BA <-> CG */
