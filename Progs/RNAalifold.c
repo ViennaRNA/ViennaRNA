@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-03-09 18:48:27 ivo> */
+/* Last changed Time-stamp: <2005-03-21 13:49:55 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -22,7 +22,7 @@
 #include "aln_util.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.12 2005/03/11 19:09:41 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.13 2005/03/21 12:50:44 ivo Exp $";
 
 #define PRIVATE static
 
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   int   n_seq, i, length, sym, r;
-  int   endgaps=0;
+  int   endgaps=0, mis=0;
   double min_en, real_en, sfact=1.07;
   int   pf=0, istty;
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -200,7 +200,8 @@ int main(int argc, char *argv[])
       s += energy_of_struct(AS[i], structure);
     real_en = s/i;
   }
-  string = consens_mis((const char **) AS);
+  string = (mis) ?
+    consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
   if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n", 
