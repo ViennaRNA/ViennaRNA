@@ -22,7 +22,7 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 /*@unused@*/
-static char rcsid[] = "$Id: RNApdist.c,v 1.7 2000/09/28 12:30:08 ivo Rel $";
+static char rcsid[] = "$Id: RNApdist.c,v 1.8 2002/11/07 12:19:41 ivo Exp $";
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
@@ -40,7 +40,7 @@ static int noconv = 0;
 int main(int argc, char *argv[])
      
 {
-  float   **T[MAXSEQ];
+  float     *T[MAXSEQ];
   int        i,j, istty, n=0;
   int        type, length, taxa_list=0;
   float      dist;
