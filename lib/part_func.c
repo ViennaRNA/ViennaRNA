@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-03-31 17:51:36 ivo> */
+/* Last changed Time-stamp: <1998-05-10 00:10:36 ivo> */
 /*                
 	    partiton function for RNA secondary structures
 
@@ -18,13 +18,15 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: part_func.c,v 1.4 1998/03/31 15:53:31 ivo Exp $";
+static char rcsid[] = "$Id: part_func.c,v 1.5 1998/05/10 01:19:23 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
 #define PRIVATE static
-#define STACK_BULGE1
+#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
+#define NEW_NINIO     1   /* new asymetry penalty */
+
 
 PUBLIC  float pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_pf_fold(int length);
@@ -164,14 +166,14 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 		       s1temp = expstack[type][type_2];
 		     else { /* bulge */
 		       s1temp = expbulge[u2];
-#ifdef STACK_BULGE1
+#if STACK_BULGE1
 		       if (u2==1) s1temp *= expstack[type][type_2];
 #endif
 		     }
 		   } else {
 		     if (u2==0) { /* bulge */
 		       s1temp = expbulge[u1];
-#ifdef STACK_BULGE1
+#if STACK_BULGE1
 		       if (u1==1) s1temp *= expstack[type][type_2];
 #endif
 		     }
@@ -318,14 +320,14 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 		      s1temp = expstack[type][type_2];
 		    else {      /* bulge */
 		      s1temp = expbulge[u2];
-#ifdef STACK_BULGE1
+#if STACK_BULGE1
 		      if (u2==1) s1temp *= expstack[type][type_2];
 #endif
 		    }
 		  } else {
 		    if (u2==0) { /* bulge */
 		      s1temp = expbulge[u1];
-#ifdef STACK_BULGE1
+#if STACK_BULGE1
 		      if (u1==1) s1temp *= expstack[type][type_2];
 #endif
 		    }
