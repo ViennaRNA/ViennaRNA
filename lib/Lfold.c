@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-10-09 17:22:43 ivo> */
+/* Last changed Time-stamp: <2003-02-12 20:07:08 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.1 2003/01/29 15:23:22 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.2 2003/02/13 14:09:00 ivo Exp $";
 
 
 #define PAREN
@@ -462,13 +462,13 @@ PRIVATE char * backtrack(char *string, int start, int maxdist) {
   } 
   sector[MAXSECTORS];   /* backtracking sectors */
 
-  int   i, j, k, length, energy, new;
+  int   i, j, k, energy, new;
   int   no_close, type, type_2, tt;
   int   bonus;
   int   s=0;
   char *structure;
   
-  length = strlen(string);
+  /* length = strlen(string); */
   sector[++s].i = start;
   sector[s].j = MIN2(length, start+maxdist+1);
   sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
