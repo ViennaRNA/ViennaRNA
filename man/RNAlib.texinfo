@@ -1,8 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <97/11/06 18:08:13 ivo>
+@c Last changed Time-stamp: <97/11/18 16:29:01 ivo>
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
-@syncodeindex vr fn
+@ifclear Version
+@set Version 1.2
+@end ifclear
 @iftex
 @afourpaper
 @end iftex
@@ -23,7 +25,7 @@ Copyright @copyright{1994-1997} @author{Ivo Hofacker and Peter Stadler}
 @comment node-name, next,          previous, up
 
 @ifinfo
-This file documents the Vienna RNA Package Version 1.9
+This file documents the Vienna RNA Package Version @value{Version}
 
 Copyright @copyright{1994-1997} Ivo Hofacker and Peter Stadler
 @end ifinfo
@@ -46,15 +48,32 @@ The core of the Vienna RNA Package is formed by a collection of routines
 for the prediction and comparison of RNA secondary structures. These
 routines can be accessed through stand-alone programs, such as RNAfold,
 RNAdistance etc., which should be sufficient for most users. For those who
-wish to develop their own programs we provide a library which can be link
+wish to develop their own programs we provide a library which can be linked
 to your own code.
 
-This document only describes the library, the stand-alone programs are
-described in separate man pages. The latest version of the package
-including source code and html versions of the documentation can be found
-at @url{http://www.tbi.univie.ac.at/~ivo/RNA/}.
+This document only describes the library and will be primarily useful to
+programmers. The stand-alone programs are described in separate man
+pages. The latest version of the package including source code and html
+versions of the documentation can be found at
+@ifclear texi2html
+@url{http://www.tbi.univie.ac.at/~ivo/RNA/}.
+@end ifclear
+@ifset texi2html
+@ifhtml
+the <a href="http://www.tbi.univie.ac.at/~ivo/RNA/">ViennaRNA page</a>.
+@end ifhtml
+@end ifset
+This manual documents version @value{Version}.
 
-Please send comments and bug reports @email{ivo@@tbi.univie.ac.at}.
+Please send comments and bug reports to
+@ifclear texi2html
+@email{ivo@@tbi.univie.ac.at}.
+@end ifclear
+@ifset texi2html
+@ifhtml
+<a href="mailto:ivo@tbi.univie.ac.at">&lt;Ivo.Hofacker@tbi.univie.ac.at&gt;</a>.
+@end ifhtml
+@end ifset
 
 @node Folding Routines, Parsing and Comparing, Introduction, Top
 @comment  node-name,  next,  previous,  up
@@ -190,8 +209,9 @@ memory for folding by calling @code{init_pf_fold()}
 @end deftypefun
 
 
-@vindex symbolset[]
+@deftypevar char symbolset[]
 The global variable @code{char symbolset[]} contains the allowed bases. 
+@end deftypevar
 
 Prototypes for these functions are declared in @file{inverse.h}.
 
@@ -285,7 +305,7 @@ usual mfe structure is computed.
 @end deftypevar
 
 include @file{fold_vars.h} if you want to change any of these variables
-form their defaults.
+from their defaults.
 
 @node Param Files, , Fold Vars, Folding Routines
 @section Energy Parameter Files
@@ -294,11 +314,11 @@ A default set of parameters, identical to the one described in A. Walter
 et.al. (1994) @pxref{References}, is compiled into the library.
 Alternately, parameters can be read from and written to a file.
 
-@deftypefun void read_parameter_file(const char @var{fname}[])
+@deftypefun void read_parameter_file (const char @var{fname}[])
 reads energy parameters from file @var{fname}. See below for the format of
 the parameter file.
 @end deftypefun
-@deftypefun void write_parameter_file(const char @var{fname}[])
+@deftypefun void write_parameter_file (const char @var{fname}[])
 writes current energy parameters to the file @var{fname}.
 @end deftypefun
 
@@ -315,33 +335,37 @@ mark the beginning of a list of energy parameters of the type specified by
 token. The following tokens are recognized:
 
 @t{# stack_energies}@*
-a list of energies stacked pairs. Since the library distinguishes 8 types of
-pairs (no pair=0, CG=1, GC=2, GU=3, UG=4, AU=5, UA=6, nonstandard=7), the
-list should be formated as an 8*8 matrix. As an example the stacked pair
+The list of free energies for stacked pairs. Since the library
+distinguishes 8 types of pairs (no pair=0, CG=1, GC=2, GU=3, UG=4, AU=5,
+UA=6, nonstandard=7), the list should be formated as an 8*8 matrix. As an
+example the stacked pair 
 @example
-                               5'-GU-3'
-                               3'-CA-5'
+                      5'-GU-3'        5'-AC-3'
+                      3'-CA-5'        3'-UG-5'  
 @end example
-corresponds to the entry [2,6], which should be identical to [5,1].
+corresponds to the entry [2,6], which should be identical to [5,1]. Be
+careful to preserve the symmetry when editing parameter files.
 
 @t{# stack_enthalpies}@*
 enthalpies for stacked pairs, used to rescale stacking energies to
 temperatures other than 37C. Same format as stack_energies.
 
 @t{# hairpin}@*
-Energies of hairpin loops as a function of size. The list should contain 31
-entries on one or more lines. Since the minimum size of a hairpin loop is 3
-and we start counting with 0, the first three values should be INF to
-indicate a forbidden value.
+Free energies of hairpin loops as a function of size. The list should
+contain 31 entries on one or more lines. Since the minimum size of a
+hairpin loop is 3 and we start counting with 0, the first three values
+should be INF to indicate a forbidden value.
 
 @t{# bulge}@*
-Energies of bulge loops. Should contain 31 entries, the first one being INF.
+Free energies of bulge loops. Should contain 31 entries, the first one
+being INF. 
 
 @t{# internal_loop}@*
-Energies of internal loops. Should contain 31 entries, the first 2 being INF.
+Free energies of internal loops. Should contain 31 entries, the first 2
+being INF. 
 
 @t{# mismatch_interior}@*
-Energies for the interaction between the closing pair of an interior loop
+Free energies for the interaction between the closing pair of an interior loop
 and the two unpaired bases adjacent to the helix. This is a three
 dimensional array indexed by the type of the closing pair (see above) and
 the two unpaired bases. The library distinguishes 5 bases: A=1, C=2, G=3,
@@ -353,7 +377,7 @@ such that for example the mismatch
                                3'-GC-5'
 @end example
 
-corresponds to entry [2,4,2] (GC=1, U=4, C=2).
+corresponds to entry [1,4,2] (CG=1, U=4, C=2).
 
 @t{# mismatch_hairpin}@*
 Same as above for hairpin loops.
@@ -398,13 +422,17 @@ Anything beyond this token will be ignored.
 
 A parameter file need not be complete, it might may contain only a subset
 of interaction parameters, such as only stacking energies. However, for
-each type of interaction listed all entries have to be present.
+each type of interaction listed, all entries have to be present.
 A @samp{*} may be used to indicate entries of a list that are to retain
 their default value. For loop energies a @samp{x} may be used to indicate that
 the value is to be extrapolated from the values for smaller loop sizes. 
+Parameter files may contain C-style comments, i.e. any text between
+@code{/*} and @code{*/} will be ignored. However, you may have no more
+than one comment per line and no multi-line comments.
 
 A parameter file listing the default parameter set should accompany your
-distribution. 
+distribution as @file{default.par}, the file @file{old.par} contains
+parameters used in version 1.1b of the Package. 
 
 
 @node Parsing and Comparing, Utilities, Folding Routines, Top
