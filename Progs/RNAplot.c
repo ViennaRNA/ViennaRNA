@@ -1,6 +1,6 @@
 /*
   Plot RNA structures using different layout algorithms
-  Last changed Time-stamp: <2002-10-21 17:55:44 ivo> 
+  Last changed Time-stamp: <2003-09-10 13:55:01 ivo> 
 */
 
 #include <stdio.h>
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
    
    char *string=NULL, *line;
-   char *structure=NULL;
+   char *structure=NULL, *pre=NULL, *post=NULL;
    char  fname[13], ffname[20];
    int   i, r;
    float energy;
@@ -45,6 +45,11 @@ int main(int argc, char *argv[])
        case 'o':
 	 if (i==argc-1) usage();
 	 strncpy(format, argv[i+1], 4);
+	 break;
+       case '-': /* long option */
+	 if (strcmp(argv[i], "--pre")==0) pre=argv[++i];
+	 else if (strcmp(argv[i], "--post")==0) post=argv[++i];
+	 else usage();
 	 break;
        default: usage(); 
        } 
@@ -92,7 +97,7 @@ int main(int argc, char *argv[])
      switch (format[0]) {
      case 'p':
        strcat(ffname, ".ps");
-       PS_rna_plot(string, structure, ffname);
+       PS_rna_plot_a(string, structure, ffname, pre, post);
        break;
      case 'g':
        strcat(ffname, ".gml");
@@ -118,5 +123,5 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNAplot [-t 0|1] [-o ps|gml|xrna|svg]");
+  nrerror("usage: RNAplot [-t 0|1] [-o ps|gml|xrna|svg] [--pre <string>] [--post <string>]");
 }
