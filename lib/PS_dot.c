@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.19 2002/11/06 13:28:28 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.20 2003/02/16 12:28:19 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -403,8 +403,25 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   fprintf(xyplot,
 	  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-	  "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n"
-	  "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" />\n"
+	  "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n");
+  fprintf(xyplot,
+	  "<script type=\"text/ecmascript\">\n"
+	  "      <![CDATA[\n"
+	  "        var shown = 1;\n"
+	  "        function click() {\n"
+	  "             var seq = document.getElementById(\"seq\");\n"
+	  "             if (shown==1) {\n"
+	  "               seq.setAttribute(\"style\", \"visibility: hidden\");\n"
+	  "               shown = 0;\n"
+	  "             } else {\n"
+	  "               seq.setAttribute(\"style\", \"visibility: visible\");\n"
+	  "               shown = 1;\n"
+	  "             }\n"
+	  "         }\n"
+	  "        ]]>\n"
+	  "</script>\n");
+  fprintf(xyplot,
+	  "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" onclick=\"click(evt)\" />\n"
 	  "  <g transform=\"scale(%7f,%7f) translate(%7f,%7f)\">\n",
 	  SIZE/size, SIZE/size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
   
