@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2002-12-01 19:06:03 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.11 2002/12/02 14:48:07 ivo Exp $
+@c Last changed Time-stamp: <2002-12-13 19:25:58 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.12 2003/01/30 09:06:35 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -859,7 +859,7 @@ argument. It does not make use of the global @code{base_pair} array anymore.
 
 @deftypefun int PS_rna_plot_a (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char* @var{pre}), char* @var{post}))
 Same as @code{PS_rna_plot} but adds extra PostScript macros for various
-annotations (see generated PS code). The @var{pre} and @post{post}
+annotations (see generated PS code). The @var{pre} and @var{post}
 variables contain PostScript code that is verbatim copied in the
 resulting PS file just before and after the structure plot.
 @end deftypefun
