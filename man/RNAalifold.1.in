@@ -1,0 +1,72 @@
+.\" .ER
+.TH "RNAalifold" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
+.SH "NAME"
+RNAalifold \- calculate secondary structures for a set of aligned RNAs
+.SH "SYNOPSIS"
+\fBRNAalifold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
+[\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
+\fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fIfile.aln\fP]
+
+.SH "DESCRIPTION"
+.I RNAalifold
+reads aligned RNA sequences from stdin or \fIfile.aln\fP and calculates
+their minimum free energy (mfe) structure, partition function (pf) and base
+pairing probability matrix. Currently, the input alignment has to be in
+clustalw format. It returns the mfe structure in bracket notation, its
+energy, the free energy of the thermodynamic ensemble and the frequency of
+the mfe structure in the ensemble to stdout.  It also produces PostScript
+files with plots of the resulting secondary structure graph ("alirna.ps")
+and a "dot plot" of the base pairing matrix ("alidot.ps"). The file
+"alifold.out" will contain a list of likely pairs sorted by credibility,
+suitable for viewing  with "AliDot.pl".
+.SH "OPTIONS"
+.TP
+.B \-cv \fIfactor\fP
+Set the weight of the covariance term in the energy function to
+\fIfactor\fP. Default is 1.
+.TP
+.B \-nc \fIfactor\fP
+Set the penalty for non-compatible sequences in the covariance term of the
+energy function to \fIfactor\fP. Default is 1.
+.TP
+.B \-p
+Calculate the partition function and base pairing probability matrix in
+addition to the mfe structure. Default is calculation of mfe structure only.
+.TP
+.B \-noLP
+Avoid structures without lonely pairs (helices of length 1). In the mfe
+case structures with lonely pairs are strictly forbidden. For partition
+function folding this disallows pairs that can \fBonly\fP occur isolated.
+Setting this option provides a significant speedup.
+.PP
+The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
+\fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options \fUshould\fP work as in RNAfold
+
+.SH "SEE ALSO"
+The ALIDOT package http://www.tbi.univie.ac.at/RNA/ALIDOT/
+.SH "REFERENCES"
+The algorithm is a variant of the dynamic programming algorithms of
+M. Zuker and P. Stiegler (mfe) and J.S. McCaskill (pf) adapted for sets of
+aligned sequences with covariance information.
+The energy parameters are taken from:
+.br
+.PP
+D.H. Mathews, J. Sabina, M. Zucker and H. Turner
+"Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust
+Prediction of RNA Secondary Structure" 
+JMB, 288, pp 911\-940, 1999
+.br
+If you use this program in your work you might want to cite:
+.br
+.PP
+Ivo L. Hofacker, Martin Fekete, and Peter F. Stadler
+"Secondary Structure Prediction for Aligned RNA Sequences" 
+J.Mol.Biol. 319: 1059\-1066 (2002).
+.br
+.SH "VERSION"
+This man page documents version @VERSION@ of the Vienna RNA Package.
+.SH "AUTHORS"
+Ivo L Hofacker.
+.SH "BUGS"
+If in doubt our program is right, nature is at fault.
+Comments should be sent to ivo@tbi.univie.ac.at.
