@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1998-05-12 15:10:48 ivo> */
+/* Last changed Time-stamp: <1998-06-28 17:12:11 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -27,12 +27,8 @@
 #include "utils.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
-#ifdef dmalloc
-#include "/usr/local/include/dmalloc.h"
-#define space(X) calloc(1,(X))
-#endif
 
-static char rcsid[] = "$Id: inverse.c,v 1.6 1998/05/19 17:41:59 ivo Exp $";
+static char rcsid[] = "$Id: inverse.c,v 1.7 1999/05/06 09:50:09 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
