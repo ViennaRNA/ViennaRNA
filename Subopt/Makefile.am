@@ -4,7 +4,7 @@ RNAsubopt_SOURCES = RNAsubopt.c list.c subopt.c
 
 RNAsubopt_LDADD = fold.o -L../lib -lRNA -lm
 
-noinst_HEADERS = list.h
+noinst_HEADERS = list.h subopt.h
 
 LDADD = -L../lib -lRNA -lm
 

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 09:41:23 ivo> */
+/* Last changed Time-stamp: <2001-08-30 10:53:22 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -14,23 +14,18 @@
 #include <string.h>
 #include "fold_vars.h"
 #include "utils.h"
+#include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAsubopt.c,v 1.4 2000/10/10 07:54:50 ivo Rel $";
+static char rcsid[] = "$Id: RNAsubopt.c,v 1.5 2001/08/31 15:02:19 ivo Exp $";
 
 #define PRIVATE static
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 
-PRIVATE void usage(void);
-
-/* subopt options */
-extern int sorted;
-extern int LODOS_ONLY;
 extern float print_energy;
-
-extern void subopt(char *sequence, char *structure, int delta);
+PRIVATE void usage(void);
 
 /*--------------------------------------------------------------------------*/
 
@@ -87,17 +82,11 @@ int main(int argc, char *argv[])
 	    sorted=1;
 	    break;
 	  case 'l':
-	    if (strcmp(argv[i],"-lodos")==0) {
-	      LODOS_ONLY=1;
-	      sorted = 1;
+	    if (strcmp(argv[i],"-logML")==0) {
+	      logML=1;
+	      break;
 	    }
-	    else {
-	      if (strcmp(argv[i],"-logML")==0) {
-		logML=1;
-		break;
-	      }
-	      else usage();
-	    }
+	    else usage();
 	    break;
 	  case 'e':
 	    if (i>=argc-1) usage();
@@ -195,7 +184,7 @@ int main(int argc, char *argv[])
       if (fname[0] != '\0')
 	printf("> %s [%d]\n", fname, delta);
 
-      subopt(sequence, structure, delta);
+      subopt(sequence, structure, delta, stdout);
       
       (void)fflush(stdout);
       
@@ -208,7 +197,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
    nrerror("usage: "
-	   "RNAsubopt [-e range] [-ep prange] [-s] [-lodos] [-logML]\n"
+	   "RNAsubopt [-e range] [-ep prange] [-s] [-logML]\n"
 	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
 	   "          [-noLP] [-P paramfile] [-nsp pairs]");
 }
