@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <97/09/21 18:42:06 ivo>
+# Last changed Time-stamp: <1998-10-22 20:02:14 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.
 # Input is a colour _dp.ps file from alidot (aka read_ali) or dp_zoom
 # definition: mm[i],mp[i]=number of base pairs enclosing base i
@@ -19,9 +19,9 @@ print <<EOF; # PS macros
   newpath
   3 index 0.5 sub 2 index moveto % i-0.5 h moveto
   dup 1 exch rlineto
-  2 index 4 index sub 1 sub 0 rlineto
-  dup neg 1 exch rlineto
-  closepath
+  4 2 roll exch sub 1 sub 0 rlineto
+  neg 1 exch rlineto
+  pop closepath
   gsave fill grestore
   0 setgray stroke
 } def
