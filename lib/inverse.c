@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <1999-11-02 15:02:44 ivo> */
+/* Last changed Time-stamp: <1999-11-03 19:17:11 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -28,7 +28,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: inverse.c,v 1.8 1999/11/02 14:04:28 ivo Exp $";
+static char rcsid[] = "$Id: inverse.c,v 1.9 1999/11/04 12:08:50 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
@@ -363,6 +363,10 @@ PUBLIC float inverse_fold(char *start, char *structure)
 PUBLIC float inverse_pf_fold(char *start, char *target)
 {
    float dist;
+   int dang;
+
+   dang=dangles;
+   if (dangles==1) dangles=2;
 
    update_fold_params();    /* make sure there is a valid pair matrix */
    make_pairset();
@@ -370,6 +374,7 @@ PUBLIC float inverse_pf_fold(char *start, char *target)
    fold_type=1;
    do_backtrack = 0;
    dist = adaptive_walk(start, target);
+   dangles=dang;
    return (dist+final_cost);
 }
 
