@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-10-27 22:30:25 ivo>
+# Last changed Time-stamp: <2002-10-29 17:08:28 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -43,8 +43,8 @@ sub print_header {
    print $query->start_html(-title=>"RNAfold input form",
 			    -author=>'ivo@tbi.univie.ac.at',
 			    -BGCOLOR=>'#f8f8ff');
-   print "\n<H1 align=center>Vienna RNA Secondary Structure Prediction</H1>\n";
-   print "<H2 align=center><a name=top>",
+   print "\n<H1 align=\"center\">Vienna RNA Secondary Structure Prediction</H1>\n";
+   print "<H2 align=\"center\"><a name=\"top\">",
    "A web interface to the RNAfold programm</a></H2>\n";
 
    print "This server will predict secondary structures of single stranded\n",
@@ -52,7 +52,7 @@ sub print_header {
    "<a href=\"http://www.tbi.univie.ac.at/~ivo/RNA/RNAcgi.html\">",
    "help page</a></strong><p>\n";
 
-   print "<b><u>News:</u> based on ViennaRNA-1.5<br>\n",
+   print "<b><u>News:</u></b> based on ViennaRNA-1.5<br>\n",
      "Try the new SVG plot if your browser supports it!\n<p>\n";
    &print_prompt($query);
 }
@@ -122,8 +122,9 @@ sub print_prompt {
    print "<br>\nor using the <code>SStructView</code> java applet?\n",
      $query->checkbox(-name=>'SSview');
 
-   print "<P>\n",$query->reset;
-   print $query->submit('Action','Fold it'), $query->endform;
+   print "<P>\n",$query->reset, "\n";
+   print $query->submit('Action','Fold it'), "\n";
+   print $query->endform, "\n";
 
    if (!$query->param) {
       my @old_files = $query->cookie('old_files');
@@ -304,8 +305,7 @@ sub do_work {
 	 return;
       }
       my $escaped = uri_escape($fname_svg);
-      print "<iframe src=\"$hdir/$escaped\" WIDTH=452 HEIGHT=452 ",
-	"type=\"image/svg+xml\">\n",
+      print "<iframe src=\"$hdir/$escaped\" WIDTH=\"452\" HEIGHT=\"452\">\n",
 	"your browser does not understand the &lt;iframe&gt; tag\n",
 	  "</iframe><br>\n";
       print 'Note: you need the <a href="http://www.adobe.com/svg">',
