@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-01-29 12:15:23 ivo> */
+/* Last changed Time-stamp: <2003-01-30 13:09:49 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.1 2003/01/29 15:23:22 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.2 2003/02/16 12:27:06 ivo Exp $";
 
 #define PAREN
 
@@ -271,11 +271,13 @@ PRIVATE int fill_arrays(const char *string) {
           else
             new_c = HairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
         }
-        else if (dangles) {
-          if (SAME_STRAND(i,i+1)) new_c += P->dangle3[rtype[type]][S1[i+1]];
-          if (SAME_STRAND(j-1,j)) new_c += P->dangle5[rtype[type]][S1[j-1]];
-	  if (type>2) new_c += TerminalAU;
-        }
+        else {
+	  if (dangles) {
+	    if (SAME_STRAND(i,i+1)) new_c += P->dangle3[rtype[type]][S1[i+1]];
+	    if (SAME_STRAND(j-1,j)) new_c += P->dangle5[rtype[type]][S1[j-1]];
+	  }
+	  if (type>2) new_c += P->TerminalAU;
+	}
 
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
@@ -319,8 +321,8 @@ PRIVATE int fill_arrays(const char *string) {
 		  if (q+1 == j-1) energy += MIN2(dj, dq);
 		}
 	      }
-	      if (type>2) energy += TerminalAU;
-	      if (type_2>2) energy += TerminalAU;
+	      if (type>2) energy += P->TerminalAU;
+	      if (type_2>2) energy += P->TerminalAU;
 	    }
 #else
 	    /* duplicated code is faster than function call */
@@ -365,6 +367,7 @@ PRIVATE int fill_arrays(const char *string) {
 	      decomp = MIN2(fc[i+1]+fc[j-2]+d5, decomp);
 	      decomp = MIN2(fc[i+2]+fc[j-2]+d3+d5, decomp);
 	    }
+	    if (type>2) decomp+=P->TerminalAU;
 	    new_c = MIN2(new_c, decomp);  
 	  }
 	}
