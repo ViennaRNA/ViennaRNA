@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.22 2003/07/18 07:56:27 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.23 2003/08/06 17:56:31 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -218,6 +218,7 @@ static const char *RNAss_head =
 "end\n";
 
 static const char *anote_macros =
+"RNAplot begin\n"
 "% extra definitions for standard anotations\n"
 "/min { 2 copy gt { exch } if pop } bind def\n"
 "/BLACK { 0 0 0 } def\n"
