@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <unistd.h>
 #include "utils.h"
 #include "fold_vars.h"
 #include "fold.h"
@@ -22,8 +23,8 @@ extern void  read_parameter_file(const char fname[]);
 #define PRIVATE      static
 #define PUBLIC
 #define MAXWIDTH     201
-
-static char rcsid[] = "$Id: RNAheat.c,v 1.11 1999/11/04 12:15:35 ivo Exp $";
+/*@unused@*/
+static char rcsid[] = "$Id: RNAheat.c,v 1.12 2000/09/28 11:23:14 ivo Rel $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -36,27 +37,27 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
 			  float h, int m)
 {
    int length, i;
-   char *structure=NULL;
+   char *structure;
    float hc, kT, min_en;
    
-   length = strlen(string);
+   length = (int) strlen(string);
    
    do_backtrack = 0;   
 
    temperature = T_min -m*h;
    initialize_fold(length);
-   structure = (char *) space(length+1);
+   structure = (char *) space((unsigned) length+1);
    min_en = fold(string, structure);
-   free(structure); structure=NULL; free_arrays();
+   free(structure); free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
    init_pf_fold(length);
    
    for (i=0; i<2*m+1; i++) {
-      F[i] = pf_fold(string, structure);   /* T_min -2h */
+      F[i] = pf_fold(string, NULL);   /* T_min -2h */
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
-      pf_scale=exp(-(F[i]/length)/kT);
+      pf_scale=exp(-(F[i]/length +h*0.00727)/kT); /* try to extrapolate F */
       update_pf_params(length); 
    }
    while (temperature <= (T_max+m*h+h)) {
@@ -66,16 +67,16 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
       
       for (i=0; i<2*m; i++)
 	 F[i] = F[i+1];
-      F[2*m] = pf_fold(string, structure); 
+      F[2*m] = pf_fold(string, NULL); 
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
-      pf_scale=exp(-(F[i]/length)/kT);
+      pf_scale=exp(-(F[i]/length +h*0.00727)/kT);
       update_pf_params(length); 
    }
    free_pf_arrays();
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 PRIVATE float ddiff(float f[], float h, int m)
 {
@@ -94,25 +95,25 @@ PRIVATE float ddiff(float f[], float h, int m)
    
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-char  scale1[] = "....,....1....,....2....,....3....,....4";
-char  scale2[] = "....,....5....,....6....,....7....,....8";
+static char  scale1[] = "....,....1....,....2....,....3....,....4";
+static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
-/*----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
    char *string, *line;
-   char  ns_bases[33]="", *c;
-   char  ParamFile[256]="";
+   char  *ns_bases=NULL, *c;
+   char  *ParamFile=NULL;
    int  i, length, l, sym;
    float T_min, T_max, h;
-   int m_points;
+   int mpoints;
    int istty;
    int noconv = 0;
    
-   T_min=0.; T_max=100.; h=1; m_points=2;
+   T_min=0.; T_max=100.; h=1; mpoints=2;
    string=NULL;
    dangles = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
 
@@ -142,10 +143,9 @@ int main(int argc, char *argv[])
 	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
-	      if (sscanf(argv[++i], "%32s", ns_bases)==0)
-		usage();
+	      ns_bases = argv[++i];
 	    }
-	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
+	    else if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	    break;
 	  case '4':
 	    tetra_loop=0;
@@ -157,33 +157,33 @@ int main(int argc, char *argv[])
 	    break;
 	  case 'm':
 	    if (i==argc-1) usage();
-	    if (sscanf(argv[++i],"%d", &m_points)==0)
+	    if (sscanf(argv[++i],"%d", &mpoints)==0)
 	      usage();
-	    if (m_points<1) m_points=1;
-	    if (m_points>100) m_points=100;
+	    if (mpoints<1) mpoints=1;
+	    if (mpoints>100) mpoints=100;
 	    break;
 	  case 'd': dangles=0;
 	    break;
 	  case 'P':
 	    if (i==argc-1) usage();
-	    if (sscanf(argv[++i], "%255s", ParamFile)==0)
-	      usage();
+	    else
+	      ParamFile= argv[++i];
 	    break;
 	  default: usage();
 	 }
    }
 
-   if (ParamFile[0])
+   if (ParamFile!=NULL)
      read_parameter_file(ParamFile);
    
-   if (ns_bases[0]) {
+   if (ns_bases!=NULL) {
      nonstandards = space(33);
      c=ns_bases;
      i=sym=0;
      if (*c=='-') {
        sym=1; c++;
      }
-     while (*c) {
+     while (*c!='\0') {
        if (*c!=',') {
 	 nonstandards[i++]=*c++;
 	 nonstandards[i++]=*c;
@@ -210,15 +210,15 @@ int main(int argc, char *argv[])
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
 	 printf("%s\n", line);
 	 free(line);
-	 if ((line = get_line(stdin))==NULL) line = "@";
+	 if ((line = get_line(stdin))==NULL) break;
       } 
-      
-      if (strcmp(line, "@") == 0) break;
+      if (line==NULL) break;
+      if (strcmp(line, "@") == 0) {free(line); break;}
       
       string = (char *) space(strlen(line)+1);
-      sscanf(line,"%s",string);
+      (void) sscanf(line,"%s",string);
       free(line);
-      length = strlen(string);
+      length = (int) strlen(string);
        
       for (l = 0; l < length; l++) {
         string[l] = toupper(string[l]);
@@ -228,9 +228,9 @@ int main(int argc, char *argv[])
       if (istty)
 	 printf("length = %d\n", length);
       
-      heat_capacity(string, T_min, T_max, h, m_points);
+      heat_capacity(string, T_min, T_max, h, mpoints);
       free(string);
-      fflush(stdout);
+      (void) fflush(stdout);
    } while (1);
    return 0;
 }
