@@ -11,7 +11,7 @@ For obvious reasons this tutorial focuses on the Vienna RNA Package.
 In addition we'll use the RNA fold servers at these web sites:
 \begin{itemize}
 \item Michael Zuker's mfold server at\\
-\url{http://www.ibc.wustl.edu/~zuker/rna/}
+\url{http://www.bioinfo.rpi.edu/~zukerm/rna/}
 \item The European mfold server at\\
 \url{http://bibiserv.techfak.uni-bielefeld.de/mfold/}
 \item The Vienna RNA fold server at\\
@@ -20,8 +20,8 @@ In addition we'll use the RNA fold servers at these web sites:
 
 \subsection{Installing the Vienna RNA Package}
 
-Unpack the tar file using {\tt zcat ViennaRNA-1.4.tar.gz | tar -xvf -}\\
-Change into the {\tt ViennaRNA-1.4} directory you just created.
+Unpack the tar file using {\tt zcat ViennaRNA-1.5.tar.gz | tar -xvf -}\\
+Change into the {\tt ViennaRNA-1.5} directory you just created.
 Type
 \begin{quote}
 \tt ./configure\\
@@ -40,7 +40,7 @@ directory to the {\tt MANPATH} environment. For C-shell the commands would
 be
 \begin{quote}\tt
 setenv PATH \$\{PATH\}:/wherever/ViennaRNA-1.5/Progs\\
-setenv MANPATH \$\{MANPATH\}:/wherever/ViennaRNA-1.4/man
+setenv MANPATH \$\{MANPATH\}:/wherever/ViennaRNA-1.5/man
 \end{quote}
 
 You should now be able to execute the programs read the man pages. Take a
@@ -87,8 +87,8 @@ Compute suboptimal structures and dot plots for the sequence\\
 {\small\tt
 GGGAGCGGUAGCUCCCGGAGAGCUAUUGCUCUCGUUGUAAUAAUGCAACGGCUGCAUUAUUGUAGC}\\
 using {\tt mfold} and {\tt RNAsubopt}.
-Why is the structure with two hairpins missing from the {\tt mfold}
-output? Slowly increase the energy range in {\tt RNAsubopt} ({\tt -e}
+Why does the {\tt mfold} output show only three of the four main structural
+alternatives? Slowly increase the energy range in {\tt RNAsubopt} ({\tt -e}
 option) and observe how fast the number of structures increases.
 
 Note that the {\tt mfold} server in Bielefeld as well as the RNAfold server
@@ -122,10 +122,16 @@ Differences in slope between these two indicate structural alternatives.
 The third curve shows the positional entropy, a direct measure of local
 well-definedness. 
 
+Produce a secondary structure plot with color-reliability annotation, using
+the relplot.pl script from the Utils dircetory. Type \texttt{perldoc
+  relplot.pl} to see the manpage.
+
 Try the same for the tRNA structure folded with and without constraints.
 
 For a longer example fold the RRE region of HIV, to be found in the file
 {\tt RRE.seq}, and identify well- and ill-defined regions.
+
+
 
 \subsection{Temperature dependence and melting curves}
 
