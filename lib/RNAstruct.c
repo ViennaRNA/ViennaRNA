@@ -3,7 +3,7 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/11/05 14:55:26 ivo> */
+/* Last changed Time-stamp: <1998-06-28 17:11:43 ivo> */
 
 
 #include <stdio.h>
@@ -11,17 +11,13 @@
 #include <string.h>
 #include <ctype.h>
 #include "utils.h"
-#ifdef dmalloc
-#include  "/usr/local/include/dmalloc.h"
-#define space(X) calloc(1,(X))
-#endif
 #define PRIVATE  static
 #define PUBLIC
 
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.3 1997/11/05 14:03:29 ivo Rel $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.4 1998/07/19 16:19:12 ivo Exp $";
 
 PUBLIC char *b2HIT(char *structure);             /* Full   -> HIT    [incl. root]         */
 PUBLIC char *b2C(char *structure);               /* Full   -> Coarse [incl. root]         */
@@ -580,6 +576,7 @@ PUBLIC void unexpand_aligned_F(char *align[2])
 	    t1[l-1]='_'; t1[l]='.'; t0[l++]=')';
 	    while (align[0][i]!=')') i++;
 	 }
+	 break;
       }
    }
    t0[l-1]=t1[l-1]='\0';
