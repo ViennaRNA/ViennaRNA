@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-03-31 17:42:27 ivo> */
+/* Last changed Time-stamp: <1998-07-07 16:45:23 ivo> */
 /*                
 		Ineractive Access to folding Routines
 
@@ -16,7 +16,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAfold.c,v 1.8 1998/03/31 15:44:55 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.9 1998/07/19 16:15:49 ivo Exp $";
 
 #define PRIVATE static
 
@@ -58,8 +58,9 @@ int main(int argc, char *argv[])
 	      sscanf(argv[i]+2, "%d", &do_backtrack);
 	    break;
 	  case 'n':
-	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
-	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
+	    if ( strcmp(argv[i], "-noGU")==0) noGU=1;
+	    if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
+	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
 	      r=sscanf(argv[++i], "%32s", ns_bases);
@@ -181,10 +182,11 @@ int main(int argc, char *argv[])
 	 strcpy(ffname, "rna.ps");
 	 strcpy(gfname, "rna.g");
       }
-      PS_rna_plot(string, structure, ffname);
-#ifdef GML_OUTPUT
-      gmlRNA(string, structure, gfname, 'X');
-#endif
+      if (length<2000)
+	PS_rna_plot(string, structure, ffname);
+      else 
+	fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
+
       bp = base_pair;
       bpp= space(16);
       base_pair=bpp;
@@ -193,8 +195,11 @@ int main(int argc, char *argv[])
        
       if (pf) {
 
-	 if (dangles) dangles=2;   /* recompute with dangles as in pf_fold() */
-	 min_en = energy_of_struct(string, structure); 
+	 if (dangles==1) {
+	   dangles=2;   /* recompute with dangles as in pf_fold() */
+	   min_en = energy_of_struct(string, structure);
+	   dangles=1;
+	 }
 	 
 	 kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
 	 pf_scale = exp(-(sfact*min_en)/kT/length);
@@ -238,7 +243,7 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: "
+   nrerror("usage:\n"
 	   "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
-	   "               [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]");
+	   "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]");
 }
