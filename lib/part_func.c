@@ -5,6 +5,14 @@
 		  Ivo L Hofacker
 		  Vienna RNA package
 */
+/*
+  $Log: part_func.c,v $
+  Revision 1.15  2002/03/19 16:51:12  ivo
+  more on stochastic backtracking (still incomplete)
+
+  Revision 1.13  2001/11/16 17:30:04  ivo
+  add stochastic backtracking (still incomplete)
+*/
 
 #include <config.h>
 #include <stdio.h>
@@ -18,7 +26,7 @@
 #include "pair_mat.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.14 2002/02/08 17:37:23 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.15 2002/03/19 16:51:12 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -731,25 +739,11 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   }
 }
 
-/* #include "pf_back.inc" */
-/* -*-C-*- */
 /*
-  $Log: part_func.c,v $
-  Revision 1.14  2002/02/08 17:37:23  ivo
-  set freed S,S1 pointers to NULL
-
-  Revision 1.13  2001/11/16 17:30:04  ivo
-  add stochastic backtracking (still incomplete)
-
-
+  stochastic backtracking in pf_fold arrays
+  returns random structure S with Boltzman probabilty
+  p(S) = exp(-E(S)/kT)/Z
 */
-/*
-	stochastic backtracking in pf_fold arrays
-	returns random structure S with Boltzman weigted probabilty
-	p(S) = exp(-E(S)/kT)/Z
-*/
-/* This file should be #included in part_func.c		*/
-
 static void backtrack(int i, int j);
 
 static char *pstruc;
@@ -776,21 +770,21 @@ char *pbacktrack(char *seq) {
       if (r > qln[i+1]/pf_scale)  break; /* i is paired */
     }
     if (i>=n) break; /* no more pairs */
-    
+    /* now find the pairing partner j */
     r = urn() * (qln[i] - qln[i+1]/pf_scale);
     for (qt=0, j=i+1; j<=n; j++) {
       int type;
-      double qq = 0;
       type = ptype[iindx[i]-j];
       if (type) {
-	qq = qb[iindx[i]-j];
-	if (j<n) qq *= qln[j+1];
-	if (j<n) qq *= expdangle3[type][S1[j+1]];
-	else if (type>2) qq *= expTermAU;
-	if (i>1) qq *= expdangle5[type][S1[i-1]];
+	double qkl;
+	qkl = qb[iindx[i]-j];
+	if (j<n) qkl *= qln[j+1];
+	if (j<n) qkl *= expdangle3[type][S1[j+1]];
+	else if (type>2) qkl *= expTermAU;
+	if (i>1) qkl *= expdangle5[type][S1[i-1]];
+	qt += qkl;
+	if (qt > r) break; /* j is paired */
       }
-      qt += qq;
-      if (qt > r) break; /* j is paired */
     }
     if (j==n+1) nrerror("backtracking failed in ext loop");
     start = j+1;
@@ -804,7 +798,7 @@ static void bmulti(int i,int j) {
 }
 
 static void backtrack(int i, int j) {
-
+  int start, degree;
   do {
     double r, qbt1;
     int k, l, type, u, u1;
@@ -843,4 +837,45 @@ static void backtrack(int i, int j) {
   } while (1);
 
   /* backtrack in multi-loop */
+  start = i+1; degree=0;
+  while (start<j) {
+    double r, qt;
+    int k, l, type;
+
+    /* find i position of first pair */
+    for (k=start; k<j; k++) {
+      r = urn() * qm[iindx[k]-j-1];
+      if (r > qm[iindx[k+1]-j-1] * expMLbase[1])  break; /* k is paired */
+    }
+    if (k>=j) break; /* no more pairs */
+    
+    r = urn() * (qm[iindx[k]-j-1] - qm[iindx[k+1]-j-1]*expMLbase[1]);
+    for (qt=0, l=k+1; l<j; l++) {
+      int type;
+      type = ptype[iindx[k]-l];
+      if (type) {
+	double qkl;
+	qkl = qb[iindx[k]-l]*expMLintern[type];
+	qkl *= expdangle3[type][S1[l+1]];
+	qkl *= expdangle5[type][S1[k-1]];
+	if (degree>0) {
+	  double qq2;
+	  qq2 *= qkl * expMLbase[j-1-l];
+	  qt += qq2;
+	  if (qt > r) {
+	    /* k,l is at pair in this MLoop */
+	    start = j;
+	    break; 
+	  }
+	}
+	if (l<j-1) qkl *= qm[iindx[l+1]-j-1];  
+	qt += qkl;
+	if (qt > r) break; /* l pairs k, more pairs to come */
+      }
+    }
+    if ((k==j)||(l==j)) nrerror("backtracking failed in multi loop");
+    backtrack(k,l);
+    if (start<j) start = l+1;
+    degree++;
+  }
 }
