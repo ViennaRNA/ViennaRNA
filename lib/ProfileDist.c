@@ -3,7 +3,7 @@
 		      Peter F Stadler, Ivo L Hofacker
 			    Vienna RNA Package
 */ 
-/* Last changed Time-stamp: <> */
+/* Last changed Time-stamp: <97/11/04 18:53:47 ivo> */
 
 #include <stdio.h>
 #include <string.h>
@@ -13,7 +13,12 @@
 #include  "fold_vars.h"
 #include  "part_func.h"
 #include  "utils.h"
+#ifdef dmalloc
+#include  "/usr/local/include/dmalloc.h"
+#define space(X) calloc(1,(X))
+#endif
 
+static char rcsid[] = "$Id: ProfileDist.c,v 1.2 1997/11/04 17:53:55 ivo Rel $";
 
 #define PUBLIC
 #define PRIVATE        static

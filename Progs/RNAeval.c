@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/04 14:21:06 ivo> */
+/* Last changed Time-stamp: <97/11/04 18:54:53 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -14,6 +14,8 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "utils.h"
+
+static char rcsid[] = "$Id: RNAeval.c,v 1.4 1997/11/04 17:55:37 ivo Exp $";
 
 #define  PUBLIC
 #define  PRIVATE   static

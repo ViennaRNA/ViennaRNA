@@ -22,6 +22,8 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
+static char rcsid[] = "$Id: RNAheat.c,v 1.4 1997/11/04 17:56:28 ivo Exp $";
+
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
 PRIVATE void  usage(void);
