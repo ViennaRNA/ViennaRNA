@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2005-03-04 11:36:56 ivo>
-# $Id: relplot.pl,v 1.5 2005/03/04 17:54:55 ivo Exp $
+# Last changed Time-stamp: <2005-03-09 19:45:55 ivo>
+# $Id: relplot.pl,v 1.6 2005/03/11 19:08:29 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
 use strict;
@@ -172,7 +172,7 @@ high entropy (low probability).
 
 You may have to manually move the color legend to a convenient
 position. Just edit the postscript file and change the two numbers in the
-line reading C<0.1 0.1 colobar>.
+line reading C<0.1 0.1 colobar>. Or delete the line to remove the legend.
 
 =head1 AUTHOR
 
