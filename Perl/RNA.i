@@ -141,7 +141,7 @@ typedef struct {
   char *structure;
 } SOLUTION;
 
-extern  SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp=NULL);
+extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);
 
 extern  int subopt_sorted;                       /* sort output by energy */
 

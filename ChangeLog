@@ -1,3 +1,9 @@
+2002-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* change Make_bp_profile() and profile_edit_distance() to use
+	  simple (float *) arrays; makes Perl access much easier.
+	  RNApdist -B now works again
+
 2002-10-28  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* Improved Perl module with pod documentation; allow to write
