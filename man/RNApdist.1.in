@@ -4,42 +4,34 @@
 RNApdist \- calculate distances of thermodynamic RNA secondary
 structures ensembles
 .SH SYNOPSIS
-\fBRNApdist  [\-T\ temp] [\-4] [\-noGU] [\-e\ e_set] [\-Xp|m|f|c] [\-B\ [file]]
+\fBRNApdist [\-Xp|m|f|c] [\-B\ [file]] [\-T\ temp] [\-4] [\-d] [\-noGU] [\-noCloseGU] [\-e\ e_set] [\-P\ paramfile] [\-nsp\ pairs]
 
 .SH DESCRIPTION
 .I RNApdist
 reads RNA sequences from stdin and calculates structure distances between
 the thermodynamic ensembles of their secondary structures.
-To do this the partition function and base pairing probability matrix
-are computed, and for each base the probabilities of being unpaired,
-paired upstream, and paired downstream, respectively, are obtained.
-These profiles are compared by a standard alignment algorithm.
+To do this the partition function and matrix of base pairing probabilities is
+computed for each sequence. The probability matrix is then condensed into a
+vector holding for each base the probabilities of being unpaired, paired
+upstream, or paired downstream, respectively. These profiles are compared
+by a standard alignment algorithm. 
 
-The pase pair probabilties are also saved postscript "dot plots" (as in
+The pase pair probabilties are also saved as postscript "dot plots" (as in
 RNAfold) in the files  name_dp.ps , where name is the name of the sequence,
 or a number if unnamed.
 
 .SH OPTIONS
-.IP \fB\-T\ \fItemp\fP
-Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
-.IP \fB\-4\fB
-Do not include special stabilizing energies for certain tetraloops.
-.IP \fB\-noGU\fB
-Do not allow GU pairs.
-.IP \fB\-e\ \fI1|2\fP\fB
-Fold sequences from the artificial ABCD... alphabet, where A pairs B,
-C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
-.IP -Xp
+.IP \fB\-Xp\fP
 compare the structures pairwise (p), that is first with 2nd, third
 with 4th etc. This is the default.
-.IP -Xm
+.IP \fB\-Xm\fP
 calculate the distance matrix between all structures. The output is
 formatted as a lower triangle matrix.
-.IP -Xf
+.IP \fB\-Xf\fP
 compare each structure to the first one.
-.IP -Xc
+.IP \fB\-Xc\fP
 compare continuously, that is i-th with (i+1)th structure.
-.IP -B\ [file]
+.IP \fB\-B\ \fI[file]\fP
 Print an "alignment" with gaps of the profiles, using the following symbols:
 .br
 (  )  essentially upstream (downstream) paired bases
@@ -53,15 +45,18 @@ Print an "alignment" with gaps of the profiles, using the following symbols:
  .    essentially unpaired bases.
 .br
 
-The aligned structures
-are written to \fIfile\fP, if specified. Otherwise output is written
-to stdout, unless the -Xm option is set in which case "backtrack.file"
-is used. 
+The aligned structures are written to \fIfile\fP, if specified. Otherwise
+output is written to stdout, unless the -Xm option is set in which case
+"backtrack.file" is used.
+.PP
+The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
+\fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.
+
 .SH REFERENCES
 Bonhoeffer S, McCaskill J S, Stadler P F, Schuster P, (1993)
-RNA multi-structure landscapes, Euro Biophys J, in press
+RNA multi-structure landscapes, Euro Biophys J:22,13-24
 .SH VERSION
-This man page documents RNApdist  0.80.42  02/16/93
+This man page documents version 1.2 Vienna RNA Package.
 .SH AUTHORS
 Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer.
 .SH BUGS

@@ -21,7 +21,7 @@ For example the following structure consists of 2 hairpins joined by
 a multiloop:
 .br
 
-  .((..(((...)))..((..)))).       full structure;
+  .((..(((...)))..((..)))).       full structure (usual format);
   (U)((U2)((U3)P3)(U2)((U2)P2)P2) HIT structure;
   ((H)(H)M)  or
   ((((H)S)((H)S)M)S)              coarse grained structure;
@@ -29,7 +29,9 @@ a multiloop:
 .br
 
 The program will continue to read new structures until a line consisting
-of the single character @ or an end of file condition is encountered.
+of the single character @ or an end of file condition is encountered. Input
+lines neither containing a valid structure nor starting with > are ignored.
+
 .SH OPTIONS
 .IP -D[fhwcFHWC]
 use the full, HIT, weighted coarse, or coarse representation to
@@ -63,12 +65,12 @@ structures using tree comparison, CABIOS 6, 309-318
 Fontana W, Konings D A M, Stadler P F, Schuster P, (1993)
 Statistics of RNA secondary structures, Biopolymers 33, 1389-1404
 .br
-I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
 (1994)
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125, 167-188
 .SH VERSION
-This man page documents RNAdistance 1.00.42  09/21/94
+This man page documents version 1.2 Vienna RNA Package
 .SH AUTHORS
 Walter Fontana, Ivo L Hofacker, Peter F Stadler.
 .SH BUGS

@@ -3,8 +3,8 @@
 .SH NAME
 RNAfold \- calculate secondary structures of RNAs
 .SH SYNOPSIS
-\fBRNAfold [\-T \fItemp\fP] [\-p[\fI0\fP]] [\-4] [\-noGU] [\-noCloseGU]
-[-e \fI1|2\fP] [\-C] [\-S \fIscale\fP] [\-d] [\-nsp \fIpairs\fP]
+\fBRNAfold [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
+
 .SH DESCRIPTION
 .I RNAfold
 reads RNA sequences from stdin and calculates their minimum free energy
@@ -35,28 +35,13 @@ The program will continue to read new sequences until a line consisting
 of the single character @ or an end of file condition is encountered.
 .SH OPTIONS
 .TP
-.B \-T\ \fItemp\fP
-Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
-.TP
 .B \-p
-Calculate the partition function and base pairing probability matrix.
-Default is calculation of mfe structure only.
+Calculate the partition function and base pairing probability matrix in
+addition to the mfe structure. Default is calculation of mfe structure only.
 .TP
 .B \-p0
-Calculate the pf without pairing matrix. This may be twice as fast.
-.TP
-.B \-4
-Do not include special stabilizing energies for certain tetraloops.
-.TP
-.B \-noGU
-Do not allow GU pairs.
-.TP
-.B \-noCloseGU
-Do not allow GU pairs at the end of helices.
-.TP
-.B \-e\ \fI1|2\fP
-Fold sequences from the artificial ABCD... alphabet, where A pairs B,
-C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
+Calculate the pf without pairing matrix and print the ensemble free energy
+-kT ln(Z). This is much faster.
 .TP
 .B \-C
 Calculate structures subject to constraints. 
@@ -65,31 +50,53 @@ on the structure encoded with the symbols:
 . (no constraint for this base)
 | (the corresponding base has to be paired
 x (the base is unpaired)
-< (base i is paired with a base j<i)
-> (base i is paired with a base j>i)
+< (base i is paired with a base j>i)
+> (base i is paired with a base j<i)
 and matching brackets ( ) (base i pairs base j)
 Pf folding ignores constraints of type "|" "<" and ">", but disallow all
 pairs conflicting with a constraint of type "x" or "( )". This is usually
 sufficient to enforce the constraint.
 .TP
-.B \-S\ \fIscale\fP
-In the calculation of the pf use \fIscale\fP*E_min as an estimate for the
-ensemble free energy (used to avoid overflows). The default is 1.07,
-usefull values are 1.0 to 1.2. Occasionally needed for long sequences.
-You can also recompile the programm to use double precision (see the README
-file). 
+.B \-T\ \fItemp\fP
+Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
+.TP
+.B \-4
+Do not include special stabilizing energies for certain tetraloops.
 .TP
 .B \-d
 Don't give stabilizing energies to single stacked bases in free ends and 
 multiloops (dangling ends). The pf treats dangling ends slightly differently,
 use of -d ensures that both algorithms use the same energy model.
-.TP 
+.TP
+.B \-noGU
+Do not allow GU pairs.
+.TP
+.B \-noCloseGU
+Do not allow GU pairs at the end of helices.
+.TP
+.B \-e\ \fI1|2\fP
+Rarely used option to fold sequences from the artificial ABCD... alphabet,
+where A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU
+(-e 2) pairs.
+.TP
+.B \-P\ \fIparamfile\fP
+Read energy parameters from \fIparamfile\fP, instead of using the default
+parameter set. A sample parameterfile should accompany your distribution.
+See the RNAlib documentation for details on the file format.
+.TP
 .B \-nsp  \fIpairs\fP
 Allow other pairs in addition to the usual AU,GC,and GU pairs. \fIpairs\fP 
 is a comma seperated list of additionally allowed pairs. If a the first 
 character is a '-' then AB will imply that AB and BA are allowed pairs.
 e.g. RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are 
 given 0 stacking energy.
+.TP
+.B \-S\ \fIscale\fP
+In the calculation of the pf use \fIscale\fP*mfe as an estimate for the
+ensemble free energy (used to avoid overflows). The default is 1.07,
+usefull values are 1.0 to 1.2. Occasionally needed for long sequences.
+You can also recompile the programm to use double precision (see the README
+file). 
 
 .SH REFERENCES
 The calculation of mfe structures is based on dynamic
@@ -97,15 +104,13 @@ programming algorithm originally developed by M. Zuker and P. Stiegler.
 The partition function algorithm is based on work by J.S. McCaskill.
 The energy parameters are taken from:
 .br
-Freier et al Proc.Nat.Acad.Sci (1986) 83, p. 9373
-.br
-Jaeger et al Proc.Nat.Acad.Sci (1989) 86, p. 7706
-.br
-He et al Biochemistry (1991) 30, p. 11124
+A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
+"Coaxial stacking of helices enhances binding of oligoribonucleotides.."
+PNAS, 91, pp 9218-9222, 1994
 .PP
 If you use this program in your work you might want to cite:
 .PP
-I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
 (1994)
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125: 167-188
@@ -122,9 +127,9 @@ prediction, Ann Rev Biophys Biophys Chem 17: 167-192
 .br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents RNAfold 1.1.0.42  01/08/95
+This man page documents version 1.2 Vienna RNA Package.
 .SH AUTHORS
 Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.
 .SH BUGS
-If in doubt our program is right nature is at fault.
+If in doubt our program is right, nature is at fault.
 Comments should be sent to ivo@tbi.univie.ac.at.

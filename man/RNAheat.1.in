@@ -3,8 +3,8 @@
 .SH NAME
 RNAheat \- calculate specific heat of RNAs
 .SH SYNOPSIS
-\fBRNAheat [\-Tmin \fIt1\fP] [\-Tmax \fIt2\fP] [\-h \fIstepsize\fP] [\-m \fIipoints\fP]
-        [\-4] [\-noGU] [-e \fI1|2\fP]
+\fBRNAheat [\-Tmin \fIt1\fP] [\-Tmax \fIt2\fP] [\-h \fIstepsize\fP] [\-m
+\fIipoints\fP] [\-d] [\-4] [\-noGU] [\-noCloseGU] [\-nsp pairs] [\-P paramfile] [-e \fI1|2\fP]
 .SH DESCRIPTION
 .I RNAheat
 reads RNA sequences from stdin and calculates their specific heat
@@ -26,13 +26,9 @@ is 1C.
 The program fits a parabola to 2*ipoints+1 data points to calculate
 2nd derivatives. Increasing this parameter produces a smoother curve.
 Default is 2.
-.IP \fB\-4\fB
-Do not include special stabilizing energies for certain tetraloops.
-.IP \fB\-noGU\fB
-Do not allow GU pairs.
-.IP \fB\-e\ \fI1|2\fP\fB
-Fold sequences from the artificial ABCD... alphabet, where A pairs B,
-C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
+.PP
+The \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP, \fB\-e\fP,
+\fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.
 .SH EXAMPLES
 .nf
 	RNAheat -Tmin -30 -Tmax 120 -h0.1 -m4 < tRNA.seq | xvgr -pipe
@@ -40,17 +36,10 @@ C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.
 produces plots of the specific heat of the sequences in tRNA.seq.
 .SH REFERENCES
 The partition function algorithm is based on work by J.S. McCaskill.
-The energy parameters are taken from:
-.br
-Freier et al Proc.Nat.Acad.Sci (1986) 83, p. 9373
-.br
-Jaeger et al Proc.Nat.Acad.Sci (1989) 86, p. 7706
-.br
-He et al Biochemistry (1991) 30, p. 11124
 .PP
 If you use this program in your work you might want to cite:
 .PP
-I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonherffer, M. Tacker, P. Schuster 
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
 (1994)
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125: 167-188
@@ -58,18 +47,14 @@ Monatshefte f. Chemie 125: 167-188
 J.S. McCaskill (1990) The equilibrium partition function and base pair
 binding probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
 .br
-D.H. Turner N. Sugimoto and S.M. Freier (1988) RNA structure
-prediction, Ann Rev Biophys Biophys Chem 17: 167-192
-.br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH VERSION
-This man page documents RNAheat 1.00.42  09/21/94
+This man page documents version 1.2 Vienna RNA Package.
 .SH AUTHORS
 Ivo L Hofacker, Peter F Stadler.
 .SH SEE ALSO
 .BR RNAfold (l),
-.BR RNAdistance (l)
 .SH BUGS
-If in doubt our program is right nature is at fault.
+If in doubt our program is right, nature is at fault.
 Comments should be sent to ivo@tbi.univie.ac.at.
 .br

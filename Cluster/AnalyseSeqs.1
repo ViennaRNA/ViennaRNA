@@ -37,19 +37,19 @@ characters. The taxa list is printed on top of the output. The specified
 taxa names are used as labels in the PostScript output. 
 
 .SH OPTIONS
-.IP \fB\-X[bswn]\fI \fP
+.IP \fB\-X[bswn]\fI\fP
 specifies the analysis methods to be used. 
-.IP \fB[b]\fI \fP 
+.IP \fB[b]\fI\fP 
 Statistical Geometry. A PostScript file named '[fn_]box.ps' giving a 
 graphical representation of the statistical geometry is created. The
 resulting box is a good measure of 'tree likeness' of the data set.
 This is the default.
-.IP \fB[s]\fI \fP 
+.IP \fB[s]\fI\fP 
 Split decomposition. 
-.IP \fB[w]\fI \fP 
+.IP \fB[w]\fI\fP 
 Cluster analysis using Ward's method. A PostScript file named '[fn_]wards.ps' 
 is created containing a drawing of the tree. 
-.IP \fB[n]\fI \fP
+.IP \fB[n]\fI\fP
 Cluster analysis using Saitou's neighbour joining method. A PostScript 
 file named '[fn_]nj.ps' is created containing a drawing of the tree. 
 
@@ -83,36 +83,36 @@ handled case sensitive. Default is conversion of the input to
 upper case. A ! sign can be used to convert the input data to 
 RY code: GgAaXx -> R, UuCcKkTt -> Y, all other letters are 
 converted to *.  
-.IP \fB-Ma\fI \fP 
+.IP \fB-Ma\fI\fP 
 all letters A-Z and a-z.
-.IP \fB-Mu\fI \fP 
+.IP \fB-Mu\fI\fP 
 uppercase letters.
-.IP \fB-Ml\fI \fP
+.IP \fB-Ml\fI\fP
 lowercase letters.
-.IP \fB-Mc\fI \fP
+.IP \fB-Mc\fI\fP
 digits [0-9].
-.IP \fB-Mn\fI \fP
+.IP \fB-Mn\fI\fP
 all alphanumeric characters.
-.IP \fB-MR\fI \fP
+.IP \fB-MR\fI\fP
 RNA alphabet (GCAUgcau).
-.IP \fB-MD\fI \fP
+.IP \fB-MD\fI\fP
 DNA alphabet (GCATgcat).
-.IP \fB-MA\fI \fP
+.IP \fB-MA\fI\fP
 Amino acids in one-letter code.
-.IP \fB-MS\fI \fP
+.IP \fB-MS\fI\fP
 Secondary strcutures coded as '^.()'
-.IP \fB-M%alphabet\fI \fP
+.IP \fB-M%alphabet\fI\fP
 use the specified alphabet.
 
 .IP \fB\-D\fB
 specifies the algorithm to be used for calculating the 
 distance matrix of the input data set. Available are
-.IP \fB-DH\fI \fP 
+.IP \fB-DH\fI\fP 
 Hamming Distance
-.IP \fb-DA[,cost] \fI \fB
+.IP \fB-DA[,cost]\fI\fB
 Simple alignment distance according to Needleman and Wunsch.
 A gap cost different from 1. can be specified after the comma.
-.IP \fb-DG[,cost1,cost2]\fI \fB
+.IP \fB-DG[,cost1,cost2]\fI\fB
 Gotoh's distance with gap cost function 
 g(k) = cost2+cost1*(k-1). cost2<=cost1 has to be fulfilled.
 Default values are cost1=1., cost2=1., yielding the same
@@ -122,18 +122,18 @@ ONLY THE HAMMING DISTANCE IS WELL TESTED BY NOW !!!
 
 .IP \fB\-d\fB
 specifies the edit cost matrix to be used. Available are
-.IP \fB-dS\fI \fP 
+.IP \fB-dS\fI\fP 
 simple distance. Indel and substitution of different characters
 all have cost 1. The indel cost can be set by specifying the 
 gap costs with the algorithm options -DA and -DG. This is the 
 default. 
-.IP \fB-dH\fI \fP 
+.IP \fB-dH\fI\fP 
 A distance matrix for RNA secondary structures. Inspired by 
 Hogeweg's similarity measure (J.Mol.Biol 1988).
 Gap-function is set automatically. 
-.IP \fB-dD\fI \fP 
+.IP \fB-dD\fI\fP 
 Dayhoff's matrix for amino acid distances. 
-.IP \fB-dB\fI \fP
+.IP \fB-dB\fI\fP
 Distinguish purines and pyrimidines only. 
 CAUTION this option of course influences only the calculation of distances.
 It does NOT affect computation of the statistical geometry. This is
@@ -160,7 +160,7 @@ of options may still produce nonsense. Please send bug reports to
 ivo@tbi.univie.ac.at.
 
 .SH VERSION
-This man page documents AnalyseSeqs 0.42  03/29/93
+This man page is part of the Vienna RNA Package version 1.2.
 .SH AUTHOR
 Peter F Stadler, Ivo L. Hofacker.
 .SH BUGS
