@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-09-14 18:44:55 ivo> */
+/* Last changed Time-stamp: <2002-08-15 18:27:50 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.4 2001/10/22 11:23:50 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.5 2002/08/15 16:30:30 ivo Exp $";
 
 #define PAREN
 
@@ -38,8 +38,8 @@ PRIVATE void   init_alifold(int length);
 PUBLIC  void   free_alifold_arrays(void);
 PUBLIC  void   update_alifold_params(void);
 
-PUBLIC double cv_fact=1;
-PUBLIC double nc_fact=1;
+PUBLIC double cv_fact=1.;
+PUBLIC double nc_fact=1.;
 
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
@@ -94,7 +94,7 @@ PRIVATE void init_alifold(int length)
 
 PRIVATE void get_arrays(unsigned int size)
 {
-  indx = (int *) space(sizeof(int)*(size+1));
+  indx =  (int *) space(sizeof(int)*(size+1));
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 
@@ -132,7 +132,7 @@ float alifold(char **strings, char *structure)
   } 
   sector[MAXSECTORS];   /* backtracking sectors */
 
-  int   i, j, k, p, q, length, energy, new_c, new;
+  int   i, j, k, p, q, length, energy, new_c;
   int   decomp, MLenergy, new_fML;
   int   s, b, mm, max_separation;
   int   n_seq, *type, type_2, tt;
@@ -475,8 +475,7 @@ float alifold(char **strings, char *structure)
 			       S[ss][i+1], S[ss][j-1], 
 			       S[ss][p-1], S[ss][q+1]);
 	}
-	new = energy+c[indx[q]+p];
-	traced = (cij == new);
+	traced = (cij == energy+c[indx[q]+p]);
 	if (traced) {
 	  base_pair[++b].i = p;
 	  base_pair[b].j   = q;
@@ -524,7 +523,7 @@ float alifold(char **strings, char *structure)
 
   parenthesis_structure(structure, length);
 
-
+  free(type);
   for (s=0; s<n_seq; s++) free(S[s]); 
   free(S);
 
