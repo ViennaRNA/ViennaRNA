@@ -1,5 +1,6 @@
 
 typedef struct {
+  int id;
   int stack[NBPAIRS+1][NBPAIRS+1];
   int hairpin[31];
   int bulge[MAXLOOP+1];
@@ -17,8 +18,11 @@ typedef struct {
   int MLbase;
   int MLintern[NBPAIRS+1];
   int MLclosing;
+  int TerminalAU;
   int TETRA_ENERGY[200];
+  char Tetraloops[1401];
   int Triloop_E[40];
+  char Triloops[241];
   double temperature;
 }  paramT;
 

@@ -14,7 +14,7 @@
 #include "fold_vars.h"
 #include "params.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.1 2001/09/17 10:30:43 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.2 2002/03/11 12:02:40 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -22,13 +22,13 @@ static char rcsid[] UNUSED = "$Id: params.c,v 1.1 2001/09/17 10:30:43 ivo Exp $"
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
 PRIVATE paramT p;
-PRIVATE int done=0;
+PRIVATE int id=-1;
 
 PUBLIC paramT *scale_parameters(void)
 {
   unsigned int i,j,k,l;
   double tempf;
-  if ((fabs(p.temperature == temperature)<1e-6)&&(done)) return &p;
+  if ((fabs(p.temperature == temperature)<1e-6)&&(id == p.id)) return &p;
 
   tempf = ((temperature+K0)/Tmeasure);
   for (i=0; i<31; i++) 
@@ -114,11 +114,25 @@ PUBLIC paramT *scale_parameters(void)
 		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
 	}
 
-  /* p.Tetraloops = Tetraloops;
-  p.Triloops = Triloops;
-  */
+  strncpy(p.Tetraloops, Tetraloops, 1400);
+  strncpy(p.Triloops, Triloops, 240);
+
   p.temperature = temperature;
-  done = 1;
+  p.id = ++id;
   return &p;
 }
 
+PUBLIC paramT *copy_parameters(void) {
+  paramT *copy;
+  if (p.id != id) scale_parameters();
+  
+  copy = (paramT *) space(sizeof(paramT));
+  memcpy(&p, copy, sizeof(paramT));
+  return copy;
+}
+
+PUBLIC paramT *set_parameters(paramT *dest) {
+
+  memcpy(dest, &p, sizeof(paramT));
+  return &p;
+}

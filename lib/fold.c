@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.23 2002/02/08 17:35:46 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.24 2002/03/11 12:02:40 ivo Exp $";
 
 #define PAREN
 
@@ -427,7 +427,7 @@ PRIVATE int fill_arrays(char *string) {
     type=ptype[indx[j]+1];
     if (type) {
       energy = c[indx[j]+1];
-      if (type>2) energy += TerminalAU;
+      if (type>2) energy += P->TerminalAU;
       if ((dangles==2)&&(j<length))  /* double dangles */
 	energy += P->dangle3[type][S1[j+1]];
       f5[j] = MIN2(f5[j], energy);
@@ -435,14 +435,14 @@ PRIVATE int fill_arrays(char *string) {
     type=ptype[indx[j-1]+1];
     if ((type)&&(dangles%2==1)) {
       energy = c[indx[j-1]+1]+P->dangle3[type][S1[j]];
-      if (type>2) energy += TerminalAU;
+      if (type>2) energy += P->TerminalAU;
       f5[j] = MIN2(f5[j], energy);
     }
     for (i=j-TURN-1; i>1; i--) {
       type = ptype[indx[j]+i];
       if (type) {
 	energy = f5[i-1]+c[indx[j]+i];
-	if (type>2) energy += TerminalAU;
+	if (type>2) energy += P->TerminalAU;
 	if (dangles==2) {
 	  energy += P->dangle5[type][S1[i-1]];
 	  if (j<length) energy += P->dangle3[type][S1[j+1]];
@@ -450,14 +450,14 @@ PRIVATE int fill_arrays(char *string) {
 	f5[j] = MIN2(f5[j], energy);
 	if (dangles%2==1) {
 	  energy = f5[i-2]+c[indx[j]+i]+P->dangle5[type][S1[i-1]];
-	  if (type>2) energy += TerminalAU;
+	  if (type>2) energy += P->TerminalAU;
 	  f5[j] = MIN2(f5[j], energy);
 	}
       }
       type = ptype[indx[j-1]+i];
       if ((type)&&(dangles%2==1)) {
 	energy = c[indx[j-1]+i]+P->dangle3[type][S1[j]];
-	if (type>2) energy += TerminalAU;
+	if (type>2) energy += P->TerminalAU;
 	f5[j] = MIN2(f5[j], f5[i-1]+energy);
 	f5[j] = MIN2(f5[j], f5[i-2]+energy+P->dangle5[type][S1[i-1]]);
       }
@@ -524,7 +524,7 @@ PRIVATE void backtrack(char *string) {
 	type = ptype[indx[j-1]+k];
 	if((type)&&(dangles%2==1)) {
 	  cc = c[indx[j-1]+k]+P->dangle3[type][S1[j]];
-	  if (type>2) cc += TerminalAU;
+	  if (type>2) cc += P->TerminalAU;
 	  if (fij == cc + f5[k-1]) 
 	    traced=j-1;
 	  if (k>i) 
@@ -535,7 +535,7 @@ PRIVATE void backtrack(char *string) {
 	type = ptype[indx[j]+k];
 	if (type) {
 	  cc = c[indx[j]+k];
-	  if (type>2) cc += TerminalAU; 
+	  if (type>2) cc += P->TerminalAU; 
 	  en = cc + f5[k-1];
 	  if (dangles==2) {
 	    if (k>1)      en += P->dangle5[type][S1[k-1]];
@@ -782,17 +782,17 @@ inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
     if (size == 4) { /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
       strncpy(tl, string, 6);
-      if ((ts=strstr(Tetraloops, tl))) 
-	energy += P->TETRA_ENERGY[(ts-Tetraloops)/7];
+      if ((ts=strstr(P->Tetraloops, tl))) 
+	energy += P->TETRA_ENERGY[(ts - P->Tetraloops)/7];
     }
   if (size == 3) {
     char tl[6]={0,0,0,0,0,0}, *ts;
     strncpy(tl, string, 5);
-    if ((ts=strstr(Triloops, tl))) 
-      energy += P->Triloop_E[(ts-Triloops)/6];
+    if ((ts=strstr(P->Triloops, tl))) 
+      energy += P->Triloop_E[(ts - P->Triloops)/6];
     
     if (type>2)  /* neither CG nor GC */
-      energy += TerminalAU; /* penalty for closing AU GU pair */
+      energy += P->TerminalAU; /* penalty for closing AU GU pair */
   }
   else  /* no mismatches for tri-loops */
     energy += P->mismatchH[type][si1][sj1];
@@ -860,8 +860,8 @@ inline int LoopEnergy(int n1, int n2, int type, int type_2,
       (P->bulge[30]+(int)(P->lxc*log(nl/30.)));
     if (nl==1) energy += P->stack[type][type_2];
     else {
-      if (type>2) energy += TerminalAU;
-      if (type_2>2) energy += TerminalAU;
+      if (type>2) energy += P->TerminalAU;
+      if (type_2>2) energy += P->TerminalAU;
     }
     return energy;
   }
