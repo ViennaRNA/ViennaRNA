@@ -5,8 +5,9 @@
 		 c Ivo L Hofacker and Peter F Stadler
 			  Vienna RNA package
 */
-/*Last changed Time-stamp: <97/08/28 23:06:58 ivo> */
+/*Last changed Time-stamp: <97/09/18 12:45:28 ivo> */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include "utils.h"
@@ -29,13 +30,15 @@ void PS_dot_plot(char *string, char *wastlfile)
    /* produce PostScript dot plot from probabilities in pr[] array */
    
    FILE *wastl;
+   char name[31], *c;
    int i, j, length;
    double tmp;
    
    length= strlen(string);
    wastl = fopen(wastlfile,"w");
    if (wastl==NULL) nrerror("can't open file for dot plot");
-   
+   strncpy(name, wastlfile, 30);
+   if ((c=strrchr(name, '_'))!=0) *c='\0';
    fprintf(wastl,"%%!PS-Adobe-2.0 EPSF-1.2\n");
    fprintf(wastl,"%%%%Title: RNA DotPlot\n");
    fprintf(wastl,"%%%%Creator: PS_dot.c, ViennaRNA package\n");
@@ -50,6 +53,9 @@ void PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"%% i  j  sqrt(p(i,j)) ubox\n");
    
    fprintf(wastl,"100 dict begin\n");  /* DSC says EPS should create a dict */
+   fprintf(wastl,"%%delete next line to get rid of title\n"
+	   "270 664 moveto /Times-Roman findfont 14 scalefont setfont "
+	   "(%s) show\n", name);
    fprintf(wastl,"/ubox {\n");     /* upper triangle matrix */
    fprintf(wastl,"   3 1 roll\n");
    fprintf(wastl,"   exch len exch sub 1 add box\n");
@@ -73,7 +79,7 @@ void PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"} def\n");
    fprintf(wastl,"\n");
    /* EPS should not contain lines >255 characters */
-   fprintf(wastl,"/sequence { (\n");
+   fprintf(wastl,"/sequence { (\\\n");
    i=0;
    while (i<length) {
       fprintf(wastl, "%.255s\\\n", string+i);
@@ -122,22 +128,24 @@ void PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"90 rotate\n\n");
 
    /* do grid */
-   fprintf(wastl,"%% draw diagonal\n");
-   fprintf(wastl,"0.04 setlinewidth\n"
-	   "0.5 len 0.5 add moveto 0.5 len add 0.5 lineto stroke \n\n");
-
-   fprintf(wastl,"0.01 setlinewidth\n"
+   fprintf(wastl,"0.5 dup translate\n"
+	   "%% draw diagonal\n"
+	   "0.04 setlinewidth\n"
+	   "0 len moveto len 0 lineto stroke \n\n");
+   fprintf(wastl,"%%draw grid\n"
+	   "0.01 setlinewidth\n"
 	   "len log 1 sub cvi 10 exch exp  %% grid spacing\n"
            "dup dup 20 div dup 2 array astore exch 40 div setdash\n"
-	   "0.5 exch  0.5 len add {\n"
-	   "   dup dup\n"
-	   "   0.5 moveto\n"
-	   "   len 0.5 add  lineto \n"
+	   "0 exch len {\n"      /* for (i=0; i<=len; i++) */
+	   "   dup dup\n"        
+	   "   0 moveto\n"                     /* i 0 moveto   */
+	   "   len lineto \n"                  /* i len lineto */
 	   "   dup\n"
-	   "   len 1 add exch sub 0.5 exch moveto\n"
-	   "   len 0.5 add exch len 1 add exch sub lineto\n"
+	   "   len exch sub 0 exch moveto\n"   /* 0 i moveto   */
+	   "   len exch len exch sub lineto\n" /* len i lineto */
 	   "} for\n"
-	   "stroke\n\n");
+	   "stroke\n"
+	   "0.5 neg dup translate\n\n");
 
    /* print boxes */
    for (i=1; i<length; i++)
