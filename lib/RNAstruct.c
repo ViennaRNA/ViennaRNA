@@ -3,10 +3,11 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <> */
+/* Last changed Time-stamp: <97/11/04 20:03:16 ivo> */
 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "utils.h"
@@ -14,9 +15,10 @@
 #define PRIVATE  static
 #define PUBLIC
 
-#define MAXLEN    5000
+#define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
+static char rcsid[] = "$Id: RNAstruct.c,v 1.2 1997/11/04 19:05:59 ivo Exp $";
 
 PUBLIC char *b2HIT(char *structure);             /* Full   -> HIT    [incl. root]         */
 PUBLIC char *b2C(char *structure);               /* Full   -> Coarse [incl. root]         */
@@ -38,18 +40,16 @@ PUBLIC int    loop_degree[STRUC];     /* contains loop degrees of a structure */
 PUBLIC int    loops;                  /* n of loops and stacks in a structure */
 PUBLIC int    unpaired, pairs;        /* n of unpaired digits and pairs */
 
-PRIVATE char  temp[4*MAXLEN+1];       /* temporary working array for tree-type
-                                         conversions */
-
 /*---------------------------------------------------------------------------*/
 
 PRIVATE char *aux_struct( char* structure ) 
 {  
-   short          match_paren[MAXLEN/2];
+   short        *match_paren;
    int          i, o, p;
    char        *string;
    
    string = (char *) space(sizeof(char)*(strlen(structure)+1));
+   match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
    strcpy(string, structure);
 
    i = o = 0;
@@ -74,6 +74,7 @@ PRIVATE char *aux_struct( char* structure )
       }
       i++;
    }
+   free(match_paren);
    return(string);
 }
 
@@ -83,8 +84,9 @@ PUBLIC char *b2HIT( char *structure)
 {
    
    int            i, u, p, l;
-   char          *string, *HIT, tt[10];
-   
+   char          *string, *temp, *HIT, tt[10];
+
+   temp = (char *) space(strlen(structure)*4+1);
    string = aux_struct( structure );
 
    strcpy(temp,"(");
@@ -137,7 +139,7 @@ PUBLIC char *b2HIT( char *structure)
 
    HIT = (char *) space(sizeof(char)*(strlen(temp)+1));
    strcpy(HIT, temp);
-   
+   free(temp);
    return(HIT);
 }
 
@@ -145,11 +147,14 @@ PUBLIC char *b2HIT( char *structure)
 
 PUBLIC char *b2C( char *structure )
 {
-
-   short bulge[MAXLEN/5], loop[MAXLEN/5];
+   short *bulge, *loop;
      
    int    i, lp, p, l;
-   char  *string, *Coarse;
+   char  *string, *Coarse, *temp;
+
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   temp = (char *) space(4*strlen(structure)+1);
    
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -157,7 +162,6 @@ PUBLIC char *b2C( char *structure )
    loop_degree[0]=0;         /* open structure has degree 0 */
    pairs = unpaired = loops = lp = 0;
    loop[0]=0;
-   *temp='\0';
     
    string = aux_struct( structure );
 
@@ -203,12 +207,12 @@ PUBLIC char *b2C( char *structure )
    temp[l++] = 'R';
    temp[l++] = ')';
    temp[l]='\0';
-   free(string);
+   free(string); 
    Coarse = (char *) space(sizeof(char)*(strlen(temp)+1));
    strcpy(Coarse, temp);
-
+   free(temp);
+   free(bulge); free(loop);
    return(Coarse);
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -216,10 +220,14 @@ PUBLIC char *b2C( char *structure )
 PUBLIC char *b2Shapiro( char *structure )
 {
 
-   short bulge[MAXLEN/5], loop[MAXLEN/5];
+   short *bulge, *loop;
      
    int            i, lp, p, l, k;
-   char          *string, *Shapiro, tt[10];
+   char          *string, *Shapiro, *temp, tt[10];
+
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   temp = (char *) space(4*strlen(structure)+1);
    
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -290,7 +298,8 @@ PUBLIC char *b2Shapiro( char *structure )
       strcpy(Shapiro+1, temp);
    } else strcpy(Shapiro, temp);
    free(string);
-
+   free(temp);
+   free(loop); free(bulge);
    return Shapiro;
 }
 
@@ -317,11 +326,15 @@ PUBLIC void parse_structure(char *structure)
 -----------------------------------------------------------------------------*/
 
 {
-   short  bulge[MAXLEN/5], loop[MAXLEN/5];
+   short  *bulge, *loop;
      
    int            i, lp, p;
-   char          *string;
-   
+   char          *string, *temp;
+
+   temp = (char *)  space(strlen(structure)*4+1);
+   bulge = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+   loop = (short *) space(sizeof(short)*(strlen(structure)/5+1));
+
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
    }
@@ -360,6 +373,8 @@ PUBLIC void parse_structure(char *structure)
       i++;
    }
    free(string);
+   free(bulge); free(loop);
+   free(temp);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -379,9 +394,11 @@ PUBLIC char *add_root(char *structure)
 
 PUBLIC char *expand_Shapiro(char *structure)
 {
-   char  *xS;
+   char  *xS, *temp;
    int  i, l;
-   
+
+   temp = (char *) space(4*strlen(structure)+1);
+
    i = 1;
    l = 1;
    temp[0] = '(';
@@ -399,7 +416,7 @@ PUBLIC char *expand_Shapiro(char *structure)
    
    xS = (char *) space(sizeof(char)*(strlen(temp)+1));
    strcpy(xS, temp);
-
+   free(temp);
    return (xS);
 }
 
@@ -407,9 +424,11 @@ PUBLIC char *expand_Shapiro(char *structure)
 
 PUBLIC char *expand_Full(char *structure)
 {
-    char *xF;
+    char *xF, *temp;
     int  i, l;
-    
+
+    temp = (char *) space(4*strlen(structure)+1);
+
     i = 0;
     l = 0;
     while (structure[i]) {
@@ -431,7 +450,7 @@ PUBLIC char *expand_Full(char *structure)
      strcpy(xF, "(");
      strcat(xF, temp);
      strcat(xF, "R)");
-
+     free(temp);
      return (xF);
 }
 
@@ -439,10 +458,13 @@ PUBLIC char *expand_Full(char *structure)
 
 PUBLIC char *unexpand_Full(char *structure)
 {
-   short          match_paren[MAXLEN/2];
-   char id[10], *full;
+   short        *match_paren;
+   char id[10], *full, *temp;
    int    i, j, k, l, o, w;
-    
+
+   temp = (char *) space(4*strlen(structure)+1);
+   match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
+   
    i = strlen(structure)-1;
    l = o = 0; k=9;
    id[9]='\0';
@@ -478,7 +500,8 @@ PUBLIC char *unexpand_Full(char *structure)
    full = (char *) space(sizeof(char)*(l+1));
    for (i=0; i<l; i++) full[i]=temp[l-i-1];
    full[l]='\0';
-
+   free(temp);
+   free(match_paren);
    return full;
 }
 
@@ -488,7 +511,9 @@ PUBLIC char *unexpand_Full(char *structure)
 PUBLIC char *unweight(char *structure)
 {
    int i,l;
-   char *full;
+   char *full, *temp;
+
+   temp = (char *) space(4*strlen(structure)+1);
 
    i=l=0;
    while (structure[i]) {
@@ -498,6 +523,7 @@ PUBLIC char *unweight(char *structure)
    temp[l]='\0';
    full = (char *) space(sizeof(char)*(l+1));
    strcpy(full, temp);
+   free(temp);
    return full;
 }
    
@@ -505,8 +531,11 @@ PUBLIC char *unweight(char *structure)
 
 PUBLIC void unexpand_aligned_F(char *align[2])
 {
-   char t0[2*MAXLEN], t1[2*MAXLEN];
+   char *t0, *t1;
    int i,l;
+
+   t0 = (char *) space(strlen(align[0])+1);
+   t1 = (char *) space(strlen(align[0])+1);
    
    for (i=0, l=0; i<strlen(align[0]); i++) {
       switch (align[0][i]) {
@@ -553,4 +582,5 @@ PUBLIC void unexpand_aligned_F(char *align[2])
    t0[l-1]=t1[l-1]='\0';
    strcpy(align[0], t0+1);
    strcpy(align[1], t1+1);
+   free(t0); free(t1);
 }
