@@ -3,7 +3,7 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <2000-10-10 14:27:55 ivo> */
+/* Last changed Time-stamp: <2004-05-05 11:20:39 ivo> */
 
 
 #include <stdio.h>
@@ -17,7 +17,7 @@
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.5 2000/10/10 12:29:08 ivo Rel $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.6 2004/05/05 09:57:53 ivo Exp $";
 
 PUBLIC char *b2HIT(const char *structure);             /* Full   -> HIT    [incl. root]       */
 PUBLIC char *b2C(const char *structure);               /* Full   -> Coarse [incl. root]       */
@@ -468,31 +468,33 @@ PUBLIC char *unexpand_Full(const char *structure)
    l = o = 0; k=9;
    id[9]='\0';
    while (i>=0) {
-      switch (structure[i]) {
-       case '(':
-	 for (j=0; j<match_paren[o]; j++) temp[l++]='(';
-	 o--;
-	 break;
-       case 'U':
-	 w=1;
-	 sscanf(id+k, "%d", &w);
-	 for (j=0; j<w; j++) temp[l++]='.';
-	 k=9;
-	 break;
-       case 'P':
-	 o++;
-	 w=1;
-	 sscanf(id+k, "%d", &w);
-	 for (j=0; j<w; j++) temp[l++]=')';
-	 match_paren[o]=w;
-	 k=9;
-	 break;
-       case 'R':
-	 break;
-       default:
-	 id[--k]=structure[i];
-      }
-      i--;
+     switch (structure[i]) {
+     case '(':
+       for (j=0; j<match_paren[o]; j++) temp[l++]='(';
+       match_paren[o--] = 0;
+       break;
+     case 'U':
+       w=1;
+       sscanf(id+k, "%d", &w);
+       for (j=0; j<w; j++) temp[l++]='.';
+       k=9;
+       break;
+     case 'P':
+           w=1;
+       sscanf(id+k, "%d", &w);
+       for (j=0; j<w; j++) temp[l++]=')';
+       match_paren[o]=w;
+       k=9;
+       break;
+     case 'R':
+       break;
+     case ')':
+       o++;
+       break;
+     default:
+       id[--k]=structure[i];
+     }
+     i--;
    }
 
    temp[l] = '\0';
