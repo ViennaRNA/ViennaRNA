@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <96/01/24 18:52:24 ivo> */
+/* Last changed Time-stamp: <97/03/24 17:03:58 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -74,6 +74,7 @@ PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE short  *S, *S1;
 PRIVATE short  *pair_table;
+PRIVATE int   init_length=0;
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -81,10 +82,13 @@ PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 void initialize_fold(int length)
 {
+    if (length<1) nrerror("initialize_fold: argument must be greater 0");
+    if (init_length>0) free_arrays();
     get_arrays(length);
     initialize(length);
     scale_parameters();
     make_pair_matrix();
+    init_length=length;
 }
     
 /*--------------------------------------------------------------------------*/
@@ -110,6 +114,7 @@ void free_arrays(void)
    free(indx); free(c); free(fML); free(f5); free(f3);
    free(base_pair); free(Fmi);
    free(DMLi); free(DMLi1);free(DMLi2);
+   init_length=0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -150,6 +155,8 @@ float fold(char *string, char *structure)
 		 positive int: base is paired with int      */
    
    length = strlen(string);
+   if (length>init_length) initialize_fold(length);
+   
    no_close_2=0;
    BP = (int *)space(sizeof(int)*(length+2));
    if (fold_constrained) BP_calculate(structure,BP,length);
