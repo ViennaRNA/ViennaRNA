@@ -15,6 +15,8 @@
 #include  "../H/pair_mat.h"
 %}
 //
+
+const double VERSION = 0.2;
 %include typemaps.i 
 %title "Interface to the Vienna RNA library"
 %section "Folding Routines"
@@ -107,6 +109,7 @@ void *deref_any(void **ptr, int index) {
 }
 %}
 
+%include ptr2array.i
 
 %inline %{
   short *make_loop_index(const char *structure) {
@@ -228,3 +231,10 @@ float energy_of_move(const char *string, char *structure, int mi, int mj) {
 }
 %}
  
+%init %{
+/* work around segfault when script tries to free symbolset */
+
+symbolset = (char *) space(21);
+strcpy(symbolset, "AUGC");
+
+%}
