@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-11 11:00:43 xtof> */
+/* Last changed Time-stamp: <2004-02-09 17:09:47 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.3 2003/09/11 09:27:28 xtof Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.4 2004/02/09 16:50:48 ivo Exp $";
 
 #define PAREN
 
@@ -236,7 +236,7 @@ PRIVATE int fill_arrays(const char *string) {
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
   for (j=1; j<=length; j++) {
-    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=fc[j]=INF;
+    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF; fc[j]=0;
   }
    
   for (j = 1; j<=length; j++)
@@ -1279,7 +1279,7 @@ PRIVATE int energy_of_struct_pt(const char *string, short * ptable, short *s, sh
   
   length = S[0];
   energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
-  if (eos_debug)
+  if (eos_debug>0)
     printf("External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
     if (pair_table[i]==0) continue;
@@ -1301,6 +1301,7 @@ PRIVATE int stack_energy(int i, const char *string)
   type = pair[S[i]][S[j]];
   if (type==0) {
     type=7;
+    if (eos_debug>=0)
     fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
             string[i-1],string[j-1]);
   }
@@ -1314,6 +1315,7 @@ PRIVATE int stack_energy(int i, const char *string)
     type_2 = pair[S[q]][S[p]];
     if (type_2==0) {
       type_2=7;
+      if (eos_debug>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
               string[p-1],string[q-1]);
     }
@@ -1323,7 +1325,7 @@ PRIVATE int stack_energy(int i, const char *string)
 		      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
     else 
       ee = ML_Energy(cut_in_loop(i), 1);
-    if (eos_debug)
+    if (eos_debug>0)
       printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
 	     i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
     energy += ee;    
@@ -1338,7 +1340,7 @@ PRIVATE int stack_energy(int i, const char *string)
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     energy += ee;
-    if (eos_debug)
+    if (eos_debug>0)
       printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
 	     i, j, string[i-1],string[j-1], ee);
     
@@ -1359,7 +1361,7 @@ PRIVATE int stack_energy(int i, const char *string)
     ee = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
   }
   energy += ee;
-  if (eos_debug)
+  if (eos_debug>0)
     printf("Multi    loop (%3d,%3d) %c%c              : %5d\n",
 	   i,j,string[i-1],string[j-1],ee);
   
@@ -1386,10 +1388,11 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   int mlintern[NBPAIRS+1], mlclosing, mlbase;
 
   if (is_extloop) {
-    for (x = 0; x <= NBPAIRS+1; x++) mlintern[x] = P->MLintern[x]-P->MLintern[1];
+    for (x = 0; x <= NBPAIRS; x++) 
+      mlintern[x] = P->MLintern[x]-P->MLintern[1]; /* 0 or TerminalAU */
     mlclosing = mlbase = 0; 
   } else {
-    for (x = 0; x <= NBPAIRS+1; x++) mlintern[x] = P->MLintern[x];
+    for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
     mlclosing = P->MLclosing; mlbase = P->MLbase; 
   }
  
@@ -1435,7 +1438,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
       
       if (dangles) {
         int dang5=0, dang3=0, dang;
-	if ((SAME_STRAND(p-1,p))&&(p))
+	if ((SAME_STRAND(p-1,p))&&(p>1))
 	  dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
 	if ((SAME_STRAND(i1,i1+1))&&(i1<S[0]))
 	  dang3 = P->dangle3[type][S1[i1+1]];  /* 3' dangle of previous pair */
@@ -1522,10 +1525,10 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   int n,i,j,k,l;
   
   n=S[0];
-  for (k=1; k<n-TURN-1; k++) 
+  for (k=1; k<n-TURN; k++) 
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l;
+      i=k; j = i+TURN+l; if (j>n) continue;
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
         if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
