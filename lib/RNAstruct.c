@@ -3,7 +3,7 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <1998-06-28 17:11:43 ivo> */
+/* Last changed Time-stamp: <2000-10-10 14:27:55 ivo> */
 
 
 #include <stdio.h>
@@ -17,20 +17,20 @@
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.4 1998/07/19 16:19:12 ivo Exp $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.5 2000/10/10 12:29:08 ivo Rel $";
 
-PUBLIC char *b2HIT(char *structure);             /* Full   -> HIT    [incl. root]         */
-PUBLIC char *b2C(char *structure);               /* Full   -> Coarse [incl. root]         */
-PUBLIC char *b2Shapiro(char *structure);         /* Full   -> weighted Shapiro [i.r.]     */
-PUBLIC char *add_root(char *structure);          /* {Tree} -> ({Tree}R)                   */
+PUBLIC char *b2HIT(const char *structure);             /* Full   -> HIT    [incl. root]       */
+PUBLIC char *b2C(const char *structure);               /* Full   -> Coarse [incl. root]       */
+PUBLIC char *b2Shapiro(const char *structure);         /* Full   -> weighted Shapiro [i.r.]   */
+PUBLIC char *add_root(const char *structure);          /* {Tree} -> ({Tree}R)                 */
 
-PUBLIC char  *expand_Shapiro(char *structure);   /* Coarse [i.r.] -> unweighted Shapiro  */
-PUBLIC char  *expand_Full(char *structure);      /* Full   -> FFull                       */
-PUBLIC char  *unexpand_Full(char *structure);    /* FFull  -> Full                        */
+PUBLIC char  *expand_Shapiro(const char *structure);   /* Coarse [i.r.] -> unweighted Shapiro */
+PUBLIC char  *expand_Full(const char *structure);      /* Full   -> FFull                     */
+PUBLIC char  *unexpand_Full(const char *structure);    /* FFull  -> Full                      */
 
-PUBLIC void   parse_structure(char *structure);  /* guess !!! */
+PUBLIC void   parse_structure(const char *structure);  /* guess !!! */
 
-PRIVATE char *aux_struct(char *structure);
+PRIVATE char *aux_struct(const char *structure);
 
 /* on return from parse_structure(), b2C() or b2Shapiro() ... */
 PUBLIC int    loop_size[STRUC];       /* contains loop sizes of a structure */
@@ -41,7 +41,7 @@ PUBLIC int    unpaired, pairs;        /* n of unpaired digits and pairs */
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE char *aux_struct( char* structure ) 
+PRIVATE char *aux_struct(const char* structure ) 
 {  
    short        *match_paren;
    int          i, o, p;
@@ -79,7 +79,7 @@ PRIVATE char *aux_struct( char* structure )
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *b2HIT( char *structure)
+PUBLIC char *b2HIT(const char *structure)
 {
    
    int            i, u, p, l;
@@ -144,7 +144,7 @@ PUBLIC char *b2HIT( char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *b2C( char *structure )
+PUBLIC char *b2C(const char *structure )
 {
    short *bulge, *loop;
      
@@ -216,7 +216,7 @@ PUBLIC char *b2C( char *structure )
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *b2Shapiro( char *structure )
+PUBLIC char *b2Shapiro(const char *structure )
 {
 
    short *bulge, *loop;
@@ -307,7 +307,7 @@ PUBLIC char *b2Shapiro( char *structure )
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void parse_structure(char *structure)
+PUBLIC void parse_structure(const char *structure)
 
 /*-----------------------------------------------------------------------------
 
@@ -378,7 +378,7 @@ PUBLIC void parse_structure(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *add_root(char *structure)
+PUBLIC char *add_root(const char *structure)
 {
     char *xS;
     xS = (char *) space(sizeof(char)*(strlen(structure)+4));
@@ -391,7 +391,7 @@ PUBLIC char *add_root(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *expand_Shapiro(char *structure)
+PUBLIC char *expand_Shapiro(const char *structure)
 {
    char  *xS, *temp;
    int  i, l;
@@ -421,7 +421,7 @@ PUBLIC char *expand_Shapiro(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *expand_Full(char *structure)
+PUBLIC char *expand_Full(const char *structure)
 {
     char *xF, *temp;
     int  i, l;
@@ -455,7 +455,7 @@ PUBLIC char *expand_Full(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *unexpand_Full(char *structure)
+PUBLIC char *unexpand_Full(const char *structure)
 {
    short        *match_paren;
    char id[10], *full, *temp;
@@ -507,7 +507,7 @@ PUBLIC char *unexpand_Full(char *structure)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char *unweight(char *structure)
+PUBLIC char *unweight(const char *structure)
 {
    int i,l;
    char *full, *temp;
