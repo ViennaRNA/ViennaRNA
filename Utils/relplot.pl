@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-07-16 17:12:00 ivo>
+# Last changed Time-stamp: <2003-07-19 19:54:11 ivo>
 
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
@@ -82,4 +82,36 @@ sub posent {
   return @sp;
 }
 
-# End of file
+=head1 NAME
+
+relplot - annotate a secdonary structure plot with reliability information
+
+=head1 SYNOPSIS
+
+   relplot file_ss.ps file_dp.ps > file_rss.ps
+
+=head1 DESCRIPTION
+
+relplot reads an RNA secondary structure plot and a dot plot
+containing pair probabilities, as produces by C<RNAfold -p>. From the
+pair probabilities it computes the "positional entropy" C<S(i) = - Sum
+p(ij) log(p(ij))> which is then used to colorize the secondary
+structure plot. Low entropy regions have little structural flexibility
+and the reliability of the predicted structure is high. High entropy
+implies many structural alternatives. While these alternatives may be
+functionally important, they make structure prediction more difficult
+and thus less reliable. The new colorized postscript file is written
+to stdout.
+
+Entropy is encoded as color hue, ranging from red for low entropy,
+well-defined regions, via yellow and green to blue and violet for
+regions with very high entropy.
+
+=head1 AUTHOR
+
+Ivo L. Hofacker <ivo@tbi.univie.ac.at>
+
+=cut
+
+#  End of file
+
