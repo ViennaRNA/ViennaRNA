@@ -53,7 +53,8 @@ $RNA::fold_constrained = 0;
 $RNA::cut_point = length($seq1)+1;
 my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
 ok($costruct, '(((.((....)).)))((((((...))).)))');
-ok(RNA::energy_of_struct($seq1 . $seq2, $costruct), $cmfe);
+$cmfe = RNA::energy_of_struct($seq1 . $seq2, $costruct);
+ok(abs($comfe-$cmfe)<1e-5);
 $RNA::cut_point=-1;
 
 # pf_fold
@@ -128,4 +129,4 @@ for (0..$solution->size()-1) {
 }
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
-ok(int($e*100),-340);
+ok(int($e*100+0.5), 70);

@@ -27,7 +27,7 @@
 #include "part_func.h"
 #include "utils.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.2 2004/11/02 11:45:35 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.3 2005/02/10 09:59:58 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
@@ -223,10 +223,10 @@ PRIVATE double PrfEditScore(const float *p1, const float *p2, char c1, char c2)
 
   score *= (1- seqw);
   if (c1==c2) score +=  seqw;
-  else if ((c1=='A') && (c2=='G') ||
-	   (c1=='G') && (c2=='A') ||
-	   (c1=='C') && (c2=='U') ||
-	   (c1=='U') && (c2=='C'))
+  else if (((c1=='A') && (c2=='G')) ||
+	   ((c1=='G') && (c2=='A')) ||
+	   ((c1=='C') && (c2=='U')) ||
+	   ((c1=='U') && (c2=='C')))
     score += 0.5*seqw;
 	   
   return score;
@@ -238,10 +238,10 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
 				 const float *T2, const char *seq2) {
    int     i, length; 
    length = alignment[0][0];
-   aligned_line[0] = (char *) space((length+1)*sizeof(char));
-   aligned_line[1] = (char *) space((length+1)*sizeof(char));
-   aligned_line[2] = (char *) space((length+1)*sizeof(char));
-   aligned_line[3] = (char *) space((length+1)*sizeof(char));
+   for (i=0; i<4; i++) {
+     if (aligned_line[i] != NULL) free(aligned_line[i]);
+     aligned_line[i] = (char *) space((length+1)*sizeof(char));
+   }
    for(i=1; i<=length; i++){
       if (alignment[0][i]==0)
 	aligned_line[0][i-1] = aligned_line[2][i-1] = '_';
@@ -274,6 +274,7 @@ PUBLIC int set_paln_params(double gap_open, double gap_ext,
     fprintf(stderr, "Sequence weight set to 1 (must be in [0..1])\n");
   }
   free_ends = (freeends) ? 1 : 0;
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
