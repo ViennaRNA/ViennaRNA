@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2004-01-04 23:27:00 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.14 2004/02/09 18:38:43 ivo Exp $
+@c Last changed Time-stamp: <2004-12-13 18:10:16 berni>
+@set revision $Id: RNAlib.texinfo,v 1.15 2004/12/23 12:19:23 berni Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -88,6 +88,7 @@ Please send comments and bug reports to
 * PF Fold::                     Calculating Partition Functions and Pair Probabilities
 * Inverse Fold::                Searching for Predefined Structures
 * Suboptimal folding::          Enumerating suboptimal structures
+* Cofolding::                   Folding of 2 RNA molecules
 * Fold Vars::                   Global Variables for the Folding Routines
 * Param Files::                 Reading Energy Parameters from File
 @end menu
@@ -232,7 +233,7 @@ alphabets.
 
 Prototypes for these functions are declared in @file{inverse.h}.
 
-@node Suboptimal folding, Fold Vars, Inverse Fold, Folding Routines
+@node Suboptimal folding, Cofolding, Inverse Fold, Folding Routines
 @section  Suboptimal folding
 
 @deftp {data type} SOLUTION  struct @{float energy; char *structure;@}
@@ -248,7 +249,121 @@ by an entry were the @code{structure} pointer is @code{NULL}.
 
 Prototypes for these functions are declared in @file{subopt.h}.
 
-@node Fold Vars, Param Files , Suboptimal folding, Folding Routines
+@node Cofolding, Fold Vars, Suboptimal folding, Folding Routines
+@section  Cofolding
+Folding of two RNA molecules. The molecules have to be separated by a
+'&' character in the input (file or stdin). If there is no '&', will
+return the same result as folding. The same rules as for using folding
+functions apply, if not stated otherwise. After reading in, it is
+vital to set the @var{cut_point} global variable and cut the '&' out
+of the sequence string, e.g. using the @code{tokenize()}
+function. If this is not done, the '&' will be considered to be a non-standard
+base and the result will be a fold of one molecule.
+
+@deftp {data type} plist  struct @{int i; int j; float energy;@}
+@end deftp
+
+@deftp {data type} ConcEnt  struct @{double A0; double B0;double ABc;double AAc; double BBc; double Ac; double Bc;@}
+@end deftp
+@deftypefun float cofold(char @var{*sequence}, char @var{*structure});
+The analog to the  @code{fold()} function. Computes the minimum free
+energy of two RNA molecules interacting. 
+@end deftypefun
+
+@deftypefun  void  free_co_arrays(void);
+Frees arrays allocated by @code{cofold()}.
+@end deftypefun
+
+@deftypefun char *tokenize(char @var{*line});
+Takes the sequence as it is taken from stdin or a file, sets the
+@var{cut_point} global variable to the position of the '&' character
+and cuts out the '&' character to return the sequence as it will be
+used by all cofold functions.
+@end deftypefun
+
+@deftypefun void   initialize_cofold(int @var{length});
+Obsolete function kept for backward compatibility.
+Allocates memory for mfe cofolding sequences not longer than @var{length},
+and sets up pairing matrix and energy parameters.
+@end deftypefun
+
+@deftypefun float *get_monomereminimumfreeenergies();
+Exports the minimum free energies of the two monomeres folded
+``alone'' (after using @code{cofold()}.
+@end deftypefun
+
+@deftypefun extern struct plist *get_mfe_plist(struct plist @var{*pl});
+This writes the global @var{*pr} array into the new structure
+@var{plist}, creating an array of the base pairs of the minimum free
+energy structure (and nothing else). Default probability is 0.95.
+Used when @var{*pr} is going to be freed or overwritten by other
+functions (e.g. @code{ co_pf_fold()},@code{cofold()}, etc).
+@end deftypefun
+
+Prototypes for these functions are declared in @file{cofold.h} or @file{co_part_func.h}.
+
+@section  Partition Function Cofolding
+As for folding one RNA molecule, this computes the partition function
+of all possible structures and the base pair probabilities. Uses the
+same global @var{pf_scale} variable to inhibit overflow.
+
+@deftypefun float co_pf_fold (char* @var{sequence}, char* @var{structure})
+produces a partition function folding of two RNA molecules, including
+the penalty for duplex initialization. To use this, the
+@var{cut_point} global variable has to be set. It will return the free
+energy of the ensemble, as well as the pair probabilities in a global array.
+ 
+@end deftypefun 
+@deftypefun void   free_co_pf_arrays(void);
+frees partition function cofold arrays allocated in @code{ co_pf_fold()}.
+@end deftypefun
+
+@deftypefun void   init_co_pf_fold(int @var{length});
+Obsolete function kept for backward compatibility.
+Allocates memory for partition function cofolding sequences not longer
+than @var{length}, and sets up pairing matrix and energy parameters.
+@end deftypefun
+@deftypefun float *get_monomerefreeenergies();
+Export free energies of monomere ensembles (after using @code{ co_pf_fold()})
+@end deftypefun
+@deftypefun extern struct plist *get_plist(struct plist @var{*pl}, int @var{length}, double @var{cut_off});
+Makes a list of base pairs out of the global @var{*pr} array,
+remembering all base pairs with a probability higher than
+@var{cut_off}. Must be used in the functions of the next section.
+@end deftypefun
+
+Prototypes for these functions are declared in @file{co_part_func.h}.
+
+@section  Cofolding all Dimeres, Concentrations
+After computing the partition functions of all possible dimeres one
+can compute the probabilities of base pairs, the concentrations out of
+start concentrations and sofar and soaway.
+
+@deftypefun void compute_probabilities(double @var{*FEAB},double @var{*FEAA}, double @var{*FEBB},double @var{*FEA}, double @var{*FEB}, struct plist  @var{*prAB}, struct plist  @var{*prAA}, struct plist  @var{*prBB}, struct plist  @var{*prA}, struct plist  @var{*prB}, int @var{Alength},int @var{Blength});
+Computes the probabilities of being paired for the different monomeres
+end dimeres possible for two RNA molecules (called A and B). Takes the
+minimum free energies of the ensembles of every dimere (as computed by
+@code{co_part_cfunc()} and their base pairing probabilities (taken
+from @code{get_plist()} as well as the length of the two molecules
+@var{Alength} and @var{Blength}.     
+@end deftypefun
+
+@deftypefun extern struct ConcEnt  *get_concentrations(double @var{FEAB}, double @var{FEAA}, double @var{FEBB}, double @var{FEA}, double @var{FEB}, double * @var{startconc});
+Takes an array  @var{startconc} with alternating entries for the
+initial concentrations of molecules A and B (one and two), then
+computes the equilibrium concentrations @cite{Dimitrov & Zuker (2004)}
+for the free energies put in.
+@end deftypefun
+
+@deftypefun int make_probsum(int @var{length}, char @var{*name});
+Computes the probability of any base to be paired to a base wtih a
+number lower than @var{length} (used for e.g. compute probability to
+be paired within one molecule).
+@end deftypefun
+
+Prototypes for these functions are declared in @file{co_part_func.h}.
+
+@node Fold Vars, Param Files , Cofolding, Folding Routines
 @section   Global Variables for the Folding Routines
 
 The following global variables change the behavior the folding
@@ -340,7 +455,7 @@ for the ensemble free energy, for example the minimum free energy. You must
 call @code{update_pf_params()} or @code{init_pf_fold()} after changing this
 parameter. If pf_scale is -1 (the default) , an estimate will be provided
 automatically when calling @code{init_pf_fold()} or
-@code{update_pf_params()}. The automatic estimate is usually insufficient
+@code{update_f_params()}. The automatic estimate is usually insufficient
 for sequences more than a few hundred bases long.
 @end deftypevar
 
@@ -1088,6 +1203,10 @@ files and library, respectively.
    Optimal  computer  folding  of large RNA sequences using
    thermodynamic and auxiliary information, Nucl Acid Res 9: 133-148
 
+@item D.A. Dimitrov, M.Zuker(2004)@*
+   Prediction of hybridization and melting for double stranded nucleic
+   acids, Biophysical J. 87: 215-226, 
+   
 @item J.S. McCaskill (1990)@*
    The equilibrium partition function and base pair binding
    probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
