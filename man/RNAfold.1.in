@@ -7,16 +7,20 @@ RNAfold \- calculate secondary structures of RNAs
 
 .SH "DESCRIPTION"
 .I RNAfold
-reads RNA sequences from stdin and calculates their minimum free energy
-(mfe) structure, partition function (pf) and base pairing probability
-matrix. It returns the mfe structure in bracket notation, its energy, the
-free energy of the thermodynamic ensemble and the frequency of the mfe
-structure in the ensemble to stdout.  It also produces PostScript files
-with plots of the resulting secondary structure graph and a "dot plot" of
-the base pairing matrix.  The dot plot shows a matrix of squares with area
-proportional to the pairing probability in the upper half, and one square
-for each pair in the minimum free energy structure in the lower half. For
-each pair i\-j with probability p>10E\-6 there is a line of the form
+reads RNA sequences from stdin, calculates their minimum free energy
+(mfe) structure and prints to stdout the mfe structure in bracket
+notation and its free energy. If the \-p option was given it also
+computes the partition function (pf) and base pairing probability
+matrix, and prints the free energy of the thermodynamic ensemble, the
+frequency of the mfe structure in the ensemble, and the ensemble
+diversity to stdout. 
+
+It also produces PostScript files with plots of the resulting
+secondary structure graph and a "dot plot" of the base pairing matrix.
+The dot plot shows a matrix of squares with area proportional to the
+pairing probability in the upper half, and one square for each pair in
+the minimum free energy structure in the lower half. For each pair
+i\-j with probability p>10E\-6 there is a line of the form
 .br 
 i  j  sqrt(p)  ubox
 .br 
@@ -38,7 +42,13 @@ of the single character @ or an end of file condition is encountered.
 .B \-p
 Calculate the partition function and base pairing probability matrix in
 addition to the mfe structure. Default is calculation of mfe structure
-only. Note that unless you also specify \-d2 or \-d0, the partition
+only. Prints a coarse representation of the pair probabilities in
+form of a pseudo bracket notation, the ensemble free energy, the
+frequency of the mfe structure, and the structural diversity.
+See the description of pf_fold() and mean_bp_dist() in the RNAlib
+documentation for details.
+.br
+Note that unless you also specify \-d2 or \-d0, the partition
 function and mfe calculations will use a slightly different energy
 model. See the discussion of dangling end options below.
 .TP 
@@ -48,7 +58,7 @@ saving about 50% in runtime. Prints the ensemble free energy \-kT ln(Z).
 .TP 
 .B \-C
 Calculate structures subject to constraints. 
-The programm reads first the sequence then the a string containg constraints 
+The program reads first the sequence, then a string containing constraints 
 on the structure encoded with the symbols:  
 . (no constraint for this base)
 | (the corresponding base has to be paired
@@ -65,18 +75,18 @@ folding ignores constraints of type "|".
 Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
 .TP 
 .B \-4
-Do not include special stabilizing energies for certain tetraloops. Mostly
-for tesing.
+Do not include special stabilizing energies for certain tetra-loops. Mostly
+for testing.
 .TP 
 .B \-d[0|1|2|3]
 How to treat "dangling end" energies for bases adjacent to helices in
-free ends and multiloops: With (\-d1) only unpaired bases can
+free ends and multi-loops: With (\-d1) only unpaired bases can
 participate in at most one dangling end, this is the default for mfe
 folding but unsupported for the partition function folding. With
 \fB\-d2\fP this check is ignored, dangling energies will be added for
 the bases adjacent to a helix on both sides in any case; this is the
 default for partition function folding (\-p). \fB\-d\fP or \fB\-d0\fP
-ignores dangling ends altogether (mostly for mdebugging).
+ignores dangling ends altogether (mostly for debugging).
 .br 
 With \fB\-d3\fP mfe folding will allow coaxial stacking of adjacent helices
 in multi\-loops. At the moment the implementation will not allow coaxial
@@ -106,12 +116,12 @@ where A pairs B, C\-D etc.  Use the energy parameters for GC (\-e 1) or AU
 .TP 
 .B \-P\ \fIparamfile\fP
 Read energy parameters from \fIparamfile\fP, instead of using the default
-parameter set. A sample parameterfile should accompany your distribution.
+parameter set. A sample parameter file should accompany your distribution.
 See the RNAlib documentation for details on the file format.
 .TP 
 .B \-nsp  \fIpairs\fP
 Allow other pairs in addition to the usual AU,GC,and GU pairs. \fIpairs\fP 
-is a comma seperated list of additionally allowed pairs. If a the first 
+is a comma separated list of additionally allowed pairs. If a the first 
 character is a '\-' then AB will imply that AB and BA are allowed pairs.
 e.g. RNAfold \-nsp \-GA  will allow GA and AG pairs. Nonstandard pairs are 
 given 0 stacking energy.
@@ -119,8 +129,8 @@ given 0 stacking energy.
 .B \-S\ \fIscale\fP
 In the calculation of the pf use \fIscale\fP*mfe as an estimate for the
 ensemble free energy (used to avoid overflows). The default is 1.07,
-usefull values are 1.0 to 1.2. Occasionally needed for long sequences.
-You can also recompile the programm to use double precision (see the README
+useful values are 1.0 to 1.2. Occasionally needed for long sequences.
+You can also recompile the program to use double precision (see the README
 file). 
 
 .SH "REFERENCES"
@@ -129,7 +139,7 @@ programming algorithm originally developed by M. Zuker and P. Stiegler.
 The partition function algorithm is based on work by J.S. McCaskill.
 The energy parameters are taken from:
 .br 
-D.H. Mathews, J. Sabina, M. Zucker and H. Turner
+D.H. Mathews, J. Sabina, M. Zuker and H. Turner
 "Expanded Sequence Dependence of Thermodynamic Parameters Provides 
 Robust Prediction of RNA Secondary Structure"
 JMB, 288, pp 911\-940, 1999
@@ -160,3 +170,9 @@ Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.
 .SH "BUGS"
 If in doubt our program is right, nature is at fault.
 Comments should be sent to ivo@tbi.univie.ac.at.
+
+\"  LocalWords:  RNAFOLD Ivo ViennaRNA RNAfold RNAs stdin mfe stdout PostScript
+\"  LocalWords:  br ubox ss ps dp rna TP bp RNAlib kT ln fItemp fP fB fR noLP
+\"  LocalWords:  fBonly noGU noCloseGU fI GC fIparamfile nsp fIpairs README JMB
+\"  LocalWords:  Zuker Stiegler McCaskill Lyttle ller PNAS Bonhoeffer
+\"  LocalWords:  Monatshefte Nucl Biopolymers hitchhiker's

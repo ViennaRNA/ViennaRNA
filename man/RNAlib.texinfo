@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2002-12-13 19:25:58 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.13 2003/02/07 19:02:32 ivo Exp $
+@c Last changed Time-stamp: <2004-01-04 23:27:00 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.14 2004/02/09 18:38:43 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -36,11 +36,11 @@ Copyright @copyright{1994-2002} Ivo Hofacker and Peter Stadler
 
 @menu
 * Introduction::                
-* Folding Routines::		Functions for Folding RNA Secondary Structures
-* Parsing and Comparing::	Functions to Manipulate Structures
-* Utilities::			Odds and Ends
-* Example::			A Small Example Program
-* References::
+* Folding Routines::            Functions for Folding RNA Secondary Structures
+* Parsing and Comparing::       Functions to Manipulate Structures
+* Utilities::                   Odds and Ends
+* Example::                     A Small Example Program
+* References::                  
 * Function Index::
 * Variable Index::
 @end menu
@@ -84,11 +84,12 @@ Please send comments and bug reports to
 @chapter  Folding Routines
 
 @menu
-* mfe Fold::     Calculating Minimum Free Energy Structures
-* PF Fold::      Calculating Partition Functions and Pair Probabilities
-* Inverse Fold:: Searching for Predefined Structures
-* Fold Vars::    Global Variables for the Folding Routines
-* Param Files::  Reading Energy Parameters from File
+* mfe Fold::                    Calculating Minimum Free Energy Structures
+* PF Fold::                     Calculating Partition Functions and Pair Probabilities
+* Inverse Fold::                Searching for Predefined Structures
+* Suboptimal folding::          Enumerating suboptimal structures
+* Fold Vars::                   Global Variables for the Folding Routines
+* Param Files::                 Reading Energy Parameters from File
 @end menu
 
 @node mfe Fold, PF Fold, Folding Routines, Folding Routines
@@ -180,9 +181,21 @@ after a change in folding parameters like temperature
 (@pxref{Fold Vars,,Variables}). 
 @end deftypefun
 
+@deftypefun double mean_bp_dist (int @var{length})
+computes the mean base pair distance in the equilibrium ensemble as a
+measure of the structural diversity.  It is given by @math{<d> =
+sum_{a,b} p_a * p_b * d(a,b)}, where the sum goes over all pairs of
+possible structure @math{a,b}, @math{p_a} is the Boltzmann weight of
+structure @math{a}, and @math{d(a,b)} is the base pair distance (see
+@code{bp_distance()} in @xref{Distances}). The mean base pair distances
+can be computed efficiently from the pair probabilities @math{p_ij} as
+@math{<d> = sum_{ij} p_ij * (1-p_ij)}. Uses the global @code{pr} array
+filled by a previous call to @code{pf_fold()}.
+@end deftypefun
+
 Prototypes for these functions are declared in @file{part_func.h}.
 
-@node Inverse Fold, Fold Vars, PF Fold, Folding Routines
+@node Inverse Fold, Suboptimal folding, PF Fold, Folding Routines
 @section  Inverse Folding
 
 We provide two functions that search for sequences with a given
@@ -219,7 +232,23 @@ alphabets.
 
 Prototypes for these functions are declared in @file{inverse.h}.
 
-@node Fold Vars, Param Files , Inverse Fold, Folding Routines
+@node Suboptimal folding, Fold Vars, Inverse Fold, Folding Routines
+@section  Suboptimal folding
+
+@deftp {data type} SOLUTION  struct @{float energy; char *structure;@}
+@end deftp
+
+@deftypefun SOLUTION* subopt (char* @var{sequence}, char* @var{constraint}, int* @var{delta}, FILE* @var{fp})
+poduces @strong{all} suboptimal secondary structures within
+@var{delta}*0.01 kcal/mol of the optimum. The reults are either
+directly written to a @var{fp} (if @var{fp} is not @code{NULL}), or
+(@var{fp}@code{==NULL}) returned in a @code{SOLUTION *} list terminated
+by an entry were the @code{structure} pointer is @code{NULL}. 
+@end deftypefun
+
+Prototypes for these functions are declared in @file{subopt.h}.
+
+@node Fold Vars, Param Files , Suboptimal folding, Folding Routines
 @section   Global Variables for the Folding Routines
 
 The following global variables change the behavior the folding
@@ -526,9 +555,9 @@ parameters used in version 1.1b of the Package.
 @chapter Parsing and Comparing of Structures
 
 @menu
-* notations::			Representations of Secondary Structures.
-* Parsing::			Functions for Parsing and Coarse Graining.
-* Distances::			Distances for RNA Secondary Structures
+* notations::                   Representations of Secondary Structures.
+* Parsing::                     Functions for Parsing and Coarse Graining.
+* Distances::                   Distances for RNA Secondary Structures
 @end menu
 
 @node notations, Parsing, Parsing and Comparing, Parsing and Comparing
@@ -691,9 +720,9 @@ Prototypes for the above functions can be found in @file{RNAstruct.h}.
 @section Distance Measures
 
 @menu
-* Tree Distances::		Using Tree Edit Distances to Compare Structures
-* String Distances::		Using String Alignment for Comparison
-* Profile Distances::		Comparing Pair probability Matrices
+* Tree Distances::              Using Tree Edit Distances to Compare Structures
+* String Distances::            Using String Alignment for Comparison
+* Profile Distances::           Comparing Pair probability Matrices
 @end menu
 
 A simple measure of dissimilarity between secondary structures of equal
