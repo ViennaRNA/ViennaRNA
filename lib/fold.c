@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.24 2002/03/11 12:02:40 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.25 2002/10/29 12:56:55 ivo Exp $";
 
 #define PAREN
 
@@ -1160,7 +1160,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         int dang5=0, dang3=0, dang;
 	if ((SAME_STRAND(p-1,p))&&(p))
 	  dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
-	if ((SAME_STRAND(i1,i1+1))&&(i1))
+	if ((SAME_STRAND(i1,i1+1))&&(i1<S[0]))
 	  dang3 = P->dangle3[type][S1[i1+1]];   /* 3' dangle of previous pair */
 
         switch (p-i1-1) {
