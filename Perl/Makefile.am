@@ -10,7 +10,7 @@ RNA_wrap.c: RNA.i
 	swig -perl5 -shadow RNA.i
 #	@PerlCmd@ -i -npe 's/\A\s+\;\s+\Z//; s/SWIGTYPE_p_unsigned_short/SWIGTYPE_p_short/' RNA_wrap.c
 
-all-local: Makefile.perl RNA_wrap.c
+all-local: RNA_wrap.c Makefile.perl
 	$(MAKE) -f Makefile.perl
 
 install-exec-local: all-local
