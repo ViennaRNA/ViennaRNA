@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2003-07-18 18:26:40 ivo>
-# $Id: rotate_ss.pl,v 1.2 2003/07/18 18:29:43 ivo Exp $
+# Last changed Time-stamp: <2004-08-09 16:50:14 ivo>
+# $Id: rotate_ss.pl,v 1.3 2004/08/10 08:54:05 ivo Exp $
 
 use Getopt::Long;
 use strict;
@@ -97,5 +97,42 @@ sub print_ss_ps {
     print join "", @{$ss_ps->{$_}};
   }
 }
+
+=head1 NAME
+
+rotate_ss - rotate or mirror coordinates of secondary structure plot
+
+=head1 SYNOPSIS
+
+   rotate_ss.pl [-a angle] [-m] old_ss.ps > new_ss.ps
+
+=head1 DESCRIPTION
+
+B<rotate_ss> reads a PostScript RNA secondary structure plot, as
+produced by B<RNAfold> or B<RNAplot>, rotates and/or mirrors the
+coordinates, and writes the new plot to STDOUT.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-a> I<angle>
+
+Rotate the plot counter-clockwise by I<angle> degrees.
+
+=item B<-m>
+
+Mirror the coordinates in the plot, i.e. convert from a
+couter-clockwise to clockwise layout. Note that, if both B<-m> and
+B<-a> are given, the plot is first mirrored, then rotated.
+
+=back
+
+=head1 AUTHORS
+
+Ivo L. Hofacker <ivo@tbi.univie.ac.at>,
+Christoph Flamm <xtof@tbi.univie.ac.at>
+
+=cut
 
 __END__
