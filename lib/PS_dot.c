@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.25 2004/07/29 13:26:51 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.26 2004/08/09 10:22:14 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -179,21 +179,7 @@ static const char *RNAss_head =
 "    1 add\n"
 "  } forall\n"
 "  pop\n"
-"} bind def\n"
-"/drawreliability {\n"
-"  /Smax {sequence length log 5.5 min} bind def\n"
-"  0	\n"
-"  coor {\n"
-"    aload pop\n"
-"    S 3 index get Smax div\n"
-"    0.9 min 1 1 sethsbcolor\n"
-"    newpath\n"
-"    fsize 2 div 0 360 arc\n"
-"    fill\n"
-"    1 add\n"
-"  } forall\n"
-"} bind def\n"
-"\n"
+"} bind def\n\n"
 "/init {\n"
 "  /Helvetica findfont fsize scalefont setfont\n"
 "  1 setlinejoin\n"
