@@ -33,7 +33,7 @@
 
 #include "energy_const.h"
 /*@unused@*/
-static char rcsid[] = "$Id: energy_par.c,v 1.4 2000/10/10 12:31:29 ivo Rel $";
+static char rcsid[] = "$Id: energy_par.c,v 1.5 2000/11/22 08:32:39 ivo Exp $";
 
 #define NST 0     /* Energy for nonstandard stacked pairs */
 #define DEF -50   /* Default terminal mismatch, used for I */
@@ -308,7 +308,7 @@ PUBLIC int F_ninio37[5] = { 0, 40, 50, 20, 10 };      /* only F[2] used */
 
 /* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
 
-PUBLIC char Tetraloops[561] =  /* place for up to 40 tetra loops */
+PUBLIC char Tetraloops[1400] =  /* place for up to 200 tetra loops */
   "GGGGAC "
   "GGUGAC "
   "CGAAAG "
@@ -341,7 +341,7 @@ PUBLIC char Tetraloops[561] =  /* place for up to 40 tetra loops */
   "UGGAAA "
 ;
 
-PUBLIC int   TETRA_ENERGY37[80] = {
+PUBLIC int   TETRA_ENERGY37[200] = {
   -300, -300, -300, -300, -300, -300, -300, -300, -300, -250, -250, -250,
   -250, -250, -200, -200, -200, -200, -200, -150, -150, -150, -150, -150,
   -150, -150, -150, -150, -150, -150};
