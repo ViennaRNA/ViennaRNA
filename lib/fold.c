@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-03-26 00:39:50 ivo> */
+/* Last changed Time-stamp: <1998-04-08 22:26:02 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.9 1998/03/31 15:25:50 ivo Exp $";
+static char rcsid[] = "$Id: fold.c,v 1.10 1998/04/09 11:22:03 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -224,8 +224,7 @@ float fold(char *string, char *structure)
 	 if ((BP[i]==j) && (type==0)) type=7; /* nonstandard */
 	 if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
 	 if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-	 if (BP[i]==-4) bonus +=BONUS;
-	 if (BP[j]==-4) bonus +=BONUS;
+	 if ((BP[i]==-4)||(BP[j]==-4)) type=0;
 	 	 
 	 no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
 		 
@@ -621,13 +620,13 @@ float fold(char *string, char *structure)
 	if (ts=strstr(Tetraloops, tl))
 	  tetracorr = TETRA_ENERGY[(ts-Tetraloops)/5];
       }
-      mm = (unpaired>3) ? mismatchH[type][S1[i+1]][S1[j-1]] : 0;
-      
       bonus = 0;
+
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-      if (BP[i]==-4) bonus += BONUS;
-      if (BP[j]==-4) bonus += BONUS;
+      if ((BP[i]==-4)||(BP[j]==-4)) type=0;
+      
+      mm = (unpaired>3) ? mismatchH[type][S1[i+1]][S1[j-1]] : 0;
       
       if (no_close) {
 	 if (c[indx[j]+i] == FORBIDDEN) continue;
@@ -762,8 +761,6 @@ float fold(char *string, char *structure)
 	 if((BP[l]==-2)&&(structure[l-1]=='(')) bonus++;
 	 if((BP[l]==-1)&&(structure[l-1]!='.')) bonus++;
       }
-      /* 'x' constraints give penalty instead of bonus */
-      if ((BP[l]==-4)&&(structure[l-1]!='.')) bonus--; 
       
       if(BP[l]>l) {
 	 bonus_cnt++;
