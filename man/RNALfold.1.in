@@ -1,9 +1,9 @@
 .\" .ER
 .TH "RNALFOLD" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
-RNALfold \- calculate secondary structures of RNAs
+RNALfold \- calculate locally stable secondary structures of RNAs
 .SH "SYNOPSIS"
-\fBRNALfold\fP [-L span] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] 
+\fBRNALfold\fP [\-L span] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] 
 
 .SH "DESCRIPTION"
 .I RNALfold
@@ -21,19 +21,21 @@ local structure.
 .TP 
 .B \-L span
 Set the maximum allowed separation of a base pair to span. I.e. no
-pairs (i,j) with j-i>span will be allowed. 
-.PP
-The \fB\-T\fP, \fB-d\fP \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
+pairs (i,j) with j\-i>span will be allowed. 
+.PP 
+The \fB\-T\fP, \fB\-d\fP \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in
-RNAfold. Most tests were done using "d2 -noLP", other dangling end
+RNAfold. Most tests were done using "\-d2 \-noLP", other dangling end
 settings may still be buggy.
 
 .SH "REFERENCES"
 I.L. Hofacker, B. Priwitzer, and P.F. Stadler
-"Prediction of Locally Stable RNA Secondary Structures for Genome-Wide
+"Prediction of Locally Stable RNA Secondary Structures for Genome\-Wide
 Surveys" 
-Bioinformatics, , (2003)
+Bioinformatics, 20, 186\-190 (2004)
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
 .SH "AUTHORS"
-Ivo L Hofacker, Peter F Stadler.
+Ivo L Hofacker, Peter F Stadler. 
+.br 
+Send comments to <rna@tbi.univie.ac.at>

@@ -30,7 +30,7 @@ If the sequence is preceded by a line of the form
 .br 
 > name
 .br 
-then the PostScript files name_ss.ps and name_dp.ps are produced for
+then the PostScript files "name_ss.ps" and "name_dp.ps" are produced for
 the structure and dot plot, respectively. Otherwise the filenames
 default to rna.ps and dot.ps. Existing files of the same name will be
 overwritten.
@@ -47,7 +47,7 @@ form of a pseudo bracket notation, the ensemble free energy, the
 frequency of the mfe structure, and the structural diversity.
 See the description of pf_fold() and mean_bp_dist() in the RNAlib
 documentation for details.
-.br
+.br 
 Note that unless you also specify \-d2 or \-d0, the partition
 function and mfe calculations will use a slightly different energy
 model. See the discussion of dangling end options below.
@@ -75,12 +75,12 @@ folding ignores constraints of type "|".
 Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
 .TP 
 .B \-4
-Do not include special stabilizing energies for certain tetra-loops. Mostly
+Do not include special stabilizing energies for certain tetra\-loops. Mostly
 for testing.
 .TP 
 .B \-d[0|1|2|3]
 How to treat "dangling end" energies for bases adjacent to helices in
-free ends and multi-loops: With (\-d1) only unpaired bases can
+free ends and multi\-loops: With (\-d1) only unpaired bases can
 participate in at most one dangling end, this is the default for mfe
 folding but unsupported for the partition function folding. With
 \fB\-d2\fP this check is ignored, dangling energies will be added for
@@ -92,7 +92,7 @@ With \fB\-d3\fP mfe folding will allow coaxial stacking of adjacent helices
 in multi\-loops. At the moment the implementation will not allow coaxial
 stacking of the two interior pairs in a loop of degree 3 and works
 only for mfe folding.
-.br
+.br 
 Note that by default (as well as with \-d1 and \-d3) pf and mfe
 folding treat dangling ends differently. Use \fB\-d2\fR in addition to
 \fB\-p\fR to ensure that both algorithms use the same energy model.
@@ -114,7 +114,7 @@ Rarely used option to fold sequences from the artificial ABCD... alphabet,
 where A pairs B, C\-D etc.  Use the energy parameters for GC (\-e 1) or AU
 (\-e 2) pairs.
 .TP 
-.B \-P\ \fIparamfile\fP
+.B \-P\ \fI<paramfile>\fP
 Read energy parameters from \fIparamfile\fP, instead of using the default
 parameter set. A sample parameter file should accompany your distribution.
 See the RNAlib documentation for details on the file format.
@@ -122,7 +122,7 @@ See the RNAlib documentation for details on the file format.
 .B \-nsp  \fIpairs\fP
 Allow other pairs in addition to the usual AU,GC,and GU pairs. \fIpairs\fP 
 is a comma separated list of additionally allowed pairs. If a the first 
-character is a '\-' then AB will imply that AB and BA are allowed pairs.
+character is a "\-" then AB will imply that AB and BA are allowed pairs.
 e.g. RNAfold \-nsp \-GA  will allow GA and AG pairs. Nonstandard pairs are 
 given 0 stacking energy.
 .TP 
@@ -169,10 +169,5 @@ This man page documents version @VERSION@ Vienna RNA Package.
 Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.
 .SH "BUGS"
 If in doubt our program is right, nature is at fault.
-Comments should be sent to ivo@tbi.univie.ac.at.
+Comments should be sent to rna@tbi.univie.ac.at.
 
-\"  LocalWords:  RNAFOLD Ivo ViennaRNA RNAfold RNAs stdin mfe stdout PostScript
-\"  LocalWords:  br ubox ss ps dp rna TP bp RNAlib kT ln fItemp fP fB fR noLP
-\"  LocalWords:  fBonly noGU noCloseGU fI GC fIparamfile nsp fIpairs README JMB
-\"  LocalWords:  Zuker Stiegler McCaskill Lyttle ller PNAS Bonhoeffer
-\"  LocalWords:  Monatshefte Nucl Biopolymers hitchhiker's

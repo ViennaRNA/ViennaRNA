@@ -5,7 +5,7 @@ RNAalifold \- calculate secondary structures for a set of aligned RNAs
 .SH "SYNOPSIS"
 \fBRNAalifold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
 [\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
-\fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fIfile.aln\fP]
+\fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fI<file.aln>\fP]
 
 .SH "DESCRIPTION"
 .I RNAalifold
@@ -20,25 +20,25 @@ and a "dot plot" of the base pairing matrix ("alidot.ps"). The file
 "alifold.out" will contain a list of likely pairs sorted by credibility,
 suitable for viewing  with "AliDot.pl".
 .SH "OPTIONS"
-.TP
+.TP 
 .B \-cv \fIfactor\fP
 Set the weight of the covariance term in the energy function to
 \fIfactor\fP. Default is 1.
-.TP
+.TP 
 .B \-nc \fIfactor\fP
-Set the penalty for non-compatible sequences in the covariance term of the
+Set the penalty for non\-compatible sequences in the covariance term of the
 energy function to \fIfactor\fP. Default is 1.
-.TP
+.TP 
 .B \-p
 Calculate the partition function and base pairing probability matrix in
 addition to the mfe structure. Default is calculation of mfe structure only.
-.TP
+.TP 
 .B \-noLP
 Avoid structures without lonely pairs (helices of length 1). In the mfe
 case structures with lonely pairs are strictly forbidden. For partition
 function folding this disallows pairs that can \fBonly\fP occur isolated.
 Setting this option provides a significant speedup.
-.PP
+.PP 
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options \fUshould\fP work as in RNAfold
 
@@ -57,27 +57,27 @@ The algorithm is a variant of the dynamic programming algorithms of
 M. Zuker and P. Stiegler (mfe) and J.S. McCaskill (pf) adapted for sets of
 aligned sequences with covariance information.
 The energy parameters are taken from:
-.br
-.PP
+.br 
+.PP 
 D.H. Mathews, J. Sabina, M. Zuker and H. Turner
 "Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust
 Prediction of RNA Secondary Structure" 
 JMB, 288, pp 911\-940, 1999
-.br
+.br 
 If you use this program in your work you might want to cite:
-.br
-.PP
+.br 
+.PP 
 Ivo L. Hofacker, Martin Fekete, and Peter F. Stadler
 "Secondary Structure Prediction for Aligned RNA Sequences" 
 J.Mol.Biol. 319: 1059\-1066 (2002).
-.br
+.br 
 .SH "VERSION"
 This man page documents version @VERSION@ of the Vienna RNA Package.
 .SH "AUTHORS"
-Ivo L Hofacker.
+Ivo L Hofacker <ivo@tbi.univie.ac.at>
 .SH "BUGS"
 If in doubt our program is right, nature is at fault.
-Comments should be sent to ivo@tbi.univie.ac.at.
+Comments should be sent to rna@tbi.univie.ac.at.
 
 \"  LocalWords:  RNAalifold ViennaRNA RNAs fBRNAalifold fP fI fItemp noLP noGU
 \"  LocalWords:  noCloseGU fIparamfile nsp fIpairs fIscale fIfile aln stdin mfe

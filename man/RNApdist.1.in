@@ -1,12 +1,12 @@
-.TH RNAPDIST l
-.ER
-.SH NAME
-RNApdist \- calculate distances of thermodynamic RNA secondary
+.\" .ER
+.TH "RNAPDIST" "l" "" "Ivo Hofacker" "Vienna RNA"
+.SH "NAME"
+RNApdist \- calculate distances between thermodynamic RNA secondary
 structures ensembles
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 \fBRNApdist [\-Xp|m|f|c] [\-B\ [file]] [\-T\ temp] [\-4] [\-d] [\-noGU] [\-noCloseGU] [\-e\ e_set] [\-P\ paramfile] [\-nsp\ pairs]
 
-.SH DESCRIPTION
+.SH "DESCRIPTION"
 .I RNApdist
 reads RNA sequences from stdin and calculates structure distances between
 the thermodynamic ensembles of their secondary structures.
@@ -16,11 +16,11 @@ vector holding for each base the probabilities of being unpaired, paired
 upstream, or paired downstream, respectively. These profiles are compared
 by a standard alignment algorithm. 
 
-The pase pair probabilties are also saved as postscript "dot plots" (as in
-RNAfold) in the files  name_dp.ps , where name is the name of the sequence,
+The base pair probabilities are also saved as postscript "dot plots" (as in
+RNAfold) in the files  "name_dp.ps", where name is the name of the sequence,
 or a number if unnamed.
 
-.SH OPTIONS
+.SH "OPTIONS"
 .IP \fB\-Xp\fP
 compare the structures pairwise (p), that is first with 2nd, third
 with 4th etc. This is the default.
@@ -30,37 +30,38 @@ formatted as a lower triangle matrix.
 .IP \fB\-Xf\fP
 compare each structure to the first one.
 .IP \fB\-Xc\fP
-compare continuously, that is i-th with (i+1)th structure.
-.IP \fB\-B\ \fI[file]\fP
+compare continuously, that is i\-th with (i+1)th structure.
+.IP \fB\-B\ [\fI<file>\fP]
 Print an "alignment" with gaps of the profiles, using the following symbols:
-.br
+.br 
 (  )  essentially upstream (downstream) paired bases
-.br
+.br 
 {  }  weakly upstream (downstream) paired bases
-.br
+.br 
  |    strongly paired bases without preference
-.br
+.br 
  ,    weakly paired bases without preference
-.br
+.br 
  .    essentially unpaired bases.
-.br
+.br 
 
-The aligned structures are written to \fIfile\fP, if specified. Otherwise
-output is written to stdout, unless the -Xm option is set in which case
+The aligned structures are written to \fI<file>\fP, if specified. Otherwise
+output is written to stdout, unless the \-Xm option is set in which case
 "backtrack.file" is used.
-.PP
+.PP 
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.
 
-.SH REFERENCES
+.SH "REFERENCES"
 Bonhoeffer S, McCaskill J S, Stadler P F, Schuster P, (1993)
-RNA multi-structure landscapes, Euro Biophys J:22,13-24
-.SH VERSION
+RNA multi\-structure landscapes, Euro Biophys J:22,13\-24
+.SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
-.SH AUTHORS
+.SH "AUTHORS"
 Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer.
-.SH BUGS
+.SH "BUGS"
 We hoped you wouldn't find them.
-Comments should be sent to ivo@tbi.univie.ac.at
-.br
+.br 
+Comments should be sent to rna@tbi.univie.ac.at
+
 

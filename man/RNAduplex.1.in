@@ -20,7 +20,7 @@ The format is especially useful for computing the hybrid structure between a sma
 \fB\-e\fR \fIrange\fR 
 Compute suboptimal structures with energy with \fIrange\fR kcal/mol of the optimum.
 Default is calculation of mfe structure only.
-.TP 
+.PP 
 For the standard options, such as 
 \fB\-T\fR, \fB\-4\fR, \fB\-noGU\fR, \-\fBnoCloseGU\fR,
 \fB\-P\fR see the \fBRNAfold\fR man page.
