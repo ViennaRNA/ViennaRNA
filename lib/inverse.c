@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <97/03/24 17:33:43 ivo> */
+/* Last changed Time-stamp: <97/11/04 19:15:02 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -14,9 +14,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#ifdef DBMALLOC
-#include "/usr/local/debug_include/malloc.h"
-#endif
 #if PF
 #include "part_func.h"
 #endif
@@ -29,7 +26,12 @@
 #include "utils.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
+#ifdef dmalloc
+#include "/usr/local/include/dmalloc.h"
+#define space(X) calloc(1,(X))
+#endif
 
+static char rcsid[] = "$Id: inverse.c,v 1.4 1997/11/04 18:33:10 ivo Rel $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE float  adaptive_walk(char *start, char *target);
@@ -72,7 +74,7 @@ PRIVATE float adaptive_walk(char *start, char *target)
    short *target_table, *test_table;
    char cont;
    float cost, current_cost, ccost2;
-   float (*cost_function)();
+   float (*cost_function)(char *, char *, char *);
 
    len = strlen(start);
    if (strlen(target)!=len) {
