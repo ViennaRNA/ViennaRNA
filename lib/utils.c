@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2001-04-29 12:22:21 ivo> */
+/* Last changed Time-stamp: <2001-04-30 18:41:36 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.8 2001/04/30 16:38:58 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.9 2001/05/03 10:21:12 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -207,7 +207,7 @@ PUBLIC char *unpack_structure(const char *packed) {
   struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
   for (i=j=0; i<l; i++) {
-    register int p, j, c;
+    register int k,p, j, c;
     
     p = (int) pp[i] - 1;
     for (k=4; k>=0; k--) {
