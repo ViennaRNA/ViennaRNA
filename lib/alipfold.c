@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-03-03 00:04:04 ivo> */
+/* Last changed Time-stamp: <2001-03-12 15:34:53 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -18,7 +18,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.1 2001/03/03 17:42:53 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.2 2001/04/05 07:28:34 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -67,12 +67,15 @@ PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
 PRIVATE FLT_OR_DBL *q, *qb, *qm, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
-PRIVATE int *pscore; /* precomputed array of covariance bonus/malus */ 
+PRIVATE short *pscore;   /* precomputed array of covariance bonus/malus */ 
 PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define ISOLATED  256.0
 
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
+
+extern double cv_fact /* =1 */;
+extern double nc_fact /* =1 */;
 
 /*-----------------------------------------------------------------*/
 PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
@@ -126,7 +129,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	if (type[s]==0) type[s]=7;
       }
       psc = pscore[ij];
-      if (psc>=MINPSCORE) {   /* otherwise ignore this pair */
+      if (psc>=cv_fact*MINPSCORE) {   /* otherwise ignore this pair */
 	
 	/* hairpin contribution */
 	for (qbt1=1,s=0; s<n_seq; s++) {
@@ -316,6 +319,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	} 
 	for (j=l+2; j<=n; j++) {
 	  double pp=1;
+	  if (pr[ii-j]==0) continue;
 	  for (s=0; s<n_seq; s++) {
 	    tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
 	    pp *=  expdangle3[tt][S[s][i+1]]*
@@ -596,7 +600,7 @@ PRIVATE void get_arrays(unsigned int length)
   q   = (FLT_OR_DBL *) space(size);
   qb  = (FLT_OR_DBL *) space(size);
   qm  = (FLT_OR_DBL *) space(size);
-  pscore = (int *) space(sizeof(FLT_OR_DBL)*((length+1)*(length+2)/2));
+  pscore = (short *) space(sizeof(short)*((length+1)*(length+2)/2));
   q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qq  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -660,40 +664,60 @@ PRIVATE void free_alipf_arrays(void)
 /*---------------------------------------------------------------------------*/
 #define PMIN 0.0008
 PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
-
-  return (((pair_info *)pi1)->p < ((pair_info *)pi2)->p) ? 1 : -1;
+  pair_info *p1, *p2;
+  int  i, nc1, nc2;
+  p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
+  for (nc1=nc2=0, i=1; i<=6; i++) {
+    if (p1->bp[i]>0) nc1++;
+    if (p2->bp[i]>0) nc2++;
+  }
+  /* sort mostly by probability, add
+     epsilon * comp_mutations/(non-compatible+1) to break ties */
+  return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
+         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
 pair_info *make_pairinfo(const short *const* S, int n_seq) {
   int i,j,n, num_p=0, max_p = 64;
   pair_info *pi;
+  double *duck, p;
   n = S[0][0];
   max_p = 64; pi = space(max_p*sizeof(pair_info));
-    for (i=1; i<n; i++)
-      for (j=i+TURN+1; j<=n; j++) {
-    	if (pr[iindx[i]-j]>=PMIN) {
-	  int type, s;
-	  pi[num_p].i = i;
-	  pi[num_p].j = j;
-	  pi[num_p].p = pr[iindx[i]-j];
-	  for (type=0; type<8; type++) pi[num_p].bp[type]=0;
-	  for (s=0; s<n_seq; s++) {
-	    if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */  
-	    else type = pair[S[s][i]][S[s][j]];
-	    pi[num_p].bp[type]++;
-	  }
-	  num_p++;
-	  if (num_p>=max_p) {
-	    max_p *= 2;
-	    pi = realloc(pi, max_p * sizeof(pair_info));
-	    if (pi==NULL) nrerror("out of memory in alipf_fold");
-	  }
-	}	  
+  duck =  (double *) space((n+1)*sizeof(double));
+  for (i=1; i<n; i++)
+    for (j=i+TURN+1; j<=n; j++) 
+      if ((p=pr[iindx[i]-j])>0) {
+	duck[i] -=  p * log(p);
+	duck[j] -=  p * log(p);
       }
-    pi = realloc(pi, (num_p+1)*sizeof(pair_info));
-    pi[num_p].i=0;
-    qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
-    return pi;
+
+  for (i=1; i<n; i++)
+    for (j=i+TURN+1; j<=n; j++) {
+      if ((p=pr[iindx[i]-j])>=PMIN) {
+	int type, s;
+	pi[num_p].i = i;
+	pi[num_p].j = j;
+	pi[num_p].p = p;
+	pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
+	for (type=0; type<8; type++) pi[num_p].bp[type]=0;
+	for (s=0; s<n_seq; s++) {
+	  if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */  
+	  else type = pair[S[s][i]][S[s][j]];
+	  pi[num_p].bp[type]++;
+	}
+	num_p++;
+	if (num_p>=max_p) {
+	  max_p *= 2;
+	  pi = realloc(pi, max_p * sizeof(pair_info));
+	  if (pi==NULL) nrerror("out of memory in alipf_fold");
+	}
+      }  
+    }
+  free(duck);
+  pi = realloc(pi, (num_p+1)*sizeof(pair_info));
+  pi[num_p].i=0;
+  qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
+  return pi;
 }
 /*---------------------------------------------------------------------------*/
 
@@ -773,12 +797,11 @@ PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structur
 	  /* compensatory (all else) score 2              */
 	  score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25  */
-      pscore[iindx[i]-j] = 
-	(UNIT*score)/n_seq - UNIT*pfreq[0]*1 - UNIT*pfreq[7]*0.25;
+      pscore[iindx[i]-j] = cv_fact *
+	((UNIT*score)/n_seq - nc_fact*(UNIT*pfreq[0] + UNIT*pfreq[7]*0.25));
     }
   }
 
-  /* code below not working yet !!! */
   if (noLonelyPairs) /* remove unwanted pairs */
     for (k=1; k<=n-TURN-1; k++) 
       for (l=1; l<=2; l++) {
@@ -786,9 +809,10 @@ PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structur
 	i=k; j = i+TURN+l;
 	type = pscore[iindx[i]-j];
 	while ((i>=1)&&(j<=n)) {
-	  if ((i>1)&&(j<n)) ntype = pscore[iindx[i-1]-j+1];
-	  if ((otype<-4*UNIT)&&(ntype<-4*UNIT))  /* worse than 2 counterex */
-	    pscore[iindx[j]+i] = NONE; /* i.j can only form isolated pairs */
+	  if ((i>1)&&(j<n)) ntype = pscore[iindx[i-1]-j-1];
+	  if ((otype<cv_fact*MINPSCORE)&&(ntype<cv_fact*MINPSCORE))
+	    /* too many counterexamples */
+	    pscore[iindx[i]-j] = NONE; /* i.j can only form isolated pairs */
 	  otype =  type;
 	  type  = ntype;
 	  i--; j++;
@@ -802,33 +826,33 @@ PRIVATE void make_pscores(const short *const *S, int n_seq, const char *structur
     
     for(hx=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
-      case 'x': /* can't pair */ 
-        for (l=1; l<j-TURN; l++) pscore[iindx[j]+l] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[iindx[l]+j] = NONE;
+      case 'x': /* j can't pair */ 
+        for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
+        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-j] = NONE;
         break;
       case '(':
         stack[hx++]=j;
         /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[iindx[j]+l] = NONE;
+      case '<': /* j pairs upstream */
+        for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
         break;
-      case ')':
+      case ')': /* j pairs with i */
         if (hx<=0) {
           fprintf(stderr, "%s\n", structure);
           nrerror("unbalanced brackets in constraints");
         }
         i = stack[--hx];
-	for (k=i+1; k<=n; k++) pscore[iindx[i]+k] = NONE;
+	for (k=i+1; k<=n; k++) pscore[iindx[i]-k] = NONE;
         for (l=i+1; l<=j; l++) 
-	  for (k=j; k<=n; k++) pscore[iindx[l]+k] = NONE;
+	  for (k=j; k<=n; k++) pscore[iindx[l]-k] = NONE;
 	for (k=1; k<=i; k++) 
-	  for (l=i; l<=j; l++) pscore[iindx[k]+l] = NONE;
-	for (k=1; k<j; k++) pscore[iindx[k]+j] = NONE;
-        if (pscore[iindx[j]+i]==NONE) 
-	  pscore[iindx[j]+i] = 0;
+	  for (l=i; l<=j; l++) pscore[iindx[k]-l] = NONE;
+	for (k=1; k<j; k++) pscore[iindx[k]-j] = NONE;
+        if (pscore[iindx[i]-j]==NONE) 
+	  pscore[iindx[i]-j] = 0;
         /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[iindx[l]+j] = NONE;
+      case '>': /* j pairs downstream */
+        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
         break;
       }
     }
