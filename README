@@ -1,4 +1,5 @@
-This is Version 1.4 of the Vienna RNA Package.
+This is Version 1.5alpha of the Vienna RNA Package.
+This is a pre-release possibly containing more bugs than usual!
 ------------------------------------------------
 See the CHANGES file for differences to previous versions.
 
@@ -7,25 +8,27 @@ library that you can link your own programs with. The package allows you to
 
 - predict minimum free energy secondary structures
 - calculate the partition function for the ensemble of structures
-- calculate suboptimal structures in given energy range
+- calculate suboptimal structures in a given energy range
+- predict consensus secondary sctructures from a multiple sequence alignment
 - predict melting curves
 - search for sequences folding into a given structure
-- compare secondary structures including pairwise alignment.
+- compare two secondary structures 
+
+The package includes a Perl5 module that gives access to almost all
+functions of the C library from Perl.
 
 There is also a set of programs for analysing sequence and distance
 data using split decomposition, statistical geometry, and cluster methods.
+They are not maintained any more and not built by default.
 
-This version contains a Perl 5 module that allows to access all functions
-of the library from perl scripts, see the Perl subdirectory. 
-In addition a new program for calculating all suboptimal structures within 
-a given energy range can be found in the Subopt directory.
+See the NEWS and Changelog files for changes between versions.
 
-Please read the copyright notice in the file COPYING.
+Please read the copyright notice in the file COPYING!
 
-The package is known to compile under
-SunOS 4.1, AIX 3.2, hpux8 and hpux9, IRIX 4.05 and IRIX 5, DEC OSF/1 and linux.
-Other UN*X flavours should present no problems. Several people have 
-reported successful compiles under Windows.
+The package should be easily portable. It is known to compile without
+modifications at least under
+SunOS 5.x, IRIX 5.x and 6.x, linux, and windows with the CygWin environment.
+Other UN*X flavours should present no problems.
 You need a compiler that understands ANSI C. See the INSTALL file for details.
 
 The following executables are provided:
@@ -39,8 +42,7 @@ RNAinverse	find sequences folding into given structures
 AnalyseSeqs	analyse sequence data
 AnalyseDists	analyse distance matrices
 
-The RNAplot program and other useful utililities can be found in the 
-Utils directory.
+A couple of useful utililities can be found in the Utils directory.
 
 All executables read from stdin and write to stdout and use command line
 switches rather than menus to be easily usable in pipes.
@@ -60,7 +62,7 @@ can also be found in the file default.par. Note that only free energies at
 37C are new. Temperature dependencies are still derived from the old
 parameter set.
 The code very rarely uses static arrays, and all programs should work for 
-sequences up to a length of  32700 (if you have huge amounts of memory that
+sequences up to a length of 32700 (if you have huge amounts of memory that
 is).
 
 If you're a commercial user and find these programs useful, please consider
@@ -73,5 +75,5 @@ http://www.tbi.univie.ac.at/~ivo/RNA/
 We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at
 
-Ivo Hofacker, Summer 2000
+Ivo Hofacker, Autumn 2002
 
