@@ -1,10 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2001-11-08 13:38:29 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.9 2002/02/08 17:38:00 ivo Exp $
+@c Last changed Time-stamp: <2002-11-07 17:00:39 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.10 2002/11/07 16:01:16 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
-@set Version 1.3
+@set Version 1.5
 @end ifclear
 @iftex
 @afourpaper
@@ -19,7 +19,7 @@
 @subtitle{A Library for folding and comparing RNA secondary structures}
 
 @vskip 0pt plus 1filll
-Copyright @copyright{1994-2000} @author{Ivo Hofacker and Peter Stadler}
+Copyright @copyright{1994-2002} @author{Ivo Hofacker and Peter Stadler}
 @c @smallexample
 Revision @value{revision}
 @c @end smallexample
@@ -31,7 +31,7 @@ Revision @value{revision}
 @ifinfo
 This file documents the Vienna RNA Package Version @value{Version}
 
-Copyright @copyright{1994-1998} Ivo Hofacker and Peter Stadler
+Copyright @copyright{1994-2002} Ivo Hofacker and Peter Stadler
 @end ifinfo
 
 @menu
@@ -143,7 +143,6 @@ all possible structures and from that the pairing probability for every
 possible pair can be calculated, using a dynamic programming algorithm
 as described by @cite{McCaskill (1990)}. The  following
 functions are provided:
-
 
 @deftypefun float pf_fold (char* @var{sequence}, char* @var{structure})
 calculates the partition function @math{Z} of @var{sequence} and returns
@@ -269,7 +268,7 @@ treatment of dangling ends gives more favorable energies to helices
 directly adjacent to one another, which can be beneficial since such
 helices often do engage in stabilizing interactions through co-axial
 stacking.@*
-If @code{dangles = 3} co-axial stacking is explicitely included for
+If @code{dangles = 3} co-axial stacking is explicitly included for
 adjacent helices in mutli-loops. The option affects only mfe folding
 and energy evaluation (@code{fold()} and @code{energy_of_struct()}), as
 well as suboptimal folding via re-evaluation of energies.
@@ -282,6 +281,13 @@ Default is 1, @code{pf_fold()} treats 1 as 2.
 Lists additional base pairs that will be allowed to form in addition to 
 GC, CG, AU, UA, GU and UG. Nonstandard base pairs are given a stacking
 energy of 0.
+@end deftypevar
+
+@deftypevar int cut_point
+To evaluate the energy of a duplex structure (a structure formed by two
+strands), concatenate the to sequences and set @var{cut_point} to the
+first base of the second strand in the concatenated sequence. Reset to
+0 or -1 (the default) to evaluate normal single sequence structures.
 @end deftypevar
 
 @deftypevar {struct bond @{ int i,j;@}} base_pair
@@ -464,13 +470,18 @@ energies in interior and hairpin loops). The array is indexed by the type
 of pair closing the helix and the unpaired base and, therefore, forms a 8*5
 matrix. For example the dangling base in
 @example
-                               5'-C-3'
-                               3'-GC-5'
+                               5'-GC-3'
+                               3'- G-5'
 @end example
 @noindent corresponds to entry [1,2] (CG=1, C=2);
 
 @noindent @t{# dangle3}@*
 Same as above for bases on the 3' side of a helix.
+@example
+                               5'- A-3'
+                               3'-AU-5'
+@end example
+@noindent corresponds to entry [5,1] (AU=5, A=1);
 
 @noindent @t{# ML_params}@*
 For the energy of a multi-loop a function of the form
@@ -479,7 +490,7 @@ is used where n_unpaired is the number of unpaired bases in the loop and
 loop_degree is the number of helices forming the loop. In addition a
 ``terminal AU'' penalty is applied to AU and GU pairs in the loop.
 The line following the token should contain these four values, in the order
-@code{cu cc ci termAU}. Ther terminal AU penalty is also used for the
+@code{cu cc ci termAU}. The terminal AU penalty is also used for the
 exterior loop and size 3 hairpins, for other loop types it is already
 included in the mismatch energies.
 
@@ -804,7 +815,7 @@ Prototypes for the above functions can be found in @file{stringdist.h}.
 For comparison of base pair probability matrices, the matrices are first
 condensed into probability profiles which are the compared by alignment.
 
-@deftypefun float** Make_bp_profile (int @var{length})
+@deftypefun float* Make_bp_profile (int @var{length})
 reads the base pair probability matrix @code{pr} (@pxref{Fold
 Vars,,Variables}) and calculates a profile, i.e. a vector containing for
 each base the probabilities of being unpaired, upstream, or downstream
@@ -812,12 +823,13 @@ paired, respectively. The returned array is suitable for
 @code{profile_edit_distance}.
 @end deftypefun
 
-@deftypefun float    profile_edit_distance (float** @var{T1}, float** @var{T2})
+@deftypefun float    profile_edit_distance (float* @var{T1}, float* @var{T2})
 calculates an alignment distance of the two profiles @var{T1} and @var{T2}.
 @end deftypefun
 
-@deftypefun void     free_profile (float** @var{T})
+@deftypefun void     free_profile (float* @var{T})
 frees the memory allocated for the profile @var{T}.
+Backward compatibility only. You can just use plain @code{free()}
 @end deftypefun
 
 Prototypes for the above functions can be found in @file{profiledist.h}.
@@ -843,6 +855,18 @@ produces a secondary structure graph in PostScript and writes it to
 @var{filename}. Note that this function has changed from previous versions
 and now expects the structure to be plotted in dot-bracket notation as an
 argument. It does not make use of the global @code{base_pair} array anymore.
+@end deftypefun
+
+@deftypefun int PS_rna_plot_a (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char* @var{pre}), char* @var{post}))
+Same as @code{PS_rna_plot} but adds extra PostScript macros for various
+annotations (see generated PS code). The @var{pre} and @var{post}
+variables contain PostScript code that is verbatim copied in the
+resulting PS file just before and after the structure plot.
+@end deftypefun
+
+@deftypefun int gmlRNA (char* @var{sequence}, char* @var{structure}, char* @var{filename})
+produces a secondary structure plot in SVG format and writes it to
+@var{filename}.
 @end deftypefun
 
 @deftypefun int gmlRNA (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char @var{option})
@@ -1120,5 +1144,6 @@ files and library, respectively.
 @c  LocalWords:  deftypevar const fname samp erand kbd hpath lpath lRNA lm Acad
 @c  LocalWords:  Peritz Oligoribonucleotides Lyttle uller Bonhoeffer ifclear lt
 @c  LocalWords:  smallexample texi ifset ifhtml href ViennaRNA mailto gt noLP
-@c  LocalWords:  initially co noindent gmlRNA gml naview Bruccoleri struc
-@c  LocalWords:  strcmp LocalWords
+@c  LocalWords:  initially co noindent gmlRNA gml naview Bruccoleri struc AUGC
+@c  LocalWords:  strcmp LocalWords Hofacker Stadler noLonelyPairs GC mutli GAUA
+@c  LocalWords:  CGCU CUU GCA GCCA termAU PostScript Zucker JMB combinatory pre
