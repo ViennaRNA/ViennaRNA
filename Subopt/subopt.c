@@ -1,5 +1,15 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.6  1997/10/21 11:34:09  walter
+  steve update
+
+  Revision 1.2  1997/10/10 18:05:38  steve
+  mismatches changed, f
+  ree_arrays enlarged
+
+  Revision 1.1  1997/10/09 18:59:03  steve
+  Initial revision
+
   Revision 1.5  1997/08/26 12:57:55  walter
   *** empty log message ***
 
@@ -35,7 +45,7 @@
 #include "fold_vars.h"
 #include "list.h"
 
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.5 1997/08/26 12:57:55 walter Exp $";
+PRIVATE char rcsid[] = "$Id: subopt.c,v 1.6 1997/10/21 11:34:09 walter Exp $";
 
 /*Typedefinitions ----------------------------------------------------------- */
 
@@ -98,7 +108,7 @@ PRIVATE void repeat (int i, int j, STATE * state, int part_energy, int temp_ener
 #define MAXALPHA 20		                 /* maximal length of alphabet */
 
 PRIVATE LIST *Stack;
-PRIVATE LIST *SolutionList;
+PUBLIC LIST *SolutionList;
 PRIVATE int nopush;
 PRIVATE int best_energy;		     /* best_energy = remaining energy */
 
@@ -114,9 +124,9 @@ extern int *indx;     /* index for moving in the triangle matrices c[] and f[] *
 extern short *S, *S1;
 
 extern char* sequence;
-extern int GAPS;
-extern int GAPSTAT;
-extern int LODOS_ONLY;
+extern int GAPS; 
+extern int GAPSTAT; 
+extern int LODOS_ONLY; 
 extern FILE *struc[3];
 extern int **Gap;
 
@@ -418,14 +428,14 @@ compare (SOLUTION * solution1, SOLUTION * solution2)
     return 1;
   if (solution1->e_o_s < solution2->e_o_s)
     return -1;
-  if (solution1->e_o_s == solution2->e_o_s)
+  if (solution1->e_o_s = solution2->e_o_s)
     return 0;
 }
 
 /*-----------------------------------------------------------------------------*/
 
 PUBLIC void 
-make_output ()  /* prints stuff */
+make_output (void)  /* prints stuff */
 {
   SOLUTION *next, *nnext, *old_ptr;
   int degeneracy, state;
@@ -441,7 +451,7 @@ make_output ()  /* prints stuff */
 	}
       else
 	{
-	  printf ("\n\n all best structures between %4.2f and %4.2f kcal", GAPS,
+	  printf ("\n\n all best structures between %4.2f and %4.2f kcal", 
 		  minimal_energy/100.,
 		  threshold/100.);
 	}
@@ -588,11 +598,11 @@ subopt (void)
 	    
 	  /* outputroutines -------------------------------------------------- */ 
 
-	  make_output ();
+	  make_output (); 
 
 	  /* listkillroutines  ----------------------------------------------- */ 
 	     
-	  lst_kill (SolutionList, free_solution_node);
+	  lst_kill (SolutionList, free_solution_node); 
 
 	  return;
 	}
