@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2002-10-29 17:08:28 ivo>
+# Last changed Time-stamp: <2002-11-19 15:40:22 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -12,12 +12,14 @@ use HTML::Entities;
 use URI::Escape;
 use RNA;
 use Chart::Lines;
+use vars qw/$hdir $maxlength $ssv_home $ssv_url $paramdir $serverroot/;
 
-# please configure these variables
-use vars qw/$hdir $maxlength $ssv_home $ssv_url/;
+# please configure these variables for your site
 
-$hdir = "RNAfold_dir";      # were the output files are stored
-$maxlength = 400;            # only process sequences up to this length
+$paramdir = '/var/www/RNA';  # directory where parameters files etc are stored
+$serverroot = '/u/html';     # where your web pages lie
+$hdir = "/RNAfold_dir";      # output directory (relative to $serverroot)
+$maxlength = 500;            # only process sequences up to this length
 $ssv_home = "http://smi-web.stanford.edu/projects/helix/sstructview/home.html";
 $ssv_url  = "/~ivo/RNA/SStructView.zip";
 
@@ -144,13 +146,13 @@ sub do_work {
    my($query) = @_;
    my($OK_CHARS) = '-a-zA-Z0-9_.@ ';
    my($RNAfold_id, $junk);
-   my($WORK_DIR) = "./" . $hdir;
+   my($WORK_DIR) = $serverroot . $hdir;
    my($sfact) = 1.02;
    chdir $WORK_DIR || die("can't change directory");
 
    # clean old files
-   foreach my $f (< *.ps *.png *.coords>) {
-      unlink($f) if (-M $f)>1.2;
+   foreach my $f (< *.ps *.png *.coords *.svg>) {
+      unlink($f) if (-M $f)>1.5;
    }
 
    my $Sequence = $query->param('Sequence');
@@ -239,9 +241,9 @@ sub do_work {
    print "An equivalent RNAfold command line would have been<BR>\n";
    print "<kbd>RNAfold $options</kbd><P>\n";
    if ($query->param('Params') eq 'DNA') {
-    RNA::read_parameter_file("/u/httpd/RNA/dna.par");
+    RNA::read_parameter_file("$paramdir/dna.par");
    } elsif ($query->param('Params') eq 'oldRNA') {
-    RNA::read_parameter_file("/u/httpd/RNA/vienna13.par");
+    RNA::read_parameter_file("$paramdir/vienna13.par");
    }
 
    my ($structure, $mfe) = RNA::fold($Sequence);
@@ -329,7 +331,7 @@ sub print_tail {
    <ADDRESS>Ivo Hofacker
    <A HREF="mailto:ivo\@tbi.univie.ac.at">&lt;ivo\@tbi.univie.ac.at&gt;</A>
    </ADDRESS><BR>
-   <A HREF="/~ivo/RNA/">Vienna RNA Home Page</A>
+   <A HREF="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna RNA Home Page</A>
 END
 }
 
