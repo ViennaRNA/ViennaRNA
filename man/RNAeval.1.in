@@ -11,8 +11,12 @@ structure. Sequences and structures are read alternately from stdin.
 The energy in Kcal/Mol is written to stdout.
 .br
 The program will continue to read new sequences and structures until a
-line consisting of the single character @ or an end of file condition
-is encountered. 
+line consisting of the single character '@' or an end of file condition
+is encountered.
+.br
+If the input sequence or structure contains the separator character '&' the
+program calculates the energy of the co-folding of two RNA strands, where
+the '&' marks the boundary between the two strands.
 .SH OPTIONS
 .IP \fB\-d\fB
 Do not give stabilizing energies to unpaired bases adjacent to helices in
