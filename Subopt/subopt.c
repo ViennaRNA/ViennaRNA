@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.9  1998/05/19 16:31:52  ivo
+  added support for constrained folding
+
   Revision 1.8  1998/03/30 14:44:54  ivo
   cleanup of make_printout etc.
 
@@ -12,21 +15,6 @@
   Revision 1.6  1997/10/21 11:34:09  walter
   steve update
 
-  Revision 1.5  1997/08/26 12:57:55  walter
-  *** empty log message ***
-
-  Revision 1.4  1997/08/20 15:06:02  walter
-  *** empty log message ***
-
-  Revision 1.4  1997/08/19 14:09:52  walter
-  *** empty log message ***
-
-  Revision 1.3  1997/08/18 19:09:32  walter
-  *** empty log message ***
-
-  Revision 1.2  1997/08/05 00:02:44  walter
-  *** empty log message ***
-
   Revision 1.1  1997/08/04 21:05:32  walter
   Initial revision
 
@@ -34,7 +22,7 @@
 /*
    suboptimal folding - Stefan Wuchty, Walter Fontana & Ivo Hofacker
 
-                      subopt.c
+                       Vienna RNA package
 */
 
 #include <stdio.h>
@@ -48,7 +36,7 @@
 #include "pair_mat.h"
 #include "list.h"
 
-PRIVATE char rcsid[] = "$Id: subopt.c,v 1.8 1998/03/30 14:44:54 ivo Exp $";
+PRIVATE char rcsid[] = "$Id: subopt.c,v 1.9 1998/05/19 16:31:52 ivo Exp $";
 
 /*Typedefinitions ----------------------------------------------------------- */
 
@@ -752,21 +740,24 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	}
 
       type = pair [S[i]][S[j]];
-      element_energy = MLintern;
+      if ((type==0)&&(BP[i]==j)) type=7;
+      if ((BP[i]==-4)||(BP[j]==-4)) type = 0;
 
-      if ( type && dangles ) {                        /* dangling ends */
-	 if (i > 1)
+      if (type) { /* i,j may pair */
+	
+	element_energy = MLintern;
+	
+	if ( type && dangles ) {                        /* dangling ends */
+	  if (i > 1)
 	    element_energy +=  dangle5[type][S1[i-1]];
-	 if (j < length)
+	  if (j < length)
 	    element_energy += dangle3[type][S1[j+1]];
-      }
-
-                                                              /* i,j may pair */
-      
-      cij = c[indx[j] + i] + element_energy;           
-      if (cij + best_energy <= threshold)                   
+	}
+	
+	cij = c[indx[j] + i] + element_energy;           
+	if (cij + best_energy <= threshold)                   
 	  repeat (i, j, state, element_energy, 0);
-
+      }
     }                                   /* array_flag == 3 || array_flag == 1 */
 
    /* 11111111111111111111111111111111111111111111111111111111111111111111111 */
@@ -780,6 +771,9 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	 /* Multiloop decomposition if i,j contains more than 1 stack */
 	   
 	 type = pair [S[k+1]][S[j]];
+	 if ((type==0)&&(BP[k+1]==j)) type=7;
+	 if ((BP[k+1]==-4)||(BP[j]==-4)) type = 0;
+	 
 	 if (type==0) continue;
 	 
 	 element_energy = MLintern;
@@ -798,19 +792,22 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	    }
       }
       
-       for (k = i ; k <= j-1-TURN; k++) {
-	  /* Multiloop decomposition if i,j contains only 1 stack */
+      for (k = i ; k <= j-1-TURN; k++) {
+	/* Multiloop decomposition if i,j contains only 1 stack */
 	   
-	  type = pair [S[k+1]][S[j]];
-	  if (type==0) continue;
+	type = pair [S[k+1]][S[j]];
+	if ((type==0)&&(BP[k+1]==j)) type=7;
+	if ((BP[k+1]==-4)||(BP[j]==-4)) type = 0;
 
-	  element_energy = MLintern + MLbase*(k-i+1);
-	  if (dangles)
-	     element_energy += dangle3[type][S1[j+1]] + dangle5[type][S1[k]];
-	  
-	  if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
-	     repeat (k+1, j, state, element_energy, 0);
-	 }
+	if (type==0) continue;
+	
+	element_energy = MLintern + MLbase*(k-i+1);
+	if (dangles)
+	  element_energy += dangle3[type][S1[j+1]] + dangle5[type][S1[k]];
+	
+	if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
+	  repeat (k+1, j, state, element_energy, 0);
+      }
      }                                                    /* array_flag == 1 */
 
    /* 2222222222222222222222222222222222222222222222222222222222222222222222 */
@@ -847,9 +844,11 @@ scan_interval (int i, int j, int array_flag, STATE * state)
       
       for (k = j-TURN-1; k > 1; k--) {
 
-	 type = pair[S[k]][S[j]]; if ((type==0)&&(BP[k]==j)) type=7;
-	 if (type==0)
-	    continue;
+	 type = pair[S[k]][S[j]];
+	 if ((type==0)&&(BP[k]==j)) type=7;
+	 if ((BP[k]==-4)||(BP[j]==-4)) type = 0;
+	 
+	 if (type==0)   continue;
 
 	                                                     /* k and j pair */
 	 if (dangles) {
@@ -870,15 +869,21 @@ scan_interval (int i, int j, int array_flag, STATE * state)
 	    }
       }
       
-      if (dangles && (j < length)) {
-	 type = pair[S[1]][S[j]]; if ((type==0)&&(BP[1]==j)) type=7;
-	 element_energy = dangle3[type][S1[j+1]];
+      type = pair[S[1]][S[j]];             
+      if ((type==0)&&(BP[1]==j)) type=7;
+      if ((BP[1]==-4)||(BP[j]==-4)) type = 0;
+      if (type) {
+	if (dangles && (j < length)) {
+	  element_energy = dangle3[type][S1[j+1]];
+	}
+	else
+	  element_energy = 0;
+	
+	if ((BP[1]==-4)||(BP[j]==-4)) type = 0;
+	
+	if (c[indx[j]+1] + element_energy + best_energy <= threshold)
+	  repeat (1, j, state, element_energy, 0);
       }
-      else
-	 element_energy = 0;
-
-      if (c[indx[j]+1] + element_energy + best_energy <= threshold)
-	 repeat (1, j, state, element_energy, 0);
     }                                                      /* array_flag == 0 */
    
   if (nopush)
@@ -908,7 +913,12 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
   best_energy += part_energy;         /* energy of current structural element */
   best_energy += temp_energy;                /* energy from unpushed interval */
   
-  type = pair[S[i]][S[j]]; if ((type==0)&&(BP[i]==j)) type=7;
+  type = pair[S[i]][S[j]];
+  if ((type==0)&&(BP[i]==j)) type=7;
+  if ((BP[i]==-4)||(BP[j]==-4)) type=0;
+  
+  if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);
+  
   no_close = (((type == 3) || (type == 4)) && no_closingGU);
 
 
@@ -927,6 +937,7 @@ repeat (int i, int j, STATE * state, int part_energy, int temp_energy)
 
 	  type_2 = pair[S[p]][S[q]];
 	  if ((BP[p]==q) && (type_2==0)) type_2=7; /* nonstandard */
+	  if ((BP[p]==-4)||(BP[q]==-4)) type_2=0;
 	  
 	  if (type_2 == 0) continue;
 
