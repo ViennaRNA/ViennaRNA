@@ -17,12 +17,13 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "part_func.h"
+extern void  read_parameter_file(const char fname[]);
 
 #define PRIVATE      static
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.9 1998/07/19 17:47:20 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.10 1999/05/06 09:51:07 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
