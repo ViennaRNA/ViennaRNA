@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <97/11/12 13:32:36 ivo> */
+/* Last changed Time-stamp: <1998-03-06 20:10:12 ivo> */
 /*                
 			 minimum free energy
 		  RNA secondary structure prediction
@@ -20,7 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: fold.c,v 1.7 1997/11/16 20:18:16 ivo Rel $";
+static char rcsid[] = "$Id: fold.c,v 1.8 1998/03/24 17:47:00 ivo Exp $";
 
 #define PAREN
 #ifdef LETTER
@@ -47,7 +47,6 @@ PRIVATE void    parenthesis_structure(char *structure, int length);
 PRIVATE void    get_arrays(int size);
 PRIVATE void    initialize(int length);
 PRIVATE void    scale_parameters(void);
-PRIVATE void    make_pair_table(char *structure, short *table);
 PRIVATE int     stack_energy(int i, char *string);
 PRIVATE void    BP_calculate(char *structure, int *BP, int length);
 
@@ -173,6 +172,7 @@ float fold(char *string, char *structure)
    S = (short *) space(sizeof(short)*(length+2));
    S1= (short *) space(sizeof(short)*(length+2));
    /* S1 exists only for the special X K and I bases and energy_set!=0 */
+   S[0] = S1[0] = length;
    
    for (l=1; l<=length; l++) { /* make numerical encoding of sequence */
 	 if (energy_set>0) S[l]=string[l-1]-'A'+1;
@@ -553,7 +553,7 @@ float fold(char *string, char *structure)
 	 }
       }
       
-      if (k>j-2-TURN) fprintf(stderr,"backtrack failed\n");
+      if (k>j-2-TURN) fprintf(stderr,"backtrack failed\n%s", string);
       continue;
       
     repeat1:
@@ -693,7 +693,7 @@ float fold(char *string, char *structure)
       sector[++s].i = k+1;
       sector[s].ml  = 1; 
 
-      if (k>j-3-TURN) fprintf(stderr, "backtracking failed\n");
+      if (k>j-3-TURN) fprintf(stderr, "backtracking failed\n%s\n", string);
    }
    while (s > 0);
 
@@ -853,47 +853,33 @@ PUBLIC void update_fold_params(void)
 
 /*---------------------------------------------------------------------------*/
 
-float energy_of_struct(char *string, char *structure)
-{
-   int   i, l, length, energy;
+int energy_of_struct_pt(char *string, short * ptable, short *s, short *s1) {
+   /* auxiliary function for kinfold,
+      for most purposes call energy_of_struct instead */
+  
+   int   i, length, energy;
    int   tt, j, lastd, ee, ld3;
-   char *pos;
 
    energy=lastd=ld3=0;
-   length = strlen(string);
-   if (strlen(structure)!=length)
-      nrerror("energy_of_struct: string and structure have unequal length");
+   pair_table = ptable;
+   S = s;
+   S1 = s1;
 
-   S = (short *) space(sizeof(short)*(length+1));
-   S1= (short *) space(sizeof(short)*(length+1));
-   pair_table = (short * ) space(sizeof(short)*(length+2)); /* [0..l+1] */
-
-   for (l=1; l<=length; l++) {
-      if (energy_set>0) S[l]=string[l-1]-'A'+1;
-      else {
-	 pos = strchr(Law_and_Order, string[l-1]);
-	 if (pos==NULL) S[l]=0;
-	 else S[l]= pos-Law_and_Order;
-      }
-      S1[l] = alias[S[l]];   /* for mismatches of non standard bases */
-   }
-   
-   make_pair_table(structure, pair_table);
-
+   length = S[0];
    for (i=1; i<=length; i++) {
-      if (pair_table[i]<0) {
+      if (pair_table[i]==0) {
 	 if (backtrack_type=='M') energy+=MLbase;
 	 continue;
       }
       if (dangles) {      /* dangling end contributions */
 	 j=pair_table[i];
-	 if ((i>0)&&((pair_table[i-1]<0)||(dangles==2))) {
+	 if ((i>1)&&((pair_table[i-1]==0)||(dangles==2))) {
 	    tt = pair[S[i]][S[j]]; if (tt==0) tt=7;
 	    ee = dangle5[tt][S1[i-1]];               /* 5' dangle */
 	    if ((i-1==lastd)&&(dangles!=2)) ee -= ld3;     /* subtract 3' */
 	    energy += (ee<0)?ee:0;
 	 }
-	 if ((j<length)&&((pair_table[j+1]<0)||(dangles==2))) {
+	 if ((j<length)&&((pair_table[j+1]==0)||(dangles==2))) {
 	    tt = pair[S[i]][S[j]]; if (tt==0) tt=7;
 	    ld3 = dangle3[tt][S1[j+1]]; /* 3'dangle */
 	    energy += ld3;
@@ -905,6 +891,37 @@ float energy_of_struct(char *string, char *structure)
       if (backtrack_type=='M') energy+=MLintern;
       i=pair_table[i];
    }
+   return energy;
+}
+
+float energy_of_struct(char *string, char *structure)
+{
+   int   l, length, energy;
+   char *pos;
+
+
+   length = strlen(string);
+   if (strlen(structure)!=length)
+      nrerror("energy_of_struct: string and structure have unequal length");
+
+   S = (short *) space(sizeof(short)*(length+1));
+   S1= (short *) space(sizeof(short)*(length+1));
+
+   S[0] = S1[0] = length;
+   for (l=1; l<=length; l++) {
+      if (energy_set>0) S[l]=string[l-1]-'A'+1;
+      else {
+	 pos = strchr(Law_and_Order, string[l-1]);
+	 if (pos==NULL) S[l]=0;
+	 else S[l]= pos-Law_and_Order;
+      }
+      S1[l] = alias[S[l]];   /* for mismatches of non standard bases */
+   }
+   
+   pair_table = make_pair_table(structure);
+
+   energy = energy_of_struct_pt(string, pair_table, S, S1);
+   
    free(pair_table);
    free(S); free(S1);
    return  (float) energy/100.;
@@ -923,8 +940,8 @@ PRIVATE int stack_energy(int i, char *string)
    energy = lastd = ld3 = 0;
    j=pair_table[i];
    p=i; q=j;
-   while (pair_table[++p]<0);
-   while (pair_table[--q]<0);
+   while (pair_table[++p]==0);
+   while (pair_table[--q]==0);
    while (pair_table[p]==q) {
       if (p>q) break;
       type = pair[S[i]][S[j]]; if (type==0) type=7;
@@ -974,8 +991,8 @@ PRIVATE int stack_energy(int i, char *string)
 	}
       }
       i=p; j=q;
-      while (pair_table[++p]<0);    /* find next pair */
-      while (pair_table[--q]<0);
+      while (pair_table[++p]==0);    /* find next pair */
+      while (pair_table[--q]==0);
    } /* end while */
 
    /* p,q don't pair must have found hairpin or multiloop */
@@ -1005,7 +1022,7 @@ PRIVATE int stack_energy(int i, char *string)
    /* (i,j) is exterior pair of multiloop */
 
    tt = pair[S[j]][S[i]]; if (tt==0) tt=7;
-   if ((dangles) && ((pair_table[i+1]<0)||(dangles==2))) {
+   if ((dangles) && ((pair_table[i+1]==0)||(dangles==2))) {
       ld3 = dangle3[tt][S1[i+1]];
       energy += ld3; 
       lastd = i+1;
@@ -1019,12 +1036,12 @@ PRIVATE int stack_energy(int i, char *string)
 
       tt = pair[S[p]][S[q2]]; if (tt==0) tt=7;
       if (dangles) {
-	 if ((pair_table[p-1]<0)||(dangles==2)) {
+	 if ((pair_table[p-1]==0)||(dangles==2)) {
 	    ee = dangle5[tt][S1[p-1]];
 	    if ((p-1==lastd)&&(dangles!=2)) ee -= ld3;
 	    energy += (ee<0)?ee:0;
 	 }
-	 if ((pair_table[q2+1]<0)||(dangles==2)) {
+	 if ((pair_table[q2+1]==0)||(dangles==2)) {
 	    ld3 = dangle3[tt][S1[q2+1]];
 	    energy += ld3;
 	    lastd = q2+1;
@@ -1033,11 +1050,11 @@ PRIVATE int stack_energy(int i, char *string)
       energy += MLintern;
       energy += stack_energy(p, string);
       p=q2+1; i1=q2;
-      while (pair_table[p]<0) p++;
+      while (pair_table[p]==0) p++;
    }
 
    tt = pair[S[j]][S[i]]; if (tt==0) tt=7;
-   if ((dangles) && ((pair_table[j-1]<0)||(dangles==2))) {
+   if ((dangles) && ((pair_table[j-1]==0)||(dangles==2))) {
       ee = dangle5[tt][S1[j-1]];
       if ((j-1==lastd)&&(dangles!=2)) ee -= ld3;
       energy += (ee<0)?ee:0;
@@ -1050,42 +1067,6 @@ PRIVATE int stack_energy(int i, char *string)
    else
      energy += MLbase*u; 
    return energy;
-}
-
-/*---------------------------------------------------------------------------*/ 
-
-PRIVATE void make_pair_table(char *structure, short *table)
-{
-   int i,j,hx;
-   short *olist;
-   
-   hx=0;
-   olist = (short *) space(strlen(structure)*sizeof(short)); 
-             
-   for (i=0; i<strlen(structure); i++) {
-      switch (structure[i]) {
-       case '.':
-         table[i+1]= -1;
-         break;
-       case '(': 
-         olist[hx++]=i;
-         break;
-       case ')':
-         j = olist[--hx];
-	 if (hx<0) {
-	   fprintf(stderr, "%s\n", structure);
-	   nrerror("unbalanced brackets in make_pair_table");
-         }
-         table[i+1]=j+1;
-         table[j+1]=i+1;
-         break;
-      }
-   }
-   if (hx!=0) {
-     fprintf(stderr, "%s\n", structure);
-     nrerror("unbalanced brackets in make_pair_table");
-   }
-   free(olist);
 }
 
 /*---------------------------------------------------------------------------*/
