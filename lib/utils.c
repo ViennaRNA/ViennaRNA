@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <97/10/27 14:20:34 ivo> */
+/* Last changed Time-stamp: <1998-03-31 14:17:52 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "/usr/local/debug_include/malloc.h"
 #endif
 
-static char rcsid[] = "$Id: utils.c,v 1.2 1997/10/27 13:21:01 ivo Rel $";
+static char rcsid[] = "$Id: utils.c,v 1.3 1998/03/31 15:20:04 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -161,4 +161,134 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 }
 
 
+/*-----------------------------------------------------------------*/
 
+PUBLIC unsigned char *pack_structure(char *struc) {
+  /* 5:1 compression using base 3 encoding */
+  int i,j,l,pi;
+  unsigned char *packed;
+
+  l = strlen(struc);
+  packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
+
+  j=i=pi=0; 
+  while (i<l) {
+    register unsigned char p;
+    for (p=pi=0; pi<5; pi++) {
+      p *= 3;
+      switch (struc[i]) {
+      case '(':
+      case '\0':
+	break;
+      case '.':
+	p++;
+	break;
+      case ')':
+	p += 2;
+	break;
+      default: nrerror("pack_structure: illegal charcter in structure");
+      }
+      if (i<l) i++;
+    }
+    packed[j++] = p+1;   /* never use 0, so we can use strcmp() etc. */
+  }
+  packed[j] = '\0';      /* for str*() functions */
+  return packed;
+}
+
+PUBLIC char *unpack_structure(unsigned char *packed) {
+  /* 5:1 compression using base 3 encoding */
+  int i,j,l,pi;
+  char *struc;
+  char code[3] = {'(', '.', ')'};
+
+  l = strlen(packed);
+  struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
+
+  j=0;
+  for (i=j=0; i<l; i++) {
+    unsigned char p;
+    int k, c;
+    
+    p = packed[i]-1;
+    for (k=4; k>=0; k--) {
+      c = p % 3;
+      p /= 3;
+      struc[j+k] = code[c];
+    }
+    j += 5;
+  }
+  struc[j--] = '\0';
+  while (struc[j] == '(') /* strip trailing ( */
+    struc[j--] = '\0';
+  
+  return struc;
+}
+
+				   
+/*---------------------------------------------------------------------------*/ 
+
+PUBLIC short *make_pair_table(char *structure)
+{
+    /* returns array representation of structure.
+       table[i] is 0 if unpaired or j if (i.j) pair.  */
+   int i,j,hx;
+   int length;
+   short *stack;
+   short *table;
+   
+   length = strlen(structure);
+   stack = (short *) space(sizeof(short)*(length+1));
+   table = (short *) space(sizeof(short)*(length+2));
+   table[0] = length;
+   
+   for (hx=0, i=1; i<=length; i++) {
+      switch (structure[i-1]) {
+       case '(': 
+	 stack[hx++]=i;
+	 break;
+       case ')':
+	 j = stack[--hx];
+	 if (hx<0) {
+	    fprintf(stderr, "%s\n", structure);
+	    nrerror("unbalanced brackets in make_pair_table");
+	 }
+	 table[i]=j;
+	 table[j]=i;
+	 break;
+       default:   /* unpaired base, usually '.' */
+	 table[i]= 0;
+	 break;
+      }
+   }
+   if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced brackets in make_pair_table");
+   }
+   free(stack);
+   return(table);
+}
+
+/*---------------------------------------------------------------------------*/
+
+PUBLIC int bp_distance(char *str1, char *str2)
+{
+  /* dist = {number of base pairs in one structure but not in the other} */
+  /* same as edit distance with pair_open pair_close as move set */
+   int dist,i,l;
+   short *t1, *t2;
+
+   dist = 0;
+   t1 = make_pair_table(str1);
+   t2 = make_pair_table(str2);
+
+   l = (t1[0]<t2[0])?t1[0]:t2[0];    /* minimum of the two lengths */
+   
+   for (i=1; i<=l; i++)
+      if (t1[i]!=t2[i]) {
+	if (t1[i]>i) dist++;
+	if (t2[i]>i) dist++;
+      }
+   free(t1); free(t2);
+   return dist;
+}
