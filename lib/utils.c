@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.14 2002/11/07 12:04:55 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.15 2005/02/10 09:59:25 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -327,6 +327,6 @@ char *strdup(const char *s) {
 
   dup = space(strlen(s)+1);
   strcpy(dup, s);
-  return(new);
+  return(dup);
 }
 #endif
