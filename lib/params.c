@@ -12,9 +12,10 @@
 #include <string.h>
 #include "energy_par.h"
 #include "fold_vars.h"
+#include "utils.h"
 #include "params.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.2 2002/03/11 12:02:40 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.3 2002/03/19 16:48:18 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -127,12 +128,12 @@ PUBLIC paramT *copy_parameters(void) {
   if (p.id != id) scale_parameters();
   
   copy = (paramT *) space(sizeof(paramT));
-  memcpy(&p, copy, sizeof(paramT));
+  memcpy(copy, &p, sizeof(paramT));
   return copy;
 }
 
 PUBLIC paramT *set_parameters(paramT *dest) {
 
-  memcpy(dest, &p, sizeof(paramT));
+  memcpy(&p, dest, sizeof(paramT));
   return &p;
 }
