@@ -16,7 +16,7 @@
 #include "energy_const.h"
 #include "energy_par.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.7 2000/11/22 08:33:21 ivo Exp $";
+static char rcsid[] = "$Id: read_epars.c,v 1.8 2001/08/31 14:55:27 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
@@ -369,7 +369,7 @@ PRIVATE void  rd_Tetra_loop(void)
     buf = get_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%6s %d", &Tetraloops[7*i], &TETRA_ENERGY37[i]);
-    Tetraloops[7*i+6]=' ';
+    strcat(Tetraloops, " ");
     free(buf);
     i++;
   } while((r==2)&&(i<200));
