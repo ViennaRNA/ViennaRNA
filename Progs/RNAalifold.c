@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2002-07-29 21:10:25 ivo> */
+/* Last changed Time-stamp: <2003-07-18 10:14:15 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.6 2002/08/15 16:33:55 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.7 2003/07/18 08:14:40 ivo Exp $";
 
 #define PRIVATE static
 
@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
   int   n_seq, i, length, sym, r;
   double min_en, sfact=1.07;
   int   pf=0, istty;
-  int noconv=0;
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char     *names[MAX_NUM_NAMES];       /* sequence names */
   FILE     *clust_file = stdin;
@@ -76,7 +75,6 @@ int main(int argc, char *argv[])
 	    if (i==argc-1) usage();
 	    ns_bases = argv[++i];
 	  }
-	  if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	  if ( strcmp(argv[i], "-nc")==0) {
 	    r=sscanf(argv[++i], "%lf", &nc_fact);
 	    if (!r) usage();
@@ -199,7 +197,7 @@ int main(int argc, char *argv[])
     strcpy(ffname, "alirna.ps");
     strcpy(gfname, "alirna.g");
   }
-  if (length<2000) {
+  if (length<=2500) {
     char *A;
     A = annote(structure, (const char**) AS);
     (void) PS_rna_plot_a(string, structure, ffname, NULL, A);
@@ -363,7 +361,7 @@ void print_pi(const pair_info pi, FILE *file) {
   
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-	  pi.i, pi.j, pi.bp[0], 100*pi.p, pi.ent);
+	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
   for (i=1; i<=7; i++) 
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
   /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
@@ -419,7 +417,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
   ps = (char *) space(maxl);
   ptable = make_pair_table(structure);
   for (i=1; i<=n; i++) {
-    char pps[256], ci='\0', cj='\0';
+    char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
     if ((j=ptable[i])<i) continue;
     for (s=0; AS[s]!=NULL; s++) {
@@ -436,15 +434,15 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
       if (ps==NULL) nrerror("out of memory in realloc");
     }
     if (pfreq[0]>0) {
-      sprintf(pps, "%d %d %d gmark\n", i, j, pfreq[0]);
+      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
       strcat(ps, pps);
     }
     if (vi>1) {
-      sprintf(pps, "%d cmark\n", i);
+      snprintf(pps, 64, "%d cmark\n", i);
       strcat(ps, pps);
     }
     if (vj>1) {
-      sprintf(pps, "%d cmark\n", j);
+      snprintf(pps, 64, "%d cmark\n", j);
       strcat(ps, pps);
     }
   }
@@ -459,6 +457,6 @@ PRIVATE void usage(void)
   nrerror("usage:\n"
 	  "RNAalifold [-cv float] [-nc float]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
-	  "[-noconv]\n");
+	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
+	  );
 }
