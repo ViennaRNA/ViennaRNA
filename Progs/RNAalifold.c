@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-08-02 17:04:09 ivo> */
+/* Last changed Time-stamp: <2001-10-20 23:09:12 ivo> */
 /*                
 		  Access to alifold Routines
 
@@ -21,7 +21,7 @@
 #include "alifold.h"
 extern void  read_parameter_file(const char fname[]);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAalifold.c,v 1.3 2001/08/02 15:36:42 ivo Exp $";
+static char rcsid[] = "$Id: RNAalifold.c,v 1.4 2001/10/22 11:25:11 ivo Exp $";
 
 #define PRIVATE static
 
@@ -33,6 +33,8 @@ PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
 PRIVATE char *consensus(const char *AS[]);
 PRIVATE char *annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(pair_info pi, FILE *file);
+PRIVATE cpair *make_color_pinfo(const pair_info *pi);
+extern int PS_color_dot_plot(char *string, cpair *pi, char *filename);
 /*--------------------------------------------------------------------------*/
 #define MAX_NUM_NAMES    500
 int main(int argc, char *argv[])
@@ -237,11 +239,7 @@ int main(int argc, char *argv[])
     
     if (do_backtrack) {
       FILE *aliout;
-      if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_dp.ps");
-      } else strcpy(ffname, "alidot.ps");
-      (void) PS_dot_plot(string, ffname);
+      cpair *cp;
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_ali.out");
@@ -252,7 +250,8 @@ int main(int argc, char *argv[])
       } else {
 	short *ptable; int k;
 	ptable = make_pair_table(mfe_struc);
-	fprintf(aliout, "%d sequence; length of alignment %d\n", n_seq, length);
+	fprintf(aliout, "%d sequence; length of alignment %d\n", 
+		n_seq, length);
 	fprintf(aliout, "alifold output\n");
 	for (k=0; pi[k].i>0; k++) {
 	  pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
@@ -261,6 +260,13 @@ int main(int argc, char *argv[])
 	fprintf(aliout, "%s\n", structure);
 	free(ptable);
       }
+      if (fname[0]!='\0') {
+	strcpy(ffname, fname);
+	strcat(ffname, "_dp.ps");
+      } else strcpy(ffname, "alidot.ps");
+      cp = make_color_pinfo(pi);
+      (void) PS_color_dot_plot(string, cp, ffname);
+      free(cp);
     }
     free(mfe_struc);
     free(pi);
@@ -355,7 +361,7 @@ PRIVATE int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    return nn;
 }
  
-void print_pi(pair_info pi, FILE *file) {
+void print_pi(const pair_info pi, FILE *file) {
   char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
   
@@ -368,6 +374,26 @@ void print_pi(pair_info pi, FILE *file) {
   if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
+
+#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
+
+PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
+  cpair *cp;
+  int i, n;
+  for (n=0; pi[n].i>0; n++);
+  cp = (cpair *) space(sizeof(cpair)*(n+1));
+  for (i=0; i<n; i++) {
+    int j, ncomp;
+    cp[i].i = pi[i].i;
+    cp[i].j = pi[i].j;
+    cp[i].p = pi[i].p;
+    for (ncomp=0, j=1; j<=6; j++) if (pi[i].bp[j]) ncomp++;
+    cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
+    cp[i].sat = 1 - MIN2( 1.0, pi[i].bp[0]/2.5);
+  }
+  return cp;
+}
+
 
 PRIVATE char *consensus(const char *AS[]) {
   char *string;
@@ -385,6 +411,7 @@ PRIVATE char *consensus(const char *AS[]) {
   }
   return string;
 }
+
 
 PRIVATE char *annote(const char *structure, const char *AS[]) {
   char *ps;
