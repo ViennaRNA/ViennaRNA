@@ -1,8 +1,13 @@
 /*
   $Log: list.c,v $
+  Revision 1.4  2000/10/10 08:53:52  ivo
+  include dmalloc.h header if DMALLOC defined
+
+  Revision 1.4  2000/10/10 08:04:34  ivo
+  include dmalloc header id DMALLOC defined
+
   Revision 1.3  1998/03/30 14:24:51  ivo
   use RNA package utils.h
-
 
   Revision 1.2  1997/10/09  19:01:50  steve
   *** empty log message ***
@@ -16,17 +21,19 @@
 */
 
 #include <stdio.h>
+#ifdef DMALLOC
+#include "/usr/local/include/dmalloc.h"
+#else
 #include <malloc.h>
+#endif
 #include <signal.h>
 #include "list.h"
 #include "utils.h"		/* use space() to get cleared nodes; WF */
 
+/*@unused@*/
+static char rcsid[] = "$Id: list.c,v 1.4 2000/10/10 08:53:52 ivo Rel $";
 
-/* #include "/usr/local/debug_include/malloc.h" */
-
-
-static char rcsid[] = "$Id: list.c,v 1.3 1998/03/30 14:24:51 ivo Exp $";
-
+#define PUBLIC
 PUBLIC void *
 lst_newnode (int size)
 /****************************************************************************
@@ -227,7 +234,7 @@ lst_next (void *prev)
 static LST_BUCKET *z;
 static int (*cmp) (void *, void *);
 
-PRIVATE LST_BUCKET *
+static LST_BUCKET *
 merge (LST_BUCKET * a, LST_BUCKET * b, LST_BUCKET ** end)
 /****************************************************************************
 *
