@@ -1,3 +1,16 @@
+2004-07-21  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add RNAduplex, to compute hybrid structures without
+	  intra-molecular pairs
+
+2004-02-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* fix bug in fold that caused segfaults when using Intel compiler
+
+2003-0-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>9
+
+	* add annotation options to RNAplot 
+
 2003-08-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* stochastic backtracking finally works. Try e.g.
@@ -12,6 +25,7 @@
 
 	* add RNALfold program to compute locally optimal structures with
 	  maximum pair span.
+	* add RNAcofold for computing hybrid structure
 
 2002-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 

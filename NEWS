@@ -8,6 +8,9 @@ Version 1.5pre
 - Complete suboptimal folding is now integrated in the library.
 - Beginning support for co-folding of two strands: energy_of_struct() and
   RNAeval can now compute energies of duplex structures.
+- RNAcofold predicts hybrid structures of two RNA strands
+- RNAduplex predicts hybrid structures, while allowing only inter-molecular
+  base pairs (useful for finding potential binding sites)
 - Major changes to Perl module. See the pod documentation (perldoc RNA).
 - RNAsubopt can do stochastic backtracking to produce samples of suboptimal
   structures with Boltzmann statistics.
