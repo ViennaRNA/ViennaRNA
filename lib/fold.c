@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-09-13 19:10:00 ivo> */
+/* Last changed Time-stamp: <2004-02-09 15:58:54 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.28 2003/09/15 11:35:29 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.29 2004/02/09 16:50:26 ivo Exp $";
 
 #define PAREN
 
@@ -1112,11 +1112,11 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   int mlintern[NBPAIRS+1], mlclosing, mlbase;
 
   if (is_extloop) {
-    for (x = 0; x <= NBPAIRS+1; x++)
+    for (x = 0; x <= NBPAIRS; x++)
       mlintern[x] = P->MLintern[x]-P->MLintern[1]; /* 0 or TerminalAU */
     mlclosing = mlbase = 0; 
   } else {
-    for (x = 0; x <= NBPAIRS+1; x++) mlintern[x] = P->MLintern[x];
+    for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
     mlclosing = P->MLclosing; mlbase = P->MLbase; 
   }
  
