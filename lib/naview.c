@@ -181,7 +181,7 @@ static void read_in_bases(short *pair_table)
     bases[i].x = anum;
     bases[i].y = anum;
     bases[i].mate = pair_table[i];
-    if (pair_table[i]>i) npairs++;
+    if ((int) pair_table[i]>i) npairs++;
   }
   if (npairs==0) { /* must have at least 1 pair to avoid segfault */
     bases[1].mate=nbase;
@@ -1115,7 +1115,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
 #define maxiter 500
   
   hhi = (n+1) / pi;
-  hlow = - hhi - b/(n+1-b);
+  hlow = - hhi - b/(n+1.000001-b);  /* changed to prevent div by zero if (ih) */
   if (b<1) hlow = 0;  /* otherwise we might fail below (ih) */
   iter = 0;
   do {
@@ -1124,13 +1124,13 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
     /*  if (r<0.5) {r = 0.5; h = 0.5*sqrt(1-b*b);} */
     disc = 1.0 - 0.5/(r*r); 
     if (fabs(disc) > 1.0) { 
-      fprintf(stderr, "Unexpected large magnitude discriminant = %g\n", disc); 
+      fprintf(stderr, "Unexpected large magnitude discriminant = %g %g\n", disc,r); 
       exit(FATAL_ERROR); 
     } 
     theta = acos(disc); 
     /*    theta = 2*acos(sqrt(1-1/(4*r*r))); */
     phi = acos(h/r);
-    e = theta * (n+1) + 2*phi - 2*pi;
+    e = theta * (n+1) + 2*phi - 2*pi; 
     if (e > 0.0) {
       hlow = h;
     }
