@@ -22,6 +22,7 @@ overwritten.
 
 
 .SH OPTIONS
+.TP
 .B \-t\ \fI0|1\fP
 Choose the layout algorithm. Simple radial layout if 0, or naview if 1.
 Default is 1.
@@ -30,6 +31,8 @@ Default is 1.
 Specify output format. Available formats are: PostScript (ps), Graph Meta 
 Language (gml), and XRNA save file (xrna). Output filenames will end
 in '.ps' '.gml' '.ss', respectively. Default is ps.
-.TP
+
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
+.SH AUTHOR
+Ivo L Hofacker
