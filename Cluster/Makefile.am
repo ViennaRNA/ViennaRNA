@@ -14,11 +14,12 @@ AnalyseSeqs_SOURCES = statgeom.c \
           split.c \
           treeplot.c \
           PS3D.c
+noinst_HEADERS = cluster.h split.h treeplot.h distance_matrix.h statgeom.h \
+	utils.h PS3D.h StrEdit_CostMatrix.h  
 
 LDADD = utils.o -lm
 
 utils.o:
 	$(COMPILE) -c ../lib/utils.c
 
-EXTRA_DIST = cluster.h split.h treeplot.h distance_matrix.h statgeom.h \
-	utils.h PS3D.h StrEdit_CostMatrix.h  
+EXTRA_DIST = $(man_MANS)
