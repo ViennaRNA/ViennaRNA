@@ -3,9 +3,10 @@
 		      Peter F Stadler, Ivo Hofacker
 			   Vienna RNA Package
 */
-/* Last changed Time-stamp: <95/07/12 19:35:14 ivo> */
+/* Last changed Time-stamp: <97/11/05 14:25:28 ivo> */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -13,13 +14,14 @@
 #include  "dist_vars.h"
 #include  "utils.h"
 
+static char rcsid[] = "$Id: stringdist.c,v 1.2 1997/11/05 14:04:45 ivo Rel $";
+
 #define PUBLIC
 #define PRIVATE        static
 #define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
 #define MAX(x,y)       (((x)>(y)) ? (x) : (y))
 #define MIN3(x,y,z)    (MIN(  (MIN((x),(y))) ,(z)))
 #define INFINITY       10000
-#define MAXLINE        5000
  
 PUBLIC  float      string_edit_distance(swString *T1, swString *T2);
 PUBLIC  swString  *Make_swString(char *string);
@@ -353,13 +355,14 @@ PRIVATE void encode( int type, char label[])
 PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
 {
    int i, j, l0, l1, ltmp=0, weights; 
-   char label[10], a0[MAXLINE], a1[MAXLINE], tmp0[20], tmp1[20];
+   char label[10], *a0, *a1, tmp0[20], tmp1[20];
 
    weights = 0;
    for (i=1; i<=T1[0].sign; i++) weights = (weights||(T1[i].weight!=0.5));
    for (i=1; i<=T2[0].sign; i++) weights = (weights||(T2[i].weight!=0.5));
    
-   a0[0] = '\0'; a1[0] = '\0';
+   a0 = (char *) space(alignment[0][0]*4+2);
+   a1 = (char *) space(alignment[0][0]*4+2);
    for(i=1; i<= alignment[0][0]; i++){
       tmp0[0] = '\0'; l0=0; 
       if(alignment[0][i] > 0) {
@@ -401,10 +404,10 @@ PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
    }
    if (aligned_line[0]!= NULL) { free(aligned_line[0]); aligned_line[0]= NULL;}
    if (aligned_line[1]!= NULL) { free(aligned_line[1]); aligned_line[1]= NULL;}
-   aligned_line[0] = (char *) space((ltmp+1)*sizeof(char));
-   strcpy(aligned_line[0],a0);
-   aligned_line[1] = (char *) space((ltmp+1)*sizeof(char));
-   strcpy(aligned_line[1],a1); 
+   aligned_line[0] = strdup(a0);
+   free(a0);
+   aligned_line[1] = strdup(a1);
+   free(a1);
 }
 
 /*---------------------------------------------------------------------------*/
