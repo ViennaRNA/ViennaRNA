@@ -20,7 +20,7 @@
 #define PUBLIC
 #define PRIVATE     static
 /*@unused@*/
-static char rcsid[] = "$Id: RNAdistance.c,v 1.5 2001/04/30 16:38:58 ivo Exp $";
+static char rcsid[] = "$Id: RNAdistance.c,v 1.6 2004/05/05 09:58:40 ivo Exp $";
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);
@@ -439,7 +439,7 @@ PRIVATE int check_tree(char *line, char alpha[])
     }
     if (line[i]=='R') {
       i++;
-      if ((i!=n)||(line[n]!=')')) return 0;
+      if ((i!=n-1)||(line[i]!=')')) return 0;
     }
     if (line[i]==')') {
       o--;
