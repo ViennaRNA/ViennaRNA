@@ -9,6 +9,7 @@ dnl configure options
 AM_WITH_DMALLOC
 AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDists])
 AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
+AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AM_CONFIG_HEADER(config.h)
@@ -39,6 +40,7 @@ if test -z "$PerlCmd"; then
     a suitable perl binary)
     with_perl="no"
 fi
+
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
@@ -59,3 +61,4 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
 AC_OUTPUT(Makefile ViennaRNA.spec AliFold/Makefile Subopt/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1)
+

@@ -42,3 +42,9 @@
 /* Define if using the dmalloc debugging malloc package */
 #undef WITH_DMALLOC
 
+/* define UNUSED, so that gcc -Wall doesn#t comlain about unused variables */
+#ifdef __GNUC__
+#define UNUSED __attribute__ ((unused))
+#else
+#define UNUSED
+#endif
