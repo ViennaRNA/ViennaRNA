@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2003-02-12 20:07:08 ivo> */
+/* Last changed Time-stamp: <2003-07-27 14:21:37 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.2 2003/02/13 14:09:00 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.3 2003/08/07 09:13:23 ivo Exp $";
 
 
 #define PAREN
@@ -153,17 +153,10 @@ float Lfold(char *string, char *structure, int maxdist) {
   encode_seq(string);
   
   /* BP = (int *)space(sizeof(int)*(length+2)); */
-  for (i=length; i>length-maxdist-3 && i>0; i--)
+  for (i=length; i>(int)length-(int)maxdist-3 && i>0; i--)
     make_ptypes(S, i, maxdist, length);
   
   energy = fill_arrays(string, maxdist);
-
-  if (maxdist == length) {
-    char *ss;
-    ss = backtrack(string, 1, maxdist);
-    strcpy(structure, ss);
-    free(ss);
-  }
 
   /* parenthesis_structure(structure, length); */
 
@@ -410,7 +403,7 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 	if (f3[i] != f3[i+1]) do_backtrack=1;
 	else if (do_backtrack) {
 	  ss =  backtrack(string, i+1 , maxdist+1);
-	  if ((prev_i+strlen(prev)>i+1+strlen(ss))) {
+	  if ((prev_i+strlen(prev)>i+1+strlen(ss))) { 
 	    printf("%s (%6.2f) %4d\n", 
 		   prev, (f3[prev_i]-f3[prev_i + strlen(prev)])/100., prev_i);
 	  }
@@ -423,9 +416,14 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 	prev_i = i; do_backtrack=0;
       }
       if (i==1) {
-	printf("%s (%6.2f) %4d\n", 
-	       prev, (f3[prev_i]-f3[prev_i + strlen(prev)])/100., prev_i);
-	free(prev);
+	if (prev) printf("%s (%6.2f) %4d\n", prev, 
+			 (f3[prev_i]-f3[prev_i + strlen(prev)])/100., prev_i);
+	if ((f3[prev_i] != f3[1]) || (!prev)) {
+	  ss =  backtrack(string, i , maxdist);
+	  printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1 + strlen(ss)])/100., 1);
+	  free(ss);
+	}
+	if (prev) free(prev);
       }	
     } 
     {
@@ -535,7 +533,7 @@ PRIVATE char * backtrack(char *string, int start, int maxdist) {
       }
 
       if (!traced) nrerror("backtrack failed in f3");
-      if (j==length) {
+      if (j==length) { /* backtrack only one component, unless j==length */
 	sector[++s].i = jj;
 	sector[s].j   = j;
 	sector[s].ml  = ml;
