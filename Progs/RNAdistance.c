@@ -20,7 +20,7 @@
 
 #define PUBLIC
 #define PRIVATE     static
-static char rcsid[] = "$Id:";
+static char rcsid[] = "$Id: RNAdistance.c,v 1.3 1998/03/31 15:35:52 ivo Exp $";
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);
@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
    Tree     *T[10][MAXNUM];
    int       tree_types = 0, ttree;
    swString *S[10][MAXNUM];
+   char     *P[MAXNUM];   /* structures for base pair distances */
    int       string_types = 0, tstr;
    int       i,j, tt, istty, type;
    int       it, is; 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
       strcpy(outfile,"backtrack.file"); 
    if(outfile[0]!='\0') somewhere = fopen(outfile,"w");
    else somewhere = stdout;
-   istty = isatty(fileno(stdin));
+   istty = isatty(fileno(stdin))&&isatty(fileno(stdout));
    
    do {
       if ((istty)&&(n==0)) {
@@ -91,18 +92,27 @@ int main(int argc, char *argv[])
 	       for (i=0; i<n; i++) free_tree(T[ttree][i]);
 	       ttree++;
 	    }
-	    if(isupper(ttype[tt])) {
-	       for (i=1; i<n; i++) {
-		  for (j=0; j<i; j++) {
-		     printf("%g ",string_edit_distance(S[tstr][i], S[tstr][j]));
-		     if(edit_backtrack) fprintf(somewhere,"%d %d",i+1,j+1);
-		     print_aligned_lines(somewhere);
-		  }
-		  printf("\n");
-	       }
-	       printf("\n");
-	       for (i=0; i<n; i++) free(S[tstr][i]);
-	       tstr++;
+	    if (ttype[tt]=='P') {
+	      for (i=1; i<n; i++) {
+		for (j=0; j<i; j++)
+		  printf("%g ", (float) bp_distance(P[i], P[j]));
+		printf("\n");
+	      }
+	      printf("\n");
+	      for (i=0; i<n; i++) free(P[i]);
+	    }
+	    else if(isupper(ttype[tt])) {
+	      for (i=1; i<n; i++) {
+		for (j=0; j<i; j++) {
+		  printf("%g ",string_edit_distance(S[tstr][i], S[tstr][j]));
+		  if(edit_backtrack) fprintf(somewhere,"%d %d",i+1,j+1);
+		  print_aligned_lines(somewhere);
+		}
+		printf("\n");
+	      }
+	      printf("\n");
+	      for (i=0; i<n; i++) free(S[tstr][i]);
+	      tstr++;
 	    }
 	 }
 	 fflush(stdout);
@@ -136,35 +146,30 @@ int main(int argc, char *argv[])
          switch(ttype[tt]){
           case 'f' :
           case 'F' :
-            switch (type) {
-	     case 1:  
-               xstruc = expand_Full(line);
-               if(islower(ttype[tt])) {
-                  T[tree_types][n] = make_tree(xstruc);
-                  tree_types++;
-               }
-               if(isupper(ttype[tt])) {
-                  S[string_types][n] = Make_swString(xstruc);
-                  string_types++;
-               }
-               free(xstruc);
-	       break;
-	     default:
-	       nrerror("Can't convert back to full structure");
+            if (type!=1) nrerror("Can't convert back to full structure");
+	    xstruc = expand_Full(line);
+	    if(islower(ttype[tt])) {  /* tree_edit */
+	      T[tree_types++][n] = make_tree(xstruc);
 	    }
+	    if(isupper(ttype[tt])) { /* string edit */
+	      S[string_types++][n] = Make_swString(xstruc);
+	    }
+	    free(xstruc);
             break;
+	 case 'P':
+	    if (type!=1) nrerror("Can't convert back to full structure");
+	    P[n] = strdup(line);
+	    break;
           case 'h' :
           case 'H' :
 	    switch (type) {
 	     case 1:
 	       xstruc = b2HIT(line);
                if(islower(ttype[tt])) {
-	          T[tree_types][n] = make_tree(xstruc);
-                  tree_types++;
+	          T[tree_types++][n] = make_tree(xstruc);
                }
                if(isupper(ttype[tt])) {
-                  S[string_types][n] = Make_swString(xstruc);
-                  string_types++;
+                  S[string_types++][n] = Make_swString(xstruc);
                }
 	       free(xstruc);
 	       break;
@@ -190,12 +195,10 @@ int main(int argc, char *argv[])
                break;
 	    }
             if(islower(ttype[tt])) {
-	       T[tree_types][n] = make_tree(xstruc);
-               tree_types++;
+	       T[tree_types++][n] = make_tree(xstruc);
             }
             if(isupper(ttype[tt])) {
-               S[string_types][n] = Make_swString(xstruc);
-               string_types++;
+               S[string_types++][n] = Make_swString(xstruc);
             }
 	    free(xstruc);   
             break;
@@ -204,23 +207,19 @@ int main(int argc, char *argv[])
             if (type==1) {
 	       xstruc = b2Shapiro(line);
                if(islower(ttype[tt])) {
- 	          T[tree_types][n] = make_tree(xstruc);
-                  tree_types++;
+ 	          T[tree_types++][n] = make_tree(xstruc);
                }
                if(isupper(ttype[tt])) {
-                  S[string_types][n] = Make_swString(xstruc);
-                  string_types++;
+                  S[string_types++][n] = Make_swString(xstruc);
                }
 	       free(xstruc); 
 	    } 
             else {
                if(islower(ttype[tt])) {
-                  T[tree_types][n] = make_tree(line);
-                  tree_types++;
+                  T[tree_types++][n] = make_tree(line);
                }
                if(isupper(ttype[tt])) {
-                  S[string_types][n] = Make_swString(line);
-                  string_types++;
+                  S[string_types++][n] = Make_swString(line);
                }
             }
             break;
@@ -238,13 +237,17 @@ int main(int argc, char *argv[])
 	          free_tree(T[it][0]); free_tree(T[it][1]);
                   it++;
                }
-               if(isupper(ttype[i])) {
-                  dist = string_edit_distance(S[is][0], S[is][1]);
-                  free(S[is][0]); free(S[is][1]);
+	       if (ttype[i]=='P') {
+		 dist = bp_distance(P[0], P[1]);
+		 free(P[0]); free(P[1]);
+	       }
+	       else if(isupper(ttype[i])) {
+		  dist = string_edit_distance(S[is][0], S[is][1]);
+		  free(S[is][0]); free(S[is][1]);
                   is++;
                }
 	       printf("%c: %g  ", ttype[i], dist);
-	       if (edit_backtrack) {
+	       if ((edit_backtrack)&&(ttype[i]!='P')) {
 		  if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
 		  print_aligned_lines(somewhere);
 	       }
@@ -261,13 +264,17 @@ int main(int argc, char *argv[])
 	          free_tree(T[it][1]); 
                   it++;    
                }
-               if(isupper(ttype[i])) {
+	       if (ttype[i]=='P') {
+		 dist = bp_distance(P[0], P[1]);
+		 free(P[1]);
+	       }
+               else if(isupper(ttype[i])) {
                   dist = string_edit_distance(S[is][0], S[is][1]);
 	          free(S[is][1]);
                   is++;
                }
 	       printf("%c: %g  ", ttype[i], dist);
-	       if (edit_backtrack) {
+	       if ((edit_backtrack)&&(ttype[i]!='P')) {
 		  if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
 		  print_aligned_lines(somewhere);
 	       }
@@ -285,14 +292,18 @@ int main(int argc, char *argv[])
 	          T[it][0] = T[it][1];  
                   it++;   
                }
-               if(isupper(ttype[i])) {
+	       if (ttype[i]=='P') {
+		 dist = bp_distance(P[0], P[1]);
+		 free(P[0]); P[0] = P[1];
+	       }
+               else if(isupper(ttype[i])) {
                   dist = string_edit_distance(S[is][0], S[is][1]);
 	          free(S[is][0]);
                   S[is][0] = S[is][1];
                   is++;
                }
 	       printf("%c: %g  ", ttype[i], dist);
-	       if (edit_backtrack) {
+	       if ((edit_backtrack)&&(ttype[i]!='P')) {
 		  if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
 		  print_aligned_lines(somewhere);
 	       }
@@ -474,7 +485,7 @@ PRIVATE int check_brackets(char *line)
 
 PRIVATE void command_line(int argc, char *argv[])
 {
-   int i,j;
+   int i;
    
    edit_backtrack = 0;
    types=1; ttype[0]='f'; task=1;
@@ -527,5 +538,5 @@ PRIVATE void print_aligned_lines(FILE *somewhere)
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: RNAdistance [-D[fhwcFHWC]] [-X[p|m|f|c]] [-S] [-B [file]]");
+   nrerror("usage: RNAdistance [-D[fhwcFHWCP]] [-X[p|m|f|c]] [-S] [-B [file]]");
 }
