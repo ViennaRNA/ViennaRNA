@@ -1,3 +1,11 @@
+2005-02-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* move alifold() into the library
+
+2004-12-23  Stephan Bernhart  <berni@tbi.univie.ac.at>
+
+	* add partition function version of RNAcofold
+
 2004-07-21  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add RNAduplex, to compute hybrid structures without
