@@ -12,4 +12,4 @@ DIST_SUBDIRS = lib Progs man Utils AliFold H Perl Cluster
 
 pkgdata_DATA = vienna13.par default.par
 
-EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure
+EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq
