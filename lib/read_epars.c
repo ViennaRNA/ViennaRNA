@@ -1,80 +1,54 @@
 /*
+		  read energy parameters from a file
 
-   read_epars.c:
-     read user defined energy parametrs from file
-     with format that is produced by RNAedit
-
-   (c) S.Kopp, TBI, Univ. of Vienna, Austria, Mar 1997
-   email: robo@tbi.univie.ac.at
-
-
+		      Stephan Kopp, Ivo Hofacker
+			  Vienna RNA Package
 */
      
 
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
-
-#ifdef SGI
-#include <malloc.h>
-#endif
 
 #include "utils.h"
 
 #include "energy_const.h"
 #include "energy_par.h"
 
-/*------------------  identifiers ----------------------------*/
-#define H        "enthalpies"
-#define S        "entopies"
-#define HP       "hairpin37"
-#define B        "bulge37"
-#define IL       "internal_loop37"
-#define MM       "mismatch"
-#define DE5      "dangle5"
-#define DE3      "dangle3"
-#define MLB      "ML_BASE37"
-#define MLC      "ML_closing37"
-#define MLI      "ML_intern37"
-#define MN       "MAX_NINIO"
-#define FN       "F_ninio37"
-#define TE       "TETRA_ENERGY37"
-#define TL       "Tetraloops"
-#define END      "END"
-/*------------------------------------------------------------*/
+static char rcsid[] = "$Id: read_epars.c,v 1.2 1997/11/01 21:05:00 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
+#define PARSET 20
+enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MM_H,
+	     DE5, DE3, ML, TL, TE, FN, MN, DUMP, HELP};
+
+PRIVATE char names[PARSET];
+
+/*------------------  identifiers ----------------------------*/
+#define DEF -50
+#define NST 0
 
 #define DEF_TEMP   37.0    /* default temperature */
 
 /*----------------------- prototypes -------------------------*/
-PUBLIC  void  read_energy_parameter(char fname[]);
+PUBLIC  void  read_parameter_file(char fname[]);
 
-PRIVATE void  rd_enthalpies(void);
-PRIVATE void  rd_entropies(void);
-PRIVATE void  rd_hairpin(void);
-PRIVATE void  rd_bulge(void);
-PRIVATE void  rd_internal_loop(void);
-PRIVATE void  rd_mismatch(void);
-PRIVATE void  rd_dangle5(void);
-PRIVATE void  rd_dangle3(void);
-PRIVATE void  rd_ML_base(void);
-PRIVATE void  rd_ML_closing(void);
-PRIVATE void  rd_ML_intern(void);
+PRIVATE void  rd_stacks(int stack[NBPAIRS+1][NBPAIRS+1]);
+PRIVATE void  rd_loop(int looparray[31]);
+PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][5]);
+PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][5]);
+PRIVATE void  rd_MLparams(void);
 PRIVATE void  rd_MAX_ninio(void);
 PRIVATE void  rd_F_ninio(void);
-PRIVATE void  rd_Tetra_energy(void);
 PRIVATE void  rd_Tetra_loop(void);
-PRIVATE float rd_temp(FILE *f1);
 
-PRIVATE char *get_array1(int *arr, int size, float temp);
+PRIVATE enum parset gettype(char ident[]);
+PRIVATE char *get_array1(int *arr, int size);
 
-PUBLIC  void  ignore_blanks(FILE *f1);
-PUBLIC  void  ignore_comment(FILE *f1);
-PUBLIC  void  read_to_eol(FILE *f1);
+PUBLIC  void  ignore_comment(char *line);
 
 PRIVATE void  rescale(int *arr, char *ctrl, int size, float temp);
 PRIVATE void  extrapolate(int *arr, char *to_be_x, int size);
@@ -83,24 +57,30 @@ PUBLIC  void  display_array(int *p, int size, int line);
 
 /*------------------------------------------------------------*/
 PRIVATE FILE *fp;
+PRIVATE float rtemp=DEF_TEMP;
 
 /*------------------------------------------------------------*/
-PUBLIC void read_energy_parameter(char fname[])
+PUBLIC void read_parameter_file(char fname[])
 {
-  char    *line;
-  int      c;
+  char    *line, ident[32];
+  enum parset type;
+  int      r, changed=0;
   
-  if(!(fp=fopen(fname,"r"))){
+  if (!(fp=fopen(fname,"r"))) {
     fprintf(stderr,
-	    "\nread_energy_parameter:\n"
+	    "\nread_parameter_file:\n"
 	    "\t\tcan't open file %s\n"
 	    "\t\tusing default parameters instead.\n", fname);
     return;
   }
 
-  line = get_line(fp);
+  if (!(line = get_line(fp))) {
+    fprintf(stderr," File %s is inproper.\n", fname);
+    fclose(fp);
+    return;
+  }
 
-  if(strcmp(line,"## RNAfold parameter file")!=0){
+  if (strncmp(line,"## RNAfold parameter file",25)!=0) {
     fprintf(stderr,
 	    "Missing header line in file.\n"
 	    "May be this file has incorrect format.\n"
@@ -108,33 +88,34 @@ PUBLIC void read_energy_parameter(char fname[])
   }
   free(line);
   
-  while((c=fgetc(fp))!=EOF){
+  while(line=get_line(fp)) {
     
-    if(c=='#'){
-      ignore_blanks(fp);
-      line = get_line(fp);
-  
-      if(strcmp(line,END)==0)        break;
-      else if(strcmp(line,H)  == 0) rd_enthalpies();    
-      else if(strcmp(line,S)  == 0) rd_entropies();    
-      else if(strcmp(line,HP) == 0) rd_hairpin();
-      else if(strcmp(line,B)  == 0) rd_bulge(); 
-      else if(strcmp(line,IL) == 0) rd_internal_loop();
-      else if(strcmp(line,MM) == 0) rd_mismatch();
-      else if(strcmp(line,DE5)== 0) rd_dangle5();
-      else if(strcmp(line,DE3)== 0) rd_dangle3();    
-      else if(strcmp(line,MLB)== 0) rd_ML_base();
-      else if(strcmp(line,MLC)== 0) rd_ML_closing();
-      else if(strcmp(line,MLI)== 0) rd_ML_intern();
-      else if(strcmp(line,MN) == 0) rd_MAX_ninio();
-      else if(strcmp(line,FN) == 0) rd_F_ninio();
-      else if(strcmp(line,TE) == 0) rd_Tetra_energy();
-      else if(strcmp(line,TL) == 0) rd_Tetra_loop();
-      else
-           fprintf(stderr," Unknown field identifier `%s'\n", line);
-
+    r = sscanf(line, "# %31s", ident);
+    if (r==1) {
+      type = gettype(ident);
+      switch (type)
+	{
+	case QUIT: break;
+	case SH:   rd_stacks(enthalpies);    changed |= SH; break;
+	case S:    rd_stacks(stack37);       changed |= S;  break;    
+	case HP:   rd_loop(hairpin37);       changed |= HP; break;
+	case B:    rd_loop(bulge37);         changed |= B;  break;
+	case IL:   rd_loop(internal_loop37); changed |= IL; break;
+	case MMH:  rd_mismatch(mismatchH37); changed |= MMH; break;
+	case MMI:  rd_mismatch(mismatchI37); changed |= MMI; break;
+	case MM_H: rd_mismatch(mism_H);      changed |= MM_H; break;
+	case DE5:  rd_dangle(dangle5_37);    changed |= DE5;  break;  
+	case DE3:  rd_dangle(dangle3_37);    changed |= DE3; break;  
+	case ML:   rd_MLparams();	     changed |= ML;  break;  
+	case MN:   rd_MAX_ninio();	     changed |= MN; break; 
+	case FN:   rd_F_ninio();	     changed |= FN; break;
+	case TL:   rd_Tetra_loop();          changed |= TL; break;
+	default: /* maybe it's a temperature */
+	  r=sscanf(ident, "%f", &rtemp);
+	  if (r!=1) fprintf(stderr," Unknown field identifier in `%s'\n", line);
+	}
       free(line);  
-    }
+    } /* else ignore line */
   }
   
   fclose(fp);
@@ -143,20 +124,25 @@ PUBLIC void read_energy_parameter(char fname[])
   
   fprintf(stderr,"\n***********************************\n");
 
-  fprintf(stderr,"Enthalpies:\n");
+  fprintf(stderr,"Stacking Energies:\n");
   for(c=0;c<NBPAIRS+1;c++)
     display_array(enthalpies[c],NBPAIRS+1,NBPAIRS+1);
   WAIT;
   
-  fprintf(stderr,"\nEntropies:\n");
+  fprintf(stderr,"Stack Enthalpies:\n");
   for(c=0;c<NBPAIRS+1;c++)
-    display_array(entropies[c],NBPAIRS+1,NBPAIRS+1);
+    display_array(enthalpies[c],NBPAIRS+1,NBPAIRS+1);
   WAIT;
-  
+  /*
+    fprintf(stderr,"\nEntropies:\n");
+    for(c=0;c<NBPAIRS+1;c++)
+    display_array(entropies[c],NBPAIRS+1,NBPAIRS+1);
+    WAIT;
+    */
   fprintf(stderr,"\nHairpin:\n");
   display_array(hairpin37, 31, 10);
   WAIT;
-
+  
   fprintf(stderr,"\nBulge:\n");
   display_array(bulge37, 31, 10);
   WAIT;
@@ -166,31 +152,28 @@ PUBLIC void read_energy_parameter(char fname[])
   WAIT;
   
   fprintf(stderr,"\nTerminal Mismatch:\n");
-  { int i,k,j;
-  for(k=0;k<5;k++)
-    for(j=0;j<5;j++){
-      for(i=0;i<5;i++)
-	display_array(mismatch[k][j][i],5,10);
+  { int i,k;
+  for(k=0;k<NBPAIRS+1;k++)
+    for(i=0;i<5;i++) {
+      display_array(mismatchH[k][i],5,10);
       fprintf(stderr,"\n");
     }
   }
   WAIT;
-
+  
   fprintf(stderr,"\nDangle5:\n");
   for(c=0;c<NBPAIRS+1; c++)
-    display_array(dangle5[c], 5, 5);
+    display_array(dangle5_37[c], 5, 5);
   WAIT;
 
   fprintf(stderr,"\nDangle5:\n");
   for(c=0;c<NBPAIRS+1; c++)
-    display_array(dangle3[c], 5, 5);
+    display_array(dangle3_37[c], 5, 5);
   WAIT;
 
   fprintf(stderr,"\nML_BASE37 = %d\n", ML_BASE37);
-  fprintf(stderr,"ML_closing37 = ");
-  display_array(ML_closing37,NBPAIRS+1,NBPAIRS+1);
-  fprintf(stderr,"ML_intern37 = ");
-  display_array(ML_intern37,NBPAIRS+1,NBPAIRS+1);
+  fprintf(stderr,"ML_closing37 = %d\n", ML_closing37);
+  fprintf(stderr,"ML_intern37 = %d\n", ML_intern37);
   WAIT;
   
   fprintf(stderr,"\nMAX_NINIO = %d\n", MAX_NINIO);
@@ -204,18 +187,19 @@ PUBLIC void read_energy_parameter(char fname[])
     fprintf(stderr,"%s\n", Tetraloops[c]);
   WAIT;
   
-		
+  
 #endif
   
   return;
 }
 
 /*------------------------------------------------------------*/
+
 PUBLIC void display_array(int *p, int size, int nl)
 {
   int i;
   
-  for(i=1;i<=size;i++, p++){
+  for(i=1;i<=size;i++, p++) {
     switch(*p)
       {
       case  INF: fprintf(stderr,"   INF"); break;
@@ -223,420 +207,210 @@ PUBLIC void display_array(int *p, int size, int nl)
       case  DEF: fprintf(stderr,"   DEF"); break;
       default:   fprintf(stderr,"%6d",  *p); break;
       }
-    if(!(i%nl)) fprintf(stderr,"\n");
+    if (!(i%nl)) fprintf(stderr,"\n");
   }
   return;
 }
+
 /*------------------------------------------------------------*/
-PRIVATE char *get_array1(int *arr, int size, float temp)
+
+PRIVATE char *get_array1(int *arr, int size)
 {
-  int    c, d, i,
-        *p, sign;
-  char  *back,
+  int    c, i, p, pos, pp, r;
+  char  *line, *back=NULL,
         *ctrl,
         *extrapol,
          buf[16],
          X;
 
-  back     = (char *)space(512);
-  extrapol = (char *)space(size);
-  ctrl     = (char *)space(size);
 
-  memset(ctrl, 1, size*sizeof(char));
-
-  p = arr;
   i = 0;
-  while( i<size ){
-    sign = 1;
-
-    while((c=fgetc(fp)) == ' ');  /* skip blanks without ungetc!!! */
-    if(c!='\n'){
-      if(c =='-'){                 /* if neg val, eat one more char */      
-	c=fgetc(fp);   
-	sign = -1;
-      }
-      if(ungetc(c,fp)!=c){        /* pushback that char */
-	  sprintf(back,"can't ungetc(%c)", c);
-	  free(extrapol);
-	  free(ctrl);
-	  return back;
-	}
-      
-           
-      if(c=='*'){ ctrl[i] = 0; fgetc(fp);}  /* use default value */
-      else if(c=='x'){
+  while( i<size ) {
+    line = get_line(fp);
+    if (!line) nrerror("unexpected end of file in get_array1");
+    ignore_comment(line);
+    pos=0;
+    while ((i<size)&&(sscanf(line+pos,"%15s%n", buf, &pp)==1)) {
+      pos += pp;
+      if (buf[0]=='*') continue;
+      else if (buf[0]=='x') {
 	X           = 1;
 	ctrl[i]     = 0;  /* don't try to rescale this value */ 
 	extrapol[i] = 1;
-	fgetc(fp);
       }
-      else if(isdigit(c))
-	fscanf(fp,"%d", p);
+      else if (strcmp(buf,"DEF") == 0) p = DEF;
+      else if (strcmp(buf,"INF") == 0) p = INF;
+      else if (strcmp(buf,"NST") == 0) p = NST;
       else {
-	fscanf(fp,"%s", buf);
-	if     (strcmp(buf,"DEF") == 0) *p = DEF;
-	else if(strcmp(buf,"INF") == 0) *p = INF;
-	else if(strcmp(buf,"NST") == 0) *p = NST;
-	else if(strcmp(buf,"NSM") == 0) *p = NSM;
-	else if(strcmp(buf,"/*")  == 0) /* */
-	  read_to_eol(fp); 
-	else {
-	  sprintf(back,"unknown field entry '%s'", buf);
-	  free(extrapol);
-	  free(ctrl);
-	  return back;
-	}
-      }
-      *p++ *= sign;
-      i++;
-    }
-  }
-
-  if(temp<DEF_TEMP || temp > DEF_TEMP)
-    rescale(arr,ctrl,size,temp);
-  if(X) /* for bulge and interior loop only */
-    extrapolate(arr,extrapol,size);
-  
-  back[0] = '\0';
-  free(extrapol);
-  free(ctrl);
-  return back;
-}
-/*------------------------------------------------------------*/
-PRIVATE void  rd_enthalpies(void)
-{
-  int    i;
-  char  *cp;
-  float  temp;
-
-  temp = rd_temp(fp);
-  ignore_comment(fp);
-  for(i=0; i<NBPAIRS+1;i++){
-    cp = get_array1(enthalpies[i],NBPAIRS+1, temp);
-    if(strlen(cp)){
-       fprintf(stderr,"\nrd_enthalpies: %s\n", cp);
-       exit(1);
-    }
-  free(cp);
-  }
-  return;
-}
-/*------------------------------------------------------------*/
-PRIVATE void  rd_entropies(void)
-{
-  int   i;
-  char *cp;
-  float temp;
-
-  temp = rd_temp(fp);
-  ignore_comment(fp);
-  for(i=0; i<NBPAIRS+1;i++){
-    cp = get_array1(entropies[i],NBPAIRS+1, temp);
-    if(strlen(cp)){
-       fprintf(stderr,"\nrd_entropies: %s\n", cp);
-       exit(1);
-    }
-    free(cp);
-  }
-  return;
-}
-/*------------------------------------------------------------*/
-PRIVATE void rd_hairpin(void)
-{
-  char *cp;
-  float temp;
-
-  temp = rd_temp(fp);
-  cp   = get_array1(hairpin37, 31, temp);
- 
-  if(strlen(cp)){
-    fprintf(stderr,"\nrd_hairpin: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
-/*------------------------------------------------------------*/
-PRIVATE void  rd_bulge(void)
-{
-  char *cp;
-  float temp;
-  
-  temp = rd_temp(fp);
-  cp   = get_array1(bulge37, 31, temp);
-
-  if(strlen(cp)){
-    fprintf(stderr,"\nrd_bulge: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
-/*------------------------------------------------------------*/
-PRIVATE void rd_internal_loop(void)
-{
-  char *cp;
-  float temp;
-
-  temp = rd_temp(fp);
-  
-  cp = get_array1(internal_loop37, 31, temp);
-  if(strlen(cp)){
-    fprintf(stderr,"\nrd_internal_loop: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
-
-/*------------------------------------------------------------*/
-PRIVATE void rd_mismatch(void)
-{
-  char  *cp;
-  int    i, j, k,
-         c;
-  float  temp;
-
-  temp = rd_temp(fp);
-  ignore_comment(fp);          /* skip first line */
-
-  for(i=0;i<5;i++)
-    for(j=0;j<5;j++){
-      while((c=fgetc(fp)) != '\n');
-      if(c!='\n'){
-	if(ungetc(c,fp)!=c){
-	   fprintf(stderr,
-		   "unpleasent error while unget(%c)\n", c);
-	   exit(-1);
-	 }
-      }
-      ignore_comment(fp);
-      for(k=0;k<5;k++){
-	cp = get_array1(mismatch[i][j][k],5,temp);
-	if(strlen(cp)){
-	  fprintf(stderr,
-		  "rd_mismatch: in field mismatch[%d][%d][%d]\n"
-		  "\t%s\n", i, j, k, cp);
+	r=sscanf(buf,"%d", &p);
+	if (r!=1) {
+	  return line+pos;
+	  fprintf(stderr, "can't interpret `%s' in get_array1\n", buf);
 	  exit(1);
 	}
-	free(cp);
       }
+      arr[i++]=p;
     }
+    free(line);
+  }
+
+  return NULL;
+}
+/*------------------------------------------------------------*/
+
+PRIVATE void  rd_stacks(int stacks[NBPAIRS+1][NBPAIRS+1])
+{
+  int    i;
+  char  *cp, *line;
+
+  for(i=0; i<NBPAIRS+1;i++) {
+    cp = get_array1(stacks[i],NBPAIRS+1);
+    if (cp) {
+      fprintf(stderr,"\nrd_stacks: %s\n", cp);
+      exit(1);
+    }
+  }
   return;
 }
 /*------------------------------------------------------------*/
-PRIVATE void  rd_dangle5(void)
+
+PRIVATE void rd_loop(int loop[31])
+{
+  char *cp;
+  
+  cp   = get_array1(loop, 31);
+  
+  if (cp) {
+    fprintf(stderr,"\nrd_loop: %s\n", cp);
+    exit(1);
+  }
+  return;
+}
+/*------------------------------------------------------------*/
+
+PRIVATE void rd_mismatch(int mismatch[NBPAIRS+1][5][5])
+{
+  char  *cp;
+  int    i, k, c;
+
+  for(i=0;i<NBPAIRS+1;i++) {
+    
+    cp = get_array1(mismatch[i][0],5*5);
+    if (cp) {
+      fprintf(stderr,
+	      "rd_mismatch: in field mismatch[%d]\n"
+	      "\t%s\n", i, cp);
+      exit(1);
+    }
+  }
+  return;
+}
+
+/*------------------------------------------------------------*/
+PRIVATE void  rd_dangle(int dangle[NBPAIRS+1][5])
 {
   int   i;
   char *cp;
-  float temp;
 
-  temp = rd_temp(fp);
-  ignore_comment(fp);
-  for(i=0; i< NBPAIRS+1; i++){
-    cp = get_array1(dangle5[i],5,temp);
-    if(strlen(cp)){
-      fprintf(stderr,"\nrd_dangle5: %s\n", cp);
+  for(i=0; i< NBPAIRS+1; i++) {
+    cp = get_array1(dangle[i],5);
+    if (cp) {
+      fprintf(stderr,"\nrd_dangle: %s\n", cp);
       exit(1);
     }
-    read_to_eol(fp);
-    free(cp);
   }
   return;
 }
-/*------------------------------------------------------------*/
-PRIVATE void  rd_dangle3(void)
-{
-  int   i;
-  char *cp;
-  float temp;
 
-  temp = rd_temp(fp);
-  ignore_comment(fp);
-  for(i=0; i< NBPAIRS+1; i++){
-    cp = get_array1(dangle3[i],5,temp);
-    if(strlen(cp)){
-      fprintf(stderr,"\nrd_dangle3: %s\n", cp);
-      exit(1);
-    }
-    read_to_eol(fp);
-    free(cp);
-  }
-  return;
-}
 /*------------------------------------------------------------*/
-PRIVATE void  rd_ML_base(void)
+PRIVATE void  rd_MLparams(void)
 {
   char *cp;
-  float temp;
+  int values[3];
 
-  temp = rd_temp(fp);
-  cp   = get_array1(&ML_BASE37,1, temp);
-
-  if(strlen(cp)){
-    fprintf(stderr,"rd_ML_base: %s\n", cp);
+  cp   = get_array1(values,3);
+  if (cp) {
+    fprintf(stderr,"rd_MLparams: %s\n", cp);
     exit(1);
   }
-  free(cp);
+
+  ML_BASE37 = values[0];
+  ML_closing37 = values[1];
+  ML_intern37  = values[2];
+  
   return;
 }
-/*------------------------------------------------------------*/
-PRIVATE void  rd_ML_closing(void)
-{
-  char  *cp;
-  float temp;
 
-  temp = rd_temp(fp);
-  cp   = get_array1(ML_closing37,NBPAIRS+1,temp);
-
-  if(strlen(cp)){
-    fprintf(stderr,"rd_ML_closing: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
-/*------------------------------------------------------------*/
-PRIVATE void  rd_ML_intern(void)
-{
-  char  *cp;
-  float  temp;
-
-  temp = rd_temp(fp);
-  cp   = get_array1(ML_intern37,NBPAIRS+1,temp);
-
-  if(strlen(cp)){
-    fprintf(stderr,"rd_ML_intern: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
 /*------------------------------------------------------------*/
 PRIVATE void  rd_MAX_ninio(void)
 {
   char  *cp;
   
-  cp = get_array1(&MAX_NINIO, 1, DEF_TEMP);
+  cp = get_array1(&MAX_NINIO, 1);
 
-  if(strlen(cp)){
+  if (cp) {
     fprintf(stderr,"rd_MAX_ninio: %s\n", cp);
     exit(1);
   }
-  free(cp);
   return;
 }
+
 /*------------------------------------------------------------*/
 PRIVATE void  rd_F_ninio(void)
 {
   char  *cp;
-  float  temp;
 
-  temp = rd_temp(fp);
-  cp = get_array1(F_ninio37, 5, temp);
+  cp = get_array1(F_ninio37, 5);
 
-  if(strlen(cp)){
+  if (cp) {
     fprintf(stderr,"rd_F_ninio: %s\n", cp);
     exit(1);
   }
-  free(cp);
   return;
 }
-/*------------------------------------------------------------*/
-PRIVATE void  rd_Tetra_energy(void)
-{
-  char  *cp;
-  float  temp;
 
-  temp = rd_temp(fp);
-  cp   = get_array1(&TETRA_ENERGY37,1, temp);
-
-  if(strlen(cp)){
-    fprintf(stderr,"rd_Tetra_energy: %s\n", cp);
-    exit(1);
-  }
-  free(cp);
-  return;
-}
 /*------------------------------------------------------------*/
 PRIVATE void  rd_Tetra_loop(void)
 {
-  int    i, c;
+  int    i, r;
   char   *buf;
-  
-  for(i=0; i<N_TETRALOOPS; i++ ){
-    ignore_blanks(fp);
+
+  i=0;
+  do {
+    /* ignore_blanks(fp); */
     buf = get_line(fp);
-    if(strlen(buf)!=4){
-      fprintf(stderr,"rd_Tetra_loop: wrong tetraloop %s\n", buf);
-      exit(1);
-    }
-    if(strcmp(buf,"****")!= 0)
-      strcpy(Tetraloops[i],buf);
+    r = sscanf(buf,"%4s %d", Tetraloops+5*i, &TETRA_ENERGY37[i]);
+    Tetraloops[5*i+4]=' ';
     free(buf);
-  }
+    i++;
+  } while((r==2)&&(i<40));
   return;
 }
+
 /*------------------------------------------------------------*/
-PRIVATE float rd_temp(FILE *f1)
+
+
+PUBLIC void ignore_comment(char * line)
 {
-  char  *line, c;
-  float  temp;
-
-  if((c=fgetc(f1)) != '#')
-    nrerror("error in parameter file for getting temperature");
-  line = get_line(f1);
-  sscanf(line,"%f", &temp );
-  free(line);
-
-  return temp;
-}
-/*------------------------------------------------------------*/
-PUBLIC void ignore_blanks(FILE *f1)
-{
-  int c;
-
-  while(isspace((c=fgetc(f1))));
-  if(ungetc(c,f1)!=c)
-    nrerror("error ocurred while skipping blanks in paramter file");
-
-  return;
-}
-/*------------------------------------------------------------*/  
-PUBLIC void ignore_comment(FILE *f1)
-{
-  int c, b;
-
-  while((c=fgetc(f1)) == ' ');  /* skip blanks */
-  if(c=='/'){
-    if((b=fgetc(f1)) == '*'){
-      while((b=fgetc(f1))!= '/' && b != EOF && c != '*' ) c = b;
-      return;
-    }
-    else if(b=='/') {
-      while(fgetc(fp)!='\n');
-      return; 
-    }
-    else{
-      if(ungetc(b,f1)!=b)
-	nrerror("error ocurred while skipping comment in paramter file");
-    }
+  /* excise C style comments */
+  /* only one comment per line, no multiline comments */
+  char *cp1, *cp2;
+  int d;
+  
+  if (cp1=strstr(line, "/*")) {
+    cp2 = strstr(cp1, "*/");
+    if (cp2==NULL)
+      nrerror("unclosed comment in parameter file");
+    /* can't use strcpy for overlapping strings */
+    for (cp2+=2; *cp2!='\0'; cp2++, cp1++)  
+      *cp1 = *cp2;
+    *cp1 = '\0';
   }
-  if(ungetc(c,f1)!=c)
-    nrerror("error ocurred while skipping comment in paramter file");
-
+  
   return;
 }
 /*------------------------------------------------------------*/  
-PUBLIC void read_to_eol(FILE *f1)
-{
-  char *line;
 
-  line = get_line(f1);
-  free(line);
-  return;
-}
-/*------------------------------------------------------------*/  
 PRIVATE void rescale(int *arr, char *ctrl, int size, float temp)
      /* rescale parameters to 37 C */
 {
@@ -656,8 +430,8 @@ PRIVATE void rescale(int *arr, char *ctrl, int size, float temp)
   cp = ctrl;
 
  
-  for(i=0; i<size; i++, p++, cp++){
-    if(*cp){
+  for(i=0; i<size; i++, p++, cp++) {
+    if (*cp) {
       switch(*p)
 	{
 	case    0:
@@ -666,8 +440,8 @@ PRIVATE void rescale(int *arr, char *ctrl, int size, float temp)
 	  break;
 	default:
 	  *p  = (int)(*p *(tempf));
-	  if(*p<-INF)      *p = -INF;
-	  else if(*p>INF) *p =  INF;
+	  if (*p<-INF)      *p = -INF;
+	  else if (*p>INF) *p =  INF;
 	  break;
 	}
     }
@@ -700,23 +474,23 @@ PRIVATE void extrapolate(int *arr, char *to_be_x, int size)
 #endif
   
   /* check for "negative" extrapolation */
-  for(i=0;i<size; i++, cp++, p++){
-    if(*p== INF || *p == -INF) *cp = 'i';
+  for(i=0;i<size; i++, cp++, p++) {
+    if (*p== INF || *p == -INF) *cp = 'i';
     else{
-      if(*cp && firstx<0)  firstx = i;
-      if(!(*cp) && last<0) last = i;
-      if(firstx >= 0 && last >= 0){
+      if (*cp && firstx<0)  firstx = i;
+      if (!(*cp) && last<0) last = i;
+      if (firstx >= 0 && last >= 0) {
 	p    = arr + firstx;
 	cp   = to_be_x + firstx;
 	base = *(arr+last);
 	no   = (double) last;
-	if(firstx < last ){ /* negative extrapolation */
-	  for(i=firstx; i<last; i++, cp++, p++){
+	if (firstx < last ) { /* negative extrapolation */
+	  for(i=firstx; i<last; i++, cp++, p++) {
 	    *cp = 0;
 	    *p  = base + (int)(lxc37*log((double)(i)/no));
 	         /* taken from scale_parameters */
-	    if(*p<-INF)     *p = -INF;
-	    else if(*p>INF) *p =  INF;
+	    if (*p<-INF)     *p = -INF;
+	    else if (*p>INF) *p =  INF;
 	  }
 	  i = size;
 	}
@@ -730,18 +504,18 @@ PRIVATE void extrapolate(int *arr, char *to_be_x, int size)
   p    =  arr;
   cp   =  to_be_x;
   
-  for(i=0; i<size; i++, p++, cp++){
-    if(*cp==1){
+  for(i=0; i<size; i++, p++, cp++) {
+    if (*cp==1) {
       if     (base== INF) *p =  INF;
-      else if(base==-INF) *p = -INF;
+      else if (base==-INF) *p = -INF;
       else{
 	*p = base+(int)(lxc37*log((double)(i)/no));
 	     /* taken from scale_parameters */
-	if(*p<-INF)     *p = -INF;
-	else if(*p>INF) *p =  INF;
+	if (*p<-INF)     *p = -INF;
+	else if (*p>INF) *p =  INF;
       }
     }
-    else if(*cp!='i'){
+    else if (*cp!='i') {
       base = *p;
       no   = (double)i;
     }
@@ -750,3 +524,51 @@ PRIVATE void extrapolate(int *arr, char *to_be_x, int size)
   return;
 }
 /*------------------------------------------------------------*/ 
+
+PRIVATE char *settype(enum parset s)
+{
+  switch(s)
+    {
+    case   SH: return "stack_enthalpies";
+    case    S: return "stack_energies";
+    case   HP: return "hairpin";
+    case    B: return "bulge";
+    case   IL: return "internal_loop";
+    case  MMH: return "mismatch_hairpin";
+    case  MMI: return "mismatch_interior";
+    case MM_H: return "mismatch_enthalpies";
+    case  DE5: return "dangle5";
+    case  DE3: return "dangle3";
+    case   ML: return "ML_params";
+    case   MN: return "MAX_NINIO";
+    case   FN: return "F_ninio";
+    case   TE: return "TETRA_ENERGY";
+    case   TL: return "Tetraloops";
+    case QUIT:
+    case DUMP:
+    case HELP: return "";
+    default: fprintf(stderr,"^8723300-3338111\n"); exit(-1);
+    }
+}
+/*------------------------------------------------------------*/ 
+
+PRIVATE enum parset gettype(char ident[])
+{
+  if (strcmp(ident,"stack_enthalpies") == 0)         return SH;   
+  else if (strcmp(ident,"stack_energies") == 0)      return S;    
+  else if (strcmp(ident,"hairpin" ) == 0) 	     return HP;   
+  else if (strcmp(ident,"bulge") == 0) 		     return B;    
+  else if (strcmp(ident,"internal_loop") == 0) 	     return IL;   
+  else if (strcmp(ident,"mismatch_hairpin") == 0)    return MMH;  
+  else if (strcmp(ident,"mismatch_interior") == 0)   return MMI;  
+  else if (strcmp(ident,"mismatch_enthalpies") == 0) return MM_H; 
+  else if (strcmp(ident,"dangle5")== 0) 	     return DE5;  
+  else if (strcmp(ident,"dangle3")== 0)		     return DE3;  
+  else if (strcmp(ident,"ML_params")== 0)	     return ML;  
+  else if (strcmp(ident,"MAX_NINIO") == 0)	     return MN;   
+  else if (strcmp(ident,"F_ninio") == 0) 	     return FN;   
+  else if (strcmp(ident,"Tetraloops") == 0)	     return TL;   
+  else if (strcmp(ident, "END") == 0) 		     return QUIT;
+  else return UNKNOWN;
+}
+
