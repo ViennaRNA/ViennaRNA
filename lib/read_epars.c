@@ -16,14 +16,14 @@
 #include "energy_const.h"
 #include "energy_par.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.5 1999/05/06 09:40:13 ivo Exp $";
+static char rcsid[] = "$Id: read_epars.c,v 1.6 2000/10/10 12:21:59 ivo Rel $";
 
 #define PUBLIC
 #define PRIVATE   static
 #define PARSET 20
-enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MM_H,
-	     DE5, DE3, DE5_H, DE3_H, ML, TL, TRI, TE, FN, MN, 
-	     SINT2, SINT2_H, DUMP, HELP}; 
+enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MMM, MM_H,
+	     DE5, DE3, DE5_H, DE3_H, ML, TL, TRI, TE, NIN,
+	     INT11, INT11_H, INT21, INT21_H, INT22, INT22_H, DUMP, HELP}; 
 
 
 /*------------------  identifiers ----------------------------*/
@@ -36,16 +36,18 @@ enum parset {UNKNOWN= -1, QUIT, S, SH, HP, B, IL, MMI, MMH, MM_H,
 PUBLIC  void  read_parameter_file(const char fname[]);
 PUBLIC  void  write_parameter_file(const char fname[]);
   
-PRIVATE void  rd_stacks(int stack[NBPAIRS+1][NBPAIRS+1]);
-PRIVATE void  rd_loop(int looparray[31]);
-PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][5]);
-PRIVATE void  rd_sint2(int Sint2[NBPAIRS+1][NBPAIRS+1][5][5]);
-PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][5]);
+PRIVATE void  rd_stacks(int stack[NBPAIRS+1][]);
+PRIVATE void  rd_loop(int looparray[]);
+PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][]);
+PRIVATE void  rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][]);
+PRIVATE void  rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][]);
+PRIVATE void  rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][]);
+PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][]);
 PRIVATE void  rd_MLparams(void);
-PRIVATE void  rd_MAX_ninio(void);
-PRIVATE void  rd_F_ninio(void);
+PRIVATE void  rd_ninio(void);
 PRIVATE void  rd_Tetra_loop(void);
 PRIVATE void  rd_Tri_loop(void);
+PRIVATE void check_symmetry(void);
 
 PRIVATE enum parset gettype(char ident[]);
 PRIVATE char *get_array1(int *arr, int size);
@@ -95,25 +97,29 @@ PUBLIC void read_parameter_file(const char fname[])
       switch (type)
 	{
 	case QUIT: break;
-	case SH:    rd_stacks(enthalpies);    changed |= SH; break;
-	case S:     rd_stacks(stack37);       changed |= S;  break;
-	case HP:    rd_loop(hairpin37);       changed |= HP; break;
-	case B:     rd_loop(bulge37);         changed |= B;  break;
-	case IL:    rd_loop(internal_loop37); changed |= IL; break;
-	case MMH:   rd_mismatch(mismatchH37); changed |= MMH; break;
-	case MMI:   rd_mismatch(mismatchI37); changed |= MMI; break;
-	case MM_H:  rd_mismatch(mism_H);      changed |= MM_H; break;
-	case SINT2:  rd_sint2(Sint2_37);      changed |= SINT2; break;
-	case SINT2_H:rd_sint2(Sint2_H);       changed |= SINT2_H; break;
-	case DE5:   rd_dangle(dangle5_37);    changed |= DE5;  break;
-	case DE5_H: rd_dangle(dangle5_H);     changed |= DE5_H;  break;
-	case DE3:   rd_dangle(dangle3_37);    changed |= DE3; break;
-	case DE3_H: rd_dangle(dangle3_H);     changed |= DE3_H; break;
-	case ML:    rd_MLparams();	      changed |= ML;  break;
-	case MN:    rd_MAX_ninio();	      changed |= MN; break;
-	case FN:    rd_F_ninio();	      changed |= FN; break;
-	case TL:    rd_Tetra_loop();          changed |= TL; break;
-	case TRI:   rd_Tri_loop();            changed |= TRI; break;
+	case SH:     rd_stacks(enthalpies);    changed |= SH; break;
+	case S:      rd_stacks(stack37);       changed |= S;  break;
+	case HP:     rd_loop(hairpin37);       changed |= HP; break;
+	case B:      rd_loop(bulge37);         changed |= B;  break;
+	case IL:     rd_loop(internal_loop37); changed |= IL; break;
+	case MMH:    rd_mismatch(mismatchH37); changed |= MMH; break;
+	case MMI:    rd_mismatch(mismatchI37); changed |= MMI; break;
+	case MMM:    rd_mismatch(mismatchM37); changed |= MMM; break;
+	case MM_H:   rd_mismatch(mism_H);      changed |= MM_H; break;
+	case INT11:  rd_int11(int11_37);       changed |= INT11; break;
+	case INT11_H:rd_int11(int11_H);        changed |= INT11_H; break;
+	case INT21:  rd_int21(int21_37);       changed |= INT21; break;
+	case INT21_H:rd_int21(int21_H);        changed |= INT21_H; break;
+	case INT22:  rd_int22(int22_37);       changed |= INT22; break;
+	case INT22_H:rd_int22(int22_H);        changed |= INT22_H; break;
+	case DE5:    rd_dangle(dangle5_37);    changed |= DE5;  break;
+	case DE5_H:  rd_dangle(dangle5_H);     changed |= DE5_H;  break;
+	case DE3:    rd_dangle(dangle3_37);    changed |= DE3; break;
+	case DE3_H:  rd_dangle(dangle3_H);     changed |= DE3_H; break;
+	case ML:     rd_MLparams();	       changed |= ML;  break;
+	case NIN:    rd_ninio();	       changed |= NIN; break;
+	case TL:     rd_Tetra_loop();          changed |= TL; break;
+	case TRI:    rd_Tri_loop();            changed |= TRI; break;
 	default: /* maybe it's a temperature */
 	  r=sscanf(ident, "%f", &rtemp);
 	  if (r!=1) fprintf(stderr," Unknown field identifier in `%s'\n", line);
@@ -123,7 +129,8 @@ PUBLIC void read_parameter_file(const char fname[])
   }
   
   fclose(fp);
-  
+
+  check_symmetry();
   return;
 }
 
@@ -133,7 +140,7 @@ PRIVATE void display_array(int *p, int size, int nl, FILE *fp)
 {
   int i;
   
-  for(i=1; i<=size; i++, p++) {
+  for (i=1; i<=size; i++, p++) {
     switch(*p)
       {
       case  INF: fprintf(fp,"   INF"); break;
@@ -193,8 +200,8 @@ PRIVATE void  rd_stacks(int stacks[NBPAIRS+1][NBPAIRS+1])
 {
   int    i;
   char  *cp; 
-  for(i=0; i<NBPAIRS+1; i++) {
-    cp = get_array1(stacks[i],NBPAIRS+1);
+  for (i=1; i<=NBPAIRS; i++) {
+    cp = get_array1(stacks[i]+1,NBPAIRS);
     if (cp) {
       fprintf(stderr,"\nrd_stacks: %s\n", cp);
       exit(1);
@@ -223,7 +230,7 @@ PRIVATE void rd_mismatch(int mismatch[NBPAIRS+1][5][5])
   char  *cp;
   int    i;
 
-  for(i=0; i<NBPAIRS+1; i++) {
+  for (i=1; i<NBPAIRS+1; i++) {
     
     cp = get_array1(mismatch[i][0],5*5);
     if (cp) {
@@ -235,21 +242,65 @@ PRIVATE void rd_mismatch(int mismatch[NBPAIRS+1][5][5])
 }
 
 /*------------------------------------------------------------*/
-PRIVATE void rd_sint2(int sint2[NBPAIRS+1][NBPAIRS+1][5][5])
+PRIVATE void rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][5])
 {
   char  *cp;
   int    i, j;
 
-  for(i=0; i<NBPAIRS+1; i++) {
-    for(j=0; j<NBPAIRS+1; j++) {
-    
-      cp = get_array1(sint2[i][j][0],5*5);
+  for (i=1; i<NBPAIRS+1; i++) {
+    for (j=1; j<NBPAIRS+1; j++) {
+      
+      cp = get_array1(int11[i][j][0],5*5);
       if (cp) {
-	fprintf(stderr, "rd_sint2: in field sint2[%d][%d]\n\t%s\n", i, j, cp);
+	fprintf(stderr, "rd_int11: in field int11[%d][%d]\n\t%s\n", i, j, cp);
 	exit(1);
       }
     }
   }
+  return;
+}
+
+/*------------------------------------------------------------*/
+PRIVATE void rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5])
+{
+  char  *cp;
+  int    i, j, k;
+  
+  for (i=1; i<NBPAIRS+1; i++) {
+    for (j=1; j<NBPAIRS+1; j++) {
+      for (k=0; k<5; k++) {
+	cp = get_array1(int21[i][j][k][0],5*5);
+	if (cp) {
+	  fprintf(stderr, "rd_int21: in field int21[%d][%d][%d]\n\t%s\n",
+		  i, j, k, cp);
+	  exit(1);
+	}
+      }
+    }
+  }
+  return;
+}
+
+/*------------------------------------------------------------*/
+PRIVATE void rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5])
+{
+  char  *cp;
+  int    i, j, k, l, m;
+  
+  for (i=1; i<NBPAIRS+1; i++) 
+    for (j=1; j<NBPAIRS+1; j++)
+      for (k=1; k<5; k++) 
+	for (l=1; l<5; l++)
+	  for (m=1; m<5; m++) {
+	    cp = get_array1(int22[i][j][k][l][m]+1,4);
+	    if (cp) {
+	      fprintf(stderr, "rd_int22: in field "
+		      "int22[%d][%d][%d][%d][%d]\n\t%s\n",
+		      i, j, k, l, m, cp);
+	      exit(1);
+	    }
+	  }
+
   return;
 }
 
@@ -259,7 +310,7 @@ PRIVATE void  rd_dangle(int dangle[NBPAIRS+1][5])
   int   i;
   char *cp;
 
-  for(i=0; i< NBPAIRS+1; i++) {
+  for (i=0; i< NBPAIRS+1; i++) {
     cp = get_array1(dangle[i],5);
     if (cp) {
       fprintf(stderr,"\nrd_dangle: %s\n", cp);
@@ -273,9 +324,9 @@ PRIVATE void  rd_dangle(int dangle[NBPAIRS+1][5])
 PRIVATE void  rd_MLparams(void)
 {
   char *cp;
-  int values[3];
+  int values[4];
 
-  cp   = get_array1(values,3);
+  cp   = get_array1(values,4);
   if (cp) {
     fprintf(stderr,"rd_MLparams: %s\n", cp);
     exit(1);
@@ -284,35 +335,26 @@ PRIVATE void  rd_MLparams(void)
   ML_BASE37 = values[0];
   ML_closing37 = values[1];
   ML_intern37  = values[2];
+  TerminalAU   = values[3];
   
   return;
 }
 
 /*------------------------------------------------------------*/
-PRIVATE void  rd_MAX_ninio(void)
+
+PRIVATE void  rd_ninio(void)
 {
   char  *cp;
-  
-  cp = get_array1(&MAX_NINIO, 1);
+  int temp[2];
 
-  if (cp) {
-    fprintf(stderr,"rd_MAX_ninio: %s\n", cp);
-    exit(1);
-  }
-  return;
-}
-
-/*------------------------------------------------------------*/
-PRIVATE void  rd_F_ninio(void)
-{
-  char  *cp;
-
-  cp = get_array1(F_ninio37, 5);
+  cp = get_array1(temp, 2);
 
   if (cp) {
     fprintf(stderr,"rd_F_ninio: %s\n", cp);
     exit(1);
   }
+  F_ninio37[2] = temp[0];
+  MAX_NINIO  = temp[1];
   return;
 }
 
@@ -326,11 +368,11 @@ PRIVATE void  rd_Tetra_loop(void)
   do {
     buf = get_line(fp);
     if (buf==NULL) break;
-    r = sscanf(buf,"%4s %d", &Tetraloops[5*i], &TETRA_ENERGY37[i]);
-    Tetraloops[5*i+4]=' ';
+    r = sscanf(buf,"%6s %d", &Tetraloops[7*i], &TETRA_ENERGY37[i]);
+    Tetraloops[7*i+6]=' ';
     free(buf);
     i++;
-  } while((r==2)&&(i<40));
+  } while((r==2)&&(i<80));
   return;
 }
 
@@ -375,7 +417,7 @@ PRIVATE void ignore_comment(char * line)
 }
 /*------------------------------------------------------------*/  
 
-
+/*@unused@*/
 PRIVATE char *settype(enum parset s)
 {
   switch(s)
@@ -387,16 +429,20 @@ PRIVATE char *settype(enum parset s)
     case   IL: return "internal_loop";
     case  MMH: return "mismatch_hairpin";
     case  MMI: return "mismatch_interior";
+    case  MMM: return "mismatch_multi";
     case MM_H: return "mismatch_enthalpies";
     case  DE5: return "dangle5";
     case  DE3: return "dangle3";
     case  DE5_H: return "dangle5_enthalpies";
     case  DE3_H: return "dangle3_enthalpies";
-    case SINT2:  return " sint2_energies";
-    case SINT2_H:  return " sint2_enthalpies";  
+    case INT11:  return " int11_energies";
+    case INT11_H:  return " int11_enthalpies";  
+    case INT21:  return " int21_energies";
+    case INT21_H:  return " int21_enthalpies";  
+    case INT22:  return " int22_energies";
+    case INT22_H:  return " int22_enthalpies";  
     case   ML: return "ML_params";
-    case   MN: return "MAX_NINIO";
-    case   FN: return "F_ninio";
+    case  NIN: return "NINIO";
     case   TL: return "Tetraloops";
     case  TRI: return "Triloops";  
     case QUIT:
@@ -416,17 +462,21 @@ PRIVATE enum parset gettype(char ident[])
   else if (strcmp(ident,"bulge") == 0) 		     return B;    
   else if (strcmp(ident,"internal_loop") == 0) 	     return IL;   
   else if (strcmp(ident,"mismatch_hairpin") == 0)    return MMH;  
-  else if (strcmp(ident,"mismatch_interior") == 0)   return MMI;  
+  else if (strcmp(ident,"mismatch_interior") == 0)   return MMI;
+  else if (strcmp(ident,"mismatch_multi") == 0)      return MMM;  
   else if (strcmp(ident,"mismatch_enthalpies") == 0) return MM_H;
-  else if (strcmp(ident,"sint2_energies") == 0)      return SINT2;  
-  else if (strcmp(ident,"sint2_enthalpies") == 0)    return SINT2_H;
+  else if (strcmp(ident,"int11_energies") == 0)      return INT11;  
+  else if (strcmp(ident,"int11_enthalpies") == 0)    return INT11_H;
+  else if (strcmp(ident,"int21_energies") == 0)      return INT21;  
+  else if (strcmp(ident,"int21_enthalpies") == 0)    return INT21_H;
+  else if (strcmp(ident,"int22_energies") == 0)      return INT22;  
+  else if (strcmp(ident,"int22_enthalpies") == 0)    return INT22_H;
   else if (strcmp(ident,"dangle5")== 0) 	     return DE5;  
   else if (strcmp(ident,"dangle3")== 0)		     return DE3;  
   else if (strcmp(ident,"dangle5_enthalpies")== 0)   return DE5_H;  
   else if (strcmp(ident,"dangle3_enthalpies")== 0)   return DE3_H;  
   else if (strcmp(ident,"ML_params")== 0)	     return ML;  
-  else if (strcmp(ident,"MAX_NINIO") == 0)	     return MN;   
-  else if (strcmp(ident,"F_ninio") == 0) 	     return FN;   
+  else if (strcmp(ident,"NINIO") == 0)	             return NIN;   
   else if (strcmp(ident,"Tetraloops") == 0)	     return TL;
   else if (strcmp(ident,"Triloops") == 0)	     return TRI;     
   else if (strcmp(ident, "END") == 0) 		     return QUIT;
@@ -438,7 +488,8 @@ PRIVATE enum parset gettype(char ident[])
 PUBLIC void write_parameter_file(const char fname[]) {
   FILE *outfp;
   int c;
-
+  char *pnames[] = {"NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"};
+  char bnames[] = "@ACGU";
   outfp = fopen(fname, "w");
   if (!outfp) {
     fprintf(stderr, "can't open file %s\n", fname);
@@ -447,86 +498,134 @@ PUBLIC void write_parameter_file(const char fname[]) {
   fprintf(outfp,"## RNAfold parameter file\n");
   
   fprintf(outfp,"\n# stack_energies\n");
-  fprintf(outfp,"/*       CG    GC    GU    UG    AU    UA    @  */\n");
-  for(c=0; c<NBPAIRS+1; c++)
-    display_array(stack37[c],NBPAIRS+1,NBPAIRS+1, outfp);
+  fprintf(outfp,"/*  CG    GC    GU    UG    AU    UA    @  */\n");
+  for (c=1; c<NBPAIRS+1; c++)
+    display_array(stack37[c]+1,NBPAIRS,NBPAIRS, outfp);
   
   fprintf(outfp,"\n# stack_enthalpies\n");
-  fprintf(outfp,"/*       CG    GC    GU    UG    AU    UA    @  */\n");
-  for(c=0; c<NBPAIRS+1; c++)
-    display_array(enthalpies[c],NBPAIRS+1,NBPAIRS+1, outfp);
+  fprintf(outfp,"/*  CG    GC    GU    UG    AU    UA    @  */\n");
+  for (c=1; c<NBPAIRS+1; c++)
+    display_array(enthalpies[c]+1,NBPAIRS,NBPAIRS, outfp);
   
   fprintf(outfp,"\n# mismatch_hairpin\n");
   { int i,k;
-  for(k=0; k<NBPAIRS+1; k++)
-    for(i=0; i<5; i++) 
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
       display_array(mismatchH37[k][i],5,5, outfp);
   }
   
   fprintf(outfp,"\n# mismatch_interior\n");
   { int i,k;
-  for(k=0; k<NBPAIRS+1; k++)
-    for(i=0; i<5; i++) 
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
       display_array(mismatchI37[k][i],5,5, outfp);
+  }
+
+  fprintf(outfp,"\n# mismatch_multi\n");
+  { int i,k;
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
+      display_array(mismatchM37[k][i],5,5, outfp);
   }
   
   fprintf(outfp,"\n# mismatch_enthalpies\n");
   { int i,k;
-  for(k=0; k<NBPAIRS+1; k++)
-    for(i=0; i<5; i++) 
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
       display_array(mism_H[k][i],5,5, outfp);
   }
   fprintf(outfp,"\n# dangle5\n");
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for(c=0; c<NBPAIRS+1; c++)
+  for (c=0; c<NBPAIRS+1; c++)
     display_array(dangle5_37[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# dangle3\n");
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for(c=0; c<NBPAIRS+1; c++)
+  for (c=0; c<NBPAIRS+1; c++)
     display_array(dangle3_37[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# dangle5_enthalpies\n");
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for(c=0; c<NBPAIRS+1; c++)
+  for (c=0; c<NBPAIRS+1; c++)
     display_array(dangle5_H[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# dangle3_enthalpies\n");
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for(c=0; c<NBPAIRS+1; c++)
+  for (c=0; c<NBPAIRS+1; c++)
     display_array(dangle3_H[c], 5, 5, outfp);
 
 
-  fprintf(outfp,"\n# sint2_energies\n");
+  /* don;t print "no pair" entries for interior loop arrays */
+  fprintf(outfp,"\n# int11_energies\n");
   { int i,k,l;
-  char *pnames[] = {"NP", "GC", "CG", "GU", "UG", "AU", "UA", " @"};
-  for(l=0; l<NBPAIRS+1; l++) {
-    fprintf(outfp, "/* %2s..%2s */\n", pnames[0], pnames[l]);
-    display_array(Sint2_37[0][l][0],25,25, outfp);
-  }
-  for(k=1; k<NBPAIRS+1; k++)
-    for(l=0; l<NBPAIRS+1; l++) {
+  for (k=1; k<NBPAIRS+1; k++)
+    for (l=1; l<NBPAIRS+1; l++) {
       fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
-      for(i=0; i<5; i++) 
-	display_array(Sint2_37[k][l][i],5,5, outfp);
+      for (i=0; i<5; i++)
+	display_array(int11_37[k][l][i], 5, 5, outfp);
     }
   }
 
-  fprintf(outfp,"\n# sint2_enthalpies\n");
+  fprintf(outfp,"\n# int11_enthalpies\n");
   { int i,k,l;
-  char *pnames[] = {"NP", "GC", "CG", "GU", "UG", "AU", "UA", " @"};
-  for(l=0; l<NBPAIRS+1; l++) {
-    fprintf(outfp, "/* %2s..%2s */\n", pnames[0], pnames[l]);
-    display_array(Sint2_H[0][l][0],25,25, outfp);
-  }
-  for(k=1; k<NBPAIRS+1; k++)
-    for(l=0; l<NBPAIRS+1; l++) {
+  for (k=1; k<NBPAIRS+1; k++)
+    for (l=1; l<NBPAIRS+1; l++) {
       fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
-      for(i=0; i<5; i++) 
-	display_array(Sint2_H[k][l][i],5,5, outfp);
+      for (i=0; i<5; i++) 
+	display_array(int11_H[k][l][i],5,5, outfp);
     }
   }
 
+  fprintf(outfp,"\n# int21_energies\n");
+  { int p1, p2, i, j;
+  for (p1=1; p1<NBPAIRS+1; p1++) 
+    for (p2=1; p2<NBPAIRS+1; p2++)
+      for (i=0; i<5; i++) {
+	fprintf(outfp, "/* %2s.%c..%2s */\n",
+		pnames[p1], bnames[i], pnames[p2]);
+	for (j=0; j<5; j++)
+	  display_array(int21_37[p1][p2][i][j],5,5, outfp);
+      }
+  }
+
+  fprintf(outfp,"\n# int21_enthalpies\n");
+  { int p1, p2, i, j;
+  for (p1=1; p1<NBPAIRS+1; p1++) 
+    for (p2=1; p2<NBPAIRS+1; p2++)
+      for (i=0; i<5; i++) {
+	fprintf(outfp, "/* %2s.%c..%2s */\n",
+		pnames[p1], bnames[i], pnames[p2]);
+	for (j=0; j<5; j++)
+	  display_array(int21_H[p1][p2][i][j],5,5, outfp);
+      }
+  }
+
+  fprintf(outfp,"\n# int22_energies\n");
+  { int p1, p2, i, j, k;
+  for (p1=1; p1<NBPAIRS+1; p1++) 
+    for (p2=1; p2<NBPAIRS+1; p2++)
+      for (i=1; i<5; i++)
+	for (j=1; j<5; j++) {
+	  fprintf(outfp, "/* %2s.%c%c..%2s */\n",
+		  pnames[p1], bnames[i], bnames[j], pnames[p2]);
+	  for (k=1; k<5; k++) 
+	    display_array(int22_37[p1][p2][i][j][k]+1,4,5, outfp);
+	}
+  }
+  
+  fprintf(outfp,"\n# int22_enthalpies\n");
+  { int p1, p2, i, j, k;
+  for (p1=1; p1<NBPAIRS+1; p1++) 
+    for (p2=1; p2<NBPAIRS+1; p2++)
+      for (i=1; i<5; i++)
+	for (j=1; j<5; j++) {
+	  fprintf(outfp, "/* %2s.%c%c..%2s */\n",
+		  pnames[p1], bnames[i], bnames[j], pnames[p2]);
+	  for (k=1; k<5; k++) 
+	    display_array(int22_H[p1][p2][i][j][k]+1,4,5, outfp);
+	}
+  }
+  
   fprintf(outfp,"\n# hairpin\n");
   display_array(hairpin37, 31, 10, outfp);
   
@@ -537,20 +636,77 @@ PUBLIC void write_parameter_file(const char fname[]) {
   display_array(internal_loop37, 31, 10, outfp);
   
   fprintf(outfp,"\n# ML_params\n");
-  fprintf(outfp,"/* F = cu*n_unpaired + ci*loop_degree + cc  */\n");
-  fprintf(outfp,"/*\t    cu\t    cc\t    ci */\n");
-  fprintf(outfp,"\t%6d\t%6d\t%6d\n", ML_BASE37, ML_closing37, ML_intern37);
+  fprintf(outfp,"/* F = cu*n_unpaired + cc + ci*loop_degree (+TermAU) */\n");
+  fprintf(outfp,"/*\t    cu\t    cc\t    ci\t TerminalAU */\n");
+  fprintf(outfp,"\t%6d\t%6d\t%6d\t%6d\n",
+	  ML_BASE37, ML_closing37, ML_intern37, TerminalAU);
   
-  fprintf(outfp,"\n# MAX_NINIO\n\t%d\n", MAX_NINIO);
+  fprintf(outfp,"\n# NINIO\n"
+	  "/* Ninio = MIN(max, m*|n1-n2| */\n"
+	  "/*       m   max              */\n"
+	  "\t%3d %4d\n", F_ninio37[2], MAX_NINIO);
 
   fprintf(outfp,"\n# Tetraloops\n");
-  for(c=0; c< strlen(Tetraloops)/5; c++)
-    fprintf(outfp,"\t%.4s\t%4d\n", Tetraloops+c*5, TETRA_ENERGY37[c]);
+  for (c=0; c< strlen(Tetraloops)/7; c++)
+    fprintf(outfp,"\t%.6s\t%4d\n", Tetraloops+c*7, TETRA_ENERGY37[c]);
 
   fprintf(outfp,"\n# Triloops\n");
-  for(c=0; c< strlen(Triloops)/6; c++)
+  for (c=0; c< strlen(Triloops)/6; c++)
     fprintf(outfp,"\t%.5s\t%4d\n", Triloops+c*6, Triloop_E37[c]);
 
   fprintf(outfp, "\n#END\n");
   fclose(outfp);
+}
+
+PRIVATE void check_symmetry(void) {
+  int i,j,k,l;
+
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      if (stack37[i][j] != stack37[j][i])
+	fprintf(stderr, "WARNING: stacking energies not symmetric\n");
+
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      if (enthalpies[i][j] != enthalpies[j][i])
+	fprintf(stderr, "WARNING: stacking enthalpies not symmetric\n");
+
+  
+  /* interior 1x1 loops */
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      for (k=0; k<5; k++)
+        for (l=0; l<5; l++) 
+          if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
+	    fprintf(stderr, "WARNING: int11 energies not symmetric\n");
+
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      for (k=0; k<5; k++)
+        for (l=0; l<5; l++) 
+          if (int11_H[i][j][k][l] != int11_H[j][i][l][k])
+	    fprintf(stderr, "WARNING: int11 enthalpies not symmetric\n");
+
+  /* interior 2x2 loops */
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      for (k=0; k<5; k++)
+        for (l=0; l<5; l++) {
+          int m,n;
+          for (m=0; m<5; m++)
+            for (n=0; n<5; n++)      
+              if (int22_37[i][j][k][l][m][n] != int22_37[j][i][m][n][k][l])
+		fprintf(stderr, "WARNING: int22 energies not symmetric\n");
+        }
+
+  for (i=0; i<=NBPAIRS; i++)
+    for (j=0; j<=NBPAIRS; j++)
+      for (k=0; k<5; k++)
+        for (l=0; l<5; l++) {
+          int m,n;
+          for (m=0; m<5; m++)
+            for (n=0; n<5; n++)      
+              if (int22_H[i][j][k][l][m][n] != int22_H[j][i][m][n][k][l])
+		fprintf(stderr, "WARNING: int22 enthalpies not symmetric: %d %d %d %d %d %d\n", i,j,k,l,m,n);
+        }
 }
