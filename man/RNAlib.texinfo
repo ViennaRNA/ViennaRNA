@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2002-11-07 17:00:39 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.10 2002/11/07 16:01:16 ivo Exp $
+@c Last changed Time-stamp: <2002-12-01 19:06:03 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.11 2002/12/02 14:48:07 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -271,7 +271,7 @@ stacking.@*
 If @code{dangles = 3} co-axial stacking is explicitly included for
 adjacent helices in mutli-loops. The option affects only mfe folding
 and energy evaluation (@code{fold()} and @code{energy_of_struct()}), as
-well as suboptimal folding via re-evaluation of energies.
+well as suboptimal folding (@code{subopt()}) via re-evaluation of energies.
 Co-axial stacking with one intervening mismatch is not considered so far.
 
 Default is 1, @code{pf_fold()} treats 1 as 2. 
@@ -859,12 +859,12 @@ argument. It does not make use of the global @code{base_pair} array anymore.
 
 @deftypefun int PS_rna_plot_a (char* @var{sequence}, char* @var{structure}, char* @var{filename}, char* @var{pre}), char* @var{post}))
 Same as @code{PS_rna_plot} but adds extra PostScript macros for various
-annotations (see generated PS code). The @var{pre} and @var{post}
+annotations (see generated PS code). The @var{pre} and @post{post}
 variables contain PostScript code that is verbatim copied in the
 resulting PS file just before and after the structure plot.
 @end deftypefun
 
-@deftypefun int gmlRNA (char* @var{sequence}, char* @var{structure}, char* @var{filename})
+@deftypefun int svg_RNA_plot (char* @var{sequence}, char* @var{structure}, char* @var{filename})
 produces a secondary structure plot in SVG format and writes it to
 @var{filename}.
 @end deftypefun

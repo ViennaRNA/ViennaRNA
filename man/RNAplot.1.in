@@ -3,7 +3,7 @@
 .SH NAME
 RNAplot \- Draw RNA Secondary Structures
 .SH SYNOPSIS
-\fBRNAplot [\-t\ \fI0|1\fP] [\-o\ \fIps|gml|xrna\fP]
+\fBRNAplot [\-t\ \fI0|1\fP] [\-o\ \fIps|gml|xrna|svg\fP]
 
 .SH DESCRIPTION
 .I RNAplot
@@ -27,10 +27,11 @@ overwritten.
 Choose the layout algorithm. Simple radial layout if 0, or naview if 1.
 Default is 1.
 .TP
-.B \-o\ \fIps|gml|xrna\fP
-Specify output format. Available formats are: PostScript (ps), Graph Meta 
-Language (gml), and XRNA save file (xrna). Output filenames will end
-in '.ps' '.gml' '.ss', respectively. Default is ps.
+.B \-o\ \fIps|gml|xrna|svg\fP
+Specify output format. Available formats are: PostScript (ps), Graph
+Meta Language (gml), Scalage Vector Graphics (svg), and XRNA save file
+(xrna). Output filenames will end in '.ps' '.gml' '.svg' '.ss',
+respectively. Default is ps.
 
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.

@@ -3,7 +3,7 @@
 .SH NAME
 RNAsubopt \- calculate suboptimal secondary structures of RNAs
 .SH SYNOPSIS
-\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep prange] [\-s] [\-lodos] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
+\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep prange] [\-s] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
 
 .SH DESCRIPTION
 .I RNAsubopt 
@@ -19,29 +19,27 @@ Calculate suboptimal structures within \fIrange\fP kcal/mol of the mfe.
 Default is 1.
 .TP
 .B \-s
-Sort the structures by energy. Uses more memory and CPU
-time. For larger calculations, better pipe the output through `sort +1n'.
-.TP
-.B \-lodos 
-Calculate the Lower Density of States. Output lines consist of an energy
-followed by the number of structures with that energy, suitable for
-plotting the density of states. Does not print the structures themselves.
+Sort the structures by energy. Since the sort in is done in memory,
+this becomes inparctical when the number of structures produced goes
+into millions. In such cases better pipe the output through `sort +1n'. 
 .TP
 .B \-d[0|1|2|3]
-Change treatment of dangling ends, as in RNAfold and RNAeval.
-The default is -d2 (as in partition function folding). If -d1 or -d3 are
-specified energies are re-evaluated before printing, which may incur a
-performance penalty (see also -ep and -logML).
+Change treatment of dangling ends, as in RNAfold and RNAeval.  The
+default is -d2 (as in partition function folding). If -d1 or -d3 are
+specified the structures are generated as with -d2 but energies are
+re-evaluated before printing.
 .TP
 .B \-logML
 re-calculate energies of structures using a logarithmic energy function for
-multi-loops. This option does not effect structure generation, only the
-energies that is printed out. Since logML lowers energies somewhat, some
-structures may be missing.
+multi-loops before output. This option does not effect structure
+generation, only the energies that is printed out. Since logML lowers
+energies somewhat, some structures may be missing.
 .TP
 .B \-ep \fIprange\fP
 Only print structures with energy within prange of the mfe. Useful in
-conjunction with -logML, -d1 or -d3.
+conjunction with -logML, -d1 or -d3: while the -e option specifies the
+range before energies are re-evaluate, -ep specifies the maimum energy
+atfer re-evaluation.
 .TP
 .B \-noLP
 Only produce structures without lonely pairs (helices of length 1). This
