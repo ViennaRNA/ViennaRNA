@@ -5,7 +5,7 @@
 		 c Ivo L Hofacker and Peter F Stadler
 			  Vienna RNA package
 */
-/*Last changed Time-stamp: <97/07/28 20:59:02 ivo> */
+/*Last changed Time-stamp: <97/08/28 23:06:58 ivo> */
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -72,7 +72,14 @@ void PS_dot_plot(char *string, char *wastlfile)
    fprintf(wastl,"   fill\n");
    fprintf(wastl,"} def\n");
    fprintf(wastl,"\n");
-   fprintf(wastl,"/sequence { (%s) } def\n", string);
+   /* EPS should not contain lines >255 characters */
+   fprintf(wastl,"/sequence { (\n");
+   i=0;
+   while (i<length) {
+      fprintf(wastl, "%.255s\\\n", string+i);
+      i+=255;
+   }
+   fprintf(wastl,") } def\n");
    fprintf(wastl,"/len { sequence length } def\n\n");
    
    fprintf(wastl,"72 216 translate\n");
@@ -295,7 +302,8 @@ void PS_rna_plot(char *string, char *structure, char *ssfile)
      return;
   }
 
-  pair_table = (short *) space((length+1)*sizeof(short));
+  /* pair_table[length+1] should be 0 */
+  pair_table = (short *) space((length+2)*sizeof(short));  
   make_pair_table(structure, pair_table);
   
   parse(length);
