@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1999-04-06 18:06:16 ivo> */
+/* Last changed Time-stamp: <2000-10-10 09:41:23 ivo> */
 /*                
 		Ineractive Access to suboptimal folding
 
@@ -8,13 +8,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "fold.h"
 #include "fold_vars.h"
 #include "utils.h"
-static char rcsid[] = "$Id: RNAsubopt.c,v 1.3 1999/05/06 10:11:32 ivo Exp $";
+extern void  read_parameter_file(const char fname[]);
+/*@unused@*/
+static char rcsid[] = "$Id: RNAsubopt.c,v 1.4 2000/10/10 07:54:50 ivo Rel $";
 
 #define PRIVATE static
 
@@ -23,40 +25,38 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 
 PRIVATE void usage(void);
 
-int sorted=0;
-int delta=100;
-char *sequence;
+/* subopt options */
+extern int sorted;
+extern int LODOS_ONLY;
+extern float print_energy;
 
-int LODOS_ONLY = 0;
-
-extern void subopt(int delta);
+extern void subopt(char *sequence, char *structure, int delta);
 
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
    char  *line;
-   char *structure = NULL, *cstruc = NULL;
+   char *sequence;
+   char *structure = NULL;
    char  fname[21];
-   char  ParamFile[256] = "";
-   char  ns_bases[33] = "", *c;
+   char  *ParamFile = NULL;
+   char  *ns_bases = NULL, *c;
    int   i, length, l, sym, r;
-   float energy, min_en;
    int   istty;
    float deltaf, deltap=0;
-   extern float print_energy;
+   int delta=100;
    
    do_backtrack = 1;
    dangles = 2;
-   sequence=NULL;
    for (i=1; i<argc; i++) {
       if (argv[i][0]=='-') 
 	switch ( argv[i][1] )
 	  {
 	  case 'T':  if (argv[i][2]!='\0') usage();
 	    if(i==argc-1) usage();
-	    r=sscanf(argv[++i], "%f", &temperature);
-	    if (!r) usage();
+	    r=sscanf(argv[++i], "%lf", &temperature);
+	    if (r!=1) usage();
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
@@ -64,8 +64,7 @@ int main(int argc, char *argv[])
 	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
 	    if ( strcmp(argv[i], "-nsp") ==0) {
 	      if (i==argc-1) usage();
-	      r=sscanf(argv[++i], "%32s", ns_bases);
-	      if (!r) usage();
+	      ns_bases = argv[++i];
 	    }
 	    break;
 	  case '4':
@@ -75,14 +74,14 @@ int main(int argc, char *argv[])
  	    fold_constrained=1; 
  	    break; 
 	  case 'd': dangles=0;
-	    if (strcmp(argv[i],"-d2")==0) dangles=2;
-	    /* danlges == 1 not allowed in subopt() */
-	    if (strcmp(argv[i],"-d1")==0) usage();
+	    if (argv[i][2]!='\0') {
+              r=sscanf(argv[i]+2, "%d", &dangles);
+	      if (r!=1) usage();
+	    }
 	    break;
 	  case 'P':
 	    if (i==argc-1) usage();
-	    r=sscanf(argv[++i], "%255s", ParamFile);
-	    if (!r) usage();
+	    ParamFile = argv[++i];
 	    break;
 	  case 's':
 	    sorted=1;
@@ -101,9 +100,10 @@ int main(int argc, char *argv[])
 	    }
 	    break;
 	  case 'e':
-	    if (strcmp(argv[i],"-ep")==0) {
+	    if (i>=argc-1) usage();
+	    if (strcmp(argv[i],"-ep")==0) 
 	      r=sscanf(argv[++i], "%f", &deltap);
-	    } else {
+	    else {
 	      r=sscanf(argv[++i], "%f", &deltaf);
 	      delta = (int) (0.1+deltaf*100);
 	    }
@@ -113,10 +113,10 @@ int main(int argc, char *argv[])
 	  } 
    }
 
-   if (ParamFile[0])
+   if (ParamFile != NULL)
      read_parameter_file(ParamFile);
    
-   if (ns_bases[0]) {
+   if (ns_bases != NULL) {
       nonstandards = space(33);
       c=ns_bases;
       i=sym=0;
@@ -124,15 +124,15 @@ int main(int argc, char *argv[])
 	 sym=1; c++;
       }
       while (*c) {
-	 if (*c!=',') {
-	    nonstandards[i++]=*c++;
+	if (*c!=',') {
+	  nonstandards[i++]=*c++;
+	  nonstandards[i++]=*c;
+	  if ((sym)&&(*c!=*(c-1))) {
 	    nonstandards[i++]=*c;
-	    if ((sym)&&(*c!=*(c-1))) {
-	       nonstandards[i++]=*c;
-	       nonstandards[i++]=*(c-1);
-	    }
-	 }
-	 c++;
+	    nonstandards[i++]=*(c-1);
+	  }
+	}
+	c++;
       }
    }
    istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
@@ -157,51 +157,48 @@ int main(int argc, char *argv[])
       /* skip comment lines and get filenames */
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
 	if (*line=='>')
-	  sscanf(line, ">%20s", fname);
+	  (void) sscanf(line, ">%20s", fname);
 	free(line);
-	if ((line = get_line(stdin))==NULL) line = "@";
+	if ((line = get_line(stdin))==NULL) break;;
       } 
 
-      if (strcmp(line, "@") == 0) break;
+      if ((line==NULL) || strcmp(line, "@") == 0) break;
 
       sequence = (char *) space(strlen(line)+1);
-      sscanf(line,"%s",sequence);
+      (void) sscanf(line,"%s",sequence);
       free(line);
-      length = strlen(sequence);
+      length = (int) strlen(sequence);
 
-      if (fold_constrained) 
-	 cstruc = get_line(stdin);
-      
-      structure = (char *) space(length+1);
+      structure = (char *) space((unsigned) length+1);
+      if (fold_constrained) {
+	char *cstruc;
+	cstruc = get_line(stdin);
+	if (cstruc!=NULL) {
+	  strncpy(structure, cstruc, length);
+	  for (i=0; i<length; i++)
+	    if (structure[i]=='|')
+	      nrerror("constraints of type '|' not allowed");
+	  free(cstruc);
+	}
+      }      
       
       for (l = 0; l < length; l++) sequence[l] = toupper(sequence[l]);
       if (istty)
 	printf("length = %d\n", length);
 
-      initialize_fold(length);
-      if (fold_constrained) {
-	strncpy(structure, cstruc, length+1);
-	for (i=0; i<length; i++)
-	  if ((structure[i]!='.')&&(structure[i]!='x'))
-	    nrerror("only constraints of type 'x' allowed");
-      }
-      min_en = fold(sequence, structure);
-      if (logML) {
-	if (deltap==0) deltap=delta/100.;
-	print_energy = min_en + deltap;
-      }
+      if (logML!=0 || dangles==1 || dangles==3) 
+	if (deltap<=0) deltap=delta/100. +0.001;
+      if (deltap>0)
+	print_energy = deltap;
+
       /* first lines of output (suitable  for sort +1n) */
       if (fname[0] != '\0')
-	printf("> %s [%6.2f to %6.2f]\n", fname, min_en, min_en+delta/100.);
-      printf("%s %6d %6d\n", sequence, (int) (-0.1+100*min_en), delta); 
-       
-      subopt(delta);
-      
-      fflush(stdout);
+	printf("> %s [%d]\n", fname, delta);
 
-      free_arrays();
-      if (fold_constrained)
-	free(cstruc);
+      subopt(sequence, structure, delta);
+      
+      (void)fflush(stdout);
+      
       free(sequence);
       free(structure); 
    } while (1);
