@@ -16,8 +16,9 @@
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
+
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: part_func.c,v 1.11 2001/09/17 10:21:13 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.12 2001/09/18 17:41:51 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))

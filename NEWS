@@ -1,6 +1,11 @@
 Version 1.5pre 
 -----------
-ViennaRNA now uses autoconfig generated configure scripts
+ViennaRNA now uses autoconfig generated configure scripts for even better
+portability .
+New RNAalifold program predicts consensus structures for a set of aligned
+sequences.
+Support for co-folding of 2 strands in energy_of_struct() and RNAeval can
+now handle co-folding of 2 strands.
 
 Version 1.4
 -----------

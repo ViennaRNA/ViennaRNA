@@ -13,11 +13,16 @@
 #include  "../H/profiledist.h"
 #include  "../H/dist_vars.h"
 #include  "../H/pair_mat.h"
+#include  "../H/subopt.h"
 %}
 //
 
-const double VERSION = 0.2;
-%include typemaps.i 
+%constant double VERSION = 0.3;
+%include typemaps.i
+%typemap(perl5,in) FILE * {
+$target = IoIFP(sv_2io($source));
+}
+
 %title "Interface to the Vienna RNA library"
 %section "Folding Routines"
 %subsection "Minimum free Energy Folding"
@@ -31,6 +36,18 @@ const double VERSION = 0.2;
 %subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
 %include  "../H/fold_vars.h"
+%include  "../H/subopt.h"
+
+%addmethods SOLUTION {
+	SOLUTION *get(int i) {
+	   return self+i;
+	}
+	int size() {
+	   SOLUTION *s;
+	   for (s=self; s->structure; s++);
+	   return (int)(s-self);
+	}
+}
 %{
 double get_pr(int i, int j) {
    int ii;

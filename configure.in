@@ -60,5 +60,5 @@ AC_INLINE
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
-AC_OUTPUT(Makefile ViennaRNA.spec AliFold/Makefile Subopt/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1)
+AC_OUTPUT(Makefile ViennaRNA.spec AliFold/Makefile Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1)
 

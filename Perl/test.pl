@@ -100,3 +100,6 @@ RNA::fold($seq1, $ss);
 print 'not ' if ($ss ne $struc1);
 print "ok 13\n";
 RNA::free_arrays();
+
+$solution = RNA::subopt($seq1, undef, 100, undef);
+print $solution->energy;

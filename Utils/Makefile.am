@@ -1,5 +1,5 @@
 pkgbindir = $(pkgdatadir)/bin
-pkgbin_PROGRAMS = b2ct
+pkgbin_PROGRAMS = b2ct popt
 
 pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl 
 pkgbin_SCRIPTS = $(pscript) Fold

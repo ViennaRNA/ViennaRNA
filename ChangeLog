@@ -1,5 +1,16 @@
+2001-09-18  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
+
+	* moved suboptimal folding into the library, thus it's now
+	  accessible from the Perl module
+
+2001-08-31  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* added co-folding support in energy_of_struct(), RNAeval
+
 2001-04-05  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* added PS_rna_plot_a to produce structure plots with annotation
+	* added RNAalifold for prediction of consensus structures
+
 	
 

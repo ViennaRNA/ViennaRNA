@@ -5,6 +5,7 @@ typedef struct {
 } SOLUTION;
 
 extern  SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
+		/* returns list of subopt structures or writes to fp */
 
 extern  int sorted;                           /* sort output by energy */
 
