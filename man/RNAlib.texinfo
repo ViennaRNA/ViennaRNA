@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2001-09-14 17:58:41 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.8 2001/09/17 10:30:44 ivo Exp $
+@c Last changed Time-stamp: <2001-11-08 13:38:29 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.9 2002/02/08 17:38:00 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -418,7 +418,7 @@ Free energies for the interaction between the closing pair of an interior
 loop and the two unpaired bases adjacent to the helix. This is a three
 dimensional array indexed by the type of the closing pair (see above) and
 the two unpaired bases. Since we distinguish 5 bases the list contains
-8*5*5 entries and should be formated either as an 8*25 matrix or 8 5*5
+7*5*5 entries and should be formated either as an 7*25 matrix or 7 5*5
 matrices. The order is such that for example the mismatch
 @example
                                5'-CU-3'
