@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2002-11-07 15:05:18 ivo>
+# Last changed Time-stamp: <2003-02-03 18:28:39 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -11,6 +11,7 @@ use lib qw|blib/arch blib/lib|;
 BEGIN {  plan tests => 14; }
 
 use RNA;
+use warnings;
 
 ######################### End of black magic.
 
@@ -58,6 +59,12 @@ ok($tree_dist,4);
 #ok(RNA::ptrvalue($RNA::iindx,3),108);
 ok(RNA::intP_getitem($RNA::iindx,3),108);
 
+#RNA::shortP_setitem($RNA::xsubi, 0, 171);
+#RNA::shortP_setitem($RNA::xsubi, 1, 42);
+#RNA::shortP_setitem($RNA::xsubi, 2, 93);
+RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
+ok(pack('S3', 171,42,93), RNA::cdata($RNA::xsubi, 6));
+
 # get a bp prob in two different ways
 my $p1 = RNA::get_pr(2,15);
 my $ii = RNA::intP_getitem($RNA::iindx, 2);
@@ -95,7 +102,7 @@ ok($ss, $struc1);
 
 RNA::free_arrays();
 
-$RNA::sorted = 1;
+$RNA::subopt_sorted = 1;
 $RNA::noLonelyPairs = 1;
 my $solution = RNA::subopt($seq1, undef, 500, undef);
 
@@ -104,7 +111,6 @@ for (0..$solution->size()-1) {
   printf "%s %6.2f\n",  $solution->get($_)->{structure},
   			$solution->get($_)->{energy};
 }
-
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
 ok(int($e*100),-340);
