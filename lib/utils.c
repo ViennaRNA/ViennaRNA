@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <95/07/12 16:10:10 ivo> */
+/* Last changed Time-stamp: <97/10/27 14:20:34 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,17 +16,19 @@
 #include "/usr/local/debug_include/malloc.h"
 #endif
 
+static char rcsid[] = "$Id: utils.c,v 1.2 1997/10/27 13:21:01 ivo Rel $";
+
 #define PRIVATE  static
 #define PUBLIC
 
 PUBLIC void  *space(unsigned int size);
-PUBLIC void   nrerror(char *message);
+PUBLIC void   nrerror(const char message[]);
 PUBLIC double urn(void);
 PUBLIC int    int_urn(int from, int to);
 PUBLIC void   filecopy(FILE *from, FILE *to);
 PUBLIC char  *time_stamp(void);
-PUBLIC char  *random_string(int l, char *symbols);
-PUBLIC int    hamming(char *s1, char *s2);
+PUBLIC char  *random_string(int l, const char symbols[]);
+PUBLIC int    hamming(const char s1[], const char s2[]);
 PUBLIC char  *get_line(FILE *fp);
 
 PUBLIC unsigned short xsubi[3];
@@ -52,7 +54,7 @@ PUBLIC void *space(unsigned size)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC void nrerror(char *message)       /* output message upon error */
+PUBLIC void nrerror(const char message[])       /* output message upon error */
 
                
 
@@ -111,7 +113,7 @@ PUBLIC char *time_stamp(void)
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *random_string(int l, char *symbols)
+PUBLIC char *random_string(int l, const char symbols[])
 {
    char *r;
    int   i, rn, base;
@@ -129,7 +131,7 @@ PUBLIC char *random_string(int l, char *symbols)
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC int   hamming(char *s1, char *s2)
+PUBLIC int   hamming(const char s1[], const char s2[])
 {
    int h=0,i;
    
