@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <1998-03-04 12:35:12 ivo> */
+/* Last changed Time-stamp: <1998-07-07 16:43:54 ivo> */
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
@@ -21,5 +21,7 @@ int  *iindx;              /* pr[i,j] -> pr[iindx[i]-j] */
 float pf_scale=- 1;       /* scaling factor to avoid floting point overflows */
 int   fold_constrained = 0; /* guess what */
 int   do_backtrack=1;     /* calculate pair prob matrix in part_func() */
+int    noLonelyPairs = 0; /* avoid helices of length 1 */
 char backtrack_type='F';  /* 'C' require (1,N) to be bonded;
 			     'M' seq is part of s multi loop */
+
