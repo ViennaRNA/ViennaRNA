@@ -3,7 +3,7 @@
 .SH NAME
 RNAEVAL \- calculate energy of RNA sequences on given secondary structure
 .SH SYNOPSIS
-\fBRNAeval [\-T \fItemp\fP] [\-4] [\-d[0|1|2]] [\-logML] [\-e \fI1|2\fP] [\-P \fIparamfile\fP]
+\fBRNAeval [\-T \fItemp\fP] [\-4] [\-d[0|1|2|3]] [\-logML] [\-e \fI1|2\fP] [\-P \fIparamfile\fP]
 .SH DESCRIPTION
 .I RNAeval
 evaluates the free energy of an RNA molecule in fixed secondary
@@ -22,6 +22,8 @@ multiloops and free ends ("dangling ends"). Same as -d0, opposite of -d1
 Treat dangling ends as in the partition function algorithm, i.e. bases
 adjacent to helices in multiloops and free ends give a stabilizing energy
 contribution, regardless whether they're paired or unpaired.
+.IP \fB\-d3\fB
+Allow coaxial stacking of adjacent helices in multi-loops.
 .IP \fB\-logML\fB
 Let multiloop energies depend logarithmically on the size, instead of the
 usual linear energy function.
@@ -35,7 +37,7 @@ I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125: 167-188
 .SH VERSION
-This man page documents version 1.2 Vienna RNA Package
+This man page documents version 1.4 Vienna RNA Package
 .SH AUTHOR
 Ivo L Hofacker and Peter F Stadler.
 .SH BUGS
