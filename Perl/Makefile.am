@@ -14,8 +14,5 @@ install-exec-local: all-local
 check-local: all-local
 	$(MAKE) -f Makefile.perl test
 
-clean-local:
-	$(MAKE) -f Makefile.perl clean
-
-mostlyclean-local:
+mostlyclean-local: Makefile.perl
 	$(MAKE) -f Makefile.perl clean
