@@ -22,7 +22,7 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.7 1997/12/14 16:10:09 ivo Exp $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.8 1998/04/09 15:55:19 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -46,8 +46,6 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    initialize_fold(length);
    structure = (char *) space(length+1);
    min_en = fold(string, structure);
-   dangles= 2; /* recompute energy treating dangles as in pf_fold() */
-   min_en = energy_of_struct(string,structure);
    free(structure); structure=NULL; free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
@@ -114,6 +112,8 @@ int main(int argc, char *argv[])
    
    T_min=0.; T_max=100.; h=1; m_points=2;
    string=NULL;
+   dangles = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
+
    for (i=1; i<argc; i++) {
       if (argv[i][0]=='-') 
 	 switch ( argv[i][1] ) {
