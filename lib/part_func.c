@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <96/10/07 12:13:27 ivo> */
+/* Last changed Time-stamp: <97/11/03 17:41:33 ivo> */
 /*                
 	    partiton function for RNA secondary structures
 
@@ -24,6 +24,8 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
+static char rcsid[] = "$Id: part_func.c,v 1.3 1997/11/03 17:05:33 ivo Rel $";
+
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
@@ -42,9 +44,10 @@ PRIVATE void  BP_calculate(char *structure, int *BP, int length);
 
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern, *expMLbase;
 PRIVATE FLT_OR_DBL expdangle5[NBPAIRS+1][5], expdangle3[NBPAIRS+1][5];
-PRIVATE FLT_OR_DBL lxc, exptetra;
+PRIVATE FLT_OR_DBL lxc, exptetra[40];
 PRIVATE FLT_OR_DBL expstack[NBPAIRS+1][NBPAIRS+1];
-PRIVATE FLT_OR_DBL expmismatch[5][5][5][5];
+PRIVATE FLT_OR_DBL expmismatchI[NBPAIRS+1][5][5];
+PRIVATE FLT_OR_DBL expmismatchH[NBPAIRS+1][5][5];
 PRIVATE FLT_OR_DBL *exphairpin;
 PRIVATE FLT_OR_DBL expbulge[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expinternal[MAXLOOP+1];
@@ -55,6 +58,7 @@ PRIVATE char msg[200];
 
 PRIVATE FLT_OR_DBL *scale;
 PRIVATE int *jindx;
+PRIVATE int init_length; /* length in last call to init_pf_fold() */
      
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(char *sequence, char *structure)
@@ -62,7 +66,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
    short *S, *S1;
    int n, i,j,k,l, m, ij,kl, u,u1,u2,d,ii,ll, type, type_2, tt, ov=0;
    FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
-   FLT_OR_DBL prmt,prmt1,prbuff;
+   FLT_OR_DBL prmt,prmt1;
    FLT_OR_DBL qbt1,s1temp, *tmp;
    
    float free_energy;
@@ -72,8 +76,10 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 		 negative: x = base must not pair
 		 positive int: base is paired with int      */
    int  cpos, cforbid;
-   n = strlen(sequence);
 
+   n = strlen(sequence);
+   if (n>init_length) init_pf_fold(n);  /* (re)allocate space */
+   
    if (fold_constrained) {
       if (structure==NULL) nrerror("no constraints given!");
       BP = (int *)space(sizeof(int)*(n+2));
@@ -113,7 +119,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	 for (k=j; k>j-TURN-1; k--) {
 	    if (BP[k]>j) cforbid=1;         /* no pair (i,j) i<k allowed */
 	    if (BP[j]<0) cforbid=1;         /* j doesn't pair */
-	    if ((BP[k]<k-TURN-1)&&(BP[k]>0))
+	    if ((BP[k]<k-TURN)&&(BP[k]>0))
 	       cpos=((cpos<BP[k])?cpos:BP[k]);    /* no pair (i,j) i>=cpos */
 	 }
       }
@@ -139,68 +145,79 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	 if (type!=0) {
 	    /*hairpin contribution*/ 
 	    qbt1 = exphairpin[u];
-	    if (u!=TURN) qbt1 *= expmismatch[S1[i]][S1[j]][S1[i+1]][S1[j-1]];
-	    if ((tetra_loop)&&(u==4))
-	       for (k = 0; k < N_TETRALOOPS; k++) 
-		  if (strncmp(sequence+i, Tetraloops[k], 4) == 0)
-		     qbt1 *= exptetra;
+	    if (u!=TURN) qbt1 *= expmismatchH[type][S1[i+1]][S1[j-1]];
+	    if ((tetra_loop)&&(u==4)) {
+	      char tl[5]={0,0,0,0,0}, *ts;
+	      strncpy(tl, sequence+i, 4);
+	      if (ts=strstr(Tetraloops, tl))
+		qbt1 *= exptetra[(ts-Tetraloops)/5];
+	    }
 	    qbt1 *= scale[u+2];
 
 	    /* interior loops with interior pair k,l */
 	    for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
 	       u1 = k-i-1;
-	       for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<=j-1; l++)
-		  {
-		     type_2 = pair[S[k]][S[l]];
-		     if ((fold_constrained)&&(BP[k]==l)&&(type_2==0))
-			type_2=7; /* nonstandard */
-		     if (type_2) {
-			u2 = j-l-1;
-			
-			if (u1==0) {
-			   if (u2==0) /* stack */
-			      s1temp = expstack[type][type_2];
-			   else { /* bulge */
-			      s1temp = expbulge[u2];
+	       for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<=j-1; l++) {
+		 
+		 type_2 = pair[S[k]][S[l]];
+		 if ((fold_constrained)&&(BP[k]==l)&&(type_2==0))
+		   type_2=7; /* nonstandard */
+		 if (type_2) {
+		   u2 = j-l-1;
+		   
+		   if (u1==0) {
+		     if (u2==0) /* stack */
+		       s1temp = expstack[type][type_2];
+		     else { /* bulge */
+		       s1temp = expbulge[u2];
 #ifdef STACK_BULGE1
-			      if (u2==1) s1temp *= expstack[type][type_2];
+		       if (u2==1) s1temp *= expstack[type][type_2];
 #endif
-			   }
-			} else {
-			   if (u2==0) { /* bulge */
-			      s1temp = expbulge[u1];
-#ifdef STACK_BULGE1
-			      if (u1==1) s1temp *= expstack[type][type_2];
-#endif
-			   }
-			   else { /* interior loop */
-			      s1temp = expinternal[u1+u2];
-			      m = MIN(4,MIN(u1,u2));
-			      s1temp *= expninio[m][abs(u1-u2)];
-			      s1temp *=
-				 expmismatch[S1[i]][S1[j]][S1[i+1]][S1[j-1]]*
-				 expmismatch[S1[k-1]][S1[l+1]][S1[k]][S1[l]];
-			   }
-			}
-			qbt1 += qb[iindx[k]-l]*s1temp*scale[u1+u2+2];
 		     }
-		  }
+		   } else {
+		     if (u2==0) { /* bulge */
+		       s1temp = expbulge[u1];
+#ifdef STACK_BULGE1
+		       if (u1==1) s1temp *= expstack[type][type_2];
+#endif
+		     }
+		     else { /* interior loop */
+		       s1temp = expinternal[u1+u2];
+		       /* make size 2 special */
+		       if ((u1+u2>2)||(james_rule==0)) {
+			 register int rt;
+			 rt  = rtype[type_2];
+			 s1temp *=
+			   expmismatchI[type][S1[i+1]][S1[j-1]]*
+			   expmismatchI[rt][S1[l+1]][S1[k-1]];
+#if NEW_NINIO
+			 s1temp *= expninio[2][abs(u1-u2)];
+#else
+			 m = MIN(4,MIN(u1,u2));
+			 s1temp *= expninio[m][abs(u1-u2)];
+#endif
+		       }
+		     }
+		   }
+		   qbt1 += qb[iindx[k]-l]*s1temp*scale[u1+u2+2];
+		 }
+	       }
 	    }
 	    /*multiple stem loop contribution*/
 	    ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
 	    temp = 0.0;
 	    for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k]; 
-	    tt = pair[S[j]][S[i]];
-	    qbt1 += temp*expMLclosing*scale[2]*
+	    tt = rtype[type];
+	    qbt1 += temp*expMLclosing*expMLintern*scale[2]*
 	       expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
 
 	    qb[iindx[i]-j] = qbt1;
 	 } /* end if (type!=0) */
 	 else qb[iindx[i]-j] = 0.0;
 	 
-	 /*construction of qqm matrix containing final stem
-	   contributions to multiple loop partition function
-	   from segment i,j */
+	 /* construction of qqm matrix containing final stem
+	    contributions to multiple loop partition function
+	    from segment i,j */
 	 ij = iindx[i]-j;
 	 qqm[i] = qqm1[i]*expMLbase[1];
 	 if (type) {
@@ -296,42 +313,50 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    if (qb[kl]==0) continue;
 	
 	    for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++) 
-	       for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
-		  ij = iindx[i] - j;
-		  type = pair[S[i]][S[j]];
-		  if ((pr[ij]>0)) {
-		     u1 = k-i-1;
-		     u2 = j-l-1;
-		     if (u1==0) {
-			if (u2==0) /* stack */
-			   s1temp = expstack[type][type_2];
-			else {      /* bulge */
-			   s1temp = expbulge[u2];
+	      for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
+		ij = iindx[i] - j;
+		type = pair[S[i]][S[j]];
+		if ((pr[ij]>0)) {
+		  u1 = k-i-1;
+		  u2 = j-l-1;
+		  if (u1==0) {
+		    if (u2==0) /* stack */
+		      s1temp = expstack[type][type_2];
+		    else {      /* bulge */
+		      s1temp = expbulge[u2];
 #ifdef STACK_BULGE1
-			   if (u2==1) s1temp *= expstack[type][type_2];
+		      if (u2==1) s1temp *= expstack[type][type_2];
 #endif
-			}
-		     } else {
-			if (u2==0) { /* bulge */
-			   s1temp = expbulge[u1];
+		    }
+		  } else {
+		    if (u2==0) { /* bulge */
+		      s1temp = expbulge[u1];
 #ifdef STACK_BULGE1
-			   if (u1==1) s1temp *= expstack[type][type_2];
+		      if (u1==1) s1temp *= expstack[type][type_2];
 #endif
-			}
-			else {     /* interior loop */
-			   s1temp = expinternal[u1+u2];
-			   m = MIN(4,MIN(u1,u2));
-			   s1temp *= expninio[m][abs(u1-u2)];
-			   s1temp *=
-			      expmismatch[S1[i]][S1[j]][S1[i+1]][S1[j-1]]*
-			      expmismatch[S1[k-1]][S1[l+1]][S1[k]][S1[l]];
-			}
-		     }
-		     pr[kl] += (pr[ij])*s1temp*scale[u1+u2+2];
+		    }
+		    else {     /* interior loop */
+		      s1temp = expinternal[u1+u2];
+		      /* make size 2 special */
+		      if ((u1+u2>2)||(james_rule==0)) { 
+			register int rt;
+			rt  = rtype[type_2];
+#if NEW_NINIO
+			s1temp *= expninio[2][abs(u1-u2)];
+#else
+			m = MIN(4,MIN(u1,u2));
+			s1temp *= expninio[m][abs(u1-u2)];
+#endif
+			s1temp *=
+			  expmismatchI[type][S1[i+1]][S1[j-1]]*
+			  expmismatchI[rt][S1[l+1]][S1[k-1]];
+		      }
+		    }
 		  }
-	       } 
+		  pr[kl] += (pr[ij])*s1temp*scale[u1+u2+2];
+		} 
+	      }
 	 }
-	 
 	 /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
 	 prm_MLb = 0.;
 	 if (l<n) for (k=2; k<l-TURN; k++) {
@@ -341,14 +366,14 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    ii = iindx[i];     /* ii-j=[i,j]     */
 	    ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
 	    tt = pair[S[l+1]][S[i]];
-	    prmt1 = pr[ii-(l+1)]*expMLclosing*
+	    prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern*
 	       expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
 	    for (j=l+2; j<=n; j++) {
 	       tt = pair[S[j]][S[i]];
-	       prbuff = pr[ii-j]*expMLclosing*expdangle3[tt][S1[i+1]]*
-		  expdangle5[tt][S1[j-1]];
-	       prmt  += prbuff* qm[ll-(j-1)];
+	       prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
+		 expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
 	    }
+	    prmt *= expMLclosing*expMLintern;
 	    prml[ i] = prmt;
 	    prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
 
@@ -414,81 +439,86 @@ PRIVATE void scale_pf_params(int length)
 {
    int i, j, k, l /*, tint */;
    double  kT, TT;
-   double  tint;
+   double  GT;
 
    kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
-   TT = (temperature+K0)/(37.+K0);
+   TT = (temperature+K0)/(Tmeasure);
    
    if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
       pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
       if (pf_scale<1) pf_scale=1;
    }
    
-   for (i=0; i<5; i++)
-      for (j=0; j<5; j++)
-	 for (k=0; k<5; k++)
-	    for (l=0; l<5; l++)
-	       expmismatch[i][j][k][l] =
-		  exp(-mismatch[i][j][k][l]*10.0/kT);
-
+   for (i=0; i<=NBPAIRS; i++)
+     for (j=0; j<5; j++)
+       for (k=0; k<5; k++) {
+	 GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchI37[i][j][k])*TT;
+	 expmismatchI[i][j][k] = exp(-GT*10.0/kT);
+	 GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchH37[i][j][k])*TT;
+	 expmismatchH[i][j][k] = exp(-GT*10.0/kT);
+       }
    for (i=0; i<=MIN(30,length); i++) {
-      tint =  hairpin37[i]*TT;
-      exphairpin[i] = exp( -tint*10/kT);
+      GT =  hairpin37[i]*TT;
+      exphairpin[i] = exp( -GT*10/kT);
    }
    for (i=0; i<=MIN(30, MAXLOOP); i++) {
-      tint =  bulge37[i]*TT;
-      expbulge[i] = exp( -tint*10/kT);
-      tint =  internal_loop37[i]*TT;
-      expinternal[i] = exp( -tint*10/kT);
+      GT =  bulge37[i]*TT;
+      expbulge[i] = exp( -GT*10/kT);
+      GT =  internal_loop37[i]*TT;
+      expinternal[i] = exp( -GT*10/kT);
    }
-
+   /* special case of size 2 interior loops (single mismatch) */
+   if (james_rule) expinternal[2] = exp ( -internal2_energy*10/kT);
+   
    lxc = lxc37*TT;
    for (i=31; i<length; i++) {
-      tint = hairpin37[30]*TT + (lxc*log( i/30.));
-      exphairpin[i] = exp( -tint*10.0/kT);
+      GT = hairpin37[30]*TT + (lxc*log( i/30.));
+      exphairpin[i] = exp( -GT*10.0/kT);
    }
    for (i=31; i<=MAXLOOP; i++) {
-      tint = bulge37[30]*TT + (lxc*log( i/30.));
-      expbulge[i] = exp( -tint*10/kT);
-      tint = internal_loop37[30]*TT + (lxc*log( i/30.));
-      expinternal[i] = exp( -tint*10/kT);
+      GT = bulge37[30]*TT + (lxc*log( i/30.));
+      expbulge[i] = exp( -GT*10/kT);
+      GT = internal_loop37[30]*TT + (lxc*log( i/30.));
+      expinternal[i] = exp( -GT*10/kT);
    }
 
    for (i=0; i<5; i++) {
-      tint = F_ninio37[i]*TT;
+      GT = F_ninio37[i]*TT;
       for (j=0; j<=MAXLOOP; j++)
-	 expninio[i][j]=exp(-MIN(MAX_NINIO,j*tint)*10/kT);
+	 expninio[i][j]=exp(-MIN(MAX_NINIO,j*GT)*10/kT);
    }
+   for (i=0; (i*5)<strlen(Tetraloops); i++) {
+     GT = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*TT;
+     exptetra[i] = exp( -GT*10/kT);
+   }
+   
+   GT =  ML_closing37*TT;
+   expMLclosing = exp( -GT*10/kT);
 
-   tint = TETRA_ENERGY37*TT;
-   exptetra = exp( -tint*10/kT);
-
-   tint =  ML_closing37[1]*TT;
-   expMLclosing = exp( -tint*10/kT);
-
-   tint =  ML_intern37[1]*TT;
-   expMLintern = exp( -tint*10/kT);
+   GT =  ML_intern37*TT;
+   expMLintern = exp( -GT*10/kT);
    
    scale[0] = 1.;
    for (i=1; i<=length; i++) {
       scale[i] = scale[i-1]/pf_scale;
    }
-   tint =  ML_BASE37*TT;
+   GT =  ML_BASE37*TT;
    for (i=0; i<length; i++) {
-      expMLbase[i] = exp( -i*tint*10/kT)*scale[i];
+      expMLbase[i] = exp( -i*GT*10/kT)*scale[i];
    }
 
    for (i=0; i<=NBPAIRS; i++)
       for (j=0; j<=4; j++) {
-	 expdangle3[i][j] = (dangles)?exp(-dangle3[i][j]*10/kT):1.;
-	 expdangle5[i][j] = (dangles)?exp(-dangle5[i][j]*10/kT):1.;
+	GT = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*TT;
+	expdangle5[i][j] = (dangles)?exp(-GT*10/kT):1.;
+	GT = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*TT;
+	expdangle3[i][j] = (dangles)?exp(-GT*10/kT):1.;
       }
    
    for (i=0; i<=NBPAIRS; i++)
       for (j=0; j<=NBPAIRS; j++) {
-	 tint =  enthalpies[i][j] -
-	    entropies[i][j]*(temperature+K0)/100.0;
-	 expstack[i][j] = exp( -tint*10/kT);
+	 GT =  enthalpies[i][j] - (enthalpies[i][j] - stack37[i][j])*TT;
+	 expstack[i][j] = exp( -GT*10/kT);
       }
 }
 
@@ -526,6 +556,8 @@ PRIVATE void get_arrays(int length)
    
 PUBLIC void init_pf_fold(int length)
 {
+   if (length<1) nrerror("init_pf_fold: length must be greater 0");
+   if (init_length>0) free_pf_arrays(); /* free previous allocation */
 #ifdef SUN4
    nonstandard_arithmetic();
 #else
@@ -536,6 +568,7 @@ PUBLIC void init_pf_fold(int length)
    make_pair_matrix();
    get_arrays(length);
    scale_pf_params(length);
+   init_length=length;
 }
 
 PUBLIC void free_pf_arrays(void)
@@ -557,7 +590,8 @@ PUBLIC void free_pf_arrays(void)
 #ifdef HP9
    fpsetfastmode(0);
 #endif
-#endif      
+#endif
+   init_length=0;
 }
 /*---------------------------------------------------------------------------*/
 
