@@ -3,7 +3,7 @@
 		    c Ivo Hofacker, Peter Stadler
 			  Vienna RNA Package
 */
-/* Last changed Time-stamp: <1998-04-03 20:52:01 ivo> */
+/* Last changed Time-stamp: <1998-05-12 15:12:53 ivo> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -21,7 +21,7 @@
 
 #define  PUBLIC
 #define  PRIVATE   static
-static char rcsid[] = "$Id: RNAinverse.c,v 1.8 1998/04/09 11:23:38 ivo Exp $";
+static char rcsid[] = "$Id: RNAinverse.c,v 1.9 1998/05/19 17:44:29 ivo Exp $";
 static char scale[] = "....,....1....,....2....,....3....,....4"
                       "....,....5....,....6....,....7....,....8";
 
@@ -31,6 +31,7 @@ static char scale[] = "....,....1....,....2....,....3....,....4"
 extern void  read_parameter_file(const char fname[]);
 
 PRIVATE void usage(void);
+extern int inv_verbose;
 
 int main(int argc, char *argv[])
 {
@@ -94,6 +95,9 @@ int main(int argc, char *argv[])
 	   case 'P':
 	     if (sscanf(argv[++i], "%255s", ParamFile)==0)
 	       usage();
+	     break;
+	   case 'v':
+	     inv_verbose = 1;
 	     break;
 	   default: usage();
 	   }
@@ -229,5 +233,5 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage: RNAinverse [-F[mp]] [-a ALPHABET] [-R [repeats]] [-f final]\n"
-          "                  [-T temp] [-4] [-d[2]] [-noGU] [-P paramfile] [-e e_set]");
+          "                  [-T temp] [-4] [-d[2]] [-noGU] [-P paramfile] [-e e_set] [-v]");
 }
