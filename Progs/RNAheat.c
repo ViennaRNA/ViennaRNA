@@ -22,7 +22,7 @@
 #define PUBLIC
 #define MAXWIDTH     201
 
-static char rcsid[] = "$Id: RNAheat.c,v 1.6 1997/11/06 17:40:46 ivo Rel $";
+static char rcsid[] = "$Id: RNAheat.c,v 1.7 1997/12/14 16:10:09 ivo Exp $";
 
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
@@ -50,14 +50,14 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    min_en = energy_of_struct(string,structure);
    free(structure); structure=NULL; free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
-   pf_scale = exp((1.07*min_en)/kT/length );
+   pf_scale = exp(-(1.07*min_en)/kT/length );
    init_pf_fold(length);
    
    for (i=0; i<2*m+1; i++) {
       F[i] = pf_fold(string, structure);   /* T_min -2h */
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
-      pf_scale=exp((F[i]/length)/kT);
+      pf_scale=exp(-(F[i]/length)/kT);
       update_pf_params(length); 
    }
    while (temperature <= (T_max+m*h+h)) {
@@ -70,7 +70,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
       F[2*m] = pf_fold(string, structure); 
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
-      pf_scale=exp((F[i]/length)/kT);
+      pf_scale=exp(-(F[i]/length)/kT);
       update_pf_params(length); 
    }
    free_pf_arrays();
