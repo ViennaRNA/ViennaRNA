@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-01-04 18:01:55 ivo> */
+/* Last changed Time-stamp: <2005-04-30 19:04:43 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -18,9 +18,9 @@
 #include "PS_dot.h"
 #include "utils.h"
 extern void  read_parameter_file(const char fname[]);
-
+extern float circfold(const char *string, char *structure);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.15 2004/02/09 18:37:59 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.16 2005/04/30 20:12:27 ivo Exp $";
 
 #define PRIVATE static
 
@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
   double kT, sfact=1.07;
   int   pf=0, istty;
   int noconv=0;
+  int circ=0;
    
   do_backtrack = 1; 
   string=NULL;
@@ -80,6 +81,9 @@ int main(int argc, char *argv[])
 	case 'C':
 	  fold_constrained=1;
 	  break;
+	case 'c':
+	  if ( strcmp(argv[i], "-circ")==0) circ=1;
+	  break;
 	case 'S':
 	  if(i==argc-1) usage();
 	  r=sscanf(argv[++i],"%lf", &sfact);
@@ -99,6 +103,8 @@ int main(int argc, char *argv[])
 	} 
   }
 
+  if (circ && noLonelyPairs) 
+    fprintf(stderr, "warning, depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times\n");
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
    
@@ -172,7 +178,10 @@ int main(int argc, char *argv[])
       printf("length = %d\n", length);
 
     /* initialize_fold(length); */
-    min_en = fold(string, structure);
+    if (circ) 
+      min_en = circfold(string, structure);
+    else
+      min_en = fold(string, structure);
     printf("%s\n%s", string, structure);
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -202,7 +211,8 @@ int main(int argc, char *argv[])
       base_pair = bp;
     } 
     if (pf) {
-
+      if (circ) 
+	nrerror("please implement partition function for circular RNA first");
       if (dangles==1) {
 	dangles=2;   /* recompute with dangles as in pf_fold() */
 	min_en = energy_of_struct(string, structure);
@@ -253,5 +263,5 @@ PRIVATE void usage(void)
   nrerror("usage:\n"
 	  "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
-	  "[-noconv]\n");
+	  "        [-noconv] [-circ] \n");
 }
