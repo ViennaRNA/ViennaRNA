@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-02-28 20:43:26 ivo> */
+/* Last changed Time-stamp: <2005-06-13 19:07:39 ivo> */
 /*                
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.9 2005/03/04 17:09:59 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.10 2005/06/13 17:13:11 ivo Exp $";
 
 #define PAREN
 
@@ -633,7 +633,7 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
   
 
   if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
+    int psij, hx, *stack;
     stack = (int *) space(sizeof(int)*(n+1));
     
     for(hx=0, j=1; j<=n; j++) {
@@ -654,14 +654,16 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
           nrerror("unbalanced brackets in constraints");
         }
         i = stack[--hx];
-	for (k=i+1; k<=n; k++) pscore[indx[i]+k] = NONE;
-        for (l=i+1; l<=j; l++) 
-	  for (k=j; k<=n; k++) pscore[indx[l]+k] = NONE;
-	for (k=1; k<=i; k++) 
-	  for (l=i; l<=j; l++) pscore[indx[k]+l] = NONE;
-	for (k=1; k<j; k++) pscore[indx[k]+j] = NONE;
-        if (pscore[indx[j]+i]==NONE) 
-	  pscore[indx[j]+i] = 0;
+	psij = pscore[indx[j]+i]; /* store for later */
+	for (k=j; k<=n; k++)
+	  for (l=i; l<=j; l++) 
+	    pscore[indx[k]+l] = NONE;
+	for (l=i; l<=j; l++)
+	  for (k=1; k<=i; k++) 
+	    pscore[indx[l]+k] = NONE;
+	for (k=i+1; k<j; k++)
+	  pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
+	pscore[indx[j]+i] = (psij>0) ? psij : 0;
         /* fallthrough */
       case '>': /* pairs downstream */
         for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;

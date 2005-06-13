@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-02-28 20:43:17 ivo> */
+/* Last changed Time-stamp: <2005-06-13 19:08:02 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.7 2005/03/04 17:09:59 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.8 2005/06/13 17:13:11 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -825,7 +825,7 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
   
 
   if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
+    int psij, hx, *stack;
     stack = (int *) space(sizeof(int)*(n+1));
     
     for(hx=0, j=1; j<=n; j++) {
@@ -846,14 +846,14 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
           nrerror("unbalanced brackets in constraints");
         }
         i = stack[--hx];
-	for (k=i+1; k<=n; k++) pscore[iindx[i]-k] = NONE;
-        for (l=i+1; l<=j; l++) 
+	psij = pscore[iindx[i]-j]; /* store for later */
+        for (l=i; l<=j; l++) 
 	  for (k=j; k<=n; k++) pscore[iindx[l]-k] = NONE;
 	for (k=1; k<=i; k++) 
 	  for (l=i; l<=j; l++) pscore[iindx[k]-l] = NONE;
-	for (k=1; k<j; k++) pscore[iindx[k]-j] = NONE;
-        if (pscore[iindx[i]-j]==NONE) 
-	  pscore[iindx[i]-j] = 0;
+	for (k=i+1; k<j; k++)
+	  pscore[iindx[k]-j] = pscore[iindx[i]-k] = NONE;
+	pscore[iindx[i]-j] = (psij>0) ? psij : 0;
         /* fallthrough */
       case '>': /* j pairs downstream */
         for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
