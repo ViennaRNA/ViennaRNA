@@ -123,9 +123,10 @@ $RNA::noLonelyPairs = 1;
 my $solution = RNA::subopt($seq1, undef, 500, undef);
 
 printf "%d suboptimals\n", $solution->size();
-for (0..$solution->size()-1) {
+for (0..$solution->size()) {
   printf "%s %6.2f\n",  $solution->get($_)->{structure},
-  			$solution->get($_)->{energy};
+  			$solution->get($_)->{energy}
+	if defined  $solution->get($_);	
 }
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
