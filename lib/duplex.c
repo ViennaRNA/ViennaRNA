@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-09-24 15:05:06 ivo> */
+/* Last changed Time-stamp: <2005-07-23 16:45:18 ivo> */
 /*                
 	   compute the duplex structure of two RNA strands,
 		allowing only inter-strand base pairs.
@@ -22,7 +22,7 @@
 #include "params.h"
 #include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.3 2004/09/24 13:16:20 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: duplex.c,v 1.4 2005/07/24 08:37:40 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -53,6 +53,7 @@ PRIVATE int   n1,n2;    /* sequence lengths */
 extern  int  LoopEnergy(int n1, int n2, int type, int type_2,
                         int si1, int sj1, int sp1, int sq1);
 
+PRIVATE int delay_free=0;
 /*--------------------------------------------------------------------------*/
 
 
@@ -113,6 +114,11 @@ duplexT duplexfold(const char *s1, const char *s2) {
   mfe.j = j_min;
   mfe.energy = (float) Emin/100.;
   mfe.structure = struc;
+  if (!delay_free) {
+    for (i=1; i<=n1; i++) free(c[i]);
+    free(c);
+    free(S1); free(S2); free(SS1); free(SS2);
+  }
   return mfe;
 }
 
@@ -124,6 +130,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
 
   n_max=16;
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
+  delay_free=1;
   mfe = duplexfold(s1, s2);
   free(mfe.structure);
   
@@ -157,6 +164,12 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       }
     }
   }
+  
+  for (i=1; i<=n1; i++) free(c[i]);
+  free(c);
+  free(S1); free(S2); free(SS1); free(SS2);
+  delay_free=0;
+
   if (subopt_sorted) qsort(subopt, n_subopt, sizeof(duplexT), compare);
   subopt[n_subopt].i =0;
   subopt[n_subopt].j =0;
