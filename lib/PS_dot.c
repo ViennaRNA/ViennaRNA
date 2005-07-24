@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.29 2004/10/01 13:05:24 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.30 2005/07/24 08:38:08 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -689,7 +689,7 @@ const char *RNAdp_prolog =
 
 int PS_dot_plot(char *string, char *wastlfile) {
   /* this is just a wrapper to call PS_dot_plot_list */
-  int i, j, k, length, maxl;
+  int i, j, k, length, maxl, mf_num;
   struct plist *pl;
   struct plist *mf;
 
@@ -713,8 +713,9 @@ int PS_dot_plot(char *string, char *wastlfile) {
   pl[k].j=0;
   pl[k++].p=0.;
   /*make plist out of base_pair array*/
-  mf = (struct plist *)space((base_pair[0].i+1)*sizeof(struct plist));
-  for (k=0; k<base_pair[0].i; k++) {
+  mf_num = base_pair ? base_pair[0].i : 0;
+  mf = (struct plist *)space((mf_num+1)*sizeof(struct plist));
+  for (k=0; k<mf_num; k++) {
     mf[k].i = base_pair[k+1].i;
     mf[k].j = base_pair[k+1].j;
     mf[k].p = 0.95;
