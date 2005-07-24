@@ -3,7 +3,7 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <2004-05-05 11:20:39 ivo> */
+/* Last changed Time-stamp: <2005-07-23 10:12:19 ivo> */
 
 
 #include <stdio.h>
@@ -17,7 +17,7 @@
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.6 2004/05/05 09:57:53 ivo Exp $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.7 2005/07/24 08:37:15 ivo Exp $";
 
 PUBLIC char *b2HIT(const char *structure);             /* Full   -> HIT    [incl. root]       */
 PUBLIC char *b2C(const char *structure);               /* Full   -> Coarse [incl. root]       */
@@ -85,7 +85,7 @@ PUBLIC char *b2HIT(const char *structure)
    int            i, u, p, l;
    char          *string, *temp, *HIT, tt[10];
 
-   temp = (char *) space(strlen(structure)*4+1);
+   temp = (char *) space(strlen(structure)*4+4);
    string = aux_struct( structure );
 
    strcpy(temp,"(");
@@ -101,7 +101,7 @@ PUBLIC char *b2HIT(const char *structure)
 	    l+=strlen(tt);
 	    u=0;
 	 }
-	 strcat(temp+l++, "(");
+	 strcat(temp+l, "("); l++;
 	 break;
        case ')':
 	 if (u>0) {
@@ -136,7 +136,7 @@ PUBLIC char *b2HIT(const char *structure)
 
    free( string ); 
 
-   HIT = (char *) space(sizeof(char)*(strlen(temp)+1));
+   HIT = (char *) space(sizeof(char)*(strlen(temp)+2));
    strcpy(HIT, temp);
    free(temp);
    return(HIT);
@@ -153,7 +153,7 @@ PUBLIC char *b2C(const char *structure )
 
    bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   temp = (char *) space(4*strlen(structure)+1);
+   temp = (char *) space(4*strlen(structure)+2);
    
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -207,7 +207,7 @@ PUBLIC char *b2C(const char *structure )
    temp[l++] = ')';
    temp[l]='\0';
    free(string); 
-   Coarse = (char *) space(sizeof(char)*(strlen(temp)+1));
+   Coarse = (char *) space(sizeof(char)*(strlen(temp)+2));
    strcpy(Coarse, temp);
    free(temp);
    free(bulge); free(loop);
@@ -226,7 +226,7 @@ PUBLIC char *b2Shapiro(const char *structure )
 
    bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   temp = (char *) space(4*strlen(structure)+1);
+   temp = (char *) space(4*strlen(structure)+3);
    
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -288,10 +288,9 @@ PUBLIC char *b2Shapiro(const char *structure )
    *tt = '\0';
    if (loop_size[0]) sprintf(tt, "E%d)" , loop_size[0]); 
    strcat(tt,"R)");
-   for(k=0; k<strlen(tt); k++) temp[l++] = tt[k];
    temp[l]='\0';
-   if (loop_size[0]) l++;
-   Shapiro = (char *) space(sizeof(char)*(l+1));
+   strcat(temp, tt);
+   Shapiro = (char *) space(sizeof(char)*(strlen(temp)+2));
    if (loop_size[0]) {
       Shapiro[0]='(';
       strcpy(Shapiro+1, temp);
@@ -330,7 +329,7 @@ PUBLIC void parse_structure(const char *structure)
    int            i, lp, p;
    char          *string, *temp;
 
-   temp = (char *)  space(strlen(structure)*4+1);
+   temp = (char *)  space(strlen(structure)*4+2);
    bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
 
@@ -396,7 +395,7 @@ PUBLIC char *expand_Shapiro(const char *structure)
    char  *xS, *temp;
    int  i, l;
 
-   temp = (char *) space(4*strlen(structure)+1);
+   temp = (char *) space(4*strlen(structure)+2);
 
    i = 1;
    l = 1;
@@ -426,7 +425,7 @@ PUBLIC char *expand_Full(const char *structure)
     char *xF, *temp;
     int  i, l;
 
-    temp = (char *) space(4*strlen(structure)+1);
+    temp = (char *) space(4*strlen(structure)+2);
 
     i = 0;
     l = 0;
@@ -461,7 +460,7 @@ PUBLIC char *unexpand_Full(const char *structure)
    char id[10], *full, *temp;
    int    i, j, k, l, o, w;
 
-   temp = (char *) space(4*strlen(structure)+1);
+   temp = (char *) space(4*strlen(structure)+2);
    match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
    
    i = strlen(structure)-1;

@@ -3,7 +3,7 @@
 		      Peter F Stadler, Ivo Hofacker
 			   Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/11/05 14:25:28 ivo> */
+/* Last changed Time-stamp: <2005-07-23 10:19:40 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 #include  "dist_vars.h"
 #include  "utils.h"
 
-static char rcsid[] = "$Id: stringdist.c,v 1.2 1997/11/05 14:04:45 ivo Rel $";
+static char rcsid[] = "$Id: stringdist.c,v 1.3 2005/07/24 08:37:15 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
@@ -272,10 +272,9 @@ PRIVATE void DeCode(char *string, int k, int *tp, float *w)
      *tp =   2;
    }
    else{
-      i=0;
-      while( (isalpha(label[l-i-1]))&& (i<l) ) {
-         id[i] = label[l-i-1];
-         i++;
+     for (i=0; i<l; i++) {
+       if (!isalpha(label[l-i-1])) break;
+       id[i] = label[l-i-1];
       }
       id[i] = '\0';
       *tp=decode(id);
