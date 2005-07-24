@@ -24,7 +24,7 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 /*@unused@*/
-static char rcsid[] = "$Id: RNApaln.c,v 1.2 2004/11/02 11:45:35 ivo Exp $";
+static char rcsid[] = "$Id: RNApaln.c,v 1.3 2005/07/24 08:35:15 ivo Exp $";
 
 static  double gapo=1.5, gape=0.666, seqw=0.5;
 static  int endgaps=0;  
@@ -154,7 +154,8 @@ int main(int argc, char *argv[])
     seq[n] = strdup(line);
     if((istty)&&(task=='m')) printf("%s\n",structure);
     free(structure);
-      
+    
+    free_arrays();
     free_pf_arrays();
       
     n++;

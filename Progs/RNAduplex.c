@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2004-08-12 14:02:11 ivo> */
+/* Last changed Time-stamp: <2005-07-23 16:50:24 ivo> */
 /*                
 	     Compute duplex structure of two RNA strands
 
@@ -20,7 +20,7 @@ extern void  read_parameter_file(const char fname[]);
 extern int subopt_sorted;
 static void  print_struc(duplexT const *dup);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAduplex.c,v 1.3 2005/02/10 09:47:18 ivo Exp $";
+static char rcsid[] = "$Id: RNAduplex.c,v 1.4 2005/07/24 08:35:15 ivo Exp $";
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
     else {
       mfe = duplexfold(s1, s2);
       print_struc(&mfe);
+      free(mfe.structure);
     }
     (void) fflush(stdout);
        

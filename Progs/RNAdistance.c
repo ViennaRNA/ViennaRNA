@@ -20,7 +20,7 @@
 #define PUBLIC
 #define PRIVATE     static
 /*@unused@*/
-static char rcsid[] = "$Id: RNAdistance.c,v 1.7 2004/08/12 12:14:46 ivo Exp $";
+static char rcsid[] = "$Id: RNAdistance.c,v 1.8 2005/07/24 08:35:15 ivo Exp $";
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);
@@ -104,9 +104,11 @@ int main(int argc, char *argv[])
 	  for (i=1; i<n; i++) {
 	    for (j=0; j<i; j++) {
 	      printf("%g ",string_edit_distance(S[tstr][i], S[tstr][j]));
-	      if(edit_backtrack) fprintf(somewhere,"%d %d",i+1,j+1);
-	      if (ttype[tt]=='F') unexpand_aligned_F(aligned_line);
-	      print_aligned_lines(somewhere);
+	      if (edit_backtrack) {
+		fprintf(somewhere,"%d %d",i+1,j+1);
+		if (ttype[tt]=='F') unexpand_aligned_F(aligned_line);
+		print_aligned_lines(somewhere);
+	      }
 	    }
 	    printf("\n");
 	  }
