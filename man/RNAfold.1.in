@@ -3,7 +3,9 @@
 .SH "NAME"
 RNAfold \- calculate secondary structures of RNAs
 .SH "SYNOPSIS"
-\fBRNAfold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
+\fBRNAfold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
+[\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP]
+[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [-circ]
 
 .SH "DESCRIPTION"
 .I RNAfold
@@ -132,6 +134,10 @@ ensemble free energy (used to avoid overflows). The default is 1.07,
 useful values are 1.0 to 1.2. Occasionally needed for long sequences.
 You can also recompile the program to use double precision (see the README
 file). 
+.TP
+.B \-circ
+Assume a circular (instead of linear) RNA molecule. Currently works only
+for mfe folding.
 
 .SH "REFERENCES"
 The calculation of mfe structures is based on dynamic
