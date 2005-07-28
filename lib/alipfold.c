@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.8 2005/06/13 17:13:11 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.9 2005/07/28 09:07:18 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -832,7 +832,7 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
       switch (structure[j-1]) {
       case 'x': /* j can't pair */ 
         for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-j] = NONE;
+        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
         break;
       case '(':
         stack[hx++]=j;
