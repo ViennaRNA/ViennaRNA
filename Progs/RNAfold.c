@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-04-30 19:04:43 ivo> */
+/* Last changed Time-stamp: <2005-06-22 15:57:54 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.16 2005/04/30 20:12:27 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.17 2005/07/28 09:34:56 ivo Exp $";
 
 #define PRIVATE static
 
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
     } 
     if (pf) {
       if (circ) 
-	nrerror("please implement partition function for circular RNA first");
+	nrerror("Currently no partition function for circular RNAs. Please implement it!");
       if (dangles==1) {
 	dangles=2;   /* recompute with dangles as in pf_fold() */
 	min_en = energy_of_struct(string, structure);
@@ -262,6 +262,6 @@ PRIVATE void usage(void)
 {
   nrerror("usage:\n"
 	  "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
+	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  "        [-noconv] [-circ] \n");
 }
