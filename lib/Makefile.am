@@ -8,4 +8,6 @@ libRNA_a_SOURCES = dist_vars.c fold_vars.c part_func.c read_epars.c\
 
 noinst_HEADERS = intloops.h list.h
 
+EXTRA_DIST = circfold.inc
+
 INCLUDES = -I../H
