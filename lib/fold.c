@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-04-30 20:21:47 ivo> */
+/* Last changed Time-stamp: <2005-07-24 10:54:43 ivo> */
 /*                
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.32 2005/04/30 20:12:27 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.33 2005/08/07 11:44:43 ivo Exp $";
 
 #define PAREN
 
@@ -56,7 +56,7 @@ PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void backtrack(const char *sequence, int s);
 PRIVATE int fill_arrays(const char *sequence);
 /*@unused@*/
-inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
+inline PRIVATE  int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 inline int  LoopEnergy(int n1, int n2, int type, int type_2,
 			 int si1, int sj1, int sp1, int sq1);
 inline int  HairpinE(int size, int type, int si1, int sj1, const char *string);
@@ -116,7 +116,7 @@ PRIVATE void get_arrays(unsigned int size)
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
-    fM1    = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+    fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 
   ptype = (char *) space(sizeof(char)*((size*(size+1))/2+2));
   f5    = (int *) space(sizeof(int)*(size+2));
@@ -135,9 +135,11 @@ void free_arrays(void)
 {
   free(indx); free(c); free(fML); free(f5); free(cc); free(cc1); 
   free(ptype);
-  if (uniq_ML) free(fM1);
+  if (fM1) {
+    free(fM1); fM1=NULL;
+  }
 
-  free(base_pair); free(Fmi);
+  free(base_pair); base_pair=NULL; free(Fmi);
   free(DMLi); free(DMLi1);free(DMLi2);
   init_length=0;
 }
@@ -289,7 +291,7 @@ PRIVATE int fill_arrays(const char *string) {
 #endif
 	    new_c = MIN2(energy+c[indx[q]+p], new_c);
 	    if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
-	       
+
 	  } /* end q-loop */
 	} /* end p-loop */
 	   
@@ -1180,7 +1182,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
 	if ((SAME_STRAND(p-1,p))&&(p>1))
 	  dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
 	if ((SAME_STRAND(i1,i1+1))&&(i1<S[0]))
-	  dang3 = P->dangle3[type][S1[i1+1]];   /* 3' dangle of previous pair */
+	  dang3 = P->dangle3[type][S1[i1+1]]; /* 3'dangle of previous pair */
 
         switch (p-i1-1) {
         case 0: /* adjacent helices */
