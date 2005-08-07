@@ -50,8 +50,8 @@ if test -z "$PerlCmd"; then
 fi
 
 if test "$with_forester" != "no"; then
-   if test -d $srcdir/RNAforester-1.4/Makefile.am; then
-     AC_CONFIG_SUBDIRS(RNAforester-1.4)
+   if test -f $srcdir/RNAforester/Makefile.am; then
+     AC_CONFIG_SUBDIRS(RNAforester)
    else 
      AC_MSG_WARN([RNAforester subdirectory does not exist])
      with_forester="no"

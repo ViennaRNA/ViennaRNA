@@ -8,7 +8,7 @@ if MAKE_CLUSTER
 endif
 
 if MAKE_FORESTER
-   FDIR = RNAforester-1.4
+   FDIR = RNAforester
 endif
 
 if MAKE_KINFOLD
