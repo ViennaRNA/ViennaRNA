@@ -1,4 +1,4 @@
-Version 1.6
+Upcoming 
 -----------
 - The RNAforester program for tree-alignments of RNA structures is now
   distributed with the Vienna RNA package, see the RNAforester
@@ -11,6 +11,9 @@ Version 1.6
   <David_Mathews@urmc.rochester.edu>, by re-analysing published data. 
   The parameters are not heavily tested yet, beware of errors I might have
   introduced when converting them into ViennaRNA format
+
+Current version
+------------
 - cofolding of two structures now supports suboptimal folding and 
   partition function folding. 
   ATTENTION: Energies of hybrid structures now inlcude the Duplex-initiation

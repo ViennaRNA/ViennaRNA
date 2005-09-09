@@ -1,10 +1,31 @@
+2005-05-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* fix a few memory problems in structure comparison routines
+
+2005-04-30  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
+
+	* add folding of circular RNAs
+
+2005-03-11  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
+
+	* add -mis option to RNAalifold to give "most informative
+	  sequence" as consensus
+
 2005-02-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* move alifold() into the library
 
-2004-12-23  Stephan Bernhart  <berni@tbi.univie.ac.at>
+2004-12-22  Stephan Bernhart  <berni@tbi.univie.ac.at>
 
 	* add partition function version of RNAcofold
+
+2004-12-23  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add RNApaln for fast structural alignments (RNApdist improvement)
+
+2004-08-12  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* fix constrained folding in stochastic backtracking
 
 2004-07-21  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
@@ -14,8 +35,9 @@
 2004-02-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* fix bug in fold that caused segfaults when using Intel compiler
+	* add computation of ensemble diversity to RNAfold
 
-2003-0-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>9
+2003-09-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add annotation options to RNAplot 
 
@@ -79,4 +101,7 @@
 
 	* add alifold; predict consensus structures from alignment
 
+2000-09-28  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add -d3 option to RNAfold for co-axial stacking
 	
