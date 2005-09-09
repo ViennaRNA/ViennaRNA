@@ -1,6 +1,6 @@
 #!/usr/bin/perl  -T
 # -*-CPerl-*-
-# Last changed Time-stamp: <2003-12-10 12:43:58 ivo>
+# Last changed Time-stamp: <2005-09-06 17:13:49 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -26,7 +26,7 @@ $help_url = 'http://www.tbi.univie.ac.at/~ivo/RNA/alifoldcgi.html';
 $CGI::POST_MAX = 12*1024;    # maximum filsize for the alignment
 $maxlength  = 2000;          # only process sequences up to this length
 $maxlength1 = 300;           # limit for immediate jobs
-$batchscript = '/var/www/RNA/ALIbatch.pl'; # script for batch submissions
+$batchscript = '/var/www/RNA/ALIbatch_new.pl'; # script for batch submissions
 
 $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
 delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
@@ -127,17 +127,22 @@ sub print_form {
   print $q->checkbox_group(
 			   -name=>'toggles',
 			   -values=>['-4',  '-noGU', '-noCloseGU',
-				     '-noLP'],
+				     '-noLP', 'RNAz'],
 			   -labels=>{'-4', 'no special tetraloops',
 				     '-noGU', 'no GU pairs',
 				     '-noCloseGU',
 				     'no GU pairs at the end of helices',
-				     '-noLP', 'avoid isolated base pairs'
+				     '-noLP', 'avoid isolated base pairs',
+				     'RNAz', 'run RNAz on alignment'
 				    },
 			   -linebreak=>'yes',
-			   -defaults=>['-noLP']);
+			   -defaults=>['-noLP', 'RNAz']);
 
-  print "<br>\nEmail address. For batch jobs (over $maxlength1) this ",
+  print "\n<br><small>",
+    "The <a href='http://www.tbi.unive.ac.at/~wash/RNAz/>RNAz</a> ",
+    "program decides whether an alignment is likely to contain a ",
+      "functional RNA structure</small><p>\n";
+  print "Email address. For batch jobs (over $maxlength1) this ",
     "is mandatory, so we can notify you when the job has completed.\n";
   print $q->textfield(-name => 'email',
 		      -default => 'you@where.org',
@@ -145,12 +150,12 @@ sub print_form {
   print "<P>\n",$q->reset;
   print $q->submit('Action','Fold it');
   print $q->endform;
-
+  
   if (!$q->param) {
     my $last = $q->cookie('alifold_result');
     if ($last) {
       print "<P>The results from your last run should still be in\n";
-      print " <A href=\"$hdir/$last\">$last</a>";
+      print " <A href=\"$hdir/$last/\">$last</a>";
     }
     print ".\n";
   }
@@ -253,7 +258,7 @@ sub do_work {
 			      -expires=>'+1d',
 			      -path=>'/cgi-bin');
   my $time = estimate($num_seq,$length,$options);
-  print $q->header(-refresh=>"$time; URL=$hdir/$name",
+  print $q->header(-refresh=>"$time; URL=$hdir/$name/",
 		   -status=>'202 Accepted',
 		   -cookie=>$the_cookie,
 		   -type=>'text/html');
@@ -262,6 +267,17 @@ sub do_work {
 		       -BGCOLOR=>'#f8f8ff');
 
   print "<H2>Now folding... </H2>\n";
+
+  my $RNAz = 'false';
+  if ($options =~ s/RNAz//) {
+    if (($length<=400) && ($num_seq<=6)) {
+      $RNAz = 'true';
+    } else {
+      print "Warning: RNAz will not be run, since your alignment has too many sequences or is too long.<br>",
+	"RNAz is trained only for alignments up to length 400 with 2 to 6 sequences.<p>\n";
+    }
+  }
+
 
   if ($length<$maxlength1) {
     print "if all goes well you should be automatically forwarded to your ",
@@ -285,7 +301,7 @@ sub do_work {
     #$args .= ' alifold.aln';
     open(QU, '|-', '/usr/bin/qsub -q RNA -s /bin/sh') or
       die "can't submit batch job: $!";
-    print QU "cd $WORK_DIR\n $batchscript $args $email\n";
+    print QU "cd $WORK_DIR\n $batchscript $args $RNAz $email\n";
     close QU;
     print "<p>Your job has been submitted to our queuing system.<br>\n",
       "Assuming no other load on the system, expect results to be available ",
