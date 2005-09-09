@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-06-13 19:08:02 ivo> */
+/* Last changed Time-stamp: <2005-08-31 15:32:49 ivo> */
 /*                
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures 
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.9 2005/07/28 09:07:18 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.10 2005/09/09 08:03:16 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -202,6 +202,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	for (s=0; s<n_seq; s++) {
 	  if (i>1) qbt1 *= expdangle5[type[s]][S[s][i-1]];
 	  if (j<n) qbt1 *= expdangle3[type[s]][S[s][j+1]];
+	  else if (type[s]>2) qbt1 *= expTermAU;
 	}
       qq[i] = qq1[i]*scale[1] + qbt1;
       
@@ -349,6 +350,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	  temp *= expMLintern[tt];
 	  if (k>1) temp *= expdangle5[tt][S[s][k-1]];
 	  if (l<n) temp *= expdangle3[tt][S[s][l+1]];
+	  else if (tt>2) temp *= expTermAU;
 	}
 	pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
 	
