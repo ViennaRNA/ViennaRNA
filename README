@@ -1,7 +1,7 @@
-This is Version 1.5 of the Vienna RNA Package.
+This is Version 1.6 of the Vienna RNA Package.
 This is a pre-release possibly containing more bugs than usual!
 ------------------------------------------------
-See the CHANGES file for differences to previous versions.
+See the NEWS and Changelog files for differences to previous versions.
 
 The Vienna RNA packages consists of a few stand alone programs and a 
 library that you can link your own programs with. The package allows you to
@@ -34,7 +34,11 @@ You need a compiler that understands ANSI C. See the INSTALL file for details.
 The following executables are provided:
 RNAfold		predict secondary structures
 RNAsubopt	calulate suboptimal structures in a given energy range
+RNAalifold	predict a consensus structure for a set of aligned sequences
+RNAcofold       calculate the hybrid structure of two RNA molecules
+RNAduplex       predict possible hybridization sites for two RNAs
 RNAeval		evaluate energy for given sequence and structure
+RNALfold        calculate locally stable RNA secondary structures
 RNAheat		calculate melting curves
 RNAdistance	compare secondary structures
 RNApdist	compare ensembles of secondary structures
