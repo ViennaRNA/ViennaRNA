@@ -39,6 +39,12 @@
   else  $1 = NULL;
 }
 
+%typemap(python,in) FILE * {
+  if (PyFile_Check($input)) /* check for undef */
+        $1 = PyFile_AsFile($input);
+  else  $1 = NULL;
+}
+
 //%title "Interface to the Vienna RNA library"
 //%section "Folding Routines"
 //%subsection "Minimum free Energy Folding"
