@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.31 2005/10/11 22:48:30 xtof Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.32 2005/10/11 23:01:41 xtof Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -345,7 +345,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 	  "%% data start here\n");
 
   /* cut_point */
-  if (cut_point > 0 && cut_point < strlen(string))
+  if (cut_point > 0 && cut_point <= strlen(string))
     fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
   
   /* sequence */
