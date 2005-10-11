@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.30 2005/07/24 08:38:08 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.31 2005/10/11 22:48:30 xtof Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -49,6 +49,8 @@ PRIVATE void   loop(int i, int j, short *pair_table);
 PRIVATE float  *angle;
 PRIVATE int    *loop_size, *stack_size;
 PRIVATE int     lp, stk;
+
+extern  int cut_point;   /* set to first pos of second seq for cofolding */
 
 /*---------------------------------------------------------------------------*/
 
@@ -153,11 +155,18 @@ static const char *RNAss_head =
 "/min { 2 copy gt { exch } if pop } bind def\n"
 "/max { 2 copy lt { exch } if pop } bind def\n"
 "/drawoutline {\n"
-"  outlinecolor\n"
-"  newpath\n"
-"  coor 0 get aload pop 0.8 0 360 arc\n"
-"  coor {aload pop lineto} forall\n"
-"  stroke\n"
+"  gsave outlinecolor newpath\n"
+"  coor 0 get aload pop 0.8 0 360 arc % draw 5' circle of 1st sequence\n"
+"  currentdict /cutpoint known        % check if cutpoint is defined\n"
+"  {coor 0 cutpoint getinterval\n"
+"   {aload pop lineto} forall         % draw outline of 1st sequence\n"
+"   coor cutpoint get aload pop\n"
+"   2 copy moveto 0.8 0 360 arc       % draw 5' circle of 2nd sequence\n"
+"   coor cutpoint coor length cutpoint sub getinterval\n"
+"   {aload pop lineto} forall}        % draw outline of 2nd sequence\n"
+"  {coor {aload pop lineto} forall}   % draw outline as a whole\n"
+"  ifelse\n"
+"  stroke grestore\n"
 "} bind def\n"
 "/drawpairs {\n"
 "  paircolor\n"
@@ -334,6 +343,11 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   
   fprintf(xyplot, "RNAplot begin\n"
 	  "%% data start here\n");
+
+  /* cut_point */
+  if (cut_point > 0 && cut_point < strlen(string))
+    fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
+  
   /* sequence */
   fprintf(xyplot,"/sequence (\\\n");  
   i=0;
