@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-06-22 15:57:54 ivo> */
+/* Last changed Time-stamp: <2005-09-22 10:10:55 ivo> */
 /*                
 		  Ineractive Access to folding Routines
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.17 2005/07/28 09:34:56 ivo Exp $";
+static char rcsid[] = "$Id: RNAfold.c,v 1.18 2005/10/30 20:07:12 ivo Exp $";
 
 #define PRIVATE static
 
@@ -236,16 +236,17 @@ int main(int argc, char *argv[])
       }
       if ((istty)||(!do_backtrack)) 
 	printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-      printf(" frequency of mfe structure in ensemble %g; "
-	     "ensemble diversity %-6.2f\n", exp((energy-min_en)/kT),
-	     mean_bp_dist(length));
+      printf(" frequency of mfe structure in ensemble %g; ",
+	     exp((energy-min_en)/kT));
       if (do_backtrack) {
+	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
 	if (fname[0]!='\0') {
 	  strcpy(ffname, fname);
 	  strcat(ffname, "_dp.ps");
 	} else strcpy(ffname, "dot.ps");
 	(void) PS_dot_plot(string, ffname);
       }
+      printf("\n");
       free_pf_arrays();
 
     }
