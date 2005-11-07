@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
 # Last changed Time-stamp: <2005-03-09 19:45:55 ivo>
-# $Id: relplot.pl,v 1.6 2005/03/11 19:08:29 ivo Exp $
+# $Id: relplot.pl,v 1.7 2005/11/07 12:40:46 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
 use strict;
@@ -13,8 +13,8 @@ our $opt_p;
 getopts('p');
 
 sub HELP_MESSAGE {
-  print "\nusage: $0 [-p] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
-  print "For more details run\n\tperldoc -F $0\n";
+  print STDERR "\nusage: $0 [-p] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
+  print STDERR "For more details run\n\tperldoc -F $0\n";
 }
 
 HELP_MESSAGE() unless $#ARGV >0;
