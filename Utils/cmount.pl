@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2003-09-02 09:36:04 ivo>
+# Last changed Time-stamp: <2005-11-07 13:31:34 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.
-# Input is a colour _dp.ps file from alidot (aka read_ali) or dp_zoom
+# Input is a colour _dp.ps file from alidot or RNAalifold
 # definition: mm[i],mp[i]=number of base pairs enclosing base i
 
 use strict;
@@ -46,21 +46,21 @@ my ($from, $to)=(1,0);
 my ($seq, $length);
 while (<>) {
     chomp;
-    if (/^% Subsequence from (\d+) to (\d+)/) { # get start and end 
+    if (/^% Subsequence from (\d+) to (\d+)/) { # get start and end
 	$from=$1; $to=$2;
     }
     if (/\/sequence \{ \((\S*)[\\\)]/) {
 	print "$_\n";
-        $seq = $1;              # empty for new version
-        while (!/\) \} def/) {  # read until end of definition
-            $_ = <>;
+	$seq = $1;              # empty for new version
+	while (!/\) \} def/) {  # read until end of definition
+	    $_ = <>;
 	    print $_;
-            /(\S*)[\\\)]/;      # ends either with `)' or `\'
-            $seq .= $1;
-        }
+	    /(\S*)[\\\)]/;      # ends either with `)' or `\'
+	    $seq .= $1;
+	}
 	print "/len { sequence length } def\n";
-        $length = length($seq);
-        next;
+	$length = length($seq);
+	next;
     }
 
     next if /^%/;
@@ -76,7 +76,7 @@ while (<>) {
     }
 
     if ($tok eq "lbox") { # only read lbox entries
-	$mp[$i+1]+=$p*$p; 
+	$mp[$i+1]+=$p*$p;
 	$mp[$j]  -=$p*$p;
 	$pair[$i] = $j;
 	$hue[$i]  = $h;
@@ -90,7 +90,7 @@ for (my $i=1; $i<=$length; $i++) { #find maximum for scaling
     $mp[$i]+=$mp[$i-1];
     $max = $mp[$i] if ($mp[$i]>$max);
     $mm[$i]+=$mm[$i-1];
-    $max = $mp[$i] if ($mp[$i]>$max);    
+    $max = $mp[$i] if ($mp[$i]>$max);
 }
 
 # postscript scaleing etc
@@ -118,7 +118,7 @@ gsave 0.5 0 translate
 } for
 stroke
 grestore\n";
-   
+
 
 for (my $i=1; $i<=$length; $i++) { # print pairs as coloured trapezes
     next unless ($pair[$i]);
@@ -128,3 +128,25 @@ for (my $i=1; $i<=$length; $i++) { # print pairs as coloured trapezes
 
 print "showpage\n";
 
+=head1 NAME
+
+cmount.pl - produce a colored mountain plot of a consensus structure
+
+=head1 SYNOPSIS
+
+  cmount.pl alidot.ps
+
+=head1 DESCRIPTION
+
+cmount.pl reads a color dot plot as produced by either C<RNAalifold
+-p> or C<alidot -p> and writes a postscript colored mountain plot to
+stdout.
+
+In the mountain plot a colored trapez with baseline from position i to
+j represents the pair (i,j) in the consensus structure. The color of
+the trapez encodes the sequence variation at that pair: Red marks
+pairs with no sequence variation; ochre, green, turquoise, blue, and
+violet mark pairs with 2,3,4,5,6 different tpyes of pairs,
+respectively.
+
+=cut
