@@ -91,10 +91,8 @@ sub print_form {
      "Try the new SVG plot if your browser supports it!<br>\n",
        "You can now submit sequences up to $maxlength2 as batch jobs.<p>\n";
    print $query->startform(-enctype=>'multipart/form');
-   #print "<strong>Name of sequence</strong> ",
-   #"(choose a unique identifier)<BR>\n&gt; ";
-   #print $query->textfield('name');
-
+   print "Name of sequence (optional, used to name output files)<BR>\n&gt; ";
+   print $query->textfield('name');
 
    print "<P>\n<strong>Type in your sequence</strong>\n<kbd>T</kbd>s will be ",
    "automatically replaced by <kbd>U</kbd>s.\nAny symbols except ",
@@ -153,8 +151,10 @@ sub print_form {
        $query->checkbox(-name=>'SVG', checked=>'ON');
    print "<br>\nor using the <code>SStructView</code> java applet?\n",
      $query->checkbox(-name=>'SSview');
-   print "<br>\nEmail address. For batch jobs (over $maxlength1) this ",
-     "is mandatory, so we can notify you when the job has completed.\n";
+   print "<br>\nEmail address. When the job has completed, we'll send a ",
+         "mail containing a link to the results page, this is useful for ",
+	 "long jobs that won't give results immediately. Please ",
+	 "don't use fake addresses (just leave the filed as is, or empty).\n";
    print $query->textfield(-name => 'email',
 			   -default => 'you@where.org',
 			   -size => 30);
@@ -278,15 +278,15 @@ sub do_work {
    $maxlength1 += 100 unless $options =~ /-p/;
    my $email;
    if ($length >$maxlength1) {
+       $email = undef if $email eq 'you@where.org';
        $email = Email::Valid->address($query->param('email'), -mxcheck => 1);
-       if (!defined($email) || $email eq 'you@where.org') {
-	   print "Sorry, the address ",
-	   encode_entities($query->param('email')), 
-	   " does not appear to be valid.<br>\n",
-	   "For long jobs we require an email address so we can notify ",
-	   "you when the calculation is finished<p>\n";
-	   print_tail();
-	   return;
+       if (!defined($email))  {
+	   print "It seems you have no given a valid mail address ",
+	   encode_entities($query->param('email')), ".<br>\n",
+	   "Be sure you retain the link below so you can find your ",
+	   "resluts when the calculation is finished<p>\n";
+	   #print_tail();
+	   #return;
        }
    }
 

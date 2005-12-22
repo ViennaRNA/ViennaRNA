@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 # -*-Perl-*-
-# Last changed Time-stamp: <2004-08-19 10:15:27 ivo>
+# Last changed Time-stamp: <2005-10-21 19:14:16 ivo>
 use HTML::Entities;
 use URI::Escape;
 use Chart::Lines;
@@ -124,9 +124,10 @@ close(FOLD);
 select($old_stdout);
 close(OUT);
 
-my $email = pop;
+my $email;
+$email = pop if $_[-1] =~ /\@/; # check if we really have an address
 my $dir = $1 if $ENV{PWD} =~ /(\w+)$/;
-if ($dir  && ($email ne 'rna@tbi.univie.ac.at')) {			       
+if ($dir  && defined($email)) {
     my $msg = new Mail::Send Subject=>'ViennaRNA fold job complete',To=>$email;
     $msg->set('Reply-To', 'rna@tbi.univie.ac.at');
     my $fh = $msg->open;
@@ -137,7 +138,7 @@ if ($dir  && ($email ne 'rna@tbi.univie.ac.at')) {
     "Contact rna\@tbi.univie.ac.at in case of problems\n";
     close $fh;
 }
-			       
+
 sub mountain {
   my($name, $structure, $options) = @_;
   my $length = length $structure;
