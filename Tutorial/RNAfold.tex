@@ -12,16 +12,14 @@ In addition we'll use the RNA fold servers at these web sites:
 \begin{itemize}
 \item Michael Zuker's mfold server at\\
 \url{http://www.bioinfo.rpi.edu/~zukerm/rna/}
-\item The European mfold server at\\
-\url{http://bibiserv.techfak.uni-bielefeld.de/mfold/}
 \item The Vienna RNA fold server at\\
 \url{http://www.tbi.univie.ac.at/cgi-bin/RNAfold.cgi}
 \end{itemize}
 
 \subsection{Installing the Vienna RNA Package}
 
-Unpack the tar file using {\tt zcat ViennaRNA-1.5.tar.gz | tar -xvf -}\\
-Change into the {\tt ViennaRNA-1.5} directory you just created.
+Unpack the tar file using {\tt zcat ViennaRNA-1.6.tar.gz | tar -xvf -}\\
+Change into the {\tt ViennaRNA-1.6} directory you just created.
 Type
 \begin{quote}
 \tt ./configure\\
@@ -91,8 +89,6 @@ Why does the {\tt mfold} output show only three of the four main structural
 alternatives? Slowly increase the energy range in {\tt RNAsubopt} ({\tt -e}
 option) and observe how fast the number of structures increases.
 
-Note that the {\tt mfold} server in Bielefeld as well as the RNAfold server
-in Vienna still use the older parameter set.
 
 \subsubsection{Constrained folding}
 
@@ -130,8 +126,6 @@ Try the same for the tRNA structure folded with and without constraints.
 
 For a longer example fold the RRE region of HIV, to be found in the file
 {\tt RRE.seq}, and identify well- and ill-defined regions.
-
-
 
 \subsection{Temperature dependence and melting curves}
 
