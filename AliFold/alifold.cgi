@@ -1,6 +1,6 @@
 #!/usr/bin/perl  -T
 # -*-CPerl-*-
-# Last changed Time-stamp: <2005-09-06 17:13:49 ivo>
+# Last changed Time-stamp: <2005-10-29 18:09:40 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -26,7 +26,7 @@ $help_url = 'http://www.tbi.univie.ac.at/~ivo/RNA/alifoldcgi.html';
 $CGI::POST_MAX = 12*1024;    # maximum filsize for the alignment
 $maxlength  = 2000;          # only process sequences up to this length
 $maxlength1 = 300;           # limit for immediate jobs
-$batchscript = '/var/www/RNA/ALIbatch_new.pl'; # script for batch submissions
+$batchscript = '/var/www/RNA/ALIbatch.pl'; # script for batch submissions
 
 $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
 delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
@@ -139,7 +139,7 @@ sub print_form {
 			   -defaults=>['-noLP', 'RNAz']);
 
   print "\n<br><small>",
-    "The <a href='http://www.tbi.unive.ac.at/~wash/RNAz/>RNAz</a> ",
+    "The <a href='http://www.tbi.unive.ac.at/~wash/RNAz/'>RNAz</a> ",
     "program decides whether an alignment is likely to contain a ",
       "functional RNA structure</small><p>\n";
   print "Email address. For batch jobs (over $maxlength1) this ",
@@ -150,7 +150,7 @@ sub print_form {
   print "<P>\n",$q->reset;
   print $q->submit('Action','Fold it');
   print $q->endform;
-  
+
   if (!$q->param) {
     my $last = $q->cookie('alifold_result');
     if ($last) {
@@ -214,7 +214,7 @@ sub do_work {
     }
     $size += length;
   }
-  close(ALN); 
+  close(ALN);
   error_page($size) if $size<14;
   $num_seq = scalar(keys %l);
   error_page('numseq') if $num_seq<2;
@@ -222,7 +222,7 @@ sub do_work {
   foreach (keys %l) {
     error_page('unequal') if $length != $l{$_};
   }
-  error_page("length $length") if $length>$maxlength; 
+  error_page("length $length") if $length>$maxlength;
   my $options  = '';
   $options .= ' -p' if ($q->param('pffold') eq 'pf');
   $options .= ' -P dna.par'
@@ -326,7 +326,7 @@ sub do_work {
 	  "If the output seems incomplete press relaod after a few seconds<p>\n";
 
   if ($q->param('Params') eq 'DNA') {
-    print "DNA parameters provided by courtesy of " . 
+    print "DNA parameters provided by courtesy of " .
       "<b><a href=\"http://ozone.chem.wayne.edu/\">",
 	"John SantaLucia Jr.</a></b><br>\n",
 	  "In any publication using these relsults, please cite:<br>\n",
@@ -336,7 +336,7 @@ sub do_work {
 		  "<i>Proc. Natl. Acad. Sci. USA</i> <b>95</b>, 1460-1465.\n",
 		    "<p><hr>\n";
   } else {
-    print "RNA parameters are described in<br>\n" . 
+    print "RNA parameters are described in<br>\n" .
       "D.H.  Mathews, J. Sabina, M. Zucker and H. Turner\n",
 	"\"Expanded Sequence Dependence of Thermodynamic Parameters ",
 	  "Provides Robust Prediction of RNA Secondary Structure\",\n",
@@ -350,6 +350,9 @@ sub do_work {
     close(OUT);
     return;
   }
+
+
+  # the rest will only be done for shoprt jobs that are not submitted to the queue
 
   print "An equivalent RNAalifold command line would have been<BR>\n",
     "<kbd>RNAalifold $options alifold.aln</kbd><P>\n";
@@ -373,12 +376,17 @@ sub do_work {
     `$RNAdir/cmt.pl alifold.out > cmount.eps`;
     print "<dd>colored <a href=\"cmount.eps\">mountain plot</a> in postscript";
   }
+  if ($RNAz =~ /true/) {
+    $ENV{RNAZDIR} = "$RNAdir/RNAz_models";
+    `$RNAdir/RNAz alifold.aln > RNAz.out`;
+    print "<dd>The <a href=\"RNAz.out\">RNAz output</a> shows whether the alignment is likely to harbour a functional RNA structure.";
+  }
   print "</dl>\n";
 
   my ($user,$system,$cuser,$csystem) = times;
   print "<BR>Time used for this call ",$user+$system, "+", $cuser+$csystem,
     " seconds<BR>\n";
-  print "Results will remain on this server for approximatly 1 day\n<HR>\n";
+  print "Results will remain on this server forat least 1 day\n<HR>\n";
   print_tail();
   select($old_stdout);
 }
@@ -420,7 +428,7 @@ sub error_page {
       if /firstline/;
     print "There should be at least two sequences in your alignment<br>\n"
       if /numseq/;
-    print "Sequences in the alignment should be equal length<br>\n" 
+    print "Sequences in the alignment should be equal length<br>\n"
       if /unequal/;
     print <<END;
 The input file you uploaded does not look like a sequence alignment

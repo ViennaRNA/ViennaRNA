@@ -57,7 +57,7 @@ print "Results will remain on this server for at least 1 day\n<HR>\n";
 print <<END;
    We appreciate your feedback. Please send comments to
    <ADDRESS>Ivo Hofacker
-   <A HREF="mailto:ivo\@tbi.univie.ac.at">&lt;ivo\@tbi.univie.ac.at&gt;</A>
+   <A HREF="mailto:rna\@tbi.univie.ac.at">&lt;ivo\@tbi.univie.ac.at&gt;</A>
    </ADDRESS>
    <A HREF="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna RNA Home Page</A>
  </body></html>
