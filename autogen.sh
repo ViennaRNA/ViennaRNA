@@ -9,7 +9,7 @@
 #
 
 [ -d ./Kinfold ] ||  mkdir Kinfold
-[ -d ./RNAforester-1.4 ] ||  mkdir RNAforester-1.4
+[ -d ./RNAforester ] ||  mkdir RNAforester
 
 set -e
 
