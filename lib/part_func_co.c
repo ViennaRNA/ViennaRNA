@@ -1,5 +1,5 @@
-/* Last changed Time-stamp: <2004-12-23 13:13:55 berni> */
-/*                
+/* Last changed Time-stamp: <2006-01-04 16:13:19 ivo> */
+/*
 		  partiton function for RNA secondary structures
 
 		  Ivo L Hofacker
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.3  2006/01/04 15:14:29  ivo
+  fix bug in concentration calculations
+
   Revision 1.2  2004/12/23 12:14:41  berni
   *** empty log message ***
 
@@ -38,19 +41,18 @@
 #include "PS_dot.h"
 #include "co_part_func.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.2 2004/12/23 12:14:41 berni Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.3 2006/01/04 15:14:29 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
 #define PRIVATE static
 
-extern  int cut_point;   /* set to first pos of second seq for cofolding */
-
+/*extern  int cut_point;   /* set to first pos of second seq for cofolding */
 PUBLIC  float co_pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_co_pf_fold(int length);
 PUBLIC  void  free_co_pf_arrays(void);
-PUBLIC  void  update_co_pf_params(int length); 
+PUBLIC  void  update_co_pf_params(int length);
 PUBLIC  char  co_bppm_symbol(float *x);
 PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
 				     double *FEBB,double *FEA,
@@ -91,7 +93,7 @@ PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
 PRIVATE FLT_OR_DBL *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
-PRIVATE char *ptype; /* precomputed array of pair types */ 
+PRIVATE char *ptype; /* precomputed array of pair types */
 PRIVATE int *jindx;
 PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define ISOLATED  256.0
@@ -99,7 +101,7 @@ PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define TURN 0
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
 
-
+/*int mirnatog;*/
 
 /*-----------------------------------------------------------------*/
 static  short *S, *S1;
@@ -111,14 +113,13 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
-   
+
   double free_energy;
   double max_real;
-
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
   if (n>init_length) init_co_pf_fold(n);  /* (re)allocate space */
-
+  /* printf("mirnatog=%d\n",mirnatog); */
   S = (short *) xrealloc(S, sizeof(short)*(n+1));
   S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
   S[0] = n;
@@ -127,7 +128,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
     S1[l] = alias[S[l]];
   }
   make_ptypes(S, structure);
-   
+
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
@@ -138,7 +139,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
       qb[ij]=qm[ij]=0.0;
     }
 
-  for (i=1; i<=n; i++) 
+  for (i=1; i<=n; i++)
     qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
@@ -152,11 +153,11 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	/*hairpin contribution*/
 	if SAME_STRAND(i,j){
 	  if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
-	  else 
+	  else
 	    qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
-	  
+
 	}
-	
+
 	/* interior loops with interior pair k,l */
 	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
 	  u1 = k-i-1;
@@ -165,20 +166,20 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	      type_2 = ptype[iindx[k]-l];
 	      if (type_2) {
 		type_2 = rtype[type_2];
-		qbt1 += qb[iindx[k]-l] * 
+		qbt1 += qb[iindx[k]-l] *
 		  expLoopEnergy(u1, j-l-1, type, type_2,
 				S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
 	      }
 	    }
 	  }
-	} 
+	}
 	/*multiple stem loop contribution*/
 	ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
 	temp = 0.0;
-	if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) { 
+	if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
 	  for (k=i+2; k<=j-1; k++) {
 	    if (SAME_STRAND(k-1,k))
-	      temp += qm[ii-(k-1)]*qqm1[k]; 
+	      temp += qm[ii-(k-1)]*qqm1[k];
 	  }
 	  tt = rtype[type];
 	  temp*=expMLclosing*expMLintern[tt]*scale[2];
@@ -197,46 +198,46 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	  if (j>cut_point) temp*=scale[1];
 	  if (i<cut_point-1) temp*=scale[1];
 	  if (SAME_STRAND(i,i+1)) temp*=expdangle3[tt][S1[i+1]];
-	  else if (type>2) temp*= expTermAU; 
+	  else if (type>2) temp*= expTermAU;
 	  if (SAME_STRAND(j-1,j)) temp*=expdangle5[tt][S1[j-1]];
-	 
+
 	  qbt1+=temp;
 	  }
 	qb[ij] = qbt1;
       } /* end if (type!=0) */
       else qb[ij] = 0.0;
-      
+
       /* construction of qqm matrix containing final stem
 	 contributions to multiple loop partition function
 	 from segment i,j */
-      if (SAME_STRAND(j-1,j)) { 
+      if (SAME_STRAND(j-1,j)) {
 	qqm[i] = qqm1[i]*expMLbase[1];
       }
-      else qqm[i]=0; 
+      else qqm[i]=0;
       if (type&&SAME_STRAND(i-1,i)&&SAME_STRAND(j,j+1)) {
 	qbt1 = qb[ij]*expMLintern[type];
 	if (i>1) qbt1 *= expdangle5[type][S1[i-1]];
 	if (j<n) qbt1 *= expdangle3[type][S1[j+1]];
-	else if (type>2) qbt1 *= expTermAU;  
+	else if (type>2) qbt1 *= expTermAU;
 	qqm[i] += qbt1;
       }
-    
+
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
-	
+
 
       /*construction of qm matrix containing multiple loop
 	partition function contributions from segment i,j */
       temp = 0.0;
       ii = iindx[i];  /* ii-k=[i,k] */
-       
+
       for (k=i+1; k<=j; k++) {
 	if (SAME_STRAND(k-1,k))   temp += (qm[ii-(k-1)])*qqm[k];
 	if (SAME_STRAND(i,k)) temp +=expMLbase[k-i]*qqm[k];
-	
+
       }
-      
+
       qm[ij] = (temp + qqm[i]);
-      
+
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if (type) {
@@ -273,11 +274,11 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
   free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
-  /* in case we abort because of floating point errors */ 
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy); 
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
   /*probability of molecules being bound together*/
-  
-  
+
+
   /*Computation of "real" Partition function*/
   /*Need that for concentrations*/
   if (cut_point>0){
@@ -289,9 +290,9 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
     QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*expInit;
     QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
     pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
-    
+
     free_energy=((-log(QToT)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0);
-      
+
     mf1=(-log(q[iindx[1]-(cut_point-1)])-(cut_point-1)*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
     mf2=(-log(q[iindx[cut_point]-n])-(n-cut_point+1)*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
@@ -299,9 +300,11 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   else {
     mf1=mf2=free_energy;
   }
+  /* printf("freen=%.6f\n",free_energy); whereto?*/
   /* backtracking to construct binding probabilities of pairs*/
   /* printf("qis %f\n",q[iindx[1]-(cut_point-1)]);*/
-  if (do_backtrack) {
+  /*new: expInit added*/ /*new*/
+   if (do_backtrack) {
     Qmax=0;
 
     for (k=1; k<=n; k++) {
@@ -310,7 +313,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
     }
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
-     
+
     /*    pr = q;     /  * recycling */
 
     /* 1. exterior pair i,j and initialization of pr array */
@@ -320,16 +323,15 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	ij = iindx[i]-j;
 	type = ptype[ij];
 	if (type&&(qb[ij]>0.)) {
-	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];	  
+	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
 	  if ((i>1)&&(SAME_STRAND(i-1,i))) pr[ij] *= expdangle5[type][S1[i-1]];
 	  if ((j<n)&&(SAME_STRAND(j,j+1))) pr[ij] *= expdangle3[type][S1[j+1]];
 	  else if (type>2) pr[ij] *= expTermAU;
-	  
 	} else
 	  pr[ij] = 0;
       }
     }
-      
+
     for (l=n; l>TURN+1; l--) {
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
@@ -337,8 +339,8 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	kl = iindx[k]-l;
 	type_2 = ptype[kl]; type_2 = rtype[type_2];
 	if (qb[kl]==0) continue;
-	
-	for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++) 
+
+	for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++)
 	  for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
 	    if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
 	      ij = iindx[i] - j;
@@ -346,7 +348,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	      if ((pr[ij]>0)) {
 		pr[kl] += pr[ij]*expLoopEnergy(k-i-1, j-l-1, type, type_2,
 					       S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
-	      } 
+	      }
 	    }
 	  }
       }
@@ -355,7 +357,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
       if ((l<n)&&(SAME_STRAND(l,l+1))) for (k=2; k<l-TURN; k++) {
 	i = k-1;
 	prmt = prmt1 = 0.0;
-	    
+
 	ii = iindx[i];     /* ii-j=[i,j]     */
 	ll = iindx[l+1];   /* ll-j=[l+1,j] */
 	tt = ptype[ii-(l+1)]; tt=rtype[tt];
@@ -363,7 +365,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	  prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
 	    expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
 	  for (j=l+2; j<=n; j++) {
-	    if (SAME_STRAND(j-1,j)){ 
+	    if (SAME_STRAND(j-1,j)){ /*??*/
 	      tt = ptype[ii-j]; tt = rtype[tt];
 	      prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
 		expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
@@ -381,9 +383,9 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	   for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
 	prml[i] = prml[ i] + prm_l[i];
-	    
-	if (qb[kl] == 0.) continue; 
-	    
+
+	if (qb[kl] == 0.) continue;
+
 	temp = prm_MLb;
 
 	for (i=1;i<=k-2; i++) {
@@ -395,11 +397,11 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	if ((k>1)&&SAME_STRAND(k-1,k)) temp *= expdangle5[tt][S1[k-1]];
 	if ((l<n)&&SAME_STRAND(l,l+1)) temp *= expdangle3[tt][S1[l+1]];
 	pr[kl] += temp;
-	
+
 	if (pr[kl]>Qmax) {
 	  Qmax = pr[kl];
 	  if (Qmax>max_real/10.)
-	    fprintf(stderr, "P close to overflow: %d %d %g %g\n", 
+	    fprintf(stderr, "P close to overflow: %d %d %g %g\n",
 		    i, j, pr[kl], qb[kl]);
 	}
 	if (pr[kl]>=max_real) {
@@ -410,7 +412,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
       } /* end for (k=..) multloop*/
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
       /*computation of .(..(...)..&..). type features?*/
- 
+
       if (cut_point<=0) continue;  /* no .(..(...)..&..). type features*/
       if ((l==n)||(l<=2)) continue; /* no .(..(...)..&..). type features*/
       if (l>cut_point) { /*right of cut*/
@@ -426,7 +428,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	     pr[kl]+=q[iindx[i+1]-(cut_point-1)]*pr[iindx[i]-(l+1)]*
 	       expdangle5[type][S1[l]]*expdangle3[type][S1[i+1]]*
 	       expdangle3[tt][S1[l+1]]*scale[2];
-	     
+
 	   }
 	   /*j>l+1*/
 	   for (j=l+2; j<=n; j++) {
@@ -435,7 +437,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	       pr[kl]+=q[iindx[i+1]-(cut_point-1)]*pr[iindx[i]-(j)]*
 		 expdangle5[type][S1[j-1]]*expdangle3[type][S1[i+1]]*
 		 expdangle3[tt][S1[l+1]]*q[iindx[l+1]-(j-1)]*scale[2];
-	       
+
 	     }
 	   }
 	 }
@@ -447,7 +449,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	     expdangle3[tt][S1[l+1]]*scale[2];
 	   if (type>2) temp*=expTermAU;
 	   pr[kl]+=temp;
-	   
+
 	 }
 	 /*j>l+1*/
 	 for (j=l+2; j<=n; j++) {
@@ -457,11 +459,11 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	       expdangle3[tt][S1[l+1]]*q[iindx[l+1]-(j-1)]*scale[2];
 	     if (type>2) temp*=expTermAU;
 	     pr[kl]+=temp;
-	     
+
 	   }
-	 }  
+	 }
        }
-     
+
      for (k=cut_point+1; k<l;k++) { /*k>cut_point*/
 	 kl=iindx[k]-l;
 	 if (qb[kl]>0.) {
@@ -507,25 +509,25 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	       if (type>2) temp*=expTermAU;
 	       pr[kl]+=temp;
 	     }
-	   }  
+	   }
 	 }
        }
       }
       if (l<cut_point-1) { /*l bis 1 vor cut*/
      /*l left of cut*/
      for (k=2;k<l; k++) {
-      
-	 kl=iindx[k]-l; 
-	 if (qb[kl]>0.) { 
+
+	 kl=iindx[k]-l;
+	 if (qb[kl]>0.) {
 	   tt=ptype[kl];                    /*i=k-1*/
 	   if (qb[iindx[k-1]-cut_point]>0.) { /*j=cut_point*/
 	     type=ptype[iindx[k-1]-cut_point];type=rtype[type];
 	     pr[kl]+=pr[iindx[k-1]-cut_point]*q[iindx[l+1]-(cut_point-1)]*
 	       expdangle3[tt][S1[l+1]]*expdangle5[tt][S1[k-1]]*
 	       expdangle3[type][S1[k]]*scale[2];
-	     
+
 	   }
-	   
+
 	   for (j=cut_point+1; j<=n;j++) { /*j ab cut_point+1*/
 	     if (qb[iindx[k-1]-j]>0.) {
 	       type=ptype[iindx[k-1]-j];type=rtype[type];
@@ -541,9 +543,9 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	       type=ptype[iindx[i]-cut_point];type=rtype[type];
 	       pr[kl]+=pr[iindx[i]-cut_point]*q[iindx[l+1]-(cut_point-1)]*
 		 expdangle3[tt][S1[l+1]]*expdangle5[tt][S1[k-1]]*
-		 expdangle3[type][S1[i+1]]*q[iindx[i+1]-(k-1)]*scale[2];	
+		 expdangle3[type][S1[i+1]]*q[iindx[i+1]-(k-1)]*scale[2];
 	     }
-	    
+
 	     for (j=cut_point+1; j<=n;j++) { /*j ab cut_point+1*/
 	       if (qb[iindx[i]-j]>0.) {
 		 type=ptype[iindx[i]-j];type=rtype[type];
@@ -560,8 +562,8 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
       /*l=cut_point-1*/
       if (l==cut_point-1) {
 	for(k=2; k<l; k++) {
-       kl=iindx[k]-l; 
-       if (qb[kl]>0.) { 
+       kl=iindx[k]-l;
+       if (qb[kl]>0.) {
 	 tt=ptype[kl];                    /*i=k-1*/
 	 if (qb[iindx[k-1]-cut_point]>0.) { /*j=cut_point*/
 	   type=ptype[iindx[k-1]-cut_point];type=rtype[type];
@@ -570,7 +572,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	   if (tt>2) temp*=expTermAU;
 	   pr[kl]+=temp;
 	 }
-	
+
 	 for (j=cut_point+1; j<=n;j++) { /*j ab cut_point+1*/
 	   if (qb[iindx[k-1]-j]>0.) {
 	     type=ptype[iindx[k-1]-j];type=rtype[type];
@@ -590,7 +592,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	     if (tt>2) temp*=expTermAU;
 	     pr[kl]+=temp;
 	   }
-	  
+
 	   for (j=cut_point+1; j<=n;j++) { /*j ab cut_point+1*/
 	     if (qb[iindx[i]-j]>0.) {
 	       type=ptype[iindx[i]-j];type=rtype[type];
@@ -601,29 +603,28 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	       pr[kl]+=temp;
 	     }
 	   }
-	   
+
 	 }
        }
 	}
-      }    
-     
+      }
+
     }  /* end for (l=..)   */
-      
+
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
 	ij = iindx[i]-j;
 	pr[ij] *= qb[ij];
       }
-      
+
     if (structure!=NULL)
       sprintf_bppm(n, structure);
   }   /* end if (do_backtrack)*/
-   
+
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
 		    "you might try a smaller pf_scale than %g\n",
 		    ov, pf_scale);
-   
-  return free_energy; 
+  return free_energy;
 }
 
 /*------------------------------------------------------------------------*/
@@ -635,7 +636,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 #define SCALE 10
 /* #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
   SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))*/
-#define SMOOTH(X) ((X)<0 ? 0 : (X)) 
+#define SMOOTH(X) ((X)<0 ? 0 : (X))
 
 PRIVATE void scale_pf_params(unsigned int length)
 {
@@ -644,8 +645,8 @@ PRIVATE void scale_pf_params(unsigned int length)
   double  kT, TT;
   double  GT;
 
-   
-   
+
+
   kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (temperature+K0)/(Tmeasure);
 
@@ -672,7 +673,7 @@ PRIVATE void scale_pf_params(unsigned int length)
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) expinternal[2] = exp ( -80*10/kT);
-   
+
   lxc = lxc37*TT;
   for (i=31; i<length; i++) {
     GT = hairpin37[30]*TT + (lxc*log( i/30.));
@@ -694,7 +695,7 @@ PRIVATE void scale_pf_params(unsigned int length)
     GT = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*TT;
     exptetra[i] = exp( -GT*10./kT);
   }
-  for (i=0; (i*5)<strlen(Triloops); i++) 
+  for (i=0; (i*5)<strlen(Triloops); i++)
     expTriloop[i] = exp(-Triloop_E37[i]*10/kT);
 
   GT =  ML_closing37*TT;
@@ -763,7 +764,7 @@ PRIVATE void scale_pf_params(unsigned int length)
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++) {
-	    GT = int21_H[i][j][k][l][m] - 
+	    GT = int21_H[i][j][k][l][m] -
 	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
 	    expint21[i][j][k][l][m] = exp(-GT*10./kT);
 	  }
@@ -775,12 +776,12 @@ PRIVATE void scale_pf_params(unsigned int length)
 	for (l=0; l<5; l++) {
 	  int m,n;
 	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++) {            
+	    for (n=0; n<5; n++) {
 	      GT = int22_H[i][j][k][l][m][n] -
 		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
 	      expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
 	    }
-	}  
+	}
   /*initialization of duplex energy*/
   expInit=exp(-DuplexInit*((temperature+K0)/310.15)/(kT/10.)); /*??*/
 }
@@ -795,18 +796,18 @@ PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
     strncpy(tl, string, 6);
     if ((ts=strstr(Tetraloops, tl)))
       q *= exptetra[(ts-Tetraloops)/7];
-  } 
+  }
   if (u==3) {
     char tl[6]={0}, *ts;
     strncpy(tl, string, 5);
-    if ((ts=strstr(Triloops, tl))) 
+    if ((ts=strstr(Triloops, tl)))
       q *= expTriloop[(ts-Triloops)/6];
-    if (type>2) 
+    if (type>2)
       q *= expTermAU;
   }
   else /* no mismatches for tri-loops */
     q *= expmismatchH[type][si1][sj1];
-  
+
   q *= scale[u+2];
   return q;
 }
@@ -835,7 +836,7 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
     else {     /* interior loop */
       if (u1+u2==2) /* size 2 is special */
 	z = expint11[type][type2][si1][sj1];
-      else if ((u1==1) && (u2==2)) 
+      else if ((u1==1) && (u2==2))
 	z = expint21[type][type2][si1][sq1][sj1];
       else if ((u1==2) && (u2==1))
 	z = expint21[type2][type][sq1][si1][sp1];
@@ -851,13 +852,13 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
   }
   return z*scale[u1+u2+2];
 }
- 
+
 /*----------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int length)
 {
   unsigned int size,i;
-   
+
   size = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
   q   = (FLT_OR_DBL *) space(size);
   qb  = (FLT_OR_DBL *) space(size);
@@ -865,10 +866,10 @@ PRIVATE void get_arrays(unsigned int length)
   pr  = (FLT_OR_DBL *) space(size); /*q is needed later*/
 
   qm1 = (FLT_OR_DBL *) space(size);
- 
+
   ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
   q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  
+
   qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qq  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qq1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -889,7 +890,7 @@ PRIVATE void get_arrays(unsigned int length)
 }
 
 /*----------------------------------------------------------------------*/
-   
+
 PUBLIC void init_co_pf_fold(int length)
 {
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
@@ -947,8 +948,8 @@ PUBLIC void update_co_pf_params(int length)
 
 PUBLIC char co_bppm_symbol(float *x)
 {
-  if( x[0] > 0.667 )  return '.';                  
-  if( x[1] > 0.667 )  return '(';                  
+  if( x[0] > 0.667 )  return '.';
+  if( x[1] > 0.667 )  return '(';
   if( x[2] > 0.667 )  return ')';
   if( (x[1]+x[2]) > x[0] ) {
     if( (x[1]/(x[1]+x[2])) > 0.667) return '{';
@@ -965,7 +966,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
 {
   int    i,j;
   float  P[L];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
-         
+
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
     P[1] = P[2] = 0.0;
@@ -980,14 +981,14 @@ PRIVATE void sprintf_bppm(int length, char *structure)
     structure[j-1] = co_bppm_symbol(P);
   }
   structure[length] = '\0';
-}   
+}
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void make_ptypes(const short *S, const char *structure) {
   int n,i,j,k,l;
-  
+
   n=S[0];
-  for (k=1; k<=n-TURN-1; k++) 
+  for (k=1; k<=n-TURN-1; k++)
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
       i=k; j = i+TURN+l;
@@ -995,7 +996,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
 	if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
-	if (noLonelyPairs && (!otype) && (!ntype)) 
+	if (noLonelyPairs && (!otype) && (!ntype))
 	  type = 0; /* i.j can only form isolated pairs */
 	qb[iindx[i]-j] = 0.;
 	ptype[iindx[i]-j] = (char) type;
@@ -1003,17 +1004,17 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 	type  = ntype;
 	i--; j++;
       }
-      
+
     }
-  
+
   if (fold_constrained&&(structure!=NULL)) {
     int hx, *stack;
     char type;
     stack = (int *) space(sizeof(int)*(n+1));
-    
+
     for(hx=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
-      case 'x': /* can't pair */ 
+      case 'x': /* can't pair */
 	for (l=1; l<j-TURN; l++) ptype[iindx[l]-j] = 0;
 	for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
 	break;
@@ -1041,14 +1042,36 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       case '>': /* pairs downstream */
 	for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
 	break;
+      case 'l': /*only intramolecular basepairing*/
+	if (j<cut_point) for (l=cut_point; l<=n; l++) ptype[iindx[j]-l] = 0;
+	else for (l=1; l<cut_point; l++) ptype[iindx[l]-j] =0;
+	break;
+      case 'e': /*only intermolecular bp*/
+	if (j<cut_point) {
+	  for (l=1; l<j; l++) ptype[iindx[l]-j] =0;
+	  for (l=j+1; l<cut_point; l++) ptype[iindx[j]-l] = 0;
+	}
+	else {
+	  for (l=cut_point; l<j; l++) ptype[iindx[l]-j] =0;
+	  for (l=j+1; l<=n; l++) ptype[iindx[j]-l] = 0;
+	}
+	break;
       }
     }
+
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
       nrerror("unbalanced brackets in constraint string");
     }
     free(stack);
   }
+  if (mirnatog==1) {   /*microRNA toggle: no intramolec. bp in 2. molec*/
+    for (j=cut_point; j<n; j++) {
+      for (l=j+1; l<=n; l++) {
+	ptype[iindx[j]-l] = 0;
+      }
+    }
+    }
 }
 
 /*
@@ -1070,9 +1093,9 @@ static void backtrack_qm1(int i,int j) {
   ii = iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[ii-l];
-    if (type) 
-      qt +=  qb[ii-l]*expMLintern[type]* 
-	expdangle5[type][S1[i-1]] * expdangle3[type][S1[l+1]] *  
+    if (type)
+      qt +=  qb[ii-l]*expMLintern[type]*
+	expdangle5[type][S1[i-1]] * expdangle3[type][S1[l+1]] *
 	expMLbase[j-l];
     if (qt>=r) break;
   }
@@ -1086,17 +1109,17 @@ static void backtrack(int i, int j) {
     int k, l, type, u, u1;
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
-    
+
     r = urn() * qb[iindx[i]-j];
     type = ptype[iindx[i]-j];
     u = j-i-1;
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
-    else 
+    else
       qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
 
     if (qbt1>r) return; /* found the hairpin we're done */
-    
+
     for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;
       for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
@@ -1104,7 +1127,7 @@ static void backtrack(int i, int j) {
 	type_2 = ptype[iindx[k]-l];
 	if (type_2) {
 	  type_2 = rtype[type_2];
-	  qbt1 += qb[iindx[k]-l] * 
+	  qbt1 += qb[iindx[k]-l] *
 	    expLoopEnergy(u1, j-l-1, type, type_2,
 			  S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
 	}
@@ -1134,7 +1157,7 @@ static void backtrack(int i, int j) {
       if (qt>=r) break;
     }
     if (k>=j) nrerror("backtrack failed, can't find split index ");
-    
+
     backtrack_qm1(k, j);
 
     j = k-1;
@@ -1144,20 +1167,20 @@ static void backtrack(int i, int j) {
       ii = iindx[i];
       r = urn() * qm[ii - j];
       qt = qm1[jj+i]; k=i;
-      if (qt<r) 
+      if (qt<r)
 	for (k=i+1; k<=j; k++) {
 	  qt += (qm[ii-(k-1)]+expMLbase[k-i])*qm1[jj+k];
-	  if (qt >= r) break; 
+	  if (qt >= r) break;
 	}
       if (k>j) nrerror("backtrack failed in qm");
-      
+
       backtrack_qm1(k,j);
 
       if (k<i+TURN) break; /* no more pairs */
       r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) break; /* no more pairs */
       j = k-1;
-    } 
+    }
   }
 }
 
@@ -1172,45 +1195,51 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
   double expInit;
   double mykT2, mykT;
   double pAB, pAA, pBB;
-  double TAB,TAA,TBB,TA,TB; /*temporary free Energies*/
+  double TAB,TAA,TBB,TX,TB; /*temporary free Energies*/
   struct plist  *lp1;
   struct plist  *lp2;
   int offset;
   TAB=*FEAB;
   TAA=*FEAA;
   TBB=*FEBB;
-  TA=*FEA;
+  TX=*FEA;
   TB=*FEB;
-  
+
   mykT=(temperature+273.15)*1.98717/1000.;
   mykT2=1000*mykT;
   expInit=exp(-DuplexInit*((temperature+K0)/310)/mykT2);
-  printf("Expinit2=%f\n",expInit);
+  /*  printf("Expinit2=%f\n",expInit);*/
   /*Compute probabilities pAB, pAA, pBB*/
-  
-  pAB=(exp(-(1/mykT)*TAB)-exp(-(1/mykT)*TA)*exp(-(1/mykT)*TB))/exp(-(1/mykT)*TAB);
-  pAA=(exp(-(1/mykT)*TAA)-exp(-(1/mykT)*TA)*exp(-(1/mykT)*TA))/exp(-(1/mykT)*TAA);
-  pBB=(exp(-(1/mykT)*TBB)-exp(-(1/mykT)*TB)*exp(-(1/mykT)*TB))/exp(-(1/mykT)*TBB);
+
+  pAB=1.-exp((1/mykT)*(TAB-TX-TB));
+  pAA=1.-exp((1/mykT)*(TAA-2*TX));
+  pBB=1.-exp((1/mykT)*(TBB-2*TB));
   /*printf("pab=%f\tpaa=%f\tpbb=%f\n",pAB,pAA,pBB);*/
 
   /*Compute Free energies*/
-  if (pAB>0) {TAB=-mykT*log(exp((-1/mykT)*(TAB+DuplexInit/100.))-exp((-1/mykT)*(TA+TB+DuplexInit/100.)));}
+  if (pAB>0) {
+    TAB=TAB+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TAB-TX-TB))));
+  }
   else *FEAB=TAB=100000;
-  if (pAA>0) {TAA=-mykT*log((exp((-1/mykT)*(TAA+DuplexInit/100.))-exp((-1/mykT)*(TA+TA+DuplexInit/100.))));}
+  if (pAA>0) {
+    TAA=TAA+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TAA-2*TX))));
+  }
   else *FEAA=TAA=100000;
-  if (pBB>0) TBB=-mykT*log((exp((-1/mykT)*(TBB+DuplexInit/100.))-exp((-1/mykT)*(TB+TB+DuplexInit/100.))));
+  if (pBB>0) {
+    TBB=TBB+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TBB-2*TB))));
+  }
   else *FEBB=TBB=100000;
-  printf("tab=%f\ttaa=%f\ttbb=%f\n",TAB,TAA,TBB);
-  
+  /*printf("tab=%f\ttaa=%f\ttbb=%f\n",TAB,TAA,TBB);*/
+
   /*compute pair probabilities given that it is a dimer*/
   /*AB dimer*/
-  offset=0;  
+  offset=0;
   lp2=prA;
   if (pAB>0)for (lp1=prAB; lp1->j>0; lp1++) {
     float pp=0;
     i=lp1->i; j=lp1->j;
     while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i) 
+    if (offset+lp2->i  == i)
       while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
     if (lp2->j == 0) {lp2=prB; offset=Alength;}/* jump to next list */
     if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
@@ -1222,12 +1251,12 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
   /*AA dimer*/
   lp2=prA;
   offset=0;
-  
+
   if (pAA>0) for (lp1=prAA; lp1->j>0; lp1++) {
     float pp=0;
     i=lp1->i; j=lp1->j;
     while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i) 
+    if (offset+lp2->i  == i)
       while (offset+lp2->j < j  && lp2->j>0) lp2++;
     if (lp2->j == 0) {lp2=prA; offset=Alength;}/* jump to next list */
     if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
@@ -1243,7 +1272,7 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
     float pp=0;
     i=lp1->i; j=lp1->j;
     while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i) 
+    if (offset+lp2->i  == i)
       while (lp2->j < j  && lp2->j>0) lp2++;
     if (lp2->j == 0) {lp2=prB; offset=Blength;}/* jump to next list */
     if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
@@ -1252,15 +1281,15 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
     }
     lp1->p=(lp1->p-(1-pBB)*pp)/pBB;
   }
- 
-  
+
+
   return;
-    
+
 }
 
 PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, double concB,double* ConcVec) {
   double TOL, EPS, xn, yn, det, cA, cB;
-  /*Newton iteration for computing concentrations*/  
+  /*Newton iteration for computing concentrations*/
   cA=concA;
   cB=concB;
   TOL=0.000000000000001; /*Tolerance for convergence*/
@@ -1279,15 +1308,15 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
       printf("Newton did not converge after %d steps!!",i);
       break;}
   }while(EPS>TOL);
-  
+
   ConcVec[0]= cA*cB*KAB ;/*AB concentration*/
   ConcVec[1]= cA*cA*KAA ;/*AA concentration*/
   ConcVec[2]= cB*cB*KBB ;/*BB concentration*/
   ConcVec[3]= cA;        /* A concentration*/
   ConcVec[4]= cB;        /* B concentration*/
-  
+
   return ConcVec;
-} 
+}
 
 PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc)
 {
@@ -1296,16 +1325,16 @@ PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB,
   int i,j;
   struct ConcEnt *Concentration;
   double KAA, KAB, KBB, kT;
-  
+
   kT=(temperature+273.15)*1.98717/1000.;
   Concentration=(struct ConcEnt *)space(20*sizeof(struct ConcEnt));
   /*Compute equilibrium constants*/
-  KAA = exp(-kT * ( FEAA - 2.0 * FEA ) );
-  KBB = exp(-kT * ( FEBB - 2.0 * FEB ) );
-  KAB = exp(-kT * ( FEAB - FEA - FEB ) );
-  printf("Initial concentrations\t\tEquilibrium concentrations\n");
+  KAA = exp(( 2.0 * FEA - FEAA )/kT );
+  KBB = exp(( 2.0 * FEB - FEBB)/kT  );
+  KAB = exp(( FEA + FEB - FEAB)/kT );
+  printf("Initial concentrations\t\trelative Equilibrium concentrations\n");
   printf("A\t\t B\t\t\tAB\t\t AA\t\t BB\t\t A\t\t B\n");
-  for (i=0; startconc[i]!=0;i+=2) {
+  for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
     ConcVec=Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
     Concentration[i/2].A0=startconc[i];
     Concentration[i/2].B0=startconc[i+1];
@@ -1314,14 +1343,16 @@ PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB,
     Concentration[i/2].BBc=ConcVec[2];
     Concentration[i/2].Ac=ConcVec[3];
     Concentration[i/2].Bc=ConcVec[4];
-    
- 
-    printf("%f\t%f\t\t%f\t%f\t%f\t%f\t%f f\n",startconc[i],startconc[i+1],ConcVec[0],ConcVec[1],ConcVec[2],ConcVec[3],ConcVec[4]);
-     printf("%f\t%f\t\t%f\t%f\t%f\t%f\t%f f\n",startconc[i],startconc[i+1],ConcVec[0]/(startconc[i]+startconc[i+1]),ConcVec[1]/(startconc[i]+startconc[i+1]),ConcVec[2]/(startconc[i]+startconc[i+1]),ConcVec[3]/(startconc[i]+startconc[i+1]),ConcVec[4]/(startconc[i]+startconc[i+1]));
-    if (!((i+2)/2)%20)  Concentration=(struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+
+
+    /*  printf("%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",startconc[i],startconc[i+1],ConcVec[0],ConcVec[1],ConcVec[2],ConcVec[3],ConcVec[4]);*/
+     printf("%.12f\t%.12f\t\t%f\t%f\t%f\t%f\t%f f\n",startconc[i],startconc[i+1],ConcVec[0]/(startconc[i]+startconc[i+1]),ConcVec[1]/(startconc[i]+startconc[i+1]),ConcVec[2]/(startconc[i]+startconc[i+1]),ConcVec[3]/(startconc[i]+startconc[i+1]),ConcVec[4]/(startconc[i]+startconc[i+1]));
+   if (!(((i+2)/2)%20))  {
+     Concentration=(struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+     }
     free(ConcVec);
   }
-  
+
   return Concentration;
 }
 
@@ -1332,7 +1363,7 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
   n=2;
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<cut_off) continue; 
+      if (pr[iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
 	n*=2;
 	pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
@@ -1340,6 +1371,7 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
       pl[count].i=i;
       pl[count].j=j; /*->??*/
       pl[count++].p=pr[iindx[i]-j];
+      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
     }
   }
   pl[count].i=0;
@@ -1369,12 +1401,12 @@ PUBLIC struct plist *get_mfe_plist(struct plist *pl) {
 PUBLIC float *get_monomerefreeenergies() {
   /*exports monomere free energies*/
   float *muh;
- 
+
   muh=(float *)space(2*sizeof(float));
   muh[0]=mf1;
   muh[1]=mf2;
   return muh;
-   
+
 }
 
 PUBLIC int make_probsum(int length, char *name) {
@@ -1399,7 +1431,7 @@ PUBLIC int make_probsum(int length, char *name) {
       }
     }
   }
-  
+
   /*  plot_probsum(Spprob,Pprop, seq);*/
   /*daweilamal:*/
   for (i=1; i<=length; i++) {
