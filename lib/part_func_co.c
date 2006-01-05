@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-04 16:13:19 ivo> */
+/* Last changed Time-stamp: <2006-01-04 16:16:51 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.4  2006/01/05 18:13:40  ivo
+  update
+
   Revision 1.3  2006/01/04 15:14:29  ivo
   fix bug in concentration calculations
 
@@ -41,7 +44,7 @@
 #include "PS_dot.h"
 #include "co_part_func.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.3 2006/01/04 15:14:29 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.4 2006/01/05 18:13:40 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -101,7 +104,7 @@ PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define TURN 0
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
 
-/*int mirnatog;*/
+int mirnatog = 0;
 
 /*-----------------------------------------------------------------*/
 static  short *S, *S1;
