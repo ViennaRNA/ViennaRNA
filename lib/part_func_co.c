@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-04 16:16:51 ivo> */
+/* Last changed Time-stamp: <2006-01-16 12:31:02 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.5  2006/01/16 11:32:25  ivo
+  small bug in multiloop pair probs
+
   Revision 1.4  2006/01/05 18:13:40  ivo
   update
 
@@ -42,16 +45,15 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "PS_dot.h"
-#include "co_part_func.h"
+#include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.4 2006/01/05 18:13:40 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.5 2006/01/16 11:32:25 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
 #define PRIVATE static
 
-/*extern  int cut_point;   /* set to first pos of second seq for cofolding */
 PUBLIC  float co_pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_co_pf_fold(int length);
 PUBLIC  void  free_co_pf_arrays(void);
@@ -357,62 +359,66 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
       }
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
-      if ((l<n)&&(SAME_STRAND(l,l+1))) for (k=2; k<l-TURN; k++) {
-	i = k-1;
-	prmt = prmt1 = 0.0;
+      if ((l<n)&&(SAME_STRAND(l,l+1)))
+	for (k=2; k<l-TURN; k++) {
+	  i = k-1;
+	  prmt = prmt1 = 0.0;
 
-	ii = iindx[i];     /* ii-j=[i,j]     */
-	ll = iindx[l+1];   /* ll-j=[l+1,j] */
-	tt = ptype[ii-(l+1)]; tt=rtype[tt];
-	if (SAME_STRAND(i,k)){
-	  prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
-	    expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
-	  for (j=l+2; j<=n; j++) {
-	    if (SAME_STRAND(j-1,j)){ /*??*/
-	      tt = ptype[ii-j]; tt = rtype[tt];
-	      prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
-		expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
+	  ii = iindx[i];     /* ii-j=[i,j]     */
+	  ll = iindx[l+1];   /* ll-j=[l+1,j] */
+	  tt = ptype[ii-(l+1)]; tt=rtype[tt];
+	  if (SAME_STRAND(i,k)){
+	    prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
+	      expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
+	    for (j=l+2; j<=n; j++) {
+	      if (SAME_STRAND(j-1,j)){ /*??*/
+		tt = ptype[ii-j]; tt = rtype[tt];
+		prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
+		  expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
+	      }
 	    }
 	  }
-	}
-	kl = iindx[k]-l;
-	tt = ptype[kl];
-	prmt *= expMLclosing*expMLintern[tt];
-	prml[ i] = prmt;
-	prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
-
-	prm_MLb = prm_MLb*expMLbase[1] + prml[i];
-	/* same as:    prm_MLb = 0;
-	   for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
-
-	prml[i] = prml[ i] + prm_l[i];
-
-	if (qb[kl] == 0.) continue;
-
-	temp = prm_MLb;
-
-	for (i=1;i<=k-2; i++) {
-	  if ((SAME_STRAND(i,i+1))&&(SAME_STRAND(k-1,k))){
-	    temp += prml[i]*qm[iindx[i+1] - (k-1)];
+	  kl = iindx[k]-l;
+	  tt = ptype[kl];
+	  prmt *= expMLclosing*expMLintern[tt];
+	  prml[ i] = prmt;
+	  prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+	  
+	  prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+	  /* same as:    prm_MLb = 0;
+	     for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+	  
+	  prml[i] = prml[ i] + prm_l[i];
+	  
+	  if (qb[kl] == 0.) continue;
+	  
+	  temp = prm_MLb;
+	  
+	  for (i=1;i<=k-2; i++) {
+	    if ((SAME_STRAND(i,i+1))&&(SAME_STRAND(k-1,k))){
+	      temp += prml[i]*qm[iindx[i+1] - (k-1)];
+	    }
 	  }
-	}
-	temp *= expMLintern[tt]*scale[2];
-	if ((k>1)&&SAME_STRAND(k-1,k)) temp *= expdangle5[tt][S1[k-1]];
-	if ((l<n)&&SAME_STRAND(l,l+1)) temp *= expdangle3[tt][S1[l+1]];
-	pr[kl] += temp;
+	  temp *= expMLintern[tt]*scale[2];
+	  if ((k>1)&&SAME_STRAND(k-1,k)) temp *= expdangle5[tt][S1[k-1]];
+	  if ((l<n)&&SAME_STRAND(l,l+1)) temp *= expdangle3[tt][S1[l+1]];
+	  pr[kl] += temp;
+	  
+	  if (pr[kl]>Qmax) {
+	    Qmax = pr[kl];
+	    if (Qmax>max_real/10.)
+	      fprintf(stderr, "P close to overflow: %d %d %g %g\n",
+		      i, j, pr[kl], qb[kl]);
+	  }
+	  if (pr[kl]>=max_real) {
+	    ov++;
+	    pr[kl]=FLT_MAX;
+	  }
 
-	if (pr[kl]>Qmax) {
-	  Qmax = pr[kl];
-	  if (Qmax>max_real/10.)
-	    fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-		    i, j, pr[kl], qb[kl]);
-	}
-	if (pr[kl]>=max_real) {
-	  ov++;
-	  pr[kl]=FLT_MAX;
-	}
-
-      } /* end for (k=..) multloop*/
+	} /* end for (k=..) multloop*/
+      else  /* set prm_l to 0 to get prm_l1 to be 0 */
+        for (i=0; i<=n; i++) prm_l[i]=0;
+      
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
       /*computation of .(..(...)..&..). type features?*/
 
@@ -801,7 +807,7 @@ PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
       q *= exptetra[(ts-Tetraloops)/7];
   }
   if (u==3) {
-    char tl[6]={0}, *ts;
+    char tl[6]="", *ts;
     strncpy(tl, string, 5);
     if ((ts=strstr(Triloops, tl)))
       q *= expTriloop[(ts-Triloops)/6];
@@ -1292,12 +1298,12 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
 
 PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, double concB,double* ConcVec) {
   double TOL, EPS, xn, yn, det, cA, cB;
+  int i=0;
   /*Newton iteration for computing concentrations*/
   cA=concA;
   cB=concB;
   TOL=0.000000000000001; /*Tolerance for convergence*/
-  int i=0;
-  ConcVec=(double*)space(5*sizeof(double)); /*holds concentrations*/
+  ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
   do {
     det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA);
     xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) - (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
@@ -1325,7 +1331,7 @@ PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB,
 {
   /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
   double *ConcVec;
-  int i,j;
+  int i;
   struct ConcEnt *Concentration;
   double KAA, KAB, KBB, kT;
 
