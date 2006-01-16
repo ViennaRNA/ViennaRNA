@@ -26,5 +26,7 @@ typedef struct plist {
   int j;
   float p;
 }plist;
-extern int PS_dot_plot_list(char *string, char *filename, struct plist *pl,
+extern int PS_dot_plot_list(char *seq, char *filename, struct plist *pl,
 			    struct plist *mf, char *comment);
+extern int PS_dot_plot_turn(char *seq, struct plist *pl, char *filename,
+			    int winSize);
