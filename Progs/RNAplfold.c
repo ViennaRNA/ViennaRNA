@@ -1,5 +1,5 @@
-/* Last changed Time-stamp: <2005-11-17 13:25:49 berni> */
-/*                
+/* Last changed Time-stamp: <2006-01-16 10:38:56 ivo> */
+/*
 		  Ineractive Access to folding Routines
 
 		  c Ivo L Hofacker
@@ -20,14 +20,17 @@
 
 extern float Lfold(char *string, char *structure, int maxdist);
 extern void  read_parameter_file(const char fname[]);
+extern int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl);
+extern void  init_pf_foldLP(int length);
+extern void  free_pf_arraysLP(void);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.1 2005/12/22 17:36:40 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.2 2006/01/16 09:49:07 ivo Exp $";
 
 #define PRIVATE static
 
-static char  scale1[] = "....,....1....,....2....,....3....,....4";
-static char  scale2[] = "....,....5....,....6....,....7....,....8";
+static char  scale[] = "....,....1....,....2....,....3....,....4"
+	"....,....5....,....6....,....7....,....8";
 
 PRIVATE void usage(void);
 
@@ -37,24 +40,22 @@ int main(int argc, char *argv[])
 {
   char *string, *line;
   char *structure=NULL, *cstruc=NULL;
-  char  fname[30], ffname[20], gfname[20];
+  char  fname[30], ffname[20];
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   int   i, length, l, sym,r;
-  double energy, min_en;
-  double kT, sfact=-1; /*1.07, oba wea wue des?*/
-  int   pf=0, istty;
+  int   istty;
   int noconv=0;
-  int maxdist=70; 
+  int maxdist=70;
   int winSize;
   float cutoff=0.01;
   int hit;
   plist *pl;
-  do_backtrack = 1; 
+  do_backtrack = 1;
   string=NULL;
   dangles=2;
   for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') 
+    if (argv[i][0]=='-')
       switch ( argv[i][1] )
 	{
 	case 'T':  if (argv[i][2]!='\0') usage();
@@ -84,14 +85,16 @@ int main(int argc, char *argv[])
 	  if(i==argc-1) usage();
 	  r=sscanf(argv[++i],"%f", &cutoff);
 	  if (!r) usage();
-	  break;  /*	case 'C':
+	  break;
+/*	case 'C':
 	  fold_constrained=1;
-	  break;*/
+	  break;
 	case 'S':
 	  if(i==argc-1) usage();
 	  r=sscanf(argv[++i],"%lf", &sfact);
 	  if (!r) usage();
 	  break;
+*/
 	case 'd': dangles=0;
 	  if (argv[i][2]!='\0') {
 	    r=sscanf(argv[i]+2, "%d", &dangles);
@@ -109,12 +112,12 @@ int main(int argc, char *argv[])
 	  if (r!=1) usage();
 	  break;
 	default: usage();
-	} 
+	}
   }
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -135,30 +138,25 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  winSize=maxdist; 
-	
+  winSize=maxdist;
+
   do {				/* main loop: continue until end of file */
     if (istty) {
       printf("\nInput string (upper or lower case); @ to quit\n");
-      printf("%s%s\n", scale1, scale2);
+      printf("%s\n", scale);
     }
     fname[0]='\0';
     if ((line = get_line(stdin))==NULL) break;
 
     /* skip comment lines and get filenames */
     while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-      char fname2[20];
-      char fname1[20];
-      fname1[0]='\0';
-      fname2[0]='\0';
       if (*line=='>')
-	(void) sscanf(line, ">%12s %12s", fname2, fname1);
+	(void) sscanf(line, ">%12s", fname);
       printf("%s\n", line);
-      sprintf(fname,"%s_%s",fname2,fname1);
       free(line);
       if ((line = get_line(stdin))==NULL) break;
-    } 
-    printf("%s\n",fname);
+    }
+
     if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
 
     string = (char *) space(strlen(line)+1);
@@ -167,7 +165,7 @@ int main(int argc, char *argv[])
     length = (int) strlen(string);
 
     structure = (char *) space((unsigned) length+1);
-   
+
     for (l = 0; l < length; l++) {
       string[l] = toupper(string[l]);
       if (!noconv && string[l] == 'T') string[l] = 'U';
@@ -178,32 +176,31 @@ int main(int argc, char *argv[])
     /* initialize_fold(length); */
     update_fold_params();
     maxdist=winSize;
-    if (length<=maxdist) {
-      /*printf("Please give me a window smaller than your house!\n"
-	"The sequence is shorter than (or as big as) the sliding window, if this is correct, please use RNAfold, if not, please remedy it\n");*/
+    if (length<maxdist) {
+      fprintf(stderr, "WARN: window size %d larger than sequence length %d\n",
+	      maxdist, length);
       maxdist=length;
     }
-    if (length >= 5) { 
-      pf_scale =sfact; /*habidadann probleme?*/
-      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-      
+    if (length >= 5) {
+      pf_scale = -1;
+
       init_pf_foldLP(length);
-      
-      hit=pfl_fold(string, maxdist,cutoff, &pl);
+
+      hit=pfl_fold(string, maxdist, cutoff, &pl);
       free_pf_arraysLP();
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_dp.ps");
       }
       else strcpy(ffname, "plfold_dp.ps");
-      PS_color_dot_plot_turnbw(string, pl, ffname, maxdist);
+      PS_dot_plot_turn(string, pl, ffname, maxdist);
       free(pl);
-      
+
       if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
     }
     free(string);
-    free(structure); 
+    free(structure);
   } while (1);
   return 0;
 }
@@ -211,7 +208,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNALfold [-L span]\n"
-	  "         [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
-	  "         [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
+	  "RNAplfold [-L span]\n"
+	  "          [-T temp] [-4] [-d[0|1|2]] [-noGU] [-noCloseGU]\n"
+	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }

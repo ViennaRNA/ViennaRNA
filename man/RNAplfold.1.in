@@ -9,13 +9,13 @@ RNAplfold \- calculate locally stable secondary structure - pair probabilities o
 
 .SH "DESCRIPTION"
 .I RNAplfold
-computes locally stable RNA secondary structure pair probabilities for a
-given window size by computing and averaging over all windows of size L
-that can contain a given base pair the probability of said pair. For a sequence of length n and a window size of L the
+computes local pair probabilities for base pairs with a maximal span
+of L. The probabilities are averaged over all windows of size L that
+contain the base pair. For a sequence of length n and a window size of L the
 algorithm uses only O(n+L*L) memory and O(n*L*L) CPU time. Thus it is
-practical to "scan" very large genomes for short RNA structures.
+practical to "scan" very large genomes for short stable RNA structures.
 
-Output consists of a dotplot postscript file, where the averaged pair probabilities
+Output consists of a dot plot in postscript file, where the averaged pair probabilities
 can easily be parsed and visually inspected.
 
 .SH "OPTIONS"

@@ -1,12 +1,12 @@
-/* Last changed Time-stamp: <2005-11-21 12:16:56 ivo> */
+/* Last changed Time-stamp: <2006-01-16 10:43:16 ivo> */
 /*
-		  local pair probabilities for RNA secondary structures
+  local pair probabilities for RNA secondary structures
 
-		  Stephan Bernhart, Ivo L Hofacker
-		  Vienna RNA package
+  Stephan Bernhart, Ivo L Hofacker
+  Vienna RNA package
 */
 /*
-todo: compute energy z-score for each window
+  todo: compute energy z-score for each window
 
 */
 #include <config.h>
@@ -21,7 +21,7 @@ todo: compute energy z-score for each window
 #include "pair_mat.h"
 #include "PS_dot.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.1 2005/12/22 18:02:50 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.2 2006/01/16 09:49:07 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -34,7 +34,6 @@ PUBLIC  void  init_pf_foldLP(int length);
 PUBLIC  void  free_pf_arraysLP(void);
 PUBLIC  void  update_pf_paramsLP(int length);
 /*PUBLIC  int   st_back=0;*/
-PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
@@ -63,7 +62,7 @@ PRIVATE FLT_OR_DBL *exphairpin;
 PRIVATE FLT_OR_DBL expbulge[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expinternal[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
-PRIVATE FLT_OR_DBL **q, **qb, **qm, *qm1, *qqm, *qqm1, *qq, *qq1, **pR, **prb;
+PRIVATE FLT_OR_DBL **q, **qb, **qm, *qm1, *qqm, *qqm1, *qq, *qq1, **pR;
 PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
 PRIVATE char **ptype; /* precomputed array of pair types */
@@ -77,8 +76,8 @@ static  short *S, *S1;
 PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl)
 {
 
-  int n,m, i,j,k,l, kl, u,u1,d,ii,ll, type, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
+  int n, m,i,j,k,l, u,u1,ii, type, type_2, tt, ov=0;
+  FLT_OR_DBL temp, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
 
@@ -119,74 +118,74 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
   }
   for (j=TURN+2;j<=n+winSize; j++) {
     if (j<=n) {
-    GetNewArrays(j, winSize);
-    GetPtype(j,winSize,S,n);
-    for (i=MAX(1,j-winSize); i<=j/*-TURN*/; i++) {
-      q[i][j]=scale[(j-i+1)];
-    }
-    for (i=j-TURN-1;i>=MAX(1,(j-winSize+1)); i--) {
-      /* construction of partition function of segment i,j*/
-      /*firstly that given i bound to j : qb(i,j) */
-      u = j-i-1;
-      type = ptype[i][j];
-      if (type!=0) {
-	/*hairpin contribution*/
-	if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
-	else
-	  qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
+      GetNewArrays(j, winSize);
+      GetPtype(j,winSize,S,n);
+      for (i=MAX(1,j-winSize); i<=j/*-TURN*/; i++) {
+	q[i][j]=scale[(j-i+1)];
+      }
+      for (i=j-TURN-1;i>=MAX(1,(j-winSize+1)); i--) {
+	/* construction of partition function of segment i,j*/
+	/*firstly that given i bound to j : qb(i,j) */
+	u = j-i-1;
+	type = ptype[i][j];
+	if (type!=0) {
+	  /*hairpin contribution*/
+	  if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
+	  else
+	    qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
 
-	/* interior loops with interior pair k,l */
-	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
-	  u1 = k-i-1;
-	  for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-	    type_2 = ptype[k][l];
-	    if (type_2) {
-	      type_2 = rtype[type_2];
-	      qbt1 += qb[k][l] *
-		expLoopEnergy(u1, j-l-1, type, type_2,
-			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
+	  /* interior loops with interior pair k,l */
+	  for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
+	    u1 = k-i-1;
+	    for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
+	      type_2 = ptype[k][l];
+	      if (type_2) {
+		type_2 = rtype[type_2];
+		qbt1 += qb[k][l] *
+		  expLoopEnergy(u1, j-l-1, type, type_2,
+				S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
+	      }
 	    }
 	  }
+	  /*multiple stem loop contribution*/
+	  ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
+	  temp = 0.0;
+	  for (k=i+2; k<=j-1; k++) temp += qm[i+1][k-1]*qqm1[k];
+	  tt = rtype[type];
+	  qbt1 += temp*expMLclosing*expMLintern[tt]*scale[2]*
+	    expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
+
+	  qb[i][j] = qbt1;
+	} /* end if (type!=0) */
+	else qb[i][j] = 0.0;
+
+	/* construction of qqm matrix containing final stem
+	   contributions to multiple loop partition function
+	   from segment i,j */
+	qqm[i] = qqm1[i]*expMLbase[1];
+	if (type) {
+	  qbt1 = qb[i][j]*expMLintern[type];
+	  if (i>1) qbt1 *= expdangle5[type][S1[i-1]];/*wann dangle??*/
+	  if (j<n) qbt1 *= expdangle3[type][S1[j+1]];/*wann dangle??*/
+	  else if (type>2) qbt1 *= expTermAU;
+	  qqm[i] += qbt1;
 	}
-	/*multiple stem loop contribution*/
-	ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
+	if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
+
+	/*construction of qm matrix containing multiple loop
+	  partition function contributions from segment i,j */
 	temp = 0.0;
-	for (k=i+2; k<=j-1; k++) temp += qm[i+1][k-1]*qqm1[k];
-	tt = rtype[type];
-	qbt1 += temp*expMLclosing*expMLintern[tt]*scale[2]*
-	  expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
+	/*ii = iindx[i];   ii-k=[i,k-1] */
+	for (k=i+1; k<=j; k++) temp += (qm[i][k-1]+expMLbase[k-i])*qqm[k];
+	qm[i][j] = (temp + qqm[i]);
 
-	qb[i][j] = qbt1;
-      } /* end if (type!=0) */
-      else qb[i][j] = 0.0;
-
-      /* construction of qqm matrix containing final stem
-	 contributions to multiple loop partition function
-	 from segment i,j */
-      qqm[i] = qqm1[i]*expMLbase[1];
-      if (type) {
-	qbt1 = qb[i][j]*expMLintern[type];
-	if (i>1) qbt1 *= expdangle5[type][S1[i-1]];/*wann dangle??*/
-	if (j<n) qbt1 *= expdangle3[type][S1[j+1]];/*wann dangle??*/
-	else if (type>2) qbt1 *= expTermAU;
-	qqm[i] += qbt1;
-      }
-      if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
-
-      /*construction of qm matrix containing multiple loop
-	partition function contributions from segment i,j */
-      temp = 0.0;
-      /*ii = iindx[i];   ii-k=[i,k-1] */
-      for (k=i+1; k<=j; k++) temp += (qm[i][k-1]+expMLbase[k-i])*qqm[k];
-      qm[i][j] = (temp + qqm[i]);
-
-      /*auxiliary matrix qq for cubic order q calculation below */
-      qbt1 = qb[i][j];
-      if (type) {
-	if (i>1/*MAX(1,j-winSize+1)*/) qbt1 *= expdangle5[type][S1[i-1]];
-	if (j<n/*winSize*/) qbt1 *= expdangle3[type][S1[j+1]];
-	else if (type>2) qbt1 *= expTermAU;
-	    }
+	/*auxiliary matrix qq for cubic order q calculation below */
+	qbt1 = qb[i][j];
+	if (type) {
+	  if (i>1/*MAX(1,j-winSize+1)*/) qbt1 *= expdangle5[type][S1[i-1]];
+	  if (j<n/*winSize*/) qbt1 *= expdangle3[type][S1[j+1]];
+	  else if (type>2) qbt1 *= expTermAU;
+	}
 	qq[i] = qq1[i]*scale[1] + qbt1;
 
 	/*construction of partition function for segment i,j */
@@ -202,41 +201,25 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	if (temp>=max_real) {
 	  PRIVATE char msg[128];
 	  sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
-		"use larger pf_scale", i,j);
+		  "use larger pf_scale", i,j);
 	  nrerror(msg);
 	}
       } /*end for i??*/
       tmp = qq1;  qq1 =qq;  qq =tmp;
       tmp = qqm1; qqm1=qqm; qqm=tmp;
-  }
-      /*hier nun a) auswertung, b) freen von dingens, c) allozieren  d)rauskotzen*/
+    }
 
-      /*}end for i*/
-  /*if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-    else if (backtrack_type=='M') Q = qm[iindx[1]-n];*/
+#if 0  /* no output in library functions! */
 
-
-    /* ensemble free energy in Kcal/mol */
-
-    /* in case we abort because of floating point errors */
-    /*  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy); */
-
-    /* backtracking to construct binding probabilities of pairs*/
-    /*  if (do_backtrack) {*/
     if ((j>winSize)&&(j<=n)) {
       /*Ausgabe von freenergy fenster*/
       int middle=j-winSize/2;
       double Fwind;
       Fwind=(-log(q[j-winSize+1][j])-winSize*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
-      printf("%6d\t%.7f\n",middle, Fwind);
-
+       printf("%6d\t%.7f\n",middle, Fwind);
     }
-    if (j>winSize) {/*gt or greater??*/
-      int v,w, a, b;
-
-      /*    Q = q[j-winSize+1][j];??*/
-      /*       if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");*/
-       /*      free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0; */
+#endif
+    if (j>winSize) {
       Qmax=0;
       /*i=j-winSize;*/
       /*initialize multiloopfs*/
@@ -246,44 +229,29 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	/*	prm_l1[k]=0;  others stay??*/
       }
       k=j-winSize;
-      for (l=k+TURN+1; l<=MIN(n,k+winSize-1/*??*/); l++) {
+      for (l=k+TURN+1; l<=MIN(n,k+winSize-1); l++) {
+	int a;
 	pR[k][l] = 0; /*set zero at start*/
 	type=ptype[k][l];
 	if (qb[k][l]==0) continue;
-	/*	if(type&&(qb[k][l]>0.)) {*/
 
-	for (a=MAX(1,l-winSize+2); a<MIN(k,n-winSize+2/*??*/);a++) {
-		    pR[k][l]+=q[a][k-1]*q[l+1][a+winSize-1]/q[a][a+winSize-1 /*??*/]; /*??*/
-	  }
-	if (l-k+1==winSize) {
+	for (a=MAX(1,l-winSize+2); a<MIN(k,n-winSize+2);a++)
+	  pR[k][l]+=q[a][k-1]*q[l+1][a+winSize-1]/q[a][a+winSize-1];
+
+	if (l-k+1==winSize)
 	  pR[k][l]+=1./q[k][l];
-	}
 	else {
-	  if (k+winSize-1<=n) {         /*k outermost*/
+	  if (k+winSize-1<=n)          /*k outermost*/
 	    pR[k][l]+=q[l+1][k+winSize-1]/q[k][k+winSize-1];
-	  }
-	  if (l-winSize+1>=1) { /*l outermost*/
-	    pR[k][l]+=q[l-winSize+1][k-1]/q[l-winSize+1][l /*??*/];
-	  }
+	  if (l-winSize+1>=1)  /*l outermost*/
+	    pR[k][l]+=q[l-winSize+1][k-1]/q[l-winSize+1][l];
 	}
-	if (k>1) {
-	    pR[k][l]*=expdangle5[type][S1[k-1]];
-	}
-	if (l<n) {
+	if (k>1)
+	  pR[k][l]*=expdangle5[type][S1[k-1]];
+	if (l<n)
 	  pR[k][l]*= expdangle3[type][S1[l+1]];
-	}
-	else if (type>2) {
+	else if (type>2)
 	  pR[k][l] *= expTermAU;
-	}
-
-
-
-
-
-
-	  /*  pR[k][l]*=qb[k][l];*/
-	  /*}*/
-
 
 
 	/*initialize multiloopfs*/
@@ -291,33 +259,29 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	prm_l[j-winSize]=0;
 	prm_l1[j-winSize]=0;
 
-      /* pr = q; */    /* recycling */
+	/* pr = q; */    /* recycling */
 
 	type_2 = ptype[k][l]; type_2 = rtype[type_2];
 
 	for (i=MAX(MAX(l-winSize+1,k-MAXLOOP-1),1); i<=k-1; i++) {
 	  for (m=l+1; m<=MIN(MIN(l+ MAXLOOP -k+i+2,i+winSize-1),n); m++) {
-	    /*   i][m = iindx[i] - m;*/
 	    type = ptype[i][m];
-	      if ((pR[i][m]>0)) {
-		pR[k][l] += pR[i][m]*expLoopEnergy(k-i-1, m-l-1, type, type_2,
-						   S1[i+1], S1[m-1], S1[k-1], S1[l+1]);
-	      }
-	    }
+	    if ((pR[i][m]>0))
+	      pR[k][l] += pR[i][m]*expLoopEnergy(k-i-1, m-l-1, type, type_2,
+						 S1[i+1], S1[m-1], S1[k-1], S1[l+1]);
+	  }
 	}
       }
-	/* 3. bonding k,l as substem of multi-loop enclosed by i,m */
-	prm_MLb = 0.;
-	if(k>1) /*sonst nix!*/
+      /* 3. bonding k,l as substem of multi-loop enclosed by i,m */
+      prm_MLb = 0.;
+      if(k>1) /*sonst nix!*/
 	for (l=MIN(n-1,k+winSize-2/*??*/); l>=k+TURN+1; l--) { /*opposite direction*/
 	  m=l+1;
 	  prmt = prmt1 = 0.0;
 	  tt = ptype[k-1][m]; tt=rtype[tt];
-	   prmt1 = pR[k-1][m]*expMLclosing*expMLintern[tt]*
+	  prmt1 = pR[k-1][m]*expMLclosing*expMLintern[tt]*
 	    expdangle3[tt][S1[k]]*expdangle5[tt][S1[l]];
-	   for (i=MAX(1,l-winSize+2/*?*/); i<k-1/*TURN*/; i++) {
-	     /* printf("-%2d %2d %2d,",i,k,l);
-		fflush(NULL);*/
+	  for (i=MAX(1,l-winSize+2/*?*/); i<k-1/*TURN*/; i++) {
 	    tt = ptype[i][m]; tt = rtype[tt];
 	    prmt += pR[i][m]*expdangle3[tt][S1[i+1]]*
 	      expdangle5[tt][S1[m-1]] *qm[i+1][k-1];
@@ -328,8 +292,8 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	  prm_l[m] = prm_l1[m]*expMLbase[1]+prmt1;
 
 	  prm_MLb = prm_MLb*expMLbase[1] + prml[m];
-	/* same as:    prm_MLb = 0;
-	   for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+	  /* same as:    prm_MLb = 0;
+	     for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
 	  prml[m] = prml[ m] + prm_l[m];
 
@@ -337,9 +301,9 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 
 	  temp = prm_MLb;
 
-	  for (m=MIN(k+winSize-2,n)/*1??*/;m>=l+2; m--) {
+	  for (m=MIN(k+winSize-2,n)/*1??*/;m>=l+2; m--)
 	    temp += prml[m]*qm[l+1][m-1];
-	  }
+
 	  temp *= expMLintern[tt]*scale[2];
 	  if (k>1) temp *= expdangle5[tt][S1[k-1]];
 	  if (l<n) temp *= expdangle3[tt][S1[l+1]];
@@ -349,8 +313,8 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	  if (pR[k][l]>Qmax) {
 	    Qmax = pR[k][l];
 	    if (Qmax>max_real/10.)
-	    fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-		    i, m, pR[k][l], qb[k][l]);
+	      fprintf(stderr, "P close to overflow: %d %d %g %g\n",
+		      i, m, pR[k][l], qb[k][l]);
 	  }
 	  if (pR[k][l]>=max_real) {
 	    ov++;
@@ -358,30 +322,27 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 	  }
 
 	} /* end for (k=..) */
-	tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;/*???????*/
+      tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
-	/* end for (l=..)   */
+      /* end for (l=..)   */
 
-
-	if (j-2*winSize>0) {
-	  printpbar(pR,winSize,j-2*winSize,n,cutoff);
-	  *pl=get_plistW(*pl, n, cutoff, j-2*winSize, pR, winSize);
-	  FreeOldArrays(j-2*winSize);
-	}
+      if (j-2*winSize>0) {
+	printpbar(pR,winSize,j-2*winSize,n,cutoff);
+	*pl=get_plistW(*pl, n, cutoff, j-2*winSize, pR, winSize);
+	FreeOldArrays(j-2*winSize);
+      }
 
     }   /* end if (do_backtrack)*/
 
 
   }/*end for j */
+
   /*finish output and free*/
-  /*  for (j=MAX(1,n-2*winSize); j<=n-winSize; j++) {
-	 FreeOldArrays(j);
-  }*/
   for (j=n-winSize+1; j<=n; j++) {
     printpbar(pR,winSize,j,n,cutoff);
     *pl=get_plistW(*pl, n, cutoff, j, pR, winSize);
     FreeOldArrays(j);
-    }
+  }
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
 		    "you might try a smaller pf_scale than %g\n",
 		    ov, pf_scale);
@@ -396,8 +357,8 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
 /* in the interval b<x<sqrt(3)/2                                          */
 
 #define SCALE 10
-#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
-  SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
+#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):	\
+					    SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
 /*#define SMOOTH(X) ((X)<0 ? 0 : (X)) */
 
 PRIVATE void scale_pf_params(unsigned int length)
@@ -412,22 +373,15 @@ PRIVATE void scale_pf_params(unsigned int length)
   kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (temperature+K0)/(Tmeasure);
 
-   /* scaling factors (to avoid overflows) */
+  /* scaling factors (to avoid overflows) */
   if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
     pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
-    if (pf_scale<1) pf_scale=1;
   }
+  if (pf_scale<1) pf_scale=1;
   scale[0] = 1.;
-  if (pf_scale==0) {
-    for (i=1; i<=length; i++) {
-      scale[i] = 1.;
-    }
-  }
-  else {
-    for (i=1; i<=length; i++) {
-      scale[i] = scale[i-1]/pf_scale;
-    }
-  }
+  for (i=1; i<=length; i++)
+    scale[i] = scale[i-1]/pf_scale;
+
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<=MIN(30,length); i++) {
     GT =  hairpin37[i]*TT;
@@ -482,8 +436,8 @@ PRIVATE void scale_pf_params(unsigned int length)
   }
 
   /* if dangles==0 just set their energy to 0,
-      don't let dangle energies become > 0 (at large temps),
-      but make sure go smoothly to 0                        */
+     don't let dangle energies become > 0 (at large temps),
+     but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
       if (dangles) {
@@ -628,11 +582,10 @@ PRIVATE void get_arrays(unsigned int length)
   qb  = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   qm  = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   pR = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  prb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   ptype = (char **) space((length+1)*sizeof(char *));
   /*  if (st_back) {
-    qm1 = (FLT_OR_DBL *) space(size);
-    }*/
+      qm1 = (FLT_OR_DBL *) space(size);
+      }*/
   /*length??*/
   q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -649,9 +602,9 @@ PRIVATE void get_arrays(unsigned int length)
   iindx = (int *) space(sizeof(int)*(length+1));
   jindx = (int *) space(sizeof(int)*(length+1));
   /*  for (i=1; i<=length; i++) {
-    iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
-    jindx[i] = (i*(i-1))/2;
-    }*/
+      iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
+      jindx[i] = (i*(i-1))/2;
+      }*/
 }
 
 /*----------------------------------------------------------------------*/
@@ -715,39 +668,18 @@ PUBLIC void update_pf_paramsLP(int length)
 /*---------------------------------------------------------------------------*/
 
 
-/*
-  stochastic backtracking in pf_fold arrays
-  returns random structure S with Boltzman probabilty
-  p(S) = exp(-E(S)/kT)/Z
-*/
-static void backtrack(int i, int j);
-
-static char *pstruc;
-static char *sequence;
-
 PRIVATE void printpbar(FLT_OR_DBL **prb,int winSize, int i, int n, float cutoff) {
-  int j,k;
-  int howoften=0;/*for correction at the ends, where the window doesn't go that often*/
+  int j;
+  int howoften=0; /* how many samples do we have for this pair */
   int pairdist;
-  /*if (i<winSize) delta=i;
-    if (i+winSize>n) delta=j-n;*/
-  for (j=i+TURN; j<MIN(i+winSize,n+1); j++) {
-    /*    if (prb[i][j]>0.000001){*/
-      pairdist=(j-i+1);
-      /*4cases*/
-      howoften=MIN(winSize-pairdist+1,i); /*pairdist,start*/
-      howoften=MIN(howoften,n-j+1);       /*end*/
-      howoften=MIN(howoften,n-winSize+1); /*windowsize*/
-      prb[i][j]/=howoften;/*???*/
-      prb[i][j]*=qb[i][j];
-      /*  if ((prb[i][j])<cutoff) {*/
 
-      /*prb[i][j]=0;*//*???*/
-      /* }*/
-      /*  if (prb[i][j]>0) {
-	  printf("%9d %9d %.7f %d\n",i,j,prb[i][j],howoften);
-	  }*/
-      /*    }*/
+  for (j=i+TURN; j<MIN(i+winSize,n+1); j++) {
+    pairdist=(j-i+1);
+    /*4cases*/
+    howoften=MIN(winSize-pairdist+1,i); /*pairdist,start*/
+    howoften=MIN(howoften,n-j+1);       /*end*/
+    howoften=MIN(howoften,n-winSize+1); /*windowsize*/
+    prb[i][j] *= qb[i][j]/howoften;
   }
   return;
 }
@@ -758,7 +690,6 @@ PRIVATE void FreeOldArrays(int i) {
   free(q[i]+i);
   free(qb[i]+i);
   free(qm[i]+i);
-  free(prb[i]+i);
   free(ptype[i]+i);
   return;
 }
@@ -773,15 +704,13 @@ PRIVATE void GetNewArrays(int j, int winSize) {
   qb[j]-=j;
   qm[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
   qm[j]-=j;
-  prb[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
-  prb[j]-=j;
   ptype[j]=(char *)space((winSize+1)*sizeof(char));
   ptype[j]-=j;
   return;
 }
 
 
-PRIVATE void GetPtype(int i, int winSize,const short *S,int n) { /*writeit to the ptype?*/
+PRIVATE void GetPtype(int i, int winSize,const short *S,int n) {
   /*make new entries in ptype array*/
   int j;
   int type;
@@ -792,29 +721,32 @@ PRIVATE void GetPtype(int i, int winSize,const short *S,int n) { /*writeit to th
   }
   return;
 }
-PRIVATE struct plist *get_plistW(struct plist *pl, int length, double cutoff, int start, FLT_OR_DBL **Tpr, int winSize) {
-  int i, j,n, count, max_p;
+
+PRIVATE struct plist *get_plistW(struct plist *pl, int length, double cutoff,
+				 int start, FLT_OR_DBL **Tpr, int winSize) {
   /*get pair probibilities out of pr array*/
-  n=2;
+  int  j,  max_p;
+  int n=2;
+
   max_p=1000;
-  /*??*/while (max_p<num_p) {
+  while (max_p<num_p)
     max_p*=2;
-  }
 
   for (j=start+1; j<=MIN(start+winSize, length); j++) {
     if (Tpr[start][j]<cutoff) continue;
-    if (num_p==max_p-1) {/*???*/
+    if (num_p==max_p-1) {
       max_p*=2;
       pl=(struct plist *)xrealloc(pl,max_p*sizeof(struct plist));
     }
     pl[num_p].i=start;
-    pl[num_p].j=j; /*->??*/
+    pl[num_p].j=j;
     pl[num_p++].p=Tpr[start][j];
   }
 
+  /* mark end of data with zeroes */
   pl[num_p].i=0;
-  pl[num_p].j=0; /*->??*/
-  pl[num_p].p=0.; /*fuellt letztes mit 0ern auf*/
+  pl[num_p].j=0;
+  pl[num_p].p=0.;
   /*  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));*/
   return pl;
 }
