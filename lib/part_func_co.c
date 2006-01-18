@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-16 12:31:02 ivo> */
+/* Last changed Time-stamp: <2006-01-17 17:46:53 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,10 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.6  2006/01/18 12:55:40  ivo
+  major cleanup of berni code
+  fix bugs related to confusing which free energy is returned by co_pf_fold()
+
   Revision 1.5  2006/01/16 11:32:25  ivo
   small bug in multiloop pair probs
 
@@ -47,29 +51,26 @@
 #include "PS_dot.h"
 #include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.5 2006/01/16 11:32:25 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.6 2006/01/18 12:55:40 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define PUBLIC
 #define PRIVATE static
 
-PUBLIC  float co_pf_fold(char *sequence, char *structure);
+PUBLIC  cofoldF co_pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_co_pf_fold(int length);
 PUBLIC  void  free_co_pf_arrays(void);
 PUBLIC  void  update_co_pf_params(int length);
 PUBLIC  char  co_bppm_symbol(float *x);
-PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
-				     double *FEBB,double *FEA,
-				     double *FEB, struct plist  *prAB,
-				     struct plist  *prAA, struct plist  *prBB,
-				     struct plist  *prA, struct plist  *prB,
-				     int Alength,int Blength);
+PUBLIC void compute_probabilities(double FEAB, double FEAA, double FEBB, double FEA, double FEB,
+				  struct plist  *prAB, struct plist  *prAA, struct plist  *prBB,
+				  struct plist  *prA,  struct plist  *prB, int Alength,int Blength);
 PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc);
 PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off);
 PUBLIC struct plist *get_mfe_plist(struct plist *pl);
-PUBLIC float *get_monomerefreeenergies();
-PUBLIC int make_probsum(int length, char *name);
+PUBLIC double F_monomer[2]; /* free energies of the two monomers */
+/* PUBLIC int make_probsum(int length, char *name); */
 PRIVATE double *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
@@ -110,8 +111,7 @@ int mirnatog = 0;
 
 /*-----------------------------------------------------------------*/
 static  short *S, *S1;
-static float mf1, mf2; /*monomere free energies*/
-PUBLIC float co_pf_fold(char *sequence, char *structure)
+PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 {
 
   int n, i,j,k,l, ij, kl, u,u1,ii,ll, type, type_2, tt, ov=0;
@@ -119,9 +119,10 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
 
-  double free_energy;
-  double max_real;
-   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  cofoldF X;
+  double free_energy, max_real;
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
   if (n>init_length) init_co_pf_fold(n);  /* (re)allocate space */
   /* printf("mirnatog=%d\n",mirnatog); */
@@ -287,29 +288,30 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   /*Computation of "real" Partition function*/
   /*Need that for concentrations*/
   if (cut_point>0){
-    FLT_OR_DBL pbound;
-    FLT_OR_DBL QAB;
-    FLT_OR_DBL QToT;
-    FLT_OR_DBL Qzero;
+    double kT, pbound, QAB, QToT, Qzero;
+    kT = (temperature+K0)*GASCONST/1000.0;
     Qzero=q[iindx[1]-n];
     QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*expInit;
     QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
     pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
 
-    free_energy=((-log(QToT)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0);
+    X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
+    X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
+    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
+    X.FA = -kT*(log(q[iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
+    X.FB = -kT*(log(q[iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
 
-    mf1=(-log(q[iindx[1]-(cut_point-1)])-(cut_point-1)*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
-    mf2=(-log(q[iindx[cut_point]-n])-(n-cut_point+1)*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
   }
   else {
-    mf1=mf2=free_energy;
+    X.FA = X.FB = X.FAB = X.F0AB = free_energy;
+    X.FcAB = 0;
   }
   /* printf("freen=%.6f\n",free_energy); whereto?*/
   /* backtracking to construct binding probabilities of pairs*/
   /* printf("qis %f\n",q[iindx[1]-(cut_point-1)]);*/
   /*new: expInit added*/ /*new*/
-   if (do_backtrack) {
+  if (do_backtrack) {
     Qmax=0;
 
     for (k=1; k<=n; k++) {
@@ -383,17 +385,17 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	  prmt *= expMLclosing*expMLintern[tt];
 	  prml[ i] = prmt;
 	  prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
-	  
+
 	  prm_MLb = prm_MLb*expMLbase[1] + prml[i];
 	  /* same as:    prm_MLb = 0;
 	     for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
-	  
+
 	  prml[i] = prml[ i] + prm_l[i];
-	  
+
 	  if (qb[kl] == 0.) continue;
-	  
+
 	  temp = prm_MLb;
-	  
+
 	  for (i=1;i<=k-2; i++) {
 	    if ((SAME_STRAND(i,i+1))&&(SAME_STRAND(k-1,k))){
 	      temp += prml[i]*qm[iindx[i+1] - (k-1)];
@@ -403,7 +405,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 	  if ((k>1)&&SAME_STRAND(k-1,k)) temp *= expdangle5[tt][S1[k-1]];
 	  if ((l<n)&&SAME_STRAND(l,l+1)) temp *= expdangle3[tt][S1[l+1]];
 	  pr[kl] += temp;
-	  
+
 	  if (pr[kl]>Qmax) {
 	    Qmax = pr[kl];
 	    if (Qmax>max_real/10.)
@@ -417,8 +419,8 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
 
 	} /* end for (k=..) multloop*/
       else  /* set prm_l to 0 to get prm_l1 to be 0 */
-        for (i=0; i<=n; i++) prm_l[i]=0;
-      
+	for (i=0; i<=n; i++) prm_l[i]=0;
+
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
       /*computation of .(..(...)..&..). type features?*/
 
@@ -633,7 +635,7 @@ PUBLIC float co_pf_fold(char *sequence, char *structure)
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
 		    "you might try a smaller pf_scale than %g\n",
 		    ov, pf_scale);
-  return free_energy;
+  return X;
 }
 
 /*------------------------------------------------------------------------*/
@@ -792,7 +794,7 @@ PRIVATE void scale_pf_params(unsigned int length)
 	    }
 	}
   /*initialization of duplex energy*/
-  expInit=exp(-DuplexInit*((temperature+K0)/310.15)/(kT/10.)); /*??*/
+  expInit=exp(-DuplexInit*TT*10./kT);
 }
 
 /*----------------------------------------------------------------------*/
@@ -1193,70 +1195,49 @@ static void backtrack(int i, int j) {
   }
 }
 
-PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
-				     double *FEBB,double *FEA,
-				     double *FEB, struct plist  *prAB,
-				     struct plist  *prAA, struct plist  *prBB,
-				     struct plist  *prA, struct plist  *prB,
-				     int Alength,int Blength) {
+PUBLIC void compute_probabilities(double FAB, double FAA, double FBB,
+				  double FA, double FB, struct plist *prAB,
+				  struct plist  *prAA, struct plist *prBB,
+				  struct plist  *prA, struct plist *prB,
+				  int Alength,int Blength) {
   /*computes binding probabilities and dimer free energies*/
   int i, j;
-  double expInit;
-  double mykT2, mykT;
   double pAB, pAA, pBB;
-  double TAB,TAA,TBB,TX,TB; /*temporary free Energies*/
+  double mykT;;
   struct plist  *lp1;
   struct plist  *lp2;
   int offset;
-  TAB=*FEAB;
-  TAA=*FEAA;
-  TBB=*FEBB;
-  TX=*FEA;
-  TB=*FEB;
 
-  mykT=(temperature+273.15)*1.98717/1000.;
-  mykT2=1000*mykT;
-  expInit=exp(-DuplexInit*((temperature+K0)/310)/mykT2);
-  /*  printf("Expinit2=%f\n",expInit);*/
+  mykT=(temperature+K0)*GASCONST/1000.;
+
+  /* pair probabilities in pr are relative to the null model (without DuplexInit) */
+
   /*Compute probabilities pAB, pAA, pBB*/
 
-  pAB=1.-exp((1/mykT)*(TAB-TX-TB));
-  pAA=1.-exp((1/mykT)*(TAA-2*TX));
-  pBB=1.-exp((1/mykT)*(TBB-2*TB));
+  pAB=1.-exp((1/mykT)*(FAB-FA-FB));
+  pAA=1.-exp((1/mykT)*(FAA-2*FA));
+  pBB=1.-exp((1/mykT)*(FBB-2*FB));
+
   /*printf("pab=%f\tpaa=%f\tpbb=%f\n",pAB,pAA,pBB);*/
 
-  /*Compute Free energies*/
-  if (pAB>0) {
-    TAB=TAB+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TAB-TX-TB))));
-  }
-  else *FEAB=TAB=100000;
-  if (pAA>0) {
-    TAA=TAA+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TAA-2*TX))));
-  }
-  else *FEAA=TAA=100000;
-  if (pBB>0) {
-    TBB=TBB+(DuplexInit/100.)-mykT*log(1-exp((1/mykT)*((TBB-2*TB))));
-  }
-  else *FEBB=TBB=100000;
-  /*printf("tab=%f\ttaa=%f\ttbb=%f\n",TAB,TAA,TBB);*/
-
-  /*compute pair probabilities given that it is a dimer*/
-  /*AB dimer*/
+  /* compute pair probabilities given that it is a dimer */
+  /* AB dimer */
   offset=0;
   lp2=prA;
-  if (pAB>0)for (lp1=prAB; lp1->j>0; lp1++) {
-    float pp=0;
-    i=lp1->i; j=lp1->j;
-    while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i)
-      while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
-    if (lp2->j == 0) {lp2=prB; offset=Alength;}/* jump to next list */
-    if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
-      pp = lp2->p;
-      lp2++;
+  if (pAB>0)
+    for (lp1=prAB; lp1->j>0; lp1++) {
+      float pp=0;
+      i=lp1->i; j=lp1->j;
+      while (offset+lp2->i < i && lp2->i>0) lp2++;
+      if (offset+lp2->i == i)
+	while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
+      if (lp2->j == 0) {lp2=prB; offset=Alength;}/* jump to next list */
+      if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
+	pp = lp2->p;
+	lp2++;
+      }
+      lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
     }
-    lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
-  }
   /*AA dimer*/
   lp2=prA;
   offset=0;
@@ -1291,9 +1272,7 @@ PUBLIC void compute_probabilities(double *FEAB,double *FEAA,
     lp1->p=(lp1->p-(1-pBB)*pp)/pBB;
   }
 
-
   return;
-
 }
 
 PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, double concB,double* ConcVec) {
@@ -1306,17 +1285,19 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
   ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
   do {
     det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA);
-    xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) - (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
-    yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) - (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
+    xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
+	    (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
+    yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
+	    (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
     EPS = fabs(xn) + fabs(yn);
     cA += xn;
     cB += yn;
-    /* printf ("%.18f\n",EPS);*/
     i++;
     if (i>10000) {
-      printf("Newton did not converge after %d steps!!",i);
-      break;}
-  }while(EPS>TOL);
+      fprintf(stderr, "Newton did not converge after %d steps!!\n",i);
+      break;
+    }
+  } while(EPS>TOL);
 
   ConcVec[0]= cA*cB*KAB ;/*AB concentration*/
   ConcVec[1]= cA*cA*KAA ;/*AA concentration*/
@@ -1327,7 +1308,7 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
   return ConcVec;
 }
 
-PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc)
+PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double *startconc)
 {
   /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
   double *ConcVec;
@@ -1335,14 +1316,15 @@ PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB,
   struct ConcEnt *Concentration;
   double KAA, KAB, KBB, kT;
 
-  kT=(temperature+273.15)*1.98717/1000.;
+  kT=(temperature+K0)*GASCONST/1000.;
   Concentration=(struct ConcEnt *)space(20*sizeof(struct ConcEnt));
-  /*Compute equilibrium constants*/
-  KAA = exp(( 2.0 * FEA - FEAA )/kT );
-  KBB = exp(( 2.0 * FEB - FEBB)/kT  );
-  KAB = exp(( FEA + FEB - FEAB)/kT );
-  printf("Initial concentrations\t\trelative Equilibrium concentrations\n");
-  printf("A\t\t B\t\t\tAB\t\t AA\t\t BB\t\t A\t\t B\n");
+  /* Compute equilibrium constants */
+  /* again note the input free energies are not from the null model (without DuplexInit) */
+
+  KAA = exp(( 2.0 * FEA - FcAA)/kT);
+  KBB = exp(( 2.0 * FEB - FcBB)/kT);
+  KAB = exp(( FEA + FEB - FcAB)/kT);
+  printf("Kaa..%g %g %g\n", KAA, KBB, KAB);
   for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
     ConcVec=Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
     Concentration[i/2].A0=startconc[i];
@@ -1353,9 +1335,6 @@ PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB,
     Concentration[i/2].Ac=ConcVec[3];
     Concentration[i/2].Bc=ConcVec[4];
 
-
-    /*  printf("%.10f\t%.10f\t\t%.10f\t%.10f\t%.10f\t%.10f\t%.10f\n",startconc[i],startconc[i+1],ConcVec[0],ConcVec[1],ConcVec[2],ConcVec[3],ConcVec[4]);*/
-     printf("%.12f\t%.12f\t\t%f\t%f\t%f\t%f\t%f f\n",startconc[i],startconc[i+1],ConcVec[0]/(startconc[i]+startconc[i+1]),ConcVec[1]/(startconc[i]+startconc[i+1]),ConcVec[2]/(startconc[i]+startconc[i+1]),ConcVec[3]/(startconc[i]+startconc[i+1]),ConcVec[4]/(startconc[i]+startconc[i+1]));
    if (!(((i+2)/2)%20))  {
      Concentration=(struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
      }
@@ -1378,9 +1357,8 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
 	pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
       }
       pl[count].i=i;
-      pl[count].j=j; /*->??*/
+      pl[count].j=j;
       pl[count++].p=pr[iindx[i]-j];
-      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
     }
   }
   pl[count].i=0;
@@ -1390,34 +1368,8 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
   return pl;
 }
 
-PUBLIC struct plist *get_mfe_plist(struct plist *pl) {
-  /*get list of mfe structure out of base_pairs array*/
-  int l;
-  for(l=1; l<=base_pair[0].i; l++)
-    {
-      pl[l-1].i=base_pair[l].i;
-      pl[l-1].j=base_pair[l].j;
-      pl[l-1].p=0.95;
-    }
-  pl[l-1].i=0;
-  pl[l-1].j=0;
-  pl[l-1].p=0.;
-  pl=(struct plist *)xrealloc(pl,l*sizeof(struct plist));
-  return pl;
-}
 
-
-PUBLIC float *get_monomerefreeenergies() {
-  /*exports monomere free energies*/
-  float *muh;
-
-  muh=(float *)space(2*sizeof(float));
-  muh[0]=mf1;
-  muh[1]=mf2;
-  return muh;
-
-}
-
+#if 0
 PUBLIC int make_probsum(int length, char *name) {
   /*compute probability of any base to be paired (preliminary)*/
   double *Spprob;
@@ -1456,3 +1408,4 @@ PUBLIC int make_probsum(int length, char *name) {
   if (cut_point>0) free(Pprob);
   return 1;
 }
+#endif
