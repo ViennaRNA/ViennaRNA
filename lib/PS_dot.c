@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.33 2006/01/16 09:46:56 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.34 2006/01/18 12:58:42 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -403,7 +403,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 
 /*--------------------------------------------------------------------------*/
 
-#define SIZE 452
+#define SIZE 452.
 
 int svg_rna_plot(char *string, char *structure, char *ssfile)
 {
@@ -639,8 +639,8 @@ const char *RNAdp_prolog =
 "/logscale false def\n"
 "/lpmin 1e-05 log def\n\n"
 "/box { %size x y box - draws box centered on x,y\n"
-"   2 index 0.5 mul add            % x += 0.5\n"
-"   exch 2 index 0.5 mul add exch  % y += 0.5\n"
+"   2 index 0.5 mul sub            % x -= 0.5\n"
+"   exch 2 index 0.5 mul sub exch  % y -= 0.5\n"
 "   3 -1 roll dup rectfill\n"
 "} bind def\n\n"
 "/ubox {\n"
