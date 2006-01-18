@@ -13,8 +13,13 @@ works much like RNAfold, but allows to specify two RNA sequences wich are
 then allowed to form a dimer structure. RNA sequences are read from stdin
 in the usual format. To compute the hybrid structure of two molecules, the
 two sequences must be concatenated using the '&' character as separator.
-RNAcofold can compute minimum free energy (mfe) structures, as well as partition
-function (pf) and base pairing probability matrix (using the -p switch).
+RNAcofold can compute minimum free energy (mfe) structures, as well as
+partition function (pf) and base pairing probability matrix (using the
+-p switch). 
+.br
+Since dimer formation is concentration dependent, RNAcofold can be used
+to compute equilibrium concentrations for all five monomer and
+(homo/hetero)-dimer species, given input concentrations for the monomers.
 .br
 Output consists of the mfe structure in bracket notation as well as PostScript
 structure plots and "dot plot" files containing the pair probabilities, see
@@ -29,25 +34,27 @@ of the single character @ or an end of file condition is encountered.
 Compute the partition function and free energies not only of the
 hetero-dimer consisting of the two input sequences (the "AB dimer"), 
 but also of the homo-dimers AA and BB as well as A and B monomers.
-The output will contain the free energies in stdout, as well as 5 dot
-plots, called ABname5.ps, AAname5.ps and so on. For later use, these
-dot plot files contain the free energy of the ensemble as a comment.
-Note that using \fB\-a\fP will automatically toggle the \fB\-p\fP option.
+The output will contain the free energies for each of these species,
+as well as 5 dot plots containing the conditional pair probabilities,
+called ABname5.ps, AAname5.ps and so on. For later use, these dot plot
+files also contain the free energy of the ensemble as a comment. Using
+\fB\-a\fP automatically toggles the 
+\fB\-p\fP option.  
 .TP
 .B \-c
-Will automatically toggle \fB\-a\fP and \fB\-p\fP (see \fB\-a\fP for
-reference), but can additionally compute the expected concentrations of the
-5 possible species (AB, AA, BB, A, B) out of start concentrations of A and
-B. Starting concentrations can be either read from stdin, or from a file
-using the \fB-f\fP option. In addition to all output produced by \fB-a\fP
-it prints a table with initial monomer concentrations and resulting
-equilibrium concentrations of the 5 species.
+In addition to everything listed under the \fB\-a\fP option, read in
+initial monomer concentrations and compute the expected equilibrium
+concentrations of the 5 possible species (AB, AA, BB, A, B). Start
+concentrations are read from stdin (unless the -f option is
+used) in [mol/l], equilibrium concentrations are given realtive to the
+sum of the two inputs. An arbitrary number of initial concentrations
+can be specified (one pair of concentrations per line).
 .TP 
 .B \-f\ \fIconcfile\fP
 Specify a file with initial concentrations for the to sequences. The table
 consits of arbitrary many lines with just two numbers (the concentration of
-sequence A and B). Will automatically toggle \fB\-a\fP, \fB\-c\fP and
-\fB\-p\fP option (see above)  
+sequence A and B). Will automatically toggle the \fB\-c\fP (and thus
+\fB\-a\fP and \fB\-p\fP) options (see above).
 .PP
 the \-p, \-p0, \-noGU, \-noCloseGU, \-nsp, \-S, \-e, \-P, \-noLP, \-T, \-4,
 \-d and \-C options work as in \fBRNAfold\fP, see there for description.
@@ -66,6 +73,10 @@ I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster
 (1994)
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125: 167\-188
+.PP
+S.H.Bernhart, Ch. Flamm, P.F. Stadler, I.L. Hofacker
+Partition Function and Base Pairing Probabilities of RNA Heterodimers
+submitted to Algorithms Mol. Biol.
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
 .SH "AUTHORS"

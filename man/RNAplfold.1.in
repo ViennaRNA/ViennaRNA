@@ -1,11 +1,11 @@
 .\" .ER
-.TH "RNAPLFOLD" "l" "1.5" "Stephan Bernhart" "ViennaRNA"
+.TH "RNAPLFOLD" "l" "1.6" "Stephan Bernhart" "ViennaRNA"
 .SH "NAME"
-RNAplfold \- calculate locally stable secondary structure - pair probabilities of RNAs
+RNAplfold \- calculate locally stable secondary structure - pair probabilities 
 .SH "SYNOPSIS"
 \fBRNAplfold\fP [\-L span] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU]
-[\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP]
-[\-d0] [\-c \fcutoff\fP]
+[\-noCloseGU] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP]
+[\-d[0|2] [\-c \fIcutoff\fP]
 
 .SH "DESCRIPTION"
 .I RNAplfold
@@ -29,12 +29,15 @@ Report only base pairs with an average probability > cutoff default=0.01.
 .PP 
 The \fB\-T\fP, \fB\-d\fP \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in
-RNAfold. Most tests were done using "\-d2 \-noLP", other dangling end
-settings may still be buggy.
+RNAfold. 
+
+.SH "SEE ALSO"
+RNALfold(1)
 
 .SH "REFERENCES"
 S. H. Bernhart, I.L. Hofacker, and P.F. Stadler
 "Local Base Pairing Probabilities in Large RNAs" 
+Bioinformatics (2006) in press
 .SH "VERSION"
 This man page documents version 1.6 Vienna RNA Package.
 .SH "AUTHORS"
