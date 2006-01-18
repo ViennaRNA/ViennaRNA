@@ -11,9 +11,9 @@
    - use sequence as well as structure profile for scoring
    - use similarity alignment instead of distance (maybe add local alinment)
    - use affine gap costs
-   
+
 	  C Ivo L Hofacker, Vienna RNA Package
-*/ 
+*/
 /* Last changed Time-stamp: <2004-08-02 10:11:13 ivo> */
 
 #include <stdio.h>
@@ -27,21 +27,21 @@
 #include "part_func.h"
 #include "utils.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: ProfileAln.c,v 1.4 2005/03/11 19:09:41 ivo Exp $";
+static char rcsid[] = "$Id: ProfileAln.c,v 1.5 2006/01/18 13:00:30 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
-#define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
+#define MIN(x,y)       (((x)<(y)) ? (x) : (y))
 #define MAX(x,y)       (((x)>(y)) ? (x) : (y))
 #define MAX3(x,y,z)    (MAX(  (MAX((x),(y))) ,(z)))
 #define EQUAL(x,y)     (fabs((x)-(y)) <= fabs(x)*2*FLT_EPSILON)
 
 PRIVATE int *alignment[2];
 
-PUBLIC float    profile_aln(const float *T1, const char *seq1, 
+PUBLIC float    profile_aln(const float *T1, const char *seq1,
 			    const float *T2, const char *seq2);
 
-PUBLIC int set_paln_params(double gap_open, double gap_ext, 
+PUBLIC int set_paln_params(double gap_open, double gap_ext,
 			   double seqweight, int free_ends);
 
 PRIVATE void    sprint_aligned_bppm(const float *T1, const char *seq1,
@@ -65,22 +65,22 @@ PRIVATE float **newmat(int l1, int l2) {
   return a;
 }
 
-PUBLIC float profile_aln(const float *T1, const char *seq1, 
+PUBLIC float profile_aln(const float *T1, const char *seq1,
 			 const float *T2, const char *seq2)
 {
   /* align the 2 probability profiles T1, T2 */
-  /* This is like a Needleman-Wunsch alignment, with affine gap-costs 
+  /* This is like a Needleman-Wunsch alignment, with affine gap-costs
      ala Gotoh. The score looks at both seq and pair profile */
 
   float  **S, **E, **F, tot_score;
   int    i, j, length1, length2;
-  
+
   length1 = strlen(seq1);
   length2 = strlen(seq2);
   S = newmat(length1, length2);
   E = newmat(length1, length2);
   F = newmat(length1, length2);
-  
+
   E[0][0] = F[0][0] = open - ext;
   S[0][0] = 0;
   for (i=1; i<=length1; i++) F[i][0] = -9999; /* impossible */
@@ -97,16 +97,16 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
       F[i][j] = MAX(F[i][j-1]+ext, S[i][j-1]+open);
       M = S[i-1][j-1] + PrfEditScore(T1+3*i,T2+3*j, seq1[i-1], seq2[j-1]);
       S[i][j] = MAX3(M, E[i][j], F[i][j]);
-    } 
+    }
   }
-  
+
   if (edit_backtrack) {
     double score=0;
     char state = 'S';
     int pos, i,j;
     alignment[0] = (int *) space((length1+length2+1)*sizeof(int));
     alignment[1] = (int *) space((length1+length2+1)*sizeof(int));
-    
+
     pos = length1+length2;
     i   = length1;
     j   = length2;
@@ -144,7 +144,7 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
       }
       tot_score=score;
     }
-      
+
     while (i>0 && j>0) {
       switch (state) {
       case 'E':
@@ -155,7 +155,7 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
 	i--;
 	break;
       case 'F':
-	score = F[i][j];	
+	score = F[i][j];
 	alignment[0][pos] = 0;
 	alignment[1][pos--] = j;
 	if (EQUAL(score, S[i][j-1] + open)) state = 'S';
@@ -169,8 +169,8 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
 		       PrfEditScore(T1+3*i,T2+3*j, seq1[i-1], seq2[j-1]))) {
 	  alignment[0][pos] = i;
 	  alignment[1][pos--] = j;
-	  i--; j--; 
-	} 
+	  i--; j--;
+	}
 	else nrerror("backtrack of alignment failed");
 	break;
       }
@@ -190,7 +190,7 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
       alignment[1][i-pos] = alignment[1][i];
     }
     alignment[0][0] = length1+length2-pos;   /* length of alignment */
-    
+
     sprint_aligned_bppm(T1,seq1, T2,seq2);
     free(alignment[0]);
     free(alignment[1]);
@@ -199,25 +199,25 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
     free(S[i]); free(E[i]); free(F[i]);
   }
   free(S); free(E); free(F);
-    
+
   return tot_score;
 }
 
 
 /*---------------------------------------------------------------------------*/
 PRIVATE inline double average(double x, double y) {
-  /* 
+  /*
      As in Bonhoeffer et al (1993) 'RNA Multi Structure Landscapes',
      Eur. Biophys. J. 22: 13-24 we have chosen  the geometric mean.
-  */ 
-  return (float) sqrt(x*y);    
+  */
+  return (float) sqrt(x*y);
 }
 
 PRIVATE double PrfEditScore(const float *p1, const float *p2, char c1, char c2)
 {
   double  score;
   int    k;
-  
+
   for(score=0.,k=0; k<3; k++)
     score += average(p1[k],p2[k]);
 
@@ -233,10 +233,10 @@ PRIVATE double PrfEditScore(const float *p1, const float *p2, char c1, char c2)
 }
 
 /*---------------------------------------------------------------------------*/
- 
+
 PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
 				 const float *T2, const char *seq2) {
-   int     i, length; 
+   int     i, length;
    length = alignment[0][0];
    for (i=0; i<4; i++) {
      if (aligned_line[i] != NULL) free(aligned_line[i]);
@@ -250,7 +250,7 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
 	aligned_line[2][i-1] = seq1[alignment[0][i]-1];
       }
       if (alignment[1][i]==0)
-	aligned_line[1][i-1] = aligned_line[3][i-1] = '_'; 
+	aligned_line[1][i-1] = aligned_line[3][i-1] = '_';
       else {
 	aligned_line[1][i-1] = bppm_symbol(T2+alignment[1][i]*3);
 	aligned_line[3][i-1] = seq2[alignment[1][i]-1];
@@ -258,17 +258,17 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
    }
 }
 
-PUBLIC int set_paln_params(double gap_open, double gap_ext, 
+PUBLIC int set_paln_params(double gap_open, double gap_ext,
 			   double seq_weight, int freeends) {
   open = (gap_open>0) ? -gap_open : gap_open;
   ext = (gap_ext>0) ? -gap_ext : gap_ext;
-  if (open > ext) fprintf(stderr, "Gap extension penalty is smaller than " 
+  if (open > ext) fprintf(stderr, "Gap extension penalty is smaller than "
 			  "gap open. Do you realy want this?\n");
   seqw = seq_weight;
   if (seqw<0) {
     seqw = 0;
     fprintf(stderr, "Sequence weight set to 0 (must be in [0..1])\n");
-  } else 
+  } else
   if (seqw>1) {
     seqw = 1;
     fprintf(stderr, "Sequence weight set to 1 (must be in [0..1])\n");
@@ -278,4 +278,3 @@ PUBLIC int set_paln_params(double gap_open, double gap_ext,
 }
 
 /*---------------------------------------------------------------------------*/
-
