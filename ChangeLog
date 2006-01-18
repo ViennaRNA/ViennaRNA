@@ -1,4 +1,21 @@
-2005-05-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+2006-01-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* cleanup berni partition cofold code, including several bug fixes
+
+2006-01-16  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* update RNAplfold to working version
+	* add PS_dot_plot_turn() in  PS_dot.c
+
+2005-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add new utilities colorna and coloraln
+
+2005-10-11  Christoph Flamm  <xtof@tbi.univie.ac.at>
+
+	* adapt PS_rna_plot() for drawing co-folded structures
+
+2005-07-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* fix a few memory problems in structure comparison routines
 
@@ -39,7 +56,7 @@
 
 2003-09-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add annotation options to RNAplot 
+	* add annotation options to RNAplot
 
 2003-08-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
@@ -49,7 +66,7 @@
 2003-07-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add relplot.pl and rotate_ss.pl utilities for reliability
-	  annotation and rotation of rna structure plots  
+	  annotation and rotation of rna structure plots
 
 2003-01-29  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
@@ -70,7 +87,7 @@
 	  ($structure, $energy) = RNA::fold($seq);
 	  Compatibility warning: the ptrvalue() and related functions are
 	  gone, see the pod documentation for alternatives.
-	  
+
 2002-10-29  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* added svg structure plots in PS_dot.c and RNAplot
@@ -104,4 +121,3 @@
 2000-09-28  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add -d3 option to RNAfold for co-axial stacking
-	

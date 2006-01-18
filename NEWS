@@ -1,23 +1,24 @@
 Upcoming 
 -----------
+- Updated parameters for both RNA and DNA using the data compiled by 
+  David Mathews <David_Mathews@urmc.rochester.edu>. 
+
+Version 1.6
+------------
 - The RNAforester program for tree-alignments of RNA structures is now
   distributed with the Vienna RNA package, see the RNAforester
   subdirectory for more information. RNAforester was written by Matthias
   Hoechsmann <mhoechsm@techfak.uni-bielefeld.de> 
 - The Kinfold program for stochastic simulation of folding trajectories is
   no included in the package, see the Kinfold subdirectory.
-- The Vienna RNA package now includes a freely distributable set of DNA
-  energy parameters. These parameters were compiled by David Mathews 
-  <David_Mathews@urmc.rochester.edu>, by re-analysing published data. 
-  The parameters are not heavily tested yet, beware of errors I might have
-  introduced when converting them into ViennaRNA format
-
-Current version
-------------
 - cofolding of two structures now supports suboptimal folding and 
-  partition function folding. 
+  partition function folding (still experimental). 
   ATTENTION: Energies of hybrid structures now inlcude the Duplex-initiation
   energy, which was neglected in previous version.
+- RNAplfold is a partition function variant of RNALfold. It computes the
+  mean probability of a (local) base pair averaged over all sequence
+  windows that contain the pair.
+- new utilities to color alignments and consensus structures  
 
 Version 1.5pre 
 -----------
@@ -32,6 +33,7 @@ Version 1.5pre
 - RNAcofold predicts hybrid structures of two RNA strands
 - RNAduplex predicts hybrid structures, while allowing only inter-molecular
   base pairs (useful for finding potential binding sites)
+- RNALfold predicts locally stable structures in long sequences.
 - Major changes to Perl module. See the pod documentation (perldoc RNA).
 - RNAsubopt can do stochastic backtracking to produce samples of suboptimal
   structures with Boltzmann statistics.
