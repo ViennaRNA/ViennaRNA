@@ -1,10 +1,10 @@
-\input texinfo   @c -*-texinfo-*-
-@c Last changed Time-stamp: <2005-02-10 10:45:23 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.16 2005/02/10 09:46:14 ivo Exp $
+\input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
+@c Last changed Time-stamp: <2006-01-19 12:27:59 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.17 2006/01/19 11:28:40 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
-@set Version 1.5
+@set Version 1.6
 @end ifclear
 @iftex
 @afourpaper
@@ -35,12 +35,12 @@ Copyright @copyright{1994-2002} Ivo Hofacker and Peter Stadler
 @end ifinfo
 
 @menu
-* Introduction::                
+* Introduction::
 * Folding Routines::            Functions for Folding RNA Secondary Structures
 * Parsing and Comparing::       Functions to Manipulate Structures
 * Utilities::                   Odds and Ends
 * Example::                     A Small Example Program
-* References::                  
+* References::
 * Function Index::
 * Variable Index::
 @end menu
@@ -52,13 +52,15 @@ The core of the Vienna RNA Package is formed by a collection of routines
 for the prediction and comparison of RNA secondary structures. These
 routines can be accessed through stand-alone programs, such as RNAfold,
 RNAdistance etc., which should be sufficient for most users. For those who
-wish to develop their own programs we provide a library which can be linked
-to your own code.
+wish to develop their own programs we provide a library which can be
+linked to your own code.
 
-This document only describes the library and will be primarily useful to
-programmers. The stand-alone programs are described in separate man
-pages. The latest version of the package including source code and html
-versions of the documentation can be found at
+This document describes the library and will be primarily useful to
+programmers. However, it also contains details about the implementation
+that may be of interest to advanced users. The stand-alone programs are
+described in separate man pages.  The latest version of the package
+including source code and html versions of the documentation can be found
+at
 @ifclear texi2html
 @url{http://www.tbi.univie.ac.at/~ivo/RNA/}.
 @end ifclear
@@ -75,7 +77,7 @@ Please send comments and bug reports to
 @end ifclear
 @ifset texi2html
 @ifhtml
-<a href="mailto:ivo@tbi.univie.ac.at">&lt;Ivo.Hofacker@tbi.univie.ac.at&gt;</a>.
+<a href="mailto:rna@tbi.univie.ac.at">&lt;Ivo.Hofacker@tbi.univie.ac.at&gt;</a>.
 @end ifhtml
 @end ifset
 
@@ -89,6 +91,7 @@ Please send comments and bug reports to
 * Inverse Fold::                Searching for Predefined Structures
 * Suboptimal folding::          Enumerating Suboptimal Structures
 * Cofolding::                   Folding of 2 RNA molecules
+* Local Fold::                  Predicting local structures of large sequences
 * Alignment Fold::              Predicting Consensus Structures from Alignment
 * Fold Vars::                   Global Variables for the Folding Routines
 * Param Files::                 Reading Energy Parameters from File
@@ -99,7 +102,7 @@ Please send comments and bug reports to
 @section Minimum free Energy Folding
 The library provides a fast dynamic programming minimum free energy
 folding algorithm as described by @cite{Zuker & Stiegler (1981)}.
-Associated functions are: 
+Associated functions are:
 
 
 @deftypefun float fold (char* @var{sequence}, char* @var{structure})
@@ -132,8 +135,8 @@ frees the memory allocated by @code{fold()}.
 
 @deftypefun void   update_fold_params ()
 call this to recalculate the pair matrix and energy parameters after a
-change in folding parameters like @code{temperature} 
-(@pxref{Fold Vars,,Variables}). 
+change in folding parameters like @code{temperature}
+(@pxref{Fold Vars,,Variables}).
 @end deftypefun
 
 Prototypes for these functions are declared in @file{fold.h}.
@@ -178,9 +181,9 @@ frees the memory allocated by @code{init_pf_fold()}.
 @end deftypefun
 
 @deftypefun void update_pf_params (int @var{length})
-Call this function to recalculate the pair matrix and energy parameters 
+Call this function to recalculate the pair matrix and energy parameters
 after a change in folding parameters like temperature
-(@pxref{Fold Vars,,Variables}). 
+(@pxref{Fold Vars,,Variables}).
 @end deftypefun
 
 @deftypefun double mean_bp_dist (int @var{length})
@@ -205,14 +208,14 @@ structure, thereby inverting the folding routines.
 
 
 @deftypefun float inverse_fold (char* @var{start}, char* @var{target})
-searches for a sequence with minimum free energy structure 
+searches for a sequence with minimum free energy structure
 @var{target}, starting with sequence @var{start}. It returns 0 if the
 search was successful, otherwise a structure distance to @var{target}
 is returned. The found sequence is returned in @var{start}. If @code{give_up}
 @vindex give_up
 is set to 1, the function will return as soon as it is
 clear that the search will be unsuccessful, this speeds up the algorithm
-if you are only interested in exact solutions. 
+if you are only interested in exact solutions.
 Since @code{inverse_fold()} calls @code{fold()} you have to allocate memory
 for folding by calling @code{initialize_fold()}
 @end deftypefun
@@ -227,9 +230,9 @@ memory for folding by calling @code{init_pf_fold()}
 @end deftypefun
 
 @deftypevar char *symbolset
-The global variable @code{char *symbolset} points to the allowed bases, 
+The global variable @code{char *symbolset} points to the allowed bases,
 initially @code{"AUGC"}.  It can be used to design sequences from reduced
-alphabets. 
+alphabets.
 @end deftypevar
 
 Prototypes for these functions are declared in @file{inverse.h}.
@@ -245,93 +248,118 @@ poduces @strong{all} suboptimal secondary structures within
 @var{delta}*0.01 kcal/mol of the optimum. The reults are either
 directly written to a @var{fp} (if @var{fp} is not @code{NULL}), or
 (@var{fp}@code{==NULL}) returned in a @code{SOLUTION *} list terminated
-by an entry were the @code{structure} pointer is @code{NULL}. 
+by an entry were the @code{structure} pointer is @code{NULL}.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{subopt.h}.
 
-@node Cofolding, Alignment Fold, Suboptimal folding, Folding Routines
-@section  Predictiong hybridization structures of two molecules
+@node Cofolding, Local Fold, Suboptimal folding, Folding Routines
+@section  Predicting hybridization structures of two molecules
 
-Folding of two RNA molecules. The molecules have to be separated by a
-'&' character in the input (file or stdin). If there is no '&', will
-return the same result as folding. The same rules as for using folding
-functions apply, if not stated otherwise. After reading in, it is
-vital to set the @var{cut_point} global variable and cut the '&' out
-of the sequence string, e.g. using the @code{tokenize()}
-function. If this is not done, the '&' will be considered to be a non-standard
-base and the result will be a fold of one molecule.
+The function of an RNA molecule often depends on its interaction with
+other RNAs. The following routines therefore allow to predict structures
+formed by two RNA molecules upon hybridization.
+One approach to co-folding two RNAs consists of concatenating the two
+sequences and keeping track of the concatenation point in all energy
+evaluations. Correspondingly, many of the @code{cofold()} and
+@code{co_pf_fold()} routines below take one sequence string as argument
+and use the the global variable @var{cut_point} to mark the concatenation
+point. Note that while the @code{RNAcofold} program uses the '&' character
+to mark the chain break in its input, you should not use an '&' when using
+the library routines (set @var{cut_point} instead).
 
-@deftp {data type} plist  struct @{int i; int j; float energy;@}
-@end deftp
+@deftypevar int cut_point
+@code{cut_point} marks the position (starting from 1) of the first
+nucleotide of the second molecule within the concatenated sequence.
+The default value of -1 stands for single molecule folding. The
+@code{cut_point} variable is also used by @code{PS_rna_plot()} and
+@code{PS_dot_plot()} to mark the chain break in postscript plots.
+@end deftypevar
 
-@deftp {data type} ConcEnt  struct @{double A0; double B0;double ABc;double AAc; double BBc; double Ac; double Bc;@}
-@end deftp
-@deftypefun float cofold (char @var{*sequence}, char @var{*structure});
+@deftypefun float cofold (char @var{*sequence}, char @var{*structure})
 The analog to the  @code{fold()} function. Computes the minimum free
-energy of two RNA molecules interacting. 
+energy of two RNA molecules interacting. If @code{cut_point==-1} results
+should be the same as with @code{fold()}.
 @end deftypefun
 
-@deftypefun  void  free_co_arrays (void);
+@deftypefun  void  free_co_arrays (void)
 Frees arrays allocated by @code{cofold()}.
 @end deftypefun
 
-@deftypefun char *tokenize (char @var{*line});
-Takes the sequence as it is taken from stdin or a file, sets the
-@var{cut_point} global variable to the position of the '&' character
-and cuts out the '&' character to return the sequence as it will be
-used by all cofold functions.
-@end deftypefun
+@c @deftypefun char *tokenize (char @var{*line})
+@c Takes the sequence as it is taken from stdin or a file, sets the
+@c @var{cut_point} global variable to the position of the '&' character
+@c and cuts out the '&' character to return the sequence as it will be
+@c used by all cofold functions.
+@c @end deftypefun
 
-@deftypefun void   initialize_cofold (int @var{length});
-Obsolete function kept for backward compatibility.
+@deftypefun void   initialize_cofold (int @var{length})
 Allocates memory for mfe cofolding sequences not longer than @var{length},
 and sets up pairing matrix and energy parameters.
+Explicitely calling  @code{initialize_cofold()} is normally not necessary,
+as it will be called automagically before folding.
 @end deftypefun
 
-@deftypefun float *get_monomereminimumfreeenergies ();
-Exports the minimum free energies of the two monomeres folded
-``alone'' (after using @code{cofold()}.
-@end deftypefun
+@c @deftypefun extern struct plist *get_mfe_plist (struct plist @var{*pl})
+@c This writes the global @var{*pr} array into the new structure
+@c @var{plist}, creating an array of the base pairs of the minimum free
+@c energy structure (and nothing else). Default probability is 0.95.
+@c Used when @var{*pr} is going to be freed or overwritten by other
+@c functions (e.g. @code{ co_pf_fold()},@code{cofold()}, etc).
+@c @end deftypefun
 
-@deftypefun extern struct plist *get_mfe_plist (struct plist @var{*pl});
-This writes the global @var{*pr} array into the new structure
-@var{plist}, creating an array of the base pairs of the minimum free
-energy structure (and nothing else). Default probability is 0.95.
-Used when @var{*pr} is going to be freed or overwritten by other
-functions (e.g. @code{ co_pf_fold()},@code{cofold()}, etc).
-@end deftypefun
+Prototypes for these functions are declared in @file{cofold.h}.
 
-Prototypes for these functions are declared in @file{cofold.h} or @file{co_part_func.h}.
 
 @section  Partition Function Cofolding
 As for folding one RNA molecule, this computes the partition function
 of all possible structures and the base pair probabilities. Uses the
-same global @var{pf_scale} variable to inhibit overflow.
+same global @var{pf_scale} variable to avoid overflows.
 
-@deftypefun float co_pf_fold (char* @var{sequence}, char* @var{structure})
-produces a partition function folding of two RNA molecules, including
-the penalty for duplex initialization. To use this, the
-@var{cut_point} global variable has to be set. It will return the free
-energy of the ensemble, as well as the pair probabilities in a global array.
- 
-@end deftypefun 
-@deftypefun void   free_co_pf_arrays (void);
+To simplify the implementation the partition function computation is done
+internally in a null model that does not include the duplex initiation
+energy, i.e. the entropic penalty for producing a dimer from two
+monomers). The resulting free energies and pair probabilities are initally
+relative to that null model. In a second step the free energies can be
+corrected to include the dimerization penalty, and the pair probabilities
+can be divided into the conditional pair probabilities given that a re
+dimer is formed or not formed.
+
+
+@deftp {data type} cofoldF  struct @{double F0AB, FAB, FcAB, FA, FB;@}
+@end deftp
+
+@deftypefun cofoldF co_pf_fold (char* @var{sequence}, char* @var{structure})
+The analog to the @code{pf_fold()} function, it computes the partition
+function of two interacting RNA molecules as well as base pair
+probabilities.
+It returns a struct including free energies computed for different
+models. F0AB is the free energy in the null model; FAB is corrected
+to include the initiation penalty, FcAB only includes real dimers. FA and
+FB are the free energies of the 2 molecules, resp. As with @code{cofold()}
+the @var{cut_point} global variable has to be set to mark the chain break
+between the molecules.
+@end deftypefun
+
+
+@deftypefun void   free_co_pf_arrays (void)
 frees partition function cofold arrays allocated in @code{ co_pf_fold()}.
 @end deftypefun
 
-@deftypefun void   init_co_pf_fold (int @var{length});
+@deftypefun void   init_co_pf_fold (int @var{length})
 Obsolete function kept for backward compatibility.
 Allocates memory for partition function cofolding sequences not longer
 than @var{length}, and sets up pairing matrix and energy parameters.
 @end deftypefun
-@deftypefun float *get_monomerefreeenergies ();
-Export free energies of monomere ensembles (after using @code{ co_pf_fold()})
-@end deftypefun
-@deftypefun extern struct plist *get_plist (struct plist @var{*pl}, int @var{length}, double @var{cut_off});
+
+@deftp {data type} plist  struct @{int i; int j; float energy;@}
+@end deftp
+
+@deftypefun extern struct plist *get_plist (struct plist @var{*pl}, int @var{length}, double @var{cut_off})
 Makes a list of base pairs out of the global @var{*pr} array,
-remembering all base pairs with a probability higher than
-@var{cut_off}. Must be used in the functions of the next section.
+ignoring all base pairs with a probability less than @var{cut_off}. 
+This is useful since the @var{pr} array gets overwritten by subsequent
+foldings. 
 @end deftypefun
 
 Prototypes for these functions are declared in @file{co_part_func.h}.
@@ -341,32 +369,73 @@ After computing the partition functions of all possible dimeres one
 can compute the probabilities of base pairs, the concentrations out of
 start concentrations and sofar and soaway.
 
-@deftypefun void compute_probabilities (double @var{*FEAB},double @var{*FEAA}, double @var{*FEBB},double @var{*FEA}, double @var{*FEB}, struct plist  @var{*prAB}, struct plist  @var{*prAA}, struct plist  @var{*prBB}, struct plist  @var{*prA}, struct plist  @var{*prB}, int @var{Alength},int @var{Blength});
-Computes the probabilities of being paired for the different monomeres
-end dimeres possible for two RNA molecules (called A and B). Takes the
-minimum free energies of the ensembles of every dimere (as computed by
-@code{co_part_cfunc()} and their base pairing probabilities (taken
-from @code{get_plist()} as well as the length of the two molecules
-@var{Alength} and @var{Blength}.     
+@deftypefun void compute_probabilities (double @var{FAB}, double @var{FEA}, double @var{FEB}, struct plist  @var{*prAB}, struct plist  @var{*prA}, struct plist  @var{*prB}, int @var{Alength})
+Given the pair probabilities and free energies (in the null model) for a
+dimer AB and the two constituent monomers A and B, compute the conditional pair
+probabilities given that a dimer AB actually forms.
+Null model pair probabilities are given as a list as produced by
+@code{get_plist()}), the dimer probabilities @var{prAB} are modified in
+place.
 @end deftypefun
 
-@deftypefun extern struct ConcEnt  *get_concentrations(double @var{FEAB}, double @var{FEAA}, double @var{FEBB}, double @var{FEA}, double @var{FEB}, double * @var{startconc});
-Takes an array  @var{startconc} with alternating entries for the
-initial concentrations of molecules A and B (one and two), then
-computes the equilibrium concentrations @cite{Dimitrov & Zuker (2004)}
-for the free energies put in.
+Dimer formation is inherently concentration dependent. Given the free
+energies of the monomers A and B and dimers AB, AA, and BB one can compute
+the equilibrium concentrations, given input concentrations of A and B, see
+e.g.~@cite{Dimitrov & Zuker (2004)}
+
+@deftp {data type} ConcEnt  struct @{double A0; double B0;double ABc;double AAc; double BBc; double Ac; double Bc;@}
+@end deftp
+
+@deftypefun extern struct ConcEnt  *get_concentrations(double @var{FEAB}, double @var{FEAA}, double @var{FEBB}, double @var{FEA}, double @var{FEB}, double * @var{startconc})
+Takes an array  @var{startconc} of input concentrations with alternating
+entries for the initial concentrations of molecules A and B (terminated by
+two zeroes), then computes the resulting equilibrium concentrations
+from the free energies for the dimers. Dimer free energies should be the
+dimer-only free energies, i.e. the FcAB entries from the @code{cofoldF} struct.
 @end deftypefun
 
-@deftypefun int make_probsum (int @var{length}, char @var{*name});
-Computes the probability of any base to be paired to a base wtih a
-number lower than @var{length} (used for e.g. compute probability to
-be paired within one molecule).
-@end deftypefun
+@c @deftypefun int make_probsum (int @var{length}, char @var{*name})
+@c Computes the probability of any base to be paired to a base wtih a
+@c number lower than @var{length} (used for e.g. compute probability to
+@c be paired within one molecule).
+@c @end deftypefun
 
 Prototypes for these functions are declared in @file{co_part_func.h}.
 
+@node Local Fold, Alignment Fold, Cofolding, Folding Routines
+@section Searching for local mfe structures in large molecules
 
-@node Alignment Fold, Fold Vars, Cofolding, Folding Routines
+Local structures can be predicted by a modified version of the
+@code{fold()} algorithm that restricts the span of all base pairs.
+
+@deftypefun float  Lfold (char *@var{string}, char *@var{structure}, int @var{maxdist})
+The local analog to @code{fold()}. Computes the minimum free energy
+structure including only base pairs with a span smaller than
+@end deftypefun
+
+@var{maxdist}.
+
+@deftypefun int pfl_fold (char *@var{sequence}, int @var{winSize}, float @var{cutoff}, struct plist **@var{pl})
+pfl_fold computes partition functions for every window of size
+@var{winSize} possible in a RNA molecule, and returns the mean base
+pair probabilities in @var{pl}. Note that in contrast to @code{Lfold()}, bases outside
+of the window do not influence the structure at all. Only
+probabilities higher than @var{cutoff} are kept.
+@end deftypefun
+
+@deftypefun void  init_pf_foldLP (int @var{length})
+Analog to @code{init_pf_fold()}. @var{length} is the length  of the sequence.
+@end deftypefun
+
+@deftypefun void  free_pf_arraysLP (void)
+frees the arrays used by @code{pfl_fold()}
+@end deftypefun
+
+@deftypefun void  update_pf_paramsLP (int @var{length})
+Analog to @code{update_pf_params()}. @var{length} is the length  of the sequence.
+@end deftypefun
+
+@node Alignment Fold, Fold Vars, Local Fold, Folding Routines
 @section   Predicting Consensus Structures from an Alignment
 
 Consensus structures can be predicted by a modified version of the
@@ -377,11 +446,11 @@ with consistent and compensatory mutations and penalizes pairs that
 cannot be formed by all structures. For details see @cite{Hofacker (2002)}.
 
 @deftypefun float alifold (char** @var{sequences}, char* @var{structure})
-Predicts the consensus structure for the aligned @var{sequences} 
+Predicts the consensus structure for the aligned @var{sequences}
 and returns the minimum free energy; the mfe structure in bracket
-notation (@pxref{notations}) is returned in @var{structure}. 
-Sufficient space must be allocated for @var{structure} before calling 
-@code{alifold()}. 
+notation (@pxref{notations}) is returned in @var{structure}.
+Sufficient space must be allocated for @var{structure} before calling
+@code{alifold()}.
 @end deftypefun
 
 @deftypefun void free_alifold_arrays ()
@@ -390,8 +459,8 @@ frees the memory allocated by @code{alifold()}.
 
 @deftypefun void update_alifold_params ()
 call this to recalculate the pair matrix and energy parameters after a
-change in folding parameters like @code{temperature} 
-(@pxref{Fold Vars,,Variables}). 
+change in folding parameters like @code{temperature}
+(@pxref{Fold Vars,,Variables}).
 @end deftypefun
 
 @deftypefun float alipf_fold (char** @var{sequences}, char* @var{structure}, pair_info **@var{pi})
@@ -399,7 +468,7 @@ The partition function version of @code{alifold()} works in analogy to
 @code{pf_fold()}. Pair probabilities and information about sequence
 covariations are returned via the @var{pi} variable as a list of
 @code{pair_info} structs.  The list is terminated by the first entry with
-@code{pi.i = 0}. 
+@code{pi.i = 0}.
 @end deftypefun
 
 @deftp {data type} pair_info  struct @{short i,j; float p; float ent; short bp[8]; char comp;@}
@@ -454,7 +523,7 @@ default is 0, you probably don't want to change it.
 @deftypevar float temperature
 rescale energy parameters to a temperature of @code{temperature} C.
 Default is 37C. You have to call the update_@dots{}_params() functions after
-changing this parameter. 
+changing this parameter.
 @end deftypevar
 
 @deftypevar int dangles
@@ -475,11 +544,11 @@ and energy evaluation (@code{fold()} and @code{energy_of_struct()}), as
 well as suboptimal folding (@code{subopt()}) via re-evaluation of energies.
 Co-axial stacking with one intervening mismatch is not considered so far.
 
-Default is 1, @code{pf_fold()} treats 1 as 2. 
+Default is 1, @code{pf_fold()} treats 1 as 2.
 @end deftypevar
 
 @deftypevar char* nonstandards
-Lists additional base pairs that will be allowed to form in addition to 
+Lists additional base pairs that will be allowed to form in addition to
 GC, CG, AU, UA, GU and UG. Nonstandard base pairs are given a stacking
 energy of 0.
 @end deftypevar
@@ -561,7 +630,7 @@ nonstandard=7, 0= no pair), and 5 types of bases (A=1, C=2, G=3, U=4 and 0
 for anything else). Parameters belonging to pairs of type 0 are not listed
 in the parameter files, but values for nonstandard pairs (type 7) and
 nonstandard bases (type 0) are. Thus, a table for symmetric size 2 interior
-loops would have 7*7*5*5 entries (2 pairs, two unpaired bases). 
+loops would have 7*7*5*5 entries (2 pairs, two unpaired bases).
 
 The order of entries always uses the closing pair or pairs as the first
 indices followed by the unpaired bases in 5' to 3' direction.  To determine
@@ -570,8 +639,8 @@ first, i.e. use the pairs @math{(i,j)} and @math{(q,p)} for an interior
 loop with @math{i<p<q<j}. This is probably better explained by an example.
 Consider the symmetric size 4 interior loop
 @example
-                      5'-GAUA-3' 
-                      3'-CGCU-5' 
+		      5'-GAUA-3'
+		      3'-CGCU-5'
 @end example
 the first pair is GC, the second UA (not AU!) the unpaired bases are (in 5'
 to 3' direction, starting at the first pair) A U C G. Thus we need entry
@@ -592,13 +661,13 @@ token. The following tokens are recognized:
 
 @noindent @t{# stack_energies}@*
 The list of free energies for stacked pairs, indexed by the two closing
-pairs. The list should be formated as symmetric an 7*7 matrix,conforming 
-to the order explained above. As an example the stacked pair 
+pairs. The list should be formated as symmetric an 7*7 matrix,conforming
+to the order explained above. As an example the stacked pair
 @example
-                      5'-GU-3'        5'-AC-3'
-                      3'-CA-5'        3'-UG-5'  
+		      5'-GU-3'        5'-AC-3'
+		      3'-CA-5'        3'-UG-5'
 @end example
-@noindent corresponds to the entry [2,5], which should be identical to [5,2]. 
+@noindent corresponds to the entry [2,5], which should be identical to [5,2].
 Note that the format has changed from previous releases, to make it
 consistent with other loop parameters.
 
@@ -614,11 +683,11 @@ should be INF to indicate a forbidden value.
 
 @noindent @t{# bulge}@*
 Free energies of bulge loops. Should contain 31 entries, the first one
-being INF. 
+being INF.
 
 @noindent @t{# internal_loop}@*
 Free energies of internal loops. Should contain 31 entries, the first 4
-being INF (since smaller loops are tabulated). 
+being INF (since smaller loops are tabulated).
 
 @noindent @t{# mismatch_interior}@*
 Free energies for the interaction between the closing pair of an interior
@@ -628,8 +697,8 @@ the two unpaired bases. Since we distinguish 5 bases the list contains
 7*5*5 entries and should be formated either as an 7*25 matrix or 7 5*5
 matrices. The order is such that for example the mismatch
 @example
-                               5'-CU-3'
-                               3'-GC-5'
+			       5'-CU-3'
+			       3'-GC-5'
 @end example
 @noindent corresponds to entry [1,4,2] (CG=1, U=4, C=2), (in this notation
 the first index runs from 1 to 7, second and third from 0 to 4)
@@ -644,8 +713,8 @@ Corresponding enthalpies for rescaling to temperatures other than 37C.
 Free energies for symmetric size 2 interior loops. 7*7*5*5 entries formated
 as 49 5*5 matrices, or seven 7*25 matrices. Example:
 @example
-                               5'-CUU-3'
-                               3'-GCA-5'
+			       5'-CUU-3'
+			       3'-GCA-5'
 @end example
 corresponds to entry [1,5,4,2], which should be identical to [5,1,2,4].
 
@@ -654,8 +723,8 @@ Free energies for size 3 (2+1) interior loops. 7*7*5*5*5 entries formated
 in 5*5 or 5*25 matrices. The strand with a single unpaired base is listed
 first, example:
 @example
-                               5'-CU U-3'
-                               3'-GCCA-5'
+			       5'-CU U-3'
+			       3'-GCCA-5'
 @end example
 corresponds to entry [1,5,4,2,2].
 
@@ -671,16 +740,16 @@ energies in interior and hairpin loops). The array is indexed by the type
 of pair closing the helix and the unpaired base and, therefore, forms a 8*5
 matrix. For example the dangling base in
 @example
-                               5'-GC-3'
-                               3'- G-5'
+			       5'-GC-3'
+			       3'- G-5'
 @end example
 @noindent corresponds to entry [1,2] (CG=1, C=2);
 
 @noindent @t{# dangle3}@*
 Same as above for bases on the 3' side of a helix.
 @example
-                               5'- A-3'
-                               3'-AU-5'
+			       5'- A-3'
+			       3'-AU-5'
 @end example
 @noindent corresponds to entry [5,1] (AU=5, A=1);
 
@@ -703,7 +772,7 @@ following the token, one sequence per line. For example:
        GAAA    -200
 @end example
 @noindent assigns a bonus energy of -2 kcal/mol to tetraloops containing
-the sequence GAAA. 
+the sequence GAAA.
 
 @noindent @t{# END}@*
 Anything beyond this token will be ignored.
@@ -713,14 +782,14 @@ of interaction parameters, such as only stacking energies. However, for
 each type of interaction listed, all entries have to be present.
 A @samp{*} may be used to indicate entries of a list that are to retain
 their default value. For loop energies a @samp{x} may be used to indicate that
-the value is to be extrapolated from the values for smaller loop sizes. 
+the value is to be extrapolated from the values for smaller loop sizes.
 Parameter files may contain C-style comments, i.e. any text between
 @code{/*} and @code{*/} will be ignored. However, you may have no more
 than one comment per line and no multi-line comments.
 
 A parameter file listing the default parameter set should accompany your
 distribution as @file{default.par}, the file @file{old.par} contains
-parameters used in version 1.1b of the Package. 
+parameters used in version 1.1b of the Package.
 
 
 @node Parsing and Comparing, Utilities, Folding Routines, Top
@@ -820,7 +889,7 @@ notation including root.
 
 @deftypefun char* b2C (char* @var{full})
 converts the @var{full} structure from bracket notation to the a
-coarse grained notation using the 'H' 'B' 'I' 'M' and 'R' identifiers. 
+coarse grained notation using the 'H' 'B' 'I' 'M' and 'R' identifiers.
 @end deftypefun
 
 @deftypefun char* b2Shapiro (char* @var{full})
@@ -902,7 +971,7 @@ length is the base pair distance, given by the number of pairs present in
 only one of the two structures being compared. I.e. the number of base
 pairs that have to be opened or closed to transform one structure into the
 other. It is therefore particularly useful for comparing structures on the
-same sequence. It is implemented by 
+same sequence. It is implemented by
 
 @deftypefun int bp_distance (char* @var{s1}, char* @var{s2})
 returns the ``base pair'' distance between two secondary structures @var{s1}
@@ -916,12 +985,12 @@ this is the same as ``sequence alignment''. Given a set of edit operations
 and edit costs, the edit distance is given by the minimum sum of the
 costs along an edit path converting one object into the other. Edit
 distances like these always define a metric. The edit operations used by us
-are insertion, deletion and replacement of nodes. 
+are insertion, deletion and replacement of nodes.
 String editing does not pay attention to the matching of brackets, while
 in tree editing matching brackets represent a single node of the tree.
 Tree editing is therefore usually preferable, although somewhat
 slower. String edit distances are always smaller or equal to tree edit
-distances.  
+distances.
 
 The different level of detail in the structure representations defined
 above naturally leads to different measures of distance. For full
@@ -989,7 +1058,7 @@ calculates the edit distance of the two trees @var{T1} and @var{T2}.
 @end deftypefun
 
 @deftypefun void free_tree (Tree* @var{t})
-frees the memory allocated for @var{t}. 
+frees the memory allocated for @var{t}.
 @end deftypefun
 
 Prototypes for the above functions can be found in @file{treedist.h}. The
@@ -1000,7 +1069,7 @@ included with @file{treedist.h}
 @subsection Functions for String Alignment
 
 @deftypefun swString* Make_swString (char* @var{xstruc})
-converts the structure @var{xstruc} into a format suitable for 
+converts the structure @var{xstruc} into a format suitable for
 @code{string_edit_distance()}.
 @end deftypefun
 
@@ -1043,12 +1112,12 @@ The following utilities are used and therefore provided by the library:
 
 @deftypefun int PS_dot_plot (char* @var{sequence}, char* @var{filename})
 reads base pair probabilities produced by @code{pf_fold()} from the
-global array @code{pr} and the pair list @code{base_pair} produced by 
+global array @code{pr} and the pair list @code{base_pair} produced by
 @code{fold()} and produces a postscript ``dot plot'' that is written to
 @var{filename}. The ``dot plot'' represents each base pairing
 probability by a square of corresponding area in a upper triangle
 matrix. The lower part of the matrix contains the minimum free energy
-structure. 
+structure.
 @end deftypefun
 
 @deftypefun int PS_rna_plot (char* @var{sequence}, char* @var{structure}, char* @var{filename})
@@ -1110,7 +1179,7 @@ the familiar dot bracket notation.
 
 @deftypefun short* make_pair_table (char* @var{structure})
 returns a newly allocated table, such that:  table[i]=j if (i.j) pair or 0
-if i is unpaired, table[0] contains the length of the @var{structure}. 
+if i is unpaired, table[0] contains the length of the @var{structure}.
 @end deftypefun
 
 @deftypefun char* time_stamp (void)
@@ -1175,7 +1244,7 @@ resulting structures and base pairing probabilities.
 void main()
 @{
    char *seq1="CGCAGGGAUACCCGCG", *seq2="GCGCCCAUAGGGACGC",
-        *struct1,* struct2,* xstruc;
+	*struct1,* struct2,* xstruc;
    float e1, e2, tree_dist, string_dist, profile_dist, kT;
    Tree *T1, *T2;
    swString *S1, *S2;
@@ -1184,10 +1253,10 @@ void main()
    /* fold at 30C instead of the default 37C */
    temperature = 30.;      /* must be set *before* initializing  */
    /* allocate memory for fold(), could be skipped */
-   initialize_fold(strlen(seq1)); 
+   initialize_fold(strlen(seq1));
 
    /* allocate memory for structure and fold */
-   struct1 = (char* ) space(sizeof(char)*(strlen(seq1)+1)); 
+   struct1 = (char* ) space(sizeof(char)*(strlen(seq1)+1));
    e1 =  fold(seq1, struct1);
 
    struct2 = (char* ) space(sizeof(char)*(strlen(seq2)+1));
@@ -1207,23 +1276,23 @@ void main()
    free(xstruc);
 
    /* calculate tree edit distance and aligned structures with gaps */
-   edit_backtrack = 1;   
-   tree_dist = tree_edit_distance(T1, T2);  
+   edit_backtrack = 1;
+   tree_dist = tree_edit_distance(T1, T2);
    free_tree(T1); free_tree(T2);
-   unexpand_aligned_F(aligned_line);  
+   unexpand_aligned_F(aligned_line);
    printf("%s\n%s  %3.2f\n", aligned_line[0], aligned_line[1], tree_dist);
 
    /* same thing using string edit (alignment) distance */
    string_dist = string_edit_distance(S1, S2);
    free(S1); free(S2);
    printf("%s  mfe=%5.2f\n%s  mfe=%5.2f  dist=%3.2f\n",
-        aligned_line[0], e1, aligned_line[1], e2, string_dist);
+	aligned_line[0], e1, aligned_line[1], e2, string_dist);
 
    /* for longer sequences one should also set a scaling factor for
       partition function folding, e.g: */
    kT = (temperature+273.15)*1.98717/1000.;  /* kT in kcal/mol */
-   pf_scale = exp(-e1/kT/strlen(seq1));  
-   init_pf_fold(strlen(seq1));  
+   pf_scale = exp(-e1/kT/strlen(seq1));
+   init_pf_fold(strlen(seq1));
 
    /* calculate partition function and base pair probabilities */
    e1 = pf_fold(seq1, struct1);
@@ -1231,13 +1300,13 @@ void main()
 
    e2 = pf_fold(seq2, struct2);
    pf2 = Make_bp_profile(strlen(seq2));
-   
+
    free_pf_arrays();  /* free space allocated for pf_fold() */
 
    profile_dist = profile_edit_distance(pf1, pf2);
    printf("%s  free energy=%5.2f\n%s  free energy=%5.2f  dist=%3.2f\n",
-        aligned_line[0], e1, aligned_line[1], e2, profile_dist);
-   
+	aligned_line[0], e1, aligned_line[1], e2, profile_dist);
+
    free_profile(pf1); free_profile(pf2);
 @}
 @end example
@@ -1263,8 +1332,8 @@ files and library, respectively.
 
 @item D.A. Dimitrov, M.Zuker(2004)@*
    Prediction of hybridization and melting for double stranded nucleic
-   acids, Biophysical J. 87: 215-226, 
-   
+   acids, Biophysical J. 87: 215-226,
+
 @item J.S. McCaskill (1990)@*
    The equilibrium partition function and base pair binding
    probabilities for RNA secondary structures, Biopolymers 29: 1105-1119
@@ -1273,11 +1342,11 @@ files and library, respectively.
    RNA structure prediction, Ann Rev Biophys Biophys Chem 17: 167-192
 
 @item J.A. Jaeger, D.H. Turner and M. Zuker (1989)@*
-   Improved predictions of secondary structures for RNA, 
-   Proc. Natl. Acad. Sci. 86: 7706-7710 
+   Improved predictions of secondary structures for RNA,
+   Proc. Natl. Acad. Sci. 86: 7706-7710
 
 @item L. He, R. Kierzek, J. SantaLucia, A.E. Walter and D.H. Turner (1991)@*
-   Nearest-Neighbor Parameters For GU Mismatches, 
+   Nearest-Neighbor Parameters For GU Mismatches,
    Biochemistry 30: 11124-11132
 
 @item A.E. Peritz, R. Kierzek, N, Sugimoto, D.H. Turner (1991)@*
@@ -1290,11 +1359,11 @@ files and library, respectively.
 
 @item B.A. Shapiro, (1988)@*
    An algorithm for comparing multiple  RNA secondary structures,
-   CABIOS 4, 381-393 
+   CABIOS 4, 381-393
 
 @item B.A. Shapiro and K. Zhang (1990)@*
    Comparing multiple RNA secondary structures using tree comparison,
-   CABIOS 6, 309-318 
+   CABIOS 6, 309-318
 
 @item R. Bruccoleri and G. Heinrich (1988)@*
    An improved algorithm for nucleic acid secondary structure display,
@@ -1315,9 +1384,9 @@ files and library, respectively.
    A Statistical Characterization of the Sequence to Structure Mapping in RNA.
    PhD Thesis, University of Vienna.
 
-@item I.L. Hofacker, M. Fekete, P.F. Stadler (2002). 
+@item I.L. Hofacker, M. Fekete, P.F. Stadler (2002).
    Secondary Structure Prediction for Aligned RNA Sequences.
-   J. Mol. Biol. 319:1059-1066  
+   J. Mol. Biol. 319:1059-1066
 
 @item D. Adams (1979) @*
    The hitchhiker's guide to the galaxy, Pan Books, London
@@ -1332,7 +1401,7 @@ files and library, respectively.
 
 @unnumbered Variable Index
 @printindex vr
-     
+
 @contents
 @bye
 
