@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-17 17:46:53 ivo> */
+/* Last changed Time-stamp: <2006-01-19 12:16:02 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.7  2006/01/19 11:30:04  ivo
+  compute_probabilities should only look at one dimer at a time
+
   Revision 1.6  2006/01/18 12:55:40  ivo
   major cleanup of berni code
   fix bugs related to confusing which free energy is returned by co_pf_fold()
@@ -51,7 +54,7 @@
 #include "PS_dot.h"
 #include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.6 2006/01/18 12:55:40 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.7 2006/01/19 11:30:04 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -63,9 +66,7 @@ PUBLIC  void  init_co_pf_fold(int length);
 PUBLIC  void  free_co_pf_arrays(void);
 PUBLIC  void  update_co_pf_params(int length);
 PUBLIC  char  co_bppm_symbol(float *x);
-PUBLIC void compute_probabilities(double FEAB, double FEAA, double FEBB, double FEA, double FEB,
-				  struct plist  *prAB, struct plist  *prAA, struct plist  *prBB,
-				  struct plist  *prA,  struct plist  *prB, int Alength,int Blength);
+
 PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc);
 PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off);
 PUBLIC struct plist *get_mfe_plist(struct plist *pl);
@@ -1195,17 +1196,15 @@ static void backtrack(int i, int j) {
   }
 }
 
-PUBLIC void compute_probabilities(double FAB, double FAA, double FBB,
-				  double FA, double FB, struct plist *prAB,
-				  struct plist  *prAA, struct plist *prBB,
-				  struct plist  *prA, struct plist *prB,
-				  int Alength,int Blength) {
+PUBLIC void compute_probabilities(double FAB, double FA,double FB,
+				  struct plist *prAB,
+				  struct plist *prA, struct plist *prB,
+				  int Alength) {
   /*computes binding probabilities and dimer free energies*/
   int i, j;
-  double pAB, pAA, pBB;
+  double pAB;
   double mykT;;
-  struct plist  *lp1;
-  struct plist  *lp2;
+  struct plist  *lp1, *lp2;
   int offset;
 
   mykT=(temperature+K0)*GASCONST/1000.;
@@ -1215,10 +1214,6 @@ PUBLIC void compute_probabilities(double FAB, double FAA, double FBB,
   /*Compute probabilities pAB, pAA, pBB*/
 
   pAB=1.-exp((1/mykT)*(FAB-FA-FB));
-  pAA=1.-exp((1/mykT)*(FAA-2*FA));
-  pBB=1.-exp((1/mykT)*(FBB-2*FB));
-
-  /*printf("pab=%f\tpaa=%f\tpbb=%f\n",pAB,pAA,pBB);*/
 
   /* compute pair probabilities given that it is a dimer */
   /* AB dimer */
@@ -1238,40 +1233,6 @@ PUBLIC void compute_probabilities(double FAB, double FAA, double FBB,
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
     }
-  /*AA dimer*/
-  lp2=prA;
-  offset=0;
-
-  if (pAA>0) for (lp1=prAA; lp1->j>0; lp1++) {
-    float pp=0;
-    i=lp1->i; j=lp1->j;
-    while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i)
-      while (offset+lp2->j < j  && lp2->j>0) lp2++;
-    if (lp2->j == 0) {lp2=prA; offset=Alength;}/* jump to next list */
-    if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
-      pp = lp2->p;
-      lp2++;
-    }
-    lp1->p=(lp1->p-(1-pAB)*pp)/pAA;
-  }
-  /*BB dimer*/
-  lp2=prB;
-  offset=0;
-  if (pBB>0) for (lp1=prBB; lp1->j>0; lp1++) {
-    float pp=0;
-    i=lp1->i; j=lp1->j;
-    while (offset+lp2->i < i && lp2->i>0) lp2++;
-    if (offset+lp2->i  == i)
-      while (lp2->j < j  && lp2->j>0) lp2++;
-    if (lp2->j == 0) {lp2=prB; offset=Blength;}/* jump to next list */
-    if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
-      pp = lp2->p;
-      lp2++;
-    }
-    lp1->p=(lp1->p-(1-pBB)*pp)/pBB;
-  }
-
   return;
 }
 

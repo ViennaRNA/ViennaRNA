@@ -22,11 +22,10 @@ extern void   init_co_pf_fold(int length);
 extern void   free_co_pf_arrays(void);
 extern void   update_co_pf_params(int length); /*recalculate energy parameters */
 extern char   co_bppm_symbol(float *x);    /* string representation of structure */
-extern void   compute_probabilities(double FEAB,double FEAA, double FEBB,
-				    double FEA, double FEB, struct plist  *prAB,
-				    struct plist  *prAA, struct plist  *prBB,
+extern void   compute_probabilities(double FAB, double FEA, double FEB,
+				    struct plist  *prAB,
 				    struct plist  *prA, struct plist  *prB,
-				    int Alength,int Blength);
+				    int Alength);
 
 
 typedef struct ConcEnt {

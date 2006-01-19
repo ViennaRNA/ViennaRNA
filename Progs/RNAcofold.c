@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-17 17:32:54 ivo> */
+/* Last changed Time-stamp: <2006-01-19 11:49:34 ivo> */
 /*
 		  c Ivo L Hofacker, Vienna RNA package
 */
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAcofold.c,v 1.5 2006/01/18 12:55:33 ivo Exp $";
+static char rcsid[] = "$Id: RNAcofold.c,v 1.6 2006/01/19 11:30:04 ivo Exp $";
 
 #define PRIVATE static
 
@@ -358,7 +358,9 @@ int main(int argc, char *argv[])
 	mfB=(struct plist *) space(sizeof(struct plist) * (Blength+1));
 	do_partfunc(Bstring, Blength, 1, &prB, &mfB);
 
-	compute_probabilities(AB.F0AB, AA.F0AB, BB.F0AB, AB.FA, AB.FB, prAB,prAA,prBB,prA,prB, Alength,Blength);
+	compute_probabilities(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength);
+	compute_probabilities(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength);
+	compute_probabilities(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength);
 	printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
 	       AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
