@@ -1,5 +1,6 @@
+\" -*-nroff-*-
 .\" .ER
-.TH "RNAFOLD" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
+.TH "RNAFOLD" "l" "1.6" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
 RNAfold \- calculate secondary structures of RNAs
 .SH "SYNOPSIS"
@@ -28,15 +29,20 @@ i  j  sqrt(p)  ubox
 .br 
 in the PostScript file, so that the pair probabilities can be easily
 extracted. 
-If the sequence is preceded by a line of the form
+
+Sequences are read in a simple text format where each sequence occupies 
+a single line. Each sequence may be preceded by a line of the form
 .br 
 > name
-.br 
-then the PostScript files "name_ss.ps" and "name_dp.ps" are produced for
+.br
+to assign a name to the sequence. If a name is given in the input
+ PostScript files "name_ss.ps" and "name_dp.ps" are produced for
 the structure and dot plot, respectively. Otherwise the filenames
 default to rna.ps and dot.ps. Existing files of the same name will be
 overwritten.
 .br 
+The input format is similar to fasta except that even long sequences 
+may not be interupted by line breaks, and the header lines are optional.
 The program will continue to read new sequences until a line consisting
 of the single character @ or an end of file condition is encountered.
 .SH "OPTIONS"
@@ -168,6 +174,9 @@ sequences using thermodynamic and auxiliary information, Nucl Acid Res
 J.S. McCaskill (1990) The equilibrium partition function and base pair
 binding probabilities for RNA secondary structures, Biopolymers 29: 1105\-1119
 .br 
+I.L. Hofacker & P.F. Stadler (2006) 
+Memory Efficient Folding Algorithms for Circular RNA Secondary
+Structures, Bioinformatics (2006)
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
