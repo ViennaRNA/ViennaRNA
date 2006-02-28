@@ -1,5 +1,5 @@
 .\" .ER
-.TH "RNACOFOLD" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
+.TH "RNACOFOLD" "l" "1.6" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
 RNAcofold \- calculate secondary structures of two RNAs with dimerization
 .SH "SYNOPSIS"
@@ -11,7 +11,10 @@ RNAcofold \- calculate secondary structures of two RNAs with dimerization
 .I RNAcofold
 works much like RNAfold, but allows to specify two RNA sequences wich are
 then allowed to form a dimer structure. RNA sequences are read from stdin
-in the usual format. To compute the hybrid structure of two molecules, the
+in the usual format, i.e. each line of input corresponds to one sequence,
+except for lines starting with ">" which contain the name of the next 
+sequence.
+To compute the hybrid structure of two molecules, the
 two sequences must be concatenated using the '&' character as separator.
 RNAcofold can compute minimum free energy (mfe) structures, as well as
 partition function (pf) and base pairing probability matrix (using the
@@ -76,7 +79,7 @@ Monatshefte f. Chemie 125: 167\-188
 .PP
 S.H.Bernhart, Ch. Flamm, P.F. Stadler, I.L. Hofacker
 Partition Function and Base Pairing Probabilities of RNA Heterodimers
-submitted to Algorithms Mol. Biol.
+Algorithms Mol. Biol. (2006)
 .SH "VERSION"
 This man page documents version @VERSION@ Vienna RNA Package.
 .SH "AUTHORS"
