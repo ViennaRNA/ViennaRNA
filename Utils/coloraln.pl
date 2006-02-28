@@ -9,15 +9,19 @@ my $ssFile='alirna.ps';
 my $columnWidth=120;
 my $formatT=0;
 my $help=0;
+my $ruler=0;
+my $resnum=0;
 
 GetOptions ('-s:s' => \$ssFile,
-			'-c:i' => \$columnWidth,
-			'-t' => \$formatT,
-			"help"=>\$help,
-			"h"=>\$help,
-		   );
+	    '-c:i' => \$columnWidth,
+	    '-t' => \$formatT,
+	    '-r' => \$ruler,
+	    '-n' => \$resnum,
+	    "help"=>\$help,
+	    "h"=>\$help,
+	   );
 
-if ($help){
+if ($help) {
   print "\ncoloraln.pl [-s structure.ps] < file.aln \n\n";
   print " -s ... RNAalifold consensus structure file (default: alirna.ps) \n";
   print " -c ... maximum number of columns in a block (default: 120)\n";
@@ -25,7 +29,7 @@ if ($help){
   exit(1);
 }
 
-if (!-e $ssFile){
+if (!-e $ssFile) {
   print "No RNAalifold consensus secondary structure file found (use option -s with the correct filename).\n";
   exit(1);
 }
@@ -33,7 +37,7 @@ if (!-e $ssFile){
 my $aln=readClustal();
 
 my @ss=();
-for my $i (1..length($aln->[0]->{seq})){
+for my $i (1..length($aln->[0]->{seq})) {
   push @ss,'.';
 }
 
@@ -42,23 +46,23 @@ my $consStruc='';
 open(ALIRNA,"<$ssFile");
 my $pairsFlag=0;
 my $sequenceFlag=0;
-while (<ALIRNA>){
+while (<ALIRNA>) {
   $pairsFlag=1 if (/\/pairs/);
-  if ($pairsFlag and /\[(\d+) (\d+)\]/){
-	$ss[$1-1]='(';
-	$ss[$2-1]=')';
+  if ($pairsFlag and /\[(\d+) (\d+)\]/) {
+    $ss[$1-1]='(';
+    $ss[$2-1]=')';
   }
   $pairsFlag=0 if ($pairsFlag and /def/);
 }
 
 $consStruc=join('',@ss);
 
-for my $row (@$aln){
+for my $row (@$aln) {
   $row->{seq}=uc($row->{seq});
-  if ($formatT){
-	$row->{seq}=~s/U/T/g;
+  if ($formatT) {
+    $row->{seq}=~s/U/T/g;
   } else {
-	$row->{seq}=~s/T/U/g;
+    $row->{seq}=~s/T/U/g;
   }
 }
 
@@ -84,25 +88,25 @@ sub consensusSeq{
   my @aln=@{$_[0]};
   my $out='';
 
-  for my $i (0..length($aln[0]->{seq})-1){
+  for my $i (0..length($aln[0]->{seq})-1) {
 
-	my %countHash=('A'=>0,'C'=>0,'G'=>0,'T'=>0,'U'=>0,'-'=>0);
-	#print %countHash,"\n";
-	for my $j (0..$#aln){
-	  my $c=substr($aln[$j]->{seq},$i,1);
-	  $countHash{$c}++;
-	}
-	#print %countHash,"\n";
-	my $maxCount=0;
-	my $maxChar='';
+    my %countHash=('A'=>0,'C'=>0,'G'=>0,'T'=>0,'U'=>0,'-'=>0);
+    #print %countHash,"\n";
+    for my $j (0..$#aln) {
+      my $c=substr($aln[$j]->{seq},$i,1);
+      $countHash{$c}++;
+    }
+    #print %countHash,"\n";
+    my $maxCount=0;
+    my $maxChar='';
 
-	for my $c ('A','C','G','T','U','-'){
-	  if ($countHash{$c}>=$maxCount){
-		$maxChar=$c;
-		$maxCount=$countHash{$c};
-	  }
-	}
-	$out.=$maxChar;
+    for my $c ('A','C','G','T','U','-') {
+      if ($countHash{$c}>=$maxCount) {
+	$maxChar=$c;
+	$maxCount=$countHash{$c};
+      }
+    }
+    $out.=$maxChar;
   }
   return $out;
 }
@@ -119,37 +123,37 @@ sub consensusSeq{
 ######################################################################
 
 sub readClustal{
-#  my $fh=shift;
+  #  my $fh=shift;
   my @out=();
   my (%order, $order, %alignments);
-  while(<>) {
-	next if ( /^\s+$/ );
-	my ($seqname, $aln_line) = ('', '');
-	if( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
-	  # clustal 1.4 format
-	  ($seqname,$aln_line) = ("$1/$2-$3",$4);
-	} elsif( /^(\S+)\s+([A-Z\-]+)\s*$/ ) {
+  while (<>) {
+    next if ( /^\s+$/ );
+    my ($seqname, $aln_line) = ('', '');
+    if ( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
+      # clustal 1.4 format
+      ($seqname,$aln_line) = ("$1/$2-$3",$4);
+    } elsif ( /^(\S+)\s+([A-Z\-]+)\s*$/ ) {
 	  ($seqname,$aln_line) = ($1,$2);
 	} else {
 	  next;
   }
-	if( !exists $order{$seqname} ) {
-	  $order{$seqname} = $order++;
-	}
-	$alignments{$seqname} .= $aln_line;
+	  if ( !exists $order{$seqname} ) {
+	    $order{$seqname} = $order++;
+	  }
+    $alignments{$seqname} .= $aln_line;
   }
 
   foreach my $name ( sort { $order{$a} <=> $order{$b} } keys %alignments ) {
-	if( $name =~ /(\S+):(\d+)-(\d+)/ ) {
-	  (my $sname,my $start, my $end) = ($1,$2,$3);
-	} else {
-	  (my $sname, my $start) = ($name,1);
-	  my $str  = $alignments{$name};
-	  $str =~ s/[^A-Za-z]//g;
-	  my $end = length($str);
-	}
-	my $seq=$alignments{$name};
-	push @out, {name=>$name,seq=>$seq};
+    if ( $name =~ /(\S+):(\d+)-(\d+)/ ) {
+      (my $sname,my $start, my $end) = ($1,$2,$3);
+    } else {
+      (my $sname, my $start) = ($name,1);
+      my $str  = $alignments{$name};
+      $str =~ s/[^A-Za-z]//g;
+      my $end = length($str);
+    }
+    my $seq=$alignments{$name};
+    push @out, {name=>$name,seq=>$seq};
   }
   return [@out];
 }
@@ -178,73 +182,73 @@ sub getPairs{
   my $ss=$_[1];
 
   # return nothing if there are no pairs
-  if (!($ss=~tr/(/(/)){
-	return ();
+  if (!($ss=~tr/(/(/)) {
+    return ();
   }
 
   my @aln=();
-  foreach my $row (@inputAln){
-	my $seq=$row->{seq};
-	$seq=uc($seq);
-	$seq=~s/T/U/g;
-	my @tmp=split(//,$seq);
-	push @aln,\@tmp;
+  foreach my $row (@inputAln) {
+    my $seq=$row->{seq};
+    $seq=uc($seq);
+    $seq=~s/T/U/g;
+    my @tmp=split(//,$seq);
+    push @aln,\@tmp;
   }
   my @ss=split(//,$ss);
 
   my @pairs=();
   my @stack=();
 
-  foreach my $column (0..$#ss){
+  foreach my $column (0..$#ss) {
 
-	my $currChar=$ss[$column];
+    my $currChar=$ss[$column];
 
-	if ($currChar eq '('){
-	  push @stack,$column;
-	}
+    if ($currChar eq '(') {
+      push @stack,$column;
+    }
 
-	if ($currChar eq ')'){
-	  my $openedCol=pop @stack;
-	  push @pairs,{open=>$openedCol,close=>$column};
-	}
+    if ($currChar eq ')') {
+      my $openedCol=pop @stack;
+      push @pairs,{open=>$openedCol,close=>$column};
+    }
   }
 
   @pairs=sort {$a->{open} <=> $b->{open}} @pairs;
 
-  foreach my $i (0..$#pairs){
-	#print "$i: $pairs[$i]->{open} - $pairs[$i]->{close}\n";
+  foreach my $i (0..$#pairs) {
+    #print "$i: $pairs[$i]->{open} - $pairs[$i]->{close}\n";
 
-	my @all=();
-	my @pairing=();
-	my @nonpairing=();
+    my @all=();
+    my @pairing=();
+    my @nonpairing=();
 
-	for my $j (0..$#aln){
-	  my $currPair=$aln[$j][$pairs[$i]->{open}].$aln[$j][$pairs[$i]->{close}];
-	  push @all,$currPair;
-	}
+    for my $j (0..$#aln) {
+      my $currPair=$aln[$j][$pairs[$i]->{open}].$aln[$j][$pairs[$i]->{close}];
+      push @all,$currPair;
+    }
 
-	for my $pair (@all){
-	  if (($pair eq 'AU') or
-		  ($pair eq 'UA') or
-		  ($pair eq 'GC') or
-		  ($pair eq 'CG') or
-		  ($pair eq 'UG') or
-		  ($pair eq 'GU')){
+    for my $pair (@all) {
+      if (($pair eq 'AU') or
+	  ($pair eq 'UA') or
+	  ($pair eq 'GC') or
+	  ($pair eq 'CG') or
+	  ($pair eq 'UG') or
+	  ($pair eq 'GU')) {
 
-		push @pairing, $pair;
-	  } elsif ($pair eq "--"){
-		# do nothing
-	  } else {
-		push @nonpairing,$pair;
-	  }
-	}
+	push @pairing, $pair;
+      } elsif ($pair eq "--") {
+	# do nothing
+      } else {
+	push @nonpairing,$pair;
+      }
+    }
 
-	undef my %saw;
+    undef my %saw;
     my @uniquePairing = grep(!$saw{$_}++, @pairing);
 
-	$pairs[$i]->{all}=[@all];
-	$pairs[$i]->{pairing}=[@uniquePairing];
-	$pairs[$i]->{nonpairing}=[@nonpairing];
+    $pairs[$i]->{all}=[@all];
+    $pairs[$i]->{pairing}=[@uniquePairing];
+    $pairs[$i]->{nonpairing}=[@nonpairing];
   }
 
   return @pairs;
@@ -275,24 +279,25 @@ sub plotAln{
   my $ps='';
 
   # Get important measures
-  (my $fontWidth, my $fontHeight) = (6,6);
+  (my $fontWidth, my $fontHeight) = (6,6.5);
 
   my $length=length($aln[0]->{seq});
   my $maxName=0;
-  foreach my $row (@aln){
-	$maxName=length($row->{name}) if (length($row->{name})>$maxName);
+  foreach my $row (@aln) {
+    $maxName=length($row->{name}) if (length($row->{name})>$maxName);
   }
+  $maxName = 5 if $maxName<5 && $ruler;
 
   # Custom Sizes
-  my $lineStep=$fontHeight+2; # distance between lines
+  my $lineStep=$fontHeight+2;	# distance between lines
   my $blockStep=3.5*$fontHeight; # distance between blocks
-  my $consStep=$fontHeight*0.5; # distance between alignment and conservation curve
+  my $consStep=$fontHeight*0.5;	# distance between alignment and conservation curve
   my $ssStep=2;
-  my $nameStep=3*$fontWidth; # distance between names and sequences
+  my $nameStep=3*$fontWidth;	# distance between names and sequences
   my $maxConsBar=2.5*$fontHeight; # Height of conservation curve
-  my $startY=2; # "y origin"
-  my $namesX=$fontWidth; # "x origin"
-  my $seqsX=$namesX+$maxName*$fontWidth+$nameStep; # y-coord. where sequences start
+  my $startY=2;			# "y origin"
+  my $namesX=$fontWidth;	# "x origin"
+  my $seqsX=$namesX+$maxName*$fontWidth+$nameStep; # x-coord. where sequences start
 
   # Calculate width and height
 
@@ -300,8 +305,10 @@ sub plotAln{
 
   $tmpColumns=$length if ($length<$columnWidth);
 
-  my $imageWidth=$namesX+($maxName+$tmpColumns)*$fontWidth+$nameStep+$fontWidth;
-  my $imageHeight=$startY+(ceil($length/$columnWidth))*((@aln+1)*$lineStep+$blockStep+$consStep+$ssStep);
+  my $imageWidth=ceil($namesX+($maxName+$tmpColumns)*$fontWidth+$nameStep+$fontWidth);
+  $imageWidth += int($fontWidth + length($length)*$fontWidth) if $resnum;
+  my $imageHeight=ceil($startY+$length/$columnWidth*
+		       ((@aln+1+$ruler)*$lineStep+$blockStep+$consStep+$ssStep));
 
 
 
@@ -333,124 +340,146 @@ sub plotAln{
 
 
   my @colorMatrix=([$red,$red1,$red2],
-				   [$ocre,$ocre1,$ocre2],
-				   [$green,$green1,$green2],
-				   [$turq,$turq1,$turq2],
-				   [$blue,$blue1,$blue2],
-				   [$violet,$violet1,$violet2]);
+		   [$ocre,$ocre1,$ocre2],
+		   [$green,$green1,$green2],
+		   [$turq,$turq1,$turq2],
+		   [$blue,$blue1,$blue2],
+		   [$violet,$violet1,$violet2]);
 
   my @pairs=getPairs(\@aln,$ss);
 
-  foreach my $pair (@pairs){
+  foreach my $pair (@pairs) {
 
-	foreach my $column ($pair->{open},$pair->{close}){
-	  my $block=ceil(($column+1)/$columnWidth);
-	  my $effCol=$column-($block-1)*$columnWidth;
-	  my $x=$seqsX+$effCol*$fontWidth;
+    foreach my $column ($pair->{open},$pair->{close}) {
+      my $block=ceil(($column+1)/$columnWidth);
+      my $effCol=$column-($block-1)*$columnWidth;
+      my $x=$seqsX+$effCol*$fontWidth;
 
-	  foreach my $row (0..$#aln){
+      foreach my $row (0..$#aln) {
 
-		my $pairing=@{$pair->{pairing}};
-		my $nonpairing=@{$pair->{nonpairing}};
+	my $pairing=@{$pair->{pairing}};
+	my $nonpairing=@{$pair->{nonpairing}};
 
-		my $color;
+	my $color;
 
-		if ($nonpairing <=2){
-		  $color=$colorMatrix[$pairing-1][$nonpairing];
+	if ($nonpairing <=2) {
+	  $color=$colorMatrix[$pairing-1][$nonpairing];
 
-		  if (($pair->{all}->[$row] eq 'AU') or
-			  ($pair->{all}->[$row] eq 'UA') or
-			  ($pair->{all}->[$row] eq 'GC') or
-			  ($pair->{all}->[$row] eq 'CG') or
-			  ($pair->{all}->[$row] eq 'GU') or
-			  ($pair->{all}->[$row] eq 'UG')){
+	  if (($pair->{all}->[$row] eq 'AU') or
+	      ($pair->{all}->[$row] eq 'UA') or
+	      ($pair->{all}->[$row] eq 'GC') or
+	      ($pair->{all}->[$row] eq 'CG') or
+	      ($pair->{all}->[$row] eq 'GU') or
+	      ($pair->{all}->[$row] eq 'UG')) {
 
-			my $y=$startY+($block-1)*($lineStep*(@aln+1)+$blockStep+$consStep)+$ssStep*($block)+($row+1)*$lineStep;
+	    my $y=$startY+($block-1)*($lineStep*(@aln+1+$ruler)+$blockStep+$consStep)+$ssStep*($block)+($row+1)*$lineStep;
 
-			my $xtmp=$x+$fontWidth;
-			my $ytmp1=$y-1;
-			my $ytmp2=$y+$fontHeight+1;
-			$ps.="$x $ytmp1 $xtmp $ytmp2 $color box\n";
-		  }
-		}
+	    my $xtmp=$x+$fontWidth;
+	    my $ytmp1=$y-1;
+	    my $ytmp2=$y+$fontHeight+1;
+	    $ps.="$x $ytmp1 $xtmp $ytmp2 $color box\n";
 	  }
 	}
- }
+      }
+    }
+  }
   # Calculate conservation scores as (M+1)/(N+1), where M is the
   # number of matches to the consensus and N is the number of
   # sequences in the alignment
 
-  my @conservation=(); # each column one score
+  my @conservation=();		# each column one score
 
-  for my $column (0..$length-1){
+  for my $column (0..$length-1) {
 
-	my $consChar=substr($consensus,$column,1);
+    my $consChar=substr($consensus,$column,1);
 
-	# if consensus is gap, score=0
-	if ($consChar eq "-" or $consChar eq "_"){
-	  push @conservation, 0;
-	  next;
-	}
+    # if consensus is gap, score=0
+    if ($consChar eq "-" or $consChar eq "_") {
+      push @conservation, 0;
+      next;
+    }
 
-	my $match=0;
-	for my $row (0..$#aln){
-	  my $currChar=substr($aln[$row]->{seq},$column,1);
-	  $match++ if ($currChar eq $consChar);
-	}
+    my $match=0;
+    for my $row (0..$#aln) {
+      my $currChar=substr($aln[$row]->{seq},$column,1);
+      $match++ if ($currChar eq $consChar);
+    }
 
-	my $score=($match-1)/(@aln-1);
-	push @conservation,$score;
+    my $score=($match-1)/(@aln-1);
+    push @conservation,$score;
   }
 
   # Draw the alignments in chunks
   my $currY=$startY;
   my $currPos=0;
 
-  while ($currPos<$length){
+  while ($currPos<$length) {
 
-	# secondary structure in first line
-	#$out->string($font,$seqsX,$currY,substr($ss,$currPos,$columnWidth),$black);
-	my $tmpSeq=substr($ss,$currPos,$columnWidth);
-	$tmpSeq=~s/\(/\\\(/g;
-	$tmpSeq=~s/\)/\\\)/g;
-	$ps.="($tmpSeq) $seqsX $currY string\n";
-	$currY+=$lineStep+$ssStep;
+    # secondary structure in first line
+    #$out->string($font,$seqsX,$currY,substr($ss,$currPos,$columnWidth),$black);
+    my $tmpSeq=substr($ss,$currPos,$columnWidth);
+    $tmpSeq=~s/\(/\\\(/g;
+    $tmpSeq=~s/\)/\\\)/g;
+    $ps .= "0 setgray\n";
+    $ps.="($tmpSeq) $seqsX $currY string\n";
+    $currY+=$lineStep+$ssStep;
 
-	# sequences labeled only with the organism-specifier
-	foreach my $row (@aln){
-	  #$out->string($font,$namesX,$currY,$row->{name},$black);
-	  $ps.="($row->{name}) $namesX $currY string\n";
-	  #$out->string($font,$seqsX,$currY,substr($row->{seq},$currPos,$columnWidth),$black);
-	  my $tmpSeq=substr($row->{seq},$currPos,$columnWidth);
-	  $ps.="($tmpSeq) $seqsX $currY string\n";
-	  $currY+=$lineStep;
-	}
+    # sequences labeled only with the organism-specifier
+    foreach my $row (@aln) {
+      #$out->string($font,$namesX,$currY,$row->{name},$black);
+      $ps.="($row->{name}) $namesX $currY string\n";
+      #$out->string($font,$seqsX,$currY,substr($row->{seq},$currPos,$columnWidth),$black);
+      my $tmpSeq=substr($row->{seq},$currPos,$columnWidth);
+      $ps.="($tmpSeq) $seqsX $currY string\n";
+      if ($resnum) {
+	my $numX=$seqsX+(length($tmpSeq)+1)*$fontWidth; # x-coord. where residue nums start
+	$tmpSeq = substr($row->{seq},0, $currPos+$columnWidth);
+	my $p = length($tmpSeq) - $tmpSeq =~ tr/_-//; # remove gaps
+	$ps .= sprintf("(%" . length($length) . "d) $numX $currY string\n", $p);
+      }
+      $currY+=$lineStep;
+    }
+    if ($ruler) {
+      $ps .= "(ruler) $namesX $currY string\n";
+      my $p = 10 * (int(1.5+$currPos/10));
+      my $r = "." x ($p-$currPos-length("$p"));
+      $r .= $p; $p+=10;
+      my $maxp = $currPos+$columnWidth;
+      $maxp = $length if $maxp>$length;
+      for (;$p<=$maxp; $p+=10) {
+	$r .= sprintf("%10d", $p);
+      }
+      $r =~ tr/ /./;
+      $r .= "." x ($maxp-$p+10) if $p>$maxp;
+      $ps .= "($r) $seqsX $currY string\n";
+      $currY+=$lineStep;
+    }
 
-	# conservation curve
-	$currY+=$consStep;
-	$ps .= "0.6 setgray\n";
-	for my $col ($currPos..$currPos+$columnWidth-1){
-	  my $score=shift @conservation;
-	  last if (!defined $score);
-	  my $barHeight=$maxConsBar*$score;
-	  $barHeight=1 if ($barHeight==0);
-	  my $x=$seqsX+($col-($columnWidth*int($currPos/$columnWidth)))*$fontWidth;
-	 # $out->filledRectangle($x,$currY+$maxConsBar-$barHeight,$x+$fontWidth,$currY+$maxConsBar,$grey);
-	  my $ytmp1=$currY+$maxConsBar-$barHeight;
-	  my $xtmp2=$x+$fontWidth;
-	  my $ytmp2=$currY+$maxConsBar;
-	  $ps .= "$x $ytmp1 $xtmp2 $ytmp2 box2\n";
-	}
-	$currY+=$blockStep;
-	$currPos+=$columnWidth;
+    # conservation curve
+    $currY+=$consStep;
+    $ps .= "0.6 setgray\n";
+    for my $col ($currPos..$currPos+$columnWidth-1) {
+      my $score=shift @conservation;
+      last if (!defined $score);
+      my $barHeight=$maxConsBar*$score;
+      $barHeight=1 if ($barHeight==0);
+      my $x=$seqsX+($col-($columnWidth*int($currPos/$columnWidth)))*$fontWidth;
+
+      my $ytmp1=$currY+$maxConsBar-$barHeight;
+      my $xtmp2=$x+$fontWidth;
+      my $ytmp2=$currY+$maxConsBar;
+      $ps .= "$x $ytmp1 $xtmp2 $ytmp2 box2\n";
+    }
+    $currY+=$blockStep;
+    $currPos+=$columnWidth;
   }
 
   my $BB="0 0 $imageWidth $imageHeight";
 
-  while (<DATA>){
-	s/!BB!/$BB/;
-	s/!HEIGHT!/$imageHeight/;
-	print;
+  while (<DATA>) {
+    s/!BB!/$BB/;
+    s/!HEIGHT!/$imageHeight/;
+    print;
   }
   print $ps;
   print "showpage\n";
