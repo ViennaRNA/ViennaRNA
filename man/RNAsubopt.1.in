@@ -1,3 +1,4 @@
+\" -*-nroff-*-
 .\" .ER
 .TH "RNASUBOPT" "l" "" "Ivo Hofacker" "Vienna RNA"
 .SH "NAME"
@@ -6,60 +7,70 @@ RNAsubopt \- calculate suboptimal secondary structures of RNAs
 \fBRNAsubopt [\-e\ \fIrange\fP] [\-ep \fIprange\fP] [\-s] [\-p\ \fIn\fP] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
 
 .SH "DESCRIPTION"
-.I RNAsubopt 
-reads RNA sequences from stdin and calculates all suboptimal secondary
-structures within a user defined energy range above the minimum free
-energy (mfe). It prints the suboptimal structures in bracket notation
-followed by the energy in kcal/mol to stdout.
-Be careful, the number of structures returned grows exponentially with both 
-sequence length and energy range.
+.I RNAsubopt
+reads RNA sequences from stdin and (in the default \-e mode)
+calculates all suboptimal secondary structures within a user defined
+energy range above the minimum free energy (mfe).It prints the
+suboptimal structures in bracket notation followed by the energy in
+kcal/mol to stdout. Be careful, the number of structures returned
+grows exponentially with both sequence length and energy range.
+
+Alternatively, when used with the \-p option, RNAsubopt produces
+Boltzmann weighted samples of secondary structures.
+
+Sequences are read in the usual format, i.e. each sequence occupies a
+single line, possibly preceded by a fasta-style header line of the form
+.br
+> name
+
 .SH "OPTIONS"
-.TP 
+.TP
 .B \-e\ \fIrange\fP
-Calculate suboptimal structures within \fIrange\fP kcal/mol of the mfe. 
+Calculate suboptimal structures within \fIrange\fP kcal/mol of the mfe.
 Default is 1.
-.TP 
+.TP
 .B \-s
 Sort the structures by energy. Since the sort in is done in memory,
 this becomes impractical when the number of structures produced goes
-into millions. In such cases better pipe the output through `sort +1n'. 
-.TP 
+into millions. In such cases better pipe the output through `sort +1n'.
+.TP
 .B \-p \fIn\fP
-Instead of producing all suboptimals in a range, produce a random sample 
-of \fIn\fP suboptimal structures, drawn with probabilities equal to
-their Boltzmann weights via stochastic backtracking in the partition
-function. 
-.TP 
+Instead of producing all suboptimals in an energy range, produce a
+random sample of \fIn\fP suboptimal structures, drawn with
+probabilities equal to their Boltzmann weights via stochastic
+backtracking in the partition function. The \-e and \-p options a
+mutually exclusive.
+.TP
 .B \-d[0|1|2|3]
 Change treatment of dangling ends, as in RNAfold and RNAeval.  The
 default is \-d2 (as in partition function folding). If \-d1 or \-d3 are
 specified the structures are generated as with \-d2 but energies are
 re\-evaluated before printing.
-.TP 
+.TP
 .B \-logML
 re\-calculate energies of structures using a logarithmic energy function for
 multi\-loops before output. This option does not effect structure
 generation, only the energies that is printed out. Since logML lowers
 energies somewhat, some structures may be missing.
-.TP 
+.TP
 .B \-ep \fIprange\fP
 Only print structures with energy within \fIprange\fR of the mfe. Useful in
 conjunction with \-logML, \-d1 or \-d3: while the \-e option specifies the
 range before energies are re\-evaluated, \-ep specifies the maximum energy
 after re\-evaluation.
-.TP 
+.TP
 .B \-noLP
 Only produce structures without lonely pairs (helices of length 1). This
 reduces the number of structures drastically and should therefore be used
 for longer sequences and larger energy ranges.
-.PP 
-The \fB\-T\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP, 
+.PP
+The \fB\-T\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.
 
 
 .SH "REFERENCES"
 Please cite:
-.br 
+.br
 S. Wuchty, W. Fontana, I. L. Hofacker and P. Schuster
 "Complete Suboptimal Folding of RNA and the Stability of
 Secondary Structures",
@@ -70,7 +81,7 @@ This man page documents version @VERSION@ Vienna RNA Package.
 
 .SH "AUTHORS"
 Ivo L Hofacker, Stefan Wuchty, Walter Fontana.
-.br 
+.br
 Send comments and bug reports to <rna@tbi.univie.ac.at>
 \"  LocalWords:  RNASUBOPT RNAsubopt suboptimal RNAs fBRNAsubopt fIrange fP ep
 \"  LocalWords:  prange lodos fItemp noGU noCloseGU paramfile logML nsp stdin
