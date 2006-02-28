@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2001-08-23 10:19:23 ivo> */
+/* Last changed Time-stamp: <2006-02-25 19:55:55 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -22,13 +22,13 @@
 #endif
 
 /*@unused@*/
-static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.8 2001/08/23 08:31:13 ivo Exp $";
+static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.9 2006/02/28 19:11:20 ivo Exp $";
 
 #define  PUBLIC
 #define  PRIVATE   static
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
-                       "....,....5....,....6....,....7....,....8";
+		       "....,....5....,....6....,....7....,....8";
 
 PRIVATE char *costring(char *string);
 PRIVATE char *tokenize(char *line);
@@ -37,6 +37,7 @@ extern int logML;
 extern int cut_point;
 extern int eos_debug;
 extern void  read_parameter_file(const char fname[]);
+extern float energy_of_circ_struct(const char *seq, const char *str);
 
 int main(int argc, char *argv[])
 {
@@ -46,8 +47,9 @@ int main(int argc, char *argv[])
    int   i, l, length1, length2;
    float energy;
    int   istty;
+   int circ=0;
    int   noconv=0;
-      
+
    string=NULL;
    for (i=1; i<argc; i++) {
      if (argv[i][0]=='-')
@@ -69,13 +71,16 @@ int main(int argc, char *argv[])
 	     if (sscanf(argv[i]+2, "%d", &dangles)==0)
 	       usage();
 	   break;
+	 case 'c':
+	   if ( strcmp(argv[i], "-circ")==0) circ=1;
+	   break;
 	 case 'P':
-	   if (++i <= argc) 
+	   if (++i <= argc)
 	     ParamFile = argv[i];
 	   else usage();
 	   break;
 	 case 'l':
-	   if (strcmp(argv[i],"-logML")==0) 
+	   if (strcmp(argv[i],"-logML")==0)
 	     logML=1;
 	   else usage();
 	   break;
@@ -116,7 +121,7 @@ int main(int argc, char *argv[])
 	 printf("%s\n", line);
 	 free(line);
 	 if ((line = get_line(stdin))==NULL) break;
-      }  
+      }
 
       if (line==NULL) break;
       if (strcmp(line, "@") == 0) {free(line); break;}
@@ -131,20 +136,20 @@ int main(int argc, char *argv[])
 	 printf("%s\n", line);
 	 free(line);
 	 if ((line = get_line(stdin))==NULL) break;
-      }  
+      }
       if (line==NULL) break;
       if (strcmp(line, "@") == 0) {free(line); break;}
-      
+
       structure = tokenize(line);
       free(line);
       length1 = (int) strlen(structure);
-      
+
       if(length1!=length2)
 	 nrerror("Sequence and Structure have unequal length.");
 
       for (l = 0; l < length1; l++) {
-        string[l] = toupper((int)string[l]);
-        if (!noconv && string[l] == 'T') string[l] = 'U';
+	string[l] = toupper((int)string[l]);
+	if (!noconv && string[l] == 'T') string[l] = 'U';
       }
 
       if (istty) {
@@ -154,8 +159,10 @@ int main(int argc, char *argv[])
 	  printf("length1 = %d\nlength2 = %d\n",
 		 cut_point-1, length1-cut_point+1);
       }
-      
-      energy = energy_of_struct(string, structure);
+      if (circ)
+	energy = energy_of_circ_struct(string, structure);
+      else
+	energy = energy_of_struct(string, structure);
       if (cut_point == -1)
       printf("%s\n%s", string, structure);
       else {
@@ -170,7 +177,7 @@ int main(int argc, char *argv[])
 	printf("\n energy = %6.2f\n", energy);
       else
 	printf(" (%6.2f)\n", energy);
-      
+
       free(string);
       free(structure);
       (void) fflush(stdout);
@@ -202,7 +209,7 @@ PRIVATE char *tokenize(char *line)
     }
   }
   free(copy);
-  
+
   return ctmp;
 }
 
@@ -210,7 +217,7 @@ PRIVATE char *costring(char *string)
 {
   char *ctmp;
   int len;
-  
+
   len = strlen(string);
   ctmp = (char *)space((len+2) * sizeof(char));
   /* first sequence */
