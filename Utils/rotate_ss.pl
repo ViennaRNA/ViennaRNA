@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2004-08-09 16:50:14 ivo>
-# $Id: rotate_ss.pl,v 1.3 2004/08/10 08:54:05 ivo Exp $
+# $Id: rotate_ss.pl,v 1.4 2006/02/28 14:44:14 ivo Exp $
 
 use Getopt::Long;
 use strict;
@@ -13,7 +13,7 @@ my $ss_ps = { Header  => [],
 	      BPairs  => [],
 	      Tailer  => [] };
 $opt_a = 0;
-usage() unless GetOptions("a=i" => \$opt_a, "m");
+usage() unless GetOptions("a=f" => \$opt_a, "m");
 
 swallow_ss_ps();
 my $ar = to_Array($ss_ps->{Coords});
