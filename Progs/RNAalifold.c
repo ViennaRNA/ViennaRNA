@@ -1,5 +1,5 @@
-/* Last changed Time-stamp: <2005-03-21 13:49:55 ivo> */
-/*                
+/* Last changed Time-stamp: <2006-02-26 00:05:58 ivo> */
+/*
 		  Access to alifold Routines
 
 		  c Ivo L Hofacker
@@ -21,13 +21,16 @@
 #include "alifold.h"
 #include "aln_util.h"
 extern void  read_parameter_file(const char fname[]);
+extern float circalifold(const char **strings, char *structure);
+extern float energy_of_circ_struct(const char *seq, const char *structure);
+
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.13 2005/03/21 12:50:44 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.14 2006/02/28 14:56:47 ivo Exp $";
 
 #define PRIVATE static
 
 static const char scale[] = "....,....1....,....2....,....3....,....4"
-                            "....,....5....,....6....,....7....,....8";
+			    "....,....5....,....6....,....7....,....8";
 
 PRIVATE void /*@exits@*/ usage(void);
 PRIVATE char *annote(const char *structure, const char *AS[]);
@@ -50,8 +53,9 @@ int main(int argc, char *argv[])
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char     *names[MAX_NUM_NAMES];       /* sequence names */
   FILE     *clust_file = stdin;
+  int circ=0;
 
-  do_backtrack = 1; 
+  do_backtrack = 1;
   string=NULL;
   dangles=2;
   for (i=1; i<argc; i++) {
@@ -116,26 +120,31 @@ int main(int argc, char *argv[])
 	  if ( strcmp(argv[i], "-cv")==0) {
 	    r=sscanf(argv[++i], "%lf", &cv_fact);
 	    if (!r) usage();
-	  }
+	  } else
+	    if (strcmp(argv[i], "-circ")==0) circ=1;
 	  break;
 	default: usage();
 	}
     }
-    else { /* doesn't start with '-' should be filename */ 
+    else { /* doesn't start with '-' should be filename */
       if (i!=argc-1) usage();
       clust_file = fopen(argv[i], "r");
       if (clust_file == NULL) {
 	fprintf(stderr, "can't open %s\n", argv[i]);
 	usage();
       }
-      
+
     }
   }
-  
 
+  if (circ && noLonelyPairs)
+    fprintf(stderr,
+	    "warning, depending on the origin of the circular sequence, "
+	    "some structures may be missed when using -noLP\n"
+	    "Try rotating your sequence a few times\n");
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -164,7 +173,7 @@ int main(int argc, char *argv[])
     printf("< : base i is paired with a base j<i\n");
     printf("> : base i is paired with a base j>i\n");
     printf("matching brackets ( ): base i pairs base j\n");
-  } 
+  }
   if (fold_constrained) {
     if (istty) printf("%s\n", scale);
     cstruc = get_line(stdin);
@@ -174,7 +183,7 @@ int main(int argc, char *argv[])
     printf("\nInput aligned sequences in clustalw format\n");
     if (!fold_constrained) printf("%s\n", scale);
   }
-  
+
   n_seq = read_clustal(clust_file, AS, names);
   if (endgaps)
     for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
@@ -185,30 +194,36 @@ int main(int argc, char *argv[])
   length = (int) strlen(AS[0]);
   structure = (char *) space((unsigned) length+1);
   if (fold_constrained) {
-    if (cstruc!=NULL) 
+    if (cstruc!=NULL)
       strncpy(structure, cstruc, length);
     else
       fprintf(stderr, "constraints missing\n");
   }
-  
-  min_en = alifold(AS, structure);
+
+  if (circ)
+    min_en = circalifold(AS, structure);
+  else
+    min_en = alifold(AS, structure);
   {
     int i; double s=0;
     extern int eos_debug;
     eos_debug=-1; /* shut off warnings about nonstandard pairs */
-    for (i=0; AS[i]!=NULL; i++) 
-      s += energy_of_struct(AS[i], structure);
+    for (i=0; AS[i]!=NULL; i++)
+      if (circ)
+	s += energy_of_circ_struct(AS[i], structure);
+      else
+	s += energy_of_struct(AS[i], structure);
     real_en = s/i;
   }
   string = (mis) ?
     consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
   if (istty)
-    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n", 
+    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
 	   min_en, real_en, min_en - real_en);
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
-  
+
   if (fname[0]!='\0') {
     strcpy(ffname, fname);
     strcat(ffname, "_ss.ps");
@@ -223,9 +238,9 @@ int main(int argc, char *argv[])
     A = annote(structure, (const char**) AS);
     (void) PS_rna_plot_a(string, structure, ffname, NULL, A);
     free(A);
-  } else 
+  } else
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-  
+
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
     bp = base_pair; base_pair = space(16);
@@ -237,29 +252,32 @@ int main(int argc, char *argv[])
     pair_info *pi;
     char * mfe_struc;
 
+    if (circ)
+      nrerror("Currently no partition function for circular RNAs. Please implement it!");
+
     mfe_struc = strdup(structure);
-    	 
+
     kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
     pf_scale = exp(-(sfact*min_en)/kT/length);
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
     fflush(stdout);
-    
+
     /* init_alipf_fold(length); */
-    
+
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
     energy = alipf_fold(AS, structure, &pi);
-    
+
     if (do_backtrack) {
       printf("%s", structure);
       if (!istty) printf(" [%6.2f]\n", energy);
       else printf("\n");
     }
-    if ((istty)||(!do_backtrack)) 
+    if ((istty)||(!do_backtrack))
       printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
     printf(" frequency of mfe structure in ensemble %g\n",
 	   exp((energy-min_en)/kT));
-    
+
     if (do_backtrack) {
       FILE *aliout;
       cpair *cp;
@@ -273,7 +291,7 @@ int main(int argc, char *argv[])
       } else {
 	short *ptable; int k;
 	ptable = make_pair_table(mfe_struc);
-	fprintf(aliout, "%d sequence; length of alignment %d\n", 
+	fprintf(aliout, "%d sequence; length of alignment %d\n",
 		n_seq, length);
 	fprintf(aliout, "alifold output\n");
 	for (k=0; pi[k].i>0; k++) {
@@ -316,15 +334,15 @@ void mark_endgaps(char *seq, char egap) {
     seq[i] = egap;
   }
 }
- 
+
 void print_pi(const pair_info pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
-  
+
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
 	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
-  for (i=1; i<=7; i++) 
+  for (i=1; i<=7; i++)
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
   /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
   if (!pi.comp) fprintf(file, " +");
@@ -372,7 +390,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
-    if (maxl - strlen(ps) < 128) { 
+    if (maxl - strlen(ps) < 128) {
       maxl *= 2;
       ps = realloc(ps, maxl);
       if (ps==NULL) nrerror("out of memory in realloc");
@@ -399,8 +417,8 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-mis]\n"
-	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
+	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ]\n"
+	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  );
 }
