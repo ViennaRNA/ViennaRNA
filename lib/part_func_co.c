@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-19 12:16:02 ivo> */
+/* Last changed Time-stamp: <2006-04-05 14:49:58 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.8  2006/04/05 12:52:31  ivo
+  Fix performance bug (O(n^4) loop)
+
   Revision 1.7  2006/01/19 11:30:04  ivo
   compute_probabilities should only look at one dimer at a time
 
@@ -54,7 +57,7 @@
 #include "PS_dot.h"
 #include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.7 2006/01/19 11:30:04 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.8 2006/04/05 12:52:31 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -107,7 +110,8 @@ PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #undef TURN
 #define TURN 0
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
-
+/* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
+ */
 int mirnatog = 0;
 
 /*-----------------------------------------------------------------*/
@@ -119,14 +123,13 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
-
   cofoldF X;
   double free_energy, max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
   if (n>init_length) init_co_pf_fold(n);  /* (re)allocate space */
-  /* printf("mirnatog=%d\n",mirnatog); */
+ /* printf("mirnatog=%d\n",mirnatog); */
   S = (short *) xrealloc(S, sizeof(short)*(n+1));
   S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
   S[0] = n;
@@ -290,13 +293,19 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   /*Need that for concentrations*/
   if (cut_point>0){
     double kT, pbound, QAB, QToT, Qzero;
+
     kT = (temperature+K0)*GASCONST/1000.0;
     Qzero=q[iindx[1]-n];
     QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*expInit;
+    /*correction for symmetry*/
+    if((n-(cut_point-1)*2)==0) {
+      if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
+	QAB/=2;
+      }}
+
     QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
     pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
-
-    X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
+     X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
     X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
     X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
     X.FA = -kT*(log(q[iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
@@ -313,7 +322,10 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   /* printf("qis %f\n",q[iindx[1]-(cut_point-1)]);*/
   /*new: expInit added*/ /*new*/
   if (do_backtrack) {
+    FLT_OR_DBL   *Qlout, *Qrout;
     Qmax=0;
+    Qrout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
+    Qlout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cut_point+2));
 
     for (k=1; k<=n; k++) {
       q1k[k] = q[iindx[1] - k];
@@ -422,16 +434,82 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
       else  /* set prm_l to 0 to get prm_l1 to be 0 */
 	for (i=0; i<=n; i++) prm_l[i]=0;
 
-      tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
+     tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
       /*computation of .(..(...)..&..). type features?*/
-
-      if (cut_point<=0) continue;  /* no .(..(...)..&..). type features*/
-      if ((l==n)||(l<=2)) continue; /* no .(..(...)..&..). type features*/
-      if (l>cut_point) { /*right of cut*/
-	/*k=cut_point*/
-	kl=iindx[cut_point]-l;
-	if (qb[kl]>0.) {
-	  tt=ptype[kl];
+     if (cut_point<=0) continue;  /* no .(..(...)..&..). type features*/
+     if ((l==n)||(l<=2)) continue; /* no .(..(...)..&..). type features*/
+     /*new version with O(n^3)??*/
+#if 1
+     if (l>cut_point) {
+       if (l<n) {
+	 int t,kt;
+	 for (t=n; t>l; t--) {
+	   for (k=1; k<cut_point; k++) {
+	     kt=iindx[k]-t;
+	     type=rtype[ptype[kt]];
+	     temp=pr[kt]*scale[2]*expdangle5[type][S1[t-1]];
+	     if (l+1<t) temp*=q[iindx[l+1]-(t-1)];
+	     if (SAME_STRAND(k,k+1)) {
+	       temp*=q[iindx[k+1]-(cut_point-1)];
+	       temp*=expdangle3[type][S1[k+1]];
+	     }
+	     else if (type>2) temp*=expTermAU;
+	     Qrout[l]+=temp;
+	   }
+	 }
+       }
+       for (k=l-1; k>=cut_point; k--) {
+	 if (qb[iindx[k]-l]) {
+	   kl=iindx[k]-l;
+	   type=ptype[kl];
+	   temp = Qrout[l];
+	   if (k>cut_point) {
+	     temp*=q[iindx[cut_point]-(k-1)]*expdangle5[type][S1[k-1]];
+	   }
+	   if(l<n) temp*=expdangle3[type][S1[l+1]];
+	   else if (type>2 )  temp*=expTermAU;
+	   pr[kl]+=temp;
+	 }
+       }
+     }
+     else if (l==cut_point ) {
+       int t, sk,s;
+       for (t=2; t<cut_point;t++) {
+	 for (s=1; s<t; s++) {
+	   for (k=cut_point; k<=n; k++) {
+	     sk=iindx[s]-k;
+	     if (qb[sk]) {
+	       type=rtype[ptype[sk]];
+	       temp=pr[sk]*expdangle3[type][S1[s+1]]*scale[2];
+	       if (s+1<t) temp*=q[iindx[s+1]-(t-1)];
+	       if (SAME_STRAND(k-1,k)) temp*=expdangle5[type][S1[k-1]]*q[iindx[cut_point]-(k-1)];
+	       Qlout[t]+=temp;
+	     }
+	   }
+	 }
+       }
+     }
+     else if (l<cut_point) {
+       for (k=1; k<l; k++) {
+	 if (qb[iindx[k]-l]) {
+	   type=ptype[iindx[k]-l];
+	   temp=Qlout[k];
+	   if (l+1<cut_point) temp*=q[iindx[l+1]-(cut_point-1)];
+	   if (k>1) temp*=expdangle5[type][S1[k-1]];
+	   if (l<(cut_point-1)) temp*=expdangle3[type][S1[l+1]];
+	   else if (type>2) temp*=expTermAU;
+	   pr[iindx[k]-l]+=temp;
+	 }
+       }
+     }
+#endif
+#if 0
+     /* old variant, p[lease delete me soon */
+     if (l>cut_point) { /*right of cut*/
+       /*k=cut_point*/
+       kl=iindx[cut_point]-l;
+       if (qb[kl]>0.) {
+	 tt=ptype[kl];
 	 /*i<cut_point-1*/
 	 for (i=1; i<cut_point-1; i++) {
 	   /*j==l+1*/
@@ -615,14 +693,14 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 	       pr[kl]+=temp;
 	     }
 	   }
-
 	 }
        }
 	}
       }
-
+#endif
     }  /* end for (l=..)   */
-
+    free(Qlout);
+    free(Qrout);
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
 	ij = iindx[i]-j;
@@ -1070,7 +1148,6 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 	break;
       }
     }
-
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
       nrerror("unbalanced brackets in constraint string");
@@ -1242,7 +1319,7 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
   /*Newton iteration for computing concentrations*/
   cA=concA;
   cB=concB;
-  TOL=0.000000000000001; /*Tolerance for convergence*/
+  TOL=1e-6; /*Tolerance for convergence*/
   ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
   do {
     det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA);
@@ -1250,7 +1327,7 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
 	    (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
     yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
 	    (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
-    EPS = fabs(xn) + fabs(yn);
+    EPS = fabs(xn)/cA + fabs(yn)/cB;
     cA += xn;
     cB += yn;
     i++;
@@ -1279,7 +1356,7 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
 
   kT=(temperature+K0)*GASCONST/1000.;
   Concentration=(struct ConcEnt *)space(20*sizeof(struct ConcEnt));
-  /* Compute equilibrium constants */
+ /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */
 
   KAA = exp(( 2.0 * FEA - FcAA)/kT);
@@ -1320,6 +1397,7 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
       pl[count].i=i;
       pl[count].j=j;
       pl[count++].p=pr[iindx[i]-j];
+      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
     }
   }
   pl[count].i=0;
