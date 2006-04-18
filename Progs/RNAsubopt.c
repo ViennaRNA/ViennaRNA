@@ -1,5 +1,5 @@
-/* Last changed Time-stamp: <2004-08-12 12:45:17 ivo> */
-/*                
+/* Last changed Time-stamp: <2006-02-28 16:07:22 ivo> */
+/*
 		Ineractive access to suboptimal folding
 
 			   c Ivo L Hofacker
@@ -20,12 +20,12 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.11 2004/08/12 10:59:31 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.12 2006/04/18 16:15:46 ivo Exp $";
 
 #define PRIVATE static
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
-                       "....,....5....,....6....,....7....,....8";
+		       "....,....5....,....6....,....7....,....8";
 
 extern double print_energy;
 PRIVATE void usage(void);
@@ -45,11 +45,11 @@ int main(int argc, char *argv[])
    double deltaf, deltap=0;
    int delta=100;
    int n_back = 0;
-   
+
    do_backtrack = 1;
    dangles = 2;
    for (i=1; i<argc; i++) {
-      if (argv[i][0]=='-') 
+      if (argv[i][0]=='-')
 	switch ( argv[i][1] )
 	  {
 	  case 'T':  if (argv[i][2]!='\0') usage();
@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
 	    if (argv[i][2]!='\0') usage();
 	    if(i==argc-1) usage();
 	    (void) sscanf(argv[++i], "%d", &n_back);
+	    init_rand();
 	    break;
 	  case 'n':
 	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
@@ -74,12 +75,12 @@ int main(int argc, char *argv[])
 	  case '4':
 	    tetra_loop=0;
 	    break;
- 	  case 'C': 
- 	    fold_constrained=1; 
- 	    break; 
+ 	  case 'C':
+ 	    fold_constrained=1;
+ 	    break;
 	  case 'd': dangles=0;
 	    if (argv[i][2]!='\0') {
-              r=sscanf(argv[i]+2, "%d", &dangles);
+	      r=sscanf(argv[i]+2, "%d", &dangles);
 	      if (r!=1) usage();
 	    }
 	    break;
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
 	    break;
 	  case 'e':
 	    if (i>=argc-1) usage();
-	    if (strcmp(argv[i],"-ep")==0) 
+	    if (strcmp(argv[i],"-ep")==0)
 	      r=sscanf(argv[++i], "%lf", &deltap);
 	    else {
 	      r=sscanf(argv[++i], "%lf", &deltaf);
@@ -108,12 +109,12 @@ int main(int argc, char *argv[])
 	    if (r!=1) usage();
 	    break;
 	  default: usage();
-	  } 
+	  }
    }
 
    if (ParamFile != NULL)
      read_parameter_file(ParamFile);
-   
+
    if (ns_bases != NULL) {
       nonstandards = space(33);
       c=ns_bases;
@@ -139,8 +140,8 @@ int main(int argc, char *argv[])
       /* printf("| : paired with another base\n"); */
       printf(". : no constraint at all\n");
       printf("x : base must not pair\n");
-   } 
-	
+   }
+
    do {				/* main loop: continue until end of file */
       if (istty) {
 	 printf("\nInput string (upper or lower case); @ to quit\n");
@@ -155,7 +156,7 @@ int main(int argc, char *argv[])
 	  (void) sscanf(line, ">%20s", fname);
 	free(line);
 	if ((line = get_line(stdin))==NULL) break;;
-      } 
+      }
 
       if ((line==NULL) || strcmp(line, "@") == 0) break;
 
@@ -175,13 +176,13 @@ int main(int argc, char *argv[])
 	      nrerror("constraints of type '|' not allowed");
 	  free(cstruc);
 	}
-      }      
-      
+      }
+
       for (l = 0; l < length; l++) sequence[l] = toupper(sequence[l]);
       if (istty)
 	printf("length = %d\n", length);
 
-      if (logML!=0 || dangles==1 || dangles==3) 
+      if (logML!=0 || dangles==1 || dangles==3)
 	if (deltap<=0) deltap=delta/100. +0.001;
       if (deltap>0)
 	print_energy = deltap;
@@ -202,7 +203,6 @@ int main(int argc, char *argv[])
 	pf_scale = exp(-(1.03*mfe)/kT/length);
 	strncpy(ss, structure, length);
 	(void) pf_fold(sequence, ss);
-	init_rand();
 	free(ss);
 	for (i=0; i<n_back; i++) {
 	  char *s;
@@ -215,9 +215,9 @@ int main(int argc, char *argv[])
 	subopt(sequence, structure, delta, stdout);
       }
       (void)fflush(stdout);
-      
+
       free(sequence);
-      free(structure); 
+      free(structure);
    } while (1);
    return 0;
 }
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
    nrerror("usage: "
-	   "RNAsubopt [-e range] [-ep prange] [-s] [-logML]\n"
-	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n" 
+	   "RNAsubopt [-e range] [-ep prange] [-s] [-p num] [-logML]\n"
+	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n"
 	   "          [-noLP] [-P paramfile] [-nsp pairs]");
 }
