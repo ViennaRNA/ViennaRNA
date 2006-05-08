@@ -1,23 +1,28 @@
 This is Version 1.6 of the Vienna RNA Package.
-This is a pre-release possibly containing more bugs than usual!
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 
 The Vienna RNA packages consists of a few stand alone programs and a 
-library that you can link your own programs with. The package allows you to
+library that you can link your own programs with. 
+Together with this version we distribute the Kinfold and RNAforester
+programs. See the README files in the respective sub-directories.
+
+The package allows you to
 
 - predict minimum free energy secondary structures
 - calculate the partition function for the ensemble of structures
 - calculate suboptimal structures in a given energy range
-- predict consensus secondary sctructures from a multiple sequence alignment
+- compute local structures in long sequences
+- predict consensus secondary structures from a multiple sequence alignment
 - predict melting curves
 - search for sequences folding into a given structure
 - compare two secondary structures 
+- predict hybridization structures of two RNA molecules
 
 The package includes a Perl5 module that gives access to almost all
 functions of the C library from Perl.
 
-There is also a set of programs for analysing sequence and distance
+There is also a set of programs for analyzing sequence and distance
 data using split decomposition, statistical geometry, and cluster methods.
 They are not maintained any more and not built by default.
 
@@ -28,12 +33,12 @@ Please read the copyright notice in the file COPYING!
 The package should be easily portable. It is known to compile without
 modifications at least under
 SunOS 5.x, IRIX 5.x and 6.x, linux, and windows with the CygWin environment.
-Other UN*X flavours should present no problems.
+Other UNIX flavors should present no problems.
 You need a compiler that understands ANSI C. See the INSTALL file for details.
 
 The following executables are provided:
 RNAfold		predict secondary structures
-RNAsubopt	calulate suboptimal structures in a given energy range
+RNAsubopt	calculate suboptimal structures in a given energy range
 RNAalifold	predict a consensus structure for a set of aligned sequences
 RNAcofold       calculate the hybrid structure of two RNA molecules
 RNAduplex       predict possible hybridization sites for two RNAs
@@ -43,22 +48,26 @@ RNAheat		calculate melting curves
 RNAdistance	compare secondary structures
 RNApdist	compare ensembles of secondary structures
 RNAinverse	find sequences folding into given structures
+RNALfold	predict locally stable structure of long sequences
+RNAplfold       compute average pair probabilities for local base pairs in long sequences
 AnalyseSeqs	analyse sequence data
 AnalyseDists	analyse distance matrices
 
-A couple of useful utililities can be found in the Utils directory.
+A couple of useful utilities can be found in the Utils directory.
 
 All executables read from stdin and write to stdout and use command line
 switches rather than menus to be easily usable in pipes.
 
-For more detailed information see the man pages.
+For more detailed information see the man pages. Perl utilities contain
+POD documentation that can be read by typing e.g.
+perldoc relplot.pl
 
 We have included a patched version of D.G. Gilbert's readseq program
 for those who often process sequence files from databanks. See the
 the documentation in that directory for details.
 
 
-Versions since 1.4 feature new energy parameters as described in Mathews
+Versions since 1.4 feature energy parameters as described in Mathews
 et.al, JMB, 1999. For backward compatibility a parameter file with the
 version 1.3 parameter set (as described in Walter et.al (1994)) can be
 found in the file vienna13.par. The standard energy set is compiled in, but
@@ -79,5 +88,5 @@ http://www.tbi.univie.ac.at/~ivo/RNA/
 We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at
 
-Ivo Hofacker, Autumn 2002
+Ivo Hofacker, Spring 2006
 
