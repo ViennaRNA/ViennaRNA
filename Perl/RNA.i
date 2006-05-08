@@ -8,6 +8,7 @@
 #include  "../H/fold.h"
 #include  "../H/cofold.h"
 #include  "../H/part_func.h"
+#include  "../H/part_func_co.h"
 #include  "../H/PS_dot.h"
 #include  "../H/inverse.h"
 #include  "../H/RNAstruct.h"
@@ -19,6 +20,9 @@
 #include  "../H/subopt.h"
 #include  "../H/energy_const.h"
 #include  "../H/params.h"
+#include  "../H/duplex.h"
+#include  "../H/alifold.h"
+#include  "../H/aln_util.h"
 %}
 //
 %include carrays.i
@@ -33,17 +37,7 @@
 
 %constant double VERSION = 0.3;
 %include typemaps.i
-%typemap(perl5,in) FILE * {
-  if (SvOK($input)) /* check for undef */
-	$1 = PerlIO_findFILE(IoIFP(sv_2io($input)));
-  else  $1 = NULL;
-}
-
-%typemap(python,in) FILE * {
-  if (PyFile_Check($input)) /* check for undef */
-        $1 = PyFile_AsFile($input);
-  else  $1 = NULL;
-}
+%include tmaps.i  // additional typemaps
 
 //%title "Interface to the Vienna RNA library"
 //%section "Folding Routines"
@@ -54,7 +48,6 @@
 %{
   char *my_fold(char *string, char *constraints, float *energy) {
     char *struc;
-    float en;
     struc = calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
@@ -75,7 +68,6 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %{
   char *my_cofold(char *string, char *constraints, float *energy) {
     char *struc;
-    float en;
     struc = calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
@@ -97,7 +89,6 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %{
   char *my_pf_fold(char *string, char *constraints, float *energy) {
     char *struc;
-    float en;
     struc = calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
@@ -170,6 +161,30 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 	   return self+i;
 	}
 }
+
+%rename (alifold) my_alifold;
+
+%{
+  char *my_alifold(char **strings, char *constraints, float *energy) {
+    char *struc;
+    struc = calloc(strlen(strings[0])+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(strings[0]));
+    *energy = alifold(strings, struc);
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    return(struc);
+  }
+%}
+
+%newobject my_alifold;
+char *my_alifold(char **strings, char *constraints = NULL, float *OUTPUT);
+
+%newobject consensus;
+%newobject consensus_mis;
+char *consensus(const char **AS);
+char *consens_mis(const char **AS);
+
 
 //%include  "../H/subopt.h"
 // from subopt.h
@@ -304,7 +319,7 @@ char *get_aligned_line(int);
 %inline %{
   short *make_loop_index(const char *structure) {
   /* number each position by which loop it belongs to (positions start at 0) */
-    int i,j,hx,l,nl;
+    int i,hx,l,nl;
     int length;
     short *stack;
     short *loop;
@@ -342,7 +357,7 @@ float energy_of_move(const char *string, char *structure, int mi, int mj) {
   int i,j,hx,l,nl;
   int length;
   short *stack, *table, *loop;
-  short *S, *S1;
+  short *S;
   int energy;
 
   if (mj<0) {
@@ -429,27 +444,14 @@ strcpy(symbolset, "AUGC");
 
 %}
 
+//%include "../H/duplex.h"
+typedef struct {
+  int i;
+  int j;
+  char *structure;
+  float energy;
+} duplexT;
 
-// Convert Perl array reference int a char **
-// not needed curently
-//%typemap(perl5,in) char ** {
-//  AV *tempav;
-//  I32 len;
-//  int i;
-//  SV **tv;
-//  if (!SvROK($input)) croak("$input is not a reference.");
-//  if (SvTYPE(SvRV($input)) != SVt_PVAV) croak("$input is not an array.");
-//  tempav = (AV*)SvRV($input);
-//  len = av_len(tempav);
-//  $1 = (char **) malloc((len+2)*sizeof(char *));
-//  for (i = 0; i <= len; i++) {
-//    tv = av_fetch(tempav, i, 0);
-//    $1[i] = (char *) SvPV(*tv,PL_na);
-//  }
-//  $1[i] = 0;
-//}
-// This cleans up our char ** array after the function call
-//%typemap(perl5,freearg) char ** {
-//  free($1);
-//}
+extern duplexT duplexfold(const char *s1, const char *s2);
+
 %include  "../H/PS_dot.h"

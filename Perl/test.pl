@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2005-07-23 16:04:56 ivo>
+# Last changed Time-stamp: <2006-03-08 17:13:27 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -67,7 +67,7 @@ my $T1 = RNA::make_tree($xstruc);
 $xstruc = RNA::expand_Full($struc2);
 my $T2 = RNA::make_tree($xstruc);
 $RNA::edit_backtrack = 1;
-my $tree_dist = RNA::tree_edit_distance($T1, $T2); 
+my $tree_dist = RNA::tree_edit_distance($T1, $T2);
 # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n";
 ok($tree_dist,4);
 
@@ -128,9 +128,17 @@ for (0..$solution->size()) {
   # the last access should produce a "value out of range" warning
   printf "%s %6.2f\n",  $solution->get($_)->{structure},
   			$solution->get($_)->{energy}
-	if defined  $solution->get($_);
+	if defined  $solution->get($_)->{structure};
 }
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
 ok(int($e*100+0.5), 70);
 
+my $duplex = RNA::duplexfold($seq1, $seq2);
+
+ok($duplex->{structure}, ".(((.....(((.&)))))).");
+
+my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");
+my ($css, $cen) = RNA::alifold(\@align);
+ok($css,"(((.(((...)))..))).");
+ok(RNA::consens_mis(\@align), "SMBHBHYDRBGDVWmVKBB");
