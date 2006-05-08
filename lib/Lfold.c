@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.5 2005/10/30 20:06:20 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.6 2006/05/08 08:29:51 ivo Exp $";
 
 
 #define PAREN
@@ -421,8 +421,10 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 	    printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
 	  else
 	    printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
-	}
-	if ((f3[prev_i] != f3[1]) || (!prev)) {
+	  free(prev); prev=NULL;
+	} else do_backtrack=1;
+
+	if (do_backtrack) {
 	  ss =  backtrack(string, i , maxdist);
 	  if (dangles==2)
 	    printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1+strlen(ss)-1])/100., 1);
@@ -430,7 +432,6 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 	    printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1+strlen(ss)])/100., 1);
 	  free(ss);
 	}
-	if (prev) free(prev);
       }
     }
     {
