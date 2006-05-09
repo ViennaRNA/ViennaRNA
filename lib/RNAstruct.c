@@ -17,7 +17,7 @@
 #define MAXLEN    10000
 #define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
-static char rcsid[] = "$Id: RNAstruct.c,v 1.7 2005/07/24 08:37:15 ivo Exp $";
+static char rcsid[] = "$Id: RNAstruct.c,v 1.8 2006/05/09 20:44:33 ivo Exp $";
 
 PUBLIC char *b2HIT(const char *structure);             /* Full   -> HIT    [incl. root]       */
 PUBLIC char *b2C(const char *structure);               /* Full   -> Coarse [incl. root]       */
@@ -248,7 +248,8 @@ PUBLIC char *b2Shapiro(const char *structure )
        case '[':
 	 temp[l++]='(';
 	 temp[l++]='(';
-	 if ((i>0)&&(string[i-1]=='(')) bulge[lp]=1;
+	 if ((i>0)&&(string[i-1]=='(' || string[i-1]=='['))
+	   bulge[lp]=1;
 	 lp++;
 	 loop_degree[++loops]=1;
 	 loop[lp]=loops;
