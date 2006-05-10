@@ -224,7 +224,7 @@ sub do_work {
 	  "<p><hr>\n";
    } else {
       print "RNA parameters are described in<br>\n" .
-	  "D.H.  Mathews, J. Sabina, M. Zucker and H. Turner\n",
+	  "D.H.  Mathews, J. Sabina, M. Zuker and H. Turner\n",
 	  "\"Expanded Sequence Dependence of Thermodynamic Parameters ",
 	  "Provides Robust Prediction of RNA Secondary Structure\",\n",
 	  "JMB, 288, pp 911-940, 1999<hr>\n";
