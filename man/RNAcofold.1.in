@@ -65,7 +65,7 @@ the \-p, \-p0, \-noGU, \-noCloseGU, \-nsp, \-S, \-e, \-P, \-noLP, \-T, \-4,
 .SH "REFERENCES"
 The energy parameters are taken from:
 .br 
-D.H. Mathews, J. Sabina, M. Zucker and H. Turner
+D.H. Mathews, J. Sabina, M. Zuker and H. Turner
 "Expanded Sequence Dependence of Thermodynamic Parameters Provides 
 Robust Prediction of RNA Secondary Structure"
 JMB, 288, pp 911\-940, 1999
