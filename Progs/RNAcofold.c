@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-19 11:49:34 ivo> */
+/* Last changed Time-stamp: <2006-04-05 12:58:49 ivo> */
 /*
 		  c Ivo L Hofacker, Vienna RNA package
 */
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAcofold.c,v 1.6 2006/01/19 11:30:04 ivo Exp $";
+static char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
 #define PRIVATE static
 
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 {
   char *string, *line;
   char *structure=NULL, *cstruc=NULL;
-  char  fname[53], ffname[20];
+  char  fname[53], ffname[60];
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
   char *Concfile;
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
       prAB=get_plist(prAB, length,0.00001);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
-      free_co_arrays();
+      /* free_co_arrays(); */
       if (doT) { /* cofold of all dimers, monomers */
 	int Blength, Alength;
 	char  *Astring, *Bstring;
