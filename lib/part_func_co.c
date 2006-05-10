@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.9  2006/05/10 15:12:11  ivo
+  some compiler choked on  double semicolon after declaration
+
   Revision 1.8  2006/04/05 12:52:31  ivo
   Fix performance bug (O(n^4) loop)
 
@@ -57,7 +60,7 @@
 #include "PS_dot.h"
 #include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.8 2006/04/05 12:52:31 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.9 2006/05/10 15:12:11 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1280,7 +1283,7 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
   /*computes binding probabilities and dimer free energies*/
   int i, j;
   double pAB;
-  double mykT;;
+  double mykT;
   struct plist  *lp1, *lp2;
   int offset;
 
