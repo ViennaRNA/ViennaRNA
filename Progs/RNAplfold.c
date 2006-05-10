@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-16 10:38:56 ivo> */
+/* Last changed Time-stamp: <2006-05-08 20:04:18 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -18,14 +18,14 @@
 #include "utils.h"
 #include "PS_dot.h"
 
-extern float Lfold(char *string, char *structure, int maxdist);
+extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
-extern int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl);
+extern int pfl_fold(char *sequence, int winSize, int pairdist, float cutoff, struct plist **pl);
 extern void  init_pf_foldLP(int length);
 extern void  free_pf_arraysLP(void);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.2 2006/01/16 09:49:07 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.3 2006/05/10 15:13:18 ivo Exp $";
 
 #define PRIVATE static
 
@@ -46,10 +46,11 @@ int main(int argc, char *argv[])
   int   i, length, l, sym,r;
   int   istty;
   int noconv=0;
-  int maxdist=70;
-  int winSize;
+  int winsize=70;
+  int pairdist=0;
   float cutoff=0.01;
   int hit;
+
   plist *pl;
   do_backtrack = 1;
   string=NULL;
@@ -106,9 +107,14 @@ int main(int argc, char *argv[])
 	  if (i==argc-1) usage();
 	  ParamFile = argv[++i];
 	  break;
+	case 'W':
+	  if (i==argc-1) usage();
+	  r=sscanf(argv[++i], "%d", &winsize);
+	  if (r!=1) usage();
+	  break;
 	case 'L':
 	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%d", &maxdist);
+	  r=sscanf(argv[++i], "%d", &pairdist);
 	  if (r!=1) usage();
 	  break;
 	default: usage();
@@ -138,7 +144,13 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  winSize=maxdist;
+
+  if (pairdist==0) pairdist=winsize;
+  if (pairdist>winsize) {
+    fprintf(stderr, "pairdist (-L %d) should be <= winsize (-W %d);"
+	    "Setting pairdist=winsize\n",pairdist, winsize);
+    pairdist=winsize;
+  }
 
   do {				/* main loop: continue until end of file */
     if (istty) {
@@ -175,25 +187,24 @@ int main(int argc, char *argv[])
 
     /* initialize_fold(length); */
     update_fold_params();
-    maxdist=winSize;
-    if (length<maxdist) {
+    if (length<winsize) {
       fprintf(stderr, "WARN: window size %d larger than sequence length %d\n",
-	      maxdist, length);
-      maxdist=length;
+	      winsize, length);
+      winsize=length;
     }
     if (length >= 5) {
       pf_scale = -1;
 
       init_pf_foldLP(length);
 
-      hit=pfl_fold(string, maxdist, cutoff, &pl);
+      hit=pfl_fold(string, winsize, pairdist, cutoff, &pl);
       free_pf_arraysLP();
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_dp.ps");
       }
       else strcpy(ffname, "plfold_dp.ps");
-      PS_dot_plot_turn(string, pl, ffname, maxdist);
+      PS_dot_plot_turn(string, pl, ffname, pairdist);
       free(pl);
 
       if (cstruc!=NULL) free(cstruc);
@@ -208,7 +219,7 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAplfold [-L span]\n"
+	  "RNAplfold [-L span] [-W winsize]\n"
 	  "          [-T temp] [-4] [-d[0|1|2]] [-noGU] [-noCloseGU]\n"
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }

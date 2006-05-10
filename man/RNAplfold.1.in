@@ -3,7 +3,7 @@
 .SH "NAME"
 RNAplfold \- calculate locally stable secondary structure - pair probabilities 
 .SH "SYNOPSIS"
-\fBRNAplfold\fP [\-L span] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU]
+\fBRNAplfold\fP [\-L span] [-W winsize] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU]
 [\-noCloseGU] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP]
 [\-d[0|2] [\-c \fIcutoff\fP]
 
@@ -20,9 +20,11 @@ can easily be parsed and visually inspected.
 
 .SH "OPTIONS"
 .TP 
+.B \-W winsize
+Average pair probabilities over windows of size winsize. Default 70.
+.PP
 .B \-L span
-Set the window Size to span. I.e. no
-pairs (i,j) with j\-i>span will be allowed. default = 70
+Allow only pairs (i,j) with j\-i<=span. Default winSize.
 .PP 
 .B \-c cutoff
 Report only base pairs with an average probability > cutoff default=0.01.

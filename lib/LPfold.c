@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-01-16 10:43:16 ivo> */
+/* Last changed Time-stamp: <2006-05-08 15:55:54 ivo> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -21,7 +21,7 @@
 #include "pair_mat.h"
 #include "PS_dot.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.2 2006/01/16 09:49:07 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.3 2006/05/10 15:10:01 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -29,7 +29,6 @@ static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.2 2006/01/16 09:49:07 ivo Exp $"
 #define PRIVATE static
 
 static int num_p=0; /*for counting basepairs*/
-PUBLIC int pfl_fold(char *seq, int winSize, float cutoff, struct plist **pl);
 PUBLIC  void  init_pf_foldLP(int length);
 PUBLIC  void  free_pf_arraysLP(void);
 PUBLIC  void  update_pf_paramsLP(int length);
@@ -42,7 +41,7 @@ PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
 				const char *string);
 /*PRIVATE void make_ptypes(const short *S, const char *structure);*/
 /*new functions*/
-PRIVATE void GetPtype(int j, int winSize,const short *S, int n);
+PRIVATE void GetPtype(int j, int pairsize, const short *S, int n);
 PRIVATE void FreeOldArrays(int i);
 PRIVATE void GetNewArrays(int j, int winSize);
 PRIVATE void printpbar(FLT_OR_DBL **prb,int winSize, int i, int n, float cutoff);
@@ -73,7 +72,7 @@ PRIVATE double init_temp; /* temperature in last call to scale_pf_params */
 
 /*-----------------------------------------------------------------*/
 static  short *S, *S1;
-PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl)
+PUBLIC int pfl_fold(char *sequence, int winSize, int pairSize, float cutoff, struct plist **pl)
 {
 
   int n, m,i,j,k,l, u,u1,ii, type, type_2, tt, ov=0;
@@ -111,7 +110,7 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
   /*ALWAYS q[i][j] => i>j!!*/
   for (j=1; j<MIN(TURN+2,n); j++) { /*allocate start*/
     GetNewArrays(j, winSize);
-    GetPtype(j,winSize,S,n);
+    GetPtype(j,pairSize,S,n);
     for (i=1; i<=j; i++) {
       q[i][j]=scale[(j-i+1)];
     }
@@ -119,7 +118,7 @@ PUBLIC int pfl_fold(char *sequence, int winSize, float cutoff, struct plist **pl
   for (j=TURN+2;j<=n+winSize; j++) {
     if (j<=n) {
       GetNewArrays(j, winSize);
-      GetPtype(j,winSize,S,n);
+      GetPtype(j,pairSize,S,n);
       for (i=MAX(1,j-winSize); i<=j/*-TURN*/; i++) {
 	q[i][j]=scale[(j-i+1)];
       }

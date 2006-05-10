@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2006-01-19 12:27:59 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.17 2006/01/19 11:28:40 ivo Exp $
+@c Last changed Time-stamp: <2006-05-08 15:36:53 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.18 2006/05/10 15:09:42 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -357,9 +357,9 @@ than @var{length}, and sets up pairing matrix and energy parameters.
 
 @deftypefun extern struct plist *get_plist (struct plist @var{*pl}, int @var{length}, double @var{cut_off})
 Makes a list of base pairs out of the global @var{*pr} array,
-ignoring all base pairs with a probability less than @var{cut_off}. 
+ignoring all base pairs with a probability less than @var{cut_off}.
 This is useful since the @var{pr} array gets overwritten by subsequent
-foldings. 
+foldings.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{co_part_func.h}.
@@ -415,11 +415,13 @@ structure including only base pairs with a span smaller than
 
 @var{maxdist}.
 
-@deftypefun int pfl_fold (char *@var{sequence}, int @var{winSize}, float @var{cutoff}, struct plist **@var{pl})
+@deftypefun int pfl_fold (char *@var{sequence}, int @var{winSize},int @var{pairSize}, float @var{cutoff}, struct plist **@var{pl})
 pfl_fold computes partition functions for every window of size
-@var{winSize} possible in a RNA molecule, and returns the mean base
-pair probabilities in @var{pl}. Note that in contrast to @code{Lfold()}, bases outside
-of the window do not influence the structure at all. Only
+@var{winSize} possible in a RNA molecule, allowing only pairs with a span
+smaller than @var{pairSize}. It returns the mean pair probabilities averaged
+over all windows containing the pair in @var{pl}. @var{winSize} should
+always be >= @var{pairSize}. Note that in contrast to @code{Lfold()},
+bases outside of the window do not influence the structure at all. Only
 probabilities higher than @var{cutoff} are kept.
 @end deftypefun
 
@@ -1322,7 +1324,7 @@ files and library, respectively.
 @chapter References
 
 @itemize -
-@item D.H. Mathews, J. Sabina, M. Zucker and H. Turner (1999)@*
+@item D.H. Mathews, J. Sabina, M. Zuker and H. Turner (1999)@*
    Expanded sequence dependence of thermodynamic parameters provides
    robust prediction of RNA secondary structure, JMB, 288: 911-940
 
@@ -1425,4 +1427,4 @@ files and library, respectively.
 @c  LocalWords:  smallexample texi ifset ifhtml href ViennaRNA mailto gt noLP
 @c  LocalWords:  initially co noindent gmlRNA gml naview Bruccoleri struc AUGC
 @c  LocalWords:  strcmp LocalWords Hofacker Stadler noLonelyPairs GC mutli GAUA
-@c  LocalWords:  CGCU CUU GCA GCCA termAU PostScript Zucker JMB combinatory pre
+@c  LocalWords:  CGCU CUU GCA GCCA termAU PostScript Zuker JMB combinatory pre
