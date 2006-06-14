@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 # -*-Perl-*-
-# Last changed Time-stamp: <2003-02-03 18:27:19 ivo>
+# Last changed Time-stamp: <2006-04-04 14:51:06 ivo>
+
+# Perl implementation of RNAfold
+# This is an example script demonstrating how to use the RNA Perl module
 
 use RNA;
 use Getopt::Long;
