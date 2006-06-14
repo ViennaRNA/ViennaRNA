@@ -1,6 +1,6 @@
-SOURCES = RNA.i ptr2array.i Makefile.PL 
+SOURCES = RNA.i ptr2array.i Makefile.PL tmaps.i RNA.pod
 
-EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi RNA.i Makefile.PL
+EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi RNA.i Makefile.PL 
 
 Makefile.perl: Makefile.PL Makefile
 	@PerlCmd@ Makefile.PL
