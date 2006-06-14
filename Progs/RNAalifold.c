@@ -25,7 +25,7 @@ extern float circalifold(const char **strings, char *structure);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.14 2006/02/28 14:56:47 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.15 2006/06/14 11:25:53 ivo Exp $";
 
 #define PRIVATE static
 
@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 	case 'm':
 	  if ( strcmp(argv[i], "-mis")==0) mis=1;
 	  else usage();
+	  break;
 	case '4':
 	  tetra_loop=0;
 	  break;
