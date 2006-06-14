@@ -1,17 +1,28 @@
+2006-06-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* compile library with -fpic (if available) for use as shared
+	  library in the Perl module.
+	* fix another bug when calling Lfold() repeatedly
+	* fix switch cmdline parsing in RNAalifold (-mis implied -4)
+	* fix bug in cofold() with dangles=0
+
 2006-05-08  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* fix segfault in Lfold() when calling repeatedly
 	* fix structure parsing in RNAstruct.c
-	(thanks to Michael Pheasant for reporting both bugs)
+	  (thanks to Michael Pheasant for reporting both bugs)
+	* add duplexfold() and alifold() to Perl module
+	* distinguish window size and max pair span in LPfold
 
 2006-04-05  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* fix performance bug in co_pf_fold()
-	
+	* use relative error for termination of Newton iteration
+
 2006-03-02  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add circular folding in alifold()
-	
+
 2006-01-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* cleanup berni partition cofold code, including several bug fixes
