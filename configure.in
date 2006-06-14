@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([ViennaRNA],[1.6],[rna@tbi.univie.ac.at],[ViennaRNA])
+AC_INIT([ViennaRNA],[1.6.1],[rna@tbi.univie.ac.at],[ViennaRNA])
 dnl Every other copy of the package version number gets its value from here
 AM_INIT_AUTOMAKE
 dnl change the default installation prefix
@@ -25,11 +25,13 @@ AC_CANONICAL_HOST
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CC_FPIC
+AC_ARG_VAR(FPIC,[compiler flag for generating PIC code that can be used in a shared library])
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
-else    
+else
    AC_DEFINE(UNUSED,, only for gcc)
-fi 
+fi
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
@@ -41,7 +43,7 @@ if test -n "$PerlCmd"; then
      with_perl="no"
    fi
 fi
-    
+
 if test -z "$PerlCmd"; then
     AC_MSG_RESULT(No suitable Perl found -- will not build Perl module)
     AC_MSG_RESULT(You may set the PerlCmd environment variable to point to
@@ -52,7 +54,7 @@ fi
 if test "$with_forester" != "no"; then
    if test -f $srcdir/RNAforester/Makefile.am; then
      AC_CONFIG_SUBDIRS(RNAforester)
-   else 
+   else
      AC_MSG_WARN([RNAforester subdirectory does not exist])
      with_forester="no"
   fi

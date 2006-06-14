@@ -6,8 +6,10 @@ libRNA_a_SOURCES = dist_vars.c fold_vars.c part_func.c read_epars.c\
         Lfold.c cofold.c part_func_co.c ProfileAln.c duplex.c alifold.c \
 	alipfold.c aln_util.c LPfold.c
 
+libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
+
 noinst_HEADERS = intloops.h list.h
 
-EXTRA_DIST = circfold.inc
+EXTRA_DIST = circfold.inc alicircfold.inc
 
 INCLUDES = -I../H
