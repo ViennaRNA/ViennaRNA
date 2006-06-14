@@ -23,7 +23,7 @@ $ServerRoot = '/u/www';
 $hdir = '/RNAfold_dir';      # were the output files are stored
 $RNAdir = '/var/www/RNA/';   # where the RNAalifold executable lives
 $help_url = 'http://www.tbi.univie.ac.at/~ivo/RNA/alifoldcgi.html';
-$CGI::POST_MAX = 12*1024;    # maximum filsize for the alignment
+$CGI::POST_MAX = 24*1024;    # maximum filsize for the alignment
 $maxlength  = 2000;          # only process sequences up to this length
 $maxlength1 = 300;           # limit for immediate jobs
 $batchscript = '/var/www/RNA/ALIbatch.pl'; # script for batch submissions
@@ -337,7 +337,7 @@ sub do_work {
 		    "<p><hr>\n";
   } else {
     print "RNA parameters are described in<br>\n" .
-      "D.H.  Mathews, J. Sabina, M. Zucker and H. Turner\n",
+      "D.H.  Mathews, J. Sabina, M. Zuker and H. Turner\n",
 	"\"Expanded Sequence Dependence of Thermodynamic Parameters ",
 	  "Provides Robust Prediction of RNA Secondary Structure\",\n",
 	    "JMB, 288, pp 911-940, 1999<hr>\n";
@@ -377,7 +377,7 @@ sub do_work {
     print "<dd>colored <a href=\"cmount.eps\">mountain plot</a> in postscript";
   }
   if ($RNAz =~ /true/) {
-    $ENV{RNAZDIR} = "$RNAdir/RNAz_models";
+    # $ENV{RNAZDIR} = "$RNAdir/RNAz_models";
     `$RNAdir/RNAz alifold.aln > RNAz.out`;
     print "<dd>The <a href=\"RNAz.out\">RNAz output</a> shows whether the alignment is likely to harbour a functional RNA structure.";
   }
