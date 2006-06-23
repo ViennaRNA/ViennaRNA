@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.8 2006/05/31 09:14:29 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.9 2006/06/23 07:58:11 ivo Exp $";
 
 #define PAREN
 
@@ -393,7 +393,10 @@ PRIVATE int fill_arrays(const char *string) {
 	new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
 	cc[j] = new_c + bonus;
 	if (noLonelyPairs)
-	  c[ij] = cc1[j-1]+stackEnergy+bonus;
+	  if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
+	    c[ij] = cc1[j-1]+stackEnergy+bonus;
+	  else /* currently we don't allow stacking over the cut point */
+	    c[ij] = FORBIDDEN; 
 	else
 	  c[ij] = cc[j];
 
