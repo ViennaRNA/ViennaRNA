@@ -22,7 +22,7 @@
 #include "params.h"
 #include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.4 2005/07/24 08:37:40 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: duplex.c,v 1.5 2006/06/23 07:59:32 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -32,7 +32,6 @@ static char rcsid[] UNUSED = "$Id: duplex.c,v 1.4 2005/07/24 08:37:40 ivo Exp $"
 
 PRIVATE void  encode_seq(const char *s1, const char *s2);
 PRIVATE char * backtrack(int i, int j);
-PRIVATE void update_dfold_params(void);
 PRIVATE int compare(const void *sub1, const void *sub2);
 
 extern int subopt_sorted; /* from subopt.c */
@@ -65,8 +64,10 @@ duplexT duplexfold(const char *s1, const char *s2) {
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
   
-  if ((!P) || (fabs(P->temperature - temperature)>1e-6))
-    update_dfold_params();
+  if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
+    update_fold_params();  P = scale_parameters();
+    make_pair_matrix();
+  }
   
   c = (int **) space(sizeof(int *) * (n1+1));
   for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
@@ -258,14 +259,6 @@ PRIVATE void encode_seq(const char *s1, const char *s2) {
     S2[i]= (short) encode_char(toupper(s2[i-1]));
     SS2[i] = alias[S2[i]];   /* for mismatches of nostandard bases */
   }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void update_dfold_params(void)
-{
-  P = scale_parameters();
-  make_pair_matrix();
 }
 
 /*---------------------------------------------------------------------------*/
