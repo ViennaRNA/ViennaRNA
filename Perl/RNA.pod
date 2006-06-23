@@ -103,7 +103,7 @@ structure and energy. E.g:
   print "Region ", $dup->{i}+1-length($seq1), " to ", 
         $dup->{i}, " of seq1 ",
         "pairs up with ", $dup->{j}, " to ", 
-	$dup->{j}+length($dup->{structure}-length($seq1)-2, 
+	$dup->{j}+length($dup->{structure})-length($seq1)-2, 
 	" of seq2\n";
 
 =back
