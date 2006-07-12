@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 11:24:26 ivo> */
+/* Last changed Time-stamp: <2006-07-11 17:43:47 ulim> */
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
@@ -15,12 +15,19 @@ int  dangles = 1;	 /* use dangling end energies */
 char *nonstandards = (char *)0; /* contains allowed non standard bases */
 double temperature = 37.0;
 int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
-			    no mismatches (no longer used) */
+			 no mismatches (no longer used) */
+/* int  w = 25;             length of region of interaction*/
+int  unstr = 4;             /* length of unpaired region */
+int  upmode = 0;         /* output mode for pf_unpaired and pf_up()*/
+/* int incr3 = 0;           add x unpaired bases after 3'end of short RNA*/
+/* int incr5 = 0;           add x unpaired bases after 5'end of short RNA*/  
+
 struct bond  *base_pair;
 
 FLT_OR_DBL *pr;          /* base pairing prob. matrix */
 int  *iindx;             /* pr[i,j] -> pr[iindx[i]-j] */
-double pf_scale=- 1;     /* scaling factor to avoid floating point overflows */
+double pf_scale=-1;     /* scaling factor to avoid floating point overflows */
+double s_fact =1.07;        /* user defined contribution to pf_scale */
 int   fold_constrained = 0; /* fold with constraints */
 int   do_backtrack=1;     /* calculate pair prob matrix in part_func() */
 int    noLonelyPairs = 0; /* avoid helices of length 1 */
