@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.34 2006/01/18 12:58:42 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.35 2006/07/21 14:56:48 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -481,7 +481,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
     int j;
     if ((j=pair_table[i])>i)
       fprintf(xyplot,
-	      "      \"<line id=\"%d,%d\" x1=\"%6.3f\" y1=\"%6.3f\" x2=\"%6.3f\" y2=\"%6.3f\" />\n",
+	      "      <line id=\"%d,%d\" x1=\"%6.3f\" y1=\"%6.3f\" x2=\"%6.3f\" y2=\"%6.3f\" />\n",
 	      i,j, X[i-1], Y[i-1], X[j-1], Y[j-1]);
   }
   fprintf(xyplot, "    </g>\n");
