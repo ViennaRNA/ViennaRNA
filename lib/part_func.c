@@ -7,6 +7,10 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.21  2006/08/04 15:39:06  ivo
+  new function stackProb returns probability for stacks
+  p[(i,j)(i+1,j-1)]
+
   Revision 1.20  2004/08/12 12:14:46  ivo
   update
 
@@ -43,8 +47,15 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 
+typedef struct plist {
+  int i;
+  int j;
+  float p;
+} plist;
+
+
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.20 2004/08/12 12:14:46 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.21 2006/08/04 15:39:06 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -939,4 +950,37 @@ PUBLIC double mean_bp_dist(int length) {
     for (j=i+TURN+1; j<=length; j++)
       d += pr[iindx[i]-j] * (1-pr[iindx[i]-j]);
   return d;
+}
+
+
+PUBLIC plist *stackProb(double cutoff) {
+  
+  plist *pl;
+  int i,j,plsize=256;
+  int length, num = 0;
+  if (pr==NULL) 
+    nrerror("pr==NULL. You need to call pf_fold() before stackProb()");
+  
+  pl = (plist *) space(plsize*sizeof(plist));
+  length = S[0];
+  for (i=1; i<length; i++)
+    for (j=i+TURN+3; j<=length; j++) {
+      double p;
+      if ((p=pr[iindx[i]-j])<cutoff) continue;
+      if (qb[iindx[i+1]-(j-1)]<FLT_MIN) continue;
+      p *= qb[iindx[i+1]-(j-1)]/qb[iindx[i]-j];
+      p *= expLoopEnergy(0,0,ptype[iindx[i]-j],rtype[ptype[iindx[i+1]-(j-1)]],
+			 0,0,0,0);
+      if (p>cutoff) {
+	pl[num].i = i;
+	pl[num].j = j;
+	pl[num++].p = p;
+	if (num>=plsize) {
+	  plsize *= 2;
+	  pl = xrealloc(pl, plsize*sizeof(plist));
+	}
+      }
+    }
+
+  return pl;
 }
