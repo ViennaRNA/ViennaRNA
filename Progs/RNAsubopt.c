@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.12 2006/04/18 16:15:46 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.13 2006/08/04 15:39:51 ivo Exp $";
 
 #define PRIVATE static
 
@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
    double deltaf, deltap=0;
    int delta=100;
    int n_back = 0;
+   int noconv = 0;
 
    do_backtrack = 1;
    dangles = 2;
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
 	      if (i==argc-1) usage();
 	      ns_bases = argv[++i];
 	    }
+	    if ( strcmp(argv[i], "-noconv")==0) noconv=1;
 	    break;
 	  case '4':
 	    tetra_loop=0;
@@ -178,7 +180,10 @@ int main(int argc, char *argv[])
 	}
       }
 
-      for (l = 0; l < length; l++) sequence[l] = toupper(sequence[l]);
+      for (l = 0; l < length; l++) {
+	sequence[l] = toupper(sequence[l]);
+	if (!noconv && sequence[l] == 'T') sequence[l] = 'U';
+      }
       if (istty)
 	printf("length = %d\n", length);
 
