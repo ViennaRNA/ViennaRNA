@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2000-10-10 11:24:26 ivo> */
+/* Last changed Time-stamp: <2006-04-18 15:45:15 berni> */
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
@@ -27,6 +27,8 @@ int    noLonelyPairs = 0; /* avoid helices of length 1 */
 char backtrack_type='F';  /* 'C' require (1,N) to be bonded;
 			     'M' seq is part of s multi loop */
 
+int *cut_points;
+int *strand;
 char * option_string(void) {
   static char options[100];
   *options = '\0';
