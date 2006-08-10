@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-05-08 20:04:18 ivo> */
+/* Last changed Time-stamp: <2006-08-09 16:05:15 berni> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -20,12 +20,10 @@
 
 extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
-extern int pfl_fold(char *sequence, int winSize, int pairdist, float cutoff, struct plist **pl);
-extern void  init_pf_foldLP(int length);
-extern void  free_pf_arraysLP(void);
+/*extern int pfl_fold(char *sequence, int winSize, int pairSize, float cutoff, struct plist **pl);*/
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.3 2006/05/10 15:13:18 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.4 2006/08/10 07:53:57 ivo Exp $";
 
 #define PRIVATE static
 
@@ -33,7 +31,8 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 	"....,....5....,....6....,....7....,....8";
 
 PRIVATE void usage(void);
-
+PRIVATE void putout_pup(float *pup,int length, int winsize);
+int unpaired;
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -50,12 +49,14 @@ int main(int argc, char *argv[])
   int pairdist=0;
   float cutoff=0.01;
   int hit;
-
+  float *pup=NULL; /*prob of being unpaired*/
   plist *pl;
+  int
   do_backtrack = 1;
   string=NULL;
   dangles=2;
-  for (i=1; i<argc; i++) {
+   unpaired=0;
+   for (i=1; i<argc; i++) {
     if (argv[i][0]=='-')
       switch ( argv[i][1] )
 	{
@@ -112,6 +113,12 @@ int main(int argc, char *argv[])
 	  r=sscanf(argv[++i], "%d", &winsize);
 	  if (r!=1) usage();
 	  break;
+	case 'u':
+	  if (i==argc-1) usage();
+	  r=sscanf(argv[++i], "%d", &unpaired);
+	  if (r!=1) usage();
+	  if (unpaired<0) usage();
+	  break;
 	case 'L':
 	  if (i==argc-1) usage();
 	  r=sscanf(argv[++i], "%d", &pairdist);
@@ -144,8 +151,7 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-
-  if (pairdist==0) pairdist=winsize;
+   if (pairdist==0) pairdist=winsize;
   if (pairdist>winsize) {
     fprintf(stderr, "pairdist (-L %d) should be <= winsize (-W %d);"
 	    "Setting pairdist=winsize\n",pairdist, winsize);
@@ -175,6 +181,10 @@ int main(int argc, char *argv[])
     (void) sscanf(line,"%s",string);
     free(line);
     length = (int) strlen(string);
+    if (unpaired) {
+      pup=(float *)space((length+1)*sizeof(float));
+      pup[0]=unpaired;
+    }
 
     structure = (char *) space((unsigned) length+1);
 
@@ -186,7 +196,7 @@ int main(int argc, char *argv[])
       printf("length = %d\n", length);
 
     /* initialize_fold(length); */
-    update_fold_params();
+    update_fold_params(); 
     if (length<winsize) {
       fprintf(stderr, "WARN: window size %d larger than sequence length %d\n",
 	      winsize, length);
@@ -194,11 +204,8 @@ int main(int argc, char *argv[])
     }
     if (length >= 5) {
       pf_scale = -1;
-
-      init_pf_foldLP(length);
-
-      hit=pfl_fold(string, winsize, pairdist, cutoff, &pl);
-      free_pf_arraysLP();
+   
+      pl=pfl_fold(string, winsize, pairdist, cutoff, pup);
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_dp.ps");
@@ -206,7 +213,10 @@ int main(int argc, char *argv[])
       else strcpy(ffname, "plfold_dp.ps");
       PS_dot_plot_turn(string, pl, ffname, pairdist);
       free(pl);
-
+      if (unpaired) {
+	putout_pup(pup,length,winsize);
+	free(pup);
+      }
       if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
     }
@@ -219,7 +229,36 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAplfold [-L span] [-W winsize]\n"
+	  "RNAplfold [-L span] [-W winsize] [-u size of unpaired region]\n"
 	  "          [-T temp] [-4] [-d[0|1|2]] [-noGU] [-noCloseGU]\n"
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
+}
+
+PRIVATE void putout_pup(float *pup,int length, int winsize) {
+  int i;
+  float factor;
+  float tfact;
+  printf("&prob of being unpaired between i-%d and i\n",unpaired);
+  fflush(NULL);
+  for (i=unpaired; i<=length; i++) {
+    if (i<winsize) {
+      factor=1./(i-unpaired+1);
+    }
+    if (i>length-winsize+unpaired-1) {
+      tfact=1./(length-i+1);
+      if (tfact>factor) {
+	factor=tfact;
+      }
+     
+    }
+    else {
+      tfact=1./(winsize-unpaired+1);
+      if (tfact>factor) {
+	factor=tfact;
+      }
+    }
+    printf("%d %.6f\n",i,pup[i]*factor);
+  }
+
+
 }

@@ -18,16 +18,30 @@ practical to "scan" very large genomes for short stable RNA structures.
 Output consists of a dot plot in postscript file, where the averaged pair probabilities
 can easily be parsed and visually inspected.
 
+In conjunction with the -u option, it is also possible to compute the probability
+that a stretch of x consequtive nucleotides is unpaired, which is useful
+for predicting possible binding sites. Again this probability is averaged
+over all windows containing the region. The output is a plain text list
+containing on each line a position i followed by the probability that the
+region [i-x+1..i] is unpaired.  
+
 .SH "OPTIONS"
-.TP 
+.TP
 .B \-W winsize
-Average pair probabilities over windows of size winsize. Default 70.
+Average pair probabilities over windows of size \fIwinsize\fP. Default 70.
 .PP
+.TP
 .B \-L span
 Allow only pairs (i,j) with j\-i<=span. Default winSize.
 .PP 
+.TP
 .B \-c cutoff
-Report only base pairs with an average probability > cutoff default=0.01.
+Report only base pairs with an average probability > \fIcutoff\fP in the
+dot plot; default=0.01.
+.PP
+.TP
+.B \-u width
+Compute the mean probability that regions of length \fIwidth\fP is unpaired.
 .PP 
 The \fB\-T\fP, \fB\-d\fP \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in
