@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
 @c Last changed Time-stamp: <2006-08-10 09:50:57 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.19 2006/08/10 07:54:15 ivo Exp $
+@set revision $Id: RNAlib.texinfo,v 1.20 2006/08/10 10:31:02 berni Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -403,7 +403,7 @@ dimer-only free energies, i.e. the FcAB entries from the @code{cofoldF} struct.
 Prototypes for these functions are declared in @file{co_part_func.h}.
 
 @node Local Fold, Alignment Fold, Cofolding, Folding Routines
-@section Searching for local mfe structures in large molecules
+@section Searching for local structures in large molecules
 
 Local structures can be predicted by a modified version of the
 @code{fold()} algorithm that restricts the span of all base pairs.
