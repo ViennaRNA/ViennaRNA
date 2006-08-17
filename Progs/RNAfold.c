@@ -19,14 +19,17 @@
 #include "utils.h"
 extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
+extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAfold.c,v 1.18 2005/10/30 20:07:12 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.19 2006/08/17 13:11:34 ivo Exp $";
 
 #define PRIVATE static
 
 static char  scale1[] = "....,....1....,....2....,....3....,....4";
 static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
+PRIVATE struct plist *b2plist(const char *struc);
+PRIVATE struct plist *make_plist(int length, double pmin);
 PRIVATE void usage(void);
 
 /*--------------------------------------------------------------------------*/
@@ -41,7 +44,7 @@ int main(int argc, char *argv[])
   int   i, length, l, sym, r;
   double energy, min_en;
   double kT, sfact=1.07;
-  int   pf=0, istty;
+  int   pf=0, noPS=0, istty;
   int noconv=0;
   int circ=0;
    
@@ -64,6 +67,7 @@ int main(int argc, char *argv[])
 	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
 	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
 	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
+	  if ( strcmp(argv[i], "-noPS")==0) noPS=1;
 	  if ( strcmp(argv[i], "-nsp") ==0) {
 	    if (i==argc-1) usage();
 	    ns_bases = argv[++i];
@@ -199,18 +203,17 @@ int main(int argc, char *argv[])
       strcpy(ffname, "rna.ps");
       strcpy(gfname, "rna.g");
     }
-    if (length<2000)
-      (void) PS_rna_plot(string, structure, ffname);
-    else { 
-      struct bond  *bp;
-      fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-
-      /* free mfe arrays but preserve base_pair for PS_dot_plot */
-      bp = base_pair; base_pair = space(16);
-      free_arrays();  /* free's base_pair */
-      base_pair = bp;
-    } 
+    if (!noPS) {
+      if (length<2000)
+	(void) PS_rna_plot(string, structure, ffname);
+      else { 
+	fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
+	free_arrays();  /* free's base_pair */
+      } 
+    }
     if (pf) {
+      char *pf_struc;
+      pf_struc = (char *) space((unsigned) length+1);
       if (circ) 
 	nrerror("Currently no partition function for circular RNAs. Please implement it!");
       if (dangles==1) {
@@ -226,11 +229,11 @@ int main(int argc, char *argv[])
       init_pf_fold(length);
 
       if (cstruc!=NULL)
-	strncpy(structure, cstruc, length+1);
-      energy = pf_fold(string, structure);
+	strncpy(pf_struc, cstruc, length+1);
+      energy = pf_fold(string, pf_struc);
 	 
       if (do_backtrack) {
-	printf("%s", structure);
+	printf("%s", pf_struc);
 	if (!istty) printf(" [%6.2f]\n", energy);
 	else printf("\n");
       }
@@ -239,16 +242,30 @@ int main(int argc, char *argv[])
       printf(" frequency of mfe structure in ensemble %g; ",
 	     exp((energy-min_en)/kT));
       if (do_backtrack) {
+	plist *pl1,*pl2;
 	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
 	if (fname[0]!='\0') {
 	  strcpy(ffname, fname);
 	  strcat(ffname, "_dp.ps");
 	} else strcpy(ffname, "dot.ps");
-	(void) PS_dot_plot(string, ffname);
+	pl1 = make_plist(length, 1e-5);
+	pl2 = b2plist(structure);
+	(void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
+	free(pl1);
+	if (do_backtrack==2) {
+	  pl1 = make_plist(length, 1e-5);
+	  if (fname[0]!='\0') {
+	    strcpy(ffname, fname);
+	    strcat(ffname, "_dp2.ps");
+	  } else strcpy(ffname, "dot2.ps");
+	  PS_dot_plot_list(string, ffname, pl1, pl2, 
+			   "Probabilities for stacked pairs (i,j)(i+1,j-1)");
+	  free(pl1); free(pl2);
+	}
       }
       printf("\n");
       free_pf_arrays();
-
+      
     }
     if (cstruc!=NULL) free(cstruc);
     if (length>=2000) free(base_pair);
@@ -259,10 +276,55 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+PRIVATE struct plist *b2plist(const char *struc) {
+  /* convert bracket string to plist */
+  short *pt;
+  struct plist *pl;
+  int i,k=0;
+  pt = make_pair_table(struc);
+  pl = (struct plist *)space(strlen(struc)/2*sizeof(struct plist));
+  for (i=1; i<strlen(struc); i++) {
+    if (pt[i]>i) {
+      pl[k].i = i;
+      pl[k].j = pt[i];
+      pl[k++].p = 0.95*0.95;
+    }
+  }
+  pl[k].i=0;
+  pl[k].j=0;
+  pl[k++].p=0.;
+  return pl;
+}
+
+
+PRIVATE struct plist *make_plist(int length, double pmin) {
+  /* convert matrix of pair probs to plist */
+  struct plist *pl;
+  int i,j,k=0,maxl;
+  maxl = 2*length;
+  pl = (struct plist *)space(maxl*sizeof(struct plist));
+  k=0;
+  for (i=1; i<length; i++)
+    for (j=i+1; j<=length; j++) {
+      if (pr[iindx[i]-j]<pmin) continue;
+      if (k>=maxl-1) {
+	maxl *= 2;
+	pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+      }
+      pl[k].i = i;
+      pl[k].j = j;
+      pl[k++].p = pr[iindx[i]-j];
+    }
+  pl[k].i=0;
+  pl[k].j=0;
+  pl[k++].p=0.;
+  return pl;
+}
+
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAfold [-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "RNAfold [-p[0|2]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-noconv] [-circ] \n");
+	  "        [-noconv] [-noPS] [-circ] \n");
 }

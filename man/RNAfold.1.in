@@ -4,7 +4,7 @@
 .SH "NAME"
 RNAfold \- calculate secondary structures of RNAs
 .SH "SYNOPSIS"
-\fBRNAfold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
+\fBRNAfold\fP [\-p[\fI0|2\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
 [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP]
 [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [-circ]
 
@@ -21,8 +21,8 @@ diversity to stdout.
 It also produces PostScript files with plots of the resulting
 secondary structure graph and a "dot plot" of the base pairing matrix.
 The dot plot shows a matrix of squares with area proportional to the
-pairing probability in the upper half, and one square for each pair in
-the minimum free energy structure in the lower half. For each pair
+pairing probability in the upper right half, and one square for each pair in 
+the minimum free energy structure in the lower left half. For each pair
 i\-j with probability p>10E\-6 there is a line of the form
 .br 
 i  j  sqrt(p)  ubox
@@ -37,12 +37,12 @@ a single line. Each sequence may be preceded by a line of the form
 .br
 to assign a name to the sequence. If a name is given in the input
  PostScript files "name_ss.ps" and "name_dp.ps" are produced for
-the structure and dot plot, respectively. Otherwise the filenames
+the structure and dot plot, respectively. Otherwise the file names
 default to rna.ps and dot.ps. Existing files of the same name will be
 overwritten.
 .br 
 The input format is similar to fasta except that even long sequences 
-may not be interupted by line breaks, and the header lines are optional.
+may not be interrupted by line breaks, and the header lines are optional.
 The program will continue to read new sequences until a line consisting
 of the single character @ or an end of file condition is encountered.
 .SH "OPTIONS"
@@ -63,6 +63,14 @@ model. See the discussion of dangling end options below.
 .B \-p0
 Calculate the partition function but not the pair probabilities,
 saving about 50% in runtime. Prints the ensemble free energy \-kT ln(Z).
+.TP
+.B \-p2
+In addition to pair probabilities compute stack probabilities, i.e. the
+probability that a pair (i,j) and the immediately interior pair (i+1,j-1) are
+formed simultaneously. A second postscript dot plot called "name_dp2.ps", or
+"dot2.ps" (if the sequence does not have a name), is produced that contains
+pair probabilities in the upper right half and stack probabilities in the
+lower left.
 .TP 
 .B \-C
 Calculate structures subject to constraints. 
@@ -144,6 +152,9 @@ file).
 .B \-circ
 Assume a circular (instead of linear) RNA molecule. Currently works only
 for mfe folding.
+.TP
+.B \-noPS
+Do not produce postscript drawing of the mfe structure.
 
 .SH "REFERENCES"
 The calculation of mfe structures is based on dynamic
@@ -185,4 +196,3 @@ Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.
 .SH "BUGS"
 If in doubt our program is right, nature is at fault.
 Comments should be sent to rna@tbi.univie.ac.at.
-
