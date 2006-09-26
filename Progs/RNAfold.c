@@ -1,5 +1,5 @@
-/* Last changed Time-stamp: <2005-09-22 10:10:55 ivo> */
-/*                
+/* Last changed Time-stamp: <2006-08-22 15:46:04 ivo> */
+/*
 		  Ineractive Access to folding Routines
 
 		  c Ivo L Hofacker
@@ -21,7 +21,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.19 2006/08/17 13:11:34 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.20 2006/09/26 08:55:54 ivo Exp $";
 
 #define PRIVATE static
 
@@ -47,11 +47,11 @@ int main(int argc, char *argv[])
   int   pf=0, noPS=0, istty;
   int noconv=0;
   int circ=0;
-   
-  do_backtrack = 1; 
+
+  do_backtrack = 1;
   string=NULL;
   for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') 
+    if (argv[i][0]=='-')
       switch ( argv[i][1] )
 	{
 	case 'T':  if (argv[i][2]!='\0') usage();
@@ -104,14 +104,14 @@ int main(int argc, char *argv[])
 	  ParamFile = argv[++i];
 	  break;
 	default: usage();
-	} 
+	}
   }
 
-  if (circ && noLonelyPairs) 
+  if (circ && noLonelyPairs)
     fprintf(stderr, "warning, depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times\n");
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -140,8 +140,8 @@ int main(int argc, char *argv[])
     printf("< : base i is paired with a base j<i\n");
     printf("> : base i is paired with a base j>i\n");
     printf("matching brackets ( ): base i pairs base j\n");
-  } 
-	
+  }
+
   do {				/* main loop: continue until end of file */
     if (istty) {
       printf("\nInput string (upper or lower case); @ to quit\n");
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
       printf("%s\n", line);
       free(line);
       if ((line = get_line(stdin))==NULL) break;
-    } 
+    }
 
     if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     structure = (char *) space((unsigned) length+1);
     if (fold_constrained) {
       cstruc = get_line(stdin);
-      if (cstruc!=NULL) 
+      if (cstruc!=NULL)
 	strncpy(structure, cstruc, length);
       else
 	fprintf(stderr, "constraints missing\n");
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
       printf("length = %d\n", length);
 
     /* initialize_fold(length); */
-    if (circ) 
+    if (circ)
       min_en = circfold(string, structure);
     else
       min_en = fold(string, structure);
@@ -191,9 +191,9 @@ int main(int argc, char *argv[])
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
     else
       printf(" (%6.2f)\n", min_en);
-       
+
     (void) fflush(stdout);
-       
+
     if (fname[0]!='\0') {
       strcpy(ffname, fname);
       strcat(ffname, "_ss.ps");
@@ -206,22 +206,22 @@ int main(int argc, char *argv[])
     if (!noPS) {
       if (length<2000)
 	(void) PS_rna_plot(string, structure, ffname);
-      else { 
+      else {
 	fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
 	free_arrays();  /* free's base_pair */
-      } 
+      }
     }
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
-      if (circ) 
+      if (circ)
 	nrerror("Currently no partition function for circular RNAs. Please implement it!");
       if (dangles==1) {
 	dangles=2;   /* recompute with dangles as in pf_fold() */
 	min_en = energy_of_struct(string, structure);
 	dangles=1;
       }
-	 
+
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
@@ -231,13 +231,13 @@ int main(int argc, char *argv[])
       if (cstruc!=NULL)
 	strncpy(pf_struc, cstruc, length+1);
       energy = pf_fold(string, pf_struc);
-	 
+
       if (do_backtrack) {
 	printf("%s", pf_struc);
 	if (!istty) printf(" [%6.2f]\n", energy);
 	else printf("\n");
       }
-      if ((istty)||(!do_backtrack)) 
+      if ((istty)||(!do_backtrack))
 	printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
       printf(" frequency of mfe structure in ensemble %g; ",
 	     exp((energy-min_en)/kT));
@@ -251,27 +251,27 @@ int main(int argc, char *argv[])
 	pl1 = make_plist(length, 1e-5);
 	pl2 = b2plist(structure);
 	(void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
-	free(pl1);
+	free(pl2);
 	if (do_backtrack==2) {
-	  pl1 = make_plist(length, 1e-5);
+	  pl2 = stackProb(1e-5);
 	  if (fname[0]!='\0') {
 	    strcpy(ffname, fname);
 	    strcat(ffname, "_dp2.ps");
 	  } else strcpy(ffname, "dot2.ps");
-	  PS_dot_plot_list(string, ffname, pl1, pl2, 
+	  PS_dot_plot_list(string, ffname, pl1, pl2,
 			   "Probabilities for stacked pairs (i,j)(i+1,j-1)");
 	  free(pl1); free(pl2);
 	}
       }
       printf("\n");
       free_pf_arrays();
-      
+
     }
     if (cstruc!=NULL) free(cstruc);
     if (length>=2000) free(base_pair);
     (void) fflush(stdout);
     free(string);
-    free(structure); 
+    free(structure);
   } while (1);
   return 0;
 }
@@ -324,7 +324,7 @@ PRIVATE struct plist *make_plist(int length, double pmin) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAfold [-p[0|2]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n" 
+	  "RNAfold [-p[0|2]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n"
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  "        [-noconv] [-noPS] [-circ] \n");
 }
