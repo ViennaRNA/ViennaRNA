@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-05-31 11:08:08 ivo> */
+/* Last changed Time-stamp: <2006-10-03 15:28:38 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.9 2006/06/23 07:58:11 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.10 2006/10/03 13:43:17 ivo Exp $";
 
 #define PAREN
 
@@ -396,7 +396,7 @@ PRIVATE int fill_arrays(const char *string) {
 	  if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
 	    c[ij] = cc1[j-1]+stackEnergy+bonus;
 	  else /* currently we don't allow stacking over the cut point */
-	    c[ij] = FORBIDDEN; 
+	    c[ij] = FORBIDDEN;
 	else
 	  c[ij] = cc[j];
 
@@ -965,59 +965,58 @@ PRIVATE void backtrack(const char *string) {
 }
 
 PRIVATE void free_end(int *array, int i, int start) {
-  int inc, type, energy, length, j, ii, jj;
-  inc = (i>start)? 1:-1;
-  length = S[0];
+ int inc, type, energy, length, j, left, right;
+ inc = (i>start)? 1:-1;
+ length = S[0];
 
-  if (i==start) array[i]=0;
-  else array[i] = array[i-inc];
-  if (i>start) {
-    ii = start; jj=i;
-  } else {
-    ii = i; jj = start;
-  }
-  for (j=start; inc*(i-j)>TURN; j+=inc) {
-    int d3, d5;
-    if (i>j) { ii = j; jj = i;} /* inc>0 */
-    else     { ii = i; jj = j;} /* inc<0 */
-    type = ptype[indx[jj]+ii];
-    if (type) {
-      d5 = (ii>1 && SAME_STRAND(ii-1,ii))? P->dangle5[type][S1[ii-1]]:0;
-      d3 = (jj<length && SAME_STRAND(jj,jj+1))?P->dangle3[type][S1[jj+1]]:0;
+ if (i==start) array[i]=0;
+ else array[i] = array[i-inc];
+ if (inc>0) {
+   left = start; right=i;
+ } else {
+   left = i; right = start;
+ }
+ for (j=start; inc*(i-j)>TURN; j+=inc) {
+   int d3, d5, ii, jj;
+   if (i>j) { ii = j; jj = i;} /* inc>0 */
+   else     { ii = i; jj = j;} /* inc<0 */
+   type = ptype[indx[jj]+ii];
+   if (type) {  /* i is paired with j */
+     d5 = (ii>1 && SAME_STRAND(ii-1,ii))? P->dangle5[type][S1[ii-1]]:0;
+     d3 = (jj<length && SAME_STRAND(jj,jj+1))?P->dangle3[type][S1[jj+1]]:0;
 
-      energy = c[indx[jj]+ii];
-      if (type>2) energy += P->TerminalAU;
-      if (dangles==2) energy += d3 + d5;
-      array[i] = MIN2(array[i], array[j-inc]+energy);
+     energy = c[indx[jj]+ii];
+     if (type>2) energy += P->TerminalAU;
+     if (dangles==2) energy += d3 + d5;
+     array[i] = MIN2(array[i], array[j-inc]+energy);
 
-      if (dangles%2==1) {
-	if (inc>0) {
-	  if (j>1)  energy += array[j-2] + d5;
-	} else
-	  if (j<length)  energy += d3 + array[j+2];
-	array[i] = MIN2(array[i], energy);
-      }
-    }
-    if (dangles%2==1) {
-      int iii, jjj;
-      if (inc>0) {iii = ii; jjj=jj-1;}
-      else       {iii = ii+1; jjj = jj;}
-      type = ptype[indx[jjj]+iii];
-      if (!type) continue;
-      d5 = (iii>1 && SAME_STRAND(iii-1,iii)) ?
-	P->dangle5[type][S1[iii-1]] : 0;
-      d3 = (jjj<length && SAME_STRAND(jjj,jjj+1)) ?
-	P->dangle3[type][S1[jjj+1]] : 0;
-      energy = c[indx[jjj]+iii] + ((inc>0)?d3:d5);
-      if (type>2) energy += P->TerminalAU;
-      array[i] = MIN2(array[i], array[j-inc]+energy);
-      if (j!=start) { /* dangles on both sides */
-	energy += (inc>0)?d5:d3;
-	array[i] = MIN2(array[i], array[j-2*inc]+energy);
-      }
-    }
-  }
+     if (dangles%2==1) {
+       if (inc>0) {
+         if (j>left)  energy += array[j-2] + d5;
+       } else
+         if (j<right)  energy += d3 + array[j+2];
+       array[i] = MIN2(array[i], energy);
+     }
+   }
+   if (dangles%2==1) {
+     /* interval ends in a dangle (i.e. i-inc is paired) */
+     if (i>j) { ii = j; jj = i-1;} /* inc>0 */
+     else     { ii = i+1; jj = j;} /* inc<0 */
+     type = ptype[indx[jj]+ii];
+     if (!type) continue;
+     d5 = (ii>left && SAME_STRAND(ii-1,ii)) ? P->dangle5[type][S1[ii-1]] : 0;
+     d3 = (jj<right && SAME_STRAND(jj,jj+1))? P->dangle3[type][S1[jj+1]] : 0;
+     energy = c[indx[jj]+ii] + ((inc>0)?d3:d5); /* i is a dangle */
+     if (type>2) energy += P->TerminalAU;
+     array[i] = MIN2(array[i], array[j-inc]+energy);
+     if (j!=start) { /* dangles on both sides */
+       energy += (inc>0)?d5:d3;
+       array[i] = MIN2(array[i], array[j-2*inc]+energy);
+     }
+   }
+ }
 }
+
 
 /*---------------------------------------------------------------------------*/
 
