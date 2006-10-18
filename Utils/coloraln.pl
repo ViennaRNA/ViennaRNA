@@ -129,7 +129,7 @@ sub readClustal{
     if ( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
       # clustal 1.4 format
       ($seqname,$aln_line) = ("$1/$2-$3",$4);
-    } elsif ( /^(\S+)\s+([A-Z\-]+)\s*$/ ) {
+    } elsif ( /^(\S+)\s+([A-Z\-]+)\s*\d*$/ ) {
 	  ($seqname,$aln_line) = ($1,$2);
 	} else {
 	  next;
