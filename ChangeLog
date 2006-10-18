@@ -1,3 +1,13 @@
+2006-08-22  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add computation stacking probabilities using RNAfold -p2
+	* add -noPS option for NRAfold to supress drawing structures
+
+2006-08-09  Stephan Bernhart  <berni@tbi.univie.ac.at>
+
+	* RNAplfold can now compute probabilites of unpaired regions
+	  (scanning version of RNAup)
+
 2006-06-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* compile library with -fpic (if available) for use as shared

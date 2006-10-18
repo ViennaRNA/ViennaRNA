@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 # -*-CPerl-*-
-# Last changed Time-stamp: <2005-07-15 18:14:39 ivo>
+# Last changed Time-stamp: <2006-08-17 12:15:00 ivo>
 # CGI script for a Web-based RNA fold server
 # you need to have the perl5 RNA module installed
 # that comes as part of the Vienna RNA package
@@ -16,7 +16,7 @@ use File::Temp qw/ tempdir/;
 use warnings;
 no warnings qw(uninitialized);
 use vars qw/$hdir $maxlength1 $maxlength2 $maxlength_pf $batchscript
-            $ssv_home $ssv_url $paramdir $serverroot $logfile/;
+	    $ssv_home $ssv_url $paramdir $serverroot $logfile/;
 
 # please configure these variables for your site
 
@@ -24,9 +24,9 @@ $paramdir = '/var/www/RNA';  # directory where parameters files etc are stored
 $serverroot = '/u/html';     # where your web pages live
 $hdir = '/RNAfold_dir';      # output directory (relative to $serverroot)
 $maxlength1 =  300;          # max length for immediate jobs
-$maxlength2 = 5000;          # max length for queued jobs
-$maxlength_pf = 4000;
-$CGI::POST_MAX = 16*1024;    # prevent absurdly huge posts right away
+$maxlength2 = 7000;          # max length for queued jobs
+$maxlength_pf = 6000;
+$CGI::POST_MAX = 24*1024;    # prevent absurdly huge posts right away
 $ssv_home = 'http://smi-web.stanford.edu/projects/helix/sstructview/home.html';
 $ssv_url  = '/~ivo/RNA/SStructView.zip';
 $batchscript = '/var/www/RNA/RNAbatch.pl'; # script to use for batch submissions
@@ -37,7 +37,7 @@ $batchscript = '/var/www/RNA/RNAbatch.pl'; # script to use for batch submissions
 BEGIN {
   use CGI::Carp qw(carpout fatalsToBrowser);
   # redirect errors to a log file instead of the web server log
-  my $log = '/var/www/RNA/RNAfold_cgi.log'; 
+  my $log = '/var/www/RNA/RNAfold_cgi.log';
   no strict "subs";
   open(LOG, ">>$log") && carpout(LOG)
       or warn "Unable to open logfile $log: $!\n";
@@ -55,7 +55,7 @@ if ($query->cgi_error) {
   print $query->header(-status=>$query->cgi_error),
     $query->start_html('Problems'),
       $query->h2('Request not processed'),
-        $query->strong($query->cgi_error);
+	$query->strong($query->cgi_error);
   exit 0;
 }
 
@@ -147,14 +147,14 @@ sub print_form {
      "Should we produce a mountain plot of the structure?</strong> \n",
        $query->checkbox(-name=>'plot', -checked=>'ON');
    print "\n<BR>View a plot of the mfe structure inline using\n",
-     "an SVG image (may require plugin)\n", 
+     "an SVG image (may require plugin)\n",
        $query->checkbox(-name=>'SVG', checked=>'ON');
    print "<br>\nor using the <code>SStructView</code> java applet?\n",
      $query->checkbox(-name=>'SSview');
-   print "<br>\nEmail address. When the job has completed, we'll send a ",
-         "mail containing a link to the results page, this is useful for ",
+   print "<p>\nEmail address. When the job has completed, we'll send a ",
+	 "mail containing a link to the results page, this is useful for ",
 	 "long jobs that won't give results immediately. Please ",
-	 "don't use fake addresses (just leave the filed as is, or empty).\n";
+	 "don't use fake addresses (just leave the filed as is, or empty):\n";
    print $query->textfield(-name => 'email',
 			   -default => 'you@where.org',
 			   -size => 30);
@@ -194,9 +194,9 @@ sub do_work {
 #   foreach my $f (< *.ps *.png *.coords *.svg>) {
 #      unlink($f) if (-M $f)>1.5;
 #   }
-   foreach my $f (<../fold*>) {
-     if ($f =~ /(\.\.\/fold\d+)/) {
-       system('/bin/rm', '-r', $1) if (-d $1) && (-M $1)>3;
+   foreach my $f (<../fold??????>) {
+     if ($f =~ /(...fold......)/) { # launder tainted $f
+	system('/bin/rm', '-r', $1) if (-d $1) && (-M $1)>30;
      }
    }
 
@@ -279,6 +279,7 @@ sub do_work {
    my $email;
    if ($length >$maxlength1) {
        $email = undef if $email eq 'you@where.org';
+       $email = undef if $email eq 'someone_else_not_me@web.de';
        $email = Email::Valid->address($query->param('email'), -mxcheck => 1);
        if (!defined($email))  {
 	   print "It seems you have no given a valid mail address ",
@@ -351,8 +352,8 @@ sub do_work {
    open(OUT, ">index.html");
    my $old_stdout = select(OUT);
    print $query->start_html(-title=>'RNAfold results',
-                       -author=>'ivo@tbi.univie.ac.at',
-                       -BGCOLOR=>'#f8f8ff');
+		       -author=>'ivo@tbi.univie.ac.at',
+		       -BGCOLOR=>'#f8f8ff');
 
    print "<H2><a name=\"Results\">Here are your RNAfold results</a></H2>\n";
 
@@ -393,7 +394,7 @@ sub do_work {
    my ($structure, $mfe) = RNA::fold($Sequence);
    print "The optimal secondary structure in bracket notation is given below\n";
    my $seq = $Sequence;
-   $Sequence =~ s/U/T/g if ($query->param('Params') eq 'DNA');   
+   $Sequence =~ s/U/T/g if ($query->param('Params') eq 'DNA');
    my $eseq = $Sequence;
    encode_entities($eseq);
 
@@ -488,7 +489,7 @@ sub print_tail {
    print <<END;
    We appreciate your feedback. Please send comments to
    <ADDRESS>Ivo Hofacker
-   <A HREF="mailto:ivo\@tbi.univie.ac.at">&lt;rna\@tbi.univie.ac.at&gt;</A>
+   <A HREF="mailto:rna\@tbi.univie.ac.at">&lt;rna\@tbi.univie.ac.at&gt;</A>
    </ADDRESS><BR>
    <A HREF="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna RNA Home Page</A>
 END
@@ -554,4 +555,3 @@ sub estimate {
   $t += 100 if $l > $maxlength1; # extra time for batch submission
   return int($t+1);
 }
-
