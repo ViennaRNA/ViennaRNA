@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: aln_util.c,v 1.2 2006/01/18 13:00:30 ivo Exp $";
+static char rcsid[] = "$Id: aln_util.c,v 1.3 2006/10/18 15:53:05 ivo Exp $";
 
 #define MAX_NUM_NAMES    500
 int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
@@ -144,7 +144,7 @@ char *consens_mis(const char*AS[]) {
       if (freq[c]*n>=bgfreq[c]) code++;
     }
     cons[i] = IUP[code];
-    if (freq[0]*n>=bgfreq[0])
+    if (freq[0]*n>bgfreq[0])
       cons[i] = tolower(IUP[code]);
   }
   return cons;
