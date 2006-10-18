@@ -1,14 +1,15 @@
 #!/usr/bin/perl -w
 
 use Getopt::Long;
-use POSIX;
+use Pod::Usage;
+#use POSIX;
 #use GD;
 use strict;
 
 my $ssFile='alirna.ps';
 my $columnWidth=120;
 my $formatT=0;
-my $help=0;
+my $man=0;
 my $ruler=0;
 my $resnum=0;
 
@@ -17,20 +18,16 @@ GetOptions ('-s:s' => \$ssFile,
 	    '-t' => \$formatT,
 	    '-r' => \$ruler,
 	    '-n' => \$resnum,
-	    "help"=>\$help,
-	    "h"=>\$help,
-	   );
+	    "help"=> \$man,
+	    "man" => \$man,
+	    "h"=> sub {pod2usage(-verbose => 1)},
+	   ) || pod2usage(-verbose => 0);
 
-if ($help) {
-  print "\ncoloraln.pl [-s structure.ps] < file.aln \n\n";
-  print " -s ... RNAalifold consensus structure file (default: alirna.ps) \n";
-  print " -c ... maximum number of columns in a block (default: 120)\n";
-  print " -t ... print Ts (default: print Us)\n\n";
-  exit(1);
-}
+pod2usage(-verbose => 2) if $man;
 
 if (!-e $ssFile) {
-  print "No RNAalifold consensus secondary structure file found (use option -s with the correct filename).\n";
+    pod2usage(-msg => "RNAalifold secondary structure file $ssFile not found (use option -s)",
+	      -verbose => 0);
   exit(1);
 }
 
@@ -305,11 +302,10 @@ sub plotAln{
 
   $tmpColumns=$length if ($length<$columnWidth);
 
-  my $imageWidth=ceil($namesX+($maxName+$tmpColumns)*$fontWidth+$nameStep+$fontWidth);
-  $imageWidth += int($fontWidth + length($length)*$fontWidth) if $resnum;
-  my $imageHeight=ceil($startY+$length/$columnWidth*
-		       ((@aln+1+$ruler)*$lineStep+$blockStep+$consStep+$ssStep));
-
+  my $imageWidth = int(0.9+$namesX+($maxName+$tmpColumns)*$fontWidth+$nameStep+$fontWidth);
+  $imageWidth += int($fontWidth + length("$length")*$fontWidth) if $resnum;
+  my $numBlock = int(1+($length-1)/$columnWidth); 
+  my $imageHeight = int($startY+$numBlock*((@aln+1+$ruler)*$lineStep+$blockStep+$consStep+$ssStep));
 
 
   my $white="1 1 1";
@@ -351,7 +347,7 @@ sub plotAln{
   foreach my $pair (@pairs) {
 
     foreach my $column ($pair->{open},$pair->{close}) {
-      my $block=ceil(($column+1)/$columnWidth);
+      my $block = int(0.999+($column+1)/$columnWidth);
       my $effCol=$column-($block-1)*$columnWidth;
       my $x=$seqsX+$effCol*$fontWidth;
 
@@ -474,7 +470,7 @@ sub plotAln{
     $currPos+=$columnWidth;
   }
 
-  my $BB="0 0 $imageWidth $imageHeight";
+  my $BB="2 2 $imageWidth $imageHeight";
 
   while (<DATA>) {
     s/!BB!/$BB/;
@@ -491,7 +487,7 @@ coloraln.pl - colorize an alignment with consensus structure
 
 =head1 SYNOPSIS
 
-  coloraln.pl [-s structure.ps] file.aln
+  coloraln.pl [-r] [-n] [-c columns] [-s structure.ps] file.aln
 
 =head1 DESCRIPTION
 
@@ -520,6 +516,14 @@ break alignments into blocks of at most I<width> columns, (default: 120)
 
 suppress conversion of C<T> to C<U>, i.e. do not convert DNA to
 RNA, (default: convert to C<U>)
+
+=item B<-r>
+
+add a "ruler" below the alignment showing sequence positions
+
+=item B<-n>
+
+write sequence position at the end of each sequence line
 
 =back
 
