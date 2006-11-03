@@ -1,4 +1,5 @@
-/* Last changed Time-stamp: <2006-04-18 15:45:15 berni> */
+/* Last changed Time-stamp: <2006-11-03 16:29:09 ulim> */
+
 /*
        global variables to change behaviour of folding routines
 			  Vienna RNA package
@@ -16,6 +17,7 @@ char *nonstandards = (char *)0; /* contains allowed non standard bases */
 double temperature = 37.0;
 int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
 			    no mismatches (no longer used) */
+
 struct bond  *base_pair;
 
 FLT_OR_DBL *pr;          /* base pairing prob. matrix */
