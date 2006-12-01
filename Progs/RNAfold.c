@@ -21,7 +21,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.20 2006/09/26 08:55:54 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.21 2006/12/01 12:36:23 ivo Exp $";
 
 #define PRIVATE static
 
@@ -260,8 +260,10 @@ int main(int argc, char *argv[])
 	  } else strcpy(ffname, "dot2.ps");
 	  PS_dot_plot_list(string, ffname, pl1, pl2,
 			   "Probabilities for stacked pairs (i,j)(i+1,j-1)");
-	  free(pl1); free(pl2);
+	  free(pl2);
 	}
+	free(pl1);
+	free(pf_struc);
       }
       printf("\n");
       free_pf_arrays();
@@ -290,6 +292,7 @@ PRIVATE struct plist *b2plist(const char *struc) {
       pl[k++].p = 0.95*0.95;
     }
   }
+  free(pt);
   pl[k].i=0;
   pl[k].j=0;
   pl[k++].p=0.;
