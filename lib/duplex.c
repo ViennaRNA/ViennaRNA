@@ -22,7 +22,7 @@
 #include "params.h"
 #include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.5 2006/06/23 07:59:32 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: duplex.c,v 1.6 2006/12/01 12:33:28 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -224,9 +224,9 @@ PRIVATE char *backtrack(int i, int j) {
   if (j<n2) j++;
   
   struc = (char *) space(i0-i+1+j-j0+1+2);
-  for (k=i; k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
+  for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+i-1); strcat(struc, "&"); 
+  strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
   strcat(struc, st2+j0-1);
   
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
