@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 
-static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.36 2006/08/17 12:21:00 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.37 2006/12/06 15:26:20 ivo Exp $";
 
 #define PUBLIC
 #define  PRIVATE   static
@@ -288,7 +288,23 @@ static const char *anote_macros =
 "    closepath fill stroke\n"
 "   grestore\n"
 "} bind def\n"
-"end\n\n";
+"/hsb {\n"
+"    dup 0.3 mul 1 exch sub sethsbcolor\n"
+"} bind def\n"
+"/colorpair { % i j hue sat colorpair\n"
+"   % draw basepair i,j in color\n"
+"   % 1 index 0.00 ne {\n"
+"   gsave\n"
+"   newpath\n"
+"   hsb\n"
+"   fsize setlinewidth\n"
+"   1 sub coor exch get aload pop moveto\n"
+"   1 sub coor exch get aload pop lineto\n"
+"   stroke\n"
+"   grestore\n"
+"   % } if\n"
+"} bind def\n"
+ "end\n\n";
 
 int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post)
 {
