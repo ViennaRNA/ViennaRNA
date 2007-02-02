@@ -21,7 +21,7 @@ static int pair[MAXALPHA+1][MAXALPHA+1];
 static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
 
 /* for backward compatibility */
-#define ENCODE(C) encode_char(c)
+#define ENCODE(c) encode_char(c)
 
 static int encode_char(char c) {
   /* return numerical representation of base used e.g. in pair[][] */
