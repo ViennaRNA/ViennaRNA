@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.11 2006/02/28 14:56:47 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.12 2007/02/02 15:17:25 ivo Exp $";
 
 #define PAREN
 
@@ -718,6 +718,6 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
       fprintf(stderr, "%s\n", structure);
       nrerror("unbalanced brackets in constraint string");
     }
-    free(stack);
+    free(stack); free(stack2);
   }
 }
