@@ -17,13 +17,13 @@
 #include "fold_vars.h"
 #include "utils.h"
 #include "PS_dot.h"
+#include "LPfold.h"
 
 extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
-/*extern int pfl_fold(char *sequence, int winSize, int pairSize, float cutoff, struct plist **pl);*/
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.4 2006/08/10 07:53:57 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.5 2007/02/02 15:14:27 ivo Exp $";
 
 #define PRIVATE static
 
