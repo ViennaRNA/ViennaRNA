@@ -23,7 +23,7 @@
 #include "part_func.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.4 2006/08/10 07:54:15 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.5 2007/02/02 15:13:28 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -84,7 +84,6 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
 
-  double free_energy;
   double max_real;
   struct plist *pl;
   
@@ -209,7 +208,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	}
 	if (temp>=max_real) {
 	  PRIVATE char msg[128];
-	  sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
+	  snprintf(msg, 128, "overflow in pf_fold while calculating q[%d,%d]\n"
 		  "use larger pf_scale", i,j);
 	  nrerror(msg);
 	}
@@ -351,7 +350,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	for (i=MAX(k-winSize+1,1); i<k-unpaired; i++) { 
 	  /*lustig intloops?*/
 	  for (l=k+2; l<=MIN(i+winSize-1,n); l++) {
-	    if (qb[i][l]) {
+	    if (qb[i][l]>0) {
 	      int p,q;
 	      u = l-i-1;
 	      type = ptype[i][l];
@@ -360,7 +359,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 		u1 = p-i-1;
 		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<=k-unpaired; q++) {
 		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
+		  if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
 				       S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
 		}	
 	      }
@@ -368,7 +367,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 		u1 = p-i-1;
 		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<l; q++) {
 		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
+		  if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
 				          S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
 		}
 	      }
@@ -377,7 +376,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	    }
 	  }
 	  l = k+1;
-	  if (qb[i][l]) {
+	  if (qb[i][l]>0) {
 	    int p,q;
 	    temp=0.;
 	    type = ptype[i][l];
@@ -385,7 +384,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	      u1=p-i-1;
 	      for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<=k-unpaired; q++) {
 		type_2=rtype[ptype[p][q]];
-		if (qb[p][q]) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
+		if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
 				       S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
 		}	
 	    }
@@ -398,14 +397,14 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	if (i>0) {
 	for (l=k+2; l<=MIN(i+winSize-1,n/*is n length??*/); l++) {
 	  type = ptype[i][l];
-	    if (qb[i][l]) {
+	    if (qb[i][l]>0) {
 	      int p,q;
 	      temp=0.;
 	      for (p=k+1; p<MIN(l-TURN,i+MAXLOOP+1); p++) {
 		u = l-i-1;
 		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<l; q++) {
 		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]) temp+= expLoopEnergy(p-i-1, l-q-1, type, type_2,
+		  if (qb[p][q]>0) temp+= expLoopEnergy(p-i-1, l-q-1, type, type_2,
 				          S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
 		}
 	      }
@@ -414,7 +413,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	      
 	    }
 	}
-	if (qb[k-unpaired][k+1]) pup[k]+=(float) pR[k-unpaired][k+1]*expHairpinEnergy(unpaired, ptype[k-unpaired][k+1], S1[k-unpaired+1], S1[k], sequence+k-unpaired-1); /*didnot get that before!*/
+	if (qb[k-unpaired][k+1]>0) pup[k]+=(float) pR[k-unpaired][k+1]*expHairpinEnergy(unpaired, ptype[k-unpaired][k+1], S1[k-unpaired+1], S1[k], sequence+k-unpaired-1); /*didnot get that before!*/
 	}
      }
       if (j-2*winSize>0) {
@@ -827,7 +826,6 @@ PRIVATE struct plist *get_plistW(struct plist *pl, int length, double cutoff,
 				 int start, FLT_OR_DBL **Tpr, int winSize) {
   /*get pair probibilities out of pr array*/
   int  j,  max_p;
-  int n=2;
 
   max_p=1000;
   while (max_p<num_p)
