@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: aln_util.c,v 1.3 2006/10/18 15:53:05 ivo Exp $";
+static char rcsid[] = "$Id: aln_util.c,v 1.4 2007/02/02 15:18:13 ivo Exp $";
 
 #define MAX_NUM_NAMES    500
 int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
@@ -72,6 +72,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    }
 
    AlignedSeqs[num_seq] = NULL;
+   names[num_seq] = NULL;
    if (num_seq == 0) {
      fprintf(stderr, "No sequences found in CLSUATL file\n");
      return 0;

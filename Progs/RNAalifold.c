@@ -21,11 +21,11 @@
 #include "alifold.h"
 #include "aln_util.h"
 extern void  read_parameter_file(const char fname[]);
-extern float circalifold(const char **strings, char *structure);
+extern float circalifold(const char *strings[], char *structure);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.15 2006/06/14 11:25:53 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.16 2007/02/02 15:18:13 ivo Exp $";
 
 #define PRIVATE static
 
@@ -33,7 +33,7 @@ static const char scale[] = "....,....1....,....2....,....3....,....4"
 			    "....,....5....,....6....,....7....,....8";
 
 PRIVATE void /*@exits@*/ usage(void);
-PRIVATE char *annote(const char *structure, const char *AS[]);
+PRIVATE char **annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(const pair_info pi, FILE *file);
 PRIVATE cpair *make_color_pinfo(const pair_info *pi);
 PRIVATE void mark_endgaps(char *seq, char egap);
@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
   char     *names[MAX_NUM_NAMES];       /* sequence names */
   FILE     *clust_file = stdin;
   int circ=0;
+  int doAlnPS=0;
+  int doColor=0;
 
   do_backtrack = 1;
   string=NULL;
@@ -121,9 +123,20 @@ int main(int argc, char *argv[])
 	  if ( strcmp(argv[i], "-cv")==0) {
 	    r=sscanf(argv[++i], "%lf", &cv_fact);
 	    if (!r) usage();
-	  } else
-	    if (strcmp(argv[i], "-circ")==0) circ=1;
+	  } else {
+	    if (strcmp(argv[i], "-circ")==0) 
+	      circ=1;
+	    else
+	      if (strcmp(argv[i], "-color")==0) 
+		doColor=1;
+	  }
 	  break;
+        case 'a':
+          if ( strcmp(argv[i], "-aln")==0) {
+	    doAlnPS=1;
+          }
+          break;
+
 	default: usage();
 	}
     }
@@ -235,13 +248,19 @@ int main(int argc, char *argv[])
     strcpy(gfname, "alirna.g");
   }
   if (length<=2500) {
-    char *A;
+    char **A;
     A = annote(structure, (const char**) AS);
-    (void) PS_rna_plot_a(string, structure, ffname, NULL, A);
-    free(A);
+    if (doColor) 
+      (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
+    else
+      (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
+    free(A[0]); free(A[1]);free(A);
   } else
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
 
+  if (doAlnPS)
+    PS_color_aln(structure, "aln.ps", AS,  names);
+		 
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
     bp = base_pair; base_pair = space(16);
@@ -370,14 +389,26 @@ PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
   return cp;
 }
 
-PRIVATE char *annote(const char *structure, const char *AS[]) {
-  char *ps;
-  int i, n, s, maxl;
+PRIVATE char **annote(const char *structure, const char *AS[]) {
+  char *ps, *colorps, **A;
+  int i, n, s, pairings, maxl;
   short *ptable;
+  char * colorMatrix[6][3] = {
+    {"0.0 1", "0.0 0.6",  "0.0 0.2"},  /* red    */
+    {"0.16 1","0.16 0.6", "0.16 0.2"}, /* ochre  */
+    {"0.32 1","0.32 0.6", "0.32 0.2"}, /* turquoise */
+    {"0.48 1","0.48 0.6", "0.48 0.2"}, /* green  */
+    {"0.65 1","0.65 0.6", "0.65 0.2"}, /* blue   */
+    {"0.81 1","0.81 0.6", "0.81 0.2"} /* violet */
+  };
+
   make_pair_matrix();
   n = strlen(AS[0]);
   maxl = 1024;
+  
+  A = (char **) space(sizeof(char *)*2);
   ps = (char *) space(maxl);
+  colorps = (char *) space(maxl);
   ptable = make_pair_table(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
@@ -391,6 +422,15 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
+    for (pairings=0,s=1; s<=7; s++) {
+      if (pfreq[s]) pairings++;
+    }
+    if (pfreq[0]<=2) {
+      snprintf(pps, 64, "%d %d %s colorpair\n", 
+	       i,j, colorMatrix[pairings-1][pfreq[0]]);
+      strcat(colorps, pps);
+    }
+
     if (maxl - strlen(ps) < 128) {
       maxl *= 2;
       ps = realloc(ps, maxl);
@@ -410,7 +450,9 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
     }
   }
   free(ptable);
-  return ps;
+  A[0]=colorps;
+  A[1]=ps;
+  return A;
 }
 
 /*-------------------------------------------------------------------------*/

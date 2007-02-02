@@ -19,7 +19,8 @@ the mfe structure in the ensemble to stdout.  It also produces Postscript
 files with plots of the resulting secondary structure graph ("alirna.ps")
 and a "dot plot" of the base pairing matrix ("alidot.ps"). The file
 "alifold.out" will contain a list of likely pairs sorted by credibility,
-suitable for viewing  with "AliDot.pl".
+suitable for viewing  with "AliDot.pl". Be warned that output file will
+overwrite any existing files of the same name.
 .SH "OPTIONS"
 .TP 
 .B \-cv \fIfactor\fP
@@ -51,6 +52,14 @@ Setting this option provides a significant speedup.
 .B \-circ
 Assume circular (instead of linear) RNA molecules. Currently works only
 for mfe folding.
+.TP
+.B \-color
+Produce a colored version of the consensus strcture plot "alirna.ps"
+(default b&w only).
+.TP
+.B \-aln
+Produce a colored and structure annotated alignment in PostScript format in
+the file "aln.ps" in the current directory.
 .PP 
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options \fUshould\fP work as in RNAfold

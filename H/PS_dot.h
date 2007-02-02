@@ -30,3 +30,5 @@ extern int PS_dot_plot_list(char *seq, char *filename, struct plist *pl,
 			    struct plist *mf, char *comment);
 extern int PS_dot_plot_turn(char *seq, struct plist *pl, char *filename,
 			    int winSize);
+extern int PS_color_aln(const char *structure, const char *filename, 
+			const char *seqs[], const char *names[]);

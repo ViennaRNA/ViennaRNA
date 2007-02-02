@@ -12,3 +12,4 @@ typedef struct {
    char comp;    /* 1 iff pair is in mfe structure */
 }  pair_info;
 extern float alipf_fold(char **sequences, char *structure, pair_info **pi);
+extern float circalifold(const char **strings, char *structure);
