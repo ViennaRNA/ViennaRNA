@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.24  2007/03/03 17:57:44  ivo
+  make sure entries in scale[] decrease to 0
+
   Revision 1.23  2006/12/01 12:40:23  ivo
   undo Ulli's accidental commit
 
@@ -58,7 +61,7 @@ typedef struct plist {
 
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.23 2006/12/01 12:40:23 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.24 2007/03/03 17:57:44 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -390,9 +393,9 @@ PRIVATE void scale_pf_params(unsigned int length)
     pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
     if (pf_scale<1) pf_scale=1;
   }
-  scale[0] = 1.;
-  for (i=1; i<=length; i++) {
-    scale[i] = scale[i-1]/pf_scale;
+  scale[0] = 1.;   scale[1] = 1./pf_scale;
+  for (i=2; i<=length; i++) {
+    scale[i] = scale[i/2]*scale[i-(i/2)];
   }
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
