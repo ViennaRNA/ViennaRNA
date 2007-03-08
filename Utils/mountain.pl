@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2006-08-15 22:04:09 ivo>
+# Last changed Time-stamp: <2007-03-07 17:22:09 ivo>
 # produce Pauline Hogeweg's mountain representation *_dp.ps files
 # writes 3 sets of x y data separated by a "&"
 # the first two sets are mountain representations from base pair probabilities
@@ -27,10 +27,9 @@ if (@ARGV && ($ARGV[0] eq '-png')) {
 
 
 while (<>) {
-    my ($seq,$i,$j,$p,$id);
-    chop;
+    chomp;
     if (/\/sequence \{ \((\S*)[\\\)]/) {
-	$seq = $1;              # empty for new version
+	my $seq = $1;           # empty for new version
 	while (!/\) \} def/) {  # read until end of definition
 	    $_ = <>;
 	    /(\S*)[\\\)]/;      # ends either with `)' or `\'
@@ -40,8 +39,8 @@ while (<>) {
 	next;
     }
 
-    next unless /box$/;
-    ($i, $j, $p, $id) = split;
+    next unless /(\d+) (\d+) (\d+\.\d+) (.box)$/;
+    my ($i, $j, $p, $id) = ($1,$2,$3,$4);
     if ($id eq "ubox") {
 	$p *= $p;           # square it to probability
 	$mp[$i+1] += $p;
