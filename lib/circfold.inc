@@ -189,6 +189,8 @@ float circfold(const char *string, char *structure) {
 	}
       Fc = FcMd3;
     }
+    free(fM_d3);
+    free(fM_d5);
   }
   
   if (FcH==Fc) {
