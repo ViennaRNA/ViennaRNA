@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-08-09 16:05:15 berni> */
+/* Last changed Time-stamp: <2007-03-16 13:30:06 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -23,7 +23,7 @@ extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.5 2007/02/02 15:14:27 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.6 2007/03/16 12:44:19 ivo Exp $";
 
 #define PRIVATE static
 
@@ -31,7 +31,7 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 	"....,....5....,....6....,....7....,....8";
 
 PRIVATE void usage(void);
-PRIVATE void putout_pup(float *pup,int length, int winsize);
+PRIVATE void putout_pup(double *pup,int length, int winsize);
 int unpaired;
 /*--------------------------------------------------------------------------*/
 
@@ -49,10 +49,11 @@ int main(int argc, char *argv[])
   int pairdist=0;
   float cutoff=0.01;
   int hit;
-  float *pup=NULL; /*prob of being unpaired*/
+  double *pup=NULL; /*prob of being unpaired*/
   plist *pl;
   int
   do_backtrack = 1;
+
   string=NULL;
   dangles=2;
    unpaired=0;
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
     free(line);
     length = (int) strlen(string);
     if (unpaired) {
-      pup=(float *)space((length+1)*sizeof(float));
+      pup=(double *)space((length+1)*sizeof(double));
       pup[0]=unpaired;
     }
 
@@ -196,7 +197,7 @@ int main(int argc, char *argv[])
       printf("length = %d\n", length);
 
     /* initialize_fold(length); */
-    update_fold_params(); 
+    update_fold_params();
     if (length<winsize) {
       fprintf(stderr, "WARN: window size %d larger than sequence length %d\n",
 	      winsize, length);
@@ -204,7 +205,7 @@ int main(int argc, char *argv[])
     }
     if (length >= 5) {
       pf_scale = -1;
-   
+
       pl=pfl_fold(string, winsize, pairdist, cutoff, pup);
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
@@ -234,7 +235,7 @@ PRIVATE void usage(void)
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }
 
-PRIVATE void putout_pup(float *pup,int length, int winsize) {
+PRIVATE void putout_pup(double *pup,int length, int winsize) {
   int i;
   float factor;
   float tfact;
@@ -249,7 +250,7 @@ PRIVATE void putout_pup(float *pup,int length, int winsize) {
       if (tfact>factor) {
 	factor=tfact;
       }
-     
+
     }
     else {
       tfact=1./(winsize-unpaired+1);
@@ -257,7 +258,7 @@ PRIVATE void putout_pup(float *pup,int length, int winsize) {
 	factor=tfact;
       }
     }
-    printf("%d %.6f\n",i,pup[i]*factor);
+    printf("%d %.6g\n",i,pup[i]*factor);
   }
 
 
