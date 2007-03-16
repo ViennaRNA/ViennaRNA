@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-08-09 16:04:55 berni> */
+/* Last changed Time-stamp: <2007-03-16 13:29:22 ivo> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -23,7 +23,7 @@
 #include "part_func.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.5 2007/02/02 15:13:28 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.6 2007/03/16 12:45:22 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -76,17 +76,17 @@ PRIVATE double init_temp; /* temperature in last call to scale_pf_params */
 /*-----------------------------------------------------------------*/
 static  short *S, *S1;
 static int unpaired;
-PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoff, float *pup)
+PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoff, double *pup)
 {
 
   int n, m,i,j,k,l, u,u1,ii, type, type_2, tt, ov=0;
   FLT_OR_DBL temp, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp;
-
+  
   double max_real;
   struct plist *pl;
-  
+
   unpaired=0;
   if (pup != NULL) unpaired=(int) pup[0]+0.49;
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -111,8 +111,6 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
   pl=(struct plist *)space(1000*sizeof(struct plist));
 
 
-  /*  for (i=1; i<=n; i++)
-      qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0; oisa gaunza unnedig, wenn nicht recycelt*/
   /*ALWAYS q[i][j] => i>j!!*/
   for (j=1; j<MIN(TURN+2,n); j++) { /*allocate start*/
     GetNewArrays(j, winSize);
@@ -138,7 +136,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
 	  else
 	    qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
-
+	  
 	  /* interior loops with interior pair k,l */
 	  for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
 	    u1 = k-i-1;
@@ -159,11 +157,11 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  tt = rtype[type];
 	  qbt1 += temp*expMLclosing*expMLintern[tt]*scale[2]*
 	    expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
-
+	  
 	  qb[i][j] = qbt1;
 	} /* end if (type!=0) */
 	else qb[i][j] = 0.0;
-
+	
 	/* construction of qqm matrix containing final stem
 	   contributions to multiple loop partition function
 	   from segment i,j */
@@ -176,7 +174,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  qqm[i] += qbt1;
 	}
 	if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
-
+	
 	/*construction of qm matrix containing multiple loop
 	  partition function contributions from segment i,j */
 	temp = 0.0;
@@ -186,7 +184,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	if (unpaired) qm2[i][j]=temp;/*new qm2 computation done here*/
 	for (k=i+1; k<=j; k++) temp += expMLbase[k-i]*qqm[k];
 	qm[i][j] = (temp + qqm[i]);
-
+	
 	/*auxiliary matrix qq for cubic order q calculation below */
 	qbt1 = qb[i][j];
 	if (type) {
@@ -195,7 +193,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  else if (type>2) qbt1 *= expTermAU;
 	}
 	qq[i] = qq1[i]*scale[1] + qbt1;
-
+	
 	/*construction of partition function for segment i,j */
 	temp = 1.0*scale[1+j-i] + qq[i];
 	for (k=i; k<=j-1; k++) temp += q[i][k]*qq[k+1];
@@ -228,7 +226,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
     }
 #endif
     if (j>winSize) {
-     
+
       Qmax=0;
       /*i=j-winSize;*/
       /*initialize multiloopfs*/
@@ -243,10 +241,10 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	pR[k][l] = 0; /*set zero at start*/
 	type=ptype[k][l];
 	if (qb[k][l]==0) continue;
-
+	
 	for (a=MAX(1,l-winSize+2); a<MIN(k,n-winSize+2);a++)
 	  pR[k][l]+=q[a][k-1]*q[l+1][a+winSize-1]/q[a][a+winSize-1];
-
+	
 	if (l-k+1==winSize)
 	  pR[k][l]+=1./q[k][l];
 	else {
@@ -261,17 +259,17 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  pR[k][l]*= expdangle3[type][S1[l+1]];
 	else if (type>2)
 	  pR[k][l] *= expTermAU;
-
-
+	
+	
 	/*initialize multiloopfs*/
 	prml[j-winSize]=0;
 	prm_l[j-winSize]=0;
 	prm_l1[j-winSize]=0;
-
+	
 	/* pr = q; */    /* recycling */
-
+	
 	type_2 = ptype[k][l]; type_2 = rtype[type_2];
-
+	
 	for (i=MAX(MAX(l-winSize+1,k-MAXLOOP-1),1); i<=k-1; i++) {
 	  for (m=l+1; m<=MIN(MIN(l+ MAXLOOP -k+i+2,i+winSize-1),n); m++) {
 	    type = ptype[i][m];
@@ -335,98 +333,76 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 
       /* end for (l=..)   */
       if ((unpaired)&&(k>=unpaired)&&(k<=n)) {
-	/*compute probability that stretch between k and k-w is unpaired*/
-	temp=0.0;
+	/* compute probability that stretch between k-w and k is unpaired */
+	double pu=0;
+	/* Case 1: unpaired in exterior loop */
 	if (k<n) {
-	  /*()----() type cases */ 
+	  /* ()----() generic cases */
 	  for (i=MAX(k-winSize+2,1); i<=MIN(k-unpaired,n-winSize+1);i++) {
-	    pup[k]+=(float) q[i][k-unpaired]*q[k+1][i+winSize-1]*scale[unpaired]/q[i][i+winSize-1]; /*+1? -1??*/
+	    pu += q[i][k-unpaired]*q[k+1][i+winSize-1] / q[i][i+winSize-1];
 	  }
-	  /*special cases: ----() */
-	  if (k-unpaired+winSize<=n) pup[k]+=(float) scale[unpaired]*q[k+1][k-unpaired+winSize]/q[k-unpaired+1][k-unpaired+winSize]; /*???*/
-	  /*and ()----*/  
+	  /* border casess: ----() */
+	  if (k-unpaired+winSize<=n)
+	    pu+= q[k+1][k-unpaired+winSize] / q[k-unpaired+1][k-unpaired+winSize];
 	}
-	if (k>=winSize) pup[k]+=(float) scale[unpaired]*q[k-winSize+1][k-unpaired]/q[k-winSize+1][k];
-	for (i=MAX(k-winSize+1,1); i<k-unpaired; i++) { 
-	  /*lustig intloops?*/
-	  for (l=k+2; l<=MIN(i+winSize-1,n); l++) {
+	/* and ()---- */
+	if (k>=winSize)
+	  pu+= q[k-winSize+1][k-unpaired]/q[k-winSize+1][k];
+	pup[k] += pu*scale[unpaired];
+	
+	/* Case 2: unpaired within a pair (i,l) */
+	for (i=MAX(k-winSize+1,1); i<=k-unpaired; i++) {
+	  for (l=k+1; l<=MIN(i+winSize-1,n); l++) {
 	    if (qb[i][l]>0) {
 	      int p,q;
 	      u = l-i-1;
 	      type = ptype[i][l];
 	      temp=0.;
-	      for (p=i+1; p<=MIN(i+MAXLOOP+1,k-TURN-unpaired); p++) {    /*uaaaah*/
+	      /* interior loop contributions */
+	      for (p=i+1; p<=MIN(i+MAXLOOP+1,k-TURN-unpaired); p++) {
 		u1 = p-i-1;
 		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<=k-unpaired; q++) {
 		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
-				       S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
-		}	
+		  if (qb[p][q]>0)
+		    temp+= expLoopEnergy(u1, l-q-1, type, type_2,
+					 S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
+		}
 	      }
 	      for (p=k+1; p<MIN(l-TURN,i+MAXLOOP+1); p++) {
 		u1 = p-i-1;
 		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<l; q++) {
 		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
-				          S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
+		  if (qb[p][q]>0)
+		    temp+= expLoopEnergy(u1, l-q-1, type, type_2,
+					 S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
 		}
 	      }
-	      /*for better understanding*/
-	      pup[k]+=(float) pR[i][l]*(expHairpinEnergy(u, type, S1[i+1], S1[l-1], sequence+i-1)+(qm2[i+1][k-unpaired]*expMLbase[l-(k-unpaired)-1]+qm2[k+1][l-1]*expMLbase[k-i]+qm[i+1][k-unpaired]*qm[k+1][l-1]*expMLbase[unpaired])*expdangle3[rtype[type]][S1[i+1]]*expdangle5[rtype[type]][S1[l-1]]*expMLclosing *expMLintern[rtype[type]]*scale[2]+temp);   
-	    }
-	  }
-	  l = k+1;
-	  if (qb[i][l]>0) {
-	    int p,q;
-	    temp=0.;
-	    type = ptype[i][l];
-	    for (p=i+1; p<=MIN(i+MAXLOOP+1,k-TURN-unpaired); p++) {    /*uaaaah*/
-	      u1=p-i-1;
-	      for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<=k-unpaired; q++) {
-		type_2=rtype[ptype[p][q]];
-		if (qb[p][q]>0) temp+= expLoopEnergy(u1, l-q-1, type, type_2,
-				       S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
-		}	
-	    }
-	    u = l-i-1;
-	   
-	    pup[k]+=(float) pR[i][l]*(expHairpinEnergy(u, type, S1[i+1], S1[l-1], sequence+i-1)+qm2[i+1][k-unpaired]*expMLbase[unpaired]*expdangle3[rtype[type]][S1[i+1]]*expdangle5[rtype[type]][S1[l-1]]*expMLclosing*expMLintern[rtype[type]]*scale[2]+temp);
-	  }
-	}
-	i=k-unpaired;
-	if (i>0) {
-	for (l=k+2; l<=MIN(i+winSize-1,n/*is n length??*/); l++) {
-	  type = ptype[i][l];
-	    if (qb[i][l]>0) {
-	      int p,q;
-	      temp=0.;
-	      for (p=k+1; p<MIN(l-TURN,i+MAXLOOP+1); p++) {
-		u = l-i-1;
-		for (q=MAX(p+TURN,l-MAXLOOP-1+u1); q<l; q++) {
-		  type_2=rtype[ptype[p][q]];
-		  if (qb[p][q]>0) temp+= expLoopEnergy(p-i-1, l-q-1, type, type_2,
-				          S1[i+1], S1[l-1], S1[p-1], S1[q+1])*qb[p][q];
-		}
+	      /* hairpin contribution */
+	      temp += expHairpinEnergy(u, type, S1[i+1], S1[l-1], sequence+i-1);
+	      /* multiloop contribution */
+	      pu = 0.;
+	      if (i<k-unpaired) pu += qm2[i+1][k-unpaired]*expMLbase[l-(k-unpaired)-1];
+	      if (k+1<l) {
+		pu += qm2[k+1][l-1]*expMLbase[k-i];
+		if (i<k-unpaired)
+		  pu += qm[i+1][k-unpaired]*qm[k+1][l-1]*expMLbase[unpaired];
 	      }
-	      u = l-i-1;
-	         pup[k]+=(float) pR[i][l]*(expHairpinEnergy(u, type, S1[i+1], S1[l-1], sequence+i-1)+qm2[k+1][l-1]*expdangle3[rtype[type]][S1[i+1]]*expdangle5[rtype[type]][S1[l-1]]*expMLclosing*expMLbase[k-i]*expMLintern[rtype[type]]*scale[2]+temp);
-	      
+	      temp += pu * expdangle3[rtype[type]][S1[i+1]]*expdangle5[rtype[type]][S1[l-1]]*
+		expMLclosing *expMLintern[rtype[type]]*scale[2];
+	      pup[k]+= pR[i][l]*temp;
 	    }
+	  }
 	}
-	if (qb[k-unpaired][k+1]>0) pup[k]+=(float) pR[k-unpaired][k+1]*expHairpinEnergy(unpaired, ptype[k-unpaired][k+1], S1[k-unpaired+1], S1[k], sequence+k-unpaired-1); /*didnot get that before!*/
-	}
-     }
+      }
       if (j-2*winSize>0) {
 	printpbar(pR,winSize,j-2*winSize,n,cutoff);
 	pl=get_plistW(pl, n, cutoff, j-2*winSize, pR, winSize);
 	FreeOldArrays(j-2*winSize);
       }
-
     }   /* end if (do_backtrack)*/
-
-
+    
   }/*end for j */
-
+  
   /*finish output and free*/
   for (j=n-winSize+1; j<=n; j++) {
     printpbar(pR,winSize,j,n,cutoff);
@@ -437,7 +413,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
 		    "you might try a smaller pf_scale than %g\n",
 		    ov, pf_scale);
-
+  
   return pl;
 }
 
@@ -458,21 +434,21 @@ PRIVATE void scale_pf_params(unsigned int length)
   unsigned int i, j, k, l;
   double  kT, TT;
   double  GT;
-
-
+  
+  
   init_temp = temperature;
   kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (temperature+K0)/(Tmeasure);
-
+  
   /* scaling factors (to avoid overflows) */
   if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
     pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
   }
   if (pf_scale<1) pf_scale=1;
-  scale[0] = 1.;
-  for (i=1; i<=length; i++)
-    scale[i] = scale[i-1]/pf_scale;
-
+  scale[0] = 1.; scale[1] = 1./pf_scale;
+  for (i=2; i<=length; i++)
+    scale[i] = scale[i/2]*scale[i-(i/2)];
+  
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<=MIN(30,length); i++) {
     GT =  hairpin37[i]*TT;
@@ -486,7 +462,7 @@ PRIVATE void scale_pf_params(unsigned int length)
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) expinternal[2] = exp ( -80*10/kT);
-
+  
   lxc = lxc37*TT;
   for (i=31; i<length; i++) {
     GT = hairpin37[30]*TT + (lxc*log( i/30.));
