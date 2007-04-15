@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-02-26 00:05:58 ivo> */
+/* Last changed Time-stamp: <2007-04-02 18:36:38 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -25,7 +25,7 @@ extern float circalifold(const char *strings[], char *structure);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.16 2007/02/02 15:18:13 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.17 2007/04/15 17:16:44 ivo Exp $";
 
 #define PRIVATE static
 
@@ -124,18 +124,18 @@ int main(int argc, char *argv[])
 	    r=sscanf(argv[++i], "%lf", &cv_fact);
 	    if (!r) usage();
 	  } else {
-	    if (strcmp(argv[i], "-circ")==0) 
+	    if (strcmp(argv[i], "-circ")==0)
 	      circ=1;
 	    else
-	      if (strcmp(argv[i], "-color")==0) 
+	      if (strcmp(argv[i], "-color")==0)
 		doColor=1;
 	  }
 	  break;
-        case 'a':
-          if ( strcmp(argv[i], "-aln")==0) {
+	case 'a':
+	  if ( strcmp(argv[i], "-aln")==0) {
 	    doAlnPS=1;
-          }
-          break;
+	  }
+	  break;
 
 	default: usage();
 	}
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
   if (length<=2500) {
     char **A;
     A = annote(structure, (const char**) AS);
-    if (doColor) 
+    if (doColor)
       (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
     else
       (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 
   if (doAlnPS)
     PS_color_aln(structure, "aln.ps", AS,  names);
-		 
+
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
     bp = base_pair; base_pair = space(16);
@@ -405,7 +405,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   make_pair_matrix();
   n = strlen(AS[0]);
   maxl = 1024;
-  
+
   A = (char **) space(sizeof(char *)*2);
   ps = (char *) space(maxl);
   colorps = (char *) space(maxl);
@@ -425,17 +425,21 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
     for (pairings=0,s=1; s<=7; s++) {
       if (pfreq[s]) pairings++;
     }
+
+    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
+      maxl *= 2;
+      ps = realloc(ps, maxl);
+      colorps = realloc(colorps, maxl);
+      if ((ps==NULL) || (colorps == NULL))
+	  nrerror("out of memory in realloc");
+    }
+
     if (pfreq[0]<=2) {
-      snprintf(pps, 64, "%d %d %s colorpair\n", 
+      snprintf(pps, 64, "%d %d %s colorpair\n",
 	       i,j, colorMatrix[pairings-1][pfreq[0]]);
       strcat(colorps, pps);
     }
 
-    if (maxl - strlen(ps) < 128) {
-      maxl *= 2;
-      ps = realloc(ps, maxl);
-      if (ps==NULL) nrerror("out of memory in realloc");
-    }
     if (pfreq[0]>0) {
       snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
       strcat(ps, pps);
@@ -460,7 +464,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ]\n"
+	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-color] [-aln]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
 	  );
