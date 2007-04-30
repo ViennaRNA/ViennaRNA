@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-12-01 13:38:34 ivo> */
+/* Last changed Time-stamp: <2007-04-30 16:27:17 ulim> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.25  2007/04/30 15:12:00  ivo
+  merge RNAup into package
+
   Revision 1.24  2007/03/03 17:57:44  ivo
   make sure entries in scale[] decrease to 0
 
@@ -41,7 +44,6 @@
   Revision 1.13  2001/11/16 17:30:04  ivo
   add stochastic backtracking (still incomplete)
 */
-
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +63,7 @@ typedef struct plist {
 
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.24 2007/03/03 17:57:44 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.25 2007/04/30 15:12:00 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -74,13 +76,14 @@ PUBLIC  void  free_pf_arrays(void);
 PUBLIC  void  update_pf_params(int length);
 PUBLIC  char  bppm_symbol(float *x);
 PUBLIC  int   st_back=0;
+PUBLIC  double expLoopEnergy(int u1, int u2, int type, int type2,
+			     short si1, short sj1, short sp1, short sq1);
+PUBLIC  double expHairpinEnergy(int u, int type, short si1, short sj1,
+				const char *string);
+PUBLIC  int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
-PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
-			     short si1, short sj1, short sp1, short sq1);
-PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
-				const char *string);
 PRIVATE void make_ptypes(const short *S, const char *structure);
 
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
@@ -97,7 +100,7 @@ PRIVATE FLT_OR_DBL *exphairpin;
 PRIVATE FLT_OR_DBL expbulge[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expinternal[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
-PRIVATE FLT_OR_DBL *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
+PRIVATE FLT_OR_DBL *q, *qb=NULL, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
 PRIVATE char *ptype; /* precomputed array of pair types */
@@ -158,8 +161,8 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	/*hairpin contribution*/
 	if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
 	else
-	  qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
-
+	  qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*
+	    scale[u+2];/* add scale[u+2] */
 	/* interior loops with interior pair k,l */
 	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
 	  u1 = k-i-1;
@@ -167,9 +170,10 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    type_2 = ptype[iindx[k]-l];
 	    if (type_2) {
 	      type_2 = rtype[type_2];
-	      qbt1 += qb[iindx[k]-l] *
+	      /* add *scale[u1+u2+2] */
+	      qbt1 += qb[iindx[k]-l] * (scale[u1+j-l+1] *
 		expLoopEnergy(u1, j-l-1, type, type_2,
-			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
+			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	    }
 	  }
 	}
@@ -287,8 +291,10 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    ij = iindx[i] - j;
 	    type = ptype[ij];
 	    if ((pr[ij]>0)) {
-	      pr[kl] += pr[ij]*expLoopEnergy(k-i-1, j-l-1, type, type_2,
-					     S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
+	      /* add *scale[u1+u2+2] */
+	      pr[kl] += pr[ij] * (scale[k-i+j-l] * 
+		expLoopEnergy(k-i-1, j-l-1, type, type_2,
+			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	    }
 	  }
       }
@@ -523,8 +529,9 @@ PRIVATE void scale_pf_params(unsigned int length)
 }
 
 /*----------------------------------------------------------------------*/
-PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
+PUBLIC double expHairpinEnergy(int u, int type, short si1, short sj1,
 				const char *string) {
+/* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
   double q;
   q = exphairpin[u];
   if ((tetra_loop)&&(u==4)) {
@@ -544,12 +551,12 @@ PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
   else /* no mismatches for tri-loops */
     q *= expmismatchH[type][si1][sj1];
 
-  q *= scale[u+2];
   return q;
 }
-
-PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
+PUBLIC double expLoopEnergy(int u1, int u2, int type, int type2,
 			     short si1, short sj1, short sp1, short sq1) {
+/* compute Boltzmann weight of interior loop,
+   multiply by scale[u1+u2+2] for scaling */
   double z=0;
   int no_close = 0;
 
@@ -586,7 +593,7 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
       }
     }
   }
-  return z*scale[u1+u2+2];
+  return z;
 }
 
 /*----------------------------------------------------------------------*/
@@ -646,7 +653,7 @@ PUBLIC void init_pf_fold(int length)
 PUBLIC void free_pf_arrays(void)
 {
   free(q); q=pr=NULL;
-  free(qb);
+  free(qb); qb=NULL;
   free(qm);
   if (qm1 != NULL) {free(qm1); qm1 = NULL;}
   free(ptype);
@@ -873,7 +880,8 @@ static void backtrack(int i, int j) {
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
     else
-      qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
+      qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*
+	scale[u+2]; /* add scale[u+2] */
 
     if (qbt1>r) return; /* found the hairpin we're done */
 
@@ -884,9 +892,10 @@ static void backtrack(int i, int j) {
 	type_2 = ptype[iindx[k]-l];
 	if (type_2) {
 	  type_2 = rtype[type_2];
-	  qbt1 += qb[iindx[k]-l] *
+	  /* add *scale[u1+u2+2] */
+	  qbt1 += qb[iindx[k]-l] * (scale[u1+j-l+1] * 
 	    expLoopEnergy(u1, j-l-1, type, type_2,
-			  S1[i+1], S1[j-1], S1[k-1], S1[l+1]);
+			  S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	}
 	if (qbt1 > r) break;
       }
@@ -976,7 +985,7 @@ PUBLIC plist *stackProb(double cutoff) {
       if (qb[iindx[i+1]-(j-1)]<FLT_MIN) continue;
       p *= qb[iindx[i+1]-(j-1)]/qb[iindx[i]-j];
       p *= expLoopEnergy(0,0,ptype[iindx[i]-j],rtype[ptype[iindx[i+1]-(j-1)]],
-			 0,0,0,0);
+			 0,0,0,0)*scale[2];/* add *scale[u1+u2+2] */
       if (p>cutoff) {
 	pl[num].i = i;
 	pl[num].j = j;
@@ -989,4 +998,14 @@ PUBLIC plist *stackProb(double cutoff) {
     }
 
   return pl;
+}
+/*-------------------------------------------------------------------------*/
+/* make arrays used for pf_fold available to other routines */
+PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p) 
+{  
+  if(qb == NULL) return(0); /* check if pf_fold() has been called */
+  *S_p = S; *S1_p = S1; *ptype_p = ptype;
+  *qb_p = qb; *qm_p = qm;
+  *q1k_p = q1k; *qln_p = qln;
+  return(1); /* success */
 }
