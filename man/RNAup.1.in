@@ -1,0 +1,129 @@
+.\" .ER
+.TH "RNAUP" "l" "1.6" "Ivo Hofacker" "ViennaRNA"
+.SH "NAME"
+RNAup \- calculates the thermodynamics of RNA-RNA interactions
+.SH "SYNOPSIS"
+\fBRNAcofold\fP [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
+[\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fIe_setfP] [\-P\ \fIparamfile\fP]
+[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\-w\ \fIlength\fP] [\-5\ \fIlength\fP] [\-3\ \fIlength\fP] [\-o[1|2]] [\-u \fIlength\fP] [\-ncov] [\-circ]
+
+.SH "DESCRIPTION"
+.I RNAup
+calculates the thermodynamics of RNA-RNA interactions. RNA-RNA
+binding is decomposed into two stages. (1) First the partition function for
+secondary structures of the target RNA subject to the constraint that a
+certain sequence interval (the binding site) remains unpaired is
+computed. (2) Then the binding energy given that the binding site is
+unpaired in the target is calculated as the optimum over all possible types
+of bindings.   
+.br
+In the current version the longer RNA molecule is considered to be the
+target sequence, the shorter one is assumed to be a small regulatory
+RNA. The small RNA is assumed to be unstructured. RNA sequences are read
+from stdin as strings of characters, white space and newline within a
+sequence cause an error. Newline is used to separate sequences. To
+compute the hybrid structure of two molecules, they have to be
+concatenated using the '&' character as separator. The input file may
+contain more than one sequence'&'sequence pair.  
+.br
+RNAup computes the probability that a region within the target is
+unpaired, the conditional probability of an interaction between two
+molecules, given that an interaction is possible, and the optimal free
+energy of binding at a given position along the target sequence.
+.br
+Output consists of the mfe of the target sequence, a string indicating the
+pairing preference of the target and the free energy of the thermodynamic
+ensemble of the target in kcal/mol. The string indicating the pairing
+preference consists of the letters '. , | { } ( )' denoting bases that are
+essentially unpaired, weakly paired, strongly paired without preference,
+weakly upstream (downstream) paired, or strongly up- (down-)stream paired
+bases, respectively.
+.br
+The output of RNAup depends on three options: \-o, \-u and \-x. To generate
+an output file the \-o switch has to be specified. If only one sequence is
+given the output is the probability of being unpaired independent of the
+choice of \-o.
+If two sequences concatenated using the '&' character are given option \-o1
+outputs only the probability of being unpaired and option \-o2 writes out
+the probability of being unpaired, the conditional probability of an
+interaction and the optimal free energy of binding. The -u option
+determines the length of the unpaired region in the output. The -x option
+specifies the different contributions of the probability of being unpaired
+in the output. 
+.br 
+The program will continue to read new sequences until a line consisting
+of the single character @ or an end of file condition is encountered.
+.SH "OPTIONS"
+.TP
+.B \-w \fIlength\fP
+This option determines the maximal length of the unstructured region used
+for the calculation of the probability of being unpaired. The default
+value is 25.   
+.TP
+.B \-5(\-3) \fIlength\fP
+These option are only used for the calculation of the interaction
+probability and the optimal free energy of binding. They extend the region
+determined by -w by length residues to the 5' and /or the 3' side,
+respectively. The underlying assumption is that it is favorable for an
+interaction if not only the direct region of contact is unpaired but also a
+few residues 5'and 3' of this region. 
+.TP 
+.B \-o[1|2]
+This option specifies the output. The -o option has to be given if you want
+the program to make an output! Please consider options \-u and \-x for
+modulating the output. Default is -o1 if only one sequence is given and -o2
+if two sequences, concatenated via '&', are given. If the sequence is
+preceded by a line of the form 
+> name
+The output file is called name_"values of \-w and \-u"_up.out, where name
+consists of the first 30 characters of the name. If no sequence name is
+given, the default output file is RNA_"values of \-w and -u"_up.out. -o1
+creates a file containing only the probability of being unpaired. The total
+probability of being unpaired as well as its different
+contributions might be plotted (see option \-x ). -o2 additional provides
+the conditional probability of an interaction and the optimal free energy
+of binding at a given position.
+.B \-u \fIlength\fP
+This option modulates the output. It determines the length of the
+unstructured region given in the output. The default value is 4. This means
+that by default the probability that 4 consecutive residues are
+unstructured is given. An unstructured region [i,j] includes residue [i]
+and residue [j], the probability that region [i,j] is unstructured is
+plotted at position [j], that is at the right boarder of the region. 
+.TP
+.B \-x \fISEHIM\fP
+This option modulates the output. It determines which contributions to the
+probability of being unpaired are given. The probability of being unpaired
+is the sum ("S") of the probability of being unpaired in the exterior loop
+("E"), within a hairpin loop ("H"), within an interior loop ("I") and within a
+multiloop ("M"). Any combination of these five letters may be given.
+.PP
+the \-p, \-p0, \-noGU, \-noCloseGU, \-nsp, \-S, \-e, \-P, \-noLP, \-T, \-4,
+\-d and \-C options work as in \fBRNAfold\fP, see there for description.
+
+.SH "REFERENCES"
+The energy parameters are taken from:
+.br 
+D.H. Mathews, J. Sabina, M. Zuker and H. Turner
+"Expanded Sequence Dependence of Thermodynamic Parameters Provides 
+Robust Prediction of RNA Secondary Structure"
+JMB, 288, pp 911\-940, 1999
+.PP 
+If you use this program in your work you might want to cite:
+.PP 
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
+(1994)
+Fast Folding and Comparison of RNA Secondary Structures.
+Monatshefte f. Chemie 125: 167\-188
+.PP
+U.Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and
+I.L. Hofacker (2006)
+Thermodynamics of RNA-RNA Binding. Bioinformatics.
+doi:10.1093/bioinformatics/btl024
+.SH "VERSION"
+This man page documents version @VERSION@ Vienna RNA Package.
+.SH "AUTHORS"
+Ivo L Hofacker, Peter F Stadler, Stephan Bernhart.
+.SH "BUGS"
+If in doubt our program is right, nature is at fault.
+Comments should be sent to rna@tbi.univie.ac.at.

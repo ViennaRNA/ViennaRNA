@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2006-08-10 09:50:57 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.20 2006/08/10 10:31:02 berni Exp $
+@c Last changed Time-stamp: <2007-04-30 15:48:39 ulim>
+@set revision $Id: RNAlib.texinfo,v 1.21 2007/04/30 15:20:12 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -244,8 +244,8 @@ Prototypes for these functions are declared in @file{inverse.h}.
 @end deftp
 
 @deftypefun SOLUTION* subopt (char* @var{sequence}, char* @var{constraint}, int* @var{delta}, FILE* @var{fp})
-poduces @strong{all} suboptimal secondary structures within
-@var{delta}*0.01 kcal/mol of the optimum. The reults are either
+produces @strong{all} suboptimal secondary structures within
+@var{delta}*0.01 kcal/mol of the optimum. The results are either
 directly written to a @var{fp} (if @var{fp} is not @code{NULL}), or
 (@var{fp}@code{==NULL}) returned in a @code{SOLUTION *} list terminated
 by an entry were the @code{structure} pointer is @code{NULL}.
@@ -267,6 +267,17 @@ and use the the global variable @var{cut_point} to mark the concatenation
 point. Note that while the @code{RNAcofold} program uses the '&' character
 to mark the chain break in its input, you should not use an '&' when using
 the library routines (set @var{cut_point} instead).
+In a second approach to co-folding two RNAs, cofolding is seen as a
+stepwise process. In the first step the probability of an unpaired region
+is calculated and in a second step this probability of an unpaired region
+is  multiplied with the probability of an interaction between the two RNAs.
+This approach is implemented for the interaction between a long
+target sequence and a short ligand RNA. The structure of the short RNA
+is not considered. The function @code{pf_unstru()}, which calculates the
+partition function over all unpaired regions, needs only the longer
+sequence as an input. Function @code{pf_interact()}, which calculates the
+partition function over all possible interactions between the two
+sequences, needs both sequence as separate strings as input.
 
 @deftypevar int cut_point
 @code{cut_point} marks the position (starting from 1) of the first
@@ -296,7 +307,7 @@ Frees arrays allocated by @code{cofold()}.
 @deftypefun void   initialize_cofold (int @var{length})
 Allocates memory for mfe cofolding sequences not longer than @var{length},
 and sets up pairing matrix and energy parameters.
-Explicitely calling  @code{initialize_cofold()} is normally not necessary,
+Explicitly calling  @code{initialize_cofold()} is normally not necessary,
 as it will be called automagically before folding.
 @end deftypefun
 
@@ -319,7 +330,7 @@ same global @var{pf_scale} variable to avoid overflows.
 To simplify the implementation the partition function computation is done
 internally in a null model that does not include the duplex initiation
 energy, i.e. the entropic penalty for producing a dimer from two
-monomers). The resulting free energies and pair probabilities are initally
+monomers). The resulting free energies and pair probabilities are initially
 relative to that null model. In a second step the free energies can be
 corrected to include the dimerization penalty, and the pair probabilities
 can be divided into the conditional pair probabilities given that a re
@@ -395,12 +406,83 @@ dimer-only free energies, i.e. the FcAB entries from the @code{cofoldF} struct.
 @end deftypefun
 
 @c @deftypefun int make_probsum (int @var{length}, char @var{*name})
-@c Computes the probability of any base to be paired to a base wtih a
+@c Computes the probability of any base to be paired to a base with a
 @c number lower than @var{length} (used for e.g. compute probability to
 @c be paired within one molecule).
 @c @end deftypefun
 
 Prototypes for these functions are declared in @file{co_part_func.h}.
+
+@section Partition Function Cofolding as stepwise process
+ 
+In this approach to cofolding the interaction between two RNA molecules is
+seen as a stepwise process. In a first step, the target molecule has to
+adopt a structure in which a binding site is accessible. In a second step,
+the ligand molecule will hybridize with a region accessible to an
+interaction. Consequently the algorithm is designed as a two step process:
+The first step is the calculation of the probability 
+that a region within the target is unpaired, or equivalently, the
+calculation of the free energy needed to expose a region. In the second step
+we compute the free energy of an interaction for every possible binding
+site.
+
+@deftp {data type} pu_contrib struct @{double **H; double **I; double **M; double **E; int length;@}
+@end deftp
+
+@deftypefun @code{pu_contrib} *pf_unstru(char @var{*sequence}, char @var{*structure}, int @var{w})
+This function calculates the partition function over all unpaired regions
+in @var{*sequence} of a maximal length @var{w}. Its returns a
+@code{pu_contrib} struct containing four arrays of dimension [i = 1 to length
+of @var{*sequence}][j = 1 to @var{w}-1] containing all possible contributions
+to the probabilities of unpaired regions of maximum length @var{w}.
+Each array in @code{pu_contrib} contains one of the contributions to the
+total probability of being unpaired: The probability of being unpaired
+within an exterior loop is in array @code{pu_contrib->E}, the probability
+of being unpaired within a hairpin loop is in array @code{pu_contrib->H},
+the probability of being unpaired within an interior loop is in array
+@code{pu_contrib->I} and probability of being unpaired within a multi-loop
+is in array @code{pu_contrib->M}. The total probability of being unpaired
+is the sum of the four arrays of @code{pu_contrib}.
+Use functions @code{free_unpaired} and @code{free_pf_two} to free
+everything allocated for function @code{pf_unstru()}.  
+@end deftypefun
+
+@deftypefun void free_unpaired(void)
+Frees the arrays need for the calculation of the probability of being unpaired
+by function @code{pf_unstru()}. 
+@end deftypefun
+
+@deftypefun void free_pf_two(@code{pu_contrib} @var{*p_con}, FLT_OR_DBL @var{**pin})
+If non of the input parameters is set to NULL, frees everything returned
+by @code{pf_unstru()} and @code{pf_interact()}.
+If @var{**pin} is set to NULL, frees only the @code{pu_contrib} struct
+returned by function @code{pf_unstru()}. 
+If @var{*p_con} is set to NULL, frees the two arrays of length of
+@var{*sequence} which are returned by function @code{pf_interact()}.
+@end deftypefun
+
+@deftypefun double **pf_interact(const char @var{*s1}, const char @var{*s2}, @code{pu_contrib} @var{*p_c}, int @var{w}, int @var{incr3}, int @var{incr5})
+Calculates the probability of a local interaction between sequence
+@var{*s1} and sequence @var{*s2}, considering the probability that the
+region of interaction is unpaired within @var{*s1}. The longer sequence
+has to be given as @var{*s1}. Function @code{pf_unstru()} has to be called
+for @var{*s1}, where the probabilities of  being unpaired for @var{*s1}
+are stored in @var{*p_c}. The shorter sequence has to be given as @var{*s2}.
+The parameter @var{w} gives the maximal length of a sub sequences of
+@var{*s1} considered for the interaction. The command line parameters
+@var{incr5} and @var{incr3} allows inclusion of unpaired residues left
+(@var{incr5}) and right (@var{incr3}) of the region of interaction in
+@var{*s1}. If the @var{incr} options are used, function @code{pf_unstru()}
+has to be called with @var{w}=@var{w}+@var{incr5}+@var{incr3}.
+Function @code{pf_interact()} returns two arrays of the length of
+@var{*sequence}, which contain the probability of a local interaction
+(index[0][i]) and the minimum free energy of a local interaction
+(index[1][i]), where i is the position in sequence @var{*s1}. Use
+@code{free_pf_two)} to free the returned arrays. Notice that function
+@code{pf_interact} calls function @code{free_unpaired}!
+@end deftypefun
+
+Prototypes for these functions are declared in @file{part_func_up.h}.
 
 @node Local Fold, Alignment Fold, Cofolding, Folding Routines
 @section Searching for local structures in large molecules
@@ -427,9 +509,9 @@ probabilities higher than @var{cutoff} are kept.
 If @var{pup} is supplied (i.e is not the NULL pointer), @code{pfl_fold()}
 will also compute the mean probability that regions of length @code{u} are
 unpaired. The parameter @code{u} is supplied in @var{pup[0]}. On return
-the @var{pup} array will contain these probablities, with the entry on
+the @var{pup} array will contain these probabilities, with the entry on
 @var{pup[x]} containing the mean probability that x and the @code{u-1}
-preceeding bases are unpaired. The @var{pup} array needs to be large
+preceding bases are unpaired. The @var{pup} array needs to be large
 enough to hold @code{n+1} float entries, where @code{n} is the sequence length.
 @end deftypefun
 
@@ -671,7 +753,7 @@ token. The following tokens are recognized:
 
 @noindent @t{# stack_energies}@*
 The list of free energies for stacked pairs, indexed by the two closing
-pairs. The list should be formated as symmetric an 7*7 matrix,conforming
+pairs. The list should be formatted as symmetric an 7*7 matrix,conforming
 to the order explained above. As an example the stacked pair
 @example
 		      5'-GU-3'        5'-AC-3'
@@ -704,7 +786,7 @@ Free energies for the interaction between the closing pair of an interior
 loop and the two unpaired bases adjacent to the helix. This is a three
 dimensional array indexed by the type of the closing pair (see above) and
 the two unpaired bases. Since we distinguish 5 bases the list contains
-7*5*5 entries and should be formated either as an 7*25 matrix or 7 5*5
+7*5*5 entries and should be formatted either as an 7*25 matrix or 7 5*5
 matrices. The order is such that for example the mismatch
 @example
 			       5'-CU-3'
@@ -720,7 +802,7 @@ Same as above for hairpin loops.
 Corresponding enthalpies for rescaling to temperatures other than 37C.
 
 @noindent @t{# int11_energies}@*
-Free energies for symmetric size 2 interior loops. 7*7*5*5 entries formated
+Free energies for symmetric size 2 interior loops. 7*7*5*5 entries formatted
 as 49 5*5 matrices, or seven 7*25 matrices. Example:
 @example
 			       5'-CUU-3'
@@ -729,7 +811,7 @@ as 49 5*5 matrices, or seven 7*25 matrices. Example:
 corresponds to entry [1,5,4,2], which should be identical to [5,1,2,4].
 
 @noindent @t{# int21_energies}@*
-Free energies for size 3 (2+1) interior loops. 7*7*5*5*5 entries formated
+Free energies for size 3 (2+1) interior loops. 7*7*5*5*5 entries formatted
 in 5*5 or 5*25 matrices. The strand with a single unpaired base is listed
 first, example:
 @example
