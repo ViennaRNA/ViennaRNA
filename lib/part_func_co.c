@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-04-05 14:49:58 ivo> */
+/* Last changed Time-stamp: <2007-05-09 16:11:21 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_co.c,v $
+  Revision 1.10  2007/05/10 17:27:01  ivo
+  make sure the relative error eps is positive in newton iteration
+
   Revision 1.9  2006/05/10 15:12:11  ivo
   some compiler choked on  double semicolon after declaration
 
@@ -60,7 +63,7 @@
 #include "PS_dot.h"
 #include "part_func_co.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.9 2006/05/10 15:12:11 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1330,7 +1333,7 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
 	    (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
     yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
 	    (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
-    EPS = fabs(xn)/cA + fabs(yn)/cB;
+    EPS = fabs(xn/cA) + fabs(yn/cB);
     cA += xn;
     cB += yn;
     i++;
