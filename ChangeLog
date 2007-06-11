@@ -1,7 +1,17 @@
+2007-04-30  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* add RNAup to distribution
+
+2007-04-15  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* fix segfault in colorps output (thanks to Andres Varon)
+
+2007-03-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* avoid unnormalized doubles in scale[], big speedup for pf_fold()
+	  on very long sequences
+	
 2007-02-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* RNAalifold can now produce colored structure plots and 
-	  alignment plots 
+	* RNAalifold can now produce colored structure plots and
+	  alignment plots
 
 2007-02-01 Ivo Hofacker <ivo@tbi.univie.ac.at>
 
