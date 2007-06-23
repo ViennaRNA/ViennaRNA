@@ -23,7 +23,7 @@ extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.6 2007/03/16 12:44:19 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.7 2007/06/23 08:04:13 ivo Exp $";
 
 #define PRIVATE static
 
@@ -239,7 +239,7 @@ PRIVATE void putout_pup(double *pup,int length, int winsize) {
   int i;
   float factor;
   float tfact;
-  printf("&prob of being unpaired between i-%d and i\n",unpaired);
+  printf("# prob of being unpaired between i-%d and i\n",unpaired);
   fflush(NULL);
   for (i=unpaired; i<=length; i++) {
     if (i<winsize) {
