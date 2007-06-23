@@ -23,7 +23,12 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.34 2006/02/28 14:54:21 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.35 2007/06/23 09:22:29 ivo Exp $";
+#ifdef __GNUC__
+#define INLINE inline
+#else
+#define INLINE
+#endif
 
 #define PAREN
 
@@ -56,10 +61,10 @@ PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void backtrack(const char *sequence, int s);
 PRIVATE int fill_arrays(const char *sequence);
 /*@unused@*/
-inline PRIVATE  int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
-inline int  LoopEnergy(int n1, int n2, int type, int type_2,
+INLINE PRIVATE  int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
+INLINE int  LoopEnergy(int n1, int n2, int type, int type_2,
 			 int si1, int sj1, int sp1, int sq1);
-inline int  HairpinE(int size, int type, int si1, int sj1, const char *string);
+INLINE int  HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
@@ -797,7 +802,7 @@ char *backtrack_fold_from_pair(char *sequence, int i, int j) {
 }
 /*---------------------------------------------------------------------------*/
 
-inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
+INLINE int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
   energy = (size <= 30) ? P->hairpin[size] :
     P->hairpin[30]+(int)(P->lxc*log((size)/30.));
@@ -825,7 +830,7 @@ inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 
 /*---------------------------------------------------------------------------*/
 
-inline PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
+INLINE PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int n1, n2, m, energy;
   n1 = p-i-1;
@@ -867,7 +872,7 @@ inline PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_
 
 /*--------------------------------------------------------------------------*/
 
-inline int LoopEnergy(int n1, int n2, int type, int type_2,
+INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
 		      int si1, int sj1, int sp1, int sq1) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
