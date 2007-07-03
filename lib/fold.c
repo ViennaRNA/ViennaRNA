@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-02-26 00:15:52 ivo> */
+/* Last changed Time-stamp: <2007-07-03 12:58:52 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.35 2007/06/23 09:22:29 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.36 2007/07/03 21:43:27 ivo Exp $";
 #ifdef __GNUC__
 #define INLINE inline
 #else
@@ -1371,6 +1371,74 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   else
     energy += mlbase*u;
   /* fprintf(stderr, "\n"); */
+  return energy;
+}
+
+/*---------------------------------------------------------------------------*/
+
+int loop_energy(short * ptable, short *s, short *s1, int i) {
+  /* compute energy of a single loop closed by base pair (i,j) */
+  int j, type, p,q, energy;
+  short *Sold, *S1old, *ptold;
+
+  ptold=pair_table;   Sold = S;   S1old = S1;
+  pair_table = ptable;   S = s;   S1 = s1;
+
+  if (i==0) { /* evaluate exterior loop */
+    energy = ML_Energy(0,1);
+    pair_table=ptold; S=Sold; S1=S1old;
+    return energy;
+  }
+  j = pair_table[i];
+  if (j<i) nrerror("i is unpaired in loop_energy()");
+  type = pair[S[i]][S[j]];
+  if (type==0) {
+    type=7;
+    if (eos_debug>=0)
+      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
+	      Law_and_Order[S[i]],Law_and_Order[S[j]]);
+  }
+  p=i; q=j;
+
+
+  while (pair_table[++p]==0);
+  while (pair_table[--q]==0);
+  if (p>q) { /* Hairpin */
+    char loopseq[8] = "";
+    if (SAME_STRAND(i,j)) {
+      if (j-i-1<7) {
+	int u;
+	for (u=0; i+u<=j; u++) loopseq[u] = Law_and_Order[S[i+u]];
+	loopseq[u] = '\0';
+      }
+      energy = HairpinE(j-i-1, type, S1[i+1], S1[j-1], loopseq);
+    } else {
+      energy = ML_Energy(cut_in_loop(i), 1);
+    }
+  }
+  else if (pair_table[q]!=(short)p) { /* multi-loop */
+    int ii;
+    ii = cut_in_loop(i);
+    energy = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
+  }
+  else { /* found interior loop */
+    int type_2;
+    type_2 = pair[S[q]][S[p]];
+    if (type_2==0) {
+      type_2=7;
+      if (eos_debug>=0)
+	fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
+		Law_and_Order[S[p]],Law_and_Order[S[q]]);
+    }
+    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
+    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
+      energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
+			  S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+    else
+      energy = ML_Energy(cut_in_loop(i), 1);
+  }
+
+  pair_table=ptold; S=Sold; S1=S1old;
   return energy;
 }
 
