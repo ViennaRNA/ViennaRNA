@@ -22,12 +22,6 @@ the "&" marks the boundary between the two strands.
 Do not give stabilizing energies to unpaired bases adjacent to helices in
 multiloops and free ends ("dangling ends"). Same as \-d0, opposite of \-d1
 (the default).
-.IP \fB\-d2\fB
-Treat dangling ends as in the partition function algorithm, i.e. bases
-adjacent to helices in multiloops and free ends give a stabilizing energy
-contribution, regardless whether they're paired or unpaired.
-.IP \fB\-d3\fB
-Allow coaxial stacking of adjacent helices in multi\-loops.
 .IP \fB\-logML\fB
 Let multiloop energies depend logarithmically on the size, instead of the
 usual linear energy function.
