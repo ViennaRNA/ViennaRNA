@@ -20,7 +20,7 @@ extern void  read_parameter_file(const char fname[]);
 extern int subopt_sorted;
 static void  print_struc(duplexT const *dup);
 /*@unused@*/
-static char rcsid[] = "$Id: RNAduplex.c,v 1.4 2005/07/24 08:35:15 ivo Exp $";
+static char rcsid[] = "$Id: RNAduplex.c,v 1.5 2007/08/26 09:41:12 ivo Exp $";
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
     update_fold_params();
     if (delta>=0) {
       duplexT *sub;
-      subopt = duplex_subopt(s1, s2, delta, 0);
+      subopt = duplex_subopt(s1, s2, delta, 5);
       for (sub=subopt; sub->i >0; sub++) {
 	print_struc(sub);
 	free(sub->structure);

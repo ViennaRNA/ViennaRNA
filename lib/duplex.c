@@ -22,7 +22,7 @@
 #include "params.h"
 #include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.6 2006/12/01 12:33:28 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: duplex.c,v 1.7 2007/08/26 09:41:12 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -128,6 +128,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
   char *struc;
   duplexT mfe;
   duplexT *subopt;
+  int res=5;
 
   n_max=16;
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
@@ -139,30 +140,34 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
   n1 = strlen(s1); n2=strlen(s2);
   for (i=n1; i>0; i--) {
     for (j=1; j<=n2; j++) {
-      int type;
+      int type, ii,jj, Ed;
       type = pair[S2[j]][S1[i]];
       if (!type) continue;
-      E = c[i][j];
-      if (i<n1) E += P->dangle3[type][SS1[i+1]];
-      if (j>1)  E += P->dangle5[type][SS2[j-1]];
-      if (type>2) E += P->TerminalAU;
-      if (E<=thresh) {
-	struc = backtrack(i,j);
-#if 0
-	int l1;
-	l1 = strchr(struc, '&')-struc;
-	printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i+2-l1, i+1, 
-	       j-1, j+strlen(struc)-l1-3, E*0.01);
-#endif	
-	if (n_subopt+1>=n_max) {
-	  n_max *= 2;
-	  subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
-	}
-	subopt[n_subopt].i = MIN2(i+1,n1);
-	subopt[n_subopt].j = MAX2(j-1,1);
-	subopt[n_subopt].energy = E * 0.01;
-	subopt[n_subopt++].structure = struc;
+      E = Ed = c[i][j];
+      if (i<n1) Ed += P->dangle3[type][SS1[i+1]];
+      if (j>1)  Ed += P->dangle5[type][SS2[j-1]];
+      if (type>2) Ed += P->TerminalAU;
+      if (Ed>thresh) continue;
+      /* too keep output small, remove hits that are dominated by a
+	 better one close (res) by. For simplicity we do this before
+	 adding dangles, which is slightly somewhat inaccurate. 
+      */ 
+      for (ii=MAX2(i-res,1); (ii<=MIN2(i+res,n1)) && type; ii++) { 
+        for (jj=MAX2(j-res,1); jj<=MIN2(j+res,n2); jj++)
+          if (c[ii][jj]<E) {type=0; break;}
       }
+      if (!type) continue;
+      /* ignore close by hits */
+      struc = backtrack(i,j);
+      fprintf(stderr, "%d %d %d\n", i,j,E);
+      if (n_subopt+1>=n_max) {
+	n_max *= 2;
+	subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+      }
+      subopt[n_subopt].i = MIN2(i+1,n1);
+      subopt[n_subopt].j = MAX2(j-1,1);
+      subopt[n_subopt].energy = Ed * 0.01;
+      subopt[n_subopt++].structure = struc;
     }
   }
   
