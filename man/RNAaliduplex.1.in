@@ -1,0 +1,35 @@
+.TH "RNAaliduplex" "l" "0.0.1" "Ivo Hofacker" "Vienna RNA"
+.SH "NAME"
+.LP 
+RNAaliduplex \- Predict conserved RNA-RNA interactions between two alignments
+.SH "SYNTAX"
+.LP 
+RNAaliduplex    [\fI\-e range\fP] [\fIstandard_options\fP] <\fIfile1.aln\fP> <\fIfile2.aln\fP>
+
+.SH "DESCRIPTION"
+.LP 
+\fIRNAaliduplex\fR reads two alignments of RNA sequences in CLUSTAL format and predicts optimal and suboptimal binding sites, hybridization energies and the corresponding structures. The calculation takes only inter\-molecular base pairs into account, for the general case use \fBRNAcofold\fR. The use of alignments allows to focus on binding sites that are evolutionary conserved. Note, that the two input alignments need to have equal number of sequences and the same order, i.e. the 1st sequence in file1 will be hybridized to the 1st in file2 etc.
+.LP 
+The computed binding sites, energies, and structures are written to stdout, one structure per line.
+Each line consist of: The structure in dot bracket format with a "&" separating the two strands. The range of the structure in the two sequences in the format  "from,to : from,to"; the energy of duplex structure in kcal/mol.
+.br 
+The format is especially useful for computing the hybrid structure between a small probe sequence and a long target sequence.
+.SH "OPTIONS"
+.LP 
+.TP 
+\fB\-e\fR \fIrange\fR 
+Compute suboptimal structures with energy with \fIrange\fR kcal/mol of the optimum.
+Default is calculation of mfe structure only.
+.PP 
+For the standard options, such as 
+\fB\-T\fR, \fB\-4\fR, \fB\-noGU\fR, \-\fBnoCloseGU\fR,
+\fB\-P\fR see the \fBRNAfold\fR man page.
+
+.SH "VERSION"
+This man page documents version @VERSION@ Vienna RNA Package.
+.SH "AUTHORS"
+.LP 
+Ivo Hofacker <ivo@tbi.univie.ac.at>
+.SH "SEE ALSO"
+.LP 
+RNAduplex(l) RNAcofold(l) RNAalifold(l)
