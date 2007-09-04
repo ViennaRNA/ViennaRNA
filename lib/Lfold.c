@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2005-10-30 21:03:40 ivo> */
+/* Last changed Time-stamp: <2007-09-04 11:16:01 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.8 2006/06/17 21:49:31 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.9 2007/09/04 09:20:12 ivo Exp $";
 
 
 #define PAREN
@@ -153,7 +153,7 @@ float Lfold(char *string, char *structure, int maxdist) {
   encode_seq(string);
 
   /* BP = (int *)space(sizeof(int)*(length+2)); */
-  for (i=length; i>(int)length-(int)maxdist-4 && i>0; i--)
+  for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
     make_ptypes(S, i, maxdist, length);
 
   energy = fill_arrays(string, maxdist);
@@ -432,7 +432,7 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 	    printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1+strlen(ss)])/100., 1);
 	  free(ss);
 	}
-	do_backtrack=0; 
+	do_backtrack=0;
       }
     }
     {
