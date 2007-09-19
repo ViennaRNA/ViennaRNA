@@ -1,3 +1,5 @@
+See Changelog for details.
+
 Upcoming 
 -----------
 - Updated parameters for both RNA and DNA using the data compiled by 
@@ -10,7 +12,7 @@ Version 1.6
   subdirectory for more information. RNAforester was written by Matthias
   Hoechsmann <mhoechsm@techfak.uni-bielefeld.de> 
 - The Kinfold program for stochastic simulation of folding trajectories is
-  no included in the package, see the Kinfold subdirectory.
+  now included in the package, see the Kinfold subdirectory.
 - cofolding of two structures now supports suboptimal folding and 
   partition function folding (still experimental). 
   ATTENTION: Energies of hybrid structures now inlcude the Duplex-initiation
@@ -19,6 +21,8 @@ Version 1.6
   mean probability of a (local) base pair averaged over all sequence
   windows that contain the pair.
 - new utilities to color alignments and consensus structures  
+- RNAfold -p now computes the centroid structure
+- CAUTION: ensemble diversities in version <1.6.5 are off by a factor 2
 
 Version 1.5pre 
 -----------

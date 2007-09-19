@@ -1,3 +1,27 @@
+2007-09-19  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* compute the controid structure of the ensemble in RNAfold -p
+	* fix a missing factor 2 in mean_bp_dist().
+	  CAUTION ensemble diversities returned by RNAfold -p are now
+	  twice as large as in earlier versions.
+
+2007-09-04  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
+
+	* fix a bug in Lfold() where base number n-max-4 would never pair
+
+2007-08-26  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add RNAaliduplex the alignment version of RNAduplex
+	* introduce a minimal distance between hits produced by	duplex_subopt()
+
+2007-07-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add a loop_energy() function to compute energy of a single loop
+
+2007-06-23  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* add aliLfold() and RNALalifold, alignment variant of Lfold()
+	
 2007-04-30  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 	* add RNAup to distribution
 
@@ -7,7 +31,7 @@
 2007-03-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 	* avoid unnormalized doubles in scale[], big speedup for pf_fold()
 	  on very long sequences
-	
+
 2007-02-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* RNAalifold can now produce colored structure plots and
