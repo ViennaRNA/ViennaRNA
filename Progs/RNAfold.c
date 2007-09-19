@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-08-22 15:46:04 ivo> */
+/* Last changed Time-stamp: <2007-09-19 14:08:09 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -21,7 +21,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.21 2006/12/01 12:36:23 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.22 2007/09/19 12:41:48 ivo Exp $";
 
 #define PRIVATE static
 
@@ -239,11 +239,14 @@ int main(int argc, char *argv[])
       }
       if ((istty)||(!do_backtrack))
 	printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-      printf(" frequency of mfe structure in ensemble %g; ",
-	     exp((energy-min_en)/kT));
       if (do_backtrack) {
 	plist *pl1,*pl2;
-	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
+	char *cent;
+	double dist, cent_en;
+	cent = centroid(length, &dist);
+	cent_en = energy_of_struct(string, cent);
+      	printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
+	free(cent);
 	if (fname[0]!='\0') {
 	  strcpy(ffname, fname);
 	  strcat(ffname, "_dp.ps");
@@ -265,6 +268,11 @@ int main(int argc, char *argv[])
 	free(pl1);
 	free(pf_struc);
       }
+      printf(" frequency of mfe structure in ensemble %g; ",
+	     exp((energy-min_en)/kT));
+      if (do_backtrack)
+	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
+
       printf("\n");
       free_pf_arrays();
 

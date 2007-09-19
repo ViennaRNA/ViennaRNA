@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2007-04-30 15:48:39 ulim>
-@set revision $Id: RNAlib.texinfo,v 1.21 2007/04/30 15:20:12 ivo Exp $
+@c Last changed Time-stamp: <2007-09-19 14:21:23 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.22 2007/09/19 12:41:56 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -196,6 +196,14 @@ structure @math{a}, and @math{d(a,b)} is the base pair distance (see
 can be computed efficiently from the pair probabilities @math{p_ij} as
 @math{<d> = sum_{ij} p_ij * (1-p_ij)}. Uses the global @code{pr} array
 filled by a previous call to @code{pf_fold()}.
+@end deftypefun
+
+@deftypefun char *centroid(int @var{length}, double *@var{dist})
+Computes the centroid structure, i.e. the structure having the lowest
+average base pair distance to all structures in the Boltzmann
+ensemble. This can be computed trivially from the pair probabilities by
+choosing all base pairs that have probability greater 0.5. The distance of
+the centroid to the ensemble is returned in @var{dist}.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{part_func.h}.
@@ -414,13 +422,13 @@ dimer-only free energies, i.e. the FcAB entries from the @code{cofoldF} struct.
 Prototypes for these functions are declared in @file{co_part_func.h}.
 
 @section Partition Function Cofolding as stepwise process
- 
+
 In this approach to cofolding the interaction between two RNA molecules is
 seen as a stepwise process. In a first step, the target molecule has to
 adopt a structure in which a binding site is accessible. In a second step,
 the ligand molecule will hybridize with a region accessible to an
 interaction. Consequently the algorithm is designed as a two step process:
-The first step is the calculation of the probability 
+The first step is the calculation of the probability
 that a region within the target is unpaired, or equivalently, the
 calculation of the free energy needed to expose a region. In the second step
 we compute the free energy of an interaction for every possible binding
@@ -444,19 +452,19 @@ the probability of being unpaired within an interior loop is in array
 is in array @code{pu_contrib->M}. The total probability of being unpaired
 is the sum of the four arrays of @code{pu_contrib}.
 Use functions @code{free_unpaired} and @code{free_pf_two} to free
-everything allocated for function @code{pf_unstru()}.  
+everything allocated for function @code{pf_unstru()}.
 @end deftypefun
 
 @deftypefun void free_unpaired(void)
 Frees the arrays need for the calculation of the probability of being unpaired
-by function @code{pf_unstru()}. 
+by function @code{pf_unstru()}.
 @end deftypefun
 
 @deftypefun void free_pf_two(@code{pu_contrib} @var{*p_con}, FLT_OR_DBL @var{**pin})
 If non of the input parameters is set to NULL, frees everything returned
 by @code{pf_unstru()} and @code{pf_interact()}.
 If @var{**pin} is set to NULL, frees only the @code{pu_contrib} struct
-returned by function @code{pf_unstru()}. 
+returned by function @code{pf_unstru()}.
 If @var{*p_con} is set to NULL, frees the two arrays of length of
 @var{*sequence} which are returned by function @code{pf_interact()}.
 @end deftypefun

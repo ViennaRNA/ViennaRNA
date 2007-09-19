@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-04-30 16:27:17 ulim> */
+/* Last changed Time-stamp: <2007-09-19 14:14:30 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.26  2007/09/19 12:41:56  ivo
+  add computation of centroid() structure for RNAfold -p
+
   Revision 1.25  2007/04/30 15:12:00  ivo
   merge RNAup into package
 
@@ -63,7 +66,7 @@ typedef struct plist {
 
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.25 2007/04/30 15:12:00 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.26 2007/09/19 12:41:56 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -292,7 +295,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    type = ptype[ij];
 	    if ((pr[ij]>0)) {
 	      /* add *scale[u1+u2+2] */
-	      pr[kl] += pr[ij] * (scale[k-i+j-l] * 
+	      pr[kl] += pr[ij] * (scale[k-i+j-l] *
 		expLoopEnergy(k-i-1, j-l-1, type, type_2,
 			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	    }
@@ -893,7 +896,7 @@ static void backtrack(int i, int j) {
 	if (type_2) {
 	  type_2 = rtype[type_2];
 	  /* add *scale[u1+u2+2] */
-	  qbt1 += qb[iindx[k]-l] * (scale[u1+j-l+1] * 
+	  qbt1 += qb[iindx[k]-l] * (scale[u1+j-l+1] *
 	    expLoopEnergy(u1, j-l-1, type, type_2,
 			  S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	}
@@ -964,7 +967,35 @@ PUBLIC double mean_bp_dist(int length) {
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++)
       d += pr[iindx[i]-j] * (1-pr[iindx[i]-j]);
-  return d;
+  return 2*d;
+}
+
+PUBLIC char *centroid(int length, double *dist) {
+  /* compute the centroid structure of the ensemble, i.e. the strutcure
+     with the minimal average distance to all other structures
+     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
+     Thus, the centroid is simply the structure containing all pairs with
+     p_ij>0.5 */
+  int i,j;
+  double p;
+  char *centroid;
+
+  if (pr==NULL)
+    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
+
+  *dist = 0.;
+  centroid = (char *) space((length+1)*sizeof(char));
+  for (i=0; i<length; i++) centroid[i]='.';
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++) {
+      if ((p=pr[iindx[i]-j])>0.5) {
+	centroid[i-1] = '(';
+	centroid[j-1] = ')';
+	*dist += (1-p);
+      } else
+	*dist += p;
+    }
+  return centroid;
 }
 
 
@@ -1001,8 +1032,8 @@ PUBLIC plist *stackProb(double cutoff) {
 }
 /*-------------------------------------------------------------------------*/
 /* make arrays used for pf_fold available to other routines */
-PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p) 
-{  
+PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p)
+{
   if(qb == NULL) return(0); /* check if pf_fold() has been called */
   *S_p = S; *S1_p = S1; *ptype_p = ptype;
   *qb_p = qb; *qm_p = qm;

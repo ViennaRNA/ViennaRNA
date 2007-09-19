@@ -7,4 +7,5 @@ extern void   free_pf_arrays(void);        /* free arrays from pf_fold() */
 extern void   update_pf_params(int length); /*recalculate energy parameters */
 extern char   bppm_symbol(const float *x);  /* string representation of structure */
 extern double mean_bp_dist(int length); /* mean pair distance of ensemble */
+extern char  *centroid(int length, double *dist);     /* mean pair distance of ensemble */
 extern int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);

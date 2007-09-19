@@ -16,23 +16,23 @@ notation and its free energy. If the \-p option was given it also
 computes the partition function (pf) and base pairing probability
 matrix, and prints the free energy of the thermodynamic ensemble, the
 frequency of the mfe structure in the ensemble, and the ensemble
-diversity to stdout. 
+diversity to stdout.
 
 It also produces PostScript files with plots of the resulting
 secondary structure graph and a "dot plot" of the base pairing matrix.
 The dot plot shows a matrix of squares with area proportional to the
-pairing probability in the upper right half, and one square for each pair in 
+pairing probability in the upper right half, and one square for each pair in
 the minimum free energy structure in the lower left half. For each pair
 i\-j with probability p>10E\-6 there is a line of the form
-.br 
+.br
 i  j  sqrt(p)  ubox
-.br 
+.br
 in the PostScript file, so that the pair probabilities can be easily
-extracted. 
+extracted.
 
-Sequences are read in a simple text format where each sequence occupies 
+Sequences are read in a simple text format where each sequence occupies
 a single line. Each sequence may be preceded by a line of the form
-.br 
+.br
 > name
 .br
 to assign a name to the sequence. If a name is given in the input
@@ -40,26 +40,29 @@ to assign a name to the sequence. If a name is given in the input
 the structure and dot plot, respectively. Otherwise the file names
 default to rna.ps and dot.ps. Existing files of the same name will be
 overwritten.
-.br 
-The input format is similar to fasta except that even long sequences 
+.br
+The input format is similar to fasta except that even long sequences
 may not be interrupted by line breaks, and the header lines are optional.
 The program will continue to read new sequences until a line consisting
 of the single character @ or an end of file condition is encountered.
 .SH "OPTIONS"
-.TP 
+.TP
 .B \-p
 Calculate the partition function and base pairing probability matrix in
 addition to the mfe structure. Default is calculation of mfe structure
-only. Prints a coarse representation of the pair probabilities in
-form of a pseudo bracket notation, the ensemble free energy, the
-frequency of the mfe structure, and the structural diversity.
-See the description of pf_fold() and mean_bp_dist() in the RNAlib
-documentation for details.
-.br 
+only. In addition to the MFE structure we print a coarse representation of
+the pair probabilities in form of a pseudo bracket notation, followed by
+the ensemble free energy, as well as the centroid structure derived from
+the pair probabilities together with its free energy and distance to the
+ensemble. Finally it prints the frequency of the mfe structure, and the
+structural diversity (mean distance between the structures in the ensemble).
+See the description of pf_fold() and mean_bp_dist() and centroid() in the
+RNAlib documentation for details.
+.br
 Note that unless you also specify \-d2 or \-d0, the partition
 function and mfe calculations will use a slightly different energy
 model. See the discussion of dangling end options below.
-.TP 
+.TP
 .B \-p0
 Calculate the partition function but not the pair probabilities,
 saving about 50% in runtime. Prints the ensemble free energy \-kT ln(Z).
@@ -71,11 +74,11 @@ formed simultaneously. A second postscript dot plot called "name_dp2.ps", or
 "dot2.ps" (if the sequence does not have a name), is produced that contains
 pair probabilities in the upper right half and stack probabilities in the
 lower left.
-.TP 
+.TP
 .B \-C
-Calculate structures subject to constraints. 
-The program reads first the sequence, then a string containing constraints 
-on the structure encoded with the symbols:  
+Calculate structures subject to constraints.
+The program reads first the sequence, then a string containing constraints
+on the structure encoded with the symbols:
 . (no constraint for this base)
 | (the corresponding base has to be paired
 x (the base is unpaired)
@@ -86,14 +89,14 @@ With the exception of "|", constraints will disallow all pairs conflicting
 with the constraint. This is usually sufficient to enforce the constraint,
 but occasionally a base may stay unpaired in spite of constraints. PF
 folding ignores constraints of type "|".
-.TP 
+.TP
 .B \-T\ \fItemp\fP
 Rescale energy parameters to a temperature of \fItemp\fP C. Default is 37C.
-.TP 
+.TP
 .B \-4
 Do not include special stabilizing energies for certain tetra\-loops. Mostly
 for testing.
-.TP 
+.TP
 .B \-d[0|1|2|3]
 How to treat "dangling end" energies for bases adjacent to helices in
 free ends and multi\-loops: With (\-d1) only unpaired bases can
@@ -103,51 +106,51 @@ folding but unsupported for the partition function folding. With
 the bases adjacent to a helix on both sides in any case; this is the
 default for partition function folding (\-p). \fB\-d\fP or \fB\-d0\fP
 ignores dangling ends altogether (mostly for debugging).
-.br 
+.br
 With \fB\-d3\fP mfe folding will allow coaxial stacking of adjacent helices
 in multi\-loops. At the moment the implementation will not allow coaxial
 stacking of the two interior pairs in a loop of degree 3 and works
 only for mfe folding.
-.br 
+.br
 Note that by default (as well as with \-d1 and \-d3) pf and mfe
 folding treat dangling ends differently. Use \fB\-d2\fR in addition to
 \fB\-p\fR to ensure that both algorithms use the same energy model.
-.TP 
+.TP
 .B \-noLP
-Produce structures without lonely pairs (helices of length 1). 
-For partition function folding this only disallows pairs that can 
-\fBonly\fP occur isolated. Other pairs may still occasionally 
+Produce structures without lonely pairs (helices of length 1).
+For partition function folding this only disallows pairs that can
+\fBonly\fP occur isolated. Other pairs may still occasionally
 occur as helices of length 1.
-.TP 
+.TP
 .B \-noGU
 Do not allow GU pairs.
-.TP 
+.TP
 .B \-noCloseGU
 Do not allow GU pairs at the end of helices.
-.TP 
+.TP
 .B \-e\ \fI1|2\fP
 Rarely used option to fold sequences from the artificial ABCD... alphabet,
 where A pairs B, C\-D etc.  Use the energy parameters for GC (\-e 1) or AU
 (\-e 2) pairs.
-.TP 
+.TP
 .B \-P\ \fI<paramfile>\fP
 Read energy parameters from \fIparamfile\fP, instead of using the default
 parameter set. A sample parameter file should accompany your distribution.
 See the RNAlib documentation for details on the file format.
-.TP 
+.TP
 .B \-nsp  \fIpairs\fP
-Allow other pairs in addition to the usual AU,GC,and GU pairs. \fIpairs\fP 
-is a comma separated list of additionally allowed pairs. If a the first 
+Allow other pairs in addition to the usual AU,GC,and GU pairs. \fIpairs\fP
+is a comma separated list of additionally allowed pairs. If a the first
 character is a "\-" then AB will imply that AB and BA are allowed pairs.
-e.g. RNAfold \-nsp \-GA  will allow GA and AG pairs. Nonstandard pairs are 
+e.g. RNAfold \-nsp \-GA  will allow GA and AG pairs. Nonstandard pairs are
 given 0 stacking energy.
-.TP 
+.TP
 .B \-S\ \fIscale\fP
 In the calculation of the pf use \fIscale\fP*mfe as an estimate for the
 ensemble free energy (used to avoid overflows). The default is 1.07,
 useful values are 1.0 to 1.2. Occasionally needed for long sequences.
 You can also recompile the program to use double precision (see the README
-file). 
+file).
 .TP
 .B \-circ
 Assume a circular (instead of linear) RNA molecule. Currently works only
@@ -161,31 +164,31 @@ The calculation of mfe structures is based on dynamic
 programming algorithm originally developed by M. Zuker and P. Stiegler.
 The partition function algorithm is based on work by J.S. McCaskill.
 The energy parameters are taken from:
-.br 
+.br
 D.H. Mathews, J. Sabina, M. Zuker and H. Turner
-"Expanded Sequence Dependence of Thermodynamic Parameters Provides 
+"Expanded Sequence Dependence of Thermodynamic Parameters Provides
 Robust Prediction of RNA Secondary Structure"
 JMB, 288, pp 911\-940, 1999
-.br 
+.br
 A. Walter, D Turner, J Kim, M Lyttle, P M\[:u]ller, D Mathews, M Zuker
 "Coaxial stacking of helices enhances binding of oligoribonucleotides.."
 PNAS, 91, pp 9218\-9222, 1994
-.PP 
+.PP
 If you use this program in your work you might want to cite:
-.PP 
-I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
+.PP
+I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster
 (1994)
 Fast Folding and Comparison of RNA Secondary Structures.
 Monatshefte f. Chemie 125: 167\-188
-.br 
+.br
 M. Zuker, P. Stiegler (1981) Optimal computer folding of large RNA
 sequences using thermodynamic and auxiliary information, Nucl Acid Res
 9: 133\-148
-.br 
+.br
 J.S. McCaskill (1990) The equilibrium partition function and base pair
 binding probabilities for RNA secondary structures, Biopolymers 29: 1105\-1119
-.br 
-I.L. Hofacker & P.F. Stadler (2006) 
+.br
+I.L. Hofacker & P.F. Stadler (2006)
 Memory Efficient Folding Algorithms for Circular RNA Secondary
 Structures, Bioinformatics (2006)
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London
