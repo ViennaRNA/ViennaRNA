@@ -51,9 +51,14 @@ RNAfold.
 RNALfold(1)
 
 .SH "REFERENCES"
-S. H. Bernhart, I.L. Hofacker, and P.F. Stadler
+S. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006)
 "Local Base Pairing Probabilities in Large RNAs" 
-Bioinformatics (2006) in press
+Bioinformatics 22: 614\-615
+.br
+A.F. Bompfünewerer, R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker,
+P.F. Stadler, S. Will (2007) 
+"Variations on {RNA} Folding and Alignment: Lessons from Benasque"
+J. Math. Biol. 
 .SH "VERSION"
 This man page documents version 1.6 Vienna RNA Package.
 .SH "AUTHORS"

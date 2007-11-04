@@ -5,7 +5,7 @@ RNAcofold \- calculate secondary structures of two RNAs with dimerization
 .SH "SYNOPSIS"
 \fBRNAcofold\fP [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
 [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP]
-[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\-a\] [\-c\] [\-f\ \f concentrationfile\fP]
+[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\-a\] [\-c\] [\-f\ \fIconcentrationfile\fP]
 
 .SH "DESCRIPTION"
 .I RNAcofold
