@@ -13,3 +13,4 @@ typedef struct {
 }  pair_info;
 extern float alipf_fold(char **sequences, char *structure, pair_info **pi);
 extern float circalifold(const char **strings, char *structure);
+extern float alipf_circ_fold(char **sequences, char *structure, pair_info **pi);

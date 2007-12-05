@@ -1,7 +1,7 @@
-/* Last changed Time-stamp: <2005-08-31 15:32:49 ivo> */
-/*                
+/* Last changed Time-stamp: <2007-12-05 13:50:18 ronny> */
+/*
 		  partiton function and base pair probabilities
-		  for RNA secvondary structures 
+		  for RNA secvondary structures
 		  of a set of aligned sequences
 
 		  Ivo L Hofacker
@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.10 2005/09/09 08:03:16 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.11 2007/12/05 12:59:01 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -41,7 +41,7 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
 			     short si1, short sj1, short sp1, short sq1);
 PRIVATE void make_pscores(const short *const *S, const char *const* AS,
 			  int n_seq, const char *structure);
-PRIVATE pair_info *make_pairinfo(const short *const* S, char **AS, 
+PRIVATE pair_info *make_pairinfo(const short *const* S, char **AS,
 				 int n_seq);
 PRIVATE short * encode_seq(const char *sequence);
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
@@ -58,12 +58,22 @@ PRIVATE FLT_OR_DBL *exphairpin;
 PRIVATE FLT_OR_DBL expbulge[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expinternal[MAXLOOP+1];
 PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
-PRIVATE FLT_OR_DBL *q, *qb, *qm, *qqm, *qqm1, *qq, *qq1;
+PRIVATE FLT_OR_DBL *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL *scale;
-PRIVATE short *pscore;   /* precomputed array of covariance bonus/malus */ 
+PRIVATE short *pscore;   /* precomputed array of covariance bonus/malus */
 PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define ISOLATED  256.0
+
+/* some additional things for circfold  */
+PRIVATE int circ=0;
+PRIVATE FLT_OR_DBL qo, qho, qio, qmo, *qm2;
+PRIVATE int *jindx;
+
+PUBLIC  float  alipf_circ_fold(char **sequences, char *structure, pair_info **pi);
+PRIVATE  void  alipf_circ(char **sequences, char *structure);
+PRIVATE  void  alipf_linear(char **sequences, char *structure);
+PRIVATE  void  alipf_create_bppm(char **sequences, char *structure, pair_info **pi);
 
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
@@ -71,36 +81,117 @@ PRIVATE int init_length; /* length in last call to init_pf_fold() */
 extern double cv_fact /* =1 */;
 extern double nc_fact /* =1 */;
 
+static short **S;
+static int *type;
+
 /*-----------------------------------------------------------------*/
 PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 {
-  short **S;
-  int s, *type;
-  int n, n_seq, i,j,k,l, ij, kl, u,u1,d,ii,ll, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
-  FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL qbt1, *tmp;
-   
-  double free_energy, kTn;
+  int n, s, n_seq, i;
+  FLT_OR_DBL Q;
+
+  double free_energy;
+  circ = 0;
 
   n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++); 
+  for (s=0; sequences[s]!=NULL; s++);
   n_seq = s;
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
-  
+
   S = (short **) space(sizeof(short *)*(n_seq+1));
   type = (int *) space(n_seq*sizeof(int));
-  for (s=0; s<n_seq; s++) { 
+  for (s=0; s<n_seq; s++) {
     if (strlen(sequences[s]) != n) nrerror("uneqal seqence lengths");
     S[s] = encode_seq(sequences[s]);
   }
   make_pscores((const short *const*)S, sequences, n_seq, structure);
-   
+
+  alipf_linear(sequences, structure);
+
+  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
+  else Q = q[iindx[1]-n];
+
+  /* ensemble free energy in Kcal/mol */
+  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+
+  /* backtracking to construct binding probabilities of pairs*/
+  if(do_backtrack) alipf_create_bppm(sequences, structure, pi);
+
+  for (i=0; i<n_seq; i++) free(S[i]);
+  free(S);
+  free(type);
+  free_alipf_arrays();
+  return (float)free_energy;
+}
+
+PUBLIC float alipf_circ_fold(char **sequences, char *structure, pair_info **pi)
+{
+  int n, s, n_seq, i;
+  FLT_OR_DBL Q;
+
+  double free_energy;
+  circ = 1;
+
+  n = (int) strlen(sequences[0]);
+  for (s=0; sequences[s]!=NULL; s++);
+  n_seq = s;
+  init_alipf_fold(n, n_seq);  /* (re)allocate space */
+
+  S = (short **) space(sizeof(short *)*(n_seq+1));
+  type = (int *) space(n_seq*sizeof(int));
+  for (s=0; s<n_seq; s++) {
+    if (strlen(sequences[s]) != n) nrerror("uneqal seqence lengths");
+    S[s] = encode_seq(sequences[s]);
+  }
+  make_pscores((const short *const*)S, sequences, n_seq, structure);
+
+  alipf_linear(sequences, structure);
+
+  /* calculate post processing step for circular  */
+  /* RNAs                                          */
+ alipf_circ(sequences, structure);
+
+  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
+  else Q = qo;
+
+  /* ensemble free energy in Kcal/mol */
+  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+
+  /* backtracking to construct binding probabilities of pairs*/
+  if(do_backtrack) alipf_create_bppm(sequences, structure, pi);
+
+  for (i=0; i<n_seq; i++) free(S[i]);
+  free(S);
+  free(type);
+  free_alipf_arrays();
+  return (float)free_energy;
+}
+
+PRIVATE void alipf_linear(char **sequences, char *structure)
+{
+  int s, n, n_seq, i,j,k,l, ij, kl, u,u1,d,ii,ll, type_2, tt;
+  FLT_OR_DBL temp, Q, Qmax=0;
+  FLT_OR_DBL qbt1, *tmp;
+
+  double free_energy, kTn;
+
+  n = (int) strlen(sequences[0]);
+  for (s=0; sequences[s]!=NULL; s++);
+  n_seq = s;
+  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+
   /* array initialization ; qb,qm,q
      qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
-  for (d=0; d<=TURN; d++) 
+  for (d=0; d<=TURN; d++)
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = iindx[i]-j;
@@ -108,8 +199,8 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       qb[ij]=qm[ij]=0.0;
     }
 
-  for (i=1; i<=n; i++) 
-    qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
+  for (i=1; i<=n; i++)
+    qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
@@ -124,7 +215,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       }
       psc = pscore[ij];
       if (psc>=cv_fact*MINPSCORE) {   /* otherwise ignore this pair */
-	
+
 	/* hairpin contribution */
 	for (qbt1=1,s=0; s<n_seq; s++) {
 	  qbt1 *= exphairpin[u];
@@ -133,14 +224,14 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	    strncpy(tl, sequences[s]+i-1, 6);
 	    if ((ts=strstr(Tetraloops, tl)))
 	      qbt1 *= exptetra[(ts-Tetraloops)/7];
-	  } 
+	  }
 	  if (u==3) {
 	    char tl[6]={0,0,0,0,0,0}, *ts;
 	    strncpy(tl, sequences[s]+i-1, 5);
-	    if ((ts=strstr(Triloops, tl))) 
+	    if ((ts=strstr(Triloops, tl)))
 	      qbt1 *= expTriloop[(ts-Triloops)/6];
-	    if (type[s]>2) 
-	      qbt1 *= expTermAU;
+	      if (type[s]>2)
+		qbt1 *= expTermAU;
 	  }
 	  else /* no mismatches for tri-loops */
 	    qbt1 *= expmismatchH[type[s]][S[s][i+1]][S[s][j-1]];
@@ -148,20 +239,21 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	qbt1 *= scale[u+2];
 
 	/* interior loops with interior pair k,l */
-	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
+	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++){
 	  u1 = k-i-1;
-	  for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<=j-1; l++) {
+	  for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<=j-1; l++){
 	    double qloop=1;
 	    if (qb[iindx[k]-l]==0) {qloop=0; continue;}
 	    for (s=0; s<n_seq; s++) {
 	      type_2 = pair[S[s][l]][S[s][k]]; if (type_2 == 0) type_2 = 7;
 	      qloop *= expLoopEnergy(u1, j-l-1, type[s], type_2,
-				     S[s][i+1], S[s][j-1],
-				     S[s][k-1], S[s][l+1]);
+		S[s][i+1], S[s][j-1],
+		S[s][k-1], S[s][l+1]);
 	    }
 	    qbt1 += qb[iindx[k]-l] * qloop * scale[u1+j-l-1+2];
 	  }
 	}
+
 	/* multi-loop loop contribution */
 	ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
 	temp = 0.0;
@@ -176,18 +268,20 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	qb[ij] *= exp(psc/kTn);
       } /* end if (type!=0) */
       else qb[ij] = 0.0;
-       
+
       /* construction of qqm matrix containing final stem
 	 contributions to multiple loop partition function
 	 from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];  /* expMLbase[1]^n_seq */
       for (qbt1=1, s=0; s<n_seq; s++) {
 	qbt1 *= expMLintern[type[s]];
-	if (i>1) qbt1 *= expdangle5[type[s]][S[s][i-1]];
-	if (j<n) qbt1 *= expdangle3[type[s]][S[s][j+1]];
+	if ((i>1) || circ) qbt1 *= expdangle5[type[s]][S[s][(i>1) ? i-1 : n]];
+	if ((j<n) || circ) qbt1 *= expdangle3[type[s]][S[s][j+1]];
 	else if (type[s]>2) qbt1 *= expTermAU;
       }
-      qqm[i] += qb[ij]*qbt1;      
+      qqm[i] += qb[ij]*qbt1;
+      if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for circ folding */
+
       /* construction of qm matrix containing multiple loop
 	 partition function contributions from segment i,j */
       temp = 0.0;
@@ -195,17 +289,17 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       for (k=i+1; k<=j; k++)
 	temp += (qm[ii-(k-1)]+expMLbase[k-i])*qqm[k];
       qm[ij] = (temp + qqm[i]);
-      
+
       /* auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if (qbt1>0)
 	for (s=0; s<n_seq; s++) {
-	  if (i>1) qbt1 *= expdangle5[type[s]][S[s][i-1]];
-	  if (j<n) qbt1 *= expdangle3[type[s]][S[s][j+1]];
+	  if ((i>1) || circ) qbt1 *= expdangle5[type[s]][S[s][(i>1) ? i-1 : n]];
+	  if ((j<n) || circ) qbt1 *= expdangle3[type[s]][S[s][j+1]];
 	  else if (type[s]>2) qbt1 *= expTermAU;
 	}
       qq[i] = qq1[i]*scale[1] + qbt1;
-      
+
       /* construction of partition function for segment i,j */
       temp = 1.0*scale[1+j-i] + qq[i];
       for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
@@ -220,7 +314,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
       if (temp>FLT_MAX) {
 	PRIVATE char msg[128];
 	sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
-		"use larger pf_scale", i,j);
+	  "use larger pf_scale", i,j);
 	nrerror(msg);
       }
 #endif
@@ -228,36 +322,187 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
-  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = q[iindx[1]-n];
+}
 
-  /* ensemble free energy in Kcal/mol */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
-  /* in case we abort because of floating point errors */ 
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy); 
-      
+PRIVATE void alipf_create_bppm(char **sequences, char *structure, pair_info **pi)
+{
+  int s;
+  int n, n_seq, i,j,k,l, ij, kl, u,u1,d,ii,ll, type_2, tt, ov=0;
+  FLT_OR_DBL temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL prmt,prmt1;
+  FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
+
+  double free_energy, kTn;
+  n = (int) strlen(sequences[0]);
+  for (s=0; sequences[s]!=NULL; s++);
+  n_seq = s;
+
+  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+
+  for (i=1; i<=n; i++)
+    prm_l[i]=prm_l1[i]=prml[i]=0;
+
   /* backtracking to construct binding probabilities of pairs*/
-   
-  if (do_backtrack) {
-    Qmax=0;
+  Qmax=0;
 
-    for (k=1; k<=n; k++) {
-      q1k[k] = q[iindx[1] - k];
-      qln[k] = q[iindx[k] -n];
-    }
-    q1k[0] = 1.0;
-    qln[n+1] = 1.0;
-      
-    pr = q;     /* recycling */
+  for (k=1; k<=n; k++) {
+    q1k[k] = q[iindx[1] - k];
+    qln[k] = q[iindx[k] -n];
+  }
+  q1k[0] = 1.0;
+  qln[n+1] = 1.0;
 
-    /* 1. exterior pair i,j and initialization of pr array */
+  pr = q;     /* recycling */
+
+  /* 1. exterior pair i,j and initialization of pr array */
+  if(circ){
     for (i=1; i<=n; i++) {
       for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
 	ij = iindx[i]-j;
 	if (qb[ij]>0.) {
+	  pr[ij] =  exp(pscore[ij]/kTn)/qo;
+
+	  /* get pair types  */
+	  for (s=0; s<n_seq; s++) {
+	    type[s] = pair[S[s][j]][S[s][i]];
+	    if (type[s]==0) type[s]=7;
+	  }
+	  int rt;
+
+	  /* 1.1. Exterior Hairpin Contribution */
+	  int u = i + n - j -1;
+	  for (qbt1=1.,s=0; s<n_seq; s++) {
+
+	    char loopseq[10];
+	    if (u<7){
+	      strcpy(loopseq , sequences[s]+j-1);
+	      strncat(loopseq, sequences[s], i);
+	    }
+	    qbt1 *= exphairpin[u];
+	    if ((tetra_loop)&&(u==4)) {
+	      char tl[7]={0}, *ts;
+	      strncpy(tl, loopseq, 6);
+	      if ((ts=strstr(Tetraloops, tl)))
+		qbt1 *= exptetra[(ts-Tetraloops)/7];
+	    }
+	    if (u==3) {
+	      char tl[6]={0}, *ts;
+	      strncpy(tl, loopseq, 5);
+
+	      if ((ts=strstr(Triloops, tl)))
+		qbt1 *= expTriloop[(ts-Triloops)/6];
+	      if (type[s]>2)
+		qbt1 *= expTermAU;
+	    }
+	    else /* no mismatches for tri-loops */
+	      qbt1 *= expmismatchH[type[s]][S[s][j+1]][S[s][(i>1) ? i-1 : n]];
+	  }
+	  tmp2 = qbt1 * scale[u];
+
+	  /* 1.2. Exterior Interior Loop Contribution */
+	  /* recycling of k and l... */
+	  /* 1.2.1. first we calc exterior loop energy with constraint, that i,j  */
+	  /* delimtis the "left" part of the interior loop                        */
+	  /* (j,i) is "outer pair"                                                */
+	  for(k=1; k < i-TURN-1; k++){
+	    /* so first, lets calc the length of loop between j and k */
+	    int ln1, lstart;
+	    ln1 = k + n - j - 1;
+	    if(ln1>MAXLOOP) break;
+	    lstart = ln1+i-1-MAXLOOP;
+	    if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	    for(l=lstart; l < i; l++){
+	      int ln2, type_2;
+	      ln2 = i - l - 1;
+	      if(ln1+ln2>MAXLOOP) continue;
+
+	      double qloop=1.;
+	      if (qb[iindx[k]-l]==0.){ qloop=0.; continue;}
+
+	      for (s=0; s<n_seq; s++){
+		type_2 = pair[S[s][l]][S[s][k]];
+		if (type_2 == 0) type_2 = 7;
+		qloop *= expLoopEnergy(ln1, ln2, type[s], type_2,
+			    S[s][j+1],
+			    S[s][i-1],
+			    S[s][(k>1) ? k-1 : n],
+			    S[s][l+1]);
+	      }
+	      tmp2 += qb[iindx[k] - l] * qloop * scale[ln1+ln2];
+	    }
+	  }
+
+	  /* 1.2.2. second we calc exterior loop energy with constraint, that i,j  */
+	  /* delimtis the "right" part of the interior loop                        */
+	  /* (l,k) is "outer pair"                                                */
+	  for(k=j+1; k < n-TURN; k++){
+	    /* so first, lets calc the length of loop between l and i */
+	    int ln1, lstart;
+	    ln1 = k - j - 1;
+	    if((ln1 + i - 1)>MAXLOOP) break;
+	    lstart = ln1+i-1+n-MAXLOOP;
+	    if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	    for(l=lstart; l <= n; l++){
+	      int ln2, type_2;
+	      ln2 = i - 1 + n - l;
+	      if(ln1+ln2>MAXLOOP) continue;
+	      double qloop=1.;
+	      if (qb[iindx[k]-l]==0.){ qloop=0.; continue;}
+
+	      for (s=0; s<n_seq; s++){
+		type_2 = pair[S[s][l]][S[s][k]];
+		if (type_2 == 0) type_2 = 7;
+		qloop *= expLoopEnergy(ln2, ln1, type_2, type[s],
+			    S[s][l+1],
+			    S[s][k-1],
+			    S[s][(i>1) ? i-1 : n],
+			    S[s][j+1]);
+	      }
+	      tmp2 += qb[iindx[k] - l] * qloop * scale[ln1+ln2];
+	    }
+	  }
+
+	  /* 1.3 Exterior multiloop decomposition */
+	  /* 1.3.1 Middle part                    */
+	  if((i>TURN+2) && (j<n-TURN-1)){
+
+	    for (tmp3=1, s=0; s<n_seq; s++){
+	      rt = rtype[type[s]];
+	      tmp3 *= expMLintern[rt]*expdangle5[rt][S[s][i-1]] * expdangle3[rt][S[s][j+1]] * expMLclosing;
+	    }
+	    tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * tmp3;
+	  }
+	  /* 1.3.2 Left part    */
+	  for(k=TURN+2; k < i-TURN-2; k++){
+
+	    for (tmp3=1, s=0; s<n_seq; s++){
+	      rt = rtype[type[s]];
+	      tmp3 *= expMLintern[rt]*expdangle5[rt][S[s][i-1]] * expdangle3[rt][S[s][j+1]] * expMLclosing;
+	    }
+	    tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * tmp3 * expMLbase[n-j];
+	  }
+	  /* 1.3.3 Right part    */
+	  for(k=j+TURN+2; k < n-TURN-1;k++){
+
+	    for (tmp3=1, s=0; s<n_seq; s++){
+	      rt = rtype[type[s]];
+	      tmp3 *= expMLintern[rt]*expdangle5[rt][S[s][(i>1) ? i-1 : n]] * expdangle3[rt][S[s][j+1]] * expMLclosing;
+	    }
+	    tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * tmp3 * expMLbase[i-1];
+	  }
+	  pr[ij] *= tmp2;
+	}
+	else pr[ij] = 0;
+      }  /* end for j=..*/
+    }  /* end or i=...  */
+  } /* end if(circ)  */
+  else{
+    for (i=1; i<=n; i++) {
+      for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i+TURN+1; j<=n; j++) {
+	ij = iindx[i]-j;
+	if (qb[ij]>0.){
 	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[ij]/kTn);
 	  for (s=0; s<n_seq; s++) {
 	    int typ;
@@ -270,127 +515,121 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 	  pr[ij] = 0;
       }
     }
-      
-    for (l=n; l>TURN+1; l--) {
+  } /* end if(!circ)  */
 
-      /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
-      for (k=1; k<l-TURN; k++) {
-	double pp = 0;
-	kl = iindx[k]-l;
-	if (qb[kl]==0) continue;
-	for (s=0; s<n_seq; s++) {
-          type[s] = pair[S[s][l]][S[s][k]];
-          if (type[s]==0) type[s]=7;
-        }
-	
-	for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++) 
-	  for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
-	    ij = iindx[i] - j;
-	    if ((pr[ij]>0)) {
-	      double qloop=1;
-	      for (s=0; s<n_seq; s++) {
-		int typ;
-		typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
-		qloop *=  expLoopEnergy(k-i-1, j-l-1, typ, type[s],
-				S[s][i+1], S[s][j-1], S[s][k-1], S[s][l+1]);
-	      }
-	      pp += pr[ij]*qloop*scale[k-i-1 + j-l-1 + 2];
-	    } 
-	  }
-	pr[kl] += pp * exp(pscore[kl]/kTn);
+  for (l=n; l>TURN+1; l--) {
+
+    /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
+    for (k=1; k<l-TURN; k++) {
+      double pp = 0;
+      kl = iindx[k]-l;
+      if (qb[kl]==0) continue;
+      for (s=0; s<n_seq; s++) {
+	type[s] = pair[S[s][l]][S[s][k]];
+	if (type[s]==0) type[s]=7;
       }
-      /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
-      prm_MLb = 0.;
-      if (l<n) for (k=2; k<l-TURN; k++) {
-	i = k-1;
-	prmt = prmt1 = 0.0;
-	    
-	ii = iindx[i];     /* ii-j=[i,j]     */
-	ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
-	prmt1 = pr[ii-(l+1)];
-	for (s=0; s<n_seq; s++) {
-	  tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
-	  prmt1 *= expMLclosing*expMLintern[tt]*
-	    expdangle3[tt][S[s][i+1]]*expdangle5[tt][S[s][l]];
-	} 
-	for (j=l+2; j<=n; j++) {
-	  double pp=1;
-	  if (pr[ii-j]==0) continue;
-	  for (s=0; s<n_seq; s++) {
-	    tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
-	    pp *=  expdangle3[tt][S[s][i+1]]*
-	      expdangle5[tt][S[s][j-1]];
-	  }
-	  prmt +=  pr[ii-j]*pp*qm[ll-(j-1)];
-	}
-	kl = iindx[k]-l;
-	for (s=0; s<n_seq; s++) {
-	  int typ;
-	  typ=pair[S[s][k]][S[s][l]]; if (typ==0) typ=7;
-	  prmt *= expMLclosing*expMLintern[typ];
-	}
-	prml[ i] = prmt;
-	prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1; /* expMLbase[1]^n_seq */
-	
-	prm_MLb = prm_MLb*expMLbase[1] + prml[i];
-	/* same as:    prm_MLb = 0;
-	   for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
-	
-	prml[i] = prml[ i] + prm_l[i];
-	
-	if (qb[kl] == 0.) continue; 
-	    
-	temp = prm_MLb;
-	
-	for (i=1;i<=k-2; i++) 
-	  temp += prml[i]*qm[iindx[i+1] - (k-1)];
 
-	for (s=0; s<n_seq; s++) {
-	  tt=pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
-	  temp *= expMLintern[tt];
-	  if (k>1) temp *= expdangle5[tt][S[s][k-1]];
-	  if (l<n) temp *= expdangle3[tt][S[s][l+1]];
-	  else if (tt>2) temp *= expTermAU;
+      for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++)
+	for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
+	  ij = iindx[i] - j;
+	  if ((pr[ij]>0.)) {
+	    double qloop=1;
+	    for (s=0; s<n_seq; s++) {
+	      int typ;
+	      typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
+	      qloop *=  expLoopEnergy(k-i-1, j-l-1, typ, type[s], S[s][i+1], S[s][j-1], S[s][(k>1) ? k-1 : n], S[s][l+1]);
+	    }
+	    pp += pr[ij]*qloop*scale[k-i-1 + j-l-1 + 2];
+	  }
 	}
-	pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
-	
+      pr[kl] += pp * exp(pscore[kl]/kTn);
+    }
+    /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
+    prm_MLb = 0.;
+    if (l<n) for (k=2; k<l-TURN; k++) {
+      i = k-1;
+      prmt = prmt1 = 0.0;
+
+      ii = iindx[i];     /* ii-j=[i,j]     */
+      ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
+      prmt1 = pr[ii-(l+1)];
+      for (s=0; s<n_seq; s++) {
+	tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
+	prmt1 *= expMLclosing*expMLintern[tt]*
+	  expdangle3[tt][S[s][i+1]]*expdangle5[tt][S[s][l]];
+      }
+      for (j=l+2; j<=n; j++) {
+	double pp=1;
+	if (pr[ii-j]==0) continue;
+	for (s=0; s<n_seq; s++) {
+	  tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
+	  pp *=  expdangle3[tt][S[s][i+1]]*
+	    expdangle5[tt][S[s][j-1]];
+	}
+	prmt +=  pr[ii-j]*pp*qm[ll-(j-1)];
+      }
+      kl = iindx[k]-l;
+      for (s=0; s<n_seq; s++) {
+	int typ;
+	typ=pair[S[s][k]][S[s][l]]; if (typ==0) typ=7;
+	prmt *= expMLclosing*expMLintern[typ];
+      }
+      prml[ i] = prmt;
+      prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1; /* expMLbase[1]^n_seq */
+
+      prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+      /* same as:    prm_MLb = 0;
+	 for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+
+      prml[i] = prml[ i] + prm_l[i];
+
+      if (qb[kl] == 0.) continue;
+
+      temp = prm_MLb;
+
+      for (i=1;i<=k-2; i++)
+	temp += prml[i]*qm[iindx[i+1] - (k-1)];
+
+      for (s=0; s<n_seq; s++) {
+	tt=pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
+	temp *= expMLintern[tt];
+	if (k>1) temp *= expdangle5[tt][S[s][k-1]];
+	if (l<n) temp *= expdangle3[tt][S[s][l+1]];
+	else if (tt>2) temp *= expTermAU;
+      }
+      pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
+
 #ifndef LARGE_PF
-	if (pr[kl]>Qmax) {
-	  Qmax = pr[kl];
-	  if (Qmax>FLT_MAX/10.)
-	    fprintf(stderr, "%d %d %g %g\n", i,j,pr[kl],qb[kl]);
-	}
-	if (pr[kl]>FLT_MAX) {
-	  ov++;
-	  pr[kl]=FLT_MAX;
-	}
-#endif
-      } /* end for (k=..) */
-      tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
-
-    }  /* end for (l=..)   */
-    
-    for (i=1; i<=n; i++)
-      for (j=i+TURN+1; j<=n; j++) {
-	ij = iindx[i]-j;
-	pr[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
+      if (pr[kl]>Qmax) {
+	Qmax = pr[kl];
+	if (Qmax>FLT_MAX/10.)
+	  fprintf(stderr, "%d %d %g %g\n", i,j,pr[kl],qb[kl]);
       }
+      if (pr[kl]>FLT_MAX) {
+	ov++;
+	pr[kl]=FLT_MAX;
+      }
+#endif
+    } /* end for (k=2..) */
+    tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
-    if (pi != NULL)
-      *pi = make_pairinfo((const short **)S, sequences, n_seq);
-  
-    if (structure!=NULL)
-      sprintf_bppm(n, structure);
-  }   /* end if (do_backtrack)*/
+  }  /* end for (l=..)   */
 
-  for (i=0; i<n_seq; i++) free(S[i]);
-  free(S);
+  for (i=1; i<=n; i++)
+    for (j=i+TURN+1; j<=n; j++) {
+      ij = iindx[i]-j;
+      pr[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
+    }
+
+  if (pi != NULL)
+    *pi = make_pairinfo((const short **)S, sequences, n_seq);
+
+  if (structure!=NULL)
+    sprintf_bppm(n, structure);
+
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-		    "you might try a smaller pf_scale than %g\n",
-		    ov, pf_scale);
-  free(type);
-  free_alipf_arrays();
-  return (free_energy); 
+	"you might try a smaller pf_scale than %g\n",
+	ov, pf_scale);
 }
 
 /*------------------------------------------------------------------------*/
@@ -401,7 +640,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, pair_info **pi)
 
 #define SCALE 10
 #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
-          SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
+	  SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
 
 PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 {
@@ -410,12 +649,12 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   double  kT, TT, kTn;
   double  GT;
 
-   
-   
+
+
   kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
   kTn = kT*n_seq;
   TT = (temperature+K0)/(Tmeasure);
-  
+
    /* scaling factors (to avoid overflows) */
   if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
     pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
@@ -439,7 +678,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) expinternal[2] = exp ( -80*10/kTn);
-   
+
   lxc = lxc37*TT;
   for (i=31; i<length; i++) {
     GT = hairpin37[30]*TT + (lxc*log( i/30.));
@@ -461,7 +700,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
     GT = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*TT;
     exptetra[i] = exp( -GT*10./kTn);
   }
-  for (i=0; (i*5)<strlen(Triloops); i++) 
+  for (i=0; (i*5)<strlen(Triloops); i++)
     expTriloop[i] = exp(-Triloop_E37[i]*10/kTn);
 
   GT =  ML_closing37*TT;
@@ -527,7 +766,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++) {
-	    GT = int21_H[i][j][k][l][m] - 
+	    GT = int21_H[i][j][k][l][m] -
 	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
 	    expint21[i][j][k][l][m] = exp(-GT*10./kTn);
 	  }
@@ -539,12 +778,12 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 	for (l=0; l<5; l++) {
 	  int m,n;
 	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++) {            
+	    for (n=0; n<5; n++) {
 	      GT = int22_H[i][j][k][l][m][n] -
 		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
 	      expint22[i][j][k][l][m][n] = exp(-GT*10./kTn);
 	    }
-	}  
+	}
 }
 
 /*----------------------------------------------------------------------*/
@@ -573,7 +812,7 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
     else {     /* interior loop */
       if (u1+u2==2) /* size 2 is special */
 	z = expint11[type][type2][si1][sj1];
-      else if ((u1==1) && (u2==2)) 
+      else if ((u1==1) && (u2==2))
 	z = expint21[type][type2][si1][sq1][sj1];
       else if ((u1==2) && (u2==1))
 	z = expint21[type2][type][sq1][si1][sp1];
@@ -589,13 +828,13 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
   }
   return z;
 }
- 
+
 /*----------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int length)
 {
   unsigned int size,i;
-   
+
   size = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
   q   = (FLT_OR_DBL *) space(size);
   qb  = (FLT_OR_DBL *) space(size);
@@ -614,13 +853,20 @@ PRIVATE void get_arrays(unsigned int length)
   expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   iindx = (int *) space(sizeof(int)*(length+1));
+  jindx = (int *) space(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
     iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
+    jindx[i] = (i*(i-1))/2;
+  }
+  qm1 = qm2 = NULL;
+  if(circ){
+    qm1 = (FLT_OR_DBL *) space(size);
+    qm2 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   }
 }
 
 /*----------------------------------------------------------------------*/
-   
+
 PUBLIC void init_alipf_fold(int length, int n_seq)
 {
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
@@ -643,6 +889,8 @@ PRIVATE void free_alipf_arrays(void)
   free(q);
   free(qb);
   free(qm);
+  if(qm1 != NULL){ free(qm1); qm1 = NULL;}
+  if(qm2 != NULL){ free(qm2); qm2 = NULL;}
   free(pscore);
   free(qq); free(qq1);
   free(qqm); free(qqm1);
@@ -674,7 +922,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
   /* sort mostly by probability, add
      epsilon * comp_mutations/(non-compatible+1) to break ties */
   return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
-         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
+	 (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
 pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
@@ -685,7 +933,7 @@ pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((n+1)*sizeof(double));
   for (i=1; i<n; i++)
-    for (j=i+TURN+1; j<=n; j++) 
+    for (j=i+TURN+1; j<=n; j++)
       if ((p=pr[iindx[i]-j])>0) {
 	duck[i] -=  p * log(p);
 	duck[j] -=  p * log(p);
@@ -701,7 +949,7 @@ pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
 	pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
 	for (type=0; type<8; type++) pi[num_p].bp[type]=0;
 	for (s=0; s<n_seq; s++) {
-	  if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */  
+	  if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
 	  else {
 	    if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
 	    else type = pair[S[s][i]][S[s][j]];
@@ -714,7 +962,7 @@ pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
 	  pi = realloc(pi, max_p * sizeof(pair_info));
 	  if (pi==NULL) nrerror("out of memory in alipf_fold");
 	}
-      }  
+      }
     }
   free(duck);
   pi = realloc(pi, (num_p+1)*sizeof(pair_info));
@@ -730,7 +978,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
   extern char  bppm_symbol(float *x);
   int    i,j;
   float  P[L];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
-         
+
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
     P[1] = P[2] = 0.0;
@@ -745,7 +993,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
     structure[j-1] = bppm_symbol(P);
   }
   structure[length] = '\0';
-}   
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -753,13 +1001,16 @@ PRIVATE short * encode_seq(const char *sequence) {
   unsigned int i,l;
   short *S;
   l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+1));
+  S = (short *) space(sizeof(short)*(l+2));
   S[0] = (short) l;
-  
+
   /* make numerical encoding of sequence */
-  for (i=1; i<=l; i++) 
+  for (i=1; i<=l; i++)
     S[i]= (short) encode_char(toupper(sequence[i-1]));
-  
+
+  /* for circular folding add first base at position l+1  */
+  S[l+1] = S[1];
+
   return S;
 }
 
@@ -773,22 +1024,22 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
 #define NONE -10000 /* score for forbidden pairs */
   int n,i,j,k,l,s,score;
   int dm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
-                {0,0,2,2,1,2,2} /* CG */,
-                {0,2,0,1,2,2,2} /* GC */,
-                {0,2,1,0,2,1,2} /* GU */,
-                {0,1,2,2,0,2,1} /* UG */,
-                {0,2,2,1,2,0,2} /* AU */,
-                {0,2,2,2,1,2,0} /* UA */};
+		{0,0,2,2,1,2,2} /* CG */,
+		{0,2,0,1,2,2,2} /* GC */,
+		{0,2,1,0,2,1,2} /* GU */,
+		{0,1,2,2,0,2,1} /* UG */,
+		{0,2,2,1,2,0,2} /* AU */,
+		{0,2,2,2,1,2,0} /* UA */};
 
   n=S[0][0];  /* length of seqs */
   for (i=1; i<n; i++) {
-    for (j=i+1; (j<i+TURN+1) && (j<=n); j++) 
+    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
       pscore[iindx[i]-j] = NONE;
     for (j=i+TURN+1; j<=n; j++) {
       int pfreq[8]={0,0,0,0,0,0,0,0};
       for (s=0; s<n_seq; s++) {
 	int type;
-	if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */	
+	if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
 	else {
 	  if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
 	  else type = pair[S[s][i]][S[s][j]];
@@ -797,7 +1048,7 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
       }
       if (pfreq[0]*2>n_seq) { pscore[iindx[i]-j] = NONE; continue;}
       for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
-	for (l=k+1; l<=6; l++) 
+	for (l=k+1; l<=6; l++)
 	  /* scores for replacements between pairtypes    */
 	  /* consistent mutations (if l==k+2) score 1     */
 	  /* compensatory (all else) score 2              */
@@ -809,7 +1060,7 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
   }
 
   if (noLonelyPairs) /* remove unwanted pairs */
-    for (k=1; k<=n-TURN-1; k++) 
+    for (k=1; k<=n-TURN-1; k++)
       for (l=1; l<=2; l++) {
 	int type,ntype=0,otype=0;
 	i=k; j = i+TURN+l;
@@ -824,42 +1075,42 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
 	  i--; j++;
 	}
       }
-  
+
 
   if (fold_constrained&&(structure!=NULL)) {
     int psij, hx, *stack;
     stack = (int *) space(sizeof(int)*(n+1));
-    
+
     for(hx=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
-      case 'x': /* j can't pair */ 
-        for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
-        break;
+      case 'x': /* j can't pair */
+	for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
+	for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
+	break;
       case '(':
-        stack[hx++]=j;
-        /* fallthrough */
+	stack[hx++]=j;
+	/* fallthrough */
       case '<': /* j pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
-        break;
+	for (l=1; l<j-TURN; l++) pscore[iindx[l]-j] = NONE;
+	break;
       case ')': /* j pairs with i */
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
+	if (hx<=0) {
+	  fprintf(stderr, "%s\n", structure);
+	  nrerror("unbalanced brackets in constraints");
+	}
+	i = stack[--hx];
 	psij = pscore[iindx[i]-j]; /* store for later */
-        for (l=i; l<=j; l++) 
+	for (l=i; l<=j; l++)
 	  for (k=j; k<=n; k++) pscore[iindx[l]-k] = NONE;
-	for (k=1; k<=i; k++) 
+	for (k=1; k<=i; k++)
 	  for (l=i; l<=j; l++) pscore[iindx[k]-l] = NONE;
 	for (k=i+1; k<j; k++)
 	  pscore[iindx[k]-j] = pscore[iindx[i]-k] = NONE;
 	pscore[iindx[i]-j] = (psij>0) ? psij : 0;
-        /* fallthrough */
+	/* fallthrough */
       case '>': /* j pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
-        break;
+	for (l=j+TURN+1; l<=n; l++) pscore[iindx[j]-l] = NONE;
+	break;
       }
     }
     if (hx!=0) {
@@ -868,4 +1119,109 @@ PRIVATE void make_pscores(const short *const *S, const char *const *AS,
     }
     free(stack);
   }
+}
+
+/* calculate partition function for circular case   */
+/* NOTE: this is the postprocessing step ONLY        */
+/* You have to call alipf_linear first to calculate  */
+/* circular case!!!                                  */
+
+PUBLIC void alipf_circ(char **sequences, char *structure){
+
+  int u, p, q, k, l, n_seq, s;
+  int n = (int) strlen(sequences[0]);
+  for (s=0; sequences[s]!=NULL; s++);
+  n_seq = s;
+
+  double kTn;
+  FLT_OR_DBL qbt1, qot;
+  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+
+  qo = qho = qio = qmo = 0.;
+  /* calculate the qm2 matrix  */
+  for(k=1; k<n-TURN; k++){
+    qot = 0.;
+    for (u=k+TURN+1; u<n-TURN-1; u++)
+      qot += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
+    qm2[k] = qot;
+  }
+
+  for(p=1;p<n;p++){
+    for(q=p+TURN+1;q<=n;q++){
+      int ij, psc;
+      u = n-q + p-1;
+      if (u<TURN) continue;
+
+      psc = pscore[iindx[p]-q];
+
+      if(psc<cv_fact*MINPSCORE) continue;
+
+      /* 1. exterior hairpin contribution  */
+      /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */
+      /* for the closing pair was already done in the forward recursion              */
+      for (qbt1=1,s=0; s<n_seq; s++) {
+	char loopseq[10];
+
+	type[s] = pair[S[s][q]][S[s][p]];
+	if (type[s]==0) type[s]=7;
+
+	if (u<7){
+	  strcpy(loopseq , sequences[s]+q-1);
+	  strncat(loopseq, sequences[s], p);
+	}
+
+	qbt1 *= exphairpin[u];
+	if ((tetra_loop)&&(u==4)) {
+	  char tl[7]={0}, *ts;
+	  strncpy(tl, loopseq, 6);
+	  if ((ts=strstr(Tetraloops, tl)))
+	  qbt1 *= exptetra[(ts-Tetraloops)/7];
+	}
+	if (u==3) {
+	  char tl[6]={0}, *ts;
+	  strncpy(tl, loopseq, 5);
+
+	  if ((ts=strstr(Triloops, tl)))
+	    qbt1 *= expTriloop[(ts-Triloops)/6];
+	  if (type[s]>2)
+	    qbt1 *= expTermAU;
+	}
+	else
+	  qbt1 *= expmismatchH[type[s]][S[s][q+1]][S[s][(p>1) ? p-1 : n]];
+
+      }
+      qho += qb[iindx[p]-q] * qbt1 * scale[u];
+
+      /* 2. exterior interior loop contribution*/
+
+      for(k=q+1; k < n; k++){
+	int ln1, lstart;
+	ln1 = k - q - 1;
+	if(ln1+p-1>MAXLOOP) break;
+	lstart = ln1+p-1+n-MAXLOOP;
+	if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	for(l=lstart;l <= n; l++){
+	  int ln2, type_2;
+
+	  ln2 = (p - 1) + (n - l);
+	  if((ln1+ln2) > MAXLOOP) continue;
+	  double qloop=1.;
+	  if (qb[iindx[k]-l]==0.){ qloop=0.; continue;}
+
+	  for (s=0; s<n_seq; s++){
+	    type_2 = pair[S[s][l]][S[s][k]];
+	    if (type_2 == 0) type_2 = 7;
+	    qloop *= expLoopEnergy(ln2, ln1, type_2, type[s], S[s][l+1], S[s][(k>1) ? k-1 : n], S[s][(p>1) ? p-1 : n], S[s][q+1]);
+	  }
+	  qio += qb[iindx[p]-q] * qb[iindx[k]-l] * qloop * scale[ln1+ln2];
+	}
+      } /* end of kl double loop */
+    }
+  } /* end of pq double loop */
+
+  /* 3. exterior multiloop contribution  */
+  for(k=TURN+2; k<n-2*TURN-3; k++)
+    qmo += qm[iindx[1]-k] * qm2[k+1] * pow(expMLclosing,n_seq);
+
+  qo = qho + qio + qmo;
 }

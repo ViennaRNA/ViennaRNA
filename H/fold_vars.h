@@ -1,5 +1,8 @@
+#ifndef __FOLD_VARS__
+#define __FOLD_VARS__
+
 /* to use floats instead of doubles in pf_fold() comment next line */
-#define LARGE_PF 
+#define LARGE_PF
 #ifdef  LARGE_PF
 #define FLT_OR_DBL double
 #else
@@ -34,3 +37,4 @@ extern int    noLonelyPairs;    /* avoid helices of length 1 */
 extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
 				   'M' seq is part of a multi loop */
 char * option_string(void);
+#endif
