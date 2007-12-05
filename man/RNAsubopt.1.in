@@ -4,7 +4,7 @@
 .SH "NAME"
 RNAsubopt \- calculate suboptimal secondary structures of RNAs
 .SH "SYNOPSIS"
-\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep \fIprange\fP] [\-s] [\-p\ \fIn\fP] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs]
+\fBRNAsubopt [\-e\ \fIrange\fP] [\-ep \fIprange\fP] [\-s] [\-p\ \fIn\fP] [\-T\ \fItemp\fP] [\-d[0|1|2|3]] [\-4] [\-noGU] [\-noCloseGU] [\-P\ paramfile] [\-logML] [\-nsp\ pairs] [\-circ]
 
 .SH "DESCRIPTION"
 .I RNAsubopt
@@ -63,6 +63,9 @@ after re\-evaluation.
 Only produce structures without lonely pairs (helices of length 1). This
 reduces the number of structures drastically and should therefore be used
 for longer sequences and larger energy ranges.
+.TP
+.B \-circ
+Assume a circular (instead of linear) RNA molecule.
 .PP
 The \fB\-T\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-P\fP, \fB\-nsp\fP, options work as in RNAfold.

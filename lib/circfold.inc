@@ -4,40 +4,40 @@
 
 float circfold(const char *string, char *structure) {
   /* variant of fold() for circular RNAs */
-  /* auxiliarry arrays: 
-     fM2 = multiloop region with exactly two stems, extending to 3' end 
+  /* auxiliarry arrays:
+     fM2 = multiloop region with exactly two stems, extending to 3' end
      for stupid dangles=1 case we also need:
-     fM_d3 = multiloop region with >= 2 stems, starting at pos 2 
-             (a pair (k,n) will form 3' dangle with pos 1)
+     fM_d3 = multiloop region with >= 2 stems, starting at pos 2
+	     (a pair (k,n) will form 3' dangle with pos 1)
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
-             (a pair (1,k) will form a 5' dangle with pos n)
+	     (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int *fM2, Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi;
+  int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
   int s=0;
   /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
-  length = (int) strlen(string);
+	circ = 1;
+
+ length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
-  
+
   encode_seq(string);
-  
+
   BP = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
-  
+
   /* compute all arrays used by fold() for linear RNA */
   energy = fill_arrays(string);
 
-  /* extra arrays for circfold() */
-  fM2 =  (int *) space(sizeof(int)*(length+2));
   FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
-  for (i=1; i<length; i++) 
+  for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
       int ij, bonus=0, type, u, new_c, no_close;
       u = length-j + i-1;
       if (u<TURN) continue;
-	
+
       ij = indx[j]+i;
       type = ptype[ij];
 
@@ -45,7 +45,7 @@ float circfold(const char *string, char *structure) {
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if ((BP[i]==-4)||(BP[j]==-4)) type=0;
-      
+
       no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
 
       /* if (j-i-1 > max_separation) type = 0; */  /* forces locality degree */
@@ -55,19 +55,21 @@ float circfold(const char *string, char *structure) {
       if (no_close) new_c = FORBIDDEN;
       else {
 	char loopseq[10];
-	int si1, sj1;
+	/*int si1, sj1;*/
 	if (u<7) {
 	  strcpy(loopseq , string+j-1);
-	  strncat(loopseq, string, i); 
+	  strncat(loopseq, string, i);
 	}
+	/*
 	si1 = (i==1)?S1[length] : S1[i-1];
 	sj1 = (j==length)?S1[1] : S1[j+1];
-	new_c = HairpinE(u, type, sj1, si1,  loopseq)+bonus+c[ij];
+	*/
+	new_c = HairpinE(u, type, /*sj1*/S1[j+1], /*si1*/S1[i-1],  loopseq)+bonus+c[ij];
       }
       if (new_c<FcH) {
 	FcH = new_c; Hi=i; Hj=j;
       }
-      
+
       for (p = j+1; p < length ; p++) {
 	int u1, qmin;
 	u1 = p-j-1;
@@ -75,19 +77,20 @@ float circfold(const char *string, char *structure) {
 	qmin = u1+i-1+length-MAXLOOP;
 	if (qmin<p+TURN+1) qmin = p+TURN+1;
 	for (q = qmin; q <=length; q++) {
-	  int u2, si1, sq1, type_2;
+	  int u2, type_2/*, si1, sq1*/;
 	  type_2 = rtype[ptype[indx[q]+p]];
 	  if (type_2==0) continue;
 	  u2 = i-1 + length-q;
 	  if (u1+u2>MAXLOOP) continue;
-	  si1 = (i==1)? S1[length] : S1[i-1];
-	  sq1 = (q==length)? S1[1] : S1[q+1];
-	  energy = LoopEnergy(u1, u2, type, type_2,
-			      S1[j+1], si1, S1[p-1], sq1);
+		  /* we dont need this due to init of S1 (see encode_seq)
+		  si1 = (i==1)? S1[length] : S1[i-1];
+		  sq1 = (q==length)? S1[1] : S1[q+1];
+		  */
+	  energy = LoopEnergy(u1, u2, type, type_2, S1[j+1], /*si1*/S1[i-1], S1[p-1], /*sq1*/S1[q+1]);
 	  new_c = c[ij] + c[indx[q]+p] + energy;
 	  if (new_c<FcI) {
 	    FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
-	  } 
+	  }
 	}
       }
     }
@@ -192,7 +195,7 @@ float circfold(const char *string, char *structure) {
     free(fM_d3);
     free(fM_d5);
   }
-  
+
   if (FcH==Fc) {
     sector[++s].i = Hi;
     sector[s].j = Hj;
@@ -231,8 +234,8 @@ float circfold(const char *string, char *structure) {
 #else
   letter_structure(structure, length);
 #endif
-  
-  /* check constraints */ 
+
+  /* check constraints */
   for(i=1;i<=length;i++) {
     if((BP[i]<0)&&(BP[i]>-4)) {
       bonus_cnt++;
@@ -240,7 +243,7 @@ float circfold(const char *string, char *structure) {
       if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
       if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
     }
-    
+
     if(BP[i]>i) {
       int l;
       bonus_cnt++;
@@ -248,14 +251,13 @@ float circfold(const char *string, char *structure) {
 	if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
     }
   }
-  
+
   if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
   bonus*=BONUS;
 
-  free(fM2); free(S); free(S1); free(BP);
+  free(S); free(S1); free(BP);
 
   energy = Fc + bonus;      /*remove bonus energies from result */
 
   return (float) energy/100.;
 }
-

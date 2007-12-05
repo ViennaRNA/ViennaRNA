@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-07-03 12:58:52 ivo> */
+/* Last changed Time-stamp: <2007-12-05 13:51:59 ronny> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.36 2007/07/03 21:43:27 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.37 2007/12/05 13:04:04 ivo Exp $";
 #ifdef __GNUC__
 #define INLINE inline
 #else
@@ -39,7 +39,9 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.36 2007/07/03 21:43:27 ivo Exp $";
 #define NEW_NINIO     1   /* new asymetry penalty */
 
 PUBLIC float  fold(const char *string, char *structure);
+PUBLIC float  circfold(const char *string, char *structure);
 PUBLIC float  energy_of_struct(const char *string, const char *structure);
+PUBLIC float  energy_of_circ_struct(const char *string, const char *structure);
 PUBLIC int    energy_of_struct_pt(const char *string, short *ptable,
 				  short *s, short *s1);
 PUBLIC void   free_arrays(void);
@@ -97,6 +99,10 @@ PRIVATE int min_hairpin = TURN;
 PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
 PUBLIC int   eos_debug=0;  /* verbose info from energy_of_struct */
 
+/* some definitions to take circfold into account...	*/
+PUBLIC	int		circ = 0;
+PRIVATE int   *fM2;	/* fM2 = multiloop region with exactly two stems, extending to 3' end	*/
+PUBLIC	int   Fc, FcH, FcI, FcM; /* parts of the exterior loop energies			*/
 /*--------------------------------------------------------------------------*/
 
 void initialize_fold(int length)
@@ -132,6 +138,8 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi1  = (int *) space(sizeof(int)*(size+1));
   DMLi2  = (int *) space(sizeof(int)*(size+1));
   base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
+  /* extra array(s) for circfold() */
+  if(circ) fM2 =  (int *) space(sizeof(int)*(size+2));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -140,9 +148,8 @@ void free_arrays(void)
 {
   free(indx); free(c); free(fML); free(f5); free(cc); free(cc1);
   free(ptype);
-  if (fM1) {
-    free(fM1); fM1=NULL;
-  }
+  if(fM1){ free(fM1); fM1=NULL;}
+  if(fM2){ free(fM2); fM2=NULL;}
 
   free(base_pair); base_pair=NULL; free(Fmi);
   free(DMLi); free(DMLi1);free(DMLi2);
@@ -159,6 +166,16 @@ void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
   *indx_p = indx; *ptype_p = ptype;
 }
 
+void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p,
+			int **f5_p, int **c_p, int **fML_p, int **fM1_p,
+			int **indx_p, char **ptype_p) {
+  /* make the DP arrays available to routines such as subopt() */
+  *f5_p = f5; *c_p = c;
+  *fML_p = fML; *fM1_p = fM1; *fM2_p = fM2;
+	Fc_p=&Fc; FcH_p=&FcH;FcI_p=&FcI;FcM_p=&FcM;
+  *indx_p = indx; *ptype_p = ptype;
+}
+
 /*--------------------------------------------------------------------------*/
 
 PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
@@ -171,6 +188,7 @@ PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
 float fold(const char *string, char *structure) {
   int i, length, energy, bonus=0, bonus_cnt=0;
 
+  circ = 0;
   length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
@@ -402,7 +420,7 @@ PRIVATE int fill_arrays(const char *string) {
 			  c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]);
 	}
 
-	decomp += 2*P->MLintern[1];  	/* no TermAU penalty if coax stack */
+	decomp += 2*P->MLintern[1];	/* no TermAU penalty if coax stack */
 #if 0
 	/* This is needed for Y shaped ML loops with coax stacking of
 	   interior pairts, but backtracking will fail if activated */
@@ -930,14 +948,15 @@ PRIVATE void encode_seq(const char *sequence) {
   S = (short *) space(sizeof(short)*(l+2));
   S1= (short *) space(sizeof(short)*(l+2));
   /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = S1[0] = (short) l;
+  S[0] = (short) l;
 
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
     S[i]= (short) encode_char(toupper(sequence[i-1]));
     S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
   }
-  /* for circular folding add first base at position n+1 */
-  S[l+1] = S[1]; S1[l+1]=S1[1];
+  /* for circular folding add first base at position n+1 and last base at
+	position 0 in S1	*/
+  S[l+1] = S[1]; S1[l+1]=S1[1]; S1[0] = S1[l];
 }
 
 /*---------------------------------------------------------------------------*/

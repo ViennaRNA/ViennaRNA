@@ -153,8 +153,7 @@ You can also recompile the program to use double precision (see the README
 file).
 .TP
 .B \-circ
-Assume a circular (instead of linear) RNA molecule. Currently works only
-for mfe folding.
+Assume a circular (instead of linear) RNA molecule.
 .TP
 .B \-noPS
 Do not produce postscript drawing of the mfe structure.

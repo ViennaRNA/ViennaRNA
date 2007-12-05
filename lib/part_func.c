@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-09-19 14:14:30 ivo> */
+/* Last changed Time-stamp: <2007-12-05 13:52:28 ronny> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.27  2007/12/05 13:04:04  ivo
+  add various circfold variants from Ronny
+
   Revision 1.26  2007/09/19 12:41:56  ivo
   add computation of centroid() structure for RNAfold -p
 
@@ -66,7 +69,7 @@ typedef struct plist {
 
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.26 2007/09/19 12:41:56 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.27 2007/12/05 13:04:04 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -88,6 +91,15 @@ PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void make_ptypes(const short *S, const char *structure);
+PUBLIC  float  pf_circ_fold(char *sequence, char *structure);
+PRIVATE  void  pf_circ(char *sequence, char *structure);
+PUBLIC  char  *pbacktrack_circ(char *seq);
+PRIVATE  void  pf_linear(char *sequence, char *structure);
+PRIVATE  void  pf_create_bppm(char *sequence, char *structure);
+static  void backtrack(int i, int j);
+static  void backtrack_qm(int i, int j);
+static  void backtrack_qm1(int i,int j);
+static  void backtrack_qm2(int u, int n);
 
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
 PRIVATE FLT_OR_DBL expTermAU;
@@ -110,6 +122,11 @@ PRIVATE char *ptype; /* precomputed array of pair types */
 PRIVATE int *jindx;
 PRIVATE int init_length;  /* length in last call to init_pf_fold() */
 PRIVATE double init_temp; /* temperature in last call to scale_pf_params */
+PRIVATE int circ=0;
+PRIVATE FLT_OR_DBL qo, qho, qio, qmo, *qm2;
+static char *pstruc;
+static char *sequence;
+
 #define ISOLATED  256.0
 
 /*-----------------------------------------------------------------*/
@@ -117,12 +134,71 @@ static  short *S, *S1;
 PUBLIC float pf_fold(char *sequence, char *structure)
 {
 
-  int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
-  FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL qbt1, *tmp;
+  FLT_OR_DBL Q;
 
   double free_energy;
+  int n = (int) strlen(sequence);
+
+  circ = 0;
+
+  /* do the linear pf fold and fill all matrices  */
+  pf_linear(sequence, structure);
+
+
+  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
+  else Q = q[iindx[1]-n];
+
+  /* ensemble free energy in Kcal/mol              */
+  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+
+  /* calculate base pairing probability matrix (bppm)  */
+  if(do_backtrack) pf_create_bppm(sequence, structure);
+
+  return free_energy;
+}
+
+PUBLIC float pf_circ_fold(char *sequence, char *structure){
+
+  FLT_OR_DBL Q;
+
+  double free_energy;
+  int n = (int) strlen(sequence);
+
+  circ = 1;
+  /* do the linear pf fold and fill all matrices  */
+  pf_linear(sequence, structure);
+
+  /* calculate post processing step for circular  */
+  /* RNAs                                          */
+  pf_circ(sequence, structure);
+
+  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
+  else Q = qo;
+
+  /* ensemble free energy in Kcal/mol              */
+  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+
+  /* calculate base pairing probability matrix (bppm)  */
+  if(do_backtrack) pf_create_bppm(sequence, structure);
+
+  return free_energy;
+}
+
+PUBLIC void pf_linear(char *sequence, char *structure)
+{
+
+  int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt;
+  FLT_OR_DBL temp, Q, Qmax=0;
+  FLT_OR_DBL qbt1, *tmp;
+
   double max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -131,14 +207,17 @@ PUBLIC float pf_fold(char *sequence, char *structure)
   if (n>init_length) init_pf_fold(n);  /* (re)allocate space */
   if ((init_temp - temperature)>1e-6) update_pf_params(n);
 
-  S = (short *) xrealloc(S, sizeof(short)*(n+1));
-  S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
+  S = (short *) xrealloc(S, sizeof(short)*(n+2));
+  S1= (short *) xrealloc(S1, sizeof(short)*(n+2));
   S[0] = n;
   for (l=1; l<=n; l++) {
     S[l]  = (short) encode_char(toupper(sequence[l-1]));
     S1[l] = alias[S[l]];
   }
   make_ptypes(S, structure);
+
+  /* add first base at position n+1 and n'th base at position 0 */
+  S[n+1] = S[1]; S1[n+1]=S1[1]; S1[0]=S1[n];
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -152,7 +231,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
     }
 
   for (i=1; i<=n; i++)
-    qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
+    qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
@@ -164,8 +243,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	/*hairpin contribution*/
 	if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
 	else
-	  qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*
-	    scale[u+2];/* add scale[u+2] */
+	  qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*scale[u+2];/* add scale[u+2] */
 	/* interior loops with interior pair k,l */
 	for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
 	  u1 = k-i-1;
@@ -175,8 +253,8 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	      type_2 = rtype[type_2];
 	      /* add *scale[u1+u2+2] */
 	      qbt1 += qb[iindx[k]-l] * (scale[u1+j-l+1] *
-		expLoopEnergy(u1, j-l-1, type, type_2,
-			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
+		      expLoopEnergy(u1, j-l-1, type, type_2,
+		      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	    }
 	  }
 	}
@@ -186,7 +264,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
 	tt = rtype[type];
 	qbt1 += temp*expMLclosing*expMLintern[tt]*scale[2]*
-	  expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
+		expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
 
 	qb[ij] = qbt1;
       } /* end if (type!=0) */
@@ -198,12 +276,12 @@ PUBLIC float pf_fold(char *sequence, char *structure)
       qqm[i] = qqm1[i]*expMLbase[1];
       if (type) {
 	qbt1 = qb[ij]*expMLintern[type];
-	if (i>1) qbt1 *= expdangle5[type][S1[i-1]];
-	if (j<n) qbt1 *= expdangle3[type][S1[j+1]];
+	if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
+	if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
 	else if (type>2) qbt1 *= expTermAU;
 	qqm[i] += qbt1;
       }
-      if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
+      if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
 
       /*construction of qm matrix containing multiple loop
 	partition function contributions from segment i,j */
@@ -215,8 +293,8 @@ PUBLIC float pf_fold(char *sequence, char *structure)
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if (type) {
-	if (i>1) qbt1 *= expdangle5[type][S1[i-1]];
-	if (j<n) qbt1 *= expdangle3[type][S1[j+1]];
+	if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
+	if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
 	else if (type>2) qbt1 *= expTermAU;
       }
       qq[i] = qq1[i]*scale[1] + qbt1;
@@ -234,26 +312,102 @@ PUBLIC float pf_fold(char *sequence, char *structure)
       if (temp>=max_real) {
 	PRIVATE char msg[128];
 	sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
-		"use larger pf_scale", i,j);
+	"use larger pf_scale", i,j);
 	nrerror(msg);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
-  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = q[iindx[1]-n];
+}
+/* calculate partition function for circular case */
+/* NOTE: this is the postprocessing step ONLY     */
+/* You have to call pf_linear first to calculate  */
+/* complete circular case!!!                      */
+PRIVATE void pf_circ(char *sequence, char *structure){
 
-  /* ensemble free energy in Kcal/mol */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
-  /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+  int u, p, q, k, l;
+  int n = (int) strlen(sequence);
 
-  /* backtracking to construct binding probabilities of pairs*/
+  FLT_OR_DBL qot;
 
-  if (do_backtrack) {
+   qo = qho = qio = qmo = 0.;
+  /* construct qm2 matrix with from qm1 entries  */
+  for(k=1; k<n-TURN-1; k++){
+    qot = 0.;
+    for (u=k+TURN+1; u<n-TURN-1; u++)
+      qot += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
+    qm2[k] = qot;
+   }
+
+  for(p = 1; p < n; p++){
+    for(q = p + TURN + 1; q <= n; q++){
+      int type;
+      /* 1. get exterior hairpin contribution  */
+      u = n-q + p-1;
+      if (u<TURN) continue;
+      type = ptype[iindx[p]-q];
+      if (!type) continue;
+       /* cause we want to calc the exterior loops, we need the reversed pair type from now on  */
+      type=rtype[type];
+
+      char loopseq[10];
+      if (u<7){
+	strcpy(loopseq , sequence+q-1);
+	strncat(loopseq, sequence, p);
+      }
+      /* We have to divide the returned expHairpinEnergy by scale[2] cause in the function call, the  */
+      /* scale for the closing pair was already done in the forward recursion, as it is done again by  */
+      /* calling the expHairpinEnergy function here                                                    */
+      qho += (((type==3)||(type==4))&&no_closingGU) ? 0. : qb[iindx[p]-q] * expHairpinEnergy(u, type, S1[q+1], S1[p-1],  loopseq) * scale[u];
+
+      /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
+      /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
+      qot = 0.;
+      for(k=q+1; k < n; k++){
+	int ln1, lstart;
+	ln1 = k - q - 1;
+	if(ln1+p-1>MAXLOOP) break;
+	lstart = ln1+p-1+n-MAXLOOP;
+	if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	for(l=lstart;l <= n; l++){
+	    int ln2, type2;
+	    ln2 = (p - 1) + (n - l);
+
+	    if((ln1+ln2) > MAXLOOP) continue;
+
+	    type2 = ptype[iindx[k]-l];
+	    if(!type2) continue;
+	    /* for division by scale[2] just have a look at hairpin energy calculation above  */
+	    qio += qb[iindx[p]-q] * qb[iindx[k]-l] * expLoopEnergy(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1]) * scale[ln1+ln2];
+	}
+      } /* end of kl double loop */
+    }
+  } /* end of pq double loop */
+
+  /* 3. Multiloops  */
+  for(k=TURN+2; k<n-2*TURN-3; k++)
+    qmo += qm[iindx[1]-k] * qm2[k+1] * expMLclosing;
+
+  /* all done, just add the three energies to get partition function for circular RNA  */
+  qo = qho + qio + qmo;
+}
+
+/* calculate base pairing probs */
+PUBLIC void pf_create_bppm(char *sequence, char *structure)
+{
+  int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
+  FLT_OR_DBL temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL prmt,prmt1;
+  FLT_OR_DBL *tmp;
+  FLT_OR_DBL tmp2;
+
+  double max_real;
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+
+  if((S != NULL) && (S1 != NULL)){
+    n = S[0];
     Qmax=0;
 
     for (k=1; k<=n; k++) {
@@ -266,20 +420,97 @@ PUBLIC float pf_fold(char *sequence, char *structure)
     pr = q;     /* recycling */
 
     /* 1. exterior pair i,j and initialization of pr array */
-    for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
-      for (j=i+TURN+1; j<=n; j++) {
-	ij = iindx[i]-j;
-	type = ptype[ij];
-	if (type&&(qb[ij]>0.)) {
-	  pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
-	  if (i>1) pr[ij] *= expdangle5[type][S1[i-1]];
-	  if (j<n) pr[ij] *= expdangle3[type][S1[j+1]];
-	  else if (type>2) pr[ij] *= expTermAU;
-	} else
-	  pr[ij] = 0;
+    if(circ){
+      for (i=1; i<=n; i++) {
+	for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+	for (j=i+TURN+1; j<=n; j++) {
+	  ij = iindx[i]-j;
+	  type = ptype[ij];
+	  if (type&&(qb[ij]>0.)) {
+	    pr[ij] = 1./qo;
+	    int rt = rtype[type];
+
+	    /* 1.1. Exterior Hairpin Contribution */
+	    int u = i + n - j -1;
+	    /* get the loop sequence */
+	    char loopseq[10];
+	    if (u<7){
+	      strcpy(loopseq , sequence+j-1);
+	      strncat(loopseq, sequence, i);
+	    }
+	    tmp2 = expHairpinEnergy(u, rt, S1[j+1], S1[i-1], loopseq) * scale[u];
+
+	    /* 1.2. Exterior Interior Loop Contribution                    */
+	    /* 1.2.1. i,j  delimtis the "left" part of the interior loop    */
+	    /* (j,i) is "outer pair"                                                */
+	    for(k=1; k < i-TURN-1; k++){
+	      int ln1, lstart;
+	      ln1 = k + n - j - 1;
+	      if(ln1>MAXLOOP) break;
+	      lstart = ln1+i-1-MAXLOOP;
+	      if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	      for(l=lstart; l < i; l++){
+		int ln2, type_2;
+		type_2 = ptype[iindx[k]-l];
+		if (type_2==0) continue;
+		ln2 = i - l - 1;
+		if(ln1+ln2>MAXLOOP) continue;
+		tmp2 += qb[iindx[k] - l]*expLoopEnergy(ln1, ln2, rt, rtype[type_2], S1[j+1], S1[i-1], S1[k-1], S1[l+1]) * scale[ln1 + ln2];
+	      }
+	    }
+	    /* 1.2.2. i,j  delimtis the "right" part of the interior loop  */
+	    for(k=j+1; k < n-TURN; k++){
+	      int ln1, lstart;
+	      ln1 = k - j - 1;
+	      if((ln1 + i - 1)>MAXLOOP) break;
+	      lstart = ln1+i-1+n-MAXLOOP;
+	      if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	      for(l=lstart; l <= n; l++){
+		int ln2, type_2;
+		type_2 = ptype[iindx[k]-l];
+		if (type_2==0) continue;
+		ln2 = i - 1 + n - l;
+		if(ln1+ln2>MAXLOOP) continue;
+		tmp2 += qb[iindx[k] - l]*expLoopEnergy(ln2, ln1, rtype[type_2], rt, S1[l+1], S1[k-1], S1[i-1], S1[j+1]) * scale[ln1 + ln2];
+	      }
+	    }
+	    /* 1.3 Exterior multiloop decomposition */
+	    /* 1.3.1 Middle part                    */
+	    if((i>TURN+2) && (j<n-TURN-1))
+	      tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+
+	    /* 1.3.2 Left part                      */
+	    for(k=TURN+2; k < i-TURN-2; k++)
+	      tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+
+	    /* 1.3.3 Right part                      */
+	    for(k=j+TURN+2; k < n-TURN-1;k++)
+	      tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+
+	    /* all exterior loop decompositions for pair i,j done  */
+	    pr[ij] *= tmp2;
+
+	  }
+	  else pr[ij] = 0;
+	}
       }
-    }
+    } /* end if(circ)  */
+    else {
+      for (i=1; i<=n; i++) {
+	for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+	for (j=i+TURN+1; j<=n; j++) {
+	  ij = iindx[i]-j;
+	  type = ptype[ij];
+	  if (type&&(qb[ij]>0.)) {
+	    pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
+	    if (i>1) pr[ij] *= expdangle5[type][S1[i-1]];
+	    if (j<n) pr[ij] *= expdangle3[type][S1[j+1]];
+	    else if (type>2) pr[ij] *= expTermAU;
+	  } else
+	    pr[ij] = 0;
+	}
+      }
+    } /* end if(!circ)  */
 
     for (l=n; l>TURN+1; l--) {
 
@@ -296,8 +527,8 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	    if ((pr[ij]>0)) {
 	      /* add *scale[u1+u2+2] */
 	      pr[kl] += pr[ij] * (scale[k-i+j-l] *
-		expLoopEnergy(k-i-1, j-l-1, type, type_2,
-			      S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
+			expLoopEnergy(k-i-1, j-l-1, type, type_2,
+			S1[i+1], S1[j-1], S1[k-1], S1[l+1]));
 	    }
 	  }
       }
@@ -311,11 +542,11 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
 	tt = ptype[ii-(l+1)]; tt=rtype[tt];
 	prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
-	  expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
+		expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
 	for (j=l+2; j<=n; j++) {
 	  tt = ptype[ii-j]; tt = rtype[tt];
 	  prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
-	    expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
+		  expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
 	}
 	kl = iindx[k]-l;
 	tt = ptype[kl];
@@ -345,7 +576,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 	  Qmax = pr[kl];
 	  if (Qmax>max_real/10.)
 	    fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-		    i, j, pr[kl], qb[kl]);
+	      i, j, pr[kl], qb[kl]);
 	}
 	if (pr[kl]>=max_real) {
 	  ov++;
@@ -365,13 +596,13 @@ PUBLIC float pf_fold(char *sequence, char *structure)
 
     if (structure!=NULL)
       sprintf_bppm(n, structure);
-  }   /* end if (do_backtrack)*/
-
-  if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-		    "you might try a smaller pf_scale than %g\n",
-		    ov, pf_scale);
-
-  return free_energy;
+    if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
+	"you might try a smaller pf_scale than %g\n",
+	ov, pf_scale);
+  }/* end if((S != NULL) && (S1 != NULL))  */
+  else
+    nrerror("bppm calculations have to be done after calling forward recursion\n");
+  return;
 }
 
 /*------------------------------------------------------------------------*/
@@ -632,9 +863,19 @@ PRIVATE void get_arrays(unsigned int length)
     iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
     jindx[i] = (i*(i-1))/2;
   }
+  if(circ){
+    /* qm1 array is used for folding of circular RNA too */
+    if(!qm1) qm1 = (FLT_OR_DBL *) space(size);
+    qm2 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  }
 }
 
 /*----------------------------------------------------------------------*/
+
+PUBLIC void init_pf_circ_fold(int length){
+  circ = 1;
+  init_pf_fold(length);
+}
 
 PUBLIC void init_pf_fold(int length)
 {
@@ -658,7 +899,8 @@ PUBLIC void free_pf_arrays(void)
   free(q); q=pr=NULL;
   free(qb); qb=NULL;
   free(qm);
-  if (qm1 != NULL) {free(qm1); qm1 = NULL;}
+  if(qm1 != NULL){ free(qm1); qm1 = NULL;}
+  if(qm2 != NULL){ free(qm2); qm2 = NULL;}
   free(ptype);
   free(qq); free(qq1);
   free(qqm); free(qqm1);
@@ -801,10 +1043,6 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   returns random structure S with Boltzman probabilty
   p(S) = exp(-E(S)/kT)/Z
 */
-static void backtrack(int i, int j);
-
-static char *pstruc;
-static char *sequence;
 char *pbacktrack(char *seq) {
   double r, qt;
   int i,j,n, start;
@@ -850,6 +1088,110 @@ char *pbacktrack(char *seq) {
 
   return pstruc;
 }
+char *pbacktrack_circ(char *seq){
+  double r, qt;
+  int i, j, k, l, n;
+
+  sequence = seq;
+  n = strlen(sequence);
+
+  if (init_length<1)
+    nrerror("can't backtrack without pf arrays.\n"
+      "Call pf_circ_fold() before pbacktrack_circ()");
+  pstruc = space((n+1)*sizeof(char));
+
+  /* initialize pstruct with single bases  */
+  for (i=0; i<n; i++) pstruc[i] = '.';
+
+  qt = 0.;
+  r = urn() * qo;
+  for(i=1; (i < n); i++){
+    for(j=i+TURN+1;(j<=n); j++){
+
+      int type, u;
+      /* 1. first check, wether we can do a hairpin loop  */
+      u = n-j + i-1;
+      if (u<TURN) continue;
+
+      type = ptype[iindx[i]-j];
+      if (!type) continue;
+
+      type=rtype[type];
+
+      char loopseq[10];
+      if (u<7){
+	strcpy(loopseq , sequence+j-1);
+	strncat(loopseq, sequence, i);
+      }
+
+      qt += qb[iindx[i]-j] * expHairpinEnergy(u, type, S1[j+1], S1[i-1],  loopseq) * scale[u];
+      /* found a hairpin? so backtrack in the enclosed part and we're done  */
+      if(qt>r){ backtrack(i,j); return pstruc;}
+
+      /* 2. search for (k,l) with which we can close an interior loop  */
+      for(k=j+1; (k < n); k++){
+	int ln1, lstart;
+	ln1 = k - j - 1;
+	if(ln1+i-1>MAXLOOP) break;
+
+	lstart = ln1+i-1+n-MAXLOOP;
+	if(lstart<k+TURN+1) lstart = k + TURN + 1;
+	for(l=lstart; (l <= n); l++){
+	    int ln2, type2;
+	    ln2 = (i - 1) + (n - l);
+	    if((ln1+ln2) > MAXLOOP) continue;
+
+	    type2 = ptype[iindx[k]-l];
+	    if(!type) continue;
+	    type2 = rtype[type2];
+	    qt += qb[iindx[i]-j] * qb[iindx[k]-l] * expLoopEnergy(ln2, ln1, type2, type, S1[l+1], S1[k-1], S1[i-1], S1[j+1]) * scale[ln1 + ln2];
+	    /* found an exterior interior loop? also this time, we can go straight  */
+	    /* forward and backtracking the both enclosed parts and we're done      */
+	    if(qt>r){ backtrack(i,j); backtrack(k,l); return pstruc;}
+	}
+      } /* end of kl double loop */
+    }
+  } /* end of ij double loop  */
+  {
+    /* so cause we reach this part, we have to search for our barrier between qm and qm2  */
+    qt = 0.;
+    r = urn()*qmo;
+    for(k=TURN+2; k<n-2*TURN-3; k++){
+      qt += qm[iindx[1]-k] * qm2[k+1] * expMLclosing;
+      /* backtrack in qm and qm2 if we've found a valid barrier k  */
+      if(qt>r){ backtrack_qm(1,k); backtrack_qm2(k+1,n); return pstruc;}
+    }
+  }
+  /* if we reach the real end of this function, an error has occured  */
+  /* cause we HAVE TO find an exterior loop!!! else we have to extend  */
+  /* circ partition function with the case that all bases dont pair  */
+  nrerror("backtracking failed in exterior loop");
+  return pstruc;
+}
+
+static void backtrack_qm(int i, int j){
+  /* divide multiloop into qm and qm1  */
+  double qmt, r;
+  int k;
+  while(j>i){
+    /* now backtrack  [i ... j] in qm[] */
+    r = urn() * qm[iindx[i] - j];
+    qmt = qm1[jindx[j]+i]; k=i;
+    if(qmt<r)
+      for(k=i+1; k<=j; k++){
+	qmt += (qm[iindx[i]-(k-1)]+expMLbase[k-i])*qm1[jindx[j]+k];
+	if(qmt >= r) break;
+      }
+    if(k>j) nrerror("backtrack failed in qm");
+
+    backtrack_qm1(k,j);
+
+    if(k<i+TURN) break; /* no more pairs */
+    r = urn() * (qm[iindx[i]-(k-1)] + expMLbase[k-i]);
+    if(expMLbase[k-i] >= r) break; /* no more pairs */
+    j = k-1;
+  }
+}
 
 static void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
@@ -868,6 +1210,20 @@ static void backtrack_qm1(int i,int j) {
   }
   if (l>j) nrerror("backtrack failed in qm1");
   backtrack(i,l);
+}
+
+static void backtrack_qm2(int k, int n){
+  double qom2t, r;
+  int u;
+  r= urn()*qm2[k];
+  /* we have to search for our barrier u between qm1 and qm1  */
+  for (qom2t = 0.,u=k+TURN+1; u<n-TURN-1; u++){
+    qom2t += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
+    if(qom2t > r) break;
+  }
+  if(u==n-TURN) nrerror("backtrack failed in qm2");
+  backtrack_qm1(k,u);
+  backtrack_qm1(u+1,n);
 }
 
 static void backtrack(int i, int j) {
@@ -930,26 +1286,7 @@ static void backtrack(int i, int j) {
     backtrack_qm1(k, j);
 
     j = k-1;
-    while (j>i) {
-      /* now backtrack  [i ... j] in qm[] */
-      jj = jindx[j];
-      ii = iindx[i];
-      r = urn() * qm[ii - j];
-      qt = qm1[jj+i]; k=i;
-      if (qt<r)
-	for (k=i+1; k<=j; k++) {
-	  qt += (qm[ii-(k-1)]+expMLbase[k-i])*qm1[jj+k];
-	  if (qt >= r) break;
-	}
-      if (k>j) nrerror("backtrack failed in qm");
-
-      backtrack_qm1(k,j);
-
-      if (k<i+TURN) break; /* no more pairs */
-      r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
-      if (expMLbase[k-i] >= r) break; /* no more pairs */
-      j = k-1;
-    }
+    backtrack_qm(i,j);
   }
 }
 

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-09-19 14:08:09 ivo> */
+/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -21,7 +21,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.22 2007/09/19 12:41:48 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.23 2007/12/05 13:04:08 ivo Exp $";
 
 #define PRIVATE static
 
@@ -214,23 +214,21 @@ int main(int argc, char *argv[])
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
-      if (circ)
-	nrerror("Currently no partition function for circular RNAs. Please implement it!");
-      if (dangles==1) {
-	dangles=2;   /* recompute with dangles as in pf_fold() */
-	min_en = energy_of_struct(string, structure);
-	dangles=1;
+	if (dangles==1) {
+	  dangles=2;   /* recompute with dangles as in pf_fold() */
+	  min_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+	  dangles=1;
       }
 
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      init_pf_fold(length);
+      (circ) ? init_pf_circ_fold(length) : init_pf_fold(length);
 
       if (cstruc!=NULL)
 	strncpy(pf_struc, cstruc, length+1);
-      energy = pf_fold(string, pf_struc);
+      energy = (circ) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
 
       if (do_backtrack) {
 	printf("%s", pf_struc);
@@ -244,8 +242,8 @@ int main(int argc, char *argv[])
 	char *cent;
 	double dist, cent_en;
 	cent = centroid(length, &dist);
-	cent_en = energy_of_struct(string, cent);
-      	printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
+	cent_en = (circ) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
+	printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
 	free(cent);
 	if (fname[0]!='\0') {
 	  strcpy(ffname, fname);

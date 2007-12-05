@@ -25,7 +25,7 @@ extern float circalifold(const char *strings[], char *structure);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.17 2007/04/15 17:16:44 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.18 2007/12/05 13:04:08 ivo Exp $";
 
 #define PRIVATE static
 
@@ -272,9 +272,6 @@ int main(int argc, char *argv[])
     pair_info *pi;
     char * mfe_struc;
 
-    if (circ)
-      nrerror("Currently no partition function for circular RNAs. Please implement it!");
-
     mfe_struc = strdup(structure);
 
     kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
@@ -286,7 +283,7 @@ int main(int argc, char *argv[])
 
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
-    energy = alipf_fold(AS, structure, &pi);
+    energy = (circ) ? alipf_circ_fold(AS, structure, &pi) : alipf_fold(AS, structure, &pi);
 
     if (do_backtrack) {
       printf("%s", structure);

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-02-28 16:07:22 ivo> */
+/* Last changed Time-stamp: <2007-12-05 13:56:02 ronny> */
 /*
 		Ineractive access to suboptimal folding
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.13 2006/08/04 15:39:51 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.14 2007/12/05 13:04:08 ivo Exp $";
 
 #define PRIVATE static
 
@@ -29,7 +29,6 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 
 extern double print_energy;
 PRIVATE void usage(void);
-extern char *pbacktrack(char *sequence);
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -46,6 +45,7 @@ int main(int argc, char *argv[])
    int delta=100;
    int n_back = 0;
    int noconv = 0;
+   int circ=0;
 
    do_backtrack = 1;
    dangles = 2;
@@ -77,9 +77,9 @@ int main(int argc, char *argv[])
 	  case '4':
 	    tetra_loop=0;
 	    break;
- 	  case 'C':
- 	    fold_constrained=1;
- 	    break;
+	  case 'C':
+	    fold_constrained=1;
+	    break;
 	  case 'd': dangles=0;
 	    if (argv[i][2]!='\0') {
 	      r=sscanf(argv[i]+2, "%d", &dangles);
@@ -110,6 +110,9 @@ int main(int argc, char *argv[])
 	    }
 	    if (r!=1) usage();
 	    break;
+		case 'c':
+			if ( strcmp(argv[i], "-circ")==0) circ=1;
+			break;
 	  default: usage();
 	  }
    }
@@ -203,21 +206,23 @@ int main(int argc, char *argv[])
 	st_back=1;
 	ss = (char *) space(strlen(sequence)+1);
 	strncpy(ss, structure, length);
-	mfe = fold(sequence, ss);
+	mfe = (circ) ? circfold(sequence, ss) : fold(sequence, ss);
 	kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
 	pf_scale = exp(-(1.03*mfe)/kT/length);
 	strncpy(ss, structure, length);
-	(void) pf_fold(sequence, ss);
+    /* we are not interested in the free energy but in the bppm, so we drop */
+    /* free energy into the void */
+    (circ) ? (void) pf_circ_fold(sequence, ss)	: (void) pf_fold(sequence, ss);
 	free(ss);
 	for (i=0; i<n_back; i++) {
 	  char *s;
-	  s = pbacktrack(sequence);
+	  s = (circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
 	  printf("%s\n", s);
 	  free(s);
 	}
 	free_pf_arrays();
       } else {
-	subopt(sequence, structure, delta, stdout);
+	(circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
       }
       (void)fflush(stdout);
 
@@ -232,5 +237,5 @@ PRIVATE void usage(void)
    nrerror("usage: "
 	   "RNAsubopt [-e range] [-ep prange] [-s] [-p num] [-logML]\n"
 	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n"
-	   "          [-noLP] [-P paramfile] [-nsp pairs]");
+	   "          [-noLP] [-P paramfile] [-nsp pairs] [-circ]");
 }

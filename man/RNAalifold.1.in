@@ -50,8 +50,7 @@ function folding this disallows pairs that can \fBonly\fP occur isolated.
 Setting this option provides a significant speedup.
 .TP
 .B \-circ
-Assume circular (instead of linear) RNA molecules. Currently works only
-for mfe folding.
+Assume circular (instead of linear) RNA molecules.
 .TP
 .B \-color
 Produce a colored version of the consensus strcture plot "alirna.ps"
