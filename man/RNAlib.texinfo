@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2007-09-19 14:21:23 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.22 2007/09/19 12:41:56 ivo Exp $
+@c Last changed Time-stamp: <2007-12-10 09:47:17 ulim>
+@set revision $Id: RNAlib.texinfo,v 1.23 2007/12/13 10:19:54 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -198,7 +198,7 @@ can be computed efficiently from the pair probabilities @math{p_ij} as
 filled by a previous call to @code{pf_fold()}.
 @end deftypefun
 
-@deftypefun char *centroid(int @var{length}, double *@var{dist})
+@deftypefun char *centroid (int @var{length}, double *@var{dist})
 Computes the centroid structure, i.e. the structure having the lowest
 average base pair distance to all structures in the Boltzmann
 ensemble. This can be computed trivially from the pair probabilities by
@@ -280,11 +280,10 @@ stepwise process. In the first step the probability of an unpaired region
 is calculated and in a second step this probability of an unpaired region
 is  multiplied with the probability of an interaction between the two RNAs.
 This approach is implemented for the interaction between a long
-target sequence and a short ligand RNA. The structure of the short RNA
-is not considered. The function @code{pf_unstru()}, which calculates the
-partition function over all unpaired regions, needs only the longer
-sequence as an input. Function @code{pf_interact()}, which calculates the
-partition function over all possible interactions between the two
+target sequence and a short ligand RNA. Function @code{pf_unstru()}
+calculates the partition function over all unpaired regions in the input
+sequence. Function @code{pf_interact()}, which calculates the 
+partition function over all possible interactions between two
 sequences, needs both sequence as separate strings as input.
 
 @deftypevar int cut_point
@@ -437,12 +436,16 @@ site.
 @deftp {data type} pu_contrib struct @{double **H; double **I; double **M; double **E; int length;@}
 @end deftp
 
-@deftypefun @code{pu_contrib} *pf_unstru(char @var{*sequence}, char @var{*structure}, int @var{w})
+@deftypefun @code{pu_contrib} *pf_unstru (char @var{*sequence}, int @var{u})
 This function calculates the partition function over all unpaired regions
-in @var{*sequence} of a maximal length @var{w}. Its returns a
+in @var{*sequence} of a maximal length @var{u}. You have to call function
+@code{pf_fold()} for @var{*sequence} befor calling @code{pf_unstru()}. If
+you want to calculate unpaired regions for a constrained structure, set
+variable @var{structure} in function @code{pf_fold()} to the constrain string.
+Function @code{pf_unstru} returns a
 @code{pu_contrib} struct containing four arrays of dimension [i = 1 to length
-of @var{*sequence}][j = 1 to @var{w}-1] containing all possible contributions
-to the probabilities of unpaired regions of maximum length @var{w}.
+of @var{*sequence}][j = 0 to @var{u}-1] containing all possible contributions
+to the probabilities of unpaired regions of maximum length @var{u}.
 Each array in @code{pu_contrib} contains one of the contributions to the
 total probability of being unpaired: The probability of being unpaired
 within an exterior loop is in array @code{pu_contrib->E}, the probability
@@ -451,43 +454,50 @@ the probability of being unpaired within an interior loop is in array
 @code{pu_contrib->I} and probability of being unpaired within a multi-loop
 is in array @code{pu_contrib->M}. The total probability of being unpaired
 is the sum of the four arrays of @code{pu_contrib}.
-Use functions @code{free_unpaired} and @code{free_pf_two} to free
-everything allocated for function @code{pf_unstru()}.
+Function @code{pf_unstru} frees everything allocated automatically. To
+free the output structure call @code{free_pu_contrib}.
 @end deftypefun
 
-@deftypefun void free_unpaired(void)
-Frees the arrays need for the calculation of the probability of being unpaired
-by function @code{pf_unstru()}.
+@deftypefun void  free_pu_contrib (@code{pu_contrib} @var{*p_con})
+frees the output of function @code{pf_unstru}.
 @end deftypefun
 
-@deftypefun void free_pf_two(@code{pu_contrib} @var{*p_con}, FLT_OR_DBL @var{**pin})
-If non of the input parameters is set to NULL, frees everything returned
-by @code{pf_unstru()} and @code{pf_interact()}.
-If @var{**pin} is set to NULL, frees only the @code{pu_contrib} struct
-returned by function @code{pf_unstru()}.
-If @var{*p_con} is set to NULL, frees the two arrays of length of
-@var{*sequence} which are returned by function @code{pf_interact()}.
-@end deftypefun
+@deftp {data type} interact struct @{double *Pi; double *I; double Gikjl; double Gikjl_wo; int i, int k, int j, int l, int length;@}
+@end deftp
 
-@deftypefun double **pf_interact(const char @var{*s1}, const char @var{*s2}, @code{pu_contrib} @var{*p_c}, int @var{w}, int @var{incr3}, int @var{incr5})
+@deftypefun interact *pf_interact (const char @var{*s1}, const char @var{*s2}, @code{pu_contrib} @var{*p_c}, @code{pu_contrib} @var{*p_c2},int @var{w}, char @var{*cstruc}, int @var{incr3}, int @var{incr5})
 Calculates the probability of a local interaction between sequence
 @var{*s1} and sequence @var{*s2}, considering the probability that the
-region of interaction is unpaired within @var{*s1}. The longer sequence
-has to be given as @var{*s1}. Function @code{pf_unstru()} has to be called
-for @var{*s1}, where the probabilities of  being unpaired for @var{*s1}
-are stored in @var{*p_c}. The shorter sequence has to be given as @var{*s2}.
-The parameter @var{w} gives the maximal length of a sub sequences of
-@var{*s1} considered for the interaction. The command line parameters
-@var{incr5} and @var{incr3} allows inclusion of unpaired residues left
-(@var{incr5}) and right (@var{incr3}) of the region of interaction in
-@var{*s1}. If the @var{incr} options are used, function @code{pf_unstru()}
-has to be called with @var{w}=@var{w}+@var{incr5}+@var{incr3}.
-Function @code{pf_interact()} returns two arrays of the length of
-@var{*sequence}, which contain the probability of a local interaction
-(index[0][i]) and the minimum free energy of a local interaction
-(index[1][i]), where i is the position in sequence @var{*s1}. Use
-@code{free_pf_two)} to free the returned arrays. Notice that function
-@code{pf_interact} calls function @code{free_unpaired}!
+region of interaction is unpaired within @var{*s1} and  @var{*s2}. The
+longer sequence has to be given as @var{*s1}. The shorter sequence has to
+be given as @var{*s2}. Function @code{pf_unstru()} has to be called
+for @var{*s1} and @var{*s2}, where the probabilities of  being unpaired
+have to be given in @var{*p_c} and @var{*p_c2}, respectively. If you do
+not want to include the probabilities of  being unpaired for @var{*s2} set
+@var{*p_c2} to NULL. If variable char @var{*cstruc} is not NULL,
+constrained folding is done: The available constrains for intermolecular
+interaction are: '.' (no constrain), 'x' (the base has no intermolecular
+interaction) and '|' (the corresponding base has to be paired
+intermolecularily). 
+The parameter @var{w} determines the maximal length of the interaction. The
+parameters @var{incr5} and @var{incr3} allows inclusion of
+unpaired residues left (@var{incr5}) and right (@var{incr3}) of the region
+of interaction in @var{*s1}. If the @var{incr} options are used, function
+@code{pf_unstru()} has to be called with
+@var{w}=@var{w}+@var{incr5}+@var{incr3} for the longer sequence @var{*s1}. 
+Function @code{pf_interact()} returns a structure of type @code{interact} which
+contains the probability of the best local interaction including residue i
+in Pi and the minimum free energy in Gi, where i is the position in sequence
+@var{*s1}. The member Gikjl of structure @code{interact} is
+the best interaction between region [k,i] k<i in longer sequence
+@var{*s1} and region [j,l] j<l in @var{*s2}. Gikjl_wo is Gikjl without the
+probability of beeing unpaired. 
+Use @code{free_interact)} to free the returned structure, all
+other stuff is freed inside @code{pf_interact()}.
+@end deftypefun
+
+@deftypefun void  free_interact (@code{interact} @var{*pin})
+frees the output of function @code{pf_interact}.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{part_func_up.h}.
