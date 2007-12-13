@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2007-12-10 09:47:17 ulim>
-@set revision $Id: RNAlib.texinfo,v 1.23 2007/12/13 10:19:54 ivo Exp $
+@c Last changed Time-stamp: <2007-12-13 11:22:32 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.24 2007/12/13 10:23:42 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -282,7 +282,7 @@ is  multiplied with the probability of an interaction between the two RNAs.
 This approach is implemented for the interaction between a long
 target sequence and a short ligand RNA. Function @code{pf_unstru()}
 calculates the partition function over all unpaired regions in the input
-sequence. Function @code{pf_interact()}, which calculates the 
+sequence. Function @code{pf_interact()}, which calculates the
 partition function over all possible interactions between two
 sequences, needs both sequence as separate strings as input.
 
@@ -370,7 +370,7 @@ Allocates memory for partition function cofolding sequences not longer
 than @var{length}, and sets up pairing matrix and energy parameters.
 @end deftypefun
 
-@deftp {data type} plist  struct @{int i; int j; float energy;@}
+@deftp {data type} plist  struct @{int i; int j; float p;@}
 @end deftp
 
 @deftypefun extern struct plist *get_plist (struct plist @var{*pl}, int @var{length}, double @var{cut_off})
@@ -478,20 +478,20 @@ not want to include the probabilities of  being unpaired for @var{*s2} set
 constrained folding is done: The available constrains for intermolecular
 interaction are: '.' (no constrain), 'x' (the base has no intermolecular
 interaction) and '|' (the corresponding base has to be paired
-intermolecularily). 
+intermolecularily).
 The parameter @var{w} determines the maximal length of the interaction. The
 parameters @var{incr5} and @var{incr3} allows inclusion of
 unpaired residues left (@var{incr5}) and right (@var{incr3}) of the region
 of interaction in @var{*s1}. If the @var{incr} options are used, function
 @code{pf_unstru()} has to be called with
-@var{w}=@var{w}+@var{incr5}+@var{incr3} for the longer sequence @var{*s1}. 
+@var{w}=@var{w}+@var{incr5}+@var{incr3} for the longer sequence @var{*s1}.
 Function @code{pf_interact()} returns a structure of type @code{interact} which
 contains the probability of the best local interaction including residue i
 in Pi and the minimum free energy in Gi, where i is the position in sequence
 @var{*s1}. The member Gikjl of structure @code{interact} is
 the best interaction between region [k,i] k<i in longer sequence
 @var{*s1} and region [j,l] j<l in @var{*s2}. Gikjl_wo is Gikjl without the
-probability of beeing unpaired. 
+probability of beeing unpaired.
 Use @code{free_interact)} to free the returned structure, all
 other stuff is freed inside @code{pf_interact()}.
 @end deftypefun
