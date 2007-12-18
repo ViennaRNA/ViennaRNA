@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-04-02 18:36:38 ivo> */
+/* Last changed Time-stamp: <2007-12-18 09:40:05 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -25,7 +25,7 @@ extern float circalifold(const char *strings[], char *structure);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.18 2007/12/05 13:04:08 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.19 2007/12/18 11:28:03 ivo Exp $";
 
 #define PRIVATE static
 
@@ -380,6 +380,7 @@ PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
     cp[i].p = pi[i].p;
     for (ncomp=0, j=1; j<=6; j++) if (pi[i].bp[j]) ncomp++;
     cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
+    if (ncomp==0) cp[i].hue = 0; /* obscure case: only non-standard pairs */
     cp[i].sat = 1 - MIN2( 1.0, pi[i].bp[0]/2.5);
     cp[i].mfe = pi[i].comp;
   }
