@@ -1,9 +1,14 @@
 See Changelog for details.
 
-Upcoming 
------------
-- Updated parameters for both RNA and DNA using the data compiled by 
-  David Mathews <David_Mathews@urmc.rochester.edu>. 
+
+Version 1.7
+------------
+- A new version of RNAup predicts RNA-RNA interactions takeing into account
+  the competition between inter- and intramolecular structure in both
+  molcules
+- Circular RNAs can be treated by RNAfold, RNAalifold, RNAsubopt, and RNAcofold
+- RNAaliduplex predicts RNA-RNA interactions between two sets of aligned
+  sequences (inter-molecular strjcture only)
 
 Version 1.6
 ------------
@@ -14,15 +19,15 @@ Version 1.6
 - The Kinfold program for stochastic simulation of folding trajectories is
   now included in the package, see the Kinfold subdirectory.
 - cofolding of two structures now supports suboptimal folding and 
-  partition function folding (still experimental). 
-  ATTENTION: Energies of hybrid structures now inlcude the Duplex-initiation
+  partition function folding. 
+  ATTENTION: Energies of hybrid structures now include the Duplex-initiation
   energy, which was neglected in previous version.
 - RNAplfold is a partition function variant of RNALfold. It computes the
   mean probability of a (local) base pair averaged over all sequence
   windows that contain the pair.
 - new utilities to color alignments and consensus structures  
 - RNAfold -p now computes the centroid structure
-- CAUTION: ensemble diversities in version <1.6.5 are off by a factor 2
+- ATTENTION: ensemble diversities in version <1.6.5 are off by a factor 2
 
 Version 1.5pre 
 -----------

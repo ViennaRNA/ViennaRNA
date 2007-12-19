@@ -1,3 +1,13 @@
+2007-12-13  Ulli Muecksteinr  <ulli@tbi.univie.ac.at>
+
+	* upate RNAup related files
+	  RNAup can now include the intramolecular structure of both
+	  molecules and handles constraints.
+
+2007-12-05  Ronny Lorenz  <ronny@tbi.univie.ac.at>
+
+	* add circfold variants in part_func.c alipfold.c subopt.c
+
 2007-09-19  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* compute the controid structure of the ensemble in RNAfold -p
@@ -21,7 +31,7 @@
 2007-06-23  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* add aliLfold() and RNALalifold, alignment variant of Lfold()
-	
+
 2007-04-30  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 	* add RNAup to distribution
 
