@@ -657,7 +657,7 @@ copies SIZE bytes at POINTER to a Perl string (with binary data)
 
 copies the (binary) string STRING to the memory location pointed to by
 POINTER.
-
+Note: memmove is broken in current swig versions (e.g. 1.3.31)
 
 =back
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2006-03-08 17:13:27 ivo>
+# Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN {  plan tests => 19; }
+BEGIN { plan tests => 22; }
 
 use RNA;
 use warnings;
@@ -18,6 +18,7 @@ use warnings;
 # Insert your test code below (better if it prints "ok 13"
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
+
 
 my $seq1  ="CGCAGGGAUACCCGCG";
 my $struc1="(((.((....)).)))";
@@ -75,11 +76,13 @@ ok($tree_dist,4);
 #ok(RNA::ptrvalue($RNA::iindx,3),108);
 ok(RNA::intP_getitem($RNA::iindx,3),108);
 
-#RNA::shortP_setitem($RNA::xsubi, 0, 171);
-#RNA::shortP_setitem($RNA::xsubi, 1, 42);
-#RNA::shortP_setitem($RNA::xsubi, 2, 93);
-RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
-ok(pack('S3', 171,42,93), RNA::cdata($RNA::xsubi, 6));
+# memmove does not work in current swig versions
+# RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
+# use shortP_setitem instead
+RNA::shortP_setitem($RNA::xsubi, 0, 171);
+RNA::shortP_setitem($RNA::xsubi, 1, 42);
+RNA::shortP_setitem($RNA::xsubi, 2, 93);
+ok(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
 
 # get a bp prob in two different ways
 my $p1 = RNA::get_pr(2,15);
@@ -111,13 +114,14 @@ print "please check the two postscript files test_ss.ps and test_dp.ps\n";
 RNA::write_parameter_file("test.par");
 
 $RNA::symbolset = "GC";
-my $start = RNA::random_string(length $struc1, $RNA::symbolset);
+my $start = RNA::random_string(length $struc1, "GC");
 my ($sinv, $cost) = RNA::inverse_fold($start, $struc1);
 my ($ss, $en) = RNA::fold($sinv);
 ok($ss, $struc1);
 
 RNA::free_pf_arrays();
 RNA::free_arrays();
+RNA::free_co_arrays();
 
 $RNA::subopt_sorted = 1;
 $RNA::noLonelyPairs = 1;
@@ -137,8 +141,10 @@ ok(int($e*100+0.5), 70);
 my $duplex = RNA::duplexfold($seq1, $seq2);
 
 ok($duplex->{structure}, ".(((.....(((.&)))))).");
+undef $duplex;
 
 my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");
 my ($css, $cen) = RNA::alifold(\@align);
 ok($css,"(((.(((...)))..))).");
 ok(RNA::consens_mis(\@align), "SMBHBHYDRBGDVWmVKBB");
+RNA::free_alifold_arrays();
