@@ -1,13 +1,9 @@
-// convert between perl/python and C file handle
-%typemap(perl5,in) FILE * {
+// Perl typemaps
+ #ifdef SWIGPERL5
+// convert between perl and C file handle
+%typemap(in) FILE * {
   if (SvOK($input)) /* check for undef */
 	$1 = PerlIO_findFILE(IoIFP(sv_2io($input)));
-  else  $1 = NULL;
-}
-
-%typemap(python,in) FILE * {
-  if (PyFile_Check($input)) /* check for undef */
-        $1 = PyFile_AsFile($input);
   else  $1 = NULL;
 }
 
@@ -31,11 +27,6 @@
         $1[i] = NULL;
 };
 
-// This cleans up the char ** array after the function call
-%typemap(freearg) char ** {
-         free($1);
-}
-
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {
@@ -57,7 +48,14 @@
         argvi++;
 }
 
+#endif
 
+// Typemaps that are independent of scripting language
+
+// This cleans up the char ** array after the function call
+%typemap(freearg) char ** {
+         free($1);
+}
 // Now a few test functions
 //%inline %{
 //int print_args(char **argv) {
@@ -75,3 +73,15 @@
 //    return &values[0];
 //}
 //%}
+
+
+
+// Python typemaps
+#ifdef SWIGPYTHON
+// convert between python and C file handle
+%typemap(in) FILE * {
+  if (PyFile_Check($input)) /* check for undef */
+        $1 = PyFile_AsFile($input);
+  else  $1 = NULL;
+}
+#endif

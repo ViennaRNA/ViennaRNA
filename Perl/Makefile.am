@@ -1,12 +1,13 @@
 SOURCES = RNA.i ptr2array.i Makefile.PL tmaps.i RNA.pod
 
-EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi RNA.i Makefile.PL 
+EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi Makefile.PL \
+	     RNA.i tmaps.i
 
 Makefile.perl: Makefile.PL Makefile
 	@PerlCmd@ Makefile.PL
 
 # the perl command repairs some errors in the SWIG CVS version
-RNA_wrap.c: RNA.i
+RNA_wrap.c: RNA.i tmaps.i
 	swig -perl5 -shadow RNA.i
 #	@PerlCmd@ -i -npe 's/\A\s+\;\s+\Z//; s/SWIGTYPE_p_unsigned_short/SWIGTYPE_p_short/' RNA_wrap.c
 

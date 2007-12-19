@@ -23,6 +23,9 @@
 #include  "../H/duplex.h"
 #include  "../H/alifold.h"
 #include  "../H/aln_util.h"
+extern char *pbacktrack(char *seq);
+extern void  read_parameter_file(const char fname[]);
+extern void  write_parameter_file(const char fname[]);
 %}
 //
 %include carrays.i
@@ -32,7 +35,7 @@
 %array_class(float, floatArray);
 %array_functions(double, doubleP);
 %array_class(double, doubleArray);
-%array_functions(short, shortP);
+%array_functions(unsigned short, shortP);
 %include cdata.i
 
 %constant double VERSION = 0.3;
@@ -162,6 +165,8 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 	}
 }
 
+%ignore alifold;
+%include "../H/alifold.h"
 %rename (alifold) my_alifold;
 
 %{
@@ -453,5 +458,9 @@ typedef struct {
 } duplexT;
 
 extern duplexT duplexfold(const char *s1, const char *s2);
+extern duplexT aliduplexfold(const char **s1, const char **s2);
+// problem: wrapper will not free the the structure hidden in duplexT
+// even more problem for duplex_subopt()
+
 
 %include  "../H/PS_dot.h"
