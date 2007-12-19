@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-02-26 00:08:50 ivo> */
+/* Last changed Time-stamp: <2007-09-27 17:09:27 ivo> */
 /*
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.12 2007/02/02 15:17:25 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.13 2007/12/19 10:27:28 ivo Exp $";
 
 #define PAREN
 
@@ -36,7 +36,6 @@ PUBLIC float  alifold(char **strings, char *structure);
 
 PRIVATE void   init_alifold(int length);
 PUBLIC  void   free_alifold_arrays(void);
-PUBLIC  void   update_alifold_params(void);
 
 PUBLIC double cv_fact=1.;
 PUBLIC double nc_fact=1.;
@@ -109,6 +108,7 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi  = (int *) space(sizeof(int)*(size+1));
   DMLi1  = (int *) space(sizeof(int)*(size+1));
   DMLi2  = (int *) space(sizeof(int)*(size+1));
+  if (base_pair) free(base_pair);
   base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
 }
 
@@ -118,7 +118,7 @@ void free_alifold_arrays(void)
 {
   free(indx); free(c); free(fML); free(f5); free(cc); free(cc1);
   free(pscore);
-  free(base_pair); free(Fmi);
+  free(base_pair); base_pair=NULL; free(Fmi);
   free(DMLi); free(DMLi1);free(DMLi2);
   init_length=0;
 }

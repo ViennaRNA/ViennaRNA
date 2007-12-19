@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:51:59 ronny> */
+/* Last changed Time-stamp: <2007-12-05 14:05:51 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -23,7 +23,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.37 2007/12/05 13:04:04 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 #ifdef __GNUC__
 #define INLINE inline
 #else
@@ -137,6 +137,7 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi  = (int *) space(sizeof(int)*(size+1));
   DMLi1  = (int *) space(sizeof(int)*(size+1));
   DMLi2  = (int *) space(sizeof(int)*(size+1));
+  if (base_pair) free(base_pair);
   base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
   /* extra array(s) for circfold() */
   if(circ) fM2 =  (int *) space(sizeof(int)*(size+2));
