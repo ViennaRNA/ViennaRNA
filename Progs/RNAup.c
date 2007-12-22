@@ -1,6 +1,6 @@
 /*
-  Last changed Time-stamp: <2007-12-07 16:49:37 ulim>
-  $Id: RNAup.c,v 1.2 2007/12/13 10:19:54 ivo Exp $
+  Last changed Time-stamp: <2007-12-20 17:52:27 ulim>
+  $Id: RNAup.c,v 1.3 2007/12/22 09:03:01 ivo Exp $
   
   Ineractive Access to cofolding routines
   c Ivo L Hofacker
@@ -27,7 +27,7 @@ extern void  read_parameter_file(const char fname[]);
 
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAup.c,v 1.2 2007/12/13 10:19:54 ivo Exp $";
+static char rcsid[] = "$Id: RNAup.c,v 1.3 2007/12/22 09:03:01 ivo Exp $";
 
 #define PRIVATE static
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -750,6 +750,7 @@ int get_u_values(char unstrs[], int **u_vals, int l1) {
 }
 /* dived the constrains string in intermolecular constrains (inter)
    and intramolecular constrains within both sequences */
+/* len1 is the length of the LONGER input seq ! */
 void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   int i,j,len;
   short *pt=NULL;
@@ -766,7 +767,24 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   temp_inter[strlen((*inter))] = '\0';
   pt_inter[strlen((*inter))] = '\0';
   if(cut_point < len1) {
-    for(j=0,i=strlen((*inter))-1;i>=0;i--,j++) {
+    /* write the constrain for the longer seq first */
+    for(j=0,i=cut_point-1;i<len;i++,j++) {
+      switch ((*inter)[i]){
+      case '(':
+	temp_inter[j] = ')';
+	pt_inter[j] = ')';
+	break;
+      case ')':
+	temp_inter[j] = '(';
+	pt_inter[j] = '(';
+	break;
+      default:
+	temp_inter[j] = (*inter)[i];
+	pt_inter[j] = '.';
+      }
+    }
+    /* then add the constrain for the shorter seq */
+    for(i=0;i< cut_point-1;i++,j++) {
       switch ((*inter)[i]){
       case '(':
 	temp_inter[j] = ')';
@@ -845,7 +863,6 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   }
   
   /* printf("%s -1\n%s -2\n%s -3\n%s -4\n",(*inter),temp_inter,(*intra_l),(*intra_s)); */
-
   strcpy((*inter),temp_inter);
   free(temp_inter);
   free(pt_inter);
