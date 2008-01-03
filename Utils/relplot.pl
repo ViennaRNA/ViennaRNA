@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2008-01-03 16:24:42 ivo>
-# $Id: relplot.pl,v 1.8 2008/01/03 15:28:28 ivo Exp $
+# Last changed Time-stamp: <2008-01-03 16:47:15 ivo>
+# $Id: relplot.pl,v 1.9 2008/01/03 15:47:47 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
 use strict;
@@ -112,9 +112,8 @@ sub posent {
   my @pp;
   my @sp;
   while (<>) {
-    next unless /^\s*(\d+)\s+(\d+)\s+([0-9.Ee-]+)\s+ubox/;
+    next unless /(\d+)\s+(\d+)\s+([0-9.Ee-]+)\s+ubox/;
     my ($i, $j, $p) = ($1, $2, $3);
-    print STDERR "$i $j $p $_";
 
     $p *= $p;
     if ($opt_p) {
