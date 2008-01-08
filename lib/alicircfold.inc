@@ -126,36 +126,38 @@ float circalifold(const char **strings, char *structure) {
   }
   Fc = MIN2(Fc, FcM);
 
-  if (FcH==Fc) {
-    sector[++s].i = Hi;
-    sector[s].j = Hj;
-    sector[s].ml = 2;
-  }
-  else if (FcI==Fc) {
-    sector[++s].i = Ii;
-    sector[s].j = Ij;
-    sector[s].ml = 2;
-    sector[++s].i = Ip;
-    sector[s].j = Iq;
-    sector[s].ml = 2;
-  }
-  else if (FcM==Fc) { /* grumpf we found a Multiloop */
-    int fm, u;
-    /* backtrack in fM2 */
-    fm = fM2[Mi+1];
-    for (u=Mi+TURN+1; u<length-TURN; u++)
-      if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
-	sector[++s].i=Mi+1;
-	sector[s].j=u;
-	sector[s].ml = 1;
-	sector[++s].i=u+1;
-	sector[s].j=length;
-	sector[s].ml = 1;
-	break;
-      }
-    sector[++s].i = 1;
-    sector[s].j = Mi;
-    sector[s].ml = 1;
+  if(Fc < INF){
+    if (FcH==Fc) {
+      sector[++s].i = Hi;
+      sector[s].j = Hj;
+      sector[s].ml = 2;
+    }
+    else if (FcI==Fc) {
+      sector[++s].i = Ii;
+      sector[s].j = Ij;
+      sector[s].ml = 2;
+      sector[++s].i = Ip;
+      sector[s].j = Iq;
+      sector[s].ml = 2;
+    }
+    else if (FcM==Fc) { /* grumpf we found a Multiloop */
+      int fm, u;
+      /* backtrack in fM2 */
+      fm = fM2[Mi+1];
+      for (u=Mi+TURN+1; u<length-TURN; u++)
+        if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
+		sector[++s].i=Mi+1;
+		sector[s].j=u;
+		sector[s].ml = 1;
+		sector[++s].i=u+1;
+		sector[s].j=length;
+		sector[s].ml = 1;
+		break;
+	}
+      sector[++s].i = 1;
+      sector[s].j = Mi;
+      sector[s].ml = 1;
+    }
   }
   backtrack(strings, s);
 
@@ -168,5 +170,8 @@ float circalifold(const char **strings, char *structure) {
   for (s=0; s<n_seq; s++) free(S[s]);
   free(S); free(fM2);
   free(type);
-  return (float) Fc/(n_seq*100.);
+  if(Fc == INF)
+    return (float) 0.0;
+  else
+    return (float) Fc/(n_seq*100.);
 }

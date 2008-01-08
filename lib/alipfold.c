@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.11 2007/12/05 12:59:01 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.12 2008/01/08 15:05:46 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1223,5 +1223,6 @@ PUBLIC void alipf_circ(char **sequences, char *structure){
   for(k=TURN+2; k<n-2*TURN-3; k++)
     qmo += qm[iindx[1]-k] * qm2[k+1] * pow(expMLclosing,n_seq);
 
-  qo = qho + qio + qmo;
+  /* add additional pf of 1.0 to take open chain into account */
+  qo = qho + qio + qmo + 1.0*scale[n];
 }

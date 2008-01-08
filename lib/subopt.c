@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.21  2008/01/08 15:08:51  ivo
+  circular fold would fail for open chain
+
   Revision 1.20  2008/01/08 14:08:20  ivo
   add an option to compute the density of state
 
@@ -83,7 +86,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.20 2008/01/08 14:08:20 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.21 2008/01/08 15:08:51 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -817,8 +820,18 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	/* or do we subopt circ?	*/
 	else if(array_flag == 0){
 		int k, l, p, q;
-		/* if we'vo done everything right, we will never reach this case more than once		*/
+		/* if we've done everything right, we will never reach this case more than once		*/
 		/* right after the initilization of the stack with ([1,n], empty, 0)							*/
+		/* lets check, if we can have an open chain without breaking the threshold        */
+		/* this is an ugly work-arround cause in case of an open chain we do not have to  */
+		/* backtrack anything further...                                                  */ 
+		if(0 <= threshold){
+			new_state = copy_state(state);
+			new_interval = make_interval(1,2,0);
+			push(new_state->Intervals, new_interval);
+			new_state->partial_energy = 0;
+			push(Stack, new_state);
+		}
 		/* ok, lets check if we can do an exterior hairpin without breaking the threshold	*/
 		/* best energy should be 0 if we are here																					*/
 		if(FcH + best_energy <= threshold){
