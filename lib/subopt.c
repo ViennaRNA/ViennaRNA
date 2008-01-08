@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.20  2008/01/08 14:08:20  ivo
+  add an option to compute the density of state
+
   Revision 1.19  2007/12/05 13:04:04  ivo
   add various circfold variants from Ronny
 
@@ -80,7 +83,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.19 2007/12/05 13:04:04 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.20 2008/01/08 14:08:20 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -102,7 +105,8 @@ typedef struct {
     int array_flag;
 } INTERVAL;
 
-
+#define MAXDOS 1000
+PUBLIC   int density_of_states[MAXDOS+1];
 PRIVATE  void make_pair(int i, int j, STATE *state);
 PRIVATE  INTERVAL *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
@@ -541,6 +545,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
     if (LST_EMPTY(state->Intervals))
       {
+	int e;
 	/* state has no intervals left: we got a solution */
 
 	count++;
@@ -561,6 +566,9 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 	  structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
 	}
 
+	e = (int) ((structure_energy-min_en)*10.);
+	if (e>MAXDOS) e=MAXDOS;
+	density_of_states[e]++;
 	if (structure_energy>eprint) {
 	  free(structure);
 	} else {
