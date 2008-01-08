@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:56:02 ronny> */
+/* Last changed Time-stamp: <2008-01-08 10:50:12 ivo> */
 /*
 		Ineractive access to suboptimal folding
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.14 2007/12/05 13:04:08 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.15 2008/01/08 14:08:10 ivo Exp $";
 
 #define PRIVATE static
 
@@ -28,6 +28,8 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 		       "....,....5....,....6....,....7....,....8";
 
 extern double print_energy;
+#define MAXDOS 1000
+extern int    density_of_states[MAXDOS+1];
 PRIVATE void usage(void);
 /*--------------------------------------------------------------------------*/
 
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
    int n_back = 0;
    int noconv = 0;
    int circ=0;
-
+   int dos=0;
    do_backtrack = 1;
    dangles = 2;
    for (i=1; i<argc; i++) {
@@ -80,6 +82,9 @@ int main(int argc, char *argv[])
 	  case 'C':
 	    fold_constrained=1;
 	    break;
+	  case 'D':
+	    dos=1;
+	    print_energy = -999999;
 	  case 'd': dangles=0;
 	    if (argv[i][2]!='\0') {
 	      r=sscanf(argv[i]+2, "%d", &dangles);
@@ -210,9 +215,9 @@ int main(int argc, char *argv[])
 	kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
 	pf_scale = exp(-(1.03*mfe)/kT/length);
 	strncpy(ss, structure, length);
-    /* we are not interested in the free energy but in the bppm, so we drop */
-    /* free energy into the void */
-    (circ) ? (void) pf_circ_fold(sequence, ss)	: (void) pf_fold(sequence, ss);
+	/* we are not interested in the free energy but in the bppm, so we drop */
+	/* free energy into the void */
+	(circ) ? (void) pf_circ_fold(sequence, ss)	: (void) pf_fold(sequence, ss);
 	free(ss);
 	for (i=0; i<n_back; i++) {
 	  char *s;
@@ -223,6 +228,12 @@ int main(int argc, char *argv[])
 	free_pf_arrays();
       } else {
 	(circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
+	if (dos) {
+	  int i;
+	  for (i=0; i<= MAXDOS && i<=delta/10; i++) {
+	    printf("%4d %6d\n", i, density_of_states[i]);
+	  }
+	}
       }
       (void)fflush(stdout);
 
