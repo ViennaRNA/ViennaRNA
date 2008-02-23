@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.22  2008/02/23 09:42:35  ivo
+  fix circular folding bugs with dangles that cross the origin
+
   Revision 1.21  2008/01/08 15:08:51  ivo
   circular fold would fail for open chain
 
@@ -86,7 +89,7 @@
 #define PRIVATE	  static
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.21 2008/01/08 15:08:51 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.22 2008/02/23 09:42:35 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -689,9 +692,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       element_energy = P->MLintern[type];
 
       if ( type && dangles ) {                        /* dangling ends */
-	if (i > 1)
+	if (i > 1 || circ)
 	  element_energy +=  P->dangle5[type][S1[i-1]];
-	if (j < length)
+	if (j < length || circ)
 	  element_energy += P->dangle3[type][S1[j+1]];
       }
 
