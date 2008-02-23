@@ -7,6 +7,9 @@
 */
 /*
   $Log: part_func.c,v $
+  Revision 1.29  2008/02/23 10:10:49  ivo
+  list returned from StackProb was sometimes not terminated correctly
+
   Revision 1.28  2008/01/08 15:08:10  ivo
   circular fold would fail for open chain
 
@@ -72,7 +75,7 @@ typedef struct plist {
 
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.28 2008/01/08 15:08:10 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1370,7 +1373,7 @@ PUBLIC plist *stackProb(double cutoff) {
 	}
       }
     }
-
+  pl[num].i=0;
   return pl;
 }
 /*-------------------------------------------------------------------------*/
