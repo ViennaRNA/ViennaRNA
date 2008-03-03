@@ -55,7 +55,8 @@ foreach my $a (@$aln) {
 	my $c = substr($seq,$p,1);
 	if ($c eq '-') {
 	    substr($cons,$p,1) = 'x'; # mark for removal
-	    substr($cons,$pt[$p],1) = '.' if $pt[$p]>0;   # open pair
+	    substr($cons,$pt[$p],1) = '.' 
+		if $pt[$p]>0  && substr($cons,$pt[$p],1) ne 'x';   # open pair
 	}
 	elsif ($pt[$p]>$p) {
 	    substr($cons,$p,1) = substr($cons,$pt[$p],1) = '.'
