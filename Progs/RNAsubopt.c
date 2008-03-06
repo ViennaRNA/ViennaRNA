@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-01-09 12:45:27 ivo> */
+/* Last changed Time-stamp: <2008-03-06 17:45:32 ivo> */
 /*
 		Ineractive access to suboptimal folding
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.16 2008/01/09 11:46:19 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.17 2008/03/06 16:45:56 ivo Exp $";
 
 #define PRIVATE static
 
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
       if (istty)
 	printf("length = %d\n", length);
 
-      if (logML!=0 || dangles==1 || dangles==3)
+      if ((logML!=0 || dangles==1 || dangles==3) && dos==0)
 	if (deltap<=0) deltap=delta/100. +0.001;
       if (deltap>0)
 	print_energy = deltap;
