@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-03-16 13:30:06 ivo> */
+/* Last changed Time-stamp: <2008-03-25 15:41:42 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -23,7 +23,7 @@ extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.7 2007/06/23 08:04:13 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.8 2008/03/25 14:45:03 ivo Exp $";
 
 #define PRIVATE static
 
@@ -37,7 +37,7 @@ int unpaired;
 
 int main(int argc, char *argv[])
 {
-  char *string, *line;
+  char *string=NULL, *line;
   char *structure=NULL, *cstruc=NULL;
   char  fname[30], ffname[20];
   char  *ParamFile=NULL;
@@ -48,16 +48,12 @@ int main(int argc, char *argv[])
   int winsize=70;
   int pairdist=0;
   float cutoff=0.01;
-  int hit;
   double *pup=NULL; /*prob of being unpaired*/
   plist *pl;
-  int
-  do_backtrack = 1;
 
-  string=NULL;
   dangles=2;
-   unpaired=0;
-   for (i=1; i<argc; i++) {
+  unpaired=0;
+  for (i=1; i<argc; i++) {
     if (argv[i][0]=='-')
       switch ( argv[i][1] )
 	{
@@ -235,31 +231,22 @@ PRIVATE void usage(void)
 	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }
 
+#define MAX(A,B) (A)<(B)?(B):(A)
+#define MIN(A,B) (A)>(B)?(B):(A)
 PRIVATE void putout_pup(double *pup,int length, int winsize) {
   int i;
-  float factor;
-  float tfact;
+  double factor;
+
   printf("# prob of being unpaired between i-%d and i\n",unpaired);
   fflush(NULL);
   for (i=unpaired; i<=length; i++) {
-    if (i<winsize) {
-      factor=1./(i-unpaired+1);
-    }
-    if (i>length-winsize+unpaired-1) {
-      tfact=1./(length-i+1);
-      if (tfact>factor) {
-	factor=tfact;
-      }
+    int leftmost, rightmost;
 
-    }
-    else {
-      tfact=1./(winsize-unpaired+1);
-      if (tfact>factor) {
-	factor=tfact;
-      }
-    }
+    leftmost = MAX(i,winsize);
+    rightmost = MIN(length,i-unpaired+winsize);
+
+    factor = 1./(rightmost-leftmost+1);
+
     printf("%d %.6g\n",i,pup[i]*factor);
   }
-
-
 }
