@@ -9,7 +9,7 @@
 #else
 extern /*@only@*/ /*@notnull@*/
 void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
-                            /* allocate space safely */ 
+			    /* allocate space safely */
 extern /*@only@*/ /*@notnull@*/
 void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p, unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
 #endif
@@ -26,6 +26,9 @@ extern /*@only@*/ /*@notnull@*/ char  *random_string(int l, const char symbols[]
 extern int    hamming(const char *s1, const char *s2);
 /* calculate hamming distance */
 extern /*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
+#ifndef HAVE_STRDUP
+extern char *strdup(const char *s);
+#endif
 
 
 extern char *pack_structure(const char *struc);
@@ -37,5 +40,5 @@ extern short *make_pair_table(const char *structure);
    0 if i is unpaired, table[0] contains the length of the structure. */
 
 extern int bp_distance(const char *str1, const char *str2);
-/* dist = {number of base pairs in one structure but not in the other} 
+/* dist = {number of base pairs in one structure but not in the other}
    same as edit distance with open-pair close-pair as move-set */
