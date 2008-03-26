@@ -1,6 +1,9 @@
 /* Header file for utils.c */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#ifndef HAVE_STRDUP
+extern char *strdup(const char *s);
+#endif
 #endif
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
@@ -26,9 +29,6 @@ extern /*@only@*/ /*@notnull@*/ char  *random_string(int l, const char symbols[]
 extern int    hamming(const char *s1, const char *s2);
 /* calculate hamming distance */
 extern /*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
-#ifndef HAVE_STRDUP
-extern char *strdup(const char *s);
-#endif
 
 
 extern char *pack_structure(const char *struc);
