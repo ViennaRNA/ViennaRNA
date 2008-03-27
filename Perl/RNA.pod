@@ -405,9 +405,10 @@ from treedist.h: routines for computing tree-edit distances between structures
 
 =over 4
 
-=item make_tree STRUCTURE
+=item make_tree XSTRUCT
 
-make input for tree_edit_distance (a Tree * pointer).
+convert a structure string as produced by the expand_... functions to a 
+Tree, useable as input to tree_edit_distance.
 
 =item tree_edit_distance T1, T2
 
