@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-03-06 17:45:32 ivo> */
+/* Last changed Time-stamp: <2008-03-31 17:06:17 ivo> */
 /*
 		Ineractive access to suboptimal folding
 
@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.17 2008/03/06 16:45:56 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.18 2008/03/31 15:06:40 ivo Exp $";
 
 #define PRIVATE static
 
@@ -30,6 +30,7 @@ static char  scale[] = "....,....1....,....2....,....3....,....4"
 extern double print_energy;
 #define MAXDOS 1000
 extern int    density_of_states[MAXDOS+1];
+PRIVATE char *tokenize(char *line);
 PRIVATE void usage(void);
 /*--------------------------------------------------------------------------*/
 
@@ -154,92 +155,97 @@ int main(int argc, char *argv[])
    }
 
    do {				/* main loop: continue until end of file */
-      if (istty) {
-	 printf("\nInput string (upper or lower case); @ to quit\n");
-	 printf("%s\n", scale);
-      }
-      fname[0]='\0';
-      if ((line = get_line(stdin))==NULL) break;
+     cut_point = -1;
+     if (istty) {
+       printf("\nInput string (upper or lower case); @ to quit\n");
+       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+       printf("%s\n", scale);
+     }
+     fname[0]='\0';
+     if ((line = get_line(stdin))==NULL) break;
 
-      /* skip comment lines and get filenames */
-      while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	if (*line=='>')
-	  (void) sscanf(line, ">%20s", fname);
-	free(line);
-	if ((line = get_line(stdin))==NULL) break;;
-      }
+     /* skip comment lines and get filenames */
+     while ((*line=='*')||(*line=='\0')||(*line=='>')) {
+       if (*line=='>')
+	 (void) sscanf(line, ">%20s", fname);
+       free(line);
+       if ((line = get_line(stdin))==NULL) break;;
+     }
 
-      if ((line==NULL) || strcmp(line, "@") == 0) break;
+     if ((line==NULL)||strcmp(line,"@")==0) break;
 
-      sequence = (char *) space(strlen(line)+1);
-      (void) sscanf(line,"%s",sequence);
-      free(line);
-      length = (int) strlen(sequence);
+     sequence = tokenize(line); /* frees line */
+     length = (int) strlen(sequence);
+     structure = (char *) space((unsigned) length+1);
 
-      structure = (char *) space((unsigned) length+1);
-      if (fold_constrained) {
-	char *cstruc;
-	cstruc = get_line(stdin);
-	if (cstruc!=NULL) {
-	  strncpy(structure, cstruc, length);
-	  for (i=0; i<length; i++)
-	    if (structure[i]=='|')
-	      nrerror("constraints of type '|' not allowed");
-	  free(cstruc);
-	}
-      }
+     if (fold_constrained) {
+       char *cstruc;
+       cstruc = tokenize(get_line(stdin));
+       if (cstruc!=NULL) {
+	 strncpy(structure, cstruc, length);
+	 for (i=0; i<length; i++)
+	   if (structure[i]=='|')
+	     nrerror("constraints of type '|' not allowed");
+	 free(cstruc);
+       }
+     }
 
-      for (l = 0; l < length; l++) {
-	sequence[l] = toupper(sequence[l]);
-	if (!noconv && sequence[l] == 'T') sequence[l] = 'U';
-      }
-      if (istty)
-	printf("length = %d\n", length);
+     for (l = 0; l < length; l++) {
+       sequence[l] = toupper(sequence[l]);
+       if (!noconv && sequence[l] == 'T') sequence[l] = 'U';
+     }
+     if (istty) {
+       if (cut_point == -1)
+	 printf("length = %d\n", length);
+       else
+	 printf("length1 = %d\nlength2 = %d\n",
+		cut_point-1, length-cut_point+1);
+     }
 
-      if ((logML!=0 || dangles==1 || dangles==3) && dos==0)
-	if (deltap<=0) deltap=delta/100. +0.001;
-      if (deltap>0)
-	print_energy = deltap;
 
-      /* first lines of output (suitable  for sort +1n) */
-      if (fname[0] != '\0')
-	printf("> %s [%d]\n", fname, delta);
+     if ((logML!=0 || dangles==1 || dangles==3) && dos==0)
+       if (deltap<=0) deltap=delta/100. +0.001;
+     if (deltap>0)
+       print_energy = deltap;
 
-      if (n_back>0) {
-	int i;
-	double mfe, kT;
-	char *ss;
-	st_back=1;
-	ss = (char *) space(strlen(sequence)+1);
-	strncpy(ss, structure, length);
-	mfe = (circ) ? circfold(sequence, ss) : fold(sequence, ss);
-	kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
-	pf_scale = exp(-(1.03*mfe)/kT/length);
-	strncpy(ss, structure, length);
-	/* we are not interested in the free energy but in the bppm, so we drop */
-	/* free energy into the void */
-	(circ) ? (void) pf_circ_fold(sequence, ss)	: (void) pf_fold(sequence, ss);
-	free(ss);
-	for (i=0; i<n_back; i++) {
-	  char *s;
-	  s = (circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
-	  printf("%s\n", s);
-	  free(s);
-	}
-	free_pf_arrays();
-      } else {
-	(circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
-	if (dos) {
-	  int i;
-	  for (i=0; i<= MAXDOS && i<=delta/10; i++) {
-	    printf("%4d %6d\n", i, density_of_states[i]);
-	  }
-	}
-      }
-      (void)fflush(stdout);
+     /* first lines of output (suitable  for sort +1n) */
+     if (fname[0] != '\0')
+       printf("> %s [%d]\n", fname, delta);
 
-      free(sequence);
-      free(structure);
+     if (n_back>0) {
+       int i;
+       double mfe, kT;
+       char *ss;
+       st_back=1;
+       ss = (char *) space(strlen(sequence)+1);
+       strncpy(ss, structure, length);
+       mfe = cofold(sequence, ss);
+       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+       pf_scale = exp(-(1.03*mfe)/kT/length);
+       strncpy(ss, structure, length);
+       /* ignore return value, we are not interested in the free energy */ 
+       (circ) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
+       free(ss);
+       for (i=0; i<n_back; i++) {
+	 char *s;
+	 s =(circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
+	 printf("%s\n", s);
+	 free(s);
+       }
+       free_pf_arrays();
+     } else {
+       (circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
+       if (dos) {
+	 int i;
+	 for (i=0; i<= MAXDOS && i<=delta/10; i++) {
+	   printf("%4d %6d\n", i, density_of_states[i]);
+	 }
+       }
+     }
+     (void)fflush(stdout);
+
+     free(sequence);
+     free(structure);
    } while (1);
    return 0;
 }
@@ -250,4 +256,29 @@ PRIVATE void usage(void)
 	   "RNAsubopt [-e range] [-ep prange] [-s] [-p num] [-logML]\n"
 	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n"
 	   "          [-noLP] [-P paramfile] [-nsp pairs] [-circ]");
+}
+PRIVATE char *tokenize(char *line)
+{
+  char *pos, *copy;
+  int cut = -1;
+
+  copy = (char *) space(strlen(line)+1);
+  (void) sscanf(line, "%s", copy);
+  pos = strchr(copy, '&');
+  if (pos) {
+    cut = (int) (pos-copy)+1;
+    if (cut >= strlen(copy)) cut = -1;
+    if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+    for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
+  }
+  if (cut > -1) {
+    if (cut_point==-1) cut_point = cut;
+    else if (cut_point != cut) {
+      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+      nrerror("Sequence and Structure have different cut points.");
+    }
+  }
+
+  free(line);
+  return copy;
 }
