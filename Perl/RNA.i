@@ -518,5 +518,24 @@ extern duplexT aliduplexfold(const char **s1, const char **s2);
 // problem: wrapper will not free the the structure hidden in duplexT
 // even more problem for duplex_subopt()
 
+%{
+short *encode_seq(char *sequence) {
+  unsigned int i,l;
+  short *S;
+  l = strlen(sequence);
+  S = (short *) space(sizeof(short)*(l+2));
+  S[0] = (short) l;
+
+  /* make numerical encoding of sequence */
+  for (i=1; i<=l; i++)
+    S[i]= (short) encode_char(toupper(sequence[i-1]));
+
+  /* for circular folding add first base at position n+1 */
+  S[l+1] = S[1];
+
+  return S;
+}
+%}
+short *encode_seq(char *sequence);
 
 %include  "../H/PS_dot.h"
