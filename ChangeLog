@@ -1,4 +1,12 @@
-2007-12-13  Ulli Muecksteinr  <ulli@tbi.univie.ac.at>
+2008-03-31  Stephan Bernhart  <berni@tbi.univie.ac.at>
+
+	* add cofolding to RNAsubopt
+
+2008-01-08  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* ensure circfold works even for open chain
+
+2007-12-13  Ulli Mueckstein  <ulli@tbi.univie.ac.at>
 
 	* upate RNAup related files
 	  RNAup can now include the intramolecular structure of both
