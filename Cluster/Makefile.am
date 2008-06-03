@@ -20,6 +20,6 @@ noinst_HEADERS = cluster.h split.h treeplot.h distance_matrix.h statgeom.h \
 LDADD = utils.o -lm
 
 utils.o:
-	$(COMPILE) -c ../lib/utils.c
+	$(COMPILE) -c $(srcdir)/../lib/utils.c
 
 EXTRA_DIST = $(man_MANS)

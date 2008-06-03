@@ -12,4 +12,4 @@ noinst_HEADERS = intloops.h list.h
 
 EXTRA_DIST = circfold.inc alicircfold.inc
 
-INCLUDES = -I../H
+INCLUDES = -I$(srcdir)/../H
