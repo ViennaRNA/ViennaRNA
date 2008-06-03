@@ -19,7 +19,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.12 2008/01/08 15:05:46 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.13 2008/06/03 15:01:41 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -959,13 +959,12 @@ pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
 	num_p++;
 	if (num_p>=max_p) {
 	  max_p *= 2;
-	  pi = realloc(pi, max_p * sizeof(pair_info));
-	  if (pi==NULL) nrerror("out of memory in alipf_fold");
+	  pi = xrealloc(pi, max_p * sizeof(pair_info));
 	}
       }
     }
   free(duck);
-  pi = realloc(pi, (num_p+1)*sizeof(pair_info));
+  pi = xrealloc(pi, (num_p+1)*sizeof(pair_info));
   pi[num_p].i=0;
   qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
   return pi;
