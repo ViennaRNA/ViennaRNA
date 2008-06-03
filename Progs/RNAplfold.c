@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-03-25 15:41:42 ivo> */
+/* Last changed Time-stamp: <2008-03-25 23:13:39 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -23,7 +23,7 @@ extern float Lfold(char *string, char *structure, int winsize);
 extern void  read_parameter_file(const char fname[]);
 
 /*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.8 2008/03/25 14:45:03 ivo Exp $";
+static char rcsid[] = "$Id: RNAplfold.c,v 1.9 2008/06/03 21:19:42 ivo Exp $";
 
 #define PRIVATE static
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   int   i, length, l, sym,r;
   int   istty;
   int noconv=0;
-  int winsize=70;
+  int winsave, winsize=70;
   int pairdist=0;
   float cutoff=0.01;
   double *pup=NULL; /*prob of being unpaired*/
@@ -154,8 +154,9 @@ int main(int argc, char *argv[])
 	    "Setting pairdist=winsize\n",pairdist, winsize);
     pairdist=winsize;
   }
-
+  winsave = winsize;
   do {				/* main loop: continue until end of file */
+    winsize = winsave;
     if (istty) {
       printf("\nInput string (upper or lower case); @ to quit\n");
       printf("%s\n", scale);
