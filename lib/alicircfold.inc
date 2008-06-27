@@ -2,7 +2,7 @@
 /* this file contains code for alifolding circular RNAs */
 /* it's #include'd into alifold.c */
 
-float circalifold(const char **strings, char *structure) {
+double circalifold(const char **strings, char *structure) {
   /* variant of alifold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -24,15 +24,24 @@ float circalifold(const char **strings, char *structure) {
   if ((P==NULL)||(fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params(); P = scale_parameters();
   }
-
+  oldAliEn=1; /* TODO allow new gap treatment in alicircfold() */
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
   type = (int *) space(n_seq*sizeof(int));
   S = (short **) space(n_seq*sizeof(short *));
+  S5 = (short **) space(n_seq*sizeof(short *));
+  S3 = (short **) space(n_seq*sizeof(short *));
+  a2s= (unsigned short **)space(n_seq*sizeof(unsigned short *));
+  Ss = (char **)space(n_seq*sizeof(char *));
   for (s=0; s<n_seq; s++) {
     if (strlen(strings[s]) != length) nrerror("uneqal seqence lengths");
-    S[s] = encode_seq(strings[s]);
+    S5[s] =(short *) space ((length+2)*sizeof(short));
+    S3[s] =(short *) space ((length+2)*sizeof(short));
+    a2s[s]=(unsigned short *)space ((length+2)*sizeof(unsigned short));
+    Ss[s]=(char *)space((length+2)*sizeof(char));
+    S[s] = encode_seq(strings[s], S5[s],S3[s],Ss[s],a2s[s]);
   }
+  
   make_pscores((const short **) S, strings, n_seq, structure);
 
   /* compute all arrays used by fold() for linear RNA */
@@ -126,38 +135,36 @@ float circalifold(const char **strings, char *structure) {
   }
   Fc = MIN2(Fc, FcM);
 
-  if(Fc < INF){
-    if (FcH==Fc) {
-      sector[++s].i = Hi;
-      sector[s].j = Hj;
-      sector[s].ml = 2;
-    }
-    else if (FcI==Fc) {
-      sector[++s].i = Ii;
-      sector[s].j = Ij;
-      sector[s].ml = 2;
-      sector[++s].i = Ip;
-      sector[s].j = Iq;
-      sector[s].ml = 2;
-    }
-    else if (FcM==Fc) { /* grumpf we found a Multiloop */
-      int fm, u;
-      /* backtrack in fM2 */
-      fm = fM2[Mi+1];
-      for (u=Mi+TURN+1; u<length-TURN; u++)
-        if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
-		sector[++s].i=Mi+1;
-		sector[s].j=u;
-		sector[s].ml = 1;
-		sector[++s].i=u+1;
-		sector[s].j=length;
-		sector[s].ml = 1;
-		break;
-	}
-      sector[++s].i = 1;
-      sector[s].j = Mi;
-      sector[s].ml = 1;
-    }
+  if (FcH==Fc) {
+    sector[++s].i = Hi;
+    sector[s].j = Hj;
+    sector[s].ml = 2;
+  }
+  else if (FcI==Fc) {
+    sector[++s].i = Ii;
+    sector[s].j = Ij;
+    sector[s].ml = 2;
+    sector[++s].i = Ip;
+    sector[s].j = Iq;
+    sector[s].ml = 2;
+  }
+  else if (FcM==Fc) { /* grumpf we found a Multiloop */
+    int fm, u;
+    /* backtrack in fM2 */
+    fm = fM2[Mi+1];
+    for (u=Mi+TURN+1; u<length-TURN; u++)
+      if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
+	sector[++s].i=Mi+1;
+	sector[s].j=u;
+	sector[s].ml = 1;
+	sector[++s].i=u+1;
+	sector[s].j=length;
+	sector[s].ml = 1;
+	break;
+      }
+    sector[++s].i = 1;
+    sector[s].j = Mi;
+    sector[s].ml = 1;
   }
   backtrack(strings, s);
 
@@ -170,8 +177,5 @@ float circalifold(const char **strings, char *structure) {
   for (s=0; s<n_seq; s++) free(S[s]);
   free(S); free(fM2);
   free(type);
-  if(Fc == INF)
-    return (float) 0.0;
-  else
-    return (float) Fc/(n_seq*100.);
+  return (double) Fc/(n_seq*100.);
 }

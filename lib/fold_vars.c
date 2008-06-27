@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-11-03 16:29:09 ulim> */
+/* Last changed Time-stamp: <2008-06-27 17:21:42 ivo> */
 
 /*
        global variables to change behaviour of folding routines
@@ -17,6 +17,10 @@ char *nonstandards = (char *)0; /* contains allowed non standard bases */
 double temperature = 37.0;
 int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
 			    no mismatches (no longer used) */
+int  oldAliEn   = 0;     /* use old alifold-energies (without removing gaps) */
+int  ribo       = 0;     /* use ribosum instead of classic covariance term */
+char *RibosumFile = NULL; /* TODO: compile ribosums into program
+			     Warning: this variable will vanish */
 
 struct bond  *base_pair;
 

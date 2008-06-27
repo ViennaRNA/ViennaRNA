@@ -15,6 +15,11 @@ extern int  tetra_loop;     /* Fold with specially stable 4-loops */
 extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
 extern int  dangles;	    /* use dangling end energies (not in part_func!) */
 /*@null@*/
+
+extern int oldAliEn;        /* use old alifold energies (with gaps) */
+extern int ribo;            /* use ribosum matrices */
+extern char *RibosumFile;   /* warning this variable will vanish in the future
+			       ribosums will be compiled in instead */
 extern char *nonstandards;  /* contains allowed non standard bases */
 extern double temperature;   /* rescale parameters to this temperature */
 extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
