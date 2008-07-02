@@ -5,7 +5,7 @@ RNAplfold \- calculate locally stable secondary structure - pair probabilities
 .SH "SYNOPSIS"
 \fBRNAplfold\fP [\-L span] [-W winsize] [\-T\ \fItemp\fP] [\-4] [\-noLP] [\-noGU]
 [\-noCloseGU] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP]
-[\-d[0|2] [\-c \fIcutoff\fP]
+[\-d[0|2] [\-c \fIcutoff\fP] [\-o] [\-u  \fInumber of unpaired\fP] [\-O]
 
 .SH "DESCRIPTION"
 .I RNAplfold
@@ -40,8 +40,20 @@ Report only base pairs with an average probability > \fIcutoff\fP in the
 dot plot; default=0.01.
 .PP
 .TP
-.B \-u width
-Compute the mean probability that regions of length \fIwidth\fP is unpaired.
+.B \-o
+Save memory by printing out everything during computation. Saves memory,
+and is activated per default for sequences over 1M bp.
+.PP 
+.TP
+.B \-u (width)
+Compute the mean probability that regions of length 1 to \fIwidth\fP are
+unpaired. Output is saved in a _lunp file. Default width is 31.
+.PP 
+.TP
+.B \-O
+toggles \fB\-u\fP option, output is switched from probabilities to their
+logarithm, which are NOT exactly the mean energies needed to the respective
+stretch of bases!
 .PP 
 The \fB\-T\fP, \fB\-d\fP \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options work as in

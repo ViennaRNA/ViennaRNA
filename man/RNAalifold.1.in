@@ -7,6 +7,7 @@ RNAalifold \- calculate secondary structures for a set of aligned RNAs
 [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
 [\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
 \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fI<file.aln>\fP]
+[\-s\ \fInumber of sequences\fP] [\-se\ \fInumber of structures\fP]
 
 .SH "DESCRIPTION"
 .I RNAalifold
@@ -41,7 +42,8 @@ than average in IUPAC notation.
 .TP 
 .B \-p
 Calculate the partition function and base pairing probability matrix in
-addition to the mfe structure. Default is calculation of mfe structure only.
+addition to the mfe structure. Default is calculation of mfe structure
+only. Additionaly, the centroid structure is computed and printed out.
 .TP 
 .B \-noLP
 Avoid structures without lonely pairs (helices of length 1). In the mfe
@@ -59,6 +61,16 @@ Produce a colored version of the consensus strcture plot "alirna.ps"
 .B \-aln
 Produce a colored and structure annotated alignment in PostScript format in
 the file "aln.ps" in the current directory.
+.PP 
+.TP
+.B \-s  \fInum\fP
+Stochastic backtrack. Compute \fInum\fP random structures with a
+probability dependend on the partition function. See -p in RNAsubopt. 
+.PP 
+.TP
+.B \-se \fInum\fP
+like \fB\-s\fP, but also print out the energies and probabilities of the
+backtracked structures.
 .PP 
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options should work as in RNAfold
