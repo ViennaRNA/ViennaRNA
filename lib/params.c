@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-08-12 13:57:16 ulim> */
+/* Last changed Time-stamp: <2008-06-06 17:39:02 ulim> */
 /*                
 
 		  c Ivo Hofacker
@@ -16,7 +16,7 @@
 #include "params.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.8 2007/04/30 15:06:03 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: params.c,v 1.9 2008/07/04 14:29:14 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE static
@@ -220,8 +220,10 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   }
   pf.expTermAU = exp(-TerminalAU*10/kT);
 
-  GT =  ML_BASE37*TT;
-  pf.expMLbase=(-10.*GT/kT); 
+  GT = ML_BASE37*TT;
+  /* pf.expMLbase=(-10.*GT/kT); old */
+  pf.expMLbase=exp(-10.*GT/kT);
+  
  
   /* if dangles==0 just set their energy to 0,
      don't let dangle energies become > 0 (at large temps),
