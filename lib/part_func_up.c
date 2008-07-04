@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-03-26 17:05:48 ulim> */
+/* Last changed Time-stamp: <2008-07-04 15:57:03 ulim> */
 /*                
 		  partiton function for RNA secondary structures
 
@@ -8,6 +8,9 @@
 */
 /*
   $Log: part_func_up.c,v $
+  Revision 1.4  2008/07/04 14:27:36  ivo
+  Modify output (again)
+
   Revision 1.3  2008/05/08 14:11:55  ivo
   minor output changes
 
@@ -66,7 +69,8 @@
 #include "part_func_up.h"
 #include "duplex.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.3 2008/05/08 14:11:55 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo Exp $";
+
 #define CO_TURN 0
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -74,6 +78,7 @@ static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.3 2008/05/08 14:11:55 ivo 
 #define EQUAL(A,B) (fabs((A)-(B)) < 1000*DBL_EPSILON)
 #define PUBLIC
 #define PRIVATE static
+#define BLA 0
 /* #define PF2_DEBUG 1 *//* tests for prop_unpaired */
 /* #define NUMERIC 1 */
 
@@ -83,9 +88,25 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 /* PUBLIC  void free_pf_two(pu_contrib *p_con, double **p_in); */
 PUBLIC void free_pu_contrib(pu_contrib *p_con);
 PUBLIC void free_interact(interact *pin);
-PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, int len, char *ofile, int w, char *select_contrib);
+
 PUBLIC double expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1);
 PUBLIC double expHairpinEnergy(int u, int type, short si1, short sj1, const char *string);
+
+PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head);
+
+
+
+typedef struct pu_out { /* collect all free_energy of beeing unpaired
+			   values for output */
+  int len;        /* sequence length */
+  int u_vals;     /* number of different -u values */
+  int contribs;   /* [-c "SHIME"] */
+  char **header;  /* header line */
+  double **u_values; /* (differnet -u values * [-c "SHIME"]) * seq len */
+} pu_out;
+
+PRIVATE pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
+PRIVATE int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
 
 typedef struct constrain { /* constrains for cofolding */
   int *indx;
@@ -164,6 +185,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 
   pu_test = (pu_contrib *) space (sizeof(pu_contrib)*1);
   pu_test->length=n;
+  pu_test->w=w; /* consider also incr values if comparing to int *u_vals */
   /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
   pu_test->H = (double **) space(size);
   pu_test->I = (double **) space(size);
@@ -1275,275 +1297,260 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   }
 
   for (i=0; i<length; i++) {
-    expMLbase[i] = exp(i*Pf->expMLbase)*scale[i];
+    /* expMLbase[i] = exp(i*Pf->expMLbase)*scale[i]; old */
+    expMLbase[i] = pow(Pf->expMLbase,i)*scale[i];
   }
 }
 /*-------------------------------------------------------------------------*/
+/* make a results structure containing all u-values & the header */
+PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib) {
+  int i,j,g,ws,num_u_vals,unstr,count,contribs,size,w,len;
+  int S,E,H,I,M;
+  int off_S, off_E, off_H, off_I, off_M;
+  /* double **p_cont,**p_cont_sh, dG_u; p_u AND its contributions */
+  pu_out* u_results;
 
-PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, int len, char *ofile, int w, char *select_contrib)
-{
-  /* produce output */
+  len = p_c->length;
+  
+  /* number of different -u values */
+  num_u_vals = u_vals[0];
+ 
+  /* check which contributions ([-c "SHIME"] ) are desired by the user,
+     set the offset for each contribution */
+  contribs = 0;
+  S = E = H = I = M = 0;
+  off_S = off_E = off_H = off_I = off_M = 0;
+  if(strchr(select_contrib, 'S')) {
+    S=1;
+    off_S = contribs;
+    ++contribs;
+  }
+  if(strchr(select_contrib, 'E')) {
+    E=1;
+    off_E = contribs;
+    ++contribs;
+  }
+  if(strchr(select_contrib, 'H')) {
+    H=1;
+    off_H = contribs;
+    ++contribs;
+  }
+  if(strchr(select_contrib, 'I')) {
+    I=1;
+    off_I = contribs;
+    ++contribs;
+  }
+  if(strchr(select_contrib, 'M')) {
+    M=1;
+    off_M = contribs;
+    ++contribs;
+  }
+  
+  if(contribs > 5) {
+    nrerror("get_u_vals: error with contribs!");
+  }
+  /* allocate the results structure */
+  u_results = (pu_out *) space(1*sizeof(pu_out));
+  u_results->len = len; /* sequence length */
+  /*num_u_vals differnet -u values, contribs [-c "SHIME"] */
+  u_results->u_vals = num_u_vals;
+  u_results->contribs = contribs; 
+  /* add 1 column for position within the sequence and
+     add 1 column for the free energy of interaction values */
+  /* header e.g. u3I (contribution for u3 interior loops */
+  size = 1 + (num_u_vals*contribs) + 1;
+  u_results->header = (char **) space((size+1)*sizeof(char*));
+  for(i=0;i<(size+1);i++){
+    u_results->header[i] = (char *) space(10*sizeof(char));
+  }
+  /* different free energies for all  -u and -c combinations */ 
+  u_results->u_values = (double**) space((size+1) *sizeof(double*));
+  for(i=0;i<(size+1);i++){
+    /* position within the sequence  */
+    u_results->u_values[i] = (double*) space((len+3)*sizeof(double));
+  }
+  /* write the position within the sequence in the u_results array
+     at column zerro */
+  sprintf(u_results->header[0],"pos");
+  for(i=0;i<=len;i++){
+    /* add the position*/
+    u_results->u_values[0][i] = i;
+  }
+  /* go over the different -u values, u_vals[] listy of different -u values*/
+  for (count = 1; count <= u_vals[0]; count++) {
+    int offset; /* offset for the respective -u value (depents on the number
+		   of the -u value and on the numbers of contribs */
+ 
+    offset = ((count - 1) * contribs) + 1; /* first colum is the position */
+    /* set the current value of -u : here we call it w */
+    w = u_vals[count]; /* set w to the actual -u value */
+    if(w > len) break; /* corr caro */
+    /* make the header - look which contribitions are wanted */
+    if(S) sprintf(u_results->header[offset+off_S],"u%dS",w);
+    if(E) sprintf(u_results->header[offset+off_E],"u%dE",w);
+    if(H) sprintf(u_results->header[offset+off_H],"u%dH",w);
+    if(I) sprintf(u_results->header[offset+off_I],"u%dI",w);
+    if(M) sprintf(u_results->header[offset+off_M],"u%dM",w);
+
+    if(p_c != NULL) {
+      for (i=1; i<=len; i++) { /* for each position */
+	/* w goes form j to i (intervall end at i) */
+	for (j=i; j < MIN((i+w),len+1); j++) { /* for each -u value < w
+						this is not necessay ->
+						calculate j from i and w
+						: (j-i+1) == w */
+	  double blubb;
+	  /* if (j-i+1) == w we have the -u = w value wanted */
+	  if( (j-i+1) == w && i+w-1 <= len) {
+	    blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
+
+	    /* printf("len %d  blubb %.3f \n",len, blubb); */
+	    if(S) u_results->u_values[offset+off_S][i+w-1]+=blubb;
+	    if(E) u_results->u_values[offset+off_E][i+w-1]+=p_c->E[i][j-i];
+	    if(H) u_results->u_values[offset+off_H][i+w-1]+=p_c->H[i][j-i]; 
+	    if(I) u_results->u_values[offset+off_I][i+w-1]+=p_c->I[i][j-i]; 
+	    if(M) u_results->u_values[offset+off_M][i+w-1]+=p_c->M[i][j-i];
+
+	  }
+	  if(i<w && (j-i+1) != w && i+w-1 > len &&  i+w-1 < len+3) {
+	    if(S) u_results->u_values[offset+off_S][i+w-1]=-1;
+	    if(E) u_results->u_values[offset+off_E][i+w-1]=-1;
+	    if(H) u_results->u_values[offset+off_H][i+w-1]=-1; 
+	    if(I) u_results->u_values[offset+off_I][i+w-1]=-1; 
+	    if(M) u_results->u_values[offset+off_M][i+w-1]=-1;
+	  }
+	}
+      }
+    } else {
+      return(NULL); /* error */
+    }
+  }
+  return(u_results); /*success*/
+}
+/* plot the results structure */
+/* when plotting the results for the target seq we add a header */
+/* when plotting the results for the interaction partner u want no header,
+   set s1 to NULL to avoid plotting the header */
+/* currently we plot the free energies to a file: the probability of
+   being unpaired for region [i,j], p_u[i,j], is related to the free
+   energy to open region [i,j], dG_u[i,j] by:
+   dG_u[i,j] = -log(p_u[i,j])*(temperature+K0)*GASCONST/1000.0; */   
+PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head) {
+  int size,s,i,len;
+  double dG_u;
+  char nan[4], *time, startl[2], dg[10];;
   FILE *wastl;
-  int i,j,g,ws;
-  double **p_cont,**p_cont_sh, dG_u; /* p_u AND its contributions */
-  char *unpaired[6]={"total probability of being unpaired","probability of being unpaired in the exterior loop","probability of being unpaired in hairpin loops","probability of being unpaired in interior loops","probability of being unpaired in multiloops","interaction probability"};
-  char *unpaired_fe[6]={"free energy to open all structures","free energy to open exterior loops","free energy to open hairpin loops","free energy to open interior loops","free energy to open multiloops","interaction probability"};
-
-  if(p_c != NULL) {
-    wastl = fopen(ofile,"a");
-    if (wastl==NULL) {
-      fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
-      perror(ofile);
-      exit(EXIT_FAILURE);
-    }
-  } else if (pint != NULL) {
-    wastl = fopen(ofile,"a");
-    if (wastl==NULL) {
-      fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
-      perror(ofile);
-      exit(EXIT_FAILURE);
-    }
-  } else {
+  
+  wastl = fopen(ofile,"a");
+  if (wastl==NULL) {
+    fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
     return(0);
   }
+  sprintf(startl,"# ");
+  sprintf(dg,"dG");
   
-  /* collect output values
-     p_cont[0] sum of pr_unpaired H+I+M+E
-     p_cont[1] E exterior loops
-     p_cont[2] H hairpin loops
-     p_cont[3] I interior loops
-     p_cont[4] M multi loops
-  */ 
-  p_cont = NULL;
-  p_cont_sh = NULL;
-  if(p_c != NULL) {
-    p_cont = (double **) space(sizeof(double*)*(5));
-    
-    if(strchr(select_contrib, 'S')) {
-      p_cont[0] = (double *) space(sizeof(double)*(len+3));
-      p_cont[0][0] = 1.;
-    } else {
-      p_cont[0] = (double *) space(sizeof(double)*(3));
-      p_cont[0][0] = 0.;
-    }
-    if(strchr(select_contrib, 'E')) {
-      p_cont[1] = (double *) space(sizeof(double)*(len+3));
-      p_cont[1][0] = 1.;
-    } else {
-      p_cont[1] = (double *) space(sizeof(double)*(3));
-      p_cont[1][0] = 0.;
-    }
-    if(strchr(select_contrib, 'H')) {
-      p_cont[2] = (double *) space(sizeof(double)*(len+3));
-      p_cont[2][0] = 1.;
-    } else {
-      p_cont[2] = (double *) space(sizeof(double)*(3));
-      p_cont[2][0] = 0.;
-    }
-    if(strchr(select_contrib, 'I')) {
-      p_cont[3] = (double *) space(sizeof(double)*(len+3));
-      p_cont[3][0] = 1.;
-    } else {
-      p_cont[3] = (double *) space(sizeof(double)*(3));
-      p_cont[3][0] = 0.;
-    }
-    if(strchr(select_contrib, 'M')) {
-      p_cont[4] = (double *) space(sizeof(double)*(len+3));
-      p_cont[4][0] = 1.;
-    } else {
-      p_cont[4] = (double *) space(sizeof(double)*(3));
-      p_cont[4][0] = 0.;
-    }
-    
+  /* printf("T=%.16f \n(temperature+K0)*GASCONST/1000.0 = %.16f\n",temperature,(temperature+K0)*GASCONST/1000.0); */
+  
+  /* write the header of the output file:  */ 
+  /*  # timestamp commandlineaufruf   */
+  /*  # length and name of first sequence (target)
+  /*  # first seq */
+  /*  # length and name of second sequence (interaction partner) */
+  /*  # second seq */
+  /* the next line is the output for the target: colums
+     position in target | dG_unpaired values for target | interaction energy */
+  /*  # pos   u1S   u1H  dg */
+  /*  values for target */
+  /* if -b was choosen: the next lines are the dG_unpaired values for
+     the interaction partner */
+  /*  # pos   u1S   u1H  */
+  /*  values for the interaction partner */
 
-    for (i=1; i<=len+2; i++) {
-      /* not necessary for calculation, stores contributions to 
-	 prob. upaired[i], i gives the START of the unpaired region*/
-      if((int) p_cont[0][0] ) p_cont[0][i]=0.;
-      if((int) p_cont[1][0] ) p_cont[1][i]=0.;
-      if((int) p_cont[2][0] ) p_cont[2][i]=0.;
-      if((int) p_cont[3][0] ) p_cont[3][i]=0.;
-      if((int) p_cont[4][0] ) p_cont[4][i]=0.; 
-    }
-    
-    for (i=1; i<=len; i++) {
-      for (j=i; j < MIN((i+w),len+1); j++) {
-	double blubb;
-	if( (j-i+1) == w && i+w-1 <= len) {
-	  blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
+  /* print header, if nh is zerro */
+  if(head){
+    time = time_stamp();
+    fprintf(wastl,"%s %s\n",startl, time);
+    fprintf(wastl,"%s\n",head);
+  } 
+  fprintf(wastl,"%s",startl);
+  /* }  else { fprintf(wastl," "); } close if before  */
+  len  = res->len;
+  size = res->u_vals * res->contribs;
+  
+  sprintf(nan,"NA");
+  nan[2] = '\0';
+  
+  for(i=0;i<=len; i++) {
+    for(s=0;s<=size+1;s++) { /* that is for differenet contribution */
+      if ( i== 0 && s > size && pint != NULL)
+	fprintf(wastl,"%8s  ",dg);
+      if(i != 0) {
+	if(s>0 && s<=size) {
+	  if(res->u_values[s][i] > 0.0) {
+	    dG_u = -log(res->u_values[s][i])*(temperature+K0)*GASCONST/1000.0;
+	    fprintf(wastl,"%8.3f  ",dG_u);
+	  } else { /* no p_u value was defined print nan*/
+	    fprintf(wastl,"%8s  ",nan);
+	  }
 	  
-	  if((int) p_cont[0][0] ) p_cont[0][i+w-1]+=blubb;
-	  if((int) p_cont[1][0] ) p_cont[1][i+w-1]+=p_c->E[i][j-i];
-	  if((int) p_cont[2][0] ) p_cont[2][i+w-1]+=p_c->H[i][j-i];
-	  if((int) p_cont[3][0] ) p_cont[3][i+w-1]+=p_c->I[i][j-i];
-	  if((int) p_cont[4][0] ) p_cont[4][i+w-1]+=p_c->M[i][j-i];
+	} else if (s > size && pint != NULL) {
+	  fprintf(wastl,"%8.3f  ",pint->Gi[i]);
+	} else if (s == 0) {
+	  fprintf(wastl,"%8.0f  ",res->u_values[s][i]);
+	}
+      } else {
+	if(s>1) {
+	  fprintf(wastl,"%8s  ",res->header[s]);
+	} else {
+	  fprintf(wastl,"%7s  ",res->header[s]);
 	}
       }
     }
-    
-  }    
-  if(p_cont != NULL){
-    for (g=0; g<=4; g++){
-      if((int) p_cont[g][0]) {
-	fprintf(wastl, "# %s for u = %d\n",unpaired[g],w);
-	for (i=1; i<=len; i++){
-	  if(i >= w) {
-	    fprintf(wastl,"%7d\t%7.15f\n",i,p_cont[g][i]);
-	  }
-	}
-	fprintf(wastl,"&\n");
-      }
-    }
-    double min_gu;
-    int min_i,min_j;
-    /* unpaired_out = (char*) space(sizeof(char)*(100)); */
-    min_gu = 1000.0;
-    min_i=min_j=0;
-    dG_u=0.;
-    for (g=0; g<=4; g++){
-      if((int) p_cont[g][0]) {
-	fprintf(wastl, "# %s for u = %d\n",unpaired_fe[g],w);
-	for (i=1; i<=len; i++){
-	  dG_u = -log(p_cont[g][i])*(temperature+K0)*GASCONST/1000.0;
-	  if(i >= w) {
-	    fprintf(wastl,"%7d\t%7.4f\n",i,dG_u);
-	    if(g==0 &&( dG_u < min_gu )) {
-	      min_gu = dG_u;
-	      min_i=i-w+1;
-	      min_j=i;
-	    }
-	  }
-	}
-	fprintf(wastl,"&\n");
-      }
-    }
-    /* printf("\n%d,%d (%.3f) for u=%d\n",min_i,min_j,min_gu,w); */
-  }
-  /* get values for the shortet sequence */
-  
-  
-  if(p_c_sh != NULL) {
-    len = p_c_sh->length;
-    ws=MIN(w,len);
-      p_cont_sh = (double **) space(sizeof(double*)*(5));
-    
-    if(strchr(select_contrib, 'S')) {
-      p_cont_sh[0] = (double *) space(sizeof(double)*(len+3));
-      p_cont_sh[0][0] = 1.;
-    } else {
-      p_cont_sh[0] = (double *) space(sizeof(double)*(3));
-      p_cont_sh[0][0] = 0.;
-    }
-    if(strchr(select_contrib, 'E')) {
-      p_cont_sh[1] = (double *) space(sizeof(double)*(len+3));
-      p_cont_sh[1][0] = 1.;
-    } else {
-      p_cont_sh[1] = (double *) space(sizeof(double)*(3));
-      p_cont_sh[1][0] = 0.;
-    }
-    if(strchr(select_contrib, 'H')) {
-      p_cont_sh[2] = (double *) space(sizeof(double)*(len+3));
-      p_cont_sh[2][0] = 1.;
-    } else {
-      p_cont_sh[2] = (double *) space(sizeof(double)*(3));
-      p_cont_sh[2][0] = 0.;
-    }
-    if(strchr(select_contrib, 'I')) {
-      p_cont_sh[3] = (double *) space(sizeof(double)*(len+3));
-      p_cont_sh[3][0] = 1.;
-    } else {
-      p_cont_sh[3] = (double *) space(sizeof(double)*(3));
-      p_cont_sh[3][0] = 0.;
-    }
-    if(strchr(select_contrib, 'M')) {
-      p_cont_sh[4] = (double *) space(sizeof(double)*(len+3));
-      p_cont_sh[4][0] = 1.;
-    } else {
-      p_cont_sh[4] = (double *) space(sizeof(double)*(3));
-      p_cont_sh[4][0] = 0.;
-    }
-    for (i=1; i<=len+2; i++) {
-      /* not necessary for calculation, stores contributions to 
-	 prob. upaired[i], i gives the START of the unpaired region*/
-      if((int) p_cont_sh[0][0] ) p_cont_sh[0][i]=0.;
-      if((int) p_cont_sh[1][0] ) p_cont_sh[1][i]=0.;
-      if((int) p_cont_sh[2][0] ) p_cont_sh[2][i]=0.;
-      if((int) p_cont_sh[3][0] ) p_cont_sh[3][i]=0.;
-      if((int) p_cont_sh[4][0] ) p_cont_sh[4][i]=0.; 
-    }
-    
-    for (i=1; i<=len; i++) {
-      for (j=i; j < MIN((i+ws),len+1); j++) {
-	double blubb;
-	if( (j-i+1) == ws && i+ws-1 <= len) {
-	  blubb = p_c_sh->H[i][j-i]+p_c_sh->I[i][j-i]+p_c_sh->M[i][j-i]+p_c_sh->E[i][j-i];
-	  if((int) p_cont_sh[0][0] ) p_cont_sh[0][i+ws-1]+=blubb;
-	  if((int) p_cont_sh[1][0] ) p_cont_sh[1][i+ws-1]+=p_c_sh->E[i][j-i];
-	  if((int) p_cont_sh[2][0] ) p_cont_sh[2][i+ws-1]+=p_c_sh->H[i][j-i];
-	  if((int) p_cont_sh[3][0] ) p_cont_sh[3][i+ws-1]+=p_c_sh->I[i][j-i];
-	  if((int) p_cont_sh[4][0] ) p_cont_sh[4][i+ws-1]+=p_c_sh->M[i][j-i];
-	}
-      }
-    }
-  }
-    
-  if(p_cont_sh != NULL){
-    len = p_c_sh->length;
-    for (g=0; g<=4; g++){
-      if((int) p_cont_sh[g][0]) {
-	fprintf(wastl, "# %s for u = %d in shorter sequence\n",unpaired[g],w);
-	for (i=1; i<=len; i++){
-	  if(i >= ws) {
-	    fprintf(wastl,"%7d\t%7.15f\n",i,p_cont_sh[g][i]);
-	  }
-	}
-	fprintf(wastl,"&\n");
-      }
-    }
-    dG_u=0.;
-    for (g=0; g<=4; g++){
-      if((int) p_cont_sh[g][0]) {
-	fprintf(wastl, "# %s for u = %d in shorter sequence\n",unpaired_fe[g],w);
-	for (i=1; i<=len; i++){
-	  dG_u = -log(p_cont_sh[g][i])*(temperature+K0)*GASCONST/1000.0;
-	  if(i >= ws) {
-	    fprintf(wastl,"%7d\t%7.4f\n",i,dG_u);
-	  }
-	}
-	fprintf(wastl,"&\n");
-      }
-    }
-  }
-  /* end of the same for the shorter sequence */
-  len = p_c->length;
-  if(pint != NULL){
-    g=5;
-    fprintf(wastl, "# %s\n",unpaired[g]);
-    for (i=1; i<=len; i++){
-      fprintf(wastl,"%3d\t%17.14f\n",i,pint->Pi[i]);
-    }
-    
-    g=0;
-    fprintf(wastl, "&\n# free energy of interaction\n");
-    for (i=1; i<=len; i++){
-      fprintf(wastl,"%3d\t%17.3f\n",i,pint->Gi[i]);
-    }
+    fprintf(wastl,"\n");
   }
   fclose(wastl);
-  if(p_c != NULL) {
-    for(i=0; i < 5; i++){
-      free(p_cont[i]);
+  /*free pu_out* res */
+  if(res != NULL) {
+    for(i=0;i<=(size+2);i++) {
+      free(res->u_values[i]);
+      free(res->header[i]);
     }
-    free(p_cont);
+    free(res->u_values);
+    free(res->header);
+    free(res);
+    res = NULL;
   }
-  if(p_c_sh != NULL) {
-    for(i=0; i < 5; i++){
-      free(p_cont_sh[i]);
-    }
-    free(p_cont_sh);
-  }
-  return(1); /*success*/
+  
+  return(1); /* success */
 }
+
+PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head) {
+  pu_out *dada;
+  int ret;
+  /* check what case we have */
+
+  /* upmode = 1 only one seq */
+  if(p_c != NULL && pint == NULL) {
+    dada = get_u_vals(p_c,u_vals,select_contrib);
+    ret = plot_free_pu_out(dada,NULL,ofile,head);
+    
+  } else if (p_c != NULL && pint != NULL) { /* upmode > 1 cofolding */
+    dada = get_u_vals(p_c,u_vals,select_contrib);
+    ret = plot_free_pu_out(dada,pint,ofile,head);
+    
+  } else if (p_c == NULL && p_c_sh != NULL) {  /* upmode = 3  cofolding*/
+    /* values for both sequences are requested - now do it for the second seq*/
+    dada = get_u_vals(p_c_sh,u_vals,select_contrib);
+    ret = plot_free_pu_out(dada,NULL,ofile,head);
+    
+  } else {
+    /* this must NOT happen */
+    nrerror("error in Up_plot\n");
+  }
+  return(ret);
+  
+}
+
 /*-------------------------------------------------------------------------*/
 /* copy from part_func_co.c */
 PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
