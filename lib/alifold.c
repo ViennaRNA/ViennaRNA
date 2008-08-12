@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-06-27 17:41:17 ivo> */
+/* Last changed Time-stamp: <2008-08-12 17:09:28 berni> */
 /*
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -20,9 +20,9 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
-
+#include "ribo.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.14 2008/06/27 16:17:19 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.15 2008/08/12 19:43:34 ivo Exp $";
 
 #define PAREN
 
@@ -708,7 +708,8 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
 
   n=S[0][0];  /* length of seqs */
   if (ribo) {
-    dm=readribosum(RibosumFile);
+    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+    else dm=get_ribosum(AS,n_seq,n);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));

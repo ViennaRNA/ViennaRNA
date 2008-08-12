@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-06-27 18:11:24 ivo> */
+/* Last changed Time-stamp: <2008-08-12 17:11:12 berni> */
 /*
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures
@@ -19,8 +19,9 @@
 #include "pair_mat.h"
 #include "PS_dot.h"
 #include "alifold.h"
+#include "ribo.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.14 2008/06/27 16:17:19 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.15 2008/08/12 19:43:34 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -1168,7 +1169,8 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
   float **dm;
   n=S[0][0];  /* length of seqs */
   if (ribo) {
-    dm=readribosum(RibosumFile);
+    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+    else dm=get_ribosum(AS,n_seq,n);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));

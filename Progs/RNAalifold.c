@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-07-01 16:32:11 ivo> */
+/* Last changed Time-stamp: <2008-08-12 21:18:56 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -24,7 +24,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.21 2008/08/12 09:25:27 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.22 2008/08/12 19:43:48 ivo Exp $";
 
 #define PRIVATE static
 
@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
 	    if (!r) usage();
 	  }
 	  break;
+	case 'o':
+	  if ( strcmp(argv[i], "-old")==0) oldAliEn=1;
+	  break;
 	case 'm':
 	  if ( strcmp(argv[i], "-mis")==0) mis=1;
 	  else usage();
@@ -141,6 +144,10 @@ int main(int argc, char *argv[])
 	case 'R':
 	  if (i==argc-1) usage();
 	  RibosumFile = argv[++i];
+	  ribo=1;
+	  break;
+	 case 'r':
+	  RibosumFile = NULL;
 	  ribo=1;
 	  break;
 	case 's':
@@ -491,7 +498,7 @@ PRIVATE void usage(void)
 	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-gc]  [-O] [-s num] [-se num]"
+	  "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
 	  );
 }
 
