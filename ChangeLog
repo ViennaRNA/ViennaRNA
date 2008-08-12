@@ -1,3 +1,21 @@
+2008-06-27  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* Change RNAalifold to used berni's new energy evaluation w/o gaps
+	* Add stochastic backtracking in RNAalifold
+	
+2008-07-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* modify output of RNAup (again).
+	  Program reading RNAup output will have to updated!
+	
+2008-07-02  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* RNAplfold now computes accessibilities for all regions up to a
+	  max length simultaneously. Slightly slower when only 1 value is
+	  needed, but much faster if all of them are wanted.
+	  This entails a new output format. Programs reading accessibility
+	  output from RNAplfold need to be updated!
+
 2008-03-31  Stephan Bernhart  <berni@tbi.univie.ac.at>
 
 	* add cofolding to RNAsubopt

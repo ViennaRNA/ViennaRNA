@@ -1,5 +1,5 @@
 .\" .ER
-.TH "RNAPLFOLD" "l" "1.6" "Stephan Bernhart" "ViennaRNA"
+.TH "RNAPLFOLD" "l" "1.8" "Stephan Bernhart" "ViennaRNA"
 .SH "NAME"
 RNAplfold \- calculate locally stable secondary structure - pair probabilities 
 .SH "SYNOPSIS"
@@ -18,12 +18,16 @@ practical to "scan" very large genomes for short stable RNA structures.
 Output consists of a dot plot in postscript file, where the averaged pair probabilities
 can easily be parsed and visually inspected.
 
-In conjunction with the -u option, it is also possible to compute the probability
+The -u option makes i possible to compute the probability
 that a stretch of x consequtive nucleotides is unpaired, which is useful
-for predicting possible binding sites. Again this probability is averaged
-over all windows containing the region. The output is a plain text list
-containing on each line a position i followed by the probability that the
-region [i-x+1..i] is unpaired.  
+for predicting possible binding sites. Again this probability is averaged over all windows containing the region.
+.TP
+.B WARNING! Output format changed!!
+.PP
+The output is a plain text matrix containing on each line a position i
+followed by the probability that i is unpaired, [i-1..i] is unpaired [i-2..i]
+is unpaired and so on to the probability that [i-x+1..i] is unpaired.  
+ 
 
 .SH "OPTIONS"
 .TP

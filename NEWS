@@ -1,14 +1,26 @@
 See Changelog for details.
 
+Version 1.8
+------------
+- new RNAalifold has better treatment of gaps and ribosum based covariance
+  scores. Use the -old switch for compatibility with older RNAalifold
+  versions.
+- RNAplfold -u  now computes all accessibilities up to a maximum length
+  (much faster than computing each individually)
+- ATTENTION: output formats of RNAplfold -u and or RNAup have been changed  
+  Programs parsing RNAplfold and RNAup output will have to be modified.
 
 Version 1.7
 ------------
+- RNAplfold can now be used to compute accessibilities, i.e. the
+  probability that a stretch of the RNA remains unpaired (and thus
+  available for intermolecular interactions).
 - A new version of RNAup predicts RNA-RNA interactions takeing into account
   the competition between inter- and intramolecular structure in both
   molcules
 - Circular RNAs can be treated by RNAfold, RNAalifold, RNAsubopt, and RNAcofold
 - RNAaliduplex predicts RNA-RNA interactions between two sets of aligned
-  sequences (inter-molecular strjcture only)
+  sequences (inter-molecular structure only)
 
 Version 1.6
 ------------
