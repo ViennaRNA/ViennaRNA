@@ -1,5 +1,5 @@
 .\" .ER
-.TH "RNAalifold" "l" "1.5" "Ivo Hofacker" "ViennaRNA"
+.TH "RNAalifold" "l" "1.8" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
 RNAalifold \- calculate secondary structures for a set of aligned RNAs
 .SH "SYNOPSIS"
@@ -71,7 +71,21 @@ probability dependend on the partition function. See -p in RNAsubopt.
 .B \-se \fInum\fP
 like \fB\-s\fP, but also print out the energies and probabilities of the
 backtracked structures.
-.PP 
+.PP
+.TP
+.B \-R \fIRibosum_Matrix\fP
+use specified Ribosum Matrix instead of normal energy model. Matrixes to
+use should be 6x6 matrices, the order of the terms is AU, CG, GC, GU, UA, UG.  
+.PP
+.TP
+.B \-r 
+use ribosum scoring matrix. The matrix is chosen according to the minimal
+and maximal pairwise identities of the sequences in the file.
+.PP
+.TP
+.B \-old 
+use old energy evaluation, treating gaps as characters.
+.PP
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options should work as in RNAfold
 
@@ -79,10 +93,6 @@ If using \fB\-C\fP constraints will be read from stdin, the alignment
 has to given as a filename on the command line. 
 
 .SH "CAVEATS"
-Since gaps are not removed for the evaluation of energies, it may be
-of advantage to remove any columns with more than, say, 75% gaps from
-the alignment before folding with RNAalifold.
-
 Sequences are not weighted. If possible, do not mix very similar and
 dissimilar sequences. Duplicate sequences, for example, can distort the
 prediction. 
