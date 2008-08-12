@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-06-27 18:14:39 ivo> */
+/* Last changed Time-stamp: <2008-07-01 16:32:11 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -24,7 +24,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.20 2008/06/27 16:17:19 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.21 2008/08/12 09:25:27 ivo Exp $";
 
 #define PRIVATE static
 
@@ -279,8 +279,8 @@ int main(int argc, char *argv[])
     free(A[0]); free(A[1]); free(A);
   } else
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-  /* if (doAlnPS)
-     PS_color_aln(structure, "aln.ps", AS,  names);*/
+  if (doAlnPS)
+     PS_color_aln(structure, "aln.ps", AS,  names);
 
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
