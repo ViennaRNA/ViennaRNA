@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-10-09 08:57:49 ivo> */
+/* Last changed Time-stamp: <2008-10-09 16:23:36 ivo> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "pair_mat.h"
 
-static char rcsid[] = "$Id: findpath.c,v 1.1 2008/10/09 07:19:24 ivo Exp $";
+static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
 extern int
 energy_of_struct_pt (char *string, short * ptable, short *s, short *s1);
@@ -173,6 +173,7 @@ int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   move_t *bestpath=NULL;
   int dir;
 
+  path_fwd = 0;
   maxE = INT_MAX - 1;
   seq = sequence;
 
@@ -284,7 +285,6 @@ path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
 #endif
 
   free(path);
-  path_fwd = 0;
   return (route);
 }
 
@@ -437,6 +437,10 @@ int main(int argc, char *argv[]) {
 	sscanf(argv[++i], "%d", &maxkeep);
       break;
     case 'v':  verbose = !strcmp(argv[i],"-v");
+      break;
+    case 'd': if (strcmp(argv[i],"-d")==0)
+        sscanf(argv[++i], "%d", &dangles);
+      break;
     }
   }
   seq = get_line(stdin);
