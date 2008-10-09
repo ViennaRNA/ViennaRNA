@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2008-01-03 16:47:15 ivo>
-# $Id: relplot.pl,v 1.9 2008/01/03 15:47:47 ivo Exp $
+# Last changed Time-stamp: <2008-10-09 09:10:49 ivo>
+# $Id: relplot.pl,v 1.10 2008/10/09 07:11:21 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
 use strict;
@@ -119,7 +119,7 @@ sub posent {
     if ($opt_p) {
       $sp[$i] = $sp[$j] = $p if exists  $mfe{$i,$j};
     } else {
-      my $ss = $p*log($p);
+      my $ss = ($p>0)?$p*log($p):0;
       $sp[$i] += $ss;
       $sp[$j] += $ss;
     }
@@ -132,7 +132,7 @@ sub posent {
     if ($opt_p) {
       $sp[$i] = 1-$pp[$i] if !defined $sp[$i];
     } else {
-      $sp[$i] += (1-$pp[$i])*log(1-$pp[$i]);
+      $sp[$i] += ($pp[$i]<1) ? (1-$pp[$i])*log(1-$pp[$i]) : 0;
       $sp[$i] /= -$log2;
     }
   }
