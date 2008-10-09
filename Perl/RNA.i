@@ -23,6 +23,7 @@
 #include  "../H/duplex.h"
 #include  "../H/alifold.h"
 #include  "../H/aln_util.h"
+#include  "../H/findpath.h"
 extern char *pbacktrack(char *seq);
 extern void  read_parameter_file(const char fname[]);
 extern void  write_parameter_file(const char fname[]);
@@ -538,4 +539,7 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
+
 %include  "../H/PS_dot.h"
+
+%include "../H/findpath.h"
