@@ -11,10 +11,10 @@ typedef struct {
    char comp;    /* 1 iff pair is in mfe structure */
 }  pair_info;
 
-extern float aliLfold(char **strings, char *structure, int maxdist);
+/* extern float aliLfold(char **strings, char *structure, int maxdist); */
 extern float alipf_fold(char **sequences, char *structure, struct plist **pl);
-extern float alipfW_fold(char **sequences, char *structure, struct plist **pl,int winSize, float cutoff, int pairsize);
-extern struct plist *get_plistW(struct plist *pl, int length, double cutoff, int start, FLT_OR_DBL **Tpr, int winSize);
+/* extern float alipfW_fold(char **sequences, char *structure, struct plist **pl,int winSize, float cutoff, int pairsize); */
+/* extern struct plist *get_plistW(struct plist *pl, int length, double cutoff, int start, FLT_OR_DBL **Tpr, int winSize); */
 extern char *centroid_ali(int length, double *dist,struct plist *pl);
 extern float **readribosum(char *name);
 extern char *alipbacktrack(double *prob) ;
