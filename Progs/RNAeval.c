@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-02-25 19:55:55 ivo> */
+/* Last changed Time-stamp: <2008-09-02 10:47:24 ivo> */
 /*
 
 	  Calculate Energy of given Sequences and Structures
@@ -22,7 +22,7 @@
 #endif
 
 /*@unused@*/
-static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.9 2006/02/28 19:11:20 ivo Exp $";
+static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.10 2008/10/09 07:08:40 ivo Exp $";
 
 #define  PUBLIC
 #define  PRIVATE   static
@@ -232,5 +232,5 @@ PRIVATE char *costring(char *string)
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNAeval  [-T temp] [-4] [-d[0|1|2]] [-e e_set] [-logML] [-P paramfile]");
+  nrerror("usage: RNAeval  [-T temp] [-4] [-d[0|1|2]] [-e e_set] [-logML] [-P paramfile] [-circ] [-v]");
 }

@@ -22,17 +22,19 @@ the "&" marks the boundary between the two strands.
 Do not give stabilizing energies to unpaired bases adjacent to helices in
 multiloops and free ends ("dangling ends"). Same as \-d0, opposite of \-d1
 (the default).
-.IP \fB\-d2\fB
+.IP \-d2
 Treat dangling ends as in the partition function algorithm, i.e. bases
 adjacent to helices in multiloops and free ends give a stabilizing energy
 contribution, regardless whether they're paired or unpaired.
-.IP \fB\-d3\fB
+.IP \-d3
 Allow coaxial stacking of adjacent helices in multi\-loops.
 .IP \fB\-logML\fB
 Let multiloop energies depend logarithmically on the size, instead of the
 usual linear energy function.
 .IP \fB\-circ\fB
 Assume a cricular (rather than linear) RNA molecule.
+.IP \fB\-v\fB
+Print out energy contribution of each loop in the structure.
 .PP
 
 The \fB\-T\fP, \fB\-4\fP, \fB\-e\fP, \fB\-P\fP, options work as in RNAfold.
