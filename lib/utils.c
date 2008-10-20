@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2002-11-07 11:34:11 ivo> */
+/* Last changed Time-stamp: <2008-10-20 10:30:23 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,12 +16,12 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.15 2005/02/10 09:59:25 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.16 2008/10/20 09:01:46 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
 
-/*@notnull@ @only@*/ 
+/*@notnull@ @only@*/
 PUBLIC void  *space(unsigned int size);
 /*@exits@*/
 PUBLIC void   nrerror(const char message[]);
@@ -40,7 +40,7 @@ PUBLIC unsigned short xsubi[3];
 
 PUBLIC void *space(unsigned size) {
   void *pointer;
-  
+
   if ( (pointer = (void *) calloc(1, (size_t) size)) == NULL) {
 #ifdef EINVAL
     if (errno==EINVAL) {
@@ -72,7 +72,7 @@ void *xrealloc (void *p, unsigned size) {
     }
     if (errno==ENOMEM)
 #endif
-      nrerror("xrealloc allocation failure -> no memory");  
+      nrerror("xrealloc allocation failure -> no memory");
   }
   return p;
 }
@@ -100,13 +100,13 @@ PUBLIC void init_rand(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC double urn(void)    
+PUBLIC double urn(void)
      /* uniform random number generator; urn() is in [0,1] */
-     /* uses a linear congruential library routine */ 
+     /* uses a linear congruential library routine */
      /* 48 bit arithmetic */
-{ 
+{
 #ifdef HAVE_ERAND48
-  extern double erand48(unsigned short[]); 
+  extern double erand48(unsigned short[]);
   return erand48(xsubi);
 #else
   return ((double) rand())/RAND_MAX;
@@ -125,7 +125,7 @@ PUBLIC int int_urn(int from, int to)
 PUBLIC void filecopy(FILE *from, FILE *to)
 {
   int c;
-  
+
   while ((c = getc(from)) != EOF) (void)putc(c, to);
 }
 
@@ -134,7 +134,7 @@ PUBLIC void filecopy(FILE *from, FILE *to)
 PUBLIC char *time_stamp(void)
 {
   time_t  cal_time;
-  
+
   cal_time = time(NULL);
   return ( ctime(&cal_time) );
 }
@@ -145,10 +145,10 @@ PUBLIC char *random_string(int l, const char symbols[])
 {
   char *r;
   int   i, rn, base;
-  
+
   base = (int) strlen(symbols);
   r = (char *) space(sizeof(char)*(l+1));
-  
+
   for (i = 0; i < l; i++) {
     rn = (int) (urn()*base);  /* [0, base-1] */
     r[i] = symbols[rn];
@@ -162,7 +162,7 @@ PUBLIC char *random_string(int l, const char symbols[])
 PUBLIC int   hamming(const char *s1, const char *s2)
 {
   int h=0;
-  
+
   for (; *s1 && *s2; s1++, s2++)
     if (*s1 != *s2) h++;
   return h;
@@ -172,19 +172,20 @@ PUBLIC int   hamming(const char *s1, const char *s2)
 PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 {
   char s[512], *line, *cp;
-  
-  line = NULL;
+  int len=0, size=0;
+  line=NULL;
   do {
     if (fgets(s, 512, fp)==NULL) break;
     cp = strchr(s, '\n');
     if (cp != NULL) *cp = '\0';
-    if (line==NULL)
-      line = space(strlen(s)+1);
-    else
-      line = (char *) xrealloc(line, strlen(s)+strlen(line)+1);
+    len += strlen(s);
+    if (len>size) {
+      size = len*1.2;
+      line = (char *) xrealloc(line, size*sizeof(char)+1);
+    }
     strcat(line, s);
   } while(cp==NULL);
-  
+
   return line;
 }
 
@@ -194,11 +195,11 @@ PUBLIC char *pack_structure(const char *struc) {
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   unsigned char *packed;
-  
+
   l = (int) strlen(struc);
   packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
-  
-  j=i=pi=0; 
+
+  j=i=pi=0;
   while (i<l) {
     register int p;
     for (p=pi=0; pi<5; pi++) {
@@ -237,7 +238,7 @@ PUBLIC char *unpack_structure(const char *packed) {
 
   for (i=j=0; i<l; i++) {
     register int p, c, k;
-    
+
     p = (int) pp[i] - 1;
     for (k=4; k>=0; k--) {
       c = p % 3;
@@ -249,11 +250,11 @@ PUBLIC char *unpack_structure(const char *packed) {
   struc[j--] = '\0';
   while (struc[j] == '(') /* strip trailing ( */
     struc[j--] = '\0';
-  
+
   return struc;
 }
 
-/*--------------------------------------------------------------------------*/ 
+/*--------------------------------------------------------------------------*/
 
 PUBLIC short *make_pair_table(const char *structure)
 {
@@ -263,15 +264,15 @@ PUBLIC short *make_pair_table(const char *structure)
    short length;
    short *stack;
    short *table;
-   
+
    length = (short) strlen(structure);
    stack = (short *) space(sizeof(short)*(length+1));
    table = (short *) space(sizeof(short)*(length+2));
    table[0] = length;
-   
+
    for (hx=0, i=1; i<=length; i++) {
       switch (structure[i-1]) {
-       case '(': 
+       case '(':
 	 stack[hx++]=i;
 	 break;
        case ')':
@@ -309,9 +310,9 @@ PUBLIC int bp_distance(const char *str1, const char *str2)
    dist = 0;
    t1 = make_pair_table(str1);
    t2 = make_pair_table(str2);
-   
+
    l = (t1[0]<t2[0])?t1[0]:t2[0];    /* minimum of the two lengths */
-   
+
    for (i=1; i<=l; i++)
      if (t1[i]!=t2[i]) {
        if (t1[i]>i) dist++;
