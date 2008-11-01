@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 1.24  2008/11/01 21:10:20  ivo
+  avoid rounding errors when computing DoS
+
   Revision 1.23  2008/03/31 15:06:49  ivo
   Add cofolding support in subopt
 
@@ -93,7 +96,7 @@
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
 
 /*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.23 2008/03/31 15:06:49 ivo Exp $";
+PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
 
 /*Typedefinitions ---------------------------------------------------------- */
 
@@ -595,7 +598,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 	  structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
 	}
 
-	e = (int) ((structure_energy-min_en)*10.);
+	e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
 	if (e>MAXDOS) e=MAXDOS;
 	density_of_states[e]++;
 	if (structure_energy>eprint) {
