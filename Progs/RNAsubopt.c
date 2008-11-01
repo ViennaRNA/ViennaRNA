@@ -20,7 +20,7 @@
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.18 2008/03/31 15:06:40 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.19 2008/11/01 19:03:07 ivo Exp $";
 
 #define PRIVATE static
 
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
        st_back=1;
        ss = (char *) space(strlen(sequence)+1);
        strncpy(ss, structure, length);
-       mfe = cofold(sequence, ss);
+       mfe = fold(sequence, ss);
        kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
        pf_scale = exp(-(1.03*mfe)/kT/length);
        strncpy(ss, structure, length);
