@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2008-10-29 14:47:09 ivo> */
+/* Last changed Time-stamp: <2008-11-25 16:34:36 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.17 2008/11/25 15:02:30 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.18 2008/11/25 15:39:23 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -178,10 +178,10 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
     if (fgets(s, 512, fp)==NULL) break;
     cp = strchr(s, '\n');
     if (cp != NULL) *cp = '\0';
-    l = len + strlen(s);
+    l = len + strlen(s) + 1;
     if (l>size) {
       size = l*1.2;
-      line = (char *) xrealloc(line, size*sizeof(char)+1);
+      line = (char *) xrealloc(line, size*sizeof(char));
     }
     strcat(line+len, s);
     len=l;
