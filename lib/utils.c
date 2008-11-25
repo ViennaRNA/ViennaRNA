@@ -4,7 +4,7 @@
 		 c  Ivo L Hofacker and Walter Fontana
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2008-10-20 10:30:23 ivo> */
+/* Last changed Time-stamp: <2008-10-29 14:47:09 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.16 2008/10/20 09:01:46 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.17 2008/11/25 15:02:30 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -172,18 +172,19 @@ PUBLIC int   hamming(const char *s1, const char *s2)
 PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
 {
   char s[512], *line, *cp;
-  int len=0, size=0;
+  int len=0, size=0, l;
   line=NULL;
   do {
     if (fgets(s, 512, fp)==NULL) break;
     cp = strchr(s, '\n');
     if (cp != NULL) *cp = '\0';
-    len += strlen(s);
-    if (len>size) {
-      size = len*1.2;
+    l = len + strlen(s);
+    if (l>size) {
+      size = l*1.2;
       line = (char *) xrealloc(line, size*sizeof(char)+1);
     }
-    strcat(line, s);
+    strcat(line+len, s);
+    len=l;
   } while(cp==NULL);
 
   return line;
