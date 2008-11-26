@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-08-12 17:11:12 berni> */
+/* Last changed Time-stamp: <2008-11-26 17:08:16 ivo> */
 /*
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures
@@ -21,7 +21,7 @@
 #include "alifold.h"
 #include "ribo.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.15 2008/08/12 19:43:34 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.16 2008/11/26 16:10:55 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -238,6 +238,7 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
 	/* hairpin contribution */
 	for (qbt1=1,s=0; s<n_seq; s++) {
 	  u = a2s[s][j-1]-a2s[s][i];
+	  if (a2s[s][i]<1) continue;
 	  qbt1 *= exphairpin[u];
 	  if (u<3) continue;  /*sog amoi: strof??*/
 	  if ((tetra_loop)&&(u==4)) {
