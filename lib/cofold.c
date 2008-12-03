@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-09-27 17:08:43 ivo> */
+/* Last changed Time-stamp: <2008-12-03 17:44:38 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -21,9 +21,10 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
+#include "subopt.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.11 2007/12/19 10:28:00 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $";
 
 #define PAREN
 
@@ -46,11 +47,13 @@ extern int    uniq_ML;  /* do ML decomposition uniquely (for subopt) */
 /*@unused@*/
 PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 PRIVATE void  parenthesis_structure(char *structure, int length);
+PRIVATE void  parenthesis_zuker(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void backtrack(const char *sequence);
+
 PRIVATE int fill_arrays(const char *sequence);
 /*@unused@*/
 inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
@@ -83,6 +86,7 @@ PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE char  *ptype;   /* precomputed array of pair types */
 PRIVATE short  *S, *S1;
 PRIVATE int   init_length=-1;
+PRIVATE int   zuker = 0; /* Do Zuker style suboptimals? */
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 #undef TURN
@@ -178,7 +182,7 @@ float cofold(const char *string, char *structure) {
 
   energy = fill_arrays(string);
 
-  backtrack(string);
+  if (!zuker) backtrack(string);
 
 #ifdef PAREN
   parenthesis_structure(structure, length);
@@ -206,7 +210,7 @@ float cofold(const char *string, char *structure) {
   if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
   bonus*=BONUS;
 
-  free(S); free(S1); free(BP);
+  if (!zuker) {  free(S); free(S1); free(BP);}
 
   energy += bonus;      /*remove bonus energies from result */
 
@@ -223,7 +227,7 @@ PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, k, length, energy;
   int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt;
+  int   no_close, type, type_2, tt, maxj;
   int   bonus=0;
 
   length = (int) strlen(string);
@@ -243,7 +247,8 @@ PRIVATE int fill_arrays(const char *string) {
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
-    for (j = i+TURN+1; j <= length; j++) {
+    maxj=(zuker)? (MIN2(i+cut_point-1,length)):length;
+    for (j = i+TURN+1; j <= maxj; j++) {
       int p, q, ij;
       ij = indx[j]+i;
       bonus = 0;
@@ -495,7 +500,7 @@ PRIVATE int fill_arrays(const char *string) {
     }
 
     if (i==cut_point)
-      for (j=i; j<=length; j++)
+      for (j=i; j<=maxj; j++)
 	free_end(fc, j, cut_point);
     if (i<cut_point)
       free_end(fc,i,cut_point-1);
@@ -505,7 +510,7 @@ PRIVATE int fill_arrays(const char *string) {
       int *FF; /* rotate the auxilliary arrays */
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
       FF = cc1; cc1=cc; cc=FF;
-      for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
+      for (j=1; j<=maxj; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
     }
   }
 
@@ -528,30 +533,33 @@ PRIVATE int fill_arrays(const char *string) {
   return energy;
 }
 
-PRIVATE void backtrack(const char *string) {
+
+struct sect {
+    int  i;
+    int  j;
+    int ml;
+  }
+static  sector[MAXSECTORS];   /* stack for backtracking */
+
+PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new structure, b \ne 0: add to existing structure */) {
 
   /*------------------------------------------------------------------
     trace back through the "c", "fc", "f5" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
-  struct sect {
-    int  i;
-    int  j;
-    int ml;
-  }
-  sector[MAXSECTORS];   /* backtracking sectors */
 
   int   i, j, k, length, energy, new;
   int   no_close, type, type_2, tt;
   int   bonus;
-  int   s=0, b=0;
+  /* int   b=0;*/
 
   length = strlen(string);
-  sector[++s].i = 1;
-  sector[s].j   = length;
-  sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
-
+  if (s==0) {
+    sector[++s].i = 1;
+    sector[s].j   = length;
+    sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
+  }
   while (s>0) {
     int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
@@ -1284,4 +1292,133 @@ PUBLIC void get_monomere_mfes(float *e1, float *e2) {
   /*exports monomere free energies*/
   *e1 = mfe1;
   *e2 = mfe2;
+}
+PRIVATE void backtrack(const char *sequence) {
+  /*routine to call backtrack_co from 1 to n, backtrack type??*/
+  backtrack_co(sequence, 0,0);
+  return;
+}
+
+static int length;
+static comp_pair(const void *A, const void *B) {
+  bondT *x,*y;
+  int ex, ey;
+  x = (bondT *) A;
+  y = (bondT *) B;
+  ex = c[indx[x->j]+x->i]+c[indx[x->i+length]+x->j];
+  ey = c[indx[y->j]+y->i]+c[indx[y->i+length]+y->j];
+  if (ex>ey) return 1;
+  if (ex<ey) return -1;
+  return (indx[x->j]+x->i - indx[y->j]+y->i);
+}
+
+#define TURN2 3
+PUBLIC SOLUTION *zukersubopt(const char *string) {
+/* Compute zuker suboptimal. Here, were abusing the cofold() code 
+   "double" sequence, compute dimerarray entries, track back every base pair.
+   This is slightly wasteful compared to the normal solution */
+
+  char *doubleseq, *structure/*=NULL??*/, *mfestructure;
+  int i, j,k, counter=0;
+  float energy, mfenergy;
+  SOLUTION *zukresults;
+  bondT *pairlist;
+  int num_pairs=0, psize, p;
+  char **todo;
+  zuker=1;
+  length=(int)strlen(string);
+  doubleseq=(char *)space((2*length+1)*sizeof(char));
+  mfestructure = (char *) space((unsigned) 2*length+1);
+  structure = (char *) space((unsigned) 2*length+1);
+  zukresults=(SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
+  /*double sequences*/
+  strcpy(doubleseq,string);
+  strcat(doubleseq,string);
+  cut_point=length+1;
+  /*get mfe and fill arrays and get mfe structure*/
+  (void)cofold(doubleseq,mfestructure);
+  mfenergy=f5[cut_point-1];
+
+  psize = length;
+  pairlist = (bondT *) space(sizeof(bondT)*(psize+1));
+  todo = (char **) space(sizeof(char *)*(length+1));
+  for (i=1; i<length; i++) {
+    todo[i] = (char *) space(sizeof(char)*(length+1));
+  }
+  /* Make a list of all base pairs */
+  for (i=1; i<length; i++) {
+    for (j=i+TURN2+1/*??*/; j<=length; j++) {
+      if (ptype[indx[j]+i]==0) continue;
+      if (num_pairs>=psize) {
+	psize = 1.2*psize + 32;
+	pairlist = xrealloc(pairlist, sizeof(bondT)*(psize+1));
+      }
+      pairlist[num_pairs].i   = i;
+      pairlist[num_pairs++].j = j;
+      todo[i][j]=1;
+    }
+  }
+  qsort(pairlist, num_pairs, sizeof(bondT), comp_pair);
+  for (p=0; p<num_pairs; p++) {
+    i=pairlist[p].i;
+    j=pairlist[p].j;
+    if (todo[i][j]) {
+      int k;
+      sector[1].i=i;
+      sector[1].j=j;
+      sector[1].ml = 2;
+      backtrack_co(doubleseq, 1,0);
+      sector[1].i=j;
+      sector[1].j=i+length;
+      sector[1].ml = 2;
+      backtrack_co(doubleseq, 1,base_pair[0].i);
+      energy=c[indx[j]+i]+c[indx[i+length]+j];
+      parenthesis_zuker(structure, length);
+      zukresults[counter].energy=energy;
+      zukresults[counter++].structure=strdup(structure);
+      for (k = 1; k <= base_pair[0].i; k++) { /* mark all pairs in structure as done */
+	int x,y;
+	x=base_pair[k].i;
+	y=base_pair[k].j;
+	if (x>length) x-=length;
+	if (y>length) y-=length;
+	if (x>y) {
+	  int temp;
+	  temp=x; x=y; y=temp;
+	}
+	todo[x][y] = 0;
+      }
+    }
+  }
+  /*free zeugs*/
+  free(pairlist);
+  for (i=1; i<length; i++)
+    free(todo[i]);
+  free(todo);
+  free(structure);
+  free(mfestructure);
+  free(doubleseq);
+  zuker=0;
+  free(S); free(S1); free(BP);
+  return zukresults;
+}
+
+PRIVATE void parenthesis_zuker(char *structure, int length)
+{
+  int n, k, i, j, temp;
+
+  for (n = 0; n <= length-1; structure[n++] = '.') ;
+  structure[length] = '\0';
+
+  for (k = 1; k <= base_pair[0].i; k++) {
+    i=base_pair[k].i;
+    j=base_pair[k].j;
+    if (i>length) i-=length;
+    if (j>length) j-=length;
+    if (i>j) {
+      temp=i; i=j; j=temp;
+    }
+    structure[i-1] = '(';
+    structure[j-1] = ')';
+  }
 }

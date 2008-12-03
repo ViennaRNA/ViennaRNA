@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-03-31 17:06:17 ivo> */
+/* Last changed Time-stamp: <2008-12-03 16:38:01 ivo> */
 /*
 		Ineractive access to suboptimal folding
 
@@ -14,13 +14,14 @@
 #include <string.h>
 #include "part_func.h"
 #include "fold.h"
+#include "cofold.h"
 #include "fold_vars.h"
 #include "utils.h"
 #include "subopt.h"
 extern void  read_parameter_file(const char fname[]);
 extern int   st_back;
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.19 2008/11/01 19:03:07 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
 
 #define PRIVATE static
 
@@ -32,6 +33,8 @@ extern double print_energy;
 extern int    density_of_states[MAXDOS+1];
 PRIVATE char *tokenize(char *line);
 PRIVATE void usage(void);
+PRIVATE void putoutzuker(SOLUTION* zukersolution);
+
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -50,6 +53,7 @@ int main(int argc, char *argv[])
    int noconv = 0;
    int circ=0;
    int dos=0;
+   int zuker=0;
    do_backtrack = 1;
    dangles = 2;
    for (i=1; i<argc; i++) {
@@ -117,13 +121,24 @@ int main(int argc, char *argv[])
 	    }
 	    if (r!=1) usage();
 	    break;
-		case 'c':
-			if ( strcmp(argv[i], "-circ")==0) circ=1;
-			break;
+	  case 'c':
+	    if ( strcmp(argv[i], "-circ")==0) circ=1;
+	    break;
+	  case 'z':
+	    zuker=1;
+	    break;
 	  default: usage();
 	  }
    }
 
+   if ((zuker)&&(circ)) {
+     printf("Sorry, zuker subopts not yet implemented for circfold\n");
+     usage();
+   }
+   if ((zuker)&&(n_back>0)) {
+     printf("Cna't do zuker subopts and stochastic subopts at the same time\n");
+     usage();
+   }
    if (ParamFile != NULL)
      read_parameter_file(ParamFile);
 
@@ -148,17 +163,17 @@ int main(int argc, char *argv[])
    }
    istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
    if ((fold_constrained)&&(istty)) {
-      printf("Input constraints using the following notation:\n");
-      /* printf("| : paired with another base\n"); */
-      printf(". : no constraint at all\n");
-      printf("x : base must not pair\n");
+     printf("Input constraints using the following notation:\n");
+     /* printf("| : paired with another base\n"); */
+     printf(". : no constraint at all\n");
+     printf("x : base must not pair\n");
    }
 
    do {				/* main loop: continue until end of file */
      cut_point = -1;
      if (istty) {
        printf("\nInput string (upper or lower case); @ to quit\n");
-       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+       if (!zuker)printf("Use '&' to connect 2 sequences that shall form a complex.\n");
        printf("%s\n", scale);
      }
      fname[0]='\0';
@@ -212,8 +227,7 @@ int main(int argc, char *argv[])
      if (fname[0] != '\0')
        printf("> %s [%d]\n", fname, delta);
 
-     if (n_back>0) {
-       int i;
+     if (n_back>0) {  /* stochastic backtrack */
        double mfe, kT;
        char *ss;
        st_back=1;
@@ -223,7 +237,7 @@ int main(int argc, char *argv[])
        kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
        pf_scale = exp(-(1.03*mfe)/kT/length);
        strncpy(ss, structure, length);
-       /* ignore return value, we are not interested in the free energy */ 
+       /* ignore return value, we are not interested in the free energy */
        (circ) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
        free(ss);
        for (i=0; i<n_back; i++) {
@@ -233,7 +247,7 @@ int main(int argc, char *argv[])
 	 free(s);
        }
        free_pf_arrays();
-     } else {
+     } else if (!zuker) { /* normal subopt */
        (circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
        if (dos) {
 	 int i;
@@ -241,9 +255,22 @@ int main(int argc, char *argv[])
 	   printf("%4d %6d\n", i, density_of_states[i]);
 	 }
        }
+     } else { /* Zuker suboptimals */
+       SOLUTION *zr;
+       int i;
+       if (cut_point!=-1) {
+	 printf("Sorry, zuker subopts not yet implemented for cofold\n");
+	 usage();
+       }
+       zr = zukersubopt(sequence);
+       putoutzuker(zr);
+       (void)fflush(stdout);
+       for (i=0; zr[i].structure; i++) {
+	 free(zr[i].structure);
+       }
+       free(zr);
      }
      (void)fflush(stdout);
-
      free(sequence);
      free(structure);
    } while (1);
@@ -255,7 +282,7 @@ PRIVATE void usage(void)
    nrerror("usage: "
 	   "RNAsubopt [-e range] [-ep prange] [-s] [-p num] [-logML]\n"
 	   "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n"
-	   "          [-noLP] [-P paramfile] [-nsp pairs] [-circ]");
+	   "          [-noLP] [-P paramfile] [-nsp pairs] [-circ] [-z]");
 }
 PRIVATE char *tokenize(char *line)
 {
@@ -281,4 +308,12 @@ PRIVATE char *tokenize(char *line)
 
   free(line);
   return copy;
+}
+PRIVATE void putoutzuker(SOLUTION* zukersolution) {
+  int i;
+  printf("%s [%.2f]\n",zukersolution[0].structure,zukersolution[0].energy/100.);
+  for(i=1; zukersolution[i].structure; i++) {
+    printf("%s [%.2f]\n", zukersolution[i].structure, zukersolution[i].energy/100.);
+  }
+  return;
 }
