@@ -1,3 +1,13 @@
+2008-12-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* Add zuker style suboptimals to RNAsubopt (-z)
+	* get_line() should be much faster when reading huge sequences 
+	  (e.g. whole chromosomes for RNALfold)
+
+2008-08-12  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* Add Ribosum matrices for covariance scoring in RNAalifold 
+
 2008-06-27  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* Change RNAalifold to used berni's new energy evaluation w/o gaps
