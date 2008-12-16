@@ -16,7 +16,7 @@
 #include "dmalloc.h"
 #endif
 /*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.18 2008/11/25 15:39:23 ivo Exp $";
+static char rcsid[] = "$Id: utils.c,v 1.19 2008/12/16 22:30:30 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -178,9 +178,9 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
     if (fgets(s, 512, fp)==NULL) break;
     cp = strchr(s, '\n');
     if (cp != NULL) *cp = '\0';
-    l = len + strlen(s) + 1;
-    if (l>size) {
-      size = l*1.2;
+    l = len + strlen(s);
+    if (l+1>size) {
+      size = (l+1)*1.2;
       line = (char *) xrealloc(line, size*sizeof(char));
     }
     strcat(line+len, s);
