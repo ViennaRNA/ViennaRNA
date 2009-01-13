@@ -1,6 +1,6 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2007-12-13 11:22:32 ivo>
-@set revision $Id: RNAlib.texinfo,v 1.24 2007/12/13 10:23:42 ivo Exp $
+@c Last changed Time-stamp: <2009-01-13 18:48:46 ivo>
+@set revision $Id: RNAlib.texinfo,v 1.25 2009/01/13 17:49:58 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
 @ifclear Version
@@ -853,7 +853,7 @@ matrix. For example the dangling base in
 			       5'-GC-3'
 			       3'- G-5'
 @end example
-@noindent corresponds to entry [1,2] (CG=1, C=2);
+@noindent corresponds to entry [1,3] (CG=1, G=3);
 
 @noindent @t{# dangle3}@*
 Same as above for bases on the 3' side of a helix.
