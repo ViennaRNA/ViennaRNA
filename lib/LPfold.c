@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-07-02 17:02:10 berni> */
+/* Last changed Time-stamp: <2009-02-18 14:19:51 ivo> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -24,7 +24,7 @@
 #include "LPfold.h"
 
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.7 2008/07/02 15:36:53 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -134,11 +134,11 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
   if (ulength>0){
     
     if (pUoutput) {
-      for (i=1; i<=ulength; i++) pU[i]=(double *)space((ulength+2)*sizeof(double));
+      for (i=1; i<=ulength; i++) pU[i]=(double *)space((MAX(MAXLOOP,ulength)+2)*sizeof(double));
       
     }
     else {
-      for (i=1; i<=n; i++) pU[i]=(double *)space((ulength+2)*sizeof(double));
+      for (i=1; i<=n; i++) pU[i]=(double *)space((MAX(MAXLOOP,ulength)+2)*sizeof(double));
      }
   }
  
@@ -926,7 +926,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   double temp;
   double *QBE;
  
-  QBE=(double *) space((ulength+2)*sizeof(double));
+  QBE=(double *) space((MAX(ulength,MAXLOOP)+2)*sizeof(double));
  
   /*first, we will*/ 
  /*for k<=ulength, pU[k][k]=0, because no bp can enclose it*/
@@ -960,7 +960,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
     }	  
    }
    /*code doubling to avoid if within loop*/
-  
+#if 0  
   /*initialization for interior loops, 
     it is not recomended to have verysmall ulengths!!*/
   if (ulength<MAXLOOP) {
@@ -976,17 +976,20 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       i5<k5<k-TURN k5<=i5+l3+2+MAXLOOP-j3
       k5+TURN<l3<=k
     */
-    for (i5=MAX(k+ulength-winSize,1);i5<k-TURN;i5++) {
+    for (i5=MAX(k+ulength-winSize,1);i5<k-TURN-1;i5++) {
  	    	   
-      for (j3=k+ulength+1; j3<=MIN(n,MIN(i5+winSize-1,k+MAXLOOP+2)); j3++) {
-	if (outype=ptype[i5][j3]>0.) /*oder so halt*/
-	  for (l3=MAX(i5+TURN+1,j3-MAXLOOP-1); j3<=k; j3++){
+      for (j3=k+ulength+1; j3<=MIN(n,MIN(i5+winSize-1,k+MAXLOOP+1)); j3++) {
+	double temp=0;
+	if (outype=ptype[i5][j3]>0) /*oder so halt*/
+	  for (l3=MAX(i5+TURN+1,j3-MAXLOOP-1); l3<=k; l3++){
 	    for (k5=i5+1; k5<=MIN(l3-TURN-1,MAXLOOP+i5+l3+2-j3); k5++){
 	      if (ptype[k5][l3]) {
-		pU[k+ulength][ulength]+= qb[k5][l3]*expLoopEnergy(i5-k5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);  
+		temp+= qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);  
 	      }
 	    }
 	  }
+	temp*=pR[i5][j3];
+	pU[k+ulength][ulength]+= temp;
       }
     }
     /*kl bp is 3'*/ 
@@ -997,24 +1000,24 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       k5<l3<j3 || j3-k5-i5-2-ML<=l3<j3
     */
     for (i5=MAX(1,MAX(k+ulength-winSize,k+ulength-MAXLOOP));i5<=k; i5++){
-      for (j3=k+ulength+TURN+1; j3<MIN(n+1,i5+winSize); j3++) {
-	if (outype=ptype[i5][j3]>0.) /*oder so halt*/
-	  for (k5=k+ulength+1; k5<MIN(j3-TURN,i5+MAXLOOP+2); k5++) {
-	    for (l3=MAX(k5+TURN,j3+k5-i5-2-MAXLOOP); l3<j3; l3++) {
-	      if (ptype[k5][l3]) {
-		pU[k+ulength][ulength]+= qb[k5][l3]*expLoopEnergy(i5-k5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);   
-	      }
+      for (j3=k+ulength+TURN+2; j3<MIN(n+1,i5+winSize); j3++) {
+	double temp = 0;
+	if (outype=ptype[i5][j3]>0) /*oder so halt*/
+	  for (k5=k+ulength+1; k5<MIN(j3-TURN-1,i5+MAXLOOP+2); k5++) {
+	    for (l3=MAX(k5+TURN+1,j3+k5-i5-2-MAXLOOP); l3<j3; l3++) {
+	      if (ptype[k5][l3]) 
+		temp += qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);   
 	    }
 	  }
+	temp*=pR[i5][j3];
+	pU[k+ulength][ulength]+= temp;
       }
     }
-	  
-	  
   }
   /*Add up Is QI5[l][m-l-1] QI3*/
   /*Add up Interior loop terms*/
   temp=0.;
-#if 0
+
   for (len=winSize; len>=ulength; len--) temp+=QI3[k][len];
   for (len=ulength-1;len>0; len--) { /*grenzen*/
     temp+=QI3[k][len];
@@ -1022,8 +1025,8 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   }
 #endif
   temp=0.;
-  for (len=winSize; len>=ulength; len--) temp+=QI5[k][len];
-  for (len=ulength-1;len>0; len--) { /*grenzen?*/
+  for (len=winSize; len>MAX(ulength,MAXLOOP); len--) temp+=QI5[k][len];
+  for (len=MAX(ulength,MAXLOOP);len>0; len--) { /*grenzen?*/
     temp+=QI5[k][len];
     QBE[len]+=temp;  /*replace QBE with QI*/
   }
@@ -1065,7 +1068,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   /*After computing all these contributions in QBE[len], that k is paired 
     and the unpaired stretch is AT LEAST len long, we start to add that to 
     the old unpaired thingies;*/
-  for (len=1; len<MIN(ulength,n-k); len++) {
+  for (len=1; len<=MIN(MAX(ulength,MAXLOOP),n-k); len++) {
     pU[k+len][len]+=pU[k+len][len+1]+QBE[len];
   }
   
