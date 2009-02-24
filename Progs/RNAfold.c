@@ -21,7 +21,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
 /*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.24 2008/02/23 09:45:50 ivo Exp $";
+static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
 
 #define PRIVATE static
 
@@ -203,12 +203,7 @@ int main(int argc, char *argv[])
       strcpy(ffname, "rna.ps");
       strcpy(gfname, "rna.g");
     }
-    if (!noPS) {
-      if (length<2000)
-	(void) PS_rna_plot(string, structure, ffname);
-      else 
-	fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-    }
+    if (!noPS) (void) PS_rna_plot(string, structure, ffname);
     if (length>2000) free_arrays(); 
     if (pf) {
       char *pf_struc;
