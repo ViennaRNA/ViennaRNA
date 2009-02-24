@@ -2,7 +2,7 @@
 /* this file contains code for alifolding circular RNAs */
 /* it's #include'd into alifold.c */
 
-double circalifold(const char **strings, char *structure) {
+float circalifold(const char **strings, char *structure) {
   /* variant of alifold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -177,5 +177,5 @@ double circalifold(const char **strings, char *structure) {
   for (s=0; s<n_seq; s++) free(S[s]);
   free(S); free(fM2);
   free(type);
-  return (double) Fc/(n_seq*100.);
+  return (float) Fc/(n_seq*100.);
 }
