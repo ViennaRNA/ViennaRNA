@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-11-26 16:44:53 ivo> */
+/* Last changed Time-stamp: <2009-02-24 15:17:17 ivo> */
 /*
 		  minimum free energy folding
 		  for a set of aligned sequences
@@ -22,7 +22,7 @@
 #include "params.h"
 #include "ribo.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.16 2008/11/26 16:04:14 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 
 #define PAREN
 
@@ -602,83 +602,85 @@ void backtrack(const char **strings, int s) {
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as) {
-  unsigned int i,l;
+ PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as) {
+   unsigned int i,l;
   short *S;
   unsigned short p;
   l = strlen(sequence);
   S = (short *) space(sizeof(short)*(l+2));
   S[0] = (short) l;
 
-  s5[0]=s5[1]=0;
+   s5[0]=s5[1]=0;
   /* make numerical encoding of sequence */
-  if (oldAliEn) {
+
+   for (i=1; i<=l; i++) {
+     short ctemp;
+     ctemp=(short) encode_char(toupper(sequence[i-1]));
+     S[i]= ctemp ;
+   }
+   
+   if (oldAliEn) {
      /*use alignment sequences in all energy evaluations*/
      ss[0]=sequence[0];
-     for (i=1; i<=l; i++) {
-       char c5;
-       short ctemp;
-       c5=sequence[i-1];
-       ctemp=(short) encode_char(toupper(c5));
-       if (ctemp>4) ctemp=0; /*no K,X etc*/
-       S[i]=ctemp ;
-       ss[i]=sequence[i];
-       as[i]=i;
-     }
      for (i=1; i<l; i++) {
        s5[i]=S[i-1];
        s3[i]=S[i+1];
+       ss[i]= sequence[i];
+       as[i]=i;
      }
+     ss[l] = sequence[l];
+     as[l]=l;
      s5[l]=S[l-1];
      s3[l]=0;
      S[l+1] = S[1];
-     s5[1]=S[l];
-     s3[l]=S[1];
-     ss[l+1]=S[1];
-     as[0]=0;
+     s5[1]=0;
+     if (1) {
+       s5[1]=S[l];
+       s3[l]=S[1];
+       ss[l+1]=S[1];
+     }
      return S;
    }
-  else{
-  for (i=1,p=0; i<=l; i++) {
-    char c5;
-    short ctemp;
-    c5=sequence[i-1];
-    ctemp=(short) encode_char(toupper(c5));
-    if (ctemp>4) ctemp=0;
-    S[i]=ctemp ;
-    if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) {
-      s5[i+1]=s5[i];
-    }
-    else {
-      ss[p]=sequence[i-1]; /*start at 0!!*/
-      p++;
-      s5[i+1]=ctemp;
-    }
-    as[i]=p;
-  }
-  s3[l+1]=0;
-  s3[l]=0;
-  for (i=l; i>=1; i--) {
-    char c3;
-    short ctemp;
-    c3=sequence[i-1];
-    ctemp=(short) encode_char(toupper(c3));
-    if (ctemp>4) ctemp=0;
-    if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) {
-      s3[i-1]=s3[i];
-    }
-    else s3[i-1]=ctemp;
-  }
-  /* for circular folding add first base at position n+1 */
-  S[l+1] = S[1];
-  as[l+1]=as[1];
-  ss[++p]=ss[0];
-  s5[1]=s5[l+1];
-  s3[l]=s3[0];
-  s3[l+1]=s3[2];
-  as[0]=0;/*?*/
-  }
-  return S;
+   else {
+     if (1) {
+       for (i=l; i>0; i--) {
+	 char c5;
+	 c5=sequence[i-1];
+	 if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
+	 s5[1] = S[i];
+	 break;
+       }
+       for (i=1; i<=l; i++) {
+	 char c3;
+	 c3 = sequence[i-1];
+	 if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
+	 s3[l] = S[i];
+	 break;
+       }
+     } else  s5[1]=s3[l]=0;
+     
+     for (i=1,p=0; i<=l; i++) {
+       char c5;
+       c5=sequence[i-1];
+       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
+	 s5[i+1]=s5[i];
+       else { /* no gap */
+	 ss[p++]=sequence[i-1]; /*start at 0!!*/
+	 s5[i+1]=S[i];
+       }
+       as[i]=p;
+     }
+     for (i=l; i>=1; i--) {
+       char c3;
+       c3=sequence[i-1];
+       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
+	 s3[i-1]=s3[i];
+       else
+	 s3[i-1]=S[i];
+     }
+   }
+
+   return S;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -704,8 +706,16 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000 /* score for forbidden pairs */
   int n,i,j,k,l,s,score;
-  float **dm;
 
+  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
+		  {0,0,2,2,1,2,2} /* CG */,
+		  {0,2,0,1,2,2,2} /* GC */,
+		  {0,2,1,0,2,1,2} /* GU */,
+		  {0,1,2,2,0,2,1} /* UG */,
+		  {0,2,2,1,2,0,2} /* AU */,
+		  {0,2,2,2,1,2,0} /* UA */};
+
+  float **dm;
   n=S[0][0];  /* length of seqs */
   if (ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
@@ -715,21 +725,11 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
     dm=(float **)space(7*sizeof(float*));
     for (i=0; i<7;i++) {
       dm[i]=(float *)space(7*sizeof(float));
-
+      for (j=0; j<7; j++)
+	dm[i][j] = olddm[i][j];
     }
-
-
-    for(i=0; i<7; i++) {
-      dm[i][0]=dm[i][i]=dm[0][i]=0.;
-
-    }
-    dm[1][2]=dm[1][3]=dm[1][5]=dm[1][6]=dm[2][1]=dm[2][4]=dm[2][5]=dm[2][6]=dm[3][1]=dm[3][4]=dm[3][6]=2;
-    dm[4][2]=dm[4][3]=dm[4][5]=dm[5][1]=dm[5][2]=dm[5][4]=dm[5][6]=dm[6][1]=dm[6][2]=dm[6][3]=dm[6][5]=2;
-    dm[1][4]=dm[2][3]=dm[3][2]=dm[3][5]=dm[4][1]=dm[4][6]=dm[5][3]=dm[6][4]=1;
-
-
   }
-/*end newthings*/
+
   n=S[0][0];  /* length of seqs */
   for (i=1; i<n; i++) {
     for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
@@ -743,10 +743,9 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
 	  if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
 	  else type = pair[S[s][i]][S[s][j]];
 	}
-
 	pfreq[type]++;
       }
-      if (pfreq[0]*2>n_seq) { pscore[indx[j]+i] = NONE; continue;}
+      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
       for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
 	for (l=k; l<=6; l++)
 	  /* scores for replacements between pairtypes    */
@@ -766,7 +765,7 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
 	type = pscore[indx[j]+i];
 	while ((i>=1)&&(j<=n)) {
 	  if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
-	  if ((otype<-4*UNIT)&&(ntype<-4*UNIT))  /* worse than 2 counterex */
+	  if ((otype<cv_fact*MINPSCORE)&&(ntype<-cv_fact*MINPSCORE))  /* too many counterexamples */
 	    pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
 	  otype =  type;
 	  type  = ntype;

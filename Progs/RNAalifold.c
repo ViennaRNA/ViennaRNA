@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-08-12 21:18:56 ivo> */
+/* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -24,7 +24,7 @@ extern void  read_parameter_file(const char fname[]);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
 /*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.22 2008/08/12 19:43:48 ivo Exp $";
+static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
 
 #define PRIVATE static
 
@@ -34,6 +34,7 @@ static const char scale[] = "....,....1....,....2....,....3....,....4"
 PRIVATE void /*@exits@*/ usage(void);
 PRIVATE char **annote(const char *structure, const char *AS[]);
 PRIVATE void print_pi(const pair_info pi, FILE *file);
+PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
 PRIVATE void mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe);
 
@@ -174,6 +175,8 @@ int main(int argc, char *argv[])
     }
   }
 
+  make_pair_matrix();
+
   if (circ && noLonelyPairs)
     fprintf(stderr,
 	    "warning, depending on the origin of the circular sequence, "
@@ -287,7 +290,7 @@ int main(int argc, char *argv[])
   } else
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
   if (doAlnPS)
-     PS_color_aln(structure, "aln.ps", AS,  names);
+    PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
     struct bond  *bp;
@@ -351,6 +354,7 @@ int main(int argc, char *argv[])
       free(cent);
       free(ens);
       }
+
       if (fname[0]!='\0') {
 	strcpy(ffname, fname);
 	strcat(ffname, "_ali.out");
@@ -359,13 +363,7 @@ int main(int argc, char *argv[])
       if (!aliout) {
 	fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-	short *ptable;
-	ptable = make_pair_table(mfe_struc);
-	fprintf(aliout, "%d sequence; length of alignment %d\n",
-		n_seq, length);
-	fprintf(aliout, "alifold output\n");
-	fprintf(aliout, "%s\n", structure);
-	free(ptable);
+      print_aliout(AS, pl, n_seq, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
@@ -391,7 +389,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void mark_endgaps(char *seq, char egap) {
+PRIVATE void mark_endgaps(char *seq, char egap) {
   int i,n;
   n = strlen(seq);
   for (i=0; i<n && (seq[i]=='-'); i++) {
@@ -402,7 +400,7 @@ void mark_endgaps(char *seq, char egap) {
   }
 }
 
-void print_pi(const pair_info pi, FILE *file) {
+PRIVATE void print_pi(const pair_info pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
 
@@ -411,7 +409,6 @@ void print_pi(const pair_info pi, FILE *file) {
 	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
   for (i=1; i<=7; i++)
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
-  /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
   if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
@@ -421,6 +418,7 @@ void print_pi(const pair_info pi, FILE *file) {
 /*-------------------------------------------------------------------------*/
 
 PRIVATE char **annote(const char *structure, const char *AS[]) {
+  /* produce annotation for colored drawings from PS_rna_plot_a() */
   char *ps, *colorps, **A;
   int i, n, s, pairings, maxl;
   short *ptable;
@@ -430,10 +428,9 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
     {"0.32 1","0.32 0.6", "0.32 0.2"}, /* turquoise */
     {"0.48 1","0.48 0.6", "0.48 0.2"}, /* green  */
     {"0.65 1","0.65 0.6", "0.65 0.2"}, /* blue   */
-    {"0.81 1","0.81 0.6", "0.81 0.2"} /* violet */
+    {"0.81 1","0.81 0.6", "0.81 0.2"}  /* violet */
   };
 
-  make_pair_matrix();
   n = strlen(AS[0]);
   maxl = 1024;
 
@@ -465,7 +462,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 	  nrerror("out of memory in realloc");
     }
 
-    if (pfreq[0]<=2) {
+    if (pfreq[0]<=2 && pairings>0) {
       snprintf(pps, 64, "%d %d %s colorpair\n",
 	       i,j, colorMatrix[pairings-1][pfreq[0]]);
       strcat(colorps, pps);
@@ -492,46 +489,109 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
-	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
-	  );
+#define PMIN 0.0008
+PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
+  pair_info *p1, *p2;
+  int  i, nc1, nc2;
+  p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
+  for (nc1=nc2=0, i=1; i<=6; i++) {
+    if (p1->bp[i]>0) nc1++;
+    if (p2->bp[i]>0) nc2++;
+  }
+  /* sort mostly by probability, add
+     epsilon * comp_mutations/(non-compatible+1) to break ties */
+  return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
+         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
+PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout) {
+  int i, j, k, n, num_p=0, max_p = 64;
+  pair_info *pi;
+  double *duck, p;
+  short *ptable;
+  for (n=0; pl[n].i>0; n++);
+
+  max_p = 64; pi = space(max_p*sizeof(pair_info));
+  duck =  (double *) space((n+1)*sizeof(double));
+  ptable = make_pair_table(mfe);
+
+  for (k=0; k<n; k++) {
+    int s, type;
+    p = pl[k].p; i=pl[k].i; j = pl[k].j;
+    duck[i] -=  p * log(p);
+    duck[j] -=  p * log(p);
+
+    if (p<PMIN) continue;
+
+    pi[num_p].i = i;
+    pi[num_p].j = j;
+    pi[num_p].p = p;
+    pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
+    for (type=0; type<8; type++) pi[num_p].bp[type]=0;
+    for (s=0; s<n_seq; s++) {
+      int a,b;
+      a=encode_char(toupper(AS[s][i-1]));
+      b=encode_char(toupper(AS[s][j-1]));
+      type = pair[a][b];
+      if ((AS[s][i-1] == '-')||(AS[s][j-1] == '-')) type = 7;
+      if ((AS[s][i-1] == '~')||(AS[s][j-1] == '~')) type = 7;
+      pi[num_p].bp[type]++;
+      pi[num_p].comp = (ptable[i] == j) ? 1:0;
+    }
+    num_p++;
+    if (num_p>=max_p) {
+      max_p *= 2;
+      pi = xrealloc(pi, max_p * sizeof(pair_info));
+    }
+  }
+  free(duck);
+  pi[num_p].i=0;
+  qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
+
+  /* print it */
+  fprintf(aliout, "%d sequence; length of alignment %d\n",
+	  n_seq, (int) strlen(AS[0]));
+  fprintf(aliout, "alifold output\n");
+  
+  for (k=0; pi[k].i>0; k++) {
+    pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
+    print_pi(pi[k], aliout);
+  }
+  fprintf(aliout, "%s\n", mfe);
+  free(ptable);
+  free(pi);
+}
+
+
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe) {
+  /* produce info for PS_color_dot_plot */
   cpair *cp;
   int i, n,s, a, b,z,t,j, c;
-  int franz[7];
+  int pfreq[7];
   for (n=0; pl[n].i>0; n++);
   c=0;
   cp = (cpair *) space(sizeof(cpair)*(n+1));
   for (i=0; i<n; i++) {
     int ncomp=0;
-    if(pl[i].p>0.00075) {
+    if(pl[i].p>PMIN) {
       cp[c].i = pl[i].i;
       cp[c].j = pl[i].j;
       cp[c].p = pl[i].p;
-      for (z=0; z<7; z++) franz[z]=0;
+      for (z=0; z<7; z++) pfreq[z]=0;
       for (s=0; s<n_seq; s++) {
 	a=encode_char(toupper(sequences[s][cp[c].i-1]));
 	b=encode_char(toupper(sequences[s][cp[c].j-1]));
 	if ((sequences[s][cp[c].j-1]=='~')||(sequences[s][cp[c].i-1] == '~')) continue;
-	franz[pair[a][b]]++;
+	pfreq[pair[a][b]]++;
       }
       for (z=1; z<7; z++) {
-	if (franz[z]>0) {
+	if (pfreq[z]>0) {
 	  ncomp++;
 	}}
       cp[c].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-      cp[c].sat = 1 - MIN2( 1.0, (float) (franz[0]*2./*pi[i].bp[0]*//(n_seq)));
-      /*computation of entropy is sth for the ivo*/
+      cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2./*pi[i].bp[0]*//(n_seq)));
       c++;
     }
-    /* cp[i].mfe = pi[i].comp;  don't have that .. yet*/
   }
   for (t=1; t<=mfe[0].i; t++) {
     int nofound=1;
@@ -542,7 +602,6 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 	  break;
 	}
       }
-#if 1
       if(nofound) {
 	fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
 	cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
@@ -552,9 +611,18 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 	cp[c].mfe=1;
 	c++;
       }
-
-#endif
-
     }
   return cp;
+}
+
+/*-------------------------------------------------------------------------*/
+
+PRIVATE void usage(void)
+{
+  nrerror("usage:\n"
+	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
+	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
+	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
+	  "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
+	  );
 }

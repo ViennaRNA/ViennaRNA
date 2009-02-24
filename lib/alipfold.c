@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-11-26 17:08:16 ivo> */
+/* Last changed Time-stamp: <2009-02-24 14:37:05 ivo> */
 /*
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures
@@ -21,7 +21,7 @@
 #include "alifold.h"
 #include "ribo.h"
 /*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.16 2008/11/26 16:10:55 ivo Exp $";
+static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
@@ -96,7 +96,7 @@ static unsigned short **a2s;
 /*-----------------------------------------------------------------*/
 PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
 {
-  int n, s, n_seq, i;
+  int n, s, n_seq;
   FLT_OR_DBL Q;
 
   float free_energy;
@@ -145,7 +145,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
 
 PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **pl )
 {
-  int n, s, n_seq, i;
+  int n, s, n_seq;
   FLT_OR_DBL Q;
 
   float free_energy;
@@ -196,8 +196,8 @@ PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **p
 
 PRIVATE void alipf_linear(char **sequences, char *structure)
 {
-  int s, n, n_seq, i,j,k,l, ij, kl, u,u1,d,ii,ll, type_2, tt;
-  FLT_OR_DBL temp, Q, Qmax=0;
+  int s, n, n_seq, i,j,k,l, ij, u, u1, d, ii, type_2, tt;
+  FLT_OR_DBL temp, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
 
   double kTn;
@@ -350,7 +350,7 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
 PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist **pl)
 {
   int s;
-  int n, n_seq, i,j,k,l, ij, kl, u,u1,d,ii,ll, type_2, tt, ov=0;
+  int n, n_seq, i,j,k,l, ij, kl, ii, ll, tt, ov=0;
   FLT_OR_DBL temp, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
@@ -1058,25 +1058,25 @@ PRIVATE void sprintf_bppm(int length, char *structure)
   S[0] = (short) l;
 
    s5[0]=s5[1]=0;
-   p=0;
   /* make numerical encoding of sequence */
+
+   for (i=1; i<=l; i++) {
+     short ctemp;
+     ctemp=(short) encode_char(toupper(sequence[i-1]));
+     S[i]= ctemp ;
+   }
+   
    if (oldAliEn) {
-     ss[0]=sequence[0];
      /*use alignment sequences in all energy evaluations*/
-     for (i=1; i<=l; i++) {
-       char c5;
-       short ctemp;
-       c5=sequence[i-1];
-       ctemp=(short) encode_char(toupper(c5));
-       if (ctemp>4) ctemp=0; /*no K,X etc*/
-       S[i]=ctemp ;
-       ss[i]=(char )sequence[i];
-       as[i]=i;
-     }
+     ss[0]=sequence[0];
      for (i=1; i<l; i++) {
        s5[i]=S[i-1];
        s3[i]=S[i+1];
+       ss[i]= sequence[i];
+       as[i]=i;
      }
+     ss[l] = sequence[l];
+     as[l]=l;
      s5[l]=S[l-1];
      s3[l]=0;
      S[l+1] = S[1];
@@ -1084,66 +1084,46 @@ PRIVATE void sprintf_bppm(int length, char *structure)
      if (circ) {
        s5[1]=S[l];
        s3[l]=S[1];
-       ss[l+1]=S[1]; /*??*/
-     /*do i need s3[l+1]?? s5[0]??*/
+       ss[l+1]=S[1];
      }
      return S;
    }
    else {
-     for (i=1; i<=l; i++) {
-       char c5;
-       short ctemp;
-       c5=sequence[i-1];
-       ctemp=(short) encode_char(toupper(c5));
-       if (ctemp>4) ctemp=0; /*no K,X etc*/
-       S[i]=ctemp ;
-       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) {
-	 s5[i+1]=s5[i];
+     if (circ) {
+       for (i=l; i>0; i--) {
+	 char c5;
+	 c5=sequence[i-1];
+	 if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
+	 s5[1] = S[i];
+	 break;
        }
-       else {
-	 ss[p]=sequence[i-1]; /*start at 0!!*/
-	 p++;
-	 s5[i+1]=ctemp;
+       for (i=1; i<=l; i++) {
+	 char c3;
+	 c3 = sequence[i-1];
+	 if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
+	 s3[l] = S[i];
+	 break;
+       }
+     } else  s5[1]=s3[l]=0;
+     
+     for (i=1,p=0; i<=l; i++) {
+       char c5;
+       c5=sequence[i-1];
+       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
+	 s5[i+1]=s5[i];
+       else { /* no gap */
+	 ss[p++]=sequence[i-1]; /*start at 0!!*/
+	 s5[i+1]=S[i];
        }
        as[i]=p;
      }
-     s3[l+1]=0;
-     s3[l]=0;
      for (i=l; i>=1; i--) {
        char c3;
-       short ctemp;
        c3=sequence[i-1];
-       ctemp=(short) encode_char(toupper(c3));
-       if (ctemp>4) ctemp=0;
-       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) {
+       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
 	 s3[i-1]=s3[i];
-       }
-       else s3[i-1]=ctemp;
-     }
-   }
-   s5[1]=0;
-   s3[l]=0;
-   if (circ) {
-     char c5,c3;
-     short ctemp;
-     c3=sequence[0];
-     ctemp=(short) encode_char(toupper(c5));
-     if (ctemp>4) ctemp=0; /*no K,X etc*/
-     if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) {
-       s3[l]=s3[l-1];
-     }
-     else {
-       s3[l]=ctemp;
-     }
-
-     c5=sequence[l];
-     ctemp=(short) encode_char(toupper(c5));
-     if (ctemp>4) ctemp=0; /*no K,X etc*/
-     if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) {
-       s5[1]=s5[l];
-     }
-     else {
-       s5[1]=ctemp;
+       else
+	 s3[i-1]=S[i];
      }
    }
 
@@ -1197,10 +1177,11 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
 	}
 	pfreq[type]++;
       }
-      if (pfreq[0]*2>n_seq) { pscore[iindx[i]-j] = NONE; continue;}
+      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[iindx[i]-j] = NONE; continue;}
       for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
 	for (l=k; l<=6; l++)
 	  /* scores for replacements between pairtypes    */
+	  /* consistent or compensatory mutations score 1 or 2  */
 	  score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25  */
       pscore[iindx[i]-j] = cv_fact *
@@ -1280,12 +1261,8 @@ PUBLIC char *centroid_ali(int length, double *dist,struct plist *pl) {
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
      Thus, the centroid is simply the structure containing all pairs with
      p_ij>0.5 */
-  int i,j;
-  double p;
+  int i;
   char *centroid;
-
-  /*  if (pr==NULL)
-      nrerror("pr==NULL. You need to call pf_fold() before centroid()");*/
 
   *dist = 0.;
   centroid = (char *) space((length+1)*sizeof(char));
@@ -1327,7 +1304,7 @@ PUBLIC void alipf_circ(char **sequences, char *structure){
 
   for(p=1;p<n;p++){
     for(q=p+TURN+1;q<=n;q++){
-      int ij, psc;
+      int psc;
       u = n-q + p-1;
       if (u<TURN) continue;
 
@@ -1415,8 +1392,6 @@ static char *pstruc;
 char *alipbacktrack(double *prob) {
   double r, gr, qt, kTn;
   int k,i,j, start,s,n, n_seq;
-  double last;
-  double new;
   double probs=1;
   n = S[0][0];
   n_seq = N_seq;
@@ -1461,7 +1436,6 @@ char *alipbacktrack(double *prob) {
 	  if (type) {*/
       double qkl;
       if (qb[iindx[i]-j]>0) {
-	double tempx=0.;
 	qkl = qb[iindx[i]-j]*qln[j+1];  /*if psc too small qb=0!*/
 	for (s=0; s< n_seq; s++) {
 	  xtype=pair[S[s][i]][S[s][j]];
@@ -1573,7 +1547,7 @@ static void backtrack(int i, int j, int n_seq, double *prob) {
   tempwert=(qb[iindx[i]-j]/exp(pscore[iindx[i]-j]/kTn));
   {
     double r, qt;
-    int k, l, ii, jj, type;
+    int k, ii, jj;
     double qttemp=0;;
     i++; j--;
     /* find the first split index */
@@ -1635,15 +1609,14 @@ static void backtrack_qm1(int i,int j, int n_seq, double *prob) {
   r = urn() * qm1[jindx[j]+i];
   ii = iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
-    if (qb[ii-l]>0) {   /* otherwise ignore this pair?? */
-      tempz=1.;
-      for (s=0; s<n_seq; s++) {
-	xtype = pair[S[s][i]][S[s][l]];
-	if (xtype==0) xtype=7;
-	tempz*=expMLintern[xtype]*expdangle5[xtype][S5[s][i]] * expdangle3[xtype][S3[s][l]];
-      }
-      qt +=  qb[ii-l]*tempz*expMLbase[j-l];
+    if (qb[ii-l]==0) continue;
+    tempz=1.;
+    for (s=0; s<n_seq; s++) {
+      xtype = pair[S[s][i]][S[s][l]];
+      if (xtype==0) xtype=7;
+      tempz*=expMLintern[xtype]*expdangle5[xtype][S5[s][i]] * expdangle3[xtype][S3[s][l]];
     }
+    qt +=  qb[ii-l]*tempz*expMLbase[j-l];
     if (qt>=r) {
       *prob=*prob*qb[ii-l]*tempz*expMLbase[j-l]/qm1[jindx[j]+i];
       /* probs*=qb[ii-l]*tempz*expMLbase[j-l];*/
