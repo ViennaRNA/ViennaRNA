@@ -22,7 +22,7 @@
 #include "params.h"
 #include "ribo.h"
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
+static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp $";
 
 #define PAREN
 
@@ -765,7 +765,7 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
 	type = pscore[indx[j]+i];
 	while ((i>=1)&&(j<=n)) {
 	  if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
-	  if ((otype<cv_fact*MINPSCORE)&&(ntype<-cv_fact*MINPSCORE))  /* too many counterexamples */
+	  if ((otype<cv_fact*MINPSCORE)&&(ntype<cv_fact*MINPSCORE))  /* too many counterexamples */
 	    pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
 	  otype =  type;
 	  type  = ntype;
