@@ -5,7 +5,7 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2007-12-19 11:19:23 ivo> */
+/* Last changed Time-stamp: <2009-03-19 10:43:32 ivo> */
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
@@ -29,7 +29,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 /*@unused@*/
-static char rcsid[] = "$Id: inverse.c,v 1.12 2007/12/19 10:29:01 ivo Exp $";
+static char rcsid[] = "$Id: inverse.c,v 1.13 2009/03/19 09:45:28 ivo Exp $";
 #define PUBLIC
 #define PRIVATE static
 PRIVATE double  adaptive_walk(char *start, const char *target);
@@ -305,7 +305,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    string = (char *) space(len+1);
    wstring = (char *) space(len+1);
    wstruct = (char *) space(len+1);
-   pt = (int *) space(sizeof(int)*(len+1));
+   pt = (int *) space(sizeof(int)*(len+2));
    pt[len] = len+1;
 
    aux = aux_struct(structure);
@@ -314,7 +314,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    make_start(string, structure);
 
    make_ptable(structure, pt);
-
+   
    while (j<len) {
       while ((j<len)&&(structure[j]!=')')) {
 	 if (aux[j]=='[') o++;
@@ -322,7 +322,11 @@ PUBLIC float inverse_fold(char *start, char *structure)
 	 j++;
       }
       i=j;
-      while (structure[--i]!='(');  /* doesn't work for open structure */
+      while ((i>0) && structure[--i]!='(');
+      if (structure[i]=='.') { /* no pair found -> open chain */
+	WALK(0,len-1);
+      }
+      
       if (aux[i]!='[') { i--; j++;}
       while (pt[j]==i) {
 	 backtrack_type='C';
