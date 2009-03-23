@@ -49,9 +49,9 @@ PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss,
 PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
 PRIVATE FLT_OR_DBL expTermAU;
 PRIVATE FLT_OR_DBL expdangle5[NBPAIRS+1][5], expdangle3[NBPAIRS+1][5];
-PRIVATE FLT_OR_DBL lxc, exptetra[40], expTriloop[40];
+PRIVATE FLT_OR_DBL lxc, exptetra[200], exptri[40],exphex[200];
 PRIVATE FLT_OR_DBL expstack[NBPAIRS+1][NBPAIRS+1];
-PRIVATE FLT_OR_DBL expmismatchI[NBPAIRS+1][5][5],
+PRIVATE FLT_OR_DBL expmismatchI[NBPAIRS+1][5][5], expmismatch1nI[NBPAIRS+1][5][5], expmismatch23I[NBPAIRS+1][5][5],
   expmismatchH[NBPAIRS+1][5][5], expmismatchM[NBPAIRS+1][5][5];
 PRIVATE FLT_OR_DBL expint11[NBPAIRS+1][NBPAIRS+1][5][5];
 PRIVATE FLT_OR_DBL expint21[NBPAIRS+1][NBPAIRS+1][5][5][5];
@@ -239,24 +239,35 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
 	for (qbt1=1,s=0; s<n_seq; s++) {
 	  u = a2s[s][j-1]-a2s[s][i];
 	  if (a2s[s][i]<1) continue;
-	  qbt1 *= exphairpin[u];
 	  if (u<3) continue;  /*sog amoi: strof??*/
 	  if ((tetra_loop)&&(u==4)) {
 	    char tl[7]={0}, *ts;
 	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 6);
-	    if ((ts=strstr(Tetraloops, tl)))
+	    if ((ts=strstr(Tetraloops, tl))) {
 	      qbt1 *= exptetra[(ts-Tetraloops)/7];
+          continue;
+        }
 	  }
-	  if (u==3) {
+	  if ((tetra_loop)&&(u==6)) {
+	    char tl[9]={0}, *ts;
+	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 8);
+	    if ((ts=strstr(Hexaloops, tl))) {
+	      qbt1 *= exphex[(ts-Hexaloops)/9];
+	      continue;
+	    }
+	  }
+	  else if (u==3) {
 	    char tl[6]={0,0,0,0,0,0}, *ts;
 	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 5);
-	    if ((ts=strstr(Triloops, tl)))
-	      qbt1 *= expTriloop[(ts-Triloops)/6];
-	      if (type[s]>2)
-		qbt1 *= expTermAU;
+	    if ((ts=strstr(Triloops, tl))){
+	      qbt1 *= exptri[(ts-Triloops)/6];
+          continue;
+        }
+	    if (type[s]>2)
+		  qbt1 *= exphairpin[u]*expTermAU;
 	  }
 	  else /* no mismatches for tri-loops */
-	    qbt1 *= expmismatchH[type[s]][S3[s][i]][S5[s][j]];
+	    qbt1 *= exphairpin[u]*expmismatchH[type[s]][S3[s][i]][S5[s][j]];
 	}
 	qbt1 *= scale[j-i+1];
 
@@ -398,28 +409,40 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
 	  for (qbt1=1.,s=0; s<n_seq; s++) {
 
 	    char loopseq[10];
-	    if (u<7){
+	    char *ts;
+	    if (u<9){
 	      strcpy(loopseq , sequences[s]+j-1);
 	      strncat(loopseq, sequences[s], i);
 	    }
-	    qbt1 *= exphairpin[u];
 	    if ((tetra_loop)&&(u==4)) {
 	      char tl[7]={0}, *ts;
 	      strncpy(tl, loopseq, 6);
-	      if ((ts=strstr(Tetraloops, tl)))
+	      if ((ts=strstr(Tetraloops, tl))) {
 		qbt1 *= exptetra[(ts-Tetraloops)/7];
+		continue;
+	      }
 	    }
-	    if (u==3) {
-	      char tl[6]={0}, *ts;
+	    if ((tetra_loop)&&(u==6)) {
+	      char tl[9]={0}, *ts;
+	      strncpy(tl, loopseq, 8);
+	      if ((ts=strstr(Hexaloops, tl))) {
+		qbt1 *= exphex[(ts-Hexaloops)/9];
+		continue;
+	      }
+	    }
+	    else if (u==3) {
+	      char tl[6]={0,0,0,0,0,0}, *ts;
 	      strncpy(tl, loopseq, 5);
-
-	      if ((ts=strstr(Triloops, tl)))
-		qbt1 *= expTriloop[(ts-Triloops)/6];
+	      if ((ts=strstr(Triloops, tl))){
+		qbt1 *= exptri[(ts-Triloops)/6];
+		continue;
+	      }
+	      qbt1 *= exphairpin[u];
 	      if (type[s]>2)
 		qbt1 *= expTermAU;
 	    }
 	    else /* no mismatches for tri-loops */
-	      qbt1 *= expmismatchH[type[s]][S[s][j+1]][S[s][(i>1) ? i-1 : n]];
+	      qbt1 *= exphairpin[u]*expmismatchH[type[s]][S[s][j+1]][S[s][(i>1) ? i-1 : n]];
 	  }
 	  tmp2 = qbt1 * scale[u];
 
@@ -729,26 +752,33 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   }
 
   for (i=0; i<5; i++) {
-    GT = F_ninio37[i]*TT;
+    GT = ninio37[i]*TT;
     for (j=0; j<=MAXLOOP; j++)
       expninio[i][j]=exp(-MIN(MAX_NINIO,j*GT)*10/kTn);
   }
-  for (i=0; (i*7)<strlen(Tetraloops); i++) {
-    GT = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*TT;
-    exptetra[i] = exp( -GT*10./kTn);
+
+   for (i=0; (i*7)<strlen(Tetraloops); i++) {
+    GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
+    exptetra[i] = exp( -GT*10./kT);
   }
-  for (i=0; (i*5)<strlen(Triloops); i++)
-    expTriloop[i] = exp(-Triloop_E37[i]*10/kTn);
+  for (i=0; (i*5)<strlen(Triloops); i++) {
+    GT = TriloopdH[i] - (TriloopdH[i]-Triloop37[i])*TT;
+    exptri[i] = exp( -GT*10./kT);
+  }
+  for (i=0; (i*9)<strlen(Hexaloops); i++) {
+    GT = HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*TT;
+    exphex[i] = exp( -GT*10./kT);
+  }
 
   GT =  ML_closing37*TT;
   expMLclosing = exp( -GT*10/kTn);
 
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     GT =  ML_intern37*TT;
-    /* if (i>2) GT += TerminalAU; */
     expMLintern[i] = exp( -GT*10./kTn);
   }
-  expTermAU = exp(-TerminalAU*10/kTn);
+  GT = (TerminalAU37dH - (TerminalAU37dH - TerminalAU37)*TT);
+  expTermAU = exp(-GT*10/kTn);
 
   GT =  ML_BASE37*TT;
   for (i=0; i<length; i++) {
@@ -760,9 +790,9 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
       but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++) {
     for (j=0; j<=4; j++) {
-      GT = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*TT;
+      GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
       expdangle5[i][j] = dangles?exp(SMOOTH(-GT)*10./kTn):1.;
-      GT = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*TT;
+      GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
       expdangle3[i][j] =  dangles?exp(SMOOTH(-GT)*10./kTn):1.;
       if (i>2) /* add TermAU penalty into dangle3 */
 	expdangle3[i][j] *= expTermAU;
@@ -771,7 +801,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   /* stacking energies */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++) {
-      GT =  enthalpies[i][j] - (enthalpies[i][j] - stack37[i][j])*TT;
+      GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
       expstack[i][j] = exp( -GT*10/kTn);
     }
 
@@ -779,12 +809,16 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchI37[i][j][k])*TT;
-	expmismatchI[i][j][k] = exp(-GT*10.0/kTn);
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchH37[i][j][k])*TT;
-	expmismatchH[i][j][k] = exp(-GT*10.0/kTn);
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchM37[i][j][k])*TT;
-	expmismatchM[i][j][k] = exp(-GT*10.0/kTn);
+	GT = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
+	expmismatchI[i][j][k] = exp(-GT*10.0/kT);
+	GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
+	expmismatchH[i][j][k] = exp(-GT*10.0/kT);
+	GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
+	expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+	GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
+	expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
+	GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
+	expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
       }
 
   /* interior lops of length 2 */
@@ -855,6 +889,18 @@ PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
 	z = expint21[type2][type][sq1][si1][sp1];
       else if ((u1==2) && (u2==2))
 	z = expint22[type][type2][si1][sp1][sq1][sj1];
+      else if (((u1==2)&&(u2==3))||((u1==3)&&(u2==2))){ /*2-3 is special*/
+	z = expinternal[5]*
+	  expmismatch23I[type][si1][sj1]*
+	  expmismatch23I[type2][sq1][sp1];
+	z *= expninio[2][1];
+      }
+      else if ((u1==1)||(u2==1)) {  /*1-n is special*/
+	z = expinternal[u1+u2]*
+	  expmismatch1nI[type][si1][sj1]*
+	  expmismatch1nI[type2][sq1][sp1];
+	z *= expninio[2][abs(u1-u2)];
+      }
       else {
 	z = expinternal[u1+u2]*
 	  expmismatchI[type][si1][sj1]*
@@ -1317,33 +1363,42 @@ PUBLIC void alipf_circ(char **sequences, char *structure){
       /* for the closing pair was already done in the forward recursion              */
       for (qbt1=1,s=0; s<n_seq; s++) {
 	char loopseq[10];
-
 	type[s] = pair[S[s][q]][S[s][p]];
 	if (type[s]==0) type[s]=7;
 
-	if (u<7){
+	if (u<9){
 	  strcpy(loopseq , sequences[s]+q-1);
 	  strncat(loopseq, sequences[s], p);
 	}
-
-	qbt1 *= exphairpin[u];
 	if ((tetra_loop)&&(u==4)) {
 	  char tl[7]={0}, *ts;
 	  strncpy(tl, loopseq, 6);
-	  if ((ts=strstr(Tetraloops, tl)))
-	  qbt1 *= exptetra[(ts-Tetraloops)/7];
+	  if ((ts=strstr(Tetraloops, tl))) {
+	    qbt1 *= exptetra[(ts-Tetraloops)/7];
+	    continue;
+	  }
 	}
-	if (u==3) {
-	  char tl[6]={0}, *ts;
+	if ((tetra_loop)&&(u==6)) {
+	  char tl[9]={0}, *ts;
+	  strncpy(tl, loopseq, 8);
+	  if ((ts=strstr(Hexaloops, tl))) {
+	    qbt1 *= exphex[(ts-Hexaloops)/9];
+	    continue;
+	  }
+	}
+	else if (u==3) {
+	  char tl[6]={0,0,0,0,0,0}, *ts;
 	  strncpy(tl, loopseq, 5);
-
-	  if ((ts=strstr(Triloops, tl)))
-	    qbt1 *= expTriloop[(ts-Triloops)/6];
+	  if ((ts=strstr(Triloops, tl))){
+	    qbt1 *= exptri[(ts-Triloops)/6];
+	    continue;
+	  }
+	  qbt1 *= exphairpin[u];
 	  if (type[s]>2)
 	    qbt1 *= expTermAU;
 	}
-	else
-	  qbt1 *= expmismatchH[type[s]][S[s][q+1]][S[s][(p>1) ? p-1 : n]];
+	else /* no mismatches for tri-loops */
+	  qbt1 *= exphairpin[u]*expmismatchH[type[s]][S[s][q+1]][S[s][(p>1) ? p-1 : n]];
 
       }
       qho += qb[iindx[p]-q] * qbt1 * scale[u];
@@ -1482,24 +1537,37 @@ static void backtrack(int i, int j, int n_seq, double *prob) {
     qbt1=1.;
     for (s=0; s<n_seq; s++){
       u = a2s[s][j-1]-a2s[s][i];
-      qbt1 *= exphairpin[u];
-      if (u<3) continue; /*sog amoi: strof??*/
-      if ((tetra_loop)&&(u==4)) {
-	char tl[7]={0}, *ts;
-	strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 6);
-	if ((ts=strstr(Tetraloops, tl)))
-	  qbt1 *= exptetra[(ts-Tetraloops)/7];
-      }
-      if (u==3) {
-	char tl[6]={0,0,0,0,0,0}, *ts;
-	strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 5);
-	if ((ts=strstr(Triloops, tl)))
-	  qbt1 *= expTriloop[(ts-Triloops)/6];
-	if (type[s]>2)
-	  qbt1 *= expTermAU;
-      }
-      else /* no mismatches for tri-loops */
-	qbt1 *= expmismatchH[type[s]][S3[s][i]][S5[s][j]];
+	  if (a2s[s][i]<1) continue;
+	  if (u<3) continue;  /*sog amoi: strof??*/
+	  if ((tetra_loop)&&(u==4)) {
+	    char tl[7]={0}, *ts;
+	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 6);
+	    if ((ts=strstr(Tetraloops, tl))) {
+	      qbt1 *= exptetra[(ts-Tetraloops)/7];
+	      continue;
+	    }
+	  }
+	  if ((tetra_loop)&&(u==6)) {
+	    char tl[9]={0}, *ts;
+	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 8);
+	    if ((ts=strstr(Hexaloops, tl))) {
+	      qbt1 *= exphex[(ts-Hexaloops)/9];
+	      continue;
+	    }
+	  }
+	  else if (u==3) {
+	    char tl[6]={0,0,0,0,0,0}, *ts;
+	    strncpy(tl, Ss[s]+a2s[s][i]-1/*??*/, 5);
+	    if ((ts=strstr(Triloops, tl))){
+	      qbt1 *= exptri[(ts-Triloops)/6];
+	      continue;
+	    }
+	    if (type[s]>2)
+	      qbt1 *= exphairpin[u]*expTermAU;
+	  }
+	  else /* no mismatches for tri-loops */
+	    qbt1 *= exphairpin[u]*expmismatchH[type[s]][S3[s][i]][S5[s][j]];
+	  
     }
     qbt1 *= scale[j-i+1];
     /* qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);*/

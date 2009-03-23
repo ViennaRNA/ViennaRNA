@@ -276,7 +276,7 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
 	  for (s=0; s<n_seq; s++) {
 	    int type;
 	    type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
-	    if (type>2) energy += TerminalAU;
+	    if (type>2) energy += P->TerminalAU;
 	    if (dangles) { /* double dangles */
 	      energy += P->dangle3[type][S[s][j+1]];
 	      if (i>1)  energy += P->dangle5[type][S[s][i-1]];
@@ -292,7 +292,7 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
 	  for (s=0; s<n_seq; s++) {
 	    int type;
 	    type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
-	    if (type>2) energy += TerminalAU;
+	    if (type>2) energy += P->TerminalAU;
 	    if ((dangles)&&(i>1)) { /* double dangles */
 	       energy += P->dangle5[type][S[s][i-1]];
 	    }
@@ -424,7 +424,7 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 	  for (ss=0; ss<n_seq; ss++) {
 	    type[ss] = pair[S[ss][i]][S[ss][k]];
 	    if (type[ss]==0) type[ss]=7;
-	    if (type[ss]>2) cc += TerminalAU;
+	    if (type[ss]>2) cc += P->TerminalAU;
 
 	  }
 	  if (dangles) {

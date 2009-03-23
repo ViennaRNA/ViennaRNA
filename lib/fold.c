@@ -823,26 +823,36 @@ char *backtrack_fold_from_pair(char *sequence, int i, int j) {
 
 INLINE int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
+  
   energy = (size <= 30) ? P->hairpin[size] :
     P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-  if (tetra_loop)
+   
+  if (tetra_loop){
     if (size == 4) { /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
       strncpy(tl, string, 6);
       if ((ts=strstr(P->Tetraloops, tl)))
-	energy += P->TETRA_ENERGY[(ts - P->Tetraloops)/7];
+	return (P->Tetraloop_E[(ts - P->Tetraloops)/7]);
     }
-  if (size == 3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(P->Triloops, tl)))
-      energy += P->Triloop_E[(ts - P->Triloops)/6];
-
-    if (type>2)  /* neither CG nor GC */
-      energy += P->TerminalAU; /* penalty for closing AU GU pair */
-  }
-  else  /* no mismatches for tri-loops */
-    energy += P->mismatchH[type][si1][sj1];
+    if (size == 6) {
+      char tl[9]={0}, *ts;
+      strncpy(tl, string, 8);
+      if ((ts=strstr(P->Hexaloops, tl)))
+	return (energy = P->Hexaloop_E[(ts - P->Hexaloops)/9]);
+    }
+    if (size == 3) {
+      char tl[6]={0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 5);
+      if ((ts=strstr(P->Triloops, tl))) {
+	return (P->Triloop_E[(ts - P->Triloops)/6]);
+      }
+     if (type>2)  /* neither CG nor GC */
+	energy += P->TerminalAU37; /* penalty for closing AU GU pair IVOO??
+				    sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
+      return energy;
+    }
+   }
+   energy += P->mismatchH[type][si1][sj1];
 
   return energy;
 }
@@ -877,10 +887,10 @@ INLINE PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_
 	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
 
 #if NEW_NINIO
-      energy += MIN2(MAX_NINIO, (n2-n1)*P->F_ninio[2]);
+      energy += MIN2(MAX_NINIO, (n2-n1)*P->ninio[2]);
 #else
       m       = MIN2(4, n1);
-      energy += MIN2(MAX_NINIO,((n2-n1)*P->F_ninio[m]));
+      energy += MIN2(MAX_NINIO,((n2-n1)*P->ninio[m]));
 #endif
       energy += P->mismatchI[type][S1[i+1]][S1[j-1]]+
 	P->mismatchI[type_2][S1[q+1]][S1[p-1]];
@@ -923,14 +933,31 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
 	  energy = P->int21[type_2][type][sq1][si1][sp1];
 	return energy;
       }
+        else {
+	energy = (nl+1<=MAXLOOP)?(P->internal_loop[nl+1]):
+	(P->internal_loop[30]+(int)(P->lxc*log((nl+1)/30.)));
+	energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio37[2]);
+	energy += P->mismatch1nI[type][si1][sj1]+
+	P->mismatch1nI[type_2][sq1][sp1];
+	return energy;
+	}
     }
-    else if (n1==2 && n2==2)         /* 2x2 loop */
-      return P->int22[type][type_2][si1][sp1][sq1][sj1];
+    else if (ns==2) {
+      if(nl==2)      {   /* 2x2 loop */
+	return P->int22[type][type_2][si1][sp1][sq1][sj1];}
+      else if (nl==3)  {
+	energy =P->internal_loop[5]+P->ninio37[2];
+	energy += P->mismatch23I[type][si1][sj1]+
+	  P->mismatch23I[type_2][sq1][sp1];
+	return energy;
+      }
+      
+    }
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]):
 	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
 
-      energy += MIN2(MAX_NINIO, (nl-ns)*P->F_ninio[2]);
+      energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
 
       energy += P->mismatchI[type][si1][sj1]+
 	P->mismatchI[type_2][sq1][sp1];

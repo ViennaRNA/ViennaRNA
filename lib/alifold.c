@@ -331,7 +331,7 @@ PRIVATE int fill_arrays(const char **strings) {
       for (s=0; s<n_seq; s++) {
 	int type;
 	type = pair[S[s][1]][S[s][j]]; if (type==0) type=7;
-	if (type>2) energy += TerminalAU;
+	if (type>2) energy += P->TerminalAU;
 	if ((dangles)&&(j<length))  /* double dangles */
 	  energy += P->dangle3[type][S3[s][j]];
       }
@@ -343,7 +343,7 @@ PRIVATE int fill_arrays(const char **strings) {
 	for (s=0; s<n_seq; s++) {
 	  int type;
 	  type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
-	  if (type>2) energy += TerminalAU;
+	  if (type>2) energy += P->TerminalAU;
 	  if (dangles) {
 	    energy += P->dangle5[type][S5[s][i]];
 	    if (j<length) energy += P->dangle3[type][S3[s][j]];
@@ -423,7 +423,7 @@ void backtrack(const char **strings, int s) {
 	  for (ss=0; ss<n_seq; ss++) {
 	    type[ss] = pair[S[ss][i]][S[ss][j]];
 	    if (type[ss]==0) type[ss] = 7;
-	    if (type[ss]>2) cc += TerminalAU;
+	    if (type[ss]>2) cc += P->TerminalAU;
 	  }
 	  en = cc + f5[i-1];
 	  if (dangles) {
@@ -1115,7 +1115,7 @@ PRIVATE int ML_Energy(int i,  int is_extloop,int n_seq) {
 
     expMLintern[i] = exp( -GT*10./kTn);
   }
-  expTermAU = exp(-TerminalAU*10/kTn);
+  expTermAU = exp(-TerminalAU37*10/kTn);
 
   GT =  ML_BASE37*TT;
   for (i=0; i<length; i++) {

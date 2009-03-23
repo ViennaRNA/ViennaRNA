@@ -1,35 +1,44 @@
-/* 
-    Current free energy parameters are summarized in:
 
-    D.H.Mathews, J. Sabina, M. ZUker, D.H. Turner
-    "Expanded sequence dependence of thermodynamic parameters improves
-    prediction of RNA secondary structure"
-    JMB, 288, pp 911-940, 1999
 
-    Enthalpies taken from:
-    
-    A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
-    "Coaxial stckaing of helices enhances binding of oligoribonucleotides.."
-    PNAS, 91, pp 9218-9222, 1994
-    
-    D.H. Turner, N. Sugimoto, and S.M. Freier.
-    "RNA Structure Prediction",
-    Ann. Rev. Biophys. Biophys. Chem. 17, 167-192, 1988.
-
-    John A.Jaeger, Douglas H.Turner, and Michael Zuker.
-    "Improved predictions of secondary structures for RNA",
-    PNAS, 86, 7706-7710, October 1989.
-    
-    L. He, R. Kierzek, J. SantaLucia, A.E. Walter, D.H. Turner
-    "Nearest-Neughbor Parameters for GU Mismatches...."
-    Biochemistry 1991, 30 11124-11132
-
-    A.E. Peritz, R. Kierzek, N, Sugimoto, D.H. Turner
-    "Thermodynamic Study of Internal Loops in Oligoribonucleotides..."
-    Biochemistry 1991, 30, 6428--6435
-
-    
+/*
+    Automatically generated using the TurnerParser
+    TurnerParser (c) 2008,2009
+      Christian Hoener zu Siederdissen, TBI Vienna
+      choener (at) tbi.univie.ac.at
 */
+
+/*
+     Current free energy parameters are summarized in:
+
+     D.H.Mathews, J. Sabina, M. ZUker, D.H. Turner
+     "Expanded sequence dependence of thermodynamic parameters improves
+     prediction of RNA secondary structure"
+     JMB, 288, pp 911-940, 1999
+
+     Enthalpies taken from:
+
+     A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
+     "Coaxial stckaing of helices enhances binding of oligoribonucleotides.."
+     PNAS, 91, pp 9218-9222, 1994
+
+     D.H. Turner, N. Sugimoto, and S.M. Freier.
+     "RNA Structure Prediction",
+     Ann. Rev. Biophys. Biophys. Chem. 17, 167-192, 1988.
+
+     John A.Jaeger, Douglas H.Turner, and Michael Zuker.
+     "Improved predictions of secondary structures for RNA",
+     PNAS, 86, 7706-7710, October 1989.
+
+     L. He, R. Kierzek, J. SantaLucia, A.E. Walter, D.H. Turner
+     "Nearest-Neughbor Parameters for GU Mismatches...."
+     Biochemistry 1991, 30 11124-11132
+
+     A.E. Peritz, R. Kierzek, N, Sugimoto, D.H. Turner
+     "Thermodynamic Study of Internal Loops in Oligoribonucleotides..."
+     Biochemistry 1991, 30, 6428--6435
+*/
+
+
 
 #include "energy_const.h"
 /*@unused@*/
@@ -39,259 +48,13 @@ static char rcsid[] = "$Id: energy_par.c,v 1.6 2004/08/12 12:11:57 ivo Exp $";
 #define DEF -50   /* Default terminal mismatch, used for I */
                   /* and any non_pairing bases */
 #define NSM 0     /* terminal mismatch for non standard pairs */
- 
+
 #define PUBLIC
 
 PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
 PUBLIC double lxc37=107.856;     /* parameter for logarithmic loop
-				    energy extrapolation            */
+环环环环    energy extrapolation            */
 
-PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] =
-/*          CG     GC     GU     UG     AU     UA  */
-{ {  INF,   INF,   INF,   INF,   INF,   INF,   INF, INF},
-  {  INF,  -240,  -330,  -210,  -140,  -210,  -210, NST},
-  {  INF,  -330,  -340,  -250,  -150,  -220,  -240, NST},
-  {  INF,  -210,  -250,   130,   -50,  -140,  -130, NST},
-  {  INF,  -140,  -150,   -50,    30,   -60,  -100, NST},
-  {  INF,  -210,  -220,  -140,   -60,  -110,   -90, NST},
-  {  INF,  -210,  -240,  -130,  -100,   -90,  -130, NST},
-  {  INF,   NST,   NST,   NST,   NST,   NST,   NST, NST}};
-
-/* enthalpies (0.01*kcal/mol at 37 C) for stacked pairs */
-/* different from mfold-2.3, which uses values from mfold-2.2 */
-PUBLIC int enthalpies[NBPAIRS+1][NBPAIRS+1] = 
-/*          CG     GC     GU     UG     AU     UA  */
-{ {  INF,   INF,   INF,   INF,   INF,   INF,   INF, INF}, 
-  {  INF, -1060, -1340, -1210,  -560, -1050, -1040, NST},
-  {  INF, -1340, -1490, -1260,  -830, -1140, -1240, NST},
-  {  INF, -1210, -1260, -1460, -1350,  -880, -1280, NST},
-  {  INF,  -560,  -830, -1350,  -930,  -320,  -700, NST},
-  {  INF, -1050, -1140,  -880,  -320,  -940,  -680, NST},
-  {  INF, -1040, -1240, -1280,  -700,  -680,  -770, NST},
-  {  INF,   NST,   NST,   NST,   NST,   NST,   NST, NST}};
-
-
-/* old values are here just for comparison */
-PUBLIC int oldhairpin37[31] = { /* from ViennaRNA 1.3 */
-  INF, INF, INF, 410, 490, 440, 470, 500, 510, 520, 531,
-       542, 551, 560, 568, 575, 582, 589, 595, 601, 606,
-       611, 616, 621, 626, 630, 634, 638, 642, 646, 650};
-
-PUBLIC int hairpin37[31] = {
-  INF, INF, INF, 570, 560, 560, 540, 590, 560, 640, 650,
-       660, 670, 678, 686, 694, 701, 707, 713, 719, 725,
-       730, 735, 740, 744, 749, 753, 757, 761, 765, 769};
-
-PUBLIC int oldbulge37[31] = {
-  INF, 390, 310, 350, 420, 480, 500, 516, 531, 543, 555,
-       565, 574, 583, 591, 598, 605, 612, 618, 624, 630,
-       635, 640, 645, 649, 654, 658, 662, 666, 670, 673};
-
-PUBLIC int bulge37[31] = {
-  INF, 380, 280, 320, 360, 400, 440, 459, 470, 480, 490,
-       500, 510, 519, 527, 534, 541, 548, 554, 560, 565,
-  571, 576, 580, 585, 589, 594, 598, 602, 605, 609};
-
-PUBLIC int oldinternal_loop37[31] = {
-  INF, INF, 410, 510, 490, 530, 570, 587, 601, 614, 625,
-       635, 645, 653, 661, 669, 676, 682, 688, 694, 700,
-       705, 710, 715, 720, 724, 728, 732, 736, 740, 744};
-
-PUBLIC int internal_loop37[31] = {
-  INF, INF, 410, 510, 170, 180, 200, 220, 230, 240, 250,
-       260, 270, 278, 286, 294, 301, 307, 313, 319, 325,
-       330, 335, 340, 345, 349, 353, 357, 361, 365, 369};
-  
-/* terminal mismatches */
-/* mismatch free energies for interior loops at 37C */
-PUBLIC int mismatchI37[NBPAIRS+1][5][5] =
-{ /* @@ */
-  {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},
-  { /* CG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,    0,    0, -110,    0}, /* A@  AA  AC  AG  AU */
-   {   0,    0,    0,    0,    0}, /* C@  CA  CC  CG  CU */
-   {   0, -110,    0,    0,    0}, /* G@  GA  GC  GG  GU */
-   {   0,    0,    0,    0,  -70}},/* U@  UA  UC  UG  UU */
-  { /* GC */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,    0,    0, -110,    0}, /* A@  AA  AC  AG  AU */
-   {   0,    0,    0,    0,    0}, /* C@  CA  CC  CG  CU */
-   {   0, -110,    0,    0,    0}, /* G@  GA  GC  GG  GU */
-   {   0,    0,    0,    0,  -70}},/* U@  UA  UC  UG  UU */
-  { /* GU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,   70,   70,  -40,   70}, /* A@  AA  AC  AG  AU */
-   {   0,   70,   70,   70,   70}, /* C@  CA  CC  CG  CU */
-   {   0,  -40,   70,   70,   70}, /* G@  GA  GC  GG  GU */
-   {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
-  { /* UG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,   70,   70,  -40,   70}, /* A@  AA  AC  AG  AU */
-   {   0,   70,   70,   70,   70}, /* C@  CA  CC  CG  CU */
-   {   0,  -40,   70,   70,   70}, /* G@  GA  GC  GG  GU */
-   {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
-  { /* AU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,   70,   70,  -40,   70}, /* A@  AA  AC  AG  AU */
-   {   0,   70,   70,   70,   70}, /* C@  CA  CC  CG  CU */
-   {   0,  -40,   70,   70,   70}, /* G@  GA  GC  GG  GU */
-   {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
-  { /* UA */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,   70,   70,  -40,   70}, /* A@  AA  AC  AG  AU */
-   {   0,   70,   70,   70,   70}, /* C@  CA  CC  CG  CU */
-   {   0,  -40,   70,   70,   70}, /* G@  GA  GC  GG  GU */
-   {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
-  { /* @@ */
-   { 90, 90, 90, 90, 90},{ 90, 90, 90, 90,-20},{ 90, 90, 90, 90, 90},
-   { 90,-20, 90, 90, 90},{ 90, 90, 90, 90, 20}}
-};
-
-/* mismatch free energies for hairpins at 37C */
-PUBLIC int mismatchH37[NBPAIRS+1][5][5] =
-{ /* @@ */
-  {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},
-  { /* CG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { -90, -150, -150, -140, -180}, /* A@  AA  AC  AG  AU */
-   { -90, -100,  -90, -290,  -80}, /* C@  CA  CC  CG  CU */
-   { -90, -220, -200, -160, -110}, /* G@  GA  GC  GG  GU */
-   { -90, -170, -140, -180, -200}},/* U@  UA  UC  UG  UU */
-  { /* GC */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { -70, -110, -150, -130, -210}, /* A@  AA  AC  AG  AU */
-   { -70, -110,  -70, -240,  -50}, /* C@  CA  CC  CG  CU */
-   { -70, -240, -290, -140, -120}, /* G@  GA  GC  GG  GU */
-   { -70, -190, -100, -220, -150}},/* U@  UA  UC  UG  UU */
-  { /* GU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,   20,  -50,  -30,  -30}, /* A@  AA  AC  AG  AU */
-   {   0,  -10,  -20, -150,  -20}, /* C@  CA  CC  CG  CU */
-   {   0,  -90, -110,  -30,    0}, /* G@  GA  GC  GG  GU */
-   {   0,  -30,  -30,  -40, -110}},/* U@  UA  UC  UG  UU */
-  { /* UG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,  -50,  -30,  -60,  -50}, /* A@  AA  AC  AG  AU */
-   {   0,  -20,  -10, -170,    0}, /* C@  CA  CC  CG  CU */
-   {   0,  -80, -120,  -30,  -70}, /* G@  GA  GC  GG  GU */
-   {   0,  -60,  -10,  -60,  -80}},/* U@  UA  UC  UG  UU */
-  { /* AU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,  -30,  -50,  -30,  -30}, /* A@  AA  AC  AG  AU */
-   {   0,  -10,  -20, -150,  -20}, /* C@  CA  CC  CG  CU */
-   {   0, -110, -120,  -20,   20}, /* G@  GA  GC  GG  GU */
-   {   0,  -30,  -30,  -60, -110}},/* U@  UA  UC  UG  UU */
-  { /* UA */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   {   0,  -50,  -30,  -60,  -50}, /* A@  AA  AC  AG  AU */
-   {   0,  -20,  -10, -120,   -0}, /* C@  CA  CC  CG  CU */
-   {   0, -140, -120,  -70,  -20}, /* G@  GA  GC  GG  GU */
-   {   0,  -30,  -10,  -50,  -80}},/* U@  UA  UC  UG  UU */
-  { /* @@ */
-   {  0,  0,  0,  0,  0},{  0,  0,  0,  0,  0},{  0,  0,  0,  0,  0},
-   {  0,  0,  0,  0,  0},{  0,  0,  0,  0,  0}}
-};
-
-/* mismatch energies in multiloops */
-PUBLIC int mismatchM37[NBPAIRS+1][5][5];
-
-/* these are probably junk */
-/* mismatch enthalpies for temperature scaling */
-PUBLIC int mism_H[NBPAIRS+1][5][5] =
-{ /* no pair */
-  {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},
-  { /* CG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF,-1030, -950,-1030,-1030}, /* A@  AA  AC  AG  AU */
-   { DEF, -520, -450, -520, -670}, /* C@  CA  CC  CG  CU */
-   { DEF, -940, -940, -940, -940}, /* G@  GA  GC  GG  GU */
-   { DEF, -810, -740, -810, -860}},/* U@  UA  UC  UG  UU */
-  { /* GC */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF, -520, -880, -560, -880}, /* A@  AA  AC  AG  AU */
-   { DEF, -720, -310, -310, -390}, /* C@  CA  CC  CG  CU */
-   { DEF, -710, -740, -620, -740}, /* G@  GA  GC  GG  GU */
-   { DEF, -500, -500, -500, -570}},/* U@  UA  UC  UG  UU */
-  { /* GU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF, -430, -600, -600, -600}, /* A@  AA  AC  AG  AU */
-   { DEF, -260, -240, -240, -240}, /* C@  CA  CC  CG  CU */
-   { DEF, -340, -690, -690, -690}, /* G@  GA  GC  GG  GU */
-   { DEF, -330, -330, -330, -330}},/* U@  UA  UC  UG  UU */
-  { /* UG */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF, -720, -790, -960, -810}, /* A@  AA  AC  AG  AU */
-   { DEF, -480, -480, -360, -480}, /* C@  CA  CC  CG  CU */
-   { DEF, -660, -810, -920, -810}, /* G@  GA  GC  GG  GU */
-   { DEF, -550, -440, -550, -360}},/* U@  UA  UC  UG  UU */
-  { /* AU */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF, -430, -600, -600, -600}, /* A@  AA  AC  AG  AU */
-   { DEF, -260, -240, -240, -240}, /* C@  CA  CC  CG  CU */
-   { DEF, -340, -690, -690, -690}, /* G@  GA  GC  GG  GU */
-   { DEF, -330, -330, -330, -330}},/* U@  UA  UC  UG  UU */
-  { /* UA */
-   {   0,    0,    0,    0,    0}, /* @@  @A  @C  @G  @U */
-   { DEF, -400, -630, -890, -590}, /* A@  AA  AC  AG  AU */
-   { DEF, -430, -510, -200, -180}, /* C@  CA  CC  CG  CU */
-   { DEF, -380, -680, -890, -680}, /* G@  GA  GC  GG  GU */
-   { DEF, -280, -140, -280, -140}},/* U@  UA  UC  UG  UU */
-  { /* nonstandard pair */
-   {DEF,DEF,DEF,DEF,DEF},{DEF,DEF,DEF,DEF,DEF},{DEF,DEF,DEF,DEF,DEF},
-   {DEF,DEF,DEF,DEF,DEF},{DEF,DEF,DEF,DEF,DEF}}
-};
-
-/* 5' dangling ends (unpaird base stacks on first paired base) */
-PUBLIC int dangle5_37[NBPAIRS+1][5]=
-{/*   @     A     C     G     U   */
-   { INF,  INF,  INF,  INF,  INF}, /* no pair */
-   { INF,  -50,  -30,  -20,  -10}, /* CG  (stacks on C) */
-   { INF,  -20,  -30,   -0,   -0}, /* GC  (stacks on G) */
-   { INF,  -30,  -30,  -40,  -20}, /* GU */
-   { INF,  -30,  -10,  -20,  -20}, /* UG */
-   { INF,  -30,  -30,  -40,  -20}, /* AU */
-   { INF,  -30,  -10,  -20,  -20}, /* UA */
-   {   0,    0,     0,    0,   0}  /*  @ */
-};
-
-/* 3' dangling ends (unpaired base stacks on second paired base */
-PUBLIC int dangle3_37[NBPAIRS+1][5]=
-{/*   @     A     C     G     U   */
-   { INF,  INF,  INF,  INF,  INF},  /* no pair */
-   { INF, -110,  -40, -130,  -60},  /* CG  (stacks on G) */
-   { INF, -170,  -80, -170, -120},  /* GC */
-   { INF,  -70,  -10,  -70,  -10},  /* GU */
-   { INF,  -80,  -50,  -80,  -60},  /* UG */
-   { INF,  -70,  -10,  -70,  -10},  /* AU */
-   { INF,  -80,  -50,  -80,  -60},  /* UA */
-   {   0,    0,     0,    0,   0}   /*  @ */
-};
-
-/* enthalpies for temperature scaling */
-PUBLIC int dangle3_H[NBPAIRS+1][5] =
-{/*   @     A     C     G     U   */
-   { INF,  INF,  INF,  INF,  INF},  /* no pair */
-   {   0, -740, -280, -640, -360},
-   {   0, -900, -410, -860, -750},
-   {   0, -740, -240, -720, -490},
-   {   0, -490,  -90, -550, -230},
-   {   0, -570,  -70, -580, -220},
-   {   0, -490,  -90, -550, -230},
-   {   0,    0,    0,    0,   0}
-};
-
-PUBLIC int dangle5_H[NBPAIRS+1][5] =
-{/*   @     A     C     G     U   */
-   { INF,  INF,  INF,  INF,  INF},  /* no pair */
-   {   0, -240,  330,   80, -140},
-   {   0, -160,   70, -460,  -40},
-   {   0,  160,  220,   70,  310},
-   {   0, -150,  510,   10,  100},
-   {   0,  160,  220,   70,  310},
-   {   0,  -50,  690,  -60,  -60},
-   {   0,    0,    0,    0,   0}
-};
 
 
 /* constants for linearly destabilizing contributions for multi-loops
@@ -301,62 +64,690 @@ PUBLIC int ML_BASE37 = 0;
 PUBLIC int ML_closing37 = 340;
 PUBLIC int ML_intern37 =  40;
 
+/*NOT YET SET*/
+PUBLIC int ML_BASEdH = 0;
+PUBLIC int ML_closingdh = 0;
+PUBLIC int ML_interndH = 0;
+
 /* Ninio-correction for asymmetric internal loops with branches n1 and n2 */
 /*    ninio_energy = min{max_ninio, |n1-n2|*F_ninio[min{4.0, n1, n2}] } */
 PUBLIC int         MAX_NINIO = 300;                   /* maximum correction */
-PUBLIC int F_ninio37[5] = { 0, 40, 50, 20, 10 };      /* only F[2] used */
+PUBLIC int ninio37[4] = { 60, 60, 60, 60 };      /* only F[2] used */
+PUBLIC int niniodH[4] = { 320, 320, 320, 320 };
 
-/* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
 
-PUBLIC char Tetraloops[1400] =  /* place for up to 200 tetra loops */
-  "GGGGAC "
-  "GGUGAC "
-  "CGAAAG "
-  "GGAGAC "
-  "CGCAAG "
-  "GGAAAC "
-  "CGGAAG "
-  "CUUCGG "
-  "CGUGAG "
-  "CGAAGG "
-  "CUACGG "
-  "GGCAAC "
-  "CGCGAG "
-  "UGAGAG "
-  "CGAGAG "
-  "AGAAAU "
-  "CGUAAG "
-  "CUAACG "
-  "UGAAAG "
-  "GGAAGC "
-  "GGGAAC "
-  "UGAAAA "
-  "AGCAAU "
-  "AGUAAU "
-  "CGGGAG "
-  "AGUGAU "
-  "GGCGAC "
-  "GGGAGC "
-  "GUGAAC "
-  "UGGAAA "
-;
-
-PUBLIC int   TETRA_ENERGY37[200] = {
-  -300, -300, -300, -300, -300, -300, -300, -300, -300, -250, -250, -250,
-  -250, -250, -200, -200, -200, -200, -200, -150, -150, -150, -150, -150,
-  -150, -150, -150, -150, -150, -150};
-
-PUBLIC int   TETRA_ENTH37   = -400;
-
-PUBLIC char Triloops[241] = "";
-
-PUBLIC int Triloop_E37[40];
 
 /* penalty for AU (or GU) terminating helix) */
 /* mismatches already contain these */
-PUBLIC int TerminalAU = 50;
+PUBLIC int TerminalAU37 = 50;
+PUBLIC int TerminalAUdH = 370;
 
 /* penalty for forming a bi-molecular duplex */
-PUBLIC int DuplexInit = 410;
+PUBLIC int DuplexInit37 = 410;
+PUBLIC int DuplexInitdH = 360;
 
-#include "intloops.h"
+
+
+PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] =
+/*   NP     CG     GC     GU     UG     AU     UA     NS*/
+{{  INF,   INF,   INF,   INF,   INF,   INF,   INF,   INF},
+ {  INF,  -240,  -330,  -210,  -140,  -210,  -210,   NST},
+ {  INF,  -330,  -340,  -250,  -150,  -220,  -240,   NST},
+ {  INF,  -210,  -250,   130,   -50,  -140,  -130,   NST},
+ {  INF,  -140,  -150,   -50,    30,   -60,  -100,   NST},
+ {  INF,  -210,  -220,  -140,   -60,  -110,   -90,   NST},
+ {  INF,  -210,  -240,  -130,  -100,   -90,  -130,   NST},
+ {  INF,   NST,   NST,   NST,   NST,   NST,   NST,   NST}};
+
+PUBLIC int stackdH[NBPAIRS+1][NBPAIRS+1] =
+/*   NP     CG     GC     GU     UG     AU     UA     NS*/
+{{  INF,   INF,   INF,   INF,   INF,   INF,   INF,   INF},
+ {  INF, -1060, -1340, -1210,  -560, -1050, -1040,   NST},
+ {  INF, -1340, -1490, -1260,  -830, -1140, -1240,   NST},
+ {  INF, -1210, -1260, -1460, -1350,  -880, -1280,   NST},
+ {  INF,  -560,  -830, -1350,  -930,  -320,  -700,   NST},
+ {  INF, -1050, -1140,  -880,  -320,  -940,  -680,   NST},
+ {  INF, -1040, -1240, -1280,  -700,  -680,  -770,   NST},
+ {  INF,   NST,   NST,   NST,   NST,   NST,   NST,   NST}};
+
+PUBLIC int internal_loop37[31] = { INF, INF, INF, INF,  110,  200,  200,  210,  230,  240,  250,  260,  270,  280,  290,  290,  300,  310,  310,  320,  330,  330,  340,  340,  350,  350,  350,  360,  360,  370,  370};
+
+PUBLIC int bulge37[31] = { INF,  380,  280,  320,  360,  400,  440,  460,  470,  480,  490,  500,  510,  520,  530,  540,  540,  550,  550,  560,  570,  570,  580,  580,  580,  590,  590,  600,  600,  600,  610};
+
+PUBLIC int hairpin37[31] = { INF, INF, INF,  540,  560,  570,  540,  600,  550,  640,  650,  660,  670,  680,  690,  690,  700,  710,  710,  720,  720,  730,  730,  740,  740,  750,  750,  750,  760,  760,  770};
+
+
+PUBLIC int internal_loopdH[31] = { INF, INF, INF, INF, -720, -680, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130, -130};
+
+PUBLIC int bulgedH[31] = { INF, 1060,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710,  710};
+
+PUBLIC int hairpindH[31] = { INF, INF, INF,  130,  480,  360, -290,  130, -290,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500,  500};
+
+
+PUBLIC int mismatchI37[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0,  -80,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0, -100,    0, -100,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0,  -60}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0,  -80,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0, -100,    0, -100,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0,  -60}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,   70,   70,  -10,   70}  /*GU A*/
+                  ,{    0,   70,   70,   70,   70}  /*GU C*/
+                  ,{    0,  -30,   70,  -30,   70}  /*GU G*/
+                  ,{    0,   70,   70,   70,   10}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,   70,   70,  -10,   70}  /*UG A*/
+                  ,{    0,   70,   70,   70,   70}  /*UG C*/
+                  ,{    0,  -30,   70,  -30,   70}  /*UG G*/
+                  ,{    0,   70,   70,   70,   10}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,   70,   70,  -10,   70}  /*AU A*/
+                  ,{    0,   70,   70,   70,   70}  /*AU C*/
+                  ,{    0,  -30,   70,  -30,   70}  /*AU G*/
+                  ,{    0,   70,   70,   70,   10}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,   70,   70,  -10,   70}  /*UA A*/
+                  ,{    0,   70,   70,   70,   70}  /*UA C*/
+                  ,{    0,  -30,   70,  -30,   70}  /*UA G*/
+                  ,{    0,   70,   70,   70,   10}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,   70,   70,    0,   70}  /*NS A*/
+                  ,{    0,   70,   70,   70,   70}  /*NS C*/
+                  ,{    0,    0,   70,    0,   70}  /*NS G*/
+                  ,{    0,   70,   70,   70,   10}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatchIdH[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0, -340,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0, -760,    0,  280,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0, -580}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0, -340,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0, -760,    0,  280,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0, -580}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,  500,  500,  170,  500}  /*GU A*/
+                  ,{    0,  500,  500,  500,  500}  /*GU C*/
+                  ,{    0, -260,  500,  790,  500}  /*GU G*/
+                  ,{    0,  500,  500,  500,  -80}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,  500,  500,  170,  500}  /*UG A*/
+                  ,{    0,  500,  500,  500,  500}  /*UG C*/
+                  ,{    0, -260,  500,  790,  500}  /*UG G*/
+                  ,{    0,  500,  500,  500,  -80}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  500,  500,  170,  500}  /*AU A*/
+                  ,{    0,  500,  500,  500,  500}  /*AU C*/
+                  ,{    0, -260,  500,  790,  500}  /*AU G*/
+                  ,{    0,  500,  500,  500,  -80}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,  500,  500,  170,  500}  /*UA A*/
+                  ,{    0,  500,  500,  500,  500}  /*UA C*/
+                  ,{    0, -260,  500,  790,  500}  /*UA G*/
+                  ,{    0,  500,  500,  500,  -80}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,  500,  500,  170,  500}  /*NS A*/
+                  ,{    0,  500,  500,  500,  500}  /*NS C*/
+                  ,{    0,    0,  500,  790,  500}  /*NS G*/
+                  ,{    0,  500,  500,  500,    0}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatchH37[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0, -150, -150, -140, -150}  /*CG A*/
+                  ,{    0, -100, -110, -100,  -80}  /*CG C*/
+                  ,{    0, -230, -150, -240, -150}  /*CG G*/
+                  ,{    0, -100, -140, -100, -210}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0, -110, -150, -130, -150}  /*GC A*/
+                  ,{    0, -110,  -70, -110,  -50}  /*GC C*/
+                  ,{    0, -250, -150, -220, -150}  /*GC G*/
+                  ,{    0, -110, -100, -110, -160}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,   20,  -50,  -30,  -50}  /*GU A*/
+                  ,{    0,  -10,  -20,  -10,  -20}  /*GU C*/
+                  ,{    0, -100,  -50, -110,  -50}  /*GU G*/
+                  ,{    0,  -10,  -30,  -10, -100}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,  -50,  -30,  -60,  -30}  /*UG A*/
+                  ,{    0,  -20,  -10,  -20,    0}  /*UG C*/
+                  ,{    0,  -90,  -30, -110,  -30}  /*UG G*/
+                  ,{    0,  -20,  -10,  -20,  -90}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  -30,  -50,  -30,  -50}  /*AU A*/
+                  ,{    0,  -10,  -20,  -10,  -20}  /*AU C*/
+                  ,{    0, -120,  -50, -110,  -50}  /*AU G*/
+                  ,{    0,  -10,  -30,  -10, -120}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,  -50,  -30,  -50,  -30}  /*UA A*/
+                  ,{    0,  -20,  -10,  -20,    0}  /*UA C*/
+                  ,{    0, -150,  -30, -150,  -30}  /*UA G*/
+                  ,{    0,  -20,  -10,  -20,  -90}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,   20,    0,    0,    0}  /*NS A*/
+                  ,{    0,    0,    0,    0,    0}  /*NS C*/
+                  ,{    0,    0,    0,    0,    0}  /*NS G*/
+                  ,{    0,    0,    0,    0,    0}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatchHdH[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0, -910, -560, -560, -560}  /*CG A*/
+                  ,{    0, -570, -340, -570, -270}  /*CG C*/
+                  ,{    0,-1400,  560, -920, -560}  /*CG G*/
+                  ,{    0, -570, -530, -570,-1440}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0, -520, -400, -560, -400}  /*GC A*/
+                  ,{    0, -720,   50, -720, -420}  /*GC C*/
+                  ,{    0,-1290, -400, -620, -400}  /*GC G*/
+                  ,{    0, -720,  -30, -720,-1080}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,   30,  570,   20,  570}  /*GU A*/
+                  ,{    0,  140,  970,  140,  340}  /*GU C*/
+                  ,{    0, -270,  570,   20,  570}  /*GU G*/
+                  ,{    0,  140,  830,  140,  -50}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0, -110, -260, -520, -260}  /*UG A*/
+                  ,{    0,  -60, -140,  -60,  190}  /*UG C*/
+                  ,{    0,  100, -260,  220, -260}  /*UG G*/
+                  ,{    0,  -60,  230,  -60,  -70}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  -20,  570,   20,  570}  /*AU A*/
+                  ,{    0,  140,  970,  140,  340}  /*AU C*/
+                  ,{    0, -520,  570,   20,  570}  /*AU G*/
+                  ,{    0,  140,  830,  140, -380}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,  -30, -260, -520, -260}  /*UA A*/
+                  ,{    0,  -60, -140,  -60,  190}  /*UA C*/
+                  ,{    0, -590, -260, -520, -260}  /*UA G*/
+                  ,{    0,  -60,  230,  -60,  -70}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,   30,  570,   20,  570}  /*NS A*/
+                  ,{    0,  140,  970,  140,  340}  /*NS C*/
+                  ,{    0,  100,  570,  220,  570}  /*NS G*/
+                  ,{    0,  140,  830,  140,    0}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatchM37[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0, -150, -150, -140, -150}  /*CG A*/
+                  ,{    0, -100, -110, -100,  -80}  /*CG C*/
+                  ,{    0, -140, -150, -160, -150}  /*CG G*/
+                  ,{    0, -100, -140, -100, -120}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0, -110, -150, -130, -150}  /*GC A*/
+                  ,{    0, -110,  -70, -110,  -50}  /*GC C*/
+                  ,{    0, -160, -150, -140, -150}  /*GC G*/
+                  ,{    0, -110, -100, -110,  -70}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,  -30, -100,  -80, -100}  /*GU A*/
+                  ,{    0,  -60,  -70,  -60,  -70}  /*GU C*/
+                  ,{    0,  -60, -100,  -80, -100}  /*GU G*/
+                  ,{    0,  -60,  -80,  -60,  -60}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0, -100,  -80, -110,  -80}  /*UG A*/
+                  ,{    0,  -70,  -60,  -70,  -50}  /*UG C*/
+                  ,{    0,  -50,  -80,  -80,  -80}  /*UG G*/
+                  ,{    0,  -70,  -60,  -70,  -50}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  -80, -100,  -80, -100}  /*AU A*/
+                  ,{    0,  -60,  -70,  -60,  -70}  /*AU C*/
+                  ,{    0,  -80, -100,  -80, -100}  /*AU G*/
+                  ,{    0,  -60,  -80,  -60,  -80}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0, -100,  -80, -110,  -80}  /*UA A*/
+                  ,{    0,  -70,  -60,  -70,  -50}  /*UA C*/
+                  ,{    0, -110,  -80, -120,  -80}  /*UA G*/
+                  ,{    0,  -70,  -60,  -70,  -50}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,    0,    0,    0,    0}  /*NS A*/
+                  ,{    0,    0,    0,    0,    0}  /*NS C*/
+                  ,{    0,    0,    0,    0,    0}  /*NS G*/
+                  ,{    0,    0,    0,    0,    0}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatchMdH[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0, -910, -560, -560, -560}  /*CG A*/
+                  ,{    0, -570, -340, -570, -270}  /*CG C*/
+                  ,{    0, -820, -560, -920, -560}  /*CG G*/
+                  ,{    0, -570, -530, -570, -860}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0, -520, -400, -560, -400}  /*GC A*/
+                  ,{    0, -720,   50, -720, -420}  /*GC C*/
+                  ,{    0, -710, -400, -620, -400}  /*GC G*/
+                  ,{    0, -720,  -30, -720, -500}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0, -340,  200, -350,  200}  /*GU A*/
+                  ,{    0, -230,  600, -230,  -30}  /*GU C*/
+                  ,{    0,  -60,  200, -350,  200}  /*GU G*/
+                  ,{    0, -230,  460, -230,  160}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0, -480, -630, -890, -630}  /*UG A*/
+                  ,{    0, -430, -510, -430, -180}  /*UG C*/
+                  ,{    0,  310, -630, -150, -630}  /*UG G*/
+                  ,{    0, -430, -140, -430,  140}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0, -390,  200, -350,  200}  /*AU A*/
+                  ,{    0, -230,  600, -230,  -30}  /*AU C*/
+                  ,{    0, -310,  200, -350,  200}  /*AU G*/
+                  ,{    0, -230,  460, -230, -170}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0, -400, -630, -890, -630}  /*UA A*/
+                  ,{    0, -430, -510, -430, -180}  /*UA C*/
+                  ,{    0, -380, -630, -890, -630}  /*UA G*/
+                  ,{    0, -430, -140, -430,  140}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,    0,  200,    0,  200}  /*NS A*/
+                  ,{    0,    0,  600,    0,    0}  /*NS C*/
+                  ,{    0,  310,  200,    0,  200}  /*NS G*/
+                  ,{    0,    0,  460,    0,  160}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatch1nI37[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0,    0,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0,    0,    0,    0,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0,    0}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0,    0,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0,    0,    0,    0,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0,    0}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,   70,   70,   70,   70}  /*GU A*/
+                  ,{    0,   70,   70,   70,   70}  /*GU C*/
+                  ,{    0,   70,   70,   70,   70}  /*GU G*/
+                  ,{    0,   70,   70,   70,   70}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,   70,   70,   70,   70}  /*UG A*/
+                  ,{    0,   70,   70,   70,   70}  /*UG C*/
+                  ,{    0,   70,   70,   70,   70}  /*UG G*/
+                  ,{    0,   70,   70,   70,   70}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,   70,   70,   70,   70}  /*AU A*/
+                  ,{    0,   70,   70,   70,   70}  /*AU C*/
+                  ,{    0,   70,   70,   70,   70}  /*AU G*/
+                  ,{    0,   70,   70,   70,   70}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,   70,   70,   70,   70}  /*UA A*/
+                  ,{    0,   70,   70,   70,   70}  /*UA C*/
+                  ,{    0,   70,   70,   70,   70}  /*UA G*/
+                  ,{    0,   70,   70,   70,   70}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,   70,   70,   70,   70}  /*NS A*/
+                  ,{    0,   70,   70,   70,   70}  /*NS C*/
+                  ,{    0,   70,   70,   70,   70}  /*NS G*/
+                  ,{    0,   70,   70,   70,   70}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatch1nIdH[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0,    0,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0,    0,    0,    0,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0,    0}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0,    0,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0,    0,    0,    0,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0,    0}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,  500,  500,  500,  500}  /*GU A*/
+                  ,{    0,  500,  500,  500,  500}  /*GU C*/
+                  ,{    0,  500,  500,  500,  500}  /*GU G*/
+                  ,{    0,  500,  500,  500,  500}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,  500,  500,  500,  500}  /*UG A*/
+                  ,{    0,  500,  500,  500,  500}  /*UG C*/
+                  ,{    0,  500,  500,  500,  500}  /*UG G*/
+                  ,{    0,  500,  500,  500,  500}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  500,  500,  500,  500}  /*AU A*/
+                  ,{    0,  500,  500,  500,  500}  /*AU C*/
+                  ,{    0,  500,  500,  500,  500}  /*AU G*/
+                  ,{    0,  500,  500,  500,  500}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,  500,  500,  500,  500}  /*UA A*/
+                  ,{    0,  500,  500,  500,  500}  /*UA C*/
+                  ,{    0,  500,  500,  500,  500}  /*UA G*/
+                  ,{    0,  500,  500,  500,  500}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,  500,  500,  500,  500}  /*NS A*/
+                  ,{    0,  500,  500,  500,  500}  /*NS C*/
+                  ,{    0,  500,  500,  500,  500}  /*NS G*/
+                  ,{    0,  500,  500,  500,  500}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatch23I37[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0,  -50,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0, -110,    0,  -70,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0,  -30}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0,    0,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0, -120,    0,  -70,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0,  -30}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,   70,   70,   70,   70}  /*GU A*/
+                  ,{    0,   70,   70,   70,   70}  /*GU C*/
+                  ,{    0,  -40,   70,    0,   70}  /*GU G*/
+                  ,{    0,   70,   70,   70,   40}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,   70,   70,   20,   70}  /*UG A*/
+                  ,{    0,   70,   70,   70,   70}  /*UG C*/
+                  ,{    0,  -40,   70,    0,   70}  /*UG G*/
+                  ,{    0,   70,   70,   70,   40}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,   70,   70,   70,   70}  /*AU A*/
+                  ,{    0,   70,   70,   70,   70}  /*AU C*/
+                  ,{    0,  -40,   70,    0,   70}  /*AU G*/
+                  ,{    0,   70,   70,   70,   40}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,   70,   70,   20,   70}  /*UA A*/
+                  ,{    0,   70,   70,   70,   70}  /*UA C*/
+                  ,{    0,  -40,   70,    0,   70}  /*UA G*/
+                  ,{    0,   70,   70,   70,   40}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,   70,   70,   70,   70}  /*NS A*/
+                  ,{    0,   70,   70,   70,   70}  /*NS C*/
+                  ,{    0,    0,   70,    0,   70}  /*NS G*/
+                  ,{    0,   70,   70,   70,   40}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int mismatch23IdH[NBPAIRS+1][5][5] =
+                 {{{    0,    0,    0,    0,    0}  /*NP E*/
+                  ,{    0,    0,    0,    0,    0}  /*NP A*/
+                  ,{    0,    0,    0,    0,    0}  /*NP C*/
+                  ,{    0,    0,    0,    0,    0}  /*NP G*/
+                  ,{    0,    0,    0,    0,    0}  /*NP U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*CG E*/
+                  ,{    0,    0,    0, -570,    0}  /*CG A*/
+                  ,{    0,    0,    0,    0,    0}  /*CG C*/
+                  ,{    0, -860,    0, -900,    0}  /*CG G*/
+                  ,{    0,    0,    0,    0, -640}  /*CG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GC E*/
+                  ,{    0,    0,    0,    0,    0}  /*GC A*/
+                  ,{    0,    0,    0,    0,    0}  /*GC C*/
+                  ,{    0,-1090,    0, -900,    0}  /*GC G*/
+                  ,{    0,    0,    0,    0, -640}  /*GC U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*GU E*/
+                  ,{    0,  500,  500,  500,  500}  /*GU A*/
+                  ,{    0,  500,  500,  500,  500}  /*GU C*/
+                  ,{    0, -580,  500, -400,  500}  /*GU G*/
+                  ,{    0,  500,  500,  500, -140}  /*GU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UG E*/
+                  ,{    0,  500,  500,  -60,  500}  /*UG A*/
+                  ,{    0,  500,  500,  500,  500}  /*UG C*/
+                  ,{    0, -360,  500, -400,  500}  /*UG G*/
+                  ,{    0,  500,  500,  500, -140}  /*UG U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*AU E*/
+                  ,{    0,  500,  500,  500,  500}  /*AU A*/
+                  ,{    0,  500,  500,  500,  500}  /*AU C*/
+                  ,{    0, -580,  500, -400,  500}  /*AU G*/
+                  ,{    0,  500,  500,  500, -140}  /*AU U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*UA E*/
+                  ,{    0,  500,  500,  -60,  500}  /*UA A*/
+                  ,{    0,  500,  500,  500,  500}  /*UA C*/
+                  ,{    0, -360,  500, -400,  500}  /*UA G*/
+                  ,{    0,  500,  500,  500, -140}  /*UA U*/
+                                                           }
+                 ,{{    0,    0,    0,    0,    0}  /*NS E*/
+                  ,{    0,  500,  500,  500,  500}  /*NS A*/
+                  ,{    0,  500,  500,  500,  500}  /*NS C*/
+                  ,{    0,    0,  500,    0,  500}  /*NS G*/
+                  ,{    0,  500,  500,  500,    0}  /*NS U*/
+                                                           }
+                                                           }
+;
+
+
+PUBLIC int dangle3_37[NBPAIRS+1][5] =
+/*   E     A     C     G     U  */
+{{  INF,  INF,  INF,  INF,  INF}  /*NP*/
+,{  INF, -110,  -40, -130,  -60}  /*CG*/
+,{  INF, -170,  -80, -170, -120}  /*GC*/
+,{  INF,  -70,  -10,  -70,  -10}  /*GU*/
+,{  INF,  -80,  -50,  -80,  -60}  /*UG*/
+,{  INF,  -70,  -10,  -70,  -10}  /*AU*/
+,{  INF,  -80,  -50,  -80,  -60}  /*UA*/
+,{    0,    0,    0,    0,    0}  /*NS*/
+};
+
+PUBLIC int dangle5_37[NBPAIRS+1][5] =
+/*   E     A     C     G     U  */
+{{  INF,  INF,  INF,  INF,  INF}  /*NP*/
+,{  INF,  -50,  -30,  -20,  -10}  /*CG*/
+,{  INF,  -20,  -30,   -0,   -0}  /*GC*/
+,{  INF,  -30,  -30,  -40,  -20}  /*GU*/
+,{  INF,  -30,  -10,  -20,  -20}  /*UG*/
+,{  INF,  -30,  -30,  -40,  -20}  /*AU*/
+,{  INF,  -30,  -10,  -20,  -20}  /*UA*/
+,{    0,    0,    0,    0,    0}  /*NS*/
+};
+
+PUBLIC int dangle3_dH[NBPAIRS+1][5] =
+/*   E     A     C     G     U  */
+{{  INF,  INF,  INF,  INF,  INF}  /*NP*/
+,{    0, -740, -280, -640, -360}  /*CG*/
+,{    0, -900, -410, -860, -750}  /*GC*/
+,{    0, -570,  -70, -580, -220}  /*GU*/
+,{    0, -490,  -90, -550, -230}  /*UG*/
+,{    0, -570,  -70, -580, -220}  /*AU*/
+,{    0, -490,  -90, -550, -230}  /*UA*/
+,{    0,    0,    0,    0,    0}  /*NS*/
+};
+
+PUBLIC int dangle5_dH[NBPAIRS+1][5] =
+/*   E     A     C     G     U  */
+{{  INF,  INF,  INF,  INF,  INF}  /*NP*/
+,{    0, -240,  330,   80, -140}  /*CG*/
+,{    0, -160,   70, -460,  -40}  /*GC*/
+,{    0,  160,  220,   70,  310}  /*GU*/
+,{    0,  -50,  690,   60,   60}  /*UG*/
+,{    0,  160,  220,   70,  310}  /*AU*/
+,{    0,  -50,  690,   60,   60}  /*UA*/
+,{    0,    0,    0,    0,    0}  /*NS*/
+};
+
+PUBLIC char Triloops[241] =
+  "CAACG "
+  "GUUAC "
+;
+PUBLIC int Triloop37[40] = {   680,   690 };
+
+PUBLIC int TriloopdH[40] = {  2370,  1080 };
+
+PUBLIC char Tetraloops[1400] =
+  "CUACGG "
+  "CUCCGG "
+  "CUUCGG "
+  "CUUUGG "
+  "CCAAGG "
+  "CCCAGG "
+  "CCGAGG "
+  "CCUAGG "
+  "CCACGG "
+  "CCGCGG "
+  "CCUCGG "
+  "CUAAGG "
+  "CUCAGG "
+  "CUUAGG "
+  "CUGCGG "
+  "CAACGG "
+;
+PUBLIC int Tetraloop37[200] = {   280,   270,   370,   370,   330,   340,   350,   370,   370,   360,   250,   360,   370,   350,   280,   550 };
+
+PUBLIC int TetraloopdH[200] = { -1070, -1290, -1530,  -680, -1030,  -890,  -660,  -350,  -330,  -750, -1390,  -760,  -660,  -620, -1070,   690 };
+
+PUBLIC char Hexaloops[1800] =
+  "ACAGUGCU "
+  "ACAGUGAU "
+  "ACAGUGUU "
+  "ACAGUACU "
+;
+PUBLIC int Hexaloop37[200] = {   290,   360,   180,   280 };
+
+PUBLIC int HexaloopdH[200] = { -1280, -1140, -1540, -1680 };
+
+
+
+#include "intl11.h"
+#include "intl11dH.h"
+#include "intl21.h"
+#include "intl21dH.h"
+#include "intl22.h"
+#include "intl22dH.h"
+

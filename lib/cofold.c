@@ -22,6 +22,7 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "subopt.h"
+#include "fold.h"
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $";
@@ -35,11 +36,10 @@ static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $
 #define NEW_NINIO     1   /* new asymetry penalty */
 #define free_arrays free_co_arrays
 #define initialize_fold initialize_cofold
-#define update_fold_params update_cofold_params
 PUBLIC float  cofold(const char *string, char *structure);
 PUBLIC void   free_arrays(void);
 PUBLIC void   initialize_fold(int length);
-PUBLIC void   update_fold_params(void);
+PUBLIC void   update_cofold_params(void);
 PUBLIC float *get_monomer_mfes();
 extern int    logML;    /* if nonzero use logarithmic ML energy in
 			     energy_of_struct */
@@ -57,9 +57,9 @@ PRIVATE void backtrack(const char *sequence);
 PRIVATE int fill_arrays(const char *sequence);
 /*@unused@*/
 inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
-inline PRIVATE int  LoopEnergy(int n1, int n2, int type, int type_2,
+inline PUBLIC int  LoopEnergy(int n1, int n2, int type, int type_2,
 			 int si1, int sj1, int sp1, int sq1);
-inline PRIVATE int  HairpinE(int size, int type, int si1, int sj1, const char *string);
+inline PUBLIC int  HairpinE(int size, int type, int si1, int sj1, const char *string);
 PRIVATE void free_end(int *array, int i, int start);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
@@ -107,7 +107,7 @@ PUBLIC void initialize_fold(int length)
   for (n = 1; n <= (unsigned) length; n++)
     indx[n] = (n*(n-1)) >> 1;        /* n(n-1)/2 */
 
-  update_fold_params();
+  update_cofold_params();
 }
 
 /*--------------------------------------------------------------------------*/
@@ -173,7 +173,7 @@ float cofold(const char *string, char *structure) {
 
   length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 
   encode_seq(string);
 
@@ -1028,7 +1028,7 @@ PRIVATE void free_end(int *array, int i, int start) {
 
 
 /*---------------------------------------------------------------------------*/
-
+#if 0
 inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
   energy = (size <= 30) ? P->hairpin[size] :
@@ -1056,7 +1056,6 @@ inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 }
 
 /*---------------------------------------------------------------------------*/
-
 inline PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int n1, n2, m, energy;
@@ -1085,10 +1084,10 @@ inline PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_
 	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
 
 #if NEW_NINIO
-      energy += MIN2(MAX_NINIO, (n2-n1)*P->F_ninio[2]);
+      energy += MIN2(MAX_NINIO, (n2-n1)*P->ninio37[2]);
 #else
       m       = MIN2(4, n1);
-      energy += MIN2(MAX_NINIO,((n2-n1)*P->F_ninio[m]));
+      energy += MIN2(MAX_NINIO,((n2-n1)*P->ninio37[m]));
 #endif
       energy += P->mismatchI[type][S1[i+1]][S1[j-1]]+
 	P->mismatchI[type_2][S1[q+1]][S1[p-1]];
@@ -1138,7 +1137,7 @@ inline int LoopEnergy(int n1, int n2, int type, int type_2,
       energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]):
 	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
 
-      energy += MIN2(MAX_NINIO, (nl-ns)*P->F_ninio[2]);
+      energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
 
       energy += P->mismatchI[type][si1][sj1]+
 	P->mismatchI[type_2][sq1][sp1];
@@ -1146,8 +1145,7 @@ inline int LoopEnergy(int n1, int n2, int type, int type_2,
   }
   return energy;
 }
-
-
+#endif
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void encode_seq(const char *sequence) {
@@ -1211,10 +1209,11 @@ PRIVATE void parenthesis_structure(char *structure, int length)
 }
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_fold_params(void)
+PUBLIC void update_cofold_params(void)
 {
   P = scale_parameters();
   make_pair_matrix();
+  update_fold_params();
   if (init_length < 0) init_length=0;
 }
 

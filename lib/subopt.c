@@ -843,7 +843,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
 
 	if (!(SAME_STRAND(k,j)))/*&&(state->is_duplex==0))*/ {
-	  element_energy+=DuplexInit;
+	  element_energy+=P->DuplexInit;
 	  /*state->is_duplex=1;*/
 	}
 
@@ -864,7 +864,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	else
 	  element_energy = 0;
 
-	if (!(SAME_STRAND(1,j))) element_energy+=DuplexInit;
+	if (!(SAME_STRAND(1,j))) element_energy+=P->DuplexInit;
 	if (type>2)
 	  element_energy += P->TerminalAU;
 
