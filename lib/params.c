@@ -64,7 +64,7 @@ PUBLIC paramT *scale_parameters(void)
   }
   p.MLclosing = ML_closing37*tempf;
 
-  p.TerminalAU = TerminalAU37dH - (TerminalAU37dH - TerminalAU37) * tempf;
+  p.TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
   
   p.DuplexInit = DuplexInit37*tempf;
 
@@ -104,8 +104,8 @@ PUBLIC paramT *scale_parameters(void)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
 	for (l=0; l<5; l++) 
-	  p.int11[i][j][k][l] = int11_H[i][j][k][l] -
-	    (int11_H[i][j][k][l] - int11_37[i][j][k][l])*tempf;
+	  p.int11[i][j][k][l] = int11_dH[i][j][k][l] -
+	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*tempf;
 
   /* interior 2x1 loops */
   for (i=0; i<=NBPAIRS; i++)
@@ -114,8 +114,8 @@ PUBLIC paramT *scale_parameters(void)
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++)
-	    p.int21[i][j][k][l][m] = int21_H[i][j][k][l][m] -
-	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
+	    p.int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] -
+	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
 	}
   /* interior 2x2 loops */
   for (i=0; i<=NBPAIRS; i++)
@@ -125,8 +125,8 @@ PUBLIC paramT *scale_parameters(void)
 	  int m,n;
 	  for (m=0; m<5; m++)
 	    for (n=0; n<5; n++)	     
-	      p.int22[i][j][k][l][m][n] = int22_H[i][j][k][l][m][n] -
-		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
+	      p.int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] -
+		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
 	}
   /* interior 2x3 loops */
  
@@ -231,7 +231,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     /* if (i>2) GT += TerminalAU; */
     pf.expMLintern[i] = exp( -GT*10./kT);
   }
-  GT = TerminalAU37dH - (TerminalAU37dH - TerminalAU37)*TT;
+  GT = TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT;
   pf.expTermAU = exp(-GT*10/kT);
 
   GT = ML_BASE37*TT;
@@ -284,8 +284,8 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
 	for (l=0; l<5; l++) {
-	  GT = int11_H[i][j][k][l] -
-	    (int11_H[i][j][k][l] - int11_37[i][j][k][l])*TT;
+	  GT = int11_dH[i][j][k][l] -
+	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
 	  pf.expint11[i][j][k][l] = exp(-GT*10./kT);
 	}
   /* interior 2x1 loops */
@@ -295,8 +295,8 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++) {
-	    GT = int21_H[i][j][k][l][m] - 
-	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
+	    GT = int21_dH[i][j][k][l][m] - 
+	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
 	    pf.expint21[i][j][k][l][m] = exp(-GT*10./kT);
 	  }
 	}
@@ -309,8 +309,8 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
 	  int m,n;
 	  for (m=0; m<5; m++)
 	    for (n=0; n<5; n++) {            
-	      GT = int22_H[i][j][k][l][m][n] -
-		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
+	      GT = int22_dH[i][j][k][l][m][n] -
+		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
 	      pf.expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
 	    }
 	}

@@ -847,7 +847,7 @@ INLINE int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 	return (P->Triloop_E[(ts - P->Triloops)/6]);
       }
      if (type>2)  /* neither CG nor GC */
-	energy += P->TerminalAU37; /* penalty for closing AU GU pair IVOO??
+	energy += P->TerminalAU; /* penalty for closing AU GU pair IVOO??
 				    sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
       return energy;
     }
@@ -936,7 +936,7 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
         else {
 	energy = (nl+1<=MAXLOOP)?(P->internal_loop[nl+1]):
 	(P->internal_loop[30]+(int)(P->lxc*log((nl+1)/30.)));
-	energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio37[2]);
+	energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
 	energy += P->mismatch1nI[type][si1][sj1]+
 	P->mismatch1nI[type_2][sq1][sp1];
 	return energy;
@@ -946,7 +946,7 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
       if(nl==2)      {   /* 2x2 loop */
 	return P->int22[type][type_2][si1][sp1][sq1][sj1];}
       else if (nl==3)  {
-	energy =P->internal_loop[5]+P->ninio37[2];
+	energy =P->internal_loop[5]+P->ninio[2];
 	energy += P->mismatch23I[type][si1][sj1]+
 	  P->mismatch23I[type_2][sq1][sp1];
 	return energy;

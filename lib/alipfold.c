@@ -777,7 +777,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
     GT =  ML_intern37*TT;
     expMLintern[i] = exp( -GT*10./kTn);
   }
-  GT = (TerminalAU37dH - (TerminalAU37dH - TerminalAU37)*TT);
+  GT = (TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT);
   expTermAU = exp(-GT*10/kTn);
 
   GT =  ML_BASE37*TT;
@@ -826,8 +826,8 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
 	for (l=0; l<5; l++) {
-	  GT = int11_H[i][j][k][l] -
-	    (int11_H[i][j][k][l] - int11_37[i][j][k][l])*TT;
+	  GT = int11_dH[i][j][k][l] -
+	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
 	  expint11[i][j][k][l] = exp(-GT*10./kTn);
 	}
   /* interior 2x1 loops */
@@ -837,8 +837,8 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++) {
-	    GT = int21_H[i][j][k][l][m] -
-	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
+	    GT = int21_dH[i][j][k][l][m] -
+	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
 	    expint21[i][j][k][l][m] = exp(-GT*10./kTn);
 	  }
 	}
@@ -850,8 +850,8 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 	  int m,n;
 	  for (m=0; m<5; m++)
 	    for (n=0; n<5; n++) {
-	      GT = int22_H[i][j][k][l][m][n] -
-		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
+	      GT = int22_dH[i][j][k][l][m][n] -
+		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
 	      expint22[i][j][k][l][m][n] = exp(-GT*10./kTn);
 	    }
 	}

@@ -506,16 +506,16 @@ PRIVATE void scale_pf_params(unsigned int length)
   }
 
   for (i=0; i<5; i++) {
-    GT = F_ninio37[i]*TT;
+    GT = ninio37[i]*TT;
     for (j=0; j<=MAXLOOP; j++)
       expninio[i][j]=exp(-MIN(MAX_NINIO,j*GT)*10/kT);
   }
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
-    GT = TETRA_ENTH37 - (TETRA_ENTH37-TETRA_ENERGY37[i])*TT;
+    GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
     exptetra[i] = exp( -GT*10./kT);
   }
   for (i=0; (i*5)<strlen(Triloops); i++)
-    expTriloop[i] = exp(-Triloop_E37[i]*10/kT);
+    expTriloop[i] = exp(-Triloop37[i]*10/kT);
 
   GT =  ML_closing37*TT;
   expMLclosing = exp( -GT*10/kT);
@@ -525,7 +525,7 @@ PRIVATE void scale_pf_params(unsigned int length)
     /* if (i>2) GT += TerminalAU; */
     expMLintern[i] = exp( -GT*10./kT);
   }
-  expTermAU = exp(-TerminalAU*10/kT);
+  expTermAU = exp(-TerminalAU37*10/kT);
 
   GT =  ML_BASE37*TT;
   for (i=0; i<length; i++) {
@@ -538,9 +538,9 @@ PRIVATE void scale_pf_params(unsigned int length)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
       if (dangles) {
-	GT = dangle5_H[i][j] - (dangle5_H[i][j] - dangle5_37[i][j])*TT;
+	GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
 	expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
-	GT = dangle3_H[i][j] - (dangle3_H[i][j] - dangle3_37[i][j])*TT;
+	GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
 	expdangle3[i][j] =  exp(SMOOTH(-GT)*10./kT);
       } else
 	expdangle3[i][j] = expdangle5[i][j] = 1;
@@ -551,7 +551,7 @@ PRIVATE void scale_pf_params(unsigned int length)
   /* stacking energies */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++) {
-      GT =  enthalpies[i][j] - (enthalpies[i][j] - stack37[i][j])*TT;
+      GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
       expstack[i][j] = exp( -GT*10/kT);
     }
 
@@ -559,11 +559,11 @@ PRIVATE void scale_pf_params(unsigned int length)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchI37[i][j][k])*TT;
+	GT = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
 	expmismatchI[i][j][k] = exp(-GT*10.0/kT);
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchH37[i][j][k])*TT;
+	GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
 	expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-	GT = mism_H[i][j][k] - (mism_H[i][j][k] - mismatchM37[i][j][k])*TT;
+	GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
 	expmismatchM[i][j][k] = exp(-GT*10.0/kT);
       }
 
@@ -572,8 +572,8 @@ PRIVATE void scale_pf_params(unsigned int length)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
 	for (l=0; l<5; l++) {
-	  GT = int11_H[i][j][k][l] -
-	    (int11_H[i][j][k][l] - int11_37[i][j][k][l])*TT;
+	  GT = int11_dH[i][j][k][l] -
+	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
 	  expint11[i][j][k][l] = exp(-GT*10./kT);
 	}
   /* interior 2x1 loops */
@@ -583,8 +583,8 @@ PRIVATE void scale_pf_params(unsigned int length)
 	for (l=0; l<5; l++) {
 	  int m;
 	  for (m=0; m<5; m++) {
-	    GT = int21_H[i][j][k][l][m] -
-	      (int21_H[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
+	    GT = int21_dH[i][j][k][l][m] -
+	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
 	    expint21[i][j][k][l][m] = exp(-GT*10./kT);
 	  }
 	}
@@ -596,8 +596,8 @@ PRIVATE void scale_pf_params(unsigned int length)
 	  int m,n;
 	  for (m=0; m<5; m++)
 	    for (n=0; n<5; n++) {
-	      GT = int22_H[i][j][k][l][m][n] -
-		(int22_H[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
+	      GT = int22_dH[i][j][k][l][m][n] -
+		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
 	      expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
 	    }
 	}

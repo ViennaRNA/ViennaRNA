@@ -110,11 +110,11 @@ PUBLIC void read_parameter_file(const char fname[])
 	case MMM:    rd_mismatch(mismatchM37); changed |= MMM; break;
 	case MM_H:   rd_mismatch(mismatchHdH); changed |= MM_H; break;
 	case INT11:  rd_int11(int11_37);       changed |= INT11; break;
-	case INT11_H:rd_int11(int11_H);        changed |= INT11_H; break;
+	case INT11_H:rd_int11(int11_dH);        changed |= INT11_H; break;
 	case INT21:  rd_int21(int21_37);       changed |= INT21; break;
-	case INT21_H:rd_int21(int21_H);        changed |= INT21_H; break;
+	case INT21_H:rd_int21(int21_dH);        changed |= INT21_H; break;
 	case INT22:  rd_int22(int22_37);       changed |= INT22; break;
-	case INT22_H:rd_int22(int22_H);        changed |= INT22_H; break;
+	case INT22_H:rd_int22(int22_dH);        changed |= INT22_H; break;
 	case DE5:    rd_dangle(dangle5_37);    changed |= DE5;  break;
 	case DE5_H:  rd_dangle(dangle5_dH);    changed |= DE5_H;  break;
 	case DE3:    rd_dangle(dangle3_37);    changed |= DE3; break;
@@ -614,7 +614,7 @@ PUBLIC void write_parameter_file(const char fname[]) {
     for (l=1; l<NBPAIRS+1; l++) {
       fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
       for (i=0; i<5; i++) 
-	display_array(int11_H[k][l][i],5,5, outfp);
+	display_array(int11_dH[k][l][i],5,5, outfp);
     }
   }
 
@@ -638,7 +638,7 @@ PUBLIC void write_parameter_file(const char fname[]) {
 	fprintf(outfp, "/* %2s.%c..%2s */\n",
 		pnames[p1], bnames[i], pnames[p2]);
 	for (j=0; j<5; j++)
-	  display_array(int21_H[p1][p2][i][j],5,5, outfp);
+	  display_array(int21_dH[p1][p2][i][j],5,5, outfp);
       }
   }
 
@@ -664,7 +664,7 @@ PUBLIC void write_parameter_file(const char fname[]) {
 	  fprintf(outfp, "/* %2s.%c%c..%2s */\n",
 		  pnames[p1], bnames[i], bnames[j], pnames[p2]);
 	  for (k=1; k<5; k++) 
-	    display_array(int22_H[p1][p2][i][j][k]+1,4,5, outfp);
+	    display_array(int22_dH[p1][p2][i][j][k]+1,4,5, outfp);
 	}
   }
   
@@ -726,7 +726,7 @@ PRIVATE void check_symmetry(void) {
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
         for (l=0; l<5; l++) 
-          if (int11_H[i][j][k][l] != int11_H[j][i][l][k])
+          if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
 	    fprintf(stderr, "WARNING: int11 enthalpies not symmetric\n");
 
   /* interior 2x2 loops */
@@ -748,7 +748,7 @@ PRIVATE void check_symmetry(void) {
           int m,n;
           for (m=0; m<5; m++)
             for (n=0; n<5; n++)      
-              if (int22_H[i][j][k][l][m][n] != int22_H[j][i][m][n][k][l])
+              if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
 		fprintf(stderr, "WARNING: int22 enthalpies not symmetric: %d %d %d %d %d %d\n", i,j,k,l,m,n);
         }
 }
