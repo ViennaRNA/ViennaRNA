@@ -846,9 +846,9 @@ INLINE int HairpinE(int size, int type, int si1, int sj1, const char *string) {
       if ((ts=strstr(P->Triloops, tl))) {
 	return (P->Triloop_E[(ts - P->Triloops)/6]);
       }
-     if (type>2)  /* neither CG nor GC */
-	energy += P->TerminalAU; /* penalty for closing AU GU pair IVOO??
-				    sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
+      if (type>2)  /* neither CG nor GC */
+        energy += P->TerminalAU; /* penalty for closing AU GU pair IVOO??
+                                    sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
       return energy;
     }
    }
