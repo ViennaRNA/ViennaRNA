@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2008-06-06 17:39:02 ulim> */
 /*                
 
-		  c Ivo Hofacker
+                  c Ivo Hofacker
 
-		  Vienna RNA package
+                  Vienna RNA package
 */
 #include <config.h>
 #include <stdio.h>
@@ -57,37 +57,32 @@ PUBLIC paramT *scale_parameters(void)
   for (i=0; (i*9)<strlen(Hexaloops); i++) 
     p.Hexaloop_E[i] =  HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*tempf;
   
+  p.TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
+  
+  p.DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) *tempf;
+
   p.MLbase = ML_BASE37*tempf;
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     p.MLintern[i] = ML_intern37*tempf;
-    p.MLintern[i] +=  (i>2)?TerminalAU37:0;
+    p.MLintern[i] +=  (i>2)? p.TerminalAU:0;
   }
   p.MLclosing = ML_closing37*tempf;
 
-  p.TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
-  
-  p.DuplexInit = DuplexInit37*tempf;
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
-      p.stack[i][j] = stackdH[i][j] -
-	(stackdH[i][j] - stack37[i][j])*tempf;
+      p.stack[i][j] = stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*tempf;
 
   /* mismatches */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-	p.mismatchI[i][j][k] = mismatchIdH[i][j][k] -
-	  (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*tempf;
-
-	p.mismatchH[i][j][k] = mismatchHdH[i][j][k] -
-	  (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
-	p.mismatchM[i][j][k] = mismatchMdH[i][j][k] -
-	  (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
-	p.mismatch1nI[i][j][k] = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
-	p.mismatch23I[i][j][k] = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
-	
+        p.mismatchI[i][j][k]    = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*tempf;
+        p.mismatchH[i][j][k]    = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
+        p.mismatchM[i][j][k]    = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
+        p.mismatch1nI[i][j][k]  = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
+        p.mismatch23I[i][j][k]  = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
       }
    
   /* dangles */
@@ -103,31 +98,28 @@ PUBLIC paramT *scale_parameters(void)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) 
-	  p.int11[i][j][k][l] = int11_dH[i][j][k][l] -
-	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*tempf;
+        for (l=0; l<5; l++) 
+          p.int11[i][j][k][l] = int11_dH[i][j][k][l] - (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*tempf;
 
   /* interior 2x1 loops */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m;
-	  for (m=0; m<5; m++)
-	    p.int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] -
-	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
-	}
+        for (l=0; l<5; l++) {
+          int m;
+          for (m=0; m<5; m++)
+            p.int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] - (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*tempf;
+        }
   /* interior 2x2 loops */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m,n;
-	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++)	     
-	      p.int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] -
-		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
-	}
+        for (l=0; l<5; l++) {
+          int m,n;
+          for (m=0; m<5; m++)
+            for (n=0; n<5; n++)             
+              p.int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] - (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
+        }
   /* interior 2x3 loops */
  
   strncpy(p.Tetraloops, Tetraloops, 1400);
@@ -196,7 +188,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
    
   pf.lxc = lxc37*TT;
   
-  GT =  DuplexInit37*TT;
+  GT =  DuplexInitdH - (DuplexInitdH - DuplexInit37)*TT;
   pf.expDuplexInit = exp( -GT*10./kT);
   
   for (i=31; i<=MAXLOOP; i++) {
@@ -207,7 +199,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   }
 
   for (i=0; i<5; i++) {
-    GT = ninio37[i]*TT;
+    GT = niniodH[i] - (niniodH[i] - ninio37[i])*TT;
     for (j=0; j<=MAXLOOP; j++)
       pf.expninio[i][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
   }
@@ -245,14 +237,14 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
       if (dangles) {
-	GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
-	pf.expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
-	GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
-	pf.expdangle3[i][j] =  exp(SMOOTH(-GT)*10./kT);
+        GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
+        pf.expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
+        GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
+        pf.expdangle3[i][j] =  exp(SMOOTH(-GT)*10./kT);
       } else
-	pf.expdangle3[i][j] = pf.expdangle5[i][j] = 1;
+        pf.expdangle3[i][j] = pf.expdangle5[i][j] = 1;
       if (i>2) /* add TermAU penalty into dangle3 */
-	pf.expdangle3[i][j] *= pf.expTermAU;
+        pf.expdangle3[i][j] *= pf.expTermAU;
     }
 
   /* stacking energies */
@@ -266,16 +258,16 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-	GT =  mismatchIdH[i][j][k] - ( mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
-	pf.expmismatchI[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
-	pf.expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
-	pf.expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-	pf.expmismatchM[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
-	pf.expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
+        GT =  mismatchIdH[i][j][k] - ( mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
+        pf.expmismatchI[i][j][k] = exp(-GT*10.0/kT);
+        GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
+        pf.expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
+        GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
+        pf.expmismatchH[i][j][k] = exp(-GT*10.0/kT);
+        GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
+        pf.expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+        GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
+        pf.expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
       }
   
   
@@ -283,50 +275,50 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  GT = int11_dH[i][j][k][l] -
-	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
-	  pf.expint11[i][j][k][l] = exp(-GT*10./kT);
-	}
+        for (l=0; l<5; l++) {
+          GT = int11_dH[i][j][k][l] -
+            (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
+          pf.expint11[i][j][k][l] = exp(-GT*10./kT);
+        }
   /* interior 2x1 loops */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m;
-	  for (m=0; m<5; m++) {
-	    GT = int21_dH[i][j][k][l][m] - 
-	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
-	    pf.expint21[i][j][k][l][m] = exp(-GT*10./kT);
-	  }
-	}
+        for (l=0; l<5; l++) {
+          int m;
+          for (m=0; m<5; m++) {
+            GT = int21_dH[i][j][k][l][m] - 
+              (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
+            pf.expint21[i][j][k][l][m] = exp(-GT*10./kT);
+          }
+        }
 
   /* interior 2x2 loops */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m,n;
-	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++) {            
-	      GT = int22_dH[i][j][k][l][m][n] -
-		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
-	      pf.expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
-	    }
-	}
+        for (l=0; l<5; l++) {
+          int m,n;
+          for (m=0; m<5; m++)
+            for (n=0; n<5; n++) {            
+              GT = int22_dH[i][j][k][l][m][n] -
+                (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
+              pf.expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
+            }
+        }
  /* interior 2x3 loops * /
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m,n;
-	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++) {            
-	      GT = int23_H[i][j][k][l][m][n] -
-		(int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
-	      pf.expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
-	    }
-	}
+        for (l=0; l<5; l++) {
+          int m,n;
+          for (m=0; m<5; m++)
+            for (n=0; n<5; n++) {            
+              GT = int23_H[i][j][k][l][m][n] -
+                (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
+              pf.expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
+            }
+        }
  */
 
   strncpy(pf.Tetraloops, Tetraloops, 1400);
