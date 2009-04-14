@@ -167,15 +167,6 @@ PRIVATE short *S, *S1;
 PRIVATE char *ptype;
 
 PRIVATE const paramT *P;
-/* extern float energy_of_struct(char *, char *); */
-extern int  LoopEnergy(int n1, int n2, int type, int type_2,
-		       int si1, int sj1, int sp1, int sq1);
-extern int  HairpinE(int size, int type, int si1, int sj1, const char *string);
-extern void export_fold_arrays(int **f5_p, int **c_p, int **fML_p,
-			       int **fM1_p, int **indx_p, char **ptype_p);
-extern void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p,
-				 int **fM1_p, int **fc_p, int **indx_p,
-				 char **ptype_p);
 extern int  uniq_ML;
 extern  int cut_point;   /* set to first pos of second seq for cofolding */
 

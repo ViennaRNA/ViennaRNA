@@ -49,9 +49,6 @@ PRIVATE void  make_ptypes(const short *S, int i, int maxdist, int n);
 PRIVATE void  encode_seq(char *sequence);
 PRIVATE char * backtrack(char *sequence, int start, int maxdist);
 PRIVATE int fill_arrays(char *sequence, int maxdist);
-extern  int  LoopEnergy(int n1, int n2, int type, int type_2,
-			int si1, int sj1, int sp1, int sq1);
-extern  int  HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 /*@unused@*/
 #define MAXSECTORS      500     /* dimension for a backtrack array */

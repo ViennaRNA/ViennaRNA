@@ -43,9 +43,6 @@ PRIVATE void make_pscores(const char ** AS,
 PRIVATE short *encode_seq(const char *sequence);
 PRIVATE int fill_arrays(char **strings, int maxdist, char *structure);
 PRIVATE char  *backtrack(char **strings, int start, int maxdist);
-extern  int  LoopEnergy(int n1, int n2, int type, int type_2,
-			int si1, int sj1, int sp1, int sq1);
-extern  int  HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */

@@ -55,11 +55,6 @@ PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void backtrack(const char *sequence);
 
 PRIVATE int fill_arrays(const char *sequence);
-/*@unused@*/
-inline PRIVATE  int   oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
-inline PUBLIC int  LoopEnergy(int n1, int n2, int type, int type_2,
-			 int si1, int sj1, int sp1, int sq1);
-inline PUBLIC int  HairpinE(int size, int type, int si1, int sj1, const char *string);
 PRIVATE void free_end(int *array, int i, int start);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
@@ -1027,125 +1022,6 @@ PRIVATE void free_end(int *array, int i, int start) {
 }
 
 
-/*---------------------------------------------------------------------------*/
-#if 0
-inline int HairpinE(int size, int type, int si1, int sj1, const char *string) {
-  int energy;
-  energy = (size <= 30) ? P->hairpin[size] :
-    P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-  if (tetra_loop)
-    if (size == 4) { /* check for tetraloop bonus */
-      char tl[7]={0}, *ts;
-      strncpy(tl, string, 6);
-      if ((ts=strstr(P->Tetraloops, tl)))
-	energy += P->TETRA_ENERGY[(ts-P->Tetraloops)/7];
-    }
-  if (size == 3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(P->Triloops, tl)))
-      energy += P->Triloop_E[(ts-P->Triloops)/6];
-
-    if (type>2)  /* neither CG nor GC */
-      energy += P->TerminalAU; /* penalty for closing AU GU pair */
-  }
-  else  /* no mismatches for tri-loops */
-    energy += P->mismatchH[type][si1][sj1];
-
-  return energy;
-}
-
-/*---------------------------------------------------------------------------*/
-inline PRIVATE int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
-  /* compute energy of degree 2 loop (stack bulge or interior) */
-  int n1, n2, m, energy;
-  n1 = p-i-1;
-  n2 = j-q-1;
-
-  if (n1>n2) { m=n1; n1=n2; n2=m; } /* so that n2>=n1 */
-
-  if (n2 == 0)
-    energy = P->stack[type][type_2];   /* stack */
-
-  else if (n1==0) {                  /* bulge */
-    energy = (n2<=MAXLOOP)?P->bulge[n2]:
-      (P->bulge[30]+(int)(P->lxc*log(n2/30.)));
-
-#if STACK_BULGE1
-    if (n2==1) energy+=P->stack[type][type_2];
-#endif
-  } else {                           /* interior loop */
-
-    if ((n1+n2==2)&&(james_rule))
-      /* special case for loop size 2 */
-      energy = P->int11[type][type_2][S1[i+1]][S1[j-1]];
-    else {
-      energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]):
-	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
-
-#if NEW_NINIO
-      energy += MIN2(MAX_NINIO, (n2-n1)*P->ninio37[2]);
-#else
-      m       = MIN2(4, n1);
-      energy += MIN2(MAX_NINIO,((n2-n1)*P->ninio37[m]));
-#endif
-      energy += P->mismatchI[type][S1[i+1]][S1[j-1]]+
-	P->mismatchI[type_2][S1[q+1]][S1[p-1]];
-    }
-  }
-  return energy;
-}
-
-/*--------------------------------------------------------------------------*/
-
-inline int LoopEnergy(int n1, int n2, int type, int type_2,
-		      int si1, int sj1, int sp1, int sq1) {
-  /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, energy;
-
-  if (n1>n2) { nl=n1; ns=n2;}
-  else {nl=n2; ns=n1;}
-
-  if (nl == 0)
-    return P->stack[type][type_2];    /* stack */
-
-  if (ns==0) {                       /* bulge */
-    energy = (nl<=MAXLOOP)?P->bulge[nl]:
-      (P->bulge[30]+(int)(P->lxc*log(nl/30.)));
-    if (nl==1) energy += P->stack[type][type_2];
-    else {
-      if (type>2) energy += P->TerminalAU;
-      if (type_2>2) energy += P->TerminalAU;
-    }
-    return energy;
-  }
-  else {                             /* interior loop */
-    if (ns==1) {
-      if (nl==1)                     /* 1x1 loop */
-	return P->int11[type][type_2][si1][sj1];
-      if (nl==2) {                   /* 2x1 loop */
-	if (n1==1)
-	  energy = P->int21[type][type_2][si1][sq1][sj1];
-	else
-	  energy = P->int21[type_2][type][sq1][si1][sp1];
-	return energy;
-      }
-    }
-    else if (n1==2 && n2==2)         /* 2x2 loop */
-      return P->int22[type][type_2][si1][sp1][sq1][sj1];
-    { /* generic interior loop (no else here!)*/
-      energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]):
-	(P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
-
-      energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
-
-      energy += P->mismatchI[type][si1][sj1]+
-	P->mismatchI[type_2][sq1][sp1];
-    }
-  }
-  return energy;
-}
-#endif
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void encode_seq(const char *sequence) {

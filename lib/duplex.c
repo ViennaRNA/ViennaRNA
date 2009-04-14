@@ -56,8 +56,6 @@ PRIVATE paramT *P = NULL;
 PRIVATE int   **c;      /* energy array, given that i-j pair */
 PRIVATE short  *S1, *SS1, *S2, *SS2;
 PRIVATE int   n1,n2;    /* sequence lengths */
-extern  int  LoopEnergy(int n1, int n2, int type, int type_2,
-                        int si1, int sj1, int sp1, int sq1);
 
 PRIVATE int delay_free=0;
 /*--------------------------------------------------------------------------*/
