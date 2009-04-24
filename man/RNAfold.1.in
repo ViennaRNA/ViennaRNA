@@ -75,6 +75,14 @@ formed simultaneously. A second postscript dot plot called "name_dp2.ps", or
 pair probabilities in the upper right half and stack probabilities in the
 lower left.
 .TP
+.BI \-MEA\  [gamma]
+Calculate an MEA (maximum expected accuracy) structure, computed as the
+optimal structure when each base pair (i,j) is scored by it's pair
+probability p_ij and each unpaired base is given a score gamma.
+Using -MEA implies -p for computing the pair probabilities.
+A default of gamma=0.05 is used unless specified. Note that for gamma=0.25
+the MEA structure is identical to the centroid.
+.TP
 .B \-C
 Calculate structures subject to constraints.
 The program reads first the sequence, then a string containing constraints
@@ -149,8 +157,6 @@ given 0 stacking energy.
 In the calculation of the pf use \fIscale\fP*mfe as an estimate for the
 ensemble free energy (used to avoid overflows). The default is 1.07,
 useful values are 1.0 to 1.2. Occasionally needed for long sequences.
-You can also recompile the program to use double precision (see the README
-file).
 .TP
 .B \-circ
 Assume a circular (instead of linear) RNA molecule.
@@ -189,11 +195,11 @@ binding probabilities for RNA secondary structures, Biopolymers 29: 1105\-1119
 .br
 I.L. Hofacker & P.F. Stadler (2006)
 Memory Efficient Folding Algorithms for Circular RNA Secondary
-Structures, Bioinformatics (2006)
+Structures, Bioinformatics
 .br
 A.F. Bompfünewerer, R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker,
 P.F. Stadler, S. Will (2007)
-"Variations on {RNA} Folding and Alignment: Lessons from Benasque"
+"Variations on RNA Folding and Alignment: Lessons from Benasque"
 J. Math. Biol.
 .br
 D. Adams (1979) The hitchhiker's guide to the galaxy, Pan Books, London

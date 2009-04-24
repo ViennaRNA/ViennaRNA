@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
+/* Last changed Time-stamp: <2009-04-20 19:05:51 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -17,9 +17,10 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
+#include "MEA.h"
 extern void  read_parameter_file(const char fname[]);
-extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
+
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
 
@@ -47,6 +48,8 @@ int main(int argc, char *argv[])
   int   pf=0, noPS=0, istty;
   int noconv=0;
   int circ=0;
+  int doMEA=0;
+  double MEAgamma = 0.05;
 
   do_backtrack = 1;
   string=NULL;
@@ -103,6 +106,15 @@ int main(int argc, char *argv[])
 	  if (i==argc-1) usage();
 	  ParamFile = argv[++i];
 	  break;
+	case 'M':
+	  if (strcmp(argv[i], "-MEA")==0) pf=doMEA=1;
+	  if (i<argc-1)
+	    if (isdigit(argv[i+1][0]) || argv[i+1][0]=='.') {
+	      r=sscanf(argv[++i], "%lf", &MEAgamma);
+	      if (r!=1) usage();
+	    }
+	  break;
+
 	default: usage();
 	}
   }
@@ -204,7 +216,7 @@ int main(int argc, char *argv[])
       strcpy(gfname, "rna.g");
     }
     if (!noPS) (void) PS_rna_plot(string, structure, ffname);
-    if (length>2000) free_arrays(); 
+    if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
@@ -259,6 +271,16 @@ int main(int argc, char *argv[])
 	}
 	free(pl1);
 	free(pf_struc);
+	if (doMEA) {
+	  float mea, mea_en;
+	  plist *pl;
+	  pl = make_plist(length, MEAgamma/2);
+	  mea = MEA(pl, structure, MEAgamma);
+	  mea_en = (circ) ? energy_of_circ_struct(string, structure) :
+			    energy_of_struct(string, structure);
+	  printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+	  free(pl);
+	}
       }
       printf(" frequency of mfe structure in ensemble %g; ",
 	     exp((energy-min_en)/kT));
@@ -266,6 +288,8 @@ int main(int argc, char *argv[])
 	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
 
       printf("\n");
+
+
       free_pf_arrays();
 
     }

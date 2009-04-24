@@ -1,5 +1,5 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2009-01-13 18:48:46 ivo>
+@c Last changed Time-stamp: <2009-04-24 13:10:54 ivo>
 @set revision $Id: RNAlib.texinfo,v 1.25 2009/01/13 17:49:58 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
@@ -189,12 +189,12 @@ after a change in folding parameters like temperature
 @deftypefun double mean_bp_dist (int @var{length})
 computes the mean base pair distance in the equilibrium ensemble as a
 measure of the structural diversity.  It is given by @math{<d> =
-sum_{a,b} p_a * p_b * d(a,b)}, where the sum goes over all pairs of
+\sum_{a,b} p_a * p_b * d(a,b)}, where the sum goes over all pairs of
 possible structure @math{a,b}, @math{p_a} is the Boltzmann weight of
 structure @math{a}, and @math{d(a,b)} is the base pair distance (see
 @code{bp_distance()} in @xref{Distances}.). The mean base pair distances
 can be computed efficiently from the pair probabilities @math{p_ij} as
-@math{<d> = sum_{ij} p_ij * (1-p_ij)}. Uses the global @code{pr} array
+@math{<d> = \sum_{ij} p_{ij} * (1-p_{ij})}. Uses the global @code{pr} array
 filled by a previous call to @code{pf_fold()}.
 @end deftypefun
 
@@ -207,6 +207,16 @@ the centroid to the ensemble is returned in @var{dist}.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{part_func.h}.
+
+@deftypefun float *MEA (plist *@var{pl}, char *@var{structure}, double @var{gamma})
+Computes a MEA (maximum expected accuracy) structure, such that expected
+accuracy @math{ A(S) = \sum_{(i,j) \in S} p_{ij} + \sum_{i \notin S} \gamma} 
+is maximised. For @math{\gamma = 0} this is the structure expected
+to have to maximum number of correct pairs. Higher values of @math{\gamma}
+result in higher specificity at the cost of lower sensitivity. For
+@math{\gamma=0.25} the MEA structure is identical to the centroid.
+@end deftypefun
+The corresponding protoype is declared in @file{MEA.h}.
 
 @node Inverse Fold, Suboptimal folding, PF Fold, Folding Routines
 @section  Inverse Folding

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-04-24 11:34:16 ivo> */
+/* Last changed Time-stamp: <2009-04-24 11:48:38 ivo> */
 /*
 		  minimum free energy folding
 		  for a set of aligned sequences

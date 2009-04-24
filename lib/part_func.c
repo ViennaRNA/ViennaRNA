@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:52:28 ronny> */
+/* Last changed Time-stamp: <2009-04-20 19:24:12 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -198,11 +198,11 @@ PUBLIC float pf_circ_fold(char *sequence, char *structure){
   return free_energy;
 }
 
-PUBLIC void pf_linear(char *sequence, char *structure)
+PRIVATE void pf_linear(char *sequence, char *structure)
 {
 
-  int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt;
-  FLT_OR_DBL temp, Q, Qmax=0;
+  int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt;
+  FLT_OR_DBL temp, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
 
   double max_real;
@@ -317,7 +317,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
       }
       if (temp>=max_real) {
 	PRIVATE char msg[128];
-	sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
+	snprintf(msg, 127, "overflow in pf_fold while calculating q[%d,%d]\n"
 	"use larger pf_scale", i,j);
 	nrerror(msg);
       }
@@ -349,6 +349,7 @@ PRIVATE void pf_circ(char *sequence, char *structure){
   for(p = 1; p < n; p++){
     for(q = p + TURN + 1; q <= n; q++){
       int type;
+      char loopseq[10];
       /* 1. get exterior hairpin contribution  */
       u = n-q + p-1;
       if (u<TURN) continue;
@@ -357,7 +358,6 @@ PRIVATE void pf_circ(char *sequence, char *structure){
        /* cause we want to calc the exterior loops, we need the reversed pair type from now on  */
       type=rtype[type];
 
-      char loopseq[10];
       if (u<7){
 	strcpy(loopseq , sequence+q-1);
 	strncat(loopseq, sequence, p);
@@ -400,7 +400,7 @@ PRIVATE void pf_circ(char *sequence, char *structure){
 }
 
 /* calculate base pairing probs */
-PUBLIC void pf_create_bppm(char *sequence, char *structure)
+PRIVATE void pf_create_bppm(char *sequence, char *structure)
 {
   int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
   FLT_OR_DBL temp, Qmax=0, prm_MLb;
@@ -433,13 +433,15 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
 	  ij = iindx[i]-j;
 	  type = ptype[ij];
 	  if (type&&(qb[ij]>0.)) {
+	    int rt, u;
+	    char loopseq[10];
+
+	    u = i + n - j -1;
+	    rt = rtype[type];
 	    pr[ij] = 1./qo;
-	    int rt = rtype[type];
 
 	    /* 1.1. Exterior Hairpin Contribution */
-	    int u = i + n - j -1;
 	    /* get the loop sequence */
-	    char loopseq[10];
 	    if (u<7){
 	      strcpy(loopseq , sequence+j-1);
 	      strncat(loopseq, sequence, i);
@@ -1117,8 +1119,9 @@ char *pbacktrack_circ(char *seq){
 
   for(i=1; (i < n); i++){
     for(j=i+TURN+1;(j<=n); j++){
-
       int type, u;
+      char loopseq[10];
+
       /* 1. first check, wether we can do a hairpin loop  */
       u = n-j + i-1;
       if (u<TURN) continue;
@@ -1128,7 +1131,6 @@ char *pbacktrack_circ(char *seq){
 
       type=rtype[type];
 
-      char loopseq[10];
       if (u<7){
 	strcpy(loopseq , sequence+j-1);
 	strncat(loopseq, sequence, i);
@@ -1278,7 +1280,7 @@ static void backtrack(int i, int j) {
   /* backtrack in multi-loop */
   {
     double r, qt;
-    int k, l, ii, jj, type;
+    int k, ii, jj;
 
     i++; j--;
     /* find the first split index */

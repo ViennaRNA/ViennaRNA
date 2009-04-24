@@ -1,13 +1,14 @@
+.\" -*-nroff-*-
 .\" .ER
 .TH "RNAalifold" "l" "1.8" "Ivo Hofacker" "ViennaRNA"
 .SH "NAME"
 RNAalifold \- calculate secondary structures for a set of aligned RNAs
 .SH "SYNOPSIS"
-\fBRNAalifold\fP [\-cv \ \fIweight\fP] [\-nc \ \fIweight\fP] [\-E] 
+\fBRNAalifold\fP [\-cv \ \fIweight\fP] [\-nc \ \fIweight\fP] [\-E]
 [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
 [\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
-\fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [\fI<file.aln>\fP]
-[\-s\ \fInumber of sequences\fP] [\-se\ \fInumber of structures\fP]
+\fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
+[\-s\ \fInum\fP] [\-se\ \fInum\fP] [\fI<file.aln>\fP]
 
 .SH "DESCRIPTION"
 .I RNAalifold
@@ -23,28 +24,35 @@ and a "dot plot" of the base pairing matrix ("alidot.ps"). The file
 suitable for viewing  with "AliDot.pl". Be warned that output file will
 overwrite any existing files of the same name.
 .SH "OPTIONS"
-.TP 
-.B \-cv \fIfactor\fP
+.TP
+.BI \-cv\  factor
 Set the weight of the covariance term in the energy function to
 \fIfactor\fP. Default is 1.
-.TP 
-.B \-nc \fIfactor\fP
+.TP
+.BI \-nc\  factor
 Set the penalty for non\-compatible sequences in the covariance term of the
 energy function to \fIfactor\fP. Default is 1.
-.TP 
+.TP
 .B \-E
 Score pairs with endgaps same as gap-gap pairs.
-.TP 
+.TP
 .B \-mis
-Output "most informative sequence" instead of simple consensus: For each 
-column of the alignment output the set of nucleotides with frequence greater 
+Output "most informative sequence" instead of simple consensus: For each
+column of the alignment output the set of nucleotides with frequency greater
 than average in IUPAC notation.
-.TP 
+.TP
 .B \-p
 Calculate the partition function and base pairing probability matrix in
 addition to the mfe structure. Default is calculation of mfe structure
-only. Additionaly, the centroid structure is computed and printed out.
-.TP 
+only. Additionally, the centroid structure is computed and printed out.
+.TP
+.BI \-MEA\  [gamma]
+Calculate an MEA (maximum expected accuracy) structure, computed as the
+optimal structure when each base pair (i,j) is scored by it's pair
+probability p_ij and each unpaired base is given a score gamma.
+A default of gamma=0.05 is used unless specified. Note that for gamma=0.25
+the MEA structure is identical to the centroid.
+.TP
 .B \-noLP
 Avoid structures without lonely pairs (helices of length 1). In the mfe
 case structures with lonely pairs are strictly forbidden. For partition
@@ -55,47 +63,44 @@ Setting this option provides a significant speedup.
 Assume circular (instead of linear) RNA molecules.
 .TP
 .B \-color
-Produce a colored version of the consensus strcture plot "alirna.ps"
+Produce a colored version of the consensus structure plot "alirna.ps"
 (default b&w only).
 .TP
 .B \-aln
 Produce a colored and structure annotated alignment in PostScript format in
 the file "aln.ps" in the current directory.
-.PP 
 .TP
-.B \-s  \fInum\fP
-Stochastic backtrack. Compute \fInum\fP random structures with a
-probability dependend on the partition function. See -p in RNAsubopt. 
-.PP 
+.BI \-s\  num
+Compute a stochastic sample of \fInum\fP random structures chosen according
+to their Boltzmann probability. See the -p option in RNAsubopt.
 .TP
-.B \-se \fInum\fP
-like \fB\-s\fP, but also print out the energies and probabilities of the
-backtracked structures.
-.PP
+.BI \-se\  num
+like \fB\-s\fP, but also print out the energy and probability of each
+structure in the sample.
 .TP
-.B \-R \fIRibosum_Matrix\fP
-use specified Ribosum Matrix instead of normal energy model. Matrixes to
-use should be 6x6 matrices, the order of the terms is AU, CG, GC, GU, UA, UG.  
-.PP
+.BI \-R\  Ribosum_Matrix
+use specified Ribosum Matrix instead of normal energy model. Matrices to
+use should be 6x6 matrices, the order of the terms is AU, CG, GC, GU, UA, UG.
 .TP
-.B \-r 
-use ribosum scoring matrix. The matrix is chosen according to the minimal
+.B \-r
+use Ribosum scoring matrix. The matrix is chosen according to the minimal
 and maximal pairwise identities of the sequences in the file.
-.PP
+When using Ribosum scores, best benchmark results were achieved with
+options -cv 0.6 -nc 0.5 (see above).
 .TP
-.B \-old 
+.B \-old
 use old energy evaluation, treating gaps as characters.
 .PP
 The \fB\-T\fP, \fB\-d\fP, \fB\-4\fP, \fB\-noGU\fP, \fB\-noCloseGU\fP,
 \fB\-e\fP, \fB\-P\fP, \fB\-nsp\fP, options should work as in RNAfold
 
 If using \fB\-C\fP constraints will be read from stdin, the alignment
-has to given as a filename on the command line. 
+has to given as a file name on the command line.
 
 .SH "CAVEATS"
 Sequences are not weighted. If possible, do not mix very similar and
 dissimilar sequences. Duplicate sequences, for example, can distort the
-prediction. 
+prediction.
 .SH "SEE ALSO"
 The ALIDOT package http://www.tbi.univie.ac.at/RNA/ALIDOT/
 .SH "REFERENCES"
@@ -103,29 +108,29 @@ The algorithm is a variant of the dynamic programming algorithms of
 M. Zuker and P. Stiegler (mfe) and J.S. McCaskill (pf) adapted for sets of
 aligned sequences with covariance information.
 The energy parameters are taken from:
-.br 
-.PP 
+.br
+.PP
 D.H. Mathews, J. Sabina, M. Zuker and H. Turner
 "Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust
-Prediction of RNA Secondary Structure" 
+Prediction of RNA Secondary Structure"
 JMB, 288, pp 911\-940, 1999
-.br 
+.PP
 If you use this program in your work you might want to cite:
-.br 
-.PP 
+.PP
 Ivo L. Hofacker, Martin Fekete, and Peter F. Stadler
-"Secondary Structure Prediction for Aligned RNA Sequences" 
-J.Mol.Biol. 319: 1059\-1066 (2002).
-.br 
+"Secondary Structure Prediction for Aligned RNA Sequences".
+J.Mol.Biol. 319: 1059\-1066, 2002.
+.br
+Stephan H. Bernhart, Ivo L. Hofacker, Sebastian Will, Andreas R. Gruber,
+and Peter F. Stadler.
+"RNAalifold: Improved consensus structure prediction for RNA alignments".
+BMC Bioinformatics, 9:474, 2008
+.br
 .SH "VERSION"
 This man page documents version @VERSION@ of the Vienna RNA Package.
 .SH "AUTHORS"
 Ivo L Hofacker <ivo@tbi.univie.ac.at>
 .SH "BUGS"
 If in doubt our program is right, nature is at fault.
+.br
 Comments should be sent to rna@tbi.univie.ac.at.
-
-\"  LocalWords:  RNAalifold ViennaRNA RNAs fBRNAalifold fP fI fItemp noLP noGU
-\"  LocalWords:  noCloseGU fIparamfile nsp fIpairs fIscale fIfile aln stdin mfe
-\"  LocalWords:  alirna ps alidot alifold AliDot TP cv fIfactor nc fBonly fB br
-\"  LocalWords:  fUshould RNAfold Stiegler McCaskill JMB Fekete CLUSTAL stdout

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-04-24 11:32:11 ivo> */
+/* Last changed Time-stamp: <2009-04-24 11:55:44 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -20,6 +20,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 #include "aln_util.h"
+#include "MEA.h"
 extern void  read_parameter_file(const char fname[]);
 extern float energy_of_circ_struct(const char *seq, const char *structure);
 
@@ -59,6 +60,10 @@ int main(int argc, char *argv[])
   int doColor=0;
   int n_back=0;
   int eval_energy = 0;
+  int doMEA=0;
+  double MEAgamma = 0.05;
+
+
   do_backtrack = 1;
   string=NULL;
   dangles=2;
@@ -124,6 +129,14 @@ int main(int argc, char *argv[])
 	case 'P':
 	  if (i==argc-1) usage();
 	  ParamFile = argv[++i];
+	  break;
+	case 'M':
+	  if (strcmp(argv[i], "-MEA")==0) pf=doMEA=1;
+	  if (i<argc-1)
+	    if (isdigit(argv[i+1][0]) || argv[i+1][0]=='.') {
+	      r=sscanf(argv[++i], "%lf", &MEAgamma);
+	      if (r!=1) usage();
+	    }
 	  break;
 	case 'c':
 	  if ( strcmp(argv[i], "-cv")==0) {
@@ -315,16 +328,15 @@ int main(int argc, char *argv[])
 
     if (n_back>0) {
       /*stochastic sampling*/
-    for (i=0; i<n_back; i++) {
-	 char *s;
-	 double prob=1.;
-	 s =alipbacktrack(&prob);
-	 printf("%s ", s);
-	 if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+      for (i=0; i<n_back; i++) {
+	char *s;
+	double prob=1.;
+	s =alipbacktrack(&prob);
+	printf("%s ", s);
+	if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
 	printf("\n");
-	 free(s);
+	free(s);
       }
-
     }
     if (do_backtrack) {
       printf("%s", structure);
@@ -341,13 +353,19 @@ int main(int argc, char *argv[])
       cpair *cp;
       char *cent;
       double dist;
-      if (!circ){
-	float en, CVen;
-	cent = centroid_ali(length, &dist,pl);
+      float en, CVen;
+      cent = centroid_ali(length, &dist, pl);
 
-	en = energy_of_alistruct(AS, cent, n_seq, &CVen);
-	printf("%s %6.2f {%6.2f + %6.2f}\n",cent,en-CVen,en,-CVen);
-	free(cent);
+      en = energy_of_alistruct(AS, cent, n_seq, &CVen);
+      printf("%s %6.2f {%6.2f + %6.2f}\n",cent,en-CVen,en,-CVen);
+      free(cent);
+
+      if  (doMEA) {
+	float mea, mea_en, CVen;
+	mea = MEA(pl, structure, MEAgamma);
+	mea_en = (circ) ? energy_of_alistruct(AS, structure, n_seq, &CVen) :
+	  energy_of_struct(string, structure);
+	printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
       }
 
       if (fname[0]!='\0') {
