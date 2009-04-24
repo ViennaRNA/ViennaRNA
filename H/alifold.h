@@ -19,6 +19,6 @@ extern char *centroid_ali(int length, double *dist,struct plist *pl);
 extern float **readribosum(char *name);
 extern char *alipbacktrack(double *prob) ;
 extern void  free_alipf_arrays(void);
-extern void  energy_of_alistruct(char **sequences, const char *structure, int n_seq, float *energy);
+extern float  energy_of_alistruct(char **sequences, const char *structure, int n_seq, float *CVenergy);
 extern float circalifold(const char **strings, char *structure);
 extern float alipf_circ_fold(char **sequences, char *structure, struct plist **pl);

@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
+/* Last changed Time-stamp: <2009-04-24 11:32:11 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -254,11 +254,8 @@ int main(int argc, char *argv[])
       s +=energy_of_circ_struct(AS[i], structure);
     real_en = s/i;
   } else {
-    float *ens;
-    ens=(float *)space(2*sizeof(float));
-    energy_of_alistruct(AS, structure, n_seq, ens);
-    real_en=ens[0];
-    free(ens);
+    float CVen;
+    real_en = energy_of_alistruct(AS, structure, n_seq, &CVen);
   }
 
   string = (mis) ?
@@ -345,14 +342,12 @@ int main(int argc, char *argv[])
       char *cent;
       double dist;
       if (!circ){
-      float *ens;
-      cent = centroid_ali(length, &dist,pl);
-      ens=(float *)space(2*sizeof(float));
-      energy_of_alistruct(AS, cent, n_seq, ens);
-      /*cent_en = energy_of_struct(string, cent);*//*ali*/
-      printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
-      free(cent);
-      free(ens);
+	float en, CVen;
+	cent = centroid_ali(length, &dist,pl);
+
+	en = energy_of_alistruct(AS, cent, n_seq, &CVen);
+	printf("%s %6.2f {%6.2f + %6.2f}\n",cent,en-CVen,en,-CVen);
+	free(cent);
       }
 
       if (fname[0]!='\0') {
@@ -501,7 +496,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
   /* sort mostly by probability, add
      epsilon * comp_mutations/(non-compatible+1) to break ties */
   return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
-         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
+	 (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
 PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout) {
@@ -552,7 +547,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
   fprintf(aliout, "%d sequence; length of alignment %d\n",
 	  n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
-  
+
   for (k=0; pi[k].i>0; k++) {
     pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
     print_pi(pi[k], aliout);
