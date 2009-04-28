@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
+# Last changed Time-stamp: <2009-04-28 16:42:59 berni>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN { plan tests => 22; }
+BEGIN { plan tests => 23; }
 
 use RNA;
 use warnings;
@@ -56,6 +56,8 @@ my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
 ok($costruct, '(((.((....)).)))((((((...))).)))');
 $cmfe = RNA::energy_of_struct($seq1 . $seq2, $costruct);
 ok(abs($comfe-$cmfe)<1e-5);
+my $cf = RNA::co_pf_fold($seq1. $seq2, $struct);
+ok(($cf<$comfe)&&($comfe-$cf<1.3));
 $RNA::cut_point=-1;
 
 # pf_fold

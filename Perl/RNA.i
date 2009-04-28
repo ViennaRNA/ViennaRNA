@@ -111,6 +111,31 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore pf_fold;
 %include  "../H/part_func.h"
 
+%rename (co_pf_fold) my_co_pf_fold;
+%{
+  char *my_co_pf_fold(char *string, char *constraints, float *energy) {
+    char *struc;
+    float en;
+    cofoldF temp;
+    struc = calloc(strlen(string)+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(string));
+      temp=co_pf_fold(string, struc);
+    *energy = temp.FAB;
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    free_co_pf_arrays();
+    return(struc);
+  }
+%}
+
+%newobject my_co_pf_fold;
+char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
+
+%ignore co_pf_fold;
+%include  "../H/part_func_co.h"
+
+
 %newobject pbacktrack;
 extern char *pbacktrack(char *sequence);
 
