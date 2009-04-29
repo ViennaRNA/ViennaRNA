@@ -113,7 +113,7 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
-  char *my_co_pf_fold(char *string, char *constraints, float *energy) {
+  char *my_co_pf_fold(char *string, char *constraints, float *FA, float *FB, float *FcAB, float *FAB) {
     char *struc;
     float en;
     cofoldF temp;
@@ -121,20 +121,51 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
       temp=co_pf_fold(string, struc);
-    *energy = temp.FAB;
+    *FAB = temp.FAB;
+    *FcAB = temp.FcAB;
+    *FA = temp.FA;
+    *FB = temp.FB;
     if (constraints)
       strncpy(constraints, struc, strlen(constraints));
-    free_co_pf_arrays();
     return(struc);
   }
 %}
 
 %newobject my_co_pf_fold;
-char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
+char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT);
 
 %ignore co_pf_fold;
+%ignore compute_probabilities;
+%ignore co_bppm_symbol;
+%ignore init_co_pf_fold;
+%ignore get_plist;
+%ignore ConcEnt;
+%ignore pairpro;
+%ignore cofoldF;
 %include  "../H/part_func_co.h"
 
+%rename (get_concentrations) my_get_concentrations;
+%{
+ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double A0, double B0, double *AB, double *AA, double *BB, double *A, double *B) {
+    ConcEnt *temp;
+    double *concis;
+    concis = (double *)calloc(3,sizeof(double));
+    concis[0]=A0;
+    concis[1]=B0;
+    temp=get_concentrations(FcAB,FcAA,FcBB,FEA,FEB,concis);
+    *AB=temp->ABc;
+    *AA=temp->AAc;
+    *BB=temp->BBc;
+    *A=temp->Ac;
+    *B=temp->Bc;
+    free(concis);
+    free(temp);
+    return;
+  }
+%}
+
+%newobject my_get_concentrations;
+void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,double FEB, double A0, double BO, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT);
 
 %newobject pbacktrack;
 extern char *pbacktrack(char *sequence);

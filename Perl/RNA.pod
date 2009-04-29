@@ -144,6 +144,8 @@ recalculate energy parameters for pf_fold. In most cases (such as
 simple changes to L<$temperature|/$temperature>) C<pf_fold>
 will take appropriate action automatically.
 
+
+
 =item pbacktrack SEQUENCE
 
 return a random structure chosen according to it's Boltzmann probability.
@@ -155,6 +157,37 @@ structures.
      push @sample, RNA::pbacktrack($sequence);
   }
 
+=item co_pf_fold SEQUENCE
+
+=item co_pf_fold SEQUENCE, CONSTRAINTS
+
+calculates the partition function over all possible secondary
+structures and the matrix of pair probabilities for SEQUENCE.
+SEQUENCE is a concatenation of two sequences (see cofold). 
+Returns a five element list consisting of a string summarizing possible
+structures as first element. The second element is the Gibbs free energy of Sequence 1 (as computed also with pf_fold), the third element the Gibbs free energy of Sequence 2. The fourth element is the Gibbs free energy of all structures that have INTERmolecular base pairs, and finally the fifth element is the Gibbs free energy of the whole ensemble (dimers as well as monomers).
+See above on how to access the pair probability matrix. As
+with L<fold|/fold> the second argument can be used to specify folding
+constraints. Constraints are implemented by excluding base pairings
+that contradict the constraint, but without bonus
+energies. Constraints of type '|' (paired base) are ignored.  In the
+two argument version CONSTRAINTS is modified to contain the structure
+string on return (obsolete feature, for backwards compatibility only)
+
+=item free_co_pf_arrays
+
+frees memory allocated for co_pf_fold
+
+=item update_pf_co_params LENGTH
+
+recalculate energy parameters for co_pf_fold. In most cases (such as
+simple changes to L<$temperature|/$temperature>) C<co_pf_fold>
+will take appropriate action automatically.
+
+=item get_concentrations FdAB, FdAA, FdBB, FA, FB, CONCA, CONCB
+
+calculates equilibrium concentrations of the three dimers AB, AA, and BB, as well as the two monomers A and B out of the free energies of the duplexes (FdAB, FdAA, FdBB, these are the fourth elements returned by co_pf_fold), the monomers (FA, FB (e.g. the second and third elements returned by co_pf_fold with sequences AB) and the start concentrations of A and B. It returns as first element the concentration of AB dimer, than AA and BB dimer, as fourth element the A monomer concentration, and as fifth and last element the B monomer concentration.
+So, to compute concentrations, you first have to run 3 co_pf_folds (with sequences AB, AA and BB). 
 
 =back
 
