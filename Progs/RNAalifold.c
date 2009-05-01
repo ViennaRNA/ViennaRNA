@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-04-24 11:55:44 ivo> */
+/* Last changed Time-stamp: <2009-05-01 12:37:04 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -633,9 +633,9 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
+	  "RNAalifold [-cv float] [-nc float] [-E] [-old] [-r] [-R ribosum]\n"
+	  "        [-mis] [-aln] [-color] [-circ] [-s num] [-se num]\n"
 	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
+	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]"
 	  );
 }

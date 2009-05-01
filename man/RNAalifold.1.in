@@ -5,6 +5,7 @@
 RNAalifold \- calculate secondary structures for a set of aligned RNAs
 .SH "SYNOPSIS"
 \fBRNAalifold\fP [\-cv \ \fIweight\fP] [\-nc \ \fIweight\fP] [\-E]
+[\-r] [\-R ribosumfile] [\-old] [\-mis] [\-aln] [\-color] [\-circ]
 [\-p[\fI0\fP]] [\-C] [\-T\ \fItemp\fP] [\-4]
 [\-d] [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\
 \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
@@ -51,7 +52,7 @@ Calculate an MEA (maximum expected accuracy) structure, computed as the
 optimal structure when each base pair (i,j) is scored by it's pair
 probability p_ij and each unpaired base is given a score gamma.
 A default of gamma=0.05 is used unless specified. Note that for gamma=0.25
-the MEA structure is identical to the centroid.
+the MEA structure is identical to the centroid. Implies -p.
 .TP
 .B \-noLP
 Avoid structures without lonely pairs (helices of length 1). In the mfe

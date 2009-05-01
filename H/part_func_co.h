@@ -53,4 +53,4 @@ extern struct ConcEnt  *get_concentrations(double FEAB, double FEAA, double FEBB
 
 extern struct plist *get_plist(struct plist *pl, int length, double cut_off);
 
-extern int make_probsum(int length, char *name);
+/* extern int make_probsum(int length, char *name); */

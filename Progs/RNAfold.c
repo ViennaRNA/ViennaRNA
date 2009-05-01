@@ -352,5 +352,5 @@ PRIVATE void usage(void)
   nrerror("usage:\n"
 	  "RNAfold [-p[0|2]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n"
 	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-noconv] [-noPS] [-circ] \n");
+	  "        [-noconv] [-noPS] [-circ] [-MEA [gamma]]\n");
 }

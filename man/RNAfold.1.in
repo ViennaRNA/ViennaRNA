@@ -6,7 +6,7 @@ RNAfold \- calculate secondary structures of RNAs
 .SH "SYNOPSIS"
 \fBRNAfold\fP [\-p[\fI0|2\fP]] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[0|1|2|3]]
 [\-noLP] [\-noGU] [\-noCloseGU] [\-e\ \fI1|2\fP] [\-P\ \fIparamfile\fP]
-[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [-circ]
+[\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP] [-circ] [-MEA [gamma]]
 
 .SH "DESCRIPTION"
 .I RNAfold
