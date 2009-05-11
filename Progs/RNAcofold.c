@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2006-04-05 12:58:49 ivo> */
+/* Last changed Time-stamp: <2009-05-11 15:33:46 berni> */
 /*
 		  c Ivo L Hofacker, Vienna RNA package
 */
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   int   i, length, l, sym, r;
   double min_en;
   double kT, sfact=1.07;
-  int   pf=0, istty;
+  int   pf=0, noPS=0, istty;
   int noconv=0;
   int doT=0;    /*compute dimere free energies etc.*/
   int doC=0;    /*toggle to compute concentrations*/
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
 	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
 	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
+	  if ( strcmp(argv[i], "-noPS")==0) noPS=1;
 	  if ( strcmp(argv[i], "-nsp") ==0) {
 	    if (i==argc-1) usage();
 	    ns_bases = argv[++i];
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
     } else {
       strcpy(ffname, "rna.ps");
     }
-    if (length<2000)
+    if ((length<2000)&&!(noPS))
       (void) PS_rna_plot(string, structure, ffname);
     else {
      fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
@@ -619,6 +620,6 @@ PRIVATE void usage(void)
   nrerror("usage:\n"
 	  "RNAcofold [-a] [-c] [-f concfile]\n"
 	  "[-p[0]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n"
-	  "[-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale] "
+	  "[-noLP] [-e e_set] [-noPS] [-P paramfile] [-nsp pairs] [-S scale] "
 	  "[-noconv]\n");
 }
