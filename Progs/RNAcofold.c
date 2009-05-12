@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-05-11 15:33:46 berni> */
+/* Last changed Time-stamp: <2009-05-12 14:56:10 ivo> */
 /*
 		  c Ivo L Hofacker, Vienna RNA package
 */
@@ -267,12 +267,8 @@ int main(int argc, char *argv[])
     } else {
       strcpy(ffname, "rna.ps");
     }
-    if ((length<2000)&&!(noPS))
-      (void) PS_rna_plot(string, structure, ffname);
-    else {
-     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-     free_co_arrays();
-    }
+    if (!noPS) (void) PS_rna_plot(string, structure, ffname);
+    if (length>2000) free_co_arrays();    
 
     /*compute partition function*/
     if (pf) {

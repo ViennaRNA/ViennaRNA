@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-05-01 12:37:04 ivo> */
+/* Last changed Time-stamp: <2009-05-12 14:57:40 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   int   n_seq, i, length, sym, r;
   int   endgaps=0, mis=0;
   double min_en, real_en, sfact=1.07;
-  int   pf=0, istty;
+  int   pf=0, noPS=0, istty;
   char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char     *names[MAX_NUM_NAMES];       /* sequence names */
   FILE     *clust_file = stdin;
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
     strcpy(ffname, "alirna.ps");
     strcpy(gfname, "alirna.g");
   }
-  if (length<=2500) {
+  if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
     if (doColor)
@@ -297,8 +297,7 @@ int main(int argc, char *argv[])
     else
       (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
     free(A[0]); free(A[1]); free(A);
-  } else
-    fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
+  }
   if (doAlnPS)
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
