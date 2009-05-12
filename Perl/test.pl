@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2009-04-28 16:42:59 berni>
+# Last changed Time-stamp: <2009-04-28 19:00:36 berni>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN { plan tests => 23; }
+BEGIN { plan tests => 24; }
 
 use RNA;
 use warnings;
@@ -56,8 +56,22 @@ my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
 ok($costruct, '(((.((....)).)))((((((...))).)))');
 $cmfe = RNA::energy_of_struct($seq1 . $seq2, $costruct);
 ok(abs($comfe-$cmfe)<1e-5);
-my $cf = RNA::co_pf_fold($seq1. $seq2, $struct);
+my ($x,$ac,$bc,$fcab,$cf) = RNA::co_pf_fold($seq1. $seq2, $struct);
 ok(($cf<$comfe)&&($comfe-$cf<1.3));
+#test concentration computation
+my $fcaa;
+my $fcbb;
+my ($usel1,$usel2, $usel3); 
+($x,$usel1, $usel2, $fcaa, $usel3)= RNA::co_pf_fold($seq1. $seq1, $struct);
+$RNA::cut_point = length($seq2)+1;
+($x,$usel1, $usel2, $fcbb, $usel3)= RNA::co_pf_fold($seq2. $seq2, $struct); 
+my ($AB,$AA,$BB,$A,$B)=RNA::get_concentrations($fcab, $fcaa, $fcbb,$ac, $bc, 1e-5, 1e-5);
+$AB/=2e-5;
+$AA/=2e-5;
+$BB/=2e-5;
+$A/=2e-5;
+$B/=2e-5;
+ok((abs($AB-0.0)+abs($AA-0.00579)+abs($BB-0.01111)+abs($A-0.48842)+abs($B-0.47779))<0.0001);
 $RNA::cut_point=-1;
 
 # pf_fold
