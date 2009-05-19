@@ -74,7 +74,7 @@ PUBLIC  cofoldF co_pf_fold(char *sequence, char *structure);
 PUBLIC  void  init_co_pf_fold(int length);
 PUBLIC  void  free_co_pf_arrays(void);
 PUBLIC  void  update_co_pf_params(int length);
-PUBLIC  char  co_bppm_symbol(float *x);
+extern  char  bppm_symbol(float *x);
 
 PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc);
 PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off);
@@ -171,7 +171,6 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 	  if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
 	  else
 	    qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);
-
 	}
 
 	/* interior loops with interior pair k,l */
@@ -264,9 +263,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
       qq[i] = qq1[i]*scale[1] + qbt1;
        /*construction of partition function for segment i,j */
       temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++) {
-	temp += q[ii-k]*qq[k+1];
-      }
+      for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
       q[ij] = temp;
 
       if (temp>Qmax) {
@@ -276,7 +273,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
       }
       if (temp>=max_real) {
 	PRIVATE char msg[128];
-	sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
+	snprintf(msg, 127, "overflow in pf_fold while calculating q[%d,%d]\n"
 		"use larger pf_scale", i,j);
 	nrerror(msg);
       }
@@ -730,9 +727,9 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 /* in the interval b<x<sqrt(3)/2                                          */
 
 #define SCALE 10
-/* #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
-  SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))*/
-#define SMOOTH(X) ((X)<0 ? 0 : (X))
+#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
+	  SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
+/* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
 
 PRIVATE void scale_pf_params(unsigned int length)
 {
@@ -751,9 +748,9 @@ PRIVATE void scale_pf_params(unsigned int length)
     pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
     if (pf_scale<1) pf_scale=1;
   }
-  scale[0] = 1.;
-  for (i=1; i<=length; i++) {
-    scale[i] = scale[i-1]/pf_scale;
+  scale[0] = 1.;   scale[1] = 1./pf_scale;
+  for (i=2; i<=length; i++) {
+    scale[i] = scale[i/2]*scale[i-(i/2)];
   }
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
@@ -1042,21 +1039,7 @@ PUBLIC void update_co_pf_params(int length)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char co_bppm_symbol(float *x)
-{
-  if( x[0] > 0.667 )  return '.';
-  if( x[1] > 0.667 )  return '(';
-  if( x[2] > 0.667 )  return ')';
-  if( (x[1]+x[2]) > x[0] ) {
-    if( (x[1]/(x[1]+x[2])) > 0.667) return '{';
-    if( (x[2]/(x[1]+x[2])) > 0.667) return '}';
-    else return '|';
-  }
-  if( x[0] > (x[1]+x[2]) ) return ',';
-  return ':';
-}
 
-/*---------------------------------------------------------------------------*/
 #define L 3
 PRIVATE void sprintf_bppm(int length, char *structure)
 {
@@ -1074,7 +1057,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
       P[1] += pr[iindx[j]-i];    /* j is paired upstream */
       P[0] -= pr[iindx[j]-i];    /* j is unpaired */
     }
-    structure[j-1] = co_bppm_symbol(P);
+    structure[j-1] = bppm_symbol(P);
   }
   structure[length] = '\0';
 }
