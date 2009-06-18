@@ -48,11 +48,9 @@ addition to the mfe structure. Default is calculation of mfe structure
 only. Additionally, the centroid structure is computed and printed out.
 .TP
 .BI \-MEA\  [gamma]
-Calculate an MEA (maximum expected accuracy) structure, computed as the
-optimal structure when each base pair (i,j) is scored by it's pair
-probability p_ij and each unpaired base is given a score gamma.
-A default of gamma=0.05 is used unless specified. Note that for gamma=0.25
-the MEA structure is identical to the centroid. Implies -p.
+Calculate an MEA (maximum expected accuracy) structure. See RNAfold man
+page for details. If gamma  is not specified a default of gamma=1 is used.
+Using -MEA implies -p.
 .TP
 .B \-noLP
 Avoid structures without lonely pairs (helices of length 1). In the mfe

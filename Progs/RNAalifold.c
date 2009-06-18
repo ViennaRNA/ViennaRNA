@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-05-14 13:57:02 berni> */
+/* Last changed Time-stamp: <2009-06-18 14:20:02 ivo> */
 /*
 		  Access to alifold Routines
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   int n_back=0;
   int eval_energy = 0;
   int doMEA=0;
-  double MEAgamma = 0.05;
+  double MEAgamma = 1.;
 
 
   do_backtrack = 1;

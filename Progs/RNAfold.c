@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-04-20 19:05:51 ivo> */
+/* Last changed Time-stamp: <2009-06-17 15:45:52 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
   int noconv=0;
   int circ=0;
   int doMEA=0;
-  double MEAgamma = 0.05;
+  double MEAgamma = 1.;
 
   do_backtrack = 1;
   string=NULL;
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 	if (doMEA) {
 	  float mea, mea_en;
 	  plist *pl;
-	  pl = make_plist(length, MEAgamma/2);
+	  pl = make_plist(length, 1e-4/(1+MEAgamma));
 	  mea = MEA(pl, structure, MEAgamma);
 	  mea_en = (circ) ? energy_of_circ_struct(string, structure) :
 			    energy_of_struct(string, structure);
@@ -298,6 +298,7 @@ int main(int argc, char *argv[])
     free(string);
     free(structure);
   } while (1);
+  free_arrays();
   return 0;
 }
 

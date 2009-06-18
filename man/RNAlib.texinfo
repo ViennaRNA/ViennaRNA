@@ -1,5 +1,5 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2009-04-24 13:10:54 ivo>
+@c Last changed Time-stamp: <2009-06-18 14:40:37 ivo>
 @set revision $Id: RNAlib.texinfo,v 1.25 2009/01/13 17:49:58 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
@@ -210,11 +210,13 @@ Prototypes for these functions are declared in @file{part_func.h}.
 
 @deftypefun float *MEA (plist *@var{pl}, char *@var{structure}, double @var{gamma})
 Computes a MEA (maximum expected accuracy) structure, such that expected
-accuracy @math{ A(S) = \sum_{(i,j) \in S} p_{ij} + \sum_{i \notin S} \gamma} 
-is maximised. For @math{\gamma = 0} this is the structure expected
-to have to maximum number of correct pairs. Higher values of @math{\gamma}
-result in higher specificity at the cost of lower sensitivity. For
-@math{\gamma=0.25} the MEA structure is identical to the centroid.
+accuracy @math{ A(S) = \sum_{(i,j) \in S} 2 \gamma p_{ij} + \sum_{i \notin
+S} p^u_i} is maximised. Higher values of @math{\gamma}
+result in more base pairs of lower probability and thus higher
+sensitivity. Low values of gamm result in structures containing only
+highly likely pairs (high specificity).
+The code of the MEA function also demonstrates the use of sparse dynamic
+programming scheme to reduce the time and memory complexity of folding.
 @end deftypefun
 The corresponding protoype is declared in @file{MEA.h}.
 
@@ -536,9 +538,9 @@ probabilities higher than @var{cutoff} are kept.
 
 If @var{pup} is supplied (i.e is not the NULL pointer), @code{pfl_fold()}
 will also compute the mean probability that regions of length @code{u} are
-unpaired. The parameter @code{u} is supplied in @var{pup[0]}. On return
+unpaired. The parameter @code{u} is supplied in @code{pup[0]}. On return
 the @var{pup} array will contain these probabilities, with the entry on
-@var{pup[x]} containing the mean probability that x and the @code{u-1}
+@code{pup[x]} containing the mean probability that x and the @code{u-1}
 preceding bases are unpaired. The @var{pup} array needs to be large
 enough to hold @code{n+1} float entries, where @code{n} is the sequence length.
 @end deftypefun

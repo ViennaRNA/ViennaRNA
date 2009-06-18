@@ -76,12 +76,14 @@ pair probabilities in the upper right half and stack probabilities in the
 lower left.
 .TP
 .BI \-MEA\  [gamma]
-Calculate an MEA (maximum expected accuracy) structure, computed as the
-optimal structure when each base pair (i,j) is scored by it's pair
-probability p_ij and each unpaired base is given a score gamma.
+Calculate an MEA (maximum expected accuracy) structure, where the expected
+accuracy is computed from the pair probabilities: each base pair (i,j) gets
+a score 2*gamma*p_ij and the score of an unpaired base is given by the
+probability of not forming a pair. The parameter gamma tunes the importance
+of correctly predicted pairs versus unpaired bases. Thus, for small values of
+gamma the MEA structure will contain only pairs with very high probability. 
+The default value is gamma=1.
 Using -MEA implies -p for computing the pair probabilities.
-A default of gamma=0.05 is used unless specified. Note that for gamma=0.25
-the MEA structure is identical to the centroid.
 .TP
 .B \-C
 Calculate structures subject to constraints.

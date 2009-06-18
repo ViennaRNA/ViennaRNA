@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-04-20 19:24:12 ivo> */
+/* Last changed Time-stamp: <2009-05-26 18:23:14 ivo> */
 /*
 		  partiton function for RNA secondary structures
 
@@ -1253,7 +1253,7 @@ static void backtrack(int i, int j) {
       qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*
 	scale[u+2]; /* add scale[u+2] */
 
-    if (qbt1>r) return; /* found the hairpin we're done */
+    if (qbt1>=r) return; /* found the hairpin we're done */
 
     for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;
