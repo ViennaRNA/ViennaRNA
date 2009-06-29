@@ -24,6 +24,7 @@
 #include  "../H/alifold.h"
 #include  "../H/aln_util.h"
 #include  "../H/findpath.h"
+#include  "../H/Lfold.h"
 extern char *pbacktrack(char *seq);
 extern void  read_parameter_file(const char fname[]);
 extern void  write_parameter_file(const char fname[]);
@@ -38,7 +39,8 @@ extern int naview_xy_coordinates(short *pair_table, float *X, float *Y);
 %array_class(float, floatArray);
 %array_functions(double, doubleP);
 %array_class(double, doubleArray);
-%array_functions(unsigned short, shortP);
+%array_functions(unsigned short, ushortP);
+%array_functions(short, shortP);
 %include cdata.i
 
 %constant double VERSION = 0.3;
@@ -595,7 +597,8 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
+%include "../H/Lfold.h"
 
-%include  "../H/PS_dot.h"
+%include "../H/PS_dot.h"
 
 %include "../H/findpath.h"

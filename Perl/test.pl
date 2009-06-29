@@ -95,9 +95,9 @@ ok(RNA::intP_getitem($RNA::iindx,3),108);
 # memmove does not work in current swig versions
 # RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
 # use shortP_setitem instead
-RNA::shortP_setitem($RNA::xsubi, 0, 171);
-RNA::shortP_setitem($RNA::xsubi, 1, 42);
-RNA::shortP_setitem($RNA::xsubi, 2, 93);
+RNA::ushortP_setitem($RNA::xsubi, 0, 171);
+RNA::ushortP_setitem($RNA::xsubi, 1, 42);
+RNA::ushortP_setitem($RNA::xsubi, 2, 93);
 ok(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
 
 # get a bp prob in two different ways
