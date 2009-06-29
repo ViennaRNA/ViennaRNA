@@ -1,8 +1,12 @@
+2009-05-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* Fix occasional segfault in RNAalifold's print_aliout() 
+
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* Add -MEA options to RNAfold and RNAalifold
 	* change energy_of_alistruct to return float not void
-	
+
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* RNAfold will draw structures unless -noPS is used (no more

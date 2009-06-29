@@ -1351,7 +1351,7 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   KAA = exp(( 2.0 * FEA - FcAA)/kT);
   KBB = exp(( 2.0 * FEB - FcBB)/kT);
   KAB = exp(( FEA + FEB - FcAB)/kT);
-  printf("Kaa..%g %g %g\n", KAA, KBB, KAB);
+  /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
   for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
     ConcVec=Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
     Concentration[i/2].A0=startconc[i];
