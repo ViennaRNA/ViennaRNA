@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-05-12 14:56:10 ivo> */
+/* Last changed Time-stamp: <2009-09-03 17:30:23 ivo> */
 /*
 		  c Ivo L Hofacker, Vienna RNA package
 */
@@ -244,31 +244,39 @@ int main(int argc, char *argv[])
     mfAB=(struct plist *) space(sizeof(struct plist) * (length+1));
     mfAB=get_mfe_plist(mfAB);
 
-    if (cut_point == -1)    printf("%s\n%s", string, structure); /*no cofold*/
-
-    else {
+    {
       char *pstring, *pstruct;
-      pstring = costring(string);
-      pstruct = costring(structure);
-      printf("%s\n%s", pstring,  pstruct);
+      if (cut_point == -1) {
+	pstring = strdup(string);
+	pstruct = strdup(structure);
+      } else {
+	pstring = costring(string);
+	pstruct = costring(structure);
+      }
+      printf("%s\n%s", pstring, pstruct);
+      if (istty)
+	printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+      else
+	printf(" (%6.2f)\n", min_en);
+
+      (void) fflush(stdout);
+      if (!noPS) {
+	char annot[512] = "";
+	if (fname[0]!='\0') {
+	  strcpy(ffname, fname);
+	  strcat(ffname, "_ss.ps");
+	} else {
+	  strcpy(ffname, "rna.ps");
+	}
+	if (cut_point >= 0)
+	  sprintf(annot, "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
+		  cut_point-1, cut_point+1, length+1);
+	(void) PS_rna_plot_a(pstring, pstruct, ffname, annot, NULL);
+      }
       free(pstring);
       free(pstruct);
     }
-    if (istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-    else
-      printf(" (%6.2f)\n", min_en);
-
-      (void) fflush(stdout);
-
-    if (fname[0]!='\0') {
-      strcpy(ffname, fname);
-      strcat(ffname, "_ss.ps");
-    } else {
-      strcpy(ffname, "rna.ps");
-    }
-    if (!noPS) (void) PS_rna_plot(string, structure, ffname);
-    if (length>2000) free_co_arrays();    
+    if (length>2000) free_co_arrays();
 
     /*compute partition function*/
     if (pf) {

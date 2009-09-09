@@ -164,9 +164,9 @@ static const char *RNAss_head =
 "  currentdict /cutpoint known        % check if cutpoint is defined\n"
 "  {coor 0 cutpoint getinterval\n"
 "   {aload pop lineto} forall         % draw outline of 1st sequence\n"
-"   coor cutpoint get aload pop\n"
+"   coor cutpoint 1 add get aload pop\n"
 "   2 copy moveto 0.8 0 360 arc       % draw 5' circle of 2nd sequence\n"
-"   coor cutpoint coor length cutpoint sub getinterval\n"
+"   coor cutpoint 1 add coor length cutpoint 1 add sub getinterval\n"
 "   {aload pop lineto} forall}        % draw outline of 2nd sequence\n"
 "  {coor {aload pop lineto} forall}   % draw outline as a whole\n"
 "  ifelse\n"
@@ -313,6 +313,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   float *X, *Y;
   FILE  *xyplot;
   short *pair_table;
+  char  *c;
 
   length = strlen(string);
 
@@ -364,10 +365,12 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   fprintf(xyplot, "RNAplot begin\n"
 	  "%% data start here\n");
 
-  /* cut_point */
-  if (cut_point > 0 && cut_point <= strlen(string))
-    fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
-
+  if ((c = strchr(structure, '&'))) {
+    int cutpoint;
+    cutpoint = c - structure;
+    string[cutpoint] = ' '; /* replace & with space */
+    fprintf(xyplot, "/cutpoint %d def\n", cutpoint);
+  }
   /* sequence */
   fprintf(xyplot,"/sequence (\\\n");
   i=0;
