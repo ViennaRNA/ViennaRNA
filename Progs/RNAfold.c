@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-06-17 15:45:52 ivo> */
+/* Last changed Time-stamp: <2009-09-08 19:54:31 ivo> */
 /*
 		  Ineractive Access to folding Routines
 
@@ -298,7 +298,8 @@ int main(int argc, char *argv[])
     free(string);
     free(structure);
   } while (1);
-  free_arrays();
+  if (length<=2000)
+    free_arrays();
   return 0;
 }
 
