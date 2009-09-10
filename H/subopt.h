@@ -1,16 +1,21 @@
 /* subopt.h */
-#ifndef SUBOPT_H
-#define SUBOPT_H
+#ifndef __VIENNA_RNA_PACKAGE_SUBOPT_H__
+#define __VIENNA_RNA_PACKAGE_SUBOPT_H__
+
+#define MAXDOS 1000
 
 typedef struct {
   float energy;                            /* energy of structure */
   char *structure;
 } SOLUTION;
 
-extern  SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
-extern  SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);
-		/* returns list of subopt structures or writes to fp */
+SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
+SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);
+  /* returns list of subopt structures or writes to fp */
 
-extern  int subopt_sorted;                           /* sort output by energy */
+extern  int     subopt_sorted;                /* sort output by energy */
+extern  int     density_of_states[MAXDOS+1];
+extern  double  print_energy;                 /* printing threshold for use with logML */
+
 #endif
 /* End of file */

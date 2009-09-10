@@ -30,11 +30,7 @@ static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 
-
-PUBLIC  float alipf_fold(char **sequences, char *structure, struct plist **pl);
-PUBLIC char *centroid_ali(int length, double *dist,struct plist *pl) ;
 PRIVATE void  init_alipf_fold(int length, int n_seq);
-PUBLIC void  free_alipf_arrays(void);
 /* PRIVATE void  update_alipf_params(int length); */
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length, int n_seq);
@@ -73,18 +69,15 @@ PRIVATE FLT_OR_DBL qo, qho, qio, qmo, *qm2;
 PRIVATE int *jindx;
 
 
-PUBLIC  float  alipf_circ_fold(char **sequences, char *structure, struct plist **pl);
 PRIVATE  void  alipf_circ(char **sequences, char *structure);
 PRIVATE  void  alipf_linear(char **sequences, char *structure);
 PRIVATE  void  alipf_create_bppm(char **sequences, char *structure, struct plist **pl);
-static void backtrack(int i, int j, int n_seq, double *prob);
-static void backtrack_qm1(int i,int j, int n_seq, double *prob);
+PRIVATE  void backtrack(int i, int j, int n_seq, double *prob);
+PRIVATE  void backtrack_qm1(int i,int j, int n_seq, double *prob);
 
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
 
-extern double cv_fact /* =1 */;
-extern double nc_fact /* =1 */;
 extern struct plist *get_plist(struct plist *pl, int length, double cut_off);
 
 static short **S;

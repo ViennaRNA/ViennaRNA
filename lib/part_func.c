@@ -66,6 +66,7 @@
 #include "energy_par.h"
 #include "fold_vars.h"
 #include "pair_mat.h"
+#include "part_func.h"
 
 typedef struct plist {
   int i;
@@ -82,24 +83,17 @@ static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Ex
 #define PUBLIC
 #define PRIVATE static
 
-PUBLIC  float pf_fold(char *sequence, char *structure);
-PUBLIC  void  init_pf_fold(int length);
-PUBLIC  void  free_pf_arrays(void);
-PUBLIC  void  update_pf_params(int length);
-PUBLIC  char  bppm_symbol(float *x);
 PUBLIC  int   st_back=0;
 PUBLIC  double expLoopEnergy(int u1, int u2, int type, int type2,
 			     short si1, short sj1, short sp1, short sq1);
 PUBLIC  double expHairpinEnergy(int u, int type, short si1, short sj1,
 				const char *string);
-PUBLIC  int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
+
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void make_ptypes(const short *S, const char *structure);
-PUBLIC  float  pf_circ_fold(char *sequence, char *structure);
 PRIVATE  void  pf_circ(char *sequence, char *structure);
-PUBLIC  char  *pbacktrack_circ(char *seq);
 PRIVATE  void  pf_linear(char *sequence, char *structure);
 PRIVATE  void  pf_create_bppm(char *sequence, char *structure);
 static  void backtrack(int i, int j);
@@ -132,6 +126,8 @@ PRIVATE int circ=0;
 PRIVATE FLT_OR_DBL qo, qho, qio, qmo, *qm2;
 static char *pstruc;
 static char *sequence;
+
+PRIVATE pf_paramT *pf_params;
 
 #define ISOLATED  256.0
 

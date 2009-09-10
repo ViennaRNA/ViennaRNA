@@ -1,5 +1,5 @@
-#ifndef DUPLEX_H
-#define DUPLEX_H
+#ifndef __VIENNA_RNA_PACKAGE_DUPLEX_H__
+#define __VIENNA_RNA_PACKAGE_DUPLEX_H__
 
 typedef struct {
   int i;

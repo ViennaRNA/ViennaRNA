@@ -64,7 +64,7 @@ float circfold(const char *string, char *structure) {
 	si1 = (i==1)?S1[length] : S1[i-1];
 	sj1 = (j==length)?S1[1] : S1[j+1];
 	*/
-	new_c = HairpinE(u, type, /*sj1*/S1[j+1], /*si1*/S1[i-1],  loopseq)+bonus+c[ij];
+	new_c = E_Hairpin(u, type, /*sj1*/S1[j+1], /*si1*/S1[i-1],  loopseq, P)+bonus+c[ij];
       }
       if (new_c<FcH) {
 	FcH = new_c; Hi=i; Hj=j;
@@ -86,7 +86,7 @@ float circfold(const char *string, char *structure) {
 		  si1 = (i==1)? S1[length] : S1[i-1];
 		  sq1 = (q==length)? S1[1] : S1[q+1];
 		  */
-	  energy = LoopEnergy(u1, u2, type, type_2, S1[j+1], /*si1*/S1[i-1], S1[p-1], /*sq1*/S1[q+1]);
+	  energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], /*si1*/S1[i-1], S1[p-1], /*sq1*/S1[q+1], P);
 	  new_c = c[ij] + c[indx[q]+p] + energy;
 	  if (new_c<FcI) {
 	    FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;

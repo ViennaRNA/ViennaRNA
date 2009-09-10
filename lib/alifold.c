@@ -21,6 +21,9 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "ribo.h"
+#include "alifold.h"
+#include "loop_energies.h"
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp $";
 
@@ -32,10 +35,7 @@ static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 
-PUBLIC float  alifold(char **strings, char *structure);
-
 PRIVATE void   init_alifold(int length);
-PUBLIC  void   free_alifold_arrays(void);
 
 PUBLIC double cv_fact=1.;
 PUBLIC double nc_fact=1.;
@@ -59,7 +59,7 @@ PRIVATE void energy_of_alistruct_pt(char **sequences,short * ptable, int n_seq, 
 
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
-PRIVATE const paramT *P;
+PRIVATE paramT *P;
 
 PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
 
@@ -75,7 +75,6 @@ PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE int   *pscore;  /* precomputed array of pair types */
 PRIVATE int   init_length=-1;
-PUBLIC float **readribosum(char *name);
 
 /*--------------------------------------------------------------------------*/
 
@@ -220,7 +219,7 @@ PRIVATE int fill_arrays(const char **strings) {
 
 	for (new_c=s=0; s<n_seq; s++) {
 	  if ((a2s[s][j-1]-a2s[s][i])<3) new_c+=600;
-	  else  new_c += HairpinE(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]));
+	  else  new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
 	}
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
@@ -237,9 +236,9 @@ PRIVATE int fill_arrays(const char **strings) {
 	    for (energy = s=0; s<n_seq; s++) {
 	      type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
 	      if (type_2 == 0) type_2 = 7;
-	      energy += LoopEnergy(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
+	      energy += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
 				   S3[s][i], S5[s][j],
-				   S5[s][p], S3[s][q]);
+				   S5[s][p], S3[s][q], P);
 	    }
 	    new_c = MIN2(energy+c[indx[q]+p], new_c);
 	    if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
@@ -523,7 +522,7 @@ void backtrack(const char **strings, int s) {
     {int cc=0;
     for (ss=0; ss<n_seq; ss++) {
 	if ((a2s[ss][j-1]-a2s[ss][i])<3) cc+=600;
-	else cc += HairpinE(a2s[ss][j-1]-a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss]+a2s[ss][i-1]);
+	else cc += E_Hairpin(a2s[ss][j-1]-a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss]+a2s[ss][i-1], P);
       }
     if (cij == cc) /* found hairpin */
       continue;
@@ -538,10 +537,10 @@ void backtrack(const char **strings, int s) {
 	for (ss=energy=0; ss<n_seq; ss++) {
 	  type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
 	  if (type_2==0) type_2 = 7;
-	  energy += LoopEnergy(a2s[ss][p-1]-a2s[ss][i],a2s[ss][j-1]-a2s[ss][q],
+	  energy += E_IntLoop(a2s[ss][p-1]-a2s[ss][i],a2s[ss][j-1]-a2s[ss][q],
 			       type[ss], type_2,
 			       S3[ss][i], S5[ss][j],
-			       S5[ss][p], S3[ss][q]);
+			       S5[ss][p], S3[ss][q], P);
 
 	}
 	traced = (cij == energy+c[indx[q]+p]);
@@ -1026,8 +1025,8 @@ PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
 	fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
 	string[p-1],string[q-1]);
 	}*/
-      ee += LoopEnergy(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
-		       S3[s][i], S5[s][j], S5[s][p], S3[s][q]);
+      ee += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
+		       S3[s][i], S5[s][j], S5[s][p], S3[s][q], P);
       /* energy += LoopEnergy(i, j, p, q, type, type_2); */
       /*    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )  */
 
@@ -1059,7 +1058,7 @@ PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
     ee=0;/* hair pin */
     for (s=0; s< n_seq; s++) {
       if ((a2s[s][j-1]-a2s[s][i])<3) ee+=600;
-      else ee += HairpinE(a2s[s][j-1]-a2s[s][i], type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]));
+      else ee += E_Hairpin(a2s[s][j-1]-a2s[s][i], type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
     }
     energy[0] += ee;
     energy[1] += pscore[indx[j]+i];

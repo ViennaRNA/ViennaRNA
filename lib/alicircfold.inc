@@ -77,7 +77,7 @@ double circalifold(const char **strings, char *structure) {
 	}
 	si1 = (i==1)?S[s][length] : S[s][i-1];
 	sj1 = (j==length)?S[s][1] : S[s][j+1];
-	new_c += HairpinE(u, rt, sj1, si1,  loopseq);
+	new_c += E_Hairpin(u, rt, sj1, si1,  loopseq, P);
       }
       new_c += +c[ij];
       if (new_c<FcH) {
@@ -104,8 +104,8 @@ double circalifold(const char **strings, char *structure) {
 	    if (type_2 ==0) type_2=7;
 	    si1 = (i==1)? S[s][length] : S[s][i-1];
 	    sq1 = (q==length)? S[s][1] : S[s][q+1];
-	    energy += LoopEnergy(u1, u2, rt, type_2,
-				 S[s][j+1], si1, S[s][p-1], sq1);
+	    energy += E_IntLoop(u1, u2, rt, type_2,
+				 S[s][j+1], si1, S[s][p-1], sq1, P);
 	  }
 	  new_c = c[ij] + c[indx[q]+p] + energy;
 	  if (new_c<FcI) {

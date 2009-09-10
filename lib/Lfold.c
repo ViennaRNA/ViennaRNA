@@ -20,6 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
+#include "loop_energies.h"
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.9 2007/09/04 09:20:12 ivo Exp $";
@@ -196,7 +197,7 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 
 	if (no_close) new_c = FORBIDDEN;
 	else
-	  new_c = HairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
+	  new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1,P);
 
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
@@ -217,8 +218,8 @@ PRIVATE int fill_arrays(char *string, int maxdist) {
 		if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
 #if 1
-	    energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-				S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	    energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+				S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
 #else
 	    /* duplicated code is faster than function call */
 
@@ -644,7 +645,7 @@ PRIVATE char * backtrack(char *string, int start, int maxdist) {
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else
-      if (cij == HairpinE(j-i-1, type, S1[i+1], S1[j-1],string+i-1)+bonus)
+      if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus)
 	continue;
 
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
@@ -661,8 +662,8 @@ PRIVATE char * backtrack(char *string, int start, int maxdist) {
 	    if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
 	/* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-	energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-			    S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+			    S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
 
 	new = energy+c[p][q-p]+bonus;
 	traced = (cij == new);

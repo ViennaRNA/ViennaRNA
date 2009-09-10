@@ -23,6 +23,8 @@
 #include "params.h"
 #include "subopt.h"
 #include "fold.h"
+#include "loop_energies.h"
+#include "cofold.h"
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $";
@@ -36,14 +38,6 @@ static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $
 #define NEW_NINIO     1   /* new asymetry penalty */
 #define free_arrays free_co_arrays
 #define initialize_fold initialize_cofold
-PUBLIC float  cofold(const char *string, char *structure);
-PUBLIC void   free_arrays(void);
-PUBLIC void   initialize_fold(int length);
-PUBLIC void   update_cofold_params(void);
-PUBLIC float *get_monomer_mfes();
-extern int    logML;    /* if nonzero use logarithmic ML energy in
-			     energy_of_struct */
-extern int    uniq_ML;  /* do ML decomposition uniquely (for subopt) */
 /*@unused@*/
 PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 PRIVATE void  parenthesis_structure(char *structure, int length);
@@ -52,10 +46,10 @@ PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(const char *sequence);
-PRIVATE void backtrack(const char *sequence);
+PRIVATE void  backtrack(const char *sequence);
 
-PRIVATE int fill_arrays(const char *sequence);
-PRIVATE void free_end(int *array, int i, int start);
+PRIVATE int   fill_arrays(const char *sequence);
+PRIVATE void  free_end(int *array, int i, int start);
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
@@ -86,8 +80,6 @@ PRIVATE int   zuker = 0; /* Do Zuker style suboptimals? */
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 #undef TURN
 #define TURN 0
-extern  int cut_point;   /* set to first pos of second seq for cofolding */
-extern  int eos_debug;   /* verbose info from energy_of_struct */
 
 /*--------------------------------------------------------------------------*/
 static float mfe1, mfe2; /* minimum free energies of the monomers */
@@ -265,7 +257,7 @@ PRIVATE int fill_arrays(const char *string) {
 	if (SAME_STRAND(i,j)) {
 	  if (no_close) new_c = FORBIDDEN;
 	  else
-	    new_c = HairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
+	    new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
 	}
 	else {
 	  if (dangles) {
@@ -295,8 +287,8 @@ PRIVATE int fill_arrays(const char *string) {
 
 #if 1
 	    if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
-	      energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-				  S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	      energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+				  S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 	    else {
 	      energy = 0;
 	      if (dangles) {
@@ -790,7 +782,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       if (no_close) {
 	if (cij == FORBIDDEN) continue;
       } else
-	if (cij == HairpinE(j-i-1, type, S1[i+1], S1[j-1],string+i-1)+bonus)
+	if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus)
 	  continue;
     }
     else {
@@ -818,8 +810,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
 	/* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
 	if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
-	  energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-			      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	  energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+			      S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 	else {
 	  energy = 0;
 	  if (dangles) {

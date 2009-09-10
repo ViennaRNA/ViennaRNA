@@ -12,9 +12,7 @@
 
 static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
-extern int
-energy_of_struct_pt (char *string, short * ptable, short *s, short *s1);
-static int energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
+PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
 
 typedef struct move {
   int i;  /* i,j>0 insert; i,j<0 delete */
@@ -30,21 +28,21 @@ typedef struct intermediate {
   move_t *moves; /* remaining moves to target */
 } intermediate_t;
 
-static int *pair_table_to_loop_index (short *pt);
-static move_t* copy_moves(move_t *mvs);
-static int compare_ptable(const void *A, const void *B);
-static int compare_energy(const void *A, const void *B);
-static int compare_moves_when(const void *A, const void *B);
-static void free_intermediate(intermediate_t *i);
+PRIVATE int *pair_table_to_loop_index (short *pt);
+PRIVATE move_t* copy_moves(move_t *mvs);
+PRIVATE int compare_ptable(const void *A, const void *B);
+PRIVATE int compare_energy(const void *A, const void *B);
+PRIVATE int compare_moves_when(const void *A, const void *B);
+PRIVATE void free_intermediate(intermediate_t *i);
 
 
-static char *seq;
-static short *S, *S1;
-static int BP_dist;
-static move_t *path;
-static int path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
+PRIVATE char *seq;
+PRIVATE short *S, *S1;
+PRIVATE int BP_dist;
+PRIVATE move_t *path;
+PRIVATE int path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
-static int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
+PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
   short *pt;
@@ -92,7 +90,7 @@ static int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist)
   return num_next;
 }
 
-static int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
+PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
   short *pt1, *pt2;
   move_t *mlist;
   int i, len, d, dist=0, result;
@@ -288,7 +286,7 @@ path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   return (route);
 }
 
-static int *pair_table_to_loop_index (short *pt)
+PRIVATE int *pair_table_to_loop_index (short *pt)
 {
   /* number each position by which loop it belongs to (positions start
      at 1) */
@@ -338,7 +336,7 @@ static int *pair_table_to_loop_index (short *pt)
   return (loop);
 }
 
-static void free_intermediate(intermediate_t *i) {
+PRIVATE void free_intermediate(intermediate_t *i) {
    free(i->pt);
    free(i->moves);
    i->pt = NULL;
@@ -346,7 +344,7 @@ static void free_intermediate(intermediate_t *i) {
    i->Sen = INT_MAX;
  }
 
-static int compare_ptable(const void *A, const void *B) {
+PRIVATE int compare_ptable(const void *A, const void *B) {
   intermediate_t *a, *b;
   int c;
   a = (intermediate_t *) A;
@@ -358,7 +356,7 @@ static int compare_ptable(const void *A, const void *B) {
   return (a->curr_en - b->curr_en);
 }
 
-static int compare_energy(const void *A, const void *B) {
+PRIVATE int compare_energy(const void *A, const void *B) {
   intermediate_t *a, *b;
   a = (intermediate_t *) A;
   b = (intermediate_t *) B;
@@ -367,7 +365,7 @@ static int compare_energy(const void *A, const void *B) {
   return (a->curr_en - b->curr_en);
 }
 
-static int compare_moves_when(const void *A, const void *B) {
+PRIVATE int compare_moves_when(const void *A, const void *B) {
   move_t *a, *b;
   a = (move_t *) A;
   b = (move_t *) B;
@@ -375,14 +373,14 @@ static int compare_moves_when(const void *A, const void *B) {
   return(a->when - b->when);
 }
 
-static move_t* copy_moves(move_t *mvs) {
+PRIVATE move_t* copy_moves(move_t *mvs) {
   move_t *new;
   new = (move_t *) space(sizeof(move_t)*(BP_dist+1));
   memcpy(new,mvs,sizeof(move_t)*(BP_dist+1));
   return new;
 }
 
-static int energy_of_move(short *pt, short *s, short *s1, int m1, int m2) {
+PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2) {
   int en_post, en_pre, i,j,k,l, len;
 
   len = pt[0];

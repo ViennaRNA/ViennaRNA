@@ -9,6 +9,10 @@
 #define FLT_OR_DBL float
 #endif
 
+#define PUBLIC
+#define PRIVATE static
+#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
+
 extern int  noGU;           /* GU not allowed at all */
 extern int  no_closingGU;   /* GU allowed only inside stacks */
 extern int  tetra_loop;     /* Fold with specially stable 4-loops */

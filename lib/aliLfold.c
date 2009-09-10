@@ -21,6 +21,9 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "alifold.h"
+#include "fold.h"
+#include "loop_energies.h"
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp $";
 
@@ -176,7 +179,7 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
 	int new_c=0, stackEnergy=INF;
 	/* hairpin ----------------------------------------------*/
 	for (new_c=s=0; s<n_seq; s++)
-	  new_c += HairpinE(j-i-1,type[s],S[s][i+1],S[s][j-1],strings[s]+i-1);
+	  new_c += E_Hairpin(j-i-1,type[s],S[s][i+1],S[s][j-1],strings[s]+i-1, P);
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
 	  closing pair.
@@ -191,9 +194,9 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
 	    for (energy = s=0; s<n_seq; s++) {
 	      type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
 	      if (type_2 == 0) type_2 = 7;
-	      energy += LoopEnergy(p-i-1, j-q-1, type[s], type_2,
+	      energy += E_IntLoop(p-i-1, j-q-1, type[s], type_2,
 				   S[s][i+1], S[s][j-1],
-				   S[s][p-1], S[s][q+1]);
+				   S[s][p-1], S[s][q+1], P);
 	    }
 	    new_c = MIN2(energy+c[p][q-p], new_c);
 	    if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
@@ -528,7 +531,7 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 
     {int cc=0;
     for (ss=0; ss<n_seq; ss++)
-      cc += HairpinE(j-i-1, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]+i-1);
+      cc += E_Hairpin(j-i-1, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]+i-1, P);
     if (cij == cc) /* found hairpin */
       continue;
     }
@@ -542,9 +545,9 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
  	for (ss=energy=0; ss<n_seq; ss++) {
 	  type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
 	  if (type_2==0) type_2 = 7;
-	  energy += LoopEnergy(p-i-1, j-q-1, type[ss], type_2,
+	  energy += E_IntLoop(p-i-1, j-q-1, type[ss], type_2,
 			       S[ss][i+1], S[ss][j-1],
-			       S[ss][p-1], S[ss][q+1]);
+			       S[ss][p-1], S[ss][q+1], P);
 	}
 	traced = (cij == energy+c[p][q-p]);
 	if (traced) {

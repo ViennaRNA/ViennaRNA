@@ -1,3 +1,6 @@
+#ifndef __VIENNA_RNA_PACKAGE_PARAMS_H__
+#define __VIENNA_RNA_PACKAGE_PARAMS_H__
+
 #include "energy_const.h"
 typedef struct {
   int id;
@@ -72,3 +75,4 @@ extern pf_paramT *scale_pf_parameters(void);
 extern pf_paramT *copy_pf_param(void);
 extern pf_paramT *set_pf_param(paramT *dest);
  
+#endif

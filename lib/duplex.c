@@ -21,7 +21,11 @@
 #include "fold.h"
 #include "pair_mat.h"
 #include "params.h"
+#include "alifold.h"
+#include "subopt.h"
+#include "loop_energies.h"
 #include "duplex.h"
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $";
 
@@ -37,11 +41,6 @@ PRIVATE char * backtrack(int i, int j);
 PRIVATE char * alibacktrack(int i, int j, const short *S1[], const short *S2[]);
 PRIVATE int compare(const void *sub1, const void *sub2);
 PRIVATE int covscore(const int *types, int n_seq);
-
-extern int subopt_sorted; /* from subopt.c, default 0 */
-
-extern double cv_fact; /* from alifold.c, default 1 */
-extern double nc_fact;
 
 /*@unused@*/
 
@@ -93,8 +92,8 @@ duplexT duplexfold(const char *s1, const char *s2) {
 	  if (i-k+l-j-2>MAXLOOP) break;
 	  type2 = pair[S1[k]][S2[l]];
 	  if (!type2) continue;
-	  E = LoopEnergy(i-k-1, l-j-1, type2, rtype[type],
-			    SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1]);
+	  E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+			    SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
 	  c[i][j] = MIN2(c[i][j], c[k][l]+E);
 	}
       }
@@ -210,8 +209,8 @@ PRIVATE char *backtrack(int i, int j) {
 	if (i-k+l-j-2>MAXLOOP) break;
 	type2 = pair[S1[k]][S2[l]];
 	if (!type2) continue;
-	LE = LoopEnergy(i-k-1, l-j-1, type2, rtype[type],
-		       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1]);
+	LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+		       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
 	if (E == c[k][l]+LE) {
 	  traced=1; 
 	  i=k; j=l;
@@ -361,8 +360,8 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
 	  for (E=s=0; s<n_seq; s++) { 
 	    type2 = pair[S1[s][k]][S2[s][l]];
 	    if (type2==0) type2=7;
-	    E += LoopEnergy(i-k-1, l-j-1, type2, rtype[type[s]],
-			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1]);
+	    E += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
+			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
 	  }
 	  c[i][j] = MIN2(c[i][j], c[k][l]+E);
 	}
@@ -524,8 +523,8 @@ PRIVATE char *alibacktrack(int i, int j, const short *S1[], const short *S2[]) {
 	for (s=LE=0; s<n_seq; s++) {
 	  type2 = pair[S1[s][k]][S2[s][l]];
 	  if (type2==0) type2=7;
-	  LE += LoopEnergy(i-k-1, l-j-1, type2, rtype[type[s]],
-			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1]);
+	  LE += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
+			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
 	}
 	if (E == c[k][l]+LE) {
 	  traced=1; 

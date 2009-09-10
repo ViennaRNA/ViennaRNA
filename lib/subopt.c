@@ -85,8 +85,9 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "list.h"
-#include "subopt.h"
 #include "params.h"
+#include "loop_energies.h"
+#include "subopt.h"
 
 #define true	  1
 #define false	  0
@@ -119,70 +120,62 @@ typedef struct {
   int array_flag;
 } INTERVAL;
 
-#define MAXDOS 1000
-PUBLIC   int density_of_states[MAXDOS+1];
-PRIVATE  void make_pair(int i, int j, STATE *state);
-PRIVATE  INTERVAL *make_interval (int i, int j, int ml);
+PRIVATE void      make_pair(int i, int j, STATE *state);
+PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
 				    /*@only@*/ /*@null@*/ char *structure,
 				    int partial_energy, int is_duplex);
-PRIVATE  STATE *copy_state(STATE * state);
-PRIVATE  void print_state(STATE * state);
-PRIVATE  void UNUSED print_stack(LIST * list);
+PRIVATE STATE     *copy_state(STATE * state);
+PRIVATE void      print_state(STATE * state);
+PRIVATE void      UNUSED print_stack(LIST * list);
 /*@only@*/ PRIVATE LIST *make_list(void);
-PRIVATE  void push(LIST * list, /*@only@*/ void *data);
-PRIVATE  void *pop(LIST * list);
-PUBLIC   SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
-PRIVATE  int  best_attainable_energy(STATE * state);
-PRIVATE  void scan_interval(int i, int j, int array_flag, STATE * state);
-PRIVATE  void free_interval_node(/*@only@*/ INTERVAL * node);
-PRIVATE  void free_state_node(/*@only@*/ STATE * node);
-PRIVATE  void push_back(STATE * state);
-PRIVATE  char* get_structure(STATE * state);
-PRIVATE  int compare(const void *solution1, const void *solution2);
-PRIVATE  void make_output(SOLUTION *SL, FILE *fp);
-PRIVATE  char *costring(char *string);
-PRIVATE  void repeat(int i, int j, STATE * state,
-		     int part_energy, int temp_energy);
+PRIVATE void      push(LIST * list, /*@only@*/ void *data);
+PRIVATE void      *pop(LIST * list);
+PRIVATE int       best_attainable_energy(STATE * state);
+PRIVATE void      scan_interval(int i, int j, int array_flag, STATE * state);
+PRIVATE void      free_interval_node(/*@only@*/ INTERVAL * node);
+PRIVATE void      free_state_node(/*@only@*/ STATE * node);
+PRIVATE void      push_back(STATE * state);
+PRIVATE char*     get_structure(STATE * state);
+PRIVATE int       compare(const void *solution1, const void *solution2);
+PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
+PRIVATE char      *costring(char *string);
+PRIVATE void      repeat(int i, int j, STATE * state,
+                  int part_energy, int temp_energy);
 
 /*Globals ------------------------------------------------------------------ */
 /* options that may be modified by RNAsubopt.c */
-int subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     density_of_states[MAXDOS+1];
+PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
 
 #define MAXALPHA 20	                /* maximal length of alphabet */
 
-PRIVATE int turn;
-PRIVATE LIST *Stack;
-PRIVATE int nopush;
-PRIVATE int best_energy;                /* best_energy = remaining energy */
+PRIVATE int   turn;
+PRIVATE LIST  *Stack;
+PRIVATE int   nopush;
+PRIVATE int   best_energy;                /* best_energy = remaining energy */
 
-PRIVATE int *f5;                         /* energy of 5 end */
-PRIVATE int *c;		                /* energy array, given that i-j pair */
-PRIVATE int *fML;		        /* multi-loop auxiliary energy array */
-PRIVATE int *fM1;                /* another multi-loop auxiliary energy array */
-PRIVATE int *fc;                     /*energy array, from i (j)  to cut*/
-PRIVATE int *indx;   /* index for moving in the triangle matrices c[] and f[] */
+PRIVATE int   *f5;                         /* energy of 5 end */
+PRIVATE int   *c;		                /* energy array, given that i-j pair */
+PRIVATE int   *fML;		        /* multi-loop auxiliary energy array */
+PRIVATE int   *fM1;                /* another multi-loop auxiliary energy array */
+PRIVATE int   *fc;                     /*energy array, from i (j)  to cut*/
+PRIVATE int   *indx;   /* index for moving in the triangle matrices c[] and f[] */
 PRIVATE short *S, *S1;
 
-PRIVATE char *ptype;
+PRIVATE char  *ptype;
 
-PRIVATE const paramT *P;
-extern int  uniq_ML;
-extern  int cut_point;   /* set to first pos of second seq for cofolding */
-
-PRIVATE int length;
-PRIVATE int minimal_energy;                           /* minimum free energy */
-PRIVATE int element_energy;       /* internal energy of a structural element */
-PRIVATE int threshold;                             /* minimal_energy + delta */
-PRIVATE char *sequence;
-PUBLIC  double print_energy = 9999; /* printing threshold for use with logML */
+PRIVATE paramT *P;
+PRIVATE int   length;
+PRIVATE int   minimal_energy;                           /* minimum free energy */
+PRIVATE int   element_energy;       /* internal energy of a structural element */
+PRIVATE int   threshold;                             /* minimal_energy + delta */
+PRIVATE char  *sequence;
 
 /* some needful things for subopt_circ */
-/* take int circ from fold.c	 */
-extern	int circ;
-PUBLIC	SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp);
-PRIVATE int *fM2;	 /* energies of M2 */
-PUBLIC	int	Fc, FcH, FcI, FcM;		/* parts of the exterior loop energies */
+PRIVATE int   *fM2;	 /* energies of M2 */
+PRIVATE int   Fc, FcH, FcI, FcM;		/* parts of the exterior loop energies */
 
 PRIVATE void encode_seq(char *sequence) {
   unsigned int i,l;
@@ -903,7 +896,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	      strcpy(loopseq , sequence+l-1);
 	      strncat(loopseq, sequence, k);
 	    }
-	    tmpE = HairpinE(u, type, S1[l+1], S1[k-1], loopseq);
+	    tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
 	  }
 	  if(c[kl] + tmpE + best_energy <= threshold){
 	    /* what we really have to do is something like this, isn't it? */
@@ -946,7 +939,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 	      if(!type_2) continue;
 	      u2 = k-1 + j-q;
 	      if(u1+u2>MAXLOOP) continue;
-	      tmpE = LoopEnergy(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1]);
+	      tmpE = E_IntLoop(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1], P);
 	      if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
 		/* ok, similar to the hairpin stuff, we add new states onto the stack R */
 		/* but in contrast to the hairpin decomposition, we have to add two new */
@@ -1044,7 +1037,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       make_pair(i+1, j-1, new_state);
       new_interval = make_interval(i+1, j-1, 2);
       push(new_state->Intervals, new_interval);
-      if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) energy = LoopEnergy(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1]);
+      if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) energy = E_IntLoop(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
       new_state->partial_energy += part_energy;
       new_state->partial_energy += energy;
@@ -1072,8 +1065,8 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
 	  if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
       if (SAME_STRAND(i,p) && SAME_STRAND(q,j)) {
-	energy = LoopEnergy(p-i-1, j-q-1, type, rtype[type_2],
-			    S1[i+1],S1[j-1],S1[p-1],S1[q+1]);
+	energy = E_IntLoop(p-i-1, j-q-1, type, rtype[type_2],
+			    S1[i+1],S1[j-1],S1[p-1],S1[q+1], P);
 
 	new = energy + c[indx[q]+p];
 
@@ -1165,7 +1158,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
   if (SAME_STRAND(i,j)) {
     if (no_close) energy = FORBIDDEN;
     else
-      energy = HairpinE(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1);
+      energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1, P);
 
     if (energy + best_energy <= threshold) {
       /* hairpin structure */

@@ -21,6 +21,8 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
+#include "loop_energies.h"
+#include "fold.h"
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
@@ -32,24 +34,12 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 
 #define PAREN
 
-#define PUBLIC
-#define PRIVATE static
-
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 
-PUBLIC float  fold(const char *string, char *structure);
-PUBLIC float  circfold(const char *string, char *structure);
-PUBLIC float  energy_of_struct(const char *string, const char *structure);
-PUBLIC float  energy_of_circ_struct(const char *string, const char *structure);
-PUBLIC int    energy_of_struct_pt(const char *string, short *ptable,
-				  short *s, short *s1);
-PUBLIC void   free_arrays(void);
-PUBLIC void   initialize_fold(int length);
-PUBLIC void   update_fold_params(void);
 
 PUBLIC int    logML=0;    /* if nonzero use logarithmic ML energy in
-			     energy_of_struct */
+                             energy_of_struct */
 PUBLIC int    uniq_ML=0;  /* do ML decomposition uniquely (for subopt) */
 /*@unused@*/
 PRIVATE void  letter_structure(char *structure, int length) UNUSED;
@@ -286,7 +276,7 @@ PRIVATE int fill_arrays(const char *string) {
 
 	if (no_close) new_c = FORBIDDEN;
 	else
-	  new_c = HairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
+	  new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
 
 	/*--------------------------------------------------------
 	  check for elementary structures involving more than one
@@ -307,8 +297,8 @@ PRIVATE int fill_arrays(const char *string) {
 		if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
 #if 1
-	    energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-				S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	    energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+				S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 #else
 	    /* duplicated code is faster than function call */
 
@@ -687,7 +677,7 @@ PRIVATE void backtrack(const char *string, int s) {
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else
-      if (cij == HairpinE(j-i-1, type, S1[i+1], S1[j-1],string+i-1)+bonus)
+      if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus)
 	continue;
 
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
@@ -704,8 +694,8 @@ PRIVATE void backtrack(const char *string, int s) {
 	    if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
 	/* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-	energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-			    S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+	energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+			    S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
 	new = energy+c[indx[q]+p]+bonus;
 	traced = (cij == new);
@@ -933,7 +923,7 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
 	  energy = P->int21[type_2][type][sq1][si1][sp1];
 	return energy;
       }
-        else {
+        else {  /* 1xn loop */
 	energy = (nl+1<=MAXLOOP)?(P->internal_loop[nl+1]):
 	(P->internal_loop[30]+(int)(P->lxc*log((nl+1)/30.)));
 	energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
@@ -945,8 +935,8 @@ INLINE int LoopEnergy(int n1, int n2, int type, int type_2,
     else if (ns==2) {
       if(nl==2)      {   /* 2x2 loop */
 	return P->int22[type][type_2][si1][sp1][sq1][sj1];}
-      else if (nl==3)  {
-	energy =P->internal_loop[5]+P->ninio[2];
+      else if (nl==3)  { /* 2x3 loop */
+	energy = P->internal_loop[5]+P->ninio[2];
 	energy += P->mismatch23I[type][si1][sj1]+
 	  P->mismatch23I[type_2][sq1][sp1];
 	return energy;
@@ -1138,7 +1128,7 @@ float energy_of_circ_struct(const char *string, const char *structure) {
     }
     si1 = (i==1)?S1[length] : S1[i-1];
     sj1 = (j==length)?S1[1] : S1[j+1];
-    en0 = HairpinE(u, type, sj1, si1,  loopseq);
+    en0 = E_Hairpin(u, type, sj1, si1, loopseq, P);
   } else
     if (degree==2) {
       int p,q, u1,u2, si1, sq1, type_2;
@@ -1150,8 +1140,8 @@ float energy_of_circ_struct(const char *string, const char *structure) {
       if (type_2==0) type_2=7;
       si1 = (i==1)? S1[length] : S1[i-1];
       sq1 = (q==length)? S1[1] : S1[q+1];
-      en0 = LoopEnergy(u1, u2, type, type_2,
-		       S1[j+1], si1, S1[p-1], sq1);
+      en0 = E_IntLoop(u1, u2, type, type_2,
+		       S1[j+1], si1, S1[p-1], sq1,P);
     } else { /* degree > 2 */
       en0 = ML_Energy(0, 0) - P->MLintern[0];
       if (dangles) {
@@ -1237,8 +1227,8 @@ PRIVATE int stack_energy(int i, const char *string)
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-      ee = LoopEnergy(p-i-1, j-q-1, type, type_2,
-		      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+      ee = E_IntLoop(p-i-1, j-q-1, type, type_2,
+		      S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     if (eos_debug>0)
@@ -1252,7 +1242,7 @@ PRIVATE int stack_energy(int i, const char *string)
 
   if (p>q) {                       /* hair pin */
     if (SAME_STRAND(i,j))
-      ee = HairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
+      ee = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     energy += ee;
@@ -1458,7 +1448,7 @@ int loop_energy(short * ptable, short *s, short *s1, int i) {
 	for (u=0; i+u<=j; u++) loopseq[u] = Law_and_Order[S[i+u]];
 	loopseq[u] = '\0';
       }
-      energy = HairpinE(j-i-1, type, S1[i+1], S1[j-1], loopseq);
+      energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], loopseq, P);
     } else {
       energy = ML_Energy(cut_in_loop(i), 1);
     }
@@ -1479,8 +1469,8 @@ int loop_energy(short * ptable, short *s, short *s1, int i) {
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-      energy = LoopEnergy(p-i-1, j-q-1, type, type_2,
-			  S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+      energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+			  S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
     else
       energy = ML_Energy(cut_in_loop(i), 1);
   }
