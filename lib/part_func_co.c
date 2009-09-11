@@ -61,6 +61,8 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "PS_dot.h"
+#include "params.h"
+#include "loop_energies.h"
 #include "part_func_co.h"
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
@@ -85,32 +87,17 @@ PRIVATE double *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, do
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
-PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
-			     short si1, short sj1, short sp1, short sq1);
-PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
-				const char *string);
 PRIVATE void make_ptypes(const short *S, const char *structure);
 
-PRIVATE FLT_OR_DBL expMLclosing, expMLintern[NBPAIRS+1], *expMLbase;
-PRIVATE FLT_OR_DBL expTermAU;
-PRIVATE FLT_OR_DBL expdangle5[NBPAIRS+1][5], expdangle3[NBPAIRS+1][5];
-PRIVATE FLT_OR_DBL lxc, exptetra[200], exptri[40], exphex[200];
-PRIVATE FLT_OR_DBL expstack[NBPAIRS+1][NBPAIRS+1];
-PRIVATE FLT_OR_DBL expmismatchI[NBPAIRS+1][5][5], expmismatch23I[NBPAIRS+1][5][5], expmismatch1nI[NBPAIRS+1][5][5],   expmismatchH[NBPAIRS+1][5][5], expmismatchM[NBPAIRS+1][5][5];
-PRIVATE FLT_OR_DBL expint11[NBPAIRS+1][NBPAIRS+1][5][5];
-PRIVATE FLT_OR_DBL expint21[NBPAIRS+1][NBPAIRS+1][5][5][5];
-PRIVATE FLT_OR_DBL expint22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
-PRIVATE FLT_OR_DBL *exphairpin;
-PRIVATE FLT_OR_DBL expbulge[MAXLOOP+1];
-PRIVATE FLT_OR_DBL expInit;
-PRIVATE FLT_OR_DBL expinternal[MAXLOOP+1];
-PRIVATE FLT_OR_DBL expninio[5][MAXLOOP+1];
-PRIVATE FLT_OR_DBL *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
-PRIVATE FLT_OR_DBL *scale;
-PRIVATE char *ptype; /* precomputed array of pair types */
-PRIVATE int *jindx;
-PRIVATE int init_length; /* length in last call to init_pf_fold() */
+PRIVATE FLT_OR_DBL  *expMLbase;
+PRIVATE FLT_OR_DBL  *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
+PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
+PRIVATE FLT_OR_DBL  *scale;
+PRIVATE pf_paramT   *pf_params;
+PRIVATE char        *ptype; /* precomputed array of pair types */
+PRIVATE int         *jindx;
+PRIVATE int         init_length; /* length in last call to init_pf_fold() */
+PRIVATE short *S, *S1;
 #define ISOLATED  256.0
 #undef TURN
 #define TURN 0
@@ -120,16 +107,20 @@ PRIVATE int init_length; /* length in last call to init_pf_fold() */
 int mirnatog = 0;
 
 /*-----------------------------------------------------------------*/
-static  short *S, *S1;
 PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 {
 
-  int n, i,j,k,l, ij, kl, u,u1,ii,ll, type, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Q, Qmax=0, prm_MLb;
-  FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL qbt1, *tmp;
-  cofoldF X;
-  double free_energy, max_real;
+  int         n, i,j,k,l, ij, kl, u,u1,ii,ll, type, type_2, tt, ov=0;
+  FLT_OR_DBL  temp, Q, Qmax=0, prm_MLb;
+  FLT_OR_DBL  prmt,prmt1;
+  FLT_OR_DBL  qbt1, *tmp;
+  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
+  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
+  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
+  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
+  cofoldF     X;
+  double      free_energy, max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
@@ -169,7 +160,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 	if SAME_STRAND(i,j){
 	  if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
 	  else
-	    qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*scale[u+2];
+	    qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*scale[u+2];
 
 	}
 
@@ -182,8 +173,8 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 	      if (type_2) {
 		type_2 = rtype[type_2];
 		qbt1 += qb[iindx[k]-l] *
-		  expLoopEnergy(u1, j-l-1, type, type_2,
-				S1[i+1], S1[j-1], S1[k-1], S1[l+1])*scale[u1+j-l+1];
+		  exp_E_IntLoop(u1, j-l-1, type, type_2,
+				S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
 	      }
 	    }
 	  }
@@ -301,7 +292,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 
     kT = (temperature+K0)*GASCONST/1000.0;
     Qzero=q[iindx[1]-n];
-    QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*expInit;
+    QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*pf_params->expDuplexInit;
     /*correction for symmetry*/
     if((n-(cut_point-1)*2)==0) {
       if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
@@ -371,8 +362,8 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
 	      ij = iindx[i] - j;
 	      type = ptype[ij];
 	      if ((pr[ij]>0)) {
-		pr[kl] += pr[ij]*expLoopEnergy(k-i-1, j-l-1, type, type_2,
-					       S1[i+1], S1[j-1], S1[k-1], S1[l+1])*scale[k-i+j-l];
+		pr[kl] += pr[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
+					       S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[k-i+j-l];
 	      }
 	    }
 	  }
@@ -722,259 +713,28 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   return X;
 }
 
-/*------------------------------------------------------------------------*/
-/* dangling ends should never be destabilizing, i.e. expdangle>=1         */
-/* specific heat needs smooth function (2nd derivative)                   */
-/* we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,       */
-/* in the interval b<x<sqrt(3)/2                                          */
-
-#define SCALE 10
-/* #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
-  SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))*/
-#define SMOOTH(X) ((X)<0 ? 0 : (X))
-
 PRIVATE void scale_pf_params(unsigned int length)
 {
-  /* scale energy parameters and pre-calculate Boltzmann weights */
-  unsigned int i, j, k, l;
+  unsigned int i;
   double  kT, TT;
-  double  GT;
-
-
-
-  kT = (temperature+K0)*GASCONST;   /* kT in cal/mol  */
-  TT = (temperature+K0)/(Tmeasure);
+  pf_params = get_scaled_pf_parameters();
+  
+  kT = (pf_params->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  TT = (pf_params->temperature+K0)/(Tmeasure);
 
    /* scaling factors (to avoid overflows) */
-  if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
-    pf_scale = exp(-(-185+(temperature-37.)*7.27)/kT);
+  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
+    pf_scale = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
     if (pf_scale<1) pf_scale=1;
   }
   scale[0] = 1.;
-  for (i=1; i<=length; i++) {
-    scale[i] = scale[i-1]/pf_scale;
+  scale[1] = 1./pf_scale;
+  expMLbase[0] = 1;
+  expMLbase[1] = pf_params->expMLbase/pf_scale;
+  for (i=2; i<=length; i++) {
+    scale[i] = scale[i/2]*scale[i-(i/2)];
+    expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
   }
-
-  /* loop energies: hairpins, bulges, interior, mulit-loops */
-  for (i=0; i<=MIN(30,length); i++) {
-    GT =  hairpin37[i]*TT;
-    exphairpin[i] = exp( -GT*10./kT);
-  }
-  for (i=0; i<=MIN(30, MAXLOOP); i++) {
-    GT =  bulge37[i]*TT;
-    expbulge[i] = exp( -GT*10./kT);
-    GT =  internal_loop37[i]*TT;
-    expinternal[i] = exp( -GT*10./kT);
-  }
-  /* special case of size 2 interior loops (single mismatch) */
-  if (james_rule) expinternal[2] = exp ( -80*10/kT);
-
-  lxc = lxc37*TT;
-  for (i=31; i<length; i++) {
-    GT = hairpin37[30]*TT + (lxc*log( i/30.));
-    exphairpin[i] = exp( -GT*10./kT);
-  }
-  for (i=31; i<=MAXLOOP; i++) {
-    GT = bulge37[30]*TT + (lxc*log( i/30.));
-    expbulge[i] = exp( -GT*10./kT);
-    GT = internal_loop37[30]*TT + (lxc*log( i/30.));
-    expinternal[i] = exp( -GT*10./kT);
-  }
-
-  for (i=0; i<5; i++) {
-    GT = niniodH[i] - (niniodH[i] - ninio37[i])*TT;
-    for (j=0; j<=MAXLOOP; j++)
-      expninio[i][j]=exp(-MIN(MAX_NINIO,j*GT)*10/kT);
-  }
-   for (i=0; (i*7)<strlen(Tetraloops); i++) {
-    GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
-    exptetra[i] = exp( -GT*10./kT);
-  }
-  for (i=0; (i*5)<strlen(Triloops); i++) {
-    GT = TriloopdH[i] - (TriloopdH[i]-Triloop37[i])*TT;
-    exptri[i] = exp( -GT*10./kT);
-  }
-  for (i=0; (i*9)<strlen(Hexaloops); i++) {
-    GT = HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*TT;
-    exphex[i] = exp( -GT*10./kT);
-  }
-
-  GT =  ML_closing37*TT;
-  expMLclosing = exp( -GT*10/kT);
-
-  for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
-    GT =  ML_intern37*TT;
-    /* if (i>2) GT += TerminalAU; */
-    expMLintern[i] = exp( -GT*10./kT);
-  }
-  GT = TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT;
-  expTermAU = exp(-GT*10/kT);
-
-  GT =  ML_BASE37*TT;
-  for (i=0; i<length; i++) {
-    expMLbase[i] = exp( -10.*i*GT/kT)*scale[i];
-  }
-
-  /* if dangles==0 just set their energy to 0,
-      don't let dangle energies become > 0 (at large temps),
-      but make sure go smoothly to 0                        */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=4; j++) {
-      if (dangles) {
-	GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
-	expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
-	GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
-	expdangle3[i][j] = exp(SMOOTH(-GT)*10./kT);
-      } else
-	expdangle3[i][j] = expdangle5[i][j] = 1;
-      if (i>2) /* add TermAU penalty into dangle3 */
-	expdangle3[i][j] *= expTermAU;
-    }
-
-  /* stacking energies */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++) {
-      GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
-      expstack[i][j] = exp( -GT*10/kT);
-    }
-
-  /* mismatch energies */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<5; j++)
-      for (k=0; k<5; k++) {
-	GT = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
-	expmismatchI[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
-	expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-	expmismatchM[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
-	expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
-	GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
-	expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
-      }
-
-  /* interior lops of length 2 */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  GT = int11_dH[i][j][k][l] -
-	    (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*TT;
-	  expint11[i][j][k][l] = exp(-GT*10./kT);
-	}
-  /* interior 2x1 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m;
-	  for (m=0; m<5; m++) {
-	    GT = int21_dH[i][j][k][l][m] -
-	      (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
-	    expint21[i][j][k][l][m] = exp(-GT*10./kT);
-	  }
-	}
-  /* interior 2x2 loops */
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-	for (l=0; l<5; l++) {
-	  int m,n;
-	  for (m=0; m<5; m++)
-	    for (n=0; n<5; n++) {
-	      GT = int22_dH[i][j][k][l][m][n] -
-		(int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
-	      expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
-	    }
-	}
-  /*initialization of duplex energy*/
-  expInit=exp(-DuplexInit37*TT*10./kT);
-}
-
-/*----------------------------------------------------------------------*/
-PRIVATE double expHairpinEnergy(int u, int type, short si1, short sj1,
-				const char *string) {
-  double q;
-  q = exphairpin[u];
-  if ((tetra_loop)&&(u==4)) {
-    char tl[7]={0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(Tetraloops, tl)))
-      return (exptetra[(ts-Tetraloops)/7]);
-  }
-  if ((tetra_loop)&&(u==6)) {
-    char tl[9]={0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(Hexaloops, tl)))
-      return  (exphex[(ts-Hexaloops)/9]);
-  }
-  if (u==3) {
-    char tl[6]={0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(Triloops, tl)))
-      return (exptri[(ts-Triloops)/6]);
-    if (type>2)
-      q *= expTermAU;
-  }
-  else /* no mismatches for tri-loops */
-    q *= expmismatchH[type][si1][sj1];
-
-  return q;
-
-}
-
-PRIVATE double expLoopEnergy(int u1, int u2, int type, int type2,
-			     short si1, short sj1, short sp1, short sq1) {
-  double z=0;
-  int no_close = 0;
-
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==2)||(type==4)))
-    no_close = 1;
-
-  if ((u1==0) && (u2==0)) /* stack */
-    z = expstack[type][type2];
-  else if (no_close==0) {
-    if ((u1==0)||(u2==0)) { /* bulge */
-      int u;
-      u = (u1==0)?u2:u1;
-      z = expbulge[u];
-      if (u2+u1==1) z *= expstack[type][type2];
-      else {
-	if (type>2) z *= expTermAU;
-	if (type2>2) z *= expTermAU;
-      }
-    }
-    else {     /* interior loop */
-      if (u1+u2==2) /* size 2 is special */
-	z = expint11[type][type2][si1][sj1];
-      else if ((u1==1) && (u2==2))
-	z = expint21[type][type2][si1][sq1][sj1];
-      else if ((u1==2) && (u2==1))
-	z = expint21[type2][type][sq1][si1][sp1];
-      else if ((u1==2) && (u2==2))
-	z = expint22[type][type2][si1][sp1][sq1][sj1];
-      else if (((u1==2)&&(u2==3))||((u1==3)&&(u2==2))){ /*2-3 is special*/
-	z = expinternal[5]*
-	  expmismatch23I[type][si1][sj1]*
-	  expmismatch23I[type2][sq1][sp1];
-	z *= expninio[2][1];
-      }
-      else if ((u1==1)||(u2==1)) {  /*1-n is special*/
-	z = expinternal[u1+u2]*
-	  expmismatch1nI[type][si1][sj1]*
-	  expmismatch1nI[type2][sq1][sp1];
-	z *= expninio[2][abs(u1-u2)];
-      }
-      else {
-	z = expinternal[u1+u2]*
-	  expmismatchI[type][si1][sj1]*
-	  expmismatchI[type2][sq1][sp1];
-	z *= expninio[2][abs(u1-u2)];
-      }
-    }
-  }
-  return z; /* *scale[u1+u2+2]; */
 }
 
 /*----------------------------------------------------------------------*/
@@ -1002,7 +762,6 @@ PRIVATE void get_arrays(unsigned int length)
   prm_l = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   prm_l1 =(FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  exphairpin = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   iindx = (int *) space(sizeof(int)*(length+1));
@@ -1044,7 +803,6 @@ PUBLIC void free_co_pf_arrays(void)
   free(qqm); free(qqm1);
   free(q1k); free(qln);
   free(prm_l); free(prm_l1); free(prml);
-  free(exphairpin);
   free(expMLbase);
     free(scale);
   free(iindx);
@@ -1211,6 +969,9 @@ static void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
+  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
+  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
+  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
 
   r = urn() * qm1[jindx[j]+i];
   ii = iindx[i];
@@ -1239,7 +1000,7 @@ static void backtrack(int i, int j) {
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
     else
-      qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1)*scale[u+2];
+      qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*scale[u+2];
 
     if (qbt1>r) return; /* found the hairpin we're done */
 
@@ -1251,8 +1012,8 @@ static void backtrack(int i, int j) {
 	if (type_2) {
 	  type_2 = rtype[type_2];
 	  qbt1 += qb[iindx[k]-l] *
-	    expLoopEnergy(u1, j-l-1, type, type_2,
-			  S1[i+1], S1[j-1], S1[k-1], S1[l+1])*scale[u1+j-l+1];
+	    exp_E_IntLoop(u1, j-l-1, type, type_2,
+			  S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
 	}
 	if (qbt1 > r) break;
       }

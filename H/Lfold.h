@@ -1,6 +1,6 @@
-#ifndef LFOLD_H
-#define LFOLD_H
+#ifndef __VIENNA_RNA_PACKAGE_LFOLD_H__
+#define __VIENNA_RNA_PACKAGE_LFOLD_H__
 
-extern float  Lfold(char *string, char *structure, int maxdist);
+float  Lfold(char *string, char *structure, int maxdist);
 
 #endif

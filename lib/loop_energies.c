@@ -9,6 +9,16 @@
 #include "energy_par.h"
 #include "loop_energies.h"
 
+/** 
+*** \file loop_energies.c
+*** This file contains several functions to calculate the free energy \f$\Delta G\f$ and
+*** Boltzmann weights \f$e^{-\Delta G/kT} \f$ for hairpin- and interior-loops.<BR>
+*** The unit of the free energy returned by \func E_Hairpin() and \func E_IntLoop()
+*** is \f$10^{-1} * \mathrm{kcal}/\mathrm{mol}\f$
+***/
+
+
+
 PUBLIC  int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
   int energy;
   

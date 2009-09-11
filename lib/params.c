@@ -337,7 +337,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   pf_paramT *pf = (pf_paramT *)space(sizeof(pf_paramT));
   
   pf->temperature = temperature;
-  kT = (pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  pf->kT = kT = (pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (pf->temperature+K0)/(Tmeasure);
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */

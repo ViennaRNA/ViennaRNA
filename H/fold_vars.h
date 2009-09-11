@@ -1,5 +1,5 @@
-#ifndef __FOLD_VARS__
-#define __FOLD_VARS__
+#ifndef __VIENNA_RNA_PACKAGE_FOLD_VARS_H__
+#define __VIENNA_RNA_PACKAGE_FOLD_VARS_H__
 
 /* to use floats instead of doubles in pf_fold() comment next line */
 #define LARGE_PF

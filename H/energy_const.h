@@ -1,3 +1,6 @@
+#ifndef __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
+#define __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
+
 /*
 
    energy constants, formerly defined in
@@ -7,9 +10,6 @@
    S.Kopp, IMB-Jena, Germany, Mar 1996
    
 */
-
-#ifndef _ENERGY_CONST_H
-#define _ENERGY_CONST_H 1
 
 #define GASCONST 1.98717  /* in [cal/K] */
 #define K0  273.15

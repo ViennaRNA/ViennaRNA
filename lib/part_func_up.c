@@ -66,6 +66,7 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "part_func.h"
+#include "loop_energies.h"
 #include "part_func_up.h"
 #include "duplex.h"
 /*@unused@*/
@@ -127,10 +128,10 @@ PRIVATE FLT_OR_DBL *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
 PRIVATE FLT_OR_DBL *q1k, *qln;
 PRIVATE double *qqm2, *qq_1m2, *qqm, *qqm1;
 
-PRIVATE double *scale, *expMLbase;
-PRIVATE char *ptype; /* precomputed array of pair types */ 
-PRIVATE int init_length;  /* length in last call to init_pf_fold()*/
-PRIVATE double init_temp; /* temperature in last call to scale_pf_params */
+PRIVATE FLT_OR_DBL  *scale, *expMLbase;
+PRIVATE char        *ptype; /* precomputed array of pair types */ 
+PRIVATE int         init_length;  /* length in last call to init_pf_fold()*/
+PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 /* make iptypes array for intermolecular constrains (ipidx for indexing)*/
 
 
@@ -154,6 +155,11 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
   pu_contrib *pu_stru;
   FLT_OR_DBL *puij;
 #endif
+  FLT_OR_DBL  expMLclosing      = Pf->expMLclosing;
+  FLT_OR_DBL  *expMLintern      = &(Pf->expMLintern[0]);
+  FLT_OR_DBL  expTermAU         = Pf->expTermAU;
+  FLT_OR_DBL  (*expdangle5)[5]  = &(Pf->expdangle5[0]);
+  FLT_OR_DBL  (*expdangle3)[5]  = &(Pf->expdangle3[0]);
   sum_l=0.0; 
   temp=0;
   n = (int) strlen(sequence);
@@ -262,7 +268,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 	if (((type==3)||(type==4))&&no_closingGU) {
 	  temp = 0.;
 	} else {
-	  temp = (expHairpinEnergy(u, type, S1[p+1], S1[o-1], sequence+p-1) * prpr[po] * scale[u+2]); /* add scale[u+2] */
+	  temp = (exp_E_Hairpin(u, type, S1[p+1], S1[o-1], sequence+p-1, Pf) * prpr[po] * scale[u+2]); /* add scale[u+2] */
 	}
 	/* all H contribs are collect for the longest unpaired region */ 
 	store_H[p+1]=temp;
@@ -294,8 +300,8 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 	      type_2 = rtype[type_2];
 	      /* add *scale[u1+u2+2] */ 
 	      temp = qb[kl]  * (scale[u1+o-l+1] *
-				expLoopEnergy(u1, o-l-1, type, type_2,
-   				  S1[p+1], S1[o-1], S1[k-1], S1[l+1])) *
+				exp_E_IntLoop(u1, o-l-1, type, type_2,
+   				  S1[p+1], S1[o-1], S1[k-1], S1[l+1], Pf)) *
 		prpr[po];
 	      if(l+1 < o) {
 		store_Io[l+1] += temp; /* unpaired region between ]l,o[ */
@@ -353,16 +359,16 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 	 qqm[p] := (contribution with exact one loop in region (p,o)*/
       qqm[p] = qqm1[p]*expMLbase[1];
       if (type) {
-	qbt1 = qb[po]*Pf->expMLintern[type];
-	if (p>1) qbt1 *= Pf->expdangle5[type][S1[p-1]];
-	if (o<n) qbt1 *= Pf->expdangle3[type][S1[o+1]];
-	else if (type>2) qbt1 *= Pf->expTermAU;
+	qbt1 = qb[po]*expMLintern[type];
+	if (p>1) qbt1 *= expdangle5[type][S1[p-1]];
+	if (o<n) qbt1 *= expdangle3[type][S1[o+1]];
+	else if (type>2) qbt1 *= expTermAU;
 	qqm[p] += qbt1;
 	/* revers dangles for prpr[po]*... */
 	temp=0.; 
 	tt=rtype[type];
-	temp = prpr[po]*Pf->expdangle3[tt][S1[p+1]]*Pf->expdangle5[tt][S1[o-1]];
-	temp *=Pf->expMLclosing*Pf->expMLintern[tt]*scale[2];
+	temp = prpr[po]*expdangle3[tt][S1[p+1]]*expdangle5[tt][S1[o-1]];
+	temp *=expMLclosing*expMLintern[tt]*scale[2];
       }
       tqm2=0.;
       
@@ -488,16 +494,16 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 	 from segment [o,p] */
       qqm[p] = qqm1[p]*expMLbase[1];
       if (type) {
-	qbt1 = qb[po]*Pf->expMLintern[type];
-	if (o>1) qbt1 *= Pf->expdangle5[type][S1[o-1]];
-	if (p<n) qbt1 *= Pf->expdangle3[type][S1[p+1]];
-	else if (type>2) qbt1 *= Pf->expTermAU;
+	qbt1 = qb[po]*expMLintern[type];
+	if (o>1) qbt1 *= expdangle5[type][S1[o-1]];
+	if (p<n) qbt1 *= expdangle3[type][S1[p+1]];
+	else if (type>2) qbt1 *= expTermAU;
 	qqm[p] += qbt1;
 	/* revers dangles for prpr[po]...  */
 	temp=0.;
 	tt=rtype[type];
-	temp = prpr[po]*Pf->expdangle3[tt][S1[o+1]]*Pf->expdangle5[tt][S1[p-1]];
-	temp *= Pf->expMLclosing*Pf->expMLintern[tt]*scale[2];
+	temp = prpr[po]*expdangle3[tt][S1[o+1]]*expdangle5[tt][S1[p-1]];
+	temp *= expMLclosing*expMLintern[tt]*scale[2];
       }
       tqm2=0.;
       for(i=o+1; i < p; i++) {
@@ -601,8 +607,8 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
       /* sum_stru = pu_stru->H[i][j-i]; */
 /*       sum_test = pu_test->H[i][j-i]; */
       /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*(temperature+K0)*GASCONST/1000.0;
-      dG_ut = -log(sum_test)*(temperature+K0)*GASCONST/1000.0;
+      dG_us = -log(sum_stru)*kT/1000.0;
+      dG_ut = -log(sum_test)*kT/1000.0;
       if(!EQUAL(dG_us,dG_ut)) {
 	printf("i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
       }
@@ -612,8 +618,8 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
       sum_stru = pu_stru->H[i][j-i];
       sum_test = pu_test->H[i][j-i];
       /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*(temperature+K0)*GASCONST/1000.0;
-      dG_ut = -log(sum_test)*(temperature+K0)*GASCONST/1000.0;
+      dG_us = -log(sum_stru)*kT/1000.0;
+      dG_ut = -log(sum_test)*kT/1000.0;
       if(!EQUAL(dG_us,dG_ut)) {
 	printf("hair: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
       }
@@ -622,8 +628,8 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
       sum_test = pu_test->I[i][j-i];
       
       /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*(temperature+K0)*GASCONST/1000.0;
-      dG_ut = -log(sum_test)*(temperature+K0)*GASCONST/1000.0;
+      dG_us = -log(sum_stru)*kT/1000.0;
+      dG_ut = -log(sum_test)*kT/1000.0;
       if(!EQUAL(dG_us,dG_ut)) {
 	printf("intr: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
       }
@@ -632,8 +638,8 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
       sum_test = pu_test->M[i][j-i];
       
       /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*(temperature+K0)*GASCONST/1000.0;
-      dG_ut = -log(sum_test)*(temperature+K0)*GASCONST/1000.0;
+      dG_us = -log(sum_stru)*kT/1000.0;
+      dG_ut = -log(sum_test)*kT/1000.0;
       if(!EQUAL(dG_us,dG_ut)) {
 	printf("mult: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
       }
@@ -663,6 +669,13 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 /* s1 is the longer seq */
 PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, char *cstruc, int incr3, int incr5)
 {
+  FLT_OR_DBL  expMLclosing      = Pf->expMLclosing;
+  FLT_OR_DBL  *expMLintern      = &(Pf->expMLintern[0]);
+  FLT_OR_DBL  expTermAU         = Pf->expTermAU;
+  FLT_OR_DBL  (*expdangle5)[5]  = &(Pf->expdangle5[0]);
+  FLT_OR_DBL  (*expdangle3)[5]  = &(Pf->expdangle3[0]);
+  FLT_OR_DBL  expDuplexInit     = Pf->expDuplexInit;
+  double      kT                = Pf->kT;
   int i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
   double temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
   FLT_OR_DBL ****qint_4, **qint_ik;
@@ -740,7 +753,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   Z_int=0.;
   /*  Gint = ( -log(int_ik[gk][gi])-( ((int) w/2)*log(pf_scale)) )*((Pf->temperature+K0)*GASCONST/1000.0); */
   const_scale = ((int) w/2)*log(pf_scale);
-  const_T = ((Pf->temperature+K0)*GASCONST/1000.0); 
+  const_T = (kT/1000.0); 
   encode_seq(s1, s2);
   /* static  short *S~S1, *S1~SS1, *SS~S2, *SS2; */
   for (i=0; i<=n1; i++) {
@@ -822,17 +835,17 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       /* interaction has to include 3' most '|' constrain, cl*/ 
       if(fold_constrained && pos && cl && j < cl-w+1) break;
       type = cc->ptype[cc->indx[i]-(n1+j)];
-      qint_4[i][j][0][0] = type ? Pf->expDuplexInit : 0;
+      qint_4[i][j][0][0] = type ? expDuplexInit : 0;
 
       if (!type) continue;
-      if (i>1)  qint_4[i][j][0][0] *= Pf->expdangle5[type][S1[i-1]];
-      if (j<n2 && dangles) qint_4[i][j][0][0] *= Pf->expdangle3[type][SS2[j+1]];
-      else if (type>2) qint_4[i][j][0][0] *= Pf->expTermAU;
+      if (i>1)  qint_4[i][j][0][0] *= expdangle5[type][S1[i-1]];
+      if (j<n2 && dangles) qint_4[i][j][0][0] *= expdangle3[type][SS2[j+1]];
+      else if (type>2) qint_4[i][j][0][0] *= expTermAU;
       
       rev_d=1.;
-      if (i<n1 && dangles) rev_d *= Pf->expdangle3[rtype[type]][S1[i+1]];
-      else if (type>2) rev_d *= Pf->expTermAU;
-      if (j>1) rev_d *= Pf->expdangle5[rtype[type]][SS2[j-1]];
+      if (i<n1 && dangles) rev_d *= expdangle3[rtype[type]][S1[i+1]];
+      else if (type>2) rev_d *= expTermAU;
+      if (j>1) rev_d *= expdangle5[rtype[type]][SS2[j-1]];
       
       /* add inc5 and incr3 */
       if((i-incr5) > 0 ) add_i5=i-incr5;
@@ -891,8 +904,8 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 
 	  if (i-k+l-j-2<=MAXLOOP) {
 	    if(k >= prev_k && l <= prev_l) { /* don't violate constrains */
-	      E = expLoopEnergy(i-k-1,l-j-1, type2, rtype[type],
-				S1[k+1], SS2[l-1], S1[i-1], SS2[j+1]) *
+	      E = exp_E_IntLoop(i-k-1,l-j-1, type2, rtype[type],
+				S1[k+1], SS2[l-1], S1[i-1], SS2[j+1], Pf) *
 		                scale[i-k+l-j]; /* add *scale[u1+u2+2] */
  
 	      qint_4[i][j][a][b] += ( qint_4[k][l][0][0]*E);
@@ -999,7 +1012,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 	/* Int->Gi[l]: minimal delta G at position [l] */
 	Int->Gi[l]=MIN(Int->Gi[l],
 		       ( -log(qint_ik[i][k])-( ((int) w/2)*log(pf_scale)) )*
-		       ((Pf->temperature+K0)*GASCONST/1000.0) );
+		       (kT/1000.0) );
       }
     }
   }  
@@ -1118,7 +1131,7 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int,int incr3, 
      interaction energy between the short RNA s and its target sl */
   mfe = duplexfold(s,sl);
   
-  kT = (Pf->temperature+K0)*GASCONST/1000.0;   /* in Kcal */
+  kT = Pf->kT/1000.0;   /* in Kcal */
 
   *sc_int = 3.42;
   
@@ -1280,25 +1293,25 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   /* Do this only at the first call for scale_pf_parameters()
      and/or if temperature has changed*/
   if(init_temp != temperature) {
-    Pf=scale_pf_parameters();
+    Pf=get_scaled_pf_parameters();
   }
 
   init_temp = Pf->temperature;
-  kT = (Pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  
+  kT = Pf->kT;   /* kT in cal/mol  */
 
-  /* scaling factors (to avoid overflows) */
-  if (pf_scale==-1) { /* mean energy for random sequences: 184.3*length cal */
+   /* scaling factors (to avoid overflows) */
+  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
     pf_scale = exp(-(-185+(Pf->temperature-37.)*7.27)/kT);
     if (pf_scale<1) pf_scale=1;
   }
   scale[0] = 1.;
-  for (i=1; i<=(length*2); i++) {
-    scale[i] = scale[i-1]/pf_scale;
-  }
-
-  for (i=0; i<length; i++) {
-    /* expMLbase[i] = exp(i*Pf->expMLbase)*scale[i]; old */
-    expMLbase[i] = pow(Pf->expMLbase,i)*scale[i];
+  scale[1] = 1./pf_scale;
+  expMLbase[0] = 1;
+  expMLbase[1] = Pf->expMLbase/pf_scale;
+  for (i=2; i<=length; i++) {
+    scale[i] = scale[i/2]*scale[i-(i/2)];
+    expMLbase[i] = pow(Pf->expMLbase, (double)i) * scale[i];
   }
 }
 /*-------------------------------------------------------------------------*/
@@ -1440,7 +1453,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   double dG_u;
   char nan[4], *time, startl[2], dg[10];;
   FILE *wastl;
-  
+  double  kT = Pf->kT;
   wastl = fopen(ofile,"a");
   if (wastl==NULL) {
     fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
@@ -1487,7 +1500,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
       if(i != 0) {
 	if(s>0 && s<=size) {
 	  if(res->u_values[s][i] > 0.0) {
-	    dG_u = -log(res->u_values[s][i])*(temperature+K0)*GASCONST/1000.0;
+	    dG_u = -log(res->u_values[s][i])*kT/1000.0;
 	    fprintf(wastl,"%8.3f  ",dG_u);
 	  } else { /* no p_u value was defined print nan*/
 	    fprintf(wastl,"%8s  ",nan);

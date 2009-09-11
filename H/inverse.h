@@ -8,14 +8,14 @@ extern  int   give_up;      /* default 0: try to minimize structure distance eve
                              no exact solution can be found */
 extern  int   inv_verbose;  /* print out substructure on which inverse_fold() fails */
 
-extern float inverse_fold(char *start, const char *target);  
+float inverse_fold(char *start, const char *target);  
 /* find sequences with predefined structure.
    the found sequence is written to start,
    return value is
       energy_of_struct(start, target) - fold(start, structure),
    i.e. 0. if search was successful; */
    
-extern float inverse_pf_fold(char *start, const char *target);
+float inverse_pf_fold(char *start, const char *target);
 /*  inverse folding maximising the frequency of target in the
     ensemble of structures, final sequence is written to start, returns 
        energy_of_struct(start, target) - part_func(start, structure)

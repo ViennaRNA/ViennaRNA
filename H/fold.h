@@ -29,10 +29,18 @@ void  export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int 
 /* finally moved the loop energy function declarations to this header...  */
 /* BUT: The functions only exist for backward compatibility reasons!      */
 /* You better include "loop_energies.h" and call the functions:           */
-/* E_Hairpin() and E_IntLoop() which are threadsafe as they get a pointer */
-/* to the energy parameter datastructure as additional argument           */
+/* E_Hairpin() and E_IntLoop() which are (almost) threadsafe as they get  */
+/* a pointer to the energy parameter datastructure as additional argument */
 
-int   LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
-int   HairpinE(int size, int type, int si1, int sj1, const char *string);
+/**
+*** \deprecated {This function is deprecated and will be removed soon.
+*** Use \func E_IntLoop() instead!}
+***/
+int   LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1) __attribute__ ((deprecated));
+/**
+*** \deprecated {This function is deprecated and will be removed soon.
+*** Use \func E_Hairpin() instead!}
+***/
+int   HairpinE(int size, int type, int si1, int sj1, const char *string) __attribute__ ((deprecated));
 
 #endif

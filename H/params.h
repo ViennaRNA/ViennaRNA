@@ -68,7 +68,8 @@ typedef struct {
   double expTriloop[40];
   char Triloops[241];
   char Hexaloops[1801];
-  double temperature;
+  double  temperature;
+  double  kT;
 }  pf_paramT;
  
 pf_paramT *scale_pf_parameters(void);

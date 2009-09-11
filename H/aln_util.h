@@ -1,8 +1,8 @@
-#ifndef ALN_UTIL_H
-#define ALN_UTIL_H
+#ifndef __VIENNA_RNA_PACKAGE_ALN_UTIL_H__
+#define __VIENNA_RNA_PACKAGE_ALN_UTIL_H__
 
-extern int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
-extern /*@only@*/ /*@notnull@*/ char *consensus(const char *AS[]);
-extern /*@only@*/ /*@notnull@*/ char *consens_mis(const char *AS[]);
+int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]);
+/*@only@*/ /*@notnull@*/ char *consensus(const char *AS[]);
+/*@only@*/ /*@notnull@*/ char *consens_mis(const char *AS[]);
 
 #endif

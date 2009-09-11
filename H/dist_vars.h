@@ -1,5 +1,6 @@
-#ifndef DIST_VARS_H
-#define DIST_VARS_H
+#ifndef __VIENNA_RNA_PACKAGE_DIST_VARS_H__
+#define __VIENNA_RNA_PACKAGE_DIST_VARS_H__
+
 /*  Global variables for Distance-Package */
 
 extern int   edit_backtrack;  /* set to 1 if you want backtracking */ 
