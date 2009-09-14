@@ -66,7 +66,7 @@ PUBLIC int ML_intern37 =  40;
 
 /*NOT YET SET*/
 PUBLIC int ML_BASEdH = 0;
-PUBLIC int ML_closingdh = 0;
+PUBLIC int ML_closingdH = 0;
 PUBLIC int ML_interndH = 0;
 
 /* Ninio-correction for asymmetric internal loops with branches n1 and n2 */

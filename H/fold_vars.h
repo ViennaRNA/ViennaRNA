@@ -11,7 +11,11 @@
 
 #define PUBLIC
 #define PRIVATE static
+/**
+*** Get the minimum of two comparable values
+**/
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
+
 
 extern int  noGU;           /* GU not allowed at all */
 extern int  no_closingGU;   /* GU allowed only inside stacks */

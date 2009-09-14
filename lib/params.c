@@ -14,14 +14,16 @@
 #include "fold_vars.h"
 #include "utils.h"
 #include "params.h"
+/** 
+*** \file params.c
+*** <P>
+*** This file provides functions that return temperature scaled energy parameters and
+*** Boltzmann weights packed in datastructures
+*** </P>
+***/
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: params.c,v 1.9 2008/07/04 14:29:14 ivo Exp $";
-
-#define PUBLIC
-#define PRIVATE static
-
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
 PRIVATE paramT p;
 PRIVATE int id=-1;
@@ -37,10 +39,10 @@ PUBLIC paramT *scale_parameters(void)
 
   tempf = ((temperature+K0)/Tmeasure);
   for (i=0; i<31; i++) 
-    p.hairpin[i] = (int) hairpin37[i]*(tempf);
+    p.hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
-    p.bulge[i] = (int) bulge37[i]*tempf;
-    p.internal_loop[i]= (int) internal_loop37[i]*tempf;
+    p.bulge[i]          = bulgedH[i] - (bulgedH[i] - bulge37[i]) * tempf;
+    p.internal_loop[i]  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * tempf;
   }
   p.lxc = lxc37*tempf;
   for (; i<=MAXLOOP; i++) {
@@ -48,7 +50,7 @@ PUBLIC paramT *scale_parameters(void)
     p.internal_loop[i] = p.internal_loop[30]+(int)(p.lxc*log((double)(i)/30.));
   }
   for (i=0; i<5; i++)
-    p.ninio[i] = niniodH[i] - (niniodH[i] - ninio37[i])*tempf;
+    p.ninio[i] = niniodH[i] - (niniodH[i] - ninio37[i]) * tempf;
    
   for (i=0; (i*7)<strlen(Tetraloops); i++) 
     p.Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*tempf;
@@ -61,12 +63,12 @@ PUBLIC paramT *scale_parameters(void)
   
   p.DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) *tempf;
 
-  p.MLbase = ML_BASE37*tempf;
+  p.MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
-    p.MLintern[i] = ML_intern37*tempf;
+    p.MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
     p.MLintern[i] +=  (i>2)? p.TerminalAU:0;
   }
-  p.MLclosing = ML_closing37*tempf;
+  p.MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
 
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
@@ -147,14 +149,13 @@ PUBLIC paramT *set_parameters(paramT *dest) {
 }
 
 /*------------------------------------------------------------------------*/
-/* functions for partition function */
-
-/* dangling ends should never be destabilizing, i.e. expdangle>=1         */
-/* specific heat needs smooth function (2nd derivative)                   */
-/* we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,       */
-/* in the interval b<x<sqrt(3)/2                                          */
-
 #define SCALE 10
+/**
+*** dangling ends should never be destabilizing, i.e. expdangle>=1<BR>
+*** specific heat needs smooth function (2nd derivative)<BR>
+*** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
+*** in the interval b<x<sqrt(3)/2 
+*/
 #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
           SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
 /* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */

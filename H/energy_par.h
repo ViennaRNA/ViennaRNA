@@ -18,8 +18,11 @@ extern int stackdH[NBPAIRS+1][NBPAIRS+1]; /* stack enthalpies */
 extern int entropies[NBPAIRS+1][NBPAIRS+1];  /* not used anymore */
 
 extern int hairpin37[31];
+extern int hairpindH[31];
 extern int bulge37[31];
+extern int bulgedH[31];
 extern int internal_loop37[31];
+extern int internal_loopdH[31];
 extern int internal2_energy;
 extern int old_mismatch_37[NBPAIRS+1][5][5];
 extern int mismatchI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
@@ -50,12 +53,15 @@ extern int int22_dH[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
 /* constants for linearly destabilizing contributions for multi-loops
    F = ML_closing + ML_intern*(k-1) + ML_BASE*u  */
 extern int ML_BASE37;
+extern int ML_BASEdH;
 extern int ML_closing37;
+extern int ML_closingdH;
 extern int ML_intern37;
+extern int ML_interndH;
 
 /* Ninio-correction for asymmetric internal loops with branches n1 and n2 */
 /*    ninio_energy = min{max_ninio, |n1-n2|*F_ninio[min{4.0, n1, n2}] } */
-extern int         MAX_NINIO;                   /* maximum correction */
+extern int  MAX_NINIO;                   /* maximum correction */
 extern int ninio37[4];
 extern int niniodH[4];
 /* penalty for helices terminated by AU (actually not GC) */

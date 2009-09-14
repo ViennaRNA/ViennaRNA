@@ -1,9 +1,11 @@
 /* Last changed Time-stamp: <2008-06-27 17:21:42 ivo> */
 
-/*
-       global variables to change behaviour of folding routines
-			  Vienna RNA package
-*/
+/**
+*** \file fold_vars.c
+*** global variables to change behaviour of folding routines<BR>
+*** Also there are some functions that make the live easier when
+*** using functions of the Vienna RNA package
+**/
 #include <string.h>
 #include <stdio.h>
 #include "fold_vars.h"

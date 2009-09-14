@@ -2,6 +2,9 @@
 #define __VIENNA_RNA_PACKAGE_PARAMS_H__
 
 #include "energy_const.h"
+/**
+*** The datastructure that contains temperature scaled energy parameters.
+**/
 typedef struct {
   int id;
   int stack[NBPAIRS+1][NBPAIRS+1];
@@ -38,41 +41,50 @@ extern paramT *scale_parameters(void);
 extern paramT *copy_parameters(void);
 extern paramT *set_parameters(paramT *dest);
 
-typedef struct {
-  int id;
-  double expstack[NBPAIRS+1][NBPAIRS+1];
-  double exphairpin[31]; 
-  double expbulge[MAXLOOP+1];
-  double expinternal[MAXLOOP+1];
-  double expmismatchI[NBPAIRS+1][5][5];
-  double expmismatch23I[NBPAIRS+1][5][5];
-  double expmismatch1nI[NBPAIRS+1][5][5];
-  double expmismatchH[NBPAIRS+1][5][5];
-  double expmismatchM[NBPAIRS+1][5][5];
-  double expdangle5[NBPAIRS+1][5];
-  double expdangle3[NBPAIRS+1][5];
-  double expint11[NBPAIRS+1][NBPAIRS+1][5][5];
-  double expint21[NBPAIRS+1][NBPAIRS+1][5][5][5];
-  double expint22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
-  double expninio[5][MAXLOOP+1];
-  double lxc;
-  double expMLbase; 
-  double expMLintern[NBPAIRS+1];
-  double expMLclosing;
-  double expTermAU;
-  double expDuplexInit;
-  double exptetra[40];
-  double exptri[40];
-  double exphex[40];
-  char Tetraloops[1401];
-  double expTriloop[40];
-  char Triloops[241];
-  char Hexaloops[1801];
+/**
+*** The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
+**/
+typedef struct{
+  int     id;
+  double  expstack[NBPAIRS+1][NBPAIRS+1];
+  double  exphairpin[31]; 
+  double  expbulge[MAXLOOP+1];
+  double  expinternal[MAXLOOP+1];
+  double  expmismatchI[NBPAIRS+1][5][5];
+  double  expmismatch23I[NBPAIRS+1][5][5];
+  double  expmismatch1nI[NBPAIRS+1][5][5];
+  double  expmismatchH[NBPAIRS+1][5][5];
+  double  expmismatchM[NBPAIRS+1][5][5];
+  double  expdangle5[NBPAIRS+1][5];
+  double  expdangle3[NBPAIRS+1][5];
+  double  expint11[NBPAIRS+1][NBPAIRS+1][5][5];
+  double  expint21[NBPAIRS+1][NBPAIRS+1][5][5][5];
+  double  expint22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
+  double  expninio[5][MAXLOOP+1];
+  double  lxc;
+  double  expMLbase; 
+  double  expMLintern[NBPAIRS+1];
+  double  expMLclosing;
+  double  expTermAU;
+  double  expDuplexInit;
+  double  exptetra[40];
+  double  exptri[40];
+  double  exphex[40];
+  char    Tetraloops[1401];
+  double  expTriloop[40];
+  char    Triloops[241];
+  char    Hexaloops[1801];
   double  temperature;
   double  kT;
-}  pf_paramT;
+}pf_paramT;
  
 pf_paramT *scale_pf_parameters(void);
+/**
+*** get a datastructure of type \type pf_paramT which contains
+*** the Boltzmann weights of several energy parameters scaled
+*** according to the current temperature
+*** \return The datastructure containing Boltzmann weights for use in partition function calculations
+***/
 pf_paramT *get_scaled_pf_parameters(void);
 
 extern pf_paramT *copy_pf_param(void);

@@ -11,10 +11,16 @@
 
 /** 
 *** \file loop_energies.c
-*** This file contains several functions to calculate the free energy \f$\Delta G\f$ and
-*** Boltzmann weights \f$e^{-\Delta G/kT} \f$ for hairpin- and interior-loops.<BR>
-*** The unit of the free energy returned by \func E_Hairpin() and \func E_IntLoop()
-*** is \f$10^{-1} * \mathrm{kcal}/\mathrm{mol}\f$
+*** <P>
+*** This file contains functions for the calculation of the free energy \f$\Delta G\f$
+*** of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
+*** The unit of the free energy returned is \f$10^{-2} * \mathrm{kcal}/\mathrm{mol}\f$
+*** </P>
+*** <P>
+*** In case of computing the partition function, this file also supplies functions
+*** which return the Boltzmann weights \f$e^{-\Delta G/kT} \f$ for a hairpin- [ exp_E_Hairpin() ]
+*** or interior-loop [ exp_E_IntLoop() ].
+*** </P>
 ***/
 
 
@@ -48,8 +54,8 @@ PUBLIC  int E_Hairpin(int size, int type, int si1, int sj1, const char *string, 
                                     sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
       return energy;
     }
-   }
-   energy += P->mismatchH[type][si1][sj1];
+  }
+  energy += P->mismatchH[type][si1][sj1];
 
   return energy;
 }
@@ -148,8 +154,7 @@ PUBLIC double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *s
   return q;
 }
 
-/* compute Boltzmann weight of interior loop,
-   multiply by scale[u1+u2+2] for scaling */
+/* compute Boltzmann weight of interior loop, multiply by scale[u1+u2+2] for scaling */
 PUBLIC double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
   double z=0;
   int no_close = 0;
