@@ -11,6 +11,7 @@ typedef struct {
   int hairpin[31];
   int bulge[MAXLOOP+1];
   int internal_loop[MAXLOOP+1];
+  int mismatchExt[NBPAIRS+1][5][5];
   int mismatchI[NBPAIRS+1][5][5];
   int mismatch1nI[NBPAIRS+1][5][5];
   int mismatch23I[NBPAIRS+1][5][5];
@@ -50,6 +51,7 @@ typedef struct{
   double  exphairpin[31]; 
   double  expbulge[MAXLOOP+1];
   double  expinternal[MAXLOOP+1];
+  double  expmismatchExt[NBPAIRS+1][5][5];
   double  expmismatchI[NBPAIRS+1][5][5];
   double  expmismatch23I[NBPAIRS+1][5][5];
   double  expmismatch1nI[NBPAIRS+1][5][5];

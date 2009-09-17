@@ -1,5 +1,13 @@
 /* Functions for Loop energy computations */
 
+
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -24,8 +32,30 @@
 ***/
 
 
+PUBLIC  INLINE  int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
+  int energy = 0;
+  int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
+  int d3 = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
+  
+  if(type > 2 && extLoop){
+    energy += P->TerminalAU;
+    //printf("  energy = %d (+ TermAU %d)\n", energy, P->TerminalAU);
+  }
+  if(si1 >= 0 && sj1 >= 0 && (extLoop)){
+    energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
+    //printf("  energy = %d (+ mismatch %d)\n", energy, (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1]);
+  }
+  else{
+    energy += d5 + d3;
+    //printf("  energy = %d (+ dangles %d + %d)\n\n", energy, d5,d3);
+  }
+  if(!extLoop) energy += P->MLintern[type];
+  return energy;
+}
 
-PUBLIC  int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
+
+
+PUBLIC  INLINE  int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
   int energy;
   
   energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
@@ -60,7 +90,7 @@ PUBLIC  int E_Hairpin(int size, int type, int si1, int sj1, const char *string, 
   return energy;
 }
 
-PUBLIC int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
+PUBLIC  INLINE  int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
 
@@ -120,7 +150,7 @@ PUBLIC int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int
 }
 
 /* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
-PUBLIC double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
+PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
   double q, kT;
   kT = (P->temperature+K0)*GASCONST;   /* kT in cal/mol  */
   if(u <= 30)
@@ -155,7 +185,7 @@ PUBLIC double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *s
 }
 
 /* compute Boltzmann weight of interior loop, multiply by scale[u1+u2+2] for scaling */
-PUBLIC double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
+PUBLIC  INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
   double z=0;
   int no_close = 0;
 

@@ -2,6 +2,61 @@
 #define __VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H__
 
 #include "params.h"
+
+#ifndef INLINE
+# if __GNUC__ && !__GNUC_STDC_INLINE__
+#   define INLINE extern inline
+# else
+#   define INLINE inline
+# endif
+#endif
+
+/** \file loop_energies.h
+***
+**/
+
+/**
+*** \def E_MLstem(A,B,C,D)
+*** <H2>Compute the Energy contribution of a Multiloop stem</H2>
+*** This definition is a wrapper for the E_Stem() funtion.
+*** It is substituted by an E_Stem() funtion call with argument
+*** extLoop=0, so the energy contribution returned reflects a
+*** stem introduced in a multiloop.<BR>
+*** As for the parameters B (si1) and C (sj1) of the substituted
+*** E_Stem() function, you can inhibit to take 5'-, 3'-dangles
+*** or mismatch contributions to be taken into account by passing
+*** -1 to these parameters.
+***
+*** \see    E_Stem()
+*** \param  A The pair type of the stem-closing pair
+*** \param  B The 5'-mismatching nucleotide
+*** \param  C The 3'-mismatching nucleotide
+*** \param  D The datastructure containing scaled energy parameters
+*** \return   The energy contribution of the introduced multiloop stem
+**/
+#define E_MLstem(A,B,C,D)  E_Stem((A),(B),(C),0,(D))
+
+/**
+*** \def E_ExtLoop(A,B,C,D)
+*** <H2>Compute the Energy contribution of an Exterior loop stem</H2>
+*** This definition is a wrapper for the E_Stem() funtion.
+*** It is substituted by an E_Stem() funtion call with argument
+*** extLoop=1, so the energy contribution returned reflects a
+*** stem introduced in an exterior-loop.<BR>
+*** As for the parameters B (si1) and C (sj1) of the substituted
+*** E_Stem() function, you can inhibit to take 5'-, 3'-dangles
+*** or mismatch contributions to be taken into account by passing
+*** -1 to these parameters.
+*** 
+*** \see    E_Stem()
+*** \param  A The pair type of the stem-closing pair
+*** \param  B The 5'-mismatching nucleotide
+*** \param  C The 3'-mismatching nucleotide
+*** \param  D The datastructure containing scaled energy parameters
+*** \return   The energy contribution of the introduced exterior-loop stem
+**/
+#define E_ExtLoop(A,B,C,D)  E_Stem((A),(B),(C),1,(D))
+
 /**
 *** <H2>Compute the Energy of an interior-loop</H2>
 *** This function computes the free energy \f$\Delta G\f$ of an interior-loop with the
@@ -31,8 +86,8 @@
 *** 3'-mismatch: a_n<BR> 
 *** \note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
 *** must be 'turned arround' when evaluating the free energy of the interior-loop 
-*** @see scale_parameters() 
-*** @see paramT
+*** \see scale_parameters() 
+*** \see paramT
 *** \warning Not thread safe! A threadsafe implementation will replace this function in a future release!
 *** \param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
 *** \param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
@@ -45,7 +100,7 @@
 *** \param  P       The datastructure containing scaled energy parameters
 *** \return The Free energy of the Interior-loop in dcal/mol
 **/
-int   E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P);
+INLINE  int   E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P);
 /**
 *** <H2>Compute the Energy of a hairpin-loop</H2>
 *** To evaluate the free energy of a hairpin-loop, several parameters have to be known.
@@ -75,10 +130,55 @@ int   E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1,
 *** \param  P     The datastructure containing scaled energy parameters
 *** \return The Free energy of the Hairpin-loop in dcal/mol
 **/
-int   E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P);
+INLINE  int   E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P);
 
 /**
-*** <H2>compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
+*** <H2>Compute the energy contribution of a stem branching off a loop-region</H2>
+*** This function computes the energy contribution of a stem that branches off
+*** a loop region. This can be the case in multiloops, when a stem branching off
+*** increases the degree of the loop but also <I>immediately interior base pairs</I>
+*** of an exterior loop contribute free energy.
+*** To switch the bahavior of the function according to the evaluation of a multiloop-
+*** or exterior-loop-stem, you pass the flag 'extLoop'.
+*** The returned energy contribution consists of a TerminalAU penalty if the pair type
+*** is greater than 2, dangling end contributions of mismatching nucleotides adjacent to
+*** the stem if only one of the si1, sj1 parameters is greater than 0 and mismatch energies
+*** if both mismatching nucleotides are positive values.
+*** Thus, to avoid incooperating dangling end or mismatch energies just pass a negative number,
+*** e.g. -1 to the mismatch argument.
+***
+*** This is an illustration of how the energy contribution is assembled:
+*** <PRE>
+***       3'  5'
+***       |   |
+***       X - Y
+*** 5'-si1     sj1-3'
+*** </PRE>
+***
+*** Here, (X,Y) is the base pair that closes the stem that branches off the loop region.
+*** The nucleotides si1 and sj1 are the 5'- and 3'- mismatch respectively. If the base pair
+*** type of (X,Y) is greater than 2 (i.e. an A-U or G-U pair, the TerminalAU penalty will be
+*** included in the energy contribution returned. If si1 and sj1 are both nonnegative numbers,
+*** mismatch energies will also be included. If one of sij or sj1 is a negtive value, only
+*** 5' or 3' dangling end contributions are taken into account. To prohibit any of these mismatch
+*** contributions to be incoorporated, just pass a negative number to both, si1 and sj1.
+*** In case the argument extLoop is 0, the returned energy contribution also includes
+*** the <I>internal-loop-penalty</I> of a multiloop stem with closing pair type.
+*** 
+*** \see    E_MLstem()
+*** \see    E_ExtLoop()
+*** \param  type    The pair type of the first base pair un the stem
+*** \param  si1     The 5'-mismatching nucleotide
+*** \param  sj1     The 3'-mismatching nucleotide
+*** \param  extLoop A flag that indicates whether the contribution reflects the one of an exterior loop or not
+*** \param  P       The datastructure containing scaled energy parameters
+*** \return         The Free energy of the branch off the loop in dcal/mol
+***
+**/
+INLINE  int   E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
+
+/**
+*** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
 *** multiply by scale[u+2]
 *** @see get_scaled_pf_parameters() 
 *** @see pf_paramT
@@ -92,9 +192,10 @@ int   E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT
 *** \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
 *** \return The Boltzmann weight of the Hairpin-loop
 **/
-double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P);
+
+INLINE  double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P);
 /**
-*** <H2>compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
+*** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
 *** multiply by scale[u1+u2+2] for scaling
 *** @see get_scaled_pf_parameters() 
 *** @see pf_paramT
@@ -111,6 +212,6 @@ double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string,
 *** \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
 *** \return The Boltzmann weight of the Interior-loop
 **/
-double  exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P);
+INLINE  double  exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P);
 
 #endif

@@ -35,6 +35,8 @@ extern int mismatchH37[NBPAIRS+1][5][5];  /* same for hairpins */
 extern int mismatchM37[NBPAIRS+1][5][5];  /* same for multiloops */
 extern int mismatchHdH[NBPAIRS+1][5][5];  /* same for hairpins */
 extern int mismatchMdH[NBPAIRS+1][5][5];  /* same for multiloops */
+extern int mismatchExt37[NBPAIRS+1][5][5];
+extern int mismatchExtdH[NBPAIRS+1][5][5];
 
 extern int dangle5_37[NBPAIRS+1][5];      /* 5' dangle exterior of pair */
 extern int dangle3_37[NBPAIRS+1][5];      /* 3' dangle */
