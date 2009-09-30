@@ -1,6 +1,11 @@
+2009-09-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* Fix bug in RNAplfold when -u and -L parameters are equal
+	* Fix double call to free_arrays() in RNAfold.c
+	* Improve drawing of cofolded structures
+	
 2009-05-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Fix occasional segfault in RNAalifold's print_aliout() 
+	* Fix occasional segfault in RNAalifold's print_aliout()
 
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
