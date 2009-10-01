@@ -205,7 +205,6 @@ int main(int argc, char *argv[])
     }
     if (!noPS) (void) PS_rna_plot(string, structure, ffname);
     if (length>2000) free_arrays(); 
-    write_parameter_file("testout.par");
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);

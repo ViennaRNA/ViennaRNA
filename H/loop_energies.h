@@ -34,8 +34,8 @@
 *** \param  D The datastructure containing scaled energy parameters
 *** \return   The energy contribution of the introduced multiloop stem
 **/
-#define E_MLstem(A,B,C,D)  E_Stem((A),(B),(C),0,(D))
-
+#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
+#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
 /**
 *** \def E_ExtLoop(A,B,C,D)
 *** <H2>Compute the Energy contribution of an Exterior loop stem</H2>
@@ -55,7 +55,8 @@
 *** \param  D The datastructure containing scaled energy parameters
 *** \return   The energy contribution of the introduced exterior-loop stem
 **/
-#define E_ExtLoop(A,B,C,D)  E_Stem((A),(B),(C),1,(D))
+#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
+#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
 
 /**
 *** <H2>Compute the Energy of an interior-loop</H2>
@@ -176,6 +177,13 @@ INLINE  int   E_Hairpin(int size, int type, int si1, int sj1, const char *string
 ***
 **/
 INLINE  int   E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
+
+
+/**
+*** bla
+**/
+INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P);
+
 
 /**
 *** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>

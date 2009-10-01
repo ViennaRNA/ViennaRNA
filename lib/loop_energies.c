@@ -37,18 +37,14 @@ PUBLIC  INLINE  int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
   int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
   int d3 = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
   
-  if(type > 2 && extLoop){
+  if(type > 2 && extLoop)
     energy += P->TerminalAU;
-    //printf("  energy = %d (+ TermAU %d)\n", energy, P->TerminalAU);
-  }
-  if(si1 >= 0 && sj1 >= 0 && (extLoop)){
+
+  if(si1 >= 0 && sj1 >= 0 && (extLoop))
     energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
-    //printf("  energy = %d (+ mismatch %d)\n", energy, (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1]);
-  }
-  else{
+  else
     energy += d5 + d3;
-    //printf("  energy = %d (+ dangles %d + %d)\n\n", energy, d5,d3);
-  }
+
   if(!extLoop) energy += P->MLintern[type];
   return energy;
 }
@@ -146,6 +142,24 @@ PUBLIC  INLINE  int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
       energy += P->mismatchI[type][si1][sj1] + P->mismatchI[type_2][sq1][sp1];
     }
   }
+  return energy;
+}
+
+
+PUBLIC  INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P){
+  double energy = 1.0;
+  double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
+  double d3 = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
+  
+  if(type > 2 && extLoop)
+    energy *= P->expTermAU;
+
+  if(si1 >= 0 && sj1 >= 0 && (extLoop))
+    energy *= (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
+  else
+    energy *= d5 * d3;
+
+  if(!extLoop) energy *= P->expMLintern[type];
   return energy;
 }
 

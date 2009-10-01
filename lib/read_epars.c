@@ -25,7 +25,7 @@ static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
 enum parset {
   UNKNOWN= -1, QUIT,
   S, S_H, HP, HP_H, B, B_H, IL, IL_H, MMH, MMH_H, MMI, MMI_H,
-  MMI1N, MMI1N_H, MMI23, MMI23_H, MMM, MMM_H, D5, D5_H, D3, D3_H,
+  MMI1N, MMI1N_H, MMI23, MMI23_H, MMM, MMM_H, MME, MME_H, D5, D5_H, D3, D3_H,
   INT11, INT11_H, INT21, INT21_H, INT22, INT22_H, ML, TL,
   TRI, HEX, TE, NIN, MISC,DUMP, HELP}; 
 
@@ -134,6 +134,16 @@ PUBLIC void read_parameter_file(const char fname[])
                           break;
             case IL_H:    rd_1dim(&(internal_loopdH[0]), 31, 0);
                           changed |= IL_H;
+                          break;
+            case MME:     rd_3dim(&(mismatchExt37[0][0][0]),
+                              NBPAIRS+1, 5, 5,
+                              1, 0, 0);
+                          changed |= MME;
+                          break;
+            case MME_H:   rd_3dim(&(mismatchExtdH[0][0][0]),
+                              NBPAIRS+1, 5, 5,
+                              1, 0, 0);
+                          changed |= MME_H;
                           break;
             case MMH:     rd_3dim(&(mismatchH37[0][0][0]),
                               NBPAIRS+1, 5, 5,
@@ -520,6 +530,8 @@ PRIVATE char *settype(enum parset s)
     case      B_H:  return "bulge_enthalpies";
     case       IL:  return "internal_loop";
     case     IL_H:  return "internal_loop_enthalpies";
+    case      MME:  return "mismatch_ext_loop";
+    case    MME_H:  return "mismatch_ext_loop_enthalpies";
     case      MMH:  return "mismatch_hairpin";
     case    MMH_H:  return "mismatch_hairpin_enthalpies";
     case      MMI:  return "mismatch_interior";
@@ -564,6 +576,8 @@ PRIVATE enum parset gettype(char ident[]){
   else if (strcmp(ident,"bulge_enthalpies") == 0)                 return B_H;    
   else if (strcmp(ident,"internal_loop") == 0)                    return IL;   
   else if (strcmp(ident,"internal_loop_enthalpies") == 0)         return IL_H;   
+  else if (strcmp(ident,"mismatch_ext_loop") == 0)                return MME;  
+  else if (strcmp(ident,"mismatch_ext_loop_enthalpies") == 0)     return MME_H;  
   else if (strcmp(ident,"mismatch_hairpin") == 0)                 return MMH;  
   else if (strcmp(ident,"mismatch_hairpin_enthalpies") == 0)      return MMH_H;  
   else if (strcmp(ident,"mismatch_interior") == 0)                return MMI;
@@ -618,6 +632,20 @@ PUBLIC void write_parameter_file(const char fname[]){
   for (c=1; c<NBPAIRS+1; c++)
     display_array(stackdH[c]+1,NBPAIRS,NBPAIRS, outfp);
   
+  fprintf(outfp,"\n# %s\n", settype(MME));
+  { int i,k;
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
+      display_array(mismatchExt37[k][i],5,5, outfp);
+  }
+  
+  fprintf(outfp,"\n# %s\n", settype(MME_H));
+  { int i,k;
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
+      display_array(mismatchExtdH[k][i],5,5, outfp);
+  }
+
   fprintf(outfp,"\n# %s\n", settype(MMH));
   { int i,k;
   for (k=1; k<NBPAIRS+1; k++)

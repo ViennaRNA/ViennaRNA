@@ -253,8 +253,11 @@ PUBLIC void pf_linear(char *sequence, char *structure)
         temp = 0.0;
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
         tt = rtype[type];
+/*
         qbt1 += temp*expMLclosing * expMLintern[tt]*scale[2]*
                 expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
+*/
+        qbt1 += temp*expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
 
         qb[ij] = qbt1;
       } /* end if (type!=0) */
@@ -265,10 +268,13 @@ PUBLIC void pf_linear(char *sequence, char *structure)
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];
       if (type) {
+/*
         qbt1 = qb[ij]*expMLintern[type];
         if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
         if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
         else if (type>2) qbt1 *= expTermAU;
+*/
+        qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
@@ -282,11 +288,16 @@ PUBLIC void pf_linear(char *sequence, char *structure)
 
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
+/*
       if (type) {
         if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
         if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
         else if (type>2) qbt1 *= expTermAU;
       }
+*/
+      if(type)
+        qbt1 *= exp_E_ExtLoop(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
+  
       qq[i] = qq1[i]*scale[1] + qbt1;
 
       /*construction of partition function for segment i,j */
@@ -469,15 +480,24 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
             /* 1.3 Exterior multiloop decomposition */
             /* 1.3.1 Middle part                    */
             if((i>TURN+2) && (j<n-TURN-1))
+/*
               tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+*/
+              tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.2 Left part                      */
             for(k=TURN+2; k < i-TURN-2; k++)
+/*
               tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+*/
+              tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.3 Right part                      */
             for(k=j+TURN+2; k < n-TURN-1;k++)
+/*
               tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
+*/
+              tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* all exterior loop decompositions for pair i,j done  */
             pr[ij] *= tmp2;
@@ -495,9 +515,12 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
           type = ptype[ij];
           if (type&&(qb[ij]>0.)) {
             pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
+/*
             if (i>1) pr[ij] *= expdangle5[type][S1[i-1]];
             if (j<n) pr[ij] *= expdangle3[type][S1[j+1]];
             else if (type>2) pr[ij] *= expTermAU;
+*/
+            pr[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
             pr[ij] = 0;
         }
@@ -533,8 +556,12 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         ii = iindx[i];     /* ii-j=[i,j]     */
         ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
         tt = ptype[ii-(l+1)]; tt=rtype[tt];
+/*
         prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
                 expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
+*/
+        prmt1 = pr[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+
         for (j=l+2; j<=n; j++) {
           tt = ptype[ii-j]; tt = rtype[tt];
           prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
@@ -559,10 +586,13 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         for (i=1;i<=k-2; i++)
           temp += prml[i]*qm[iindx[i+1] - (k-1)];
 
+/*
         temp *= expMLintern[tt]*scale[2];
         if (k>1) temp *= expdangle5[tt][S1[k-1]];
         if (l<n) temp *= expdangle3[tt][S1[l+1]];
         pr[kl] += temp;
+*/
+        pr[kl] += exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
 
         if (pr[kl]>Qmax) {
           Qmax = pr[kl];

@@ -433,8 +433,6 @@ PRIVATE int fill_arrays(const char *string) {
     int mm5 = S1[i-1];
     int mm3 = (j<length)  ? S1[j+1] : -1;
 
-    printf("f53[%d] = %d\n", j, f53[j]);
-    printf("f5[%d] = %d\n", j, f5[j]);
     for (i=j-TURN-1; i>1; i--) {
       mm5 = S1[i-1];
       type = ptype[indx[j]+i];
@@ -480,11 +478,7 @@ PRIVATE int fill_arrays(const char *string) {
                   }
                   break;
       }
-//      printf("i = %d f53[%d] = %d\n", i, j, f53[j]);
-//      printf("i = %d f5[%d] = %d\n", i, j, f5[j]);
     }
-    printf("f53[%d] = %d\n", j, f53[j]);
-    printf("f5[%d] = %d\n", j, f5[j]);
 
     type=ptype[indx[j]+1];
     mm5 = -1;
