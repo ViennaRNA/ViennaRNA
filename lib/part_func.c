@@ -185,11 +185,12 @@ PUBLIC void pf_linear(char *sequence, char *structure)
   FLT_OR_DBL qbt1, *tmp;
 
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+/*
   FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
   FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
   FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
   FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-  
+*/
   double max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -227,7 +228,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
-      /*firstly that given i bound to j : qb(i,j) */
+      /*firstly that given i binds j : qb(i,j) */
       u = j-i-1; ij = iindx[i]-j;
       type = ptype[ij];
       if (type!=0) {
@@ -257,7 +258,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
         qbt1 += temp*expMLclosing * expMLintern[tt]*scale[2]*
                 expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
 */
-        qbt1 += temp*expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+        qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
 
         qb[ij] = qbt1;
       } /* end if (type!=0) */
@@ -400,11 +401,12 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
   FLT_OR_DBL *tmp;
   FLT_OR_DBL tmp2;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+/*
   FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
   FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
   FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
   FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-
+*/
   double max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -564,12 +566,14 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
 
         for (j=l+2; j<=n; j++) {
           tt = ptype[ii-j]; tt = rtype[tt];
-          prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*
-                  expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
+/*
+          prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
+*/
+          prmt += pr[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
         }
         kl = iindx[k]-l;
         tt = ptype[kl];
-        prmt *= expMLclosing*expMLintern[tt];
+        prmt *= expMLclosing;
         prml[ i] = prmt;
         prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
 
@@ -592,7 +596,8 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         if (l<n) temp *= expdangle3[tt][S1[l+1]];
         pr[kl] += temp;
 */
-        pr[kl] += exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+        temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+        pr[kl]  += temp;
 
         if (pr[kl]>Qmax) {
           Qmax = pr[kl];
@@ -865,10 +870,11 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 char *pbacktrack(char *seq) {
   double r, qt;
   int i,j,n, start;
+/*
   FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
   FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
   FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-
+*/
   sequence = seq;
   n = strlen(sequence);
 
@@ -896,9 +902,12 @@ char *pbacktrack(char *seq) {
         double qkl;
         qkl = qb[iindx[i]-j];
         if (j<n) qkl *= qln[j+1];
+        qkl *=  exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+/*
         if (i>1) qkl *= expdangle5[type][S1[i-1]];
         if (j<n) qkl *= expdangle3[type][S1[j+1]];
         else if (type>2) qkl *= expTermAU;
+*/
         qt += qkl;
         if (qt > r) break; /* j is paired */
       }
@@ -1023,18 +1032,22 @@ static void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
+/*
   FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
   FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
   FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-
+*/
   r = urn() * qm1[jindx[j]+i];
   ii = iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[ii-l];
     if (type)
-      qt +=  qb[ii-l]*expMLintern[type]*
+/*
+      qt +=  qb[ii-l] * expMLintern[type]*
         expdangle5[type][S1[i-1]] * expdangle3[type][S1[l+1]] *
         expMLbase[j-l];
+*/
+      qt +=  qb[ii-l] * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * expMLbase[j-l];
     if (qt>=r) break;
   }
   if (l>j) nrerror("backtrack failed in qm1");
