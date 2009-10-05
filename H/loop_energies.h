@@ -35,7 +35,15 @@
 *** \return   The energy contribution of the introduced multiloop stem
 **/
 #define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
+
+/**
+*** \def exp_E_MLstem(A,B,C,D)
+*** This is the partition function variant of \func E_MLstem()
+*** \see E_MLstem()
+*** \return The Boltzmann weighted energy contribution of the introduced multiloop stem
+**/
 #define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
+
 /**
 *** \def E_ExtLoop(A,B,C,D)
 *** <H2>Compute the Energy contribution of an Exterior loop stem</H2>
@@ -56,6 +64,13 @@
 *** \return   The energy contribution of the introduced exterior-loop stem
 **/
 #define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
+
+/**
+*** \def exp_E_ExtLoop(A,B,C,D)
+*** This is the partition function variant of \func E_ExtLoop()
+*** \see E_ExtLoop()
+*** \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
+**/
 #define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
 
 /**
@@ -156,8 +171,8 @@ INLINE  int   E_Hairpin(int size, int type, int si1, int sj1, const char *string
 *** 5'-si1     sj1-3'
 *** </PRE>
 ***
-*** Here, (X,Y) is the base pair that closes the stem that branches off the loop region.
-*** The nucleotides si1 and sj1 are the 5'- and 3'- mismatch respectively. If the base pair
+*** Here, (X,Y) is the base pair that closes the stem that branches off a loop region.
+*** The nucleotides si1 and sj1 are the 5'- and 3'- mismatches, respectively. If the base pair
 *** type of (X,Y) is greater than 2 (i.e. an A-U or G-U pair, the TerminalAU penalty will be
 *** included in the energy contribution returned. If si1 and sj1 are both nonnegative numbers,
 *** mismatch energies will also be included. If one of sij or sj1 is a negtive value, only
@@ -180,7 +195,10 @@ INLINE  int   E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
 
 
 /**
-*** bla
+*** <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
+*** This is the partition function variant of \func E_Stem()
+*** \see E_Stem()
+*** \return The Boltzmann weighted energy contribution of the branch off the loop
 **/
 INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P);
 
