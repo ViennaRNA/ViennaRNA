@@ -415,8 +415,6 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         pf->expdangle3[i][j] =  exp(SMOOTH(-GT)*10./kT);
       } else
         pf->expdangle3[i][j] = pf->expdangle5[i][j] = 1;
-      if (i>2) /* add TermAU penalty into dangle3 */
-        pf->expdangle3[i][j] *= pf->expTermAU;
     }
 
   /* stacking energies */

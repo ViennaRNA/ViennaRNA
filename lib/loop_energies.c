@@ -151,7 +151,7 @@ PUBLIC  INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
   double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
   double d3 = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
   
-  if(type > 2 && extLoop)
+  if(type > 2)
     energy *= P->expTermAU;
 
   if(si1 >= 0 && sj1 >= 0 && (extLoop))
