@@ -3,12 +3,6 @@
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 
-#define LARGE_PF
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
-#else
-#define FLT_OR_DBL float
-#endif
 extern int mirnatog; /*toggles no intrabp in 2nd mol*/
 
 typedef struct cofoldF {

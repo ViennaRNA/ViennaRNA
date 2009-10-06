@@ -80,10 +80,6 @@ typedef struct plist {
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
 
-#define MAX(x,y) (((x)>(y)) ? (x) : (y))
-#define MIN(x,y) (((x)<(y)) ? (x) : (y))
-#define PUBLIC
-#define PRIVATE static
 #define ISOLATED  256.0
 
 PUBLIC  int     st_back=0;
@@ -184,14 +180,8 @@ PUBLIC void pf_linear(char *sequence, char *structure)
   FLT_OR_DBL temp, Q, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
 
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-/*
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-*/
-  double max_real;
+  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
+  double      max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -237,9 +227,9 @@ PUBLIC void pf_linear(char *sequence, char *structure)
         else
           qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
         /* interior loops with interior pair k,l */
-        for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
+        for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
           u1 = k-i-1;
-          for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
+          for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
             type_2 = ptype[iindx[k]-l];
             if (type_2) {
               type_2 = rtype[type_2];
@@ -254,12 +244,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
         temp = 0.0;
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
         tt = rtype[type];
-/*
-        qbt1 += temp*expMLclosing * expMLintern[tt]*scale[2]*
-                expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]];
-*/
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
-
         qb[ij] = qbt1;
       } /* end if (type!=0) */
       else qb[ij] = 0.0;
@@ -269,12 +254,6 @@ PUBLIC void pf_linear(char *sequence, char *structure)
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];
       if (type) {
-/*
-        qbt1 = qb[ij]*expMLintern[type];
-        if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
-        if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
-        else if (type>2) qbt1 *= expTermAU;
-*/
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
@@ -289,13 +268,6 @@ PUBLIC void pf_linear(char *sequence, char *structure)
 
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
-/*
-      if (type) {
-        if ((i>1) || circ) qbt1 *= expdangle5[type][S1[i-1]];
-        if ((j<n) || circ) qbt1 *= expdangle3[type][S1[j+1]];
-        else if (type>2) qbt1 *= expTermAU;
-      }
-*/
       if(type)
         qbt1 *= exp_E_ExtLoop(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
   
@@ -396,18 +368,12 @@ PRIVATE void pf_circ(char *sequence, char *structure){
 PUBLIC void pf_create_bppm(char *sequence, char *structure)
 {
   int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Qmax=0, prm_MLb;
-  FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL *tmp;
-  FLT_OR_DBL tmp2;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-/*
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-*/
-  double max_real;
+  FLT_OR_DBL  temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL  prmt,prmt1;
+  FLT_OR_DBL  *tmp;
+  FLT_OR_DBL  tmp2;
+  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
+  double      max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -427,7 +393,7 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
     /* 1. exterior pair i,j and initialization of pr array */
     if(circ){
       for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+        for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
           for (j=i+TURN+1; j<=n; j++) {
           ij = iindx[i]-j;
           type = ptype[ij];
@@ -482,23 +448,14 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
             /* 1.3 Exterior multiloop decomposition */
             /* 1.3.1 Middle part                    */
             if((i>TURN+2) && (j<n-TURN-1))
-/*
-              tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
-*/
               tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.2 Left part                      */
             for(k=TURN+2; k < i-TURN-2; k++)
-/*
-              tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
-*/
               tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.3 Right part                      */
             for(k=j+TURN+2; k < n-TURN-1;k++)
-/*
-              tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * expMLintern[type] * expdangle3[type][S1[j+1]] * expdangle5[type][S1[i-1]];
-*/
               tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* all exterior loop decompositions for pair i,j done  */
@@ -511,17 +468,12 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
     } /* end if(circ)  */
     else {
       for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+        for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
         for (j=i+TURN+1; j<=n; j++) {
           ij = iindx[i]-j;
           type = ptype[ij];
           if (type&&(qb[ij]>0.)) {
             pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
-/*
-            if (i>1) pr[ij] *= expdangle5[type][S1[i-1]];
-            if (j<n) pr[ij] *= expdangle3[type][S1[j+1]];
-            else if (type>2) pr[ij] *= expTermAU;
-*/
             pr[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
             pr[ij] = 0;
@@ -537,8 +489,8 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         type_2 = ptype[kl]; type_2 = rtype[type_2];
         if (qb[kl]==0) continue;
 
-        for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++)
-          for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
+        for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
+          for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
             ij = iindx[i] - j;
             type = ptype[ij];
             if ((pr[ij]>0)) {
@@ -558,17 +510,10 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         ii = iindx[i];     /* ii-j=[i,j]     */
         ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
         tt = ptype[ii-(l+1)]; tt=rtype[tt];
-/*
-        prmt1 = pr[ii-(l+1)]*expMLclosing*expMLintern[tt]*
-                expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[l]];
-*/
         prmt1 = pr[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
         for (j=l+2; j<=n; j++) {
           tt = ptype[ii-j]; tt = rtype[tt];
-/*
-          prmt += pr[ii-j]*expdangle3[tt][S1[i+1]]*expdangle5[tt][S1[j-1]] *qm[ll-(j-1)];
-*/
           prmt += pr[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
         }
         kl = iindx[k]-l;
@@ -590,12 +535,6 @@ PUBLIC void pf_create_bppm(char *sequence, char *structure)
         for (i=1;i<=k-2; i++)
           temp += prml[i]*qm[iindx[i+1] - (k-1)];
 
-/*
-        temp *= expMLintern[tt]*scale[2];
-        if (k>1) temp *= expdangle5[tt][S1[k-1]];
-        if (l<n) temp *= expdangle3[tt][S1[l+1]];
-        pr[kl] += temp;
-*/
         temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
         pr[kl]  += temp;
 
@@ -870,11 +809,6 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 char *pbacktrack(char *seq) {
   double r, qt;
   int i,j,n, start;
-/*
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-*/
   sequence = seq;
   n = strlen(sequence);
 
@@ -903,11 +837,6 @@ char *pbacktrack(char *seq) {
         qkl = qb[iindx[i]-j];
         if (j<n) qkl *= qln[j+1];
         qkl *=  exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
-/*
-        if (i>1) qkl *= expdangle5[type][S1[i-1]];
-        if (j<n) qkl *= expdangle3[type][S1[j+1]];
-        else if (type>2) qkl *= expTermAU;
-*/
         qt += qkl;
         if (qt > r) break; /* j is paired */
       }
@@ -1032,21 +961,11 @@ static void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
-/*
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
-*/
   r = urn() * qm1[jindx[j]+i];
   ii = iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[ii-l];
     if (type)
-/*
-      qt +=  qb[ii-l] * expMLintern[type]*
-        expdangle5[type][S1[i-1]] * expdangle3[type][S1[l+1]] *
-        expMLbase[j-l];
-*/
       qt +=  qb[ii-l] * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * expMLbase[j-l];
     if (qt>=r) break;
   }
@@ -1086,9 +1005,9 @@ static void backtrack(int i, int j) {
 
     if (qbt1>r) return; /* found the hairpin we're done */
 
-    for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++) {
+    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;
-      for (l=MAX(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
+      for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
         int type_2;
         type_2 = ptype[iindx[k]-l];
         if (type_2) {
