@@ -346,13 +346,13 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++) {
-    GT =  hairpin37[i]*TT;
+    GT =  hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
     pf->exphairpin[i] = exp( -GT*10./kT);
   }
   for (i=0; i<=MIN2(30, MAXLOOP); i++) {
-    GT =  bulge37[i]*TT;
+    GT =  bulgedH[i]- (bulgedH[i] - bulge37[i])*TT;
     pf->expbulge[i] = exp( -GT*10./kT);
-    GT =  internal_loop37[i]*TT;
+    GT =  internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i])*TT;
     pf->expinternal[i] = exp( -GT*10./kT);
   }
   /* special case of size 2 interior loops (single mismatch) */
@@ -387,18 +387,18 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     GT = HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*TT;
     pf->exphex[i] = exp( -GT*10./kT);
   }
-  GT =  ML_closing37*TT;
+  GT =  ML_closingdH - (ML_closingdH - ML_closing37)*TT;
   pf->expMLclosing = exp( -GT*10/kT);
 
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
-    GT =  ML_intern37*TT;
+    GT =  ML_interndH - (ML_interndH - ML_intern37)*TT;
     /* if (i>2) GT += TerminalAU; */
     pf->expMLintern[i] = exp( -GT*10./kT);
   }
   GT = TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT;
   pf->expTermAU = exp(-GT*10/kT);
 
-  GT = ML_BASE37*TT;
+  GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
   /* pf->expMLbase=(-10.*GT/kT); old */
   pf->expMLbase=exp(-10.*GT/kT);
   
@@ -438,6 +438,8 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         pf->expmismatchM[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf->expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
+        GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
+        pf->expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
       }
   
   
