@@ -1148,7 +1148,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
            + element_energy + best_energy; */
         push(Stack, new_state);
       }
-  }                                                     /* end of k-loop */
+  } /* end of k-loop */
 
 
   if (SAME_STRAND(i,j)) {

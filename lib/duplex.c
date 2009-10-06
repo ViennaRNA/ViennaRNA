@@ -1,12 +1,12 @@
 /* Last changed Time-stamp: <2007-08-26 11:59:45 ivo> */
 /*                
-	   compute the duplex structure of two RNA strands,
-		allowing only inter-strand base pairs.
-	 see cofold() for computing hybrid structures without
-			     restriction.
+           compute the duplex structure of two RNA strands,
+                allowing only inter-strand base pairs.
+         see cofold() for computing hybrid structures without
+                             restriction.
 
-			     Ivo Hofacker
-			  Vienna RNA package
+                             Ivo Hofacker
+                          Vienna RNA package
 */
 
 #include <config.h>
@@ -47,9 +47,6 @@ PRIVATE int covscore(const int *types, int n_seq);
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
-#define MAX2(A, B)      ((A) > (B) ? (A) : (B))
-
 PRIVATE paramT *P = NULL;
 
 PRIVATE int   **c;      /* energy array, given that i-j pair */
@@ -84,25 +81,21 @@ duplexT duplexfold(const char *s1, const char *s2) {
       type = pair[S1[i]][S2[j]];
       c[i][j] = type ? P->DuplexInit : INF;
       if (!type) continue;
-      if (i>1)  c[i][j] += P->dangle5[type][SS1[i-1]];
-      if (j<n2) c[i][j] += P->dangle3[type][SS2[j+1]];
-      if (type>2) c[i][j] += P->TerminalAU;
+      c[i][j] += E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, P);
       for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
-	for (l=j+1; l<=n2; l++) {
-	  if (i-k+l-j-2>MAXLOOP) break;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			    SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
-	  c[i][j] = MIN2(c[i][j], c[k][l]+E);
-	}
+        for (l=j+1; l<=n2; l++) {
+          if (i-k+l-j-2>MAXLOOP) break;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                            SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
+          c[i][j] = MIN2(c[i][j], c[k][l]+E);
+        }
       }
-      E = c[i][j]; 
-      if (i<n1) E += P->dangle3[rtype[type]][SS1[i+1]];
-      if (j>1)  E += P->dangle5[rtype[type]][SS2[j-1]];
-      if (type>2) E += P->TerminalAU;
+      E = c[i][j];
+      E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }
@@ -147,13 +140,11 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       type = pair[S2[j]][S1[i]];
       if (!type) continue;
       E = Ed = c[i][j];
-      if (i<n1) Ed += P->dangle3[type][SS1[i+1]];
-      if (j>1)  Ed += P->dangle5[type][SS2[j-1]];
-      if (type>2) Ed += P->TerminalAU;
+      Ed += E_ExtLoop(type, (j>1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (Ed>thresh) continue;
       /* too keep output small, remove hits that are dominated by a
-	 better one close (w) by. For simplicity we do test without
-	 adding dangles, which is slightly inaccurate. 
+         better one close (w) by. For simplicity we do test without
+         adding dangles, which is slightly inaccurate. 
       */ 
       for (ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) { 
         for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n2); jj++)
@@ -164,8 +155,8 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       struc = backtrack(i,j);
       fprintf(stderr, "%d %d %d\n", i,j,E);
       if (n_subopt+1>=n_max) {
-	n_max *= 2;
-	subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+        n_max *= 2;
+        subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
       }
       subopt[n_subopt].i = MIN2(i+1,n1);
       subopt[n_subopt].j = MAX2(j-1,1);
@@ -205,26 +196,24 @@ PRIVATE char *backtrack(int i, int j) {
     if (!type) nrerror("backtrack failed in fold duplex");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
       for (l=j+1; l<=n2; l++) {
-	int LE;
-	if (i-k+l-j-2>MAXLOOP) break;
-	type2 = pair[S1[k]][S2[l]];
-	if (!type2) continue;
-	LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-		       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
-	if (E == c[k][l]+LE) {
-	  traced=1; 
-	  i=k; j=l;
-	  break;
-	}
+        int LE;
+        if (i-k+l-j-2>MAXLOOP) break;
+        type2 = pair[S1[k]][S2[l]];
+        if (!type2) continue;
+        LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
+        if (E == c[k][l]+LE) {
+          traced=1; 
+          i=k; j=l;
+          break;
+        }
       }
       if (traced) break;
     }
-    if (!traced) { 
-      if (i>1) E -= P->dangle5[type][SS1[i-1]];
-      if (j<n2) E -= P->dangle3[type][SS2[j+1]];
-      if (type>2) E -= P->TerminalAU;
+    if (!traced) {
+      E -= E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, P);
       if (E != P->DuplexInit) {
-	nrerror("backtrack failed in fold duplex");
+        nrerror("backtrack failed in fold duplex");
       } else break;
     }
   }
@@ -344,37 +333,30 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s]=7;
       c[i][j] = (psc>=MINPSCORE) ? (n_seq*P->DuplexInit) : INF;
       if (psc<MINPSCORE) continue;
-      if (i>1) 
-	for (s=0; s<n_seq; s++) 
-	  c[i][j] += P->dangle5[type[s]][S1[s][i-1]];
-      if (j<n2) 
-	for (s=0; s<n_seq; s++) 
-	  c[i][j] += P->dangle3[type[s]][S2[s][j+1]];
-      for (s=0; s<n_seq; s++) 
-	if (type[s]>2) c[i][j] += P->TerminalAU;
+      for(s=0; s<n_seq;s++){
+        c[i][j] += E_ExtLoop(type[s], (i>1) ? S1[s][i-1] : -1, (j<n2) ? S2[s][j+1] : -1, P);
+      }
       for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
-	for (l=j+1; l<=n2; l++) {
-	  int type2;
-	  if (i-k+l-j-2>MAXLOOP) break;
-	  if (c[k][l]>INF/2) continue;
-	  for (E=s=0; s<n_seq; s++) { 
-	    type2 = pair[S1[s][k]][S2[s][l]];
-	    if (type2==0) type2=7;
-	    E += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
-			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
-	  }
-	  c[i][j] = MIN2(c[i][j], c[k][l]+E);
-	}
+        for (l=j+1; l<=n2; l++) {
+          int type2;
+          if (i-k+l-j-2>MAXLOOP) break;
+          if (c[k][l]>INF/2) continue;
+          for (E=s=0; s<n_seq; s++) { 
+            type2 = pair[S1[s][k]][S2[s][l]];
+            if (type2==0) type2=7;
+            E += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
+                           S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
+          }
+          c[i][j] = MIN2(c[i][j], c[k][l]+E);
+        }
       }
       c[i][j] -= psc;
       E = c[i][j]; 
       for (s=0; s<n_seq; s++) {
-	if (i<n1) E += P->dangle3[rtype[type[s]]][S1[s][i+1]];
-	if (j>1)  E += P->dangle5[rtype[type[s]]][S2[s][j-1]];
-	if (type[s]>2) E += P->TerminalAU;
+        E += E_ExtLoop(rtype[type[s]], (j>1) ? S2[s][j-1] : -1, (i<n1) ? S1[s][i+1] : -1, P);
       }
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }
@@ -442,14 +424,12 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       if (psc<MINPSCORE) continue;
       E = Ed = c[i][j];
       for  (s=0; s<n_seq; s++) {
-	if (i<n1) Ed += P->dangle3[type[s]][S1[s][i+1]];
-	if (j>1)  Ed += P->dangle5[type[s]][S2[s][j-1]];
-	if (type[s]>2) Ed += P->TerminalAU;
+        Ed += E_ExtLoop(type[s], (j>1) ? S2[s][j-1] : -1, (i<n1) ? S1[s][i+1] : -1, P);
       }
       if (Ed>thresh) continue;
       /* too keep output small, skip hits that are dominated by a
-	 better one close (w) by. For simplicity we don't take dangels
-	 into account here, thus the heuristic is somewhat inaccurate. 
+         better one close (w) by. For simplicity we don't take dangels
+         into account here, thus the heuristic is somewhat inaccurate. 
       */ 
       for (skip=0, ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) { 
         for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n2); jj++)
@@ -459,8 +439,8 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       struc = alibacktrack(i,j,S1,S2);
       fprintf(stderr, "%d %d %d\n", i,j,E);
       if (n_subopt+1>=n_max) {
-	n_max *= 2;
-	subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+        n_max *= 2;
+        subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
       }
       subopt[n_subopt].i = MIN2(i+1,n1);
       subopt[n_subopt].j = MAX2(j-1,1);
@@ -517,31 +497,29 @@ PRIVATE char *alibacktrack(int i, int j, const short *S1[], const short *S2[]) {
     E += psc;
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
       for (l=j+1; l<=n2; l++) {
-	int LE;
-	if (i-k+l-j-2>MAXLOOP) break;
-	if (c[k][l]>INF/2) continue;
-	for (s=LE=0; s<n_seq; s++) {
-	  type2 = pair[S1[s][k]][S2[s][l]];
-	  if (type2==0) type2=7;
-	  LE += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
-			   S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
-	}
-	if (E == c[k][l]+LE) {
-	  traced=1; 
-	  i=k; j=l;
-	  break;
-	}
+        int LE;
+        if (i-k+l-j-2>MAXLOOP) break;
+        if (c[k][l]>INF/2) continue;
+        for (s=LE=0; s<n_seq; s++) {
+          type2 = pair[S1[s][k]][S2[s][l]];
+          if (type2==0) type2=7;
+          LE += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
+                           S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
+        }
+        if (E == c[k][l]+LE) {
+          traced=1; 
+          i=k; j=l;
+          break;
+        }
       }
       if (traced) break;
     }
     if (!traced) { 
       for (s=0; s<n_seq; s++) {
-	if (i>1)  E -= P->dangle5[type[s]][S1[s][i-1]];
-	if (j<n2) E -= P->dangle3[type[s]][S2[s][j+1]];
-	if (type[s]>2) E -= P->TerminalAU;
+        E -= E_ExtLoop(type[s], (i>1) ? S1[s][i-1] : -1, (j<n2) ? S2[s][j+1] : -1, P);
       }
       if (E != n_seq*P->DuplexInit) {
-	nrerror("backtrack failed in aliduplex");
+        nrerror("backtrack failed in aliduplex");
       } else break;
     }
   }
