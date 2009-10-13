@@ -240,4 +240,42 @@ INLINE  double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char 
 **/
 INLINE  double  exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P);
 
+INLINE  int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, int cutpoint, short si1, short sj1, short sp1, short sq1, int dangles, paramT *P){
+  int energy = 0;
+  if(type > 2)   energy += P->TerminalAU;
+  if(type_2 > 2) energy += P->TerminalAU;
+  
+  if(!dangles) return energy;
+  
+  int ci = (i>=cut_point)||((i+1)<cut_point);
+  int cj = ((j-1)>=cut_point)||(j<cut_point);
+  int cp = ((p-1)>=cut_point)||(p<cut_point);
+  int cq = (q>=cut_point)||((q+1)<cut_point);
+  
+  int d5    = cj  ? P->dangle5[type][sj1]   : 0;
+  int d3    = ci  ? P->dangle3[type][si1]   : 0;
+  int d5_2  = cp  ? P->dangle5[type_2][sp1] : 0;
+  int d3_2  = cq  ? P->dangle3[type_2][sq1] : 0;
+
+  int tmm   = (cj && ci) ? P->mismatchExt[type][sj1][si1]   : d5 + d3;
+  int tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
+
+  if(dangles == 2) return energy + tmm + tmm_2;
+  
+  /* now we may have non-double dangles only */
+  if(i+1 < p-1){
+    if(q+1 < j-1){ energy += tmm + tmm_2;}
+    else if(q+1 == j-1){ energy += (cj && cq) ? MIN2(tmm + d5_2, tmm_2 + d5) : tmm + tmm_2;}
+  }
+  else if(i+1 == p-1){
+    if(q+1 < j-1){ energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d3) : tmm + tmm_2;}
+    else if(q+1 == j-1){ energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d3) : MIN2(tmm + d5_2, tmm_2 + d5);}
+  }
+  else{
+    if(q+1 < j-1){ energy += d5 + d3_2;}
+    else if(q+1 == j-1){energy += MIN2(d5,d3_2);}
+  }
+  return energy;
+}
+
 #endif
