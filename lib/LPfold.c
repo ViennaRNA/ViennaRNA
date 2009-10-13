@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-09-30 17:05:19 ivo> */
+/* Last changed Time-stamp: <2009-10-12 13:24:15 ivo> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -257,12 +257,11 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
       Fwindow=(-log(q[j-winSize+1][j])-winSize*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
 
       pU[j][0]=Fwindow;
-      if (ulength>=winSize) {
-	pU[j][winSize]=scale[winSize]/q[j-winSize+1][j];
-      }
+      /* if (ulength>=winSize)
+	 pU[j][winSize]=scale[winSize]/q[j-winSize+1][j];
+      */
     }
     if (j>winSize) {
-      
       Qmax=0;
       /* i=j-winSize; */
       /* initialize multiloopfs */
@@ -322,7 +321,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
       }
       /* 3. bonding k,l as substem of multi-loop enclosed by i,m */
       prm_MLb = 0.;
-      if(k>1) /*sonst nix!*/
+      if (k>1) /*sonst nix!*/
 	for (l=MIN(n-1,k+winSize-2); l>=k+TURN+1; l--) { /* opposite direction */
 	  m=l+1;
 	  prmt = prmt1 = 0.0;
@@ -1061,16 +1060,20 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
     pU[k+len][len]+=pU[k+len][len+1]+QBE[len];
   }
 
-  /*now the not enclosed by any base pair terms for whatever it is we do not need anymore...
-    ... which should be e.g; k, again*/
+  /*open chain*/
+  if ((ulength>=winSize)&&(k>=ulength)) {
+    pU[k][winSize]=scale[winSize]/q[k-winSize+1][k];
+  }
+  /* now the not enclosed by any base pair terms for whatever it is we do not need anymore...
+    ... which should be e.g; k, again */
   for (startu=MIN(ulength,k); startu>0; startu--) {
     temp=0.;
     for (i5=MAX(1,k-winSize+2); i5<=MIN(k-startu,n-winSize+1); i5++) {
       temp+=q[i5][k-startu]*q[k+1][i5+winSize-1]*scale[startu]/q[i5][i5+winSize-1];
     }
-    /*the 2 Cases where the borders are on the edge of the interval*/
-    if(k>=winSize) temp+=q[k-winSize+1][k-startu]*scale[startu]/q[k-winSize+1][k];
-    if((k<=n-winSize+startu)&&(k-startu>=0)&&(k<n)) temp+=q[k+1][k-startu+winSize]*scale[startu]/q[k-startu+1][k-startu+winSize];
+    /* the 2 Cases where the borders are on the edge of the interval */
+    if((k>=winSize)&&(startu+1<=winSize)) temp+=q[k-winSize+1][k-startu]*scale[startu]/q[k-winSize+1][k];
+    if((k<=n-winSize+startu)&&(k-startu>=0)&&(k<n)&&(startu+1<=winSize)) temp+=q[k+1][k-startu+winSize]*scale[startu]/q[k-startu+1][k-startu+winSize];
     /*Divide by number of possible windows*/
     pU[k][startu]+=temp;
       {
