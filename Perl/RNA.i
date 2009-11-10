@@ -79,6 +79,9 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
     struc = calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
+    if (cut_point > strlen(string)) {
+       cut_point = -1;
+    } 
     *energy = cofold(string, struc);
     if (constraints)
       strncpy(constraints, struc, strlen(constraints));
