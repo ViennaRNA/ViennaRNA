@@ -365,15 +365,15 @@ PRIVATE int fill_arrays(const char *string) {
       new_fML = fML[ij+1]+P->MLbase;
       new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
       new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, (dangles == 2) ? ((i==1) ? S1[length] : S1[i-1] ) : -1, (dangles == 2) ? S1[j+1] : -1, P));
-      if (uniq_ML)
+      if (uniq_ML) /* works for dangles%2=0 ONLY !!! */
         fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, energy);
 
       if (dangles%2==1) {  /* normal dangles */
         tt = ptype[ij+1]; /* i+1,j */
         new_fML = MIN2(c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase, new_fML) ;
-        tt = ptype[indx[j-1]+i];
+        tt = ptype[indx[j-1]+i]; /* i,j-1 */
         new_fML = MIN2(c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase, new_fML);
-        tt = ptype[indx[j-1]+i+1];
+        tt = ptype[indx[j-1]+i+1]; /* i+1,j-1 */  
         new_fML = MIN2(c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase, new_fML);
       }
 
