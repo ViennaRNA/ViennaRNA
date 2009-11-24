@@ -3,36 +3,9 @@
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 
+#include "data_structures.h"
+
 extern int mirnatog; /*toggles no intrabp in 2nd mol*/
-
-typedef struct cofoldF {
-  /* free energies for: */
-  double F0AB; /* null model without DuplexInit */
-  double FAB;  /* all states with DuplexInit corretion */
-  double FcAB; /* true hybrid states only */
-  double FA;   /* monomer A */
-  double FB;   /* monomer B */
-} cofoldF;
-
-typedef struct ConcEnt {
-  double A0;    /*start concentration A*/
-  double B0;    /*start concentration B*/
-  double ABc;   /*End concentration AB*/
-  double AAc;
-  double BBc;
-  double Ac;
-  double Bc;
-} ConcEnt;
-
-
-
-typedef struct pairpro{
-  struct plist *AB;
-  struct plist *AA;
-  struct plist *A;
-  struct plist *B;
-  struct plist *BB;
-}pairpro;
 
 cofoldF co_pf_fold(char *sequence, char *structure); /* calculate partition function and base pair probabilities */
 void    init_co_pf_fold(int length);

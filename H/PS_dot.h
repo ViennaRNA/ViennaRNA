@@ -1,6 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_PS_DOT_H__
 #define __VIENNA_RNA_PACKAGE_PS_DOT_H__
 
+#include "data_structures.h"
+
 /* routines from PS_dot.c */
 int PS_rna_plot(char *string, char *structure, char *file);
 /* write PostScript drawing of structure to file */
@@ -18,18 +20,9 @@ int PS_dot_plot(char *string, char *file);
 /* produce a PostScript dot plot of the pair probability matix */
 int rna_plot_type;   /* 0= simple coordinates, 1= naview */
 
-typedef struct cpair {
-  int i,j,mfe;
-  float p, hue, sat;
-} cpair;
 int PS_color_dot_plot(char *string, cpair *pi, char *filename);
 int PS_color_dot_plot_turn(char *seq, cpair *pi, char *filename, int winSize);
 
-typedef struct plist {
-  int i;
-  int j;
-  float p;
-}plist;
 int PS_dot_plot_list(char *seq, char *filename, struct plist *pl,
          struct plist *mf, char *comment);
 int PS_dot_plot_turn(char *seq, struct plist *pl, char *filename,

@@ -573,13 +573,7 @@ PRIVATE int fill_arrays(const char *string) {
   return energy;
 }
 
-
-struct sect {
-    int  i;
-    int  j;
-    int ml;
-  }
-static  sector[MAXSECTORS];   /* stack for backtracking */
+static sect sector[MAXSECTORS];   /* stack for backtracking */
 
 PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new structure, b \ne 0: add to existing structure */) {
 

@@ -70,13 +70,6 @@
 #include "loop_energies.h"
 #include "part_func.h"
 
-typedef struct plist {
-  int i;
-  int j;
-  float p;
-} plist;
-
-
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
 

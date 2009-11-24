@@ -23,6 +23,7 @@
 #include "params.h"
 #include "loop_energies.h"
 #include "fold.h"
+#include "data_structures.h"
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
@@ -521,12 +522,7 @@ PRIVATE int fill_arrays(const char *string) {
   return f5[length];
 }
 
-struct sect {
-  int  i;
-  int  j;
-  int ml;
-}
-static sector[MAXSECTORS]; /* stack of partial structures for backtracking */
+static sect sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 
 #include "circfold.inc"
 

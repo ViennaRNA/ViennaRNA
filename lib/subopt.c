@@ -97,26 +97,15 @@
 /*@unused@*/
 PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
 
-/*Typedefinitions ---------------------------------------------------------- */
-
 typedef struct {
-  char *structure;
-  LIST *Intervals;
-  int partial_energy;
-  int is_duplex;
-  /* int best_energy;   */ /* best attainable energy */
+    char *structure;
+    LIST *Intervals;
+    int partial_energy;
+    int is_duplex;
+    /* int best_energy;   */ /* best attainable energy */
 } STATE;
 
-typedef struct {
-  int i;
-  int j;
-} PAIR;
 
-typedef struct {
-  int i;
-  int j;
-  int array_flag;
-} INTERVAL;
 
 PRIVATE void      make_pair(int i, int j, STATE *state);
 PRIVATE INTERVAL  *make_interval (int i, int j, int ml);

@@ -351,12 +351,7 @@ PRIVATE int fill_arrays(const char **strings) {
   return(f5[length]);
 }
 
-struct sect {
-  int  i;
-  int  j;
-  int ml;
-}
-static sector[MAXSECTORS]; /* stack of partial structures for backtracking */
+static sect sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 
 #include "alicircfold.inc"
 

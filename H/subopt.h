@@ -2,12 +2,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_SUBOPT_H__
 #define __VIENNA_RNA_PACKAGE_SUBOPT_H__
 
-#define MAXDOS 1000
-
-typedef struct {
-  float energy;                            /* energy of structure */
-  char *structure;
-} SOLUTION;
+#include "data_structures.h"
 
 SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
 SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);

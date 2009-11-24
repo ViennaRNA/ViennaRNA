@@ -14,20 +14,6 @@ static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
 PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
 
-typedef struct move {
-  int i;  /* i,j>0 insert; i,j<0 delete */
-  int j;
-  int when;  /* 0 if still available, else resulting distance from start */
-  int E;
-} move_t;
-
-typedef struct intermediate {
-  short *pt;     /* pair table */
-  int Sen;       /* saddle energy so far */
-  int curr_en;   /* current energy */
-  move_t *moves; /* remaining moves to target */
-} intermediate_t;
-
 PRIVATE int *pair_table_to_loop_index (short *pt);
 PRIVATE move_t* copy_moves(move_t *mvs);
 PRIVATE int compare_ptable(const void *A, const void *B);

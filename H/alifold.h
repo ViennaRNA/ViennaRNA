@@ -1,17 +1,10 @@
 #ifndef __VIENNA_RNA_PACKAGE_ALIFOLD_H__
 #define __VIENNA_RNA_PACKAGE_ALIFOLD_H__
 
+#include "data_structures.h"
+
 extern  double  cv_fact /* =1 */;
 extern  double  nc_fact /* =1 */;
-
-typedef struct {
-   short i;        /* i,j in [0, n-1] */
-   short j;
-   float p;      /* probability */
-   float ent;    /* pseudo entropy for p(i,j) = S_i + S_j - p_ij*ln(p_ij) */
-   short bp[8];  /* frequencies of pair_types */
-   char comp;    /* 1 iff pair is in mfe structure */
-} pair_info;
 
 float   alifold(char **strings, char *structure);
 void    free_alifold_arrays(void);
