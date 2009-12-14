@@ -8,18 +8,18 @@ float circfold(const char *string, char *structure) {
      fM2 = multiloop region with exactly two stems, extending to 3' end
      for stupid dangles=1 case we also need:
      fM_d3 = multiloop region with >= 2 stems, starting at pos 2
-	     (a pair (k,n) will form 3' dangle with pos 1)
+             (a pair (k,n) will form 3' dangle with pos 1)
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
-	     (a pair (1,k) will form a 5' dangle with pos n)
+             (a pair (1,k) will form a 5' dangle with pos n)
   */
   int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
   int s=0;
   /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
-	circ = 1;
+        circ = 1;
 
- length = (int) strlen(string);
+  length = (int) strlen(string);
   if (length>init_length) initialize_fold(length);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
@@ -54,44 +54,44 @@ float circfold(const char *string, char *structure) {
       if (!type) continue;
       if (no_close) new_c = FORBIDDEN;
       else {
-	char loopseq[10];
-	/*int si1, sj1;*/
-	if (u<7) {
-	  strcpy(loopseq , string+j-1);
-	  strncat(loopseq, string, i);
-	}
-	/*
-	si1 = (i==1)?S1[length] : S1[i-1];
-	sj1 = (j==length)?S1[1] : S1[j+1];
-	*/
-	new_c = E_Hairpin(u, type, /*sj1*/S1[j+1], /*si1*/S1[i-1],  loopseq, P)+bonus+c[ij];
+        char loopseq[10];
+        /*int si1, sj1;*/
+        if (u<7) {
+          strcpy(loopseq , string+j-1);
+          strncat(loopseq, string, i);
+        }
+        /*
+        si1 = (i==1)?S1[length] : S1[i-1];
+        sj1 = (j==length)?S1[1] : S1[j+1];
+        */
+        new_c = E_Hairpin(u, type, /*sj1*/S1[j+1], /*si1*/S1[i-1],  loopseq, P)+bonus+c[ij];
       }
       if (new_c<FcH) {
-	FcH = new_c; Hi=i; Hj=j;
+        FcH = new_c; Hi=i; Hj=j;
       }
 
       for (p = j+1; p < length ; p++) {
-	int u1, qmin;
-	u1 = p-j-1;
-	if (u1+i-1>MAXLOOP) break;
-	qmin = u1+i-1+length-MAXLOOP;
-	if (qmin<p+TURN+1) qmin = p+TURN+1;
-	for (q = qmin; q <=length; q++) {
-	  int u2, type_2/*, si1, sq1*/;
-	  type_2 = rtype[ptype[indx[q]+p]];
-	  if (type_2==0) continue;
-	  u2 = i-1 + length-q;
-	  if (u1+u2>MAXLOOP) continue;
-		  /* we dont need this due to init of S1 (see encode_seq)
-		  si1 = (i==1)? S1[length] : S1[i-1];
-		  sq1 = (q==length)? S1[1] : S1[q+1];
-		  */
-	  energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], /*si1*/S1[i-1], S1[p-1], /*sq1*/S1[q+1], P);
-	  new_c = c[ij] + c[indx[q]+p] + energy;
-	  if (new_c<FcI) {
-	    FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
-	  }
-	}
+        int u1, qmin;
+        u1 = p-j-1;
+        if (u1+i-1>MAXLOOP) break;
+        qmin = u1+i-1+length-MAXLOOP;
+        if (qmin<p+TURN+1) qmin = p+TURN+1;
+        for (q = qmin; q <=length; q++) {
+          int u2, type_2/*, si1, sq1*/;
+          type_2 = rtype[ptype[indx[q]+p]];
+          if (type_2==0) continue;
+          u2 = i-1 + length-q;
+          if (u1+u2>MAXLOOP) continue;
+                  /* we dont need this due to init of S1 (see encode_seq)
+                  si1 = (i==1)? S1[length] : S1[i-1];
+                  sq1 = (q==length)? S1[1] : S1[q+1];
+                  */
+          energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], /*si1*/S1[i-1], S1[p-1], /*sq1*/S1[q+1], P);
+          new_c = c[ij] + c[indx[q]+p] + energy;
+          if (new_c<FcI) {
+            FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
+          }
+        }
       }
     }
   Fc = MIN2(FcI, FcH);
@@ -122,7 +122,7 @@ float circfold(const char *string, char *structure) {
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d3[i] = INF;
       for (u=2+TURN; u<i-TURN; u++)
-	fM_d3[i] = MIN2(fM_d3[i], fML[indx[u]+2] + fML[indx[i]+u+1]);
+        fM_d3[i] = MIN2(fM_d3[i], fML[indx[u]+2] + fML[indx[i]+u+1]);
     }
     for (i=2*TURN+1; i<length-TURN; i++) {
       int fm, type;
@@ -130,18 +130,18 @@ float circfold(const char *string, char *structure) {
       if (type==0) continue;
       fm = fM_d3[i]+c[indx[length]+i+1]+P->MLclosing+P->MLintern[type]+P->dangle3[type][S1[1]];
       if (fm<FcMd3) {
-	FcMd3=fm; Md3i=i;
+        FcMd3=fm; Md3i=i;
       }
       fm = fM_d3[i-1]+c[indx[length]+i+1]+P->MLclosing+P->MLintern[type]+P->dangle3[type][S1[1]]+P->dangle5[type][S1[i]];
       if (fm<FcMd3) {
-	FcMd3=fm; Md3i=-i;
+        FcMd3=fm; Md3i=-i;
       }
     }
 
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d5[i] = INF;
       for (u=i+TURN; u<length-TURN; u++)
-	fM_d5[i] = MIN2(fM_d5[i], fML[indx[u]+i] + fML[indx[length-1]+u+1]);
+        fM_d5[i] = MIN2(fM_d5[i], fML[indx[u]+i] + fML[indx[length-1]+u+1]);
     }
     for (i=TURN+1; i<length-2*TURN; i++) {
       int fm, type;
@@ -149,12 +149,12 @@ float circfold(const char *string, char *structure) {
       if (type==0) continue;
       fm = P->dangle5[type][S1[length]]+c[indx[i]+1]+fM_d5[i+1]+P->MLclosing+P->MLintern[type];
       if (fm<FcMd5) {
-	FcMd5=fm; Md5i=i;
+        FcMd5=fm; Md5i=i;
       }
       fm = P->dangle5[type][S1[length]]+c[indx[i]+1]+P->dangle3[type][S1[i+1]]+
-	fM_d5[i+2]+P->MLclosing+P->MLintern[type];
+        fM_d5[i+2]+P->MLclosing+P->MLintern[type];
       if (fm<FcMd5) {
-	FcMd5=fm; Md5i=-i;
+        FcMd5=fm; Md5i=-i;
       }
     }
     if (FcMd5<MIN2(Fc,FcMd3)) {
@@ -164,15 +164,15 @@ float circfold(const char *string, char *structure) {
       sector[s].ml = 2;
       i = (Md5i>0)?Md5i+1 : -Md5i+2; /* let's backtrack fm_d5[Md5i+1] */
       for (u=i+TURN; u<length-TURN; u++)
-	if (fM_d5[i] == fML[indx[u]+i] + fML[indx[length-1]+u+1]) {
-	  sector[++s].i = i;
-	  sector[s].j = u;
-	  sector[s].ml = 1;
-	  sector[++s].i =u+1;
-	  sector[s].j = length-1;
-	  sector[s].ml = 1;
-	  break;
-	}
+        if (fM_d5[i] == fML[indx[u]+i] + fML[indx[length-1]+u+1]) {
+          sector[++s].i = i;
+          sector[s].j = u;
+          sector[s].ml = 1;
+          sector[++s].i =u+1;
+          sector[s].j = length-1;
+          sector[s].ml = 1;
+          break;
+        }
       Fc = FcMd5;
     } else if (FcMd3<Fc) {
       /* here we go again... */
@@ -181,15 +181,15 @@ float circfold(const char *string, char *structure) {
       sector[s].ml = 2;
       i = (Md3i>0)? Md3i : -Md3i-1; /* let's backtrack fm_d3[Md3i] */
       for (u=2+TURN; u<i-TURN; u++)
-	if (fM_d3[i] == fML[indx[u]+2] + fML[indx[i]+u+1]) {
-	  sector[++s].i = 2;
-	  sector[s].j = u;
-	  sector[s].ml = 1;
-	  sector[++s].i =u+1;
-	  sector[s].j = i;
-	  sector[s].ml = 1;
-	  break;
-	}
+        if (fM_d3[i] == fML[indx[u]+2] + fML[indx[i]+u+1]) {
+          sector[++s].i = 2;
+          sector[s].j = u;
+          sector[s].ml = 1;
+          sector[++s].i =u+1;
+          sector[s].j = i;
+          sector[s].ml = 1;
+          break;
+        }
       Fc = FcMd3;
     }
     free(fM_d3);
@@ -215,13 +215,13 @@ float circfold(const char *string, char *structure) {
       fm = fM2[Mi+1];
       for (u=Mi+TURN+1; u<length-TURN; u++)
         if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
-		sector[++s].i=Mi+1;
-		sector[s].j=u;
-		sector[s].ml = 1;
-		sector[++s].i=u+1;
-		sector[s].j=length;
-		sector[s].ml = 1;
-		break;
+                sector[++s].i=Mi+1;
+                sector[s].j=u;
+                sector[s].ml = 1;
+                sector[++s].i=u+1;
+                sector[s].j=length;
+                sector[s].ml = 1;
+                break;
         }
       sector[++s].i = 1;
       sector[s].j = Mi;
@@ -249,7 +249,7 @@ float circfold(const char *string, char *structure) {
       int l;
       bonus_cnt++;
       for(l=1; l<=base_pair[0].i; l++)
-	if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
+        if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
     }
   }
 

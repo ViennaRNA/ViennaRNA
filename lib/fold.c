@@ -42,6 +42,10 @@ PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE int   stack_energy(int i, const char *string);
+
+PRIVATE int   energy_of_extLoop_pt(short *pair_table);
+PRIVATE int   energy_of_ml_pt(int i, short *pt);
+
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(const char *sequence);
@@ -219,7 +223,13 @@ float fold(const char *string, char *structure) {
   free(S); free(S1); free(BP);
 
   energy += bonus;      /*remove bonus energies from result */
+  float bla = energy_of_struct(string, structure);
+  if(abs(bla - (float) energy/100.) > 1e-6){
 
+    printf("wtf, energy_of_struct says: %6.2f, %6.2f\n", bla, (float) energy/100.0 );
+printf("%s\n%s\n", string, structure);
+exit(0);
+}
   if (backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
   else if (backtrack_type=='M')
@@ -293,13 +303,9 @@ PRIVATE int fill_arrays(const char *string) {
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-#if 1
             energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                                 S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-#else
-            /* duplicated code is faster than function call */
 
-#endif
             new_c = MIN2(energy+c[indx[q]+p], new_c);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
@@ -312,21 +318,30 @@ PRIVATE int fill_arrays(const char *string) {
         if (!no_close) {
           int MLenergy;
           decomp = DMLi1[j-1];
-          if (dangles) {
-            int d3=0, d5=0;
-            tt = rtype[type];
-            if (dangles==2) /* double dangles */
-              decomp += E_MLstem(tt, (dangles==2) ? S1[j-1] : -1, (dangles==2) ? S1[i+1] : -1, P);
-            else {          /* normal dangles */
-              decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-              decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
-              decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
-            }
+          if  (i == 7 && j == 49){
+            printf("dmli1j-1: %d, dmli1j-2: %d, dmli2j-1: %d, dmli2j-2: %d\n", DMLi1[j-1],DMLi1[j-2], DMLi2[j-1], DMLi2[j-2]);
+          } 
+          tt = rtype[type];
+          switch(dangles){
+            /* no dangles */
+            case 0:   decomp += E_MLstem(tt, -1, -1, P);
+                      break;
+            /* double dangles */
+            case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
+                      break;
+            /* normal dangles */
+            default:  if(DMLi1[j-1] != (DMLi2[j-1] + P->MLbase))
+                        decomp = DMLi1[j-1] + E_MLstem(tt, -1, -1, P);
+                      else
+                        decomp = DMLi1[j-1] + E_MLstem(tt, -1, S1[i+1], P);
+                      decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
+                      if(DMLi2[j-1] != (DMLi2[j-2]+P->MLbase))
+                        decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
+                      decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
+                      break;
           }
-
-          MLenergy = P->MLclosing + decomp;
-
-          new_c = MLenergy < new_c ? MLenergy : new_c;
+          MLenergy = decomp + P->MLclosing;
+          new_c = MIN2(new_c, MLenergy);
         }
 
         /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
@@ -359,32 +374,94 @@ PRIVATE int fill_arrays(const char *string) {
 
       else c[ij] = INF;
 
+      /* done with c[i,j], now compute fML[i,j] and possibly fM1[i,j] */
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
-
-      new_fML = fML[ij+1]+P->MLbase;
-      new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-      new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, (dangles == 2) ? ((i==1) ? S1[length] : S1[i-1] ) : -1, (dangles == 2) ? S1[j+1] : -1, P));
-      if (uniq_ML) /* works for dangles%2=0 ONLY !!! */
+      if (uniq_ML){ /* works for dangles%2=0 ONLY !!! */
         fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, energy);
+      }
 
-      if (dangles%2==1) {  /* normal dangles */
-        tt = ptype[ij+1]; /* i+1,j */
-        new_fML = MIN2(c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase, new_fML) ;
-        tt = ptype[indx[j-1]+i]; /* i,j-1 */
-        new_fML = MIN2(c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase, new_fML);
-        tt = ptype[indx[j-1]+i+1]; /* i+1,j-1 */  
-        new_fML = MIN2(c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase, new_fML);
+      /* free ends ? -----------------------------------------*/
+      /*  we must not just extend 3'/5' end by unpaired nucleotides if
+      *   dangles == 1, this could lead to d5+d3 contributions were
+      *   mismatch must be taken!
+      */
+      new_fML = INF;
+      switch(dangles){
+        /* no dangles */
+        case 0:   new_fML = fML[ij+1]+P->MLbase;
+                  new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
+                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
+                  break;
+        /* double dangles */
+        case 2:   new_fML = fML[ij+1]+P->MLbase;
+                  new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
+                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<length) || circ) ? S1[j+1] : -1, P));
+                  break;
+        /* normal dangles */
+        default:  
+                  /* modular decomposition */
+                  for(decomp = INF, k = i+TURN+1; k<=j-TURN-2; k++){
+                    tt = ptype[indx[j]+k+1];
+                    if(tt){
+                      decomp = MIN2(decomp, Fmi[k-1] + c[indx[j]+k+1] + E_MLstem(tt, S1[k], -1, P) + P->MLbase);
+                      if(Fmi[k] != (Fmi[k-1] + P->MLbase))
+                        decomp = MIN2(decomp, Fmi[k] + c[indx[j]+k+1] + E_MLstem(tt, -1, -1, P));
+                    }
+                    tt = ptype[indx[j-1]+k+1];
+                    if(tt){
+                      decomp = MIN2(decomp, Fmi[k-1] + c[indx[j-1]+k+1] + E_MLstem(tt, S1[k], S1[j], P) + 2*P->MLbase);
+                      if(Fmi[k] != (Fmi[k-1] + P->MLbase))
+                        decomp = MIN2(decomp, Fmi[k] + c[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[j], P) + P->MLbase);
+                    }
+                  }
+                  DMLi[j] = MIN2(DMLi[j-1] + P->MLbase, decomp); /* store this for ML decomposition in next c(i,j) */
+                  new_fML = decomp;
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+
+                  /** all variants of having a only 1 stem in [i,j] **/
+
+                  /* (i,j) */
+                  if(type)  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+
+                  /* (i+1,j) */
+                  tt = ptype[ij+1];
+                  if(tt)  new_fML = MIN2(new_fML, c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) ;
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+
+                  /* (i,j-1) */
+                  tt = ptype[indx[j-1]+i];
+                  if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase);
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+
+                  /* (i+1,j-1) */
+                  tt = ptype[indx[j-1]+i+1];
+                  if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+
+                  /* extension of 5' side by unpaired nucleotide */
+                  tt = ptype[indx[j-1]+i+1];
+                  if(!tt || (fML[ij+1] != c[indx[j-1]+i+1] + E_MLstem(tt, -1, S1[j], P) + P->MLbase)){
+                      new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
+                  }
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+                  /* extension of 3' side by unpaired nucleotide */
+                  tt = ptype[indx[j-1]+i+1];
+                  if(!tt || (fML[indx[j-1]+i] != c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase)){
+                    new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->MLbase);
+                  }
+                    printf("new_fML(%d,%d) : %d\n", i, j, new_fML);
+                  break;
       }
 
       /* modular decomposition -------------------------------*/
+      if(dangles%2 != 1){
+        for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
+          decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
 
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-        decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
-
-      DMLi[j] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
+        DMLi[j] = decomp;               /* store for use in ML decompositon */
+        new_fML = MIN2(new_fML,decomp);
+      }
 
       /* coaxial stacking */
       if (dangles==3) {
@@ -408,7 +485,6 @@ PRIVATE int fill_arrays(const char *string) {
 #endif
         new_fML = MIN2(new_fML, decomp);
       }
-
       fML[ij] = Fmi[j] = new_fML;     /* substring energy */
 
     }
@@ -424,13 +500,8 @@ PRIVATE int fill_arrays(const char *string) {
   /* calculate energies of 5' and 3' fragments */
 
   f5[TURN+1]= 0;
-  if(dangles%2)
-    for(j = 0; j <= TURN+1; j++) f53[j] = INF;
-  
   for (j=TURN+2; j<=length; j++) {
-
-    f5[j] = MIN2(f5[j-1], f53[j-1]);
-    f53[j] = INF;
+    f5[j] = f5[j-1];
     int mm5 = S1[i-1];
     int mm3 = (j<length)  ? S1[j+1] : -1;
 
@@ -440,42 +511,26 @@ PRIVATE int fill_arrays(const char *string) {
       int en = c[indx[j]+i];
       switch(dangles){
         case 0:   if(type)
-                    f5[j]     = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
+                    f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
                   break;
         case 2:   if(type)
-                    f5[j]     = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, mm5, mm3, P));
+                    f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, mm5, mm3, P));
                   break;
-        default:  if(type){
-                    f53[j]    = MIN2(
-                                      f53[j],
-                                      f53[i-1] + en + E_ExtLoop(type, -1, -1, P)
-                                    );
-                    f53[j]    = MIN2(
-                                      f53[j],
-                                      f5[i-1] + en + E_ExtLoop(type, mm5, -1, P)
-                                );
-                  }
-                  type = ptype[indx[j-1]+i];
-                  if(type){
-                    en = c[indx[j-1]+i];
-                    mm3 = S1[j];
-                    f53[j]  = MIN2(
-                                    f53[j],
-                                    f53[i-1] + en + E_ExtLoop(type, -1, mm3, P)
-                                  );
-                    f53[j]  = MIN2(
-                                    f53[j],
-                                    f5[i-1] + en + E_ExtLoop(type, mm5, mm3, P)
-                                  );
-      
-                    f5[j]   = MIN2(
-                                    f5[j],
-                                    f5[i-1] + en + E_ExtLoop(type, mm5, -1, P)
-                                  );
-                    f5[j]   = MIN2(
-                                    f5[j],
-                                    f53[i-1] + en + E_ExtLoop(type, -1, -1, P)
-                                  );
+        default:  {
+                    char sw = (f5[i-1] != f5[i-2]);
+                    if(type){
+                      f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, mm5, -1, P));
+                      if(sw)
+                        f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
+                    }
+                    type = ptype[indx[j-1]+i];
+                    if(type){
+                      en = c[indx[j-1]+i];
+                      mm3 = S1[j];
+                      f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, mm5, mm3, P)); /* also includes f5[j] = c[2,j-1] + mismatch */
+                      if(sw)
+                        f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, mm3, P));
+                    }
                   }
                   break;
       }
@@ -487,38 +542,21 @@ PRIVATE int fill_arrays(const char *string) {
     int en = c[indx[j]+1];
     switch(dangles){
       case 0:   if(type)
-                  f5[j]   = MIN2(
-                                  f5[j],
-                                  en + E_ExtLoop(type, -1, -1, P)
-                                );
+                  f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, -1, P));
                 break;
       case 2:   if(type)
-                  f5[j]   = MIN2(
-                                  f5[j],
-                                  en + E_ExtLoop(type, -1, mm3, P)
-                                );
+                  f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, mm3, P));
                 break;
       default:  if(type)
-                  f53[j]  = MIN2(
-                                  f53[j],
-                                  en + E_ExtLoop(type, -1, -1, P)
-                                );
+                  f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, -1, P));
                 type=ptype[indx[j-1]+1];
                 if(type){
                   int en = c[indx[j-1]+1];
-                  f53[j]  = MIN2(
-                                  f53[j],
-                                  en + E_ExtLoop(type, -1, S1[j], P)
-                                );
-                  f5[j]   = MIN2(
-                                  f5[j],
-                                  en + E_ExtLoop(type, -1, -1, P)
-                                );
+                  f5[j]  = MIN2(f5[j], en + E_ExtLoop(type, -1, S1[j], P));
                 }
                 break;
     }
   }
-  if(dangles % 2) return MIN2(f53[length], f5[length]);
   return f5[length];
 }
 
@@ -540,16 +578,11 @@ PRIVATE void backtrack(const char *string, int s) {
   int   no_close, type, type_2, tt;
   int   bonus;
   int   b=0;
-  int   bt_f53 = (dangles % 2);
   length = strlen(string);
   if (s==0) {
     sector[++s].i = 1;
     sector[s].j = length;
     sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')? 2: 0);
-    if(dangles % 2)
-      if(sector[s].ml == 0)
-        if(f53[length] < f5[length])
-          sector[s].ml = 11;
   }
   while (s>0) {
     int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
@@ -566,30 +599,18 @@ PRIVATE void backtrack(const char *string, int s) {
 
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
-    fij = (ml == 1)? fML[indx[j]+i] : (ml == 11) ? f53[j] : f5[j];
-    fi  = (ml == 1)?(fML[indx[j-1]+i]+P->MLbase): (ml==11) ? f53[j-1] : f5[j-1];
+    fij = (ml == 1)? fML[indx[j]+i] : f5[j];
+    fi  = (ml == 1)?(fML[indx[j-1]+i]+P->MLbase): f5[j-1];
 
-    if(dangles % 2){
-      if(ml == 0){
-        if(f53[j-1] < f5[j-1]){
-          fi = f53[j-1];
-          if(fij == fi){
-            sector[++s].i = i;
-            sector[s].j   = j-1;
-            sector[s].ml  = 11;
-            continue;
-          }
-        }
-      }
-    }
     if (fij == fi) {  /* 3' end is unpaired */
       sector[++s].i = i;
       sector[s].j   = j-1;
       sector[s].ml  = ml;
+      printf("ML(%d,%d) seek to j-1\n", i,j);
       continue;
     }
 
-    if (ml == 0 || ml == 11) { /* backtrack in f5 */
+    if (ml == 0) { /* backtrack in f5 */
       /* j or j-1 is paired. Find pairing partner */
       for (k=j-TURN-1,traced=0; k>=1; k--) {
         int cc;
@@ -609,20 +630,17 @@ PRIVATE void backtrack(const char *string, int s) {
                         traced=j;
                     break;
           default:  if(type){
-                      if(ml == 11){
-                        if(k>1){
-                          if(fij == f53[k-1] + en + E_ExtLoop(type, -1, -1, P)){
-                            traced = j; jj = k-1; ml=11;
-                          }
-                          else if(fij == f5[k-1] + en + E_ExtLoop(type, mm5, -1, P)){
-                            traced = j; jj = k-1; ml = 0;
-                          }
-                          
+                      if(k>1){
+                        if(fij == f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
+                            traced = j; jj = k-1; ml=0;
                         }
-                        else{
-                          if(fij == en + E_ExtLoop(type, -1, -1, P)){
-                            traced = j; ml = 0;
-                          }
+                        if(fij == f5[k-2] + en + E_ExtLoop(type, mm5, -1, P)){
+                            traced = j; jj = k-2; ml=0;
+                        }
+                      }
+                      else{
+                        if(fij == en + E_ExtLoop(type, -1, -1, P)){
+                          traced = j; ml = 0;
                         }
                       }
                     }
@@ -630,34 +648,17 @@ PRIVATE void backtrack(const char *string, int s) {
                     if(type){
                       mm3 = S1[j];
                       en = c[indx[j-1]+k];
-                      if(ml == 11){
-                        if(k>1){
-                          if(fij == f53[k-1] + en + E_ExtLoop(type, -1, mm3, P)){
-                            traced = j-1; jj=k-1; ml=11;
-                          }
-                          else if(fij == f5[k-1] + en + E_ExtLoop(type, mm5, mm3, P)){
-                            traced = j-1; jj=k-1; ml = 0;
-                          }
+                      if(k>1){
+                        if(fij == f5[k-1] + en + E_ExtLoop(type, -1, mm3, P)){
+                          traced = j-1; jj=k-1; ml=0;
                         }
-                        else{
-                          if(fij == en + E_ExtLoop(type, -1, S1[j], P)){
-                            traced = j-1; ml = 0;
-                          }
+                        if(fij == f5[k-2] + en + E_ExtLoop(type, mm5, mm3, P)){
+                            traced = j-1; jj=k-2; ml = 0;
                         }
                       }
                       else{
-                        if(k > 1){
-                          if(fij == f5[k-1] + en + E_ExtLoop(type, mm5, -1, P)){
-                            traced = j-1; jj = k-1; ml = 0;
-                          }
-                          else if(fij == f53[k-1] + en + E_ExtLoop(type, -1, -1, P)){
-                            traced = j-1; jj = k-1; ml = 11;
-                          }
-                        }
-                        else{
-                          if(fij == en + E_ExtLoop(type, -1, -1, P)){
-                            traced = j-1; ml = 0;                       
-                          }
+                        if(fij == en + E_ExtLoop(type, -1, S1[j], P)){
+                          traced = j-1; ml = 0;
                         }
                       }
                     }
@@ -666,7 +667,10 @@ PRIVATE void backtrack(const char *string, int s) {
         if (traced) break;
       }
 
-      if (!traced) nrerror("backtrack failed in f5");
+      if (!traced){
+        printf("%s\n", string);
+        nrerror("backtrack failed in f5");
+      }
       sector[++s].i = 1;
       sector[s].j   = jj;
       sector[s].ml  = ml;
@@ -686,24 +690,41 @@ PRIVATE void backtrack(const char *string, int s) {
       }
 
       tt  = ptype[indx[j]+i];
-      cij = c[indx[j]+i] + E_MLstem(tt, (dangles==2) ? (i==1) ? S1[length] : S1[i-1] : -1, (dangles==2) ? S1[j+1] : -1, P);
-      if (dangles%2==1) {  /* normal dangles */
-        tt = ptype[indx[j]+i+1];
-        ci1j= c[indx[j]+i+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase;
-        tt = ptype[indx[j-1]+i];
-        cij1= c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase;
-        tt = ptype[indx[j-1]+i+1];
-        ci1j1=c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase;
-      }
-
-      if ((fij==cij)||(fij==ci1j)||(fij==cij1)||(fij==ci1j1)) {
-        /* found a pair */
-        if (fij==ci1j) i++;
-        else if (fij==cij1) j--;
-        else if (fij==ci1j1) {i++; j--;}
-        base_pair[++b].i = i;
-        base_pair[b].j   = j;
-        goto repeat1;
+      switch(dangles){
+        case 0:   if(fij == c[indx[j]+i] + E_MLstem(tt, -1, -1, P)){
+                    base_pair[++b].i = i;
+                    base_pair[b].j   = j;
+                    goto repeat1;
+                  }
+                  break;
+        case 2:   if(fij == c[indx[j]+i] + E_MLstem(tt, S1[i-1], S1[j+1], P)){
+                    base_pair[++b].i = i;
+                    base_pair[b].j   = j;
+                    goto repeat1;
+                  }
+        default:  if(fij == c[indx[j]+i] + E_MLstem(tt, -1, -1, P)){
+                    base_pair[++b].i = i;
+                    base_pair[b].j   = j;
+                    goto repeat1;
+                  }
+                  tt = ptype[indx[j]+i+1];
+                  if(fij == c[indx[j]+i+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
+                    base_pair[++b].i = ++i;
+                    base_pair[b].j   = j;
+                    goto repeat1;
+                  }
+                  tt = ptype[indx[j-1]+i];
+                  if(fij == c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
+                    base_pair[++b].i = i;
+                    base_pair[b].j   = --j;
+                    goto repeat1;
+                  }
+                  tt = ptype[indx[j-1]+i+1];
+                  if(fij == c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
+                    base_pair[++b].i = ++i;
+                    base_pair[b].j   = --j;
+                    goto repeat1;
+                  }
       }
 
       for (k = i+1+TURN; k <= j-2-TURN; k++)
@@ -721,7 +742,7 @@ PRIVATE void backtrack(const char *string, int s) {
               break;
         }
       }
-
+      printf("traced fML(%d,%d) = %d = fML(%d,%d) + fML(%d,%d)\n", i, j, fij, i, k, k+1, j);
       sector[++s].i = i;
       sector[s].j   = k;
       sector[s].ml  = ml;
@@ -803,22 +824,32 @@ PRIVATE void backtrack(const char *string, int s) {
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1;
 
-    for (k = i+2+TURN; k < j-2-TURN; k++) {
-      if (cij == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, (dangles==2) ? S1[j-1] : -1, (dangles==2) ? S1[i+1] : -1, P) + P->MLclosing + bonus)
-        break;
-      if (dangles%2==1) { /* normal dangles */
-        if (cij == (fML[indx[k]+i+2] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing + bonus)) {
-          i1 = i+2;
-          break;
-        }
-        if (cij == (fML[indx[k]+i+1] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + P->MLclosing + bonus)) {
-          j1 = j-2;
-          break;
-        }
-        if (cij == (fML[indx[k]+i+2] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase + P->MLclosing)) {
-          i1 = i+2; j1 = j-2;
-          break;
-        }
+    for (traced = 0, k = i+2+TURN; k < j-2-TURN && !traced; k++){
+      switch(dangles){
+        case 0:   traced = (cij == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P) + P->MLclosing + bonus);
+                  break;
+        case 2:   traced = (cij == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing + bonus);
+                  break;
+        default:  {
+                    int tmp_en = P->MLclosing + bonus;
+                    if(cij == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P) + tmp_en){
+                      traced = 1;
+                    }
+                    else if(cij == fML[indx[k]+i+2] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + tmp_en){
+                      traced = 1;
+                      i1 = i+2;
+                    }
+                    else if(cij == fML[indx[k]+i+1] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + tmp_en){
+                      traced = 1;
+                      j1 = j-2;
+                    }
+                    else if(cij == fML[indx[k]+i+2] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase + tmp_en){
+                      traced = 1;
+                      i1 = i+2;
+                      j1 = j-2;
+                    }
+                    break;
+                  }
       }
       /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
       /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
@@ -845,6 +876,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
     }
     if (k<=j-3-TURN) { /* found the decomposition */
+      printf("traced cij = %d = ML(%d,%d)+ML(%d,%d)\n", cij, i1, k, k+1, j1);
       sector[++s].i = i1;
       sector[s].j   = k;
       sector[++s].i = k+1;
@@ -872,6 +904,7 @@ PRIVATE void backtrack(const char *string, int s) {
       }
       else
 #endif
+        printf("%s\n", string);
         nrerror("backtracking failed in repeat");
     }
 
@@ -1154,7 +1187,8 @@ int energy_of_struct_pt(const char *string, short * ptable,
   S1 = s1;
 
   length = S[0];
-  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
+//  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
+    energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(ptable);
   if (eos_debug>0)
     printf("External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
@@ -1311,8 +1345,7 @@ PRIVATE int stack_energy(int i, const char *string)
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-      ee = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                      S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
+      ee = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     if (eos_debug>0)
@@ -1348,7 +1381,8 @@ PRIVATE int stack_energy(int i, const char *string)
   {
     int ii;
     ii = cut_in_loop(i);
-    ee = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
+//    ee = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
+    ee = (ii==0) ? energy_of_ml_pt(i, pair_table) : ML_Energy(ii, 1);
   }
   energy += ee;
   if (eos_debug>0)
@@ -1359,6 +1393,8 @@ PRIVATE int stack_energy(int i, const char *string)
 }
 
 /*---------------------------------------------------------------------------*/
+
+
 
 PRIVATE int ML_Energy(int i, int is_extloop) {
   /* i is the 5'-base of the closing pair (or 0 for exterior loop)
@@ -1495,7 +1531,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
       do { /* walk around the multi-loop */
         int tt, new_cx = INF;
 
-        /* hope over unpaired positions */
+        /* hop over unpaired positions */
         while (p <= (unsigned int)pair_table[0] && pair_table[p]==0) p++;
 
         /* memorize number of unpaired positions */
@@ -1579,6 +1615,312 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
       energy += mlbase*u;
     /* fprintf(stderr, "\n"); */
   }
+  return energy;
+}
+
+/**
+*** Calculate the energy contribution of
+*** stabilizing dangling-ends/mismatches
+*** for all stems branching off the exterior
+*** loop
+**/
+PRIVATE int energy_of_extLoop_pt(short *pair_table) {
+  int energy, mm5, mm3;
+  int p, q, q_prev;
+  int length = (int)pair_table[0];
+
+  /* helper variables for dangles == 1 case */
+  int E_mm5_available;  /* energy of 5' part where 5' mismatch is available for current stem */
+  int E_mm5_occupied;   /* energy of 5' part where 5' mismatch is unavailable for current stem */
+
+  /* initialize vars */
+  energy      = 0;
+  p           = 1;
+  q_prev      = -1;
+
+  if(dangles == 1){
+    E_mm5_available = INF;
+    E_mm5_occupied  = 0;
+  }
+
+  /* seek to opening base of first stem */
+  while(p <= length && !pair_table[p]) p++;
+
+  while(p < length){
+    int tt;
+    /* p must have a pairing partner */
+    q  = (int)pair_table[p];
+    /* get type of base pair (p,q) */
+    tt = pair[S[p]][S[q]];
+    if(tt==0) tt=7;
+
+    switch(dangles){
+      /* no dangles */
+      case 0:   energy += E_ExtLoop(tt, -1, -1, P);
+                break;
+      /* the beloved double dangles */
+      case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? S1[p-1] : -1;
+                mm3 = ((SAME_STRAND(q+1,q)) && (q<length))  ? S1[q+1] : -1;
+                energy += E_ExtLoop(tt, mm5, mm3, P);
+                break;
+      /* normal dangles (i.e. dangles == 1) */
+      default:  {
+                  int tmp;
+                  if(q_prev + 2 < p){
+                    E_mm5_available = E_mm5_occupied;
+                    E_mm5_occupied  = INF;
+                  }
+                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
+                  mm3 = ((SAME_STRAND(q+1,q)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
+                  tmp = (mm3 < 0) ? INF :  MIN2(
+                                                E_mm5_occupied  + E_ExtLoop(tt, -1, mm3, P),
+                                                E_mm5_available + E_ExtLoop(tt, mm5, mm3, P)
+                                              );
+                  E_mm5_available =       MIN2(
+                                                E_mm5_occupied  + E_ExtLoop(tt, -1, -1, P),
+                                                E_mm5_available + E_ExtLoop(tt, mm5, -1, P)
+                                              );
+                  E_mm5_occupied = tmp;
+                }
+                break;
+    } /* end switch dangles */
+    /* seek to the next stem */
+    p = q + 1;
+    q_prev = q;
+    while (p <= length && !pair_table[p]) p++;
+  }
+  
+  if(dangles == 1)
+    energy = MIN2(E_mm5_occupied, E_mm5_available);
+
+  return energy;
+}
+
+/**
+*** i is the 5'-base of the closing pair
+***
+*** since each helix can coaxially stack with at most one of its
+*** neighbors we need an auxiliarry variable  cx_energy
+*** which contains the best energy given that the last two pairs stack.
+*** energy  holds the best energy given the previous two pairs do not
+*** stack (i.e. the two current helices may stack)
+*** We don't allow the last helix to stack with the first, thus we have to
+*** walk around the Loop twice with two starting points and take the minimum
+***/
+PRIVATE int energy_of_ml_pt(int i, short *pt){
+
+  int energy, cx_energy, best_energy=INF;
+  int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3;
+  int mlintern[NBPAIRS+1], mlclosing, mlbase;
+
+  /* helper variables for dangles == 1 case */
+  int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
+  int E_mm5_occupied;   /* energy of 5' part where 5' mismatch of current stem is unavailable */
+  int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
+  int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
+
+  int length = (int)pt[0];
+
+  if(!pt[i])
+    nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
+
+  j = (int)pt[i];
+
+  if(dangles == 1){
+    E_mm5_available = E2_mm5_available  = INF;
+    E_mm5_occupied  = E2_mm5_occupied   = 0;
+  }
+
+  /* init the variables */
+  energy      = 0;
+  p           = i+1;
+  q_prev      = i-1;
+  q_prev2     = i;
+
+  for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
+  mlclosing = P->MLclosing; mlbase = P->MLbase;
+
+  /* seek to opening base of first stem */
+  while(p <= j && !pair_table[p]) p++;
+  u = p - i - 1;
+  
+  /* we treat helix stacking different */
+  if(dangles == 3){
+    for (count=0; count<2; count++) { /* do it twice */
+      int ld5 = 0; /* 5' dangle energy on prev pair (type) */
+      if ( i==0 ) {
+        j = (unsigned int)pair_table[0]+1;
+        type = 0;  /* no pair */
+      }
+      else {
+        j = (unsigned int)pair_table[i];
+        type = pair[S[j]][S[i]]; if (type==0) type=7;
+
+        if (dangles==3) { /* prime the ld5 variable */
+          if (SAME_STRAND(j-1,j)) {
+            ld5 = P->dangle5[type][S1[j-1]];
+            if ((p=(unsigned int)pair_table[j-2]) && SAME_STRAND(j-2, j-1))
+                if (P->dangle3[pair[S[p]][S[j-2]]][S1[j-1]]<ld5) ld5 = 0;
+          }
+        }
+      }
+      i1=i; p = i+1; u=0;
+      energy = 0; cx_energy=INF;
+      do { /* walk around the multi-loop */
+        int tt, new_cx = INF;
+
+        /* hop over unpaired positions */
+        while (p <= (unsigned int)pair_table[0] && pair_table[p]==0) p++;
+
+        /* memorize number of unpaired positions */
+        u += p-i1-1;
+        /* get position of pairing partner */
+        if ( p == (unsigned int)pair_table[0]+1 ){
+          q = 0;tt = 0; /* virtual root pair */
+        } else {
+          q  = (unsigned int)pair_table[p];
+          /* get type of base pair P->q */
+          tt = pair[S[p]][S[q]]; if (tt==0) tt=7;
+        }
+
+        energy += mlintern[tt];
+        cx_energy += mlintern[tt];
+
+        if (dangles) {
+          int dang5=0, dang3=0, dang;
+          if ((SAME_STRAND(p-1,p))&&(p>1))
+            dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
+          if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)S[0]))
+            dang3 = P->dangle3[type][S1[i1+1]]; /* 3'dangle of previous pair */
+
+          switch (p-i1-1) {
+          case 0: /* adjacent helices */
+            if (dangles==2)
+              energy += dang3+dang5;
+            else if (dangles==3 && i1!=0) {
+              if (SAME_STRAND(i1,p)) {
+                new_cx = energy + P->stack[rtype[type]][rtype[tt]];
+                /* subtract 5'dangle and TerminalAU penalty */
+                new_cx += -ld5 - mlintern[tt]-mlintern[type]+2*mlintern[1];
+              }
+              ld5=0;
+              energy = MIN2(energy, cx_energy);
+            }
+            break;
+          case 1: /* 1 unpaired base between helices */
+            dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
+            if (dangles==3) {
+              energy = energy +dang; ld5 = dang - dang3;
+              /* may be problem here: Suppose
+               cx_energy>energy, cx_energy+dang5<energy
+               and the following helices are also stacked (i.e.
+               we'll subtract the dang5 again */
+              if (cx_energy+dang5 < energy) {
+                energy = cx_energy+dang5;
+                ld5 = dang5;
+              }
+              new_cx = INF;  /* no coax stacking with mismatch for now */
+            } else
+              energy += dang;
+            break;
+          default: /* many unpaired base between helices */
+            energy += dang5 +dang3;
+            if (dangles==3) {
+              energy = MIN2(energy, cx_energy + dang5);
+              new_cx = INF;  /* no coax stacking possible */
+              ld5 = dang5;
+            }
+          }
+          type = tt;
+        }
+        if (dangles==3) cx_energy = new_cx;
+        i1 = q; p=q+1;
+      } while (q!=i);
+      best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
+      /* fprintf(stderr, "%6.2d\t", energy); */
+      /* skip a helix and start again */
+      while (pair_table[p]==0) p++;
+      if (i == (unsigned int)pair_table[p]) break;
+      i = (unsigned int)pair_table[p];
+    }
+  
+  }
+  else{
+    while(p < j){
+      int tt;
+      /* p must have a pairing partner */
+      q  = (int)pair_table[p];
+      /* get type of base pair (p,q) */
+      tt = pair[S[p]][S[q]];
+      if(tt==0) tt=7;
+
+      switch(dangles){
+        /* no dangles */
+        case 0:   energy += E_MLstem(tt, -1, -1, P);
+                  break;
+        /* the beloved double dangles */
+        case 2:   mm5 = (SAME_STRAND(p-1,p))  ? S1[p-1] : -1;
+                  mm3 = (SAME_STRAND(q+1,q))  ? S1[q+1] : -1;
+                  energy += E_MLstem(tt, mm5, mm3, P);
+                  break;
+        /* normal dangles (i.e. dangles == 1) */
+        default:  {
+                    int tmp, tmp2;
+                    if(q_prev + 2 < p){
+                      E_mm5_available = E_mm5_occupied;
+                      E_mm5_occupied  = INF;
+                    }
+                    if(q_prev2 + 2 < p){
+                      E2_mm5_available = E2_mm5_occupied;
+                      E2_mm5_occupied = INF;
+                    }
+                    mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
+                    mm3 = ((SAME_STRAND(q+1,q)) && !pair_table[q+1])  ? S1[q+1] : -1;
+                    tmp = (mm3 < 0) ? INF :  MIN2(
+                                                  E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
+                                                  E_mm5_available + E_MLstem(tt, mm5, mm3, P)
+                                                );
+                    E_mm5_available =       MIN2(
+                                                  E_mm5_occupied  + E_MLstem(tt, -1, -1, P),
+                                                  E_mm5_available + E_MLstem(tt, mm5, -1, P)
+                                                );
+                    E_mm5_occupied = tmp;
+                    tmp2 = (mm3 < 0) ? INF :  MIN2(
+                                                  E2_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
+                                                  E2_mm5_available + E_MLstem(tt, mm5, mm3, P)
+                                                );
+                    E2_mm5_available =       MIN2(
+                                                  E2_mm5_occupied  + E_MLstem(tt, -1, -1, P),
+                                                  E2_mm5_available + E_MLstem(tt, mm5, -1, P)
+                                                );
+                    E2_mm5_occupied = tmp2;
+                  }
+                  break;
+      } /* end switch dangles */
+      /* seek to the next stem */
+      p = q + 1;
+      q_prev = q_prev2 = q;
+      while (p <= j && !pair_table[p]) p++;
+      u += p - q - 1; /* add unpaired nucleotides */
+    }
+    /* now lets see how we get the minimum including the enclosing stem */
+    type = pair[S[j]][S[i]]; if (type==0) type=7;
+    mm5 = ((SAME_STRAND(j,j-1)) && !pair_table[j-1])  ? S1[j-1] : -1;
+    mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
+    energy = E_mm5_occupied + E_MLstem(type, -1, -1, P);
+    energy = MIN2(energy, E_mm5_available + E_MLstem(type, mm5, -1, P));
+    energy = MIN2(energy, E2_mm5_occupied + E_MLstem(type, -1, mm3, P));
+    energy = MIN2(energy, E2_mm5_available + E_MLstem(type, mm5, mm3, P));
+    best_energy = energy;
+  }
+  energy = best_energy;
+  energy += P->MLclosing;
+  /* logarithmic ML loop energy if logML */
+  if(logML && (u>6))
+    energy += 6*P->MLbase+(int)(P->lxc*log((double)u/6.));
+  else
+    energy += (u*P->MLbase);
+
   return energy;
 }
 

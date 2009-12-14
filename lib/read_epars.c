@@ -76,7 +76,7 @@ PRIVATE void  rd_Hexaloop37(void);
 /*------------------------------------------------------------*/
 PUBLIC void read_parameter_file(const char fname[])
 {
-  char    *line, ident[32];
+  char    *line, ident[256];
   enum parset type;
   int      r;
   unsigned long changed = 0;
@@ -105,7 +105,7 @@ PUBLIC void read_parameter_file(const char fname[])
   
   while((line=get_line(fp))) {
     
-    r = sscanf(line, "# %31s", ident);
+    r = sscanf(line, "# %255s", ident);
     if (r==1) {
       type = gettype(ident);
       switch (type)
@@ -522,16 +522,16 @@ PRIVATE void ignore_comment(char * line)
 PRIVATE char *settype(enum parset s)
 {
   switch(s){
-    case        S:  return "stack_energies";
+    case        S:  return "stack";
     case      S_H:  return "stack_enthalpies";
     case       HP:  return "hairpin";
     case     HP_H:  return "hairpin_enthalpies";
     case        B:  return "bulge";
     case      B_H:  return "bulge_enthalpies";
-    case       IL:  return "internal_loop";
-    case     IL_H:  return "internal_loop_enthalpies";
-    case      MME:  return "mismatch_ext_loop";
-    case    MME_H:  return "mismatch_ext_loop_enthalpies";
+    case       IL:  return "interior";
+    case     IL_H:  return "interior_enthalpies";
+    case      MME:  return "mismatch_exterior";
+    case    MME_H:  return "mismatch_exterior_enthalpies";
     case      MMH:  return "mismatch_hairpin";
     case    MMH_H:  return "mismatch_hairpin_enthalpies";
     case      MMI:  return "mismatch_interior";
@@ -546,11 +546,11 @@ PRIVATE char *settype(enum parset s)
     case    D5_H:   return "dangle5_enthalpies";
     case      D3:   return "dangle3";
     case    D3_H:   return "dangle3_enthalpies";
-    case    INT11:  return "int11_energies";
+    case    INT11:  return "int11";
     case  INT11_H:  return "int11_enthalpies";  
-    case    INT21:  return "int21_energies";
+    case    INT21:  return "int21";
     case  INT21_H:  return "int21_enthalpies";  
-    case    INT22:  return "int22_energies";
+    case    INT22:  return "int22";
     case  INT22_H:  return "int22_enthalpies";  
     case       ML:  return "ML_params";
     case      NIN:  return "NINIO";
@@ -568,16 +568,16 @@ PRIVATE char *settype(enum parset s)
 /*------------------------------------------------------------*/ 
 
 PRIVATE enum parset gettype(char ident[]){
-  if      (strcmp(ident,"stack_energies") == 0)                   return S;    
+  if      (strcmp(ident,"stack") == 0)                            return S;    
   else if (strcmp(ident,"stack_enthalpies") == 0)                 return S_H;
   else if (strcmp(ident,"hairpin") == 0)                          return HP;   
   else if (strcmp(ident,"hairpin_enthalpies") == 0)               return HP_H;   
   else if (strcmp(ident,"bulge") == 0)                            return B;    
   else if (strcmp(ident,"bulge_enthalpies") == 0)                 return B_H;    
-  else if (strcmp(ident,"internal_loop") == 0)                    return IL;   
-  else if (strcmp(ident,"internal_loop_enthalpies") == 0)         return IL_H;   
-  else if (strcmp(ident,"mismatch_ext_loop") == 0)                return MME;  
-  else if (strcmp(ident,"mismatch_ext_loop_enthalpies") == 0)     return MME_H;  
+  else if (strcmp(ident,"interior") == 0)                         return IL;   
+  else if (strcmp(ident,"interior_enthalpies") == 0)              return IL_H;   
+  else if (strcmp(ident,"mismatch_exterior") == 0)                return MME;  
+  else if (strcmp(ident,"mismatch_exterior_enthalpies") == 0)     return MME_H;  
   else if (strcmp(ident,"mismatch_hairpin") == 0)                 return MMH;  
   else if (strcmp(ident,"mismatch_hairpin_enthalpies") == 0)      return MMH_H;  
   else if (strcmp(ident,"mismatch_interior") == 0)                return MMI;
@@ -588,11 +588,11 @@ PRIVATE enum parset gettype(char ident[]){
   else if (strcmp(ident,"mismatch_interior_23_enthalpies") == 0)  return MMI23_H;
   else if (strcmp(ident,"mismatch_multi") == 0)                   return MMM;  
   else if (strcmp(ident,"mismatch_multi_enthalpies") == 0)        return MMM_H;  
-  else if (strcmp(ident,"int11_energies") == 0)                   return INT11;  
+  else if (strcmp(ident,"int11") == 0)                            return INT11;  
   else if (strcmp(ident,"int11_enthalpies") == 0)                 return INT11_H;
-  else if (strcmp(ident,"int21_energies") == 0)                   return INT21;  
+  else if (strcmp(ident,"int21") == 0)                            return INT21;  
   else if (strcmp(ident,"int21_enthalpies") == 0)                 return INT21_H;
-  else if (strcmp(ident,"int22_energies") == 0)                   return INT22;  
+  else if (strcmp(ident,"int22") == 0)                            return INT22;  
   else if (strcmp(ident,"int22_enthalpies") == 0)                 return INT22_H;
   else if (strcmp(ident,"dangle5")== 0)                           return D5;
   else if (strcmp(ident,"dangle5_enthalpies")== 0)                return D5_H;  

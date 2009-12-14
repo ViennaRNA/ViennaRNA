@@ -37,10 +37,10 @@ PUBLIC  INLINE  int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
   int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
   int d3 = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
   
-  if(type > 2 && extLoop)
+  if(type > 2)
     energy += P->TerminalAU;
 
-  if(si1 >= 0 && sj1 >= 0 && (extLoop))
+  if(si1 >= 0 && sj1 >= 0)
     energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
   else
     energy += d5 + d3;

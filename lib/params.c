@@ -66,7 +66,7 @@ PUBLIC paramT *scale_parameters(void)
   p.MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     p.MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
-    p.MLintern[i] +=  (i>2)? p.TerminalAU:0;
+    //p.MLintern[i] +=  (i>2)? p.TerminalAU:0;
   }
   p.MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
 
