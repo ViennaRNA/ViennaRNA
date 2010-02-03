@@ -1,7 +1,10 @@
 #ifndef __VIENNA_RNA_PACKAGE_UTILS_H__
 #define __VIENNA_RNA_PACKAGE_UTILS_H__
 
-/* Header file for utils.c */
+/** \file
+***
+**/
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #ifndef HAVE_STRDUP
@@ -29,20 +32,29 @@ void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
 /*@observer@*/ char  *time_stamp(void);               /* current date in a string */
 /*@only@*/ /*@notnull@*/ char  *random_string(int l, const char symbols[]);
 /* random string of length l using characters from symbols[] */
+/**
+*** calculate hamming distance
+**/
 int    hamming(const char *s1, const char *s2);
-/* calculate hamming distance */
 /*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
 
 
+/**
+*** pack secondary secondary structure, 5:1 compression using base 3 encoding
+**/
 char *pack_structure(const char *struc);
-/* pack secondary secondary structure, 5:1 compression using base 3 encoding */
+/**
+*** unpack sec structure packed with pack_structure()
+**/
 char *unpack_structure(const char *packed);
-/* unpack sec structure packed with pack_structure() */
+/**
+*** returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
+*** 0 if i is unpaired, table[0] contains the length of the structure.
+**/
 short *make_pair_table(const char *structure);
-/* returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
-   0 if i is unpaired, table[0] contains the length of the structure. */
-
+/**
+*** dist = {number of base pairs in one structure but not in the other}
+*** same as edit distance with open-pair close-pair as move-set
+**/
 int bp_distance(const char *str1, const char *str2);
-/* dist = {number of base pairs in one structure but not in the other}
-   same as edit distance with open-pair close-pair as move-set */
 #endif

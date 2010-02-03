@@ -145,7 +145,7 @@ PUBLIC  INLINE  int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
   return energy;
 }
 
-
+#if 0
 PUBLIC  INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P){
   double energy = 1.0;
   double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
@@ -162,6 +162,7 @@ PUBLIC  INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
   if(!extLoop) energy *= P->expMLintern[type];
   return energy;
 }
+#endif
 
 /* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
 PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
@@ -198,8 +199,10 @@ PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
   return q;
 }
 
+#if 0
 /* compute Boltzmann weight of interior loop, multiply by scale[u1+u2+2] for scaling */
 PUBLIC  INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
+#if 0
   double z=0;
   int no_close = 0;
 
@@ -242,5 +245,58 @@ PUBLIC  INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short 
       }
     }
   }
+#else
+  int ul, us, no_close = 0;
+  double z;
+
+  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==2)||(type==4)))
+    no_close = 1;
+
+  if (u1>u2) { ul=u1; us=u2;}
+  else {ul=u2; us=u1;}
+
+  if (ul==0) /* stack */
+    z = P->expstack[type][type2];
+  else if(!no_close){
+    if (us==0) {                      /* bulge */
+      z = P->expbulge[ul];
+      if (ul==1) z *= P->expstack[type][type2];
+      else {
+        if (type>2) z *= P->expTermAU;
+        if (type2>2) z *= P->expTermAU;
+      }
+      return z;
+    }
+  }
+  else {                            /* interior loop */
+    if (us==1) {
+      if (ul==1)                    /* 1x1 loop */
+        return P->expint11[type][type2][si1][sj1];
+      if (ul==2) {                  /* 2x1 loop */
+        if (u1==1)
+          return P->expint21[type][type2][si1][sq1][sj1];
+        else
+          return P->expint21[type2][type][sq1][si1][sp1];
+      }
+      else {  /* 1xn loop */
+        z = P->expinternal[ul+us] * P->expmismatch1nI[type][si1][sj1] * P->expmismatch1nI[type2][sq1][sp1];
+        return z * P->expninio[2][ul-us];
+      }
+    }
+    else if (us==2) {
+      if(ul==2) /* 2x2 loop */
+        return P->expint22[type][type2][si1][sp1][sq1][sj1];
+      else if(ul==3){              /* 2x3 loop */
+        z = P->expinternal[5]*P->expmismatch23I[type][si1][sj1]*P->expmismatch23I[type2][sq1][sp1];
+        return z * P->expninio[2][1];
+      }
+    }
+    /* generic interior loop (no else here!)*/
+    z = P->expinternal[ul+us] * P->expmismatchI[type][si1][sj1] * P->expmismatchI[type2][sq1][sp1];
+    return z * P->expninio[2][ul-us];
+    
+  }
+#endif
   return z;
 }
+#endif

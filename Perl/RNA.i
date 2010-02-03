@@ -197,13 +197,12 @@ char *consens_mis(const char **AS);
 /*#######################################*/
 /* Get coordinates for xy plot           */
 /*#######################################*/
+typedef struct {
+  float X; /* X coords */
+  float Y; /* Y coords */
+} COORDINATE;
 
 %{
-  typedef struct {
-    float X; /* X coords */
-    float Y; /* Y coords */
-  } COORDINATE;
-
   COORDINATE *get_xy_coordinates(const char *structure){
     int i;
     short *table = make_pair_table(structure);
@@ -228,11 +227,6 @@ char *consens_mis(const char **AS);
     return(coords);
   }
 %}
-
-typedef struct {
-  float X; /* X coords */
-  float Y; /* Y coords */
-} COORDINATE;
 
 COORDINATE *get_xy_coordinates(const char *structure);
 

@@ -256,7 +256,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
         partition function contributions from segment i,j */
       temp = 0.0;
       ii = iindx[i];  /* ii-k=[i,k-1] */
-      for (k=i+1; k<=j; k++) temp += (qm[ii-(k-1)] + expMLbase[k-i])*qqm[k];
+      for (k=j; k>i; k--) temp += (qm[ii-(k-1)] + expMLbase[k-i])*qqm[k];
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
@@ -268,7 +268,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
 
       /*construction of partition function for segment i,j */
       temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
+      for (k=j+1; k>=i; k--) temp += q[ii-k]*qq[k+1];
       q[ij] = temp;
 
       if (temp>Qmax) {

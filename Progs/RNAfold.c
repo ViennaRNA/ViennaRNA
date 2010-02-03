@@ -6,6 +6,8 @@
 		  Vienna RNA package
 */
 
+/** \file **/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -17,6 +19,7 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
+#include "RNAfold_cmdl.h"
 extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
@@ -30,87 +33,70 @@ static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
 PRIVATE struct plist *b2plist(const char *struc);
 PRIVATE struct plist *make_plist(int length, double pmin);
-PRIVATE void usage(void);
 
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
-  char *string, *line;
-  char *structure=NULL, *cstruc=NULL;
-  char  fname[13], ffname[20], gfname[20];
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   i, length, l, sym, r;
-  double energy, min_en;
-  double kT, sfact=1.07;
-  int   pf=0, noPS=0, istty;
-  int noconv=0;
-  int circ=0;
+  struct  gengetopt_args_info args_info;
+  char    *string, *line, *structure=NULL, *cstruc=NULL;
+  char    fname[13], ffname[20], gfname[20], *ParamFile=NULL;
+  char    *ns_bases=NULL, *c;
+  int     i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
+  double  energy, min_en, kT, sfact=1.07;
 
-  do_backtrack = 1;
-  string=NULL;
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-')
-      switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'p':  pf=1;
-	  if (argv[i][2]!='\0')
-	    (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-	  break;
-	case 'n':
-	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	  if ( strcmp(argv[i], "-noPS")==0) noPS=1;
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-	  break;
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'C':
-	  fold_constrained=1;
-	  break;
-	case 'c':
-	  if ( strcmp(argv[i], "-circ")==0) circ=1;
-	  break;
-	case 'S':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	  }
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	default: usage();
-	}
+  do_backtrack  = 1;
+  string        = NULL;
+
+  /*
+  #############################################
+  # check the command line prameters
+  #############################################
+  */
+  if(cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* structure constraint */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set pf scaling factor */
+  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  /* assume RNA sequence to be circular */
+  if(args_info.circ_given)        circ=1;
+  /* do not produce postscript output */
+  if(args_info.noPS_given)        noPS=1;
+  /* partition function settings */
+  if(args_info.partfunc_given){
+    pf = 1;
+    if(args_info.partfunc_arg != -1)
+      do_backtrack = args_info.partfunc_arg;
   }
+
+  /* free allocated memory of command line data structure */
+  cmdline_parser_free (&args_info);
+
+  if (ParamFile != NULL)
+    read_parameter_file(ParamFile);
 
   if (circ && noLonelyPairs)
     fprintf(stderr, "warning, depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times\n");
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
     nonstandards = space(33);
@@ -323,10 +309,3 @@ PRIVATE struct plist *make_plist(int length, double pmin) {
   return pl;
 }
 
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-	  "RNAfold [-p[0|2]] [-C] [-T temp] [-4] [-d[2|3]] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-noconv] [-noPS] [-circ] \n");
-}

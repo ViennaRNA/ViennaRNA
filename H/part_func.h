@@ -3,6 +3,13 @@
 
 #define FLT_OR_DBL double
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
+
 /**
 *** \file part_func.h
 **/
@@ -37,8 +44,8 @@ char    *pbacktrack_circ(char *seq);
 extern  int st_back;
 
 /* deprecated, use exp_E_IntLoop() from loop_energies.h instead */
-double  expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1) __attribute__ ((deprecated));
+double  DEPRECATED(expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1));
 /* deprecated, use exp_E_Hairpin() from loop_energies.h instead */
-double  expHairpinEnergy(int u, int type, short si1, short sj1, const char *string) __attribute__ ((deprecated));
+double  DEPRECATED(expHairpinEnergy(int u, int type, short si1, short sj1, const char *string));
 
 #endif
