@@ -251,15 +251,7 @@ float fold(const char *string, char *structure){
   free(S); free(S1); free(BP);
 
   energy += bonus;      /*remove bonus energies from result */
-#if 0
-  float bla = energy_of_struct(string, structure);
-  if(abs(bla - (float) energy/100.) > 1e-6){
 
-    printf("wtf, energy_of_struct says: %6.2f, %6.2f\n", bla, (float) energy/100.0 );
-printf("%s\n%s\n", string, structure);
-exit(0);
-}
-#endif
   if (backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
   else if (backtrack_type=='M')
