@@ -1,12 +1,17 @@
 /* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
 /*
-		  Ineractive Access to folding Routines
+                  Ineractive Access to folding Routines
 
-		  c Ivo L Hofacker
-		  Vienna RNA package
+                  c Ivo L Hofacker
+                  Vienna RNA package
 */
 
-/** \file **/
+/** \file
+*** \brief RNAfold program source code
+***
+*** This code provides an interface for MFE and Partition function folding
+*** of single linear or circular RNA molecules.
+**/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,12 +112,12 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
     }
@@ -128,7 +133,7 @@ int main(int argc, char *argv[])
     printf("matching brackets ( ): base i pairs base j\n");
   }
 
-  do {				/* main loop: continue until end of file */
+  do {                                /* main loop: continue until end of file */
     if (istty) {
       printf("\nInput string (upper or lower case); @ to quit\n");
       printf("%s%s\n", scale1, scale2);
@@ -139,7 +144,7 @@ int main(int argc, char *argv[])
     /* skip comment lines and get filenames */
     while ((*line=='*')||(*line=='\0')||(*line=='>')) {
       if (*line=='>')
-	(void) sscanf(line, ">%12s", fname);
+        (void) sscanf(line, ">%12s", fname);
       printf("%s\n", line);
       free(line);
       if ((line = get_line(stdin))==NULL) break;
@@ -156,9 +161,9 @@ int main(int argc, char *argv[])
     if (fold_constrained) {
       cstruc = get_line(stdin);
       if (cstruc!=NULL)
-	strncpy(structure, cstruc, length);
+        strncpy(structure, cstruc, length);
       else
-	fprintf(stderr, "constraints missing\n");
+        fprintf(stderr, "constraints missing\n");
     }
     for (l = 0; l < length; l++) {
       string[l] = toupper(string[l]);
@@ -194,10 +199,10 @@ int main(int argc, char *argv[])
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
-	if (dangles==1) {
-	  dangles=2;   /* recompute with dangles as in pf_fold() */
-	  min_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
-	  dangles=1;
+        if (dangles==1) {
+          dangles=2;   /* recompute with dangles as in pf_fold() */
+          min_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          dangles=1;
       }
 
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
@@ -207,49 +212,49 @@ int main(int argc, char *argv[])
       (circ) ? init_pf_circ_fold(length) : init_pf_fold(length);
 
       if (cstruc!=NULL)
-	strncpy(pf_struc, cstruc, length+1);
+        strncpy(pf_struc, cstruc, length+1);
       energy = (circ) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
 
       if (do_backtrack) {
-	printf("%s", pf_struc);
-	if (!istty) printf(" [%6.2f]\n", energy);
-	else printf("\n");
+        printf("%s", pf_struc);
+        if (!istty) printf(" [%6.2f]\n", energy);
+        else printf("\n");
       }
       if ((istty)||(!do_backtrack))
-	printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
+        printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
       if (do_backtrack) {
-	plist *pl1,*pl2;
-	char *cent;
-	double dist, cent_en;
-	cent = centroid(length, &dist);
-	cent_en = (circ) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
-	printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
-	free(cent);
-	if (fname[0]!='\0') {
-	  strcpy(ffname, fname);
-	  strcat(ffname, "_dp.ps");
-	} else strcpy(ffname, "dot.ps");
-	pl1 = make_plist(length, 1e-5);
-	pl2 = b2plist(structure);
-	(void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
-	free(pl2);
-	if (do_backtrack==2) {
-	  pl2 = stackProb(1e-5);
-	  if (fname[0]!='\0') {
-	    strcpy(ffname, fname);
-	    strcat(ffname, "_dp2.ps");
-	  } else strcpy(ffname, "dot2.ps");
-	  PS_dot_plot_list(string, ffname, pl1, pl2,
-			   "Probabilities for stacked pairs (i,j)(i+1,j-1)");
-	  free(pl2);
-	}
-	free(pl1);
-	free(pf_struc);
+        plist *pl1,*pl2;
+        char *cent;
+        double dist, cent_en;
+        cent = centroid(length, &dist);
+        cent_en = (circ) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
+        printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
+        free(cent);
+        if (fname[0]!='\0') {
+          strcpy(ffname, fname);
+          strcat(ffname, "_dp.ps");
+        } else strcpy(ffname, "dot.ps");
+        pl1 = make_plist(length, 1e-5);
+        pl2 = b2plist(structure);
+        (void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
+        free(pl2);
+        if (do_backtrack==2) {
+          pl2 = stackProb(1e-5);
+          if (fname[0]!='\0') {
+            strcpy(ffname, fname);
+            strcat(ffname, "_dp2.ps");
+          } else strcpy(ffname, "dot2.ps");
+          PS_dot_plot_list(string, ffname, pl1, pl2,
+                           "Probabilities for stacked pairs (i,j)(i+1,j-1)");
+          free(pl2);
+        }
+        free(pl1);
+        free(pf_struc);
       }
       printf(" frequency of mfe structure in ensemble %g; ",
-	     exp((energy-min_en)/kT));
+             exp((energy-min_en)/kT));
       if (do_backtrack)
-	printf("ensemble diversity %-6.2f", mean_bp_dist(length));
+        printf("ensemble diversity %-6.2f", mean_bp_dist(length));
 
       printf("\n");
       free_pf_arrays();
@@ -296,8 +301,8 @@ PRIVATE struct plist *make_plist(int length, double pmin) {
     for (j=i+1; j<=length; j++) {
       if (pr[iindx[i]-j]<pmin) continue;
       if (k>=maxl-1) {
-	maxl *= 2;
-	pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+        maxl *= 2;
+        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
       }
       pl[k].i = i;
       pl[k].j = j;
