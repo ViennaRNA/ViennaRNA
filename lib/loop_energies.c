@@ -167,7 +167,7 @@ PUBLIC  INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
 /* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
 PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
   double q, kT;
-  kT = (P->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  kT = P->kT;   /* kT in cal/mol  */
   if(u <= 30)
     q = P->exphairpin[u];
   else
@@ -202,7 +202,7 @@ PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 #if 0
 /* compute Boltzmann weight of interior loop, multiply by scale[u1+u2+2] for scaling */
 PUBLIC  INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
-#if 0
+#if 1
   double z=0;
   int no_close = 0;
 

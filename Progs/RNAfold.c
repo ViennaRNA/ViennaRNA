@@ -96,10 +96,9 @@ int main(int argc, char *argv[])
 
   /* free allocated memory of command line data structure */
   cmdline_parser_free (&args_info);
-
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-
+  write_parameter_file("bla.par");
   if (circ && noLonelyPairs)
     fprintf(stderr, "warning, depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times\n");
 

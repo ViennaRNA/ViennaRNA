@@ -12,7 +12,6 @@
 #include <string.h>
 #include <math.h>
 #include <stdarg.h>
-
 #include "utils.h"
 #include "energy_const.h"
 #include "energy_par.h"
@@ -102,9 +101,9 @@ PUBLIC void read_parameter_file(const char fname[])
             "Use INTERRUPT-key to stop.\n");
   }
   free(line);
-  
+
   while((line=get_line(fp))) {
-    
+
     r = sscanf(line, "# %255s", ident);
     if (r==1) {
       type = gettype(ident);
@@ -113,7 +112,7 @@ PUBLIC void read_parameter_file(const char fname[])
             case QUIT:    break;
             case S:       rd_2dim(&(stack37[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
                           changed |= S;
-                          break;
+                         break;
             case S_H:     rd_2dim(&(stackdH[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
                           changed |= S_H;
                           break;
@@ -198,7 +197,7 @@ PUBLIC void read_parameter_file(const char fname[])
             case INT11:   rd_4dim(&(int11_37[0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5,
                               1, 1, 0, 0);
-                      changed |= INT11;
+                       changed |= INT11;
                       break;
             case INT11_H: rd_4dim(&(int11_dH[0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5,
@@ -271,7 +270,7 @@ PUBLIC void read_parameter_file(const char fname[])
             case TL:      rd_Tetraloop37();           changed |= TL;      break;
             case TRI:     rd_Triloop37();             changed |= TRI;     break;
             case HEX:     rd_Hexaloop37();            changed |= HEX;     break;  
-          
+
             default: /* maybe it's a temperature */
               r=sscanf(ident, "%f", &rtemp);
               if (r!=1) fprintf(stderr," Unknown field identifier in `%s'\n", line);
@@ -350,6 +349,7 @@ PRIVATE char *get_array1(int *arr, int size)
 PRIVATE void rd_1dim(int *array, int dim, int shift)
 {
   char *cp;
+  int i;
   
   cp   = get_array1(array+shift, dim-shift);
   
@@ -377,10 +377,11 @@ PRIVATE void  rd_3dim(int *array, int dim1, int dim2, int dim3, int shift1, int 
     rd_1dim(array, dim1 * dim2 * dim3, 0);
     return;
   }
-  for (i=shift1; i<dim1; i++)
+  for (i=shift1; i<dim1; i++){
     rd_2dim(array + (i * dim2 * dim3),
             dim2, dim3,
             shift2, shift3);
+  }
   return;
 }
 
@@ -392,10 +393,11 @@ PRIVATE void  rd_4dim(int *array,
     rd_1dim(array, dim1 * dim2 * dim3 * dim4, 0);
     return;
   }
-  for(i=shift1; i<dim1; i++)
+  for(i=shift1; i<dim1; i++){
     rd_3dim(array + (i * dim2 * dim3 * dim4),
             dim2, dim3, dim4,
             shift2, shift3, shift4);
+  }
   return;
 }
 
@@ -438,9 +440,9 @@ PRIVATE void  rd_Tetraloop37(void)
 
   i=0;
   /* erase old tetraloop entries */
-  memset(&Tetraloops, 0, 1400);
-  memset(&Tetraloop37, 0, sizeof(int)*200);
-  memset(&TetraloopdH, 0, sizeof(int)*200);
+  memset(&Tetraloops, 0, 281);
+  memset(&Tetraloop37, 0, sizeof(int)*40);
+  memset(&TetraloopdH, 0, sizeof(int)*40);
   do {
     buf = get_line(fp);
     if (buf==NULL) break;
@@ -448,7 +450,7 @@ PRIVATE void  rd_Tetraloop37(void)
     strcat(Tetraloops, " ");
     free(buf);
     i++;
-  } while((r==3)&&(i<200));
+  } while((r==3)&&(i<40));
   return;
 }
 
@@ -460,9 +462,9 @@ PRIVATE void  rd_Hexaloop37(void)
 
   i=0;
   /* erase old hexaloop entries */
-  memset(&Hexaloops, 0, 1800);
-  memset(&Hexaloop37, 0, sizeof(int)*200);
-  memset(&HexaloopdH, 0, sizeof(int)*200);
+  memset(&Hexaloops, 0, 361);
+  memset(&Hexaloop37, 0, sizeof(int)*40);
+  memset(&HexaloopdH, 0, sizeof(int)*40);
   do {
     buf = get_line(fp);
     if (buf==NULL) break;
@@ -470,7 +472,7 @@ PRIVATE void  rd_Hexaloop37(void)
     strcat(Hexaloops, " ");
     free(buf);
     i++;
-  } while((r==3)&&(i<200));
+  } while((r==3)&&(i<40));
   return;
 }
 
@@ -737,7 +739,7 @@ PUBLIC void write_parameter_file(const char fname[]){
     display_array(dangle3_dH[c], 5, 5, outfp);
 
 
-  /* don;t print "no pair" entries for interior loop arrays */
+  /* dont print "no pair" entries for interior loop arrays */
   fprintf(outfp,"\n# %s\n", settype(INT11));
   { int i,k,l;
   for (k=1; k<NBPAIRS+1; k++)
@@ -877,7 +879,7 @@ PRIVATE void check_symmetry(void) {
       for (k=0; k<5; k++)
         for (l=0; l<5; l++) 
           if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
-            fprintf(stderr, "WARNING: int11 energies not symmetric\n");
+            fprintf(stderr, "WARNING: int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)\n", i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
 
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)

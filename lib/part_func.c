@@ -268,7 +268,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
 
       /*construction of partition function for segment i,j */
       temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=j+1; k>=i; k--) temp += q[ii-k]*qq[k+1];
+      for (k=j-1; k>=i; k--) temp += q[ii-k]*qq[k+1];
       q[ij] = temp;
 
       if (temp>Qmax) {

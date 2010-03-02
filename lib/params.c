@@ -80,12 +80,17 @@ PUBLIC paramT *scale_parameters(void)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-        p.mismatchExt[i][j][k]  = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*tempf;
         p.mismatchI[i][j][k]    = mismatchIdH[i][j][k] - (mismatchIdH[i][j][k] - mismatchI37[i][j][k])*tempf;
         p.mismatchH[i][j][k]    = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
-        p.mismatchM[i][j][k]    = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
         p.mismatch1nI[i][j][k]  = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
         p.mismatch23I[i][j][k]  = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
+        if(dangles){
+          p.mismatchM[i][j][k]    = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
+          p.mismatchExt[i][j][k]  = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*tempf;
+        }
+        else{
+          p.mismatchM[i][j][k] = p.mismatchExt[i][j][k] = 0;
+        }
       }
    
   /* dangles */
@@ -157,9 +162,10 @@ PUBLIC paramT *set_parameters(paramT *dest) {
 *** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
 *** in the interval b<x<sqrt(3)/2 
 */
-#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
+/* #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
           SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
-/* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
+ */
+#define SMOOTH(X) ((X)<0 ? 0 : (X))
 
 PUBLIC pf_paramT *scale_pf_parameters(void)  {  
   /* scale energy parameters and pre-calculate Boltzmann weights */
@@ -229,7 +235,6 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   pf.expTermAU = exp(-GT*10/kT);
 
   GT = ML_BASE37*TT;
-  /* pf.expMLbase=(-10.*GT/kT); old */
   pf.expMLbase=exp(-10.*GT/kT);
   
  
@@ -260,18 +265,23 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
-        GT =  mismatchExtdH[i][j][k] - ( mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
-        pf.expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
         GT =  mismatchIdH[i][j][k] - ( mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
         pf.expmismatchI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
         pf.expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf.expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-        GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-        pf.expmismatchM[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf.expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
+        if (dangles) {
+          GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
+          pf.expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+          GT =  mismatchExtdH[i][j][k] - ( mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
+          pf.expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
+        }
+        else{
+          pf.expmismatchM[i][j][k] = pf.expmismatchExt[i][j][k] = 1.;
+        }
       }
   
   
@@ -434,12 +444,17 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-        GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-        pf->expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+        if (dangles) {
+          GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
+          pf->expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+          GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
+          pf->expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
+        }
+        else{
+          pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
+        }
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf->expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
-        GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
-        pf->expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
       }
   
   
@@ -493,9 +508,9 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         }
  */
 
-  strncpy(pf->Tetraloops, Tetraloops, 1400);
-  strncpy(pf->Triloops, Triloops, 240);
-  strncpy(pf->Hexaloops, Hexaloops, 1800);
+  strncpy(pf->Tetraloops, Tetraloops, 281);
+  strncpy(pf->Triloops, Triloops, 241);
+  strncpy(pf->Hexaloops, Hexaloops, 361);
   
   return pf;
 }

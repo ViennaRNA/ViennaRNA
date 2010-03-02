@@ -786,7 +786,7 @@ PUBLIC int Triloop37[40] = {    680,    690};
 PUBLIC int TriloopdH[40] = {   2370,   1080};
 
 
-PUBLIC char Tetraloops[241] =
+PUBLIC char Tetraloops[281] =
   "CAACGG "
   "CCAAGG "
   "CCACGG "
@@ -808,7 +808,7 @@ PUBLIC int Tetraloop37[40] = {    550,    330,    370,    340,    350,    360,  
 PUBLIC int TetraloopdH[40] = {    690,  -1030,   -330,   -890,   -660,   -750,   -350,  -1390,   -760,  -1070,   -660,  -1290,  -1070,   -620,  -1530,   -680};
 
 
-PUBLIC char Hexaloops[241] =
+PUBLIC char Hexaloops[361] =
   "ACAGUACU "
   "ACAGUGAU "
   "ACAGUGCU "
