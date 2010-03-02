@@ -85,7 +85,8 @@ option  "pfScale"         S "In the calculation of the pf use scale*mfe as an es
  for long sequences.\nYou can also recompile the program to use double precision (see the README file)."  double
 option  "circ"            c "Assume a circular (instead of linear) RNA molecule."  flag  off
 option  "noPS"            - "Do not produce postscript drawing of the mfe structure."  flag  off
- 
+option  "MEA"             - "Calculate the MEA structure" float default="1."  argoptional optional
+
 
 text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
  developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n

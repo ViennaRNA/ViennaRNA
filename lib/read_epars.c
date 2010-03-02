@@ -840,8 +840,8 @@ PUBLIC void write_parameter_file(const char fname[]){
 
   fprintf(outfp,"\n# %s\n", settype(MISC));
   fprintf(outfp,"/* all parameters are pairs of 'energy enthalpy' */\n");
-  fprintf(outfp,"/*    DuplexInit     TerminalAU   */\n");
-  fprintf(outfp,"   %6d %6d %6d  %6d\n", DuplexInit37, DuplexInitdH, TerminalAU37, TerminalAUdH);
+  fprintf(outfp,"/*    DuplexInit     TerminalAU      LXC */\n");
+  fprintf(outfp,"   %6d %6d %6d  %6d %3.6f %6d\n", DuplexInit37, DuplexInitdH, TerminalAU37, TerminalAUdH, lxc37, 0);
   
   fprintf(outfp,"\n# %s\n", settype(HEX));
   for (c=0; c< strlen(Hexaloops)/9; c++)

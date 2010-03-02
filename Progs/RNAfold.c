@@ -24,7 +24,9 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
+#include "MEA.h"
 #include "RNAfold_cmdl.h"
+
 extern void  read_parameter_file(const char fname[]);
 extern float circfold(const char *string, char *structure);
 extern plist * stackProb(double cutoff);
@@ -49,7 +51,9 @@ int main(int argc, char *argv[])
   char    *ns_bases=NULL, *c;
   int     i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
   double  energy, min_en, kT, sfact=1.07;
-
+  int doMEA=0;
+  double MEAgamma = 1.;
+  
   do_backtrack  = 1;
   string        = NULL;
 
@@ -92,6 +96,12 @@ int main(int argc, char *argv[])
     pf = 1;
     if(args_info.partfunc_arg != -1)
       do_backtrack = args_info.partfunc_arg;
+  }
+  /* MEA (maximum expected accuracy) settings */
+  if(args_info.MEA_given){
+    pf = doMEA = 1;
+    if(args_info.MEA_arg != -1)
+      MEAgamma = args_info.MEA_arg;
   }
 
   /* free allocated memory of command line data structure */
@@ -257,7 +267,15 @@ int main(int argc, char *argv[])
 
       printf("\n");
       free_pf_arrays();
-
+      if(doMEA){
+        float mea, mea_en;
+        plist *pl;
+        pl = make_plist(length, 1e-4/(1+MEAgamma));
+        mea = MEA(pl, structure, MEAgamma);
+        mea_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+        printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+        free(pl);
+      }
     }
     if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
