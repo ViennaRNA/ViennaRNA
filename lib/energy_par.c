@@ -55,7 +55,8 @@ PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
 
 
 
-PUBLIC double lxc37=1.079;
+//PUBLIC double lxc37=1.079;
+PUBLIC double lxc37=107.856;
 
 /* Multi loops */
 PUBLIC int ML_BASE37=0;
