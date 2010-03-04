@@ -35,56 +35,77 @@ static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp 
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
 
+/**
+*** #################################
+*** # GLOBAL VARIABLES              #
+*** #################################
+**/
+PUBLIC double cv_fact=1.;
+PUBLIC double nc_fact=1.;
+
+/**
+*** #################################
+*** # PRIVATE VARIABLES             #
+*** #################################
+**/
+PRIVATE short           **S;
+PRIVATE short           **S5;               /*S5[s][i] holds next base 5' of i in sequence s*/
+PRIVATE short           **S3;               /*Sl[s][i] holds next base 3' of i in sequence s*/
+PRIVATE char            **Ss;
+PRIVATE unsigned short  **a2s;
+PRIVATE paramT          *P;
+PRIVATE int             *indx;              /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int             *c;                 /* energy array, given that i-j pair */
+PRIVATE int             *cc;                /* linear array for calculating canonical structures */
+PRIVATE int             *cc1;               /*   "     "        */
+PRIVATE int             *f5;                /* energy of 5' end */
+PRIVATE int             *fML;               /* multi-loop auxiliary energy array */
+PRIVATE int             *Fmi;               /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int             *DMLi;              /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi1;             /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi2;             /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int             *pscore;            /* precomputed array of pair types */
+PRIVATE int             init_length = -1;
+PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
+
+PRIVATE short           *pair_table;
+PRIVATE int             *type;
+
+/**
+*** #################################
+*** # PRIVATE FUNCTION DECLARATIONS #
+*** #################################
+**/
 
 PRIVATE void  init_alifold(int length);
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  make_pscores(const short *const *S, const char *const *AS, int n_seq, const char *structure);
-PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as);
 PRIVATE int   fill_arrays(const char **strings);
 PRIVATE void  backtrack(const char **strings, int s);
 PRIVATE int   ML_Energy(int i,  int is_extloop,int n_seq);
-PRIVATE void  stack_energy(int i, char **sequences,  int n_seq, float *energy);
+PRIVATE void  stack_energy(int i, char **sequences,  int n_seq, int *energy);
 PRIVATE void  arrays_for_energyofstruct(int n_seq, char **sequences);
 PRIVATE void  free_arrays_for_energyofstruct(int n_seq);
 
-PRIVATE void  energy_of_alistruct_pt(char **sequences,short * ptable, int n_seq, float *energy);
+PRIVATE void  energy_of_alistruct_pt(char **sequences,short * ptable, int n_seq, int *energy);
 
-PUBLIC double cv_fact=1.;
-PUBLIC double nc_fact=1.;
-
-PRIVATE short **S;
-PRIVATE short **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char **Ss;
-PRIVATE unsigned short **a2s;
-
-PRIVATE paramT *P;
-
-PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
-
-PRIVATE int   *c;       /* energy array, given that i-j pair */
-PRIVATE int   *cc;      /* linear array for calculating canonical structures */
-PRIVATE int   *cc1;     /*   "     "        */
-PRIVATE int   *f5;      /* energy of 5' end */
-PRIVATE int   *fML;     /* multi-loop auxiliary energy array */
-
-PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int   *pscore;  /* precomputed array of pair types */
-PRIVATE int   init_length=-1;
-PRIVATE sect sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-
-/* new 'outsourced' functions... just for better readability */
-PRIVATE void  alloc_sequence_arrays(unsigned int length, unsigned int n_seq, char **sequences);
+/**
+*** some new functions whose internals were just taken out from the code of other
+*** functions to make the code more readable
+***
+**/
+PRIVATE void  alloc_sequence_arrays(char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
 PRIVATE void  free_sequence_arrays(unsigned int n_seq);
 
-/*--------------------------------------------------------------------------*/
+/**
+*** #################################
+*** # BEGIN OF FUNCTION DEFINITIONS #
+*** #################################
+**/
 
-PRIVATE void init_alifold(int length)
-{
+/* unsafe function that will be replaced by a threadsafe companion in the future */
+PRIVATE void init_alifold(int length){
   unsigned int n;
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
   if (init_length>0) free_alifold_arrays();
@@ -98,55 +119,77 @@ PRIVATE void init_alifold(int length)
   update_fold_params();
 }
 
-/*--------------------------------------------------------------------------*/
-
-PRIVATE void get_arrays(unsigned int size)
-{
-  indx =  (int *) space(sizeof(int)*(size+1));
-  c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-
-  pscore = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  f5    = (int *) space(sizeof(int)*(size+2));
-  cc    = (int *) space(sizeof(int)*(size+2));
-  cc1   = (int *) space(sizeof(int)*(size+2));
-  Fmi   = (int *) space(sizeof(int)*(size+1));
-  DMLi  = (int *) space(sizeof(int)*(size+1));
-  DMLi1  = (int *) space(sizeof(int)*(size+1));
-  DMLi2  = (int *) space(sizeof(int)*(size+1));
-  if (base_pair) free(base_pair);
+/* unsafe function that will be replaced by a threadsafe companion in the future */
+PRIVATE void get_arrays(unsigned int size){
+  indx    = (int *) space(sizeof(int)*(size+1));
+  c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+  fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+  pscore  = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+  f5      = (int *) space(sizeof(int)*(size+2));
+  cc      = (int *) space(sizeof(int)*(size+2));
+  cc1     = (int *) space(sizeof(int)*(size+2));
+  Fmi     = (int *) space(sizeof(int)*(size+1));
+  DMLi    = (int *) space(sizeof(int)*(size+1));
+  DMLi1   = (int *) space(sizeof(int)*(size+1));
+  DMLi2   = (int *) space(sizeof(int)*(size+1));
+  if(base_pair) free(base_pair);
   base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
 }
 
-/*--------------------------------------------------------------------------*/
-
-PUBLIC  void  free_alifold_arrays(void)
-{
-  free(indx); free(c); free(fML); free(f5); free(cc); free(cc1);
+/* unsafe function that will be replaced by a threadsafe companion in the future */
+PUBLIC  void  free_alifold_arrays(void){
+  free(indx);
+  free(c);
+  free(fML);
+  free(f5);
+  free(cc);
+  free(cc1);
   free(pscore);
-  free(base_pair); base_pair=NULL; free(Fmi);
-  free(DMLi); free(DMLi1);free(DMLi2);
+  free(base_pair); base_pair=NULL;
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
   init_length=0;
 }
 
 
-PRIVATE void alloc_sequence_arrays(unsigned int length, unsigned int n_seq, char **sequences){
-  unsigned int s;
-  S   = (short **)          space(n_seq * sizeof(short *));
-  S5  = (short **)          space(n_seq * sizeof(short *));
-  S3  = (short **)          space(n_seq * sizeof(short *));
-  a2s = (unsigned short **) space(n_seq * sizeof(unsigned short *));
-  Ss  = (char **)           space(n_seq * sizeof(char *));
-  for (s=0; s<n_seq; s++) {
-    if(strlen(sequences[s]) != length) nrerror("uneqal seqence lengths");
-    S5[s]   = (short *)         space((length + 2) * sizeof(short));
-    S3[s]   = (short *)         space((length + 2) * sizeof(short));
-    a2s[s]  = (unsigned short *)space((length + 2) * sizeof(unsigned short));
-    Ss[s]   = (char *)          space((length + 2) * sizeof(char));
-    S[s]    = encode_seq(sequences[s], S5[s], S3[s], Ss[s], a2s[s]);
+/**
+*** allocate memory for the arrays needed to store encoded sequence alignment information
+*** \param sequences  The sequence alignment
+*** \param S          A pointer to the array that holds the encoded sequences
+*** \param S5         A pointer to the array that holds the next 5' base (ungapped alignment)
+*** \param S3         A pointer to the array that holds the next 3' base (ungapped alignment)
+*** \param a2s
+*** \param Ss
+**/
+PRIVATE void alloc_sequence_arrays(char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss){
+  unsigned int s, n_seq, length;
+  if(sequences[0] != NULL){
+    length = strlen(sequences[0]);
+    for (s=0; sequences[s] != NULL; s++);
+    n_seq = s;
+    *S    = (short **)          space(n_seq * sizeof(short *));
+    *S5   = (short **)          space(n_seq * sizeof(short *));
+    *S3   = (short **)          space(n_seq * sizeof(short *));
+    *a2s  = (unsigned short **) space(n_seq * sizeof(unsigned short *));
+    *Ss   = (char **)           space(n_seq * sizeof(char *));
+    for (s=0; s<n_seq; s++) {
+      if(strlen(sequences[s]) != length) nrerror("uneqal seqence lengths");
+      (*S5)[s]  = (short *)         space((length + 2) * sizeof(short));
+      (*S3)[s]  = (short *)         space((length + 2) * sizeof(short));
+      (*a2s)[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
+      (*Ss)[s]  = (char *)          space((length + 2) * sizeof(char));
+      (*S)[s]   = (short *)         space((length + 2) * sizeof(short));
+      encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s]);
+    }
   }
+  else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
 } 
 
+/**
+*** free memory of the arrays needed to store encoded sequence alignment information
+**/
 PRIVATE void free_sequence_arrays(unsigned int n_seq){
   unsigned int s;
   for (s=0; s<n_seq; s++) {
@@ -164,8 +207,7 @@ PRIVATE void free_sequence_arrays(unsigned int n_seq){
 }
 
 /*--------------------------------------------------------------------------*/
-PUBLIC  float alifold(char **strings, char *structure)
-{
+PUBLIC  float alifold(char **strings, char *structure){
   int  length, energy, s, n_seq;
 
   length = (int) strlen(strings[0]);
@@ -176,7 +218,7 @@ PUBLIC  float alifold(char **strings, char *structure)
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
 
-  alloc_sequence_arrays((unsigned int)length, (unsigned int)n_seq, strings);
+  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss);
   make_pscores((const short **) S, (const char *const *) strings, n_seq, structure);
 
   energy = fill_arrays((const char **)strings);
@@ -226,7 +268,6 @@ PRIVATE int fill_arrays(const char **strings) {
       }
 
       psc = pscore[indx[j]+i];
-
       if (psc>=MINPSCORE) {   /* a pair to consider */
         int stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
@@ -286,7 +327,6 @@ PRIVATE int fill_arrays(const char **strings) {
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
-
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
@@ -614,112 +654,113 @@ void backtrack(const char **strings, int s) {
   free(type);
 }
 
-/*---------------------------------------------------------------------------*/
 
- PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as) {
-   unsigned int i,l;
-  short *S;
+/** get arrays with encoded sequences of the alignment
+***
+*** this function assumes that in S, S5, s3, ss and as enough
+*** space is already allocated (size must be at least sequence length+2)
+*** \param sequence The gapped sequence from the alignment
+*** \param S        pointer to the array that holds encoded sequence
+*** \param s5      pointer to an array that holds the next base 5' of alignment position i
+*** \param s3      pointer to an array that holds the next base 3' of alignment position i
+*** \param ss      
+*** \param as
+**/
+PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as){
+  unsigned int i,l;
   unsigned short p;
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S[0] = (short) l;
+  l     = strlen(sequence);
+  S[0]  = (short) l;
+  s5[0] = s5[1] = 0;
 
-   s5[0]=s5[1]=0;
   /* make numerical encoding of sequence */
+  for(i=1; i<=l; i++){
+    short ctemp;
+    ctemp=(short) encode_char(toupper(sequence[i-1]));
+    S[i]= ctemp ;
+  }
 
-   for (i=1; i<=l; i++) {
-     short ctemp;
-     ctemp=(short) encode_char(toupper(sequence[i-1]));
-     S[i]= ctemp ;
-   }
-   
-   if (oldAliEn) {
-     /*use alignment sequences in all energy evaluations*/
-     ss[0]=sequence[0];
-     for (i=1; i<l; i++) {
-       s5[i]=S[i-1];
-       s3[i]=S[i+1];
-       ss[i]= sequence[i];
-       as[i]=i;
-     }
-     ss[l] = sequence[l];
-     as[l]=l;
-     s5[l]=S[l-1];
-     s3[l]=0;
-     S[l+1] = S[1];
-     s5[1]=0;
-     if (1) {
-       s5[1]=S[l];
-       s3[l]=S[1];
-       ss[l+1]=S[1];
-     }
-     return S;
-   }
-   else {
-     if (1) {
-       for (i=l; i>0; i--) {
-         char c5;
-         c5=sequence[i-1];
-         if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
-         s5[1] = S[i];
-         break;
-       }
-       for (i=1; i<=l; i++) {
-         char c3;
-         c3 = sequence[i-1];
-         if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
-         s3[l] = S[i];
-         break;
-       }
-     } else  s5[1]=s3[l]=0;
-     
-     for (i=1,p=0; i<=l; i++) {
-       char c5;
-       c5=sequence[i-1];
-       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
-         s5[i+1]=s5[i];
-       else { /* no gap */
-         ss[p++]=sequence[i-1]; /*start at 0!!*/
-         s5[i+1]=S[i];
-       }
-       as[i]=p;
-     }
-     for (i=l; i>=1; i--) {
-       char c3;
-       c3=sequence[i-1];
-       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
-         s3[i-1]=s3[i];
-       else
-         s3[i-1]=S[i];
-     }
-   }
+  if (oldAliEn){
+    /* use alignment sequences in all energy evaluations */
+    ss[0]=sequence[0];
+    for(i=1; i<l; i++){
+      s5[i] = S[i-1];
+      s3[i] = S[i+1];
+      ss[i] = sequence[i];
+      as[i] = i;
+    }
+    ss[l]   = sequence[l];
+    as[l]   = l;
+    s5[l]   = S[l-1];
+    s3[l]   = 0;
+    S[l+1]  = S[1];
+    s5[1]   = 0;
+    s5[1]   = S[l];
+    s3[l]   = S[1];
+    ss[l+1] = S[1];
+  }
+  else{
+    if(1){
+      for(i=l; i>0; i--){
+        char c5;
+        c5 = sequence[i-1];
+        if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
+        s5[1] = S[i];
+        break;
+      }
+      for (i=1; i<=l; i++) {
+        char c3;
+        c3 = sequence[i-1];
+        if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
+        s3[l] = S[i];
+        break;
+      }
+    }
+    else  s5[1]=s3[l]=0;
 
-   return S;
+    for(i=1,p=0; i<=l; i++){
+      char c5;
+      c5 = sequence[i-1];
+      if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
+        s5[i+1]=s5[i];
+      else { /* no gap */
+        ss[p++]=sequence[i-1]; /*start at 0!!*/
+        s5[i+1]=S[i];
+      }
+      as[i]=p;
+    }
+    for (i=l; i>=1; i--) {
+      char c3;
+      c3 = sequence[i-1];
+      if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
+        s3[i-1]=s3[i];
+      else
+        s3[i-1]=S[i];
+    }
+  }
 }
 
+
 /*---------------------------------------------------------------------------*/
-
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
+PRIVATE void parenthesis_structure(char *structure, int length){
   int n, k;
-
   for (n = 0; n <= length-1; structure[n++] = '.') ;
   structure[length] = '\0';
-
   for (k = 1; k <= base_pair[0].i; k++) {
     structure[base_pair[k].i-1] = '(';
     structure[base_pair[k].j-1] = ')';
   }
 }
-/*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*/
 PRIVATE void make_pscores(const short *const* S, const char *const* AS,
                           int n_seq, const char *structure) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000 /* score for forbidden pairs */
-  int n,i,j,k,l,s,score;
+  int n,i,j,k,l,s;
+  double score;
 
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
@@ -740,7 +781,7 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
     for (i=0; i<7;i++) {
       dm[i]=(float *)space(7*sizeof(float));
       for (j=0; j<7; j++)
-        dm[i][j] = olddm[i][j];
+        dm[i][j] = (float) olddm[i][j];
     }
   }
 
@@ -850,8 +891,17 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
   }
   free(dm);
 }
+
 /*--------New scoring part-----------------------------------*/
-/*Get the mean pairwise identity in steps from ?to?(ident)*/
+
+/**
+*** Get the mean pairwise identity in steps from ?to?(ident)
+*** \param Alseq
+*** \param n_seq  The number of sequences in the alignment
+*** \param length The length of the alignment
+*** \param mini   
+*** \return       The mean pairwise identity
+**/
 PUBLIC int get_mpi(char *Alseq[], int n_seq, int length, int *mini) {
   int i, j,k;
   float ident=0;
@@ -940,80 +990,83 @@ PUBLIC float **readribosum(char *name) {
 
 
 /*------------------ENERGY OF STRUCT----------------------------------*/
-PRIVATE short  *pair_table;
-/*write another "call function" including all the allocation, seq2num etc
-  if needed*/
-PRIVATE int *type;
-
-extern void energy_of_alistruct(char **sequences, const char *structure, int n_seq, float *energy)
-{
+PUBLIC  void  energy_of_alistruct(char **sequences, const char *structure, int n_seq, float *energy){
   /*  int   energy;*/
   int new=0;
+  unsigned int s, n;
+
   /*  type=(int *)space(n_seq*sizeof(int));*/
+
   /* save the S and S1 pointers in case they were already in use */
-  short **tempS;
-  short **tempS5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  short **tempS3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char **tempSs;
-  unsigned short **tempa2s;
+  short           **tempS;
+  short           **tempS5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short           **tempS3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char            **tempSs;
+  unsigned short  **tempa2s;
+
   int *temptype;
   int *tempindx;
   int *temppscore;
-  if (P==NULL)  P = scale_parameters();
-  /*save old memory*/
-  tempS=S; tempS3=S3; tempS5=S5; tempSs=Ss; tempa2s=a2s; temptype=type;
-  tempindx=indx; temppscore=pscore;
 
-  arrays_for_energyofstruct(n_seq, sequences);
-  make_pscores((const short *const*)S, (const char *const *)sequences, n_seq, NULL);
-  make_pair_matrix();
-  new=1;
+  int en_struct[2];
 
-  pair_table = make_pair_table(structure);
+  if(sequences[0] != NULL){
+    n = (unsigned int) strlen(sequences[0]);
+    if (P==NULL)  P = scale_parameters();
 
-  energy_of_alistruct_pt(sequences,pair_table, n_seq, energy);
+    /*save old memory*/
+    tempS=S; tempS3=S3; tempS5=S5; tempSs=Ss; tempa2s=a2s; temptype=type;
+    tempindx=indx; temppscore=pscore;
 
-  free(pair_table);
-  energy[0]/=(100*n_seq);
-  energy[1]/=(100*n_seq);
-  free_arrays_for_energyofstruct(n_seq);
-  S=tempS;S3=tempS3; S5=tempS5; Ss=tempSs; a2s=tempa2s; type=temptype;
-  indx=tempindx; pscore=temppscore;
-  return  ;
+    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss);
+    type    = (int *) space(n_seq*sizeof(int));
+    pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
+    indx    = (int *) space(sizeof(int)*(n+1));
+    for (s = 1; s <= n; s++){
+      indx[s] = (s*(s-1)) >> 1;
+    }
+    make_pscores((const short *const*)S, (const char *const *)sequences, n_seq, NULL);
+    make_pair_matrix();
+    new=1;
+
+    pair_table = make_pair_table(structure);
+
+    energy_of_alistruct_pt(sequences,pair_table, n_seq, &(en_struct[0]));
+
+    free(pair_table);
+    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
+    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
+
+    free(type);
+    free(pscore);
+    free(indx);
+    free_sequence_arrays(n_seq);
+
+    /* restore old memory */
+    S=tempS;S3=tempS3; S5=tempS5; Ss=tempSs; a2s=tempa2s; type=temptype;
+    indx=tempindx; pscore=temppscore;
+  }
+  else nrerror("energy_of_alistruct(): no sequences in alignment!");
 }
 /*------------------------------------------------------------------*/
 
-PRIVATE void energy_of_alistruct_pt(char **sequences,short * ptable, int n_seq, float *energy) {
-  /* auxiliary function for kinfold,
-     for most purposes call energy_of_struct instead */
-
-  int   i, length;
+PRIVATE void energy_of_alistruct_pt(char **sequences,short *ptable, int n_seq, int *energy){
+  int i, length;
 
   pair_table = ptable;
   length = S[0][0];
-  energy[0] =  backtrack_type=='M' ? (float) ML_Energy(0, 0,n_seq) : (float) ML_Energy(0, 1,n_seq);
-  energy[1]=0;
-  /*  if (eos_debug>0)
-      printf("External loop                           : %5d\n", energy);*/
+  energy[0] =  backtrack_type=='M' ? ML_Energy(0, 0,n_seq) : ML_Energy(0, 1,n_seq);
+  energy[1] = 0;
   for (i=1; i<=length; i++) {
     if (pair_table[i]==0) continue;
     stack_energy(i, sequences,  n_seq, energy);
     i=pair_table[i];
   }
-  /* not yet, maybe later
-  for (i=1; !SAME_STRAND(i,length); i++) {
-    if (!SAME_STRAND(i,pair_table[i])) {
-      energy+=P->DuplexInit;
-      break;
-    }
-  }
-  */
-  return;
 }
 
 
 /*---------------------------------------------------------------------------*/
-PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
+PRIVATE void stack_energy(int i, char **sequences,  int n_seq, int *energy)
 {
   /* calculate energy of substructure enclosed by (i,j) */
   int ee= 0;
@@ -1024,9 +1077,6 @@ PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
     type[s] = pair[S[s][i]][S[s][j]];
     if (type[s]==0) {
     type[s]=7;
-    /* if (eos_debug>=0)
-      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-      string[i-1],string[j-1]);*/
     }
   }
   p=i; q=j;
@@ -1041,36 +1091,17 @@ PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
       if (type_2==0) {
         type_2=7;
       }
-      /*if (eos_debug>=0)
-        fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-        string[p-1],string[q-1]);
-        }*/
-      ee += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
-                       S3[s][i], S5[s][j], S5[s][p], S3[s][q], P);
-      /* energy += LoopEnergy(i, j, p, q, type, type_2); */
-      /*    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )  */
-
-      /*else
-        ee = ML_Energy(cut_in_loop(i), 1);*/
-      /* if (eos_debug>0)
-      printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
-      i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);*/
+      ee += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2, S3[s][i], S5[s][j], S5[s][p], S3[s][q], P);
     }
     energy[0] += ee;
     energy[1] += pscore[indx[j]+i];
-    /*energy += ee;*/
     i=p; j=q;
     for (s=0; s<n_seq; s++) {
       type[s] = pair[S[s][i]][S[s][j]];
       if (type[s]==0) {
         type[s]=7;        }
     }
-    /* if (eos_debug>=0)
-       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-       string[i-1],string[j-1]);*/
-
-  }
-  /* end while */
+  }  /* end while */
 
   /* p,q don't pair must have found hairpin or multiloop */
 
@@ -1082,33 +1113,94 @@ PRIVATE void stack_energy(int i, char **sequences,  int n_seq, float *energy)
     }
     energy[0] += ee;
     energy[1] += pscore[indx[j]+i];
-    /*   energy += ee;*/
-    /*  if (eos_debug>0)
-        printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
-             i, j, string[i-1],string[j-1], ee);
-    */
-    return ;
+    return;
   }
   numberofcomponents=0;
   /* (i,j) is exterior pair of multiloop */
   energy[1] += pscore[indx[j]+i];
   while (p<j) {
     /* add up the contributions of the substructures of the ML */
-      stack_energy(p, sequences,  n_seq, energy);
+    stack_energy(p, sequences,  n_seq, energy);
     p = pair_table[p];
     numberofcomponents++;
     /* search for next base pair in multiloop */
     while (pair_table[++p]==0);
   }
-  ee=ML_Energy(i,0,n_seq);
-  energy[0] += ee;
-  /*  if (eos_debug>0)
-    printf("Multi    loop (%3d,%3d) %c%c %d            : %5d\n",
-           i,j,string[i-1],string[j-1],numberofcomponents,ee);
-  */
-
-  return ;
+  energy[0] += ML_Energy(i,0,n_seq);
 }
+
+
+
+PRIVATE int ML_Energy_pt(int i,int n_seq,short *pair_table){
+  /* i is the 5'-base of the closing pair */
+
+  int energy, best_energy=INF;
+  int i1, j, p, q, u, x, stype, count,s;
+  int mlintern[NBPAIRS+1], mlclosing, mlbase;
+
+    for (x = 0; x <= 2; x++)       mlintern[x] = P->MLintern[x];
+    for (x = 3; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x] + P->TerminalAU;
+    mlclosing =P->MLclosing*n_seq; mlbase = P->MLbase*n_seq;
+
+  if ( i==0 ) {
+    j = pair_table[0]+1;
+    stype = 0;  /* no pair */
+  }
+  else{
+    j = pair_table[i];
+    for (s=0; s<n_seq; s++){
+      type[s] = pair[S[s][j]][S[s][i]];
+      if (type[s]==0) type[s]=7;
+    }
+  }
+  i1=i; p = i+1; u=0;
+  energy = 0;
+  do { /* walk around the multi-loop */
+    int tt = INF;
+
+    /* hop over unpaired positions */
+    while (p <= pair_table[0] && pair_table[p]==0) p++;
+
+    /* memorize number of unpaired positions? no, we just approximate here */
+    u += p-i1-1;
+    /* get position of pairing partner */
+    for (s=0; s< n_seq; s++) {
+      q  = pair_table[p];
+      /* get type of base pair P->q */
+      tt = pair[S[s][p]][S[s][q]];
+      if (tt==0) tt=7;
+
+      if(dangles){
+        short d5, d3;
+        if((a2s[s][p]>1) && (tt!=0)) d5 = S5[s][p];
+        if((i1>0) && a2s[s][i1]<a2s[s][S[0][0]]) d3 = dang3 = P->dangle3[type[s]][S3[s][i1]];
+
+        switch (p-i1-1) {
+        case 0: /* adjacent helices */
+          if (dangles==2)
+            energy += dang3+dang5;
+          break;
+        case 1: /* 1 unpaired base between helices */
+          dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
+          energy += dang;
+          break;
+        default: /* many unpaired base between helices */
+          energy += dang5 +dang3;
+        }
+        type[s] = tt;
+      }
+      else energy += E_MLstem(tt, -1, -1, P);
+    }
+    i1 = q; p=q+1;
+
+  } while (q!=i);
+
+  energy += mlclosing;
+  energy += mlbase*u;
+
+  return energy;
+}
+
 
 PRIVATE int ML_Energy(int i,  int is_extloop,int n_seq) {
   /* i is the 5'-base of the closing pair (or 0 for exterior loop)
@@ -1121,20 +1213,6 @@ PRIVATE int ML_Energy(int i,  int is_extloop,int n_seq) {
      stack (i.e. the two current helices may stack)
      We don't allow the last helix to stack with the first, thus we have to
      walk around the Loop twice with two starting points and take the minimum
-  GT =  ML_closing37*TT;
-  expMLclosing = exp( -GT*10/kTn);
-
-  for (i=0; i<=NBPAIRS; i++) {
-    GT =  ML_intern37*TT;
-
-    expMLintern[i] = exp( -GT*10./kTn);
-  }
-  expTermAU = exp(-TerminalAU37*10/kTn);
-
-  GT =  ML_BASE37*TT;
-  for (i=0; i<length; i++) {
-    expMLbase[i] = exp( -10.*i*GT/kT)*scale[i];
-  }
  */
 
   int energy, best_energy=INF;
@@ -1147,166 +1225,73 @@ PRIVATE int ML_Energy(int i,  int is_extloop,int n_seq) {
       mlintern[x] = P->TerminalAU; /* 0 or TerminalAU */
     mlclosing = mlbase = 0;
   } else {
-    for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
+    for (x = 0; x <= 2; x++)       mlintern[x] = P->MLintern[x];
+    for (x = 3; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x] + P->TerminalAU;
     mlclosing =P->MLclosing*n_seq; mlbase = P->MLbase*n_seq;
   }
-  for (count=0; count<2; count++) { /* do it twice */
-    if ( i==0 ) {
-      j = pair_table[0]+1;
-      stype = 0;  /* no pair */
-    }
-    else {
-      j = pair_table[i];
-      for (s=0; s<n_seq; s++) {
-        type[s] = pair[S[s][j]][S[s][i]];
-        if (type[s]==0) type[s]=7;
-      }
-/*       if (dangles==3) { */
-/*        if (SAME_STRAND(j-1,j)) { */
-/*         ld5 = P->dangle5[type][S1[j-1]]; */
-/*         if ((p=pair_table[j-2]) && SAME_STRAND(j-2, j-1)) */
-/*             if (P->dangle3[pair[S[p]][S[j-2]]][S1[j-1]]<ld5) ld5 = 0; */
-/*        } */
-/*       } */
-    }
-    i1=i; p = i+1; u=0;
-    energy = 0;
-    do { /* walk around the multi-loop */
-      int tt = INF;
-
-      /* hop over unpaired positions */
-      while (p <= pair_table[0] && pair_table[p]==0) p++;
-
-      /* memorize number of unpaired positions. no, we just approximate here*/
-      u += p-i1-1;
-      /* get position of pairing partner */
-      for (s=0; s< n_seq; s++) {
-        if ( p == pair_table[0]+1 ) {
-          q = tt = 0; /* virtual root pair */
-          /*          break; wiaso soi i da noamoi duach?*/
-        }
-        else {
-          q  = pair_table[p];
-          /* get type of base pair P->q */
-          tt = pair[S[s][p]][S[s][q]]; if (tt==0) tt=7;
-        }
-
-        energy += mlintern[tt];
-
-        if (dangles) {
-          int dang5=0, dang3=0, dang;
-          if ((a2s[s][p]>1)&&(tt!=0))  dang5= P->dangle5[tt][S5[s][p]];
-          if ((i1>0)&&a2s[s][i1]<a2s[s][S[0][0]]) dang3 = P->dangle3[type[s]][S3[s][i1]];
-          /*P->dangle3[type][S3[s][i1]];  */
-
-          switch (p-i1-1) {
-          case 0: /* adjacent helices */
-            if (dangles==2)
-              energy += dang3+dang5;
-/*            else if (dangles==3 && i1!=0) { */
-/*             if (SAME_STRAND(i1,p)) { */
-/*                new_cx = energy + P->stack[rtype[type]][rtype[tt]]; */
-/*                /\* subtract 5'dangle and TerminalAU penalty *\/ */
-/*                new_cx += -ld5 - mlintern[tt]-mlintern[type]+2*mlintern[1]; */
-/*             } */
-/*             ld5=0; */
-/*              energy = MIN2(energy, cx_energy); */
-/*            } */
-
-            break;
-          case 1: /* 1 unpaired base between helices */
-            dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
-/*                  if (dangles==3) { */
-/*            energy = energy +dang; ld5 = dang - dang3; */
-/*            /\* may be problem here: Suppose */
-/*               cx_energy>energy, cx_energy+dang5<energy */
-/*               and the following helices are also stacked (i.e. */
-/*               we'll subtract the dang5 again *\/ */
-/*            if (cx_energy+dang5 < energy) { */
-/*              energy = cx_energy+dang5; */
-/*             ld5 = dang5; */
-/*           } */
-/*            new_cx = INF;  /\* no coax stacking with mismatch for now *\/ */
-/*           } else */
-            energy += dang;
-            break;
-          default: /* many unpaired base between helices */
-            energy += dang5 +dang3;
-/*            if (dangles==3) { */
-/*              energy = MIN2(energy, cx_energy + dang5); */
-/*              new_cx = INF;  /\* no coax stacking possible *\/ */
-/*              ld5 = dang5; */
-/*            } */
-          }
-          type[s] = tt;
-
-        }
-        /*if (dangles==3) cx_energy = new_cx;*/
-      }
-      i1 = q; p=q+1;
-
-    } while (q!=i);
-    best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
-    /* fprintf(stderr, "%6.2d\t", energy); */
-    if (dangles!=3 || is_extloop) break;  /* may break cofold with co-ax */
-    /* skip a helix and start again */
-    while (pair_table[p]==0) p++;
-    if (i == pair_table[p]) break;
-    i = pair_table[p];
+  if ( i==0 ) {
+    j = pair_table[0]+1;
+    stype = 0;  /* no pair */
   }
-  energy = best_energy;
+  else {
+    j = pair_table[i];
+    for (s=0; s<n_seq; s++) {
+      type[s] = pair[S[s][j]][S[s][i]];
+      if (type[s]==0) type[s]=7;
+    }
+  }
+  i1=i; p = i+1; u=0;
+  energy = 0;
+  do { /* walk around the multi-loop */
+    int tt = INF;
+
+    /* hop over unpaired positions */
+    while (p <= pair_table[0] && pair_table[p]==0) p++;
+
+    /* memorize number of unpaired positions? no, we just approximate here */
+    u += p-i1-1;
+    /* get position of pairing partner */
+    for (s=0; s< n_seq; s++) {
+      if ( p == pair_table[0]+1 ) {
+        q = tt = 0; /* virtual root pair */
+        /*          break; wiaso soi i da noamoi duach?*/
+      }
+      else {
+        q  = pair_table[p];
+        /* get type of base pair P->q */
+        tt = pair[S[s][p]][S[s][q]]; if (tt==0) tt=7;
+      }
+
+      energy += mlintern[tt];
+
+      if (dangles) {
+        int dang5=0, dang3=0, dang;
+        if ((a2s[s][p]>1) && (tt!=0)) dang5= P->dangle5[tt][S5[s][p]];
+        if ((i1>0) && a2s[s][i1]<a2s[s][S[0][0]])
+          dang3 = P->dangle3[type[s]][S3[s][i1]];
+
+        switch (p-i1-1) {
+        case 0: /* adjacent helices */
+          if (dangles==2)
+            energy += dang3+dang5;
+          break;
+        case 1: /* 1 unpaired base between helices */
+          dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
+          energy += dang;
+          break;
+        default: /* many unpaired base between helices */
+          energy += dang5 +dang3;
+        }
+        type[s] = tt;
+      }
+    }
+    i1 = q; p=q+1;
+
+  } while (q!=i);
+
   energy += mlclosing;
-  /* logarithmic ML loop energy if logML */
-/*     if ((!is_extloop)&& logML && (u>6) ) */
-/*    energy += 6*mlbase+(int)(P->lxc*log((double)u/6.)); */
-/*    else */
-    energy += mlbase*u;
-  /* fprintf(stderr, "\n"); */
+  energy += mlbase*u;
+
   return energy;
 }
 
-/*---------------------------------------------------------------------------*/
-PRIVATE void arrays_for_energyofstruct(int n_seq, char **sequences){
-  int s,n;
-  n = (int) strlen(sequences[0]);
-  S = (short **) space(sizeof(short *)*(n_seq+1));
-  S5 = (short **) space(n_seq*sizeof(short *));
-  S3 = (short **) space(n_seq*sizeof(short *));
-  a2s= (unsigned short **)space(n_seq*sizeof(unsigned short *));
-  Ss = (char **)space(n_seq*sizeof(char *));
-  type = (int *) space(n_seq*sizeof(int));
-  pscore = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
-   indx = (int *) space(sizeof(int)*(n+1));
-   for (s = 1; s <= (unsigned) n; s++){
-     indx[s] = (s*(s-1)) >> 1;
-   }
-   for (s=0; s<n_seq; s++) {
-    if (strlen(sequences[s]) != n) nrerror("uneqal seqence lengths");
-    S5[s] =(short *) space ((n+2)*sizeof(short));
-    S3[s] =(short *) space ((n+2)*sizeof(short));
-    a2s[s]=(unsigned short *)space ((n+2)*sizeof(unsigned short));
-    Ss[s]=(char *)space((n+2)*sizeof(char));
-    S[s] = encode_seq(sequences[s], S5[s], S3[s], Ss[s], a2s[s]);
-  }
-
-
-}
-PRIVATE void free_arrays_for_energyofstruct(int n_seq)
-{
-  int i;
-  for (i=0; i<n_seq; i++) {
-    free(S[i]);
-    free(S5[i]);
-    free(S3[i]);
-    free(Ss[i]);
-    free(a2s[i]);
-  }
-  free(S5);
-  free(S3);
-  free(Ss);
-  free(a2s);
-  free(S);
-  free(type);
-  free(pscore);
-  free(indx);
-}
