@@ -3,34 +3,100 @@
 
 #include "data_structures.h"
 
-/** \file alifold.h
-***
+/**
+*** \file alifold.h
 **/
 
-extern  double  cv_fact /* =1 */;
+/**
+*** covariance scaling factor (default = 1.)
+**/
+extern  double  cv_fact;
+/** */
 extern  double  nc_fact /* =1 */;
 
-float   alifold(char **strings, char *structure);
-void    free_alifold_arrays(void);
+/**
+*** Compute MFE and according structure of an alignment of sequences
+***
+*** \param strings    A pointer to a NULL terminated array of character arrays
+*** \param structure  A pointer to a character array that may contain a constraining consensus structure
+***                   (will be overwritten by a consensus structure that exhibits the MFE)
+*** \return           The minimum free energy in kcal/mol
+**/
+double  alifold(const char **strings, char *structure);
 
 
-/* extern float aliLfold(char **strings, char *structure, int maxdist); */
-/* extern float alipfW_fold(char **sequences, char *structure, struct plist **pl,int winSize, float cutoff, int pairsize); */
-/* extern struct plist *get_plistW(struct plist *pl, int length, double cutoff, int start, FLT_OR_DBL **Tpr, int winSize); */
-float   **readribosum(char *name);
-void    energy_of_alistruct(char **sequences, const char *structure, int n_seq, float *energy);
+/**
+*** Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
+***
+*** \param strings    A pointer to a NULL terminated array of character arrays
+*** \param structure  A pointer to a character array that may contain a constraining consensus structure
+***                   (will be overwritten by a consensus structure that exhibits the MFE)
+*** \return           The minimum free energy in kcal/mol
+**/
 double  circalifold(const char **strings, char *structure);
 
-/* partition function variants */
-float   alipf_fold(char **sequences, char *structure, struct plist **pl);
-void    free_alipf_arrays(void);
-char    *centroid_ali(int length, double *dist,struct plist *pl);
-char    *alipbacktrack(double *prob) ;
-float   alipf_circ_fold(char **sequences, char *structure, struct plist **pl);
 
-/* some helper functions that might be useful in the library */
+/**
+*** Free the memory occupied by MFE alifold functions
+**/
+void    free_alifold_arrays(void);
 
-/** get arrays with encoded sequence of the alignment
+/**
+*** Get the mean pairwise identity in steps from ?to?(ident)
+*** \param Alseq
+*** \param n_seq  The number of sequences in the alignment
+*** \param length The length of the alignment
+*** \param mini   
+*** \return       The mean pairwise identity
+**/
+int get_mpi(char *Alseq[], int n_seq, int length, int *mini);
+
+/**
+*** how to chose a ribosum matrix:<BR>
+*** ribosum matrices exist for starlike clusters of<BR>
+*** X=45 55 60 65 70 75 80 85 90 95 100<BR>
+*** they are further seperated by only regarding sequences with a minimal pairwise idensity of Y=25-95, step 5, not all are present.<BR>
+*** now the question is, which matrix to use when.<BR>
+*** the suggestion of the dr. will:<BR>
+*** with a mpi of Z<BR>
+*** X~Z and Y > Z ??<BR>
+*** if we say the minimum of the pis is M,<BR>
+*** then we may be able to use:<BR>
+*** X~Z and Y ~ M?<BR>
+*** I'd say we do a default matrix (e.g. 85/60) but better is try out (all 170??)<BR>
+*** and then we use the best in average.<BR>
+*** actually, it would be preferrable to make a very big testset and simply check it out.<BR>
+*** (create a function to derive the best matrix)<BR>
+*** furthermore:<BR>
+*** default, function or user defined.<BR>
+*** <BR>
+*** ntscd:<BR>
+*** fijklmn<BR>
+*** pijpklpmn<BR>
+***
+**/
+float   **readribosum(char *name);
+
+/**
+*** Calculate the free energy of a consensus structure given a set of aligned sequences
+***
+*** \param  sequenceces The NULL terminated array of sequences
+*** \param  structure   The consensus structure
+*** \param  n_seq       The number of sequences in the alignment
+*** \param  energy      A pointer to an array of at least two floats that will hold the free energies
+***                     (energy[0] will contain the free energy, energy[1] will be written with the covariance energy term)
+***
+**/
+void    energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy);
+
+/*
+#############################################################
+# some helper functions that might be useful in the library #
+#############################################################
+*/
+
+/**
+*** Get arrays with encoded sequence of the alignment
 ***
 *** this function assumes that in S, S5, s3, ss and as enough
 *** space is already allocated (size must be at least sequence length+2)
@@ -42,5 +108,41 @@ float   alipf_circ_fold(char **sequences, char *structure, struct plist **pl);
 *** \params as      
 **/
 void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as);
+
+/**
+*** Allocate memory for sequence array used to deal with aligned sequences
+*** Note that these arrays will also be initialized according to the sequence alignment given
+***
+*** \see free_sequence_arrays()
+***
+*** \param sequences  The aligned sequences
+*** \param S          A pointer to the array of encoded sequences
+*** \param S5         A pointer to the array that contains the next 5' nucleotide of a sequence position
+*** \param S3         A pointer to the array that contains the next 3' nucleotide of a sequence position
+*** \param a2s        A pointer to the array that contains the alignment to sequence position mapping
+*** \param Ss         A pointer to the array that contains the ungapped sequence
+**/
+void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
+
+/** Free the memory of the sequence arrays used to deal with aligned sequences
+*** This function frees the memory previously allocated with alloc_sequence_arrays()
+***
+*** \see alloc_sequence_arrays()
+***
+*** \param n_seq      The number of aligned sequences
+*** \param S          A pointer to the array of encoded sequences
+*** \param S5         A pointer to the array that contains the next 5' nucleotide of a sequence position
+*** \param S3         A pointer to the array that contains the next 3' nucleotide of a sequence position
+*** \param a2s        A pointer to the array that contains the alignment to sequence position mapping
+*** \param Ss         A pointer to the array that contains the ungapped sequence
+**/
+void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
+
+/* partition function variants */
+float   alipf_fold(char **sequences, char *structure, struct plist **pl);
+void    free_alipf_arrays(void);
+char    *centroid_ali(int length, double *dist,struct plist *pl);
+char    *alipbacktrack(double *prob) ;
+float   alipf_circ_fold(char **sequences, char *structure, struct plist **pl);
 
 #endif

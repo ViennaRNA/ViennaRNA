@@ -165,5 +165,7 @@ double circalifold(const char **strings, char *structure) {
   for (s=0; s<n_seq; s++) free(S[s]);
   free(S); free(fM2);
   free(type);
+  free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
+
   return (double) Fc/(n_seq*100.);
 }

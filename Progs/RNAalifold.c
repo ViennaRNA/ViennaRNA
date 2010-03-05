@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
 /*
-		  Access to alifold Routines
+                  Access to alifold Routines
 
-		  c Ivo L Hofacker
-		  Vienna RNA package
+                  c Ivo L Hofacker
+                  Vienna RNA package
 */
 
 #include <stdio.h>
@@ -29,7 +29,7 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 #define PRIVATE static
 
 static const char scale[] = "....,....1....,....2....,....3....,....4"
-			    "....,....5....,....6....,....7....,....8";
+                            "....,....5....,....6....,....7....,....8";
 
 PRIVATE void /*@exits@*/ usage(void);
 PRIVATE char **annote(const char *structure, const char *AS[]);
@@ -66,110 +66,110 @@ int main(int argc, char *argv[])
   for (i=1; i<argc; i++) {
     if (argv[i][0]=='-') {
       switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'p':  pf=1;
-	  if (argv[i][2]!='\0')
-	    (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-	  break;
-	case 'n':
-	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-nc")==0) {
-	    r=sscanf(argv[++i], "%lf", &nc_fact);
-	    if (!r) usage();
-	  }
-	  break;
-	case 'o':
-	  if ( strcmp(argv[i], "-old")==0) oldAliEn=1;
-	  break;
-	case 'm':
-	  if ( strcmp(argv[i], "-mis")==0) mis=1;
-	  else usage();
-	  break;
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'E':
-	  endgaps=1;
-	  break;
-	case 'C':
-	  fold_constrained=1;
-	  break;
-	case 'S':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	  }
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	case 'c':
-	  if ( strcmp(argv[i], "-cv")==0) {
-	    r=sscanf(argv[++i], "%lf", &cv_fact);
-	    if (!r) usage();
-	  } else {
-	    if (strcmp(argv[i], "-circ")==0)
-	      circ=1;
-	    else
-	      if (strcmp(argv[i], "-color")==0)
-		doColor=1;
-	  }
-	  break;
-	case 'a':
-	  if ( strcmp(argv[i], "-aln")==0) {
-	    doAlnPS=1;
-	  }
-	  break;
-	case 'R':
-	  if (i==argc-1) usage();
-	  RibosumFile = argv[++i];
-	  ribo=1;
-	  break;
-	 case 'r':
-	  RibosumFile = NULL;
-	  ribo=1;
-	  break;
-	case 's':
-	  if (argv[i][2]=='e') eval_energy = 1;
-	  else if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r= sscanf(argv[++i], "%d", &n_back);
-	  if (!r) usage();
-	  do_backtrack=0;
-	  pf=1;
-	  init_rand();
-	  break;
-	default: usage();
-	}
+        {
+        case 'T':  if (argv[i][2]!='\0') usage();
+          if(i==argc-1) usage();
+          r=sscanf(argv[++i], "%lf", &temperature);
+          if (!r) usage();
+          break;
+        case 'p':  pf=1;
+          if (argv[i][2]!='\0')
+            (void) sscanf(argv[i]+2, "%d", &do_backtrack);
+          break;
+        case 'n':
+          if ( strcmp(argv[i], "-noGU")==0) noGU=1;
+          if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
+          if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
+          if ( strcmp(argv[i], "-nsp") ==0) {
+            if (i==argc-1) usage();
+            ns_bases = argv[++i];
+          }
+          if ( strcmp(argv[i], "-nc")==0) {
+            r=sscanf(argv[++i], "%lf", &nc_fact);
+            if (!r) usage();
+          }
+          break;
+        case 'o':
+          if ( strcmp(argv[i], "-old")==0) oldAliEn=1;
+          break;
+        case 'm':
+          if ( strcmp(argv[i], "-mis")==0) mis=1;
+          else usage();
+          break;
+        case '4':
+          tetra_loop=0;
+          break;
+        case 'e':
+          if(i==argc-1) usage();
+          r=sscanf(argv[++i],"%d", &energy_set);
+          if (!r) usage();
+          break;
+        case 'E':
+          endgaps=1;
+          break;
+        case 'C':
+          fold_constrained=1;
+          break;
+        case 'S':
+          if(i==argc-1) usage();
+          r=sscanf(argv[++i],"%lf", &sfact);
+          if (!r) usage();
+          break;
+        case 'd': dangles=0;
+          if (argv[i][2]!='\0') {
+            r=sscanf(argv[i]+2, "%d", &dangles);
+            if (r!=1) usage();
+          }
+          break;
+        case 'P':
+          if (i==argc-1) usage();
+          ParamFile = argv[++i];
+          break;
+        case 'c':
+          if ( strcmp(argv[i], "-cv")==0) {
+            r=sscanf(argv[++i], "%lf", &cv_fact);
+            if (!r) usage();
+          } else {
+            if (strcmp(argv[i], "-circ")==0)
+              circ=1;
+            else
+              if (strcmp(argv[i], "-color")==0)
+                doColor=1;
+          }
+          break;
+        case 'a':
+          if ( strcmp(argv[i], "-aln")==0) {
+            doAlnPS=1;
+          }
+          break;
+        case 'R':
+          if (i==argc-1) usage();
+          RibosumFile = argv[++i];
+          ribo=1;
+          break;
+         case 'r':
+          RibosumFile = NULL;
+          ribo=1;
+          break;
+        case 's':
+          if (argv[i][2]=='e') eval_energy = 1;
+          else if (argv[i][2]!='\0') usage();
+          if(i==argc-1) usage();
+          r= sscanf(argv[++i], "%d", &n_back);
+          if (!r) usage();
+          do_backtrack=0;
+          pf=1;
+          init_rand();
+          break;
+        default: usage();
+        }
     }
     else { /* doesn't start with '-' should be filename */
       if (i!=argc-1) usage();
       clust_file = fopen(argv[i], "r");
       if (clust_file == NULL) {
-	fprintf(stderr, "can't open %s\n", argv[i]);
-	usage();
+        fprintf(stderr, "can't open %s\n", argv[i]);
+        usage();
       }
 
     }
@@ -179,9 +179,9 @@ int main(int argc, char *argv[])
 
   if (circ && noLonelyPairs)
     fprintf(stderr,
-	    "warning, depending on the origin of the circular sequence, "
-	    "some structures may be missed when using -noLP\n"
-	    "Try rotating your sequence a few times\n");
+            "warning, depending on the origin of the circular sequence, "
+            "some structures may be missed when using -noLP\n"
+            "Try rotating your sequence a few times\n");
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -194,12 +194,12 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
     }
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
   if (circ)
     min_en = circalifold((const char **)AS, structure);
   else
-    min_en = alifold(AS, structure);
+    min_en = alifold((const char **)AS, structure);
 
   if (circ) {
     int i; double s=0;
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
   } else {
     float *ens;
     ens=(float *)space(2*sizeof(float));
-    energy_of_alistruct(AS, structure, n_seq, ens);
+    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
     real_en=ens[0];
     free(ens);
   }
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
   printf("%s\n%s", string, structure);
   if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-	   min_en, real_en, min_en - real_en);
+           min_en, real_en, min_en - real_en);
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
 
@@ -319,13 +319,13 @@ int main(int argc, char *argv[])
     if (n_back>0) {
       /*stochastic sampling*/
     for (i=0; i<n_back; i++) {
-	 char *s;
-	 double prob=1.;
-	 s =alipbacktrack(&prob);
-	 printf("%s ", s);
-	 if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
-	printf("\n");
-	 free(s);
+         char *s;
+         double prob=1.;
+         s =alipbacktrack(&prob);
+         printf("%s ", s);
+         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+        printf("\n");
+         free(s);
       }
 
     }
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
     if ((istty)||(!do_backtrack))
       printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
     printf(" frequency of mfe structure in ensemble %g\n",
-	   exp((energy-min_en)/kT));
+           exp((energy-min_en)/kT));
 
     if (do_backtrack) {
       FILE *aliout;
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
       float *ens;
       cent = centroid_ali(length, &dist,pl);
       ens=(float *)space(2*sizeof(float));
-      energy_of_alistruct(AS, cent, n_seq, ens);
+      energy_of_alistruct((const char **)AS, cent, n_seq, ens);
       /*cent_en = energy_of_struct(string, cent);*//*ali*/
       printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
       free(cent);
@@ -356,19 +356,19 @@ int main(int argc, char *argv[])
       }
 
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_ali.out");
+        strcpy(ffname, fname);
+        strcat(ffname, "_ali.out");
       } else strcpy(ffname, "alifold.out");
       aliout = fopen(ffname, "w");
       if (!aliout) {
-	fprintf(stderr, "can't open %s    skipping output\n", ffname);
+        fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
       print_aliout(AS, pl, n_seq, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_dp.ps");
+        strcpy(ffname, fname);
+        strcat(ffname, "_dp.ps");
       } else strcpy(ffname, "alidot.ps");
       cp = make_color_pinfo(AS,pl, n_seq,base_pair);
       (void) PS_color_dot_plot(string, cp, ffname);
@@ -406,7 +406,7 @@ PRIVATE void print_pi(const pair_info pi, FILE *file) {
 
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
+          pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
   for (i=1; i<=7; i++)
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
   if (!pi.comp) fprintf(file, " +");
@@ -446,8 +446,8 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
       pfreq[type]++;
       if (type) {
-	if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
+        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
     for (pairings=0,s=1; s<=7; s++) {
@@ -459,12 +459,12 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       ps = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
       if ((ps==NULL) || (colorps == NULL))
-	  nrerror("out of memory in realloc");
+          nrerror("out of memory in realloc");
     }
 
     if (pfreq[0]<=2 && pairings>0) {
       snprintf(pps, 64, "%d %d %s colorpair\n",
-	       i,j, colorMatrix[pairings-1][pfreq[0]]);
+               i,j, colorMatrix[pairings-1][pfreq[0]]);
       strcat(colorps, pps);
     }
 
@@ -550,7 +550,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
 
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",
-	  n_seq, (int) strlen(AS[0]));
+          n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
   
   for (k=0; pi[k].i>0; k++) {
@@ -579,15 +579,15 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
       cp[c].p = pl[i].p;
       for (z=0; z<7; z++) pfreq[z]=0;
       for (s=0; s<n_seq; s++) {
-	a=encode_char(toupper(sequences[s][cp[c].i-1]));
-	b=encode_char(toupper(sequences[s][cp[c].j-1]));
-	if ((sequences[s][cp[c].j-1]=='~')||(sequences[s][cp[c].i-1] == '~')) continue;
-	pfreq[pair[a][b]]++;
+        a=encode_char(toupper(sequences[s][cp[c].i-1]));
+        b=encode_char(toupper(sequences[s][cp[c].j-1]));
+        if ((sequences[s][cp[c].j-1]=='~')||(sequences[s][cp[c].i-1] == '~')) continue;
+        pfreq[pair[a][b]]++;
       }
       for (z=1; z<7; z++) {
-	if (pfreq[z]>0) {
-	  ncomp++;
-	}}
+        if (pfreq[z]>0) {
+          ncomp++;
+        }}
       cp[c].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
       cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2./*pi[i].bp[0]*//(n_seq)));
       c++;
@@ -596,20 +596,20 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
   for (t=1; t<=mfe[0].i; t++) {
     int nofound=1;
       for (j=0; j<c; j++) {
-	if ((cp[j].i==mfe[t].i)&&(cp[j].j==mfe[t].j)) {
-	  cp[j].mfe=1;
-	  nofound=0;
-	  break;
-	}
+        if ((cp[j].i==mfe[t].i)&&(cp[j].j==mfe[t].j)) {
+          cp[j].mfe=1;
+          nofound=0;
+          break;
+        }
       }
       if(nofound) {
-	fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
-	cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
-	cp[c].i = mfe[t].i;
-	cp[c].j = mfe[t].j;
-	cp[c].p = 0.;
-	cp[c].mfe=1;
-	c++;
+        fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
+        cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
+        cp[c].i = mfe[t].i;
+        cp[c].j = mfe[t].j;
+        cp[c].p = 0.;
+        cp[c].mfe=1;
+        c++;
       }
     }
   return cp;
@@ -620,9 +620,9 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
-	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
-	  );
+          "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
+          "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
+          "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
+          "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
+          );
 }
