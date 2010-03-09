@@ -82,7 +82,7 @@ PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for b
 PRIVATE void  init_alifold(int length);
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
-PRIVATE void  make_pscores(const short *const *S, const char *const *AS, int n_seq, const char *structure);
+PRIVATE void  make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
 PRIVATE int   fill_arrays(const char **strings);
 PRIVATE void  backtrack(const char **strings, int s);
 
@@ -147,7 +147,7 @@ PUBLIC  void  free_alifold_arrays(void){
 }
 
 
-PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss){
+PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ){
   unsigned int s, n_seq, length;
   if(sequences[0] != NULL){
     length = strlen(sequences[0]);
@@ -165,7 +165,7 @@ PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S
       (*a2s)[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
       (*Ss)[s]  = (char *)          space((length + 2) * sizeof(char));
       (*S)[s]   = (short *)         space((length + 2) * sizeof(short));
-      encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s]);
+      encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
     }
   }
   else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
@@ -190,6 +190,7 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
 PUBLIC double alifold(const char **strings, char *structure){
   int  length, energy, s, n_seq;
 
+  circ = 0;
   length = (int) strlen(strings[0]);
   if (length>init_length) init_alifold(length);
   if ((P==NULL)||(fabs(P->temperature - temperature)>1e-6)) {
@@ -198,8 +199,8 @@ PUBLIC double alifold(const char **strings, char *structure){
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss);
-  make_pscores((const short **) S, (const char *const *) strings, n_seq, structure);
+  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circ);
+  make_pscores((const short **) S, strings, n_seq, structure);
 
   energy = fill_arrays((const char **)strings);
 
@@ -642,7 +643,7 @@ void backtrack(const char **strings, int s) {
 }
 
 
-PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as){
+PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ){
   unsigned int i,l;
   unsigned short p;
   l     = strlen(sequence);
@@ -671,12 +672,14 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
     s3[l]   = 0;
     S[l+1]  = S[1];
     s5[1]   = 0;
-    s5[1]   = S[l];
-    s3[l]   = S[1];
-    ss[l+1] = S[1];
+    if (circ) {
+      s5[1]   = S[l];
+      s3[l]   = S[1];
+      ss[l+1] = S[1];
+    }
   }
   else{
-    if(1){
+    if(circ){
       for(i=l; i>0; i--){
         char c5;
         c5 = sequence[i-1];
@@ -727,7 +730,7 @@ PRIVATE void parenthesis_structure(char *structure, int length){
   }
 }
 
-PRIVATE void make_pscores(const short *const* S, const char *const* AS,
+PRIVATE void make_pscores(const short *const* S, const char **AS,
                           int n_seq, const char *structure) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
@@ -953,13 +956,13 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
     tempS=S; tempS3=S3; tempS5=S5; tempSs=Ss; tempa2s=a2s;
     tempindx=indx; temppscore=pscore;
 
-    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss);
+    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
     pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
     indx    = (int *) space(sizeof(int)*(n+1));
     for (s = 1; s <= n; s++){
       indx[s] = (s*(s-1)) >> 1;
     }
-    make_pscores((const short *const*)S, (const char *const *)sequences, n_seq, NULL);
+    make_pscores((const short *const*)S, sequences, n_seq, NULL);
     make_pair_matrix();
     new=1;
 

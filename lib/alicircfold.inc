@@ -18,6 +18,7 @@ double circalifold(const char **strings, char *structure) {
   int n_seq, psc, s=0;
   int *type;
 
+  circ = 1;
   /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
   length = (int) strlen(strings[0]);
   if (length>init_length) init_alifold(length);
@@ -29,7 +30,7 @@ double circalifold(const char **strings, char *structure) {
   n_seq = s;
   type = (int *) space(n_seq*sizeof(int));
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss);
+  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circ);
   make_pscores((const short **) S, strings, n_seq, structure);
 
   /* compute all arrays used by fold() for linear RNA */

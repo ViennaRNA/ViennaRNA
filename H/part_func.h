@@ -1,6 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_H__
 
+#include "data_structures.h"
+
 #define FLT_OR_DBL double
 
 #ifdef __GNUC__
@@ -23,7 +25,6 @@ void    free_pf_arrays(void);        /* free arrays from pf_fold() */
 void    update_pf_params(int length); /*recalculate energy parameters */
 char    bppm_symbol(float *x);  /* string representation of structure */
 double  mean_bp_dist(int length); /* mean pair distance of ensemble */
-char    *centroid(int length, double *dist);     /* mean pair distance of ensemble */
 int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
 
 /**
@@ -40,6 +41,17 @@ char    *pbacktrack(char *sequence);
 *** \return           A sampled secondary structure in dot-bracket notation
 **/
 char    *pbacktrack_circ(char *seq);
+
+/*
+#################################################
+# OTHER PARTITION FUNCTION RELATED DECLARATIONS #
+#################################################
+*/
+char    DEPRECATED(*centroid(int length, double *dist));     /* mean pair distance of ensemble */
+/* this function is a threadsafe replacement for centroid() with a 'struct plist' input */
+char    *get_centroid_struct_pl(int length, double *dist, struct plist *pl);
+/* this function is a threadsafe replacement for centroid() with a probability array input */
+char    *get_centroid_struct_pr(int length, double *dist, double *pl);
 
 extern  int st_back;
 

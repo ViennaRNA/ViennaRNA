@@ -1061,6 +1061,7 @@ PUBLIC double mean_bp_dist(int length) {
   return 2*d;
 }
 
+/* this function is deprecated as it is not threadsafe */
 PUBLIC char *centroid(int length, double *dist) {
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -1089,6 +1090,66 @@ PUBLIC char *centroid(int length, double *dist) {
   return centroid;
 }
 
+/* this function is a threadsafe replacement for centroid() */
+PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) {
+  /* compute the centroid structure of the ensemble, i.e. the strutcure
+     with the minimal average distance to all other structures
+     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
+     Thus, the centroid is simply the structure containing all pairs with
+     p_ij>0.5 */
+  int i,j;
+  double p;
+  char *centroid;
+
+  if (pl==NULL)
+    nrerror("get_centroid_struct: pl==NULL!");
+
+  *dist = 0.;
+  centroid = (char *) space((length+1)*sizeof(char));
+  for (i=0; i<length; i++) centroid[i]='.';
+  for (i=0; pl[i].i > 0; i++){
+    if((p=pl[i].p) > 0.5) {
+        centroid[pl[i].i-1] = '(';
+        centroid[pl[i].j-1] = ')';
+        *dist += (1-p);
+    } else
+      *dist += p;
+  }
+  return centroid;
+}
+
+/* this function is a threadsafe replacement for centroid() */
+PUBLIC char *get_centroid_struct_pr(int length, double *dist, double *probs){
+  /* compute the centroid structure of the ensemble, i.e. the strutcure
+     with the minimal average distance to all other structures
+     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
+     Thus, the centroid is simply the structure containing all pairs with
+     p_ij>0.5 */
+  int i,j;
+  double p;
+  char *centroid;
+  int *my_iindx = (int *)space(sizeof(int) * (length+1));
+  for(i=1; i<=length; i++)
+    my_iindx[i] = (((length+1-i)*(length-i))>>1) + length + 1;
+  
+  if (pr==NULL)
+    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
+
+  *dist = 0.;
+  centroid = (char *) space((length+1)*sizeof(char));
+  for (i=0; i<length; i++) centroid[i]='.';
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++) {
+      if ((p=probs[my_iindx[i]-j])>0.5) {
+        centroid[i-1] = '(';
+        centroid[j-1] = ')';
+        *dist += (1-p);
+      } else
+        *dist += p;
+    }
+  free(my_iindx);
+  return centroid;
+}
 
 PUBLIC plist *stackProb(double cutoff) {
 

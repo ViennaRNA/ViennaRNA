@@ -696,7 +696,7 @@ float dm_20_19[7][7]={{0,0,0,0,0,0,0},
 {0, 2.356499, 2.304699, 1.714175, 0.194186, 1.898882, 0.292298}};
 
 
-float **get_ribosum(char *Alseq[], int n_seq, int length) {
+float **get_ribosum(const char **Alseq, int n_seq, int length) {
   int i, j,k;
   float ident=0;
   int pairnum=0;

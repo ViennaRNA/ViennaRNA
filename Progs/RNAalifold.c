@@ -26,8 +26,6 @@ extern float energy_of_circ_struct(const char *seq, const char *structure);
 /*@unused@*/
 static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
 
-#define PRIVATE static
-
 static const char scale[] = "....,....1....,....2....,....3....,....4"
                             "....,....5....,....6....,....7....,....8";
 
@@ -59,7 +57,7 @@ int main(int argc, char *argv[])
   int doColor=0;
   int n_back=0;
   int eval_energy = 0;
-  do_backtrack = 1;
+  do_backtrack = 0;
   string=NULL;
   dangles=2;
   oldAliEn=0;
@@ -314,7 +312,7 @@ int main(int argc, char *argv[])
 
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
-    energy = (circ) ? alipf_circ_fold(AS, structure, &pl) : alipf_fold(AS, structure, &pl);
+    energy = (circ) ? alipf_circ_fold((const char **)AS, structure, &pl) : alipf_fold((const char **)AS, structure, &pl);
 
     if (n_back>0) {
       /*stochastic sampling*/
@@ -346,7 +344,7 @@ int main(int argc, char *argv[])
       double dist;
       if (!circ){
       float *ens;
-      cent = centroid_ali(length, &dist,pl);
+      cent = get_centroid_struct_pl(length, &dist, pl);
       ens=(float *)space(2*sizeof(float));
       energy_of_alistruct((const char **)AS, cent, n_seq, ens);
       /*cent_en = energy_of_struct(string, cent);*//*ali*/
@@ -412,8 +410,6 @@ PRIVATE void print_pi(const pair_info pi, FILE *file) {
   if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
-
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
 /*-------------------------------------------------------------------------*/
 

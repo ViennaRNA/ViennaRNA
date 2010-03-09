@@ -8,6 +8,10 @@
                   Vienna RNA package
 */
 
+/**
+*** \file alipfold.c
+**/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,59 +29,74 @@
 /*@unused@*/
 static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 
-#define MAX(x,y) (((x)>(y)) ? (x) : (y))
-#define MIN(x,y) (((x)<(y)) ? (x) : (y))
-#define PUBLIC
-#define PRIVATE static
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
-
-PRIVATE void  init_alipf_fold(int length, int n_seq);
-/* PRIVATE void  update_alipf_params(int length); */
-PRIVATE void  sprintf_bppm(int length, char *structure);
-PRIVATE void  scale_pf_params(unsigned int length, int n_seq);
-PRIVATE void  get_arrays(unsigned int length);
-PRIVATE void make_pscores(const short *const *S, const char *const* AS,
-                          int n_seq, const char *structure);
-PRIVATE pair_info *make_pairinfo(const short *const* S, char **AS,
-                                 int n_seq);
-PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as);
-PRIVATE FLT_OR_DBL *expMLbase;
-PRIVATE FLT_OR_DBL *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL *prml, *prm_l, *prm_l1, *q1k, *qln;
-PRIVATE FLT_OR_DBL *scale;
-PRIVATE short *pscore;   /* precomputed array of covariance bonus/malus */
-PRIVATE int init_length; /* length in last call to init_pf_fold() */
 #define ISOLATED  256.0
-
-/* some additional things for circfold  */
-PRIVATE int circ=0;
-PRIVATE FLT_OR_DBL qo, qho, qio, qmo, *qm2;
-PRIVATE int *jindx;
-
-
-PRIVATE  void  alipf_circ(char **sequences, char *structure);
-PRIVATE  void  alipf_linear(char **sequences, char *structure);
-PRIVATE  void  alipf_create_bppm(char **sequences, char *structure, struct plist **pl);
-PRIVATE  void backtrack(int i, int j, int n_seq, double *prob);
-PRIVATE  void backtrack_qm1(int i,int j, int n_seq, double *prob);
-
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
+#define PMIN 0.0008
 
 extern struct plist *get_plist(struct plist *pl, int length, double cut_off);
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE FLT_OR_DBL      *expMLbase;
+PRIVATE FLT_OR_DBL      *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
+PRIVATE FLT_OR_DBL      *prml, *prm_l, *prm_l1, *q1k, *qln;
+PRIVATE FLT_OR_DBL      *scale;
+PRIVATE short           *pscore;   /* precomputed array of covariance bonus/malus */
+PRIVATE int             init_length; /* length in last call to init_pf_fold() */
+/* some additional things for circfold  */
+PRIVATE int             circ=0;
+PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2;
+PRIVATE int             *jindx;
 PRIVATE short           **S;
 PRIVATE short           **S5;               /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3;               /*Sl[s][i] holds next base 3' of i in sequence s*/
+PRIVATE short           **S3;               /*S3[s][i] holds next base 3' of i in sequence s*/
 PRIVATE char            **Ss;
 PRIVATE unsigned short  **a2s;
-static int *type, N_seq;
+PRIVATE int             N_seq;
+PRIVATE pf_paramT       *pf_params;
+PRIVATE char            *pstruc;
 
-PRIVATE pf_paramT *pf_params;
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+
+PRIVATE void      init_alipf_fold(int length, int n_seq);
+/* PRIVATE void  update_alipf_params(int length); */
+PRIVATE void      sprintf_bppm(int length, char *structure);
+PRIVATE void      scale_pf_params(unsigned int length, int n_seq);
+PRIVATE void      get_arrays(unsigned int length);
+PRIVATE void      make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
+PRIVATE pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq);
+PRIVATE void      alipf_circ(const char **sequences, char *structure);
+PRIVATE void      alipf_linear(const char **sequences, char *structure);
+PRIVATE void      alipf_create_bppm(const char **sequences, char *structure, struct plist **pl);
+PRIVATE void      backtrack(int i, int j, int n_seq, double *prob);
+PRIVATE void      backtrack_qm1(int i,int j, int n_seq, double *prob);
+
+
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 /*-----------------------------------------------------------------*/
-PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
+PUBLIC float alipf_fold(const char **sequences, char *structure, struct plist **pl)
 {
   int n, s, n_seq;
   FLT_OR_DBL Q;
@@ -90,13 +109,8 @@ PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
   n_seq = N_seq = s;
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
 
-  type = (int *) space(n_seq*sizeof(int));
-
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss);
-  for (s=0; s<n_seq; s++) {
-    S3[s][n]=S5[s][1]=0; /*in linear case, no dangles from 5',3'*/
-  }
-  make_pscores((const short *const*)S, (const char *const*) sequences, n_seq, structure);
+  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
+  make_pscores((const short *const*)S, sequences, n_seq, structure);
 
   alipf_linear(sequences, structure);
 
@@ -106,7 +120,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
@@ -117,7 +131,7 @@ PUBLIC float alipf_fold(char **sequences, char *structure, struct plist **pl)
   return free_energy;
 }
 
-PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **pl )
+PUBLIC float alipf_circ_fold(const char **sequences, char *structure, struct plist **pl)
 {
   int n, s, n_seq;
   FLT_OR_DBL Q;
@@ -130,9 +144,8 @@ PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **p
   n_seq = s;
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
 
-  type = (int *) space(n_seq*sizeof(int));
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss);
-  make_pscores((const short *const*)S, (const char *const*) sequences, n_seq, structure);
+  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
+  make_pscores((const short *const*)S, sequences, n_seq, structure);
 
   alipf_linear(sequences, structure);
 
@@ -146,7 +159,7 @@ PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **p
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
@@ -157,23 +170,21 @@ PUBLIC float alipf_circ_fold(char **sequences, char *structure, struct plist **p
   return free_energy;
 }
 
-PRIVATE void alipf_linear(char **sequences, char *structure)
+PRIVATE void alipf_linear(const char **sequences, char *structure)
 {
-  int s, n, n_seq, i,j,k,l, ij, u, u1, d, ii, type_2, tt;
-  FLT_OR_DBL temp, Qmax=0;
-  FLT_OR_DBL qbt1, *tmp;
+  int         s, n, n_seq, i,j,k,l, ij, u, u1, d, ii, *type, type_2, tt;
+  FLT_OR_DBL  temp, Qmax=0;
+  FLT_OR_DBL  qbt1, *tmp;
+  double      kTn;
 
-  double kTn;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
 
-  n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++);
+  for(s=0; sequences[s]!=NULL; s++);
+
   n_seq = s;
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+  n     = (int) strlen(sequences[0]);
+  kTn   = pf_params->kT * n_seq/10.;   /* kT in cal/mol  */
+  type  = (int *)space(sizeof(int) * n_seq);
 
   /* array initialization ; qb,qm,q
      qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -208,18 +219,18 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
           u = a2s[s][j-1]-a2s[s][i];
           if (a2s[s][i]<1) continue;
           if (u<3) continue;  /*sog amoi: strof??*/
-      char loopseq[10];
-      if (u<7){
-        strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
-      }
-      qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
+          char loopseq[10];
+          if (u<7){
+            strncpy(loopseq, Ss[s]+a2s[s][i-1], 10);
+          }
+          qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
         }
         qbt1 *= scale[j-i+1];
 
         /* interior loops with interior pair k,l */
-        for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++){
+        for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++){
 
-          for (l=MAX(k+TURN+1,j-1-MAXLOOP+k-i-1); l<=j-1; l++){
+          for (l=MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1); l<=j-1; l++){
             double qloop=1;
             if (qb[iindx[k]-l]==0) {qloop=0; continue;}
             for (s=0; s<n_seq; s++) {
@@ -234,6 +245,7 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
             qbt1 += qb[iindx[k]-l] * qloop * scale[k-i+j-l];
           }
         }
+        printf("%6.16g\n", qbt1);
 
         /* multi-loop loop contribution */
         ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
@@ -241,9 +253,9 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
         for (s=0; s<n_seq; s++) {
           tt = rtype[type[s]];
-          temp *= expMLintern[tt]*expMLclosing*
-            expdangle3[tt][S3[s][i]]*expdangle5[tt][S5[s][j]];
+          temp *= exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params);
         }
+        temp *= expMLclosing * n_seq;
         qbt1 += temp*scale[2];
         qb[ij] = qbt1;
         qb[ij] *= exp(psc/kTn);
@@ -255,10 +267,7 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];  /* expMLbase[1]^n_seq */
       for (qbt1=1, s=0; s<n_seq; s++) {
-        qbt1 *= expMLintern[type[s]];
-        if ((i>1) || circ) qbt1 *= expdangle5[type[s]][S5[s][i]];
-        if ((j<n) || circ) qbt1 *= expdangle3[type[s]][S3[s][j]];
-        else if (type[s]>2) qbt1 *= expTermAU;
+        qbt1 *= exp_E_MLstem(type[s], (i>1) || circ ? S5[s][i] : -1, (j<n) || circ ? S3[s][j] : -1, pf_params);
       }
       qqm[i] += qb[ij]*qbt1;
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for circ folding */
@@ -275,9 +284,7 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
       qbt1 = qb[ij];
       if (qbt1>0)
         for (s=0; s<n_seq; s++) {
-          if ((i>1) || circ) qbt1 *= expdangle5[type[s]][S5[s][i]];
-          if ((j<n) || circ) qbt1 *= expdangle3[type[s]][S3[s][j]];
-          else if (type[s]>2) qbt1 *= expTermAU;
+          qbt1 *= exp_E_ExtLoop(type[s], (i>1) || circ ? S5[s][i] : -1, (j<n) || circ ? S3[s][j] : -1, pf_params);
         }
       qq[i] = qq1[i]*scale[1] + qbt1;
 
@@ -303,27 +310,26 @@ PRIVATE void alipf_linear(char **sequences, char *structure)
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
+  
+  free(type);
 }
 
-PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist **pl)
+PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct plist **pl)
 {
   int s;
-  int n, n_seq, i,j,k,l, ij, kl, ii, ll, tt, ov=0;
+  int n, n_seq, i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
   FLT_OR_DBL temp, Qmax=0, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
 
   double kTn;
   n = (int) strlen(sequences[0]);
   for (s=0; sequences[s]!=NULL; s++);
   n_seq = s;
+  type  = (int *)space(sizeof(int) * n_seq);
 
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+  kTn = pf_params->kT * n_seq/10.;   /* kT in cal/mol  */
 
   for (i=1; i<=n; i++)
     prm_l[i]=prm_l1[i]=prml[i]=0;
@@ -343,7 +349,7 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
   /* 1. exterior pair i,j and initialization of pr array */
   if(circ){
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
         if (qb[ij]>0.) {
@@ -366,7 +372,7 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
               strcpy(loopseq , sequences[s]+j-1);
               strncat(loopseq, sequences[s], i);
             }
-        qbt1 *= exp_E_Hairpin(u, type[s], S[s][j+1], S[s][(i>1) ? i-1 : n], loopseq, pf_params);
+            qbt1 *= exp_E_Hairpin(u, type[s], S[s][j+1], S[s][(i>1) ? i-1 : n], loopseq, pf_params);
           }
           tmp2 = qbt1 * scale[u];
 
@@ -445,27 +451,27 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
 
             for (tmp3=1, s=0; s<n_seq; s++){
               rt = rtype[type[s]];
-              tmp3 *= expMLintern[rt]*expdangle5[rt][S5[s][i]] * expdangle3[rt][S3[s][j]] * expMLclosing;
+              tmp3 *= exp_E_MLstem(rt, S5[s][i], S3[s][j], pf_params);
             }
-            tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * tmp3;
+            tmp2 += qm[iindx[1]-i+1] * qm[iindx[j+1]-n] * tmp3 * expMLclosing * n_seq;
           }
           /* 1.3.2 Left part    */
           for(k=TURN+2; k < i-TURN-2; k++){
 
             for (tmp3=1, s=0; s<n_seq; s++){
               rt = rtype[type[s]];
-              tmp3 *= expMLintern[rt]*expdangle5[rt][S5[s][i]] * expdangle3[rt][S3[s][j]] * expMLclosing;
+              tmp3 *= exp_E_MLstem(rt, S5[s][i], S3[s][j], pf_params);
             }
-            tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * tmp3 * expMLbase[n-j];
+            tmp2 += qm[iindx[1]-k] * qm1[jindx[i-1]+k+1] * tmp3 * expMLbase[n-j] * expMLclosing * n_seq;
           }
           /* 1.3.3 Right part    */
           for(k=j+TURN+2; k < n-TURN-1;k++){
 
             for (tmp3=1, s=0; s<n_seq; s++){
               rt = rtype[type[s]];
-              tmp3 *= expMLintern[rt]*expdangle5[rt][S5[s][i]] * expdangle3[rt][S3[s][j]] * expMLclosing;
+              tmp3 *= exp_E_MLstem(rt, S5[s][i], S3[s][j], pf_params);
             }
-            tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * tmp3 * expMLbase[i-1];
+            tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * tmp3 * expMLbase[i-1] * expMLclosing * n_seq;
           }
           pr[ij] *= tmp2;
         }
@@ -475,7 +481,7 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
   } /* end if(circ)  */
   else{
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
         if (qb[ij]>0.){
@@ -483,9 +489,7 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
           for (s=0; s<n_seq; s++) {
             int typ;
             typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
-            if (i>1) pr[ij] *= expdangle5[typ][S5[s][i]];
-            if (j<n) pr[ij] *= expdangle3[typ][S3[s][j]];
-            else if (typ>2) pr[ij] *= expTermAU;
+            pr[ij] *= exp_E_ExtLoop(typ, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
           }
         } else
           pr[ij] = 0;
@@ -505,8 +509,8 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
             if (type[s]==0) type[s]=7;
       }
 
-      for (i=MAX(1,k-MAXLOOP-1); i<=k-1; i++)
-        for (j=l+1; j<=MIN(l+ MAXLOOP -k+i+2,n); j++) {
+      for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
+        for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
           ij = iindx[i] - j;
           if ((pr[ij]>0.)) {
             double qloop=1;
@@ -530,26 +534,23 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
       ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
       prmt1 = pr[ii-(l+1)];
       for (s=0; s<n_seq; s++) {
-            tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
-            prmt1 *= expMLclosing*expMLintern[tt]*
-                      expdangle3[tt][S3[s][i]]*expdangle5[tt][S5[s][l+1]];
+        tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
+        prmt1 *= exp_E_MLstem(tt, S5[s][l+1], S3[s][i], pf_params);
       }
+      prmt1 *= expMLclosing * n_seq;
+      
       for (j=l+2; j<=n; j++) {
         double pp=1;
         if (pr[ii-j]==0) continue;
         for (s=0; s<n_seq; s++) {
           tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
-          pp *=  expdangle3[tt][S3[s][i]]*
-            expdangle5[tt][S5[s][j]];
+          pp *=  exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params);
         }
         prmt +=  pr[ii-j]*pp*qm[ll-(j-1)];
       }
       kl = iindx[k]-l;
-      for (s=0; s<n_seq; s++) {
-        int typ;
-        typ=pair[S[s][k]][S[s][l]]; if (typ==0) typ=7;
-        prmt *= expMLclosing*expMLintern[typ];
-      }
+      prmt *= expMLclosing * n_seq;
+
       prml[ i] = prmt;
       prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1; /* expMLbase[1]^n_seq */
 
@@ -568,11 +569,8 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
 
       for (s=0; s<n_seq; s++) {
         tt=pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
-        temp *= expMLintern[tt];
-        if (k>1) temp *= expdangle5[tt][S5[s][k]];
-        if (l<n) temp *= expdangle3[tt][S3[s][l]];
-        else if (tt>2) temp *= expTermAU;
-        }
+        temp *= exp_E_MLstem(tt, (k>1) ? S5[s][k] : -1, (l<n) ? S3[s][l] : -1, pf_params);
+      }
       pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
 
 #ifndef LARGE_PF
@@ -607,6 +605,8 @@ PRIVATE void alipf_create_bppm(char **sequences, char *structure, struct plist *
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
         ov, pf_scale);
+
+  free(type);
 }
 
 PRIVATE void scale_pf_params(unsigned int length, int n_seq)
@@ -615,7 +615,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   double  kT, TT;
   pf_params = get_scaled_pf_parameters();
   
-  kT = (pf_params->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  kT = pf_params->kT;
   TT = (pf_params->temperature+K0)/(Tmeasure);
 
    /* scaling factors (to avoid overflows) */
@@ -631,7 +631,6 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
   }
-
 }
 
 
@@ -690,7 +689,6 @@ PUBLIC void init_alipf_fold(int length, int n_seq)
 PUBLIC void free_alipf_arrays(void)
 {
   int i;
-  free(type);
   free(q);
   free(qb);
   free(qm);
@@ -716,7 +714,6 @@ PUBLIC void free_alipf_arrays(void)
   init_length=0;
 }
 /*---------------------------------------------------------------------------*/
-#define PMIN 0.0008
 PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
   pair_info *p1, *p2;
   int  i, nc1, nc2;
@@ -731,7 +728,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-pair_info *make_pairinfo(const short *const* S, char **AS, int n_seq) {
+pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq) {
   int i,j,n, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
@@ -801,90 +798,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
 }
 
 /*---------------------------------------------------------------------------*/
-
- PRIVATE short * encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as) {
-  unsigned int i,l;
-  short *S;
-  unsigned short p;
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S[0] = (short) l;
-
-   s5[0]=s5[1]=0;
-  /* make numerical encoding of sequence */
-
-   for (i=1; i<=l; i++) {
-     short ctemp;
-     ctemp=(short) encode_char(toupper(sequence[i-1]));
-     S[i]= ctemp ;
-   }
-   
-   if (oldAliEn) {
-     /*use alignment sequences in all energy evaluations*/
-     ss[0]=sequence[0];
-     for (i=1; i<l; i++) {
-       s5[i]=S[i-1];
-       s3[i]=S[i+1];
-       ss[i]= sequence[i];
-       as[i]=i;
-     }
-     ss[l] = sequence[l];
-     as[l]=l;
-     s5[l]=S[l-1];
-     s3[l]=0;
-     S[l+1] = S[1];
-     s5[1]=0;
-     if (circ) {
-       s5[1]=S[l];
-       s3[l]=S[1];
-       ss[l+1]=S[1];
-     }
-     return S;
-   }
-   else {
-     if (circ) {
-       for (i=l; i>0; i--) {
-         char c5;
-         c5=sequence[i-1];
-         if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
-         s5[1] = S[i];
-         break;
-       }
-       for (i=1; i<=l; i++) {
-         char c3;
-         c3 = sequence[i-1];
-         if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
-         s3[l] = S[i];
-         break;
-       }
-     } else  s5[1]=s3[l]=0;
-     
-     for (i=1,p=0; i<=l; i++) {
-       char c5;
-       c5=sequence[i-1];
-       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
-         s5[i+1]=s5[i];
-       else { /* no gap */
-         ss[p++]=sequence[i-1]; /*start at 0!!*/
-         s5[i+1]=S[i];
-       }
-       as[i]=p;
-     }
-     for (i=l; i>=1; i--) {
-       char c3;
-       c3=sequence[i-1];
-       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
-         s3[i-1]=s3[i];
-       else
-         s3[i-1]=S[i];
-     }
-   }
-
-   return S;
-}
-
-/*---------------------------------------------------------------------------*/
-PRIVATE void make_pscores(const short *const* S, const char *const* AS,
+PRIVATE void make_pscores(const short *const* S, const char **AS,
                           int n_seq, const char *structure) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
@@ -1008,36 +922,14 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
   free(dm);
 }
 
-PUBLIC char *centroid_ali(int length, double *dist,struct plist *pl) {
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i;
-  char *centroid;
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=0; pl[i].i>0; i++){
-    if ((pl[i].p)>0.5) {
-      centroid[pl[i].i-1] = '(';
-      centroid[pl[i].j-1] = ')';
-      *dist += (1-pl[i].p);
-    } else
-      *dist += pl[i].p;
-  }
-  return centroid;
-}
 /* calculate partition function for circular case   */
 /* NOTE: this is the postprocessing step ONLY        */
 /* You have to call alipf_linear first to calculate  */
 /* circular case!!!                                  */
 
-PUBLIC void alipf_circ(char **sequences, char *structure){
+PUBLIC void alipf_circ(const char **sequences, char *structure){
 
-  int u, p, q, k, l, n_seq, s;
+  int u, p, q, k, l, n_seq, s, *type;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
 
   int n = (int) strlen(sequences[0]);
@@ -1046,7 +938,8 @@ PUBLIC void alipf_circ(char **sequences, char *structure){
 
   double kTn;
   FLT_OR_DBL qbt1, qot;
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;   /* kT in cal/mol  */
+  kTn = pf_params->kT * n_seq/10.;   /* kT in cal/mol  */
+  type  = (int *)space(sizeof(int) * n_seq);
 
   qo = qho = qio = qmo = 0.;
   /* calculate the qm2 matrix  */
@@ -1118,22 +1011,19 @@ PUBLIC void alipf_circ(char **sequences, char *structure){
 
   /* add additional pf of 1.0 to take open chain into account */
   qo = qho + qio + qmo + 1.0*scale[n];
+  
+  free(type);
 }
 
 
-static char *pstruc;
-
 /*brauch ma nurnoch pscores!*/
-char *alipbacktrack(double *prob) {
-  FLT_OR_DBL  expTermAU         = pf_params->expTermAU;
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
+PUBLIC char *alipbacktrack(double *prob) {
   double r, gr, qt, kTn;
   int k,i,j, start,s,n, n_seq;
   double probs=1;
   n = S[0][0];
   n_seq = N_seq;
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;
+  kTn = pf_params->kT * n_seq/10.;
   /*sequence = seq;*/
   if (do_backtrack==0) {
     for (k=1; k<=n; k++) {
@@ -1159,8 +1049,7 @@ char *alipbacktrack(double *prob) {
         *prob=*prob*probs*(1-qln[i+1]*scale[1]/qln[i]);
         break; /* i is paired */
       }
-      probs*=qln[i+1]*scale[1]/qln[i];/*sou?*/
-      //how?? with qln[i+1]*scale[1]/qln[i];?? unpaireds??
+      probs*=qln[i+1]*scale[1]/qln[i];
     }
     if (i>=n) {
       *prob=*prob*probs;
@@ -1178,9 +1067,7 @@ char *alipbacktrack(double *prob) {
         for (s=0; s< n_seq; s++) {
           xtype=pair[S[s][i]][S[s][j]];
           if (xtype==0) xtype=7;
-           if (i>1) qkl *= expdangle5[xtype][S5[s][i]];
-          if (j<n) qkl *= expdangle3[xtype][S3[s][j]];
-          else if (xtype>2) qkl *= expTermAU;
+          qkl *= exp_E_ExtLoop(xtype, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
         }
         qt += qkl; /*?*exp(pscore[iindx[i]-j]/kTn)*/
         if (qt > r) {
@@ -1198,11 +1085,12 @@ char *alipbacktrack(double *prob) {
 }
 
 
-static void backtrack(int i, int j, int n_seq, double *prob) {
+PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
   /*backtrack given i,j basepair!*/
-  double kTn;
-  kTn = (temperature+K0)*GASCONST*n_seq/10.;
+  double kTn = pf_params->kT * n_seq/10.;
   double tempwert;
+  int *type = (int *)space(sizeof(int) * n_seq);
+  
   do {
     double r, qbt1;
     int k, l, u, u1,s;
@@ -1212,34 +1100,29 @@ static void backtrack(int i, int j, int n_seq, double *prob) {
       if (type[s]==0) type[s]=7;
     }
     r = urn() * (qb[iindx[i]-j]/exp(pscore[iindx[i]-j]/kTn)); /*?*exp(pscore[iindx[i]-j]/kTn)*/
-    /* type = ptype[iindx[i]-j];*/
-    /*    u = j-i-1;*/
-    /*hairpin contribution*/
-    /*    if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;*/
 
     qbt1=1.;
     for (s=0; s<n_seq; s++){
       u = a2s[s][j-1]-a2s[s][i];
-          if (a2s[s][i]<1) continue;
-          if (u<3) continue;  /*sog amoi: strof??*/
-          char loopseq[10];
+      if (a2s[s][i]<1) continue;
+      if (u<3) continue;  /*sog amoi: strof??*/
+      char loopseq[10];
       if(u < 7){
         strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
       }
       qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
     }
     qbt1 *= scale[j-i+1];
-    /* qbt1 = expHairpinEnergy(u, type, S1[i+1], S1[j-1], sequence+i-1);*/
 
     if (qbt1>r) {
       *prob=*prob*qbt1/(qb[iindx[i]-j]/exp(pscore[iindx[i]-j]/kTn));/*probs*=qbt1;*/
+      free(type);
       return; /* found the hairpin we're done */
-
     }
 
-    for (k=i+1; k<=MIN(i+MAXLOOP+1,j-TURN-2); k++){
+    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++){
 
-      for (l=MAX(k+TURN+1,j-1-MAXLOOP+k-i-1); l<j; l++){
+      for (l=MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1); l<j; l++){
         double qloop=1;
         int type_2;
         if (qb[iindx[k]-l]==0) {qloop=0; continue;}
@@ -1327,13 +1210,11 @@ static void backtrack(int i, int j, int n_seq, double *prob) {
       //whatishere??
     }
   }
+  free(type);
 }
 
-static void backtrack_qm1(int i,int j, int n_seq, double *prob) {
+PRIVATE void backtrack_qm1(int i,int j, int n_seq, double *prob) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  FLT_OR_DBL  *expMLintern      = &(pf_params->expMLintern[0]);
-  FLT_OR_DBL  (*expdangle5)[5]  = &(pf_params->expdangle5[0]);
-  FLT_OR_DBL  (*expdangle3)[5]  = &(pf_params->expdangle3[0]);
   int ii, l, xtype,s;
   double qt, r, tempz;
   r = urn() * qm1[jindx[j]+i];
@@ -1344,7 +1225,7 @@ static void backtrack_qm1(int i,int j, int n_seq, double *prob) {
     for (s=0; s<n_seq; s++) {
       xtype = pair[S[s][i]][S[s][l]];
       if (xtype==0) xtype=7;
-      tempz*=expMLintern[xtype]*expdangle5[xtype][S5[s][i]] * expdangle3[xtype][S3[s][l]];
+      tempz*=exp_E_MLstem(xtype, S5[s][i], S3[s][l], pf_params);
     }
     qt +=  qb[ii-l]*tempz*expMLbase[j-l];
     if (qt>=r) {

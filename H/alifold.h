@@ -14,6 +14,12 @@ extern  double  cv_fact;
 /** */
 extern  double  nc_fact /* =1 */;
 
+/*
+##############################################
+# MFE VARIANTS OF THE ALIFOLD IMPLEMENTATION #
+##############################################
+*/
+
 /**
 *** Compute MFE and according structure of an alignment of sequences
 ***
@@ -106,8 +112,9 @@ void    energy_of_alistruct(const char **sequences, const char *structure, int n
 *** \params s3      pointer to an array that holds the next base 3' of alignment position i
 *** \params ss      
 *** \params as      
+*** \params circ    assume the molecules to be circular instead of linear (circ=0)
 **/
-void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as);
+void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ);
 
 /**
 *** Allocate memory for sequence array used to deal with aligned sequences
@@ -121,8 +128,9 @@ void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, c
 *** \param S3         A pointer to the array that contains the next 3' nucleotide of a sequence position
 *** \param a2s        A pointer to the array that contains the alignment to sequence position mapping
 *** \param Ss         A pointer to the array that contains the ungapped sequence
+*** \params circ    assume the molecules to be circular instead of linear (circ=0)
 **/
-void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
+void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ);
 
 /** Free the memory of the sequence arrays used to deal with aligned sequences
 *** This function frees the memory previously allocated with alloc_sequence_arrays()
@@ -138,11 +146,15 @@ void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, sho
 **/
 void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
 
-/* partition function variants */
-float   alipf_fold(char **sequences, char *structure, struct plist **pl);
+/*
+#############################################################
+# PARTITION FUNCTION VARIANTS OF THE ALIFOLD IMPLEMENTATION #
+#############################################################
+*/
+
+float   alipf_fold(const char **sequences, char *structure, struct plist **pl);
 void    free_alipf_arrays(void);
-char    *centroid_ali(int length, double *dist,struct plist *pl);
 char    *alipbacktrack(double *prob) ;
-float   alipf_circ_fold(char **sequences, char *structure, struct plist **pl);
+float   alipf_circ_fold(const char **sequences, char *structure, struct plist **pl);
 
 #endif
