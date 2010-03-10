@@ -53,6 +53,8 @@ char    *get_centroid_struct_pl(int length, double *dist, struct plist *pl);
 /* this function is a threadsafe replacement for centroid() with a probability array input */
 char    *get_centroid_struct_pr(int length, double *dist, double *pl);
 
+struct plist *get_plist_from_pr(struct plist *pl, double *probs, int length, double cut_off);
+
 extern  int st_back;
 
 /* deprecated, use exp_E_IntLoop() from loop_energies.h instead */

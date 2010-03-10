@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   int doColor=0;
   int n_back=0;
   int eval_energy = 0;
-  do_backtrack = 0;
+  do_backtrack = 1;
   string=NULL;
   dangles=2;
   oldAliEn=0;
@@ -307,7 +307,6 @@ int main(int argc, char *argv[])
     pf_scale = exp(-(sfact*min_en)/kT/length);
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
     fflush(stdout);
-
     /* init_alipf_fold(length); */
 
     if (cstruc!=NULL)

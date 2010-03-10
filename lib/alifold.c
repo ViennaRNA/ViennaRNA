@@ -187,7 +187,7 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
   free(*Ss);
 }
 
-PUBLIC double alifold(const char **strings, char *structure){
+PUBLIC float alifold(const char **strings, char *structure){
   int  length, energy, s, n_seq;
 
   circ = 0;
@@ -211,11 +211,11 @@ PUBLIC double alifold(const char **strings, char *structure){
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   if (backtrack_type=='C')
-    return (double) c[indx[length]+1]/(n_seq*100.);
+    return (float) c[indx[length]+1]/(n_seq*100.);
   else if (backtrack_type=='M')
-    return (double) fML[indx[length]+1]/(n_seq*100.);
+    return (float) fML[indx[length]+1]/(n_seq*100.);
   else
-    return (double) f5[length]/(n_seq*100.);
+    return (float) f5[length]/(n_seq*100.);
 }
 
 

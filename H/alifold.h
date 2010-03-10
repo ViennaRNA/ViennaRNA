@@ -28,7 +28,7 @@ extern  double  nc_fact /* =1 */;
 ***                   (will be overwritten by a consensus structure that exhibits the MFE)
 *** \return           The minimum free energy in kcal/mol
 **/
-double  alifold(const char **strings, char *structure);
+float  alifold(const char **strings, char *structure);
 
 
 /**

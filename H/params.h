@@ -18,6 +18,8 @@ pf_paramT *scale_pf_parameters(void);
 ***/
 pf_paramT *get_scaled_pf_parameters(void);
 
+pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
+
 extern pf_paramT *copy_pf_param(void);
 extern pf_paramT *set_pf_param(paramT *dest);
  

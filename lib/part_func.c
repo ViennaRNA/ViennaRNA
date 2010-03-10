@@ -1090,6 +1090,31 @@ PUBLIC char *centroid(int length, double *dist) {
   return centroid;
 }
 
+PUBLIC struct plist *get_plist_from_pr(struct plist *pl, double *probs, int length, double cut_off) {
+  int i, j,n, count;
+  /*get pair probibilities out of pr array*/
+  count=0;
+  n=2;
+  for (i=1; i<length; i++) {
+    for (j=i+1; j<=length; j++) {
+      if (probs[iindx[i]-j]<cut_off) continue;
+      if (count==n*length-1) {
+        n*=2;
+        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
+      }
+      pl[count].i=i;
+      pl[count].j=j;
+      pl[count++].p=probs[iindx[i]-j];
+      /*      printf("gpl: %2d %2d %.9f\n",i,j,probs[iindx[i]-j]);*/
+    }
+  }
+  pl[count].i=0;
+  pl[count].j=0; /*->??*/
+  pl[count++].p=0.;
+  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
+  return pl;
+}
+
 /* this function is a threadsafe replacement for centroid() */
 PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) {
   /* compute the centroid structure of the ensemble, i.e. the strutcure
@@ -1107,13 +1132,13 @@ PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) 
   *dist = 0.;
   centroid = (char *) space((length+1)*sizeof(char));
   for (i=0; i<length; i++) centroid[i]='.';
-  for (i=0; pl[i].i > 0; i++){
-    if((p=pl[i].p) > 0.5) {
-        centroid[pl[i].i-1] = '(';
-        centroid[pl[i].j-1] = ')';
-        *dist += (1-p);
+  for (i=0; pl[i].i>0; i++){
+    if ((pl[i].p)>0.5) {
+      centroid[pl[i].i-1] = '(';
+      centroid[pl[i].j-1] = ')';
+      *dist += (1-pl[i].p);
     } else
-      *dist += p;
+      *dist += pl[i].p;
   }
   return centroid;
 }
