@@ -1,0 +1,101 @@
+# Name of your program
+package "RNAalifold" # don't use package if you're using automake
+purpose "calculate secondary structures for a set of aligned RNAs"
+
+# Version of your program
+# version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAalifold_cmdl --include-getopt --default-optional --unamed-opts"
+
+description "reads aligned RNA sequences from stdin or file.aln and calculates\
+ their minimum free energy (mfe) structure, partition function (pf) and base\
+ pairing probability matrix. Currently, the input alignment has to be in\
+ CLUSTAL format. It returns the mfe structure in bracket notation, its\
+ energy, the free energy of the thermodynamic ensemble and the frequency of\
+ the mfe structure in the ensemble to stdout.  It also produces Postscript\
+ files with plots of the resulting secondary structure graph (\"alirna.ps\")\
+ and a \"dot plot\" of the base pairing matrix (\"alidot.ps\"). The file\
+ \"alifold.out\" will contain a list of likely pairs sorted by credibility,\
+ suitable for viewing  with \"AliDot.pl\". Be warned that output file will\
+ overwrite any existing files of the same name."
+
+# Options
+option  "cfactor"         - "Set the weight of the covariance term in the energy function"  default="1.0" double
+option  "nfactor"         - "Set the penalty for non-compatible sequences in the covariance term of the energy\
+ function"  default="1.0" double
+option  "endgaps"         E "Score pairs with endgaps same as gap-gap pairs."  flag  off
+option  "mis"             - "Output \"most informative sequence\" instead of simple consensus: For each\
+ column of the alignment output the set of nucleotides with frequence greater than average in IUPAC notation." flag  off
+option  "partfunc"        p "Calculate the partition function and base pairing probability matrix in\
+ addition to the mfe structure. Default is calculation of mfe structure only. In addition to the MFE structure\
+ we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
+ the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
+ its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure.\n\nAn\
+ additionally passed value to this option changes the behavior of partition function calculation:\n-p0\
+ \tCalculate the partition function but not the pair probabilities, saving about 50% in runtime. This\
+ prints the ensemble free energy -kT ln(Z).\n\n" int default="1" argoptional optional
+option  "noLP"            - "Produce structures without lonely pairs (helices of length 1). For partition\
+ function folding this only disallows pairs that can only occur isolated. Other pairs may still occasionally\
+ occur as helices of length 1."  flag  off
+option  "circ"            c "Assume a circular (instead of linear) RNA molecule."  flag  off
+option  "color"           - "Produce a colored version of the consensus strcture plot \"alirna.ps\"\
+ (default b&w only)"  flag  off
+option  "aln"             - "Produce a colored and structure annotated alignment in PostScript format in\
+ the file \"aln.ps\" in the current directory."  flag  off
+option  "stochBT"         s "Stochastic backtrack. Compute a certain number of random structures with a\
+ probability dependend on the partition function. See -p option in RNAsubopt."  int optional
+option  "stochBT_en"      - "same as \"-s\" but also print out the energies and probabilities of the\
+ backtraced structures."  int optional
+option  "ribosum_file"    R "use specified Ribosum Matrix instead of normal energy model. Matrixes to\
+ use should be 6x6 matrices, the order of the terms is AU, CG, GC, GU, UA, UG." string typestr="ribosumfile" optional
+option  "ribosum_scoring" r "use ribosum scoring matrix. The matrix is chosen according to the minimal\
+ and maximal pairwise identities of the sequences in the file." flag  off
+option  "old"             - "use old energy evaluation, treating gaps as characters." flag  off
+option  "temp"            T "Rescale energy parameters to a temperature of temp C. Default is 37C." double
+option  "dangles"         d "How to treat \"dangling end\" energies for bases adjacent to helices in free ends\
+ and multi-loops:\n\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides\
+ in any case.\n\n-d0 ignores dangling ends altogether (mostly for debugging)."  int default="2"  optional
+option  "noTetra"         4 "Do not include special stabilizing energies for certain tetra-loops. Mostly for\
+ testing." flag off
+option  "noGU"            - "Do not allow GU pairs" flag  off
+option  "noClosingGU"     - "Do not allow GU pairs at the end of helices" flag off
+option  "energyModel"     e "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs."  int optional
+option  "paramFile"       P "Read energy parameters from paramfile, instead of using the default parameter set.\
+ A sample parameter file should accompany your distribution.\nSee the RNAlib documentation for details on the\
+ file format." string typestr="paramfile" optional
+option  "nsp"             - "Allow other pairs in addition to the usual AU,GC,and GU pairs.\nIts argument is\
+ a comma separated list of additionally allowed pairs. If the first character is a \"-\" then AB will imply\
+ that AB and BA are allowed pairs.\ne.g. RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are\
+ given 0 stacking energy."  string optional
+option  "constraint"      C "Calculate structures subject to constraints.\nConstraints will be read from stdin,\
+ the alignment has to given as a filename on the command line. Constraints may be encoded with the symbols:\n.\
+ (no constraint for this base)\n| (the corresponding base has to be paired\nx (the base is unpaired)\n< (base i is paired with\
+ a base j>i)\n> (base i is paired with a base j<i)\nand matching brackets ( ) (base i pairs base j)\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\"."  flag off
+option  "pfScale"         S "In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file)."  double
+
+text  "\033[1m\"CAVEATS\"\033[2m\033[0m\n\nSequences are not weighted. If possible, do not mix very similar and\
+ dissimilar sequences. Duplicate sequences, for example, can distort the prediction.\n\n"
+
+text  "\033[1m\"SEE ALSO\"\033[2m\033[0m\n\nThe ALIDOT package http://www.tbi.univie.ac.at/RNA/ALIDOT/\n\n"
+
+text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe algorithm is a variant of the dynamic programming algorithms of\
+ M. Zuker and P. Stiegler (mfe) and J.S. McCaskill (pf) adapted for sets of aligned sequences with covariance\
+ information. The energy parameters are taken from:\n
+ D.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded Sequence Dependence of Thermodynamic Parameters\
+ Provides Robust Prediction of RNA Secondary Structure\", JMB, 288, pp 911-940, 1999"
+
+text  "If you use this program in your work you might want to cite:\n\nIvo L. Hofacker, Martin Fekete, and\
+ Peter F. Stadler, \"Secondary Structure Prediction for Aligned RNA Sequences\", J.Mol.Biol. 319: 1059-1066 (2002).\n\n"
+
+text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker\n\n"
+
+text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\033[0m\n"

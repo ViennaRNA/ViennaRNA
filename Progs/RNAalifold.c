@@ -20,8 +20,7 @@
 #include "pair_mat.h"
 #include "alifold.h"
 #include "aln_util.h"
-extern void  read_parameter_file(const char fname[]);
-extern float energy_of_circ_struct(const char *seq, const char *structure);
+#include "RNAalifold_cmdl.h"
 
 /*@unused@*/
 static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
@@ -40,6 +39,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 #define MAX_NUM_NAMES    500
 int main(int argc, char *argv[])
 {
+  struct  gengetopt_args_info args_info;
   char *string;
   char *structure=NULL, *cstruc=NULL;
   char  ffname[20], gfname[20], fname[13]="";
@@ -61,117 +61,96 @@ int main(int argc, char *argv[])
   string=NULL;
   dangles=2;
   oldAliEn=0;
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') {
-      switch ( argv[i][1] )
-        {
-        case 'T':  if (argv[i][2]!='\0') usage();
-          if(i==argc-1) usage();
-          r=sscanf(argv[++i], "%lf", &temperature);
-          if (!r) usage();
-          break;
-        case 'p':  pf=1;
-          if (argv[i][2]!='\0')
-            (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-          break;
-        case 'n':
-          if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-          if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-          if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-          if ( strcmp(argv[i], "-nsp") ==0) {
-            if (i==argc-1) usage();
-            ns_bases = argv[++i];
-          }
-          if ( strcmp(argv[i], "-nc")==0) {
-            r=sscanf(argv[++i], "%lf", &nc_fact);
-            if (!r) usage();
-          }
-          break;
-        case 'o':
-          if ( strcmp(argv[i], "-old")==0) oldAliEn=1;
-          break;
-        case 'm':
-          if ( strcmp(argv[i], "-mis")==0) mis=1;
-          else usage();
-          break;
-        case '4':
-          tetra_loop=0;
-          break;
-        case 'e':
-          if(i==argc-1) usage();
-          r=sscanf(argv[++i],"%d", &energy_set);
-          if (!r) usage();
-          break;
-        case 'E':
-          endgaps=1;
-          break;
-        case 'C':
-          fold_constrained=1;
-          break;
-        case 'S':
-          if(i==argc-1) usage();
-          r=sscanf(argv[++i],"%lf", &sfact);
-          if (!r) usage();
-          break;
-        case 'd': dangles=0;
-          if (argv[i][2]!='\0') {
-            r=sscanf(argv[i]+2, "%d", &dangles);
-            if (r!=1) usage();
-          }
-          break;
-        case 'P':
-          if (i==argc-1) usage();
-          ParamFile = argv[++i];
-          break;
-        case 'c':
-          if ( strcmp(argv[i], "-cv")==0) {
-            r=sscanf(argv[++i], "%lf", &cv_fact);
-            if (!r) usage();
-          } else {
-            if (strcmp(argv[i], "-circ")==0)
-              circ=1;
-            else
-              if (strcmp(argv[i], "-color")==0)
-                doColor=1;
-          }
-          break;
-        case 'a':
-          if ( strcmp(argv[i], "-aln")==0) {
-            doAlnPS=1;
-          }
-          break;
-        case 'R':
-          if (i==argc-1) usage();
-          RibosumFile = argv[++i];
-          ribo=1;
-          break;
-         case 'r':
-          RibosumFile = NULL;
-          ribo=1;
-          break;
-        case 's':
-          if (argv[i][2]=='e') eval_energy = 1;
-          else if (argv[i][2]!='\0') usage();
-          if(i==argc-1) usage();
-          r= sscanf(argv[++i], "%d", &n_back);
-          if (!r) usage();
-          do_backtrack=0;
-          pf=1;
-          init_rand();
-          break;
-        default: usage();
-        }
-    }
-    else { /* doesn't start with '-' should be filename */
-      if (i!=argc-1) usage();
-      clust_file = fopen(argv[i], "r");
-      if (clust_file == NULL) {
-        fprintf(stderr, "can't open %s\n", argv[i]);
-        usage();
-      }
 
+  /*
+  #############################################
+  # check the command line prameters
+  #############################################
+  */
+  if(cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* structure constraint */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set pf scaling factor */
+  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  /* assume RNA sequence to be circular */
+  if(args_info.circ_given)        circ=1;
+  /* do not produce postscript output */
+  /* partition function settings */
+  if(args_info.partfunc_given){
+    pf = 1;
+    if(args_info.partfunc_arg != -1)
+      do_backtrack = args_info.partfunc_arg;
+  }
+  /* set cfactor */
+  if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
+  /* set nfactor */
+  if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
+
+  if(args_info.endgaps_given)     endgaps = 1;
+  
+  if(args_info.mis_given)         mis = 1;
+  
+  if(args_info.color_given)       doColor=1;
+  
+  if(args_info.aln_given)         doAlnPS=1;
+  
+  if(args_info.stochBT_given){
+    n_back = args_info.stochBT_arg;
+    do_backtrack = 0;
+    pf = 1;
+    init_rand();
+  }
+
+  if(args_info.stochBT_en_given){
+    n_back = args_info.stochBT_en_arg;
+    do_backtrack = 0;
+    pf = 1;
+    eval_energy = 1;
+    init_rand();
+  }
+
+  if(args_info.ribosum_file_given){
+    RibosumFile = strdup(args_info.ribosum_file_arg);
+    ribo = 1;
+  }
+
+  if(args_info.ribosum_scoring_given){
+    RibosumFile = NULL;
+    ribo = 1;
+  }
+
+  /* alignment file name given as unnamed option? */
+  if(args_info.inputs_num == 1){
+    clust_file = fopen(args_info.inputs[0], "r");
+    if (clust_file == NULL) {
+      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
     }
   }
+
+  if(args_info.old_given)         oldAliEn = 1;
+  
+  
+  /* free allocated memory of command line data structure */
+  cmdline_parser_free (&args_info);
 
   make_pair_matrix();
 
@@ -608,16 +587,4 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
       }
     }
   return cp;
-}
-
-/*-------------------------------------------------------------------------*/
-
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-          "RNAalifold [-cv float] [-nc float] [-E] [-mis] [-circ] [-a]\n"
-          "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-          "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-          "        [-gc]  [-O] [-s num] [-se num] [-R ribosumfile] [-r] [-old]"
-          );
 }
