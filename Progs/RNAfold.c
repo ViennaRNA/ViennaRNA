@@ -45,7 +45,7 @@ PRIVATE struct plist *make_plist(int length, double pmin);
 
 int main(int argc, char *argv[])
 {
-  struct  gengetopt_args_info args_info;
+  struct  RNAfold_args_info args_info;
   char    *string, *line, *structure=NULL, *cstruc=NULL;
   char    fname[13], ffname[20], gfname[20], *ParamFile=NULL;
   char    *ns_bases=NULL, *c;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   # check the command line prameters
   #############################################
   */
-  if(cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
   if(args_info.temp_given)        temperature = args_info.temp_arg;
   /* structure constraint */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   }
 
   /* free allocated memory of command line data structure */
-  cmdline_parser_free (&args_info);
+  RNAfold_cmdline_parser_free (&args_info);
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
   write_parameter_file("bla.par");

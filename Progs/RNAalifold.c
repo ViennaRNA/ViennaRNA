@@ -39,7 +39,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 #define MAX_NUM_NAMES    500
 int main(int argc, char *argv[])
 {
-  struct  gengetopt_args_info args_info;
+  struct  RNAalifold_args_info args_info;
   char *string;
   char *structure=NULL, *cstruc=NULL;
   char  ffname[20], gfname[20], fname[13]="";
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   # check the command line prameters
   #############################################
   */
-  if(cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  if(RNAalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
   if(args_info.temp_given)        temperature = args_info.temp_arg;
   /* structure constraint */
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
   
   
   /* free allocated memory of command line data structure */
-  cmdline_parser_free (&args_info);
+  RNAalifold_cmdline_parser_free (&args_info);
 
   make_pair_matrix();
 

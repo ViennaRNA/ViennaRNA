@@ -1,13 +1,15 @@
 # Name of your program
 package "RNAfold" # don't use package if you're using automake
 purpose "calculate secondary structures of RNAs"
+usage "RNAfold [options]\n"
 
 # Version of your program
-# version "2.0"   # don't use version if you're using automake
+#version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAfold_cmdl --include-getopt --default-optional"
+args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info --header-output-dir=../H"
+
 
 description "reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\
  and prints to stdout the mfe structure in bracket notation and its free energy. If the -p option\
@@ -25,12 +27,17 @@ description "reads RNA sequences from stdin, calculates their minimum free energ
  dot.ps. Existing files of the same name will be overwritten.\n\nThe input format is similar to fasta except\
  that even long sequences may not be interrupted by line breaks, and the header lines are optional.\nThe\
  program will continue to read new sequences until a line consisting of the single character @ or an end of\
- file condition is encountered."
+ file condition is encountered.\n"
 
 # Options
-option  "temp"            T "Rescale energy parameters to a temperature of temp C. Default is 37C." double
-option  "partfunc"        p "Calculate the partition function and base pairing probability matrix in\
- addition to the mfe structure. Default is calculation of mfe structure only. In addition to the MFE structure\
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+
+option  "partfunc"  p
+"Calculate the partition function and base pairing probability matrix in\
+ addition to the mfe structure. Default is calculation of mfe structure only.\n"
+details="In addition to the MFE structure\
  we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
  the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
  its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
@@ -45,18 +52,32 @@ option  "partfunc"        p "Calculate the partition function and base pairing p
  a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in addition to pair\
  probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the sequence does not\
  have a name), is produced that contains pair probabilities in the upper right half and stack probabilities in\
- the lower left." int default="-1"  argoptional optional
-option  "constraint"      C "Calculate structures subject to constraints.\nThe program reads first the\
+ the lower left.\n"
+int
+default="-1"
+argoptional
+optional
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
  sequence, then a string containing constraints on the structure encoded with the symbols:\n. (no constraint\
  for this base)\n| (the corresponding base has to be paired\nx (the base is unpaired)\n< (base i is paired with\
  a base j>i)\n> (base i is paired with a base j<i)\nand matching brackets ( ) (base i pairs base j)\nWith the\
  exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\"."  flag off
-option  "noTetra"         4 "Do not include special stabilizing energies for certain tetra-loops. Mostly for\
- testing." flag off
-option  "dangles"         d "How to treat \"dangling end\" energies for bases adjacent to helices in free ends\
- and multi-loops:\n\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
+ folding ignores constraints of type \"|\".\n"
+flag
+off
+
+option  "noTetra" 4
+"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
  default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
  dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
  default for partition function folding (-p).\n\n-d0 ignores dangling ends altogether (mostly for\
@@ -64,28 +85,61 @@ option  "dangles"         d "How to treat \"dangling end\" energies for bases ad
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model."  int default="1"  optional
-option  "noLP"            - "Produce structures without lonely pairs (helices of length 1). For partition\
- function folding this only disallows pairs that can only occur isolated. Other pairs may still occasionally\
- occur as helices of length 1."  flag  off
-option  "noGU"            - "Do not allow GU pairs" flag  off
-option  "noClosingGU"     - "Do not allow GU pairs at the end of helices" flag off
-option  "noconv"          - "Do not automatically substitude nucleotide \"T\" with \"U\""  flag  off
-option  "nsp"             - "Allow other pairs in addition to the usual AU,GC,and GU pairs.\nIts argument is\
- a comma separated list of additionally allowed pairs. If the first character is a \"-\" then AB will imply\
- that AB and BA are allowed pairs.\ne.g. RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are\
- given 0 stacking energy."  string optional
-option  "energyModel"     e "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs."  int optional
-option  "paramFile"       P "Read energy parameters from paramfile, instead of using the default parameter set.\
- A sample parameter file should accompany your distribution.\nSee the RNAlib documentation for details on the\
- file format." string typestr="paramfile" optional
-option  "pfScale"         S "In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ energy model.\n"
+int
+default="1"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"  flag  off
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+optional
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+int
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
  free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file)."  double
-option  "circ"            c "Assume a circular (instead of linear) RNA molecule."  flag  off
-option  "noPS"            - "Do not produce postscript drawing of the mfe structure."  flag  off
-option  "MEA"             - "Calculate the MEA structure" float default="1."  argoptional optional
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"  double
+option  "circ"            c "Assume a circular (instead of linear) RNA molecule.\n"  flag  off
+option  "noPS"            - "Do not produce postscript drawing of the mfe structure.\n"  flag  off
+option  "MEA"             - "Calculate the MEA structure\n" float default="1."  argoptional optional
 
 
 text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
@@ -100,7 +154,7 @@ text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structure
  and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
  pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\nI.L. Hofacker & P.F. Stadler (2006)\
  \"Memory Efficient Folding Algorithms for Circular RNA Secondary Structures\", Bioinformatics (2006)\n\nA.F. Bompfuenewerer,\
- R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations\ on {RNA} Folding and\
+ R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations on {RNA} Folding and\
  Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
  London\n\n"
 

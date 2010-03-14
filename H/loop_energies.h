@@ -355,13 +355,13 @@ INLINE  int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, i
   
   if(!dangles) return energy;
   
-  int ci = (i>=cut_point)||((i+1)<cut_point);
-  int cj = ((j-1)>=cut_point)||(j<cut_point);
-  int cp = ((p-1)>=cut_point)||(p<cut_point);
-  int cq = (q>=cut_point)||((q+1)<cut_point);
+  int ci = (i>=cutpoint)||((i+1)<cutpoint);
+  int cj = ((j-1)>=cutpoint)||(j<cutpoint);
+  int cp = ((p-1)>=cutpoint)||(p<cutpoint);
+  int cq = (q>=cutpoint)||((q+1)<cutpoint);
   
-  int d5    = cj  ? P->dangle5[type][sj1]   : 0;
   int d3    = ci  ? P->dangle3[type][si1]   : 0;
+  int d5    = cj  ? P->dangle5[type][sj1]   : 0;
   int d5_2  = cp  ? P->dangle5[type_2][sp1] : 0;
   int d3_2  = cq  ? P->dangle3[type_2][sq1] : 0;
 
@@ -371,17 +371,21 @@ INLINE  int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, i
   if(dangles == 2) return energy + tmm + tmm_2;
   
   /* now we may have non-double dangles only */
-  if(i+1 < p-1){
-    if(q+1 < j-1){ energy += tmm + tmm_2;}
-    else if(q+1 == j-1){ energy += (cj && cq) ? MIN2(tmm + d5_2, tmm_2 + d5) : tmm + tmm_2;}
+  if(i+2 < p){
+    if(q+2 < j){ energy += tmm + tmm_2;}
+    else if(q+2 == j){ energy += (cj && cq) ? MIN2(tmm + d5_2, tmm_2 + d3) : tmm + tmm_2;}
+    else energy += d3 + d5_2;
   }
-  else if(i+1 == p-1){
-    if(q+1 < j-1){ energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d3) : tmm + tmm_2;}
-    else if(q+1 == j-1){ energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d3) : MIN2(tmm + d5_2, tmm_2 + d5);}
+  else if(i+2 == p){
+    if(q+2 < j){ energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d5) : tmm + tmm_2;}
+    else if(q+2 == j){
+      energy += MIN2(tmm, MIN2(tmm_2, MIN2(d5 + d5_2, d3 + d3_2)));
+    }
+    else energy += MIN2(d3, d5_2);
   }
   else{
-    if(q+1 < j-1){ energy += d5 + d3_2;}
-    else if(q+1 == j-1){energy += MIN2(d5,d3_2);}
+    if(q+2 < j){ energy += d5 + d3_2;}
+    else if(q+2 == j){ energy += MIN2(d5, d3_2);}
   }
   return energy;
 }

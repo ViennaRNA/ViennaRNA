@@ -7,7 +7,7 @@ purpose "calculate secondary structures for a set of aligned RNAs"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAalifold_cmdl --include-getopt --default-optional --unamed-opts"
+args "--file-name=RNAalifold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAalifold_cmdline_parser --arg-struct-name=RNAalifold_args_info --header-output-dir=../H"
 
 description "reads aligned RNA sequences from stdin or file.aln and calculates\
  their minimum free energy (mfe) structure, partition function (pf) and base\
