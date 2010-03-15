@@ -64,26 +64,29 @@
 #include "params.h"
 #include "loop_energies.h"
 #include "part_func_co.h"
+
 /*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
+PRIVATE char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
 
-PUBLIC  cofoldF co_pf_fold(char *sequence, char *structure);
-PUBLIC  void  init_co_pf_fold(int length);
-PUBLIC  void  free_co_pf_arrays(void);
-PUBLIC  void  update_co_pf_params(int length);
-PUBLIC  char  co_bppm_symbol(float *x);
+#define ISOLATED  256.0
+#undef TURN
+#define TURN 0
+#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+/* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
+ */
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+int     mirnatog      = 0;
+double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 
-PUBLIC struct ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc);
-PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off);
-PUBLIC struct plist *get_mfe_plist(struct plist *pl);
-PUBLIC double F_monomer[2]; /* free energies of the two monomers */
-/* PUBLIC int make_probsum(int length, char *name); */
-PRIVATE double *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
-PRIVATE void  sprintf_bppm(int length, char *structure);
-PRIVATE void  scale_pf_params(unsigned int length);
-PRIVATE void  get_arrays(unsigned int length);
-PRIVATE void make_ptypes(const short *S, const char *structure);
-
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
 PRIVATE FLT_OR_DBL  *expMLbase;
 PRIVATE FLT_OR_DBL  *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
@@ -92,14 +95,32 @@ PRIVATE pf_paramT   *pf_params;
 PRIVATE char        *ptype; /* precomputed array of pair types */
 PRIVATE int         *jindx;
 PRIVATE int         init_length; /* length in last call to init_pf_fold() */
-PRIVATE short *S, *S1;
-#define ISOLATED  256.0
-#undef TURN
-#define TURN 0
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
-/* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
- */
-int mirnatog = 0;
+PRIVATE short       *S, *S1;
+PRIVATE char        *pstruc;
+PRIVATE char        *sequence;
+
+
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
+PRIVATE void    sprintf_bppm(int length, char *structure);
+PRIVATE void    scale_pf_params(unsigned int length);
+PRIVATE void    get_arrays(unsigned int length);
+PRIVATE void    make_ptypes(const short *S, const char *structure);
+PRIVATE void    backtrack(int i, int j);
+
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
+
 
 /*-----------------------------------------------------------------*/
 PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
@@ -136,7 +157,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
       qb[ij]=qm[ij]=0.0;
     }
 
-  for (i=1; i<=n; i++)
+  for (i=0; i<=n; i++)
     qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
@@ -193,13 +214,12 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
           else if (j==cut_point) temp=q[iindx[i+1]-(cut_point-1)]*scale[1];
           if (j>cut_point) temp*=scale[1];
           if (i<cut_point-1) temp*=scale[1];
-          temp *= exp_E_ExtLoop(tt, (SAME_STRAND(j-1,j)) ? S1[j-1] : -1, (SAME_STRAND(i,i+1)) ? S1[i+1] : -1, pf_params);
+          temp *= exp_E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, pf_params);
           qbt1+=temp;
-          }
+        }
         qb[ij] = qbt1;
       } /* end if (type!=0) */
       else qb[ij] = 0.0;
-
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment i,j */
@@ -262,7 +282,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   else Q = q[iindx[1]-n];
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
   /*probability of molecules being bound together*/
@@ -734,12 +754,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   returns random structure S with Boltzman probabilty
   p(S) = exp(-E(S)/kT)/Z
 */
-static void backtrack(int i, int j);
-
-static char *pstruc;
-static char *sequence;
-
-static void backtrack_qm1(int i,int j) {
+PRIVATE void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
@@ -755,7 +770,7 @@ static void backtrack_qm1(int i,int j) {
   backtrack(i,l);
 }
 
-static void backtrack(int i, int j) {
+PRIVATE void backtrack(int i, int j) {
   do {
     double r, qbt1;
     int k, l, type, u, u1;

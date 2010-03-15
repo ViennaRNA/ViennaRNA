@@ -256,7 +256,7 @@ INLINE  double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char 
 **/
 INLINE  double  exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P);
 INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
-#if 0
+#if 1
   int ul, us, no_close = 0;
   double z;
 
@@ -278,11 +278,10 @@ INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, sho
       }
       return z;
     }
-  }
-  else {                            /* interior loop */
-    if (us==1) {
-      if (ul==1)                    /* 1x1 loop */
+    else if (us==1) {
+      if (ul==1){                    /* 1x1 loop */
         return P->expint11[type][type2][si1][sj1];
+      }
       if (ul==2) {                  /* 2x1 loop */
         if (u1==1)
           return P->expint21[type][type2][si1][sq1][sj1];
@@ -329,18 +328,18 @@ INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, sho
     }
     else {     /* interior loop */
       if (u1+u2==2) /* size 2 is special */
-	z = P->expint11[type][type2][si1][sj1];
+	    z = P->expint11[type][type2][si1][sj1];
       else if ((u1==1) && (u2==2))
-	z = P->expint21[type][type2][si1][sq1][sj1];
+	    z = P->expint21[type][type2][si1][sq1][sj1];
       else if ((u1==2) && (u2==1))
-	z = P->expint21[type2][type][sq1][si1][sp1];
+	    z = P->expint21[type2][type][sq1][si1][sp1];
       else if ((u1==2) && (u2==2))
-	z = P->expint22[type][type2][si1][sp1][sq1][sj1];
+	    z = P->expint22[type][type2][si1][sp1][sq1][sj1];
       else {
-	z = P->expinternal[u1+u2]*
-	  P->expmismatchI[type][si1][sj1]*
-	  P->expmismatchI[type2][sq1][sp1];
-	z *= P->expninio[2][abs(u1-u2)];
+	    z = P->expinternal[u1+u2]*
+	        P->expmismatchI[type][si1][sj1]*
+	        P->expmismatchI[type2][sq1][sp1];
+	    z *= P->expninio[2][abs(u1-u2)];
       }
     }
   }

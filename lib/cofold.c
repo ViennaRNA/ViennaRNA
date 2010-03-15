@@ -55,27 +55,28 @@ static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $
 #################################
 */
 
-PRIVATE paramT *P = NULL;
-static float mfe1, mfe2; /* minimum free energies of the monomers */
+PRIVATE float   mfe1, mfe2; /* minimum free energies of the monomers */
+PRIVATE int     *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int     *c;       /* energy array, given that i-j pair */
+PRIVATE int     *cc;      /* linear array for calculating canonical structures */
+PRIVATE int     *cc1;     /*   "     "        */
+PRIVATE int     *f5;      /* energy of 5' end */
+PRIVATE int     *fc;      /* energy from i to cutpoint (and vice versa if i>cut) */
+PRIVATE int     *fML;     /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1;     /* second ML array, only for subopt */
+PRIVATE int     *Fmi;     /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int     *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE char    *ptype;   /* precomputed array of pair types */
+PRIVATE short   *S, *S1;
+PRIVATE paramT  *P          = NULL;
+PRIVATE int     init_length = -1;
+PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
+PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
+PRIVATE int     length;
 
-PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
-
-PRIVATE int   *c;       /* energy array, given that i-j pair */
-PRIVATE int   *cc;      /* linear array for calculating canonical structures */
-PRIVATE int   *cc1;     /*   "     "        */
-PRIVATE int   *f5;      /* energy of 5' end */
-PRIVATE int   *fc;      /* energy from i to cutpoint (and vice versa if i>cut) */
-PRIVATE int   *fML;     /* multi-loop auxiliary energy array */
-PRIVATE int   *fM1;     /* second ML array, only for subopt */
-PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char  *ptype;   /* precomputed array of pair types */
-PRIVATE short  *S, *S1;
-PRIVATE int   init_length=-1;
-PRIVATE int   zuker   = 0; /* Do Zuker style suboptimals? */
-PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /*
 #################################
@@ -271,16 +272,19 @@ PRIVATE int fill_arrays(const char *string) {
 
       if (type) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
+        short si, sj;
+        si  = SAME_STRAND(i, i+1) ? S1[i+1] : -1;
+        sj  = SAME_STRAND(j-1, j) ? S1[j-1] : -1;
         /* hairpin ----------------------------------------------*/
 
         if (SAME_STRAND(i,j)) {
           if (no_close) new_c = FORBIDDEN;
           else
-            new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
+            new_c = E_Hairpin(j-i-1, type, si, sj, string+i-1, P);
         }
         else {
           if (dangles)
-            new_c += E_ExtLoop(rtype[type], (SAME_STRAND(j-1,j)) ? S1[j-1] : -1, (SAME_STRAND(i,i+1)) ? S1[i+1] : -1, P);
+            new_c += E_ExtLoop(rtype[type], sj, si, P);
           else
             new_c += E_ExtLoop(rtype[type], -1, -1, P);
         }
@@ -303,9 +307,16 @@ PRIVATE int fill_arrays(const char *string) {
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
             if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
-              energy = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
+              energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
             else
-              energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangles, P);
+              energy = E_IntLoop_Co(rtype[type], rtype[type_2],
+                                    i, j, p, q,
+                                    cut_point,
+                                    si, sj,
+                                    S1[p-1], S1[q+1],
+                                    dangles,
+                                    P);
+
             new_c = MIN2(energy+c[indx[q]+p], new_c);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
@@ -317,37 +328,38 @@ PRIVATE int fill_arrays(const char *string) {
 
         if (!no_close) {
           int MLenergy;
-          if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
+          
+          if((si >= 0) && (sj >= 0)){
             decomp = DMLi1[j-1];
             tt = rtype[type];
             MLenergy = P->MLclosing;
-            if(dangles == 2){
-              MLenergy += decomp + E_MLstem(tt, S1[j-1], S1[i+1], P);  
+            switch(dangles){
+              case 0:   MLenergy += decomp + E_MLstem(tt, -1, -1, P);
+                        break;
+              case 2:   MLenergy += decomp + E_MLstem(tt, sj, si, P);
+                        break;
+              default:  decomp += E_MLstem(tt, -1, -1, P);
+                        decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, sj, -1, P) + P->MLbase);
+                        decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, si, P) + P->MLbase);
+                        decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, sj, si, P) + 2*P->MLbase);
+                        MLenergy += decomp;
+                        break;
             }
-            else if(dangles){
-              decomp += E_MLstem(tt, -1, -1, P);
-              decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
-              decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-              decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
-              MLenergy += decomp;
-            }
-            else MLenergy += decomp + E_MLstem(tt, -1, -1, P);
-          
             new_c = MIN2(new_c, MLenergy);
           }
 
           if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
-            tt = rtype[type];
             decomp = fc[i+1] + fc[j-1];
+            tt = rtype[type];
             switch(dangles){
               case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
                         break;
-              case 2:   decomp += E_ExtLoop(tt, SAME_STRAND(j-1, j) ? S1[j-1] : -1, SAME_STRAND(i, i+1) ? S1[i+1] : -1, P);
+              case 2:   decomp += E_ExtLoop(tt, sj, si, P);
                         break;
               default:  decomp += E_ExtLoop(tt, -1, -1, P);
-                        decomp = MIN2(decomp, fc[i+2] + fc[j-2] + E_ExtLoop(tt, SAME_STRAND(j-1, j) ? S1[j-1] : -1, SAME_STRAND(i, i+1) ? S1[i+1] : -1, P));
-                        decomp = MIN2(decomp, fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, SAME_STRAND(i, i+1) ? S1[i+1] : -1, P));
-                        decomp = MIN2(decomp, fc[i+1] + fc[j-2] + E_ExtLoop(tt, SAME_STRAND(j-1, j) ? S1[j-1] : -1, -1, P));
+                        decomp = MIN2(decomp, fc[i+2] + fc[j-2] + E_ExtLoop(tt, sj, si, P));
+                        decomp = MIN2(decomp, fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, si, P));
+                        decomp = MIN2(decomp, fc[i+1] + fc[j-2] + E_ExtLoop(tt, sj, -1, P));
                         break;
             }
             new_c = MIN2(new_c, decomp);
@@ -375,11 +387,12 @@ PRIVATE int fill_arrays(const char *string) {
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c + bonus;
-        if (noLonelyPairs)
+        if (noLonelyPairs){
           if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
             c[ij] = cc1[j-1]+stackEnergy+bonus;
           else /* currently we don't allow stacking over the cut point */
             c[ij] = FORBIDDEN;
+        }
         else
           c[ij] = cc[j];
 
@@ -505,8 +518,6 @@ PRIVATE int fill_arrays(const char *string) {
   if (cut_point<1) mfe1=mfe2=energy;
   return energy;
 }
-
-static sect sector[MAXSECTORS];   /* stack for backtracking */
 
 PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new structure, b \ne 0: add to existing structure */) {
 
@@ -1010,66 +1021,29 @@ PRIVATE void free_end(int *array, int i, int start) {
   } else {
     left = i; right = start;
   }
+
   for (j=start; inc*(i-j)>TURN; j+=inc) {
     int d3, d5, ii, jj;
+    short si, sj;
     if (i>j) { ii = j; jj = i;} /* inc>0 */
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
     if (type) {  /* i is paired with j */
-#if 0
-     d5 = (ii>1 && SAME_STRAND(ii-1,ii))? P->dangle5[type][S1[ii-1]]:0;
-     d3 = (jj<length && SAME_STRAND(jj,jj+1))?P->dangle3[type][S1[jj+1]]:0;
-
-     energy = c[indx[jj]+ii];
-     if (type>2) energy += P->TerminalAU;
-     if (dangles==2) energy += d3 + d5;
-     array[i] = MIN2(array[i], array[j-inc]+energy);
-
-     if (dangles%2==1) {
-       if (inc>0) {
-         if (j>left)  energy += array[j-2] + d5;
-       } else
-         if (j<right)  energy += d3 + array[j+2];
-       array[i] = MIN2(array[i], energy);
-     }
-#else
+      si = (ii>1)       && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
+      sj = (jj<length)  && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-      if(dangles == 2){
-        array[i] = MIN2(
-                        array[i],
-                        array[j-inc]
-                        + energy
-                        + E_ExtLoop(type, (ii>1 && SAME_STRAND(ii-1,ii)) ? S1[ii-1] : -1, (jj<length && SAME_STRAND(jj,jj+1)) ? S1[jj+1] : -1, P)
-                        );
+      switch(dangles){
+        case 0:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+                  break;
+        case 2:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
+                  break;
+        default:  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+                  if((inc > 0) && (j > left))
+                    array[i] = MIN2(array[i], array[j-2] + energy + E_ExtLoop(type, si, -1, P));
+                  else if(j < right)
+                    array[i] = MIN2(array[i], array[j+2] + energy + E_ExtLoop(type, -1, sj, P));
+                  break;
       }
-      else{
-        array[i] = MIN2( array[i],
-                      array[j-inc]
-                      + energy
-                      + E_ExtLoop(type, -1, -1, P)
-                    );
-      }
-      if(dangles % 2 == 1){
-        if(inc > 0){
-          if(j > left)
-            array[i] = MIN2(
-                            array[i],
-                            array[j-2]
-                            + energy
-                            + E_ExtLoop(type, (ii>1 && SAME_STRAND(ii-1,ii)) ? S1[ii-1] : -1, -1, P)
-                            );
-        }
-        else{
-          if(j < right)
-            array[i] = MIN2(
-                            array[i],
-                            array[j+2]
-                            + energy
-                            + E_ExtLoop(type, -1, (jj<length && SAME_STRAND(jj,jj+1)) ? S1[jj+1] : -1, P)
-                            );
-        }
-      }
-#endif
     }
     if (dangles%2==1) {
       /* interval ends in a dangle (i.e. i-inc is paired) */
@@ -1077,43 +1051,19 @@ PRIVATE void free_end(int *array, int i, int start) {
       else     { ii = i+1; jj = j;} /* inc<0 */
       type = ptype[indx[jj]+ii];
       if (!type) continue;
-#if 0
-     d5 = (ii>left && SAME_STRAND(ii-1,ii)) ? P->dangle5[type][S1[ii-1]] : 0;
-     d3 = (jj<right && SAME_STRAND(jj,jj+1))? P->dangle3[type][S1[jj+1]] : 0;
-     energy = c[indx[jj]+ii] + ((inc>0)?d3:d5); /* i is a dangle */
-     if (type>2) energy += P->TerminalAU;
-     array[i] = MIN2(array[i], array[j-inc]+energy);
-     if (j!=start) { /* dangles on both sides */
-       energy += (inc>0)?d5:d3;
-       array[i] = MIN2(array[i], array[j-2*inc]+energy);
-     }
-#else
+      
+      si = (ii > left)  && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
+      sj = (jj < right) && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
       if(inc>0)
-        array[i] = MIN2(
-                        array[i],
-                        array[j-inc]
-                        + energy
-                        + E_ExtLoop(type, -1, (jj < right && SAME_STRAND(jj,jj+1)) ? S1[jj+1] : -1, P)
-                        );
+        array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, -1, sj, P));
       else
-        array[i] = MIN2(
-                        array[i],
-                        array[j-inc]
-                        + energy
-                        + E_ExtLoop(type, (ii>left && SAME_STRAND(ii-1,ii)) ? S1[ii-1] : -1, -1, P)
-                        );
+        array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, si, -1, P));
       if(j!= start){ /* dangles on both sides */
-        array[i] = MIN2(
-                        array[i],
-                        array[j-2*inc]
-                        + energy
-                        + E_ExtLoop(type, (ii>left && SAME_STRAND(ii-1,ii)) ? S1[ii-1] : -1, (jj<right && SAME_STRAND(jj,jj+1)) ? S1[jj+1] : -1, P)
-                        );
+        array[i] = MIN2(array[i], array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P));
       }
-#endif
-   }
- }
+    }
+  }
 }
 
 
@@ -1269,8 +1219,7 @@ PRIVATE void backtrack(const char *sequence) {
   return;
 }
 
-static int length;
-static comp_pair(const void *A, const void *B) {
+PRIVATE comp_pair(const void *A, const void *B) {
   bondT *x,*y;
   int ex, ey;
   x = (bondT *) A;
