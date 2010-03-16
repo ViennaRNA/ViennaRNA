@@ -75,20 +75,18 @@ static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Ex
 
 #define ISOLATED  256.0
 
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 PUBLIC  int     st_back=0;
 
-PRIVATE void  sprintf_bppm(int length, char *structure);
-PRIVATE void  scale_pf_params(unsigned int length);
-PRIVATE void  get_arrays(unsigned int length);
-PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  pf_circ(char *sequence, char *structure);
-PRIVATE void  pf_linear(char *sequence, char *structure);
-PRIVATE void  pf_create_bppm(char *sequence, char *structure);
-PRIVATE void  backtrack(int i, int j);
-PRIVATE void  backtrack_qm(int i, int j);
-PRIVATE void  backtrack_qm1(int i,int j);
-PRIVATE void  backtrack_qm2(int u, int n);
-
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
 PRIVATE FLT_OR_DBL  *q, *qb=NULL, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL  *scale;
@@ -104,14 +102,36 @@ PRIVATE char        *ptype;       /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params;   /* the precomputed Boltzmann weights */
 PRIVATE short       *S, *S1;
 
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE void  sprintf_bppm(int length, char *structure);
+PRIVATE void  scale_pf_params(unsigned int length);
+PRIVATE void  get_arrays(unsigned int length);
+PRIVATE void  make_ptypes(const short *S, const char *structure);
+PRIVATE void  pf_circ(char *sequence, char *structure);
+PRIVATE void  pf_linear(char *sequence, char *structure);
+PRIVATE void  pf_create_bppm(char *sequence, char *structure);
+PRIVATE void  backtrack(int i, int j);
+PRIVATE void  backtrack_qm(int i, int j);
+PRIVATE void  backtrack_qm1(int i,int j);
+PRIVATE void  backtrack_qm2(int u, int n);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(char *sequence, char *structure)
 {
 
-  FLT_OR_DBL Q;
-
-  double free_energy;
-  int n = (int) strlen(sequence);
+  FLT_OR_DBL  Q;
+  double      free_energy;
+  int         n = (int) strlen(sequence);
 
   circ = 0;
 

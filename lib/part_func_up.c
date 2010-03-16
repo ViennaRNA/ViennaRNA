@@ -75,52 +75,25 @@ static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo 
 #define CO_TURN 0
 #define ZERO(A) (fabs(A) < DBL_EPSILON)
 #define EQUAL(A,B) (fabs((A)-(B)) < 1000*DBL_EPSILON)
-#define BLA 0
-/* #define PF2_DEBUG 1 *//* tests for prop_unpaired */
+#define ISOLATED  256.0
 /* #define NUMERIC 1 */
 
-PUBLIC pu_contrib *pf_unstru(char *sequence, int w);
-PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, char *cstruc, int incr3, int incr5);
-/* free_pf_two: first argument output of pf_unstru() !!!! */ 
-/* PUBLIC  void free_pf_two(pu_contrib *p_con, double **p_in); */
-PUBLIC void free_pu_contrib(pu_contrib *p_con);
-PUBLIC void free_interact(interact *pin);
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
-PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head);
-
-
-
-typedef struct pu_out { /* collect all free_energy of beeing unpaired
-                           values for output */
-  int len;        /* sequence length */
-  int u_vals;     /* number of different -u values */
-  int contribs;   /* [-c "SHIME"] */
-  char **header;  /* header line */
-  double **u_values; /* (differnet -u values * [-c "SHIME"]) * seq len */
-} pu_out;
-
-PRIVATE pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
-PRIVATE int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
-
-typedef struct constrain { /* constrains for cofolding */
-  int *indx;
-  char *ptype;
-} constrain;
-PRIVATE void scale_stru_pf_params(unsigned int length);
-PRIVATE void free_pf_unstru(void);
-PRIVATE void  init_pf_two(int length);
-/* allocate free space for pf_unpaired() and pf_up() */
-PRIVATE void scale_int(const char *s, const char *sl,double *sc_int,int incr3, int incr5);
-PRIVATE void get_unpaired(int length);
-PRIVATE void free_unpaired(void);
-PRIVATE void encode_seq(const char *s1, const char *s2);
-PRIVATE constrain *get_ptypes(char *S, const char *structure);
-
-PRIVATE pf_paramT *Pf = NULL;/* use this structure for all the exp-arrays*/
-PRIVATE FLT_OR_DBL *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
-PRIVATE FLT_OR_DBL *q1k, *qln;
-PRIVATE double *qqm2, *qq_1m2, *qqm, *qqm1;
-
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE short       *S, *S1, *SS, *SS2;
+PRIVATE pf_paramT   *Pf = NULL;/* use this structure for all the exp-arrays*/
+PRIVATE FLT_OR_DBL  *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
+PRIVATE FLT_OR_DBL  *q1k, *qln;
+PRIVATE double      *qqm2, *qq_1m2, *qqm, *qqm1;
 PRIVATE FLT_OR_DBL  *scale, *expMLbase;
 PRIVATE char        *ptype; /* precomputed array of pair types */ 
 PRIVATE int         init_length;  /* length in last call to init_pf_fold()*/
@@ -128,65 +101,61 @@ PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 /* make iptypes array for intermolecular constrains (ipidx for indexing)*/
 
 
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE pu_out    *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
+PRIVATE int       plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
+PRIVATE void      scale_stru_pf_params(unsigned int length);
+PRIVATE void      free_pf_unstru(void);
+PRIVATE void      init_pf_two(int length);
+PRIVATE void      scale_int(const char *s, const char *sl,double *sc_int,int incr3, int incr5);
+PRIVATE void      get_unpaired(int length);
+PRIVATE void      free_unpaired(void);
+PRIVATE void      encode_seq(const char *s1, const char *s2);
+PRIVATE constrain *get_ptypes(char *S, const char *structure);
 
-#define ISOLATED  256.0
 
-/*-----------------------------------------------------------------*/
-PRIVATE short *S, *S1, *SS, *SS2;
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
 /* you have to call pf_fold(sequence, structure); befor pf_unstru */
 PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 {
-  int n, i,j,v,k,l, ij, kl, u,u1,d,type, type_2, tt, uu;
-  int o,p,po;
-  unsigned int size, nu;
-  double temp, tqm2, bla; 
-  double qbt1, *tmp, Zuij, sum_l;
-  double *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
-  double *store_M_qm_o,*store_M_mlbase;/* multiloop contributions */
-  pu_contrib *pu_test;
-#ifdef PF2_DEBUG  
-  pu_contrib *pu_stru;
-  FLT_OR_DBL *puij;
-#endif
-  FLT_OR_DBL  expMLclosing = Pf->expMLclosing;
-  sum_l=0.0; 
-  temp=0;
-  n = (int) strlen(sequence);
-  double sum_M[n+1];
+  int           n, i, j, v, k, l, o, p, ij, kl, po, u, u1, d, type, type_2, tt, uu;
+  unsigned int  size, nu;
+  double        temp, tqm2, bla; 
+  double        qbt1, *tmp, Zuij, sum_l, *sum_M;
+  double        *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
+  double        *store_M_qm_o,*store_M_mlbase;    /* multiloop contributions */
+  pu_contrib    *pu_test;
+
+  sum_l           = 0.0;
+  temp            = 0;
+  n               = (int) strlen(sequence);
+  sum_M           = (double *)  space((n+1) * sizeof(double));
+  size            = sizeof(double *) * (n+1);
+
+  pu_test         = (pu_contrib *) space(sizeof(pu_contrib));
+  pu_test->length = n;
+  pu_test->w      = w; /* consider also incr values if comparing to int *u_vals */
+
   /* contributions to probability of being unpaired witihin a(n)
      H hairpin,
      I interior loop,
      M muliloop,
      E exterior loop*/
-  size = sizeof(double *) * (n+1);
-#ifdef PF2_DEBUG
-  size = sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2); 
-  puij = (FLT_OR_DBL *) space(size);
-  size = sizeof(double *) * (n+1);
-  pu_stru = (pu_contrib *) space (sizeof(pu_contrib)*1);
-  pu_stru->length=n;
-  /* pu_stru->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
-  pu_stru->H = (double **) space(size);
-  pu_stru->I = (double **) space(size);
-  pu_stru->M = (double **) space(size);
-  pu_stru->E = (double **) space(size);
-  for(i=0;i<=n;i++){
-    pu_stru->H[i] = (double *) space(sizeof(double)*(w+1));
-    pu_stru->I[i] = (double *) space(sizeof(double)*(w+1));
-    pu_stru->M[i] = (double *) space(sizeof(double)*(w+1));
-    pu_stru->E[i] = (double *) space(sizeof(double)*(w+1));
-  }
-#endif
-
-  pu_test = (pu_contrib *) space (sizeof(pu_contrib)*1);
-  pu_test->length=n;
-  pu_test->w=w; /* consider also incr values if comparing to int *u_vals */
   /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
-  pu_test->H = (double **) space(size);
-  pu_test->I = (double **) space(size);
-  pu_test->M = (double **) space(size);
-  pu_test->E = (double **) space(size);
-  
+  pu_test->H      = (double **) space(sizeof(double *) * (n+1));
+  pu_test->I      = (double **) space(sizeof(double *) * (n+1));
+  pu_test->M      = (double **) space(sizeof(double *) * (n+1));
+  pu_test->E      = (double **) space(sizeof(double *) * (n+1));
   for(i=0;i<=n;i++){
     pu_test->H[i] = (double *) space(sizeof(double)*(w+1));
     pu_test->I[i] = (double *) space(sizeof(double)*(w+1));
@@ -200,13 +169,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = iindx[i]-j;
-#ifdef PF2_DEBUG      
-      puij[ij]=0.0;
-#endif      
       if(d < w) {
-#ifdef PF2_DEBUG        
-        pu_stru->H[i][d]=pu_stru->I[i][d]=pu_stru->M[i][d]=pu_stru->E[i][d]=0.;
-#endif
         pu_test->H[i][d]=pu_test->I[i][d]=pu_test->M[i][d]=pu_test->E[i][d]=0.;
       }
     }
@@ -261,17 +224,6 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
         }
         /* all H contribs are collect for the longest unpaired region */ 
         store_H[p+1]=temp;
-#ifdef PF2_DEBUG
-        for(i=p+1; i<=o-1;i++) {  
-          /* longest unpaired region */
-          for(j=i; j < MIN2(i+w,o); j++) {
-            ij=iindx[i]-j;
-            puij[ij]+= temp;
-            pu_stru->H[i][j-i]+=temp;
-          }
-        }
-#endif          
-
 
         /* interior loops with interior pair k,l and an unpaired region of
          length w between p and k || l and o*/        
@@ -296,24 +248,6 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
                 store_Io[l+1] += temp; /* unpaired region between ]l,o[ */
               }
               sum_l += temp;
-#ifdef PF2_DEBUG             
-              /* unpaired in region ]p,k[ p < i < i+w-1 < k*/
-              for (i=p+1; i <= k-1; i++ ){
-                for (j=i; j < MIN2(i+w,k); j++ ){
-                  ij=iindx[i]-j; puij[ij]+=temp;
-                  /* don't use this to test ]l,o[ contribution */
-                  pu_stru->I[i][j-i]+=temp;
-                }
-              }
-              /* unpaired in region ]l,o[, l < i < i+w-1 < o*/
-              for (i=l+1; i <= o-1; i++){
-                for (j=i; j < MIN2(i+w,o); j++ ){
-                  ij=iindx[i]-j; puij[ij]+=temp;
-                  /* don't use this to test ]p,k[ contribution */
-                  pu_stru->I[i][j-i]+=temp;
-                }
-              }
-#endif
             } /* end of if pair(k,l) */
           } /* end of l */
           /* unpaired in region ]p,k[  */
@@ -353,7 +287,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
         /* revers dangles for prpr[po]*... */
         temp=0.; 
         tt=rtype[type];
-        temp = prpr[po]*exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * expMLclosing;
+        temp = prpr[po]*exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * Pf->expMLclosing;
       }
       tqm2=0.;
       
@@ -370,29 +304,6 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
           /*structured region qm[p1i] left of unpaired region */
           /* contribition for unpaired region is added after the p-loop */
           store_M_qm_o[i] += qm[p1i] * temp;
-
-#ifdef PF2_DEBUG          
-          for(j=i; j< MIN2(i+w,o);j++) {            
-            double temp2;
-            int iwo;
-            temp2=0;
-            ij=iindx[i]-j;
-            /* iindx[x] - y : x <= y */
-            p1i = (p+1) < (i-1) ? iindx[p+1]-(i-1) : 0;
-            iwo = (j+1) < (o-1) ? iindx[j+1]-(o-1) : 0; 
-
-            /* w unpaired bases left of structured region */
-            temp2 = expMLbase[j-p]*qq_1m2[j+1];
-            
-            /* w unpaired bases between structured region */
-            temp2 += qm[p1i]*expMLbase[j-i+1]*qm[iwo]; 
-            
-            /* multiply with revers dangles for prpr[po]... */
-            temp2 *= temp;
-            puij[ij]+=temp2;
-            pu_stru->M[i][j-i]+=temp2;
-          } /* end of j ...  */
-#endif
         }
       }/*end of for i ... */
       /* qqm2[p] contrib with at least 2 loops in region (p,o) */ 
@@ -485,7 +396,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
         /* revers dangles for prpr[po]...  */
         temp=0.;
         tt=rtype[type];
-        temp = prpr[po]*exp_E_MLstem(tt, S1[p-1], S1[o+1], Pf) * expMLclosing * scale[2];
+        temp = prpr[po]*exp_E_MLstem(tt, S1[p-1], S1[o+1], Pf) * Pf->expMLclosing * scale[2];
       }
       tqm2=0.;
       for(i=o+1; i < p; i++) {
@@ -498,17 +409,6 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
           /* structured region qq_1m2[i-1] left of unpaired r. expMLbase[p-i]*/
           /* @expMLbase:  note distance of p-i == p+1-i+1 */
            store_M_mlbase[iindx[i]-p+1] +=  qq_1m2[i-1]*expMLbase[p-i]*temp;
-#ifdef PF2_DEBUG 
-          /* w unpaired bases right of structured region */
-          temp2 = qq_1m2[i-1]*expMLbase[p-i];
-          /* multiply with revers dangles for prpr[po]*... */
-          temp2 *= temp;          
-          for (j=i; j<MIN2(i+w,p);j++) {
-            ij=iindx[i]-j;
-            puij[ij]+=temp2;
-            pu_stru->M[i][j-i]+=temp2;
-          }
-#endif
         }
       }/*end of for i ....*/
       qqm2[p]=tqm2;
@@ -537,113 +437,11 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
     for(j=i; j<MIN2(i+w,n+1);j++){
       ij=iindx[i]-j;
       temp=q1k[i-1]*1*scale[j-i+1]*qln[j+1]/q1k[n];
-#ifdef PF2_DEBUG      
-      puij[ij]+=temp;
-      pu_stru->E[i][j-i]+=temp;
-      Zuij+=puij[ij];/* partition function over all contributions to puij*/
-#endif      
       pu_test->E[i][j-i]+=temp;
       
     }
-#ifdef PF2_DEBUG    
-    bla+=puij[ij];
-#endif
   }
   
-#ifdef PF2_DEBUG
-  /* different tests */
-  printf("pf_unpaired Zuij=%.3f   Z=%.3f\n",Zuij,q1k[n]); 
-  /* test if puij[iindx[i]-i] == 1 - p_paired von [i],
-     where p_paired von [i] = sum_i pr[ij oder ji]*/
-  double bla_pf;
-  for (i=1; i<=n; i++) {
-    uu=iindx[i]-i;
-    bla=puij[uu];
-    bla_pf=.0;
-    for(j=1; j<=n;j++){
-      if(i < j)        {
-        ij=iindx[i]-j;
-      }
-      else if( i > j){
-        ij=iindx[j]-i;
-      }
-      else{
-        continue;
-      }        
-      bla_pf+=pr[ij];
-    }
-    /* printf("%3d p_unstru[i]: %12.9f\t1-p_paired[i]: %12.9f\n",i,bla,(1-bla_pf)); */
-  }
-
-  
-  /* check if pu_stru->H[ij]+pu_stru->I[ij]+pu_stru->M[ij]+pu_stru->E[ij] == puij[ij]  */
-  for (i=1; i<n; i++) {
-    for (j=i; j < MIN2((i+w),n); j++) {
-      int u_len;
-      double sum_stru,sum_test,dG_us,dG_ut;
-      /*get the free energy of opening region [i,j] - that is free energy necessary to remove all structures from region [i,j]*/
-      ij = iindx[i]-j;
-      sum_stru = pu_stru->H[i][j-i]+pu_stru->I[i][j-i]+pu_stru->M[i][j-i]+pu_stru->E[i][j-i];
-      sum_test = pu_test->H[i][j-i]+pu_test->I[i][j-i]+pu_test->M[i][j-i]+pu_test->E[i][j-i];
-      /* hairpin only */
-      /* sum_stru = pu_stru->H[i][j-i]; */
-/*       sum_test = pu_test->H[i][j-i]; */
-      /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*kT/1000.0;
-      dG_ut = -log(sum_test)*kT/1000.0;
-      if(!EQUAL(dG_us,dG_ut)) {
-        printf("i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
-      }
-#ifdef NUMERIC
-      /* check different contributions to pr_unpaired */
-      /* hairpin only */
-      sum_stru = pu_stru->H[i][j-i];
-      sum_test = pu_test->H[i][j-i];
-      /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*kT/1000.0;
-      dG_ut = -log(sum_test)*kT/1000.0;
-      if(!EQUAL(dG_us,dG_ut)) {
-        printf("hair: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
-      }
-      /* intr only */
-      sum_stru = pu_stru->I[i][j-i];
-      sum_test = pu_test->I[i][j-i];
-      
-      /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*kT/1000.0;
-      dG_ut = -log(sum_test)*kT/1000.0;
-      if(!EQUAL(dG_us,dG_ut)) {
-        printf("intr: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
-      }
-      /* multi only */
-      sum_stru = pu_stru->M[i][j-i];
-      sum_test = pu_test->M[i][j-i];
-      
-      /* get free energy nessesary remove all structures from region [i,j]*/
-      dG_us = -log(sum_stru)*kT/1000.0;
-      dG_ut = -log(sum_test)*kT/1000.0;
-      if(!EQUAL(dG_us,dG_ut)) {
-        printf("mult: i=%d, j=%d\ndG_us =%.18f\ndG_ut =%.18f\n",i,j,dG_us,dG_ut);
-      }
-      
-#endif
-      /* print long double: %.18Lf */
-    }
-  }
-  puij[0]=Zuij;
-  free(puij);
-  for(i=0;i<=n;i++){
-    free(pu_stru->H[i]);
-    free(pu_stru->I[i]);
-    free(pu_stru->M[i]);
-    free(pu_stru->E[i]);
-  }
-  free(pu_stru->H);
-  free(pu_stru->I);
-  free(pu_stru->M);
-  free(pu_stru->E);
-  free(pu_stru);
-#endif
   free_pf_unstru();
   return pu_test;  
 }
@@ -651,9 +449,6 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 /* s1 is the longer seq */
 PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, char *cstruc, int incr3, int incr5)
 {
-  FLT_OR_DBL  expMLclosing      = Pf->expMLclosing;
-  FLT_OR_DBL  expDuplexInit     = Pf->expDuplexInit;
-  double      kT                = Pf->kT;
   int i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
   double temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
   FLT_OR_DBL ****qint_4, **qint_ik;
@@ -731,7 +526,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   Z_int=0.;
   /*  Gint = ( -log(int_ik[gk][gi])-( ((int) w/2)*log(pf_scale)) )*((Pf->temperature+K0)*GASCONST/1000.0); */
   const_scale = ((int) w/2)*log(pf_scale);
-  const_T = (kT/1000.0); 
+  const_T = (Pf->kT/1000.0); 
   encode_seq(s1, s2);
   /* static  short *S~S1, *S1~SS1, *SS~S2, *SS2; */
   for (i=0; i<=n1; i++) {
@@ -813,7 +608,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       /* interaction has to include 3' most '|' constrain, cl*/ 
       if(fold_constrained && pos && cl && j < cl-w+1) break;
       type = cc->ptype[cc->indx[i]-(n1+j)];
-      qint_4[i][j][0][0] = type ? expDuplexInit : 0;
+      qint_4[i][j][0][0] = type ? Pf->expDuplexInit : 0;
 
       if (!type) continue;
       qint_4[i][j][0][0] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, Pf);
@@ -985,7 +780,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
         /* Int->Gi[l]: minimal delta G at position [l] */
         Int->Gi[l]=MIN2(Int->Gi[l],
                        ( -log(qint_ik[i][k])-( ((int) w/2)*log(pf_scale)) )*
-                       (kT/1000.0) );
+                       (Pf->kT/1000.0) );
       }
     }
   }  

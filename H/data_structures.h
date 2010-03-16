@@ -228,4 +228,47 @@ typedef struct path {
   char *s;
 } path_t;
 
+/*
+* ############################################################
+* RNAup data structures
+* ############################################################
+*/
+typedef struct pu_contrib { /* contributions to prob_unpaired in */
+  double **H; /* hairpin loops */
+  double **I; /* interior loops */
+  double **M; /* multi loops */
+  double **E; /* exterior loop */
+  int length; /* length of the input sequence */
+  int w;      /* longest unpaired region */
+} pu_contrib;
+
+typedef struct interact { /* contributions to prob_unpaired in */
+  double *Pi; /* probabilities of interaction */
+  double *Gi; /* free energies of interaction */
+  double Gikjl; /* full free energy for interaction between [k,i] k<i
+                   in longer seq and [j,l] j<l in shorter seq */
+  double Gikjl_wo; /* Gikjl without contributions for prob_unpaired */
+  int i; /* k<i in longer seq */
+  int k; /* k<i in longer seq */
+  int j; /*j<l in shorter seq */
+  int l; /*j<l in shorter seq */
+  int length; /* length of longer sequence */  
+} interact;
+
+typedef struct pu_out { /* collect all free_energy of beeing unpaired
+                           values for output */
+  int len;        /* sequence length */
+  int u_vals;     /* number of different -u values */
+  int contribs;   /* [-c "SHIME"] */
+  char **header;  /* header line */
+  double **u_values; /* (differnet -u values * [-c "SHIME"]) * seq len */
+} pu_out;
+
+typedef struct constrain { /* constrains for cofolding */
+  int *indx;
+  char *ptype;
+} constrain;
+
+
+
 #endif

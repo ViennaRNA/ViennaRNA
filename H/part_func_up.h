@@ -1,27 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
 
-typedef struct pu_contrib { /* contributions to prob_unpaired in */
-  double **H; /* hairpin loops */
-  double **I; /* interior loops */
-  double **M; /* multi loops */
-  double **E; /* exterior loop */
-  int length; /* length of the input sequence */
-  int w;      /* longest unpaired region */
-} pu_contrib;
-
-typedef struct interact { /* contributions to prob_unpaired in */
-  double *Pi; /* probabilities of interaction */
-  double *Gi; /* free energies of interaction */
-  double Gikjl; /* full free energy for interaction between [k,i] k<i
-		   in longer seq and [j,l] j<l in shorter seq */
-  double Gikjl_wo; /* Gikjl without contributions for prob_unpaired */
-  int i; /* k<i in longer seq */
-  int k; /* k<i in longer seq */
-  int j; /*j<l in shorter seq */
-  int l; /*j<l in shorter seq */
-  int length; /* length of longer sequence */  
-} interact;
+#include "data_structures.h"
 
 /* prob of unpaired region of length w */
 pu_contrib *pf_unstru(char *sequence, int max_w);

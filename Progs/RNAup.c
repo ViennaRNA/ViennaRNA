@@ -23,9 +23,6 @@
 #include "duplex.h"
 #include "energy_const.h"
 
-extern void  read_parameter_file(const char fname[]);
-
-
 /*@unused@*/
 static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 
@@ -33,13 +30,14 @@ static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define EQUAL(A,B) (fabs((A)-(B)) < 1000*DBL_EPSILON)
-PRIVATE void tokenize(char *line, char **seq1, char **seq2);
-PRIVATE char *tokenize_one(char *line);
-PRIVATE int comp_nums(const int *num1, const int *num2);
-PRIVATE int get_u_values(char unstrs[], int **u_vals, int l1);
-PRIVATE void seperate_bp(char **inter,int len1,char **intra_l,char **intra_s);
-PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr3, int incr5);
-PRIVATE void print_unstru(pu_contrib *p_c, int w);
+
+PRIVATE void    tokenize(char *line, char **seq1, char **seq2);
+PRIVATE char    *tokenize_one(char *line);
+PRIVATE int     comp_nums(const int *num1, const int *num2);
+PRIVATE int     get_u_values(char unstrs[], int **u_vals, int l1);
+PRIVATE void    seperate_bp(char **inter,int len1,char **intra_l,char **intra_s);
+PRIVATE void    print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr3, int incr5);
+PRIVATE void    print_unstru(pu_contrib *p_c, int w);
 
 static char  scale1[] = "....,....1....,....2....,....3....,....4";
 static char  scale2[] = "....,....5....,....6....,....7....,....8";
@@ -75,7 +73,7 @@ int main(int argc, char *argv[])
   int incr5;   /* add x unpaired bases after 5'end of short RNA*/
   int unstr;   /* length of unpaired region for output*/
   int upmode ; /* 1 compute only pf_unpaired, >1 compute interactions 
-		  2 compute intra-molecular structure only for long RNA, 3 both RNAs */
+                  2 compute intra-molecular structure only for long RNA, 3 both RNAs */
   int task;    /* input mode for calculation of interaction */
   /* default settings for RNAup */
   head = NULL;/* header text - if header wanted, see header */
@@ -84,8 +82,8 @@ int main(int argc, char *argv[])
   Switch = 1; /* the longer sequence is selected as the target */
   task=0;
   upmode = 1; /* default is one sequence, option -X[p|f] has to be set
-		 for the calculation of an interaction, if no "&" is in
-		 the sequence string  */
+                 for the calculation of an interaction, if no "&" is in
+                 the sequence string  */
   unstrs[0]='\0';
   default_u = 4;
   unstr=default_u;
@@ -118,117 +116,117 @@ int main(int argc, char *argv[])
   for (i=1; i<argc; i++) {
     if (argv[i][0]=='-') 
       switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'w':
-	  /* -w maximal length of unstructured region */  
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &w);
-	  if (!r) usage();
-	  break;
-	case 't':
-	  /* use the first sequence as the target */
-	  if ( strcmp(argv[i], "-target")==0) {
-	    Switch=0;
-	  }
-	  break;
-	case 'o':
-	  /* make no output file */
-	  output=0;
-	  break; 
-	case 'n':
-	  if ( strcmp(argv[i], "-nh")==0) {
-	    header=0;
-	  }
-	  if ( strcmp(argv[i], "-noGU")==0) {
-	    noGU=1;
-	  }
-	  if ( strcmp(argv[i], "-noCloseGU")==0) {
-	    no_closingGU=1;
-	  }
-	  if ( strcmp(argv[i], "-noLP")==0) {
-	    noLonelyPairs=1;
-	  }
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-noconv")==0) {
-	    noconv=1;
-	  }
-	  break;
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'C':
-	  fold_constrained=1;
-	  break;
-	case 'S':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	  }
-	  break;
-	case 'b': upmode=3;
-	  break;
-	case 'X':
-	  /* interaction mode invoked */
-	  if (upmode == 1) upmode=2;
-	  switch (argv[i][2]) { /* now determine which sequences interact */
-	  case 'p': task=1;
-	    break; /* pairwise interaction */
-	  case 'f': task=2;
-	    break; /* first one interacts with all others */
-	  }
-	  break;
-	case 'u':
-	  /* -u length of unstructured region in pr_unpaired output */  
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%200s", unstrs);
-	  if (!r) usage();
-	  if (!isdigit(unstrs[0])) usage();
-	  break;
-	  /* incr5 and incr3 are only for the longer (target) sequence */
-	  /* increments w (length of the unpaired region) to incr5+w+incr3*/
-	  /* the longer sequence is given in 5'(= position 1) to */
-	  /* 3' (=position n) direction */
-	  /* incr5 adds incr5 residues to the 5' end of w */
-	case '5':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &incr5);
-	  if (!r) usage();
-	  break; 
-	  /* incr3 adds incr3 residues to the 3' end of w */
-	case '3':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &incr3);
-	  if (!r) usage();
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	case 'c':  
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%6s", my_contrib);
-	  if (!r) usage();
-	  break;  
-	default: usage();
-	} 
+        {
+        case 'T':  if (argv[i][2]!='\0') usage();
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i], "%lf", &temperature);
+          if (!r) usage();
+          break;
+        case 'w':
+          /* -w maximal length of unstructured region */  
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%d", &w);
+          if (!r) usage();
+          break;
+        case 't':
+          /* use the first sequence as the target */
+          if ( strcmp(argv[i], "-target")==0) {
+            Switch=0;
+          }
+          break;
+        case 'o':
+          /* make no output file */
+          output=0;
+          break; 
+        case 'n':
+          if ( strcmp(argv[i], "-nh")==0) {
+            header=0;
+          }
+          if ( strcmp(argv[i], "-noGU")==0) {
+            noGU=1;
+          }
+          if ( strcmp(argv[i], "-noCloseGU")==0) {
+            no_closingGU=1;
+          }
+          if ( strcmp(argv[i], "-noLP")==0) {
+            noLonelyPairs=1;
+          }
+          if ( strcmp(argv[i], "-nsp") ==0) {
+            if (i==argc-1) usage();
+            ns_bases = argv[++i];
+          }
+          if ( strcmp(argv[i], "-noconv")==0) {
+            noconv=1;
+          }
+          break;
+        case '4':
+          tetra_loop=0;
+          break;
+        case 'e':
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%d", &energy_set);
+          if (!r) usage();
+          break;
+        case 'C':
+          fold_constrained=1;
+          break;
+        case 'S':
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%lf", &sfact);
+          if (!r) usage();
+          break;
+        case 'd': dangles=0;
+          if (argv[i][2]!='\0') {
+            r=sscanf(argv[i]+2, "%d", &dangles);
+            if (r!=1) usage();
+          }
+          break;
+        case 'b': upmode=3;
+          break;
+        case 'X':
+          /* interaction mode invoked */
+          if (upmode == 1) upmode=2;
+          switch (argv[i][2]) { /* now determine which sequences interact */
+          case 'p': task=1;
+            break; /* pairwise interaction */
+          case 'f': task=2;
+            break; /* first one interacts with all others */
+          }
+          break;
+        case 'u':
+          /* -u length of unstructured region in pr_unpaired output */  
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%200s", unstrs);
+          if (!r) usage();
+          if (!isdigit(unstrs[0])) usage();
+          break;
+          /* incr5 and incr3 are only for the longer (target) sequence */
+          /* increments w (length of the unpaired region) to incr5+w+incr3*/
+          /* the longer sequence is given in 5'(= position 1) to */
+          /* 3' (=position n) direction */
+          /* incr5 adds incr5 residues to the 5' end of w */
+        case '5':
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%d", &incr5);
+          if (!r) usage();
+          break; 
+          /* incr3 adds incr3 residues to the 3' end of w */
+        case '3':
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i],"%d", &incr3);
+          if (!r) usage();
+          break;
+        case 'P':
+          if (i==argc-1) usage();
+          ParamFile = argv[++i];
+          break;
+        case 'c':  
+          if (i==argc-1) usage();
+          r=sscanf(argv[++i], "%6s", my_contrib);
+          if (!r) usage();
+          break;  
+        default: usage();
+        } 
   }
   cmd_line[strlen(cmd_line)] = '\0';
   if (dangles>0) dangles=2; /* only 0 or 2 allowed */
@@ -244,15 +242,15 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
-	    
+            
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
@@ -268,28 +266,28 @@ int main(int argc, char *argv[])
     printf("| : paired with another base intermolecularly\n");        
   } 
  
-  RT = ((temperature+K0)*GASCONST/1000.0);	
-  do {	/* main loop: continue until end of file */
+  RT = ((temperature+K0)*GASCONST/1000.0);        
+  do {        /* main loop: continue until end of file */
     cut_point=-1;
     if (istty) {
       if (upmode == 1) {
-	printf("\nInput string (upper or lower case); @ to quit\n");
-	printf("%s%s\n", scale1, scale2);
+        printf("\nInput string (upper or lower case); @ to quit\n");
+        printf("%s%s\n", scale1, scale2);
       }
       else if (upmode > 1) {
-	if (task == 1 || (task == 0 && upmode == 3)) {
-	  printf("\nUse either '&' to connect the 2 sequences or give each sequence on an extra line.\n"); 
-	  printf("%s%s\n", scale1, scale2);
-	}
-	else if (task == 2) { /* option -Xf read the first two seqs */
-	  printf("\nGive each sequence on an extra line. The first seq. is stored, every other seq. is compared to the first one.\n"); 
-	  printf("%s%s\n", scale1, scale2);
-	}
-	else if (task == 3) {/* option -Xf read another sequence which
-				will interact with the first one */
-	  printf("\nEnter another sequence.\n"); 
-	  printf("%s%s\n", scale1, scale2); 
-	}
+        if (task == 1 || (task == 0 && upmode == 3)) {
+          printf("\nUse either '&' to connect the 2 sequences or give each sequence on an extra line.\n"); 
+          printf("%s%s\n", scale1, scale2);
+        }
+        else if (task == 2) { /* option -Xf read the first two seqs */
+          printf("\nGive each sequence on an extra line. The first seq. is stored, every other seq. is compared to the first one.\n"); 
+          printf("%s%s\n", scale1, scale2);
+        }
+        else if (task == 3) {/* option -Xf read another sequence which
+                                will interact with the first one */
+          printf("\nEnter another sequence.\n"); 
+          printf("%s%s\n", scale1, scale2); 
+        }
       }
     }
     fname[0]='\0';
@@ -300,7 +298,7 @@ int main(int argc, char *argv[])
     /* skip comment lines and get filenames */
     while ((*line=='*')||(*line=='\0')||(*line=='>')) {
       if (*line=='>')
-	(void) sscanf(line, ">%51s", fname);
+        (void) sscanf(line, ">%51s", fname);
       free(line);
       line=NULL;
       if ((line = get_line(stdin))==NULL) break;
@@ -317,8 +315,8 @@ int main(int argc, char *argv[])
       if (task == 2 && cut_point != -1) task = 3;
       /* two sequences with & are given: calculate interaction */
       if (task == 0 && cut_point != -1) {
-	task = 1;
-	if (upmode == 1) upmode = 2;
+        task = 1;
+        if (upmode == 1) upmode = 2;
       }
     }
     else if (task == 3) { /* option -Xf*/
@@ -327,45 +325,45 @@ int main(int argc, char *argv[])
       strncpy(fname,first_name,30);  /* first_name: name of first seq */
       fname[30] = '\0';
       if (temp != NULL) { /*strings have been switched - write temp to string1*/
-	string1 = (char *) xrealloc (string1,sizeof(char)*strlen(temp)+1);
-	(void) sscanf(temp,"%s",string1);
-	free(temp);temp=NULL;
-	
-      }	
+        string1 = (char *) xrealloc (string1,sizeof(char)*strlen(temp)+1);
+        (void) sscanf(temp,"%s",string1);
+        free(temp);temp=NULL;
+        
+      }        
       tokenize(line,&string2,&dummy); /*compare every seq to first one given */
       free(dummy);dummy=NULL;
       if (cut_point != -1) {
-	nrerror(
-	   "After the first sequence pair: Input a single sequence (no &)!\n"
-	   "Each input seq. is compared to the first seq. given.\n");
+        nrerror(
+           "After the first sequence pair: Input a single sequence (no &)!\n"
+           "Each input seq. is compared to the first seq. given.\n");
       }
     }
     /* interaction mode -> get the second seq. if seq are on seperate lines*/
     if (upmode > 1){ /* interaction mode */
       if (cut_point == -1 && task < 3) { /* seqs are given on seperate lines */
-	/* read the second sequence */
-	if (task == 2) task = 3;
-	if ((line = get_line(stdin))==NULL) {
-	  nrerror("only one sequence - can not cofold one sequence!");
-	}
-	/* skip comment lines and get filenames */
-	while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	  if (*line=='>')
-	    (void) sscanf(line, ">%51s", ffname); /* name of the 2nd seq */
-	  free(line);
-	  line=NULL;
-	  if ((line = get_line(stdin))==NULL) break;
-	} 
-	if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
-	free(string2); /* string2 has been allocated in tokenize() */
+        /* read the second sequence */
+        if (task == 2) task = 3;
+        if ((line = get_line(stdin))==NULL) {
+          nrerror("only one sequence - can not cofold one sequence!");
+        }
+        /* skip comment lines and get filenames */
+        while ((*line=='*')||(*line=='\0')||(*line=='>')) {
+          if (*line=='>')
+            (void) sscanf(line, ">%51s", ffname); /* name of the 2nd seq */
+          free(line);
+          line=NULL;
+          if ((line = get_line(stdin))==NULL) break;
+        } 
+        if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+        free(string2); /* string2 has been allocated in tokenize() */
     
-	string2 = (char *) space(strlen(line)+1);
-	(void) sscanf(line,"%s",string2); free(line);line=NULL;
+        string2 = (char *) space(strlen(line)+1);
+        (void) sscanf(line,"%s",string2); free(line);line=NULL;
       }
     } else { /* default mode pr_unpaired for ONE seq */
       /* if a second sequence is give, cofold the sequences*/
       if (cut_point != -1){
-	upmode = 2;	
+        upmode = 2;        
       }
     }
 
@@ -377,22 +375,22 @@ int main(int argc, char *argv[])
 
       /* write longer seq in string1 and and shorter one in string2 */ 
       if (length1 < length2 && Switch) {
-	strncpy(temp_name,fname,30);
-	strncpy(fname,ffname,30);
-	strncpy(ffname,temp_name,30);
-	  
-	length=length1; length1=length2; length2=length;
-	
-	temp=(char *) space(sizeof(char)*strlen(string1)+1);
-	(void) sscanf(string1,"%s",temp);
-	string1 = (char *) xrealloc (string1,sizeof(char)*length1+1);
-	(void) sscanf(string2,"%s",string1);
-	string2 = (char *) xrealloc(string2,sizeof(char)*length2+1);
-	(void) sscanf(temp,"%s",string2);
-	if (task == 1) {
-	  free(temp);
-	  temp = NULL;
-	}
+        strncpy(temp_name,fname,30);
+        strncpy(fname,ffname,30);
+        strncpy(ffname,temp_name,30);
+          
+        length=length1; length1=length2; length2=length;
+        
+        temp=(char *) space(sizeof(char)*strlen(string1)+1);
+        (void) sscanf(string1,"%s",temp);
+        string1 = (char *) xrealloc (string1,sizeof(char)*length1+1);
+        (void) sscanf(string2,"%s",string1);
+        string2 = (char *) xrealloc(string2,sizeof(char)*length2+1);
+        (void) sscanf(temp,"%s",string2);
+        if (task == 1) {
+          free(temp);
+          temp = NULL;
+        }
       } 
     }
     /* parse cml parameters for output filename*/    
@@ -400,27 +398,27 @@ int main(int argc, char *argv[])
     if (fname[0]!='\0') {
       printf(">%s\n",fname);
       if(strlen(fname) < 30) {
-	strcpy(up_out,fname);
+        strcpy(up_out,fname);
       } else {
-	strncpy(up_out,fname,30);
-	up_out[30] = '\0';
+        strncpy(up_out,fname,30);
+        up_out[30] = '\0';
       }
       
       if (upmode > 1 && ffname[0] != '\0') {
-	 printf(">%s\n",ffname);
-	if(strlen(fname) < 15) {
-	  strcpy(up_out,fname);
-	} else {
-	  strncpy(up_out,fname,15);
-	  up_out[15] = '\0';
-	}
-	strcat(up_out, "_");
-	if(strlen(ffname) < 15) {
-	  strcat(up_out,ffname);
-	} else {
-	  strncat(up_out,ffname,15);
-	}
-      }	
+         printf(">%s\n",ffname);
+        if(strlen(fname) < 15) {
+          strcpy(up_out,fname);
+        } else {
+          strncpy(up_out,fname,15);
+          up_out[15] = '\0';
+        }
+        strcat(up_out, "_");
+        if(strlen(ffname) < 15) {
+          strcat(up_out,ffname);
+        } else {
+          strncat(up_out,ffname,15);
+        }
+      }        
     } else {
       strcpy(up_out, "RNA");
     }
@@ -431,13 +429,13 @@ int main(int argc, char *argv[])
     /* do this only when -X[p|f] is used or if two sequences seperated by & are given */
     if (upmode > 1) {
       if (task == 3) {
-	/* strncpy(temp_name,fname,30); */
-	if(strlen(fname) < 30) {
-	  strcpy(temp_name,fname);
-	} else {
-	  strncpy(temp_name,fname,30);
-	  up_out[30] = '\0';
-	}
+        /* strncpy(temp_name,fname,30); */
+        if(strlen(fname) < 30) {
+          strcpy(temp_name,fname);
+        } else {
+          strncpy(temp_name,fname,30);
+          up_out[30] = '\0';
+        }
       }
     }
     
@@ -467,38 +465,38 @@ int main(int argc, char *argv[])
       /* free(temp_cstruc); */
       /* only one seq, cstruc should not have an & */
       if (upmode == 1 && cut_point == -1) {
-	if (strlen(cstruc) == length1) {
-	  cstruc_l=(char*)space(sizeof(char)*(length1+1));
-	  strncpy(cstruc_l,cstruc,length1);
-	}else{
-	  fprintf(stderr, "%s\n%s\n",string1,cstruc);
-	  nrerror("RNAup -C: constrain string and structure have unequal length");
-	}
-      }	else if (upmode == 1 && cut_point != -1) {
-	fprintf(stderr, "%s\n%s\n",string1,cstruc);
-	nrerror("RNAup -C: only one sequence but constrain structure for cofolding");
+        if (strlen(cstruc) == length1) {
+          cstruc_l=(char*)space(sizeof(char)*(length1+1));
+          strncpy(cstruc_l,cstruc,length1);
+        }else{
+          fprintf(stderr, "%s\n%s\n",string1,cstruc);
+          nrerror("RNAup -C: constrain string and structure have unequal length");
+        }
+      }        else if (upmode == 1 && cut_point != -1) {
+        fprintf(stderr, "%s\n%s\n",string1,cstruc);
+        nrerror("RNAup -C: only one sequence but constrain structure for cofolding");
       }
       /* constrain string is for both seqs */
       else if (upmode > 1 && cut_point != -1) {
-	if (old_cut != cut_point) {
-	  nrerror("RNAup -C: different cut points in sequence und constrain string");
-	}
-	seperate_bp(&cstruc,length1,&cstruc_l,&cstruc_s);
-	if (strlen(cstruc) != (length1+length2)) {
-	  fprintf(stderr, "%s&%s\n%s\n",string1,string2,cstruc);
-	  nrerror("RNAup -C: constrain string and structure have unequal length");
-	}
-	if (strlen(cstruc_l) != (length1)) {
-	  fprintf(stderr, "%s\n%s\n",string1,cstruc_l);
-	  nrerror("RNAup -C: constrain string and structure have unequal length");
-	}
-	if (strlen(cstruc_s) != (length2)) {
-	  fprintf(stderr, "%s\n%s\n",string2,cstruc_s);
-	  nrerror("RNAup -C: constrain string and structure have unequal length");
-	} 
+        if (old_cut != cut_point) {
+          nrerror("RNAup -C: different cut points in sequence und constrain string");
+        }
+        seperate_bp(&cstruc,length1,&cstruc_l,&cstruc_s);
+        if (strlen(cstruc) != (length1+length2)) {
+          fprintf(stderr, "%s&%s\n%s\n",string1,string2,cstruc);
+          nrerror("RNAup -C: constrain string and structure have unequal length");
+        }
+        if (strlen(cstruc_l) != (length1)) {
+          fprintf(stderr, "%s\n%s\n",string1,cstruc_l);
+          nrerror("RNAup -C: constrain string and structure have unequal length");
+        }
+        if (strlen(cstruc_s) != (length2)) {
+          fprintf(stderr, "%s\n%s\n",string2,cstruc_s);
+          nrerror("RNAup -C: constrain string and structure have unequal length");
+        } 
       } else {
-	fprintf(stderr, "%s&%s\n%s\n",string1,string2,cstruc);
-	nrerror("RNAup -C: no cutpoint in constrain string");
+        fprintf(stderr, "%s&%s\n%s\n",string1,string2,cstruc);
+        nrerror("RNAup -C: no cutpoint in constrain string");
       }      
     }
     if(length1 > length2) {
@@ -515,20 +513,20 @@ int main(int argc, char *argv[])
     if (upmode != 0){
       int wplus,w_sh;
       if (upmode == 3) { /* calculate prob. unstruct. for shorter seq */  
-	w_sh = w;
-	/* len of unstructured region has to be <= len shorter seq. */
-	if (w > length2) w_sh = length2;
-	if (cstruc_s != NULL)
-	  strncpy(structure, cstruc_s, length2+1);
-	min_en = fold(string2, structure);	  
-	pf_scale = exp(-(sfact*min_en)/RT/length2);
-	if (length2>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-	init_pf_fold(length2);
-	if (cstruc_s != NULL)
-	  strncpy(structure, cstruc_s, length2+1);
-	energy = pf_fold(string2, structure);
-	unstr_short = pf_unstru(string2, w_sh);
-	free_pf_arrays(); /* for arrays for pf_fold(...) */
+        w_sh = w;
+        /* len of unstructured region has to be <= len shorter seq. */
+        if (w > length2) w_sh = length2;
+        if (cstruc_s != NULL)
+          strncpy(structure, cstruc_s, length2+1);
+        min_en = fold(string2, structure);          
+        pf_scale = exp(-(sfact*min_en)/RT/length2);
+        if (length2>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+        init_pf_fold(length2);
+        if (cstruc_s != NULL)
+          strncpy(structure, cstruc_s, length2+1);
+        energy = pf_fold(string2, structure);
+        unstr_short = pf_unstru(string2, w_sh);
+        free_pf_arrays(); /* for arrays for pf_fold(...) */
       }
       
       /* calculate prob. unstructured for longer seq */
@@ -538,130 +536,130 @@ int main(int argc, char *argv[])
       /* length of the unstructured region has to be <= len longer seq. */
       if (wplus > length1) wplus=length1;
       if (cstruc_l !=NULL)
-	strncpy(structure, cstruc_l, length1+1);
+        strncpy(structure, cstruc_l, length1+1);
       min_en = fold(string1, structure);
       pf_scale = exp(-(sfact*min_en)/RT/length1);
       if (length1>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
       init_pf_fold(length1);
       if (cstruc_l !=NULL)
-	strncpy(structure, cstruc_l, length1+1);
+        strncpy(structure, cstruc_l, length1+1);
       energy = pf_fold(string1, structure);
       if (upmode > 1) {
-	unstr_out = pf_unstru(string1, wplus);
+        unstr_out = pf_unstru(string1, wplus);
       } else {
-	unstr_out = pf_unstru(string1, u_vals[u_vals[0]]);
+        unstr_out = pf_unstru(string1, u_vals[u_vals[0]]);
       }
       free_pf_arrays(); /* for arrays for pf_fold(...) */
       /* now make output to stdout and to the output file */
       if (upmode > 1){/* calculate interaction between two sequences */
-	int count;
-	if (upmode == 2) {
-	  inter_out = pf_interact(string1,string2,unstr_out,NULL,w,cstruc,incr3,incr5);
-	  print_interaction(inter_out,string1,string2,unstr_out,NULL,w,incr3,incr5);
-	} else if (upmode == 3){
-	  inter_out = pf_interact(string1,string2,unstr_out,unstr_short,w,cstruc,incr3,incr5);
-	  print_interaction(inter_out,string1,string2,unstr_out,unstr_short,w,incr3,incr5);
-	}
-	if(output) { /* make RNAup output to file */
-	  printf("RNAup output in file: ");
-	  /* plot for all -u values */
-	  strcpy(name,up_out);
-	  strcat(name, "_u");
-	  if(u_vals[0] <= 20) {
-	    for (count = 1; count <= u_vals[0]; count++) {
-	      unstr = u_vals[count];
-	      sprintf(temp_name,"%d",unstr);
-	      if (count < u_vals[0]) {
-		strcat(temp_name,"_");
-		strncat(name, temp_name,5);
-	      } else {
-		strncat(name, temp_name,5);
-		strcat(name, "_up.out");
-		printf("%s\n",name);
-	      }
-	    }
-	  } else {
-	    sprintf(temp_name,"%d",u_vals[1]);
-	    strcat(temp_name,"_to_");
-	    strncat(name, temp_name,5);
-	    sprintf(temp_name,"%d",u_vals[0]);
-	    strncat(name, temp_name,5);
-	    strcat(name, ".out");
-	    printf("%s\n",name);
-	  }
-	  
-	  if(header) {
-	    char startl[3];
-	    sprintf(startl,"# ");
-	  
-	    head = (char*)space(sizeof(char)*(length1+length2+1000));
-	    /* mach kein \n als ende von head */
-	    sprintf(head,"%s %s\n%s %d %s\n%s %s\n%s %d %s\n%s %s",startl, cmd_line, startl,length1,fname, startl,string1, startl,length2,ffname, startl,string2);
-	  
-	  } else {
-	    if(head != NULL) { nrerror("error with header\n"); }
-	  }
-	  Up_plot(unstr_out,NULL,inter_out,name,u_vals,my_contrib,head);
-	
-	  if(head != NULL) {
-	    free(head);
-	    head = NULL;
-	  }
-	
-	  if (upmode == 3 ) {/* plot opening energy for boths RNAs */
-	    if(head != NULL) { nrerror("error with header\n"); }
-	    Up_plot(NULL,unstr_short,NULL,name,u_vals,my_contrib,head);
-	  }
-	}
+        int count;
+        if (upmode == 2) {
+          inter_out = pf_interact(string1,string2,unstr_out,NULL,w,cstruc,incr3,incr5);
+          print_interaction(inter_out,string1,string2,unstr_out,NULL,w,incr3,incr5);
+        } else if (upmode == 3){
+          inter_out = pf_interact(string1,string2,unstr_out,unstr_short,w,cstruc,incr3,incr5);
+          print_interaction(inter_out,string1,string2,unstr_out,unstr_short,w,incr3,incr5);
+        }
+        if(output) { /* make RNAup output to file */
+          printf("RNAup output in file: ");
+          /* plot for all -u values */
+          strcpy(name,up_out);
+          strcat(name, "_u");
+          if(u_vals[0] <= 20) {
+            for (count = 1; count <= u_vals[0]; count++) {
+              unstr = u_vals[count];
+              sprintf(temp_name,"%d",unstr);
+              if (count < u_vals[0]) {
+                strcat(temp_name,"_");
+                strncat(name, temp_name,5);
+              } else {
+                strncat(name, temp_name,5);
+                strcat(name, "_up.out");
+                printf("%s\n",name);
+              }
+            }
+          } else {
+            sprintf(temp_name,"%d",u_vals[1]);
+            strcat(temp_name,"_to_");
+            strncat(name, temp_name,5);
+            sprintf(temp_name,"%d",u_vals[0]);
+            strncat(name, temp_name,5);
+            strcat(name, ".out");
+            printf("%s\n",name);
+          }
+          
+          if(header) {
+            char startl[3];
+            sprintf(startl,"# ");
+          
+            head = (char*)space(sizeof(char)*(length1+length2+1000));
+            /* mach kein \n als ende von head */
+            sprintf(head,"%s %s\n%s %d %s\n%s %s\n%s %d %s\n%s %s",startl, cmd_line, startl,length1,fname, startl,string1, startl,length2,ffname, startl,string2);
+          
+          } else {
+            if(head != NULL) { nrerror("error with header\n"); }
+          }
+          Up_plot(unstr_out,NULL,inter_out,name,u_vals,my_contrib,head);
+        
+          if(head != NULL) {
+            free(head);
+            head = NULL;
+          }
+        
+          if (upmode == 3 ) {/* plot opening energy for boths RNAs */
+            if(head != NULL) { nrerror("error with header\n"); }
+            Up_plot(NULL,unstr_short,NULL,name,u_vals,my_contrib,head);
+          }
+        }
       } else { /* one sequence:  plot only results for prob unstructured */
-	int count;
-	char collect_out[1000];
-	collect_out[0]='\0';
-	
-	for (count = 1; count <= u_vals[0]; count++) {
-	  unstr = u_vals[count];
-	  print_unstru(unstr_out,unstr);
-	}
-	if(output) {/* make RNAup output to file */
-	  printf("RNAup output in file: ");
-	  strcpy(name,up_out);
-	  strcat(name, "_u");
-	  if(u_vals[0] <= 20) {
-	    for (count = 1; count <= u_vals[0]; count++) {
-	      unstr = u_vals[count];
-	      sprintf(temp_name,"%d",unstr);
-	      if (count < u_vals[0]) {
-		strcat(temp_name,"_");
-		strncat(name, temp_name,5);
-	      } else {
-		strncat(name, temp_name,5);
-		strcat(name, ".out");
-		printf("%s\n",name);
-	      }
-	    }
-	  } else {
-	    sprintf(temp_name,"%d",u_vals[1]);
-	    strcat(temp_name,"_to_");
-	    strncat(name, temp_name,5);
-	    sprintf(temp_name,"%d",u_vals[0]);
-	    strncat(name, temp_name,5);
-	    strcat(name, ".out");
-	    printf("%s\n",name);
-	  }
-	  
-	  if(header) {
-	    char startl[3];
-	    sprintf(startl,"# ");
-	    head = (char*)space(sizeof(char)*(length1+length2+1000));
-	    /* mach kein \n als ende von head */
-	    sprintf(head,"%s %s\n%s %d %s\n%s %s",startl, cmd_line, startl,length1,fname, startl,string1);
-	  } else { if(head != NULL) { nrerror("error with header\n"); }}
-	
-	  Up_plot(unstr_out,NULL,NULL,name,u_vals,my_contrib,head);
-	
-	  if(head != NULL) { free(head); head = NULL;}
-	}
-      }	
+        int count;
+        char collect_out[1000];
+        collect_out[0]='\0';
+        
+        for (count = 1; count <= u_vals[0]; count++) {
+          unstr = u_vals[count];
+          print_unstru(unstr_out,unstr);
+        }
+        if(output) {/* make RNAup output to file */
+          printf("RNAup output in file: ");
+          strcpy(name,up_out);
+          strcat(name, "_u");
+          if(u_vals[0] <= 20) {
+            for (count = 1; count <= u_vals[0]; count++) {
+              unstr = u_vals[count];
+              sprintf(temp_name,"%d",unstr);
+              if (count < u_vals[0]) {
+                strcat(temp_name,"_");
+                strncat(name, temp_name,5);
+              } else {
+                strncat(name, temp_name,5);
+                strcat(name, ".out");
+                printf("%s\n",name);
+              }
+            }
+          } else {
+            sprintf(temp_name,"%d",u_vals[1]);
+            strcat(temp_name,"_to_");
+            strncat(name, temp_name,5);
+            sprintf(temp_name,"%d",u_vals[0]);
+            strncat(name, temp_name,5);
+            strcat(name, ".out");
+            printf("%s\n",name);
+          }
+          
+          if(header) {
+            char startl[3];
+            sprintf(startl,"# ");
+            head = (char*)space(sizeof(char)*(length1+length2+1000));
+            /* mach kein \n als ende von head */
+            sprintf(head,"%s %s\n%s %d %s\n%s %s",startl, cmd_line, startl,length1,fname, startl,string1);
+          } else { if(head != NULL) { nrerror("error with header\n"); }}
+        
+          Up_plot(unstr_out,NULL,NULL,name,u_vals,my_contrib,head);
+        
+          if(head != NULL) { free(head); head = NULL;}
+        }
+      }        
     } else {
       nrerror("no output format given\n");
     }
@@ -708,8 +706,8 @@ int main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
   nrerror("usage:\n"
-	  "RNAup [-u list] [-w len] [-b] [-Xp|-Xf] [-c \"SHIME\"] [-5 incr]\n"
-	  "      [-3 incr] [-target] [-o] [-C] [-T temp] [-noLP]\n"
+          "RNAup [-u list] [-w len] [-b] [-Xp|-Xf] [-c \"SHIME\"] [-5 incr]\n"
+          "      [-3 incr] [-target] [-o] [-C] [-T temp] [-noLP]\n"
           "      [-d[0|2]] [-noGU] [-noCloseGU] [-P paramfile] [-4]\n"
           "      [-nsp pairs] [-S scale] [-noconv] \n");
 }
@@ -817,10 +815,10 @@ int get_u_values(char unstrs[], int **u_vals, int l1) {
     max = max < min+99 ? max : min+99;
     for (tmp = min;tmp <= max; tmp++) {
       if (tmp <= l1) { (*u_vals)[++uc]=tmp;
-	/* printf("%d,",tmp); */
+        /* printf("%d,",tmp); */
       } else {
-	fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",tmp);
-	break;
+        fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",tmp);
+        break;
       }
     }
     (*u_vals)[0]=uc;
@@ -847,8 +845,8 @@ int get_u_values(char unstrs[], int **u_vals, int l1) {
     qsort((*u_vals),(uunstr+1),sizeof(int),(void *)comp_nums );
     for (count = 0; count < uunstr+1; count++) {
       if ((*u_vals)[count] > l1) {
-	fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",(*u_vals)[count]);
-	break;
+        fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",(*u_vals)[count]);
+        break;
       }      
     }
     (*u_vals)[0] = count - 1;
@@ -886,7 +884,7 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   /* to make a pair_table convert <|> to (|) */
   pt_inter=(char*)space(sizeof(char)*i); 
   /* if shorter seq is first seq in constrained string, write the
-     longer one as the first one */				
+     longer one as the first one */                                
   temp_inter[strlen((*inter))] = '\0';
   pt_inter[strlen((*inter))] = '\0';
   if (cut_point < len1) {
@@ -894,32 +892,32 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
     for (j=0,i=cut_point-1;i<len;i++,j++) {
       switch ((*inter)[i]){
       case '(':
-	temp_inter[j] = ')';
-	pt_inter[j] = ')';
-	break;
+        temp_inter[j] = ')';
+        pt_inter[j] = ')';
+        break;
       case ')':
-	temp_inter[j] = '(';
-	pt_inter[j] = '(';
-	break;
+        temp_inter[j] = '(';
+        pt_inter[j] = '(';
+        break;
       default:
-	temp_inter[j] = (*inter)[i];
-	pt_inter[j] = '.';
+        temp_inter[j] = (*inter)[i];
+        pt_inter[j] = '.';
       }
     }
     /* then add the constrain for the shorter seq */
     for (i=0;i< cut_point-1;i++,j++) {
       switch ((*inter)[i]){
       case '(':
-	temp_inter[j] = ')';
-	pt_inter[j] = ')';
-	break;
+        temp_inter[j] = ')';
+        pt_inter[j] = ')';
+        break;
       case ')':
-	temp_inter[j] = '(';
-	pt_inter[j] = '(';
-	break;
+        temp_inter[j] = '(';
+        pt_inter[j] = '(';
+        break;
       default:
-	temp_inter[j] = (*inter)[i];
-	pt_inter[j] = '.';
+        temp_inter[j] = (*inter)[i];
+        pt_inter[j] = '.';
       }
     }
     cut_point = len1+1;
@@ -928,17 +926,17 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
     for (i=0;i<strlen((*inter));i++) {
       switch ((*inter)[i]){
       case '(':
-	pt_inter[i] = '(';
-	break;
+        pt_inter[i] = '(';
+        break;
       case ')':
-	pt_inter[i] = ')';
-	break;
+        pt_inter[i] = ')';
+        break;
       default:
-	pt_inter[i] = '.';
+        pt_inter[i] = '.';
       }
     }
   }    
-	
+        
   pt = make_pair_table(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
@@ -951,34 +949,34 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
     if (pt[i] == 0) {
       temp_inter[i-1] = (*inter)[i-1];
       if (i<cut_point) {
-	(*intra_l)[i-1] = (*inter)[i-1];
-	if ((*inter)[i-1] == '|')
-	  (*intra_l)[i-1] = '.';
+        (*intra_l)[i-1] = (*inter)[i-1];
+        if ((*inter)[i-1] == '|')
+          (*intra_l)[i-1] = '.';
       } else {
-	(*intra_s)[i-cut_point] = (*inter)[i-1];
-	if ((*inter)[i-1] == '|')
-	  (*intra_s)[i-cut_point] = '.';
+        (*intra_s)[i-cut_point] = (*inter)[i-1];
+        if ((*inter)[i-1] == '|')
+          (*intra_s)[i-cut_point] = '.';
       }
     } else {
       if (i<cut_point) {
-	/* intermolekular bp */
-	if (pt[i]>=cut_point){
-	  temp_inter[i-1] = (*inter)[i-1];
-	  (*intra_l)[i-1] = '.';
-	  (*intra_s)[pt[i]-cut_point] = '.';
-	} else { /* intramolekular bp */
-	  (*intra_l)[i-1] = (*inter)[i-1];
-	  temp_inter[i-1] = '.';
-	}
+        /* intermolekular bp */
+        if (pt[i]>=cut_point){
+          temp_inter[i-1] = (*inter)[i-1];
+          (*intra_l)[i-1] = '.';
+          (*intra_s)[pt[i]-cut_point] = '.';
+        } else { /* intramolekular bp */
+          (*intra_l)[i-1] = (*inter)[i-1];
+          temp_inter[i-1] = '.';
+        }
       } else { /* i>=cut_point */
-	/* intermolekular bp */
-	if (pt[i] < cut_point){
-	  temp_inter[i-1] = (*inter)[i-1];
-	  /* (*intra_s)[i-1] = '.'; */
-	} else { /* intramolekular bp */
-	  (*intra_s)[i-cut_point] = (*inter)[i-1];
-	  temp_inter[i-1] = '.';
-	}
+        /* intermolekular bp */
+        if (pt[i] < cut_point){
+          temp_inter[i-1] = (*inter)[i-1];
+          /* (*intra_s)[i-1] = '.'; */
+        } else { /* intramolekular bp */
+          (*intra_s)[i-cut_point] = (*inter)[i-1];
+          temp_inter[i-1] = '.';
+        }
       }
     }
   }
@@ -1060,7 +1058,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     
     /* printf("dG = dGint + dGu_l\n"); */
     printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f)\n", 
-	   struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul);
+           struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul);
     printf("%s&%s\n",i_long,i_short);
   } else {
     p_c_S = p_c2->H[Int->j][(Int->l)-(Int->j)]+
@@ -1071,7 +1069,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     G_sum = Gi_min + Gul +Gus;
     /* printf("dG = dGint + dGu_l + dGu_s\n"); */
     printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f + %.2f)\n", 
-	   struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul, Gus);
+           struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul, Gus);
     printf("%s&%s\n",i_long,i_short);
   }
   if (!EQUAL(G_min,G_sum)) {
@@ -1097,16 +1095,16 @@ PRIVATE void print_unstru(pu_contrib *p_c, int w) {
 
     for (i=1; i<=len; i++) {
       for (j=i; j < MIN((i+w),len+1); j++) {
-	double blubb;
-	if ((j-i+1) == w && i+w-1 <= len) {
-	  blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
-	  dG_u = -RT*log(blubb);
-	  if (dG_u < min_gu ) {
-	    min_gu = dG_u;
-	    min_i=i;
-	    min_j=i+w-1;
-	  }
-	}
+        double blubb;
+        if ((j-i+1) == w && i+w-1 <= len) {
+          blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
+          dG_u = -RT*log(blubb);
+          if (dG_u < min_gu ) {
+            min_gu = dG_u;
+            min_i=i;
+            min_j=i+w-1;
+          }
+        }
       }
     }
     printf("%d,%d \t (%.3f) \t for u=%d\n",min_i,min_j,min_gu,w);

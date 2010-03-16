@@ -72,8 +72,10 @@ PRIVATE char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 iv
 #undef TURN
 #define TURN 0
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+
 /* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
  */
+
 /*
 #################################
 # GLOBAL VARIABLES              #
