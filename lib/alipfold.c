@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-02-24 14:37:05 ivo> */
+/* Last changed Time-stamp: <2010-04-01 19:45:54 berni> */
 /*
 		  partiton function and base pair probabilities
 		  for RNA secvondary structures
@@ -1482,6 +1482,7 @@ static void backtrack(int i, int j, int n_seq, double *prob) {
     qbt1=1.;
     for (s=0; s<n_seq; s++){
       u = a2s[s][j-1]-a2s[s][i];
+      if (a2s[s][i]<1) continue;
       qbt1 *= exphairpin[u];
       if (u<3) continue; /*sog amoi: strof??*/
       if ((tetra_loop)&&(u==4)) {
