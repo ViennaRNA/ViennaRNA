@@ -671,12 +671,12 @@ int main(int argc, char *argv[])
     title=NULL;
     if (u_vals != NULL) free(u_vals);
     u_vals=NULL;
-    if (upmode == 1) free_pu_contrib(unstr_out);
+    if (upmode == 1) free_pu_contrib_struct(unstr_out);
     if (upmode > 1) {
-      free_pu_contrib(unstr_out);
+      free_pu_contrib_struct(unstr_out);
       free_interact(inter_out);
     }
-    if (upmode == 3)free_pu_contrib(unstr_short);
+    if (upmode == 3)free_pu_contrib_struct(unstr_short);
     free_arrays(); /* for arrays for fold(...) */   
     if (cstruc!=NULL) free(cstruc);
     cstruc=NULL;

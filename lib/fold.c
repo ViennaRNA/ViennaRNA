@@ -91,6 +91,9 @@ PRIVATE int   *DMLi2_o;
 PRIVATE char  *ptype;   /* precomputed array of pair types */
 PRIVATE short  *S, *S1;
 PRIVATE int   init_length=-1;
+/** stack of partial structures for backtracking **/
+PRIVATE sect  sector[MAXSECTORS];
+
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 /* needed by cofold/eval */
@@ -668,9 +671,6 @@ PRIVATE int fill_arrays(const char *string) {
   }
   return f5[length];
 }
-
-/** stack of partial structures for backtracking **/
-static sect sector[MAXSECTORS];
 
 #include "circfold.inc"
 

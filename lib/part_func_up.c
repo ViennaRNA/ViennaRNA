@@ -106,16 +106,17 @@ PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE pu_out    *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
-PRIVATE int       plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
-PRIVATE void      scale_stru_pf_params(unsigned int length);
-PRIVATE void      free_pf_unstru(void);
-PRIVATE void      init_pf_two(int length);
-PRIVATE void      scale_int(const char *s, const char *sl,double *sc_int,int incr3, int incr5);
-PRIVATE void      get_unpaired(int length);
-PRIVATE void      free_unpaired(void);
-PRIVATE void      encode_seq(const char *s1, const char *s2);
-PRIVATE constrain *get_ptypes(char *S, const char *structure);
+PRIVATE pu_out      *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
+PRIVATE int         plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
+PRIVATE void        scale_stru_pf_params(unsigned int length);
+PRIVATE void        init_pf_two(int length);
+PRIVATE void        scale_int(const char *s, const char *sl,double *sc_int);
+PRIVATE void        encode_seq(const char *s1, const char *s2);
+PRIVATE constrain   *get_ptypes(char *S, const char *structure);
+
+PRIVATE void        get_up_arrays(unsigned int length);
+PRIVATE void        free_up_arrays(void);
+PRIVATE  void  set_encoded_seq(const char *sequence, short **S, short **S1);
 
 
 
@@ -125,12 +126,52 @@ PRIVATE constrain *get_ptypes(char *S, const char *structure);
 #################################
 */
 
+PUBLIC pu_contrib *get_pu_contrib_struct(unsigned int n, unsigned int w){
+  unsigned int i;
+  pu_contrib  *pu = (pu_contrib *)space(sizeof(pu_contrib));
+  pu->length      = n;
+  pu->w           = w;
+  /* contributions to probability of being unpaired witihin a(n)
+   H hairpin,
+   I interior loop,
+   M muliloop,
+   E exterior loop*/
+  /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
+  pu->H           = (double **)space(sizeof(double *) * (n + 1));
+  pu->I           = (double **)space(sizeof(double *) * (n + 1));
+  pu->M           = (double **)space(sizeof(double *) * (n + 1));
+  pu->E           = (double **)space(sizeof(double *) * (n + 1));
+  for(i=0;i<=n;i++){
+    pu->H[i]  = (double *)space(sizeof(double) * (w + 1));
+    pu->I[i]  = (double *)space(sizeof(double) * (w + 1));
+    pu->M[i]  = (double *)space(sizeof(double) * (w + 1));
+    pu->E[i]  = (double *)space(sizeof(double) * (w + 1));
+  }
+  return pu;
+}
+
+PUBLIC  void  free_pu_contrib_struct(pu_contrib *pu){
+  unsigned int i;
+  if(pu != NULL){
+    for(i=0;i<=pu->length;i++){
+      free(pu->H[i]);
+      free(pu->I[i]);
+      free(pu->M[i]);
+      free(pu->E[i]);
+    }
+    free(pu->H);
+    free(pu->I);
+    free(pu->M);
+    free(pu->E);
+    free(pu);
+  }
+}
+
 /* you have to call pf_fold(sequence, structure); befor pf_unstru */
-PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
-{
+PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   int           n, i, j, v, k, l, o, p, ij, kl, po, u, u1, d, type, type_2, tt, uu;
-  unsigned int  size, nu;
-  double        temp, tqm2, bla; 
+  unsigned int  size;
+  double        temp, tqm2; 
   double        qbt1, *tmp, Zuij, sum_l, *sum_M;
   double        *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
   double        *store_M_qm_o,*store_M_mlbase;    /* multiloop contributions */
@@ -140,122 +181,91 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
   temp            = 0;
   n               = (int) strlen(sequence);
   sum_M           = (double *)  space((n+1) * sizeof(double));
-  size            = sizeof(double *) * (n+1);
+  pu_test         = get_pu_contrib_struct((unsigned)n, (unsigned)w);
+  size            = ((n+1)*(n+2))>>1;
 
-  pu_test         = (pu_contrib *) space(sizeof(pu_contrib));
-  pu_test->length = n;
-  pu_test->w      = w; /* consider also incr values if comparing to int *u_vals */
-
-  /* contributions to probability of being unpaired witihin a(n)
-     H hairpin,
-     I interior loop,
-     M muliloop,
-     E exterior loop*/
-  /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
-  pu_test->H      = (double **) space(sizeof(double *) * (n+1));
-  pu_test->I      = (double **) space(sizeof(double *) * (n+1));
-  pu_test->M      = (double **) space(sizeof(double *) * (n+1));
-  pu_test->E      = (double **) space(sizeof(double *) * (n+1));
-  for(i=0;i<=n;i++){
-    pu_test->H[i] = (double *) space(sizeof(double)*(w+1));
-    pu_test->I[i] = (double *) space(sizeof(double)*(w+1));
-    pu_test->M[i]=  (double *) space(sizeof(double)*(w+1));
-    pu_test->E[i] = (double *) space(sizeof(double)*(w+1));
-    
-  }
+  get_up_arrays((unsigned) n);
   init_pf_two(n);
-   
+
+  /* init everything */
   for (d=0; d<=TURN; d++) 
-    for (i=1; i<=n-d; i++) {
+    for (i=1; i<=n-d; i++){
       j=i+d;
       ij = iindx[i]-j;
       if(d < w) {
         pu_test->H[i][d]=pu_test->I[i][d]=pu_test->M[i][d]=pu_test->E[i][d]=0.;
       }
     }
-  nu = (unsigned int) n;
-  size = ((nu+1)*(nu+2)/2);
-  for (i=0; i<size; i++){
+
+  for (i=0; i<size; i++)
     prpr[i]= pr[i];
-  }
-  
-  for (i=1; i<=n; i++)
-    for (j=i+TURN+1; j<=n; j++) {
+
+  sum_M[0] = 0.;
+  for (i=1; i<=n; i++){
+    /* set auxillary arrays to 0, reuse qqm and qqm1, reuse qqm2 and qq_1m2*/
+    sum_M[i] = qqm[i] = qqm1[i] = qqm2[i] = qq_1m2[i] = 0;
+    for (j=i+TURN+1; j<=n; j++){
       ij = iindx[i]-j;
       /* i need the part_func of all structures outside bp[ij] */
       if(qb[ij] > 0.0) prpr[ij]= (pr[ij]/qb[ij]);
     }
-  
-  /* no do_backtrack test anymore ! */
-  for (i=1; i<=n; i++)
-    {
-      /* set auxillary arrays to 0, reuse qqm and qqm1, reuse qqm2 and qq_1m2*/
-      qqm[i]=qqm1[i]=0;
-      qqm2[i]=qq_1m2[i]=0;
-    }
-  
-  store_I2o = (double **) space(sizeof(double *)*(n+1)); /* for p,k */ 
-  for(i=0;i<=n;i++) {
-    store_I2o[i] = (double *) space(sizeof(double)*(MAXLOOP+2));
   }
+
+  /* alloc even more memory */
+  store_I2o = (double **)space(sizeof(double *) * (n + 1)); /* for p,k */ 
+  for(i=0;i<=n;i++)
+    store_I2o[i] = (double *)space(sizeof(double) * (MAXLOOP + 2));
+
   /* expMLbase[i-p]*dangles_po */
-  size = sizeof(double) * ((n+1)*(n+2)/2);
-  store_M_mlbase = (double *) space(sizeof(double)*(size+1)); 
+  store_M_mlbase = (double *)space(sizeof(double) * (size + 1));
+
   /* 2. exterior bp (p,o) encloses unpaired region [i,i+w[*/
   for (o=TURN+2;o<=n; o++) {
+    double sum_h;
     /*allocate space for arrays to store different contributions to H, I & M */
-    store_H = (double *) space(sizeof(double )*(o+2));
+    store_H       = (double *)space(sizeof(double) * (o+2));
     /* unpaired between ]l,o[ */    
-    store_Io = (double *) space(sizeof(double)*(o+2));
+    store_Io      = (double *)space(sizeof(double) * (o+2));
     /* qm[p+1,i-1]*dangles_po */
-    store_M_qm_o = (double *) space(sizeof(double)*(n+1)); 
-          
+    store_M_qm_o  = (double *)space(sizeof(double) * (n+1)); 
+
     for (p=o-TURN-1; p>=1; p--) {
       /* construction of partition function of segment [p,o], given that
          an unpaired region [i,i+w[ exists within [p,o] */
-      u = o-p-1; po = iindx[p]-o;
+      u = o-p-1;
+      po = iindx[p]-o;
       type = ptype[po];
-      if (type!=0) {  
+      if(type){
+
         /*hairpin contribution*/
-        if (((type==3)||(type==4))&&no_closingGU) {
+        if (((type==3)||(type==4))&&no_closingGU)
           temp = 0.;
-        } else {
-          temp = (exp_E_Hairpin(u, type, S1[p+1], S1[o-1], sequence+p-1, Pf) * prpr[po] * scale[u+2]); /* add scale[u+2] */
-        }
+        else
+          temp = prpr[po] * exp_E_Hairpin(u, type, S1[p+1], S1[o-1], sequence+p-1, Pf) * scale[u+2];
         /* all H contribs are collect for the longest unpaired region */ 
-        store_H[p+1]=temp;
+        store_H[p+1] = temp;
 
         /* interior loops with interior pair k,l and an unpaired region of
          length w between p and k || l and o*/        
         for (k=p+1; k<=MIN2(p+MAXLOOP+1,o-TURN-2); k++) {
-          u1 = k-p-1;          
-          sum_l=0.0;
+          u1    = k-p-1;          
+          sum_l = 0.;
           for (l=MAX2(k+TURN+1,o-1-MAXLOOP+u1); l<o; l++) {
-            kl=iindx[k]-l;
-            type_2 = ptype[kl];
-            if(l+1 < o){
-              store_Io[l+1] += sum_l;
-            }
+            kl      = iindx[k]-l;
+            type_2  = ptype[kl];
+            if((l+1) < o) store_Io[l+1] += sum_l;
+
             temp=0.;
-            if (type_2) {
+            if (type_2){
               type_2 = rtype[type_2];
-              /* add *scale[u1+u2+2] */ 
-              temp = qb[kl]  * (scale[u1+o-l+1] *
-                                exp_E_IntLoop(u1, o-l-1, type, type_2,
-                                     S1[p+1], S1[o-1], S1[k-1], S1[l+1], Pf)) *
-                prpr[po];
-              if(l+1 < o) {
-                store_Io[l+1] += temp; /* unpaired region between ]l,o[ */
-              }
+              temp = prpr[po] * qb[kl] * exp_E_IntLoop(u1, o-l-1, type, type_2, S1[p+1], S1[o-1], S1[k-1], S1[l+1], Pf) *scale[u1+o-l+1];
+              if((l+1) < o) store_Io[l+1] += temp; /* unpaired region between ]l,o[ */
               sum_l += temp;
             } /* end of if pair(k,l) */
           } /* end of l */
           /* unpaired in region ]p,k[  */
-          for(i=p+1;i <= k-1;i++) {
-            int max_v; 
-            max_v=MIN2(w-1,k-i-1);
-            store_I2o[i][max_v] += sum_l;
-          }
+          for(i=p+1;i <= k-1;i++)
+            store_I2o[i][MIN2(w-1,k-i-1)] += sum_l;
         } /* end of k */
       } /*end of if(type) test for bp (p,o) */
 
@@ -280,43 +290,39 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
 
       /* recalculate qqm[] 
          qqm[p] := (contribution with exact one loop in region (p,o)*/
-      qqm[p] = qqm1[p]*expMLbase[1];
-      if (type) {
-        qbt1 = qb[po]*exp_E_MLstem(type, (p>1) ? S1[p-1] : -1, (o<n) ? S1[o+1] : -1, Pf);
-        qqm[p] += qbt1;
-        /* revers dangles for prpr[po]*... */
-        temp=0.; 
-        tt=rtype[type];
-        temp = prpr[po]*exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * Pf->expMLclosing;
-      }
-      tqm2=0.;
-      
-      for(i=p+1; i < o; i++) {
-        int p1i,pui;
-        tqm2+=qm[iindx[p]-i]*qqm[i+1];
-        if(  type !=0 ) {
-          pui= (p+1) < i ? iindx[p+1]-(i) : 0;
-          p1i= (p+1) < (i-1) ? iindx[p+1]-(i-1) : 0;
+      qqm[p]  = qqm1[p] * expMLbase[1];
+      if(type){
+        qbt1    =   qb[po] * exp_E_MLstem(type, (p>1) ? S1[p-1] : -1, (o<n) ? S1[o+1] : -1, Pf);
+        qqm[p]  +=  qbt1;
+        /* reverse dangles for prpr[po]*... */
+        temp    =   0.; 
+        tt      =   rtype[type];
+        temp    =   prpr[po] * exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * Pf->expMLclosing;
+        for(i=p+1; i < o; i++) {
+          int p1i = (p+1) < (i-1)  ? iindx[p+1]-(i-1)  : 0;
           /*unpaired region expMLbase[i-p] left of structured
             region qq_1m2[i+1]*/
           /* @expMLbase:  note distance of i-p == i-(p+1)+1 */
-          store_M_mlbase[iindx[p+1]-i] += expMLbase[i-p]*temp*qq_1m2[i+1];
-          /*structured region qm[p1i] left of unpaired region */
+          store_M_mlbase[iindx[p+1]-i] += expMLbase[i-p] * temp * qq_1m2[i+1];
+          /* structured region qm[p1i] left of unpaired region */
           /* contribition for unpaired region is added after the p-loop */
           store_M_qm_o[i] += qm[p1i] * temp;
-        }
-      }/*end of for i ... */
+        } /*end of for i ... */
+      }
+
+      for(tqm2 = 0., i=p+1; i < o; i++)
+        tqm2  +=  qm[iindx[p]-i] * qqm[i+1];
+
       /* qqm2[p] contrib with at least 2 loops in region (p,o) */ 
-      qqm2[p]=tqm2;
+      qqm2[p] = tqm2;
     } /* end for (p=..) */
-    double sum_h;
-    sum_h = 0.0;
-    for(i=1; i < o; i++) {
-      int max_v,vo;      
-      sum_h += store_H[i];
-      max_v = MIN2(w-1,o-i-1); 
-      for(v=max_v; v >=0;v--) {
-        /* Hairpins */        
+
+    for(sum_h = 0., i=1; i < o; i++) {
+      int max_v, vo;      
+      sum_h +=  store_H[i];
+      max_v =   MIN2(w-1,o-i-1); 
+      for(v=max_v; v >= 0; v--){
+        /* Hairpins */
         pu_test->H[i][v] += sum_h;/* store_H[i][v] + store_H[i][max_v]; */
         /* Interior loops: unpaired region between  ]l,o[ calculated here !*/
         /* unpaired region between ]p,k[ collected after after o-loop */
@@ -328,7 +334,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
         /* store_M_qm_o[i] = part. funct over all structured regions ]p,i[ */
         vo = (i+v+1) <= (o-1) ? iindx[i+v+1]-(o-1): 0;
         pu_test->M[i][v] += store_M_qm_o[i]*expMLbase[v+1]*qm[vo];
-      }      
+      }
     }
     tmp = qqm1; qqm1=qqm; qqm=tmp;
     tmp = qqm2; qqm2=qq_1m2; qq_1m2=tmp;
@@ -337,58 +343,63 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
     free(store_H);
     free(store_M_qm_o); 
   }/* end for (o=..) */
-  
-  for(i=0;i<=n;i++) { sum_M[i]=0.; }
+
   for(i=1; i < n; i++) {
-    int max_v;
-    double sum_iv;
-    sum_iv=0.;
-    max_v = MIN2(w-1,n-i); 
-    for(v=n; v >=0;v--) {      
+    int     max_v;
+    double  sum_iv;
+    sum_iv  = 0.;
+    max_v   = MIN2(w-1,n-i); 
+    for(v=n; v >=0; v--) {      
       if(v <= MIN2(max_v,MAXLOOP)) {
         /* all unpaired regions [i,v] between p and k in interior loops */
         /* notice v runs from max_v -> 0, sum_iv sums all int. l. contribs */
         /* for each x, v < x =< max_v, since they contribute to [i,v] */
-        sum_iv += store_I2o[i][v];
-        pu_test->I[i][v] += sum_iv;
+        sum_iv            += store_I2o[i][v];
+        pu_test->I[i][v]  += sum_iv;
       }
       /* all unpaired region [i,v] for a fixed v, given that */
       /* region ]v,o[ contains at least 2 structures qq_1m2[v+1]; */
       if(v >= i) {
-        sum_M[v]+= store_M_mlbase[iindx[i]-v];
+        sum_M[v] += store_M_mlbase[iindx[i]-v];
         if(v-i<=max_v) {
           pu_test->M[i][v-i] += sum_M[v];
-        }        
+        }
       }
     }
   }
-  free(store_M_mlbase);
+
   for(i=0;i<=n;i++) {
     free(store_I2o[i]);
   }
   free(store_I2o);
-  
+
   for (i=1; i<=n; i++) {
     /* set auxillary arrays to 0 */
-    qqm[i]=qqm1[i]=0;
-    qqm2[i]=qq_1m2[i]=0;
+    qqm[i] = qqm1[i] = qqm2[i] = qq_1m2[i] = 0;
   }
-    
+
   /* 2. exterior bp (p,o) encloses unpaired region [i,j]
      HERE index o goes from n...1 and index p from o+TURN+1 ... n,
      that is, we add the one multiloop contribution that we
      could not calculate before  */
-  size = sizeof(double) * ((n+1)*(n+2)/2);
-  store_M_mlbase = (double *) space(sizeof(double)*(size+1));
+
+/* is free'ing plus allocating faster than looping over all entries an setting them to 0? */
+#if 0
+  free(store_M_mlbase);
+  store_M_mlbase = (double *) space(sizeof(double) * (size + 1));
+#else
+  /* this should be the fastest way to set everything to 0 */
+  memset(store_M_mlbase, 0, sizeof(double) * (size + 1));
+#endif
+
   for (o=n-TURN-1;o>=1; o--) {
-    
     for (p=o+TURN+1; p<=n; p++) {
-      po=iindx[o]-p;
-      type=ptype[po];
+      po    = iindx[o]-p;
+      type  = ptype[po];
       /* recalculate of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment [o,p] */
-      qqm[p] = qqm1[p]*expMLbase[1];
+      qqm[p] = qqm1[p] * expMLbase[1];
       if (type) {
         qbt1 = qb[po];
         qbt1 *= exp_E_MLstem(type, (o>1) ? S1[o-1] : -1, (p<n) ? S1[p+1] : -1, Pf);
@@ -411,7 +422,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
            store_M_mlbase[iindx[i]-p+1] +=  qq_1m2[i-1]*expMLbase[p-i]*temp;
         }
       }/*end of for i ....*/
-      qqm2[p]=tqm2;
+      qqm2[p] = tqm2;
     }/* end for (p=..) */    
     tmp = qqm1; qqm1=qqm; qqm=tmp;
     tmp = qqm2; qqm2=qq_1m2; qq_1m2=tmp;
@@ -419,19 +430,17 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
   /* now collect the missing multiloop contributions */
   for(i=0;i<=n;i++) { sum_M[i]=0.; }
   for(i=1; i<=n;i++) {
-    int v_max;
-    v_max=MIN2(w-1,n-i);
-    for(v=n; v>=i;v--){
-      sum_M[i]+=store_M_mlbase[iindx[i]-v];
+    int v_max = MIN2(w-1,n-i);
+    for(v=n; v>=i; v--){
+      sum_M[i]  += store_M_mlbase[iindx[i]-v];
       if ((v-i <= v_max) ) {
         pu_test->M[i][v-i] += sum_M[i];
       }        
     }
   }
-  free(store_M_mlbase);
   
   /* 1. region [i,j] exterior to all loops */
-  Zuij=0.;bla=0;
+  Zuij=0.;
   for (i=1; i<=n; i++) {
     uu=0;
     for(j=i; j<MIN2(i+w,n+1);j++){
@@ -442,74 +451,95 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w)
     }
   }
   
-  free_pf_unstru();
+  free(store_M_mlbase);
+  free_up_arrays();
   return pu_test;  
 }
+
+
+PRIVATE void  get_interact_arrays(unsigned int n1, unsigned int n2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr5, int incr3, double ***p_c_S, double ***p_c2_S){
+  unsigned int i;
+  int pc_size, j;
+  *p_c_S = (double **)space(sizeof(double *)*(n1+1));
+
+  for (i=1; i<=n1; i++){
+    pc_size = MIN2((w + incr5 + incr3), (int)n1);
+    (*p_c_S)[i] = (double *)space(sizeof(double) * (pc_size + 1));
+    for (j=0; j < pc_size; j++)
+      (*p_c_S)[i][j] = p_c->H[i][j] + p_c->I[i][j] + p_c->M[i][j] + p_c->E[i][j];
+  }
+
+  if(p_c2 != NULL){
+    (*p_c2_S) = (double **)space(sizeof(double *) * (n2 + 1));
+    for (i=1; i<=n2; i++){
+      pc_size = MIN2(w, (int)n2);
+      (*p_c2_S)[i]  = (double *)space(sizeof(double) * (pc_size + 2));
+      for (j=0; j < pc_size; j++)
+        (*p_c2_S)[i][j] = p_c2->H[i][j] + p_c2->I[i][j] + p_c2->M[i][j] + p_c2->E[i][j];
+    }
+  }
+}
+
+PRIVATE void  free_interact_arrays(void){
+
+
+}
+
+
+
 /*------------------------------------------------------------------------*/
 /* s1 is the longer seq */
 PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, char *cstruc, int incr3, int incr5)
 {
-  int i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
-  double temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
-  FLT_OR_DBL ****qint_4, **qint_ik;
+  int         i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
+  double      temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
+  FLT_OR_DBL  ****qint_4, **qint_ik;
   /* PRIVATE double **pint; array for pf_up() output */
-  interact *Int;
-  double G_min, G_is,Gi_min;
-  int gi,gj,gk,gl,ci,cj,ck,cl,prev_k,prev_l;
-  FLT_OR_DBL **int_ik;
-  double Z_int, temp_int, temppfs;
-  double const_scale,const_T;
-  constrain *cc = NULL;  /* constrains for cofolding */
-  char *Seq, *i_long,*i_short,*pos=NULL; /* short seq appended to long one */
+  interact    *Int;
+  double      G_min, G_is,Gi_min;
+  int         gi,gj,gk,gl,ci,cj,ck,cl,prev_k,prev_l;
+  FLT_OR_DBL  **int_ik;
+  double      Z_int, temp_int, temppfs;
+  double      const_scale, const_T;
+  constrain   *cc = NULL;  /* constrains for cofolding */
+  char        *Seq, *i_long,*i_short,*pos=NULL; /* short seq appended to long one */
   /* int ***pu_jl; */ /* positions of interaction in the short RNA */
+
   G_min = G_is = Gi_min = 100.0;
   gi = gj = gk = gl = ci = cj = ck = cl = 0;
   
-  n1 = (int) strlen(s1); 
-  n2 = (int) strlen(s2);
-  prev_k = 1;
-  prev_l = n2;
-  i_long = (char *) space (sizeof(char)*(n1+1));
+  n1      = (int) strlen(s1); 
+  n2      = (int) strlen(s2);
+  prev_k  = 1;
+  prev_l  = n2;
+
+  i_long  = (char *) space (sizeof(char)*(n1+1));
   i_short = (char *) space (sizeof(char)*(n2+1));
-  /* fill structure constrain */
-  Seq = (char *) space (sizeof(char)*(n1+n2+2));
+  Seq     = (char *) space (sizeof(char)*(n1+n2+2));
+
   strcpy(Seq,s1);
   strcat(Seq,s2);
+
+  set_encoded_seq(s1, &S, &S1);
+  set_encoded_seq(s2, &SS, &SS2);
+
   cc = get_ptypes(Seq,cstruc);
-  
-  p_c_S = (double **) space (sizeof(double *)*(n1+1));
-  
-  for (i=1; i<=n1; i++) {
-    pc_size = MIN2((w+incr3+incr5),n1);
-    /* printf("pc_size = %d\n",pc_size); */
-    p_c_S[i] = (double *) space (sizeof(double)*(pc_size+1));    
-    for (j=0; j < (pc_size); j++) {
-      p_c_S[i][j] = p_c->H[i][j]+p_c->I[i][j]+p_c->M[i][j]+p_c->E[i][j];
-      
-    }
-  }
-  if(p_c2 != NULL) {
-    p_c2_S = (double **) space (sizeof(double *)*(n2+1));
-    for (i=1; i<=n2; i++) {
-      pc_size = MIN2(w,n2);
-      p_c2_S[i] = (double *) space (sizeof(double)*(pc_size+2));    
-      for (j=0; j < (pc_size); j++) {
-        p_c2_S[i][j] = p_c2->H[i][j]+p_c2->I[i][j]+p_c2->M[i][j]+p_c2->E[i][j];
-      
-      }
-    }
-  }
+
+  get_interact_arrays(n1, n2, p_c, p_c2, w, incr5, incr3, &p_c_S, &p_c2_S);
+
   /*array for pf_up() output */
   Int = (interact *) space(sizeof(interact)*1);
   Int->Pi = (double *) space(sizeof(double)*(n1+2));
   Int->Gi = (double *) space(sizeof(double)*(n1+2));
    
   /* use a different scaling for pf_interact*/
-  scale_int(s2,s1,&int_scale,incr3,incr5);
+  scale_int(s2, s1, &int_scale);
+
   /* set the global scale array and the global variable pf_scale to the
      values used to scale the interaction, keep their former values !! */
   temppfs = pf_scale;
   pf_scale = int_scale;
+
   /* in order to scale expLoopEnergy correctly call*/
   init_pf_fold(n1);
   scale_stru_pf_params((unsigned) n1);
@@ -881,19 +911,16 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 }
 /*------------------------------------------------------------------------*/
 /* use an extra scale for pf_interact, here sl is the longer sequence */
-PRIVATE void scale_int(const char *s, const char *sl, double *sc_int,int incr3, int incr5)
-{
-  int n,nl,l_scales;
-  duplexT mfe;
-  double  kT;
+PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
+  int       n,nl,l_scales;
+  duplexT   mfe;
+  double    kT;
   
-  /* sc_int is similar to pf_scale: i.e. one time the scale */
-  n=strlen(s);
-  nl=strlen(sl);
-  l_scales = (2*nl)+incr3+incr5;
+  n         = strlen(s);
+  nl        = strlen(sl);
 
-  expMLbase  = (double *) space(sizeof(double)*(nl+1));
-  scale = (double *) space(sizeof(double)*((nl+1)*2));
+  expMLbase = (double *) space(sizeof(double)*(nl+1));
+  scale     = (double *) space(sizeof(double)*((nl+1)*2));
   
   /* use RNA duplex to get a realistic estimate for the best possible
      interaction energy between the short RNA s and its target sl */
@@ -901,8 +928,6 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int,int incr3, 
   
   kT = Pf->kT/1000.0;   /* in Kcal */
 
-  *sc_int = 3.42;
-  
   /* sc_int is similar to pf_scale: i.e. one time the scale */
   *sc_int = exp(-(mfe.energy)/kT/n);
   
@@ -912,11 +937,9 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int,int incr3, 
 
 /*----------------------------------------------------------------------*/
 /* init_pf_two(n) :gets the arrays, that you need, from part_func.c */ 
-/* get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln); get_unpaired(n); */
+/* get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln);*/
 /* init_pf_fold(), update_pf_params, encode_char(), make_ptypes() are called by pf_fold() */  
-PRIVATE void init_pf_two(int length)
-{
-  
+PRIVATE void init_pf_two(int length){
 #ifdef SUN4
   nonstandard_arithmetic();
 #else
@@ -924,86 +947,42 @@ PRIVATE void init_pf_two(int length)
   fpsetfastmode(1);
 #endif 
 #endif
-  expMLbase  = (double *) space(sizeof(double)*(length+1));
-  scale = (double *) space(sizeof(double)*((length+1)*2));
   make_pair_matrix();
-  /* gets the arrays, that you need, from part_func.c */
-  /* pr: base pairing prob. matrix, global declared in fold_vars.h */
-  /* iindx also global declared in fold_vars.h */
-  if(get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln) == 0) {
-    nrerror("init_pf_two:"
-            "pf_fold() has to be called before calling pf_unstru()\n");
-  }
-  get_unpaired(length);
+
+  /* gets the arrays, that we need, from part_func.c */
+  if(!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln))
+    nrerror("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
+
   scale_stru_pf_params((unsigned) length);
-  
+
   init_length=length;
   if(init_temp != Pf->temperature)
     nrerror("init_pf_two: inconsistency with temperature");  
 }
 
-/*---------------------------------------------------------------------------*/
-PRIVATE void get_unpaired(int length)
-{
-  unsigned int size;
-   
-  size = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
-  prpr = (FLT_OR_DBL *) space(size);
-  qqm2 = (double *) space(sizeof(double)*(length+2));
-  qq_1m2 = (double *) space(sizeof(double)*(length+2));
-  qqm = (double *) space(sizeof(double)*(length+2));
-  qqm1 = (double *) space(sizeof(double)*(length+2));
-}
-PRIVATE void free_unpaired(void)
-{
-  free(prpr);
-  prpr=NULL;
-  free(qqm2);
-  free(qq_1m2);
-  free(qqm);
-  free(qqm1);
-}
-/* free all but the output structure for pf_unstru */
-PRIVATE void free_pf_unstru(void) {
-  if(scale != NULL) {
-    free(scale);
-    scale = NULL;
-  }
-  if(expMLbase != NULL) {
-    free(expMLbase);
-    expMLbase = NULL;
-  }
-  free_unpaired();
-}
-/*---------------------------------------------------------------------------*/
-
-
-PUBLIC void free_pu_contrib(pu_contrib *p_con) {
-  int i;  
-  if(p_con != NULL) {
-    for(i=0;i<=p_con->length;i++) {
-      free(p_con->H[i]);
-      free(p_con->I[i]);
-      free(p_con->M[i]);
-      free(p_con->E[i]);
-    }
-    free(p_con->H);
-    free(p_con->I);
-    free(p_con->M);
-    free(p_con->E);
-    free(p_con);
-    p_con = NULL;
-  }
+PRIVATE void  get_up_arrays(unsigned int length){
+  unsigned int l1 = length + 1;
+  unsigned int l2 = length + 2;
+  prpr      = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * ((l1*l2)>>1));
+  expMLbase = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * l1);
+  scale     = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * l1);
+  qqm2      = (double *)    space(sizeof(double)      * l2);
+  qq_1m2    = (double *)    space(sizeof(double)      * l2);
+  qqm       = (double *)    space(sizeof(double)      * l2);
+  qqm1      = (double *)    space(sizeof(double)      * l2);
   
-  if(SS != NULL){
-    free(SS);
-    SS=NULL;
-  }
-  if(SS2 != NULL){
-    free(SS2);
-    SS2=NULL;
-  }
 }
+
+PRIVATE void  free_up_arrays(void){
+  if(prpr       != NULL){ free(prpr);       prpr      = NULL;}
+  if(expMLbase  != NULL){ free(expMLbase);  expMLbase = NULL;}
+  if(scale      != NULL){ free(scale);      scale     = NULL;}
+  if(qqm        != NULL){ free(qqm);        qqm       = NULL;}
+  if(qqm1       != NULL){ free(qqm1);       qqm1      = NULL;}
+  if(qqm2       != NULL){ free(qqm2);       qqm2      = NULL;}
+  if(qq_1m2     != NULL){ free(qq_1m2);     qq_1m2    = NULL;}
+}
+
 PUBLIC void free_interact(interact *pin) {
   if(S != NULL && pin != NULL){
     free(S);
@@ -1037,8 +1016,6 @@ PRIVATE void encode_seq(const char *s1, const char *s2) {
   }
   if(s2 != NULL) {
     l = strlen(s2);
-    SS = (short *) xrealloc(SS, sizeof(short)*(l+1));
-    SS2= (short *) xrealloc(SS2, sizeof(short)*(l+1));
     /* SS2 exists only for the special X K and I bases and energy_set!=0 */
     SS[0] = l;
     for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
@@ -1337,25 +1314,27 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
 PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
   int n,i,j,k,l, length;
   constrain *con;
-  
+  short *s, *s1;
+
   length = strlen(Seq);
   make_pair_matrix();
-  encode_seq(Seq,NULL);
-  con = (constrain *) space(sizeof(constrain)*1);
+  con = (constrain *) space(sizeof(constrain));
   con->indx = (int *) space(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
     con->indx[i] = ((length+1-i)*(length-i))/2 +length+1;    
   }
   con->ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  
-  n=S[0];
+
+  set_encoded_seq((const char *)Seq, &s, &s1);
+
+  n=s[0];
   for (k=1; k<=n-CO_TURN-1; k++)
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
       i=k; j = i+CO_TURN+l; if (j>n) continue;
-      type = pair[S[i]][S[j]];
+      type = pair[s[i]][s[j]];
       while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
+        if ((i>1)&&(j<n)) ntype = pair[s[i-1]][s[j+1]];
         if (noLonelyPairs && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
         con->ptype[con->indx[i]-j] = (char) type;        
@@ -1364,7 +1343,6 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
         i--; j++;
       }
     }
-  free(S);free(S1);
 
   if (fold_constrained&&(structure!=NULL)) {
     int hx, *stack;
@@ -1405,5 +1383,27 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
     }
     free(stack); 
   }
+  free(s);
+  free(s1);
   return con;
+}
+PRIVATE  void  set_encoded_seq(const char *sequence, short **S, short **S1){
+  unsigned int i,l;
+  l = strlen(sequence);
+  if(S!= NULL){
+    *S  = (short *)space(sizeof(short) * (l + 2));
+    for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+      (*S)[i]= (short) encode_char(toupper(sequence[i-1]));
+    (*S)[l+1] = (*S)[1];
+    (*S)[0]   = (short) l;
+  }
+  /* S1 exists only for the special X K and I bases and energy_set!=0 */
+  if(S1 != NULL){
+    *S1 = (short *)space(sizeof(short) * (l + 2));
+    for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+      (*S1)[i]  = alias[(short) encode_char(toupper(sequence[i-1]))]; /* for mismatches of nostandard bases */
+    /* for circular folding add first base at position n+1 and last base at position 0 in S1 */
+    (*S1)[l+1]  = (*S1)[1];
+    (*S1)[0]    = (*S1)[l];
+  }
 }

@@ -57,4 +57,7 @@ short *make_pair_table(const char *structure);
 *** same as edit distance with open-pair close-pair as move-set
 **/
 int bp_distance(const char *str1, const char *str2);
+
+
+
 #endif
