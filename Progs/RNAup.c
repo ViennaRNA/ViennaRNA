@@ -149,36 +149,36 @@ int main(int argc, char *argv[])
   /* set pf scaling factor */
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
   /* set the maximal length of interaction region */
-  if(args_info.window_given)      w = args_info.window.arg;
+  if(args_info.window_given)      w = args_info.window_arg;
   /* use the first sequence as target */
-  if(args_info.target.given)      Switch = 0;
+  if(args_info.target_given)      Switch = 0;
   /* do not make an output file */
-  if(args_info.no_output_file.given)  output = 0;
+  if(args_info.no_output_file_given)  output = 0;
   /* do not create header */
-  if(args_info.no_header.given)       header = 0;
+  if(args_info.no_header_given)       header = 0;
   /* set mode to unpaired regions in both RNAs */
-  if(args_info.include_both.given)    upmode = 3;
+  if(args_info.include_both_given)    upmode = 3;
   /* set interaction mode 1 (pairwise interaction) */
-  if(args_info.interaction_pairwise.given){
+  if(args_info.interaction_pairwise_given){
     if(upmode == 1) upmode = 2;
     task = 1;
   }
   /* set interaction mode 2 (first sequence interacts with all others) */
-  if(args_info.interaction_first.given){
+  if(args_info.interaction_first_given){
     if(upmode == 1) upmode = 2;
     task = 2;
   }
   /* extend unpaired region 5' */
-  if(args_info.extend5.given)         incr5 = args_info.extend5.arg;
+  if(args_info.extend5_given)         incr5 = args_info.extend5_arg;
   /* extend unpaired region 3' */
-  if(args_info.extend3.given)         incr3 = args_info.extend3.arg;
+  if(args_info.extend3_given)         incr3 = args_info.extend3_arg;
   /* set contribution output */
-  if(args_info.contributions.given)   my_contrib = strdup(args_info.contributions.arg);
+  if(args_info.contributions_given)   strncpy(my_contrib, args_info.contributions_arg, 10);
   /* set length iof unpaired (unstructured) region */
-  for(i = 0; i < args_info.ulength.given; i++){
-    if(strchr(args_info.ulength.args[i], '-'){
+  for(i = 0; i < args_info.ulength_given; i++){
+    if(strchr(args_info.ulength_arg[i], '-')){
       int min, max, tmp;
-      if(sscanf(args_info.ulength.args[i], "%d-%d", &min, &max) == 2){
+      if(sscanf(args_info.ulength_arg[i], "%d-%d", &min, &max) == 2){
         if(min > max){
           tmp = min; min = max; max = tmp;
         }
