@@ -22,6 +22,7 @@
 #include "part_func_up.h"
 #include "duplex.h"
 #include "energy_const.h"
+#include "RNAup_cmdl.h"
 
 /*@unused@*/
 static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
@@ -42,7 +43,6 @@ PRIVATE void    print_unstru(pu_contrib *p_c, int w);
 static char  scale1[] = "....,....1....,....2....,....3....,....4";
 static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
-PRIVATE void usage(void);
 /* defaults for -u and -w */
 PRIVATE int default_u; /* -u options for plotting: plot pr_unpaired for 4 nucleotides */
 PRIVATE int default_w; /* -w option for interaction: maximal region of interaction is 25 nucleotides */
@@ -51,6 +51,9 @@ PRIVATE double RT;
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
+  struct  RNAup_args_info args_info;
+  int     max_ulength = 0;
+
   char *string1=NULL, *string2=NULL, *dummy=NULL, *temp=NULL, *line=NULL;
   char *structure=NULL, *cstruc=NULL, *cstruc_l=NULL, *cstruc_s=NULL;
   char fname[53], ffname[53], temp_name[201], first_name[53], my_contrib[10];
@@ -102,6 +105,7 @@ int main(int argc, char *argv[])
   first_name[0] = '\0';
 
   /* collect the command line  */
+  /* isn't it possible to do this in another way? */
   sprintf(cmd_line,"RNAup ");
   length = 0;
   for (i=1; i<argc; i++) {
@@ -111,125 +115,88 @@ int main(int argc, char *argv[])
     strcat(cmd_line, temp_name);
     strcat(cmd_line," ");
   }
+  cmd_line[strlen(cmd_line)] = '\0';
   length = 0;
   
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') 
-      switch ( argv[i][1] )
-        {
-        case 'T':  if (argv[i][2]!='\0') usage();
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i], "%lf", &temperature);
-          if (!r) usage();
-          break;
-        case 'w':
-          /* -w maximal length of unstructured region */  
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%d", &w);
-          if (!r) usage();
-          break;
-        case 't':
-          /* use the first sequence as the target */
-          if ( strcmp(argv[i], "-target")==0) {
-            Switch=0;
-          }
-          break;
-        case 'o':
-          /* make no output file */
-          output=0;
-          break; 
-        case 'n':
-          if ( strcmp(argv[i], "-nh")==0) {
-            header=0;
-          }
-          if ( strcmp(argv[i], "-noGU")==0) {
-            noGU=1;
-          }
-          if ( strcmp(argv[i], "-noCloseGU")==0) {
-            no_closingGU=1;
-          }
-          if ( strcmp(argv[i], "-noLP")==0) {
-            noLonelyPairs=1;
-          }
-          if ( strcmp(argv[i], "-nsp") ==0) {
-            if (i==argc-1) usage();
-            ns_bases = argv[++i];
-          }
-          if ( strcmp(argv[i], "-noconv")==0) {
-            noconv=1;
-          }
-          break;
-        case '4':
-          tetra_loop=0;
-          break;
-        case 'e':
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%d", &energy_set);
-          if (!r) usage();
-          break;
-        case 'C':
-          fold_constrained=1;
-          break;
-        case 'S':
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%lf", &sfact);
-          if (!r) usage();
-          break;
-        case 'd': dangles=0;
-          if (argv[i][2]!='\0') {
-            r=sscanf(argv[i]+2, "%d", &dangles);
-            if (r!=1) usage();
-          }
-          break;
-        case 'b': upmode=3;
-          break;
-        case 'X':
-          /* interaction mode invoked */
-          if (upmode == 1) upmode=2;
-          switch (argv[i][2]) { /* now determine which sequences interact */
-          case 'p': task=1;
-            break; /* pairwise interaction */
-          case 'f': task=2;
-            break; /* first one interacts with all others */
-          }
-          break;
-        case 'u':
-          /* -u length of unstructured region in pr_unpaired output */  
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%200s", unstrs);
-          if (!r) usage();
-          if (!isdigit(unstrs[0])) usage();
-          break;
-          /* incr5 and incr3 are only for the longer (target) sequence */
-          /* increments w (length of the unpaired region) to incr5+w+incr3*/
-          /* the longer sequence is given in 5'(= position 1) to */
-          /* 3' (=position n) direction */
-          /* incr5 adds incr5 residues to the 5' end of w */
-        case '5':
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%d", &incr5);
-          if (!r) usage();
-          break; 
-          /* incr3 adds incr3 residues to the 3' end of w */
-        case '3':
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i],"%d", &incr3);
-          if (!r) usage();
-          break;
-        case 'P':
-          if (i==argc-1) usage();
-          ParamFile = argv[++i];
-          break;
-        case 'c':  
-          if (i==argc-1) usage();
-          r=sscanf(argv[++i], "%6s", my_contrib);
-          if (!r) usage();
-          break;  
-        default: usage();
-        } 
+  /*
+  #############################################
+  # check the command line prameters
+  #############################################
+  */
+  if(RNAup_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* structure constraint */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set pf scaling factor */
+  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  /* set the maximal length of interaction region */
+  if(args_info.window_given)      w = args_info.window.arg;
+  /* use the first sequence as target */
+  if(args_info.target.given)      Switch = 0;
+  /* do not make an output file */
+  if(args_info.no_output_file.given)  output = 0;
+  /* do not create header */
+  if(args_info.no_header.given)       header = 0;
+  /* set mode to unpaired regions in both RNAs */
+  if(args_info.include_both.given)    upmode = 3;
+  /* set interaction mode 1 (pairwise interaction) */
+  if(args_info.interaction_pairwise.given){
+    if(upmode == 1) upmode = 2;
+    task = 1;
   }
-  cmd_line[strlen(cmd_line)] = '\0';
-  if (dangles>0) dangles=2; /* only 0 or 2 allowed */
+  /* set interaction mode 2 (first sequence interacts with all others) */
+  if(args_info.interaction_first.given){
+    if(upmode == 1) upmode = 2;
+    task = 2;
+  }
+  /* extend unpaired region 5' */
+  if(args_info.extend5.given)         incr5 = args_info.extend5.arg;
+  /* extend unpaired region 3' */
+  if(args_info.extend3.given)         incr3 = args_info.extend3.arg;
+  /* set contribution output */
+  if(args_info.contributions.given)   my_contrib = strdup(args_info.contributions.arg);
+  /* set length iof unpaired (unstructured) region */
+  for(i = 0; i < args_info.ulength.given; i++){
+    if(strchr(args_info.ulength.args[i], '-'){
+      int min, max, tmp;
+      if(sscanf(args_info.ulength.args[i], "%d-%d", &min, &max) == 2){
+        if(min > max){
+          tmp = min; min = max; max = tmp;
+        }
+      }
+    }
+  
+  }
+
+  /* free allocated memory of command line data structure */
+  RNAup_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
+  if (dangles!=0) dangles = 2; /* only 0 or 2 allowed */
+
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
    
@@ -703,14 +670,6 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-          "RNAup [-u list] [-w len] [-b] [-Xp|-Xf] [-c \"SHIME\"] [-5 incr]\n"
-          "      [-3 incr] [-target] [-o] [-C] [-T temp] [-noLP]\n"
-          "      [-d[0|2]] [-noGU] [-noCloseGU] [-P paramfile] [-4]\n"
-          "      [-nsp pairs] [-S scale] [-noconv] \n");
-}
 
 /* call:  tokenize(line,&seq1,&seq2); the sequence string is split at the "&"
    and the first seq is written in seq1, the second into seq2  */

@@ -106,6 +106,12 @@ int main(int argc, char *argv[])
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
   write_parameter_file("bla.par");
