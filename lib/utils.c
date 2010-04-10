@@ -36,6 +36,9 @@ PUBLIC char  *get_line(FILE *fp);
 
 PUBLIC unsigned short xsubi[3];
 
+static char  scale1[] = "....,....1....,....2....,....3....,....4";
+static char  scale2[] = "....,....5....,....6....,....7....,....8";
+
 /*-------------------------------------------------------------------------*/
 
 PUBLIC void *space(unsigned size) {
@@ -190,6 +193,18 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
   return line;
 }
 
+PUBLIC int  skip_comment_lines(char **line){
+  if((*line = get_line(stdin))==NULL) return -1;
+
+  while((**line=='*')||(**line=='\0')){
+    printf("%s\n", line);
+    free(*line);
+    if((*line = get_line(stdin))==NULL) return -1;
+  } 
+  return 0;
+}
+
+
 /*-----------------------------------------------------------------*/
 
 PUBLIC char *pack_structure(const char *struc) {
@@ -333,4 +348,27 @@ char *strdup(const char *s) {
 }
 #endif
 
+PUBLIC  void  print_tty_input_seq(void){
+  printf("\nInput string (upper or lower case); @ to quit\n");
+  printf("%s%s\n", scale1, scale2);
+}
 
+PUBLIC  void  str_DNA2RNA(char *sequence){
+  unsigned int l, i;
+  if(sequence != NULL){
+    l = strlen(sequence);
+    for(i = 0; i < l; i++){
+      sequence[i] = toupper(sequence[i]);
+      if(sequence[i] == 'T') sequence[i] = 'U';
+    }
+  }
+}
+
+PUBLIC  void  str_RNA2RNA(char *sequence){
+  unsigned int l, i;
+  if(sequence != NULL){
+    l = strlen(sequence);
+    for(i = 0; i < l; i++)
+      sequence[i] = toupper(sequence[i]);
+  }
+}

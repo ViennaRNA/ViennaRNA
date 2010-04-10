@@ -15,26 +15,17 @@
 #include "utils.h"
 #include "energy_const.h"
 #include "energy_par.h"
+#include "read_epars.h"
 
 static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE   static
 #define PARSET 20
-enum parset {
-  UNKNOWN= -1, QUIT,
-  S, S_H, HP, HP_H, B, B_H, IL, IL_H, MMH, MMH_H, MMI, MMI_H,
-  MMI1N, MMI1N_H, MMI23, MMI23_H, MMM, MMM_H, MME, MME_H, D5, D5_H, D3, D3_H,
-  INT11, INT11_H, INT21, INT21_H, INT22, INT22_H, ML, TL,
-  TRI, HEX, TE, NIN, MISC,DUMP, HELP}; 
-
 
 #define DEF -50
 #define NST 0
 #define DEF_TEMP   37.0    /* default temperature */
-
-PUBLIC  void  read_parameter_file(const char fname[]);
-PUBLIC  void  write_parameter_file(const char fname[]);
 
 
 PRIVATE FILE *fp;

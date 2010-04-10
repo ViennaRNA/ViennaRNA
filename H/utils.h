@@ -38,6 +38,8 @@ void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
 int    hamming(const char *s1, const char *s2);
 /*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
 
+int skip_comment_lines(char **line);
+
 
 /**
 *** pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -58,6 +60,14 @@ short *make_pair_table(const char *structure);
 **/
 int bp_distance(const char *str1, const char *str2);
 
+/**
+*** Just print a line to stdout that asks for an input sequence a.
+*** There will also be a scale line printed that helps orientation of the sequence positions
+**/
+void print_tty_input_seq(void);
+
+void str_DNA2RNA(char *sequence);
+void str_RNA2RNA(char *sequence);
 
 
 #endif
