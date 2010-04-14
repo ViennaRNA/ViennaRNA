@@ -52,8 +52,8 @@ PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL  *scale;
 PRIVATE char        **ptype; /* precomputed array of pair types */
 PRIVATE int         *jindx;
-PRIVATE int         init_length;  /* length in last call to init_pf_fold() */
-PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
+PRIVATE int         init_length = 0;  /* length in last call to init_pf_fold() */
+PRIVATE double      init_temp   = 0; /* temperature in last call to scale_pf_params */
 PRIVATE pf_paramT   *pf_params;
 PRIVATE short       *S, *S1;
 PRIVATE int         unpaired;
@@ -89,21 +89,21 @@ PRIVATE void    putoutpU(double **pU,int k, int ulength, FILE *fp);
 */
 
 
-PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup)
-{
+PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup){
+  int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout;
+  double      max_real;
+  FLT_OR_DBL  temp, Qmax, prm_MLb, prmt, prmt1, qbt1, *tmp, expMLclosing;
+  plist       *dpp, *pl;
 
-  int n, m,i,j,k,l, u,u1,ii, type, type_2, tt, ov=0;
-  FLT_OR_DBL temp, Qmax=0, prm_MLb;
-  FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL qbt1, *tmp;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
-  double  max_real;
-  int     do_dpp        = 0;
-  int     simply_putout = 0;
-  plist   *dpp          = NULL;
-  plist   *pl           = NULL;
-  pUoutput = ulength = 0;
-  cutoff = cutoffb;
+  ov            = 0;
+  Qmax          = 0;
+  do_dpp        = 0;
+  simply_putout = 0;
+  dpp           = NULL;
+  pl            = NULL;
+  pUoutput      = 0;
+  ulength       = 0;
+  cutoff        = cutoffb;
 
   if(pU != NULL)  ulength       = (int)pU[0][0]+0.49;
   if(spup !=NULL) simply_putout = 1; /*can't have one without the other*/
@@ -112,20 +112,22 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
     fprintf(stderr, "There was a problem with non existing File Pointer for unpaireds, terminating process\n");
     return pl;
   }
-
   dpp = *dpp2;
   if(dpp !=NULL)  do_dpp=1; 
-
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   n = (int) strlen(sequence);
   if (n<TURN+2) return 0;
   if (n>init_length) init_pf_foldLP(n);  /* (re)allocate space */
   if ((init_temp - temperature)>1e-6) update_pf_paramsLP(n);
 
-  S = (short *) xrealloc(S, sizeof(short)*(n+1));
-  S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
-  S[0] = n;
+  expMLclosing  = pf_params->expMLclosing;
+
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+
+  S     = (short *) xrealloc(S, sizeof(short)*(n+1));
+  S1    = (short *) xrealloc(S1,sizeof(short)*(n+1));
+  S[0]  = n;
   for (l=1; l<=n; l++) {
     S[l]  = (short) encode_char(toupper(sequence[l-1]));
     S1[l] = alias[S[l]];
@@ -154,17 +156,14 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
   for (j=1; j<MIN2(TURN+2,n); j++) { /*allocate start*/
     GetNewArrays(j, winSize);
     GetPtype(j,pairSize,S,n);
-    for (i=1; i<=j; i++) {
-      q[i][j]=scale[(j-i+1)];
-    }
+    for (i=1; i<=j; i++) q[i][j]=scale[(j-i+1)];
   }
   for (j=TURN+2;j<=n+winSize; j++) {
     if (j<=n) {
       GetNewArrays(j, winSize);
       GetPtype(j,pairSize,S,n);
-      for (i=MAX2(1,j-winSize); i<=j/*-TURN*/; i++) {
+      for (i=MAX2(1,j-winSize); i<=j/*-TURN*/; i++)
         q[i][j]=scale[(j-i+1)];
-      }
       for (i=j-TURN-1;i>=MAX2(1,(j-winSize+1)); i--) {
         /* construction of partition function of segment i,j*/
         /*firstly that given i bound to j : qb(i,j) */
@@ -248,10 +247,10 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
       tmp = qqm1; qqm1=qqm; qqm=tmp;
     }
 
-    /*just as a general service, I save here the free energy of the windows
-no output is generated, however,...
+    /* just as a general service, I save here the free energy of the windows
+       no output is generated, however,...
     */
-    if ((j>winSize)&&(j<=n)&&(ulength)&&!(pUoutput)) {
+    if ((j>winSize) && (j<=n) && (ulength) && !(pUoutput)) {
       double Fwindow=0.;
       Fwindow=(-log(q[j-winSize+1][j])-winSize*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
 
@@ -461,29 +460,29 @@ PRIVATE void scale_pf_params(unsigned int length)
 PRIVATE void get_arrays(unsigned int length)
 {/*arrays in 2 dimensions*/
 
-  q   = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  qb  = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  qm  = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  pR = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  ptype = (char **) space((length+2)*sizeof(char *));
-  q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1 =(FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  q         = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  qb        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  qm        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  pR        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  q1k       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  qln       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qq        = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qq1       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm1      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l1    = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prml      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  expMLbase = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  scale     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  ptype     = (char **)       space(sizeof(char *)      *(length+2));
  
   if (ulength>0) {
-  QI5 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  /* QI3 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));*/
-  qmb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  qm2 =(FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  q2l =(FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    /* QI3 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));*/
+    QI5 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    qmb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   }
   iindx = (int *) space(sizeof(int)*(length+1));
   jindx = (int *) space(sizeof(int)*(length+1));
@@ -627,6 +626,7 @@ PRIVATE void GetPtype(int i, int winSize,const short *S,int n) {
   return;
 }
 
+
 PRIVATE struct plist *get_plistW(struct plist *pl, int length,
                                  int start, FLT_OR_DBL **Tpr, int winSize) {
   /*get pair probibilities out of pr array*/
@@ -653,6 +653,8 @@ PRIVATE struct plist *get_plistW(struct plist *pl, int length,
   /*  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));*/
   return pl;
 }
+
+
 PRIVATE struct plist *get_deppp(struct plist *pl, int start, int pairsize, int length) {
   /*compute dependent pair probabilities*/
   int i, j, count=0;
@@ -813,7 +815,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
 #endif
   temp=0.;
   for (len=winSize; len>MAX2(ulength,MAXLOOP); len--) temp+=QI5[k][len];
-  for (len=MAX2(ulength,MAXLOOP);len>0; len--) { /*grenzen?*/
+  for (;len>0; len--) { /*grenzen?*/
     temp+=QI5[k][len];
     QBE[len]+=temp;  /*replace QBE with QI*/
   }
@@ -868,9 +870,10 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       temp += q[i5][k - startu] * q[k + 1][i5 + winSize - 1] * scale[startu]/q[i5][i5 + winSize - 1];
     }
     /*the 2 Cases where the borders are on the edge of the interval*/
-    if(k >= winSize)
+    if((k >= winSize) &&(startu+1<=winSize)){
       temp += q[k - winSize + 1][k - startu] * scale[startu]/q[k - winSize + 1][k];
-    if((k <= n - winSize + startu) && (k - startu >= 0) && (k < n))
+    }
+    if((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu+1<=winSize))
       temp += q[k + 1][k - startu + winSize] * scale[startu]/q[k - startu + 1][k - startu + winSize];
     /*Divide by number of possible windows*/
     pU[k][startu] += temp;
@@ -925,8 +928,6 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
     fprintf(fp,"\n");
     free(pU[k]);
   } 
-  free(pU[0]);
-  free(pU);
   fflush(fp);
 }
 

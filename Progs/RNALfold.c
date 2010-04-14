@@ -25,15 +25,15 @@ static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
 
 int main(int argc, char *argv[]){
   struct  RNALfold_args_info args_info;
-  char    *line, *c, *string=NULL, *structure=NULL, *ParamFile=NULL, *ns_bases=NULL;
+  char    *input_string, *c, *string=NULL, *structure=NULL, *ParamFile=NULL, *ns_bases=NULL;
   int     i, length, l, sym, r, istty, noconv=0, maxdist=150;
   double  energy, min_en;
-   
+  unsigned int input_type;
   do_backtrack  = 1;
 
   /*
   #############################################
-  # check the command line prameters
+  # check the command line parameters
   #############################################
   */
   if(RNALfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
@@ -60,6 +60,12 @@ int main(int argc, char *argv[]){
   /* set the maximum base pair span */
   if(args_info.span_given)        maxdist = args_info.span_arg;
   
+  /* check for errorneous parameter options */
+  if(maxdist < 0){
+    RNALfold_cmdline_parser_print_help();
+    exit(EXIT_FAILURE);
+  }
+
   /* free allocated memory of command line data structure */
   RNALfold_cmdline_parser_free (&args_info);
 
@@ -99,31 +105,38 @@ int main(int argc, char *argv[]){
   #############################################
   */
   do{
+    /*
+    ########################################################
+    # handle user input from 'stdin'
+    ########################################################
+    */
     if(istty) print_tty_input_seq();
 
-    /* skip comment lines and break on EOF */
-    if(skip_comment_lines(&line) < 0) break;
-
-    /* break on @ */
-    if(strcmp(line, "@") == 0)        break;
-
-    /* skip fasta header */
-    if(*line == '>'){
-      printf("%s\n", line); free(line);
-      if(skip_comment_lines(&line) < 0) break;
+    /* skip fasta header and comment lines */
+    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+      free(input_string);
     }
 
-    string = (char *) space(strlen(line)+1);
-    (void) sscanf(line,"%s",string);
-    free(line);
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      length = (int)    strlen(input_string);
+      string = strdup(input_string);
+      free(input_string);
+    }
 
-    length    = (int) strlen(string);
     structure = (char *) space((unsigned) length+1);
 
     if(noconv)  str_RNA2RNA(string);
     else        str_DNA2RNA(string);
 
-    if (istty)  printf("length = %d\n", length);
+    if(istty) printf("length = %d\n", length);
+    /*
+    ########################################################
+    # done with 'stdin' handling
+    ########################################################
+    */
 
     /* initialize_fold(length); */
     update_fold_params();

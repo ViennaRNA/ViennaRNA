@@ -5,6 +5,25 @@
 ***
 **/
 
+/** Output flag of \func get_input_line():  "An ERROR has occured, maybe EOF" **/
+#define VRNA_INPUT_ERROR            1U
+/** Output flag of \func get_input_line():  "the user requested quitting the program" **/
+#define VRNA_INPUT_QUIT             2U
+/** Output flag of \func get_input_line():  "something was read" **/
+#define VRNA_INPUT_MISC             4U
+/** Output flag of \func get_input_line():  "a fasta header was read" **/
+#define VRNA_INPUT_FASTA_HEADER     8U
+/** **/
+#define VRNA_INPUT_SEQUENCE         16U
+/** **/
+#define VRNA_INPUT_STRUCTURE        32U
+/** Input switch for \func get_input_line():  "do not print the line read to stdout" **/
+#define VRNA_INPUT_NOPRINT          64U
+/** Input switch for \func get_input_line():  "do not skip comment lines" **/
+#define VRNA_INPUT_NOSKIP_COMMENTS  128U
+
+
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #ifndef HAVE_STRDUP
@@ -23,7 +42,19 @@ void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
 void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p, unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
 #endif
 
-/*@exits@*/ void nrerror(const char message[]);  /* die with error message */
+/**
+*** Die with an error message
+*** \see 
+*** \param message The error message to be printed before exiting with 'FAILURE'
+**/
+/*@exits@*/
+void nrerror(const char message[]);
+
+/**
+*** Print a warning message
+**/
+void warn_user(const char message[]);
+
 void   init_rand(void);                /* make random number seeds */
 extern unsigned short xsubi[3];               /* current 48bit random number */
 double urn(void);                      /* random number from [0..1] */
@@ -36,9 +67,32 @@ void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
 *** calculate hamming distance
 **/
 int    hamming(const char *s1, const char *s2);
-/*@only@*/ /*@null@*/ char  *get_line(const FILE *fp); /* read one (arbitrary length) line from fp */
+/*@only@*/ /*@null@*/
+char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
 
 int skip_comment_lines(char **line);
+
+/**
+*** Retrieve a line from 'stdin' savely while skipping comment characters and
+*** other features
+*** This function returns the type of input it has read if recognized.
+*** An option argument allows to switch between different reading modes.\n
+*** Currently available options are:\n
+*** \ref VRNA_INPUT_NOPRINT, \ref VRNA_INPUT_NOSKIP_COMMENTS
+***
+*** pass a collection of options as one value like this:
+*** \verbatim get_input_line(string, option_1 | option_2 | option_n) \endverbatim
+***
+*** If the function recognizes the type of input, it will report it in the return
+*** value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
+*** was given. Possible return values are:\n
+*** \ref VRNA_INPUT_FASTA_HEADER, \ref VRNA_INPUT_ERROR, \ref VRNA_INPUT_MISC, \ref VRNA_INPUT_QUIT
+***
+*** \param string   A pointer to the character array that contains the line read
+*** \param options  A collection of options for switching the functions behavior
+*** \return         A flag with information about what has been read
+**/
+unsigned int get_intput_line(char **string, unsigned int options);
 
 
 /**

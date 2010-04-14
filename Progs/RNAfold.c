@@ -45,21 +45,22 @@ PRIVATE struct plist *make_plist(int length, double pmin);
 
 int main(int argc, char *argv[])
 {
-  struct  RNAfold_args_info args_info;
-  char    *string, *line, *structure=NULL, *cstruc=NULL;
-  char    fname[13], ffname[20], gfname[20], *ParamFile=NULL;
-  char    *ns_bases=NULL, *c;
-  int     i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
-  double  energy, min_en, kT, sfact=1.07;
-  int doMEA=0;
-  double MEAgamma = 1.;
+  struct        RNAfold_args_info args_info;
+  char          *string, *input_string, *structure=NULL, *cstruc=NULL;
+  char          fname[13], ffname[20], gfname[20], *ParamFile=NULL;
+  char          *ns_bases=NULL, *c;
+  int           i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
+  unsigned int  input_type;
+  double        energy, min_en, kT, sfact=1.07;
+  int           doMEA=0;
+  double        MEAgamma = 1.;
   
   do_backtrack  = 1;
   string        = NULL;
 
   /*
   #############################################
-  # check the command line prameters
+  # check the command line parameters
   #############################################
   */
   if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
@@ -114,9 +115,9 @@ int main(int argc, char *argv[])
   */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-  write_parameter_file("bla.par");
+
   if (circ && noLonelyPairs)
-    fprintf(stderr, "warning, depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times\n");
+    warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 
   if (ns_bases != NULL) {
     nonstandards = space(33);
@@ -148,50 +149,62 @@ int main(int argc, char *argv[])
     printf("matching brackets ( ): base i pairs base j\n");
   }
 
-  do {                                /* main loop: continue until end of file */
-    if (istty) {
-      printf("\nInput string (upper or lower case); @ to quit\n");
-      printf("%s%s\n", scale1, scale2);
+  /*
+  #############################################
+  # main loop: continue until end of file
+  #############################################
+  */
+  do{
+    /*
+    ########################################################
+    # handle user input from 'stdin'
+    ########################################################
+    */
+    if(istty) print_tty_input_seq();
+
+    /* extract filename from fasta header if available */
+    fname[0] = '\0';
+    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+      (void) sscanf(input_string, "%12s", fname);
+      free(input_string);
     }
-    fname[0]='\0';
-    if ((line = get_line(stdin))==NULL) break;
 
-    /* skip comment lines and get filenames */
-    while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-      if (*line=='>')
-        (void) sscanf(line, ">%12s", fname);
-      printf("%s\n", line);
-      free(line);
-      if ((line = get_line(stdin))==NULL) break;
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      length = (int)    strlen(input_string);
+      string = strdup(input_string);
+      free(input_string);
     }
-
-    if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
-
-    string = (char *) space(strlen(line)+1);
-    (void) sscanf(line,"%s",string);
-    free(line);
-    length = (int) strlen(string);
 
     structure = (char *) space((unsigned) length+1);
+
+    if(noconv)  str_RNA2RNA(string);
+    else        str_DNA2RNA(string);
+
+    if(istty) printf("length = %d\n", length);
+
+    /* get structure constraint or break if necessary, entering an empty line results in a warning */
     if (fold_constrained) {
-      cstruc = get_line(stdin);
-      if (cstruc!=NULL)
+      input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+      if(input_type & VRNA_INPUT_QUIT){ break;}
+      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
+        cstruc = strdup(input_string);
+        free(input_string);
         strncpy(structure, cstruc, length);
-      else
-        fprintf(stderr, "constraints missing\n");
+      }
+      else warn_user("constraints missing");
     }
-    for (l = 0; l < length; l++) {
-      string[l] = toupper(string[l]);
-      if (!noconv && string[l] == 'T') string[l] = 'U';
-    }
-    if (istty)
-      printf("length = %d\n", length);
+    /*
+    ########################################################
+    # done with 'stdin' handling
+    ########################################################
+    */
 
     /* initialize_fold(length); */
-    if (circ)
-      min_en = circfold(string, structure);
-    else
-      min_en = fold(string, structure);
+    min_en = (circ) ? circfold(string, structure) : fold(string, structure);
+    
     printf("%s\n%s", string, structure);
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -226,8 +239,8 @@ int main(int argc, char *argv[])
 
       (circ) ? init_pf_circ_fold(length) : init_pf_fold(length);
 
-      if (cstruc!=NULL)
-        strncpy(pf_struc, cstruc, length+1);
+      if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
+
       energy = (circ) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
 
       if (do_backtrack) {

@@ -11,7 +11,8 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAalifold.ggo RNAalifold_cmdl.c RNAalifold_cmdl.h\
               RNAcofold.ggo RNAcofold_cmdl.c  RNAcofold_cmdl.h\
               RNAup.ggo RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h
+              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h\
+              RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -43,3 +44,8 @@ RNALfold_cmdl.h  RNALfold_cmdl.c: RNALfold.ggo
 	gengetopt -i RNALfold.ggo
 
 RNALfold_SOURCES=RNALfold_cmdl.c RNALfold.c
+
+RNAplfold_cmdl.h  RNAplfold_cmdl.c: RNAplfold.ggo
+	gengetopt -i RNAplfold.ggo
+
+RNAplfold_SOURCES=RNAplfold_cmdl.c RNAplfold.c

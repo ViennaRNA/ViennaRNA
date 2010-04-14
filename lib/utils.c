@@ -12,6 +12,8 @@
 #include <time.h>
 #include <string.h>
 #include "../config.h"
+#include "utils.h"
+
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
@@ -22,18 +24,6 @@ static char rcsid[] = "$Id: utils.c,v 1.19 2008/12/16 22:30:30 ivo Exp $";
 #define PUBLIC
 
 /*@notnull@ @only@*/
-PUBLIC void  *space(unsigned int size);
-/*@exits@*/
-PUBLIC void   nrerror(const char message[]);
-PUBLIC double urn(void);
-PUBLIC int    int_urn(int from, int to);
-PUBLIC void   filecopy(FILE *from, FILE *to);
-/*@observer@*/
-PUBLIC char  *time_stamp(void);
-PUBLIC char  *random_string(int l, const char symbols[]);
-PUBLIC int    hamming(const char *s1, const char *s2);
-PUBLIC char  *get_line(FILE *fp);
-
 PUBLIC unsigned short xsubi[3];
 
 static char  scale1[] = "....,....1....,....2....,....3....,....4";
@@ -86,6 +76,10 @@ PUBLIC void nrerror(const char message[])       /* output message upon error */
 {
   fprintf(stderr, "\n%s\n", message);
   exit(EXIT_FAILURE);
+}
+
+PUBLIC void warn_user(const char message[]){
+  fprintf(stderr, "\nWARNING: %s\n", message);
 }
 
 /*------------------------------------------------------------------------*/
@@ -197,11 +191,70 @@ PUBLIC int  skip_comment_lines(char **line){
   if((*line = get_line(stdin))==NULL) return -1;
 
   while((**line=='*')||(**line=='\0')){
-    printf("%s\n", line);
     free(*line);
     if((*line = get_line(stdin))==NULL) return -1;
-  } 
+  }
   return 0;
+}
+
+PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
+  char  *line;
+  int   i, l, r;
+
+  /*
+  * read lines until informative data appears or
+  * report an error if anything goes wrong
+  */
+  if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
+
+  if(!(option & VRNA_INPUT_NOSKIP_COMMENTS))
+    while((*line=='*')||(*line=='\0')){
+      free(line);
+      if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
+    }
+
+  l = (int) strlen(line);
+
+  /* break on '@' sign if not disabled */
+  if(*line == '@'){
+    free(line);
+    return VRNA_INPUT_QUIT;
+  }
+  /* print line read if not disaled */
+  if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
+
+  /* eliminate whitespaces at the end of the line read */
+  for(i = l-1; i >= 0; i--){
+    if      (line[i] == ' ')  continue;
+    else if (line[i] == '\t') continue;
+    else                      break;
+  }
+  line[(i >= 0) ? (i+1) : 0] = '\0';
+
+  if(*line == '>'){
+    /* fasta header */
+    /* alloc memory for the string */
+    *string = (char *) space(sizeof(char) * (strlen(line) + 1));
+    r = VRNA_INPUT_FASTA_HEADER;
+    i = sscanf(line, ">%s", *string);
+    if(i > 0){
+      i       = (int)     strlen(*string);
+      *string = (char *)  xrealloc(*string, (i+1)*sizeof(char));
+      free(line);
+      return r;
+    }
+    else{
+      free(line);
+      free(*string);
+      *string = NULL;
+      return VRNA_INPUT_ERROR;
+    }
+  }
+  else{
+    *string = strdup(line);
+    free(line);
+  }
+  return VRNA_INPUT_MISC;
 }
 
 
@@ -372,3 +425,4 @@ PUBLIC  void  str_RNA2RNA(char *sequence){
       sequence[i] = toupper(sequence[i]);
   }
 }
+
