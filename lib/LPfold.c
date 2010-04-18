@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2009-10-12 13:24:15 ivo> */
+/* Last changed Time-stamp: <2010-04-12 18:07:32 berni> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -367,7 +367,7 @@ PUBLIC struct plist *pfl_fold(char *sequence, int winSize, int pairSize, float c
 	  temp *= expMLintern[tt]*scale[2];
 	  if (k>1) temp *= expdangle5[tt][S1[k-1]];
 	  if (l<n) temp *= expdangle3[tt][S1[l+1]];
-	  else temp *= expTermAU;
+	  else if (tt>2)temp *= expTermAU;
 	  pR[k][l] += temp;
 
 	  if (pR[k][l]>Qmax) {
