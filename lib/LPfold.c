@@ -437,7 +437,7 @@ PRIVATE void scale_pf_params(unsigned int length)
   pf_params = get_scaled_pf_parameters();
   init_temp = pf_params->temperature;
   
-  kT = (pf_params->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  kT = pf_params->kT;   /* kT in cal/mol  */
   TT = (pf_params->temperature+K0)/(Tmeasure);
 
    /* scaling factors (to avoid overflows) */
@@ -808,7 +808,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   temp=0.;
 
   for (len=winSize; len>=ulength; len--) temp+=QI3[k][len];
-  for (len=ulength-1;len>0; len--) { /*grenzen*/
+  for (;len>0; len--) {
     temp+=QI3[k][len];
     QBE[len]+=temp; 
   }
@@ -837,7 +837,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   temp=0.;
   for(len = winSize; len >= ulength; len--)
     temp += q2l[k][len] * expMLbase[len];
-  for(len = ulength - 1; len > 0; len--){
+  for( ; len > 0; len--){
     temp += q2l[k][len] * expMLbase[len];
     QBE[len] += temp; /*add (()()____) type cont. to I3*/
   }
@@ -850,7 +850,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   for (len=1; len<ulength; len++) {
     for (obp=k+len+TURN+TURN; obp<=MIN2(n,k+winSize-1); obp++) {
       if (ptype[k][obp]) {
-        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[obp], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /*k:obp*/
+        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /*k:obp*/
         QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /*add (___()())*/
       }
     }
@@ -862,6 +862,10 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
     pU[k+len][len] += pU[k+len][len+1] + QBE[len];
   }
 
+  /*open chain*/
+  if ((ulength>=winSize)&&(k>=ulength)) {
+    pU[k][winSize]=scale[winSize]/q[k-winSize+1][k];
+  }
   /*now the not enclosed by any base pair terms for whatever it is we do not need anymore...
     ... which should be e.g; k, again*/
   for(startu = MIN2(ulength, k); startu > 0; startu--){
