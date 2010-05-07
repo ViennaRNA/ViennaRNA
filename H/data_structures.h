@@ -269,6 +269,18 @@ typedef struct constrain { /* constrains for cofolding */
   char *ptype;
 } constrain;
 
+/*
+* ############################################################
+* RNAduplex data structures
+* ############################################################
+*/
+
+typedef struct {
+  int i;
+  int j;
+  char *structure;
+  float energy;
+} duplexT;
 
 
 #endif

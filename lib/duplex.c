@@ -29,52 +29,69 @@
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $";
 
-#define PUBLIC
-#define PRIVATE static
+#define STACK_BULGE1  1     /* stacking energies for bulges of size 1 */
+#define NEW_NINIO     1     /* new asymetry penalty */
+#define MAXSECTORS    500   /* dimension for a backtrack array */
+#define LOCALITY      0.    /* locality parameter for base-pairs */
+#define UNIT 100
+#define MINPSCORE -2 * UNIT
+#define NONE -10000         /* score for forbidden pairs */
 
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
 
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE paramT  *P  = NULL;
+PRIVATE int     **c;                  /* energy array, given that i-j pair */
+PRIVATE short   *S1, *SS1, *S2, *SS2;
+PRIVATE int     n1,n2;                /* sequence lengths */
+PRIVATE int     delay_free = 0;
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
 PRIVATE void  encode_seqs(const char *s1, const char *s2);
 PRIVATE short *encode_seq(const char *seq);
-PRIVATE char * backtrack(int i, int j);
-PRIVATE char * alibacktrack(int i, int j, const short *S1[], const short *S2[]);
-PRIVATE int compare(const void *sub1, const void *sub2);
-PRIVATE int covscore(const int *types, int n_seq);
+PRIVATE char  *backtrack(int i, int j);
+PRIVATE char  *alibacktrack(int i, int j, const short *S1[], const short *S2[]);
+PRIVATE int   compare(const void *sub1, const void *sub2);
+PRIVATE int   covscore(const int *types, int n_seq);
 
-/*@unused@*/
-
-#define MAXSECTORS      500     /* dimension for a backtrack array */
-#define LOCALITY        0.      /* locality parameter for base-pairs */
-
-PRIVATE paramT *P = NULL;
-
-PRIVATE int   **c;      /* energy array, given that i-j pair */
-PRIVATE short  *S1, *SS1, *S2, *SS2;
-PRIVATE int   n1,n2;    /* sequence lengths */
-
-PRIVATE int delay_free=0;
-/*--------------------------------------------------------------------------*/
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 
-duplexT duplexfold(const char *s1, const char *s2) {
+PUBLIC duplexT duplexfold(const char *s1, const char *s2){
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
-  
+
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
-  
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();  P = scale_parameters();
     make_pair_matrix();
   }
-  
+
   c = (int **) space(sizeof(int *) * (n1+1));
   for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
-  
+
   encode_seqs(s1, s2);
-  
+
   for (i=1; i<=n1; i++) {
     for (j=n2; j>0; j--) {
       int type, type2, E, k,l;
@@ -99,7 +116,7 @@ duplexT duplexfold(const char *s1, const char *s2) {
       } 
     }
   }
-  
+
   struc = backtrack(i_min, j_min);
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
@@ -219,7 +236,7 @@ PRIVATE char *backtrack(int i, int j) {
   }
   if (i>1)  i--;
   if (j<n2) j++;
-  
+
   struc = (char *) space(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
@@ -287,9 +304,6 @@ PRIVATE int compare(const void *sub1, const void *sub2) {
 }
 
 /*---------------------------------------------------------------------------*/
-
-#define UNIT 100
-#define MINPSCORE -2 * UNIT
 
 duplexT aliduplexfold(const char *s1[], const char *s2[]) {
   int i, j, s, n_seq, l1, Emin=INF, i_min=0, j_min=0;
@@ -360,7 +374,7 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
       } 
     }
   }
-  
+
   struc = alibacktrack(i_min, j_min, S1, S2);
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
@@ -448,7 +462,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       subopt[n_subopt++].structure = struc;
     }
   }
-  
+
   for (i=1; i<=n1; i++) free(c[i]);
   free(c);
   for (s=0; s<n_seq; s++) {
@@ -469,7 +483,7 @@ PRIVATE char *alibacktrack(int i, int j, const short *S1[], const short *S2[]) {
      return structure in bracket notation with & as separator */
   int k, l, *type, type2, E, traced, i0, j0, s, n_seq;
   char *st1, *st2, *struc;
-  
+
   n1 = (int) S1[0][0];
   n2 = (int) S2[0][0];
 
@@ -525,13 +539,13 @@ PRIVATE char *alibacktrack(int i, int j, const short *S1[], const short *S2[]) {
   }
   if (i>1)  i--;
   if (j<n2) j++;
-  
+
   struc = (char *) space(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
   strcat(struc, st2+j0-1);
-  
+
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
   free(st1); free(st2); free(type);
 
@@ -543,7 +557,6 @@ PRIVATE int covscore(const int *types, int n_seq) {
   /* calculate co-variance bonus for a pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
-#define NONE -10000 /* score for forbidden pairs */
   int k,l,s,score, pscore;
   int dm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                 {0,0,2,2,1,2,2} /* CG */,
@@ -552,7 +565,7 @@ PRIVATE int covscore(const int *types, int n_seq) {
                 {0,1,2,2,0,2,1} /* UG */,
                 {0,2,2,1,2,0,2} /* AU */,
                 {0,2,2,2,1,2,0} /* UA */};
-  
+
   int pfreq[8]={0,0,0,0,0,0,0,0};
   for (s=0; s<n_seq; s++)
     pfreq[types[s]]++;
@@ -563,7 +576,7 @@ PRIVATE int covscore(const int *types, int n_seq) {
       /* scores for replacements between pairtypes    */
       /* consistent or compensatory mutations score 1 or 2  */
       score += pfreq[k]*pfreq[l]*dm[k][l];
-  
+
   /* counter examples score -1, gap-gap scores -0.25   */
   pscore = cv_fact * 
     ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));

@@ -115,10 +115,11 @@ short *make_pair_table(const char *structure);
 int bp_distance(const char *str1, const char *str2);
 
 /**
-*** Just print a line to stdout that asks for an input sequence a.
+*** Just print a line to stdout that asks for an input sequence
 *** There will also be a scale line printed that helps orientation of the sequence positions
 **/
 void print_tty_input_seq(void);
+void print_tty_input_seq_str(const char *s);
 
 void str_DNA2RNA(char *sequence);
 void str_RNA2RNA(char *sequence);
