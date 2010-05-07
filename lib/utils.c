@@ -224,12 +224,14 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
 
   /* eliminate whitespaces at the end of the line read */
-  for(i = l-1; i >= 0; i--){
-    if      (line[i] == ' ')  continue;
-    else if (line[i] == '\t') continue;
-    else                      break;
+  if(!(option & VRNA_INPUT_NOELIM_WS_SUFFIX){
+    for(i = l-1; i >= 0; i--){
+      if      (line[i] == ' ')  continue;
+      else if (line[i] == '\t') continue;
+      else                      break;
+    }
+    line[(i >= 0) ? (i+1) : 0] = '\0';
   }
-  line[(i >= 0) ? (i+1) : 0] = '\0';
 
   if(*line == '>'){
     /* fasta header */

@@ -6,21 +6,23 @@
 **/
 
 /** Output flag of \func get_input_line():  "An ERROR has occured, maybe EOF" **/
-#define VRNA_INPUT_ERROR            1U
+#define VRNA_INPUT_ERROR                  1U
 /** Output flag of \func get_input_line():  "the user requested quitting the program" **/
-#define VRNA_INPUT_QUIT             2U
+#define VRNA_INPUT_QUIT                   2U
 /** Output flag of \func get_input_line():  "something was read" **/
-#define VRNA_INPUT_MISC             4U
+#define VRNA_INPUT_MISC                   4U
 /** Output flag of \func get_input_line():  "a fasta header was read" **/
-#define VRNA_INPUT_FASTA_HEADER     8U
+#define VRNA_INPUT_FASTA_HEADER           8U
 /** **/
-#define VRNA_INPUT_SEQUENCE         16U
+#define VRNA_INPUT_SEQUENCE               16U
 /** **/
-#define VRNA_INPUT_STRUCTURE        32U
+#define VRNA_INPUT_STRUCTURE              32U
 /** Input switch for \func get_input_line():  "do not print the line read to stdout" **/
-#define VRNA_INPUT_NOPRINT          64U
+#define VRNA_INPUT_NOPRINT                64U
 /** Input switch for \func get_input_line():  "do not skip comment lines" **/
-#define VRNA_INPUT_NOSKIP_COMMENTS  128U
+#define VRNA_INPUT_NOSKIP_COMMENTS        128U
+/** Input switch for \func get_input_line():  "do not eliminate white spaces at end of line" **/
+#define VRNA_INPUT_NOELIM_WS_SUFFIX       256U
 
 
 
@@ -78,7 +80,7 @@ int skip_comment_lines(char **line);
 *** This function returns the type of input it has read if recognized.
 *** An option argument allows to switch between different reading modes.\n
 *** Currently available options are:\n
-*** \ref VRNA_INPUT_NOPRINT, \ref VRNA_INPUT_NOSKIP_COMMENTS
+*** \ref VRNA_INPUT_NOPRINT, \ref VRNA_INPUT_NOSKIP_COMMENTS, ref\ VRNA_INPUT_NOELIM_WS_SUFFIX
 ***
 *** pass a collection of options as one value like this:
 *** \verbatim get_input_line(string, option_1 | option_2 | option_n) \endverbatim
