@@ -404,7 +404,11 @@ char *strdup(const char *s) {
 #endif
 
 PUBLIC  void  print_tty_input_seq(void){
-  printf("\nInput string (upper or lower case); @ to quit\n");
+  print_tty_input_seq_str("Input string (upper or lower case)");
+}
+
+PUBLIC  void  print_tty_input_seq_str(const char *s){
+  printf("\n%s; @ to quit\n", s);
   printf("%s%s\n", scale1, scale2);
 }
 
