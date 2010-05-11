@@ -413,8 +413,9 @@ PUBLIC  void  print_tty_input_seq_str(const char *s){
 }
 
 PUBLIC  void  print_tty_constraint_str(void){
+  unsigned int option = 0;
   printf("Input constraints using the following notation:\n");
-  printf("| : paired with another base\n");
+  if(option & VRNA_CONSTRAINT_PIPE) printf("| : paired with another base\n");
   printf(". : no constraint at all\n");
   printf("x : base must not pair\n");
   printf("< : base i is paired with a base j<i\n");

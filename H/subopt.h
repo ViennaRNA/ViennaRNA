@@ -4,6 +4,8 @@
 
 #include "data_structures.h"
 
+#define MAXDOS 1000
+
 SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
 SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);
   /* returns list of subopt structures or writes to fp */

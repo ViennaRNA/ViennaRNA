@@ -24,6 +24,8 @@
 /** Input switch for \func get_input_line():  "do not eliminate white spaces at end of line" **/
 #define VRNA_INPUT_NOELIM_WS_SUFFIX       256U
 
+/** use the pipe sign '|' for structure constraints **/
+#define VRNA_CONSTRAINT_PIPE              1U
 
 
 #ifdef HAVE_CONFIG_H

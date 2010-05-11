@@ -1,5 +1,5 @@
 # Name of your program
-package "RNAfold" # don't use package if you're using automake
+package "RNAsubopt" # don't use package if you're using automake
 purpose "calculate suboptimal secondary structures of RNAs"
 usage "RNAsubopt [options]\n"
 
@@ -18,32 +18,55 @@ description "reads RNA sequences from stdin and (in the default -e mode) calcula
  used with the -p option, RNAsubopt produces Boltzmann weighted samples of secondary structures.\n"
 
 # Options
+
+option  "deltaEnergy" e
+"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
+ Default is calculation of mfe structure only.\n"
+float
+typestr="range"
+optional
+
+option  "deltaEnergyPost" -
+"Only print structures with energy within range of the mfe after post reevaluation of energies.\n"
+details="Useful in conjunction with -logML, -d1 or -d3: while the -e option specifies the range\
+ before energies are re-evaluated, this option specifies the maximum energy after re-evaluation.\n"
+float
+typestr="range"
+optional
+
+option  "sorted"  s
+"Sort the structures by energy.\n"
+details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
+ goes into millions. In such cases better pipe the output through \"sort +1n\".\n"
+flag
+off
+
+option "stochBT"  p
+"Instead of producing all suboptimals in an energy range, produce a random sample of suboptimal structures,\
+ drawn with probabilities equal to their Boltzmann weights via stochastic backtracking in the partition\
+ function. The -e and -p options are mutually exclusive."
+integer
+typestr="number"
+optional
+
+option  "dos" D
+"Compute density of states instead of secondary structures\n"
+details="This option enables the evaluation of the number of secondary structures in certain energy bands arround\
+ the MFE.\n"
+flag
+off
+
+option  "zuker" z
+"Compute Zuker suboptimals instead of all suboptimal structures within an engery band arround the MFE\n."
+flag
+off
+
+# default ViennaRNAPackage options
+
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
-
-option  "partfunc"  p
-"Calculate the partition function and base pairing probability matrix in\
- addition to the mfe structure. Default is calculation of mfe structure only.\n"
-details="In addition to the MFE structure\
- we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
- the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
- its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
- structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
- and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
- -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
- discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
- of partition function calculation:\n\n\
--p0\tCalculate the partition function but not the pair probabilities, saving about 50% in runtime. This\
- prints the ensemble free energy -kT ln(Z).\n\n\
--p2\tCompute stack probabilities, i.e. the probability that\
- a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in addition to pair\
- probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the sequence does not\
- have a name), is produced that contains pair probabilities in the upper right half and stack probabilities in\
- the lower left.\n"
-int
-default="-1"
-argoptional
+typestr="temperature"
 optional
 
 option  "constraint"  C
@@ -65,23 +88,25 @@ off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
- default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
- dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\n\n-d0 ignores dangling ends altogether (mostly for\
- debugging).\n\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
- moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
- and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
- treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+details="If -d1 or -d3 are specified the structures are generated as with -d2 but energies are\
+ re-evaluated before printing.\n"
 int
-default="1"
+default="2"
 optional
+
+option  "logML" -
+"Recalculate energies of structures using a logarithmic energy function for multi-loops before output."
+details="This option does not effect structure generation, only the energies that are printed out.\
+ Since logML lowers energies somewhat, some structures may be missing.\n"
+flag
+off
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
 
 option  "noGU"  -
 "Do not allow GU pairs\n"
@@ -124,10 +149,15 @@ optional
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble\
  free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"  double
-option  "circ"            c "Assume a circular (instead of linear) RNA molecule.\n"  flag  off
-option  "noPS"            - "Do not produce postscript drawing of the mfe structure.\n"  flag  off
-option  "MEA"             - "Calculate the MEA structure\n" float default="1."  argoptional optional
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+double
+typestr="scaling factor"
+optional
+
+option  "circ"  c
+"Assume a circular (instead of linear) RNA molecule.\n"
+flag
+off
 
 
 text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
