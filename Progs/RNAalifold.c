@@ -182,17 +182,11 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if ((fold_constrained)&&(istty)) {
-    printf("Input constraints using the following notation:\n");
-    printf("| : paired with another base\n");
-    printf(". : no constraint at all\n");
-    printf("x : base must not pair\n");
-    printf("< : base i is paired with a base j<i\n");
-    printf("> : base i is paired with a base j>i\n");
-    printf("matching brackets ( ): base i pairs base j\n");
-  }
-  if (fold_constrained) {
-    if (istty) printf("%s\n", scale);
+  if(fold_constrained){
+    if(istty){
+      print_tty_constraint_str();
+      printf("%s\n", scale);
+    }
     cstruc = get_line(stdin);
   }
 

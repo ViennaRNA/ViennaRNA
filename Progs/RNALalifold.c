@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2006-03-02 22:48:15 ivo> */
 /*
-		  Local version of RNAalifold
+                  Local version of RNAalifold
 
-		  c Ivo L Hofacker, Stephan Bernhart
-		  Vienna RNA package
+                  c Ivo L Hofacker, Stephan Bernhart
+                  Vienna RNA package
 */
 
 #include <stdio.h>
@@ -20,26 +20,23 @@
 #include "pair_mat.h"
 #include "alifold.h"
 #include "aln_util.h"
-extern void  read_parameter_file(const char fname[]);
-extern float  aliLfold(char **strings, char *structure, int maxdist);
+#include "read_epars.h"
+
 /*@unused@*/
 static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Exp $";
 
-#define PRIVATE static
-
-static const char scale[] = "....,....1....,....2....,....3....,....4"
-			    "....,....5....,....6....,....7....,....8";
-
-PRIVATE void /*@exits@*/ usage(void);
-PRIVATE char *annote(const char *structure, const char *AS[]);
-PRIVATE void print_pi(const pair_info pi, FILE *file);
+/*@exits@*/ 
+PRIVATE void  usage(void);
+PRIVATE char  *annote(const char *structure, const char *AS[]);
+PRIVATE void  print_pi(const pair_info pi, FILE *file);
 PRIVATE cpair *make_color_pinfo(const pair_info *pi);
 PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
-/*--------------------------------------------------------------------------*/
+
 #define MAX_NUM_NAMES    500
-int main(int argc, char *argv[])
-{
-  char *string;
+
+int main(int argc, char *argv[]){
+  struct        RNAaliLfold_args_info args_info;
+  char          *string;
   char *structure=NULL, *cstruc=NULL;
   char  ffname[20], gfname[20], fname[13]="";
   char  *ParamFile=NULL;
@@ -58,89 +55,74 @@ int main(int argc, char *argv[])
   string=NULL;
   dangles=2;
 
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') {
-      switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'p':  pf=1;
-	  if (argv[i][2]!='\0')
-	    (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-	  break;
-	case 'n':
-	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-nc")==0) {
-	    r=sscanf(argv[++i], "%lf", &nc_fact);
-	    if (!r) usage();
-	  }
-	  break;
-	case 'm':
-	  if ( strcmp(argv[i], "-mis")==0) mis=1;
-	  else usage();
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'L':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%d", &maxdist);
-	  if (r!=1) usage();
-	  break;
-	case 'C':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%f", &cutoff);
-	  if (!r) usage();
-	  break;
-	case 'S':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	  }
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	case 'c':
-	  if ( strcmp(argv[i], "-cv")==0) {
-	    r=sscanf(argv[++i], "%lf", &cv_fact);
-	    if (!r) usage();
-	  }
-	  break;
-	default: usage();
-	}
-    }
-    else { /* doesn't start with '-' should be filename */
-      if (i!=argc-1) usage();
-      clust_file = fopen(argv[i], "r");
-      if (clust_file == NULL) {
-	fprintf(stderr, "can't open %s\n", argv[i]);
-	usage();
-      }
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAaliLfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* structure constraint */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set pf scaling factor */
+  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  /* partition function settings */
+  if(args_info.partfunc_given){
+    pf = 1;
+    if(args_info.partfunc_arg != -1)
+      do_backtrack = args_info.partfunc_arg;
+  }
+  /* set cfactor */
+  if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
+  /* set nfactor */
+  if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
 
+  /* set the maximum base pair span */
+  if(args_info.span_given)        maxdist = args_info.span_arg;
+  /* set the pair probability cutoff */
+  if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
+  /* */
+  if(args_info.mismatch_given)    mis = 1;
+
+  /* check unnamed options a.k.a. filename of input alignment */
+  if(args_info.inputs_num == 1){
+    clust_file = fopen(args_info.inputs[0], "r");
+    if(clust_file == NULL){
+      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
     }
   }
+  else{
+    RNAaliduplex_cmdline_parser_print_help();
+    exit(1);
+  }
 
+  /* free allocated memory of command line data structure */
+  RNAfold_cmdline_parser_free (&args_info);
 
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -153,34 +135,21 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
     }
   }
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if ((fold_constrained)&&(istty)) {
-    printf("Input constraints using the following notation:\n");
-    printf("| : paired with another base\n");
-    printf(". : no constraint at all\n");
-    printf("x : base must not pair\n");
-    printf("< : base i is paired with a base j<i\n");
-    printf("> : base i is paired with a base j>i\n");
-    printf("matching brackets ( ): base i pairs base j\n");
-  }
-  if (fold_constrained) {
-    if (istty) printf("%s\n", scale);
-    cstruc = get_line(stdin);
-  }
 
   if (istty && (clust_file == stdin)) {
-    printf("\nInput aligned sequences in clustalw format\n");
-    printf("%s\n", scale);
+    print_tty_input_seq_str("Input aligned sequences in clustalw format");
   }
 
   n_seq = read_clustal(clust_file, AS, names);
@@ -195,16 +164,15 @@ int main(int argc, char *argv[])
   }
 
   structure = (char *) space((unsigned) length+1);
-  if (fold_constrained) {
-    if (cstruc!=NULL)
-      strncpy(structure, cstruc, length);
-    else
-      fprintf(stderr, "constraints missing\n");
-  }
+
+  /*
+  #############################################
+  # begin calculations
+  #############################################
+  */
   update_fold_params();
-  if (!pf) {
-  min_en = aliLfold(AS, structure, maxdist);
-  }
+  if(!pf)
+    min_en = aliLfold(AS, structure, maxdist);
   {
     extern int eos_debug;
     eos_debug=-1; /* shut off warnings about nonstandard pairs */
@@ -212,12 +180,11 @@ int main(int argc, char *argv[])
       s += energy_of_struct(AS[i], structure);
       real_en = s/i;*/
   }
-  string = (mis) ?
-    consens_mis((const char **) AS) : consensus((const char **) AS);
+  string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s\n", string, structure);
   /*  if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-	   min_en, real_en, min_en - real_en);
+           min_en, real_en, min_en - real_en);
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
   */
@@ -265,7 +232,7 @@ int main(int argc, char *argv[])
     if (do_backtrack) {
       printf("%s", structure);
       /*if (!istty) printf(" [%6.2f]\n", energy);
-	else */
+        else */
       printf("\n");
     }
     /*if ((istty)||(!do_backtrack))
@@ -278,22 +245,22 @@ int main(int argc, char *argv[])
       FILE *aliout;
       cpair *cp;
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_ali.out");
+        strcpy(ffname, fname);
+        strcat(ffname, "_ali.out");
       } else strcpy(ffname, "alifold.out");
       aliout = fopen(ffname, "w");
       if (!aliout) {
-	fprintf(stderr, "can't open %s    skipping output\n", ffname);
+        fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-	fprintf(aliout, "%d sequence; length of alignment %d\n",
-		n_seq, length);
-	fprintf(aliout, "alifold output\n");
+        fprintf(aliout, "%d sequence; length of alignment %d\n",
+                n_seq, length);
+        fprintf(aliout, "alifold output\n");
 
-	fprintf(aliout, "%s\n", structure);
+        fprintf(aliout, "%s\n", structure);
       }
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_dp.ps");
+        strcpy(ffname, fname);
+        strcat(ffname, "_dp.ps");
       } else strcpy(ffname, "alidotL.ps");
       cp = make_color_pinfo2(AS,pl,n_seq);
       (void) PS_color_dot_plot_turn(string, cp, ffname, maxdist);
@@ -319,15 +286,13 @@ void print_pi(const pair_info pi, FILE *file) {
 
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
+          pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
   for (i=1; i<=7; i++)
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
   /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
   if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
-
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
 PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
   cpair *cp;
@@ -366,8 +331,8 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
       type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
       pfreq[type]++;
       if (type) {
-	if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
+        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
     if (maxl - strlen(ps) < 128) {
@@ -394,16 +359,6 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
 #endif
 /*-------------------------------------------------------------------------*/
 
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-	  "RNALalifold [-cv float] [-nc float] [-mis] [-L span]\n"
-	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]\n"
-	  );
-}
-
-
 PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq) {
   cpair *cp;
   int i, n,s, a, b,z;
@@ -424,7 +379,7 @@ PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq) {
     }
     for (z=1; z<7; z++) {
       if (franz[z]>0) {
-	ncomp++;
+        ncomp++;
       }}
     cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
     cp[i].sat = 1 - MIN2( 1.0, franz[0]/*pi[i].bp[0]*//2.5);

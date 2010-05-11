@@ -63,7 +63,7 @@ PRIVATE int     delay_free = 0;
 PRIVATE void  encode_seqs(const char *s1, const char *s2);
 PRIVATE short *encode_seq(const char *seq);
 PRIVATE char  *backtrack(int i, int j);
-PRIVATE char  *alibacktrack(int i, int j, const short *S1[], const short *S2[]);
+PRIVATE char  *alibacktrack(int i, int j, const short **S1, const short **S2);
 PRIVATE int   compare(const void *sub1, const void *sub2);
 PRIVATE int   covscore(const int *types, int n_seq);
 
@@ -375,7 +375,7 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
     }
   }
 
-  struc = alibacktrack(i_min, j_min, S1, S2);
+  struc = alibacktrack(i_min, j_min, (const short **)S1,(const short **)S2);
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
   l1 = strchr(struc, '&')-struc;
@@ -450,7 +450,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
           if (c[ii][jj]<E) {skip=1; break;}
       }
       if (skip) continue;
-      struc = alibacktrack(i,j,S1,S2);
+      struc = alibacktrack(i,j,(const short **)S1, (const short **)S2);
       fprintf(stderr, "%d %d %d\n", i,j,E);
       if (n_subopt+1>=n_max) {
         n_max *= 2;
@@ -478,7 +478,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
   return subopt;
 }
 
-PRIVATE char *alibacktrack(int i, int j, const short *S1[], const short *S2[]) {
+PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, *type, type2, E, traced, i0, j0, s, n_seq;

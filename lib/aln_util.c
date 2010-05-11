@@ -74,7 +74,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    AlignedSeqs[num_seq] = NULL;
    names[num_seq] = NULL;
    if (num_seq == 0) {
-     fprintf(stderr, "No sequences found in CLSUATL file\n");
+     fprintf(stderr, "No sequences found in CLUSTAL file\n");
      return 0;
    }
    n = strlen(AlignedSeqs[0]);

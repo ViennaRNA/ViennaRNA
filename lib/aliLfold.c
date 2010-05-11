@@ -1,12 +1,12 @@
 /* Last changed Time-stamp: <2006-03-02 22:32:02 ivo> */
 /*
-		  minimum free energy consensus
-		  RNA secondary structure prediction
-		  with maximum distance base pairs
+                  minimum free energy consensus
+                  RNA secondary structure prediction
+                  with maximum distance base pairs
 
-		  c Ivo Hofacker, Stephan Bernhart
+                  c Ivo Hofacker, Stephan Bernhart
 
-		  Vienna RNA package
+                  Vienna RNA package
 */
 
 #include <config.h>
@@ -30,43 +30,58 @@ static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp 
 
 #define PAREN
 
-#define PUBLIC
-#define PRIVATE static
-
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
-
-PUBLIC float  aliLfold(char **strings, char *structure, int maxdist);
-
-PRIVATE void   initialize_aliLfold(int length, int maxdist);
-PRIVATE void free_aliL_arrays(int maxdist);
-PRIVATE void  get_arrays(unsigned int size, int maxdist);
-PRIVATE void make_pscores(const char ** AS,
-			  const char *structure,int maxdist, int start);
-PRIVATE short *encode_seq(const char *sequence);
-PRIVATE int fill_arrays(char **strings, int maxdist, char *structure);
-PRIVATE char  *backtrack(char **strings, int start, int maxdist);
-
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
+#define UNIT 100
+#define MINPSCORE -2 * UNIT
+#define NONE -10000 /* score for forbidden pairs */
 
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
-PRIVATE const paramT *P = NULL;
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE const         paramT *P = NULL;
+PRIVATE int           **c;       /* energy array, given that i-j pair */
+PRIVATE int           *cc;      /* linear array for calculating canonical structures */
+PRIVATE int           *cc1;     /*   "     "        */
+PRIVATE int           *f3;      /* energy of 5' end */
+PRIVATE int           **fML;     /* multi-loop auxiliary energy array */
+PRIVATE int           *Fmi;     /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int           *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int           *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int           *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int           **pscore; /* precomputed array of pair types */
+PRIVATE unsigned int  length;
+PRIVATE short         **S;
 
 
-PRIVATE int   **c;       /* energy array, given that i-j pair */
-PRIVATE int   *cc;      /* linear array for calculating canonical structures */
-PRIVATE int   *cc1;     /*   "     "        */
-PRIVATE int   *f3;      /* energy of 5' end */
-PRIVATE int   **fML;     /* multi-loop auxiliary energy array */
-PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int   **pscore; /* precomputed array of pair types */
-PRIVATE unsigned int length;
-/*--------------------------------------------------------------------------*/
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE void  initialize_aliLfold(int length, int maxdist);
+PRIVATE void  free_aliL_arrays(int maxdist);
+PRIVATE void  get_arrays(unsigned int size, int maxdist);
+PRIVATE void  make_pscores(const char ** AS, const char *structure,int maxdist, int start);
+PRIVATE short *encode_seq(const char *sequence);
+PRIVATE int   fill_arrays(char **strings, int maxdist, char *structure);
+PRIVATE char  *backtrack(char **strings, int start, int maxdist);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 PRIVATE void initialize_aliLfold(int length, int maxdist)
 {
@@ -81,19 +96,19 @@ PRIVATE void initialize_aliLfold(int length, int maxdist)
 PRIVATE void get_arrays(unsigned int size, int maxdist)
 {
   int i;
-  c     = (int **) space(sizeof(int *)*(size+1));
-  fML   = (int **) space(sizeof(int *)*(size+1));
-  pscore = (int **) space(sizeof(int *)*(size+1));
-  f3    = (int *) space(sizeof(int)*(size+2));  /* has to be one longer */
-  cc    = (int *) space(sizeof(int)*(maxdist+5));
-  cc1   = (int *) space(sizeof(int)*(maxdist+5));
-  Fmi   = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi  = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi1  = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi2  = (int *) space(sizeof(int)*(maxdist+5));
+  c       = (int **)space(sizeof(int *)*(size+1));
+  fML     = (int **)space(sizeof(int *)*(size+1));
+  pscore  = (int **)space(sizeof(int *)*(size+1));
+  f3      = (int *) space(sizeof(int)*(size+2));  /* has to be one longer */
+  cc      = (int *) space(sizeof(int)*(maxdist+5));
+  cc1     = (int *) space(sizeof(int)*(maxdist+5));
+  Fmi     = (int *) space(sizeof(int)*(maxdist+5));
+  DMLi    = (int *) space(sizeof(int)*(maxdist+5));
+  DMLi1   = (int *) space(sizeof(int)*(maxdist+5));
+  DMLi2   = (int *) space(sizeof(int)*(maxdist+5));
   for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
-    c[i] = (int *) space(sizeof(int)*(maxdist+5));
-    fML[i] = (int *) space(sizeof(int)*(maxdist+5));
+    c[i]      = (int *) space(sizeof(int) *(maxdist+5));
+    fML[i]    = (int *) space(sizeof(int) *(maxdist+5));
     pscore[i] = (int *) space(sizeof(int )*(maxdist+5));
   }
 
@@ -115,11 +130,7 @@ PRIVATE void free_aliL_arrays(int maxdist)
 }
 
 /*--------------------------------------------------------------------------*/
-static short **S;
-
-#define UNIT 100
-#define MINPSCORE -2 * UNIT
-float aliLfold(char **strings, char *structure, int maxdist) {
+PUBLIC float aliLfold(char **strings, char *structure, int maxdist) {
   int length, energy, s, n_seq, i;
   length = (int) strlen(strings[0]);
   if (maxdist>length) maxdist = length;
@@ -169,66 +180,65 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
       int p, q, psc;
       /* bonus = 0;*/
       for (s=0; s<n_seq; s++) {
-	type[s] = pair[S[s][i]][S[s][j]];
-	if (type[s]==0) type[s]=7;
+        type[s] = pair[S[s][i]][S[s][j]];
+        if (type[s]==0) type[s]=7;
       }
 
       psc = pscore[i][j-i];
 
       if (psc>=cv_fact*MINPSCORE) {   /* we have a pair 2 consider */
-	int new_c=0, stackEnergy=INF;
-	/* hairpin ----------------------------------------------*/
-	for (new_c=s=0; s<n_seq; s++)
-	  new_c += E_Hairpin(j-i-1,type[s],S[s][i+1],S[s][j-1],strings[s]+i-1, P);
-	/*--------------------------------------------------------
-	  check for elementary structures involving more than one
-	  closing pair.
-	  --------------------------------------------------------*/
-	for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-	  int minq = j-i+p-MAXLOOP-2;
-	  if (minq<p+1+TURN) minq = p+1+TURN;
-	  for (q = minq; q < j; q++) {
-	    if (pscore[p][q-p]<MINPSCORE) continue;
+        int new_c=0, stackEnergy=INF;
+        /* hairpin ----------------------------------------------*/
+        for (new_c=s=0; s<n_seq; s++)
+          new_c += E_Hairpin(j-i-1,type[s],S[s][i+1],S[s][j-1],strings[s]+i-1, P);
+        /*--------------------------------------------------------
+          check for elementary structures involving more than one
+          closing pair.
+          --------------------------------------------------------*/
+        for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
+          int minq = j-i+p-MAXLOOP-2;
+          if (minq<p+1+TURN) minq = p+1+TURN;
+          for (q = minq; q < j; q++) {
+            if (pscore[p][q-p]<MINPSCORE) continue;
 
 
-	    for (energy = s=0; s<n_seq; s++) {
-	      type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-	      if (type_2 == 0) type_2 = 7;
-	      energy += E_IntLoop(p-i-1, j-q-1, type[s], type_2,
-				   S[s][i+1], S[s][j-1],
-				   S[s][p-1], S[s][q+1], P);
-	    }
-	    new_c = MIN2(energy+c[p][q-p], new_c);
-	    if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
+            for (energy = s=0; s<n_seq; s++) {
+              type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+              if (type_2 == 0) type_2 = 7;
+              energy += E_IntLoop(p-i-1, j-q-1, type[s], type_2,
+                                   S[s][i+1], S[s][j-1],
+                                   S[s][p-1], S[s][q+1], P);
+            }
+            new_c = MIN2(energy+c[p][q-p], new_c);
+            if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
-	  } /* end q-loop */
-	} /* end p-loop */
+          } /* end q-loop */
+        } /* end p-loop */
 
 
-	/* multi-loop decomposition ------------------------*/
-	decomp = DMLi1[j-1-(i+1)];
-	if (dangles) {
-	  int d3=0, d5=0;
-	  for (s=0; s<n_seq; s++) {
-	    tt = rtype[type[s]];
-	    d3 = P->dangle3[tt][S[s][i+1]];
-	    d5 = P->dangle5[tt][S[s][j-1]];
-	    decomp += d5 + d3;
-	  }
-	}
+        /* multi-loop decomposition ------------------------*/
+        decomp = DMLi1[j-1-(i+1)];
+        if (dangles) {
+          for (s=0; s<n_seq; s++) {
+            tt = rtype[type[s]];
+            decomp += E_MLstem(tt, S[s][j-1], S[s][i+1], P);
+          }
+        }
+        else{
+          for(s=0; s<n_seq; s++){
+            tt = rtype[type[s]];
+            decomp += E_MLstem(tt, -1, -1, P);
+          }
+        }
+        MLenergy = decomp + n_seq*P->MLclosing;
+        new_c = MIN2(new_c, MLenergy);
 
-	MLenergy = decomp + n_seq*P->MLclosing;
-	for (s=0; s<n_seq; s++)
-	  MLenergy += P->MLintern[type[s]];
-
-	new_c = MLenergy < new_c ? MLenergy : new_c;
-
-	new_c = MIN2(new_c, cc1[j-1-(i+1)]+stackEnergy);
-	cc[j-i] = new_c - psc; /* add covariance bonnus/penalty */
-	if (noLonelyPairs)
-	  c[i][j-i] = cc1[j-1-(i+1)]+stackEnergy-psc;
-	else
-	  c[i][j-i] = cc[j-i];
+        new_c = MIN2(new_c, cc1[j-1-(i+1)]+stackEnergy);
+        cc[j-i] = new_c - psc; /* add covariance bonnus/penalty */
+        if (noLonelyPairs)
+          c[i][j-i] = cc1[j-1-(i+1)]+stackEnergy-psc;
+        else
+          c[i][j-i] = cc[j-i];
 
       } /* end >> if (pair) << */
       else c[i][j-i] = INF;
@@ -240,19 +250,22 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
       new_fML = fML[i+1][j-i-1]+n_seq*P->MLbase;
       new_fML = MIN2(fML[i][j-1-i]+n_seq*P->MLbase, new_fML);
       energy = c[i][j-i]/*+P->MLintern[type]*/;
-      for (s=0; s<n_seq; s++) {
-	energy += P->MLintern[type[s]];
-	if (dangles) {  /* double dangles */
-	  if (i>1)      energy += P->dangle5[type[s]][S[s][i-1]];
-	  if (j<length) energy += P->dangle3[type[s]][S[s][j+1]];
-	}
+      if(dangles){
+        for (s=0; s<n_seq; s++) {
+          energy += E_MLstem(type[s], (i > 1) ? S[s][i-1] : -1, (j < length) ? S[s][j+1] : -1, P);
+        }
+      }
+      else{
+        for (s=0; s<n_seq; s++) {
+          energy += E_MLstem(type[s], -1, -1, P);
+        }
       }
       new_fML = MIN2(energy, new_fML);
 
       /* modular decomposition -------------------------------*/
 
       for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-	decomp = MIN2(decomp, Fmi[k-i]+fML[k+1][j-k-1]);
+        decomp = MIN2(decomp, Fmi[k-i]+fML[k+1][j-k-1]);
 
       DMLi[j-i] = decomp;               /* store for use in ML decompositon */
       new_fML = MIN2(new_fML,decomp);
@@ -270,74 +283,85 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
       char *ss;
       f3[i] = f3[i+1];
       for (j=i+TURN+1; j<length && j<=i+maxdist; j++) {
-	if(c[i][j-i]<INF) {
-	/*	if (c[j+1]<INF) {*/
-	  energy = f3[j+1]+c[i][j-i];
-	  for (s=0; s<n_seq; s++) {
-	    int type;
-	    type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
-	    if (type>2) energy += P->TerminalAU;
-	    if (dangles) { /* double dangles */
-	      energy += P->dangle3[type][S[s][j+1]];
-	      if (i>1)  energy += P->dangle5[type][S[s][i-1]];
-	    }
-	  }
-	  f3[i] = MIN2(f3[i], energy);
-	}
+        if(c[i][j-i]<INF) {
+        /*        if (c[j+1]<INF) {*/
+          energy = f3[j+1]+c[i][j-i];
+          if(dangles){
+            for(s = 0; s < n_seq; s++){
+              tt = pair[S[s][i]][S[s][j]];
+              if(tt==0) tt=7;
+              energy += E_ExtLoop(tt, (i>1) ? S[s][i-1] : -1, S[s][j+1], P);
+            }
+          }
+          else{
+            for(s = 0; s < n_seq; s++){
+              tt = pair[S[s][i]][S[s][j]];
+              if(tt==0) tt=7;
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
+          }
+          f3[i] = MIN2(f3[i], energy);
+        }
       }
       if (length<=i+maxdist) {
-	j=length;
-	if(c[i][j-i]<INF) {
-	  energy = c[i][j-i];
-	  for (s=0; s<n_seq; s++) {
-	    int type;
-	    type = pair[S[s][i]][S[s][j]]; if (type==0) type=7;
-	    if (type>2) energy += P->TerminalAU;
-	    if ((dangles)&&(i>1)) { /* double dangles */
-	       energy += P->dangle5[type][S[s][i-1]];
-	    }
-	  }
-	  f3[i] = MIN2(f3[i], energy);
-	}
+        j=length;
+        if(c[i][j-i]<INF) {
+          energy = c[i][j-i];
+          if(dangles){
+            for (s=0; s<n_seq; s++) {
+              tt = pair[S[s][i]][S[s][j]];
+              if(tt==0) tt=7;
+              energy += E_ExtLoop(tt, (i>1) ? S[s][i-1] : -1, -1, P);
+            }
+          }
+          else{
+            for (s=0; s<n_seq; s++) {
+              tt = pair[S[s][i]][S[s][j]];
+              if(tt==0) tt=7;
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
+          }
+          f3[i] = MIN2(f3[i], energy);
+        }
       }
       /* backtrack partial structure */
       if (i+maxdist<length) {
-	if (f3[i] != f3[i+1]) do_backtrack=1;
-	else if (do_backtrack) {
-	  ss =  backtrack(strings, i+1 , maxdist+1);
-	  if ((prev_i+strlen(prev)>i+1+strlen(ss))) {
-	    char *outstr;
-	    printf("%s (%6.2f) %4d - %4d\n",
-		   prev, (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
-	    outstr=strndup(strings[0]+prev_i-1, strlen(prev));
-	    printf("%s \n", outstr);
-	    free(outstr);
-	  }
-	  free(prev); prev=ss; prev_i = i+1;
-	  do_backtrack=0;
-	}
+        if (f3[i] != f3[i+1]) do_backtrack=1;
+        else if (do_backtrack) {
+          ss =  backtrack(strings, i+1 , maxdist+1);
+          if ((prev_i+strlen(prev)>i+1+strlen(ss))) {
+            char *outstr;
+            printf("%s (%6.2f) %4d - %4d\n",
+                   prev, (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+            outstr=strndup(strings[0]+prev_i-1, strlen(prev));
+            printf("%s \n", outstr);
+            free(outstr);
+          }
+          free(prev); prev=ss; prev_i = i+1;
+          do_backtrack=0;
+        }
       }
       if (i+maxdist==length) {
-	prev =  backtrack(strings, i , maxdist);
-	prev_i = i; do_backtrack=0;
+        prev =  backtrack(strings, i , maxdist);
+        prev_i = i; do_backtrack=0;
       }
       if (i==1) {
-	char *outstr;
-	if (prev) {
-	  printf("%s (%6.2f) %4d - %4d\n", prev,
-			 (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
-	  outstr=strndup(strings[0]+prev_i-1, strlen(prev));
-	  printf("%s \n", outstr);
-	}
-	if ((f3[prev_i] != f3[1]) || (!prev)) {
-	  ss =  backtrack(strings, i , maxdist);
-	  printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1);
-	  outstr=strndup(strings[0], strlen(ss));
-	  printf("%s \n", outstr);
-	  free(ss);
-	}
-	if (prev) free(prev);
-	free(outstr);
+        char *outstr;
+        if (prev) {
+          printf("%s (%6.2f) %4d - %4d\n", prev,
+                         (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+          outstr=strndup(strings[0]+prev_i-1, strlen(prev));
+          printf("%s \n", outstr);
+        }
+        if ((f3[prev_i] != f3[1]) || (!prev)) {
+          ss =  backtrack(strings, i , maxdist);
+          printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1);
+          outstr=strndup(strings[0], strlen(ss));
+          printf("%s \n", outstr);
+          free(ss);
+        }
+        if (prev) free(prev);
+        free(outstr);
       }
     }
     {
@@ -346,13 +370,13 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
       FF = cc1; cc1=cc; cc=FF;
       for (j=0; j< maxdist+5; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
       if (i<=length-maxdist-4) {
-	c[i-1] = c[i+maxdist+4]; c[i+maxdist+4] = NULL;
-	fML[i-1] = fML[i+maxdist+4]; fML[i+maxdist+4]=NULL;
-	pscore[i-1] = pscore[i+maxdist+4]; pscore[i+maxdist+4] = NULL;
-	if (i>1)  make_pscores((const char**) strings, structure, maxdist, i-1);
-	for (ii=0; ii<maxdist+5; ii++) {
-	  c[i-1][ii] = fML[i-1][ii] = INF;
-	}
+        c[i-1] = c[i+maxdist+4]; c[i+maxdist+4] = NULL;
+        fML[i-1] = fML[i+maxdist+4]; fML[i+maxdist+4]=NULL;
+        pscore[i-1] = pscore[i+maxdist+4]; pscore[i+maxdist+4] = NULL;
+        if (i>1)  make_pscores((const char**) strings, structure, maxdist, i-1);
+        for (ii=0; ii<maxdist+5; ii++) {
+          c[i-1][ii] = fML[i-1][ii] = INF;
+        }
       }
     }
   }
@@ -366,12 +390,7 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
     base pairing list. No search for equivalent structures is done.
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
-  struct sect {
-    int  i;
-    int  j;
-    int ml;
-  }
-  sector[MAXSECTORS];   /* backtracking sectors */
+  sect  sector[MAXSECTORS];   /* backtracking sectors */
 
   int   i, j, k, energy;
   int   *type, type_2, tt, n_seq;
@@ -396,7 +415,7 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
     i  = sector[s].i;
     j  = sector[s].j;
     ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
-			      occur in the fML- (1) or in the f-array (0) */
+                              occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
       structure[i-start] = '(';
       structure[j-start] = ')';
@@ -410,83 +429,85 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
     if (ml == 0) { /* backtrack in f3 */
 
       if (fij == f3[i+1]) {
-	sector[++s].i = i+1;
-	sector[s].j   = j;
-	sector[s].ml  = ml;
-	continue;
+        sector[++s].i = i+1;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
+        continue;
       }
       /* i is paired. Find pairing partner */
       for (k=i+TURN+1,traced=0; k<=j; k++) {
-	int cc;
-	jj = k+1;
-	cc = c[i][k-(i)];
-	if (cc<INF) {
-	  for (ss=0; ss<n_seq; ss++) {
-	    type[ss] = pair[S[ss][i]][S[ss][k]];
-	    if (type[ss]==0) type[ss]=7;
-	    if (type[ss]>2) cc += P->TerminalAU;
-
-	  }
-	  if (dangles) {
-	    for (ss=0; ss<n_seq; ss++) {
-	      if (k<length) cc += P->dangle3[type[ss]][S[ss][k+1]];
-	      if (i>1) cc += P->dangle5[type[ss]][S[ss][i-1]];
-	    }
-	  }
-	  if (fij == cc + f3[k+1]) traced=i;
-	}
-	if (traced) break;
+        int cc;
+        jj = k+1;
+        cc = c[i][k-(i)];
+        if (cc<INF) {
+          if(dangles){
+            for (ss=0; ss<n_seq; ss++) {
+              type[ss] = pair[S[ss][i]][S[ss][k]];
+              if (type[ss]==0) type[ss]=7;
+              cc += E_ExtLoop(type[ss], (i>1) ? S[ss][i-1] : -1, (k<length) ? S[ss][k+1] : -1, P);
+            }
+          }
+          else{
+            for (ss=0; ss<n_seq; ss++) {
+              type[ss] = pair[S[ss][i]][S[ss][k]];
+              if (type[ss]==0) type[ss]=7;
+              cc += E_ExtLoop(type[ss], -1, -1, P);
+            }
+          }
+          if (fij == cc + f3[k+1]) traced=i;
+        }
+        if (traced) break;
       }
 
       if (!traced) nrerror("backtrack failed in f3");
       if (j==length) { /* backtrack only one component, unless j==length */
-	sector[++s].i = jj;
-	sector[s].j   = j;
-	sector[s].ml  = ml;
+        sector[++s].i = jj;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
       }
       i=traced; j=k;
       structure[i-start] = '('; structure[j-start] = ')';
       goto repeat1;
     }
     else { /* trace back in fML array */
-      int cij1=INF, ci1j=INF, ci1j1=INF;
-
       if (fML[i][j-1-i]+n_seq*P->MLbase == fij) {  /* 3' end is unpaired */
-	sector[++s].i = i;
-	sector[s].j   = j-1;
-	sector[s].ml  = ml;
-	continue;
+        sector[++s].i = i;
+        sector[s].j   = j-1;
+        sector[s].ml  = ml;
+        continue;
       }
       if (fML[i+1][j-(i+1)]+n_seq*P->MLbase == fij) { /* 5' end is unpaired */
-	sector[++s].i = i+1;
-	sector[s].j   = j;
-	sector[s].ml  = ml;
-	continue;
+        sector[++s].i = i+1;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
+        continue;
       }
 
       cij = c[i][j-i] ;
-      for (ss=0; ss<n_seq; ss++) {
-	tt  = pair[S[ss][i]][S[ss][j]];
-	if (tt==0) tt=7;
-	cij += P->MLintern[tt];
-	if (dangles) {       /* double dangles */
-	  if (i>1)      cij += P->dangle5[tt][S[ss][i-1]];
-	  if (j<length) cij += P->dangle3[tt][S[ss][j+1]];
-	}
+      if(dangles){
+        for (ss=0; ss<n_seq; ss++) {
+          tt  = pair[S[ss][i]][S[ss][j]];
+          if (tt==0) tt=7;
+          cij += E_ExtLoop(tt, (i>1) ? S[ss][i-1] : -1, (j<length) ? S[ss][j+1] : -1, P);
+        }
+      }
+      else{
+        for (ss=0; ss<n_seq; ss++) {
+          tt  = pair[S[ss][i]][S[ss][j]];
+          if (tt==0) tt=7;
+          cij += E_ExtLoop(tt, -1, -1, P);
+        }
       }
 
-      if ((fij==cij)||(fij==ci1j)||(fij==cij1)||(fij==ci1j1)) {
-	/* found a pair */
-	if (fij==ci1j) i++;
-	else if (fij==cij1) j--;
-	else if (fij==ci1j1) {i++; j--;}
-	structure[i-start] = '('; structure[j-start] = ')';
-	goto repeat1;
+      if(fij==cij){
+        /* found a pair */
+        structure[i-start] = '('; structure[j-start] = ')';
+        goto repeat1;
       }
 
       for (k = i+1+TURN; k <= j-2-TURN; k++)
-	if (fij == (fML[i][k-i]+fML[k+1][j-(k+1)]))
-	  break;
+        if (fij == (fML[i][k-i]+fML[k+1][j-(k+1)]))
+          break;
 
       sector[++s].i = i;
       sector[s].j   = k;
@@ -513,27 +534,28 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 
     if (noLonelyPairs)
       if (cij == c[i][j-i]) {
-	/* (i.j) closes canonical structures, thus
-	   (i+1.j-1) must be a pair                */
-	for (ss=0; ss<n_seq; ss++) {
-	  type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
-	  if (type_2==0) type_2 = 7;
-	  cij -= P->stack[type[ss]][type_2];
-	}
-	cij += pscore[i][j-i];
-	structure[i+1-start] = '('; structure[j-1-start] = ')';
-	i++; j--;
-	canonical=0;
-	goto repeat1;
+        /* (i.j) closes canonical structures, thus
+           (i+1.j-1) must be a pair                */
+        for (ss=0; ss<n_seq; ss++) {
+          type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
+          if (type_2==0) type_2 = 7;
+          cij -= P->stack[type[ss]][type_2];
+        }
+        cij += pscore[i][j-i];
+        structure[i+1-start] = '('; structure[j-1-start] = ')';
+        i++; j--;
+        canonical=0;
+        goto repeat1;
       }
     canonical = 1;
     cij += pscore[i][j-i];
 
-    {int cc=0;
-    for (ss=0; ss<n_seq; ss++)
-      cc += E_Hairpin(j-i-1, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]+i-1, P);
-    if (cij == cc) /* found hairpin */
-      continue;
+    {
+      int cc=0;
+      for (ss=0; ss<n_seq; ss++)
+        cc += E_Hairpin(j-i-1, type[ss], S[ss][i+1], S[ss][j-1], strings[ss]+i-1, P);
+      if (cij == cc) /* found hairpin */
+        continue;
     }
 
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
@@ -541,20 +563,21 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
       minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
-	if (c[p][q-p]>=INF) continue;
- 	for (ss=energy=0; ss<n_seq; ss++) {
-	  type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
-	  if (type_2==0) type_2 = 7;
-	  energy += E_IntLoop(p-i-1, j-q-1, type[ss], type_2,
-			       S[ss][i+1], S[ss][j-1],
-			       S[ss][p-1], S[ss][q+1], P);
-	}
-	traced = (cij == energy+c[p][q-p]);
-	if (traced) {
-	  structure[p-start] = '(';	structure[q-start] = ')';
-	  i = p, j = q;
-	  goto repeat1;
-	}
+        if (c[p][q-p]>=INF) continue;
+         for (ss=energy=0; ss<n_seq; ss++) {
+          type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
+          if (type_2==0) type_2 = 7;
+          energy += E_IntLoop(p-i-1, j-q-1, type[ss], type_2,
+                               S[ss][i+1], S[ss][j-1],
+                               S[ss][p-1], S[ss][q+1], P);
+        }
+        traced = (cij == energy+c[p][q-p]);
+        if (traced) {
+          structure[p-start] = '(';
+          structure[q-start] = ')';
+          i = p, j = q;
+          goto repeat1;
+        }
       }
     }
 
@@ -562,32 +585,31 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 
     /* (i.j) must close a multi-loop */
     mm = n_seq*P->MLclosing;
-    for (ss=d3=d5=0; ss<n_seq; ss++) {
-      tt = rtype[type[ss]];
-      mm += P->MLintern[tt];
-      d5 += P->dangle5[tt][S[ss][j-1]];
-      d3 += P->dangle3[tt][S[ss][i+1]];
+    if(dangles){
+      for (ss=0; ss<n_seq; ss++) {
+        tt = rtype[type[ss]];
+        mm += E_MLstem(tt, S[ss][j-1],S[ss][i+1], P);
+      }
+    }
+    else{
+      for (ss=0; ss<n_seq; ss++) {
+        tt = rtype[type[ss]];
+        mm += E_MLstem(tt, S[ss][j-1],S[ss][i+1], P);
+      }
     }
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1;
 
-    for (k = i+2+TURN; k < j-2-TURN; k++) {
-      int en;
-      en = fML[i+1][k-(i+1)]+fML[k+1][j-1-(k+1)]+mm;
-      if (dangles==2) /* double dangles */
-	en += d5+d3;
-      if (cij == en)
-	break;
-
-
+    for (k = i+TURN+2; k < j-TURN-2; k++){
+      if(cij == fML[i+1][k-(i+1)] + fML[k+1][j-1-(k+1)] + mm) break;
     }
-    if (k<=j-3-TURN) { /* found the decomposition */
+    if (k<=j-3-TURN){ /* found the decomposition */
       sector[++s].i = i1;
       sector[s].j   = k;
       sector[++s].i = k+1;
       sector[s].j   = j1;
     } else {
-	nrerror("backtracking failed in repeat");
+        nrerror("backtracking failed in repeat");
     }
 
   }
@@ -629,16 +651,15 @@ PRIVATE void parenthesis_structure(char *structure, int length)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-#define NONE -10000 /* score for forbidden pairs */
 PRIVATE double cov_score(const char ** AS, int i, int j) {
   int n_seq,k,l,s,score;
   int dm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
-	       	{0,0,2,2,1,2,2} /* CG */,
-		{0,2,0,1,2,2,2} /* GC */,
-		{0,2,1,0,2,1,2} /* GU */,
-		{0,1,2,2,0,2,1} /* UG */,
-		{0,2,2,1,2,0,2} /* AU */,
-		{0,2,2,2,1,2,0} /* UA */};
+                       {0,0,2,2,1,2,2} /* CG */,
+                {0,2,0,1,2,2,2} /* GC */,
+                {0,2,1,0,2,1,2} /* GU */,
+                {0,1,2,2,0,2,1} /* UG */,
+                {0,2,2,1,2,0,2} /* AU */,
+                {0,2,2,2,1,2,0} /* UA */};
   int pfreq[8]={0,0,0,0,0,0,0,0};
   for (n_seq=0; AS[n_seq]!=NULL; n_seq++);
   for (s=0; s<n_seq; s++) {
@@ -656,16 +677,16 @@ PRIVATE double cov_score(const char ** AS, int i, int j) {
   else
     for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
       for (l=k+1; l<=6; l++)
-	/* scores for replacements between pairtypes    */
-	/* consistent or compensatory mutations score 1 or 2  */
-	score += pfreq[k]*pfreq[l]*dm[k][l];
+        /* scores for replacements between pairtypes    */
+        /* consistent or compensatory mutations score 1 or 2  */
+        score += pfreq[k]*pfreq[l]*dm[k][l];
 
   /* counter examples score -1, gap-gap scores -0.25   */
   return cv_fact * ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
 }
 
 PRIVATE void make_pscores(const char ** AS,
-			  const char *structure, int maxd, int i) {
+                          const char *structure, int maxd, int i) {
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
@@ -691,7 +712,7 @@ PRIVATE void make_pscores(const char ** AS,
       else ntype=NONE;
 
       if ((otype<-4*UNIT)&&(ntype<-4*UNIT))  /* worse than 2 counterex */
-	pscore[i][j-i] = NONE; /* i.j can only form isolated pairs */
+        pscore[i][j-i] = NONE; /* i.j can only form isolated pairs */
     }
   }
 
@@ -705,23 +726,23 @@ PRIVATE void make_pscores(const char ** AS,
       for (l=i+TURN+1; l<=i+maxd; l++) pscore[i][l-i] = NONE;
       break;
     case '(':
-	hx=1;
-	psij=1;
-	for (l=i+1; l<=i+maxd; l++) {
-	  switch (structure[l-1]) {
-	  case '(':
-	    hx++;
-	    pscore[i][l-i] = NONE;
-	    break;
-	  case ')':
-	    hx--;
-	    if (hx!=0) pscore[i][l-i] = NONE;
-	    break;
-	  default:
-	    pscore[i][l-i] = NONE;
-	  }
-	  /* fallthrough */
-		}
+        hx=1;
+        psij=1;
+        for (l=i+1; l<=i+maxd; l++) {
+          switch (structure[l-1]) {
+          case '(':
+            hx++;
+            pscore[i][l-i] = NONE;
+            break;
+          case ')':
+            hx--;
+            if (hx!=0) pscore[i][l-i] = NONE;
+            break;
+          default:
+            pscore[i][l-i] = NONE;
+          }
+          /* fallthrough */
+                }
     case ')':
       for (l=i+TURN+1; l<=i+maxd; l++) pscore[i][l-i] = NONE;
       break;
@@ -733,17 +754,17 @@ PRIVATE void make_pscores(const char ** AS,
     if (!psij) for (l=i+1; l<=i+maxd; l++) { /*no '(' constraint on i*/
       switch (structure[l-1]) {
       case '(':
-	pscore[i][l-i] = NONE;
-	break;
+        pscore[i][l-i] = NONE;
+        break;
       case '<':
-	pscore[i][l-i] = NONE;
-	break;
+        pscore[i][l-i] = NONE;
+        break;
       case 'x':
-	pscore[i][l-i] = NONE;
-	break;
+        pscore[i][l-i] = NONE;
+        break;
       case ')':
-	 pscore[i][l-i] = NONE;
-	break;
+         pscore[i][l-i] = NONE;
+        break;
       }
     }
     if (hx!=0) {

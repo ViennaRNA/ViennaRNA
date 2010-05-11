@@ -224,7 +224,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
 
   /* eliminate whitespaces at the end of the line read */
-  if(!(option & VRNA_INPUT_NOELIM_WS_SUFFIX){
+  if(!(option & VRNA_INPUT_NOELIM_WS_SUFFIX)){
     for(i = l-1; i >= 0; i--){
       if      (line[i] == ' ')  continue;
       else if (line[i] == '\t') continue;
@@ -410,6 +410,16 @@ PUBLIC  void  print_tty_input_seq(void){
 PUBLIC  void  print_tty_input_seq_str(const char *s){
   printf("\n%s; @ to quit\n", s);
   printf("%s%s\n", scale1, scale2);
+}
+
+PUBLIC  void  print_tty_constraint_str(void){
+  printf("Input constraints using the following notation:\n");
+  printf("| : paired with another base\n");
+  printf(". : no constraint at all\n");
+  printf("x : base must not pair\n");
+  printf("< : base i is paired with a base j<i\n");
+  printf("> : base i is paired with a base j>i\n");
+  printf("matching brackets ( ): base i pairs base j\n");
 }
 
 PUBLIC  void  str_DNA2RNA(char *sequence){

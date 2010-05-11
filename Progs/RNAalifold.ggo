@@ -1,6 +1,7 @@
 # Name of your program
 package "RNAalifold" # don't use package if you're using automake
 purpose "calculate secondary structures for a set of aligned RNAs"
+usage   "RNAalifold [options] <file1.aln>"
 
 # Version of your program
 # version "2.0"   # don't use version if you're using automake

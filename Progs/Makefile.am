@@ -49,3 +49,13 @@ RNAplfold_cmdl.h  RNAplfold_cmdl.c: RNAplfold.ggo
 	gengetopt -i RNAplfold.ggo
 
 RNAplfold_SOURCES=RNAplfold_cmdl.c RNAplfold.c
+
+RNAduplex_cmdl.h  RNAduplex_cmdl.c: RNAduplex.ggo
+	gengetopt -i RNAduplex.ggo
+
+RNAduplex_SOURCES=RNAduplex_cmdl.c RNAduplex.c
+
+RNAaliduplex_cmdl.h  RNAaliduplex_cmdl.c: RNAaliduplex.ggo
+	gengetopt -i RNAaliduplex.ggo
+
+RNAaliduplex_SOURCES=RNAaliduplex_cmdl.c RNAaliduplex.c

@@ -123,6 +123,8 @@ int bp_distance(const char *str1, const char *str2);
 void print_tty_input_seq(void);
 void print_tty_input_seq_str(const char *s);
 
+void print_tty_constraint_str(void);
+
 void str_DNA2RNA(char *sequence);
 void str_RNA2RNA(char *sequence);
 

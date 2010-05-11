@@ -17,80 +17,53 @@
 #include "read_epars.h"
 #include "subopt.h"
 #include "duplex.h"
+#include "RNAduplex_cmdl.h"
 
 PRIVATE void  print_struc(duplexT const *dup);
 /*@unused@*/
 static char rcsid[] = "$Id: RNAduplex.c,v 1.5 2007/08/26 09:41:12 ivo Exp $";
 
-static char  scale[] = "....,....1....,....2....,....3....,....4"
-                       "....,....5....,....6....,....7....,....8";
-
-static void usage(void);
-
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[]){
-  char *s1, *s2, *line;
-  char  fname[13], *input_string;
+  struct        RNAduplex_args_info args_info;
+  char          fname[80], *input_string, *s1, *s2, *c, *ParamFile=NULL, *ns_bases=NULL;
   unsigned int  input_type;
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   i, l, sym, r;
-  double deltaf;
-  double kT, sfact=1.07;
-  int   pf=0, istty, delta=-1;
-  int noconv=0;
-   
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') 
-      switch ( argv[i][1] )
-        {
-        case 'T':  if (argv[i][2]!='\0') usage();
-          if(i==argc-1) usage();
-          r=sscanf(argv[++i], "%lf", &temperature);
-          if (!r) usage();
-          break;
-        case 'p':
-          fprintf(stderr, "partition function folding not yet implemented\n");
-          usage();
-          pf=1;
-          if (argv[i][2]!='\0')
-            (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-          break;
-        case 'n':
-          if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-          if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-          if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-          if ( strcmp(argv[i], "-nsp") ==0) {
-            if (i==argc-1) usage();
-            ns_bases = argv[++i];
-          }
-          if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-          break;
-        case '4':
-          tetra_loop=0;
-          break;
-        case 'e':
-          if (i>=argc-1) usage();
-          r=sscanf(argv[++i], "%lf", &deltaf);
-          if (r!=1) usage();
-          delta = (int) (0.1+deltaf*100);
-          break;
-        case 's': subopt_sorted=1;
-          break;
-        case 'd': dangles=0;
-          if (argv[i][2]!='\0') {
-            r=sscanf(argv[i]+2, "%d", &dangles);
-            if (r!=1) usage();
-          }
-          break;
-        case 'P':
-          if (i==argc-1) usage();
-          ParamFile = argv[++i];
-          break;
-        default: usage();
-        } 
-  }
+  int           i, l, sym, r;
+  int           istty, delta=-1;
+  int           noconv=0;
+
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAduplex_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /*energy range */
+  if(args_info.deltaEnergy_given) delta = (int) (0.1+args_info.deltaEnergy_arg*100);
+  /* sorted output */
+  if(args_info.sorted_given)      subopt_sorted = 1;
+
+  /* free allocated memory of command line data structure */
+  RNAduplex_cmdline_parser_free (&args_info);
 
   /*
   #############################################
@@ -138,7 +111,7 @@ int main(int argc, char *argv[]){
     /* extract filename from fasta header if available */
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) == VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%13s", fname);
+      (void) sscanf(input_string, "%42s", fname);
       free(input_string);
     }
 
@@ -205,17 +178,9 @@ int main(int argc, char *argv[]){
   return 0;
 }
 
-static void print_struc(duplexT const *dup) {
+PRIVATE void print_struc(duplexT const *dup) {
   int l1;
   l1 = strchr(dup->structure, '&')-dup->structure;
   printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", dup->structure, dup->i+1-l1,
          dup->i, dup->j, dup->j+strlen(dup->structure)-l1-2, dup->energy);
-}
-    
-static void usage(void)
-{
-  nrerror("usage:\n"
-          "RNAduplex [-e range] [-s]\n"
-          "          [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n" 
-          "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv]\n");
 }
