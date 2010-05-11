@@ -22,7 +22,7 @@ description "Computes locally stable RNA secondary structure with a maximal base
 
 option  "span"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j\-i>span will be allowed."
+ j-i>span will be allowed."
 int
 default="150"
 optional

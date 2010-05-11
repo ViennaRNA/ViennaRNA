@@ -1,7 +1,7 @@
 
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 		RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
-		RNAalifold RNAplfold RNAup RNAaliduplex
+		RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold
 
 LDADD = ../lib/libRNA.a -lm
 
@@ -12,7 +12,10 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAcofold.ggo RNAcofold_cmdl.c  RNAcofold_cmdl.h\
               RNAup.ggo RNAup_cmdl.c  RNAup_cmdl.h\
               RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h\
-              RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h
+              RNALalifold.ggo RNALalifold_cmdl.c RNALalifold_cmdl.h\
+              RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h\
+              RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
+              RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -21,12 +24,14 @@ RNAfold_cmdl.h  RNAfold_cmdl.c: RNAfold.ggo
 
 RNAfold_SOURCES=RNAfold_cmdl.c RNAfold.c
 
+
 RNAalifold.c:    RNAalifold_cmdl.h
 
 RNAalifold_cmdl.h  RNAalifold_cmdl.c: RNAalifold.ggo
 	gengetopt -i RNAalifold.ggo
 
 RNAalifold_SOURCES=RNAalifold_cmdl.c RNAalifold.c
+
 
 RNAcofold.c:    RNAcofold_cmdl.h
 
@@ -35,25 +40,47 @@ RNAcofold_cmdl.h  RNAcofold_cmdl.c: RNAcofold.ggo
 
 RNAcofold_SOURCES=RNAcofold_cmdl.c RNAcofold.c
 
+RNAup.c:        RNAup_cmdl.h
+
 RNAup_cmdl.h  RNAup_cmdl.c: RNAup.ggo
 	gengetopt -i RNAup.ggo
 
 RNAup_SOURCES=RNAup_cmdl.c RNAup.c
+
+
+RNALfold.c:       RNALfold_cmdl.h
 
 RNALfold_cmdl.h  RNALfold_cmdl.c: RNALfold.ggo
 	gengetopt -i RNALfold.ggo
 
 RNALfold_SOURCES=RNALfold_cmdl.c RNALfold.c
 
+
+RNALalifold.c:      RNALalifold_cmdl.h
+
+RNALalifold_cmdl.h  RNALalifold_cmdl.c: RNALalifold.ggo
+	gengetopt -i RNALalifold.ggo
+
+RNALalifold_SOURCES=RNALalifold_cmdl.c RNALalifold.c
+
+
+RNAplfold.c:      RNAplfold_cmdl.h
+
 RNAplfold_cmdl.h  RNAplfold_cmdl.c: RNAplfold.ggo
 	gengetopt -i RNAplfold.ggo
 
 RNAplfold_SOURCES=RNAplfold_cmdl.c RNAplfold.c
 
+
+RNAduplex.c:      RNAduplex_cmdl.h
+
 RNAduplex_cmdl.h  RNAduplex_cmdl.c: RNAduplex.ggo
 	gengetopt -i RNAduplex.ggo
 
 RNAduplex_SOURCES=RNAduplex_cmdl.c RNAduplex.c
+
+
+RNAaliduplex.c:   RNAaliduplex_cmdl.h
 
 RNAaliduplex_cmdl.h  RNAaliduplex_cmdl.c: RNAaliduplex.ggo
 	gengetopt -i RNAaliduplex.ggo

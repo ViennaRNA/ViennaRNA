@@ -19,8 +19,10 @@
 #include "utils.h"
 #include "pair_mat.h"
 #include "alifold.h"
+#include "Lfold.h"
 #include "aln_util.h"
 #include "read_epars.h"
+#include "RNALalifold_cmdl.h"
 
 /*@unused@*/
 static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Exp $";
@@ -35,7 +37,7 @@ PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
 #define MAX_NUM_NAMES    500
 
 int main(int argc, char *argv[]){
-  struct        RNAaliLfold_args_info args_info;
+  struct        RNALalifold_args_info args_info;
   char          *string;
   char *structure=NULL, *cstruc=NULL;
   char  ffname[20], gfname[20], fname[13]="";
@@ -60,12 +62,10 @@ int main(int argc, char *argv[]){
   # check the command line parameters
   #############################################
   */
-  if(RNAaliLfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  if(RNALalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
   if(args_info.temp_given)        temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)  fold_constrained=1;
-  /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given)     dangles = args_info.dangles_arg;
@@ -75,8 +75,6 @@ int main(int argc, char *argv[]){
   if(args_info.noGU_given)        noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) no_closingGU = 1;
-  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
   if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
@@ -100,8 +98,8 @@ int main(int argc, char *argv[]){
   if(args_info.span_given)        maxdist = args_info.span_arg;
   /* set the pair probability cutoff */
   if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
-  /* */
-  if(args_info.mismatch_given)    mis = 1;
+  /* calculate most informative sequence */
+  if(args_info.mis_given)         mis = 1;
 
   /* check unnamed options a.k.a. filename of input alignment */
   if(args_info.inputs_num == 1){
@@ -111,12 +109,12 @@ int main(int argc, char *argv[]){
     }
   }
   else{
-    RNAaliduplex_cmdline_parser_print_help();
+    RNALalifold_cmdline_parser_print_help();
     exit(1);
   }
 
   /* free allocated memory of command line data structure */
-  RNAfold_cmdline_parser_free (&args_info);
+  RNALalifold_cmdline_parser_free (&args_info);
 
   /*
   #############################################

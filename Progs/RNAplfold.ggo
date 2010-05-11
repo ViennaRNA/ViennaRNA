@@ -27,7 +27,7 @@ optional
 
 option  "span"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j\-i > span will be allowed. Defaults to winsize if parameter is omitted\n"
+ j-i > span will be allowed. Defaults to winsize if parameter is omitted\n"
 int
 typestr="size"
 optional
@@ -36,7 +36,6 @@ option  "cutoff"  c
 "Report only base pairs with an average probability > cutoff in the dot plot\n"
 float
 default="0.01"
-
 optional
 
 option  "print_onthefly"  o
