@@ -1,0 +1,151 @@
+# Name of your program
+package "RNAfold" # don't use package if you're using automake
+purpose "calculate suboptimal secondary structures of RNAs"
+usage "RNAsubopt [options]\n"
+
+# Version of your program
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAsubopt_cmdl --include-getopt --default-optional --func-name=RNAsubopt_cmdline_parser --arg-struct-name=RNAsubopt_args_info --header-output-dir=../H"
+
+
+description "reads RNA sequences from stdin and (in the default -e mode) calculates all suboptimal secondary\
+ structures within a user defined energy range above the minimum free energy (mfe). It prints the suboptimal\
+ structures in dot-bracket notation followed by the energy in kcal/mol to stdout. Be careful, the number of\
+ structures returned grows exponentially with both sequence length and energy range.\n\nAlternatively, when\
+ used with the -p option, RNAsubopt produces Boltzmann weighted samples of secondary structures.\n"
+
+# Options
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+
+option  "partfunc"  p
+"Calculate the partition function and base pairing probability matrix in\
+ addition to the mfe structure. Default is calculation of mfe structure only.\n"
+details="In addition to the MFE structure\
+ we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
+ the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
+ its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
+ structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
+ and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
+ -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
+ discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
+ of partition function calculation:\n\n\
+-p0\tCalculate the partition function but not the pair probabilities, saving about 50% in runtime. This\
+ prints the ensemble free energy -kT ln(Z).\n\n\
+-p2\tCompute stack probabilities, i.e. the probability that\
+ a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in addition to pair\
+ probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the sequence does not\
+ have a name), is produced that contains pair probabilities in the upper right half and stack probabilities in\
+ the lower left.\n"
+int
+default="-1"
+argoptional
+optional
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n. (no constraint\
+ for this base)\n| (the corresponding base has to be paired\nx (the base is unpaired)\n< (base i is paired with\
+ a base j>i)\n> (base i is paired with a base j<i)\nand matching brackets ( ) (base i pairs base j)\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n"
+flag
+off
+
+option  "noTetra" 4
+"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
+ default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\n\n-d0 ignores dangling ends altogether (mostly for\
+ debugging).\n\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
+ and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
+ treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
+ energy model.\n"
+int
+default="1"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"  flag  off
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+optional
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+int
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"  double
+option  "circ"            c "Assume a circular (instead of linear) RNA molecule.\n"  flag  off
+option  "noPS"            - "Do not produce postscript drawing of the mfe structure.\n"  flag  off
+option  "MEA"             - "Calculate the MEA structure\n" float default="1."  argoptional optional
+
+
+text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
+ developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
+ The energy parameters are taken from:\033[0m\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
+ Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
+ 911-940, 1999\n\nA. Walter, D Turner, J Kim, M Lyttle, P M\252ller, D Mathews, M Zuker \"Coaxial stacking of\
+ helices enhances binding of oligoribonucleotides.\"\nPNAS, 91, pp 9218-9222, 1994\n\n\
+ If you use this program in your work you might want to cite:\033[0m\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
+ Chemie 125: 167-188\n\nM. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
+ and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
+ pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\nI.L. Hofacker & P.F. Stadler (2006)\
+ \"Memory Efficient Folding Algorithms for Circular RNA Secondary Structures\", Bioinformatics (2006)\n\nA.F. Bompfuenewerer,\
+ R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations on {RNA} Folding and\
+ Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
+ London\n\n"
+
+text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.\n\n"
+text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\033[0m\n"
