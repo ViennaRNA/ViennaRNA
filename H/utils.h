@@ -24,9 +24,16 @@
 /** Input switch for \func get_input_line():  "do not eliminate white spaces at end of line" **/
 #define VRNA_INPUT_NOELIM_WS_SUFFIX       256U
 
-/** use the pipe sign '|' for structure constraints **/
+/** pipe sign '|' switch for structure constraints (paired with another base) **/
 #define VRNA_CONSTRAINT_PIPE              1U
-
+/** dot '.' switch for structure constraints (no constraint at all) **/
+#define VRNA_CONSTRAINT_DOT               2U
+/** 'x' switch for structure constraint (base must not pair) **/ 
+#define VRNA_CONSTRAINT_X                 4U
+/** angle brackets '<', '>' switch for structure constraint (paired downstream/upstream) **/
+#define VRNA_CONSTRAINT_ANG_BRACK         8U
+/** round brackets '(',')' switch for structure constraint (base i pairs base j) **/
+#define VRNA_CONSTRAINT_RND_BRACK         16U
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -123,11 +130,51 @@ int bp_distance(const char *str1, const char *str2);
 *** There will also be a scale line printed that helps orientation of the sequence positions
 **/
 void print_tty_input_seq(void);
+
+/**
+*** Just print a line with a user defined string to stdout. (usually this is used to ask for user input)
+*** There will also be a scale line printed that helps orientation of the sequence positions
+***
+*** \param s A user defined string that will be printed to stdout
+**/
 void print_tty_input_seq_str(const char *s);
 
-void print_tty_constraint_str(void);
+/**
+*** Print structure constraint characters to stdout
+*** (full constraint support)
+***
+**/
+void print_tty_constraint_full(void);
 
+/**
+*** Print structure constraint characters to stdout
+*** (constraint support is specified by option parameter)
+*** Currently available options are:\n
+*** \ref VRNA_CONSTRAINT_PIPE (paired with another base)\n
+*** \ref VRNA_CONSTRAINT_DOT (no constraint at all)\n
+*** \ref VRNA_CONSTRAINT_X (base must not pair)\n
+*** \ref VRNA_CONSTRAINT_ANG_BRACK (paired downstream/upstream)\n
+*** \ref VRNA_CONSTRAINT_RND_BRACK (base i pairs base j)\n
+***
+*** pass a collection of options as one value like this:
+*** \verbatim print_tty_constraint(option_1 | option_2 | option_n) \endverbatim
+***
+*** \param option Option switch that tells which constraint help will be printed
+**/
+void print_tty_constraint(unsigned int option);
+
+/**
+*** convert an input sequence (RNA or DNA) to RNA alphabet, also convert characters to uppercase
+***
+*** \param sequence The sequence to be converted
+**/
 void str_DNA2RNA(char *sequence);
+
+/**
+*** convert an input sequence (RNA) to uppercase
+***
+*** \param sequence The sequence to be converted
+**/
 void str_RNA2RNA(char *sequence);
 
 

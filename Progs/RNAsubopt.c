@@ -19,41 +19,27 @@
 #include "utils.h"
 #include "read_epars.h"
 #include "subopt.h"
+#include "RNAsubopt_cmdl.h"
 
-extern int   st_back;
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
-static char  scale[] = "....,....1....,....2....,....3....,....4"
-                       "....,....5....,....6....,....7....,....8";
 
 PRIVATE char *tokenize(char *line);
-PRIVATE void usage(void);
 PRIVATE void putoutzuker(SOLUTION* zukersolution);
 
-/*--------------------------------------------------------------------------*/
-
 int main(int argc, char *argv[]){
-  struct    RNAsubopt_args_info args_info;
-
-  char    *line;
-  char    *sequence;
-  char    *structure = NULL;
-  char    fname[21];
-  char    *ParamFile = NULL;
-  char    *ns_bases = NULL, *c;
-  int     i, length, l, sym, r;
-  int     istty;
-  double  deltaf, deltap=0;
-  int     delta=100;
-  int     n_back = 0;
-  int     noconv = 0;
-  int     circ=0;
-  int     dos=0;
-  int     zuker=0;
+  struct        RNAsubopt_args_info args_info;
+  unsigned int  input_type;
+  char          fname[80], *cstruc, *sequence, *c, *input_string;
+  char          *structure = NULL, *ParamFile = NULL, *ns_bases = NULL;
+  int           i, length, l, sym, istty;
+  double        deltaf, deltap;
+  int           delta, n_back, noconv, circ, dos, zuker;
 
   do_backtrack  = 1;
   dangles       = 2;
-
+  delta         = 100;
+  deltap = n_back = noconv = circ = dos = zuker = 0;
   /*
   #############################################
   # check the command line parameters
@@ -103,6 +89,19 @@ int main(int argc, char *argv[]){
   /* zuker subopts */
   if(args_info.zuker_given) zuker = 1;
 
+  if(zuker){
+    if(circ){
+      warn_user("Sorry, zuker subopts not yet implemented for circfold");
+      RNAsubopt_cmdline_parser_print_help();
+      exit(1);
+    }
+    else if(n_back>0){
+      warn_user("Can't do zuker subopts and stochastic subopts at the same time");
+      RNAsubopt_cmdline_parser_print_help();
+      exit(1);
+    }
+  }
+
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
 
@@ -111,18 +110,6 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-  if(zuker){
-    if(circ){
-      warn_user("Sorry, zuker subopts not yet implemented for circfold");
-      RNALalifold_cmdline_parser_print_help();
-      exit(1);
-    }
-    else if(n_back>0){
-      warn_user("Can't do zuker subopts and stochastic subopts at the same time");
-      RNALalifold_cmdline_parser_print_help();
-      exit(1);
-    }
-  }
 
   if (ParamFile != NULL) read_parameter_file(ParamFile);
 
@@ -148,7 +135,7 @@ int main(int argc, char *argv[]){
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
-  if(fold_constrained && istty) print_tty_constraint_str();
+  if(fold_constrained && istty) print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X);
 
 
   /*
@@ -168,114 +155,115 @@ int main(int argc, char *argv[]){
         printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       print_tty_input_seq();
     }
-     fname[0]='\0';
-     if ((line = get_line(stdin))==NULL) break;
+    /* extract filename from fasta header if available */
+    fname[0] = '\0';
+    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) == VRNA_INPUT_FASTA_HEADER){
+      (void) sscanf(input_string, "%42s", fname);
+      free(input_string);
+    }
 
-     /* skip comment lines and get filenames */
-     while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-       if (*line=='>')
-         (void) sscanf(line, ">%20s", fname);
-       free(line);
-       if ((line = get_line(stdin))==NULL) break;;
-     }
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      sequence  = tokenize(input_string); /* frees input_string */
+      length    = (int) strlen(sequence);
+    }
+    structure = (char *) space((unsigned) length+1);
 
-     if ((line==NULL)||strcmp(line,"@")==0) break;
+    if(noconv)  str_RNA2RNA(sequence);
+    else        str_DNA2RNA(sequence);
 
-     sequence = tokenize(line); /* frees line */
-     length = (int) strlen(sequence);
-     structure = (char *) space((unsigned) length+1);
+    if(istty){
+      if (cut_point == -1)
+        printf("length = %d\n", length);
+      else
+        printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
+    }
 
-     if (fold_constrained) {
-       char *cstruc;
-       cstruc = tokenize(get_line(stdin));
-       if (cstruc!=NULL) {
-         strncpy(structure, cstruc, length);
-         for (i=0; i<length; i++)
-           if (structure[i]=='|')
-             nrerror("constraints of type '|' not allowed");
-         free(cstruc);
-       }
-     }
+    /* get structure constraint or break if necessary, entering an empty line results in a warning */
+    if (fold_constrained) {
+      input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+      if(input_type & VRNA_INPUT_QUIT){ break;}
+      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
+        cstruc = tokenize(input_string);
+        strncpy(structure, cstruc, length);
+        for (i=0; i<length; i++)
+          if (structure[i]=='|')
+            nrerror("constraints of type '|' not allowed");
+        free(cstruc);
+      }
+      else warn_user("constraints missing");
+    }
+    /*
+    ########################################################
+    # done with 'stdin' handling, now init everything properly
+    ########################################################
+    */
 
-     for (l = 0; l < length; l++) {
-       sequence[l] = toupper(sequence[l]);
-       if (!noconv && sequence[l] == 'T') sequence[l] = 'U';
-     }
-     if (istty) {
-       if (cut_point == -1)
-         printf("length = %d\n", length);
-       else
-         printf("length1 = %d\nlength2 = %d\n",
-                cut_point-1, length-cut_point+1);
-     }
+    if((logML != 0 || dangles==1 || dangles==3) && dos == 0)
+      if(deltap<=0) deltap = delta/100. + 0.001;
+    if (deltap>0)
+      print_energy = deltap;
 
+    /* first lines of output (suitable  for sort +1n) */
+    if (fname[0] != '\0')
+      printf("> %s [%d]\n", fname, delta);
 
-     if ((logML!=0 || dangles==1 || dangles==3) && dos==0)
-       if (deltap<=0) deltap=delta/100. +0.001;
-     if (deltap>0)
-       print_energy = deltap;
-
-     /* first lines of output (suitable  for sort +1n) */
-     if (fname[0] != '\0')
-       printf("> %s [%d]\n", fname, delta);
-
-     if (n_back>0) {  /* stochastic backtrack */
-       double mfe, kT;
-       char *ss;
-       st_back=1;
-       ss = (char *) space(strlen(sequence)+1);
-       strncpy(ss, structure, length);
-       mfe = fold(sequence, ss);
-       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
-       pf_scale = exp(-(1.03*mfe)/kT/length);
-       strncpy(ss, structure, length);
-       /* ignore return value, we are not interested in the free energy */
-       (circ) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
-       free(ss);
-       for (i=0; i<n_back; i++) {
-         char *s;
-         s =(circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
-         printf("%s\n", s);
-         free(s);
-       }
-       free_pf_arrays();
-     } else if (!zuker) { /* normal subopt */
-       (circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
-       if (dos) {
-         int i;
-         for (i=0; i<= MAXDOS && i<=delta/10; i++) {
-           printf("%4d %6d\n", i, density_of_states[i]);
-         }
-       }
-     } else { /* Zuker suboptimals */
-       SOLUTION *zr;
-       int i;
-       if (cut_point!=-1) {
-         printf("Sorry, zuker subopts not yet implemented for cofold\n");
-         usage();
-       }
-       zr = zukersubopt(sequence);
-       putoutzuker(zr);
-       (void)fflush(stdout);
-       for (i=0; zr[i].structure; i++) {
-         free(zr[i].structure);
-       }
-       free(zr);
-     }
-     (void)fflush(stdout);
-     free(sequence);
-     free(structure);
-   } while (1);
-   return 0;
+    /* stochastic backtracking */
+    if(n_back>0){
+      double mfe, kT;
+      char *ss;
+      st_back=1;
+      ss = (char *) space(strlen(sequence)+1);
+      strncpy(ss, structure, length);
+      mfe = fold(sequence, ss);
+      kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+      pf_scale = exp(-(1.03*mfe)/kT/length);
+      strncpy(ss, structure, length);
+      /* ignore return value, we are not interested in the free energy */
+      (circ) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
+      free(ss);
+      for (i=0; i<n_back; i++) {
+        char *s;
+        s =(circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
+        printf("%s\n", s);
+        free(s);
+      }
+      free_pf_arrays();
+    }
+    /* normal subopt */
+    else if(!zuker){
+      (circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
+      if (dos) {
+        int i;
+        for (i=0; i<= MAXDOS && i<=delta/10; i++) {
+          printf("%4d %6d\n", i, density_of_states[i]);
+        }
+      }
+    }
+    /* Zuker suboptimals */
+    else{
+      SOLUTION *zr;
+      int i;
+      if (cut_point!=-1) {
+        nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
+      }
+      zr = zukersubopt(sequence);
+      putoutzuker(zr);
+      (void)fflush(stdout);
+      for (i=0; zr[i].structure; i++) {
+        free(zr[i].structure);
+      }
+      free(zr);
+    }
+    (void)fflush(stdout);
+    free(sequence);
+    free(structure);
+  } while (1);
+  return 0;
 }
 
-PRIVATE void usage(void)
-{
-   nrerror("usage: "
-           "RNAsubopt [-e range] [-ep prange] [-s] [-p num] [-logML]\n"
-           "          [-C] [-T temp] [-4] [-d[2]] [-noGU] [-noCloseGU]\n"
-           "          [-noLP] [-P paramfile] [-nsp pairs] [-circ] [-z]");
-}
 PRIVATE char *tokenize(char *line)
 {
   char *pos, *copy;

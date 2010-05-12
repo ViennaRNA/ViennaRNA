@@ -112,6 +112,8 @@ int main(int argc, char *argv[])
   if(args_info.color_given)       doColor=1;
   
   if(args_info.aln_given)         doAlnPS=1;
+  if(args_info.old_given)         oldAliEn = 1;
+  
   
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
@@ -146,12 +148,15 @@ int main(int argc, char *argv[])
     }
   }
 
-  if(args_info.old_given)         oldAliEn = 1;
-  
   
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
 
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
   make_pair_matrix();
 
   if (circ && noLonelyPairs)
@@ -184,7 +189,7 @@ int main(int argc, char *argv[])
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if(fold_constrained){
     if(istty){
-      print_tty_constraint_str();
+      print_tty_constraint_full();
       printf("%s\n", scale);
     }
     cstruc = get_line(stdin);

@@ -45,7 +45,7 @@ option "stochBT"  p
 "Instead of producing all suboptimals in an energy range, produce a random sample of suboptimal structures,\
  drawn with probabilities equal to their Boltzmann weights via stochastic backtracking in the partition\
  function. The -e and -p options are mutually exclusive."
-integer
+int
 typestr="number"
 optional
 
@@ -130,12 +130,6 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n"
 string
-optional
-
-option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
-int
 optional
 
 option  "paramFile" P

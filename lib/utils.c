@@ -412,15 +412,17 @@ PUBLIC  void  print_tty_input_seq_str(const char *s){
   printf("%s%s\n", scale1, scale2);
 }
 
-PUBLIC  void  print_tty_constraint_str(void){
-  unsigned int option = 0;
+PUBLIC  void  print_tty_constraint_full(void){
+  print_tty_constraint(VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+}
+
+PUBLIC  void  print_tty_constraint(unsigned int option){
   printf("Input constraints using the following notation:\n");
-  if(option & VRNA_CONSTRAINT_PIPE) printf("| : paired with another base\n");
-  printf(". : no constraint at all\n");
-  printf("x : base must not pair\n");
-  printf("< : base i is paired with a base j<i\n");
-  printf("> : base i is paired with a base j>i\n");
-  printf("matching brackets ( ): base i pairs base j\n");
+  if(option & VRNA_CONSTRAINT_PIPE)       printf("| : paired with another base\n");
+  if(option & VRNA_CONSTRAINT_DOT)        printf(". : no constraint at all\n");
+  if(option & VRNA_CONSTRAINT_X)          printf("x : base must not pair\n");
+  if(option & VRNA_CONSTRAINT_ANG_BRACK)  printf("< : base i is paired with a base j<i\n> : base i is paired with a base j>i\n");
+  if(option & VRNA_CONSTRAINT_RND_BRACK)  printf("matching brackets ( ): base i pairs base j\n");
 }
 
 PUBLIC  void  str_DNA2RNA(char *sequence){

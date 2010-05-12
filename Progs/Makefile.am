@@ -24,6 +24,13 @@ RNAfold_cmdl.h  RNAfold_cmdl.c: RNAfold.ggo
 
 RNAfold_SOURCES=RNAfold_cmdl.c RNAfold.c
 
+RNAsubopt.c:    RNAsubopt_cmdl.h
+
+RNAsubopt_cmdl.h  RNAsubopt_cmdl.c: RNAsubopt.ggo
+	gengetopt -i RNAsubopt.ggo
+
+RNAsubopt_SOURCES=RNAsubopt_cmdl.c RNAsubopt.c
+
 
 RNAalifold.c:    RNAalifold_cmdl.h
 
