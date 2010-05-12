@@ -57,6 +57,8 @@ struct plist *get_plist_from_pr(struct plist *pl, double *probs, int length, dou
 
 extern  int st_back;
 
+plist   *stackProb(double cutoff);
+
 /* deprecated, use exp_E_IntLoop() from loop_energies.h instead */
 double  DEPRECATED(expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1));
 /* deprecated, use exp_E_Hairpin() from loop_energies.h instead */

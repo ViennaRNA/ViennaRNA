@@ -149,14 +149,13 @@ int main(int argc, char *argv[]){
     # done with 'stdin' handling, now init everything properly
     ########################################################
     */
+    update_fold_params();
 
      /*
     ########################################################
     # begin actual computations
     ########################################################
     */
-    update_fold_params();
-
     if (delta>=0) {
       duplexT *sub;
       subopt = duplex_subopt(s1, s2, delta, 5);

@@ -24,12 +24,16 @@
 static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
 
 int main(int argc, char *argv[]){
-  struct  RNALfold_args_info args_info;
-  char    *input_string, *c, *string=NULL, *structure=NULL, *ParamFile=NULL, *ns_bases=NULL;
-  int     i, length, l, sym, r, istty, noconv=0, maxdist=150;
-  double  energy, min_en;
-  unsigned int input_type;
+  struct  RNALfold_args_info  args_info;
+  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases;
+  int                         i, length, l, sym, r, istty, noconv, maxdist;
+  double                      energy, min_en;
+  unsigned int                input_type;
+
+  string = structure = ParamFile = ns_bases = NULL;
   do_backtrack  = 1;
+  noconv        = 0;
+  maxdist       = 150;
 
   /*
   #############################################

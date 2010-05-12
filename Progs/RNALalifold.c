@@ -38,24 +38,23 @@ PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
 
 int main(int argc, char *argv[]){
   struct        RNALalifold_args_info args_info;
-  char          *string;
-  char *structure=NULL, *cstruc=NULL;
-  char  ffname[20], gfname[20], fname[13]="";
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   n_seq, i, length, sym, r;
-  int mis=0;
-  double min_en, real_en, sfact=1.07;
-  int   pf=0, istty;
-  char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char     *names[MAX_NUM_NAMES];       /* sequence names */
-  FILE     *clust_file = stdin;
-  int maxdist=70;
-  float cutoff=0.0005;
+  char          *string, *structure, *ParamFile, *ns_bases, *c;
+  char          ffname[80], gfname[80], fname[80];
+  int           n_seq, i, length, sym, r, maxdist;
+  int           mis, pf, istty;
+  float         cutoff;
+  double        min_en, real_en, sfact;
+  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
+  char          *names[MAX_NUM_NAMES];       /* sequence names */
+  FILE          *clust_file = stdin;
 
-  do_backtrack = 1;
-  string=NULL;
-  dangles=2;
+  string = structure = ParamFile = ns_bases = NULL;
+  mis = pf      = 0;
+  maxdist       = 70;
+  do_backtrack  = 1;
+  dangles       = 2;
+  sfact         = 1.07;
+  cutoff        = 0.0005;
 
   /*
   #############################################
@@ -172,11 +171,10 @@ int main(int argc, char *argv[]){
   if(!pf)
     min_en = aliLfold(AS, structure, maxdist);
   {
-    extern int eos_debug;
     eos_debug=-1; /* shut off warnings about nonstandard pairs */
     /*   for (i=0; AS[i]!=NULL; i++)
-      s += energy_of_struct(AS[i], structure);
-      real_en = s/i;*/
+    s += energy_of_struct(AS[i], structure);
+    real_en = s/i;*/
   }
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s\n", string, structure);
@@ -186,15 +184,9 @@ int main(int argc, char *argv[]){
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
   */
-  if (fname[0]!='\0') {
-    strcpy(ffname, fname);
-    strcat(ffname, "_ss.ps");
-    strcpy(gfname, fname);
-    strcat(gfname, "_ss.g");
-  } else {
-    strcpy(ffname, "alirna.ps");
-    strcpy(gfname, "alirna.g");
-  }
+  strcpy(ffname, "alirna.ps");
+  strcpy(gfname, "alirna.g");
+
   /*  if (length<=2500) {
     char *A;
     A = annote(structure, (const char**) AS);
@@ -223,8 +215,6 @@ int main(int argc, char *argv[]){
 
     /* init_alipf_fold(length); */
 
-    if (cstruc!=NULL)
-      strncpy(structure, cstruc, length+1);
     /* energy = alipfW_fold(AS, structure, &pl, maxdist, cutoff); */
 
     if (do_backtrack) {
@@ -242,10 +232,7 @@ int main(int argc, char *argv[]){
     if (do_backtrack) {
       FILE *aliout;
       cpair *cp;
-      if (fname[0]!='\0') {
-        strcpy(ffname, fname);
-        strcat(ffname, "_ali.out");
-      } else strcpy(ffname, "alifold.out");
+      strcpy(ffname, "alifold.out");
       aliout = fopen(ffname, "w");
       if (!aliout) {
         fprintf(stderr, "can't open %s    skipping output\n", ffname);
@@ -256,10 +243,7 @@ int main(int argc, char *argv[]){
 
         fprintf(aliout, "%s\n", structure);
       }
-      if (fname[0]!='\0') {
-        strcpy(ffname, fname);
-        strcat(ffname, "_dp.ps");
-      } else strcpy(ffname, "alidotL.ps");
+      strcpy(ffname, "alidotL.ps");
       cp = make_color_pinfo2(AS,pl,n_seq);
       (void) PS_color_dot_plot_turn(string, cp, ffname, maxdist);
       free(cp);
@@ -267,7 +251,6 @@ int main(int argc, char *argv[]){
     free(mfe_struc);
     free(pl);
   }
-  if (cstruc!=NULL) free(cstruc);
   free(base_pair);
   (void) fflush(stdout);
   free(string);
@@ -278,7 +261,7 @@ int main(int argc, char *argv[]){
   return 0;
 }
 
-void print_pi(const pair_info pi, FILE *file) {
+PRIVATE void print_pi(const pair_info pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
 

@@ -20,48 +20,38 @@
 #include "pair_mat.h"
 #include "alifold.h"
 #include "aln_util.h"
+#include "read_epars.h"
 #include "RNAalifold_cmdl.h"
 
 /*@unused@*/
 static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
 
-static const char scale[] = "....,....1....,....2....,....3....,....4"
-                            "....,....5....,....6....,....7....,....8";
+#define MAX_NUM_NAMES    500
 
-PRIVATE void /*@exits@*/ usage(void);
-PRIVATE char **annote(const char *structure, const char *AS[]);
-PRIVATE void print_pi(const pair_info pi, FILE *file);
-PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
-PRIVATE void mark_endgaps(char *seq, char egap);
+PRIVATE char  **annote(const char *structure, const char *AS[]);
+PRIVATE void  print_pi(const pair_info pi, FILE *file);
+PRIVATE void  print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
+PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe);
 
 /*--------------------------------------------------------------------------*/
-#define MAX_NUM_NAMES    500
-int main(int argc, char *argv[])
-{
-  struct  RNAalifold_args_info args_info;
-  char *string;
-  char *structure=NULL, *cstruc=NULL;
-  char  ffname[20], gfname[20], fname[13]="";
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   n_seq, i, length, sym, r;
-  int   endgaps=0, mis=0;
-  double min_en, real_en, sfact=1.07;
-  int   pf=0, istty;
-  char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char     *names[MAX_NUM_NAMES];       /* sequence names */
-  FILE     *clust_file = stdin;
-  int circ=0;
-  int doAlnPS=0;
-  int doColor=0;
-  int n_back=0;
-  int eval_energy = 0;
-  do_backtrack = 1;
-  string=NULL;
-  dangles=2;
-  oldAliEn=0;
+int main(int argc, char *argv[]){
+  struct        RNAalifold_args_info args_info;
+  unsigned int  input_type;
+  char          ffname[80], gfname[80], fname[80];
+  char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
+  int           n_seq, i, length, sym, r;
+  int           endgaps, mis, circ, doAlnPS, doColor, n_back, eval_energy, pf, istty;
+  double        min_en, real_en, sfact;
+  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
+  char          *names[MAX_NUM_NAMES];       /* sequence names */
+  FILE          *clust_file = stdin;
 
+  string = structure = cstruc = ParamFile = ns_bases = NULL;
+  endgaps = mis = pf = circ = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
+  do_backtrack  = 1;
+  dangles       = 2;
+  sfact         = 1.07;
   /*
   #############################################
   # check the command line prameters
@@ -104,24 +94,17 @@ int main(int argc, char *argv[])
   if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
   /* set nfactor */
   if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
-
   if(args_info.endgaps_given)     endgaps = 1;
-  
   if(args_info.mis_given)         mis = 1;
-  
   if(args_info.color_given)       doColor=1;
-  
   if(args_info.aln_given)         doAlnPS=1;
   if(args_info.old_given)         oldAliEn = 1;
-  
-  
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
     do_backtrack = 0;
     pf = 1;
     init_rand();
   }
-
   if(args_info.stochBT_en_given){
     n_back = args_info.stochBT_en_arg;
     do_backtrack = 0;
@@ -129,17 +112,14 @@ int main(int argc, char *argv[])
     eval_energy = 1;
     init_rand();
   }
-
   if(args_info.ribosum_file_given){
     RibosumFile = strdup(args_info.ribosum_file_arg);
     ribo = 1;
   }
-
   if(args_info.ribosum_scoring_given){
     RibosumFile = NULL;
     ribo = 1;
   }
-
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
     clust_file = fopen(args_info.inputs[0], "r");
@@ -148,7 +128,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
 
@@ -160,12 +139,11 @@ int main(int argc, char *argv[])
   make_pair_matrix();
 
   if (circ && noLonelyPairs)
-    fprintf(stderr,
-            "warning, depending on the origin of the circular sequence, "
+    warn_user("depending on the origin of the circular sequence, "
             "some structures may be missed when using -noLP\n"
             "Try rotating your sequence a few times\n");
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+
+  if (ParamFile != NULL) read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
     nonstandards = space(33);
@@ -186,75 +164,83 @@ int main(int argc, char *argv[])
       c++;
     }
   }
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+
+  /*
+  ########################################################
+  # handle user input from 'stdin' if necessary
+  ########################################################
+  */
   if(fold_constrained){
     if(istty){
       print_tty_constraint_full();
-      printf("%s\n", scale);
+      print_tty_input_seq_str("");
     }
-    cstruc = get_line(stdin);
+    input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+    if(input_type & VRNA_INPUT_QUIT){ return 0;}
+    else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
+      cstruc = strdup(input_string);
+      free(input_string);
+    }
+    else warn_user("constraints missing");
   }
 
-  if (istty && (clust_file == stdin)) {
-    printf("\nInput aligned sequences in clustalw format\n");
-    if (!fold_constrained) printf("%s\n", scale);
-  }
+  if (istty && (clust_file == stdin))
+    print_tty_input_seq_str("Input aligned sequences in clustalw format");
 
   n_seq = read_clustal(clust_file, AS, names);
+  if (n_seq==0) nrerror("no sequences found");
 
-  if (endgaps)
-    for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
   if (clust_file != stdin) fclose(clust_file);
-  if (n_seq==0)
-    nrerror("no sequences found");
+  /*
+  ########################################################
+  # done with 'stdin' handling, now init everything properly
+  ########################################################
+  */
 
-  length = (int) strlen(AS[0]);
-  structure = (char *) space((unsigned) length+1);
-  if (fold_constrained) {
-    if (cstruc!=NULL)
-      strncpy(structure, cstruc, length);
-    else
-      fprintf(stderr, "constraints missing\n");
-  }
+  length    = (int)   strlen(AS[0]);
+  structure = (char *)space((unsigned) length+1);
 
-  if (circ)
-    min_en = circalifold((const char **)AS, structure);
-  else
-    min_en = alifold((const char **)AS, structure);
+  if(fold_constrained && cstruc != NULL)
+    strncpy(structure, cstruc, length);
+
+  if (endgaps) for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
+
+  /*
+  ########################################################
+  # begin actual calculations
+  ########################################################
+  */
 
   if (circ) {
-    int i; double s=0;
-    extern int eos_debug;
-    eos_debug=-1; /* shut off warnings about nonstandard pairs */
+    int     i;
+    double  s = 0;
+    min_en    = circalifold((const char **)AS, structure);
+    eos_debug = -1; /* shut off warnings about nonstandard pairs */
     for (i=0; AS[i]!=NULL; i++)
-      s +=energy_of_circ_struct(AS[i], structure);
+      s += energy_of_circ_struct(AS[i], structure);
     real_en = s/i;
   } else {
-    float *ens;
-    ens=(float *)space(2*sizeof(float));
+    float *ens  = (float *)space(2*sizeof(float));
+    min_en      = alifold((const char **)AS, structure);
     energy_of_alistruct((const char **)AS, structure, n_seq, ens);
-    real_en=ens[0];
+    real_en     = ens[0];
     free(ens);
   }
 
-  string = (mis) ?
-    consens_mis((const char **) AS) : consensus((const char **) AS);
+  string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
+
   if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
            min_en, real_en, min_en - real_en);
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
 
-  if (fname[0]!='\0') {
-    strcpy(ffname, fname);
-    strcat(ffname, "_ss.ps");
-    strcpy(gfname, fname);
-    strcat(gfname, "_ss.g");
-  } else {
-    strcpy(ffname, "alirna.ps");
-    strcpy(gfname, "alirna.g");
-  }
+  strcpy(ffname, "alirna.ps");
+  strcpy(gfname, "alirna.g");
+
   if (length<=2500) {
     char **A;
     A = annote(structure, (const char**) AS);
@@ -293,12 +279,12 @@ int main(int argc, char *argv[])
 
     if (n_back>0) {
       /*stochastic sampling*/
-    for (i=0; i<n_back; i++) {
-         char *s;
-         double prob=1.;
-         s =alipbacktrack(&prob);
-         printf("%s ", s);
-         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+      for (i=0; i<n_back; i++) {
+        char *s;
+        double prob=1.;
+        s =alipbacktrack(&prob);
+        printf("%s ", s);
+        if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
         printf("\n");
          free(s);
       }
@@ -338,7 +324,7 @@ int main(int argc, char *argv[])
       if (!aliout) {
         fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-      print_aliout(AS, pl, n_seq, mfe_struc, aliout);
+        print_aliout(AS, pl, n_seq, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {

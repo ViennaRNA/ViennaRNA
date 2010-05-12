@@ -15,7 +15,8 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNALalifold.ggo RNALalifold_cmdl.c RNALalifold_cmdl.h\
               RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h\
               RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
-              RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h
+              RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
+              RNAeval.ggo RNAeval_cmdl.c RNAeval_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -93,3 +94,10 @@ RNAaliduplex_cmdl.h  RNAaliduplex_cmdl.c: RNAaliduplex.ggo
 	gengetopt -i RNAaliduplex.ggo
 
 RNAaliduplex_SOURCES=RNAaliduplex_cmdl.c RNAaliduplex.c
+
+RNAeval.c:   RNAeval_cmdl.h
+
+RNAeval_cmdl.h  RNAeval_cmdl.c: RNAeval.ggo
+	gengetopt -i RNAeval.ggo
+
+RNAeval_SOURCES=RNAeval_cmdl.c RNAeval.c

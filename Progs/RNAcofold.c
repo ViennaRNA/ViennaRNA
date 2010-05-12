@@ -16,13 +16,11 @@
 #include "part_func.h"
 #include "fold_vars.h"
 #include "utils.h"
+#include "read_epars.h"
 #include "RNAcofold_cmdl.h"
 
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
-
-PRIVATE char  scale[] = "....,....1....,....2....,....3....,....4"
-                       "....,....5....,....6....,....7....,....8";
 
 PRIVATE char *costring(char *string);
 PRIVATE char *tokenize(char *line);
@@ -35,10 +33,11 @@ PRIVATE struct plist *get_mfe_plist(struct plist *pl);
 
 int main(int argc, char *argv[])
 {
-  struct  RNAcofold_args_info args_info;
-  char    *string, *line;
+  struct        RNAcofold_args_info args_info;
+  unsigned int  input_type;
+  char          *string, *input_string;
   char    *structure, *cstruc;
-  char    fname[53], ffname[60];
+  char    fname[80], ffname[80];
   char    *ParamFile;
   char    *ns_bases, *c;
   char    *Concfile;
@@ -134,10 +133,9 @@ int main(int argc, char *argv[])
 
   /*
   #############################################
-  # begin executing program code
+  # begin initializing
   #############################################
   */
-
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -161,40 +159,67 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if ((fold_constrained)&&(istty)) {
-    printf("Input constraints using the following notation:\n");
-    printf("| : paired with another base\n");
-    printf(". : no constraint at all\n");
-    printf("x : base must not pair\n");
-    printf("< : base i is paired with a base j<i\n");
-    printf("> : base i is paired with a base j>i\n");
-    printf("matching brackets ( ): base i pairs base j\n");
-  }
 
-  do {                                /* main loop: continue until end of file */
+  if(fold_constrained && istty) print_tty_constraint_full();
+
+  /*
+  #############################################
+  # main loop: continue until end of file
+  #############################################
+  */
+  do {
     cut_point = -1;
-    if (istty) {
-      printf("\nInput sequence(s); @ to quit\n");
-      printf("Use '&' as spearator between 2 sequences that shall form a complex.\n");
-      printf("%s\n", scale);
-    }
-    fname[0]='\0';
-    if ((line = get_line(stdin))==NULL) break;
-
-    /* skip comment lines and get filenames */
-    while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-      if (*line=='>')
-        (void) sscanf(line, ">%51s", fname);
-      printf("%s\n", line);
-      free(line);
-      if ((line = get_line(stdin))==NULL) break;
+    /*
+    ########################################################
+    # handle user input from 'stdin'
+    ########################################################
+    */
+    if(istty){ 
+      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      print_tty_input_seq();
     }
 
-    if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+    /* extract filename from fasta header if available */
+    fname[0] = '\0';
+    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+      (void) sscanf(input_string, "%42s", fname);
+      free(input_string);
+    }
 
-    string = tokenize(line); /* frees line */
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      string = tokenize(input_string);
+      length = (int) strlen(input_string);
+    }
+    structure = (char *) space((unsigned) length+1);
 
-    length = (int) strlen(string);
+    if(noconv)  str_RNA2RNA(string);
+    else        str_DNA2RNA(string);
+
+    if(istty){
+      if (cut_point == -1)
+        printf("length = %d\n", length);
+      else
+        printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
+    }
+
+    /* get structure constraint or break if necessary, entering an empty line results in a warning */
+    if (fold_constrained) {
+      input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+      if(input_type & VRNA_INPUT_QUIT){ break;}
+      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
+        cstruc = tokenize(input_string);
+        strncpy(structure, cstruc, length);
+        for (i=0; i<length; i++)
+          if (structure[i]=='|')
+            nrerror("constraints of type '|' not allowed");
+        free(cstruc);
+      }
+      else warn_user("constraints missing");
+    }
+
     if (doC) {
       FILE *fp;
       if (cofi) { /* read from file */
@@ -209,27 +234,6 @@ int main(int argc, char *argv[])
         printf("Please enter concentrations [mol/l]\n format: ConcA ConcB\n return to end\n");
         ConcAandB = read_concentrations(stdin);
       }
-    }
-
-    structure = (char *) space((unsigned) length+1);
-    if (fold_constrained) {
-      cstruc = tokenize(get_line(stdin));
-      if (cstruc!=NULL)
-        strncpy(structure, cstruc, length);
-      else
-        fprintf(stderr, "constraints missing\n");
-    }
-
-    for (l = 0; l < length; l++) {
-      string[l] = toupper(string[l]);
-      if (!noconv && string[l] == 'T') string[l] = 'U';
-    }
-    if (istty) {
-      if (cut_point == -1)
-        printf("length = %d\n", length);
-      else
-        printf("length1 = %d\nlength2 = %d\n",
-               cut_point-1, length-cut_point+1);
     }
 
     /*compute mfe of AB dimer*/

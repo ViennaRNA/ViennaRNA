@@ -37,6 +37,7 @@ int main(int argc, char *argv[]){
   duplexT       mfe, *subopt;
   FILE          *file1=NULL, *file2=NULL; /* input alignments */
 
+
   /*
   #############################################
   # check the command line parameters
@@ -82,14 +83,6 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
-  /* free allocated memory of command line data structure */
-  RNAaliduplex_cmdline_parser_free (&args_info);
-
-  /*
-  #############################################
-  # begin initializing
-  #############################################
-  */
   if (!(file1 && file2)){
     fprintf(stderr, "No input files");
     RNAaliduplex_cmdline_parser_print_help();
@@ -102,6 +95,15 @@ int main(int argc, char *argv[]){
     fclose(file2);
     if(n_seq != n_seq2) nrerror("unequal number of seqs in alignments");
   }
+
+  /* free allocated memory of command line data structure */
+  RNAaliduplex_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
 
 
   if (ParamFile != NULL)

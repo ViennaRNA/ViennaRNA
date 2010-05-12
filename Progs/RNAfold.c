@@ -24,19 +24,12 @@
 #include "fold_vars.h"
 #include "PS_dot.h"
 #include "utils.h"
+#include "read_epars.h"
 #include "MEA.h"
 #include "RNAfold_cmdl.h"
 
-extern void  read_parameter_file(const char fname[]);
-extern float circfold(const char *string, char *structure);
-extern plist * stackProb(double cutoff);
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
-
-#define PRIVATE static
-
-static char  scale1[] = "....,....1....,....2....,....3....,....4";
-static char  scale2[] = "....,....5....,....6....,....7....,....8";
 
 PRIVATE struct plist *b2plist(const char *struc);
 PRIVATE struct plist *make_plist(int length, double pmin);
@@ -138,16 +131,10 @@ int main(int argc, char *argv[])
       c++;
     }
   }
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if ((fold_constrained)&&(istty)) {
-    printf("Input constraints using the following notation:\n");
-    printf("| : paired with another base\n");
-    printf(". : no constraint at all\n");
-    printf("x : base must not pair\n");
-    printf("< : base i is paired with a base j<i\n");
-    printf("> : base i is paired with a base j>i\n");
-    printf("matching brackets ( ): base i pairs base j\n");
-  }
+
+  if(fold_constrained && istty) print_tty_constraint_full();
 
   /*
   #############################################
