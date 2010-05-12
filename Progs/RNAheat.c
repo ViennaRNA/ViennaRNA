@@ -1,11 +1,11 @@
 /*
-		      Heat Capacity of RNA molecule
+                      Heat Capacity of RNA molecule
 
-		    c Ivo Hofacker and Peter Stadler
-			  Vienna RNA package
+                    c Ivo Hofacker and Peter Stadler
+                          Vienna RNA package
 
 
-	    calculates specific heat using C = - T d^2/dT^2 G(T)
+            calculates specific heat using C = - T d^2/dT^2 G(T)
 */
 
 #include <stdio.h>
@@ -18,23 +18,153 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "part_func.h"
-extern void  read_parameter_file(const char fname[]);
+#include "read_epars.h"
+#include "RNAheat_cmdl.h"
 
-#define PRIVATE      static
-#define PUBLIC
-#define MAXWIDTH     201
 /*@unused@*/
 static char rcsid[] = "$Id: RNAheat.c,v 1.12 2000/09/28 11:23:14 ivo Rel $";
 
+#define MAXWIDTH  201
+#define GASCONST  1.98717  /* in [cal/K] */
+#define K0        273.15
+
 PRIVATE float F[MAXWIDTH];
 PRIVATE float ddiff(float f[], float h, int m);
-PRIVATE void  usage(void);
+PRIVATE void heat_capacity(char *string, float T_min, float T_max, float h, int m);
 
-#define GASCONST 1.98717  /* in [cal/K] */
-#define K0 273.15
+int main(int argc, char *argv[]){
+  struct  RNAheat_args_info args_info;
+  char                      *string, *input_string, *ns_bases, *c, *ParamFile;
+  int                       i, length, l, sym;
+  float                     T_min, T_max, h;
+  int                       mpoints, istty, noconv = 0;
+  unsigned int              input_type;
+
+  string = ParamFile = ns_bases = NULL;
+  T_min    = 0.;
+  T_max    = 100.;
+  h        = 1;
+  mpoints  = 2;
+  dangles  = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
+
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAheat_cmdline_parser(argc, argv, &args_info) != 0) exit(1);
+
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given){
+    dangles = args_info.dangles_arg;
+    if(dangles % 2){
+      warn_user("using default dangles = 2");
+      dangles = 2;
+    }
+  }
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* Tmin */
+  if(args_info.Tmin_given)        T_min = args_info.Tmin_arg;
+  /* Tmax */
+  if(args_info.Tmax_given)        T_max = args_info.Tmax_arg;
+  /* step size */
+  if(args_info.stepsize_given)    h = args_info.stepsize_arg;
+  /* ipoints */
+  if(args_info.ipoints_given){
+    mpoints = args_info.ipoints_arg;
+    if (mpoints < 1)    mpoints = 1;
+    if (mpoints > 100)  mpoints = 100;
+  }
+
+  /* free allocated memory of command line data structure */
+  RNAheat_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
+  if (ParamFile!=NULL) read_parameter_file(ParamFile);
+
+  if (ns_bases != NULL) {
+    nonstandards = space(33);
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
+  }
+
+  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+
+  /*
+  #############################################
+  # main loop: continue until end of file
+  #############################################
+  */
+  do {
+    /*
+    ########################################################
+    # handle user input from 'stdin'
+    ########################################################
+    */
+    if(istty) print_tty_input_seq();
+
+    /* skip fasta headers and comments */
+    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+      /* skip fasta headers and comments */
+      free(input_string);
+    }
+
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      string = strdup(input_string);
+      length = (int) strlen(string);
+      free(input_string);
+    }
+
+    if(noconv)  str_RNA2RNA(string);
+    else        str_DNA2RNA(string);
+
+    if (istty) printf("length = %d\n", length);
+
+    heat_capacity(string, T_min, T_max, h, mpoints);
+    free(string);
+    (void) fflush(stdout);
+  } while (1);
+  return 0;
+}
 
 PRIVATE void heat_capacity(char *string, float T_min, float T_max,
-			  float h, int m)
+                          float h, int m)
 {
    int length, i;
    char *structure;
@@ -66,7 +196,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
       printf("%g   %g\n", (temperature-m*h-h), hc);  
       
       for (i=0; i<2*m; i++)
-	 F[i] = F[i+1];
+         F[i] = F[i+1];
       F[2*m] = pf_fold(string, NULL); 
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
@@ -95,148 +225,3 @@ PRIVATE float ddiff(float f[], float h, int m)
    
 }
 
-/* ------------------------------------------------------------------------- */
-
-static char  scale1[] = "....,....1....,....2....,....3....,....4";
-static char  scale2[] = "....,....5....,....6....,....7....,....8";
-
-/*---------------------------------------------------------------------------*/
-
-int main(int argc, char *argv[])
-{
-   char *string, *line;
-   char  *ns_bases=NULL, *c;
-   char  *ParamFile=NULL;
-   int  i, length, l, sym;
-   float T_min, T_max, h;
-   int mpoints;
-   int istty;
-   int noconv = 0;
-   
-   T_min=0.; T_max=100.; h=1; mpoints=2;
-   string=NULL;
-   dangles = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
-
-   for (i=1; i<argc; i++) {
-      if (argv[i][0]=='-') 
-	 switch ( argv[i][1] ) {
-	  case 'T':
-	    if (strncmp(argv[i], "-Tmin", 5)==0) {
-	       if (i==argc-1) usage();
-	       if (sscanf(argv[++i], "%f", &T_min)==0)
-		 usage();
-	    }
-	    if (strncmp(argv[i], "-Tmax",5)==0) {
-	       if (i==argc-1) usage();
-	       if (sscanf(argv[++i], "%f", &T_max)==2)
-		 usage();
-	    }
-	    break;
-	  case 'h':
-	    if (i==argc-1) usage();
-	    if (sscanf(argv[++i],"%f",&h)==2)
-	      usage();
-	    break;
-	  case 'n':
-	    if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
-	    if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
-	    if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	    if ( strcmp(argv[i], "-nsp") ==0) {
-	      if (i==argc-1) usage();
-	      ns_bases = argv[++i];
-	    }
-	    else if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-	    break;
-	  case '4':
-	    tetra_loop=0;
-	    break;
-	  case 'e':
-	    if (i==argc-1) usage();
-	    if (sscanf(argv[++i],"%d", &energy_set)==0)
-	      usage();
-	    break;
-	  case 'm':
-	    if (i==argc-1) usage();
-	    if (sscanf(argv[++i],"%d", &mpoints)==0)
-	      usage();
-	    if (mpoints<1) mpoints=1;
-	    if (mpoints>100) mpoints=100;
-	    break;
-	  case 'd': dangles=0;
-	    break;
-	  case 'P':
-	    if (i==argc-1) usage();
-	    else
-	      ParamFile= argv[++i];
-	    break;
-	  default: usage();
-	 }
-   }
-
-   if (ParamFile!=NULL)
-     read_parameter_file(ParamFile);
-   
-   if (ns_bases!=NULL) {
-     nonstandards = space(33);
-     c=ns_bases;
-     i=sym=0;
-     if (*c=='-') {
-       sym=1; c++;
-     }
-     while (*c!='\0') {
-       if (*c!=',') {
-	 nonstandards[i++]=*c++;
-	 nonstandards[i++]=*c;
-	 if ((sym)&&(*c!=*(c-1))) {
-	   nonstandards[i++]=*c;
-	   nonstandards[i++]=*(c-1);
-	 }
-       }
-       c++;
-     }
-   }
-   
-   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-   
-   do {
-      if (istty) {
-	 printf("\nInput string (upper or lower case); @ to quit\n");
-	 printf("%s%s\n", scale1, scale2);
-      }
-      
-      if ((line = get_line(stdin))==NULL) break;
-      
-      /* skip comment lines and get filenames */
-      while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	 printf("%s\n", line);
-	 free(line);
-	 if ((line = get_line(stdin))==NULL) break;
-      } 
-      if (line==NULL) break;
-      if (strcmp(line, "@") == 0) {free(line); break;}
-      
-      string = (char *) space(strlen(line)+1);
-      (void) sscanf(line,"%s",string);
-      free(line);
-      length = (int) strlen(string);
-       
-      for (l = 0; l < length; l++) {
-        string[l] = toupper(string[l]);
-        if (!noconv && string[l] == 'T') string[l] = 'U';
-      }
-
-      if (istty)
-	 printf("length = %d\n", length);
-      
-      heat_capacity(string, T_min, T_max, h, mpoints);
-      free(string);
-      (void) fflush(stdout);
-   } while (1);
-   return 0;
-}
-
-PRIVATE void usage(void)
-{
-  nrerror("usage: RNAheat [-Tmin t1] [-Tmax t2] [-h stepsize] [-m ipoints] [-4] [-d]\n"
-	  "               [-noGU] [-noCloseGU] [-noLP] [-e 1|2] [-P paramfile] [-nsp pairs]");
-}
