@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 {
   struct        RNAfold_args_info args_info;
   char          *string, *input_string, *structure=NULL, *cstruc=NULL;
-  char          fname[13], ffname[20], gfname[20], *ParamFile=NULL;
+  char          fname[80], ffname[80], gfname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
   int           i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
   unsigned int  input_type;
@@ -151,8 +151,9 @@ int main(int argc, char *argv[])
 
     /* extract filename from fasta header if available */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%12s", fname);
+    while((input_type = get_input_line(&input_string, VRNA_INPUT_NOPRINT)) & VRNA_INPUT_FASTA_HEADER){
+      (void) sscanf(input_string, "%42s", fname);
+      printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }
 
@@ -265,23 +266,21 @@ int main(int argc, char *argv[])
         }
         free(pl1);
         free(pf_struc);
+        if(doMEA){
+          float mea, mea_en;
+          plist *pl;
+          pl = make_plist(length, 1e-4/(1+MEAgamma));
+          mea = MEA(pl, structure, MEAgamma);
+          mea_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          free(pl);
+        }
       }
-      printf(" frequency of mfe structure in ensemble %g; ",
-             exp((energy-min_en)/kT));
+      printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
       if (do_backtrack)
         printf("ensemble diversity %-6.2f", mean_bp_dist(length));
-
       printf("\n");
+
       free_pf_arrays();
-      if(doMEA){
-        float mea, mea_en;
-        plist *pl;
-        pl = make_plist(length, 1e-4/(1+MEAgamma));
-        mea = MEA(pl, structure, MEAgamma);
-        mea_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
-        printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
-        free(pl);
-      }
     }
     if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
