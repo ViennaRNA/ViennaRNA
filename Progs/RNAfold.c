@@ -272,6 +272,7 @@ int main(int argc, char *argv[])
           pl = make_plist(length, 1e-4/(1+MEAgamma));
           mea = MEA(pl, structure, MEAgamma);
           mea_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
           free(pl);
         }
       }
