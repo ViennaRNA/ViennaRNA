@@ -574,7 +574,7 @@ PRIVATE int fill_arrays(const char *string) {
               }
               f5[length] = f5[length-1];
               for (i=length-TURN-1; i>1; i--){
-                type = ptype[indx[length]+1];
+                type = ptype[indx[length]+i];
                 if(!type) continue;
                 en = c[indx[length]+i];
                 f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, S1[i-1], -1, P));
