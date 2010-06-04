@@ -29,86 +29,100 @@
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
+
 #define PAREN
+#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
+#define NEW_NINIO         1       /* new asymetry penalty */
+#define MAXSECTORS        500     /* dimension for a backtrack array */
+#define LOCALITY          0.      /* locality parameter for base-pairs */
 
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
+#define MIN2(A, B)        ((A) < (B) ? (A) : (B))
+#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+PUBLIC  int logML=0;            /* if nonzero use logarithmic ML energy in energy_of_struct */
+PUBLIC  int uniq_ML=0;          /* do ML decomposition uniquely (for subopt) */
+PUBLIC  int cut_point = -1;     /* set to first pos of second seq for cofolding */
+PUBLIC  int eos_debug=0;        /* verbose info from energy_of_struct */
+PUBLIC  int circ = 0;
+PUBLIC  int Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies                        */
+
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE int     *indx;    /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int     *c;       /* energy array, given that i-j pair */
+PRIVATE int     *cc;      /* linear array for calculating canonical structures */
+PRIVATE int     *cc1;     /*   "     "        */
+PRIVATE int     *f5;      /* energy of 5' end */
+PRIVATE int     *f53;     /* energy of 5' end with 3' nucleotide not available for mismatches */
+PRIVATE int     *fML;     /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1;     /* second ML array, only for subopt */
+PRIVATE int     *fM2;     /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
+PRIVATE int     *Fmi;     /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int     *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi_a;  /* DMLi_a[j] holds min energy for at least two multiloop stems in [i,j], where j is available for dangling onto a surrounding stem */
+PRIVATE int     *DMLi_o;  /* DMLi_o[j] holds min energy for at least two multiloop stems in [i,j], where j is unavailable for dangling onto a surrounding stem */
+PRIVATE int     *DMLi1_a;
+PRIVATE int     *DMLi1_o;
+PRIVATE int     *DMLi2_a;
+PRIVATE int     *DMLi2_o;
+PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
+PRIVATE char    *ptype;             /* precomputed array of pair types */
+PRIVATE short   *S, *S1;
+PRIVATE paramT  *P          = NULL;
+PRIVATE int     init_length = -1;
+PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+PRIVATE int     min_hairpin = TURN;
+PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
+                        -1: | = base must be paired
+                        -2: < = base must be paired with j<i
+                        -3: > = base must be paired with j>i
+                        -4: x = base must not pair
+                        positive int: base is paired with int      */
+PRIVATE short   *pair_table; /* needed by energy of struct */
 
 
-PUBLIC int    logML=0;    /* if nonzero use logarithmic ML energy in
-                             energy_of_struct */
-PUBLIC int    uniq_ML=0;  /* do ML decomposition uniquely (for subopt) */
-/*@unused@*/
-PRIVATE void  letter_structure(char *structure, int length) UNUSED;
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
-/* PRIVATE void  scale_parameters(void); */
 PRIVATE int   stack_energy(int i, const char *string);
-
 PRIVATE int   energy_of_extLoop_pt(short *pair_table);
 PRIVATE int   energy_of_ml_pt(int i, short *pt);
-
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  encode_seq(const char *sequence);
-PRIVATE void backtrack(const char *sequence, int s);
-PRIVATE int fill_arrays(const char *sequence);
+PRIVATE void  backtrack(const char *sequence, int s);
+PRIVATE int   fill_arrays(const char *sequence);
+/* needed by cofold/eval */
+PRIVATE int   cut_in_loop(int i);
+
+/** deprecated functions */
 /*@unused@*/
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
-int  LoopEnergy(int n1, int n2, int type, int type_2,
-                  int si1, int sj1, int sp1, int sq1);
-int  HairpinE(int size, int type, int si1, int sj1, const char *string);
+int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
+int HairpinE(int size, int type, int si1, int sj1, const char *string);
+/*@unused@*/
+PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 
-#define MAXSECTORS      500     /* dimension for a backtrack array */
-#define LOCALITY        0.      /* locality parameter for base-pairs */
-
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
-
-PRIVATE paramT *P = NULL;
-
-PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
-
-PRIVATE int   *c;       /* energy array, given that i-j pair */
-PRIVATE int   *cc;      /* linear array for calculating canonical structures */
-PRIVATE int   *cc1;     /*   "     "        */
-PRIVATE int   *f5;      /* energy of 5' end */
-PRIVATE int   *f53;     /* energy of 5' end with 3' nucleotide not available for mismatches */
-PRIVATE int   *fML;     /* multi-loop auxiliary energy array */
-PRIVATE int   *fM1;     /* second ML array, only for subopt */
-PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-
-PRIVATE int   *DMLi_a;  /* DMLi_a[j] holds min energy for at least two multiloop stems in [i,j], where j is available for dangling onto a surrounding stem */
-PRIVATE int   *DMLi_o;  /* DMLi_o[j] holds min energy for at least two multiloop stems in [i,j], where j is unavailable for dangling onto a surrounding stem */
-PRIVATE int   *DMLi1_a;
-PRIVATE int   *DMLi1_o;
-PRIVATE int   *DMLi2_a;
-PRIVATE int   *DMLi2_o;
-
-PRIVATE char  *ptype;   /* precomputed array of pair types */
-PRIVATE short  *S, *S1;
-PRIVATE int   init_length=-1;
-/** stack of partial structures for backtracking **/
-PRIVATE sect  sector[MAXSECTORS];
-
-
-PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-/* needed by cofold/eval */
-PRIVATE int cut_in_loop(int i);
-PRIVATE int min_hairpin = TURN;
-PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
-PUBLIC int   eos_debug=0;  /* verbose info from energy_of_struct */
-
-/* some definitions to take circfold into account...        */
-PUBLIC        int                circ = 0;
-PRIVATE int   *fM2;        /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
-PUBLIC        int   Fc, FcH, FcI, FcM; /* parts of the exterior loop energies                        */
-/*--------------------------------------------------------------------------*/
-
-void initialize_fold(int length){
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+PUBLIC void initialize_fold(int length){
   unsigned int n;
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
   if (init_length>0) free_arrays();
@@ -124,28 +138,28 @@ void initialize_fold(int length){
 /*--------------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int size){
-  indx = (int *) space(sizeof(int)*(size+1));
+  indx  = (int *) space(sizeof(int)*(size+1));
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
     fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 
-  ptype = (char *) space(sizeof(char)*((size*(size+1))/2+2));
+  ptype = (char *)space(sizeof(char)*((size*(size+1))/2+2));
   f5    = (int *) space(sizeof(int)*(size+2));
   f53   = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
   cc1   = (int *) space(sizeof(int)*(size+2));
   Fmi   = (int *) space(sizeof(int)*(size+1));
   DMLi  = (int *) space(sizeof(int)*(size+1));
-  DMLi1  = (int *) space(sizeof(int)*(size+1));
-  DMLi2  = (int *) space(sizeof(int)*(size+1));
+  DMLi1 = (int *) space(sizeof(int)*(size+1));
+  DMLi2 = (int *) space(sizeof(int)*(size+1));
 
   DMLi_a  = (int *) space(sizeof(int)*(size+1));
   DMLi_o  = (int *) space(sizeof(int)*(size+1));
-  DMLi1_a  = (int *) space(sizeof(int)*(size+1));
-  DMLi1_o  = (int *) space(sizeof(int)*(size+1));
-  DMLi2_a  = (int *) space(sizeof(int)*(size+1));
-  DMLi2_o  = (int *) space(sizeof(int)*(size+1));
+  DMLi1_a = (int *) space(sizeof(int)*(size+1));
+  DMLi1_o = (int *) space(sizeof(int)*(size+1));
+  DMLi2_a = (int *) space(sizeof(int)*(size+1));
+  DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
   if (base_pair) free(base_pair);
   base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
@@ -155,7 +169,7 @@ PRIVATE void get_arrays(unsigned int size){
 
 /*--------------------------------------------------------------------------*/
 
-void free_arrays(void){
+PUBLIC void free_arrays(void){
   free(indx); free(c); free(fML); free(f5); free(f53); free(cc); free(cc1);
   free(ptype);
   if(fM1){ free(fM1); fM1=NULL;}
@@ -171,7 +185,7 @@ void free_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
-void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
+PUBLIC void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
                         int **indx_p, char **ptype_p){
   /* make the DP arrays available to routines such as subopt() */
   *f5_p     = f5;
@@ -182,7 +196,7 @@ void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
   *ptype_p  = ptype;
 }
 
-void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p,
+PUBLIC void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p,
                         int **f5_p, int **c_p, int **fML_p, int **fM1_p,
                         int **indx_p, char **ptype_p){
   /* make the DP arrays available to routines such as subopt() */
@@ -201,14 +215,8 @@ void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int *
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
-                        -1: | = base must be paired
-                        -2: < = base must be paired with j<i
-                        -3: > = base must be paired with j>i
-                        -4: x = base must not pair
-                        positive int: base is paired with int      */
 
-float fold(const char *string, char *structure){
+PUBLIC float fold(const char *string, char *structure){
   int i, length, energy, bonus=0, bonus_cnt=0;
 
   circ = 0;
@@ -281,11 +289,13 @@ PRIVATE int fill_arrays(const char *string) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
   }
 
+#ifdef SPECIAL_DANGLES
   if(dangles == 5){
     for (j=1; j<=length; j++) {
       DMLi_a[j]=DMLi_o[j]=DMLi1_a[j]=DMLi1_o[j]=DMLi2_a[j]=DMLi2_o[j]=INF;
     }
   }
+#endif
 
   for (j = 1; j<=length; j++)
     for (i=(j>TURN?(j-TURN):1); i<j; i++) {
@@ -360,6 +370,7 @@ PRIVATE int fill_arrays(const char *string) {
             case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
                       break;
 
+#ifdef SPECIAL_DANGLES
             /* normal dangles as ronny would think of them ;) */
             case 5:   /* no dangles */ 
                       decomp = INF;
@@ -376,7 +387,7 @@ PRIVATE int fill_arrays(const char *string) {
                       decomp = MIN2(decomp, DMLi2_a[j-1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLbase);
                       
                       break;
-
+#endif
             /* normal dangles, aka dangles = 1 */
             default:  decomp += E_MLstem(tt, -1, -1, P);
                       decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
@@ -439,6 +450,7 @@ PRIVATE int fill_arrays(const char *string) {
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
                   new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<length) || circ) ? S1[j+1] : -1, P));
                   break;
+#ifdef SPECIAL_DANGLES
         /* normal dangles as ronny would think of them ;) */
         case 5:   /* modular decomposition */
                   for(decomp = INF, k = j-TURN-2; k > i+TURN+1; k--){
@@ -475,7 +487,7 @@ PRIVATE int fill_arrays(const char *string) {
                   tt = ptype[indx[j-1]+i+1];
                   if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
                   break;
-
+#endif
         /* normal dangles, aka dangles = 1 */
         default:  mm5 = ((i>1) || circ) ? S1[i] : -1;
                   mm3 = ((j<length) || circ) ? S1[j] : -1;
@@ -492,13 +504,16 @@ PRIVATE int fill_arrays(const char *string) {
       }
 
       /* modular decomposition -------------------------------*/
+#ifdef SPECIAL_DANGLES
       if(dangles != 5){
+#endif
         for (decomp = INF, k = j-TURN-2; k > i+TURN; k--)
           decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
         DMLi[j] = decomp;               /* store for use in ML decompositon */
         new_fML = MIN2(new_fML,decomp);
+#ifdef SPECIAL_DANGLES
       }
-
+#endif
       /* coaxial stacking */
       if (dangles==3) {
         /* additional ML decomposition as two coaxially stacked helices */
@@ -528,12 +543,15 @@ PRIVATE int fill_arrays(const char *string) {
     {
       int *FF; /* rotate the auxilliary arrays */
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
+#ifdef SPECIAL_DANGLES
       if(dangles == 5){
         FF = DMLi2_a; DMLi2_a = DMLi1_a; DMLi1_a = DMLi_a; DMLi_a = FF;
         FF = DMLi2_o; DMLi2_o = DMLi1_o; DMLi1_o = DMLi_o; DMLi_o = FF;
+        for (j=1; j<=length; j++) {DMLi_a[j]=DMLi_o[j]=INF; }
       }
+#endif
       FF = cc1; cc1=cc; cc=FF;
-      for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=DMLi_a[j]=DMLi_o[j]=INF; }
+      for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
     }
   }
 
@@ -585,6 +603,7 @@ PRIVATE int fill_arrays(const char *string) {
               f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
               break;
 
+#ifdef SPECIAL_DANGLES
     /* normal dangles as ronny would think of them ;) */
     case 5:   for(j=TURN+2; j<length; j++){
                 f5[j] = f5[j-1];
@@ -645,7 +664,7 @@ PRIVATE int fill_arrays(const char *string) {
                 f5[length]  = MIN2(f5[length], en + E_ExtLoop(type, -1, S1[length], P));
               }
               break;
-
+#endif
     /* normal dangles, aka dangles = 1 */
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
@@ -743,6 +762,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                   break;
                   
+#ifdef SPECIAL_DANGLES
         case 5:   for(k=j-TURN-1,traced=0; k>1; k--){
                     type = ptype[indx[j]+k];
                     en = c[indx[j]+k];
@@ -782,7 +802,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                   }
                   break;
-
+#endif
         default:  for(traced = 0, k=j-TURN-1; k>1; k--){
                     type = ptype[indx[j] + k];
                     if(type){
@@ -878,6 +898,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                   break;
 
+#ifdef SPECIAL_DANGLES
         case 5:   if(fij == en + E_MLstem(tt, -1, -1, P)){
                     base_pair[++b].i = i;
                     base_pair[b].j   = j;
@@ -902,7 +923,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     goto repeat1;
                   }
                   break;
-
+#endif
         default:  if(fij == en + E_MLstem(tt, -1, -1, P)){
                     base_pair[++b].i = i;
                     base_pair[b].j   = j;
@@ -1042,6 +1063,7 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
                 
+#ifdef SPECIAL_DANGLES
       case 5:   for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing - bonus;
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
@@ -1062,6 +1084,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                 }
                 break;
+#endif
       case 3:   /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                 /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                 for (traced = 0, k = j-TURN-3; k > i + TURN + 1; k--){
@@ -1146,7 +1169,7 @@ PRIVATE void backtrack(const char *string, int s) {
   base_pair[0].i = b;    /* save the total number of base pairs */
 }
 
-char *backtrack_fold_from_pair(char *sequence, int i, int j) {
+PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
   char *structure;
   sector[1].i  = i;
   sector[1].j  = j;
@@ -1232,9 +1255,7 @@ PUBLIC void update_fold_params(void)
 }
 
 /*---------------------------------------------------------------------------*/
-PRIVATE short  *pair_table;
-
-float energy_of_struct(const char *string, const char *structure)
+PUBLIC float energy_of_struct(const char *string, const char *structure)
 {
   int   energy;
   short *ss, *ss1;
@@ -1259,7 +1280,7 @@ float energy_of_struct(const char *string, const char *structure)
   return  (float) energy/100.;
 }
 
-int energy_of_struct_pt(const char *string, short * ptable,
+PUBLIC int energy_of_struct_pt(const char *string, short * ptable,
                         short *s, short *s1) {
   /* auxiliary function for kinfold,
      for most purposes call energy_of_struct instead */
@@ -1289,7 +1310,7 @@ int energy_of_struct_pt(const char *string, short * ptable,
   return energy;
 }
 
-float energy_of_circ_struct(const char *string, const char *structure) {
+PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
   int   i, j, length, energy=0, en0, degree=0, type;
   short *ss, *ss1;
 
@@ -1526,6 +1547,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
+#ifdef SPECIAL_DANGLES
       case 5:  {
                   int tmp;
                   if(q_prev + 2 < p){
@@ -1545,6 +1567,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                   E3_occupied = tmp;
                 }
                 break;
+#endif
       default:  {
                   int tmp;
                   if(q_prev + 2 < p){
@@ -1751,6 +1774,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = best_energy;
               break;
 
+#ifdef SPECIAL_DANGLES
     case 5:   E_mm5_available = E2_mm5_available  = INF;
               E_mm5_occupied  = E2_mm5_occupied   = 0;
               while(p < j){
@@ -1810,6 +1834,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = MIN2(energy, E2_mm5_available + E_MLstem(type, mm5, mm3, P));
               break;
 
+#endif
     default:  E_mm5_available = E2_mm5_available  = INF;
               E_mm5_occupied  = E2_mm5_occupied   = 0;
               while(p < j){
@@ -1895,7 +1920,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
 
 /*---------------------------------------------------------------------------*/
 
-int loop_energy(short * ptable, short *s, short *s1, int i) {
+PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
   /* compute energy of a single loop closed by base pair (i,j) */
   int j, type, p,q, energy;
   short *Sold, *S1old, *ptold;
@@ -2048,7 +2073,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
-int HairpinE(int size, int type, int si1, int sj1, const char *string) {
+PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
   
   energy = (size <= 30) ? P->hairpin[size] :
@@ -2086,7 +2111,7 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 
 /*---------------------------------------------------------------------------*/
 
-int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
+PUBLIC int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int n1, n2, m, energy;
   n1 = p-i-1;
@@ -2128,7 +2153,7 @@ int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
 
 /*--------------------------------------------------------------------------*/
 
-int LoopEnergy(int n1, int n2, int type, int type_2,
+PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
                       int si1, int sj1, int sp1, int sq1) {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;

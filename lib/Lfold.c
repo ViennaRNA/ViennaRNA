@@ -78,6 +78,12 @@ PRIVATE int   fill_arrays(const char *sequence, int maxdist);
 /*@unused@*/
 PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
 /*--------------------------------------------------------------------------*/
 PRIVATE void initialize_fold(int length, int maxdist){
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
