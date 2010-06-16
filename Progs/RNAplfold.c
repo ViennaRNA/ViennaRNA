@@ -161,7 +161,8 @@ int main(int argc, char *argv[]){
 
     /* extract filename from fasta header if available */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) == VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       (void) sscanf(input_string, "%42s", fname);
       free(input_string);
     }
@@ -349,7 +350,7 @@ PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp) {
   fflush(fp);
 }
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
-  /*put out Fopen in dekacalories per mol, and F(cond,open) also ind dekacal*/
+  /*put out Fopen in dekacalories per mol, and F(cond,open) also in dekacal*/
   int k;
   
   float RT = (temperature+K0)*GASCONST;

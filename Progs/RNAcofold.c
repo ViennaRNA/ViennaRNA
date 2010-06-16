@@ -179,9 +179,11 @@ int main(int argc, char *argv[])
       print_tty_input_seq();
     }
 
-    /* extract filename from fasta header if available */
+    /* extract filename from fasta header if available, print each line read... last line printed should be the sequence to be folded,
+      thus, we dont print the sequence again in the later steps... */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       (void) sscanf(input_string, "%42s", fname);
       free(input_string);
     }
@@ -191,7 +193,7 @@ int main(int argc, char *argv[])
     /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
     else{
       string = tokenize(input_string);
-      length = (int) strlen(input_string);
+      length = (int) strlen(string);
     }
     structure = (char *) space((unsigned) length+1);
 
@@ -207,7 +209,7 @@ int main(int argc, char *argv[])
 
     /* get structure constraint or break if necessary, entering an empty line results in a warning */
     if (fold_constrained) {
-      input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+      input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
       if(input_type & VRNA_INPUT_QUIT){ break;}
       else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
         cstruc = tokenize(input_string);
@@ -235,7 +237,6 @@ int main(int argc, char *argv[])
         ConcAandB = read_concentrations(stdin);
       }
     }
-
     /*compute mfe of AB dimer*/
     min_en = cofold(string, structure);
     mfAB=(struct plist *) space(sizeof(struct plist) * (length+1));
@@ -247,7 +248,7 @@ int main(int argc, char *argv[])
       char *pstring, *pstruct;
       pstring = costring(string);
       pstruct = costring(structure);
-      printf("%s\n%s", pstring,  pstruct);
+      printf("%s\n%s", pstring, pstruct);
       free(pstring);
       free(pstruct);
     }

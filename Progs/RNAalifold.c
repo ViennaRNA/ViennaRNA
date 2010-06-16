@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
       print_tty_constraint_full();
       print_tty_input_seq_str("");
     }
-    input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+    input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if(input_type & VRNA_INPUT_QUIT){ return 0;}
     else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
       cstruc = strdup(input_string);

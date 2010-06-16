@@ -117,7 +117,8 @@ int main(int argc, char *argv[]){
     if(istty) print_tty_input_seq();
 
     /* skip fasta header and comment lines */
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       free(input_string);
     }
 
@@ -129,6 +130,7 @@ int main(int argc, char *argv[]){
       string = strdup(input_string);
       free(input_string);
     }
+    printf("%s\n", string);
 
     structure = (char *) space((unsigned) length+1);
 
@@ -145,7 +147,7 @@ int main(int argc, char *argv[]){
     /* initialize_fold(length); */
     update_fold_params();
     min_en = Lfold((const char *)string, structure, maxdist);
-    printf("%s\n%s", string, structure);
+    printf("%s", structure);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);

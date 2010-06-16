@@ -17,8 +17,8 @@
 #define VRNA_INPUT_SEQUENCE               16U
 /** **/
 #define VRNA_INPUT_STRUCTURE              32U
-/** Input switch for \func get_input_line():  "do not print the line read to stdout" **/
-#define VRNA_INPUT_NOPRINT                64U
+/** Input switch for \func get_input_line():  "do not print comment lines read to stdout" **/
+#define VRNA_INPUT_NOPRINT_COMMENTS       64U
 /** Input switch for \func get_input_line():  "do not skip comment lines" **/
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
 /** Input switch for \func get_input_line():  "do not eliminate white spaces at end of line" **/

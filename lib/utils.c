@@ -209,6 +209,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
 
   if(!(option & VRNA_INPUT_NOSKIP_COMMENTS))
     while((*line=='*')||(*line=='\0')){
+      if(!(option & VRNA_INPUT_NOPRINT_COMMENTS)) printf("%s\n", line);
       free(line);
       if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
     }
@@ -221,7 +222,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
     return VRNA_INPUT_QUIT;
   }
   /* print line read if not disabled */
-  if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
+  //if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
 
   /* eliminate whitespaces at the end of the line read */
   if(!(option & VRNA_INPUT_NOELIM_WS_SUFFIX)){
