@@ -626,9 +626,9 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kTn);
         if (dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-          pf->expmismatchM[i][j][k] = exp(-GT*10.0/kTn);
+          pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kTn);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
-          pf->expmismatchExt[i][j][k] = exp(-GT*10.0/kTn);
+          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT)*10.0/kTn);
         }
         else{
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;

@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
-
+  fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
   endgaps = mis = pf = circ = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
   do_backtrack  = 1;

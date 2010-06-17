@@ -127,92 +127,92 @@ PUBLIC void read_parameter_file(const char fname[])
                           break;
             case MME:     rd_3dim(&(mismatchExt37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                           changed |= MME;
                           break;
             case MME_H:   rd_3dim(&(mismatchExtdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                           changed |= MME_H;
                           break;
             case MMH:     rd_3dim(&(mismatchH37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                           changed |= MMH;
                           break;
             case MMH_H:   rd_3dim(&(mismatchHdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMH_H;
                       break;
             case MMI:     rd_3dim(&(mismatchI37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMI;
                       break;
             case MMI_H:   rd_3dim(&(mismatchIdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMI_H;
                       break;
             case MMI1N:   rd_3dim(&(mismatch1nI37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMI1N;
                       break;
             case MMI1N_H: rd_3dim(&(mismatch1nIdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMI1N_H;
                       break;
             case MMI23:   rd_3dim(&(mismatch23I37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                               changed |= MMI23;
                               break;
             case MMI23_H: rd_3dim(&(mismatch23IdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMI23_H;
                       break;
             case MMM:     rd_3dim(&(mismatchM37[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMM;
                       break;
             case MMM_H:   rd_3dim(&(mismatchMdH[0][0][0]),
                               NBPAIRS+1, 5, 5,
-                              1, 0, 0);
+                              0, 0, 0);
                       changed |= MMM_H;
                       break;
             case INT11:   rd_4dim(&(int11_37[0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5,
-                              1, 1, 0, 0);
+                              0, 0, 0, 0);
                        changed |= INT11;
                       break;
             case INT11_H: rd_4dim(&(int11_dH[0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5,
-                              1, 1, 0, 0);
+                              0, 0, 0, 0);
                       changed |= INT11_H;
                       break;
             case INT21:   rd_5dim(&(int21_37[0][0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                              1, 1, 0, 0, 0);
+                              0, 0, 0, 0, 0);
                       changed |= INT21;
                       break;
             case INT21_H: rd_5dim(&(int21_dH[0][0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                              1, 1, 0, 0, 0);
+                              0, 0, 0, 0, 0);
                       changed |= INT21_H;
                       break;
             case INT22:   rd_6dim(&(int22_37[0][0][0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                              1, 1, 1, 1, 1, 1);
+                              0, 0, 0, 0, 0, 0);
                       changed |= INT22;
                       break;
             case INT22_H: rd_6dim(&(int22_dH[0][0][0][0][0][0]),
                               NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                              1, 1, 1, 1, 1, 1);
+                              0, 0, 0, 0, 0, 0);
                       changed |= INT22_H;
                       break;
             case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 0, 0);

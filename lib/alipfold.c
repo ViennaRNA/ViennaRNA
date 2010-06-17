@@ -116,6 +116,7 @@ PUBLIC float alipf_fold(const char **sequences, char *structure, struct plist **
   if (backtrack_type=='C')      Q = qb[iindx[1]-n];
   else if (backtrack_type=='M') Q = qm[iindx[1]-n];
   else Q = q[iindx[1]-n];
+  printf("%1.15g\n", Q);
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");

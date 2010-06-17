@@ -1124,7 +1124,7 @@ PUBLIC struct plist *get_plist_from_pr(struct plist *pl, double *probs, int leng
       pl[count].i=i;
       pl[count].j=j;
       pl[count++].p=probs[iindx[i]-j];
-            printf("gpl: %2d %2d %.9f\n",i,j,probs[iindx[i]-j]);
+/*             printf("gpl: %d %2d %2d %.9f\n",count, i,j,probs[iindx[i]-j]);*/
     }
   }
   pl[count].i=0;
@@ -1151,8 +1151,7 @@ PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) 
   *dist = 0.;
   centroid = (char *) space((length+1)*sizeof(char));
   for (i=0; i<length; i++) centroid[i]='.';
-  for (i=1; pl[i].i>0; i++){
-    printf("%d. %d, %d\n", i, pl[i].i,pl[i].j );
+  for (i=0; pl[i].i>0; i++){
     if ((pl[i].p)>0.5) {
       centroid[pl[i].i-1] = '(';
       centroid[pl[i].j-1] = ')';

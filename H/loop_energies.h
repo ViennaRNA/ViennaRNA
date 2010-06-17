@@ -209,7 +209,7 @@ INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P)
   if(type > 2)
     energy *= P->expTermAU;
 
-  if(si1 >= 0 && sj1 >= 0)
+  if(si1 >= 0 && sj1 >= 0 && 0)
     energy *= (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
   else
     energy *= d5 * d3;

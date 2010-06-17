@@ -967,7 +967,6 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
     new=1;
 
     pt = make_pair_table(structure);
-
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
 
     free(pt);
@@ -1130,9 +1129,9 @@ PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
   do{ /* walk along the backbone */
     /* hop over unpaired positions */
     while (p < j && pt[p]==0) p++;
+    if(p == j) break; /* no more stems */
     /* get position of pairing partner */
     q  = pt[p];
-
     for (s=0; s< n_seq; s++) {
       /* get type of base pair P->q */
       tt = pair[S[s][p]][S[s][q]];
