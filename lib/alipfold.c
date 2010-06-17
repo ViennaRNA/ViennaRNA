@@ -116,7 +116,6 @@ PUBLIC float alipf_fold(const char **sequences, char *structure, struct plist **
   if (backtrack_type=='C')      Q = qb[iindx[1]-n];
   else if (backtrack_type=='M') Q = qm[iindx[1]-n];
   else Q = q[iindx[1]-n];
-  printf("%1.15g\n", Q);
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
@@ -218,7 +217,7 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
         for (qbt1=1,s=0; s<n_seq; s++) {
           u = a2s[s][j-1]-a2s[s][i];
           if (a2s[s][i]<1) continue;
-          if (u<3) continue;  /*sog amoi: strof??*/
+          //if (u<3) continue;  /*sog amoi: strof??*/
           char loopseq[10];
           if (u<7){
             strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
@@ -591,7 +590,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
 
   if (pl != NULL) {
       *pl=(plist *)space(2*n*sizeof(plist));
-      get_plist_from_pr(*pl, pr, n,  /*cut_off:*/ 0.000001);
+      *pl = get_plist_from_pr(*pl, pr, n,  /*cut_off:*/ 0.000001);
     }
   if (structure!=NULL)
     sprintf_bppm(n, structure);

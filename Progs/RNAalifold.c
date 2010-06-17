@@ -471,7 +471,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
   for (n=0; pl[n].i>0; n++);
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
-  duck =  (double *) space((n+1)*sizeof(double));
+  duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
   ptable = make_pair_table(mfe);
 
   for (k=0; k<n; k++) {
