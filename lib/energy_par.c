@@ -254,11 +254,11 @@ PUBLIC int mismatchH37[NBPAIRS+1][5][5] =
  ,{    INF,   -150,    -30,   -150,    -30}
  ,{    INF,    -20,    -10,    -20,    -90}
                                           }
-,{{    INF,    INF,    INF,    INF,    INF}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
+,{{    0,    0,    0,    0,    0}
+ ,{    0,    NST,    NST,    NST,    NST}
+ ,{    0,    NST,    NST,    NST,    NST}
+ ,{    0,    NST,    NST,    NST,    NST}
+ ,{    0,    NST,    NST,    NST,    NST}
                                           }
                                           }
 ;
@@ -306,11 +306,11 @@ PUBLIC int mismatchHdH[NBPAIRS+1][5][5] =
  ,{    INF,   -590,   -260,   -520,   -260}
  ,{    INF,    -60,    230,    -60,    -70}
                                           }
-,{{    INF,    INF,    INF,    INF,    INF}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
- ,{    INF,    NST,    NST,    NST,    NST}
+,{{    DEF,    DEF,    DEF,    DEF,    DEF}
+ ,{    DEF,    DEF,    DEF,    DEF,    DEF}
+ ,{    DEF,    DEF,    DEF,    DEF,    DEF}
+ ,{    DEF,    DEF,    DEF,    DEF,    DEF}
+ ,{    DEF,    DEF,    DEF,    DEF,    DEF}
                                           }
                                           }
 ;
