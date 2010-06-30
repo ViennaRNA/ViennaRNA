@@ -34,6 +34,8 @@
 #define VRNA_CONSTRAINT_ANG_BRACK         8U
 /** round brackets '(',')' switch for structure constraint (base i pairs base j) **/
 #define VRNA_CONSTRAINT_RND_BRACK         16U
+/** do not print the header information line */
+#define VRNA_CONSTRAINT_NO_HEADER         32U
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

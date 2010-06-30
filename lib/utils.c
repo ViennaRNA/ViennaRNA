@@ -418,7 +418,7 @@ PUBLIC  void  print_tty_constraint_full(void){
 }
 
 PUBLIC  void  print_tty_constraint(unsigned int option){
-  printf("Input constraints using the following notation:\n");
+  if(!(option & VRNA_CONSTRAINT_NO_HEADER)) printf("Input constraints using the following notation:\n");
   if(option & VRNA_CONSTRAINT_PIPE)       printf("| : paired with another base\n");
   if(option & VRNA_CONSTRAINT_DOT)        printf(". : no constraint at all\n");
   if(option & VRNA_CONSTRAINT_X)          printf("x : base must not pair\n");

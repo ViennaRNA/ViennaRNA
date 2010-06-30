@@ -32,6 +32,7 @@ static int encode_char(char c) {
     pos = strchr(Law_and_Order, c);
     if (pos==NULL) code=0;
     else code = (int) (pos-Law_and_Order);
+    if (code>5) code = 0;
     if (code>4) code--; /* make T and U equivalent */
   }
   return code;

@@ -261,7 +261,7 @@ PRIVATE int fill_arrays(const char **strings) {
         for (new_c=s=0; s<n_seq; s++) {
           if ((a2s[s][j-1]-a2s[s][i])<3) new_c+=600;
           else  new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
-        }
+       }
         /*--------------------------------------------------------
           check for elementary structures involving more than one
           closing pair.
@@ -312,7 +312,6 @@ PRIVATE int fill_arrays(const char **strings) {
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
-
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
