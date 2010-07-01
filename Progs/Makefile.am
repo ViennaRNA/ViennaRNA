@@ -17,7 +17,8 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
               RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
               RNAeval.ggo RNAeval_cmdl.c RNAeval_cmdl.h\
-              RNAheat.ggo RNAheat_cmdl.c RNAheat_cmdl.h
+              RNAheat.ggo RNAheat_cmdl.c RNAheat_cmdl.h\
+              RNAsubopt.ggo RNAsubopt_cmdl.c RNAsubopt_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
