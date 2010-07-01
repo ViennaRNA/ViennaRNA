@@ -261,7 +261,7 @@ PRIVATE int fill_arrays(const char **strings) {
         for (new_c=s=0; s<n_seq; s++) {
           if ((a2s[s][j-1]-a2s[s][i])<3) new_c+=600;
           else  new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
-        }
+       }
         /*--------------------------------------------------------
           check for elementary structures involving more than one
           closing pair.
@@ -312,7 +312,6 @@ PRIVATE int fill_arrays(const char **strings) {
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
-
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
@@ -967,7 +966,6 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
     new=1;
 
     pt = make_pair_table(structure);
-
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
 
     free(pt);
@@ -1130,9 +1128,9 @@ PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
   do{ /* walk along the backbone */
     /* hop over unpaired positions */
     while (p < j && pt[p]==0) p++;
+    if(p == j) break; /* no more stems */
     /* get position of pairing partner */
     q  = pt[p];
-
     for (s=0; s< n_seq; s++) {
       /* get type of base pair P->q */
       tt = pair[S[s][p]][S[s][q]];

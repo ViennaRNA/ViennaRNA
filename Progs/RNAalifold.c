@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
-
+  fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
   endgaps = mis = pf = circ = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
   do_backtrack  = 1;
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
       print_tty_constraint_full();
       print_tty_input_seq_str("");
     }
-    input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+    input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if(input_type & VRNA_INPUT_QUIT){ return 0;}
     else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
       cstruc = strdup(input_string);
@@ -471,7 +471,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
   for (n=0; pl[n].i>0; n++);
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
-  duck =  (double *) space((n+1)*sizeof(double));
+  duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
   ptable = make_pair_table(mfe);
 
   for (k=0; k<n; k++) {

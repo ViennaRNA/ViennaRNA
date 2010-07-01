@@ -55,7 +55,6 @@ PUBLIC  INLINE  int E_Hairpin(int size, int type, int si1, int sj1, const char *
   int energy;
   
   energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-   
   if (tetra_loop){
     if (size == 4) { /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
@@ -63,6 +62,8 @@ PUBLIC  INLINE  int E_Hairpin(int size, int type, int si1, int sj1, const char *
       if ((ts=strstr(P->Tetraloops, tl)))
         return (P->Tetraloop_E[(ts - P->Tetraloops)/7]);
     }
+  }
+  {
     if (size == 6) {
       char tl[9]={0}, *ts;
       strncpy(tl, string, 8);
@@ -173,11 +174,17 @@ PUBLIC  INLINE  double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
   else
     q = P->exphairpin[30] * exp( -(P->lxc*log( u/30.))*10./kT);
 
+  if(u < 3) return q; /* should only be the case when folding alignments */
+
   if ((tetra_loop)&&(u==4)) {
     char tl[7]={0,0,0,0,0,0,0}, *ts;
     strncpy(tl, string, 6);
-    if ((ts=strstr(P->Tetraloops, tl)))
-      return (P->exptetra[(ts-P->Tetraloops)/7]);
+    if ((ts=strstr(P->Tetraloops, tl))){
+      if(type != 7)
+        return (P->exptetra[(ts-P->Tetraloops)/7]);
+      else
+        q *= P->exptetra[(ts-P->Tetraloops)/7];
+    }
   }
   if ((tetra_loop)&&(u==6)) {
     char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;

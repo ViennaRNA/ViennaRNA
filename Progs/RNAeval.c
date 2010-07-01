@@ -103,7 +103,8 @@ int main(int argc, char *argv[]){
 
     /* extract filename from fasta header if available */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) == VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       (void) sscanf(input_string, "%42s", fname);
       free(input_string);
     }
@@ -118,7 +119,7 @@ int main(int argc, char *argv[]){
     }
 
     /* get the structure */
-    input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0 );
+    input_type = get_input_line(&input_string, 0);
     if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
     else{
       structure = tokenize(input_string);

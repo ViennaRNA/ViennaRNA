@@ -217,7 +217,6 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
         for (qbt1=1,s=0; s<n_seq; s++) {
           u = a2s[s][j-1]-a2s[s][i];
           if (a2s[s][i]<1) continue;
-          if (u<3) continue;  /*sog amoi: strof??*/
           char loopseq[10];
           if (u<7){
             strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
@@ -590,7 +589,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
 
   if (pl != NULL) {
       *pl=(plist *)space(2*n*sizeof(plist));
-      get_plist_from_pr(*pl, pr, n,  /*cut_off:*/ 0.000001);
+      *pl = get_plist_from_pr(*pl, pr, n,  /*cut_off:*/ 0.000001);
     }
   if (structure!=NULL)
     sprintf_bppm(n, structure);
@@ -1100,7 +1099,6 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
     for (s=0; s<n_seq; s++){
       u = a2s[s][j-1]-a2s[s][i];
       if (a2s[s][i]<1) continue;
-      if (u<3) continue;  /*sog amoi: strof??*/
       char loopseq[10];
       if(u < 7){
         strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);

@@ -1124,7 +1124,7 @@ PUBLIC struct plist *get_plist_from_pr(struct plist *pl, double *probs, int leng
       pl[count].i=i;
       pl[count].j=j;
       pl[count++].p=probs[iindx[i]-j];
-      /*      printf("gpl: %2d %2d %.9f\n",i,j,probs[iindx[i]-j]);*/
+/*             printf("gpl: %d %2d %2d %.9f\n",count, i,j,probs[iindx[i]-j]);*/
     }
   }
   pl[count].i=0;

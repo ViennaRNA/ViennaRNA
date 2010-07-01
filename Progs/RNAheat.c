@@ -137,7 +137,8 @@ int main(int argc, char *argv[]){
     if(istty) print_tty_input_seq();
 
     /* skip fasta headers and comments */
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) & VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       /* skip fasta headers and comments */
       free(input_string);
     }

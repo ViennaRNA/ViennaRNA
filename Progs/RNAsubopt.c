@@ -157,7 +157,8 @@ int main(int argc, char *argv[]){
     }
     /* extract filename from fasta header if available */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, (istty) ? VRNA_INPUT_NOPRINT : 0)) == VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
       (void) sscanf(input_string, "%42s", fname);
       free(input_string);
     }
@@ -183,7 +184,7 @@ int main(int argc, char *argv[]){
 
     /* get structure constraint or break if necessary, entering an empty line results in a warning */
     if (fold_constrained) {
-      input_type = get_input_line(&input_string, ((istty) ? VRNA_INPUT_NOPRINT : 0 ) | VRNA_INPUT_NOSKIP_COMMENTS);
+      input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
       if(input_type & VRNA_INPUT_QUIT){ break;}
       else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
         cstruc = tokenize(input_string);
