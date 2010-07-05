@@ -32,6 +32,7 @@ static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define EQUAL(A,B) (fabs((A)-(B)) < 1000*DBL_EPSILON)
 #define ULENGTH_MAXIMUM   21
+#define COMMANDLINE_PARAMETERS_INIT_LENGTH      1024
 
 PRIVATE void    tokenize(char *line, char **seq1, char **seq2);
 PRIVATE char    *tokenize_one(char *line);
@@ -43,6 +44,7 @@ PRIVATE void    print_unstru(pu_contrib *p_c, int w);
 PRIVATE int     compare_unpaired_values(const void *p1, const void *p2);
 PRIVATE int     move_useless_unpaired_values(const void *p1, const void *p2);
 PRIVATE void    adjustUnpairedValues(int ***unpaired_values); /* this function sorts and cleans up the unpaired values given at command line */
+PRIVATE void    appendCmdlParameter(char **param_dest, const char *parameter, int *param_dest_length);
 
 /* defaults for -u and -w */
 PRIVATE int default_u; /* -u options for plotting: plot pr_unpaired for 4 nucleotides */
@@ -60,6 +62,8 @@ int main(int argc, char *argv[])
   char    fname1[80], fname2[80];
   char    *string, *string1, *string2, *dummy, *temp, *ParamFile, *ns_bases, *c, *structure, *cstruc, *cstruc_l, *cstruc_s;
   char    *head, *title, *input_string, *s1, *s2, *s3, *s_target, *cstruc_target;
+  char    cmdl_tmp[2048], *cmdl_parameters;
+  int     cmdl_parameters_length;
   int     i, j, length1, length2, length, l, length_target, sym, r, *u_vals, Switch, header, output, istty;
   double  energy, min_en;
   double  sfact=1.07;
@@ -103,6 +107,7 @@ int main(int argc, char *argv[])
   u_vals=NULL;
   incr3=0;
   incr5=0;
+  length = 0;
   do_backtrack = 1;
   length1=length2=0;
   unstr_out = NULL;
@@ -116,19 +121,11 @@ int main(int argc, char *argv[])
   length1 = length2 = length_target = 0;
 
   string = string1 = string2 = dummy = temp = structure = cstruc = cstruc_l = cstruc_s = ParamFile = ns_bases = head = title = NULL;
-  /* collect the command line  */
-  /* isn't it possible to do this in another way? */
-  sprintf(cmd_line,"RNAup ");
-  length = 0;
-  for (i=1; i<argc; i++) {
-    r=sscanf(argv[i], "%100s", &(temp_name[0]));
-    length+=r+1;
-    if(length > 500) break;
-    strcat(cmd_line, temp_name);
-    strcat(cmd_line," ");
-  }
-  cmd_line[strlen(cmd_line)] = '\0';
-  length = 0;
+
+  /* allocate init length for commandline parameter string */
+  cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
+  cmdl_parameters = (char *)space(sizeof(char) * cmdl_parameters_length);
+  sprintf(cmdl_parameters, "RNAup ");
   
   /*
   #############################################
@@ -136,49 +133,130 @@ int main(int argc, char *argv[])
   #############################################
   */
   if(RNAup_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
-  /* structure constraint */
-  if(args_info.constraint_given)  fold_constrained=1;
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
-  /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
-  /* do not allow wobble* pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
-  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)      noconv = 1;
-  /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
-  /* set pf scaling factor */
-  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
-  /* set the maximal length of interaction region */
-  if(args_info.window_given)      w = args_info.window_arg;
-  /* use the first sequence as target */
-  if(args_info.target_given)      Switch = 0;
-  /* do not make an output file */
-  if(args_info.no_output_file_given)  output = 0;
   /* do not create header */
-  if(args_info.no_header_given)       header = 0;
+  if(args_info.no_header_given) header = 0;
+  /* temperature */
+  if(args_info.temp_given){
+    temperature = args_info.temp_arg;
+    /* collect parameter if header is needed */
+    if(header){
+      sprintf(cmdl_tmp, "-T %f ", temperature);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    }
+  }
+  /* structure constraint */
+  if(args_info.constraint_given){
+    fold_constrained=1;
+    /* collect parameter if header is needed */
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "-C ", &cmdl_parameter_length);
+  }
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given){
+    tetra_loop=0;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "-4 ", &cmdl_parameter_length);
+  }
+  /* set dangle model */
+  if(args_info.dangles_given){
+    dangles = args_info.dangles_arg;
+    if(header){
+      sprintf(cmdl_tmp, "-d %d ", dangles);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    }
+  }
+  /* do not allow weak pairs */
+  if(args_info.noLP_given){
+    noLonelyPairs = 1;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--noLP ", &cmdl_parameter_length);
+  }
+  /* do not allow wobble* pairs (GU) */
+  if(args_info.noGU_given){
+    noGU = 1;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--noGU ", &cmdl_parameter_length);
+  }
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given){
+    no_closingGU = 1;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--noClosingGU ", &cmdl_parameter_length);
+  }
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given){
+    noconv = 1;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--noconv ", &cmdl_paramter_length);
+  }
+  /* set energy model */
+  if(args_info.energyModel_given){
+    energy_set = args_info.energyModel_arg;
+    if(header){
+      sprintf(cmdl_tmp, "-e %d ", energy_set);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    } 
+  /* take another energy parameter set */
+  if(args_info.paramFile_given){
+    ParamFile = strdup(args_info.paramFile_arg);
+    if(header){
+      sprintf(cmdl_tmp, "-P %s ", ParamFile);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    }
+  }
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given){
+    ns_bases = strdup(args_info.nsp_arg);
+    if(header){
+      sprintf(cmdl_tmp, "--nsp %s ", ns_bases);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    }
+  }
+  /* set pf scaling factor */
+  if(args_info.pfScale_given){
+    sfact = args_info.pfScale_arg;
+    if(header){
+      sprintf(cmdl_tmp, "-S %f ", sfact);
+      appendCmdlParamter(&cmdl_paramters, cmdl_tmp, &cmdl_paramter_length);
+    }
+  }
+  /* set the maximal length of interaction region */
+  if(args_info.window_given){
+    w = args_info.window_arg;
+    if(header){
+      sprintf(cmdl_tmp, "-w %d ", w);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+    }
+  }
+  /* use the first sequence as target */
+  if(args_info.target_given){
+    Switch = 0;
+    if(header)
+      appendCdmlParameter(&cmdl_parameters, "--target ", &cmdl_parameter_length);
+  }
+  /* do not make an output file */
+  if(args_info.no_output_file_given){
+    output = 0;
+  }
   /* set mode to unpaired regions in both RNAs */
-  if(args_info.include_both_given)    upmode = 3;
+  if(args_info.include_both_given){
+    upmode = 3;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--include_both ", &cmdl_parameter_length);
+  }
   /* set interaction mode 1 (pairwise interaction) */
   if(args_info.interaction_pairwise_given){
     if(upmode == 1) upmode = 2;
     task = 1;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--interaction_pairwise ", &cmdl_parameter_length);
   }
   /* set interaction mode 2 (first sequence interacts with all others) */
   if(args_info.interaction_first_given){
-    if(upmode == 1) upmode = 2;
+    if(upmode == 1) upmode = 3;
     task = 2;
+    if(header)
+      appendCmdlParameter(&cmdl_parameters, "--interaction_first");
   }
   /* extend unpaired region 5' */
   if(args_info.extend5_given)         incr5 = args_info.extend5_arg;
@@ -479,7 +557,6 @@ int main(int argc, char *argv[])
     /* first file name */
     if (fname1[0] != '\0'){
       strcpy(up_out, fname1);
-      /* fname2 is not empty if we are in upmode > 1 */
       if(fname2[0] != '\0'){
         strcat(up_out, "_");
         strcat(up_out, fname2);
@@ -546,34 +623,28 @@ int main(int argc, char *argv[])
                       print_unstru(unstr_out, cnt2);
                   }
                   if(output) {/* make RNAup output to file */
+                    /* how to best compose a reasonable filename */
                     printf("RNAup output in file: ");
                     strcpy(name, up_out);
                     strcat(name, "_u");
-                    for (cnt1 = 1; cnt1 < ulength_values[0]; cnt1++) {
-                      sprintf(temp_name, "%d_", ulength_values[cnt1]);
-                      strncat(name, temp_name, 6);
-                    }
-                    sprintf(temp_name, "%d.out", ulength_values[ulength_values[0]]);
-                    strncat(name, temp_name, 9);
+                    /* as we do not limit the amount of ulength values anymore we just put
+                      the maximum length into the filename, the actual printed lengths
+                      should be somewhere in the output itself */
+                    sprintf(temp_name, "%d.out", unpaired_values[0][0]);
+                    strcat(name, temp_name);
                     printf("%s\n",name);
 
-                  } else {
-                    sprintf(temp_name,"%d",u_vals[1]);
-                    strcat(temp_name,"_to_");
-                    strncat(name, temp_name,5);
-                    sprintf(temp_name,"%d",u_vals[0]);
-                    strncat(name, temp_name,5);
-                    strcat(name, ".out");
-                    printf("%s\n",name);
-                  }
-
-                  if(header) {
-                    char startl[3];
-                    sprintf(startl,"# ");
-                    head = (char*)space(sizeof(char)*(length1+length2+1000));
-                    /* mach kein \n als ende von head */
-                    sprintf(head,"%s %s\n%s %d %s\n%s %s",startl, cmd_line, startl,length1,fname, startl,string1);
-                  } else { if(head != NULL) { nrerror("error with header\n"); }}
+                    /* compose the header */
+                    if(header) {
+                      char startl[3];
+                      sprintf(startl,"# ");
+                      head = (char*)space(sizeof(char)*(length1+length2+1000));
+                      /* in this header we first repeat all commandline parameters given */
+                      
+                      /* mach kein \n als ende von head */
+                      
+                      sprintf(head, "# %s\n%s %d %s\n%s %s", cmd_line, startl,length1,fname, startl,string1);
+                    } else { if(head != NULL) { nrerror("error with header\n"); }}
 
                   Up_plot(unstr_out,NULL,NULL,name,u_vals,my_contrib,head);
                   if(head != NULL) { free(head); head = NULL;}
@@ -769,6 +840,25 @@ PRIVATE void adjustUnpairedValues(int ***unpaired_values){
   /* sort the array again */
   qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), compare_unpaired_values);
 }
+
+
+/**
+*** Append a parameter char string to a larger char string savely
+***
+*** \param param_dest         A pointer to the char array where the new parameter will be concatenated to
+*** \param parameter          The new parameter to be concatenated
+*** \param param_dest_length  A pointer to the size of the already allocated space of param_dest 
+**/
+PRIVATE void appendCmdlParameter(char **param_dest, const char *parameter, int *param_dest_length){
+  int l = strlen(*param_dest) + strlen(parameter);
+  if(l + 1 > *param_dest_length){
+    /* alloc more space */
+    *param_dest_length = (int)(1.2 * l);
+    *param_dest = xrealloc(*param_dest, *param_dest_length * sizeof(char));
+  }
+  strcat(*param_dest, parameter);
+}
+
 
 /* call:  tokenize(line,&seq1,&seq2); the sequence string is split at the "&"
    and the first seq is written in seq1, the second into seq2  */
