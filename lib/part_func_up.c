@@ -1282,31 +1282,33 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   return(1); /* success */
 }
 
-PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head) {
+PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head, unsigned int mode) {
   pu_out *dada;
   int ret;
   /* check what case we have */
 
   /* upmode = 1 only one seq */
-  if(p_c != NULL && pint == NULL) {
+  /* if(p_c != NULL && pint == NULL) { */
+  if(mode & RNA_UP_MODE_1){
     dada = get_u_vals(p_c,u_vals,select_contrib);
     ret = plot_free_pu_out(dada,NULL,ofile,head);
     
-  } else if (p_c != NULL && pint != NULL) { /* upmode > 1 cofolding */
+  /* upmode > 1 cofolding */
+  /* } else if (p_c != NULL && pint != NULL) { */
+  } else if(mode & RNA_UP_MODE_2) {
     dada = get_u_vals(p_c,u_vals,select_contrib);
     ret = plot_free_pu_out(dada,pint,ofile,head);
-    
-  } else if (p_c == NULL && p_c_sh != NULL) {  /* upmode = 3  cofolding*/
+  
+  /* upmode = 3  cofolding*/
+  /* } else if (p_c == NULL && p_c_sh != NULL) { */
+  }
+  if(mode & RNA_UP_MODE_3) {
     /* values for both sequences are requested - now do it for the second seq*/
     dada = get_u_vals(p_c_sh,u_vals,select_contrib);
     ret = plot_free_pu_out(dada,NULL,ofile,head);
     
-  } else {
-    /* this must NOT happen */
-    nrerror("error in Up_plot\n");
   }
   return(ret);
-  
 }
 
 /*-------------------------------------------------------------------------*/
