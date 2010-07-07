@@ -418,7 +418,7 @@ PUBLIC  void  print_tty_constraint_full(void){
 }
 
 PUBLIC  void  print_tty_constraint(unsigned int option){
-  if(!(option & VRNA_CONSTRAINT_NO_HEADER)) printf("Input constraints using the following notation:\n");
+  if(!(option & VRNA_CONSTRAINT_NO_HEADER)) printf("Input structure constraints using the following notation:\n");
   if(option & VRNA_CONSTRAINT_PIPE)       printf("| : paired with another base\n");
   if(option & VRNA_CONSTRAINT_DOT)        printf(". : no constraint at all\n");
   if(option & VRNA_CONSTRAINT_X)          printf("x : base must not pair\n");
@@ -446,3 +446,10 @@ PUBLIC  void  str_RNA2RNA(char *sequence){
   }
 }
 
+PUBLIC int *get_iindx(unsigned int length){
+  int i;
+  int *idx = (int *)space(sizeof(int) * (length+1));
+  for (i=1; i <= length; i++)
+    idx[i] = (((length + 1 - i) * (length - i))>>1) + length + 1;
+  return idx;
+}

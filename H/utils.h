@@ -149,8 +149,8 @@ void print_tty_input_seq_str(const char *s);
 void print_tty_constraint_full(void);
 
 /**
-*** Print structure constraint characters to stdout
-*** (constraint support is specified by option parameter)
+*** Print structure constraint characters to stdout.
+*** (constraint support is specified by option parameter)\n
 *** Currently available options are:\n
 *** \ref VRNA_CONSTRAINT_PIPE (paired with another base)\n
 *** \ref VRNA_CONSTRAINT_DOT (no constraint at all)\n
@@ -177,7 +177,19 @@ void str_DNA2RNA(char *sequence);
 ***
 *** \param sequence The sequence to be converted
 **/
-void str_RNA2RNA(char *sequence);
+void  str_RNA2RNA(char *sequence);
 
+/**
+*** Get an index mapper array (iindx) for accessing the energy matrices, e.g. in partition function related functions.\n
+*** Access of a position "(i,j)" is then accomplished by using "iindx[i]-j"\n
+*** This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
+*** the ViennaRNAPackage
+***
+*** Consult the implemented code to find out about the mapping formula ;)
+***
+*** \param length The length of the RNA sequence
+*** \return       The mapper array
+**/
+int   *get_iindx(unsigned int length);
 
 #endif

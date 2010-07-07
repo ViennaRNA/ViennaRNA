@@ -8,7 +8,7 @@ usage "RNAfold [options]\n"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAup_cmdl --include-getopt --default-optional --func-name=RNAup_cmdline_parser --arg-struct-name=RNAup_args_info --header-output-dir=../H"
+args "--file-name=RNAup_cmdl --include-getopt --default-optional --func-name=RNAup_cmdline_parser --arg-struct-name=RNAup_args_info"
 
 
 description "RNAup calculates the thermodynamics of RNA-RNA interactions, by decomposing the\

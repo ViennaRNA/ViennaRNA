@@ -8,7 +8,7 @@ usage "RNAplfold [options]\n"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAplfold_cmdl --include-getopt --default-optional --func-name=RNAplfold_cmdline_parser --arg-struct-name=RNAplfold_args_info --header-output-dir=../H"
+args "--file-name=RNAplfold_cmdl --include-getopt --default-optional --func-name=RNAplfold_cmdline_parser --arg-struct-name=RNAplfold_args_info"
 
 
 description "Computes local pair probabilities for base pairs with a maximal span\

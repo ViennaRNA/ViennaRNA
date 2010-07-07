@@ -587,10 +587,10 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
       pr[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
     }
 
-  if (pl != NULL) {
-      *pl=(plist *)space(2*n*sizeof(plist));
-      *pl = get_plist_from_pr(*pl, pr, n,  /*cut_off:*/ 0.000001);
-    }
+  /* did we get an adress where to save a pair-list? */
+  if (pl != NULL)
+    assign_plist_from_pr(pl, pr, n, /*cut_off:*/ 0.000001);
+
   if (structure!=NULL)
     sprintf_bppm(n, structure);
 
@@ -648,10 +648,9 @@ PRIVATE void get_arrays(unsigned int length)
   prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  iindx = (int *) space(sizeof(int)*(length+1));
+  iindx = get_iindx(length);
   jindx = (int *) space(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
-    iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
     jindx[i] = (i*(i-1))/2;
   }
   qm1 = qm2 = NULL;

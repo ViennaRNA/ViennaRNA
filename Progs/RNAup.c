@@ -27,7 +27,6 @@
 /*@unused@*/
 static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 
-#define PRIVATE static
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define EQUAL(A,B) (fabs((A)-(B)) < 1000*DBL_EPSILON)
@@ -36,8 +35,7 @@ static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 
 PRIVATE void    tokenize(char *line, char **seq1, char **seq2);
 PRIVATE char    *tokenize_one(char *line);
-PRIVATE int     comp_nums(const int *num1, const int *num2);
-PRIVATE int     get_u_values(char unstrs[], int **u_vals, int l1);
+
 PRIVATE void    seperate_bp(char **inter,int len1,char **intra_l,char **intra_s);
 PRIVATE void    print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr3, int incr5);
 PRIVATE void    print_unstru(pu_contrib *p_c, int w);
@@ -51,17 +49,16 @@ PRIVATE int default_u; /* -u options for plotting: plot pr_unpaired for 4 nucleo
 PRIVATE double RT;
 
 /*--------------------------------------------------------------------------*/
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
-  char                    temp_name[201], first_name[53], my_contrib[10], up_out[250], unstrs[201], name[400];
+  char                    temp_name[512], my_contrib[10], up_out[250], name[512];
   char                    fname1[80], fname2[80], fname_target[80];
   char                    *ParamFile, *ns_bases, *c, *structure;
   char                    *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1, *cstruc2, *cstruc_target, *cstruc_combined;
   char                    cmdl_tmp[2048], *cmdl_parameters;
   int                     cmdl_parameters_length;
-  int                     i, j, length1, length2, length, l, length_target, sym, r, *u_vals, istty;
+  int                     i, j, length1, length2, l, length_target, sym, r, istty;
   double                  energy, min_en;
   double                  sfact=1.07;
   int                     noconv=0;
@@ -82,27 +79,22 @@ int main(int argc, char *argv[])
   int longerSeqFirst    = 1;  /* rotate input seq. to ensure that first sequence is the longer one (RNA_UP_MODE_2) */
   int header            = 1;  /* print header in output file */
   int output            = 1;  /* create output  file */
-  /* default settings for RNAup */
 
-  unstrs[0]='\0';
-  default_u = 4;
-  unstr=default_u;
-  u_vals=NULL;
-  incr3=0;
-  incr5=0;
-  length = 0;
-  do_backtrack = 1;
-  unstr_out = NULL;
-  unstr_target = NULL;
-  inter_out=NULL;
+  /* more default settings for RNAup */
+  up_mode = RNA_UP_MODE_1; /* default RNAup mode, single sequence unpaired probabilities */
   my_contrib[0] = 'S';
   my_contrib[1] = '\0';
-  up_mode = RNA_UP_MODE_1; /* default RNAup mode, single sequence unpaired probabilities */
 
-  input_string = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
-  length1 = length2 = length_target = 0;
+  default_u = 4;
+  unstr=default_u;
 
-  structure = ParamFile = ns_bases = head = NULL;
+  /* early initializing */
+  do_backtrack  = 1;
+  input_string  = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
+  length1       = length2 = length_target = 0;
+  inter_out     = NULL;
+  unstr_out     = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
+  structure     = ParamFile = ns_bases = head = NULL;
 
   /* allocate init length for commandline parameter string */
   cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
@@ -125,7 +117,7 @@ int main(int argc, char *argv[])
     /* collect parameter if header is needed */
     if(header){
       sprintf(cmdl_tmp, "-T %f ", temperature);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -134,14 +126,14 @@ int main(int argc, char *argv[])
     fold_constrained=1;
     /* collect parameter if header is needed */
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "-C ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "-C ", &cmdl_parameters_length);
   }
 
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given){
     tetra_loop=0;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "-4 ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "-4 ", &cmdl_parameters_length);
   }
 
   /* set dangle model */
@@ -149,7 +141,7 @@ int main(int argc, char *argv[])
     dangles = args_info.dangles_arg;
     if(header){
       sprintf(cmdl_tmp, "-d %d ", dangles);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -157,28 +149,28 @@ int main(int argc, char *argv[])
   if(args_info.noLP_given){
     noLonelyPairs = 1;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--noLP ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--noLP ", &cmdl_parameters_length);
   }
 
   /* do not allow wobble pairs (GU) */
   if(args_info.noGU_given){
     noGU = 1;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--noGU ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--noGU ", &cmdl_parameters_length);
   }
 
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given){
     no_closingGU = 1;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--noClosingGU ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--noClosingGU ", &cmdl_parameters_length);
   }
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given){
     noconv = 1;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--noconv ", &cmdl_paramter_length);
+      appendCmdlParameter(&cmdl_parameters, "--noconv ", &cmdl_parameters_length);
   }
 
   /* set energy model */
@@ -186,15 +178,15 @@ int main(int argc, char *argv[])
     energy_set = args_info.energyModel_arg;
     if(header){
       sprintf(cmdl_tmp, "-e %d ", energy_set);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     } 
-
+  }
   /* take another energy parameter set */
   if(args_info.paramFile_given){
     ParamFile = strdup(args_info.paramFile_arg);
     if(header){
       sprintf(cmdl_tmp, "-P %s ", ParamFile);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -203,7 +195,7 @@ int main(int argc, char *argv[])
     ns_bases = strdup(args_info.nsp_arg);
     if(header){
       sprintf(cmdl_tmp, "--nsp %s ", ns_bases);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -212,7 +204,7 @@ int main(int argc, char *argv[])
     sfact = args_info.pfScale_arg;
     if(header){
       sprintf(cmdl_tmp, "-S %f ", sfact);
-      appendCmdlParamter(&cmdl_paramters, cmdl_tmp, &cmdl_paramter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -221,7 +213,7 @@ int main(int argc, char *argv[])
     w = args_info.window_arg;
     if(header){
       sprintf(cmdl_tmp, "-w %d ", w);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -229,26 +221,26 @@ int main(int argc, char *argv[])
   if(args_info.target_given){
     longerSeqFirst = 0;
     if(header)
-      appendCdmlParameter(&cmdl_parameters, "--target ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--target ", &cmdl_parameters_length);
   }
 
   /* do not make an output file */
   if(args_info.no_output_file_given){
-    output = 0
+    output = 0;
   }
 
   /* set mode to unpaired regions in both RNAs */
   if(args_info.include_both_given){
     up_mode = RNA_UP_MODE_3;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--include_both ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--include_both ", &cmdl_parameters_length);
   }
 
   /* set interaction mode 1 (pairwise interaction) */
   if(args_info.interaction_pairwise_given){
     up_mode = RNA_UP_MODE_2;
     if(header)
-      appendCmdlParameter(&cmdl_parameters, "--interaction_pairwise ", &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, "--interaction_pairwise ", &cmdl_parameters_length);
   }
 
   /* set interaction mode 2 (first sequence interacts with all others) */
@@ -263,7 +255,7 @@ int main(int argc, char *argv[])
     incr5 = args_info.extend5_arg;
     if(header){
       sprintf(cmdl_tmp, "-5 %d ", incr5);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -272,7 +264,7 @@ int main(int argc, char *argv[])
     incr3 = args_info.extend3_arg;
     if(header){
       sprintf(cmdl_tmp, "-3 %d ", incr3);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -281,7 +273,7 @@ int main(int argc, char *argv[])
     strncpy(my_contrib, args_info.contributions_arg, 10);
     if(header){
       sprintf(cmdl_tmp, "-c %s ", my_contrib);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
 
@@ -290,7 +282,7 @@ int main(int argc, char *argv[])
   /* here's the very new way of treating multiple ulength values/ranges */
   unpaired_values = (int **)space(sizeof(int *) * (MAX2(1, args_info.ulength_given) + 1));
   if(header && args_info.ulength_given)
-    appendCmdlParameter(cmdl_parameters, "-u ", &cmdl_parameter_length);
+    appendCmdlParameter(&cmdl_parameters, "-u ", &cmdl_parameters_length);
   for(i = 0; i < args_info.ulength_given; i++){
     unpaired_values[++ulength_num] = (int *)space(2 * sizeof(int));
     /* we got a ulength range... */
@@ -315,8 +307,8 @@ int main(int argc, char *argv[])
       if(i < args_info.ulength_given)
         sprintf(cmdl_tmp, "%s,", args_info.ulength_arg[i]);
       else
-        sprintf(cmdl_tmp, "%s ", args_info.ulength_arg[i];
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameter_length);
+        sprintf(cmdl_tmp, "%s ", args_info.ulength_arg[i]);
+      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
   }
   /* store number of entries at position [0][0] */
@@ -501,7 +493,7 @@ int main(int argc, char *argv[])
 
       if(cut_point == -1){
         if(up_mode & RNA_UP_MODE_2) read_again = 1;
-        else if((upmode & RNA_UP_MODE_3) && (s_target == NULL)) read_again = 1;
+        else if((up_mode & RNA_UP_MODE_3) && (s_target == NULL)) read_again = 1;
       }
 
       if(read_again){
@@ -572,7 +564,7 @@ int main(int argc, char *argv[])
         }
       }
       if(length_target < length1){
-        printf(stderr, "%s\n%s\n", s_target, s1);
+        fprintf(stderr, "%s\n%s\n", s_target, s1);
         nrerror("target sequence is shorter than query");
       }
     }
@@ -618,7 +610,7 @@ int main(int argc, char *argv[])
     /* calc probability to be unstructured for 1st sequence (in upmode=3 this is not the target!) */
 
     int wplus = w;
-    if(!(up_mode & RNA_UP_MODE_3){
+    if(!(up_mode & RNA_UP_MODE_3)){
       wplus += incr3 + incr5;
       /* reset window size if maximum unstructured region is exceeds it */
       if(max_u > wplus)   wplus = max_u;
@@ -649,9 +641,7 @@ int main(int argc, char *argv[])
     switch(up_mode){
       case RNA_UP_MODE_1:   for (i = 1; i <= unpaired_values[0][0]; i++) {
                               j = unpaired_values[i][0];
-                              print_unstru(unstr_out, j++);
-                              for(; j <= unpaired_values[j][1]; j++)
-                                print_unstru(unstr_out, j);
+                              do print_unstru(unstr_out, j); while(++j <= unpaired_values[i][1]);
                             }
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length1 + strlen(cmdl_parameters) + 512));
@@ -711,8 +701,8 @@ int main(int argc, char *argv[])
       strcat(name, temp_name);
       printf("%s\n",name);
       
-      Up_plot(contrib1, contrib2, inter_out, name, u_vals, my_contrib, head, up_mode);
-    }    
+      Up_plot(contrib1, contrib2, inter_out, name, unpaired_values, my_contrib, head, up_mode);
+    }
 
     /*
     ########################################################
@@ -721,7 +711,7 @@ int main(int argc, char *argv[])
     */
 
     /* we can save the pu contribution structure of the target sequence for the next run */
-    if(contrib1 != NULL && contrib_target == NULL)
+    if(contrib1 != NULL && unstr_target == NULL)
       free_pu_contrib_struct(contrib1);
 
     if(contrib2 != NULL)
@@ -741,13 +731,8 @@ int main(int argc, char *argv[])
 
     structure = s1 = s2 = cstruc1 = cstruc2 = head = cstruc_combined = NULL;
 
-    if (u_vals != NULL) free(u_vals);
-    u_vals=NULL;
-
-
     free_arrays(); /* for arrays for fold(...) */
   } while (1);
-  
   return 0;
 }
 
@@ -892,103 +877,6 @@ PRIVATE char *tokenize_one(char *line)
   }
   free(line);
   return copy;
-}
-
-int comp_nums(const int *num1, const int *num2) {
-  if (*num1 <  *num2) return -1;
-  if (*num1 == *num2) return  0;
-  if (*num1 >  *num2) return  1;
-  return 0;
-}
-
-/* get the values for option -u, write them in u_vals*/
-/* max. length of the unstructured region has to be <= len longer seq.!!!*/
-/* u_vals[u_vals[0]] contains the largest -u value <= len longer seq. */
-int get_u_values(char unstrs[], int **u_vals, int l1) {
-  int min,max,tmp,uc,count,uunstr;
-  char *token, *cp;
-
-  if ((*u_vals) != NULL) free((*u_vals));
-  (*u_vals) = (int*) space (102*sizeof(int));
-  if (unstrs[0] != '\0' && strchr(unstrs,'-')) {/*range contains symbol "-"*/
-    const char delimiters[] = " -";
-
-    if (strchr(unstrs,','))
-       nrerror("option -u : enter either a range using \"-\" or a comma seperated list\n");
-    cp = strdup(unstrs);                
-    token = strtok(cp,delimiters);     
-    min = atoi(token);
-    token = strtok (NULL,delimiters);
-    max = atoi(token);
-    free(cp);
-    if (min > max) {
-      tmp = min;
-      min = max;
-      max = tmp;
-    } else if (min == max) {
-      nrerror("option -u : you enterd a range where min = max, use min < max to define a range");
-    }
-    if (max - min > 100) {
-      fprintf(stderr, "only the first 100 length value are used\n");
-    }
-    
-    (*u_vals)[0] = (max - min+1) <= 100 ? (max - min+1) : 100;
-    uc = 0;
-    max = max < min+99 ? max : min+99;
-    for (tmp = min;tmp <= max; tmp++) {
-      if (tmp <= l1) { (*u_vals)[++uc]=tmp;
-        /* printf("%d,",tmp); */
-      } else {
-        fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",tmp);
-        break;
-      }
-    }
-    (*u_vals)[0]=uc;
-    if (uc < 1) return(0);
-    return(1);
-    /* comma seperated list of values, symbol "," */
-  } else if (unstrs[0] != '\0' && strchr(unstrs,',')) {
-    const char delimiters[] = " ,";
-    if (strchr(unstrs,'-'))
-       nrerror("option -u : enter either a range using \"-\" or a comma seperated list\n");
-    
-    cp = strdup(unstrs);               
-    token = strtok (cp,delimiters);
-    uc = 1;
-    (*u_vals)[1] = atoi(token);
-    while((token=strtok(NULL,delimiters)) && uc<20 )
-      (*u_vals)[++uc] = atoi(token);
-    if ((token=strtok(NULL,delimiters))) {
-      fprintf(stderr,"the first 20 length value are used\n");
-    }
-    free(cp);
-    (*u_vals)[0] = 0;
-    uunstr = (uc) <= 100 ? uc : 100;
-    qsort((*u_vals),(uunstr+1),sizeof(int),(void *)comp_nums );
-    for (count = 0; count < uunstr+1; count++) {
-      if ((*u_vals)[count] > l1) {
-        fprintf(stderr, "option -u: length %d is longer than length of longer sequence. Only values <= length of longer sequence are allowed.\n",(*u_vals)[count]);
-        break;
-      }      
-    }
-    (*u_vals)[0] = count - 1;
-    if ((count -1) < 1) return(0);   
-    return(1);
-  } else if (unstrs[0] != '\0') {
-    (*u_vals)[0] = 1;
-    uunstr = atoi(unstrs);
-    if (uunstr > l1) return(0);
-    (*u_vals)[1] = uunstr;
-    return(1);
-  } else { /* default value */
-    (*u_vals)[0] = 1;
-    if (default_u > l1) {
-      (*u_vals)[1] = l1;
-      fprintf(stderr, "option -u = %d exceeds length of longer sequence, %d. -u is set length of longer sequence.\n",default_u,l1);
-    }
-    (*u_vals)[1] = default_u;
-  }
-  return 1;
 }
 
 /* divide the constraints string in intermolecular constrains (inter)

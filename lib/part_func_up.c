@@ -106,7 +106,7 @@ PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE pu_out      *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib);
+PRIVATE pu_out      *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_contrib);
 PRIVATE int         plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
 PRIVATE void        scale_stru_pf_params(unsigned int length);
 PRIVATE void        init_pf_two(int length);
@@ -1061,8 +1061,8 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
 }
 /*-------------------------------------------------------------------------*/
 /* make a results structure containing all u-values & the header */
-PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib) {
-  int i,j,g,ws,num_u_vals,unstr,count,contribs,size,w,len;
+PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_contrib) {
+  int i, j, k, l, g,ws,num_u_vals,unstr,count,contribs,size,w,len;
   int S,E,H,I,M;
   int off_S, off_E, off_H, off_I, off_M;
   /* double **p_cont,**p_cont_sh, dG_u; p_u AND its contributions */
@@ -1071,7 +1071,10 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib) {
   len = p_c->length;
   
   /* number of different -u values */
-  num_u_vals = u_vals[0];
+  for (num_u_vals = 0, i = 1; i <= unpaired_values[0][0]; i++) {
+    j = unpaired_values[i][0];
+    do num_u_vals++; while(++j <= unpaired_values[i][1]);
+  }
  
   /* check which contributions ([-c "SHIME"] ) are desired by the user,
      set the offset for each contribution */
@@ -1135,53 +1138,55 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib) {
     u_results->u_values[0][i] = i;
   }
   /* go over the different -u values, u_vals[] listy of different -u values*/
-  for (count = 1; count <= u_vals[0]; count++) {
-    int offset; /* offset for the respective -u value (depents on the number
+  for (count = k = 1; k <= unpaired_values[0][0]; k++) {
+    l = unpaired_values[k][0];
+    do{
+      int offset; /* offset for the respective -u value (depents on the number
                    of the -u value and on the numbers of contribs */
  
-    offset = ((count - 1) * contribs) + 1; /* first colum is the position */
-    /* set the current value of -u : here we call it w */
-    w = u_vals[count]; /* set w to the actual -u value */
-    if(w > len) break; /* corr caro */
-    /* make the header - look which contribitions are wanted */
-    if(S) sprintf(u_results->header[offset+off_S],"u%dS",w);
-    if(E) sprintf(u_results->header[offset+off_E],"u%dE",w);
-    if(H) sprintf(u_results->header[offset+off_H],"u%dH",w);
-    if(I) sprintf(u_results->header[offset+off_I],"u%dI",w);
-    if(M) sprintf(u_results->header[offset+off_M],"u%dM",w);
+      offset = ((count - 1) * contribs) + 1; /* first colum is the position */
+      /* set the current value of -u : here we call it w */
+      w = l; /* set w to the actual -u value */
+      if(w > len) break; /* corr caro */
+      /* make the header - look which contribitions are wanted */
+      if(S) sprintf(u_results->header[offset+off_S],"u%dS",w);
+      if(E) sprintf(u_results->header[offset+off_E],"u%dE",w);
+      if(H) sprintf(u_results->header[offset+off_H],"u%dH",w);
+      if(I) sprintf(u_results->header[offset+off_I],"u%dI",w);
+      if(M) sprintf(u_results->header[offset+off_M],"u%dM",w);
 
-    if(p_c != NULL) {
-      for (i=1; i<=len; i++) { /* for each position */
-        /* w goes form j to i (intervall end at i) */
-        for (j=i; j < MIN2((i+w),len+1); j++) { /* for each -u value < w
+      if(p_c != NULL) {
+        for (i=1; i<=len; i++) { /* for each position */
+          /* w goes form j to i (intervall end at i) */
+          for (j=i; j < MIN2((i+w),len+1); j++) { /* for each -u value < w
                                                 this is not necessay ->
                                                 calculate j from i and w
                                                 : (j-i+1) == w */
-          double blubb;
-          /* if (j-i+1) == w we have the -u = w value wanted */
-          if( (j-i+1) == w && i+w-1 <= len) {
-            blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
+            double blubb;
+            /* if (j-i+1) == w we have the -u = w value wanted */
+            if( (j-i+1) == w && i+w-1 <= len) {
+              blubb = p_c->H[i][j-i]+p_c->I[i][j-i]+p_c->M[i][j-i]+p_c->E[i][j-i];
 
-            /* printf("len %d  blubb %.3f \n",len, blubb); */
-            if(S) u_results->u_values[offset+off_S][i+w-1]+=blubb;
-            if(E) u_results->u_values[offset+off_E][i+w-1]+=p_c->E[i][j-i];
-            if(H) u_results->u_values[offset+off_H][i+w-1]+=p_c->H[i][j-i]; 
-            if(I) u_results->u_values[offset+off_I][i+w-1]+=p_c->I[i][j-i]; 
-            if(M) u_results->u_values[offset+off_M][i+w-1]+=p_c->M[i][j-i];
+              /* printf("len %d  blubb %.3f \n",len, blubb); */
+              if(S) u_results->u_values[offset+off_S][i+w-1]+=blubb;
+              if(E) u_results->u_values[offset+off_E][i+w-1]+=p_c->E[i][j-i];
+              if(H) u_results->u_values[offset+off_H][i+w-1]+=p_c->H[i][j-i]; 
+              if(I) u_results->u_values[offset+off_I][i+w-1]+=p_c->I[i][j-i]; 
+              if(M) u_results->u_values[offset+off_M][i+w-1]+=p_c->M[i][j-i];
 
-          }
-          if(i<w && (j-i+1) != w && i+w-1 > len &&  i+w-1 < len+3) {
-            if(S) u_results->u_values[offset+off_S][i+w-1]=-1;
-            if(E) u_results->u_values[offset+off_E][i+w-1]=-1;
-            if(H) u_results->u_values[offset+off_H][i+w-1]=-1; 
-            if(I) u_results->u_values[offset+off_I][i+w-1]=-1; 
-            if(M) u_results->u_values[offset+off_M][i+w-1]=-1;
+            }
+            if(i<w && (j-i+1) != w && i+w-1 > len &&  i+w-1 < len+3) {
+              if(S) u_results->u_values[offset+off_S][i+w-1]=-1;
+              if(E) u_results->u_values[offset+off_E][i+w-1]=-1;
+              if(H) u_results->u_values[offset+off_H][i+w-1]=-1; 
+              if(I) u_results->u_values[offset+off_I][i+w-1]=-1; 
+              if(M) u_results->u_values[offset+off_M][i+w-1]=-1;
+            }
           }
         }
-      }
-    } else {
-      return(NULL); /* error */
-    }
+      } else return(NULL); /* error */
+      count++;
+    } while(++l <= unpaired_values[k][1]);
   }
   return(u_results); /*success*/
 }
@@ -1196,7 +1201,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int *u_vals, char *select_contrib) {
 PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head) {
   int size,s,i,len;
   double dG_u;
-  char nan[4], *time, startl[2], dg[10];;
+  char nan[4], *time, dg[11];
   FILE *wastl;
   double  kT = Pf->kT;
   wastl = fopen(ofile,"a");
@@ -1204,7 +1209,6 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
     fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
     return(0);
   }
-  sprintf(startl,"# ");
   sprintf(dg,"dG");
   
   /* printf("T=%.16f \n(temperature+K0)*GASCONST/1000.0 = %.16f\n",temperature,(temperature+K0)*GASCONST/1000.0); */
@@ -1227,10 +1231,10 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   /* print header, if nh is zerro */
   if(head){
     time = time_stamp();
-    fprintf(wastl,"%s %s\n",startl, time);
+    fprintf(wastl,"# %s\n", time);
     fprintf(wastl,"%s\n",head);
   } 
-  fprintf(wastl,"%s",startl);
+  fprintf(wastl,"# ");
   /* }  else { fprintf(wastl," "); } close if before  */
   len  = res->len;
   size = res->u_vals * res->contribs;
@@ -1282,7 +1286,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   return(1); /* success */
 }
 
-PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int *u_vals, char *select_contrib, char *head, unsigned int mode) {
+PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int **unpaired_values, char *select_contrib, char *head, unsigned int mode) {
   pu_out *dada;
   int ret;
   /* check what case we have */
@@ -1290,13 +1294,13 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
   /* upmode = 1 only one seq */
   /* if(p_c != NULL && pint == NULL) { */
   if(mode & RNA_UP_MODE_1){
-    dada = get_u_vals(p_c,u_vals,select_contrib);
+    dada = get_u_vals(p_c,unpaired_values,select_contrib);
     ret = plot_free_pu_out(dada,NULL,ofile,head);
     
   /* upmode > 1 cofolding */
   /* } else if (p_c != NULL && pint != NULL) { */
   } else if(mode & RNA_UP_MODE_2) {
-    dada = get_u_vals(p_c,u_vals,select_contrib);
+    dada = get_u_vals(p_c,unpaired_values,select_contrib);
     ret = plot_free_pu_out(dada,pint,ofile,head);
   
   /* upmode = 3  cofolding*/
@@ -1304,7 +1308,7 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
   }
   if(mode & RNA_UP_MODE_3) {
     /* values for both sequences are requested - now do it for the second seq*/
-    dada = get_u_vals(p_c_sh,u_vals,select_contrib);
+    dada = get_u_vals(p_c_sh,unpaired_values,select_contrib);
     ret = plot_free_pu_out(dada,NULL,ofile,head);
     
   }

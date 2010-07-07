@@ -111,9 +111,9 @@ PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  pf_circ(char *sequence, char *structure);
-PRIVATE void  pf_linear(char *sequence, char *structure);
-PRIVATE void  pf_create_bppm(char *sequence, char *structure);
+PRIVATE void  pf_circ(const char *sequence, char *structure);
+PRIVATE void  pf_linear(const char *sequence, char *structure);
+PRIVATE void  pf_create_bppm(const char *sequence, char *structure);
 PRIVATE void  backtrack(int i, int j);
 PRIVATE void  backtrack_qm(int i, int j);
 PRIVATE void  backtrack_qm1(int i,int j);
@@ -126,7 +126,7 @@ PRIVATE void  backtrack_qm2(int u, int n);
 */
 
 /*-----------------------------------------------------------------*/
-PUBLIC float pf_fold(char *sequence, char *structure)
+PUBLIC float pf_fold(const char *sequence, char *structure)
 {
 
   FLT_OR_DBL  Q;
@@ -155,7 +155,7 @@ PUBLIC float pf_fold(char *sequence, char *structure)
   return free_energy;
 }
 
-PUBLIC float pf_circ_fold(char *sequence, char *structure){
+PUBLIC float pf_circ_fold(const char *sequence, char *structure){
 
   FLT_OR_DBL Q;
 
@@ -186,7 +186,7 @@ PUBLIC float pf_circ_fold(char *sequence, char *structure){
   return free_energy;
 }
 
-PUBLIC void pf_linear(char *sequence, char *structure)
+PRIVATE void pf_linear(const char *sequence, char *structure)
 {
 
   int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt;
@@ -310,7 +310,7 @@ PUBLIC void pf_linear(char *sequence, char *structure)
 /* NOTE: this is the postprocessing step ONLY     */
 /* You have to call pf_linear first to calculate  */
 /* complete circular case!!!                      */
-PRIVATE void pf_circ(char *sequence, char *structure){
+PRIVATE void pf_circ(const char *sequence, char *structure){
 
   int u, p, q, k, l;
   int n = (int) strlen(sequence);
@@ -377,7 +377,7 @@ PRIVATE void pf_circ(char *sequence, char *structure){
 }
 
 /* calculate base pairing probs */
-PUBLIC void pf_create_bppm(char *sequence, char *structure)
+PUBLIC void pf_create_bppm(const char *sequence, char *structure)
 {
   int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
@@ -633,10 +633,9 @@ PRIVATE void get_arrays(unsigned int length)
   prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  iindx = (int *) space(sizeof(int)*(length+1));
+  iindx = get_iindx(length);
   jindx = (int *) space(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
-    iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
     jindx[i] = (i*(i-1))/2;
   }
   if(circ){
@@ -1109,33 +1108,53 @@ PUBLIC char *centroid(int length, double *dist) {
   return centroid;
 }
 
-PUBLIC struct plist *get_plist_from_pr(struct plist *pl, double *probs, int length, double cut_off) {
-  int i, j,n, count;
-  /*get pair probibilities out of pr array*/
-  count=0;
-  n=2;
+/**
+*** Create a plist from a probability matrix
+*** The probability matrix given is parsed and all pair probabilities above
+*** the given threshold are used to create an entry in the plist
+***
+*** This function is threadsafe
+***
+*** \param pl     A pointer to the plist that is to be created
+*** \param probs  The probability matrix used for creting the plist
+*** \param length The length of the RNA sequence
+*** \param cutoff The cutoff value
+**/
+PUBLIC void assign_plist_from_pr(plist **pl, double *probs, int length, double cut_off) {
+  int i, j, n, count, *index;
+  count = 0;
+  n     = 2;
+
+  index = get_iindx(length);
+
+  /* first guess of the size needed for pl */
+  *pl = (plist *)space(n*length*sizeof(plist));
+
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
-      if (probs[iindx[i]-j]<cut_off) continue;
-      if (count==n*length-1) {
-        n*=2;
-        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
+      /* skip all entries below the cutoff */
+      if (probs[index[i]-j] < cut_off) continue;
+      /* do we need to allocate more memory? */
+      if (count == n * length - 1){
+        n *= 2;
+        *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
       }
-      pl[count].i=i;
-      pl[count].j=j;
-      pl[count++].p=probs[iindx[i]-j];
-/*             printf("gpl: %d %2d %2d %.9f\n",count, i,j,probs[iindx[i]-j]);*/
+      (*pl)[count].i    = i;
+      (*pl)[count].j    = j;
+      (*pl)[count++].p  = probs[index[i] - j];
     }
   }
-  pl[count].i=0;
-  pl[count].j=0; /*->??*/
-  pl[count++].p=0.;
-  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
-  return pl;
+  /* mark the end of pl */
+  (*pl)[count].i   = 0;
+  (*pl)[count].j   = 0;
+  (*pl)[count++].p = 0.;
+  /* shrink memory to actual size needed */
+  *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
+  free(index);
 }
 
 /* this function is a threadsafe replacement for centroid() */
-PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) {
+PUBLIC char *get_centroid_struct_pl(int length, double *dist, plist *pl) {
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
@@ -1159,6 +1178,7 @@ PUBLIC char *get_centroid_struct_pl(int length, double *dist, struct plist *pl) 
     } else
       *dist += pl[i].p;
   }
+  centroid[length] = '\0';
   return centroid;
 }
 
@@ -1171,13 +1191,11 @@ PUBLIC char *get_centroid_struct_pr(int length, double *dist, double *probs){
      p_ij>0.5 */
   int i,j;
   double p;
-  char *centroid;
-  int *my_iindx = (int *)space(sizeof(int) * (length+1));
-  for(i=1; i<=length; i++)
-    my_iindx[i] = (((length+1-i)*(length-i))>>1) + length + 1;
-  
-  if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
+  char  *centroid;
+  int   *my_iindx = get_iindx(length);
+
+  if (probs == NULL)
+    nrerror("get_centroid_struct_pr: probs==NULL!");
 
   *dist = 0.;
   centroid = (char *) space((length+1)*sizeof(char));
@@ -1192,6 +1210,7 @@ PUBLIC char *get_centroid_struct_pr(int length, double *dist, double *probs){
         *dist += p;
     }
   free(my_iindx);
+  centroid[length] = '\0';
   return centroid;
 }
 
