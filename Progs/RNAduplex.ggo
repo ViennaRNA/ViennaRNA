@@ -8,7 +8,7 @@ usage "RNAduplex [options]\n"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAduplex_cmdl --include-getopt --default-optional --func-name=RNAduplex_cmdline_parser --arg-struct-name=RNAduplex_args_info"
+args "--file-name=RNAduplex_cmdl --include-getopt --default-optional --func-name=RNAduplex_cmdline_parser --arg-struct-name=RNAduplex_args_info --header-output-dir=../H"
 
 
 description "reads two RNA sequences from stdin or <filename> and computes optimal\

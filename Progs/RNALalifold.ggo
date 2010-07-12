@@ -8,7 +8,7 @@ usage   "RNALalifold [options] <file1.aln>"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNALalifold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNALalifold_cmdline_parser --arg-struct-name=RNALalifold_args_info"
+args "--file-name=RNALalifold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNALalifold_cmdline_parser --arg-struct-name=RNALalifold_args_info --header-output-dir=../H"
 
 description "reads aligned RNA sequences from stdin or file.aln and calculates\
  locally stable RNA secondary structure with a maximal base pair span. For a sequence\

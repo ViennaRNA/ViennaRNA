@@ -8,7 +8,7 @@ usage "RNAeval [options]\n"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAeval_cmdl --include-getopt --default-optional --func-name=RNAeval_cmdline_parser --arg-struct-name=RNAeval_args_info"
+args "--file-name=RNAeval_cmdl --include-getopt --default-optional --func-name=RNAeval_cmdline_parser --arg-struct-name=RNAeval_args_info --header-output-dir=../H"
 
 
 description "Evaluates the free energy of an RNA molecule in fixed secondary structure.\

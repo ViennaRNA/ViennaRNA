@@ -8,7 +8,7 @@ usage "RNAcofold [options]\n"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAcofold_cmdl --include-getopt --default-optional --func-name=RNAcofold_cmdline_parser --arg-struct-name=RNAcofold_args_info"
+args "--file-name=RNAcofold_cmdl --include-getopt --default-optional --func-name=RNAcofold_cmdline_parser --arg-struct-name=RNAcofold_args_info --header-output-dir=../H"
 
 
 description "works much like RNAfold, but allows to specify two RNA sequences wich are\

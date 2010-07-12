@@ -8,7 +8,7 @@ usage "RNAaliduplex [options] <file1.aln> <file2.aln>"
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAaliduplex_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAaliduplex_cmdline_parser --arg-struct-name=RNAaliduplex_args_info"
+args "--file-name=RNAaliduplex_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAaliduplex_cmdline_parser --arg-struct-name=RNAaliduplex_args_info --header-output-dir=../H"
 
 
 description "reads two alignments of RNA sequences in CLUSTAL format and predicts optimal and\
