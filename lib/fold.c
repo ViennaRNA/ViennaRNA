@@ -27,6 +27,10 @@
 #include "fold.h"
 #include "data_structures.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 
@@ -90,7 +94,19 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         positive int: base is paired with int      */
 PRIVATE short   *pair_table; /* needed by energy of struct */
 
+#ifdef USE_OPENMP
 
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin(P, init_length, min_hairpin) in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(P, init_length, min_hairpin)
+*/
+#pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
+                          DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
+                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table)
+
+#endif
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
@@ -122,10 +138,17 @@ PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+
 PUBLIC void initialize_fold(int length){
   unsigned int n;
+
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  if (init_length>0) free_arrays();
+  /* if (init_length>0)*/ free_arrays();
   get_arrays((unsigned) length);
   init_length=length;
 
@@ -170,17 +193,34 @@ PRIVATE void get_arrays(unsigned int size){
 /*--------------------------------------------------------------------------*/
 
 PUBLIC void free_arrays(void){
-  free(indx); free(c); free(fML); free(f5); free(f53); free(cc); free(cc1);
-  free(ptype);
-  if(fM1){ free(fM1); fM1=NULL;}
-  if(fM2){ free(fM2); fM2=NULL;}
+  if(indx)      free(indx);
+  if(c)         free(c);
+  if(fML)       free(fML);
+  if(f5)        free(f5);
+  if(f53)       free(f53);
+  if(cc)        free(cc);
+  if(cc1)       free(cc1);
+  if(ptype)     free(ptype);
+  if(fM1)       free(fM1);
+  if(fM2)       free(fM2);
+  if(base_pair) free(base_pair);
+  if(Fmi)       free(Fmi);
+  if(DMLi)      free(DMLi);
+  if(DMLi1)     free(DMLi1);
+  if(DMLi2)     free(DMLi2);
+  if(DMLi_a)    free(DMLi_a);
+  if(DMLi_o)    free(DMLi_o);
+  if(DMLi1_a)   free(DMLi1_a);
+  if(DMLi1_o)   free(DMLi1_o);
+  if(DMLi2_a)   free(DMLi2_a);
+  if(DMLi2_o)   free(DMLi2_o);
 
-  free(base_pair); base_pair=NULL; free(Fmi);
-  free(DMLi); free(DMLi1);free(DMLi2);
-  free(DMLi_a); free(DMLi_o);
-  free(DMLi1_a); free(DMLi1_o);
-  free(DMLi2_a); free(DMLi2_o);
-  init_length=0;
+  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
+  ptype       = NULL;
+  base_pair   = NULL;
+  P           = NULL;
+  init_length = 0;
 }
 
 /*--------------------------------------------------------------------------*/

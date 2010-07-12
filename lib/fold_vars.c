@@ -37,6 +37,7 @@ char backtrack_type='F';  /* 'C' require (1,N) to be bonded;
 
 int *cut_points;
 int *strand;
+
 char * option_string(void) {
   static char options[100];
   *options = '\0';

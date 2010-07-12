@@ -175,9 +175,9 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
     if (fgets(s, 512, fp)==NULL) break;
     cp = strchr(s, '\n');
     if (cp != NULL) *cp = '\0';
-    l = len + strlen(s);
+    l = len + (int)strlen(s);
     if (l+1>size) {
-      size = (l+1)*1.2;
+      size = (int)((l+1)*1.2);
       line = (char *) xrealloc(line, size*sizeof(char));
     }
     strcat(line+len, s);
@@ -367,6 +367,12 @@ PUBLIC short *make_pair_table(const char *structure)
    }
    free(stack);
    return(table);
+}
+
+PUBLIC short *copy_pair_table(const short *pt){
+  short *table = (short *)space(sizeof(short) * (pt[0]+2));
+  memcpy(table, pt, sizeof(short)*(pt[0]+2));
+  return table;
 }
 
 /*---------------------------------------------------------------------------*/

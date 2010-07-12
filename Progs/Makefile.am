@@ -5,6 +5,12 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 
 LDADD = ../lib/libRNA.a -lm
 
+if USE_OPENMP
+  AM_CFLAGS = -DUSE_OPENMP -fopenmp
+  AM_LDFLAGS = ../lib/libRNA.a -lm -fopenmp
+endif
+
+
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
 
 EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\

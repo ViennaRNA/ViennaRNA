@@ -1,6 +1,7 @@
 #include <ctype.h>
 #define NBASES 8
 /*@notnull@*/
+
 static const char Law_and_Order[] = "_ACGUTXKI";
 static int BP_pair[NBASES][NBASES]=
 /* _  A  C  G  U  X  K  I */
@@ -19,6 +20,10 @@ static short alias[MAXALPHA+1];
 static int pair[MAXALPHA+1][MAXALPHA+1];
 /* rtype[pair[i][j]]:=pair[j][i] */
 static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
+
+#ifdef USE_OPENMP
+#pragma omp threadprivate(Law_and_Order, BP_pair, alias, pair, rtype)
+#endif
 
 /* for backward compatibility */
 #define ENCODE(c) encode_char(c)
@@ -115,4 +120,26 @@ static void make_pair_matrix(void)
 	  rtype[pair[i][j]] = pair[j][i];
       }
    }
+}
+
+static short *encode_sequence(const char *sequence, short how){
+  unsigned int i,l = (unsigned int)strlen(sequence);
+  short         *S = (short *) space(sizeof(short)*(l+2));
+
+  switch(how){
+    /* standard encoding as always used for S */
+    case 0:   for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+                S[i]= (short) encode_char(toupper(sequence[i-1]));
+              S[l+1] = S[1];
+              S[0] = (short) l;
+              break;
+    /* encoding for mismatches of nostandard bases (normally used for S1) */
+    case 1:   for(i=1; i<=l; i++)
+                S[i] = alias[(short) encode_char(toupper(sequence[i-1]))];
+              S[l+1] = S[1];
+              S[0] = S[l];
+              break;
+  }
+
+  return S;
 }

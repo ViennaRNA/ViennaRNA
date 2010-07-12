@@ -121,6 +121,12 @@ char *unpack_structure(const char *packed);
 *** 0 if i is unpaired, table[0] contains the length of the structure.
 **/
 short *make_pair_table(const char *structure);
+
+/**
+*** Get an exact copy of a pair table
+**/
+short *copy_pair_table(const short *pt);
+
 /**
 *** dist = {number of base pairs in one structure but not in the other}
 *** same as edit distance with open-pair close-pair as move-set

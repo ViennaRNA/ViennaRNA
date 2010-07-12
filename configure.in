@@ -11,6 +11,7 @@ AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDis
 AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
 AC_ARG_WITH(forester, [  --without-forester          don't build RNAforester program])
 AC_ARG_WITH(kinfold, [  --without-kinfold          don't build Kinfold program])
+AC_ARG_WITH(openmp, [  --without-openmp        don't build RNA2Dfold program with OpenMP Multithread support])
 AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
 AC_ARG_VAR(PERLPREFIX, [Prefix for installation of the Perl module. 
@@ -81,6 +82,9 @@ AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 
+AM_CONDITIONAL(USE_OPENMP, test "$with_openmp" != "no")
+
+
 dnl Checks for libraries.
 dnl AC_REPLACE_GNU_GETOPT
 
@@ -113,6 +117,7 @@ Configure successful with the following options:
   Analyse{Dists,Seqs}: ${with_cluster:-no}
   Kinfold:             ${with_kinfold:-yes}
   RNAforester:         ${with_forester:-yes}
+  OpenMP Support:      ${with_openmp:-yes}
 
 Files will be installed in the following directories:
 
