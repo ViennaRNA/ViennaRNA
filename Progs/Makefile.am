@@ -7,7 +7,6 @@ LDADD = ../lib/libRNA.a -lm
 
 if USE_OPENMP
   AM_CFLAGS = -DUSE_OPENMP -fopenmp
-  AM_LDFLAGS = ../lib/libRNA.a -lm -fopenmp
 endif
 
 

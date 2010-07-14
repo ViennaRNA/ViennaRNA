@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
   int                       i, l, length1, length2;
   float                     energy;
   int                       istty;
-  int                       circ=0;
+  int                       circular=0;
   int                       noconv=0;
 
   string = ParamFile = NULL;
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
   /* take another energy parameter set */
   if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circ=1;
+  if(args_info.circ_given)        circular=1;
   /* logarithmic multiloop energies */
   if(args_info.logML_given)       logML = 1;
   /* be verbose */
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
     }
 
-    energy = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+    energy = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
 
     if (cut_point == -1)
       printf("%s\n%s", string, structure);

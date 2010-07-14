@@ -54,7 +54,7 @@ PRIVATE FLT_OR_DBL      *scale;
 PRIVATE short           *pscore;   /* precomputed array of covariance bonus/malus */
 PRIVATE int             init_length; /* length in last call to init_pf_fold() */
 /* some additional things for circfold  */
-PRIVATE int             circ=0;
+PRIVATE int             circular=0;
 PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2;
 PRIVATE int             *jindx;
 PRIVATE short           **S;
@@ -101,14 +101,14 @@ PUBLIC float alipf_fold(const char **sequences, char *structure, struct plist **
   FLT_OR_DBL Q;
 
   float free_energy;
-  circ = 0;
+  circular = 0;
 
   n = (int) strlen(sequences[0]);
   for (s=0; sequences[s]!=NULL; s++);
   n_seq = N_seq = s;
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
 
-  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
+  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short *const*)S, sequences, n_seq, structure);
 
   alipf_linear(sequences, structure);
@@ -136,14 +136,14 @@ PUBLIC float alipf_circ_fold(const char **sequences, char *structure, struct pli
   FLT_OR_DBL Q;
 
   float free_energy;
-  circ = 1;
+  circular = 1;
   oldAliEn=1;
   n = (int) strlen(sequences[0]);
   for (s=0; sequences[s]!=NULL; s++);
   n_seq = s;
   init_alipf_fold(n, n_seq);  /* (re)allocate space */
 
-  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
+  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short *const*)S, sequences, n_seq, structure);
 
   alipf_linear(sequences, structure);
@@ -264,7 +264,7 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];  /* expMLbase[1]^n_seq */
       for (qbt1=1, s=0; s<n_seq; s++) {
-        qbt1 *= exp_E_MLstem(type[s], (i>1) || circ ? S5[s][i] : -1, (j<n) || circ ? S3[s][j] : -1, pf_params);
+        qbt1 *= exp_E_MLstem(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
       }
       qqm[i] += qb[ij]*qbt1;
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for circ folding */
@@ -281,7 +281,7 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
       qbt1 = qb[ij];
       if (qbt1>0)
         for (s=0; s<n_seq; s++) {
-          qbt1 *= exp_E_ExtLoop(type[s], (i>1) || circ ? S5[s][i] : -1, (j<n) || circ ? S3[s][j] : -1, pf_params);
+          qbt1 *= exp_E_ExtLoop(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
         }
       qq[i] = qq1[i]*scale[1] + qbt1;
 
@@ -344,7 +344,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
   pr = q;     /* recycling */
 
   /* 1. exterior pair i,j and initialization of pr array */
-  if(circ){
+  if(circular){
     for (i=1; i<=n; i++) {
       for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
@@ -472,7 +472,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
         else pr[ij] = 0;
       }  /* end for j=..*/
     }  /* end or i=...  */
-  } /* end if(circ)  */
+  } /* end if(circular)  */
   else{
     for (i=1; i<=n; i++) {
       for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
@@ -489,7 +489,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, struct p
           pr[ij] = 0;
       }
     }
-  } /* end if(!circ)  */
+  } /* end if(!circular)  */
   for (l=n; l>TURN+1; l--) {
 
     /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
@@ -655,7 +655,7 @@ PRIVATE void get_arrays(unsigned int length)
   }
   qm1 = qm2 = NULL;
   qm1 = (FLT_OR_DBL *) space(size);
-  if(circ){
+  if(circular){
     qm2 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   }
 }

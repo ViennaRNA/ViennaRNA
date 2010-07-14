@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
   char          *string, *input_string, *structure=NULL, *cstruc=NULL;
   char          fname[80], ffname[80], gfname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
-  int           i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0, circ=0;
+  int           i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0;
   unsigned int  input_type;
   double        energy, min_en, kT, sfact=1.07;
-  int           doMEA=0;
+  int           doMEA=0, circular = 0;
   double        MEAgamma = 1.;
   
   do_backtrack  = 1;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
   /* set pf scaling factor */
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circ=1;
+  if(args_info.circ_given)        circular=1;
   /* do not produce postscript output */
   if(args_info.noPS_given)        noPS=1;
   /* partition function settings */
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
-  if (circ && noLonelyPairs)
+  if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 
   if (ns_bases != NULL) {
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     */
 
     /* initialize_fold(length); */
-    min_en = (circ) ? circfold(string, structure) : fold(string, structure);
+    min_en = (circular) ? circfold(string, structure) : fold(string, structure);
     
     printf("%s\n%s", string, structure);
     if (istty)
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
       pf_struc = (char *) space((unsigned) length+1);
         if (dangles==1) {
           dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          min_en = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
           dangles=1;
       }
 
@@ -225,11 +225,11 @@ int main(int argc, char *argv[])
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      (circ) ? init_pf_circ_fold(length) : init_pf_fold(length);
+      (circular) ? init_pf_circ_fold(length) : init_pf_fold(length);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      energy = (circ) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
+      energy = (circular) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
 
       if (do_backtrack) {
         printf("%s", pf_struc);
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
         char *cent;
         double dist, cent_en;
         cent = centroid(length, &dist);
-        cent_en = (circ) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
+        cent_en = (circular) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
         printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
         free(cent);
         if (fname[0]!='\0') {
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
           plist *pl;
           pl = make_plist(length, 1e-4/(1+MEAgamma));
           mea = MEA(pl, structure, MEAgamma);
-          mea_en = (circ) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          mea_en = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
           printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
           free(pl);
         }

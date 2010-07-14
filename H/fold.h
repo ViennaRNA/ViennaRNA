@@ -7,7 +7,7 @@
 #define DEPRECATED(func) func
 #endif
 
-/** \file **/
+/** \file fold.h **/
 
 /** if nonzero use logarithmic ML energy in energy_of_struct **/
 extern  int logML;
@@ -17,8 +17,6 @@ extern  int uniq_ML;
 extern  int cut_point;
 /** verbose info from energy_of_struct **/
 extern  int eos_debug;
-/** assume RNA to be circular if not 0 **/
-extern  int circ;
 
 /**
 *** Compute minimum free energy and an appropriate secondary
@@ -31,19 +29,42 @@ extern  int circ;
 *** \returns the minimum free energy (MFE) in kcal/mol
 **/
 float fold(const char *sequence, char *structure);
+
 /**
 *** Calculate the free energy of an already folded RNA
 ***
-*** \see              energy_of_circ_struct(), energy_of_struct_pt()
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+*** Better use \ref energy_of_structure() instead
+***
+*** \see              energy_of_structure, energy_of_circ_struct(), energy_of_struct_pt()
 *** \param string     RNA sequence
 *** \param structure  secondary structure in dot-bracket notation
 *** \returns          the free energy of the input structure given the input sequence in kcal/mol
 **/
 float energy_of_struct(const char *string, const char *structure);
+
 /**
 *** Calculate the free energy of an already folded RNA
 ***
-*** \see              make_pair_table(), energy_of_struct()
+*** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
+***
+*** \see              energy_of_circ_structure(), energy_of_structure_pt()
+*** \param string     RNA sequence
+*** \param structure  secondary structure in dot-bracket notation
+*** \param verbosity_level a flag to turn verbose output on/off
+*** \returns          the free energy of the input structure given the input sequence in kcal/mol
+**/
+float energy_of_structure(const char *string, const char *structure, int verbosity_level);
+
+/**
+*** Calculate the free energy of an already folded RNA
+***
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+*** Better use \ref energy_of_structure_pt() instead
+***
+*** \see              make_pair_table(), energy_of_structure()
 *** \param string     RNA sequence
 *** \param ptable     the pair table of the secondary structure
 *** \param s          encoded RNA sequence
@@ -51,16 +72,34 @@ float energy_of_struct(const char *string, const char *structure);
 *** \returns          the free energy of the input structure given the input sequence in 10kcal/mol
 **/
 int   energy_of_struct_pt(const char *string, short *ptable, short *s, short *s1);
+
+/**
+*** Calculate the free energy of an already folded RNA
+***
+*** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
+***
+*** \see              make_pair_table(), energy_of_struct()
+*** \param string     RNA sequence
+*** \param ptable     the pair table of the secondary structure
+*** \param s          encoded RNA sequence
+*** \param s1         encoded RNA sequence
+*** \param verbosity_level a flag to turn verbose output on/off
+*** \returns          the free energy of the input structure given the input sequence in 10kcal/mol
+**/
+int   energy_of_structure_pt(const char *string, short *ptable, short *s, short *s1, int verbosity_level);
+
 /**
 *** free arrays for mfe folding
 **/
 void  free_arrays(void);
 /**
-*** allocate arrays for folding
+*** Allocate arrays for folding\n
+*** \deprecated {This function is deprecated and will be removed soon!}
+***
 **/
-void  initialize_fold(int length);
+void  DEPRECATED(initialize_fold(int length));
 /**
-*** recalculate parameters
+*** recalculate energy parameters
 **/
 void  update_fold_params(void);
 /**
@@ -89,12 +128,28 @@ float circfold(const char *string, char *structure);
 /**
 *** Calculate the free energy of an already folded  circular RNA
 ***
-*** \see              energy_of_struct(), energy_of_struct_pt()
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+*** Better use \ref energy_of_circ_structure() instead
+***
+*** \see              energy_of_circ_structure(), energy_of_struct(), energy_of_struct_pt()
 *** \param string     RNA sequence
 *** \param structure  secondary structure in dot-bracket notation
 *** \returns          the free energy of the input structure given the input sequence in kcal/mol
 **/
 float energy_of_circ_struct(const char *string, const char *structure);
+/**
+*** Calculate the free energy of an already folded  circular RNA
+***
+*** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
+*** \see              energy_of_struct(), energy_of_struct_pt()
+*** \param string     RNA sequence
+*** \param structure  secondary structure in dot-bracket notation
+*** \param verbosity_level a flag to turn verbose output on/off
+*** \returns          the free energy of the input structure given the input sequence in kcal/mol
+**/
+float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level);
+
 /**
 ***
 **/

@@ -52,8 +52,6 @@ PUBLIC  int logML=0;            /* if nonzero use logarithmic ML energy in energ
 PUBLIC  int uniq_ML=0;          /* do ML decomposition uniquely (for subopt) */
 PUBLIC  int cut_point = -1;     /* set to first pos of second seq for cofolding */
 PUBLIC  int eos_debug=0;        /* verbose info from energy_of_struct */
-PUBLIC  int circ = 0;
-PUBLIC  int Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies                        */
 
 /*
 #################################
@@ -79,6 +77,7 @@ PRIVATE int     *DMLi1_a;
 PRIVATE int     *DMLi1_o;
 PRIVATE int     *DMLi2_a;
 PRIVATE int     *DMLi2_o;
+PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies */
 PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE char    *ptype;             /* precomputed array of pair types */
 PRIVATE short   *S, *S1;
@@ -93,6 +92,8 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -4: x = base must not pair
                         positive int: base is paired with int      */
 PRIVATE short   *pair_table; /* needed by energy of struct */
+PRIVATE bondT   *base_pair2; /* this replaces base_pair from fold_vars.c */
+PRIVATE int     circular = 0;
 
 #ifdef USE_OPENMP
 
@@ -104,9 +105,11 @@ PRIVATE short   *pair_table; /* needed by energy of struct */
 */
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
-                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table)
+                          Fc, FcH, FcI, FcM,\
+                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table, base_pair2, circular)
 
 #endif
+
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
@@ -114,14 +117,14 @@ PRIVATE short   *pair_table; /* needed by energy of struct */
 */
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
-PRIVATE int   stack_energy(int i, const char *string);
+PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
 PRIVATE int   energy_of_extLoop_pt(short *pair_table);
 PRIVATE int   energy_of_ml_pt(int i, short *pt);
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
+PRIVATE void  init_fold(int length);
 /* needed by cofold/eval */
 PRIVATE int   cut_in_loop(int i);
 
@@ -133,13 +136,15 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 /*@unused@*/
 PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
 
-PUBLIC void initialize_fold(int length){
+/* allocate memory for folding process */
+PRIVATE void init_fold(int length){
   unsigned int n;
 
 #ifdef USE_OPENMP
@@ -148,12 +153,11 @@ PUBLIC void initialize_fold(int length){
 #endif
 
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  /* if (init_length>0)*/ free_arrays();
+  free_arrays();
   get_arrays((unsigned) length);
   init_length=length;
 
-  for (n = 1; n <= (unsigned) length; n++)
-    indx[n] = (n*(n-1)) >> 1;        /* n(n-1)/2 */
+  indx = get_indx((unsigned)length);
 
   update_fold_params();
 }
@@ -184,10 +188,10 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_a = (int *) space(sizeof(int)*(size+1));
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
-  if (base_pair) free(base_pair);
-  base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
+  if (base_pair2) free(base_pair2);
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
   /* extra array(s) for circfold() */
-  if(circ) fM2 =  (int *) space(sizeof(int)*(size+2));
+  if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -203,7 +207,7 @@ PUBLIC void free_arrays(void){
   if(ptype)     free(ptype);
   if(fM1)       free(fM1);
   if(fM2)       free(fM2);
-  if(base_pair) free(base_pair);
+  if(base_pair2) free(base_pair2);
   if(Fmi)       free(Fmi);
   if(DMLi)      free(DMLi);
   if(DMLi1)     free(DMLi1);
@@ -218,7 +222,7 @@ PUBLIC void free_arrays(void){
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
   ptype       = NULL;
-  base_pair   = NULL;
+  base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
 }
@@ -259,14 +263,22 @@ PUBLIC void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p
 PUBLIC float fold(const char *string, char *structure){
   int i, length, energy, bonus=0, bonus_cnt=0;
 
-  circ = 0;
+  circular = 0;
   length = (int) strlen(string);
-  if (length>init_length) initialize_fold(length);
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_fold(length);
+#else
+  if (length>init_length) init_fold(length);
+#endif
+
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
 
-  BP = (int *)space(sizeof(int)*(length+2));
+  BP  = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
 
   energy = fill_arrays(string);
@@ -291,8 +303,8 @@ PUBLIC float fold(const char *string, char *structure){
     if(BP[i]>i) {
       int l;
       bonus_cnt++;
-      for(l=1; l<=base_pair[0].i; l++)
-        if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
+      for(l=1; l<=base_pair2[0].i; l++)
+        if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
     }
   }
 
@@ -364,9 +376,7 @@ PRIVATE int fill_arrays(const char *string) {
         int new_c=0, stackEnergy=INF;
         /* hairpin ----------------------------------------------*/
 
-        if (no_close) new_c = FORBIDDEN;
-        else
-          new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
+        new_c = (no_close) ? FORBIDDEN : E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
 
         /*--------------------------------------------------------
           check for elementary structures involving more than one
@@ -488,7 +498,7 @@ PRIVATE int fill_arrays(const char *string) {
         /* double dangles */
         case 2:   new_fML = fML[ij+1]+P->MLbase;
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<length) || circ) ? S1[j+1] : -1, P));
+                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<length) || circular) ? S1[j+1] : -1, P));
                   break;
 #ifdef SPECIAL_DANGLES
         /* normal dangles as ronny would think of them ;) */
@@ -529,8 +539,8 @@ PRIVATE int fill_arrays(const char *string) {
                   break;
 #endif
         /* normal dangles, aka dangles = 1 */
-        default:  mm5 = ((i>1) || circ) ? S1[i] : -1;
-                  mm3 = ((j<length) || circ) ? S1[j] : -1;
+        default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
+                  mm3 = ((j<length) || circular) ? S1[j] : -1;
                   new_fML = fML[ij+1] + P->MLbase;
                   new_fML = MIN2(new_fML, fML[indx[j-1]+i] + P->MLbase);
                   if(type) new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
@@ -760,8 +770,8 @@ PRIVATE void backtrack(const char *string, int s) {
     ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
                               occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       goto repeat1;
     }
 
@@ -774,7 +784,6 @@ PRIVATE void backtrack(const char *string, int s) {
       sector[++s].i = i;
       sector[s].j   = j-1;
       sector[s].ml  = ml;
-      //printf("(%d,%d) 3' end is unpaird -> seek to j-1\n", i,j);
       continue;
     }
 
@@ -895,19 +904,16 @@ PRIVATE void backtrack(const char *string, int s) {
       }
 
       if (!traced){
-        printf("%s\n", string);
+        fprintf(stderr, "%s\n", string);
         nrerror("backtrack failed in f5");
-      }
-      else{
-        //printf("traced f5[%d] = %d = f5[%d] + c(%d,%d)\n", j, fij, jj, k, traced);
       }
       sector[++s].i = 1;
       sector[s].j   = jj;
       sector[s].ml  = ml;
 
       i=k; j=traced;
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       goto repeat1;
     }
     else { /* trace back in fML array */
@@ -916,7 +922,6 @@ PRIVATE void backtrack(const char *string, int s) {
         sector[++s].i = i+1;
         sector[s].j   = j;
         sector[s].ml  = ml;
-        //printf("(%d,%d) 5' end is unpaird -> seek to i+1\n", i,j);
         continue;
       }
 
@@ -925,66 +930,66 @@ PRIVATE void backtrack(const char *string, int s) {
       en  = c[ij];
       switch(dangles){
         case 0:   if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   break;
 
         case 2:   if(fij == en + E_MLstem(tt, S1[i-1], S1[j+1], P)){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   break;
 
 #ifdef SPECIAL_DANGLES
         case 5:   if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[ij+1];
                   if(fij == c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
-                    base_pair[++b].i = ++i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = ++i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i];
                   if(fij == c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = --j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = --j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i+1];
                   if(fij == c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
-                    base_pair[++b].i = ++i;
-                    base_pair[b].j   = --j;
+                    base_pair2[++b].i = ++i;
+                    base_pair2[b].j   = --j;
                     goto repeat1;
                   }
                   break;
 #endif
         default:  if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[ij+1];
                   if(fij == c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
-                    base_pair[++b].i = ++i;
-                    base_pair[b].j   = j;
+                    base_pair2[++b].i = ++i;
+                    base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i];
                   if(fij == c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
-                    base_pair[++b].i = i;
-                    base_pair[b].j   = --j;
+                    base_pair2[++b].i = i;
+                    base_pair2[b].j   = --j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i+1];
                   if(fij == c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
-                    base_pair[++b].i = ++i;
-                    base_pair[b].j   = --j;
+                    base_pair2[++b].i = ++i;
+                    base_pair2[b].j   = --j;
                     goto repeat1;
                   }
                   break;
@@ -1005,7 +1010,6 @@ PRIVATE void backtrack(const char *string, int s) {
               break;
         }
       }
-      //printf("traced fML(%d,%d) = %d = fML(%d,%d) + fML(%d,%d) = %d + %d\n", i, j, fij, i, k, k+1, j, fML[indx[k]+i], fML[indx[j]+k+1]);
       sector[++s].i = i;
       sector[s].j   = k;
       sector[s].ml  = ml;
@@ -1026,7 +1030,6 @@ PRIVATE void backtrack(const char *string, int s) {
     type = ptype[ij];
 
     bonus = 0;
-    //printf("c(%d,%d) = %d\n", i, j, cij);
     if (fold_constrained) {
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
@@ -1037,8 +1040,8 @@ PRIVATE void backtrack(const char *string, int s) {
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
         cij -= P->stack[type][type_2] + bonus;
-        base_pair[++b].i = i+1;
-        base_pair[b].j   = j-1;
+        base_pair2[++b].i = i+1;
+        base_pair2[b].j   = j-1;
         i++; j--;
         canonical=0;
         goto repeat1;
@@ -1073,8 +1076,8 @@ PRIVATE void backtrack(const char *string, int s) {
         new = energy+c[indx[q]+p]+bonus;
         traced = (cij == new);
         if (traced) {
-          base_pair[++b].i = p;
-          base_pair[b].j   = q;
+          base_pair2[++b].i = p;
+          base_pair2[b].j   = q;
           i = p, j = q;
           goto repeat1;
         }
@@ -1172,7 +1175,6 @@ PRIVATE void backtrack(const char *string, int s) {
     }
 
     if (k>i+TURN) { /* found the decomposition */
-      //printf("traced cij = %d = ML(%d,%d)[%d]+ML(%d,%d)[%d]\n", cij, i1, k, fML[indx[k]+i1], k+1, j1, fML[indx[j1]+k+1]);
       sector[++s].i = i1;
       sector[s].j   = k;
       sector[++s].i = k+1;
@@ -1200,13 +1202,13 @@ PRIVATE void backtrack(const char *string, int s) {
       }
       else
 #endif
-        printf("%s\n", string);
+        fprintf(stderr, "%s\n", string);
         nrerror("backtracking failed in repeat");
     }
 
   }
 
-  base_pair[0].i = b;    /* save the total number of base pairs */
+  base_pair2[0].i = b;    /* save the total number of base pairs */
 }
 
 PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
@@ -1214,31 +1216,14 @@ PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
   sector[1].i  = i;
   sector[1].j  = j;
   sector[1].ml = 2;
-  base_pair[0].i=0;
-  encode_seq(sequence);
+  base_pair2[0].i=0;
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
   backtrack(sequence, 1);
   structure = (char *) space((strlen(sequence)+1)*sizeof(char));
   parenthesis_structure(structure, strlen(sequence));
   free(S);free(S1);
   return structure;
-}
-
-PRIVATE void encode_seq(const char *sequence) {
-  unsigned int i,l;
-
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S1= (short *) space(sizeof(short)*(l+2));
-  /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = (short) l;
-
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
-  }
-  /* for circular folding add first base at position n+1 and last base at
-        position 0 in S1        */
-  S[l+1] = S[1]; S1[l+1]=S1[1]; S1[0] = S1[l];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1250,9 +1235,9 @@ PRIVATE void letter_structure(char *structure, int length)
   for (n = 0; n <= length-1; structure[n++] = ' ') ;
   structure[length] = '\0';
 
-  for (n = 0, k = 1; k <= base_pair[0].i; k++) {
-    y = base_pair[k].j;
-    x = base_pair[k].i;
+  for (n = 0, k = 1; k <= base_pair2[0].i; k++) {
+    y = base_pair2[k].j;
+    x = base_pair2[k].i;
     if (x-1 > 0 && y+1 <= length) {
       if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
         structure[x-1] = structure[x-2];
@@ -1280,9 +1265,9 @@ PRIVATE void parenthesis_structure(char *structure, int length)
   for (n = 0; n <= length-1; structure[n++] = '.') ;
   structure[length] = '\0';
 
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
+  for (k = 1; k <= base_pair2[0].i; k++) {
+    structure[base_pair2[k].i-1] = '(';
+    structure[base_pair2[k].j-1] = ')';
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -1295,12 +1280,17 @@ PUBLIC void update_fold_params(void)
 }
 
 /*---------------------------------------------------------------------------*/
-PUBLIC float energy_of_struct(const char *string, const char *structure)
+PUBLIC float energy_of_structure(const char *string, const char *structure, int verbosity_level)
 {
   int   energy;
   short *ss, *ss1;
 
-  if ((init_length<0)||(P==NULL)) update_fold_params();
+#ifdef USE_OPENMP
+  if(P == NULL) update_fold_params();
+#else
+  if((init_length<0)||(P==NULL)) update_fold_params();
+#endif
+
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
   if (strlen(structure)!=strlen(string))
@@ -1308,11 +1298,12 @@ PUBLIC float energy_of_struct(const char *string, const char *structure)
 
   /* save the S and S1 pointers in case they were already in use */
   ss = S; ss1 = S1;
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
 
   pair_table = make_pair_table(structure);
 
-  energy = energy_of_struct_pt(string, pair_table, S, S1);
+  energy = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
 
   free(pair_table);
   free(S); free(S1);
@@ -1320,25 +1311,34 @@ PUBLIC float energy_of_struct(const char *string, const char *structure)
   return  (float) energy/100.;
 }
 
-PUBLIC int energy_of_struct_pt(const char *string, short * ptable,
-                        short *s, short *s1) {
+PUBLIC int energy_of_structure_pt(const char *string, short * ptable,
+                        short *s, short *s1, int verbosity_level) {
   /* auxiliary function for kinfold,
      for most purposes call energy_of_struct instead */
 
   int   i, length, energy;
+  short *ss, *ss1;
+
+#ifdef USE_OPENMP
+  if(P == NULL) update_fold_params();
+#else
+  if((init_length<0)||(P==NULL)) update_fold_params();
+#endif
 
   pair_table = ptable;
+  ss  = S;
+  ss1 = S1;
   S = s;
   S1 = s1;
 
   length = S[0];
 //  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
     energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(ptable);
-  if (eos_debug>0)
+  if (verbosity_level>0)
     printf("External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
     if (pair_table[i]==0) continue;
-    energy += stack_energy(i, string);
+    energy += stack_energy(i, string, verbosity_level);
     i=pair_table[i];
   }
   for (i=1; !SAME_STRAND(i,length); i++) {
@@ -1347,14 +1347,20 @@ PUBLIC int energy_of_struct_pt(const char *string, short * ptable,
       break;
     }
   }
+  S   = ss;
+  S1  = ss1;
   return energy;
 }
 
-PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
+PUBLIC float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level) {
   int   i, j, length, energy=0, en0, degree=0, type;
   short *ss, *ss1;
 
-  if ((init_length<0)||(P==NULL)) update_fold_params();
+#ifdef USE_OPENMP
+  if(P == NULL) update_fold_params();
+#else
+  if((init_length<0)||(P==NULL)) update_fold_params();
+#endif
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
   if (strlen(structure)!=strlen(string))
@@ -1362,7 +1368,8 @@ PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
 
   /* save the S and S1 pointers in case they were already in use */
   ss = S; ss1 = S1;
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
 
   pair_table = make_pair_table(structure);
 
@@ -1371,7 +1378,7 @@ PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
   for (i=1; i<=length; i++) {
     if (pair_table[i]==0) continue;
     degree++;
-    energy += stack_energy(i, string);
+    energy += stack_energy(i, string, verbosity_level);
     i=pair_table[i];
   }
 
@@ -1450,7 +1457,7 @@ PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
       }
     }
 
-  if (eos_debug>0)
+  if (verbosity_level>0)
     printf("External loop                           : %5d\n", en0);
   energy += en0;
   /* fprintf(stderr, "ext loop degree %d tot %d\n", degree, energy); */
@@ -1460,7 +1467,7 @@ PUBLIC float energy_of_circ_struct(const char *string, const char *structure) {
 }
 
 /*---------------------------------------------------------------------------*/
-PRIVATE int stack_energy(int i, const char *string)
+PRIVATE int stack_energy(int i, const char *string, int verbosity_level)
 {
   /* calculate energy of substructure enclosed by (i,j) */
   int ee, energy = 0;
@@ -1470,7 +1477,7 @@ PRIVATE int stack_energy(int i, const char *string)
   type = pair[S[i]][S[j]];
   if (type==0) {
     type=7;
-    if (eos_debug>=0)
+    if (verbosity_level>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
               string[i-1],string[j-1]);
   }
@@ -1484,7 +1491,7 @@ PRIVATE int stack_energy(int i, const char *string)
     type_2 = pair[S[q]][S[p]];
     if (type_2==0) {
       type_2=7;
-      if (eos_debug>=0)
+      if (verbosity_level>=0)
         fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
                 string[p-1],string[q-1]);
     }
@@ -1493,7 +1500,7 @@ PRIVATE int stack_energy(int i, const char *string)
       ee = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
     else
       ee = ML_Energy(cut_in_loop(i), 1);
-    if (eos_debug>0)
+    if (verbosity_level>0)
       printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
              i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
     energy += ee;
@@ -1508,7 +1515,7 @@ PRIVATE int stack_energy(int i, const char *string)
     else
       ee = ML_Energy(cut_in_loop(i), 1);
     energy += ee;
-    if (eos_debug>0)
+    if (verbosity_level>0)
       printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
              i, j, string[i-1],string[j-1], ee);
 
@@ -1518,7 +1525,7 @@ PRIVATE int stack_energy(int i, const char *string)
   /* (i,j) is exterior pair of multiloop */
   while (p<j) {
     /* add up the contributions of the substructures of the ML */
-    energy += stack_energy(p, string);
+    energy += stack_energy(p, string, verbosity_level);
     p = pair_table[p];
     /* search for next base pair in multiloop */
     while (pair_table[++p]==0);
@@ -1530,7 +1537,7 @@ PRIVATE int stack_energy(int i, const char *string)
     ee = (ii==0) ? energy_of_ml_pt(i, pair_table) : ML_Energy(ii, 1);
   }
   energy += ee;
-  if (eos_debug>0)
+  if (verbosity_level>0)
     printf("Multi    loop (%3d,%3d) %c%c              : %5d\n",
            i,j,string[i-1],string[j-1],ee);
 
@@ -1665,7 +1672,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
   int length = (int)pt[0];
 
-  if(!pt[i])
+  if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
 
   j = (int)pt[i];
@@ -2113,6 +2120,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
+
 PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
   
@@ -2478,5 +2486,25 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
     /* fprintf(stderr, "\n"); */
   }
   return energy;
+}
+
+/**
+*** \deprecated {this function is deprecated and will be removed soon!}
+**/
+PUBLIC void initialize_fold(int length){ /* DO NOTHING */}
+
+PUBLIC float energy_of_struct(const char *string, const char *structure)
+{
+  return energy_of_structure(string, structure, eos_debug);
+}
+
+PUBLIC int energy_of_struct_pt(const char *string, short * ptable, short *s, short *s1)
+{
+  return energy_of_structure_pt(string, ptable, s, s1, eos_debug);
+}
+
+PUBLIC float energy_of_circ_struct(const char *string, const char *structure)
+{
+  return energy_of_circ_structure(string, structure, eos_debug);
 }
 

@@ -95,7 +95,7 @@ PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
 PRIVATE double      init_temp;    /* temperature in last call to scale_pf_params */
 PRIVATE int         *jindx;
 PRIVATE int         init_length;  /* length in last call to init_pf_fold() */
-PRIVATE int         circ=0;
+PRIVATE int         circular=0;
 PRIVATE char        *pstruc;
 PRIVATE char        *sequence;
 PRIVATE char        *ptype;       /* precomputed array of pair types */
@@ -133,7 +133,7 @@ PUBLIC float pf_fold(const char *sequence, char *structure)
   double      free_energy;
   int         n = (int) strlen(sequence);
 
-  circ = 0;
+  circular = 0;
 
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
@@ -162,7 +162,7 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   double free_energy;
   int n = (int) strlen(sequence);
 
-  circ = 1;
+  circular = 1;
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
 
@@ -267,7 +267,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure)
          from segment i,j */
       qqm[i] = qqm1[i]*expMLbase[1];
       if (type) {
-        qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
+        qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
@@ -282,7 +282,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure)
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if(type)
-        qbt1 *= exp_E_ExtLoop(type, ((i>1) || circ) ? S1[i-1] : -1, ((j<n) || circ) ? S1[j+1] : -1, pf_params);
+        qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
   
       qq[i] = qq1[i]*scale[1] + qbt1;
 
@@ -403,7 +403,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
     pr = q;     /* recycling */
 
     /* 1. exterior pair i,j and initialization of pr array */
-    if(circ){
+    if(circular){
       for (i=1; i<=n; i++) {
         for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
           for (j=i+TURN+1; j<=n; j++) {
@@ -477,7 +477,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
           else pr[ij] = 0;
         }
       }
-    } /* end if(circ)  */
+    } /* end if(circular)  */
     else {
       for (i=1; i<=n; i++) {
         for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
@@ -491,7 +491,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
             pr[ij] = 0;
         }
       }
-    } /* end if(!circ)  */
+    } /* end if(!circular)  */
 
     for (l=n; l>TURN+1; l--) {
 
@@ -638,7 +638,7 @@ PRIVATE void get_arrays(unsigned int length)
   for (i=1; i<=length; i++) {
     jindx[i] = (i*(i-1))/2;
   }
-  if(circ){
+  if(circular){
     /* qm1 array is used for folding of circular RNA too */
     if(!qm1) qm1 = (FLT_OR_DBL *) space(size);
     qm2 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -648,7 +648,7 @@ PRIVATE void get_arrays(unsigned int length)
 /*----------------------------------------------------------------------*/
 
 PUBLIC void init_pf_circ_fold(int length){
-  circ = 1;
+  circular = 1;
   init_pf_fold(length);
 }
 
@@ -1255,6 +1255,11 @@ PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL *
   *q1k_p = q1k; *qln_p = qln;
   return(1); /* success */
 }
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
 
 
 

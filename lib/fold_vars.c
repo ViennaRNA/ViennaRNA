@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "fold_vars.h"
 
+int  circ = 0;
 int  noGU = 0;           /* GU not allowed at all */
 int  no_closingGU = 0;   /* GU allowed only inside stacks */
 int  tetra_loop = 1;     /* Fold with specially stable 4-loops */

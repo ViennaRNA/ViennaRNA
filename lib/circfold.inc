@@ -20,10 +20,18 @@ float circfold(const char *string, char *structure) {
         circ = 1;
 
   length = (int) strlen(string);
-  if (length>init_length) initialize_fold(length);
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_fold(length);
+#else
+  if (length>init_length) init_fold(length);
+#endif
+
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
 
   BP = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);

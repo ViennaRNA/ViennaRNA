@@ -187,15 +187,31 @@ void  str_RNA2RNA(char *sequence);
 
 /**
 *** Get an index mapper array (iindx) for accessing the energy matrices, e.g. in partition function related functions.\n
-*** Access of a position "(i,j)" is then accomplished by using "iindx[i]-j"\n
+*** Access of a position "(i,j)" is then accomplished by using \verbatim (i,j) ~ iindx[i]-j \endverbatim
 *** This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
 *** the ViennaRNAPackage
 ***
 *** Consult the implemented code to find out about the mapping formula ;)
 ***
+*** \see get_indx()
 *** \param length The length of the RNA sequence
 *** \return       The mapper array
 **/
 int   *get_iindx(unsigned int length);
+
+/**
+*** Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.\n
+*** Access of a position "(i,j)" is then accomplished by using \verbatim (i,j) ~ indx[j]+i \endverbatim
+*** This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
+*** the ViennaRNAPackage
+***
+*** Consult the implemented code to find out about the mapping formula ;)
+***
+*** \see get_iindx()
+*** \param length The length of the RNA sequence
+*** \return       The mapper array
+***
+**/
+int   *get_indx(unsigned int length);
 
 #endif

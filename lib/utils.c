@@ -459,3 +459,11 @@ PUBLIC int *get_iindx(unsigned int length){
     idx[i] = (((length + 1 - i) * (length - i))>>1) + length + 1;
   return idx;
 }
+
+PUBLIC int *get_indx(unsigned int length){
+  unsigned int i;
+  int *idx = (int *)space(sizeof(int) * (length+1));
+  for (i = 1; i <= length; i++)
+    idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
+  return idx;
+}

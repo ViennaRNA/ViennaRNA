@@ -34,12 +34,12 @@ int main(int argc, char *argv[]){
   char          *structure = NULL, *ParamFile = NULL, *ns_bases = NULL;
   int           i, length, l, sym, istty;
   double        deltaf, deltap;
-  int           delta, n_back, noconv, circ, dos, zuker;
+  int           delta, n_back, noconv, circular, dos, zuker;
 
   do_backtrack  = 1;
   dangles       = 2;
   delta         = 100;
-  deltap = n_back = noconv = circ = dos = zuker = 0;
+  deltap = n_back = noconv = circular = dos = zuker = 0;
   /*
   #############################################
   # check the command line parameters
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
   /* sorted output */
   if(args_info.sorted_given)      subopt_sorted = 1;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circ=1;
+  if(args_info.circ_given)        circular=1;
   /* stochastic backtracking */
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
   if(args_info.zuker_given) zuker = 1;
 
   if(zuker){
-    if(circ){
+    if(circular){
       warn_user("Sorry, zuker subopts not yet implemented for circfold");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
@@ -223,11 +223,11 @@ int main(int argc, char *argv[]){
       pf_scale = exp(-(1.03*mfe)/kT/length);
       strncpy(ss, structure, length);
       /* ignore return value, we are not interested in the free energy */
-      (circ) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
+      (circular) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
       free(ss);
       for (i=0; i<n_back; i++) {
         char *s;
-        s =(circ) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
+        s =(circular) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
         printf("%s\n", s);
         free(s);
       }
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]){
     }
     /* normal subopt */
     else if(!zuker){
-      (circ) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
+      (circular) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
       if (dos) {
         int i;
         for (i=0; i<= MAXDOS && i<=delta/10; i++) {

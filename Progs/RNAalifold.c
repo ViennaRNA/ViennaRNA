@@ -41,14 +41,14 @@ int main(int argc, char *argv[]){
   char          ffname[80], gfname[80], fname[80];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           n_seq, i, length, sym, r;
-  int           endgaps, mis, circ, doAlnPS, doColor, n_back, eval_energy, pf, istty;
+  int           endgaps, mis, circular, doAlnPS, doColor, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
-  endgaps = mis = pf = circ = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
+  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
   /* set pf scaling factor */
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circ=1;
+  if(args_info.circ_given)        circular=1;
   /* do not produce postscript output */
   /* partition function settings */
   if(args_info.partfunc_given){
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
   */
   make_pair_matrix();
 
-  if (circ && noLonelyPairs)
+  if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, "
             "some structures may be missed when using -noLP\n"
             "Try rotating your sequence a few times\n");
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]){
   ########################################################
   */
 
-  if (circ) {
+  if (circular) {
     int     i;
     double  s = 0;
     min_en    = circalifold((const char **)AS, structure);
@@ -275,7 +275,7 @@ int main(int argc, char *argv[]){
 
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
-    energy = (circ) ? alipf_circ_fold((const char **)AS, structure, &pl) : alipf_fold((const char **)AS, structure, &pl);
+    energy = (circular) ? alipf_circ_fold((const char **)AS, structure, &pl) : alipf_fold((const char **)AS, structure, &pl);
 
     if (n_back>0) {
       /*stochastic sampling*/
@@ -305,7 +305,7 @@ int main(int argc, char *argv[]){
       cpair *cp;
       char *cent;
       double dist;
-      if (!circ){
+      if (!circular){
       float *ens;
       cent = get_centroid_struct_pl(length, &dist, pl);
       ens=(float *)space(2*sizeof(float));

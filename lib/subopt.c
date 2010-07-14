@@ -89,6 +89,10 @@
 #include "loop_energies.h"
 #include "subopt.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 #define true          1
 #define false          0
 
@@ -161,25 +165,25 @@ PRIVATE int   threshold;                             /* minimal_energy + delta *
 PRIVATE char  *sequence;
 
 /* some needful things for subopt_circ */
+PRIVATE int   circular;
 PRIVATE int   *fM2;         /* energies of M2 */
 PRIVATE int   Fc, FcH, FcI, FcM;                /* parts of the exterior loop energies */
 
-PRIVATE void encode_seq(char *sequence) {
-  unsigned int i,l;
+#ifdef USE_OPENMP
 
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S1= (short *) space(sizeof(short)*(l+2));
-  /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = (short) l;
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin() in the PARALLEL directive!
+*/
+#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
+                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
+                          fM2, Fc, FcH, FcI, FcM, circular)
 
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
-  }
-  /* for circular folding add first base at position n+1 and last base at position 0 in S1*/
-  S[l+1] = S[1]; S1[l+1]=S1[1]; S1[0] = S1[l];
-}
+#endif
+
+
+
+
 
 /*---------------------------------------------------------------------------*/
 /*List routines--------------------------------------------------------------*/
@@ -381,7 +385,7 @@ best_attainable_energy(STATE * state)
   for (next = lst_first(state->Intervals); next; next = lst_next(next))
     {
       if (next->array_flag == 0)
-        sum += (circ) ? Fc : f5[next->j];
+        sum += (circular) ? Fc : f5[next->j];
       else if (next->array_flag == 1)
         sum += fML[indx[next->j] + next->i];
       else if (next->array_flag == 2)
@@ -446,7 +450,7 @@ PRIVATE void make_output(SOLUTION *SL, FILE *fp)  /* prints stuff */
 /*---------------------------------------------------------------------------*/
 
 PUBLIC SOLUTION *subopt_circ(char *seq, char *structure, int delta, FILE *fp){
-  circ = 1;
+  circular = 1;
   return subopt(seq, structure, delta, fp);
 }
 
@@ -475,13 +479,13 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   turn = (cut_point<0) ? 3 : 0;
   uniq_ML = 1;
-  (circ)? initialize_fold(length) : initialize_cofold(length);
-  min_en = (circ) ? circfold(sequence, struc) : cofold(sequence, struc);
-  (circ) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+  (circular) ? initialize_fold(length) : initialize_cofold(length);
+  min_en = (circular) ? circfold(sequence, struc) : cofold(sequence, struc);
+  (circular) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
 
   dangles = old_dangles;
   /* re-evaluate in case we're using logML etc */
-  min_en = (circ) ? energy_of_circ_struct(sequence, struc) : energy_of_struct(sequence, struc);
+  min_en = (circular) ? energy_of_circ_struct(sequence, struc) : energy_of_struct(sequence, struc);
   free(struc);
   eprint = print_energy + min_en;
   if (fp) {
@@ -491,8 +495,9 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
     free(SeQ);
   }
   make_pair_matrix();
-  encode_seq(sequence);
-  P = scale_parameters();
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+  P   = scale_parameters();
 
   /* Initialize ------------------------------------------------------------ */
 
@@ -502,7 +507,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   /* Initialize the stack ------------------------------------------------- */
 
-  minimal_energy = (circ) ? Fc : f5[length];
+  minimal_energy = (circular) ? Fc : f5[length];
   threshold = minimal_energy + delta;
 
   Stack = make_list();                                                   /* anchor */
@@ -556,7 +561,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
+        structure_energy = (circular) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -566,7 +571,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
           }
 #endif
         if (logML || (dangles==1) || (dangles==3)) { /* recalc energy */
-          structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
+          structure_energy = (circular) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
@@ -615,7 +620,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   /* free arrays left over from cofold() */
   free(S); free(S1);
-  (circ) ? free_arrays():free_co_arrays();
+  (circular) ? free_arrays():free_co_arrays();
   if (fp) { /* we've printed everything -- free solutions */
     SOLUTION *sol;
     for (sol=SolutionList; sol->structure != NULL; sol++)
@@ -629,7 +634,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
 /*---------------------------------------------------------------------------*/
 /* Definitions---------------------------------------------------------------*/
-/* these have to identical to defines in fold.c */
+/* these have to be identical to defines in fold.c */
 #define NEW_NINIO         1        /* use new asymetry penalty */
 #define STACK_BULGE1      1           /* stacking energies for bulges of size 1 */
 
@@ -695,8 +700,8 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if(dangles)
         element_energy = E_MLstem(type,
-                                  ((i > 1)&&(SAME_STRAND(i-1,i)) || circ)       ? S1[i-1] : -1,
-                                  ((j < length)&&(SAME_STRAND(j,j+1)) || circ)  ? S1[j+1] : -1,
+                                  ((i > 1)&&(SAME_STRAND(i-1,i)) || circular)       ? S1[i-1] : -1,
+                                  ((j < length)&&(SAME_STRAND(j,j+1)) || circular)  ? S1[j+1] : -1,
                                   P);
       else
         element_energy = E_MLstem(type, -1, -1, P);
@@ -784,7 +789,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
   /* 0000000000000000000000000000000000000000000000000000000000000000000000 */
 
-  if ((array_flag == 0) && !circ)
+  if ((array_flag == 0) && !circular)
     {
       /* array_flag = 0:                        interval i,j was found while */
       /* tracing back through f5-array and c-array */
@@ -840,8 +845,8 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         if (c[indx[j]+1] + element_energy + best_energy <= threshold)
           repeat(1, j, state, element_energy, 0);
       }
-    }/* end array_flag == 0 && !circ*/
-  /* or do we subopt circ? */
+    }/* end array_flag == 0 && !circular*/
+  /* or do we subopt circular? */
   else if(array_flag == 0){
     int k, l, p, q;
     /* if we've done everything right, we will never reach this case more than once         */

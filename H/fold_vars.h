@@ -25,6 +25,7 @@ extern int  no_closingGU;   /* GU allowed only inside stacks */
 extern int  tetra_loop;     /* Fold with specially stable 4-loops */
 extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
 extern int  dangles;            /* use dangling end energies (not in part_func!) */
+extern int  circ;           /* backward compatibility variable.. this does not effect anything */
 /*@null@*/
 
 extern int oldAliEn;        /* use old alifold energies (with gaps) */

@@ -104,7 +104,8 @@
 *** must be 'turned arround' when evaluating the free energy of the interior-loop 
 *** \see scale_parameters() 
 *** \see paramT
-*** \warning Not thread safe! A threadsafe implementation will replace this function in a future release!
+*** \note This function is threadsafe
+***
 *** \param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
 *** \param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
 *** \param  type    The pair type of the base pair closing the interior loop
@@ -137,7 +138,9 @@ INLINE  int   E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, 
 *** which are treated differently (based on experimental data) if they are tabulated.
 *** @see scale_parameters() 
 *** @see paramT
-*** \warning Not thread safe! A threadsafe implementation will replace this function in a future release!
+*** \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+*** Energy evaluation may change due to updates in global variable "tetra_loop"
+***
 *** \param  size  The size of the loop (number of unpaired nucleotides)
 *** \param  type  The pair type of the base pair closing the hairpin
 *** \param  si1   The 5'-mismatching nucleotide
@@ -183,6 +186,8 @@ INLINE  int   E_Hairpin(int size, int type, int si1, int sj1, const char *string
 *** 
 *** \see    E_MLstem()
 *** \see    E_ExtLoop()
+*** \note   This function is threadsafe
+***
 *** \param  type    The pair type of the first base pair un the stem
 *** \param  si1     The 5'-mismatching nucleotide
 *** \param  sj1     The 3'-mismatching nucleotide
@@ -198,6 +203,8 @@ INLINE  int   E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
 *** <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
 *** This is the partition function variant of \func E_Stem()
 *** \see E_Stem()
+*** \note This function is threadsafe
+***
 *** \return The Boltzmann weighted energy contribution of the branch off the loop
 **/
 INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P);
@@ -225,7 +232,9 @@ INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P)
 *** @see get_scaled_pf_parameters() 
 *** @see pf_paramT
 *** @see E_Hairpin()
-*** \warning Not thread safe! A threadsafe implementation will replace this function in a future release!
+*** \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+*** Energy evaluation may change due to updates in global variable "tetra_loop"
+***
 *** \param  u       The size of the loop (number of unpaired nucleotides)
 *** \param  type    The pair type of the base pair closing the hairpin
 *** \param  si1     The 5'-mismatching nucleotide
@@ -236,13 +245,15 @@ INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P)
 **/
 
 INLINE  double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P);
+
 /**
 *** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
 *** multiply by scale[u1+u2+2] for scaling
 *** @see get_scaled_pf_parameters() 
 *** @see pf_paramT
 *** @see E_IntLoop()
-*** \warning Not thread safe! A threadsafe implementation will replace this function in a future release!
+*** \note This function is threadsafe
+***
 *** \param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
 *** \param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
 *** \param  type    The pair type of the base pair closing the interior loop
