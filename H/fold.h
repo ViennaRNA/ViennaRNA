@@ -1,6 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_FOLD_H__
 #define __VIENNA_RNA_PACKAGE_FOLD_H__
 
+#include "data_structures.h"
+
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else
@@ -155,6 +157,23 @@ float energy_of_circ_structure(const char *string, const char *structure, int ve
 **/
 void  export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p, int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
 
+/**
+*** Create a plist from a dot-bracket string
+*** The dot-bracket string is parsed and for each base pair an
+*** entry in the plist is created. The probability of each pair in
+*** the list is set by a function parameter.
+***
+*** The end of the plist is marked by sequence positions i as well as j
+*** equal to 0. This condition should be used to stop looping over its
+*** entries
+***
+*** This function is threadsafe
+***
+*** \param pl     A pointer to the plist that is to be created
+*** \param struc  The secondary structure in dot-bracket notation
+*** \param pr     The probability for each base pair
+**/
+void assign_plist_from_db(plist **pl, const char *struc, float pr);
 
 /* finally moved the loop energy function declarations to this header...  */
 /* BUT: The functions only exist for backward compatibility reasons!      */

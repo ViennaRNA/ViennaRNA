@@ -621,21 +621,21 @@ PRIVATE void get_arrays(unsigned int length)
   if (st_back) {
     qm1 = (FLT_OR_DBL *) space(size);
   }
-  ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1 =(FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  iindx = get_iindx(length);
-  jindx = (int *) space(sizeof(int)*(length+1));
-  for (i=1; i<=length; i++) {
+  ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
+  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  iindx     = get_iindx(length);
+  jindx     = (int *) space(sizeof(int)*(length+1));
+  for (i=1; i<=length; i++){
     jindx[i] = (i*(i-1))/2;
   }
   if(circular){

@@ -99,7 +99,7 @@ PRIVATE int     circular = 0;
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
-         OR: use copyin(P, init_length, min_hairpin) in the PARALLEL directive!
+         OR: use copyin in the PARALLEL directive!
          e.g.:
          #pragma omp parallel for copyin(P, init_length, min_hairpin)
 */
@@ -2117,6 +2117,26 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   }
 }
 
+PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
+  /* convert bracket string to plist */
+  short *pt;
+  int i, k = 0;
+  pt  = make_pair_table(struc);
+  *pl = (plist *)space(strlen(struc)/2*sizeof(plist));
+  for(i = 1; i < strlen(struc); i++){
+    if(pt[i]>i){
+      (*pl)[k].i    = i;
+      (*pl)[k].j    = pt[i];
+      (*pl)[k++].p  = pr;
+    }
+  }
+  (*pl)[k].i    = 0;
+  (*pl)[k].j    = 0;
+  (*pl)[k++].p  = 0.;
+  free(pt);
+}
+
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -2491,20 +2511,19 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
 /**
 *** \deprecated {this function is deprecated and will be removed soon!}
 **/
-PUBLIC void initialize_fold(int length){ /* DO NOTHING */}
+PUBLIC void initialize_fold(int length){
+  /* DO NOTHING */
+}
 
-PUBLIC float energy_of_struct(const char *string, const char *structure)
-{
+PUBLIC float energy_of_struct(const char *string, const char *structure){
   return energy_of_structure(string, structure, eos_debug);
 }
 
-PUBLIC int energy_of_struct_pt(const char *string, short * ptable, short *s, short *s1)
-{
+PUBLIC int energy_of_struct_pt(const char *string, short * ptable, short *s, short *s1){
   return energy_of_structure_pt(string, ptable, s, s1, eos_debug);
 }
 
-PUBLIC float energy_of_circ_struct(const char *string, const char *structure)
-{
+PUBLIC float energy_of_circ_struct(const char *string, const char *structure){
   return energy_of_circ_structure(string, structure, eos_debug);
 }
 

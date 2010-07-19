@@ -58,6 +58,10 @@ char    *get_centroid_struct_pr(int length, double *dist, double *pl);
 *** The probability matrix given is parsed and all pair probabilities above
 *** the given threshold are used to create an entry in the plist
 ***
+*** The end of the plist is marked by sequence positions i as well as j
+*** equal to 0. This condition should be used to stop looping over its
+*** entries
+***
 *** \note This function is threadsafe
 ***
 *** \param pl     A pointer to the plist that is to be created

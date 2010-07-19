@@ -31,13 +31,9 @@
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
 
-PRIVATE struct plist *b2plist(const char *struc);
-PRIVATE struct plist *make_plist(int length, double pmin);
-
 /*--------------------------------------------------------------------------*/
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
   char          *string, *input_string, *structure=NULL, *cstruc=NULL;
   char          fname[80], ffname[80], gfname[80], *ParamFile=NULL;
@@ -250,8 +246,8 @@ int main(int argc, char *argv[])
           strcpy(ffname, fname);
           strcat(ffname, "_dp.ps");
         } else strcpy(ffname, "dot.ps");
-        pl1 = make_plist(length, 1e-5);
-        pl2 = b2plist(structure);
+        assign_plist_from_pr(&pl1, pr, length, 1e-5);
+        assign_plist_from_db(&pl2, structure, 0.95*0.95);
         (void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
         free(pl2);
         if (do_backtrack==2) {
@@ -269,7 +265,7 @@ int main(int argc, char *argv[])
         if(doMEA){
           float mea, mea_en;
           plist *pl;
-          pl = make_plist(length, 1e-4/(1+MEAgamma));
+          assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
           mea = MEA(pl, structure, MEAgamma);
           mea_en = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
           printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
@@ -290,50 +286,3 @@ int main(int argc, char *argv[])
   } while (1);
   return 0;
 }
-
-PRIVATE struct plist *b2plist(const char *struc) {
-  /* convert bracket string to plist */
-  short *pt;
-  struct plist *pl;
-  int i,k=0;
-  pt = make_pair_table(struc);
-  pl = (struct plist *)space(strlen(struc)/2*sizeof(struct plist));
-  for (i=1; i<strlen(struc); i++) {
-    if (pt[i]>i) {
-      pl[k].i = i;
-      pl[k].j = pt[i];
-      pl[k++].p = 0.95*0.95;
-    }
-  }
-  free(pt);
-  pl[k].i=0;
-  pl[k].j=0;
-  pl[k++].p=0.;
-  return pl;
-}
-
-
-PRIVATE struct plist *make_plist(int length, double pmin) {
-  /* convert matrix of pair probs to plist */
-  struct plist *pl;
-  int i,j,k=0,maxl;
-  maxl = 2*length;
-  pl = (struct plist *)space(maxl*sizeof(struct plist));
-  k=0;
-  for (i=1; i<length; i++)
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<pmin) continue;
-      if (k>=maxl-1) {
-        maxl *= 2;
-        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
-      }
-      pl[k].i = i;
-      pl[k].j = j;
-      pl[k++].p = pr[iindx[i]-j];
-    }
-  pl[k].i=0;
-  pl[k].j=0;
-  pl[k++].p=0.;
-  return pl;
-}
-
