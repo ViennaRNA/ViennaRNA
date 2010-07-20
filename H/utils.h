@@ -1,8 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_UTILS_H__
 #define __VIENNA_RNA_PACKAGE_UTILS_H__
 
-/** \file
-***
+/**
+*** \file utils.h
 **/
 
 /** Output flag of \func get_input_line():  "An ERROR has occured, maybe EOF" **/
@@ -213,5 +213,10 @@ int   *get_iindx(unsigned int length);
 ***
 **/
 int   *get_indx(unsigned int length);
+
+/**
+*** Insert constraining pair types according to constraint structure string
+**/
+void constrain_ptypes(const char *constraint, char *ptype, int *BP, int min_loop_size, unsigned int idx_type);
 
 #endif

@@ -70,6 +70,10 @@
 #include "loop_energies.h"
 #include "part_func.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
 
@@ -102,11 +106,26 @@ PRIVATE char        *ptype;       /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params;   /* the precomputed Boltzmann weights */
 PRIVATE short       *S, *S1;
 
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
+                          scale, expMLbase, qo, qho, qio, qmo, qm2, init_temp, jindx, init_length,\
+                          circular, pstruc, sequence, ptype, pf_params, S, S1)
+
+#endif
+
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+PRIVATE void  init_partfunc(int length);
 PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
@@ -125,6 +144,100 @@ PRIVATE void  backtrack_qm2(int u, int n);
 #################################
 */
 
+PRIVATE void init_partfunc(int length){
+  if (length<1) nrerror("init_pf_fold: length must be greater 0");
+
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+
+#ifdef USE_OPENMP
+  free_pf_arrays(); /* free previous allocation */
+#else
+  if (init_length>0) free_pf_arrays(); /* free previous allocation */
+#endif
+
+#ifdef SUN4
+  nonstandard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(1);
+#endif
+#endif
+  make_pair_matrix();
+  get_arrays((unsigned) length);
+  scale_pf_params((unsigned) length);
+  init_length = length;
+}
+
+PRIVATE void get_arrays(unsigned int length){
+  unsigned int size,i;
+
+  size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
+
+  q     = (FLT_OR_DBL *) space(size);
+  qb    = (FLT_OR_DBL *) space(size);
+  qm    = (FLT_OR_DBL *) space(size);
+  qm1   = (st_back || circular) ? (FLT_OR_DBL *) space(size) : NULL;
+  qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
+
+  ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
+  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+
+  iindx     = get_iindx(length);
+  jindx     = get_indx(length);
+}
+
+PUBLIC void free_pf_arrays(void){
+  if(q)         free(q);
+  if(qb)        free(qb);
+  if(qm)        free(qm);
+  if(qm1)       free(qm1);
+  if(qm2)       free(qm2);
+  if(ptype)     free(ptype);
+  if(qq)        free(qq);
+  if(qq1)       free(qq1);
+  if(qqm)       free(qqm);
+  if(qqm1)      free(qqm1);
+  if(q1k)       free(q1k);
+  if(qln)       free(qln);
+  if(prm_l)     free(prm_l);
+  if(prm_l1)    free(prm_l1);
+  if(prml)      free(prml);
+  if(expMLbase) free(expMLbase);
+  if(scale)     free(scale);
+  if(iindx)     free(iindx);
+  if(jindx)     free(jindx);
+  if(S)         free(S);
+  if(S1)        free(S1);
+
+  init_length = 0;
+  S = S1 = NULL;
+  q = pr = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  iindx = jindx = NULL;
+  ptype = NULL;
+
+#ifdef SUN4
+  standard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(0);
+#endif
+#endif
+}
+
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(const char *sequence, char *structure)
 {
@@ -134,6 +247,19 @@ PUBLIC float pf_fold(const char *sequence, char *structure)
   int         n = (int) strlen(sequence);
 
   circular = 0;
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_partfunc(n);
+#else
+  if (n >init_length) init_partfunc(n);
+#endif
+  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+
+  make_ptypes(S, structure);
 
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
@@ -163,6 +289,19 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   int n = (int) strlen(sequence);
 
   circular = 1;
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_partfunc(n);
+#else
+  if (n >init_length) init_partfunc(n);
+#endif
+  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+
+  make_ptypes(S, structure);
+
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
 
@@ -199,20 +338,6 @@ PRIVATE void pf_linear(const char *sequence, char *structure)
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   n = (int) strlen(sequence);
-  if (n>init_length) init_pf_fold(n);  /* (re)allocate space */
-  if ((init_temp - temperature)>1e-6) update_pf_params(n);
-
-  S = (short *) xrealloc(S, sizeof(short)*(n+2));
-  S1= (short *) xrealloc(S1, sizeof(short)*(n+2));
-  S[0] = n;
-  for (l=1; l<=n; l++) {
-    S[l]  = (short) encode_char(toupper(sequence[l-1]));
-    S1[l] = alias[S[l]];
-  }
-  make_ptypes(S, structure);
-
-  /* add first base at position n+1 and n'th base at position 0 */
-  S[n+1] = S[1]; S1[n+1]=S1[1]; S1[0]=S1[n];
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -319,7 +444,7 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
   FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
 
   qo = qho = qio = qmo = 0.;
-  /* construct qm2 matrix with from qm1 entries  */
+  /* construct qm2 matrix from qm1 entries  */
   for(k=1; k<n-TURN-1; k++){
     qot = 0.;
     for (u=k+TURN+1; u<n-TURN-1; u++)
@@ -609,92 +734,9 @@ PRIVATE void scale_pf_params(unsigned int length)
 
 /*----------------------------------------------------------------------*/
 
-PRIVATE void get_arrays(unsigned int length)
-{
-  unsigned int size,i;
-
-  size = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
-  q   = (FLT_OR_DBL *) space(size);
-  qb  = (FLT_OR_DBL *) space(size);
-  qm  = (FLT_OR_DBL *) space(size);
-
-  if (st_back) {
-    qm1 = (FLT_OR_DBL *) space(size);
-  }
-  ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  iindx     = get_iindx(length);
-  jindx     = (int *) space(sizeof(int)*(length+1));
-  for (i=1; i<=length; i++){
-    jindx[i] = (i*(i-1))/2;
-  }
-  if(circular){
-    /* qm1 array is used for folding of circular RNA too */
-    if(!qm1) qm1 = (FLT_OR_DBL *) space(size);
-    qm2 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  }
-}
 
 /*----------------------------------------------------------------------*/
 
-PUBLIC void init_pf_circ_fold(int length){
-  circular = 1;
-  init_pf_fold(length);
-}
-
-PUBLIC void init_pf_fold(int length)
-{
-  if (length<1) nrerror("init_pf_fold: length must be greater 0");
-  if (init_length>0) free_pf_arrays(); /* free previous allocation */
-#ifdef SUN4
-  nonstandard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(1);
-#endif
-#endif
-  make_pair_matrix();
-  get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length);
-  init_length=length;
-}
-
-PUBLIC void free_pf_arrays(void)
-{
-  free(q); q=pr=NULL;
-  free(qb); qb=NULL;
-  free(qm);
-  if(qm1 != NULL){ free(qm1); qm1 = NULL;}
-  if(qm2 != NULL){ free(qm2); qm2 = NULL;}
-  free(ptype);
-  free(qq); free(qq1);
-  free(qqm); free(qqm1);
-  free(q1k); free(qln);
-  free(prm_l); free(prm_l1); free(prml);
-  free(expMLbase);
-  free(scale);
-  free(iindx); free(jindx);
-#ifdef SUN4
-  standard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(0);
-#endif
-#endif
-  init_length=0;
-  free(S); S=NULL;
-  free(S1); S1=NULL;
-}
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_pf_params(int length)
@@ -767,49 +809,8 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
-    char type;
-    stack = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) ptype[iindx[l]-j] = 0;
-        for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) ptype[iindx[l]-j] = 0;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        type = ptype[iindx[i]-j];
-        /* don't allow pairs i<k<j<l */
-        for (k=i; k<=j; k++)
-          for (l=j; l<=n; l++) ptype[iindx[k]-l] = 0;
-        /* don't allow pairs k<i<l<j */
-        for (k=1; k<=i; k++)
-          for (l=i; l<=j; l++) ptype[iindx[k]-l] = 0;
-        ptype[iindx[i]-j] = (type==0)?7:type;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
-        break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack);
-  }
+  if (fold_constrained && (structure != NULL))
+    constrain_ptypes(structure, ptype, NULL, TURN, 1);
 }
 
 /*
@@ -944,7 +945,7 @@ char *pbacktrack_circ(char *seq){
   return pstruc;
 }
 
-static void backtrack_qm(int i, int j){
+PRIVATE void backtrack_qm(int i, int j){
   /* divide multiloop into qm and qm1  */
   double qmt, r;
   int k;
@@ -968,7 +969,7 @@ static void backtrack_qm(int i, int j){
   }
 }
 
-static void backtrack_qm1(int i,int j) {
+PRIVATE void backtrack_qm1(int i,int j) {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
@@ -984,7 +985,7 @@ static void backtrack_qm1(int i,int j) {
   backtrack(i,l);
 }
 
-static void backtrack_qm2(int k, int n){
+PRIVATE void backtrack_qm2(int k, int n){
   double qom2t, r;
   int u;
   r= urn()*qm2[k];
@@ -998,7 +999,7 @@ static void backtrack_qm2(int k, int n){
   backtrack_qm1(u+1,n);
 }
 
-static void backtrack(int i, int j) {
+PRIVATE void backtrack(int i, int j) {
   do {
     double r, qbt1;
     int k, l, type, u, u1;
@@ -1352,4 +1353,13 @@ PUBLIC double expLoopEnergy(int u1, int u2, int type, int type2,
   }
   return z;
 }
+
+PUBLIC void init_pf_circ_fold(int length){
+/* DO NOTHING */
+}
+
+PUBLIC void init_pf_fold(int length){
+/* DO NOTHING */
+}
+
 

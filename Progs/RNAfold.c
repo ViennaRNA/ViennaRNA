@@ -186,7 +186,6 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    /* initialize_fold(length); */
     min_en = (circular) ? circfold(string, structure) : fold(string, structure);
     
     printf("%s\n%s", string, structure);
@@ -220,8 +219,6 @@ int main(int argc, char *argv[]){
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-
-      (circular) ? init_pf_circ_fold(length) : init_pf_fold(length);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 

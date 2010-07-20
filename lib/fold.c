@@ -40,7 +40,6 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 #define LOCALITY          0.      /* locality parameter for base-pairs */
 
-#define MIN2(A, B)        ((A) < (B) ? (A) : (B))
 #define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
 
 /*
@@ -2069,52 +2068,8 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
-    char type;
-    stack = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case '|': BP[j] = -1; break;
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        type = ptype[indx[j]+i];
-        for (k=i+1; k<=n; k++) ptype[indx[k]+i] = 0;
-        /* don't allow pairs i<k<j<l */
-        for (l=j; l<=n; l++)
-          for (k=i+1; k<=j; k++) ptype[indx[l]+k] = 0;
-        /* don't allow pairs k<i<l<j */
-        for (l=i; l<=j; l++)
-          for (k=1; k<=i; k++) ptype[indx[l]+k] = 0;
-        for (k=1; k<j; k++) ptype[indx[j]+k] = 0;
-        ptype[indx[j]+i] = (type==0)?7:type;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-        break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack);
-  }
+  if (fold_constrained && (structure != NULL))
+    constrain_ptypes(structure, ptype, BP, TURN, 0);
 }
 
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){

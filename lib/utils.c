@@ -467,3 +467,95 @@ PUBLIC int *get_indx(unsigned int length){
     idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
   return idx;
 }
+
+PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){
+  int n,i,j,k,l;
+  int hx, *stack;
+  char type;
+  int *index;
+
+  if(constraint == NULL) return;
+
+  n = (int)strlen(constraint);
+
+  stack = (int *) space(sizeof(int)*(n+1));
+
+  if(!idx_type){ /* index allows access in energy matrices at pos (i,j) via index[j]+i */
+    index = get_indx((unsigned)n);
+
+    for(hx=0, j=1; j<=n; j++){
+      switch(constraint[j-1]){
+        case '|':   if(BP) BP[j] = -1;
+                    break;
+        case 'x':   /* can't pair */
+                    for (l=1; l<j-min_loop_size; l++) ptype[index[j]+l] = 0;
+                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[l]+j] = 0;
+                    break;
+        case '(':   stack[hx++]=j;
+                    /* fallthrough */
+        case '<':   /* pairs upstream */
+                    for (l=1; l<j-min_loop_size; l++) ptype[index[j]+l] = 0;
+                    break;
+        case ')':   if (hx<=0) {
+                      fprintf(stderr, "%s\n", constraint);
+                      nrerror("unbalanced brackets in constraint");
+                    }
+                    i = stack[--hx];
+                    type = ptype[index[j]+i];
+                    for (k=i+1; k<=n; k++) ptype[index[k]+i] = 0;
+                    /* don't allow pairs i<k<j<l */
+                    for (l=j; l<=n; l++)
+                      for (k=i+1; k<=j; k++) ptype[index[l]+k] = 0;
+                    /* don't allow pairs k<i<l<j */
+                    for (l=i; l<=j; l++)
+                      for (k=1; k<=i; k++) ptype[index[l]+k] = 0;
+                    for (k=1; k<j; k++) ptype[index[j]+k] = 0;
+                    ptype[index[j]+i] = (type==0) ? 7 : type;
+                    /* fallthrough */
+        case '>':   /* pairs downstream */
+                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[l]+j] = 0;
+                    break;
+      }
+    }
+  }
+  else{ /* index allows access in energy matrices at pos (i,j) via index[i]-j */
+    index = get_iindx((unsigned)n);
+
+    for(hx=0, j=1; j<=n; j++) {
+      switch (constraint[j-1]) {
+        case 'x':   /* can't pair */
+                    for (l=1; l<j-min_loop_size; l++) ptype[index[l]-j] = 0;
+                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[j]-l] = 0;
+                    break;
+        case '(':   stack[hx++]=j;
+                    /* fallthrough */
+        case '<':   /* pairs upstream */
+                    for (l=1; l<j-min_loop_size; l++) ptype[index[l]-j] = 0;
+                    break;
+        case ')':   if (hx<=0) {
+                      fprintf(stderr, "%s\n", constraint);
+                      nrerror("unbalanced brackets in constraints");
+                    }
+                    i = stack[--hx];
+                    type = ptype[index[i]-j];
+                    /* don't allow pairs i<k<j<l */
+                    for (k=i; k<=j; k++)
+                      for (l=j; l<=n; l++) ptype[index[k]-l] = 0;
+                    /* don't allow pairs k<i<l<j */
+                    for (k=1; k<=i; k++)
+                      for (l=i; l<=j; l++) ptype[index[k]-l] = 0;
+                    ptype[index[i]-j] = (type==0) ? 7 : type;
+                    /* fallthrough */
+        case '>':   /* pairs downstream */
+                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[j]-l] = 0;
+                    break;
+      }
+    }
+  }
+  if (hx!=0) {
+    fprintf(stderr, "%s\n", constraint);
+    nrerror("unbalanced brackets in constraint string");
+  }
+  free(index);
+  free(stack);
+}

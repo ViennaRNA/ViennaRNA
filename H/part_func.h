@@ -20,7 +20,12 @@
 float   pf_fold(const char *sequence, char *structure);
 float   pf_circ_fold(const char *sequence, char *structure);
 /* calculate partition function and base pair probabilities */
-void    init_pf_fold(int length);    /* allocate space for pf_fold() */
+
+/** allocate space for pf_fold()
+*** \deprecated {This function is obsolete and will be removed soon!}
+**/
+void    DEPRECATED(init_pf_fold(int length));
+
 void    free_pf_arrays(void);        /* free arrays from pf_fold() */
 void    update_pf_params(int length); /*recalculate energy parameters */
 char    bppm_symbol(float *x);  /* string representation of structure */
