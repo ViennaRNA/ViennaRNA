@@ -239,9 +239,7 @@ int main(int argc, char *argv[])
     }
     /*compute mfe of AB dimer*/
     min_en = cofold(string, structure);
-    mfAB=(struct plist *) space(sizeof(struct plist) * (length+1));
-    mfAB=get_mfe_plist(mfAB);
-
+    assign_plist_from_db(&mfAB, structure, 0.95);
     if (cut_point == -1)    printf("%s\n%s", string, structure); /*no cofold*/
 
     else {
@@ -311,8 +309,7 @@ int main(int argc, char *argv[])
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
 
-      prAB=(struct plist *) space(sizeof(struct plist) * (2*length));
-      prAB=get_plist(prAB, length,0.00001);
+      assign_plist_from_pr(&prAB, pr, length, 0.00001);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
@@ -338,23 +335,15 @@ int main(int argc, char *argv[])
         strncat(Bstring,string+Alength,Blength);
 
         /* compute AA dimer */
-        prAA=(struct plist *) space(sizeof(struct plist) * (4*Alength));
-        mfAA=(struct plist *) space(sizeof(struct plist) * (Alength+1));
         AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA);
         /* compute BB dimer */
-        prBB=(struct plist *) space(sizeof(struct plist) * (4*Blength));
-        mfBB=(struct plist *) space(sizeof(struct plist) * (Blength+1));
         BB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        prA=(struct plist *) space(sizeof(struct plist) * (2*Alength));
-        mfA=(struct plist *) space(sizeof(struct plist) * (Alength+1));
         do_partfunc(Astring, Alength, 1, &prA, &mfA);
 
         /* compute B monomer */
-        prB=(struct plist *) space(sizeof(struct plist) * (2*Blength));
-        mfB=(struct plist *) space(sizeof(struct plist) * (Blength+1));
         do_partfunc(Bstring, Blength, 1, &prB, &mfB);
 
         compute_probabilities(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength);
@@ -516,13 +505,13 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       tempstruc = (char *) space((unsigned)length+1);
       min_en = fold(string, tempstruc);
       pf_scale = exp(-(sfact*min_en)/kT/(length));
-      *mfpl=get_mfe_plist(*mfpl);
+      assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_arrays();
       /*En=pf_fold(string, tempstruc);*/
       init_co_pf_fold(length);
       X=co_pf_fold(string, tempstruc);
 
-      *tpr=get_plist(*tpr, length,0.00001);
+      assign_plist_from_pr(tpr, pr, length, 0.00001);
       free_co_pf_arrays();
       free(tempstruc);
       break;
@@ -535,11 +524,11 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       tempstruc = (char *) space((unsigned)length*2+1);
       min_en = cofold(Newstring, tempstruc);
       pf_scale =exp(-(sfact*min_en)/kT/(2*length));
-      *mfpl=get_mfe_plist(*mfpl);
+      assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_co_arrays();
       init_co_pf_fold(2*length);
       X=co_pf_fold(Newstring, tempstruc);
-      *tpr=get_plist(*tpr, 2*length,0.00001);
+      assign_plist_from_pr(tpr, pr, 2*length, 0.00001);
       free_co_pf_arrays();
       free(Newstring);
       free(tempstruc);
@@ -595,20 +584,3 @@ PRIVATE double *read_concentrations(FILE *fp) {
   startc[i]=startc[i+1]=0;
   return startc;
 }
-
-PRIVATE struct plist *get_mfe_plist(struct plist *pl) {
-  /*get list of mfe structure out of base_pairs array*/
-  int l;
-  for(l=1; l<=base_pair[0].i; l++)
-    {
-      pl[l-1].i=base_pair[l].i;
-      pl[l-1].j=base_pair[l].j;
-      pl[l-1].p=0.95;
-    }
-  pl[l-1].i=0;
-  pl[l-1].j=0;
-  pl[l-1].p=0.;
-  pl=(struct plist *)xrealloc(pl,l*sizeof(struct plist));
-  return pl;
-}
-

@@ -33,8 +33,6 @@ static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
-#define free_arrays free_co_arrays
-#define initialize_fold initialize_cofold
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
@@ -76,6 +74,13 @@ PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
 PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
+PRIVATE bondT   *base_pair2;
+PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
+                        -1: | = base must be paired
+                        -2: < = base must be paired with j<i
+                        -3: > = base must be paired with j>i
+                        -4: x = base must not pair
+                        positive int: base is paired with int      */
 
 
 /*
@@ -84,14 +89,9 @@ PRIVATE int     length;
 #################################
 */
 
-/*@unused@*/
-PRIVATE void  letter_structure(char *structure, int length) UNUSED;
-PRIVATE void  parenthesis_structure(char *structure, int length);
-PRIVATE void  parenthesis_zuker(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
-PRIVATE void  encode_seq(const char *sequence);
 PRIVATE void  backtrack(const char *sequence);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  free_end(int *array, int i, int start);
@@ -103,16 +103,15 @@ PRIVATE void  free_end(int *array, int i, int start);
 */
 
 /*--------------------------------------------------------------------------*/
-PUBLIC void initialize_fold(int length)
+PUBLIC void initialize_cofold(int length)
 {
   unsigned int n;
-  if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  if (init_length>0) free_arrays();
+  if (length<1) nrerror("initialize_cofold: argument must be greater 0");
+  if (init_length>0) free_co_arrays();
   get_arrays((unsigned) length);
   init_length=length;
 
-  for (n = 1; n <= (unsigned) length; n++)
-    indx[n] = (n*(n-1)) >> 1;        /* n(n-1)/2 */
+  indx = get_indx((unsigned) length);
 
   update_cofold_params();
 }
@@ -121,7 +120,6 @@ PUBLIC void initialize_fold(int length)
 
 PRIVATE void get_arrays(unsigned int size)
 {
-  indx = (int *) space(sizeof(int)*(size+1));
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
@@ -136,13 +134,13 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi  = (int *) space(sizeof(int)*(size+1));
   DMLi1 = (int *) space(sizeof(int)*(size+1));
   DMLi2 = (int *) space(sizeof(int)*(size+1));
-  if (base_pair) free(base_pair);
-  base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
+  if (base_pair2) free(base_pair2);
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC void free_arrays(void)
+PUBLIC void free_co_arrays(void)
 {
   free(indx); free(c); free(fML); free(f5); free(cc); free(cc1);
   free(fc);
@@ -157,7 +155,7 @@ PUBLIC void free_arrays(void)
 
 /*--------------------------------------------------------------------------*/
 
-void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
+PUBLIC void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
                           int **fc_p, int **indx_p, char **ptype_p) {
   /* make the DP arrays available to routines such as subopt() */
   *f5_p = f5; *c_p = c;
@@ -168,21 +166,16 @@ void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE   int   *BP; /* contains the structure constrainsts: BP[i]
-                        -1: | = base must be paired
-                        -2: < = base must be paired with j<i
-                        -3: > = base must be paired with j>i
-                        -4: x = base must not pair
-                        positive int: base is paired with int      */
-
-float cofold(const char *string, char *structure) {
+PUBLIC float cofold(const char *string, char *structure) {
   int i, length, energy, bonus=0, bonus_cnt=0;
 
   length = (int) strlen(string);
-  if (length>init_length) initialize_fold(length);
+  if (length>init_length) initialize_cofold(length);
   if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
+  S1[0] = S[0]; /* store length at pos. 0 */
 
   BP = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
@@ -192,9 +185,9 @@ float cofold(const char *string, char *structure) {
   if (!zuker) backtrack(string);
 
 #ifdef PAREN
-  parenthesis_structure(structure, length);
+  parenthesis_structure(structure, base_pair2, length);
 #else
-  letter_structure(structure, length);
+  letter_structure(structure, base_pair2, length);
 #endif
 
   /* check constraints */
@@ -209,8 +202,8 @@ float cofold(const char *string, char *structure) {
     if(BP[i]>i) {
       int l;
       bonus_cnt++;
-      for(l=1; l<=base_pair[0].i; l++)
-        if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
+      for(l=1; l<=base_pair2[0].i; l++)
+        if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
     }
   }
 
@@ -546,8 +539,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
                               occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       goto repeat1;
     }
 
@@ -641,8 +634,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       i=k; j=traced;
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       goto repeat1;
     }
     else if (ml==3) { /* backtrack in fc[i<cut,j=cut-1] */
@@ -709,8 +702,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       j=k; i=traced;
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       goto repeat1;
     }
 
@@ -727,41 +720,41 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       cij = c[indx[j]+i];
       switch(dangles){
         case 0:   if(fij == cij + E_MLstem(tt, -1, -1, P)){
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   break;
         case 2:   if(fij == cij + E_MLstem(tt, (i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P)){
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   break;
         default:  if(fij == cij + E_MLstem(tt, -1, -1, P)){
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j]+i+1];
                   if(fij == c[indx[j]+i+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P)){
                     i++;
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i];
                   if(fij == c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P)){
                     j--;
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i+1];
                   if(fij == c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P)){
                     i++; j--;
-                    base_pair[++b].i  = i;
-                    base_pair[b].j    = j;
+                    base_pair2[++b].i  = i;
+                    base_pair2[b].j    = j;
                     goto repeat1;
                   }
                   break;
@@ -812,8 +805,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
         cij -= P->stack[type][type_2] + bonus;
-        base_pair[++b].i = i+1;
-        base_pair[b].j   = j-1;
+        base_pair2[++b].i = i+1;
+        base_pair2[b].j   = j-1;
         i++; j--;
         canonical=0;
         goto repeat1;
@@ -861,8 +854,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         new = energy+c[indx[q]+p]+bonus;
         traced = (cij == new);
         if (traced) {
-          base_pair[++b].i = p;
-          base_pair[b].j   = q;
+          base_pair2[++b].i = p;
+          base_pair2[b].j   = q;
           i = p, j = q;
           goto repeat1;
         }
@@ -1006,7 +999,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
   } /* end >> while (s>0) << */
 
-  base_pair[0].i = b;    /* save the total number of base pairs */
+  base_pair2[0].i = b;    /* save the total number of base pairs */
 }
 
 PRIVATE void free_end(int *array, int i, int start) {
@@ -1066,72 +1059,7 @@ PRIVATE void free_end(int *array, int i, int start) {
   }
 }
 
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void encode_seq(const char *sequence) {
-  unsigned int i,l;
-
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+1));
-  S1= (short *) space(sizeof(short)*(l+1));
-  /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = S1[0] = (short) l;
-
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void letter_structure(char *structure, int length)
-{
-  int n, k, x, y;
-
-  for (n = 0; n <= length-1; structure[n++] = ' ') ;
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= base_pair[0].i; k++) {
-    y = base_pair[k].j;
-    x = base_pair[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
-  int n, k;
-
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
-  }
-}
-/*---------------------------------------------------------------------------*/
-
-PUBLIC void update_cofold_params(void)
-{
+PUBLIC void update_cofold_params(void){
   P = scale_parameters();
   make_pair_matrix();
   update_fold_params();
@@ -1160,52 +1088,8 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
-    char type;
-    stack = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case '|': BP[j] = -1; break;
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        type = ptype[indx[j]+i];
-        for (k=i+1; k<=n; k++) ptype[indx[k]+i] = 0;
-        /* don't allow pairs i<k<j<l */
-        for (l=j; l<=n; l++)
-          for (k=i+1; k<=j; k++) ptype[indx[l]+k] = 0;
-        /* don't allow pairs k<i<l<j */
-        for (l=i; l<=j; l++)
-          for (k=1; k<=i; k++) ptype[indx[l]+k] = 0;
-        for (k=1; k<j; k++) ptype[indx[j]+k] = 0;
-        ptype[indx[j]+i] = (type==0)?7:type;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-        break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack);
-  }
+  if (fold_constrained && (structure != NULL))
+    constrain_ptypes(structure, ptype, BP, TURN, 0);
 }
 
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {
@@ -1213,10 +1097,10 @@ PUBLIC void get_monomere_mfes(float *e1, float *e2) {
   *e1 = mfe1;
   *e2 = mfe2;
 }
+
 PRIVATE void backtrack(const char *sequence) {
   /*routine to call backtrack_co from 1 to n, backtrack type??*/
   backtrack_co(sequence, 0,0);
-  return;
 }
 
 PRIVATE comp_pair(const void *A, const void *B) {
@@ -1290,15 +1174,15 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
       sector[1].i=j;
       sector[1].j=i+length;
       sector[1].ml = 2;
-      backtrack_co(doubleseq, 1,base_pair[0].i);
+      backtrack_co(doubleseq, 1,base_pair2[0].i);
       energy=c[indx[j]+i]+c[indx[i+length]+j];
-      parenthesis_zuker(structure, length);
+      parenthesis_zuker(structure, base_pair2, length);
       zukresults[counter].energy=energy;
       zukresults[counter++].structure=strdup(structure);
-      for (k = 1; k <= base_pair[0].i; k++) { /* mark all pairs in structure as done */
+      for (k = 1; k <= base_pair2[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
-        x=base_pair[k].i;
-        y=base_pair[k].j;
+        x=base_pair2[k].i;
+        y=base_pair2[k].j;
         if (x>length) x-=length;
         if (y>length) y-=length;
         if (x>y) {
@@ -1320,24 +1204,4 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   zuker=0;
   free(S); free(S1); free(BP);
   return zukresults;
-}
-
-PRIVATE void parenthesis_zuker(char *structure, int length)
-{
-  int n, k, i, j, temp;
-
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-
-  for (k = 1; k <= base_pair[0].i; k++) {
-    i=base_pair[k].i;
-    j=base_pair[k].j;
-    if (i>length) i-=length;
-    if (j>length) j-=length;
-    if (i>j) {
-      temp=i; i=j; j=temp;
-    }
-    structure[i-1] = '(';
-    structure[j-1] = ')';
-  }
 }

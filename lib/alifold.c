@@ -72,7 +72,7 @@ PRIVATE int             *DMLi2;             /*             MIN(fML[i+2,k]+fML[k+
 PRIVATE int             *pscore;            /* precomputed array of pair types */
 PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-
+PRIVATE bondT           *base_pair2;
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
@@ -80,7 +80,6 @@ PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for b
 */
 
 PRIVATE void  init_alifold(int length);
-PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
 PRIVATE int   fill_arrays(const char **strings);
@@ -125,8 +124,8 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi    = (int *) space(sizeof(int)*(size+1));
   DMLi1   = (int *) space(sizeof(int)*(size+1));
   DMLi2   = (int *) space(sizeof(int)*(size+1));
-  if(base_pair) free(base_pair);
-  base_pair = (struct bond *) space(sizeof(struct bond)*(1+size/2));
+  if(base_pair2) free(base_pair2);
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
 /* unsafe function that will be replaced by a threadsafe companion in the future */
@@ -138,7 +137,7 @@ PUBLIC  void  free_alifold_arrays(void){
   free(cc);
   free(cc1);
   free(pscore);
-  free(base_pair); base_pair=NULL;
+  free(base_pair2); base_pair2=NULL;
   free(Fmi);
   free(DMLi);
   free(DMLi1);
@@ -206,7 +205,7 @@ PUBLIC float alifold(const char **strings, char *structure){
 
   backtrack((const char **)strings, 0);
 
-  parenthesis_structure(structure, length);
+  parenthesis_structure(structure, base_pair2, length);
 
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
@@ -432,8 +431,8 @@ void backtrack(const char **strings, int s) {
     ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
                               occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       cov_en += pscore[indx[j]+i];
       goto repeat1;
     }
@@ -482,8 +481,8 @@ void backtrack(const char **strings, int s) {
       sector[s].ml  = ml;
 
       j=traced;
-      base_pair[++b].i = i;
-      base_pair[b].j   = j;
+      base_pair2[++b].i = i;
+      base_pair2[b].j   = j;
       cov_en += pscore[indx[j]+i];
       goto repeat1;
     }
@@ -513,8 +512,8 @@ void backtrack(const char **strings, int s) {
 
       if (fij==cij){
         /* found a pair */
-        base_pair[++b].i = i;
-        base_pair[b].j   = j;
+        base_pair2[++b].i = i;
+        base_pair2[b].j   = j;
         cov_en += pscore[indx[j]+i];
         goto repeat1;
       }
@@ -554,8 +553,8 @@ void backtrack(const char **strings, int s) {
           cij -= P->stack[type[ss]][type_2];
         }
         cij += pscore[indx[j]+i];
-        base_pair[++b].i = i+1;
-        base_pair[b].j   = j-1;
+        base_pair2[++b].i = i+1;
+        base_pair2[b].j   = j-1;
         cov_en += pscore[indx[j-1]+i+1];
         i++; j--;
         canonical=0;
@@ -590,8 +589,8 @@ void backtrack(const char **strings, int s) {
         }
         traced = (cij == energy+c[indx[q]+p]);
         if (traced) {
-          base_pair[++b].i = p;
-          base_pair[b].j   = q;
+          base_pair2[++b].i = p;
+          base_pair2[b].j   = q;
           cov_en += pscore[indx[q]+p];
           i = p, j = q;
           goto repeat1;
@@ -637,7 +636,7 @@ void backtrack(const char **strings, int s) {
 
   /* fprintf(stderr, "covariance energy %6.2f\n", cov_en/100.);  */
 
-  base_pair[0].i = b;    /* save the total number of base pairs */
+  base_pair2[0].i = b;    /* save the total number of base pairs */
   free(type);
 }
 
@@ -715,17 +714,6 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
       else
         s3[i-1]=S[i];
     }
-  }
-}
-
-
-PRIVATE void parenthesis_structure(char *structure, int length){
-  int n, k;
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
   }
 }
 

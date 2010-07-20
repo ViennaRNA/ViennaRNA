@@ -96,7 +96,6 @@ PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL  *scale;
 PRIVATE FLT_OR_DBL  *expMLbase;
 PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
-PRIVATE double      init_temp;    /* temperature in last call to scale_pf_params */
 PRIVATE int         *jindx;
 PRIVATE int         init_length;  /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
@@ -115,7 +114,7 @@ PRIVATE short       *S, *S1;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, expMLbase, qo, qho, qio, qmo, qm2, init_temp, jindx, init_length,\
+                          scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
                           circular, pstruc, sequence, ptype, pf_params, S, S1)
 
 #endif
@@ -126,7 +125,6 @@ PRIVATE short       *S, *S1;
 #################################
 */
 PRIVATE void  init_partfunc(int length);
-PRIVATE void  sprintf_bppm(int length, char *structure);
 PRIVATE void  scale_pf_params(unsigned int length);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
@@ -150,10 +148,6 @@ PRIVATE void init_partfunc(int length){
 #ifdef USE_OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
-#endif
-
-
-#ifdef USE_OPENMP
   free_pf_arrays(); /* free previous allocation */
 #else
   if (init_length>0) free_pf_arrays(); /* free previous allocation */
@@ -252,7 +246,7 @@ PUBLIC float pf_fold(const char *sequence, char *structure)
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc(n);
 #else
-  if (n >init_length) init_partfunc(n);
+  if (n > init_length) init_partfunc(n);
 #endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
 
@@ -698,7 +692,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
       }
 
     if (structure!=NULL)
-      sprintf_bppm(n, structure);
+      bppm_to_structure(structure, pr, n);
     if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
         ov, pf_scale);
@@ -708,13 +702,13 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
   return;
 }
 
-PRIVATE void scale_pf_params(unsigned int length)
-{
+PRIVATE void scale_pf_params(unsigned int length){
   unsigned int i;
   double  kT;
+
+  if(pf_params) free(pf_params);
   pf_params = get_scaled_pf_parameters();
-  init_temp = pf_params->temperature;
-  
+
   kT = pf_params->kT;   /* kT in cal/mol  */
 
    /* scaling factors (to avoid overflows) */
@@ -764,12 +758,10 @@ PUBLIC char bppm_symbol(float *x)
   return ':';
 }
 
-/*---------------------------------------------------------------------------*/
-#define L 3
-PRIVATE void sprintf_bppm(int length, char *structure)
-{
-  int    i,j;
-  float  P[L];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
+PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length){
+  int    i, j;
+  int   *iindx = get_iindx(length);
+  float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
 
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
@@ -786,6 +778,7 @@ PRIVATE void sprintf_bppm(int length, char *structure)
   }
   structure[length] = '\0';
 }
+
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void make_ptypes(const short *S, const char *structure) {

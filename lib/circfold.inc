@@ -231,9 +231,9 @@ float circfold(const char *string, char *structure) {
   backtrack(string, s);
 
 #ifdef PAREN
-  parenthesis_structure(structure, length);
+  parenthesis_structure(structure, base_pair2, length);
 #else
-  letter_structure(structure, length);
+  letter_structure(structure, base_pair2, length);
 #endif
 
   /* check constraints */
@@ -248,8 +248,8 @@ float circfold(const char *string, char *structure) {
     if(BP[i]>i) {
       int l;
       bonus_cnt++;
-      for(l=1; l<=base_pair[0].i; l++)
-        if((i==base_pair[l].i)&&(BP[i]==base_pair[l].j)) bonus++;
+      for(l=1; l<=base_pair2[0].i; l++)
+        if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
     }
   }
 

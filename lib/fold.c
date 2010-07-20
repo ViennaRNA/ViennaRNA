@@ -82,7 +82,6 @@ PRIVATE char    *ptype;             /* precomputed array of pair types */
 PRIVATE short   *S, *S1;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
-PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE int     min_hairpin = TURN;
 PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -1: | = base must be paired
@@ -114,7 +113,6 @@ PRIVATE int     circular = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
 PRIVATE int   energy_of_extLoop_pt(short *pair_table);
@@ -132,8 +130,6 @@ PRIVATE int   cut_in_loop(int i);
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
 int HairpinE(int size, int type, int si1, int sj1, const char *string);
-/*@unused@*/
-PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 
 
 /*
@@ -285,9 +281,9 @@ PUBLIC float fold(const char *string, char *structure){
   backtrack(string, 0);
 
 #ifdef PAREN
-  parenthesis_structure(structure, length);
+  parenthesis_structure(structure, base_pair2, length);
 #else
-  letter_structure(structure, length);
+  letter_structure(structure, base_pair2, length);
 #endif
 
   /* check constraints */
@@ -1220,23 +1216,23 @@ PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
   S1  = encode_sequence(sequence, 1);
   backtrack(sequence, 1);
   structure = (char *) space((strlen(sequence)+1)*sizeof(char));
-  parenthesis_structure(structure, strlen(sequence));
+  parenthesis_structure(structure, base_pair2, strlen(sequence));
   free(S);free(S1);
   return structure;
 }
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void letter_structure(char *structure, int length)
-{
-  int n, k, x, y;
+PUBLIC void letter_structure(char *structure, bondT *bp, int length){
+  int   n, k, x, y;
+  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  for (n = 0; n <= length-1; structure[n++] = ' ') ;
+  for (n = 0; n < length; structure[n++] = ' ');
   structure[length] = '\0';
 
-  for (n = 0, k = 1; k <= base_pair2[0].i; k++) {
-    y = base_pair2[k].j;
-    x = base_pair2[k].i;
+  for (n = 0, k = 1; k <= bp[0].i; k++) {
+    y = bp[k].j;
+    x = bp[k].i;
     if (x-1 > 0 && y+1 <= length) {
       if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
         structure[x-1] = structure[x-2];
@@ -1257,18 +1253,38 @@ PRIVATE void letter_structure(char *structure, int length)
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
+PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
   int n, k;
 
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
+  for (n = 0; n < length; structure[n++] = '.');
   structure[length] = '\0';
 
-  for (k = 1; k <= base_pair2[0].i; k++) {
-    structure[base_pair2[k].i-1] = '(';
-    structure[base_pair2[k].j-1] = ')';
+  for (k = 1; k <= bp[0].i; k++){
+    structure[bp[k].i-1] = '(';
+    structure[bp[k].j-1] = ')';
   }
 }
+
+PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
+  int k, i, j, temp;
+
+  for (k = 0; k < length; structure[k++] = '.');
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++) {
+    i=bp[k].i;
+    j=bp[k].j;
+    if (i>length) i-=length;
+    if (j>length) j-=length;
+    if (i>j) {
+      temp=i; i=j; j=temp;
+    }
+    structure[i-1] = '(';
+    structure[j-1] = ')';
+  }
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_fold_params(void)
@@ -2089,6 +2105,7 @@ PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
   (*pl)[k].j    = 0;
   (*pl)[k++].p  = 0.;
   free(pt);
+  *pl = (plist *)xrealloc(*pl, k * sizeof(plist));
 }
 
 

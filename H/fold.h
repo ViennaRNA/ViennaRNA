@@ -94,6 +94,26 @@ int   energy_of_structure_pt(const char *string, short *ptable, short *s, short 
 *** free arrays for mfe folding
 **/
 void  free_arrays(void);
+
+
+/**
+*** Create a dot-backet/parenthesis structure from backtracking stack
+***
+*** \note This function is threadsafe
+**/
+void  parenthesis_structure(char *structure, bondT *bp, int length);
+
+/**
+*** Create a dot-backet/parenthesis structure from backtracking stack
+*** obtained by zuker suboptimal calculation in cofold.c
+***
+*** \note This function is threadsafe
+**/
+void parenthesis_zuker(char *structure, bondT *bp, int length);
+
+void letter_structure(char *structure, bondT *bp, int length);
+
+
 /**
 *** Allocate arrays for folding\n
 *** \deprecated {This function is deprecated and will be removed soon!}

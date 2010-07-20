@@ -158,9 +158,9 @@ double circalifold(const char **strings, char *structure) {
   backtrack(strings, s);
 
 #ifdef PAREN
-  parenthesis_structure(structure, length);
+  parenthesis_structure(structure, base_pair2, length);
 #else
-  letter_structure(structure, length);
+  letter_structure(structure, base_pair2, length);
 #endif
 
   free(fM2);

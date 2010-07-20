@@ -65,6 +65,11 @@
 #include "loop_energies.h"
 #include "part_func_co.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
+
 /*@unused@*/
 PRIVATE char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
 
@@ -101,6 +106,18 @@ PRIVATE short       *S, *S1;
 PRIVATE char        *pstruc;
 PRIVATE char        *sequence;
 
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
+                          scale, pf_params, ptype, jindx, init_length, S, S1, pstruc, sequence)
+
+#endif
 
 
 /*
@@ -109,7 +126,6 @@ PRIVATE char        *sequence;
 #################################
 */
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
-PRIVATE void    sprintf_bppm(int length, char *structure);
 PRIVATE void    scale_pf_params(unsigned int length);
 PRIVATE void    get_arrays(unsigned int length);
 PRIVATE void    make_ptypes(const short *S, const char *structure);
@@ -122,6 +138,92 @@ PRIVATE void    backtrack(int i, int j);
 #################################
 */
 
+PRIVATE void init_partfunc_co(int length){
+  if (length<1) nrerror("init_pf_fold: length must be greater 0");
+
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+  free_co_pf_arrays(); /* free previous allocation */
+#else
+  if (init_length>0) free_co_pf_arrays(); /* free previous allocation */
+#endif
+
+#ifdef SUN4
+  nonstandard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(1);
+#endif
+#endif
+  make_pair_matrix();
+  get_arrays((unsigned) length);
+  scale_pf_params((unsigned) length);
+  init_length = length;
+}
+
+PRIVATE void get_arrays(unsigned int length){
+  unsigned int size;
+
+  size      = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
+  q         = (FLT_OR_DBL *) space(size);
+  qb        = (FLT_OR_DBL *) space(size);
+  qm        = (FLT_OR_DBL *) space(size);
+  pr        = (FLT_OR_DBL *) space(size);
+  qm1       = (FLT_OR_DBL *) space(size);
+  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
+  ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
+  iindx     = get_iindx(length);
+  jindx     = get_indx(length);
+}
+
+PUBLIC void free_co_pf_arrays(void){
+  if(q)         free(q);
+  if(qb)        free(qb);
+  if(qm)        free(qm);
+  if(pr)        free(pr);
+  if(qm1)       free(qm1);
+  if(ptype)     free(ptype);
+  if(qq)        free(qq);
+  if(qq1)       free(qq1);
+  if(qqm)       free(qqm);
+  if(qqm1)      free(qqm1);
+  if(q1k)       free(q1k);
+  if(qln)       free(qln);
+  if(prm_l)     free(prm_l);
+  if(prm_l1)    free(prm_l1);
+  if(prml)      free(prml);
+  if(expMLbase) free(expMLbase);
+  if(scale)     free(scale);
+  if(iindx)     free(iindx);
+  if(jindx)     free(jindx);
+  if(S)         free(S);
+  if(S1)        free(S1);
+
+  init_length=0;
+  q = qb = qm = pr = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  ptype = NULL;
+  S = S1 = NULL;
+  iindx = jindx = NULL;
+
+#ifdef SUN4
+  standard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(0);
+#endif
+#endif
+}
 
 
 /*-----------------------------------------------------------------*/
@@ -132,22 +234,30 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
   FLT_OR_DBL  temp, Q, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  qbt1, *tmp;
-  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
+  FLT_OR_DBL  expMLclosing;
   cofoldF     X;
   double      free_energy, max_real;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
-  if (n>init_length) init_co_pf_fold(n);  /* (re)allocate space */
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_partfunc_co(n);
+#else
+  if (n > init_length) init_partfunc_co(n);
+#endif
+  if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n);
+
  /* printf("mirnatog=%d\n",mirnatog); */
-  S = (short *) xrealloc(S, sizeof(short)*(n+1));
-  S1= (short *) xrealloc(S1, sizeof(short)*(n+1));
-  S[0] = n;
-  for (l=1; l<=n; l++) {
-    S[l]  = (short) encode_char(toupper(sequence[l-1]));
-    S1[l] = alias[S[l]];
-  }
+
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+
   make_ptypes(S, structure);
+
+  expMLclosing = pf_params->expMLclosing;
+
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -501,7 +611,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
       }
 
     if (structure!=NULL)
-      sprintf_bppm(n, structure);
+      bppm_to_structure(structure, pr, n);
   }   /* end if (do_backtrack)*/
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
@@ -514,8 +624,10 @@ PRIVATE void scale_pf_params(unsigned int length)
 {
   unsigned int i;
   double  kT;
+
+  if(pf_params) free(pf_params);
   pf_params = get_scaled_pf_parameters();
-  
+
   kT = pf_params->kT;   /* kT in cal/mol  */
 
    /* scaling factors (to avoid overflows) */
@@ -535,130 +647,14 @@ PRIVATE void scale_pf_params(unsigned int length)
 
 /*----------------------------------------------------------------------*/
 
-PRIVATE void get_arrays(unsigned int length)
-{
-  unsigned int size,i;
-
-  size = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
-  q   = (FLT_OR_DBL *) space(size);
-  qb  = (FLT_OR_DBL *) space(size);
-  qm  = (FLT_OR_DBL *) space(size);
-  pr  = (FLT_OR_DBL *) space(size); /*q is needed later*/
-
-  qm1 = (FLT_OR_DBL *) space(size);
-
-  ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-
-  qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1 =(FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  iindx = (int *) space(sizeof(int)*(length+1));
-  jindx = (int *) space(sizeof(int)*(length+1));
-  for (i=1; i<=length; i++) {
-    iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
-    jindx[i] = (i*(i-1))/2;
-  }
-}
-
 /*----------------------------------------------------------------------*/
 
-PUBLIC void init_co_pf_fold(int length)
-{
-  if (length<1) nrerror("init_pf_fold: length must be greater 0");
-  if (init_length>0) free_co_pf_arrays(); /* free previous allocation */
-#ifdef SUN4
-  nonstandard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(1);
-#endif
-#endif
-  make_pair_matrix();
-  get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length);
-  init_length=length;
-}
-
-PUBLIC void free_co_pf_arrays(void)
-{
-  free(q);
-  free(qb);
-  free(qm);
-  free(pr);
-  if (qm1 != NULL) {free(qm1); qm1 = NULL;}
-  free(ptype);
-  free(qq); free(qq1);
-  free(qqm); free(qqm1);
-  free(q1k); free(qln);
-  free(prm_l); free(prm_l1); free(prml);
-  free(expMLbase);
-    free(scale);
-  free(iindx);
-  free(jindx);
-#ifdef SUN4
-  standard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(0);
-#endif
-#endif
-  init_length=0;
-  free(S); S=NULL;
-  free(S1); S1=NULL;
-}
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_co_pf_params(int length)
 {
   make_pair_matrix();
   scale_pf_params((unsigned) length);
-}
-
-/*---------------------------------------------------------------------------*/
-
-PUBLIC char co_bppm_symbol(float *x)
-{
-  if( x[0] > 0.667 )  return '.';
-  if( x[1] > 0.667 )  return '(';
-  if( x[2] > 0.667 )  return ')';
-  if( (x[1]+x[2]) > x[0] ) {
-    if( (x[1]/(x[1]+x[2])) > 0.667) return '{';
-    if( (x[2]/(x[1]+x[2])) > 0.667) return '}';
-    else return '|';
-  }
-  if( x[0] > (x[1]+x[2]) ) return ',';
-  return ':';
-}
-
-/*---------------------------------------------------------------------------*/
-#define L 3
-PRIVATE void sprintf_bppm(int length, char *structure)
-{
-  int    i,j;
-  float  P[L];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
-
-  for( j=1; j<=length; j++ ) {
-    P[0] = 1.0;
-    P[1] = P[2] = 0.0;
-    for( i=1; i<j; i++) {
-      P[2] += pr[iindx[i]-j];    /* j is paired downstream */
-      P[0] -= pr[iindx[i]-j];    /* j is unpaired */
-    }
-    for( i=j+1; i<=length; i++ ) {
-      P[1] += pr[iindx[j]-i];    /* j is paired upstream */
-      P[0] -= pr[iindx[j]-i];    /* j is unpaired */
-    }
-    structure[j-1] = co_bppm_symbol(P);
-  }
-  structure[length] = '\0';
 }
 
 /*---------------------------------------------------------------------------*/
@@ -686,61 +682,25 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
     }
 
   if (fold_constrained&&(structure!=NULL)) {
-    int hx, *stack;
-    char type;
-    stack = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=0, j=1; j<=n; j++) {
+    constrain_ptypes(structure, ptype, NULL, TURN, 1);
+    for(j=1; j<=n; j++) {
       switch (structure[j-1]) {
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) ptype[iindx[l]-j] = 0;
-        for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) ptype[iindx[l]-j] = 0;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        type = ptype[iindx[i]-j];
-        /* don't allow pairs i<k<j<l */
-        for (k=i; k<=j; k++)
-          for (l=j; l<=n; l++) ptype[iindx[k]-l] = 0;
-        /* don't allow pairs k<i<l<j */
-        for (k=1; k<=i; k++)
-          for (l=i; l<=j; l++) ptype[iindx[k]-l] = 0;
-        ptype[iindx[i]-j] = (type==0)?7:type;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) ptype[iindx[j]-l] = 0;
-        break;
-      case 'l': /*only intramolecular basepairing*/
-        if (j<cut_point) for (l=cut_point; l<=n; l++) ptype[iindx[j]-l] = 0;
-        else for (l=1; l<cut_point; l++) ptype[iindx[l]-j] =0;
-        break;
-      case 'e': /*only intermolecular bp*/
-        if (j<cut_point) {
-          for (l=1; l<j; l++) ptype[iindx[l]-j] =0;
-          for (l=j+1; l<cut_point; l++) ptype[iindx[j]-l] = 0;
-        }
-        else {
-          for (l=cut_point; l<j; l++) ptype[iindx[l]-j] =0;
-          for (l=j+1; l<=n; l++) ptype[iindx[j]-l] = 0;
-        }
-        break;
+        case 'l': /*only intramolecular basepairing*/
+                  if (j<cut_point) for (l=cut_point; l<=n; l++) ptype[iindx[j]-l] = 0;
+                  else for (l=1; l<cut_point; l++) ptype[iindx[l]-j] =0;
+                  break;
+        case 'e': /*only intermolecular bp*/
+                  if (j<cut_point) {
+                    for (l=1; l<j; l++) ptype[iindx[l]-j] =0;
+                    for (l=j+1; l<cut_point; l++) ptype[iindx[j]-l] = 0;
+                  }
+                  else {
+                    for (l=cut_point; l<j; l++) ptype[iindx[l]-j] =0;
+                    for (l=j+1; l<=n; l++) ptype[iindx[j]-l] = 0;
+                  }
+                  break;
       }
     }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack);
   }
   if (mirnatog==1) {   /*microRNA toggle: no intramolec. bp in 2. molec*/
     for (j=cut_point; j<n; j++) {
@@ -748,7 +708,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
         ptype[iindx[j]-l] = 0;
       }
     }
-    }
+  }
 }
 
 /*
@@ -962,31 +922,6 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   return Concentration;
 }
 
-PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
-  int i, j,n, count;
-  /*get pair probibilities out of pr array*/
-  count=0;
-  n=2;
-  for (i=1; i<length; i++) {
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<cut_off) continue;
-      if (count==n*length-1) {
-        n*=2;
-        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
-      }
-      pl[count].i=i;
-      pl[count].j=j;
-      pl[count++].p=pr[iindx[i]-j];
-      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
-    }
-  }
-  pl[count].i=0;
-  pl[count].j=0; /*->??*/
-  pl[count++].p=0.;
-  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
-  return pl;
-}
-
 
 #if 0
 PUBLIC int make_probsum(int length, char *name) {
@@ -1028,3 +963,38 @@ PUBLIC int make_probsum(int length, char *name) {
   return 1;
 }
 #endif
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+
+PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
+  int i, j,n, count;
+  /*get pair probibilities out of pr array*/
+  count=0;
+  n=2;
+  for (i=1; i<length; i++) {
+    for (j=i+1; j<=length; j++) {
+      if (pr[iindx[i]-j]<cut_off) continue;
+      if (count==n*length-1) {
+        n*=2;
+        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
+      }
+      pl[count].i=i;
+      pl[count].j=j;
+      pl[count++].p=pr[iindx[i]-j];
+      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
+    }
+  }
+  pl[count].i=0;
+  pl[count].j=0; /*->??*/
+  pl[count++].p=0.;
+  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
+  return pl;
+}
+
+PUBLIC void init_co_pf_fold(int length){
+/* DO NOTHING */
+}
