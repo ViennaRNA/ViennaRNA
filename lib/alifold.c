@@ -29,6 +29,11 @@
 #include "alifold.h"
 #include "loop_energies.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp $";
 
@@ -73,6 +78,20 @@ PRIVATE int             *pscore;            /* precomputed array of pair types *
 PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE bondT           *base_pair2;
+
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(P, ...)
+*/
+#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
+                          pscore, init_length, sector, base_pair2)
+
+#endif
+
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #

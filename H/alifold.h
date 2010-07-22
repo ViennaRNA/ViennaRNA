@@ -39,7 +39,7 @@ float  alifold(const char **strings, char *structure);
 ***                   (will be overwritten by a consensus structure that exhibits the MFE)
 *** \return           The minimum free energy in kcal/mol
 **/
-double  circalifold(const char **strings, char *structure);
+float  circalifold(const char **strings, char *structure);
 
 float  aliLfold(char **strings, char *structure, int maxdist);
 

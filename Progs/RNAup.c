@@ -38,7 +38,6 @@ static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 #define COMMANDLINE_PARAMETERS_INIT_LENGTH      1024
 
 PRIVATE void    tokenize(char *line, char **seq1, char **seq2);
-PRIVATE char    *tokenize_one(char *line);
 
 PRIVATE void    seperate_bp(char **inter,int len1,char **intra_l,char **intra_s);
 PRIVATE void    print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr3, int incr5);
@@ -855,32 +854,6 @@ void tokenize(char *line, char **seq1, char **seq2) {
   }
   free(line);
   return;
-}
-
-/* remove the & from a string for two sequences */
-PRIVATE char *tokenize_one(char *line)
-{
-  char *pos, *copy;
-  int cut = -1;
-
-  copy = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  pos = strchr(copy, '&');
-  if (pos) {
-    cut = (int) (pos-copy)+1;
-    if (cut >= strlen(copy)) cut = -1;
-    if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-    for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-  }
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
-    }
-  }
-  free(line);
-  return copy;
 }
 
 /* divide the constraints string in intermolecular constrains (inter)
