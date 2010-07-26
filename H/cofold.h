@@ -14,9 +14,21 @@
 **/
 
 float     cofold(const char *sequence, char *structure); 
-void      free_co_arrays(void);          /* free arrays for mfe folding */
-void      initialize_cofold(int length); /* allocate arrays for folding */
-void      update_cofold_params(void);    /* recalculate parameters */
+/**
+*** free arrays for mfe folding
+**/
+void      free_co_arrays(void);
+/**
+*** allocate arrays for folding
+**/
+void      initialize_cofold(int length);
+/**
+*** recalculate parameters
+**/
+void      update_cofold_params(void);
+/**
+*** Compute Suboptimal structures according Zuker
+**/
 SOLUTION  *zukersubopt(const char *string);
 float     *get_monomer_mfes();
 
@@ -24,5 +36,5 @@ float     *get_monomer_mfes();
 *** allocate arrays for folding
 *** \deprecated{This function is obsolete and will be removed soon!}
 **/
-void      DEPRECATED(initialize_cofold(int length));
+DEPRECATED(void initialize_cofold(int length));
 #endif

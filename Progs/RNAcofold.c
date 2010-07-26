@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      init_co_pf_fold(length);
+      /* init_co_pf_fold(length); <- obsolete */
 
       if (cstruc!=NULL)
         strncpy(structure, cstruc, length+1);
@@ -508,7 +508,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_arrays();
       /*En=pf_fold(string, tempstruc);*/
-      init_co_pf_fold(length);
+      /* init_co_pf_fold(length); <- obsolete */
       X=co_pf_fold(string, tempstruc);
 
       assign_plist_from_pr(tpr, pr, length, 0.00001);
@@ -526,7 +526,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       pf_scale =exp(-(sfact*min_en)/kT/(2*length));
       assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_co_arrays();
-      init_co_pf_fold(2*length);
+      /* init_co_pf_fold(2*length); <- obsolete */
       X=co_pf_fold(Newstring, tempstruc);
       assign_plist_from_pr(tpr, pr, 2*length, 0.00001);
       free_co_pf_arrays();

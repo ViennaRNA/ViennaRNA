@@ -140,7 +140,6 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 /* allocate memory for folding process */
 PRIVATE void init_fold(int length){
-  unsigned int n;
 
 #ifdef USE_OPENMP
 /* Explicitly turn off dynamic threads */
@@ -213,7 +212,7 @@ PUBLIC void free_arrays(void){
   if(DMLi1_o)   free(DMLi1_o);
   if(DMLi2_a)   free(DMLi2_a);
   if(DMLi2_o)   free(DMLi2_o);
-
+  if(P)         free(P);
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
   ptype       = NULL;

@@ -26,19 +26,23 @@
 #include "loop_energies.h"
 #include "cofold.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $";
 
 #define PAREN
 
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
-#define MAXSECTORS      500     /* dimension for a backtrack array */
-#define LOCALITY        0.      /* locality parameter for base-pairs */
-
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
+#define NEW_NINIO         1       /* new asymetry penalty */
+#define MAXSECTORS        500     /* dimension for a backtrack array */
+#define LOCALITY          0.      /* locality parameter for base-pairs */
 #undef TURN
-#define TURN 0
+#define TURN              0       /* reset minimal base pair span for intermolecular pairings */
+#define TURN2             3       /* used by zukersubopt */
+#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
 
 /*
 #################################
@@ -82,6 +86,18 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -4: x = base must not pair
                         positive int: base is paired with int      */
 
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(P, init_length, ...)
+*/
+#pragma omp threadprivate(mfe1, mfe2, indx, c, cc, cc1, f5, fc, fML, fM1, Fmi, DMLi, DMLi1, DMLi2,\
+                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP)
+
+#endif
 
 /*
 #################################
@@ -89,6 +105,7 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
 #################################
 */
 
+PRIVATE void  init_cofold(int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
@@ -103,11 +120,15 @@ PRIVATE void  free_end(int *array, int i, int start);
 */
 
 /*--------------------------------------------------------------------------*/
-PUBLIC void initialize_cofold(int length)
-{
-  unsigned int n;
-  if (length<1) nrerror("initialize_cofold: argument must be greater 0");
-  if (init_length>0) free_co_arrays();
+PRIVATE void init_cofold(int length){
+
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  if (length<1) nrerror("init_cofold: argument must be greater 0");
+  free_co_arrays();
   get_arrays((unsigned) length);
   init_length=length;
 
@@ -118,8 +139,7 @@ PUBLIC void initialize_cofold(int length)
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE void get_arrays(unsigned int size)
-{
+PRIVATE void get_arrays(unsigned int size){
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
@@ -140,16 +160,27 @@ PRIVATE void get_arrays(unsigned int size)
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC void free_co_arrays(void)
-{
-  free(indx); free(c); free(fML); free(f5); free(cc); free(cc1);
-  free(fc);
-  free(ptype);
-  if (uniq_ML) free(fM1);
-
-  free(base_pair); base_pair=NULL; free(Fmi);
-  free(DMLi); free(DMLi1);free(DMLi2);
-  init_length=0;
+PUBLIC void free_co_arrays(void){
+  if(indx)        free(indx);
+  if(c)           free(c);
+  if(fML)         free(fML);
+  if(f5)          free(f5);
+  if(cc)          free(cc);
+  if(cc1)         free(cc1);
+  if(fc)          free(fc);
+  if(ptype)       free(ptype);
+  if(fM1)         free(fM1);
+  if(base_pair2)  free(base_pair2);
+  if(Fmi)         free(Fmi);
+  if(DMLi)        free(DMLi);
+  if(DMLi1)       free(DMLi1);
+  if(DMLi2)       free(DMLi2);
+  if(P)           free(P);
+  indx = c = fML = f5 = cc = cc1 = fc = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  ptype       = NULL;
+  base_pair2  = NULL;
+  P           = NULL;
+  init_length = 0;
 }
 
 
@@ -168,9 +199,16 @@ PUBLIC void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p
 
 PUBLIC float cofold(const char *string, char *structure) {
   int i, length, energy, bonus=0, bonus_cnt=0;
-
+  zuker = 0;
   length = (int) strlen(string);
-  if (length>init_length) initialize_cofold(length);
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_cofold(length);
+#else
+  if (length>init_length) init_cofold(length);
+#endif
+
   if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 
   S   = encode_sequence(string, 0);
@@ -182,7 +220,7 @@ PUBLIC float cofold(const char *string, char *structure) {
 
   energy = fill_arrays(string);
 
-  if (!zuker) backtrack(string);
+  backtrack(string);
 
 #ifdef PAREN
   parenthesis_structure(structure, base_pair2, length);
@@ -221,7 +259,7 @@ PUBLIC float cofold(const char *string, char *structure) {
   if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
   bonus*=BONUS;
 
-  if (!zuker) {  free(S); free(S1); free(BP);}
+  free(S); free(S1); free(BP);
 
   energy += bonus;      /*remove bonus energies from result */
 
@@ -618,23 +656,23 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       }
                       if((k>1) && SAME_STRAND(k-1,k))
                         if(fij == ff[k-2] + cc + E_ExtLoop(type, S1[k-1], -1, P)){
-	                      traced=j; jj=k-2; break;
-	                    }
+                              traced=j; jj=k-2; break;
+                            }
                     }
 
-	                type = ptype[indx[j-1]+k];
-	                if(type && SAME_STRAND(j-1,j)){
+                        type = ptype[indx[j-1]+k];
+                        if(type && SAME_STRAND(j-1,j)){
                       cc = c[indx[j-1]+k];
-	                  if (!SAME_STRAND(k,j-1)) cc += P->DuplexInit; /*???*/
-	                  if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
-	                    traced=j-1; jj = k-1; break;
+                          if (!SAME_STRAND(k,j-1)) cc += P->DuplexInit; /*???*/
+                          if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
+                            traced=j-1; jj = k-1; break;
                       }
-	                  if(k>i){
-	                    if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
-	                      traced=j-1; jj=k-2; break;
-	                    }
-	                  }
-	                }
+                          if(k>i){
+                            if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
+                              traced=j-1; jj=k-2; break;
+                            }
+                          }
+                        }
                   }
                   break;
       }
@@ -1073,7 +1111,7 @@ PRIVATE void free_end(int *array, int i, int start) {
 PUBLIC void update_cofold_params(void){
   P = scale_parameters();
   make_pair_matrix();
-  update_fold_params();
+  update_fold_params(); /* btw, why do we have to update fold params in fold.o ???? */
   if (init_length < 0) init_length=0;
 }
 
@@ -1126,39 +1164,56 @@ PRIVATE comp_pair(const void *A, const void *B) {
   return (indx[x->j]+x->i - indx[y->j]+y->i);
 }
 
-#define TURN2 3
 PUBLIC SOLUTION *zukersubopt(const char *string) {
-/* Compute zuker suboptimal. Here, were abusing the cofold() code 
+/* Compute zuker suboptimal. Here, we're abusing the cofold() code 
    "double" sequence, compute dimerarray entries, track back every base pair.
    This is slightly wasteful compared to the normal solution */
 
-  char *doubleseq, *structure/*=NULL??*/, *mfestructure;
-  int i, j,k, counter=0;
-  float energy, mfenergy;
-  SOLUTION *zukresults;
-  bondT *pairlist;
-  int num_pairs=0, psize, p;
-  char **todo;
-  zuker=1;
-  length=(int)strlen(string);
-  doubleseq=(char *)space((2*length+1)*sizeof(char));
-  mfestructure = (char *) space((unsigned) 2*length+1);
-  structure = (char *) space((unsigned) 2*length+1);
-  zukresults=(SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
-  /*double sequences*/
+  char      *doubleseq, *structure, *mfestructure, **todo;
+  int       i, j, k, counter, num_pairs, psize, p;
+  float     energy, mfenergy;
+  SOLUTION  *zukresults;
+  bondT     *pairlist;
+
+  num_pairs       = counter = 0;
+  zuker           = 1;
+  length          = (int)strlen(string);
+  doubleseq       = (char *)space((2*length+1)*sizeof(char));
+  mfestructure    = (char *) space((unsigned) 2*length+1);
+  structure       = (char *) space((unsigned) 2*length+1);
+  zukresults      = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
+  mfestructure[0] = '\0';
+
+  /* double the sequence */
   strcpy(doubleseq,string);
   strcat(doubleseq,string);
-  cut_point=length+1;
-  /*get mfe and fill arrays and get mfe structure*/
-  (void)cofold(doubleseq,mfestructure);
-  mfenergy=f5[cut_point-1];
+  cut_point = length + 1;
 
-  psize = length;
-  pairlist = (bondT *) space(sizeof(bondT)*(psize+1));
-  todo = (char **) space(sizeof(char *)*(length+1));
+  /* get mfe and do forward recursion */
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_cofold(2 * length);
+#else
+  if ((2 * length) > init_length) init_cofold(2 * length);
+#endif
+
+  if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
+
+  S     = encode_sequence(doubleseq, 0);
+  S1    = encode_sequence(doubleseq, 1);
+  S1[0] = S[0]; /* store length at pos. 0 */
+  make_ptypes(S, NULL); /* no constraint folding possible (yet?) with zukersubopt */
+
+  (void)fill_arrays(doubleseq);
+  mfenergy = f5[cut_point-1];
+
+  psize     = length;
+  pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));
+  todo      = (char **) space(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
     todo[i] = (char *) space(sizeof(char)*(length+1));
   }
+
   /* Make a list of all base pairs */
   for (i=1; i<length; i++) {
     for (j=i+TURN2+1/*??*/; j<=length; j++) {
@@ -1173,23 +1228,24 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
     }
   }
   qsort(pairlist, num_pairs, sizeof(bondT), comp_pair);
+
   for (p=0; p<num_pairs; p++) {
     i=pairlist[p].i;
     j=pairlist[p].j;
     if (todo[i][j]) {
       int k;
-      sector[1].i=i;
-      sector[1].j=j;
-      sector[1].ml = 2;
+      sector[1].i   = i;
+      sector[1].j   = j;
+      sector[1].ml  = 2;
       backtrack_co(doubleseq, 1,0);
-      sector[1].i=j;
-      sector[1].j=i+length;
-      sector[1].ml = 2;
+      sector[1].i   = j;
+      sector[1].j   = i + length;
+      sector[1].ml  = 2;
       backtrack_co(doubleseq, 1,base_pair2[0].i);
-      energy=c[indx[j]+i]+c[indx[i+length]+j];
+      energy = c[indx[j]+i]+c[indx[i+length]+j];
       parenthesis_zuker(structure, base_pair2, length);
-      zukresults[counter].energy=energy;
-      zukresults[counter++].structure=strdup(structure);
+      zukresults[counter].energy      = energy;
+      zukresults[counter++].structure = strdup(structure);
       for (k = 1; k <= base_pair2[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
         x=base_pair2[k].i;
@@ -1213,6 +1269,13 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   free(mfestructure);
   free(doubleseq);
   zuker=0;
-  free(S); free(S1); free(BP);
+  free(S); free(S1);
   return zukresults;
 }
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void initialize_cofold(int length){ /* DO NOTHING */ }

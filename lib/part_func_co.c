@@ -125,6 +125,7 @@ PRIVATE char        *sequence;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+PRIVATE void    init_partfunc_co(int length);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE void    scale_pf_params(unsigned int length);
 PRIVATE void    get_arrays(unsigned int length);
@@ -227,8 +228,7 @@ PUBLIC void free_co_pf_arrays(void){
 
 
 /*-----------------------------------------------------------------*/
-PUBLIC cofoldF co_pf_fold(char *sequence, char *structure)
-{
+PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
   int         n, i,j,k,l, ij, kl, u,u1,ii,ll, type, type_2, tt, ov=0;
   FLT_OR_DBL  temp, Q, Qmax=0, prm_MLb;
@@ -995,6 +995,4 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
   return pl;
 }
 
-PUBLIC void init_co_pf_fold(int length){
-/* DO NOTHING */
-}
+PUBLIC void init_co_pf_fold(int length){ /* DO NOTHING */ }
