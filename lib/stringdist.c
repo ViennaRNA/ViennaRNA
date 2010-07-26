@@ -21,7 +21,7 @@ static char rcsid[] = "$Id: stringdist.c,v 1.3 2005/07/24 08:37:15 ivo Exp $";
 #define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
 #define MAX(x,y)       (((x)>(y)) ? (x) : (y))
 #define MIN3(x,y,z)    (MIN(  (MIN((x),(y))) ,(z)))
-#define INFINITY       10000
+#define INFINITY_DIST  10000
  
 PUBLIC  float      string_edit_distance(swString *T1, swString *T2);
 PUBLIC  swString  *Make_swString(char *string);
@@ -181,7 +181,7 @@ PRIVATE float StrEditCost(int i, int j, swString *T1, swString *T2)
        else          cd = (float) (*EditCost)[T1[i].type][0];
        dist = c * min + cd * diff;
     }
-    else dist = (float) INFINITY;
+    else dist = (float) INFINITY_DIST;
     return dist;
 }
 

@@ -39,6 +39,7 @@
 #include <math.h>
 
 #include "utils.h"
+#include "naview.h"
 
 typedef int LOGICAL;
 #define logical LOGICAL
@@ -65,7 +66,8 @@ typedef int LOGICAL;
 static double pi = 3.141592653589793;
 static double anum = 9999.0;
 
-
+
+
 /*
 *   Function data type definitions
 */
@@ -138,7 +140,8 @@ static int depth(struct loop *lp);
 static logical connected_connection(struct connection *cp, struct connection *cpnext);
 static int    find_ic_middle(int icstart, int icend, struct connection *anchor_connection, struct connection *acp, struct loop *lp);
 
-
+
+
 int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
   int i;
   
@@ -165,7 +168,8 @@ int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
   free(loops);
   return nbase;
 }
-
+
+
 static void read_in_bases(short *pair_table)
 {
   int i,npairs;
@@ -188,7 +192,8 @@ static void read_in_bases(short *pair_table)
     bases[nbase].mate=1;
   }
 }
-
+
+
 static void find_regions(void)
 /*
 *   Identifies the regions in the structure.
@@ -229,7 +234,8 @@ static void find_regions(void)
   }
   free(mark);
 }
-
+
+
 static struct loop *construct_loop(int ibase)
 /*
 *   Starting at residue ibase, recursively constructs the loop containing
@@ -320,7 +326,8 @@ static struct loop *construct_loop(int ibase)
   while (i != ibase);
   return retloop;
 }
-
+
+
 static void dump_loops(void)
 /*
 *   Displays all the loops.
@@ -343,7 +350,8 @@ static void dump_loops(void)
     }
   }
 }
-
+
+
 static void find_central_loop(void)
 /*
 *   Find node of greatest branching that is deepest.
@@ -370,7 +378,8 @@ static void find_central_loop(void)
     }
   }
 }
-
+
+
 static void determine_depths(void)
 /*
 *   Determine the depth of all loops.
@@ -386,7 +395,8 @@ static void determine_depths(void)
     lp->depth = depth(lp);
   }
 }
-
+
+
 
 static int depth(struct loop *lp)
 /*
@@ -414,7 +424,8 @@ static int depth(struct loop *lp)
   lp->mark = false;
   return ret+1;
 }
-
+
+
 static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
 /*
 *   This is the workhorse of the display program. The algorithm is
@@ -814,7 +825,8 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
   free(lp->connections);
 }
 
-
+
+
 static void determine_radius(struct loop *lp,double lencut)
 /*
 *   For the loop pointed to by lp, determine the radius of
@@ -873,7 +885,8 @@ static void determine_radius(struct loop *lp,double lencut)
     radius = lp->radius;
   else lp->radius = radius;
 }
-
+
+
 static logical    connected_connection(struct connection *cp, struct connection *cpnext)
 /*
 *   Determines if the connections cp and cpnext are connected
@@ -891,7 +904,8 @@ static logical    connected_connection(struct connection *cp, struct connection 
     return false;
   }
 }
-
+
+
 static int    find_ic_middle(int icstart, int icend, struct connection *anchor_connection, struct connection *acp, struct loop *lp)
 /*
 *   Finds the middle of a set of connected connectors. This is normally
@@ -928,7 +942,8 @@ static int    find_ic_middle(int icstart, int icend, struct connection *anchor_c
   }
   return ret;
 }
-
+
+
 static void generate_region(struct connection *cp)
 /*
 *   Generates the coordinates for the base pairing region of a connection
@@ -963,7 +978,8 @@ static void generate_region(struct connection *cp)
     bases[mate].y = bases[cp->end].y + l*cp->yrad;
   }
 }
-
+
+
 static void construct_circle_segment(int start, int end)
 /*
 *   Draws the segment of residue between the bases numbered start
@@ -1013,7 +1029,8 @@ static void construct_circle_segment(int start, int end)
     }
   }
 }
-
+
+
 static void construct_extruded_segment(struct connection *cp, struct connection *cpnext)
 /*
 *   Constructs the segment between cp and cpnext as a circle if possible.
@@ -1093,7 +1110,8 @@ static void construct_extruded_segment(struct connection *cp, struct connection 
     } while    (collision && n > 1);
   }
 }
-
+
+
 static void find_center_for_arc(int n,double b,double *hp,double *thetap)
 /*
 *   Given n points to be placed equidistantly and equiangularly on a

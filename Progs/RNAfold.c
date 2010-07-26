@@ -235,7 +235,10 @@ int main(int argc, char *argv[]){
         plist *pl1,*pl2;
         char *cent;
         double dist, cent_en;
-        cent = centroid(length, &dist);
+        assign_plist_from_pr(&pl1, pr, length, 1e-5);
+        assign_plist_from_db(&pl2, structure, 0.95*0.95);
+        /* cent = centroid(length, &dist); <- NOT THREADSAFE */
+        cent = get_centroid_struct_pl(length, &dist, pl1);
         cent_en = (circular) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
         printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
         free(cent);
@@ -243,8 +246,6 @@ int main(int argc, char *argv[]){
           strcpy(ffname, fname);
           strcat(ffname, "_dp.ps");
         } else strcpy(ffname, "dot.ps");
-        assign_plist_from_pr(&pl1, pr, length, 1e-5);
-        assign_plist_from_db(&pl2, structure, 0.95*0.95);
         (void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
         free(pl2);
         if (do_backtrack==2) {

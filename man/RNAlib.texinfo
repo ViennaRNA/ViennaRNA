@@ -1212,7 +1212,7 @@ frees the memory allocated for the profile @var{T}.
 Backward compatibility only. You can just use plain @code{free()}
 @end deftypefun
 
-Prototypes for the above functions can be found in @file{profiledist.h}.
+Prototypes for the above functions can be found in @file{ProfileDist.h}.
 
 
 @node Utilities, Example, Parsing and Comparing, Top
@@ -1349,7 +1349,7 @@ resulting structures and base pairing probabilities.
 #include  "RNAstruct.h"
 #include  "treedist.h"
 #include  "stringdist.h"
-#include  "profiledist.h"
+#include  "ProfileDist.h"
 
 void main()
 @{

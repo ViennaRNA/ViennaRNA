@@ -9,12 +9,13 @@
 #include  "../H/cofold.h"
 #include  "../H/part_func.h"
 #include  "../H/part_func_co.h"
+#include  "../H/naview.h"
 #include  "../H/PS_dot.h"
 #include  "../H/inverse.h"
 #include  "../H/RNAstruct.h"
 #include  "../H/treedist.h"
 #include  "../H/stringdist.h"
-#include  "../H/profiledist.h"
+#include  "../H/ProfileDist.h"
 #include  "../H/dist_vars.h"
 #include  "../H/pair_mat.h"
 #include  "../H/subopt.h"
@@ -24,11 +25,9 @@
 #include  "../H/alifold.h"
 #include  "../H/aln_util.h"
 #include  "../H/findpath.h"
-extern char *pbacktrack(char *seq);
-extern void  read_parameter_file(const char fname[]);
-extern void  write_parameter_file(const char fname[]);
-extern int simple_xy_coordinates(short *pair_table, float *X, float *Y);
-extern int naview_xy_coordinates(short *pair_table, float *X, float *Y);
+#include  "../H/data_structures.h"
+#include  "../H/read_epars.h"
+
 %}
 //
 %include carrays.i
@@ -321,7 +320,6 @@ int    unpaired, pairs;       // n of unpaired digits and pairs
 %include  "../H/treedist.h"
 %include  "../H/stringdist.h"
 %newobject Make_bp_profile;
-%include  "../H/profiledist.h"
 // from dist_vars.h
 int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */

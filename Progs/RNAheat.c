@@ -176,13 +176,13 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    do_backtrack = 0;   
 
    temperature = T_min -m*h;
-   initialize_fold(length);
+   /* initialize_fold(length); <- obsolete */
    structure = (char *) space((unsigned) length+1);
    min_en = fold(string, structure);
    free(structure); free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
-   init_pf_fold(length);
+   /* init_pf_fold(length); <- obsolete */
    
    for (i=0; i<2*m+1; i++) {
       F[i] = pf_fold(string, NULL);   /* T_min -2h */

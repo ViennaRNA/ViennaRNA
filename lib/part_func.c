@@ -735,7 +735,7 @@ PRIVATE void scale_pf_params(unsigned int length){
 
 PUBLIC void update_pf_params(int length)
 {
-  if (length>init_length) init_pf_fold(length);  /* init not update */
+  if (length>init_length) init_partfunc(length);  /* init not update */
   else {
     make_pair_matrix();
     scale_pf_params((unsigned) length);
@@ -744,7 +744,7 @@ PUBLIC void update_pf_params(int length)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char bppm_symbol(float *x)
+PUBLIC char bppm_symbol(const float *x)
 {
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';

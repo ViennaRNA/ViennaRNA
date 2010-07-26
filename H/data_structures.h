@@ -56,7 +56,7 @@ typedef struct sect {
   int ml;
 } sect; /* stack of partial structures for backtracking */
 
-typedef struct bond {               /* base pair */
+typedef struct bondT {               /* base pair */
    unsigned int i;
    unsigned int j;
 } bondT;

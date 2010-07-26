@@ -286,6 +286,17 @@ PUBLIC float fold(const char *string, char *structure){
   letter_structure(structure, base_pair2, length);
 #endif
 
+  /*
+  *  Backward compatibility:
+  *  This block may be removed if deprecated functions
+  *  relying on the global variable "base_pair" vanishs from within the package!
+  */
+  {
+    if(base_pair) free(base_pair);
+    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
+    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
+  }
+
   /* check constraints */
   for(i=1;i<=length;i++) {
     if((BP[i]<0)&&(BP[i]>-4)) {

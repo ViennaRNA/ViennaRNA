@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
+#include "naview.h"
 #include "PS_dot.h"
 
 static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $";
@@ -25,24 +26,7 @@ static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $
 #endif
 #define  PIHALF       PI/2.
 
-PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
-PUBLIC int   PS_rna_plot_a(char *string, char *structure, char *ssfile,
-			   char *pre, char *post);
-PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
-PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
-PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
-
-PUBLIC int   simple_xy_coordinates(short *pair_table, float *X, float *Y);
-extern int   naview_xy_coordinates(short *pair_table, float *X, float *Y);
-
 PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
-
-PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
-PUBLIC int   PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile);
-PUBLIC int   PS_dot_plot_list(char *string, char *wastlfile, struct plist *pl,
-			      struct plist *mf, char *comment);
-PUBLIC int   PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile,
-			      int winSize);
 
 /* local functions */
 PRIVATE void   loop(int i, int j, short *pair_table);

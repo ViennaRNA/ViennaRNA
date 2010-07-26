@@ -10,24 +10,17 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include  "dist_vars.h"
-#include  "fold_vars.h"
-#include  "part_func.h"
-#include  "utils.h"
+#include "dist_vars.h"
+#include "fold_vars.h"
+#include "part_func.h"
+#include "utils.h"
+#include "ProfileDist.h"
+
 /*@unused@*/
 static char rcsid[] = "$Id: ProfileDist.c,v 1.6 2002/11/07 11:49:59 ivo Exp $";
 
-#define PUBLIC
-#define PRIVATE        static
-#define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
-#define MAX(x,y)       (((x)>(y)) ? (x) : (y))
-#define MIN3(x,y,z)    (MIN(  (MIN((x),(y))) ,(z)))
-
 PRIVATE int *alignment[2];
 
-PUBLIC float    profile_edit_distance(const float *T1, const float *T2);
-PUBLIC float    *Make_bp_profile(int length); 
-PUBLIC void     free_profile(float *T);
 PRIVATE void    sprint_aligned_bppm(const float *T1, const float *T2);
 PRIVATE double  PrfEditCost(int i, int j, const float *T1, const float *T2);
 PRIVATE double  average(double x, double y);
@@ -206,7 +199,31 @@ PUBLIC float *Make_bp_profile(int length)
      P[i*3+0] = 1 - P[i*3+1] - P[i*3+2];
    return (float *) P;
 }
- 
+
+PUBLIC float *Make_bp_profile_bppm(double *bppm, int length){
+   int i,j;
+   int L=3;
+   float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
+   int *index = get_iindx((unsigned) length);
+
+   P =  (float *) space((length+1)*3*sizeof(float));
+   /* indices start at 1 use first entries to store length and dimension */
+   P[0] = (float) length;
+   P[1] = (float) L;
+
+   for( i=1; i<length; i++)
+     for( j=i+1; j<=length; j++ ) {
+       P[i*L+1] += bppm[index[i]-j];
+       P[j*L+2] += bppm[index[i]-j];
+     } 
+   for( i=1; i<=length; i++)
+     P[i*3+0] = 1 - P[i*3+1] - P[i*3+2];
+
+   free(index);
+
+   return (float *) P;
+}
+
 /*---------------------------------------------------------------------------*/
          
 PRIVATE void sprint_aligned_bppm(const float *T1, const float *T2)

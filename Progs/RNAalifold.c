@@ -217,9 +217,8 @@ int main(int argc, char *argv[]){
     int     i;
     double  s = 0;
     min_en    = circalifold((const char **)AS, structure);
-    eos_debug = -1; /* shut off warnings about nonstandard pairs */
     for (i=0; AS[i]!=NULL; i++)
-      s += energy_of_circ_struct(AS[i], structure);
+      s += energy_of_circ_structure(AS[i], structure, -1);
     real_en = s/i;
   } else {
     float *ens  = (float *)space(2*sizeof(float));
@@ -255,7 +254,7 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
-    struct bond  *bp;
+    bondT  *bp;
     bp = base_pair; base_pair = space(16);
     free_alifold_arrays();  /* free's base_pair */
     base_pair = bp;

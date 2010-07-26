@@ -226,6 +226,17 @@ PUBLIC float alifold(const char **strings, char *structure){
 
   parenthesis_structure(structure, base_pair2, length);
 
+  /*
+  *  Backward compatibility:
+  *  This block may be removed if deprecated functions
+  *  relying on the global variable "base_pair" vanishs from within the package!
+  */
+  {
+    if(base_pair) free(base_pair);
+    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
+    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
+  }
+
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   if (backtrack_type=='C')

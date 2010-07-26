@@ -17,7 +17,7 @@ float circfold(const char *string, char *structure) {
   int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
   int s=0;
   /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
-        circ = 1;
+  circular = 1;
 
   length = (int) strlen(string);
 
@@ -235,6 +235,17 @@ float circfold(const char *string, char *structure) {
 #else
   letter_structure(structure, base_pair2, length);
 #endif
+
+  /*
+  *  Backward compatibility:
+  *  This block may be removed if deprecated functions
+  *  relying on the global variable "base_pair" vanishs from within the package!
+  */
+  {
+    if(base_pair) free(base_pair);
+    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
+    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
+  }
 
   /* check constraints */
   for(i=1;i<=length;i++) {

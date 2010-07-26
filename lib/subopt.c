@@ -479,7 +479,6 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   turn = (cut_point<0) ? 3 : 0;
   uniq_ML = 1;
-  (circular) ? initialize_fold(length) : initialize_cofold(length);
   min_en = (circular) ? circfold(sequence, struc) : cofold(sequence, struc);
   (circular) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
 
