@@ -194,6 +194,9 @@ PRIVATE void get_arrays(unsigned int length){
   jindx     = get_indx(length);
 }
 
+/**
+*** Allocate memory for all matrices and other stuff
+**/
 PUBLIC void free_pf_arrays(void){
   if(q)         free(q);
   if(qb)        free(qb);

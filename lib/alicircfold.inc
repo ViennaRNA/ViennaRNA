@@ -18,19 +18,24 @@ float circalifold(const char **strings, char *structure) {
   int n_seq, psc, s=0;
   int *type;
 
-  circ = 1;
+  circular = 1;
   /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
   length = (int) strlen(strings[0]);
-  if (length>init_length) init_alifold(length);
-  if ((P==NULL)||(fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params(); P = scale_parameters();
-  }
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_alifold(length);
+#else
+  if (length > init_length) init_alifold(length);
+#endif
+  if (fabs(P->temperature - temperature)>1e-6) update_alifold_params();
+
   oldAliEn=1; /* TODO allow new gap treatment in alicircfold() */
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
   type = (int *) space(n_seq*sizeof(int));
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circ);
+  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short **) S, strings, n_seq, structure);
 
   /* compute all arrays used by fold() for linear RNA */

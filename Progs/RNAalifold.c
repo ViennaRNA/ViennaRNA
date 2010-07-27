@@ -270,7 +270,6 @@ int main(int argc, char *argv[]){
     pf_scale = exp(-(sfact*min_en)/kT/length);
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
     fflush(stdout);
-    /* init_alipf_fold(length); */
 
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
@@ -281,7 +280,7 @@ int main(int argc, char *argv[]){
       for (i=0; i<n_back; i++) {
         char *s;
         double prob=1.;
-        s =alipbacktrack(&prob);
+        s = alipbacktrack(&prob);
         printf("%s ", s);
         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
         printf("\n");
@@ -305,14 +304,14 @@ int main(int argc, char *argv[]){
       char *cent;
       double dist;
       if (!circular){
-      float *ens;
-      cent = get_centroid_struct_pl(length, &dist, pl);
-      ens=(float *)space(2*sizeof(float));
-      energy_of_alistruct((const char **)AS, cent, n_seq, ens);
-      /*cent_en = energy_of_struct(string, cent);*//*ali*/
-      printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
-      free(cent);
-      free(ens);
+        float *ens;
+        cent = get_centroid_struct_pl(length, &dist, pl);
+        ens=(float *)space(2*sizeof(float));
+        energy_of_alistruct((const char **)AS, cent, n_seq, ens);
+        /*cent_en = energy_of_struct(string, cent);*//*ali*/
+        printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
+        free(cent);
+        free(ens);
       }
 
       if (fname[0]!='\0') {

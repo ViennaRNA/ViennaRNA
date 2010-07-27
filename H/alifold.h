@@ -21,6 +21,12 @@ extern  double  nc_fact /* =1 */;
 */
 
 /**
+*** Update the energy parameters for alifold function
+**/
+void update_alifold_params(void);
+
+
+/**
 *** Compute MFE and according structure of an alignment of sequences
 ***
 *** \param strings    A pointer to a NULL terminated array of character arrays
@@ -154,9 +160,9 @@ void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short **
 #############################################################
 */
 
-float   alipf_fold(const char **sequences, char *structure, struct plist **pl);
-void    free_alipf_arrays(void);
-char    *alipbacktrack(double *prob) ;
-float   alipf_circ_fold(const char **sequences, char *structure, struct plist **pl);
+float alipf_fold(const char **sequences, char *structure, plist **pl);
+float alipf_circ_fold(const char **sequences, char *structure, plist **pl);
+void  free_alipf_arrays(void);
+char  *alipbacktrack(double *prob) ;
 
 #endif

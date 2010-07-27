@@ -50,8 +50,8 @@ static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp 
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC double cv_fact=1.;
-PUBLIC double nc_fact=1.;
+PUBLIC double cv_fact=1.; /* should be made static to not interfere with other threads */
+PUBLIC double nc_fact=1.; /* should be made static to not interfere with other threads */
 
 /*
 #################################
@@ -78,6 +78,7 @@ PRIVATE int             *pscore;            /* precomputed array of pair types *
 PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE bondT           *base_pair2;
+PRIVATE int             circular;
 
 #ifdef USE_OPENMP
 
@@ -117,20 +118,22 @@ PRIVATE int   EL_Energy_pt(int i, int n_seq, short *pt);
 
 /* unsafe function that will be replaced by a threadsafe companion in the future */
 PRIVATE void init_alifold(int length){
-  unsigned int n;
-  if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  if (init_length>0) free_alifold_arrays();
+
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  if (length < 1) nrerror("initialize_fold: argument must be greater 0");
+  free_alifold_arrays();
   get_arrays((unsigned) length);
-  make_pair_matrix();
-  init_length=length;
+  init_length = length;
 
-  for (n = 1; n <= (unsigned) length; n++)
-    indx[n] = (n*(n-1)) >> 1;        /* n(n-1)/2 */
+  indx = get_indx((unsigned)length);
 
-  update_fold_params();
+  update_alifold_params();
 }
 
-/* unsafe function that will be replaced by a threadsafe companion in the future */
 PRIVATE void get_arrays(unsigned int size){
   indx    = (int *) space(sizeof(int)*(size+1));
   c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
@@ -147,21 +150,25 @@ PRIVATE void get_arrays(unsigned int size){
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
-/* unsafe function that will be replaced by a threadsafe companion in the future */
 PUBLIC  void  free_alifold_arrays(void){
-  free(indx);
-  free(c);
-  free(fML);
-  free(f5);
-  free(cc);
-  free(cc1);
-  free(pscore);
-  free(base_pair2); base_pair2=NULL;
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
-  init_length=0;
+  if(indx)        free(indx);
+  if(c)           free(c);
+  if(fML)         free(fML);
+  if(f5)          free(f5);
+  if(cc)          free(cc);
+  if(cc1)         free(cc1);
+  if(pscore)      free(pscore);
+  if(base_pair2)  free(base_pair2);
+  if(Fmi)         free(Fmi);
+  if(DMLi)        free(DMLi);
+  if(DMLi1)       free(DMLi1);
+  if(DMLi2)       free(DMLi2);
+  if(P)           free(P);
+  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  pscore      = NULL;
+  base_pair2  = NULL;
+  P           = NULL;
+  init_length = 0;
 }
 
 
@@ -205,26 +212,41 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
   free(*Ss);
 }
 
+PUBLIC void update_alifold_params(void){
+  P = scale_parameters();
+  make_pair_matrix();
+  if (init_length < 0) init_length=0;
+}
+
 PUBLIC float alifold(const char **strings, char *structure){
   int  length, energy, s, n_seq;
 
-  circ = 0;
+  circular = 0;
   length = (int) strlen(strings[0]);
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_alifold(length);
+#else
   if (length>init_length) init_alifold(length);
-  if ((P==NULL)||(fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
-  }
+#endif
+  if (fabs(P->temperature - temperature)>1e-6)  update_alifold_params();
+
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circ);
+  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short **) S, strings, n_seq, structure);
 
   energy = fill_arrays((const char **)strings);
 
   backtrack((const char **)strings, 0);
 
+#ifdef PAREN
   parenthesis_structure(structure, base_pair2, length);
+#else
+  letter_structure(structure, base_pair2, length);
+#endif
 
   /*
   *  Backward compatibility:
@@ -671,7 +693,7 @@ void backtrack(const char **strings, int s) {
 }
 
 
-PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ){
+PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circular){
   unsigned int i,l;
   unsigned short p;
   l     = strlen(sequence);
@@ -700,14 +722,14 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
     s3[l]   = 0;
     S[l+1]  = S[1];
     s5[1]   = 0;
-    if (circ) {
+    if (circular) {
       s5[1]   = S[l];
       s3[l]   = S[1];
       ss[l+1] = S[1];
     }
   }
   else{
-    if(circ){
+    if(circular){
       for(i=l; i>0; i--){
         char c5;
         c5 = sequence[i-1];
@@ -967,21 +989,17 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
 
   if(sequences[0] != NULL){
     n = (unsigned int) strlen(sequences[0]);
-    if (P==NULL)  P = scale_parameters();
+    update_alifold_params();
 
     /*save old memory*/
-    tempS=S; tempS3=S3; tempS5=S5; tempSs=Ss; tempa2s=a2s;
-    tempindx=indx; temppscore=pscore;
+    tempS = S; tempS3 = S3; tempS5 = S5; tempSs = Ss; tempa2s = a2s;
+    tempindx = indx; temppscore = pscore;
 
-    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circ);
+    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, 0);
     pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
-    indx    = (int *) space(sizeof(int)*(n+1));
-    for (s = 1; s <= n; s++){
-      indx[s] = (s*(s-1)) >> 1;
-    }
+    indx    = get_indx(n);
     make_pscores((const short *const*)S, sequences, n_seq, NULL);
-    make_pair_matrix();
-    new=1;
+    new     = 1;
 
     pt = make_pair_table(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
@@ -995,13 +1013,13 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
     free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
     /* restore old memory */
-    S=tempS;S3=tempS3; S5=tempS5; Ss=tempSs; a2s=tempa2s;
-    indx=tempindx; pscore=temppscore;
+    S = tempS; S3 = tempS3; S5 = tempS5; Ss = tempSs; a2s = tempa2s;
+    indx = tempindx; pscore = temppscore;
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
 }
 
-PRIVATE void energy_of_alistruct_pt(const char **sequences,short *pt, int n_seq, int *energy){
+PRIVATE void energy_of_alistruct_pt(const char **sequences, short *pt, int n_seq, int *energy){
   int i, length;
 
   length = S[0][0];
