@@ -12,8 +12,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include "fold.h"
-#include "part_func.h"
 #include "fold_vars.h"
 #include "utils.h"
 #include "read_epars.h"
@@ -144,8 +142,6 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    /* initialize_fold(length); */
-    update_fold_params();
     min_en = Lfold((const char *)string, structure, maxdist);
     printf("%s", structure);
 

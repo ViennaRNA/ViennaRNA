@@ -10,24 +10,59 @@
 #include "utils.h"
 #include "pair_mat.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
-PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
-PRIVATE int *pair_table_to_loop_index (short *pt);
-PRIVATE move_t* copy_moves(move_t *mvs);
-PRIVATE int compare_ptable(const void *A, const void *B);
-PRIVATE int compare_energy(const void *A, const void *B);
-PRIVATE int compare_moves_when(const void *A, const void *B);
-PRIVATE void free_intermediate(intermediate_t *i);
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE char    *seq;
+PRIVATE short   *S, *S1;
+PRIVATE int     BP_dist;
+PRIVATE move_t  *path;
+PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
+#ifdef USE_OPENMP
 
-PRIVATE char *seq;
-PRIVATE short *S, *S1;
-PRIVATE int BP_dist;
-PRIVATE move_t *path;
-PRIVATE int path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(seq, S, S1, BP_dist, path, path_fwd)
 
+#endif
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE int     energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
+PRIVATE int     *pair_table_to_loop_index (short *pt);
+PRIVATE move_t  *copy_moves(move_t *mvs);
+PRIVATE int     compare_ptable(const void *A, const void *B);
+PRIVATE int     compare_energy(const void *A, const void *B);
+PRIVATE int     compare_moves_when(const void *A, const void *B);
+PRIVATE void    free_intermediate(intermediate_t *i);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
@@ -151,7 +186,7 @@ PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
 }
 
 
-int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
+PUBLIC int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   int maxl, maxE, i;
   char *tmp;
   move_t *bestpath=NULL;
@@ -165,13 +200,8 @@ int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   make_pair_matrix();
 
   /* nummerically encode sequence */
-  S = (short *) space(sizeof(short)*(strlen(seq)+1));
-  S1 = (short *) space(sizeof(short)*(strlen(seq)+1));
-  S[0] = S1[0] = (short) strlen(seq);
-  for (i=0; i< strlen(seq); i++) {
-    S[i+1] = encode_char(seq[i]);
-    S1[i+1] = alias[S[i+1]];
-  }
+  S   = encode_sequence(seq, 0);
+  S1  = encode_sequence(seq, 1);
 
   maxl=1;
   do {
@@ -196,7 +226,7 @@ int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   return maxE;
 }
 
-void print_path(char *seq, char *struc) {
+PUBLIC void print_path(char *seq, char *struc) {
   int d;
   char *s;
   s = strdup(struc);
@@ -215,7 +245,7 @@ void print_path(char *seq, char *struc) {
   free(s);
 }
 
-path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
+PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   int E, d;
   path_t *route;
 

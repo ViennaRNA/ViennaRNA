@@ -23,6 +23,10 @@
 #include "loop_energies.h"
 #include "Lfold.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.9 2007/09/04 09:20:12 ivo Exp $";
@@ -59,24 +63,32 @@ PRIVATE int           *DMLi1;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int           *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE char          **ptype;    /* precomputed array of pair types */
 PRIVATE short         *S, *S1;
-PRIVATE char          alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE unsigned int  length;
+
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(P, ...)
+*/
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length)
+
+#endif
 
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  initialize_fold(int length, int maxdist);
+PRIVATE void  initialize_Lfold(int length, int maxdist);
 PRIVATE void  update_fold_params(void);
 PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE void  free_arrays(int maxdist);
 PRIVATE void  make_ptypes(const short *S, int i, int maxdist, int n);
-PRIVATE void  encode_seq(const char *sequence);
 PRIVATE char  *backtrack(const char *sequence, int start, int maxdist);
 PRIVATE int   fill_arrays(const char *sequence, int maxdist);
-/*@unused@*/
-PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 
 /*
 #################################
@@ -85,8 +97,8 @@ PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 */
 
 /*--------------------------------------------------------------------------*/
-PRIVATE void initialize_fold(int length, int maxdist){
-  if (length<1) nrerror("initialize_fold: argument must be greater 0");
+PRIVATE void initialize_Lfold(int length, int maxdist){
+  if (length<1) nrerror("initialize_Lfold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   update_fold_params();
 }
@@ -104,30 +116,40 @@ PRIVATE void get_arrays(unsigned int size, int maxdist){
   DMLi  = (int *)   space(sizeof(int)   *(maxdist+5));
   DMLi1 = (int *)   space(sizeof(int)   *(maxdist+5));
   DMLi2 = (int *)   space(sizeof(int)   *(maxdist+5));
-  for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
+  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
     c[i] = (int *) space(sizeof(int)*(maxdist+5));
   }
-  for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
+  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
     fML[i] = (int *) space(sizeof(int)*(maxdist+5));
   }
-  for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
+  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
     ptype[i] = (char *) space(sizeof(char)*(maxdist+5));
   }
 }
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE void free_arrays(int maxdist)
-{
+PRIVATE void free_arrays(int maxdist){
   int i;
-  for (i=0; i<maxdist+5 && i<=length; i++) {
-    free(c[i]); free(fML[i]); free(ptype[i]);
+  for (i=0; (i<maxdist+5) && (i<=length); i++){
+    free(c[i]);
+    free(fML[i]);
+    free(ptype[i]);
   }
-  free(c); free(fML); free(f3); free(cc); free(cc1);
+  free(c);
+  free(fML);
   free(ptype);
+  free(f3);
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
 
-  free(base_pair); free(Fmi);
-  free(DMLi); free(DMLi1);free(DMLi2);
+  f3    = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  c     = fML = NULL;
+  ptype = NULL;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -140,7 +162,8 @@ PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
   initialize_fold(length, maxdist);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
-  encode_seq(string);
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
 
   for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
     make_ptypes(S, i, maxdist, length);
@@ -797,72 +820,8 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   return structure;
 }
 
-/*---------------------------------------------------------------------------*/
 
-PRIVATE void encode_seq(const char *sequence) {
-  unsigned int i,l;
-
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+1));
-  S1= (short *) space(sizeof(short)*(l+1));
-  /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = S1[0] = (short) l;
-
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void letter_structure(char *structure, int length)
-{
-  int n, k, x, y;
-
-  for (n = 0; n <= length-1; structure[n++] = ' ') ;
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= base_pair[0].i; k++) {
-    y = base_pair[k].j;
-    x = base_pair[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-#if 0
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
-  int n, k;
-
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
-  }
-}
-#endif
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void update_fold_params(void)
-{
+PRIVATE void update_fold_params(void){
   P = scale_parameters();
   make_pair_matrix();
 }

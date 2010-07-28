@@ -182,7 +182,6 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_a = (int *) space(sizeof(int)*(size+1));
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
-  if (base_pair2) free(base_pair2);
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));

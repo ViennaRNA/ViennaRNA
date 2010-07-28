@@ -9,6 +9,7 @@
 #include <string.h>
 #include <float.h>    /* #defines DBL_EPSILON */
 #include <math.h>
+#include "fold_vars.h"
 #include "utils.h"
 #include "PS_dot.h"  /* defines plist */
 
@@ -27,7 +28,6 @@
    The list is sparse since only C values where C(i,j)==M(i,j) can
    contribute to the optimal solution.
 */
-#define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 
 typedef struct Litem {
   int i;

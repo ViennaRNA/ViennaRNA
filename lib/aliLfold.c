@@ -24,6 +24,11 @@
 #include "fold.h"
 #include "loop_energies.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp $";
 
@@ -63,6 +68,17 @@ PRIVATE int           **pscore; /* precomputed array of pair types */
 PRIVATE unsigned int  length;
 PRIVATE short         **S;
 
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, pscore, length, S)
+
+#endif
 
 /*
 #################################
@@ -73,7 +89,6 @@ PRIVATE void  initialize_aliLfold(int length, int maxdist);
 PRIVATE void  free_aliL_arrays(int maxdist);
 PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE void  make_pscores(const char ** AS, const char *structure,int maxdist, int start);
-PRIVATE short *encode_seq(const char *sequence);
 PRIVATE int   fill_arrays(char **strings, int maxdist, char *structure);
 PRIVATE char  *backtrack(char **strings, int start, int maxdist);
 
@@ -83,8 +98,7 @@ PRIVATE char  *backtrack(char **strings, int start, int maxdist);
 #################################
 */
 
-PRIVATE void initialize_aliLfold(int length, int maxdist)
-{
+PRIVATE void initialize_aliLfold(int length, int maxdist){
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   make_pair_matrix();
@@ -116,17 +130,23 @@ PRIVATE void get_arrays(unsigned int size, int maxdist)
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE void free_aliL_arrays(int maxdist)
-{
+PRIVATE void free_aliL_arrays(int maxdist) {
   int i;
-  for (i=0; i<maxdist+5 && i<=length; i++) {
-    free(c[i]); free(fML[i]); free(pscore[i]);
+  for(i=0; i<maxdist+5 && i<=length; i++){
+    free(c[i]);
+    free(fML[i]);
+    free(pscore[i]);
   }
-  free(c); free(fML); free(f3); free(cc); free(cc1);
+  free(c);
+  free(fML);
+  free(f3);
+  free(cc);
+  free(cc1);
   free(pscore);
-
-  free(base_pair); free(Fmi);
-  free(DMLi); free(DMLi1);free(DMLi2);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -141,7 +161,7 @@ PUBLIC float aliLfold(char **strings, char *structure, int maxdist) {
   S = (short **) space(n_seq*sizeof(short *));
   for (s=0; s<n_seq; s++) {
     if (strlen(strings[s]) != length) nrerror("uneqal seqence lengths");
-    S[s] = encode_seq(strings[s]);
+    S[s] = encode_sequence(strings[s], 0);
   }
 
   for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
@@ -620,36 +640,6 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
   return structure;
 }
 
-/*---------------------------------------------------------------------------*/
-PRIVATE short * encode_seq(const char *sequence) {
-  unsigned int i,l;
-  short *S;
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+1));
-  S[0] = (short) l;
-
-  /* make numerical encoding of sequence */
-  for (i=1; i<=l; i++)
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-
-  return S;
-}
-
-/*---------------------------------------------------------------------------*/
-#if 0
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
-  int n, k;
-
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
-  }
-}
-#endif
 /*---------------------------------------------------------------------------*/
 PRIVATE double cov_score(const char ** AS, int i, int j) {
   int n_seq,k,l,s,score;

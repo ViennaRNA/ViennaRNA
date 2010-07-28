@@ -26,6 +26,10 @@
 #include "loop_energies.h"
 #include "duplex.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $";
 
@@ -53,19 +57,30 @@ PRIVATE paramT  *P  = NULL;
 PRIVATE int     **c;                  /* energy array, given that i-j pair */
 PRIVATE short   *S1, *SS1, *S2, *SS2;
 PRIVATE int     n1,n2;                /* sequence lengths */
-PRIVATE int     delay_free = 0;
+
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(P)
+*/
+#pragma omp threadprivate(P, c, S1, SS1, S2, SS2, n1, n2)
+
+#endif
 
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  encode_seqs(const char *s1, const char *s2);
-PRIVATE short *encode_seq(const char *seq);
-PRIVATE char  *backtrack(int i, int j);
-PRIVATE char  *alibacktrack(int i, int j, const short **S1, const short **S2);
-PRIVATE int   compare(const void *sub1, const void *sub2);
-PRIVATE int   covscore(const int *types, int n_seq);
+PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up);
+PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_up);
+PRIVATE char    *backtrack(int i, int j);
+PRIVATE char    *alibacktrack(int i, int j, const short **S1, const short **S2);
+PRIVATE int     compare(const void *sub1, const void *sub2);
+PRIVATE int     covscore(const int *types, int n_seq);
 
 /*
 #################################
@@ -73,8 +88,11 @@ PRIVATE int   covscore(const int *types, int n_seq);
 #################################
 */
 
-
 PUBLIC duplexT duplexfold(const char *s1, const char *s2){
+  return duplexfold_cu(s1, s2, 1);
+}
+
+PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
@@ -90,7 +108,10 @@ PUBLIC duplexT duplexfold(const char *s1, const char *s2){
   c = (int **) space(sizeof(int *) * (n1+1));
   for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
 
-  encode_seqs(s1, s2);
+  S1  = encode_sequence(s1, 0);
+  S2  = encode_sequence(s2, 0);
+  SS1 = encode_sequence(s1, 1);
+  SS2 = encode_sequence(s2, 1);
 
   for (i=1; i<=n1; i++) {
     for (j=n2; j>0; j--) {
@@ -129,10 +150,13 @@ PUBLIC duplexT duplexfold(const char *s1, const char *s2){
   mfe.j = j_min;
   mfe.energy = (float) Emin/100.;
   mfe.structure = struc;
-  if (!delay_free) {
+  if(clean_up) {
     for (i=1; i<=n1; i++) free(c[i]);
     free(c);
-    free(S1); free(S2); free(SS1); free(SS2);
+    free(S1);
+    free(S2);
+    free(SS1);
+    free(SS2);
   }
   return mfe;
 }
@@ -145,8 +169,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
 
   n_max=16;
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
-  delay_free=1;
-  mfe = duplexfold(s1, s2);
+  mfe = duplexfold_cu(s1, s2, 0);
   free(mfe.structure);
   
   thresh = (int) mfe.energy*100+0.1 + delta;
@@ -181,11 +204,10 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       subopt[n_subopt++].structure = struc;
     }
   }
-  
+  /* free all static globals */
   for (i=1; i<=n1; i++) free(c[i]);
   free(c);
   free(S1); free(S2); free(SS1); free(SS2);
-  delay_free=0;
 
   if (subopt_sorted) qsort(subopt, n_subopt, sizeof(duplexT), compare);
   subopt[n_subopt].i =0;
@@ -249,47 +271,6 @@ PRIVATE char *backtrack(int i, int j) {
   return struc;
 }
 
-/*---------------------------------------------------------------------------*/
-
-PRIVATE short * encode_seq(const char *sequence) {
-  unsigned int i,l;
-  short *S;
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S[0] = (short) l;
-
-  /* make numerical encoding of sequence */
-  for (i=1; i<=l; i++)
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-
-  /* for circular folding add first base at position n+1 */
-  S[l+1] = S[1];
-
-  return S;
-}
-
-PRIVATE void encode_seqs(const char *s1, const char *s2) {
-  unsigned int i,l;
-
-  l = strlen(s1);
-  S1 = encode_seq(s1);
-  SS1= (short *) space(sizeof(short)*(l+1));
-  /* SS1 exists only for the special X K and I bases and energy_set!=0 */
-  
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    SS1[i] = alias[S1[i]];   /* for mismatches of nostandard bases */
-  }
-
-  l = strlen(s2);
-  S2 = encode_seq(s2);
-  SS2= (short *) space(sizeof(short)*(l+1));
-  /* SS2 exists only for the special X K and I bases and energy_set!=0 */
-  
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    SS2[i] = alias[S2[i]];   /* for mismatches of nostandard bases */
-  }
-}
-
 /*------------------------------------------------------------------------*/
 
 PRIVATE int compare(const void *sub1, const void *sub2) {
@@ -305,7 +286,11 @@ PRIVATE int compare(const void *sub1, const void *sub2) {
 
 /*---------------------------------------------------------------------------*/
 
-duplexT aliduplexfold(const char *s1[], const char *s2[]) {
+PUBLIC duplexT aliduplexfold(const char *s1[], const char *s2[]){
+  return aliduplexfold_cu(s1, s2, 1);
+}
+
+PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_up) {
   int i, j, s, n_seq, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
@@ -332,8 +317,8 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
   for (s=0; s<n_seq; s++) {
     if (strlen(s1[s]) != n1) nrerror("uneqal seqence lengths");
     if (strlen(s2[s]) != n2) nrerror("uneqal seqence lengths");
-    S1[s] = encode_seq(s1[s]);
-    S2[s] = encode_seq(s2[s]);
+    S1[s] = encode_sequence(s1[s], 0);
+    S2[s] = encode_sequence(s2[s], 0);
   }
   type = (int *) space(n_seq*sizeof(int));
 
@@ -387,14 +372,16 @@ duplexT aliduplexfold(const char *s1[], const char *s2[]) {
   mfe.j = j_min;
   mfe.energy = (float) (Emin/(100.*n_seq));
   mfe.structure = struc;
-  if (!delay_free) {
+  if (clean_up){
     for (i=1; i<=n1; i++) free(c[i]);
     free(c);
   }
   for (s=0; s<n_seq; s++) {
     free(S1[s]); free(S2[s]);
   }
-  free(S1); free(S2); free(type);
+  free(S1);
+  free(S2);
+  free(type);
   return mfe;
 }
 
@@ -407,8 +394,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
 
   n_max=16;
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
-  delay_free=1;
-  mfe = aliduplexfold(s1, s2);
+  mfe = aliduplexfold_cu(s1, s2, 0);
   free(mfe.structure);
   
   for (s=0; s1[s]!=NULL; s++);
@@ -421,8 +407,8 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
   for (s=0; s<n_seq; s++) {
     if (strlen(s1[s]) != n1) nrerror("uneqal seqence lengths");
     if (strlen(s2[s]) != n2) nrerror("uneqal seqence lengths");
-    S1[s] = encode_seq(s1[s]);
-    S2[s] = encode_seq(s2[s]);
+    S1[s] = encode_sequence(s1[s], 0);
+    S2[s] = encode_sequence(s2[s], 0);
   }
   type = (int *) space(n_seq*sizeof(int));
 
@@ -469,7 +455,6 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
     free(S1[s]); free(S2[s]);
   }
   free(S1); free(S2); free(type);
-  delay_free=0;
 
   if (subopt_sorted) qsort(subopt, n_subopt, sizeof(duplexT), compare);
   subopt[n_subopt].i =0;

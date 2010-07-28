@@ -26,6 +26,11 @@
 #include "LPfold.h"
 #include "Lfold.h"
 
+#ifdef USE_OPENMP
+#include <omp.h> 
+#endif
+
+
 /*@unused@*/
 PRIVATE char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $";
 
@@ -36,7 +41,6 @@ PRIVATE char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $
 # GLOBAL VARIABLES              #
 #################################
 */
-/*PUBLIC  int   st_back=0;*/
 
 /*
 #################################
@@ -45,20 +49,34 @@ PRIVATE char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $
 */
 
 PRIVATE float       cutoff;
-PRIVATE int         num_p=0; /*for counting basepairs*/
+PRIVATE int         num_p=0; /* for counting basepairs in pairlist pl, can actually be moved into pfl_fold */
 PRIVATE FLT_OR_DBL  *expMLbase;
-PRIVATE FLT_OR_DBL  **q, **qb, **qm, *qm1, *qqm, *qqm1, *qq, *qq1, **pR, **qm2, **QI5,  **q2l, **qmb;/*,**QI3,*/
+PRIVATE FLT_OR_DBL  **q, **qb, **qm, *qqm, *qqm1, *qq, *qq1, **pR, **qm2, **QI5,  **q2l, **qmb;/*,**QI3,*/
 PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL  *scale;
 PRIVATE char        **ptype; /* precomputed array of pair types */
 PRIVATE int         *jindx;
 PRIVATE int         init_length = 0;  /* length in last call to init_pf_fold() */
-PRIVATE double      init_temp   = 0; /* temperature in last call to scale_pf_params */
 PRIVATE pf_paramT   *pf_params;
 PRIVATE short       *S, *S1;
 PRIVATE int         unpaired;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
+
+#ifdef USE_OPENMP
+
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, init_length, pf_params,\
+                          expMLbase, q, qb, qm, qqm, qqm1, qq, qq1, pR, qm2, QI5, q2l, qmb,\
+                          prml, prm_l, prm_l1, q1k, qln,\
+                          S, S1, unpaired, ulength, pUoutput)
+
+#endif
 
 /*
 #################################
@@ -66,19 +84,19 @@ PRIVATE int         pUoutput;
 #################################
 */
 
-PRIVATE void    scale_pf_params(unsigned int length);                   
-PRIVATE void    get_arrays(unsigned int length);                        
-PRIVATE void    GetPtype(int j, int pairsize, const short *S, int n);   
-PRIVATE void    FreeOldArrays(int i);                                   
-PRIVATE void    GetNewArrays(int j, int winSize);                       
-PRIVATE void    printpbar(FLT_OR_DBL **prb,int winSize, int i, int n);  
-PRIVATE void    init_pf_foldLP(int length);                             
-PRIVATE void    free_pf_arraysLP(void);                                 
-PRIVATE struct  plist *get_deppp(struct plist *pl, int start, int pairsize, int length);
-PRIVATE struct  plist *get_plistW(struct plist *pl, int length, int start, FLT_OR_DBL **Tpr, int winSize);
-PRIVATE void    print_plist(int length, int start, FLT_OR_DBL **Tpr, int winSize, FILE *fp);
-PRIVATE void    compute_pU(int k, int ulength, double **pU, int winSize, int n, char *sequence);
-PRIVATE void    putoutpU(double **pU,int k, int ulength, FILE *fp);
+PRIVATE void  init_partfunc_L(int length);
+PRIVATE void  get_arrays_L(unsigned int length);                        
+PRIVATE void  free_pf_arrays_L(void);
+PRIVATE void  scale_pf_params(unsigned int length);                   
+PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);   
+PRIVATE void  FreeOldArrays(int i);                                   
+PRIVATE void  GetNewArrays(int j, int winSize);                       
+PRIVATE void  printpbar(FLT_OR_DBL **prb,int winSize, int i, int n);  
+PRIVATE plist *get_deppp(struct plist *pl, int start, int pairsize, int length);
+PRIVATE plist *get_plistW(struct plist *pl, int length, int start, FLT_OR_DBL **Tpr, int winSize);
+PRIVATE void  print_plist(int length, int start, FLT_OR_DBL **Tpr, int winSize, FILE *fp);
+PRIVATE void  compute_pU(int k, int ulength, double **pU, int winSize, int n, char *sequence);
+PRIVATE void  putoutpU(double **pU,int k, int ulength, FILE *fp);
 /*PRIVATE void make_ptypes(const short *S, const char *structure);*/
 
 
@@ -88,6 +106,118 @@ PRIVATE void    putoutpU(double **pU,int k, int ulength, FILE *fp);
 #################################
 */
 
+PRIVATE void init_partfunc_L(int length){
+  if (length<1) nrerror("init_partfunc_L: length must be greater 0");
+#ifdef USE_OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+  free_pf_arrays_L(); /* free previous allocation */
+#else
+  if (init_length>0) free_pf_arrays_L(); /* free previous allocation */
+#endif
+
+#ifdef SUN4
+  nonstandard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(1);
+#endif
+#endif
+  make_pair_matrix();
+  get_arrays_L((unsigned) length);
+  scale_pf_params((unsigned) length);
+
+#ifndef USE_OPENMP
+  init_length = length;
+#endif
+}
+
+PRIVATE void get_arrays_L(unsigned int length){
+  /*arrays in 2 dimensions*/
+
+  q         = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  qb        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  qm        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  pR        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
+  q1k       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  qln       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qq        = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qq1       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm1      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l1    = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  prml      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
+  expMLbase = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  scale     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
+  ptype     = (char **)       space(sizeof(char *)      *(length+2));
+
+  if (ulength>0) {
+    /* QI3 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));*/
+    QI5 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    qmb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+  }
+  iindx = get_iindx(length);
+  jindx = get_indx(length);
+}
+
+PRIVATE void free_pf_arrays_L(void){
+  if(q)         free(q);
+  if(qb)        free(qb);
+  if(qm)        free(qm);
+  if(pR)        free(pR);
+  if(qm2)       free(qm2);
+  if(qq)        free(qq);
+  if(qq1)       free(qq1);
+  if(qqm)       free(qqm);
+  if(qqm1)      free(qqm1);
+  if(q1k)       free(q1k);
+  if(qln)       free(qln);
+  if(prm_l)     free(prm_l);
+  if(prm_l1)    free(prm_l1);
+  if(prml)      free(prml);
+  if(expMLbase) free(expMLbase);
+  if(scale)     free(scale);
+  if(iindx)     free(iindx);
+  if(jindx)     free(jindx);
+  if(ptype)     free(ptype);
+  if(QI5)       free(QI5);
+  if(qmb)       free(qmb);
+  if(q2l)       free(q2l);
+  if(pf_params) free(pf_params);
+
+  q = qb = qm = pR = QI5 = qmb = qm2 = q2l = NULL;
+  qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = NULL;
+  iindx     = jindx = NULL;
+  pf_params = NULL;
+  ptype     = NULL;
+
+#ifdef SUN4
+  standard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(0);
+#endif
+#endif
+
+#ifndef USE_OPENMP
+  init_length=0;
+#endif
+}
+
+PUBLIC void update_pf_paramsLP(int length){
+#ifdef USE_OPENMP
+  scale_pf_params((unsigned) length);
+#else
+  if (length>init_length) init_pf_foldLP(length);  /* init not update */
+  else {
+    /*   make_pair_matrix();*/
+    scale_pf_params((unsigned) length);
+  }
+#endif
+}
 
 PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup){
   int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout;
@@ -117,21 +247,23 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
 
   n = (int) strlen(sequence);
   if (n<TURN+2) return 0;
-  if (n>init_length) init_pf_foldLP(n);  /* (re)allocate space */
-  if ((init_temp - temperature)>1e-6) update_pf_paramsLP(n);
+
+#ifdef USE_OPENMP
+  /* always init everything since all global static variables are uninitialized when entering a thread */
+  init_partfunc_L(n);
+#else
+  if (n > init_length) init_partfunc_L(n);
+  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_paramsLP(n);
+#endif
 
   expMLclosing  = pf_params->expMLclosing;
 
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
-  S     = (short *) xrealloc(S, sizeof(short)*(n+1));
-  S1    = (short *) xrealloc(S1,sizeof(short)*(n+1));
-  S[0]  = n;
-  for (l=1; l<=n; l++) {
-    S[l]  = (short) encode_char(toupper(sequence[l-1]));
-    S1[l] = alias[S[l]];
-  }
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+
   /*  make_ptypes(S, structure); das machmadochlieber lokal, ey!*/
 
   /*here, I allocate memory for pU, if has to be saved, I allocate all in one go,
@@ -207,7 +339,6 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
           qbt1 = qb[i][j] * exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           qqm[i] += qbt1;
         }
-        if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
 
         /*construction of qm matrix containing multiple loop
           partition function contributions from segment i,j */
@@ -421,24 +552,25 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
     if ((do_dpp)&&j<n) dpp=get_deppp(dpp,j,pairSize, n);
     FreeOldArrays(j);
   }
-  free_pf_arraysLP();
+  free_pf_arrays_L();
+  free(S);
+  free(S1);
+  S = S1 = NULL;
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
                     "you might try a smaller pf_scale than %g\n",
                     ov, pf_scale);
   *dpp2=dpp;
- 
+
   return pl;
 }
 
-PRIVATE void scale_pf_params(unsigned int length)
-{
+PRIVATE void scale_pf_params(unsigned int length){
   unsigned int i;
-  double  kT, TT;
+  double  kT;
+  if(pf_params) free(pf_params);
   pf_params = get_scaled_pf_parameters();
-  init_temp = pf_params->temperature;
-  
+
   kT = pf_params->kT;   /* kT in cal/mol  */
-  TT = (pf_params->temperature+K0)/(Tmeasure);
 
    /* scaling factors (to avoid overflows) */
   if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
@@ -454,111 +586,6 @@ PRIVATE void scale_pf_params(unsigned int length)
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
   }
 }
-
-/*----------------------------------------------------------------------*/
-
-PRIVATE void get_arrays(unsigned int length)
-{/*arrays in 2 dimensions*/
-
-  q         = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  qb        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  qm        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  pR        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  q1k       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  qln       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qq        = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qq1       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qqm       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qqm1      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prm_l     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prm_l1    = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prml      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  expMLbase = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  scale     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  ptype     = (char **)       space(sizeof(char *)      *(length+2));
- 
-  if (ulength>0) {
-    /* QI3 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));*/
-    QI5 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    qmb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-  }
-  iindx = (int *) space(sizeof(int)*(length+1));
-  jindx = (int *) space(sizeof(int)*(length+1));
-  /*  for (i=1; i<=length; i++) {
-      iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
-      jindx[i] = (i*(i-1))/2;
-      }*/
-}
-
-/*----------------------------------------------------------------------*/
-
-PUBLIC void init_pf_foldLP(int length)
-{
-  if (length<1) nrerror("init_pf_fold: length must be greater 0");
-  if (init_length>0) free_pf_arraysLP(); /* free previous allocation */
-#ifdef SUN4
-  nonstandard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(1);
-#endif
-#endif
-  make_pair_matrix();
-  get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length);
-  init_length=length;
-}
-
-PUBLIC void free_pf_arraysLP(void)
-{
-  if (unpaired) free(qm2);
-  free(q);
-  free(qb);
-  free(qm);
-  free(pR);
-  q=pR=NULL;
-  if (qm1 != NULL) {free(qm1); qm1 = NULL;}
-  free(ptype);
-  free(qq); free(qq1);
-  free(qqm); free(qqm1);
-  free(q1k); free(qln);
-  free(prm_l); free(prm_l1); free(prml);
-  free(expMLbase);
-  free(scale);
-  free(iindx); free(jindx);
-  if (ulength!=0) {
-    free(QI5);
-    free(qmb);
-    free(qm2);
-    free(q2l);
-  }
- 
-#ifdef SUN4
-  standard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(0);
-#endif
-#endif
-  init_length=0;
-  free(S); S=NULL;
-  free(S1); S1=NULL;
-}
-/*---------------------------------------------------------------------------*/
-
-PUBLIC void update_pf_paramsLP(int length)
-{
-  if (length>init_length) init_pf_foldLP(length);  /* init not update */
-  else {
-    /*   make_pair_matrix();*/
-    scale_pf_params((unsigned) length);
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
 
 PRIVATE void printpbar(FLT_OR_DBL **prb,int winSize, int i, int n) {
   int j;
@@ -627,7 +654,7 @@ PRIVATE void GetPtype(int i, int winSize,const short *S,int n) {
 }
 
 
-PRIVATE struct plist *get_plistW(struct plist *pl, int length,
+PRIVATE plist *get_plistW(plist *pl, int length,
                                  int start, FLT_OR_DBL **Tpr, int winSize) {
   /*get pair probibilities out of pr array*/
   int  j,  max_p;
@@ -639,7 +666,7 @@ PRIVATE struct plist *get_plistW(struct plist *pl, int length,
     if (Tpr[start][j]<cutoff) continue;
     if (num_p==max_p-1) {
       max_p*=2;
-      pl=(struct plist *)xrealloc(pl,max_p*sizeof(struct plist));
+      pl=(plist *)xrealloc(pl,max_p*sizeof(plist));
     }
     pl[num_p].i=start;
     pl[num_p].j=j;
@@ -655,11 +682,11 @@ PRIVATE struct plist *get_plistW(struct plist *pl, int length,
 }
 
 
-PRIVATE struct plist *get_deppp(struct plist *pl, int start, int pairsize, int length) {
+PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
   /*compute dependent pair probabilities*/
   int i, j, count=0;
   double tmp;
-  struct plist *temp;
+  plist *temp;
   temp=(plist *)space(pairsize*sizeof(plist)); /*holds temporary deppp*/
   for (j=start+TURN; j<MIN2(start+pairsize,length); j++) {
     
@@ -675,7 +702,7 @@ PRIVATE struct plist *get_deppp(struct plist *pl, int start, int pairsize, int l
   }
   /*write it to list of deppps*/
   for (i=0; pl[i].i!=0; i++);
-  pl=(struct plist *)xrealloc(pl,(i+count+1)*sizeof(struct plist)); 
+  pl=(plist *)xrealloc(pl,(i+count+1)*sizeof(plist)); 
   for (j=0; j<count; j++) {
     pl[i+j].i=temp[j].i;
     pl[i+j].j=temp[j].j;
@@ -705,7 +732,10 @@ PRIVATE void print_plist(int length,int start, FLT_OR_DBL **Tpr, int winSize, FI
 }
 
 PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char *sequence) {
-/*here, we try to add a function computing all unpaired probabilities starting at some i, going down to $unpaired, to be unpaired, i.e. a list with entries from 1 to unpaired for every i, with the probability of a stretch of length x, starting at i-x+1, to be unpaired*/
+/*  here, we try to add a function computing all unpaired probabilities starting at some i,
+    going down to $unpaired, to be unpaired, i.e. a list with entries from 1 to unpaired for
+    every i, with the probability of a stretch of length x, starting at i-x+1, to be unpaired
+*/
   int startu;
   int i5;
   int j3, len, obp;
@@ -935,6 +965,12 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
   fflush(fp);
 }
 
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void init_pf_foldLP(int length){ /* DO NOTHING */}
 
 /*
  Here: Space for questions...

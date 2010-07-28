@@ -230,7 +230,6 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
-    update_fold_params();
 
     if (length >= 5){
       /* construct output file names */
@@ -282,7 +281,7 @@ int main(int argc, char *argv[]){
           fclose(pUfp);
         }
       }
-      free(pl);
+      if(pl) free(pl);
       if(unpaired > 0){
         free(pup[0]);
         free(pup);

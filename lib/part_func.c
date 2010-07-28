@@ -163,7 +163,10 @@ PRIVATE void init_partfunc(int length){
   make_pair_matrix();
   get_arrays((unsigned) length);
   scale_pf_params((unsigned) length);
+
+#ifndef USE_OPENMP
   init_length = length;
+#endif
 }
 
 PRIVATE void get_arrays(unsigned int length){
@@ -220,7 +223,6 @@ PUBLIC void free_pf_arrays(void){
   if(S)         free(S);
   if(S1)        free(S1);
 
-  init_length = 0;
   S = S1 = NULL;
   q = pr = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
   iindx = jindx = NULL;
@@ -232,6 +234,10 @@ PUBLIC void free_pf_arrays(void){
 #ifdef HP9
   fpsetfastmode(0);
 #endif
+#endif
+
+#ifndef USE_OPENMP
+  init_length = 0;
 #endif
 }
 
@@ -250,8 +256,8 @@ PUBLIC float pf_fold(const char *sequence, char *structure)
   init_partfunc(n);
 #else
   if (n > init_length) init_partfunc(n);
-#endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+#endif
 
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
@@ -736,13 +742,17 @@ PRIVATE void scale_pf_params(unsigned int length){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_pf_params(int length)
-{
+PUBLIC void update_pf_params(int length){
+#ifdef USE_OPENMP
+  make_pair_matrix(); /* is this really necessary? */
+  scale_pf_params((unsigned) length);
+#else
   if (length>init_length) init_partfunc(length);  /* init not update */
   else {
     make_pair_matrix();
     scale_pf_params((unsigned) length);
   }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
