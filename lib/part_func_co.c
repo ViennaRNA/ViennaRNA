@@ -63,6 +63,7 @@
 #include "PS_dot.h"
 #include "params.h"
 #include "loop_energies.h"
+#include "part_func.h"
 #include "part_func_co.h"
 
 #ifdef USE_OPENMP
@@ -96,7 +97,7 @@ double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 */
 PRIVATE FLT_OR_DBL  *expMLbase;
 PRIVATE FLT_OR_DBL  *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
+PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln, *probs;
 PRIVATE FLT_OR_DBL  *scale;
 PRIVATE pf_paramT   *pf_params;
 PRIVATE char        *ptype; /* precomputed array of pair types */
@@ -115,7 +116,7 @@ PRIVATE char        *sequence;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, init_length, S, S1, pstruc, sequence)
+                          scale, pf_params, ptype, jindx, init_length, S, S1, pstruc, sequence, probs)
 
 #endif
 
@@ -126,6 +127,8 @@ PRIVATE char        *sequence;
 #################################
 */
 PRIVATE void    init_partfunc_co(int length);
+PRIVATE void    pf_co(const char *sequence);
+PRIVATE void    pf_co_bppm(const char *sequence, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE void    scale_pf_params(unsigned int length);
 PRIVATE void    get_arrays(unsigned int length);
@@ -170,7 +173,7 @@ PRIVATE void get_arrays(unsigned int length){
   q         = (FLT_OR_DBL *) space(size);
   qb        = (FLT_OR_DBL *) space(size);
   qm        = (FLT_OR_DBL *) space(size);
-  pr        = (FLT_OR_DBL *) space(size);
+  probs     = (FLT_OR_DBL *) space(size);
   qm1       = (FLT_OR_DBL *) space(size);
   q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -192,7 +195,6 @@ PUBLIC void free_co_pf_arrays(void){
   if(q)         free(q);
   if(qb)        free(qb);
   if(qm)        free(qm);
-  if(pr)        free(pr);
   if(qm1)       free(qm1);
   if(ptype)     free(ptype);
   if(qq)        free(qq);
@@ -204,6 +206,7 @@ PUBLIC void free_co_pf_arrays(void){
   if(prm_l)     free(prm_l);
   if(prm_l1)    free(prm_l1);
   if(prml)      free(prml);
+  if(probs)     free(probs);
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
   if(iindx)     free(iindx);
@@ -212,7 +215,7 @@ PUBLIC void free_co_pf_arrays(void){
   if(S1)        free(S1);
 
   init_length=0;
-  q = qb = qm = pr = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  q = qb = qm = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = probs = NULL;
   ptype = NULL;
   S = S1 = NULL;
   iindx = jindx = NULL;
@@ -226,19 +229,14 @@ PUBLIC void free_co_pf_arrays(void){
 #endif
 }
 
-
 /*-----------------------------------------------------------------*/
 PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
-  int         n, i,j,k,l, ij, kl, u,u1,ii,ll, type, type_2, tt, ov=0;
-  FLT_OR_DBL  temp, Q, Qmax=0, prm_MLb;
-  FLT_OR_DBL  prmt,prmt1;
-  FLT_OR_DBL  qbt1, *tmp;
-  FLT_OR_DBL  expMLclosing;
+  int         n;
+  FLT_OR_DBL  Q;
   cofoldF     X;
-  double      free_energy, max_real;
+  double      free_energy;
 
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
 
 #ifdef USE_OPENMP
@@ -251,10 +249,82 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
  /* printf("mirnatog=%d\n",mirnatog); */
 
+  if(S) free(S);
   S   = encode_sequence(sequence, 0);
+  if(S1) free(S1);
   S1  = encode_sequence(sequence, 1);
 
   make_ptypes(S, structure);
+
+  pf_co(sequence);
+
+  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
+  else Q = q[iindx[1]-n];
+  /* ensemble free energy in Kcal/mol */
+  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
+  /* in case we abort because of floating point errors */
+  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+  /*probability of molecules being bound together*/
+
+
+  /*Computation of "real" Partition function*/
+  /*Need that for concentrations*/
+  if (cut_point>0){
+    double kT, pbound, QAB, QToT, Qzero;
+
+    kT = (temperature+K0)*GASCONST/1000.0;
+    Qzero=q[iindx[1]-n];
+    QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*pf_params->expDuplexInit;
+    /*correction for symmetry*/
+    if((n-(cut_point-1)*2)==0) {
+      if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
+        QAB/=2;
+      }}
+
+    QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
+    pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
+     X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
+    X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
+    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
+    X.FA = -kT*(log(q[iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
+    X.FB = -kT*(log(q[iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
+
+    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
+  }
+  else {
+    X.FA = X.FB = X.FAB = X.F0AB = free_energy;
+    X.FcAB = 0;
+  }
+
+  /* backtracking to construct binding probabilities of pairs*/
+  if(do_backtrack){
+    pf_co_bppm(sequence, structure);
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "pr" vanish from within the package!
+    */
+    {
+      if(pr) free(pr);
+      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+    }
+  }
+  return X;
+}
+
+/* forward recursion of pf cofolding */
+PRIVATE void pf_co(const char *sequence){
+  int         n, i,j,k,l, ij, u,u1,ii, type, type_2, tt;
+  FLT_OR_DBL  temp, Qmax=0;
+  FLT_OR_DBL  qbt1, *tmp;
+  FLT_OR_DBL  expMLclosing;
+  double      max_real;
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  n = (int) strlen(sequence);
 
   expMLclosing = pf_params->expMLclosing;
 
@@ -389,50 +459,24 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
-  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = q[iindx[1]-n];
-  /* ensemble free energy in Kcal/mol */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
-  /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
-  /*probability of molecules being bound together*/
+}
 
+/* backward recursion of pf cofolding */
+PRIVATE void pf_co_bppm(const char *sequence, char *structure){
+  int         n, i,j,k,l, ij, kl, ii, ll, type, type_2, tt, ov=0;
+  FLT_OR_DBL  temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL  prmt,prmt1;
+  FLT_OR_DBL  *tmp;
+  FLT_OR_DBL  expMLclosing;
+  double      max_real;
 
-  /*Computation of "real" Partition function*/
-  /*Need that for concentrations*/
-  if (cut_point>0){
-    double kT, pbound, QAB, QToT, Qzero;
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  n = (int) strlen(sequence);
 
-    kT = (temperature+K0)*GASCONST/1000.0;
-    Qzero=q[iindx[1]-n];
-    QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*pf_params->expDuplexInit;
-    /*correction for symmetry*/
-    if((n-(cut_point-1)*2)==0) {
-      if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
-        QAB/=2;
-      }}
+  expMLclosing = pf_params->expMLclosing;
 
-    QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
-    pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
-     X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
-    X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
-    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
-    X.FA = -kT*(log(q[iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
-    X.FB = -kT*(log(q[iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
-
-    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
-  }
-  else {
-    X.FA = X.FB = X.FAB = X.F0AB = free_energy;
-    X.FcAB = 0;
-  }
-  /* printf("freen=%.6f\n",free_energy); whereto?*/
   /* backtracking to construct binding probabilities of pairs*/
-  /* printf("qis %f\n",q[iindx[1]-(cut_point-1)]);*/
-  /*new: expInit added*/ /*new*/
-  if (do_backtrack) {
+  if ((S != NULL) && (S1 != NULL)) {
     FLT_OR_DBL   *Qlout, *Qrout;
     Qmax=0;
     Qrout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
@@ -449,15 +493,15 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
     /* 1. exterior pair i,j and initialization of pr array */
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) probs[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
         type = ptype[ij];
         if (type&&(qb[ij]>0.)) {
-          pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
-          pr[ij] *= exp_E_ExtLoop(type, ((i>1)&&(SAME_STRAND(i-1,i))) ? S1[i-1] : -1, ((j<n)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1, pf_params);
+          probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
+          probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(SAME_STRAND(i-1,i))) ? S1[i-1] : -1, ((j<n)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1, pf_params);
         } else
-          pr[ij] = 0;
+          probs[ij] = 0;
       }
     }
 
@@ -474,8 +518,8 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
             if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
               ij = iindx[i] - j;
               type = ptype[ij];
-              if ((pr[ij]>0)) {
-                pr[kl] += pr[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
+              if ((probs[ij]>0)) {
+                probs[kl] += probs[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
                                                S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[k-i+j-l];
               }
             }
@@ -492,12 +536,12 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
           ll = iindx[l+1];   /* ll-j=[l+1,j] */
           tt = ptype[ii-(l+1)]; tt=rtype[tt];
           if (SAME_STRAND(i,k)){
-            prmt1 = pr[ii-(l+1)]*expMLclosing;
+            prmt1 = probs[ii-(l+1)]*expMLclosing;
             prmt1 *= exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
             for (j=l+2; j<=n; j++) {
               if (SAME_STRAND(j-1,j)){ /*??*/
                 tt = ptype[ii-j]; tt = rtype[tt];
-                prmt += pr[ii-j]*exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*qm[ll-(j-1)];
+                prmt += probs[ii-j]*exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*qm[ll-(j-1)];
               }
             }
           }
@@ -526,17 +570,17 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
                                 ((k>1)&&SAME_STRAND(k-1,k)) ? S1[k-1] : -1,
                                 ((l<n)&&SAME_STRAND(l,l+1)) ? S1[l+1] : -1,
                                 pf_params) * scale[2];
-          pr[kl] += temp;
+          probs[kl] += temp;
 
-          if (pr[kl]>Qmax) {
-            Qmax = pr[kl];
+          if (probs[kl]>Qmax) {
+            Qmax = probs[kl];
             if (Qmax>max_real/10.)
               fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                      i, j, pr[kl], qb[kl]);
+                      i, j, probs[kl], qb[kl]);
           }
-          if (pr[kl]>=max_real) {
+          if (probs[kl]>=max_real) {
             ov++;
-            pr[kl]=FLT_MAX;
+            probs[kl]=FLT_MAX;
           }
 
         } /* end for (k=..) multloop*/
@@ -555,7 +599,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
             for (k=1; k<cut_point; k++) {
               kt=iindx[k]-t;
               type=rtype[ptype[kt]];
-              temp = pr[kt] * exp_E_ExtLoop(type, S1[t-1], (SAME_STRAND(k,k+1)) ? S1[k+1] : -1, pf_params) * scale[2];
+              temp = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (SAME_STRAND(k,k+1)) ? S1[k+1] : -1, pf_params) * scale[2];
               if (l+1<t)               temp*=q[iindx[l+1]-(t-1)];
               if (SAME_STRAND(k,k+1))  temp*=q[iindx[k+1]-(cut_point-1)];
               Qrout[l]+=temp;
@@ -569,7 +613,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
             temp = Qrout[l];
             temp *= exp_E_ExtLoop(type, (k>cut_point) ? S1[k-1] : -1, (l < n) ? S1[l+1] : -1, pf_params);
             if (k>cut_point) temp*=q[iindx[cut_point]-(k-1)];
-            pr[kl]+=temp;
+            probs[kl]+=temp;
           }
         }
       }
@@ -581,7 +625,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
               sk=iindx[s]-k;
               if (qb[sk]) {
                 type=rtype[ptype[sk]];
-                temp=pr[sk]*exp_E_ExtLoop(type, (SAME_STRAND(k-1,k)) ? S1[k-1] : -1, S1[s+1], pf_params)*scale[2];
+                temp=probs[sk]*exp_E_ExtLoop(type, (SAME_STRAND(k-1,k)) ? S1[k-1] : -1, S1[s+1], pf_params)*scale[2];
                 if (s+1<t)               temp*=q[iindx[s+1]-(t-1)];
                 if (SAME_STRAND(k-1,k))  temp*=q[iindx[cut_point]-(k-1)];
                 Qlout[t]+=temp;
@@ -597,7 +641,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
             temp=Qlout[k];
             temp *= exp_E_ExtLoop(type, (k>1) ? S1[k-1] : -1, (l<(cut_point-1)) ? S1[l+1] : -1, pf_params);
             if (l+1<cut_point) temp*=q[iindx[l+1]-(cut_point-1)];
-            pr[iindx[k]-l]+=temp;
+            probs[iindx[k]-l]+=temp;
           }
         }
       }
@@ -607,18 +651,18 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
-        pr[ij] *= qb[ij];
+        probs[ij] *= qb[ij];
       }
 
     if (structure!=NULL)
-      bppm_to_structure(structure, pr, n);
+      bppm_to_structure(structure, probs, n);
   }   /* end if (do_backtrack)*/
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
                     "you might try a smaller pf_scale than %g\n",
                     ov, pf_scale);
-  return X;
 }
+
 
 PRIVATE void scale_pf_params(unsigned int length)
 {
@@ -902,7 +946,7 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   KAA = exp(( 2.0 * FEA - FcAA)/kT);
   KBB = exp(( 2.0 * FEB - FcBB)/kT);
   KAB = exp(( FEA + FEB - FcAB)/kT);
-  printf("Kaa..%g %g %g\n", KAA, KBB, KAB);
+  /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
   for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
     ConcVec=Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
     Concentration[i/2].A0=startconc[i];
@@ -921,49 +965,6 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
 
   return Concentration;
 }
-
-
-#if 0
-PUBLIC int make_probsum(int length, char *name) {
-  /*compute probability of any base to be paired (preliminary)*/
-  double *Spprob;
-  double *Pprob;
-  int i,j;
-  FILE *fp;
-  char *filename;
-  filename=(char *)space((strlen(name)+10)*sizeof(char));
-  sprintf(filename,"%s_pp.dat",name);
-  fp=fopen(filename,"w");
-  Spprob=(double *)space((length+1)*sizeof(double));
-  if (cut_point>0) Pprob=(double *)space((length+1)*sizeof(double));
-  for (i=1; i<length; i++) {
-    for (j=i+1; j<=length; j++) {
-      Spprob[i]+=pr[iindx[i]-j];
-      Spprob[j]+=pr[iindx[i]-j];
-      if (!SAME_STRAND(i,j)) {
-        Pprob[i]+=pr[iindx[i]-j];
-        Pprob[j]+=pr[iindx[i]-j];
-      }
-    }
-  }
-
-  /*  plot_probsum(Spprob,Pprop, seq);*/
-  /*daweilamal:*/
-  for (i=1; i<=length; i++) {
-    fprintf(fp,"%4d %.8f\n",i,Spprob[i]);
-  }
-  fprintf(fp,"&\n");
-  if (cut_point>0) for (i=1;i<=length; i++) {
-    fprintf(fp,"%4d %.8f\n",i,Pprob[i]);
-  }
-  fclose(fp);
-  free(Spprob);
-  free(filename);
-  if (cut_point>0) free(Pprob);
-  return 1;
-}
-#endif
-
 
 /*###########################################*/
 /*# deprecated functions below              #*/

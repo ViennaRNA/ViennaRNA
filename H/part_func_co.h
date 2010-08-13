@@ -26,7 +26,6 @@ void    compute_probabilities(double FAB, double FEA, double FEB,
                               struct plist  *prA, struct plist  *prB,
                               int Alength);
 ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double * startconc);
-int     make_probsum(int length, char *name);
 
 /**
 *** DO NOT USE THIS FUNCTION ANYMORE
@@ -34,6 +33,10 @@ int     make_probsum(int length, char *name);
 *** use \ref assign_plist_from_pr() instead!
 **/
 DEPRECATED(plist  *get_plist(struct plist *pl, int length, double cut_off));
+/**
+*** DO NOT USE THIS FUNCTION ANYMORE
+*** \deprecated{ This function is deprecated and will be removed soon!}
+**/
 DEPRECATED(void   init_co_pf_fold(int length));
 
 #endif

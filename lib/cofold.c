@@ -231,7 +231,7 @@ PUBLIC float cofold(const char *string, char *structure) {
   /*
   *  Backward compatibility:
   *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanishs from within the package!
+  *  relying on the global variable "base_pair" vanish from within the package!
   */
   {
     if(base_pair) free(base_pair);
@@ -1111,7 +1111,7 @@ PRIVATE void free_end(int *array, int i, int start) {
 PUBLIC void update_cofold_params(void){
   P = scale_parameters();
   make_pair_matrix();
-  update_fold_params(); /* btw, why do we have to update fold params in fold.o ???? */
+/*  update_fold_params(); btw, why do we have to update fold params in fold.o ???? */
   if (init_length < 0) init_length=0;
 }
 

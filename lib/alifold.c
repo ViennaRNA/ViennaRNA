@@ -454,7 +454,7 @@ PRIVATE int fill_arrays(const char **strings) {
 /**
 *** backtrack in the energy matrices to obtain a structure with MFE
 **/
-void backtrack(const char **strings, int s) {
+PRIVATE void backtrack(const char **strings, int s) {
   /*------------------------------------------------------------------
     trace back through the "c", "f5" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
@@ -967,7 +967,7 @@ PUBLIC float **readribosum(char *name){
 }
 
 
-PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
+PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
   /*  int   energy;*/
   int new=0;
   unsigned int s, n;
@@ -1017,6 +1017,7 @@ PUBLIC  void  energy_of_alistruct(const char **sequences, const char *structure,
     indx = tempindx; pscore = temppscore;
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
+  if(energy) return energy[0];
 }
 
 PRIVATE void energy_of_alistruct_pt(const char **sequences, short *pt, int n_seq, int *energy){

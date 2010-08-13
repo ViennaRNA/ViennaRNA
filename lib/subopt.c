@@ -93,13 +93,24 @@
 #include <omp.h> 
 #endif
 
-#define true          1
-#define false          0
-
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+#define true              1
+#define false             0
+#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
+#define NEW_NINIO         1         /* use new asymetry penalty */
+#define STACK_BULGE1      1         /* stacking energies for bulges of size 1 */
+#define MAXALPHA          20        /* maximal length of alphabet */
 
 /*@unused@*/
 PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     density_of_states[MAXDOS+1];
+PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
 
 typedef struct {
     char *structure;
@@ -109,8 +120,50 @@ typedef struct {
     /* int best_energy;   */ /* best attainable energy */
 } STATE;
 
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE int     turn;
+PRIVATE LIST    *Stack;
+PRIVATE int     nopush;
+PRIVATE int     best_energy;          /* best_energy = remaining energy */
+PRIVATE int     *f5;                  /* energy of 5 end */
+PRIVATE int     *c;                   /* energy array, given that i-j pair */
+PRIVATE int     *fML;                 /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1;                 /* another multi-loop auxiliary energy array */
+PRIVATE int     *fc;                  /*energy array, from i (j)  to cut*/
+PRIVATE int     *indx;                /* index for moving in the triangle matrices c[] and f[] */
+PRIVATE short   *S, *S1;
+PRIVATE char    *ptype;
+PRIVATE paramT  *P;
+PRIVATE int     length;
+PRIVATE int     minimal_energy;       /* minimum free energy */
+PRIVATE int     element_energy;       /* internal energy of a structural element */
+PRIVATE int     threshold;            /* minimal_energy + delta */
+PRIVATE char    *sequence;
+PRIVATE int     circular;
+PRIVATE int     *fM2;                 /* energies of M2 */
+PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
+#ifdef USE_OPENMP
 
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin() in the PARALLEL directive!
+*/
+#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
+                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
+                          fM2, Fc, FcH, FcI, FcM, circular)
+
+#endif
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
 PRIVATE void      make_pair(int i, int j, STATE *state);
 PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
@@ -134,54 +187,11 @@ PRIVATE char      *costring(char *string);
 PRIVATE void      repeat(int i, int j, STATE * state,
                   int part_energy, int temp_energy);
 
-/*Globals ------------------------------------------------------------------ */
-/* options that may be modified by RNAsubopt.c */
-PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
-PUBLIC  int     density_of_states[MAXDOS+1];
-PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
-
-#define MAXALPHA 20                        /* maximal length of alphabet */
-
-PRIVATE int   turn;
-PRIVATE LIST  *Stack;
-PRIVATE int   nopush;
-PRIVATE int   best_energy;                /* best_energy = remaining energy */
-
-PRIVATE int   *f5;                         /* energy of 5 end */
-PRIVATE int   *c;                                /* energy array, given that i-j pair */
-PRIVATE int   *fML;                        /* multi-loop auxiliary energy array */
-PRIVATE int   *fM1;                /* another multi-loop auxiliary energy array */
-PRIVATE int   *fc;                     /*energy array, from i (j)  to cut*/
-PRIVATE int   *indx;   /* index for moving in the triangle matrices c[] and f[] */
-PRIVATE short *S, *S1;
-
-PRIVATE char  *ptype;
-
-PRIVATE paramT *P;
-PRIVATE int   length;
-PRIVATE int   minimal_energy;                           /* minimum free energy */
-PRIVATE int   element_energy;       /* internal energy of a structural element */
-PRIVATE int   threshold;                             /* minimal_energy + delta */
-PRIVATE char  *sequence;
-
-/* some needful things for subopt_circ */
-PRIVATE int   circular;
-PRIVATE int   *fM2;         /* energies of M2 */
-PRIVATE int   Fc, FcH, FcI, FcM;                /* parts of the exterior loop energies */
-
-#ifdef USE_OPENMP
-
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin() in the PARALLEL directive!
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
 */
-#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
-                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular)
-
-#endif
-
-
 
 
 
@@ -484,7 +494,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   dangles = old_dangles;
   /* re-evaluate in case we're using logML etc */
-  min_en = (circular) ? energy_of_circ_struct(sequence, struc) : energy_of_struct(sequence, struc);
+  min_en = (circular) ? energy_of_circ_structure(sequence, struc, 0) : energy_of_structure(sequence, struc, 0);
   free(struc);
   eprint = print_energy + min_en;
   if (fp) {
@@ -560,7 +570,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circular) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
+        structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -570,7 +580,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
           }
 #endif
         if (logML || (dangles==1) || (dangles==3)) { /* recalc energy */
-          structure_energy = (circular) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
+          structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
@@ -631,13 +641,6 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   return SolutionList;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Definitions---------------------------------------------------------------*/
-/* these have to be identical to defines in fold.c */
-#define NEW_NINIO         1        /* use new asymetry penalty */
-#define STACK_BULGE1      1           /* stacking energies for bulges of size 1 */
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE void
 scan_interval(int i, int j, int array_flag, STATE * state)

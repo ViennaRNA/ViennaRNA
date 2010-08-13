@@ -98,10 +98,11 @@ float   **readribosum(char *name);
 *** \param  structure   The consensus structure
 *** \param  n_seq       The number of sequences in the alignment
 *** \param  energy      A pointer to an array of at least two floats that will hold the free energies
-***                     (energy[0] will contain the free energy, energy[1] will be written with the covariance energy term)
+***                     (energy[0] will contain the free energy, energy[1] will be filled with the covariance energy term)
+*** \returns free energy in kcal/mol
 ***
 **/
-void    energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy);
+float   energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy);
 
 /*
 #############################################################

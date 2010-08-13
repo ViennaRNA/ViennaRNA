@@ -9,7 +9,12 @@
 #define DEPRECATED(func) func
 #endif
 
-/** \file fold.h **/
+/**
+*** \file fold.h
+***
+*** This file includes (almost) all function declarations within the RNAlib that are related to
+*** MFE folding...
+**/
 
 /** if nonzero use logarithmic ML energy in energy_of_struct **/
 extern  int logML;
@@ -35,20 +40,6 @@ float fold(const char *sequence, char *structure);
 /**
 *** Calculate the free energy of an already folded RNA
 ***
-*** \note This function is not entirely threadsafe! Depending on the state of the global
-*** variable \ref eos_debug it prints energy information to stdout or not...\n
-*** Better use \ref energy_of_structure() instead
-***
-*** \see              energy_of_structure, energy_of_circ_struct(), energy_of_struct_pt()
-*** \param string     RNA sequence
-*** \param structure  secondary structure in dot-bracket notation
-*** \returns          the free energy of the input structure given the input sequence in kcal/mol
-**/
-float energy_of_struct(const char *string, const char *structure);
-
-/**
-*** Calculate the free energy of an already folded RNA
-***
 *** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
 ***
 *** \see              energy_of_circ_structure(), energy_of_structure_pt()
@@ -59,21 +50,6 @@ float energy_of_struct(const char *string, const char *structure);
 **/
 float energy_of_structure(const char *string, const char *structure, int verbosity_level);
 
-/**
-*** Calculate the free energy of an already folded RNA
-***
-*** \note This function is not entirely threadsafe! Depending on the state of the global
-*** variable \ref eos_debug it prints energy information to stdout or not...\n
-*** Better use \ref energy_of_structure_pt() instead
-***
-*** \see              make_pair_table(), energy_of_structure()
-*** \param string     RNA sequence
-*** \param ptable     the pair table of the secondary structure
-*** \param s          encoded RNA sequence
-*** \param s1         encoded RNA sequence
-*** \returns          the free energy of the input structure given the input sequence in 10kcal/mol
-**/
-int   energy_of_struct_pt(const char *string, short *ptable, short *s, short *s1);
 
 /**
 *** Calculate the free energy of an already folded RNA
@@ -115,12 +91,6 @@ void letter_structure(char *structure, bondT *bp, int length);
 
 
 /**
-*** Allocate arrays for folding\n
-*** \deprecated {This function is deprecated and will be removed soon!}
-***
-**/
-void  DEPRECATED(initialize_fold(int length));
-/**
 *** recalculate energy parameters
 **/
 void  update_fold_params(void);
@@ -147,19 +117,6 @@ void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **
 *** \returns the minimum free energy (MFE) in kcal/mol
 **/
 float circfold(const char *string, char *structure);
-/**
-*** Calculate the free energy of an already folded  circular RNA
-***
-*** \note This function is not entirely threadsafe! Depending on the state of the global
-*** variable \ref eos_debug it prints energy information to stdout or not...\n
-*** Better use \ref energy_of_circ_structure() instead
-***
-*** \see              energy_of_circ_structure(), energy_of_struct(), energy_of_struct_pt()
-*** \param string     RNA sequence
-*** \param structure  secondary structure in dot-bracket notation
-*** \returns          the free energy of the input structure given the input sequence in kcal/mol
-**/
-float energy_of_circ_struct(const char *string, const char *structure);
 /**
 *** Calculate the free energy of an already folded  circular RNA
 ***
@@ -205,11 +162,65 @@ void assign_plist_from_db(plist **pl, const char *struc, float pr);
 *** \deprecated {This function is deprecated and will be removed soon.
 *** Use \func E_IntLoop() instead!}
 ***/
-int   DEPRECATED(LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1));
+DEPRECATED(int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1));
 /**
 *** \deprecated {This function is deprecated and will be removed soon.
 *** Use \func E_Hairpin() instead!}
 ***/
-int   DEPRECATED(HairpinE(int size, int type, int si1, int sj1, const char *string));
+DEPRECATED(int HairpinE(int size, int type, int si1, int sj1, const char *string));
+/**
+*** Allocate arrays for folding\n
+*** \deprecated {This function is deprecated and will be removed soon!}
+***
+**/
+DEPRECATED(void initialize_fold(int length));
+/**
+*** Calculate the free energy of an already folded RNA
+***
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+***
+*** \deprecated This function is deprecated and should not be used in future programs!
+*** Use \func energy_of_structure() instead!
+***
+*** \see              energy_of_structure, energy_of_circ_struct(), energy_of_struct_pt()
+*** \param string     RNA sequence
+*** \param structure  secondary structure in dot-bracket notation
+*** \returns          the free energy of the input structure given the input sequence in kcal/mol
+**/
+DEPRECATED(float energy_of_struct(const char *string, const char *structure));
+
+/**
+*** Calculate the free energy of an already folded RNA
+***
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+***
+*** \deprecated This function is deprecated and should not be used in future programs!
+*** Use \func energy_of_structure_pt() instead!
+***
+*** \see              make_pair_table(), energy_of_structure()
+*** \param string     RNA sequence
+*** \param ptable     the pair table of the secondary structure
+*** \param s          encoded RNA sequence
+*** \param s1         encoded RNA sequence
+*** \returns          the free energy of the input structure given the input sequence in 10kcal/mol
+**/
+DEPRECATED(int energy_of_struct_pt(const char *string, short *ptable, short *s, short *s1));
+/**
+*** Calculate the free energy of an already folded  circular RNA
+***
+*** \note This function is not entirely threadsafe! Depending on the state of the global
+*** variable \ref eos_debug it prints energy information to stdout or not...\n
+***
+*** \deprecated This function is deprecated and should not be used in future programs
+*** Use \func energy_of_circ_structure() instead!
+***
+*** \see              energy_of_circ_structure(), energy_of_struct(), energy_of_struct_pt()
+*** \param string     RNA sequence
+*** \param structure  secondary structure in dot-bracket notation
+*** \returns          the free energy of the input structure given the input sequence in kcal/mol
+**/
+DEPRECATED(float energy_of_circ_struct(const char *string, const char *structure));
 
 #endif

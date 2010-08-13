@@ -101,7 +101,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   n2 = (int) strlen(s2);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    P = scale_parameters();
     make_pair_matrix();
   }
 
@@ -305,7 +305,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   if (n_seq != s) nrerror("unequal number of sequences in aliduplexfold()\n");
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    P = scale_parameters();
     make_pair_matrix();
   }
   
