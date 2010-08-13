@@ -219,4 +219,8 @@ int   *get_indx(unsigned int length);
 **/
 void constrain_ptypes(const char *constraint, char *ptype, int *BP, int min_loop_size, unsigned int idx_type);
 
+unsigned int  *make_referenceBP_array(short *reference_pt, unsigned int turn);
+
+unsigned int  *compute_BPdifferences(short *pt1, short *pt2, unsigned int turn);
+
 #endif

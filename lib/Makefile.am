@@ -7,7 +7,7 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     cofold.c part_func_co.c ProfileAln.c duplex.c \
                     alifold.c alipfold.c aln_util.c LPfold.c \
                     part_func_up.c ribo.c findpath.c loop_energies.c \
-                    MEA.c aliLfold.c mm.c
+                    MEA.c aliLfold.c mm.c 2Dfold.c
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
 

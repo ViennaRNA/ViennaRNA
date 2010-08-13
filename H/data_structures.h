@@ -282,5 +282,111 @@ typedef struct {
   float energy;
 } duplexT;
 
+/*
+* ############################################################
+* 2Dfold data structures
+* ############################################################
+*/
+typedef struct{
+  float en;
+  char *s;
+} TwoDfold_solution;
+
+typedef struct{
+  paramT   *P;
+  int             do_backtrack;
+  char            *ptype;   /* precomputed array of pair types */
+  char            *sequence;
+  short           *S, *S1;
+  unsigned int    maxD1;
+  unsigned int    maxD2;
+
+
+  unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
+  
+  unsigned int    *my_iindx;    /* index for moving in quadratic distancy dimsensions */
+
+  double          temperature;
+  
+  unsigned int    *referenceBPs1;  /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2;  /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;      /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+
+  short           *reference_pt1;
+  short           *reference_pt2;
+  int             circ;
+  int             dangles;
+  unsigned int    seq_length;
+
+  int             ***E_F5;
+  int             ***E_F3;
+  int             ***E_C;
+  int             ***E_M;
+  int             ***E_M1;
+  int             ***E_M2;
+
+  int             **E_Fc;
+  int             **E_FcH;
+  int             **E_FcI;
+  int             **E_FcM;
+
+  int             **l_min_values;
+  int             **l_max_values;
+  int             *k_min_values;
+  int             *k_max_values;
+
+  int             **l_min_values_m;
+  int             **l_max_values_m;
+  int             *k_min_values_m;
+  int             *k_max_values_m;
+
+  int             **l_min_values_m1;
+  int             **l_max_values_m1;
+  int             *k_min_values_m1;
+  int             *k_max_values_m1;
+
+  int             **l_min_values_f;
+  int             **l_max_values_f;
+  int             *k_min_values_f;
+  int             *k_max_values_f;
+
+  int             **l_min_values_f3;
+  int             **l_max_values_f3;
+  int             *k_min_values_f3;
+  int             *k_max_values_f3;
+
+  int             **l_min_values_m2;
+  int             **l_max_values_m2;
+  int             *k_min_values_m2;
+  int             *k_max_values_m2;
+
+  int             *l_min_values_fc;
+  int             *l_max_values_fc;
+  int             k_min_values_fc;
+  int             k_max_values_fc;
+
+  int             *l_min_values_fcH;
+  int             *l_max_values_fcH;
+  int             k_min_values_fcH;
+  int             k_max_values_fcH;
+
+  int             *l_min_values_fcI;
+  int             *l_max_values_fcI;
+  int             k_min_values_fcI;
+  int             k_max_values_fcI;
+
+  int             *l_min_values_fcM;
+  int             *l_max_values_fcM;
+  int             k_min_values_fcM;
+  int             k_max_values_fcM;
+
+#ifdef COUNT_STATES
+  unsigned long             ***N_F5;
+  unsigned long             ***N_C;
+  unsigned long             ***N_M;
+  unsigned long             ***N_M1;
+#endif
+} TwoDfold_vars;
 
 #endif
