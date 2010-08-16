@@ -212,7 +212,7 @@ int main(int argc, char *argv[]){
       pf_struc = (char *) space((unsigned) length+1);
         if (dangles==1) {
           dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          min_en = (circular) ? energy_of_circ_structure(string, structure, 0) : energy_of_structure(string, structure, 0);
           dangles=1;
       }
 
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]){
         assign_plist_from_db(&pl2, structure, 0.95*0.95);
         /* cent = centroid(length, &dist); <- NOT THREADSAFE */
         cent = get_centroid_struct_pl(length, &dist, pl1);
-        cent_en = (circular) ? energy_of_circ_struct(string, cent) :energy_of_struct(string, cent);
+        cent_en = (circular) ? energy_of_circ_structure(string, cent, 0) :energy_of_structure(string, cent, 0);
         printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
         free(cent);
         if (fname[0]!='\0') {
@@ -265,7 +265,7 @@ int main(int argc, char *argv[]){
           plist *pl;
           assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
           mea = MEA(pl, structure, MEAgamma);
-          mea_en = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+          mea_en = (circular) ? energy_of_circ_structure(string, structure, 0) : energy_of_structure(string, structure, 0);
           printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
           free(pl);
         }

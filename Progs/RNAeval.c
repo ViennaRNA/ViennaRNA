@@ -41,6 +41,7 @@ int main(int argc, char *argv[]){
   int                       istty;
   int                       circular=0;
   int                       noconv=0;
+  int                       verbose = 0;
 
   string = ParamFile = NULL;
 
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]){
   /* logarithmic multiloop energies */
   if(args_info.logML_given)       logML = 1;
   /* be verbose */
-  if(args_info.verbose_given)     eos_debug = 1;
+  if(args_info.verbose_given)     verbose = 1;
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
     }
 
-    energy = (circular) ? energy_of_circ_struct(string, structure) : energy_of_struct(string, structure);
+    energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
 
     if (cut_point == -1)
       printf("%s\n%s", string, structure);

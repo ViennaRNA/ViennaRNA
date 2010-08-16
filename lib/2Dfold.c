@@ -22,12 +22,6 @@
 
 #include "2Dfold.h"
 
-#ifdef __GNUC__
-#define INLINE inline
-#else
-#define INLINE
-#endif
-
 /*
 #################################
 # GLOBAL VARIABLES              #

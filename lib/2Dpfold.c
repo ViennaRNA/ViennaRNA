@@ -20,13 +20,6 @@
 #include "mm.h"
 #include "2Dpfold.h"
 
-#ifdef __GNUC__
-#define INLINE inline
-#else
-#define INLINE
-#endif
-
-
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -57,6 +50,12 @@ INLINE  PRIVATE void  preparePosteriorBoundaries(int size, int shift, int *min_k
 INLINE  PRIVATE void  updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l);
 INLINE  PRIVATE void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_pre, int max_l_pre, int bpdist, int *min_k, int *max_k, int **min_l, int **max_l);
 INLINE  PRIVATE void  prepareArray(FLT_OR_DBL ***array, int min_k, int max_k, int *min_l, int *max_l);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *structure1, char *structure2, int circ){
   unsigned int i, size, length;

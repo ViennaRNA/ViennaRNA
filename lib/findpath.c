@@ -94,7 +94,7 @@ PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist
 #ifdef LOOP_EN
     en = c.curr_en + energy_of_move(c.pt, S, S1, i, j);
 #else
-    en = energy_of_struct_pt(seq, pt, S, S1);
+    en = energy_of_structure_pt(seq, pt, S, S1, 0);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -141,7 +141,7 @@ PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
   BP_dist = dist;
   current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = energy_of_struct_pt(seq, pt1, S, S1);
+  current[0].Sen = current[0].curr_en = energy_of_structure_pt(seq, pt1, S, S1, 0);
   current[0].moves = mlist;
   next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -230,7 +230,7 @@ PUBLIC void print_path(char *seq, char *struc) {
   int d;
   char *s;
   s = strdup(struc);
-  printf("%s\n%s %6.2f\n", seq, s, energy_of_struct(seq,s));
+  printf("%s\n%s %6.2f\n", seq, s, energy_of_structure(seq,s, 0));
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
   for (d=0; d<BP_dist; d++) {
     int i,j;
@@ -240,7 +240,7 @@ PUBLIC void print_path(char *seq, char *struc) {
     } else {
       s[i-1] = '('; s[j-1] = ')';
     }
-    printf("%s %6.2f - %6.2f\n", s, energy_of_struct(seq,s), path[d].E/100.0);
+    printf("%s %6.2f - %6.2f\n", s, energy_of_structure(seq,s, 0), path[d].E/100.0);
   }
   free(s);
 }
@@ -258,7 +258,7 @@ PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = energy_of_struct(seq, s1);
+    route[0].en = energy_of_structure(seq, s1, 0);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -276,7 +276,7 @@ PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = energy_of_struct(seq, s2);
+    route[BP_dist].en = energy_of_structure(seq, s2, 0);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;

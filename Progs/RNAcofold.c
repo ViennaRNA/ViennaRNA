@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
       cofoldF AB, AA, BB;
       if (dangles==1) {
         dangles=2;   /* recompute with dangles as in pf_fold() */
-        min_en = energy_of_struct(string, structure);
+        min_en = energy_of_structure(string, structure, 0);
         dangles=1;
       }
 

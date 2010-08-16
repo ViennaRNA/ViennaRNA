@@ -475,7 +475,7 @@ PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
 #else
    distance = (double) bp_distance(target, structure);
 #endif
-   cost2 = energy_of_struct(string, target) - energy;
+   cost2 = energy_of_structure(string, target, 0) - energy;
    return (double) distance;
 }
 /*---------------------------------------------------------------------------*/
@@ -486,7 +486,7 @@ PRIVATE double pf_cost(const char *string, char *structure, const char *target)
    double  f, e;
 
    f = pf_fold(string, structure);
-   e = energy_of_struct(string, target);
+   e = energy_of_structure(string, target, 0);
    return (double) (e-f-final_cost);
 #else
    nrerror("this version not linked with pf_fold");
