@@ -28,7 +28,7 @@
 #define VRNA_CONSTRAINT_PIPE              1U
 /** dot '.' switch for structure constraints (no constraint at all) **/
 #define VRNA_CONSTRAINT_DOT               2U
-/** 'x' switch for structure constraint (base must not pair) **/ 
+/** 'x' switch for structure constraint (base must not pair) **/
 #define VRNA_CONSTRAINT_X                 4U
 /** angle brackets '<', '>' switch for structure constraint (paired downstream/upstream) **/
 #define VRNA_CONSTRAINT_ANG_BRACK         8U
@@ -57,7 +57,7 @@ void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p, unsigned
 
 /**
 *** Die with an error message
-*** \see 
+*** \see
 *** \param message The error message to be printed before exiting with 'FAILURE'
 **/
 /*@exits@*/

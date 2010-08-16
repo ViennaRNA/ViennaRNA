@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
   double        energy, min_en, kT, sfact=1.07;
   int           doMEA=0, circular = 0;
   double        MEAgamma = 1.;
-  
+
   do_backtrack  = 1;
   string        = NULL;
 
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]){
     */
 
     min_en = (circular) ? circfold(string, structure) : fold(string, structure);
-    
+
     printf("%s\n%s", string, structure);
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]){
       strcpy(gfname, "rna.g");
     }
     if (!noPS) (void) PS_rna_plot(string, structure, ffname);
-    if (length>2000) free_arrays(); 
+    if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);

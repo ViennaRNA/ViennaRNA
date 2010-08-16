@@ -70,7 +70,7 @@ typedef struct bondTEn {               /* base pair with associated energy*/
 /**
 *** The datastructure that contains temperature scaled energy parameters.
 **/
-typedef struct paramT{
+typedef struct{
   int id;
   int stack[NBPAIRS+1][NBPAIRS+1];
   int hairpin[31];
@@ -106,7 +106,7 @@ typedef struct paramT{
 /**
 *** The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
 **/
-typedef struct pf_paramT{
+typedef struct{
   int     id;
   double  expstack[NBPAIRS+1][NBPAIRS+1];
   double  exphairpin[31]; 
@@ -388,5 +388,92 @@ typedef struct{
   unsigned long             ***N_M1;
 #endif
 } TwoDfold_vars;
+
+typedef struct{
+
+  unsigned int    alloc;
+  char            *ptype;   /* precomputed array of pair types */
+  char            *sequence;
+  short           *S, *S1;
+  double          temperature;      /* temperature in last call to scale_pf_params */
+  double          init_temp;      /* temperature in last call to scale_pf_params */
+  unsigned int    maxD1;
+  unsigned int    maxD2;
+
+  FLT_OR_DBL  *scale;
+  FLT_OR_DBL  pf_scale;
+  pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
+
+  unsigned int    *my_iindx;         /* index for moving in quadratic distancy dimsensions */
+  unsigned int    *jindx;         /* index for moving in the triangle matrix qm1 */
+
+  unsigned int    *referenceBPs1;    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2;    /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  short           *reference_pt1;
+  short           *reference_pt2;
+  unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
+  unsigned int    *bpdist;      /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+  int             circ;
+  int             dangles;
+  unsigned int    seq_length;
+
+  FLT_OR_DBL      ***Q;
+  FLT_OR_DBL      ***Q_B;
+  FLT_OR_DBL      ***Q_M;
+  FLT_OR_DBL      ***Q_M1;
+  FLT_OR_DBL      ***Q_M2;
+
+  FLT_OR_DBL      **Q_c;
+  FLT_OR_DBL      **Q_cH;
+  FLT_OR_DBL      **Q_cI;
+  FLT_OR_DBL      **Q_cM;
+
+  int             **l_min_values;
+  int             **l_max_values;
+  int             *k_min_values;
+  int             *k_max_values;
+
+  int             **l_min_values_b;
+  int             **l_max_values_b;
+  int             *k_min_values_b;
+  int             *k_max_values_b;
+
+  int             **l_min_values_m;
+  int             **l_max_values_m;
+  int             *k_min_values_m;
+  int             *k_max_values_m;
+
+  int             **l_min_values_m1;
+  int             **l_max_values_m1;
+  int             *k_min_values_m1;
+  int             *k_max_values_m1;
+
+  int             **l_min_values_m2;
+  int             **l_max_values_m2;
+  int             *k_min_values_m2;
+  int             *k_max_values_m2;
+
+  int             *l_min_values_qc;
+  int             *l_max_values_qc;
+  int             k_min_values_qc;
+  int             k_max_values_qc;
+
+  int             *l_min_values_qcH;
+  int             *l_max_values_qcH;
+  int             k_min_values_qcH;
+  int             k_max_values_qcH;
+
+  int             *l_min_values_qcI;
+  int             *l_max_values_qcI;
+  int             k_min_values_qcI;
+  int             k_max_values_qcI;
+
+  int             *l_min_values_qcM;
+  int             *l_max_values_qcM;
+  int             k_min_values_qcM;
+  int             k_max_values_qcM;
+
+} TwoDpfold_vars;
 
 #endif

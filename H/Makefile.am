@@ -4,6 +4,6 @@ pkginclude_HEADERS = energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
 	utils.h params.h subopt.h cofold.h duplex.h alifold.h aln_util.h \
 	part_func_co.h ProfileAln.h LPfold.h Lfold.h part_func_up.h ribo.h \
 	findpath.h loop_energies.h data_structures.h MEA.h mm.h ProfileDist.h\
-	naview.h 2Dfold.h
+	naview.h 2Dfold.h 2Dpfold.h
 
 EXTRA_DIST = $(pkginclude_HEADERS)

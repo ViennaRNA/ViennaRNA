@@ -55,7 +55,7 @@
 *** E_Stem() function, you can inhibit to take 5'-, 3'-dangles
 *** or mismatch contributions to be taken into account by passing
 *** -1 to these parameters.
-*** 
+***
 *** \see    E_Stem()
 *** \param  A The pair type of the stem-closing pair
 *** \param  B The 5'-mismatching nucleotide
@@ -99,10 +99,10 @@
 *** 3'-mismatch: b_m<BR>
 *** and for the enclosed base pair (V,U):<BR>
 *** 5'-mismatch: b_1<BR>
-*** 3'-mismatch: a_n<BR> 
+*** 3'-mismatch: a_n<BR>
 *** \note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
-*** must be 'turned arround' when evaluating the free energy of the interior-loop 
-*** \see scale_parameters() 
+*** must be 'turned arround' when evaluating the free energy of the interior-loop
+*** \see scale_parameters()
 *** \see paramT
 *** \note This function is threadsafe
 ***
@@ -136,7 +136,7 @@ INLINE  int   E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, 
 *** \note The parameter sequence should contain the sequence of the loop in capital letters of the nucleic acid
 *** alphabet if the loop size is below 7. This is useful for unusually stable tri-, tetra- and hexa-loops
 *** which are treated differently (based on experimental data) if they are tabulated.
-*** @see scale_parameters() 
+*** @see scale_parameters()
 *** @see paramT
 *** \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
 *** Energy evaluation may change due to updates in global variable "tetra_loop"
@@ -183,7 +183,7 @@ INLINE  int   E_Hairpin(int size, int type, int si1, int sj1, const char *string
 *** contributions to be incoorporated, just pass a negative number to both, si1 and sj1.
 *** In case the argument extLoop is 0, the returned energy contribution also includes
 *** the <I>internal-loop-penalty</I> of a multiloop stem with closing pair type.
-*** 
+***
 *** \see    E_MLstem()
 *** \see    E_ExtLoop()
 *** \note   This function is threadsafe
@@ -212,7 +212,7 @@ INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P)
   double energy = 1.0;
   double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
   double d3 = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
-  
+
   if(type > 2)
     energy *= P->expTermAU;
 
@@ -229,7 +229,7 @@ INLINE  double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P)
 /**
 *** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
 *** multiply by scale[u+2]
-*** @see get_scaled_pf_parameters() 
+*** @see get_scaled_pf_parameters()
 *** @see pf_paramT
 *** @see E_Hairpin()
 *** \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
@@ -249,7 +249,7 @@ INLINE  double  exp_E_Hairpin(int u, int type, short si1, short sj1, const char 
 /**
 *** <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
 *** multiply by scale[u1+u2+2] for scaling
-*** @see get_scaled_pf_parameters() 
+*** @see get_scaled_pf_parameters()
 *** @see pf_paramT
 *** @see E_IntLoop()
 *** \note This function is threadsafe
@@ -315,7 +315,7 @@ INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, sho
     /* generic interior loop (no else here!)*/
     z = P->expinternal[ul+us] * P->expmismatchI[type][si1][sj1] * P->expmismatchI[type2][sq1][sp1];
     return z * P->expninio[2][ul-us];
-    
+
   }
 #else
   double z=0;
@@ -333,24 +333,24 @@ INLINE  double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, sho
       z = P->expbulge[u];
       if (u2+u1==1) z *= P->expstack[type][type2];
       else {
-	if (type>2) z *= P->expTermAU;
-	if (type2>2) z *= P->expTermAU;
+        if (type>2) z *= P->expTermAU;
+        if (type2>2) z *= P->expTermAU;
       }
     }
     else {     /* interior loop */
       if (u1+u2==2) /* size 2 is special */
-	    z = P->expint11[type][type2][si1][sj1];
+            z = P->expint11[type][type2][si1][sj1];
       else if ((u1==1) && (u2==2))
-	    z = P->expint21[type][type2][si1][sq1][sj1];
+            z = P->expint21[type][type2][si1][sq1][sj1];
       else if ((u1==2) && (u2==1))
-	    z = P->expint21[type2][type][sq1][si1][sp1];
+            z = P->expint21[type2][type][sq1][si1][sp1];
       else if ((u1==2) && (u2==2))
-	    z = P->expint22[type][type2][si1][sp1][sq1][sj1];
+            z = P->expint22[type][type2][si1][sp1][sq1][sj1];
       else {
-	    z = P->expinternal[u1+u2]*
-	        P->expmismatchI[type][si1][sj1]*
-	        P->expmismatchI[type2][sq1][sp1];
-	    z *= P->expninio[2][abs(u1-u2)];
+            z = P->expinternal[u1+u2]*
+                P->expmismatchI[type][si1][sj1]*
+                P->expmismatchI[type2][sq1][sp1];
+            z *= P->expninio[2][abs(u1-u2)];
       }
     }
   }
@@ -362,14 +362,14 @@ INLINE  int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, i
   int energy = 0;
   if(type > 2)   energy += P->TerminalAU;
   if(type_2 > 2) energy += P->TerminalAU;
-  
+
   if(!dangles) return energy;
-  
+
   int ci = (i>=cutpoint)||((i+1)<cutpoint);
   int cj = ((j-1)>=cutpoint)||(j<cutpoint);
   int cp = ((p-1)>=cutpoint)||(p<cutpoint);
   int cq = (q>=cutpoint)||((q+1)<cutpoint);
-  
+
   int d3    = ci  ? P->dangle3[type][si1]   : 0;
   int d5    = cj  ? P->dangle5[type][sj1]   : 0;
   int d5_2  = cp  ? P->dangle5[type_2][sp1] : 0;
@@ -379,7 +379,7 @@ INLINE  int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, i
   int tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
 
   if(dangles == 2) return energy + tmm + tmm_2;
-  
+
   /* now we may have non-double dangles only */
   if(i+2 < p){
     if(q+2 < j){ energy += tmm + tmm_2;}

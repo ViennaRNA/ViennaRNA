@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2008-06-06 17:39:02 ulim> */
-/*                
+/*
 
                   c Ivo Hofacker
 
@@ -14,7 +14,7 @@
 #include "fold_vars.h"
 #include "utils.h"
 #include "params.h"
-/** 
+/**
 *** \file params.c
 *** <P>
 *** This file provides functions that return temperature scaled energy parameters and
@@ -44,7 +44,7 @@ PUBLIC paramT *scale_parameters(void)
   params = (paramT *)space(sizeof(paramT));
 
   tempf = ((temperature+K0)/Tmeasure);
-  for (i=0; i<31; i++) 
+  for (i=0; i<31; i++)
     params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
     params->bulge[i]          = bulgedH[i] - (bulgedH[i] - bulge37[i]) * tempf;
@@ -57,16 +57,16 @@ PUBLIC paramT *scale_parameters(void)
   }
   for (i=0; i<5; i++)
     params->ninio[i] = niniodH[i] - (niniodH[i] - ninio37[i]) * tempf;
-   
-  for (i=0; (i*7)<strlen(Tetraloops); i++) 
+
+  for (i=0; (i*7)<strlen(Tetraloops); i++)
     params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*tempf;
-  for (i=0; (i*5)<strlen(Triloops); i++) 
+  for (i=0; (i*5)<strlen(Triloops); i++)
     params->Triloop_E[i] =  TriloopdH[i] - (TriloopdH[i]-Triloop37[i])*tempf;
-  for (i=0; (i*9)<strlen(Hexaloops); i++) 
+  for (i=0; (i*9)<strlen(Hexaloops); i++)
     params->Hexaloop_E[i] =  HexaloopdH[i] - (HexaloopdH[i]-Hexaloop37[i])*tempf;
-  
+
   params->TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
-  
+
   params->DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) *tempf;
 
   params->MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
@@ -101,12 +101,12 @@ PUBLIC paramT *scale_parameters(void)
           params->mismatchM[i][j][k] = params->mismatchExt[i][j][k] = 0;
         }
       }
-   
+
   /* dangles */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<5; j++) {
       int dd;
-      dd = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*tempf; 
+      dd = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*tempf;
       params->dangle5[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
       dd = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*tempf;
       params->dangle3[i][j] = (dd>0) ? 0 : dd;  /* must be <= 0 */
@@ -115,7 +115,7 @@ PUBLIC paramT *scale_parameters(void)
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-        for (l=0; l<5; l++) 
+        for (l=0; l<5; l++)
           params->int11[i][j][k][l] = int11_dH[i][j][k][l] - (int11_dH[i][j][k][l] - int11_37[i][j][k][l])*tempf;
 
   /* interior 2x1 loops */
@@ -134,11 +134,11 @@ PUBLIC paramT *scale_parameters(void)
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++)             
+            for (n=0; n<5; n++)
               params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] - (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
         }
   /* interior 2x3 loops */
- 
+
   strncpy(params->Tetraloops, Tetraloops, 1400);
   strncpy(params->Triloops, Triloops, 240);
   strncpy(params->Hexaloops, Hexaloops, 1800);
@@ -151,7 +151,7 @@ PUBLIC paramT *scale_parameters(void)
 PUBLIC paramT *copy_parameters(void) {
   paramT *copy;
   if (p.id != id) scale_parameters();
-  
+
   copy = (paramT *) space(sizeof(paramT));
   memcpy(copy, &p, sizeof(paramT));
   return copy;
@@ -169,14 +169,14 @@ PUBLIC paramT *set_parameters(paramT *dest) {
 *** dangling ends should never be destabilizing, i.e. expdangle>=1<BR>
 *** specific heat needs smooth function (2nd derivative)<BR>
 *** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
-*** in the interval b<x<sqrt(3)/2 
+*** in the interval b<x<sqrt(3)/2
 */
 /* #define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
           SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
  */
 #define SMOOTH(X) ((X)<0 ? 0 : (X))
 
-PUBLIC pf_paramT *scale_pf_parameters(void)  {  
+PUBLIC pf_paramT *scale_pf_parameters(void)  {
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int i, j, k, l;
   double  kT, TT;
@@ -202,12 +202,12 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) pf.expinternal[2] = exp ( -80*10/kT);
-   
+
   pf.lxc = lxc37*TT;
-  
+
   GT =  DuplexInitdH - (DuplexInitdH - DuplexInit37)*TT;
   pf.expDuplexInit = exp( -GT*10./kT);
-  
+
   for (i=31; i<=MAXLOOP; i++) {
     GT = bulge37[30]*TT + (pf.lxc*log( i/30.));
     pf.expbulge[i] = exp( -GT*10./kT);
@@ -245,8 +245,8 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
 
   GT = ML_BASE37*TT;
   pf.expMLbase=exp(-10.*GT/kT);
-  
- 
+
+
   /* if dangles==0 just set their energy to 0,
      don't let dangle energies become > 0 (at large temps),
      but make sure go smoothly to 0                        */
@@ -292,8 +292,8 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
           pf.expmismatchM[i][j][k] = pf.expmismatchExt[i][j][k] = 1.;
         }
       }
-  
-  
+
+
   /* interior lops of length 2 */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
@@ -310,7 +310,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m;
           for (m=0; m<5; m++) {
-            GT = int21_dH[i][j][k][l][m] - 
+            GT = int21_dH[i][j][k][l][m] -
               (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
             pf.expint21[i][j][k][l][m] = exp(-GT*10./kT);
           }
@@ -323,7 +323,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int22_dH[i][j][k][l][m][n] -
                 (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
               pf.expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
@@ -336,7 +336,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int23_H[i][j][k][l][m][n] -
                 (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
               pf.expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
@@ -347,18 +347,18 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   strncpy(pf.Tetraloops, Tetraloops, 1400);
   strncpy(pf.Triloops, Triloops, 240);
   strncpy(pf.Hexaloops, Hexaloops, 1800);
-  
+
   pf.id = ++pf_id;
   return &pf;
 }
 
-PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {  
+PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int i, j, k, l;
   double  kT, TT;
   double  GT;
   pf_paramT *pf = (pf_paramT *)space(sizeof(pf_paramT));
-  
+
   pf->temperature = temperature;
   pf->kT = kT = (pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT = (pf->temperature+K0)/(Tmeasure);
@@ -368,7 +368,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     GT =  hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
     pf->exphairpin[i] = exp( -GT*10./kT);
   }
-  
+
   for (i=0; i<=MIN2(30, MAXLOOP); i++) {
     GT =  bulgedH[i]- (bulgedH[i] - bulge37[i])*TT;
     pf->expbulge[i] = exp( -GT*10./kT);
@@ -377,12 +377,12 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) pf->expinternal[2] = exp ( -80*10/kT);
-   
+
   pf->lxc = lxc37*TT;
-  
+
   GT =  DuplexInitdH - (DuplexInitdH - DuplexInit37)*TT;
   pf->expDuplexInit = exp( -GT*10./kT);
-  
+
   for (i=31; i<=MAXLOOP; i++) {
     GT = bulge37[30]*TT + (pf->lxc*log( i/30.));
     pf->expbulge[i] = exp( -GT*10./kT);
@@ -421,8 +421,8 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
   /* pf->expMLbase=(-10.*GT/kT); old */
   pf->expMLbase=exp(-10.*GT/kT);
-  
- 
+
+
   /* if dangles==0 just set their energy to 0,
      don't let dangle energies become > 0 (at large temps),
      but make sure go smoothly to 0                        */
@@ -466,8 +466,8 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf->expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
       }
-  
-  
+
+
   /* interior lops of length 2 */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
@@ -484,7 +484,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m;
           for (m=0; m<5; m++) {
-            GT = int21_dH[i][j][k][l][m] - 
+            GT = int21_dH[i][j][k][l][m] -
               (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
             pf->expint21[i][j][k][l][m] = exp(-GT*10./kT);
           }
@@ -497,7 +497,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int22_dH[i][j][k][l][m][n] -
                 (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
               pf->expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
@@ -510,7 +510,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int23_H[i][j][k][l][m][n] -
                 (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
               pf->expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
@@ -521,17 +521,17 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   strncpy(pf->Tetraloops, Tetraloops, 281);
   strncpy(pf->Triloops, Triloops, 241);
   strncpy(pf->Hexaloops, Hexaloops, 361);
-  
+
   return pf;
 }
 
-PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {  
+PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int i, j, k, l;
   double  kTn, TT;
   double  GT;
   pf_paramT *pf = (pf_paramT *)space(sizeof(pf_paramT));
-  
+
   pf->temperature = temperature;
   pf->kT = (pf->temperature+K0)*GASCONST;   /* kTn in cal/mol  */
   pf->kT *= n_seq;
@@ -548,7 +548,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
     GT= 600/*Penalty*/*TT;
     pf->exphairpin[i] = exp( -GT*10./kTn);
   }
-  
+
   for (i=0; i<=MIN2(30, MAXLOOP); i++) {
     GT =  bulgedH[i]- (bulgedH[i] - bulge37[i])*TT;
     pf->expbulge[i] = exp( -GT*10./kTn);
@@ -557,12 +557,12 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
   }
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule) pf->expinternal[2] = exp ( -80*10/kTn);
-   
+
   pf->lxc = lxc37*TT;
-  
+
   GT =  DuplexInitdH - (DuplexInitdH - DuplexInit37)*TT;
   pf->expDuplexInit = exp( -GT*10./kTn);
-  
+
   for (i=31; i<=MAXLOOP; i++) {
     GT = bulge37[30]*TT + (pf->lxc*log( i/30.));
     pf->expbulge[i] = exp( -GT*10./kTn);
@@ -600,8 +600,8 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
 
   GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
   pf->expMLbase=exp(-10.*GT/(kTn/n_seq));
-  
- 
+
+
   /* if dangles==0 just set their energy to 0,
      don't let dangle energies become > 0 (at large temps),
      but make sure go smoothly to 0                        */
@@ -645,8 +645,8 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf->expmismatch23I[i][j][k] = exp(-GT*10.0/kTn);
       }
-  
-  
+
+
   /* interior lops of length 2 */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
@@ -663,7 +663,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
         for (l=0; l<5; l++) {
           int m;
           for (m=0; m<5; m++) {
-            GT = int21_dH[i][j][k][l][m] - 
+            GT = int21_dH[i][j][k][l][m] -
               (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m])*TT;
             pf->expint21[i][j][k][l][m] = exp(-GT*10./kTn);
           }
@@ -676,7 +676,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int22_dH[i][j][k][l][m][n] -
                 (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*TT;
               pf->expint22[i][j][k][l][m][n] = exp(-GT*10./kTn);
@@ -689,7 +689,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {            
+            for (n=0; n<5; n++) {
               GT = int23_H[i][j][k][l][m][n] -
                 (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
               pf->expint23[i][j][k][l][m][n] = exp(-GT*10./kTn);
@@ -700,14 +700,14 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
   strncpy(pf->Tetraloops, Tetraloops, 281);
   strncpy(pf->Triloops, Triloops, 241);
   strncpy(pf->Hexaloops, Hexaloops, 361);
-  
+
   return pf;
 }
 
 PUBLIC pf_paramT *copy_pf_param(void)   {
   pf_paramT *copy;
   if (pf.id != pf_id) scale_pf_parameters();
-  
+
   copy = (pf_paramT *) space(sizeof(pf_paramT));
   memcpy(copy, &pf, sizeof(pf_paramT));
   return copy;

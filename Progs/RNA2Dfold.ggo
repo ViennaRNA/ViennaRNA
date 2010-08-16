@@ -1,0 +1,31 @@
+# Name of your program
+package "RNA2Dfold" # don't use package if you're using automake
+purpose "Compute MFE structure, partition function and representative sample structures of k,l neighborhoods"
+
+# Version of your program
+version "0.9"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNA2Dfold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNA2Dfold_cmdline_parser --arg-struct-name=RNA2Dfold_args_info"
+
+
+# Options
+option  "temp"            T "temperature for folding energies" double
+option  "maxDist1"        K "maximum distance to first reference structure" int 
+option  "maxDist2"        L "maximum distance to second reference structure" int 
+option  "partFunction"    p "calculate partition function and Boltzmann probabilities" flag off
+option  "stochBT"         - "backtrack a certain number of Boltzmann samples from the appropriate k,l neighborhood(s)" int
+option  "neighborhood"    - "backtrack structures from certain k,l-neighborhood only, can be specified multiple times (<k>:<l>,<m>:<n>,...)"
+                            typestr="<k>:<l>" string multiple dependon="stochBT"
+option  "noTetraLoop"     4 "do not include special stabilizing energies for certain tetra-loops" flag  off
+option  "parameterFile"   P "use a certain parameter file" string  typestr="filename"
+option  "numThreads"      j "set the number of threads used for calculations (needs OpenMP support)"  int
+option  "circ"            c "assume RNA sequence to be circular"  flag  off
+option  "dangles"         d "set energy model for treatment of dangling bases"  int default="2" values="0","2"
+option  "noGU"            - "Do not allow GU pairs" flag off
+option  "noClosingGU"       - "Do not allow GU pairs at the end of helices" flag off
+option  "pfScale"         S "scaling factor for pf to avoid overflows"  double
+option  "noBT"            - "do not backtrack structures, calculate energy contributions only"  flag  off
+ 
+
