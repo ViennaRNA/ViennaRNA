@@ -53,7 +53,7 @@
 
 /**
 *** \def exp_E_MLstem(A,B,C,D)
-*** This is the partition function variant of \func E_MLstem()
+*** This is the partition function variant of \ref E_MLstem()
 *** \see E_MLstem()
 *** \return The Boltzmann weighted energy contribution of the introduced multiloop stem
 **/
@@ -82,7 +82,7 @@
 
 /**
 *** \def exp_E_ExtLoop(A,B,C,D)
-*** This is the partition function variant of \func E_ExtLoop()
+*** This is the partition function variant of \ref E_ExtLoop()
 *** \see E_ExtLoop()
 *** \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
 **/
@@ -217,7 +217,7 @@ INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
 
 /**
 *** <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
-*** This is the partition function variant of \func E_Stem()
+*** This is the partition function variant of \ref E_Stem()
 *** \see E_Stem()
 *** \note This function is threadsafe
 ***

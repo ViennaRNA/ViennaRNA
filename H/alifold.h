@@ -94,7 +94,7 @@ float   **readribosum(char *name);
 /**
 *** Calculate the free energy of a consensus structure given a set of aligned sequences
 ***
-*** \param  sequenceces The NULL terminated array of sequences
+*** \param  sequences   The NULL terminated array of sequences
 *** \param  structure   The consensus structure
 *** \param  n_seq       The number of sequences in the alignment
 *** \param  energy      A pointer to an array of at least two floats that will hold the free energies
@@ -117,11 +117,11 @@ float   energy_of_alistruct(const char **sequences, const char *structure, int n
 *** space is already allocated (size must be at least sequence length+2)
 *** \param sequence The gapped sequence from the alignment
 *** \param S        pointer to an array that holds encoded sequence
-*** \params s5      pointer to an array that holds the next base 5' of alignment position i
-*** \params s3      pointer to an array that holds the next base 3' of alignment position i
-*** \params ss      
-*** \params as      
-*** \params circ    assume the molecules to be circular instead of linear (circ=0)
+*** \param s5      pointer to an array that holds the next base 5' of alignment position i
+*** \param s3      pointer to an array that holds the next base 3' of alignment position i
+*** \param ss      
+*** \param as      
+*** \param circ    assume the molecules to be circular instead of linear (circ=0)
 **/
 void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ);
 
@@ -137,7 +137,7 @@ void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, c
 *** \param S3         A pointer to the array that contains the next 3' nucleotide of a sequence position
 *** \param a2s        A pointer to the array that contains the alignment to sequence position mapping
 *** \param Ss         A pointer to the array that contains the ungapped sequence
-*** \params circ    assume the molecules to be circular instead of linear (circ=0)
+*** \param circ       assume the molecules to be circular instead of linear (circ=0)
 **/
 void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ);
 

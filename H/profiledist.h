@@ -2,7 +2,7 @@
 
 /**
 *** \file profiledist.h
-*** \noteThis file is left for backward compatibility but should not be included anymore!
+*** \note This file is left for backward compatibility but should not be included anymore!
 **/
 
 #include "ProfileDist.h"

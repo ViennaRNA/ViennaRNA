@@ -92,7 +92,7 @@ PUBLIC  int     st_back=0;
 #################################
 */
 PRIVATE FLT_OR_DBL  *q, *qb=NULL, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
+PRIVATE FLT_OR_DBL  *probs, *prml, *prm_l, *prm_l1, *q1k, *qln;
 PRIVATE FLT_OR_DBL  *scale;
 PRIVATE FLT_OR_DBL  *expMLbase;
 PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
@@ -114,7 +114,7 @@ PRIVATE short       *S, *S1;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
+                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
                           circular, pstruc, sequence, ptype, pf_params, S, S1)
 
 #endif
@@ -179,6 +179,7 @@ PRIVATE void get_arrays(unsigned int length){
   qm    = (FLT_OR_DBL *) space(size);
   qm1   = (st_back || circular) ? (FLT_OR_DBL *) space(size) : NULL;
   qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
+  probs = (FLT_OR_DBL *) space(size);
 
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
   q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
@@ -213,6 +214,7 @@ PUBLIC void free_pf_arrays(void){
   if(qqm1)      free(qqm1);
   if(q1k)       free(q1k);
   if(qln)       free(qln);
+  if(probs)     free(probs);
   if(prm_l)     free(prm_l);
   if(prm_l1)    free(prm_l1);
   if(prml)      free(prml);
@@ -224,7 +226,7 @@ PUBLIC void free_pf_arrays(void){
   if(S1)        free(S1);
 
   S = S1 = NULL;
-  q = pr = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
   iindx = jindx = NULL;
   ptype = NULL;
 
@@ -242,8 +244,7 @@ PUBLIC void free_pf_arrays(void){
 }
 
 /*-----------------------------------------------------------------*/
-PUBLIC float pf_fold(const char *sequence, char *structure)
-{
+PUBLIC float pf_fold(const char *sequence, char *structure){
 
   FLT_OR_DBL  Q;
   double      free_energy;
@@ -328,8 +329,7 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   return free_energy;
 }
 
-PRIVATE void pf_linear(const char *sequence, char *structure)
-{
+PRIVATE void pf_linear(const char *sequence, char *structure){
 
   int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt;
   FLT_OR_DBL temp, Q, Qmax=0;
@@ -434,6 +434,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure)
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
 }
+
 /* calculate partition function for circular case */
 /* NOTE: this is the postprocessing step ONLY     */
 /* You have to call pf_linear first to calculate  */
@@ -505,8 +506,7 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
 }
 
 /* calculate base pairing probs */
-PUBLIC void pf_create_bppm(const char *sequence, char *structure)
-{
+PUBLIC void pf_create_bppm(const char *sequence, char *structure){
   int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
@@ -528,17 +528,19 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
 
-    pr = q;     /* recycling */
+/*  pr = q; */     /* recycling */
+
 
     /* 1. exterior pair i,j and initialization of pr array */
     if(circular){
       for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
-          for (j=i+TURN+1; j<=n; j++) {
+        for (j=i; j<=MIN2(i+TURN,n); j++)
+          probs[iindx[i]-j] = 0;
+        for (j=i+TURN+1; j<=n; j++) {
           ij = iindx[i]-j;
           type = ptype[ij];
           if (type&&(qb[ij]>0.)) {
-            pr[ij] = 1./qo;
+            probs[ij] = 1./qo;
             int rt = rtype[type];
 
             /* 1.1. Exterior Hairpin Contribution */
@@ -599,24 +601,24 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
               tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* all exterior loop decompositions for pair i,j done  */
-            pr[ij] *= tmp2;
+            probs[ij] *= tmp2;
 
           }
-          else pr[ij] = 0;
+          else probs[ij] = 0;
         }
       }
     } /* end if(circular)  */
     else {
       for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+        for (j=i; j<=MIN2(i+TURN,n); j++) probs[iindx[i]-j] = 0;
         for (j=i+TURN+1; j<=n; j++) {
           ij = iindx[i]-j;
           type = ptype[ij];
           if (type&&(qb[ij]>0.)) {
-            pr[ij] = q1k[i-1]*qln[j+1]/q1k[n];
-            pr[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+            probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
+            probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
-            pr[ij] = 0;
+            probs[ij] = 0;
         }
       }
     } /* end if(!circular)  */
@@ -633,9 +635,9 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
           for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
             ij = iindx[i] - j;
             type = ptype[ij];
-            if ((pr[ij]>0)) {
+            if ((probs[ij]>0)) {
               /* add *scale[u1+u2+2] */
-              pr[kl] += pr[ij] * (scale[k-i+j-l] *
+              probs[kl] += probs[ij] * (scale[k-i+j-l] *
                         exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
                         S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params));
             }
@@ -650,11 +652,11 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
         ii = iindx[i];     /* ii-j=[i,j]     */
         ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
         tt = ptype[ii-(l+1)]; tt=rtype[tt];
-        prmt1 = pr[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+        prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
         for (j=l+2; j<=n; j++) {
           tt = ptype[ii-j]; tt = rtype[tt];
-          prmt += pr[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
+          prmt += probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
         }
         kl = iindx[k]-l;
         tt = ptype[kl];
@@ -676,17 +678,17 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
           temp += prml[i]*qm[iindx[i+1] - (k-1)];
 
         temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
-        pr[kl]  += temp;
+        probs[kl]  += temp;
 
-        if (pr[kl]>Qmax) {
-          Qmax = pr[kl];
+        if (probs[kl]>Qmax) {
+          Qmax = probs[kl];
           if (Qmax>max_real/10.)
             fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-              i, j, pr[kl], qb[kl]);
+              i, j, probs[kl], qb[kl]);
         }
-        if (pr[kl]>=max_real) {
+        if (probs[kl]>=max_real) {
           ov++;
-          pr[kl]=FLT_MAX;
+          probs[kl]=FLT_MAX;
         }
 
       } /* end for (k=..) */
@@ -697,15 +699,15 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure)
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
-        pr[ij] *= qb[ij];
+        probs[ij] *= qb[ij];
       }
 
     if (structure!=NULL)
-      bppm_to_structure(structure, pr, n);
+      bppm_to_structure(structure, probs, n);
     if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
         ov, pf_scale);
-  }/* end if((S != NULL) && (S1 != NULL))  */
+  } /* end if((S != NULL) && (S1 != NULL))  */
   else
     nrerror("bppm calculations have to be done after calling forward recursion\n");
   return;
@@ -757,8 +759,7 @@ PUBLIC void update_pf_params(int length){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char bppm_symbol(const float *x)
-{
+PUBLIC char bppm_symbol(const float *x){
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';
   if( x[2] > 0.667 )  return ')';
@@ -794,7 +795,7 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int leng
 
 
 /*---------------------------------------------------------------------------*/
-PRIVATE void make_ptypes(const short *S, const char *structure) {
+PRIVATE void make_ptypes(const short *S, const char *structure){
   int n,i,j,k,l;
 
   n=S[0];
@@ -824,7 +825,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   returns random structure S with Boltzman probabilty
   p(S) = exp(-E(S)/kT)/Z
 */
-char *pbacktrack(char *seq) {
+char *pbacktrack(char *seq){
   double r, qt;
   int i,j,n, start;
   sequence = seq;
@@ -975,7 +976,7 @@ PRIVATE void backtrack_qm(int i, int j){
   }
 }
 
-PRIVATE void backtrack_qm1(int i,int j) {
+PRIVATE void backtrack_qm1(int i,int j){
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type;
   double qt, r;
@@ -1005,7 +1006,7 @@ PRIVATE void backtrack_qm2(int k, int n){
   backtrack_qm1(u+1,n);
 }
 
-PRIVATE void backtrack(int i, int j) {
+PRIVATE void backtrack(int i, int j){
   do {
     double r, qbt1;
     int k, l, type, u, u1;
@@ -1069,65 +1070,7 @@ PRIVATE void backtrack(int i, int j) {
   }
 }
 
-PUBLIC double mean_bp_dist(int length) {
-  /* compute the mean base pair distance in the thermodynamic ensemble */
-  /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
-     this can be computed from the pair probs p_ij as
-     <d> = \sum_{ij} p_{ij}(1-p_{ij}) */
-  int i,j;
-  double d=0;
-
-  if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
-
-  for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++)
-      d += pr[iindx[i]-j] * (1-pr[iindx[i]-j]);
-  return 2*d;
-}
-
-/* this function is deprecated as it is not threadsafe */
-PUBLIC char *centroid(int length, double *dist) {
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i,j;
-  double p;
-  char *centroid;
-
-  if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++) {
-      if ((p=pr[iindx[i]-j])>0.5) {
-        centroid[i-1] = '(';
-        centroid[j-1] = ')';
-        *dist += (1-p);
-      } else
-        *dist += p;
-    }
-  return centroid;
-}
-
-/**
-*** Create a plist from a probability matrix
-*** The probability matrix given is parsed and all pair probabilities above
-*** the given threshold are used to create an entry in the plist
-***
-*** This function is threadsafe
-***
-*** \param pl     A pointer to the plist that is to be created
-*** \param probs  The probability matrix used for creting the plist
-*** \param length The length of the RNA sequence
-*** \param cutoff The cutoff value
-**/
-PUBLIC void assign_plist_from_pr(plist **pl, double *probs, int length, double cut_off) {
+PUBLIC void assign_plist_from_pr(plist **pl, double *probs, int length, double cut_off){
   int i, j, n, count, *index;
   count = 0;
   n     = 2;
@@ -1161,7 +1104,7 @@ PUBLIC void assign_plist_from_pr(plist **pl, double *probs, int length, double c
 }
 
 /* this function is a threadsafe replacement for centroid() */
-PUBLIC char *get_centroid_struct_pl(int length, double *dist, plist *pl) {
+PUBLIC char *get_centroid_struct_pl(int length, double *dist, plist *pl){
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
@@ -1221,8 +1164,7 @@ PUBLIC char *get_centroid_struct_pr(int length, double *dist, double *probs){
   return centroid;
 }
 
-PUBLIC plist *stackProb(double cutoff) {
-
+PUBLIC plist *stackProb(double cutoff){
   plist *pl;
   int i,j,plsize=256;
   int length, num = 0;
@@ -1252,10 +1194,10 @@ PUBLIC plist *stackProb(double cutoff) {
   pl[num].i=0;
   return pl;
 }
+
 /*-------------------------------------------------------------------------*/
 /* make arrays used for pf_fold available to other routines */
-PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p)
-{
+PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p){
   if(qb == NULL) return(0); /* check if pf_fold() has been called */
   *S_p = S; *S1_p = S1; *ptype_p = ptype;
   *qb_p = qb; *qm_p = qm;
@@ -1263,12 +1205,83 @@ PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL *
   return(1); /* success */
 }
 
+PUBLIC double mean_bp_distance(int length){
+  return mean_bp_distance_pr(length, probs);
+}
+
+PUBLIC double mean_bp_distance_pr(int length, double *pr){
+  /* compute the mean base pair distance in the thermodynamic ensemble */
+  /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
+     this can be computed from the pair probs p_ij as
+     <d> = \sum_{ij} p_{ij}(1-p_{ij}) */
+  int i,j;
+  double d=0;
+  int *my_iindx = get_iindx((unsigned int) length);
+
+  if (pr==NULL)
+    nrerror("pr==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++)
+      d += pr[my_iindx[i]-j] * (1-pr[my_iindx[i]-j]);
+
+  free(my_iindx);
+  return 2*d;
+}
+
+
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+/* this function is deprecated as it is not threadsafe */
+PUBLIC char *centroid(int length, double *dist) {
+  /* compute the centroid structure of the ensemble, i.e. the strutcure
+     with the minimal average distance to all other structures
+     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
+     Thus, the centroid is simply the structure containing all pairs with
+     p_ij>0.5 */
+  int i,j;
+  double p;
+  char *centroid;
 
+  if (pr==NULL)
+    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
+
+  *dist = 0.;
+  centroid = (char *) space((length+1)*sizeof(char));
+  for (i=0; i<length; i++) centroid[i]='.';
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++) {
+      if ((p=pr[iindx[i]-j])>0.5) {
+        centroid[i-1] = '(';
+        centroid[j-1] = ')';
+        *dist += (1-p);
+      } else
+        *dist += p;
+    }
+  return centroid;
+}
+
+
+/* This function is deprecated as it uses the global array pr for calculations */
+PUBLIC double mean_bp_dist(int length) {
+  /* compute the mean base pair distance in the thermodynamic ensemble */
+  /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
+     this can be computed from the pair probs p_ij as
+     <d> = \sum_{ij} p_{ij}(1-p_{ij}) */
+  int i,j;
+  double d=0;
+
+  if (pr==NULL)
+    nrerror("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
+
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++)
+      d += pr[iindx[i]-j] * (1-pr[iindx[i]-j]);
+  return 2*d;
+}
 
 /*----------------------------------------------------------------------*/
 PUBLIC double expHairpinEnergy(int u, int type, short si1, short sj1,

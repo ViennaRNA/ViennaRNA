@@ -38,14 +38,19 @@ int main(int argc, char *argv[]){
   char          *string, *input_string, *structure=NULL, *cstruc=NULL;
   char          fname[80], ffname[80], gfname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
-  int           i, length, l, sym, r, istty, pf=0, noPS=0, noconv=0;
+  int           i, length, l, sym, r, istty, pf, noPS, noconv;
   unsigned int  input_type;
-  double        energy, min_en, kT, sfact=1.07;
-  int           doMEA=0, circular = 0;
+  double        energy, min_en, kT, sfact;
+  int           doMEA=0, circular;
   double        MEAgamma = 1.;
 
   do_backtrack  = 1;
   string        = NULL;
+  pf            = 0;
+  sfact         = 1.07;
+  noPS          = 0;
+  noconv        = 0;
+  circular      = 0;
 
   /*
   #############################################
@@ -210,7 +215,7 @@ int main(int argc, char *argv[]){
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
-        if (dangles==1) {
+      if (dangles==1) {
           dangles=2;   /* recompute with dangles as in pf_fold() */
           min_en = (circular) ? energy_of_circ_structure(string, structure, 0) : energy_of_structure(string, structure, 0);
           dangles=1;
@@ -238,7 +243,7 @@ int main(int argc, char *argv[]){
         assign_plist_from_pr(&pl1, pr, length, 1e-5);
         assign_plist_from_db(&pl2, structure, 0.95*0.95);
         /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-        cent = get_centroid_struct_pl(length, &dist, pl1);
+        cent = get_centroid_struct_pr(length, &dist, pr);
         cent_en = (circular) ? energy_of_circ_structure(string, cent, 0) :energy_of_structure(string, cent, 0);
         printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
         free(cent);
@@ -272,7 +277,7 @@ int main(int argc, char *argv[]){
       }
       printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
       if (do_backtrack)
-        printf("ensemble diversity %-6.2f", mean_bp_dist(length));
+        printf("ensemble diversity %-6.2f", mean_bp_distance(length));
       printf("\n");
 
       free_pf_arrays();

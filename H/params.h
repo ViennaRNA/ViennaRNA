@@ -11,7 +11,7 @@ extern paramT *set_parameters(paramT *dest);
  
 pf_paramT *scale_pf_parameters(void);
 /**
-*** get a datastructure of type \type pf_paramT which contains
+*** get a datastructure of type \ref pf_paramT which contains
 *** the Boltzmann weights of several energy parameters scaled
 *** according to the current temperature
 *** \return The datastructure containing Boltzmann weights for use in partition function calculations

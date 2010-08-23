@@ -111,9 +111,8 @@ void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **
 *** structure of an RNA sequence assuming it to be circular instead of linear
 ***
 *** \see            fold()
-*** \param sequence RNA sequence
-*** \param structure a pointer to the character array the
-***        secondary structure in dot-bracket notation will be written to
+*** \param string     RNA sequence
+*** \param structure  A pointer to the character array the secondary structure in dot-bracket notation will be written to
 *** \returns the minimum free energy (MFE) in kcal/mol
 **/
 float circfold(const char *string, char *structure);
@@ -160,12 +159,12 @@ void assign_plist_from_db(plist **pl, const char *struc, float pr);
 
 /**
 *** \deprecated {This function is deprecated and will be removed soon.
-*** Use \func E_IntLoop() instead!}
+*** Use \ref E_IntLoop() instead!}
 ***/
 DEPRECATED(int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1));
 /**
 *** \deprecated {This function is deprecated and will be removed soon.
-*** Use \func E_Hairpin() instead!}
+*** Use \ref E_Hairpin() instead!}
 ***/
 DEPRECATED(int HairpinE(int size, int type, int si1, int sj1, const char *string));
 /**
@@ -181,7 +180,7 @@ DEPRECATED(void initialize_fold(int length));
 *** variable \ref eos_debug it prints energy information to stdout or not...\n
 ***
 *** \deprecated This function is deprecated and should not be used in future programs!
-*** Use \func energy_of_structure() instead!
+*** Use \ref energy_of_structure() instead!
 ***
 *** \see              energy_of_structure, energy_of_circ_struct(), energy_of_struct_pt()
 *** \param string     RNA sequence
@@ -197,7 +196,7 @@ DEPRECATED(float energy_of_struct(const char *string, const char *structure));
 *** variable \ref eos_debug it prints energy information to stdout or not...\n
 ***
 *** \deprecated This function is deprecated and should not be used in future programs!
-*** Use \func energy_of_structure_pt() instead!
+*** Use \ref energy_of_structure_pt() instead!
 ***
 *** \see              make_pair_table(), energy_of_structure()
 *** \param string     RNA sequence
@@ -214,7 +213,7 @@ DEPRECATED(int energy_of_struct_pt(const char *string, short *ptable, short *s, 
 *** variable \ref eos_debug it prints energy information to stdout or not...\n
 ***
 *** \deprecated This function is deprecated and should not be used in future programs
-*** Use \func energy_of_circ_structure() instead!
+*** Use \ref energy_of_circ_structure() instead!
 ***
 *** \see              energy_of_circ_structure(), energy_of_struct(), energy_of_struct_pt()
 *** \param string     RNA sequence

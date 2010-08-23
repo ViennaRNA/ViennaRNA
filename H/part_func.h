@@ -14,57 +14,80 @@
 
 /**
 *** \file part_func.h
+***
+*** This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
+*** Partion function folding...
 **/
-
-/* functions from part_func.c */
-float   pf_fold(const char *sequence, char *structure);
-float   pf_circ_fold(const char *sequence, char *structure);
-/* calculate partition function and base pair probabilities */
-
-/** allocate space for pf_fold()
-*** \deprecated {This function is obsolete and will be removed soon!}
-**/
-void    DEPRECATED(init_pf_fold(int length));
-
-void    free_pf_arrays(void);        /* free arrays from pf_fold() */
-void    update_pf_params(int length); /*recalculate energy parameters */
-char    bppm_symbol(const float *x);
-double  mean_bp_dist(int length); /* mean pair distance of ensemble */
-int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
 
 /**
-*** <H2>Sample a secondary structure from the Boltzmann ensemble according its probability</H2>
+*** a flag indicating that auxilary arrays are needed throughout the computations which are necessary for stochastic backtracking
+**/
+extern  int st_back;
+
+/*
+#################################################
+# PARTITION FUNCTION COMPUTATION                #
+#################################################
+*/
+
+/**
+*** Compute the partition function of an RNA sequence
+***
+*** \see pf_circ_fold()
+***
+*** \param sequence   The RNA sequence to be computed
+*** \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+*** \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+**/
+float   pf_fold(const char *sequence, char *structure);
+
+/**
+*** Compute the partition function of a circular RNA sequence
+***
+*** \see pf_fold()
+***
+*** \param sequence   The RNA sequence to be computed
+*** \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+*** \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+**/
+float   pf_circ_fold(const char *sequence, char *structure);
+
+/**
+*** Sample a secondary structure from the Boltzmann ensemble according its probability\n
+***
 *** \param  sequence  The RNA sequence
 *** \return           A sampled secondary structure in dot-bracket notation
 **/
 char    *pbacktrack(char *sequence);
 
 /**
-*** <H2>Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability</H2>
-*** This function does the same as \func pbacktrack() but assumes the RNA molecule to be circular
+*** Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
+***
+*** This function does the same as \ref pbacktrack() but assumes the RNA molecule to be circular
 *** \param  sequence  The RNA sequence
 *** \return           A sampled secondary structure in dot-bracket notation
 **/
-char    *pbacktrack_circ(char *seq);
+char    *pbacktrack_circ(char *sequence);
+
+/**
+*** Free arrays from pf_fold()
+**/
+void    free_pf_arrays(void);
+
+/**
+*** Recalculate energy parameters
+**/
+void    update_pf_params(int length);
 
 /*
 #################################################
 # OTHER PARTITION FUNCTION RELATED DECLARATIONS #
 #################################################
 */
-char    DEPRECATED(*centroid(int length, double *dist));     /* mean pair distance of ensemble */
-/* this function is a threadsafe replacement for centroid() with a 'struct plist' input */
-char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
-/* this function is a threadsafe replacement for centroid() with a probability array input */
-char    *get_centroid_struct_pr(int length, double *dist, double *pr);
-
-/**
-*** Create a dot-bracket like structure string from base pair probability matrix
-**/
-void    bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length);
 
 /**
 *** Create a plist from a probability matrix
+***
 *** The probability matrix given is parsed and all pair probabilities above
 *** the given threshold are used to create an entry in the plist
 ***
@@ -79,15 +102,128 @@ void    bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length);
 *** \param length The length of the RNA sequence
 *** \param cutoff The cutoff value
 **/
-void    assign_plist_from_pr(plist **pl, double *probs, int length, double cut_off);
+void    assign_plist_from_pr(plist **pl, double *probs, int length, double cutoff);
 
-extern  int st_back;
+/**
+*** Get the pointers to (almost) all relavant computation arrays used in partition function computation
+***
+*** \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
+*** \param S1_p     A pointer to the 'S1' array (2nd integer representation of nucleotides)
+*** \param ptype_p  A pointer to the pair type matrix
+*** \param qb_p     A pointer to the Q<sup>B</sup> matrix
+*** \param qm_p     A pointer to the Q<sup>M</sup> matrix
+*** \param q1k_p    A pointer to the 5' slice of the Q matrix (\f$q1k(k) = Q(1, k)\f$)
+*** \param qln_p    A pointer to the 3' slice of the Q matrix (\f$qln(l) = Q(l, n)\f$)
+*** \returns        Non Zero if everything went fine, 0 otherwise
+**/
+int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
+
+/**
+*** Get the centroid structure of the ensemble\n
+***
+*** This function is a threadsafe replacement for \ref centroid() with a 'plist' input
+***
+*** The centroid is the structure with the minimal average distance to all other structures
+*** \n\f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$\n
+*** Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
+***
+*** \param length The length of the sequence
+*** \param dist   A pointer to the distance variable where the centroid distance will be written to
+*** \param pl     A pair list containing base pair probability information about the ensemble
+*** \returns      The centroid structure of the ensemble in dot-bracket notation
+**/
+char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
+
+/**
+*** Get the centroid structure of the ensemble\n
+***
+*** This function is a threadsafe replacement for \ref centroid() with a probability array input
+***
+*** The centroid is the structure with the minimal average distance to all other structures
+*** \n\f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$\n
+*** Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
+***
+*** \param length The length of the sequence
+*** \param dist   A pointer to the distance variable where the centroid distance will be written to
+*** \param pr     A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
+*** \returns      The centroid structure of the ensemble in dot-bracket notation
+**/
+char    *get_centroid_struct_pr(int length, double *dist, double *pr);
+
+/**
+*** Get the mean base pair distance of the last partition function computation
+***
+*** \see mean_bp_distance_pr()
+***
+*** \param    length
+*** \returns  mean base pair distance in thermodynamic ensemble
+**/
+double  mean_bp_distance(int length);
+
+/**
+*** Get the mean base pair distance in the thermodynamic ensemble
+***
+*** This is a threadsafe implementation of \ref mean_bp_dist() !
+***
+*** \f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)\f$\n
+*** this can be computed from the pair probs \f$p_ij\f$ as\n
+*** \f$<d> = \sum_{ij} p_{ij}(1-p_{ij})\f$
+***
+*** \note This function is threadsafe
+***
+*** \param length The length of the sequence
+*** \param pr     The matrix containing the base pair probabilities
+*** \returns      The mean pair distance of the structure ensemble
+**/
+double  mean_bp_distance_pr(int length, double *pr);
+
+/**
+*** Create a dot-bracket like structure string from base pair probability matrix
+**/
+void    bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length);
 
 plist   *stackProb(double cutoff);
 
-/* deprecated, use exp_E_IntLoop() from loop_energies.h instead */
-double  DEPRECATED(expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1));
-/* deprecated, use exp_E_Hairpin() from loop_energies.h instead */
-double  DEPRECATED(expHairpinEnergy(int u, int type, short si1, short sj1, const char *string));
+/**
+*** Get a pseudo dot bracket notation for a given probability information
+**/
+char    bppm_symbol(const float *x);
+
+
+/*
+#################################################
+# DEPRECATED FUNCTIONS                          #
+#################################################
+*/
+
+/**
+*** allocate space for pf_fold()
+***
+*** \deprecated This function is obsolete and will be removed soon!
+**/
+DEPRECATED(void init_pf_fold(int length));
+
+/**
+*** \deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
+*** \see get_centroid_struct_pl(), get_centroid_struct_pr()
+**/
+DEPRECATED(char *centroid(int length, double *dist));     /* mean pair distance of ensemble */
+
+/**
+*** get the mean pair distance of ensemble
+***
+*** \deprecated This function is not threadsafe and should not be used anymore. Use \ref mean_bp_distance() instead!
+**/
+DEPRECATED(double mean_bp_dist(int length));
+
+/**
+*** \deprecated Use \ref exp_E_IntLoop() from loop_energies.h instead
+**/
+DEPRECATED(double expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1));
+
+/**
+*** \deprecated Use exp_E_Hairpin() from loop_energies.h instead
+**/
+DEPRECATED(double expHairpinEnergy(int u, int type, short si1, short sj1, const char *string));
 
 #endif
