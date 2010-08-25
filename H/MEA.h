@@ -1,6 +1,8 @@
-#ifndef MEA_H
-#define MEA_H
+#ifndef __VIENNA_RNA_PACKAGE_MEA_H__
+#define __VIENNA_RNA_PACKAGE_MEA_H__
 
-extern float MEA(plist *p, char *structure, double gamma);
+#include "data_structures.h"
+
+float MEA(plist *p, char *structure, double gamma);
 
 #endif

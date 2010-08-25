@@ -11,7 +11,6 @@
 #include <math.h>
 #include "fold_vars.h"
 #include "utils.h"
-#include "PS_dot.h"  /* defines plist */
 
 /* compute an MEA structure, i.e. the structure maximising
    EA = \sum_{(i,j) \in S} 2\gamma p_{i,j} + \sum_{i is unpaired} p^u_i
@@ -40,9 +39,9 @@ typedef struct List {
   Litem *list;
 } List;
 
-static int comp_plist(const void *a, const void *b);
-static plist *prune_sort(plist *p, double *pu, int n, double gamma);
-static void pushC(List *c, int i, double a);
+PRIVATE int comp_plist(const void *a, const void *b);
+PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma);
+PRIVATE void pushC(List *c, int i, double a);
 
 struct MEAdat{
   plist *pl;
@@ -53,7 +52,7 @@ struct MEAdat{
   char * structure;
 };
 
-static void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired);
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired);
 
 float MEA(plist *p, char *structure, double gamma) {
 
@@ -110,7 +109,7 @@ float MEA(plist *p, char *structure, double gamma) {
   return MEA;
 }
 
-static int comp_plist(const void *a, const void *b) {
+PRIVATE int comp_plist(const void *a, const void *b) {
   plist *A, *B;
   int di;
   A = (plist *)a;
@@ -121,7 +120,7 @@ static int comp_plist(const void *a, const void *b) {
 }
 
 
-static plist *prune_sort(plist *p, double *pu, int n, double gamma) {
+PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma) {
   /*
      produce a list containing all base pairs with
      2*gamma*p_ij > p^u_i + p^u_j
@@ -153,7 +152,7 @@ static plist *prune_sort(plist *p, double *pu, int n, double gamma) {
   return pp;
 }
 
-static void pushC(List *c, int i, double a) {
+PRIVATE void pushC(List *c, int i, double a) {
   if (c->nelem+1>=c->size) {
     c->size = MAX2(8,c->size*sqrt(2));
     c->list = xrealloc(c->list, sizeof(Litem)*c->size);
@@ -163,7 +162,7 @@ static void pushC(List *c, int i, double a) {
   c->nelem++;
 }
 
-static void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair) {
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair) {
   /* backtrack structure for the interval [i..j] */
   /* recursively calls itself, recomputes the necessary parts of the M matrix */
   List *C; Litem *li;

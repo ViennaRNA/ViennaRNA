@@ -280,8 +280,19 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(do_backtrack) pf_create_bppm(sequence, structure);
-
+  if(do_backtrack){
+    pf_create_bppm(sequence, structure);
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "pr" vanish from within the package!
+    */
+    {
+      if(pr) free(pr);
+      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+    }
+  }
   return free_energy;
 }
 
@@ -324,8 +335,19 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(do_backtrack) pf_create_bppm(sequence, structure);
-
+  if(do_backtrack){
+    pf_create_bppm(sequence, structure);
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "pr" vanish from within the package!
+    */
+    {
+      if(pr) free(pr);
+      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+    }
+  }
   return free_energy;
 }
 
