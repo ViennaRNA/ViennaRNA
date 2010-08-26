@@ -1,4 +1,4 @@
-PUBLIC int int11_37[NBPAIRS+1][NBPAIRS+1][5][5] =
+PRIVATE int int11_37_184[NBPAIRS+1][NBPAIRS+1][5][5] =
 { /* noPair */ {{{0}}},
 { /* noPair */ {{0}},
 /* CG..CG */
@@ -359,7 +359,7 @@ PUBLIC int int11_37[NBPAIRS+1][NBPAIRS+1][5][5] =
 }
 };
 
-PUBLIC int int11_H[NBPAIRS+1][NBPAIRS+1][5][5] = 
+PRIVATE int int11_H_184[NBPAIRS+1][NBPAIRS+1][5][5] = 
  /* GC..GC */ 
 { /* noPair */ {{{0}}},
 { /* noPair */ {{0}},
@@ -663,7 +663,7 @@ PUBLIC int int11_H[NBPAIRS+1][NBPAIRS+1][5][5] =
 {  0, 0, 0, 0, 0},
 {  0, 0, 0, 0, 0}}}};
 
-PUBLIC int int21_37[NBPAIRS+1][NBPAIRS+1][5][5][5] = 
+PRIVATE int int21_37_184[NBPAIRS+1][NBPAIRS+1][5][5][5] = 
 { /* noPair */ {{{{0}}}},
 { /* noPair */ {{{0}}},
 {
@@ -1269,7 +1269,7 @@ PUBLIC int int21_37[NBPAIRS+1][NBPAIRS+1][5][5][5] =
 }
 };
 
-PUBLIC int int21_H[NBPAIRS+1][NBPAIRS+1][5][5][5] = 
+PRIVATE int int21_H_184[NBPAIRS+1][NBPAIRS+1][5][5][5] = 
 { /* noPair */ {{{{0}}}},
 { /* noPair */ {{{0}}},
 {
@@ -1875,7 +1875,7 @@ PUBLIC int int21_H[NBPAIRS+1][NBPAIRS+1][5][5][5] =
 }
 };
 
-PUBLIC int int22_37[NBPAIRS+1][NBPAIRS+1][5][5][5][5] = {
+PRIVATE int int22_37_184[NBPAIRS+1][NBPAIRS+1][5][5][5][5] = {
 /* noPair */ {{{{{0}}}}},
 { /* noPair */ {{{{0}}}},
 /* CG....CG */
@@ -3706,7 +3706,7 @@ PUBLIC int int22_37[NBPAIRS+1][NBPAIRS+1][5][5][5][5] = {
 }
 };
 
-PUBLIC int int22_H[NBPAIRS+1][NBPAIRS+1][5][5][5][5] = 
+PRIVATE int int22_H_184[NBPAIRS+1][NBPAIRS+1][5][5][5][5] = 
 { /* noPair */ {{{{{0}}}}},
 { /* noPair */ {{{{0}}}},
 /* CG.@@..CG */

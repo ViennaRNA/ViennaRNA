@@ -1,0 +1,26 @@
+#ifndef __VIENNA_RNA_PACKAGE_CONVERT_EPARS_H__
+#define __VIENNA_RNA_PACKAGE_CONVERT_EPARS_H__
+
+#define VRNA_CONVERT_OUTPUT_ALL           1U
+#define VRNA_CONVERT_OUTPUT_HP            2U
+#define VRNA_CONVERT_OUTPUT_STACK         4U
+#define VRNA_CONVERT_OUTPUT_MM_HP         8U
+#define VRNA_CONVERT_OUTPUT_MM_INT        16U
+#define VRNA_CONVERT_OUTPUT_MM_INT_1N     32U
+#define VRNA_CONVERT_OUTPUT_MM_INT_23     64U
+#define VRNA_CONVERT_OUTPUT_MM_MULTI      128U
+#define VRNA_CONVERT_OUTPUT_MM_EXT        256U
+#define VRNA_CONVERT_OUTPUT_DANGLE5       512U
+#define VRNA_CONVERT_OUTPUT_DANGLE3       1024U
+#define VRNA_CONVERT_OUTPUT_INT_11        2048U
+#define VRNA_CONVERT_OUTPUT_INT_21        4096U
+#define VRNA_CONVERT_OUTPUT_INT_22        8192U
+#define VRNA_CONVERT_OUTPUT_BULGE         16384U
+#define VRNA_CONVERT_OUTPUT_INT           32768U
+#define VRNA_CONVERT_OUTPUT_ML            65536U
+#define VRNA_CONVERT_OUTPUT_MISC          131072U
+#define VRNA_CONVERT_OUTPUT_SPECIAL_HP    262144U
+
+void convert_parameter_file(const char *fname, const char *oname, unsigned int options);
+
+#endif

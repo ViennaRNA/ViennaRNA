@@ -25,17 +25,12 @@ static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
 
 #define DEF -50
 #define NST 0
-#define DEF_TEMP   37.0    /* default temperature */
-
 
 PRIVATE FILE *fp;
-PRIVATE float rtemp=DEF_TEMP;
 
 PRIVATE void  display_array(int *p, int size, int line, FILE *fp);
 PRIVATE char  *get_array1(int *arr, int size);
 PRIVATE void  ignore_comment(char *line);
-PRIVATE enum  parset gettype(char ident[]);
-PRIVATE char  *settype(enum parset s);
 PRIVATE void  check_symmetry(void);
 /**
 *** read a 1dimensional array from file
@@ -64,13 +59,11 @@ PRIVATE void  rd_Triloop37(void);
 PRIVATE void  rd_Hexaloop37(void);
 
 /*------------------------------------------------------------*/
-PUBLIC void read_parameter_file(const char fname[])
-{
-  char    *line, ident[256];
+PUBLIC void read_parameter_file(const char fname[]){
+  char        *line, ident[256];
   enum parset type;
-  int      r;
-  unsigned long changed = 0;
-  
+  int         r;
+
   if (!(fp=fopen(fname,"r"))) {
     fprintf(stderr,
             "\nread_parameter_file:\n"
@@ -98,136 +91,105 @@ PUBLIC void read_parameter_file(const char fname[])
     r = sscanf(line, "# %255s", ident);
     if (r==1) {
       type = gettype(ident);
-      switch (type)
-          {
-            case QUIT:    break;
-            case S:       rd_2dim(&(stack37[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
-                          changed |= S;
-                         break;
-            case S_H:     rd_2dim(&(stackdH[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
-                          changed |= S_H;
-                          break;
-            case HP:      rd_1dim(&(hairpin37[0]), 31, 0);
-                          changed |= HP;
-                          break;
-            case HP_H:    rd_1dim(&(hairpindH[0]), 31, 0);
-                          changed |= HP_H;
-                          break;
-            case B:       rd_1dim(&(bulge37[0]), 31, 0);
-                          changed |= B;
-                          break;
-            case B_H:     rd_1dim(&(bulgedH[0]), 31, 0);
-                          changed |= B_H;
-                          break;
-            case IL:      rd_1dim(&(internal_loop37[0]), 31, 0);
-                          changed |= IL;
-                          break;
-            case IL_H:    rd_1dim(&(internal_loopdH[0]), 31, 0);
-                          changed |= IL_H;
-                          break;
-            case MME:     rd_3dim(&(mismatchExt37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                          changed |= MME;
-                          break;
-            case MME_H:   rd_3dim(&(mismatchExtdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                          changed |= MME_H;
-                          break;
-            case MMH:     rd_3dim(&(mismatchH37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                          changed |= MMH;
-                          break;
-            case MMH_H:   rd_3dim(&(mismatchHdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMH_H;
+      switch (type){
+        case QUIT:    break;
+        case S:       rd_2dim(&(stack37[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
                       break;
-            case MMI:     rd_3dim(&(mismatchI37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMI;
+        case S_H:     rd_2dim(&(stackdH[0][0]), NBPAIRS+1, NBPAIRS+1, 1, 1);
                       break;
-            case MMI_H:   rd_3dim(&(mismatchIdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMI_H;
+        case HP:      rd_1dim(&(hairpin37[0]), 31, 0);
                       break;
-            case MMI1N:   rd_3dim(&(mismatch1nI37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMI1N;
+        case HP_H:    rd_1dim(&(hairpindH[0]), 31, 0);
                       break;
-            case MMI1N_H: rd_3dim(&(mismatch1nIdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMI1N_H;
+        case B:       rd_1dim(&(bulge37[0]), 31, 0);
                       break;
-            case MMI23:   rd_3dim(&(mismatch23I37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                              changed |= MMI23;
-                              break;
-            case MMI23_H: rd_3dim(&(mismatch23IdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMI23_H;
+        case B_H:     rd_1dim(&(bulgedH[0]), 31, 0);
                       break;
-            case MMM:     rd_3dim(&(mismatchM37[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMM;
+        case IL:      rd_1dim(&(internal_loop37[0]), 31, 0);
                       break;
-            case MMM_H:   rd_3dim(&(mismatchMdH[0][0][0]),
-                              NBPAIRS+1, 5, 5,
-                              0, 0, 0);
-                      changed |= MMM_H;
+        case IL_H:    rd_1dim(&(internal_loopdH[0]), 31, 0);
                       break;
-            case INT11:   rd_4dim(&(int11_37[0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5,
-                              0, 0, 0, 0);
-                       changed |= INT11;
+        case MME:     rd_3dim(&(mismatchExt37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case INT11_H: rd_4dim(&(int11_dH[0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5,
-                              0, 0, 0, 0);
-                      changed |= INT11_H;
+        case MME_H:   rd_3dim(&(mismatchExtdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case INT21:   rd_5dim(&(int21_37[0][0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                              0, 0, 0, 0, 0);
-                      changed |= INT21;
+        case MMH:     rd_3dim(&(mismatchH37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case INT21_H: rd_5dim(&(int21_dH[0][0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                              0, 0, 0, 0, 0);
-                      changed |= INT21_H;
+        case MMH_H:   rd_3dim(&(mismatchHdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case INT22:   rd_6dim(&(int22_37[0][0][0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                              0, 0, 0, 0, 0, 0);
-                      changed |= INT22;
+        case MMI:     rd_3dim(&(mismatchI37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case INT22_H: rd_6dim(&(int22_dH[0][0][0][0][0][0]),
-                              NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                              0, 0, 0, 0, 0, 0);
-                      changed |= INT22_H;
+        case MMI_H:   rd_3dim(&(mismatchIdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 0, 0);
-                      changed |= D5;
+        case MMI1N:   rd_3dim(&(mismatch1nI37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case D5_H:    rd_2dim(&(dangle5_dH[0][0]), NBPAIRS+1, 5, 0, 0);
-                      changed |= D5_H;
+        case MMI1N_H: rd_3dim(&(mismatch1nIdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case D3:      rd_2dim(&(dangle3_37[0][0]), NBPAIRS+1, 5, 0, 0);
-                      changed |= D3;
+        case MMI23:   rd_3dim(&(mismatch23I37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case D3_H:    rd_2dim(&(dangle3_dH[0][0]), NBPAIRS+1, 5, 0, 0);
-                      changed |= D3_H;
+        case MMI23_H: rd_3dim(&(mismatch23IdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
                       break;
-            case ML:      {
+        case MMM:     rd_3dim(&(mismatchM37[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
+                      break;
+        case MMM_H:   rd_3dim(&(mismatchMdH[0][0][0]),
+                          NBPAIRS+1, 5, 5,
+                          0, 0, 0);
+                      break;
+        case INT11:   rd_4dim(&(int11_37[0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5,
+                          0, 0, 0, 0);
+                      break;
+        case INT11_H: rd_4dim(&(int11_dH[0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5,
+                          0, 0, 0, 0);
+                      break;
+        case INT21:   rd_5dim(&(int21_37[0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
+                          0, 0, 0, 0, 0);
+                      break;
+        case INT21_H: rd_5dim(&(int21_dH[0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
+                          0, 0, 0, 0, 0);
+                      break;
+        case INT22:   rd_6dim(&(int22_37[0][0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
+                          0, 0, 0, 0, 0, 0);
+                      break;
+        case INT22_H: rd_6dim(&(int22_dH[0][0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
+                          0, 0, 0, 0, 0, 0);
+                      break;
+        case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 0, 0);
+                      break;
+        case D5_H:    rd_2dim(&(dangle5_dH[0][0]), NBPAIRS+1, 5, 0, 0);
+                      break;
+        case D3:      rd_2dim(&(dangle3_37[0][0]), NBPAIRS+1, 5, 0, 0);
+                      break;
+        case D3_H:    rd_2dim(&(dangle3_dH[0][0]), NBPAIRS+1, 5, 0, 0);
+                      break;
+        case ML:      {
                         int values[6];
                         rd_1dim(&values[0], 6, 0);
                         ML_BASE37     = values[0];
@@ -237,18 +199,16 @@ PUBLIC void read_parameter_file(const char fname[])
                         ML_intern37   = values[4];
                         ML_interndH   = values[5];
                       }
-                      changed |= ML;
                       break;
-            case NIN:  {
+        case NIN:     {
                         int values[3];
                         rd_1dim(&values[0], 3, 0);
                         ninio37[2] = values[0];
                         niniodH[2] = values[1];
                         MAX_NINIO  = values[2];
                       }
-                      changed |= NIN;
                       break;
-            case MISC:    {
+        case MISC:    {
                         int values[4];
                         rd_1dim(&values[0], 4, 0);
                         DuplexInit37 = values[0];
@@ -256,20 +216,19 @@ PUBLIC void read_parameter_file(const char fname[])
                         TerminalAU37 = values[2];
                         TerminalAUdH = values[3];
                       }
-                      changed |= MISC;
                       break;
-            case TL:      rd_Tetraloop37();           changed |= TL;      break;
-            case TRI:     rd_Triloop37();             changed |= TRI;     break;
-            case HEX:     rd_Hexaloop37();            changed |= HEX;     break;  
-
-            default: /* maybe it's a temperature */
-              r=sscanf(ident, "%f", &rtemp);
-              if (r!=1) fprintf(stderr," Unknown field identifier in `%s'\n", line);
-          }
+        case TL:      rd_Tetraloop37();
+                      break;
+        case TRI:     rd_Triloop37();
+                      break;
+        case HEX:     rd_Hexaloop37();
+                      break;  
+        default:      /* do nothing but complain */
+                      fprintf(stderr,"read_epars: Unknown field identifier in `%s'\n", line);
+      }
     } /* else ignore line */
     free(line);  
   }
-  
   fclose(fp);
 
   check_symmetry();
@@ -512,8 +471,7 @@ PRIVATE void ignore_comment(char * line)
 }
 /*------------------------------------------------------------*/  
 
-PRIVATE char *settype(enum parset s)
-{
+PUBLIC char *settype(enum parset s){
   switch(s){
     case        S:  return "stack";
     case      S_H:  return "stack_enthalpies";
@@ -535,10 +493,10 @@ PRIVATE char *settype(enum parset s)
     case  MMI23_H:  return "mismatch_interior_23_enthalpies";
     case      MMM:  return "mismatch_multi";
     case    MMM_H:  return "mismatch_multi_enthalpies";
-    case      D5:   return "dangle5";
-    case    D5_H:   return "dangle5_enthalpies";
-    case      D3:   return "dangle3";
-    case    D3_H:   return "dangle3_enthalpies";
+    case       D5:  return "dangle5";
+    case     D5_H:  return "dangle5_enthalpies";
+    case       D3:  return "dangle3";
+    case     D3_H:  return "dangle3_enthalpies";
     case    INT11:  return "int11";
     case  INT11_H:  return "int11_enthalpies";  
     case    INT21:  return "int21";
@@ -551,16 +509,14 @@ PRIVATE char *settype(enum parset s)
     case       TL:  return "Tetraloops";
     case      HEX:  return "Hexaloops";  
     case     QUIT:  return "END";
-    case     DUMP:
-    case     HELP:  return "";
     case     MISC:  return "Misc";
-    default: fprintf(stderr,"^8723300-3338111\n"); exit(-1);
+    default: nrerror("\nThe answer is: 42\n");
   }
   return "";
 }
 /*------------------------------------------------------------*/ 
 
-PRIVATE enum parset gettype(char ident[]){
+PUBLIC enum parset gettype(const char *ident){
   if      (strcmp(ident,"stack") == 0)                            return S;    
   else if (strcmp(ident,"stack_enthalpies") == 0)                 return S_H;
   else if (strcmp(ident,"hairpin") == 0)                          return HP;   

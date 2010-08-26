@@ -1,0 +1,106 @@
+# Name of your program
+package "RNAparconv" # don't use package if you're using automake
+purpose "convert energy parameter files from ViennaRNA 1.8.4 to 2.0 format"
+usage "RNAparconv [options]\n"
+
+# Version of your program
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAparconv_cmdl --include-getopt --default-optional --func-name=RNAparconv_cmdline_parser --arg-struct-name=RNAparconv_args_info"
+
+
+description "Converts energy parameter files from \"old\" ViennaRNAPackage 1.8.4 format to\
+ the new format used in ViennaRNAPackage 2.0.\nThe Program reads a valid energy parameter\
+ file and prints the converted energy parameters to stdout or a specified output file.\
+ Per default, the converted output file contains the whole set of energy parameters used\
+ throughout ViennaRNAPackage 1.8.4. The user can specify sets of energy parameters that should\
+ not be printed out. This enables the usage of new energy parameters already compiled into\
+ ViennaRNAPackage 2.0 replacing the missing ones.\n"
+
+# Options
+
+option  "output"  o
+"Specify an output file name. If argument is missing the converted energy parameters are printed to \'stdout\'.\n"
+string
+optional
+
+option  "input"  i
+"Specify an input file name.\n"
+string
+optional
+
+option  "without-HairpinE"  -
+"Do not print converted hairpin energies and enthalpies\n"
+flag
+off
+
+option  "without-StackE"  -
+"Do not print converted stacking energies and enthalpies\n"
+flag
+off
+
+option  "without-IntE"  -
+"Do not print converted interior loop energies, enthalpies and asymetry factors\n"
+flag
+off
+
+option  "without-BulgeE"  -
+"Do not print converted bulge loop energies and enthalpies\n"
+flag
+off
+
+option  "without-MultiE"  -
+"Do not print converted multi loop energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchExt"  -
+"Do not print converted exterior loop mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchHairpin"  -
+"Do not print converted hairpin mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchInt"  -
+"Do not print converted interior loop mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchInt1N"  -
+"Do not print converted 1n-interior loop mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchInt23"  -
+"Do not print converted 23-interior loop mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-MismatchMulti"  -
+"Do not print converted multi loop mismatch energies and enthalpies\n"
+flag
+off
+
+option  "without-Dangle5"  -
+"Do not print converted 5' dangle energies and enthalpies\n"
+flag
+off
+
+option  "without-Dangle3"  -
+"Do not print converted 3' dangle energies and enthalpies\n"
+flag
+off
+
+option  "without-Misc"  -
+"Do not print converted Misc energies and enthalpies (TerminalAU, DuplexInit, lxc)\n"
+flag
+off
+
+text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nRonny Lorenz\n\n"
+text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\033[0m\n"
