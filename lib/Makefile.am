@@ -20,6 +20,10 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
                   1.8.4_epars.h 1.8.4_intloops.h
 
-EXTRA_DIST = circfold.inc alicircfold.inc
+EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc
 
 INCLUDES = -I$(srcdir)/../H
+
+if WITH_LIBSVM
+  libRNA_INCLUDES = -I$(srcdir)/../libsvm-2.91/
+endif

@@ -23,6 +23,11 @@
 #include "loop_energies.h"
 #include "Lfold.h"
 
+#ifdef USE_SVM
+#include "svm.h"
+#include "svm_utils.h"
+#endif
+
 #ifdef USE_OPENMP
 #include <omp.h> 
 #endif
