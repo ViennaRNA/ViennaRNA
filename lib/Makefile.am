@@ -29,6 +29,3 @@ EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc
 
 INCLUDES = -I$(srcdir)/../H
 
-if WITH_LIBSVM
-  libRNA_INCLUDES = -I@libsvm_include@
-endif

@@ -39,6 +39,9 @@ else
 fi
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
 AM_PROG_CC_C_O
 
 dnl check for auxilary programs to compile
@@ -85,7 +88,6 @@ if test "$with_svm" != "no"; then
     cp $srcdir/Makefile.libsvm $srcdir/libsvm-2.91/Makefile.am
     mv $srcdir/libsvm-2.91/Makefile $srcdir/libsvm-2.91/Makefile_old
     AC_MSG_NOTICE([performing libSVM specific checks])
-    AC_PROG_CXX
     # Checks for header files.
     AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
     # Checks for typedefs, structures, and compiler characteristics.
