@@ -15,6 +15,11 @@ if MAKE_KINFOLD
    KINDIR = Kinfold
 endif
 
+#if WITH_LIBSVM
+#  LIBSVMDIR = libsvm-2.91
+#endif
+
+#SUBDIRS = $(LIBSVMDIR) lib Progs man Utils H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
 SUBDIRS = lib Progs man Utils H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
 
 pkgdata_DATA = vienna13.par default.par

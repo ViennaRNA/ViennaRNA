@@ -19,7 +19,7 @@ AC_ARG_VAR(PERLPREFIX, [Prefix for installation of the Perl module.
 By default the perl module is installed wherever Perl thinks it belongs, ignoring the $prefix used by configure])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
-AC_CONFIG_HEADERS([config.h])
+AM_CONFIG_HEADER([config.h])
 
 AC_SUBST(VERSION)
 
@@ -41,6 +41,7 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AM_PROG_CC_C_O
 
+dnl check for auxilary programs to compile
 AC_PATH_PROG(PerlCmd, perl)
 if test -n "$PerlCmd"; then
   if $PerlCmd -e 'require 5.004'; then :
@@ -75,14 +76,36 @@ if test "$with_kinfold" != "no"; then
    fi
 fi
 
+dnl check for necessity of compiling provided SVM library
 if test "$with_svm" != "no"; then
-   if test -f $srcdir/libsvm-2.91/Makefile; then
-     AC_CONFIG_SUBDIRS(svm)
-     AC_DEFINE(WITH_LIBSVM,1,using svm regressions)
-   else
-     AC_MSG_WARN([libsvm-291 subdirectory does not exist])
-     with_svm="no"
-   fi
+  AC_MSG_CHECKING([whether provided libSVM source is present...])
+  if test -d $srcdir/libsvm-2.91; then
+    AC_MSG_RESULT(yes)
+    AC_MSG_NOTICE([copying own Makefile.am to libSVM source directory...])
+    cp $srcdir/Makefile.libsvm $srcdir/libsvm-2.91/Makefile.am
+    mv $srcdir/libsvm-2.91/Makefile $srcdir/libsvm-2.91/Makefile_old
+    AC_MSG_NOTICE([performing libSVM specific checks])
+    AC_PROG_CXX
+    # Checks for header files.
+    AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
+    # Checks for typedefs, structures, and compiler characteristics.
+    AC_HEADER_STDBOOL
+    AC_C_INLINE
+    AC_TYPE_SIZE_T
+    # Checks for library functions.
+    AC_FUNC_MALLOC
+    AC_FUNC_REALLOC
+    AC_FUNC_STRTOD
+    AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strdup strndup strrchr strstr strtol strtoul])
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_WARN([no suitable libsvm package found, deactivating SVM capabilities])
+    with_svm="no"
+  fi
+  if test "$with_svm" != "no"; then
+    AC_CONFIG_FILES([libsvm-2.91/Makefile])
+    AC_SUBST([libsvm_include], [$srcdir/libsvm-2.91])
+  fi
 fi
 
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
@@ -96,6 +119,7 @@ AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(USE_OPENMP, test "$with_openmp" != "no")
 
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
+
 
 
 dnl Checks for libraries.
