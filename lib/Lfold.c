@@ -103,6 +103,7 @@ PRIVATE int   fill_arrays(const char *sequence, int maxdist);
 
 /*--------------------------------------------------------------------------*/
 PRIVATE void initialize_Lfold(int length, int maxdist){
+
   if (length<1) nrerror("initialize_Lfold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   update_fold_params();
@@ -164,7 +165,7 @@ PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
 
   length = (int) strlen(string);
   if (maxdist>length) maxdist = length;
-  initialize_fold(length, maxdist);
+  initialize_Lfold(length, maxdist);
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
   S   = encode_sequence(string, 0);
