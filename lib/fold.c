@@ -442,7 +442,7 @@ PRIVATE int fill_arrays(const char *string) {
                       
                       break;
 #endif
-            /* normal dangles, aka dangles = 1 */
+            /* normal dangles, aka dangles = 1 || 3 */
             default:  decomp += E_MLstem(tt, -1, -1, P);
                       decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
                       decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
@@ -542,7 +542,7 @@ PRIVATE int fill_arrays(const char *string) {
                   if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
                   break;
 #endif
-        /* normal dangles, aka dangles = 1 */
+        /* normal dangles, aka dangles = 1 || 3 */
         default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
                   mm3 = ((j<length) || circular) ? S1[j] : -1;
                   new_fML = fML[ij+1] + P->MLbase;
@@ -561,7 +561,7 @@ PRIVATE int fill_arrays(const char *string) {
 #ifdef SPECIAL_DANGLES
       if(dangles != 5){
 #endif
-        for (decomp = INF, k = j-TURN-2; k > i+TURN; k--)
+        for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
           decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
         DMLi[j] = decomp;               /* store for use in ML decompositon */
         new_fML = MIN2(new_fML,decomp);
@@ -719,7 +719,7 @@ PRIVATE int fill_arrays(const char *string) {
               }
               break;
 #endif
-    /* normal dangles, aka dangles = 1 */
+    /* normal dangles, aka dangles = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
@@ -999,15 +999,15 @@ PRIVATE void backtrack(const char *string, int s) {
                   break;
       }
 
-      for(k = j-TURN-2; k > i+TURN; k--)
+      for(k = i + 1 + TURN; k <= j - 2 - TURN; k++)
         if(fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
           break;
 
-      if ((dangles==3)&&(k>j-2-TURN)) { /* must be coax stack */
+      if ((dangles==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
         ml = 2;
-        for (k = j-TURN-2; k > i+TURN; k--) {
-          type = ptype[indx[k]+i];  type= rtype[type];
-          type_2 = ptype[indx[j]+k+1]; type_2= rtype[type_2];
+        for (k = i+1+TURN; k <= j - 2 - TURN; k++) {
+          type    = rtype[ptype[indx[k]+i]];
+          type_2  = rtype[ptype[indx[j]+k+1]];
           if (type && type_2)
             if (fij == c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]+
                        2*P->MLintern[1])
@@ -1021,7 +1021,7 @@ PRIVATE void backtrack(const char *string, int s) {
       sector[s].j   = j;
       sector[s].ml  = ml;
 
-      if (k<=i+TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) nrerror("backtrack failed in fML");
       continue;
     }
 
@@ -1132,31 +1132,7 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
 #endif
-      case 3:   /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
-                /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
-                for (traced = 0, k = j-TURN-3; k > i + TURN + 1; k--){
-                  int en;
-                  type_2 = rtype[ptype[indx[k]+i+1]];
-                  if (type_2) {
-                    en = c[indx[k]+i+1]+P->stack[type][type_2]+fML[indx[j-1]+k+1];
-                    if (cij == en+2*P->MLintern[1]+P->MLclosing) {
-                      ml = 2;
-                      sector[s+1].ml  = 2;
-                      traced = 1;
-                      break;
-                    }
-                  }
-                  type_2 = rtype[ptype[indx[j-1]+k+1]];
-                  if (type_2) {
-                    en = c[indx[j-1]+k+1]+P->stack[type][type_2]+fML[indx[k]+i+1];
-                    if (cij == en+2*P->MLintern[1]+P->MLclosing) {
-                      sector[s+2].ml = 2;
-                      traced = 1;
-                    }
-                  }
-                }
-                break;
-      default:  for(k = j - TURN - 3; k > i + TURN + 1; k--){
+      default:  for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing - bonus;
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
                     break;
@@ -1174,11 +1150,34 @@ PRIVATE void backtrack(const char *string, int s) {
                     j1 = j-2;
                     break;
                   }
+                  /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
+                  /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
+                  if(dangles == 3){
+                    type_2 = rtype[ptype[indx[k]+i+1]];
+                    if (type_2) {
+                      en = c[indx[k]+i+1]+P->stack[type][type_2]+fML[indx[j-1]+k+1];
+                      if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+                        ml = 2;
+                        sector[s+1].ml  = 2;
+                        traced = 1;
+                        break;
+                      }
+                    }
+                    type_2 = rtype[ptype[indx[j-1]+k+1]];
+                    if (type_2) {
+                      en = c[indx[j-1]+k+1]+P->stack[type][type_2]+fML[indx[k]+i+1];
+                      if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+                        sector[s+2].ml = 2;
+                        traced = 1;
+                        break;
+                      }
+                    }
+                  }
                 }
                 break;
     }
 
-    if (k>i+TURN) { /* found the decomposition */
+    if (k<=j-3-TURN) { /* found the decomposition */
       sector[++s].i = i1;
       sector[s].j   = k;
       sector[++s].i = k+1;

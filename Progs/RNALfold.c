@@ -128,9 +128,6 @@ int main(int argc, char *argv[]){
       string = strdup(input_string);
       free(input_string);
     }
-    printf("%s\n", string);
-
-    structure = (char *) space((unsigned) length+1);
 
     if(noconv)  str_RNA2RNA(string);
     else        str_DNA2RNA(string);
@@ -142,8 +139,8 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    min_en = Lfold((const char *)string, structure, maxdist);
-    printf("%s", structure);
+    min_en = Lfold((const char *)string, NULL, maxdist);
+    printf("%s\n", string);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -152,7 +149,6 @@ int main(int argc, char *argv[]){
 
     (void) fflush(stdout);
     free(string);
-    free(structure); 
   } while (1);
   return 0;
 }
