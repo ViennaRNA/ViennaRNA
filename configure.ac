@@ -104,7 +104,7 @@ if test "$with_svm" != "no"; then
   fi
   if test "$with_svm" != "no"; then
     AC_CONFIG_FILES([libsvm-2.91/Makefile])
-    AC_SUBST([libsvm_include], [$srcdir/libsvm-2.91])
+    AC_SUBST([libsvm_dir], [$srcdir/libsvm-2.91])
   fi
 fi
 

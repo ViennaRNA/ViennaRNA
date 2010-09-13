@@ -1,0 +1,7 @@
+lib_LIBRARIES = libSVM.a
+
+libSVM_a_SOURCES = svm.c
+
+noinst_HEADERS  = svm.h
+
+libSVM_a_CFLAGS = $(AM_CFLAGS) -Wall -Wconversion -O3 @FPIC@
