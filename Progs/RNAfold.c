@@ -110,6 +110,7 @@ int main(int argc, char *argv[]){
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
+  write_parameter_file("bla.par");
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 

@@ -450,10 +450,21 @@ PRIVATE enum parset_184 gettype_184(char ident[]){
   else return UNKNOWN_184;
 }
 
-PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
-  int c;
-  char *pnames[] = {"NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"};
-  char bnames[] = "@ACGU";
+PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
+  int           c;
+  char          *pnames[] = {"NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"};
+  char          bnames[]  = "@ACGU";
+  unsigned  int options   = 0;
+
+  options = (option_bits & VRNA_CONVERT_OUTPUT_ALL) ?
+              VRNA_CONVERT_OUTPUT_HP | VRNA_CONVERT_OUTPUT_STACK | VRNA_CONVERT_OUTPUT_MM_HP
+              | VRNA_CONVERT_OUTPUT_MM_INT | VRNA_CONVERT_OUTPUT_MM_INT_1N | VRNA_CONVERT_OUTPUT_MM_INT_23
+              | VRNA_CONVERT_OUTPUT_MM_MULTI | VRNA_CONVERT_OUTPUT_MM_EXT | VRNA_CONVERT_OUTPUT_DANGLE5
+              | VRNA_CONVERT_OUTPUT_DANGLE3 | VRNA_CONVERT_OUTPUT_INT_11 | VRNA_CONVERT_OUTPUT_INT_21
+              | VRNA_CONVERT_OUTPUT_INT_22 | VRNA_CONVERT_OUTPUT_BULGE | VRNA_CONVERT_OUTPUT_INT
+              | VRNA_CONVERT_OUTPUT_ML | VRNA_CONVERT_OUTPUT_MISC | VRNA_CONVERT_OUTPUT_SPECIAL_HP
+            :
+              option_bits;
 
   make_pair_matrix(); /* needed for special loop energy contributions */
 
@@ -538,7 +549,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
       for (k=1; k<NBPAIRS+1; k++)
         for (i=0; i<5; i++){ 
           for(j=0;j<5; j++)
-            bla[j] = ((dangle5_37_184[k][i] == INF) || (dangle3_37_184[k][j] == INF)) ? INF : dangle5_37_184[k][i] + dangle3_37_184[k][j];
+            bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_37_184[k][i]) + ((dangle3_37_184[k][j] == INF) ? 0 : dangle3_37_184[k][j]);
           display_array(bla,5,5, ofile);
         }
     }
@@ -548,7 +559,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
       for (k=1; k<NBPAIRS+1; k++)
         for (i=0; i<5; i++){ 
           for(j=0;j<5; j++)
-            bla[j] = ((dangle5_H_184[k][i] == INF) || (dangle3_H_184[k][j] == INF)) ? INF : dangle5_H_184[k][i] + dangle3_H_184[k][j];
+            bla[j] = ((dangle5_H_184[k][i] == INF) ? 0 : dangle5_H_184[k][i]) + ((dangle3_H_184[k][j] == INF) ? 0 : dangle3_H_184[k][j]);
           display_array(bla,5,5, ofile);
         }
     }
@@ -562,7 +573,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
       for (k=1; k<NBPAIRS+1; k++)
         for (i=0; i<5; i++){ 
           for(j=0;j<5; j++)
-            bla[j] = ((dangle5_37_184[k][i] == INF) || (dangle3_37_184[k][j] == INF)) ? INF : dangle5_37_184[k][i] + dangle3_37_184[k][j];
+            bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_37_184[k][i]) + ((dangle3_37_184[k][j] == INF) ? 0 : dangle3_37_184[k][j]);
           display_array(bla,5,5, ofile);
         }
     }
@@ -572,7 +583,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
       for (k=1; k<NBPAIRS+1; k++)
         for (i=0; i<5; i++){ 
           for(j=0;j<5; j++)
-            bla[j] = ((dangle5_H_184[k][i] == INF) || (dangle3_H_184[k][j] == INF)) ? INF : dangle5_H_184[k][i] + dangle3_H_184[k][j];
+            bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_H_184[k][i]) + ((dangle3_H_184[k][j] == INF) ? 0 : dangle3_H_184[k][j]);
           display_array(bla,5,5, ofile);
         }
     }
@@ -581,22 +592,22 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
   if(options & VRNA_CONVERT_OUTPUT_DANGLE5){
     fprintf(ofile,"\n# %s\n", settype(D5));
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
-    for (c=0; c<NBPAIRS+1; c++)
+    for (c=1; c<NBPAIRS+1; c++)
       display_array(dangle5_37_184[c], 5, 5, ofile);
     fprintf(ofile,"\n# %s\n", settype(D5_H));
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
-    for (c=0; c<NBPAIRS+1; c++)
+    for (c=1; c<NBPAIRS+1; c++)
       display_array(dangle5_H_184[c], 5, 5, ofile);
   }
 
   if(options & VRNA_CONVERT_OUTPUT_DANGLE3){
     fprintf(ofile,"\n# %s\n", settype(D3));
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
-    for (c=0; c<NBPAIRS+1; c++)
+    for (c=1; c<NBPAIRS+1; c++)
       display_array(dangle3_37_184[c], 5, 5, ofile);
     fprintf(ofile,"\n# %s\n", settype(D3_H));
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
-    for (c=0; c<NBPAIRS+1; c++)
+    for (c=1; c<NBPAIRS+1; c++)
       display_array(dangle3_H_184[c], 5, 5, ofile);
   }
 
@@ -648,8 +659,8 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
   if(options & VRNA_CONVERT_OUTPUT_INT_22){
     fprintf(ofile,"\n# %s\n", settype(INT22));
     { int p1, p2, i, j, k;
-      for (p1=1; p1<NBPAIRS+1; p1++) 
-        for (p2=1; p2<NBPAIRS+1; p2++)
+      for (p1=1; p1<NBPAIRS; p1++) 
+        for (p2=1; p2<NBPAIRS; p2++)
           for (i=1; i<5; i++)
             for (j=1; j<5; j++){
               fprintf(ofile, "/* %2s.%c%c..%2s */\n", pnames[p1], bnames[i], bnames[j], pnames[p2]);
@@ -659,8 +670,8 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int options){
     }
     fprintf(ofile,"\n# %s\n", settype(INT22_H));
     { int p1, p2, i, j, k;
-      for (p1=1; p1<NBPAIRS+1; p1++) 
-        for (p2=1; p2<NBPAIRS+1; p2++)
+      for (p1=1; p1<NBPAIRS; p1++) 
+        for (p2=1; p2<NBPAIRS; p2++)
           for (i=1; i<5; i++)
             for (j=1; j<5; j++){
               fprintf(ofile, "/* %2s.%c%c..%2s */\n", pnames[p1], bnames[i], bnames[j], pnames[p2]);

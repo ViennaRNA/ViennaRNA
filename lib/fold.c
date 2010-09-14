@@ -1615,6 +1615,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
       case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? S1[p-1] : -1;
                 mm3 = ((SAME_STRAND(q+1,q)) && (q<length))  ? S1[q+1] : -1;
                 energy += E_ExtLoop(tt, mm5, mm3, P);
+                printf("::: %d (%d, %d, %d = %d)\n", energy, tt, mm5, mm3, E_ExtLoop(tt, mm5, mm3, P));
                 break;
 
 #ifdef SPECIAL_DANGLES

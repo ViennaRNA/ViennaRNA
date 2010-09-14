@@ -31,6 +31,11 @@ option  "input"  i
 string
 optional
 
+option  "onlyGiven" -
+"Convert given energy parameters only\n"
+flag
+off
+
 option  "without-HairpinE"  -
 "Do not print converted hairpin energies and enthalpies\n"
 flag
@@ -56,32 +61,22 @@ option  "without-MultiE"  -
 flag
 off
 
-option  "without-MismatchExt"  -
+option  "without-MismatchE"  -
 "Do not print converted exterior loop mismatch energies and enthalpies\n"
 flag
 off
 
-option  "without-MismatchHairpin"  -
+option  "without-MismatchH"  -
 "Do not print converted hairpin mismatch energies and enthalpies\n"
 flag
 off
 
-option  "without-MismatchInt"  -
+option  "without-MismatchI"  -
 "Do not print converted interior loop mismatch energies and enthalpies\n"
 flag
 off
 
-option  "without-MismatchInt1N"  -
-"Do not print converted 1n-interior loop mismatch energies and enthalpies\n"
-flag
-off
-
-option  "without-MismatchInt23"  -
-"Do not print converted 23-interior loop mismatch energies and enthalpies\n"
-flag
-off
-
-option  "without-MismatchMulti"  -
+option  "without-MismatchM"  -
 "Do not print converted multi loop mismatch energies and enthalpies\n"
 flag
 off

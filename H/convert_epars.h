@@ -20,6 +20,7 @@
 #define VRNA_CONVERT_OUTPUT_ML            65536U
 #define VRNA_CONVERT_OUTPUT_MISC          131072U
 #define VRNA_CONVERT_OUTPUT_SPECIAL_HP    262144U
+#define VRNA_CONVERT_OUTPUT_GIVEN         524288U
 
 void convert_parameter_file(const char *fname, const char *oname, unsigned int options);
 

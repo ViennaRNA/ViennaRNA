@@ -677,20 +677,6 @@ PUBLIC void write_parameter_file(const char fname[]){
   for (c=1; c<NBPAIRS+1; c++)
     display_array(stackdH[c]+1,NBPAIRS,NBPAIRS, outfp);
   
-  fprintf(outfp,"\n# %s\n", settype(MME));
-  { int i,k;
-  for (k=1; k<NBPAIRS+1; k++)
-    for (i=0; i<5; i++) 
-      display_array(mismatchExt37[k][i],5,5, outfp);
-  }
-  
-  fprintf(outfp,"\n# %s\n", settype(MME_H));
-  { int i,k;
-  for (k=1; k<NBPAIRS+1; k++)
-    for (i=0; i<5; i++) 
-      display_array(mismatchExtdH[k][i],5,5, outfp);
-  }
-
   fprintf(outfp,"\n# %s\n", settype(MMH));
   { int i,k;
   for (k=1; k<NBPAIRS+1; k++)
@@ -703,8 +689,9 @@ PUBLIC void write_parameter_file(const char fname[]){
   for (k=1; k<NBPAIRS+1; k++)
     for (i=0; i<5; i++) 
       display_array(mismatchHdH[k][i],5,5, outfp);
+
   }
-  
+
   fprintf(outfp,"\n# %s\n", settype(MMI));
   { int i,k;
   for (k=1; k<NBPAIRS+1; k++)
@@ -759,6 +746,20 @@ PUBLIC void write_parameter_file(const char fname[]){
   for (k=1; k<NBPAIRS+1; k++)
     for (i=0; i<5; i++) 
       display_array(mismatchMdH[k][i],5,5, outfp);
+  }
+
+  fprintf(outfp,"\n# %s\n", settype(MME));
+  { int i,k;
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
+      display_array(mismatchExt37[k][i],5,5, outfp);
+  }
+  
+  fprintf(outfp,"\n# %s\n", settype(MME_H));
+  { int i,k;
+  for (k=1; k<NBPAIRS+1; k++)
+    for (i=0; i<5; i++) 
+      display_array(mismatchExtdH[k][i],5,5, outfp);
   }
 
   fprintf(outfp,"\n# %s\n", settype(D5));

@@ -1,7 +1,8 @@
 
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
-		RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
-		RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold
+    RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
+    RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
+    RNAparconv
 
 LDADD = ../lib/libRNA.a -lm
 
@@ -24,7 +25,8 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAeval.ggo RNAeval_cmdl.c RNAeval_cmdl.h\
               RNAheat.ggo RNAheat_cmdl.c RNAheat_cmdl.h\
               RNAsubopt.ggo RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
-              RNA2Dfold.ggo RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h
+              RNA2Dfold.ggo RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
+              RNAparconv.ggo RNAparconv_cmdl.c RNAparconv_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -123,4 +125,11 @@ RNA2Dfold_cmdl.h  RNA2Dfold_cmdl.c: RNA2Dfold.ggo
 	gengetopt -i RNA2Dfold.ggo
 
 RNA2Dfold_SOURCES=RNA2Dfold_cmdl.c RNA2Dfold.c
+
+RNAparconv.c:    RNAparconv_cmdl.h
+
+RNAparconv_cmdl.h  RNAparconv_cmdl.c: RNAparconv.ggo
+	gengetopt -i RNAparconv.ggo
+
+RNAparconv_SOURCES=RNAparconv_cmdl.c RNAparconv.c
 
