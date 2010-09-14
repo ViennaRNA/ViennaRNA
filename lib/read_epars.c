@@ -111,83 +111,83 @@ PUBLIC void read_parameter_file(const char fname[]){
                       break;
         case MME:     rd_3dim(&(mismatchExt37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MME_H:   rd_3dim(&(mismatchExtdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMH:     rd_3dim(&(mismatchH37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMH_H:   rd_3dim(&(mismatchHdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI:     rd_3dim(&(mismatchI37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI_H:   rd_3dim(&(mismatchIdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI1N:   rd_3dim(&(mismatch1nI37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI1N_H: rd_3dim(&(mismatch1nIdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI23:   rd_3dim(&(mismatch23I37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMI23_H: rd_3dim(&(mismatch23IdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMM:     rd_3dim(&(mismatchM37[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case MMM_H:   rd_3dim(&(mismatchMdH[0][0][0]),
                           NBPAIRS+1, 5, 5,
-                          0, 0, 0);
+                          1, 0, 0);
                       break;
         case INT11:   rd_4dim(&(int11_37[0][0][0][0]),
                           NBPAIRS+1, NBPAIRS+1, 5, 5,
-                          0, 0, 0, 0);
+                          1, 1, 0, 0);
                       break;
         case INT11_H: rd_4dim(&(int11_dH[0][0][0][0]),
                           NBPAIRS+1, NBPAIRS+1, 5, 5,
-                          0, 0, 0, 0);
+                          1, 1, 0, 0);
                       break;
         case INT21:   rd_5dim(&(int21_37[0][0][0][0][0]),
                           NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                          0, 0, 0, 0, 0);
+                          1, 1, 0, 0, 0);
                       break;
         case INT21_H: rd_5dim(&(int21_dH[0][0][0][0][0]),
                           NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
-                          0, 0, 0, 0, 0);
+                          1, 1, 0, 0, 0);
                       break;
         case INT22:   rd_6dim(&(int22_37[0][0][0][0][0][0]),
-                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                          0, 0, 0, 0, 0, 0);
+                          NBPAIRS, NBPAIRS, 4, 4, 4, 4,
+                          1, 1, 1, 1, 1, 1);
                       break;
         case INT22_H: rd_6dim(&(int22_dH[0][0][0][0][0][0]),
-                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
-                          0, 0, 0, 0, 0, 0);
+                          NBPAIRS, NBPAIRS, 4, 4, 4, 4,
+                          1, 1, 1, 1, 1, 1);
                       break;
-        case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 0, 0);
+        case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
-        case D5_H:    rd_2dim(&(dangle5_dH[0][0]), NBPAIRS+1, 5, 0, 0);
+        case D5_H:    rd_2dim(&(dangle5_dH[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
-        case D3:      rd_2dim(&(dangle3_37[0][0]), NBPAIRS+1, 5, 0, 0);
+        case D3:      rd_2dim(&(dangle3_37[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
-        case D3_H:    rd_2dim(&(dangle3_dH[0][0]), NBPAIRS+1, 5, 0, 0);
+        case D3_H:    rd_2dim(&(dangle3_dH[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
         case ML:      {
                         int values[6];
@@ -667,22 +667,22 @@ PUBLIC void write_parameter_file(const char fname[]){
 
   fprintf(outfp,"\n# %s\n", settype(D5));
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for (c=0; c<NBPAIRS+1; c++)
+  for (c=1; c<NBPAIRS+1; c++)
     display_array(dangle5_37[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# %s\n", settype(D5_H));
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for (c=0; c<NBPAIRS+1; c++)
+  for (c=1; c<NBPAIRS+1; c++)
     display_array(dangle5_dH[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# %s\n", settype(D3));
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for (c=0; c<NBPAIRS+1; c++)
+  for (c=1; c<NBPAIRS+1; c++)
     display_array(dangle3_37[c], 5, 5, outfp);
   
   fprintf(outfp,"\n# %s\n", settype(D3_H));
   fprintf(outfp,"/*  @     A     C     G     U   */\n");
-  for (c=0; c<NBPAIRS+1; c++)
+  for (c=1; c<NBPAIRS+1; c++)
     display_array(dangle3_dH[c], 5, 5, outfp);
 
 

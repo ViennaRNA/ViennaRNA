@@ -17,6 +17,6 @@ endif
 
 SUBDIRS = lib Progs man Utils H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
 
-pkgdata_DATA = vienna13.par default.par
+pkgdata_DATA = vienna1.8.4.par default.par
 
-EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq libsvm-2.91.tar.gz
+EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq @SVM_SOURCE_ARCHIVE@

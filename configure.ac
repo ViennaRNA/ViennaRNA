@@ -5,6 +5,11 @@ AM_INIT_AUTOMAKE
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 
+# libsvm version number (there should be a libsvm-${SVM_VERSION}.tar.gz in the ViennaRNA directory)
+SVM_VERSION=2.91
+AC_SUBST([SVM_SOURCE_ARCHIVE], [libsvm-${SVM_VERSION}.tar.gz])
+
+
 dnl configure options
 AM_WITH_DMALLOC
 AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDists])
@@ -81,32 +86,28 @@ fi
 
 dnl check for necessity of compiling provided SVM library
 if test "$with_svm" != "no"; then
+  AC_MSG_NOTICE([performing libSVM specific checks])
+  # Checks for header files.
+  AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
+  # Checks for typedefs, structures, and compiler characteristics.
+  AC_HEADER_STDBOOL
+  AC_C_INLINE
+  AC_TYPE_SIZE_T
+  # Checks for library functions.
+  AC_FUNC_MALLOC
+  AC_FUNC_REALLOC
+  AC_FUNC_STRTOD
+  AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strdup strndup strrchr strstr strtol strtoul])
   AC_MSG_CHECKING([whether provided libSVM source is present...])
-  if test -d $srcdir/libsvm-2.91; then
+  if test -f $srcdir/libsvm-${SVM_VERSION}.tar.gz; then
     AC_MSG_RESULT(yes)
-    AC_MSG_NOTICE([copying own Makefile.am to libSVM source directory...])
-    cp $srcdir/Makefile.libsvm $srcdir/libsvm-2.91/Makefile.am
-    mv $srcdir/libsvm-2.91/Makefile $srcdir/libsvm-2.91/Makefile_old
-    AC_MSG_NOTICE([performing libSVM specific checks])
-    # Checks for header files.
-    AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
-    # Checks for typedefs, structures, and compiler characteristics.
-    AC_HEADER_STDBOOL
-    AC_C_INLINE
-    AC_TYPE_SIZE_T
-    # Checks for library functions.
-    AC_FUNC_MALLOC
-    AC_FUNC_REALLOC
-    AC_FUNC_STRTOD
-    AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strdup strndup strrchr strstr strtol strtoul])
+    AC_MSG_NOTICE([unpacking libSVM source...])
+    tar xfz $srcdir/libsvm-${SVM_VERSION}.tar.gz
+    AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
   else
     AC_MSG_RESULT(no)
     AC_MSG_WARN([no suitable libsvm package found, deactivating SVM capabilities])
     with_svm="no"
-  fi
-  if test "$with_svm" != "no"; then
-    AC_CONFIG_FILES([libsvm-2.91/Makefile])
-    AC_SUBST([libsvm_dir], [$srcdir/libsvm-2.91])
   fi
 fi
 

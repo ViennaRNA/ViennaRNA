@@ -11,8 +11,6 @@
 [ -d ./Kinfold ] ||  mkdir Kinfold
 [ -d ./RNAforester ] ||  mkdir RNAforester
 
-[ -d ./libsvm-2.91 ] || tar xzf libsvm-2.91.tar.gz
-
 set -e
 
 #automake --version | perl -ne 'if (/\(GNU automake\) ([0-9].[0-9])/) {print;  if ($1 < 1.4) {exit 1;}}'
