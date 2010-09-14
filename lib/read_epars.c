@@ -39,21 +39,42 @@ PRIVATE void  check_symmetry(void);
 *** \param shift  the first position the new values will be written in
 **/
 PRIVATE void  rd_1dim(int *array, int dim, int shift);
+PRIVATE void  rd_1dim_slice(int *array, int dim, int shift, int post);
 PRIVATE void  rd_2dim(int *array,
                       int dim1, int dim2,
                       int shift1, int shift2);
+PRIVATE void  rd_2dim_slice(int *array,
+                      int dim1, int dim2,
+                      int shift1, int shift2,
+                      int post1, int post2);
 PRIVATE void  rd_3dim(int *array,
                       int dim1, int dim2, int dim3,
                       int shift1, int shift2, int shift3);
+PRIVATE void  rd_3dim_slice(int *array,
+                      int dim1, int dim2, int dim3,
+                      int shift1, int shift2, int shift3,
+                      int post1, int post2, int post3);
 PRIVATE void  rd_4dim(int *array,
                       int dim1, int dim2, int dim3, int dim4,
                       int shift1, int shift2, int shift3, int shift4);
+PRIVATE void  rd_4dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4,
+                      int shift1, int shift2, int shift3, int shift4,
+                      int post1, int post2, int post3, int post4);
 PRIVATE void  rd_5dim(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5,
                       int shift1, int shift2, int shift3, int shift4, int shift5);
+PRIVATE void  rd_5dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4, int dim5,
+                      int shift1, int shift2, int shift3, int shift4, int shift5,
+                      int post1, int post2, int post3, int post4, int post5);
 PRIVATE void  rd_6dim(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
                       int shift1, int shift2, int shift3, int shift4, int shift5, int shift6);
+PRIVATE void  rd_6dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
+                      int shift1, int shift2, int shift3, int shift4, int shift5, int shift6,
+                      int post1, int post2, int post3, int post4, int post5, int post6);
 PRIVATE void  rd_Tetraloop37(void);
 PRIVATE void  rd_Triloop37(void);
 PRIVATE void  rd_Hexaloop37(void);
@@ -173,13 +194,15 @@ PUBLIC void read_parameter_file(const char fname[]){
                           NBPAIRS+1, NBPAIRS+1, 5, 5, 5,
                           1, 1, 0, 0, 0);
                       break;
-        case INT22:   rd_6dim(&(int22_37[0][0][0][0][0][0]),
-                          NBPAIRS, NBPAIRS, 4, 4, 4, 4,
-                          1, 1, 1, 1, 1, 1);
+        case INT22:   rd_6dim_slice(&(int22_37[0][0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
+                          1, 1, 1, 1, 1, 1,
+                          1, 1, 0, 0, 0, 0);
                       break;
-        case INT22_H: rd_6dim(&(int22_dH[0][0][0][0][0][0]),
-                          NBPAIRS, NBPAIRS, 4, 4, 4, 4,
-                          1, 1, 1, 1, 1, 1);
+        case INT22_H: rd_6dim_slice(&(int22_dH[0][0][0][0][0][0]),
+                          NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
+                          1, 1, 1, 1, 1, 1,
+                          1, 1, 0, 0, 0, 0);
                       break;
         case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
@@ -296,12 +319,15 @@ PRIVATE char *get_array1(int *arr, int size)
   return NULL;
 }
 
-PRIVATE void rd_1dim(int *array, int dim, int shift)
-{
+PRIVATE void rd_1dim(int *array, int dim, int shift){
+  rd_1dim_slice(array, dim, shift, 0);
+}
+
+PRIVATE void rd_1dim_slice(int *array, int dim, int shift, int post){
   char *cp;
   int i;
   
-  cp   = get_array1(array+shift, dim-shift);
+  cp   = get_array1(array+shift, dim-shift-post);
   
   if (cp) {
     fprintf(stderr,"\nrd_1dim: %s\n", cp);
@@ -311,26 +337,50 @@ PRIVATE void rd_1dim(int *array, int dim, int shift)
 }
 
 PRIVATE void  rd_2dim(int *array, int dim1, int dim2, int shift1, int shift2){
-  int    i;
-  if(shift1 + shift2 == 0){
+  rd_2dim_slice(array, dim1, dim2, shift1, shift2, 0, 0);
+}
+
+PRIVATE void  rd_2dim_slice(int *array,
+                      int dim1, int dim2,
+                      int shift1, int shift2,
+                      int post1, int post2){
+  int i;
+  int delta_pre   = shift1 + shift2;
+  int delta_post  = post1 + post2;
+
+  if(delta_pre + delta_post == 0){
     rd_1dim(array, dim1 * dim2, 0);
     return;
   }
-  for (i=shift1; i<dim1; i++)
-    rd_1dim(array + (i*dim2), dim2, shift2);
+  for (i=shift1; i<dim1 - post1; i++)
+    rd_1dim_slice(array + (i*dim2), dim2, shift2, post2);
   return;
 }
 
 PRIVATE void  rd_3dim(int *array, int dim1, int dim2, int dim3, int shift1, int shift2, int shift3){
+  rd_3dim_slice(array,
+                dim1, dim2, dim3,
+                shift1, shift2, shift3,
+                0, 0, 0);
+}
+
+PRIVATE void  rd_3dim_slice(int *array,
+                            int dim1, int dim2, int dim3,
+                            int shift1, int shift2, int shift3,
+                            int post1, int post2, int post3){
   int    i;
-  if(shift1 + shift2 + shift3 == 0){
+  int delta_pre   = shift1 + shift2 + shift3;
+  int delta_post  = post1 + post2 + post3;
+
+  if(delta_pre + delta_post == 0){
     rd_1dim(array, dim1 * dim2 * dim3, 0);
     return;
   }
-  for (i=shift1; i<dim1; i++){
-    rd_2dim(array + (i * dim2 * dim3),
+  for (i=shift1; i<dim1 - post1; i++){
+    rd_2dim_slice(array + (i * dim2 * dim3),
             dim2, dim3,
-            shift2, shift3);
+            shift2, shift3,
+            post2, post3);
   }
   return;
 }
@@ -338,15 +388,29 @@ PRIVATE void  rd_3dim(int *array, int dim1, int dim2, int dim3, int shift1, int 
 PRIVATE void  rd_4dim(int *array,
                       int dim1, int dim2, int dim3, int dim4,
                       int shift1, int shift2, int shift3, int shift4){
+  rd_4dim_slice(array,
+                dim1, dim2, dim3, dim4,
+                shift1, shift2, shift3, shift4,
+                0, 0, 0, 0);
+}
+
+PRIVATE void  rd_4dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4,
+                      int shift1, int shift2, int shift3, int shift4,
+                      int post1, int post2, int post3, int post4){
   int i;
-  if(shift1 + shift2 + shift3 + shift4 == 0){
+  int delta_pre   = shift1 + shift2 + shift3 + shift4;
+  int delta_post  = post1 + post2 + post3 + post4;
+
+  if(delta_pre + delta_post == 0){
     rd_1dim(array, dim1 * dim2 * dim3 * dim4, 0);
     return;
   }
-  for(i=shift1; i<dim1; i++){
-    rd_3dim(array + (i * dim2 * dim3 * dim4),
+  for(i=shift1; i<dim1 - post1; i++){
+    rd_3dim_slice(array + (i * dim2 * dim3 * dim4),
             dim2, dim3, dim4,
-            shift2, shift3, shift4);
+            shift2, shift3, shift4,
+            post2, post3, post4);
   }
   return;
 }
@@ -354,30 +418,62 @@ PRIVATE void  rd_4dim(int *array,
 PRIVATE void  rd_5dim(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5,
                       int shift1, int shift2, int shift3, int shift4, int shift5){
+  rd_5dim_slice(array,
+                dim1, dim2, dim3, dim4, dim5,
+                shift1, shift2, shift3, shift4, shift5,
+                0, 0, 0, 0, 0);
+}
+
+PRIVATE void  rd_5dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4, int dim5,
+                      int shift1, int shift2, int shift3, int shift4, int shift5,
+                      int post1, int post2, int post3, int post4, int post5){
   int i;
-  if(shift1 + shift2 + shift3 + shift4 + shift5 == 0){
+  int delta_pre   = shift1 + shift2 + shift3 + shift4 + shift5;
+  int delta_post  = post1 + post2 + post3 + post4 + post5;
+
+  if(delta_pre + delta_post == 0){
     rd_1dim(array, dim1 * dim2 * dim3 * dim4 * dim5, 0);
     return;
   }
-  for(i=shift1; i<dim1; i++)
-    rd_4dim(array + (i * dim2 * dim3 * dim4 * dim5),
+  for(i=shift1; i<dim1 - post1; i++)
+    rd_4dim_slice(array + (i * dim2 * dim3 * dim4 * dim5),
             dim2, dim3, dim4, dim5,
-            shift2, shift3, shift4, shift5);
+            shift2, shift3, shift4, shift5,
+            post2, post3, post4, post5);
   return;
 }
 
+/**
+*** \param dim1   The size of the first dimension
+*** \param shift1 The pre shift for the first dimension
+**/
 PRIVATE void  rd_6dim(int *array,
                       int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
                       int shift1, int shift2, int shift3, int shift4, int shift5, int shift6){
+  rd_6dim_slice(array,
+                dim1, dim2, dim3, dim4, dim5, dim6,
+                shift1, shift2, shift3, shift4, shift5, shift6,
+                0, 0, 0, 0, 0, 0);
+}
+
+PRIVATE void  rd_6dim_slice(int *array,
+                      int dim1, int dim2, int dim3, int dim4, int dim5, int dim6,
+                      int shift1, int shift2, int shift3, int shift4, int shift5, int shift6,
+                      int post1, int post2, int post3, int post4, int post5, int post6){
   int i;
-  if(shift1 + shift2 + shift3 + shift4 + shift5 + shift6 == 0){
+  int delta_pre   = shift1 + shift2 + shift3 + shift4 + shift5 + shift6;
+  int delta_post  = post1 + post2 + post3 + post4 + post5 + post6;
+ 
+  if(delta_pre + delta_post == 0){
     rd_1dim(array, dim1 * dim2 * dim3 * dim4 * dim5 * dim6, 0);
     return;
   }
-  for(i=shift1; i<dim1; i++)
-    rd_5dim(array + (i * dim2 * dim3 * dim4 * dim5 * dim6),
+  for(i=shift1; i<dim1 - post1; i++)
+    rd_5dim_slice(array + (i * dim2 * dim3 * dim4 * dim5 * dim6),
             dim2, dim3, dim4, dim5, dim6,
-            shift2, shift3, shift4, shift5, shift6);
+            shift2, shift3, shift4, shift5, shift6,
+            post2, post3, post4, post5, post6);
   return;
 }
 
@@ -733,8 +829,8 @@ PUBLIC void write_parameter_file(const char fname[]){
 
   fprintf(outfp,"\n# %s\n", settype(INT22));
   { int p1, p2, i, j, k;
-  for (p1=1; p1<NBPAIRS+1; p1++) 
-    for (p2=1; p2<NBPAIRS+1; p2++)
+  for (p1=1; p1<NBPAIRS; p1++) 
+    for (p2=1; p2<NBPAIRS; p2++)
       for (i=1; i<5; i++)
         for (j=1; j<5; j++) {
           fprintf(outfp, "/* %2s.%c%c..%2s */\n",
@@ -746,8 +842,8 @@ PUBLIC void write_parameter_file(const char fname[]){
   
   fprintf(outfp,"\n# %s\n", settype(INT22_H));
   { int p1, p2, i, j, k;
-  for (p1=1; p1<NBPAIRS+1; p1++) 
-    for (p2=1; p2<NBPAIRS+1; p2++)
+  for (p1=1; p1<NBPAIRS; p1++) 
+    for (p2=1; p2<NBPAIRS; p2++)
       for (i=1; i<5; i++)
         for (j=1; j<5; j++) {
           fprintf(outfp, "/* %2s.%c%c..%2s */\n",
