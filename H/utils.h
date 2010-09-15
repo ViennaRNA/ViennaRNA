@@ -216,6 +216,13 @@ int   *get_indx(unsigned int length);
 
 /**
 *** Insert constraining pair types according to constraint structure string
+***
+*** \see get_indx(), get_iindx() 
+***
+*** \param constraint     The structure constraint string
+*** \param ptype          A pointer to the basepair type array
+*** \param min_loop_size  The minimal loop size (usually \ref TURN )
+*** \param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
 **/
 void constrain_ptypes(const char *constraint, char *ptype, int *BP, int min_loop_size, unsigned int idx_type);
 

@@ -2,7 +2,8 @@ lib_LIBRARIES = libRNA.a
 
 
 if WITH_LIBSVM
-  SVM_SOURCE = ../@libsvm_dir@/svm.cpp
+  SVM_SOURCE  = ../@LIBSVM_SRC@
+  SVM_INC     = ../@LIBSVM_INC@
 endif
 
 libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
@@ -12,7 +13,7 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     cofold.c part_func_co.c ProfileAln.c duplex.c \
                     alifold.c alipfold.c aln_util.c LPfold.c \
                     part_func_up.c ribo.c findpath.c convert_epars.c\
-                    MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c ${SVM_SOURCE}
+                    MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c ${SVM_SRC}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
 
@@ -27,5 +28,5 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
 
 EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc
 
-INCLUDES = -I$(srcdir)/../H
+INCLUDES = -I$(srcdir)/../H -I$(srcdir)/${SVM_INC}
 

@@ -20,138 +20,92 @@
 #include "RNAparconv_cmdl.h"
 
 int main(int argc, char *argv[]){
-  struct  RNALfold_args_info  args_info;
-  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases;
-  int                         i, length, l, sym, r, istty, noconv, maxdist;
-  double                      energy, min_en;
-  unsigned int                input_type;
+  struct  RNAparconv_args_info  args_info;
+  char                          *ifileName, *ofileName;
+  int                           i, silent;
+  unsigned int                  options;
 
-  string = structure = ParamFile = ns_bases = NULL;
-  do_backtrack  = 1;
-  noconv        = 0;
-  maxdist       = 150;
+  ifileName = ofileName = NULL;
+  silent    = 0;
+  options   = VRNA_CONVERT_OUTPUT_ALL;
 
   /*
   #############################################
   # check the command line parameters
   #############################################
   */
-  if(RNALfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
-  /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
-  /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
-  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)      noconv = 1;
-  /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
-  /* set the maximum base pair span */
-  if(args_info.span_given)        maxdist = args_info.span_arg;
-  
-  /* check for errorneous parameter options */
-  if(maxdist < 0){
-    RNALfold_cmdline_parser_print_help();
-    exit(EXIT_FAILURE);
+  if(RNAparconv_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+
+  /* use input file */
+  if(args_info.input_given)             ifileName = strdup(args_info.input_arg);
+  /* use output file */
+  if(args_info.output_given)            ofileName = strdup(args_info.output_arg);
+  /* output without (special) hairpin energies + enthalpies */
+  if(args_info.without_HairpinE_given)  options &= ~(VRNA_CONVERT_OUTPUT_HP
+                                                    |VRNA_CONVERT_OUTPUT_SPECIAL_HP);
+  /* output without stacking energies + enthalpies */
+  if(args_info.without_StackE_given)    options &= ~VRNA_CONVERT_OUTPUT_STACK;
+  /* output without 5' dangle energies + enthalpies */
+  if(args_info.without_Dangle5_given)   options &= ~VRNA_CONVERT_OUTPUT_DANGLE5;
+  /* output without 3' dangle energies + enthalpies */
+  if(args_info.without_Dangle3_given)   options &= ~VRNA_CONVERT_OUTPUT_DANGLE3;
+  /* output without interior loop energies + enthalpies */
+  if(args_info.without_IntE_given)      options &= ~(VRNA_CONVERT_OUTPUT_NINIO
+                                                    |VRNA_CONVERT_OUTPUT_INT
+                                                    |VRNA_CONVERT_OUTPUT_INT_11
+                                                    |VRNA_CONVERT_OUTPUT_INT_21
+                                                    |VRNA_CONVERT_OUTPUT_INT_22);
+  /* output without bulge loop energies + enthalpies */
+  if(args_info.without_BulgeE_given)    options &= ~VRNA_CONVERT_OUTPUT_BULGE;
+  /* output without multi loop energies + enthalpies */
+  if(args_info.without_MultiE_given)    options &= ~VRNA_CONVERT_OUTPUT_ML;
+  /* output without misc energies + enthalpies */
+  if(args_info.without_Misc_given)      options &= ~VRNA_CONVERT_OUTPUT_MISC;
+  /* output without hairpin mismatch energies + enthalpies */
+  if(args_info.without_MismatchH_given) options &= ~VRNA_CONVERT_OUTPUT_MM_HP;
+  /* output without interior loop mismatch energies + enthalpies */
+  if(args_info.without_MismatchI_given) options &= ~(VRNA_CONVERT_OUTPUT_MM_INT
+                                                    |VRNA_CONVERT_OUTPUT_MM_INT_1N
+                                                    |VRNA_CONVERT_OUTPUT_MM_INT_23);
+  /* output without multi loop mismatch energies + enthalpies */
+  if(args_info.without_MismatchM_given) options &= ~VRNA_CONVERT_OUTPUT_MM_MULTI;
+  /* output without exterior loop mismatch energies + enthalpies */
+  if(args_info.without_MismatchE_given) options &= ~VRNA_CONVERT_OUTPUT_MM_EXT;
+
+  /* output given energy parameters only */
+  if(args_info.vanilla_given)           options |= VRNA_CONVERT_OUTPUT_VANILLA;
+
+  /* just dump Vienna 1.8.4 parameters in new format */
+  if(args_info.dump_given)              options |= VRNA_CONVERT_OUTPUT_DUMP;
+
+  /* file names given as unnamed option? */
+  for(i = 0; i < args_info.inputs_num; i++){
+    if(ifileName == NULL)       ifileName = strdup(args_info.inputs[i]);
+    else if(ofileName == NULL)  ofileName = strdup(args_info.inputs[i]);
+    else{
+      RNAparconv_cmdline_parser_print_help();
+      nrerror("unrecognized or too many parameter options given!");
+    }
   }
+
+  /* be silent */
+  if(args_info.silent_given) silent = 1;
 
   /* free allocated memory of command line data structure */
-  RNALfold_cmdline_parser_free (&args_info);
+  RNAparconv_cmdline_parser_free (&args_info);
 
   /*
   #############################################
-  # begin initializing
+  # do something
   #############################################
   */
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-   
-  if (ns_bases != NULL) {
-    nonstandards = space(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-  }
 
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-        
-  /*
-  #############################################
-  # main loop: continue until end of file
-  #############################################
-  */
-  do{
-    /*
-    ########################################################
-    # handle user input from 'stdin'
-    ########################################################
-    */
-    if(istty) print_tty_input_seq();
+  if(ifileName == NULL)
+    if(!(silent || (options & VRNA_CONVERT_OUTPUT_DUMP)))
+      fprintf(stdout, "Enter parameters:\n(Indicate last line of input parameters by typing \"# END\" or EOF\n\n");
 
-    /* skip fasta header and comment lines */
-    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      free(input_string);
-    }
+  convert_parameter_file(ifileName, ofileName, options);
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      length = (int)    strlen(input_string);
-      string = strdup(input_string);
-      free(input_string);
-    }
-    printf("%s\n", string);
-
-    structure = (char *) space((unsigned) length+1);
-
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
-
-    if(istty) printf("length = %d\n", length);
-    /*
-    ########################################################
-    # done with 'stdin' handling
-    ########################################################
-    */
-
-    min_en = Lfold((const char *)string, structure, maxdist);
-    printf("%s", structure);
-
-    if (istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-    else
-      printf(" (%6.2f)\n", min_en);
-
-    (void) fflush(stdout);
-    free(string);
-    free(structure); 
-  } while (1);
-  return 0;
+  return EXIT_SUCCESS;
 }
 

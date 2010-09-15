@@ -99,15 +99,36 @@ if test "$with_svm" != "no"; then
   AC_FUNC_STRTOD
   AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strdup strndup strrchr strstr strtol strtoul])
   AC_MSG_CHECKING([whether provided libSVM source is present...])
-  if test -f $srcdir/libsvm-${SVM_VERSION}.tar.gz; then
-    AC_MSG_RESULT(yes)
-    AC_MSG_NOTICE([unpacking libSVM source...])
-    tar xfz $srcdir/libsvm-${SVM_VERSION}.tar.gz
-    AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
+  UNCOMPRESS_LIBSVM=0
+  if test -f $srcdir/libsvm-${SVM_VERSION}/svm.cpp; then
+    AC_SUBST([LIBSVM_SOURCE], [$srcdir/libsvm-${SVM_VERSION}/svm.cpp])
   else
-    AC_MSG_RESULT(no)
-    AC_MSG_WARN([no suitable libsvm package found, deactivating SVM capabilities])
-    with_svm="no"
+    UNCOMPRESS_LIBSVM=1
+  fi
+  if test -f $srcdir/libsvm-${SVM_VERSION}/svm.h; then
+    AC_SUBST([LIBSVM_INC],[$srcdir/libsvm-${SVM_VERSION}])
+  else
+    UNCOMPRESS_LIBSVM=1
+  fi
+  if test "x$UNCOMPRESS_LIBSVM" = "x1"; then
+    if test -f $srcdir/libsvm-${SVM_VERSION}.tar.gz; then
+      AC_MSG_RESULT(yes)
+      AC_PATH_PROG([TAR], [tar], [])
+      if test "x$TAR" = "x"; then
+        AC_MSG_NOTICE([==> tar command not found!])
+        AC_MSG_ERROR([the tar command is mandatory for unpacking libsvm sources])
+      fi
+      AC_MSG_NOTICE([unpacking libSVM source...])
+      ${TAR} xfz $srcdir/libsvm-${SVM_VERSION}.tar.gz
+      AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
+    else
+      AC_MSG_RESULT(no)
+      AC_MSG_WARN([no suitable libsvm package found, deactivating SVM capabilities])
+      with_svm="no"
+    fi
+  else
+    AC_MSG_RESULT(yes)
+    AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
   fi
 fi
 
