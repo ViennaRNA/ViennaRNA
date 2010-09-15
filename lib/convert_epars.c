@@ -29,44 +29,56 @@ enum parset_184 {UNKNOWN_184= -1, QUIT_184, S_184, SH_184, HP_184, B_184, IL_184
              INT11_184, INT11_H_184, INT21_184, INT21_H_184, INT22_184, INT22_H_184}; 
 
 
-PRIVATE void  read_old_parameter_file(FILE *ifile);
-PRIVATE void  write_new_parameter_file(FILE *ofile, unsigned int options);
-PRIVATE void  rd_stacks(int stack[NBPAIRS+1][NBPAIRS+1], FILE *fp);
-PRIVATE void  rd_loop(int looparray[31], FILE *fp);
-PRIVATE void  rd_mismatch(int mismatch[NBPAIRS+1][5][5], FILE *fp);
-PRIVATE void  rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][5], FILE *fp);
-PRIVATE void  rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5], FILE *fp);
-PRIVATE void  rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5], FILE *fp);
-PRIVATE void  rd_dangle(int dangles[NBPAIRS+1][5], FILE *fp);
-PRIVATE void  rd_MLparams(FILE *fp);
-PRIVATE void  rd_misc(FILE *fp);
-PRIVATE void  rd_ninio(FILE *fp);
-PRIVATE void  rd_Tetra_loop(FILE *fp);
-PRIVATE void  rd_Tri_loop(FILE *fp);
-PRIVATE void  check_symmetry(void);
-
-PRIVATE enum  parset_184 gettype_184(char ident[]);
-PRIVATE char  *get_array1(int *arr, int size, FILE *fp);
-PRIVATE void  ignore_comment(char *line);
-PRIVATE void  display_array(int *p, int size, int line, FILE *fp);
+PRIVATE unsigned int  read_old_parameter_file(FILE *ifile, int skip_header);
+PRIVATE void          write_new_parameter_file(FILE *ofile, unsigned int options);
+PRIVATE void          rd_stacks(int stack[NBPAIRS+1][NBPAIRS+1], FILE *fp);
+PRIVATE void          rd_loop(int looparray[31], FILE *fp);
+PRIVATE void          rd_mismatch(int mismatch[NBPAIRS+1][5][5], FILE *fp);
+PRIVATE void          rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][5], FILE *fp);
+PRIVATE void          rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5], FILE *fp);
+PRIVATE void          rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5], FILE *fp);
+PRIVATE void          rd_dangle(int dangles[NBPAIRS+1][5], FILE *fp);
+PRIVATE void          rd_MLparams(FILE *fp);
+PRIVATE void          rd_misc(FILE *fp);
+PRIVATE void          rd_ninio(FILE *fp);
+PRIVATE void          rd_Tetra_loop(FILE *fp);
+PRIVATE void          rd_Tri_loop(FILE *fp);
+PRIVATE void          check_symmetry(void);
+PRIVATE enum          parset_184 gettype_184(char ident[]);
+PRIVATE char          *get_array1(int *arr, int size, FILE *fp);
+PRIVATE void          ignore_comment(char *line);
+PRIVATE void          display_array(int *p, int size, int line, FILE *fp);
 
 
 PUBLIC void convert_parameter_file(const char *iname, const char *oname, unsigned int options){
-  FILE *ifile, *ofile;
+  FILE          *ifile, *ofile;
+  unsigned int  old_options = 0;
+  int           skip_input_header = 0;
 
-  if(!(ifile=fopen(iname,"r"))){
-    fprintf(stderr, "convert_epars: can't open file %s\n", iname);
-    return;
+  if(options & VRNA_CONVERT_OUTPUT_DUMP){
+    if(oname == NULL) oname = iname;
+    skip_input_header = 1;
+  }
+  else{
+    if(iname == NULL){
+      ifile = stdin;
+      skip_input_header = 1;
+    }
+    else if(!(ifile=fopen(iname,"r"))){
+      fprintf(stderr, "convert_epars: can't open file %s\n", iname);
+      return;
+    }
+    /* read old (1.8.4 format) parameter file */
+    old_options = read_old_parameter_file(ifile, skip_input_header);
+    if(ifile != stdin) fclose(ifile);
+    check_symmetry();
   }
 
-  /* read old (1.8.4 format) parameter file */
-  read_old_parameter_file(ifile);
-  fclose(ifile);
-
-  check_symmetry();
+  if(options & VRNA_CONVERT_OUTPUT_VANILLA)
+    options &= old_options;
 
   if(oname == NULL) ofile = stdout;
-  else if(!(ofile=fopen(oname,"w"))){
+  else if(!(ofile=fopen(oname,"a+"))){
     fprintf(stderr, "convert_epars: can't open file %s for writing\n", oname);
     return;
   }
@@ -76,62 +88,133 @@ PUBLIC void convert_parameter_file(const char *iname, const char *oname, unsigne
 
 
 /*------------------------------------------------------------*/
-PRIVATE void read_old_parameter_file(FILE *ifile){
-  char  *line, ident[32];
-  enum  parset_184 type;
-  int   r;
+PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
+  char                  *line, ident[32];
+  enum      parset_184  type;
+  int                   r, last;
+  unsigned  int         read_successfully = 0;
 
   if (!(line = get_line(ifile))) {
-    fprintf(stderr,"convert_epars: input parameter file is inproper.\n");
-    return;
+    warn_user("convert_epars: can't read input parameter file");
+    return 0;
   }
-
-  if (strncmp(line,"## RNAfold parameter file",25)!=0) {
-    fprintf(stderr,
-            "convert_epars: Missing header line in input parameter file.\n"
-            "May be this file has incorrect format.\n");
-    return;
+  if(!skip_header){
+    if (strncmp(line,"## RNAfold parameter file",25)!=0){
+      warn_user("convert_epars: Missing header line in input parameter file.\n"
+                "May be this file has incorrect format?");
+      free(line);
+      return 0;
+    }
+    free(line);
+    line = get_line(ifile);
   }
-
-  free(line);
-
-  while((line=get_line(ifile))) {
+  last = 0;
+  do{
     r = sscanf(line, "# %31s", ident);
     if (r==1){
       type = gettype_184(ident);
       switch (type){
-        case QUIT_184:    break;
-        case SH_184:      rd_stacks(enthalpies_184, ifile);     break;
-        case S_184:       rd_stacks(stack37_184, ifile);        break;
-        case HP_184:      rd_loop(hairpin37_184, ifile);        break;
-        case B_184:       rd_loop(bulge37_184, ifile);          break;
-        case IL_184:      rd_loop(internal_loop37_184, ifile);  break;
-        case MMH_184:     rd_mismatch(mismatchH37_184, ifile);  break;
-        case MMI_184:     rd_mismatch(mismatchI37_184, ifile);  break;
-        case MMM_184:     rd_mismatch(mismatchM37_184, ifile);  break;
-        case MM_H_184:    rd_mismatch(mism_H_184, ifile);       break;
-        case INT11_184:   rd_int11(int11_37_184, ifile);        break;
-        case INT11_H_184: rd_int11(int11_H_184, ifile);         break;
-        case INT21_184:   rd_int21(int21_37_184, ifile);        break;
-        case INT21_H_184: rd_int21(int21_H_184, ifile);         break;
-        case INT22_184:   rd_int22(int22_37_184, ifile);        break;
-        case INT22_H_184: rd_int22(int22_H_184, ifile);         break;
-        case DE5_184:     rd_dangle(dangle5_37_184, ifile);     break;
-        case DE5_H_184:   rd_dangle(dangle5_H_184, ifile);      break;
-        case DE3_184:     rd_dangle(dangle3_37_184, ifile);     break;
-        case DE3_H_184:   rd_dangle(dangle3_H_184, ifile);      break;
-        case ML_184:      rd_MLparams(ifile);                   break;
-        case NIN_184:     rd_ninio(ifile);                      break;
-        case TL_184:      rd_Tetra_loop(ifile);                 break;
-        case TRI_184:     rd_Tri_loop(ifile);                   break;
-        case MISC_184:    rd_misc(ifile);                       break;
+        case QUIT_184:    if(ifile == stdin){
+                            fprintf(stderr, "press ENTER to continue...\n");
+                            fflush(stderr);
+                          }
+                          last = 1;
+                          break;
+        case SH_184:      rd_stacks(enthalpies_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_STACK;
+                          break;
+        case S_184:       rd_stacks(stack37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_STACK;
+                          break;
+        case HP_184:      rd_loop(hairpin37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_HP;
+                          break;
+        case B_184:       rd_loop(bulge37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_BULGE;
+                          break;
+        case IL_184:      rd_loop(internal_loop37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT;
+                          break;
+        case MMH_184:     rd_mismatch(mismatchH37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_MM_HP;
+                          break;
+        case MMI_184:     rd_mismatch(mismatchI37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_MM_INT
+                                              |VRNA_CONVERT_OUTPUT_MM_INT_1N  /* since 1:n-interior loop mismatches are treated seperately in 2.0 */
+                                              |VRNA_CONVERT_OUTPUT_MM_INT_23; /* since 2:3-interior loop mismatches are treated seperately in 2.0 */
+                          break;
+        case MMM_184:     rd_mismatch(mismatchM37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_MM_MULTI;
+                          break;
+        case MM_H_184:    rd_mismatch(mism_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_MM_HP      /* since hairpin mismatches are treated seperately in 2.0 */
+                                              |VRNA_CONVERT_OUTPUT_MM_INT     /* since interior loop  mismatches are treated seperately in 2.0 */
+                                              |VRNA_CONVERT_OUTPUT_MM_INT_1N  /* since 1:n-interior loop mismatches are treated seperately in 2.0 */
+                                              |VRNA_CONVERT_OUTPUT_MM_INT_23  /* since 2:3-interior loop mismatches are treated seperately in 2.0 */
+                                              |VRNA_CONVERT_OUTPUT_MM_MULTI;  /* since multi loop mismatches are treated seperately in 2.0 */
+                          break;
+        case INT11_184:   rd_int11(int11_37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_11;
+                          break;
+        case INT11_H_184: rd_int11(int11_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_11;
+                          break;
+        case INT21_184:   rd_int21(int21_37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_21;
+                          break;
+        case INT21_H_184: rd_int21(int21_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_21;
+                          break;
+        case INT22_184:   rd_int22(int22_37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_22;
+                          break;
+        case INT22_H_184: rd_int22(int22_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_INT_22;
+                          break;
+        case DE5_184:     rd_dangle(dangle5_37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_DANGLE5
+                                              |VRNA_CONVERT_OUTPUT_MM_MULTI /* since multi loop mismatches were treated as dangle contribution */
+                                              |VRNA_CONVERT_OUTPUT_MM_EXT;  /* since exterior loop mismatches were treated as dangle contribution */
+                          break;
+        case DE5_H_184:   rd_dangle(dangle5_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_DANGLE5
+                                              |VRNA_CONVERT_OUTPUT_MM_MULTI /* since multi loop mismatches were treated as dangle contribution */
+                                              |VRNA_CONVERT_OUTPUT_MM_EXT;  /* since exterior loop mismatches were treated as dangle contribution */
+                          break;
+        case DE3_184:     rd_dangle(dangle3_37_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_DANGLE3
+                                              |VRNA_CONVERT_OUTPUT_MM_MULTI /* since multi loop mismatches were treated as dangle contribution */
+                                              |VRNA_CONVERT_OUTPUT_MM_EXT;  /* since exterior loop mismatches were treated as dangle contribution */
+                          break;
+        case DE3_H_184:   rd_dangle(dangle3_H_184, ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_DANGLE3
+                                              |VRNA_CONVERT_OUTPUT_MM_MULTI /* since multi loop mismatches were treated as dangle contribution */
+                                              |VRNA_CONVERT_OUTPUT_MM_EXT;  /* since exterior loop mismatches were treated as dangle contribution */
+                          break;
+        case ML_184:      rd_MLparams(ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_ML
+                                              |VRNA_CONVERT_OUTPUT_MISC;    /* since TerminalAU went to "misc" section */
+                          break;
+        case NIN_184:     rd_ninio(ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_NINIO;
+                          break;
+        case TL_184:      rd_Tetra_loop(ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_SPECIAL_HP;
+                          break;
+        case TRI_184:     rd_Tri_loop(ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_SPECIAL_HP;
+                          break;
+        case MISC_184:    rd_misc(ifile);
+                          read_successfully |= VRNA_CONVERT_OUTPUT_MISC;
+                          break;
         default:          /* do nothing but complain */
                           fprintf(stderr,"convert_parameter_file: Unknown field identifier in `%s'\n", line);
       }
     } /* else ignore line */
     free(line);  
-  }
-  return;
+  } while((line=get_line(ifile)) && !last);
+
+  return read_successfully;
 }
 
 PRIVATE void display_array(int *p, int size, int nl, FILE *fp){
@@ -457,12 +540,25 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
   unsigned  int options   = 0;
 
   options = (option_bits & VRNA_CONVERT_OUTPUT_ALL) ?
-              VRNA_CONVERT_OUTPUT_HP | VRNA_CONVERT_OUTPUT_STACK | VRNA_CONVERT_OUTPUT_MM_HP
-              | VRNA_CONVERT_OUTPUT_MM_INT | VRNA_CONVERT_OUTPUT_MM_INT_1N | VRNA_CONVERT_OUTPUT_MM_INT_23
-              | VRNA_CONVERT_OUTPUT_MM_MULTI | VRNA_CONVERT_OUTPUT_MM_EXT | VRNA_CONVERT_OUTPUT_DANGLE5
-              | VRNA_CONVERT_OUTPUT_DANGLE3 | VRNA_CONVERT_OUTPUT_INT_11 | VRNA_CONVERT_OUTPUT_INT_21
-              | VRNA_CONVERT_OUTPUT_INT_22 | VRNA_CONVERT_OUTPUT_BULGE | VRNA_CONVERT_OUTPUT_INT
-              | VRNA_CONVERT_OUTPUT_ML | VRNA_CONVERT_OUTPUT_MISC | VRNA_CONVERT_OUTPUT_SPECIAL_HP
+              VRNA_CONVERT_OUTPUT_HP
+            | VRNA_CONVERT_OUTPUT_STACK
+            | VRNA_CONVERT_OUTPUT_MM_HP
+            | VRNA_CONVERT_OUTPUT_MM_INT
+            | VRNA_CONVERT_OUTPUT_MM_INT_1N
+            | VRNA_CONVERT_OUTPUT_MM_INT_23
+            | VRNA_CONVERT_OUTPUT_MM_MULTI
+            | VRNA_CONVERT_OUTPUT_MM_EXT
+            | VRNA_CONVERT_OUTPUT_DANGLE5
+            | VRNA_CONVERT_OUTPUT_DANGLE3
+            | VRNA_CONVERT_OUTPUT_INT_11
+            | VRNA_CONVERT_OUTPUT_INT_21
+            | VRNA_CONVERT_OUTPUT_INT_22
+            | VRNA_CONVERT_OUTPUT_BULGE
+            | VRNA_CONVERT_OUTPUT_INT
+            | VRNA_CONVERT_OUTPUT_ML
+            | VRNA_CONVERT_OUTPUT_MISC
+            | VRNA_CONVERT_OUTPUT_SPECIAL_HP
+            | VRNA_CONVERT_OUTPUT_NINIO
             :
               option_bits;
 

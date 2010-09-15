@@ -2489,9 +2489,6 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   return energy;
 }
 
-/**
-*** \deprecated {this function is deprecated and will be removed soon!}
-**/
 PUBLIC void initialize_fold(int length){
   /* DO NOTHING */
 }
