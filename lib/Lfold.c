@@ -69,6 +69,10 @@ PRIVATE int           *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE char          **ptype;    /* precomputed array of pair types */
 PRIVATE short         *S, *S1;
 PRIVATE unsigned int  length;
+#ifdef USE_SVM
+PRIVATE struct svm_model  *avg_model;
+PRIVATE struct svm_model  *sd_model;
+#endif
 
 #ifdef USE_OPENMP
 
@@ -78,7 +82,12 @@ PRIVATE unsigned int  length;
          e.g.:
          #pragma omp parallel for copyin(P, ...)
 */
+
+#ifdef USE_SVM
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model)
+#else
 #pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length)
+#endif
 
 #endif
 
@@ -161,6 +170,10 @@ PRIVATE void free_arrays(int maxdist){
 /*--------------------------------------------------------------------------*/
 
 PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
+  return Lfoldz(string, structure, maxdist, 0, 0.0);
+}
+
+PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z){
   int i, energy;
 
   length = (int) strlen(string);
@@ -174,13 +187,25 @@ PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
   for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
     make_ptypes(S, i, maxdist, length);
 
+#ifdef USE_SVM  /*svm*/
+  if(zsc){
+    avg_model = svm_load_model_string(avg_model_string);
+    sd_model  = svm_load_model_string(sd_model_string);
+  }
+#endif
+
   energy = fill_arrays(string, maxdist);
 
-  /* parenthesis_structure(structure, length); */
+#ifdef USE_SVM  /*svm*/
+  if(zsc){
+    svm_destroy_model(avg_model);
+    svm_destroy_model(sd_model);
+  }
+#endif
 
   free(S); free(S1);
-
   free_arrays(maxdist);
+
   return (float) energy/100.;
 }
 

@@ -1,7 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_SUBOPT_H__
 #define __VIENNA_RNA_PACKAGE_SUBOPT_H__
 
-typedef struct{
+typedef struct svm_model{
   struct svm_parameter param;
   int nr_class;
   int l;
@@ -14,6 +14,9 @@ typedef struct{
   int *nSV;
   int free_sv;
 } svm_model;
+
+extern  char *avg_model_string;
+extern  char *sd_model_string;
 
 float     get_z(char *sequence, double energy);
 double    avg_regression ( int N,int A, int C, int G, int T,  struct svm_model *avg_model, int *info );

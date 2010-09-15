@@ -10,6 +10,10 @@ if USE_OPENMP
   AM_CFLAGS = -DUSE_OPENMP -fopenmp
 endif
 
+if WITH_LIBSVM
+#  RNALfold_LINK = $(CXXLD) -o $@
+  RNALfold_INCLUDES = -I$(srcdir)/../H -I../libsvm-2.91/
+endif
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
 

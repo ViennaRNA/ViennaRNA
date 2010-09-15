@@ -35,7 +35,10 @@ AC_CANONICAL_HOST
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
 AC_PROG_CC_FPIC
+
 AC_ARG_VAR(FPIC,[compiler flag for generating PIC code that can be used in a shared library])
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
@@ -44,9 +47,6 @@ else
 fi
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_CXX
 AM_PROG_CC_C_O
 
 dnl check for auxilary programs to compile
@@ -101,12 +101,12 @@ if test "$with_svm" != "no"; then
   AC_MSG_CHECKING([whether provided libSVM source is present...])
   UNCOMPRESS_LIBSVM=0
   if test -f $srcdir/libsvm-${SVM_VERSION}/svm.cpp; then
-    AC_SUBST([LIBSVM_SOURCE], [$srcdir/libsvm-${SVM_VERSION}/svm.cpp])
+    AC_SUBST([LIBSVM_DIR], [$srcdir/libsvm-${SVM_VERSION}/svm.cpp])
   else
     UNCOMPRESS_LIBSVM=1
   fi
   if test -f $srcdir/libsvm-${SVM_VERSION}/svm.h; then
-    AC_SUBST([LIBSVM_INC],[$srcdir/libsvm-${SVM_VERSION}])
+    AC_SUBST([LIBSVM_DIR],[$srcdir/libsvm-${SVM_VERSION}])
   else
     UNCOMPRESS_LIBSVM=1
   fi
@@ -120,15 +120,16 @@ if test "$with_svm" != "no"; then
       fi
       AC_MSG_NOTICE([unpacking libSVM source...])
       ${TAR} xfz $srcdir/libsvm-${SVM_VERSION}.tar.gz
-      AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
+      AC_SUBST([LIBSVM_DIR],[$srcdir/libsvm-${SVM_VERSION}])
+      AC_DEFINE([USE_SVM], [1], [use support vector machine])
     else
       AC_MSG_RESULT(no)
       AC_MSG_WARN([no suitable libsvm package found, deactivating SVM capabilities])
       with_svm="no"
     fi
   else
+    AC_DEFINE([USE_SVM], [1], [use support vector machine])
     AC_MSG_RESULT(yes)
-    AC_SUBST([libsvm_dir], [$srcdir/libsvm-${SVM_VERSION}])
   fi
 fi
 
