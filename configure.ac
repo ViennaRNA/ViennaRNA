@@ -34,9 +34,10 @@ AC_SUBST(ISODATE)
 AC_CANONICAL_HOST
 
 dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_CXXCPP
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_CXX
 AC_PROG_CC_FPIC
 
 AC_ARG_VAR(FPIC,[compiler flag for generating PIC code that can be used in a shared library])
@@ -131,6 +132,7 @@ if test "$with_svm" != "no"; then
     AC_DEFINE([USE_SVM], [1], [use support vector machine])
     AC_MSG_RESULT(yes)
   fi
+  AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 fi
 
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
