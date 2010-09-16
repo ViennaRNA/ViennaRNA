@@ -13,9 +13,7 @@ endif
 if WITH_LIBSVM
   RNALfold_LINK = ${CXXLD} -o $@
 else
-  RNALfold_LINK = ${CC} -o $@
-
-#  RNALfold_INCLUDES = -I$(srcdir)/../H -I../libsvm-2.91/
+  RNALfold_LINK = ${CCLD} -o $@
 endif
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
