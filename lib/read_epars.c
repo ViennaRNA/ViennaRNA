@@ -226,8 +226,8 @@ PUBLIC void read_parameter_file(const char fname[]){
         case NIN:     {
                         int values[3];
                         rd_1dim(&values[0], 3, 0);
-                        ninio37[2] = values[0];
-                        niniodH[2] = values[1];
+                        ninio37 = values[0];
+                        niniodH = values[1];
                         MAX_NINIO  = values[2];
                       }
                       break;
@@ -880,7 +880,7 @@ PUBLIC void write_parameter_file(const char fname[]){
   fprintf(outfp,"\n# %s\n", settype(NIN));
   fprintf(outfp,"/* Ninio = MIN(max, m*|n1-n2| */\n"
               "/*\t    m\t  m_dH     max  */\n"
-              "\t%6d\t%6d\t%6d\n", ninio37[2], niniodH[2], MAX_NINIO);
+              "\t%6d\t%6d\t%6d\n", ninio37, niniodH, MAX_NINIO);
 
   fprintf(outfp,"\n# %s\n", settype(MISC));
   fprintf(outfp,"/* all parameters are pairs of 'energy enthalpy' */\n");

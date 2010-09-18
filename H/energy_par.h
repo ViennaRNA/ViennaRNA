@@ -64,8 +64,8 @@ extern int ML_interndH;
 /* Ninio-correction for asymmetric internal loops with branches n1 and n2 */
 /*    ninio_energy = min{max_ninio, |n1-n2|*F_ninio[min{4.0, n1, n2}] } */
 extern int  MAX_NINIO;                   /* maximum correction */
-extern int ninio37[4];
-extern int niniodH[4];
+extern int ninio37;
+extern int niniodH;
 /* penalty for helices terminated by AU (actually not GC) */
 extern int TerminalAU37;
 extern int TerminalAUdH;

@@ -170,7 +170,7 @@ PRIVATE void init_partfunc(int length){
 }
 
 PRIVATE void get_arrays(unsigned int length){
-  unsigned int size,i;
+  unsigned int size;
 
   size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
 
@@ -353,8 +353,8 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
 
 PRIVATE void pf_linear(const char *sequence, char *structure){
 
-  int n, i,j,k,l, ij, kl, u,u1,d,ii,ll, type, type_2, tt;
-  FLT_OR_DBL temp, Q, Qmax=0;
+  int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt;
+  FLT_OR_DBL temp, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
 
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;

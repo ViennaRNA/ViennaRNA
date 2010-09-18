@@ -297,8 +297,7 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
         return (P->Triloop_E[(ts - P->Triloops)/6]);
       }
       if (type>2)  /* neither CG nor GC */
-        energy += P->TerminalAU; /* penalty for closing AU GU pair IVOO??
-                                    sind dass jetzt beaunuesse oder mahlnuesse (vorzeichen?)*/
+        energy += P->TerminalAU;
       return energy;
     }
   }
@@ -386,6 +385,7 @@ INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
 INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
   double q, kT;
   kT = P->kT;   /* kT in cal/mol  */
+
   if(u <= 30)
     q = P->exphairpin[u];
   else

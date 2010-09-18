@@ -41,6 +41,7 @@
 
 
 #include "energy_const.h"
+#include "energy_par.h"
 /*@unused@*/
 static char rcsid[] = "$Id: energy_par.c,v 1.6 2004/08/12 12:11:57 ivo Exp $";
 

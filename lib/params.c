@@ -55,9 +55,9 @@ PUBLIC paramT *scale_parameters(void)
     params->bulge[i] = params->bulge[30]+(int)(params->lxc*log((double)(i)/30.));
     params->internal_loop[i] = params->internal_loop[30]+(int)(params->lxc*log((double)(i)/30.));
   }
-  for (i=0; i<5; i++)
-    params->ninio[i] = niniodH[i] - (niniodH[i] - ninio37[i]) * tempf;
 
+  params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
+  
   for (i=0; (i*7)<strlen(Tetraloops); i++)
     params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*tempf;
   for (i=0; (i*5)<strlen(Triloops); i++)
@@ -215,11 +215,10 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     pf.expinternal[i] = exp( -GT*10./kT);
   }
 
-  for (i=0; i<5; i++) {
-    GT = niniodH[i] - (niniodH[i] - ninio37[i])*TT;
-    for (j=0; j<=MAXLOOP; j++)
-      pf.expninio[i][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
-  }
+  GT = niniodH - (niniodH - ninio37)*TT;
+  for (j=0; j<=MAXLOOP; j++)
+      pf.expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
+
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
     pf.exptetra[i] = exp( -GT*10./kT);
@@ -390,11 +389,10 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     pf->expinternal[i] = exp( -GT*10./kT);
   }
 
-  for (i=0; i<5; i++) {
-    GT = niniodH[i] - (niniodH[i] - ninio37[i])*TT;
-    for (j=0; j<=MAXLOOP; j++)
-      pf->expninio[i][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
-  }
+  GT = niniodH - (niniodH - ninio37)*TT;
+  for (j=0; j<=MAXLOOP; j++)
+      pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
+
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
     pf->exptetra[i] = exp( -GT*10./kT);
@@ -570,11 +568,10 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
     pf->expinternal[i] = exp( -GT*10./kTn);
   }
 
-  for (i=0; i<5; i++) {
-    GT = niniodH[i] - (niniodH[i] - ninio37[i])*TT;
-    for (j=0; j<=MAXLOOP; j++)
-      pf->expninio[i][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kTn);
-  }
+  GT = niniodH - (niniodH - ninio37)*TT;
+  for (j=0; j<=MAXLOOP; j++)
+    pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kTn);
+
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
     pf->exptetra[i] = exp( -GT*10./kTn);
