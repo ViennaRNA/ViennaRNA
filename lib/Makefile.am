@@ -3,7 +3,8 @@ lib_LIBRARIES = libRNA.a
 
 if WITH_LIBSVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
-  SVM_INC     = ../@LIBSVM_DIR@
+  SVM_INC     = -I${srcdir}/../@LIBSVM_DIR@
+  SVM_H       = ${SVM_INC}/svm.h
   SVM_UTILS   = svm_utils.c
 endif
 
@@ -28,7 +29,7 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
                   1.8.4_epars.h 1.8.4_intloops.h
 
-EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc
+EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H}
 
-INCLUDES = -I$(srcdir)/../H -I$(srcdir)/${SVM_INC}
+AM_CPPFLAGS = -I$(srcdir)/../H ${SVM_INC}
 

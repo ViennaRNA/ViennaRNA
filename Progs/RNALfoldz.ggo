@@ -1,14 +1,14 @@
 # Name of your program
-package "RNALfold" # don't use package if you're using automake
+package "RNALfoldz" # don't use package if you're using automake
 purpose "calculate locally stable secondary structures of RNAs"
-usage "RNALfold [options]\n"
+usage "RNALfoldz [options]\n"
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNALfold_cmdl --include-getopt --default-optional --func-name=RNALfold_cmdline_parser --arg-struct-name=RNALfold_args_info"
+args "--file-name=RNALfoldz_cmdl --include-getopt --default-optional --func-name=RNALfoldz_cmdline_parser --arg-struct-name=RNALfoldz_args_info"
 
 
 description "Computes locally stable RNA secondary structure with a maximal base pair\
@@ -21,11 +21,10 @@ description "Computes locally stable RNA secondary structure with a maximal base
 # Options
 
 option  "zscore"  z
-"Activate z-score computation. An optional argument may be supplied to set the threshold\nDue to parsing the
- commandline parameters a negative value should be given immediately after \"z\" without spaces e.g. -z-4.9\n"
+"Set the minimal z-score threshold\nDue to parsing the commandline parameters a negative value should be given immediately after \"z\" without spaces\
+ e.g. -z-4.9\n"
 double
 default="-2"
-argoptional
 optional
 
 option  "span"  L

@@ -16,13 +16,10 @@
 #include "utils.h"
 #include "read_epars.h"
 #include "Lfold.h"
-#include "RNALfold_cmdl.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
+#include "RNALfoldz_cmdl.h"
 
 int main(int argc, char *argv[]){
-  struct  RNALfold_args_info  args_info;
+  struct  RNALfoldz_args_info args_info;
   char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases;
   int                         i, length, l, sym, r, istty, noconv, maxdist, zsc;
   double                      energy, min_en, min_z;
@@ -32,7 +29,7 @@ int main(int argc, char *argv[]){
   do_backtrack  = 1;
   noconv        = 0;
   maxdist       = 150;
-  zsc           = 0;
+  zsc           = 1;
   min_z         = -2.0;
 
   /*
@@ -40,7 +37,7 @@ int main(int argc, char *argv[]){
   # check the command line parameters
   #############################################
   */
-  if(RNALfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  if(RNALfoldz_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
   if(args_info.temp_given)        temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
@@ -63,24 +60,16 @@ int main(int argc, char *argv[]){
   if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
   /* set the maximum base pair span */
   if(args_info.span_given)        maxdist = args_info.span_arg;
-  if(args_info.zscore_given){
-#ifdef USE_SVM
-    zsc = 1;
-    if(args_info.zscore_arg != -2)
-      min_z = args_info.zscore_arg;
-#else
-  nrerror("\'z\' option is available only if compiled with SVM support!");
-#endif
-  }
+  if(args_info.zscore_given)      min_z = args_info.zscore_arg;
   
   /* check for errorneous parameter options */
   if(maxdist < 0){
-    RNALfold_cmdline_parser_print_help();
+    RNALfoldz_cmdline_parser_print_help();
     exit(EXIT_FAILURE);
   }
 
   /* free allocated memory of command line data structure */
-  RNALfold_cmdline_parser_free (&args_info);
+  RNALfoldz_cmdline_parser_free (&args_info);
 
   /*
   #############################################

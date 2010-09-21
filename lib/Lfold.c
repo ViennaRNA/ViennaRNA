@@ -102,7 +102,7 @@ PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE void  free_arrays(int maxdist);
 PRIVATE void  make_ptypes(const short *S, int i, int maxdist, int n);
 PRIVATE char  *backtrack(const char *sequence, int start, int maxdist);
-PRIVATE int   fill_arrays(const char *sequence, int maxdist);
+PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min_z);
 
 /*
 #################################
@@ -194,7 +194,7 @@ PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, 
   }
 #endif
 
-  energy = fill_arrays(string, maxdist);
+  energy = fill_arrays(string, maxdist, zsc, min_z);
 
 #ifdef USE_SVM  /*svm*/
   if(zsc){
@@ -209,12 +209,14 @@ PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, 
   return (float) energy/100.;
 }
 
-PRIVATE int fill_arrays(const char *string, int maxdist) {
+PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
   int   decomp, new_fML;
   int   no_close, type, type_2, tt;
+  int   fij;
+  int   lind;
   short mm5, mm3;
 
   length = (int) strlen(string);
@@ -385,6 +387,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist) {
       static int do_backtrack = 0, prev_i=0;
       static char * prev=NULL;
       char *ss;
+      double prevz;
       f3[i] = f3[i+1];
       switch(dangles){
         /* dont use dangling end and mismatch contributions at all */
@@ -441,36 +444,227 @@ PRIVATE int fill_arrays(const char *string, int maxdist) {
       /* backtrack partial structure */
       if (f3[i] != f3[i+1]) do_backtrack=1;
       else if (do_backtrack) {
-        ss =  backtrack(string, i+1 , maxdist+1);
+        int pairpartner; /*i+1?? is paired with pairpartner*/
+        int en, cc;
+        int traced2=0;
+        fij = f3[i+1];
+        lind=i+1;
+
+        /*start "short" backtrack*/
+
+        /*get paired base*/
+        while(fij==f3[lind+1]) lind++;
+
+        /*get pairpartner*/
+        for (pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
+          type = ptype[lind][pairpartner-lind];
+          switch(dangles){
+            case 0:   if(type){
+                        cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
+                        if(fij == cc + f3[pairpartner + 1])
+                          traced2 = 1;
+                      }
+                      break;
+            case 2:   if(type){
+                        cc = c[lind][pairpartner-lind] + E_ExtLoop(type, (lind > 1) ? S1[lind-1] : -1, (pairpartner < length) ? S1[pairpartner+1] : -1, P);
+                        if(fij == cc + f3[pairpartner + 1])
+                          traced2 = 1;
+                      }
+                      break;
+            default:  if(type){
+                        cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
+                        if(fij == cc + f3[pairpartner + 1]){
+                          traced2 = 1;
+                          break;
+                        }
+                        else if(pairpartner < length){
+                          cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, S1[pairpartner+1], P);
+                          if(fij == cc + f3[pairpartner + 2]){
+                            traced2 = 1;
+                            break;
+                          }
+                        }
+                      }
+                      type = ptype[lind+1][pairpartner-lind-1];
+                      if(type){
+                        cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], -1, P);
+                        if(fij == cc + f3[pairpartner+1]){
+                          traced2 = 1;
+                          break;
+                        }
+                        else if(pairpartner < length){
+                          cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], S1[pairpartner+1], P);
+                          if(fij == cc + f3[pairpartner+2])
+                            traced2 = 1;
+                        }
+                      }
+                      break;
+          }
+          if(traced2) break;
+        }
+        if (!traced2) nrerror("backtrack failed in short backtrack");
+        if (zsc){
+#ifdef USE_SVM
+          int info_avg;
+          double average_free_energy;
+          double sd_free_energy;
+          double my_z;
+          int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length));
+          /*\svm*/
+          average_free_energy = avg_regression(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4], avg_model, &info_avg);
+          if (info_avg == 0)  {
+            double difference;
+            double min_sd = minimal_sd(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4]);
+            difference=(fij-f3[pairpartner+1])/100.-average_free_energy;
+            if ( difference - ( min_z * min_sd ) <= 0.0001 ) { 
+              sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
+              my_z=difference/sd_free_energy;
+              if (my_z<=min_z){
+                ss =  backtrack(string, lind , pairpartner+1);
+                if (prev) {
+                  if ((i+strlen(ss)<prev_i+strlen(prev)) ||
+                      strncmp(ss+prev_i-i,prev,strlen(prev))) { /* ss does not contain prev */
+                    if (dangles==2)
+                      printf(".%s (%6.2f) %4d z= %.3f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
+                    else
+                      printf("%s (%6.2f) %4d z=%.3f\n ", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
+                  }
+                  free(prev);
+                }
+                prev=ss; prev_i = lind; prevz=my_z;
+              }
+            }
+        
+          }
+          free(AUGC);        
+          do_backtrack=0;
+#endif
+        }
+        else {
+          /* original code for Lfold*/
+          ss =  backtrack(string, lind , pairpartner+1);
+          if (prev) {
+            if ((i+strlen(ss)<prev_i+strlen(prev)) || strncmp(ss+prev_i-i,prev,strlen(prev))){
+              /* ss does not contain prev */
+              if (dangles==2)
+                printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
+              else
+                printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
+            }
+            free(prev);
+          }
+          prev=ss;
+          prev_i = lind;
+          do_backtrack=0;
+        }
+      } 
+      if (i==1) {
         if (prev) {
-          if ((i+strlen(ss)<prev_i+strlen(prev)) ||
-              strncmp(ss+prev_i-i,prev,strlen(prev))) { /* ss does not contain prev */
+          if(zsc) {
+            if (dangles==2)
+              printf(".%s (%6.2f) %4d z= %.2f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
+           else
+              printf("%s (%6.2f) %4dz= %.2f \n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
+            free(prev); prev=NULL;
+          }
+          else {
             if (dangles==2)
               printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
             else
               printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
           }
-          free(prev);
-        }
-        prev=ss; prev_i = i+1;
-        do_backtrack=0;
-      }
-      if (i==1) {
-        if (prev) {
-          if (dangles==2)
-            printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
-          else
-            printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
-          free(prev); prev=NULL;
         } else do_backtrack=1;
 
         if (do_backtrack) {
-          ss =  backtrack(string, i , maxdist);
-          if (dangles==2)
-            printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1+strlen(ss)-1])/100., 1);
-          else
-            printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1+strlen(ss)])/100., 1);
-          free(ss);
+          int pairpartner; /*i+1?? is paired with pairpartner*/
+          int en, cc;
+          double average_free_energy;
+          double sd_free_energy;
+          int info_avg;
+          double my_z;
+          int traced2 = 0;
+          fij = f3[i+1];
+          lind=i+1;
+          while(fij==f3[lind+1]) lind++;
+
+          /*get pairpartner*/
+          for(pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
+            type = ptype[lind][pairpartner-lind];
+            switch(dangles){
+              case 0:   if(type){
+                          cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
+                          if(fij == cc + f3[pairpartner + 1])
+                            traced2 = 1;
+                        }
+                        break;
+              case 2:   if(type){
+                          cc = c[lind][pairpartner-lind] + E_ExtLoop(type, (lind > 1) ? S1[lind-1] : -1, (pairpartner < length) ? S1[pairpartner+1] : -1, P);
+                          if(fij == cc + f3[pairpartner + 1])
+                            traced2 = 1;
+                        }
+                        break;
+              default:  if(type){
+                          cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
+                          if(fij == cc + f3[pairpartner + 1]){
+                            traced2 = 1;
+                            break;
+                          }
+                          else if(pairpartner < length){
+                            cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, S1[pairpartner + 1], P);
+                            if(fij == cc + f3[pairpartner + 1]){
+                              traced2 = 1;
+                              break;
+                            }
+                          }
+                        }
+                        type = ptype[lind+1][pairpartner-lind-1];
+                        if(type){
+                          cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], -1, P);
+                          if(fij == cc + f3[pairpartner+1]){
+                            traced2 = 1;
+                            break;
+                          }
+                          else if (pairpartner < length){
+                            cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], S1[pairpartner+1], P);
+                            if(fij == cc + f3[pairpartner + 2]){
+                              traced2 =1;
+                              break;
+                            }
+                          }
+                        }
+            }
+            if(traced2) break;
+          }
+          if (!traced2) nrerror("backtrack failed in short backtrack");
+
+          if(zsc){
+#ifdef USE_SVM
+            int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length));
+            average_free_energy = avg_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],avg_model,&info_avg);
+            if (info_avg == 0)  {
+              double difference;
+              double min_sd = minimal_sd(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4]);
+              difference=(fij-f3[pairpartner+1])/100.-average_free_energy;
+              if ( difference - ( min_z * min_sd ) <= 0.0001 ) { 
+                sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
+                my_z=difference/sd_free_energy;
+                if (my_z<=min_z){
+                  ss =  backtrack(string, lind , pairpartner+1);
+                  printf("%s (%6.2f) %4d z= %.2f\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., lind, my_z);
+                }
+              }
+            }
+            free(AUGC);
+#endif
+          }
+          else {
+            ss =  backtrack(string, lind , pairpartner + 1);
+            if (dangles==2)
+              printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., 1);
+            else
+              printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)])/100., 1);
+            free(ss);
+          }
         }
         do_backtrack=0;
       }
@@ -508,7 +702,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
 
   /* length = strlen(string); */
   sector[++s].i = start;
-  sector[s].j   = MIN2(length, start+maxdist+1);
+  sector[s].j   = MIN2(length, maxdist+1);
   sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
 
   structure = (char *) space((MIN2(length-start, maxdist)+3)*sizeof(char));
@@ -541,7 +735,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       }
       /* i or i+1 is paired. Find pairing partner */
       switch(dangles){
-        case 0:   for(k=i+TURN+1, traced=0; k<=j; k++){
+        case 0:   for(traced = 0, k=j; k>i+TURN; k--){
                     jj    = k+1;
                     type  = ptype[i][k-i];
                     if(type)
@@ -551,7 +745,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                       }
                   }
                   break;
-        case 2:   for(k=i+TURN+1, traced=0; k<=j; k++){
+        case 2:   for(traced = 0, k=j; k>i+TURN; k--){
                     jj    = k+1;
                     type  = ptype[i][k-i];
                     if(type)
@@ -561,7 +755,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                       }
                   }
                   break;
-        default:  for(k=i+TURN+1, traced=0; k<=j; k++){
+        default:  for(traced = 0,k=j; k>i+TURN; k--){
                     jj = k+1;
                     type = ptype[i+1][k-(i+1)];
                     if(type){

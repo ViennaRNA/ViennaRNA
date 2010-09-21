@@ -1,19 +1,24 @@
 
+
+if WITH_LIBSVM
+  LfoldZ_prog = RNALfoldz
+  LfoldZ_cmdl = RNALfoldz_cmdl.c RNALfoldz_cmdl.h
+  RNALfold_LINK = ${CXXLD} -o $@
+  RNALfoldz_LINK = ${CXXLD} -o $@
+else
+  RNALfold_LINK = ${CCLD} -o $@
+endif
+
+
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-    RNAparconv
+    RNAparconv ${LfoldZ_prog}
 
 LDADD = ../lib/libRNA.a -lm
 
 if USE_OPENMP
   AM_CFLAGS = -DUSE_OPENMP -fopenmp
-endif
-
-if WITH_LIBSVM
-  RNALfold_LINK = ${CXXLD} -o $@
-else
-  RNALfold_LINK = ${CCLD} -o $@
 endif
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
@@ -22,7 +27,7 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAalifold.ggo RNAalifold_cmdl.c RNAalifold_cmdl.h\
               RNAcofold.ggo RNAcofold_cmdl.c  RNAcofold_cmdl.h\
               RNAup.ggo RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h\
+              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h ${LfoldZ_cmdl}\
               RNALalifold.ggo RNALalifold_cmdl.c RNALalifold_cmdl.h\
               RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h\
               RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
@@ -78,6 +83,14 @@ RNALfold_cmdl.h  RNALfold_cmdl.c: RNALfold.ggo
 
 RNALfold_SOURCES=RNALfold_cmdl.c RNALfold.c
 
+#if WITH_LIBSVM
+RNALfoldz.c:       RNALfoldz_cmdl.h
+
+RNALfoldz_cmdl.h  RNALfoldz_cmdl.c: RNALfoldz.ggo
+	gengetopt -i RNALfoldz.ggo
+
+RNALfoldz_SOURCES=RNALfoldz_cmdl.c RNALfoldz.c
+#endif
 
 RNALalifold.c:      RNALalifold_cmdl.h
 

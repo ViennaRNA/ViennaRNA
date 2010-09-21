@@ -42,7 +42,9 @@ PUBLIC float get_z(char *sequence, double energy) {
   }
   else{
     fprintf(stderr,"warning: sequence out of bounds\n");
+#if 0
     my_z = shuffle_score(sequence, energy);
+#endif
   }
   free(AUGC);
   free(S);
