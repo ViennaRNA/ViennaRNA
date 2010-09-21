@@ -417,6 +417,7 @@ int main(int argc, char *argv[]){
       tokenize(input_string, &s1, &s2); /* this also frees the input_string */
 
     length1 = (int)strlen(s1);
+    length2 = (int)strlen(s2);
 
     /* now we got the first and maybe a second sequence */
 
@@ -524,8 +525,9 @@ int main(int argc, char *argv[]){
       }
     } /* thats all for constraint folding */
 
+
     /* rotate input sequences if upmode=2 to ensure first sequence is the longer one */
-    if(up_mode & RNA_UP_MODE_2){
+    if(up_mode & (RNA_UP_MODE_2 | RNA_UP_MODE_3)){
       if(longerSeqFirst)
         if(length1 < length2 ){
           /* rotate the sequences such that the longer is the first */
@@ -597,7 +599,7 @@ int main(int argc, char *argv[]){
       strncat(up_out, temp_name, 10);
     }
 
-    structure = (char *) space(sizeof(char) * (MAX2(length1, length2) + 1));
+    structure = (char *) space(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
     /* begin actual computations */
 
@@ -608,6 +610,7 @@ int main(int argc, char *argv[]){
       strncpy(structure, cstruc1, length1+1);
 
     min_en = fold(s1, structure);    
+
     (void) fflush(stdout);
 
     /* calc probability to be unstructured for 1st sequence (in upmode=3 this is not the target!) */
@@ -755,7 +758,7 @@ PRIVATE void adjustUnpairedValues(int ***unpaired_values){
   int i, last_max, real_count;
 
   if(*unpaired_values == NULL) return;
-
+  if((*unpaired_values)[0][0] <= 0) return;
   /* sort the ranges array */
   qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), compare_unpaired_values);
 
