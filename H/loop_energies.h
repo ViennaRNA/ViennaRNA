@@ -296,8 +296,6 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
       if ((ts=strstr(P->Triloops, tl))) {
         return (P->Triloop_E[(ts - P->Triloops)/6]);
       }
-      if (type>2)  /* neither CG nor GC */
-        energy += P->TerminalAU;
       return energy;
     }
   }
