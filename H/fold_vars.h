@@ -33,14 +33,23 @@
 **/
 #define MAX3(A, B, C)   (MAX2(  (MAX2((A),(B))) ,(C)))
 
+/** Global switch to activate/deactivate folding with structure constraints */
+int    fold_constrained;
+/** Global switch to avoid/allow helices of length 1 */
+int    noLonelyPairs;
+/** Switch the energy model for dangling end contributions (0, 1, 2, 3) */
+int  dangles;
+/** Global switch to forbid/allow GU base pairs at all */
+int  noGU;
+/** GU allowed only inside stacks */
+int  no_closingGU;
+/** Fold with specially stable 4-loops */
+int  tetra_loop;
+/** 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
+int  energy_set;
+/** backward compatibility variable.. this does not effect anything */
+int  circ;
 
-extern int  noGU;           /* GU not allowed at all */
-extern int  no_closingGU;   /* GU allowed only inside stacks */
-extern int  tetra_loop;     /* Fold with specially stable 4-loops */
-extern int  energy_set;     /* 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
-extern int  dangles;            /* use dangling end energies (not in part_func!) */
-extern int  circ;           /* backward compatibility variable.. this does not effect anything */
-/*@null@*/
 
 extern int oldAliEn;        /* use old alifold energies (with gaps) */
 extern int ribo;            /* use ribosum matrices */
@@ -58,9 +67,7 @@ extern bondT  *base_pair; /* list of base pairs */
 extern FLT_OR_DBL *pr;          /* base pairing prob. matrix */
 extern int   *iindx;            /* pr[i,j] -> pr[iindx[i]-j] */
 extern double pf_scale;         /* scaling factor to avoid float overflows*/
-extern int    fold_constrained; /* fold with constraints */
 extern int    do_backtrack;     /* calculate pair prob matrix in part_func() */
-extern int    noLonelyPairs;    /* avoid helices of length 1 */
 extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
                                    'M' seq is part of a multi loop */
 char * option_string(void);

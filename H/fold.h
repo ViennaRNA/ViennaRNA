@@ -29,9 +29,26 @@ extern  int eos_debug;
 *** Compute minimum free energy and an appropriate secondary
 *** structure of an RNA sequence
 ***
-*** \see            circfold()
+*** The first parameter given, the RNA sequence, must be \a uppercase and should only contain
+*** an alphabet \f$\Sigma\f$ that is understood by the RNAlib\n
+*** (e.g. \f$ \Sigma = \{A,U,C,G\} \f$)\n
+*** The second parameter, \a structure, must always point to an allocated
+*** block of memory with a size of at least \f$\mathrm{strlen}(\mathrm{sequence})+1\f$
+*** Depending on the global variable #fold_constrained \a structure may contain a secondary
+*** structure constraint in an enhanced dot-bracket notation. The characters " | x < > " mark
+*** bases that are paired, unpaired, paired upstream, or downstream, respectively. Matching
+*** brackets " ( ) " denote base pairs, dots "." are used for unconstrained bases. Constrained
+*** folding works by assigning bonus energies to all structures that comply with the constraint.
+***
+*** After a successful call of fold(), a backtracked secondary structure (in dot-bracket notation)
+*** that exhibits the minimum of free energy will be written to the memory \a structure is pointing to.
+*** The function returns the minimum of free energy for any fold of the sequence given. Of course,
+*** the resulting free energy depends strongly on the energy model selected.
+***
+*** \see circfold(), #dangles, #noLonelyPairs, #noGU, #no_closingGU, #tetra_loop
+***
 *** \param sequence RNA sequence
-*** \param structure a pointer to the character array the
+*** \param structure A pointer to the character array where the
 ***        secondary structure in dot-bracket notation will be written to
 *** \returns the minimum free energy (MFE) in kcal/mol
 **/
@@ -110,7 +127,7 @@ void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **
 *** Compute minimum free energy and an appropriate secondary
 *** structure of an RNA sequence assuming it to be circular instead of linear
 ***
-*** \see            fold()
+*** \see            fold(), #dangles, #noLonelyPairs, #noGU, #no_closingGU, #tetra_loop
 *** \param string     RNA sequence
 *** \param structure  A pointer to the character array the secondary structure in dot-bracket notation will be written to
 *** \returns the minimum free energy (MFE) in kcal/mol
