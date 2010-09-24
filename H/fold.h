@@ -26,7 +26,7 @@ extern  int cut_point;
 extern  int eos_debug;
 
 /**
-*** Compute minimum free energy and an appropriate secondary
+*** \brief Compute minimum free energy and an appropriate secondary
 *** structure of an RNA sequence
 ***
 *** The first parameter given, the RNA sequence, must be \a uppercase and should only contain
@@ -55,7 +55,7 @@ extern  int eos_debug;
 float fold(const char *sequence, char *structure);
 
 /**
-*** Calculate the free energy of an already folded RNA
+*** \brief Calculate the free energy of an already folded RNA
 ***
 *** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
 ***
@@ -69,7 +69,7 @@ float energy_of_structure(const char *string, const char *structure, int verbosi
 
 
 /**
-*** Calculate the free energy of an already folded RNA
+*** \brief Calculate the free energy of an already folded RNA
 ***
 *** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
 ***
@@ -84,20 +84,20 @@ float energy_of_structure(const char *string, const char *structure, int verbosi
 int   energy_of_structure_pt(const char *string, short *ptable, short *s, short *s1, int verbosity_level);
 
 /**
-*** free arrays for mfe folding
+*** \brief Free arrays for mfe folding
 **/
 void  free_arrays(void);
 
 
 /**
-*** Create a dot-backet/parenthesis structure from backtracking stack
+*** \brief Create a dot-backet/parenthesis structure from backtracking stack
 ***
 *** \note This function is threadsafe
 **/
 void  parenthesis_structure(char *structure, bondT *bp, int length);
 
 /**
-*** Create a dot-backet/parenthesis structure from backtracking stack
+*** \brief Create a dot-backet/parenthesis structure from backtracking stack
 *** obtained by zuker suboptimal calculation in cofold.c
 ***
 *** \note This function is threadsafe
@@ -108,7 +108,7 @@ void letter_structure(char *structure, bondT *bp, int length);
 
 
 /**
-*** recalculate energy parameters
+*** \brief Recalculate energy parameters
 **/
 void  update_fold_params(void);
 /**
@@ -124,7 +124,7 @@ int   loop_energy(short * ptable, short *s, short *s1, int i);
 **/
 void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
 /**
-*** Compute minimum free energy and an appropriate secondary
+*** \brief Compute minimum free energy and an appropriate secondary
 *** structure of an RNA sequence assuming it to be circular instead of linear
 ***
 *** \see            fold(), #dangles, #noLonelyPairs, #noGU, #no_closingGU, #tetra_loop
@@ -134,7 +134,7 @@ void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **
 **/
 float circfold(const char *string, char *structure);
 /**
-*** Calculate the free energy of an already folded  circular RNA
+*** \brief Calculate the free energy of an already folded  circular RNA
 ***
 *** If verbosity level is set to a value >0, energies of structure elements are printed to stdout
 *** \see              energy_of_struct(), energy_of_struct_pt()
@@ -151,7 +151,8 @@ float energy_of_circ_structure(const char *string, const char *structure, int ve
 void  export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p, int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
 
 /**
-*** Create a plist from a dot-bracket string
+*** \brief Create a plist from a dot-bracket string
+***
 *** The dot-bracket string is parsed and for each base pair an
 *** entry in the plist is created. The probability of each pair in
 *** the list is set by a function parameter.

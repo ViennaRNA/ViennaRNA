@@ -71,6 +71,16 @@ Associated functions are:
 \verbatim
 float fold (char* sequence, char* structure)
 \endverbatim
+\copybrief fold()
+
+\verbatim
+float circfold (char* sequence, char* structure)
+\endverbatim
+\copybrief circfold()
+
+\verbatim
+float energy_of_structure(const char *string, const char *structure, int verbosity_level);
+\endverbatim
 
 circfold(), energy_of_structure(), energy_of_circ_structure(),
 free_arrays(), update_fold_params() and many more.
@@ -106,6 +116,9 @@ functions are provided:
 
 \page  mp_ref       References
 
+-# \anchor mathews_04 D.H. Mathews, M. D. Disney, J.L. Childs, S.J. Schroeder, M. Zuker, D.H. Turner (2004)\n
+   Incorporating chemical modification constraints into a dynamic programming algorithm for prediction of
+   RNA secondary structure, Proc Natl Acad Sci U S A, 101(19):7287-92
 -# \anchor mathews_99 D.H. Mathews, J. Sabina, M. Zuker and H. Turner (1999)\n
    Expanded sequence dependence of thermodynamic parameters provides
    robust prediction of RNA secondary structure, JMB, 288: 911-940
