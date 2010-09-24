@@ -16,13 +16,13 @@
 *** MFE folding...
 **/
 
-/** if nonzero use logarithmic ML energy in energy_of_struct **/
+/** \brief if nonzero use logarithmic ML energy in energy_of_struct **/
 extern  int logML;
-/** do ML decomposition uniquely (for subopt) **/
+/** \brief do ML decomposition uniquely (for subopt) **/
 extern  int uniq_ML;
-/** set to first pos of second seq for cofolding **/
+/** brief set to first pos of second seq for cofolding **/
 extern  int cut_point;
-/** verbose info from energy_of_struct **/
+/** brief verbose info from energy_of_struct **/
 extern  int eos_debug;
 
 /**

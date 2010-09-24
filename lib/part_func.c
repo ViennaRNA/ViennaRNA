@@ -1251,7 +1251,9 @@ PUBLIC double mean_bp_distance_pr(int length, double *pr){
   return 2*d;
 }
 
-
+PUBLIC FLT_OR_DBL *export_bppm(void){
+  return probs;
+}
 
 /*###########################################*/
 /*# deprecated functions below              #*/

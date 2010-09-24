@@ -69,21 +69,35 @@ folding algorithm as described by \ref zuker_81 "Zuker & Stiegler (1981)".
 Associated functions are:
 
 \verbatim
-float fold (char* sequence, char* structure)
+float fold (char* sequence, char* structure);
 \endverbatim
 \copybrief fold()
 
 \verbatim
-float circfold (char* sequence, char* structure)
+float circfold (char* sequence, char* structure);
 \endverbatim
 \copybrief circfold()
 
 \verbatim
 float energy_of_structure(const char *string, const char *structure, int verbosity_level);
 \endverbatim
+\copybrief energy_of_structure()
 
-circfold(), energy_of_structure(), energy_of_circ_structure(),
-free_arrays(), update_fold_params() and many more.
+\verbatim
+float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level);
+\endverbatim
+\copybrief energy_of_circ_structure()
+
+\verbatim
+void  update_fold_params(void);
+\endverbatim
+\copybrief update_fold_params()
+
+\verbatim
+void  free_arrays(void);
+\endverbatim
+\copybrief free_arrays()
+
 \see fold.h for a complete list of available functions.
 
 \section mp_PF_Fold               Calculating Partition Functions and Pair Probabilities
@@ -94,7 +108,35 @@ possible pair can be calculated, using a dynamic programming algorithm
 as described by \ref mccaskill_90 "McCaskill (1990)". The following
 functions are provided:
 
-\verbatim float pf_fold (char* sequence, char* structure)\endverbatim
+\verbatim
+float pf_fold (char* sequence, char* structure)
+\endverbatim
+\copybrief pf_fold()
+
+\verbatim
+void free_pf_arrays (void)
+\end verbatim
+\copybrief free_pf_arrays()
+
+\verbatim
+void update_pf_params (int length)
+\end verbatim
+\copybrief update_pf_params()
+
+\verbatim
+double mean_bp_distance_pr(int length, double *pr);
+\endverbatim
+\copybrief mean_bp_dist_pr()
+
+@deftypefun char *centroid (int @var{length}, double *@var{dist})
+Computes the centroid structure, i.e. the structure having the lowest
+average base pair distance to all structures in the Boltzmann
+ensemble. This can be computed trivially from the pair probabilities by
+choosing all base pairs that have probability greater 0.5. The distance of
+the centroid to the ensemble is returned in @var{dist}.
+@end deftypefun
+
+
 
 \section mp_Inverse_Fold          Searching for Predefined Structures
 

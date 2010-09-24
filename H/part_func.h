@@ -31,9 +31,26 @@ extern  int st_back;
 */
 
 /**
-*** Compute the partition function of an RNA sequence
+*** \brief Compute the partition function \f$Q\f$ of an RNA sequence
 ***
-*** \see pf_circ_fold()
+*** If \a structure is not a NULL pointer on input, it contains on
+*** return a string consisting of the letters " . , | @{ @} ( ) " denoting
+*** bases that are essentially unpaired, weakly paired, strongly paired without
+*** preference, weakly upstream (downstream) paired, or strongly up-
+*** (down-)stream paired bases, respectively.
+*** If #fold_constrained is not 0, the \a structure string is
+*** interpreted on input as a list of constraints for the folding. The
+*** character "x" marks bases that must be unpaired, matching brackets " ( ) "
+*** denote base pairs, all other characters are ignored. Any pairs
+*** conflicting with the constraint will be forbidden. This is usually sufficient
+*** to ensure the constraints are honored.
+*** If #do_backtrack has been set to 0 base pairing probabilities will not
+*** be computed (saving CPU time), otherwise #pr will contain the probability
+*** that bases \a i and \a j pair.
+*** \note The global array #pr is deprecated and the user who wants the computed
+*** base pair probabilities for further computations is advised to use the function export_bppm()
+***
+*** \see pf_circ_fold(), bppm_to_structure(), export_bppm()
 ***
 *** \param sequence   The RNA sequence to be computed
 *** \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
@@ -42,7 +59,7 @@ extern  int st_back;
 float   pf_fold(const char *sequence, char *structure);
 
 /**
-*** Compute the partition function of a circular RNA sequence
+*** \brief Compute the partition function of a circular RNA sequence
 ***
 *** \see pf_fold()
 ***
@@ -53,7 +70,7 @@ float   pf_fold(const char *sequence, char *structure);
 float   pf_circ_fold(const char *sequence, char *structure);
 
 /**
-*** Sample a secondary structure from the Boltzmann ensemble according its probability\n
+*** \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
 ***
 *** \param  sequence  The RNA sequence
 *** \return           A sampled secondary structure in dot-bracket notation
@@ -61,7 +78,7 @@ float   pf_circ_fold(const char *sequence, char *structure);
 char    *pbacktrack(char *sequence);
 
 /**
-*** Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
+*** \brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
 ***
 *** This function does the same as \ref pbacktrack() but assumes the RNA molecule to be circular
 *** \param  sequence  The RNA sequence
@@ -70,14 +87,29 @@ char    *pbacktrack(char *sequence);
 char    *pbacktrack_circ(char *sequence);
 
 /**
-*** Free arrays from pf_fold()
+*** \brief Free arrays from pf_fold()
 **/
 void    free_pf_arrays(void);
 
 /**
-*** Recalculate energy parameters
+*** \brief Recalculate energy parameters
+***
+*** Call this function to recalculate the pair matrix and energy parameters
+*** after a change in folding parameters like #temperature
 **/
 void    update_pf_params(int length);
+
+/**
+*** \brief Get a pointer to the base pair probability array
+***
+*** Accessing the base pair probabilities for a pair (i,j) is achieved by
+*** \verbatim
+*** FLT_OR_DBL *pr = export_bppm();
+*** pr_ij = pr[iindx[i]-j];
+*** \endverbatim
+*** 
+**/
+FLT_OR_DBL *export_bppm(void);
 
 /*
 #################################################
@@ -86,7 +118,7 @@ void    update_pf_params(int length);
 */
 
 /**
-*** Create a plist from a probability matrix
+*** \brief Create a plist from a probability matrix
 ***
 *** The probability matrix given is parsed and all pair probabilities above
 *** the given threshold are used to create an entry in the plist
@@ -105,7 +137,7 @@ void    update_pf_params(int length);
 void    assign_plist_from_pr(plist **pl, double *probs, int length, double cutoff);
 
 /**
-*** Get the pointers to (almost) all relavant computation arrays used in partition function computation
+*** \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
 ***
 *** \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
 *** \param S1_p     A pointer to the 'S1' array (2nd integer representation of nucleotides)
@@ -119,7 +151,7 @@ void    assign_plist_from_pr(plist **pl, double *probs, int length, double cutof
 int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
 
 /**
-*** Get the centroid structure of the ensemble\n
+*** \brief Get the centroid structure of the ensemble\n
 ***
 *** This function is a threadsafe replacement for \ref centroid() with a 'plist' input
 ***
@@ -135,7 +167,7 @@ int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb
 char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
 
 /**
-*** Get the centroid structure of the ensemble\n
+*** \brief Get the centroid structure of the ensemble\n
 ***
 *** This function is a threadsafe replacement for \ref centroid() with a probability array input
 ***
@@ -151,7 +183,7 @@ char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
 char    *get_centroid_struct_pr(int length, double *dist, double *pr);
 
 /**
-*** Get the mean base pair distance of the last partition function computation
+*** \brief Get the mean base pair distance of the last partition function computation
 ***
 *** \see mean_bp_distance_pr()
 ***
@@ -161,7 +193,7 @@ char    *get_centroid_struct_pr(int length, double *dist, double *pr);
 double  mean_bp_distance(int length);
 
 /**
-*** Get the mean base pair distance in the thermodynamic ensemble
+*** \brief Get the mean base pair distance in the thermodynamic ensemble
 ***
 *** This is a threadsafe implementation of \ref mean_bp_dist() !
 ***
@@ -178,14 +210,14 @@ double  mean_bp_distance(int length);
 double  mean_bp_distance_pr(int length, double *pr);
 
 /**
-*** Create a dot-bracket like structure string from base pair probability matrix
+*** \brief Create a dot-bracket like structure string from base pair probability matrix
 **/
 void    bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length);
 
 plist   *stackProb(double cutoff);
 
 /**
-*** Get a pseudo dot bracket notation for a given probability information
+*** \brief Get a pseudo dot bracket notation for a given probability information
 **/
 char    bppm_symbol(const float *x);
 
@@ -197,7 +229,7 @@ char    bppm_symbol(const float *x);
 */
 
 /**
-*** allocate space for pf_fold()
+*** \brief Allocate space for pf_fold()
 ***
 *** \deprecated This function is obsolete and will be removed soon!
 **/
