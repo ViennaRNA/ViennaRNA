@@ -1075,7 +1075,6 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
     j = unpaired_values[i][0];
     do num_u_vals++; while(++j <= unpaired_values[i][1]);
   }
- 
   /* check which contributions ([-c "SHIME"] ) are desired by the user,
      set the offset for each contribution */
   contribs = 0;
@@ -1243,7 +1242,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   nan[2] = '\0';
   
   for(i=0;i<=len; i++) {
-    for(s=0;s<=size+1;s++) { /* that is for differenet contribution */
+    for(s=0;s<=size+1;s++) { /* that is for different contribution */
       if ( i== 0 && s > size && pint != NULL)
         fprintf(wastl,"%8s  ",dg);
       if(i != 0) {
@@ -1307,10 +1306,11 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
   /* } else if (p_c == NULL && p_c_sh != NULL) { */
   }
   if(mode & RNA_UP_MODE_3) {
-    /* values for both sequences are requested - now do it for the second seq*/
-    dada = get_u_vals(p_c_sh,unpaired_values,select_contrib);
-    ret = plot_free_pu_out(dada,NULL,ofile,head);
-    
+    dada  = get_u_vals(p_c,unpaired_values, select_contrib);
+    ret   = plot_free_pu_out(dada, pint, ofile, head);
+
+    dada = get_u_vals(p_c_sh, unpaired_values, select_contrib);
+    ret = plot_free_pu_out(dada,NULL,ofile, NULL);
   }
   return(ret);
 }

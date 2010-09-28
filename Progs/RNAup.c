@@ -282,8 +282,11 @@ int main(int argc, char *argv[]){
 
   /* set length(s) of unpaired (unstructured) region(s) */
   int min, max, tmp;
+  i = (args_info.ulength_given == 0) ? 1 : args_info.ulength_given;
+
   /* here's the very new way of treating multiple ulength values/ranges */
-  unpaired_values = (int **)space(sizeof(int *) * (MAX2(1, args_info.ulength_given) + 1));
+  unpaired_values = (int **)space(sizeof(int *) * (i + 1));
+
   if(header && args_info.ulength_given)
     appendCmdlParameter(&cmdl_parameters, "-u ", &cmdl_parameters_length);
   for(i = 0; i < args_info.ulength_given; i++){
@@ -307,12 +310,19 @@ int main(int argc, char *argv[]){
       max_u = MAX2(max_u, max);
     }
     if(header){
-      if(i < args_info.ulength_given)
+      if(i < args_info.ulength_given - 1)
         sprintf(cmdl_tmp, "%s,", args_info.ulength_arg[i]);
       else
         sprintf(cmdl_tmp, "%s ", args_info.ulength_arg[i]);
       appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
+  }
+  if(i == 0){
+    /* use default settings */
+    unpaired_values[++ulength_num] = (int *)space(2 * sizeof(int));
+    unpaired_values[ulength_num][0] = 4;
+    unpaired_values[ulength_num][1] = -1;
+    max_u = 4;
   }
   /* store number of entries at position [0][0] */
   unpaired_values[0]    = (int *)space(2 * sizeof(int));
@@ -676,9 +686,9 @@ int main(int argc, char *argv[]){
                               init_pf_fold(length_target);
                               if (cstruc_target != NULL)
                                 strncpy(structure, cstruc_target, length_target + 1);
-                                energy        = pf_fold(s_target, structure);
-                                unstr_target  = pf_unstru(s_target, wplus);
-                                free_pf_arrays(); /* for arrays for pf_fold(...) */
+                              energy        = pf_fold(s_target, structure);
+                              unstr_target  = pf_unstru(s_target, wplus);
+                              free_pf_arrays(); /* for arrays for pf_fold(...) */
                             }
                             
                             inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
@@ -686,7 +696,7 @@ int main(int argc, char *argv[]){
                             
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
-                              sprintf(head, "# %s\n# %d %s\n# %s\n%d %s\n# %s", cmdl_parameters, length_target, fname_target, s_target, length1, fname1, s1);
+                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, s_target, length1, fname1, s1);
                             }
                             
                             contrib1 = unstr_target;
@@ -700,7 +710,7 @@ int main(int argc, char *argv[]){
       printf("RNAup output in file: ");
       strcpy(name, up_out);
       strcat(name, "_u");
-      /* as we do not limit the amount of ulength values anymore we just put
+      /* since we do not limit the amount of ulength values anymore we just put
         the maximum length into the filename, the actual printed lengths
         should be somewhere in the output itself */
       sprintf(temp_name, "%d.out", unpaired_values[0][0]);
