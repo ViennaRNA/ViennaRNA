@@ -289,6 +289,7 @@ int main(int argc, char *argv[]){
 
   if(header && args_info.ulength_given)
     appendCmdlParameter(&cmdl_parameters, "-u ", &cmdl_parameters_length);
+
   for(i = 0; i < args_info.ulength_given; i++){
     unpaired_values[++ulength_num] = (int *)space(2 * sizeof(int));
     /* we got a ulength range... */
@@ -669,7 +670,7 @@ int main(int argc, char *argv[]){
                             print_interaction(inter_out, s1, s2, unstr_out, NULL, w, incr3, incr5);
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length1 + length2 + strlen(cmdl_parameters) + 1024));
-                              sprintf(head, "# %s\n# %d %s\n# %s\n%d %s\n# %s", cmdl_parameters, length1, fname1, s1, length2, fname2, s2);
+                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, s1, length2, fname2, s2);
                             }
                             contrib1 = unstr_out;
                             break;
