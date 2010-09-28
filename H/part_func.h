@@ -103,10 +103,7 @@ void    update_pf_params(int length);
 *** \brief Get a pointer to the base pair probability array
 ***
 *** Accessing the base pair probabilities for a pair (i,j) is achieved by
-*** \verbatim
-*** FLT_OR_DBL *pr = export_bppm();
-*** pr_ij = pr[iindx[i]-j];
-*** \endverbatim
+*** \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
 *** 
 **/
 FLT_OR_DBL *export_bppm(void);
@@ -151,13 +148,14 @@ void    assign_plist_from_pr(plist **pl, double *probs, int length, double cutof
 int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
 
 /**
-*** \brief Get the centroid structure of the ensemble\n
+*** \brief Get the centroid structure of the ensemble
 ***
 *** This function is a threadsafe replacement for \ref centroid() with a 'plist' input
 ***
 *** The centroid is the structure with the minimal average distance to all other structures
 *** \n\f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$\n
 *** Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
+*** The distance of the centroid to the ensemble is written to the memory adressed by \a dist.
 ***
 *** \param length The length of the sequence
 *** \param dist   A pointer to the distance variable where the centroid distance will be written to
@@ -167,13 +165,14 @@ int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb
 char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
 
 /**
-*** \brief Get the centroid structure of the ensemble\n
+*** \brief Get the centroid structure of the ensemble
 ***
 *** This function is a threadsafe replacement for \ref centroid() with a probability array input
 ***
 *** The centroid is the structure with the minimal average distance to all other structures
 *** \n\f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$\n
 *** Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
+*** The distance of the centroid to the ensemble is written to the memory adressed by \a dist.
 ***
 *** \param length The length of the sequence
 *** \param dist   A pointer to the distance variable where the centroid distance will be written to

@@ -11,7 +11,7 @@
 \n
 
 \date     1994-2010
-\authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and some more
+\authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and a lot more...
 
 <h3>Table of Contents</h3>
 <hr>
@@ -45,6 +45,8 @@ http://www.tbi.univie.ac.at/~ivo/RNA/
 
 
 \page mp_fold Folding Routines - Functions for Folding RNA Secondary Structures
+
+\anchor toc
 
 <h3>Table of Contents</h3>
 <hr>
@@ -98,7 +100,11 @@ void  free_arrays(void);
 \endverbatim
 \copybrief free_arrays()
 
-\see fold.h for a complete list of available functions.
+\see fold.h, cofold.h, 2Dfold.h, Lfold.h, alifold.h and subopt.h for a complete list of available functions.
+
+<hr>
+\link toc Overview \endlink
+<hr>
 
 \section mp_PF_Fold               Calculating Partition Functions and Pair Probabilities
 
@@ -115,27 +121,34 @@ float pf_fold (char* sequence, char* structure)
 
 \verbatim
 void free_pf_arrays (void)
-\end verbatim
+\endverbatim
 \copybrief free_pf_arrays()
 
 \verbatim
 void update_pf_params (int length)
-\end verbatim
+\endverbatim
 \copybrief update_pf_params()
+
+\verbatim
+char *get_centroid_struct_pl(int length, double *dist, plist *pl);
+\endverbatim
+\copybrief get_centroid_struct_pl()
+
+\verbatim
+char *get_centroid_struct_pr(int length, double *dist, double *pr);
+\endverbatim
+\copybrief get_centroid_struct_pr()
 
 \verbatim
 double mean_bp_distance_pr(int length, double *pr);
 \endverbatim
-\copybrief mean_bp_dist_pr()
+\copybrief mean_bp_distance_pr
 
-@deftypefun char *centroid (int @var{length}, double *@var{dist})
-Computes the centroid structure, i.e. the structure having the lowest
-average base pair distance to all structures in the Boltzmann
-ensemble. This can be computed trivially from the pair probabilities by
-choosing all base pairs that have probability greater 0.5. The distance of
-the centroid to the ensemble is returned in @var{dist}.
-@end deftypefun
+\see part_func.h, part_func_co.h, part_func_up.h, 2Dpfold.h, LPfold.h, alifold.h and MEA.h for a complete list of available functions.
 
+<hr>
+\link toc Overview \endlink
+<hr>
 
 
 \section mp_Inverse_Fold          Searching for Predefined Structures
