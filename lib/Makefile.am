@@ -4,7 +4,7 @@ lib_LIBRARIES = libRNA.a
 if WITH_LIBSVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
   SVM_INC     = -I${srcdir}/../@LIBSVM_DIR@
-  SVM_H       = ${SVM_INC}/svm.h
+  SVM_H       = ../@LIBSVM_DIR@/svm.h
   SVM_UTILS   = svm_utils.c
 endif
 

@@ -2,7 +2,7 @@
 
 if WITH_LIBSVM
   LfoldZ_prog = RNALfoldz
-  LfoldZ_cmdl = RNALfoldz_cmdl.c RNALfoldz_cmdl.h
+  LfoldZ_cmdl = RNALfoldz.ggo RNALfoldz_cmdl.c RNALfoldz_cmdl.h
   RNALfold_LINK = ${CXXLD} -o $@
   RNALfoldz_LINK = ${CXXLD} -o $@
 else

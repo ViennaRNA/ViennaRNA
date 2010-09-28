@@ -15,7 +15,7 @@ if MAKE_KINFOLD
    KINDIR = Kinfold
 endif
 
-SUBDIRS = lib Progs man Utils H $(PLDIR) $(CLDIR) $(FDIR) $(KINDIR)
+SUBDIRS = lib Progs man Utils H $(PLDIR) $(CLDIR) $(KINDIR) $(FDIR)
 
 pkgdata_DATA = vienna1.8.4.par default.par
 
