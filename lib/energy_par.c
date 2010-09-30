@@ -80,6 +80,15 @@ PUBLIC int TerminalAUdH=370;
 PUBLIC int DuplexInit37=410;
 PUBLIC int DuplexInitdH=360;
 
+PUBLIC int TripleC37=100;
+PUBLIC int TripleCdH=1860;
+PUBLIC int MultipleCA37=30;
+PUBLIC int MultipleCAdH=340;
+PUBLIC int MultipleCB37=160;
+PUBLIC int MultipleCBdH=760;
+
+
+
 PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] = {
 {    INF,    INF,    INF,    INF,    INF,    INF,    INF,    INF},
 {    INF,   -240,   -330,   -210,   -140,   -210,   -210,    NST},

@@ -486,6 +486,10 @@ PRIVATE void  rd_Tetraloop37(void)
 
   i=0;
   /* erase old tetraloop entries */
+  memset(&Triloops,   0, 241);
+  memset(&Triloop37,  0, sizeof(int)*40);
+  memset(&TriloopdH,  0, sizeof(int)*40);
+  memset(&Hexaloops, 0, 361);
   memset(&Tetraloops, 0, 281);
   memset(&Tetraloop37, 0, sizeof(int)*40);
   memset(&TetraloopdH, 0, sizeof(int)*40);
