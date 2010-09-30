@@ -6,13 +6,21 @@
 
 #define MAXDOS 1000
 
+/**
+*** \brief Returns list of subopt structures or writes to fp
+**/
 SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
 SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);
-  /* returns list of subopt structures or writes to fp */
 
-extern  int     subopt_sorted;                /* sort output by energy */
+/**
+*** \brief Sort output by energy
+**/
+extern  int     subopt_sorted;
 extern  int     density_of_states[MAXDOS+1];
-extern  double  print_energy;                 /* printing threshold for use with logML */
+/**
+*** \brief printing threshold for use with logML
+**/
+extern  double  print_energy;
 
 #endif
 /* End of file */

@@ -3,6 +3,7 @@
 
 /**
 *** \file utils.h
+*** \brief Various utility- and helper-functions
 **/
 
 /** Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF" **/

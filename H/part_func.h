@@ -15,6 +15,8 @@
 /**
 *** \file part_func.h
 ***
+*** \brief Partition function of single RNA sequences
+***
 *** This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
 *** Partion function folding...
 **/

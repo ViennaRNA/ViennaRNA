@@ -13,6 +13,8 @@
 
 /**
 *** \file part_func_co.h
+***
+*** \brief Partition function for two RNA sequences
 **/
 
 /**

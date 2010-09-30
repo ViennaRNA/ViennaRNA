@@ -3,6 +3,11 @@
 
 #include "energy_const.h"
 
+/**
+*** \file data_structures.h
+*** \brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
+**/
+
 /* to use floats instead of doubles in pf_fold() comment next line */
 #define LARGE_PF
 #ifdef  LARGE_PF
@@ -28,7 +33,9 @@
 * ############################################################ 
 */
 
-/* this datastructure is used as input parameter in functions of PS_dot.c */
+/**
+*** \brief this datastructure is used as input parameter in functions of PS_dot.h and others
+**/
 typedef struct plist {
   int i;
   int j;
@@ -41,10 +48,10 @@ typedef struct cpair {
   float p, hue, sat;
 } cpair;
 
-/*
-* this is a workarround for the SWIG Perl Wrapper RNA plot function
-* that returns an array of type COORDINATE
-*/
+/**
+*** \brief this is a workarround for the SWIG Perl Wrapper RNA plot function
+*** that returns an array of type COORDINATE
+**/
 typedef struct {
   float X; /* X coords */
   float Y; /* Y coords */

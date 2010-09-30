@@ -18,6 +18,8 @@
 
 /**
 *** \file loop_energies.h
+*** \brief Energy evaluation for MFE and partition function calculations
+***
 *** <P>
 *** This file contains functions for the calculation of the free energy \f$\Delta G\f$
 *** of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
