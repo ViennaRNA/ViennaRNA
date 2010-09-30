@@ -646,7 +646,6 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
         default:  for(k=j-TURN-1,traced=0; k>=i; k--){
                     int cc, en;
-
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -657,26 +656,26 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       if((k>1) && SAME_STRAND(k-1,k))
                         if(fij == ff[k-2] + cc + E_ExtLoop(type, S1[k-1], -1, P)){
                               traced=j; jj=k-2; break;
-                            }
+                        }
                     }
 
-                        type = ptype[indx[j-1]+k];
-                        if(type && SAME_STRAND(j-1,j)){
+                    type = ptype[indx[j-1]+k];
+                    if(type && SAME_STRAND(j-1,j)){
                       cc = c[indx[j-1]+k];
-                          if (!SAME_STRAND(k,j-1)) cc += P->DuplexInit; /*???*/
-                          if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
+                      if (!SAME_STRAND(k,j-1)) cc += P->DuplexInit; /*???*/
+                      if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
                             traced=j-1; jj = k-1; break;
                       }
-                          if(k>i){
-                            if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
-                              traced=j-1; jj=k-2; break;
-                            }
-                          }
+                      if(k>i){
+                        if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
+                          traced=j-1; jj=k-2; break;
                         }
+                      }
+                    }
                   }
+
                   break;
       }
-
       if (!traced) nrerror("backtrack failed in f5 (or fc)");
       sector[++s].i = i;
       sector[s].j   = jj;
@@ -1080,8 +1079,10 @@ PRIVATE void free_end(int *array, int i, int start) {
         case 2:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
                   break;
         default:  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
-                  if((inc > 0) && (j > left))
+                  if(inc > 0){
+                    if(j > left)
                     array[i] = MIN2(array[i], array[j-2] + energy + E_ExtLoop(type, si, -1, P));
+                  }
                   else if(j < right)
                     array[i] = MIN2(array[i], array[j+2] + energy + E_ExtLoop(type, -1, sj, P));
                   break;
