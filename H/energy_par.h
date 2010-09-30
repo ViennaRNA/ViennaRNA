@@ -61,6 +61,13 @@ extern int ML_closingdH;
 extern int ML_intern37;
 extern int ML_interndH;
 
+extern int TripleC37;
+extern int TripleCdH;
+extern int MultipleCA37;
+extern int MultipleCAdH;
+extern int MultipleCB37;
+extern int MultipleCBdH;
+
 /* Ninio-correction for asymmetric internal loops with branches n1 and n2 */
 /*    ninio_energy = min{max_ninio, |n1-n2|*F_ninio[min{4.0, n1, n2}] } */
 extern int  MAX_NINIO;                   /* maximum correction */

@@ -107,6 +107,9 @@ typedef struct{
   char Triloops[241];
   int Hexaloop_E[40];
   char Hexaloops[1801];
+  int TripleC;
+  int MultipleCA;
+  int MultipleCB;
   double temperature;
 }  paramT;
 
@@ -144,6 +147,9 @@ typedef struct{
   double  expTriloop[40];
   char    Triloops[241];
   char    Hexaloops[1801];
+  double  expTripleC;
+  double  expMultipleCA;
+  double  expMultipleCB;
   double  temperature;
   double  kT;
 }  pf_paramT;

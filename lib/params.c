@@ -57,7 +57,11 @@ PUBLIC paramT *scale_parameters(void)
   }
 
   params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
-  
+ 
+  params->TripleC = TripleCdH - (TripleCdH - TripleC37) * tempf;
+  params->MultipleCA = MultipleCAdH - (MultipleCAdH - MultipleCA37) * tempf;
+  params->MultipleCB = MultipleCBdH - (MultipleCBdH - MultipleCB37) * tempf;
+
   for (i=0; (i*7)<strlen(Tetraloops); i++)
     params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*tempf;
   for (i=0; (i*5)<strlen(Triloops); i++)
