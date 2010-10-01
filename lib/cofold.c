@@ -725,7 +725,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                         traced = i; break;
                       }
                       else if(fc[i] == fc[k+2] + c[indx[k]+i] + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
-                        traced = i; jj=k-2; break;
+                        traced = i; jj=k+2; break;
                       }
                     }
                     type = ptype[indx[k]+i+1];

@@ -1,8 +1,8 @@
 /*
-			       utils.c
+                               utils.c
 
-		 c  Ivo L Hofacker and Walter Fontana
-			  Vienna RNA package
+                 c  Ivo L Hofacker and Walter Fontana
+                          Vienna RNA package
 */
 /* Last changed Time-stamp: <2008-11-25 16:34:36 ivo> */
 
@@ -279,19 +279,19 @@ PUBLIC char *pack_structure(const char *struc) {
       switch (struc[i]) {
       case '(':
       case '\0':
-	break;
+        break;
       case '.':
-	p++;
-	break;
+        p++;
+        break;
       case ')':
-	p += 2;
-	break;
+        p += 2;
+        break;
       default: nrerror("pack_structure: illegal charcter in structure");
       }
       if (i<l) i++;
     }
     packed[j++] = (unsigned char) (p+1); /* never use 0, so we can use
-					    strcmp()  etc. */
+                                            strcmp()  etc. */
   }
   packed[j] = '\0';      /* for str*() functions */
   return (char *) packed;
@@ -345,20 +345,20 @@ PUBLIC short *make_pair_table(const char *structure)
    for (hx=0, i=1; i<=length; i++) {
       switch (structure[i-1]) {
        case '(':
-	 stack[hx++]=i;
-	 break;
+         stack[hx++]=i;
+         break;
        case ')':
-	 j = stack[--hx];
-	 if (hx<0) {
-	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_pair_table");
-	 }
-	 table[i]=j;
-	 table[j]=i;
-	 break;
+         j = stack[--hx];
+         if (hx<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced brackets in make_pair_table");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
        default:   /* unpaired base, usually '.' */
-	 table[i]= 0;
-	 break;
+         table[i]= 0;
+         break;
       }
    }
    if (hx!=0) {
