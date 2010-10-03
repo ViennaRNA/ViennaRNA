@@ -51,7 +51,8 @@
 *** \param  D The datastructure containing scaled energy parameters
 *** \return   The energy contribution of the introduced multiloop stem
 **/
-#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
+//#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
+INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P);
 
 /**
 *** \def exp_E_MLstem(A,B,C,D)
@@ -59,7 +60,8 @@
 *** \see E_MLstem()
 *** \return The Boltzmann weighted energy contribution of the introduced multiloop stem
 **/
-#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
+//#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
+INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P);
 
 /**
 *** \def E_ExtLoop(A,B,C,D)
@@ -80,7 +82,8 @@
 *** \param  D The datastructure containing scaled energy parameters
 *** \return   The energy contribution of the introduced exterior-loop stem
 **/
-#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
+//#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
+INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P);
 
 /**
 *** \def exp_E_ExtLoop(A,B,C,D)
@@ -88,7 +91,8 @@
 *** \see E_ExtLoop()
 *** \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
 **/
-#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
+//#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
+INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P);
 
 /**
 *** <H2>Compute the Energy of an interior-loop</H2>
@@ -382,6 +386,44 @@ INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
   return energy;
 }
 
+INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P){
+  int energy = 0;
+  if(si1 >= 0 && sj1 >= 0){
+    energy += P->mismatchExt[type][si1][sj1];
+  }
+  else if (si1 >= 0){
+    energy += P->dangle5[type][si1];
+  }
+  else if (sj1 >= 0){
+    energy += P->dangle3[type][sj1];
+  }
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  return energy;
+}
+
+INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
+  int energy = 0;
+  if(si1 >= 0 && sj1 >= 0){
+    energy += P->mismatchM[type][si1][sj1];
+  }
+  else if (si1 >= 0){
+    energy += P->dangle5[type][si1];
+  }
+  else if (sj1 >= 0){
+    energy += P->dangle3[type][sj1];
+  }
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  energy += P->MLintern[type];
+
+  return energy;
+}
+
 INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
   double q, kT;
   kT = P->kT;   /* kT in cal/mol  */
@@ -424,7 +466,6 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 }
 
 INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
-#if 1
   int ul, us, no_close = 0;
   double z;
 
@@ -474,44 +515,6 @@ INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short 
     return z * P->expninio[2][ul-us];
 
   }
-#else
-  double z=0;
-  int no_close = 0;
-
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==2)||(type==4)))
-    no_close = 1;
-
-  if ((u1==0) && (u2==0)) /* stack */
-    z = P->expstack[type][type2];
-  else if (no_close==0) {
-    if ((u1==0)||(u2==0)) { /* bulge */
-      int u;
-      u = (u1==0)?u2:u1;
-      z = P->expbulge[u];
-      if (u2+u1==1) z *= P->expstack[type][type2];
-      else {
-        if (type>2) z *= P->expTermAU;
-        if (type2>2) z *= P->expTermAU;
-      }
-    }
-    else {     /* interior loop */
-      if (u1+u2==2) /* size 2 is special */
-            z = P->expint11[type][type2][si1][sj1];
-      else if ((u1==1) && (u2==2))
-            z = P->expint21[type][type2][si1][sq1][sj1];
-      else if ((u1==2) && (u2==1))
-            z = P->expint21[type2][type][sq1][si1][sp1];
-      else if ((u1==2) && (u2==2))
-            z = P->expint22[type][type2][si1][sp1][sq1][sj1];
-      else {
-            z = P->expinternal[u1+u2]*
-                P->expmismatchI[type][si1][sj1]*
-                P->expmismatchI[type2][sq1][sp1];
-            z *= P->expninio[2][abs(u1-u2)];
-      }
-    }
-  }
-#endif
   return z;
 }
 
@@ -529,6 +532,43 @@ INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
     energy *= d5 * d3;
 
   if(!extLoop) energy *= P->expMLintern[type];
+  return energy;
+}
+
+INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
+  double energy = 1.0;
+  if(si1 >= 0 && sj1 >= 0){
+    energy *= P->expmismatchM[type][si1][sj1];
+  }
+  else if(si1 >= 0){
+    energy *= P->expdangle5[type][si1];
+  }
+  else if(sj1 >= 0){
+    energy *= P->expdangle3[type][sj1];
+  }
+
+  if(type > 2)
+    energy *= P->expTermAU;
+
+  energy *= P->expMLintern[type];
+  return energy;
+}
+
+INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P){
+  double energy = 1.0;
+  if(si1 >= 0 && sj1 >= 0){
+    energy *= P->expmismatchExt[type][si1][sj1];
+  }
+  else if(si1 >= 0){
+    energy *= P->expdangle5[type][si1];
+  }
+  else if(sj1 >= 0){
+    energy *= P->expdangle3[type][sj1];
+  }
+
+  if(type > 2)
+    energy *= P->expTermAU;
+
   return energy;
 }
 
