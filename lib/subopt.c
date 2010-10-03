@@ -783,9 +783,12 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       repeat(i, j, state, 0, 0);
 
-      if (nopush)
-        if (!noLonelyPairs)
+      if (nopush){
+        if (!noLonelyPairs){
+          fprintf(stderr, "%d,%d", i, j);
           fprintf(stderr, "Oops, no solution in repeat!\n");
+        }
+      }
       return;
     }
 
@@ -1122,8 +1125,8 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     else
       element_energy = E_MLstem(rt, -1, -1, P) + mm;
 
-    if (fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
-        element_energy + best_energy  <= threshold)
+    if ((fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
+        element_energy + best_energy)  <= threshold)
       {
         INTERVAL *interval1, *interval2;
 

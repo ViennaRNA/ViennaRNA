@@ -1184,6 +1184,7 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   structure       = (char *) space((unsigned) 2*length+1);
   zukresults      = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
   mfestructure[0] = '\0';
+  BP              = (int *)space(sizeof(int)*(length+2));
 
   /* double the sequence */
   strcpy(doubleseq,string);
@@ -1270,7 +1271,7 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   free(mfestructure);
   free(doubleseq);
   zuker=0;
-  free(S); free(S1);
+  free(S); free(S1); free(BP);
   return zukresults;
 }
 

@@ -242,10 +242,10 @@ PUBLIC void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p
   *fML_p    = fML;
   *fM1_p    = fM1;
   *fM2_p    = fM2;
-  Fc_p      = &Fc;
-  FcH_p     = &FcH;
-  FcI_p     = &FcI;
-  FcM_p     = &FcM;
+  *Fc_p     = Fc;
+  *FcH_p    = FcH;
+  *FcI_p    = FcI;
+  *FcM_p    = FcM;
   *indx_p   = indx;
   *ptype_p  = ptype;
 }
@@ -366,7 +366,7 @@ PRIVATE int fill_arrays(const char *string) {
       ij = indx[j]+i;
       bonus = 0;
       type = ptype[ij];
-
+      energy = INF;
       /* enforcing structure constraints */
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
@@ -483,8 +483,21 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
+      /* (i,j) + MLstem ? */
+      new_fML = INF;
+      if(type){
+        new_fML = c[ij];
+        switch(dangles){
+          case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
+                    break;
+          default:  new_fML += E_MLstem(type, -1, -1, P);
+                    break;
+        }
+      }
+      
+       
       if (uniq_ML){
-        fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, energy);
+        fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, new_fML);
       }
 
       /* free ends ? -----------------------------------------*/
@@ -492,17 +505,14 @@ PRIVATE int fill_arrays(const char *string) {
       *   dangles == 1, this could lead to d5+d3 contributions were
       *   mismatch must be taken!
       */
-      new_fML = INF;
       switch(dangles){
         /* no dangles */
-        case 0:   new_fML = fML[ij+1]+P->MLbase;
+        case 0:   new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
                   break;
         /* double dangles */
-        case 2:   new_fML = fML[ij+1]+P->MLbase;
+        case 2:   new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-                  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<length) || circular) ? S1[j+1] : -1, P));
                   break;
 #ifdef SPECIAL_DANGLES
         /* normal dangles as ronny would think of them ;) */
@@ -545,9 +555,8 @@ PRIVATE int fill_arrays(const char *string) {
         /* normal dangles, aka dangles = 1 || 3 */
         default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
                   mm3 = ((j<length) || circular) ? S1[j] : -1;
-                  new_fML = fML[ij+1] + P->MLbase;
+                  new_fML = MIN2(new_fML, fML[ij+1] + P->MLbase);
                   new_fML = MIN2(new_fML, fML[indx[j-1]+i] + P->MLbase);
-                  if(type) new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
                   tt = ptype[ij+1];
                   if(tt) new_fML = MIN2(new_fML, c[ij+1] + E_MLstem(tt, mm5, -1, P) + P->MLbase);
                   tt = ptype[indx[j-1]+i];
