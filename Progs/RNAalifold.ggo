@@ -62,6 +62,8 @@ option  "noTetra"         4 "Do not include special stabilizing energies for cer
  testing." flag off
 option  "noGU"            - "Do not allow GU pairs" flag  off
 option  "noClosingGU"     - "Do not allow GU pairs at the end of helices" flag off
+option  "MEA"             - "Calculate the MEA structure\n" float default="1."  argoptional optional
+
 option  "energyModel"     e "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs."  int optional
 option  "paramFile"       P "Read energy parameters from paramfile, instead of using the default parameter set.\

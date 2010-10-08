@@ -21,6 +21,7 @@
 #include "alifold.h"
 #include "aln_util.h"
 #include "read_epars.h"
+#include "MEA.h"
 #include "RNAalifold_cmdl.h"
 
 /*@unused@*/
@@ -41,17 +42,19 @@ int main(int argc, char *argv[]){
   char          ffname[80], gfname[80], fname[80];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           n_seq, i, length, sym, r;
-  int           endgaps, mis, circular, doAlnPS, doColor, n_back, eval_energy, pf, istty;
-  double        min_en, real_en, sfact;
+  int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
+  double        min_en, real_en, sfact, MEAgamma;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
+
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
-  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = 0;
+  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = 0;
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;
+  MEAgamma      = 1.0;
   /*
   #############################################
   # check the command line prameters
@@ -89,6 +92,12 @@ int main(int argc, char *argv[]){
     pf = 1;
     if(args_info.partfunc_arg != -1)
       do_backtrack = args_info.partfunc_arg;
+  }
+  /* MEA (maximum expected accuracy) settings */
+  if(args_info.MEA_given){
+    pf = doMEA = 1;
+    if(args_info.MEA_arg != -1)
+      MEAgamma = args_info.MEA_arg;
   }
   /* set cfactor */
   if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
@@ -205,7 +214,8 @@ int main(int argc, char *argv[]){
   if(fold_constrained && cstruc != NULL)
     strncpy(structure, cstruc, length);
 
-  if (endgaps) for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
+  if (endgaps)
+    for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
 
   /*
   ########################################################
@@ -311,6 +321,17 @@ int main(int argc, char *argv[]){
         /*cent_en = energy_of_struct(string, cent);*//*ali*/
         printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
         free(cent);
+        free(ens);
+      }
+      if(doMEA){
+        float mea, *ens;
+        mea = MEA(pl, structure, MEAgamma);
+        ens = (float *)space(2*sizeof(float));
+        if(circular)
+		  energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+        else
+          ens[0] = energy_of_structure(string, structure, 0);
+        printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
       }
 
