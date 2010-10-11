@@ -87,6 +87,7 @@
 #include "list.h"
 #include "params.h"
 #include "loop_energies.h"
+#include "cofold.h"
 #include "subopt.h"
 
 #ifdef USE_OPENMP
@@ -702,8 +703,8 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if(dangles)
         element_energy = E_MLstem(type,
-                                  ((i > 1)&&(SAME_STRAND(i-1,i)) || circular)       ? S1[i-1] : -1,
-                                  ((j < length)&&(SAME_STRAND(j,j+1)) || circular)  ? S1[j+1] : -1,
+                                  (((i > 1)&&(SAME_STRAND(i-1,i))) || circular)       ? S1[i-1] : -1,
+                                  (((j < length)&&(SAME_STRAND(j,j+1))) || circular)  ? S1[j+1] : -1,
                                   P);
       else
         element_energy = E_MLstem(type, -1, -1, P);
@@ -914,7 +915,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       /* now we search for our exterior interior loop possibilities */
       for(k=i; k<j; k++)
         for (l=k+turn+1; l <= j; l++){
-          int kl, type, u, new_c, tmpE, no_close;
+          int kl, type, tmpE, no_close;
 
           kl = indx[l]+k;        /* just confusing these indices ;-) */
           type = ptype[kl];
@@ -1084,7 +1085,6 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
   }                                                    /* end of p-loop */
 
   if (!SAME_STRAND(i,j)) { /*look in fc*/
-    int fci, fcj;
     rt = rtype[type];
     element_energy=0;
     if (dangles)

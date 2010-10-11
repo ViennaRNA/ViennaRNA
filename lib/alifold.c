@@ -1017,7 +1017,8 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     indx = tempindx; pscore = temppscore;
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
-  if(energy) return energy[0];
+  
+  return energy[0];
 }
 
 PRIVATE void energy_of_alistruct_pt(const char **sequences, short *pt, int n_seq, int *energy){

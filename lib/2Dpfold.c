@@ -824,10 +824,10 @@ PUBLIC FLT_OR_DBL **TwoDpfold_circ_bound(TwoDpfold_vars *vars, int distance1, in
 PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
 
   unsigned int  d, i, j, ij, seq_length, maxD1, maxD2, *mm1, *mm2, *bpdist;
-  int     circ, cnt1, cnt2, cnt3, cnt4;
+  int     *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4;
   double  max_real;
   short *S1, *reference_pt1, *reference_pt2;
-  unsigned int   *my_iindx, *jindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   char  *sequence, *ptype;
   FLT_OR_DBL  *scale;
   pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
@@ -1452,10 +1452,10 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
 PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
 
   unsigned int  d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int         type, cnt1, cnt2, cnt3, cnt4;
+  int         *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4;
   double      max_real;
   short       *S1, *reference_pt1, *reference_pt2;
-  unsigned int  *my_iindx, *jindx, *referenceBPs1, *referenceBPs2;
+  unsigned int  *referenceBPs1, *referenceBPs2;
   char        *sequence, *ptype;
   FLT_OR_DBL  *scale, qot;
   pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
@@ -1485,7 +1485,8 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   FLT_OR_DBL      ***Q_B, ***Q_M, ***Q_M1, ***Q_M2, **Q_c, **Q_cH, **Q_cI, **Q_cM;
   int             **l_min_values_b, **l_max_values_b, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1, **l_min_values_m2, **l_max_values_m2;
   int             *k_min_values_b, *k_max_values_b,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1, *k_min_values_m2, *k_max_values_m2;
-  int             *l_min_values_fc, *l_max_values_fc, *l_min_values_fcH, *l_max_values_fcH, *l_min_values_fcI, *l_max_values_fcI, *l_min_values_fcM, *l_max_values_fcM;
+  int             k_min_values_qc, k_max_values_qc, k_min_values_qcH, k_max_values_qcH, k_min_values_qcI, k_max_values_qcI, k_min_values_qcM, k_max_values_qcM;
+  int             *l_min_values_qc, *l_max_values_qc, *l_min_values_qcH, *l_max_values_qcH, *l_min_values_qcI, *l_max_values_qcI, *l_min_values_qcM, *l_max_values_qcM;
 
   Q_B             = vars->Q_B;
   l_min_values_b  = vars->l_min_values_b;
@@ -1511,6 +1512,29 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   k_min_values_m2 = vars->k_min_values_m2;
   k_max_values_m2 = vars->k_max_values_m2;
 
+  Q_c             = vars->Q_c;
+  l_min_values_qc = vars->l_min_values_qc;
+  l_max_values_qc = vars->l_max_values_qc;
+  k_min_values_qc = vars->k_min_values_qc;
+  k_max_values_qc = vars->k_max_values_qc;
+
+  Q_cI             = vars->Q_cI;
+  l_min_values_qcI = vars->l_min_values_qcI;
+  l_max_values_qcI = vars->l_max_values_qcI;
+  k_min_values_qcI = vars->k_min_values_qcI;
+  k_max_values_qcI = vars->k_max_values_qcI;
+
+  Q_cH             = vars->Q_cH;
+  l_min_values_qcH = vars->l_min_values_qcH;
+  l_max_values_qcH = vars->l_max_values_qcH;
+  k_min_values_qcH = vars->k_min_values_qcH;
+  k_max_values_qcH = vars->k_max_values_qcH;
+
+  Q_cM             = vars->Q_cM;
+  l_min_values_qcM = vars->l_min_values_qcM;
+  l_max_values_qcM = vars->l_max_values_qcM;
+  k_min_values_qcM = vars->k_min_values_qcM;
+  k_max_values_qcM = vars->k_max_values_qcM;
 
 
 
@@ -1996,7 +2020,7 @@ PRIVATE void scale_pf_params2(TwoDpfold_vars *vars)
 {
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int i;
-  double  kT, TT;
+  double  kT;
 
   vars->pf_params = get_scaled_pf_parameters();
   vars->init_temp = vars->pf_params->temperature;
@@ -2025,8 +2049,8 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigne
 
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
-  unsigned int    *my_iindx, *referenceBPs1, *referenceBPs2;
-  int             ij, cnt1, cnt2, cnt3, cnt4;
+  unsigned int    *referenceBPs1, *referenceBPs2;
+  int             *my_iindx, ij, cnt1, cnt2, cnt3, cnt4;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *pstruc, *ptype;
   short           *S1, *reference_pt1, *reference_pt2;
@@ -2165,8 +2189,8 @@ PUBLIC char *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, unsigned int d1, unsi
 
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
-  unsigned int    *my_iindx, *referenceBPs1, *referenceBPs2;
-  int             ij, cnt1, cnt2, cnt3, cnt4;
+  unsigned int    *referenceBPs1, *referenceBPs2;
+  int             *my_iindx, ij, cnt1, cnt2, cnt3, cnt4;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *pstruc, *ptype;
   short           *S1, *reference_pt1, *reference_pt2;
@@ -2303,11 +2327,11 @@ pbacktrack_ext_loop_early_escape2:
 PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j) {
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
-  unsigned int    *my_iindx, *jindx, *referenceBPs1, *referenceBPs2;
+  unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
-  int             ij, cnt1, cnt2, cnt3, cnt4;
+  int             *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4;
 
   pf_params   = vars->pf_params;
   sequence    = vars->sequence;
@@ -2479,11 +2503,11 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
-  unsigned int    *my_iindx, *jindx, *referenceBPs1, *referenceBPs2;
+  unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
-  int             cnt1, cnt2;
+  int             *my_iindx, *jindx, cnt1, cnt2;
   pf_params   = vars->pf_params;
   sequence    = vars->sequence;
   n           = vars->seq_length;
@@ -2555,11 +2579,11 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, u
   /* divide multiloop into qm and qm1  */
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, da2, db2, remaining_d1, remaining_d2;
-  unsigned int    *my_iindx, *jindx, *referenceBPs1, *referenceBPs2;
+  unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
-  int             cnt1, cnt2, cnt3, cnt4;
+  int             *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4;
 
   pf_params   = vars->pf_params;
   sequence    = vars->sequence;

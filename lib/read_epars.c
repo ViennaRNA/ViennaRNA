@@ -325,8 +325,6 @@ PRIVATE void rd_1dim(int *array, int dim, int shift){
 
 PRIVATE void rd_1dim_slice(int *array, int dim, int shift, int post){
   char *cp;
-  int i;
-  
   cp   = get_array1(array+shift, dim-shift-post);
   
   if (cp) {

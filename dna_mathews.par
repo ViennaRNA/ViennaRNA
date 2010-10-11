@@ -1,5 +1,16 @@
 ## RNAfold parameter file v2.0
 
+/* This file contains energy parameters for folding DNA  */
+/* The parameters were made available by David Mathews */
+/* and are identical to the ones distributed with RNAstructure */
+
+/* WARNING!! This file is still incomplete and largely untested */
+/* It does not contain: */
+/* terminal mismatch energies for 1xn and 2x3 loops */
+/* we currently still use dangling ends instead of terminal mismatches */
+/* in multi-loops and the exterior loop. */
+/* There's no special parameters for co-axial stacking */
+
 # stack
 /*  CG    GC    GU    UG    AU    UA    @  */
   -220  -190   -20   -60  -130  -160     0

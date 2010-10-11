@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
@@ -564,7 +565,8 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
 *  access it via iindx!!!
 */
 PUBLIC unsigned int *make_referenceBP_array(short *reference_pt, unsigned int turn){
-  unsigned int i,j,k,ij,length, *iindx;
+  unsigned int i,j,k,ij,length;
+  int *iindx;
   unsigned int *array;
   unsigned int size;
   length = (unsigned int)reference_pt[0];
@@ -597,7 +599,7 @@ PUBLIC unsigned int *compute_BPdifferences(short *pt1, short *pt2, unsigned int 
   n = (unsigned int)pt1[0];
   size = ((n+1)*(n+2))/2;
   array = (unsigned int *)space(sizeof(unsigned int) * size);
-  unsigned int *iindx = get_iindx(n);
+  int *iindx = get_iindx(n);
   for(i = n - turn - 1; i>=1; i--){
     d = 0;
     for(j = i+turn+1; j <= n; j++){

@@ -141,7 +141,6 @@ PUBLIC paramT *scale_parameters(void)
             for (n=0; n<5; n++)
               params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] - (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
         }
-  /* interior 2x3 loops */
 
   strncpy(params->Tetraloops, Tetraloops, 1400);
   strncpy(params->Triloops, Triloops, 240);
@@ -205,7 +204,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     pf.expinternal[i] = exp( -GT*10./kT);
   }
   /* special case of size 2 interior loops (single mismatch) */
-  if (james_rule) pf.expinternal[2] = exp ( -80*10/kT);
+  if (james_rule) pf.expinternal[2] = exp ( -80*10./kT);
 
   pf.lxc = lxc37*TT;
 
@@ -221,7 +220,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
 
   GT = niniodH - (niniodH - ninio37)*TT;
   for (j=0; j<=MAXLOOP; j++)
-      pf.expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
+      pf.expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10./kT);
 
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
@@ -236,7 +235,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     pf.exphex[i] = exp( -GT*10./kT);
   }
   GT =  ML_closing37*TT;
-  pf.expMLclosing = exp( -GT*10/kT);
+  pf.expMLclosing = exp( -GT*10./kT);
 
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     GT =  ML_intern37*TT;
@@ -244,7 +243,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     pf.expMLintern[i] = exp( -GT*10./kT);
   }
   GT = TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT;
-  pf.expTermAU = exp(-GT*10/kT);
+  pf.expTermAU = exp(-GT*10./kT);
 
   GT = ML_BASE37*TT;
   pf.expMLbase=exp(-10.*GT/kT);
@@ -270,7 +269,7 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++) {
       GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
-      pf.expstack[i][j] = exp( -GT*10/kT);
+      pf.expstack[i][j] = exp( -GT*10./kT);
     }
 
   /* mismatch energies */
@@ -278,18 +277,18 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
     for (j=0; j<5; j++)
       for (k=0; k<5; k++) {
         GT =  mismatchIdH[i][j][k] - ( mismatchIdH[i][j][k] - mismatchI37[i][j][k])*TT;
-        pf.expmismatchI[i][j][k] = exp(-GT*10.0/kT);
+        pf.expmismatchI[i][j][k] = exp(-GT*10./kT);
         GT = mismatch1nIdH[i][j][k] - (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k])*TT;
-        pf.expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
+        pf.expmismatch1nI[i][j][k] = exp(-GT*10./kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
-        pf.expmismatchH[i][j][k] = exp(-GT*10.0/kT);
+        pf.expmismatchH[i][j][k] = exp(-GT*10./kT);
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
-        pf.expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
+        pf.expmismatch23I[i][j][k] = exp(-GT*10./kT);
         if (dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-          pf.expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+          pf.expmismatchM[i][j][k] = exp(-GT*10./kT);
           GT =  mismatchExtdH[i][j][k] - ( mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
-          pf.expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
+          pf.expmismatchExt[i][j][k] = exp(-GT*10./kT);
         }
         else{
           pf.expmismatchM[i][j][k] = pf.expmismatchExt[i][j][k] = 1.;
@@ -332,20 +331,6 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
               pf.expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
             }
         }
- /* interior 2x3 loops * /
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++) {
-          int m,n;
-          for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {
-              GT = int23_H[i][j][k][l][m][n] -
-                (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
-              pf.expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
-            }
-        }
- */
 
   strncpy(pf.Tetraloops, Tetraloops, 1400);
   strncpy(pf.Triloops, Triloops, 240);
@@ -379,7 +364,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     pf->expinternal[i] = exp( -GT*10./kT);
   }
   /* special case of size 2 interior loops (single mismatch) */
-  if (james_rule) pf->expinternal[2] = exp ( -80*10/kT);
+  if (james_rule) pf->expinternal[2] = exp ( -80*10./kT);
 
   pf->lxc = lxc37*TT;
 
@@ -395,7 +380,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
 
   GT = niniodH - (niniodH - ninio37)*TT;
   for (j=0; j<=MAXLOOP; j++)
-      pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kT);
+      pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10./kT);
 
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
@@ -410,7 +395,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     pf->exphex[i] = exp( -GT*10./kT);
   }
   GT =  ML_closingdH - (ML_closingdH - ML_closing37)*TT;
-  pf->expMLclosing = exp( -GT*10/kT);
+  pf->expMLclosing = exp( -GT*10./kT);
 
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     GT =  ML_interndH - (ML_interndH - ML_intern37)*TT;
@@ -418,7 +403,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
     pf->expMLintern[i] = exp( -GT*10./kT);
   }
   GT = TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT;
-  pf->expTermAU = exp(-GT*10/kT);
+  pf->expTermAU = exp(-GT*10./kT);
 
   GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
   /* pf->expMLbase=(-10.*GT/kT); old */
@@ -443,7 +428,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++) {
       GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
-      pf->expstack[i][j] = exp( -GT*10/kT);
+      pf->expstack[i][j] = exp( -GT*10./kT);
     }
 
   /* mismatch energies */
@@ -505,20 +490,6 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
               pf->expint22[i][j][k][l][m][n] = exp(-GT*10./kT);
             }
         }
- /* interior 2x3 loops * /
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++) {
-          int m,n;
-          for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {
-              GT = int23_H[i][j][k][l][m][n] -
-                (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
-              pf->expint23[i][j][k][l][m][n] = exp(-GT*10./kT);
-            }
-        }
- */
 
   strncpy(pf->Tetraloops, Tetraloops, 281);
   strncpy(pf->Triloops, Triloops, 241);
@@ -558,7 +529,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
     pf->expinternal[i] = exp( -GT*10./kTn);
   }
   /* special case of size 2 interior loops (single mismatch) */
-  if (james_rule) pf->expinternal[2] = exp ( -80*10/kTn);
+  if (james_rule) pf->expinternal[2] = exp ( -80*10./kTn);
 
   pf->lxc = lxc37*TT;
 
@@ -574,7 +545,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
 
   GT = niniodH - (niniodH - ninio37)*TT;
   for (j=0; j<=MAXLOOP; j++)
-    pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10/kTn);
+    pf->expninio[2][j]=exp(-MIN2(MAX_NINIO,j*GT)*10./kTn);
 
   for (i=0; (i*7)<strlen(Tetraloops); i++) {
     GT = TetraloopdH[i] - (TetraloopdH[i]-Tetraloop37[i])*TT;
@@ -589,7 +560,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
     pf->exphex[i] = exp( -GT*10./kTn);
   }
   GT =  ML_closingdH - (ML_closingdH - ML_closing37)*TT;
-  pf->expMLclosing = exp( -GT*10/kTn);
+  pf->expMLclosing = exp( -GT*10./kTn);
 
   for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
     GT =  ML_interndH - (ML_interndH - ML_intern37)*TT;
@@ -597,7 +568,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
     pf->expMLintern[i] = exp( -GT*10./kTn);
   }
   GT = TerminalAUdH - (TerminalAUdH - TerminalAU37)*TT;
-  pf->expTermAU = exp(-GT*10/kTn);
+  pf->expTermAU = exp(-GT*10./kTn);
 
   GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
   pf->expMLbase=exp(-10.*GT/(kTn/n_seq));
@@ -621,7 +592,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++) {
       GT =  stackdH[i][j] - (stackdH[i][j] - stack37[i][j])*TT;
-      pf->expstack[i][j] = exp( -GT*10/kTn);
+      pf->expstack[i][j] = exp( -GT*10./kTn);
     }
 
   /* mismatch energies */
@@ -683,20 +654,6 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq)  {
               pf->expint22[i][j][k][l][m][n] = exp(-GT*10./kTn);
             }
         }
- /* interior 2x3 loops * /
-  for (i=0; i<=NBPAIRS; i++)
-    for (j=0; j<=NBPAIRS; j++)
-      for (k=0; k<5; k++)
-        for (l=0; l<5; l++) {
-          int m,n;
-          for (m=0; m<5; m++)
-            for (n=0; n<5; n++) {
-              GT = int23_H[i][j][k][l][m][n] -
-                (int23_H[i][j][k][l][m][n]-int23_37[i][j][k][l][m][n])*TT;
-              pf->expint23[i][j][k][l][m][n] = exp(-GT*10./kTn);
-            }
-        }
- */
 
   strncpy(pf->Tetraloops, Tetraloops, 281);
   strncpy(pf->Triloops, Triloops, 241);

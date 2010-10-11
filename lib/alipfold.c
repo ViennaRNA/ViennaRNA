@@ -25,6 +25,7 @@
 #include "ribo.h"
 #include "params.h"
 #include "loop_energies.h"
+#include "part_func.h"
 #include "alifold.h"
 
 #ifdef USE_OPENMP

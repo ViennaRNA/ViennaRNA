@@ -1071,7 +1071,7 @@ PRIVATE void backtrack(int i, int j){
   /* backtrack in multi-loop */
   {
     double r, qt;
-    int k, l, ii, jj, type;
+    int k, ii, jj;
 
     i++; j--;
     /* find the first split index */
@@ -1132,8 +1132,7 @@ PUBLIC char *get_centroid_struct_pl(int length, double *dist, plist *pl){
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
      Thus, the centroid is simply the structure containing all pairs with
      p_ij>0.5 */
-  int i,j;
-  double p;
+  int i;
   char *centroid;
 
   if (pl==NULL)

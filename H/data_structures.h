@@ -318,7 +318,7 @@ typedef struct{
   unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
   unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
   
-  unsigned int    *my_iindx;    /* index for moving in quadratic distancy dimsensions */
+  int             *my_iindx;    /* index for moving in quadratic distancy dimsensions */
 
   double          temperature;
   
@@ -417,8 +417,8 @@ typedef struct{
   FLT_OR_DBL  pf_scale;
   pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
 
-  unsigned int    *my_iindx;         /* index for moving in quadratic distancy dimsensions */
-  unsigned int    *jindx;         /* index for moving in the triangle matrix qm1 */
+  int             *my_iindx;         /* index for moving in quadratic distancy dimsensions */
+  int             *jindx;         /* index for moving in the triangle matrix qm1 */
 
   unsigned int    *referenceBPs1;    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
   unsigned int    *referenceBPs2;    /* matrix containing number of basepairs of reference structure2 in interval [i,j] */

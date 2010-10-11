@@ -32,6 +32,14 @@ void      update_cofold_params(void);
 SOLUTION  *zukersubopt(const char *string);
 float     *get_monomer_mfes();
 
+void export_cofold_arrays(int **f5_p,
+                          int **c_p,
+                          int **fML_p,
+                          int **fM1_p,
+                          int **fc_p,
+                          int **indx_p,
+                          char **ptype_p);
+
 /**
 *** allocate arrays for folding
 *** \deprecated{This function is obsolete and will be removed soon!}

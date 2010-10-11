@@ -27,7 +27,6 @@ PRIVATE char *tokenize(char *line);
 PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf);
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
-PRIVATE struct plist *get_mfe_plist(struct plist *pl);
 
 /*--------------------------------------------------------------------------*/
 

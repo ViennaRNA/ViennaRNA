@@ -68,7 +68,6 @@ PUBLIC int *get_seq_composition(short *S, unsigned int start, unsigned int stop)
 PUBLIC double sd_regression(int N, int A, int C, int G, int T,  svm_model *sd_model){
   double sd_free_energy = 0.0;
   int length = A + C + G + T + N;
-  double N_fraction = (double) N/length;
   double GC_content  = (double) (G + C)/length;
   double AT_ratio    = (double) A/(A+T);
   double CG_ratio    = (double) C/(C+G); 
@@ -229,7 +228,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
           
         if (strcmp(key,"degree")==0){
           value=fields[1];
-          sscanf(value,"%lf",&model->param.degree);
+          sscanf(value,"%d",&model->param.degree);
         } else 
 
         if (strcmp(key,"coef0")==0){
@@ -397,7 +396,7 @@ PRIVATE char **splitFields(char* string){
         /* check if field is not only whitespace */
         notSpace=0;
         j=0;
-        while (c=currField[j]!='\0'){
+        while ((c=currField[j])!='\0'){
           if (!isspace(c)){
                 notSpace=1;
                 break;

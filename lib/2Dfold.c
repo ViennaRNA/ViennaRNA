@@ -70,7 +70,8 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
 */
 
 PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *structure1, const char *structure2, int circ){
-  unsigned int size, *index, length;
+  unsigned int size, length;
+  int *index;
   TwoDfold_vars *vars;
   length = strlen(seq);
   vars = (TwoDfold_vars *)malloc(sizeof(TwoDfold_vars));
@@ -736,8 +737,8 @@ TwoDfold_solution **TwoDfold_circ_bounded(const char *string, char *structure1, 
 
 PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
-  unsigned int  d, i, j, ij, k, maxD1, maxD2, seq_length, dia, dib, dja, djb, *my_iindx, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           ***E_C, ***E_M, ***E_M1, ***E_F5, cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en;
+  unsigned int  d, i, j, ij, k, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
+  int           ***E_C, ***E_M, ***E_M1, ***E_F5, cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx;
   int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1,**l_min_values_f, **l_max_values_f;
   int           *k_min_values, *k_max_values, *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1,*k_min_values_f, *k_max_values_f;
   short         *S1, *reference_pt1, *reference_pt2;
@@ -1607,13 +1608,13 @@ PRIVATE void make_ptypes(TwoDfold_vars *vars) {
 }
 
 PRIVATE void backtrack_f5(unsigned int j, unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
-  int           energy, type, dangles, cnt1, cnt2;
+  int           *my_iindx, energy, type, dangles, cnt1, cnt2;
   int           **l_min_values, **l_max_values,**l_min_values_f, **l_max_values_f;
   int           *k_min_values, *k_max_values,*k_min_values_f, *k_max_values_f;
   int           ***E_C, ***E_F5;
   unsigned int   i, ij, seq_length;
   short *S1;
-  unsigned int   *my_iindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype;
   paramT   *P;
   unsigned int da, db;
@@ -1711,12 +1712,12 @@ PRIVATE void backtrack_f5(unsigned int j, unsigned int k, unsigned int l, char *
 
 PRIVATE void backtrack_c(unsigned int i, unsigned int j, unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
   unsigned int p, q, pq, ij, maxp, seq_length;
-  int type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2;
+  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2;
   int           **l_min_values, **l_max_values,**l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
   int           ***E_C, ***E_M, ***E_M1;
   short *S1;
-  unsigned int   *my_iindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype, *sequence;
   paramT   *P;
 
@@ -1838,12 +1839,12 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, unsigned int k, unsigne
 
 PRIVATE void backtrack_m(unsigned int i, unsigned int j, unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
   unsigned int u, ij, seq_length, base_d1, base_d2, d1, d2, cnt1, cnt2;
-  int type, energy, dangles,circ;
+  int *my_iindx, type, energy, dangles,circ;
   int           **l_min_values, **l_max_values,**l_min_values_m, **l_max_values_m;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m;
   int           ***E_C, ***E_M;
   short *S1;
-  unsigned int   *my_iindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype, *sequence;
   paramT   *P;
 
@@ -1949,8 +1950,8 @@ PRIVATE void backtrack_m(unsigned int i, unsigned int j, unsigned int k, unsigne
 }
 
 PRIVATE void backtrack_m1(unsigned int i, unsigned int j, unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
-  unsigned int  ij, seq_length, d1, d2, *my_iindx, *referenceBPs1, *referenceBPs2;
-  int           **l_min_values, **l_max_values,**l_min_values_m1, **l_max_values_m1;
+  unsigned int  ij, seq_length, d1, d2, *referenceBPs1, *referenceBPs2;
+  int           *my_iindx, **l_min_values, **l_max_values,**l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m1, *k_max_values_m1;
   int           ***E_C, ***E_M1, type, dangles, circ, energy, e_m1;
 
@@ -2013,9 +2014,9 @@ PRIVATE void backtrack_m1(unsigned int i, unsigned int j, unsigned int k, unsign
 
 PRIVATE void backtrack_fc(unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
   unsigned int   d, i, j, seq_length, base_d1, base_d2, d1, d2;
-  int   energy, cnt1, cnt2;
+  int   *my_iindx, energy, cnt1, cnt2;
   short *S1;
-  unsigned int   *my_iindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   char  *sequence, *ptype;
   int **E_Fc, **E_FcH, **E_FcI, **E_FcM, ***E_C, ***E_M, ***E_M2;
   int **l_min_values, **l_max_values, *k_min_values, *k_max_values;
@@ -2217,9 +2218,9 @@ PRIVATE void backtrack_fc(unsigned int k, unsigned int l, char *structure, TwoDf
 
 PRIVATE void backtrack_m2(unsigned int i, unsigned int k, unsigned int l, char *structure, TwoDfold_vars *vars){
   unsigned int   j, ij, j3, seq_length;
-  unsigned int   *my_iindx, *referenceBPs1, *referenceBPs2;
+  unsigned int   *referenceBPs1, *referenceBPs2;
   unsigned int d1, d2, base_d1, base_d2;
-  int cnt1, cnt2;
+  int *my_iindx, cnt1, cnt2;
   int ***E_M1, ***E_M2;
   int **l_min_values_m1, **l_max_values_m1, *k_min_values_m1, *k_max_values_m1;
   int **l_min_values_m2, **l_max_values_m2, *k_min_values_m2, *k_max_values_m2;
@@ -2267,8 +2268,8 @@ PRIVATE void backtrack_m2(unsigned int i, unsigned int k, unsigned int l, char *
 }
 
 PRIVATE void mfe_circ(TwoDfold_vars *vars){
-  unsigned int  d, i, j, k, maxD1, maxD2, seq_length, *my_iindx, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int           energy, dangles, cnt1, cnt2, cnt3, cnt4;
+  unsigned int  d, i, j, k, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
+  int           *my_iindx, energy, dangles, cnt1, cnt2, cnt3, cnt4;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   int           ***E_C, ***E_M, ***E_M1, ***E_M2, **E_Fc, **E_FcH, **E_FcI, **E_FcM;

@@ -333,7 +333,10 @@ PUBLIC float fold(const char *string, char *structure){
 PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, k, length, energy, en, mm5, mm3;
-  int   decomp, decomp_a, decomp_o, new_fML, max_separation;
+  int   decomp, new_fML, max_separation;
+#ifdef SPECIAL_DANGLES
+  int   decomp_a, decomp_o;
+#endif
   int   no_close, type, type_2, tt;
   int   bonus=0;
 
