@@ -154,7 +154,8 @@ dnl AC_REPLACE_GNU_GETOPT
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(malloc.h strings.h unistd.h)
+AC_CHECK_HEADERS(malloc.h strings.h unistd.h math.h)
+AC_CHECK_FUNCS([memset memmove])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
