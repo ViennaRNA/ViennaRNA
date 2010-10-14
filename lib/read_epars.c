@@ -32,6 +32,8 @@ PRIVATE void  display_array(int *p, int size, int line, FILE *fp);
 PRIVATE char  *get_array1(int *arr, int size);
 PRIVATE void  ignore_comment(char *line);
 PRIVATE void  check_symmetry(void);
+PRIVATE void  update_nst(int array[NBPAIRS+1][NBPAIRS+1][5][5][5][5]);
+
 /**
 *** read a 1dimensional array from file
 *** \param array  a pointer to the first element in the array
@@ -198,11 +200,13 @@ PUBLIC void read_parameter_file(const char fname[]){
                           NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
                           1, 1, 1, 1, 1, 1,
                           1, 1, 0, 0, 0, 0);
+                      update_nst(int22_37);
                       break;
         case INT22_H: rd_6dim_slice(&(int22_dH[0][0][0][0][0][0]),
                           NBPAIRS+1, NBPAIRS+1, 5, 5, 5, 5,
                           1, 1, 1, 1, 1, 1,
                           1, 1, 0, 0, 0, 0);
+                      update_nst(int22_dH);
                       break;
         case D5:      rd_2dim(&(dangle5_37[0][0]), NBPAIRS+1, 5, 1, 0);
                       break;
@@ -956,4 +960,122 @@ PRIVATE void check_symmetry(void) {
               if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
                 fprintf(stderr, "WARNING: int22 enthalpies not symmetric: %d %d %d %d %d %d\n", i,j,k,l,m,n);
         }
+}
+
+/* update nonstandard nucleotide/basepair involved contributions for int22 */
+PRIVATE void update_nst(int array[NBPAIRS+1][NBPAIRS+1][5][5][5][5]){
+  int    i, j, k, l, m, n;
+  int max, max2, max3, max4, max5, max6;
+
+  /* get maxima for one nonstandard nucleotide */
+  for (i=1; i<NBPAIRS; i++){
+    for (j=1; j<NBPAIRS; j++){
+      for (k=1; k<5; k++){
+        for (l=1; l<5; l++){
+          for (m=1; m<5; m++){
+            max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
+            for(n=1;n<5;n++){
+              max   = MAX2(max,   array[i][j][k][l][m][n]);
+              max2  = MAX2(max2,  array[i][j][k][l][n][m]);
+              max3  = MAX2(max3,  array[i][j][k][n][l][m]);
+              max4  = MAX2(max4,  array[i][j][n][k][l][m]);
+            }
+            array[i][j][k][l][m][0] = max;
+            array[i][j][k][l][0][m] = max2;
+            array[i][j][k][0][l][m] = max3;
+            array[i][j][0][k][l][m] = max4;
+          }
+        }
+      }
+    }
+  }
+  /* get maxima for two nonstandard nucleotides */
+  for (i=1; i<NBPAIRS; i++){
+    for (j=1; j<NBPAIRS; j++){
+      for (k=1; k<5; k++){
+        for (l=1; l<5; l++){
+          max = max2 = max3 = max4 = max5 = max6 = -INF; /* max of {CGAU} */
+          for (m=1; m<5; m++){
+            max   = MAX2(max,   array[i][j][k][l][m][0]);
+            max2  = MAX2(max2,  array[i][j][k][m][0][l]);
+            max3  = MAX2(max3,  array[i][j][m][0][k][l]);
+            max4  = MAX2(max4,  array[i][j][0][k][l][m]);
+            max5  = MAX2(max5,  array[i][j][0][k][m][l]);
+            max6  = MAX2(max6,  array[i][j][k][0][l][m]);
+          }
+          array[i][j][k][l][0][0] = max;
+          array[i][j][k][0][0][l] = max2;
+          array[i][j][0][0][k][l] = max3;
+          array[i][j][k][0][l][0] = max6;
+          array[i][j][0][k][0][l] = max5;
+          array[i][j][0][k][l][0] = max4;
+        }
+      }
+    }
+  }
+  /* get maxima for three nonstandard nucleotides */
+  for (i=1; i<NBPAIRS; i++){
+    for (j=1; j<NBPAIRS; j++){
+      for (k=1; k<5; k++){
+        max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
+        for (l=1; l<5; l++){
+          /* should be arbitrary where index l resides in last 3 possible locations */
+          max   = MAX2(max,   array[i][j][k][l][0][0]);
+          max2  = MAX2(max2,  array[i][j][0][k][l][0]);
+          max3  = MAX2(max3,  array[i][j][0][0][k][l]);
+          max4  = MAX2(max4,  array[i][j][0][0][l][k]);
+        }
+        array[i][j][k][0][0][0] = max;
+        array[i][j][0][k][0][0] = max2;
+        array[i][j][0][0][k][0] = max3;
+        array[i][j][0][0][0][k] = max4;
+      }
+    }
+  }
+  /* get maxima for 4 nonstandard nucleotides */
+  for (i=1; i<NBPAIRS; i++){
+    for (j=1; j<NBPAIRS; j++){
+      max = -INF; /* max of {CGAU} */
+      for (k=1; k<5; k++){
+        max   = MAX2(max,   array[i][j][k][0][0][0]);
+      }
+      array[i][j][0][0][0][0] = max;
+    }
+  }
+
+  /* now compute contributions for nonstandard base pairs ... */
+  /* first, 1 nonstandard bp */
+  for (i=1; i<NBPAIRS; i++){
+    for (k=0; k<5; k++){
+      for (l=0; l<5; l++){
+        for (m=0; m<5; m++){
+          for(n=0;n<5;n++){
+            max = max2 = -INF;
+            for(j=1;j<NBPAIRS;j++){
+              max   = MAX2(max, array[i][j][k][l][m][n]);
+              max2  = MAX2(max2, array[j][i][k][l][m][n]);
+            }
+            array[i][NBPAIRS][k][l][m][n] = max;
+            array[NBPAIRS][i][k][l][m][n] = max2;
+          }
+        }
+      }
+    }
+  }
+
+  /* now 2 nst base pairs */
+  for (k=0; k<5; k++){
+    for (l=0; l<5; l++){
+      for (m=0; m<5; m++){
+        for(n=0;n<5;n++){
+          max = -INF;
+          for(j=1;j<NBPAIRS;j++){
+            max   = MAX2(max, array[NBPAIRS][j][k][l][m][n]);
+          }
+          array[NBPAIRS][NBPAIRS][k][l][m][n] = max;
+        }
+      }
+    }
+  }
+
 }

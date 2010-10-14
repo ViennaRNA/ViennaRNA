@@ -18,9 +18,7 @@ static char rcsid[] = "$Id: stringdist.c,v 1.3 2005/07/24 08:37:15 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
-#define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
-#define MAX(x,y)       (((x)>(y)) ? (x) : (y))
-#define MIN3(x,y,z)    (MIN(  (MIN((x),(y))) ,(z)))
+
 #define INFINITY_DIST  10000
  
 PUBLIC  float      string_edit_distance(swString *T1, swString *T2);
@@ -176,7 +174,7 @@ PRIVATE float StrEditCost(int i, int j, swString *T1, swString *T2)
     if( ((T1[i].sign)*(T2[j].sign)) > 0) {
        c = (float) (*EditCost)[T1[i].type][T2[j].type];
        diff = (float) fabs((a=T1[i].weight) - (b=T2[j].weight));
-       min = MIN(a,b);
+       min = MIN2(a,b);
        if (min == a) cd = (float) (*EditCost)[0][T2[j].type];
        else          cd = (float) (*EditCost)[T1[i].type][0];
        dist = c * min + cd * diff;
@@ -393,7 +391,7 @@ PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
 	 if(T2[alignment[1][i]].sign < 0) strcat(tmp1, ")");
          l1 = strlen(tmp1);
       }
-      ltmp = MAX(l0,l1);
+      ltmp = MAX2(l0,l1);
       for (j=l0; j<ltmp; j++) tmp0[j] = '_';
       for (j=l1; j<ltmp; j++) tmp1[j] = '_';
       tmp0[ltmp] = '\0'; tmp1[ltmp] = '\0';

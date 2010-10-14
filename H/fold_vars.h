@@ -16,23 +16,6 @@
 #define PUBLIC
 #define PRIVATE static
 
-/**
-*** Get the minimum of two comparable values
-**/
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
-/**
-*** Get the maximum of two comparable values
-**/
-#define MAX2(A, B)      ((A) > (B) ? (A) : (B))
-/**
-*** Get the minimum of three comparable values
-**/
-#define MIN3(A, B, C)   (MIN2(  (MIN2((A),(B))) ,(C)))
-/**
-*** Get the maximum of three comparable values
-**/
-#define MAX3(A, B, C)   (MAX2(  (MAX2((A),(B))) ,(C)))
-
 /** Global switch to activate/deactivate folding with structure constraints */
 int    fold_constrained;
 /** Global switch to avoid/allow helices of length 1 */

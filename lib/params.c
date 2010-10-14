@@ -142,9 +142,9 @@ PUBLIC paramT *scale_parameters(void)
               params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] - (int22_dH[i][j][k][l][m][n]-int22_37[i][j][k][l][m][n])*tempf;
         }
 
-  strncpy(params->Tetraloops, Tetraloops, 1400);
-  strncpy(params->Triloops, Triloops, 240);
-  strncpy(params->Hexaloops, Hexaloops, 1800);
+  strncpy(params->Tetraloops, Tetraloops, 281);
+  strncpy(params->Triloops, Triloops, 241);
+  strncpy(params->Hexaloops, Hexaloops, 361);
 
   params->temperature = temperature;
   params->id = ++id;
@@ -332,9 +332,9 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
             }
         }
 
-  strncpy(pf.Tetraloops, Tetraloops, 1400);
-  strncpy(pf.Triloops, Triloops, 240);
-  strncpy(pf.Hexaloops, Hexaloops, 1800);
+  strncpy(pf.Tetraloops, Tetraloops, 281);
+  strncpy(pf.Triloops, Triloops, 241);
+  strncpy(pf.Hexaloops, Hexaloops, 361);
 
   pf.id = ++pf_id;
   return &pf;
@@ -443,9 +443,9 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kT);
         if (dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
-          pf->expmismatchM[i][j][k] = exp(-GT*10.0/kT);
+          pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kT);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
-          pf->expmismatchExt[i][j][k] = exp(-GT*10.0/kT);
+          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT)*10.0/kT);
         }
         else{
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
