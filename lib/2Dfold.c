@@ -83,8 +83,8 @@ PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *struct
 
   vars->reference_pt1   = make_pair_table(structure1);
   vars->reference_pt2   = make_pair_table(structure2);
-  vars->referenceBPs1   = make_referenceBP_array(vars->reference_pt1, TURN); /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  vars->referenceBPs2   = make_referenceBP_array(vars->reference_pt2, TURN); /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  vars->referenceBPs1   = make_referenceBP_array(vars->reference_pt1, TURN);
+  vars->referenceBPs2   = make_referenceBP_array(vars->reference_pt2, TURN);
   vars->bpdist          = compute_BPdifferences(vars->reference_pt1, vars->reference_pt2, TURN);
   vars->do_backtrack    = 1;
   vars->dangles         = dangles;
@@ -552,15 +552,7 @@ PRIVATE void initialize_TwoDfold_vars(TwoDfold_vars *vars){
 }
 
 
-PUBLIC TwoDfold_solution **TwoDfold(const char *string, char *structure1, char *structure2){
-  return TwoDfold_bounded(string, structure1, structure2, -1, -1);
-}
-
-PUBLIC TwoDfold_solution **TwoDfold_circ(const char *string, char *structure1, char *structure2){
-  return TwoDfold_circ_bounded(string, structure1, structure2, -1, -1);
-}
-
-PUBLIC TwoDfold_solution **TwoDfold_bound(TwoDfold_vars *vars, int distance1, int distance2){
+PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int distance2){
   unsigned int i, d1, d2;
   unsigned int maxD1 = 0;
   unsigned int maxD2 = 0;
@@ -592,6 +584,7 @@ PUBLIC TwoDfold_solution **TwoDfold_bound(TwoDfold_vars *vars, int distance1, in
   output = (TwoDfold_solution **)space((vars->maxD1+1) * sizeof(TwoDfold_solution *));
 
   mfe_linear(vars);
+  if(vars->circ) mfe_circ(vars);
 
   length = vars->seq_length;
 
@@ -604,17 +597,20 @@ PUBLIC TwoDfold_solution **TwoDfold_bound(TwoDfold_vars *vars, int distance1, in
       output[d1][d2].en = (float)INF/(float)100.;
       output[d1][d2].s  = NULL;
     }
-    if(d1 >= vars->k_min_values_f[length] && d1 <= vars->k_max_values_f[length]){
+    if(     (d1 >= ((vars->circ) ? vars->k_min_values_fc : vars->k_min_values_f[length]))
+        &&  (d1 <= ((vars->circ) ? vars->k_max_values_fc : vars->k_max_values_f[length]))){
 #ifdef USE_OPENMP
   #pragma omp parallel for private(d2, i)
 #endif
-      for(d2 = vars->l_min_values_f[length][d1]; d2 <= vars->l_max_values_f[length][d1]; d2 += 2){
-        output[d1][d2].en = (float)vars->E_F5[length][d1][d2/2]/(float)100.;
+      for(  d2  = ((vars->circ) ? vars->l_min_values_fc[d1] : vars->l_min_values_f[length][d1]);
+            d2 <= ((vars->circ) ? vars->l_max_values_fc[d1] : vars->l_max_values_f[length][d1]);
+            d2 += 2){
+        output[d1][d2].en = (float)((vars->circ) ? vars->E_Fc[d1][d2/2] : vars->E_F5[length][d1][d2/2])/(float)100.;
         if(vars->do_backtrack && (output[d1][d2].en != (float)INF/(float)100.)){
           char *mfe_structure = (char *)space(length+1);
           for(i=0;i<length;i++) mfe_structure[i] = '.';
           mfe_structure[i] = '\0';
-          backtrack_f5(length, d1, d2, mfe_structure, vars);
+          (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length, d1, d2, mfe_structure, vars);
           output[d1][d2].s = mfe_structure;
         }
       }
@@ -634,105 +630,6 @@ PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, unsigned int k, unsigned int 
 
   backtrack_f5(j, k, l, mfe_structure, vars);
   return mfe_structure;
-}
-
-/* just for compatibility reasons... you should use TwoDfold_bound() instead and care yourself about
-*  handling of allocated memory in the TwoDfold_vars structure...
-*  use get_TwoDfold_variables() and destroy_TwoDfold_variables() to allocate and free all memory used!
-*/
-TwoDfold_solution **TwoDfold_bounded(const char *string, char *structure1, char *structure2, int distance1, int distance2){
-  TwoDfold_vars     *vars;
-  TwoDfold_solution **output;
-
-  vars    = get_TwoDfold_variables(string, structure1, structure2, 0);
-  output  = TwoDfold_bound(vars, distance1, distance2);
-
-  destroy_TwoDfold_variables(vars);
-
-  return output;
-}
-
-TwoDfold_solution **TwoDfold_circ_bound(TwoDfold_vars *vars, int distance1, int distance2){
-  unsigned int i, d1, d2, length;
-  unsigned int maxD1 = 0;
-  unsigned int maxD2 = 0;
-  unsigned int mm;
-  TwoDfold_solution **output;
-
-  initialize_TwoDfold_vars(vars);
-  if(fabs(vars->P->temperature - temperature)>1e-6) update_TwoDfold_params(vars);
-  vars->S   = encode_sequence(vars->sequence, 0);
-  vars->S1  = encode_sequence(vars->sequence, 1);
-  make_ptypes(vars);
-
-  if(distance1 >= 0){
-    if((unsigned int)distance1 > vars->maxD1)
-      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
-    vars->maxD1 = (unsigned int)distance1;
-  }
-
-  if(distance2 >= 0){
-    if((unsigned int)distance2 > vars->maxD2)
-      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
-    vars->maxD2 = (unsigned int)distance2;
-  }
-
-
-
-
-  /* more preparation for the new way to deal with the arrays */
-  maxD1 = vars->maxD1;
-  maxD2 = vars->maxD2;
-
-  output = (TwoDfold_solution **)space((vars->maxD1+1) * sizeof(TwoDfold_solution *));
-  mfe_linear(vars);
-  mfe_circ(vars);
-
-  length = vars->seq_length;
-
-  for(d1=0; d1<=maxD1;d1++){
-    output[d1] = (TwoDfold_solution *)space((vars->maxD2+1)*sizeof(TwoDfold_solution));
-#ifdef USE_OPENMP
-  #pragma omp parallel for private(d2)
-#endif
-    for(d2=0; d2<=maxD2;d2++){
-      output[d1][d2].en = (float)INF/(float)100.;
-      output[d1][d2].s  = NULL;
-    }
-    if(d1 >= vars->k_min_values_fc && d1 <= vars->k_max_values_fc){
-#ifdef USE_OPENMP
-  #pragma omp parallel for private(d2, i)
-#endif
-      for(d2 = vars->l_min_values_fc[d1]; d2 <= vars->l_max_values_fc[d1]; d2 += 2){
-        output[d1][d2].en = (float)vars->E_Fc[d1][d2/2]/(float)100.;
-        if(vars->do_backtrack && (output[d1][d2].en != (float)INF/(float)100.)){
-          char *mfe_structure = (char *)space(length+1);
-          for(i=0;i<length;i++) mfe_structure[i] = '.';
-          mfe_structure[i] = '\0';
-          backtrack_fc(d1, d2, mfe_structure, vars);
-          output[d1][d2].s = mfe_structure;
-        }
-      }
-    }
-
-  }
-  return output;
-}
-
-/* just for compatibility reasons...
-*  you should use TwoDfold_circ_bound() instead and care yourself about
-*  handling of allocated memory in the TwoDfold_vars structure...
-*  use get_TwoDfold_variables() and destroy_TwoDfold_variables() to allocate and free all memory used!
-*/
-TwoDfold_solution **TwoDfold_circ_bounded(const char *string, char *structure1, char *structure2, int distance1, int distance2){
-  TwoDfold_vars     *vars;
-  TwoDfold_solution **output;
-
-  vars     = get_TwoDfold_variables(string, structure1, structure2, 1);
-  output            = TwoDfold_circ_bound(vars, distance1, distance2);
-
-  destroy_TwoDfold_variables(vars);
-  return output;
 }
 
 PRIVATE void mfe_linear(TwoDfold_vars *vars){

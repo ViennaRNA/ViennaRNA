@@ -219,7 +219,7 @@ int main(int argc, char *argv[]){
     /* get all variables need for the folding process (some memory will be preallocated here too) */
     TwoDfold_vars *mfe_vars = get_TwoDfold_variables(string, structure1, structure2, circ);
     mfe_vars->do_backtrack = do_backtrack;
-    TwoDfold_solution **mfe_s = (circ) ? TwoDfold_circ_bound(mfe_vars, maxDistance1, maxDistance2) : TwoDfold_bound(mfe_vars, maxDistance1, maxDistance2);
+    TwoDfold_solution **mfe_s = TwoDfold(mfe_vars, maxDistance1, maxDistance2);
 
     maxDistance1 = mfe_vars->maxD1;
     maxDistance2 = mfe_vars->maxD2;
