@@ -11,7 +11,11 @@ args "--file-name=RNA2Dfold_cmdl --include-getopt --default-optional --unamed-op
 
 
 # Options
-option  "temp"            T "temperature for folding energies" double
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+optional
+
 option  "maxDist1"        K "maximum distance to first reference structure" int 
 option  "maxDist2"        L "maximum distance to second reference structure" int 
 option  "partFunction"    p "calculate partition function and Boltzmann probabilities" flag off
@@ -27,5 +31,4 @@ option  "noGU"            - "Do not allow GU pairs" flag off
 option  "noClosingGU"       - "Do not allow GU pairs at the end of helices" flag off
 option  "pfScale"         S "scaling factor for pf to avoid overflows"  double
 option  "noBT"            - "do not backtrack structures, calculate energy contributions only"  flag  off
- 
 

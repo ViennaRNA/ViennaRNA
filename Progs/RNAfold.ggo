@@ -1,17 +1,19 @@
 # Name of your program
 package "RNAfold" # don't use package if you're using automake
-purpose "calculate secondary structures of RNAs"
-usage "RNAfold [options]\n"
+
+purpose "Calculate minimum free energy secondary structures and partition function of RNAs"
+
+#usage "RNAfold [options]\n"
 
 # Version of your program
-#version "2.0"   # don't use version if you're using automake
+version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
+args "--long-help --file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
 
 
-description "reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\
+description "The program reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\
  and prints to stdout the mfe structure in bracket notation and its free energy. If the -p option\
  was given it also computes the partition function (pf) and base pairing probability matrix, and\
  prints the free energy of the thermodynamic ensemble, the frequency of the mfe structure in the ensemble,\
@@ -142,13 +144,13 @@ option  "noPS"            - "Do not produce postscript drawing of the mfe struct
 option  "MEA"             - "Calculate the MEA structure\n" float default="1."  argoptional optional
 
 
-text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
+text    "\"REFERENCES\"\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
  developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
- The energy parameters are taken from:\033[0m\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
+ The energy parameters are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
  Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
  911-940, 1999\n\nA. Walter, D Turner, J Kim, M Lyttle, P M\252ller, D Mathews, M Zuker \"Coaxial stacking of\
  helices enhances binding of oligoribonucleotides.\"\nPNAS, 91, pp 9218-9222, 1994\n\n\
- If you use this program in your work you might want to cite:\033[0m\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
  S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
  Chemie 125: 167-188\n\nM. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
  and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
@@ -158,6 +160,6 @@ text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structure
  Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
  London\n\n"
 
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "\"AUTHORS\"\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.\n\n"
+text    "\"BUGS\"\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"
