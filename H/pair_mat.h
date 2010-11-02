@@ -43,14 +43,6 @@ static int encode_char(char c) {
   return code;
 }
 
-
-PUBLIC int encode_nucleotide(char c, unsigned int options){
-  const char letters[]="ACGUTRYMKSWHBVDN";
-
-
-}
-
-
 /*@+boolint +charint@*/
 /*@null@*/
 extern char *nonstandards;

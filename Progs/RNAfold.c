@@ -154,7 +154,7 @@ int main(int argc, char *argv[]){
 
     fname[0] = '\0';
 
-    if(buf) input_string  = buf;
+    if(buf && !istty) input_string  = buf;
     else    input_type    = get_multi_input_line(&input_string, (fasta) ? VRNA_INPUT_FASTA_HEADER : 0);
 
     /* skip everything we are not interested in */
