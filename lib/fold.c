@@ -159,7 +159,6 @@ PRIVATE void init_fold(int length){
 /*--------------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int size){
-  indx  = (int *) space(sizeof(int)*(size+1));
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)

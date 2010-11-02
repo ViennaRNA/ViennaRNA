@@ -12,12 +12,23 @@
 #define VRNA_INPUT_QUIT                   2U
 /** Output flag of \ref get_input_line():  "something was read" **/
 #define VRNA_INPUT_MISC                   4U
-/** Output flag of \ref get_input_line():  "a fasta header was read" **/
+/** Input/Output flag of \ref get_input_line():\n
+*** if used as input option this tells get_input_line() that the data to be read should comply
+*** with the FASTA format
+***
+*** the function will return this flag if a fasta header was read
+**/
 #define VRNA_INPUT_FASTA_HEADER           8U
-/** **/
+/** Input flag for get_input_line():\n
+*** Tell get_input_line() that we assume to read a nucleotide sequence
+***
+**/
 #define VRNA_INPUT_SEQUENCE               16U
-/** **/
-#define VRNA_INPUT_STRUCTURE              32U
+/** Input flag for get_input_line():\n
+*** Tell get_input_line() that we assume to read a structure constraint
+***
+**/
+#define VRNA_INPUT_CONSTRAINT             32U
 /** Input switch for \ref get_input_line():  "do not print comment lines read to stdout" **/
 #define VRNA_INPUT_NOPRINT_COMMENTS       64U
 /** Input switch for \ref get_input_line():  "do not skip comment lines" **/
@@ -124,6 +135,8 @@ int skip_comment_lines(char **line);
 *** \return         A flag with information about what has been read
 **/
 unsigned int get_input_line(char **string, unsigned int options);
+
+unsigned int get_multi_input_line(char **string, unsigned int options);
 
 
 /**
