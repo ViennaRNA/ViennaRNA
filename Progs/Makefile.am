@@ -37,7 +37,8 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAsubopt.ggo RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
               RNA2Dfold.ggo RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
               RNAparconv.ggo RNAparconv_cmdl.c RNAparconv_cmdl.h\
-              RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h
+              RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h\
+              RNApaln.ggo RNApaln_cmdl.c RNApaln_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -158,3 +159,10 @@ RNAinverse_cmdl.h  RNAinverse_cmdl.c: RNAinverse.ggo
 	gengetopt -i RNAinverse.ggo
 
 RNAinverse_SOURCES=RNAinverse_cmdl.c RNAinverse.c
+
+RNApaln.c:   RNApaln_cmdl.h
+
+RNApaln_cmdl.h  RNApaln_cmdl.c: RNApaln.ggo
+	gengetopt -i RNApaln.ggo
+
+RNApaln_SOURCES=RNApaln_cmdl.c RNApaln.c
