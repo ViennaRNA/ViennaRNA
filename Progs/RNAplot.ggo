@@ -1,0 +1,54 @@
+# Name of your program
+package "RNAplot" # don't use package if you're using automake
+
+purpose "Draw RNA Secondary Structures"
+
+#usage "RNAplot [options]\n"
+
+# Version of your program
+version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--long-help --file-name=RNAplot_cmdl --include-getopt --default-optional --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
+
+
+description "The program reads RNA sequences and structures from stdin in the format as produced by\
+ RNAfold and produces drawings of the secondary structure graph.\nThe coordinates are produced using\
+ either E. Bruccoleri's naview routines, or a simple radial layout method.\n\nIf the sequence was\
+ preceded by a line of the form\n\n>name\n\nthe output file will be named \"name_ss.ps\" otherwise\
+ \"rna.ps\" is used.\nExisting files of the same name will be overwritten.\n"
+
+# Options
+option  "layout-type"  t
+"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n"
+int
+default="1"
+optional
+
+option  "output-format"   o
+"Specify output format. Available formats are: PostScript (ps), Graph Meta Language (gml),\
+ Scalable Vector Graphics (svg), and XRNA save file (xrna). Output filenames will end in\
+ \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
+string
+typestr="ps|gml|xrna|svg"
+default="ps"
+optional
+
+option  "pre"   -
+"Add annotation macros to postscript file, and add the postscript code in \"string\" just\
+ before the code to draw the structure. This is an easy way to add annotation.\n"
+string
+typestr="string"
+optional
+
+option  "post"  -
+"Same as --pre but in contrast to adding the annotation macros. E.g to mark position\
+ 15 with circle use --post \"15 cmark\"\n"
+string
+typestr="string"
+optional
+
+text    "\"AUTHOR\"\n\nIvo L Hofacker\n\n"
+text    "\"BUGS\"\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"
