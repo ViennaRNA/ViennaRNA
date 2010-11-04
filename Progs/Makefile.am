@@ -166,3 +166,15 @@ RNApaln_cmdl.h  RNApaln_cmdl.c: RNApaln.ggo
 	gengetopt -i RNApaln.ggo
 
 RNApaln_SOURCES=RNApaln_cmdl.c RNApaln.c
+
+RNAplot.c:   RNAplot_cmdl.h
+
+RNAplot_cmdl.h  RNAplot_cmdl.c: RNAplot.ggo
+	gengetopt -i RNAplot.ggo
+
+RNAplot_SOURCES=RNAplot_cmdl.c RNAplot.c
+
+man_MANS = RNAfold.man
+
+RNAfold.man:  RNAfold
+	help2man -N --help-option=--detailed-help ./RNAfold > RNAfold.man

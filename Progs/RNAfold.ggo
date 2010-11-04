@@ -10,7 +10,7 @@ version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--long-help --file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
+args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
 
 
 description "The program reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\

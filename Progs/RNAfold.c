@@ -155,14 +155,22 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
 
     if(buf && !istty) input_string  = buf;
-    else    input_type    = get_multi_input_line(&input_string, (fasta) ? VRNA_INPUT_FASTA_HEADER : 0);
+    else    input_type    = get_multi_input_line(
+                              &input_string,
+                              ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                              | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                            );
 
     /* skip everything we are not interested in */
     while(input_type & (VRNA_INPUT_MISC | VRNA_INPUT_CONSTRAINT)){
       free(input_string);
       input_string  = NULL;
       /* get more input */
-      input_type    = get_multi_input_line(&input_string, (fasta) ? VRNA_INPUT_FASTA_HEADER : 0);
+      input_type    = get_multi_input_line(
+                        &input_string,
+                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                      );
     }
 
     if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
@@ -172,7 +180,11 @@ int main(int argc, char *argv[]){
       (void) sscanf(input_string, "%42s", fname);
       if(!istty) printf(">%s\n", input_string);
       free(input_string); input_string = NULL;
-      input_type = get_multi_input_line(&input_string, VRNA_INPUT_FASTA_HEADER);
+      input_type  = get_multi_input_line(
+                      &input_string,
+                      VRNA_INPUT_FASTA_HEADER
+                      | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)\
+                    );
       if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
     }
     else if(fasta) warn_user("fasta header missing");
@@ -183,7 +195,11 @@ int main(int argc, char *argv[]){
       input_string  = NULL;
 
       if(fold_constrained){
-        input_type = get_multi_input_line(&input_string, ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0) | VRNA_INPUT_NOSKIP_COMMENTS);
+        input_type  = get_multi_input_line(
+                        &input_string,
+                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                      );
         if(input_type & VRNA_INPUT_CONSTRAINT){
           cl = (int)strlen(input_string);
           if(cl < length)       warn_user("structure constraint is shorter than sequence");
