@@ -18,9 +18,9 @@ similar to
 
 Here, the first line just repeats the sequence input. The second line contains a
 MFE structure in dot bracket notation followed by the minimum free energy. After
-this, the base pair probabilities are shown in a pseudo dot-bracket notation followed
-by the free energy of ensemble. The next two lines show the centroid structure
-with its free energy and its distance to the ensemble as well as the MEA structure,
+this, the pairing probabilities for each nucleotide are shown in a pseudo dot-bracket
+notation followed by the free energy of ensemble. The next two lines show the centroid
+structure with its free energy and its distance to the ensemble as well as the MEA structure,
 its free energy and the maximum expected accuracy, respectively. The last line finally
 contains the frequency of the MFE representative in the complete ensemble of secondary
 structures and the ensemble diversity. For further details about the calculation and
