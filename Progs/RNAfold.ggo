@@ -6,7 +6,7 @@ purpose "Calculate minimum free energy secondary structures and partition functi
 #usage "RNAfold [options]\n"
 
 # Version of your program
-version "2.0"   # don't use version if you're using automake
+#version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt

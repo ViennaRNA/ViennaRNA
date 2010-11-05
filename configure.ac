@@ -166,6 +166,7 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
 AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile])
+AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_OUTPUT
 
 eval _bindir=$(eval echo $bindir)

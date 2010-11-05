@@ -9,6 +9,6 @@
 
 case $2 in
   --help)           gengetopt --show-help < $1;;
-  --version)        gengetopt --show-version < $1;;
+  --version)        echo @VERSION@;;
   --detailed-help)  gengetopt --show-detailed-help < $1;;
 esac
