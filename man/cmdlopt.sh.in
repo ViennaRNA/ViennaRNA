@@ -7,8 +7,9 @@
 # should be parsed, while the second argument may be one of the following
 # options
 
+
 case $2 in
-  --help)           gengetopt --show-help < $1;;
+  --help)           gengetopt --show-help --set-version=@VERSION@ < $1;;
   --version)        echo @VERSION@;;
-  --detailed-help)  gengetopt --show-detailed-help < $1;;
+  --detailed-help)  gengetopt --show-detailed-help --set-version=@VERSION@ < $1;;
 esac

@@ -4,8 +4,6 @@ package "RNAfold" # don't use package if you're using automake
 purpose "Calculate minimum free energy secondary structures and partition function of RNAs"
 
 #usage "RNAfold [options]\n"
-
-# Version of your program
 #version "2.0"   # don't use version if you're using automake
 
 
@@ -70,8 +68,8 @@ details="In addition to the MFE structure\
  and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
- of partition function calculation:\n-p0\tCalculate the partition function but not the pair probabilities,\
- saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n-p2\tCompute stack probabilities,\
+ of partition function calculation:\n-p0 Calculate the partition function but not the pair probabilities,\
+ saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n-p2 Compute stack probabilities,\
  i.e. the probability that a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in\
  addition to pair probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the\
  sequence does not have a name), is produced that contains pair probabilities in the upper right half and stack\

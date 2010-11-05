@@ -1,8 +1,9 @@
 # Name of your program
 package "RNAcofold" # don't use package if you're using automake
-purpose "calculate secondary structures of two RNAs with dimerization"
-usage "RNAcofold [options]\n"
 
+purpose "calculate secondary structures of two RNAs with dimerization"
+
+#usage "RNAcofold [options]\n"
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 

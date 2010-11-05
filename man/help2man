@@ -216,6 +216,7 @@ print $version_text, "\n";
 
 my $date = strftime "%B %Y", localtime;
 (my $program = $ARGV[0]) =~ s!.*/!!;
+$program =~ s/.ggo//;
 my $package = $program;
 my $version;
 
