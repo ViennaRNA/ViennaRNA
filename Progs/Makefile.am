@@ -176,5 +176,5 @@ RNAplot_SOURCES=RNAplot_cmdl.c RNAplot.c
 
 man_MANS = RNAfold.man
 
-RNAfold.man:  RNAfold
-	help2man -N --help-option=--detailed-help ./RNAfold > RNAfold.man
+RNAfold.man:  RNAfold RNAfold.examples
+	help2man -N --help-option=--detailed-help --opt-include=./RNAfold.examples ./RNAfold > RNAfold.man
