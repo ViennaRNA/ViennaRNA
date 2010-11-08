@@ -107,6 +107,7 @@ section "Model Details"
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
+optional
 
 option  "noTetra" 4
 "Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
@@ -118,20 +119,22 @@ option  "dangles" d
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
  default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
  dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\n-d0 ignores dangling ends altogether (mostly for\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
  debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
  energy model.\n"
 int
-default="1"
+default="2"
 optional
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
 
 option  "noGU"  -
 "Do not allow GU pairs\n"
@@ -184,6 +187,6 @@ text    "References:\n\nThe calculation of mfe structures is based on dynamic pr
  Stadler, S. Will (2007) \"Variations on {RNA} Folding and Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams\
  (1979) \"The hitchhiker's guide to the galaxy\", Pan Books, London\n\n"
 
-text    "Written by:\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.\n\n"
-text    "Report bugs:  \n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "Written by:\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler, Ronny Lorenz.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

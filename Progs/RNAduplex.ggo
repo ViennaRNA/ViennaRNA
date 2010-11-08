@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAduplex" # don't use package if you're using automake
 purpose "Compute the structure upon hybridization of two RNA strands"
-usage "RNAduplex [options]\n"
+#usage "RNAduplex [options]\n"
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
@@ -21,34 +21,62 @@ description "reads two RNA sequences from stdin or <filename> and computes optim
  probe sequence and a long target sequence.\n"
 
 # Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "sorted"  s
+"print output sorted by free energy\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\n"
+
+option  "deltaEnergy" e
+"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
+ Default is calculation of mfe structure only.\n"
+float
+typestr="range"
+optional
+
+section "Model Details"
+
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
+optional
 
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
- default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
- dangling energies will be added for the bases adjacent to a helix on both sides in any case\n\n\
- -d0 ignores dangling ends altogether (mostly for\
- debugging).\n\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is unsupported\
+ for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
  energy model.\n"
 int
-default="1"
+default="2"
 optional
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
 
 option  "noGU"  -
 "Do not allow GU pairs\n"
@@ -60,10 +88,13 @@ option  "noClosingGU" -
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
-flag
-off
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -73,28 +104,9 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
  energy.\n"
 string
 optional
+hidden
 
-option  "deltaEnergy" e
-"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
- Default is calculation of mfe structure only.\n"
-float
-typestr="range"
-optional
-
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
-string
-typestr="paramfile"
-optional
-
-option  "sorted"  s
-"print output sorted by free energy\n"
-flag
-off
-
-text    "\033[1m\"SEE ALSO\"\033[2m\033[0m\n\nRNAcofold(l) RNAfold(l)\n\n"
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "See also:\n\nRNAcofold(l) RNAfold(l)\n\n"
+text    "Written by:\n\nIvo L Hofacker\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

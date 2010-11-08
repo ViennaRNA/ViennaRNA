@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
     maxDistance2 = args_info.maxDist2_arg;
 
   /* compute partition function and boltzmann probabilities */
-  if(args_info.partFunction_given)
+  if(args_info.partfunc_given)
     pf = 1;
 
   /* do stachastic backtracking */
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]){
     nstBT = args_info.stochBT_arg;
   }
 
-  if(args_info.noTetraLoop_given)
+  if(args_info.noTetra_given)
     tetra_loop=0;
 
   /* assume RNA sequence to be circular */
