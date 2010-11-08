@@ -35,10 +35,10 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
-  char          *string, *input_string, *structure=NULL, *cstruc=NULL;
-  char          fname[80], ffname[80], gfname[80], *ParamFile=NULL;
+  char          *buf, *string, *input_string, *structure=NULL, *cstruc=NULL;
+  char          fname[80], ffname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
-  int           i, length, l, sym, r, istty, pf, noPS, noconv;
+  int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
   unsigned int  input_type;
   double        energy, min_en, kT, sfact;
   int           doMEA=0, circular;
@@ -46,12 +46,15 @@ int main(int argc, char *argv[]){
 
   do_backtrack  = 1;
   string        = NULL;
+  input_string  = NULL;
+  buf           = NULL;
   pf            = 0;
   sfact         = 1.07;
   noPS          = 0;
   noconv        = 0;
   circular      = 0;
-
+  fasta         = 0;
+  cl = l = length = 0;
   /*
   #############################################
   # check the command line parameters
@@ -134,8 +137,7 @@ int main(int argc, char *argv[]){
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-
-  if(fold_constrained && istty) print_tty_constraint_full();
+  if(istty && fold_constrained) print_tty_constraint_full();
 
   /*
   #############################################
@@ -150,46 +152,80 @@ int main(int argc, char *argv[]){
     */
     if(istty) print_tty_input_seq();
 
-    /* extract filename from fasta header if available */
     fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
+
+    if(buf && !istty) input_string  = buf;
+    else    input_type    = get_multi_input_line(
+                              &input_string,
+                              ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                              | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                            );
+
+    /* skip everything we are not interested in */
+    while(input_type & (VRNA_INPUT_MISC | VRNA_INPUT_CONSTRAINT)){
+      free(input_string);
+      input_string  = NULL;
+      /* get more input */
+      input_type    = get_multi_input_line(
+                        &input_string,
+                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                      );
+    }
+
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+
+    if(input_type & VRNA_INPUT_FASTA_HEADER){
+      fasta = 1;
       (void) sscanf(input_string, "%42s", fname);
-      printf(">%s\n", input_string); /* print fasta header if available */
-      free(input_string);
+      if(!istty) printf(">%s\n", input_string);
+      free(input_string); input_string = NULL;
+      input_type  = get_multi_input_line(
+                      &input_string,
+                      VRNA_INPUT_FASTA_HEADER
+                      | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)\
+                    );
+      if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
     }
+    else if(fasta) warn_user("fasta header missing");
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      length = (int)    strlen(input_string);
-      string = strdup(input_string);
-      free(input_string);
-    }
+    if(input_type & VRNA_INPUT_SEQUENCE){
+      length        = (int)strlen(input_string);
+      string        = input_string;
+      input_string  = NULL;
 
-    structure = (char *) space((unsigned) length+1);
-
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
-
-    if(istty) printf("length = %d\n", length);
-
-    /* get structure constraint or break if necessary, entering an empty line results in a warning */
-    if (fold_constrained) {
-      input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
-      if(input_type & VRNA_INPUT_QUIT){ break;}
-      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
-        cstruc = strdup(input_string);
-        free(input_string);
-        strncpy(structure, cstruc, length);
+      if(fold_constrained){
+        input_type  = get_multi_input_line(
+                        &input_string,
+                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
+                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
+                      );
+        if(input_type & VRNA_INPUT_CONSTRAINT){
+          cl = (int)strlen(input_string);
+          if(cl < length)       warn_user("structure constraint is shorter than sequence");
+          else if(cl > length)  nrerror("structure constraint is too long");
+          cstruc        = input_string;
+          input_string  = NULL;
+        } else warn_user("structure constraint missing");
       }
-      else warn_user("constraints missing");
     }
+    else nrerror("sequence missing");
+
+    buf = input_string;
+
     /*
     ########################################################
     # done with 'stdin' handling
     ########################################################
     */
+
+    structure = (char *)space(sizeof(char) *(length+1));
+    if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1)); 
+
+    if(noconv)  str_RNA2RNA(string);
+    else        str_DNA2RNA(string);
+
+    if(istty) printf("length = %d\n", length);
 
     min_en = (circular) ? circfold(string, structure) : fold(string, structure);
 
@@ -204,11 +240,8 @@ int main(int argc, char *argv[]){
     if (fname[0]!='\0') {
       strcpy(ffname, fname);
       strcat(ffname, "_ss.ps");
-      strcpy(gfname, fname);
-      strcat(gfname, "_ss.g");
     } else {
       strcpy(ffname, "rna.ps");
-      strcpy(gfname, "rna.g");
     }
     if (!noPS) (void) PS_rna_plot(string, structure, ffname);
     if (length>2000) free_arrays();
@@ -240,7 +273,8 @@ int main(int argc, char *argv[]){
         plist *pl1,*pl2;
         char *cent;
         double dist, cent_en;
-        assign_plist_from_pr(&pl1, pr, length, 1e-5);
+        FLT_OR_DBL *probs = export_bppm();
+        assign_plist_from_pr(&pl1, probs, length, 1e-5);
         assign_plist_from_db(&pl2, structure, 0.95*0.95);
         /* cent = centroid(length, &dist); <- NOT THREADSAFE */
         cent = get_centroid_struct_pr(length, &dist, pr);
@@ -286,6 +320,7 @@ int main(int argc, char *argv[]){
     (void) fflush(stdout);
     free(string);
     free(structure);
+    string = structure = cstruc = NULL;
   } while (1);
   return 0;
 }

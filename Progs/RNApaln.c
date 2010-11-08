@@ -19,6 +19,7 @@
 #include "ProfileAln.h"
 #include "read_epars.h"
 #include "PS_dot.h"
+#include "RNApaln_cmdl.h"
 
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
@@ -29,7 +30,6 @@ static  double gapo=1.5, gape=0.666, seqw=0.5;
 static  int endgaps=0;  
 
 PRIVATE void command_line(int argc, char *argv[]);
-PRIVATE void usage(void);
 PRIVATE void print_aligned_lines(FILE *somewhere);
 
 PRIVATE char task;
@@ -217,86 +217,63 @@ PRIVATE void command_line(int argc, char *argv[])
   int i, sym;
   char *ns_bases=NULL, *c;
   char *ParamFile=NULL;
+  struct  RNApaln_args_info args_info;
 
   task = 'p';
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') {
-      switch (argv[i][1]) {
-      case 'T':      /* temperature for folding */
-        if (argv[i][2]!='\0') usage();
-        if (sscanf(argv[++i], "%lf", &temperature)==0)
-          usage();
-        break;
-      case '4':
-        tetra_loop=0;
-        break;
-      case 'd':
-        dangles=0;
-        break;
-      case 'e':
-        if (sscanf(argv[++i],"%d", &energy_set)==0)
-          usage();
-        break;
-      case 'n':
-        if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
-        if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
-        if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-        if ( strcmp(argv[i], "-nsp") ==0) {
-          if (++i<argc)
-            ns_bases = argv[i];
-          else  usage();
-        }
-        if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-        break;
-      case 'X':
-        switch (task = argv[i][2]) {
-        case 'p': break;
-        case 'm': break;
-        case 'f': break;
-        case 'c': break;
-        default : usage();
-        }
-        break;
-      case 'B':
-        if(argv[i][2]!='\0') usage();
-        if( (i+1) >= argc) outfile[0] = '\0';
-        else if (argv[i+1][0]=='-') outfile[0] = '\0';
-        else {
-          i++;
-          strncpy(outfile,argv[i],49);
-        }
-        edit_backtrack = 1;   
-        break;
-      case 'P':
-        if (++i<argc)
-          ParamFile=argv[i];
-        else usage();
-        break;
-      case '-':
-        if (strcmp(argv[i], "--gapo")==0) {
-          if (sscanf(argv[++i],"%lf", &gapo)==0)
-            usage();
-        } else {
-          if (strcmp(argv[i], "--gape")==0) {
-            if (sscanf(argv[++i],"%lf", &gape)==0)
-              usage();
-          } else {
-            if (strcmp(argv[i], "--seqw")==0) {
-              if (sscanf(argv[++i],"%lf", &seqw)==0)
-                usage();
-            } else {
-              if (strcmp(argv[i], "--endgaps")==0) 
-                endgaps=1;
-            }
-          }
-        }
-        break;
-        
-      default:
-        usage();
-      }
+
+  if(RNApaln_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set the mode */
+  if(args_info.mode_given){
+    if(strlen(args_info.mode_arg) != 1){
+      RNApaln_cmdline_parser_print_help(); exit(EXIT_FAILURE);
+    }
+    else task = *args_info.mode_arg;
+    switch(task){
+      case 'p': case 'm': case 'f': case 'c': break;
+      default: RNApaln_cmdline_parser_print_help(); exit(EXIT_FAILURE);
     }
   }
+  if(args_info.printAlignment_given){
+    if(strcmp(args_info.printAlignment_arg, "stdout")){
+      strncpy(outfile, args_info.printAlignment_arg, 49);
+      outfile[49] = '\0';
+    }
+    else outfile[0] = '\0';
+    edit_backtrack = 1;
+  }
+  /* gap opening penalty */
+  if(args_info.gapo_given)  gapo = args_info.gapo_arg;
+  /* gap extension penalty */
+  if(args_info.gape_given)  gape = args_info.gape_arg;
+  /* sequence weight */
+  if(args_info.seqw_given)  seqw = args_info.seqw_arg;
+  /* endgaps */
+  if(args_info.endgaps_given) endgaps = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+
+
+  /* free allocated memory of command line data structure */
+  RNApaln_cmdline_parser_free (&args_info);
+
   /* fprintf(stderr, "%f %f %f %d\n", gapo, gape, seqw, -endgaps); */
   set_paln_params(gapo, gape, seqw, 1-endgaps);
 
@@ -322,16 +299,6 @@ PRIVATE void command_line(int argc, char *argv[])
       c++;
     }
   }
-}
-
-/* ------------------------------------------------------------------------- */
-
-PRIVATE void usage(void)
-{
-  nrerror
-    ("usage: RNApaln [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
-     "               [-noCloseGU] [-noLP] [-P paramfile] [-nsp pairs]\n"
-     "               [--gapo open] [--gape ext] [--seqw w] [--endgaps]\n");
 }
 
 /*--------------------------------------------------------------------------*/

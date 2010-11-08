@@ -519,7 +519,10 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   minimal_energy = (circular) ? Fc : f5[length];
   threshold = minimal_energy + delta;
-
+  if(threshold > INF){
+    warn_user("energy range too high, limiting to reasonable value");
+    threshold = INF-EMAX;
+  }
   Stack = make_list();                                                   /* anchor */
   Intervals = make_list();                                   /* initial state: */
   interval = make_interval(1, length, 0);          /* interval [1,length,0] */

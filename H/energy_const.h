@@ -1,6 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
 #define __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
 
+#include <limits.h>
+
 /**
 *** \file energy_const.h
 *** energy constants
@@ -11,7 +13,9 @@
 /** 37 deg Celsius in Kelvin */
 #define K0  273.15
 /** Infinity as used in minimization routines */
-#define INF 1000000
+#define INF (INT_MAX/10)
+
+#define EMAX (INF/10)
 /** forbidden */
 #define FORBIDDEN 9999
 /** bonus contribution */

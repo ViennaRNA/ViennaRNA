@@ -21,24 +21,24 @@ description "Converts energy parameter files from \"old\" ViennaRNAPackage 1.8.4
 # Options
 
 option  "output"  o
-"Specify an output file name. If argument is missing the converted energy parameters are printed to \'stdout\'.\n"
+"Specify an output file name. If argument is missing the converted energy parameters are printed to 'stdout'.\n"
 string
 typestr="filename"
 optional
 
 option  "input"  i
-"Specify an input file name. If argument is missing the energy parameter input can be supplied via \'stdin\'.\n"
+"Specify an input file name. If argument is missing the energy parameter input can be supplied via 'stdin'.\n"
 string
 typestr="filename"
 optional
 
 option  "vanilla" -
-"Print just as much as needed to represent the given energy parameters data set\nThis option overrides all other output settings!"
+"Print just as much as needed to represent the given energy parameters data set.\nThis option overrides all other output settings!"
 flag
 off
 
 option  "dump" -
-"Just dump Vienna 1.8.4 energy parameters in format used since 2.0\nThis option skips any energy parameter input!"
+"Just dump Vienna 1.8.4 energy parameters in format used since 2.0.\nThis option skips any energy parameter input!"
 flag
 off
 
@@ -119,6 +119,6 @@ flag
 off
 hidden
 
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nRonny Lorenz\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "Written by\n\nRonny Lorenz\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

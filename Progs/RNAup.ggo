@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAup" # don't use package if you're using automake
 purpose "Calculate the thermodynamics of RNA-RNA interactions"
-usage "RNAfold [options]\n"
+#usage "RNAup" [options]\n"
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
@@ -19,14 +19,45 @@ description "RNAup calculates the thermodynamics of RNA-RNA interactions, by dec
 
 # Options
 
-# Options for calculation of free energies needed to open a region:
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence(s), then a string containing constraints on the structure encoded with the symbols:\n\
+ . (no constraint for this base)\n
+ x (the base is unpaired)\n\
+ < (base i is paired with a base j>i) (solely used for calculation of unpaired regions)\n\
+ > (base i is paired with a base j<i) (solely used for calculation of unpaired regions)\n\
+ ( ) (base i pairs base j)\n\
+ | (the corresponding base has to be paired intermolecularily (works only in interaction mode)\n"
+flag
+off
+
+option  "no_output_file" o
+"Do not produce an output file\n"
+flag
+off
+
+option  "no_header" -
+"Do not produce a header with the command line parameters used in the outputfile\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Calculations of opening energies"
 
 option  "ulength"   u
 "specifies the length of the unstructured region in the output.\n"
 details="The probability of being unpaired is plotted on the right border\
  of the unpaired region. You can specify up to 20 different length values:\
  use \"-\" to specify a range of continuous values (e.g. -u 4-8) or specify\
- a list of comma separated values (e.g. -u 4,8,15)."
+ a list of comma separated values (e.g. -u 4,8,15).\n"
 string
 multiple
 typestr="length"
@@ -34,7 +65,7 @@ default="4"
 optional
 
 option "contributions"  c
-"Specify the contributions listed in the output"
+"Specify the contributions listed in the output\n"
 details="By default only the full probability of being unpaired is plotted.\
  The -c option allows to get the different contributions (c) to the probability\
  of being unpaired: The full probability of being unpaired (\"S\" is the sum of\
@@ -46,10 +77,9 @@ typestr="SHIME"
 default="S"
 optional
 
-# Options for calculation of interaction:
-
+section "Calculations of RNA-RNA interactions"
 option  "window"  w
-"Determine the maximal length of the region of interaction"
+"Determine the maximal length of the region of interaction\n"
 int
 default="25"
 optional
@@ -91,32 +121,42 @@ flag
 off
 
 option  "target"  -
-"Use the first sequence in the input file as the target."
+"Use the first sequence in the input file as the target.\n"
 flag
 off
 
-# General options
+section "Model Details"
 
-option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence(s), then a string containing constraints on the structure encoded with the symbols:\n\
- . (no constraint for this base)\n
- x (the base is unpaired)\n\
- < (base i is paired with a base j>i) (solely used for calculation of unpaired regions)\n\
- > (base i is paired with a base j<i) (solely used for calculation of unpaired regions)\n\
- ( ) (base i pairs base j)\n\
- | (the corresponding base has to be paired intermolecularily (works only in interaction mode)\n"
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+double
+optional
+hidden
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
 flag
 off
 
-option  "no_output_file" o
-"Do not produce an output file"
-flag
-off
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides in any case.\n\
+ The option -d0 ignores dangling ends altogether (mostly for debugging).\n"
+int
+default="2"
+optional
 
-option  "no_header" -
-"Do not produce a header with the command line parameters used in the outputfile"
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"
 flag
 off
 
@@ -130,17 +170,13 @@ option  "noClosingGU" -
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
-flag
-off
-
-option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
-int
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
 optional
-
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -150,52 +186,24 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
  energy.\n"
 string
 optional
+hidden
 
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"  double
-
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
-string
-typestr="paramfile"
-optional
-
-option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1).\n"
-details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
-
-option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
-double
-
-option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
-flag
-off
-
-option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides\
- in any case\n-d0 ignores dangling ends altogether (mostly for debugging).\n"
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
-default="2"
 optional
+hidden
 
-
-text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
+text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
  developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
- The energy parameters are taken from:\033[0m\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
+ The energy parameters are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
  Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
- 911-940, 1999\n\n If you use this program in your work you might want to cite:\033[0m\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ 911-940, 1999\n\n If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
  S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
  Chemie 125: 167-188\n\nU.Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and I.L. Hofacker (2006)\
  \"Thermodynamics of RNA-RNA Binding\", Bioinformatics, doi:10.1093/bioinformatics/btl024\n\n"
 
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker, Peter F Stadler, Ulrike Mueckstein.\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "Written by:\n\nIvo L Hofacker, Peter F Stadler, Ulrike Mueckstein.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

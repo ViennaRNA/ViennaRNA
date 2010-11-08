@@ -1,25 +1,5 @@
-.\" .ER
-.TH "RNAUP" "l" "1.6" "Ivo Hofacker" "ViennaRNA"
-.SH "NAME"
-RNAup \- calculates the thermodynamics of RNA-RNA interactions
-.SH "SYNOPSIS"
-\fBRNAup\fP [\-u\ \fIlength\fP] [\-w\ \fIlength\fP] [\-b] [\-X[p|f]]
-[\-c\ \fI"SHIME"\fP] [\-5\ \fIlength\fP] [\-3\ \fIlength\fP] [\-target]
-[\-o] [\-C] [\-T\ \fItemp\fP] [\-4] [\-d[2|3]] [\-noGU] [\-noCloseGU]
-[\-noLP] [\-P\ \fIparamfile\fP] [\-nsp\ \fIpairs\fP] [\-S\ \fIscale\fP]
-[\-noconv] 
+/over all possible conformations./
 
-.SH "DESCRIPTION"
-.I RNAup
-calculates the thermodynamics of RNA-RNA interactions, by decomposing the
-binding into two stages. (1) First the probability that a potential 
-binding sites remains unpaired (equivalent to the free energy needed to open
-the site) is computed. (2) Then this accessibility is combined with the
-interaction energy
-to obtain the total binding energy. All calculations are done by computing
-partition functions over all possible conformations.   
-
-.br
 RNAup provides two different modes: By default RNAup computes accessibilities, 
 in terms of the free energies needed to open a region (default length 4). It
 prints the region of highest accessibility and its opening energy to stdout, 
@@ -62,72 +42,9 @@ newline within a sequence cause an error! Newline is used to separate
 sequences. The program will continue to read new sequences until a line
 consisting of the single character @ or an end of file condition is
 encountered. 
-.SH "OPTIONS"
-.B Options for calculation of free energies needed to open a region:
-.TP
-.B \-u \fIlen\fP
-specifies the length (len) of the unstructured region in the output. The
-default value is 4. The probability of being unpaired is plotted on the
-right border of the unpaired region. You can specify up to 20
-different length values:  use "-" to specify a range of continuous values (e.g. -u 4-8) or specify a list of comma separated values (e.g. -u 4,8,15).
-.TP
-.B \-c \fI"SHIME"\fP
-by default only the full probability of being unpaired is
-plotted. The -c option allows to get the different contributions (c) to the
-probability of being unpaired: The full probability of being unpaired ("S")
-is the sum of the probability of being unpaired in the exterior loop
-("E"), within a hairpin loop ("H"), within an interior loop ("I") and within a
-multiloop ("M"). Any combination of these letters may be given.
-.TP
-.B Options for calculation of interaction:
-.TP
-.B \-w \fIlen\fP
-determines the maximal length of the region of interaction, the default 
-is 25. 
-.TP
-.B \-b 
-include the probability of unpaired regions in both (b) RNAs. By default
-only the probability of being unpaired in the longer RNA (target) is used.
-.TP 
-.B \-5(\-3) \fIlen\fP
-These options extend the region of interaction in the target by len 
-residues to the 5' and 3' side, respectively. The underlying assumption is 
-that it is favorable for an interaction if not only the direct region of 
-contact is unpaired but also a few residues 5'and 3' of this region. 
-.TP
-.B \-Xp
-set interaction mode. Pairwise (p) interaction is calculated: The first
-sequence interacts with the 2nd, the third with the 4th etc. If -Xp is
-selected two interacting sequences may be given in a single line
-separated by "&" or each sequence may be given on an extra line.
-.TP
-.B \-Xf
-set interaction mode. The interaction of each sequence with the first
-one is calculated (e.g. interaction of one mRNA with many small RNAs). Each
-sequence has to be given on an extra line.
-.TP
-.B \-target
-use the first sequence in the input file as the target. No length check is done.
-.TP
-.B general options:
-.TP
-.B \-C
-Calculate structures subject to constraints. Symbols ".", "x" and
-the matching brackets "( )" work in boths modes as described in
-\fBRNAfold\fP. Symbols "<" and ">" are solely used for the calculation of
-unpaired regions. The "|" constrain works only in interaction mode, the
-corresponding base has to be paired intermolecularily.
-.TP
-.B \-o
-make no output file.
 
-.PP
-the \-noGU, \-noCloseGU, \-nsp, \-S, \-P, \-noLP, \-T, \-4, and \-d 
-options work as in \fBRNAfold\fP, see there for description. 
+[EXAMPLES]
 
-.B output
-
-.SH SAMPLE OUTPUT
 .B Output to stdout:
 
 In Interaction mode RNAup prints the most favorable interaction energy
@@ -208,31 +125,3 @@ length 3 ending at position 2 exists).
 
 If the -b option is selected position and dGu_s values for the shorter sequence
 are written after the information for the target sequence.
-.br
-
-.SH "REFERENCES"
-The energy parameters are taken from:
-.br 
-D.H. Mathews, J. Sabina, M. Zuker and H. Turner
-"Expanded Sequence Dependence of Thermodynamic Parameters Provides 
-Robust Prediction of RNA Secondary Structure"
-JMB, 288, pp 911\-940, 1999
-.PP 
-If you use this program in your work you might want to cite:
-.PP 
-I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster 
-(1994)
-Fast Folding and Comparison of RNA Secondary Structures.
-Monatshefte f. Chemie 125: 167\-188
-.PP
-U.Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and
-I.L. Hofacker (2006)
-Thermodynamics of RNA-RNA Binding. Bioinformatics.
-doi:10.1093/bioinformatics/btl024
-.SH "VERSION"
-This man page documents version @VERSION@ Vienna RNA Package.
-.SH "AUTHORS"
-Ivo L Hofacker, Peter F Stadler, Ulrike Mueckstein.
-.SH "BUGS"
-If in doubt our program is right, nature is at fault.
-Comments should be sent to rna@tbi.univie.ac.at.

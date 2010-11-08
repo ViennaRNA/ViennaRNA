@@ -17,23 +17,19 @@ description "reads aligned RNA sequences from stdin or file.aln and calculates\
  structures.\n"
 
 # Options
-option  "cfactor" -
-"Set the weight of the covariance term in the energy function"
-default="1.0"
-double
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "span"  L
+"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
+ j-i>span will be allowed."
+int
+default="70"
 optional
 
-option  "nfactor" -
-"Set the penalty for non-compatible sequences in the covariance term of the energy function"
-default="1.0"
-double
-optional
-
-option  "mis" -
-"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
- output the set of nucleotides with frequence greater than average in IUPAC notation."
-flag
-off
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
+ (MFE) and a structure representative are calculated in any case.\n"
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix in addition to the mfe structure."
@@ -49,18 +45,47 @@ default="1"
 argoptional
 optional
 
+option  "cutoff"  c
+"Report only base pairs with an average probability > cutoff in the dot plot\n"
+float
+default="0.01"
+optional
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+double
+typestr="scaling factor"
+optional
+hidden
+
+option  "mis" -
+"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
+ output the set of nucleotides with frequence greater than average in IUPAC notation."
+flag
+off
+
+section "Model Details"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+optional
+
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith (-d1) only unpaired bases can participate in at most one dangling end, this is the\
- default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is unsupported\
+ for the partition function folding.\n\nWith -d2 this check is ignored,\
  dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\n\n-d0 ignores dangling ends altogether (mostly for\
- debugging).\n\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
@@ -72,7 +97,9 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
 
 option  "noGU"  -
 "Do not allow GU pairs\n"
@@ -84,21 +111,6 @@ option  "noClosingGU" -
 flag
 off
 
-option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
-details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
-string
-optional
-
-option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
-int
-optional
-
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
@@ -107,33 +119,36 @@ string
 typestr="paramfile"
 optional
 
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
-double
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
 optional
+hidden
 
-option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C."
-double
-optional
-
-option  "span"  L
-"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j-i>span will be allowed."
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
-default="70"
+optional
+hidden
+
+option  "cfactor" -
+"Set the weight of the covariance term in the energy function"
+default="1.0"
+double
 optional
 
-option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot\n"
-float
-default="0.01"
+option  "nfactor" -
+"Set the penalty for non-compatible sequences in the covariance term of the energy function"
+default="1.0"
+double
 optional
 
+text    "Written by:\n\nIvo L Hofacker\n\n"
 
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker\n\n"
-
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

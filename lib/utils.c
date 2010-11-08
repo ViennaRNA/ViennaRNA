@@ -27,8 +27,9 @@ static char rcsid[] = "$Id: utils.c,v 1.19 2008/12/16 22:30:30 ivo Exp $";
 /*@notnull@ @only@*/
 PUBLIC unsigned short xsubi[3];
 
-static char  scale1[] = "....,....1....,....2....,....3....,....4";
-static char  scale2[] = "....,....5....,....6....,....7....,....8";
+PRIVATE char  scale1[] = "....,....1....,....2....,....3....,....4";
+PRIVATE char  scale2[] = "....,....5....,....6....,....7....,....8";
+PRIVATE char  *inbuf = NULL;
 
 /*-------------------------------------------------------------------------*/
 
@@ -75,12 +76,12 @@ void *xrealloc (void *p, unsigned size) {
 
 PUBLIC void nrerror(const char message[])       /* output message upon error */
 {
-  fprintf(stderr, "\n%s\n", message);
+  fprintf(stderr, "ERROR: %s\n", message);
   exit(EXIT_FAILURE);
 }
 
 PUBLIC void warn_user(const char message[]){
-  fprintf(stderr, "\nWARNING: %s\n", message);
+  fprintf(stderr, "WARNING: %s\n", message);
 }
 
 /*------------------------------------------------------------------------*/
@@ -261,6 +262,118 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   return VRNA_INPUT_MISC;
 }
 
+PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
+  char  *line;
+  int   i, l, r;
+  int   state = 0;
+  int   str_length = 0;
+  line = (inbuf) ? inbuf : get_line(stdin);
+  inbuf = NULL;
+  do{
+    /*
+    * read lines until informative data appears or
+    * report an error if anything goes wrong
+    */
+    if(!line) return VRNA_INPUT_ERROR;
+    
+    l = (int)strlen(line);
+    /* eliminate whitespaces at the end of the line read */
+    if(!(option & VRNA_INPUT_NOELIM_WS_SUFFIX)){
+      for(i = l-1; i >= 0; i--){
+        if      (line[i] == ' ')  continue;
+        else if (line[i] == '\t') continue;
+        else                      break;
+      }
+      line[(i >= 0) ? (i+1) : 0] = '\0';
+    }
+
+
+    l           = (int)strlen(line);
+    str_length  = (*string) ? (int) strlen(*string) : 0;
+
+    switch(*line){
+      case  '@':    /* user abort */
+                    if(state){
+                      inbuf = line;
+                      return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_CONSTRAINT;
+                    }
+                    free(line);
+                    return VRNA_INPUT_QUIT;
+      case  '\0':   //if(state && (option & VRNA_INPUT_FASTA_HEADER))
+                    //  return (state==2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_ERROR;
+      case  '#': case  '%': case  ';': case  '/': case  '*':
+                    /* comments and empty lines */
+                    if(option & VRNA_INPUT_NOPRINT_COMMENTS) printf("%s\n", line);
+                    if(option & VRNA_INPUT_NOSKIP_COMMENTS)
+                      return (state == 2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_MISC;
+                    break;
+      case  '>':    /* fasta header */
+                    if(state){
+                      inbuf = line;
+                      return (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_CONSTRAINT;
+                    }
+                    if(l > 1){
+                      /* alloc memory for the string */
+                      *string = (char *) space(sizeof(char) * l);
+                      if(sscanf(line, ">%s", *string) > 0){
+                        free(line);
+                        return VRNA_INPUT_FASTA_HEADER;
+                      }
+                      else{
+                        free(line);
+                        free(*string);
+                        *string = NULL;
+                        return VRNA_INPUT_ERROR;
+                      }
+                      break;
+                    }
+                    break;
+      case  '<': case  '.': case  '|': case  '(': case  'x':
+                    /* seems to be a structure constraint */
+                    if(option & VRNA_INPUT_FASTA_HEADER){
+                      if(state == 1){
+                        inbuf = line;
+                        return VRNA_INPUT_SEQUENCE;
+                      }
+                      else{
+                        /* structure constraint */
+                        *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                        strcpy(*string + str_length, line);
+                        state = 2;
+                      }
+                    }
+                    else{
+                      *string = strdup(line);
+                      free(line);
+                      return VRNA_INPUT_CONSTRAINT;
+                    }
+                    break;
+      default:      /* the default is that we assume to have a sequence */
+                    if(option & VRNA_INPUT_FASTA_HEADER){
+                      /* are we already in sequence mode? */
+                      if(state == 2){
+                        inbuf = line;
+                        return VRNA_INPUT_CONSTRAINT;
+                      }
+                      else{
+                        *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                        strcpy(*string + str_length, line);
+                        state = 1;
+                      }
+                    }
+                    /* otherwise return line read */
+                    else{
+                      *string = strdup(line);
+                      free(line);
+                      return VRNA_INPUT_SEQUENCE;
+                    }
+    }
+    free(line);
+    line = get_line(stdin);
+  }while(line);
+
+  return (state==2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_ERROR;
+}
 
 /*-----------------------------------------------------------------*/
 
@@ -418,6 +531,7 @@ PUBLIC  void  print_tty_input_seq(void){
 PUBLIC  void  print_tty_input_seq_str(const char *s){
   printf("\n%s; @ to quit\n", s);
   printf("%s%s\n", scale1, scale2);
+  (void) fflush(stdout);
 }
 
 PUBLIC  void  print_tty_constraint_full(void){

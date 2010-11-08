@@ -16,7 +16,7 @@ AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDis
 AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
 AC_ARG_WITH(forester, [  --without-forester          don't build RNAforester program])
 AC_ARG_WITH(kinfold, [  --without-kinfold          don't build Kinfold program])
-AC_ARG_WITH(openmp, [  --without-openmp        don't build RNA2Dfold program with OpenMP Multithread support])
+AC_ARG_WITH(openmp, [  --without-openmp        don't build RNAlib with OpenMP Multithread support])
 AC_ARG_WITH(svm, [  --without-svm          don't use svm classifiers])
 AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
@@ -69,7 +69,7 @@ fi
 
 if test "$with_forester" != "no"; then
    if test -f $srcdir/RNAforester/Makefile.am; then
-     AC_CONFIG_SUBDIRS(RNAforester)
+     AC_CONFIG_SUBDIRS([RNAforester])
    else
      AC_MSG_WARN([RNAforester subdirectory does not exist])
      with_forester="no"
@@ -78,7 +78,7 @@ fi
 
 if test "$with_kinfold" != "no"; then
    if test -f $srcdir/Kinfold/Makefile.am; then
-     AC_CONFIG_SUBDIRS(Kinfold)
+     AC_CONFIG_SUBDIRS([Kinfold])
    else
      AC_MSG_WARN([Kinfold subdirectory does not exist])
      with_kinfold="no"
@@ -86,7 +86,7 @@ if test "$with_kinfold" != "no"; then
 fi
 
 dnl check for necessity of compiling provided SVM library
-if test "$with_svm" != "no"; then
+if test "x${with_svm}" != xno; then
   AC_MSG_NOTICE([performing libSVM specific checks])
   # Checks for header files.
   AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
@@ -111,11 +111,11 @@ if test "$with_svm" != "no"; then
   else
     UNCOMPRESS_LIBSVM=1
   fi
-  if test "x$UNCOMPRESS_LIBSVM" = "x1"; then
+  if test "x${UNCOMPRESS_LIBSVM}" = x1; then
     if test -f $srcdir/libsvm-${SVM_VERSION}.tar.gz; then
       AC_MSG_RESULT(yes)
       AC_PATH_PROG([TAR], [tar], [])
-      if test "x$TAR" = "x"; then
+      if test "x${TAR}" = x; then
         AC_MSG_NOTICE([==> tar command not found!])
         AC_MSG_ERROR([the tar command is mandatory for unpacking libsvm sources])
       fi
@@ -165,7 +165,8 @@ AC_C_INLINE([])
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
-AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile man/RNAheat.1 man/RNAsubopt.1 man/RNAdistance.1 man/RNAinverse.1 man/RNAeval.1 man/RNAfold.1 man/RNApdist.1 man/RNAplot.1 man/RNALfold.1 man/RNAalifold.1 man/RNAduplex.1 man/RNAcofold.1 man/RNAplfold.1 man/RNAup.1 man/RNApaln.1 man/RNAaliduplex.1])
+AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile])
+AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_OUTPUT
 
 eval _bindir=$(eval echo $bindir)

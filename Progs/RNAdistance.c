@@ -1,7 +1,7 @@
 /*
-  		  Distances of Secondary Structures
-	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
-			  Vienna RNA Package
+                    Distances of Secondary Structures
+           Walter Fontana, Ivo L Hofacker, Peter F Stadler
+                          Vienna RNA Package
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,59 +70,59 @@ int main(int argc, char *argv[])
       
     if (((type==999)||(type==888))&&(task==2)) {  /* do matrices */
       if (taxa_list) 
-	printf("* END of taxa list\n");
+        printf("* END of taxa list\n");
 
       ttree = 0; tstr = 0;
       for (tt=0; tt< types; tt++) {
-	printf("> %c   %d\n", ttype[tt], n);
-	if(islower(ttype[tt])) {
-	  for (i=1; i<n; i++) {
-	    for (j=0; j<i; j++) {
-	      printf("%g ",tree_edit_distance(T[ttree][i], T[ttree][j]));
-	      if(edit_backtrack) {
-		fprintf(somewhere,"%d %d",i+1,j+1);
-		if (ttype[tt]=='f') unexpand_aligned_F(aligned_line);
-		print_aligned_lines(somewhere);
-	      }
-	    }
-	    printf("\n");
-	  }
-	  printf("\n");
-	  for (i=0; i<n; i++) free_tree(T[ttree][i]);
-	  ttree++;
-	}
-	if (ttype[tt]=='P') {
-	  for (i=1; i<n; i++) {
-	    for (j=0; j<i; j++)
-	      printf("%g ", (float) bp_distance(P[i], P[j]));
-	    printf("\n");
-	  }
-	  printf("\n");
-	  for (i=0; i<n; i++) free(P[i]);
-	}
-	else if(isupper(ttype[tt])) {
-	  for (i=1; i<n; i++) {
-	    for (j=0; j<i; j++) {
-	      printf("%g ",string_edit_distance(S[tstr][i], S[tstr][j]));
-	      if (edit_backtrack) {
-		fprintf(somewhere,"%d %d",i+1,j+1);
-		if (ttype[tt]=='F') unexpand_aligned_F(aligned_line);
-		print_aligned_lines(somewhere);
-	      }
-	    }
-	    printf("\n");
-	  }
-	  printf("\n");
-	  for (i=0; i<n; i++) free(S[tstr][i]);
-	  tstr++;
-	}
+        printf("> %c   %d\n", ttype[tt], n);
+        if(islower(ttype[tt])) {
+          for (i=1; i<n; i++) {
+            for (j=0; j<i; j++) {
+              printf("%g ",tree_edit_distance(T[ttree][i], T[ttree][j]));
+              if(edit_backtrack) {
+                fprintf(somewhere,"%d %d",i+1,j+1);
+                if (ttype[tt]=='f') unexpand_aligned_F(aligned_line);
+                print_aligned_lines(somewhere);
+              }
+            }
+            printf("\n");
+          }
+          printf("\n");
+          for (i=0; i<n; i++) free_tree(T[ttree][i]);
+          ttree++;
+        }
+        if (ttype[tt]=='P') {
+          for (i=1; i<n; i++) {
+            for (j=0; j<i; j++)
+              printf("%g ", (float) bp_distance(P[i], P[j]));
+            printf("\n");
+          }
+          printf("\n");
+          for (i=0; i<n; i++) free(P[i]);
+        }
+        else if(isupper(ttype[tt])) {
+          for (i=1; i<n; i++) {
+            for (j=0; j<i; j++) {
+              printf("%g ",string_edit_distance(S[tstr][i], S[tstr][j]));
+              if (edit_backtrack) {
+                fprintf(somewhere,"%d %d",i+1,j+1);
+                if (ttype[tt]=='F') unexpand_aligned_F(aligned_line);
+                print_aligned_lines(somewhere);
+              }
+            }
+            printf("\n");
+          }
+          printf("\n");
+          for (i=0; i<n; i++) free(S[tstr][i]);
+          tstr++;
+        }
       }
       fflush(stdout);
       if (type==888) {  /* do another distance matrix */
-	n = 0;
-	printf("%s\n", list_title);
-	free(list_title);
-	continue;
+        n = 0;
+        printf("%s\n", list_title);
+        free(list_title);
+        continue;
       }
     }                       /* END do matrices */
     if (type==999) {   /* finito */
@@ -148,88 +148,88 @@ int main(int argc, char *argv[])
       switch(ttype[tt]){
       case 'f' :
       case 'F' :
-	if (type!=1) nrerror("Can't convert back to full structure");
-	xstruc = expand_Full(line);
-	if(islower(ttype[tt])) {  /* tree_edit */
-	  T[tree_types++][n] = make_tree(xstruc);
-	}
-	if(isupper(ttype[tt])) { /* string edit */
-	  S[string_types++][n] = Make_swString(xstruc);
-	}
-	free(xstruc);
-	break;
+        if (type!=1) nrerror("Can't convert back to full structure");
+        xstruc = expand_Full(line);
+        if(islower(ttype[tt])) {  /* tree_edit */
+          T[tree_types++][n] = make_tree(xstruc);
+        }
+        if(isupper(ttype[tt])) { /* string edit */
+          S[string_types++][n] = Make_swString(xstruc);
+        }
+        free(xstruc);
+        break;
       case 'P':
-	if (type!=1) nrerror("Can't convert back to full structure");
-	P[n] = strdup(line);
-	break;
+        if (type!=1) nrerror("Can't convert back to full structure");
+        P[n] = strdup(line);
+        break;
       case 'h' :
       case 'H' :
-	switch (type) {
-	case 1:
-	  xstruc = b2HIT(line);
-	  if(islower(ttype[tt])) {
-	    T[tree_types++][n] = make_tree(xstruc);
-	  }
-	  if(isupper(ttype[tt])) {
-	    S[string_types++][n] = Make_swString(xstruc);
-	  }
-	  free(xstruc);
-	  break;
-	default:
-	  nrerror("Can't convert to HIT structure");
-	}
-	break;
+        switch (type) {
+        case 1:
+          xstruc = b2HIT(line);
+          if(islower(ttype[tt])) {
+            T[tree_types++][n] = make_tree(xstruc);
+          }
+          if(isupper(ttype[tt])) {
+            S[string_types++][n] = Make_swString(xstruc);
+          }
+          free(xstruc);
+          break;
+        default:
+          nrerror("Can't convert to HIT structure");
+        }
+        break;
       case 'c' :
       case 'C' :    
-	switch (type) {
-	case 1:
-	  cc = b2C(line);
-	  xstruc = expand_Shapiro(cc);
-	  free(cc);
-	  break;
-	case 4:
-	  cc = expand_Shapiro(line);
-	  xstruc = unweight(cc);
-	  free(cc);
-	  break;
-	case 3:
-	  xstruc = unweight(line);
-	  break;
-	default:
-	  nrerror("Unknown structure representation");
-	  exit(0);
-	}
-	if(islower(ttype[tt])) {
-	  T[tree_types++][n] = make_tree(xstruc);
-	}
-	if(isupper(ttype[tt])) {
-	  S[string_types++][n] = Make_swString(xstruc);
-	}
-	free(xstruc);   
-	break;
+        switch (type) {
+        case 1:
+          cc = b2C(line);
+          xstruc = expand_Shapiro(cc);
+          free(cc);
+          break;
+        case 4:
+          cc = expand_Shapiro(line);
+          xstruc = unweight(cc);
+          free(cc);
+          break;
+        case 3:
+          xstruc = unweight(line);
+          break;
+        default:
+          nrerror("Unknown structure representation");
+          exit(0);
+        }
+        if(islower(ttype[tt])) {
+          T[tree_types++][n] = make_tree(xstruc);
+        }
+        if(isupper(ttype[tt])) {
+          S[string_types++][n] = Make_swString(xstruc);
+        }
+        free(xstruc);   
+        break;
       case 'w' :
       case 'W' :          
-	if (type==1) {
-	  xstruc = b2Shapiro(line);
-	  if(islower(ttype[tt])) {
-	    T[tree_types++][n] = make_tree(xstruc);
-	  }
-	  if(isupper(ttype[tt])) {
-	    S[string_types++][n] = Make_swString(xstruc);
-	  }
-	  free(xstruc); 
-	} 
-	else {
-	  if(islower(ttype[tt])) {
-	    T[tree_types++][n] = make_tree(line);
-	  }
-	  if(isupper(ttype[tt])) {
-	    S[string_types++][n] = Make_swString(line);
-	  }
-	}
-	break;
+        if (type==1) {
+          xstruc = b2Shapiro(line);
+          if(islower(ttype[tt])) {
+            T[tree_types++][n] = make_tree(xstruc);
+          }
+          if(isupper(ttype[tt])) {
+            S[string_types++][n] = Make_swString(xstruc);
+          }
+          free(xstruc); 
+        } 
+        else {
+          if(islower(ttype[tt])) {
+            T[tree_types++][n] = make_tree(line);
+          }
+          if(isupper(ttype[tt])) {
+            S[string_types++][n] = Make_swString(line);
+          }
+        }
+        break;
       default: 
-	nrerror("Unknown distance type");
+        nrerror("Unknown distance type");
       }
     }
     n++;
@@ -237,85 +237,85 @@ int main(int argc, char *argv[])
       float     dist;
     case 1:
       if (n==2) {
-	for (it=0, is=0, i=0; i<types; i++) {
-	  if(islower(ttype[i])) {
-	    dist = tree_edit_distance(T[it][0], T[it][1]);
-	    free_tree(T[it][0]); free_tree(T[it][1]);
-	    it++;
-	  }
-	  else if (ttype[i]=='P') {
-	    dist = (float) bp_distance(P[0], P[1]);
-	    free(P[0]); free(P[1]);
-	  }
-	  else /* isupper(ttype[i]) */ {
-	    dist = string_edit_distance(S[is][0], S[is][1]);
-	    free(S[is][0]); free(S[is][1]);
-	    is++;
-	  }
-	  printf("%c: %g  ", ttype[i], dist);
-	  if ((edit_backtrack)&&(ttype[i]!='P')) {
-	    if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
-	    print_aligned_lines(somewhere);
-	  }
-	}
-	printf("\n");
-	n=0;
+        for (it=0, is=0, i=0; i<types; i++) {
+          if(islower(ttype[i])) {
+            dist = tree_edit_distance(T[it][0], T[it][1]);
+            free_tree(T[it][0]); free_tree(T[it][1]);
+            it++;
+          }
+          else if (ttype[i]=='P') {
+            dist = (float) bp_distance(P[0], P[1]);
+            free(P[0]); free(P[1]);
+          }
+          else /* isupper(ttype[i]) */ {
+            dist = string_edit_distance(S[is][0], S[is][1]);
+            free(S[is][0]); free(S[is][1]);
+            is++;
+          }
+          printf("%c: %g  ", ttype[i], dist);
+          if ((edit_backtrack)&&(ttype[i]!='P')) {
+            if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
+            print_aligned_lines(somewhere);
+          }
+        }
+        printf("\n");
+        n=0;
       }
       break;
     case 3:
       if (n>1) { 
-	for (it=0, is=0, i=0; i<types; i++) {
-	  if(islower(ttype[i])) {
-	    dist = tree_edit_distance(T[it][1], T[it][0]);
-	    free_tree(T[it][1]); 
-	    it++;    
-	  }
-	  else if (ttype[i]=='P') {
-	    dist = (float) bp_distance(P[0], P[1]);
-	    free(P[1]);
-	  }
-	  else /* if(isupper(ttype[i])) */ {
-	    dist = string_edit_distance(S[is][0], S[is][1]);
-	    free(S[is][1]);
-	    is++;
-	  }
-	  printf("%c: %g  ", ttype[i], dist);
-	  if ((edit_backtrack)&&(ttype[i]!='P')) {
-	    if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
-	    print_aligned_lines(somewhere);
-	  }
-	}
-	printf("\n");
-	n=1;
+        for (it=0, is=0, i=0; i<types; i++) {
+          if(islower(ttype[i])) {
+            dist = tree_edit_distance(T[it][1], T[it][0]);
+            free_tree(T[it][1]); 
+            it++;    
+          }
+          else if (ttype[i]=='P') {
+            dist = (float) bp_distance(P[0], P[1]);
+            free(P[1]);
+          }
+          else /* if(isupper(ttype[i])) */ {
+            dist = string_edit_distance(S[is][0], S[is][1]);
+            free(S[is][1]);
+            is++;
+          }
+          printf("%c: %g  ", ttype[i], dist);
+          if ((edit_backtrack)&&(ttype[i]!='P')) {
+            if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
+            print_aligned_lines(somewhere);
+          }
+        }
+        printf("\n");
+        n=1;
       }
       break;
     case 4:
       if (n>1) {
-	for (it=0, is=0, i=0; i<types; i++) {
-	  if(islower(ttype[i])) {
-	    dist = tree_edit_distance(T[it][1], T[it][0]);
-	    free_tree(T[it][0]);
-	    T[it][0] = T[it][1];  
-	    it++;   
-	  }
-	  else if (ttype[i]=='P') {
-	    dist = (float) bp_distance(P[0], P[1]);
-	    free(P[0]); P[0] = P[1];
-	  }
-	  else /* if(isupper(ttype[i])) */ {
-	    dist = string_edit_distance(S[is][0], S[is][1]);
-	    free(S[is][0]);
-	    S[is][0] = S[is][1];
-	    is++;
-	  }
-	  printf("%c: %g  ", ttype[i], dist);
-	  if ((edit_backtrack)&&(ttype[i]!='P')) {
-	    if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
-	    print_aligned_lines(somewhere);
-	  }
-	}
-	printf("\n");
-	n=1;
+        for (it=0, is=0, i=0; i<types; i++) {
+          if(islower(ttype[i])) {
+            dist = tree_edit_distance(T[it][1], T[it][0]);
+            free_tree(T[it][0]);
+            T[it][0] = T[it][1];  
+            it++;   
+          }
+          else if (ttype[i]=='P') {
+            dist = (float) bp_distance(P[0], P[1]);
+            free(P[0]); P[0] = P[1];
+          }
+          else /* if(isupper(ttype[i])) */ {
+            dist = string_edit_distance(S[is][0], S[is][1]);
+            free(S[is][0]);
+            S[is][0] = S[is][1];
+            is++;
+          }
+          printf("%c: %g  ", ttype[i], dist);
+          if ((edit_backtrack)&&(ttype[i]!='P')) {
+            if (ttype[i]=='f') unexpand_aligned_F(aligned_line);
+            print_aligned_lines(somewhere);
+          }
+        }
+        printf("\n");
+        n=1;
       }
       break;
     }
@@ -364,18 +364,18 @@ PRIVATE int parse_input(char *line)
     rooted = 0; 
     while (line[i])  {
       if (line[i]=='.'){
-	type = 1;     /* Full */
-	break;
+        type = 1;     /* Full */
+        break;
       }
       if ( (line[i]=='U')||(line[i]=='P') ) {
-	type = 2;     /* FFull */
-	xx = 1;
-	break;
+        type = 2;     /* FFull */
+        xx = 1;
+        break;
       }
       if (line[i]=='S') {
-	type = 3;
-	xx = 1;
-	break;        /* Shapiro tree */
+        type = 3;
+        xx = 1;
+        break;        /* Shapiro tree */
       }
       if ((line[i]!='(')&&(line[i]!=')')) xx = 1;
       i++;
@@ -500,32 +500,32 @@ PRIVATE void command_line(int argc, char *argv[])
     if (argv[i][0]=='-')
       switch (argv[i][1]) {
       case 'D':
-	strncpy(ttype, argv[i]+2, 9);
-	types=(int)strlen(ttype);
-	break;
+        strncpy(ttype, argv[i]+2, 9);
+        types=(int)strlen(ttype);
+        break;
       case 'X':
-	switch (argv[i][2]) {
-	case 'p': task=1; break;
-	case 'm': task=2; break;
-	case 'f': task=3; break;
-	case 'c': task=4; break;
-	}
-	break;
+        switch (argv[i][2]) {
+        case 'p': task=1; break;
+        case 'm': task=2; break;
+        case 'f': task=3; break;
+        case 'c': task=4; break;
+        }
+        break;
       case 'S':
-	cost_matrix = 1;
-	break;
+        cost_matrix = 1;
+        break;
       case 'B':
-	if(argv[i][2]!='\0') usage();
-	if( (i+1) >= argc) outfile[0] = '\0';
-	else if (argv[i+1][0]=='-') outfile[0] = '\0';
-	else {
-	  i++;
-	  strncpy(outfile,argv[i],49);
-	}
-	edit_backtrack = 1;   
-	break;
+        if(argv[i][2]!='\0') usage();
+        if( (i+1) >= argc) outfile[0] = '\0';
+        else if (argv[i+1][0]=='-') outfile[0] = '\0';
+        else {
+          i++;
+          strncpy(outfile,argv[i],49);
+        }
+        edit_backtrack = 1;   
+        break;
       default:
-	usage();
+        usage();
       }
   }
 }

@@ -428,7 +428,7 @@ int main(int argc, char *argv[]){
       tokenize(input_string, &s1, &s2); /* this also frees the input_string */
 
     length1 = (int)strlen(s1);
-    length2 = (int)strlen(s2);
+    if(s2) length2 = (int)strlen(s2);
 
     /* now we got the first and maybe a second sequence */
 
