@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAplfold" # don't use package if you're using automake
 purpose "calculate locally stable secondary structure - pair probabilities"
-usage "RNAplfold [options]\n"
+#usage "RNAplfold [options]\n"
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
@@ -18,6 +18,9 @@ description "Computes local pair probabilities for base pairs with a maximal spa
  large genomes for short stable RNA structures.\n"
 
 # Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
 option  "winsize" W
 "Average the pair probabilities over windows of given size"
 int
@@ -63,20 +66,27 @@ flag
 off
 hidden
 
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Model Details"
+
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
+optional
 
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
 details="With -d2 dangling energies will be added for the bases adjacent to a helix on both sides in\
- any case.\n\n-d0 ignores dangling ends altogether (mostly for\
- debugging).\n"
+ any case.\n\n-d0 ignores dangling ends altogether (mostly for debugging).\n"
 int
 default="2"
 optional
@@ -84,7 +94,9 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
 
 option  "noGU"  -
 "Do not allow GU pairs\n"
@@ -96,10 +108,13 @@ option  "noClosingGU" -
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
-flag
-off
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -109,25 +124,21 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
  energy.\n"
 string
 optional
+hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
 optional
+hidden
 
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
-string
-typestr="paramfile"
-optional
+text "See also:\n\nRNALfold(1)\n\n"
 
-text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nS. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006) \"Local Base\
+text    "References:\n\nS. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006) \"Local Base\
  Pairing Probabilities in Large RNAs\", Bioinformatics 22: 614-615\n\nA.F. Bompfuenewerer, R. Backofen, S.H. Bernhart, J. Hertel,\
  I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations on RNA Folding and Alignment: Lessons from Benasque\", J. Math. Biol.\n\n"
 
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nStephan H Bernhart, Ivo L Hofacker, Peter F Stadler.\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "Written by:\n\nStephan H Bernhart, Ivo L Hofacker, Peter F Stadler.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

@@ -6,11 +6,11 @@ purpose "Draw RNA Secondary Structures"
 #usage "RNAplot [options]\n"
 
 # Version of your program
-version "2.0"   # don't use version if you're using automake
+#version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--long-help --file-name=RNAplot_cmdl --include-getopt --default-optional --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
+args "--file-name=RNAplot_cmdl --include-getopt --default-optional --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
 
 
 description "The program reads RNA sequences and structures from stdin in the format as produced by\
@@ -49,6 +49,6 @@ string
 typestr="string"
 optional
 
-text    "\"AUTHOR\"\n\nIvo L Hofacker\n\n"
-text    "\"BUGS\"\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "Written by:\n\nIvo L Hofacker\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

@@ -10,14 +10,14 @@ purpose "Find RNA sequences with given secondary structure"
 
 
 # command line options passed to gengetopt
-args "--long-help --file-name=RNAinverse_cmdl --include-getopt --default-optional --func-name=RNAinverse_cmdline_parser --arg-struct-name=RNAinverse_args_info"
+args "--file-name=RNAinverse_cmdl --include-getopt --default-optional --func-name=RNAinverse_cmdline_parser --arg-struct-name=RNAinverse_args_info"
 
 
 description "The program searches for sequences folding into a predefined structure, thereby\
  inverting the folding algorithm. Target structures (in bracket notation) and starting sequences\
- for the search are read alternately from stdin.\nCharacters in the start sequence other than \"AUGC\"
+ for the search are read alternately from stdin.\nCharacters in the start sequence other than \"AUGC\"\
  (or the alphabet specified with -a) will be treated as wild cards and replaced by a random character.\
- Any lower case characters in the start sequence will be kept fixed during the search. If necessary,
+ Any lower case characters in the start sequence will be kept fixed during the search. If necessary,\
  the sequence will be elongated to the length of the structure. Thus a string of \"N\"s as well as a\
  blank line specify a random start sequence.\nFor each search the best sequence found and its Hamming\
  distance to the start sequence are printed to stdout. If the the search was unsuccessful, a structure\
@@ -131,11 +131,6 @@ option  "energyModel" e
 int
 optional
 hidden
-
-
-text  "Example:\n\nTo search 5 times for sequences forming a simple hairpin structure\
- interrupted by one GA mismatch call\n
- RNAinverse -R 5\n\nand enter the lines\n(((.(((....))).)))\nNNNgNNNNNNNNNNaNNN\n\n"
 
 text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
  developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n

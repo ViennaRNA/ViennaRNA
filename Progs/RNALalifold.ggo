@@ -59,6 +59,7 @@ details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
 double
 typestr="scaling factor"
 optional
+hidden
 
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\

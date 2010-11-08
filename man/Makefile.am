@@ -29,7 +29,7 @@ RNAheat.1:  ../Progs/RNAheat.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAheat.ggo" > RNAheat.1
 
 RNAinverse.1:  ../Progs/RNAinverse.ggo
-	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAinverse.ggo" > RNAinverse.1
+	./help2man -N --help-option=--detailed-help --opt-include=./include/RNAinverse.inc "./cmdlopt.sh ../Progs/RNAinverse.ggo" > RNAinverse.1
 
 RNALalifold.1:  ../Progs/RNALalifold.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNALalifold.ggo" > RNALalifold.1
@@ -47,7 +47,7 @@ RNAparconv.1:  ../Progs/RNAparconv.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAparconv.ggo" > RNAparconv.1
 
 RNAplfold.1:  ../Progs/RNAplfold.ggo
-	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAplfold.ggo" > RNAplfold.1
+	./help2man -N --help-option=--detailed-help --opt-include=./include/RNAplfold.inc "./cmdlopt.sh ../Progs/RNAplfold.ggo" > RNAplfold.1
 
 RNAplot.1:  ../Progs/RNAplot.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAplot.ggo" > RNAplot.1
@@ -56,7 +56,7 @@ RNAsubopt.1:  ../Progs/RNAsubopt.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAsubopt.ggo" > RNAsubopt.1
 
 RNAup.1:  ../Progs/RNAup.ggo
-	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNAup.ggo" > RNAup.1
+	./help2man -N --help-option=--detailed-help --opt-include=./include/RNAup.inc "./cmdlopt.sh ../Progs/RNAup.ggo" > RNAup.1
 
 
 

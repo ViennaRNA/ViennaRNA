@@ -24,6 +24,23 @@ description "The program reads two alignments of RNA sequences in CLUSTAL format
  a long target sequence.\n"
 
 # Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "deltaEnergy" e
+"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
+ Default is calculation of mfe structure only.\n"
+float
+typestr="range"
+optional
+
+option  "sorted"  s
+"print output sorted by free energy\n"
+flag
+off
+
+section "Model Details"
+
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
@@ -79,13 +96,6 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
 string
 optional
 
-option  "deltaEnergy" e
-"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
- Default is calculation of mfe structure only.\n"
-float
-typestr="range"
-optional
-
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
@@ -93,11 +103,6 @@ details="A sample parameter file should accompany your distribution.\nSee the RN
 string
 typestr="paramfile"
 optional
-
-option  "sorted"  s
-"print output sorted by free energy\n"
-flag
-off
 
 text    "See also:\n\nRNAduplex(l) RNAcofold(l) RNAfold(l)\n\n"
 text    "Written by:\n\nIvo L Hofacker\n\n"

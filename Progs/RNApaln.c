@@ -267,6 +267,8 @@ PRIVATE void command_line(int argc, char *argv[])
   if(args_info.seqw_given)  seqw = args_info.seqw_arg;
   /* endgaps */
   if(args_info.endgaps_given) endgaps = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
 
 
   /* free allocated memory of command line data structure */

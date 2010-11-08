@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAsubopt" # don't use package if you're using automake
 purpose "calculate suboptimal secondary structures of RNAs"
-usage "RNAsubopt [options]\n"
+#usage "RNAsubopt [options]\n"
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
@@ -19,6 +19,29 @@ description "reads RNA sequences from stdin and (in the default -e mode) calcula
 
 # Options
 
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Algorithms"
+sectiondesc="Select the algorithms which should be applied to the given RNA sequence.\n"
+
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
  Default is calculation of mfe structure only.\n"
@@ -35,7 +58,7 @@ typestr="range"
 optional
 
 option  "sorted"  s
-"Sort the structures by energy.\n"
+"Sort the suboptimal structures by energy.\n"
 details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
  goes into millions. In such cases better pipe the output through \"sort +1n\".\n"
 flag
@@ -49,6 +72,21 @@ int
 typestr="number"
 optional
 
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows). Needed by stochastic backtracking\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+double
+typestr="scaling factor"
+optional
+hidden
+
+option  "circ"    c
+"Assume a circular (instead of linear) RNA molecule.\n"
+flag
+off
+
 option  "dos" D
 "Compute density of states instead of secondary structures\n"
 details="This option enables the evaluation of the number of secondary structures in certain energy bands arround\
@@ -61,45 +99,32 @@ option  "zuker" z
 flag
 off
 
-# default ViennaRNAPackage options
+section "Model Details"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
 double
-typestr="temperature"
 optional
 
-option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n. (no constraint\
- for this base)\n| (the corresponding base has to be paired\nx (the base is unpaired)\n< (base i is paired with\
- a base j>i)\n> (base i is paired with a base j<i)\nand matching brackets ( ) (base i pairs base j)\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n"
-flag
-off
-
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="If -d1 or -d3 are specified the structures are generated as with -d2 but energies are\
- re-evaluated before printing.\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
+ default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
+ and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
+ treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
+ energy model.\n"
 int
 default="2"
 optional
-
-option  "logML" -
-"Recalculate energies of structures using a logarithmic energy function for multi-loops before output."
-details="This option does not effect structure generation, only the energies that are printed out.\
- Since logML lowers energies somewhat, some structures may be missing.\n"
-flag
-off
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
@@ -118,19 +143,12 @@ option  "noClosingGU" -
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+option  "logML" -
+"Recalculate energies of structures using a logarithmic energy function for multi-loops before output."
+details="This option does not effect structure generation, only the energies that are printed out.\
+ Since logML lowers energies somewhat, some structures may be missing.\n"
 flag
 off
-
-option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
-details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
-string
-optional
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
@@ -140,36 +158,19 @@ string
 typestr="paramfile"
 optional
 
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
-double
-typestr="scaling factor"
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
 optional
+hidden
 
-option  "circ"  c
-"Assume a circular (instead of linear) RNA molecule.\n"
-flag
-off
+text    "References:\n\nS. Wuchty, W. Fontana, I. L. Hofacker and P. Schuster (1999) \"Complete\
+ Suboptimal Folding of RNA and the Stability of Secondary Structures\", Biopolymers, 49, 145-165\n\n"
 
-
-text    "\033[1m\"REFERENCES\"\033[2m\033[0m\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
- developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
- The energy parameters are taken from:\033[0m\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
- Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
- 911-940, 1999\n\nA. Walter, D Turner, J Kim, M Lyttle, P M\252ller, D Mathews, M Zuker \"Coaxial stacking of\
- helices enhances binding of oligoribonucleotides.\"\nPNAS, 91, pp 9218-9222, 1994\n\n\
- If you use this program in your work you might want to cite:\033[0m\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
- S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
- Chemie 125: 167-188\n\nM. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
- and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
- pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\nI.L. Hofacker & P.F. Stadler (2006)\
- \"Memory Efficient Folding Algorithms for Circular RNA Secondary Structures\", Bioinformatics (2006)\n\nA.F. Bompfuenewerer,\
- R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations on {RNA} Folding and\
- Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
- London\n\n"
-
-text    "\033[1m\"AUTHORS\"\033[2m\033[0m\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler.\n\n"
-text    "\033[1m\"BUGS\"\033[2m\033[0m\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\033[0m\n"
+text    "Written by:\n\nIvo L Hofacker, Stefan Wuchty, Walter Fontana\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"
