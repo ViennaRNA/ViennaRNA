@@ -90,7 +90,7 @@
 #include "cofold.h"
 #include "subopt.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -148,7 +148,7 @@ PRIVATE int     circular;
 PRIVATE int     *fM2;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!

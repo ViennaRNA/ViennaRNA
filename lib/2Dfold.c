@@ -173,7 +173,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   int cnt1, cnt2, cnt3, cnt4;
   if(vars == NULL) return;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp sections private(i,j,ij,cnt1,cnt2,cnt3,cnt4)
   {
 
@@ -228,7 +228,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     free(vars->k_min_values);
     free(vars->k_max_values);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -281,7 +281,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     free(vars->k_min_values_m);
     free(vars->k_max_values_m);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -334,7 +334,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     free(vars->k_min_values_m1);
     free(vars->k_max_values_m1);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -362,7 +362,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     free(vars->k_min_values_m2);
     free(vars->k_max_values_m2);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -434,7 +434,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     free(vars->k_max_values_f3);
   }
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -454,7 +454,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
       free(vars->l_max_values_fc);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -474,7 +474,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
       free(vars->l_max_values_fcI);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -494,7 +494,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
       free(vars->l_max_values_fcH);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -515,7 +515,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
     }
   }
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -533,7 +533,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   if(vars->mm1 != NULL)           free(vars->mm1);
   if(vars->mm2 != NULL)           free(vars->mm2);
   if(vars->bpdist != NULL)        free(vars->bpdist);
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   }
 #endif
@@ -590,7 +590,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
   for(d1=0; d1<=maxD1;d1++){
     output[d1] = (TwoDfold_solution *)space((vars->maxD2+1)*sizeof(TwoDfold_solution));
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(d2)
 #endif
     for(d2=0; d2<=maxD2;d2++){
@@ -599,7 +599,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
     }
     if(     (d1 >= ((vars->circ) ? vars->k_min_values_fc : vars->k_min_values_f[length]))
         &&  (d1 <= ((vars->circ) ? vars->k_max_values_fc : vars->k_max_values_f[length]))){
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(d2, i)
 #endif
       for(  d2  = ((vars->circ) ? vars->l_min_values_fc[d1] : vars->l_min_values_f[length][d1]);
@@ -697,7 +697,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
 
   for (d = TURN+2; d <= seq_length; d++) { /* i,j in [1..length] */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(additional_en, j, energy, temp2, i, ij, k, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
 #endif
     for (j = d; j <= seq_length; j++) {
@@ -2218,7 +2218,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   k_max_values_m2 = vars->k_max_values_m2;
 
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(d1,d2,cnt1,cnt2,cnt3,cnt4,j, i)
 #endif
   for(i=1; i<seq_length-TURN-1; i++){
@@ -2310,7 +2310,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   max_k = mm1[my_iindx[1] - seq_length] + referenceBPs1[my_iindx[1] - seq_length];
   max_l = mm2[my_iindx[1] - seq_length] + referenceBPs2[my_iindx[1] - seq_length];
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp sections
   {
 
@@ -2333,7 +2333,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 vars->l_min_values_fc,
                 vars->l_max_values_fc
               );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2354,7 +2354,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 vars->l_min_values_fcH,
                 vars->l_max_values_fcH
               );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2375,7 +2375,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 vars->l_min_values_fcI,
                 vars->l_max_values_fcI
               );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2396,7 +2396,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 vars->l_min_values_fcM,
                 vars->l_max_values_fcM
               );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2408,7 +2408,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                               &min_l_real,
                               &max_l_real
                             );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2420,7 +2420,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                               &min_l_real_fcH,
                               &max_l_real_fcH
                             );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2433,7 +2433,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                               &max_l_real_fcI
                             );
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2445,7 +2445,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                               &min_l_real_fcM,
                               &max_l_real_fcM
                             );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   }
 #endif
@@ -2466,7 +2466,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   l_max_values_fcM  = vars->l_max_values_fcM;
 
   /* begin actual energy calculations */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp sections private(d, d1,d2,cnt1,cnt2,cnt3,cnt4,j, i, energy)
   {
 
@@ -2527,7 +2527,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                         min_l_real_fcH,
                         max_l_real_fcH
                       );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2606,7 +2606,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                         min_l_real_fcI,
                         max_l_real_fcI
                       );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -2653,7 +2653,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                         min_l_real_fcM,
                         max_l_real_fcM
                       );
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   }
 #endif

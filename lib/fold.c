@@ -27,7 +27,7 @@
 #include "fold.h"
 #include "data_structures.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -93,7 +93,7 @@ PRIVATE short   *pair_table; /* needed by energy of struct */
 PRIVATE bondT   *base_pair2; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular = 0;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -141,7 +141,7 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 /* allocate memory for folding process */
 PRIVATE void init_fold(int length){
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
 #endif
@@ -258,7 +258,7 @@ PUBLIC float fold(const char *string, char *structure){
   circular = 0;
   length = (int) strlen(string);
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_fold(length);
 #else
@@ -1319,7 +1319,7 @@ PUBLIC float energy_of_structure(const char *string, const char *structure, int 
   int   energy;
   short *ss, *ss1;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   if(P == NULL) update_fold_params();
 #else
   if((init_length<0)||(P==NULL)) update_fold_params();
@@ -1353,7 +1353,7 @@ PUBLIC int energy_of_structure_pt(const char *string, short * ptable,
   int   i, length, energy;
   short *ss, *ss1;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   if(P == NULL) update_fold_params();
 #else
   if((init_length<0)||(P==NULL)) update_fold_params();
@@ -1390,7 +1390,7 @@ PUBLIC float energy_of_circ_structure(const char *string, const char *structure,
   int   i, j, length, energy=0, en0, degree=0, type;
   short *ss, *ss1;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   if(P == NULL) update_fold_params();
 #else
   if((init_length<0)||(P==NULL)) update_fold_params();

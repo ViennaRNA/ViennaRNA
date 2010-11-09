@@ -29,7 +29,7 @@
 #include "alifold.h"
 #include "loop_energies.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -80,7 +80,7 @@ PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for b
 PRIVATE bondT           *base_pair2;
 PRIVATE int             circular;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -119,7 +119,7 @@ PRIVATE int   EL_Energy_pt(int i, int n_seq, short *pt);
 /* unsafe function that will be replaced by a threadsafe companion in the future */
 PRIVATE void init_alifold(int length){
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
 #endif
@@ -224,7 +224,7 @@ PUBLIC float alifold(const char **strings, char *structure){
   circular = 0;
   length = (int) strlen(strings[0]);
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_alifold(length);
 #else

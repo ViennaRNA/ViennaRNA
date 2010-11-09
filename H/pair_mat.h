@@ -21,7 +21,7 @@ static int pair[MAXALPHA+1][MAXALPHA+1];
 /* rtype[pair[i][j]]:=pair[j][i] */
 static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #pragma omp threadprivate(Law_and_Order, BP_pair, alias, pair, rtype)
 #endif
 

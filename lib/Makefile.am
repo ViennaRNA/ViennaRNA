@@ -18,12 +18,8 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c ${SVM_SRC}\
                     ${SVM_UTILS}
 
-libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
+libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
 
-if USE_OPENMP
-  AM_CFLAGS = -DUSE_OPENMP -fopenmp
-  AM_LDFLAGS = ../lib/libRNA.a -lm -fopenmp
-endif
 
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\

@@ -26,7 +26,7 @@
 #include "LPfold.h"
 #include "Lfold.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -63,7 +63,7 @@ PRIVATE int         unpaired;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -108,7 +108,7 @@ PRIVATE void  putoutpU(double **pU,int k, int ulength, FILE *fp);
 
 PRIVATE void init_partfunc_L(int length){
   if (length<1) nrerror("init_partfunc_L: length must be greater 0");
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
   free_pf_arrays_L(); /* free previous allocation */
@@ -127,7 +127,7 @@ PRIVATE void init_partfunc_L(int length){
   get_arrays_L((unsigned) length);
   scale_pf_params((unsigned) length);
 
-#ifndef USE_OPENMP
+#ifndef _OPENMP
   init_length = length;
 #endif
 }
@@ -203,13 +203,13 @@ PRIVATE void free_pf_arrays_L(void){
 #endif
 #endif
 
-#ifndef USE_OPENMP
+#ifndef _OPENMP
   init_length=0;
 #endif
 }
 
 PUBLIC void update_pf_paramsLP(int length){
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   scale_pf_params((unsigned) length);
 #else
   if (length>init_length) init_pf_foldLP(length);  /* init not update */
@@ -249,7 +249,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
   n = (int) strlen(sequence);
   if (n<TURN+2) return 0;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc_L(n);
 #else

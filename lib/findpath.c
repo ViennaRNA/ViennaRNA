@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "pair_mat.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -33,7 +33,7 @@ PRIVATE int     BP_dist;
 PRIVATE move_t  *path;
 PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!

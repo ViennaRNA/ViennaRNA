@@ -28,7 +28,7 @@
 #include "part_func.h"
 #include "alifold.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -71,7 +71,7 @@ PRIVATE int             N_seq;
 PRIVATE pf_paramT       *pf_params;
 PRIVATE char            *pstruc;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -115,7 +115,7 @@ PRIVATE void      backtrack_qm1(int i,int j, int n_seq, double *prob);
 PRIVATE void init_alipf_fold(int length, int n_seq){
   if (length<1) nrerror("init_alipf_fold: length must be greater 0");
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
 #endif

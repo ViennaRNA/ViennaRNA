@@ -429,7 +429,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
   int cnt1, cnt2, cnt3, cnt4;
   if(vars == NULL) return;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp sections private(i,j,ij,cnt1,cnt2,cnt3,cnt4)
   {
 
@@ -462,7 +462,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     free(vars->k_min_values);
     free(vars->k_max_values);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -493,7 +493,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     free(vars->k_min_values_b);
     free(vars->k_max_values_b);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -524,7 +524,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     free(vars->k_min_values_m);
     free(vars->k_max_values_m);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -555,7 +555,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     free(vars->k_min_values_m1);
     free(vars->k_max_values_m1);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -583,7 +583,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     free(vars->k_min_values_m2);
     free(vars->k_max_values_m2);
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -603,7 +603,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
       free(vars->l_max_values_qc);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -623,7 +623,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
       free(vars->l_max_values_qcI);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -643,7 +643,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
       free(vars->l_max_values_qcH);
     }
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -664,7 +664,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
     }
   }
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -683,7 +683,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
   if(vars->mm1 != NULL)           free(vars->mm1);
   if(vars->mm2 != NULL)           free(vars->mm2);
   if(vars->bpdist != NULL)        free(vars->bpdist);
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   }
 #endif
@@ -881,7 +881,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
 
 
   for (d = TURN+2; d <= seq_length; d++) { /* i,j in [1..seq_length] */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(i, j, ij, cnt1, cnt2, cnt3, cnt4)
 #endif
     for (j = d; j <= seq_length; j++) {
@@ -1518,7 +1518,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
 
 
   /* construct qm2 matrix from qm1 entries  */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(d, k, l, da, db, cnt1, cnt2, cnt3, cnt4)
 #endif
   for(k=1; k<seq_length-TURN-1; k++){
@@ -1614,7 +1614,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   max_k = mm1[my_iindx[1] - seq_length] + referenceBPs1[my_iindx[1] - seq_length];
   max_l = mm2[my_iindx[1] - seq_length] + referenceBPs2[my_iindx[1] - seq_length];
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp sections
   {
 
@@ -1647,7 +1647,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                 &max_l_real
                               );
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -1678,7 +1678,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                 &max_l_real_qcH
                               );
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -1709,7 +1709,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                 &max_l_real_qcI
                               );
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   #pragma omp section
   {
@@ -1740,7 +1740,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                 &max_l_real_qcM
                               );
   }
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   }
   }
 #endif
@@ -1749,7 +1749,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
 
 
   for (d = TURN+2; d <= seq_length; d++) /* i,j in [1..length] */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for private(p, q, pq, k, l, kl, u, da, db, type, cnt1, cnt2, cnt3, cnt4)
 #endif
     for (q = d; q <= seq_length; q++) {
@@ -1869,7 +1869,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
 
   /* 3. Multiloops  */
   if(seq_length > 2*TURN-3)
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for private(k, da, db, cnt1, cnt2, cnt3, cnt4)
 #endif
     for(k=TURN+2; k<seq_length-2*TURN-3; k++){

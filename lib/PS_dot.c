@@ -18,7 +18,7 @@
 #include "pair_mat.h"
 #include "aln_util.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -44,7 +44,7 @@ PRIVATE float  *angle;
 PRIVATE int    *loop_size, *stack_size;
 PRIVATE int     lp, stk;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* NOTE: all threadprivate variables are uninitialized when entering a thread! */
 #pragma omp threadprivate(angle, loop_size, stack_size, lp, stk)
 #endif

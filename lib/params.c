@@ -31,7 +31,7 @@ PRIVATE int id=-1;
 PRIVATE pf_paramT pf;
 PRIVATE int pf_id=-1;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #pragma omp threadprivate(id, pf_id)
 #endif
 

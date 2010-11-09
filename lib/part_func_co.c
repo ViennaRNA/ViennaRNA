@@ -66,7 +66,7 @@
 #include "part_func.h"
 #include "part_func_co.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -107,7 +107,7 @@ PRIVATE short       *S, *S1;
 PRIVATE char        *pstruc;
 PRIVATE char        *sequence;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -145,7 +145,7 @@ PRIVATE void    backtrack(int i, int j);
 PRIVATE void init_partfunc_co(int length){
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
   free_co_pf_arrays(); /* free previous allocation */
@@ -239,7 +239,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
   n = (int) strlen(sequence);
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc_co(n);
 #else

@@ -70,7 +70,7 @@
 #include "loop_energies.h"
 #include "part_func.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -105,7 +105,7 @@ PRIVATE char        *ptype;       /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params;   /* the precomputed Boltzmann weights */
 PRIVATE short       *S, *S1;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -145,7 +145,7 @@ PRIVATE void  backtrack_qm2(int u, int n);
 PRIVATE void init_partfunc(int length){
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
   free_pf_arrays(); /* free previous allocation */
@@ -164,7 +164,7 @@ PRIVATE void init_partfunc(int length){
   get_arrays((unsigned) length);
   scale_pf_params((unsigned) length);
 
-#ifndef USE_OPENMP
+#ifndef _OPENMP
   init_length = length;
 #endif
 }
@@ -238,7 +238,7 @@ PUBLIC void free_pf_arrays(void){
 #endif
 #endif
 
-#ifndef USE_OPENMP
+#ifndef _OPENMP
   init_length = 0;
 #endif
 }
@@ -252,7 +252,7 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
 
   circular = 0;
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc(n);
 #else
@@ -304,7 +304,7 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   int n = (int) strlen(sequence);
 
   circular = 1;
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc(n);
 #else
@@ -767,7 +767,7 @@ PRIVATE void scale_pf_params(unsigned int length){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_pf_params(int length){
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   make_pair_matrix(); /* is this really necessary? */
   scale_pf_params((unsigned) length);
 #else

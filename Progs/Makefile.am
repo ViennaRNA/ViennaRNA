@@ -15,11 +15,9 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
     RNAparconv ${LfoldZ_prog}
 
-LDADD = ../lib/libRNA.a -lm
+LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
-if USE_OPENMP
-  AM_CFLAGS = -DUSE_OPENMP -fopenmp
-endif
+AM_CFLAGS = $(OPENMP_CFLAGS)
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
 

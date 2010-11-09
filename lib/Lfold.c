@@ -28,7 +28,7 @@
 #include "svm_utils.h"
 #endif
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -74,7 +74,7 @@ PRIVATE struct svm_model  *avg_model;
 PRIVATE struct svm_model  *sd_model;
 #endif
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!

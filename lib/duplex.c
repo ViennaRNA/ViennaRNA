@@ -26,7 +26,7 @@
 #include "loop_energies.h"
 #include "duplex.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -58,7 +58,7 @@ PRIVATE int     **c;                  /* energy array, given that i-j pair */
 PRIVATE short   *S1, *SS1, *S2, *SS2;
 PRIVATE int     n1,n2;                /* sequence lengths */
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!

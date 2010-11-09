@@ -16,7 +16,6 @@ AC_ARG_WITH(cluster, [  --with-cluster          build AnalyseSeqs and AnalyseDis
 AC_ARG_WITH(perl, [  --without-perl          don't build Perl module])
 AC_ARG_WITH(forester, [  --without-forester          don't build RNAforester program])
 AC_ARG_WITH(kinfold, [  --without-kinfold          don't build Kinfold program])
-AC_ARG_WITH(openmp, [  --without-openmp        don't build RNAlib with OpenMP Multithread support])
 AC_ARG_WITH(svm, [  --without-svm          don't use svm classifiers])
 AC_ARG_ENABLE(floatpf, [  --enable-floatpf        use float instead of double for partition function], [])
 
@@ -135,6 +134,8 @@ if test "x${with_svm}" != xno; then
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 fi
 
+AC_OPENMP
+
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
@@ -142,8 +143,6 @@ AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
-
-AM_CONDITIONAL(USE_OPENMP, test "$with_openmp" != "no")
 
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 
@@ -183,7 +182,6 @@ Configure successful with the following options:
   Analyse{Dists,Seqs}: ${with_cluster:-no}
   Kinfold:             ${with_kinfold:-yes}
   RNAforester:         ${with_forester:-yes}
-  OpenMP Support:      ${with_openmp:-yes}
   SVM:                 ${with_svm:-yes}
 
 Files will be installed in the following directories:

@@ -16,7 +16,7 @@
 #include "2Dpfold.h"
 #include "RNA2Dfold_cmdl.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
 
   /* set number of threads for parallel computation */
   if(args_info.numThreads_given)
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   omp_set_num_threads(args_info.numThreads_arg);
 #else
   nrerror("\'j\' option is available only if compiled with OpenMP support!");

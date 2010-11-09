@@ -26,7 +26,7 @@
 #include "loop_energies.h"
 #include "cofold.h"
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 #include <omp.h> 
 #endif
 
@@ -86,7 +86,7 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -4: x = base must not pair
                         positive int: base is paired with int      */
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
          thus we have to initialize them before usage by a seperate function!
@@ -122,7 +122,7 @@ PRIVATE void  free_end(int *array, int i, int start);
 /*--------------------------------------------------------------------------*/
 PRIVATE void init_cofold(int length){
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
 #endif
@@ -202,7 +202,7 @@ PUBLIC float cofold(const char *string, char *structure) {
   zuker = 0;
   length = (int) strlen(string);
 
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_cofold(length);
 #else
@@ -1192,7 +1192,7 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   cut_point = length + 1;
 
   /* get mfe and do forward recursion */
-#ifdef USE_OPENMP
+#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_cofold(2 * length);
 #else
