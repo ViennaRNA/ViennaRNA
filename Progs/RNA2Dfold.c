@@ -240,7 +240,7 @@ int main(int argc, char *argv[]){
       printf("k\tl\tMFE\tMFE-structure\n");
       for(i = 0; i<= maxDistance1; i++){
         for(j = 0; j<= maxDistance2; j++){
-          if(mfe_s[i][j].en != (float)INF/100.){
+          if(mfe_s[i][j].s){
             printf("%d\t%d\t%6.2f\t%s\n", i, j, mfe_s[i][j].en, mfe_s[i][j].s);
             free(mfe_s[i][j].s);
           }
