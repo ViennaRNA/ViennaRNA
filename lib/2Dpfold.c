@@ -700,20 +700,7 @@ PRIVATE void initialize_TwoDpfold_vars(TwoDpfold_vars *vars){
   make_pair_matrix();
 }
 
-PUBLIC FLT_OR_DBL **TwoDpfold(const char *string, char *structure1, char *structure2){
-  return TwoDpfold_bounded(string, structure1, structure2, -1, -1);
-}
-
-PUBLIC FLT_OR_DBL **TwoDpfold_bounded(const char *string, char *structure1, char *structure2, int distance1, int distance2){
-  TwoDpfold_vars  *vars;
-  FLT_OR_DBL      **output;
-  vars    = get_TwoDpfold_variables(string, structure1, structure2, 0);
-  output  = TwoDpfold_bound(vars, distance1, distance2);
-  destroy_TwoDpfold_variables(vars);
-  return output;
-}
-
-PUBLIC FLT_OR_DBL **TwoDpfold_bound(TwoDpfold_vars *vars, int distance1, int distance2){
+PUBLIC FLT_OR_DBL **TwoDpfold(TwoDpfold_vars *vars, int distance1, int distance2){
   unsigned int  i, d1, d2;
   unsigned int  maxD1 = 0;
   unsigned int  maxD2 = 0;
@@ -763,16 +750,7 @@ PUBLIC FLT_OR_DBL **TwoDpfold_bound(TwoDpfold_vars *vars, int distance1, int dis
   return output;
 }
 
-PUBLIC FLT_OR_DBL **TwoDpfold_circ_bounded(const char *string, char *structure1, char *structure2, int distance1, int distance2){
-  TwoDpfold_vars  *vars;
-  FLT_OR_DBL      **output;
-  vars    = get_TwoDpfold_variables(string, structure1, structure2, 1);
-  output  = TwoDpfold_circ_bound(vars, distance1, distance2);
-  destroy_TwoDpfold_variables(vars);
-  return output;
-}
-
-PUBLIC FLT_OR_DBL **TwoDpfold_circ_bound(TwoDpfold_vars *vars, int distance1, int distance2){
+PUBLIC FLT_OR_DBL **TwoDpfold_circ(TwoDpfold_vars *vars, int distance1, int distance2){
   unsigned int i, d1, d2;
   unsigned int maxD1 = 0;
   unsigned int maxD2 = 0;

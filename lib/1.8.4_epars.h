@@ -1,3 +1,5 @@
+#ifndef __VIENNA_RNA_PACKAGE_OLD_EPARS__
+#define __VIENNA_RNA_PACKAGE_OLD_EPARS__
 /* 
     Free energy parameters used in ViennaRNAPackage 1.8.4 are summarized in:
 
@@ -354,3 +356,4 @@ PRIVATE int TerminalAU_184 = 50;
 /* penalty for forming a bi-molecular duplex */
 PRIVATE int DuplexInit_184 = 410;
 
+#endif

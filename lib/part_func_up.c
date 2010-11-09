@@ -541,7 +541,6 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   pf_scale = int_scale;
 
   /* in order to scale expLoopEnergy correctly call*/
-  init_pf_fold(n1);
   scale_stru_pf_params((unsigned) n1);
   
   qint_ik = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *) * (n1+1));

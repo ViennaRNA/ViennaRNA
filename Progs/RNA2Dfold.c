@@ -271,7 +271,7 @@ int main(int argc, char *argv[]){
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);
       FLT_OR_DBL **pf_s;
 
-      pf_s = (circ) ? TwoDpfold_circ_bound(q_vars, maxDistance1, maxDistance2) : TwoDpfold_bound(q_vars, maxDistance1, maxDistance2);
+      pf_s = (circ) ? TwoDpfold_circ(q_vars, maxDistance1, maxDistance2) : TwoDpfold(q_vars, maxDistance1, maxDistance2);
 
       Q = 0.;
       for(i=0; i<=maxDistance1;i++){
