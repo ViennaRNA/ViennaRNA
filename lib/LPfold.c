@@ -193,6 +193,7 @@ PRIVATE void free_pf_arrays_L(void){
   iindx     = jindx = NULL;
   pf_params = NULL;
   ptype     = NULL;
+  scale = NULL;
 
 #ifdef SUN4
   standard_arithmetic();
