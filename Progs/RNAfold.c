@@ -35,26 +35,28 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
-  char          *buf, *string, *input_string, *structure=NULL, *cstruc=NULL;
+  char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure=NULL, *cstruc=NULL;
   char          fname[80], ffname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
-  unsigned int  input_type;
+  unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
   int           doMEA=0, circular;
   double        MEAgamma = 1.;
 
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
   do_backtrack  = 1;
-  string        = NULL;
-  input_string  = NULL;
-  buf           = NULL;
   pf            = 0;
   sfact         = 1.07;
   noPS          = 0;
   noconv        = 0;
   circular      = 0;
   fasta         = 0;
-  cl = l = length = 0;
+  cl            = l = length = 0;
+  dangles	= 2;
+
   /*
   #############################################
   # check the command line parameters
@@ -137,99 +139,70 @@ int main(int argc, char *argv[]){
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if(istty && fold_constrained) print_tty_constraint_full();
+
+  /* print user help if we get input from tty */
+  if(istty){
+    if(fold_constrained){
+      print_tty_constraint_full();
+      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
+    }
+    else print_tty_input_seq();
+  }
+
+  /* set options we wanna pass to read_record */
+  if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do{
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty) print_tty_input_seq();
-
-    fname[0] = '\0';
-
-    if(buf && !istty) input_string  = buf;
-    else    input_type    = get_multi_input_line(
-                              &input_string,
-                              ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
-                              | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
-                            );
-
-    /* skip everything we are not interested in */
-    while(input_type & (VRNA_INPUT_MISC | VRNA_INPUT_CONSTRAINT)){
-      free(input_string);
-      input_string  = NULL;
-      /* get more input */
-      input_type    = get_multi_input_line(
-                        &input_string,
-                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
-                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
-                      );
+    if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
+      (void) sscanf(rec_id, ">%42s", fname);
     }
+    else fname[0] = '\0';
 
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+    length  = (int)strlen(rec_sequence);
 
-    if(input_type & VRNA_INPUT_FASTA_HEADER){
-      fasta = 1;
-      (void) sscanf(input_string, "%42s", fname);
-      if(!istty) printf(">%s\n", input_string);
-      free(input_string); input_string = NULL;
-      input_type  = get_multi_input_line(
-                      &input_string,
-                      VRNA_INPUT_FASTA_HEADER
-                      | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)\
-                    );
-      if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
-    }
-    else if(fasta) warn_user("fasta header missing");
-
-    if(input_type & VRNA_INPUT_SEQUENCE){
-      length        = (int)strlen(input_string);
-      string        = input_string;
-      input_string  = NULL;
-
-      if(fold_constrained){
-        input_type  = get_multi_input_line(
-                        &input_string,
-                        ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0)
-                        | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0)
-                      );
-        if(input_type & VRNA_INPUT_CONSTRAINT){
-          cl = (int)strlen(input_string);
-          if(cl < length)       warn_user("structure constraint is shorter than sequence");
-          else if(cl > length)  nrerror("structure constraint is too long");
-          cstruc        = input_string;
-          input_string  = NULL;
-        } else warn_user("structure constraint missing");
+    if(fold_constrained){
+      if(rec_rest){
+        for(i=0;rec_rest[i];i++){
+          /* get the constraint structure somehow from the rest of the record... */
+        }
+        cl = (int)strlen(cstruc);
+        if(cl < length)       warn_user("structure constraint is shorter than sequence");
+        else if(cl > length)  nrerror("structure constraint is too long");
       }
+      else warn_user("structure constraint missing");
     }
-    else nrerror("sequence missing");
-
-    buf = input_string;
-
-    /*
-    ########################################################
-    # done with 'stdin' handling
-    ########################################################
-    */
 
     structure = (char *)space(sizeof(char) *(length+1));
     if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1)); 
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
-    min_en = (circular) ? circfold(string, structure) : fold(string, structure);
+    /*
+    ########################################################
+    # begin actual computations
+    ########################################################
+    */
+    min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
 
-    printf("%s\n%s", string, structure);
+    printf("%s\n%s", rec_sequence, structure);
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
     else
@@ -237,20 +210,19 @@ int main(int argc, char *argv[]){
 
     (void) fflush(stdout);
 
-    if (fname[0]!='\0') {
+    if(fname[0] != '\0'){
       strcpy(ffname, fname);
       strcat(ffname, "_ss.ps");
-    } else {
-      strcpy(ffname, "rna.ps");
-    }
-    if (!noPS) (void) PS_rna_plot(string, structure, ffname);
+    } else strcpy(ffname, "rna.ps");
+
+    if (!noPS) (void) PS_rna_plot(rec_sequence, structure, ffname);
     if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc;
       pf_struc = (char *) space((unsigned) length+1);
       if (dangles==1) {
           dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_structure(string, structure, 0) : energy_of_structure(string, structure, 0);
+          min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
           dangles=1;
       }
 
@@ -260,7 +232,7 @@ int main(int argc, char *argv[]){
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      energy = (circular) ? pf_circ_fold(string, pf_struc) : pf_fold(string, pf_struc);
+      energy = (circular) ? pf_circ_fold(rec_sequence, pf_struc) : pf_fold(rec_sequence, pf_struc);
 
       if (do_backtrack) {
         printf("%s", pf_struc);
@@ -278,14 +250,14 @@ int main(int argc, char *argv[]){
         assign_plist_from_db(&pl2, structure, 0.95*0.95);
         /* cent = centroid(length, &dist); <- NOT THREADSAFE */
         cent = get_centroid_struct_pr(length, &dist, pr);
-        cent_en = (circular) ? energy_of_circ_structure(string, cent, 0) :energy_of_structure(string, cent, 0);
+        cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
         printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
         free(cent);
         if (fname[0]!='\0') {
           strcpy(ffname, fname);
           strcat(ffname, "_dp.ps");
         } else strcpy(ffname, "dot.ps");
-        (void) PS_dot_plot_list(string, ffname, pl1, pl2, "");
+        (void) PS_dot_plot_list(rec_sequence, ffname, pl1, pl2, "");
         free(pl2);
         if (do_backtrack==2) {
           pl2 = stackProb(1e-5);
@@ -293,7 +265,7 @@ int main(int argc, char *argv[]){
             strcpy(ffname, fname);
             strcat(ffname, "_dp2.ps");
           } else strcpy(ffname, "dot2.ps");
-          PS_dot_plot_list(string, ffname, pl1, pl2,
+          PS_dot_plot_list(rec_sequence, ffname, pl1, pl2,
                            "Probabilities for stacked pairs (i,j)(i+1,j-1)");
           free(pl2);
         }
@@ -304,7 +276,7 @@ int main(int argc, char *argv[]){
           plist *pl;
           assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
           mea = MEA(pl, structure, MEAgamma);
-          mea_en = (circular) ? energy_of_circ_structure(string, structure, 0) : energy_of_structure(string, structure, 0);
+          mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
           printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
           free(pl);
         }
@@ -316,11 +288,28 @@ int main(int argc, char *argv[]){
 
       free_pf_arrays();
     }
-    if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
-    free(string);
+
+    /* clean up */
+    if(cstruc) free(cstruc);
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
     free(structure);
-    string = structure = cstruc = NULL;
-  } while (1);
-  return 0;
+    if(rec_rest){
+      for(i=0;rec_rest[i];i++) free(rec_rest[i]);
+      free(rec_rest);
+    }
+    rec_id = rec_sequence = structure = cstruc = NULL;
+    rec_rest = NULL;
+
+    /* print user help for the next round if we get input from tty */
+    if(istty){
+      if(fold_constrained){
+        print_tty_constraint_full();
+        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
+      }
+      else print_tty_input_seq();
+    }
+  }
+  return EXIT_SUCCESS;
 }

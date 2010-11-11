@@ -415,7 +415,7 @@ int main(int argc, char *argv[]){
     }
 
     /* extract filename from fasta header if available */
-    while((input_type = get_input_line(&input_string, VRNA_INPUT_NOPRINT_COMMENTS)) & VRNA_INPUT_FASTA_HEADER){
+    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
       (void) sscanf(input_string, "%51s", fname1);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
@@ -460,7 +460,7 @@ int main(int argc, char *argv[]){
       /* we are in this block only if we just have 1 sequence yet but need a second, too */
 
       /* extract filename from fasta header if available */
-      while((input_type = get_input_line(&input_string, VRNA_INPUT_NOPRINT_COMMENTS)) & VRNA_INPUT_FASTA_HEADER){
+      while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
         (void) sscanf(input_string, "%51s", fname2);
         printf(">%s\n", input_string); /* print fasta header if available */
         free(input_string);
@@ -640,7 +640,6 @@ int main(int argc, char *argv[]){
     min_en    = fold(s1, structure);
     pf_scale  = exp(-(sfact*min_en)/RT/length1);
     if (length1>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-    init_pf_fold(length1);
     if (cstruc1 != NULL) strncpy(structure, cstruc1, length1+1);
     energy    = pf_fold(s1, structure);
     unstr_out = pf_unstru(s1, wplus);
@@ -684,7 +683,6 @@ int main(int argc, char *argv[]){
                               min_en = fold(s_target, structure);
                               pf_scale = exp(-(sfact*min_en)/RT/length_target);
                               if (length_target>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-                              init_pf_fold(length_target);
                               if (cstruc_target != NULL)
                                 strncpy(structure, cstruc_target, length_target + 1);
                               energy        = pf_fold(s_target, structure);

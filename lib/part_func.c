@@ -224,6 +224,7 @@ PUBLIC void free_pf_arrays(void){
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
+  if(pr)        free(pr);
 
   S = S1 = NULL;
   q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
@@ -813,6 +814,7 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int leng
     structure[j-1] = bppm_symbol(P);
   }
   structure[length] = '\0';
+  free(iindx);
 }
 
 

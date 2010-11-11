@@ -29,12 +29,28 @@
 ***
 **/
 #define VRNA_INPUT_CONSTRAINT             32U
-/** Input switch for \ref get_input_line():  "do not print comment lines read to stdout" **/
-#define VRNA_INPUT_NOPRINT_COMMENTS       64U
+/**
+*** Input switch for \ref get_input_line():
+*** "do not trunkate the line by eliminating white spaces at end of line"
+**/
+#define VRNA_INPUT_NO_TRUNCATION          256U
+/** Input switch for read_record():  "do fill rest array" **/
+#define VRNA_INPUT_NO_REST                512U
+/** Input switch for read_record():  "never allow data to span more than one line" **/
+#define VRNA_INPUT_NO_SPAN                1024U
+
+/** Input switch for read_record():  "do not skip empty lines" **/
+#define VRNA_INPUT_NOSKIP_BLANK_LINES     2048U
+/** Output flag for read_record():  "read an empty line" */
+#define VRNA_INPUT_BLANK_LINE             4096U
+
 /** Input switch for \ref get_input_line():  "do not skip comment lines" **/
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
-/** Input switch for \ref get_input_line():  "do not eliminate white spaces at end of line" **/
-#define VRNA_INPUT_NOELIM_WS_SUFFIX       256U
+/** Output flag for read_record():  "read a comment" */
+#define VRNA_INPUT_COMMENT                8192U
+
+
+
 
 /** pipe sign '|' switch for structure constraints (paired with another base) **/
 #define VRNA_CONSTRAINT_PIPE              1U
@@ -138,6 +154,16 @@ unsigned int get_input_line(char **string, unsigned int options);
 
 unsigned int get_multi_input_line(char **string, unsigned int options);
 
+/**
+*** \brief  Get a data record from stdin
+***
+*** \param  header    A pointer which will be set such that it points to the header of the record
+*** \param  sequence  A pointer which will be set such that it points to the sequence of the record
+*** \param  rest      A pointer which will be set such that it points to an array of lines which also belong to the record
+*** \param  options   Some options which may be passed to alter the behavior of the function
+*** \return           A flag with information about what the function actually did read
+**/
+unsigned int read_record(char **header, char **sequence, char ***rest, unsigned int options);
 
 /**
 *** pack secondary secondary structure, 5:1 compression using base 3 encoding
