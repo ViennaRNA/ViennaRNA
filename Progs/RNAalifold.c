@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
-  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = 0;
+  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = 0;
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;

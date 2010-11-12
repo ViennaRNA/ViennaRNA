@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
   dangles       = 2;
   sfact         = 1.07;
   cutoff        = 0.0005;
-
+  ribo          = 0;
   /*
   #############################################
   # check the command line parameters
@@ -99,6 +99,14 @@ int main(int argc, char *argv[]){
   if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
   /* calculate most informative sequence */
   if(args_info.mis_given)         mis = 1;
+  if(args_info.ribosum_file_given){
+    RibosumFile = strdup(args_info.ribosum_file_arg);
+    ribo = 1;
+  }
+  if(args_info.ribosum_scoring_given){
+    RibosumFile = NULL;
+    ribo = 1;
+  }
 
   /* check unnamed options a.k.a. filename of input alignment */
   if(args_info.inputs_num == 1){

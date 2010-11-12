@@ -801,7 +801,6 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
     }
   }
 
-  n=S[0][0];  /* length of seqs */
   for (i=1; i<n; i++) {
     for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
       pscore[indx[j]+i] = NONE;

@@ -148,6 +148,20 @@ default="1.0"
 double
 optional
 
+option  "ribosum_file"    R
+"use specified Ribosum Matrix instead of normal energy model. Matrixes to use should be 6x6 matrices,\
+ the order of the terms is AU, CG, GC, GU, UA, UG.\n"
+string
+typestr="ribosumfile"
+optional
+
+option  "ribosum_scoring" r
+"use ribosum scoring matrix. The matrix is chosen according to the minimal and maximal pairwise\
+ identities of the sequences in the file.\n"
+flag
+off
+
+
 text    "Written by:\n\nIvo L Hofacker\n\n"
 
 text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

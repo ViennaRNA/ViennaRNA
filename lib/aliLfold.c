@@ -20,6 +20,7 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "params.h"
+#include "ribo.h"
 #include "alifold.h"
 #include "fold.h"
 #include "loop_energies.h"
@@ -641,15 +642,8 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 }
 
 /*---------------------------------------------------------------------------*/
-PRIVATE double cov_score(const char ** AS, int i, int j) {
+PRIVATE double cov_score(const char ** AS, int i, int j, float **dm) {
   int n_seq,k,l,s,score;
-  int dm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
-                       {0,0,2,2,1,2,2} /* CG */,
-                {0,2,0,1,2,2,2} /* GC */,
-                {0,2,1,0,2,1,2} /* GU */,
-                {0,1,2,2,0,2,1} /* UG */,
-                {0,2,2,1,2,0,2} /* AU */,
-                {0,2,2,2,1,2,0} /* UA */};
   int pfreq[8]={0,0,0,0,0,0,0,0};
   for (n_seq=0; AS[n_seq]!=NULL; n_seq++);
   for (s=0; s<n_seq; s++) {
@@ -680,8 +674,31 @@ PRIVATE void make_pscores(const char ** AS,
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
-  int n,j,l;
+  int n,j,k,l,n_seq;
+  float **dm;
   n=S[0][0];  /* length of seqs */
+  for (n_seq=0; AS[n_seq]!=NULL; n_seq++);
+
+  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
+                {0,0,2,2,1,2,2} /* CG */,
+                {0,2,0,1,2,2,2} /* GC */,
+                {0,2,1,0,2,1,2} /* GU */,
+                {0,1,2,2,0,2,1} /* UG */,
+                {0,2,2,1,2,0,2} /* AU */,
+                {0,2,2,2,1,2,0} /* UA */};
+  if (ribo) {
+    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+    else dm=get_ribosum_slice(AS,n_seq,i-1,n);
+  }
+  else { /*use usual matrix*/
+    dm=(float **)space(7*sizeof(float*));
+    for (k=0; k<7;k++) {
+      dm[k]=(float *)space(7*sizeof(float));
+      for (l=0; l<7; l++)
+        dm[k][l] = (float) olddm[k][l];
+    }
+  }
+
   /*first allocate space:*/
   pscore[i]=(int *)space((maxd+5)*sizeof(int));
   /*  pscore[start]-=start;*/
@@ -690,13 +707,13 @@ PRIVATE void make_pscores(const char ** AS,
     pscore[i][j-i] = NONE;
   }
   for (j=i+TURN+1; ((j<=n) && (j<=i+maxd)); j++) {
-    pscore[i][j-i] = cov_score(AS, i, j);
+    pscore[i][j-i] = cov_score(AS, i, j, dm);
   }
 
   if (noLonelyPairs) { /* remove unwanted lonely pairs */
     int type, otype=0, ntype=0;
     for (j=i+TURN; ((j<n)&&(j<i+maxd)); j++) {
-      if ((i>1) && (j<n)) otype = cov_score(AS, i-1, j+1);
+      if ((i>1) && (j<n)) otype = cov_score(AS, i-1, j+1, dm);
       type=pscore[i][j-i];
       if (i<n) ntype=pscore[i+1][j-1-(i+1)];
       else ntype=NONE;
