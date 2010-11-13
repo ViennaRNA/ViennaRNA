@@ -99,6 +99,7 @@ int main(int argc, char *argv[]){
   if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
   /* calculate most informative sequence */
   if(args_info.mis_given)         mis = 1;
+  if(args_info.csv_given)         csv = 1;
   if(args_info.ribosum_file_given){
     RibosumFile = strdup(args_info.ribosum_file_arg);
     ribo = 1;

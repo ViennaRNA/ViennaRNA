@@ -169,6 +169,15 @@ PUBLIC int   hamming(const char *s1, const char *s2)
     if (*s1 != *s2) h++;
   return h;
 }
+
+PUBLIC int   hamming_bound(const char *s1, const char *s2, int boundary)
+{
+  int h=0;
+
+  for (; *s1 && *s2 && boundary; s1++, s2++, boundary--)
+    if (*s1 != *s2) h++;
+  return h;
+}
 /*-----------------------------------------------------------------*/
 
 PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */

@@ -24,7 +24,7 @@ int  oldAliEn   = 0;     /* use old alifold-energies (without removing gaps) */
 int  ribo       = 0;     /* use ribosum instead of classic covariance term */
 char *RibosumFile = NULL; /* TODO: compile ribosums into program
 			     Warning: this variable will vanish */
-
+int  csv        = 0;     /*generate comma seperated output*/
 bondT  *base_pair;
 
 FLT_OR_DBL *pr;          /* base pairing prob. matrix */

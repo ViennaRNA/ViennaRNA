@@ -124,7 +124,9 @@ void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
 /**
 *** calculate hamming distance
 **/
-int    hamming(const char *s1, const char *s2);
+int   hamming(const char *s1, const char *s2);
+int   hamming_bound(const char *s1, const char *s2, int boundary);
+
 /*@only@*/ /*@null@*/
 char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
 

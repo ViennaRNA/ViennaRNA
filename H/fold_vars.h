@@ -17,22 +17,23 @@
 #define PRIVATE static
 
 /** Global switch to activate/deactivate folding with structure constraints */
-int    fold_constrained;
+extern int    fold_constrained;
 /** Global switch to avoid/allow helices of length 1 */
-int    noLonelyPairs;
+extern int    noLonelyPairs;
 /** Switch the energy model for dangling end contributions (0, 1, 2, 3) */
-int  dangles;
+extern int  dangles;
 /** Global switch to forbid/allow GU base pairs at all */
-int  noGU;
+extern int  noGU;
 /** GU allowed only inside stacks */
-int  no_closingGU;
+extern int  no_closingGU;
 /** Fold with specially stable 4-loops */
-int  tetra_loop;
+extern int  tetra_loop;
 /** 0 = BP; 1=any mit GC; 2=any mit AU-parameter */
-int  energy_set;
+extern int  energy_set;
 /** backward compatibility variable.. this does not effect anything */
-int  circ;
+extern int  circ;
 
+extern int  csv;             /*generate comma seperated output*/
 
 extern int oldAliEn;        /* use old alifold energies (with gaps) */
 extern int ribo;            /* use ribosum matrices */

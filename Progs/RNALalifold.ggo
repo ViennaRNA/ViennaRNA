@@ -27,6 +27,11 @@ int
 default="70"
 optional
 
+option  "csv"   -
+"Create comma seperated output (csv)\n"
+flag
+off
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n"

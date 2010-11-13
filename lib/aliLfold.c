@@ -352,7 +352,10 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
           ss =  backtrack(strings, i+1 , maxdist+1);
           if ((prev_i+strlen(prev)>i+1+strlen(ss))) {
             char *outstr;
-            printf("%s (%6.2f) %4d - %4d\n",
+            if(csv == 1)
+              printf("%s , %6.2f, %4d, %4d\n",
+                   prev, (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+            else printf("%s (%6.2f) %4d - %4d\n",
                    prev, (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
             outstr=strndup(strings[0]+prev_i-1, strlen(prev));
             printf("%s \n", outstr);
@@ -369,14 +372,18 @@ PRIVATE int fill_arrays(char **strings, int maxdist, char *structure) {
       if (i==1) {
         char *outstr;
         if (prev) {
-          printf("%s (%6.2f) %4d - %4d\n", prev,
+          if(csv == 1)
+            printf("%s , %6.2f, %4d, %4d\n", prev,
+                         (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+          else printf("%s (%6.2f) %4d - %4d\n", prev,
                          (f3[prev_i]-f3[prev_i + strlen(prev)-1])/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
           outstr=strndup(strings[0]+prev_i-1, strlen(prev));
           printf("%s \n", outstr);
         }
         if ((f3[prev_i] != f3[1]) || (!prev)) {
           ss =  backtrack(strings, i , maxdist);
-          printf("%s (%6.2f) %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1);
+          if(csv == 1) printf("%s , %6.2f, %4d, %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, strlen(ss)-1);
+          else printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, strlen(ss)-1);
           outstr=strndup(strings[0], strlen(ss));
           printf("%s \n", outstr);
           free(ss);
@@ -643,7 +650,8 @@ PRIVATE char * backtrack(char **strings, int start, int maxdist) {
 
 /*---------------------------------------------------------------------------*/
 PRIVATE double cov_score(const char ** AS, int i, int j, float **dm) {
-  int n_seq,k,l,s,score;
+  int n_seq,k,l,s;
+  double score;
   int pfreq[8]={0,0,0,0,0,0,0,0};
   for (n_seq=0; AS[n_seq]!=NULL; n_seq++);
   for (s=0; s<n_seq; s++) {
@@ -656,10 +664,10 @@ PRIVATE double cov_score(const char ** AS, int i, int j, float **dm) {
 
     pfreq[type]++;
   }
-  if (pfreq[0]*2>n_seq)
+  if (pfreq[0]*2+pfreq[7]>n_seq)
     return NONE;
   else
-    for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
+    for (k=1,score=0.; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
       for (l=k+1; l<=6; l++)
         /* scores for replacements between pairtypes    */
         /* consistent or compensatory mutations score 1 or 2  */
@@ -688,7 +696,7 @@ PRIVATE void make_pscores(const char ** AS,
                 {0,2,2,2,1,2,0} /* UA */};
   if (ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum_slice(AS,n_seq,i-1,n);
+    else dm=get_ribosum_slice(AS,n_seq,i,maxd+1);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));
