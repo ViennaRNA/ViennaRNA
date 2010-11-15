@@ -319,7 +319,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     }
                     break;
 
-      case  '#': case  '%': case  ';': case  '/': case  '*':
+      case  '#': case  '%': case  ';': case  '/': case  '*': case ' ':
                     /* comments */
                     if(option & VRNA_INPUT_NOSKIP_COMMENTS){
                       if(state) inbuf   = line;
@@ -333,7 +333,30 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     else      *string = line;
                     return (state==2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_FASTA_HEADER;
 
-      case  '<': case  '.': case  '|': case  '(': case  'x':
+      case  'x': case 'e': case 'l':   /* seems to be a constraint */
+                    i = 1;
+                    /* lets see if this assumption holds for the complete line */
+                    while((line[i] == 'x') || (line[i] == 'e') || (line[i] == 'l')) i++;
+                    /* it may be a sequence starting with or solely consisting of 'x's, 'e's or 'l's */
+                    if(     (line[i] == '\0')
+                        ||  ((line[i]>64) && (line[i]<91))  /* A-Z */
+                        ||  ((line[i]>96) && (line[i]<123)) /* a-z */
+                      ){
+                      if(option & VRNA_INPUT_FASTA_HEADER){
+                        /* are we in structure mode? */
+                        if(state == 2){ inbuf = line; return VRNA_INPUT_CONSTRAINT;}
+                        else{
+                          *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                          strcpy(*string + str_length, line);
+                          state = 1;
+                        }
+                        break;
+                      } 
+                      /* otherwise return line read */
+                      else{ *string = line; return VRNA_INPUT_SEQUENCE;}
+                    }
+                    /* fallthrough */
+      case  '<': case  '.': case  '|': case  '(': case ')': case '[': case ']': case '{': case '}': case ',':
                     /* seems to be a structure or a constraint */
                     /* either we concatenate this line to one that we read previously */
                     if(option & VRNA_INPUT_FASTA_HEADER){
@@ -353,7 +376,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                       return VRNA_INPUT_CONSTRAINT;
                     }
                     break;
-      default:      /* the default is that we assume to have a sequence */
+      default:      defualt: /* the default is that we assume to have a sequence */
                     if(option & VRNA_INPUT_FASTA_HEADER){
                       /* are we already in sequence mode? */
                       if(state == 2){
@@ -430,6 +453,7 @@ PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest, u
 
   /* read the rest until we find user abort, EOF, new sequence or new fasta header */
   if(!(options & VRNA_INPUT_NO_REST)){
+    options |= VRNA_INPUT_NOSKIP_COMMENTS; /* allow commetns to appear in rest output */
     tmp_type = VRNA_INPUT_QUIT | VRNA_INPUT_ERROR | VRNA_INPUT_SEQUENCE | VRNA_INPUT_FASTA_HEADER;
     if(options & VRNA_INPUT_NOSKIP_BLANK_LINES) tmp_type |= VRNA_INPUT_BLANK_LINE;
     while(!((input_type = get_multi_input_line(&input_string, options)) & tmp_type)){
@@ -657,7 +681,7 @@ PUBLIC int *get_indx(unsigned int length){
   return idx;
 }
 
-PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){
+PUBLIC void constrain_ptypes(const char *constraint, unsigned int length, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){
   int n,i,j,k,l;
   int hx, *stack;
   char type;
@@ -670,7 +694,7 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
   stack = (int *) space(sizeof(int)*(n+1));
 
   if(!idx_type){ /* index allows access in energy matrices at pos (i,j) via index[j]+i */
-    index = get_indx((unsigned)n);
+    index = get_indx(length);
 
     for(hx=0, j=1; j<=n; j++){
       switch(constraint[j-1]){
@@ -678,7 +702,7 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
                     break;
         case 'x':   /* can't pair */
                     for (l=1; l<j-min_loop_size; l++) ptype[index[j]+l] = 0;
-                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[l]+j] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++) ptype[index[l]+j] = 0;
                     break;
         case '(':   stack[hx++]=j;
                     /* fallthrough */
@@ -691,9 +715,9 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
                     }
                     i = stack[--hx];
                     type = ptype[index[j]+i];
-                    for (k=i+1; k<=n; k++) ptype[index[k]+i] = 0;
+                    for (k=i+1; k<=(int)length; k++) ptype[index[k]+i] = 0;
                     /* don't allow pairs i<k<j<l */
-                    for (l=j; l<=n; l++)
+                    for (l=j; l<=(int)length; l++)
                       for (k=i+1; k<=j; k++) ptype[index[l]+k] = 0;
                     /* don't allow pairs k<i<l<j */
                     for (l=i; l<=j; l++)
@@ -702,19 +726,19 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
                     ptype[index[j]+i] = (type==0) ? 7 : type;
                     /* fallthrough */
         case '>':   /* pairs downstream */
-                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[l]+j] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++) ptype[index[l]+j] = 0;
                     break;
       }
     }
   }
   else{ /* index allows access in energy matrices at pos (i,j) via index[i]-j */
-    index = get_iindx((unsigned)n);
+    index = get_iindx(length);
 
     for(hx=0, j=1; j<=n; j++) {
       switch (constraint[j-1]) {
         case 'x':   /* can't pair */
                     for (l=1; l<j-min_loop_size; l++) ptype[index[l]-j] = 0;
-                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[j]-l] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++) ptype[index[j]-l] = 0;
                     break;
         case '(':   stack[hx++]=j;
                     /* fallthrough */
@@ -729,14 +753,14 @@ PUBLIC void constrain_ptypes(const char *constraint, char *ptype, int *BP, int m
                     type = ptype[index[i]-j];
                     /* don't allow pairs i<k<j<l */
                     for (k=i; k<=j; k++)
-                      for (l=j; l<=n; l++) ptype[index[k]-l] = 0;
+                      for (l=j; l<=(int)length; l++) ptype[index[k]-l] = 0;
                     /* don't allow pairs k<i<l<j */
                     for (k=1; k<=i; k++)
                       for (l=i; l<=j; l++) ptype[index[k]-l] = 0;
                     ptype[index[i]-j] = (type==0) ? 7 : type;
                     /* fallthrough */
         case '>':   /* pairs downstream */
-                    for (l=j+min_loop_size+1; l<=n; l++) ptype[index[j]-l] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++) ptype[index[j]-l] = 0;
                     break;
       }
     }

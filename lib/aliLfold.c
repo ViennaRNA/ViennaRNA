@@ -696,7 +696,7 @@ PRIVATE void make_pscores(const char ** AS,
                 {0,2,2,2,1,2,0} /* UA */};
   if (ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum_slice(AS,n_seq,i,maxd+1);
+    else dm=get_ribosum(AS,n_seq,n);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));

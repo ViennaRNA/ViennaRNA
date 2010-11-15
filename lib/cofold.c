@@ -1139,7 +1139,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
     }
 
   if (fold_constrained && (structure != NULL))
-    constrain_ptypes(structure, ptype, BP, TURN, 0);
+    constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
 }
 
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {

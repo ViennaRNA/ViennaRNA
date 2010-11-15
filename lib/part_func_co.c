@@ -726,7 +726,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
     }
 
   if (fold_constrained&&(structure!=NULL)) {
-    constrain_ptypes(structure, ptype, NULL, TURN, 1);
+    constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
     for(j=1; j<=n; j++) {
       switch (structure[j-1]) {
         case 'l': /*only intramolecular basepairing*/

@@ -175,18 +175,27 @@ int main(int argc, char *argv[]){
 
     length  = (int)strlen(rec_sequence);
 
+    /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
-      if(rec_rest){
-        for(i=0;rec_rest[i];i++){
-          /* get the constraint structure somehow from the rest of the record... */
+      if(rec_rest)
+        for(r=0,i=0;rec_rest[i];i++){
+          l = (int)strlen(rec_rest[i]);
+          c = (char *) space(sizeof(char) * (l+1));
+          (void) sscanf(rec_rest[i], "%s", c);
+          /* actual constraining structure ? */
+          if((*c=='<') || (*c=='>') || (*c=='.') || (*c=='|') || (*c=='(') || (*c==')') || (*c=='x')){
+            r += l+1;
+            cstruc = (char *)xrealloc(cstruc, r*sizeof(char));
+            strcat(cstruc, c);
+            if(!rec_id || ((int)strlen(c) != l)) break; /* stop if not in fasta mode or multiple words on line */
+          }
+          else if(r) break; /* we skip only leading comments and other stuff */
         }
-        cl = (int)strlen(cstruc);
-        if(cl < length)       warn_user("structure constraint is shorter than sequence");
-        else if(cl > length)  nrerror("structure constraint is too long");
-      }
-      else warn_user("structure constraint missing");
+      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+      if(cl == 0)           warn_user("structure constraint is missing");
+      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
+      else if(cl > length)  nrerror("structure constraint is too long");
     }
-
     structure = (char *)space(sizeof(char) *(length+1));
     if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1)); 
 
@@ -295,6 +304,7 @@ int main(int argc, char *argv[]){
     if(rec_id) free(rec_id);
     free(rec_sequence);
     free(structure);
+    /* free the rest of current dataset */
     if(rec_rest){
       for(i=0;rec_rest[i];i++) free(rec_rest[i]);
       free(rec_rest);
