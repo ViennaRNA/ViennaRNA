@@ -2,7 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_LFOLD_H__
 
 float Lfold(const char *string, char *structure, int maxdist);
-float aliLfold(char **strings, char *structure, int maxdist);
+float aliLfold(const char **strings, char *structure, int maxdist);
 float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z);
 
 #endif

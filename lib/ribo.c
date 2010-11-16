@@ -699,10 +699,6 @@ float dm_20_19[7][7]={{0,0,0,0,0,0,0},
 
 
 float **get_ribosum(const char **Alseq, int n_seq, int length){
-  return get_ribosum_slice(Alseq, n_seq, 1, length);
-}
-
-float **get_ribosum_slice(const char **Alseq, int n_seq, int start, int length) {
   int i, j,k;
   float ident=0;
   int pairnum=0;
@@ -718,7 +714,7 @@ float **get_ribosum_slice(const char **Alseq, int n_seq, int start, int length) 
   }
   for(j=0; j<n_seq-1; j++)
     for(k=j+1; k<n_seq; k++) {
-      ident=length-hamming_bound(Alseq[k]+start-1,Alseq[j]+start-1, length);
+      ident=length-hamming(Alseq[k],Alseq[j]);
       if ((ident/(length))<minimum) minimum=ident/(float)(length);
       if ((ident/(length))>maximum) maximum=ident/(float)(length);
     }

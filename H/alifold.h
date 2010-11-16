@@ -47,9 +47,6 @@ float  alifold(const char **strings, char *structure);
 **/
 float  circalifold(const char **strings, char *structure);
 
-float  aliLfold(char **strings, char *structure, int maxdist);
-
-
 /**
 *** Free the memory occupied by MFE alifold functions
 **/

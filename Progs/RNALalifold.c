@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
   struct        RNALalifold_args_info args_info;
   char          *string, *structure, *ParamFile, *ns_bases, *c;
   char          ffname[80], gfname[80], fname[80];
-  int           n_seq, i, length, sym, r, maxdist;
+  int           n_seq, i, length, sym, r, maxdist, unchangednc, unchangedcv;
   int           mis, pf, istty;
   float         cutoff;
   double        min_en, real_en, sfact;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]){
   string = structure = ParamFile = ns_bases = NULL;
   mis = pf      = 0;
   maxdist       = 70;
-  do_backtrack  = 1;
+  do_backtrack  = unchangednc = unchangedcv = 1;
   dangles       = 2;
   sfact         = 1.07;
   cutoff        = 0.0005;
@@ -89,10 +89,15 @@ int main(int argc, char *argv[]){
       do_backtrack = args_info.partfunc_arg;
   }
   /* set cfactor */
-  if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
+  if(args_info.cfactor_given){
+    cv_fact = args_info.cfactor_arg;
+    unchangedcv = 0;
+  }
   /* set nfactor */
-  if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
-
+  if(args_info.nfactor_given){
+    nc_fact = args_info.nfactor_arg;
+    unchangednc = 0;
+  }
   /* set the maximum base pair span */
   if(args_info.span_given)        maxdist = args_info.span_arg;
   /* set the pair probability cutoff */
@@ -129,6 +134,9 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  if ((ribo==1)&&(unchangednc)) nc_fact=0.5;
+  if ((ribo==1)&&(unchangedcv)) cv_fact=0.6;
+
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -178,7 +186,7 @@ int main(int argc, char *argv[]){
   */
   update_fold_params();
   if(!pf)
-    min_en = aliLfold(AS, structure, maxdist);
+    min_en = aliLfold((const char **) AS, structure, maxdist);
   {
     eos_debug=-1; /* shut off warnings about nonstandard pairs */
     /*   for (i=0; AS[i]!=NULL; i++)
