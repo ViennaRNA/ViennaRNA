@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "distance_matrix.h"
@@ -6,8 +7,6 @@
 
 #define PUBLIC
 #define PRIVATE  static
-#define MAX(A, B)         ((A) > (B) ? (A) : (B))
-#define MIN(A, B)         ((A) < (B) ? (A) : (B))
 
 #define MAXTAXA_FOR_LABELS  200
 
@@ -84,8 +83,8 @@ PUBLIC void  PSplot_phylogeny(Union *cluster, char *filename, char *type)
    ysize = tempnode->height;
    threshold = ysize*0.06;
 
-   lwidth = MIN(1.5, 8/sqrt((double)n));
-   tfontsize = MIN(15,550./(10+n));
+   lwidth = MIN2(1.5, 8/sqrt((double)n));
+   tfontsize = MIN2(15,550./(10+n));
    lfontsize = 2./3.*tfontsize;
    if (n>30) tfont = "Helvetica";
    else tfont = "Times-Roman";
@@ -134,7 +133,7 @@ PRIVATE Node *W2Phylo(Union *cluster)
    n=cluster[0].set1;
    taxa = (Node **) space(sizeof(Node*)*(n+1));
    
-   b = sqrt(MAX(cluster[n-1].distance,0.));
+   b = sqrt(MAX2(cluster[n-1].distance,0.));
    for(i=1;i<=n;i++){
       taxa[i] = (Node *) space(sizeof(Node));
       taxa[i]->whoami = i;
@@ -148,7 +147,7 @@ PRIVATE Node *W2Phylo(Union *cluster)
       father->left  = taxa[cluster[i].set1];
       father->right = taxa[cluster[i].set2];
       father->size  = father->left->size+father->right->size;
-      b = sqrt(MAX(cluster[n-1].distance-cluster[i].distance,0.));
+      b = sqrt(MAX2(cluster[n-1].distance-cluster[i].distance,0.));
       father->height   = b;
       father->left->father   = father;
       father->right->father  = father;
@@ -227,7 +226,7 @@ PRIVATE Node *Nj2Phylo(Union *cluster)
          father->left  = taxa[cluster[i].set2];
          father->right = taxa[cluster[i].set1];
       }
-      father->height        = MAX(h1,h2);
+      father->height        = MAX2(h1,h2);
       father->size          = father->left->size + father->right->size;
       father->left->father   = father;
       father->right->father  = father;

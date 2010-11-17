@@ -50,6 +50,7 @@ AC_PROG_RANLIB
 AM_PROG_CC_C_O
 
 dnl check for auxilary programs to compile
+
 AC_PATH_PROG(PerlCmd, perl)
 if test -n "$PerlCmd"; then
   if $PerlCmd -e 'require 5.004'; then :
@@ -66,12 +67,12 @@ if test -z "$PerlCmd"; then
     with_perl="no"
 fi
 
-if test "$with_forester" != "no"; then
-   if test -f $srcdir/RNAforester/Makefile.am; then
-     AC_CONFIG_SUBDIRS([RNAforester])
-   else
-     AC_MSG_WARN([RNAforester subdirectory does not exist])
-     with_forester="no"
+if test "x${with_perl}" != xno; then
+  if test -f $srcdir/Perl/Makefile.am; then
+    AC_CONFIG_SUBDIRS([Perl])
+  else
+    AC_MSG_WARN([Perl subdirectory does not exist])
+    with_perl="no"
   fi
 fi
 
@@ -83,6 +84,25 @@ if test "$with_kinfold" != "no"; then
      with_kinfold="no"
    fi
 fi
+
+if test "$with_forester" != "no"; then
+   if test -f $srcdir/RNAforester/Makefile.am; then
+     AC_CONFIG_SUBDIRS([RNAforester])
+   else
+     AC_MSG_WARN([RNAforester subdirectory does not exist])
+     with_forester="no"
+  fi
+fi
+
+if test "$with_cluster" != "no"; then
+   if test -f $srcdir/Cluster/Makefile.am; then
+     AC_CONFIG_SUBDIRS([Cluster])
+   else
+     AC_MSG_WARN([Cluster subdirectory does not exist])
+     with_cluster="no"
+   fi
+fi
+
 
 dnl check for necessity of compiling provided SVM library
 if test "x${with_svm}" != xno; then
