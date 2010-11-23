@@ -155,6 +155,7 @@ if test "x${with_svm}" != xno; then
 fi
 
 AC_OPENMP
+AC_SUBST(OPENMP_CFLAGS)
 
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 
@@ -184,7 +185,7 @@ AC_C_INLINE([])
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strdup strstr strchr erand48)
 
-AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile])
+AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile Cluster/Makefile H/Makefile Perl/Makefile Perl/Makefile.PL])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_OUTPUT
 
