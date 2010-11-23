@@ -7,7 +7,7 @@ WriteMakefile(
 	      MYEXTLIB =>       "../lib/libRNA.a",
 	      PM       =>       {"RNA.pm", '$(INST_LIBDIR)/RNA.pm'},
 	      OBJECT  =>	"RNA_wrap.o",
-#        LDDLFLAGS => '${OPENMP_CFLAGS}',
+        dynamic_lib => {OTHERLDFLAGS => '@OPENMP_CFLAGS@'},
 	      AUTHOR  =>        'Ivo Hofacker <ivo@tbi.univie.ac.at>',
 	      VERSION =>      '@VERSION@'
 );

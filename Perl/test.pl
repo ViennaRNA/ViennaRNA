@@ -21,7 +21,7 @@ use warnings;
 
 
 my $seq1  ="CGCAGGGAUACCCGCG";
-my $struc1="(((.((....)).)))";
+my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
 my $struc2="((((((...))).)))";
 # calculate a hamming distance (from util.c)
@@ -53,7 +53,7 @@ $RNA::fold_constrained = 0;
 # test cofold
 $RNA::cut_point = length($seq1)+1;
 my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
-ok($costruct, '(((.((....)).)))((((((...))).)))');
+ok($costruct, '(((.(((...))))))((((((...))).)))');
 $cmfe = RNA::energy_of_struct($seq1 . $seq2, $costruct);
 ok(abs($comfe-$cmfe)<1e-5);
 $RNA::cut_point=-1;
@@ -70,7 +70,7 @@ my $T2 = RNA::make_tree($xstruc);
 $RNA::edit_backtrack = 1;
 my $tree_dist = RNA::tree_edit_distance($T1, $T2);
 # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n";
-ok($tree_dist,4);
+ok($tree_dist,2);
 
 # check access to a C array
 #ok(RNA::ptrvalue($RNA::iindx,3),108);
@@ -100,7 +100,7 @@ ok (RNA::unpack_structure($pack), $struc1);
 
 
 RNA::parse_structure($struc1);
-ok(($RNA::loops==2) && ($RNA::pairs==5)&&($RNA::unpaired==6) &&
+ok(($RNA::loops==2) && ($RNA::pairs==6)&&($RNA::unpaired==4) &&
   (RNA::intP_getitem($RNA::loop_degree,1)==2));
 
 
@@ -140,7 +140,7 @@ ok(int($e*100+0.5), 70);
 
 my $duplex = RNA::duplexfold($seq1, $seq2);
 
-ok($duplex->{structure}, ".(((.....(((.&)))))).");
+ok($duplex->{structure}, "(.(.(((.....(((.&))))))...).).");
 undef $duplex;
 
 my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");

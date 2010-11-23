@@ -30,7 +30,8 @@ void      update_cofold_params(void);
 *** Compute Suboptimal structures according Zuker
 **/
 SOLUTION  *zukersubopt(const char *string);
-float     *get_monomer_mfes();
+
+void get_monomere_mfes(float *e1, float *e2);
 
 void export_cofold_arrays(int **f5_p,
                           int **c_p,

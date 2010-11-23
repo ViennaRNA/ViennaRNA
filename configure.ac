@@ -155,6 +155,7 @@ if test "x${with_svm}" != xno; then
 fi
 
 AC_OPENMP
+AC_SUBST(OPENMP_CFLAGS)
 
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 
