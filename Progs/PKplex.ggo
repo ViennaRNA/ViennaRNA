@@ -1,0 +1,99 @@
+# Name of your program
+package "PKplex" # don't use package if you're using automake
+purpose "predicts RNA secondary structures including pseudoknots"
+#usage "PKplex [options]\n"
+
+# Version of your program
+#version "0.1"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=PKplex_cmdl --include-getopt --default-optional --func-name=PKplex_cmdline_parser --arg-struct-name=PKplex_args_info"
+
+
+description "Computes RNA secondary structures by first making two sequence intervals accessible and unpaired using the algorithm of RNAplfold and then calculating the energy of the interaction of those two intervals. The algorithm uses O(n^2*w^4) CPU time and O(n*w^2) memory space.\n"
+
+# Options
+option  "cutoff"  c
+"Report only base pairs with an average probability > cutoff in the dot plot\n"
+float
+default="0.01"
+optional
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+
+option  "noTetra" 4
+"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="With -d2 dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case.\n\n-d0 ignores dangling ends altogether (mostly for\
+ debugging).\n"
+int
+default="2"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"  flag  off
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+default="empty"
+optional
+
+option  "energyCutoff" e
+"Energy cutoff or pseudoknot initiation cost. Minimum energy gain of a pseudoknot\
+ interaction for it to be returned. Pseudoknots with smaller energy gains are\
+ rejected.\n"
+int
+default="-810"
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option "verbose" v
+"print verbose output\n"
+flag
+off
+
+option "subopts" s
+"print suboptimal structures whose energy difference of the pseudoknot to the optimum pseudoknot is smaller than the given value.\n"
+int
+default="0"
+optional
+
+text    "Author:\nWolfgang Beyer\n\nComments should be sent to wolfgang@tbi.univie.ac.at\n\n"
+
