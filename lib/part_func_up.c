@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2008-07-04 15:57:03 ulim> */
-/*                
+/*
                   partiton function for RNA secondary structures
 
                   Ivo L Hofacker
@@ -95,7 +95,7 @@ PRIVATE FLT_OR_DBL  *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
 PRIVATE FLT_OR_DBL  *q1k, *qln;
 PRIVATE double      *qqm2, *qq_1m2, *qqm, *qqm1;
 PRIVATE FLT_OR_DBL  *scale, *expMLbase;
-PRIVATE char        *ptype; /* precomputed array of pair types */ 
+PRIVATE char        *ptype; /* precomputed array of pair types */
 PRIVATE int         init_length;  /* length in last call to init_pf_fold()*/
 PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 /* make iptypes array for intermolecular constrains (ipidx for indexing)*/
@@ -136,7 +136,7 @@ PUBLIC pu_contrib *get_pu_contrib_struct(unsigned int n, unsigned int w){
    I interior loop,
    M muliloop,
    E exterior loop*/
-  /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */ 
+  /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */
   pu->H           = (double **)space(sizeof(double *) * (n + 1));
   pu->I           = (double **)space(sizeof(double *) * (n + 1));
   pu->M           = (double **)space(sizeof(double *) * (n + 1));
@@ -171,7 +171,7 @@ PUBLIC  void  free_pu_contrib_struct(pu_contrib *pu){
 PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   int           n, i, j, v, k, l, o, p, ij, kl, po, u, u1, d, type, type_2, tt, uu;
   unsigned int  size;
-  double        temp, tqm2; 
+  double        temp, tqm2;
   double        qbt1, *tmp, Zuij, sum_l, *sum_M;
   double        *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
   double        *store_M_qm_o,*store_M_mlbase;    /* multiloop contributions */
@@ -188,7 +188,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   init_pf_two(n);
 
   /* init everything */
-  for (d=0; d<=TURN; d++) 
+  for (d=0; d<=TURN; d++)
     for (i=1; i<=n-d; i++){
       j=i+d;
       ij = iindx[i]-j;
@@ -212,7 +212,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   }
 
   /* alloc even more memory */
-  store_I2o = (double **)space(sizeof(double *) * (n + 1)); /* for p,k */ 
+  store_I2o = (double **)space(sizeof(double *) * (n + 1)); /* for p,k */
   for(i=0;i<=n;i++)
     store_I2o[i] = (double *)space(sizeof(double) * (MAXLOOP + 2));
 
@@ -224,10 +224,10 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
     double sum_h;
     /*allocate space for arrays to store different contributions to H, I & M */
     store_H       = (double *)space(sizeof(double) * (o+2));
-    /* unpaired between ]l,o[ */    
+    /* unpaired between ]l,o[ */
     store_Io      = (double *)space(sizeof(double) * (o+2));
     /* qm[p+1,i-1]*dangles_po */
-    store_M_qm_o  = (double *)space(sizeof(double) * (n+1)); 
+    store_M_qm_o  = (double *)space(sizeof(double) * (n+1));
 
     for (p=o-TURN-1; p>=1; p--) {
       /* construction of partition function of segment [p,o], given that
@@ -242,13 +242,13 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
           temp = 0.;
         else
           temp = prpr[po] * exp_E_Hairpin(u, type, S1[p+1], S1[o-1], sequence+p-1, Pf) * scale[u+2];
-        /* all H contribs are collect for the longest unpaired region */ 
+        /* all H contribs are collect for the longest unpaired region */
         store_H[p+1] = temp;
 
         /* interior loops with interior pair k,l and an unpaired region of
-         length w between p and k || l and o*/        
+         length w between p and k || l and o*/
         for (k=p+1; k<=MIN2(p+MAXLOOP+1,o-TURN-2); k++) {
-          u1    = k-p-1;          
+          u1    = k-p-1;
           sum_l = 0.;
           for (l=MAX2(k+TURN+1,o-1-MAXLOOP+u1); l<o; l++) {
             kl      = iindx[k]-l;
@@ -281,21 +281,21 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
          second op-loop: index o goes from n...1 and
                          index p from o+TURN+1 ... n !!
          HERE index o goes from 1...n and index p o-TURN-1 ... 1 ,
-         we calculate the contributions to multiple stem loop 
+         we calculate the contributions to multiple stem loop
          where exp(i+w-1-p)*(qqm2 values between i+w and o-1)
          AND qm[iindex[p+1]-(i-1)]*exp(beta*w)*qm[iindex[i+w]-(o-1)]
          you have to recalculate of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment p,o */
 
-      /* recalculate qqm[] 
+      /* recalculate qqm[]
          qqm[p] := (contribution with exact one loop in region (p,o)*/
       qqm[p]  = qqm1[p] * expMLbase[1];
       if(type){
         qbt1    =   qb[po] * exp_E_MLstem(type, (p>1) ? S1[p-1] : -1, (o<n) ? S1[o+1] : -1, Pf);
         qqm[p]  +=  qbt1;
         /* reverse dangles for prpr[po]*... */
-        temp    =   0.; 
+        temp    =   0.;
         tt      =   rtype[type];
         temp    =   prpr[po] * exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * Pf->expMLclosing;
         for(i=p+1; i < o; i++) {
@@ -313,14 +313,14 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       for(tqm2 = 0., i=p+1; i < o; i++)
         tqm2  +=  qm[iindx[p]-i] * qqm[i+1];
 
-      /* qqm2[p] contrib with at least 2 loops in region (p,o) */ 
+      /* qqm2[p] contrib with at least 2 loops in region (p,o) */
       qqm2[p] = tqm2;
     } /* end for (p=..) */
 
     for(sum_h = 0., i=1; i < o; i++) {
-      int max_v, vo;      
+      int max_v, vo;
       sum_h +=  store_H[i];
-      max_v =   MIN2(w-1,o-i-1); 
+      max_v =   MIN2(w-1,o-i-1);
       for(v=max_v; v >= 0; v--){
         /* Hairpins */
         pu_test->H[i][v] += sum_h;/* store_H[i][v] + store_H[i][max_v]; */
@@ -338,18 +338,18 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
     }
     tmp = qqm1; qqm1=qqm; qqm=tmp;
     tmp = qqm2; qqm2=qq_1m2; qq_1m2=tmp;
-    
+
     free(store_Io);
     free(store_H);
-    free(store_M_qm_o); 
+    free(store_M_qm_o);
   }/* end for (o=..) */
 
   for(i=1; i < n; i++) {
     int     max_v;
     double  sum_iv;
     sum_iv  = 0.;
-    max_v   = MIN2(w-1,n-i); 
-    for(v=n; v >=0; v--) {      
+    max_v   = MIN2(w-1,n-i);
+    for(v=n; v >=0; v--) {
       if(v <= MIN2(max_v,MAXLOOP)) {
         /* all unpaired regions [i,v] between p and k in interior loops */
         /* notice v runs from max_v -> 0, sum_iv sums all int. l. contribs */
@@ -413,7 +413,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       for(i=o+1; i < p; i++) {
         uu=0;
         tqm2+=qqm[i]*qm[iindx[i+1]-p];
-        
+
         if(type !=0) {
           double temp2;
           temp2=0;
@@ -423,7 +423,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
         }
       }/*end of for i ....*/
       qqm2[p] = tqm2;
-    }/* end for (p=..) */    
+    }/* end for (p=..) */
     tmp = qqm1; qqm1=qqm; qqm=tmp;
     tmp = qqm2; qqm2=qq_1m2; qq_1m2=tmp;
   }/* end for (o=..) */
@@ -435,10 +435,10 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       sum_M[i]  += store_M_mlbase[iindx[i]-v];
       if ((v-i <= v_max) ) {
         pu_test->M[i][v-i] += sum_M[i];
-      }        
+      }
     }
   }
-  
+
   /* 1. region [i,j] exterior to all loops */
   Zuij=0.;
   for (i=1; i<=n; i++) {
@@ -447,13 +447,13 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       ij=iindx[i]-j;
       temp=q1k[i-1]*1*scale[j-i+1]*qln[j+1]/q1k[n];
       pu_test->E[i][j-i]+=temp;
-      
+
     }
   }
-  
+
   free(store_M_mlbase);
   free_up_arrays();
-  return pu_test;  
+  return pu_test;
 }
 
 
@@ -507,8 +507,8 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 
   G_min = G_is = Gi_min = 100.0;
   gi = gj = gk = gl = ci = cj = ck = cl = 0;
-  
-  n1      = (int) strlen(s1); 
+
+  n1      = (int) strlen(s1);
   n2      = (int) strlen(s2);
   prev_k  = 1;
   prev_l  = n2;
@@ -531,7 +531,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   Int = (interact *) space(sizeof(interact)*1);
   Int->Pi = (double *) space(sizeof(double)*(n1+2));
   Int->Gi = (double *) space(sizeof(double)*(n1+2));
-   
+
   /* use a different scaling for pf_interact*/
   scale_int(s2, s1, &int_scale);
 
@@ -542,7 +542,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
 
   /* in order to scale expLoopEnergy correctly call*/
   scale_stru_pf_params((unsigned) n1);
-  
+
   qint_ik = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *) * (n1+1));
   for (i=1; i<=n1; i++) {
     qint_ik[i] = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * (n1+1));
@@ -555,7 +555,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   Z_int=0.;
   /*  Gint = ( -log(int_ik[gk][gi])-( ((int) w/2)*log(pf_scale)) )*((Pf->temperature+K0)*GASCONST/1000.0); */
   const_scale = ((int) w/2)*log(pf_scale);
-  const_T = (Pf->kT/1000.0); 
+  const_T = (Pf->kT/1000.0);
   encode_seq(s1, s2);
   /* static  short *S~S1, *S1~SS1, *SS~S2, *SS2; */
   for (i=0; i<=n1; i++) {
@@ -563,7 +563,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   }
   E=0.;
   Z=0.;
-  
+
   if ( fold_constrained && cstruc != NULL) {
     pos = strchr(cstruc,'|');
     if(pos) {
@@ -593,17 +593,17 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
         nrerror("pf_interact: could not satisfy all constraints");
       }
     }
-    
+
   } else if ( fold_constrained && cstruc == NULL) {
     nrerror("option -C selected, but no constrained structure given\n");
   }
-  if(fold_constrained) pos = strchr(cstruc,'|');  
-  
+  if(fold_constrained) pos = strchr(cstruc,'|');
+
   /*  qint_4[i][j][k][l] contribution that region (k-i) in seq1 (l=n1)
       is paired to region (l-j) in seq 2(l=n2) that is
       a region closed by bp k-l  and bp i-j */
   qint_4 = (FLT_OR_DBL ****) space(sizeof(FLT_OR_DBL ***) * (n1+1));
-  
+
   /* qint_4[i][j][k][l] */
   for (i=1; i<=n1; i++) {
     int end_k;
@@ -611,11 +611,11 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
     if(fold_constrained && pos && ci) end_k= MAX2(i-w, ci-w);
     /* '|' constrains for long sequence: index i from 1 to n1 (5' to 3')*/
     /* interaction has to include 3' most '|' constrain, ci */
-    if(fold_constrained && pos && ci && i==1 && i<ci) 
-      i= ci-w+1 > 1 ? ci-w+1 : 1; 
-    /* interaction has to include 5' most '|' constrain, ck*/ 
+    if(fold_constrained && pos && ci && i==1 && i<ci)
+      i= ci-w+1 > 1 ? ci-w+1 : 1;
+    /* interaction has to include 5' most '|' constrain, ck*/
     if(fold_constrained && pos && ck && i > ck+w-1) break;
-    
+
     /* note: qint_4[i] will be freed before we allocate qint_4[i+1] */
     qint_4[i] = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **) * (n2+1));
     for (j=n2; j>0; j--) {
@@ -624,7 +624,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
         qint_4[i][j][k] = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * (w+1));
       }
     }
-    
+
      prev_k=1;
     for (j=n2; j>0; j--) {
       int type, type2,end_l;
@@ -632,9 +632,9 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       if(fold_constrained && pos && ci) end_l= MIN2(cj+w,j+w);
       /* '|' constrains for short sequence: index j from n2 to 1 (3' to 5')*/
       /* interaction has to include 5' most '|' constrain, cj */
-      if(fold_constrained && pos && cj && j==n2 && j>cj) 
-        j = cj+w-1 > n2 ? n2 : cj+w-1; 
-      /* interaction has to include 3' most '|' constrain, cl*/ 
+      if(fold_constrained && pos && cj && j==n2 && j>cj)
+        j = cj+w-1 > n2 ? n2 : cj+w-1;
+      /* interaction has to include 3' most '|' constrain, cl*/
       if(fold_constrained && pos && cl && j < cl-w+1) break;
       type = cc->ptype[cc->indx[i]-(n1+j)];
       qint_4[i][j][0][0] = type ? Pf->expDuplexInit : 0;
@@ -643,7 +643,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       qint_4[i][j][0][0] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, Pf);
 
       rev_d = exp_E_ExtLoop(rtype[type], (j>1) ? SS2[j-1] : -1, (i<n1) ? S1[i+1] : -1, Pf);
-      
+
       /* add inc5 and incr3 */
       if((i-incr5) > 0 ) add_i5=i-incr5;
       else add_i5=1;
@@ -666,29 +666,29 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       int_ik[i][i]+=qint_4[i][j][0][0]*rev_d*scale[((int) w/2)];
       Z_int+=qint_4[i][j][0][0]*rev_d*scale[((int) w/2)];
       temp_int=0.;
-     
+
       temp=0.;
       prev_l = n2;
-      for (k=i-1; k>end_k && k>0; k--) {      
+      for (k=i-1; k>end_k && k>0; k--) {
         if (fold_constrained && pos && cstruc[k-1] == '|' && k > prev_k)
-          prev_k=k; 
+          prev_k=k;
         for (l=j+1; l< end_l && l<=n2; l++) {
           int a,b,ia,ib,isw;
           double scalew, tt, intt;
-          
+
           type2 = cc->ptype[cc->indx[k]-(n1+l)];
           /* '|' : l HAS TO be paired: not pair (k,x) where x>l allowed */
           if(fold_constrained && pos && cstruc[n1+l-1] == '|' && l < prev_l)
             prev_l=l; /*break*/
           if(fold_constrained && pos && (k<=ck || i>=ci) && !type2) continue;
           if(fold_constrained && pos && ((cstruc[k-1] == '|') || (cstruc[n1+l-1] == '|')) && !type2) break;
-          
+
           if (!type2) continue;
-          /* to save memory keep only qint_4[i-w...i][][][] in memory 
+          /* to save memory keep only qint_4[i-w...i][][][] in memory
              use indices qint_4[i][j][a={0,1,...,w-1}][b={0,1,...,w-1}] */
           a=i-k;/* k -> a from 1...w-1*/
           b=l-j;/* l -> b from 1...w-1 */
-            
+
           /* scale everything to w/2 */
           isw = ((int) w/2);
           if ((a+b) < isw ){
@@ -704,9 +704,9 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
               E = exp_E_IntLoop(i-k-1,l-j-1, type2, rtype[type],
                                 S1[k+1], SS2[l-1], S1[i-1], SS2[j+1], Pf) *
                                 scale[i-k+l-j]; /* add *scale[u1+u2+2] */
- 
+
               qint_4[i][j][a][b] += ( qint_4[k][l][0][0]*E);
-            
+
               /* use ia and ib to go from a....w-1 and from b....w-1  */
               ia=ib=1;
               while((a+ia)<w && i-(a+ia)>=1 && (b+ib)<w && (j+b+ib)<=n2) {
@@ -719,18 +719,18 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
                   qint_4[i][j][a+iaa][b+ib] += qint_4[k][l][iaa][ib]*E;
                   ++iaa;
                 }
-              
+
                 ibb=ib+1;
                 while( (b+ibb)<w && (j+b+ibb)<=n2 ) {
                   qint_4[i][j][a+ia][b+ibb] += qint_4[k][l][ia][ibb]*E;
                   ++ibb;
-                } 
+                }
                 ++ia;
                 ++ib;
               }
             }
           }
-          /* '|' constrain in long sequence */ 
+          /* '|' constrain in long sequence */
           /* collect interactions starting before 5' most '|' constrain */
           if ( fold_constrained && pos && ci && i < ci) continue;
           /* collect interactions ending after 3' most '|' constrain*/
@@ -750,7 +750,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
           pc_size = MIN2((w+incr3+incr5),n1);
           if(i-k+incr3 < pc_size) add_i3=i-k+incr3;
           else add_i3=pc_size-1;
-          
+
           if(p_c2 == NULL) {/* consider only structure of longer seq. */
             tt = qint_4[i][j][a][b]*p_c_S[add_i5][add_i3]*scalew*rev_d;
           } else { /* consider structures of both seqs. */
@@ -760,25 +760,25 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
           qint_ik[k][i]+= tt;
           /* int_ik */
           /* check deltaG_ges = deltaG_int + deltaG_unstr; */
-          intt = qint_4[i][j][a][b]*scalew*rev_d;  
+          intt = qint_4[i][j][a][b]*scalew*rev_d;
           temp_int += intt;
           int_ik[k][i]+= intt;
           G_is = (-log(tt)-const_scale)*(const_T);
           if (G_is < G_min || EQUAL(G_is,G_min)) {
-            G_min = G_is;            
+            G_min = G_is;
             Gi_min =(-log(intt)-const_scale)*(const_T);
             gi=i;
             gj=j;
             gk=k;
             gl=l;
-          } 
+          }
         }
       }
       Z+=temp;
       /* int_ik */
-      Z_int+=temp_int; 
+      Z_int+=temp_int;
     }
-  
+
     /* free qint_4 values not needed any more */
     if(i > w) {
       int bla;
@@ -796,7 +796,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
     }
   }
 
-  
+
   Z2=0.0;
   i_max = k_max = 0;
   for (i=1; i<=n1; i++) {
@@ -812,7 +812,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
                        (Pf->kT/1000.0) );
       }
     }
-  }  
+  }
   if(n1 > w){
     int start_i,end_i;
     start_i = n1-w+1;
@@ -825,7 +825,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       end_i = ck+w-1 > n1 ? n1 : ck+w-1;
     }
     for (i=start_i; i<=end_i; i++) {
-      if(qint_4[i] == NULL ) continue;      
+      if(qint_4[i] == NULL ) continue;
       for (j=n2; j>0; j--) {
         for (k=0; k<=w; k++) {
           free(qint_4[i][j][k]);
@@ -843,7 +843,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
       start_i = ci-w+1 > 0 ? ci-w+1 : 1;
       end_i = ck+w-1 > n1 ? n1 : ck+w-1;
     }
-    
+
     for (i=start_i; i<=end_i; i++) {
       for (j=n2; j>0; j--) {
         for (k=0; k<=w; k++) {
@@ -856,7 +856,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
     free(qint_4);
   }
   if(fold_constrained && (gi==0 || gk==0 ||  gl==0 || gj==0)) {
-    nrerror("pf_interact: could not satisfy all constraints");    
+    nrerror("pf_interact: could not satisfy all constraints");
   }
   /* fill structure interact */
   Int->length = n1;
@@ -866,10 +866,10 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   Int->l = gl;
   Int->Gikjl = G_min;
   Int->Gikjl_wo = Gi_min;
-  
+
   free(i_long);
   free(i_short);
-  
+
   for (i=1; i<=n1; i++) {
     free(int_ik[i]);
   }
@@ -877,13 +877,13 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   for (i=1; i<=n1; i++) {
     free(qint_ik[i]);
   }
-  free(qint_ik);  
+  free(qint_ik);
 
   /* reset the global variables pf_scale and scale to their original values */
   pf_scale = temppfs;/* reset pf_scale */
   scale_stru_pf_params((unsigned) n1);/* reset the scale array */
   free_pf_arrays(); /* for arrays for pf_fold(...) */
-  
+
   if(expMLbase != NULL) {
     free(expMLbase);
     expMLbase = NULL;
@@ -893,12 +893,12 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
     scale = NULL;
   }
   for (i=1; i<=n1; i++) {
-    free(p_c_S[i]);      
+    free(p_c_S[i]);
   }
   free(p_c_S);
   if(p_c2 != NULL) {
     for (i=1; i<=n2; i++) {
-      free(p_c2_S[i]);      
+      free(p_c2_S[i]);
     }
     free(p_c2_S);
   }
@@ -906,7 +906,7 @@ PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu
   free(cc->indx);
   free(cc->ptype);
   free(cc);
-  return(Int);  
+  return(Int);
 }
 /*------------------------------------------------------------------------*/
 /* use an extra scale for pf_interact, here sl is the longer sequence */
@@ -914,37 +914,37 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
   int       n,nl,l_scales;
   duplexT   mfe;
   double    kT;
-  
+
   n         = strlen(s);
   nl        = strlen(sl);
 
   expMLbase = (double *) space(sizeof(double)*(nl+1));
   scale     = (double *) space(sizeof(double)*((nl+1)*2));
-  
+
   /* use RNA duplex to get a realistic estimate for the best possible
      interaction energy between the short RNA s and its target sl */
   mfe = duplexfold(s,sl);
-  
+
   kT = Pf->kT/1000.0;   /* in Kcal */
 
   /* sc_int is similar to pf_scale: i.e. one time the scale */
   *sc_int = exp(-(mfe.energy)/kT/n);
-  
+
   /* free the structure returned by duplexfold */
-  free(mfe.structure);  
+  free(mfe.structure);
 }
 
 /*----------------------------------------------------------------------*/
-/* init_pf_two(n) :gets the arrays, that you need, from part_func.c */ 
+/* init_pf_two(n) :gets the arrays, that you need, from part_func.c */
 /* get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln);*/
-/* init_pf_fold(), update_pf_params, encode_char(), make_ptypes() are called by pf_fold() */  
+/* init_pf_fold(), update_pf_params, encode_char(), make_ptypes() are called by pf_fold() */
 PRIVATE void init_pf_two(int length){
 #ifdef SUN4
   nonstandard_arithmetic();
 #else
 #ifdef HP9
   fpsetfastmode(1);
-#endif 
+#endif
 #endif
   make_pair_matrix();
 
@@ -956,7 +956,7 @@ PRIVATE void init_pf_two(int length){
 
   init_length=length;
   if(init_temp != Pf->temperature)
-    nrerror("init_pf_two: inconsistency with temperature");  
+    nrerror("init_pf_two: inconsistency with temperature");
 }
 
 PRIVATE void  get_up_arrays(unsigned int length){
@@ -969,7 +969,7 @@ PRIVATE void  get_up_arrays(unsigned int length){
   qq_1m2    = (double *)    space(sizeof(double)      * l2);
   qqm       = (double *)    space(sizeof(double)      * l2);
   qqm1      = (double *)    space(sizeof(double)      * l2);
-  
+
 }
 
 PRIVATE void  free_up_arrays(void){
@@ -1041,7 +1041,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   }
 
   init_temp = Pf->temperature;
-  
+
   kT = Pf->kT;   /* kT in cal/mol  */
 
    /* scaling factors (to avoid overflows) */
@@ -1068,7 +1068,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
   pu_out* u_results;
 
   len = p_c->length;
-  
+
   /* number of different -u values */
   for (num_u_vals = 0, i = 1; i <= unpaired_values[0][0]; i++) {
     j = unpaired_values[i][0];
@@ -1104,7 +1104,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
     off_M = contribs;
     ++contribs;
   }
-  
+
   if(contribs > 5) {
     nrerror("get_u_vals: error with contribs!");
   }
@@ -1113,7 +1113,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
   u_results->len = len; /* sequence length */
   /*num_u_vals differnet -u values, contribs [-c "SHIME"] */
   u_results->u_vals = num_u_vals;
-  u_results->contribs = contribs; 
+  u_results->contribs = contribs;
   /* add 1 column for position within the sequence and
      add 1 column for the free energy of interaction values */
   /* header e.g. u3I (contribution for u3 interior loops */
@@ -1122,7 +1122,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
   for(i=0;i<(size+1);i++){
     u_results->header[i] = (char *) space(10*sizeof(char));
   }
-  /* different free energies for all  -u and -c combinations */ 
+  /* different free energies for all  -u and -c combinations */
   u_results->u_values = (double**) space((size+1) *sizeof(double*));
   for(i=0;i<(size+1);i++){
     /* position within the sequence  */
@@ -1141,7 +1141,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
     do{
       int offset; /* offset for the respective -u value (depents on the number
                    of the -u value and on the numbers of contribs */
- 
+
       offset = ((count - 1) * contribs) + 1; /* first colum is the position */
       /* set the current value of -u : here we call it w */
       w = l; /* set w to the actual -u value */
@@ -1168,16 +1168,16 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
               /* printf("len %d  blubb %.3f \n",len, blubb); */
               if(S) u_results->u_values[offset+off_S][i+w-1]+=blubb;
               if(E) u_results->u_values[offset+off_E][i+w-1]+=p_c->E[i][j-i];
-              if(H) u_results->u_values[offset+off_H][i+w-1]+=p_c->H[i][j-i]; 
-              if(I) u_results->u_values[offset+off_I][i+w-1]+=p_c->I[i][j-i]; 
+              if(H) u_results->u_values[offset+off_H][i+w-1]+=p_c->H[i][j-i];
+              if(I) u_results->u_values[offset+off_I][i+w-1]+=p_c->I[i][j-i];
               if(M) u_results->u_values[offset+off_M][i+w-1]+=p_c->M[i][j-i];
 
             }
             if(i<w && (j-i+1) != w && i+w-1 > len &&  i+w-1 < len+3) {
               if(S) u_results->u_values[offset+off_S][i+w-1]=-1;
               if(E) u_results->u_values[offset+off_E][i+w-1]=-1;
-              if(H) u_results->u_values[offset+off_H][i+w-1]=-1; 
-              if(I) u_results->u_values[offset+off_I][i+w-1]=-1; 
+              if(H) u_results->u_values[offset+off_H][i+w-1]=-1;
+              if(I) u_results->u_values[offset+off_I][i+w-1]=-1;
               if(M) u_results->u_values[offset+off_M][i+w-1]=-1;
             }
           }
@@ -1195,7 +1195,7 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
 /* currently we plot the free energies to a file: the probability of
    being unpaired for region [i,j], p_u[i,j], is related to the free
    energy to open region [i,j], dG_u[i,j] by:
-   dG_u[i,j] = -log(p_u[i,j])*(temperature+K0)*GASCONST/1000.0; */   
+   dG_u[i,j] = -log(p_u[i,j])*(temperature+K0)*GASCONST/1000.0; */
 PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head) {
   int size,s,i,len;
   double dG_u;
@@ -1208,10 +1208,10 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
     return(0);
   }
   sprintf(dg,"dG");
-  
+
   /* printf("T=%.16f \n(temperature+K0)*GASCONST/1000.0 = %.16f\n",temperature,(temperature+K0)*GASCONST/1000.0); */
-  
-  /* write the header of the output file:  */ 
+
+  /* write the header of the output file:  */
   /*  # timestamp commandlineaufruf   */
   /*  # length and name of first sequence (target)
   /*  # first seq */
@@ -1231,15 +1231,15 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
     time = time_stamp();
     fprintf(wastl,"# %s\n", time);
     fprintf(wastl,"%s\n",head);
-  } 
+  }
   fprintf(wastl,"# ");
   /* }  else { fprintf(wastl," "); } close if before  */
   len  = res->len;
   size = res->u_vals * res->contribs;
-  
+
   sprintf(nan,"NA");
   nan[2] = '\0';
-  
+
   for(i=0;i<=len; i++) {
     for(s=0;s<=size+1;s++) { /* that is for different contribution */
       if ( i== 0 && s > size && pint != NULL)
@@ -1252,7 +1252,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
           } else { /* no p_u value was defined print nan*/
             fprintf(wastl,"%8s  ",nan);
           }
-          
+
         } else if (s > size && pint != NULL) {
           fprintf(wastl,"%8.3f  ",pint->Gi[i]);
         } else if (s == 0) {
@@ -1280,7 +1280,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
     free(res);
     res = NULL;
   }
-  
+
   return(1); /* success */
 }
 
@@ -1294,13 +1294,13 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
   if(mode & RNA_UP_MODE_1){
     dada = get_u_vals(p_c,unpaired_values,select_contrib);
     ret = plot_free_pu_out(dada,NULL,ofile,head);
-    
+
   /* upmode > 1 cofolding */
   /* } else if (p_c != NULL && pint != NULL) { */
   } else if(mode & RNA_UP_MODE_2) {
     dada = get_u_vals(p_c,unpaired_values,select_contrib);
     ret = plot_free_pu_out(dada,pint,ofile,head);
-  
+
   /* upmode = 3  cofolding*/
   /* } else if (p_c == NULL && p_c_sh != NULL) { */
   }
@@ -1326,7 +1326,7 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
   con = (constrain *) space(sizeof(constrain));
   con->indx = (int *) space(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
-    con->indx[i] = ((length+1-i)*(length-i))/2 +length+1;    
+    con->indx[i] = ((length+1-i)*(length-i))/2 +length+1;
   }
   con->ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
 
@@ -1342,7 +1342,7 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
         if ((i>1)&&(j<n)) ntype = pair[s[i-1]][s[j+1]];
         if (noLonelyPairs && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
-        con->ptype[con->indx[i]-j] = (char) type;        
+        con->ptype[con->indx[i]-j] = (char) type;
         otype =  type;
         type  = ntype;
         i--; j++;
@@ -1358,12 +1358,12 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
       case 'x': /* can't pair */
         for (l=1; l<j-CO_TURN; l++) con->ptype[con->indx[l]-j] = 0;
         for (l=j+CO_TURN+1; l<=n; l++) con->ptype[con->indx[j]-l] = 0;
-        break;        
+        break;
       case '(':
         stack[hx++]=j;
         /* fallthrough */
       case '<': /* pairs upstream */
-        break;        
+        break;
       case ')':
         if (hx<=0) {
           fprintf(stderr, "%s\n", structure);
@@ -1379,14 +1379,14 @@ PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
           for (l=i; l<=j; l++) con->ptype[con->indx[k]-l] = 0;
         con->ptype[con->indx[i]-j] = (type==0)?7:type;
       case '>': /* pairs downstream */
-        break;        
+        break;
       }
     }
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
       nrerror("2. unbalanced brackets in constraint string");
     }
-    free(stack); 
+    free(stack);
   }
   free(s);
   free(s1);

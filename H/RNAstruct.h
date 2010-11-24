@@ -30,7 +30,7 @@ extern int    unpaired, pairs;        /* n of unpaired digits and pairs */
   becomes expanded:   - expand_Full() -
   ((U)(((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)R)
   HIT:                - b2HIT() -
-  ((U1)((U2)((U3)P3)(U2)((U2)P2)P2)(U1)R) 
+  ((U1)((U2)((U3)P3)(U2)((U2)P2)P2)(U1)R)
   Coarse:             - b2C() -
   ((H)((H)M)R)
   becomes expanded:   - expand_Shapiro() -

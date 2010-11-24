@@ -150,7 +150,7 @@ int main(int argc, char *argv[]){
     # handle user input from 'stdin'
     ########################################################
     */
-    if(istty){ 
+    if(istty){
       if (!zuker)
         printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       print_tty_input_seq();

@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2007-08-26 11:59:45 ivo> */
-/*                
+/*
            compute the duplex structure of two RNA strands,
                 allowing only inter-strand base pairs.
          see cofold() for computing hybrid structures without
@@ -27,7 +27,7 @@
 #include "duplex.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 /*@unused@*/
@@ -134,7 +134,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
       E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (E<Emin) {
         Emin=E; i_min=i; j_min=j;
-      } 
+      }
     }
   }
 
@@ -143,7 +143,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   if (j_min>1 ) j_min--;
   l1 = strchr(struc, '&')-struc;
   /*
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min, 
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min,
        j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
   */
   mfe.i = i_min;
@@ -171,7 +171,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
   mfe = duplexfold_cu(s1, s2, 0);
   free(mfe.structure);
-  
+
   thresh = (int) mfe.energy*100+0.1 + delta;
   n1 = strlen(s1); n2=strlen(s2);
   for (i=n1; i>0; i--) {
@@ -184,9 +184,9 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       if (Ed>thresh) continue;
       /* too keep output small, remove hits that are dominated by a
          better one close (w) by. For simplicity we do test without
-         adding dangles, which is slightly inaccurate. 
-      */ 
-      for (ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) { 
+         adding dangles, which is slightly inaccurate.
+      */
+      for (ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) {
         for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n2); jj++)
           if (c[ii][jj]<E) {type=0; break;}
       }
@@ -217,11 +217,11 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
 }
 
 PRIVATE char *backtrack(int i, int j) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
-  
+
   st1 = (char *) space(sizeof(char)*(n1+1));
   st2 = (char *) space(sizeof(char)*(n2+1));
 
@@ -230,7 +230,7 @@ PRIVATE char *backtrack(int i, int j) {
   while (i>0 && j<=n2) {
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
-    st2[j-1] = ')'; 
+    st2[j-1] = ')';
     type = pair[S1[i]][S2[j]];
     if (!type) nrerror("backtrack failed in fold duplex");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
@@ -242,7 +242,7 @@ PRIVATE char *backtrack(int i, int j) {
         LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
                        SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1], P);
         if (E == c[k][l]+LE) {
-          traced=1; 
+          traced=1;
           i=k; j=l;
           break;
         }
@@ -262,9 +262,9 @@ PRIVATE char *backtrack(int i, int j) {
   struc = (char *) space(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
+  strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&");
   strcat(struc, st2+j0-1);
-  
+
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
   free(st1); free(st2);
 
@@ -308,10 +308,10 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
     P = scale_parameters();
     make_pair_matrix();
   }
-  
+
   c = (int **) space(sizeof(int *) * (n1+1));
   for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
-  
+
   S1 = (short **) space((n_seq+1)*sizeof(short *));
   S2 = (short **) space((n_seq+1)*sizeof(short *));
   for (s=0; s<n_seq; s++) {
@@ -340,7 +340,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
           int type2;
           if (i-k+l-j-2>MAXLOOP) break;
           if (c[k][l]>INF/2) continue;
-          for (E=s=0; s<n_seq; s++) { 
+          for (E=s=0; s<n_seq; s++) {
             type2 = pair[S1[s][k]][S2[s][l]];
             if (type2==0) type2=7;
             E += E_IntLoop(i-k-1, l-j-1, type2, rtype[type[s]],
@@ -350,13 +350,13 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
         }
       }
       c[i][j] -= psc;
-      E = c[i][j]; 
+      E = c[i][j];
       for (s=0; s<n_seq; s++) {
         E += E_ExtLoop(rtype[type[s]], (j>1) ? S2[s][j-1] : -1, (i<n1) ? S1[s][i+1] : -1, P);
       }
       if (E<Emin) {
         Emin=E; i_min=i; j_min=j;
-      } 
+      }
     }
   }
 
@@ -365,7 +365,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   if (j_min>1 ) j_min--;
   l1 = strchr(struc, '&')-struc;
   /*
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min, 
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min,
        j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
   */
   mfe.i = i_min;
@@ -396,7 +396,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
   subopt = (duplexT *) space(n_max*sizeof(duplexT));
   mfe = aliduplexfold_cu(s1, s2, 0);
   free(mfe.structure);
-  
+
   for (s=0; s1[s]!=NULL; s++);
   n_seq = s;
 
@@ -429,9 +429,9 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       if (Ed>thresh) continue;
       /* too keep output small, skip hits that are dominated by a
          better one close (w) by. For simplicity we don't take dangels
-         into account here, thus the heuristic is somewhat inaccurate. 
-      */ 
-      for (skip=0, ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) { 
+         into account here, thus the heuristic is somewhat inaccurate.
+      */
+      for (skip=0, ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) {
         for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n2); jj++)
           if (c[ii][jj]<E) {skip=1; break;}
       }
@@ -464,7 +464,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
 }
 
 PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, *type, type2, E, traced, i0, j0, s, n_seq;
   char *st1, *st2, *struc;
@@ -487,7 +487,7 @@ PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
     int psc;
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
-    st2[j-1] = ')'; 
+    st2[j-1] = ')';
     for (s=0; s<n_seq; s++) {
       type[s] = pair[S1[s][i]][S2[s][j]];
     }
@@ -506,14 +506,14 @@ PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
                            S1[s][k+1], S2[s][l-1], S1[s][i-1], S2[s][j+1], P);
         }
         if (E == c[k][l]+LE) {
-          traced=1; 
+          traced=1;
           i=k; j=l;
           break;
         }
       }
       if (traced) break;
     }
-    if (!traced) { 
+    if (!traced) {
       for (s=0; s<n_seq; s++) {
         E -= E_ExtLoop(type[s], (i>1) ? S1[s][i-1] : -1, (j<n2) ? S2[s][j+1] : -1, P);
       }
@@ -528,7 +528,7 @@ PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
   struc = (char *) space(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
+  strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&");
   strcat(struc, st2+j0-1);
 
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
@@ -563,7 +563,7 @@ PRIVATE int covscore(const int *types, int n_seq) {
       score += pfreq[k]*pfreq[l]*dm[k][l];
 
   /* counter examples score -1, gap-gap scores -0.25   */
-  pscore = cv_fact * 
+  pscore = cv_fact *
     ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
   return pscore;
 }

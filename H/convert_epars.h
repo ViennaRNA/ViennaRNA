@@ -54,7 +54,7 @@
 #define VRNA_CONVERT_OUTPUT_DUMP          2097152U
 
 /**
-*** Convert/dump a Vienna 1.8.4 formatted energy parameter file 
+*** Convert/dump a Vienna 1.8.4 formatted energy parameter file
 ***
 *** The options argument allows to control the different output modes.\n
 *** Currently available options are:\n

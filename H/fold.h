@@ -12,7 +12,7 @@
 /**
 *** \file fold.h
 *** \brief MFE calculations and energy evaluations for single RNA sequences
-*** 
+***
 *** This file includes (almost) all function declarations within the RNAlib that are related to
 *** MFE folding...
 **/

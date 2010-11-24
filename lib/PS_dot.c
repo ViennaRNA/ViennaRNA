@@ -19,7 +19,7 @@
 #include "aln_util.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 
@@ -157,9 +157,9 @@ static const char *RNAss_head =
 "  currentdict /cutpoint known        % check if cutpoint is defined\n"
 "  {coor 0 cutpoint getinterval\n"
 "   {aload pop lineto} forall         % draw outline of 1st sequence\n"
-"   coor cutpoint get aload pop\n"
+"   coor cutpoint 1 add get aload pop\n"
 "   2 copy moveto 0.8 0 360 arc       % draw 5' circle of 2nd sequence\n"
-"   coor cutpoint coor length cutpoint sub getinterval\n"
+"   coor cutpoint 1 add coor length cutpoint 1 add sub getinterval\n"
 "   {aload pop lineto} forall}        % draw outline of 2nd sequence\n"
 "  {coor {aload pop lineto} forall}   % draw outline as a whole\n"
 "  ifelse\n"
@@ -306,6 +306,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   float *X, *Y;
   FILE  *xyplot;
   short *pair_table;
+  char *c;
 
   length = strlen(string);
 
@@ -358,8 +359,12 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 	  "%% data start here\n");
 
   /* cut_point */
-  if (cut_point > 0 && cut_point <= strlen(string))
-    fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
+  if ((c = strchr(structure, '&'))) {
+    int cutpoint;
+    cutpoint = c - structure;
+    string[cutpoint] = ' '; /* replace & with space */
+    fprintf(xyplot, "/cutpoint %d def\n", cutpoint);
+  }
 
   /* sequence */
   fprintf(xyplot,"/sequence (\\\n");
@@ -1118,7 +1123,7 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
   return(wastl);
 }
 
-int PS_color_aln(const char *structure, const char *filename, 
+int PS_color_aln(const char *structure, const char *filename,
 		 const char *seqs[], const char *names[]) {
   /* produce PS sequence alignment color-annotated by consensus structure */
 
@@ -1166,16 +1171,16 @@ int PS_color_aln(const char *structure, const char *filename,
 	"1 -1 scale\n"
 	"/Courier findfont\n"
 	"[10 0 0 -10 0 0] makefont setfont\n";
-	
-  
+
+
   outfile = fopen(filename, "w");
 
   if (outfile == NULL) {
-    fprintf(stderr, "can't open file %s - not doing alignment plot\n", 
+    fprintf(stderr, "can't open file %s - not doing alignment plot\n",
 	    filename);
     return 0;
   }
-  
+
   columnWidth=60;            /* Display long alignments in blocks of this size */
   fontWidth=6;               /* Font metrics */
   fontHeight=6.5;
@@ -1195,7 +1200,7 @@ int PS_color_aln(const char *structure, const char *filename,
 
   /* Allocate memory for various strings, length*2 is (more than)
 	 enough for all of them */
-  tmpBuffer = (char *) space((unsigned) length*2);
+  tmpBuffer = (char *) space((unsigned) MAX2(length*2,columnWidth)+1);
   ssEscaped=(char *) space((unsigned) length*2);
   ruler=(char *) space((unsigned) length*2);
 
@@ -1208,14 +1213,14 @@ int PS_color_aln(const char *structure, const char *filename,
     if (tmp>maxName)  maxName=tmp;
   }
 
-  
+
   /* x-coord. where sequences start */
-  seqsX=namesX+maxName*fontWidth+nameStep; 
+  seqsX=namesX+maxName*fontWidth+nameStep;
 
   /* calculate number of digits of the alignment length */
   snprintf(tmpBuffer,length, "%i",length);
   maxNum=strlen(tmpBuffer);
-  
+
 
   /* Calculate bounding box */
   tmpColumns=columnWidth;
@@ -1243,7 +1248,7 @@ int PS_color_aln(const char *structure, const char *filename,
 	}
   }
   ruler[length]='\0';
-  
+
   /* Draw color annotation first */
   /* Repeat for all pairs */
   for (i=1; i<=length; i++) {
@@ -1268,7 +1273,7 @@ int PS_color_aln(const char *structure, const char *filename,
 	  color = colorMatrix[pairings-1][nonpair];
 	  for (s=0; s<N; s++) {
 	    yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
-	    
+
 	    /* Color according due color information in pi-array, only if base pair is possible */
 	    if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
 
@@ -1288,14 +1293,14 @@ int PS_color_aln(const char *structure, const char *filename,
   currPos=0;
 
   cons =  consensus(seqs);
-  
+
   while (currPos<length) {
 
     /* Display secondary structure line */
     fprintf(outfile,"0 setgray\n");
     strncpy(tmpBuffer,structure+currPos,columnWidth);
     tmpBuffer[columnWidth]='\0';
-    
+
     x=0;y=0;
     while ((c=tmpBuffer[x])){
       if (c=='.'){
@@ -1303,26 +1308,26 @@ int PS_color_aln(const char *structure, const char *filename,
       } else {
 	ssEscaped[y++]='\\';
 	ssEscaped[y++]=c;
-      }			 
+      }
       x++;
     }
     ssEscaped[y]='\0';
-    
+
     fprintf(outfile, "(%s) %.1f %.1f string\n", ssEscaped,seqsX,currY);
     currY+=ssStep+lineStep;
-    
+
     /* Display names, sequences and numbers */
 
     for (i=0; i<N; i++) {
-      
+
       strncpy(tmpBuffer,seqs[i]+currPos,columnWidth);
       tmpBuffer[columnWidth]='\0';
-      
+
       match=0;
       for (j=0;j<(currPos+strlen(tmpBuffer));j++){
 	if (seqs[i][j] != '-') match++;
       }
-      
+
       fprintf(outfile, "(%s) %.1f %.1f string\n", names[i],namesX,currY);
       fprintf(outfile, "(%s) %.1f %.1f string\n", tmpBuffer,seqsX,currY);
       fprintf(outfile, "(%i) %.1f %.1f string\n", match,seqsX+fontWidth*(strlen(tmpBuffer))+numberStep,currY);
@@ -1332,12 +1337,12 @@ int PS_color_aln(const char *structure, const char *filename,
     strncpy(tmpBuffer,ruler+currPos,columnWidth);
     tmpBuffer[columnWidth]='\0';
     fprintf(outfile, "(%s) %.1f %.1f string\n", tmpBuffer,seqsX,currY);
-    
+
     currY+=lineStep;
     currY+=consStep;
-    
+
     /*Display conservation bar*/
-    
+
     fprintf(outfile,"0.6 setgray\n");
     for (i=currPos;(i<currPos+columnWidth && i<length);i++){
       match=0;
@@ -1347,27 +1352,27 @@ int PS_color_aln(const char *structure, const char *filename,
 	if (cons[i]=='T' && seqs[j][i]=='U') match++;
       }
       score=(float)(match-1)/(N-1);
-      
+
       if (cons[i] == '-' ||
 	  cons[i] == '_' ||
 	  cons[i] == '.'){
 	score=0;
       }
-      
+
       barHeight=maxConsBar*score;
       if (barHeight==0){
 	barHeight=1;
       }
-      
+
       xx=seqsX+(i-(columnWidth*currPos/columnWidth))*fontWidth;
-      
+
       fprintf(outfile,"%.1f %.1f %.1f %.1f box2\n",
 	      xx,
 	      currY+maxConsBar-barHeight,
 	      xx+fontWidth,
 	      currY+maxConsBar);
     }
-    
+
     currY+=blockStep;
     currPos+=columnWidth;
   }
@@ -1378,7 +1383,7 @@ int PS_color_aln(const char *structure, const char *filename,
 
   free(tmpBuffer);
   free(ssEscaped);free(ruler);
-  
+
   return 0;
 
 }

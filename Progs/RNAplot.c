@@ -1,6 +1,6 @@
 /*
   Plot RNA structures using different layout algorithms
-  Last changed Time-stamp: <2003-09-10 13:55:01 ivo> 
+  Last changed Time-stamp: <2003-09-10 13:55:01 ivo>
 */
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   if(RNAplot_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  
+
   if(args_info.layout_type_given) rna_plot_type = args_info.layout_type_arg;
   if(args_info.pre_given)         pre           = strdup(args_info.pre_arg);
   if(args_info.post_given)        post          = strdup(args_info.post_arg);
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   istty = isatty(fileno(stdin));
-   
+
   /*
   #############################################
   # main loop: continue until end of file
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]){
      }
      fflush(stdout);
      free(string);
-     free(structure); 
+     free(structure);
    } while (1);
    return 0;
 }

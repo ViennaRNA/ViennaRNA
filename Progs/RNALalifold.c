@@ -27,7 +27,7 @@
 /*@unused@*/
 static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Exp $";
 
-/*@exits@*/ 
+/*@exits@*/
 PRIVATE void  usage(void);
 PRIVATE char  *annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);

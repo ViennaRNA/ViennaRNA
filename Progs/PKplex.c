@@ -1,7 +1,7 @@
 /* Last changed Time-stamp: <2010-06-30 17:42:12 wolfgang> */
-/*                
+/*
              Compute pseudoknotted structure of an RNA
-                          
+
                            c Ivo L Hofacker
                           Vienna RNA package
 */
@@ -21,7 +21,7 @@
 #include "fold.h"
 #include "read_epars.h"
 #include "PKplex.h"
- 
+
 int PlexHit_cmp (const void *c1, const void *c2);
 short *make_pk_pair_table(const char *structure);
 
@@ -44,12 +44,12 @@ int main(int argc, char *argv[]) {
   winsize      = 70;
   cutoff       = 0.01;
   pairdist     = 0;
-  unpaired     = 0;  
+  unpaired     = 0;
   noconv       = 0;
   openenergies = 1;
   energyCutoff = -810;
   ParamFile = ns_bases = NULL;
-    
+
   /*
   #############################################
   # check command line parameters
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
   if(args_info.subopts_given)           subopts = (double) args_info.subopts_arg/100;
   /* free allocated memory of command line data structure */
   PKplex_cmdline_parser_free(&args_info);
-  
+
   /*
   #############################################
   # begin initializing
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
   if (ParamFile != NULL) {
     read_parameter_file(ParamFile);
   }
-  
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -113,13 +113,13 @@ int main(int argc, char *argv[]) {
       c++;
     }
   }
-  
+
   if(dangles % 2){
-    printf("using default dangles = 2\n");  
+    printf("using default dangles = 2\n");
     dangles = 2;
   }
   if (verbose) printf("Dangles: %d\n", dangles);
-  
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if(istty) options |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   options |= VRNA_INPUT_NO_REST;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
     length=strlen(s1);
     winsize=pairdist=length;
     unpaired=MIN2(30, length-3);
-    
+
     if(noconv)  str_RNA2RNA(s1);
     else        str_DNA2RNA(s1);
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     */
     update_fold_params();
     if (length >= 5){
-     
+
       pf_scale  = -1;
 
       pup       =(double **)  space((length+1)*sizeof(double *));
@@ -169,10 +169,10 @@ int main(int argc, char *argv[]) {
       pup[0][0] = unpaired;
 
       pUfp = spup = NULL;
-     
+
       if (verbose) printf ("Winsize = %d\nPairdist = %d\nUnpaired = %d\n", winsize, pairdist, unpaired);
       pl = pfl_fold(s1, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
-          
+
     /*
     ########################################################
     # do Plex computations
@@ -186,13 +186,13 @@ int main(int argc, char *argv[]) {
       for(i=0; i< unpaired+2; i++){
         access[i] =(int *) space(sizeof(int) * (length+20));
       }
-        
+
       for(i=0;i<length+20;i++){
         for(j=0;j<unpaired+2;j++){
           access[j][i]=INF;
         }
       }
-     
+
       for(i=11;i<length+11;i++){
         for(j=1;j<unpaired+1;j++){
           if (pup[i-10][j-1+1]>0) {
@@ -200,23 +200,23 @@ int main(int argc, char *argv[]) {
           }
         }
       }
-      
+
       access[0][0]=unpaired+2;
-      
+
       plexstring = (char *) space(length+1+20);
       strcpy(plexstring,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
       strcat(plexstring, s1);
       strcat(plexstring,"NNNNNNNNNN\0");
-      
+
       if (verbose) printf("EnergyCutoff = %d\n", energyCutoff);
       PKLduplexfold_XS(plexstring, access, energyCutoff+1, MIN2(12, length-3), 0);
-      
+
     /*
     ########################################################
     # analyze Plex output
     ########################################################
     */
-      
+
       /*adding empty hit*/
       PlexHits[NumberOfHits].tb=0;
       PlexHits[NumberOfHits].te=0;
@@ -230,14 +230,14 @@ int main(int argc, char *argv[]) {
       NumberOfHits++;
 
       qsort(PlexHits, NumberOfHits, sizeof(dupVar), PlexHit_cmp);
-      
+
       if (verbose) {
         printf("\n");
         for(i=0;i<NumberOfHits;i++) {
           printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[i].structure, PlexHits[i].tb, PlexHits[i].te, PlexHits[i].qb, PlexHits[i].qe, PlexHits[i].ddG, PlexHits[i].energy, PlexHits[i].dG1, PlexHits[i].dG2);
         }
       }
-      
+
       current=-1;
       while((PlexHits[0].ddG+subopts>=PlexHits[current+1].ddG) && (current+1<NumberOfHits)) {
         current++;
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
         ########################################################
         # Constrained RNAfold
         ########################################################
-        */        
+        */
         constraint = (char *) space(length+1);
         for(i=0; i<length; i++) {
           if((PlexHits[current].tb-1<=i) && (PlexHits[current].te-1>=i)) {
@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
         fold_constrained=1;
         constrainedEnergy=fold(s1, constraint);
         if (verbose) printf("%s   %f\n", constraint, constrainedEnergy);
-        
+
         /*
         ########################################################
         # Fusion Structure
@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
 
           annotation = (char *) space(sizeof(char)*300);
           temp = (char *) space(sizeof(char)*300);
-          
+
           if (PlexHits[current].te) {
             int start=0;
             int end;
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
                 stem=1;
               }
             }
-        
+
             sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
             strcat(annotation, temp);
             PS_rna_plot_a(s1, constraint, fname, annotation, "");
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
           }
         }
       }
-      
+
     /*
     ########################################################
     # free memory
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
       free(pup[0]);
       free(pup);
       (void) fflush(stdout);
-      i =  access[0][0];           
+      i =  access[0][0];
       while(--i>-1){
         free(access[i]);
       }
@@ -364,7 +364,7 @@ int main(int argc, char *argv[]) {
   }
   return 0;
 }
-      
+
 int PlexHit_cmp (const void *c1, const void *c2) {
   dupVar *p1=(dupVar *)c1;
   dupVar *p2=(dupVar *)c2;

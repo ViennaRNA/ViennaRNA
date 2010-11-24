@@ -14,7 +14,7 @@
 
   Revision 1.2  1997/10/09  19:01:50  steve
   *** empty log message ***
- 
+
   Revision 1.1  1997/08/04 21:05:32  walter
   Initial revision
 
@@ -50,7 +50,7 @@ lst_newnode (int size)
   LST_BUCKET *node;
 
   node = (LST_BUCKET *) space (size + sizeof (LST_BUCKET));
-  
+
   return LST_USERSPACE (node);	/* Return pointer to user space */
 }
 

@@ -319,7 +319,7 @@ int   *get_indx(unsigned int length);
 /**
 *** Insert constraining pair types according to constraint structure string
 ***
-*** \see get_indx(), get_iindx() 
+*** \see get_indx(), get_iindx()
 ***
 *** \param constraint     The structure constraint string
 *** \param length         The actual length of the sequence (constraint may be shorter)

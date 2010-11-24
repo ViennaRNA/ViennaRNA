@@ -35,7 +35,7 @@ PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
 static int noconv = 0;
 
 int main(int argc, char *argv[])
-     
+
 {
   float     *T[MAXSEQ];
   int        i,j, istty, n=0;
@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
   pr_pl = mfe_pl = NULL;
 
   command_line(argc, argv);
-   
-  if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack)) 
-    strcpy(outfile,"backtrack.file"); 
+
+  if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack))
+    strcpy(outfile,"backtrack.file");
   if (outfile[0]!='\0') somewhere = fopen(outfile,"w");
   if (somewhere==NULL) somewhere = stdout;
   istty   = (isatty(fileno(stdout))&&isatty(fileno(stdin)));
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     } while(type==0);
 
     if( (task == 'm')&&(type>800) ) {
-      if (taxa_list) 
+      if (taxa_list)
         printf("* END of taxa list\n");
       printf("> p %d (pdist)\n",n);
       for (i=1; i<n; i++) {
@@ -111,23 +111,23 @@ int main(int argc, char *argv[])
         printf("%s\n", list_title);
         free(list_title);
       }
-    }      
-      
+    }
+
     if(type>800) {
-      for (i=0; i<n; i++) 
+      for (i=0; i<n; i++)
         free_profile(T[i]);
       if (type == 888) continue;
       if (outfile[0]!='\0') (void) fclose(somewhere);
       if (line!= NULL) free(line);
       return 0; /* finito */
     }
-      
+
     length = (int) strlen(line);
     for (i=0; i<length; i++) {
       line[i]=toupper(line[i]);
       if (!noconv && line[i] == 'T') line[i] = 'U';
     }
-      
+
     /* init_pf_fold(length); <- obsolete */
     structure = (char *) space((length+1)*sizeof(char));
     (void) pf_fold(line,structure);
@@ -136,14 +136,14 @@ int main(int argc, char *argv[])
       sprintf(fname, "%d_dp.ps", n+1);
 
     /* PS_dot_plot(line, fname); <- NOT THREADSAFE and obsolete function! */
-    
+
     /* get pairlist of probability matrix */
     assign_plist_from_pr(&pr_pl, pr, length, 1e-5);
     /* no previous mfe call thus no mfe structure information known */
     mfe_pl = (plist *)space(sizeof(plist));
     mfe_pl[0].i = mfe_pl[0].j = 0;
 
-    /* call threadsafe dot plot printing function */    
+    /* call threadsafe dot plot printing function */
     PS_dot_plot_list(line, fname, pr_pl, mfe_pl, "");
 
     T[n] = Make_bp_profile_bppm(pr, length);
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     free(mfe_pl);
     free(pr_pl);
     free_pf_arrays();
-      
+
     n++;
     switch (task) {
     case 'p' :
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
       }
       break;
     case 'f' :
-      if (n>1) { 
+      if (n>1) {
         dist = profile_edit_distance(T[1], T[0]);
         printf("%g\n",dist);
         print_aligned_lines(somewhere);
@@ -180,14 +180,14 @@ int main(int argc, char *argv[])
         printf("%g\n",dist);
         print_aligned_lines(somewhere);
         free_profile(T[0]);
-        T[0] = T[1]; 
-        n=1; 
+        T[0] = T[1];
+        n=1;
       }
       break;
-          
-    case 'm' : 
+
+    case 'm' :
       break;
-          
+
     default :
       nrerror("This can't happen.");
     }    /* END switch task */
@@ -253,7 +253,7 @@ PRIVATE void command_line(int argc, char *argv[])
           i++;
           strncpy(outfile,argv[i],49);
         }
-        edit_backtrack = 1;   
+        edit_backtrack = 1;
         break;
       case 'P':
         if (++i<argc)

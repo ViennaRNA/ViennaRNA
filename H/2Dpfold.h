@@ -2,7 +2,7 @@
       minimum free energy
       RNA secondary structure with
       basepair distance d to reference structure prediction
-      
+
 */
 #ifndef __VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H__
 #define __VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H__

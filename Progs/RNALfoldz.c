@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2003-04-23 11:56:44 ivo> */
-/*                
+/*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
   /* set the maximum base pair span */
   if(args_info.span_given)        maxdist = args_info.span_arg;
   if(args_info.zscore_given)      min_z = args_info.zscore_arg;
-  
+
   /* check for errorneous parameter options */
   if(maxdist < 0){
     RNALfoldz_cmdline_parser_print_help();
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]){
   */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-        
+
   /*
   #############################################
   # main loop: continue until end of file

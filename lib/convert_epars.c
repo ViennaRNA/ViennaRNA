@@ -26,7 +26,7 @@
 
 enum parset_184 {UNKNOWN_184= -1, QUIT_184, S_184, SH_184, HP_184, B_184, IL_184, MMI_184, MMH_184, MMM_184, MM_H_184,
              DE5_184, DE3_184, DE5_H_184, DE3_H_184, ML_184, TL_184, TRI_184, TE_184, NIN_184, MISC_184,
-             INT11_184, INT11_H_184, INT21_184, INT21_H_184, INT22_184, INT22_H_184}; 
+             INT11_184, INT11_H_184, INT21_184, INT21_H_184, INT22_184, INT22_H_184};
 
 
 PRIVATE unsigned int  read_old_parameter_file(FILE *ifile, int skip_header);
@@ -211,7 +211,7 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
                           fprintf(stderr,"convert_parameter_file: Unknown field identifier in `%s'\n", line);
       }
     } /* else ignore line */
-    free(line);  
+    free(line);
   } while((line=get_line(ifile)) && !last);
 
   return read_successfully;
@@ -235,7 +235,7 @@ PRIVATE void display_array(int *p, int size, int nl, FILE *fp){
 PRIVATE char *get_array1(int *arr, int size, FILE *fp){
   int    i, p, pos, pp, r, last;
   char  *line, buf[16];
-  i = last = 0; 
+  i = last = 0;
   while( i<size ) {
     line = get_line(fp);
     if (!line) nrerror("convert_epars: unexpected end of file in get_array1");
@@ -272,7 +272,7 @@ PRIVATE char *get_array1(int *arr, int size, FILE *fp){
 PRIVATE void  rd_stacks(int stacks[NBPAIRS+1][NBPAIRS+1], FILE *fp)
 {
   int    i;
-  char  *cp; 
+  char  *cp;
   for (i=1; i<=NBPAIRS; i++) {
     cp = get_array1(stacks[i]+1,NBPAIRS, fp);
     if (cp) {
@@ -287,9 +287,9 @@ PRIVATE void  rd_stacks(int stacks[NBPAIRS+1][NBPAIRS+1], FILE *fp)
 PRIVATE void rd_loop(int loop[31], FILE *fp)
 {
   char *cp;
-  
+
   cp   = get_array1(loop, 31, fp);
-  
+
   if (cp) {
     fprintf(stderr,"convert_epars: \nrd_loop: %s\n", cp);
     exit(1);
@@ -336,7 +336,7 @@ PRIVATE void rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5], FILE *fp)
 {
   char  *cp;
   int    i, j, k;
-  
+
   for (i=1; i<NBPAIRS+1; i++) {
     for (j=1; j<NBPAIRS+1; j++) {
       for (k=0; k<5; k++) {
@@ -357,10 +357,10 @@ PRIVATE void rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5], FILE *fp)
 {
   char  *cp;
   int    i, j, k, l, m;
-  
-  for (i=1; i<NBPAIRS+1; i++) 
+
+  for (i=1; i<NBPAIRS+1; i++)
     for (j=1; j<NBPAIRS+1; j++)
-      for (k=1; k<5; k++) 
+      for (k=1; k<5; k++)
         for (l=1; l<5; l++)
           for (m=1; m<5; m++) {
             cp = get_array1(int22[i][j][k][l][m]+1,4, fp);
@@ -407,7 +407,7 @@ PRIVATE void  rd_MLparams(FILE *fp)
   ML_closing37_184  = values[1];
   ML_intern37_184   = values[2];
   TerminalAU_184    = values[3];
-  
+
   return;
 }
 
@@ -425,7 +425,7 @@ PRIVATE void  rd_misc(FILE *fp)
   }
 
   DuplexInit_184 = values[0];
-  
+
   return;
 }
 
@@ -491,44 +491,44 @@ PRIVATE void ignore_comment(char * line)
   /* excise C style comments */
   /* only one comment per line, no multiline comments */
   char *cp1, *cp2;
-  
+
   if ((cp1=strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
     if (cp2==NULL)
       nrerror("convert_epars: unclosed comment in parameter file");
     /* can't use strcpy for overlapping strings */
-    for (cp2+=2; *cp2!='\0'; cp2++, cp1++)  
+    for (cp2+=2; *cp2!='\0'; cp2++, cp1++)
       *cp1 = *cp2;
     *cp1 = '\0';
   }
-  
+
   return;
 }
 
 PRIVATE enum parset_184 gettype_184(char ident[]){
-  if (strcmp(ident,"stack_enthalpies") == 0)          return SH_184;   
-  else if (strcmp(ident,"stack_energies") == 0)       return S_184;    
-  else if (strcmp(ident,"hairpin" ) == 0)             return HP_184;   
-  else if (strcmp(ident,"bulge") == 0)                return B_184;    
-  else if (strcmp(ident,"internal_loop") == 0)        return IL_184;   
-  else if (strcmp(ident,"mismatch_hairpin") == 0)     return MMH_184;  
+  if (strcmp(ident,"stack_enthalpies") == 0)          return SH_184;
+  else if (strcmp(ident,"stack_energies") == 0)       return S_184;
+  else if (strcmp(ident,"hairpin" ) == 0)             return HP_184;
+  else if (strcmp(ident,"bulge") == 0)                return B_184;
+  else if (strcmp(ident,"internal_loop") == 0)        return IL_184;
+  else if (strcmp(ident,"mismatch_hairpin") == 0)     return MMH_184;
   else if (strcmp(ident,"mismatch_interior") == 0)    return MMI_184;
-  else if (strcmp(ident,"mismatch_multi") == 0)       return MMM_184;  
+  else if (strcmp(ident,"mismatch_multi") == 0)       return MMM_184;
   else if (strcmp(ident,"mismatch_enthalpies") == 0)  return MM_H_184;
-  else if (strcmp(ident,"int11_energies") == 0)       return INT11_184;  
+  else if (strcmp(ident,"int11_energies") == 0)       return INT11_184;
   else if (strcmp(ident,"int11_enthalpies") == 0)     return INT11_H_184;
-  else if (strcmp(ident,"int21_energies") == 0)       return INT21_184;  
+  else if (strcmp(ident,"int21_energies") == 0)       return INT21_184;
   else if (strcmp(ident,"int21_enthalpies") == 0)     return INT21_H_184;
-  else if (strcmp(ident,"int22_energies") == 0)       return INT22_184;  
+  else if (strcmp(ident,"int22_energies") == 0)       return INT22_184;
   else if (strcmp(ident,"int22_enthalpies") == 0)     return INT22_H_184;
-  else if (strcmp(ident,"dangle5")== 0)               return DE5_184;  
-  else if (strcmp(ident,"dangle3")== 0)               return DE3_184;  
-  else if (strcmp(ident,"dangle5_enthalpies")== 0)    return DE5_H_184;  
-  else if (strcmp(ident,"dangle3_enthalpies")== 0)    return DE3_H_184;  
-  else if (strcmp(ident,"ML_params")== 0)             return ML_184;  
-  else if (strcmp(ident,"NINIO") == 0)                return NIN_184;   
+  else if (strcmp(ident,"dangle5")== 0)               return DE5_184;
+  else if (strcmp(ident,"dangle3")== 0)               return DE3_184;
+  else if (strcmp(ident,"dangle5_enthalpies")== 0)    return DE5_H_184;
+  else if (strcmp(ident,"dangle3_enthalpies")== 0)    return DE3_H_184;
+  else if (strcmp(ident,"ML_params")== 0)             return ML_184;
+  else if (strcmp(ident,"NINIO") == 0)                return NIN_184;
   else if (strcmp(ident,"Tetraloops") == 0)           return TL_184;
-  else if (strcmp(ident,"Triloops") == 0)             return TRI_184;     
+  else if (strcmp(ident,"Triloops") == 0)             return TRI_184;
   else if (strcmp(ident,"END") == 0)                  return QUIT_184;
   else return UNKNOWN_184;
 }
@@ -581,13 +581,13 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"\n# %s\n", settype(MMH));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mismatchH37_184[k][i],5,5, ofile);
     }
     fprintf(ofile,"\n# %s\n", settype(MMH_H));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mism_H_184[k][i],5,5, ofile);
     }
   }
@@ -596,13 +596,13 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"\n# %s\n", settype(MMI));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mismatchI37_184[k][i],5,5, ofile);
     }
     fprintf(ofile,"\n# %s\n", settype(MMI_H));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mism_H_184[k][i],5,5, ofile);
     }
   }
@@ -611,13 +611,13 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"\n# %s\n", settype(MMI1N));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mismatchI37_184[k][i],5,5, ofile);
     }
     fprintf(ofile,"\n# %s\n", settype(MMI1N_H));
     { int i,k;
     for (k=1; k<NBPAIRS+1; k++)
-      for (i=0; i<5; i++) 
+      for (i=0; i<5; i++)
         display_array(mism_H_184[k][i],5,5, ofile);
     }
   }
@@ -626,13 +626,13 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"\n# %s\n", settype(MMI23));
     { int i,k;
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++) 
+        for (i=0; i<5; i++)
           display_array(mismatchI37_184[k][i],5,5, ofile);
     }
     fprintf(ofile,"\n# %s\n", settype(MMI23_H));
     { int i,k;
     for (k=1; k<NBPAIRS+1; k++)
-      for (i=0; i<5; i++) 
+      for (i=0; i<5; i++)
         display_array(mism_H_184[k][i],5,5, ofile);
     }
   }
@@ -643,7 +643,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     { int i,j,k;
       int bla[5];
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++){ 
+        for (i=0; i<5; i++){
           for(j=0;j<5; j++)
             bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_37_184[k][i]) + ((dangle3_37_184[k][j] == INF) ? 0 : dangle3_37_184[k][j]);
           display_array(bla,5,5, ofile);
@@ -653,7 +653,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
     { int i,j,k,bla[5];
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++){ 
+        for (i=0; i<5; i++){
           for(j=0;j<5; j++)
             bla[j] = ((dangle5_H_184[k][i] == INF) ? 0 : dangle5_H_184[k][i]) + ((dangle3_H_184[k][j] == INF) ? 0 : dangle3_H_184[k][j]);
           display_array(bla,5,5, ofile);
@@ -667,7 +667,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     { int i,j,k;
       int bla[5];
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++){ 
+        for (i=0; i<5; i++){
           for(j=0;j<5; j++)
             bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_37_184[k][i]) + ((dangle3_37_184[k][j] == INF) ? 0 : dangle3_37_184[k][j]);
           display_array(bla,5,5, ofile);
@@ -677,7 +677,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     fprintf(ofile,"/*  @     A     C     G     U   */\n");
     { int i,j,k,bla[5];
       for (k=1; k<NBPAIRS+1; k++)
-        for (i=0; i<5; i++){ 
+        for (i=0; i<5; i++){
           for(j=0;j<5; j++)
             bla[j] = ((dangle5_37_184[k][i] == INF) ? 0 : dangle5_H_184[k][i]) + ((dangle3_H_184[k][j] == INF) ? 0 : dangle3_H_184[k][j]);
           display_array(bla,5,5, ofile);
@@ -723,7 +723,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
       for (k=1; k<NBPAIRS+1; k++)
         for (l=1; l<NBPAIRS+1; l++){
           fprintf(ofile, "/* %2s..%2s */\n", pnames[k], pnames[l]);
-          for (i=0; i<5; i++) 
+          for (i=0; i<5; i++)
             display_array(int11_H_184[k][l][i],5,5, ofile);
         }
     }
@@ -732,7 +732,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
   if(options & VRNA_CONVERT_OUTPUT_INT_21){
     fprintf(ofile,"\n# %s\n", settype(INT21));
     { int p1, p2, i, j;
-      for (p1=1; p1<NBPAIRS+1; p1++) 
+      for (p1=1; p1<NBPAIRS+1; p1++)
         for (p2=1; p2<NBPAIRS+1; p2++)
           for (i=0; i<5; i++){
             fprintf(ofile, "/* %2s.%c..%2s */\n", pnames[p1], bnames[i], pnames[p2]);
@@ -742,7 +742,7 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
     }
     fprintf(ofile,"\n# %s\n", settype(INT21_H));
     { int p1, p2, i, j;
-      for (p1=1; p1<NBPAIRS+1; p1++) 
+      for (p1=1; p1<NBPAIRS+1; p1++)
         for (p2=1; p2<NBPAIRS+1; p2++)
           for (i=0; i<5; i++){
             fprintf(ofile, "/* %2s.%c..%2s */\n", pnames[p1], bnames[i], pnames[p2]);
@@ -755,23 +755,23 @@ PRIVATE void write_new_parameter_file(FILE *ofile, unsigned int option_bits){
   if(options & VRNA_CONVERT_OUTPUT_INT_22){
     fprintf(ofile,"\n# %s\n", settype(INT22));
     { int p1, p2, i, j, k;
-      for (p1=1; p1<NBPAIRS; p1++) 
+      for (p1=1; p1<NBPAIRS; p1++)
         for (p2=1; p2<NBPAIRS; p2++)
           for (i=1; i<5; i++)
             for (j=1; j<5; j++){
               fprintf(ofile, "/* %2s.%c%c..%2s */\n", pnames[p1], bnames[i], bnames[j], pnames[p2]);
-              for (k=1; k<5; k++) 
+              for (k=1; k<5; k++)
                 display_array(int22_37_184[p1][p2][i][j][k]+1,4,5, ofile);
             }
     }
     fprintf(ofile,"\n# %s\n", settype(INT22_H));
     { int p1, p2, i, j, k;
-      for (p1=1; p1<NBPAIRS; p1++) 
+      for (p1=1; p1<NBPAIRS; p1++)
         for (p2=1; p2<NBPAIRS; p2++)
           for (i=1; i<5; i++)
             for (j=1; j<5; j++){
               fprintf(ofile, "/* %2s.%c%c..%2s */\n", pnames[p1], bnames[i], bnames[j], pnames[p2]);
-              for (k=1; k<5; k++) 
+              for (k=1; k<5; k++)
                 display_array(int22_H_184[p1][p2][i][j][k]+1,4,5, ofile);
             }
     }
@@ -906,19 +906,19 @@ PRIVATE void check_symmetry(void) {
       if (enthalpies_184[i][j] != enthalpies_184[j][i])
         fprintf(stderr, "WARNING: stacking enthalpies not symmetric\n");
 
-  
+
   /* interior 1x1 loops */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-        for (l=0; l<5; l++) 
+        for (l=0; l<5; l++)
           if (int11_37_184[i][j][k][l] != int11_37_184[j][i][l][k])
             fprintf(stderr, "WARNING: int11 energies not symmetric\n");
 
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
-        for (l=0; l<5; l++) 
+        for (l=0; l<5; l++)
           if (int11_H_184[i][j][k][l] != int11_H_184[j][i][l][k])
             fprintf(stderr, "WARNING: int11 enthalpies not symmetric\n");
 
@@ -929,7 +929,7 @@ PRIVATE void check_symmetry(void) {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++)      
+            for (n=0; n<5; n++)
               if (int22_37_184[i][j][k][l][m][n] != int22_37_184[j][i][m][n][k][l])
                 fprintf(stderr, "WARNING: int22 energies not symmetric\n");
         }
@@ -940,7 +940,7 @@ PRIVATE void check_symmetry(void) {
         for (l=0; l<5; l++) {
           int m,n;
           for (m=0; m<5; m++)
-            for (n=0; n<5; n++)      
+            for (n=0; n<5; n++)
               if (int22_H_184[i][j][k][l][m][n] != int22_H_184[j][i][m][n][k][l])
                 fprintf(stderr, "WARNING: int22 enthalpies not symmetric: %d %d %d %d %d %d\n", i,j,k,l,m,n);
         }

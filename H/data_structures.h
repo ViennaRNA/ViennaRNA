@@ -30,7 +30,7 @@
 * ############################################################
 * Here are the type definitions of various datastructures
 * shared among the Vienna RNA Package
-* ############################################################ 
+* ############################################################
 */
 
 /**
@@ -119,7 +119,7 @@ typedef struct{
 typedef struct{
   int     id;
   double  expstack[NBPAIRS+1][NBPAIRS+1];
-  double  exphairpin[31]; 
+  double  exphairpin[31];
   double  expbulge[MAXLOOP+1];
   double  expinternal[MAXLOOP+1];
   double  expmismatchExt[NBPAIRS+1][5][5];
@@ -135,7 +135,7 @@ typedef struct{
   double  expint22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
   double  expninio[5][MAXLOOP+1];
   double  lxc;
-  double  expMLbase; 
+  double  expMLbase;
   double  expMLintern[NBPAIRS+1];
   double  expMLclosing;
   double  expTermAU;
@@ -265,7 +265,7 @@ typedef struct interact { /* contributions to prob_unpaired in */
   int k; /* k<i in longer seq */
   int j; /*j<l in shorter seq */
   int l; /*j<l in shorter seq */
-  int length; /* length of longer sequence */  
+  int length; /* length of longer sequence */
 } interact;
 
 typedef struct pu_out { /* collect all free_energy of beeing unpaired
@@ -341,11 +341,11 @@ typedef struct{
 
   unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
   unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
-  
+
   int             *my_iindx;    /* index for moving in quadratic distancy dimsensions */
 
   double          temperature;
-  
+
   unsigned int    *referenceBPs1;  /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
   unsigned int    *referenceBPs2;  /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
   unsigned int    *bpdist;      /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */

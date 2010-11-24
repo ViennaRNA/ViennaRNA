@@ -51,6 +51,11 @@ option  "aln"             -
 flag
 off
 
+option "noPS"   -
+"Do not produce postscript output\n"
+flag
+off
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -71,8 +76,8 @@ argoptional
 optional
 
 option  "MEA"   -
-"Calculate the MEA structure\n"
-details=""
+"Calculate an MEA (maximum expected accuracy) structure.\n"
+details="If gamma is not specified a default of gamma=1 is used.\nUsing --MEA implies -p\nSee also RNAfold man page for details.\n"
 float
 typestr="gamma"
 default="1."

@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2010-06-30 17:24:43 wolfgang> */
-/*                
+/*
            compute potentially pseudoknotted structures of an RNA sequence
                              Ivo Hofacker
                           Vienna RNA package
@@ -63,14 +63,14 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
       c3[i][j]=(int *) space(sizeof(int) * alignment_length);
     }
   }
-  
+
   i=n1-9;
   while( i-- > 11 ){
     Emin=INF;
     j_min=0;
     l_min=0;
     k_min=0;
-    
+
     //init all matrix elements to INF
     for (j=0; j<(n1-20); j++){
       for(k=0;k<alignment_length;k++){
@@ -81,16 +81,16 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
     }
 
     //matrix starting values for (i,j)-basepairs
-    for(j=i+4; j<n1-10; j++) {     
+    for(j=i+4; j<n1-10; j++) {
       type=ptype[indx[j]+i];
       if (type) {
         c3[j-11][alignment_length-1][0] = P->DuplexInit;
         c3[j-11][alignment_length-1][0] += E_ExtLoop(type, SS1[i+1], SS1[j-1], P);
       }
     }
-    
+
     int i_pos_begin=MAX2(9, i-alignment_length);
-        
+
     //fill matrix
     for (k=i-1; k>i_pos_begin; k--) {
       tempK=alignment_length-i+k-1;
@@ -103,7 +103,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
             type3=ptype[indx[q]+p];
             if(!type3) continue;
             E = E_IntLoop(p-k-1, l-q-1, type2, rtype[type3],SS1[k+1], SS1[l-1], SS1[p-1], SS1[q+1], P);
-            for (j=MAX2(i+4, l-alignment_length+1); j<=q; j++) { 
+            for (j=MAX2(i+4, l-alignment_length+1); j<=q; j++) {
               type=ptype[indx[j]+i];
               if (type) {
                 c3[j-11][tempK][l-j] = MIN2(c3[j-11][tempK][l-j], c3[j-11][alignment_length-i+p-1][q-j]+E);
@@ -115,13 +115,13 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
     }//next k
 
     //read out matrix minimum
-    for(j=i+4; j<n1-10; j++) { 
+    for(j=i+4; j<n1-10; j++) {
       type=ptype[indx[j]+i];
       if (!type) continue;
       int j_pos_end=MIN2(n1-9,j+alignment_length);
       for (k=i-1; k>i_pos_begin; k--) {
         for (l=j+1; l<j_pos_end; l++) {
-          type2=ptype[indx[l]+k];          
+          type2=ptype[indx[l]+k];
           if (!type2) continue;
           E = c3[j-11][alignment_length-i+k-1][l-j];
           E+=access_s1[i-k+1][i]+access_s1[l-j+1][l];
@@ -133,10 +133,10 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
         }
       }
     }
-          
-    if(Emin  < threshold){ 
+
+    if(Emin  < threshold){
       struc = backtrack_XS(k_min, l_min, i, j_min, alignment_length);
-      
+
       //lets take care of the dangles
       //find best combination
       int dx_5, dx_3, dy_5, dy_3,dGx,dGy,bonus_x, bonus_y;
@@ -152,7 +152,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
       PlexHits[NumberOfHits].dG2=(double) dGy*0.01 ;
       PlexHits[NumberOfHits].energy= PlexHits[NumberOfHits].ddG - PlexHits[NumberOfHits].dG1 - PlexHits[NumberOfHits].dG2;
       PlexHits[NumberOfHits].structure = struc;
-        
+
       //output:
       if(PlexHits[NumberOfHits].energy * 100 < threshold){
         if (verbose) printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[NumberOfHits].structure, PlexHits[NumberOfHits].tb, PlexHits[NumberOfHits].te, PlexHits[NumberOfHits].qb, PlexHits[NumberOfHits].qe, PlexHits[NumberOfHits].ddG, PlexHits[NumberOfHits].energy, PlexHits[NumberOfHits].dG1, PlexHits[NumberOfHits].dG2);
@@ -177,7 +177,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
 
 
 PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int alignment_length) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int p, q, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
@@ -185,24 +185,24 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int ali
   st1[i-k+1]='\0';
   st2 = (char *) space(sizeof(char)*(l-j+2));
   st2[l-j+1]='\0';
- 
+
   i0=k; j0=l;
   while (k<=i && l>=j) {
     E = c3[j-11][alignment_length-i+k-1][l-j]; traced=0;
     st1[k-i0] = '(';
     st2[l-j] = ')';
-    
+
     type=ptype[indx[l]+k];
     if (!type) nrerror("backtrack failed in fold duplex bli");
     for (p=k+1; p<=i; p++) {
-      for (q=l-1; q>=j; q--) {        
+      for (q=l-1; q>=j; q--) {
         int LE;
         if (p-k+l-q-2>MAXLOOP) break;
         type2=ptype[indx[q]+p];
         if (!type2) continue;
          LE = E_IntLoop(p-k-1, l-q-1, type, rtype[type2], SS1[k+1], SS1[l-1], SS1[p-1], SS1[q+1], P);
          if (E == c3[j-11][alignment_length-i+p-1][q-j]+LE) {
-          traced=1; 
+          traced=1;
            k=p; l=q;
           break;
         }
@@ -210,7 +210,7 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int ali
       if (traced) break;
     }
     if (!traced) {
-      E-=E_ExtLoop(type2, ((k<i)?SS1[k+1]:-1), ((l>j-1)? SS1[l-1]:-1), P); 
+      E-=E_ExtLoop(type2, ((k<i)?SS1[k+1]:-1), ((l>j-1)? SS1[l-1]:-1), P);
       break;
       if (E != P->DuplexInit) {
         nrerror("backtrack failed in fold duplex bal");
@@ -218,21 +218,21 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int ali
     }
   }
   struc = (char *) space(k-i0+1+j0-l+1+2);
- 
-  for (p=0; p<=i-i0; p++){   
+
+  for (p=0; p<=i-i0; p++){
     if (!st1[p]) st1[p] = '.';
   }
 
-  for (p=0; p<=j0-j; p++) {    
+  for (p=0; p<=j0-j; p++) {
     if (!st2[p]) {
       st2[p] = '.';
     }
   }
-    
+
   strcpy(struc, st1);
   strcat(struc, "&");
   strcat(struc, st2);
-  free(st1); free(st2); 
+  free(st1); free(st2);
   return struc;
 }
 

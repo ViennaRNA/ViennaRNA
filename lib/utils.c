@@ -350,7 +350,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                           state = 1;
                         }
                         break;
-                      } 
+                      }
                       /* otherwise return line read */
                       else{ *string = line; return VRNA_INPUT_SEQUENCE;}
                     }

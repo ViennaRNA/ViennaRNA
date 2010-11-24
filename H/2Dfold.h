@@ -2,14 +2,14 @@
       minimum free energy
       RNA secondary structure with
       basepair distance d to reference structure prediction
-      
+
 */
 #ifndef __VIENNA_RNA_PACKAGE_TWO_D_FOLD_H__
 #define __VIENNA_RNA_PACKAGE_TWO_D_FOLD_H__
 
 /**
 *** \file 2Dfold.h
-*** \brief Compute the minimum free energy (MFE) for secondary structures with a 
+*** \brief Compute the minimum free energy (MFE) for secondary structures with a
 *** basepair distance to two fixed reference structures
 **/
 
@@ -47,7 +47,7 @@ TwoDfold_vars     *get_TwoDfold_variables(const char *seq, const char *structure
 ***
 *** \see get_TwoDfold_variables()
 ***
-*** \param our_variables  A pointer to the datastructure to be destroyed 
+*** \param our_variables  A pointer to the datastructure to be destroyed
 **/
 void              destroy_TwoDfold_variables(TwoDfold_vars *our_variables);
 

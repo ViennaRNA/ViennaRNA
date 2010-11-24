@@ -92,19 +92,19 @@ compute their hybridization structure. E.g.:
 =item duplexfold SEQ1 SEQ2
 
 compute the structure upon hybridization of SEQ1 and SEQ2. In contrast to
-cofold only intra-molecular pairs are allowed. Thus, the algorithm runs in 
+cofold only intra-molecular pairs are allowed. Thus, the algorithm runs in
 O(n1*n2) time where n1 and n2 are the lengths of the sequences. The result
 is returned in a C struct containing the innermost base pair (i,j) the
 structure and energy. E.g:
-  
+
   $seq1 ="CGCAGGGAUACCCGCG";
   $seq2 ="GCGCCCAUAGGGACGC";
   $dup  = RNA::duplexfold($seq1, $seq2);
-  print "Region ", $dup->{i}+1-length($seq1), " to ", 
+  print "Region ", $dup->{i}+1-length($seq1), " to ",
         $dup->{i}, " of seq1 ",
-        "pairs up with ", $dup->{j}, " to ", 
-	$dup->{j}+length($dup->{structure})-length($seq1)-2, 
-	" of seq2\n";
+        "pairs up with ", $dup->{j}, " to ",
+        $dup->{j}+length($dup->{structure})-length($seq1)-2,
+        " of seq2\n";
 
 =back
 
@@ -155,6 +155,37 @@ structures.
      push @sample, RNA::pbacktrack($sequence);
   }
 
+=item co_pf_fold SEQUENCE
+
+=item co_pf_fold SEQUENCE, CONSTRAINTS
+
+calculates the partition function over all possible secondary
+structures and the matrix of pair probabilities for SEQUENCE.
+SEQUENCE is a concatenation of two sequences (see cofold).
+Returns a five element list consisting of a string summarizing possible
+structures as first element. The second element is the Gibbs free energy of Sequence 1 (as computed also with pf_fold), the third element the Gibbs free energy of Sequence 2. The fourth element is the Gibbs free energy of all structures that have INTERmolecular base pairs, and finally the fifth element is the Gibbs free energy of the whole ensemble (dimers as well as monomers).
+See above on how to access the pair probability matrix. As
+with L<fold|/fold> the second argument can be used to specify folding
+constraints. Constraints are implemented by excluding base pairings
+that contradict the constraint, but without bonus
+energies. Constraints of type '|' (paired base) are ignored.  In the
+two argument version CONSTRAINTS is modified to contain the structure
+string on return (obsolete feature, for backwards compatibility only)
+
+=item free_co_pf_arrays
+
+frees memory allocated for co_pf_fold
+
+=item update_pf_co_params LENGTH
+
+recalculate energy parameters for co_pf_fold. In most cases (such as
+simple changes to L<$temperature|/$temperature>) C<co_pf_fold>
+will take appropriate action automatically.
+
+=item get_concentrations FdAB, FdAA, FdBB, FA, FB, CONCA, CONCB
+
+calculates equilibrium concentrations of the three dimers AB, AA, and BB, as well as the two monomers A and B out of the free energies of the duplexes (FdAB, FdAA, FdBB, these are the fourth elements returned by co_pf_fold), the monomers (FA, FB (e.g. the second and third elements returned by co_pf_fold with sequences AB) and the start concentrations of A and B. It returns as first element the concentration of AB dimer, than AA and BB dimer, as fourth element the A monomer concentration, and as fifth and last element the B monomer concentration.
+So, to compute concentrations, you first have to run 3 co_pf_folds (with sequences AB, AA and BB).
 
 =back
 
@@ -191,18 +222,18 @@ Alignment Folding (from alifold.h)
 similar to fold() but compute the consensus structure for a set of aligned
 sequences. E.g.:
 
-  @align = ("GCCAUCCGAGGGAAAGGUU", 
-	    "GAUCGACAGCGUCU-AUCG", 
+  @align = ("GCCAUCCGAGGGAAAGGUU",
+	    "GAUCGACAGCGUCU-AUCG",
 	    "CCGUCUUUAUGAGUCCGGC");
   ($consens_struct, $consens_en) = RNA::alifold(\@align);
-  
+
 =item consensus REF
 =item consens_mis REF
 
 compute a simple consensus sequence or "most informative sequence" form an
 alignment. The simple consensus returns the most frequent character for
 each column, the MIS uses the IUPAC symbol that contains all characters
-that are overrepresented in the column. 
+that are overrepresented in the column.
 
   $mis = consensus_mis(\@align);
 
@@ -297,7 +328,7 @@ temperature in degrees Celsius for rescaling parameters, default 37C.
 
 =item $logML [int]
 
-use logarithmic multiloop energy function in 
+use logarithmic multiloop energy function in
 L<energy_of_struct|/energy_of_struct>, default 0.
 
 =item $noLonelyPairs [int]
@@ -407,7 +438,7 @@ from treedist.h: routines for computing tree-edit distances between structures
 
 =item make_tree XSTRUCT
 
-convert a structure string as produced by the expand_... functions to a 
+convert a structure string as produced by the expand_... functions to a
 Tree, useable as input to tree_edit_distance.
 
 =item tree_edit_distance T1, T2
@@ -618,10 +649,10 @@ write energy parameters to FILENAME
 
 =head2 SWIG helper functions
 
-The package includes generic helper functions to access C arrays 
+The package includes generic helper functions to access C arrays
 of type C<int>, C<float> and C<double>, such as:
 
-=over 4 
+=over 4
 
 =item intP_getitem POINTER, INDEX
 
@@ -641,9 +672,12 @@ deletes the C array by calling free()
 
 =back
 
-substituting C<intP> with C<floatP> or C<doubleP> gives the corresponding
-functions for arrays of float or double. You need to know the correct C
-type however, and the function work only for arrays of simple types.
+substituting C<intP> with C<floatP>, C<doubleP>, C<ushortP>,
+C<shortP>, gives the corresponding functions for arrays of float or
+double, unsigned short, and short. You need to know the correct C
+type however, and the functions work only for arrays of simple types.
+Note, that the shortP... functions were used for unsigned short in previous
+versions, while starting with v1.8.3 it can only access signed short arrays.
 
 On the lowest level the C<cdata> function gives direct access to any data
 in the form of a Perl string.
@@ -670,7 +704,7 @@ C data structures to Perl. E.g.
 
 Warning: using these functions with wrong arguments will corrupt your
 memory and lead to a segmentation fault.
-  
+
 =head1 AUTHOR
 
 Ivo L. Hofacker <ivo@tbi.univie.ac.at>

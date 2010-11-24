@@ -11,7 +11,7 @@
 #include "pair_mat.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";

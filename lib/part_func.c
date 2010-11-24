@@ -71,7 +71,7 @@
 #include "part_func.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 /*@unused@*/
@@ -434,7 +434,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       qbt1 = qb[ij];
       if(type)
         qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
-  
+
       qq[i] = qq1[i]*scale[1] + qbt1;
 
       /*construction of partition function for segment i,j */
@@ -1046,7 +1046,7 @@ PRIVATE void backtrack(int i, int j){
       qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*
         scale[u+2]; /* add scale[u+2] */
 
-    if (qbt1>r) return; /* found the hairpin we're done */
+    if (qbt1>=r) return; /* found the hairpin we're done */
 
     for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;

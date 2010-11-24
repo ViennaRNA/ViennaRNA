@@ -93,9 +93,9 @@ int main(int argc, char *argv[]){
   if(args_info.print_onthefly_given)    simply_putout = 1;
   /* turn on RNAplex output */
   if(args_info.plex_output_given)       plexoutput = 1;
-    
+
   /* check for errorneous parameter options */
-  if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){    
+  if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
     RNAplfold_cmdline_parser_print_help();
     exit(EXIT_FAILURE);
   }
@@ -215,7 +215,7 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "WARN: window size %d larger than sequence length %d\n", winsize, length);
       tempwin = winsize;
       winsize = length;
-      if (pairdist>winsize) {          
+      if (pairdist>winsize) {
         temppair=pairdist;
         pairdist=winsize;
       }
@@ -301,7 +301,7 @@ PRIVATE void putout_pup(double *pup,int length, int winsize, char *name) {
   float factor;
   float tfact;
   FILE *FP;
-  
+
   FP=fopen(name,"w");
   fprintf(FP,"&prob of being unpaired between i-%d and i\n",unpaired);
   fflush(NULL);
@@ -315,7 +315,7 @@ PRIVATE void putout_pup(double *pup,int length, int winsize, char *name) {
       if (tfact>factor) {
         factor=tfact;
       }
-     
+
     }
     else {
       tfact=1./(winsize-unpaired+1);
@@ -351,16 +351,16 @@ PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp) {
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
   /*put out Fopen in dekacalories per mol, and F(cond,open) also in dekacal*/
   int k;
-  
+
   float RT = (temperature+K0)*GASCONST;
   float p0;
   float pdep;
   int f0;
   int fdep;
-  
+
   fprintf(fp,"#energy necessary to unpair as well as to unpair if i-1 is unpaired also, if i+1 is unpaired also in dekacal/mol\n");
   for (k=1; k<=length; k++){
-    fprintf(fp,"%d\t",k);   
+    fprintf(fp,"%d\t",k);
     p0=pU[k][1];
     f0=(int) -RT*log(p0)/10;
     fprintf(fp,"%d\t", f0);
@@ -380,7 +380,7 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
     else  fprintf(fp,"-0\t");
     fprintf(fp,"\n");
   }
- 
+
   fflush(fp);
 }
 

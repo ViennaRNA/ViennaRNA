@@ -1,7 +1,7 @@
 /*
   Last changed Time-stamp: <2008-07-04 16:15:50 ulim>
   $Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $
-  
+
   Ineractive Access to cofolding routines
   c Ivo L Hofacker
   Vienna RNA package
@@ -17,7 +17,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include <float.h> 
+#include <float.h>
 #include "fold.h"
 #include "fold_vars.h"
 #include "PS_dot.h"
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
   cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
   cmdl_parameters = (char *)space(sizeof(char) * cmdl_parameters_length);
   sprintf(cmdl_parameters, "RNAup ");
-  
+
   /*
   #############################################
   # check the command line prameters
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]){
     if(header){
       sprintf(cmdl_tmp, "-e %d ", energy_set);
       appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    } 
+    }
   }
   /* take another energy parameter set */
   if(args_info.paramFile_given){
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]){
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -364,19 +364,19 @@ int main(int argc, char *argv[]){
         }
       }
       c++;
-            
+
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if ((fold_constrained)&&(istty)) {
     print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_RND_BRACK);
-    printf("constraints for intramolecular folding only:\n"); 
+    printf("constraints for intramolecular folding only:\n");
     print_tty_constraint(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_ANG_BRACK);
     printf("constraints for cofolding (intermolecular folding) only:\n");
     print_tty_constraint(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_PIPE);
-  } 
- 
-  RT = ((temperature+K0)*GASCONST/1000.0);        
+  }
+
+  RT = ((temperature+K0)*GASCONST/1000.0);
   /*
   #############################################
   # main loop: continue until end of file
@@ -407,7 +407,7 @@ int main(int argc, char *argv[]){
                                                         "The first seq. is stored, every other seq. is compared to the first one.");
                               /* or we already have them and wait for the next sequence */
                               else
-                                print_tty_input_seq_str("Enter another sequence."); 
+                                print_tty_input_seq_str("Enter another sequence.");
                               break;
         default:              nrerror("This should never happen (again)");
                               break;
@@ -620,7 +620,7 @@ int main(int argc, char *argv[]){
     if (cstruc1 != NULL)
       strncpy(structure, cstruc1, length1+1);
 
-    min_en = fold(s1, structure);    
+    min_en = fold(s1, structure);
 
     (void) fflush(stdout);
 
@@ -689,15 +689,15 @@ int main(int argc, char *argv[]){
                               unstr_target  = pf_unstru(s_target, wplus);
                               free_pf_arrays(); /* for arrays for pf_fold(...) */
                             }
-                            
+
                             inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
                             print_interaction(inter_out, s_target, s1, unstr_target, unstr_out, w, incr3, incr5);
-                            
+
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
                               sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, s_target, length1, fname1, s1);
                             }
-                            
+
                             contrib1 = unstr_target;
                             contrib2 = unstr_out;
                             break;
@@ -715,7 +715,7 @@ int main(int argc, char *argv[]){
       sprintf(temp_name, "%d.out", unpaired_values[0][0]);
       strcat(name, temp_name);
       printf("%s\n",name);
-      
+
       Up_plot(contrib1, contrib2, inter_out, name, unpaired_values, my_contrib, head, up_mode);
     }
 
@@ -730,7 +730,7 @@ int main(int argc, char *argv[]){
       free_pu_contrib_struct(contrib1);
 
     if(contrib2 != NULL)
-      free_pu_contrib_struct(contrib2);    
+      free_pu_contrib_struct(contrib2);
 
     if(inter_out != NULL)
       free_interact(inter_out);
@@ -821,7 +821,7 @@ PRIVATE void adjustUnpairedValues(int ***unpaired_values){
 ***
 *** \param param_dest         A pointer to the char array where the new parameter will be concatenated to
 *** \param parameter          The new parameter to be concatenated
-*** \param param_dest_length  A pointer to the size of the already allocated space of param_dest 
+*** \param param_dest_length  A pointer to the size of the already allocated space of param_dest
 **/
 PRIVATE void appendCmdlParameter(char **param_dest, const char *parameter, int *param_dest_length){
   int l = strlen(*param_dest) + strlen(parameter);
@@ -846,7 +846,7 @@ void tokenize(char *line, char **seq1, char **seq2) {
     cut = (int) (pos-line)+1;
     (*seq1) = (char *) space((cut+1)*sizeof(char));
     (*seq2) = (char *) space(((strlen(line)-cut)+2)*sizeof(char));
-  
+
     if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
     *pos = '\0';
     (void) sscanf(line, "%s", *seq1);
@@ -856,7 +856,7 @@ void tokenize(char *line, char **seq1, char **seq2) {
     (*seq2) = NULL;
     sscanf(line, "%s", *seq1);
   }
-    
+
   if (cut > -1) {
     if (cut_point==-1) cut_point = cut;
     else if (cut_point != cut) {
@@ -876,14 +876,14 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   short *pt=NULL;
   char *temp_inter, *pt_inter;
 
-  len=strlen((*inter));  
+  len=strlen((*inter));
   /* printf("inter\n%s\n",(*inter)); */
   i = len+1;
   temp_inter=(char*)space(sizeof(char)*i);
   /* to make a pair_table convert <|> to (|) */
-  pt_inter=(char*)space(sizeof(char)*i); 
+  pt_inter=(char*)space(sizeof(char)*i);
   /* if shorter seq is first seq in constrained string, write the
-     longer one as the first one */                                
+     longer one as the first one */
   temp_inter[strlen((*inter))] = '\0';
   pt_inter[strlen((*inter))] = '\0';
   if (cut_point < len1) {
@@ -934,8 +934,8 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
         pt_inter[i] = '.';
       }
     }
-  }    
-        
+  }
+
   pt = make_pair_table(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
@@ -979,7 +979,7 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
       }
     }
   }
-  
+
   /* printf("%s -1\n%s -2\n%s -3\n%s -4\n",(*inter),temp_inter,(*intra_l),(*intra_s)); */
   strcpy((*inter),temp_inter);
   free(temp_inter);
@@ -994,7 +994,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
   double G_min,Gi_min,Gul, G_sum, Gus, diff;
   duplexT mfe;
   char *struc;
-  
+
   G_min = Int->Gikjl;
   Gi_min = Int->Gikjl_wo;
   len1 = Int->length;
@@ -1005,23 +1005,23 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
   i_long = (char*)space(sizeof(char)*(l_l+1));
   l_s = (Int->l-Int->j+1);
   i_short = (char*)space(sizeof(char)*(l_s+1));
-  
+
   strncpy(i_long,&s1[Int->k-1],l_l);
   i_long[l_l] = '\0';
   strncpy(i_short,&s2[Int->j-1],l_s);
-  i_short[l_s] = '\0';  
-  
+  i_short[l_s] = '\0';
+
   mfe = duplexfold(i_long,i_short);
 
   i_min = mfe.i;
   j_min = mfe.j ;
   l1 = strchr(mfe.structure, '&')-mfe.structure;
-  
+
   /* printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", mfe.structure, i_min+1-l1,
      i_min, j_min, j_min+strlen(mfe.structure)-l1-2, mfe.energy ); */
-  
+
   /* structure by duplexfold is shorter than structure by RNAup:*/
-  
+
   add_a = add_b = 0; /* length difference in longer / shorter sequence*/
   nix_up = 0;
   if(((i_min+1-l1) - i_min) != ( Int->k - Int->i)) {
@@ -1046,7 +1046,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     struc = (char*)space(sizeof(char)*(l1+1));
     strcpy(struc,mfe.structure);
   }
-  
+
   end5 = MAX(1,Int->k-incr5);
   end3 = MIN(MIN(l_l-1+incr3,w+incr3+incr5),len1);
   p_c_S = p_c->H[end5][end3]+p_c->I[end5][end3]+p_c->M[end5][end3]+p_c->E[end5][end3];
@@ -1054,9 +1054,9 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
 
   if (p_c2 == NULL) {
     G_sum =  Gi_min + Gul;
-    
+
     /* printf("dG = dGint + dGu_l\n"); */
-    printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f)\n", 
+    printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f)\n",
            struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul);
     printf("%s&%s\n",i_long,i_short);
   } else {
@@ -1067,7 +1067,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     Gus = -RT*log(p_c_S);
     G_sum = Gi_min + Gul +Gus;
     /* printf("dG = dGint + dGu_l + dGu_s\n"); */
-    printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f + %.2f)\n", 
+    printf("%s %3d,%-3d : %3d,%-3d (%.2f = %.2f + %.2f + %.2f)\n",
            struc, Int->k, Int->i, Int->j, Int->l, G_min, Gi_min, Gul, Gus);
     printf("%s&%s\n",i_long,i_short);
   }
@@ -1083,11 +1083,11 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
   free(struc);
 }
 
-/* print coordinates and free energy for the region of highest accessibility */ 
+/* print coordinates and free energy for the region of highest accessibility */
 PRIVATE void print_unstru(pu_contrib *p_c, int w) {
   int i,j,len,min_i,min_j;
   double dG_u, min_gu;
-  
+
   if (p_c != NULL) {
     min_gu = 1000.0;
     len = p_c->length;

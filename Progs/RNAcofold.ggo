@@ -49,6 +49,11 @@ option  "noconv"  -
 flag
 off
 
+option "noPS"   -
+"Do not produce postscript output\n"
+flag
+off
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n"

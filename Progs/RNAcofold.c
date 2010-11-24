@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   double  min_en;
   double  kT, sfact;
   int     pf, istty;
-  int     noconv;
+  int     noconv, noPS;
   int     doT;    /*compute dimere free energies etc.*/
   int     doC;    /*toggle to compute concentrations*/
   int     doQ;    /*toggle to compute prob of base being paired*/
@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
   */
   sfact         = 1.07;
   noconv        = 0;
+  noPS          = 0;
   do_backtrack  = 1;
   pf            = 0;
   doT           = 0;
@@ -105,6 +106,8 @@ int main(int argc, char *argv[])
   if(args_info.noconv_given)          noconv = 1;
   /* set energy model */
   if(args_info.energyModel_given)     energy_set = args_info.energyModel_arg;
+  /*  */
+  if(args_info.noPS_given)            noPS = 1;
   /* take another energy parameter set */
   if(args_info.paramFile_given)       ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
@@ -173,7 +176,7 @@ int main(int argc, char *argv[])
     # handle user input from 'stdin'
     ########################################################
     */
-    if(istty){ 
+    if(istty){
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       print_tty_input_seq();
     }
@@ -239,35 +242,43 @@ int main(int argc, char *argv[])
     /*compute mfe of AB dimer*/
     min_en = cofold(string, structure);
     assign_plist_from_db(&mfAB, structure, 0.95);
-    if (cut_point == -1)    printf("%s\n%s", string, structure); /*no cofold*/
 
-    else {
+    {
       char *pstring, *pstruct;
-      pstring = costring(string);
-      pstruct = costring(structure);
+      if (cut_point == -1) {
+        pstring = strdup(string);
+        pstruct = strdup(structure);
+      } else {
+        pstring = costring(string);
+        pstruct = costring(structure);
+      }
       printf("%s\n%s", pstring, pstruct);
-      free(pstring);
-      free(pstruct);
-    }
-    if (istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-    else
-      printf(" (%6.2f)\n", min_en);
+      if (istty)
+        printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+      else
+        printf(" (%6.2f)\n", min_en);
 
       (void) fflush(stdout);
 
-    if (fname[0]!='\0') {
-      strcpy(ffname, fname);
-      strcat(ffname, "_ss.ps");
-    } else {
-      strcpy(ffname, "rna.ps");
+      if (!noPS) {
+        char annot[512] = "";
+        if (fname[0]!='\0') {
+          strcpy(ffname, fname);
+          strcat(ffname, "_ss.ps");
+        } else {
+          strcpy(ffname, "rna.ps");
+        }
+        if (cut_point >= 0)
+          sprintf(annot,
+                  "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
+                  cut_point-1, cut_point+1, length+1);
+        (void) PS_rna_plot_a(pstring, pstruct, ffname, annot, NULL);
+      }
+      free(pstring);
+      free(pstruct);
     }
-    if (length<2000)
-      (void) PS_rna_plot(string, structure, ffname);
-    else {
-     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-     free_co_arrays();
-    }
+
+    if (length>2000)  free_co_arrays();
 
     /*compute partition function*/
     if (pf) {

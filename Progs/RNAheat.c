@@ -170,10 +170,10 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    int length, i;
    char *structure;
    float hc, kT, min_en;
-   
+
    length = (int) strlen(string);
-   
-   do_backtrack = 0;   
+
+   do_backtrack = 0;
 
    temperature = T_min -m*h;
    /* initialize_fold(length); <- obsolete */
@@ -183,26 +183,26 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
    /* init_pf_fold(length); <- obsolete */
-   
+
    for (i=0; i<2*m+1; i++) {
       F[i] = pf_fold(string, NULL);   /* T_min -2h */
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT); /* try to extrapolate F */
-      update_pf_params(length); 
+      update_pf_params(length);
    }
    while (temperature <= (T_max+m*h+h)) {
-      
-      hc = - ddiff(F,h,m)* (temperature +K0 - m*h -h); 
-      printf("%g   %g\n", (temperature-m*h-h), hc);  
-      
+
+      hc = - ddiff(F,h,m)* (temperature +K0 - m*h -h);
+      printf("%g   %g\n", (temperature-m*h-h), hc);
+
       for (i=0; i<2*m; i++)
          F[i] = F[i+1];
-      F[2*m] = pf_fold(string, NULL); 
+      F[2*m] = pf_fold(string, NULL);
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT);
-      update_pf_params(length); 
+      update_pf_params(length);
    }
    free_pf_arrays();
 }
@@ -216,13 +216,13 @@ PRIVATE float ddiff(float f[], float h, int m)
    float A, B;
    A = (float)(m*(m+1)*(2*m+1)/3 );                            /* 2*sum(x^2) */
    B = (float)(m*(m+1)*(2*m+1) ) * (float)(3*m*m+3*m-1) /15.;  /* 2*sum(x^4) */
-   
+
    fp=0.;
    for (i=0; i<2*m+1; i++)
       fp += f[i]*( A - (float) ( (2*m+1)*(i-m)*(i-m)) );
-   
+
    fp /= ( ( A*A - B*( (float)(2*m+1) ) )*h*h/2. );
    return (float)fp;
-   
+
 }
 

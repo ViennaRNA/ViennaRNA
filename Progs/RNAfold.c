@@ -197,7 +197,7 @@ int main(int argc, char *argv[]){
       else if(cl > length)  nrerror("structure constraint is too long");
     }
     structure = (char *)space(sizeof(char) *(length+1));
-    if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1)); 
+    if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
     if(noconv)  str_RNA2RNA(rec_sequence);
     else        str_DNA2RNA(rec_sequence);

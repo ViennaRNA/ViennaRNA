@@ -67,7 +67,7 @@
 #include "part_func_co.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 
@@ -439,9 +439,7 @@ PRIVATE void pf_co(const char *sequence){
       qq[i] = qq1[i]*scale[1] + qbt1;
        /*construction of partition function for segment i,j */
       temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++) {
-        temp += q[ii-k]*qq[k+1];
-      }
+      for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
       q[ij] = temp;
 
       if (temp>Qmax) {
@@ -451,7 +449,7 @@ PRIVATE void pf_co(const char *sequence){
       }
       if (temp>=max_real) {
         PRIVATE char msg[128];
-        sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
+        snprintf(msg, 127, "overflow in co_pf_fold while calculating q[%d,%d]\n"
                 "use larger pf_scale", i,j);
         nrerror(msg);
       }

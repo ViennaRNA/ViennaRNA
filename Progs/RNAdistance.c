@@ -30,15 +30,15 @@ PRIVATE void print_aligned_lines(FILE *somewhere);
 
 PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
 "....,....5....,....6....,....7....,....8";
-PRIVATE int types=1; 
-PRIVATE int task; 
+PRIVATE int types=1;
+PRIVATE int task;
 PRIVATE int taxa_list;
 PRIVATE char outfile[50], *list_title;
 
 PRIVATE char ttype[10]="f";
 PRIVATE int n=0;
 
-int main(int argc, char *argv[])     
+int main(int argc, char *argv[])
 {
   char     *line=NULL, *xstruc, *cc;
   Tree     *T[10][MAXNUM];
@@ -47,17 +47,17 @@ int main(int argc, char *argv[])
   char     *P[MAXNUM];   /* structures for base pair distances */
   int       string_types = 0, tstr;
   int       i,j, tt, istty, type;
-  int       it, is; 
+  int       it, is;
   FILE     *somewhere=NULL;
-   
+
   command_line(argc, argv);
 
-  if((outfile[0]=='\0')&&(task==2)&&(edit_backtrack)) 
-    strcpy(outfile,"backtrack.file"); 
+  if((outfile[0]=='\0')&&(task==2)&&(edit_backtrack))
+    strcpy(outfile,"backtrack.file");
   if(outfile[0]!='\0') somewhere = fopen(outfile,"w");
   if (somewhere==NULL) somewhere = stdout;
   istty = isatty(fileno(stdin))&&isatty(fileno(stdout));
-   
+
   do {
     if ((istty)&&(n==0)) {
       printf("\nInput structure;  @ to quit\n");
@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
       if (line!=NULL) free(line);
       line=get_line(stdin);
     } while ((type=parse_input(line))==0);
-      
+
     if (((type==999)||(type==888))&&(task==2)) {  /* do matrices */
-      if (taxa_list) 
+      if (taxa_list)
         printf("* END of taxa list\n");
 
       ttree = 0; tstr = 0;
@@ -126,10 +126,10 @@ int main(int argc, char *argv[])
       }
     }                       /* END do matrices */
     if (type==999) {   /* finito */
-      if (outfile[0]!='\0') fclose(somewhere); 
+      if (outfile[0]!='\0') fclose(somewhere);
       return 0;
     }
-      
+
     if (type<0) {
       xstruc = add_root(line);
       free(line);
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
         }
         break;
       case 'c' :
-      case 'C' :    
+      case 'C' :
         switch (type) {
         case 1:
           cc = b2C(line);
@@ -205,10 +205,10 @@ int main(int argc, char *argv[])
         if(isupper(ttype[tt])) {
           S[string_types++][n] = Make_swString(xstruc);
         }
-        free(xstruc);   
+        free(xstruc);
         break;
       case 'w' :
-      case 'W' :          
+      case 'W' :
         if (type==1) {
           xstruc = b2Shapiro(line);
           if(islower(ttype[tt])) {
@@ -217,8 +217,8 @@ int main(int argc, char *argv[])
           if(isupper(ttype[tt])) {
             S[string_types++][n] = Make_swString(xstruc);
           }
-          free(xstruc); 
-        } 
+          free(xstruc);
+        }
         else {
           if(islower(ttype[tt])) {
             T[tree_types++][n] = make_tree(line);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
           }
         }
         break;
-      default: 
+      default:
         nrerror("Unknown distance type");
       }
     }
@@ -263,12 +263,12 @@ int main(int argc, char *argv[])
       }
       break;
     case 3:
-      if (n>1) { 
+      if (n>1) {
         for (it=0, is=0, i=0; i<types; i++) {
           if(islower(ttype[i])) {
             dist = tree_edit_distance(T[it][1], T[it][0]);
-            free_tree(T[it][1]); 
-            it++;    
+            free_tree(T[it][1]);
+            it++;
           }
           else if (ttype[i]=='P') {
             dist = (float) bp_distance(P[0], P[1]);
@@ -295,8 +295,8 @@ int main(int argc, char *argv[])
           if(islower(ttype[i])) {
             dist = tree_edit_distance(T[it][1], T[it][0]);
             free_tree(T[it][0]);
-            T[it][0] = T[it][1];  
-            it++;   
+            T[it][0] = T[it][1];
+            it++;
           }
           else if (ttype[i]=='P') {
             dist = (float) bp_distance(P[0], P[1]);
@@ -330,7 +330,7 @@ PRIVATE int parse_input(char *line)
 {
   int type, rooted=0, i, xx;
   char *cp;
-   
+
   if (line==NULL) return 999;
   if (line[0]=='*') {
     if (taxa_list==0) {
@@ -351,7 +351,7 @@ PRIVATE int parse_input(char *line)
 
   cp = strchr(line,' ');
   if (cp) *cp='\0';      /* get rid of junk at the end of line */
-   
+
   switch (line[0]) {
   case '.' :
     type = 1;
@@ -361,7 +361,7 @@ PRIVATE int parse_input(char *line)
     i=1;
     xx = 0;
     type = 4;           /* coarse */
-    rooted = 0; 
+    rooted = 0;
     while (line[i])  {
       if (line[i]=='.'){
         type = 1;     /* Full */
@@ -381,14 +381,14 @@ PRIVATE int parse_input(char *line)
       i++;
     }
     if(!xx) type =1;
-       
+
     rooted = (line[strlen(line)-2]=='R');
     break;
   case '@' :
     return 999;
-       
+
   default:
-    return 0;        
+    return 0;
   }
 
   switch (type) {
@@ -425,9 +425,9 @@ PRIVATE int check_tree(char *line, char alpha[])
 {
   int n, i, o;
   char *pos;
-   
-  n = (int) strlen(line); 
-   
+
+  n = (int) strlen(line);
+
   if( line[0] != '(' ) return 0;
   i=o=1;
   while( line[i] ){
@@ -458,11 +458,11 @@ PRIVATE int check_tree(char *line, char alpha[])
 
 /*--------------------------------------------------------------------------*/
 
-     
+
 PRIVATE int check_brackets(char *line)
 {
   int i,o;
-   
+
   i=o=0;
   while( line[i] ){
     switch(line[i]) {
@@ -473,7 +473,7 @@ PRIVATE int check_brackets(char *line)
     case '.' :
       i++;
       break;
-    case ')' : 
+    case ')' :
       i++;
       o--;
       if(o<0) return 0;
@@ -492,10 +492,10 @@ PRIVATE int check_brackets(char *line)
 PRIVATE void command_line(int argc, char *argv[])
 {
   int i;
-   
+
   edit_backtrack = 0;
   types=1; ttype[0]='f'; task=1;
-   
+
   for (i=1; i<argc; i++) {
     if (argv[i][0]=='-')
       switch (argv[i][1]) {
@@ -522,7 +522,7 @@ PRIVATE void command_line(int argc, char *argv[])
           i++;
           strncpy(outfile,argv[i],49);
         }
-        edit_backtrack = 1;   
+        edit_backtrack = 1;
         break;
       default:
         usage();

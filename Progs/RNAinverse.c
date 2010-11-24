@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
   double  energy=0., kT;
   int     pf, mfe, istty;
   int     repeat, found;
-  
+
   do_backtrack = 0; pf = 0; mfe = 1;
   repeat = 0;
   input_type = 0;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]){
 
     if (repeat!=0) found = (repeat>0)? repeat : (-repeat);
     else found = 1;
-      
+
     /* initialize_fold(length); <- obsolete (hopefully commenting this out does not affect anything crucial ;) */
 
     rstart = (char *) space((unsigned)length+1);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]){
           string[i]=symbolset[int_urn(0,strlen(symbolset)-1)];
       }
       strcpy(rstart, string); /* remember start string */
-        
+
       if (mfe) {
         energy = inverse_fold(string, structure);
         if( (repeat>=0) || (energy<=0.0) ) {
@@ -211,12 +211,12 @@ int main(int argc, char *argv[]){
         if (!(mfe && give_up && (energy>0))) {
           /* unless we gave up in the mfe part */
           double prob, min_en, sfact=1.07;
-            
+
           /* get a reasonable pf_scale */
-          min_en = fold(string,str2); 
+          min_en = fold(string,str2);
           pf_scale = exp(-(sfact*min_en)/kT/length);
           /* init_pf_fold(length); <- obsolete (hopefully commenting this out does not affect anything crucial ;) */
-            
+
           energy = inverse_pf_fold(string, structure);
           prob = exp(-energy/kT);
           hd = hamming(rstart, string);
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]){
     }
     free(rstart);
     free_arrays();
-      
+
     free(structure);
     free(str2);
     free(start);

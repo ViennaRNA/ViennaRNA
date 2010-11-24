@@ -108,7 +108,7 @@ void    update_pf_params(int length);
 *** \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
 ***
 *** \see get_iindx()
-*** \return A pointer to the base pair probability array 
+*** \return A pointer to the base pair probability array
 **/
 FLT_OR_DBL *export_bppm(void);
 

@@ -30,7 +30,7 @@
 #include "loop_energies.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 
@@ -105,10 +105,10 @@ PRIVATE void  make_pscores(const short *const *S, const char **AS, int n_seq, co
 PRIVATE int   fill_arrays(const char **strings);
 PRIVATE void  backtrack(const char **strings, int s);
 
-PRIVATE void  energy_of_alistruct_pt(const char **sequences,short * ptable, int n_seq, int *energy);
-PRIVATE void  stack_energy_pt(int i, const char **sequences, short *ptable,  int n_seq, int *energy);
-PRIVATE int   ML_Energy_pt(int i, int n_seq, short *pt);
-PRIVATE int   EL_Energy_pt(int i, int n_seq, short *pt);
+PRIVATE void    energy_of_alistruct_pt(const char **sequences,short * ptable, int n_seq, int *energy);
+PRIVATE void    stack_energy_pt(int i, const char **sequences, short *ptable,  int n_seq, int *energy);
+PRIVATE int     ML_Energy_pt(int i, int n_seq, short *pt);
+PRIVATE int     EL_Energy_pt(int i, int n_seq, short *pt);
 
 /*
 #################################
@@ -194,7 +194,7 @@ PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S
     }
   }
   else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
-} 
+}
 
 PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss){
   unsigned int s;
@@ -750,7 +750,7 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
     for(i=1,p=0; i<=l; i++){
       char c5;
       c5 = sequence[i-1];
-      if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) 
+      if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.'))
         s5[i+1]=s5[i];
       else { /* no gap */
         ss[p++]=sequence[i-1]; /*start at 0!!*/
@@ -761,7 +761,7 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
     for (i=l; i>=1; i--) {
       char c3;
       c3 = sequence[i-1];
-      if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) 
+      if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.'))
         s3[i-1]=s3[i];
       else
         s3[i-1]=S[i];
@@ -776,7 +776,6 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000 /* score for forbidden pairs */
   int n,i,j,k,l,s;
-  double score;
 
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
@@ -806,6 +805,7 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       pscore[indx[j]+i] = NONE;
     for (j=i+TURN+1; j<=n; j++) {
       int pfreq[8]={0,0,0,0,0,0,0,0};
+      double score;
       for (s=0; s<n_seq; s++) {
         int type;
         if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
@@ -818,8 +818,6 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
       for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
         for (l=k; l<=6; l++)
-          /* scores for replacements between pairtypes    */
-          /* consistent or compensatory mutations score 1 or 2  */
           score += pfreq[k]*pfreq[l]*dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25   */
       pscore[indx[j]+i] = cv_fact *
@@ -967,14 +965,10 @@ PUBLIC float **readribosum(char *name){
 
 
 PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
-  /*  int   energy;*/
   int new=0;
   unsigned int s, n;
   short *pt;
 
-  /*  type=(int *)space(n_seq*sizeof(int));*/
-
-  /* save the S and S1 pointers in case they were already in use */
   short           **tempS;
   short           **tempS5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **tempS3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
@@ -1016,7 +1010,7 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     indx = tempindx; pscore = temppscore;
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
-  
+
   return energy[0];
 }
 
@@ -1105,7 +1099,7 @@ PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
   short d5, d3;
 
   j = pt[i];
-  i1  = i; 
+  i1  = i;
   p   = i+1;
   u   = 0;
   energy = 0;

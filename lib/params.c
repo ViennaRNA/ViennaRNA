@@ -57,7 +57,7 @@ PUBLIC paramT *scale_parameters(void)
   }
 
   params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
- 
+
   params->TripleC = TripleCdH - (TripleCdH - TripleC37) * tempf;
   params->MultipleCA = MultipleCAdH - (MultipleCAdH - MultipleCA37) * tempf;
   params->MultipleCB = MultipleCBdH - (MultipleCBdH - MultipleCB37) * tempf;

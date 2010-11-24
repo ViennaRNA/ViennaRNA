@@ -13,7 +13,7 @@
 *** \file cofold.h
 **/
 
-float     cofold(const char *sequence, char *structure); 
+float     cofold(const char *sequence, char *structure);
 /**
 *** free arrays for mfe folding
 **/

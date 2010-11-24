@@ -2,7 +2,7 @@
 	  Functions for handling the Base Pair Probability Matrix
 		      Peter F Stadler, Ivo L Hofacker
 			    Vienna RNA Package
-*/ 
+*/
 /* Last changed Time-stamp: <2002-11-07 12:46:16 ivo> */
 
 #include <stdio.h>
@@ -35,10 +35,10 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
 
   float    **distance;
   short    **i_point, **j_point;
-  
+
   int           i, j, i1, j1, pos, length1,length2;
   float         minus, plus, change, temp;
-  
+
   length1 = (int) T1[0];
   length2 = (int) T2[0];
   distance = (float **)     space((length1 +1)*sizeof(float *));
@@ -53,7 +53,7 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
       j_point[i]  = (short *) space( (length2+1)*sizeof(short));
     }
   }
-  
+
   for(i = 1; i <= length1; i++) {
     distance[i][0] = distance[i-1][0]+PrfEditCost(i,0,T1,T2);
     if(edit_backtrack){ i_point[i][0] = (short) i-1; j_point[i][0] = 0;   }
@@ -61,16 +61,16 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
   for(j = 1; j <= length2; j++) {
     distance[0][j] = distance[0][j-1]+PrfEditCost(0,j,T1,T2);
     if(edit_backtrack){ i_point[0][j] = 0;   j_point[0][j] = (short) j-1; }
-  }    
+  }
   for (i = 1; i <= length1; i++) {
     for (j = 1; j <= length2 ; j++) {
       minus  = distance[i-1][j]  + PrfEditCost(i,0,T1,T2);
       plus   = distance[i][j-1]  + PrfEditCost(0,j,T1,T2);
       change = distance[i-1][j-1]+ PrfEditCost(i,j,T1,T2);
-      
+
       distance[i][j] = MIN3(minus, plus, change);
       /* printf("%g ", distance[i][j]); */
-      
+
       if(edit_backtrack){
 	if(distance[i][j] == change) {
 	  i_point[i][j]= (short)i-1; j_point[i][j]= (short) j-1;  }
@@ -79,26 +79,26 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
 	else {
 	  i_point[i][j]= (short)i-1; j_point[i][j]= (short)j  ;  }
       }
-    } 
+    }
     /* printf("\n"); */
   }
   /* printf("\n"); */
   temp = distance[length1][length2];
-  for(i=0;i<=length1;i++) 
+  for(i=0;i<=length1;i++)
     free(distance[i]);
   free(distance);
-  
+
   if(edit_backtrack){
     alignment[0] = (int *) space((length1+length2+1)*sizeof(int));
     alignment[1] = (int *) space((length1+length2+1)*sizeof(int));
-    
+
     pos = length1+length2;
     i   = length1;
     j   = length2;
     while( (i>0)||(j>0) ) {
       i1 = i_point[i][j];
       j1 = j_point[i][j];
-      if( ((i-i1)==1)&&((j-j1)==1) )  {  /* substitution    */ 
+      if( ((i-i1)==1)&&((j-j1)==1) )  {  /* substitution    */
 	alignment[0][pos] = i;
 	alignment[1][pos] = j;
       }
@@ -119,16 +119,16 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
       alignment[1][i-pos] = alignment[1][i];
     }
     alignment[0][0] = length1+length2-pos;   /* length of alignment */
-    
+
     for(i=0; i<=length1; i++){
       free(i_point[i]); free(j_point[i]);
     }
     free(i_point); free(j_point);
     sprint_aligned_bppm(T1,T2);
     free(alignment[0]);
-    free(alignment[1]);       
+    free(alignment[1]);
   }
-  
+
   return temp;
 }
 
@@ -142,13 +142,13 @@ PRIVATE double PrfEditCost(int i, int j, const float *T1, const float *T2)
 
   kmax = (int) T1[1];
   if ((int) T2[1] != kmax) nrerror("inconsistent Profiles in PrfEditCost");
-  
+
   if(i==0) {
-    for(dist = 0. ,k=0 ; k<kmax ; k++) 
+    for(dist = 0. ,k=0 ; k<kmax ; k++)
       dist += T2[j*kmax+k];
   }
   if(j==0) {
-    for(dist = 0. ,k=0 ; k<kmax ; k++) 
+    for(dist = 0. ,k=0 ; k<kmax ; k++)
       dist += T1[i*kmax+k];
   }
   if((i>0)&&(j>0)) {
@@ -169,11 +169,11 @@ PRIVATE double average(double x, double y)
    4.)     a(x,x) >=  a(x,y)  for 0<= x,y <= 1
    As in Bonhoeffer et al (1993) 'RNA Multi Structure Landscapes',
    Eur. Biophys. J. 22: 13-24 we have chosen  the geometric mean.
-*/ 
+*/
 
 {
     float a;
-    a = (float) sqrt(x*y);    
+    a = (float) sqrt(x*y);
     return a;
 }
 
@@ -184,7 +184,7 @@ PUBLIC float *Make_bp_profile(int length)
    int i,j;
    int L=3;
    float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
-   
+
    P =  (float *) space((length+1)*3*sizeof(float));
    /* indices start at 1 use first entries to store length and dimension */
    P[0] = (float) length;
@@ -194,7 +194,7 @@ PUBLIC float *Make_bp_profile(int length)
      for( j=i+1; j<=length; j++ ) {
        P[i*L+1] += pr[iindx[i]-j];
        P[j*L+2] += pr[iindx[i]-j];
-     } 
+     }
    for( i=1; i<=length; i++)
      P[i*3+0] = 1 - P[i*3+1] - P[i*3+2];
    return (float *) P;
@@ -215,7 +215,7 @@ PUBLIC float *Make_bp_profile_bppm(double *bppm, int length){
      for( j=i+1; j<=length; j++ ) {
        P[i*L+1] += bppm[index[i]-j];
        P[j*L+2] += bppm[index[i]-j];
-     } 
+     }
    for( i=1; i<=length; i++)
      P[i*3+0] = 1 - P[i*3+1] - P[i*3+2];
 
@@ -225,10 +225,10 @@ PUBLIC float *Make_bp_profile_bppm(double *bppm, int length){
 }
 
 /*---------------------------------------------------------------------------*/
-         
+
 PRIVATE void sprint_aligned_bppm(const float *T1, const float *T2)
 {
-   int     i, length; 
+   int     i, length;
    length = alignment[0][0];
    aligned_line[0] = (char *) space((length+1)*sizeof(char));
    aligned_line[1] = (char *) space((length+1)*sizeof(char));
@@ -256,4 +256,4 @@ PUBLIC void     free_profile(float *T)
 {
    free(T);
 }
-   
+

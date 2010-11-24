@@ -314,7 +314,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    make_start(string, structure);
 
    make_ptable(structure, pt);
-   
+
    while (j<len) {
       while ((j<len)&&(structure[j]!=')')) {
 	 if (aux[j]=='[') o++;
@@ -326,7 +326,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
       if (structure[i]=='.') { /* no pair found -> open chain */
 	WALK(0,len-1);
       }
-      
+
       if (aux[i]!='[') { i--; j++;}
       while (pt[j]==i) {
 	 backtrack_type='C';

@@ -29,7 +29,7 @@
 #endif
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 
@@ -516,7 +516,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
             double difference;
             double min_sd = minimal_sd(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4]);
             difference=(fij-f3[pairpartner+1])/100.-average_free_energy;
-            if ( difference - ( min_z * min_sd ) <= 0.0001 ) { 
+            if ( difference - ( min_z * min_sd ) <= 0.0001 ) {
               sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
               my_z=difference/sd_free_energy;
               if (my_z<=min_z){
@@ -534,9 +534,9 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                 prev=ss; prev_i = lind; prevz=my_z;
               }
             }
-        
+
           }
-          free(AUGC);        
+          free(AUGC);
           do_backtrack=0;
 #endif
         }
@@ -557,7 +557,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           prev_i = lind;
           do_backtrack=0;
         }
-      } 
+      }
       if (i==1) {
         if (prev) {
           if(zsc) {
@@ -645,7 +645,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
               double difference;
               double min_sd = minimal_sd(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4]);
               difference=(fij-f3[pairpartner+1])/100.-average_free_energy;
-              if ( difference - ( min_z * min_sd ) <= 0.0001 ) { 
+              if ( difference - ( min_z * min_sd ) <= 0.0001 ) {
                 sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
                 my_z=difference/sd_free_energy;
                 if (my_z<=min_z){

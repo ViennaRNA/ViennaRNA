@@ -91,7 +91,7 @@
 #include "subopt.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 #define true              1
@@ -1094,7 +1094,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       element_energy = E_ExtLoop(rt, (SAME_STRAND(j-1,j)) ? S1[j-1] : -1, (SAME_STRAND(i,i+1)) ? S1[i+1] : -1, P);
     else
       element_energy = E_ExtLoop(rt, -1, -1, P);
-    
+
     if (fc[i+1] + fc[j-1] +element_energy + best_energy  <= threshold)
       {
         INTERVAL *interval1, *interval2;

@@ -57,7 +57,7 @@ void    free_alifold_arrays(void);
 *** \param Alseq
 *** \param n_seq  The number of sequences in the alignment
 *** \param length The length of the alignment
-*** \param mini   
+*** \param mini
 *** \return       The mean pairwise identity
 **/
 int get_mpi(char *Alseq[], int n_seq, int length, int *mini);
@@ -116,8 +116,8 @@ float   energy_of_alistruct(const char **sequences, const char *structure, int n
 *** \param S        pointer to an array that holds encoded sequence
 *** \param s5      pointer to an array that holds the next base 5' of alignment position i
 *** \param s3      pointer to an array that holds the next base 3' of alignment position i
-*** \param ss      
-*** \param as      
+*** \param ss
+*** \param as
 *** \param circ    assume the molecules to be circular instead of linear (circ=0)
 **/
 void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ);

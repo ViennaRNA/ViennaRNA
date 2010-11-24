@@ -27,7 +27,7 @@
 #include "cofold.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 /*@unused@*/
@@ -370,7 +370,7 @@ PRIVATE int fill_arrays(const char *string) {
 
         if (!no_close) {
           int MLenergy;
-          
+
           if((si >= 0) && (sj >= 0)){
             decomp = DMLi1[j-1];
             tt = rtype[type];
@@ -626,7 +626,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                     }
                     if(traced) break;
                   }
-                  
+
                   break;
 
         case 2:   /* j or j-1 is paired. Find pairing partner */
@@ -807,7 +807,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                   }
                   break;
       }
-      
+
       /* find next component of multiloop */
       for (k = i+1+TURN; k <= j-2-TURN; k++)
         if (fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
@@ -929,7 +929,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         case 2:   if(cij == decomp + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
                     ii=i1, jj=j1;
                   }
-                  
+
                   break;
         default:  if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
                     ii=i1, jj=j1;
@@ -1094,7 +1094,7 @@ PRIVATE void free_end(int *array, int i, int start) {
       else     { ii = i+1; jj = j;} /* inc<0 */
       type = ptype[indx[jj]+ii];
       if (!type) continue;
-      
+
       si = (ii > left)  && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
       sj = (jj < right) && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
@@ -1166,7 +1166,7 @@ PRIVATE comp_pair(const void *A, const void *B) {
 }
 
 PUBLIC SOLUTION *zukersubopt(const char *string) {
-/* Compute zuker suboptimal. Here, we're abusing the cofold() code 
+/* Compute zuker suboptimal. Here, we're abusing the cofold() code
    "double" sequence, compute dimerarray entries, track back every base pair.
    This is slightly wasteful compared to the normal solution */
 

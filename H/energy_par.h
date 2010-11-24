@@ -1,4 +1,4 @@
-/* 
+/*
    prototypes for energy_par.c
 */
 
@@ -84,11 +84,11 @@ extern char Tetraloops[];  /* string containing the special tetraloops */
 extern int  Tetraloop37[];  /* Bonus energy for special tetraloops */
 extern int  TetraloopdH[];
 extern char Triloops[];    /* string containing the special triloops */
-extern int  Triloop37[]; /* Bonus energy for special Triloops */  
-extern int  TriloopdH[]; /* Bonus energy for special Triloops */  
+extern int  Triloop37[]; /* Bonus energy for special Triloops */
+extern int  TriloopdH[]; /* Bonus energy for special Triloops */
 extern char Hexaloops[];    /* string containing the special triloops */
-extern int  Hexaloop37[]; /* Bonus energy for special Triloops */  
-extern int  HexaloopdH[]; /* Bonus energy for special Triloops */  
+extern int  Hexaloop37[]; /* Bonus energy for special Triloops */
+extern int  HexaloopdH[]; /* Bonus energy for special Triloops */
 
 extern double Tmeasure;       /* temperature of param measurements */
 

@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2005-07-23 16:50:24 ivo> */
-/*                
+/*
              Compute duplex structure of two RNA strands
 
                            c Ivo L Hofacker

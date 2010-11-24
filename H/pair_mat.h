@@ -19,7 +19,7 @@ static int BP_pair[NBASES][NBASES]=
 static short alias[MAXALPHA+1];
 static int pair[MAXALPHA+1][MAXALPHA+1];
 /* rtype[pair[i][j]]:=pair[j][i] */
-static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7}; 
+static int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 
 #ifdef _OPENMP
 #pragma omp threadprivate(Law_and_Order, BP_pair, alias, pair, rtype)
@@ -47,32 +47,32 @@ static int encode_char(char c) {
 /*@null@*/
 extern char *nonstandards;
 extern void   nrerror(const char message[]);
-static void make_pair_matrix(void) 
+static void make_pair_matrix(void)
 {
    int i,j;
-   
+
    if (energy_set==0) {
       for (i=0; i<5; i++) alias[i] = (short) i;
       alias[5] = 3; /* X <-> G */
       alias[6] = 2; /* K <-> C */
       alias[7] = 0; /* I <-> default base '@' */
       for (i=0; i<NBASES; i++) {
-          for (j=0; j<NBASES; j++) 
+          for (j=0; j<NBASES; j++)
             pair[i][j] = BP_pair[i][j];
-      }      
+      }
       if (noGU) pair[3][4] = pair[4][3] =0;
-      if (nonstandards!=NULL) {  /* allow nonstandard bp's */ 
-         for (i=0; i<(int)strlen(nonstandards); i+=2) 
+      if (nonstandards!=NULL) {  /* allow nonstandard bp's */
+         for (i=0; i<(int)strlen(nonstandards); i+=2)
             pair[encode_char(nonstandards[i])]
               [encode_char(nonstandards[i+1])]=7;
       }
       for (i=0; i<NBASES; i++) {
-          for (j=0; j<NBASES; j++) 
+          for (j=0; j<NBASES; j++)
            rtype[pair[i][j]] = pair[j][i];
-      }      
+      }
    } else {
       for (i=0; i<=MAXALPHA; i++) {
-         for (j=0; j<=MAXALPHA; j++) 
+         for (j=0; j<=MAXALPHA; j++)
             pair[i][j] = 0;
       }
       if (energy_set==1) {
@@ -116,7 +116,7 @@ static void make_pair_matrix(void)
       }
       else nrerror("What energy_set are YOU using??");
       for (i=0; i<=MAXALPHA; i++) {
-        for (j=0; j<=MAXALPHA; j++) 
+        for (j=0; j<=MAXALPHA; j++)
           rtype[pair[i][j]] = pair[j][i];
       }
    }

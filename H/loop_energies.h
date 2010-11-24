@@ -279,7 +279,7 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1, int u2, int type, int type2, short
 */
 INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
   int energy;
-  
+
   energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
   if (tetra_loop){
     if (size == 4) { /* check for tetraloop bonus */
@@ -356,7 +356,7 @@ INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
         energy += P->mismatch23I[type][si1][sj1] + P->mismatch23I[type_2][sq1][sp1];
         return energy;
       }
-      
+
     }
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]) : (P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
@@ -373,7 +373,7 @@ INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P){
   int energy = 0;
   int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
   int d3 = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
-  
+
   if(type > 2)
     energy += P->TerminalAU;
 

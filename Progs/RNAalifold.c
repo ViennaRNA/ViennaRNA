@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char          ffname[80], gfname[80], fname[80];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           n_seq, i, length, sym, r;
+  int           n_seq, i, length, sym, r, noPS;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
-  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = 0;
+  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;
@@ -87,6 +87,7 @@ int main(int argc, char *argv[]){
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)        circular=1;
   /* do not produce postscript output */
+  if(args_info.noPS_given)        noPS = 1;
   /* partition function settings */
   if(args_info.partfunc_given){
     pf = 1;
@@ -250,7 +251,7 @@ int main(int argc, char *argv[]){
   strcpy(ffname, "alirna.ps");
   strcpy(gfname, "alirna.g");
 
-  if (length<=2500) {
+  if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
     if (doColor)
@@ -258,8 +259,7 @@ int main(int argc, char *argv[]){
     else
       (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
     free(A[0]); free(A[1]); free(A);
-  } else
-    fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
+  }
   if (doAlnPS)
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
@@ -530,7 +530,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
   fprintf(aliout, "%d sequence; length of alignment %d\n",
           n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
-  
+
   for (k=0; pi[k].i>0; k++) {
     pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
     print_pi(pi[k], aliout);

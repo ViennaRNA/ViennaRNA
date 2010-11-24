@@ -8,7 +8,7 @@ extern paramT *scale_parameters(void);
 extern paramT *copy_parameters(void);
 extern paramT *set_parameters(paramT *dest);
 
- 
+
 pf_paramT *scale_pf_parameters(void);
 /**
 *** get a datastructure of type \ref pf_paramT which contains
@@ -22,5 +22,5 @@ pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
 
 extern pf_paramT *copy_pf_param(void);
 extern pf_paramT *set_pf_param(paramT *dest);
- 
+
 #endif

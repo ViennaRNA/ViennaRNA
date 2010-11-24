@@ -1,6 +1,6 @@
 #ifndef __VIENNA_RNA_PACKAGE_OLD_EPARS__
 #define __VIENNA_RNA_PACKAGE_OLD_EPARS__
-/* 
+/*
     Free energy parameters used in ViennaRNAPackage 1.8.4 are summarized in:
 
     D.H.Mathews, J. Sabina, M. ZUker, D.H. Turner
@@ -9,11 +9,11 @@
     JMB, 288, pp 911-940, 1999
 
     Enthalpies taken from:
-    
+
     A. Walter, D Turner, J Kim, M Lyttle, P M"uller, D Mathews, M Zuker
     "Coaxial stckaing of helices enhances binding of oligoribonucleotides.."
     PNAS, 91, pp 9218-9222, 1994
-    
+
     D.H. Turner, N. Sugimoto, and S.M. Freier.
     "RNA Structure Prediction",
     Ann. Rev. Biophys. Biophys. Chem. 17, 167-192, 1988.
@@ -21,7 +21,7 @@
     John A.Jaeger, Douglas H.Turner, and Michael Zuker.
     "Improved predictions of secondary structures for RNA",
     PNAS, 86, 7706-7710, October 1989.
-    
+
     L. He, R. Kierzek, J. SantaLucia, A.E. Walter, D.H. Turner
     "Nearest-Neughbor Parameters for GU Mismatches...."
     Biochemistry 1991, 30 11124-11132
@@ -56,9 +56,9 @@ PRIVATE int stack37_184[NBPAIRS+1][NBPAIRS+1] =
 
 /* enthalpies (0.01*kcal/mol at 37 C) for stacked pairs */
 /* different from mfold-2.3, which uses values from mfold-2.2 */
-PRIVATE int enthalpies_184[NBPAIRS+1][NBPAIRS+1] = 
+PRIVATE int enthalpies_184[NBPAIRS+1][NBPAIRS+1] =
 /*          CG     GC     GU     UG     AU     UA  */
-{ {  INF,   INF,   INF,   INF,   INF,   INF,   INF, INF}, 
+{ {  INF,   INF,   INF,   INF,   INF,   INF,   INF, INF},
   {  INF, -1060, -1340, -1210,  -560, -1050, -1040, NST},
   {  INF, -1340, -1490, -1260,  -830, -1140, -1240, NST},
   {  INF, -1210, -1260, -1460, -1350,  -880, -1280, NST},
@@ -98,7 +98,7 @@ PRIVATE int internal_loop37_184[31] = {
   INF, INF, 410, 510, 170, 180, 200, 220, 230, 240, 250,
        260, 270, 278, 286, 294, 301, 307, 313, 319, 325,
        330, 335, 340, 345, 349, 353, 357, 361, 365, 369};
-  
+
 /* terminal mismatches */
 /* mismatch free energies for interior loops at 37C */
 PRIVATE int mismatchI37_184[NBPAIRS+1][5][5] =

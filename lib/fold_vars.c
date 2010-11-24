@@ -48,7 +48,7 @@ char * option_string(void) {
   if (noLonelyPairs) strcat(options, "-noLP ");
   if (fold_constrained) strcat(options, "-C ");
   if (dangles!=1) sprintf(options+strlen(options), "-d%d ", dangles);
-  if (temperature!=37.0) 
+  if (temperature!=37.0)
     sprintf(options+strlen(options), "-T %f ", temperature);
   return options;
 }

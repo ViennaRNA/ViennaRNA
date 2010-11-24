@@ -1,5 +1,5 @@
 /* Last changed Time-stamp: <2003-04-23 11:56:44 ivo> */
-/*                
+/*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
   nrerror("\'z\' option is available only if compiled with SVM support!");
 #endif
   }
-  
+
   /* check for errorneous parameter options */
   if(maxdist < 0){
     RNALfold_cmdline_parser_print_help();
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]){
   */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
-   
+
   if (ns_bases != NULL) {
     nonstandards = space(33);
     c=ns_bases;
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]){
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-        
+
   /*
   #############################################
   # main loop: continue until end of file

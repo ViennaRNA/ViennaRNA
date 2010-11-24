@@ -41,12 +41,12 @@ PUBLIC int    unpaired, pairs;        /* n of unpaired digits and pairs */
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE char *aux_struct(const char* structure ) 
-{  
+PRIVATE char *aux_struct(const char* structure )
+{
    short        *match_paren;
    int          i, o, p;
    char        *string;
-   
+
    string = (char *) space(sizeof(char)*(strlen(structure)+1));
    match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
    strcpy(string, structure);
@@ -81,7 +81,7 @@ PRIVATE char *aux_struct(const char* structure )
 
 PUBLIC char *b2HIT(const char *structure)
 {
-   
+
    int            i, u, p, l;
    char          *string, *temp, *HIT, tt[10];
 
@@ -134,7 +134,7 @@ PUBLIC char *b2HIT(const char *structure)
    }
    strcat(temp+l, "R)");
 
-   free( string ); 
+   free( string );
 
    HIT = (char *) space(sizeof(char)*(strlen(temp)+2));
    strcpy(HIT, temp);
@@ -147,21 +147,21 @@ PUBLIC char *b2HIT(const char *structure)
 PUBLIC char *b2C(const char *structure )
 {
    short *bulge, *loop;
-     
+
    int    i, lp, p, l;
    char  *string, *Coarse, *temp;
 
    bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    temp = (char *) space(4*strlen(structure)+2);
-   
+
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
    }
    loop_degree[0]=0;         /* open structure has degree 0 */
    pairs = unpaired = loops = lp = 0;
    loop[0]=0;
-    
+
    string = aux_struct( structure );
 
    i=p=l=0;
@@ -206,7 +206,7 @@ PUBLIC char *b2C(const char *structure )
    temp[l++] = 'R';
    temp[l++] = ')';
    temp[l]='\0';
-   free(string); 
+   free(string);
    Coarse = (char *) space(sizeof(char)*(strlen(temp)+2));
    strcpy(Coarse, temp);
    free(temp);
@@ -220,14 +220,14 @@ PUBLIC char *b2Shapiro(const char *structure )
 {
 
    short *bulge, *loop;
-     
+
    int            i, lp, p, l, k;
    char          *string, *Shapiro, *temp, tt[10];
 
    bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
    temp = (char *) space(4*strlen(structure)+3);
-   
+
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
    }
@@ -287,7 +287,7 @@ PUBLIC char *b2Shapiro(const char *structure )
    }
 
    *tt = '\0';
-   if (loop_size[0]) sprintf(tt, "E%d)" , loop_size[0]); 
+   if (loop_size[0]) sprintf(tt, "E%d)" , loop_size[0]);
    strcat(tt,"R)");
    temp[l]='\0';
    strcat(temp, tt);
@@ -312,7 +312,7 @@ PUBLIC void parse_structure(const char *structure)
 /*-----------------------------------------------------------------------------
 
     upon return from parse_structure():
-    
+
     loops    ....................... number of loops or stacks in structure.
     loop_size[1 <= i <= loops] ..... size of i-th loop.
     loop_size[0] ................... number of external digits.
@@ -321,12 +321,12 @@ PUBLIC void parse_structure(const char *structure)
     helix_size[1 <= i <= loops] .... size of i-th stack.
     unpaired ....................... n of unpaired digits.
     pairs .......................... n of base pairs.
-    
+
 -----------------------------------------------------------------------------*/
 
 {
    short  *bulge, *loop;
-     
+
    int            i, lp, p;
    char          *string, *temp;
 
@@ -340,7 +340,7 @@ PUBLIC void parse_structure(const char *structure)
    loop[0] = loop_degree[0]=0;         /* open structure has degree 0 */
    pairs = unpaired = loops = lp = 0;
    *temp='\0';
-    
+
    string = aux_struct(structure);
 
    i=p=0;
@@ -387,7 +387,7 @@ PUBLIC char *add_root(const char *structure)
     strcat(xS,"R)");
     return xS;
 }
-    
+
 
 /*---------------------------------------------------------------------------*/
 
@@ -405,14 +405,14 @@ PUBLIC char *expand_Shapiro(const char *structure)
       temp[l++] = structure[i];
       if      (structure[i] == '(') temp[l++] = '(';
       else if (structure[i] == ')') {
-	 temp[l++] = 'S'; 
-	 temp[l++] = ')'; 
+	 temp[l++] = 'S';
+	 temp[l++] = ')';
       }
       i++;
    }
    temp[l++] = ')';
    temp[l] = '\0';
-   
+
    xS = (char *) space(sizeof(char)*(strlen(temp)+1));
    strcpy(xS, temp);
    free(temp);
@@ -433,13 +433,13 @@ PUBLIC char *expand_Full(const char *structure)
     while (structure[i]) {
         if      (structure[i] == '(') temp[l++] = '(';
         else if (structure[i] == ')') {
-            temp[l++] = 'P'; 
-	    temp[l++] = ')'; 
+            temp[l++] = 'P';
+	    temp[l++] = ')';
         }
         else {
-            temp[l++] = '('; 
-            temp[l++] = 'U'; 
-            temp[l++] = ')'; 
+            temp[l++] = '(';
+            temp[l++] = 'U';
+            temp[l++] = ')';
         }
         i++;
      }
@@ -463,7 +463,7 @@ PUBLIC char *unexpand_Full(const char *structure)
 
    temp = (char *) space(4*strlen(structure)+2);
    match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
-   
+
    i = strlen(structure)-1;
    l = o = 0; k=9;
    id[9]='\0';
@@ -527,7 +527,7 @@ PUBLIC char *unweight(const char *structure)
    free(temp);
    return full;
 }
-   
+
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void unexpand_aligned_F(char *align[2])
@@ -537,7 +537,7 @@ PUBLIC void unexpand_aligned_F(char *align[2])
 
    t0 = (char *) space(strlen(align[0])+1);
    t1 = (char *) space(strlen(align[0])+1);
-   
+
    for (i=0, l=0; i<strlen(align[0]); i++) {
       switch (align[0][i]) {
        case '(':

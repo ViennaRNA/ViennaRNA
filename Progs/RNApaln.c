@@ -27,7 +27,7 @@
 static char rcsid[] = "$Id: RNApaln.c,v 1.3 2005/07/24 08:35:15 ivo Exp $";
 
 static  double gapo=1.5, gape=0.666, seqw=0.5;
-static  int endgaps=0;  
+static  int endgaps=0;
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void print_aligned_lines(FILE *somewhere);
@@ -39,7 +39,7 @@ PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
 static int noconv = 0;
 
 int main(int argc, char *argv[])
-     
+
 {
   float     *T[MAXSEQ];
   char      *seq[MAXSEQ];
@@ -53,9 +53,9 @@ int main(int argc, char *argv[])
 
 
   command_line(argc, argv);
-   
-  if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack)) 
-    strcpy(outfile,"backtrack.file"); 
+
+  if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack))
+    strcpy(outfile,"backtrack.file");
   if (outfile[0]!='\0') somewhere = fopen(outfile,"w");
   if (somewhere==NULL) somewhere = stdout;
   istty   = (isatty(fileno(stdout))&&isatty(fileno(stdin)));
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     } while(type==0);
 
     if( (task == 'm')&&(type>800) ) {
-      if (taxa_list) 
+      if (taxa_list)
         printf("* END of taxa list\n");
       printf("> p %d (pdist)\n",n);
       for (i=1; i<n; i++) {
@@ -115,17 +115,17 @@ int main(int argc, char *argv[])
         printf("%s\n", list_title);
         free(list_title);
       }
-    }      
-      
+    }
+
     if(type>800) {
-      for (i=0; i<n; i++) 
+      for (i=0; i<n; i++)
         free_profile(T[i]);
       if (type == 888) continue;
       if (outfile[0]!='\0') (void) fclose(somewhere);
       if (line!= NULL) free(line);
       return 0; /* finito */
     }
-      
+
     length = (int) strlen(line);
     for (i=0; i<length; i++) {
       line[i]=toupper(line[i]);
@@ -149,10 +149,10 @@ int main(int argc, char *argv[])
 
     if (*fname=='\0')
       sprintf(fname, "%d_dp.ps", n+1);
-    
+
     /* PS_dot_plot(line, fname); <- NOT THREADSAFE and obsolete function! */
 
-    /* call threadsafe dot plot printing function */    
+    /* call threadsafe dot plot printing function */
     PS_dot_plot_list(line, fname, pr_pl, mfe_pl, "");
 
     T[n] = Make_bp_profile_bppm(pr, length);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     free(pr_pl);
     free_arrays();
     free_pf_arrays();
-      
+
     n++;
     switch (task) {
     case 'p' :
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
       }
       break;
     case 'f' :
-      if (n>1) { 
+      if (n>1) {
         dist = profile_aln(T[1], seq[1], T[0], seq[0]);
         printf("%g\n",dist);
         print_aligned_lines(somewhere);
@@ -193,13 +193,13 @@ int main(int argc, char *argv[])
         print_aligned_lines(somewhere);
         free_profile(T[0]); free(seq[0]);
         T[0] = T[1]; seq[0] = seq[1];
-        n=1; 
+        n=1;
       }
       break;
-          
-    case 'm' : 
+
+    case 'm' :
       break;
-          
+
     default :
       nrerror("This can't happen.");
     }    /* END switch task */

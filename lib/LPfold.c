@@ -27,7 +27,7 @@
 #include "Lfold.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 
@@ -85,13 +85,13 @@ PRIVATE int         pUoutput;
 */
 
 PRIVATE void  init_partfunc_L(int length);
-PRIVATE void  get_arrays_L(unsigned int length);                        
+PRIVATE void  get_arrays_L(unsigned int length);
 PRIVATE void  free_pf_arrays_L(void);
-PRIVATE void  scale_pf_params(unsigned int length);                   
-PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);   
-PRIVATE void  FreeOldArrays(int i);                                   
-PRIVATE void  GetNewArrays(int j, int winSize);                       
-PRIVATE void  printpbar(FLT_OR_DBL **prb,int winSize, int i, int n);  
+PRIVATE void  scale_pf_params(unsigned int length);
+PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);
+PRIVATE void  FreeOldArrays(int i);
+PRIVATE void  GetNewArrays(int j, int winSize);
+PRIVATE void  printpbar(FLT_OR_DBL **prb,int winSize, int i, int n);
 PRIVATE plist *get_deppp(struct plist *pl, int start, int pairsize, int length);
 PRIVATE plist *get_plistW(struct plist *pl, int length, int start, FLT_OR_DBL **Tpr, int winSize);
 PRIVATE void  print_plist(int length, int start, FLT_OR_DBL **Tpr, int winSize, FILE *fp);
@@ -244,7 +244,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
     return pl;
   }
   dpp = *dpp2;
-  if(dpp !=NULL)  do_dpp=1; 
+  if(dpp !=NULL)  do_dpp=1;
 
   n = (int) strlen(sequence);
   if (n<TURN+2) return 0;
@@ -350,14 +350,14 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
         if (ulength>0) qm2[i][j]=temp;/*new qm2 computation done here*/
         for (k=i+1; k<=j; k++) temp += expMLbase[k-i] * qqm[k];
         qm[i][j] = (temp + qqm[i]);
-        
+
         /*auxiliary matrix qq for cubic order q calculation below */
         qbt1 = qb[i][j];
         if (type) {
           qbt1 *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j < n) ? S1[j+1] : -1, pf_params);
         }
         qq[i] = qq1[i]*scale[1] + qbt1;
-        
+
         /*construction of partition function for segment i,j */
         temp = 1.0*scale[1+j-i] + qq[i];
         for (k=i; k<=j-1; k++) temp += q[i][k]*qq[k+1];
@@ -382,16 +382,20 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
     /* just as a general service, I save here the free energy of the windows
        no output is generated, however,...
     */
-    if ((j>winSize) && (j<=n) && (ulength) && !(pUoutput)) {
+    if ((j>=winSize) && (j<=n) && (ulength) && !(pUoutput)) {
       double Fwindow=0.;
       Fwindow=(-log(q[j-winSize+1][j])-winSize*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
 
       pU[j][0]=Fwindow;
+      /*
+      if (ulength>=winSize)
+        pU[j][winSize]=scale[winSize]/q[j-winSize+1][j];
+      */
     }
     if (j>winSize) {
       Qmax=0;
-      /*i=j-winSize;*/
-      /*initialize multiloopfs*/
+      /* i=j-winSize; */
+      /* initialize multiloopfs */
       for (k=j-winSize; k<=MIN2(n,j); k++) {
         prml[k]=0;
         prm_l[k]=0;
@@ -401,17 +405,17 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
       k=j-winSize;
       for (l=k+TURN+1; l<=MIN2(n,k+winSize-1); l++) {
         int a;
-        pR[k][l] = 0; /*set zero at start*/
+        pR[k][l] = 0; /* set zero at start */
         type=ptype[k][l];
         if (qb[k][l]==0) continue;
-        
+
         for (a=MAX2(1,l-winSize+2); a<MIN2(k,n-winSize+2);a++)
           pR[k][l]+=q[a][k-1]*q[l+1][a+winSize-1]/q[a][a+winSize-1];
-        
+
         if (l-k+1==winSize)
           pR[k][l]+=1./q[k][l];
         else {
-          if (k+winSize-1<=n)          /*k outermost*/
+          if (k+winSize-1<=n)          /* k outermost */
             pR[k][l]+=q[l+1][k+winSize-1]/q[k][k+winSize-1];
           if (l-winSize+1>=1)  /*l outermost*/
             pR[k][l]+=q[l-winSize+1][k-1]/q[l-winSize+1][l];
@@ -429,12 +433,12 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
                                                  S1[i+1], S1[m-1], S1[k-1], S1[l+1], pf_params) * scale[k-i+m-l];
           }
         }
-        if (ulength) { /*NOT IF WITHIN INNER LOOP*/
+        if (ulength) { /* NOT IF WITHIN INNER LOOP */
           for (i=MAX2(MAX2(l-winSize+1,k-MAXLOOP-1),1); i<=k-1; i++) {
             for (m=l+1; m<=MIN2(MIN2(l+ MAXLOOP -k+i+2,i+winSize-1),n); m++) {
               type = ptype[i][m];
               if ((pR[i][m]>0)){
-                temp=pR[i][m]*qb[k][l]*exp_E_IntLoop(k-i-1, m-l-1, type, type_2,                                     
+                temp=pR[i][m]*qb[k][l]*exp_E_IntLoop(k-i-1, m-l-1, type, type_2,
                                                      S1[i+1], S1[m-1], S1[k-1], S1[l+1], pf_params) * scale[k-i+m-l];
                 QI5[l][m-l-1]+=temp;
                 QI5[i][k-i-1]+=temp;
@@ -446,7 +450,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
       /* 3. bonding k,l as substem of multi-loop enclosed by i,m */
       prm_MLb = 0.;
       if(k>1) /*sonst nix!*/
-        for (l=MIN2(n-1,k+winSize-2); l>=k+TURN+1; l--) { /*opposite direction*/
+        for (l=MIN2(n-1,k+winSize-2); l>=k+TURN+1; l--) { /* opposite direction */
           m=l+1;
           prmt = prmt1 = 0.0;
           tt = ptype[k-1][m]; tt=rtype[tt];
@@ -462,13 +466,8 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
 
           prm_MLb = prm_MLb*expMLbase[1] + prml[m];
           /* same as:    prm_MLb = 0;
-             for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; 
-             NAAAA, des kann ned sei!
-             weil mia kommen ja von oben, muss also maximal:
-             for (i=n; i>k; i--)  prm_MLb += prml[i]*expMLbase[k-i-1]; 
-             sein
+             for (i=n; i>k; i--)  prm_MLb += prml[i]*expMLbase[k-i-1];
           */
-          /*wenn ma das da macht, das mit dem q2l*/
           prml[m] = prml[ m] + prm_l[m];
 
           if (qb[k][l] == 0.) continue;
@@ -477,14 +476,14 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
 
           if (ulength) {
             double dang;
-            /*coefficient for computations of unpairedarrays*/
+            /* coefficient for computations of unpairedarrays */
             dang  =   qb[k][l] * exp_E_MLstem(tt, S1[k-1], S1[l+1], pf_params) * scale[2];
             for (m=MIN2(k+winSize-2,n);m>=l+2; m--){
               qmb[l][m-l-1] +=  prml[m]*dang;
               q2l[l][m-l-1] +=  (prml[m]-prm_l[m])*dang;
             }
           }
-          
+
           for (m=MIN2(k+winSize-2,n);m>=l+2; m--)
             temp += prml[m]*qm[l+1][m-1];
 
@@ -507,16 +506,14 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
 
       /* end for (l=..)   */
       if ((ulength)&&(k-MAXLOOP-1>0)){
-        /*        if (pUoutput) pU[k-MAXLOOP-1]=(double *)space((ulength+2)*sizeof(double));*/
+        /* if (pUoutput) pU[k-MAXLOOP-1]=(double *)space((ulength+2)*sizeof(double)); */
         compute_pU(k-MAXLOOP-1,ulength,pU, winSize, n, sequence);
-        
-        /*here, we put out and free pUs not in use any more (hopefully)*/
-        if (pUoutput) {
-          putoutpU(pU,k-MAXLOOP-1, ulength, pUfp);
-        }
 
+        /* here, we put out and free pUs not in use any more (hopefully) */
+        if (pUoutput)
+          putoutpU(pU,k-MAXLOOP-1, ulength, pUfp);
       }
-   
+
       if (j-(2*winSize+MAXLOOP+1)>0) {
         printpbar(pR,winSize,j-(2*winSize+MAXLOOP+1),n);
         if (simply_putout) {
@@ -529,20 +526,17 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
         FreeOldArrays(j-(2*winSize+MAXLOOP+1));
       }
     }   /* end if (do_backtrack)*/
-    
-  }/*end for j */
-  
-  /*finish output and free*/
+
+  }/* end for j */
+
+  /* finish output and free */
   for (j=MAX2(1,n-MAXLOOP); j<=n;j++) {
-    /*   if (pUoutput) pU[j]=(double *)space((ulength+2)*sizeof(double));*/
+    /* if (pUoutput) pU[j]=(double *)space((ulength+2)*sizeof(double)); */
     if (ulength) compute_pU(j,ulength,pU, winSize, n, sequence);
     /*here, we put out and free pUs not in use any more (hopefully)*/
-    if (pUoutput){
-      putoutpU(pU,j, ulength, pUfp);
-    }
-
+    if (pUoutput) putoutpU(pU,j, ulength, pUfp);
   }
-  for (j=MAX2(n-winSize-MAXLOOP,1); j<=n; j++) { 
+  for (j=MAX2(n-winSize-MAXLOOP,1); j<=n; j++) {
     printpbar(pR,winSize,j,n);
     if (simply_putout) {
       print_plist(n, j, pR, winSize, spup);
@@ -632,7 +626,7 @@ PRIVATE void GetNewArrays(int j, int winSize) {
   qm[j]-=j;
   if (ulength!=0) {
     qm2[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
-    qm2[j]-=j; 
+    qm2[j]-=j;
     QI5[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
     qmb[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
     q2l[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
@@ -657,7 +651,7 @@ PRIVATE void GetPtype(int i, int winSize,const short *S,int n) {
 
 PRIVATE plist *get_plistW(plist *pl, int length,
                                  int start, FLT_OR_DBL **Tpr, int winSize) {
-  /*get pair probibilities out of pr array*/
+  /* get pair probibilities out of pr array */
   int  j,  max_p;
   max_p=1000;
   while (max_p<num_p)
@@ -678,19 +672,19 @@ PRIVATE plist *get_plistW(plist *pl, int length,
   pl[num_p].i=0;
   pl[num_p].j=0;
   pl[num_p].p=0.;
-  /*  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));*/
+  /* pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist)); */
   return pl;
 }
 
 
 PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
-  /*compute dependent pair probabilities*/
+  /* compute dependent pair probabilities */
   int i, j, count=0;
   double tmp;
   plist *temp;
-  temp=(plist *)space(pairsize*sizeof(plist)); /*holds temporary deppp*/
+  temp=(plist *)space(pairsize*sizeof(plist)); /* holds temporary deppp */
   for (j=start+TURN; j<MIN2(start+pairsize,length); j++) {
-    
+
     if ((qb[start][j]*qb[start-1][(j+1)])>10e-200) {
       int type=ptype[start-1][j+1];
       int type_2=rtype[ptype[start][j]];
@@ -701,9 +695,9 @@ PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
       temp[count++].p=tmp;
     }
   }
-  /*write it to list of deppps*/
+  /* write it to list of deppps */
   for (i=0; pl[i].i!=0; i++);
-  pl=(plist *)xrealloc(pl,(i+count+1)*sizeof(plist)); 
+  pl=(plist *)xrealloc(pl,(i+count+1)*sizeof(plist));
   for (j=0; j<count; j++) {
     pl[i+j].i=temp[j].i;
     pl[i+j].j=temp[j].j;
@@ -718,7 +712,7 @@ PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
 
 
 PRIVATE void print_plist(int length,int start, FLT_OR_DBL **Tpr, int winSize, FILE *fp) {
-  /*print out of pr array, do not save*/
+  /* print out of pr array, do not save */
   int  j;
 
 
@@ -743,11 +737,11 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   double temp;
   double *QBE;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
- 
+
   QBE=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
- 
-  /*first, we will*/ 
- /*for k<=ulength, pU[k][k]=0, because no bp can enclose it*/
+
+  /* first, we will */
+  /* for k<=ulength, pU[k][k]=0, because no bp can enclose it */
   if (pUoutput&&k+ulength<=n)  pU[k+ulength]=(double *)space((ulength+2)*sizeof(double));
   /*compute pu[k+ulength][ulength] */
    for (i5=MAX2(k+ulength-winSize+1,1);i5<=k;i5++) {
@@ -755,18 +749,18 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       /*  if (k>400) {
         printf("i%d j%d  ",i5,j3);
         fflush(stdout);
-        }*/
+        } */
       if (ptype[i5][j3]!=0) {/**/
-        /*(.. >-----|..........)
+        /* (.. >-----|..........)
           i5  j     j+ulength  j3              */
         /*Multiloops*/
-        temp = (i5<k) ? qm2[i5+1][k] * expMLbase[j3-k-1] : 0.; /*(..{}{}-----|......)*/
+        temp = (i5<k) ? qm2[i5+1][k] * expMLbase[j3-k-1] : 0.; /* (..{}{}-----|......) */
 
         if(j3-1>k+ulength)
-          temp  +=  qm2[k+ulength+1][j3-1] * expMLbase[k+ulength-i5]; /*(..|-----|{}{})*/
+          temp  +=  qm2[k+ulength+1][j3-1] * expMLbase[k+ulength-i5]; /* (..|-----|{}{}) */
 
         if((i5<k)&&(j3-1>k+ulength))
-          temp  +=  qm[i5+1][k] * qm[k+ulength+1][j3-1] * expMLbase[ulength]; /*({}|-----|{})*/
+          temp  +=  qm[i5+1][k] * qm[k+ulength+1][j3-1] * expMLbase[ulength]; /* ({}|-----|{}) */
 
         /* add dangles, multloopclosing etc. */
         temp  *=  exp_E_MLstem(rtype[ptype[i5][j3]], S1[j3-1], S1[i5+1], pf_params) * scale[2] * expMLclosing;
@@ -776,19 +770,19 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
         temp *= pR[i5][j3];
         pU[k+ulength][ulength] += temp;
 
-      }            
-    }          
+      }
+    }
    }
-   /*code doubling to avoid if within loop*/
-#if 0  
-  /*initialization for interior loops, 
+   /* code doubling to avoid if within loop */
+#if 0
+  /*initialization for interior loops,
     it is not recomended to have verysmall ulengths!!*/
   if (ulength<MAXLOOP) {
     int k5;
     int l3;
     int outype;
-    /*kl bp is 5'*/
-    /*MAXLOOP>((l5-k5-1)+(j3-l3-1)
+    /* kl bp is 5' */
+    /* MAXLOOP>((l5-k5-1)+(j3-l3-1)
       k-winSize+ulength<i5<k-TURN-1;
       k+ulength<j3<=k+MAXLOOP+1
       if i then use l3, it is easier by far:
@@ -797,14 +791,14 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       k5+TURN<l3<=k
     */
     for (i5=MAX2(k+ulength-winSize,1);i5<k-TURN-1;i5++) {
-                        
+
       for (j3=k+ulength+1; j3<=MIN2(n,MIN2(i5+winSize-1,k+MAXLOOP+1)); j3++) {
         double temp=0;
-        if (outype=ptype[i5][j3]>0) /*oder so halt*/
+        if (outype=ptype[i5][j3]>0) /* oder so halt */
           for (l3=MAX2(i5+TURN+1,j3-MAXLOOP-1); l3<=k; l3++){
             for (k5=i5+1; k5<=MIN2(l3-TURN-1,MAXLOOP+i5+l3+2-j3); k5++){
               if (ptype[k5][l3]) {
-                temp+= qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);  
+                temp+= qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);
               }
             }
           }
@@ -812,7 +806,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
         pU[k+ulength][ulength]+= temp;
       }
     }
-    /*kl bp is 3'*/ 
+    /* kl bp is 3' */
     /*
       k+ulength-MAXLOOP<=i5<=k
       k+ulength+1+TURN<j3<i5+winSize
@@ -822,11 +816,11 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
     for (i5=MAX2(1,MAX2(k+ulength-winSize,k+ulength-MAXLOOP));i5<=k; i5++){
       for (j3=k+ulength+TURN+2; j3<MIN2(n+1,i5+winSize); j3++) {
         double temp = 0;
-        if (outype=ptype[i5][j3]>0) /*oder so halt*/
+        if (outype=ptype[i5][j3]>0) /* oder so halt */
           for (k5=k+ulength+1; k5<MIN2(j3-TURN-1,i5+MAXLOOP+2); k5++) {
             for (l3=MAX2(k5+TURN+1,j3+k5-i5-2-MAXLOOP); l3<j3; l3++) {
-              if (ptype[k5][l3]) 
-                temp += qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);   
+              if (ptype[k5][l3])
+                temp += qb[k5][l3]*expLoopEnergy(k5-i5-1, j3-l3-1, outype, rtype[ptype[k5][l3]], S1[i5+1], S1[j3-1], S1[k5-1], S1[l3+1]);
             }
           }
         temp*=pR[i5][j3];
@@ -834,23 +828,23 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
       }
     }
   }
-  /*Add up Is QI5[l][m-l-1] QI3*/
-  /*Add up Interior loop terms*/
+  /* Add up Is QI5[l][m-l-1] QI3 */
+  /* Add up Interior loop terms */
   temp=0.;
 
   for (len=winSize; len>=ulength; len--) temp+=QI3[k][len];
   for (;len>0; len--) {
-    temp+=QI3[k][len];
-    QBE[len]+=temp; 
+    temp += QI3[k][len];
+    QBE[len] += temp;
   }
 #endif
   temp=0.;
-  for (len=winSize; len>MAX2(ulength,MAXLOOP); len--) temp+=QI5[k][len];
-  for (;len>0; len--) { /*grenzen?*/
-    temp+=QI5[k][len];
-    QBE[len]+=temp;  /*replace QBE with QI*/
+  for (len=winSize; len>=MAX2(ulength,MAXLOOP); len--) temp+=QI5[k][len];
+  for (;len>0; len--) {
+    temp += QI5[k][len];
+    QBE[len] += temp;  /* replace QBE with QI */
   }
-  /*Add Hairpinenergy to QBE*/
+  /* Add Hairpinenergy to QBE */
   temp=0.;
   for(obp = MIN2(n, k + winSize - 1); obp > k + ulength; obp--)
     if(ptype[k][obp])
@@ -858,11 +852,11 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   for(obp = MIN2(n, MIN2(k + winSize - 1, k + ulength)); obp > k + 1; obp--){
     if (ptype[k][obp])
       temp += pR[k][obp] * exp_E_Hairpin(obp-k-1, ptype[k][obp], S1[k+1], S1[obp-1], sequence+k-1, pf_params) * scale[obp-k+1];
-    QBE[obp-k-1] += temp;  /*add hairpins to QBE (all in one array)*/
+    QBE[obp-k-1] += temp;  /* add hairpins to QBE (all in one array) */
   }
-  /*doubling the code to get the if out of the loop*/
+  /* doubling the code to get the if out of the loop */
 
-  /*Add up Multiloopterms  qmb[l][m]+=prml[m]*dang;
+  /* Add up Multiloopterms  qmb[l][m]+=prml[m]*dang;
     q2l[l][m]+=(prml[m]-prm_l[m])*dang; */
 
   temp=0.;
@@ -870,54 +864,58 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
     temp += q2l[k][len] * expMLbase[len];
   for( ; len > 0; len--){
     temp += q2l[k][len] * expMLbase[len];
-    QBE[len] += temp; /*add (()()____) type cont. to I3*/
+    QBE[len] += temp; /* add (()()____) type cont. to I3 */
   }
   for(len = 1; len < ulength; len++){
     for(obp = k + len + TURN; obp <= MIN2(n, k + winSize - 1); obp++){
-      /*add (()___())*/
+      /* add (()___()) */
       QBE[len] += qmb[k][obp-k-1] * qm[k+len+1/*2*/][obp-1] * expMLbase[len];
     }
   }
   for (len=1; len<ulength; len++) {
     for (obp=k+len+TURN+TURN; obp<=MIN2(n,k+winSize-1); obp++) {
       if (ptype[k][obp]) {
-        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /*k:obp*/
-        QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /*add (___()())*/
+        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
+        QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
       }
     }
   }
-  /*After computing all these contributions in QBE[len], that k is paired 
-    and the unpaired stretch is AT LEAST len long, we start to add that to 
-    the old unpaired thingies;*/
-  for(len = 1; len <= MIN2(MAX2(ulength, MAXLOOP), n - k); len++){
+  /* After computing all these contributions in QBE[len], that k is paired
+    and the unpaired stretch is AT LEAST len long, we start to add that to
+    the old unpaired thingies; */
+  for(len = 1; len < MIN2(MAX2(ulength, MAXLOOP), n - k); len++){
     pU[k+len][len] += pU[k+len][len+1] + QBE[len];
   }
 
+  /* open chain */
+  if ((ulength>=winSize)&&(k>=ulength)) {
+    pU[k][winSize]=scale[winSize]/q[k-winSize+1][k];
+  }
   /*open chain*/
   if ((ulength>=winSize)&&(k>=ulength)) {
     pU[k][winSize]=scale[winSize]/q[k-winSize+1][k];
   }
-  /*now the not enclosed by any base pair terms for whatever it is we do not need anymore...
-    ... which should be e.g; k, again*/
+  /* now the not enclosed by any base pair terms for whatever it is we do not need anymore...
+    ... which should be e.g; k, again */
   for(startu = MIN2(ulength, k); startu > 0; startu--){
     temp=0.;
     for(i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++){
       temp += q[i5][k - startu] * q[k + 1][i5 + winSize - 1] * scale[startu]/q[i5][i5 + winSize - 1];
     }
-    /*the 2 Cases where the borders are on the edge of the interval*/
-    if((k >= winSize) &&(startu+1<=winSize)){
-      temp += q[k - winSize + 1][k - startu] * scale[startu]/q[k - winSize + 1][k];
-    }
-    if((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu+1<=winSize))
-      temp += q[k + 1][k - startu + winSize] * scale[startu]/q[k - startu + 1][k - startu + winSize];
-    /*Divide by number of possible windows*/
+    /* the 2 Cases where the borders are on the edge of the interval */
+    if((k >= winSize) && (startu + 1 <= winSize))
+      temp += q[k - winSize + 1][k - startu]*scale[startu]/q[k - winSize + 1][k];
+    if((k <= n - winSize+ startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize))
+      temp += q[k + 1][k - startu + winSize] * scale[startu] / q[k - startu + 1][k - startu + winSize];
+
+    /* Divide by number of possible windows */
     pU[k][startu] += temp;
     {
       int leftmost, rightmost;
-       
+
       leftmost      = MAX2(1, k - winSize + 1);
       rightmost     = MIN2(n - winSize + 1, k - startu + 1);
-      pU[k][startu] /= (rightmost - leftmost + 1); 
+      pU[k][startu] /= (rightmost - leftmost + 1);
     }
   }
   free(QBE);
@@ -948,21 +946,21 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
     fprintf(fp,"%d\t", i);
   }
   fprintf(fp,"\n");
-  
+
   for (k=1; k<=length; k++){
     fprintf(fp,"%d\t",k);
     for (i=1; i<=ulength; i++) {
       if (i>k) {
         fprintf(fp,"NA\t");
         continue;
-      } 
+      }
       if (energies) temp=-log(pU[k][i])*kT;
       else temp=pU[k][i];
       fprintf(fp,"%.7g\t",temp);
     }
     fprintf(fp,"\n");
     free(pU[k]);
-  } 
+  }
   fflush(fp);
 }
 

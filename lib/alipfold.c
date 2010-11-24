@@ -29,7 +29,7 @@
 #include "alifold.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 /*@unused@*/
@@ -414,7 +414,7 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
-  
+
   free(type);
 }
 
@@ -637,7 +637,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
         tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
         prmt1 *= exp_E_MLstem(tt, S5[s][l+1], S3[s][i], pf_params) * expMLclosing;
       }
-      
+
       for (j=l+2; j<=n; j++) {
         double pp=1;
         if (pr[ii-j]==0) continue;
@@ -713,7 +713,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   unsigned int i;
   double  kT, TT;
   pf_params = get_scaled_alipf_parameters(n_seq);
-  
+
   kT = pf_params->kT / n_seq;
   kT = (temperature+K0)*GASCONST;
   TT = (pf_params->temperature+K0)/(Tmeasure);
@@ -1009,7 +1009,7 @@ PUBLIC void alipf_circ(const char **sequences, char *structure){
 
   /* add additional pf of 1.0 to take open chain into account */
   qo = qho + qio + qmo + 1.0*scale[n];
-  
+
   free(type);
 }
 
@@ -1090,7 +1090,7 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
   double kTn = pf_params->kT/10.;
   double tempwert;
   int *type = (int *)space(sizeof(int) * n_seq);
-  
+
   do {
     double r, qbt1;
     int k, l, u, u1,s;

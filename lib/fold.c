@@ -28,7 +28,7 @@
 #include "data_structures.h"
 
 #ifdef _OPENMP
-#include <omp.h> 
+#include <omp.h>
 #endif
 
 /*@unused@*/
@@ -428,20 +428,20 @@ PRIVATE int fill_arrays(const char *string) {
 
 #ifdef SPECIAL_DANGLES
             /* normal dangles as ronny would think of them ;) */
-            case 5:   /* no dangles */ 
+            case 5:   /* no dangles */
                       decomp = INF;
                       if(DMLi1_o[j-1] != (DMLi2_o[j-1] + P->MLbase))
                         decomp = DMLi1_o[j-1] + E_MLstem(tt, -1, -1, P);
 
                       /* 3' dangle ? */
                       decomp = MIN2(decomp, DMLi2_o[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-                      
+
                       /* 5' dangle ? */
                       decomp = MIN2(decomp, DMLi1_a[j-1] + E_MLstem(tt, S1[j-1], -1, P));
 
                       /* mismatch */
                       decomp = MIN2(decomp, DMLi2_a[j-1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLbase);
-                      
+
                       break;
 #endif
             /* normal dangles, aka dangles = 1 || 3 */
@@ -496,8 +496,8 @@ PRIVATE int fill_arrays(const char *string) {
                     break;
         }
       }
-      
-       
+
+
       if (uniq_ML){
         fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, new_fML);
       }
@@ -814,7 +814,7 @@ PRIVATE void backtrack(const char *string, int s) {
                       }
                   }
                   break;
-                  
+
         case 2:   mm3 = (j<length) ? S1[j+1] : -1;
                   for(k=j-TURN-1,traced=0; k>=1; k--){
                     type = ptype[indx[j]+k];
@@ -825,7 +825,7 @@ PRIVATE void backtrack(const char *string, int s) {
                       }
                   }
                   break;
-                  
+
 #ifdef SPECIAL_DANGLES
         case 5:   for(k=j-TURN-1,traced=0; k>1; k--){
                     type = ptype[indx[j]+k];
@@ -1113,14 +1113,14 @@ PRIVATE void backtrack(const char *string, int s) {
                     break;
                 }
                 break;
-                
+
       case 2:   en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing - bonus;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                     if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
                       break;
                 }
                 break;
-                
+
 #ifdef SPECIAL_DANGLES
       case 5:   for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing - bonus;
@@ -1668,14 +1668,14 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                   E3_occupied = tmp;
                 }
                 break;
-                
+
     } /* end switch dangles */
     /* seek to the next stem */
     p = q + 1;
     q_prev = q;
     while (p <= length && !pair_table[p]) p++;
   }
-  
+
   if(dangles%2 == 1)
     energy = MIN2(E3_occupied, E3_available);
 
@@ -1986,7 +1986,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, -1, mm3, P));
               energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, mm5, -1, P));
               energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, -1, -1, P));
-              break;  
+              break;
   }/* end switch dangles */
 
   energy += P->MLclosing;
@@ -2134,10 +2134,10 @@ PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
 
 PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
   int energy;
-  
+
   energy = (size <= 30) ? P->hairpin[size] :
     P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-   
+
   if (tetra_loop){
     if (size == 4) { /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
@@ -2262,7 +2262,7 @@ PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
           P->mismatch23I[type_2][sq1][sp1];
         return energy;
       }
-      
+
     }
     { /* generic interior loop (no else here!)*/
       energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]):
@@ -2313,17 +2313,17 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
     i1  = i;
     p   = i+1;
     mm5_prev = mm3_prev = -1;
-    
+
     int E_mm5_available, E_mm5_occupied;
-    
+
     /* find out if we may have 5' mismatch for the next stem */
     while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
     /* get position of pairing partner */
     if(p < (int)pair_table[0]){
         E_mm5_occupied  = (p - i - 1 > 0) ? INF : 0;
-        E_mm5_available = (p - i - 1 > 0) ? 0 : INF;  
+        E_mm5_available = (p - i - 1 > 0) ? 0 : INF;
     }
-    
+
     if(p < (int)pair_table[0])
       do{
         int tt;
@@ -2345,7 +2345,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
                     /* check for unpaired nucleotide 3' to the current stem */
                     int u3 = ((q < pair_table[0]) && (pair_table[q+1] == 0)) ? 1 : 0;
                     if(pair_table[p-1] != 0) mm5 = -1;
-                      
+
                     if(!u3){
                       mm3 = -1;
                       E_mm5_occupied  = MIN2(

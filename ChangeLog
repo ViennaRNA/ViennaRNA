@@ -1,3 +1,25 @@
+2010-11-24  Ronny Lorenz  <ronny@tbi.univie.ac.at>
+	* first full pre-release of version 2.0
+
+2009-11-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* Fix memory corruption in PS_color_aln()
+
+2009-09-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+	* Fix bug in RNAplfold when -u and -L parameters are equal
+	* Fix double call to free_arrays() in RNAfold.c
+	* Improve drawing of cofolded structures
+	
+
+2009-05-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+ * Fix occasional segfault in RNAalifold's print_aliout() 
+
+
+2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* Add -MEA options to RNAfold and RNAalifold
+	* change energy_of_alistruct to return float not void
+
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
 	* RNAfold will draw structures unless -noPS is used (no more

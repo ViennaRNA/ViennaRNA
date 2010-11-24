@@ -1,5 +1,10 @@
 See Changelog for details.
 
+Version 2.0
+------------
+- yeeeehaa, its almost done...
+
+
 Version 1.8
 ------------
 - new RNAalifold has better treatment of gaps and ribosum based covariance
@@ -9,6 +14,8 @@ Version 1.8
   (much faster than computing each individually)
 - ATTENTION: output formats of RNAplfold -u and or RNAup have been changed  
   Programs parsing RNAplfold and RNAup output will have to be modified.
+- RNAfold and RNAalifold compute centroid structures when run with -p
+  use the  -MEA  option to compute Maximum Expected Accuracy structures.
 
 Version 1.7
 ------------

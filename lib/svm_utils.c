@@ -70,10 +70,10 @@ PUBLIC double sd_regression(int N, int A, int C, int G, int T,  svm_model *sd_mo
   int length = A + C + G + T + N;
   double GC_content  = (double) (G + C)/length;
   double AT_ratio    = (double) A/(A+T);
-  double CG_ratio    = (double) C/(C+G); 
+  double CG_ratio    = (double) C/(C+G);
   double norm_length = (double) (length-50)/350.0;
   struct svm_node node_mono[5];
-  
+
   node_mono[0].index = 1; node_mono[0].value = GC_content;
   node_mono[1].index = 2; node_mono[1].value = AT_ratio;
   node_mono[2].index = 3; node_mono[2].value = CG_ratio;
@@ -83,19 +83,19 @@ PUBLIC double sd_regression(int N, int A, int C, int G, int T,  svm_model *sd_mo
   sd_free_energy = svm_predict(sd_model,node_mono);
 
   sd_free_energy = (double) sd_free_energy * sqrt(length);
-  
+
   return sd_free_energy;
 }
 
 PUBLIC double avg_regression(int N, int A, int C, int G, int T, struct svm_model *avg_model, int *info ){
   double average_free_energy = 0.0;
-  
+
   int length = A + C + G + T + N;
   double N_fraction = (double) N/length;
   double GC_content = (double) (G + C)/length;
   double AT_ratio   = (double) A/(A+T);
   double CG_ratio   = (double) C/(C+G);
-  
+
   double norm_length = (double) (length-50)/350.0;
 
   struct svm_node node_mono[5];
@@ -120,7 +120,7 @@ PUBLIC double avg_regression(int N, int A, int C, int G, int T, struct svm_model
     *info = 5;
     return 0.0;
   }
-  
+
   node_mono[0].index = 1; node_mono[0].value = GC_content;
   node_mono[1].index = 2; node_mono[1].value = AT_ratio;
   node_mono[2].index = 3; node_mono[2].value = CG_ratio;
@@ -130,7 +130,7 @@ PUBLIC double avg_regression(int N, int A, int C, int G, int T, struct svm_model
   average_free_energy = svm_predict(avg_model,node_mono);
 
   average_free_energy = (double) average_free_energy * length;
-  
+
   return average_free_energy;
 }
 
@@ -167,7 +167,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
   int dataStart, elements;
   int isColon;
   struct svm_node *x_space=NULL;
-  
+
   model = (struct svm_model*)space(sizeof(struct svm_model));
 
   model->rho = NULL;
@@ -184,12 +184,12 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
         fields=splitFields(lines[i]);
 
         key=fields[0];
-          
+
         if(strcmp(key,"svm_type")==0){
           value=fields[1];
           for(j=0;svm_type_table[j];j++){
                 if(strcmp(svm_type_table[j],value)==0){
-                  model->param.svm_type=j; 
+                  model->param.svm_type=j;
                   break;
                 }
           }
@@ -202,12 +202,12 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
                 return NULL;
           }
         } else
-          
+
         if(strcmp(key,"kernel_type")==0){
           value=fields[1];
           for(j=0;kernel_type_table[j];j++){
                 if(strcmp(kernel_type_table[j],value)==0){
-                  model->param.kernel_type=j; 
+                  model->param.kernel_type=j;
                   break;
                 }
           }
@@ -220,37 +220,37 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
                 return NULL;
           }
         } else
- 
+
         if (strcmp(key,"gamma")==0){
           value=fields[1];
           sscanf(value,"%lf",&model->param.gamma);
         }
-          
+
         if (strcmp(key,"degree")==0){
           value=fields[1];
           sscanf(value,"%d",&model->param.degree);
-        } else 
+        } else
 
         if (strcmp(key,"coef0")==0){
           value=fields[1];
           sscanf(value,"%lf",&model->param.coef0);
-        } else 
+        } else
         if (strcmp(key,"nr_class")==0){
           value=fields[1];
           sscanf(value,"%d",&model->nr_class);
-        } else 
+        } else
         if (strcmp(key,"total_sv")==0){
           value=fields[1];
           sscanf(value,"%d",&model->l);
         } else
 
         if (strcmp(key,"rho")==0){
-          int n = model->nr_class * (model->nr_class-1)/2; 
+          int n = model->nr_class * (model->nr_class-1)/2;
           model->rho = (double*)space(sizeof(double)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%lf",&model->rho[j]);
           }
-        } else 
+        } else
 
         if (strcmp(key,"nr_sv")==0){
           int n = model->nr_class;
@@ -266,7 +266,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%d",&model->label[j]);
           }
-        } else 
+        } else
 
         if (strcmp(key,"probA")==0){
           int n = model->nr_class * (model->nr_class-1)/2;
@@ -274,7 +274,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%lf",&model->probA[j]);
           }
-        } else 
+        } else
 
         if (strcmp(key,"probB")==0){
           int n = model->nr_class * (model->nr_class-1)/2;
@@ -312,14 +312,14 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
         model->sv_coef[i] = (double*)space(sizeof(double)*l);
   }
   model->SV = (struct svm_node**)space(sizeof(struct svm_node*)*l);
-        
+
   if(l>0){
     x_space = (struct svm_node*)space(sizeof(struct svm_node)*(elements));
   }
-        
+
 
   /* parse support vector data */
-  j=0; 
+  j=0;
   for(i=0;i<l;i++){
         fields=splitFields(lines[dataStart+i]);
         model->SV[i] = &x_space[j];
@@ -339,7 +339,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
   freeFields(lines);
 
   model->free_sv = 1;
-  
+
   return(model);
 }
 
@@ -359,11 +359,11 @@ PRIVATE char **splitFields(char* string){
 
   /* First find all characters which are whitespaces and store the
          positions in the array seps */
-    
+
   seps=(int *)space(sizeof(int));
   seps[0]=-1;
   nSep=1;
-  
+
   while ((c=string[i])!='\0' && (c!='\n')){
         if (isspace(c)){
           seps=(int*)xrealloc(seps,sizeof(int)*(nSep+1));
@@ -380,7 +380,7 @@ PRIVATE char **splitFields(char* string){
          end or start of string) and store the fields in the array
          "output"; if there are two adjacent whitespaces this is ignored
          resulting in a behaviour like "split /\s+/" in perl */
-  
+
   for (i=0;i<nSep;i++){
 
         int start=seps[i];
@@ -388,7 +388,7 @@ PRIVATE char **splitFields(char* string){
         int length=(stop-start);
         int notSpace,j;
 
-        
+
         currField=(char *)space(sizeof(char)*(length+1));
         strncpy(currField,string+start+1,length-1);
         currField[length]='\0';
@@ -419,13 +419,13 @@ PRIVATE char **splitFields(char* string){
         return NULL;
   }
 
-  
+
   output=(char**)xrealloc(output,sizeof(char**)*(nField+1));
   output[nField]=NULL;
-  
+
   free(seps);
   return output;
-  
+
 }
 
 PRIVATE char **splitLines(char* string){
@@ -458,7 +458,7 @@ PRIVATE char **splitLines(char* string){
 
   output=(char**)xrealloc(output,sizeof(char**)*(lineN+1));
   output[lineN]=NULL;
-  
+
   return output;
 
 }
