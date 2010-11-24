@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2010-06-30 17:42:12 wolfgang> */
 /*                
-	     Compute pseudoknotted structure of an RNA
-	     	     
-			   c Ivo L Hofacker
-			  Vienna RNA package
+             Compute pseudoknotted structure of an RNA
+                          
+                           c Ivo L Hofacker
+                          Vienna RNA package
 */
 
 #include <stdio.h>
@@ -12,38 +12,26 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include "fold.h"
 #include "fold_vars.h"
 #include "utils.h"
 #include "energy_const.h"
 #include "LPfold.h"
 #include "PKplex_cmdl.h"
 #include "PS_dot.h"
+#include "fold.h"
+#include "read_epars.h"
 #include "PKplex.h"
  
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
-#define MAX2(A, B)      ((A) > (B) ? (A) : (B))
-#define PRIVATE static
-
-/*@unused@*/
-static char rcsid[] = "$Id: rnaplex.c,v 1.10 2007/12/21 15:30:48 htafer Exp $";
-static char  scale[] = "....,....1....,....2....,....3....,....4"
-  "....,....5....,....6....,....7....,....8";
-
 int PlexHit_cmp (const void *c1, const void *c2);
 short *make_pk_pair_table(const char *structure);
 
-dupVar *PlexHits;
-int PlexHitsArrayLength=100;
-int NumberOfHits=0;
-int verbose=0;
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[]) {
   struct        PKplex_args_info args_info;
-  char          *line, *id_s1, *s1, *ParamFile, *ns_bases, *c, ffname[100], *plexstring, *constraint;
+  char          *id_s1, *s1, *ParamFile, *ns_bases, *c, *plexstring, *constraint;
   char          fname[100], *temp, *annotation, **rest;
-  int           istty, l, i, j, r, noconv, length, pairdist, current, unpaired;
+  int           istty, l, i, j, noconv, length, pairdist, current, unpaired;
   int           winsize, openenergies, sym, energyCutoff;
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
   FILE          *pUfp = NULL, *spup = NULL;
@@ -161,13 +149,11 @@ int main(int argc, char *argv[]) {
     winsize=pairdist=length;
     unpaired=MIN2(30, length-3);
     
-    for (l = 0; l < length; l++) {
-      s1[l] = toupper(s1[l]);
-      if (!noconv && s1[l] == 'T') s1[l] = 'U';
-    }
+    if(noconv)  str_RNA2RNA(s1);
+    else        str_DNA2RNA(s1);
+
     printf("%s\n", s1);
     if (verbose) printf("length = %d\n", length);
- 
     /*
     ########################################################
     # do PLfold computations
@@ -198,21 +184,21 @@ int main(int argc, char *argv[]) {
       int **access;
       access = (int**) space(sizeof(int *) * (unpaired+2));
       for(i=0; i< unpaired+2; i++){
-	access[i] =(int *) space(sizeof(int) * (length+20));
+        access[i] =(int *) space(sizeof(int) * (length+20));
       }
         
       for(i=0;i<length+20;i++){
-	for(j=0;j<unpaired+2;j++){
-	  access[j][i]=INF;
-	}
+        for(j=0;j<unpaired+2;j++){
+          access[j][i]=INF;
+        }
       }
      
       for(i=11;i<length+11;i++){
-	for(j=1;j<unpaired+1;j++){
-	  if (pup[i-10][j-1+1]>0) {
-	    access[j][i]=rint(100*(-log(pup[i-10][j-1+1]))*kT);
-	  }
-	}
+        for(j=1;j<unpaired+1;j++){
+          if (pup[i-10][j-1+1]>0) {
+            access[j][i]=rint(100*(-log(pup[i-10][j-1+1]))*kT);
+          }
+        }
       }
       
       access[0][0]=unpaired+2;
@@ -246,109 +232,109 @@ int main(int argc, char *argv[]) {
       qsort(PlexHits, NumberOfHits, sizeof(dupVar), PlexHit_cmp);
       
       if (verbose) {
-	printf("\n");
-	for(i=0;i<NumberOfHits;i++) {
-	  printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[i].structure, PlexHits[i].tb, PlexHits[i].te, PlexHits[i].qb, PlexHits[i].qe, PlexHits[i].ddG, PlexHits[i].energy, PlexHits[i].dG1, PlexHits[i].dG2);
-	}
+        printf("\n");
+        for(i=0;i<NumberOfHits;i++) {
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[i].structure, PlexHits[i].tb, PlexHits[i].te, PlexHits[i].qb, PlexHits[i].qe, PlexHits[i].ddG, PlexHits[i].energy, PlexHits[i].dG1, PlexHits[i].dG2);
+        }
       }
       
       current=-1;
       while((PlexHits[0].ddG+subopts>=PlexHits[current+1].ddG) && (current+1<NumberOfHits)) {
-	current++;
+        current++;
 
-	/*
+        /*
         ########################################################
-	# Constrained RNAfold
-	########################################################
-	*/	
-	constraint = (char *) space(length+1);
-	for(i=0; i<length; i++) {
-	  if((PlexHits[current].tb-1<=i) && (PlexHits[current].te-1>=i)) {
-	    constraint[i]='x';
-	  } else if((PlexHits[current].qb-1<=i) && (PlexHits[current].qe-1>=i)) {
-	    constraint[i]='x';
-	  } else {
-	    constraint[i]='.';
-	  }
-	}
-	constraint[length]='\0';
-	if (verbose) printf("Constrained structure:\n%s\n%s\n", s1, constraint);
-
-	fold_constrained=1;
-	constrainedEnergy=fold(s1, constraint);
-	if (verbose) printf("%s   %f\n", constraint, constrainedEnergy);
-	
-	/*
+        # Constrained RNAfold
         ########################################################
-	# Fusion Structure
-	########################################################
-	*/
-	if (PlexHits[current].structure) {
-	  for(i=PlexHits[current].tb-1; i<=PlexHits[current].te-1; i++) {
-	    if(PlexHits[current].structure[i-PlexHits[current].tb+1]=='(') {
-	      constraint[i]='[';
-	    }
-	  }
-	  for(i=PlexHits[current].qb-1; i<=PlexHits[current].qe-1; i++) {
-	    if(PlexHits[current].structure[i-PlexHits[current].qb+1+1+1+PlexHits[current].te-PlexHits[current].tb]==')') {
-	      constraint[i]=']';
-	    }
-	  }
-	}
+        */        
+        constraint = (char *) space(length+1);
+        for(i=0; i<length; i++) {
+          if((PlexHits[current].tb-1<=i) && (PlexHits[current].te-1>=i)) {
+            constraint[i]='x';
+          } else if((PlexHits[current].qb-1<=i) && (PlexHits[current].qe-1>=i)) {
+            constraint[i]='x';
+          } else {
+            constraint[i]='.';
+          }
+        }
+        constraint[length]='\0';
+        if (verbose) printf("Constrained structure:\n%s\n%s\n", s1, constraint);
 
-	if(current==0) printf("PKplex structure(s):\n");
-	printf("%s   %3.2f\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
+        fold_constrained=1;
+        constrainedEnergy=fold(s1, constraint);
+        if (verbose) printf("%s   %f\n", constraint, constrainedEnergy);
+        
+        /*
+        ########################################################
+        # Fusion Structure
+        ########################################################
+        */
+        if (PlexHits[current].structure) {
+          for(i=PlexHits[current].tb-1; i<=PlexHits[current].te-1; i++) {
+            if(PlexHits[current].structure[i-PlexHits[current].tb+1]=='(') {
+              constraint[i]='[';
+            }
+          }
+          for(i=PlexHits[current].qb-1; i<=PlexHits[current].qe-1; i++) {
+            if(PlexHits[current].structure[i-PlexHits[current].qb+1+1+1+PlexHits[current].te-PlexHits[current].tb]==')') {
+              constraint[i]=']';
+            }
+          }
+        }
 
- 	if(current==0) {
+        if(current==0) printf("PKplex structure(s):\n");
+        printf("%s   %3.2f\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
+
+        if(current==0) {
         /*
         ########################################################
         # Generate Visualization
         ########################################################
         */
 
-	  annotation = (char *) space(sizeof(char)*300);
-	  temp = (char *) space(sizeof(char)*300);
-	  
-	  if (PlexHits[current].te) {
-	    int start=0;
-	    int end;
-	    int stem=1;
-	    for (i=1; PlexHits[current].structure[i]!=')'; i++) {
-	      if ((stem) && (PlexHits[current].structure[i]!='(')) {
-		end=i-1;
-		stem=0;
-		sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[current].tb+start, PlexHits[current].tb+end);
-		strcat(annotation, temp);
-	      }
-	      if ((!stem) && (PlexHits[current].structure[i]=='(')) {
-		start=i;
-		stem=1;
-	      }
-	    }
-	    stem=1;
-	    start=i;
-	    for (i; i<=strlen(PlexHits[current].structure); i++) {
-	      if ((stem) && (PlexHits[current].structure[i]!=')')) {
-		end=i-1;
-		stem=0;
-		sprintf(temp, "%d %d 13 1 0 0 omark\n", PlexHits[current].qb+start-PlexHits[current].te+PlexHits[current].tb-2, PlexHits[current].qb+end-PlexHits[current].te+PlexHits[current].tb-2);
-		strcat(annotation, temp);
-	      }
-	      if ((!stem) && (PlexHits[current].structure[i]==')')) {
-		start=i;
-		stem=1;
-	      }
-	    }
-	
-	    sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
-	    strcat(annotation, temp);
-	    PS_rna_plot_a(s1, constraint, fname, annotation, "");
-	    free(annotation);
-	    free(temp);
-	  } else {
-	    PS_rna_plot(s1, constraint, fname);
-	  }
-	}
+          annotation = (char *) space(sizeof(char)*300);
+          temp = (char *) space(sizeof(char)*300);
+          
+          if (PlexHits[current].te) {
+            int start=0;
+            int end;
+            int stem=1;
+            for (i=1; PlexHits[current].structure[i]!=')'; i++) {
+              if ((stem) && (PlexHits[current].structure[i]!='(')) {
+                end=i-1;
+                stem=0;
+                sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[current].tb+start, PlexHits[current].tb+end);
+                strcat(annotation, temp);
+              }
+              if ((!stem) && (PlexHits[current].structure[i]=='(')) {
+                start=i;
+                stem=1;
+              }
+            }
+            stem=1;
+            start=i;
+            for (i; i<=strlen(PlexHits[current].structure); i++) {
+              if ((stem) && (PlexHits[current].structure[i]!=')')) {
+                end=i-1;
+                stem=0;
+                sprintf(temp, "%d %d 13 1 0 0 omark\n", PlexHits[current].qb+start-PlexHits[current].te+PlexHits[current].tb-2, PlexHits[current].qb+end-PlexHits[current].te+PlexHits[current].tb-2);
+                strcat(annotation, temp);
+              }
+              if ((!stem) && (PlexHits[current].structure[i]==')')) {
+                start=i;
+                stem=1;
+              }
+            }
+        
+            sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
+            strcat(annotation, temp);
+            PS_rna_plot_a(s1, constraint, fname, annotation, "");
+            free(annotation);
+            free(temp);
+          } else {
+            PS_rna_plot(s1, constraint, fname);
+          }
+        }
       }
       
     /*
@@ -362,7 +348,7 @@ int main(int argc, char *argv[]) {
       (void) fflush(stdout);
       i =  access[0][0];           
       while(--i>-1){
-	free(access[i]);
+        free(access[i]);
       }
       free(access);
       free(constraint);
@@ -401,45 +387,45 @@ short *make_pk_pair_table(const char *structure) {
 
   for (hrund=0, heckig=0, i=1; i<=length; i++) {
     switch (structure[i-1]) {
-    case '(':
-      stackrund[hrund++]=i;
+      case '(':
+        stackrund[hrund++]=i;
+        break;
+      case ')':
+        j = stackrund[--hrund];
+        if (hrund<0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced () brackets in make_pk_pair_table");
+        }
+        table[i]=j;
+        table[j]=i;
+        break;
+      case '[':
+        stackeckig[heckig++]=i;
+        break;
+      case ']':
+        j = stackeckig[--heckig];
+        if (heckig<0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced [] brackets in make_pk_pair_table");
+        }
+        table[i]=j;
+        table[j]=i;
+        break;
+      default:   /* unpaired base, usually '.' */
+        table[i]= 0;
       break;
-    case ')':
-      j = stackrund[--hrund];
-      if (hrund<0) {
-	fprintf(stderr, "%s\n", structure);
-	nrerror("unbalanced () brackets in make_pk_pair_table");
-      }
-      table[i]=j;
-      table[j]=i;
-      break;
-    case '[':
-      stackeckig[heckig++]=i;
-      break;
-    case ']':
-      j = stackeckig[--heckig];
-      if (heckig<0) {
-	fprintf(stderr, "%s\n", structure);
-	nrerror("unbalanced [] brackets in make_pk_pair_table");
-      }
-      table[i]=j;
-      table[j]=i;
-      break;
-    default:   /* unpaired base, usually '.' */
-      table[i]= 0;
-    break;
     }
   }
-   if (hrund!=0) {
-     fprintf(stderr, "%s\n", structure);
-     nrerror("unbalanced () brackets in make_pk_pair_table");
-   }
-   if (heckig!=0) {
-     fprintf(stderr, "%s\n", structure);
-     nrerror("unbalanced [] brackets in make_pk_pair_table");
-   }
+  if (hrund!=0) {
+    fprintf(stderr, "%s\n", structure);
+    nrerror("unbalanced () brackets in make_pk_pair_table");
+  }
+  if (heckig!=0) {
+    fprintf(stderr, "%s\n", structure);
+    nrerror("unbalanced [] brackets in make_pk_pair_table");
+  }
 
-   free(stackrund);
-   free(stackeckig);
-   return(table);
+  free(stackrund);
+  free(stackeckig);
+  return(table);
 }

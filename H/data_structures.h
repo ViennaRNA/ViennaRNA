@@ -297,6 +297,30 @@ typedef struct {
 
 /*
 * ############################################################
+* PKplex data structures
+* ############################################################
+*/
+
+typedef struct dupVar{
+  int i;
+  int j;
+  int end;
+  char *structure;
+  double energy;
+  int offset;
+  double dG1;
+  double dG2;
+  double ddG;
+  int tb;
+  int te;
+  int qb;
+  int qe;
+} dupVar;
+
+
+
+/*
+* ############################################################
 * 2Dfold data structures
 * ############################################################
 */

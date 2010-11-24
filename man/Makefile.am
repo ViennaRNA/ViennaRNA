@@ -2,7 +2,7 @@ info_TEXINFOS = RNAlib.texinfo
 
 dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 RNAeval.1\
                 RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1 RNALfoldz.1\
-                RNApaln.1 RNAparconv.1 RNAplfold.1 RNAplot.1 RNAsubopt.1 RNAup.1
+                RNApaln.1 RNAparconv.1 RNAplfold.1 RNAplot.1 RNAsubopt.1 RNAup.1 PKplex.1
 
 RNA2Dfold.1:  ../Progs/RNA2Dfold.ggo
 	./help2man -N --help-option=--detailed-help "./cmdlopt.sh ../Progs/RNA2Dfold.ggo" > RNA2Dfold.1

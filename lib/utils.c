@@ -275,8 +275,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
 
 PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
   char  *line;
-  unsigned int return_type = 0;
-  int   i, l, r;
+  int   i, l;
   int   state = 0;
   int   str_length = 0;
 
@@ -376,8 +375,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                       return VRNA_INPUT_CONSTRAINT;
                     }
                     break;
-      default:      defualt: /* the default is that we assume to have a sequence */
-                    if(option & VRNA_INPUT_FASTA_HEADER){
+      default:      if(option & VRNA_INPUT_FASTA_HEADER){
                       /* are we already in sequence mode? */
                       if(state == 2){
                         inbuf = line;
