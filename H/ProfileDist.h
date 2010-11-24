@@ -25,7 +25,7 @@ float profile_edit_distance(const float *T1, const float *T2);
 *** \deprecated This function is deprecated and will be removed soon! See '\ref Make_bp_profile_bppm() for a replacement
 ***
 **/
-float DEPRECATED(*Make_bp_profile(int length));
+DEPRECATED(float *Make_bp_profile(int length));
 
 /**
 *** condense pair probability matrix into a vector containing probabilities

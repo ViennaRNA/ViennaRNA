@@ -382,7 +382,7 @@ int    unpaired, pairs;       // n of unpaired digits and pairs
 %include  "../H/treedist.h"
 %include  "../H/stringdist.h"
 %newobject Make_bp_profile;
-%include  "../H/profiledist.h"
+%include  "../H/ProfileDist.h"
 // from dist_vars.h
 int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */

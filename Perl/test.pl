@@ -71,7 +71,7 @@ $AA/=2e-5;
 $BB/=2e-5;
 $A/=2e-5;
 $B/=2e-5;
-ok((abs($AB-0.0)+abs($AA-0.00579)+abs($BB-0.01111)+abs($A-0.48842)+abs($B-0.47779))<0.0001);
+ok((abs($AB-0.0)+abs($AA-0.00578)+abs($BB-0.01100)+abs($A-0.48843)+abs($B-0.47801))<0.0001);
 $RNA::cut_point=-1;
 
 # pf_fold
@@ -95,9 +95,9 @@ ok(RNA::intP_getitem($RNA::iindx,3),108);
 # memmove does not work in current swig versions
 # RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
 # use shortP_setitem instead
-RNA::shortP_setitem($RNA::xsubi, 0, 171);
-RNA::shortP_setitem($RNA::xsubi, 1, 42);
-RNA::shortP_setitem($RNA::xsubi, 2, 93);
+RNA::ushortP_setitem($RNA::xsubi, 0, 171);
+RNA::ushortP_setitem($RNA::xsubi, 1, 42);
+RNA::ushortP_setitem($RNA::xsubi, 2, 93);
 ok(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
 
 # get a bp prob in two different ways
