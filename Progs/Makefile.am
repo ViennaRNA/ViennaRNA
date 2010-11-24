@@ -38,7 +38,7 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h\
               RNApaln.ggo RNApaln_cmdl.c RNApaln_cmdl.h\
               RNAplot.ggo RNAplot_cmdl.c RNAplot_cmdl.h\
-              PKplex.gg PKplex_cmdl.c PKplex_cmdl.h
+              PKplex.ggo PKplex_cmdl.c PKplex_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
