@@ -269,6 +269,8 @@ void  free_co_arrays (void)
 \endverbatim
 \copybrief free_co_arrays()
 
+<b>Partition Function Cofolding</b>
+
 To simplify the implementation the partition function computation is done
 internally in a null model that does not include the duplex initiation
 energy, i.e. the entropic penalty for producing a dimer from two
@@ -287,6 +289,8 @@ cofoldF co_pf_fold(char *sequence, char *structure);
 void    free_co_pf_arrays(void);
 \endverbatim
 \copybrief free_co_pf_arrays()
+
+<b>Cofolding all Dimeres, Concentrations</b>
 
 After computing the partition functions of all possible dimeres one
 can compute the probabilities of base pairs, the concentrations out of
@@ -311,7 +315,48 @@ ConcEnt *get_concentrations(
 \endverbatim
 \copybrief get_concentrations()
 
-Partition Function Cofolding as stepwise process
+<b>Partition Function Cofolding as a stepwise process</b>
+
+In this approach to cofolding the interaction between two RNA molecules is
+seen as a stepwise process. In a first step, the target molecule has to
+adopt a structure in which a binding site is accessible. In a second step,
+the ligand molecule will hybridize with a region accessible to an
+interaction. Consequently the algorithm is designed as a two step process:
+The first step is the calculation of the probability
+that a region within the target is unpaired, or equivalently, the
+calculation of the free energy needed to expose a region. In the second step
+we compute the free energy of an interaction for every possible binding
+site.
+Associated functions are:
+
+
+\verbatim
+pu_contrib *pf_unstru (char *sequence, int max_w)
+\endverbatim
+\copybrief pf_unstru()
+
+\verbatim
+void  free_pu_contrib_struct (pu_contrib *pu)
+\endverbatim
+\copybrief free_pu_contrib_struct()
+
+\verbatim
+interact *pf_interact(
+              const char *s1,
+              const char *s2,
+              pu_contrib *p_c,
+              pu_contrib *p_c2,
+              int max_w,
+              char *cstruc,
+              int incr3,
+              int incr5)
+\endverbatim
+\copybrief pf_interact()
+
+\verbatim
+void free_interact (interact *pin)
+\endverbatim
+\copybrief free_interact()
 
 \see cofold.h, part_func_co.h and part_func_up.h for more details
 
@@ -322,6 +367,38 @@ Partition Function Cofolding as stepwise process
 \endhtmlonly
 
 \section mp_Local_Fold            Predicting local structures of large sequences
+Local structures can be predicted by a modified version of the
+fold() algorithm that restricts the span of all base pairs.
+
+\verbatim
+float Lfold(const char *string, char *structure, int maxdist)
+\endverbatim
+\copybrief Lfold()
+
+\verbatim
+float aliLfold(const char **strings, char *structure, int maxdist)
+\endverbatim
+\copybrief aliLfold()
+
+\verbatim
+float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z)
+\endverbatim
+\copybrief Lfoldz()
+
+\verbatim
+plist *pfl_fold(
+            char *sequence,
+            int winSize,
+            int pairSize,
+            float cutoffb,
+            double **pU,
+            struct plist **dpp2,
+            FILE *pUfp,
+            FILE *spup)
+\endverbatim
+\copybrief pfl_fold()
+
+\see Lfold.h and LPfold.h for more details
 
 \htmlonly
 <hr>
