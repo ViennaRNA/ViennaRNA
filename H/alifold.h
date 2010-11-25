@@ -10,11 +10,19 @@
 **/
 
 /**
-*** covariance scaling factor (default = 1.)
+*** \brief This variable controls the weight of the covariance term in the
+*** energy function of alignment folding algorithms
+***
+*** Default is 1.
 **/
 extern  double  cv_fact;
-/** */
-extern  double  nc_fact /* =1 */;
+/**
+*** \brief This variable controls the magnitude of the penalty for non-compatible sequences in
+*** the covariance term of alignment folding algorithms.
+***
+*** Default is 1.
+**/
+extern  double  nc_fact;
 
 /*
 ##############################################
@@ -23,13 +31,23 @@ extern  double  nc_fact /* =1 */;
 */
 
 /**
-*** Update the energy parameters for alifold function
+*** \brief Update the energy parameters for alifold function
+***
+*** Call this to recalculate the pair matrix and energy parameters after a
+*** change in folding parameters like #temperature
 **/
 void update_alifold_params(void);
 
 
 /**
-*** Compute MFE and according structure of an alignment of sequences
+*** \brief Compute MFE and according consensus structure of an alignment of sequences
+***
+*** This function predicts the consensus structure for the aligned 'sequences'
+*** and returns the minimum free energy; the mfe structure in bracket
+*** notation is returned in 'structure'.
+***
+*** Sufficient space must be allocated for 'structure' before calling
+*** alifold().
 ***
 *** \param strings    A pointer to a NULL terminated array of character arrays
 *** \param structure  A pointer to a character array that may contain a constraining consensus structure
@@ -40,7 +58,7 @@ float  alifold(const char **strings, char *structure);
 
 
 /**
-*** Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
+*** \brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
 ***
 *** \param strings    A pointer to a NULL terminated array of character arrays
 *** \param structure  A pointer to a character array that may contain a constraining consensus structure
@@ -50,12 +68,13 @@ float  alifold(const char **strings, char *structure);
 float  circalifold(const char **strings, char *structure);
 
 /**
-*** Free the memory occupied by MFE alifold functions
+*** \brief Free the memory occupied by MFE alifold functions
 **/
 void    free_alifold_arrays(void);
 
 /**
-*** Get the mean pairwise identity in steps from ?to?(ident)
+*** \brief Get the mean pairwise identity in steps from ?to?(ident)
+***
 *** \param Alseq
 *** \param n_seq  The number of sequences in the alignment
 *** \param length The length of the alignment
@@ -91,7 +110,7 @@ int get_mpi(char *Alseq[], int n_seq, int length, int *mini);
 float   **readribosum(char *name);
 
 /**
-*** Calculate the free energy of a consensus structure given a set of aligned sequences
+*** \brief Calculate the free energy of a consensus structure given a set of aligned sequences
 ***
 *** \param  sequences   The NULL terminated array of sequences
 *** \param  structure   The consensus structure
@@ -110,7 +129,7 @@ float   energy_of_alistruct(const char **sequences, const char *structure, int n
 */
 
 /**
-*** Get arrays with encoded sequence of the alignment
+*** \brief Get arrays with encoded sequence of the alignment
 ***
 *** this function assumes that in S, S5, s3, ss and as enough
 *** space is already allocated (size must be at least sequence length+2)
@@ -125,7 +144,8 @@ float   energy_of_alistruct(const char **sequences, const char *structure, int n
 void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ);
 
 /**
-*** Allocate memory for sequence array used to deal with aligned sequences
+*** \brief Allocate memory for sequence array used to deal with aligned sequences
+***
 *** Note that these arrays will also be initialized according to the sequence alignment given
 ***
 *** \see free_sequence_arrays()
@@ -140,7 +160,9 @@ void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, c
 **/
 void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ);
 
-/** Free the memory of the sequence arrays used to deal with aligned sequences
+/**
+*** \brief Free the memory of the sequence arrays used to deal with aligned sequences
+***
 *** This function frees the memory previously allocated with alloc_sequence_arrays()
 ***
 *** \see alloc_sequence_arrays()
@@ -160,8 +182,35 @@ void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short **
 #############################################################
 */
 
+/**
+*** \brief
+***
+*** The partition function version of alifold() works in analogy to
+*** pf_fold(). Pair probabilities and information about sequence
+*** covariations are returned via the 'pi' variable as a list of
+*** #pair_info structs. The list is terminated by the first entry with
+*** pi.i = 0.
+***
+*** \param sequences
+*** \param structure
+*** \param pl
+*** \return
+**/
 float alipf_fold(const char **sequences, char *structure, plist **pl);
+
+/**
+*** \brief
+***
+*** \param sequences
+*** \param structure
+*** \param pl
+*** \return
+**/
 float alipf_circ_fold(const char **sequences, char *structure, plist **pl);
+
+/**
+*** \brief
+**/
 void  free_alipf_arrays(void);
 
 /**

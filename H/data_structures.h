@@ -210,6 +210,15 @@ typedef struct pairpro{
   struct plist *BB;
 }pairpro;
 
+/**
+*** \brief A base pair info structure
+***
+*** for each base pair (i,j) the structure lists: its probability
+*** 'p', an entropy-like measure for its well-definedness 'ent',
+*** and in 'bp[]' the frequency of each type of pair. 'bp[0]'
+*** contains the number of non-compatible sequences, 'bp[1]' the
+*** number of CG pairs, etc.
+**/
 typedef struct {
    unsigned i;        /* i,j in [0, n-1] */
    unsigned j;
@@ -217,7 +226,7 @@ typedef struct {
    float ent;    /* pseudo entropy for p(i,j) = S_i + S_j - p_ij*ln(p_ij) */
    short bp[8];  /* frequencies of pair_types */
    char comp;    /* 1 iff pair is in mfe structure */
-}  pair_info;
+} pair_info;
 
 
 /* some data structures for findpath.c */

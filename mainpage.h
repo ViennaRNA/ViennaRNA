@@ -371,7 +371,7 @@ Local structures can be predicted by a modified version of the
 fold() algorithm that restricts the span of all base pairs.
 
 \verbatim
-float Lfold(const char *string, char *structure, int maxdist)
+float Lfold (const char *string, char *structure, int maxdist)
 \endverbatim
 \copybrief Lfold()
 
@@ -381,12 +381,12 @@ float aliLfold(const char **strings, char *structure, int maxdist)
 \copybrief aliLfold()
 
 \verbatim
-float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z)
+float Lfoldz (const char *string, char *structure, int maxdist, int zsc, double min_z)
 \endverbatim
 \copybrief Lfoldz()
 
 \verbatim
-plist *pfl_fold(
+plist *pfl_fold (
             char *sequence,
             int winSize,
             int pairSize,
@@ -408,6 +408,54 @@ plist *pfl_fold(
 
 \section mp_Alignment_Fold        Predicting Consensus Structures from Alignment
 
+Consensus structures can be predicted by a modified version of the
+fold() algorithm that takes a set of aligned sequences instead
+of a single sequence. The energy function consists of the mean energy
+averaged over the sequences, plus a covariance term that favors pairs
+with consistent and compensatory mutations and penalizes pairs that
+cannot be formed by all structures. For details see \ref hofacker_02 "Hofacker (2002)".
+
+\verbatim
+float  alifold (const char **strings, char *structure)
+\endverbatim
+\copybrief alifold()
+
+\verbatim
+float  circalifold (const char **strings, char *structure)
+\endverbatim
+\copybrief circalifold()
+
+\verbatim
+void    free_alifold_arrays (void)
+\endverbatim
+\copybrief free_alifold_arrays()
+
+\verbatim
+float   energy_of_alistruct (
+            const char **sequences,
+            const char *structure,
+            int n_seq,
+            float *energy)
+\endverbatim
+\copybrief energy_of_alistruct()
+
+\verbatim
+struct pair_info
+\endverbatim
+\copybrief pair_info
+
+\verbatim
+double  cv_fact
+\endverbatim
+\copybrief cv_fact
+
+\verbatim
+double  nc_fact
+\endverbatim
+\copybrief nc_fact
+
+\see alifold.h for more details
+
 \htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
@@ -415,6 +463,79 @@ plist *pfl_fold(
 \endhtmlonly
 
 \section mp_Fold_Vars             Global Variables for the Folding Routines
+
+The following global variables change the behavior the folding
+algorithms or contain additional information after folding.
+
+\verbatim
+int noGU
+\endverbatim
+\copybrief noGU
+
+\verbatim
+int noClosingGU
+\endverbatim
+\copybrief noClosingGU
+
+\verbatim
+int noLonelyPairs
+\endverbatim
+\copybrief noLonelyPairs
+
+\verbatim
+int tetra_loop
+\endverbatim
+\copybrief tetra_loop
+
+\verbatim
+int energy_set
+\endverbatim
+\copybrief energy_set
+
+\verbatim
+float temperature
+\endverbatim
+\copybrief temperature
+
+\verbatim
+int dangles
+\endverbatim
+\copybrief dangles
+
+\verbatim
+char *nonstandards
+\endverbatim
+\copybrief nonstandards
+
+\verbatim
+int cut_point
+\endverbatim
+\copybrief cut_point
+
+\verbatim
+float pf_scale
+\endverbatim
+\copybrief pf_scale
+
+\verbatim
+int fold_constrained
+\endverbatim
+\copybrief fold_constrained
+
+\verbatim
+int do_backtrack
+\endverbatim
+\copybrief do_backtrack
+
+\verbatim
+char backtrack_type
+\endverbatim
+\copybrief backtrack_type
+
+include fold_vars.h if you want to change any of these variables
+from their defaults.
+
+\see fold_vars.h for a more complete and detailed description of all global variables
 
 \htmlonly
 <hr>
