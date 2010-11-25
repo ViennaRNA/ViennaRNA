@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "energy_const.h"
 #include "LPfold.h"
-#include "PKplex_cmdl.h"
+#include "RNAPKplex_cmdl.h"
 #include "PS_dot.h"
 #include "fold.h"
 #include "read_epars.h"

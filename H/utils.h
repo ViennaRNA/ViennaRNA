@@ -3,7 +3,7 @@
 
 /**
 *** \file utils.h
-*** \brief Various utility- and helper-functions
+*** \brief Various utility- and helper-functions used throughout the Vienna RNA package
 **/
 
 /** Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF" **/

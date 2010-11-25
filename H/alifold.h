@@ -5,6 +5,8 @@
 
 /**
 *** \file alifold.h
+*** \brief compute various properties (consensus MFE structures, partition function, Boltzmann distributed stochastic samples, ...) for 
+*** RNA sequence alignments
 **/
 
 /**
@@ -161,6 +163,13 @@ void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short **
 float alipf_fold(const char **sequences, char *structure, plist **pl);
 float alipf_circ_fold(const char **sequences, char *structure, plist **pl);
 void  free_alipf_arrays(void);
+
+/**
+*** \brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability\n
+***
+*** \param  prob  to be described (berni)
+*** \return       A sampled consensus secondary structure in dot-bracket notation
+**/
 char  *alipbacktrack(double *prob) ;
 
 #endif

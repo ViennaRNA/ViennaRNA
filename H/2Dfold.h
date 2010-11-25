@@ -9,7 +9,8 @@
 
 /**
 *** \file 2Dfold.h
-*** \brief Compute the minimum free energy (MFE) for secondary structures with a
+*** \brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
+*** the secondary structure space according to the base pair distance to two fixed reference structures
 *** basepair distance to two fixed reference structures
 **/
 

@@ -3,9 +3,7 @@
 
 /**
 *** \file convert_epars.h
-*** <P>
-*** This file contains functions and definitions for energy parameter file format conversion
-*** </P>
+*** \brief Functions and definitions for energy parameter file format conversion
 ***/
 
 /** Flag to indicate printing of a complete parameter set **/

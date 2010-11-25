@@ -44,7 +44,16 @@ extern double temperature;   /* rescale parameters to this temperature */
 extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
                                no mismatches, default 1 */
 extern int  logML;          /* use logarithmic multiloop energy function */
-extern int  cut_point;      /* first position of 2nd strand for co-folding */
+
+/**
+*** \brief Marks the position (starting from 1) of the first
+*** nucleotide of the second molecule within the concatenated sequence.
+***
+*** The default value of -1 stands for single molecule folding. The
+*** cut_point variable is also used by PS_rna_plot() and
+*** PS_dot_plot() to mark the chain break in postscript plots.
+**/
+extern int  cut_point;
 
 extern bondT  *base_pair; /* list of base pairs */
 

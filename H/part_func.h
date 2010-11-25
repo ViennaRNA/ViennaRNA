@@ -36,7 +36,7 @@ extern  int st_back;
 *** \brief Compute the partition function \f$Q\f$ of an RNA sequence
 ***
 *** If \a structure is not a NULL pointer on input, it contains on
-*** return a string consisting of the letters " . , | @{ @} ( ) " denoting
+*** return a string consisting of the letters " . , | { } ( ) " denoting
 *** bases that are essentially unpaired, weakly paired, strongly paired without
 *** preference, weakly upstream (downstream) paired, or strongly up-
 *** (down-)stream paired bases, respectively.

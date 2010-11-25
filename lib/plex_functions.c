@@ -43,10 +43,10 @@ PRIVATE int     n1;
 PRIVATE char    *ptype;     /* precomputed array of pair types */
 PRIVATE int     *indx;      /* index for moving in the triangle matrices ptype[] */
 
-dupVar  *PlexHits;
-int     PlexHitsArrayLength = 100;
-int     NumberOfHits        = 0;
-int     verbose             = 0;
+PUBLIC  dupVar  *PlexHits = NULL;
+PUBLIC  int     PlexHitsArrayLength = 100;
+PUBLIC  int     NumberOfHits        = 0;
+PUBLIC  int     verbose             = 0;
 
 /*-----------------------------------------------------------------------duplexfold_XS---------------------------------------------------------------------------*/
 

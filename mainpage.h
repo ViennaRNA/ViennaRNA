@@ -11,7 +11,7 @@
 \n
 
 \date     1994-2010
-\authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and a lot more...
+\authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
 
 <h3>Table of Contents</h3>
 <hr>
@@ -102,9 +102,11 @@ void  free_arrays(void);
 
 \see fold.h, cofold.h, 2Dfold.h, Lfold.h, alifold.h and subopt.h for a complete list of available functions.
 
+\htmlonly
 <hr>
-\link toc Overview \endlink
+<a href="#toc">Table of Contents</a>
 <hr>
+\endhtmlonly
 
 \section mp_PF_Fold               Calculating Partition Functions and Pair Probabilities
 
@@ -146,24 +148,210 @@ double mean_bp_distance_pr(int length, double *pr);
 
 \see part_func.h, part_func_co.h, part_func_up.h, 2Dpfold.h, LPfold.h, alifold.h and MEA.h for a complete list of available functions.
 
+\htmlonly
 <hr>
-\link toc Overview \endlink
+<a href="#toc">Table of Contents</a>
 <hr>
+\endhtmlonly
 
 
 \section mp_Inverse_Fold          Searching for Predefined Structures
 
+We provide two functions that search for sequences with a given
+structure, thereby inverting the folding routines.
+
+\verbatim
+float inverse_fold (char *start, char *target)
+\endverbatim
+\copybrief inverse_fold()
+
+\verbatim
+float inverse_pf_fold (char *start, char *target)
+\endverbatim
+\copybrief inverse_pf_fold()
+
+The following global variables define the behavior or show the results of the
+inverse folding routines:
+
+\verbatim
+char *symbolset
+\endverbatim
+\copybrief symbolset
+
+\see inverse.h for more details and a complete list of available functions.
+
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
+
 \section mp_Suboptimal_folding    Enumerating Suboptimal Structures
 
-\section mp_Cofolding             Folding of 2 RNA molecules
+\verbatim
+SOLUTION *subopt (char *sequence, char *constraint, int *delta, FILE *fp)
+\endverbatim
+\copybrief subopt()
+
+\verbatim
+SOLUTION *subopt_circ (char *sequence, char *constraint, int *delta, FILE *fp)
+\endverbatim
+\copybrief subopt_circ()
+
+\verbatim
+SOLUTION  *zukersubopt(const char *string);
+\endverbatim
+\copybrief zukersubopt()
+
+\verbatim
+char  *TwoDpfold_pbacktrack (TwoDpfold_vars *vars, unsigned int d1, unsigned int d2)
+\endverbatim
+\copybrief TwoDpfold_pbacktrack()
+
+\verbatim
+char  *alipbacktrack (double *prob)
+\endverbatim
+\copybrief alipbacktrack()
+
+\verbatim
+char    *pbacktrack(char *sequence);
+\endverbatim
+\copybrief pbacktrack()
+
+\verbatim
+char    *pbacktrack_circ(char *sequence);
+\endverbatim
+\copybrief pbacktrack_circ()
+
+\see subopt.h, part_func.h, alifold.h and 2Dpfold.h for more detailed descriptions
+
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
+
+\section mp_Cofolding             Predicting hybridization structures of two molecules
+The function of an RNA molecule often depends on its interaction with
+other RNAs. The following routines therefore allow to predict structures
+formed by two RNA molecules upon hybridization.\n
+One approach to co-folding two RNAs consists of concatenating the two
+sequences and keeping track of the concatenation point in all energy
+evaluations. Correspondingly, many of the cofold() and
+co_pf_fold() routines below take one sequence string as argument
+and use the the global variable #cut_point to mark the concatenation
+point. Note that while the <i>RNAcofold</i> program uses the '&' character
+to mark the chain break in its input, you should not use an '&' when using
+the library routines (set #cut_point instead).\n
+In a second approach to co-folding two RNAs, cofolding is seen as a
+stepwise process. In the first step the probability of an unpaired region
+is calculated and in a second step this probability of an unpaired region
+is  multiplied with the probability of an interaction between the two RNAs.
+This approach is implemented for the interaction between a long
+target sequence and a short ligand RNA. Function pf_unstru() calculates
+the partition function over all unpaired regions in the input
+sequence. Function pf_interact(), which calculates the
+partition function over all possible interactions between two
+sequences, needs both sequence as separate strings as input.
+
+\verbatim
+int cut_point
+\endverbatim
+\copybrief cut_point
+
+\verbatim
+float cofold (char *sequence, char *structure)
+\endverbatim
+\copybrief cofold()
+
+\verbatim
+void  free_co_arrays (void)
+\endverbatim
+\copybrief free_co_arrays()
+
+To simplify the implementation the partition function computation is done
+internally in a null model that does not include the duplex initiation
+energy, i.e. the entropic penalty for producing a dimer from two
+monomers). The resulting free energies and pair probabilities are initially
+relative to that null model. In a second step the free energies can be
+corrected to include the dimerization penalty, and the pair probabilities
+can be divided into the conditional pair probabilities given that a re
+dimer is formed or not formed.
+
+\verbatim
+cofoldF co_pf_fold(char *sequence, char *structure);
+\endverbatim
+\copybrief co_pf_fold()
+
+\verbatim
+void    free_co_pf_arrays(void);
+\endverbatim
+\copybrief free_co_pf_arrays()
+
+After computing the partition functions of all possible dimeres one
+can compute the probabilities of base pairs, the concentrations out of
+start concentrations and sofar and soaway.
+
+\verbatim
+void  compute_probabilities(
+              double FAB,
+              double FEA,
+              double FEB,
+              struct plist  *prAB,
+              struct plist  *prA,
+              struct plist  *prB,
+              int Alength)
+\endverbatim
+\copybrief compute_probabilities()
+
+\verbatim
+ConcEnt *get_concentrations(
+              double FEAB, double FEAA, double FEBB,
+              double FEA, double FEB, double * startconc)
+\endverbatim
+\copybrief get_concentrations()
+
+Partition Function Cofolding as stepwise process
+
+\see cofold.h, part_func_co.h and part_func_up.h for more details
+
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
 
 \section mp_Local_Fold            Predicting local structures of large sequences
 
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
+
 \section mp_Alignment_Fold        Predicting Consensus Structures from Alignment
+
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
 
 \section mp_Fold_Vars             Global Variables for the Folding Routines
 
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
+
 \section mp_Param_Files           Reading Energy Parameters from File
+
+\htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+\endhtmlonly
 
 \page  mp_parse     Parsing and Comparing - Functions to Manipulate Structures
 \page  mp_utils     Utilities - Odds and Ends

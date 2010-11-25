@@ -1,5 +1,5 @@
 # Name of your program
-package "PKplex" # don't use package if you're using automake
+package "RNAPKplex" # don't use package if you're using automake
 purpose "predicts RNA secondary structures including pseudoknots"
 #usage "PKplex [options]\n"
 
@@ -8,7 +8,7 @@ purpose "predicts RNA secondary structures including pseudoknots"
 
 
 # command line options passed to gengetopt
-args "--file-name=PKplex_cmdl --include-getopt --default-optional --func-name=PKplex_cmdline_parser --arg-struct-name=PKplex_args_info"
+args "--file-name=RNAPKplex_cmdl --include-getopt --default-optional --func-name=PKplex_cmdline_parser --arg-struct-name=PKplex_args_info"
 
 
 description "Computes RNA secondary structures by first making two sequence intervals accessible and unpaired using the algorithm of RNAplfold and then calculating the energy of the interaction of those two intervals. The algorithm uses O(n^2*w^4) CPU time and O(n*w^2) memory space.\n"

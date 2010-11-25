@@ -13,9 +13,20 @@
 *** \file cofold.h
 **/
 
-float     cofold(const char *sequence, char *structure);
 /**
-*** free arrays for mfe folding
+*** \brief Compute the minimum free energy of two interacting RNA molecules
+***
+*** The code is analog to the fold() function. If #cut_point ==-1 results
+*** should be the same as with fold().
+***
+*** \param sequence
+*** \param structure
+*** \return 
+**/
+float     cofold(const char *sequence, char *structure);
+
+/**
+*** \brief Free memory occupied by cofold()
 **/
 void      free_co_arrays(void);
 /**

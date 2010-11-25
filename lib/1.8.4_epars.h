@@ -1,7 +1,11 @@
 #ifndef __VIENNA_RNA_PACKAGE_OLD_EPARS__
 #define __VIENNA_RNA_PACKAGE_OLD_EPARS__
-/*
-    Free energy parameters used in ViennaRNAPackage 1.8.4 are summarized in:
+/**
+    \file 1.8.4_epars.h
+    \brief Free energy parameters for parameter file conversion
+
+    This file contains the free energy parameters used in ViennaRNAPackage 1.8.4.
+    They are summarized in:
 
     D.H.Mathews, J. Sabina, M. ZUker, D.H. Turner
     "Expanded sequence dependence of thermodynamic parameters improves
