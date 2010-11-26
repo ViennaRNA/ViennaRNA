@@ -282,8 +282,7 @@ int main(int argc, char *argv[]) {
           }
         }
 
-        if(current==0) printf("PKplex structure(s):\n");
-        printf("%s   %3.2f\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
+        printf("%s   (%3.2f)\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
 
         if(current==0) {
         /*

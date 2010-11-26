@@ -535,7 +535,7 @@ char backtrack_type
 include fold_vars.h if you want to change any of these variables
 from their defaults.
 
-\see fold_vars.h for a more complete and detailed description of all global variables
+\see fold_vars.h for a more complete and detailed description of all global variables and how to use them
 
 \htmlonly
 <hr>
@@ -545,6 +545,33 @@ from their defaults.
 
 \section mp_Param_Files           Reading Energy Parameters from File
 
+A default set of parameters, identical to the one described in \ref mathews_04 "Mathews et.al. (2004)", is
+compiled into the library.\n
+Alternately, parameters can be read from and written to a file.
+
+\verbatim
+void  read_parameter_file (const char fname[])
+\endverbatim
+\copybrief read_parameter_file()
+
+\verbatim
+void  write_parameter_file (const char fname[])
+\endverbatim
+\copybrief write_parameter_file
+
+To preserve some backward compatibility the RNAlib also provides functions to convert energy parameter
+files from the format used in version 1.4-1.8 into the new format used since version 2.0
+
+\verbatim
+void convert_parameter_file (
+            const char *iname,
+            const char *oname,
+            unsigned int options)
+\endverbatim
+\copybrief convert_paramter_file()
+
+\see read_epars.h and convert_epars.h for detailed description of the available functions
+
 \htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
@@ -552,7 +579,137 @@ from their defaults.
 \endhtmlonly
 
 \page  mp_parse     Parsing and Comparing - Functions to Manipulate Structures
+
+<h2>Representations of Secondary Structures</h2>
+
+The standard representation of a secondary structure is the <i>bracket
+notation</i>, where matching brackets symbolize base pairs and unpaired
+bases are shown as dots. Alternatively, one may use two types of node
+labels, 'P' for paired and 'U' for unpaired; a dot is then replaced by
+'(U)', and each closed bracket is assigned an additional identifier 'P'.
+We call this the expanded notation. In \ref fontana_93b "Fontana et al. (1993)" a
+condensed
+representation of the secondary structure is proposed, the so-called
+homeomorphically irreducible tree (HIT) representation. Here a stack is
+represented as a single pair of matching brackets labeled 'P' and
+weighted by the number of base pairs.  Correspondingly, a contiguous
+strain of unpaired bases is shown as one pair of matching brackets
+labeled 'U' and weighted by its length.  Generally any string consisting
+of matching brackets and identifiers is equivalent to a plane tree with
+as many different types of nodes as there are identifiers.
+
+\ref shapiro_88 "Bruce Shapiro (1988)" proposed a coarse grained representation, which,
+does not retain the full information of the secondary structure. He
+represents the different structure elements by single matching brackets
+and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
+(bulge), 'M' (multi-loop), and 'S' (stack). We extend his alphabet by an
+extra letter for external elements 'E'. Again these identifiers may be
+followed by a weight corresponding to the number of unpaired bases or
+base pairs in the structure element.  All tree representations (except
+for the dot-bracket form) can be encapsulated into a virtual root
+(labeled 'R'), see the example below.
+
+The following example illustrates the different linear tree representations
+used by the package. All lines show the same secondary structure.
+
+\verbatim
+a) .((((..(((...)))..((..)))).)).
+   (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
+b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
+c) (((H)(H)M)B)
+   ((((((H)S)((H)S)M)S)B)S)
+   (((((((H)S)((H)S)M)S)B)S)E)
+d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+\endverbatim
+
+Above: Tree representations of secondary structures.  a) Full structure:
+the first line shows the more convenient condensed notation which is
+used by our programs; the second line shows the rather clumsy expanded
+notation for completeness, b) HIT structure, c) different versions of
+coarse grained structures: the second line is exactly Shapiro's
+representation, the first line is obtained by neglecting the stems.
+Since each loop is closed by a unique stem, these two lines are
+equivalent.  The third line is an extension taking into account also the
+external digits.  d) weighted coarse structure, this time including the
+virtual root.
+
+For the output of aligned structures from string editing, different
+representations are needed, where we put the label on both sides.
+The above examples for tree representations would then look like:
+
+\verbatim
+a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
+b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
+c) (B(M(HH)(HH)M)B)
+   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
+   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
+d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+\endverbatim
+
+Aligned structures additionally contain the gap character '_'.
+
+<h2>Parsing and Coarse Graining of Structures</h2>
+
+Several functions are provided for parsing structures and converting to
+different representations.
+
+\verbatim
+char  *expand_Full(const char *structure)
+\endverbatim
+\copybrief expand_Full()
+
+\verbatim
+char *b2HIT (const char *structure)
+\endverbatim
+\copybrief b2HIT()
+
+\verbatim
+char *b2C (const char *structure)
+\endverbatim
+\copybrief b2C()
+
+\verbatim
+char *b2Shapiro (const char *structure)
+\endverbatim
+\copybrief b2Shapiro()
+
+\verbatim
+char  *expand_Shapiro (const char *coarse);
+\endverbatim
+\copybrief expand_Shapiro()
+
+\verbatim
+char *add_root (const char *structure)
+\endverbatim
+\copybrief add_root()
+
+\verbatim
+char  *unexpand_Full (const char *ffull)
+\endverbatim
+\copybrief unexpand_Full()
+
+\verbatim
+char  *unweight (const char *wcoarse)
+\endverbatim
+\copybrief unweight()
+
+\verbatim
+void   unexpand_aligned_F (char *align[2])
+\endverbatim
+\copybrief unexpand_aligned_F()
+
+\verbatim
+void   parse_structure (const char *structure)
+\endverbatim
+\copybrief parse_structure()
+
+\see RNAstruct.h for prototypes and more detailed description
+
+<h2>Distance Measures</h2>
+
 \page  mp_utils     Utilities - Odds and Ends
+
+
 \page  mp_example   Example - A Small Example Program
 
 \page  mp_ref       References

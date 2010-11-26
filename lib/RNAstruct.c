@@ -11,24 +11,15 @@
 #include <string.h>
 #include <ctype.h>
 #include "utils.h"
+#include "RNAstruct.h"
+
 #define PRIVATE  static
 #define PUBLIC
 
 #define MAXLEN    10000
-#define STRUC     MAXLEN/5        /* maximal number of loops at min stack length 2 */
 
 static char rcsid[] = "$Id: RNAstruct.c,v 1.8 2006/05/09 20:44:33 ivo Exp $";
 
-PUBLIC char *b2HIT(const char *structure);             /* Full   -> HIT    [incl. root]       */
-PUBLIC char *b2C(const char *structure);               /* Full   -> Coarse [incl. root]       */
-PUBLIC char *b2Shapiro(const char *structure);         /* Full   -> weighted Shapiro [i.r.]   */
-PUBLIC char *add_root(const char *structure);          /* {Tree} -> ({Tree}R)                 */
-
-PUBLIC char  *expand_Shapiro(const char *structure);   /* Coarse [i.r.] -> unweighted Shapiro */
-PUBLIC char  *expand_Full(const char *structure);      /* Full   -> FFull                     */
-PUBLIC char  *unexpand_Full(const char *structure);    /* FFull  -> Full                      */
-
-PUBLIC void   parse_structure(const char *structure);  /* guess !!! */
 
 PRIVATE char *aux_struct(const char *structure);
 

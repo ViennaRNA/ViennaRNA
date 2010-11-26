@@ -118,19 +118,67 @@ extern int  logML;          /* use logarithmic multiloop energy function */
 *** \brief Marks the position (starting from 1) of the first
 *** nucleotide of the second molecule within the concatenated sequence.
 ***
+*** To evaluate the energy of a duplex structure (a structure formed by two
+*** strands), concatenate the to sequences and set it to the
+*** first base of the second strand in the concatenated sequence.
 *** The default value of -1 stands for single molecule folding. The
 *** cut_point variable is also used by PS_rna_plot() and
 *** PS_dot_plot() to mark the chain break in postscript plots.
 **/
 extern int  cut_point;
 
-extern bondT  *base_pair; /* list of base pairs */
+/**
+*** \brief Contains a list of base pairs after a call to fold().
+***
+*** base_pair[0].i contains the total number of pairs.
+*** \deprecated Do not use this variable anymore!
+**/
+extern bondT  *base_pair;
 
-extern FLT_OR_DBL *pr;          /* base pairing prob. matrix */
-extern int   *iindx;            /* pr[i,j] -> pr[iindx[i]-j] */
-extern double pf_scale;         /* scaling factor to avoid float overflows*/
-extern int    do_backtrack;     /* calculate pair prob matrix in part_func() */
-extern char backtrack_type;     /* usually 'F'; 'C' require (1,N) to be bonded;
-                                   'M' seq is part of a multi loop */
+/**
+*** \brief A pointer to the base pair probability matrix
+***
+*** \deprecated Do not use this variable anymore!
+**/
+extern FLT_OR_DBL *pr;
+
+/**
+*** \brief index array to move through pr.
+***
+*** The probability for base i and j to form a pair is in pr[iindx[i]-j].
+*** \deprecated Do not use this variable anymore!
+**/
+extern int   *iindx;
+
+/**
+*** \brief A scaling factor used by pf_fold() to avoid overflows.
+***
+*** Should be set to approximately \f$exp{((-F/kT)/length)}\f$, where \f$F\f$ is an estimate
+*** for the ensemble free energy, for example the minimum free energy. You must
+*** call update_pf_params() after changing this parameter.\n
+*** If pf_scale is -1 (the default) , an estimate will be provided
+*** automatically when computing partition functions, e.g. pf_fold()
+*** The automatic estimate is usually insufficient for sequences more
+*** than a few hundred bases long.
+**/
+extern double pf_scale;
+
+/**
+*** \brief do backtracking, i.e. compute secondary structures or base pair probabilities
+***
+*** If 0, do not calculate pair probabilities in pf_fold(); this is about
+*** twice as fast. Default is 1.
+**/
+extern int    do_backtrack;
+
+/**
+*** \brief A backtrack array marker for inverse_fold()
+***
+*** If set to 'C': force (1,N) to be paired,
+*** 'M' fold as if the sequence were inside a multi-loop. Otherwise ('F') the
+*** usual mfe structure is computed.
+**/
+extern char backtrack_type;
+
 char * option_string(void);
 #endif
