@@ -52,7 +52,7 @@ void update_alifold_params(void);
 *** \param strings    A pointer to a NULL terminated array of character arrays
 *** \param structure  A pointer to a character array that may contain a constraining consensus structure
 ***                   (will be overwritten by a consensus structure that exhibits the MFE)
-*** \return           The minimum free energy in kcal/mol
+*** \return           The free energy score in kcal/mol
 **/
 float  alifold(const char **strings, char *structure);
 
@@ -63,7 +63,7 @@ float  alifold(const char **strings, char *structure);
 *** \param strings    A pointer to a NULL terminated array of character arrays
 *** \param structure  A pointer to a character array that may contain a constraining consensus structure
 ***                   (will be overwritten by a consensus structure that exhibits the MFE)
-*** \return           The minimum free energy in kcal/mol
+*** \return           The free energy score in kcal/mol
 **/
 float  circalifold(const char **strings, char *structure);
 
@@ -84,28 +84,7 @@ void    free_alifold_arrays(void);
 int get_mpi(char *Alseq[], int n_seq, int length, int *mini);
 
 /**
-*** how to chose a ribosum matrix:<BR>
-*** ribosum matrices exist for starlike clusters of<BR>
-*** X=45 55 60 65 70 75 80 85 90 95 100<BR>
-*** they are further seperated by only regarding sequences with a minimal pairwise idensity of Y=25-95, step 5, not all are present.<BR>
-*** now the question is, which matrix to use when.<BR>
-*** the suggestion of the dr. will:<BR>
-*** with a mpi of Z<BR>
-*** X~Z and Y > Z ??<BR>
-*** if we say the minimum of the pis is M,<BR>
-*** then we may be able to use:<BR>
-*** X~Z and Y ~ M?<BR>
-*** I'd say we do a default matrix (e.g. 85/60) but better is try out (all 170??)<BR>
-*** and then we use the best in average.<BR>
-*** actually, it would be preferrable to make a very big testset and simply check it out.<BR>
-*** (create a function to derive the best matrix)<BR>
-*** furthermore:<BR>
-*** default, function or user defined.<BR>
-*** <BR>
-*** ntscd:<BR>
-*** fijklmn<BR>
-*** pijpklpmn<BR>
-***
+*** \brief Read a ribosum or other user-defined scoring matrix
 **/
 float   **readribosum(char *name);
 

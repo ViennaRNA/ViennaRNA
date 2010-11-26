@@ -10,7 +10,7 @@
 /** \file ProfileDist.h **/
 
 /**
-*** Align the 2 probability profiles T1, T2\n
+*** \brief Align the 2 probability profiles T1, T2\n
 ***
 *** This is like a Needleman-Wunsch alignment,
 *** we should really use affine gap-costs ala Gotoh
@@ -22,15 +22,16 @@ float profile_edit_distance(const float *T1, const float *T2);
 ***
 *** \see Make_bp_profile_bppm()
 ***
-*** \deprecated This function is deprecated and will be removed soon! See '\ref Make_bp_profile_bppm() for a replacement
+*** \deprecated This function is deprecated and will be removed soon! See \ref Make_bp_profile_bppm() for a replacement
 ***
 **/
 DEPRECATED(float *Make_bp_profile(int length));
 
 /**
-*** condense pair probability matrix into a vector containing probabilities
-*** for upstream paired, downstream paired and unpaired. This resulting
-*** probability profile is used as input for profile_edit_distance
+*** \brief condense pair probability matrix into a vector containing probabilities
+*** for upstream paired, downstream paired and unpaired.
+***
+*** This resulting probability profile is used as input for profile_edit_distance
 ***
 *** \param bppm   A pointer to the base pair probability matrix
 *** \param length The length of the sequence
@@ -39,12 +40,14 @@ DEPRECATED(float *Make_bp_profile(int length));
 float *Make_bp_profile_bppm(double *bppm, int length);
 
 /**
-*** print string representation of probability profile
+*** \brief print string representation of probability profile
 **/
 void  print_bppm(const float *T);
 
 /**
-*** free space allocated in Make_bp_profile
+*** \brief free space allocated in Make_bp_profile
+***
+*** Backward compatibility only. You can just use plain free()
 **/
 void  free_profile(float *T);
 

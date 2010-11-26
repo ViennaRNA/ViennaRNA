@@ -1,13 +1,32 @@
 #ifndef __VIENNA_RNA_PACKAGE_DIST_VARS_H__
 #define __VIENNA_RNA_PACKAGE_DIST_VARS_H__
 
-/*  Global variables for Distance-Package */
+/**
+*** \file dist_vars.h
+*** \brief Global variables for Distance-Package
+**/
 
-extern int   edit_backtrack;  /* set to 1 if you want backtracking */
+/**
+*** \brief Produce an alignment of the two structures being compared by
+*** tracing the editing path giving the minimum distance.
+***
+*** set to 1 if you want backtracking
+**/
+extern int   edit_backtrack;
 
-extern char *aligned_line[4]; /* containes alignment after backtracking */
+/**
+*** \brief Contains the two aligned structures after a call to one of the distance
+*** functions with #edit_backtrack set to 1.
+**/
+extern char *aligned_line[4];
 
-extern int  cost_matrix;     /* 0 usual costs (default), 1 Shapiro's costs */
+/**
+*** \brief Specify the cost matrix to be used for distance calculations
+***
+*** if 0, use the default cost matrix (upper matrix in example), otherwise
+*** use Shapiro's costs (lower matrix).
+**/
+extern int  cost_matrix;
 
 /*  Global type defs for Distance-Package */
 

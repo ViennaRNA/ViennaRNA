@@ -29,14 +29,17 @@ float     cofold(const char *sequence, char *structure);
 *** \brief Free memory occupied by cofold()
 **/
 void      free_co_arrays(void);
+
 /**
 *** allocate arrays for folding
 **/
 void      initialize_cofold(int length);
+
 /**
 *** recalculate parameters
 **/
 void      update_cofold_params(void);
+
 /**
 *** Compute Suboptimal structures according Zuker
 **/

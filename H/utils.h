@@ -230,8 +230,15 @@ short *make_pair_table(const char *structure);
 short *copy_pair_table(const short *pt);
 
 /**
-*** dist = {number of base pairs in one structure but not in the other}
+*** \brief Compute the "base pair" distance between two secondary structures s1 and s2.
+***
+*** The sequences should have the same length.
+*** dist = number of base pairs in one structure but not in the other
 *** same as edit distance with open-pair close-pair as move-set
+***
+*** \param str1   First structure in dot-bracket notation
+*** \param str2   Second structure in dot-bracket notation
+*** \return       The base pair distance between str1 and str2
 **/
 int bp_distance(const char *str1, const char *str2);
 

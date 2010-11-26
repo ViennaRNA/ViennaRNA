@@ -31,7 +31,7 @@
 *** variable 'structure' in function 'pf_fold()' to the constrain string.
 *** It returns a #pu_contrib struct containing four arrays of dimension
 *** [i = 1 to length(sequence)][j = 0 to u-1] containing all possible contributions
-*** to the probabilities of unpaired regions of maximum length @var{u}.
+*** to the probabilities of unpaired regions of maximum length u.
 *** Each array in #pu_contrib contains one of the contributions to the
 *** total probability of being unpaired: The probability of being unpaired
 *** within an exterior loop is in array #pu_contrib->E, the probability
@@ -55,7 +55,7 @@ pu_contrib *pf_unstru(char *sequence, int max_w);
 ***
 *** The function considers the probability that the
 *** region of interaction is unpaired within 's1' and 's2'. The
-*** longer sequence has to be given as @var{*s1}. The shorter sequence has to
+*** longer sequence has to be given as 's1'. The shorter sequence has to
 *** be given as 's2'. Function pf_unstru() has to be called
 *** for 's1' and 's2', where the probabilities of  being unpaired
 *** have to be given in 'p_c' and 'p_c2', respectively. If you do
