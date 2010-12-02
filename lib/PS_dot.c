@@ -903,8 +903,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
 /*---------------------------------------------------------------------------*/
 
 
-PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile,
-			    struct plist *pl, struct plist *mf, char *comment) {
+PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile, plist *pl, plist *mf, char *comment) {
   FILE *wastl;
   int length;
   double tmp;
