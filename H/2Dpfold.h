@@ -16,10 +16,10 @@
 #endif
 
 /**
-*** \file 2Dpfold.h
-*** \brief Compute the partition function and stochastically sample secondary structures for a partitioning of
-*** the secondary structure space according to the base pair distance to two fixed reference structures
-**/
+ *  \file 2Dpfold.h
+ *  \brief Compute the partition function and stochastically sample secondary structures for a partitioning of
+ *  the secondary structure space according to the base pair distance to two fixed reference structures
+ */
 
 TwoDpfold_vars  *get_TwoDpfold_variables(const char *seq, const char *structure1, char *structure2, int circ);
 TwoDpfold_vars  *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars);
@@ -29,14 +29,14 @@ FLT_OR_DBL      **TwoDpfold(TwoDpfold_vars *our_variables, int maxDistance1, int
 FLT_OR_DBL      **TwoDpfold_circ(TwoDpfold_vars *our_variables, int maxDistance1, int maxDistance2);
 
 /**
-*** \brief  Sample secondary structure representatives from a set of distance classes according to their 
-*** Boltzmann probability
-***
-*** \param vars
-*** \param d1
-*** \param d2
-*** \return
-**/
+ *  \brief  Sample secondary structure representatives from a set of distance classes according to their 
+ *  Boltzmann probability
+ * 
+ *  \param vars
+ *  \param d1
+ *  \param d2
+ *  \return
+ */
 char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2);
 char            *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2, unsigned int length);
 

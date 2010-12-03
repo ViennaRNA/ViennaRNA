@@ -4,9 +4,9 @@
 #include "energy_const.h"
 
 /**
-*** \file data_structures.h
-*** \brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
-**/
+ *  \file data_structures.h
+ *  \brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
+ */
 
 /* to use floats instead of doubles in pf_fold() comment next line */
 #define LARGE_PF
@@ -34,8 +34,8 @@
 */
 
 /**
-*** \brief this datastructure is used as input parameter in functions of PS_dot.h and others
-**/
+ *  \brief this datastructure is used as input parameter in functions of PS_dot.h and others
+ */
 typedef struct plist {
   int i;
   int j;
@@ -49,9 +49,9 @@ typedef struct cpair {
 } cpair;
 
 /**
-*** \brief this is a workarround for the SWIG Perl Wrapper RNA plot function
-*** that returns an array of type COORDINATE
-**/
+ *  \brief this is a workarround for the SWIG Perl Wrapper RNA plot function
+ *  that returns an array of type COORDINATE
+ */
 typedef struct {
   float X; /* X coords */
   float Y; /* Y coords */
@@ -75,8 +75,8 @@ typedef struct bondTEn {               /* base pair with associated energy*/
 } bondTEn;
 
 /**
-*** The datastructure that contains temperature scaled energy parameters.
-**/
+ *  The datastructure that contains temperature scaled energy parameters.
+ */
 typedef struct{
   int id;
   int stack[NBPAIRS+1][NBPAIRS+1];
@@ -114,8 +114,8 @@ typedef struct{
 }  paramT;
 
 /**
-*** The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
-**/
+ *  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
+ */
 typedef struct{
   int     id;
   double  expstack[NBPAIRS+1][NBPAIRS+1];
@@ -211,14 +211,14 @@ typedef struct pairpro{
 }pairpro;
 
 /**
-*** \brief A base pair info structure
-***
-*** for each base pair (i,j) the structure lists: its probability
-*** 'p', an entropy-like measure for its well-definedness 'ent',
-*** and in 'bp[]' the frequency of each type of pair. 'bp[0]'
-*** contains the number of non-compatible sequences, 'bp[1]' the
-*** number of CG pairs, etc.
-**/
+ *  \brief A base pair info structure
+ * 
+ *  for each base pair (i,j) the structure lists: its probability
+ *  'p', an entropy-like measure for its well-definedness 'ent',
+ *  and in 'bp[]' the frequency of each type of pair. 'bp[0]'
+ *  contains the number of non-compatible sequences, 'bp[1]' the
+ *  number of CG pairs, etc.
+ */
 typedef struct {
    unsigned i;        /* i,j in [0, n-1] */
    unsigned j;

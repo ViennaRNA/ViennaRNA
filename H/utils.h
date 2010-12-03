@@ -6,11 +6,17 @@
  *  \brief Various utility- and helper-functions used throughout the Vienna RNA package
  */
 
-/** Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF"  */
+/**
+ *  Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF"
+ */
 #define VRNA_INPUT_ERROR                  1U
-/** Output flag of \ref get_input_line():  "the user requested quitting the program"  */
+/**
+ *  Output flag of \ref get_input_line():  "the user requested quitting the program"
+ */
 #define VRNA_INPUT_QUIT                   2U
-/** Output flag of \ref get_input_line():  "something was read"  */
+/**
+ *  Output flag of \ref get_input_line():  "something was read"
+ */
 #define VRNA_INPUT_MISC                   4U
 /** Input/Output flag of \ref get_input_line():\n
  *  if used as input option this tells get_input_line() that the data to be read should comply
@@ -34,35 +40,57 @@
  *  "do not trunkate the line by eliminating white spaces at end of line"
  */
 #define VRNA_INPUT_NO_TRUNCATION          256U
-/** Input switch for read_record():  "do fill rest array"  */
+/**
+ *  Input switch for read_record():  "do fill rest array"
+ */
 #define VRNA_INPUT_NO_REST                512U
-/** Input switch for read_record():  "never allow data to span more than one line"  */
+/**
+ *  Input switch for read_record():  "never allow data to span more than one line"
+ */
 #define VRNA_INPUT_NO_SPAN                1024U
-
-/** Input switch for read_record():  "do not skip empty lines"  */
+/**
+ *  Input switch for read_record():  "do not skip empty lines"
+ */
 #define VRNA_INPUT_NOSKIP_BLANK_LINES     2048U
-/** Output flag for read_record():  "read an empty line" */
+/**
+ *  Output flag for read_record():  "read an empty line"
+ */
 #define VRNA_INPUT_BLANK_LINE             4096U
-
-/** Input switch for \ref get_input_line():  "do not skip comment lines"  */
+/**
+ *  Input switch for \ref get_input_line():  "do not skip comment lines"
+ */
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
-/** Output flag for read_record():  "read a comment" */
+/**
+ *  Output flag for read_record():  "read a comment"
+ */
 #define VRNA_INPUT_COMMENT                8192U
 
 
 
 
-/** pipe sign '|' switch for structure constraints (paired with another base)  */
+/**
+ *  pipe sign '|' switch for structure constraints (paired with another base)
+ */
 #define VRNA_CONSTRAINT_PIPE              1U
-/** dot '.' switch for structure constraints (no constraint at all)  */
+/**
+ *  dot '.' switch for structure constraints (no constraint at all)
+ */
 #define VRNA_CONSTRAINT_DOT               2U
-/** 'x' switch for structure constraint (base must not pair)  */
+/**
+ *  'x' switch for structure constraint (base must not pair)
+ */
 #define VRNA_CONSTRAINT_X                 4U
-/** angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)  */
+/**
+ *  angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)
+ */
 #define VRNA_CONSTRAINT_ANG_BRACK         8U
-/** round brackets '(',')' switch for structure constraint (base i pairs base j)  */
+/**
+ *  round brackets '(',')' switch for structure constraint (base i pairs base j)
+ */
 #define VRNA_CONSTRAINT_RND_BRACK         16U
-/** do not print the header information line */
+/**
+ *  do not print the header information line
+ */
 #define VRNA_CONSTRAINT_NO_HEADER         32U
 
 /**
@@ -299,7 +327,7 @@ while(!(read_record(&id, &seq, &rest, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
  *  \param  options   Some options which may be passed to alter the behavior of the function, use 0 for no options
  *  \return           A flag with information about what the function actually did read
  */
-unsigned int read_record(char **header, char **sequence, char ***rest, unsigned int options);
+unsigned int read_record(char **header, char **sequence, char  ***rest, unsigned int options);
 
 /**
  *  \brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
