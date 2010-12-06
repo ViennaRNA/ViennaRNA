@@ -115,7 +115,7 @@ PRIVATE int     circular = 0;
 */
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
-PRIVATE int   energy_of_extLoop_pt(short *pair_table);
+PRIVATE int   energy_of_extLoop_pt(int i, short *pair_table);
 PRIVATE int   energy_of_ml_pt(int i, short *pt);
 PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
@@ -1367,7 +1367,7 @@ PUBLIC int energy_of_structure_pt(const char *string, short * ptable,
 
   length = S[0];
 //  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
-    energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(ptable);
+    energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(0, ptable);
   if (verbosity_level>0)
     printf("External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
@@ -1533,7 +1533,7 @@ PRIVATE int stack_energy(int i, const char *string, int verbosity_level)
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
       ee = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
     else
-      ee = ML_Energy(cut_in_loop(i), 1);
+      ee = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
     if (verbosity_level>0)
       printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
              i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
@@ -1547,7 +1547,7 @@ PRIVATE int stack_energy(int i, const char *string, int verbosity_level)
     if (SAME_STRAND(i,j))
       ee = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
     else
-      ee = ML_Energy(cut_in_loop(i), 1);
+      ee = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
     energy += ee;
     if (verbosity_level>0)
       printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
@@ -1567,8 +1567,7 @@ PRIVATE int stack_energy(int i, const char *string, int verbosity_level)
   {
     int ii;
     ii = cut_in_loop(i);
-//    ee = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
-    ee = (ii==0) ? energy_of_ml_pt(i, pair_table) : ML_Energy(ii, 1);
+    ee = (ii==0) ? energy_of_ml_pt(i, pair_table) : energy_of_extLoop_pt(ii, pair_table);
   }
   energy += ee;
   if (verbosity_level>0)
@@ -1588,7 +1587,7 @@ PRIVATE int stack_energy(int i, const char *string, int verbosity_level)
 *** for all stems branching off the exterior
 *** loop
 **/
-PRIVATE int energy_of_extLoop_pt(short *pair_table) {
+PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
   int energy, mm5, mm3;
   int p, q, q_prev;
   int length = (int)pair_table[0];
@@ -1599,7 +1598,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
 
   /* initialize vars */
   energy      = 0;
-  p           = 1;
+  p           = (i==0) ? 1 : i;
   q_prev      = -1;
 
   if(dangles%2 == 1){
@@ -1624,7 +1623,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                 break;
       /* the beloved double dangles */
       case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q+1,q)) && (q<length))  ? S1[q+1] : -1;
+                mm3 = ((SAME_STRAND(q,q+1)) && (q<length))  ? S1[q+1] : -1;
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
@@ -1636,7 +1635,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                     E3_occupied  = INF;
                   }
                   mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q+1,q)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
+                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
                   tmp = (mm3 < 0) ? INF :  MIN2(
                                                 E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
                                                 E3_available + E_ExtLoop(tt, mm5, mm3, P)
@@ -1656,7 +1655,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
                     E3_occupied  = E3_available;
                   }
                   mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q+1,q)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
+                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
                   tmp = MIN2(
                                                 E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
                                                 E3_available + E_ExtLoop(tt, mm5, mm3, P)
@@ -1674,6 +1673,7 @@ PRIVATE int energy_of_extLoop_pt(short *pair_table) {
     p = q + 1;
     q_prev = q;
     while (p <= length && !pair_table[p]) p++;
+    if(p==i) break; /* cut was in loop */
   }
 
   if(dangles%2 == 1)
@@ -1750,7 +1750,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                 tt = pair[S[p]][S[q]];
                 if(tt==0) tt=7;
                 mm5 = (SAME_STRAND(p-1,p))  ? S1[p-1] : -1;
-                mm3 = (SAME_STRAND(q+1,q))  ? S1[q+1] : -1;
+                mm3 = (SAME_STRAND(q,q+1))  ? S1[q+1] : -1;
                 energy += E_MLstem(tt, mm5, mm3, P);
                 /* seek to the next stem */
                 p = q + 1;
@@ -1759,7 +1759,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                 u += p - q - 1; /* add unpaired nucleotides */
               }
               type = pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j,j-1)) && !pair_table[j-1])  ? S1[j-1] : -1;
+              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
               mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
               energy += E_MLstem(type, S1[j-1], S1[i+1], P);
               break;
@@ -1873,7 +1873,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                   E2_mm5_occupied = INF;
                 }
                 mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q+1,q)) && !pair_table[q+1])  ? S1[q+1] : -1;
+                mm3 = ((SAME_STRAND(q,q+1)) && !pair_table[q+1])  ? S1[q+1] : -1;
                 tmp = (mm3 < 0) ? INF :  MIN2(
                                               E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
                                               E_mm5_available + E_MLstem(tt, mm5, mm3, P)
@@ -1900,7 +1900,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               }
               /* now lets see how we get the minimum including the enclosing stem */
               type = pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j,j-1)) && !pair_table[j-1])  ? S1[j-1] : -1;
+              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
               mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
               energy = INF;
               if(q_prev + 2 < j){
@@ -1933,7 +1933,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                   E2_mm5_occupied   = E2_mm5_available;
                 }
                 mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q+1,q)) && !pair_table[q+1])  ? S1[q+1] : -1;
+                mm3 = ((SAME_STRAND(q,q+1)) && !pair_table[q+1])  ? S1[q+1] : -1;
                 tmp =                   MIN2(
                                               E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
                                               E_mm5_available + E_MLstem(tt, mm5, mm3, P)
@@ -1966,7 +1966,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               }
               /* now lets see how we get the minimum including the enclosing stem */
               type = pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j,j-1)) && !pair_table[j-1])  ? S1[j-1] : -1;
+              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
               mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
               if(q_prev + 2 < p){
                 E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
@@ -2010,7 +2010,7 @@ PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
   pair_table = ptable;   S = s;   S1 = s1;
 
   if (i==0) { /* evaluate exterior loop */
-    energy = ML_Energy(0,1);
+    energy = energy_of_extLoop_pt(0,pair_table);
     pair_table=ptold; S=Sold; S1=S1old;
     return energy;
   }
@@ -2038,13 +2038,13 @@ PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
       }
       energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], loopseq, P);
     } else {
-      energy = ML_Energy(cut_in_loop(i), 1);
+      energy = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
     }
   }
   else if (pair_table[q]!=(short)p) { /* multi-loop */
     int ii;
     ii = cut_in_loop(i);
-    energy = (ii==0) ? ML_Energy(i,0) : ML_Energy(ii, 1);
+    energy = (ii==0) ? energy_of_ml_pt(i, pair_table) : energy_of_extLoop_pt(ii, pair_table);
   }
   else { /* found interior loop */
     int type_2;
@@ -2060,7 +2060,7 @@ PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
       energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                           S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
     else
-      energy = ML_Energy(cut_in_loop(i), 1);
+      energy = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
   }
 
   pair_table=ptold; S=Sold; S1=S1old;
@@ -2078,7 +2078,7 @@ PRIVATE int cut_in_loop(int i) {
     i  = pair_table[p];  p = i+1;
     while ( pair_table[p]==0 ) p++;
   } while (p!=j && SAME_STRAND(i,p));
-  return SAME_STRAND(i,p) ? 0 : pair_table[p];
+  return SAME_STRAND(i,p) ? 0 : j;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2315,7 +2315,6 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
     mm5_prev = mm3_prev = -1;
 
     int E_mm5_available, E_mm5_occupied;
-
     /* find out if we may have 5' mismatch for the next stem */
     while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
     /* get position of pairing partner */
@@ -2334,7 +2333,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         if(tt==0) tt=7;
 
         int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? S1[p-1]: -1;
-        int mm3 = ((SAME_STRAND(q+1,q)) && (q<(unsigned int)pair_table[0])) ? S1[q+1]: -1;
+        int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pair_table[0])) ? S1[q+1]: -1;
 
         switch(dangles){
           /* dangles == 0 */

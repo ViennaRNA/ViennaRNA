@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 2.0  2010/12/06 20:04:20  ronny
+  repaired subopt for cofolding
+
   Revision 1.24  2008/11/01 21:10:20  ivo
   avoid rounding errors when computing DoS
 
@@ -403,6 +406,10 @@ best_attainable_energy(STATE * state)
         sum += c[indx[next->j] + next->i];
       else if (next->array_flag == 3)
         sum += fM1[indx[next->j] + next->i];
+      else if (next->array_flag == 4)
+        sum += fc[next->i];
+      else if (next->array_flag == 5)
+        sum += fc[next->j];
     }
 
   return sum;
@@ -674,7 +681,6 @@ scan_interval(int i, int j, int array_flag, STATE * state)
   }
 
   /* 13131313131313131313131313131313131313131313131313131313131313131313131 */
-
   if (array_flag == 3 || array_flag == 1) {
     /* array_flag = 3: interval i,j was generated during */
     /*                 a multiloop decomposition using array fM1 in repeat() */
@@ -1001,6 +1007,94 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     }
   }        /* thats all folks for the circular case... */
 
+  /* 44444444444444444444444444444444444444444444444444444444444444 */
+  if (array_flag == 4) {
+    /* array_flag = 4:                        interval i,j was found while */
+    /* tracing back through fc-array smaller than than cut_point*/
+    /* or within this block */
+
+    if (fc[i+1] + best_energy <= threshold) {
+      /* no basepair, nibbling of 5'-end */
+      new_state = copy_state(state);
+      new_interval = make_interval(i+1, j , 4);
+      push(new_state->Intervals, new_interval);
+      push(Stack, new_state);
+    }
+
+    for (k = i+TURN+1; k < j; k++) {
+
+      type = ptype[indx[k]+i];
+      if (type==0)   continue;
+
+      /* k and j pair */
+      if (dangles)
+        element_energy = E_ExtLoop(type, (i > 1) ? S1[i-1]: -1, S1[k+1], P);
+      else  /* no dangles */
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (fc[k+1] + c[indx[k]+i] + element_energy + best_energy <= threshold) {
+        temp_state = copy_state(state);
+        new_interval = make_interval(k+1,j, 4);
+        push(temp_state->Intervals, new_interval);
+        repeat(i, k, temp_state, element_energy, fc[k+1]);
+        free_state_node(temp_state);
+      }
+    }
+    type = ptype[indx[j]+i];
+    if (type) {
+      if (dangles)
+        element_energy = E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P);
+      else
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
+        repeat(i, cut_point-1, state, element_energy, 0);
+    }
+  } /* array_flag == 4 */
+
+  /*55555555555555555555555555555555555555555555555555555555555555555555555*/
+  if (array_flag == 5) {
+    /* array_flag = 5:  interval cut_point=i,j was found while  */
+    /* tracing back through fc-array greater than cut_point     */
+    /* or within this block                                     */
+
+    if (fc[j-1] + best_energy <= threshold) {
+      /* no basepair, nibbling of 3'-end */
+      new_state = copy_state(state);
+      new_interval = make_interval(i, j-1 , 5);
+      push(new_state->Intervals, new_interval);
+      push(Stack, new_state);
+    }
+
+    for (k = j-TURN-1; k > i; k--) {
+
+      type = ptype[indx[j]+k];
+      if (type==0)   continue;
+      element_energy = 0;
+
+      /* k and j pair */
+      if (dangles)
+        element_energy = E_ExtLoop(type, S1[k-1], (j < length) ? S1[j+1] : -1, P);
+      else
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (fc[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold) {
+        temp_state = copy_state(state);
+        new_interval = make_interval(i, k-1, 5);
+        push(temp_state->Intervals, new_interval);
+        repeat(k, j, temp_state, element_energy, fc[k-1]);
+        free_state_node(temp_state);
+      }
+    }
+    type = ptype[indx[j]+i];
+    if (type) {
+      if(dangles)
+        element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
+
+      if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
+        repeat(cut_point, j, state, element_energy, 0);
+    }
+  } /* array_flag == 5 */
   if (nopush)
     push_back(state);
   return;
@@ -1036,7 +1130,8 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       make_pair(i+1, j-1, new_state);
       new_interval = make_interval(i+1, j-1, 2);
       push(new_state->Intervals, new_interval);
-      if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) energy = E_IntLoop(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
+      if(SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
+        energy = E_IntLoop(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
       new_state->partial_energy += part_energy;
       new_state->partial_energy += energy;
@@ -1047,8 +1142,8 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
         return;
     }
 
-  best_energy += part_energy;        /* energy of current structural element */
-  best_energy += temp_energy;               /* energy from unpushed interval */
+  best_energy += part_energy; /* energy of current structural element */
+  best_energy += temp_energy; /* energy from unpushed interval */
 
   for (p = i + 1; p <= MIN2 (j-2-turn,  i+MAXLOOP+1); p++) {
     int minq = j-i+p-MAXLOOP-2;
@@ -1084,8 +1179,8 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
           push(Stack, new_state);
         }
       }/*end of if block */
-    }                                                  /* end of q-loop */
-  }                                                    /* end of p-loop */
+    } /* end of q-loop */
+  } /* end of p-loop */
 
   if (!SAME_STRAND(i,j)) { /*look in fc*/
     rt = rtype[type];
@@ -1154,17 +1249,16 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
 
 
   if (SAME_STRAND(i,j)) {
-    if (no_close) energy = FORBIDDEN;
+    if (no_close) element_energy = FORBIDDEN;
     else
-      energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1, P);
-
-    if (energy + best_energy <= threshold) {
+      element_energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1, P);
+    if (element_energy + best_energy <= threshold) {
       /* hairpin structure */
 
       new_state = copy_state(state);
       make_pair(i, j, new_state);
       new_state->partial_energy += part_energy;
-      new_state->partial_energy += energy;
+      new_state->partial_energy += element_energy;
       /* new_state->best_energy =
          hairpin[unpaired] + element_energy + best_energy; */
       push(Stack, new_state);
