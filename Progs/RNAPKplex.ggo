@@ -11,7 +11,9 @@ purpose "predicts RNA secondary structures including pseudoknots"
 args "--file-name=RNAPKplex_cmdl --include-getopt --default-optional --func-name=PKplex_cmdline_parser --arg-struct-name=PKplex_args_info"
 
 
-description "Computes RNA secondary structures by first making two sequence intervals accessible and unpaired using the algorithm of RNAplfold and then calculating the energy of the interaction of those two intervals. The algorithm uses O(n^2*w^4) CPU time and O(n*w^2) memory space.\n"
+description "Computes RNA secondary structures by first making two sequence intervals accessible and unpaired using\
+ the algorithm of RNAplfold and then calculating the energy of the interaction of those two intervals. The algorithm\
+ uses O(n^2*w^4) CPU time and O(n*w^2) memory space.\nThe algorithm furthermore always considers dangle=2 model.\n"
 
 # Options
 option  "cutoff"  c
@@ -28,15 +30,6 @@ option  "noTetra" 4
 "Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
 flag
 off
-
-option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="With -d2 dangling energies will be added for the bases adjacent to a helix on both sides in\
- any case.\n\n-d0 ignores dangling ends altogether (mostly for\
- debugging).\n"
-int
-default="2"
-optional
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"

@@ -60,8 +60,6 @@ int main(int argc, char *argv[]) {
   if(args_info.temp_given)              temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)           tetra_loop=0;
-  /* set dangle model */
-  if(args_info.dangles_given)           dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
   if(args_info.noLP_given)              noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
@@ -114,12 +112,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if(dangles % 2){
-    printf("using default dangles = 2\n");
-    dangles = 2;
-  }
-  if (verbose) printf("Dangles: %d\n", dangles);
-
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if(istty) options |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   options |= VRNA_INPUT_NO_REST;
@@ -171,7 +163,10 @@ int main(int argc, char *argv[]) {
       pUfp = spup = NULL;
 
       if (verbose) printf ("Winsize = %d\nPairdist = %d\nUnpaired = %d\n", winsize, pairdist, unpaired);
+      int tempdangles = dangles;
+      dangles = 2;
       pl = pfl_fold(s1, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
+      dangles = tempdangles;
 
     /*
     ########################################################
@@ -282,7 +277,11 @@ int main(int argc, char *argv[]) {
           }
         }
 
-        printf("%s   (%3.2f)\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
+        if (PlexHits[current].structure) {
+          printf("%s   (%3.2f)\n", constraint, constrainedEnergy+PlexHits[current].ddG-(float) energyCutoff/100);
+        } else {
+          printf("%s   (%3.2f)\n", constraint, constrainedEnergy+PlexHits[current].ddG);
+        }
 
         if(current==0) {
         /*
