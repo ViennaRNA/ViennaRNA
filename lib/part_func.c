@@ -855,7 +855,7 @@ char *pbacktrack(char *seq){
   sequence = seq;
   n = strlen(sequence);
 
-  if (init_length<1)
+  if (!qb)
     nrerror("can't backtrack without pf arrays.\n"
             "Call pf_fold() before pbacktrack()");
   pstruc = space((n+1)*sizeof(char));
@@ -899,7 +899,7 @@ char *pbacktrack_circ(char *seq){
   sequence = seq;
   n = strlen(sequence);
 
-  if (init_length<1)
+  if (!qb)
     nrerror("can't backtrack without pf arrays.\n"
       "Call pf_circ_fold() before pbacktrack_circ()");
   pstruc = space((n+1)*sizeof(char));
