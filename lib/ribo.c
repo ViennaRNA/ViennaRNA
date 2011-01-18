@@ -723,6 +723,12 @@ float **get_ribosum(const char **Alseq, int n_seq, int length){
   maximum*=100;
   minimum+=0.5;
   maximum+=0.5;
+  if (n_seq==1 || minimum>100.45){
+    for (i=0; i<7; i++)
+      for (j=0; j<7;j++)
+        ribo[i][j]= 0.;
+    return ribo;
+  }
   min=(int) minimum/5;
   max=(int) maximum/5;
 

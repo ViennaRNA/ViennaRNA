@@ -164,9 +164,7 @@ PRIVATE void init_partfunc(int length){
   get_arrays((unsigned) length);
   scale_pf_params((unsigned) length);
 
-#ifndef _OPENMP
   init_length = length;
-#endif
 }
 
 PRIVATE void get_arrays(unsigned int length){
@@ -239,9 +237,7 @@ PUBLIC void free_pf_arrays(void){
 #endif
 #endif
 
-#ifndef _OPENMP
   init_length = 0;
-#endif
 }
 
 /*-----------------------------------------------------------------*/
@@ -258,8 +254,8 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   init_partfunc(n);
 #else
   if (n > init_length) init_partfunc(n);
-  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
 #endif
+  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
 
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
@@ -855,7 +851,7 @@ char *pbacktrack(char *seq){
   sequence = seq;
   n = strlen(sequence);
 
-  if (!qb)
+  if (init_length<1)
     nrerror("can't backtrack without pf arrays.\n"
             "Call pf_fold() before pbacktrack()");
   pstruc = space((n+1)*sizeof(char));
@@ -899,7 +895,7 @@ char *pbacktrack_circ(char *seq){
   sequence = seq;
   n = strlen(sequence);
 
-  if (!qb)
+  if (init_length<1)
     nrerror("can't backtrack without pf arrays.\n"
       "Call pf_circ_fold() before pbacktrack_circ()");
   pstruc = space((n+1)*sizeof(char));
