@@ -336,13 +336,13 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     i = 1;
                     /* lets see if this assumption holds for the complete line */
                     while((line[i] == 'x') || (line[i] == 'e') || (line[i] == 'l')) i++;
-                    /* it may be a sequence starting with or solely consisting of 'x's, 'e's or 'l's */
-                    if(     (line[i] == '\0')
-                        ||  ((line[i]>64) && (line[i]<91))  /* A-Z */
+                    /* lines solely consisting of 'x's, 'e's or 'l's will be considered as structure constraint */
+                    if(
+                            ((line[i]>64) && (line[i]<91))  /* A-Z */
                         ||  ((line[i]>96) && (line[i]<123)) /* a-z */
                       ){
                       if(option & VRNA_INPUT_FASTA_HEADER){
-                        /* are we in structure mode? */
+                        /* are we in structure mode? Then we remember this line for the next round */
                         if(state == 2){ inbuf = line; return VRNA_INPUT_CONSTRAINT;}
                         else{
                           *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
@@ -354,6 +354,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                       /* otherwise return line read */
                       else{ *string = line; return VRNA_INPUT_SEQUENCE;}
                     }
+                    /* mmmh? it really seems to be a constraint */
                     /* fallthrough */
       case  '<': case  '.': case  '|': case  '(': case ')': case '[': case ']': case '{': case '}': case ',':
                     /* seems to be a structure or a constraint */
@@ -677,6 +678,67 @@ PUBLIC int *get_indx(unsigned int length){
   for (i = 1; i <= length; i++)
     idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
   return idx;
+}
+
+PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option){
+  int r, i, j, l, cl, stop;
+  char *c, *ptr;
+  if(lines){
+    if(option & VRNA_CONSTRAINT_ALL)
+      option |= VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK | VRNA_CONSTRAINT_X;
+
+    for(r=i=stop=0;lines[i];i++){
+      l   = (int)strlen(lines[i]);
+      c   = (char *) space(sizeof(char) * (l+1));
+      (void) sscanf(lines[i], "%s", c);
+      cl  = (int)strlen(c);
+      /* line commented out ? */
+      if((*c == '#') || (*c == '%') || (*c == ';') || (*c == '/') || (*c == '*' || (*c == '\0'))){
+        /* skip leading comments only, i.e. do not allow comments inside the constraint */
+        if(!r)  continue;
+        else    break;
+      }
+
+      /* check current line for actual constraining structure */
+      for(ptr = c;*c;c++){
+        switch(*c){
+          case '|':   if(!(option & VRNA_CONSTRAINT_PIPE)){
+                        warn_user("constraints of type '|' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case '<':   
+          case '>':   if(!(option & VRNA_CONSTRAINT_ANG_BRACK)){
+                        warn_user("constraints of type '<' or '>' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case '(':
+          case ')':   if(!(option & VRNA_CONSTRAINT_RND_BRACK)){
+                        warn_user("constraints of type '(' or ')' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case 'x':   if(!(option & VRNA_CONSTRAINT_X)){
+                        warn_user("constraints of type 'x' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case '.':   break;
+          case '&':   break; /* ignore concatenation char */
+          default:    warn_user("unrecognized character in constraint structure");
+                      break;
+        }
+      }
+
+      r += cl+1;
+      *cstruc = (char *)xrealloc(*cstruc, r*sizeof(char));
+      strcat(*cstruc, ptr);
+      free(ptr);
+      /* stop if not in fasta mode or multiple words on line */
+      if(!(option & VRNA_CONSTRAINT_MULTILINE) || (cl != l)) break;
+    }
+  }
 }
 
 PUBLIC void constrain_ptypes(const char *constraint, unsigned int length, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){

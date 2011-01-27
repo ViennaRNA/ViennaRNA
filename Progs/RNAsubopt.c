@@ -30,9 +30,10 @@ PRIVATE void putoutzuker(SOLUTION* zukersolution);
 int main(int argc, char *argv[]){
   struct        RNAsubopt_args_info args_info;
   unsigned int  input_type;
-  char          fname[80], *cstruc, *sequence, *c, *input_string;
+  unsigned int  rec_type, read_opt;
+  char          fname[80], *cstruc, *c, *input_string, *rec_sequence, *rec_id, **rec_rest;
   char          *structure = NULL, *ParamFile = NULL, *ns_bases = NULL;
-  int           i, length, l, sym, istty;
+  int           i, length, l, cl, sym, istty;
   double        deltaf, deltap;
   int           delta, n_back, noconv, circular, dos, zuker;
 
@@ -40,6 +41,10 @@ int main(int argc, char *argv[]){
   dangles       = 2;
   delta         = 100;
   deltap = n_back = noconv = circular = dos = zuker = 0;
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
+
   /*
   #############################################
   # check the command line parameters
@@ -135,45 +140,65 @@ int main(int argc, char *argv[]){
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
-  if(fold_constrained && istty) print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X);
+  /* print user help if we get input from tty */
+  if(istty){
+    if(!zuker)
+      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+    if(fold_constrained){
+      print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+    }
+    else print_tty_input_seq();
+  }
 
+  /* set options we wanna pass to read_record */
+  if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do {
-    cut_point = -1;
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty){
-      if (!zuker)
-        printf("Use '&' to connect 2 sequences that shall form a complex.\n");
-      print_tty_input_seq();
+    if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
+      (void) sscanf(rec_id, ">%42s", fname);
     }
-    /* extract filename from fasta header if available */
-    fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
-      free(input_string);
-    }
+    else fname[0] = '\0';
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      sequence  = tokenize(input_string); /* frees input_string */
-      length    = (int) strlen(sequence);
-    }
+    cut_point = -1;
+
+    rec_sequence  = tokenize(rec_sequence); /* frees input_string and sets cut_point */
+    length    = (int) strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    if(noconv)  str_RNA2RNA(sequence);
-    else        str_DNA2RNA(sequence);
+    /* parse the rest of the current dataset to obtain a structure constraint */
+    if(fold_constrained){
+      cstruc = NULL;
+      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+      coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
+      getConstraint(&cstruc, (const char **)rec_rest, coptions);
+      cstruc = tokenize(cstruc);
+      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+
+      if(cl == 0)           warn_user("structure constraint is missing");
+      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
+      else if(cl > length)  nrerror("structure constraint is too long");
+
+      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
+    }
+
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -182,23 +207,9 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
     }
 
-    /* get structure constraint or break if necessary, entering an empty line results in a warning */
-    if (fold_constrained) {
-      input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
-      if(input_type & VRNA_INPUT_QUIT){ break;}
-      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
-        cstruc = tokenize(input_string);
-        strncpy(structure, cstruc, length);
-        for (i=0; i<length; i++)
-          if (structure[i]=='|')
-            nrerror("constraints of type '|' not allowed");
-        free(cstruc);
-      }
-      else warn_user("constraints missing");
-    }
     /*
     ########################################################
-    # done with 'stdin' handling, now init everything properly
+    # begin actual computations
     ########################################################
     */
 
@@ -216,18 +227,18 @@ int main(int argc, char *argv[]){
       double mfe, kT;
       char *ss;
       st_back=1;
-      ss = (char *) space(strlen(sequence)+1);
+      ss = (char *) space(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
-      mfe = fold(sequence, ss);
+      mfe = fold(rec_sequence, ss);
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
       pf_scale = exp(-(1.03*mfe)/kT/length);
       strncpy(ss, structure, length);
       /* ignore return value, we are not interested in the free energy */
-      (circular) ? (void) pf_circ_fold(sequence, ss) : (void) pf_fold(sequence, ss);
+      (circular) ? (void) pf_circ_fold(rec_sequence, ss) : (void) pf_fold(rec_sequence, ss);
       free(ss);
       for (i=0; i<n_back; i++) {
         char *s;
-        s =(circular) ? pbacktrack_circ(sequence) : pbacktrack(sequence);
+        s =(circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
         printf("%s\n", s);
         free(s);
       }
@@ -235,7 +246,7 @@ int main(int argc, char *argv[]){
     }
     /* normal subopt */
     else if(!zuker){
-      (circular) ? subopt_circ(sequence, structure, delta, stdout) : subopt(sequence, structure, delta, stdout);
+      (circular) ? subopt_circ(rec_sequence, structure, delta, stdout) : subopt(rec_sequence, structure, delta, stdout);
       if (dos) {
         int i;
         for (i=0; i<= MAXDOS && i<=delta/10; i++) {
@@ -250,7 +261,7 @@ int main(int argc, char *argv[]){
       if (cut_point!=-1) {
         nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
       }
-      zr = zukersubopt(sequence);
+      zr = zukersubopt(rec_sequence);
       putoutzuker(zr);
       (void)fflush(stdout);
       for (i=0; zr[i].structure; i++) {
@@ -258,10 +269,33 @@ int main(int argc, char *argv[]){
       }
       free(zr);
     }
+    
     (void)fflush(stdout);
-    free(sequence);
+
+    /* clean up */
+    if(cstruc) free(cstruc);
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
     free(structure);
-  } while (1);
+    /* free the rest of current dataset */
+    if(rec_rest){
+      for(i=0;rec_rest[i];i++) free(rec_rest[i]);
+      free(rec_rest);
+    }
+    rec_id = rec_sequence = structure = cstruc = NULL;
+    rec_rest = NULL;
+
+    /* print user help for the next round if we get input from tty */
+    if(istty){
+      if(!zuker)
+        printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      if(fold_constrained){
+        print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+      }
+      else print_tty_input_seq();
+    }
+  }
   return 0;
 }
 

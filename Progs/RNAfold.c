@@ -174,30 +174,21 @@ int main(int argc, char *argv[]){
     else fname[0] = '\0';
 
     length  = (int)strlen(rec_sequence);
+    structure = (char *)space(sizeof(char) *(length+1));
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
-      if(rec_rest)
-        for(r=0,i=0;rec_rest[i];i++){
-          l = (int)strlen(rec_rest[i]);
-          c = (char *) space(sizeof(char) * (l+1));
-          (void) sscanf(rec_rest[i], "%s", c);
-          /* actual constraining structure ? */
-          if((*c=='<') || (*c=='>') || (*c=='.') || (*c=='|') || (*c=='(') || (*c==')') || (*c=='x')){
-            r += l+1;
-            cstruc = (char *)xrealloc(cstruc, r*sizeof(char));
-            strcat(cstruc, c);
-            if(!rec_id || ((int)strlen(c) != l)) break; /* stop if not in fasta mode or multiple words on line */
-          }
-          else if(r) break; /* we skip only leading comments and other stuff */
-        }
+      cstruc = NULL;
+      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+      coptions |= VRNA_CONSTRAINT_ALL;
+      getConstraint(&cstruc, (const char **)rec_rest, coptions);
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
+
       if(cl == 0)           warn_user("structure constraint is missing");
       else if(cl < length)  warn_user("structure constraint is shorter than sequence");
       else if(cl > length)  nrerror("structure constraint is too long");
+      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
-    structure = (char *)space(sizeof(char) *(length+1));
-    if(fold_constrained && (cstruc)) strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
     if(noconv)  str_RNA2RNA(rec_sequence);
     else        str_DNA2RNA(rec_sequence);

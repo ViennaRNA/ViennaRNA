@@ -89,9 +89,17 @@
  */
 #define VRNA_CONSTRAINT_RND_BRACK         16U
 /**
+ *  constraint may span over several lines
+ */
+#define VRNA_CONSTRAINT_MULTILINE         32U
+/**
  *  do not print the header information line
  */
-#define VRNA_CONSTRAINT_NO_HEADER         32U
+#define VRNA_CONSTRAINT_NO_HEADER         64U
+/**
+ *  placeholder for all constraining characters
+ */
+#define VRNA_CONSTRAINT_ALL              128U
 
 /**
  *  Get the minimum of two comparable values
@@ -473,6 +481,8 @@ int   *get_iindx(unsigned int length);
  * 
  */
 int   *get_indx(unsigned int length);
+
+void getConstraint(char **cstruc, const char **lines, unsigned int option);
 
 /**
  *  \brief Insert constraining pair types according to constraint structure string

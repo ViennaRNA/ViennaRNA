@@ -69,6 +69,7 @@ PRIVATE int           *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE char          **ptype;    /* precomputed array of pair types */
 PRIVATE short         *S, *S1;
 PRIVATE unsigned int  length;
+PRIVATE char          *prev;
 #ifdef USE_SVM
 PRIVATE struct svm_model  *avg_model;
 PRIVATE struct svm_model  *sd_model;
@@ -220,7 +221,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
   short mm5, mm3;
 
   length = (int) strlen(string);
-
+  prev=NULL;
   for (j=0; j<maxdist+5; j++)
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
   for (j=length; j>length-maxdist-4; j--) {
@@ -385,8 +386,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
     /* calculate energies of 5' and 3' fragments */
     {
       static int do_backtrack = 0, prev_i=0;
-      static char * prev=NULL;
-      char *ss;
+      char *ss=NULL;
       double prevz;
       f3[i] = f3[i+1];
       switch(dangles){
