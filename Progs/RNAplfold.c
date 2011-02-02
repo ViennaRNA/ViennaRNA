@@ -34,7 +34,7 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
 int main(int argc, char *argv[]){
   struct        RNAplfold_args_info args_info;
   unsigned int  error = 0;
-  char          fname[80], ffname[100], *c, *string, *input_string, *structure, *ParamFile, *ns_bases;
+  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
   unsigned int  input_type;
   int           i, length, l, sym, r, istty, winsize, pairdist;
   float         cutoff;
@@ -43,15 +43,19 @@ int main(int argc, char *argv[]){
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
   int           noconv, plexoutput, simply_putout, openenergies;
   plist         *pl, *dpp = NULL;
+  unsigned int  rec_type, read_opt;
 
-  dangles   = 2;
-  cutoff    = 0.01;
-  winsize   = 70;
-  pairdist  = 0;
-  unpaired  = 0;
+  dangles       = 2;
+  cutoff        = 0.01;
+  winsize       = 70;
+  pairdist      = 0;
+  unpaired      = 0;
   simply_putout = plexoutput = openenergies = noconv = 0;
-  tempwin = temppair = tempunpaired = 0;
-  string = input_string = structure = ParamFile = ns_bases = NULL;
+  tempwin       = temppair = tempunpaired = 0;
+  structure     = ParamFile = ns_bases = NULL;
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
 
   /*
   #############################################
@@ -145,47 +149,43 @@ int main(int argc, char *argv[]){
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  read_opt |= VRNA_INPUT_NO_REST;
+  if(istty){
+    print_tty_input_seq();
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  }
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do{
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty) print_tty_input_seq();
-
-    /* extract filename from fasta header if available */
-    fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
-      free(input_string);
+    if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
+      (void) sscanf(rec_id, ">%42s", fname);
     }
+    else fname[0] = '\0';
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      length = (int)    strlen(input_string);
-      string = strdup(input_string);
-      free(input_string);
-    }
-
+    length    = (int)strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
     /*
     ########################################################
-    # done with 'stdin' handling, now init everything properly
+    # done with 'stdin' handling
     ########################################################
     */
 
@@ -262,14 +262,14 @@ int main(int argc, char *argv[]){
         spup = fopen(fname2, "w");
         pUfp = (unpaired > 0) ? fopen(fname1, "w") : NULL;
 
-        pl = pfl_fold(string, winsize, pairdist, cutoff, pup, &dpp, pUfp,spup);
+        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp,spup);
 
         if(pUfp != NULL)  fclose(pUfp);
         if(spup != NULL)  fclose(spup);
       }
       else{
-        pl = pfl_fold(string, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
-        PS_dot_plot_turn(string, pl, ffname, pairdist);
+        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
+        PS_dot_plot_turn(rec_sequence, pl, ffname, pairdist);
         if (unpaired > 0){
           if(plexoutput){
             pUfp = fopen(fname3, "w");
@@ -286,12 +286,20 @@ int main(int argc, char *argv[]){
         free(pup[0]);
         free(pup);
       }
-      (void) fflush(stdout);
     }
-    free(string);
+    (void) fflush(stdout);
+
+    /* clean up */
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
     free(structure);
-  } while (1);
-  return 0;
+    rec_id = rec_sequence = NULL;
+    rec_rest = NULL;
+    /* print user help for the next round if we get input from tty */
+
+    if(istty) print_tty_input_seq();
+  }
+  return EXIT_SUCCESS;
 }
 
 /* additional output functions */

@@ -34,18 +34,22 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max, float h, int 
 
 int main(int argc, char *argv[]){
   struct  RNAheat_args_info args_info;
-  char                      *string, *input_string, *ns_bases, *c, *ParamFile;
+  char                      *string, *input_string, *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest;
   int                       i, length, l, sym;
   float                     T_min, T_max, h;
   int                       mpoints, istty, noconv = 0;
   unsigned int              input_type;
+  unsigned int              rec_type, read_opt;
 
-  string = ParamFile = ns_bases = NULL;
-  T_min    = 0.;
-  T_max    = 100.;
-  h        = 1;
-  mpoints  = 2;
-  dangles  = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
+  string    = ParamFile = ns_bases = NULL;
+  T_min     = 0.;
+  T_max     = 100.;
+  h         = 1;
+  mpoints   = 2;
+  dangles   = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
+  rec_type  = read_opt = 0;
+  rec_id    = rec_sequence = NULL;
+  rec_rest  = NULL;
 
   /*
   #############################################
@@ -123,45 +127,52 @@ int main(int argc, char *argv[]){
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
+  read_opt |= VRNA_INPUT_NO_REST;
+  if(istty){
+    print_tty_input_seq();
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  }
+
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do {
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty) print_tty_input_seq();
+    if(rec_id && !istty) printf("%s\n", rec_id);
 
-    /* skip fasta headers and comments */
-    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      /* skip fasta headers and comments */
-      free(input_string);
-    }
+    length = (int)strlen(rec_sequence);
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      string = strdup(input_string);
-      length = (int) strlen(string);
-      free(input_string);
-    }
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    if(istty) printf("length = %d\n", length);
+    /*
+    ########################################################
+    # done with 'stdin' handling
+    ########################################################
+    */
 
-    if (istty) printf("length = %d\n", length);
-
-    heat_capacity(string, T_min, T_max, h, mpoints);
-    free(string);
+    heat_capacity(rec_sequence, T_min, T_max, h, mpoints);
     (void) fflush(stdout);
-  } while (1);
-  return 0;
+
+    /* clean up */
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
+    rec_id = rec_sequence = NULL;
+    rec_rest = NULL;
+    /* print user help for the next round if we get input from tty */
+
+    if(istty) print_tty_input_seq();
+  }
+  return EXIT_SUCCESS;
 }
 
 PRIVATE void heat_capacity(char *string, float T_min, float T_max,

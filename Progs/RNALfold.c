@@ -27,9 +27,9 @@ int main(int argc, char *argv[]){
   int                         i, length, l, sym, r, istty, noconv, maxdist, zsc;
   double                      energy, min_en, min_z;
   unsigned int                input_type;
-  unsigned int  rec_type, read_opt;
+  unsigned int                rec_type, read_opt;
 
-  string = structure = ParamFile = ns_bases = NULL;
+  string        = structure = ParamFile = ns_bases = NULL;
   do_backtrack  = 1;
   noconv        = 0;
   dangles       = 2;
@@ -168,6 +168,6 @@ int main(int argc, char *argv[]){
 
     if(istty) print_tty_input_seq();
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
 

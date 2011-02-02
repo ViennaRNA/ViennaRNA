@@ -20,17 +20,22 @@
 
 int main(int argc, char *argv[]){
   struct  RNALfoldz_args_info args_info;
-  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases;
+  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
   int                         i, length, l, sym, r, istty, noconv, maxdist, zsc;
   double                      energy, min_en, min_z;
   unsigned int                input_type;
+  unsigned int                rec_type, read_opt;
 
   string = structure = ParamFile = ns_bases = NULL;
+  dangles       = 2;
   do_backtrack  = 1;
   noconv        = 0;
   maxdist       = 150;
   zsc           = 1;
   min_z         = -2.0;
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
 
   /*
   #############################################
@@ -101,36 +106,32 @@ int main(int argc, char *argv[]){
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
+  read_opt |= VRNA_INPUT_NO_REST;
+  if(istty){
+    print_tty_input_seq();
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  }
+
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do{
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty) print_tty_input_seq();
+    if(rec_id && !istty) printf("%s\n", rec_id);
 
-    /* skip fasta header and comment lines */
-    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      free(input_string);
-    }
+    length = (int)strlen(rec_sequence);
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      length = (int)    strlen(input_string);
-      string = strdup(input_string);
-      free(input_string);
-    }
-
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
     /*
@@ -139,8 +140,8 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    min_en = (zsc) ? Lfoldz((const char *)string, NULL, maxdist, zsc, min_z) : Lfold((const char *)string, NULL, maxdist);
-    printf("%s\n", string);
+    min_en = (zsc) ? Lfoldz((const char *)rec_sequence, NULL, maxdist, zsc, min_z) : Lfold((const char *)rec_sequence, NULL, maxdist);
+    printf("%s\n", rec_sequence);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -148,8 +149,16 @@ int main(int argc, char *argv[]){
       printf(" (%6.2f)\n", min_en);
 
     (void) fflush(stdout);
-    free(string);
-  } while (1);
-  return 0;
+
+    /* clean up */
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
+    rec_id = rec_sequence = NULL;
+    rec_rest = NULL;
+    /* print user help for the next round if we get input from tty */
+
+    if(istty) print_tty_input_seq();
+  }
+  return EXIT_SUCCESS;
 }
 
