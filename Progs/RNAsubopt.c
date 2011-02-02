@@ -184,10 +184,12 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       cstruc = NULL;
+      int cp = cut_point;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
       getConstraint(&cstruc, (const char **)rec_rest, coptions);
       cstruc = tokenize(cstruc);
+      if(cut_point != cp) nrerror("cut point in sequence and structure constraint differs");
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
       if(cl == 0)           warn_user("structure constraint is missing");

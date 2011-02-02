@@ -35,12 +35,12 @@ int main(int argc, char *argv[])
   struct        RNAcofold_args_info args_info;
   unsigned int  input_type;
   char          *string, *input_string;
-  char    *structure, *cstruc;
+  char    *structure, *cstruc, *rec_sequence, *rec_id, **rec_rest;
   char    fname[80], ffname[80];
   char    *ParamFile;
   char    *ns_bases, *c;
   char    *Concfile;
-  int     i, length, l, sym, r;
+  int     i, length, l, sym, r, cl;
   double  min_en;
   double  kT, sfact;
   int     pf, istty;
@@ -60,12 +60,14 @@ int main(int argc, char *argv[])
   plist   *mfA;
   plist   *mfB;
   double  *ConcAandB;
+  unsigned int  rec_type, read_opt;
 
   /*
   #############################################
   # init variables and parameter options
   #############################################
   */
+  dangles       = 2;
   sfact         = 1.07;
   noconv        = 0;
   noPS          = 0;
@@ -81,6 +83,9 @@ int main(int argc, char *argv[])
   structure     = NULL;
   cstruc        = NULL;
   ns_bases      = NULL;
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
 
   /*
   #############################################
@@ -162,45 +167,66 @@ int main(int argc, char *argv[])
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
-  if(fold_constrained && istty) print_tty_constraint_full();
+  /* print user help if we get input from tty */
+  if(istty){
+    printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+    if(fold_constrained){
+      print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+    }
+    else print_tty_input_seq();
+  }
+
+  /* set options we wanna pass to read_record */
+  if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do {
-    cut_point = -1;
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
     /*
     ########################################################
-    # handle user input from 'stdin'
+    # init everything according to the data we've read
     ########################################################
     */
-    if(istty){
-      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
-      print_tty_input_seq();
+    if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
+      (void) sscanf(rec_id, ">%42s", fname);
     }
+    else fname[0] = '\0';
 
-    /* extract filename from fasta header if available, print each line read... last line printed should be the sequence to be folded,
-      thus, we dont print the sequence again in the later steps... */
-    fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
-      free(input_string);
-    }
+    cut_point = -1;
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      string = tokenize(input_string);
-      length = (int) strlen(string);
-    }
+    rec_sequence  = tokenize(rec_sequence); /* frees input_string and sets cut_point */
+    length    = (int) strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    /* parse the rest of the current dataset to obtain a structure constraint */
+    if(fold_constrained){
+      cstruc = NULL;
+      int cp = cut_point;
+      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+      coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
+      getConstraint(&cstruc, (const char **)rec_rest, coptions);
+      cstruc = tokenize(cstruc);
+      if(cut_point != cp) nrerror("cut point in sequence and structure constraint differs");
+      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+
+      if(cl == 0)           warn_user("structure constraint is missing");
+      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
+      else if(cl > length)  nrerror("structure constraint is too long");
+
+      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
+    }
+
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -209,20 +235,11 @@ int main(int argc, char *argv[])
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
     }
 
-    /* get structure constraint or break if necessary, entering an empty line results in a warning */
-    if (fold_constrained) {
-      input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
-      if(input_type & VRNA_INPUT_QUIT){ break;}
-      else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
-        cstruc = tokenize(input_string);
-        strncpy(structure, cstruc, length);
-        for (i=0; i<length; i++)
-          if (structure[i]=='|')
-            nrerror("constraints of type '|' not allowed");
-        free(cstruc);
-      }
-      else warn_user("constraints missing");
-    }
+    /*
+    ########################################################
+    # begin actual computations
+    ########################################################
+    */
 
     if (doC) {
       FILE *fp;
@@ -240,16 +257,16 @@ int main(int argc, char *argv[])
       }
     }
     /*compute mfe of AB dimer*/
-    min_en = cofold(string, structure);
+    min_en = cofold(rec_sequence, structure);
     assign_plist_from_db(&mfAB, structure, 0.95);
 
     {
       char *pstring, *pstruct;
       if (cut_point == -1) {
-        pstring = strdup(string);
+        pstring = strdup(rec_sequence);
         pstruct = strdup(structure);
       } else {
-        pstring = costring(string);
+        pstring = costring(rec_sequence);
         pstruct = costring(structure);
       }
       printf("%s\n%s", pstring, pstruct);
@@ -285,7 +302,7 @@ int main(int argc, char *argv[])
       cofoldF AB, AA, BB;
       if (dangles==1) {
         dangles=2;   /* recompute with dangles as in pf_fold() */
-        min_en = energy_of_structure(string, structure, 0);
+        min_en = energy_of_structure(rec_sequence, structure, 0);
         dangles=1;
       }
 
@@ -297,7 +314,7 @@ int main(int argc, char *argv[])
 
       if (cstruc!=NULL)
         strncpy(structure, cstruc, length+1);
-      AB = co_pf_fold(string, structure);
+      AB = co_pf_fold(rec_sequence, structure);
 
       if (do_backtrack) {
         char *costruc;
@@ -341,8 +358,8 @@ int main(int argc, char *argv[])
 
         Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
         Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
-        strncat(Astring,string,Alength);
-        strncat(Bstring,string+Alength,Blength);
+        strncat(Astring,rec_sequence,Alength);
+        strncat(Bstring,rec_sequence+Alength,Blength);
 
         /* compute AA dimer */
         AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA);
@@ -381,7 +398,7 @@ int main(int argc, char *argv[])
         /*write New name*/
         strcpy(Newname,"AB");
         strcat(Newname,ffname);
-        (void)PS_dot_plot_list(string, Newname, prAB, mfAB, comment);
+        (void)PS_dot_plot_list(rec_sequence, Newname, prAB, mfAB, comment);
 
         /*AA dot_plot*/
         sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
@@ -441,20 +458,39 @@ int main(int argc, char *argv[])
       } else strcpy(ffname, "dot.ps");
 
       if (!doT) {
-        if (pf) {          (void) PS_dot_plot_list(string, ffname, prAB, mfAB, "doof");
+        if (pf) {          (void) PS_dot_plot_list(rec_sequence, ffname, prAB, mfAB, "doof");
         free(prAB);}
         free(mfAB);
       }
     }
     if (!doT) free_co_pf_arrays();
 
-
-    if (cstruc!=NULL) free(cstruc);
     (void) fflush(stdout);
-    free(string);
+
+    /* clean up */
+    if(cstruc) free(cstruc);
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
     free(structure);
-  } while (1);
-  return 0;
+    /* free the rest of current dataset */
+    if(rec_rest){
+      for(i=0;rec_rest[i];i++) free(rec_rest[i]);
+      free(rec_rest);
+    }
+    rec_id = rec_sequence = structure = cstruc = NULL;
+    rec_rest = NULL;
+
+    /* print user help for the next round if we get input from tty */
+    if(istty){
+      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      if(fold_constrained){
+        print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+      }
+      else print_tty_input_seq();
+    }
+  }
+  return EXIT_SUCCESS;
 }
 
 PRIVATE char *tokenize(char *line)

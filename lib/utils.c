@@ -332,11 +332,12 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     else      *string = line;
                     return (state==2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_FASTA_HEADER;
 
-      case  'x': case 'e': case 'l':   /* seems to be a constraint */
+      case  'x': case 'e': case 'l': case '&':   /* seems to be a constraint or line starting with second sequence for dimer calculations */
                     i = 1;
                     /* lets see if this assumption holds for the complete line */
                     while((line[i] == 'x') || (line[i] == 'e') || (line[i] == 'l')) i++;
                     /* lines solely consisting of 'x's, 'e's or 'l's will be considered as structure constraint */
+                    
                     if(
                             ((line[i]>64) && (line[i]<91))  /* A-Z */
                         ||  ((line[i]>96) && (line[i]<123)) /* a-z */
