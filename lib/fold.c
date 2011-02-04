@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 14:05:51 ivo> */
+/* Last changed Time-stamp: <2010-09-16 10:34:24 ivo> */
 /*
 		  minimum free energy
 		  RNA secondary structure prediction
@@ -250,7 +250,7 @@ PRIVATE int fill_arrays(const char *string) {
   int   bonus=0;
 
   length = (int) strlen(string);
-
+  
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
   for (j=1; j<=length; j++) {
@@ -262,6 +262,8 @@ PRIVATE int fill_arrays(const char *string) {
       c[indx[j]+i] = fML[indx[j]+i] = INF;
       if (uniq_ML) fM1[indx[j]+i] = INF;
     }
+
+  if (length <= TURN) return 0; 
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
