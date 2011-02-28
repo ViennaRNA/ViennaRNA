@@ -36,7 +36,7 @@ a single line. Each sequence may be preceded by a line of the form
 > name
 .br
 to assign a name to the sequence. If a name is given in the input
- PostScript files "name_ss.ps" and "name_dp.ps" are produced for
+PostScript files "name_ss.ps" and "name_dp.ps" are produced for
 the structure and dot plot, respectively. Otherwise the file names
 default to rna.ps and dot.ps. Existing files of the same name will be
 overwritten.
