@@ -120,11 +120,6 @@ details="The interaction of each sequence with the first one is calculated\
 flag
 off
 
-option  "target"  -
-"Use the first sequence in the input file as the target.\n"
-flag
-off
-
 section "Model Details"
 
 option  "pfScale" S

@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
   char                    *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1, *cstruc2, *cstruc_target, *cstruc_combined;
   char                    cmdl_tmp[2048], *cmdl_parameters;
   int                     cmdl_parameters_length;
-  int                     i, j, length1, length2, l, length_target, sym, r, istty;
+  int                     i, j, length1, length2, l, length_target, sym, r, istty, rotated;
   double                  energy, min_en;
   double                  sfact=1.07;
   int                     noconv=0;
@@ -92,13 +92,14 @@ int main(int argc, char *argv[]){
   unstr=default_u;
 
   /* early initializing */
-  do_backtrack  = 1;
-  input_string  = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
-  length1       = length2 = length_target = 0;
-  inter_out     = NULL;
-  unstr_out     = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
-  structure     = ParamFile = ns_bases = head = NULL;
-
+  do_backtrack    = 1;
+  rotated         = 0;
+  input_string    = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
+  length1         = length2 = length_target = 0;
+  inter_out       = NULL;
+  unstr_out       = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
+  structure       = ParamFile = ns_bases = head = NULL;
+  fname_target[0] = '\0';
   /* allocate init length for commandline parameter string */
   cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
   cmdl_parameters = (char *)space(sizeof(char) * cmdl_parameters_length);
@@ -218,13 +219,6 @@ int main(int argc, char *argv[]){
       sprintf(cmdl_tmp, "-w %d ", w);
       appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
     }
-  }
-
-  /* use the first sequence as target */
-  if(args_info.target_given){
-    longerSeqFirst = 0;
-    if(header)
-      appendCmdlParameter(&cmdl_parameters, "--target ", &cmdl_parameters_length);
   }
 
   /* do not make an output file */
@@ -383,10 +377,10 @@ int main(int argc, char *argv[]){
   #############################################
   */
   do{
+    rotated   = 0;
     cut_point = -1;
     fname1[0] = '\0';
     fname2[0] = '\0';
-    fname_target[0] = '\0';
     /*
     ########################################################
     # handle user input from 'stdin'
@@ -536,24 +530,23 @@ int main(int argc, char *argv[]){
       }
     } /* thats all for constraint folding */
 
-
-    /* rotate input sequences if upmode=2 to ensure first sequence is the longer one */
+    /* rotate input sequences if upmode>=2 to ensure first sequence is the longer one */
     if(up_mode & (RNA_UP_MODE_2 | RNA_UP_MODE_3)){
-      if(longerSeqFirst)
-        if(length1 < length2 ){
-          /* rotate the sequences such that the longer is the first */
-          int  l  = length2; length2 = length1; length1 = l;
-          char *s = s2; s2 = s1; s1 = s;
-          /* also rotate the file names */
-          char f[80];
-          strncpy(f, fname2, 51);
-          strncpy(fname2, fname1, 51);
-          strncpy(fname1, f, 51);
-          /* rotate constraint strings as well */
-          if(fold_constrained){
-            s = cstruc2; cstruc2 = cstruc1; cstruc1 = s;
-          }
+      if(length1 < length2 ){
+        rotated = 1;
+        /* rotate the sequences such that the longer is the first */
+        int  l  = length2; length2 = length1; length1 = l;
+        char *s = s2; s2 = s1; s1 = s;
+        /* also rotate the file names */
+        char f[80];
+        strncpy(f, fname2, 51);
+        strncpy(fname2, fname1, 51);
+        strncpy(fname1, f, 51);
+        /* rotate constraint strings as well */
+        if(fold_constrained){
+          s = cstruc2; cstruc2 = cstruc1; cstruc1 = s;
         }
+      }
     }
 
     /* check ulength values against sequences given */
@@ -561,27 +554,33 @@ int main(int argc, char *argv[]){
       nrerror("maximum unpaired region exceeds sequence length");
 
     if(up_mode & RNA_UP_MODE_3){
+      /* if we haven't seen the target yet, store it now */
       if(s_target == NULL){
-        s_target = s1;
-        s1 = s2;
-        s2 = NULL;
-
-        length_target = length1;
-        length1 = length2;
-
-        strcpy(fname_target, fname1);
-        strcpy(fname1, fname2);
-        fname2[0] = '\0';
-
-        if(fold_constrained){
-          cstruc_target = cstruc1;
-          cstruc1 = cstruc2;
-          cstruc2 = NULL;
+        if(rotated){
+          s_target      = s2;
+          s2            = NULL;
+          length_target = length2;
+          strcpy(fname_target, fname2);
+          if(fold_constrained){
+            cstruc_target = cstruc2;
+            cstruc2 = NULL;
+          }
         }
-      }
-      if(length_target < length1){
-        fprintf(stderr, "%s\n%s\n", s_target, s1);
-        nrerror("target sequence is shorter than query");
+        else{
+          s_target      = s1;
+          length_target = length1;
+          s1            = s2;
+          s2            = NULL;
+          length1       = length2;
+          strcpy(fname_target, fname1);
+          strcpy(fname1, fname2);
+          if(fold_constrained){
+            cstruc_target = cstruc1;
+            cstruc1 = cstruc2;
+            cstruc2 = NULL;
+          }
+        }
+        fname2[0]     = '\0';
       }
     }
 
@@ -600,6 +599,10 @@ int main(int argc, char *argv[]){
         strcat(up_out, "_");
         strcat(up_out, fname2);
       }
+      else if(fname_target != '\0'){
+        strcat(up_out, "_");
+        strcat(up_out, fname_target);
+      }
     } else {
       strcpy(up_out, "RNA");
     }
@@ -613,7 +616,6 @@ int main(int argc, char *argv[]){
     structure = (char *) space(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
     /* begin actual computations */
-
     update_fold_params();
 
     /* calc mfe of first sequence */
@@ -677,7 +679,7 @@ int main(int argc, char *argv[]){
                             if(unstr_target == NULL){
                               wplus = w + incr3 + incr5;
                               if(max_u > wplus)         wplus = max_u;
-                              if(length_target < wplus) wplus = length1;
+                              if(length_target < wplus) wplus = length_target;
                               if (cstruc_target != NULL)
                                 strncpy(structure, cstruc_target, length_target + 1);
                               min_en = fold(s_target, structure);
@@ -689,17 +691,23 @@ int main(int argc, char *argv[]){
                               unstr_target  = pf_unstru(s_target, wplus);
                               free_pf_arrays(); /* for arrays for pf_fold(...) */
                             }
-
-                            inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
-                            print_interaction(inter_out, s_target, s1, unstr_target, unstr_out, w, incr3, incr5);
-
+                            /* check if target sequence is actually longer than query, if not rotate both sequences */
+                            if(length_target < length1){
+                              inter_out = pf_interact(s1, s_target, unstr_out, unstr_target, w, cstruc_combined, incr3, incr5);
+                              print_interaction(inter_out, s1, s_target, unstr_out, unstr_target, w, incr3, incr5);
+                              contrib1 = unstr_out;
+                              contrib2 = unstr_target;
+                            }
+                            else{
+                              inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
+                              print_interaction(inter_out, s_target, s1, unstr_target, unstr_out, w, incr3, incr5);
+                              contrib1 = unstr_target;
+                              contrib2 = unstr_out;
+                            }
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
                               sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, s_target, length1, fname1, s1);
                             }
-
-                            contrib1 = unstr_target;
-                            contrib2 = unstr_out;
                             break;
     }
 
@@ -726,11 +734,14 @@ int main(int argc, char *argv[]){
     */
 
     /* we can save the pu contribution structure of the target sequence for the next run */
-    if(contrib1 != NULL && unstr_target == NULL)
-      free_pu_contrib_struct(contrib1);
-
-    if(contrib2 != NULL)
-      free_pu_contrib_struct(contrib2);
+    if(unstr_target != NULL){
+      if(length_target < length1) free_pu_contrib_struct(contrib1);
+      else free_pu_contrib_struct(contrib2);
+    }
+    else{
+      if(contrib1 != NULL) free_pu_contrib_struct(contrib1);
+      if(contrib2 != NULL) free_pu_contrib_struct(contrib2);
+    }
 
     if(inter_out != NULL)
       free_interact(inter_out);
