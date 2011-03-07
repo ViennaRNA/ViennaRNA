@@ -421,8 +421,9 @@ int main(int argc, char *argv[]){
     else
       tokenize(input_string, &s1, &s2); /* this also frees the input_string */
 
+    printf("%s\n%s\n", s1, s2);
     length1 = (int)strlen(s1);
-    if(s2) length2 = (int)strlen(s2);
+    length2 = (s2) ? (int)strlen(s2) : 0;
 
     /* now we got the first and maybe a second sequence */
 
@@ -759,6 +760,7 @@ int main(int argc, char *argv[]){
 
     free_arrays(); /* for arrays for fold(...) */
   } while (1);
+  free(cmdl_parameters);
   return 0;
 }
 

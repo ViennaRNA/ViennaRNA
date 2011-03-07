@@ -451,6 +451,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
     }
   }
 
+  free(sum_M);
   free(store_M_mlbase);
   free_up_arrays();
   return pu_test;
