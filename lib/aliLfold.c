@@ -445,8 +445,9 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           }
 
           if((prev_i + strlen(prev) > i+1+strlen(ss)) || (do_backtrack==2)){
-            char *outstr;
-            outstr = strndup(strings[0]+prev_i-1, strlen(prev));
+            char *outstr = (char *)space(sizeof(char) * (strlen(prev)+1));
+            strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
+            outstr[strlen(prev)] = '\0';
             printf("%s\n", outstr);
             if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
             /* if(do_backtrack==1)*/
@@ -479,9 +480,11 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
         energyprev    = f3[i];
       }
       if (i==1) {
-        char *outstr;
+        char *outstr = NULL;
         if (prev) {
-          outstr = strndup(strings[0]+prev_i-1, strlen(prev));
+          outstr = (char *)space(sizeof(char) *(strlen(prev) + 1));
+          strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
+          outstr[strlen(prev)] = '\0';
           printf("%s\n", outstr);
           if(csv==1)
             printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
@@ -491,7 +494,10 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
         }
         if ((f3[prev_i] != f3[1]) || !prev){
           ss      =  backtrack(strings, i , maxdist);
-          outstr  = strndup(strings[0], strlen(ss));
+          if(outstr) free(outstr);
+          outstr  = (char *)space(sizeof(char) * (strlen(ss) + 1));
+          strncpy(outstr, strings[0], strlen(ss));
+          outstr[strlen(ss)] = '\0';
           printf("%s \n", outstr);
           if(csv==1)
             printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, strlen(ss)-1);
@@ -500,8 +506,8 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           }
           free(ss);
         }
-        if(prev) free(prev);
-        free(outstr);
+        if(prev)    free(prev);
+        if(outstr)  free(outstr);
       }
     }
     {
