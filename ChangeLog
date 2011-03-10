@@ -1,3 +1,11 @@
+2011-03-10  Ronny Lorenz  <ronny@tbi.univie.ac.at>
+	* new naming scheme for all shipped energy parameter files
+	* fixed bugs that appear while compiling with gcc under MacOS X
+	* fixed bug in RNAup --interaction-first where the longer of the first two
+	  sequences was taken as target
+	* added full FASTA input support to RNAfold, RNAcofold, RNAheat, RNAplfold
+	  RNALfoldz, RNAsubopt and RNALfold
+
 2010-11-24  Ronny Lorenz  <ronny@tbi.univie.ac.at>
 	* first full pre-release of version 2.0
 
