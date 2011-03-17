@@ -31,8 +31,8 @@ int main(int argc, char *argv[]){
   struct        RNAsubopt_args_info args_info;
   unsigned int  input_type;
   unsigned int  rec_type, read_opt;
-  char          fname[80], *cstruc, *c, *input_string, *rec_sequence, *rec_id, **rec_rest;
-  char          *structure = NULL, *ParamFile = NULL, *ns_bases = NULL;
+  char          fname[80], *c, *input_string, *rec_sequence, *rec_id, **rec_rest;
+  char          *cstruc, *structure, *ParamFile, *ns_bases;
   int           i, length, l, cl, sym, istty;
   double        deltaf, deltap;
   int           delta, n_back, noconv, circular, dos, zuker;
@@ -44,6 +44,7 @@ int main(int argc, char *argv[]){
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = NULL;
   rec_rest      = NULL;
+  input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
 
   /*
   #############################################

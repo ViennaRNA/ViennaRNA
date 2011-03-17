@@ -15,7 +15,7 @@ int  noGU = 0;           /* GU not allowed at all */
 int  no_closingGU = 0;   /* GU allowed only inside stacks */
 int  tetra_loop = 1;     /* Fold with specially stable 4-loops */
 int  energy_set = 0;     /* 0 = BP; 1=any with GC; 2=any with AU parameters */
-int  dangles = 1;	 /* use dangling end energies */
+int  dangles = 2;	 /* use dangling end energies */
 char *nonstandards = (char *)0; /* contains allowed non standard bases */
 double temperature = 37.0;
 int  james_rule = 1;     /* interior loops of size 2 get energy 0.8Kcal and
