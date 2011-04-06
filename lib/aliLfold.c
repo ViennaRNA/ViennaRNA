@@ -353,7 +353,6 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
       int tempf3=length;
       int k;
       int thisf=0;
-
       f3[i] = f3[i+1];
       for (j=i+TURN+1; j<length && j<=i+maxdist; j++) {
         if(c[i][j-i]<INF) {
@@ -411,10 +410,20 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
         }
       }
       /* backtrack partial structure */
-      if (i+maxdist<length) {/*?*/
+      /* if (i+maxdist<length) {*/
+      if (i<length-1){
         if (f3[i] != f3[i+1]) {
           do_backtrack    = 1;
           backtrack_type  = 'F';
+          if (prev_i==0) {
+            prev          =  backtrack(strings, i , MIN2(maxdist,length-i));
+            prev_i        = i;
+            do_backtrack  = 0;
+            prev_j        = thisj;
+            lastf2        = lastf;
+            lastj2        = lastj;
+            energyprev    = f3[i];
+          }
         }
         else if((thisf < lastf) && (thisf < lastf2) && ((thisf/(n_seq*100)) < -0.01)){ /*?????????*/
           do_backtrack    = 2;
@@ -422,7 +431,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
         }
         else if (do_backtrack){
           if(do_backtrack == 1){
-            ss =  backtrack(strings, i+1 , maxdist/*+1*/);
+            ss =  backtrack(strings, i+1 , MIN2(maxdist,length-i)/*+1*/);
             energyout = f3[i] - f3[i+strlen(ss)-1];/*??*/
           }
           else {
@@ -448,7 +457,6 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
             char *outstr = (char *)space(sizeof(char) * (strlen(prev)+1));
             strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
             outstr[strlen(prev)] = '\0';
-            printf("%s\n", outstr);
             if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
             /* if(do_backtrack==1)*/
             else {
@@ -470,22 +478,13 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
       lastj2 = lastj;
       lastj  = thisj;
 
-      if (i+maxdist==length) {
-        prev          =  backtrack(strings, i , maxdist);
-        prev_i        = i;
-        do_backtrack  = 0;
-        prev_j        = thisj;
-        lastf2        = lastf;
-        lastj2        = lastj;
-        energyprev    = f3[i];
-      }
+
       if (i==1) {
         char *outstr = NULL;
         if (prev) {
           outstr = (char *)space(sizeof(char) *(strlen(prev) + 1));
           strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
           outstr[strlen(prev)] = '\0';
-          printf("%s\n", outstr);
           if(csv==1)
             printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
           else{
