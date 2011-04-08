@@ -55,7 +55,12 @@ void              destroy_TwoDfold_variables(TwoDfold_vars *our_variables);
 /**
  * 
  */
-TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables, int distance1, int distance2);
+DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables, int distance1, int distance2));
+
+/**
+ * 
+ */
+TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2);
 
 /* function for Pathfinder.c */
 /**

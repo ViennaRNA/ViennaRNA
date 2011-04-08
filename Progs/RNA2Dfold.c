@@ -219,33 +219,23 @@ int main(int argc, char *argv[]){
     /* get all variables need for the folding process (some memory will be preallocated here too) */
     TwoDfold_vars *mfe_vars = get_TwoDfold_variables(string, structure1, structure2, circ);
     mfe_vars->do_backtrack = do_backtrack;
-    TwoDfold_solution **mfe_s = TwoDfold(mfe_vars, maxDistance1, maxDistance2);
+    TwoDfold_solution *mfe_s = TwoDfoldList(mfe_vars, maxDistance1, maxDistance2);
 
     maxDistance1 = mfe_vars->maxD1;
     maxDistance2 = mfe_vars->maxD2;
     if(!pf){
 #ifdef COUNT_STATES
       printf("k\tl\tn\tMFE\tMFE-structure\n");
-      for(i = 0; i<= maxDistance1; i++){
-        for(j = 0; j<= maxDistance2; j++){
-          if(mfe_s[i][j].en != (float)INF/100.){
-            printf("%d\t%d\t%lu\t%6.2f\t%s\n", i, j, mfe_vars->N_F5[length][i][j/2], mfe_s[i][j].en, mfe_s[i][j].s);
-            free(mfe_s[i].s);
-          }
-        }
-        free(mfe_s[i]);
+      for(i = 0; mfe_s[i].k != INF; i++){
+        printf("%d\t%d\t%lu\t%6.2f\t%s\n", mfe_s[i].k, mfe_s[i].l, mfe_vars->N_F5[length][mfe_s[i].k][mfe_s[i].l/2], mfe_s[i].en, mfe_s[i].s);
+        if(mfe_s[i].s) free(mfe_s[i].s);
       }
       free(mfe_s);
 #else
       printf("k\tl\tMFE\tMFE-structure\n");
-      for(i = 0; i<= maxDistance1; i++){
-        for(j = 0; j<= maxDistance2; j++){
-          if(mfe_s[i][j].s){
-            printf("%d\t%d\t%6.2f\t%s\n", i, j, mfe_s[i][j].en, mfe_s[i][j].s);
-            free(mfe_s[i][j].s);
-          }
-        }
-        free(mfe_s[i]);
+      for(i = 0; mfe_s[i].k != INF; i++){
+        printf("%d\t%d\t%6.2f\t%s\n", mfe_s[i].k, mfe_s[i].l, mfe_s[i].en, mfe_s[i].s);
+        if(mfe_s[i].s) free(mfe_s[i].s);
       }
       free(mfe_s);
 #endif
@@ -254,10 +244,8 @@ int main(int argc, char *argv[]){
     if(pf){
       float mmfe = INF;
       double Q;
-      for(i=0; i<=maxDistance1;i++){
-        for(j=0; j<=maxDistance2;j++){
-          mmfe = (mmfe < mfe_s[i][j].en) ? mmfe : mfe_s[i][j].en;
-        }
+      for(i = 0; mfe_s[i].k != INF; i++){
+        if(mmfe > mfe_s[i].en) mmfe = mfe_s[i].en;
       }
       kT = (temperature+K0)*GASCONST/1000.0; /* in Kcal */
       pf_scale = exp(-(sfact*mmfe)/kT/length);
@@ -285,12 +273,19 @@ int main(int argc, char *argv[]){
       if(!stBT){
         printf("free energy of ensemble = %6.2f kcal/mol\n",fee);
         printf("k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure\n");
-        for(i=0; i<=maxDistance1;i++){
-          for(j=0; j<=maxDistance2;j++){
-            if(mfe_s[i][j].en != (float)INF/100.){
-              float free_energy = (-log((float)pf_s[i][j])-length*log(pf_scale))*kT;
-              fprintf(stdout, "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n", i, j, (float)pf_s[i][j]/(float)Q, exp((free_energy-mfe_s[i][j].en)/kT), exp((fee-mfe_s[i][j].en)/kT), mfe_s[i][j].en, free_energy, mfe_s[i][j].s);
-            }
+        for(i=0; mfe_s[i].k != INF;i++){
+          if(mfe_s[i].k >= 0){
+            float free_energy = (-log((float)pf_s[mfe_s[i].k][mfe_s[i].l])-length*log(pf_scale))*kT;
+            fprintf(stdout,
+                    "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n",
+                    mfe_s[i].k,
+                    mfe_s[i].l,
+                    (float)pf_s[mfe_s[i].k][mfe_s[i].l]/(float)Q,
+                    exp((free_energy-mfe_s[i].en)/kT),
+                    exp((fee-mfe_s[i].en)/kT),
+                    mfe_s[i].en,
+                    free_energy,
+                    mfe_s[i].s);
           }
         }
       }
@@ -303,10 +298,8 @@ int main(int argc, char *argv[]){
             k = tmp->k;
             l = tmp->l;
             if(k <= maxDistance1 && l <= maxDistance2)
-              if(mfe_s[k][l].en != (float)INF/100.){
-                for(i = 0; i < nstBT; i++)
-                  printf("%d\t%d\t%s\n", k, l, TwoDpfold_pbacktrack(q_vars, k, l));
-              }
+              for(i = 0; i < nstBT; i++)
+                printf("%d\t%d\t%s\n", k, l, TwoDpfold_pbacktrack(q_vars, k, l));
             tmp2 = tmp->next;
             free(tmp);
             tmp = tmp2;
@@ -315,12 +308,10 @@ int main(int argc, char *argv[]){
 
         }
         else{
-          for(l = 0; l < nstBT; l++){
-            for(i=0; i<=maxDistance1;i++){
-              for(j=0; j<=maxDistance2;j++){
-                if(mfe_s[i][j].en != (float)INF/100.){
-                  printf("%d\t%d\t%s\n", i, j, TwoDpfold_pbacktrack(q_vars, i, j));
-                }
+          for(i=0; mfe_s[i].k != INF;i++){
+            for(l = 0; l < nstBT; l++){
+              if(mfe_s[i].k >= 0){
+                printf("%d\t%d\t%s\n", mfe_s[i].k, mfe_s[i].l, TwoDpfold_pbacktrack(q_vars, mfe_s[i].k, mfe_s[i].l));
               }
             }
           }
@@ -328,12 +319,8 @@ int main(int argc, char *argv[]){
       }
       free_pf_arrays();
 
-      for(i=0; i<=maxDistance1;i++){
-        for(j=0; j<=maxDistance2;j++){
-          if(mfe_s[i][j].s) free(mfe_s[i][j].s);
-        }
-        free(mfe_s[i]);
-        free(pf_s[i]);
+      for(i=0; mfe_s[i].k != INF;i++){
+        if(mfe_s[i].s) free(mfe_s[i].s);
       }
       free(pf_s);
       free(mfe_s);

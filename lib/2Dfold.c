@@ -70,7 +70,7 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
 */
 
 PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *structure1, const char *structure2, int circ){
-  unsigned int size, length;
+  unsigned int size, length, i;
   int *index;
   TwoDfold_vars *vars;
   length = strlen(seq);
@@ -165,6 +165,17 @@ PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *struct
   vars->E_FcI              = NULL;
   vars->E_FcM              = NULL;
 
+  vars->E_C_rest           = (int *) space(sizeof(int) * size);
+  vars->E_M_rest           = (int *) space(sizeof(int) * size);
+  vars->E_M1_rest          = (int *) space(sizeof(int) * size);
+  vars->E_F5_rest          = (int *) space(sizeof(int) * (length+1));
+  /* init rest arrays */
+  for(i=0;i<size;i++){
+    vars->E_C_rest[i] = vars->E_M_rest[i] = vars->E_M1_rest[i] = INF;
+  }
+  for(i=0;i<=length;i++)
+    vars->E_F5_rest[i] = INF;
+
   return vars;
 }
 
@@ -172,6 +183,12 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   unsigned int i, j, ij;
   int cnt1, cnt2, cnt3, cnt4;
   if(vars == NULL) return;
+
+  free(vars->E_C_rest);
+  free(vars->E_M_rest);
+  free(vars->E_M1_rest);
+  free(vars->E_F5_rest);
+
 
 #ifdef _OPENMP
   #pragma omp sections private(i,j,ij,cnt1,cnt2,cnt3,cnt4)
@@ -620,6 +637,95 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
   return output;
 }
 
+PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2){
+  unsigned int  i, d1, d2;
+  unsigned int  maxD1 = 0;
+  unsigned int  maxD2 = 0;
+  unsigned int  mm;
+  unsigned int  length;
+  unsigned int  counter = 0;
+  int           en = 0;
+  TwoDfold_solution *output;
+
+  initialize_TwoDfold_vars(vars);
+  if(fabs(vars->P->temperature - temperature)>1e-6) update_TwoDfold_params(vars);
+  vars->S   = encode_sequence(vars->sequence, 0);
+  vars->S1  = encode_sequence(vars->sequence, 1);
+
+  make_ptypes(vars);
+
+  if(distance1 >= 0){
+    if((unsigned int)distance1 > vars->maxD1)
+      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
+    vars->maxD1 = (unsigned int)distance1;
+  }
+
+  if(distance2 >= 0){
+    if((unsigned int)distance2 > vars->maxD2)
+      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
+    vars->maxD2 = (unsigned int)distance2;
+  }
+
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
+  output = (TwoDfold_solution *)space((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
+
+  mfe_linear(vars);
+  if(vars->circ) mfe_circ(vars);
+
+  length = vars->seq_length;
+
+  for(d1=0; d1<=maxD1;d1++){
+    if((d1 >= ((vars->circ) ? vars->k_min_values_fc : vars->k_min_values_f[length]))
+        &&  (d1 <= ((vars->circ) ? vars->k_max_values_fc : vars->k_max_values_f[length]))){
+      for(d2  = ((vars->circ) ? vars->l_min_values_fc[d1] : vars->l_min_values_f[length][d1]);
+          d2 <= ((vars->circ) ? vars->l_max_values_fc[d1] : vars->l_max_values_f[length][d1]);
+          d2 += 2){
+        en = ((vars->circ) ? vars->E_Fc[d1][d2/2] : vars->E_F5[length][d1][d2/2]);
+        if(en == INF) continue;
+        output[counter].k   = d1;
+        output[counter].l   = d2;
+        output[counter].en  = (float)en/(float)100.;
+        if(vars->do_backtrack){
+          char *mfe_structure = (char *)space(length+1);
+          for(i=0;i<length;i++) mfe_structure[i] = '.';
+          mfe_structure[i] = '\0';
+          (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length, d1, d2, mfe_structure, vars);
+          output[counter].s = mfe_structure;
+        }
+        else output[counter].s = NULL;
+        counter++;
+      }
+    }
+  }
+
+  /* store entry for remaining partition if it exists */
+  en = ((vars->circ) ? vars->E_Fc_rest : vars->E_F5_rest[length]);
+  if(en != INF){
+    output[counter].k   = -1;
+    output[counter].l   = -1;
+    output[counter].en  =  (float)en/(float)100.;
+    if(vars->do_backtrack){
+      char *mfe_structure = (char *)space(length+1);
+      for(i=0;i<length;i++) mfe_structure[i] = '.';
+      mfe_structure[i] = '\0';
+      (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length, d1, d2, mfe_structure, vars);
+      output[counter].s = mfe_structure;
+    }
+    else output[counter].s = NULL;
+    counter++;
+  }
+
+  /* insert end-marker entry */
+  output[counter].k = output[counter].l = INF;
+  counter++;
+
+  /* resize to actual dataset amount */
+  output = (TwoDfold_solution*)realloc(output, sizeof(TwoDfold_solution) * counter);
+  return output;
+}
+
+
 PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, unsigned int k, unsigned int l, TwoDfold_vars *vars){
   unsigned int i;
   char *mfe_structure = (char *)space(j+1);
@@ -791,6 +897,9 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             vars->N_C[ij][d1][d2/2] = 1;
 #endif
           }
+          else{
+            vars->E_C_rest[ij] = (no_close) ? FORBIDDEN : E_Hairpin(dij, type, S1[i+1], S1[j-1], sequence+i-1, P);
+          }
         }
         /* INTERIOR LOOP STRUCTURES */
         maxp = MIN2(j-2-TURN,i+MAXLOOP+1);
@@ -819,23 +928,35 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             energy = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
             if(vars->E_C[pq] != NULL){
-              for(cnt1 = vars->k_min_values[pq]; cnt1 <= vars->k_max_values[pq]; cnt1++)
-                for(cnt2 = vars->l_min_values[pq][cnt1]; cnt2 <= vars->l_max_values[pq][cnt1]; cnt2+=2)
+              for(cnt1 = vars->k_min_values[pq]; cnt1 <= vars->k_max_values[pq]; cnt1++){
+                for(cnt2 = vars->l_min_values[pq][cnt1]; cnt2 <= vars->l_max_values[pq][cnt1]; cnt2+=2){
                   if(vars->E_C[pq][cnt1][cnt2/2] != INF){
-                    vars->E_C[ij][cnt1 + d1][(cnt2 + d2)/2] = MIN2( vars->E_C[ij][cnt1 + d1][(cnt2 + d2)/2],
-                                                                    vars->E_C[pq][cnt1][cnt2/2] + energy
-                                                                  );
-                    updatePosteriorBoundaries(cnt1 + d1,
-                                              cnt2 + d2,
-                                              &real_min_k,
-                                              &real_max_k,
-                                              &min_l_real,
-                                              &max_l_real
-                                              );
+                    if(((cnt1 + d1) <= maxD1) && ((cnt2+d2) <= maxD2)){
+                        vars->E_C[ij][cnt1 + d1][(cnt2 + d2)/2] = MIN2( vars->E_C[ij][cnt1 + d1][(cnt2 + d2)/2],
+                                                                        vars->E_C[pq][cnt1][cnt2/2] + energy
+                                                                      );
+                        updatePosteriorBoundaries(cnt1 + d1,
+                                                  cnt2 + d2,
+                                                  &real_min_k,
+                                                  &real_max_k,
+                                                  &min_l_real,
+                                                  &max_l_real
+                                                  );
 #ifdef COUNT_STATES
-                    vars->N_C[ij][cnt1 + d1][(cnt2 + d2)/2] += vars->N_C[pq][cnt1][cnt2/2];
+                       vars->N_C[ij][cnt1 + d1][(cnt2 + d2)/2] += vars->N_C[pq][cnt1][cnt2/2];
 #endif
+                    }
+                    /* collect all cases where d1+cnt1 or d2+cnt2 exceeds maxD1, maxD2, respectively */
+                    else{
+                      vars->E_C_rest[ij] = MIN2(vars->E_C_rest[ij], vars->E_C[pq][cnt1][cnt2/2] + energy);
+                    }
                   }
+                }
+              }
+            }
+            /* collect all contributions where C[pq] already lies outside k_max, l_max boundary */
+            if(vars->E_C_rest[pq] != INF){
+              vars->E_C_rest[ij] = MIN2(vars->E_C_rest[ij], vars->E_C_rest[pq] + energy);
             }
           } /* end q-loop */
         } /* end p-loop */
@@ -854,6 +975,43 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             temp2 += E_MLstem(tt, -1, -1, P);
 
           for(u=i+TURN+2; u<j-TURN-2;u++){
+            /* check all cases where either M or M1 are already out of scope of maxD1 and/or maxD2 */
+            if(vars->E_M_rest[my_iindx[i+1]-u] != INF){
+              for(cnt3 = vars->k_min_values_m1[my_iindx[u+1]-j+1];
+                  cnt3 <= vars->k_max_values_m1[my_iindx[u+1]-j+1];
+                  cnt3++)
+                for(cnt4 = vars->l_min_values_m1[my_iindx[u+1]-j+1][cnt3];
+                    cnt4 <= vars->l_max_values_m1[my_iindx[u+1]-j+1][cnt3];
+                    cnt4+=2){
+                  if(vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]!= INF){
+                    vars->E_C_rest[ij] = MIN2(vars->E_C_rest[ij],
+                                              vars->E_M_rest[my_iindx[i+1]-u]
+                                            + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                            + temp2
+                                              );
+                  }
+                }
+              if(vars->E_M1_rest[my_iindx[u+1]-j+1] != INF){
+                vars->E_C_rest[ij] = MIN2(vars->E_C_rest[ij],
+                                          vars->E_M_rest[my_iindx[i+1]-u] + vars->E_M1_rest[my_iindx[u+1]-j+1] + temp2
+                                          );
+              }
+            }
+            if(vars->E_M1_rest[my_iindx[u+1]-j+1] != INF){
+              for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u];
+                  cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u];
+                  cnt1++)
+                for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1];
+                    cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1];
+                    cnt2+=2)
+                  if(vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] != INF){
+                    vars->E_C_rest[ij] = MIN2(vars->E_C_rest[ij],
+                                              vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
+                                            + vars->E_M1_rest[my_iindx[u+1]-j+1]
+                                            + temp2
+                                              );
+                  }
+            }
             /* get distance to reference if closing the multiloop
             *  d = dbp(S_{i,j}, {i,j} + S_{i+1,u} + S_{u+1,j-1})
             */
@@ -863,24 +1021,44 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             d1 = base_d1 + referenceBPs1[ij] - referenceBPs1[my_iindx[i+1]-u] - referenceBPs1[my_iindx[u+1]-j+1];
             d2 = base_d2 + referenceBPs2[ij] - referenceBPs2[my_iindx[i+1]-u] - referenceBPs2[my_iindx[u+1]-j+1];
 
-            for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u]; cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u]; cnt1++)
-              for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1]; cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1]; cnt2+=2)
-                for(cnt3 = vars->k_min_values_m1[my_iindx[u+1]-j+1]; cnt3 <= vars->k_max_values_m1[my_iindx[u+1]-j+1]; cnt3++)
-                  for(cnt4 = vars->l_min_values_m1[my_iindx[u+1]-j+1][cnt3]; cnt4 <= vars->l_max_values_m1[my_iindx[u+1]-j+1][cnt3]; cnt4+=2){
-                    if(vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] != INF && vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]!= INF){
-                      vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] = MIN2( vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2],
-                                                                            vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2] + temp2
-                                                                          );
-                      updatePosteriorBoundaries(cnt1 + cnt3 + d1,
-                                                cnt2 + cnt4 + d2,
-                                                &real_min_k,
-                                                &real_max_k,
-                                                &min_l_real,
-                                                &max_l_real
-                                              );
+            for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u];
+                cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u];
+                cnt1++)
+              for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1];
+                  cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1];
+                  cnt2+=2)
+                for(cnt3 = vars->k_min_values_m1[my_iindx[u+1]-j+1];
+                    cnt3 <= vars->k_max_values_m1[my_iindx[u+1]-j+1];
+                    cnt3++)
+                  for(cnt4 = vars->l_min_values_m1[my_iindx[u+1]-j+1][cnt3];
+                      cnt4 <= vars->l_max_values_m1[my_iindx[u+1]-j+1][cnt3];
+                      cnt4+=2){
+                    if((vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] != INF) && (vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]!= INF)){
+                      if(((cnt1+cnt3+d1) <= maxD1) && ((cnt2+cnt4+d2) <= maxD2)){
+                        vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] = MIN2( vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2],
+                                                                              vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
+                                                                            + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                                                            + temp2
+                                                                            );
+                        updatePosteriorBoundaries(cnt1 + cnt3 + d1,
+                                                  cnt2 + cnt4 + d2,
+                                                  &real_min_k,
+                                                  &real_max_k,
+                                                  &min_l_real,
+                                                  &max_l_real
+                                                );
 #ifdef COUNT_STATES
-                      vars->N_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] += vars->N_M[my_iindx[i+1]-u][cnt1][cnt2/2] * vars->N_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2];
+                        vars->N_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] += vars->N_M[my_iindx[i+1]-u][cnt1][cnt2/2] * vars->N_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2];
 #endif
+                      }
+                      /* collect all cases where d1+cnt1+cnt3 or d2+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
+                      else{
+                        vars->E_C_rest[ij] = MIN2(  vars->E_C_rest[ij],
+                                                    vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
+                                                  + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                                  + temp2
+                                                  );
+                      }
                     }
                   }
           }
@@ -990,8 +1168,12 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
                     vars->l_max_values_m1[ij]
                   );
 #endif
+
       /* now to the actual computations... */
       /* 1st E_M[ij] = E_M1[ij] = E_C[ij] + b */
+      if(vars->E_C_rest[ij] != INF){
+        vars->E_M_rest[ij] = vars->E_M1_rest[ij] = temp2 + vars->E_C_rest[ij];
+      }
       if(vars->E_C[ij])
         for(cnt1 = vars->k_min_values[ij]; cnt1 <= vars->k_max_values[ij]; cnt1++){
           for(cnt2 = vars->l_min_values[ij][cnt1]; cnt2 <= vars->l_max_values[ij][cnt1]; cnt2+=2){
@@ -1019,67 +1201,118 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
         }
 
       /* 2nd E_M[ij] = MIN(E_M[ij], E_M[i+1,j] + c) */
+      if(vars->E_M_rest[my_iindx[i+1]-j] != INF){
+        vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                  vars->E_M_rest[my_iindx[i+1]-j] + P->MLbase
+                                  );
+      }
       if(vars->E_M[my_iindx[i+1]-j])
-        for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-j]; cnt1 <= vars->k_max_values_m[my_iindx[i+1]-j]; cnt1++){
-          for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-j][cnt1]; cnt2 <= vars->l_max_values_m[my_iindx[i+1]-j][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-j];
+            cnt1 <= vars->k_max_values_m[my_iindx[i+1]-j];
+            cnt1++){
+          for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-j][cnt1];
+              cnt2 <= vars->l_max_values_m[my_iindx[i+1]-j][cnt1];
+              cnt2+=2){
             if(vars->E_M[my_iindx[i+1]-j][cnt1][cnt2/2] != INF){
-              vars->E_M[ij][cnt1+dia][(cnt2+dib)/2] = MIN2( vars->E_M[ij][cnt1+dia][(cnt2+dib)/2],
-                                                          vars->E_M[my_iindx[i+1]-j][cnt1][cnt2/2] + P->MLbase
-                                                        );
-              updatePosteriorBoundaries(cnt1 + dia,
-                                        cnt2 + dib,
-                                        &min_k_real_m,
-                                        &max_k_real_m,
-                                        &min_l_real_m,
-                                        &max_l_real_m
-                                        );
+              if(((cnt1 + dia) <= maxD1) && ((cnt2 + dib) <= maxD2)){
+                vars->E_M[ij][cnt1+dia][(cnt2+dib)/2] = MIN2( vars->E_M[ij][cnt1+dia][(cnt2+dib)/2],
+                                                              vars->E_M[my_iindx[i+1]-j][cnt1][cnt2/2] + P->MLbase
+                                                            );
+                updatePosteriorBoundaries(cnt1 + dia,
+                                          cnt2 + dib,
+                                          &min_k_real_m,
+                                          &max_k_real_m,
+                                          &min_l_real_m,
+                                          &max_l_real_m
+                                          );
 #ifdef COUNT_STATES
-              vars->N_M[ij][cnt1+dia][(cnt2+dib)/2] += vars->N_M[my_iindx[i+1]-j][cnt1][cnt2/2];
+                vars->N_M[ij][cnt1+dia][(cnt2+dib)/2] += vars->N_M[my_iindx[i+1]-j][cnt1][cnt2/2];
 #endif
+              }
+              /* collect all cases where dia+cnt1 or dib+cnt2 exceeds maxD1, maxD2, respectively */
+              else{
+                vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                          vars->E_M[my_iindx[i+1]-j][cnt1][cnt2/2] + P->MLbase
+                                          );
+              }
             }
           }
         }
 
       /* 3rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
+      if(vars->E_M_rest[ij+1] != INF){
+        vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                  vars->E_M_rest[my_iindx[i+1]-j] + P->MLbase
+                                  );
+      }
       if(vars->E_M[ij+1])
-        for(cnt1 = vars->k_min_values_m[ij+1]; cnt1 <= vars->k_max_values_m[ij+1]; cnt1++){
-          for(cnt2 = vars->l_min_values_m[ij+1][cnt1]; cnt2 <= vars->l_max_values_m[ij+1][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_m[ij+1];
+            cnt1 <= vars->k_max_values_m[ij+1];
+            cnt1++){
+          for(cnt2 = vars->l_min_values_m[ij+1][cnt1];
+              cnt2 <= vars->l_max_values_m[ij+1][cnt1];
+              cnt2+=2){
             if(vars->E_M[ij+1][cnt1][cnt2/2] != INF){
-              vars->E_M[ij][cnt1+dja][(cnt2+djb)/2] = MIN2( vars->E_M[ij][cnt1+dja][(cnt2+djb)/2],
-                                                            vars->E_M[ij+1][cnt1][cnt2/2] + P->MLbase
-                                                          );
-              updatePosteriorBoundaries(cnt1 + dja,
-                                        cnt2 + djb,
-                                        &min_k_real_m,
-                                        &max_k_real_m,
-                                        &min_l_real_m,
-                                        &max_l_real_m
-                                        );
+              if(((cnt1 + dja) <= maxD1) && ((cnt2 + djb) <= maxD2)){
+                vars->E_M[ij][cnt1+dja][(cnt2+djb)/2] = MIN2( vars->E_M[ij][cnt1+dja][(cnt2+djb)/2],
+                                                              vars->E_M[ij+1][cnt1][cnt2/2] + P->MLbase
+                                                            );
+                updatePosteriorBoundaries(cnt1 + dja,
+                                          cnt2 + djb,
+                                          &min_k_real_m,
+                                          &max_k_real_m,
+                                          &min_l_real_m,
+                                          &max_l_real_m
+                                          );
 #ifdef COUNT_STATES
-              vars->N_M[ij][cnt1+dja][(cnt2+djb)/2] += vars->N_M[ij+1][cnt1][cnt2/2];
+                vars->N_M[ij][cnt1+dja][(cnt2+djb)/2] += vars->N_M[ij+1][cnt1][cnt2/2];
 #endif
+              }
+              /* collect all cases where dja+cnt1 or djb+cnt2 exceeds maxD1, maxD2, respectively */
+              else{
+                vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                          vars->E_M[ij+1][cnt1][cnt2/2] + P->MLbase
+                                          );
+              }
             }
           }
         }
 
       /* 4th E_M1[ij] = MIN(E_M1[ij], E_M1[i,j-1] + c) */
+      if(vars->E_M1_rest[ij+1] != INF){
+        vars->E_M1_rest[ij] = MIN2( vars->E_M1_rest[ij],
+                                    vars->E_M1_rest[ij+1] + P->MLbase
+                                  );
+      }
       if(vars->E_M1[ij+1])
-        for(cnt1 = vars->k_min_values_m1[ij+1]; cnt1 <= vars->k_max_values_m1[ij+1]; cnt1++){
-          for(cnt2 = vars->l_min_values_m1[ij+1][cnt1]; cnt2 <= vars->l_max_values_m1[ij+1][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_m1[ij+1];
+            cnt1 <= vars->k_max_values_m1[ij+1];
+            cnt1++){
+          for(cnt2 = vars->l_min_values_m1[ij+1][cnt1];
+              cnt2 <= vars->l_max_values_m1[ij+1][cnt1];
+              cnt2+=2){
             if(vars->E_M1[ij+1][cnt1][cnt2/2] != INF){
-              vars->E_M1[ij][cnt1+dja][(cnt2+djb)/2]  = MIN2( vars->E_M1[ij][cnt1+dja][(cnt2+djb)/2],
-                                                              vars->E_M1[ij+1][cnt1][cnt2/2] + P->MLbase
-                                                            );
-              updatePosteriorBoundaries(cnt1 + dja,
-                                        cnt2 + djb,
-                                        &min_k_real_m1,
-                                        &max_k_real_m1,
-                                        &min_l_real_m1,
-                                        &max_l_real_m1
-                                        );
+              if(((cnt1 + dja) <= maxD1) && ((cnt2 + djb) <= maxD2)){
+                vars->E_M1[ij][cnt1+dja][(cnt2+djb)/2]  = MIN2( vars->E_M1[ij][cnt1+dja][(cnt2+djb)/2],
+                                                                vars->E_M1[ij+1][cnt1][cnt2/2] + P->MLbase
+                                                              );
+                updatePosteriorBoundaries(cnt1 + dja,
+                                          cnt2 + djb,
+                                          &min_k_real_m1,
+                                          &max_k_real_m1,
+                                          &min_l_real_m1,
+                                          &max_l_real_m1
+                                          );
 #ifdef COUNT_STATES
-              vars->N_M1[ij][cnt1+dja][(cnt2+djb)/2]  += vars->N_M1[ij+1][cnt1][cnt2/2];
+                vars->N_M1[ij][cnt1+dja][(cnt2+djb)/2]  += vars->N_M1[ij+1][cnt1][cnt2/2];
 #endif
+              }
+              /* collect all cases where dja+cnt1 or djb+cnt2 exceeds maxD1, maxD2, respectively */
+              else{
+                vars->E_M1_rest[ij] = MIN2( vars->E_M1_rest[ij],
+                                            vars->E_M1[ij+1][cnt1][cnt2/2] + P->MLbase
+                                          );
+              }
             }
           }
         }
@@ -1088,30 +1321,83 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
       /* 5th E_M[ij] = MIN(E_M[ij], min(E_M[i,k] + E_M[k+1,j])) */
       if(j > TURN + 2)
       for (u = i+1+TURN; u <= j-2-TURN; u++){
+        /* check all cases where M(i,u) and/or M(u+1,j) are already out of scope of maxD1 and/or maxD2 */
+        if(vars->E_M_rest[my_iindx[i]-u] != INF){
+          for(cnt3 = vars->k_min_values_m[my_iindx[u+1]-j];
+              cnt3 <= vars->k_max_values_m[my_iindx[u+1]-j];
+              cnt3++){
+            for(cnt4 = vars->l_min_values_m[my_iindx[u+1]-j][cnt3];
+                cnt4 <= vars->l_max_values_m[my_iindx[u+1]-j][cnt3];
+                cnt4+=2){
+              if(vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2] != INF){
+                  vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                            vars->E_M_rest[my_iindx[i]-u] + vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2]
+                                            );
+              }
+            }
+          }
+          if(vars->E_M_rest[my_iindx[u+1]-j] != INF){
+            vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                      vars->E_M_rest[my_iindx[i]-u] + vars->E_M_rest[my_iindx[u+1]-j]
+                                      );
+          }
+        }
+        if(vars->E_M_rest[my_iindx[u+1]-j] != INF){
+          for(cnt1 = vars->k_min_values_m[my_iindx[i]-u];
+              cnt1 <= vars->k_max_values_m[my_iindx[i]-u];
+              cnt1++){
+            for(cnt2 = vars->l_min_values_m[my_iindx[i]-u][cnt1];
+                cnt2 <= vars->l_max_values_m[my_iindx[i]-u][cnt1];
+                cnt2+=2){
+              if(vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] != INF){
+                vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                          vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] + vars->E_M_rest[my_iindx[u+1]-j]
+                                          );
+              }
+            }
+          }
+        }
         if(!vars->E_M[my_iindx[i]-u]) continue;
         if(!vars->E_M[my_iindx[u+1]-j]) continue;
 
         dia = referenceBPs1[ij] - referenceBPs1[my_iindx[i]-u] - referenceBPs1[my_iindx[u+1]-j];
         dib = referenceBPs2[ij] - referenceBPs2[my_iindx[i]-u] - referenceBPs2[my_iindx[u+1]-j];
 
-        for(cnt1 = vars->k_min_values_m[my_iindx[i]-u]; cnt1 <= vars->k_max_values_m[my_iindx[i]-u]; cnt1++){
-          for(cnt2 = vars->l_min_values_m[my_iindx[i]-u][cnt1]; cnt2 <= vars->l_max_values_m[my_iindx[i]-u][cnt1]; cnt2+=2){
-            for(cnt3 = vars->k_min_values_m[my_iindx[u+1]-j]; cnt3 <= vars->k_max_values_m[my_iindx[u+1]-j]; cnt3++){
-              for(cnt4 = vars->l_min_values_m[my_iindx[u+1]-j][cnt3]; cnt4 <= vars->l_max_values_m[my_iindx[u+1]-j][cnt3]; cnt4+=2){
-                if(vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] != INF && vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2] != INF){
-                  vars->E_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2] = MIN2( vars->E_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2],
-                                                                          vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] + vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2]
-                                                                        );
-                  updatePosteriorBoundaries(cnt1 + cnt3 + dia,
-                                            cnt2 + cnt4 + dib,
-                                            &min_k_real_m,
-                                            &max_k_real_m,
-                                            &min_l_real_m,
-                                            &max_l_real_m
-                                            );
+        for(cnt1 = vars->k_min_values_m[my_iindx[i]-u];
+            cnt1 <= vars->k_max_values_m[my_iindx[i]-u];
+            cnt1++){
+          for(cnt2 = vars->l_min_values_m[my_iindx[i]-u][cnt1];
+              cnt2 <= vars->l_max_values_m[my_iindx[i]-u][cnt1];
+              cnt2+=2){
+            for(cnt3 = vars->k_min_values_m[my_iindx[u+1]-j];
+                cnt3 <= vars->k_max_values_m[my_iindx[u+1]-j];
+                cnt3++){
+              for(cnt4 = vars->l_min_values_m[my_iindx[u+1]-j][cnt3];
+                  cnt4 <= vars->l_max_values_m[my_iindx[u+1]-j][cnt3];
+                  cnt4+=2){
+                if((vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] != INF) && (vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2] != INF)){
+                  if(((cnt1 + cnt3 + dia) <= maxD1) && ((cnt2 + cnt4 + dib) <= maxD2)){
+                    vars->E_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2] = MIN2( vars->E_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2],
+                                                                            vars->E_M[my_iindx[i]-u][cnt1][cnt2/2]
+                                                                          + vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2]
+                                                                          );
+                    updatePosteriorBoundaries(cnt1 + cnt3 + dia,
+                                              cnt2 + cnt4 + dib,
+                                              &min_k_real_m,
+                                              &max_k_real_m,
+                                              &min_l_real_m,
+                                              &max_l_real_m
+                                              );
 #ifdef COUNT_STATES
-                vars->N_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2] += vars->N_M[my_iindx[i]-u][cnt1][cnt2/2] * vars->N_M1[my_iindx[u+1]-j][cnt3][cnt4/2];
+                    vars->N_M[ij][cnt1+cnt3+dia][(cnt2+cnt4+dib)/2] += vars->N_M[my_iindx[i]-u][cnt1][cnt2/2] * vars->N_M1[my_iindx[u+1]-j][cnt3][cnt4/2];
 #endif
+                  }
+                  /* collect all cases where dia+cnt1+cnt3 or dib+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
+                  else{
+                    vars->E_M_rest[ij] = MIN2(vars->E_M_rest[ij],
+                                              vars->E_M[my_iindx[i]-u][cnt1][cnt2/2] + vars->E_M[my_iindx[u+1]-j][cnt3][cnt4/2]
+                                              );
+                  }
                 }
               }
             }
@@ -1156,6 +1442,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
     E_F5[cnt1] = (int **)space(sizeof(int *));
     E_F5[cnt1][0] = (int *)space(sizeof(int));
     E_F5[cnt1][0][0] = 0;
+    vars->E_F5_rest[cnt1] = INF;
     k_min_values_f[cnt1] = k_max_values_f[cnt1] = 0;
     l_min_values_f[cnt1] = (int *)space(sizeof(int));
     l_max_values_f[cnt1] = (int *)space(sizeof(int));
@@ -1229,24 +1516,34 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
     /* begin the actual computation of 5' end energies */
 
     /* j-1 is unpaired ... */
+    vars->E_F5_rest[j] = vars->E_F5_rest[j-1];
     for(cnt1 = vars->k_min_values_f[j-1]; cnt1 <= vars->k_max_values_f[j-1]; cnt1++){
       for(cnt2 = vars->l_min_values_f[j-1][cnt1]; cnt2 <= vars->l_max_values_f[j-1][cnt1]; cnt2+=2){
-        vars->E_F5[j][cnt1+da][(cnt2+db)/2] = MIN2( vars->E_F5[j][cnt1+da][(cnt2+db)/2],
-                                                    vars->E_F5[j-1][cnt1][cnt2/2]
-                                                  );
-        updatePosteriorBoundaries(cnt1 + da,
-                                  cnt2 + db,
-                                  &min_k_real,
-                                  &max_k_real,
-                                  &min_l_real,
-                                  &max_l_real
-                                  );
+        if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
+          vars->E_F5[j][cnt1+da][(cnt2+db)/2] = MIN2( vars->E_F5[j][cnt1+da][(cnt2+db)/2],
+                                                      vars->E_F5[j-1][cnt1][cnt2/2]
+                                                    );
+          updatePosteriorBoundaries(cnt1 + da,
+                                    cnt2 + db,
+                                    &min_k_real,
+                                    &max_k_real,
+                                    &min_l_real,
+                                    &max_l_real
+                                    );
 #ifdef COUNT_STATES
-        vars->N_F5[j][cnt1+da][(cnt2+db)/2] += vars->N_F5[j-1][cnt1][cnt2/2];
+          vars->N_F5[j][cnt1+da][(cnt2+db)/2] += vars->N_F5[j-1][cnt1][cnt2/2];
 #endif
+        }
+        /* collect all cases where da+cnt1 or db+cnt2 exceeds maxD1, maxD2, respectively */
+        else{
+          vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j], vars->E_F5[j-1][cnt1][cnt2/2]);
+        }
       }
     }
     /* j pairs with 1 */
+    if(vars->E_C_rest[my_iindx[1]-j] != INF){
+      vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j], vars->E_C_rest[my_iindx[1]-j] + additional_en);
+    }
     if(vars->E_C[my_iindx[1]-j])
       for(cnt1 = vars->k_min_values[my_iindx[1]-j]; cnt1 <= vars->k_max_values[my_iindx[1]-j]; cnt1++)
         for(cnt2 = vars->l_min_values[my_iindx[1]-j][cnt1]; cnt2 <= vars->l_max_values[my_iindx[1]-j][cnt1]; cnt2+=2){
@@ -1270,35 +1567,68 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
     /* j pairs with some other nucleotide -> see below */
     for (i=j-TURN-1; i>1; i--) {
       ij = my_iindx[i]-j;
-      if(!vars->E_C[ij]) continue;
       type = ptype[ij];
       if (type) {
-        unsigned int d1a = referenceBPs1[my_iindx[1]-j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1]-i+1];
-        unsigned int d1b = referenceBPs2[my_iindx[1]-j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1]-i+1];
-
         if(dangles == 2)
           additional_en = E_ExtLoop(type, S1[i-1], j < seq_length ? S1[j+1] : -1, P);
         else
           additional_en = E_ExtLoop(type, -1, -1, P);
+
+        if(vars->E_C_rest[ij] != INF){
+          for(cnt3 = vars->k_min_values_f[i-1]; cnt3 <= vars->k_max_values_f[i-1]; cnt3++)
+            for(cnt4 = vars->l_min_values_f[i-1][cnt3]; cnt4 <= vars->l_max_values_f[i-1][cnt3]; cnt4+=2){
+              if(vars->E_F5[i-1][cnt3][cnt4/2] != INF){
+                vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j],
+                                          vars->E_F5[i-1][cnt3][cnt4/2] + vars->E_C_rest[ij] + additional_en
+                                          );
+              }
+            }
+          if(vars->E_F5_rest[i-1] != INF){
+            vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j],
+                                      vars->E_F5_rest[i-1] + vars->E_C_rest[ij] + additional_en
+                                      );
+          }
+        }
+        if((vars->E_F5_rest[i-1] != INF) && (vars->E_C[ij])){
+          for(cnt1 = vars->k_min_values[ij]; cnt1 <= vars->k_max_values[ij]; cnt1++)
+            for(cnt2 = vars->l_min_values[ij][cnt1]; cnt2 <= vars->l_max_values[ij][cnt1]; cnt2+=2)
+              if(vars->E_C[ij][cnt1][cnt2/2]!= INF){
+                vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j],
+                                          vars->E_F5_rest[i-1] + vars->E_C[ij][cnt1][cnt2/2] + additional_en
+                                          );
+              }
+        }
+        if(!vars->E_C[ij]) continue;
+
+        unsigned int d1a = referenceBPs1[my_iindx[1]-j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1]-i+1];
+        unsigned int d1b = referenceBPs2[my_iindx[1]-j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1]-i+1];
 
         for(cnt1 = vars->k_min_values[ij]; cnt1 <= vars->k_max_values[ij]; cnt1++)
           for(cnt2 = vars->l_min_values[ij][cnt1]; cnt2 <= vars->l_max_values[ij][cnt1]; cnt2+=2)
             for(cnt3 = vars->k_min_values_f[i-1]; cnt3 <= vars->k_max_values_f[i-1]; cnt3++)
               for(cnt4 = vars->l_min_values_f[i-1][cnt3]; cnt4 <= vars->l_max_values_f[i-1][cnt3]; cnt4+=2){
                 if(vars->E_F5[i-1][cnt3][cnt4/2] != INF && vars->E_C[ij][cnt1][cnt2/2]!= INF){
-                  vars->E_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2] = MIN2( vars->E_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2],
-                                                                          vars->E_F5[i-1][cnt3][cnt4/2] + vars->E_C[ij][cnt1][cnt2/2] + additional_en
-                                                                        );
-                  updatePosteriorBoundaries(cnt1 + cnt3 + d1a,
-                                            cnt2 + cnt4 + d1b,
-                                            &min_k_real,
-                                            &max_k_real,
-                                            &min_l_real,
-                                            &max_l_real
-                                            );
+                  if(((cnt1 + cnt3 + d1a) <= maxD1) && ((cnt2 + cnt4 + d1b) <= maxD2)){
+                    vars->E_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2] = MIN2( vars->E_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2],
+                                                                            vars->E_F5[i-1][cnt3][cnt4/2] + vars->E_C[ij][cnt1][cnt2/2] + additional_en
+                                                                          );
+                    updatePosteriorBoundaries(cnt1 + cnt3 + d1a,
+                                              cnt2 + cnt4 + d1b,
+                                              &min_k_real,
+                                              &max_k_real,
+                                              &min_l_real,
+                                              &max_l_real
+                                              );
 #ifdef COUNT_STATES
-                  vars->N_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2] += vars->N_F5[i-1][cnt3][cnt4/2] * vars->N_C[ij][cnt1][cnt2/2];
+                    vars->N_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2] += vars->N_F5[i-1][cnt3][cnt4/2] * vars->N_C[ij][cnt1][cnt2/2];
 #endif
+                  }
+                  /* collect all cases where d1a+cnt1+cnt3 or d1b+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
+                  else{
+                    vars->E_F5_rest[j] = MIN2(vars->E_F5_rest[j],
+                                              vars->E_F5[i-1][cnt3][cnt4/2] + vars->E_C[ij][cnt1][cnt2/2] + additional_en
+                                              );
+                  }
                 }
               }
       }
@@ -1443,9 +1773,9 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
                                               &min_l_real,
                                               &max_l_real
                                               );
-  #ifdef COUNT_STATES
+#ifdef COUNT_STATES
                     vars->N_F5[j][cnt1+cnt3+d1a][(cnt2+cnt4+d1b)/2] += vars->N_F5[i-1][cnt3][cnt4/2] * vars->N_C[ij][cnt1][cnt2/2];
-  #endif
+#endif
                   }
                 }
         }
@@ -1469,9 +1799,6 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
 
   }
-
-
-
 }
 
 
@@ -1509,6 +1836,7 @@ PRIVATE void backtrack_f5(unsigned int j, unsigned int k, unsigned int l, char *
   int           **l_min_values, **l_max_values,**l_min_values_f, **l_max_values_f;
   int           *k_min_values, *k_max_values,*k_min_values_f, *k_max_values_f;
   int           ***E_C, ***E_F5;
+  int           *E_C_rest, *E_F5_rest;
   unsigned int   i, ij, seq_length;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
@@ -1536,13 +1864,23 @@ PRIVATE void backtrack_f5(unsigned int j, unsigned int k, unsigned int l, char *
   k_min_values    = vars->k_min_values;
   k_max_values    = vars->k_max_values;
 
+  E_F5_rest       = vars->E_F5_rest;
+  E_C_rest        = vars->E_C_rest;
 
   da = referenceBPs1[my_iindx[1]-j] - referenceBPs1[my_iindx[1]-j+1];
   db = referenceBPs2[my_iindx[1]-j] - referenceBPs2[my_iindx[1]-j+1];
 
   if(j<TURN+2) return;
 
-  if((k >= da) && (l >= db)){
+  if(k == -1){
+    if(E_F5_rest[j]!=INF)
+      return;
+    else if(E_F5_rest[j] == E_F5_rest[j-1]){
+      backtrack_f5(j-1,k,l,structure, vars);
+      return;
+    }
+  }
+  else if((k >= da) && (l >= db)){
     if(E_F5[j-1]){
       if((k - da >= k_min_values_f[j-1]) && (k - da <= k_max_values_f[j-1])){
         if((l - db >= l_min_values_f[j-1][k-da]) && (l - db <= l_max_values_f[j-1][k-da]))

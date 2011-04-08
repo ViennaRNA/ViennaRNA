@@ -334,12 +334,14 @@ typedef struct dupVar{
 * ############################################################
 */
 typedef struct{
+  int k;
+  int l;
   float en;
   char *s;
 } TwoDfold_solution;
 
 typedef struct{
-  paramT   *P;
+  paramT          *P;
   int             do_backtrack;
   char            *ptype;   /* precomputed array of pair types */
   char            *sequence;
@@ -355,9 +357,9 @@ typedef struct{
 
   double          temperature;
 
-  unsigned int    *referenceBPs1;  /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2;  /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;      /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+  unsigned int    *referenceBPs1; /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
 
   short           *reference_pt1;
   short           *reference_pt2;
@@ -426,6 +428,19 @@ typedef struct{
   int             *l_max_values_fcM;
   int             k_min_values_fcM;
   int             k_max_values_fcM;
+
+  /* auxilary arrays for rest set of coarse graining (k,l) > (k_max, l_max) */
+  int             *E_F5_rest;
+  int             *E_F3_rest;
+  int             *E_C_rest;
+  int             *E_M_rest;
+  int             *E_M1_rest;
+  int             *E_M2_rest;
+
+  int             E_Fc_rest;
+  int             E_FcH_rest;
+  int             E_FcI_rest;
+  int             E_FcM_rest;
 
 #ifdef COUNT_STATES
   unsigned long             ***N_F5;
