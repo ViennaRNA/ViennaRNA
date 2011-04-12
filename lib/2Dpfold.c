@@ -122,6 +122,7 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
 
 
   if(vars->circ){
+    vars->Q_M2_rem         = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * (length + 1));
     vars->Q_M2             = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * (length + 1));
     vars->l_min_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
     vars->l_max_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
@@ -129,6 +130,7 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
     vars->k_max_values_m2  = (int *)   space(sizeof(int)     * (length + 1));
   }
   else{
+    vars->Q_M2_rem         = NULL;
     vars->Q_M2             = NULL;
     vars->l_min_values_m2  = NULL;
     vars->l_max_values_m2  = NULL;
@@ -139,6 +141,17 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
   vars->Q_cH              = NULL;
   vars->Q_cI              = NULL;
   vars->Q_cM              = NULL;
+  vars->Q_c_rem           = 0;
+  vars->Q_cH_rem          = 0;
+  vars->Q_cI_rem          = 0;
+  vars->Q_cM_rem          = 0;
+
+  vars->Q_rem             = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_B_rem           = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_M_rem           = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_M1_rem          = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
+  
+
 
   return vars;
 }
@@ -669,6 +682,12 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
   #pragma omp section
   {
 #endif
+
+  if(vars->Q_rem)     free(vars->Q_rem);
+  if(vars->Q_B_rem)   free(vars->Q_B_rem);
+  if(vars->Q_M_rem)   free(vars->Q_M_rem);
+  if(vars->Q_M1_rem)  free(vars->Q_M1_rem);
+  if(vars->Q_M2_rem)  free(vars->Q_M2_rem);
 
   if(vars->sequence != NULL)   free(vars->sequence);
   if(vars->reference_pt1 != NULL) free(vars->reference_pt1);
