@@ -257,15 +257,13 @@ int main(int argc, char *argv[]){
       /* we dont need the mfe vars and arrays anymore, so we can savely free their occupying memory */
       destroy_TwoDfold_variables(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);
-      FLT_OR_DBL **pf_s;
 
-      pf_s = (circ) ? TwoDpfold_circ(q_vars, maxDistance1, maxDistance2) : TwoDpfold(q_vars, maxDistance1, maxDistance2);
+      TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxDistance1, maxDistance2);
 
       Q = 0.;
-      for(i=0; i<=maxDistance1;i++){
-        for(j=0; j<=maxDistance2;j++){
-          Q += pf_s[i][j];
-        }
+      
+      for(i = 0; pf_s[i].k != INF; i++){
+        Q += pf_s[i].q;
       }
 
       double fee = (-log(Q)-length*log(pf_scale))*kT;
@@ -273,20 +271,20 @@ int main(int argc, char *argv[]){
       if(!stBT){
         printf("free energy of ensemble = %6.2f kcal/mol\n",fee);
         printf("k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure\n");
-        for(i=0; mfe_s[i].k != INF;i++){
-          if(mfe_s[i].k >= 0){
-            float free_energy = (-log((float)pf_s[mfe_s[i].k][mfe_s[i].l])-length*log(pf_scale))*kT;
-            fprintf(stdout,
-                    "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n",
-                    mfe_s[i].k,
-                    mfe_s[i].l,
-                    (float)pf_s[mfe_s[i].k][mfe_s[i].l]/(float)Q,
-                    exp((free_energy-mfe_s[i].en)/kT),
-                    exp((fee-mfe_s[i].en)/kT),
-                    mfe_s[i].en,
-                    free_energy,
-                    mfe_s[i].s);
-          }
+        for(i=0; pf_s[i].k != INF;i++){
+          float free_energy = (-log((float)pf_s[i].q)-length*log(pf_scale))*kT;
+          if((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
+            nrerror("This should never happen!");
+          fprintf(stdout,
+                  "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n",
+                  pf_s[i].k,
+                  pf_s[i].l,
+                  (float)(pf_s[i].q)/(float)Q,
+                  exp((free_energy-mfe_s[i].en)/kT),
+                  exp((fee-mfe_s[i].en)/kT),
+                  mfe_s[i].en,
+                  free_energy,
+                  mfe_s[i].s);
         }
       }
       else{
@@ -308,10 +306,10 @@ int main(int argc, char *argv[]){
 
         }
         else{
-          for(i=0; mfe_s[i].k != INF;i++){
+          for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
-              if(mfe_s[i].k >= 0){
-                printf("%d\t%d\t%s\n", mfe_s[i].k, mfe_s[i].l, TwoDpfold_pbacktrack(q_vars, mfe_s[i].k, mfe_s[i].l));
+              if(pf_s[i].k >= 0){
+                printf("%d\t%d\t%s\n", pf_s[i].k, pf_s[i].l, TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l));
               }
             }
           }
