@@ -732,7 +732,7 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
   counter++;
 
   /* resize to actual dataset amount */
-  output = (TwoDfold_solution*)realloc(output, sizeof(TwoDfold_solution) * counter);
+  output = (TwoDfold_solution*)xrealloc(output, sizeof(TwoDfold_solution) * counter);
   return output;
 }
 
