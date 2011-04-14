@@ -38,7 +38,7 @@ TwoDpfold_solution  *TwoDpfoldList(TwoDpfold_vars *our_variables, int maxDistanc
  *  \param d2
  *  \return
  */
-char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2);
-char            *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2, unsigned int length);
+char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2);
+char            *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, int d1, int d2, unsigned int length);
 
 #endif

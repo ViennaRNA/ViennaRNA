@@ -457,10 +457,10 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
             char *outstr = (char *)space(sizeof(char) * (strlen(prev)+1));
             strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
             outstr[strlen(prev)] = '\0';
-            if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+            if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
             /* if(do_backtrack==1)*/
             else {
-              printf("%s (%6.2f) %4d - %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+              printf("%s (%6.2f) %4d - %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
             }
             free(outstr);
           }
@@ -486,9 +486,9 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
           outstr[strlen(prev)] = '\0';
           if(csv==1)
-            printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+            printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
           else{
-            printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + strlen(prev)-1);
+            printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
           }
         }
         if ((f3[prev_i] != f3[1]) || !prev){
@@ -499,9 +499,9 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           outstr[strlen(ss)] = '\0';
           printf("%s \n", outstr);
           if(csv==1)
-            printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, strlen(ss)-1);
+            printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
           else{
-            printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, strlen(ss)-1);
+            printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
           }
           free(ss);
         }

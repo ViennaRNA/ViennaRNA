@@ -2042,7 +2042,7 @@ PRIVATE void scale_pf_params2(TwoDpfold_vars *vars)
 * ###################################################
 */
 
-PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2){
+PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
 
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
@@ -2051,7 +2051,7 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigne
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *pstruc, *ptype;
   short           *S1, *reference_pt1, *reference_pt2;
-  FLT_OR_DBL      ***Q, ***Q_B;
+  FLT_OR_DBL      ***Q, ***Q_B, *Q_rem, *Q_B_rem;
   int             **l_min_values, **l_max_values,**l_min_values_b, **l_max_values_b;
   int             *k_min_values, *k_max_values,*k_min_values_b, *k_max_values_b;
 
@@ -2080,10 +2080,15 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigne
   k_min_values_b  = vars->k_min_values_b;
   k_max_values_b  = vars->k_max_values_b;
 
+  Q_rem           = vars->Q_rem;
+  Q_B_rem         = vars->Q_B_rem;  	
+
+#if 0
   if(d1 > maxD1)
     nrerror("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
   if(d2 > maxD2)
     nrerror("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
+#endif
 
   pstruc = space((n+1)*sizeof(char));
 
@@ -2097,7 +2102,10 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigne
     FLT_OR_DBL qln_i = 0, qln_i1 = 0;
 
     /* get partition function of current subsection [sn,n] */
-    if((d1 >= k_min_values[sn]) && (d1 <= k_max_values[sn]))
+    if(d1==-1){
+      qln_i = Q_rem[sn];
+    }
+    else if((d1 >= k_min_values[sn]) && (d1 <= k_max_values[sn]))
       if((d2 >= l_min_values[sn][d1]) && (d2 <= l_max_values[sn][d1]))
         qln_i = Q[sn][d1][d2/2];
 
@@ -2107,6 +2115,22 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, unsigned int d1, unsigne
       da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - n];
       db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - n];
       qln_i1 = 0;
+      if(d1==-1){
+        if(Q_rem[my_iindx[i+1]-n] != 0.){
+          qln_i1 = Q_rem[my_iindx[i+1]-n];
+          if(r > qln_i1*scale[1]) break; 
+        }
+        for(cnt1 = k_min_values[my_iindx[i+1]-n];
+            cnt1 <= k_max_values[my_iindx[i+1]-n];
+            cnt1++)
+          for(cnt2 = l_min_values[my_iindx[i+1]-n][cnt1];
+              cnt2 <= l_max_values[my_iindx[i+1]-n][cnt1];
+              cnt2 += 2)
+            if(((cnt1 + da) > maxD1) || ((cnt2 + db) > maxD2)){
+              qln_i1 = Q[my_iindx[i+1]-n][cnt1][cnt2/2];
+              if(r > qln_i1*scale[1]) break;
+            }
+      }
       if(d1 >= da && d2 >= db)
         if((d1-da >= k_min_values[my_iindx[i+1] - n]) && (d1 - da <= k_max_values[my_iindx[i+1] - n]))
           if((d2 - db >= l_min_values[my_iindx[i+1] - n][d1-da]) && (d2 - db <= l_max_values[my_iindx[i+1] - n][d1 - da]))
@@ -2182,7 +2206,7 @@ pbacktrack_ext_loop_early_escape:
   return pstruc;
 }
 
-PUBLIC char *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, unsigned int d1, unsigned int d2, unsigned int length){
+PUBLIC char *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, int d1, int d2, unsigned int length){
 
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
