@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
     int kappa, lambda;
     kappa = lambda = 0;
     if(sscanf(args_info.neighborhood_arg[i], "%d:%d", &kappa, &lambda) == 2);
-    if ((kappa>0) && (lambda>0)){
+    if ((kappa>-2) && (lambda>-2)){
       if(neighborhoods_cur != NULL){
         neighborhoods_cur->next = (nbhoods *)space(sizeof(nbhoods));
         neighborhoods_cur = neighborhoods_cur->next;
@@ -291,26 +291,21 @@ int main(int argc, char *argv[]){
         init_rand();
         if(neighborhoods != NULL){
           nbhoods *tmp, *tmp2;
-          for(tmp = neighborhoods; tmp != NULL; ){
+          for(tmp = neighborhoods; tmp != NULL; tmp = tmp->next){
             int k,l;
             k = tmp->k;
             l = tmp->l;
-            if(k <= maxDistance1 && l <= maxDistance2)
-              for(i = 0; i < nstBT; i++)
-                printf("%d\t%d\t%s\n", k, l, TwoDpfold_pbacktrack(q_vars, k, l));
-            tmp2 = tmp->next;
-            free(tmp);
-            tmp = tmp2;
+            for(i = 0; i < nstBT; i++){
+              char *s = TwoDpfold_pbacktrack(q_vars, k, l);
+              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, energy_of_structure(q_vars->sequence, s, 0));
+            }
           }
-
-
         }
         else{
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
-              if(pf_s[i].k >= 0){
-                printf("%d\t%d\t%s\n", pf_s[i].k, pf_s[i].l, TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l));
-              }
+              char *s = TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l);
+              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, energy_of_structure(q_vars->sequence, s, 0));
             }
           }
         }

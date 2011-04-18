@@ -42,9 +42,9 @@ PRIVATE         void  pf2D_circ(TwoDpfold_vars *vars);
 PRIVATE         void  initialize_TwoDpfold_vars(TwoDpfold_vars *vars);
 PRIVATE         void  scale_pf_params2(TwoDpfold_vars *vars);
 PRIVATE         void  make_ptypes2(TwoDpfold_vars *vars);
-PRIVATE         void  backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j);
-PRIVATE         void  backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j);
-PRIVATE         void  backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j);
+PRIVATE         void  backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
+PRIVATE         void  backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
+PRIVATE         void  backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
 PRIVATE         void  adjustArrayBoundaries(FLT_OR_DBL ***array, int *k_min, int *k_max, int **l_min, int **l_max, int k_min_real, int k_max_real, int *l_min_real, int *l_max_real);
 INLINE  PRIVATE void  preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l);
 INLINE  PRIVATE void  updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l);
@@ -1094,8 +1094,12 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               Q_B_rem[ij] += Q_B_rem[kl] * aux_en;
             }
             if(!vars->Q_B[kl]) continue;
-            for(cnt1 = vars->k_min_values_b[kl]; cnt1 <= vars->k_max_values_b[kl]; cnt1++)
-              for(cnt2 = vars->l_min_values_b[kl][cnt1]; cnt2 <= vars->l_max_values_b[kl][cnt1]; cnt2+=2){
+            for(cnt1 = vars->k_min_values_b[kl];
+                cnt1 <= vars->k_max_values_b[kl];
+                cnt1++)
+              for(cnt2 = vars->l_min_values_b[kl][cnt1];
+                  cnt2 <= vars->l_max_values_b[kl][cnt1];
+                  cnt2 += 2){
                 if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
                   vars->Q_B[ij][cnt1 + da][(cnt2 + db)/2] += vars->Q_B[kl][cnt1][cnt2/2] * aux_en;
                   if(update_b){
@@ -1121,6 +1125,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
           for(u=i+TURN+2; u<j-TURN-2;u++){
             tt = rtype[type];
             temp2 = pf_params->expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+
             if(Q_M_rem[my_iindx[i+1]-u] != 0.){
               if(vars->Q_M1[jindx[j-1]+u+1])
                 for(cnt1 = k_min_values_m1[jindx[j-1]+u+1];
@@ -1130,8 +1135,9 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                       cnt2 <= l_max_values_m1[jindx[j-1]+u+1][cnt1];
                       cnt2 += 2)
                     Q_B_rem[ij] += Q_M_rem[my_iindx[i+1]-u] * vars->Q_M1[jindx[j-1]+u+1][cnt1][cnt2/2] * temp2;
-                if(Q_M1_rem[jindx[j-1]+u+1] != 0.)
-                  Q_B_rem[ij] += Q_M_rem[my_iindx[i+1]-u] * Q_M1_rem[jindx[j-1]+u+1] * temp2;
+
+              if(Q_M1_rem[jindx[j-1]+u+1] != 0.)
+                Q_B_rem[ij] += Q_M_rem[my_iindx[i+1]-u] * Q_M1_rem[jindx[j-1]+u+1] * temp2;
             }
             if(Q_M1_rem[jindx[j-1]+u+1] != 0.){
               if(Q_M[my_iindx[i+1]-u])
@@ -1163,7 +1169,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                     cnt3++)
                   for(cnt4 = vars->l_min_values_m1[jindx[j-1]+u+1][cnt3];
                       cnt4 <= vars->l_max_values_m1[jindx[j-1]+u+1][cnt3];
-                      cnt4+=2){
+                      cnt4 += 2){
                     if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
                       vars->Q_B[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] +=  vars->Q_M[my_iindx[i+1]-u][cnt1][cnt2/2]
                                                                               * vars->Q_M1[jindx[j-1]+u+1][cnt3][cnt4/2]
@@ -1282,11 +1288,15 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       db = referenceBPs2[ij] - referenceBPs2[ij+1];
 
       if(Q_M_rem[ij+1] != 0.)
-        Q_M_rem[ij] = Q_M_rem[ij+1] * pf_params->expMLbase * scale[1];
+        Q_M_rem[ij] += Q_M_rem[ij+1] * pf_params->expMLbase * scale[1];
 
       if(vars->Q_M[ij+1])
-        for(cnt1 = vars->k_min_values_m[ij+1]; cnt1 <= vars->k_max_values_m[ij+1]; cnt1++){
-          for(cnt2 = vars->l_min_values_m[ij+1][cnt1]; cnt2 <= vars->l_max_values_m[ij+1][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_m[ij+1];
+            cnt1 <= vars->k_max_values_m[ij+1];
+            cnt1++){
+          for(cnt2 = vars->l_min_values_m[ij+1][cnt1];
+              cnt2 <= vars->l_max_values_m[ij+1][cnt1];
+              cnt2 += 2){
             if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
               vars->Q_M[ij][cnt1 + da][(cnt2 + db)/2] += vars->Q_M[ij+1][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
               if(update_m){
@@ -1304,12 +1314,17 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
             }
           }
         }
+
       if(Q_M1_rem[jindx[j-1]+i] != 0.)
-        Q_M1_rem[jindx[j]+i] = Q_M1_rem[jindx[j-1]+i] * pf_params->expMLbase * scale[1];
+        Q_M1_rem[jindx[j]+i] += Q_M1_rem[jindx[j-1]+i] * pf_params->expMLbase * scale[1];
 
       if(vars->Q_M1[jindx[j-1]+i])
-        for(cnt1 = vars->k_min_values_m1[jindx[j-1]+i]; cnt1 <= vars->k_max_values_m1[jindx[j-1]+i]; cnt1++)
-          for(cnt2 = vars->l_min_values_m1[jindx[j-1]+i][cnt1]; cnt2 <= vars->l_max_values_m1[jindx[j-1]+i][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_m1[jindx[j-1]+i];
+            cnt1 <= vars->k_max_values_m1[jindx[j-1]+i];
+            cnt1++)
+          for(cnt2 = vars->l_min_values_m1[jindx[j-1]+i][cnt1];
+              cnt2 <= vars->l_max_values_m1[jindx[j-1]+i][cnt1];
+              cnt2 += 2){
             if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
               vars->Q_M1[jindx[j]+i][cnt1 + da][(cnt2 + db)/2] += vars->Q_M1[jindx[j-1]+i][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
               if(update_m1){
@@ -1333,13 +1348,17 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
         FLT_OR_DBL aux_en = exp_E_MLstem(type, (i>1) || circ ? S1[i-1] : -1, (j<seq_length) || circ ? S1[j+1] : -1, pf_params);
 
         if(Q_B_rem[ij] != 0.){
-          Q_M_rem[ij]   += Q_B_rem[ij] * aux_en;
-          Q_M1_rem[ij]  += Q_B_rem[ij] * aux_en;
+          Q_M_rem[ij]           += Q_B_rem[ij] * aux_en;
+          Q_M1_rem[jindx[j]+i]  += Q_B_rem[ij] * aux_en;
         }
 
         if(vars->Q_B[ij]){
-          for(cnt1 = vars->k_min_values_b[ij]; cnt1 <= vars->k_max_values_b[ij]; cnt1++)
-            for(cnt2 = vars->l_min_values_b[ij][cnt1]; cnt2 <= vars->l_max_values_b[ij][cnt1]; cnt2+=2){
+          for(cnt1 = vars->k_min_values_b[ij];
+              cnt1 <= vars->k_max_values_b[ij];
+              cnt1++)
+            for(cnt2 = vars->l_min_values_b[ij][cnt1];
+                cnt2 <= vars->l_max_values_b[ij][cnt1];
+                cnt2 += 2){
               vars->Q_M[ij][cnt1][cnt2/2] += vars->Q_B[ij][cnt1][cnt2/2] * aux_en;
               if(update_m){
                 updatePosteriorBoundaries(cnt1,
@@ -1380,6 +1399,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   cnt2 <= vars->l_max_values_m[ii-k+1][cnt1];
                   cnt2 += 2)
                 Q_M_rem[ij] += Q_M[ii-k+1][cnt1][cnt2/2] * Q_B_rem[my_iindx[k]-j] * temp2;
+
           if(Q_M_rem[ii-k+1] != 0.)
             Q_M_rem[ij] += Q_M_rem[ii-k+1] * Q_B_rem[my_iindx[k]-j] * temp2;
         }
@@ -1405,8 +1425,12 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
         db = referenceBPs2[ij] - referenceBPs2[my_iindx[k]-j];
 
         if(!vars->Q_B[my_iindx[k]-j]) continue;
-        for(cnt1 = vars->k_min_values_b[my_iindx[k]-j]; cnt1 <= vars->k_max_values_b[my_iindx[k]-j]; cnt1++)
-          for(cnt2 = vars->l_min_values_b[my_iindx[k]-j][cnt1]; cnt2 <= vars->l_max_values_b[my_iindx[k]-j][cnt1]; cnt2+=2){
+        for(cnt1 = vars->k_min_values_b[my_iindx[k]-j];
+            cnt1 <= vars->k_max_values_b[my_iindx[k]-j];
+            cnt1++)
+          for(cnt2 = vars->l_min_values_b[my_iindx[k]-j][cnt1];
+              cnt2 <= vars->l_max_values_b[my_iindx[k]-j][cnt1];
+              cnt2 += 2){
             if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
                 vars->Q_M[ij][cnt1 + da][(cnt2 + db)/2] += vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * pow(pf_params->expMLbase, (double)(k-i)) * scale[k-i] * temp2;
               if(update_m){
@@ -1428,10 +1452,18 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
         da -= referenceBPs1[ii-k+1];
         db -= referenceBPs2[ii-k+1];
 
-        for(cnt1 = vars->k_min_values_m[ii-k+1]; cnt1 <= vars->k_max_values_m[ii-k+1]; cnt1++)
-          for(cnt2 = vars->l_min_values_m[ii-k+1][cnt1]; cnt2 <= vars->l_max_values_m[ii-k+1][cnt1]; cnt2+=2)
-            for(cnt3 = vars->k_min_values_b[my_iindx[k]-j]; cnt3 <= vars->k_max_values_b[my_iindx[k]-j]; cnt3++)
-              for(cnt4 = vars->l_min_values_b[my_iindx[k]-j][cnt3]; cnt4 <= vars->l_max_values_b[my_iindx[k]-j][cnt3]; cnt4+=2){
+        for(cnt1 = vars->k_min_values_m[ii-k+1];
+            cnt1 <= vars->k_max_values_m[ii-k+1];
+            cnt1++)
+          for(cnt2 = vars->l_min_values_m[ii-k+1][cnt1];
+              cnt2 <= vars->l_max_values_m[ii-k+1][cnt1];
+              cnt2 += 2)
+            for(cnt3 = vars->k_min_values_b[my_iindx[k]-j];
+                cnt3 <= vars->k_max_values_b[my_iindx[k]-j];
+                cnt3++)
+              for(cnt4 = vars->l_min_values_b[my_iindx[k]-j][cnt3];
+                  cnt4 <= vars->l_max_values_b[my_iindx[k]-j][cnt3];
+                  cnt4 += 2){
                 if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
                   vars->Q_M[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += vars->Q_M[ii-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
                   if(update_m){
@@ -1513,7 +1545,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       if (type){
         aux_en *= exp_E_ExtLoop(type, (i>1) || circ ? S1[i-1] : -1, (j < seq_length) || circ ? S1[j+1] : -1, pf_params);
 
-        if(Q_B_rem[ij])
+        if(Q_B_rem[ij] != 0.)
           Q_rem[ij] += Q_B_rem[ij] * aux_en;
 
         if(vars->Q_B[ij])
@@ -1582,7 +1614,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   cnt2 <= l_max_values_b[my_iindx[k]-j][cnt1];
                   cnt2 += 2)
                 Q_rem[ij] += Q_rem[my_iindx[i]-k+1] * Q_B[my_iindx[k]-j][cnt1][cnt2/2] * temp2;
-          if(Q_B_rem[my_iindx[i]-k+1] != 0.)
+          if(Q_B_rem[my_iindx[k]-j] != 0.)
             Q_rem[ij] += Q_rem[my_iindx[i]-k+1] * Q_B_rem[my_iindx[k]-j] * temp2;
         }
         if(Q_B_rem[my_iindx[k]-j] != 0.){
@@ -1605,10 +1637,18 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
 
         if(!vars->Q[my_iindx[i]-k+1]) continue;
         if(!vars->Q_B[my_iindx[k]-j]) continue;
-        for(cnt1 = vars->k_min_values[my_iindx[i]-k+1]; cnt1 <= vars->k_max_values[my_iindx[i]-k+1]; cnt1++)
-          for(cnt2 = vars->l_min_values[my_iindx[i]-k+1][cnt1]; cnt2 <= vars->l_max_values[my_iindx[i]-k+1][cnt1]; cnt2+=2)
-            for(cnt3 = vars->k_min_values_b[my_iindx[k]-j]; cnt3 <= vars->k_max_values_b[my_iindx[k]-j]; cnt3++)
-              for(cnt4 = vars->l_min_values_b[my_iindx[k]-j][cnt3]; cnt4 <= vars->l_max_values_b[my_iindx[k]-j][cnt3]; cnt4+=2){
+        for(cnt1 = vars->k_min_values[my_iindx[i]-k+1];
+            cnt1 <= vars->k_max_values[my_iindx[i]-k+1];
+            cnt1++)
+          for(cnt2 = vars->l_min_values[my_iindx[i]-k+1][cnt1];
+              cnt2 <= vars->l_max_values[my_iindx[i]-k+1][cnt1];
+              cnt2 += 2)
+            for(cnt3 = vars->k_min_values_b[my_iindx[k]-j];
+                cnt3 <= vars->k_max_values_b[my_iindx[k]-j];
+                cnt3++)
+              for(cnt4 = vars->l_min_values_b[my_iindx[k]-j][cnt3];
+                  cnt4 <= vars->l_max_values_b[my_iindx[k]-j][cnt3];
+                  cnt4 += 2){
                 if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
                     vars->Q[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += vars->Q[my_iindx[i]-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
                   if(update_q){
@@ -1639,8 +1679,6 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                               l_max_post
                               );
       }
-
-
 #if 0
       new_q_list = new_q_list_last = NULL;
       for(da = 0; da <= maxD1; da++){
@@ -2279,7 +2317,7 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
   unsigned int    *referenceBPs1, *referenceBPs2;
-  int             *my_iindx, ij, cnt1, cnt2, cnt3, cnt4;
+  int             *my_iindx, ij, cnt1, cnt2, cnt3, cnt4, type;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *pstruc, *ptype;
   short           *S1, *reference_pt1, *reference_pt2;
@@ -2322,6 +2360,23 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
     nrerror("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
 #endif
 
+  /* check whether the chosen neighborhood exists at all */
+  int dumb = 1;
+  ij = my_iindx[1]-n;
+  if((d1 == -1) && (Q_rem[ij] != 0.)) dumb = 0;
+  else{
+    if((k_min_values[ij] <= d1) && (k_max_values[ij] >= d1)){
+      int l_min = l_min_values[ij][d1];
+      if((d2 % 2) == (l_min%2))
+        if((l_min <= d2) && (l_max_values[ij][d1] >= d2))
+          dumb = 0;
+    }
+  }
+  if(dumb){
+    fprintf(stderr, "neighborhood %d:%d is not in scope of calculated partition function!\n", d1, d2);
+    nrerror("pbacktrack@2Dpfold.c: exiting cheerless...");
+  }
+
   pstruc = space((n+1)*sizeof(char));
 
   for (i=0; i<n; i++) pstruc[i] = '.';
@@ -2333,107 +2388,221 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
     /* find i position of first pair */
     FLT_OR_DBL qln_i = 0, qln_i1 = 0;
 
-    /* get partition function of current subsection [sn,n] */
-    if(d1==-1){
+    if(d1 == -1){
       qln_i = Q_rem[sn];
-    }
-    else if((d1 >= k_min_values[sn]) && (d1 <= k_max_values[sn]))
-      if((d2 >= l_min_values[sn][d1]) && (d2 <= l_max_values[sn][d1]))
-        qln_i = Q[sn][d1][d2/2];
+      for (i=start; i<n; i++) {
+        r = urn() * qln_i;
+        
+        qln_i1 = Q_rem[my_iindx[i+1] - n];
 
-
-    for (i=start; i<n; i++) {
-      r = urn() * qln_i;
-      da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - n];
-      db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - n];
-      qln_i1 = 0;
-      if(d1==-1){
-        if(Q_rem[my_iindx[i+1]-n] != 0.){
-          qln_i1 = Q_rem[my_iindx[i+1]-n];
-          if(r > qln_i1*scale[1]) break; 
-        }
-        for(cnt1 = k_min_values[my_iindx[i+1]-n];
-            cnt1 <= k_max_values[my_iindx[i+1]-n];
+        da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - n];
+        db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - n];
+        for(cnt1 = k_min_values[my_iindx[i+1] - n];
+            cnt1 <= k_max_values[my_iindx[i+1] - n];
             cnt1++)
-          for(cnt2 = l_min_values[my_iindx[i+1]-n][cnt1];
-              cnt2 <= l_max_values[my_iindx[i+1]-n][cnt1];
+          for(cnt2 = l_min_values[my_iindx[i+1] - n][cnt1];
+              cnt2 <= l_max_values[my_iindx[i+1] - n][cnt1];
               cnt2 += 2)
             if(((cnt1 + da) > maxD1) || ((cnt2 + db) > maxD2)){
-              qln_i1 = Q[my_iindx[i+1]-n][cnt1][cnt2/2];
-              if(r > qln_i1*scale[1]) break;
+              qln_i1 += Q[my_iindx[i+1] - n][cnt1][cnt2/2];
             }
+
+        if(r > qln_i1*scale[1]) break;
+
+        qln_i = qln_i1;
       }
-      if(d1 >= da && d2 >= db)
-        if((d1-da >= k_min_values[my_iindx[i+1] - n]) && (d1 - da <= k_max_values[my_iindx[i+1] - n]))
-          if((d2 - db >= l_min_values[my_iindx[i+1] - n][d1-da]) && (d2 - db <= l_max_values[my_iindx[i+1] - n][d1 - da]))
-            qln_i1 = Q[my_iindx[i+1] - n][d1-da][(d2-db)/2];
-      if (r > qln_i1*scale[1])  break; /* i is paired */
-      qln_i = qln_i1;
-    }
+      if (i>=n) break; /* no more pairs */
+      /* i is paired, find pairing partner j */
+      r = urn() * (qln_i - qln_i1*scale[1]);
+      for (qt=0, j=i+TURN+1; j<n; j++) {
+        ij = my_iindx[i]-j;
+        type = ptype[ij];
+        if (type) {
+          cnt1 = cnt2 = cnt3 = cnt4 = -1;
+          double qkl = exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
 
-    if (i>=n) break; /* no more pairs */
+          if(Q_B_rem[ij] != 0.){
+            if(Q_rem[my_iindx[j+1]-n] != 0.){
+              qt += qkl * Q_B_rem[ij] * Q_rem[my_iindx[j+1]-n];
+              if(qt >= r)
+                goto pbacktrack_ext_loop_early_escape_rem;
+            }
+            if(Q[my_iindx[j+1]-n])
+              for(cnt3 = k_min_values[my_iindx[j+1]-n];
+                  cnt3 <= k_max_values[my_iindx[j+1]-n];
+                  cnt3++)
+                for(cnt4 = l_min_values[my_iindx[j+1]-n][cnt3];
+                    cnt4 <= l_max_values[my_iindx[j+1]-n][cnt3];
+                    cnt4 += 2){
+                  qt += qkl * Q_B_rem[ij] * Q[my_iindx[j+1]-n][cnt3][cnt4/2];
+                  if(qt >= r)
+                    goto pbacktrack_ext_loop_early_escape_rem;
+                }
+          }
+          if(Q_rem[my_iindx[j+1]-n] != 0.){
+            cnt3 = cnt4 = -1;
+            if(Q_B[ij]){
+              for(cnt1 = k_min_values_b[ij];
+                  cnt1 <= k_max_values_b[ij];
+                  cnt1++)
+                for(cnt2 = l_min_values_b[ij][cnt1];
+                    cnt2 <= l_max_values_b[ij][cnt1];
+                    cnt2 += 2){
+                  qt += qkl * Q_B[ij][cnt1][cnt2/2] * Q_rem[my_iindx[j+1]-n];
+                  if(qt >= r)
+                    goto pbacktrack_ext_loop_early_escape_rem;
+                }
+            }
+          }
+          /* if we still search for pairing partner j, we go on here... */
+          if(Q_B[ij] && Q[my_iindx[j+1]-n]){
+            da = referenceBPs1[sn] - referenceBPs1[ij] - referenceBPs1[my_iindx[j+1]-n];
+            db = referenceBPs2[sn] - referenceBPs2[ij] - referenceBPs2[my_iindx[j+1]-n];
+            for(cnt1 = k_min_values_b[ij];
+                cnt1 <= k_max_values_b[ij];
+                cnt1++)
+              for(cnt2 = l_min_values_b[ij][cnt1];
+                  cnt2 <= l_max_values_b[ij][cnt1];
+                  cnt2 += 2)
+                for(cnt3 = k_min_values[my_iindx[j+1]-n];
+                    cnt3 <= k_max_values[my_iindx[j+1]-n];
+                    cnt3++)
+                  for(cnt4 = l_min_values[my_iindx[j+1]-n][cnt3];
+                      cnt4 <= l_max_values[my_iindx[j+1]-n][cnt3];
+                      cnt4 += 2)
+                    if(((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2)){
+                      qt += qkl * Q_B[ij][cnt1][cnt2/2] * Q[my_iindx[j+1]-n][cnt3][cnt4/2];
+                      if(qt >= r)
+                        goto pbacktrack_ext_loop_early_escape_rem;
+                    }
+          }
+        } /* end if(type) */
+      } /* end for(j) */
+      cnt1 = cnt2 = cnt3 = cnt4 = -1;
+      /* dont forget the case where i pairs with n */
+      j = n;
+      ij = my_iindx[i]-j;
+      type = ptype[ij];
+      if (type) {
+        double qkl = exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
+        if(Q_B_rem[ij] != 0.){
+          qt += qkl * Q_B_rem[ij];
+          if(qt >= r)
+            goto pbacktrack_ext_loop_early_escape_rem;
+        }
+        /* if we still search for pairing partner j, we go on here... */
+        if(Q_B[ij]){
+          da = referenceBPs1[sn] - referenceBPs1[ij];
+          db = referenceBPs2[sn] - referenceBPs2[ij];
+          for(cnt1 = k_min_values_b[ij];
+              cnt1 <= k_max_values_b[ij];
+              cnt1++)
+            for(cnt2 = l_min_values_b[ij][cnt1];
+                cnt2 <= l_max_values_b[ij][cnt1];
+                cnt2 += 2)
+              if(((cnt1 + da) > maxD1) || ((cnt2 + db) > maxD2)){
+                qt += qkl * Q_B[ij][cnt1][cnt2/2];
+                if(qt >= r)
+                  goto pbacktrack_ext_loop_early_escape_rem;
+              }
+        }
+      } /* end if(type) */
+      j++;
 
-    /* now find the pairing partner j */
-    r = urn() * (qln_i - qln_i1*scale[1]);
+pbacktrack_ext_loop_early_escape_rem:
 
-    for (qt=0, j=i+1; j<n; j++) {
-      int type;
-      type = ptype[my_iindx[i]-j];
+      if (j==n+1){
+        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
+      }
+
+      /* finally start backtracking the first exterior stem */
+      backtrack(vars, pstruc, cnt1, cnt2, i,j);
+      if(j==n) break;
+      start = j+1;
+      d1 = cnt3;
+      d2 = cnt4;
+
+    } /* end if d1 ==-1 */
+    else{
+      qln_i = Q[sn][d1][d2/2];
+
+      for (i=start; i<n; i++) {
+        r = urn() * qln_i;
+        da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - n];
+        db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - n];
+        qln_i1 = 0;
+        if(d1 >= da && d2 >= db)
+          if((d1-da >= k_min_values[my_iindx[i+1] - n]) && (d1 - da <= k_max_values[my_iindx[i+1] - n]))
+            if((d2 - db >= l_min_values[my_iindx[i+1] - n][d1-da]) && (d2 - db <= l_max_values[my_iindx[i+1] - n][d1 - da]))
+              qln_i1 = Q[my_iindx[i+1] - n][d1-da][(d2-db)/2];
+        if (r > qln_i1*scale[1])  break; /* i is paired */
+        qln_i = qln_i1;
+      }
+
+      if (i>=n) break; /* no more pairs */
+
+      /* now find the pairing partner j */
+      r = urn() * (qln_i - qln_i1*scale[1]);
+
+      for (qt=0, j=i+1; j<n; j++) {
+        int type;
+        type = ptype[my_iindx[i]-j];
+        if (type) {
+          double qkl = 1.0;
+          ij = my_iindx[i]-j;
+          qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
+
+          da = referenceBPs1[sn] - referenceBPs1[ij] - referenceBPs1[my_iindx[j+1]-n];
+          db = referenceBPs2[sn] - referenceBPs2[ij] - referenceBPs2[my_iindx[j+1]-n];
+
+          if((d1 >= da) && (d2 >= db) && Q_B[ij] && Q[my_iindx[j+1]-n])
+            for(cnt1 = k_min_values_b[ij]; cnt1 <= MIN2(k_max_values_b[ij], d1-da); cnt1++)
+              for(cnt2 = l_min_values_b[ij][cnt1]; cnt2 <= MIN2(l_max_values_b[ij][cnt1], d2-db); cnt2+=2)
+                if((d1-da-cnt1 >= k_min_values[my_iindx[j+1]-n]) && (d1-da-cnt1 <= k_max_values[my_iindx[j+1]-n]))
+                  if((d2-db-cnt2 >= l_min_values[my_iindx[j+1]-n][d1-da-cnt1]) && (d2 - db - cnt2 <= l_max_values[my_iindx[j+1]-n][d1-da-cnt1])){
+                    qt += qkl * Q_B[ij][cnt1][cnt2/2] * Q[my_iindx[j+1]-n][d1-da-cnt1][(d2-db-cnt2)/2];
+                    if(qt >= r)
+                      goto pbacktrack_ext_loop_early_escape;
+                  }
+        }
+      }
+      /* now dont forget the case j==n */
+      j = n;
+      ij = my_iindx[i]-j;
+      int type = ptype[ij];
       if (type) {
         double qkl = 1.0;
-        ij = my_iindx[i]-j;
-        qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
 
-        da = referenceBPs1[sn] - referenceBPs1[ij] - referenceBPs1[my_iindx[j+1]-n];
-        db = referenceBPs2[sn] - referenceBPs2[ij] - referenceBPs2[my_iindx[j+1]-n];
+        qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, pf_params);
 
-        if((d1 >= da) && (d2 >= db) && Q_B[ij] && Q[my_iindx[j+1]-n])
-          for(cnt1 = k_min_values_b[ij]; cnt1 <= MIN2(k_max_values_b[ij], d1-da); cnt1++)
-            for(cnt2 = l_min_values_b[ij][cnt1]; cnt2 <= MIN2(l_max_values_b[ij][cnt1], d2-db); cnt2+=2)
-              if((d1-da-cnt1 >= k_min_values[my_iindx[j+1]-n]) && (d1-da-cnt1 <= k_max_values[my_iindx[j+1]-n]))
-                if((d2-db-cnt2 >= l_min_values[my_iindx[j+1]-n][d1-da-cnt1]) && (d2 - db - cnt2 <= l_max_values[my_iindx[j+1]-n][d1-da-cnt1])){
-                  qt += qkl * Q_B[ij][cnt1][cnt2/2] * Q[my_iindx[j+1]-n][d1-da-cnt1][(d2-db-cnt2)/2];
-                  if(qt >= r)
-                    goto pbacktrack_ext_loop_early_escape;
-                }
+        da = referenceBPs1[sn] - referenceBPs1[ij];
+        db = referenceBPs2[sn] - referenceBPs2[ij];
+        if(d1 >= da && d2 >= db){
+          cnt1 = d1 - da;
+          cnt2 = d2 - db;
+          if((cnt1 >= k_min_values_b[ij]) && (cnt1 <= k_max_values_b[ij]))
+            if((cnt2 >= l_min_values_b[ij][cnt1]) && (cnt2 <= l_max_values_b[ij][cnt1])){
+              qt += qkl * Q_B[ij][cnt1][cnt2/2];
+              if(qt >= r)
+                goto pbacktrack_ext_loop_early_escape; /* j is paired */
+            }
+        }
       }
-    }
-    /* now dont forget the case j==n */
-    j = n;
-    ij = my_iindx[i]-j;
-    int type = ptype[ij];
-    if (type) {
-      double qkl = 1.0;
-
-      qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, pf_params);
-
-      da = referenceBPs1[sn] - referenceBPs1[ij];
-      db = referenceBPs2[sn] - referenceBPs2[ij];
-      if(d1 >= da && d2 >= db){
-        cnt1 = d1 - da;
-        cnt2 = d2 - db;
-        if((cnt1 >= k_min_values_b[ij]) && (cnt1 <= k_max_values_b[ij]))
-          if((cnt2 >= l_min_values_b[ij][cnt1]) && (cnt2 <= l_max_values_b[ij][cnt1])){
-            qt += qkl * Q_B[ij][cnt1][cnt2/2];
-            if(qt >= r)
-              goto pbacktrack_ext_loop_early_escape; /* j is paired */
-          }
-      }
-    }
-    j++;
+      j++;
 
 pbacktrack_ext_loop_early_escape:
 
-    if (j==n+1){
-      nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
-    }
+      if (j==n+1){
+        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
+      }
 
-    backtrack(vars, pstruc, cnt1, cnt2, i,j);
+      backtrack(vars, pstruc, cnt1, cnt2, i,j);
 
-    if(j==n) break;
-    start = j+1;
-    d1 -= cnt1 + da;
-    d2 -= cnt2 + db;
+      if(j==n) break;
+      start = j+1;
+      d1 -= cnt1 + da;
+      d2 -= cnt2 + db;
+    } /* end if d1!=-1 */
   }
   return pstruc;
 }
@@ -2577,7 +2746,7 @@ pbacktrack_ext_loop_early_escape2:
   return pstruc;
 }
 
-PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j) {
+PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j) {
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
   unsigned int    *referenceBPs1, *referenceBPs2;
@@ -2601,7 +2770,7 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsi
   referenceBPs1   = vars->referenceBPs1;
   referenceBPs2   = vars->referenceBPs2;
 
-  FLT_OR_DBL  ***Q, ***Q_B, ***Q_M, ***Q_M1;
+  FLT_OR_DBL  ***Q, ***Q_B, ***Q_M, ***Q_M1, *Q_rem, *Q_B_rem, *Q_M_rem, *Q_M1_rem;
   int         *k_min_values, *k_max_values, *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1,*k_min_values_b, *k_max_values_b;
   int         **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1,**l_min_values_b, **l_max_values_b;
 
@@ -2629,6 +2798,11 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsi
   l_min_values_m1 = vars->l_min_values_m1;
   l_max_values_m1 = vars->l_max_values_m1;
 
+  Q_rem     = vars->Q_rem;
+  Q_B_rem   = vars->Q_B_rem;
+  Q_M_rem   = vars->Q_M_rem;
+  Q_M1_rem  = vars->Q_M1_rem;
+
   do {
     double r, qbt1 = 0.;
     unsigned int k, l, u, u1;
@@ -2639,61 +2813,128 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsi
     r = 0.;
     ij = my_iindx[i]-j;
 
-    if((d1 >= k_min_values_b[ij]) && (d1 <= k_max_values_b[ij]))
-      if((d2 >= l_min_values_b[ij][d1]) && (d2 <= l_max_values_b[ij][d1]))
-        r = urn() * Q_B[ij][d1][d2/2];
+    if(d1 == -1){
+      r= urn() * Q_B_rem[ij];
+      if(r == 0.) nrerror("backtrack@2Dpfold.c: backtracking failed\n");
+      
+      type = ptype[ij];
+      u = j-i-1;
+      base_d1 = ((unsigned int)reference_pt1[i] != j) ? 1 : -1;
+      base_d2 = ((unsigned int)reference_pt2[i] != j) ? 1 : -1;
 
-    if(r == 0.) nrerror("backtrack@2Dpfold.c: backtracking failed\n");
+      da = base_d1 + referenceBPs1[ij];
+      db = base_d2 + referenceBPs2[ij];
 
-    type = ptype[ij];
-    u = j-i-1;
-    base_d1 = ((unsigned int)reference_pt1[i] != j) ? 1 : -1;
-    base_d2 = ((unsigned int)reference_pt2[i] != j) ? 1 : -1;
+      /* hairpin ? */
+      if((da > maxD1) || (db > maxD2))
+        if(!(((type==3)||(type==4))&&no_closingGU))
+          qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
-    da = base_d1 + referenceBPs1[ij];
-    db = base_d2 + referenceBPs2[ij];
+      if (qbt1>=r) return; /* found the hairpin we're done */
 
-    /*hairpin contribution*/
-    if((da == d1) && (db == d2))
-      if(!(((type==3)||(type==4))&&no_closingGU))
-        qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
+      /* lets see if we form an interior loop */
+      for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
+        unsigned int u_pre, lmin;
+        u1 = k-i-1;
+        lmin = k + TURN + 1;
+        u_pre = u1 + j;
+        /* lmin = MAX2(k + TURN + 1, u1 + j - 1 - MAXLOOP) */
+        if(u_pre > lmin + MAXLOOP) lmin = u_pre - 1 - MAXLOOP;
+        for (l=lmin; l<j; l++) {
+          int type_2;
+          type_2 = ptype[my_iindx[k]-l];
+          if (type_2) {
+            cnt1 = cnt2 = -1;
+            da = base_d1 + referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[k]-l];
+            db = base_d2 + referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[k]-l];
+            type_2 = rtype[type_2];
+            FLT_OR_DBL tmp_en = exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params) * scale[u1+j-l+1];
 
-    if (qbt1>=r) return; /* found the hairpin we're done */
+            if(Q_B_rem[my_iindx[k]-l] != 0.){
+              qbt1 += Q_B_rem[my_iindx[k]-l] * tmp_en;
+              if(qbt1 > r) goto backtrack_int_early_escape_rem;
+            }
 
-    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
-      unsigned int u_pre, lmin;
-      u1 = k-i-1;
-      lmin = k + TURN + 1;
-      u_pre = u1 + j;
-      /* lmin = MAX2(k + TURN + 1, u1 + j - 1 - MAXLOOP) */
-      if(u_pre > lmin + MAXLOOP) lmin = u_pre - 1 - MAXLOOP;
-      for (l=lmin; l<j; l++) {
-        int type_2;
-        type_2 = ptype[my_iindx[k]-l];
-        if (type_2) {
-          da = base_d1 + referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[k]-l];
-          db = base_d2 + referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[k]-l];
-          type_2 = rtype[type_2];
-          FLT_OR_DBL tmp_en = exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params) * scale[u1+j-l+1];
-          if(d1 >= da && d2 >= db)
-            if((d1 - da >= k_min_values_b[my_iindx[k]-l]) && (d1 - da <= k_max_values_b[my_iindx[k]-l]))
-              if((d2 - db >= l_min_values_b[my_iindx[k]-l][d1 - da]) && (d2 - db <= l_max_values_b[my_iindx[k]-l][d1 - da])){
-                cnt1 = d1 - da;
-                cnt2 = d2 - db;
-                qbt1 += Q_B[my_iindx[k]-l][cnt1][cnt2/2] * tmp_en;
-                if(qbt1 > r) goto backtrack_int_early_escape;
-              }
+            if(Q_B[my_iindx[k]-l])
+              for(cnt1 = k_min_values_b[my_iindx[k]-l];
+                  cnt1 <= k_max_values_b[my_iindx[k]-l];
+                  cnt1++)
+                for(cnt2 = l_min_values_b[my_iindx[k]-l][cnt1];
+                    cnt2 <= l_max_values_b[my_iindx[k]-l][cnt1];
+                    cnt2 += 2)
+                  if(((cnt1 + da) > maxD1) || ((cnt2 + db) > maxD2)){
+                    qbt1 += Q_B[my_iindx[k]-l][cnt1][cnt2/2] * tmp_en;
+                    if(qbt1 > r) goto backtrack_int_early_escape_rem;
+                  }
+          }
         }
       }
+backtrack_int_early_escape_rem:
+      if (l<j) {
+        i=k; j=l;
+        d1 = cnt1;
+        d2 = cnt2;
+      }
+      else break;
     }
+    else{
+
+      if((d1 >= k_min_values_b[ij]) && (d1 <= k_max_values_b[ij]))
+        if((d2 >= l_min_values_b[ij][d1]) && (d2 <= l_max_values_b[ij][d1]))
+          r = urn() * Q_B[ij][d1][d2/2];
+
+      if(r == 0.) nrerror("backtrack@2Dpfold.c: backtracking failed\n");
+
+      type = ptype[ij];
+      u = j-i-1;
+      base_d1 = ((unsigned int)reference_pt1[i] != j) ? 1 : -1;
+      base_d2 = ((unsigned int)reference_pt2[i] != j) ? 1 : -1;
+
+      da = base_d1 + referenceBPs1[ij];
+      db = base_d2 + referenceBPs2[ij];
+
+      /*hairpin contribution*/
+      if((da == d1) && (db == d2))
+        if(!(((type==3)||(type==4))&&no_closingGU))
+          qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
+
+      if (qbt1>=r) return; /* found the hairpin we're done */
+
+      for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
+        unsigned int u_pre, lmin;
+        u1 = k-i-1;
+        lmin = k + TURN + 1;
+        u_pre = u1 + j;
+        /* lmin = MAX2(k + TURN + 1, u1 + j - 1 - MAXLOOP) */
+        if(u_pre > lmin + MAXLOOP) lmin = u_pre - 1 - MAXLOOP;
+        for (l=lmin; l<j; l++) {
+          int type_2;
+          type_2 = ptype[my_iindx[k]-l];
+          if (type_2) {
+            da = base_d1 + referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[k]-l];
+            db = base_d2 + referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[k]-l];
+            type_2 = rtype[type_2];
+            FLT_OR_DBL tmp_en = exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params) * scale[u1+j-l+1];
+            if(d1 >= da && d2 >= db)
+              if((d1 - da >= k_min_values_b[my_iindx[k]-l]) && (d1 - da <= k_max_values_b[my_iindx[k]-l]))
+                if((d2 - db >= l_min_values_b[my_iindx[k]-l][d1 - da]) && (d2 - db <= l_max_values_b[my_iindx[k]-l][d1 - da])){
+                  cnt1 = d1 - da;
+                  cnt2 = d2 - db;
+                  qbt1 += Q_B[my_iindx[k]-l][cnt1][cnt2/2] * tmp_en;
+                  if(qbt1 > r) goto backtrack_int_early_escape;
+                }
+          }
+        }
+      }
 
 backtrack_int_early_escape:
-    if (l<j) {
-      i=k; j=l;
-      d1 = cnt1;
-      d2 = cnt2;
+      if (l<j) {
+        i=k; j=l;
+        d1 = cnt1;
+        d2 = cnt2;
+      }
+      else break;
     }
-    else break;
   } while (1);
 
   /* backtrack in multi-loop */
@@ -2711,35 +2952,140 @@ backtrack_int_early_escape:
     /* find the first split index */
     ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
-    /* get total contribution */
-    for (qt=0., k=i+1; k<j; k++){
-      /* calculate introduced distance to reference structures */
-      da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
-      db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
-      /* collect all contributing energies */
-      if(d1 >= da && d2 >= db && Q_M[ii-k+1] && Q_M1[jj+k])
-        for(cnt1 = k_min_values_m[ii-k+1]; cnt1 <= MIN2(k_max_values_m[ii-k+1], d1-da); cnt1++)
-          for(cnt2 = l_min_values_m[ii-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[ii-k+1][cnt1], d2 - db); cnt2+=2)
-            if((d1-cnt1-da >= k_min_values_m1[jj+k]) && (d1-cnt1-da <= k_max_values_m1[jj+k]))
-              if((d2 - cnt2 - db >= l_min_values_m1[jj+k][d1-da-cnt1]) && (d2 - cnt2 - db <= l_max_values_m1[jj+k][d1-cnt1-da]))
-                qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][d1-da-cnt1][(d2-db-cnt2)/2];
-    }
-    r = urn() * qt;
-    for (qt=0., k=i+1; k<j; k++) {
-      /* calculate introduced distance to reference structures */
-      da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
-      db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
-      /* collect all contributing energies */
-      if(d1 >= da && d2 >= db && Q_M[ii-k+1] && Q_M1[jj+k])
-        for(cnt1 = k_min_values_m[ii-k+1]; cnt1 <= MIN2(k_max_values_m[ii-k+1], d1-da); cnt1++)
-          for(cnt2 = l_min_values_m[ii-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[ii-k+1][cnt1], d2 - db); cnt2+=2)
-            if((d1-cnt1-da >= k_min_values_m1[jj+k]) && (d1-cnt1-da <= k_max_values_m1[jj+k]))
-              if((d2 - cnt2 - db >= l_min_values_m1[jj+k][d1-da-cnt1]) && (d2 - cnt2 - db <= l_max_values_m1[jj+k][d1-cnt1-da])){
-                cnt3 = d1-da-cnt1;
-                cnt4 = d2-db-cnt2;
-                qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][cnt3][cnt4/2];
-                if (qt>=r) goto backtrack_ml_early_escape;
+    if(d1 == -1){
+      /* get total contribution for current part */
+      for (qt=0., k=i+1; k<j; k++){
+        if(Q_M_rem[ii-k+1] != 0.){
+          if(Q_M1[jj+k])
+            for(cnt1 = k_min_values_m1[jj+k];
+                cnt1 <= k_max_values_m1[jj+k];
+                cnt1++)
+              for(cnt2 = l_min_values_m1[jj+k][cnt1];
+                  cnt2 <= l_max_values_m1[jj+k][cnt1];
+                  cnt2 += 2)
+                qt += Q_M_rem[ii-k+1] * Q_M1[jj+k][cnt1][cnt2/2];
+          if(Q_M1_rem[jj+k] != 0.)
+            qt += Q_M_rem[ii-k+1] * Q_M1_rem[jj+k];
+        }
+        if(Q_M1_rem[jj+k] != 0.){
+          if(Q_M[ii-k+1])
+            for(cnt1 = k_min_values_m[ii-k+1];
+                cnt1 <= k_max_values_m[ii-k+1];
+                cnt1++)
+              for(cnt2 = l_min_values_m[ii-k+1][cnt1];
+                  cnt2 <= l_max_values_m[ii-k+1][cnt1];
+                  cnt2 += 2)
+                qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1_rem[jj+k];
+        }
+        /* calculate introduced distance to reference structures */
+        if(!Q_M[ii-k+1]) continue;
+        if(!Q_M1[jj+k]) continue;
+        da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
+        db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
+        /* collect all contributing energies */
+        for(cnt1 = k_min_values_m[ii-k+1];
+            cnt1 <= k_max_values_m[ii-k+1];
+            cnt1++)
+          for(cnt2 = l_min_values_m[ii-k+1][cnt1];
+              cnt2 <= l_max_values_m[ii-k+1][cnt1];
+              cnt2 += 2)
+            for(cnt3 = k_min_values_m1[jj+k];
+                cnt3 <= k_max_values_m1[jj+k];
+                cnt3++)
+              for(cnt4 = l_min_values_m1[jj+k][cnt3];
+                  cnt4 <= l_max_values_m1[jj+k][cnt3];
+                  cnt4 += 2)
+                if(((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2))
+                  qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][cnt3][cnt4/2];
+      }
+      /* throw the dice */
+      r = urn() * qt;
+      for (qt=0., k=i+1; k<j; k++) {
+        cnt1 = cnt2 = cnt3 = cnt4 = -1;
+        if(Q_M_rem[ii-k+1] != 0.){
+          if(Q_M1_rem[jj+k] != 0){
+            qt += Q_M_rem[ii-k+1] * Q_M1_rem[jj+k];
+            if(qt >= r) goto backtrack_ml_early_escape;
+          }
+          if(Q_M1[jj+k])
+            for(cnt3 = k_min_values_m1[jj+k];
+                cnt3 <= k_max_values_m1[jj+k];
+                cnt3++)
+              for(cnt4 = l_min_values_m1[jj+k][cnt3];
+                  cnt4 <= l_max_values_m1[jj+k][cnt3];
+                  cnt4 += 2){
+                qt += Q_M_rem[ii-k+1] * Q_M1[jj+k][cnt3][cnt4/2];
+                if(qt >= r) goto backtrack_ml_early_escape;
               }
+        }
+        if(Q_M1_rem[jj+k] != 0.){
+          cnt3 = cnt4 = -1;
+          if(Q_M[ii-k+1])
+            for(cnt1 = k_min_values_m[ii-k+1];
+                cnt1 <= k_max_values_m[ii-k+1];
+                cnt1++)
+              for(cnt2 = l_min_values_m[ii-k+1][cnt1];
+                  cnt2 <= l_max_values_m[ii-k+1][cnt1];
+                  cnt2 += 2){
+                qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1_rem[jj+k];
+                if(qt >= r) goto backtrack_ml_early_escape;
+              }
+        }
+        /* calculate introduced distance to reference structures */
+        da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
+        db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
+        /* collect all contributing energies */
+        if(!Q_M[ii-k+1]) continue;
+        if(!Q_M1[jj+k]) continue;
+        for(cnt1 = k_min_values_m[ii-k+1];
+            cnt1 <= k_max_values_m[ii-k+1];
+            cnt1++)
+          for(cnt2 = l_min_values_m[ii-k+1][cnt1];
+              cnt2 <= l_max_values_m[ii-k+1][cnt1];
+              cnt2 += 2)
+            for(cnt3 = k_min_values_m1[jj+k];
+                cnt3 <= k_max_values_m1[jj+k];
+                cnt3++)
+              for(cnt4 = l_min_values_m1[jj+k][cnt3];
+                  cnt4 <= l_max_values_m1[jj+k][cnt3];
+                  cnt4 += 2)
+                if(((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2)){
+                  qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][cnt3][cnt4/2];
+                  if (qt>=r) goto backtrack_ml_early_escape;
+                }
+      }
+    }
+    else{
+      /* get total contribution */
+      for (qt=0., k=i+1; k<j; k++){
+        /* calculate introduced distance to reference structures */
+        da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
+        db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
+        /* collect all contributing energies */
+        if(d1 >= da && d2 >= db && Q_M[ii-k+1] && Q_M1[jj+k])
+          for(cnt1 = k_min_values_m[ii-k+1]; cnt1 <= MIN2(k_max_values_m[ii-k+1], d1-da); cnt1++)
+            for(cnt2 = l_min_values_m[ii-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[ii-k+1][cnt1], d2 - db); cnt2+=2)
+              if((d1-cnt1-da >= k_min_values_m1[jj+k]) && (d1-cnt1-da <= k_max_values_m1[jj+k]))
+                if((d2 - cnt2 - db >= l_min_values_m1[jj+k][d1-da-cnt1]) && (d2 - cnt2 - db <= l_max_values_m1[jj+k][d1-cnt1-da]))
+                  qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][d1-da-cnt1][(d2-db-cnt2)/2];
+      }
+      r = urn() * qt;
+      for (qt=0., k=i+1; k<j; k++) {
+        /* calculate introduced distance to reference structures */
+        da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
+        db = base_d2 - referenceBPs2[my_iindx[i]-k+1] - referenceBPs2[my_iindx[k]-j];
+        /* collect all contributing energies */
+        if(d1 >= da && d2 >= db && Q_M[ii-k+1] && Q_M1[jj+k])
+          for(cnt1 = k_min_values_m[ii-k+1]; cnt1 <= MIN2(k_max_values_m[ii-k+1], d1-da); cnt1++)
+            for(cnt2 = l_min_values_m[ii-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[ii-k+1][cnt1], d2 - db); cnt2+=2)
+              if((d1-cnt1-da >= k_min_values_m1[jj+k]) && (d1-cnt1-da <= k_max_values_m1[jj+k]))
+                if((d2 - cnt2 - db >= l_min_values_m1[jj+k][d1-da-cnt1]) && (d2 - cnt2 - db <= l_max_values_m1[jj+k][d1-cnt1-da])){
+                  cnt3 = d1-da-cnt1;
+                  cnt4 = d2-db-cnt2;
+                  qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][cnt3][cnt4/2];
+                  if (qt>=r) goto backtrack_ml_early_escape;
+                }
+      }
     }
     if (k>=j) nrerror("backtrack failed, can't find split index ");
 
@@ -2752,7 +3098,7 @@ backtrack_ml_early_escape:
   }
 }
 
-PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j){
+PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j){
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
@@ -2761,22 +3107,22 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, 
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
   int             *my_iindx, *jindx, cnt1, cnt2;
-  pf_params   = vars->pf_params;
-  sequence    = vars->sequence;
-  n           = vars->seq_length;
-  maxD1       = vars->maxD1;
-  maxD2       = vars->maxD2;
-  my_iindx    = vars->my_iindx;
-  jindx       = vars->jindx;
-  scale       = vars->scale;
-  ptype       = vars->ptype;
-  S1          = vars->S1;
-  referenceBPs1  = vars->referenceBPs1;
-  referenceBPs2  = vars->referenceBPs2;
-  reference_pt1  = vars->reference_pt1;
-  reference_pt2  = vars->reference_pt2;
+  pf_params       = vars->pf_params;
+  sequence        = vars->sequence;
+  n               = vars->seq_length;
+  maxD1           = vars->maxD1;
+  maxD2           = vars->maxD2;
+  my_iindx        = vars->my_iindx;
+  jindx           = vars->jindx;
+  scale           = vars->scale;
+  ptype           = vars->ptype;
+  S1              = vars->S1;
+  referenceBPs1   = vars->referenceBPs1;
+  referenceBPs2   = vars->referenceBPs2;
+  reference_pt1   = vars->reference_pt1;
+  reference_pt2   = vars->reference_pt2;
 
-  FLT_OR_DBL  ***Q_B, ***Q_M1;
+  FLT_OR_DBL  ***Q_B, ***Q_M1, *Q_B_rem, *Q_M1_rem;
   int         *k_min_values_m1, *k_max_values_m1,*k_min_values_b, *k_max_values_b;
   int         **l_min_values_m1, **l_max_values_m1,**l_min_values_b, **l_max_values_b;
 
@@ -2792,34 +3138,59 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, 
   l_min_values_m1 = vars->l_min_values_m1;
   l_max_values_m1 = vars->l_max_values_m1;
 
+  Q_B_rem   = vars->Q_B_rem;
+  Q_M1_rem  = vars->Q_M1_rem;
+
   unsigned int ii, l;
   int type;
 
   /* find qm1 contribution */
-  if((d1 >= k_min_values_m1[jindx[j]+i]) && (d1 <= k_max_values_m1[jindx[j]+i]))
-    if((d2 >= l_min_values_m1[jindx[j]+i][d1]) && (d2 <= l_max_values_m1[jindx[j]+i][d1]))
-      r = urn() * Q_M1[jindx[j]+i][d1][d2/2];
+  if(d1 == -1)
+    r = urn() * Q_M1_rem[jindx[j]+i];
+  else{
+    if((d1 >= k_min_values_m1[jindx[j]+i]) && (d1 <= k_max_values_m1[jindx[j]+i]))
+      if((d2 >= l_min_values_m1[jindx[j]+i][d1]) && (d2 <= l_max_values_m1[jindx[j]+i][d1]))
+        r = urn() * Q_M1[jindx[j]+i][d1][d2/2];
+  }
   if(r == 0.) nrerror("backtrack_qm1@2Dpfold.c: backtracking failed\n");
 
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[ii-l];
     if (type){
+      FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * pow(pf_params->expMLbase, j-l) * scale[j-l];
       /* compute the introduced distance to reference structures */
       da = referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[i]-l];
       db = referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[i]-l];
-
-      FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * pow(pf_params->expMLbase, j-l) * scale[j-l];
-
-      /* get energy contributions */
-      if(d1 >= da && d2 >= db)
-        if((d1 - da >= k_min_values_b[ii-l]) && (d1 - da <= k_max_values_b[ii-l]))
-          if((d2 - db >= l_min_values_b[ii-l][d1-da]) && (d2 - db <= l_max_values_b[ii-l][d1-da])){
-            cnt1 = d1 - da;
-            cnt2 = d2 - db;
-            qt += Q_B[ii-l][cnt1][cnt2/2] * tmp;
-            if (qt>=r) goto backtrack_qm1_early_escape;
-          }
+      cnt1 = cnt2 = -1;
+      if(d1 == -1){
+        if(Q_B_rem[ii-l] != 0.){
+          qt += Q_B_rem[ii-l] * tmp;
+          if(qt >= r) goto backtrack_qm1_early_escape;
+        }
+        if(Q_B[ii-l])
+          for(cnt1 = k_min_values_b[ii-l];
+              cnt1 <= k_max_values_b[ii-l];
+              cnt1++)
+            for(cnt2 = l_min_values_b[ii-l][cnt1];
+                cnt2 <= l_max_values_b[ii-l][cnt1];
+                cnt2 += 2)
+              if(((cnt1 + da) > maxD1) || ((cnt2 + db) > maxD2)){
+                qt += Q_B[ii-l][cnt1][cnt2/2] * tmp;
+                if(qt >= r) goto backtrack_qm1_early_escape;
+              }
+      }
+      else{
+        /* get energy contributions */
+        if(d1 >= da && d2 >= db)
+          if((d1 - da >= k_min_values_b[ii-l]) && (d1 - da <= k_max_values_b[ii-l]))
+            if((d2 - db >= l_min_values_b[ii-l][d1-da]) && (d2 - db <= l_max_values_b[ii-l][d1-da])){
+              cnt1 = d1 - da;
+              cnt2 = d2 - db;
+              qt += Q_B[ii-l][cnt1][cnt2/2] * tmp;
+              if (qt>=r) goto backtrack_qm1_early_escape;
+            }
+      }
     }
   }
   if (l>j) nrerror("backtrack failed in qm1");
@@ -2828,7 +3199,7 @@ backtrack_qm1_early_escape:
   backtrack(vars, pstruc, cnt1, cnt2, i,l);
 }
 
-PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, unsigned int d2, unsigned int i, unsigned int j){
+PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j){
   /* divide multiloop into qm and qm1  */
   FLT_OR_DBL      r, qt, *qln, *scale;
   unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, da2, db2, remaining_d1, remaining_d2;
@@ -2851,7 +3222,7 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, u
   referenceBPs1  = vars->referenceBPs1;
   referenceBPs2  = vars->referenceBPs2;
 
-  FLT_OR_DBL  ***Q_M, ***Q_M1;
+  FLT_OR_DBL  ***Q_M, ***Q_M1, *Q_M_rem, *Q_M1_rem;
   int         *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
   int         **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1;
 
@@ -2866,6 +3237,8 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, u
   k_max_values_m1 = vars->k_max_values_m1;
   l_min_values_m1 = vars->l_min_values_m1;
   l_max_values_m1 = vars->l_max_values_m1;
+  Q_M_rem   = vars->Q_M_rem;
+  Q_M1_rem  = vars->Q_M1_rem;
 
   double qmt = 0;
   unsigned int k;
@@ -2873,61 +3246,157 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, unsigned int d1, u
     /* now backtrack  [i ... j] in qm[] */
     int sw;
     /* find qm contribution */
-    if(Q_M[my_iindx[i]-j])
-      if((d1 >= k_min_values_m[my_iindx[i]-j]) && (d1 <= k_max_values_m[my_iindx[i]-j]))
-        if((d2 >= l_min_values_m[my_iindx[i]-j][d1]) && (d2 <= l_max_values_m[my_iindx[i]-j][d1]))
-          r = urn() * Q_M[my_iindx[i]-j][d1][d2/2];
+    if(d1 == -1)
+      r = urn() * Q_M_rem[my_iindx[i]-j];
+    else{
+      if(Q_M[my_iindx[i]-j])
+        if((d1 >= k_min_values_m[my_iindx[i]-j]) && (d1 <= k_max_values_m[my_iindx[i]-j]))
+          if((d2 >= l_min_values_m[my_iindx[i]-j][d1]) && (d2 <= l_max_values_m[my_iindx[i]-j][d1]))
+            r = urn() * Q_M[my_iindx[i]-j][d1][d2/2];
+    }
     if(r == 0.) nrerror("backtrack_qm@2Dpfold.c: backtracking failed in finding qm contribution\n");
 
-    /* find corresponding qm1 contribution */
     qmt = 0.;
-    if(Q_M1[jindx[j]+i])
-      if((d1 >= k_min_values_m1[jindx[j]+i]) && (d1 <= k_max_values_m1[jindx[j]+i]))
-        if((d2 >= l_min_values_m1[jindx[j]+i][d1]) && (d2 <= l_max_values_m1[jindx[j]+i][d1])){
-          qmt = Q_M1[jindx[j]+i][d1][d2/2];
+    if(d1 == -1){
+      if(Q_M1_rem[jindx[j]+i] != 0.){
+        qmt += Q_M1_rem[jindx[j]+i];
+        if(qmt >= r){
+          backtrack_qm1(vars, pstruc, d1, d2, i, j);
+          return;
         }
+      }
 
-    k=i;
-    if(qmt<r){
       for(k=i+1; k<=j; k++){
-        /* calculate introduced distancies to reference structures */
+        FLT_OR_DBL tmp = pow(pf_params->expMLbase, k-i) * scale[k-i];
+        if(Q_M1_rem[jindx[j]+k] != 0.){
+          qmt += Q_M1_rem[jindx[j]+k] * tmp;
+          if(qmt >= r){
+            backtrack_qm1(vars, pstruc, d1, d2, k, j);
+            return;
+          }
+        }
         da2 = referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[k]-j];
         db2 = referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[k]-j];
+        if(Q_M1[jindx[j]+k])
+          for(cnt1 = k_min_values_m1[jindx[j]+k];
+              cnt1 <= k_max_values_m1[jindx[j]+k];
+              cnt1++)
+            for(cnt2 = l_min_values_m1[jindx[j]+k][cnt1];
+                cnt2 <= l_max_values_m1[jindx[j]+k][cnt1];
+                cnt2 += 2)
+              if(((cnt1 + da2) > maxD1) || ((cnt2 + db2) > maxD2)){
+                qmt += Q_M1[jindx[j]+k][cnt1][cnt2/2] * tmp;
+                if(qmt >= r){
+                  backtrack_qm1(vars, pstruc, cnt1, cnt2, k, j);
+                  return;
+                }
+              }
+
         da = da2 - referenceBPs1[my_iindx[i]-k+1];
         db = db2 - referenceBPs2[my_iindx[i]-k+1];
 
-
-        FLT_OR_DBL tmp = pow(pf_params->expMLbase, k-i) * scale[k-i];
-
-        /* collect unpaired + qm1 contributions */
-        if(d1 >= da2 && d2 >= db2)
-          if((d1 - da2 >= k_min_values_m1[jindx[j]+k]) && (d1 - da2 <= k_max_values_m1[jindx[j]+k]))
-            if((d2 - db2 >= l_min_values_m1[jindx[j]+k][d1-da2]) && (d2 - db2 <= l_max_values_m1[jindx[j]+k][d1-da2])){
-              cnt3 = d1-da2;
-              cnt4 = d2-db2;
-              qmt += Q_M1[jindx[j]+k][cnt3][cnt4/2] * tmp;
-              if(qmt >= r){
-                backtrack_qm1(vars, pstruc, cnt3, cnt4, k, j);
-                return;
+        cnt1 = cnt2 = cnt3 = cnt4 = -1;
+        if(Q_M_rem[my_iindx[i]-k+1] != 0.){
+          if(Q_M1_rem[jindx[j]+k] != 0.){
+            qmt += Q_M_rem[my_iindx[i]-k+1] * Q_M1_rem[jindx[j]+k];
+            if(qmt >= r) goto backtrack_qm_early_escape;
+          }
+          if(Q_M1[jindx[j]+k])
+            for(cnt3 = k_min_values_m1[jindx[j]+k];
+                cnt3 <= k_max_values_m1[jindx[j]+k];
+                cnt3++)
+              for(cnt4 = l_min_values_m1[jindx[j]+k][cnt3];
+                  cnt4 <= l_max_values_m1[jindx[j]+k][cnt3];
+                  cnt4 += 2){
+                qmt += Q_M_rem[my_iindx[i]-k+1] * Q_M1[jindx[j]+k][cnt3][cnt4/2];
+                if(qmt >= r) goto backtrack_qm_early_escape;
               }
-            }
+        }
+        if(Q_M1_rem[jindx[j]+k] != 0.){
+          cnt3 = cnt4 = -1;
+          if(Q_M[my_iindx[i]-k+1])
+            for(cnt1 = k_min_values_m[my_iindx[i]-k+1];
+                cnt1 <= k_max_values_m[my_iindx[i]-k+1];
+                cnt1++)
+              for(cnt2 = l_min_values_m[my_iindx[i]-k+1][cnt1];
+                  cnt2 <= l_max_values_m[my_iindx[i]-k+1][cnt1];
+                  cnt2 += 2){
+                qmt += Q_M[my_iindx[i]-k+1][cnt1][cnt2/2] * Q_M1_rem[jindx[j]+k];
+                if(qmt >= r) goto backtrack_qm_early_escape;
+              }
+        }
 
-        /* collect qm + qm1 contributions */
-        if(d1 >= da && d2 >= db && Q_M[my_iindx[i]-k+1] && Q_M1[jindx[j]+k])
-          for(cnt1 = k_min_values_m[my_iindx[i]-k+1]; cnt1 <= MIN2(k_max_values_m[my_iindx[i]-k+1], d1 - da); cnt1++)
-            for(cnt2 = l_min_values_m[my_iindx[i]-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[my_iindx[i]-k+1][cnt1], d2 - db); cnt2+=2)
-              if((d1 - da - cnt1 >= k_min_values_m1[jindx[j]+k]) && (d1 - da - cnt1 <= k_max_values_m1[jindx[j]+k]))
-                if((d2 - db - cnt2 >= l_min_values_m1[jindx[j]+k][d1-da-cnt1]) && (d2 - db - cnt2 <= l_max_values_m1[jindx[j]+k][d1-da-cnt1])){
-                  cnt3 = d1 - da - cnt1;
-                  cnt4 = d2 - db - cnt2;
+        if(!Q_M[my_iindx[i]-k+1]) continue;
+        if(!Q_M1[jindx[j]+k]) continue;
+        for(cnt1 = k_min_values_m[my_iindx[i]-k+1];
+            cnt1 <= k_max_values_m[my_iindx[i]-k+1];
+            cnt1++)
+          for(cnt2 = l_min_values_m[my_iindx[i]-k+1][cnt1];
+              cnt2 <= l_max_values_m[my_iindx[i]-k+1][cnt1];
+              cnt2 += 2)
+            for(cnt3 = k_min_values_m1[jindx[j]+k];
+                cnt3 <= k_max_values_m1[jindx[j]+k];
+                cnt3++)
+              for(cnt4 = l_min_values_m1[jindx[j]+k][cnt3];
+                  cnt4 <= l_max_values_m1[jindx[j]+k][cnt3];
+                  cnt4 += 2)
+                if(((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2)){
                   qmt += Q_M[my_iindx[i]-k+1][cnt1][cnt2/2] * Q_M1[jindx[j]+k][cnt3][cnt4/2];
                   if(qmt >= r) goto backtrack_qm_early_escape;
                 }
       }
+
     }
     else{
-      backtrack_qm1(vars, pstruc, d1, d2, k, j);
-      return;
+      /* find corresponding qm1 contribution */
+      if(Q_M1[jindx[j]+i])
+        if((d1 >= k_min_values_m1[jindx[j]+i]) && (d1 <= k_max_values_m1[jindx[j]+i]))
+          if((d2 >= l_min_values_m1[jindx[j]+i][d1]) && (d2 <= l_max_values_m1[jindx[j]+i][d1])){
+            qmt = Q_M1[jindx[j]+i][d1][d2/2];
+          }
+
+      k=i;
+      if(qmt<r){
+        for(k=i+1; k<=j; k++){
+          /* calculate introduced distancies to reference structures */
+          da2 = referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[k]-j];
+          db2 = referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[k]-j];
+          da = da2 - referenceBPs1[my_iindx[i]-k+1];
+          db = db2 - referenceBPs2[my_iindx[i]-k+1];
+
+
+          FLT_OR_DBL tmp = pow(pf_params->expMLbase, k-i) * scale[k-i];
+
+          /* collect unpaired + qm1 contributions */
+          if(d1 >= da2 && d2 >= db2)
+            if((d1 - da2 >= k_min_values_m1[jindx[j]+k]) && (d1 - da2 <= k_max_values_m1[jindx[j]+k]))
+              if((d2 - db2 >= l_min_values_m1[jindx[j]+k][d1-da2]) && (d2 - db2 <= l_max_values_m1[jindx[j]+k][d1-da2])){
+                cnt3 = d1-da2;
+                cnt4 = d2-db2;
+                qmt += Q_M1[jindx[j]+k][cnt3][cnt4/2] * tmp;
+                if(qmt >= r){
+                  backtrack_qm1(vars, pstruc, cnt3, cnt4, k, j);
+                  return;
+                }
+              }
+
+          /* collect qm + qm1 contributions */
+          if(d1 >= da && d2 >= db && Q_M[my_iindx[i]-k+1] && Q_M1[jindx[j]+k])
+            for(cnt1 = k_min_values_m[my_iindx[i]-k+1]; cnt1 <= MIN2(k_max_values_m[my_iindx[i]-k+1], d1 - da); cnt1++)
+              for(cnt2 = l_min_values_m[my_iindx[i]-k+1][cnt1]; cnt2 <= MIN2(l_max_values_m[my_iindx[i]-k+1][cnt1], d2 - db); cnt2+=2)
+                if((d1 - da - cnt1 >= k_min_values_m1[jindx[j]+k]) && (d1 - da - cnt1 <= k_max_values_m1[jindx[j]+k]))
+                  if((d2 - db - cnt2 >= l_min_values_m1[jindx[j]+k][d1-da-cnt1]) && (d2 - db - cnt2 <= l_max_values_m1[jindx[j]+k][d1-da-cnt1])){
+                    cnt3 = d1 - da - cnt1;
+                    cnt4 = d2 - db - cnt2;
+                    qmt += Q_M[my_iindx[i]-k+1][cnt1][cnt2/2] * Q_M1[jindx[j]+k][cnt3][cnt4/2];
+                    if(qmt >= r) goto backtrack_qm_early_escape;
+                  }
+        }
+      }
+      else{
+        backtrack_qm1(vars, pstruc, d1, d2, k, j);
+        return;
+      }
     }
 
     if(k>j) nrerror("backtrack_qm@2Dpfold.c: backtrack failed in qm");
@@ -2940,6 +3409,7 @@ backtrack_qm_early_escape:
 
     d1 = cnt1;
     d2 = cnt2;
+
 
     if(d1 == referenceBPs1[my_iindx[i]-k+1] && d2 == referenceBPs2[my_iindx[i]-k+1]){
       /* is interval [i,k] totally unpaired? */

@@ -5,7 +5,6 @@
 
 */
 
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -19,6 +18,10 @@
 #include "loop_energies.h"
 #include "mm.h"
 #include "params.h"
+#ifdef _OPENMP
+#include <omp.h>
+
+#endif
 
 #include "2Dfold.h"
 
