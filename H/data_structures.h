@@ -429,18 +429,18 @@ typedef struct{
   int             k_min_values_fcM;
   int             k_max_values_fcM;
 
-  /* auxilary arrays for rest set of coarse graining (k,l) > (k_max, l_max) */
-  int             *E_F5_rest;
-  int             *E_F3_rest;
-  int             *E_C_rest;
-  int             *E_M_rest;
-  int             *E_M1_rest;
-  int             *E_M2_rest;
+  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
+  int             *E_F5_rem;
+  int             *E_F3_rem;
+  int             *E_C_rem;
+  int             *E_M_rem;
+  int             *E_M1_rem;
+  int             *E_M2_rem;
 
-  int             E_Fc_rest;
-  int             E_FcH_rest;
-  int             E_FcI_rest;
-  int             E_FcM_rest;
+  int             E_Fc_rem;
+  int             E_FcH_rem;
+  int             E_FcI_rem;
+  int             E_FcM_rem;
 
 #ifdef COUNT_STATES
   unsigned long             ***N_F5;
@@ -449,6 +449,12 @@ typedef struct{
   unsigned long             ***N_M1;
 #endif
 } TwoDfold_vars;
+
+typedef struct{
+  int k;
+  int l;
+  FLT_OR_DBL  q;
+} TwoDpfold_solution;
 
 typedef struct{
 
@@ -534,6 +540,18 @@ typedef struct{
   int             *l_max_values_qcM;
   int             k_min_values_qcM;
   int             k_max_values_qcM;
+
+  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
+  FLT_OR_DBL      *Q_rem;
+  FLT_OR_DBL      *Q_B_rem;
+  FLT_OR_DBL      *Q_M_rem;
+  FLT_OR_DBL      *Q_M1_rem;
+  FLT_OR_DBL      *Q_M2_rem;
+
+  FLT_OR_DBL      Q_c_rem;
+  FLT_OR_DBL      Q_cH_rem;
+  FLT_OR_DBL      Q_cI_rem;
+  FLT_OR_DBL      Q_cM_rem;
 
 } TwoDpfold_vars;
 
