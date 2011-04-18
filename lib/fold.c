@@ -2112,7 +2112,7 @@ PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
   short *pt;
   int i, k = 0;
   pt  = make_pair_table(struc);
-  *pl = (plist *)space(strlen(struc)/2*sizeof(plist));
+  *pl = (plist *)space((strlen(struc)/2+1)*sizeof(plist));
   for(i = 1; i < strlen(struc); i++){
     if(pt[i]>i){
       (*pl)[k].i    = i;
