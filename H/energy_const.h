@@ -10,7 +10,7 @@
 
 /** The gas constant */
 #define GASCONST 1.98717  /* in [cal/K] */
-/** 37 deg Celsius in Kelvin */
+/** 0 deg Celsius in Kelvin */
 #define K0  273.15
 /** Infinity as used in minimization routines */
 #define INF (INT_MAX/10)
