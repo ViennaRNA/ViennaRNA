@@ -738,7 +738,7 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
 }
 
 
-PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, unsigned int k, unsigned int l, TwoDfold_vars *vars){
+PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *vars){
   unsigned int i;
   char *mfe_structure = (char *)space(j+1);
   if(j < TURN + 2) return NULL;

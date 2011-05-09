@@ -14,7 +14,7 @@
 #include "fold_vars.h"
 #include "part_func.h"
 #include "utils.h"
-#include "ProfileDist.h"
+#include "profiledist.h"
 
 /*@unused@*/
 static char rcsid[] = "$Id: ProfileDist.c,v 1.6 2002/11/07 11:49:59 ivo Exp $";

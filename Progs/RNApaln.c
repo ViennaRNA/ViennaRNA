@@ -15,7 +15,7 @@
 #include "fold_vars.h"
 #include "dist_vars.h"
 #include "utils.h"
-#include "ProfileDist.h"
+#include "profiledist.h"
 #include "ProfileAln.h"
 #include "read_epars.h"
 #include "PS_dot.h"

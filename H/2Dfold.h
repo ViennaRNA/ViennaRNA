@@ -66,6 +66,6 @@ TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance
 /**
  * 
  */
-char *TwoDfold_backtrack_f5(unsigned int j, unsigned int k, unsigned int l, TwoDfold_vars *vars);
+char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *vars);
 
 #endif

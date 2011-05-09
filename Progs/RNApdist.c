@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "PS_dot.h"
 #include "read_epars.h"
-#include "ProfileDist.h"
+#include "profiledist.h"
 
 
 #define MAXLENGTH  10000
