@@ -29,7 +29,7 @@ typedef struct nbhoods{
 int main(int argc, char *argv[]){
   struct        RNA2Dfold_args_info args_info;
   unsigned int  input_type;
-  char *string, *input_string;
+  char *string, *input_string, *orig_sequence;
   char *mfe_structure=NULL, *structure1=NULL, *structure2=NULL, *reference_struc1=NULL, *reference_struc2=NULL;
   char  fname[13];
   char  *ParamFile=NULL;
@@ -48,6 +48,8 @@ int main(int argc, char *argv[]){
   dangles = 2;
   struct nbhoods *neighborhoods = NULL;
   struct nbhoods *neighborhoods_cur = NULL;
+
+  string = input_string = orig_sequence = NULL;
   /*
   #############################################
   # check the command line prameters
@@ -199,14 +201,18 @@ int main(int argc, char *argv[]){
     else nrerror("2nd reference structure missing\n");
     strncpy(structure2, reference_struc2, length);
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(string);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(string);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(string);
 
     if (istty)  printf("length = %d\n", length);
 
     min_en = (circ) ? circfold(string, mfe_structure) : fold(string, mfe_structure);
 
-    printf("%s\n%s", string, mfe_structure);
+    printf("%s\n%s", orig_sequence, mfe_structure);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -325,11 +331,13 @@ int main(int argc, char *argv[]){
 
     free_arrays();
     free(string);
+    free(orig_sequence);
     free(mfe_structure);
     free(structure1);
     free(structure2);
     free(reference_struc1);
     free(reference_struc2);
+    string = orig_sequence = mfe_structure = NULL;
   } while (1);
   return 0;
 }

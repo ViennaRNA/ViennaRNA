@@ -20,7 +20,7 @@
 
 int main(int argc, char *argv[]){
   struct  RNALfoldz_args_info args_info;
-  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
+  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   int                         i, length, l, sym, r, istty, noconv, maxdist, zsc;
   double                      energy, min_en, min_z;
   unsigned int                input_type;
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
   zsc           = 1;
   min_z         = -2.0;
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
 
   /*
@@ -130,8 +130,12 @@ int main(int argc, char *argv[]){
 
     length = (int)strlen(rec_sequence);
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
     /*
@@ -141,7 +145,7 @@ int main(int argc, char *argv[]){
     */
 
     min_en = (zsc) ? Lfoldz((const char *)rec_sequence, NULL, maxdist, zsc, min_z) : Lfold((const char *)rec_sequence, NULL, maxdist);
-    printf("%s\n", rec_sequence);
+    printf("%s\n", orig_sequence);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -153,7 +157,8 @@ int main(int argc, char *argv[]){
     /* clean up */
     if(rec_id) free(rec_id);
     free(rec_sequence);
-    rec_id = rec_sequence = NULL;
+    free(orig_sequence);
+    rec_id = rec_sequence = orig_sequence = NULL;
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 

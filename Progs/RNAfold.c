@@ -35,7 +35,7 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
-  char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure=NULL, *cstruc=NULL;
+  char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
   char          fname[80], ffname[80], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
   double        MEAgamma = 1.;
 
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
   rec_rest      = NULL;
   do_backtrack  = 1;
   pf            = 0;
@@ -190,8 +190,12 @@ int main(int argc, char *argv[]){
       if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
@@ -202,7 +206,7 @@ int main(int argc, char *argv[]){
     */
     min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
 
-    printf("%s\n%s", rec_sequence, structure);
+    printf("%s\n%s", orig_sequence, structure);
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
     else
@@ -215,7 +219,7 @@ int main(int argc, char *argv[]){
       strcat(ffname, "_ss.ps");
     } else strcpy(ffname, "rna.ps");
 
-    if (!noPS) (void) PS_rna_plot(rec_sequence, structure, ffname);
+    if (!noPS) (void) PS_rna_plot(orig_sequence, structure, ffname);
     if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc;
@@ -257,7 +261,7 @@ int main(int argc, char *argv[]){
           strcpy(ffname, fname);
           strcat(ffname, "_dp.ps");
         } else strcpy(ffname, "dot.ps");
-        (void) PS_dot_plot_list(rec_sequence, ffname, pl1, pl2, "");
+        (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
         free(pl2);
         if (do_backtrack==2) {
           pl2 = stackProb(1e-5);
@@ -265,7 +269,7 @@ int main(int argc, char *argv[]){
             strcpy(ffname, fname);
             strcat(ffname, "_dp2.ps");
           } else strcpy(ffname, "dot2.ps");
-          PS_dot_plot_list(rec_sequence, ffname, pl1, pl2,
+          PS_dot_plot_list(orig_sequence, ffname, pl1, pl2,
                            "Probabilities for stacked pairs (i,j)(i+1,j-1)");
           free(pl2);
         }
@@ -294,6 +298,7 @@ int main(int argc, char *argv[]){
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);
+    free(orig_sequence);
     free(structure);
     /* free the rest of current dataset */
     if(rec_rest){

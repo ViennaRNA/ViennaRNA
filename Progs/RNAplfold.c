@@ -34,7 +34,7 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
 int main(int argc, char *argv[]){
   struct        RNAplfold_args_info args_info;
   unsigned int  error = 0;
-  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
+  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   unsigned int  input_type;
   int           i, length, l, sym, r, istty, winsize, pairdist;
   float         cutoff;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
   tempwin       = temppair = tempunpaired = 0;
   structure     = ParamFile = ns_bases = NULL;
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
 
   /*
@@ -178,8 +178,12 @@ int main(int argc, char *argv[]){
     length    = (int)strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
@@ -269,7 +273,7 @@ int main(int argc, char *argv[]){
       }
       else{
         pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
-        PS_dot_plot_turn(rec_sequence, pl, ffname, pairdist);
+        PS_dot_plot_turn(orig_sequence, pl, ffname, pairdist);
         if (unpaired > 0){
           if(plexoutput){
             pUfp = fopen(fname3, "w");
@@ -292,8 +296,9 @@ int main(int argc, char *argv[]){
     /* clean up */
     if(rec_id) free(rec_id);
     free(rec_sequence);
+    free(orig_sequence);
     free(structure);
-    rec_id = rec_sequence = NULL;
+    rec_id = rec_sequence = orig_sequence = NULL;
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 

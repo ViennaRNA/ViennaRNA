@@ -436,20 +436,20 @@ void print_tty_constraint_full(void);
 void print_tty_constraint(unsigned int option);
 
 /**
- *  \brief Convert an input sequence (RNA or DNA) to RNA alphabet
+ *  \brief Convert a DNA input sequence to RNA alphabet
  *
- *  This function also converts characters to uppercase
+ *  This function substitudes <i>T</i> and <i>t</i> with <i>U</i> and <i>u</i>, respectively
  * 
  *  \param sequence The sequence to be converted
  */
 void str_DNA2RNA(char *sequence);
 
 /**
- *  \brief Convert an input sequence (RNA) to uppercase
+ *  \brief Convert an input sequence to uppercase
  * 
  *  \param sequence The sequence to be converted
  */
-void  str_RNA2RNA(char *sequence);
+void  str_uppercase(char *sequence);
 
 /**
  *  \brief Get an index mapper array (iindx) for accessing the energy matrices, e.g. in partition function related functions.

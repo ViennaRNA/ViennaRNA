@@ -650,17 +650,17 @@ PUBLIC  void  str_DNA2RNA(char *sequence){
   if(sequence != NULL){
     l = strlen(sequence);
     for(i = 0; i < l; i++){
-      sequence[i] = toupper(sequence[i]);
       if(sequence[i] == 'T') sequence[i] = 'U';
+      if(sequence[i] == 't') sequence[i] = 'u';
     }
   }
 }
 
-PUBLIC  void  str_RNA2RNA(char *sequence){
+PUBLIC void str_uppercase(char *sequence){
   unsigned int l, i;
-  if(sequence != NULL){
+  if(sequence){
     l = strlen(sequence);
-    for(i = 0; i < l; i++)
+    for(i=0;i<l;i++)
       sequence[i] = toupper(sequence[i]);
   }
 }
