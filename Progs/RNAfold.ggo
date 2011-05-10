@@ -108,6 +108,14 @@ option  "circ"    c
 flag
 off
 
+option  "ImFeelingLucky"  -
+"Return exactly one stochastically backtracked structure\n"
+details="This function computes the partition function and returns exactly one secondary structure\
+ stochastically sampled from the Boltzmann equilibrium according to its probability in the ensemble\n"
+flag
+off
+hidden
+
 section "Model Details"
 
 option  "temp"  T

@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
-  int           doMEA=0, circular;
+  int           doMEA=0, circular, lucky = 0;
   double        MEAgamma = 1.;
 
   rec_type      = read_opt = 0;
@@ -89,6 +89,8 @@ int main(int argc, char *argv[]){
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)        circular=1;
+  /* always look on the bright side of life */
+  if(args_info.ImFeelingLucky_given)  lucky = pf = st_back = 1;
   /* do not produce postscript output */
   if(args_info.noPS_given)        noPS=1;
   /* partition function settings */
@@ -206,20 +208,21 @@ int main(int argc, char *argv[]){
     */
     min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
 
-    printf("%s\n%s", orig_sequence, structure);
-    if (istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-    else
-      printf(" (%6.2f)\n", min_en);
+    if(!lucky){
+      printf("%s\n%s", orig_sequence, structure);
+      if (istty)
+        printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+      else
+        printf(" (%6.2f)\n", min_en);
+      (void) fflush(stdout);
 
-    (void) fflush(stdout);
+      if(fname[0] != '\0'){
+        strcpy(ffname, fname);
+        strcat(ffname, "_ss.ps");
+      } else strcpy(ffname, "rna.ps");
 
-    if(fname[0] != '\0'){
-      strcpy(ffname, fname);
-      strcat(ffname, "_ss.ps");
-    } else strcpy(ffname, "rna.ps");
-
-    if (!noPS) (void) PS_rna_plot(orig_sequence, structure, ffname);
+      if (!noPS) (void) PS_rna_plot(orig_sequence, structure, ffname);
+    }
     if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc;
@@ -238,58 +241,80 @@ int main(int argc, char *argv[]){
 
       energy = (circular) ? pf_circ_fold(rec_sequence, pf_struc) : pf_fold(rec_sequence, pf_struc);
 
-      if (do_backtrack) {
-        printf("%s", pf_struc);
-        if (!istty) printf(" [%6.2f]\n", energy);
-        else printf("\n");
-      }
-      if ((istty)||(!do_backtrack))
-        printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-      if (do_backtrack) {
-        plist *pl1,*pl2;
-        char *cent;
-        double dist, cent_en;
-        FLT_OR_DBL *probs = export_bppm();
-        assign_plist_from_pr(&pl1, probs, length, 1e-5);
-        assign_plist_from_db(&pl2, structure, 0.95*0.95);
-        /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-        cent = get_centroid_struct_pr(length, &dist, pr);
-        cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
-        printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
-        free(cent);
-        if (fname[0]!='\0') {
+      if(lucky){
+        init_rand();
+        char *s = (circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
+        min_en = (circular) ? energy_of_circ_structure(rec_sequence, s, 0) : energy_of_structure(rec_sequence, s, 0);
+        printf("%s\n%s", orig_sequence, s);
+        if (istty)
+          printf("\n free energy = %6.2f kcal/mol\n", min_en);
+        else
+          printf(" (%6.2f)\n", min_en);
+        (void) fflush(stdout);
+        if(fname[0] != '\0'){
           strcpy(ffname, fname);
-          strcat(ffname, "_dp.ps");
-        } else strcpy(ffname, "dot.ps");
-        (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
-        free(pl2);
-        if (do_backtrack==2) {
-          pl2 = stackProb(1e-5);
+          strcat(ffname, "_ss.ps");
+        } else strcpy(ffname, "rna.ps");
+
+        if (!noPS) (void) PS_rna_plot(orig_sequence, s, ffname);
+        free(s);
+      }
+      else{
+      
+        if (do_backtrack) {
+          printf("%s", pf_struc);
+          if (!istty) printf(" [%6.2f]\n", energy);
+          else printf("\n");
+        }
+        if ((istty)||(!do_backtrack))
+          printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
+
+
+        if (do_backtrack) {
+          plist *pl1,*pl2;
+          char *cent;
+          double dist, cent_en;
+          FLT_OR_DBL *probs = export_bppm();
+          assign_plist_from_pr(&pl1, probs, length, 1e-5);
+          assign_plist_from_db(&pl2, structure, 0.95*0.95);
+          /* cent = centroid(length, &dist); <- NOT THREADSAFE */
+          cent = get_centroid_struct_pr(length, &dist, pr);
+          cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
+          printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
+          free(cent);
           if (fname[0]!='\0') {
             strcpy(ffname, fname);
-            strcat(ffname, "_dp2.ps");
-          } else strcpy(ffname, "dot2.ps");
-          PS_dot_plot_list(orig_sequence, ffname, pl1, pl2,
-                           "Probabilities for stacked pairs (i,j)(i+1,j-1)");
+            strcat(ffname, "_dp.ps");
+          } else strcpy(ffname, "dot.ps");
+          (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
           free(pl2);
+          if (do_backtrack==2) {
+            pl2 = stackProb(1e-5);
+            if (fname[0]!='\0') {
+              strcpy(ffname, fname);
+              strcat(ffname, "_dp2.ps");
+            } else strcpy(ffname, "dot2.ps");
+            PS_dot_plot_list(orig_sequence, ffname, pl1, pl2,
+                             "Probabilities for stacked pairs (i,j)(i+1,j-1)");
+            free(pl2);
+          }
+          free(pl1);
+          free(pf_struc);
+          if(doMEA){
+            float mea, mea_en;
+            plist *pl;
+            assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
+            mea = MEA(pl, structure, MEAgamma);
+            mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
+            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            free(pl);
+          }
         }
-        free(pl1);
-        free(pf_struc);
-        if(doMEA){
-          float mea, mea_en;
-          plist *pl;
-          assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
-          mea = MEA(pl, structure, MEAgamma);
-          mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
-          printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
-          free(pl);
-        }
+        printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
+        if (do_backtrack)
+          printf("ensemble diversity %-6.2f", mean_bp_distance(length));
+        printf("\n");
       }
-      printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
-      if (do_backtrack)
-        printf("ensemble diversity %-6.2f", mean_bp_distance(length));
-      printf("\n");
-
       free_pf_arrays();
     }
     (void) fflush(stdout);
