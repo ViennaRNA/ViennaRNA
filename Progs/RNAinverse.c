@@ -129,9 +129,9 @@ int main(int argc, char *argv[]){
       (void)sscanf(input_string, "%s", structure); /* scanf gets rid of trailing junk */
       length = (int)strlen(structure);
       free(input_string); input_string = NULL;
-      input_type = get_multi_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
+      input_type = get_multi_input_line(&input_string, VRNA_INPUT_NOSKIP_BLANK_LINES | VRNA_INPUT_NOSKIP_COMMENTS);
     }
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+    if(input_type & VRNA_INPUT_QUIT) break;
 
     start = (char *)space(sizeof(char) * (length+1));
     /* now we assume to get a sequence (input_string may be empty as well) */

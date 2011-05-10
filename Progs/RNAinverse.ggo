@@ -30,8 +30,9 @@ section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n"
 
 option  "repeat"   R
-"Search repeatedly for the same structure.\n"
-details="If repeats is negative search until -repeats exact solutions are found, no\
+"Search repeatedly for the same structure.\nIf an argument is supplied to this option it must\
+ follow the option flag immediately. E.g.: -R5\n"
+details="If repeats is negative search until --repeats exact solutions are found, no\
  output is done for unsuccessful searches. Be aware, that the program will not terminate\
  if the target structure can not be found.\nIf no value is supplied with this option, the\
  default value is used.\n"
