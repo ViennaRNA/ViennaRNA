@@ -55,6 +55,7 @@ typedef struct cpair {
 typedef struct {
   float X; /* X coords */
   float Y; /* Y coords */
+  float R;
 } COORDINATE;
 
 typedef struct sect {

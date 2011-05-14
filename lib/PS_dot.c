@@ -1,9 +1,9 @@
 /*
-	PostScript and GML output for RNA secondary structures
-		    and pair probability matrices
+        PostScript and GML output for RNA secondary structures
+                    and pair probability matrices
 
-		 c  Ivo Hofacker and Peter F Stadler
-			  Vienna RNA package
+                 c  Ivo Hofacker and Peter F Stadler
+                          Vienna RNA package
 */
 #include <config.h>
 #include <stdio.h>
@@ -37,7 +37,7 @@ PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
 /* local functions */
 PRIVATE void   loop(int i, int j, short *pair_table);
 PRIVATE FILE  *PS_dot_common(char *seq, char *wastlfile, char *comment,
-			     int winsize);
+                             int winsize);
 
 /* local variables for parsing routines */
 PRIVATE float  *angle;
@@ -101,31 +101,31 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   }
 
   fprintf(gmlfile,
-	  "# Vienna RNA Package %s\n"
-	  "# GML Output\n"
-	  "# CreationDate: %s\n"
-	  "# Name: %s\n"
-	  "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
+          "# Vienna RNA Package %s\n"
+          "# GML Output\n"
+          "# CreationDate: %s\n"
+          "# Name: %s\n"
+          "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
   fprintf(gmlfile,
-	  "graph [\n"
-	  " directed 0\n");
+          "graph [\n"
+          " directed 0\n");
   for (i=1; i<=length; i++){
      fprintf(gmlfile,
-	  " node [ id %d ", i);
+          " node [ id %d ", i);
      if (option) fprintf(gmlfile,
-	  "label \"%c\"",string[i-1]);
+          "label \"%c\"",string[i-1]);
      if ((option == 'X')||(option=='x'))
        fprintf(gmlfile,
-	       "\n  graphics [ x %9.4f y %9.4f ]\n", X[i-1], Y[i-1]);
+               "\n  graphics [ x %9.4f y %9.4f ]\n", X[i-1], Y[i-1]);
      fprintf(gmlfile," ]\n");
   }
   for (i=1; i<length; i++)
     fprintf(gmlfile,
-	    "edge [ source %d target %d ]\n", i, i+1);
+            "edge [ source %d target %d ]\n", i, i+1);
   for (i=1; i<=length; i++) {
      if (pair_table[i]>i)
-	fprintf(gmlfile,
-		"edge [ source %d target %d ]\n", i, pair_table[i]);
+        fprintf(gmlfile,
+                "edge [ source %d target %d ]\n", i, pair_table[i]);
   }
   fprintf(gmlfile, "]\n");
   fclose(gmlfile);
@@ -171,8 +171,16 @@ static const char *RNAss_head =
 "  [9 3.01] 9 setdash\n"
 "  newpath\n"
 "  pairs {aload pop\n"
-"     coor exch 1 sub get aload pop moveto\n"
-"     coor exch 1 sub get aload pop lineto\n"
+"      currentdict (ccoor) known\n"
+"      { exch dup\n"
+"        coor  exch 1 sub get aload pop moveto\n"
+"        ccoor exch 1 sub get aload pop 3 -1 roll dup\n"
+"        ccoor exch 1 sub get aload pop 3 -1 roll\n"
+"        coor  exch 1 sub get aload pop curveto\n"
+"      }\n"
+"      { coor exch 1 sub get aload pop moveto\n"
+"        coor exch 1 sub get aload pop lineto\n"
+"      }ifelse\n"
 "  } forall\n"
 "  stroke\n"
 "} bind def\n"
@@ -221,78 +229,109 @@ static const char *anote_macros =
 "/BLUE  { 0 0 1 } def\n"
 "/WHITE { 1 1 1 } def\n"
 "/LabelFont { % font size LabelFont\n"
-"   exch findfont exch fsize mul scalefont setfont\n"
+"  exch findfont exch fsize mul scalefont setfont\n"
 "} bind def\n"
 "/Label { % i dx dy (text) Label\n"
-"   % write text at base i plus offset dx, dy\n"
-"   4 3 roll 1 sub coor exch get aload pop moveto\n"
-"   3 1 roll fsize mul exch fsize mul exch rmoveto\n"
-"   show\n"
+"  % write text at base i plus offset dx, dy\n"
+"  4 3 roll 1 sub coor exch get aload pop moveto\n"
+"  3 1 roll fsize mul exch fsize mul exch rmoveto\n"
+"  show\n"
 "} bind def\n"
 "/cmark { % i cmark   draw circle around base i\n"
-"   newpath 1 sub coor exch get aload pop\n"
-"   fsize 2 div 0 360 arc stroke\n"
+"  newpath 1 sub coor exch get aload pop\n"
+"  fsize 2 div 0 360 arc stroke\n"
 "} bind def\n"
-"/gmark { % i j c cmark\n"
-"   % draw basepair i,j with c counter examples in gray\n"
-"   gsave\n"
-"   3 min [0 0.33 0.66 0.9] exch get setgray\n"
-"   1 sub dup coor exch get aload pop moveto\n"
-"   sequence exch 1 getinterval cshow\n"
-"   1 sub dup coor exch get aload pop moveto\n"
-"   sequence exch 1 getinterval cshow\n"
-"   grestore\n"
+"/gmark { % i j c gmark\n"
+"  % draw basepair i,j with c counter examples in gray\n"
+"  gsave\n"
+"  3 min [0 0.33 0.66 0.9] exch get setgray\n"
+"  1 sub dup coor exch get aload pop moveto\n"
+"  sequence exch 1 getinterval cshow\n"
+"  1 sub dup coor exch get aload pop moveto\n"
+"  sequence exch 1 getinterval cshow\n"
+"  grestore\n"
 "} bind def\n"
 "/segmark { % f i j lw r g b segmark\n"
-"   % mark segment [i,j] with outline width lw and color rgb\n"
-"   % use omark and Fomark instead\n"
-"   gsave\n"
-"    setrgbcolor setlinewidth\n"
-"    newpath\n"
-"    1 sub exch 1 sub dup\n"
-"    coor exch get aload pop moveto\n"
+"  % mark segment [i,j] with outline width lw and color rgb\n"
+"  % use omark and Fomark instead\n"
+"  gsave\n"
+"  setrgbcolor setlinewidth\n"
+"  newpath\n"
+"  1 sub exch 1 sub dup\n"
+"  coor exch get aload pop moveto\n"
+"  currentdict (ccoor) known\n"
+"  { dup 3 -1 roll 1 exch\n"
+"    { coor exch get aload pop lineto } for\n"
+"    sequence length 3 mul dup dup dup 5 -1 roll\n"
+"    coor exch get aload pop curveto\n"
+"  }\n"
+"  {\n"
 "    exch 1 exch {\n"
-"	    coor exch get aload pop lineto\n"
+"      coor exch get aload pop lineto\n"
 "    } for\n"
-"    { closepath fill } if  stroke\n"
-"   grestore\n"
+"  } ifelse\n"
+"  { closepath fill } if  stroke\n"
+"  grestore\n"
 "} bind def\n"
 "/omark { % i j lw r g b omark\n"
-"   % stroke segment [i..j] with linewidth lw, color rgb\n"
-"   false 7 1 roll segmark\n"
+"  % stroke segment [i..j] with linewidth lw, color rgb\n"
+"  false 7 1 roll segmark\n"
 "} bind def\n"
 "/Fomark { % i j r g b Fomark\n"
-"   % fill segment [i..j] with color rgb\n"
-"   % should precede drawbases\n"
-"   1 4 1 roll true 7 1 roll segmark\n"
+"  % fill segment [i..j] with color rgb\n"
+"  % should precede drawbases\n"
+"  1 4 1 roll true 7 1 roll segmark\n"
 "} bind def\n"
 "/BFmark{ % i j k l r g b BFmark\n"
-"   % fill block between pairs (i,j) and (k,l) with color rgb\n"
-"   % should precede drawbases\n"
-"   gsave\n"
-"    setrgbcolor\n"
-"    newpath\n"
-"    exch 4 3 roll exch 1 sub exch 1 sub dup\n"
-"    coor exch get aload pop moveto\n"
-"    exch 1 exch { coor exch get aload pop lineto } for\n"
-"    exch 1 sub exch 1 sub dup\n"
-"    coor exch get aload pop lineto\n"
-"    exch 1 exch { coor exch get aload pop lineto } for\n"
+"  % fill block between pairs (i,j) and (k,l) with color rgb\n"
+"  % should precede drawbases\n"
+"  gsave\n"
+"  setrgbcolor\n"
+"  newpath\n"
+"  currentdict (ccoor) known\n"
+"  {  exch 4 3 roll exch 1 sub exch 1 sub dup \n"
+"     coor exch get aload pop moveto\n"
+"     dup 3 1 roll exch 1 exch dup 4 1 roll\n"
+"     { coor exch get aload pop lineto } for\n"
+"     ccoor exch get aload pop 4 -1 roll 1 sub dup\n"
+"     ccoor exch get aload pop 3 -1 roll dup 6 1 roll\n"
+"     coor exch get aload pop curveto\n"
+"     exch 3 1 roll exch 1 exch 1 sub dup 4 1 roll\n"
+"     { coor exch get aload pop lineto } for\n"
+"     ccoor exch get aload pop 3 -1 roll dup\n"
+"     ccoor exch get aload pop 3 -1 roll\n"
+"     coor exch get aload pop curveto\n"
+"  }\n"
+"  {  exch 4 3 roll exch 1 sub exch 1 sub dup\n"
+"     coor exch get aload pop moveto\n"
+"     exch 1 exch { coor exch get aload pop lineto } for\n"
+"     exch 1 sub exch 1 sub dup\n"
+"     coor exch get aload pop lineto\n"
+"     exch 1 exch { coor exch get aload pop lineto } for\n"
+"  } ifelse\n"
 "    closepath fill stroke\n"
 "   grestore\n"
 "} bind def\n"
 "/hsb {\n"
-"    dup 0.3 mul 1 exch sub sethsbcolor\n"
+"  dup 0.3 mul 1 exch sub sethsbcolor\n"
 "} bind def\n"
 "/colorpair { % i j hue sat colorpair\n"
-"   % draw basepair i,j in color\n"
-"   % 1 index 0.00 ne {\n"
-"   gsave\n"
-"   newpath\n"
-"   hsb\n"
-"   fsize setlinewidth\n"
-"   1 sub coor exch get aload pop moveto\n"
-"   1 sub coor exch get aload pop lineto\n"
+"  % draw basepair i,j in color\n"
+"  % 1 index 0.00 ne {\n"
+"  gsave\n"
+"  newpath\n"
+"  hsb\n"
+"  fsize setlinewidth\n"
+"  currentdict (ccoor) known\n"
+"  { exch dup\n"
+"    coor  exch 1 sub get aload pop moveto\n"
+"    ccoor exch 1 sub get aload pop 3 -1 roll dup\n"
+"    ccoor exch 1 sub get aload pop 3 -1 roll\n"
+"    coor  exch 1 sub get aload pop curveto\n"
+"  }\n"
+"  { 1 sub coor exch get aload pop moveto\n"
+"    1 sub coor exch get aload pop lineto\n"
+"  } ifelse\n"
 "   stroke\n"
 "   grestore\n"
 "   % } if\n"
@@ -303,7 +342,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
-  float *X, *Y;
+  float *X, *Y, *R = NULL, *CX = NULL, *CY = NULL;
   FILE  *xyplot;
   short *pair_table;
   char *c;
@@ -320,10 +359,30 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
-  if (rna_plot_type == 0)
-    i = simple_xy_coordinates(pair_table, X, Y);
-  else
-    i = naview_xy_coordinates(pair_table, X, Y);
+  switch(rna_plot_type){
+    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
+                                  break;
+    case VRNA_PLOT_TYPE_CIRCULAR: {
+                                    int radius = 3*length;
+                                    float radius_scale;
+                                    R = (float *) space((length+1)*sizeof(float));
+                                    CX = (float *) space((length+1)*sizeof(float));
+                                    CY = (float *) space((length+1)*sizeof(float));
+                                    i = simple_circplot_coordinates(pair_table, X, Y, R);
+                                    for (i = 0; i < length; i++) {
+                                      radius_scale = (pair_table[i+1]) ? R[i] : 0.;
+                                      CX[i] = X[i] * radius * radius_scale + radius;
+                                      CY[i] = Y[i] * radius * radius_scale + radius;
+                                      X[i] *= radius;
+                                      X[i] += radius;
+                                      Y[i] *= radius;
+                                      Y[i] += radius;
+                                    }
+                                  }
+                                  break;
+    default:                      i = naview_xy_coordinates(pair_table, X, Y);
+                                  break;
+  }
   if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
 
   xmin = xmax = X[0];
@@ -337,17 +396,17 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   size = MAX2((xmax-xmin),(ymax-ymin));
 
   fprintf(xyplot,
-	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%Creator: %s, ViennaRNA-%s\n"
-	  "%%%%CreationDate: %s"
-	  "%%%%Title: RNA Secondary Structure Plot\n"
-	  "%%%%BoundingBox: 66 210 518 662\n"
-	  "%%%%DocumentFonts: Helvetica\n"
-	  "%%%%Pages: 1\n"
-	  "%%%%EndComments\n\n"
-	  "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%Creator: %s, ViennaRNA-%s\n"
+          "%%%%CreationDate: %s"
+          "%%%%Title: RNA Secondary Structure Plot\n"
+          "%%%%BoundingBox: 66 210 518 662\n"
+          "%%%%DocumentFonts: Helvetica\n"
+          "%%%%Pages: 1\n"
+          "%%%%EndComments\n\n"
+          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
-	  "%% delete the appropriate line near the end of the file\n\n");
+          "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
 
   if (pre || post) {
@@ -356,7 +415,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   fprintf(xyplot, "%%%%EndProlog\n");
 
   fprintf(xyplot, "RNAplot begin\n"
-	  "%% data start here\n");
+          "%% data start here\n");
 
   /* cut_point */
   if ((c = strchr(structure, '&'))) {
@@ -377,8 +436,15 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   /* coordinates */
   fprintf(xyplot, "/coor [\n");
   for (i = 0; i < length; i++)
-    fprintf(xyplot, "[%3.3f %3.3f]\n", X[i], Y[i]);
+    fprintf(xyplot, "[%3.8f %3.8f]\n", X[i], Y[i]);
   fprintf(xyplot, "] def\n");
+  /* correction coordinates for quadratic beziers in case we produce a circplot */
+  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR){
+    fprintf(xyplot, "/ccoor [\n");
+    for (i = 0; i < length; i++)
+      fprintf(xyplot, "[%3.8f %3.8f]\n", CX[i], CY[i]);
+    fprintf(xyplot, "] def\n");
+  }
   /* base pairs */
   fprintf(xyplot, "/pairs [\n");
   for (i = 1; i <= length; i++)
@@ -394,10 +460,10 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
     fprintf(xyplot, "%% End Annotations\n");
   }
   fprintf(xyplot,
-	  "%% switch off outline pairs or bases by removing these lines\n"
-	  "drawoutline\n"
-	  "drawpairs\n"
-	  "drawbases\n");
+          "%% switch off outline pairs or bases by removing these lines\n"
+          "drawoutline\n"
+          "drawpairs\n"
+          "drawbases\n");
 
   if (post) {
     fprintf(xyplot, "%% Start Annotations\n");
@@ -422,7 +488,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
-  float *X, *Y;
+  float *X, *Y, *R = NULL, *CX = NULL, *CY = NULL;
   FILE  *xyplot;
   short *pair_table;
 
@@ -438,10 +504,30 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
-  if (rna_plot_type == 0)
-    i = simple_xy_coordinates(pair_table, X, Y);
-  else
-    i = naview_xy_coordinates(pair_table, X, Y);
+
+  switch(rna_plot_type){
+    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
+                                  break;
+    case VRNA_PLOT_TYPE_CIRCULAR: {
+                                    int radius = 3*length;
+                                    R = (float *) space((length+1)*sizeof(float));
+                                    CX = (float *) space((length+1)*sizeof(float));
+                                    CY = (float *) space((length+1)*sizeof(float));
+                                    i = simple_circplot_coordinates(pair_table, X, Y, R);
+                                    for (i = 0; i < length; i++) {
+                                      CX[i] = X[i] * radius * R[i] + radius;
+                                      CY[i] = Y[i] * radius * R[i] + radius;
+                                      X[i] *= radius;
+                                      X[i] += radius;
+                                      Y[i] *= radius;
+                                      Y[i] += radius;
+                                    }
+                                  }
+                                  break;
+    default:                      i = naview_xy_coordinates(pair_table, X, Y);
+                                  break;
+  }
+
   if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
 
 
@@ -456,46 +542,57 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
   for (i = 0; i < length; i++)
     Y[i] = ymin+ymax - Y[i]; /* mirror coordinates so they look as in PS */
 
+  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
+    for (i = 0; i < length; i++){
+      CY[i] = ymin+ymax - CY[i]; /* mirror coordinates so they look as in PS */
+    }
+   
   size = MAX2((xmax-xmin),(ymax-ymin));
-  size += 10; /* add some so the bounding box isn't too tight */
+  size += 15; /* add some so the bounding box isn't too tight */
 
   fprintf(xyplot,
-	  "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-	  "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n");
+          "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"452\" width=\"452\">\n");
   fprintf(xyplot,
-	  "<script type=\"text/ecmascript\">\n"
-	  "      <![CDATA[\n"
-	  "        var shown = 1;\n"
-	  "        function click() {\n"
-	  "             var seq = document.getElementById(\"seq\");\n"
-	  "             if (shown==1) {\n"
-	  "               seq.setAttribute(\"style\", \"visibility: hidden\");\n"
-	  "               shown = 0;\n"
-	  "             } else {\n"
-	  "               seq.setAttribute(\"style\", \"visibility: visible\");\n"
-	  "               shown = 1;\n"
-	  "             }\n"
-	  "         }\n"
-	  "        ]]>\n"
-	  "</script>\n");
+          "<script type=\"text/ecmascript\">\n"
+          "      <![CDATA[\n"
+          "        var shown = 1;\n"
+          "        function click() {\n"
+          "             var seq = document.getElementById(\"seq\");\n"
+          "             if (shown==1) {\n"
+          "               seq.setAttribute(\"style\", \"visibility: hidden\");\n"
+          "               shown = 0;\n"
+          "             } else {\n"
+          "               seq.setAttribute(\"style\", \"visibility: visible\");\n"
+          "               shown = 1;\n"
+          "             }\n"
+          "         }\n"
+          "        ]]>\n"
+          "</script>\n");
   fprintf(xyplot,
-	  "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" onclick=\"click(evt)\" />\n"
-	  "  <g transform=\"scale(%7f,%7f) translate(%7f,%7f)\">\n",
-	  SIZE/size, SIZE/size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
+          "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" onclick=\"click(evt)\" />\n"
+          "  <g transform=\"scale(%7f,%7f) translate(%7f,%7f)\">\n",
+          SIZE/size, SIZE/size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
 
   fprintf(xyplot,
-	  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
+          "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
   for (i = 0; i < length; i++)
     fprintf(xyplot, "      %3.3f,%3.3f\n", X[i], Y[i]);
   fprintf(xyplot,"    \" />\n");
 
-  fprintf(xyplot,"    <g style=\"stroke: black; stroke-width: 1\" id=\"pairs\">\n");
+  fprintf(xyplot,"    <g style=\"stroke: black; stroke-width: 1; fill: none;\" id=\"pairs\">\n");
   for (i = 1; i <= length; i++) {
     int j;
-    if ((j=pair_table[i])>i)
-      fprintf(xyplot,
-	      "      <line id=\"%d,%d\" x1=\"%6.3f\" y1=\"%6.3f\" x2=\"%6.3f\" y2=\"%6.3f\" />\n",
-	      i,j, X[i-1], Y[i-1], X[j-1], Y[j-1]);
+    if ((j=pair_table[i])>i){
+      if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
+        fprintf(xyplot,
+                "      <path id=\"%d,%d\" d=\"M %6.15f %6.15f C %6.15f,%6.15f %6.15f,%6.15f %6.15f %6.15f\" />\n",
+                i,j, X[i-1], Y[i-1], CX[i-1], CY[i-1], CX[j-1], CY[j-1], X[j-1], Y[j-1]);
+      else
+        fprintf(xyplot,
+                "      <line id=\"%d,%d\" x1=\"%6.5f\" y1=\"%6.5f\" x2=\"%6.5f\" y2=\"%6.5f\" />\n",
+                i,j, X[i-1], Y[i-1], X[j-1], Y[j-1]);
+    }
   }
   fprintf(xyplot, "    </g>\n");
   fprintf(xyplot, "    <g style=\"font-family: SansSerif\" transform=\"translate(-4.6, 4)\" id=\"seq\">\n");
@@ -509,6 +606,9 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   free(pair_table);
   free(X); free(Y);
+  if(R) free(R);
+  if(CX) free(CX);
+  if(CY) free(CY);
   return 1; /* success */
 }
 
@@ -578,14 +678,14 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   /* */
 
   fprintf(ssvfile,
-	  "# Vienna RNA Package %s\n"
-	  "# SStructView Output\n"
-	  "# CreationDate: %s\n"
-	  "# Name: %s\n"
-	  "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
+          "# Vienna RNA Package %s\n"
+          "# SStructView Output\n"
+          "# CreationDate: %s\n"
+          "# Name: %s\n"
+          "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
   for (i=1; i<=length; i++)
     fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
-	    i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
+            i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
   for (bp=1, i=1; i<=length; i++)
     if (pair_table[i]>i)
       fprintf(ssvfile, "BASE-PAIR\tbp%d\t%d\t%d\n", bp++, i, pair_table[i]);
@@ -626,13 +726,13 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
     fprintf(stderr,"strange things happening in xrna_plot...\n");
 
   fprintf(ss_file,
-	  "# Vienna RNA Package %s, XRNA output\n"
-	  "# CreationDate: %s\n"
-	  "# Options: %s\n", VERSION, time_stamp(), option_string());
+          "# Vienna RNA Package %s, XRNA output\n"
+          "# CreationDate: %s\n"
+          "# Options: %s\n", VERSION, time_stamp(), option_string());
   for (i=1; i<=length; i++)
     /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
     fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i-1],
-	    -X[i-1], Y[i-1], (pair_table[i]?1:0), pair_table[i]);
+            -X[i-1], Y[i-1], (pair_table[i]?1:0), pair_table[i]);
   fclose(ss_file);
 
   free(pair_table);
@@ -727,8 +827,8 @@ int PS_dot_plot(char *string, char *wastlfile) {
     for (j=i+1; j<=length; j++) {
       if (pr[iindx[i]-j]<PMIN) continue;
       if (k>=maxl-1) {
-	maxl *= 2;
-	pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+        maxl *= 2;
+        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
       }
       pl[k].i = i;
       pl[k].j = j;
@@ -767,24 +867,24 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
   if (wastl==NULL)  return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
-	  "dup 0.3 mul 1 exch sub sethsbcolor\n"
-	  "} bind def\n\n");
+          "dup 0.3 mul 1 exch sub sethsbcolor\n"
+          "} bind def\n\n");
 
   /* print boxes */
    i=0;
    while (pi[i].j>0) {
      fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.6f ubox\n",
-	     pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));
+             pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));
 
      if (pi[i].mfe)
        fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f lbox\n",
-	       pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
+               pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
      i++;
    }
 
    fprintf(wastl,"showpage\n"
-	   "end\n"
-	   "%%%%EOF\n");
+           "end\n"
+           "%%%%EOF\n");
    fclose(wastl);
    return 1; /* success */
 }
@@ -826,16 +926,37 @@ PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
 
 }
 
+PUBLIC int simple_circplot_coordinates(short *pair_table, float *x, float *y, float *r){
+  unsigned int  length = pair_table[0];
+  unsigned int  i;
+  float         d = 2*PI/length;
+  float         dr = 0;
+  for(i=0; i < length; i++){
+    x[i] = cos(i * d - PI/2);
+    y[i] = sin(i * d - PI/2);
+    if(i<pair_table[i+1]){
+      dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
+      r[i] = 1. - (2.*dr/(float)length);
+    }
+    else if(pair_table[i+1]){
+      r[i] = r[pair_table[i+1]-1];
+    }
+    else{
+      r[i] = -1.0;
+    }
+  }
+  return length;
+}
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void loop(int i, int j, short *pair_table)
-	     /* i, j are the positions AFTER the last pair of a stack; i.e
-		i-1 and j+1 are paired. */
+             /* i, j are the positions AFTER the last pair of a stack; i.e
+                i-1 and j+1 are paired. */
 {
   int    count = 2;   /* counts the VERTICES of a loop polygon; that's
-			   NOT necessarily the number of unpaired bases!
-			   Upon entry the loop has already 2 vertices, namely
-			   the pair i-1/j+1.  */
+                           NOT necessarily the number of unpaired bases!
+                           Upon entry the loop has already 2 vertices, namely
+                           the pair i-1/j+1.  */
 
   int    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
 
@@ -848,8 +969,8 @@ PRIVATE void loop(int i, int j, short *pair_table)
   remember = (short *) space((1+(j-i)/5)*2*sizeof(short));
 
   i_old = i-1, j++;         /* j has now been set to the partner of the
-			       previous pair for correct while-loop
-			       termination.  */
+                               previous pair for correct while-loop
+                               termination.  */
   while (i != j) {
     partner = pair_table[i];
     if ((!partner) || (i==0))
@@ -864,22 +985,22 @@ PRIVATE void loop(int i, int j, short *pair_table)
       start_k = k, start_l = l;
       ladder = 0;
       do {
-	k++, l--, ladder++;        /* go along the stack region */
+        k++, l--, ladder++;        /* go along the stack region */
       }
       while (pair_table[k] == l);
 
       fill = ladder-2;
       if (ladder >= 2) {
-	angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
-	angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
-	angle[start_k]        += PIHALF;   /*  additional PI/2.    */
-	angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
-	if (ladder > 2) {
-	  for (; fill >= 1; fill--) {
-	    angle[start_k+fill] = PI;    /*  fill in the angles  */
-	    angle[start_l-fill] = PI;    /*  for the backbone    */
-	  }
-	}
+        angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
+        angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
+        angle[start_k]        += PIHALF;   /*  additional PI/2.    */
+        angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
+        if (ladder > 2) {
+          for (; fill >= 1; fill--) {
+            angle[start_k+fill] = PI;    /*  fill in the angles  */
+            angle[start_l-fill] = PI;    /*  for the backbone    */
+          }
+        }
       }
       stack_size[++stk] = ladder;
       loop(k, l, pair_table);
@@ -927,8 +1048,8 @@ PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile, plist *pl, plist *mf, ch
   }
 
   fprintf(wastl,"showpage\n"
-	  "end\n"
-	  "%%%%EOF\n");
+          "end\n"
+          "%%%%EOF\n");
   fclose(wastl);
   return 1; /* success */
 }
@@ -965,7 +1086,7 @@ const char *RNAdp_prolog_turn =
 "  } for\n"
 "  len log 0.9 sub cvi 10 exch exp  % grid spacing\n"
 "      dup 1 gt {\n"
-"	  dup dup 20 div dup 2 array astore exch 40 div setdash\n"
+"          dup dup 20 div dup 2 array astore exch 40 div setdash\n"
 "      } { [0.3 0.7] 0.1 setdash } ifelse\n"
 "      0 exch len {    %for (0, gridspacing, len) \n"
 "     dup dup      %duplicate what - gridspacing??\n"
@@ -998,25 +1119,25 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *wastlfile, int winSize) {
     return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
-	  "dup 0.3 mul 1 exch sub sethsbcolor\n"
-	  "} bind def\n\n"
-	  "%%BEGIN DATA\n");
+          "dup 0.3 mul 1 exch sub sethsbcolor\n"
+          "} bind def\n\n"
+          "%%BEGIN DATA\n");
 
   /* print boxes */
    i=0;
    while (pi[i].j>0) {
      fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.6f ubox\n",
-	     pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));/*sqrt??*/
+             pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));/*sqrt??*/
 
      if (pi[i].mfe)
        fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f lbox\n",
-	       pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
+               pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
      i++;
    }
 
    fprintf(wastl,"showpage\n"
-	   "end\n"
-	   "%%%%EOF\n");
+           "end\n"
+           "%%%%EOF\n");
    fclose(wastl);
    return 1; /* success */
 }
@@ -1036,19 +1157,19 @@ int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) 
    i=0;
    while (pl[i].j>0) {
      fprintf(wastl,"%d %d %1.4f ubox\n",
-	      pl[i].i, pl[i].j, sqrt(pl[i].p));
+              pl[i].i, pl[i].j, sqrt(pl[i].p));
      i++;
    }
 
    fprintf(wastl,"showpage\n"
-	   "end\n"
-	   "%%%%EOF\n");
+           "end\n"
+           "%%%%EOF\n");
    fclose(wastl);
    return 1; /* success */
 }
 
 static FILE * PS_dot_common(char *seq, char *wastlfile,
-			    char *comment, int winsize) {
+                            char *comment, int winsize) {
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
   char name[31], *c;
@@ -1064,28 +1185,28 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
   if ((c=strrchr(name, '_'))!=0) *c='\0';
 
   fprintf(wastl,
-	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%Title: RNA Dot Plot\n"
-	  "%%%%Creator: %s, ViennaRNA-%s\n"
-	  "%%%%CreationDate: %s", rcsid+5, VERSION, time_stamp());
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%Title: RNA Dot Plot\n"
+          "%%%%Creator: %s, ViennaRNA-%s\n"
+          "%%%%CreationDate: %s", rcsid+5, VERSION, time_stamp());
   if (winsize>0)
     fprintf(wastl, "%%%%BoundingBox: 66 530 520 650\n");
   else
     fprintf(wastl, "%%%%BoundingBox: 66 211 518 662\n");
   fprintf(wastl,
-	  "%%%%DocumentFonts: Helvetica\n"
-	  "%%%%Pages: 1\n"
-	  "%%%%EndComments\n\n"
-	  "%%Options: %s\n", option_string());
+          "%%%%DocumentFonts: Helvetica\n"
+          "%%%%Pages: 1\n"
+          "%%%%EndComments\n\n"
+          "%%Options: %s\n", option_string());
 
   if (comment) fprintf(wastl,"%% %s\n",comment);
 
   fprintf(wastl,"%s", RNAdp_prolog);
 
   fprintf(wastl,"DPdict begin\n"
-	  "%%delete next line to get rid of title\n"
-	  "270 665 moveto /Helvetica findfont 14 scalefont setfont "
-	  "(%s) show\n\n", name);
+          "%%delete next line to get rid of title\n"
+          "270 665 moveto /Helvetica findfont 14 scalefont setfont "
+          "(%s) show\n\n", name);
 
   fprintf(wastl,"/sequence { (\\\n");
   for (i=0; i<strlen(seq); i+=255)
@@ -1099,31 +1220,31 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
 
   if (winsize>0)
   fprintf(wastl,"292 416 translate\n"
-	  "72 6 mul len 1 add winSize add 2 sqrt mul div dup scale\n");
+          "72 6 mul len 1 add winSize add 2 sqrt mul div dup scale\n");
   else
     fprintf(wastl,"72 216 translate\n"
-	  "72 6 mul len 1 add div dup scale\n");
+          "72 6 mul len 1 add div dup scale\n");
   fprintf(wastl, "/Helvetica findfont 0.95 scalefont setfont\n\n");
 
   if (winsize>0) {
     fprintf(wastl, "%s", RNAdp_prolog_turn);
     fprintf(wastl,"0.5 dup translate\n"
-	  "drawseq_turn\n"
-	  "45 rotate\n"
-	  "drawgrid_turn\n");
+          "drawseq_turn\n"
+          "45 rotate\n"
+          "drawgrid_turn\n");
   }
   else
     fprintf(wastl,"drawseq\n"
-	    "0.5 dup translate\n"
-	    "%% draw diagonal\n"
-	    "0.04 setlinewidth\n"
-	    "0 len moveto len 0 lineto stroke \n\n"
-	    "drawgrid\n");
+            "0.5 dup translate\n"
+            "%% draw diagonal\n"
+            "0.04 setlinewidth\n"
+            "0 len moveto len 0 lineto stroke \n\n"
+            "drawgrid\n");
   return(wastl);
 }
 
 int PS_color_aln(const char *structure, const char *filename,
-		 const char *seqs[], const char *names[]) {
+                 const char *seqs[], const char *names[]) {
   /* produce PS sequence alignment color-annotated by consensus structure */
 
   int N,i,j,k,x,y,tmp,columnWidth;
@@ -1147,36 +1268,36 @@ int PS_color_aln(const char *structure, const char *filename,
   };
 
   const char *alnPlotHeader =
-	"%%!PS-Adobe-3.0 EPSF-3.0\n"
-	"%%%%BoundingBox: %i %i %i %i\n"
-	"%%%%EndComments\n"
-	"%% draws Vienna RNA like colored boxes\n"
-	"/box { %% x1 y1 x2 y2 hue saturation\n"
-	"  gsave\n"
-	"  dup 0.3 mul 1 exch sub sethsbcolor\n"
-	"  exch 3 index sub exch 2 index sub rectfill\n"
-	"  grestore\n"
-	"} def\n"
-	"%% draws a box in current color\n"
-	"/box2 { %% x1 y1 x2 y2\n"
-	"  exch 3 index sub exch 2 index sub rectfill\n"
-	"} def\n"
-	"/string { %% (Text) x y\n"
-	" 6 add\n"
-	" moveto\n"
-	"  show\n"
-	"} def\n"
-	"0 %i translate\n"
-	"1 -1 scale\n"
-	"/Courier findfont\n"
-	"[10 0 0 -10 0 0] makefont setfont\n";
+        "%%!PS-Adobe-3.0 EPSF-3.0\n"
+        "%%%%BoundingBox: %i %i %i %i\n"
+        "%%%%EndComments\n"
+        "%% draws Vienna RNA like colored boxes\n"
+        "/box { %% x1 y1 x2 y2 hue saturation\n"
+        "  gsave\n"
+        "  dup 0.3 mul 1 exch sub sethsbcolor\n"
+        "  exch 3 index sub exch 2 index sub rectfill\n"
+        "  grestore\n"
+        "} def\n"
+        "%% draws a box in current color\n"
+        "/box2 { %% x1 y1 x2 y2\n"
+        "  exch 3 index sub exch 2 index sub rectfill\n"
+        "} def\n"
+        "/string { %% (Text) x y\n"
+        " 6 add\n"
+        " moveto\n"
+        "  show\n"
+        "} def\n"
+        "0 %i translate\n"
+        "1 -1 scale\n"
+        "/Courier findfont\n"
+        "[10 0 0 -10 0 0] makefont setfont\n";
 
 
   outfile = fopen(filename, "w");
 
   if (outfile == NULL) {
     fprintf(stderr, "can't open file %s - not doing alignment plot\n",
-	    filename);
+            filename);
     return 0;
   }
 
@@ -1188,17 +1309,17 @@ int PS_color_aln(const char *structure, const char *filename,
   consStep=fontHeight*0.5;   /* distance between alignment and conservation curve */
   ssStep=2;                  /* distance between secondary structure line and sequences */
   rulerStep=2;               /* distance between sequences and ruler */
-  nameStep=3*fontWidth;	     /* distance between names and sequences */
+  nameStep=3*fontWidth;             /* distance between names and sequences */
   numberStep=fontWidth;      /* distance between sequeces and numbers */
   maxConsBar=2.5*fontHeight; /* Height of conservation curve */
-  startY=2;		     /* "y origin" */
-  namesX=fontWidth;	     /* "x origin" */
+  startY=2;                     /* "y origin" */
+  namesX=fontWidth;             /* "x origin" */
 
   /* Number of columns of the alignment */
   length=strlen(seqs[0]);
 
   /* Allocate memory for various strings, length*2 is (more than)
-	 enough for all of them */
+         enough for all of them */
   tmpBuffer = (char *) space((unsigned) MAX2(length*2,columnWidth)+1);
   ssEscaped=(char *) space((unsigned) length*2);
   ruler=(char *) space((unsigned) length*2);
@@ -1224,7 +1345,7 @@ int PS_color_aln(const char *structure, const char *filename,
   /* Calculate bounding box */
   tmpColumns=columnWidth;
   if (length<columnWidth){
-	tmpColumns=length;
+        tmpColumns=length;
   }
   imageWidth=ceil(namesX+(maxName+tmpColumns+maxNum)*fontWidth+2*nameStep+fontWidth+numberStep);
   imageHeight=startY+ceil((float)length/columnWidth)*((N+2)*lineStep+blockStep+consStep+ssStep+rulerStep);
@@ -1236,15 +1357,15 @@ int PS_color_aln(const char *structure, const char *filename,
   i=0;
   /* Init all with dots */
   for (i=0;i<(length);i++){
-	ruler[i]='.';
+        ruler[i]='.';
   }
   i=0;
   for (i=0;i<length;i++){
-	/* Write number every 10th position, leave out block breaks */
-	if ((i+1)%10==0 && (i+1)%columnWidth!=0){
-	  snprintf(tmpBuffer,length,"%i",i+1);
-	  strncpy(ruler+i,tmpBuffer,strlen(tmpBuffer));
-	}
+        /* Write number every 10th position, leave out block breaks */
+        if ((i+1)%10==0 && (i+1)%columnWidth!=0){
+          snprintf(tmpBuffer,length,"%i",i+1);
+          strncpy(ruler+i,tmpBuffer,strlen(tmpBuffer));
+        }
   }
   ruler[length]='\0';
 
@@ -1254,33 +1375,33 @@ int PS_color_aln(const char *structure, const char *filename,
     if ((j=pair_table[i])>i) {
       /* Repeat for open and closing position */
       for (k=0;k<2;k++){
-	int pairings, nonpair, s, col;
-	int ptype[8] = {0,0,0,0,0,0,0,0};
-	char *color;
-	col = (k==0)?i-1:j-1;
-	block=ceil((float)(col+1)/columnWidth);
-	xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
-	/* Repeat for each sequence */
-	for (s=pairings=nonpair=0; s<N; s++) {
-	  ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
-	}
-	for (pairings=0,s=1; s<=7; s++) {
-	  if (ptype[s]) pairings++;
-	}
-	nonpair=ptype[0];
-	if (nonpair <=2) {
-	  color = colorMatrix[pairings-1][nonpair];
-	  for (s=0; s<N; s++) {
-	    yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
+        int pairings, nonpair, s, col;
+        int ptype[8] = {0,0,0,0,0,0,0,0};
+        char *color;
+        col = (k==0)?i-1:j-1;
+        block=ceil((float)(col+1)/columnWidth);
+        xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
+        /* Repeat for each sequence */
+        for (s=pairings=nonpair=0; s<N; s++) {
+          ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
+        }
+        for (pairings=0,s=1; s<=7; s++) {
+          if (ptype[s]) pairings++;
+        }
+        nonpair=ptype[0];
+        if (nonpair <=2) {
+          color = colorMatrix[pairings-1][nonpair];
+          for (s=0; s<N; s++) {
+            yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
 
-	    /* Color according due color information in pi-array, only if base pair is possible */
-	    if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
+            /* Color according due color information in pi-array, only if base pair is possible */
+            if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
 
-	      fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
-		      xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
-	    }
-	  }
-	}
+              fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
+                      xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
+            }
+          }
+        }
       }
     }
   }
@@ -1303,10 +1424,10 @@ int PS_color_aln(const char *structure, const char *filename,
     x=0;y=0;
     while ((c=tmpBuffer[x])){
       if (c=='.'){
-	ssEscaped[y++]='.';
+        ssEscaped[y++]='.';
       } else {
-	ssEscaped[y++]='\\';
-	ssEscaped[y++]=c;
+        ssEscaped[y++]='\\';
+        ssEscaped[y++]=c;
       }
       x++;
     }
@@ -1324,7 +1445,7 @@ int PS_color_aln(const char *structure, const char *filename,
 
       match=0;
       for (j=0;j<(currPos+strlen(tmpBuffer));j++){
-	if (seqs[i][j] != '-') match++;
+        if (seqs[i][j] != '-') match++;
       }
 
       fprintf(outfile, "(%s) %.1f %.1f string\n", names[i],namesX,currY);
@@ -1346,30 +1467,30 @@ int PS_color_aln(const char *structure, const char *filename,
     for (i=currPos;(i<currPos+columnWidth && i<length);i++){
       match=0;
       for (j=0;j<N;j++){
-	if (cons[i] == seqs[j][i]) match++;
-	if (cons[i]=='U' && seqs[j][i]=='T') match++;
-	if (cons[i]=='T' && seqs[j][i]=='U') match++;
+        if (cons[i] == seqs[j][i]) match++;
+        if (cons[i]=='U' && seqs[j][i]=='T') match++;
+        if (cons[i]=='T' && seqs[j][i]=='U') match++;
       }
       score=(float)(match-1)/(N-1);
 
       if (cons[i] == '-' ||
-	  cons[i] == '_' ||
-	  cons[i] == '.'){
-	score=0;
+          cons[i] == '_' ||
+          cons[i] == '.'){
+        score=0;
       }
 
       barHeight=maxConsBar*score;
       if (barHeight==0){
-	barHeight=1;
+        barHeight=1;
       }
 
       xx=seqsX+(i-(columnWidth*currPos/columnWidth))*fontWidth;
 
       fprintf(outfile,"%.1f %.1f %.1f %.1f box2\n",
-	      xx,
-	      currY+maxConsBar-barHeight,
-	      xx+fontWidth,
-	      currY+maxConsBar);
+              xx,
+              currY+maxConsBar-barHeight,
+              xx+fontWidth,
+              currY+maxConsBar);
     }
 
     currY+=blockStep;

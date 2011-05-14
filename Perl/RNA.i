@@ -261,6 +261,7 @@ char *consens_mis(const char **AS);
 typedef struct {
   float X; /* X coords */
   float Y; /* Y coords */
+  float R; /* distance to the unit circle */
 } COORDINATE;
 
 %{
@@ -272,19 +273,24 @@ typedef struct {
     COORDINATE *coords = (COORDINATE *) space((length+1)*sizeof(COORDINATE));
     float *X = (float *) space((length+1)*sizeof(float));
     float *Y = (float *) space((length+1)*sizeof(float));
+    float *R = (float *) space((length+1)*sizeof(float));
 
-    if (rna_plot_type == 0)
+    if (rna_plot_type == VRNA_PLOT_TYPE_SIMPLE)
       simple_xy_coordinates(table, X, Y);
+    else if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
+     simple_circplot_coordinates(table, X, Y, R);
     else
       naview_xy_coordinates(table, X, Y);
 
     for(i=0;i<=length;i++){
       coords[i].X = X[i];
-      coords[i].Y = Y[i]; 
+      coords[i].Y = Y[i];
+      coords[i].R = (rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR) ? R[i] : -1.;
     }
     free(table);
     free(X);
     free(Y);
+    free(R);
     return(coords);
   }
 %}
