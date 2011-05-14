@@ -55,6 +55,9 @@
  *  Current possibility are 0 for a simple radial drawing or 1 for the modified
  *  radial drawing taken from the \e naview program of \ref bruccoleri_88 "Bruccoleri & Heinrich (1988)".
  *
+ *  \note To provide thread safety please do not rely on this global variable in future implementations
+ *  but pass a plot type flag directly to the function that decides which layout algorithm it may use!
+ *
  *  \see #VRNA_PLOT_TYPE_SIMPLE, #VRNA_PLOT_TYPE_NAVIEW, #VRNA_PLOT_TYPE_CIRCULAR
  *
  */
@@ -77,10 +80,13 @@ int simple_xy_coordinates(short *pair_table, float *X, float *Y);
  *  \brief Calculate nucleotide coordinates for <i>Circular Plot</i>
  *
  *  This function calculates the coordinates of nucleotides mapped in equal distancies onto a unit circle.
- *  Additional to the actual R<sup>2</sup> coordinates the function provides a radius scaling factor
- *  for all nucleotides that are involved in a base pairing. This scaling factor may be used for
- *  computing coordinates for a second tangential point \f$P^t\f$ needed to draw quadratic bezier curves.
- *  E.g. \f$ P^{t}_x[i] = X[i] * R[i]\f$ and \f$P^{t}_y[i] = Y[i] * R[i]\f$
+ *
+ *  \note In order to draw nice arcs using quadratic bezier curves that connect base pairs one may calculate
+ *  a second tangential point \f$P^t\f$ in addition to the actual R<sup>2</sup> coordinates.
+ *  the simplest way to do so may be to compute a radius scaling factor \f$rs\f$ in the interval \f$[0,1]\f$ that
+ *  weights the proportion of base pair span to the actual length of the sequence. This scaling factor
+ *  can then be used to calculate the coordinates for \f$P^t\f$, i.e. \f$ P^{t}_x[i] = X[i] * rs\f$
+ *  and \f$P^{t}_y[i] = Y[i] * rs\f$.
  *
  *  \see make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(), PS_rna_plot_a(),
  *  PS_rna_plot, svg_rna_plot()
@@ -88,10 +94,9 @@ int simple_xy_coordinates(short *pair_table, float *X, float *Y);
  *  \param  pair_table  The pair table of the secondary structure
  *  \param  x           a pointer to an array with enough allocated space to hold the x coordinates
  *  \param  y           a pointer to an array with enough allocated space to hold the y coordinates
- *  \param  r           a pointer to an array with enough allocated space to hold the scaling factors
  *  \return             length of sequence on success, 0 otherwise
  */
-int simple_circplot_coordinates(short *pair_table, float *x, float *y, float *r);
+int simple_circplot_coordinates(short *pair_table, float *x, float *y);
 
 
 #endif

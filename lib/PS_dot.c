@@ -347,15 +347,24 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
                                   break;
     case VRNA_PLOT_TYPE_CIRCULAR: {
                                     int radius = 3*length;
-                                    float radius_scale;
+                                    int dr;
                                     R = (float *) space((length+1)*sizeof(float));
                                     CX = (float *) space((length+1)*sizeof(float));
                                     CY = (float *) space((length+1)*sizeof(float));
-                                    i = simple_circplot_coordinates(pair_table, X, Y, R);
+                                    i = simple_circplot_coordinates(pair_table, X, Y);
                                     for (i = 0; i < length; i++) {
-                                      radius_scale = (pair_table[i+1]) ? R[i] : 0.;
-                                      CX[i] = X[i] * radius * radius_scale + radius;
-                                      CY[i] = Y[i] * radius * radius_scale + radius;
+                                      if(i+1 < pair_table[i+1]){
+                                        dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
+                                        R[i] = 1. - (2.*dr/(float)length);
+                                      }
+                                      else if(pair_table[i+1]){
+                                        R[i] = R[pair_table[i+1]-1];
+                                      }
+                                      else{
+                                        R[i] = 0;
+                                      }
+                                      CX[i] = X[i] * radius * R[i] + radius;
+                                      CY[i] = Y[i] * radius * R[i] + radius;
                                       X[i] *= radius;
                                       X[i] += radius;
                                       Y[i] *= radius;
@@ -493,11 +502,22 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
                                   break;
     case VRNA_PLOT_TYPE_CIRCULAR: {
                                     int radius = 3*length;
+                                    int dr = 0;
                                     R = (float *) space((length+1)*sizeof(float));
                                     CX = (float *) space((length+1)*sizeof(float));
                                     CY = (float *) space((length+1)*sizeof(float));
-                                    i = simple_circplot_coordinates(pair_table, X, Y, R);
+                                    i = simple_circplot_coordinates(pair_table, X, Y);
                                     for (i = 0; i < length; i++) {
+                                      if(i+1 < pair_table[i+1]){
+                                        dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
+                                        R[i] = 1. - (2.*dr/(float)length);
+                                      }
+                                      else if(pair_table[i+1]){
+                                        R[i] = R[pair_table[i+1]-1];
+                                      }
+                                      else{
+                                        R[i] = 1.0;
+                                      }
                                       CX[i] = X[i] * radius * R[i] + radius;
                                       CY[i] = Y[i] * radius * R[i] + radius;
                                       X[i] *= radius;

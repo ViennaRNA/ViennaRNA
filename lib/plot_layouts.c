@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "utils.h"
 #include "plot_layouts.h"
 
 #ifdef _OPENMP
@@ -19,6 +20,7 @@
 #define PRIVATE static
 
 PUBLIC  int     rna_plot_type = 1;  /* 0 = simple, 1 = naview, 2 = circular plot */
+
 PRIVATE float   *angle;
 PRIVATE int     *loop_size, *stack_size;
 PRIVATE int     lp, stk;
@@ -143,24 +145,13 @@ PRIVATE void loop(int i, int j, short *pair_table)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int simple_circplot_coordinates(short *pair_table, float *x, float *y, float *r){
-  unsigned int  length = pair_table[0];
+PUBLIC int simple_circplot_coordinates(short *pair_table, float *x, float *y){
+  unsigned int  length = (unsigned int) pair_table[0];
   unsigned int  i;
   float         d = 2*PI/length;
-  float         dr = 0;
   for(i=0; i < length; i++){
     x[i] = cos(i * d - PI/2);
     y[i] = sin(i * d - PI/2);
-    if(i<pair_table[i+1]){
-      dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
-      r[i] = 1. - (2.*dr/(float)length);
-    }
-    else if(pair_table[i+1]){
-      r[i] = r[pair_table[i+1]-1];
-    }
-    else{
-      r[i] = -1.0;
-    }
   }
   return length;
 }
