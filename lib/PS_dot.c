@@ -134,6 +134,33 @@ static const char *RNAss_head =
 "/cshow  { dup stringwidth pop -2 div fsize -3 div rmoveto show} bind def\n"
 "/min { 2 copy gt { exch } if pop } bind def\n"
 "/max { 2 copy lt { exch } if pop } bind def\n"
+"/arccoords { % i j arccoords\n"
+"  % puts optimal x1 y1 x2 y2 coordinates used in bezier curves from i to j\n"
+"  % onto the stack\n"
+"  dup 3 -1 roll dup 4 -1 roll lt dup dup 5 2 roll {exch} if\n"
+"  dup 3 -1 roll dup 3 -1 roll exch sub 1 sub dup\n"
+"  4 -2 roll 5 -1 roll {exch} if 4 2 roll\n"
+"  sequence length dup 2 div exch 3 1 roll lt \n"
+"  {exch 5 -1 roll pop 4 -2 roll exch 4 2 roll}\n"
+"  { 4 2 roll 5 -1 roll dup 6 1 roll {exch} if\n"
+"    4 -2 roll exch pop dup 3 -1 roll dup 4 1 roll\n"
+"    exch add 4 -1 roll dup 5 1 roll sub 1 sub\n"
+"    5 -1 roll not {4 -2 roll exch 4 2 roll} if\n"
+"  }ifelse\n"
+"   % compute the scalingfactor and prepare (1-sf) and sf*r\n"
+"  2 mul exch cpr 3 1 roll div dup\n"
+"  3 -1 roll mul exch 1 exch sub exch\n"
+"   % compute the coordinates\n"
+"  3 -1 roll 1 sub coor exch get aload pop % get coord for i\n"
+"  4 -1 roll dup 5 1 roll mul 3 -1 roll dup 4 1 roll add exch % calculate y1\n"
+"  4 -1 roll dup 5 1 roll mul 3 -1 roll dup 4 1 roll add exch % calculate x1\n"
+"  5 -1 roll 1 sub coor exch get aload pop % get coord for j\n"
+"  % duplicate j coord\n"
+"  dup 3 -1 roll dup 4 1 roll exch 8 2 roll\n"
+"  6 -1 roll dup 7 1 roll mul 5 -1 roll dup 6 1 roll add exch % calculate y2\n"
+"  6 -1 roll mul 5 -1 roll add exch % calculate x2\n"
+"  6 -2 roll % reorder\n"
+"} bind def\n"
 "/drawoutline {\n"
 "  gsave outlinecolor newpath\n"
 "  coor 0 get aload pop 0.8 0 360 arc % draw 5' circle of 1st sequence\n"
@@ -154,12 +181,10 @@ static const char *RNAss_head =
 "  [9 3.01] 9 setdash\n"
 "  newpath\n"
 "  pairs {aload pop\n"
-"      currentdict (ccoor) known\n"
+"      currentdict (cpr) known\n"
 "      { exch dup\n"
 "        coor  exch 1 sub get aload pop moveto\n"
-"        ccoor exch 1 sub get aload pop 3 -1 roll dup\n"
-"        ccoor exch 1 sub get aload pop 3 -1 roll\n"
-"        coor  exch 1 sub get aload pop curveto\n"
+"        exch arccoords curveto\n"
 "      }\n"
 "      { coor exch 1 sub get aload pop moveto\n"
 "        coor exch 1 sub get aload pop lineto\n"
@@ -242,11 +267,21 @@ static const char *anote_macros =
 "  newpath\n"
 "  1 sub exch 1 sub dup\n"
 "  coor exch get aload pop moveto\n"
-"  currentdict (ccoor) known\n"
-"  { dup 3 -1 roll 1 exch\n"
-"    { coor exch get aload pop lineto } for\n"
-"    sequence length 3 mul dup dup dup 5 -1 roll\n"
-"    coor exch get aload pop curveto\n"
+"  currentdict (cpr) known\n"
+"  {\n"
+"    3 -1 roll dup 4 1 roll dup\n"
+"    {\n"
+"      3 1 roll dup 3 -1 roll dup\n"
+"      4 1 roll exch 5 2 roll exch\n"
+"    }\n"
+"    {\n"
+"      3 1 roll exch\n"
+"    } ifelse\n"
+"    1 exch { coor exch get aload pop lineto } for\n"
+"    {\n"
+"      dup 3 1 roll 1 add exch 1 add arccoords pop pop\n"
+"      4 2 roll 5 -1 roll coor exch get aload pop curveto\n"
+"    } if\n"
 "  }\n"
 "  {\n"
 "    exch 1 exch {\n"
@@ -271,19 +306,15 @@ static const char *anote_macros =
 "  gsave\n"
 "  setrgbcolor\n"
 "  newpath\n"
-"  currentdict (ccoor) known\n"
-"  {  exch 4 3 roll exch 1 sub exch 1 sub dup \n"
-"     coor exch get aload pop moveto\n"
-"     dup 3 1 roll exch 1 exch dup 4 1 roll\n"
-"     { coor exch get aload pop lineto } for\n"
-"     ccoor exch get aload pop 4 -1 roll 1 sub dup\n"
-"     ccoor exch get aload pop 3 -1 roll dup 6 1 roll\n"
-"     coor exch get aload pop curveto\n"
-"     exch 3 1 roll exch 1 exch 1 sub dup 4 1 roll\n"
-"     { coor exch get aload pop lineto } for\n"
-"     ccoor exch get aload pop 3 -1 roll dup\n"
-"     ccoor exch get aload pop 3 -1 roll\n"
-"     coor exch get aload pop curveto\n"
+"  currentdict (cpr) known\n"
+"  {\n"
+"    dup 1 sub coor exch get aload pop moveto % move to l\n"
+"    dup 1 sub 4 -1 roll dup 5 1 roll 1 sub 1 exch\n"
+"    { coor exch get aload pop lineto } for % lines from l to j\n"
+"    3 -1 roll 4 -1 roll dup 5 1 roll arccoords curveto % curve from j to i\n"
+"    exch dup 4 -1 roll 1 sub exch 1 sub 1 exch\n"
+"    { coor exch get aload pop lineto } for % lines from i to k\n"
+"    exch arccoords curveto% curve from k to l\n"
 "  }\n"
 "  {  exch 4 3 roll exch 1 sub exch 1 sub dup\n"
 "     coor exch get aload pop moveto\n"
@@ -305,12 +336,11 @@ static const char *anote_macros =
 "  newpath\n"
 "  hsb\n"
 "  fsize setlinewidth\n"
-"  currentdict (ccoor) known\n"
-"  { exch dup\n"
+"  currentdict (cpr) known\n"
+"  {\n"
+"    exch dup\n"
 "    coor  exch 1 sub get aload pop moveto\n"
-"    ccoor exch 1 sub get aload pop 3 -1 roll dup\n"
-"    ccoor exch 1 sub get aload pop 3 -1 roll\n"
-"    coor  exch 1 sub get aload pop curveto\n"
+"    exch arccoords curveto\n"
 "  }\n"
 "  { 1 sub coor exch get aload pop moveto\n"
 "    1 sub coor exch get aload pop lineto\n"
@@ -325,7 +355,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 {
   float  xmin, xmax, ymin, ymax, size;
   int    i, length;
-  float *X, *Y, *R = NULL, *CX = NULL, *CY = NULL;
+  float *X, *Y;
   FILE  *xyplot;
   short *pair_table;
   char *c;
@@ -347,24 +377,8 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
                                   break;
     case VRNA_PLOT_TYPE_CIRCULAR: {
                                     int radius = 3*length;
-                                    int dr;
-                                    R = (float *) space((length+1)*sizeof(float));
-                                    CX = (float *) space((length+1)*sizeof(float));
-                                    CY = (float *) space((length+1)*sizeof(float));
                                     i = simple_circplot_coordinates(pair_table, X, Y);
                                     for (i = 0; i < length; i++) {
-                                      if(i+1 < pair_table[i+1]){
-                                        dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
-                                        R[i] = 1. - (2.*dr/(float)length);
-                                      }
-                                      else if(pair_table[i+1]){
-                                        R[i] = R[pair_table[i+1]-1];
-                                      }
-                                      else{
-                                        R[i] = 0;
-                                      }
-                                      CX[i] = X[i] * radius * R[i] + radius;
-                                      CY[i] = Y[i] * radius * R[i] + radius;
                                       X[i] *= radius;
                                       X[i] += radius;
                                       Y[i] *= radius;
@@ -431,12 +445,8 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
     fprintf(xyplot, "[%3.8f %3.8f]\n", X[i], Y[i]);
   fprintf(xyplot, "] def\n");
   /* correction coordinates for quadratic beziers in case we produce a circplot */
-  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR){
-    fprintf(xyplot, "/ccoor [\n");
-    for (i = 0; i < length; i++)
-      fprintf(xyplot, "[%3.8f %3.8f]\n", CX[i], CY[i]);
-    fprintf(xyplot, "] def\n");
-  }
+  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
+    fprintf(xyplot, "/cpr %6.2f def\n", (float)3*length);
   /* base pairs */
   fprintf(xyplot, "/pairs [\n");
   for (i = 1; i <= length; i++)
