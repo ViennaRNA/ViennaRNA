@@ -116,6 +116,15 @@ string
 typestr="paramfile"
 optional
 
+option  "binaries"  b
+"Output accessibility profiles in binary format\n."
+details=" The binary files produced by RNAplfold do not need to be parsed\
+ by RNAplex, so that they are directly loaded into memory. This is useful when large\
+ sequences have to be searched for putative hybridization sites. An other advantage of\
+ the binary format is the 50% file size decrease.\n" 
+flag
+off
+
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\

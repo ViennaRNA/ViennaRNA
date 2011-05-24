@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
   int           tempwin, temppair, tempunpaired;
   FILE          *pUfp = NULL, *spup = NULL;
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
-  int           noconv, plexoutput, simply_putout, openenergies;
+  int           noconv, plexoutput, simply_putout, openenergies, binaries;
   plist         *pl, *dpp = NULL;
   unsigned int  rec_type, read_opt;
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
   winsize       = 70;
   pairdist      = 0;
   unpaired      = 0;
-  simply_putout = plexoutput = openenergies = noconv = 0;
+  simply_putout = plexoutput = openenergies = noconv = 0;binaries=0;
   tempwin       = temppair = tempunpaired = 0;
   structure     = ParamFile = ns_bases = NULL;
   rec_type      = read_opt = 0;
@@ -97,7 +97,9 @@ int main(int argc, char *argv[]){
   if(args_info.print_onthefly_given)    simply_putout = 1;
   /* turn on RNAplex output */
   if(args_info.plex_output_given)       plexoutput = 1;
-
+  /* turn on binary output*/
+  if(args_info.binaries_given)          binaries = 1;
+    
   /* check for errorneous parameter options */
   if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
     RNAplfold_cmdline_parser_print_help();
@@ -250,7 +252,12 @@ int main(int argc, char *argv[]){
       strcat(fname1, "_lunp");
       strcat(fname2, "_basepairs");
       strcat(fname3, "_uplex");
-      strcat(fname4, "_openen");
+      if(binaries){
+        strcat(fname4, "_openen_bin");
+      }
+      else{
+        strcat(fname4, "_openen");
+      }
       strcat(ffname, "_dp.ps");
 
       pf_scale  = -1;
@@ -281,7 +288,12 @@ int main(int argc, char *argv[]){
             fclose(pUfp);
           }
           pUfp = fopen(openenergies ? fname4 : fname1, "w");
-          putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+          if(binaries){
+            putoutpU_prob_bin(pup, length, unpaired, pUfp, openenergies);
+          }
+          else{
+            putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+          }
           fclose(pUfp);
         }
       }

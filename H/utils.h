@@ -381,6 +381,20 @@ short *make_pair_table(const char *structure);
 short *copy_pair_table(const short *pt);
 
 /**
+***Pair table for snoop align
+***
+***
+**/
+short *alimake_pair_table(const char *structure);
+
+/**
+*** returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
+*** 0 if i is unpaired, table[0] contains the length of the structure.
+*** The special pseudoknotted H/ACA-mRNA structure is taken into account.
+**/
+short *make_pair_table_snoop(const char *structure);
+
+/**
  *  \brief Compute the "base pair" distance between two secondary structures s1 and s2.
  * 
  *  The sequences should have the same length.

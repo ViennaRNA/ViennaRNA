@@ -16,7 +16,8 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     alifold.c alipfold.c aln_util.c LPfold.c \
                     part_func_up.c ribo.c findpath.c convert_epars.c\
                     MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c plex_functions.c\
-                    plot_layouts.c ${SVM_SRC} ${SVM_UTILS}
+                    plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c\
+                    snoop.c ${SVM_SRC} ${SVM_UTILS}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
 

@@ -16,6 +16,9 @@
  *  visualizations
  */
 
+/* write PostScript drawing of structure to file with annotation */
+int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int* relative_access, const char *seqs[]);
+
 /**
  *  \brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *
@@ -125,6 +128,12 @@ int PS_dot_plot_list(char *seq, char *filename, plist *pl, plist *mf, char *comm
 int PS_dot_plot_turn(char *seq, struct plist *pl, char *filename, int winSize);
 
 int PS_color_aln(const char *structure, const char *filename, const char *seqs[], const char *names[]);
+
+/**
+ * 	PS_color_aln for duplexes
+*/
+int aliPS_color_aln(const char *structure, const char *filename, 
+		    const char *seqs[], const char *names[]); 
 
 
 /**

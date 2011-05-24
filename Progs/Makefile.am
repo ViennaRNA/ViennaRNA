@@ -13,7 +13,7 @@ endif
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-    RNAparconv RNAPKplex ${LfoldZ_prog}
+    RNAparconv RNAPKplex RNAplex RNAsnoop ${LfoldZ_prog}
 
 LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
@@ -38,7 +38,9 @@ EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h\
               RNApaln.ggo RNApaln_cmdl.c RNApaln_cmdl.h\
               RNAplot.ggo RNAplot_cmdl.c RNAplot_cmdl.h\
-              RNAPKplex.ggo RNAPKplex_cmdl.c RNAPKplex_cmdl.h
+              RNAPKplex.ggo RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
+              RNAplex.ggo RNAplex_cmdl.c RNAplex_cmdl.h\
+              RNAsnoop.ggo RNAsnoop_cmdl.c RNAsnoop_cmdl.h
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -180,3 +182,17 @@ RNAPKplex_cmdl.h  RNAPKplex_cmdl.c: RNAPKplex.ggo
 	gengetopt -i RNAPKplex.ggo
 
 RNAPKplex_SOURCES=RNAPKplex_cmdl.c RNAPKplex.c
+
+RNAplex.c:    RNAplex_cmdl.h
+
+RNAplex_cmdl.h  RNAplex_cmdl.c: RNAplex.ggo
+	gengetopt -i RNAplex.ggo
+
+RNAplex_SOURCES=RNAplex_cmdl.c RNAplex.c
+
+RNAsnoop.c:    RNAsnoop_cmdl.h
+
+RNAsnoop_cmdl.h  RNAsnoop_cmdl.c: RNAsnoop.ggo
+	gengetopt -i RNAsnoop.ggo
+
+RNAsnoop_SOURCES=RNAsnoop_cmdl.c RNAsnoop.c

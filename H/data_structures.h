@@ -300,9 +300,57 @@ typedef struct constrain { /* constrains for cofolding */
 typedef struct {
   int i;
   int j;
+  int end;
+  char *structure;
+  double energy;
+  double energy_backtrack;
+  double opening_backtrack_x;
+  double opening_backtrack_y;
+  int offset;
+  double dG1;
+  double dG2;
+  double ddG;
+  int tb;
+  int te;
+  int qb;
+  int qe;
+} duplexT;
+
+/*
+* ############################################################
+* RNAsnoop data structures
+* ############################################################
+*/
+
+typedef struct node {
+  int k;
+  int energy;
+  struct node *next;
+} folden;
+
+typedef struct {
+  int i;
+  int j;
+  int u;
   char *structure;
   float energy;
-} duplexT;
+  float Duplex_El;
+  float Duplex_Er;
+  float Loop_E;
+  float Loop_D;
+  float pscd;
+  float psct;
+  float pscg;
+  float Duplex_Ol;
+  float Duplex_Or;
+  float Duplex_Ot;
+} snoopT;
+
+
+
+
+
+
 
 /*
 * ############################################################
