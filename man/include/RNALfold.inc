@@ -1,22 +1,12 @@
 [AUTHOR]
 
-Ivo L Hofacker
-
-[EXAMPLES]
-To search 5 times for sequences forming a simple hairpin structure interrupted by one GA mismatch call
-
-  $ RNAinverse -R 5
-
-and enter the lines
-
-  (((.(((....))).)))
-  NNNgNNNNNNNNNNaNNN
+Ivo L Hofacker, Peter F Stadler, Ronny Lorenz
 
 [REFERENCES]
 
-D.H. Turner, N. Sugimoto, S.M. Freier (1988),
-"RNA structure prediction",
-Ann Rev Biophys Biophys Chem: 17, pp 167-192
+I.L. Hofacker, B. Priwitzer, and P.F. Stadler (2004),
+"Prediction of Locally Stable RNA Secondary Structures for Genome-Wide Surveys",
+Bioinformatics: 20, pp 186-190
 
 M. Zuker, P. Stiegler (1981),
 "Optimal computer folding of large RNA sequences using thermodynamic and auxiliary information",
@@ -25,3 +15,7 @@ Nucl Acid Res: 9, pp 133-148
 J.S. McCaskill (1990),
 "The equilibrium partition function and base pair binding probabilities for RNA secondary structures",
 Biopolymers: 29, pp 1105-1119
+
+[SEE ALSO]
+
+RNAplfold(1)

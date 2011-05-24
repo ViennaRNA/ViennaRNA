@@ -219,21 +219,5 @@ hidden
 text  "Caveats:\n\nSequences are not weighted. If possible, do not mix very similar and\
  dissimilar sequences. Duplicate sequences, for example, can distort the prediction.\n\n"
 
-text  "See also:\n\nThe ALIDOT package http://www.tbi.univie.ac.at/RNA/ALIDOT/\n\n"
-
-text    "References:\n\nThe algorithm is a variant of the dynamic programming algorithms of\
- M. Zuker and P. Stiegler (mfe) and J.S. McCaskill (pf) adapted for sets of aligned sequences with covariance\
- information. The energy parameters are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and\
- H. Turner (1999), \"Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction\
- of RNA Secondary Structure\", JMB, 288, pp 911-940\n\n"
-
-text  "If you use this program in your work you might want to cite:\n\nIvo L. Hofacker,\
- Martin Fekete, and Peter F. Stadler (2002), \"Secondary Structure Prediction for Aligned RNA\
- Sequences\", J.Mol.Biol. 319: 1059-1066.\n\nStephan H. Bernhart, Ivo L. Hofacker, Sebastian Will,\
- Andreas R. Gruber, and Peter F. Stadler (2008), \"RNAalifold: Improved consensus structure\
- prediction for RNA alignments\", BMC Bioinformatics, 9:474\n\n"
-
-text    "Written by:\n\nIvo L Hofacker, Stephan Bernhart, Ronny Lorenz\n\n"
-
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text  "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

@@ -116,20 +116,5 @@ int
 optional
 hidden
 
-text "See also:\n\nRNAplfold(1)\n\n"
-
-text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
- developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
- The energy parameters are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
- Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
- 911-940, 1999\n\nA. Walter, D Turner, J Kim, M Lyttle, P M\252ller, D Mathews, M Zuker \"Coaxial stacking of\
- helices enhances binding of oligoribonucleotides.\"\nPNAS, 91, pp 9218-9222, 1994\n\n\
- If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
- S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
- Chemie 125: 167-188\n\nM. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
- and auxiliary information\", Nucl Acid Res 9: 133-148\n\nI.L. Hofacker, B. Priwitzer, and P.F. Stadler, \"Prediction of\
- Locally Stable RNA Secondary Structures for Genome-Wide Surveys\", Bioinformatics, 20, 186-190 (2004)\n\n"
-
-text    "Written by\n\nIvo L Hofacker, Peter F Stadler.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

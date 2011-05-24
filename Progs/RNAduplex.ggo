@@ -106,7 +106,5 @@ string
 optional
 hidden
 
-text    "See also:\n\nRNAcofold(l) RNAfold(l)\n\n"
-text    "Written by:\n\nIvo L Hofacker\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

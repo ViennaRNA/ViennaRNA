@@ -35,7 +35,7 @@ sub configure_locale
 {
     my $locale = shift;
     die "$this_program: no locale support (Locale::gettext required)\n"
-	unless $locale eq 'C';
+        unless $locale eq 'C';
 }
 
 sub dec { $_[0] }
@@ -53,6 +53,7 @@ This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Written by Brendan O'Dea <bod@debian.org>
+Extended for use in ViennaRNA Package by Ronny Lorenz <ronny@tbi.univie.ac.at>
 EOT
 
 my $help_info = enc_user sprintf _(<<'EOT'), $this_program, $this_program;
@@ -93,22 +94,22 @@ my $discard_stderr = 1;
 my ($opt_name, @opt_include, $opt_output, $opt_info, $opt_no_info, $version_text);
 
 my %opt_def = (
-    'n|name=s'		 => \$opt_name,
-    's|section=s'	 => \$section,
-    'm|manual=s'	 => \$manual,
-    'S|source=s'	 => \$source,
-    'L|locale=s'	 => sub { configure_locale pop },
-    'i|include=s'	 => sub { push @opt_include, [ pop, 1 ] },
-    'I|opt-include=s'	 => sub { push @opt_include, [ pop, 0 ] },
-    'o|output=s'	 => \$opt_output,
-    'p|info-page=s'	 => \$opt_info,
-    'N|no-info'		 => \$opt_no_info,
-    'help'		 => sub { print $help_info; exit },
-    'version'		 => sub { print $version_info; exit },
-    'h|help-option=s'	 => \$help_option,
+    'n|name=s'                 => \$opt_name,
+    's|section=s'         => \$section,
+    'm|manual=s'         => \$manual,
+    'S|source=s'         => \$source,
+    'L|locale=s'         => sub { configure_locale pop },
+    'i|include=s'         => sub { push @opt_include, [ pop, 1 ] },
+    'I|opt-include=s'         => sub { push @opt_include, [ pop, 0 ] },
+    'o|output=s'         => \$opt_output,
+    'p|info-page=s'         => \$opt_info,
+    'N|no-info'                 => \$opt_no_info,
+    'help'                 => sub { print $help_info; exit },
+    'version'                 => sub { print $version_info; exit },
+    'h|help-option=s'         => \$help_option,
     'v|version-option=s' => \$version_option,
-    'version-string=s'	 => \$version_text,
-    'discard-stderr!'	 => \$discard_stderr,
+    'version-string=s'         => \$version_text,
+    'discard-stderr!'         => \$discard_stderr,
 );
 
 # Parse options.
@@ -136,68 +137,68 @@ while (@opt_include)
 
     next unless -f $inc or $required;
     kark N_("%s: can't open `%s' (%s)"), $this_program, $inc, $!
-	unless open INC, $inc;
+        unless open INC, $inc;
 
     my $key;
     my $hash = \%include;
 
     while (<INC>)
     {
-	# Convert input to internal Perl format, so that multibyte
-	# sequences are treated as single characters.
-	$_ = dec $_;
+        # Convert input to internal Perl format, so that multibyte
+        # sequences are treated as single characters.
+        $_ = dec $_;
 
-	# [section]
-	if (/^\[([^]]+)\]\s*$/)
-	{
-	    $key = uc $1;
-	    $key =~ s/^\s+//;
-	    $key =~ s/\s+$//;
-	    $hash = \%include;
-	    push @include, $key unless $include{$key};
-	    next;
-	}
+        # [section]
+        if (/^\[([^]]+)\]\s*$/)
+        {
+            $key = uc $1;
+            $key =~ s/^\s+//;
+            $key =~ s/\s+$//;
+            $hash = \%include;
+            push @include, $key unless $include{$key};
+            next;
+        }
 
-	# /pattern/
-	if (m!^/(.*)/([ims]*)\s*$!)
-	{
-	    my $pat = $2 ? "(?$2)$1" : $1;
+        # /pattern/
+        if (m!^/(.*)/([ims]*)\s*$!)
+        {
+            my $pat = $2 ? "(?$2)$1" : $1;
 
-	    # Check pattern.
-	    eval { $key = qr($pat) };
-	    if ($@)
-	    {
-		$@ =~ s/ at .*? line \d.*//;
-		die "$inc:$.:$@";
-	    }
+            # Check pattern.
+            eval { $key = qr($pat) };
+            if ($@)
+            {
+                $@ =~ s/ at .*? line \d.*//;
+                die "$inc:$.:$@";
+            }
 
-	    $hash = \%append;
-	    next;
-	}
+            $hash = \%append;
+            next;
+        }
 
-	# Check for options before the first section--anything else is
-	# silently ignored, allowing the first for comments and
-	# revision info.
-	unless ($key)
-	{
-	    # handle options
-	    if (/^-/)
-	    {
-		local @ARGV = split;
-		GetOptions %opt_def;
-	    }
+        # Check for options before the first section--anything else is
+        # silently ignored, allowing the first for comments and
+        # revision info.
+        unless ($key)
+        {
+            # handle options
+            if (/^-/)
+            {
+                local @ARGV = split;
+                GetOptions %opt_def;
+            }
 
-	    next;
-	}
+            next;
+        }
 
-	$hash->{$key} ||= '';
-	$hash->{$key} .= $_;
+        $hash->{$key} ||= '';
+        $hash->{$key} .= $_;
     }
 
     close INC;
 
     kark N_("%s: no valid information found in `%s'"), $this_program, $inc
-    	unless $key;
+            unless $key;
 }
 
 # Compress trailing blank lines.
@@ -223,10 +224,10 @@ my $version;
 if ($opt_output)
 {
     unlink $opt_output or kark N_("%s: can't unlink %s (%s)"),
-    	$this_program, $opt_output, $! if -e $opt_output;
+            $this_program, $opt_output, $! if -e $opt_output;
 
     open STDOUT, ">$opt_output"
-	or kark N_("%s: can't create %s (%s)"), $this_program, $opt_output, $!;
+        or kark N_("%s: can't create %s (%s)"), $this_program, $opt_output, $!;
 }
 
 # The first line of the --version information is assumed to be in one
@@ -272,16 +273,16 @@ for ($include{_('NAME')})
 {
     if ($opt_name) # --name overrides --include contents.
     {
-	$_ = "$program \\- $opt_name\n";
+        $_ = "$program \\- $opt_name\n";
     }
     elsif ($_) # Use first name given as $program
     {
-	$program = $1 if /^([^\s,]+)(?:,?\s*[^\s,\\-]+)*\s+\\?-/;
+        $program = $1 if /^([^\s,]+)(?:,?\s*[^\s,\\-]+)*\s+\\?-/;
     }
     else # Set a default (useless) NAME paragraph.
     {
-	$_ = sprintf _("%s \\- manual page for %s %s") . "\n", $program,
-	    $program, $version;
+        $_ = sprintf _("%s \\- manual page for %s %s") . "\n", $program,
+            $program, $version;
     }
 }
 
@@ -294,9 +295,9 @@ unless ($manual)
 {
     for ($section)
     {
-	if (/^(1[Mm]|8)/) { $manual = _('System Administration Utilities') }
-	elsif (/^6/)	  { $manual = _('Games') }
-	else		  { $manual = _('User Commands') }
+        if (/^(1[Mm]|8)/) { $manual = _('System Administration Utilities') }
+        elsif (/^6/)          { $manual = _('Games') }
+        else                  { $manual = _('User Commands') }
     }
 }
 
@@ -315,28 +316,28 @@ if ($help_text =~ s/^($PAT_USAGE):( +(\S+))(.*)((?:\n(?: {6}\1| *($PAT_USAGE_CON
 
     if ($_ = $5)
     {
-	s/^\n//;
-	for (split /\n/) { s/^ *(($PAT_USAGE_CONT): +)?//o; push @syn, $_ }
+        s/^\n//;
+        for (split /\n/) { s/^ *(($PAT_USAGE_CONT): +)?//o; push @syn, $_ }
     }
 
     my $synopsis = '';
     for (@syn)
     {
-	$synopsis .= ".br\n" if $synopsis;
-	s!^\S*/!!;
-	s/^(\S+) *//;
-	$synopsis .= ".B $1\n";
-	s/\s+$//;
-	s/(([][]|\.\.+)+)/\\fR$1\\fI/g;
-	s/^/\\fI/ unless s/^\\fR//;
-	$_ .= '\fR';
-	s/(\\fI)( *)/$2$1/g;
-	s/\\fI\\fR//g;
-	s/^\\fR//;
-	s/\\fI$//;
-	s/^\./\\&./;
+        $synopsis .= ".br\n" if $synopsis;
+        s!^\S*/!!;
+        s/^(\S+) *//;
+        $synopsis .= ".B $1\n";
+        s/\s+$//;
+        s/(([][]|\.\.+)+)/\\fR$1\\fI/g;
+        s/^/\\fI/ unless s/^\\fR//;
+        $_ .= '\fR';
+        s/(\\fI)( *)/$2$1/g;
+        s/\\fI\\fR//g;
+        s/^\\fR//;
+        s/\\fI$//;
+        s/^\./\\&./;
 
-	$synopsis .= "$_\n";
+        $synopsis .= "$_\n";
     }
 
     $include{_('SYNOPSIS')} ||= $synopsis;
@@ -368,13 +369,15 @@ s/\\/\x82/g;
 # "(?:[\\w-]+ +)?" in the bug reporting pattern is used to indicate an
 # optional word, so that either "Report bugs" or "Report _program_ bugs" will
 # be matched.
-my $PAT_BUGS		= _('Report +(?:[\w-]+ +)?bugs|Email +bug +reports +to');
-my $PAT_AUTHOR		= _('Written +by');
-my $PAT_OPTIONS		= _('Options');
-my $PAT_ENVIRONMENT	= _('Environment');
-my $PAT_FILES		= _('Files');
-my $PAT_EXAMPLES	= _('Examples');
-my $PAT_FREE_SOFTWARE	= _('This +is +free +software');
+my $PAT_BUGS                = _('Report +(?:[\w-]+ +)?bugs|Email +bug +reports +to|If in doubt our program is right, nature is at fault.');
+my $PAT_AUTHOR                = _('Written +by');
+my $PAT_OPTIONS                = _('Options');
+my $PAT_ENVIRONMENT        = _('Environment');
+my $PAT_FILES                = _('Files');
+my $PAT_EXAMPLES        = _('Examples');
+my $PAT_FREE_SOFTWARE        = _('This +is +free +software');
+my $PAT_REFERENCES  = _('If you use this program in your work you might want to cite');
+my $PAT_SEE_ALSO  = _('See also');
 
 # Start a new paragraph (if required) for these.
 s/([^\n])\n($PAT_BUGS|$PAT_AUTHOR) /$1\n\n$2 /og;
@@ -390,58 +393,70 @@ while (length)
     # Convert some standard paragraph names.
     if (s/^($PAT_OPTIONS): *\n//o)
     {
-	$sect = _('OPTIONS');
-	next;
+        $sect = _('OPTIONS');
+        next;
     }
     if (s/^($PAT_ENVIRONMENT): *\n//o)
     {
-	$sect = _('ENVIRONMENT');
-	next;
+        $sect = _('ENVIRONMENT');
+        next;
     }
     if (s/^($PAT_FILES): *\n//o)
     {
-	$sect = _('FILES');
-	next;
+        $sect = _('FILES');
+        next;
     }
     elsif (s/^($PAT_EXAMPLES): *\n//o)
     {
-	$sect = _('EXAMPLES');
-	next;
+        $sect = _('EXAMPLES');
+        next;
     }
 
     # Copyright section
     if (/^Copyright /)
     {
-	$sect = _('COPYRIGHT');
+        $sect = _('COPYRIGHT');
     }
 
     # Bug reporting section.
     elsif (/^($PAT_BUGS)/o)
     {
-	$sect = _('REPORTING BUGS');
+        $sect = _('REPORTING BUGS');
     }
 
     # Author section.
     elsif (/^($PAT_AUTHOR)/o)
     {
-	$sect = _('AUTHOR');
+        $sect = _('AUTHOR');
+    }
+
+    # References section.
+    elsif (/^($PAT_REFERENCES)/o)
+    {
+        $sect = _('REFERENCES');
+    }
+
+    # References section.
+    elsif (/^($PAT_SEE_ALSO)/o)
+    {
+        $sect = _('SEE ALSO');
     }
 
     # Examples, indicated by an indented leading $, % or > are
     # rendered in a constant width font.
     if (/^( +)([\$\%>] )\S/)
     {
-	my $indent = $1;
-	my $prefix = $2;
-	my $break = '.IP';
-	$include{$sect} ||= '';
-	while (s/^$indent\Q$prefix\E(\S.*)\n*//)
-	{
-	    $include{$sect} .= "$break\n\\f(CW$prefix$1\\fR\n";
-	    $break = '.br';
-	}
+        my $indent = $1;
+        my $prefix = $2;
+        my $break = '.IP';
+        $include{$sect} ||= '';
+        while (s/^$indent\Q$prefix\E(\S.*)\n*//)
+        {
+            $include{$sect} .= "$break\n\\f(CW$prefix$1\\fR\n";
+            $break = '.br';
+        }
 
-	next;
+        next;
     }
 
     my $matched = '';
@@ -450,8 +465,8 @@ while (length)
     # Sub-sections have a trailing colon and the second line indented.
     if (s/^(\S.*:) *\n / /)
     {
-	$matched .= $& if %append;
-	$include{$sect} .= qq(.SS "$1"\n);
+        $matched .= $& if %append;
+        $include{$sect} .= qq(.SS "$1"\n);
     }
 
     my $indent = 0;
@@ -460,54 +475,54 @@ while (length)
     # Option with description.
     if (s/^( {1,10}([+-]\S.*?))(?:(  +(?!-))|\n( {20,}))(\S.*)\n//)
     {
-	$matched .= $& if %append;
-	$indent = length ($4 || "$1$3");
-	$content = ".TP\n\x84$2\n\x84$5\n";
-	unless ($4)
-	{
-	    # Indent may be different on second line.
-	    $indent = length $& if /^ {20,}/;
-	}
+        $matched .= $& if %append;
+        $indent = length ($4 || "$1$3");
+        $content = ".TP\n\x84$2\n\x84$5\n";
+        unless ($4)
+        {
+            # Indent may be different on second line.
+            $indent = length $& if /^ {20,}/;
+        }
     }
 
     # Option without description.
     elsif (s/^ {1,10}([+-]\S.*)\n//)
     {
-	$matched .= $& if %append;
-	$content = ".HP\n\x84$1\n";
-	$indent = 80; # not continued
+        $matched .= $& if %append;
+        $content = ".HP\n\x84$1\n";
+        $indent = 80; # not continued
     }
 
     # Indented paragraph with tag.
     elsif (s/^( +(\S.*?)  +)(\S.*)\n//)
     {
-	$matched .= $& if %append;
-	$indent = length $1;
-	$content = ".TP\n\x84$2\n\x84$3\n";
+        $matched .= $& if %append;
+        $indent = length $1;
+        $content = ".TP\n\x84$2\n\x84$3\n";
     }
 
     # Indented paragraph.
     elsif (s/^( +)(\S.*)\n//)
     {
-	$matched .= $& if %append;
-	$indent = length $1;
-	$content = ".IP\n\x84$2\n";
+        $matched .= $& if %append;
+        $indent = length $1;
+        $content = ".IP\n\x84$2\n";
     }
 
     # Left justified paragraph.
     else
     {
-	s/(.*)\n//;
-	$matched .= $& if %append;
-	$content = ".PP\n" if $include{$sect};
-	$content .= "$1\n";
+        s/(.*)\n//;
+        $matched .= $& if %append;
+        $content = ".PP\n" if $include{$sect};
+        $content .= "$1\n";
     }
 
     # Append continuations.
     while ($indent ? s/^ {$indent}(\S.*)\n// : s/^(\S.*)\n//)
     {
-	$matched .= $& if %append;
-	$content .= "\x84$1\n";
+        $matched .= $& if %append;
+        $content .= "\x84$1\n";
     }
 
     # Move to next paragraph.
@@ -515,45 +530,45 @@ while (length)
 
     for ($content)
     {
-	# Leading dot and apostrophe protection.
-	s/\x84\./\x80/g;
-	s/\x84'/\x81/g;
-	s/\x84//g;
+        # Leading dot and apostrophe protection.
+        s/\x84\./\x80/g;
+        s/\x84'/\x81/g;
+        s/\x84//g;
 
-	# Convert options.
-	s/(^| |\()(-[][\w=-]+)/$1 . convert_option $2/mge;
+        # Convert options.
+        s/(^| |\()(-[][\w=-]+)/$1 . convert_option $2/mge;
 
-	# Escape remaining hyphens
-	s/-/\x83/g;
+        # Escape remaining hyphens
+        s/-/\x83/g;
 
-	if ($sect eq 'COPYRIGHT')
-	{
-	    # Insert line breaks before additional copyright messages
-	    # and the disclaimer.
-	    s/\n(Copyright |$PAT_FREE_SOFTWARE)/\n.br\n$1/og;
-	}
-	elsif ($sect eq 'REPORTING BUGS')
-	{
-	    # Handle multi-line bug reporting sections of the form:
-	    #
-	    #   Report <program> bugs to <addr>
-	    #   GNU <package> home page: <url>
-	    #   ...
-	    s/\n([[:upper:]])/\n.br\n$1/g;
-	}
+        if ($sect eq 'COPYRIGHT')
+        {
+            # Insert line breaks before additional copyright messages
+            # and the disclaimer.
+            s/\n(Copyright |$PAT_FREE_SOFTWARE)/\n.br\n$1/og;
+        }
+        elsif ($sect eq 'REPORTING BUGS')
+        {
+            # Handle multi-line bug reporting sections of the form:
+            #
+            #   Report <program> bugs to <addr>
+            #   GNU <package> home page: <url>
+            #   ...
+            s/\n([[:upper:]])/\n.br\n$1/g;
+        }
     }
 
     # Check if matched paragraph contains /pat/.
     if (%append)
     {
-	for my $pat (keys %append)
-	{
-	    if ($matched =~ $pat)
-	    {
-		$content .= ".PP\n" unless $append{$pat} =~ /^\./;
-		$content .= $append{$pat};
-	    }
-	}
+        for my $pat (keys %append)
+        {
+            if ($matched =~ $pat)
+            {
+                $content .= ".PP\n" unless $append{$pat} =~ /^\./;
+                $content .= $append{$pat};
+            }
+        }
     }
 
     $include{$sect} .= $content;
@@ -592,7 +607,7 @@ EOT
 my @pre = (_('NAME'), _('SYNOPSIS'), _('DESCRIPTION'), _('OPTIONS'),
     _('ENVIRONMENT'), _('FILES'), _('EXAMPLES'));
 
-my @post = (_('AUTHOR'), _('REPORTING BUGS'), _('COPYRIGHT'), _('SEE ALSO'));
+my @post = (_('AUTHOR'), _('REFERENCES'), _('REPORTING BUGS'), _('COPYRIGHT'), _('SEE ALSO'));
 my $filter = join '|', @pre, @post;
 
 # Output content.
@@ -600,23 +615,23 @@ for my $sect (@pre, (grep ! /^($filter)$/o, @include), @post)
 {
     if ($include{$sect})
     {
-	my $quote = $sect =~ /\W/ ? '"' : '';
-	print enc ".SH $quote$sect$quote\n";
+        my $quote = $sect =~ /\W/ ? '"' : '';
+        print enc ".SH $quote$sect$quote\n";
 
-	for ($include{$sect})
-	{
-	    # Replace leading dot, apostrophe, backslash and hyphen
-	    # tokens.
-	    s/\x80/\\&./g;
-	    s/\x81/\\&'/g;
-	    s/\x82/\\e/g;
-	    s/\x83/\\-/g;
+        for ($include{$sect})
+        {
+            # Replace leading dot, apostrophe, backslash and hyphen
+            # tokens.
+            s/\x80/\\&./g;
+            s/\x81/\\&'/g;
+            s/\x82/\\e/g;
+            s/\x83/\\-/g;
 
-	    # Convert some latin1 chars to troff equivalents
-	    s/\xa0/\\ /g; # non-breaking space
+            # Convert some latin1 chars to troff equivalents
+            s/\xa0/\\ /g; # non-breaking space
 
-	    print enc $_;
-	}
+            print enc $_;
+        }
     }
 }
 
@@ -631,18 +646,18 @@ sub get_option_value
     my ($prog, $opt) = @_;
     my $stderr = $discard_stderr ? '/dev/null' : '&1';
     my $value = join '',
-	map { s/ +$//; expand $_ }
-	map { dec $_ }
-	`$prog $opt 2>$stderr`;
+        map { s/ +$//; expand $_ }
+        map { dec $_ }
+        `$prog $opt 2>$stderr`;
 
     unless ($value)
     {
-	my $err = N_("%s: can't get `%s' info from %s%s");
-	my $extra = $discard_stderr
-	    ? "\n" . N_("Try `--no-discard-stderr' if option outputs to stderr")
-	    : '';
+        my $err = N_("%s: can't get `%s' info from %s%s");
+        my $extra = $discard_stderr
+            ? "\n" . N_("Try `--no-discard-stderr' if option outputs to stderr")
+            : '';
 
-	kark $err, $this_program, $opt, $prog, $extra;
+        kark $err, $this_program, $opt, $prog, $extra;
     }
 
     return $value;
@@ -657,9 +672,9 @@ sub convert_option
     s/-/\x83/g;
     unless (s/\[=(.*)\]$/\\fR[=\\fI$1\\fR]/)
     {
-	s/=(.)/\\fR=\\fI$1/;
-	s/ (.)/ \\fI$1/;
-	$_ .= '\fR';
+        s/=(.)/\\fR=\\fI$1/;
+        s/ (.)/ \\fI$1/;
+        $_ .= '\fR';
     }
 
     $_;

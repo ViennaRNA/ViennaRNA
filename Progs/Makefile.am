@@ -2,7 +2,8 @@
 
 if WITH_LIBSVM
   LfoldZ_prog = RNALfoldz
-  LfoldZ_cmdl = RNALfoldz.ggo RNALfoldz_cmdl.c RNALfoldz_cmdl.h
+  LfoldZ_ggo = RNALfoldz.ggo
+  LfoldZ_cmdl = RNALfoldz_cmdl.c RNALfoldz_cmdl.h
   RNALfold_LINK = ${CXXLD} -o $@
   RNALfoldz_LINK = ${CXXLD} -o $@
 else
@@ -21,26 +22,43 @@ AM_CFLAGS = $(OPENMP_CFLAGS)
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
 
-EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
-              RNAalifold.ggo RNAalifold_cmdl.c RNAalifold_cmdl.h\
-              RNAcofold.ggo RNAcofold_cmdl.c  RNAcofold_cmdl.h\
-              RNAup.ggo RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h ${LfoldZ_cmdl}\
-              RNALalifold.ggo RNALalifold_cmdl.c RNALalifold_cmdl.h\
-              RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h\
-              RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
-              RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
-              RNAeval.ggo RNAeval_cmdl.c RNAeval_cmdl.h\
-              RNAheat.ggo RNAheat_cmdl.c RNAheat_cmdl.h\
-              RNAsubopt.ggo RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
-              RNA2Dfold.ggo RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
-              RNAparconv.ggo RNAparconv_cmdl.c RNAparconv_cmdl.h\
-              RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h\
-              RNApaln.ggo RNApaln_cmdl.c RNApaln_cmdl.h\
-              RNAplot.ggo RNAplot_cmdl.c RNAplot_cmdl.h\
-              RNAPKplex.ggo RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
-              RNAplex.ggo RNAplex_cmdl.c RNAplex_cmdl.h\
-              RNAsnoop.ggo RNAsnoop_cmdl.c RNAsnoop_cmdl.h
+GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
+              RNAalifold_cmdl.c RNAalifold_cmdl.h\
+              RNAcofold_cmdl.c  RNAcofold_cmdl.h\
+              RNAup_cmdl.c  RNAup_cmdl.h\
+              RNALfold_cmdl.c RNALfold_cmdl.h ${LfoldZ_cmdl}\
+              RNALalifold_cmdl.c RNALalifold_cmdl.h\
+              RNAplfold_cmdl.c RNAplfold_cmdl.h\
+              RNAduplex_cmdl.c RNAduplex_cmdl.h\
+              RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
+              RNAeval_cmdl.c RNAeval_cmdl.h\
+              RNAheat_cmdl.c RNAheat_cmdl.h\
+              RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
+              RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
+              RNAparconv_cmdl.c RNAparconv_cmdl.h\
+              RNAinverse_cmdl.c RNAinverse_cmdl.h\
+              RNApaln_cmdl.c RNApaln_cmdl.h\
+              RNAplot_cmdl.c RNAplot_cmdl.h\
+              RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
+              RNAplex_cmdl.c RNAplex_cmdl.h\
+              RNAsnoop_cmdl.c RNAsnoop_cmdl.h
+
+GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
+              RNAup.ggo RNALfold.ggo RNALalifold.ggo ${LfoldZ_ggo}\
+              RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo\
+              RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
+              RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
+              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo
+
+EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+
+# remove all generated man pages
+distclean:  distclean-am
+	rm $(GENGETOPT_CMDL)
+
+maintainer-clean:  maintainer-clean-am
+	rm -rf $(GENGETOPT_CMDL)
+
 
 RNAfold.c:    RNAfold_cmdl.h
 

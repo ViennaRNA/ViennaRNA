@@ -1,3 +1,7 @@
+[AUTHOR]
+
+Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler, Ronny Lorenz
+
 [EXAMPLES]
 Single line sequence input and calculation of partition function and MEA structure
 
@@ -75,4 +79,25 @@ sequence given that nucleotides 2,3,46 and 47 must not be involved in any base p
 For further information about constrained folding refer to the details of the -C option
 and the reference manual of RNAlib.
 
+[REFERENCES]
+M. Zuker, P. Stiegler (1981),
+"Optimal computer folding of large RNA sequences using thermodynamic and auxiliary information",
+Nucl Acid Res: 9, pp 133-148
 
+J.S. McCaskill (1990),
+"The equilibrium partition function and base pair binding probabilities for RNA secondary structures",
+Biopolymers: 29, pp 1105-1119
+
+I.L. Hofacker & P.F. Stadler (2006),
+"Memory Efficient Folding Algorithms for Circular RNA Secondary Structures",
+Bioinformatics
+
+A.F. Bompfuenewerer, R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F. Stadler, S. Will (2007),
+"Variations on {RNA} Folding and Alignment: Lessons from Benasque",
+J. Math. Biol.
+
+D. Adams (1979),
+"The hitchhiker's guide to the galaxy",
+Pan Books, London
+
+The calculation of mfe structures is based on dynamic programming algorithm originally developed by M. Zuker and P. Stiegler. The partition function algorithm is based on work by J.S. McCaskill.

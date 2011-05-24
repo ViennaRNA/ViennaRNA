@@ -43,6 +43,10 @@ sequences. The program will continue to read new sequences until a line
 consisting of the single character @ or an end of file condition is
 encountered. 
 
+[AUTHOR]
+
+Ivo L Hofacker, Peter F Stadler, Ulrike Mueckstein, Ronny Lorenz
+
 [EXAMPLES]
 
 .B Output to stdout:
@@ -125,3 +129,9 @@ length 3 ending at position 2 exists).
 
 If the -b option is selected position and dGu_s values for the shorter sequence
 are written after the information for the target sequence.
+
+{REFERENCES}
+
+U. Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and I.L. Hofacker (2006),
+"Thermodynamics of RNA-RNA Binding",
+Bioinformatics: 22(10), pp 1177-1182

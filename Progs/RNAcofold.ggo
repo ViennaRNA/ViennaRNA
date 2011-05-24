@@ -181,14 +181,5 @@ int
 optional
 hidden
 
-text    "References:\n\nThe energy parameters are taken from:\n\nD.H. Mathews, J. Sabina,\
- M. Zuker and H. Turner, (1999), \"Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust\
- Prediction of RNA Secondary Structure\",  JMB, 288, pp 911-940\n\nIf you use this program in your work\
- you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster,\
- (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f. Chemie 125: 167-188\n\n\
- S.H.Bernhart, Ch. Flamm, P.F. Stadler, I.L. Hofacker, (2006), \"Partition Function and Base Pairing Probabilities\
- of RNA Heterodimers\", Algorithms Mol. Biol.\n\n"
-
-text    "Written by:\n\nIvo L Hofacker, Peter F Stadler, Stephan Bernhart, Ronny Lorenz.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

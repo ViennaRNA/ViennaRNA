@@ -142,12 +142,5 @@ int
 optional
 hidden
 
-text "See also:\n\nRNALfold(1)\n\n"
-
-text    "References:\n\nS. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006) \"Local Base\
- Pairing Probabilities in Large RNAs\", Bioinformatics 22: 614-615\n\nA.F. Bompfuenewerer, R. Backofen, S.H. Bernhart, J. Hertel,\
- I.L. Hofacker, P.F. Stadler, S. Will (2007) \"Variations on RNA Folding and Alignment: Lessons from Benasque\", J. Math. Biol.\n\n"
-
-text    "Written by:\n\nStephan H Bernhart, Ivo L Hofacker, Peter F Stadler.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

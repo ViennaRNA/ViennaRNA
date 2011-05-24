@@ -168,9 +168,5 @@ string
 optional
 hidden
 
-text    "References:\n\nS. Wuchty, W. Fontana, I. L. Hofacker and P. Schuster (1999) \"Complete\
- Suboptimal Folding of RNA and the Stability of Secondary Structures\", Biopolymers, 49, 145-165\n\n"
-
-text    "Written by:\n\nIvo L Hofacker, Stefan Wuchty, Walter Fontana\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

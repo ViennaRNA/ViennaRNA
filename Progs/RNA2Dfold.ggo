@@ -81,7 +81,5 @@ option  "dangles"         d "set energy model for treatment of dangling bases"  
 option  "noGU"            - "Do not allow GU pairs" flag off
 option  "noClosingGU"       - "Do not allow GU pairs at the end of helices" flag off
 
-text    "References:\n\n"
-text    "Written by:\n\nRonny Lorenz.\n\n"
-text    "Report bugs:  \n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

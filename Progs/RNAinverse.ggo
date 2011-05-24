@@ -133,18 +133,5 @@ int
 optional
 hidden
 
-text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
- developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
- If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
- S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
- Chemie 125: 167-188\n\nOther useful references are\n\
- M. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
- and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
- pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\n
- D.H. Turner, N. Sugimoto, S.M. Freier (1988) \"RNA structure prediction\", Ann Rev Biophys Biophys Chem 17: 167-192\n\n
- D. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
- London\n\n"
-
-text    "Written by:\n\nIvo L Hofacker.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

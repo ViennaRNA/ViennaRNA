@@ -84,9 +84,16 @@ off
 
 option "subopts" s
 "print suboptimal structures whose energy difference of the pseudoknot to the optimum pseudoknot is smaller than the given value.\n"
+details="NOTE: The final energy of a structure is calculated as the sum\
+ of the pseudoknot interaction energy, the penalty for initiating\
+ a  pseudoknot and the energy of the pseudoknot-free part of the\
+ structure. The -s option only takes the pseudoknot interaction\
+ energy into account, so the final energy differences may be bigger\
+ than the specified value (default=0)."
 int
 default="0"
 optional
 
-text    "Author:\nWolfgang Beyer\n\nComments should be sent to wolfgang@tbi.univie.ac.at\n\n"
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"
 
