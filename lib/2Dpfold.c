@@ -1750,6 +1750,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   bpdist          = vars->bpdist;
 
   FLT_OR_DBL      ***Q_B, ***Q_M, ***Q_M1, ***Q_M2, **Q_c, **Q_cH, **Q_cI, **Q_cM;
+  FLT_OR_DBL      *Q_B_rem, *Q_M_rem, *Q_M1_rem, *Q_M2_rem, Q_c_rem, Q_cH_rem, Q_cI_rem, Q_cM_rem;
   int             **l_min_values_b, **l_max_values_b, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1, **l_min_values_m2, **l_max_values_m2;
   int             *k_min_values_b, *k_max_values_b,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1, *k_min_values_m2, *k_max_values_m2;
   int             k_min_values_qc, k_max_values_qc, k_min_values_qcH, k_max_values_qcH, k_min_values_qcI, k_max_values_qcI, k_min_values_qcM, k_max_values_qcM;
@@ -1804,6 +1805,14 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   k_max_values_qcM = vars->k_max_values_qcM;
 
 
+  Q_B_rem        = vars->Q_B_rem;
+  Q_M_rem        = vars->Q_M_rem;
+  Q_M1_rem       = vars->Q_M1_rem;
+  Q_M2_rem       = vars->Q_M2_rem;
+  Q_c_rem        = 0.;
+  Q_cH_rem       = 0.;
+  Q_cI_rem       = 0.;
+  Q_cM_rem       = 0.;
 
 
   /* construct qm2 matrix from qm1 entries  */
@@ -1845,7 +1854,34 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                     vars->l_max_values_m2[k]
                 );
     }
+
+    /* construct Q_M2 */
     for (l=k+TURN+1; l<seq_length-TURN-1; l++){
+      if(Q_M1_rem[jindx[l]+k]){
+        if(Q_M1[jindx[seq_length]+l+1]){
+          for(cnt1 = k_min_values_m1[jindx[seq_length]+l+1];
+              cnt1 <= k_max_values_m1[jindx[seq_length]+l+1];
+              cnt1++)
+            for(cnt2 = l_min_values_m1[jindx[seq_length]+l+1][cnt1];
+                cnt2 <= l_max_values_m1[jindx[seq_length]+l+1][cnt1];
+                cnt2 += 2)
+              Q_M2_rem[k] += Q_M1_rem[jindx[l]+k] * Q_M1[jindx[seq_length]+l+1][cnt1][cnt2/2];
+        }
+        if(Q_M1_rem[jindx[seq_length]+l+1])
+          Q_M2_rem[k] += Q_M1_rem[jindx[l]+k] * Q_M1_rem[jindx[seq_length]+l+1];      
+      }
+      if(Q_M1_rem[jindx[seq_length]+l+1]){
+        if(Q_M1[jindx[l]+k])
+          for(cnt1 = k_min_values_m1[jindx[l]+k];
+              cnt1 <= k_max_values_m1[jindx[l]+k];
+              cnt1++)
+            for(cnt2 = l_min_values_m1[jindx[l]+k][cnt1];
+                cnt2 <= l_max_values_m1[jindx[l]+k][cnt1];
+                cnt2 += 2)
+              Q_M2_rem[k] += Q_M1[jindx[l]+k][cnt1][cnt2/2];
+      
+      }
+
       if(vars->Q_M1[jindx[l]+k] && vars->Q_M1[jindx[seq_length] + l + 1]){
         da = referenceBPs1[my_iindx[k]-seq_length] - referenceBPs1[my_iindx[k]-l] - referenceBPs1[my_iindx[l+1]-seq_length];
         db = referenceBPs2[my_iindx[k]-seq_length] - referenceBPs2[my_iindx[k]-l] - referenceBPs2[my_iindx[l+1]-seq_length];
@@ -1853,15 +1889,9 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
           for(cnt2 = l_min_values_m1[jindx[l]+k][cnt1]; cnt2 <= l_max_values_m1[jindx[l]+k][cnt1]; cnt2+=2){
             for(cnt3 = k_min_values_m1[jindx[seq_length] + l + 1]; cnt3 <= k_max_values_m1[jindx[seq_length] + l + 1]; cnt3++)
               for(cnt4 = l_min_values_m1[jindx[seq_length] + l + 1][cnt3]; cnt4 <= l_max_values_m1[jindx[seq_length] + l + 1][cnt3]; cnt4+=2){
-/*
-                printf("%d - %d: %d: %d-%d\n", k, l, cnt1, l_min_values_m1[jindx[l]+k][cnt1], l_max_values_m1[jindx[l]+k][cnt1]);
-                printf("%d - %d: %d: %d-%d\n", l+1, seq_length, cnt3, l_min_values_m1[jindx[seq_length] + l + 1][cnt3], l_max_values_m1[jindx[seq_length] + l + 1][cnt3]);
-                printf("%6.2f\n", Q_M1[jindx[l]+k][cnt1][cnt2/2]);
-                printf("%6.2f\n", Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4/2]);
-                printf("%d-%d and %d-%d but %d,%d\n", vars->k_min_values_m2[k], vars->k_max_values_m2[k], vars->l_min_values_m2[k][cnt1 + cnt3 + da], vars->l_max_values_m2[k][cnt1 + cnt3 + da], cnt1 + cnt3 + da, cnt2 + cnt4 + db);
-*/
-                vars->Q_M2[k][cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_M1[jindx[l]+k][cnt1][cnt2/2] * Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4/2];
-                if(update_m2){
+                if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
+                  vars->Q_M2[k][cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_M1[jindx[l]+k][cnt1][cnt2/2] * Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4/2];
+                  if(update_m2){
                       updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                                 cnt2 + cnt4 + db,
                                                 &k_min_post_m2,
@@ -1869,6 +1899,10 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                                 &l_min_post_m2,
                                                 &l_max_post_m2
                                                 );
+                  }
+                }
+                else{
+                  Q_M2_rem[k] += Q_M1[jindx[l]+k][cnt1][cnt2/2] * Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4/2];
                 }
               }
           }
@@ -2046,7 +2080,6 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
       char loopseq[10];
       p = q - d + 1;
       pq = my_iindx[p]-q;
-      if (!Q_B[pq]) continue;
 
       /* 1. get exterior hairpin contribution  */
       u = seq_length-q + p-1;
@@ -2069,66 +2102,134 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
       da = base_d1 - referenceBPs1[pq];
       db = base_d2 - referenceBPs2[pq];
       qot = exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
-      for(cnt1 = k_min_values_b[pq]; cnt1 <= k_max_values_b[pq]; cnt1++)
-        for(cnt2 = l_min_values_b[pq][cnt1]; cnt2 <= l_max_values_b[pq][cnt1]; cnt2+=2){
-          vars->Q_cH[cnt1 + da][(cnt2 + db)/2] += Q_B[pq][cnt1][cnt2/2] * qot;
-          if(update_cH){
-            updatePosteriorBoundaries(cnt1 + da,
+      
+      if(Q_B_rem[pq])
+        Q_cH_rem += Q_B_rem[pq] * qot;
+      
+      if(Q_B[pq]){
+        for(cnt1 = k_min_values_b[pq];
+            cnt1 <= k_max_values_b[pq];
+            cnt1++)
+          for(cnt2 = l_min_values_b[pq][cnt1];
+              cnt2 <= l_max_values_b[pq][cnt1];
+              cnt2 += 2){
+            if(((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)){
+              vars->Q_cH[cnt1 + da][(cnt2 + db)/2] += Q_B[pq][cnt1][cnt2/2] * qot;
+              if(update_cH){
+                updatePosteriorBoundaries(cnt1 + da,
                                       cnt2 + db,
                                       &min_k_real_qcH,
                                       &max_k_real_qcH,
                                       &min_l_real_qcH,
                                       &max_l_real_qcH
                                       );
+              }
+            }
+            else{
+              Q_cH_rem += Q_B[pq][cnt1][cnt2/2] * qot;
+            }
           }
-        }
+      }
 
       /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
       /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
-      for(k=q+1; k < seq_length; k++){
-        unsigned int ln1, lstart, ln_pre;
-        ln1 = k - q - 1;
-        if(ln1+p-1>MAXLOOP) break;
-        lstart = k + TURN + 1;
-        ln_pre = ln1 + p + seq_length;
-        if(ln_pre > lstart + MAXLOOP) lstart = ln_pre - MAXLOOP - 1;
-        for(l=lstart;l <= seq_length; l++){
-          unsigned int ln2;
-          int type2;
-          kl = my_iindx[k]-l;
-          if(!Q_B[kl]) continue;
-          ln2 = (p - 1) + (seq_length - l);
+      if(Q_B_rem[pq])
+        for(k=q+1; k < seq_length; k++){
+          unsigned int ln1, lstart, ln_pre;
+          ln1 = k - q - 1;
+          if(ln1+p-1>MAXLOOP) break;
+          lstart = k + TURN + 1;
+          ln_pre = ln1 + p + seq_length;
+          if(ln_pre > lstart + MAXLOOP) lstart = ln_pre - MAXLOOP - 1;
+          for(l=lstart;l <= seq_length; l++){
+            unsigned int ln2;
+            int type2;
+            kl = my_iindx[k]-l;
+            ln2 = (p - 1) + (seq_length - l);
 
-          if((ln1+ln2) > MAXLOOP) continue;
+            if((ln1+ln2) > MAXLOOP) continue;
 
-          type2 = ptype[kl];
-          if(!type2) continue;
+            type2 = ptype[kl];
+            if(!type2) continue;
 
-          /* get distance to reference if closing the interior loop
-          *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{k,l})
-          *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{k,l})
-          */
-          da = base_d1 - referenceBPs1[pq] - referenceBPs1[kl];
-          db = base_d2 - referenceBPs2[pq] - referenceBPs2[kl];
-          qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
+            qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
 
-          for(cnt1 = k_min_values_b[pq]; cnt1 <= k_max_values_b[pq]; cnt1++)
-            for(cnt2 = l_min_values_b[pq][cnt1]; cnt2 <= l_max_values_b[pq][cnt1]; cnt2+=2)
-              for(cnt3 = k_min_values_b[kl]; cnt3 <= k_max_values_b[kl]; cnt3++)
-                for(cnt4 = l_min_values_b[kl][cnt3]; cnt4 <= l_max_values_b[kl][cnt3]; cnt4+=2){
-                  vars->Q_cI[cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_B[pq][cnt1][cnt2/2] * Q_B[kl][cnt3][cnt4/2] * qot;
-                  if(update_cI){
-                    updatePosteriorBoundaries(cnt1 + cnt3 + da,
-                                              cnt2 + cnt4 + db,
-                                              &min_k_real_qcI,
-                                              &max_k_real_qcI,
-                                              &min_l_real_qcI,
-                                              &max_l_real_qcI
-                                              );
-                  }
-                }
+            if(Q_B_rem[kl])
+              Q_cI_rem += Q_B_rem[pq] * Q_B_rem[kl] * qot;
+
+            if(Q_B[kl])
+              for(cnt1 = k_min_values_b[kl];
+                  cnt1 <= k_max_values_b[kl];
+                  cnt1++)
+                for(cnt2 = l_min_values_b[kl][cnt1];
+                    cnt2 <= l_max_values_b[kl][cnt1];
+                    cnt2 += 2)
+                  Q_cI_rem += Q_B_rem[pq] * Q_B[kl][cnt1][cnt2/2] * qot;
+          }
         }
-      }
+
+      if(Q_B[pq])
+        for(k=q+1; k < seq_length; k++){
+          unsigned int ln1, lstart, ln_pre;
+          ln1 = k - q - 1;
+          if(ln1+p-1>MAXLOOP) break;
+          lstart = k + TURN + 1;
+          ln_pre = ln1 + p + seq_length;
+          if(ln_pre > lstart + MAXLOOP) lstart = ln_pre - MAXLOOP - 1;
+          for(l=lstart;l <= seq_length; l++){
+            unsigned int ln2;
+            int type2;
+            kl = my_iindx[k]-l;
+            ln2 = (p - 1) + (seq_length - l);
+
+            if((ln1+ln2) > MAXLOOP) continue;
+
+            type2 = ptype[kl];
+            if(!type2) continue;
+
+            qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
+
+            if(Q_B_rem[kl]){
+              for(cnt1 = k_min_values_b[pq];
+                  cnt1 <= k_max_values_b[pq];
+                  cnt1++)
+                for(cnt2 = l_min_values_b[pq][cnt1];
+                    cnt2 <= l_max_values_b[pq][cnt1];
+                    cnt2 += 2)
+                  Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B_rem[kl] * qot;
+            }
+
+            if(!Q_B[kl]) continue;
+
+            /* get distance to reference if closing the interior loop
+            *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{k,l})
+            *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{k,l})
+            */
+            da = base_d1 - referenceBPs1[pq] - referenceBPs1[kl];
+            db = base_d2 - referenceBPs2[pq] - referenceBPs2[kl];
+
+            for(cnt1 = k_min_values_b[pq]; cnt1 <= k_max_values_b[pq]; cnt1++)
+              for(cnt2 = l_min_values_b[pq][cnt1]; cnt2 <= l_max_values_b[pq][cnt1]; cnt2+=2)
+                for(cnt3 = k_min_values_b[kl]; cnt3 <= k_max_values_b[kl]; cnt3++)
+                  for(cnt4 = l_min_values_b[kl][cnt3]; cnt4 <= l_max_values_b[kl][cnt3]; cnt4+=2){
+                    if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
+                      vars->Q_cI[cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_B[pq][cnt1][cnt2/2] * Q_B[kl][cnt3][cnt4/2] * qot;
+                      if(update_cI){
+                        updatePosteriorBoundaries(cnt1 + cnt3 + da,
+                                                cnt2 + cnt4 + db,
+                                                &min_k_real_qcI,
+                                                &max_k_real_qcI,
+                                                &min_l_real_qcI,
+                                                &max_l_real_qcI
+                                                );
+                      }
+                    }
+                    else{
+                      Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B[kl][cnt3][cnt4/2] * qot;
+                    }
+                  }
+          }
+        }
     }
 
   if(update_cH){
@@ -2162,6 +2263,29 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   #pragma omp parallel for private(k, da, db, cnt1, cnt2, cnt3, cnt4)
 #endif
     for(k=TURN+2; k<seq_length-2*TURN-3; k++){
+      if(Q_M_rem[my_iindx[1]-k]){
+        if(Q_M2[k+1])
+          for(cnt1 = k_min_values_m2[k+1];
+              cnt1 <= k_max_values_m2[k+1];
+              cnt1++)
+            for(cnt2 = l_min_values_m2[k+1][cnt1];
+                cnt2 <= l_max_values_m2[k+1][cnt1];
+                cnt2 += 2)
+              Q_cM_rem += Q_M_rem[my_iindx[1]-k] * Q_M2[k+1][cnt1][cnt2/2] * pf_params->expMLclosing;
+        if(Q_M2_rem[k+1])
+          Q_cM_rem += Q_M_rem[my_iindx[1]-k] * Q_M2_rem[k+1] * pf_params->expMLclosing;
+      }
+      if(Q_M2_rem[k+1]){
+        if(Q_M[my_iindx[1]-k])
+          for(cnt1 = k_min_values_m[my_iindx[1]-k];
+              cnt1 <= k_max_values_m[my_iindx[1]-k];
+              cnt1++)
+            for(cnt2 = l_min_values_m[my_iindx[1]-k][cnt1];
+                cnt2 <= l_max_values_m[my_iindx[1]-k][cnt1];
+                cnt2 += 2)
+              Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * Q_M2_rem[k+1] * pf_params->expMLclosing;
+      }
+
       /* get distancies to references
       * d3a = dbp(T1_[1,n}, T1_{1,k} + T1_{k+1, n})
       * d3b = dbp(T2_[1,n}, T2_{1,k} + T2_{k+1, n})
@@ -2173,15 +2297,20 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
           for(cnt2 = l_min_values_m[my_iindx[1]-k][cnt1]; cnt2 <= l_max_values_m[my_iindx[1]-k][cnt1]; cnt2+=2)
             for(cnt3 = vars->k_min_values_m2[k+1]; cnt3 <= vars->k_max_values_m2[k+1]; cnt3++)
               for(cnt4 = vars->l_min_values_m2[k+1][cnt3]; cnt4 <= vars->l_max_values_m2[k+1][cnt3]; cnt4+=2){
-                vars->Q_cM[cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2[k+1][cnt3][cnt4/2] * pf_params->expMLclosing;
-                if(update_cM){
-                  updatePosteriorBoundaries(cnt1 + cnt3 + da,
+                if(((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)){
+                  vars->Q_cM[cnt1 + cnt3 + da][(cnt2 + cnt4 + db)/2] += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2[k+1][cnt3][cnt4/2] * pf_params->expMLclosing;
+                  if(update_cM){
+                    updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                             cnt2 + cnt4 + db,
                                             &min_k_real_qcM,
                                             &max_k_real_qcM,
                                             &min_l_real_qcM,
                                             &max_l_real_qcM
                                             );
+                  }
+                }
+                else{
+                  Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2[k+1][cnt3][cnt4/2] * pf_params->expMLclosing;
                 }
               }
     }
@@ -2198,8 +2327,12 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                         );
   }
 
-  for(cnt1 = vars->k_min_values_qcH; cnt1 <= vars->k_max_values_qcH; cnt1++)
-    for(cnt2 = vars->l_min_values_qcH[cnt1]; cnt2 <= vars->l_max_values_qcH[cnt1]; cnt2 += 2){
+  for(cnt1 = vars->k_min_values_qcH;
+      cnt1 <= vars->k_max_values_qcH;
+      cnt1++)
+    for(cnt2 = vars->l_min_values_qcH[cnt1];
+        cnt2 <= vars->l_max_values_qcH[cnt1];
+        cnt2 += 2){
       vars->Q_c[cnt1][cnt2/2] += vars->Q_cH[cnt1][cnt2/2];
       if(update_c){
         updatePosteriorBoundaries(cnt1,
@@ -2211,8 +2344,12 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                   );
       }
     }
-  for(cnt1 = vars->k_min_values_qcI; cnt1 <= vars->k_max_values_qcI; cnt1++)
-    for(cnt2 = vars->l_min_values_qcI[cnt1]; cnt2 <= vars->l_max_values_qcI[cnt1]; cnt2 += 2){
+  for(cnt1 = vars->k_min_values_qcI;
+      cnt1 <= vars->k_max_values_qcI;
+      cnt1++)
+    for(cnt2 = vars->l_min_values_qcI[cnt1];
+        cnt2 <= vars->l_max_values_qcI[cnt1];
+        cnt2 += 2){
       vars->Q_c[cnt1][cnt2/2] += vars->Q_cI[cnt1][cnt2/2];
       if(update_c){
         updatePosteriorBoundaries(cnt1,
@@ -2224,8 +2361,12 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                   );
       }
     }
-  for(cnt1 = vars->k_min_values_qcM; cnt1 <= vars->k_max_values_qcM; cnt1++)
-    for(cnt2 = vars->l_min_values_qcM[cnt1]; cnt2 <= vars->l_max_values_qcM[cnt1]; cnt2 += 2){
+  for(cnt1 = vars->k_min_values_qcM;
+      cnt1 <= vars->k_max_values_qcM;
+      cnt1++)
+    for(cnt2 = vars->l_min_values_qcM[cnt1];
+        cnt2 <= vars->l_max_values_qcM[cnt1];
+        cnt2 += 2){
       vars->Q_c[cnt1][cnt2/2] += vars->Q_cM[cnt1][cnt2/2];
       if(update_c){
         updatePosteriorBoundaries(cnt1,
@@ -2237,16 +2378,27 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                                   );
       }
     }
+
+  vars->Q_cH_rem  = Q_cH_rem;
+  vars->Q_cI_rem  = Q_cI_rem;
+  vars->Q_cM_rem  = Q_cM_rem;
+  vars->Q_c_rem   = Q_cH_rem + Q_cI_rem + Q_cM_rem;
+
   /* add the case were structure is unfolded chain */
-  vars->Q_c[referenceBPs1[my_iindx[1]-seq_length]][referenceBPs2[my_iindx[1]-seq_length]/2] += 1.0 * scale[seq_length];
-  if(update_c){
-    updatePosteriorBoundaries(referenceBPs1[my_iindx[1]-seq_length],
+  if((referenceBPs1[my_iindx[1]-seq_length] <= maxD1) && (referenceBPs2[my_iindx[1]-seq_length] <= maxD2)){
+    vars->Q_c[referenceBPs1[my_iindx[1]-seq_length]][referenceBPs2[my_iindx[1]-seq_length]/2] += 1.0 * scale[seq_length];
+    if(update_c){
+      updatePosteriorBoundaries(referenceBPs1[my_iindx[1]-seq_length],
                               referenceBPs2[my_iindx[1]-seq_length],
                               &min_k_real,
                               &max_k_real,
                               &min_l_real,
                               &max_l_real
                               );
+    }
+  }
+  else{
+    vars->Q_c_rem += 1.0 * scale[seq_length];
   }
 
   adjustArrayBoundaries(&vars->Q_c,

@@ -97,7 +97,7 @@ PRIVATE FLT_OR_DBL  *scale;
 PRIVATE FLT_OR_DBL  *expMLbase;
 PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
 PRIVATE int         *jindx;
-PRIVATE int         init_length;  /* length in last call to init_pf_fold() */
+PRIVATE int         init_length = -1;  /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
 PRIVATE char        *pstruc;
 PRIVATE char        *sequence;
