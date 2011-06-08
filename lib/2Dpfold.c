@@ -42,6 +42,7 @@ PRIVATE         void  pf2D_circ(TwoDpfold_vars *vars);
 PRIVATE         void  initialize_TwoDpfold_vars(TwoDpfold_vars *vars);
 PRIVATE         void  scale_pf_params2(TwoDpfold_vars *vars);
 PRIVATE         void  make_ptypes2(TwoDpfold_vars *vars);
+PRIVATE         char  *TwoDpfold_pbacktrack_circ(TwoDpfold_vars *vars, int d1, int d2);
 PRIVATE         void  backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
 PRIVATE         void  backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
 PRIVATE         void  backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j);
@@ -2477,6 +2478,9 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
   int             **l_min_values, **l_max_values,**l_min_values_b, **l_max_values_b;
   int             *k_min_values, *k_max_values,*k_min_values_b, *k_max_values_b;
 
+
+  if(vars->circ) return TwoDpfold_pbacktrack_circ(vars, d1, d2);
+
   pf_params       = vars->pf_params;
   n               = vars->seq_length;
   maxD1           = vars->maxD1;
@@ -2503,7 +2507,7 @@ PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
   k_max_values_b  = vars->k_max_values_b;
 
   Q_rem           = vars->Q_rem;
-  Q_B_rem         = vars->Q_B_rem;  	
+  Q_B_rem         = vars->Q_B_rem;
 
 #if 0
   if(d1 > maxD1)
@@ -2758,6 +2762,123 @@ pbacktrack_ext_loop_early_escape:
   }
   return pstruc;
 }
+
+
+PRIVATE char *TwoDpfold_pbacktrack_circ(TwoDpfold_vars *vars, int d1, int d2){
+  FLT_OR_DBL      r, qt, *qln, *scale;
+  unsigned int    i, j, n, start, maxD1, maxD2, base_d1, base_d2, da, db;
+  unsigned int    *referenceBPs1, *referenceBPs2;
+  int             *my_iindx, ij, cnt1, cnt2, cnt3, cnt4, type;
+  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
+  char            *pstruc, *ptype;
+  short           *S1, *reference_pt1, *reference_pt2;
+  FLT_OR_DBL      ***Q_M, ***Q_B, *Q_M_rem, *Q_B_rem, *Q_M2_rem, ***Q_M2, **Q_c, **Q_cI, **Q_cH, **Q_cM, Q_c_rem, Q_cH_rem, Q_cI_rem, Q_cM_rem;
+  int             **l_min_values_m, **l_max_values_m,**l_min_values_b, **l_max_values_b, **l_min_values_m2, **l_max_values_m2;
+  int             *k_min_values_m, *k_max_values_m,*k_min_values_b, *k_max_values_b,*k_min_values_m2, *k_max_values_m2;
+  int             k_min_values_qc, k_max_values_qc, k_min_values_qcH, k_max_values_qcH, k_min_values_qcI, k_max_values_qcI, k_min_values_qcM, k_max_values_qcM;
+  int             *l_min_values_qc, *l_max_values_qc,*l_min_values_qcH, *l_max_values_qcH,*l_min_values_qcI, *l_max_values_qcI,*l_min_values_qcM, *l_max_values_qcM;
+
+  if(vars->circ) return TwoDpfold_pbacktrack_circ(vars, d1, d2);
+
+  pf_params         = vars->pf_params;
+  n                 = vars->seq_length;
+  maxD1             = vars->maxD1;
+  maxD2             = vars->maxD2;
+  my_iindx          = vars->my_iindx;
+  scale             = vars->scale;
+  ptype             = vars->ptype;
+  S1                = vars->S1;
+  reference_pt1     = vars->reference_pt1;
+  reference_pt2     = vars->reference_pt2;
+  referenceBPs1     = vars->referenceBPs1;
+  referenceBPs2     = vars->referenceBPs2;
+
+  Q_B               = vars->Q_B;
+  l_min_values_b    = vars->l_min_values_b;
+  l_max_values_b    = vars->l_max_values_b;
+  k_min_values_b    = vars->k_min_values_b;
+  k_max_values_b    = vars->k_max_values_b;
+
+  Q_M               = vars->Q_M;
+  l_min_values_m    = vars->l_min_values_m;
+  l_max_values_m    = vars->l_max_values_m;
+  k_min_values_m    = vars->k_min_values_m;
+  k_max_values_m    = vars->k_max_values_m;
+
+  Q_M2              = vars->Q_M2;
+  l_min_values_m2   = vars->l_min_values_m2;
+  l_max_values_m2   = vars->l_max_values_m2;
+  k_min_values_m2   = vars->k_min_values_m2;
+  k_max_values_m2   = vars->k_max_values_m2;
+
+  Q_c               = vars->Q_c;
+  l_min_values_qc   = vars->l_min_values_qc;
+  l_max_values_qc   = vars->l_max_values_qc;
+  k_min_values_qc   = vars->k_min_values_qc;
+  k_max_values_qc   = vars->k_max_values_qc;
+
+  Q_cH              = vars->Q_cH;
+  l_min_values_qcH  = vars->l_min_values_qcH;
+  l_max_values_qcH  = vars->l_max_values_qcH;
+  k_min_values_qcH  = vars->k_min_values_qcH;
+  k_max_values_qcH  = vars->k_max_values_qcH;
+
+  Q_cI              = vars->Q_cI;
+  l_min_values_qcI  = vars->l_min_values_qcI;
+  l_max_values_qcI  = vars->l_max_values_qcI;
+  k_min_values_qcI  = vars->k_min_values_qcI;
+  k_max_values_qcI  = vars->k_max_values_qcI;
+
+  Q_cM              = vars->Q_cM;
+  l_min_values_qcM  = vars->l_min_values_qcM;
+  l_max_values_qcM  = vars->l_max_values_qcM;
+  k_min_values_qcM  = vars->k_min_values_qcM;
+  k_max_values_qcM  = vars->k_max_values_qcM;
+
+  Q_B_rem           = vars->Q_B_rem;
+  Q_M_rem           = vars->Q_M_rem;
+  Q_M2_rem          = vars->Q_M2_rem;
+  Q_c_rem           = vars->Q_c_rem;
+  Q_cH_rem          = vars->Q_cH_rem;
+  Q_cI_rem          = vars->Q_cI_rem;
+  Q_cM_rem          = vars->Q_cM_rem;
+
+#if 0
+  if(d1 > maxD1)
+    nrerror("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
+  if(d2 > maxD2)
+    nrerror("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
+#endif
+
+  /* check whether the chosen neighborhood exists at all */
+  int dumb = 1;
+  if((d1 == -1) && (Q_c_rem != 0.)) dumb = 0;
+  else{
+    if((k_min_values_qc <= d1) && (k_max_values_qc >= d1)){
+      int l_min = l_min_values_qc[d1];
+      if((d2 % 2) == (l_min%2))
+        if((l_min <= d2) && (l_max_values_qc[d1] >= d2))
+          dumb = 0;
+    }
+  }
+  if(dumb){
+    fprintf(stderr, "neighborhood %d:%d is not in scope of calculated partition function!\n", d1, d2);
+    nrerror("pbacktrack_circ@2Dpfold.c: exiting cheerless...");
+  }
+
+  pstruc = space((n+1)*sizeof(char));
+
+  for (i=0; i<n; i++) pstruc[i] = '.';
+  pstruc[i] = '\0';
+
+  /* now we come to the actual backtracking process */
+
+  
+
+
+  return pstruc;
+}
+
 
 PUBLIC char *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, int d1, int d2, unsigned int length){
 
