@@ -16,6 +16,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "energy_par.h"
 #include "utils.h"
 #include "ali_plex.h"
 #include "alifold.h"
@@ -66,6 +67,15 @@ static void aliprint_struct(FILE *Result, //result file
                             FILE *Query, 
                             const int WindowsLength);
 static void linear_fit(int *a, int *b, int *c, int *d); //get linear fits for Iopn, Iextension, Bopn, Bextension, I^1open and I^1extension
+
+/**
+*** Compute Tm based on silvana's parameters (1999)
+ **/
+double probcompute_silvana_98(char *s1, double k_concentration, double tris_concentration,double mg_concentration, double na_concentration, double probe_concentration);
+double probcompute_silvana_04(char *s1, double k_concentration, double tris_concentration,double mg_concentration, double na_concentration, double probe_concentration);
+double     probcompute_xia_98(char *s1, double na_concentration, double probe_concentration);
+double     probcompute_sug_95(char *s1, double na_concentration, double probe_concentration);
+double probcompute_newparameters(char *s1,double na_concentration, double probe_concentration);
 /*@unused@*/
 static int convert_plfold_i(char *fname);//convert test accessibility into bin accessibility.
 static char rcsid[] = "$Id: rnaplex.c,v 1.10 2007/12/21 15:30:48 htafer Exp $";
@@ -110,7 +120,19 @@ int main(int argc, char *argv[])
   **/
   int WindowsLength=0;
   int alignment_mode=0;
+  /**
+  *** Define scaling factor for the accessibility. Default 1 
+  **/
   double verhaeltnis=1;
+  /**
+  *** Probe Tm computation
+  **/
+  double probe_concentration=0.05;
+  double na_concentration=1;
+  double mg_concentration=0;
+  double k_concentration=0;
+  double tris_concentration=0;
+  int    probe_mode=0;
   /*
   #############################################
   # check the command line parameters
@@ -151,11 +173,80 @@ int main(int argc, char *argv[])
   if(args_info.convert_to_bin_given) convert=1;
   /*alignment_mode*/
   if(args_info.alignment_mode_given) alignment_mode=1;
+  /*Probe mode*/
+  if(args_info.probe_mode_given) probe_mode=1;
+  /*sodium concentration*/
+  na_concentration = args_info.na_concentration_arg;
+  /*magnesium concentration*/
+  mg_concentration = args_info.mg_concentration_arg;
+  /*potassium concentration*/
+  k_concentration = args_info.k_concentration_arg;
+  /*tris concentration*/
+  tris_concentration = args_info.tris_concentration_arg;
+  
+  
+  
 
+  /*Probe mode Salt concentration*/
+  
   /**
   *** Here we test if the user wants to convert a bunch of text opening energy files 
   *** into binary
   **/
+  if(probe_mode){
+    if(qname || tname){
+      nrerror("No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
+      //get sequence
+    }
+    else{
+      printf("Probe mode\n");
+      char *id_s1=NULL;
+      char *s1=NULL;
+      paramT *P = NULL;
+      if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
+	update_fold_params();
+	P = scale_parameters();
+	make_pair_matrix();
+      }
+      /*Initialize parameter */
+      printf("Concentration K:%3.3f TNP:%3.3f Mg:%3.3f Na:%3.3f probe:%3.3f\n\n", k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+      printf("%100s %7s %7s %7s %7s %7s\n", "sequence", "DDSL98", "DDSL04", "DRSU95", "RRXI98","RRVR11");
+      do{
+	istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+	if ((line = get_line(stdin))==NULL) break;
+	/* skip empty lines, comment lines, name lines */
+	while ((*line=='*')||(*line=='\0')||(*line=='>')) {
+	  printf("%s\n", line); 
+	  if(*line=='>'){
+	    id_s1 = (char*) space (strlen(line)+2);
+	    (void) sscanf(line,"%s",id_s1); 
+	    memmove(id_s1, id_s1+1, strlen(id_s1));
+	  }
+	  free(line);                
+	  if ((line = get_line(stdin))==NULL) {
+	    free(id_s1);
+	    break;
+	  }
+	} 
+	if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+	s1 = (char *) space(strlen(line)+1);
+	strcpy(s1,line);
+	/*compute duplex/entropy energy for the reverse complement*/;
+	double Tm;
+	Tm = probcompute_silvana_98(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+	printf("%100s %*.3f ", s1,4, Tm);
+	Tm = probcompute_silvana_04(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+	printf("%*.3f ", 4,Tm);
+	Tm =  probcompute_sug_95(line, na_concentration, probe_concentration);
+	printf("%*.3f ", 4,Tm);
+	Tm =  probcompute_xia_98(line, na_concentration, probe_concentration);
+	printf("%*.3f ", 4,Tm);
+	Tm = probcompute_newparameters(line, na_concentration, probe_concentration);
+	printf("%*.3f \n",4,Tm);
+      }while(1); 
+    }
+    return 0;
+  }
   if(convert && access) {
     char pattern[8];
     strcpy(pattern,"_openen");
@@ -1878,4 +1969,280 @@ static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit para
   }
 }
 
+double probcompute_silvana_98(char *s1, double k_concentration, double tris_concentration,double mg_concentration, double na_concentration, double probe_concentration){
+  double d_a = 3.92/100000.0; /*Parameters from the article of Owczarzy*/
+  double d_b = 9.11/1000000;  /*Parameters from the article of Owczarzy*/
+  double d_c = 6.26/100000;   /*Parameters from the article of Owczarzy*/
+  double d_d = 1.42/100000;  /*Parameters from the article of Owczarzy*/
+  double d_e = 4.82/10000;   /*Parameters from the article of Owczarzy*/
+  double d_f = 5.25/10000;   /*Parameters from the article of Owczarzy*/
+  double d_g = 8.31/100000;   /*Parameters from the article of Owczarzy*/
+  double d_magn_corr_value = 0;
+  double d_fgc=0;
+  double dH, dS; dS=0; dH=0;
+  double salt_correction;
+  double enthalpy[4][4]=
+    {{-7.9,-8.4,-7.8,-7.2},
+     {-8.5,-8.0,-10.6,-7.8},
+     {-8.2,-10.6,-8.0,-8.4},
+     {-7.2,-8.2,-8.5,-7.9}};
+  double entropy[4][4]={{
+      -22.2      ,-22.4,      -21.0    ,  -20.4},
+      {-22.7      ,-19.9,      -27.2    ,  -21.0},
+      {-22.2      ,-27.2,      -19.9    ,  -22.4},
+      {-21.3      ,-22.2,      -22.7    ,  -22.2}
+  };
+  int posst; posst=0;
+  int converted=encode_char(toupper(s1[posst]))-1;
+  int seqlen=strlen(s1);
+  double Tm;
+  //terminal correction
+  if(s1[0]=='G' || s1[0]=='C'){dH+=0.1; dS+=-2.8;d_fgc++;}
+  if(s1[0]=='A' || s1[0]=='T' || s1[0]=='U'){dH+=2.3; dS+=4.8;}
+  if(s1[seqlen-1]=='G' || s1[seqlen-1]=='C'){dH+=0.1; dS+=-2.8;}
+  if(s1[seqlen-1]=='A' || s1[seqlen-1]=='T' || s1[seqlen-1]=='U'){dH+=2.3; dS+=4.8;}
+  //compute dH and dH based on sequence
+  for(posst=1; posst<seqlen; posst++){
+    if(toupper(s1[posst])=='G' || toupper(s1[posst])=='C'){d_fgc++;}
+    int nextconverted=encode_char(toupper(s1[posst]))-1;
+    dH+=enthalpy[converted][nextconverted];
+    dS+=entropy[converted][nextconverted];
+    converted=nextconverted;
+  }
+  d_fgc=d_fgc/((double)(seqlen));
+  if(mg_concentration==0){
+    dS+=0.368 * (seqlen-1)*log(na_concentration);
+    Tm=(1000*dH)/(dS+1.987*log(probe_concentration/4))-273.15;
+    return Tm;
+  }
+  else{
+    double single_charged= k_concentration + tris_concentration/2 + na_concentration;
+    double d_ratio_ions  = sqrt(mg_concentration / single_charged);
+    if(single_charged==0){
+      d_magn_corr_value = 
+	d_a - 
+	d_b * log (mg_concentration) + 
+	d_fgc * (d_c + d_d * log(mg_concentration)) + 
+	1/(2 * ((double)seqlen - 1)) * 
+	(- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
+    }
+    else {
+      if (d_ratio_ions < 0.22) {
+	d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
+      }
+      else {
+	if (d_ratio_ions < 6) {
+	  
+	  d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
+	  d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
+	  d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
+	  
+	  d_magn_corr_value = d_a - d_b * log
+	    (mg_concentration) + d_fgc *
+	    (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
+	}
+	else {
+	  d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
+	  
+	}
+      }
+    }
+    double temp_Tm = dH*1000  / (dS + 1.987 * log (probe_concentration/4));
+    Tm = 1/(1/temp_Tm + d_magn_corr_value) - 273.15;
+    return Tm;
+  }
+}
+double probcompute_silvana_04(char *s1, double k_concentration, double tris_concentration,double mg_concentration, double na_concentration, double probe_concentration){
+  double d_a = 3.92/100000.0; /*Parameters from the article of Owczarzy*/
+  double d_b = 9.11/1000000;  /*Parameters from the article of Owczarzy*/
+  double d_c = 6.26/100000;   /*Parameters from the article of Owczarzy*/
+  double d_d = 1.42/100000;  /*Parameters from the article of Owczarzy*/
+  double d_e = 4.82/10000;   /*Parameters from the article of Owczarzy*/
+  double d_f = 5.25/10000;   /*Parameters from the article of Owczarzy*/
+  double d_g = 8.31/100000;   /*Parameters from the article of Owczarzy*/
+  double d_magn_corr_value = 0;
+  double d_fgc=0;
+  double dH, dS; dS=0; dH=0;
+  double salt_correction;
+    double enthalpy[4][4]=
+    {{-7.6,-8.4,-7.8,-7.2},
+     {-8.5,-8.0,-10.6,-7.8},
+     {-8.2,-9.8,-8.0,-8.4},
+     {-7.2,-8.2,-8.5,-7.6}};
+  double entropy[4][4]={{
+      -21.3      ,-22.4,      -21.0    ,  -20.4},
+      {-22.7      ,-19.9,      -27.2    ,  -21.0},
+      {-22.2      ,-24.4,      -19.9    ,  -22.4},
+      {-21.3      ,-22.2,      -22.7    ,  -21.3}
+  };
+  int posst; posst=0;
+  int converted=encode_char(toupper(s1[posst]))-1;
+  int seqlen=strlen(s1);
+  double Tm;
+  //terminal correction
+  if(s1[0]=='G' || s1[0]=='C'){dH+=0.1; dS+=-2.8;d_fgc++;}
+  if(s1[0]=='A' || s1[0]=='T' || s1[0]=='U'){dH+=2.3; dS+=4.8;}
+  if(s1[seqlen-1]=='G' || s1[seqlen-1]=='C'){dH+=0.1; dS+=-2.8;}
+  if(s1[seqlen-1]=='A' || s1[seqlen-1]=='T' || s1[seqlen-1]=='U'){dH+=2.3; dS+=4.8;}
+  //compute dH and dH based on sequence
+  for(posst=1; posst<seqlen; posst++){
+    if(toupper(s1[posst])=='G' || toupper(s1[posst])=='C'){d_fgc++;}
+    int nextconverted=encode_char(toupper(s1[posst]))-1;
+    dH+=enthalpy[converted][nextconverted];
+    dS+=entropy[converted][nextconverted];
+    converted=nextconverted;
+  }
+  d_fgc=d_fgc/((double)(seqlen));
+  if(mg_concentration==0){
+    dS+=0.368 * (seqlen-1)*log(na_concentration);
+    Tm=(1000*dH)/(dS+1.987*log(probe_concentration/4))-273.15;
+    return Tm;
+  }
+  else{
+    double single_charged= k_concentration + tris_concentration/2 + na_concentration;
+    double d_ratio_ions  = sqrt(mg_concentration / single_charged);
+    if(single_charged==0){
+      d_magn_corr_value = 
+	d_a - 
+	d_b * log (mg_concentration) + 
+	d_fgc * (d_c + d_d * log(mg_concentration)) + 
+	1/(2 * ((double)seqlen - 1)) * 
+	(- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
+    }
+    else {
+      if (d_ratio_ions < 0.22) {
+	d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
+      }
+      else {
+	if (d_ratio_ions < 6) {
+	  
+	  d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
+	  d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
+	  d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
+	  
+	  d_magn_corr_value = d_a - d_b * log
+	    (mg_concentration) + d_fgc *
+	    (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
+	}
+	else {
+	  d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
+	  
+	}
+      }
+    }
+    double temp_Tm = dH*1000  / (dS + 1.987 * log (probe_concentration/4));
+    Tm = 1/(1/temp_Tm + d_magn_corr_value) - 273.15;
+    return Tm;
+  }
+}
 
+double probcompute_xia_98(char *s1, double na_concentration, double probe_concentration){
+  double dH, dS; dS=0; dH=0;
+  double salt_correction;
+  double enthalpy[4][4]=
+    {{  -6.820,    -11.400,    -10.480,     -9.380},
+     { -10.440,    -13.390,    -10.640,    -10.480},
+     { -12.440,    -14.880,    -13.390,    -11.400},
+     {  -7.690,    -12.440,    -10.440,     -6.820}};
+  double entropy[4][4]=
+    {{-19.0 ,    -29.5 ,    -27.1 ,    -26.7},
+     {-26.9 ,    -32.7 ,    -26.7 ,    -27.1},
+     {-32.5 ,    -36.9 ,    -32.7 ,    -29.5},
+     {-20.5 ,    -32.5 ,    -26.9 ,    -19.0},
+      };
+  int posst; posst=0;
+  int converted=encode_char(toupper(s1[posst]))-1;
+  int seqlen=strlen(s1);
+  double Tm;
+  //terminal correction
+  if(s1[0]=='G' || s1[0]=='C'){dH+=3.61; dS+=-1.5;}
+  if(s1[0]=='A' || s1[0]=='T' || s1[0]=='U'){dH+=7.73; dS+=9.0;}
+  if(s1[seqlen-1]=='G' || s1[seqlen-1]=='C'){dH+=3.61; dS+=-1.5;}
+  if(s1[seqlen-1]=='A' || s1[seqlen-1]=='T' || s1[seqlen-1]=='U'){dH+=7.73; dS+=9.0;}
+  //compute dH and dH based on sequence
+  for(posst=1; posst<seqlen; posst++){
+    int nextconverted=encode_char(toupper(s1[posst]))-1;
+    dH+=enthalpy[converted][nextconverted];
+    dS+=entropy[converted][nextconverted];
+    converted=nextconverted;
+  }
+  dS+=0.368 * (seqlen-1)*log(na_concentration);
+  Tm=(1000*dH)/(dS+1.987*log(probe_concentration/4))-273.15;
+  return Tm;
+}
+
+double probcompute_sug_95(char *s1, double na_concentration, double probe_concentration){
+  double dH, dS; dS=0; dH=0;
+  double salt_correction;
+  double enthalpy[4][4]=
+    {{-11.500,     -7.800,     -7.000,     -8.300},
+     {-10.400,    -12.800,    -16.300,     -9.100},
+     { -8.600,     -8.000,     -9.300,     -5.900},
+     { -7.800,     -5.500,     -9.000,     -7.800}};
+  double entropy[4][4]=
+    {{-36.4,    -21.6,    -19.7,    -23.9},
+     {-28.4,    -31.9,    -47.1,    -23.5},
+     {-22.9,    -17.1,    -23.2,    -12.3},
+     {-23.2,    -13.5,    -26.1,    -21.9}};
+  int posst; posst=0;
+  int converted=encode_char(toupper(s1[posst]))-1;
+  int seqlen=strlen(s1);
+  double Tm;
+  // salt entropy correction von Ahsen 1999
+  //terminal correction
+  if(s1[0]=='G' || s1[0]=='C'){dH+=0.95; dS+=-1.95;}
+  if(s1[0]=='A' || s1[0]=='T' || s1[0]=='U'){dH+=0.95; dS+=-1.95;}
+  if(s1[seqlen-1]=='G' || s1[seqlen-1]=='C'){dH+=0.95; dS+=-1.95;}
+  if(s1[seqlen-1]=='A' || s1[seqlen-1]=='T' || s1[seqlen-1]=='U'){dH+=0.95; dS+=-1.95;}
+  //compute dH and dH based on sequence
+  for(posst=1; posst<seqlen; posst++){
+    int nextconverted=encode_char(toupper(s1[posst]))-1;
+    dH+=enthalpy[converted][nextconverted];
+    dS+=entropy[converted][nextconverted];
+    converted=nextconverted;
+  }
+  dS+=0.368 * (seqlen-1)*log(na_concentration);
+  Tm=(1000*dH)/(dS+1.987*log(probe_concentration/4))-273.15;
+  return Tm;
+}
+
+
+
+
+
+double probcompute_newparameters(char *s1, double na_concentration, double probe_concentration){
+  paramT *P = NULL;
+  if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
+    update_fold_params();
+    P = scale_parameters();
+    make_pair_matrix();
+  }
+  int seqlen = strlen(s1);
+  int posst; posst=0;
+  int converted=encode_char(toupper(s1[posst]));
+  int revconverted=abs(5-converted);
+  double dT,dG,dS,dH;
+  dS=0;dT=0;dH=0;
+  int type=pair[converted][revconverted];
+  dG=P->DuplexInit;
+  if(type>2){dG+=P->TerminalAU;}
+  for(posst=1; posst<seqlen; posst++){
+    int nextconverted=encode_char(toupper(s1[posst]));
+    int nextrevconverted=abs(5-nextconverted);
+    int nexttype=pair[nextconverted][nextrevconverted];
+    dG+=P->stack[rtype[type]][nexttype];
+    dH+=stackdH[rtype[type]][nexttype];
+    dS+=(stackdH[rtype[type]][nexttype] - stack37[rtype[type]][nexttype])/(temperature+K0)*1000;
+    converted=nextconverted;
+    revconverted=nextrevconverted;
+    //printf("%c%c %d%d dS: %ld | dH: %ld |  dG: %ld \n",s1[posst-1],s1[posst],type, nexttype, (stackdH[rtype[type]][nexttype] - stack37[rtype[type]][nexttype]), stackdH[rtype[type]][nexttype],P->stack[rtype[nexttype]][type]);
+    type=nexttype;
+  }
+  if(type>2){dG+=P->TerminalAU;}
+  double Tm;
+  dH/=100;
+  dS/=100;
+  dS+=0.368 * (seqlen-1)*log(na_concentration);
+  Tm=(1000*dH)/(dS+1.987*log(probe_concentration/4))-273.15;
+  return Tm;
+}

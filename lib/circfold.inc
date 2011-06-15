@@ -128,11 +128,11 @@ float circfold(const char *string, char *structure) {
       int fm, type;
       type = ptype[indx[length]+i+1];
       if (type==0) continue;
-      fm = fM_d3[i]+c[indx[length]+i+1]+P->MLclosing+P->MLintern[type]+P->dangle3[type][S1[1]];
+      fm = fM_d3[i]+c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
       if (fm<FcMd3) {
         FcMd3=fm; Md3i=i;
       }
-      fm = fM_d3[i-1]+c[indx[length]+i+1]+P->MLclosing+P->MLintern[type]+P->dangle3[type][S1[1]]+P->dangle5[type][S1[i]];
+      fm = fM_d3[i-1]+c[indx[length]+i+1]+E_MLstem(type, S1[i], S1[1], P) + P->MLclosing;
       if (fm<FcMd3) {
         FcMd3=fm; Md3i=-i;
       }
@@ -147,12 +147,11 @@ float circfold(const char *string, char *structure) {
       int fm, type;
       type = ptype[indx[i]+1];
       if (type==0) continue;
-      fm = P->dangle5[type][S1[length]]+c[indx[i]+1]+fM_d5[i+1]+P->MLclosing+P->MLintern[type];
+      fm = E_MLstem(type, S1[length], -1, P) + c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;
       if (fm<FcMd5) {
         FcMd5=fm; Md5i=i;
       }
-      fm = P->dangle5[type][S1[length]]+c[indx[i]+1]+P->dangle3[type][S1[i+1]]+
-        fM_d5[i+2]+P->MLclosing+P->MLintern[type];
+      fm = E_MLstem(type, S1[length], S1[i+1], P) + c[indx[i]+1] + fM_d5[i+2] + P->MLclosing;
       if (fm<FcMd5) {
         FcMd5=fm; Md5i=-i;
       }
@@ -195,7 +194,7 @@ float circfold(const char *string, char *structure) {
     free(fM_d3);
     free(fM_d5);
   }
-  if(Fc < INF){
+  else if(Fc < INF){
     if (FcH==Fc) {
       sector[++s].i = Hi;
       sector[s].j = Hj;

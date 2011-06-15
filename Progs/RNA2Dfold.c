@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
               char *s = TwoDpfold_pbacktrack(q_vars, k, l);
-              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
             }
           }
         }
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]){
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
               char *s = TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l);
-              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
             }
           }
         }
