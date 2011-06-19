@@ -1,6 +1,17 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([ViennaRNA],[2.0.0],[rna@tbi.univie.ac.at],[ViennaRNA])
 dnl Every other copy of the package version number gets its value from here
+
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(ON)
+DX_PS_FEATURE(ON)
+DX_INIT_DOXYGEN(RNAlib, doxygen.conf, doc)
+
 AM_INIT_AUTOMAKE
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
@@ -154,6 +165,23 @@ if test "x${with_svm}" != xno; then
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 fi
 
+dnl check for doxygen generated reference manual
+if test "x${DX_FLAG_doc}" = x1; then
+  with_doc="yes"
+  if test "x${DX_FLAG_html}" = x1; then
+    with_doc_html="yes"
+  fi
+
+  if test "x${DX_FLAG_pdf}" = x1; then
+    with_doc_pdf="yes"
+  fi
+
+  if test "x${DX_FLAG_ps}" = x1; then
+    with_doc_ps="yes"
+  fi
+
+fi
+
 AC_OPENMP
 AC_SUBST(OPENMP_CFLAGS)
 
@@ -189,27 +217,34 @@ AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makef
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_OUTPUT
 
+
 eval _bindir=$(eval echo $bindir)
 eval _libdir=$(eval echo $libdir)
 eval _includedir=${includedir}
 eval _datadir=$datadir
 eval _mandir=$mandir
+eval _docdir=$docdir
 
 AC_MSG_NOTICE(
 [
 Configure successful with the following options:
 
-  Perl Extension:      ${with_perl:-yes}
-  Analyse{Dists,Seqs}: ${with_cluster:-no}
-  Kinfold:             ${with_kinfold:-yes}
-  RNAforester:         ${with_forester:-yes}
-  SVM:                 ${with_svm:-yes}
-
+  Perl Extension:       ${with_perl:-yes}
+  Analyse{Dists,Seqs}:  ${with_cluster:-no}
+  Kinfold:              ${with_kinfold:-yes}
+  RNAforester:          ${with_forester:-yes}
+  SVM:                  ${with_svm:-yes}
+  Documentation:        ${with_doc:-no}
+    (HTML):             ${with_doc_html:-no}
+    (PDF):              ${with_doc_pdf:-no}
+    (PS):               ${with_doc_ps:-no}
+-
 Files will be installed in the following directories:
 
-  Executables:  $_bindir
-  Libraries:    $_libdir
-  Header files: $_includedir
-  Extra Data:   $_datadir
-  Man pages:    $_mandir
+  Executables:    $_bindir
+  Libraries:      $_libdir
+  Header files:   $_includedir
+  Extra Data:     $_datadir
+  Man pages:      $_mandir
+  Documentation:  $_docdir
 ])

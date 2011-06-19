@@ -1,5 +1,5 @@
 /**
-  \mainpage Vienna RNA Package
+  \mainpage ViennaRNA Package core - RNAlib
 \n
 
 \htmlonly <center> \endhtmlonly
