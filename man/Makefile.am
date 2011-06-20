@@ -6,10 +6,7 @@ dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 
                 RNAPKplex.1 RNAsnoop.1 RNAplex.1
 
 # remove all generated man pages
-distclean:  distclean-am
-	rm -rf $(dist_man_MANS)
-
-maintainer-clean:  maintainer-clean-am
+maintainer-clean-local:
 	rm -rf $(dist_man_MANS)
 
 RNA2Dfold.1:  ../Progs/RNA2Dfold.ggo

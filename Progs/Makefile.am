@@ -53,10 +53,7 @@ GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
 EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
 # remove all generated man pages
-distclean:  distclean-am
-	rm $(GENGETOPT_CMDL)
-
-maintainer-clean:  maintainer-clean-am
+maintainer-clean-local:
 	rm -rf $(GENGETOPT_CMDL)
 
 
