@@ -39,7 +39,10 @@
  *  \param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
  *  \returns            A datastructure prefilled with folding options and allocated memory
  */
-TwoDfold_vars     *get_TwoDfold_variables(const char *seq, const char *structure1, const char *structure2, int circ);
+TwoDfold_vars *get_TwoDfold_variables(const char *seq,
+                                      const char *structure1,
+                                      const char *structure2,
+                                      int circ);
 
 /**
  *  \brief Destroy a TwoDfold_vars datastructure without memory loss
@@ -50,22 +53,29 @@ TwoDfold_vars     *get_TwoDfold_variables(const char *seq, const char *structure
  * 
  *  \param our_variables  A pointer to the datastructure to be destroyed
  */
-void              destroy_TwoDfold_variables(TwoDfold_vars *our_variables);
+void          destroy_TwoDfold_variables(TwoDfold_vars *our_variables);
 
 /**
  * 
  */
-DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables, int distance1, int distance2));
+DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables,
+                                        int distance1,
+                                        int distance2));
 
 /**
  * 
  */
-TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2);
+TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars,
+                                int distance1,
+                                int distance2);
 
 /* function for Pathfinder.c */
 /**
  * 
  */
-char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *vars);
+char *TwoDfold_backtrack_f5(unsigned int j,
+                            int k,
+                            int l,
+                            TwoDfold_vars *vars);
 
 #endif

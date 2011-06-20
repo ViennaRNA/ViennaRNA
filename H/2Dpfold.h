@@ -21,13 +21,27 @@
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  */
 
-TwoDpfold_vars  *get_TwoDpfold_variables(const char *seq, const char *structure1, char *structure2, int circ);
+TwoDpfold_vars  *get_TwoDpfold_variables( const char *seq,
+                                          const char *structure1,
+                                          char *structure2,
+                                          int circ);
+
 TwoDpfold_vars  *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars);
+
 void            destroy_TwoDpfold_variables(TwoDpfold_vars *our_variables);
 
-FLT_OR_DBL          **TwoDpfold(TwoDpfold_vars *our_variables, int maxDistance1, int maxDistance2);
-FLT_OR_DBL          **TwoDpfold_circ(TwoDpfold_vars *our_variables, int maxDistance1, int maxDistance2);
-TwoDpfold_solution  *TwoDpfoldList(TwoDpfold_vars *our_variables, int maxDistance1, int maxDistance2);
+FLT_OR_DBL          **TwoDpfold(TwoDpfold_vars *our_variables,
+                                int maxDistance1,
+                                int maxDistance2);
+
+FLT_OR_DBL          **TwoDpfold_circ(
+                                TwoDpfold_vars *our_variables,
+                                int maxDistance1,
+                                int maxDistance2);
+
+TwoDpfold_solution  *TwoDpfoldList( TwoDpfold_vars *our_variables,
+                                    int maxDistance1,
+                                    int maxDistance2);
 
 /**
  *  \brief  Sample secondary structure representatives from a set of distance classes according to their 
@@ -38,7 +52,13 @@ TwoDpfold_solution  *TwoDpfoldList(TwoDpfold_vars *our_variables, int maxDistanc
  *  \param d2
  *  \return
  */
-char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2);
-char            *TwoDpfold_pbacktrack_f5(TwoDpfold_vars *vars, int d1, int d2, unsigned int length);
+char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
+                                      int d1,
+                                      int d2);
+
+char            *TwoDpfold_pbacktrack_f5( TwoDpfold_vars *vars,
+                                          int d1,
+                                          int d2,
+                                          unsigned int length);
 
 #endif

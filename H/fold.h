@@ -19,10 +19,13 @@
 
 /** \brief if nonzero use logarithmic ML energy in energy_of_struct  */
 extern  int logML;
+
 /** \brief do ML decomposition uniquely (for subopt)  */
 extern  int uniq_ML;
+
 /** brief set to first pos of second seq for cofolding  */
 extern  int cut_point;
+
 /** brief verbose info from energy_of_struct  */
 extern  int eos_debug;
 
@@ -53,7 +56,8 @@ extern  int eos_debug;
  *         secondary structure in dot-bracket notation will be written to
  *  \returns the minimum free energy (MFE) in kcal/mol
  */
-float fold(const char *sequence, char *structure);
+float fold( const char *sequence,
+            char *structure);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA
@@ -66,7 +70,9 @@ float fold(const char *sequence, char *structure);
  *  \param verbosity_level a flag to turn verbose output on/off
  *  \returns          the free energy of the input structure given the input sequence in kcal/mol
  */
-float energy_of_structure(const char *string, const char *structure, int verbosity_level);
+float energy_of_structure(const char *string,
+                          const char *structure,
+                          int verbosity_level);
 
 
 /**
@@ -82,7 +88,11 @@ float energy_of_structure(const char *string, const char *structure, int verbosi
  *  \param verbosity_level a flag to turn verbose output on/off
  *  \returns          the free energy of the input structure given the input sequence in 10kcal/mol
  */
-int   energy_of_structure_pt(const char *string, short *ptable, short *s, short *s1, int verbosity_level);
+int   energy_of_structure_pt( const char *string,
+                              short *ptable,
+                              short *s,
+                              short *s1,
+                              int verbosity_level);
 
 /**
  *  \brief Free arrays for mfe folding
@@ -95,7 +105,9 @@ void  free_arrays(void);
  * 
  *  \note This function is threadsafe
  */
-void  parenthesis_structure(char *structure, bondT *bp, int length);
+void  parenthesis_structure(char *structure,
+                            bondT *bp,
+                            int length);
 
 /**
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -103,27 +115,44 @@ void  parenthesis_structure(char *structure, bondT *bp, int length);
  * 
  *  \note This function is threadsafe
  */
-void parenthesis_zuker(char *structure, bondT *bp, int length);
+void parenthesis_zuker( char *structure,
+                        bondT *bp,
+                        int length);
 
-void letter_structure(char *structure, bondT *bp, int length);
+void letter_structure(char *structure,
+                      bondT *bp,
+                      int length);
 
 
 /**
  *  \brief Recalculate energy parameters
  */
 void  update_fold_params(void);
+
 /**
  * 
  */
-char  *backtrack_fold_from_pair(char *sequence, int i, int j);
+char  *backtrack_fold_from_pair(char *sequence,
+                                int i,
+                                int j);
+
 /**
  * 
  */
-int   loop_energy(short *ptable, short *s, short *s1, int i);
+int   loop_energy(short *ptable,
+                  short *s,
+                  short *s1,
+                  int i);
+
 /**
  * 
  */
-void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
+void  export_fold_arrays( int **f5_p,
+                          int **c_p,
+                          int **fML_p,
+                          int **fM1_p,
+                          int **indx_p,
+                          char **ptype_p);
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence assuming it to be circular instead of linear
@@ -133,7 +162,9 @@ void  export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **
  *  \param structure  A pointer to the character array the secondary structure in dot-bracket notation will be written to
  *  \returns the minimum free energy (MFE) in kcal/mol
  */
-float circfold(const char *string, char *structure);
+float circfold( const char *string,
+                char *structure);
+
 /**
  *  \brief Calculate the free energy of an already folded  circular RNA
  * 
@@ -144,12 +175,24 @@ float circfold(const char *string, char *structure);
  *  \param verbosity_level a flag to turn verbose output on/off
  *  \returns          the free energy of the input structure given the input sequence in kcal/mol
  */
-float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level);
+float energy_of_circ_structure( const char *string,
+                                const char *structure,
+                                int verbosity_level);
 
 /**
  * 
  */
-void  export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p, int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
+void  export_circfold_arrays( int *Fc_p,
+                              int *FcH_p,
+                              int *FcI_p,
+                              int *FcM_p,
+                              int **fM2_p,
+                              int **f5_p,
+                              int **c_p,
+                              int **fML_p,
+                              int **fM1_p,
+                              int **indx_p,
+                              char **ptype_p);
 
 /**
  *  \brief Create a plist from a dot-bracket string
@@ -168,7 +211,9 @@ void  export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int 
  *  \param struc  The secondary structure in dot-bracket notation
  *  \param pr     The probability for each base pair
  */
-void assign_plist_from_db(plist **pl, const char *struc, float pr);
+void assign_plist_from_db(plist **pl,
+                          const char *struc,
+                          float pr);
 
 /* finally moved the loop energy function declarations to this header...  */
 /* BUT: The functions only exist for backward compatibility reasons!      */
@@ -181,17 +226,20 @@ void assign_plist_from_db(plist **pl, const char *struc, float pr);
  *  Use \ref E_IntLoop() instead!}
  */
 DEPRECATED(int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1));
+
 /**
  *  \deprecated {This function is deprecated and will be removed soon.
  *  Use \ref E_Hairpin() instead!}
  */
 DEPRECATED(int HairpinE(int size, int type, int si1, int sj1, const char *string));
+
 /**
  *  Allocate arrays for folding\n
  *  \deprecated {This function is deprecated and will be removed soon!}
  * 
  */
 DEPRECATED(void initialize_fold(int length));
+
 /**
  *  Calculate the free energy of an already folded RNA
  * 
@@ -225,6 +273,7 @@ DEPRECATED(float energy_of_struct(const char *string, const char *structure));
  *  \returns          the free energy of the input structure given the input sequence in 10kcal/mol
  */
 DEPRECATED(int energy_of_struct_pt(const char *string, short *ptable, short *s, short *s1));
+
 /**
  *  Calculate the free energy of an already folded  circular RNA
  * 
