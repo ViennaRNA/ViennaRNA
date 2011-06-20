@@ -19,6 +19,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
+
 #include "fold.h"
 #include "utils.h"
 #include "energy_par.h"
@@ -135,6 +137,9 @@ PRIVATE void init_alifold(int length){
 }
 
 PRIVATE void get_arrays(unsigned int size){
+  if(size >= sqrt(INT_MAX))
+    nrerror("get_arrays@alifold.c: sequence length exceeds addressable range");
+
   indx    = (int *) space(sizeof(int)*(size+1));
   c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));

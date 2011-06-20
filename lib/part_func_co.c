@@ -56,6 +56,8 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
+#include <limits.h>
+
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -168,6 +170,9 @@ PRIVATE void init_partfunc_co(int length){
 
 PRIVATE void get_arrays(unsigned int length){
   unsigned int size;
+
+  if(length >= sqrt(INT_MAX))
+    nrerror("get_arrays@part_func_co.c: sequence length exceeds addressable range");
 
   size      = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
   q         = (FLT_OR_DBL *) space(size);

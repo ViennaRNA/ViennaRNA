@@ -12,11 +12,14 @@
 *** \file alipfold.c
 **/
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MIN */
+#include <limits.h>
+
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -138,6 +141,9 @@ PRIVATE void init_alipf_fold(int length, int n_seq){
 **/
 PRIVATE void get_arrays(unsigned int length){
   unsigned int size,i;
+
+  if((length+1) >= sqrt(INT_MAX))
+    nrerror("get_arrays@alipfold.c: sequence length exceeds addressable range");
 
   size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
 

@@ -18,6 +18,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
+
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -159,6 +161,9 @@ PRIVATE void init_fold(int length){
 /*--------------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int size){
+  if(size >= sqrt(INT_MAX))
+    nrerror("get_arrays@fold.c: sequence length exceeds addressable range");
+
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
