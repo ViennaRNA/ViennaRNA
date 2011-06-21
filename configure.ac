@@ -12,7 +12,9 @@ DX_PDF_FEATURE(ON)
 DX_PS_FEATURE(ON)
 DX_INIT_DOXYGEN(RNAlib, doxygen.conf, doc)
 
-AM_INIT_AUTOMAKE
+AM_SILENT_RULES([yes])
+AM_INIT_AUTOMAKE([1.11])
+
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 

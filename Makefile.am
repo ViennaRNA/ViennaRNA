@@ -18,15 +18,16 @@ endif
 
 if DX_COND_pdf
   DOX_PDF = $(DX_DOCDIR)/$(DX_PROJECT).pdf
-  $(DOX_PDF): doxygen-doc
+##  $(DOX_PDF): doxygen-doc
 endif
 
 if DX_COND_ps
   DOX_PS = $(DX_DOCDIR)/$(DX_PROJECT).ps
-  $(DOX_PS): doxygen-doc
+##  $(DOX_PS): doxygen-doc
 endif
 
-dist_doc_DATA = $(DOX_PDF) $(DOX_PS)
+DOX_TAG = $(DX_DOCDIR)/$(DX_PROJECT).tag
+dist_doc_DATA = $(DOX_PDF) $(DOX_PS) $(DOX_TAG)
 endif
 
 EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq $(DX_CONFIG) mainpage.h @SVM_SOURCE_ARCHIVE@
