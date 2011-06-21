@@ -18,16 +18,15 @@ endif
 
 if DX_COND_pdf
   DOX_PDF = $(DX_DOCDIR)/$(DX_PROJECT).pdf
-##  $(DOX_PDF): doxygen-doc
 endif
 
 if DX_COND_ps
   DOX_PS = $(DX_DOCDIR)/$(DX_PROJECT).ps
-##  $(DOX_PS): doxygen-doc
 endif
 
 DOX_TAG = $(DX_DOCDIR)/$(DX_PROJECT).tag
 dist_doc_DATA = $(DOX_PDF) $(DOX_PS) $(DOX_TAG)
+
 endif
 
 EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq $(DX_CONFIG) mainpage.h @SVM_SOURCE_ARCHIVE@
@@ -36,19 +35,3 @@ EXTRA_DIST = $(pkgdata_DATA) INSTALL.configure Readseq $(DX_CONFIG) mainpage.h @
 maintainer-clean-local:
 	rm -rf $(DX_DOCDIR)
 
-#install-data-hook:
-#	if test x"$(DX_FLAG_html)" = x1; then\
-#	  printf "Installing html documentation";\
-#	  $(MKDIR_P) $(DEST_DIR)/$(docdir)/html; \
-#	  for i in `ls $(DX_DOCDIR)/html`; do\
-#	    mv $(DEST_DIR)/$(docdir)/$$i $(DEST_DIR)/$(docdir)/html/; printf ".";\
-#	  done;\
-#	  printf "done\n";\
-#	fi
-
-#uninstall-hook:
-#	if test x"$(DX_FLAG_html)" = x1; then\
-#	  printf "Uninstalling html documentation...";\
-#	  rm -rf $(DEST_DIR)/$(docdir)/html;\
-#	  printf "done\n";\
-#	fi

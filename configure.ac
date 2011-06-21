@@ -2,6 +2,8 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([ViennaRNA],[2.0.0],[rna@tbi.univie.ac.at],[ViennaRNA])
 dnl Every other copy of the package version number gets its value from here
 
+m4_include([m4/doxygen_documentation.m4])
+
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
