@@ -36,7 +36,12 @@ fi
 ])
 
 #
-# AC_RNA_WITH_PACKAGE(package-name, package-dir, package-description, default)
+# AC_RNA_ADD_PACKAGE( package-name,
+#                     package-description,
+#                     default-on,
+#                     [action-if-not-default],
+#                     [action-if-default],
+#                     [files to check])
 #
 # This macro handles additional package inclusion
 # Parameters:
@@ -44,86 +49,113 @@ fi
 #                           which is used for $with_package_name variables
 #                           and --with[out]-package-name options in
 #                           configure script
-#
-#       package-dir:        directory path to the optional package sources
+#                           The package_name must consist of alphanumeric
+#                           characters including the dash only! Every
+#                           occuring dash will be replaced by a '-' char
+#                           in the --with[out]-package-name option
 #
 #       package-desciption: a very brief description used for the package
 #                           specific help output in configure script
 #
-#       default:            activate the package as default
+#       default-on:         package build | installed by default
 #                           Values: "yes" or "no"
 #
-# Example: AC_RNA_WITH_PACKAGE([foo], [path/to/foo], [the incredible Foo program], yes)
+# Example: AC_RNA_ADD_PACKAGE([foo], [the incredible Foo program], [yes], [with_foo=no], [with_foo=yes], [file1 file2])
 #
 
-AC_DEFUN([AC_RNA_WITH_PACKAGE],[
+AC_DEFUN([AC_RNA_ADD_PACKAGE],[
 
 # announce the option to include it in configure script
-AC_ARG_WITH([$1],
-            [ifelse($4, yes,
-              [AS_HELP_STRING([--without-$1], [don't build $3])],
-              [AS_HELP_STRING([--with-$1], [build $3])])])
+AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
+            [ifelse($3, yes,
+              [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [don't build | install $2])],
+              [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])], [build | install $2])])],
+            [$4],
+            [$5])
 
 # check if enabling the package makes sense at configure-time
 # and deactivate it if not
 
-
 AC_RNA_PACKAGE_IF_ENABLED([$1],[
-  AC_RNA_TEST_DIR([$2],
-    [with_$1=$with_$1],
-    [with_$1="no"])
-])
-
-AC_RNA_PACKAGE_IF_ENABLED([$1],[
-  for i in $5; do
-    AC_RNA_TEST_FILE([$2/$i],
+  for i in $6; do
+    AC_RNA_TEST_FILE([$i],
       [with_$1=$with_$1],
-      [with_$1="no"])
+      [with_$1=no])
   done
 ])
 
 ])
 
+AC_DEFUN([AC_RNA_DOCUMENTATION_INIT],[
+
+AC_CHECK_PROGS(doxygen, [doxygen],no)
+AC_CHECK_PROGS(pdflatex,[pdflatex],no)
+AC_CHECK_PROGS(latex,[latex],no)
+AC_CHECK_PROGS(makeindex,[makeindex],no)
+AC_CHECK_PROGS(dot,[dot],no)
+AC_CHECK_PROGS(egrep,[egrep],no)
+
+])
 
 ##----------------##
 ## Public macros. ##
 ##----------------##
 
-
-
 AC_DEFUN([AC_RNA_INIT],[
 
 SVM_VERSION=2.91
 
-AC_RNA_WITH_PACKAGE([perl],
-                    [Perl],
+dnl add packages to the configure process
+
+AC_RNA_ADD_PACKAGE( [perl],
                     [Perl module],
                     [yes],
-                    [Makefile.am])
-AC_RNA_WITH_PACKAGE([kinfold],
-                    [Kinfold],
+                    [with_perl=no],
+                    [with_perl=yes],
+                    [Perl/Makefile.am])
+AC_RNA_ADD_PACKAGE( [kinfold],
                     [Kinfold program],
                     [yes],
-                    [Makefile.am])
-AC_RNA_WITH_PACKAGE([forester],
-                    [RNAforester],
+                    [with_kinfold=no],
+                    [with_kinfold=yes],
+                    [Kinfold/Makefile.am])
+AC_RNA_ADD_PACKAGE( [forester],
                     [RNAforester program],
                     [yes],
-                    [Makefile.am])
-AC_RNA_WITH_PACKAGE([cluster],
-                    [Cluster],
+                    [with_forester=no],
+                    [with_forester=yes],
+                    [RNAforester/Makefile.am])
+AC_RNA_ADD_PACKAGE( [cluster],
                     [AnalyseSeqs and AnalyseDists],
                     [no],
-                    [Makefile.am])
-AC_RNA_WITH_PACKAGE([svm],
-                    [libsvm-${SVM_VERSION}],
+                    [with_cluster=yes],
+                    [with_cluster=no],
+                    [Cluster/Makefile.am])
+AC_RNA_ADD_PACKAGE( [svm],
                     [svm classifiers],
                     [yes],
-                    [svm.cpp svm.h])
+                    [libsvm-${SVM_VERSION}/svm.cpp libsvm-${SVM_VERSION}/svm.h],
+                    [with_svm=no],
+                    [with_svm=yes])
+AC_RNA_ADD_PACKAGE( [doc_pdf],
+                    [PDF RNAlib reference manual],
+                    [yes],
+                    [with_doc_pdf=no],
+                    [with_doc_pdf=yes])
+AC_RNA_ADD_PACKAGE( [doc_html],
+                    [HTML RNAlib reference manual],
+                    [yes],
+                    [with_doc_html=no],
+                    [with_doc_html=yes])
+AC_RNA_ADD_PACKAGE( [doc],
+                    [RNAlib reference manual],
+                    [yes],
+                    [ with_doc=no
+                      with_doc_pdf=no
+                      with_doc_html=no],
+                    [with_doc=yes])
 
-AC_SUBST( [SVM_SOURCE_ARCHIVE],
-          [libsvm-${SVM_VERSION}.tar.gz])
-
+dnl do option specific things
 AC_PATH_PROG(PerlCmd, perl)
 if test -n "$PerlCmd"; then
   if $PerlCmd -e 'require 5.004'; then :
@@ -159,16 +191,6 @@ AC_RNA_PACKAGE_IF_ENABLED([cluster],[
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([svm],[
-  AC_MSG_NOTICE([performing libSVM specific checks])
-  # Checks for header files.
-  AC_CHECK_HEADERS([float.h limits.h stdlib.h string.h strings.h unistd.h])
-  # Checks for typedefs, structures, and compiler characteristics.
-  AC_HEADER_STDBOOL
-  # Checks for library functions.
-  AC_FUNC_MALLOC
-  AC_FUNC_REALLOC
-  AC_FUNC_STRTOD
-  AC_CHECK_FUNCS([floor memmove memset pow sqrt strchr strdup strndup strrchr strstr strtol strtoul])
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 ])
 
@@ -178,6 +200,8 @@ AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
+
+AC_RNA_DOCUMENTATION_INIT
 
 
 AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile])
@@ -190,12 +214,14 @@ AC_DEFUN([AC_RNA_NOTICE],[
 
 # get directory paths
 
-eval _bindir=$(eval echo $bindir)
-eval _libdir=$(eval echo $libdir)
-eval _includedir=${includedir}
-eval _datadir=$datadir
-eval _mandir=$mandir
-eval _docdir=$docdir
+eval _bindir=$(eval printf "%s" $bindir)
+eval _libdir=$(eval printf "%s" $libdir)
+eval _includedir=$(eval printf "%s" $includedir)
+eval _datadir=$(eval printf "%s" $datadir)
+eval _mandir=$(eval printf "%s" $mandir)
+eval _docdir=$(eval printf "%s" $docdir)
+eval _htmldir=$(eval printf "%s" $htmldir)
+eval _pdfdir=$(eval printf "%s" $pdfdir)
 
 # Notify the user
 
@@ -208,9 +234,9 @@ Configure successful with the following options:
   Kinfold:              ${with_kinfold:-yes}
   RNAforester:          ${with_forester:-yes}
   SVM:                  ${with_svm:-yes}
-  Documentation:        ${with_documentation:-no}
-    (HTML):             ${with_documentation_html:-no}
-    (PDF):              ${with_documentation_pdf:-no}
+  Documentation:        ${with_doc:-no}
+    (HTML):             ${with_doc_html:-no}
+    (PDF):              ${with_doc_pdf:-no}
 -
 Files will be installed in the following directories:
 
@@ -220,6 +246,8 @@ Files will be installed in the following directories:
   Extra Data:     $_datadir
   Man pages:      $_mandir
   Documentation:  $_docdir
+    (HTML):       $_htmldir
+    (PDF):        $_pdfdir
 ])
 
 ])

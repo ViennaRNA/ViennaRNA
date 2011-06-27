@@ -25,12 +25,16 @@ AC_ARG_WITH([documentation-html],
             [],
             [with_documentation_html=yes])
 
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(OFF)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(ON)
-DX_PS_FEATURE(ON)
-DX_INIT_DOXYGEN(RNAlib, doxygen.conf, doc)
+
+
+AC_DEFUN([AC_RNA_DOCUMENTATION_INIT],[
+
+AC_CHECK_PROGS(doxygen, [doxygen],no)
+AC_CHECK_PROGS(pdflatex,[pdflatex],no)
+AC_CHECK_PROGS(latex,[latex],no)
+AC_CHECK_PROGS(makeindex,[makeindex],no)
+AC_CHECK_PROGS(dot,[dot],no)
+AC_CHECK_PROGS(egrep,[dot],no)
+
+])
+

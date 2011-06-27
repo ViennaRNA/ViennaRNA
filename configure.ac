@@ -5,6 +5,8 @@ AC_INIT([ViennaRNA],[2.0.0],[rna@tbi.univie.ac.at],[ViennaRNA])
 
 AC_SUBST(VERSION)
 
+m4_include([m4/package.m4])
+
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 
@@ -43,6 +45,7 @@ fi
 
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_PROG_MAKE_SET
 AM_PROG_CC_C_O
 
 
@@ -51,23 +54,23 @@ AC_OPENMP
 AC_SUBST(OPENMP_CFLAGS)
 
 dnl Checks for libraries.
-dnl AC_REPLACE_GNU_GETOPT
-
-dnl Checks for library functions.
-AC_CHECK_FUNCS(strdup strstr strchr erand48)
+AC_CHECK_LIB([m], [exp])
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([malloc.h strings.h unistd.h math.h])
-AC_CHECK_FUNCS([memset memmove strdup strstr strchr erand48 rint])
+AC_HEADER_STDBOOL
+AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h unistd.h math.h])
+
+dnl Checks for funtions
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STRTOD
+AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rint sqrt erand48 memset memmove erand48])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_C_INLINE([])
-
-m4_include([m4/package.m4])
-m4_include([m4/doxygen_documentation.m4])
 
 AC_RNA_INIT
 
