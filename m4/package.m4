@@ -18,17 +18,6 @@ else
 fi
 ])
 
-AC_DEFUN([AC_RNA_TEST_DIR],[
-AC_MSG_CHECKING([whether directory \"$1\" exists])
-if test -d $1 ; then
-  AC_MSG_RESULT([yes])
-  $2
-else
-  AC_MSG_RESULT([no])
-  $3
-fi
-])
-
 AC_DEFUN([AC_RNA_PACKAGE_IF_ENABLED],[
 if test "x$with_$1" != xno; then
   $2
@@ -41,7 +30,7 @@ fi
 #                     default-on,
 #                     [action-if-not-default],
 #                     [action-if-default],
-#                     [files to check])
+#                     [files to check for])
 #
 # This macro handles additional package inclusion
 # Parameters:
@@ -67,7 +56,7 @@ AC_DEFUN([AC_RNA_ADD_PACKAGE],[
 
 # announce the option to include it in configure script
 AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
-            [ifelse($3, yes,
+            [ifelse([$3], [yes],
               [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [don't build | install $2])],
               [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])], [build | install $2])])],
             [$4],
@@ -103,17 +92,20 @@ AC_PATH_PROG(perl,[perl],no)
 DOXYGEN_PDFLATEX_WORKARROUND=yes
 
 # check whether we are able to generate the doxygen documentation
-if test "x$with_doc" != xno; then
-  if test "x$doxygen" != xno; then
-
+AC_RNA_PACKAGE_IF_ENABLED([doc],[
+  if test "x$doxygen" != xno;
+  then
     # test for programs necessary in order to use doxygen
 
-# this is a workarround for older versions of doxygen as installed in fc12 where
-# pdflatex usage does not work
-    if test "x$DOXYGEN_PDFLATEX_WORKARROUND" = xno; then
+    if test "x$DOXYGEN_PDFLATEX_WORKARROUND" = xno;
+    then
+    # this is a workarround for older versions of doxygen as installed in fc12 where
+    # pdflatex usage does not work
 
-      if test "x$pdflatex" = xno; then
-        if test "x$latex" = xno; then
+      if test "x$pdflatex" = xno;
+      then
+        if test "x$latex" = xno;
+        then
           AC_MSG_WARN([neither latex or pdflatex exists on your system!])
           AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
           doxygen=no
@@ -124,7 +116,8 @@ if test "x$with_doc" != xno; then
         _latex_cmd=$pdflatex
       fi
     else
-      if test "x$latex" = xno; then
+      if test "x$latex" = xno;
+      then
         AC_MSG_WARN([neither latex or pdflatex exists on your system!])
         AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
         doxygen=no
@@ -136,36 +129,40 @@ if test "x$with_doc" != xno; then
       fi
     fi
 
-    if test "x$makeindex" = xno; then
+    if test "x$makeindex" = xno;
+    then
       AC_MSG_WARN([makeindex command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
       doxygen=no
     fi
 
-    if test "x$egrep" = xno; then
+    if test "x$egrep" = xno;
+    then
       AC_MSG_WARN([egrep command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
       doxygen=no
     fi
 
-    if test "x$dot" = xno; then
+    if test "x$dot" = xno;
+    then
       AC_MSG_WARN([dot command not found on your system!])
       AC_MSG_WARN([deactivating graph output in reference manual!])
     fi
 
-    if test "x$perl" = xno; then
+    if test "x$perl" = xno;
+    then
       AC_MSG_WARN([perl command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
       doxygen=no
     fi
 
   fi
-fi
+])
 
 
 # setup everything in order to generate the doxygen configfile
 
-if test "x$with_doc" != xno; then
+AC_RNA_PACKAGE_IF_ENABLED([doc],[
 
   AC_SUBST([DOXYGEN_PROJECT_NAME], [$1-$PACKAGE_VERSION])
   AC_SUBST([DOXYGEN_SRCDIR], [$srcdir])
@@ -174,8 +171,8 @@ if test "x$with_doc" != xno; then
 
 
 # prepare the config file for doxygen if we are able to generate a reference manual
-  if test "x$doxygen" != xno; then
-
+  if test "x$doxygen" != xno;
+  then
 
     AC_SUBST([DOXYGEN_CMD_LATEX], [$_latex_cmd])
     AC_SUBST([DOXYGEN_CMD_MAKEINDEX], [$makeindex])
@@ -184,23 +181,41 @@ if test "x$with_doc" != xno; then
     AC_SUBST([DOXYGEN_GENERATE_HTML], [ifelse([$with_doc_html], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
-    AC_CONFIG_FILES([$DOXYGEN_CONF])
-
-
+    AC_CONFIG_FILES([${DOXYGEN_CONF}])
 
   else
 
 # otherwise check if a generated reference manual already exists
-    if test "x$with_doc_pdf" != xno; then
-      AC_RNA_TEST_FILE([$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf], [with_doc_pdf=yes], [with_doc_pdf=no])
-    fi
 
-    if test "x$with_doc_html" != xno; then
-      AC_RNA_TEST_FILE([$DOXYGEN_DOCDIR/html/index.html], [with_doc_html=yes], [with_doc_html=no])
-    fi
+    AC_RNA_PACKAGE_IF_ENABLED([doc_pdf],[
+      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf],
+                        [with_doc_pdf=yes],
+                        [with_doc_pdf=no])])
 
+    AC_RNA_PACKAGE_IF_ENABLED([doc_html],[
+      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/html/index.html],
+                        [with_doc_html=yes],
+                        [with_doc_html=no])])
+
+    if test "x$with_doc_pdf" = "x$with_doc_html";
+    then
+      if test "x$with_doc_pdf" = xno;
+      then
+        with_doc=no
+      fi
+    fi
   fi
-fi
+])
+
+AC_SUBST([REFERENCE_MANUAL_PDF_NAME], [ifelse([$with_doc_pdf],
+                                              [no],
+                                              [],
+                                              [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf])])
+AC_SUBST([REFERENCE_MANUAL_TAGFILE],  [ifelse([$doxygen],
+                                              [no],
+                                              [],
+                                              [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.tag])])
+
 
 # setup variables used in Makefile.am
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
@@ -247,9 +262,9 @@ AC_RNA_ADD_PACKAGE( [cluster],
 AC_RNA_ADD_PACKAGE( [svm],
                     [svm classifiers],
                     [yes],
-                    [libsvm-${SVM_VERSION}/svm.cpp libsvm-${SVM_VERSION}/svm.h],
                     [with_svm=no],
-                    [with_svm=yes])
+                    [with_svm=yes],
+                    [libsvm-${SVM_VERSION}/svm.cpp libsvm-${SVM_VERSION}/svm.h])
 AC_RNA_ADD_PACKAGE( [doc_pdf],
                     [PDF RNAlib reference manual],
                     [yes],
@@ -268,22 +283,22 @@ AC_RNA_ADD_PACKAGE( [doc],
                       with_doc_html=no],
                     [with_doc=yes])
 
-dnl do option specific things
+## begin with initialization according to configure-time specific options
+
 AC_PATH_PROG(PerlCmd, perl)
-if test -n "$PerlCmd"; then
+ifelse([$PerlCmd], [],[
+  AC_MSG_WARN([No suitable Perl found -- will not build Perl module])
+  AC_MSG_WARN([You may set the PerlCmd environment variable to point to
+              a suitable perl binary])
+  with_perl="no"
+],[
   if $PerlCmd -e 'require 5.004'; then :
   else
-     AC_MSG_WARN([You need Perl version 5.004 or higher for the Perl module])
-     with_perl="no"
-   fi
-fi
-
-if test -z "$PerlCmd"; then
-    AC_MSG_WARN([No suitable Perl found -- will not build Perl module])
-    AC_MSG_WARN([You may set the PerlCmd environment variable to point to
-    a suitable perl binary])
+    AC_MSG_WARN([You need Perl version 5.004 or higher for the Perl module])
     with_perl="no"
-fi
+  fi
+])
+
 
 AC_RNA_PACKAGE_IF_ENABLED([perl],[
   AC_CONFIG_SUBDIRS([Perl])
@@ -304,6 +319,7 @@ AC_RNA_PACKAGE_IF_ENABLED([cluster],[
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([svm],[
+  AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 ])
 
