@@ -5,12 +5,22 @@ Ivo L Hofacker
 [EXAMPLES]
 To search 5 times for sequences forming a simple hairpin structure interrupted by one GA mismatch call
 
+.nf
+.ft CW
   $ RNAinverse -R 5
+.ft
+.fi
+
 
 and enter the lines
 
+.nf
+.ft CW
   (((.(((....))).)))
   NNNgNNNNNNNNNNaNNN
+.ft
+.fi
+
 
 [REFERENCES]
 

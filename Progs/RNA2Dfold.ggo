@@ -76,10 +76,26 @@ option  "noTetra" 4
 flag
 off
 
-option  "parameterFile"   P "use a certain parameter file" string  typestr="filename"
-option  "dangles"         d "set energy model for treatment of dangling bases"  int default="2" values="0","2"
-option  "noGU"            - "Do not allow GU pairs" flag off
-option  "noClosingGU"       - "Do not allow GU pairs at the end of helices" flag off
+option  "parameterFile"   P
+"use a certain parameter file\n"
+string
+typestr="filename"
+
+option  "dangles"         d
+"set energy model for treatment of dangling bases\n"
+int
+default="2" 
+values="0","2"
+
+option  "noGU"            -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU"       -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

@@ -6,7 +6,11 @@ are marked red.
 
 Sequences are read in a simple text format where each sequence occupies
 a single line. Each sequence may be preceded by a line of the form
+.nf
+.ft CW
 > name
+.ft
+.fi
 to assign a name to the sequence. If a name is given in the input, the
  PostScript file "name.ps" is produced for the structure graph.  Other-
 wise  the  file  name defaults to PKplex.ps. Existing files of the same
