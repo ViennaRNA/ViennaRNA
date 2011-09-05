@@ -99,7 +99,7 @@ AC_RNA_PACKAGE_IF_ENABLED([doc],[
 
     if test "x$DOXYGEN_PDFLATEX_WORKARROUND" = xno;
     then
-    # this is a workarround for older versions of doxygen as installed in fc12 where
+    # this is a workarround for older versions of doxygen as installed e.g. in fc12 where
     # pdflatex usage does not work
 
       if test "x$pdflatex" = xno;

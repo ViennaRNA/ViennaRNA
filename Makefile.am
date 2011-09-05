@@ -42,7 +42,7 @@ if WITH_REFERENCE_MANUAL_BUILD
 ## This is the rule how to generate the tagfile     ##
 ##--------------------------------------------------##
 $(REFERENCE_MANUAL_FILES_TAG):  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
-	rm -rf @DOXYGEN_DOCDIR@
+	-rm -rf @DOXYGEN_DOCDIR@
 	@doxygen@ @DOXYGEN_CONF@
 
 ##--------------------------------------------------##
