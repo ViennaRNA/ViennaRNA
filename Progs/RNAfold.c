@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
   /* partition function settings */
   if(args_info.partfunc_given){
     pf = 1;
-    if(args_info.partfunc_arg != -1)
+    if(args_info.partfunc_arg != 1)
       do_backtrack = args_info.partfunc_arg;
   }
   /* MEA (maximum expected accuracy) settings */

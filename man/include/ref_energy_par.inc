@@ -2,11 +2,10 @@
 
 .I The energy parameters are taken from:
 
-D.H. Mathews, J. Sabina, M. Zuker and H. Turner (1999),
-"Expanded Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure",
-JMB: 288, pp 911-940
+D.H. Mathews, M.D. Disney, D. Matthew, J.L. Childs, S.J. Schroeder, J. Susan, M. Zuker, D.H. Turner (2004),
+"Incorporating chemical modification constraints into a dynamic programming algorithm for prediction of RNA secondary structure",
+Proc. Natl. Acad. Sci. USA: 101, pp 7287-7292
 
-A Walter, D Turner, J Kim, M Lyttle, P Mueller, D Mathews, M Zuker (1994),
-"Coaxial stacking of helices enhances binding of oligoribonucleotides.",
-PNAS: 91, pp 9218-9222
-
+D.H Turner, D.H. Mathews (2009),
+"NNDB: The nearest neighbor parameter database for predicting stability of nucleic acid secondary structure",
+Nucleic Acids Research: 38, pp 280-282

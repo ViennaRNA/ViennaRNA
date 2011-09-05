@@ -17,6 +17,7 @@
 #include "PS_dot.h"
 #include "read_epars.h"
 #include "profiledist.h"
+#include "RNApdist_cmdl.h"
 
 
 #define MAXLENGTH  10000
@@ -205,67 +206,82 @@ PRIVATE void command_line(int argc, char *argv[])
   int i, sym;
   char *ns_bases=NULL, *c;
   char *ParamFile=NULL;
+  struct  RNApdist_args_info args_info;
 
   task = 'p';
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') {
-      switch (argv[i][1]) {
-      case 'T':      /* temperature for folding */
-        if (argv[i][2]!='\0') usage();
-        if (sscanf(argv[++i], "%lf", &temperature)==0)
-          usage();
-        break;
-      case '4':
-        tetra_loop=0;
-        break;
-      case 'd':
-        dangles=0;
-        break;
-      case 'e':
-        if (sscanf(argv[++i],"%d", &energy_set)==0)
-          usage();
-        break;
-      case 'n':
-        if ( strcmp(argv[i], "-noGU" )==0) noGU=1;
-        if ( strcmp(argv[i], "-noCloseGU" ) ==0) no_closingGU=1;
-        if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-        if ( strcmp(argv[i], "-nsp") ==0) {
-          if (++i<argc)
-            ns_bases = argv[i];
-          else  usage();
-        }
-        if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-        break;
-      case 'X':
-        switch (task = argv[i][2]) {
-        case 'p': break;
-        case 'm': break;
-        case 'f': break;
-        case 'c': break;
-        default : usage();
-        }
-        break;
-      case 'B':
-        if(argv[i][2]!='\0') usage();
-        if( (i+1) >= argc) outfile[0] = '\0';
-        else if (argv[i+1][0]=='-') outfile[0] = '\0';
-        else {
-          i++;
-          strncpy(outfile,argv[i],49);
-        }
-        edit_backtrack = 1;
-        break;
-      case 'P':
-        if (++i<argc)
-          ParamFile=argv[i];
-        else usage();
-        break;
-      default:
-        usage();
-      }
+
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNApdist_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+
+  /* temperature */
+  if(args_info.temp_given)
+    temperature = args_info.temp_arg;
+
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)
+    tetra_loop=0;
+
+  /* set dangle model */
+  if(args_info.dangles_given){
+    dangles = args_info.dangles_arg;
+    if(dangles) dangles = 2;
+  }
+
+  /* set energy model */
+  if(args_info.energyModel_given)
+    energy_set = args_info.energyModel_arg;
+
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)
+    noLonelyPairs = 1;
+
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)
+    noGU = 1;
+
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given)
+    no_closingGU = 1;
+
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)
+    noconv = 1;
+
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)
+    ns_bases = strdup(args_info.nsp_arg);
+
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
+
+  if(args_info.compare_given){
+    switch(args_info.compare_arg[0]){
+      case 'p':
+      case 'm':
+      case 'f':
+      case 'c': task=args_info.compare_arg[0];
+                break;
+      default:  RNApdist_cmdline_parser_print_help();
+                exit(EXIT_FAILURE);
     }
   }
 
+  if(args_info.backtrack_given){
+    if(strcmp(args_info.backtrack_arg, "none")){
+      strncpy(outfile, args_info.backtrack_arg, 49);
+    }
+    edit_backtrack = 1;
+  }
+
+  /* free allocated memory of command line data structure */
+  RNApdist_cmdline_parser_free (&args_info);
+
+  /* do some preparations */
   if (ParamFile!=NULL)
     read_parameter_file(ParamFile);
 
@@ -288,6 +304,7 @@ PRIVATE void command_line(int argc, char *argv[])
       c++;
     }
   }
+
 }
 
 /* ------------------------------------------------------------------------- */
