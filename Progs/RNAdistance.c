@@ -14,6 +14,7 @@
 #include "treedist.h"
 #include "stringdist.h"
 #include "utils.h"
+#include "RNAdistance_cmdl.h"
 
 #define MAXNUM      1000    /* max number of structs for distance matrix */
 
@@ -22,7 +23,6 @@
 /*@unused@*/
 static char rcsid[] = "$Id: RNAdistance.c,v 1.8 2005/07/24 08:35:15 ivo Exp $";
 PRIVATE void command_line(int argc, char *argv[]);
-PRIVATE void usage(void);
 PRIVATE int parse_input(char *line);
 PRIVATE int check_tree(char *line, char alpha[]);
 PRIVATE int check_brackets(char *line);
@@ -492,42 +492,48 @@ PRIVATE int check_brackets(char *line)
 PRIVATE void command_line(int argc, char *argv[])
 {
   int i;
+  struct        RNAdistance_args_info args_info;
 
+  /* default values */
   edit_backtrack = 0;
   types=1; ttype[0]='f'; task=1;
 
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-')
-      switch (argv[i][1]) {
-      case 'D':
-        strncpy(ttype, argv[i]+2, 9);
-        types=(int)strlen(ttype);
-        break;
-      case 'X':
-        switch (argv[i][2]) {
-        case 'p': task=1; break;
-        case 'm': task=2; break;
-        case 'f': task=3; break;
-        case 'c': task=4; break;
-        }
-        break;
-      case 'S':
-        cost_matrix = 1;
-        break;
-      case 'B':
-        if(argv[i][2]!='\0') usage();
-        if( (i+1) >= argc) outfile[0] = '\0';
-        else if (argv[i+1][0]=='-') outfile[0] = '\0';
-        else {
-          i++;
-          strncpy(outfile,argv[i],49);
-        }
-        edit_backtrack = 1;
-        break;
-      default:
-        usage();
-      }
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAdistance_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+
+  /* use specified distance representations */
+  if(args_info.distance_given){
+    strncpy(ttype, args_info.distance_arg,9);
+    types = (int)strlen(ttype);
   }
+
+  if(args_info.compare_given){
+    switch(args_info.compare_arg[0]){
+      case 'p': task=1; break;
+      case 'm': task=2; break;
+      case 'f': task=3; break;
+      case 'c': task=4; break;
+      default:  RNAdistance_cmdline_parser_print_help();
+                exit(EXIT_FAILURE);
+    }
+  }
+
+  if(args_info.shapiro_given)
+    cost_matrix = 1;
+
+  if(args_info.backtrack_given){
+    if(strcmp(args_info.backtrack_arg, "none")){
+      strncpy(outfile, args_info.backtrack_arg, 49);
+    }
+    edit_backtrack = 1;
+  }
+
+  /* free allocated memory of command line data structure */
+  RNAdistance_cmdline_parser_free (&args_info);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -538,11 +544,4 @@ PRIVATE void print_aligned_lines(FILE *somewhere)
     fprintf(somewhere, "\n%s\n%s\n", aligned_line[0], aligned_line[1]);
     fflush(somewhere);
   }
-}
-
-/*--------------------------------------------------------------------------*/
-
-PRIVATE void usage(void)
-{
-  nrerror("usage: RNAdistance [-D[fhwcFHWCP]] [-X[p|m|f|c]] [-S] [-B [file]]");
 }

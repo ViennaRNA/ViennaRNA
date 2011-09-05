@@ -41,14 +41,17 @@ GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAplot_cmdl.c RNAplot_cmdl.h\
               RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
               RNAplex_cmdl.c RNAplex_cmdl.h\
-              RNAsnoop_cmdl.c RNAsnoop_cmdl.h
+              RNAsnoop_cmdl.c RNAsnoop_cmdl.h\
+              RNAdistance_cmdl.c RNAdistance_cmdl.h\
+              RNApdist_cmdl.c RNApdist_cmdl.h
 
 GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
               RNAup.ggo RNALfold.ggo RNALalifold.ggo ${LfoldZ_ggo}\
               RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo\
               RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
               RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
-              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo
+              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo\
+              RNApdist.ggo
 
 EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
@@ -211,3 +214,17 @@ RNAsnoop_cmdl.h  RNAsnoop_cmdl.c: RNAsnoop.ggo
 	gengetopt -i RNAsnoop.ggo
 
 RNAsnoop_SOURCES=RNAsnoop_cmdl.c RNAsnoop.c
+
+RNAdistance.c:    RNAdistance_cmdl.h
+
+RNAdistance_cmdl.h  RNAdistance_cmdl.c: RNAdistance.ggo
+	gengetopt -i RNAdistance.ggo
+
+RNAdistance_SOURCES=RNAdistance_cmdl.c RNAdistance.c
+
+RNApdist.c:    RNApdist_cmdl.h
+
+RNApdist_cmdl.h  RNApdist_cmdl.c: RNApdist.ggo
+	gengetopt -i RNApdist.ggo
+
+RNApdist_SOURCES=RNApdist_cmdl.c RNApdist.c

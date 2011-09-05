@@ -3,7 +3,7 @@ info_TEXINFOS = RNAlib.texinfo
 dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 RNAeval.1\
                 RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1 RNALfoldz.1\
                 RNApaln.1 RNAparconv.1 RNAplfold.1 RNAplot.1 RNAsubopt.1 RNAup.1\
-                RNAPKplex.1 RNAsnoop.1 RNAplex.1
+                RNAPKplex.1 RNAsnoop.1 RNAplex.1 RNAdistance.1 RNApdist.1
 
 # remove all generated man pages
 maintainer-clean-local:
@@ -154,6 +154,19 @@ RNAsnoop.1:  ../Progs/RNAsnoop.ggo ./include/ref_package.inc ./include/RNAsnoop.
                 --opt-include=./include/RNAsnoop.inc\
                 --opt-include=./include/ref_energy_par.inc\
                 "./cmdlopt.sh ../Progs/RNAsnoop.ggo" > RNAsnoop.1
+
+RNAdistance.1:  ../Progs/RNAdistance.ggo ./include/ref_package.inc ./include/RNAdistance.inc
+	./help2man -N --help-option=--detailed-help\
+                --opt-include=./include/ref_package.inc\
+                --opt-include=./include/RNAdistance.inc\
+                "./cmdlopt.sh ../Progs/RNAdistance.ggo" > RNAdistance.1
+
+RNApdist.1:  ../Progs/RNApdist.ggo ./include/ref_package.inc ./include/RNApdist.inc ./include/ref_energy_par.inc
+	./help2man -N --help-option=--detailed-help\
+                --opt-include=./include/ref_package.inc\
+                --opt-include=./include/RNApdist.inc\
+                --opt-include=./include/ref_energy_par.inc\
+                "./cmdlopt.sh ../Progs/RNApdist.ggo" > RNApdist.1
 
 
 
