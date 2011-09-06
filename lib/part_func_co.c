@@ -896,6 +896,10 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
         lp2++;
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
+      if(lp1->p < 0.){
+        lp1->p = 0.;
+        warn_user("part_func_co: probability below zero!");
+      }
     }
   return;
 }
