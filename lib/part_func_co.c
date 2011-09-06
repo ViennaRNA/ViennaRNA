@@ -249,8 +249,8 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
   init_partfunc_co(n);
 #else
   if (n > init_length) init_partfunc_co(n);
-#endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n);
+#endif
 
  /* printf("mirnatog=%d\n",mirnatog); */
 

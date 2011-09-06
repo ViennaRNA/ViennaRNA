@@ -259,8 +259,8 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   init_partfunc(n);
 #else
   if (n > init_length) init_partfunc(n);
-#endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+#endif
 
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
@@ -311,8 +311,8 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   init_partfunc(n);
 #else
   if (n >init_length) init_partfunc(n);
-#endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+#endif
 
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
