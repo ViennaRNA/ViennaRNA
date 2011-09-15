@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
   struct        RNAsubopt_args_info args_info;
   unsigned int  input_type;
   unsigned int  rec_type, read_opt;
-  char          fname[80], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  char          fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   char          *cstruc, *structure, *ParamFile, *ns_bases;
   int           i, length, l, cl, sym, istty;
   double        deltaf, deltap;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]){
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 

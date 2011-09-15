@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   unsigned int              input_type;
   char                      *line, *string, *structure, *input_string, *orig_sequence;
-  char                      fname[80];
+  char                      fname[FILENAME_MAX_LENGTH];
   char                      *ParamFile;
   int                       i, l, length1, length2;
   float                     energy;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname);
       free(input_string);
     }
 

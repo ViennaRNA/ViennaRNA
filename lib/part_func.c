@@ -1095,7 +1095,7 @@ PRIVATE void backtrack(int i, int j){
   }
 }
 
-PUBLIC void assign_plist_from_pr(plist **pl, double *probs, int length, double cut_off){
+PUBLIC void assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, double cut_off){
   int i, j, n, count, *index;
   count = 0;
   n     = 2;
@@ -1157,7 +1157,7 @@ PUBLIC char *get_centroid_struct_pl(int length, double *dist, plist *pl){
 }
 
 /* this function is a threadsafe replacement for centroid() */
-PUBLIC char *get_centroid_struct_pr(int length, double *dist, double *probs){
+PUBLIC char *get_centroid_struct_pr(int length, double *dist, FLT_OR_DBL *probs){
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
@@ -1233,7 +1233,7 @@ PUBLIC double mean_bp_distance(int length){
   return mean_bp_distance_pr(length, probs);
 }
 
-PUBLIC double mean_bp_distance_pr(int length, double *pr){
+PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *pr){
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
      this can be computed from the pair probs p_ij as

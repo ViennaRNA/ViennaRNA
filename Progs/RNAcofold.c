@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   unsigned int  input_type;
   char          *string, *input_string;
   char    *structure, *cstruc, *rec_sequence, *orig_sequence, *rec_id, **rec_rest;
-  char    fname[80], ffname[80];
+  char    fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
   char    *ParamFile;
   char    *ns_bases, *c;
   char    *Concfile;
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 

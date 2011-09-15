@@ -27,7 +27,7 @@ static char rcsid[] = "$Id: RNAduplex.c,v 1.5 2007/08/26 09:41:12 ivo Exp $";
 
 int main(int argc, char *argv[]){
   struct        RNAduplex_args_info args_info;
-  char          fname[80], *input_string, *s1, *s2, *orig_s1, *orig_s2, *c, *ParamFile=NULL, *ns_bases=NULL;
+  char          fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2, *c, *ParamFile=NULL, *ns_bases=NULL;
   unsigned int  input_type;
   int           i, l, sym, r;
   int           istty, delta=-1;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname);
       free(input_string);
     }
 

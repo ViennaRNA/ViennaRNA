@@ -30,7 +30,7 @@ short *make_pk_pair_table(const char *structure);
 int main(int argc, char *argv[]) {
   struct        PKplex_args_info args_info;
   char          *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *c, *plexstring, *constraint;
-  char          fname[100], *temp, *annotation, **rest;
+  char          fname[FILENAME_MAX_LENGTH], *temp, *annotation, **rest;
   int           istty, l, i, j, noconv, length, pairdist, current, unpaired;
   int           winsize, openenergies, sym, energyCutoff;
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     */
     if(id_s1){
       printf("%s\n", id_s1);
-      (void) sscanf(id_s1, ">%70s", fname);
+      (void) sscanf(id_s1, ">%FILENAME_ID_LENGTHs", fname);
     }
     else {
       strcpy(fname, "PKplex");

@@ -976,9 +976,9 @@ void str_DNA2RNA(char *sequence);
 \copybrief str_DNA2RNA()
 
 \verbatim
-void str_RNA2RNA(char *sequence);
+void str_uppercase(char *sequence);
 \endverbatim
-\copybrief str_RNA2RNA()
+\copybrief str_uppercase()
 
 \htmlonly
 <hr>

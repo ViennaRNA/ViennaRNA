@@ -70,8 +70,8 @@ extern int rna_plot_type;
  *  PS_rna_plot, svg_rna_plot()
  *
  *  \param  pair_table  The pair table of the secondary structure
- *  \param  x           a pointer to an array with enough allocated space to hold the x coordinates
- *  \param  y           a pointer to an array with enough allocated space to hold the y coordinates
+ *  \param  X           a pointer to an array with enough allocated space to hold the x coordinates
+ *  \param  Y           a pointer to an array with enough allocated space to hold the y coordinates
  *  \return             length of sequence on success, 0 otherwise
  */
 int simple_xy_coordinates(short *pair_table, float *X, float *Y);

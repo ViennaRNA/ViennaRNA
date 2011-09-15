@@ -14,6 +14,7 @@
 #include "treedist.h"
 #include "stringdist.h"
 #include "utils.h"
+#include "data_structures.h"
 #include "RNAdistance_cmdl.h"
 
 #define MAXNUM      1000    /* max number of structs for distance matrix */
@@ -33,7 +34,7 @@ PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
 PRIVATE int types=1;
 PRIVATE int task;
 PRIVATE int taxa_list;
-PRIVATE char outfile[50], *list_title;
+PRIVATE char outfile[FILENAME_MAX_LENGTH], *list_title;
 
 PRIVATE char ttype[10]="f";
 PRIVATE int n=0;
@@ -527,7 +528,7 @@ PRIVATE void command_line(int argc, char *argv[])
 
   if(args_info.backtrack_given){
     if(strcmp(args_info.backtrack_arg, "none")){
-      strncpy(outfile, args_info.backtrack_arg, 49);
+      strncpy(outfile, args_info.backtrack_arg, FILENAME_MAX_LENGTH-1);
     }
     edit_backtrack = 1;
   }

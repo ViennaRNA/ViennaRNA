@@ -919,8 +919,8 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
   n         = strlen(s);
   nl        = strlen(sl);
 
-  expMLbase = (double *) space(sizeof(double)*(nl+1));
-  scale     = (double *) space(sizeof(double)*((nl+1)*2));
+  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(nl+1));
+  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*((nl+1)*2));
 
   /* use RNA duplex to get a realistic estimate for the best possible
      interaction energy between the short RNA s and its target sl */

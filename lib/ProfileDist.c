@@ -200,7 +200,7 @@ PUBLIC float *Make_bp_profile(int length)
    return (float *) P;
 }
 
-PUBLIC float *Make_bp_profile_bppm(double *bppm, int length){
+PUBLIC float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length){
    int i,j;
    int L=3;
    float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */

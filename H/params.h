@@ -4,12 +4,20 @@
 #include "energy_const.h"
 #include "data_structures.h"
 
+/**
+ *  \file params.h
+ *  \brief Several functions to obtain (pre)scaled energy parameter data containers
+ */
+
 extern paramT *scale_parameters(void);
+
 extern paramT *copy_parameters(void);
+
 extern paramT *set_parameters(paramT *dest);
 
 
 pf_paramT *scale_pf_parameters(void);
+
 /**
  *  get a datastructure of type \ref pf_paramT which contains
  *  the Boltzmann weights of several energy parameters scaled
@@ -21,6 +29,7 @@ pf_paramT *get_scaled_pf_parameters(void);
 pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
 
 extern pf_paramT *copy_pf_param(void);
+
 extern pf_paramT *set_pf_param(paramT *dest);
 
 #endif

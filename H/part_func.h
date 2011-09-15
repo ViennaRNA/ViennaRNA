@@ -3,8 +3,6 @@
 
 #include "data_structures.h"
 
-#define FLT_OR_DBL double
-
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else
@@ -135,7 +133,7 @@ FLT_OR_DBL *export_bppm(void);
  *  \param length The length of the RNA sequence
  *  \param cutoff The cutoff value
  */
-void    assign_plist_from_pr(plist **pl, double *probs, int length, double cutoff);
+void    assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, double cutoff);
 
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
@@ -183,7 +181,7 @@ char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
  *  \param pr     A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
  *  \returns      The centroid structure of the ensemble in dot-bracket notation
  */
-char    *get_centroid_struct_pr(int length, double *dist, double *pr);
+char    *get_centroid_struct_pr(int length, double *dist, FLT_OR_DBL *pr);
 
 /**
  *  \brief Get the mean base pair distance of the last partition function computation
@@ -210,7 +208,7 @@ double  mean_bp_distance(int length);
  *  \param pr     The matrix containing the base pair probabilities
  *  \returns      The mean pair distance of the structure ensemble
  */
-double  mean_bp_distance_pr(int length, double *pr);
+double  mean_bp_distance_pr(int length, FLT_OR_DBL *pr);
 
 /**
  *  \brief Create a dot-bracket like structure string from base pair probability matrix

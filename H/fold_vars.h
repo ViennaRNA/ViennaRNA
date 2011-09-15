@@ -3,15 +3,11 @@
 
 #include "data_structures.h"
 
-/** \file fold_vars.h  */
+/**
+ *  \file fold_vars.h
+ *  \brief Here all all declarations of the global variables used throughout RNAlib
+ */
 
-/* to use floats instead of doubles in pf_fold() comment next line */
-#define LARGE_PF
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
-#else
-#define FLT_OR_DBL float
-#endif
 
 #define PUBLIC
 #define PRIVATE static
@@ -24,7 +20,7 @@ extern int    fold_constrained;
 /**
  *  \brief Global switch to avoid/allow helices of length 1
  * 
- *  Disallow all pairs which can @strong{only} occur as lonely pairs (i.e. as helix
+ *  Disallow all pairs which can only occur as lonely pairs (i.e. as helix
  *  of length 1). This avoids lonely base pairs in the predicted structures in
  *  most cases.
  */
@@ -89,10 +85,21 @@ extern int  circ;
  */
 extern int  csv;
 
-extern int oldAliEn;        /* use old alifold energies (with gaps) */
-extern int ribo;            /* use ribosum matrices */
-extern char *RibosumFile;   /* warning this variable will vanish in the future
-                               ribosums will be compiled in instead */
+/**
+ *  use old alifold energies (with gaps)
+ */
+extern int oldAliEn;
+/**
+ *  use ribosum matrices
+ */
+extern int ribo;            
+
+/**
+ *  warning this variable will vanish in the future
+ *  ribosums will be compiled in instead
+ */
+extern char *RibosumFile;   
+
 /**
  *  \brief contains allowed non standard base pairs
  * 
@@ -110,9 +117,16 @@ extern char *nonstandards;
  */
 extern double temperature;
 
-extern int  james_rule;     /* interior loops of size 2 get energy 0.8Kcal and
-                               no mismatches, default 1 */
-extern int  logML;          /* use logarithmic multiloop energy function */
+/**
+ *  interior loops of size 2 get energy 0.8Kcal and
+ *  no mismatches, default 1
+ */
+extern int  james_rule;
+
+/**
+ *  use logarithmic multiloop energy function
+ */
+extern int  logML;
 
 /**
  *  \brief Marks the position (starting from 1) of the first

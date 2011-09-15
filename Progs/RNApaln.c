@@ -33,7 +33,7 @@ PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void print_aligned_lines(FILE *somewhere);
 
 PRIVATE char task;
-PRIVATE char outfile[50];
+PRIVATE char outfile[FILENAME_MAX_LENGTH];
 PRIVATE char  ruler[] ="....,....1....,....2....,....3....,....4"
                        "....,....5....,....6....,....7....,....8";
 static int noconv = 0;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   float      dist;
   FILE      *somewhere=NULL;
   char      *structure;
-  char      *line=NULL, fname[20], *list_title=NULL;
+  char      *line=NULL, fname[FILENAME_MAX_LENGTH], *list_title=NULL;
   plist     *pr_pl, *mfe_pl;
 
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         }
       }
       if (line[0]=='>') {
-        if (sscanf(line,">%12s", fname)!=0)
+        if (sscanf(line,">%FILENAME_ID_LENGTHs", fname)!=0)
           strcat(fname, "_dp.ps");
         if (taxa_list)
           printf("%d : %s\n", n+1, line+1);
@@ -253,8 +253,8 @@ PRIVATE void command_line(int argc, char *argv[])
   }
   if(args_info.printAlignment_given){
     if(strcmp(args_info.printAlignment_arg, "stdout")){
-      strncpy(outfile, args_info.printAlignment_arg, 49);
-      outfile[49] = '\0';
+      strncpy(outfile, args_info.printAlignment_arg, FILENAME_MAX_LENGTH-1);
+      outfile[FILENAME_MAX_LENGTH-1] = '\0';
     }
     else outfile[0] = '\0';
     edit_backtrack = 1;

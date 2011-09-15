@@ -36,7 +36,7 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
   char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char          fname[80], ffname[80], *ParamFile=NULL;
+  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile=NULL;
   char          *ns_bases=NULL, *c;
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
   unsigned int  rec_type, read_opt;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]){
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 

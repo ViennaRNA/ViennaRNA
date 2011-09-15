@@ -1,2 +1,24 @@
 # ignore all executable programs
-RNA2Dfold RNAaliduplex RNAalifold RNAcofold RNAdistance RNAduplex RNAeval RNAfold RNAheat RNAinverse RNALalifold RNALfold RNALfoldz RNApaln RNAparconv RNApdist RNAPKplex RNAplex RNAplfold RNAplot RNAsnoop RNAsubopt RNAup
+RNA2Dfold
+RNAaliduplex
+RNAalifold
+RNAcofold
+RNAdistance
+RNAduplex
+RNAeval
+RNAfold
+RNAheat
+RNAinverse
+RNALalifold
+RNALfold
+RNALfoldz
+RNApaln
+RNAparconv
+RNApdist
+RNAPKplex
+RNAplex
+RNAplfold
+RNAplot
+RNAsnoop
+RNAsubopt
+RNAup

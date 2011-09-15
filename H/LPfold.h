@@ -11,7 +11,7 @@
 
 /**
  *  \file LPfold.h
- *  \brief
+ *  \brief Function declarations of partition function variants of the Lfold algorithm
  * 
  */
 

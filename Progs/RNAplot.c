@@ -18,7 +18,7 @@
 int main(int argc, char *argv[]){
   struct        RNAplot_args_info args_info;
   char          *string, *input_string, *structure, *pre, *post;
-  char          fname[50], ffname[50];
+  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
   int           i, r, fasta, length;
   float         energy;
   int           istty;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
 
     if(input_type & VRNA_INPUT_FASTA_HEADER){
       fasta = 1;
-      (void) sscanf(input_string, ">%42s", fname);
+      (void) sscanf(input_string, ">%FILENAME_ID_LENGTHs", fname);
       if(!istty) printf("%s\n", input_string);
       free(input_string); input_string = NULL;
       input_type = get_multi_input_line(&input_string, VRNA_INPUT_FASTA_HEADER | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));

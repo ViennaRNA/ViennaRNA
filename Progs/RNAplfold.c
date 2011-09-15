@@ -34,7 +34,7 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
 int main(int argc, char *argv[]){
   struct        RNAplfold_args_info args_info;
   unsigned int  error = 0;
-  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   unsigned int  input_type;
   int           i, length, l, sym, r, istty, winsize, pairdist;
   float         cutoff;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]){
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]){
 
     if (length >= 5){
       /* construct output file names */
-      char fname1[60], fname2[60], fname3[60], fname4[60], fname_t[60];
+      char fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname3[FILENAME_MAX_LENGTH], fname4[FILENAME_MAX_LENGTH], fname_t[FILENAME_MAX_LENGTH];
 
       strcpy(fname_t, (fname[0] != '\0') ? fname : "plfold");
 

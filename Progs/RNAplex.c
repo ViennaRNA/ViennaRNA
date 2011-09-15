@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
   char *line_q=NULL, *line_t=NULL;
   char* tname=NULL;char *qname=NULL;
   char *access=NULL;
-  char  fname[13];
+  char  fname[FILENAME_MAX_LENGTH];
   char  *ParamFile=NULL;
   char  *ns_bases=NULL, *c;
 

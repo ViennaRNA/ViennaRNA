@@ -11,6 +11,13 @@
 
 /**
  *  \file cofold.h
+ * 
+ *  \brief MFE version of cofolding routines
+ * 
+ *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
+ *  MFE Cofolding...
+ *  This also includes the Zuker suboptimals calculations, since they are implemented using the cofold
+ *  routines.
  */
 
 /**

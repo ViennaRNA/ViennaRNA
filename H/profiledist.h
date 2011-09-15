@@ -7,6 +7,8 @@
 #define DEPRECATED(func) func
 #endif
 
+#include "data_structures.h"
+
 /** \file profiledist.h  */
 
 /**
@@ -37,7 +39,7 @@ DEPRECATED(float *Make_bp_profile(int length));
  *  \param length The length of the sequence
  *  \returns      The bp profile
  */
-float *Make_bp_profile_bppm(double *bppm, int length);
+float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length);
 
 /**
  *  \brief print string representation of probability profile

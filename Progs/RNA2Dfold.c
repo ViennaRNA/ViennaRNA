@@ -31,7 +31,6 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char *string, *input_string, *orig_sequence;
   char *mfe_structure=NULL, *structure1=NULL, *structure2=NULL, *reference_struc1=NULL, *reference_struc2=NULL;
-  char  fname[13];
   char  *ParamFile=NULL;
   int   i, j, length, l;
   double min_en;
@@ -159,9 +158,7 @@ int main(int argc, char *argv[]){
     if (istty)
       print_tty_input_seq_str("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
 
-    fname[0]='\0';
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%42s", fname);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }

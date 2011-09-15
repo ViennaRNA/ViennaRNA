@@ -39,7 +39,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
   unsigned int  input_type;
-  char          ffname[80], gfname[80], fname[80];
+  char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           n_seq, i, length, sym, r, noPS;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;

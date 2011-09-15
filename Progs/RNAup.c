@@ -56,7 +56,7 @@ int main(int argc, char *argv[]){
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
   char                    temp_name[512], my_contrib[10], up_out[250], name[512];
-  char                    fname1[80], fname2[80], fname_target[80];
+  char                    fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH];
   char                    *ParamFile, *ns_bases, *c, *structure;
   char                    *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1, *cstruc2, *cstruc_target, *cstruc_combined;
   char                    cmdl_tmp[2048], *cmdl_parameters, *orig_s1, *orig_s2, *orig_target;
@@ -410,7 +410,7 @@ int main(int argc, char *argv[]){
 
     /* extract filename from fasta header if available */
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%51s", fname1);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname1);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }
@@ -455,7 +455,7 @@ int main(int argc, char *argv[]){
 
       /* extract filename from fasta header if available */
       while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-        (void) sscanf(input_string, "%51s", fname2);
+        (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname2);
         printf(">%s\n", input_string); /* print fasta header if available */
         free(input_string);
       }
@@ -542,10 +542,10 @@ int main(int argc, char *argv[]){
         char *s = s2; s2 = s1; s1 = s;
         s = orig_s2; orig_s2 = orig_s1; orig_s1 = s;
         /* also rotate the file names */
-        char f[80];
-        strncpy(f, fname2, 51);
-        strncpy(fname2, fname1, 51);
-        strncpy(fname1, f, 51);
+        char f[FILENAME_MAX_LENGTH];
+        strncpy(f, fname2, FILENAME_ID_LENGTH);
+        strncpy(fname2, fname1, FILENAME_ID_LENGTH);
+        strncpy(fname1, f, FILENAME_ID_LENGTH);
         /* rotate constraint strings as well */
         if(fold_constrained){
           s = cstruc2; cstruc2 = cstruc1; cstruc1 = s;

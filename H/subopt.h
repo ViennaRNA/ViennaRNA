@@ -8,6 +8,7 @@
 
 /**
  *  \file subopt.h
+ *  \brief RNAsubopt and density of states declarations
  */
 
 /**
