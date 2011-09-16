@@ -56,7 +56,7 @@ char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
                                       int d1,
                                       int d2);
 
-char            *TwoDpfold_pbacktrack_f5( TwoDpfold_vars *vars,
+char            *TwoDpfold_pbacktrack5( TwoDpfold_vars *vars,
                                           int d1,
                                           int d2,
                                           unsigned int length);
