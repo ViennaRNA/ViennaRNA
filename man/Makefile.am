@@ -1,7 +1,7 @@
 info_TEXINFOS = RNAlib.texinfo
 
 dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 RNAeval.1\
-                RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1 RNALfoldz.1\
+                RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1\
                 RNApaln.1 RNAparconv.1 RNAplfold.1 RNAplot.1 RNAsubopt.1 RNAup.1\
                 RNAPKplex.1 RNAsnoop.1 RNAplex.1 RNAdistance.1 RNApdist.1
 
@@ -85,13 +85,6 @@ RNALfold.1:  ../Progs/RNALfold.ggo ./include/ref_package.inc ./include/RNALfold.
                 --opt-include=./include/RNALfold.inc\
                 --opt-include=./include/ref_energy_par.inc\
                 "./cmdlopt.sh ../Progs/RNALfold.ggo" > RNALfold.1
-
-RNALfoldz.1:  ../Progs/RNALfoldz.ggo ./include/ref_package.inc ./include/RNALfold.inc ./include/ref_energy_par.inc
-	./help2man -N --help-option=--detailed-help\
-                --opt-include=./include/ref_package.inc\
-                --opt-include=./include/RNALfold.inc\
-                --opt-include=./include/ref_energy_par.inc\
-                "./cmdlopt.sh ../Progs/RNALfoldz.ggo" > RNALfoldz.1
 
 RNApaln.1:  ../Progs/RNApaln.ggo ./include/ref_package.inc ./include/RNApaln.inc ./include/ref_energy_par.inc
 	./help2man -N --help-option=--detailed-help\

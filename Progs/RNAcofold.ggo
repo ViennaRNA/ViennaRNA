@@ -26,7 +26,7 @@ description "The program works much like RNAfold, but allows to specify two RNA 
  pair probabilities, see the RNAfold man page for details. In the dot plots a cross marks\
  the chain break between the two concatenated sequences.\nThe program will continue to\
  read new sequences until a line consisting of the single character @ or an end of file\
- condition is encountered.\n"
+ condition is encountered.\n\n"
 
 # Options
 section "General Options"
@@ -40,23 +40,23 @@ details="The program reads first the\
  a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
  exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n"
+ folding ignores constraints of type \"|\".\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
 option "noPS"   -
-"Do not produce postscript output\n"
+"Do not produce postscript output\n\n"
 flag
 off
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
- (MFE) and a structure representative are calculated in any case.\n"
+ (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix in\
@@ -70,8 +70,8 @@ details="In addition to the MFE structure\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
  of partition function calculation:\n\n\
--p0\tCalculate the partition function but not the pair probabilities, saving about 50% in runtime. This\
- prints the ensemble free energy -kT ln(Z).\n"
+ In order to calculate the partition function but not the pair probabilities use the -p0 option and save about
+ 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
 int
 default="1"
 argoptional
@@ -84,7 +84,7 @@ option "all_pf" a
 details="The output will contain the free energies for each of these species, as well as\
  5 dot plots containing the conditional pair probabilities, called ABname5.ps, AAname5.ps\
  and so on. For later use, these dot plot files also contain the free energy of the\
- ensemble as a comment. Using -a automatically toggles the -p option.\n"
+ ensemble as a comment. Using -a automatically toggles the -p option.\n\n"
 flag
 off
 
@@ -93,14 +93,14 @@ option  "concentrations"  c
  and compute the expected equilibrium concentrations of the 5 possible species (AB, AA, BB, A, B).\n"
 details="Start concentrations are read from stdin (unless the -f option is used) in [mol/l],\
  equilibrium concentrations are given realtive to the sum of the two inputs. An arbitrary number\
- of initial concentrations can be specified (one pair of concentrations per line).\n"
+ of initial concentrations can be specified (one pair of concentrations per line).\n\n"
 flag
 off
 
 option  "concfile"  f
 "Specify a file with initial concentrations for the to sequences."
 details="The table consits of arbitrary many lines with just two numbers (the concentration of\
- sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n"
+ sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
 string
 typestr="filename"
 optional
@@ -109,7 +109,7 @@ option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
 details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
 double
 typestr="scaling factor"
 optional
@@ -118,11 +118,11 @@ hidden
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n\n"
 flag
 off
 
@@ -136,7 +136,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -144,22 +144,24 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n\n"
+flag
+off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -169,14 +171,14 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden

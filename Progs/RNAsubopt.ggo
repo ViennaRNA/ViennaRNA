@@ -30,12 +30,12 @@ details="The program reads first the\
  a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
  exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n"
+ folding ignores constraints of type \"|\".\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
@@ -44,7 +44,7 @@ sectiondesc="Select the algorithms which should be applied to the given RNA sequ
 
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
- Default is calculation of mfe structure only.\n"
+ Default is calculation of mfe structure only.\n\n"
 float
 typestr="range"
 optional
@@ -52,7 +52,7 @@ optional
 option  "deltaEnergyPost" -
 "Only print structures with energy within range of the mfe after post reevaluation of energies.\n"
 details="Useful in conjunction with -logML, -d1 or -d3: while the -e option specifies the range\
- before energies are re-evaluated, this option specifies the maximum energy after re-evaluation.\n"
+ before energies are re-evaluated, this option specifies the maximum energy after re-evaluation.\n\n"
 float
 typestr="range"
 optional
@@ -60,14 +60,14 @@ optional
 option  "sorted"  s
 "Sort the suboptimal structures by energy.\n"
 details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
- goes into millions. In such cases better pipe the output through \"sort +1n\".\n"
+ goes into millions. In such cases better pipe the output through \"sort +1n\".\n\n"
 flag
 off
 
 option "stochBT"  p
 "Instead of producing all suboptimals in an energy range, produce a random sample of suboptimal structures,\
  drawn with probabilities equal to their Boltzmann weights via stochastic backtracking in the partition\
- function. The -e and -p options are mutually exclusive."
+ function. The -e and -p options are mutually exclusive.\n\n"
 int
 typestr="number"
 optional
@@ -76,14 +76,14 @@ option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows). Needed by stochastic backtracking\n"
 details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
 double
 typestr="scaling factor"
 optional
 hidden
 
 option  "circ"    c
-"Assume a circular (instead of linear) RNA molecule.\n"
+"Assume a circular (instead of linear) RNA molecule.\n\n"
 flag
 off
 
@@ -95,19 +95,19 @@ flag
 off
 
 option  "zuker" z
-"Compute Zuker suboptimals instead of all suboptimal structures within an engery band arround the MFE\n."
+"Compute Zuker suboptimals instead of all suboptimal structures within an engery band arround the MFE.\n\n"
 flag
 off
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -121,7 +121,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -129,31 +129,31 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "logML" -
 "Recalculate energies of structures using a logarithmic energy function for multi-loops before output."
 details="This option does not effect structure generation, only the energies that are printed out.\
- Since logML lowers energies somewhat, some structures may be missing.\n"
+ Since logML lowers energies somewhat, some structures may be missing.\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -163,7 +163,7 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden

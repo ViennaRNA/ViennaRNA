@@ -21,100 +21,100 @@ description "Converts energy parameter files from \"old\" ViennaRNAPackage 1.8.4
 # Options
 
 option  "output"  o
-"Specify an output file name. If argument is missing the converted energy parameters are printed to 'stdout'.\n"
+"Specify an output file name. If argument is missing the converted energy parameters are printed to 'stdout'.\n\n"
 string
 typestr="filename"
 optional
 
 option  "input"  i
-"Specify an input file name. If argument is missing the energy parameter input can be supplied via 'stdin'.\n"
+"Specify an input file name. If argument is missing the energy parameter input can be supplied via 'stdin'.\n\n"
 string
 typestr="filename"
 optional
 
 option  "vanilla" -
-"Print just as much as needed to represent the given energy parameters data set.\nThis option overrides all other output settings!"
+"Print just as much as needed to represent the given energy parameters data set.\nThis option overrides all other output settings!\n\n"
 flag
 off
 
 option  "dump" -
-"Just dump Vienna 1.8.4 energy parameters in format used since 2.0.\nThis option skips any energy parameter input!"
+"Just dump Vienna 1.8.4 energy parameters in format used since 2.0.\nThis option skips any energy parameter input!\n\n"
 flag
 off
 
 option  "silent" -
-"Print just energy parameters and appropriate comment lines but suppress all other output\n"
+"Print just energy parameters and appropriate comment lines but suppress all other output\n\n"
 flag
 off
 
 option  "without-HairpinE"  -
-"Do not print converted hairpin energies and enthalpies\n"
+"Do not print converted hairpin energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-StackE"  -
-"Do not print converted stacking energies and enthalpies\n"
+"Do not print converted stacking energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-IntE"  -
-"Do not print converted interior loop energies, enthalpies and asymetry factors\n"
+"Do not print converted interior loop energies, enthalpies and asymetry factors\n\n"
 flag
 off
 hidden
 
 option  "without-BulgeE"  -
-"Do not print converted bulge loop energies and enthalpies\n"
+"Do not print converted bulge loop energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-MultiE"  -
-"Do not print converted multi loop energies and enthalpies\n"
+"Do not print converted multi loop energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-MismatchE"  -
-"Do not print converted exterior loop mismatch energies and enthalpies\n"
+"Do not print converted exterior loop mismatch energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-MismatchH"  -
-"Do not print converted hairpin mismatch energies and enthalpies\n"
+"Do not print converted hairpin mismatch energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-MismatchI"  -
-"Do not print converted interior loop mismatch energies and enthalpies\n"
+"Do not print converted interior loop mismatch energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-MismatchM"  -
-"Do not print converted multi loop mismatch energies and enthalpies\n"
+"Do not print converted multi loop mismatch energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-Dangle5"  -
-"Do not print converted 5' dangle energies and enthalpies\n"
+"Do not print converted 5' dangle energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-Dangle3"  -
-"Do not print converted 3' dangle energies and enthalpies\n"
+"Do not print converted 3' dangle energies and enthalpies\n\n"
 flag
 off
 hidden
 
 option  "without-Misc"  -
-"Do not print converted Misc energies and enthalpies (TerminalAU, DuplexInit, lxc)\n"
+"Do not print converted Misc energies and enthalpies (TerminalAU, DuplexInit, lxc)\n\n"
 flag
 off
 hidden

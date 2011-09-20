@@ -35,32 +35,32 @@ option  "repeat"   R
 details="If repeats is negative search until --repeats exact solutions are found, no\
  output is done for unsuccessful searches. Be aware, that the program will not terminate\
  if the target structure can not be found.\nIf no value is supplied with this option, the\
- default value is used.\n"
+ default value is used.\n\n"
 int
 argoptional
 default="100"
 optional
 
 option  "alphabet"    a
-"Find sequences using only nucleotides from a given alphabet.\n"
+"Find sequences using only nucleotides from a given alphabet.\n\n"
 string
 typestr="ALPHABET"
 optional
 
 option  "verbose"   v
 "In conjunction with a negative value supplied to -R, print the last subsequence and\
- substructure for each unsuccessful search.\n"
+ substructure for each unsuccessful search.\n\n"
 flag
 off
 
 section "Algorithms"
-sectiondesc="Select additional algorithms which should be included in the calculations.\n"
+sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
 
 option  "function"  F
 "Use minimum energy (-Fm), partition function folding (-Fp) or both (-Fmp).\n"
 details="In partition function mode, the probability of the target structure exp(-E(S)/kT)/Q is maximized.\
  This probability is written in brackets after the found sequence and Hamming distance. In most cases\
- you'll want to use the -f option in conjunction with -Fp, see below.\n"
+ you'll want to use the -f option in conjunction with -Fp, see below.\n\n"
 string
 typestr="mp"
 default="m"
@@ -68,18 +68,18 @@ optional
 
 option  "final"   f
 "In combination with -Fp stop search when sequence is found with E(s)-F is smaller\
- than final, where F=-kT*ln(Q).\n"
+ than final, where F=-kT*ln(Q).\n\n"
 float
 optional
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -93,25 +93,25 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -Fp to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -121,14 +121,14 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden

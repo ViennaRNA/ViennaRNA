@@ -1,11 +1,7 @@
 
 
 if WITH_LIBSVM
-  LfoldZ_prog = RNALfoldz
-  LfoldZ_ggo = RNALfoldz.ggo
-  LfoldZ_cmdl = RNALfoldz_cmdl.c RNALfoldz_cmdl.h
   RNALfold_LINK = ${CXXLD} -o $@
-  RNALfoldz_LINK = ${CXXLD} -o $@
 else
   RNALfold_LINK = ${CCLD} -o $@
 endif
@@ -14,7 +10,7 @@ endif
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-    RNAparconv RNAPKplex RNAplex RNAsnoop ${LfoldZ_prog}
+    RNAparconv RNAPKplex RNAplex RNAsnoop
 
 LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
@@ -26,7 +22,7 @@ GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAalifold_cmdl.c RNAalifold_cmdl.h\
               RNAcofold_cmdl.c  RNAcofold_cmdl.h\
               RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold_cmdl.c RNALfold_cmdl.h ${LfoldZ_cmdl}\
+              RNALfold_cmdl.c RNALfold_cmdl.h\
               RNALalifold_cmdl.c RNALalifold_cmdl.h\
               RNAplfold_cmdl.c RNAplfold_cmdl.h\
               RNAduplex_cmdl.c RNAduplex_cmdl.h\
@@ -46,7 +42,7 @@ GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNApdist_cmdl.c RNApdist_cmdl.h
 
 GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
-              RNAup.ggo RNALfold.ggo RNALalifold.ggo ${LfoldZ_ggo}\
+              RNAup.ggo RNALfold.ggo RNALalifold.ggo\
               RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo\
               RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
               RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
@@ -104,15 +100,6 @@ RNALfold_cmdl.h  RNALfold_cmdl.c: RNALfold.ggo
 	gengetopt -i RNALfold.ggo
 
 RNALfold_SOURCES=RNALfold_cmdl.c RNALfold.c
-
-#if WITH_LIBSVM
-RNALfoldz.c:       RNALfoldz_cmdl.h
-
-RNALfoldz_cmdl.h  RNALfoldz_cmdl.c: RNALfoldz.ggo
-	gengetopt -i RNALfoldz.ggo
-
-RNALfoldz_SOURCES=RNALfoldz_cmdl.c RNALfoldz.c
-#endif
 
 RNALalifold.c:      RNALalifold_cmdl.h
 

@@ -21,7 +21,7 @@ description "The program reads RNA sequences and structures from stdin in the fo
 
 # Options
 option  "layout-type"  t
-"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n"
+"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
 int
 default="1"
 optional
@@ -29,7 +29,7 @@ optional
 option  "output-format"   o
 "Specify output format. Available formats are: PostScript (ps), Graph Meta Language (gml),\
  Scalable Vector Graphics (svg), and XRNA save file (xrna). Output filenames will end in\
- \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
+ \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n\n"
 string
 typestr="ps|gml|xrna|svg"
 default="ps"
@@ -37,14 +37,14 @@ optional
 
 option  "pre"   -
 "Add annotation macros to postscript file, and add the postscript code in \"string\" just\
- before the code to draw the structure. This is an easy way to add annotation.\n"
+ before the code to draw the structure. This is an easy way to add annotation.\n\n"
 string
 typestr="string"
 optional
 
 option  "post"  -
 "Same as --pre but in contrast to adding the annotation macros. E.g to mark position\
- 15 with circle use --post \"15 cmark\"\n"
+ 15 with circle use --post \"15 cmark\"\n\n"
 string
 typestr="string"
 optional

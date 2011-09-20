@@ -22,19 +22,19 @@ sectiondesc="Below are command line options which alter the general behavior of 
 
 option  "span"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j-i>span will be allowed."
+ j-i>span will be allowed.\n\n"
 int
 default="70"
 optional
 
 option  "csv"   -
-"Create comma seperated output (csv)\n"
+"Create comma seperated output (csv)\n\n"
 flag
 off
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
- (MFE) and a structure representative are calculated in any case.\n"
+ (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix in addition to the mfe structure."
@@ -51,7 +51,7 @@ argoptional
 optional
 
 option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot\n"
+"Report only base pairs with an average probability > cutoff in the dot plot\n\n"
 float
 default="0.01"
 optional
@@ -60,7 +60,7 @@ option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
 details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
 double
 typestr="scaling factor"
 optional
@@ -68,19 +68,19 @@ hidden
 
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
- output the set of nucleotides with frequence greater than average in IUPAC notation."
+ output the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
 flag
 off
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -94,7 +94,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -102,24 +102,24 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -129,40 +129,40 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
 
 option  "cfactor" -
-"Set the weight of the covariance term in the energy function"
+"Set the weight of the covariance term in the energy function\n\n"
 default="1.0"
 double
 optional
 
 option  "nfactor" -
-"Set the penalty for non-compatible sequences in the covariance term of the energy function"
+"Set the penalty for non-compatible sequences in the covariance term of the energy function\n\n"
 default="1.0"
 double
 optional
 
 option  "ribosum_file"    R
 "use specified Ribosum Matrix instead of normal energy model. Matrixes to use should be 6x6 matrices,\
- the order of the terms is AU, CG, GC, GU, UA, UG.\n"
+ the order of the terms is AU, CG, GC, GU, UA, UG.\n\n"
 string
 typestr="ribosumfile"
 optional
 
 option  "ribosum_scoring" r
 "use ribosum scoring matrix. The matrix is chosen according to the minimal and maximal pairwise\
- identities of the sequences in the file.\n"
+ identities of the sequences in the file.\n\n"
 flag
 off
 
