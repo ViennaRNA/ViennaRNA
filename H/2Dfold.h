@@ -63,15 +63,50 @@ DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables,
                                         int distance2));
 
 /**
- * 
+ * \brief Compute MFE's and representative for distance partitioning
+ *
+ * This function computes the minimum free energies and a representative
+ * secondary structure for each distance class according to the two references
+ * specified in the datastructure 'vars'.
+ * The maximum basepair distance to each of both references may be set
+ * by the arguments 'distance1' and 'distance2', respectively.
+ * If both distance arguments are set to '-1', no restriction is assumed and
+ * the calculation is performed for each distance class possible.
+ *
+ * The returned list contains an entry for each distance class. If a maximum
+ * basepair distance to either of the references was passed, an entry with
+ * k=l=-1 will be appended in the list, denoting the class where all structures
+ * exceeding the maximum will be thrown into.
+ * The end of the list is denoted by an attribute value of #INF in
+ * the k-attribute of the list entry.
+ *
+ * \see get_TwoDfold_variables(), destroy_TwoDfold_variables(), #TwoDfold_solution
+ *
+ * \param vars      the datastructure containing all predefined folding attributes
+ * \param distance1 maximum distance to reference1 (-1 means no restriction)
+ * \param distance2 maximum distance to reference2 (-1 means no restriction)
  */
 TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars,
                                 int distance1,
                                 int distance2);
 
-/* function for Pathfinder.c */
 /**
- * 
+ * \brief Backtrack a minimum free energy structure from a 5' section of specified length
+ *
+ * This function allows to backtrack a secondary structure beginning at the 5' end, a specified
+ * length and residing in a specific distance class.
+ * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
+ * reside in the distance class where all structures exceeding the maximum basepair distance
+ * specified in TwoDfoldList() belong to.
+ * \note The argument 'vars' must contain precalculated energy values in the energy matrices,
+ * i.e. a call to TwoDfoldList() preceding this function is mandatory!
+ *
+ * \see TwoDfoldList(), get_TwoDfold_variables(), destroy_TwoDfold_variables()
+ *
+ * \param j     The length in nucleotides beginning from the 5' end
+ * \param k     distance to reference1 (may be -1)
+ * \param l     distance to reference2
+ * \param vars  the datastructure containing all predefined folding attributes
  */
 char *TwoDfold_backtrack_f5(unsigned int j,
                             int k,
