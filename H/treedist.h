@@ -24,7 +24,8 @@ Tree   *make_tree(char *struc);
  *  \param T2
  *  \return
  */
-float   tree_edit_distance(Tree *T1, Tree *T2);
+float   tree_edit_distance( Tree *T1,
+                            Tree *T2);
 
 /**
  *  \brief Print a tree (mainly for debugging)

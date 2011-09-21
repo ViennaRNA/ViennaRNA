@@ -60,7 +60,8 @@ extern double F_monomer[2];
  *  \return           cofoldF structure containing a set of energies needed for
  *                    concentration computations.
  */
-cofoldF co_pf_fold(char *sequence, char *structure);
+cofoldF co_pf_fold( char *sequence,
+                    char *structure);
 
 /**
  *  \brief Free the memory occupied by co_pf_fold()
@@ -89,9 +90,12 @@ void    update_co_pf_params(int length);
  *  \param prB      pair probabilities monomer
  *  \param Alength  Length of molecule A
  */
-void    compute_probabilities(double FAB, double FEA, double FEB,
+void    compute_probabilities(double FAB,
+                              double FEA,
+                              double FEB,
                               struct plist  *prAB,
-                              struct plist  *prA, struct plist  *prB,
+                              struct plist  *prA,
+                              struct plist  *prB,
                               int Alength);
 
 /**
@@ -112,7 +116,12 @@ void    compute_probabilities(double FAB, double FEA, double FEB,
  *  \param startconc  List of start concentrations [a0],[b0],[a1],[b1],...,[an][bn],[0],[0]
  *  \return ConcEnt array containing the equilibrium energies and start concentrations
  */
-ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc);
+ConcEnt *get_concentrations(double FEAB,
+                            double FEAA,
+                            double FEBB,
+                            double FEA,
+                            double FEB,
+                            double *startconc);
 
 /*
 #################################################
@@ -125,7 +134,9 @@ ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, d
  *  \deprecated{ This function is deprecated and will be removed soon!}
  *  use \ref assign_plist_from_pr() instead!
  */
-DEPRECATED(plist  *get_plist(struct plist *pl, int length, double cut_off));
+DEPRECATED(plist  *get_plist( struct plist *pl,
+                              int length,
+                              double cut_off));
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
  *  \deprecated{ This function is deprecated and will be removed soon!}

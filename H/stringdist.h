@@ -24,6 +24,7 @@ swString *Make_swString(char *string);
  *  \param  T2
  *  \return
  */
-float     string_edit_distance(swString *T1, swString *T2);
+float     string_edit_distance( swString *T1,
+                                swString *T2);
 
 #endif

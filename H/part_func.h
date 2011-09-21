@@ -56,7 +56,8 @@ extern  int st_back;
  *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
-float   pf_fold(const char *sequence, char *structure);
+float   pf_fold(const char *sequence,
+                char *structure);
 
 /**
  *  \brief Compute the partition function of a circular RNA sequence
@@ -67,7 +68,8 @@ float   pf_fold(const char *sequence, char *structure);
  *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
-float   pf_circ_fold(const char *sequence, char *structure);
+float   pf_circ_fold( const char *sequence,
+                      char *structure);
 
 /**
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
@@ -89,7 +91,7 @@ char    *pbacktrack_circ(char *sequence);
 /**
  *  \brief Free arrays from pf_fold()
  */
-void    free_pf_arrays(void);
+void  free_pf_arrays(void);
 
 /**
  *  \brief Recalculate energy parameters
@@ -97,7 +99,7 @@ void    free_pf_arrays(void);
  *  Call this function to recalculate the pair matrix and energy parameters
  *  after a change in folding parameters like #temperature
  */
-void    update_pf_params(int length);
+void  update_pf_params(int length);
 
 /**
  *  \brief Get a pointer to the base pair probability array
@@ -108,7 +110,7 @@ void    update_pf_params(int length);
  *  \see get_iindx()
  *  \return A pointer to the base pair probability array
  */
-FLT_OR_DBL *export_bppm(void);
+FLT_OR_DBL  *export_bppm(void);
 
 /*
 #################################################
@@ -133,7 +135,10 @@ FLT_OR_DBL *export_bppm(void);
  *  \param length The length of the RNA sequence
  *  \param cutoff The cutoff value
  */
-void    assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, double cutoff);
+void  assign_plist_from_pr( plist **pl,
+                            FLT_OR_DBL *probs,
+                            int length,
+                            double cutoff);
 
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
@@ -147,7 +152,13 @@ void    assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, double c
  *  \param qln_p    A pointer to the 3' slice of the Q matrix (\f$qln(l) = Q(l, n)\f$)
  *  \returns        Non Zero if everything went fine, 0 otherwise
  */
-int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p);
+int get_pf_arrays(short **S_p,
+                  short **S1_p,
+                  char **ptype_p,
+                  FLT_OR_DBL **qb_p,
+                  FLT_OR_DBL **qm_p,
+                  FLT_OR_DBL **q1k_p,
+                  FLT_OR_DBL **qln_p);
 
 /**
  *  \brief Get the centroid structure of the ensemble
@@ -164,7 +175,9 @@ int     get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb
  *  \param pl     A pair list containing base pair probability information about the ensemble
  *  \returns      The centroid structure of the ensemble in dot-bracket notation
  */
-char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
+char  *get_centroid_struct_pl(int length,
+                              double *dist,
+                              plist *pl);
 
 /**
  *  \brief Get the centroid structure of the ensemble
@@ -181,7 +194,9 @@ char    *get_centroid_struct_pl(int length, double *dist, plist *pl);
  *  \param pr     A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
  *  \returns      The centroid structure of the ensemble in dot-bracket notation
  */
-char    *get_centroid_struct_pr(int length, double *dist, FLT_OR_DBL *pr);
+char  *get_centroid_struct_pr(int length,
+                              double *dist,
+                              FLT_OR_DBL *pr);
 
 /**
  *  \brief Get the mean base pair distance of the last partition function computation
@@ -208,14 +223,17 @@ double  mean_bp_distance(int length);
  *  \param pr     The matrix containing the base pair probabilities
  *  \returns      The mean pair distance of the structure ensemble
  */
-double  mean_bp_distance_pr(int length, FLT_OR_DBL *pr);
+double  mean_bp_distance_pr(int length,
+                            FLT_OR_DBL *pr);
 
 /**
  *  \brief Create a dot-bracket like structure string from base pair probability matrix
  */
-void    bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length);
+void  bppm_to_structure(char *structure,
+                        FLT_OR_DBL *pr,
+                        unsigned int length);
 
-plist   *stackProb(double cutoff);
+plist *stackProb(double cutoff);
 
 /**
  *  \brief Get a pseudo dot bracket notation for a given probability information
@@ -240,7 +258,8 @@ DEPRECATED(void init_pf_fold(int length));
  *  \deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
  *  \see get_centroid_struct_pl(), get_centroid_struct_pr()
  */
-DEPRECATED(char *centroid(int length, double *dist));     /* mean pair distance of ensemble */
+DEPRECATED(char *centroid(int length,
+                          double *dist));     /* mean pair distance of ensemble */
 
 /**
  *  get the mean pair distance of ensemble
@@ -252,11 +271,22 @@ DEPRECATED(double mean_bp_dist(int length));
 /**
  *  \deprecated Use \ref exp_E_IntLoop() from loop_energies.h instead
  */
-DEPRECATED(double expLoopEnergy(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1));
+DEPRECATED(double expLoopEnergy(int u1,
+                                int u2,
+                                int type,
+                                int type2,
+                                short si1,
+                                short sj1,
+                                short sp1,
+                                short sq1));
 
 /**
  *  \deprecated Use exp_E_Hairpin() from loop_energies.h instead
  */
-DEPRECATED(double expHairpinEnergy(int u, int type, short si1, short sj1, const char *string));
+DEPRECATED(double expHairpinEnergy( int u,
+                                    int type,
+                                    short si1,
+                                    short sj1,
+                                    const char *string));
 
 #endif

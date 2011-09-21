@@ -48,7 +48,8 @@
  *  \param max_w
  *  \return
  */
-pu_contrib *pf_unstru(char *sequence, int max_w);
+pu_contrib *pf_unstru(char *sequence,
+                      int max_w);
 
 /**
  *  \brief Calculates the probability of a local interaction between two sequences.
@@ -92,7 +93,14 @@ pu_contrib *pf_unstru(char *sequence, int max_w);
  *  \param  incr5
  *  \return
  */
-interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int max_w, char *cstruc, int incr3, int incr5);
+interact *pf_interact(const char *s1,
+                      const char *s2,
+                      pu_contrib *p_c,
+                      pu_contrib *p_c2,
+                      int max_w,
+                      char *cstruc,
+                      int incr3,
+                      int incr5);
 
 /**
  *  \brief Frees the output of function pf_interact().
@@ -102,12 +110,20 @@ void free_interact(interact *pin);
 /**
  *  \brief
  */
-int         Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *ofile, int **unpaired_values, char *select_contrib, char *head, unsigned int mode);
+int Up_plot(pu_contrib *p_c,
+            pu_contrib *p_c_sh,
+            interact *pint,
+            char *ofile,
+            int **unpaired_values,
+            char *select_contrib,
+            char *head,
+            unsigned int mode);
 
 /**
  *  \brief
  */
-pu_contrib  *get_pu_contrib_struct(unsigned int n, unsigned int w);
+pu_contrib  *get_pu_contrib_struct( unsigned int n,
+                                    unsigned int w);
 
 /**
  *  \brief Frees the output of function pf_unstru().

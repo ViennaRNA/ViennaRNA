@@ -73,6 +73,8 @@
  *  \param oname    The output file name (If NULL output is written to stdout)
  *  \param options  The options (as described above)
  */
-void convert_parameter_file(const char *iname, const char *oname, unsigned int options);
+void convert_parameter_file(const char *iname,
+                            const char *oname,
+                            unsigned int options);
 
 #endif

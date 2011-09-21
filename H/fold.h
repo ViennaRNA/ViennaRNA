@@ -225,13 +225,24 @@ void assign_plist_from_db(plist **pl,
  *  \deprecated {This function is deprecated and will be removed soon.
  *  Use \ref E_IntLoop() instead!}
  */
-DEPRECATED(int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1));
+DEPRECATED(int LoopEnergy(int n1,
+                          int n2,
+                          int type,
+                          int type_2,
+                          int si1,
+                          int sj1,
+                          int sp1,
+                          int sq1));
 
 /**
  *  \deprecated {This function is deprecated and will be removed soon.
  *  Use \ref E_Hairpin() instead!}
  */
-DEPRECATED(int HairpinE(int size, int type, int si1, int sj1, const char *string));
+DEPRECATED(int HairpinE(int size,
+                        int type,
+                        int si1,
+                        int sj1,
+                        const char *string));
 
 /**
  *  Allocate arrays for folding\n
@@ -254,7 +265,8 @@ DEPRECATED(void initialize_fold(int length));
  *  \param structure  secondary structure in dot-bracket notation
  *  \returns          the free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_struct(const char *string, const char *structure));
+DEPRECATED(float energy_of_struct(const char *string,
+                                  const char *structure));
 
 /**
  *  Calculate the free energy of an already folded RNA
@@ -272,7 +284,10 @@ DEPRECATED(float energy_of_struct(const char *string, const char *structure));
  *  \param s1         encoded RNA sequence
  *  \returns          the free energy of the input structure given the input sequence in 10kcal/mol
  */
-DEPRECATED(int energy_of_struct_pt(const char *string, short *ptable, short *s, short *s1));
+DEPRECATED(int energy_of_struct_pt( const char *string,
+                                    short *ptable,
+                                    short *s,
+                                    short *s1));
 
 /**
  *  Calculate the free energy of an already folded  circular RNA
@@ -288,6 +303,7 @@ DEPRECATED(int energy_of_struct_pt(const char *string, short *ptable, short *s, 
  *  \param structure  secondary structure in dot-bracket notation
  *  \returns          the free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_circ_struct(const char *string, const char *structure));
+DEPRECATED(float energy_of_circ_struct( const char *string,
+                                        const char *structure));
 
 #endif

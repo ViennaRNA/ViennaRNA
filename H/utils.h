@@ -147,7 +147,8 @@ void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
  *  \return     A pointer to the newly allocated memory
  */
 /*@only@*/ /*@notnull@*/
-void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p, unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
+void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p,
+                unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
 #endif
 
 /**
@@ -279,9 +280,11 @@ int skip_comment_lines(char **line);
  *  \param options  A collection of options for switching the functions behavior
  *  \return         A flag with information about what has been read
  */
-unsigned int get_input_line(char **string, unsigned int options);
+unsigned int get_input_line(char **string,
+                            unsigned int options);
 
-unsigned int get_multi_input_line(char **string, unsigned int options);
+unsigned int get_multi_input_line(char **string,
+                                  unsigned int options);
 
 /**
  *  \brief  Get a data record from stdin
@@ -335,7 +338,10 @@ while(!(read_record(&id, &seq, &rest, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
  *  \param  options   Some options which may be passed to alter the behavior of the function, use 0 for no options
  *  \return           A flag with information about what the function actually did read
  */
-unsigned int read_record(char **header, char **sequence, char  ***rest, unsigned int options);
+unsigned int read_record( char **header,
+                          char **sequence,
+                          char  ***rest,
+                          unsigned int options);
 
 /**
  *  \brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -405,7 +411,8 @@ short *make_pair_table_snoop(const char *structure);
  *  \param str2   Second structure in dot-bracket notation
  *  \return       The base pair distance between str1 and str2
  */
-int bp_distance(const char *str1, const char *str2);
+int bp_distance(const char *str1,
+                const char *str2);
 
 /**
  *  \brief Print a line to \e stdout that asks for an input sequence
@@ -496,7 +503,9 @@ int   *get_iindx(unsigned int length);
  */
 int   *get_indx(unsigned int length);
 
-void getConstraint(char **cstruc, const char **lines, unsigned int option);
+void getConstraint( char **cstruc,
+                    const char **lines,
+                    unsigned int option);
 
 /**
  *  \brief Insert constraining pair types according to constraint structure string
@@ -509,10 +518,18 @@ void getConstraint(char **cstruc, const char **lines, unsigned int option);
  *  \param min_loop_size  The minimal loop size (usually \ref TURN )
  *  \param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
  */
-void constrain_ptypes(const char *constraint, unsigned int length, char *ptype, int *BP, int min_loop_size, unsigned int idx_type);
+void constrain_ptypes(const char *constraint,
+                      unsigned int length,
+                      char *ptype,
+                      int *BP,
+                      int min_loop_size,
+                      unsigned int idx_type);
 
-unsigned int  *make_referenceBP_array(short *reference_pt, unsigned int turn);
+unsigned int  *make_referenceBP_array(short *reference_pt,
+                                      unsigned int turn);
 
-unsigned int  *compute_BPdifferences(short *pt1, short *pt2, unsigned int turn);
+unsigned int  *compute_BPdifferences( short *pt1,
+                                      short *pt2,
+                                      unsigned int turn);
 
 #endif

@@ -187,5 +187,6 @@ int aliPS_color_aln(const char *structure,
  *
  *  \deprecated This function is deprecated and will be removed soon! Use \ref PS_dot_plot_list() instead!
  */
-DEPRECATED(int PS_dot_plot(char *string, char *file));
+DEPRECATED(int PS_dot_plot( char *string,
+                            char *file));
 #endif

@@ -74,7 +74,9 @@ extern int rna_plot_type;
  *  \param  Y           a pointer to an array with enough allocated space to hold the y coordinates
  *  \return             length of sequence on success, 0 otherwise
  */
-int simple_xy_coordinates(short *pair_table, float *X, float *Y);
+int simple_xy_coordinates(short *pair_table,
+                          float *X,
+                          float *Y);
 
 /**
  *  \brief Calculate nucleotide coordinates for <i>Circular Plot</i>
@@ -96,7 +98,9 @@ int simple_xy_coordinates(short *pair_table, float *X, float *Y);
  *  \param  y           a pointer to an array with enough allocated space to hold the y coordinates
  *  \return             length of sequence on success, 0 otherwise
  */
-int simple_circplot_coordinates(short *pair_table, float *x, float *y);
+int simple_circplot_coordinates(short *pair_table,
+                                float *x,
+                                float *y);
 
 
 #endif

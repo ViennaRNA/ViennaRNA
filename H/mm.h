@@ -11,8 +11,11 @@
 
 unsigned int  maximumMatching(const char *string);
 
-unsigned int *maximumMatchingConstraint(const char *string, short *ptable);
+unsigned int *maximumMatchingConstraint(const char *string,
+                                        short *ptable);
 
-unsigned int *maximumMatching2Constraint(const char *string, short *ptable, short *ptable2);
+unsigned int *maximumMatching2Constraint( const char *string,
+                                          short *ptable,
+                                          short *ptable2);
 
 #endif

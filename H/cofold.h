@@ -30,7 +30,8 @@
  *  \param    structure Will hold the barcket dot structure of the dimer molecule
  *  \return   minimum free energy of the structure
  */
-float     cofold(const char *sequence, char *structure);
+float     cofold( const char *sequence,
+                  char *structure);
 
 /**
  *  \brief Free memory occupied by cofold()
@@ -62,7 +63,8 @@ SOLUTION  *zukersubopt(const char *string);
  *  \param e1 A pointer to a variable where the energy of molecule A will be written to
  *  \param e2 A pointer to a variable where the energy of molecule B will be written to
  */
-void get_monomere_mfes(float *e1, float *e2);
+void get_monomere_mfes( float *e1,
+                        float *e2);
 
 /**
  *  \brief Export the arrays of partition function cofold

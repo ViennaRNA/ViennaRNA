@@ -9,6 +9,8 @@
 /**
  *
  */
-int naview_xy_coordinates(short *pair_table, float *X, float *Y);
+int naview_xy_coordinates(short *pair_table,
+                          float *X,
+                          float *Y);
 
 #endif

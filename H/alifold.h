@@ -54,7 +54,8 @@ void update_alifold_params(void);
  *                    (will be overwritten by a consensus structure that exhibits the MFE)
  *  \return           The free energy score in kcal/mol
  */
-float  alifold(const char **strings, char *structure);
+float  alifold( const char **strings,
+                char *structure);
 
 
 /**
@@ -65,7 +66,8 @@ float  alifold(const char **strings, char *structure);
  *                    (will be overwritten by a consensus structure that exhibits the MFE)
  *  \return           The free energy score in kcal/mol
  */
-float  circalifold(const char **strings, char *structure);
+float  circalifold( const char **strings,
+                    char *structure);
 
 /**
  *  \brief Free the memory occupied by MFE alifold functions
@@ -81,7 +83,10 @@ void    free_alifold_arrays(void);
  *  \param mini
  *  \return       The mean pairwise identity
  */
-int get_mpi(char *Alseq[], int n_seq, int length, int *mini);
+int get_mpi(char *Alseq[],
+            int n_seq,
+            int length,
+            int *mini);
 
 /**
  *  \brief Read a ribosum or other user-defined scoring matrix
@@ -99,7 +104,10 @@ float   **readribosum(char *name);
  *  \returns free energy in kcal/mol
  * 
  */
-float   energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy);
+float   energy_of_alistruct(const char **sequences,
+                            const char *structure,
+                            int n_seq,
+                            float *energy);
 
 /*
 #############################################################
@@ -120,7 +128,13 @@ float   energy_of_alistruct(const char **sequences, const char *structure, int n
  *  \param as
  *  \param circ    assume the molecules to be circular instead of linear (circ=0)
  */
-void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, char *ss, unsigned short *as, int circ);
+void encode_ali_sequence( const char *sequence,
+                          short *S,
+                          short *s5,
+                          short *s3,
+                          char *ss,
+                          unsigned short *as,
+                          int circ);
 
 /**
  *  \brief Allocate memory for sequence array used to deal with aligned sequences
@@ -137,7 +151,13 @@ void encode_ali_sequence(const char *sequence, short *S, short *s5, short *s3, c
  *  \param Ss         A pointer to the array that contains the ungapped sequence
  *  \param circ       assume the molecules to be circular instead of linear (circ=0)
  */
-void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ);
+void  alloc_sequence_arrays(const char **sequences,
+                            short ***S,
+                            short ***S5,
+                            short ***S3,
+                            unsigned short ***a2s,
+                            char ***Ss,
+                            int circ);
 
 /**
  *  \brief Free the memory of the sequence arrays used to deal with aligned sequences
@@ -153,7 +173,12 @@ void  alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, sho
  *  \param a2s        A pointer to the array that contains the alignment to sequence position mapping
  *  \param Ss         A pointer to the array that contains the ungapped sequence
  */
-void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss);
+void  free_sequence_arrays( unsigned int n_seq,
+                            short ***S,
+                            short ***S5,
+                            short ***S3,
+                            unsigned short ***a2s,
+                            char ***Ss);
 
 /*
 #############################################################
@@ -175,7 +200,9 @@ void  free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, short **
  *  \param pl
  *  \return
  */
-float alipf_fold(const char **sequences, char *structure, plist **pl);
+float alipf_fold( const char **sequences,
+                  char *structure,
+                  plist **pl);
 
 /**
  *  \brief
@@ -185,7 +212,9 @@ float alipf_fold(const char **sequences, char *structure, plist **pl);
  *  \param pl
  *  \return
  */
-float alipf_circ_fold(const char **sequences, char *structure, plist **pl);
+float alipf_circ_fold(const char **sequences,
+                      char *structure,
+                      plist **pl);
 
 /**
  *  \brief

@@ -17,7 +17,8 @@
  *  This is like a Needleman-Wunsch alignment,
  *  we should really use affine gap-costs ala Gotoh
  */
-float profile_edit_distance(const float *T1, const float *T2);
+float profile_edit_distance(const float *T1,
+                            const float *T2);
 
 /**
  *  \note This function is NOT threadsafe
@@ -39,7 +40,8 @@ DEPRECATED(float *Make_bp_profile(int length));
  *  \param length The length of the sequence
  *  \returns      The bp profile
  */
-float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length);
+float *Make_bp_profile_bppm(FLT_OR_DBL *bppm,
+                            int length);
 
 /**
  *  \brief print string representation of probability profile

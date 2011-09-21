@@ -8,7 +8,15 @@
  *  \brief Compute direct refolding paths between two secondary structures
  */
 
-int     find_saddle (char *seq, char *struc1, char *struc2, int max);
-path_t* get_path(char *seq, char *s1, char* s2, int maxkeep);
+int     find_saddle(char *seq,
+                    char *struc1,
+                    char *struc2,
+                    int max);
+
+
+path_t* get_path( char *seq,
+                  char *s1,
+                  char* s2,
+                  int maxkeep);
 
 #endif
