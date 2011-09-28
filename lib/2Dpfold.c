@@ -2547,10 +2547,15 @@ PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigne
   FLT_OR_DBL      r, qt, *scale, ***Q, ***Q_B, *Q_rem, *Q_B_rem;
   pf_paramT       *pf_params;
 
-  if(vars->circ) return TwoDpfold_pbacktrack_circ(vars, d1, d2);
+  n               = vars->seq_length;
+
+  if(vars->circ){
+    if(n != length)
+      nrerror("pbacktrack@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
+    return TwoDpfold_pbacktrack_circ(vars, d1, d2);
+  }
 
   pf_params       = vars->pf_params;
-  n               = vars->seq_length;
   maxD1           = vars->maxD1;
   maxD2           = vars->maxD2;
   my_iindx        = vars->my_iindx;
@@ -2615,13 +2620,24 @@ PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigne
 
     if(d1 == -1){
       qln_i = Q_rem[sn];
+
+      /* open chain ? */
+      if(   (maxD1 > referenceBPs1[sn])
+        &&  (maxD2 > referenceBPs2[sn])){
+        r = urn() * qln_i;
+        if(scale[length-start+1] > r)
+          return pstruc;
+      }
+
+      /* lets see if we find a base pair with i involved */
       for (i=start; i<length; i++) {
         r = urn() * qln_i;
-        
+
         qln_i1 = Q_rem[my_iindx[i+1] - length];
 
         da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - length];
         db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - length];
+
         for(cnt1 = k_min_values[my_iindx[i+1] - length];
             cnt1 <= k_max_values[my_iindx[i+1] - length];
             cnt1++)
@@ -2637,6 +2653,7 @@ PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigne
         qln_i = qln_i1;
       }
       if (i>=length) break; /* no more pairs */
+
       /* i is paired, find pairing partner j */
       r = urn() * (qln_i - qln_i1*scale[1]);
       for (qt=0, j=i+TURN+1; j<length; j++) {
@@ -2709,7 +2726,7 @@ PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigne
       ij = my_iindx[i]-j;
       type = ptype[ij];
       if (type) {
-        double qkl = exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
+        double qkl = exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
         if(Q_B_rem[ij] != 0.){
           qt += qkl * Q_B_rem[ij];
           if(qt >= r)
@@ -2737,7 +2754,7 @@ PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigne
 pbacktrack_ext_loop_early_escape_rem:
 
       if (j==length+1){
-        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
+        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop (rem)");
       }
 
       /* finally start backtracking the first exterior stem */
@@ -2751,15 +2768,27 @@ pbacktrack_ext_loop_early_escape_rem:
     else{
       qln_i = Q[sn][d1][d2/2];
 
+      /* open chain ? */
+      if(   (d1 == referenceBPs1[sn])
+        &&  (d2 == referenceBPs2[sn])){
+        r = urn() * qln_i;
+        if(scale[length-start+1] > r)
+          return pstruc;
+      }
+
       for (i=start; i<length; i++) {
         r = urn() * qln_i;
         da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - length];
         db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - length];
         qln_i1 = 0;
         if(d1 >= da && d2 >= db)
-          if((d1-da >= k_min_values[my_iindx[i+1] - length]) && (d1 - da <= k_max_values[my_iindx[i+1] - length]))
-            if((d2 - db >= l_min_values[my_iindx[i+1] - length][d1-da]) && (d2 - db <= l_max_values[my_iindx[i+1] - length][d1 - da]))
-              qln_i1 = Q[my_iindx[i+1] - length][d1-da][(d2-db)/2];
+          if(
+              (d1-da >= k_min_values[my_iindx[i+1] - length])
+           && (d1 - da <= k_max_values[my_iindx[i+1] - length]))
+            if(
+                  (d2 - db >= l_min_values[my_iindx[i+1] - length][d1 - da])
+              &&  (d2 - db <= l_max_values[my_iindx[i+1] - length][d1 - da]))
+              qln_i1 += Q[my_iindx[i+1] - length][d1-da][(d2-db)/2];
         if (r > qln_i1*scale[1])  break; /* i is paired */
         qln_i = qln_i1;
       }
@@ -2771,20 +2800,29 @@ pbacktrack_ext_loop_early_escape_rem:
 
       for (qt=0, j=i+1; j<length; j++) {
         int type;
-        type = ptype[my_iindx[i]-j];
+        ij = my_iindx[i]-j;
+        type = ptype[ij];
         if (type) {
           double qkl = 1.0;
-          ij = my_iindx[i]-j;
           qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], pf_params);
 
           da = referenceBPs1[sn] - referenceBPs1[ij] - referenceBPs1[my_iindx[j+1]-length];
           db = referenceBPs2[sn] - referenceBPs2[ij] - referenceBPs2[my_iindx[j+1]-length];
 
-          if((d1 >= da) && (d2 >= db) && Q_B[ij] && Q[my_iindx[j+1]-length])
-            for(cnt1 = k_min_values_b[ij]; cnt1 <= MIN2(k_max_values_b[ij], d1-da); cnt1++)
-              for(cnt2 = l_min_values_b[ij][cnt1]; cnt2 <= MIN2(l_max_values_b[ij][cnt1], d2-db); cnt2+=2)
-                if((d1-da-cnt1 >= k_min_values[my_iindx[j+1]-length]) && (d1-da-cnt1 <= k_max_values[my_iindx[j+1]-length]))
-                  if((d2-db-cnt2 >= l_min_values[my_iindx[j+1]-length][d1-da-cnt1]) && (d2 - db - cnt2 <= l_max_values[my_iindx[j+1]-length][d1-da-cnt1])){
+          if(   (d1 >= da)
+            &&  (d2 >= db)
+            &&  Q_B[ij]
+            &&  Q[my_iindx[j+1]-length])
+            for(cnt1 = k_min_values_b[ij];
+                cnt1 <= MIN2(k_max_values_b[ij], d1-da);
+                cnt1++)
+              for(cnt2 = l_min_values_b[ij][cnt1];
+                  cnt2 <= MIN2(l_max_values_b[ij][cnt1], d2-db);
+                  cnt2+=2)
+                if(   (d1-da-cnt1 >= k_min_values[my_iindx[j+1]-length])
+                  &&  (d1-da-cnt1 <= k_max_values[my_iindx[j+1]-length]))
+                  if(   (d2 - db - cnt2 >= l_min_values[my_iindx[j+1]-length][d1-da-cnt1]) 
+                    &&  (d2 - db - cnt2 <= l_max_values[my_iindx[j+1]-length][d1-da-cnt1])){
                     qt += qkl * Q_B[ij][cnt1][cnt2/2] * Q[my_iindx[j+1]-length][d1-da-cnt1][(d2-db-cnt2)/2];
                     if(qt >= r)
                       goto pbacktrack_ext_loop_early_escape;
@@ -2798,7 +2836,7 @@ pbacktrack_ext_loop_early_escape_rem:
       if (type) {
         double qkl = 1.0;
 
-        qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, pf_params);
+        qkl *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
 
         da = referenceBPs1[sn] - referenceBPs1[ij];
         db = referenceBPs2[sn] - referenceBPs2[ij];
