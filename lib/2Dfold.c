@@ -583,8 +583,8 @@ PRIVATE void initialize_TwoDfold_vars(TwoDfold_vars *vars){
 
 PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int distance2){
   unsigned int i, d1, d2;
-  unsigned int maxD1 = 0;
-  unsigned int maxD2 = 0;
+  unsigned int maxD1;
+  unsigned int maxD2;
   unsigned int mm;
   unsigned int length;
   TwoDfold_solution **output;
@@ -596,20 +596,29 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
   make_ptypes(vars);
 
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
+
   if(distance1 >= 0){
-    if((unsigned int)distance1 > vars->maxD1)
-      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
-    vars->maxD1 = (unsigned int)distance1;
+    if((unsigned int)distance1 > maxD1)
+      fprintf(stderr,
+              "limiting maximum basepair distance 1 to %u\n",
+              maxD1);
+    else
+      maxD1 = (unsigned int)distance1;
   }
 
   if(distance2 >= 0){
-    if((unsigned int)distance2 > vars->maxD2)
-      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
-    vars->maxD2 = (unsigned int)distance2;
+    if((unsigned int)distance2 > maxD2)
+      fprintf(stderr,
+              "limiting maximum basepair distance 2 to %u\n",
+              maxD2);
+    else
+      maxD2 = (unsigned int)distance2;
   }
 
-  maxD1 = vars->maxD1;
-  maxD2 = vars->maxD2;
+  vars->maxD1 = maxD1;
+  vars->maxD2 = maxD2;
   output = (TwoDfold_solution **)space((vars->maxD1+1) * sizeof(TwoDfold_solution *));
 
   mfe_linear(vars);
@@ -651,8 +660,8 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
 PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2){
   unsigned int  i, d1, d2;
-  unsigned int  maxD1 = 0;
-  unsigned int  maxD2 = 0;
+  unsigned int  maxD1;
+  unsigned int  maxD2;
   unsigned int  mm;
   unsigned int  length;
   unsigned int  counter = 0;
@@ -666,20 +675,29 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
 
   make_ptypes(vars);
 
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
+
   if(distance1 >= 0){
-    if((unsigned int)distance1 > vars->maxD1)
-      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
-    vars->maxD1 = (unsigned int)distance1;
+    if((unsigned int)distance1 > maxD1)
+      fprintf(stderr,
+              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+              maxD1);
+    else
+      maxD1 = (unsigned int)distance1;
   }
 
   if(distance2 >= 0){
-    if((unsigned int)distance2 > vars->maxD2)
-      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
-    vars->maxD2 = (unsigned int)distance2;
+    if((unsigned int)distance2 > maxD2)
+      fprintf(stderr,
+              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+              maxD2);
+    else
+      maxD2 = (unsigned int)distance2;
   }
 
-  maxD1 = vars->maxD1;
-  maxD2 = vars->maxD2;
+  vars->maxD1 = maxD1;
+  vars->maxD2 = maxD2;
   output = (TwoDfold_solution *)space((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
 
   mfe_linear(vars);

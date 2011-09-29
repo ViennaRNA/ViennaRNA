@@ -115,6 +115,7 @@ INLINE  PRIVATE void  prepareArray(
 
 PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *structure1, char *structure2, int circ){
   unsigned int    size, length;
+  int *index;
   TwoDpfold_vars  *vars;
 
   vars = (TwoDpfold_vars *)malloc(sizeof(TwoDpfold_vars));
@@ -146,11 +147,16 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
   vars->ptype         = space(sizeof(char) * size);
   vars->S             = NULL;
   vars->S1            = NULL;
+
+  vars->jindx         = get_indx(length);
+  vars->my_iindx      = get_iindx(length);
+  index               = vars->my_iindx;
+/*
   vars->maxD1         = 0;
   vars->maxD2         = 0;
-
-  vars->jindx      = get_indx(length);
-  vars->my_iindx   = get_iindx(length);
+*/
+  vars->maxD1        = vars->mm1[index[1]-length] + vars->referenceBPs1[index[1]-length];
+  vars->maxD2        = vars->mm2[index[1]-length] + vars->referenceBPs2[index[1]-length];
 
   /* allocate memory for the pf matrices and min-/max-index helper arrays */
   vars->Q                = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
@@ -789,28 +795,25 @@ TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int dista
   vars->S1  = encode_sequence(vars->sequence, 1);
   make_ptypes2(vars);
 
-  for(i=1; i<=(unsigned int)vars->reference_pt1[0]; i++)
-    if(i < (unsigned int)vars->reference_pt1[i]) maxD1++;
-  for(i=1; i<=(unsigned int)vars->reference_pt2[0]; i++)
-    if(i < (unsigned int)vars->reference_pt2[i]) maxD2++;
-  mm    = maximumMatching(vars->sequence);
-  maxD1 += mm;
-  maxD2 += mm;
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
 
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "limiting maximum basepair distance 1 to %u\n",
+              "TwoDpfoldList@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
-    maxD1 = (unsigned int)distance1;
+    else
+      maxD1 = (unsigned int)distance1;
   }
 
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "limiting maximum basepair distance 2 to %u\n",
+              "TwoDpfoldList@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
-    maxD2 = (unsigned int)distance2;
+    else
+      maxD2 = (unsigned int)distance2;
   }
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;

@@ -224,8 +224,6 @@ int main(int argc, char *argv[]){
     mfe_vars->do_backtrack = do_backtrack;
     TwoDfold_solution *mfe_s = TwoDfoldList(mfe_vars, maxDistance1, maxDistance2);
 
-    maxDistance1 = mfe_vars->maxD1;
-    maxDistance2 = mfe_vars->maxD2;
     if(!pf){
 #ifdef COUNT_STATES
       printf("k\tl\tn\tMFE\tMFE-structure\n");
@@ -245,6 +243,8 @@ int main(int argc, char *argv[]){
     }
 
     if(pf){
+      int maxD1 = (int) mfe_vars->maxD1;
+      int maxD2 = (int) mfe_vars->maxD2;
       float mmfe = INF;
       double Q;
       for(i = 0; mfe_s[i].k != INF; i++){
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]){
       destroy_TwoDfold_variables(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);
 
-      TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxDistance1, maxDistance2);
+      TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxD1, maxD2);
 
       Q = 0.;
       
