@@ -70,6 +70,12 @@ float  circalifold( const char **strings,
                     char *structure);
 
 /**
+ * \brief Get a pointer to the base pair probability array
+ */
+FLT_OR_DBL  *alipf_export_bppm(void);
+
+
+/**
  *  \brief Free the memory occupied by MFE alifold functions
  */
 void    free_alifold_arrays(void);

@@ -59,6 +59,7 @@ static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 PRIVATE FLT_OR_DBL      *expMLbase;
 PRIVATE FLT_OR_DBL      *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
 PRIVATE FLT_OR_DBL      *prml, *prm_l, *prm_l1, *q1k, *qln;
+PRIVATE FLT_OR_DBL      *probs;
 PRIVATE FLT_OR_DBL      *scale;
 PRIVATE short           *pscore;   /* precomputed array of covariance bonus/malus */
 /* some additional things for circfold  */
@@ -83,7 +84,7 @@ PRIVATE char            *pstruc;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1,\
-                          prml, prm_l, prm_l1, q1k, qln,\
+                          probs, prml, prm_l, prm_l1, q1k, qln,\
                           scale, pscore, circular,\
                           qo, qho, qio, qmo, qm2, jindx,\
                           S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc)
@@ -194,7 +195,8 @@ PUBLIC void free_alipf_arrays(void){
   if(iindx)     free(iindx);
   if(jindx)     free(jindx);
 
-  q = pr = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = scale = NULL;
+  pr = NULL; /* ? */
+  q = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = scale = NULL;
   iindx   = jindx = NULL;
   pscore  = NULL;
 
@@ -237,7 +239,17 @@ PUBLIC float alipf_fold(const char **sequences, char *structure, plist **pl)
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_backtrack) alipf_create_bppm(sequences, structure, pl);
+  if(do_backtrack){
+    alipf_create_bppm(sequences, structure, pl);
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "pr" vanish from within the package!
+    */
+    pr = probs;
+  }
+
+
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   return free_energy;
@@ -276,11 +288,26 @@ PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_backtrack) alipf_create_bppm(sequences, structure, pl);
+  if(do_backtrack){
+    alipf_create_bppm(sequences, structure, pl);
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "pr" vanish from within the package!
+    */
+    pr = probs;
+  }
+
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   return free_energy;
 }
+
+PUBLIC FLT_OR_DBL *alipf_export_bppm(void){
+  return probs;
+}
+
+
 
 PRIVATE void alipf_linear(const char **sequences, char *structure)
 {
@@ -454,16 +481,16 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
 
-  pr = q;     /* recycling */
+  probs = q;     /* recycling */
 
   /* 1. exterior pair i,j and initialization of pr array */
   if(circular){
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) probs[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
         if (qb[ij]>0.) {
-          pr[ij] =  exp(pscore[ij]/kTn)/qo;
+          probs[ij] =  exp(pscore[ij]/kTn)/qo;
 
           /* get pair types  */
           for (s=0; s<n_seq; s++) {
@@ -580,26 +607,26 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
             }
             tmp2 += qm[iindx[j+1]-k] * qm1[jindx[n]+k+1] * tmp3 * expMLbase[i-1] * pow(expMLclosing,n_seq);
           }
-          pr[ij] *= tmp2;
+          probs[ij] *= tmp2;
         }
-        else pr[ij] = 0;
+        else probs[ij] = 0;
       }  /* end for j=..*/
     }  /* end or i=...  */
   } /* end if(circular)  */
   else{
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) pr[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) probs[iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
         ij = iindx[i]-j;
         if (qb[ij]>0.){
-          pr[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[ij]/kTn);
+          probs[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[ij]/kTn);
           for (s=0; s<n_seq; s++) {
             int typ;
             typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
-            pr[ij] *= exp_E_ExtLoop(typ, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
+            probs[ij] *= exp_E_ExtLoop(typ, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
           }
         } else
-          pr[ij] = 0;
+          probs[ij] = 0;
       }
     }
   } /* end if(!circular)  */
@@ -618,17 +645,17 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
       for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
         for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
           ij = iindx[i] - j;
-          if ((pr[ij]>0.)) {
+          if ((probs[ij]>0.)) {
             double qloop=1;
             for (s=0; s<n_seq; s++) {
               int typ;
               typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
               qloop *=  exp_E_IntLoop(a2s[s][k-1]-a2s[s][i], a2s[s][j-1]-a2s[s][l], typ, type[s], S3[s][i], S5[s][j], S5[s][k], S3[s][l], pf_params);
             }
-            pp += pr[ij]*qloop*scale[k-i + j-l];
+            pp += probs[ij]*qloop*scale[k-i + j-l];
           }
         }
-      pr[kl] += pp * exp(pscore[kl]/kTn);
+      probs[kl] += pp * exp(pscore[kl]/kTn);
     }
     /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
     prm_MLb = 0.;
@@ -638,7 +665,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 
       ii = iindx[i];     /* ii-j=[i,j]     */
       ll = iindx[l+1];   /* ll-j=[l+1,j-1] */
-      prmt1 = pr[ii-(l+1)];
+      prmt1 = probs[ii-(l+1)];
       for (s=0; s<n_seq; s++) {
         tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
         prmt1 *= exp_E_MLstem(tt, S5[s][l+1], S3[s][i], pf_params) * expMLclosing;
@@ -646,12 +673,12 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 
       for (j=l+2; j<=n; j++) {
         double pp=1;
-        if (pr[ii-j]==0) continue;
+        if (probs[ii-j]==0) continue;
         for (s=0; s<n_seq; s++) {
           tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
           pp *=  exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params)*expMLclosing;
         }
-        prmt +=  pr[ii-j]*pp*qm[ll-(j-1)];
+        prmt +=  probs[ii-j]*pp*qm[ll-(j-1)];
       }
       kl = iindx[k]-l;
 
@@ -675,18 +702,18 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
         tt=pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
         temp *= exp_E_MLstem(tt, S5[s][k], S3[s][l], pf_params);
       }
-      pr[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
+      probs[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
 
 
 #ifndef LARGE_PF
-      if (pr[kl]>Qmax) {
-        Qmax = pr[kl];
+      if (probs[kl]>Qmax) {
+        Qmax = probs[kl];
         if (Qmax>FLT_MAX/10.)
-          fprintf(stderr, "%d %d %g %g\n", i,j,pr[kl],qb[kl]);
+          fprintf(stderr, "%d %d %g %g\n", i,j,probs[kl],qb[kl]);
       }
-      if (pr[kl]>FLT_MAX) {
+      if (probs[kl]>FLT_MAX) {
         ov++;
-        pr[kl]=FLT_MAX;
+        probs[kl]=FLT_MAX;
       }
 #endif
     } /* end for (k=2..) */
@@ -697,15 +724,15 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
   for (i=1; i<=n; i++)
     for (j=i+TURN+1; j<=n; j++) {
       ij = iindx[i]-j;
-      pr[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
+      probs[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
     }
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    assign_plist_from_pr(pl, pr, n, /*cut_off:*/ 0.000001);
+    assign_plist_from_pr(pl, probs, n, /*cut_off:*/ 0.000001);
 
   if (structure!=NULL)
-    bppm_to_structure(structure, pr, n);
+    bppm_to_structure(structure, probs, n);
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
@@ -765,14 +792,14 @@ pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq) {
   duck =  (double *) space((n+1)*sizeof(double));
   for (i=1; i<n; i++)
     for (j=i+TURN+1; j<=n; j++)
-      if ((p=pr[iindx[i]-j])>0) {
+      if ((p=probs[iindx[i]-j])>0) {
         duck[i] -=  p * log(p);
         duck[j] -=  p * log(p);
       }
 
   for (i=1; i<n; i++)
     for (j=i+TURN+1; j<=n; j++) {
-      if ((p=pr[iindx[i]-j])>=PMIN) {
+      if ((p=probs[iindx[i]-j])>=PMIN) {
         int type, s;
         pi[num_p].i = i;
         pi[num_p].j = j;
