@@ -311,11 +311,14 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
     *  This block may be removed if deprecated functions
     *  relying on the global variable "pr" vanish from within the package!
     */
+    pr = probs;
+    /*
     {
       if(pr) free(pr);
       pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
+    */
   }
   return X;
 }

@@ -240,11 +240,14 @@ float circfold(const char *string, char *structure) {
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanishs from within the package!
   */
+  base_pair = base_pair2;
+  /*
   {
     if(base_pair) free(base_pair);
     base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
     memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
   }
+  */
 
   /* check constraints */
   for(i=1;i<=length;i++) {

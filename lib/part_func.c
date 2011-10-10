@@ -101,6 +101,7 @@ PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
 PRIVATE int         *jindx;
 PRIVATE int         init_length = -1;  /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
+PRIVATE int         bt = 1; /* do backtracking per default */
 PRIVATE char        *pstruc;
 PRIVATE char        *sequence;
 PRIVATE char        *ptype;       /* precomputed array of pair types */
@@ -117,7 +118,7 @@ PRIVATE short       *S, *S1;
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1)
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, bt)
 
 #endif
 
@@ -182,7 +183,7 @@ PRIVATE void get_arrays(unsigned int length){
   qm    = (FLT_OR_DBL *) space(size);
   qm1   = (st_back || circular) ? (FLT_OR_DBL *) space(size) : NULL;
   qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
-  probs = (FLT_OR_DBL *) space(size);
+  probs = (bt) ? (FLT_OR_DBL *) space(size) : NULL;
 
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
   q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
@@ -227,7 +228,6 @@ PUBLIC void free_pf_arrays(void){
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
-  if(pr)        free(pr);
 
   S = S1 = NULL;
   q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
@@ -253,6 +253,7 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   int         n = (int) strlen(sequence);
 
   circular = 0;
+  bt = do_backtrack;
 
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
@@ -282,18 +283,21 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(do_backtrack){
+  if(bt){
     pf_create_bppm(sequence, structure);
     /*
     *  Backward compatibility:
     *  This block may be removed if deprecated functions
     *  relying on the global variable "pr" vanish from within the package!
     */
-    {
+    pr = probs;
+    /*
+     {
       if(pr) free(pr);
       pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
+    */
   }
   return free_energy;
 }
@@ -306,6 +310,8 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
   int n = (int) strlen(sequence);
 
   circular = 1;
+  bt = do_backtrack;
+
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc(n);
@@ -344,11 +350,14 @@ PUBLIC float pf_circ_fold(const char *sequence, char *structure){
     *  This block may be removed if deprecated functions
     *  relying on the global variable "pr" vanish from within the package!
     */
+    pr = probs;
+    /*
     {
       if(pr) free(pr);
       pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
+    */
   }
   return free_energy;
 }
@@ -796,7 +805,7 @@ PUBLIC char bppm_symbol(const float *x){
   return ':';
 }
 
-PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length){
+PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int length){
   int    i, j;
   int   *iindx = get_iindx(length);
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
@@ -805,12 +814,12 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int leng
     P[0] = 1.0;
     P[1] = P[2] = 0.0;
     for( i=1; i<j; i++) {
-      P[2] += pr[iindx[i]-j];    /* j is paired downstream */
-      P[0] -= pr[iindx[i]-j];    /* j is unpaired */
+      P[2] += p[iindx[i]-j];    /* j is paired downstream */
+      P[0] -= p[iindx[i]-j];    /* j is unpaired */
     }
     for( i=j+1; i<=length; i++ ) {
-      P[1] += pr[iindx[j]-i];    /* j is paired upstream */
-      P[0] -= pr[iindx[j]-i];    /* j is unpaired */
+      P[1] += p[iindx[j]-i];    /* j is paired upstream */
+      P[0] -= p[iindx[j]-i];    /* j is unpaired */
     }
     structure[j-1] = bppm_symbol(P);
   }
@@ -1191,19 +1200,23 @@ PUBLIC char *get_centroid_struct_pr(int length, double *dist, FLT_OR_DBL *probs)
 PUBLIC plist *stackProb(double cutoff){
   plist *pl;
   int i,j,plsize=256;
-  int length, num = 0;
-  if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before stackProb()");
+  int num = 0;
+
+  if (probs==NULL)
+    nrerror("probs==NULL. You need to call pf_fold() before stackProb()");
+
+  int length    = S[0];
+  int *my_iindx = get_iindx(length);
 
   pl = (plist *) space(plsize*sizeof(plist));
-  length = S[0];
+
   for (i=1; i<length; i++)
     for (j=i+TURN+3; j<=length; j++) {
       double p;
-      if ((p=pr[iindx[i]-j])<cutoff) continue;
-      if (qb[iindx[i+1]-(j-1)]<FLT_MIN) continue;
-      p *= qb[iindx[i+1]-(j-1)]/qb[iindx[i]-j];
-      p *= exp_E_IntLoop(0,0,ptype[iindx[i]-j],rtype[ptype[iindx[i+1]-(j-1)]],
+      if((p=probs[my_iindx[i]-j]) < cutoff) continue;
+      if (qb[my_iindx[i+1]-(j-1)]<FLT_MIN) continue;
+      p *= qb[my_iindx[i+1]-(j-1)]/qb[my_iindx[i]-j];
+      p *= exp_E_IntLoop(0,0,ptype[my_iindx[i]-j],rtype[ptype[my_iindx[i+1]-(j-1)]],
                          0,0,0,0, pf_params)*scale[2];/* add *scale[u1+u2+2] */
       if (p>cutoff) {
         pl[num].i = i;
@@ -1216,6 +1229,7 @@ PUBLIC plist *stackProb(double cutoff){
       }
     }
   pl[num].i=0;
+  free(my_iindx);
   return pl;
 }
 
@@ -1233,7 +1247,7 @@ PUBLIC double mean_bp_distance(int length){
   return mean_bp_distance_pr(length, probs);
 }
 
-PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *pr){
+PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *p){
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
      this can be computed from the pair probs p_ij as
@@ -1242,12 +1256,12 @@ PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *pr){
   double d=0;
   int *my_iindx = get_iindx((unsigned int) length);
 
-  if (pr==NULL)
-    nrerror("pr==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+  if (p==NULL)
+    nrerror("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
 
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++)
-      d += pr[my_iindx[i]-j] * (1-pr[my_iindx[i]-j]);
+      d += p[my_iindx[i]-j] * (1-p[my_iindx[i]-j]);
 
   free(my_iindx);
   return 2*d;
@@ -1261,7 +1275,7 @@ PUBLIC FLT_OR_DBL *export_bppm(void){
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-/* this function is deprecated as it is not threadsafe */
+/* this function is deprecated since it is not threadsafe */
 PUBLIC char *centroid(int length, double *dist) {
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -1291,7 +1305,7 @@ PUBLIC char *centroid(int length, double *dist) {
 }
 
 
-/* This function is deprecated as it uses the global array pr for calculations */
+/* This function is deprecated since it uses the global array pr for calculations */
 PUBLIC double mean_bp_dist(int length) {
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)

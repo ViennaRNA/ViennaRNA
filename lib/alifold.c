@@ -171,6 +171,7 @@ PUBLIC  void  free_alifold_arrays(void){
   if(P)           free(P);
   indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   pscore      = NULL;
+  base_pair   = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
@@ -258,12 +259,14 @@ PUBLIC float alifold(const char **strings, char *structure){
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanishs from within the package!
   */
+  base_pair = base_pair2;
+  /*
   {
     if(base_pair) free(base_pair);
     base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
     memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
   }
-
+  */
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   if (backtrack_type=='C')

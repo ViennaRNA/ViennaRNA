@@ -21,16 +21,6 @@ float profile_edit_distance(const float *T1,
                             const float *T2);
 
 /**
- *  \note This function is NOT threadsafe
- * 
- *  \see Make_bp_profile_bppm()
- * 
- *  \deprecated This function is deprecated and will be removed soon! See \ref Make_bp_profile_bppm() for a replacement
- * 
- */
-DEPRECATED(float *Make_bp_profile(int length));
-
-/**
  *  \brief condense pair probability matrix into a vector containing probabilities
  *  for upstream paired, downstream paired and unpaired.
  * 
@@ -54,5 +44,15 @@ void  print_bppm(const float *T);
  *  Backward compatibility only. You can just use plain free()
  */
 void  free_profile(float *T);
+
+/**
+ *  \note This function is NOT threadsafe
+ * 
+ *  \see Make_bp_profile_bppm()
+ * 
+ *  \deprecated This function is deprecated and will be removed soon! See \ref Make_bp_profile_bppm() for a replacement
+ * 
+ */
+DEPRECATED(float *Make_bp_profile(int length));
 
 #endif

@@ -92,6 +92,7 @@ static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo 
 PRIVATE short       *S, *S1, *SS, *SS2;
 PRIVATE pf_paramT   *Pf = NULL;/* use this structure for all the exp-arrays*/
 PRIVATE FLT_OR_DBL  *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
+PRIVATE FLT_OR_DBL  *probs;
 PRIVATE FLT_OR_DBL  *q1k, *qln;
 PRIVATE double      *qqm2, *qq_1m2, *qqm, *qqm1;
 PRIVATE FLT_OR_DBL  *scale, *expMLbase;
@@ -106,19 +107,46 @@ PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE pu_out      *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_contrib);
-PRIVATE int         plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head);
+PRIVATE pu_out      *get_u_vals(pu_contrib *p_c,
+                                int **unpaired_values,
+                                char *select_contrib);
+
+PRIVATE int         plot_free_pu_out( pu_out* res,
+                                      interact *pint,
+                                      char *ofile,
+                                      char *head);
+
 PRIVATE void        scale_stru_pf_params(unsigned int length);
+
 PRIVATE void        init_pf_two(int length);
-PRIVATE void        scale_int(const char *s, const char *sl,double *sc_int);
-PRIVATE void        encode_seq(const char *s1, const char *s2);
-PRIVATE constrain   *get_ptypes(char *S, const char *structure);
+
+PRIVATE void        scale_int(const char *s,
+                              const char *sl,
+                              double *sc_int);
+
+PRIVATE void        encode_seq( const char *s1,
+                                const char *s2);
+
+PRIVATE constrain   *get_ptypes(char *S,
+                                const char *structure);
 
 PRIVATE void        get_up_arrays(unsigned int length);
+
 PRIVATE void        free_up_arrays(void);
-PRIVATE  void  set_encoded_seq(const char *sequence, short **S, short **S1);
 
+PRIVATE void        set_encoded_seq(const char *sequence,
+                                    short **S,
+                                    short **S1);
 
+PRIVATE void        get_interact_arrays(unsigned int n1,
+                                        unsigned int n2,
+                                        pu_contrib *p_c,
+                                        pu_contrib *p_c2,
+                                        int w,
+                                        int incr5,
+                                        int incr3,
+                                        double ***p_c_S,
+                                        double ***p_c2_S);
 
 /*
 #################################
@@ -197,8 +225,9 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       }
     }
 
+
   for (i=0; i<size; i++)
-    prpr[i]= pr[i];
+    prpr[i]= probs[i];
 
   sum_M[0] = 0.;
   for (i=1; i<=n; i++){
@@ -207,7 +236,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
     for (j=i+TURN+1; j<=n; j++){
       ij = iindx[i]-j;
       /* i need the part_func of all structures outside bp[ij] */
-      if(qb[ij] > 0.0) prpr[ij]= (pr[ij]/qb[ij]);
+      if(qb[ij] > 0.0) prpr[ij]= (probs[ij]/qb[ij]);
     }
   }
 
@@ -458,7 +487,16 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
 }
 
 
-PRIVATE void  get_interact_arrays(unsigned int n1, unsigned int n2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr5, int incr3, double ***p_c_S, double ***p_c2_S){
+PRIVATE void  get_interact_arrays(unsigned int n1,
+                                  unsigned int n2,
+                                  pu_contrib *p_c,
+                                  pu_contrib *p_c2,
+                                  int w,
+                                  int incr5,
+                                  int incr3,
+                                  double ***p_c_S,
+                                  double ***p_c2_S){
+
   unsigned int i;
   int pc_size, j;
   *p_c_S = (double **)space(sizeof(double *)*(n1+1));
@@ -481,17 +519,17 @@ PRIVATE void  get_interact_arrays(unsigned int n1, unsigned int n2, pu_contrib *
   }
 }
 
-PRIVATE void  free_interact_arrays(void){
-
-
-}
-
-
-
 /*------------------------------------------------------------------------*/
 /* s1 is the longer seq */
-PUBLIC interact *pf_interact(const char *s1, const char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, char *cstruc, int incr3, int incr5)
-{
+PUBLIC interact *pf_interact( const char *s1,
+                              const char *s2,
+                              pu_contrib *p_c,
+                              pu_contrib *p_c2,
+                              int w,
+                              char *cstruc,
+                              int incr3,
+                              int incr5){
+
   int         i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
   double      temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
   FLT_OR_DBL  ****qint_4, **qint_ik;
@@ -952,6 +990,8 @@ PRIVATE void init_pf_two(int length){
   /* gets the arrays, that we need, from part_func.c */
   if(!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln))
     nrerror("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
+  /* get a pointer to the base pair probs */
+  probs = export_bppm();
 
   scale_stru_pf_params((unsigned) length);
 

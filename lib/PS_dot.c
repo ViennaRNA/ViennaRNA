@@ -1201,48 +1201,6 @@ const char *RNAdp_prolog =
 "end\n"
 "%%EndProlog\n";
 
-int PS_dot_plot(char *string, char *wastlfile) {
-  /* this is just a wrapper to call PS_dot_plot_list */
-  int i, j, k, length, maxl, mf_num;
-  struct plist *pl;
-  struct plist *mf;
-
-  length = strlen(string);
-  maxl = 2*length;
-  pl = (struct plist *)space(maxl*sizeof(struct plist));
-  k=0;
-  /*make plist out of pr array*/
-  for (i=1; i<length; i++)
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<PMIN) continue;
-      if (k>=maxl-1) {
-        maxl *= 2;
-        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
-      }
-      pl[k].i = i;
-      pl[k].j = j;
-      pl[k++].p = pr[iindx[i]-j];
-    }
-  pl[k].i=0;
-  pl[k].j=0;
-  pl[k++].p=0.;
-  /*make plist out of base_pair array*/
-  mf_num = base_pair ? base_pair[0].i : 0;
-  mf = (struct plist *)space((mf_num+1)*sizeof(struct plist));
-  for (k=0; k<mf_num; k++) {
-    mf[k].i = base_pair[k+1].i;
-    mf[k].j = base_pair[k+1].j;
-    mf[k].p = 0.95*0.95;
-  }
-  mf[k].i=0;
-  mf[k].j=0;
-  mf[k].p=0.;
-  i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
-  free(mf);
-  free(pl);
-  return (i);
-}
-
 
 /*---------------------------------------------------------------------------*/
 int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
@@ -2034,5 +1992,51 @@ int aliPS_color_aln(const char *structure, const char *filename,
   
   return 0;
 
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+int PS_dot_plot(char *string, char *wastlfile) {
+  /* this is just a wrapper to call PS_dot_plot_list */
+  int i, j, k, length, maxl, mf_num;
+  struct plist *pl;
+  struct plist *mf;
+
+  length = strlen(string);
+  maxl = 2*length;
+  pl = (struct plist *)space(maxl*sizeof(struct plist));
+  k=0;
+  /*make plist out of pr array*/
+  for (i=1; i<length; i++)
+    for (j=i+1; j<=length; j++) {
+      if (pr[iindx[i]-j]<PMIN) continue;
+      if (k>=maxl-1) {
+        maxl *= 2;
+        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+      }
+      pl[k].i = i;
+      pl[k].j = j;
+      pl[k++].p = pr[iindx[i]-j];
+    }
+  pl[k].i=0;
+  pl[k].j=0;
+  pl[k++].p=0.;
+  /*make plist out of base_pair array*/
+  mf_num = base_pair ? base_pair[0].i : 0;
+  mf = (struct plist *)space((mf_num+1)*sizeof(struct plist));
+  for (k=0; k<mf_num; k++) {
+    mf[k].i = base_pair[k+1].i;
+    mf[k].j = base_pair[k+1].j;
+    mf[k].p = 0.95*0.95;
+  }
+  mf[k].i=0;
+  mf[k].j=0;
+  mf[k].p=0.;
+  i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
+  free(mf);
+  free(pl);
+  return (i);
 }
 

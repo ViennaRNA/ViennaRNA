@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
           if(doMEA){
             float mea, mea_en;
             plist *pl;
-            assign_plist_from_pr(&pl, pr, length, 1e-4/(1+MEAgamma));
+            assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
             mea = MEA(pl, structure, MEAgamma);
             mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
             printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
