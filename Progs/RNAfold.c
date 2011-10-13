@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
   int           doMEA=0, circular, lucky = 0;
-  double        MEAgamma = 1.;
+  double        MEAgamma = 1., bppmThreshold = 1e-5;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
@@ -91,6 +91,9 @@ int main(int argc, char *argv[]){
   if(args_info.circ_given)        circular=1;
   /* always look on the bright side of life */
   if(args_info.ImFeelingLucky_given)  lucky = pf = st_back = 1;
+  /* set the bppm threshold for the dotplot */
+  if(args_info.bppmThreshold_given)
+    bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* do not produce postscript output */
   if(args_info.noPS_given)        noPS=1;
   /* partition function settings */
@@ -275,10 +278,10 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
           FLT_OR_DBL *probs = export_bppm();
-          assign_plist_from_pr(&pl1, probs, length, 1e-5);
+          assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-          cent = get_centroid_struct_pr(length, &dist, pr);
+          cent = get_centroid_struct_pr(length, &dist, probs);
           cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);

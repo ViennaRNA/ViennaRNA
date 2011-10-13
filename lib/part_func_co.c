@@ -976,6 +976,10 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   return Concentration;
 }
 
+PUBLIC FLT_OR_DBL *export_co_bppm(void){
+  return probs;
+}
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/

@@ -729,7 +729,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    assign_plist_from_pr(pl, probs, n, /*cut_off:*/ 0.000001);
+    assign_plist_from_pr(pl, probs, n, /*cut_off:*/ 1e-6);
 
   if (structure!=NULL)
     bppm_to_structure(structure, probs, n);
@@ -1269,4 +1269,8 @@ PRIVATE void backtrack_qm1(int i,int j, int n_seq, double *prob) {
   if (l>j) nrerror("backtrack failed in qm1");
 
   backtrack(i,l, n_seq, prob);
+}
+
+PUBLIC FLT_OR_DBL *export_ali_bppm(void){
+  return probs;
 }

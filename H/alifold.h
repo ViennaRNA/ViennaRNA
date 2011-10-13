@@ -223,6 +223,17 @@ float alipf_circ_fold(const char **sequences,
                       plist **pl);
 
 /**
+ *  \brief Get a pointer to the base pair probability array
+ * 
+ *  Accessing the base pair probabilities for a pair (i,j) is achieved by
+ *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
+ * 
+ *  \see get_iindx()
+ *  \return A pointer to the base pair probability array
+ */
+FLT_OR_DBL *export_ali_bppm(void);
+
+/**
  *  \brief
  */
 void  free_alipf_arrays(void);

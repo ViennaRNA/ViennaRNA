@@ -28,6 +28,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
 
+PRIVATE double bppmThreshold;
+
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -69,6 +71,7 @@ int main(int argc, char *argv[])
   */
   dangles       = 2;
   sfact         = 1.07;
+  bppmThreshold = 1e-5;
   noconv        = 0;
   noPS          = 0;
   do_backtrack  = 1;
@@ -123,6 +126,9 @@ int main(int argc, char *argv[])
   if(args_info.all_pf_given)          doT = pf = 1;
   /* concentrations from stdin */
   if(args_info.concentrations_given)  doC = doT = pf = 1;
+  /* set the bppm threshold for the dotplot */
+  if(args_info.bppmThreshold_given)
+    bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
@@ -304,6 +310,7 @@ int main(int argc, char *argv[])
     /*compute partition function*/
     if (pf) {
       cofoldF AB, AA, BB;
+      FLT_OR_DBL *probs;
       if (dangles==1) {
         dangles=2;   /* recompute with dangles as in pf_fold() */
         min_en = energy_of_structure(rec_sequence, structure, 0);
@@ -340,7 +347,8 @@ int main(int argc, char *argv[])
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
 
-      assign_plist_from_pr(&prAB, pr, length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(&prAB, probs, length, bppmThreshold);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
@@ -553,6 +561,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
   double min_en;
   double sfact=1.07;
   double kT;
+  FLT_OR_DBL *probs;
   cofoldF X;
   kT = (temperature+273.15)*1.98717/1000.;
   switch (Switch)
@@ -567,8 +576,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       /*En=pf_fold(string, tempstruc);*/
       /* init_co_pf_fold(length); <- obsolete */
       X=co_pf_fold(string, tempstruc);
-
-      assign_plist_from_pr(tpr, pr, length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(tpr, probs, length, bppmThreshold);
       free_co_pf_arrays();
       free(tempstruc);
       break;
@@ -585,7 +594,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       free_co_arrays();
       /* init_co_pf_fold(2*length); <- obsolete */
       X=co_pf_fold(Newstring, tempstruc);
-      assign_plist_from_pr(tpr, pr, 2*length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(tpr, probs, 2*length, bppmThreshold);
       free_co_pf_arrays();
       free(Newstring);
       free(tempstruc);

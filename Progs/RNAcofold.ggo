@@ -115,6 +115,17 @@ typestr="scaling factor"
 optional
 hidden
 
+option  "bppmThreshold" -
+"Set the threshold for base pair probabilities included in the postscript output\n"
+details="By setting the threshold the base pair probabilities that are included in the\
+ output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
+double
+typestr="<value>"
+optional
+default="1e-5"
+hidden
+
 section "Model Details"
 
 option  "temp"  T
