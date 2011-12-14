@@ -33,6 +33,12 @@
 #include <omp.h>
 #endif
 
+#define WITH_GQUADS   1
+
+#if WITH_GQUADS
+#include "gquad.h"
+#endif
+
 #define PAREN
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
@@ -91,6 +97,7 @@ PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
 PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
+PRIVATE int     **gquads;
 
 #ifdef _OPENMP
 
@@ -103,8 +110,7 @@ PRIVATE int     struct_constrained  = 0;
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
                           Fc, FcH, FcI, FcM,\
-                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained)
-
+                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained, gquads)
 #endif
 
 /*
@@ -330,6 +336,11 @@ PUBLIC float fold_par(const char *string,
 
   BP  = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
+
+#if WITH_GQUADS
+  gquads = annotate_gquadruplexes(S);
+  exit(0);
+#endif
 
   energy = fill_arrays(string);
 
