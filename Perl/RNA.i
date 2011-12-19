@@ -2,6 +2,7 @@
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 %{
+#include  "../H/data_structures.h"
 #include  "../H/utils.h"
 #include  "../H/fold_vars.h"
 #undef fold
@@ -27,7 +28,6 @@
 #include  "../H/aln_util.h"
 #include  "../H/findpath.h"
 #include  "../H/Lfold.h"
-#include  "../H/data_structures.h"
 #include  "../H/read_epars.h"
 
 %}
@@ -154,9 +154,10 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
  void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double A0, double B0, double *AB, double *AA, double *BB, double *A, double *B) {
     ConcEnt *temp;
     double *concis;
-    concis = (double *)calloc(3,sizeof(double));
+    concis = (double *)calloc(4,sizeof(double));
     concis[0]=A0;
     concis[1]=B0;
+    concis[2]=0;
     temp=get_concentrations(FcAB,FcAA,FcBB,FEA,FEB,concis);
     *AB=temp->ABc;
     *AA=temp->AAc;

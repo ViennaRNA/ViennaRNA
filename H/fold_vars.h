@@ -154,7 +154,7 @@ extern bondT  *base_pair;
  * 
  *  \deprecated Do not use this variable anymore!
  */
-extern FLT_OR_DBL *pr;
+extern double *pr;
 
 /**
  *  \brief index array to move through pr.
