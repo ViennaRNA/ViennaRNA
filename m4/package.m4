@@ -57,7 +57,7 @@ AC_DEFUN([AC_RNA_ADD_PACKAGE],[
 # announce the option to include it in configure script
 AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
             [ifelse([$3], [yes],
-              [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [don't build | install $2])],
+              [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [do not build | install $2])],
               [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])], [build | install $2])])],
             [$4],
             [$5])
@@ -232,6 +232,7 @@ AM_CONDITIONAL(WITH_REFERENCE_MANUAL_HTML, test "x$with_doc_html" != xno)
 AC_DEFUN([AC_RNA_INIT],[
 
 SVM_VERSION=2.91
+with_pf_float=no
 
 dnl add packages to the configure process
 
@@ -301,6 +302,14 @@ ifelse([$PerlCmd], [],[
 
 
 AC_RNA_PACKAGE_IF_ENABLED([perl],[
+  ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
+  AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
+  bla=`${GREP} "^#define LARGE_PF" H/data_structures.h`
+  if test "x$bla" = "x";
+  then
+    with_pf_float=yes
+  fi
+  AC_MSG_RESULT([$with_pf_float])
   AC_CONFIG_SUBDIRS([Perl])
   AC_CONFIG_FILES([Perl/Makefile Perl/Makefile.PL])
 ])
@@ -323,7 +332,7 @@ AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
 ])
 
-
+AM_CONDITIONAL(WITH_LARGE_PF, test "$with_pf_float" != "yes")
 AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")

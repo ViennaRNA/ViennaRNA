@@ -27,7 +27,7 @@ char *RibosumFile = NULL; /* TODO: compile ribosums into program
 int  csv        = 0;     /*generate comma seperated output*/
 bondT  *base_pair;
 
-double *pr;          /* base pairing prob. matrix */
+FLT_OR_DBL *pr;          /* base pairing prob. matrix */
 int  *iindx;             /* pr[i,j] -> pr[iindx[i]-j] */
 double pf_scale=- 1;     /* scaling factor to avoid floating point overflows */
 int   fold_constrained = 0; /* fold with constraints */

@@ -43,6 +43,12 @@
 %array_functions(short, shortP);
 %include cdata.i
 
+#ifdef LARGE_PF
+#define FLT_OR_DBL  double
+#else
+#define FLT_OR_DBL  float
+#endif
+
 %constant double VERSION = 0.3;
 %include typemaps.i
 %include tmaps.i  // additional typemaps
