@@ -260,6 +260,7 @@ PUBLIC  dupVar  **PKLduplexfold_XS(const char *s1, int **access_s1, const int th
 
 PRIVATE void update_dfold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }

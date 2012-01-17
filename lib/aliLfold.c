@@ -118,6 +118,7 @@ PRIVATE void initialize_aliLfold(int length, int maxdist){
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   make_pair_matrix();
+  if(P) free(P);
   P = scale_parameters();
 }
 

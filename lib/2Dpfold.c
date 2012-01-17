@@ -2510,6 +2510,7 @@ PRIVATE void scale_pf_params2(TwoDpfold_vars *vars)
   unsigned int i;
   double  kT;
 
+  if(vars->pf_params) free(vars->pf_params);
   vars->pf_params = get_scaled_pf_parameters();
   vars->init_temp = vars->pf_params->temperature;
   vars->temperature = vars->init_temp;

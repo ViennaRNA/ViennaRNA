@@ -745,6 +745,7 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 {
   unsigned int i;
   double  kT, TT;
+  if(pf_params) free(pf_params);
   pf_params = get_scaled_alipf_parameters(n_seq);
 
   kT = pf_params->kT / n_seq;

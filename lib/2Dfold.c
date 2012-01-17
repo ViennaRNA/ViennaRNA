@@ -1840,6 +1840,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_TwoDfold_params(TwoDfold_vars *vars){
+  if(vars->P) free(vars->P);
   vars->P = scale_parameters();
   make_pair_matrix();
 }

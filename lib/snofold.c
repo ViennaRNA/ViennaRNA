@@ -1106,6 +1106,7 @@ PRIVATE void parenthesis_structure(char *structure, int length)
 
 PUBLIC void snoupdate_fold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

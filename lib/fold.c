@@ -1317,6 +1317,7 @@ PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
 
 PUBLIC void update_fold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

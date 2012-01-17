@@ -1118,6 +1118,7 @@ PRIVATE void free_end(int *array, int i, int start) {
 }
 
 PUBLIC void update_cofold_params(void){
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 /*  update_fold_params(); btw, why do we have to update fold params in fold.o ???? */

@@ -219,6 +219,7 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
 }
 
 PUBLIC void update_alifold_params(void){
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

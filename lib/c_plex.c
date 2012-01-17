@@ -142,7 +142,7 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **acces
     }
   }
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -354,7 +354,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
 
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
-    update_dfold_params();P = scale_parameters();
+    update_dfold_params(); if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
     
@@ -649,7 +649,7 @@ PRIVATE duplexT duplexfold_C(const char *s1, const char *s2, const int extension
   n4 = (int) strlen(s2);
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   previous_const=(int *) space(sizeof(int) * (n4+1));
@@ -1121,6 +1121,7 @@ PRIVATE void plot_max_C(const int max, const int max_pos, const int max_pos_j, c
 
 PRIVATE void update_dfold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }

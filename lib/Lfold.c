@@ -1047,6 +1047,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
 
 
 PRIVATE void update_fold_params(void){
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }

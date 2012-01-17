@@ -1078,6 +1078,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   /* Do this only at the first call for scale_pf_parameters()
      and/or if temperature has changed*/
   if(init_temp != temperature) {
+    if(Pf) free(Pf);
     Pf=get_scaled_pf_parameters();
   }
 
