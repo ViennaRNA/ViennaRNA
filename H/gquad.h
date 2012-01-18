@@ -13,6 +13,7 @@
 
 int **annotate_gquadruplexes(short  *S);
 
+int *get_gquad_matrix(short *S);
 
 
 #endif

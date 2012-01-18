@@ -97,7 +97,9 @@ PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
 PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
-PRIVATE int     **gquads;
+#if WITH_GQUADS
+PRIVATE int     *ggg;
+#endif
 
 #ifdef _OPENMP
 
@@ -110,7 +112,7 @@ PRIVATE int     **gquads;
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
                           Fc, FcH, FcI, FcM,\
-                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained, gquads)
+                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained, ggg)
 #endif
 
 /*
@@ -338,8 +340,7 @@ PUBLIC float fold_par(const char *string,
   make_ptypes(S, structure);
 
 #if WITH_GQUADS
-  gquads = annotate_gquadruplexes(S);
-  exit(0);
+  ggg = get_gquad_matrix(S);
 #endif
 
   energy = fill_arrays(string);
@@ -526,6 +527,47 @@ PRIVATE int fill_arrays(const char *string) {
           new_c = MIN2(new_c, decomp);
         }
 
+#if WITH_GQUADS
+        /* now we include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+        /* therefore we should think about a term reflecting the number of unpaired         */
+        /* nucleotides between the enclosing pair (i,j) and the g-quadruplex itself         */
+        if (!no_close) {
+          tt = rtype[type];
+          switch(dangles){
+            case 0:     energy = E_MLstem(tt, -1, -1, P); /* contribution from closing (i,j) */
+                        for(k = i + 1;
+                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
+                            k++){
+                          new_c = MIN2(new_c, energy + ggg[indx[j-1] + k]);
+                        }
+                        break;
+            case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P);
+                        for(k = i + 1;
+                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
+                            k++){
+                          new_c = MIN2(new_c, energy + ggg[indx[j-1] + k]);
+                        }
+                        break;
+           default:     {
+                          int constellation0 = E_MLstem(tt, -1, -1, P);
+                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P);
+                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P);
+                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P); 
+                          for(k = i + 1;
+                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
+                            k++){
+                            /* first case: no dangles contribute to the enclosing pair */
+                            new_c = MIN2(new_c, ggg[indx[j-1] + k] + constellation0);
+                            new_c = MIN2(new_c, ggg[indx[j-2] + k] + constellation1);
+                            new_c = MIN2(new_c, ggg[indx[j-1] + k + 1] + constellation2);
+                            new_c = MIN2(new_c, ggg[indx[j-2] + k + 2] + constellation3);
+                          }
+                        }
+                        break;
+          }
+        }
+#endif
+
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c + bonus;
         if (noLonelyPairs)
@@ -550,7 +592,9 @@ PRIVATE int fill_arrays(const char *string) {
                     break;
         }
       }
-
+#if WITH_GQUADS
+      new_fML = MIN2(new_fML, ggg[indx[j] + i]);
+#endif
 
       if (uniq_ML){
         fM1[ij] = MIN2(fM1[indx[j-1]+i] + P->MLbase, new_fML);
@@ -635,11 +679,17 @@ PRIVATE int fill_arrays(const char *string) {
     case 0:   for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
+#if WITH_GQUADS
+                  f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+#endif
                   type = ptype[indx[j]+i];
                   if(!type) continue;
                   en = c[indx[j]+i];
                   f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
                 }
+#if WITH_GQUADS
+                f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+#endif
                 type=ptype[indx[j]+1];
                 if(!type) continue;
                 en = c[indx[j]+1];
@@ -651,11 +701,17 @@ PRIVATE int fill_arrays(const char *string) {
     case 2:   for(j=TURN+2; j<length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
+#if WITH_GQUADS
+                  f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+#endif
                   type = ptype[indx[j]+i];
                   if(!type) continue;
                   en = c[indx[j]+i];
                   f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, S1[i-1], S1[j+1], P));
                 }
+#if WITH_GQUADS
+                f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+#endif
                 type=ptype[indx[j]+1];
                 if(!type) continue;
                 en = c[indx[j]+1];
@@ -663,6 +719,9 @@ PRIVATE int fill_arrays(const char *string) {
               }
               f5[length] = f5[length-1];
               for (i=length-TURN-1; i>1; i--){
+#if WITH_GQUADS
+                f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
+#endif
                 type = ptype[indx[length]+i];
                 if(!type) continue;
                 en = c[indx[length]+i];
@@ -672,12 +731,20 @@ PRIVATE int fill_arrays(const char *string) {
               if(!type) break;
               en = c[indx[length]+1];
               f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
+#if WITH_GQUADS
+              f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
+#endif
+
+
               break;
 
     /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
+#if WITH_GQUADS
+                  f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+#endif
                   type = ptype[indx[j]+i];
                   if(type){
                     en = c[indx[j]+i];
@@ -691,6 +758,9 @@ PRIVATE int fill_arrays(const char *string) {
                     f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], S1[j], P));
                   }
                 }
+#if WITH_GQUADS
+                f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+#endif
                 type = ptype[indx[j]+1];
                 if(type) f5[j] = MIN2(f5[j], c[indx[j]+1] + E_ExtLoop(type, -1, -1, P));
                 type = ptype[indx[j-1]+1];
