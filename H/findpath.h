@@ -19,4 +19,6 @@ path_t* get_path( char *seq,
                   char* s2,
                   int maxkeep);
 
+void    free_path(path_t *path);
+
 #endif

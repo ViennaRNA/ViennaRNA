@@ -124,7 +124,7 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
   strcpy(vars->sequence, seq);
   vars->seq_length    = length;
   if(vars->seq_length < 1) nrerror("get_TwoDfold_variables: sequence must be longer than 0");
-  size                        = ((length + 1) * (length + 2)/2);
+  size                = ((length + 1) * (length + 2)/2);
 
   vars->reference_pt1 = make_pair_table(structure1);
   vars->reference_pt2 = make_pair_table(structure2);
@@ -142,6 +142,7 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
   vars->temperature   = temperature;
   vars->init_temp     = temperature;
   vars->pf_scale      = pf_scale;
+  vars->pf_params     = NULL;
 
   vars->scale         = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   vars->ptype         = space(sizeof(char) * size);
@@ -251,6 +252,7 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars)
   vars->ptype        = space(sizeof(char) * size);
   vars->S            = NULL;
   vars->S1           = NULL;
+  vars->pf_params    = NULL;
   vars->maxD1        = mfe_vars->maxD1;
   vars->maxD2        = mfe_vars->maxD2;
 
@@ -761,6 +763,7 @@ PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
   if(vars->scale != NULL)      free(vars->scale);
 
   if(vars->S != NULL)          free(vars->S);
+  if(vars->pf_params != NULL)   free(vars->pf_params);
   if(vars->S1 != NULL)         free(vars->S1);
   if(vars->mm1 != NULL)           free(vars->mm1);
   if(vars->mm2 != NULL)           free(vars->mm2);
