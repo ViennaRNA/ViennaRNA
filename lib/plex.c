@@ -119,14 +119,14 @@ PRIVATE paramT *P = NULL;
 *** c -> stack;in -> interior loop;bx/by->bulge;inx/iny->1xn loops
 **/
 
-PRIVATE int   **c, **in, **bx, **by, **inx, **iny;      
+PRIVATE int   **c=NULL, **in=NULL, **bx=NULL, **by=NULL, **inx=NULL, **iny=NULL;      
 
 /**
 *** S1, SS1, ... contains the encoded sequence for target and query
 *** n1, n2, n3, n4 contains target and query length
 **/
 
-PRIVATE short  *S1, *SS1, *S2, *SS2;/*contains the sequences*/
+PRIVATE short  *S1=NULL, *SS1=NULL, *S2=NULL, *SS2=NULL;/*contains the sequences*/
 PRIVATE int   n1,n2;    /* sequence lengths */
 PRIVATE int n3, n4; /*sequence length for the duplex*/;
 

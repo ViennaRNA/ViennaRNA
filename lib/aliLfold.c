@@ -56,23 +56,23 @@ static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp 
 #################################
 */
 PRIVATE paramT          *P = NULL;
-PRIVATE int             **c;       /* energy array, given that i-j pair */
-PRIVATE int             *cc;      /* linear array for calculating canonical structures */
-PRIVATE int             *cc1;     /*   "     "        */
-PRIVATE int             *f3;      /* energy of 5' end */
-PRIVATE int             **fML;     /* multi-loop auxiliary energy array */
-PRIVATE int             *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int             *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int             **pscore; /* precomputed array of pair types */
+PRIVATE int             **c = NULL;       /* energy array, given that i-j pair */
+PRIVATE int             *cc = NULL;       /* linear array for calculating canonical structures */
+PRIVATE int             *cc1 = NULL;      /*   "     "        */
+PRIVATE int             *f3 = NULL;       /* energy of 5' end */
+PRIVATE int             **fML = NULL;     /* multi-loop auxiliary energy array */
+PRIVATE int             *Fmi = NULL;      /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int             *DMLi = NULL;     /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi1 = NULL;    /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi2 = NULL;    /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int             **pscore = NULL;  /* precomputed array of pair types */
 PRIVATE unsigned int    length;
-PRIVATE short           **S;
-PRIVATE short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss;
-PRIVATE unsigned short  **a2s;
-PRIVATE float           **dm;
+PRIVATE short           **S = NULL;
+PRIVATE short           **S5 = NULL;      /*S5[s][i] holds next base 5' of i in sequence s*/
+PRIVATE short           **S3 = NULL;      /*Sl[s][i] holds next base 3' of i in sequence s*/
+PRIVATE char            **Ss = NULL;
+PRIVATE unsigned short  **a2s = NULL;
+PRIVATE float           **dm = NULL;
 PRIVATE int             olddm[7][7]= {{0,0,0,0,0,0,0}, /* hamming distance between pairs PRIVATE needed??*/
                                       {0,0,2,2,1,2,2} /* CG */,
                                       {0,2,0,1,2,2,2} /* GC */,

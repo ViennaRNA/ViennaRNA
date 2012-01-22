@@ -97,17 +97,17 @@ double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE FLT_OR_DBL  *expMLbase;
-PRIVATE FLT_OR_DBL  *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln, *probs;
-PRIVATE FLT_OR_DBL  *scale;
-PRIVATE pf_paramT   *pf_params;
-PRIVATE char        *ptype; /* precomputed array of pair types */
-PRIVATE int         *jindx;
+PRIVATE FLT_OR_DBL  *expMLbase=NULL;
+PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL  *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL, *probs=NULL;
+PRIVATE FLT_OR_DBL  *scale=NULL;
+PRIVATE pf_paramT   *pf_params = NULL;
+PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
+PRIVATE int         *jindx=NULL;
 PRIVATE int         init_length; /* length in last call to init_pf_fold() */
-PRIVATE short       *S, *S1;
-PRIVATE char        *pstruc;
-PRIVATE char        *sequence;
+PRIVATE short       *S=NULL, *S1=NULL;
+PRIVATE char        *pstruc=NULL;
+PRIVATE char        *sequence=NULL;
 
 #ifdef _OPENMP
 

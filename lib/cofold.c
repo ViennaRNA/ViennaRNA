@@ -59,28 +59,28 @@ static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $
 #################################
 */
 
-PRIVATE float   mfe1, mfe2; /* minimum free energies of the monomers */
-PRIVATE int     *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int     *c;       /* energy array, given that i-j pair */
-PRIVATE int     *cc;      /* linear array for calculating canonical structures */
-PRIVATE int     *cc1;     /*   "     "        */
-PRIVATE int     *f5;      /* energy of 5' end */
-PRIVATE int     *fc;      /* energy from i to cutpoint (and vice versa if i>cut) */
-PRIVATE int     *fML;     /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1;     /* second ML array, only for subopt */
-PRIVATE int     *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int     *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char    *ptype;   /* precomputed array of pair types */
-PRIVATE short   *S, *S1;
+PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
+PRIVATE int     *indx   = NULL;   /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int     *c      = NULL;   /* energy array, given that i-j pair */
+PRIVATE int     *cc     = NULL;   /* linear array for calculating canonical structures */
+PRIVATE int     *cc1    = NULL;   /*   "     "        */
+PRIVATE int     *f5     = NULL;   /* energy of 5' end */
+PRIVATE int     *fc     = NULL;   /* energy from i to cutpoint (and vice versa if i>cut) */
+PRIVATE int     *fML    = NULL;   /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1    = NULL;   /* second ML array, only for subopt */
+PRIVATE int     *Fmi    = NULL;   /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int     *DMLi   = NULL;   /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi1  = NULL;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi2  = NULL;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE char    *ptype  = NULL;   /* precomputed array of pair types */
+PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
 PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
 PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
-PRIVATE bondT   *base_pair2;
+PRIVATE bondT   *base_pair2 = NULL;
 PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -1: | = base must be paired
                         -2: < = base must be paired with j<i

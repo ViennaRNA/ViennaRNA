@@ -57,22 +57,22 @@ static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.9 2007/09/04 09:20:12 ivo Exp $";
 #################################
 */
 PRIVATE paramT        *P = NULL;
-PRIVATE int           **c;        /* energy array, given that i-j pair */
-PRIVATE int           *cc;        /* linear array for calculating canonical structures */
-PRIVATE int           *cc1;       /*   "     "        */
-PRIVATE int           *f3;        /* energy of 5' end */
-PRIVATE int           **fML;      /* multi-loop auxiliary energy array */
-PRIVATE int           *Fmi;       /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int           *DMLi;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int           *DMLi1;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int           *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char          **ptype;    /* precomputed array of pair types */
-PRIVATE short         *S, *S1;
+PRIVATE int           **c = NULL;        /* energy array, given that i-j pair */
+PRIVATE int           *cc = NULL;        /* linear array for calculating canonical structures */
+PRIVATE int           *cc1 = NULL;       /*   "     "        */
+PRIVATE int           *f3 = NULL;        /* energy of 5' end */
+PRIVATE int           **fML = NULL;      /* multi-loop auxiliary energy array */
+PRIVATE int           *Fmi = NULL;       /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int           *DMLi = NULL;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int           *DMLi1 = NULL;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int           *DMLi2 = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE char          **ptype = NULL;    /* precomputed array of pair types */
+PRIVATE short         *S = NULL, *S1 = NULL;
 PRIVATE unsigned int  length;
-PRIVATE char          *prev;
+PRIVATE char          *prev = NULL;
 #ifdef USE_SVM
-PRIVATE struct svm_model  *avg_model;
-PRIVATE struct svm_model  *sd_model;
+PRIVATE struct svm_model  *avg_model = NULL;
+PRIVATE struct svm_model  *sd_model = NULL;
 #endif
 
 #ifdef _OPENMP

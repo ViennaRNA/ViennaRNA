@@ -54,8 +54,8 @@ static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $"
 #################################
 */
 PRIVATE paramT  *P  = NULL;
-PRIVATE int     **c;                  /* energy array, given that i-j pair */
-PRIVATE short   *S1, *SS1, *S2, *SS2;
+PRIVATE int     **c = NULL;                  /* energy array, given that i-j pair */
+PRIVATE short   *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
 PRIVATE int     n1,n2;                /* sequence lengths */
 
 #ifdef _OPENMP

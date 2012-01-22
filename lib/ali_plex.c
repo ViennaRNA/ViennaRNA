@@ -104,8 +104,8 @@ extern double nc_fact;
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
 PRIVATE paramT *P = NULL;
-PRIVATE int   **c;
-PRIVATE int  **lc, **lin, **lbx, **lby,**linx, **liny;   
+PRIVATE int   **c = NULL;
+PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL,**linx = NULL, **liny = NULL;   
                                              
 
 

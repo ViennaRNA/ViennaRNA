@@ -107,17 +107,17 @@ PUBLIC  int snoop_subopt_sorted=0; /* from subopt.c, default 0 */
 #define ASS		1
 PRIVATE paramT *P = NULL;
 
-PRIVATE int   **c;      /* energy array, given that i-j pair */
-PRIVATE int   **r;
-PRIVATE int   **lc;      /* energy array, given that i-j pair */
-PRIVATE int   **lr;
-PRIVATE int   **c_fill;
-PRIVATE int   **r_fill;
-PRIVATE int **lpair;
+PRIVATE int   **c = NULL;      /* energy array, given that i-j pair */
+PRIVATE int   **r = NULL;
+PRIVATE int   **lc = NULL;      /* energy array, given that i-j pair */
+PRIVATE int   **lr = NULL;
+PRIVATE int   **c_fill = NULL;
+PRIVATE int   **r_fill = NULL;
+PRIVATE int   **lpair = NULL;
 
 
-PRIVATE short  *S1, *SS1, *S2, *SS2;
-PRIVATE short *S1_fill, *SS1_fill, *S2_fill, *SS2_fill;
+PRIVATE short  *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
+PRIVATE short *S1_fill = NULL, *SS1_fill = NULL, *S2_fill = NULL, *SS2_fill = NULL;
 PRIVATE int   n1,n2;    /* sequence lengths */
 
 extern int cut_point;

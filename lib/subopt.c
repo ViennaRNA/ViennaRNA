@@ -130,25 +130,25 @@ typedef struct {
 #################################
 */
 PRIVATE int     turn;
-PRIVATE LIST    *Stack;
+PRIVATE LIST    *Stack = NULL;
 PRIVATE int     nopush;
 PRIVATE int     best_energy;          /* best_energy = remaining energy */
-PRIVATE int     *f5;                  /* energy of 5 end */
-PRIVATE int     *c;                   /* energy array, given that i-j pair */
-PRIVATE int     *fML;                 /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1;                 /* another multi-loop auxiliary energy array */
-PRIVATE int     *fc;                  /*energy array, from i (j)  to cut*/
-PRIVATE int     *indx;                /* index for moving in the triangle matrices c[] and f[] */
-PRIVATE short   *S, *S1;
-PRIVATE char    *ptype;
-PRIVATE paramT  *P;
+PRIVATE int     *f5 = NULL;           /* energy of 5 end */
+PRIVATE int     *c = NULL;            /* energy array, given that i-j pair */
+PRIVATE int     *fML = NULL;          /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1 = NULL;          /* another multi-loop auxiliary energy array */
+PRIVATE int     *fc = NULL;           /*energy array, from i (j)  to cut*/
+PRIVATE int     *indx = NULL;         /* index for moving in the triangle matrices c[] and f[] */
+PRIVATE short   *S=NULL, *S1=NULL;
+PRIVATE char    *ptype=NULL;
+PRIVATE paramT  *P = NULL;
 PRIVATE int     length;
 PRIVATE int     minimal_energy;       /* minimum free energy */
 PRIVATE int     element_energy;       /* internal energy of a structural element */
 PRIVATE int     threshold;            /* minimal_energy + delta */
-PRIVATE char    *sequence;
+PRIVATE char    *sequence = NULL;
 PRIVATE int     circular;
-PRIVATE int     *fM2;                 /* energies of M2 */
+PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
 #ifdef _OPENMP
@@ -514,6 +514,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   make_pair_matrix();
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
+  if(P) free(P);
   P   = scale_parameters();
 
   /* Initialize ------------------------------------------------------------ */

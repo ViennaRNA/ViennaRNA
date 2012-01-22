@@ -92,9 +92,9 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2,const int **access
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 
 PRIVATE paramT *P = NULL;
-PRIVATE int   **c;//, **in, **bx, **by;      /* energy array used in duplexfold */
+PRIVATE int   **c = NULL;//, **in, **bx, **by;      /* energy array used in duplexfold */
 //PRIVATE int ****c_XS;
-PRIVATE int  **lc, **lin, **lbx, **lby, **linx, **liny;   /* energy array used in Lduplexfold
+PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL, **linx = NULL, **liny = NULL;   /* energy array used in Lduplexfold
 					     this arrays contains only 3 columns
 					     In this way I reduce my memory use and
 					     I can make most of my computation and 
@@ -109,7 +109,7 @@ PRIVATE int  **lc, **lin, **lbx, **lby, **linx, **liny;   /* energy array used i
 					    which extends till the last nucleotide of 
 					    the long sequence*/
 
-PRIVATE short  *S1, *SS1, *S2, *SS2;/*contains the sequences*/
+PRIVATE short  *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;/*contains the sequences*/
 PRIVATE int   n1,n2;    /* sequence lengths */
 PRIVATE int n3, n4; /*sequence length for the duplex*/;
 PRIVATE int delay_free=0;

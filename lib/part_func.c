@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2007-12-05 13:52:28 ronny> */
 /*
                   partiton function for RNA secondary structures
 
@@ -86,27 +85,27 @@ static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Ex
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC  int     st_back=0;
+PUBLIC  int         st_back = 0;
 
 /*
 #################################
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE FLT_OR_DBL  *q, *qb=NULL, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL  *probs, *prml, *prm_l, *prm_l1, *q1k, *qln;
-PRIVATE FLT_OR_DBL  *scale;
-PRIVATE FLT_OR_DBL  *expMLbase;
-PRIVATE FLT_OR_DBL  qo, qho, qio, qmo, *qm2;
-PRIVATE int         *jindx;
-PRIVATE int         init_length = -1;  /* length in last call to init_pf_fold() */
+PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL  *probs=NULL, *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
+PRIVATE FLT_OR_DBL  *scale=NULL;
+PRIVATE FLT_OR_DBL  *expMLbase=NULL;
+PRIVATE FLT_OR_DBL  qo=0., qho=0., qio=0., qmo=0., *qm2=NULL;
+PRIVATE int         *jindx=NULL;
+PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
-PRIVATE int         bt = 1; /* do backtracking per default */
-PRIVATE char        *pstruc;
-PRIVATE char        *sequence;
-PRIVATE char        *ptype;       /* precomputed array of pair types */
-PRIVATE pf_paramT   *pf_params;   /* the precomputed Boltzmann weights */
-PRIVATE short       *S, *S1;
+PRIVATE int         bt = 1;             /* do backtracking per default */
+PRIVATE char        *pstruc=NULL;
+PRIVATE char        *sequence=NULL;
+PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
+PRIVATE pf_paramT   *pf_params=NULL;    /* the precomputed Boltzmann weights */
+PRIVATE short       *S=NULL, *S1=NULL;
 
 #ifdef _OPENMP
 
