@@ -216,15 +216,20 @@ PUBLIC int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
     int saddleE;
     path_fwd = !path_fwd;
     if (maxl>max) maxl=max;
+    if(path) free(path);
     saddleE  = find_path_once(struc1, struc2, maxE, maxl);
     if (saddleE<maxE) {
       maxE = saddleE;
       if (bestpath) free(bestpath);
       bestpath = path;
+      path = NULL;
       dir = path_fwd;
     } else{
       free(path);path=NULL;
-    }tmp=struc1; struc1=struc2; struc2=tmp;
+    }
+    tmp=struc1;
+    struc1=struc2;
+    struc2=tmp;
     maxl *=2;
   } while (maxl<2*max);
 
