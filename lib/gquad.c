@@ -93,7 +93,7 @@ PRIVATE void print_gquad(int i, int n, int L, int l1, int l2, int l3){
 }
 
 PRIVATE int gquad_contribution(int L, int l1, int l2, int l3){
-  return -(4*L + l1 + l2 + l3);
+  return -(4*L + l1 + l2 + l3)*10;
 }
 
 PUBLIC int *get_gquad_matrix(short *S){
@@ -152,6 +152,7 @@ PUBLIC int *get_gquad_matrix(short *S){
     }
   }
 
+#if 0
   for(i=1;i<n;i++){
     for(j=i+(4*VRNA_GQUAD_MIN_STACK_SIZE-1)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH); j<=n;j++){
       /* lets extend the precomputed quad contributions by appending unpaired nucleotides */
@@ -159,6 +160,7 @@ PUBLIC int *get_gquad_matrix(short *S){
       /* shouldn't we also include constructions like i - ggg1 - ggg2 - j ??? */
     }
   }
+#endif
   free(my_index);
   free(gg);
   return data;

@@ -535,33 +535,45 @@ PRIVATE int fill_arrays(const char *string) {
           tt = rtype[type];
           switch(dangles){
             case 0:     energy = E_MLstem(tt, -1, -1, P); /* contribution from closing (i,j) */
-                        for(k = i + 1;
-                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
-                            k++){
-                          new_c = MIN2(new_c, energy + ggg[indx[j-1] + k]);
-                        }
+                        for(p = i + 1;
+                            p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1;
+                            p++)
+                          for(q = p+VRNA_GQUAD_MIN_BOX_SIZE;
+                              q < MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                              q++){
+                            int up = ((p-i-1)+(j-q-1))*P->MLbase;
+                            new_c = MIN2(new_c, energy + ggg[indx[q] + p] + up);
+                          }
                         break;
             case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P);
-                        for(k = i + 1;
-                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
-                            k++){
-                          new_c = MIN2(new_c, energy + ggg[indx[j-1] + k]);
-                        }
+                        for(p = i + 1;
+                            p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1;
+                            p++)
+                          for(q = p+VRNA_GQUAD_MIN_BOX_SIZE;
+                              q < MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                              q++){
+                            int up = ((p-i-1)+(j-q-1))*P->MLbase;
+                            new_c = MIN2(new_c, energy + ggg[indx[q] + p] + up);
+                          }
                         break;
            default:     {
                           int constellation0 = E_MLstem(tt, -1, -1, P);
-                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P);
-                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P);
-                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P); 
-                          for(k = i + 1;
-                            k < j - (4*VRNA_GQUAD_MIN_STACK_SIZE) - (3*VRNA_GQUAD_MIN_LINKER_LENGTH) + 1;
-                            k++){
-                            /* first case: no dangles contribute to the enclosing pair */
-                            new_c = MIN2(new_c, ggg[indx[j-1] + k] + constellation0);
-                            new_c = MIN2(new_c, ggg[indx[j-2] + k] + constellation1);
-                            new_c = MIN2(new_c, ggg[indx[j-1] + k + 1] + constellation2);
-                            new_c = MIN2(new_c, ggg[indx[j-2] + k + 2] + constellation3);
-                          }
+                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
+                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
+                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase; 
+                          for(p = i + 1;
+                            p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1;
+                            p++)
+                            for(q = p+VRNA_GQUAD_MIN_BOX_SIZE-1;
+                              q < MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                              q++){
+                              int up = ((p-i-1)+(j-q-1))*P->MLbase;
+                              /* first case: no dangles contribute to the enclosing pair */
+                              new_c = MIN2(new_c, ggg[indx[q] + p] + constellation0);
+                              new_c = MIN2(new_c, ggg[indx[q-1] + p] + constellation1);
+                              new_c = MIN2(new_c, ggg[indx[q] + p + 1] + constellation2);
+                              new_c = MIN2(new_c, ggg[indx[q-1] + p + 1] + constellation3);
+                            }
                         }
                         break;
           }
