@@ -17,5 +17,6 @@ int **annotate_gquadruplexes(short  *S);
 
 int *get_gquad_matrix(short *S);
 
+int gquad_contribution(int L, int l1, int l2, int l3);
 
 #endif
