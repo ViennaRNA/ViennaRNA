@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         }
       }
       if (line[0]=='>') {
-        if (sscanf(line,">%FILENAME_ID_LENGTHs", fname)!=0)
+        if (sscanf(line,">%" XSTR(FILENAME_ID_LENGTH) "s", fname)!=0)
           strcat(fname, "_dp.ps");
         if (taxa_list)
           printf("%d : %s\n", n+1, line+1);

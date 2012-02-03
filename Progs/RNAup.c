@@ -410,7 +410,7 @@ int main(int argc, char *argv[]){
 
     /* extract filename from fasta header if available */
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname1);
+      (void) sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname1);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }
@@ -455,7 +455,7 @@ int main(int argc, char *argv[]){
 
       /* extract filename from fasta header if available */
       while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-        (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname2);
+        (void) sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname2);
         printf(">%s\n", input_string); /* print fasta header if available */
         free(input_string);
       }
