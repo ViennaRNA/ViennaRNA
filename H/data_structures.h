@@ -186,8 +186,11 @@ typedef struct{
   double  expTripleC;
   double  expMultipleCA;
   double  expMultipleCB;
+  double  pf_scale;
   double  temperature;
+  double  alpha; /* used for scaling the thermodynamic temperature independently from the energy contributions */
   double  kT;
+  int     dangles;
 }  pf_paramT;
 
 

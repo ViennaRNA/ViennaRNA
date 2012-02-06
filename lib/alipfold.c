@@ -749,7 +749,6 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
   pf_params = get_scaled_alipf_parameters(n_seq);
 
   kT = pf_params->kT / n_seq;
-  kT = (temperature+K0)*GASCONST;
   TT = (pf_params->temperature+K0)/(Tmeasure);
 
   /* scaling factors (to avoid overflows) */

@@ -26,7 +26,9 @@
 #include "utils.h"
 #include "read_epars.h"
 #include "MEA.h"
+#include "params.h"
 #include "RNAfold_cmdl.h"
+
 
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
@@ -36,17 +38,21 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
   char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile=NULL;
-  char          *ns_bases=NULL, *c;
+  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
+  char          *ns_bases, *c;
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
-  int           doMEA=0, circular, lucky = 0;
-  double        MEAgamma = 1., bppmThreshold = 1e-5;
+  int           doMEA, circular, lucky;
+  double        MEAgamma, bppmThreshold, betaScale;
+  pf_paramT     *pf_parameters;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
   rec_rest      = NULL;
+  ParamFile     = NULL;
+  ns_bases      = NULL;
+  pf_parameters = NULL;
   do_backtrack  = 1;
   pf            = 0;
   sfact         = 1.07;
@@ -55,7 +61,12 @@ int main(int argc, char *argv[]){
   circular      = 0;
   fasta         = 0;
   cl            = l = length = 0;
-  dangles	= 2;
+  dangles       = 2;
+  MEAgamma      = 1.;
+  bppmThreshold = 1e-5;
+  lucky         = 0;
+  doMEA         = 0;
+  betaScale     = 1.;
 
   /*
   #############################################
@@ -94,6 +105,7 @@ int main(int argc, char *argv[]){
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
+  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
   /* do not produce postscript output */
   if(args_info.noPS_given)        noPS=1;
   /* partition function settings */
@@ -228,21 +240,23 @@ int main(int argc, char *argv[]){
     }
     if (length>2000) free_arrays();
     if (pf) {
-      char *pf_struc;
-      pf_struc = (char *) space((unsigned) length+1);
+      char *pf_struc = (char *) space((unsigned) length+1);
       if (dangles==1) {
           dangles=2;   /* recompute with dangles as in pf_fold() */
           min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
           dangles=1;
       }
 
-      kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+      /* */
+
+      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      energy = (circular) ? pf_circ_fold(rec_sequence, pf_struc) : pf_fold(rec_sequence, pf_struc);
+      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, pf_scale);
+      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, circular);
 
       if(lucky){
         init_rand();
@@ -319,6 +333,7 @@ int main(int argc, char *argv[]){
         printf("\n");
       }
       free_pf_arrays();
+      free(pf_parameters);
     }
     (void) fflush(stdout);
 

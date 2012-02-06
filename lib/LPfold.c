@@ -938,7 +938,7 @@ PRIVATE void putoutpU(double **pUx, int k, int ulength, FILE *fp) {
 PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int energies) {
   /*put out unpaireds */
   int i,k;
-  double kT= (temperature+K0)*GASCONST/1000.0;
+  double kT= pf_params->kT/1000.0;
   double temp;
   if (energies) fprintf(fp,"#opening energies\n #i$\tl=");
   else  fprintf(fp,"#unpaired probabilities\n #i$\tl=");
@@ -967,7 +967,7 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
 PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int energies) {
   /*put out unpaireds */
   int i,k;
-  double kT= (temperature+K0)*GASCONST/1000.0;
+  double kT= pf_params->kT/1000.0;
   double temp;
   int *p;
   p = (int*) space(sizeof(int)*1);

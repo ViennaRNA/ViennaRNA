@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2008-06-06 17:39:02 ulim> */
 /*
 
                   c Ivo Hofacker
@@ -340,20 +339,30 @@ PUBLIC pf_paramT *scale_pf_parameters(void)  {
   return &pf;
 }
 
-PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
-  /* scale energy parameters and pre-calculate Boltzmann weights */
-  unsigned int i, j, k, l;
-  double  kT, TT;
-  double  GT;
-  pf_paramT *pf = (pf_paramT *)space(sizeof(pf_paramT));
+PUBLIC pf_paramT *get_scaled_pf_parameters(void){
+  return get_boltzmann_factors(dangles, temperature, 1.0, pf_scale);
+}
 
+PUBLIC pf_paramT *get_boltzmann_factors(int dangle_model,
+                                        double temperature,
+                                        double alpha,
+                                        double pf_scale){
+  unsigned  int i, j, k, l;
+  double        kT, TT;
+  double        GT;
+  pf_paramT     *pf;
+
+  pf              = (pf_paramT *)space(sizeof(pf_paramT));
   pf->temperature = temperature;
-  pf->kT = kT = (pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
-  TT = (pf->temperature+K0)/(Tmeasure);
+  pf->dangles     = dangle_model;
+  pf->alpha       = alpha;
+  pf->kT = kT     = alpha*(pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  pf->pf_scale    = pf_scale;
+  TT              = (pf->temperature+K0)/(Tmeasure);
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
-  for (i=0; i<31; i++) {
-    GT =  hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
+  for (i=0; i<31; i++){
+    GT  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
     pf->exphairpin[i] = exp( -GT*10./kT);
   }
 
@@ -406,7 +415,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
   pf->expTermAU = exp(-GT*10./kT);
 
   GT = ML_BASEdH - (ML_BASEdH - ML_BASE37)*TT;
-  /* pf->expMLbase=(-10.*GT/kT); old */
+
   pf->expMLbase=exp(-10.*GT/kT);
 
 
@@ -415,7 +424,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
      but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
-      if (dangles) {
+      if (dangle_model) {
         GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
         pf->expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
         GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
@@ -441,7 +450,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-        if (dangles) {
+        if (dangle_model) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kT);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
@@ -453,7 +462,6 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void)  {
         GT = mismatch23IdH[i][j][k] - (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k])*TT;
         pf->expmismatch23I[i][j][k] = exp(-GT*10.0/kT);
       }
-
 
   /* interior lops of length 2 */
   for (i=0; i<=NBPAIRS; i++)
@@ -671,6 +679,14 @@ PUBLIC pf_paramT *copy_pf_param(void)   {
   return copy;
 }
 
+PUBLIC pf_paramT *get_boltzmann_factor_copy(pf_paramT *par){
+  pf_paramT *copy = NULL;
+  if(par){
+    copy = (pf_paramT *) space(sizeof(pf_paramT));
+    memcpy(copy, par, sizeof(pf_paramT));
+  }
+  return copy;
+}
 
 PUBLIC pf_paramT *set_pf_param(paramT *dest)  {
   memcpy(&pf, dest, sizeof(pf_paramT));

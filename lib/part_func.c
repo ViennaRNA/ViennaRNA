@@ -100,12 +100,15 @@ PRIVATE FLT_OR_DBL  qo=0., qho=0., qio=0., qmo=0., *qm2=NULL;
 PRIVATE int         *jindx=NULL;
 PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
-PRIVATE int         bt = 1;             /* do backtracking per default */
+PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params=NULL;    /* the precomputed Boltzmann weights */
 PRIVATE short       *S=NULL, *S1=NULL;
+
+PRIVATE double      alpha = 1.0;
+
 
 #ifdef _OPENMP
 
@@ -117,7 +120,8 @@ PRIVATE short       *S=NULL, *S1=NULL;
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, bt)
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha)
+
 
 #endif
 
@@ -126,8 +130,8 @@ PRIVATE short       *S=NULL, *S1=NULL;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  init_partfunc(int length);
-PRIVATE void  scale_pf_params(unsigned int length);
+PRIVATE void  init_partfunc(int length, pf_paramT *parameters);
+PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void  get_arrays(unsigned int length);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  pf_circ(const char *sequence, char *structure);
@@ -144,7 +148,7 @@ PRIVATE void  backtrack_qm2(int u, int n);
 #################################
 */
 
-PRIVATE void init_partfunc(int length){
+PRIVATE void init_partfunc(int length, pf_paramT *parameters){
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
 
 #ifdef _OPENMP
@@ -164,7 +168,7 @@ PRIVATE void init_partfunc(int length){
 #endif
   make_pair_matrix();
   get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
 
   init_length = length;
 }
@@ -182,7 +186,7 @@ PRIVATE void get_arrays(unsigned int length){
   qm    = (FLT_OR_DBL *) space(size);
   qm1   = (st_back || circular) ? (FLT_OR_DBL *) space(size) : NULL;
   qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
-  probs = (bt) ? (FLT_OR_DBL *) space(size) : NULL;
+  probs = (do_bppm) ? (FLT_OR_DBL *) space(size) : NULL;
 
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
   q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
@@ -246,20 +250,32 @@ PUBLIC void free_pf_arrays(void){
 
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(const char *sequence, char *structure){
+  return pf_fold_par(sequence, structure, NULL, do_backtrack, 0);
+}
+
+PUBLIC float pf_circ_fold(const char *sequence, char *structure){
+  return pf_fold_par(sequence, structure, NULL, do_backtrack, 1);
+}
+
+PUBLIC float pf_fold_par( const char *sequence,
+                          char *structure,
+                          pf_paramT *parameters,
+                          int calculate_bppm,
+                          int is_circular){
 
   FLT_OR_DBL  Q;
   double      free_energy;
   int         n = (int) strlen(sequence);
 
-  circular = 0;
-  bt = do_backtrack;
+  circular  = is_circular;
+  do_bppm   = calculate_bppm;
 
 #ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_partfunc(n);
+  init_partfunc(n, parameters);
 #else
-  if (n > init_length) init_partfunc(n);
-  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
+  if(parameters) init_partfunc(n, parameters);
+  else if (n > init_length) init_partfunc(n, parameters);
+  else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params_par(n, parameters);
 #endif
 
   S   = encode_sequence(sequence, 0);
@@ -270,19 +286,22 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
 
+  if(circular)
+    pf_circ(sequence, structure); /* do post processing step for circular RNAs */
 
   if (backtrack_type=='C')      Q = qb[iindx[1]-n];
   else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = q[iindx[1]-n];
+  else Q = (circular) ? qo : q[iindx[1]-n];
 
   /* ensemble free energy in Kcal/mol              */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
+  printf("%g\n", pf_params->kT);
+  free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(bt){
+  if(do_bppm){
     pf_create_bppm(sequence, structure);
     /*
     *  Backward compatibility:
@@ -292,66 +311,6 @@ PUBLIC float pf_fold(const char *sequence, char *structure){
     pr = probs;
     /*
      {
-      if(pr) free(pr);
-      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
-      memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
-    }
-    */
-  }
-  return free_energy;
-}
-
-PUBLIC float pf_circ_fold(const char *sequence, char *structure){
-
-  FLT_OR_DBL Q;
-
-  double free_energy;
-  int n = (int) strlen(sequence);
-
-  circular = 1;
-  bt = do_backtrack;
-
-#ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_partfunc(n);
-#else
-  if (n >init_length) init_partfunc(n);
-  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params(n);
-#endif
-
-  S   = encode_sequence(sequence, 0);
-  S1  = encode_sequence(sequence, 1);
-
-  make_ptypes(S, structure);
-
-  /* do the linear pf fold and fill all matrices  */
-  pf_linear(sequence, structure);
-
-  /* calculate post processing step for circular  */
-  /* RNAs                                          */
-  pf_circ(sequence, structure);
-
-  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = qo;
-
-  /* ensemble free energy in Kcal/mol              */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
-  /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
-
-  /* calculate base pairing probability matrix (bppm)  */
-  if(do_backtrack){
-    pf_create_bppm(sequence, structure);
-    /*
-    *  Backward compatibility:
-    *  This block may be removed if deprecated functions
-    *  relying on the global variable "pr" vanish from within the package!
-    */
-    pr = probs;
-    /*
-    {
       if(pr) free(pr);
       pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
@@ -738,53 +697,54 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
       bppm_to_structure(structure, probs, n);
     if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
-        ov, pf_scale);
+        ov, pf_params->pf_scale);
   } /* end if((S != NULL) && (S1 != NULL))  */
   else
     nrerror("bppm calculations have to be done after calling forward recursion\n");
   return;
 }
 
-PRIVATE void scale_pf_params(unsigned int length){
-  unsigned int i;
-  double  kT;
+PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
+  unsigned int  i;
+  double        kT, scaling_factor;
 
   if(pf_params) free(pf_params);
-  pf_params = get_scaled_pf_parameters();
 
+  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors(dangles, temperature, alpha, pf_scale);
+
+  scaling_factor = pf_params->pf_scale;
   kT = pf_params->kT;   /* kT in cal/mol  */
 
-   /* scaling factors (to avoid overflows) */
-  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
-    pf_scale = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
-    if (pf_scale<1) pf_scale=1;
+  /* scaling factors (to avoid overflows) */
+  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
+    if (scaling_factor<1) scaling_factor=1;
   }
   scale[0] = 1.;
-  scale[1] = 1./pf_scale;
+  scale[1] = 1./scaling_factor;
   expMLbase[0] = 1;
-  expMLbase[1] = pf_params->expMLbase/pf_scale;
+  expMLbase[1] = pf_params->expMLbase/scaling_factor;
   for (i=2; i<=length; i++) {
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
   }
 }
 
-/*----------------------------------------------------------------------*/
-
-
-/*----------------------------------------------------------------------*/
-
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_pf_params(int length){
+  update_pf_params_par(length, NULL);
+}
+
+PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
 #ifdef _OPENMP
   make_pair_matrix(); /* is this really necessary? */
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
 #else
-  if (length>init_length) init_partfunc(length);  /* init not update */
+  if (length>init_length) init_partfunc(length, parameters);  /* init not update */
   else {
     make_pair_matrix();
-    scale_pf_params((unsigned) length);
+    scale_pf_params((unsigned) length, parameters);
   }
 #endif
 }

@@ -64,8 +64,8 @@ extern  int st_back;
  *
  *  \see pf_circ_fold(), bppm_to_structure(), export_bppm()
  * 
- *  \param sequence   The RNA sequence to be computed
- *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+ *  \param sequence   The RNA sequence input
+ *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_fold(const char *sequence,
@@ -82,12 +82,18 @@ float   pf_fold(const char *sequence,
  *
  *  \see pf_fold()
  * 
- *  \param sequence   The RNA sequence to be computed
- *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+ *  \param sequence   The RNA sequence input
+ *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_circ_fold( const char *sequence,
                       char *structure);
+
+float   pf_fold_par(  const char *sequence,
+                      char *structure,
+                      pf_paramT *parameters,
+                      int calculate_bppm,
+                      int is_circular);
 
 /**
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
@@ -118,7 +124,16 @@ char    *pbacktrack(char *sequence);
 char    *pbacktrack_circ(char *sequence);
 
 /**
- *  \brief Free arrays from pf_fold()
+ *  \brief Free arrays for the partition function recursions
+ *
+ *  Call this function if you want to free all allocated memory associated with
+ *  the partition function forward recursion.
+ *  \note Successive calls of pf_fold(), pf_circ_fold() already check if they should free
+ *  any memory from a previous run.
+ *  \note <b>OpenMP notice:</b><br>
+ *  This function should be called before leaving a thread in order to avoid leaking memory
+ *  
+ *  \see pf_fold(), pf_circ_fold()
  */
 void  free_pf_arrays(void);
 
@@ -129,6 +144,8 @@ void  free_pf_arrays(void);
  *  after a change in folding parameters like #temperature
  */
 void  update_pf_params(int length);
+
+void update_pf_params_par(int length, pf_paramT *parameters);
 
 /**
  *  \brief Get a pointer to the base pair probability array
