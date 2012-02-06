@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([ViennaRNA],[2.0.1],[rna@tbi.univie.ac.at],[ViennaRNA])
+AC_INIT([ViennaRNA],[2.0.2],[rna@tbi.univie.ac.at],[ViennaRNA])
 
 AC_SUBST(VERSION)
 
