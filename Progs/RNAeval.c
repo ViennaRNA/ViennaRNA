@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname);
+      (void) sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname);
       free(input_string);
     }
 

@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
 
     if(input_type & VRNA_INPUT_FASTA_HEADER){
       fasta = 1;
-      (void) sscanf(input_string, ">%FILENAME_ID_LENGTHs", fname);
+      (void) sscanf(input_string, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
       if(!istty) printf("%s\n", input_string);
       free(input_string); input_string = NULL;
       input_type = get_multi_input_line(&input_string, VRNA_INPUT_FASTA_HEADER | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));
