@@ -295,7 +295,6 @@ PUBLIC float pf_fold_par( const char *sequence,
 
   /* ensemble free energy in Kcal/mol              */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  printf("%g\n", pf_params->kT);
   free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
