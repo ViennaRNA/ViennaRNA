@@ -47,7 +47,9 @@ PUBLIC int *get_gquad_matrix(short *S){
 
   /* first make the g-island annotation */
   int cnt = 0;
-  for(i=n-1; i >= 0; i--){
+  if(S[n]==3)
+    gg[n] = 1;
+  for(i=n-1; i > 0; i--){
     if(S[i] == 3) gg[i] = gg[i+1]+1;
   }
 
@@ -61,15 +63,15 @@ PUBLIC int *get_gquad_matrix(short *S){
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
         L--){
       for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
+          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
           l1++){
         if(gg[i+L+l1] >= L)
           for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
+              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
               l2++){
             if(gg[i + 2*L + l1 + l2] >= L){
               for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - l1 - l2 - 4*L);
+                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
                   l3++){
                 if(gg[i + 3*L + l1 + l2 + l3] >= L){
                   /* insert the quadruplex into the list */
@@ -106,7 +108,9 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix(short *S){
 
   /* first make the g-island annotation */
   int cnt = 0;
-  for(i=n-1; i >= 0; i--){
+  if(S[n]==3)
+    gg[n] = 1;
+  for(i=n-1; i > 0; i--){
     if(S[i] == 3) gg[i] = gg[i+1]+1;
   }
 
@@ -120,15 +124,15 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix(short *S){
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
         L--){
       for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
+          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
           l1++){
         if(gg[i+L+l1] >= L)
           for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
+              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
               l2++){
             if(gg[i + 2*L + l1 + l2] >= L){
               for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 < MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, n-i - l1 - l2 - 4*L);
+                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
                   l3++){
                 if(gg[i + 3*L + l1 + l2 + l3] >= L){
                   /* insert the quadruplex into the list */

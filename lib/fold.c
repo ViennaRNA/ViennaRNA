@@ -743,13 +743,13 @@ PRIVATE int fill_arrays(const char *string) {
                 en = c[indx[length]+i];
                 f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, S1[i-1], -1, P));
               }
+#if WITH_GQUADS
+              f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
+#endif
               type=ptype[indx[length]+1];
               if(!type) break;
               en = c[indx[length]+1];
               f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
-#if WITH_GQUADS
-              f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
-#endif
 
 
               break;
