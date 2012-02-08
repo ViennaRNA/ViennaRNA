@@ -13,10 +13,9 @@
 #define   VRNA_GQUAD_MIN_BOX_SIZE       (4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH)
 #define   VRNA_GQUAD_MAX_BOX_SIZE       (4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH)
 
-int **annotate_gquadruplexes(short  *S);
+int         gquad_contribution(int L, int l1, int l2, int l3);
 
-int *get_gquad_matrix(short *S);
-
-int gquad_contribution(int L, int l1, int l2, int l3);
+int         *get_gquad_matrix(short *S);
+FLT_OR_DBL  *get_gquad_pf_matrix(short *S);
 
 #endif

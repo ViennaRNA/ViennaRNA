@@ -192,7 +192,11 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_a = (int *) space(sizeof(int)*(size+1));
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
+#if WITH_GQUADS
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+500)); /* add a guess of how many G's may be involved in a G quadruplex */
+#else
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
+#endif
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
 }
@@ -384,6 +388,9 @@ PUBLIC float fold_par(const char *string,
       int l;
       bonus_cnt++;
       for(l=1; l<=base_pair2[0].i; l++)
+#if WITH_GQUADS
+        if(base_pair2[l].i != base_pair2[l].j)
+#endif
         if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
     }
   }
@@ -1287,7 +1294,6 @@ PRIVATE void backtrack(const char *string, int s) {
       of the g-quadruplex that should reside within position i,j
     */
     {
-      printf("searching for gquad in range [%d,%d]\n", i,j);
       int cnt1, cnt2, cnt3, cnt4, l1, l2, l3, L, size;
       size = j-i+1;
 
@@ -1308,7 +1314,6 @@ PRIVATE void backtrack(const char *string, int s) {
             /* check whether we find the second stretch of consecutive G's */
             for(cnt1 = 0; (cnt1 < L) && (S1[i+L+l1+cnt1] == 3); cnt1++);
             if(cnt1 < L) continue;
-
             for(    l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
                     (l2 <= VRNA_GQUAD_MAX_LINKER_LENGTH)
                 &&  (size - 4*L - VRNA_GQUAD_MIN_LINKER_LENGTH - l1 - l2 >= 0);
@@ -1324,12 +1329,20 @@ PRIVATE void backtrack(const char *string, int s) {
               l3 = size - 4*L - l1 - l2;
               if(l3 < VRNA_GQUAD_MIN_LINKER_LENGTH) break;
               if(l3 > VRNA_GQUAD_MAX_LINKER_LENGTH) continue;
-
               /* check for contribution */
               if(ggg[indx[j]+i] == gquad_contribution(L, l1, l2, l3)){
-                printf("possible configuration: L=%d, l1=%d, l2=%d, l3=%d\n", L, l1, l2, l3);
-                base_pair2[++b].i = p;
-                base_pair2[b].j   = q;
+                int a;
+                /* fill the G's of the quadruplex into base_pair2 */
+                for(a=0;a<L;a++){
+                  base_pair2[++b].i = i+a;
+                  base_pair2[b].j   = i+a;
+                  base_pair2[++b].i = i+L+l1+a;
+                  base_pair2[b].j   = i+L+l1+a;
+                  base_pair2[++b].i = i+L+l1+L+l2+a;
+                  base_pair2[b].j   = i+L+l1+L+l2+a;
+                  base_pair2[++b].i = i+L+l1+L+l2+L+l3+a;
+                  base_pair2[b].j   = i+L+l1+L+l2+L+l3+a;
+                }
                 goto repeat_gquad_exit;
               }
             }
@@ -1400,8 +1413,18 @@ PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
   structure[length] = '\0';
 
   for (k = 1; k <= bp[0].i; k++){
+
+#if WITH_GQUADS
+    /* Gquad bonds are marked as bp[i].i == bp[i].j */
+    if(bp[k].i == bp[k].j){
+      structure[bp[k].i-1] = '+';
+    } else {
+#endif
     structure[bp[k].i-1] = '(';
     structure[bp[k].j-1] = ')';
+#if WITH_GQUADS
+    }
+#endif
   }
 }
 
