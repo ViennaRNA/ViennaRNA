@@ -245,7 +245,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
   GT =  ML_closingdH - (ML_closingdH - ML_closing37)*TT;
   pf->expMLclosing = exp( -GT*10./kT);
 
-  for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
+  for (i=0; i<=NBPAIRS; i++) {
     GT =  ML_interndH - (ML_interndH - ML_intern37)*TT;
     /* if (i>2) GT += TerminalAU; */
     pf->expMLintern[i] = exp( -GT*10./kT);

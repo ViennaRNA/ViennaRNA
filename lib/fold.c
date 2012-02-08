@@ -542,8 +542,8 @@ PRIVATE int fill_arrays(const char *string) {
           tt = rtype[type];
           switch(dangles){
             case 0:     energy = E_MLstem(tt, -1, -1, P); /* contribution from closing (i,j) */
-                        for(p = i + 1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                          int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                        for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
                           for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                             int up = (l1 + j - q - 1)*P->MLbase;
@@ -552,8 +552,8 @@ PRIVATE int fill_arrays(const char *string) {
                         }
                         break;
             case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P);
-                        for(p = i + 1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                          int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                        for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
                           for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                             int up = (l1 + j - q - 1)*P->MLbase;
@@ -566,8 +566,8 @@ PRIVATE int fill_arrays(const char *string) {
                           int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
                           int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
                           int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase; 
-                          for(p = i + 1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                            int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                          for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                            int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                             int l1    = p - i - 1;
                             for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                               int up = (l1 + j - q - 1)*P->MLbase;
@@ -1128,8 +1128,8 @@ PRIVATE void backtrack(const char *string, int s) {
     */
     switch(dangles){
       case 0:   en = E_MLstem(tt, -1, -1, P);
-                for(p = i1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                  int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                   int l1    = p - i - 1;
                   for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
@@ -1143,8 +1143,8 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
       case 2:   en = E_MLstem(tt, S1[j-1], S1[i+1], P);
-                for(p = i1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                  int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                   int l1    = p-i-1;
                   for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
@@ -1162,8 +1162,8 @@ PRIVATE void backtrack(const char *string, int s) {
                   int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
                   int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
                   int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase; 
-                  for(p = i1; p < j - VRNA_GQUAD_MIN_BOX_SIZE + 1; p++){
-                    int maxq  = MIN2(j, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                  for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                     int l1    = p-i-1;
                     for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
                       int up = (l1+j-q-1)*P->MLbase;

@@ -133,6 +133,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix(short *S){
                 if(gg[i + 3*L + l1 + l2 + l3] >= L){
                   /* insert the quadruplex into the list */
                   j = i+4*L+l1+l2+l3-1;
+                  /* do we need scaling here? */
                   data[my_index[i]-j] += exp(-gquad_contribution(L, l1, l2, l3)*10./kT);
                 }
               }
