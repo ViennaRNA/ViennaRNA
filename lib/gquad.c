@@ -57,7 +57,7 @@ PUBLIC int *get_gquad_matrix(short *S){
 
   /* now find all quadruplexes */
   for(i = 1;
-      i < n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
+      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
       i++){
     for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
@@ -118,7 +118,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix(short *S){
 
   /* now find all quadruplexes */
   for(i = 1;
-      i < n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
+      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
       i++){
     for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
