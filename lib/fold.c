@@ -541,7 +541,7 @@ PRIVATE int fill_arrays(const char *string) {
         if (!no_close) {
           tt = rtype[type];
           switch(dangles){
-            case 0:     energy = E_MLstem(tt, -1, -1, P); /* contribution from closing (i,j) */
+            case 0:     energy = E_MLstem(tt, -1, -1, P) + P->MLclosing; /* contribution from closing (i,j) */
                         for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                           int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
@@ -551,7 +551,7 @@ PRIVATE int fill_arrays(const char *string) {
                           }
                         }
                         break;
-            case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P);
+            case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
                         for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                           int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
@@ -562,10 +562,10 @@ PRIVATE int fill_arrays(const char *string) {
                         }
                         break;
            default:     {
-                          int constellation0 = E_MLstem(tt, -1, -1, P);
-                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
-                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
-                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase; 
+                          int constellation0 = E_MLstem(tt, -1, -1, P) + P->MLclosing;
+                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + P->MLclosing;
+                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
+                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
                           for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                             int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                             int l1    = p - i - 1;
@@ -1127,7 +1127,7 @@ PRIVATE void backtrack(const char *string, int s) {
       that should then be decomposed further...
     */
     switch(dangles){
-      case 0:   en = E_MLstem(tt, -1, -1, P);
+      case 0:   en = E_MLstem(tt, -1, -1, P) + P->MLclosing;
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                   int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                   int l1    = p - i - 1;
@@ -1142,7 +1142,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                 }
                 break;
-      case 2:   en = E_MLstem(tt, S1[j-1], S1[i+1], P);
+      case 2:   en = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                   int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                   int l1    = p-i-1;
@@ -1158,10 +1158,10 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
       default:  {
-                  int constellation0 = E_MLstem(tt, -1, -1, P);
-                  int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
-                  int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
-                  int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase; 
+                  int constellation0 = E_MLstem(tt, -1, -1, P) + P->MLclosing;
+                  int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + P->MLclosing;
+                  int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
+                  int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
                   for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
                     int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                     int l1    = p-i-1;

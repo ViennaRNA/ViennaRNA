@@ -70,6 +70,7 @@
 #include "params.h"
 #include "loop_energies.h"
 #include "part_func.h"
+#include "gquad.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -89,7 +90,7 @@ PUBLIC  int         st_back = 0;
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL, *Gj=NULL, *Gj1=NULL, *G=NULL;
 PRIVATE FLT_OR_DBL  *probs=NULL, *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
 PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE FLT_OR_DBL  *expMLbase=NULL;
@@ -190,6 +191,8 @@ PRIVATE void get_arrays(unsigned int length){
   qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  Gj        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  Gj1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
   prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
@@ -215,6 +218,8 @@ PUBLIC void free_pf_arrays(void){
   if(ptype)     free(ptype);
   if(qq)        free(qq);
   if(qq1)       free(qq1);
+  if(Gj)        free(Gj);
+  if(Gj1)       free(Gj1);
   if(qqm)       free(qqm);
   if(qqm1)      free(qqm1);
   if(q1k)       free(q1k);
@@ -232,7 +237,7 @@ PUBLIC void free_pf_arrays(void){
   if(S1)        free(S1);
 
   S = S1 = NULL;
-  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = Gj = Gj1 = NULL;
   my_iindx = jindx = iindx = NULL;
   ptype = NULL;
 
@@ -354,6 +359,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
     qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
+    Gj[j-TURN]=Gj[j-TURN+2]=Gj[j-TURN+1]=Gj[j]=0;/*Gj brauch ma noch!*/
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
       /*firstly that given i binds j : qb(i,j) */
@@ -381,11 +387,20 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
         temp = 0.0;
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
+        /*THE BUCK STARTS HERE??*/
+        /*Gquart Multiloop without any other multiloopthingies*/
+        /*in the preliminary version: 3.5dimensional*/
+        /*        for (k=i+1; k<=j-8;k++) {*/
+        Gj[i]=Gj[i+1]*expMLbase[1];
+        for(k=i+8; k<j;k++){
+          Gj[i]+=G[iindx[i+1]-k];
+        }
+        temp+=Gj1[i+1]*expMLbase[2];
         tt = rtype[type];
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
         qb[ij] = qbt1;
       } /* end if (type!=0) */
-      else qb[ij] = 0.0;
+      else qb[ij] = G[ij];/*0.0 or G[ij]*/;
 
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
@@ -395,6 +410,8 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
+      /*include gquads into qqm*/
+      qqm[i] += G[iindx[i]-j];
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
 
       /*construction of qm matrix containing multiple loop
@@ -405,8 +422,15 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
-      qbt1 = qb[ij];
-      if(type)
+      if (type)      qbt1 = qb[ij];
+      else qbt1=0.0;
+      /*      entweder hier oder woanderst? ;)*/
+      /*scho wieder 3.5*/
+      /*      for(l=i+8; l<=MIN2(i+50,j-1);l++) {
+        qbt1+=G[iindx[i]-l];
+        }*/
+      qbt1+=G[ij];
+      if(qbt1>0.) /*??*/
         qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
 
       qq[i] = qq1[i]*scale[1] + qbt1;
@@ -429,6 +453,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
+    tmp = Gj1; Gj1=Gj; Gj=tmp;
   }
 }
 
@@ -614,7 +639,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
           type = ptype[ij];
-          if (type&&(qb[ij]>0.)) {
+          if ((qb[ij]>0.)) {
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
@@ -627,15 +652,17 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
-        kl = my_iindx[k]-l;
-        type_2 = ptype[kl]; type_2 = rtype[type_2];
+        kl = iindx[k]-l;
+        type_2 = ptype[kl]; 
+        if (type_2==0) continue;
+        type_2 = rtype[type_2];
         if (qb[kl]==0) continue;
 
         for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
           for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
             ij = my_iindx[i] - j;
             type = ptype[ij];
-            if ((probs[ij]>0)) {
+            if ((probs[ij]>0.)) {
               /* add *scale[u1+u2+2] */
               probs[kl] += probs[ij] * (scale[k-i+j-l] *
                         exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
@@ -670,14 +697,20 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
         prml[i] = prml[ i] + prm_l[i];
 
-        if (qb[kl] == 0.) continue;
+        if (qb[kl] == 0. && G[kl]==0) continue;
 
         temp = prm_MLb;
 
         for (i=1;i<=k-2; i++)
           temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
-
         temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+
+        /*like this?*/
+        if(G[kl]>0.){
+          for(i=1;i<k-1; i++){
+            temp += prm_l1[i]*expMLbase[k-i];/*ist das so?*/
+          }
+        }
         probs[kl]  += temp;
 
         if (probs[kl]>Qmax) {
@@ -700,8 +733,14 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
         probs[ij] *= qb[ij];
+        /*speed?*/
+        if(G[ij]>0.) {
+          /*          probs[ij] *= G[ij];*/
+          /*exterior*/
+          /*          probs[ij] += q1k[i-1]* qln[j+1]* G[ij];*/
+        }
       }
-
+    Gquadcomputeinnerprobability(S,  G, probs,scale);/**/
     if (structure!=NULL)
       bppm_to_structure(structure, probs, n);
     if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
@@ -769,6 +808,7 @@ PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC char bppm_symbol(const float *x){
+  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|';
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';
   if( x[2] > 0.667 )  return ')';
