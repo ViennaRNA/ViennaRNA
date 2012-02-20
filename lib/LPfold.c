@@ -56,6 +56,7 @@ PRIVATE FLT_OR_DBL  *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
 PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE char        **ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
+PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length = 0;  /* length in last call to init_pf_fold() */
 PRIVATE pf_paramT   *pf_params=NULL;
 PRIVATE short       *S=NULL, *S1=NULL;
@@ -71,7 +72,7 @@ PRIVATE int         pUoutput;
          e.g.:
          #pragma omp parallel for copyin(pf_params)
 */
-#pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, init_length, pf_params,\
+#pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, my_iindx, init_length, pf_params,\
                           expMLbase, q, qb, qm, qqm, qqm1, qq, qq1, pR, qm2, QI5, q2l, qmb,\
                           prml, prm_l, prm_l1, q1k, qln,\
                           S, S1, unpaired, ulength, pUoutput)
@@ -159,8 +160,8 @@ PRIVATE void get_arrays_L(unsigned int length){
     qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
     q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   }
-  iindx = get_iindx(length);
-  jindx = get_indx(length);
+  my_iindx  = get_iindx(length);
+  jindx     = get_indx(length);
 }
 
 PRIVATE void free_pf_arrays_L(void){
@@ -180,7 +181,7 @@ PRIVATE void free_pf_arrays_L(void){
   if(prml)      free(prml);
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
-  if(iindx)     free(iindx);
+  if(my_iindx)  free(my_iindx);
   if(jindx)     free(jindx);
   if(ptype)     free(ptype);
   if(QI5)       free(QI5);
@@ -190,7 +191,7 @@ PRIVATE void free_pf_arrays_L(void){
 
   q = qb = qm = pR = QI5 = qmb = qm2 = q2l = NULL;
   qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = NULL;
-  iindx     = jindx = NULL;
+  my_iindx = jindx = NULL;
   pf_params = NULL;
   ptype     = NULL;
   scale = NULL;
@@ -322,7 +323,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
             }
           }
           /*multiple stem loop contribution*/
-          ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
+          ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
           temp = 0.0;
           for (k=i+2; k<=j-1; k++) temp += qm[i+1][k-1]*qqm1[k];
           tt = rtype[type];
@@ -344,7 +345,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
         /*construction of qm matrix containing multiple loop
           partition function contributions from segment i,j */
         temp = 0.0;
-        /*ii = iindx[i];   ii-k=[i,k-1] */
+        /*ii = my_iindx[i];   ii-k=[i,k-1] */
         /*new qm2 computation done here*/
         for (k=i+1; k<=j; k++) temp += (qm[i][k-1])*qqm[k];
         if (ulength>0) qm2[i][j]=temp;/*new qm2 computation done here*/

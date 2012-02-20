@@ -104,6 +104,7 @@ PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE pf_paramT   *pf_params = NULL;
 PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
+PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length; /* length in last call to init_pf_fold() */
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE char        *pstruc=NULL;
@@ -118,7 +119,7 @@ PRIVATE char        *sequence=NULL;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, init_length, S, S1, pstruc, sequence, probs)
+                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs)
 
 #endif
 
@@ -192,7 +193,7 @@ PRIVATE void get_arrays(unsigned int length){
   expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  iindx     = get_iindx(length);
+  my_iindx  = get_iindx(length);
   jindx     = get_indx(length);
 }
 
@@ -214,7 +215,7 @@ PUBLIC void free_co_pf_arrays(void){
   if(probs)     free(probs);
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
-  if(iindx)     free(iindx);
+  if(my_iindx)  free(my_iindx);
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
@@ -223,7 +224,7 @@ PUBLIC void free_co_pf_arrays(void){
   q = qb = qm = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = probs = NULL;
   ptype = NULL;
   S = S1 = NULL;
-  iindx = jindx = NULL;
+  my_iindx = jindx = NULL;
 
 #ifdef SUN4
   standard_arithmetic();
@@ -263,9 +264,9 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
 
   pf_co(sequence);
 
-  if (backtrack_type=='C')      Q = qb[iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[iindx[1]-n];
-  else Q = q[iindx[1]-n];
+  if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
+  else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
+  else Q = q[my_iindx[1]-n];
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
   free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
@@ -280,21 +281,21 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
     double kT, pbound, QAB, QToT, Qzero;
 
     kT = pf_params->kT/1000.0;
-    Qzero=q[iindx[1]-n];
-    QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*pf_params->expDuplexInit;
+    Qzero=q[my_iindx[1]-n];
+    QAB=(q[my_iindx[1]-n]-q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n])*pf_params->expDuplexInit;
     /*correction for symmetry*/
     if((n-(cut_point-1)*2)==0) {
       if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
         QAB/=2;
       }}
 
-    QToT=q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]+QAB;
-    pbound=1-(q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n]/QToT);
+    QToT=q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]+QAB;
+    pbound=1-(q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]/QToT);
      X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
     X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
     X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
-    X.FA = -kT*(log(q[iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
-    X.FB = -kT*(log(q[iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
+    X.FA = -kT*(log(q[my_iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
+    X.FB = -kT*(log(q[my_iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
   }
@@ -342,7 +343,7 @@ PRIVATE void pf_co(const char *sequence){
 
   /* for (d=0; d<=TURN; d++) */
   for (i=1; i<=n/*-d*/; i++) {
-      ij = iindx[i]-i;
+      ij = my_iindx[i]-i;
       q[ij]=scale[1];
       qb[ij]=qm[ij]=0.0;
     }
@@ -354,7 +355,7 @@ PRIVATE void pf_co(const char *sequence){
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
        /*firstly that given i bound to j : qb(i,j) */
-      u = j-i-1; ij = iindx[i]-j;
+      u = j-i-1; ij = my_iindx[i]-j;
       type = ptype[ij];
       qbt1=0;
       if (type!=0) {
@@ -371,10 +372,10 @@ PRIVATE void pf_co(const char *sequence){
           u1 = k-i-1;
           for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
             if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
-              type_2 = ptype[iindx[k]-l];
+              type_2 = ptype[my_iindx[k]-l];
               if (type_2) {
                 type_2 = rtype[type_2];
-                qbt1 += qb[iindx[k]-l] *
+                qbt1 += qb[my_iindx[k]-l] *
                   exp_E_IntLoop(u1, j-l-1, type, type_2,
                                 S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
               }
@@ -382,7 +383,7 @@ PRIVATE void pf_co(const char *sequence){
           }
         }
         /*multiple stem loop contribution*/
-        ii = iindx[i+1]; /* ii-k=[i+1,k-1] */
+        ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
         temp = 0.0;
         if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
           for (k=i+2; k<=j-1; k++) {
@@ -398,10 +399,10 @@ PRIVATE void pf_co(const char *sequence){
         temp=0.0;
         if (!SAME_STRAND(i,j)){
           tt = rtype[type];
-          temp=q[iindx[i+1]-(cut_point-1)]*q[iindx[cut_point]-(j-1)];
+          temp=q[my_iindx[i+1]-(cut_point-1)]*q[my_iindx[cut_point]-(j-1)];
           if ((j==cut_point)&&(i==cut_point-1)) temp=scale[2];
-          else if (i==cut_point-1) temp=q[iindx[cut_point]-(j-1)]*scale[1];
-          else if (j==cut_point) temp=q[iindx[i+1]-(cut_point-1)]*scale[1];
+          else if (i==cut_point-1) temp=q[my_iindx[cut_point]-(j-1)]*scale[1];
+          else if (j==cut_point) temp=q[my_iindx[i+1]-(cut_point-1)]*scale[1];
           if (j>cut_point) temp*=scale[1];
           if (i<cut_point-1) temp*=scale[1];
           temp *= exp_E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, pf_params);
@@ -429,7 +430,7 @@ PRIVATE void pf_co(const char *sequence){
       /*construction of qm matrix containing multiple loop
         partition function contributions from segment i,j */
       temp = 0.0;
-      ii = iindx[i];  /* ii-k=[i,k] */
+      ii = my_iindx[i];  /* ii-k=[i,k] */
 
       for (k=i+1; k<=j; k++) {
         if (SAME_STRAND(k-1,k)) temp += (qm[ii-(k-1)])*qqm[k];
@@ -489,8 +490,8 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
     Qlout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cut_point+2));
 
     for (k=1; k<=n; k++) {
-      q1k[k] = q[iindx[1] - k];
-      qln[k] = q[iindx[k] -n];
+      q1k[k] = q[my_iindx[1] - k];
+      qln[k] = q[my_iindx[k] -n];
     }
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
@@ -499,9 +500,9 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 
     /* 1. exterior pair i,j and initialization of pr array */
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) probs[iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
-        ij = iindx[i]-j;
+        ij = my_iindx[i]-j;
         type = ptype[ij];
         if (type&&(qb[ij]>0.)) {
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
@@ -515,14 +516,14 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
-        kl = iindx[k]-l;
+        kl = my_iindx[k]-l;
         type_2 = ptype[kl]; type_2 = rtype[type_2];
         if (qb[kl]==0) continue;
 
         for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
           for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
             if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
-              ij = iindx[i] - j;
+              ij = my_iindx[i] - j;
               type = ptype[ij];
               if ((probs[ij]>0)) {
                 probs[kl] += probs[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
@@ -538,8 +539,8 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
           i = k-1;
           prmt = prmt1 = 0.0;
 
-          ii = iindx[i];     /* ii-j=[i,j]     */
-          ll = iindx[l+1];   /* ll-j=[l+1,j] */
+          ii = my_iindx[i];     /* ii-j=[i,j]     */
+          ll = my_iindx[l+1];   /* ll-j=[l+1,j] */
           tt = ptype[ii-(l+1)]; tt=rtype[tt];
           if (SAME_STRAND(i,k)){
             prmt1 = probs[ii-(l+1)]*expMLclosing;
@@ -551,7 +552,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
               }
             }
           }
-          kl = iindx[k]-l;
+          kl = my_iindx[k]-l;
           tt = ptype[kl];
           prmt *= expMLclosing;
           prml[ i] = prmt;
@@ -569,7 +570,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 
           for (i=1;i<=k-2; i++) {
             if ((SAME_STRAND(i,i+1))&&(SAME_STRAND(k-1,k))){
-              temp += prml[i]*qm[iindx[i+1] - (k-1)];
+              temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
             }
           }
           temp *= exp_E_MLstem( tt,
@@ -603,22 +604,22 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
           int t,kt;
           for (t=n; t>l; t--) {
             for (k=1; k<cut_point; k++) {
-              kt=iindx[k]-t;
+              kt=my_iindx[k]-t;
               type=rtype[ptype[kt]];
               temp = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (SAME_STRAND(k,k+1)) ? S1[k+1] : -1, pf_params) * scale[2];
-              if (l+1<t)               temp*=q[iindx[l+1]-(t-1)];
-              if (SAME_STRAND(k,k+1))  temp*=q[iindx[k+1]-(cut_point-1)];
+              if (l+1<t)               temp*=q[my_iindx[l+1]-(t-1)];
+              if (SAME_STRAND(k,k+1))  temp*=q[my_iindx[k+1]-(cut_point-1)];
               Qrout[l]+=temp;
             }
           }
         }
         for (k=l-1; k>=cut_point; k--) {
-          if (qb[iindx[k]-l]) {
-            kl=iindx[k]-l;
+          if (qb[my_iindx[k]-l]) {
+            kl=my_iindx[k]-l;
             type=ptype[kl];
             temp = Qrout[l];
             temp *= exp_E_ExtLoop(type, (k>cut_point) ? S1[k-1] : -1, (l < n) ? S1[l+1] : -1, pf_params);
-            if (k>cut_point) temp*=q[iindx[cut_point]-(k-1)];
+            if (k>cut_point) temp*=q[my_iindx[cut_point]-(k-1)];
             probs[kl]+=temp;
           }
         }
@@ -628,12 +629,12 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
         for (t=2; t<cut_point;t++) {
           for (s=1; s<t; s++) {
             for (k=cut_point; k<=n; k++) {
-              sk=iindx[s]-k;
+              sk=my_iindx[s]-k;
               if (qb[sk]) {
                 type=rtype[ptype[sk]];
                 temp=probs[sk]*exp_E_ExtLoop(type, (SAME_STRAND(k-1,k)) ? S1[k-1] : -1, S1[s+1], pf_params)*scale[2];
-                if (s+1<t)               temp*=q[iindx[s+1]-(t-1)];
-                if (SAME_STRAND(k-1,k))  temp*=q[iindx[cut_point]-(k-1)];
+                if (s+1<t)               temp*=q[my_iindx[s+1]-(t-1)];
+                if (SAME_STRAND(k-1,k))  temp*=q[my_iindx[cut_point]-(k-1)];
                 Qlout[t]+=temp;
               }
             }
@@ -642,12 +643,12 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
       }
       else if (l<cut_point) {
         for (k=1; k<l; k++) {
-          if (qb[iindx[k]-l]) {
-            type=ptype[iindx[k]-l];
+          if (qb[my_iindx[k]-l]) {
+            type=ptype[my_iindx[k]-l];
             temp=Qlout[k];
             temp *= exp_E_ExtLoop(type, (k>1) ? S1[k-1] : -1, (l<(cut_point-1)) ? S1[l+1] : -1, pf_params);
-            if (l+1<cut_point) temp*=q[iindx[l+1]-(cut_point-1)];
-            probs[iindx[k]-l]+=temp;
+            if (l+1<cut_point) temp*=q[my_iindx[l+1]-(cut_point-1)];
+            probs[my_iindx[k]-l]+=temp;
           }
         }
       }
@@ -656,7 +657,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
     free(Qrout);
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
-        ij = iindx[i]-j;
+        ij = my_iindx[i]-j;
         probs[ij] *= qb[ij];
       }
 
@@ -722,8 +723,8 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
         if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
         if (noLonelyPairs && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
-        qb[iindx[i]-j] = 0.;
-        ptype[iindx[i]-j] = (char) type;
+        qb[my_iindx[i]-j] = 0.;
+        ptype[my_iindx[i]-j] = (char) type;
         otype =  type;
         type  = ntype;
         i--; j++;
@@ -736,17 +737,17 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
     for(j=1; j<=n; j++) {
       switch (structure[j-1]) {
         case 'l': /*only intramolecular basepairing*/
-                  if (j<cut_point) for (l=cut_point; l<=n; l++) ptype[iindx[j]-l] = 0;
-                  else for (l=1; l<cut_point; l++) ptype[iindx[l]-j] =0;
+                  if (j<cut_point) for (l=cut_point; l<=n; l++) ptype[my_iindx[j]-l] = 0;
+                  else for (l=1; l<cut_point; l++) ptype[my_iindx[l]-j] =0;
                   break;
         case 'e': /*only intermolecular bp*/
                   if (j<cut_point) {
-                    for (l=1; l<j; l++) ptype[iindx[l]-j] =0;
-                    for (l=j+1; l<cut_point; l++) ptype[iindx[j]-l] = 0;
+                    for (l=1; l<j; l++) ptype[my_iindx[l]-j] =0;
+                    for (l=j+1; l<cut_point; l++) ptype[my_iindx[j]-l] = 0;
                   }
                   else {
-                    for (l=cut_point; l<j; l++) ptype[iindx[l]-j] =0;
-                    for (l=j+1; l<=n; l++) ptype[iindx[j]-l] = 0;
+                    for (l=cut_point; l<j; l++) ptype[my_iindx[l]-j] =0;
+                    for (l=j+1; l<=n; l++) ptype[my_iindx[j]-l] = 0;
                   }
                   break;
       }
@@ -755,7 +756,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
   if (mirnatog==1) {   /*microRNA toggle: no intramolec. bp in 2. molec*/
     for (j=cut_point; j<n; j++) {
       for (l=j+1; l<=n; l++) {
-        ptype[iindx[j]-l] = 0;
+        ptype[my_iindx[j]-l] = 0;
       }
     }
   }
@@ -771,7 +772,7 @@ PRIVATE void backtrack_qm1(int i,int j) {
   int ii, l, type;
   double qt, r;
   r = urn() * qm1[jindx[j]+i];
-  ii = iindx[i];
+  ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[ii-l];
     if (type)
@@ -789,8 +790,8 @@ PRIVATE void backtrack(int i, int j) {
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
-    r = urn() * qb[iindx[i]-j];
-    type = ptype[iindx[i]-j];
+    r = urn() * qb[my_iindx[i]-j];
+    type = ptype[my_iindx[i]-j];
     u = j-i-1;
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
@@ -803,10 +804,10 @@ PRIVATE void backtrack(int i, int j) {
       u1 = k-i-1;
       for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
         int type_2;
-        type_2 = ptype[iindx[k]-l];
+        type_2 = ptype[my_iindx[k]-l];
         if (type_2) {
           type_2 = rtype[type_2];
-          qbt1 += qb[iindx[k]-l] *
+          qbt1 += qb[my_iindx[k]-l] *
             exp_E_IntLoop(u1, j-l-1, type, type_2,
                           S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
         }
@@ -827,7 +828,7 @@ PRIVATE void backtrack(int i, int j) {
 
     i++; j--;
     /* find the first split index */
-    ii = iindx[i]; /* ii-j=[i,j] */
+    ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
     for (qt=0., k=i+1; k<j; k++) qt += qm[ii-(k-1)]*qm1[jj+k];
     r = urn() * qt;
@@ -843,7 +844,7 @@ PRIVATE void backtrack(int i, int j) {
     while (j>i) {
       /* now backtrack  [i ... j] in qm[] */
       jj = jindx[j];
-      ii = iindx[i];
+      ii = my_iindx[i];
       r = urn() * qm[ii - j];
       qt = qm1[jj+i]; k=i;
       if (qt<r)
@@ -992,15 +993,15 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
   n=2;
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<cut_off) continue;
+      if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
         pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
       }
       pl[count].i=i;
       pl[count].j=j;
-      pl[count++].p=pr[iindx[i]-j];
-      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[iindx[i]-j]);*/
+      pl[count++].p=pr[my_iindx[i]-j];
+      /*      printf("gpl: %2d %2d %.9f\n",i,j,pr[my_iindx[i]-j]);*/
     }
   }
   pl[count].i=0;
