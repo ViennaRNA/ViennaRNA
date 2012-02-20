@@ -48,6 +48,7 @@ int main(int argc, char *argv[]){
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
+  pf_parameters = NULL;
 
   /*
   #############################################

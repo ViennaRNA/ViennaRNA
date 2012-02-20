@@ -1070,14 +1070,14 @@ PRIVATE void encode_seq(const char *s1, const char *s2) {
 /*-------------------------------------------------------------------------*/
  /* scale energy parameters and pre-calculate Boltzmann weights:
   most of this is done in structure Pf see params.c,h (function:
-  scale_pf_parameters(), only arrays scale and expMLbase are handled here*/
+  get_scaled_pf_parameters(), only arrays scale and expMLbase are handled here*/
 PRIVATE void scale_stru_pf_params(unsigned int length)
 {
   unsigned int i;
   double  kT;
 
 
-  /* Do this only at the first call for scale_pf_parameters()
+  /* Do this only at the first call for get_scaled_pf_parameters()
      and/or if temperature has changed*/
   if(init_temp != temperature) {
     if(Pf) free(Pf);

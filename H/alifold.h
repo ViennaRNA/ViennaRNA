@@ -70,12 +70,6 @@ float  circalifold( const char **strings,
                     char *structure);
 
 /**
- * \brief Get a pointer to the base pair probability array
- */
-FLT_OR_DBL  *alipf_export_bppm(void);
-
-
-/**
  *  \brief Free the memory occupied by MFE alifold functions
  */
 void    free_alifold_arrays(void);
@@ -221,6 +215,25 @@ float alipf_fold( const char **sequences,
 float alipf_circ_fold(const char **sequences,
                       char *structure,
                       plist **pl);
+
+/**
+ *  \brief
+ * 
+ *  \param  sequences
+ *  \param  structure
+ *  \param  pl
+ *  \param  parameters
+ *  \param  calculate_bppm
+ *  \param  is_circular
+ *  \return
+ */
+float alipf_fold_par( const char **sequences,
+                      char *structure,
+                      plist **pl,
+                      pf_paramT *parameters,
+                      int calculate_bppm,
+                      int is_circular);
+
 
 /**
  *  \brief Get a pointer to the base pair probability array

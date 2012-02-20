@@ -22,6 +22,7 @@
 #include "aln_util.h"
 #include "read_epars.h"
 #include "MEA.h"
+#include "params.h"
 #include "RNAalifold_cmdl.h"
 
 /*@unused@*/
@@ -43,19 +44,22 @@ int main(int argc, char *argv[]){
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           n_seq, i, length, sym, r, noPS;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
-  double        min_en, real_en, sfact, MEAgamma, bppmThreshold;
+  double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
+  pf_paramT     *pf_parameters;
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
+  pf_parameters = NULL;
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
+  betaScale     = 1.;
   /*
   #############################################
   # check the command line prameters
@@ -101,6 +105,7 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
+  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
@@ -276,14 +281,15 @@ int main(int argc, char *argv[]){
 
     mfe_struc = strdup(structure);
 
-    kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+    kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
     pf_scale = exp(-(sfact*min_en)/kT/length);
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
     fflush(stdout);
 
-    if (cstruc!=NULL)
-      strncpy(structure, cstruc, length+1);
-    energy = (circular) ? alipf_circ_fold((const char **)AS, structure, NULL) : alipf_fold((const char **)AS, structure, NULL);
+    if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
+
+    pf_parameters = get_boltzmann_factors_ali(n_seq, dangles, temperature, betaScale, pf_scale);
+    energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, circular);
 
     if (n_back>0) {
       /*stochastic sampling*/
@@ -336,7 +342,7 @@ int main(int argc, char *argv[]){
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
         if(circular)
-		  energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+          energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else
           ens[0] = energy_of_structure(string, structure, 0);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
@@ -366,6 +372,7 @@ int main(int argc, char *argv[]){
     }
     free(mfe_struc);
     free_alipf_arrays();
+    free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
   (void) fflush(stdout);

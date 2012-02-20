@@ -67,14 +67,16 @@ PRIVATE int             circular=0;
 PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2=NULL;
 PRIVATE int             *jindx=NULL;
 PRIVATE int             *my_iindx=NULL;
+PRIVATE int             do_bppm = 1;             /* do backtracking per default */
 PRIVATE short           **S=NULL;
 PRIVATE short           **S5=NULL;               /*S5[s][i] holds next base 5' of i in sequence s*/
 PRIVATE short           **S3=NULL;               /*S3[s][i] holds next base 3' of i in sequence s*/
 PRIVATE char            **Ss=NULL;
 PRIVATE unsigned short  **a2s=NULL;
-PRIVATE int             N_seq;
+PRIVATE int             N_seq = 0;
 PRIVATE pf_paramT       *pf_params = NULL;
 PRIVATE char            *pstruc=NULL;
+PRIVATE double          alpha = 1.0;
 
 #ifdef _OPENMP
 
@@ -88,7 +90,7 @@ PRIVATE char            *pstruc=NULL;
                           probs, prml, prm_l, prm_l1, q1k, qln,\
                           scale, pscore, circular,\
                           qo, qho, qio, qmo, qm2, jindx, my_iindx,\
-                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc)
+                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha)
 
 #endif
 
@@ -98,8 +100,8 @@ PRIVATE char            *pstruc=NULL;
 #################################
 */
 
-PRIVATE void      init_alipf_fold(int length, int n_seq);
-PRIVATE void      scale_pf_params(unsigned int length, int n_seq);
+PRIVATE void      init_alipf_fold(int length, int n_seq, pf_paramT *parameters);
+PRIVATE void      scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters);
 PRIVATE void      get_arrays(unsigned int length);
 PRIVATE void      make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
 PRIVATE pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq);
@@ -117,7 +119,7 @@ PRIVATE void      backtrack_qm1(int i,int j, int n_seq, double *prob);
 #################################
 */
 
-PRIVATE void init_alipf_fold(int length, int n_seq){
+PRIVATE void init_alipf_fold(int length, int n_seq, pf_paramT *parameters){
   if (length<1) nrerror("init_alipf_fold: length must be greater 0");
 
 #ifdef _OPENMP
@@ -135,7 +137,7 @@ PRIVATE void init_alipf_fold(int length, int n_seq){
   make_pair_matrix();
   free_alipf_arrays(); /* free previous allocation */
   get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length, n_seq);
+  scale_pf_params((unsigned) length, n_seq, parameters);
 }
 
 /**
@@ -196,6 +198,11 @@ PUBLIC void free_alipf_arrays(void){
   if(my_iindx)  free(my_iindx);
   if(jindx)     free(jindx);
 
+  if(S){
+    free_sequence_arrays(N_seq, &S, &S5, &S3, &a2s, &Ss);
+    N_seq = 0;
+    S = NULL;
+  }
   pr = NULL; /* ? */
   q = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = scale = NULL;
   my_iindx   = jindx = NULL;
@@ -211,63 +218,36 @@ PUBLIC void free_alipf_arrays(void){
 }
 
 /*-----------------------------------------------------------------*/
-PUBLIC float alipf_fold(const char **sequences, char *structure, plist **pl)
-{
-  int n, s, n_seq;
-  FLT_OR_DBL Q;
-
-  float free_energy;
-  circular = 0;
-
-  n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++);
-  n_seq = N_seq = s;
-
-  init_alipf_fold(n, n_seq);
-  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circular);
-  make_pscores((const short *const*)S, sequences, n_seq, structure);
-
-  alipf_linear(sequences, structure);
-
-  if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
-  else Q = q[my_iindx[1]-n];
-
-  /* ensemble free energy in Kcal/mol */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/(1000.0 * n_seq);
-  /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
-
-  /* backtracking to construct binding probabilities of pairs*/
-  if(do_backtrack){
-    alipf_create_bppm(sequences, structure, pl);
-    /*
-    *  Backward compatibility:
-    *  This block may be removed if deprecated functions
-    *  relying on the global variable "pr" vanish from within the package!
-    */
-    pr = probs;
-  }
-
-
-  free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
-
-  return free_energy;
+PUBLIC float alipf_fold(const char **sequences, char *structure, plist **pl){
+  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, 0);
 }
 
-PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl)
-{
-  int n, s, n_seq;
-  FLT_OR_DBL Q;
+PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl){
+  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, 1);
+}
 
-  float free_energy;
-  circular  = 1;
-  oldAliEn  = 1; /* may be removed if circular alipf fold works with gapfree stuff */
+PUBLIC float alipf_fold_par(const char **sequences,
+                            char *structure,
+                            plist **pl,
+                            pf_paramT *parameters,
+                            int calculate_bppm,
+                            int is_circular){
+
+  int         n, s, n_seq;
+  FLT_OR_DBL  Q;
+  float       free_energy;
+
+  circular  = is_circular;
+  do_bppm   = calculate_bppm;
+
+  if(circular)
+    oldAliEn  = 1; /* may be removed if circular alipf fold works with gapfree stuff */
+
   n = (int) strlen(sequences[0]);
   for (s=0; sequences[s]!=NULL; s++);
   n_seq = N_seq = s;
-  init_alipf_fold(n, n_seq);  /* (re)allocate space */
+
+  init_alipf_fold(n, n_seq, parameters);
 
   alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short *const*)S, sequences, n_seq, structure);
@@ -275,21 +255,22 @@ PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl
   alipf_linear(sequences, structure);
 
   /* calculate post processing step for circular  */
-  /* RNAs                                          */
-  alipf_circ(sequences, structure);
+  /* RNAs                                         */
+  if(circular)
+    alipf_circ(sequences, structure);
 
   if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
   else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
-  else Q = qo;
+  else Q = (circular) ? qo : q[my_iindx[1]-n];
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/(1000.0 * n_seq);
+  free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/(1000.0 * n_seq);
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_backtrack){
+  if(do_bppm){
     alipf_create_bppm(sequences, structure, pl);
     /*
     *  Backward compatibility:
@@ -298,8 +279,6 @@ PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl
     */
     pr = probs;
   }
-
-  free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   return free_energy;
 }
@@ -737,31 +716,32 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
-        ov, pf_scale);
+        ov, pf_params->pf_scale);
 
   free(type);
 }
 
-PRIVATE void scale_pf_params(unsigned int length, int n_seq)
-{
+PRIVATE void scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters){
   unsigned int i;
-  double  kT, TT;
-  if(pf_params) free(pf_params);
-  pf_params = get_scaled_alipf_parameters(n_seq);
+  double  kT, scaling_factor;
 
-  kT = pf_params->kT / n_seq;
-  TT = (pf_params->temperature+K0)/(Tmeasure);
+  if(pf_params) free(pf_params);
+
+  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors_ali(n_seq, dangles, temperature, alpha, pf_scale);
+
+  scaling_factor  = pf_params->pf_scale;
+  kT              = pf_params->kT / n_seq;
 
   /* scaling factors (to avoid overflows) */
-  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
-    pf_scale = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
-    if (pf_scale<1) pf_scale=1;
+  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
+    if (scaling_factor<1) scaling_factor=1;
   }
   scale[0] = 1.;
-  scale[1] = 1./pf_scale;
+  scale[1] = 1./scaling_factor;
 
   expMLbase[0] = 1;
-  expMLbase[1] = pf_params->expMLbase/pf_scale;
+  expMLbase[1] = pf_params->expMLbase/scaling_factor;
   for (i=2; i<=length; i++) {
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
