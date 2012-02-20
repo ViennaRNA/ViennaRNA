@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "read_epars.h"
 #include "subopt.h"
+#include "params.h"
 #include "RNAsubopt_cmdl.h"
 
 /*@unused@*/
@@ -34,11 +35,13 @@ int main(int argc, char *argv[]){
   char          fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   char          *cstruc, *structure, *ParamFile, *ns_bases;
   int           i, length, l, cl, sym, istty;
-  double        deltaf, deltap;
+  double        deltaf, deltap, betaScale;
   int           delta, n_back, noconv, circular, dos, zuker;
+  pf_paramT     *pf_parameters;
 
   do_backtrack  = 1;
   dangles       = 2;
+  betaScale     = 1.;
   delta         = 100;
   deltap = n_back = noconv = circular = dos = zuker = 0;
   rec_type      = read_opt = 0;
@@ -85,6 +88,7 @@ int main(int argc, char *argv[]){
     n_back = args_info.stochBT_arg;
     init_rand();
   }
+  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
   /* density of states */
   if(args_info.dos_given){
     dos = 1;
@@ -237,11 +241,13 @@ int main(int argc, char *argv[]){
       ss = (char *) space(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
       mfe = fold(rec_sequence, ss);
-      kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(1.03*mfe)/kT/length);
       strncpy(ss, structure, length);
+
+      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, pf_scale);
       /* ignore return value, we are not interested in the free energy */
-      (circular) ? (void) pf_circ_fold(rec_sequence, ss) : (void) pf_fold(rec_sequence, ss);
+      (void) pf_fold_par(rec_sequence, ss, pf_parameters, do_backtrack, circular);
       free(ss);
       for (i=0; i<n_back; i++) {
         char *s;
@@ -250,6 +256,7 @@ int main(int argc, char *argv[]){
         free(s);
       }
       free_pf_arrays();
+      free(pf_parameters);
     }
     /* normal subopt */
     else if(!zuker){
