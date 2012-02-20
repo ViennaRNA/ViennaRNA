@@ -20,6 +20,7 @@
 #include "energy_const.h"
 #include "read_epars.h"
 #include "LPfold.h"
+#include "params.h"
 #include "RNAplfold_cmdl.h"
 
 /*@unused@*/
@@ -44,18 +45,22 @@ int main(int argc, char *argv[]){
   int           noconv, plexoutput, simply_putout, openenergies, binaries;
   plist         *pl, *dpp = NULL;
   unsigned int  rec_type, read_opt;
+  double        betaScale;
+  pf_paramT     *pf_parameters;
 
   dangles       = 2;
   cutoff        = 0.01;
   winsize       = 70;
   pairdist      = 0;
   unpaired      = 0;
+  betaScale     = 1.;
   simply_putout = plexoutput = openenergies = noconv = 0;binaries=0;
   tempwin       = temppair = tempunpaired = 0;
   structure     = ParamFile = ns_bases = NULL;
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
+  pf_parameters = NULL;
 
   /*
   #############################################
@@ -99,6 +104,8 @@ int main(int argc, char *argv[]){
   if(args_info.plex_output_given)       plexoutput = 1;
   /* turn on binary output*/
   if(args_info.binaries_given)          binaries = 1;
+
+  if(args_info.betaScale_given)         betaScale = args_info.betaScale_arg;
     
   /* check for errorneous parameter options */
   if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
@@ -260,7 +267,7 @@ int main(int argc, char *argv[]){
       }
       strcat(ffname, "_dp.ps");
 
-      pf_scale  = -1;
+      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, -1);
 
       if(unpaired > 0){
         pup       =(double **)  space((length+1)*sizeof(double *));
@@ -273,13 +280,13 @@ int main(int argc, char *argv[]){
         spup = fopen(fname2, "w");
         pUfp = (unpaired > 0) ? fopen(fname1, "w") : NULL;
 
-        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp,spup);
+        pl = pfl_fold_par(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup, pf_parameters);
 
         if(pUfp != NULL)  fclose(pUfp);
         if(spup != NULL)  fclose(spup);
       }
       else{
-        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
+        pl = pfl_fold_par(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup, pf_parameters);
         PS_dot_plot_turn(orig_sequence, pl, ffname, pairdist);
         if (unpaired > 0){
           if(plexoutput){
@@ -302,6 +309,8 @@ int main(int argc, char *argv[]){
         free(pup[0]);
         free(pup);
       }
+
+      free(pf_parameters);
     }
     (void) fflush(stdout);
 

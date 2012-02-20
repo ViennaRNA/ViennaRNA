@@ -20,7 +20,9 @@
  * 
  *  \param  length
  */
-void    update_pf_paramsLP(int length);
+void update_pf_paramsLP(int length);
+
+void update_pf_paramsLP_par(int length, pf_paramT *parameters);
 
 /**
  *  \brief Compute partition functions for locally stable secondary structures <b>(berni! update me)</b>
@@ -64,6 +66,18 @@ plist *pfl_fold(char *sequence,
                 struct plist **dpp2,
                 FILE *pUfp,
                 FILE *spup);
+
+
+plist *pfl_fold_par(char *sequence,
+                    int winSize,
+                    int pairSize,
+                    float cutoffb,
+                    double **pU,
+                    struct plist **dpp2,
+                    FILE *pUfp,
+                    FILE *spup,
+                    pf_paramT *parameters);
+
 
 /**
  *  \brief Writes the unpaired probabilities (pU) or opening energies into a file

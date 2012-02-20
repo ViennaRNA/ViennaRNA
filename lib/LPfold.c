@@ -63,6 +63,7 @@ PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         unpaired;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
+PRIVATE double      alpha = 1.0;
 
 #ifdef _OPENMP
 
@@ -75,7 +76,7 @@ PRIVATE int         pUoutput;
 #pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, my_iindx, init_length, pf_params,\
                           expMLbase, q, qb, qm, qqm, qqm1, qq, qq1, pR, qm2, QI5, q2l, qmb,\
                           prml, prm_l, prm_l1, q1k, qln,\
-                          S, S1, unpaired, ulength, pUoutput)
+                          S, S1, unpaired, ulength, pUoutput, alpha)
 
 #endif
 
@@ -85,10 +86,10 @@ PRIVATE int         pUoutput;
 #################################
 */
 
-PRIVATE void  init_partfunc_L(int length);
+PRIVATE void  init_partfunc_L(int length, pf_paramT *parameters);
 PRIVATE void  get_arrays_L(unsigned int length);
 PRIVATE void  free_pf_arrays_L(void);
-PRIVATE void  scale_pf_params(unsigned int length);
+PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);
 PRIVATE void  FreeOldArrays(int i);
 PRIVATE void  GetNewArrays(int j, int winSize);
@@ -107,7 +108,7 @@ PRIVATE void  putoutpU(double **pU,int k, int ulength, FILE *fp);
 #################################
 */
 
-PRIVATE void init_partfunc_L(int length){
+PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
   if (length<1) nrerror("init_partfunc_L: length must be greater 0");
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -126,7 +127,7 @@ PRIVATE void init_partfunc_L(int length){
 #endif
   make_pair_matrix();
   get_arrays_L((unsigned) length);
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
 
 #ifndef _OPENMP
   init_length = length;
@@ -210,18 +211,35 @@ PRIVATE void free_pf_arrays_L(void){
 }
 
 PUBLIC void update_pf_paramsLP(int length){
+  update_pf_paramsLP_par(length, NULL);
+}
+
+PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
 #ifdef _OPENMP
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
 #else
-  if (length>init_length) init_pf_foldLP(length);  /* init not update */
+  if (length>init_length) init_pf_foldLP(length, parameters);  /* init not update */
   else {
     /*   make_pair_matrix();*/
-    scale_pf_params((unsigned) length);
+    scale_pf_params((unsigned) length, parameters);
   }
 #endif
 }
 
 PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup){
+  return pfl_fold_par(sequence, winSize, pairSize, cutoffb, pU, dpp2, pUfp, spup, NULL);
+}
+
+PUBLIC plist *pfl_fold_par( char *sequence,
+                            int winSize,
+                            int pairSize,
+                            float cutoffb,
+                            double **pU,
+                            struct plist **dpp2,
+                            FILE *pUfp,
+                            FILE *spup,
+                            pf_paramT *parameters){
+
   int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout;
   double      max_real;
   FLT_OR_DBL  temp, Qmax, prm_MLb, prmt, prmt1, qbt1, *tmp, expMLclosing;
@@ -252,10 +270,11 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
 
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_partfunc_L(n);
+  init_partfunc_L(n, parameters);
 #else
-  if (n > init_length) init_partfunc_L(n);
-  if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_paramsLP(n);
+  if(parameters) init_partfunc_L(n, parameters);
+  else if (n > init_length) init_partfunc_L(n, parameters);
+  else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_paramsLP_par(n, parameters);
 #endif
 
   expMLclosing  = pf_params->expMLclosing;
@@ -385,7 +404,7 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
     */
     if ((j>=winSize) && (j<=n) && (ulength) && !(pUoutput)) {
       double Fwindow=0.;
-      Fwindow=(-log(q[j-winSize+1][j])-winSize*log(pf_scale))*(temperature+K0)*GASCONST/1000.0;
+      Fwindow=(-log(q[j-winSize+1][j])-winSize*log(pf_params->pf_scale))*pf_params->kT/1000.0;
 
       pU[j][0]=Fwindow;
       /*
@@ -554,29 +573,32 @@ PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb,
   S = S1 = NULL;
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
                     "you might try a smaller pf_scale than %g\n",
-                    ov, pf_scale);
+                    ov, pf_params->pf_scale);
   *dpp2=dpp;
 
   return pl;
 }
 
-PRIVATE void scale_pf_params(unsigned int length){
+PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   unsigned int i;
-  double  kT;
-  if(pf_params) free(pf_params);
-  pf_params = get_scaled_pf_parameters();
+  double  kT, scaling_factor;
 
+  if(pf_params) free(pf_params);
+
+  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors(dangles, temperature, alpha, pf_scale);
+
+  scaling_factor = pf_params->pf_scale;
   kT = pf_params->kT;   /* kT in cal/mol  */
 
    /* scaling factors (to avoid overflows) */
-  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
-    pf_scale = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
-    if (pf_scale<1) pf_scale=1;
+  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
+    if (scaling_factor<1) scaling_factor=1;
   }
   scale[0] = 1.;
-  scale[1] = 1./pf_scale;
+  scale[1] = 1./scaling_factor;
   expMLbase[0] = 1;
-  expMLbase[1] = pf_params->expMLbase/pf_scale;
+  expMLbase[1] = pf_params->expMLbase/scaling_factor;
   for (i=2; i<=length; i++) {
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
