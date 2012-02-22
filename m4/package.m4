@@ -384,8 +384,8 @@ Files will be installed in the following directories:
   Extra Data:     $_datadir
   Man pages:      $_mandir
   Documentation:  $_docdir
-    (HTML):       $_htmldir
-    (PDF):        $_pdfdir
+    (HTML):       $(eval printf "%s" $_htmldir)/html
+    (PDF):        $(eval printf "%s" $_pdfdir)
 ])
 
 ])
