@@ -327,22 +327,20 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
   int energy;
 
   energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-  if (tetra_loop){
+  if (P->model_details.special_hp){
     if (size == 4) { /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
       strncpy(tl, string, 6);
       if ((ts=strstr(P->Tetraloops, tl)))
         return (P->Tetraloop_E[(ts - P->Tetraloops)/7]);
     }
-  }
-  {
-    if (size == 6) {
+    else if (size == 6) {
       char tl[9]={0}, *ts;
       strncpy(tl, string, 8);
       if ((ts=strstr(P->Hexaloops, tl)))
         return (energy = P->Hexaloop_E[(ts - P->Hexaloops)/9]);
     }
-    if (size == 3) {
+    else if (size == 3) {
       char tl[6]={0,0,0,0,0,0}, *ts;
       strncpy(tl, string, 5);
       if ((ts=strstr(P->Triloops, tl))) {
@@ -481,7 +479,7 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 
   if(u < 3) return q; /* should only be the case when folding alignments */
 
-  if ((tetra_loop)&&(u==4)) {
+  if ((P->model_details.special_hp)&&(u==4)) {
     char tl[7]={0,0,0,0,0,0,0}, *ts;
     strncpy(tl, string, 6);
     if ((ts=strstr(P->Tetraloops, tl))){
@@ -515,7 +513,7 @@ INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short 
   int ul, us, no_close = 0;
   double z;
 
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==2)||(type==4)))
+  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
     no_close = 1;
 
   if (u1>u2) { ul=u1; us=u2;}

@@ -87,6 +87,7 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -3: > = base must be paired with j>i
                         -4: x = base must not pair
                         positive int: base is paired with int      */
+PRIVATE int     struct_constrained = 0;
 
 #ifdef _OPENMP
 
@@ -97,7 +98,7 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
          #pragma omp parallel for copyin(P, init_length, ...)
 */
 #pragma omp threadprivate(mfe1, mfe2, indx, c, cc, cc1, f5, fc, fML, fM1, Fmi, DMLi, DMLi1, DMLi2,\
-                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP)
+                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP, struct_constrained)
 
 #endif
 
@@ -107,7 +108,7 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
 #################################
 */
 
-PRIVATE void  init_cofold(int length);
+PRIVATE void  init_cofold(int length, paramT *parameters);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
@@ -122,7 +123,7 @@ PRIVATE void  free_end(int *array, int i, int start);
 */
 
 /*--------------------------------------------------------------------------*/
-PRIVATE void init_cofold(int length){
+PRIVATE void init_cofold(int length, paramT *parameters){
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -136,7 +137,7 @@ PRIVATE void init_cofold(int length){
 
   indx = get_indx((unsigned) length);
 
-  update_cofold_params();
+  update_cofold_params_par(parameters);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -191,8 +192,14 @@ PUBLIC void free_co_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
-                          int **fc_p, int **indx_p, char **ptype_p) {
+PUBLIC void export_cofold_arrays( int **f5_p,
+                                  int **c_p,
+                                  int **fML_p,
+                                  int **fM1_p,
+                                  int **fc_p,
+                                  int **indx_p,
+                                  char **ptype_p){
+
   /* make the DP arrays available to routines such as subopt() */
   *f5_p = f5; *c_p = c;
   *fML_p = fML; *fM1_p = fM1;
@@ -203,18 +210,29 @@ PUBLIC void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p
 /*--------------------------------------------------------------------------*/
 
 PUBLIC float cofold(const char *string, char *structure) {
+  return cofold_par(string, structure, NULL, fold_constrained);
+}
+
+PUBLIC float cofold_par(const char *string,
+                        char *structure,
+                        paramT *parameters,
+                        int is_constrained){
+
   int i, length, energy, bonus=0, bonus_cnt=0;
+
   zuker = 0;
-  length = (int) strlen(string);
+
+  struct_constrained  = is_constrained;
+  length              = (int) strlen(string);
 
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_cofold(length);
+  init_cofold(length, parameters);
 #else
-  if (length>init_length) init_cofold(length);
+  if(parameters) init_cofold(length, parameters);
+  else if (length>init_length) init_cofold(length);
+  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 #endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 
   S   = encode_sequence(string, 0);
   S1  = encode_sequence(string, 1);
@@ -286,6 +304,9 @@ PRIVATE int fill_arrays(const char *string) {
   int   decomp, new_fML, max_separation;
   int   no_close, type, type_2, tt, maxj;
   int   bonus=0;
+  int   dangle_model  = P->model_details.dangles;
+  int   noGUclosure   = P->model_details.noGUclosure;
+  int   noLP          = P->model_details.noLP;
 
   length = (int) strlen(string);
 
@@ -316,7 +337,7 @@ PRIVATE int fill_arrays(const char *string) {
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if ((BP[i]==-4)||(BP[j]==-4)) type=0;
 
-      no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
+      no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
@@ -333,7 +354,7 @@ PRIVATE int fill_arrays(const char *string) {
             new_c = E_Hairpin(j-i-1, type, si, sj, string+i-1, P);
         }
         else {
-          if (dangles)
+          if (dangle_model)
             new_c += E_ExtLoop(rtype[type], sj, si, P);
           else
             new_c += E_ExtLoop(rtype[type], -1, -1, P);
@@ -352,7 +373,7 @@ PRIVATE int fill_arrays(const char *string) {
             if (type_2==0) continue;
             type_2 = rtype[type_2];
 
-            if (no_closingGU)
+            if (noGUclosure)
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -364,7 +385,7 @@ PRIVATE int fill_arrays(const char *string) {
                                     cut_point,
                                     si, sj,
                                     S1[p-1], S1[q+1],
-                                    dangles,
+                                    dangle_model,
                                     P);
 
             new_c = MIN2(energy+c[indx[q]+p], new_c);
@@ -383,7 +404,7 @@ PRIVATE int fill_arrays(const char *string) {
             decomp = DMLi1[j-1];
             tt = rtype[type];
             MLenergy = P->MLclosing;
-            switch(dangles){
+            switch(dangle_model){
               case 0:   MLenergy += decomp + E_MLstem(tt, -1, -1, P);
                         break;
               case 2:   MLenergy += decomp + E_MLstem(tt, sj, si, P);
@@ -401,7 +422,7 @@ PRIVATE int fill_arrays(const char *string) {
           if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
             decomp = fc[i+1] + fc[j-1];
             tt = rtype[type];
-            switch(dangles){
+            switch(dangle_model){
               case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
                         break;
               case 2:   decomp += E_ExtLoop(tt, sj, si, P);
@@ -418,7 +439,7 @@ PRIVATE int fill_arrays(const char *string) {
 
         /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
-        if (dangles==3) {
+        if (dangle_model==3) {
           decomp = INF;
           for (k = i+2+TURN; k < j-2-TURN; k++) {
             type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
@@ -437,7 +458,7 @@ PRIVATE int fill_arrays(const char *string) {
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c + bonus;
-        if (noLonelyPairs){
+        if (noLP){
           if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
             c[ij] = cc1[j-1]+stackEnergy+bonus;
           else /* currently we don't allow stacking over the cut point */
@@ -459,7 +480,7 @@ PRIVATE int fill_arrays(const char *string) {
         if (SAME_STRAND(j-1,j)) new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
         if (SAME_STRAND(j,j+1)) {
           energy = c[ij];
-          if(dangles == 2) energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
+          if(dangle_model == 2) energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
           else energy += E_MLstem(type, -1, -1, P);
           new_fML = MIN2(new_fML, energy);
           if(uniq_ML){
@@ -467,7 +488,7 @@ PRIVATE int fill_arrays(const char *string) {
             if(SAME_STRAND(j-1,j)) fM1[ij] = MIN2(energy, fM1[indx[j-1]+i] + P->MLbase);
           }
         }
-        if (dangles%2==1) {  /* normal dangles */
+        if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
             tt = ptype[ij+1]; /* i+1,j */
             new_fML = MIN2(new_fML, c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P));
@@ -498,7 +519,7 @@ PRIVATE int fill_arrays(const char *string) {
       new_fML = MIN2(new_fML,decomp);
 
       /* coaxial stacking */
-      if (dangles==3) {
+      if (dangle_model==3) {
         int stopp;
         stopp=(cut_point>0)? (cut_point):(j-2-TURN);
         /* additional ML decomposition as two coaxially stacked helices */
@@ -580,6 +601,10 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
   int   i, j, k, length, energy, new;
   int   no_close, type, type_2, tt;
   int   bonus;
+  int   dangle_model  = P->model_details.dangles;
+  int   noGUclosure   = P->model_details.noGUclosure;
+  int   noLP          = P->model_details.noLP;
+
   /* int   b=0;*/
 
   length = strlen(string);
@@ -620,7 +645,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     if (ml==0 || ml==4) { /* backtrack in f5 or fc[i=cut,j>cut] */
       int *ff;
       ff = (ml==4) ? fc : f5;
-      switch(dangles){
+      switch(dangle_model){
         case 0:   /* j or j-1 is paired. Find pairing partner */
                   for (k=j-TURN-1,traced=0; k>=i; k--) {
                     int cc;
@@ -702,7 +727,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         continue;
       }
       /* i or i+1 is paired. Find pairing partner */
-      switch(dangles){
+      switch(dangle_model){
         case 0:   for (k=i+TURN+1, traced=0; k<=j; k++){
                     jj=k+1;
                     type = ptype[indx[k]+i];
@@ -774,7 +799,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
       tt  = ptype[indx[j]+i];
       cij = c[indx[j]+i];
-      switch(dangles){
+      switch(dangle_model){
         case 0:   if(fij == cij + E_MLstem(tt, -1, -1, P)){
                     base_pair2[++b].i  = i;
                     base_pair2[b].j    = j;
@@ -821,7 +846,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         if (fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
           break;
 
-      if ((dangles==3)&&(k>j-2-TURN)) { /* must be coax stack */
+      if ((dangle_model==3)&&(k>j-2-TURN)) { /* must be coax stack */
         ml = 2;
         for (k = i+1+TURN; k <= j-2-TURN; k++) {
           type = ptype[indx[k]+i];  type= rtype[type];
@@ -855,7 +880,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
     if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
 
-    if (noLonelyPairs)
+    if (noLP)
       if (cij == c[indx[j]+i]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
@@ -870,7 +895,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     canonical = 1;
 
 
-    no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
+    no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
     if (SAME_STRAND(i,j)) {
       if (no_close) {
         if (cij == FORBIDDEN) continue;
@@ -880,7 +905,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     }
     else {
       int ee = 0;
-      if(dangles){
+      if(dangle_model){
         if(cij == E_ExtLoop(rtype[type], SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)) continue;
       }
       else if(cij == E_ExtLoop(rtype[type], -1, -1, P)) continue;
@@ -895,7 +920,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         type_2 = ptype[indx[q]+p];
         if (type_2==0) continue;
         type_2 = rtype[type_2];
-        if (no_closingGU)
+        if (noGUclosure)
           if (no_close||(type_2==3)||(type_2==4))
             if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -904,7 +929,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
           energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                               S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
         else {
-          energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangles, P);
+          energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
         }
 
         new = energy+c[indx[q]+p]+bonus;
@@ -929,7 +954,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       int ii, jj, decomp;
       ii = jj = 0;
       decomp = fc[i1] + fc[j1];
-      switch(dangles){
+      switch(dangle_model){
         case 0:   if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
                     ii=i1, jj=j1;
                   }
@@ -972,7 +997,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     int ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
     int ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
     for (traced = 0, k = i+2+TURN; k < j-2-TURN; k++) {
-      switch(dangles){
+      switch(dangle_model){
         case 0:   /* no dangles */
                   if(cij == mm + fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + ml0)
                     traced = i+1;
@@ -1003,7 +1028,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       if(traced) break;
       /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
       /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
-      if (dangles==3) {
+      if (dangle_model==3) {
         int en;
         type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
         if (type_2) {
@@ -1032,7 +1057,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     } else {
 #if 0
       /* Y shaped ML loops don't work yet */
-      if (dangles==3) {
+      if (dangle_model==3) {
         /* (i,j) must close a Y shaped ML loop with coax stacking */
         if (cij == fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
           i1 = i+2;
@@ -1060,6 +1085,8 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
 PRIVATE void free_end(int *array, int i, int start) {
   int inc, type, energy, length, j, left, right;
+  int dangle_model = P->model_details.dangles;
+
   inc = (i>start)? 1:-1;
   length = S[0];
 
@@ -1081,7 +1108,7 @@ PRIVATE void free_end(int *array, int i, int start) {
       si = (ii>1)       && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
       sj = (jj<length)  && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-      switch(dangles){
+      switch(dangle_model){
         case 0:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
                   break;
         case 2:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
@@ -1096,7 +1123,7 @@ PRIVATE void free_end(int *array, int i, int start) {
                   break;
       }
     }
-    if (dangles%2==1) {
+    if (dangle_model%2==1) {
       /* interval ends in a dangle (i.e. i-inc is paired) */
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
       else     { ii = i+1; jj = j;} /* inc<0 */
@@ -1110,7 +1137,7 @@ PRIVATE void free_end(int *array, int i, int start) {
         array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, -1, sj, P));
       else
         array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, si, -1, P));
-      if(j!= start){ /* dangles on both sides */
+      if(j!= start){ /* dangle_model on both sides */
         array[i] = MIN2(array[i], array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P));
       }
     }
@@ -1118,10 +1145,20 @@ PRIVATE void free_end(int *array, int i, int start) {
 }
 
 PUBLIC void update_cofold_params(void){
+  update_cofold_params_par(NULL);
+}
+
+PUBLIC void update_cofold_params_par(paramT *parameters){
   if(P) free(P);
-  P = scale_parameters();
+
+  if(parameters){
+    P = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
   make_pair_matrix();
-/*  update_fold_params(); btw, why do we have to update fold params in fold.o ???? */
   if (init_length < 0) init_length=0;
 }
 
@@ -1129,6 +1166,7 @@ PUBLIC void update_cofold_params(void){
 
 PRIVATE void make_ptypes(const short *S, const char *structure) {
   int n,i,j,k,l;
+  int noLP = P->model_details.noLP;
 
   n=S[0];
   for (k=1; k<n-TURN; k++)
@@ -1138,7 +1176,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
         if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
-        if (noLonelyPairs && (!otype) && (!ntype))
+        if (noLP && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
         ptype[indx[j]+i] = (char) type;
         otype =  type;
@@ -1147,7 +1185,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (fold_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL))
     constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
 }
 
@@ -1175,6 +1213,11 @@ PRIVATE comp_pair(const void *A, const void *B) {
 }
 
 PUBLIC SOLUTION *zukersubopt(const char *string) {
+  return zukersubopt_par(string, NULL);
+}
+
+PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
+
 /* Compute zuker suboptimal. Here, we're abusing the cofold() code
    "double" sequence, compute dimerarray entries, track back every base pair.
    This is slightly wasteful compared to the normal solution */
@@ -1203,12 +1246,13 @@ PUBLIC SOLUTION *zukersubopt(const char *string) {
   /* get mfe and do forward recursion */
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_cofold(2 * length);
+  init_cofold(2 * length, parameters);
 #else
-  if ((2 * length) > init_length) init_cofold(2 * length);
+  if(parameters) init_cofold(2 * length, parameters);
+  else if ((2 * length) > init_length) init_cofold(2 * length);
+  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
 #endif
 
-  if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
 
   S     = encode_sequence(doubleseq, 0);
   S1    = encode_sequence(doubleseq, 1);

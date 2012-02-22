@@ -102,6 +102,7 @@ PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
 PRIVATE int         do_bppm = 1;             /* do backtracking per default */
+PRIVATE int         struct_constrained = 0;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
@@ -121,7 +122,7 @@ PRIVATE double      alpha = 1.0;
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha)
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained)
 
 
 #endif
@@ -251,25 +252,27 @@ PUBLIC void free_pf_arrays(void){
 
 /*-----------------------------------------------------------------*/
 PUBLIC float pf_fold(const char *sequence, char *structure){
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, 0);
+  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 0);
 }
 
 PUBLIC float pf_circ_fold(const char *sequence, char *structure){
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, 1);
+  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 1);
 }
 
 PUBLIC float pf_fold_par( const char *sequence,
                           char *structure,
                           pf_paramT *parameters,
                           int calculate_bppm,
+                          int is_constrained,
                           int is_circular){
 
   FLT_OR_DBL  Q;
   double      free_energy;
   int         n = (int) strlen(sequence);
 
-  circular  = is_circular;
-  do_bppm   = calculate_bppm;
+  circular            = is_circular;
+  do_bppm             = calculate_bppm;
+  struct_constrained  = is_constrained;
 
 #ifdef _OPENMP
   init_partfunc(n, parameters);
@@ -323,6 +326,9 @@ PUBLIC float pf_fold_par( const char *sequence,
 PRIVATE void pf_linear(const char *sequence, char *structure){
 
   int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt;
+
+  int noGUclosure;
+
   FLT_OR_DBL temp, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
 
@@ -332,6 +338,9 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   n = (int) strlen(sequence);
+
+
+  noGUclosure = pf_params->model_details.noGUclosure;
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -355,7 +364,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       type = ptype[ij];
       if (type!=0) {
         /*hairpin contribution*/
-        if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
+        if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
         else
           qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
         /* interior loops with interior pair k,l */
@@ -433,12 +442,15 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
 PRIVATE void pf_circ(const char *sequence, char *structure){
 
   int u, p, q, k, l;
+  int noGUclosure;
   int n = (int) strlen(sequence);
 
   FLT_OR_DBL  qot;
   FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
 
+  noGUclosure = pf_params->model_details.noGUclosure;
   qo = qho = qio = qmo = 0.;
+
   /* construct qm2 matrix from qm1 entries  */
   for(k=1; k<n-TURN-1; k++){
     qot = 0.;
@@ -463,7 +475,7 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
         strcpy(loopseq , sequence+q-1);
         strncat(loopseq, sequence, p);
       }
-      qho += (((type==3)||(type==4))&&no_closingGU) ? 0. : qb[my_iindx[p]-q] * exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
+      qho += (((type==3)||(type==4))&&noGUclosure) ? 0. : qb[my_iindx[p]-q] * exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
 
       /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
       /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
@@ -710,14 +722,19 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
 
   if(pf_params) free(pf_params);
 
-  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors(dangles, temperature, alpha, pf_scale);
+  if(parameters){
+    pf_params = get_boltzmann_factor_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  }
 
   scaling_factor = pf_params->pf_scale;
-  kT = pf_params->kT;   /* kT in cal/mol  */
 
   /* scaling factors (to avoid overflows) */
   if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
-    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
+    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/pf_params->kT);
     if (scaling_factor<1) scaling_factor=1;
   }
   scale[0] = 1.;
@@ -741,7 +758,8 @@ PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
   make_pair_matrix(); /* is this really necessary? */
   scale_pf_params((unsigned) length, parameters);
 #else
-  if (length>init_length) init_partfunc(length, parameters);  /* init not update */
+  if(parameters) init_partfunc(length, parameters);
+  else if (length>init_length) init_partfunc(length, parameters);  /* init not update */
   else {
     make_pair_matrix();
     scale_pf_params((unsigned) length, parameters);
@@ -789,7 +807,9 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int lengt
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void make_ptypes(const short *S, const char *structure){
-  int n,i,j,k,l;
+  int n,i,j,k,l, noLP;
+
+  noLP = pf_params->model_details.noLP;
 
   n=S[0];
   for (k=1; k<n-TURN; k++)
@@ -799,7 +819,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
       type = pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
         if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
-        if (noLonelyPairs && (!otype) && (!ntype))
+        if (noLP && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
         qb[my_iindx[i]-j] = 0.;
         ptype[my_iindx[i]-j] = (char) type;
@@ -809,7 +829,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
       }
     }
 
-  if (fold_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL))
     constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
 }
 
@@ -1000,6 +1020,8 @@ PRIVATE void backtrack_qm2(int k, int n){
 }
 
 PRIVATE void backtrack(int i, int j){
+  int noGUclosure = pf_params->model_details.noGUclosure;
+
   do {
     double r, qbt1;
     int k, l, type, u, u1;
@@ -1010,7 +1032,7 @@ PRIVATE void backtrack(int i, int j){
     type = ptype[my_iindx[i]-j];
     u = j-i-1;
     /*hairpin contribution*/
-    if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
+    if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
     else
       qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*
         scale[u+2]; /* add scale[u+2] */

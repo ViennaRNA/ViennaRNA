@@ -63,8 +63,11 @@ int main(int argc, char *argv[])
   plist   *mfA;
   plist   *mfB;
   double  *ConcAandB;
-  unsigned int  rec_type, read_opt;
-  pf_paramT     *pf_parameters;
+  unsigned int    rec_type, read_opt;
+  pf_paramT       *pf_parameters;
+  model_detailsT  md;
+
+  set_model_details(&md);
 
   /*
   #############################################
@@ -105,15 +108,15 @@ int main(int argc, char *argv[])
   /* structure constraint */
   if(args_info.constraint_given)      fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)         tetra_loop=0;
+  if(args_info.noTetra_given)         md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)         dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)         md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)            noLonelyPairs = 1;
+  if(args_info.noLP_given)            md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)            noGU = 1;
+  if(args_info.noGU_given)            md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)     no_closingGU = 1;
+  if(args_info.noClosingGU_given)     md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)          noconv = 1;
   /* set energy model */
@@ -326,11 +329,11 @@ int main(int argc, char *argv[])
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, pf_scale);
+      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
 
       if (cstruc!=NULL)
         strncpy(structure, cstruc, length+1);
-      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, do_backtrack);
+      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, fold_constrained, do_backtrack);
 
       if (do_backtrack) {
         char *costruc;
@@ -583,7 +586,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       /* init_co_pf_fold(length); <- obsolete */
       par = get_boltzmann_factor_copy(parameters);
       par->pf_scale = exp(-(sfact*min_en)/kT/(length));
-      X=co_pf_fold_par(string, tempstruc, par, 1);
+      X=co_pf_fold_par(string, tempstruc, par, 1, fold_constrained);
       probs = export_co_bppm();
       assign_plist_from_pr(tpr, probs, length, bppmThreshold);
       free_co_pf_arrays();
@@ -603,7 +606,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       /* init_co_pf_fold(2*length); <- obsolete */
       par = get_boltzmann_factor_copy(parameters);
       par->pf_scale =exp(-(sfact*min_en)/kT/(2*length));
-      X=co_pf_fold_par(Newstring, tempstruc, par, 1);
+      X=co_pf_fold_par(Newstring, tempstruc, par, 1, fold_constrained);
       probs = export_co_bppm();
       assign_plist_from_pr(tpr, probs, 2*length, bppmThreshold);
       free_co_pf_arrays();

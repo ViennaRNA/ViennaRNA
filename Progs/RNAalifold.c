@@ -49,6 +49,7 @@ int main(int argc, char *argv[]){
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
   pf_paramT     *pf_parameters;
+  model_detailsT  md;
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
@@ -60,6 +61,9 @@ int main(int argc, char *argv[]){
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
   betaScale     = 1.;
+
+  set_model_details(&md);
+
   /*
   #############################################
   # check the command line prameters
@@ -71,15 +75,15 @@ int main(int argc, char *argv[]){
   /* structure constraint */
   if(args_info.constraint_given)  fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
+  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)     md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
+  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
+  if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
+  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   /* set energy model */
   if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
@@ -288,8 +292,8 @@ int main(int argc, char *argv[]){
 
     if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
-    pf_parameters = get_boltzmann_factors_ali(n_seq, dangles, temperature, betaScale, pf_scale);
-    energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, circular);
+    pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
+    energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, fold_constrained, circular);
 
     if (n_back>0) {
       /*stochastic sampling*/

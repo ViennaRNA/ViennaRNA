@@ -91,9 +91,10 @@ PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
                         -3: > = base must be paired with j>i
                         -4: x = base must not pair
                         positive int: base is paired with int      */
-PRIVATE short   *pair_table = NULL; /* needed by energy of struct */
-PRIVATE bondT   *base_pair2 = NULL; /* this replaces base_pair from fold_vars.c */
-PRIVATE int     circular = 0;
+PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
+PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
+PRIVATE int     circular            = 0;
+PRIVATE int     struct_constrained  = 0;
 
 #ifdef _OPENMP
 
@@ -106,7 +107,7 @@ PRIVATE int     circular = 0;
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
                           Fc, FcH, FcI, FcM,\
-                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table, base_pair2, circular)
+                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table, base_pair2, circular, struct_constrained)
 
 #endif
 
@@ -123,7 +124,8 @@ PRIVATE int   ML_Energy(int i, int is_extloop);
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
-PRIVATE void  init_fold(int length);
+PRIVATE void  fill_arrays_circ(const char *string, int *bt);
+PRIVATE void  init_fold(int length, paramT *parameters);
 /* needed by cofold/eval */
 PRIVATE int   cut_in_loop(int i);
 
@@ -141,7 +143,7 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 */
 
 /* allocate memory for folding process */
-PRIVATE void init_fold(int length){
+PRIVATE void init_fold(int length, paramT *parameters){
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -155,7 +157,7 @@ PRIVATE void init_fold(int length){
 
   indx = get_indx((unsigned)length);
 
-  update_fold_params();
+  update_fold_params_par(parameters);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -227,8 +229,12 @@ PUBLIC void free_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
-                        int **indx_p, char **ptype_p){
+PUBLIC void export_fold_arrays( int **f5_p,
+                                int **c_p,
+                                int **fML_p,
+                                int **fM1_p,
+                                int **indx_p,
+                                char **ptype_p){
   /* make the DP arrays available to routines such as subopt() */
   *f5_p     = f5;
   *c_p      = c;
@@ -238,9 +244,28 @@ PUBLIC void export_fold_arrays(int **f5_p, int **c_p, int **fML_p, int **fM1_p,
   *ptype_p  = ptype;
 }
 
-PUBLIC void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p,
-                        int **f5_p, int **c_p, int **fML_p, int **fM1_p,
-                        int **indx_p, char **ptype_p){
+PUBLIC void export_fold_arrays_par( int **f5_p,
+                                    int **c_p,
+                                    int **fML_p,
+                                    int **fM1_p,
+                                    int **indx_p,
+                                    char **ptype_p,
+                                    paramT **P_p){
+  export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p,ptype_p);
+  *P_p = P;
+}
+
+PUBLIC void export_circfold_arrays( int *Fc_p,
+                                    int *FcH_p,
+                                    int *FcI_p,
+                                    int *FcM_p,
+                                    int **fM2_p,
+                                    int **f5_p,
+                                    int **c_p,
+                                    int **fML_p,
+                                    int **fM1_p,
+                                    int **indx_p,
+                                    char **ptype_p){
   /* make the DP arrays available to routines such as subopt() */
   *f5_p     = f5;
   *c_p      = c;
@@ -255,23 +280,54 @@ PUBLIC void export_circfold_arrays(int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p
   *ptype_p  = ptype;
 }
 
+PUBLIC void export_circfold_arrays_par( int *Fc_p,
+                                    int *FcH_p,
+                                    int *FcI_p,
+                                    int *FcM_p,
+                                    int **fM2_p,
+                                    int **f5_p,
+                                    int **c_p,
+                                    int **fML_p,
+                                    int **fM1_p,
+                                    int **indx_p,
+                                    char **ptype_p,
+                                    paramT **P_p){
+  export_circfold_arrays(Fc_p, FcH_p, FcI_p, FcM_p, fM2_p, f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
+  *P_p = P;
+}
 /*--------------------------------------------------------------------------*/
 
 
 PUBLIC float fold(const char *string, char *structure){
-  int i, length, energy, bonus=0, bonus_cnt=0;
+  return fold_par(string, structure, NULL, fold_constrained, 0);
+}
 
-  circular = 0;
-  length = (int) strlen(string);
+PUBLIC float circfold(const char *string, char *structure){
+  return fold_par(string, structure, NULL, fold_constrained, 1);
+}
+
+PUBLIC float fold_par(const char *string,
+                      char *structure,
+                      paramT *parameters,
+                      int is_constrained,
+                      int is_circular){
+
+  int i, length, energy, bonus, bonus_cnt, s;
+
+  bonus               = 0;
+  bonus_cnt           = 0;
+  s                   = 0;
+  circular            = is_circular;
+  struct_constrained  = is_constrained;
+  length              = (int) strlen(string);
 
 #ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_fold(length);
+  init_fold(length, parameters);
 #else
-  if (length>init_length) init_fold(length);
+  if (parameters) init_partfunc(length, parameters);
+  else if (length>init_length) init_fold(length, parameters);
+  else if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 #endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 
   S   = encode_sequence(string, 0);
   S1  = encode_sequence(string, 1);
@@ -281,7 +337,11 @@ PUBLIC float fold(const char *string, char *structure){
 
   energy = fill_arrays(string);
 
-  backtrack(string, 0);
+  if(circular){
+    fill_arrays_circ(string, &s);
+    energy = Fc;
+  }
+  backtrack(string, s);
 
 #ifdef PAREN
   parenthesis_structure(structure, base_pair2, length);
@@ -347,6 +407,11 @@ PRIVATE int fill_arrays(const char *string) {
 #endif
   int   no_close, type, type_2, tt;
   int   bonus=0;
+  
+  int   dangle_model, noGUclosure;
+
+  dangle_model  = P->model_details.dangles;
+  noGUclosure   = P->model_details.noGUclosure;
 
   length = (int) strlen(string);
 
@@ -357,7 +422,7 @@ PRIVATE int fill_arrays(const char *string) {
   }
 
 #ifdef SPECIAL_DANGLES
-  if(dangles == 5){
+  if(dangle_model == 5){
     for (j=1; j<=length; j++) {
       DMLi_a[j]=DMLi_o[j]=DMLi1_a[j]=DMLi1_o[j]=DMLi2_a[j]=DMLi2_o[j]=INF;
     }
@@ -383,7 +448,7 @@ PRIVATE int fill_arrays(const char *string) {
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
       if ((BP[i]==-4)||(BP[j]==-4)) type=0;
 
-      no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
+      no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
@@ -407,7 +472,7 @@ PRIVATE int fill_arrays(const char *string) {
             if (type_2==0) continue;
             type_2 = rtype[type_2];
 
-            if (no_closingGU)
+            if (noGUclosure)
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -426,7 +491,7 @@ PRIVATE int fill_arrays(const char *string) {
           int MLenergy;
           decomp = DMLi1[j-1];
           tt = rtype[type];
-          switch(dangles){
+          switch(dangle_model){
             /* no dangles */
             case 0:   decomp += E_MLstem(tt, -1, -1, P);
                       break;
@@ -466,7 +531,7 @@ PRIVATE int fill_arrays(const char *string) {
 
         /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
-        if (dangles==3) {
+        if (dangle_model==3) {
           decomp = INF;
           for (k = i+2+TURN; k < j-2-TURN; k++) {
             type_2 = rtype[ptype[indx[k]+i+1]];
@@ -498,7 +563,7 @@ PRIVATE int fill_arrays(const char *string) {
       new_fML = INF;
       if(type){
         new_fML = c[ij];
-        switch(dangles){
+        switch(dangle_model){
           case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
                     break;
           default:  new_fML += E_MLstem(type, -1, -1, P);
@@ -513,10 +578,10 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* free ends ? -----------------------------------------*/
       /*  we must not just extend 3'/5' end by unpaired nucleotides if
-      *   dangles == 1, this could lead to d5+d3 contributions were
+      *   dangle_model == 1, this could lead to d5+d3 contributions were
       *   mismatch must be taken!
       */
-      switch(dangles){
+      switch(dangle_model){
         /* no dangles */
         case 0:   new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
@@ -563,7 +628,7 @@ PRIVATE int fill_arrays(const char *string) {
                   if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
                   break;
 #endif
-        /* normal dangles, aka dangles = 1 || 3 */
+        /* normal dangles, aka dangle_model = 1 || 3 */
         default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
                   mm3 = ((j<length) || circular) ? S1[j] : -1;
                   new_fML = MIN2(new_fML, fML[ij+1] + P->MLbase);
@@ -579,7 +644,7 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* modular decomposition -------------------------------*/
 #ifdef SPECIAL_DANGLES
-      if(dangles != 5){
+      if(dangle_model != 5){
 #endif
         for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
           decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
@@ -589,7 +654,7 @@ PRIVATE int fill_arrays(const char *string) {
       }
 #endif
       /* coaxial stacking */
-      if (dangles==3) {
+      if (dangle_model==3) {
         /* additional ML decomposition as two coaxially stacked helices */
         for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++) {
           type = ptype[indx[k]+i]; type = rtype[type];
@@ -618,7 +683,7 @@ PRIVATE int fill_arrays(const char *string) {
       int *FF; /* rotate the auxilliary arrays */
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
 #ifdef SPECIAL_DANGLES
-      if(dangles == 5){
+      if(dangle_model == 5){
         FF = DMLi2_a; DMLi2_a = DMLi1_a; DMLi1_a = DMLi_a; DMLi_a = FF;
         FF = DMLi2_o; DMLi2_o = DMLi1_o; DMLi1_o = DMLi_o; DMLi_o = FF;
         for (j=1; j<=length; j++) {DMLi_a[j]=DMLi_o[j]=INF; }
@@ -633,7 +698,7 @@ PRIVATE int fill_arrays(const char *string) {
 
   f5[TURN+1]= 0;
   /* duplicated code may be faster than conditions inside loop ;) */
-  switch(dangles){
+  switch(dangle_model){
     /* dont use dangling end and mismatch contributions at all */
     case 0:   for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
@@ -739,7 +804,7 @@ PRIVATE int fill_arrays(const char *string) {
               }
               break;
 #endif
-    /* normal dangles, aka dangles = 1 || 3 */
+    /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
@@ -780,6 +845,8 @@ PRIVATE void backtrack(const char *string, int s) {
   int   no_close, type, type_2, tt;
   int   bonus;
   int   b=0;
+  int   dangle_model = P->model_details.dangles;
+
   length = strlen(string);
   if (s==0) {
     sector[++s].i = 1;
@@ -812,7 +879,7 @@ PRIVATE void backtrack(const char *string, int s) {
     }
 
     if (ml == 0) { /* backtrack in f5 */
-      switch(dangles){
+      switch(dangle_model){
         case 0:   /* j is paired. Find pairing partner */
                   for(k=j-TURN-1,traced=0; k>=1; k--){
                     type = ptype[indx[j]+k];
@@ -952,7 +1019,7 @@ PRIVATE void backtrack(const char *string, int s) {
       ij  = indx[j]+i;
       tt  = ptype[ij];
       en  = c[ij];
-      switch(dangles){
+      switch(dangle_model){
         case 0:   if(fij == en + E_MLstem(tt, -1, -1, P)){
                     base_pair2[++b].i = i;
                     base_pair2[b].j   = j;
@@ -1023,7 +1090,7 @@ PRIVATE void backtrack(const char *string, int s) {
         if(fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
           break;
 
-      if ((dangles==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
+      if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
         ml = 2;
         for (k = i+1+TURN; k <= j - 2 - TURN; k++) {
           type    = rtype[ptype[indx[k]+i]];
@@ -1115,7 +1182,7 @@ PRIVATE void backtrack(const char *string, int s) {
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1;
 
-    switch(dangles){
+    switch(dangle_model){
       case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing - bonus;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
@@ -1172,7 +1239,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                   /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                   /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
-                  if(dangles == 3){
+                  if(dangle_model == 3){
                     type_2 = rtype[ptype[indx[k]+i+1]];
                     if (type_2) {
                       en = c[indx[k]+i+1]+P->stack[type][type_2]+fML[indx[j-1]+k+1];
@@ -1205,7 +1272,7 @@ PRIVATE void backtrack(const char *string, int s) {
     } else {
 #if 0
       /* Y shaped ML loops fon't work yet */
-      if (dangles==3) {
+      if (dangle_model==3) {
         d5 = P->dangle5[tt][S1[j-1]];
         d3 = P->dangle3[tt][S1[i+1]];
         /* (i,j) must close a Y shaped ML loop with coax stacking */
@@ -1315,27 +1382,36 @@ PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_fold_params(void)
-{
+PUBLIC void update_fold_params(void){
+  update_fold_params_par(NULL);
+}
+
+PUBLIC void update_fold_params_par(paramT *parameters){
   if(P) free(P);
-  P = scale_parameters();
+  if(parameters){
+    P = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
   make_pair_matrix();
   if (init_length < 0) init_length=0;
 }
 
 /*---------------------------------------------------------------------------*/
-PUBLIC float energy_of_structure(const char *string, const char *structure, int verbosity_level)
-{
+PUBLIC float energy_of_structure(const char *string, const char *structure, int verbosity_level){
+  return energy_of_struct_par(string, structure, NULL, verbosity_level);
+}
+
+PUBLIC float energy_of_struct_par(const char *string,
+                                  const char *structure,
+                                  paramT *parameters,
+                                  int verbosity_level){
   int   energy;
   short *ss, *ss1;
 
-#ifdef _OPENMP
-  if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  update_fold_params_par(parameters);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
@@ -1355,19 +1431,27 @@ PUBLIC float energy_of_structure(const char *string, const char *structure, int 
   return  (float) energy/100.;
 }
 
-PUBLIC int energy_of_structure_pt(const char *string, short * ptable,
-                        short *s, short *s1, int verbosity_level) {
+PUBLIC int energy_of_structure_pt(const char *string,
+                                  short *ptable,
+                                  short *s,
+                                  short *s1,
+                                  int verbosity_level){
+  return energy_of_struct_pt_par(string, ptable, s, s1, NULL, verbosity_level);
+}
+
+PUBLIC int energy_of_struct_pt_par( const char *string,
+                                    short *ptable,
+                                    short *s,
+                                    short *s1,
+                                    paramT *parameters,
+                                    int verbosity_level){
   /* auxiliary function for kinfold,
      for most purposes call energy_of_struct instead */
 
   int   i, length, energy;
   short *ss, *ss1;
 
-#ifdef _OPENMP
-  if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
+  update_fold_params_par(parameters);
 
   pair_table = ptable;
   ss  = S;
@@ -1396,16 +1480,23 @@ PUBLIC int energy_of_structure_pt(const char *string, short * ptable,
   return energy;
 }
 
-PUBLIC float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level) {
+PUBLIC float energy_of_circ_structure(const char *string,
+                                      const char *structure,
+                                      int verbosity_level){
+  return energy_of_circ_struct_par(string, structure, NULL, verbosity_level);
+}
+
+PUBLIC float energy_of_circ_struct_par( const char *string,
+                                        const char *structure,
+                                        paramT *parameters,
+                                        int verbosity_level){
+
   int   i, j, length, energy=0, en0, degree=0, type;
   short *ss, *ss1;
 
-#ifdef _OPENMP
-  if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  update_fold_params_par(parameters);
+
+  int dangle_model = P->model_details.dangles;
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
@@ -1458,14 +1549,14 @@ PUBLIC float energy_of_circ_structure(const char *string, const char *structure,
                        S1[j+1], si1, S1[p-1], sq1,P);
     } else { /* degree > 2 */
       en0 = ML_Energy(0, 0) - P->MLintern[0];
-      if (dangles) {
+      if (dangle_model) {
         int d5, d3;
         if (pair_table[1]) {
           j = pair_table[1];
           type = pair[S[1]][S[j]];
-          if (dangles==2)
+          if (dangle_model==2)
             en0 += P->dangle5[type][S1[length]];
-          else { /* dangles==1 */
+          else { /* dangle_model==1 */
             if (pair_table[length]==0) {
               d5 = P->dangle5[type][S1[length]];
               if (pair_table[length-1]!=0) {
@@ -1482,9 +1573,9 @@ PUBLIC float energy_of_circ_structure(const char *string, const char *structure,
         if (pair_table[length]) {
           i = pair_table[length];
           type = pair[S[i]][S[length]];
-          if (dangles==2)
+          if (dangle_model==2)
             en0 += P->dangle3[type][S1[1]];
-          else { /* dangles==1 */
+          else { /* dangle_model==1 */
             if (pair_table[1]==0) {
               d3 = P->dangle3[type][S1[1]];
               if (pair_table[2]) {
@@ -1606,12 +1697,14 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
   int E3_available;  /* energy of 5' part where 5' mismatch is available for current stem */
   int E3_occupied;   /* energy of 5' part where 5' mismatch is unavailable for current stem */
 
+  int dangle_model = P->model_details.dangles;
+
   /* initialize vars */
   energy      = 0;
   p           = (i==0) ? 1 : i;
   q_prev      = -1;
 
-  if(dangles%2 == 1){
+  if(dangle_model%2 == 1){
     E3_available = INF;
     E3_occupied  = 0;
   }
@@ -1627,7 +1720,7 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
     tt = pair[S[p]][S[q]];
     if(tt==0) tt=7;
 
-    switch(dangles){
+    switch(dangle_model){
       /* no dangles */
       case 0:   energy += E_ExtLoop(tt, -1, -1, P);
                 break;
@@ -1678,7 +1771,7 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
                 }
                 break;
 
-    } /* end switch dangles */
+    } /* end switch dangle_model */
     /* seek to the next stem */
     p = q + 1;
     q_prev = q;
@@ -1686,7 +1779,7 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
     if(p==i) break; /* cut was in loop */
   }
 
-  if(dangles%2 == 1)
+  if(dangle_model%2 == 1)
     energy = MIN2(E3_occupied, E3_available);
 
   return energy;
@@ -1715,6 +1808,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
   int length = (int)pt[0];
+  int dangle_model = P->model_details.dangles;
 
   if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
@@ -1734,7 +1828,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   while(p <= j && !pair_table[p]) p++;
   u = p - i - 1;
 
-  switch(dangles){
+  switch(dangle_model){
     case 0:   while(p < j){
                 /* p must have a pairing partner */
                 q  = (int)pair_table[p];
@@ -1997,7 +2091,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, mm5, -1, P));
               energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, -1, -1, P));
               break;
-  }/* end switch dangles */
+  }/* end switch dangle_model */
 
   energy += P->MLclosing;
   /* logarithmic ML loop energy if logML */
@@ -2303,6 +2397,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   int energy, cx_energy, best_energy=INF;
   int i1, j, p, q, u, x, type, count;
   int mlintern[NBPAIRS+1], mlclosing, mlbase;
+  int dangle_model = P->model_details.dangles;
 
   if (is_extloop) {
     for (x = 0; x <= NBPAIRS; x++)
@@ -2345,11 +2440,11 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? S1[p-1]: -1;
         int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pair_table[0])) ? S1[q+1]: -1;
 
-        switch(dangles){
-          /* dangles == 0 */
+        switch(dangle_model){
+          /* dangle_model == 0 */
           case 0: energy += E_ExtLoop(tt, -1, -1, P);
                   break;
-          /* dangles == 1 */
+          /* dangle_model == 1 */
           case 1: {
                     /* check for unpaired nucleotide 3' to the current stem */
                     int u3 = ((q < pair_table[0]) && (pair_table[q+1] == 0)) ? 1 : 0;
@@ -2376,20 +2471,20 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
                   }
                   break;
 
-          /* the beloved case dangles == 2 */
+          /* the beloved case dangle_model == 2 */
           case 2: energy += E_ExtLoop(tt, mm5, mm3, P);
                   break;
 
-          /* dangles == 3 a.k.a. helix stacking */
+          /* dangle_model == 3 a.k.a. helix stacking */
           case 3: break;
 
-        } /* end switch dangles */
+        } /* end switch dangle_model */
 
         /* seek to the next stem */
         p = q + 1;
         while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
         if(p == (int)pair_table[0] + 1){
-          if(dangles == 1)
+          if(dangle_model == 1)
             energy = (p > q + 1) ? E_mm5_occupied : E_mm5_available;
           q = 0;
           break;
@@ -2408,7 +2503,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         j = (unsigned int)pair_table[i];
         type = pair[S[j]][S[i]]; if (type==0) type=7;
 
-        if (dangles==3) { /* prime the ld5 variable */
+        if (dangle_model==3) { /* prime the ld5 variable */
           if (SAME_STRAND(j-1,j)) {
             ld5 = P->dangle5[type][S1[j-1]];
             if ((p=(unsigned int)pair_table[j-2]) && SAME_STRAND(j-2, j-1))
@@ -2438,7 +2533,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         energy += mlintern[tt];
         cx_energy += mlintern[tt];
 
-        if (dangles) {
+        if (dangle_model) {
           int dang5=0, dang3=0, dang;
           if ((SAME_STRAND(p-1,p))&&(p>1))
             dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
@@ -2447,9 +2542,9 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
 
           switch (p-i1-1) {
           case 0: /* adjacent helices */
-            if (dangles==2)
+            if (dangle_model==2)
               energy += dang3+dang5;
-            else if (dangles==3 && i1!=0) {
+            else if (dangle_model==3 && i1!=0) {
               if (SAME_STRAND(i1,p)) {
                 new_cx = energy + P->stack[rtype[type]][rtype[tt]];
                 /* subtract 5'dangle and TerminalAU penalty */
@@ -2460,8 +2555,8 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
             }
             break;
           case 1: /* 1 unpaired base between helices */
-            dang = (dangles==2)?(dang3+dang5):MIN2(dang3, dang5);
-            if (dangles==3) {
+            dang = (dangle_model==2)?(dang3+dang5):MIN2(dang3, dang5);
+            if (dangle_model==3) {
               energy = energy +dang; ld5 = dang - dang3;
               /* may be problem here: Suppose
                  cx_energy>energy, cx_energy+dang5<energy
@@ -2477,7 +2572,7 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
             break;
           default: /* many unpaired base between helices */
             energy += dang5 +dang3;
-            if (dangles==3) {
+            if (dangle_model==3) {
               energy = MIN2(energy, cx_energy + dang5);
               new_cx = INF;  /* no coax stacking possible */
               ld5 = dang5;
@@ -2485,12 +2580,12 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
           }
           type = tt;
         }
-        if (dangles==3) cx_energy = new_cx;
+        if (dangle_model==3) cx_energy = new_cx;
         i1 = q; p=q+1;
       } while (q!=i);
       best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
       /* fprintf(stderr, "%6.2d\t", energy); */
-      if (dangles!=3 || is_extloop) break;  /* may break cofold with co-ax */
+      if (dangle_model!=3 || is_extloop) break;  /* may break cofold with co-ax */
       /* skip a helix and start again */
       while (pair_table[p]==0) p++;
       if (i == (unsigned int)pair_table[p]) break;

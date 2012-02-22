@@ -77,6 +77,7 @@ PRIVATE int             N_seq = 0;
 PRIVATE pf_paramT       *pf_params = NULL;
 PRIVATE char            *pstruc=NULL;
 PRIVATE double          alpha = 1.0;
+PRIVATE int             struct_constrained = 0;
 
 #ifdef _OPENMP
 
@@ -90,7 +91,7 @@ PRIVATE double          alpha = 1.0;
                           probs, prml, prm_l, prm_l1, q1k, qln,\
                           scale, pscore, circular,\
                           qo, qho, qio, qmo, qm2, jindx, my_iindx,\
-                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha)
+                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha, struct_constrained)
 
 #endif
 
@@ -219,11 +220,11 @@ PUBLIC void free_alipf_arrays(void){
 
 /*-----------------------------------------------------------------*/
 PUBLIC float alipf_fold(const char **sequences, char *structure, plist **pl){
-  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, 0);
+  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 0);
 }
 
 PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl){
-  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, 1);
+  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 1);
 }
 
 PUBLIC float alipf_fold_par(const char **sequences,
@@ -231,14 +232,16 @@ PUBLIC float alipf_fold_par(const char **sequences,
                             plist **pl,
                             pf_paramT *parameters,
                             int calculate_bppm,
+                            int is_constrained,
                             int is_circular){
 
   int         n, s, n_seq;
   FLT_OR_DBL  Q;
   float       free_energy;
 
-  circular  = is_circular;
-  do_bppm   = calculate_bppm;
+  circular            = is_circular;
+  do_bppm             = calculate_bppm;
+  struct_constrained  = is_constrained;
 
   if(circular)
     oldAliEn  = 1; /* may be removed if circular alipf fold works with gapfree stuff */
@@ -727,7 +730,13 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq, pf_paramT *paramete
 
   if(pf_params) free(pf_params);
 
-  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors_ali(n_seq, dangles, temperature, alpha, pf_scale);
+  if(parameters){
+    pf_params = get_boltzmann_factor_copy(parameters);
+  } else {
+    model_detailsT  md;
+    set_model_details(&md);
+    pf_params = get_boltzmann_factors_ali(n_seq, temperature, alpha, md, pf_scale);
+  }
 
   scaling_factor  = pf_params->pf_scale;
   kT              = pf_params->kT / n_seq;
@@ -827,6 +836,8 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
                   {0,2,2,2,1,2,0} /* UA */};
 
   float **dm;
+  int noLP = pf_params->model_details.noLP;
+
   n=S[0][0];  /* length of seqs */
   if (ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
@@ -868,7 +879,7 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
     }
   }
 
-  if (noLonelyPairs) /* remove unwanted pairs */
+  if (noLP) /* remove unwanted pairs */
     for (k=1; k<=n-TURN-1; k++)
       for (l=1; l<=2; l++) {
         int type,ntype=0,otype=0;
@@ -886,7 +897,7 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       }
 
 
-  if (fold_constrained&&(structure!=NULL)) {
+  if (struct_constrained&&(structure!=NULL)) {
     int psij, hx, *stack;
     stack = (int *) space(sizeof(int)*(n+1));
 
@@ -1042,7 +1053,7 @@ PUBLIC char *alipbacktrack(double *prob) {
   n_seq = N_seq;
   kTn = pf_params->kT/10.;
   /*sequence = seq;*/
-  if (do_backtrack==0) {
+  if (do_bppm==0) {
     for (k=1; k<=n; k++) {
       qln[k] = q[my_iindx[k] -n];
     }

@@ -216,9 +216,10 @@ PUBLIC void update_pf_paramsLP(int length){
 
 PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
 #ifdef _OPENMP
-  scale_pf_params((unsigned) length, parameters);
+  init_partfunc_L(length, parameters);
 #else
-  if (length>init_length) init_pf_foldLP(length, parameters);  /* init not update */
+  if(parameters) init_partfunc_L(length, parameters);
+  else if (length > init_length) init_partfunc_L(length, parameters);
   else {
     /*   make_pair_matrix();*/
     scale_pf_params((unsigned) length, parameters);
@@ -226,7 +227,14 @@ PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
 #endif
 }
 
-PUBLIC plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup){
+PUBLIC plist *pfl_fold( char *sequence,
+                        int winSize,
+                        int pairSize,
+                        float cutoffb,
+                        double **pU,
+                        struct plist **dpp2,
+                        FILE *pUfp,
+                        FILE *spup){
   return pfl_fold_par(sequence, winSize, pairSize, cutoffb, pU, dpp2, pUfp, spup, NULL);
 }
 
@@ -240,7 +248,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
                             FILE *spup,
                             pf_paramT *parameters){
 
-  int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout;
+  int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout, noGUclosure;
   double      max_real;
   FLT_OR_DBL  temp, Qmax, prm_MLb, prmt, prmt1, qbt1, *tmp, expMLclosing;
   plist       *dpp, *pl;
@@ -278,6 +286,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
 #endif
 
   expMLclosing  = pf_params->expMLclosing;
+  noGUclosure   = pf_params->model_details.noGUclosure;
 
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -324,7 +333,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
         type = ptype[i][j];
         if (type!=0) {
           /*hairpin contribution*/
-          if (((type==3)||(type==4))&&no_closingGU) qbt1 = 0;
+          if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
           else
             qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
@@ -585,7 +594,13 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
 
   if(pf_params) free(pf_params);
 
-  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors(dangles, temperature, alpha, pf_scale);
+  if(parameters){
+    pf_params = get_boltzmann_factor_copy(parameters);
+  } else {
+    model_detailsT  md;
+    set_model_details(&md);
+    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
+  }
 
   scaling_factor = pf_params->pf_scale;
   kT = pf_params->kT;   /* kT in cal/mol  */

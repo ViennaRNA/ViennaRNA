@@ -31,6 +31,14 @@ SOLUTION *subopt (char *seq,
                   int delta,
                   FILE *fp);
 
+SOLUTION *subopt_par( char *seq,
+                      char *structure,
+                      paramT *parameters,
+                      int delta,
+                      int is_constrained,
+                      int is_circular,
+                      FILE *fp);
+
 /**
  *  \brief Returns list of circular subopt structures or writes to fp
  * 

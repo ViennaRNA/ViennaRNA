@@ -34,15 +34,26 @@ PRIVATE int pf_id=-1;
 #pragma omp threadprivate(id, pf_id)
 #endif
 
-PUBLIC paramT *scale_parameters(void)
-{
+PUBLIC paramT *scale_parameters(void){
+  model_detailsT  md;
+  set_model_details(&md);
+  return get_scaled_parameters(temperature, md);
+}
+
+PUBLIC paramT *get_scaled_parameters( double temperature,
+                                      model_detailsT md){
+
   unsigned int i,j,k,l;
   double tempf;
   paramT *params;
-  /* if ((fabs(p.temperature - temperature)<1e-6)&&(id == p.id)) return &p; */
-  params = (paramT *)space(sizeof(paramT));
 
-  tempf = ((temperature+K0)/Tmeasure);
+  params  = (paramT *)space(sizeof(paramT));
+
+  /* store the model details */
+  params->model_details = md;
+  params->temperature   = temperature;
+  tempf                 = ((temperature+K0)/Tmeasure);
+
   for (i=0; i<31; i++)
     params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
@@ -73,10 +84,10 @@ PUBLIC paramT *scale_parameters(void)
   params->DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) *tempf;
 
   params->MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
-  for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
+
+  for (i=0; i<=NBPAIRS; i++)
     params->MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
-    //params->MLintern[i] +=  (i>2)? params->TerminalAU:0;
-  }
+
   params->MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
 
 
@@ -94,7 +105,7 @@ PUBLIC paramT *scale_parameters(void)
         params->mismatchH[i][j][k]    = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
         params->mismatch1nI[i][j][k]  = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
         params->mismatch23I[i][j][k]  = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
-        if(dangles){
+        if(md.dangles){
           mm                      = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
           params->mismatchM[i][j][k]    = (mm > 0) ? 0 : mm;
           mm                      = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*tempf;
@@ -145,7 +156,6 @@ PUBLIC paramT *scale_parameters(void)
   strncpy(params->Triloops, Triloops, 241);
   strncpy(params->Hexaloops, Hexaloops, 361);
 
-  params->temperature = temperature;
   params->id = ++id;
   return params;
 }
@@ -166,25 +176,28 @@ PUBLIC paramT *scale_parameters(void)
 
 
 PUBLIC pf_paramT *get_scaled_pf_parameters(void){
-  return get_boltzmann_factors(dangles, temperature, 1.0, pf_scale);
+  model_detailsT  md;
+  set_model_details(&md);
+  return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
 }
 
-PUBLIC pf_paramT *get_boltzmann_factors(int dangle_model,
-                                        double temperature,
-                                        double alpha,
+PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
+                                        double betaScale,
+                                        model_detailsT md,
                                         double pf_scale){
+
   unsigned  int i, j, k, l;
   double        kT, TT;
   double        GT;
   pf_paramT     *pf;
 
-  pf              = (pf_paramT *)space(sizeof(pf_paramT));
-  pf->temperature = temperature;
-  pf->dangles     = dangle_model;
-  pf->alpha       = alpha;
-  pf->kT = kT     = alpha*(pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
-  pf->pf_scale    = pf_scale;
-  TT              = (pf->temperature+K0)/(Tmeasure);
+  pf                = (pf_paramT *)space(sizeof(pf_paramT));
+  pf->model_details = md;
+  pf->temperature   = temperature;
+  pf->alpha         = betaScale;
+  pf->kT = kT       = betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  pf->pf_scale      = pf_scale;
+  TT                = (temperature+K0)/(Tmeasure);
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++){
@@ -250,7 +263,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(int dangle_model,
      but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
-      if (dangle_model) {
+      if (md.dangles) {
         GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
         pf->expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
         GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
@@ -276,7 +289,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(int dangle_model,
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-        if (dangle_model) {
+        if (md.dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kT);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
@@ -333,13 +346,15 @@ PUBLIC pf_paramT *get_boltzmann_factors(int dangle_model,
 }
 
 PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
-  return get_boltzmann_factors_ali(n_seq, dangles, temperature, 1.0, pf_scale);
+  model_detailsT  md;
+  set_model_details(&md);
+  return get_boltzmann_factors_ali(n_seq, temperature, 1.0, md, pf_scale);
 }
 
 PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
-                                            int dangle_model,
                                             double temperature,
-                                            double alpha,
+                                            double betaScale,
+                                            model_detailsT md,
                                             double pf_scale){
 
   /* scale energy parameters and pre-calculate Boltzmann weights */
@@ -348,13 +363,12 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   double        GT;
   pf_paramT     *pf;
 
-  pf              = (pf_paramT *)space(sizeof(pf_paramT));
-  pf->temperature = temperature;
-  pf->dangles     = dangle_model;
-  pf->alpha       = alpha;
-  pf->kT = kTn    = ((double)n_seq)*alpha*(pf->temperature+K0)*GASCONST;   /* kT in cal/mol  */
-  pf->pf_scale    = pf_scale;
-  TT              = (pf->temperature+K0)/(Tmeasure);
+  pf                = (pf_paramT *)space(sizeof(pf_paramT));
+  pf->model_details = md;
+  pf->alpha         = betaScale;
+  pf->temperature   = temperature;
+  pf->kT = kTn      = ((double)n_seq)*betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  TT                = (temperature+K0)/(Tmeasure);
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++) {
@@ -424,7 +438,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
      but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
-      if (dangle_model) {
+      if (md.dangles) {
         GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
         pf->expdangle5[i][j] = exp(SMOOTH(-GT)*10./kTn);
         GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
@@ -450,7 +464,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kTn);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kTn);
-        if (dangle_model) {
+        if (md.dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kTn);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
@@ -516,6 +530,15 @@ PUBLIC pf_paramT *get_boltzmann_factor_copy(pf_paramT *par){
   return copy;
 }
 
+PUBLIC paramT *get_parameter_copy(paramT *par){
+  paramT *copy = NULL;
+  if(par){
+    copy = (paramT *) space(sizeof(paramT));
+    memcpy(copy, par, sizeof(paramT));
+  }
+  return copy;
+}
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -547,6 +570,8 @@ PUBLIC pf_paramT *set_pf_param(paramT *dest){
 }
 
 PUBLIC pf_paramT *scale_pf_parameters(void){
+  return get_scaled_pf_parameters();
+#if 0
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int i, j, k, l;
   double  kT, TT;
@@ -705,4 +730,5 @@ PUBLIC pf_paramT *scale_pf_parameters(void){
 
   pf.id = ++pf_id;
   return &pf;
+#endif
 }

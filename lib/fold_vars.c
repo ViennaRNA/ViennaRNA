@@ -59,7 +59,7 @@ int         *cut_points;
 
 int         *strand;
 
-char * option_string(void) {
+PUBLIC char * option_string(void){
   static char options[100];
   *options = '\0';
   if (noGU) strcat(options, "-noGU ");
@@ -71,4 +71,15 @@ char * option_string(void) {
   if (temperature!=37.0)
     sprintf(options+strlen(options), "-T %f ", temperature);
   return options;
+}
+
+PUBLIC void set_model_details(model_detailsT *md){
+  if(md){
+    md->dangles     = dangles;
+    md->special_hp  = tetra_loop;
+    md->noLP        = noLonelyPairs;
+    md->noGU        = noGU;
+    md->noGUclosure = no_closingGU;
+    md->logML       = logML;
+  }
 }

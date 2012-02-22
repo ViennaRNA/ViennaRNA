@@ -189,6 +189,26 @@ void  free_sequence_arrays( unsigned int n_seq,
 /**
  *  \brief
  * 
+ *  \param  sequences
+ *  \param  structure
+ *  \param  pl
+ *  \param  parameters
+ *  \param  calculate_bppm
+ *  \param  is_constrained
+ *  \param  is_circular
+ *  \return
+ */
+float alipf_fold_par( const char **sequences,
+                      char *structure,
+                      plist **pl,
+                      pf_paramT *parameters,
+                      int calculate_bppm,
+                      int is_constrained,
+                      int is_circular);
+
+/**
+ *  \brief
+ * 
  *  The partition function version of alifold() works in analogy to
  *  pf_fold(). Pair probabilities and information about sequence
  *  covariations are returned via the 'pi' variable as a list of
@@ -215,24 +235,6 @@ float alipf_fold( const char **sequences,
 float alipf_circ_fold(const char **sequences,
                       char *structure,
                       plist **pl);
-
-/**
- *  \brief
- * 
- *  \param  sequences
- *  \param  structure
- *  \param  pl
- *  \param  parameters
- *  \param  calculate_bppm
- *  \param  is_circular
- *  \return
- */
-float alipf_fold_par( const char **sequences,
-                      char *structure,
-                      plist **pl,
-                      pf_paramT *parameters,
-                      int calculate_bppm,
-                      int is_circular);
 
 
 /**

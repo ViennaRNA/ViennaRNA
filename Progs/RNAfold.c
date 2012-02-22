@@ -45,7 +45,8 @@ int main(int argc, char *argv[]){
   double        energy, min_en, kT, sfact;
   int           doMEA, circular, lucky;
   double        MEAgamma, bppmThreshold, betaScale;
-  pf_paramT     *pf_parameters;
+  pf_paramT       *pf_parameters;
+  model_detailsT  md;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
@@ -68,6 +69,9 @@ int main(int argc, char *argv[]){
   doMEA         = 0;
   betaScale     = 1.;
 
+  set_model_details(&md);
+
+
   /*
   #############################################
   # check the command line parameters
@@ -79,15 +83,15 @@ int main(int argc, char *argv[]){
   /* structure constraint */
   if(args_info.constraint_given)  fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
+  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)     md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
+  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
+  if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
+  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
@@ -241,10 +245,10 @@ int main(int argc, char *argv[]){
     if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
-      if (dangles==1) {
-          dangles=2;   /* recompute with dangles as in pf_fold() */
+      if (md.dangles==1) {
+          md.dangles=2;   /* recompute with dangles as in pf_fold() */
           min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
-          dangles=1;
+          md.dangles=1;
       }
 
       /* */
@@ -255,8 +259,8 @@ int main(int argc, char *argv[]){
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, pf_scale);
-      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, circular);
+      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
+      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
 
       if(lucky){
         init_rand();

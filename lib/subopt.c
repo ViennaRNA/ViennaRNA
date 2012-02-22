@@ -147,7 +147,8 @@ PRIVATE int     minimal_energy;       /* minimum free energy */
 PRIVATE int     element_energy;       /* internal energy of a structural element */
 PRIVATE int     threshold;            /* minimal_energy + delta */
 PRIVATE char    *sequence = NULL;
-PRIVATE int     circular;
+PRIVATE int     circular            = 0;
+PRIVATE int     struct_constrained  = 0;
 PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
@@ -159,7 +160,7 @@ PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 */
 #pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
                           ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular)
+                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained)
 
 #endif
 
@@ -467,42 +468,79 @@ PRIVATE void make_output(SOLUTION *SL, FILE *fp)  /* prints stuff */
 /* start of subopt backtracking ---------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 
-PUBLIC SOLUTION *subopt_circ(char *seq, char *structure, int delta, FILE *fp){
-  circular = 1;
-  return subopt(seq, structure, delta, fp);
+PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp){
+  return subopt_par(seq, structure, NULL, delta, fold_constrained, 0, fp);
 }
 
-PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
-{
-  STATE *state;
-  LIST *Intervals;
-  INTERVAL *interval;
-  SOLUTION *SolutionList;
+PUBLIC SOLUTION *subopt_circ(char *seq, char *structure, int delta, FILE *fp){
+  return subopt_par(seq, structure, NULL, delta, fold_constrained, 1, fp);
+}
 
-  unsigned long max_sol = 128, n_sol = 0;
+PUBLIC SOLUTION *subopt_par(char *seq,
+                            char *structure,
+                            paramT *parameters,
+                            int delta,
+                            int is_constrained,
+                            int is_circular,
+                            FILE *fp){
 
-  int maxlevel, count, partial_energy, old_dangles;
-  double structure_energy, min_en, eprint;
-  char* struc;
+  STATE         *state;
+  LIST          *Intervals;
+  INTERVAL      *interval;
+  SOLUTION      *SolutionList;
+  unsigned long max_sol, n_sol;
+  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model;
+  double        structure_energy, min_en, eprint;
+  char          *struc;
 
-  sequence = seq;
-  length = strlen(sequence);
+  max_sol             = 128;
+  n_sol               = 0;
+  sequence            = seq;
+  length              = strlen(sequence);
+  circular            = is_circular;
+  struct_constrained  = is_constrained;
 
   struc = (char *) space(sizeof(char)*(length+1));
-  if (fold_constrained) strncpy(struc, structure, length);
+  if (struct_constrained) strncpy(struc, structure, length);
+
   /* do mfe folding to get fill arrays and get ground state energy  */
   /* in case dangles is neither 0 or 2, set dangles=2 while folding */
-  old_dangles = dangles;
-  if ((dangles!=0) && (dangles != 2)) dangles = 2;
+
+  if(P) free(P);
+  if(parameters){
+    P = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+
+  logML       = P->model_details.logML;
+  old_dangles = dangle_model = P->model_details.dangles;
+
+  /* temporarily set dangles to 2 if necessary */
+  if((P->model_details.dangles != 0) && (P->model_details.dangles != 2))
+    P->model_details.dangles = 2;
+
 
   turn = (cut_point<0) ? 3 : 0;
   uniq_ML = 1;
-  min_en = (circular) ? circfold(sequence, struc) : cofold(sequence, struc);
-  (circular) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+  if(circular){
+    min_en = fold_par(sequence, struc, P, struct_constrained, circular);
+    export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype);
+    /* restore dangle model */
+    P->model_details.dangles = old_dangles;
+    /* re-evaluate in case we're using logML etc */
+    min_en = energy_of_circ_struct_par(sequence, struc, P, 0);
+  } else {
+    min_en = cofold_par(sequence, struc, P, struct_constrained);
+    export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+    /* restore dangle model */
+    P->model_details.dangles = old_dangles;
+    /* re-evaluate in case we're using logML etc */
+    min_en = energy_of_struct_par(sequence, struc, P, 0);
+  }
 
-  dangles = old_dangles;
-  /* re-evaluate in case we're using logML etc */
-  min_en = (circular) ? energy_of_circ_structure(sequence, struc, 0) : energy_of_structure(sequence, struc, 0);
   free(struc);
   eprint = print_energy + min_en;
   if (fp) {
@@ -514,8 +552,6 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   make_pair_matrix();
   S   = encode_sequence(sequence, 0);
   S1  = encode_sequence(sequence, 1);
-  if(P) free(P);
-  P   = scale_parameters();
 
   /* Initialize ------------------------------------------------------------ */
 
@@ -582,7 +618,7 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
+        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -591,8 +627,8 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
             exit(1);
           }
 #endif
-        if (logML || (dangles==1) || (dangles==3)) { /* recalc energy */
-          structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
+        if (logML || (dangle_model==1) || (dangle_model==3)) { /* recalc energy */
+          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
@@ -668,6 +704,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
   INTERVAL *new_interval;
   register int k, fi, cij;
   register int type;
+  register int dangle_model = P->model_details.dangles;
+  register int noGUclosure  = P->model_details.noGUclosure;
+  register int noLP         = P->model_details.noLP;
 
   best_energy = best_attainable_energy(state);  /* .. on remaining intervals */
   nopush = true;
@@ -711,7 +750,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
     if (type) { /* i,j may pair */
 
-      if(dangles)
+      if(dangle_model)
         element_energy = E_MLstem(type,
                                   (((i > 1)&&(SAME_STRAND(i-1,i))) || circular)       ? S1[i-1] : -1,
                                   (((j < length)&&(SAME_STRAND(j,j+1))) || circular)  ? S1[j+1] : -1,
@@ -740,7 +779,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         type = ptype[indx[j]+k+1];
         if (type==0) continue;
 
-        if(dangles)
+        if(dangle_model)
           element_energy = E_MLstem(type,
                                     (SAME_STRAND(i-1,i)) ? S1[k] : -1,
                                     (SAME_STRAND(j,j+1)) ? S1[j+1] : -1,
@@ -770,7 +809,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
 
-      if(dangles)
+      if(dangle_model)
         element_energy = E_MLstem(type,
                                   (SAME_STRAND(k-1,k)) ? S1[k] : -1,
                                   (SAME_STRAND(j,j+1)) ? S1[j+1] : -1,
@@ -795,7 +834,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       repeat(i, j, state, 0, 0);
 
       if (nopush){
-        if (!noLonelyPairs){
+        if (!noLP){
           fprintf(stderr, "%d,%d", i, j);
           fprintf(stderr, "Oops, no solution in repeat!\n");
         }
@@ -827,7 +866,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         if (type==0)   continue;
 
         /* k and j pair */
-        if(dangles)
+        if(dangle_model)
           element_energy = E_ExtLoop(type,
                                     (SAME_STRAND(k-1,k)) ? S1[k-1] : -1,
                                     ((j < length)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1,
@@ -851,7 +890,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       }
       type = ptype[indx[j]+1];
       if (type) {
-        if (dangles && (j < length)&&(SAME_STRAND(j,j+1)))
+        if (dangle_model && (j < length)&&(SAME_STRAND(j,j+1)))
           element_energy = E_ExtLoop(type, -1, S1[j+1], P);
         else
           element_energy = E_ExtLoop(type, -1, -1, P);
@@ -891,7 +930,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
           kl = indx[l]+k;        /* just confusing these indices ;-) */
           type = ptype[kl];
-          no_close = ((type==3)||(type==4))&&no_closingGU;
+          no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
           if (no_close) new_c = FORBIDDEN;
@@ -929,7 +968,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
           kl = indx[l]+k;        /* just confusing these indices ;-) */
           type = ptype[kl];
-          no_close = ((type==3)||(type==4))&&no_closingGU;
+          no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
 
@@ -1028,7 +1067,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       if (type==0)   continue;
 
       /* k and j pair */
-      if (dangles)
+      if (dangle_model)
         element_energy = E_ExtLoop(type, (i > 1) ? S1[i-1]: -1, S1[k+1], P);
       else  /* no dangles */
         element_energy = E_ExtLoop(type, -1, -1, P);
@@ -1043,7 +1082,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     }
     type = ptype[indx[j]+i];
     if (type) {
-      if (dangles)
+      if (dangle_model)
         element_energy = E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P);
       else
         element_energy = E_ExtLoop(type, -1, -1, P);
@@ -1074,7 +1113,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       element_energy = 0;
 
       /* k and j pair */
-      if (dangles)
+      if (dangle_model)
         element_energy = E_ExtLoop(type, S1[k-1], (j < length) ? S1[j+1] : -1, P);
       else
         element_energy = E_ExtLoop(type, -1, -1, P);
@@ -1089,7 +1128,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     }
     type = ptype[indx[j]+i];
     if (type) {
-      if(dangles)
+      if(dangle_model)
         element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
 
       if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
@@ -1112,19 +1151,22 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
   STATE *new_state;
   INTERVAL *new_interval;
 
-  register int k, p, q, energy, new;
-  register int mm;
-  register int no_close, no_close_2, type, type_2;
-  int  rt;
+  register int  k, p, q, energy, new;
+  register int  mm;
+  register int  no_close, no_close_2, type, type_2;
+  int           rt;
+  int           dangle_model  = P->model_details.dangles;
+  int           noLP          = P->model_details.noLP;
+  int           noGUclosure   = P->model_details.noGUclosure;
 
   no_close_2 = 0;
 
   type = ptype[indx[j]+i];
   if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);
 
-  no_close = (((type == 3) || (type == 4)) && no_closingGU);
+  no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
-  if (noLonelyPairs) /* always consider the structure with additional stack */
+  if (noLP) /* always consider the structure with additional stack */
     if ((i+turn+2<j) && ((type_2 = ptype[indx[j-1]+i+1]))) {
       new_state = copy_state(state);
       make_pair(i, j, new_state);
@@ -1150,12 +1192,12 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     int minq = j-i+p-MAXLOOP-2;
     if (minq<p+1+turn) minq = p+1+turn;
     for (q = j - 1; q >= minq; q--) {
-      if ((noLonelyPairs) && (p==i+1) && (q==j-1)) continue;
+      if ((noLP) && (p==i+1) && (q==j-1)) continue;
 
       type_2 = ptype[indx[q]+p];
       if (type_2==0) continue;
 
-      if (no_closingGU)
+      if (noGUclosure)
         if (no_close||(type_2==3)||(type_2==4))
           if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -1186,7 +1228,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
   if (!SAME_STRAND(i,j)) { /*look in fc*/
     rt = rtype[type];
     element_energy=0;
-    if (dangles)
+    if (dangle_model)
       element_energy = E_ExtLoop(rt, (SAME_STRAND(j-1,j)) ? S1[j-1] : -1, (SAME_STRAND(i,i+1)) ? S1[i+1] : -1, P);
     else
       element_energy = E_ExtLoop(rt, -1, -1, P);
@@ -1219,7 +1261,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     /* multiloop decomposition */
 
     element_energy = mm;
-    if (dangles)
+    if (dangle_model)
       element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
     else
       element_energy = E_MLstem(rt, -1, -1, P) + mm;

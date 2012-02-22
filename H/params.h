@@ -19,9 +19,32 @@
 /**
  * \brief Get precomputed energy contributions for all the known loop types
  *
+ *  \note OpenMP: This function relies on several global model settings variables and thus is
+ *        not to be considered threadsafe. See get_scaled_parameters() for a completely threadsafe
+ *        implementation.
+ *
  * \return     A set of precomputed energy contributions
  */
 paramT *scale_parameters(void);
+
+/**
+ * \brief Get precomputed energy contributions for all the known loop types
+ *
+ *  Call this function to retrieve precomputed energy contributions, i.e. scaled
+ *  according to the temperature passed. Furthermore, this function assumes a
+ *  data structure that contains the model details as well, such that subsequent
+ *  folding recursions are able to retrieve the correct model settings
+ *
+ *  \see #model_detailsT, set_model_details()
+ *
+ *  \param temperature  The temperature in degrees Celcius
+ *  \param md           The model details
+ *  \return             precomputed energy contributions and model settings
+ */
+paramT *get_scaled_parameters(double temperature,
+                              model_detailsT md);
+
+paramT *get_parameter_copy(paramT *par);
 
 /**
  *  get a datastructure of type \ref pf_paramT which contains
@@ -53,9 +76,9 @@ pf_paramT *get_scaled_pf_parameters(void);
  *                        temperature of the system
  *  \return               A set of precomputed Boltzmann factors
  */
-pf_paramT *get_boltzmann_factors( int dangle_model,
-                                  double temperature,
-                                  double alpha,
+pf_paramT *get_boltzmann_factors( double temperature,
+                                  double betaScale,
+                                  model_detailsT md,
                                   double pf_scale);
 
 /**
@@ -81,12 +104,11 @@ pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
  *  independent thermodynamic temperature
  *
  */
-pf_paramT *get_boltzmann_factors_ali( unsigned int n_seq,
-                                      int dangle_model,
-                                      double temperature,
-                                      double alpha,
-                                      double pf_scale);
-
+PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
+                                            double temperature,
+                                            double betaScale,
+                                            model_detailsT md,
+                                            double pf_scale);
 
 DEPRECATED(paramT     *copy_parameters(void));
 DEPRECATED(paramT     *set_parameters(paramT *dest));

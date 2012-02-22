@@ -47,6 +47,7 @@ int main(int argc, char *argv[]){
   unsigned int  rec_type, read_opt;
   double        betaScale;
   pf_paramT     *pf_parameters;
+  model_detailsT  md;
 
   dangles       = 2;
   cutoff        = 0.01;
@@ -61,6 +62,7 @@ int main(int argc, char *argv[]){
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   pf_parameters = NULL;
+  set_model_details(&md);
 
   /*
   #############################################
@@ -71,15 +73,15 @@ int main(int argc, char *argv[]){
   /* temperature */
   if(args_info.temp_given)              temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)           tetra_loop=0;
+  if(args_info.noTetra_given)           md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)           dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)           md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)              noLonelyPairs = 1;
+  if(args_info.noLP_given)              md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)              noGU = 1;
+  if(args_info.noGU_given)              md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)       no_closingGU = 1;
+  if(args_info.noClosingGU_given)       md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)            noconv = 1;
   /* set energy model */
@@ -267,7 +269,7 @@ int main(int argc, char *argv[]){
       }
       strcat(ffname, "_dp.ps");
 
-      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, -1);
+      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, -1);
 
       if(unpaired > 0){
         pup       =(double **)  space((length+1)*sizeof(double *));

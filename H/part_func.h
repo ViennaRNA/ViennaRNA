@@ -37,6 +37,44 @@ extern  int st_back;
 */
 
 /**
+ *  \brief Compute the partition function \f$Q\f$ for a given RNA sequence
+ *
+ *  If \a structure is not a NULL pointer on input, it contains on
+ *  return a string consisting of the letters " . , | { } ( ) " denoting
+ *  bases that are essentially unpaired, weakly paired, strongly paired without
+ *  preference, weakly upstream (downstream) paired, or strongly up-
+ *  (down-)stream paired bases, respectively.
+ *  If #fold_constrained is not 0, the \a structure string is
+ *  interpreted on input as a list of constraints for the folding. The
+ *  character "x" marks bases that must be unpaired, matching brackets " ( ) "
+ *  denote base pairs, all other characters are ignored. Any pairs
+ *  conflicting with the constraint will be forbidden. This is usually sufficient
+ *  to ensure the constraints are honored.
+ *  If tha parameter calculate_bppm is set to 0 base pairing probabilities will not
+ *  be computed (saving CPU time), otherwise after calculations took place #pr will
+ *  contain the probability that bases \a i and \a j pair.
+ *  \note The global array #pr is deprecated and the user who wants the calculated
+ *  base pair probabilities for further computations is advised to use the function
+ *  export_bppm()
+ * 
+ *  \see pf_circ_fold(), bppm_to_structure(), export_bppm(), get_boltzmann_factors()
+ * 
+ *  \param sequence       The RNA sequence input
+ *  \param structure      A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
+ *  \param parameters     Data structure containing the precalculated Boltzmann factors
+ *  \param calculate_bppm Switch to Base pair probability calculations on/off (0==off)
+ *  \param is_constrained Switch to indicate that a structure contraint is passed via the structure argument (0==off)
+ *  \param is_circular    Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
+ *  \return               The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+ */
+float   pf_fold_par(  const char *sequence,
+                      char *structure,
+                      pf_paramT *parameters,
+                      int calculate_bppm,
+                      int is_constrained,
+                      int is_circular);
+
+/**
  *  \brief Compute the partition function \f$Q\f$ of an RNA sequence
  * 
  *  If \a structure is not a NULL pointer on input, it contains on
@@ -57,16 +95,11 @@ extern  int st_back;
  *  base pair probabilities for further computations is advised to use the function
  *  export_bppm()
  * 
- *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
- *  variables to the appropriate <i>COPYIN</i> clause:<br>
- *  q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln, probs,
- *  scale, expMLbase, jindx, init_length, circular, ptype, pf_params, S, S1, bt</pre>
- *
  *  \see pf_circ_fold(), bppm_to_structure(), export_bppm()
  * 
  *  \param sequence   The RNA sequence input
  *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
- *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+ *  \return           The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_fold(const char *sequence,
                 char *structure);
@@ -74,26 +107,14 @@ float   pf_fold(const char *sequence,
 /**
  *  \brief Compute the partition function of a circular RNA sequence
  * 
- *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
- *  variables to the appropriate <i>COPYIN</i> clause:<br>
- *  q, qb, qm, qm1, qqm, qqm1, qq, qq1, qo, qho, qio, qmo, qm2, prml, prm_l, prm_l1,
- *  q1k, qln, probs, scale, expMLbase, jindx, init_length, circular, ptype, pf_params,
- *  S, S1, bt
- *
- *  \see pf_fold()
+ *  \see pf_fold(), pf_fold_par()
  * 
  *  \param sequence   The RNA sequence input
  *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
- *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+ *  \return           The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_circ_fold( const char *sequence,
                       char *structure);
-
-float   pf_fold_par(  const char *sequence,
-                      char *structure,
-                      pf_paramT *parameters,
-                      int calculate_bppm,
-                      int is_circular);
 
 /**
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
@@ -203,7 +224,7 @@ void  assign_plist_from_pr( plist **pl,
  *  \param qm_p     A pointer to the Q<sup>M</sup> matrix
  *  \param q1k_p    A pointer to the 5' slice of the Q matrix (\f$q1k(k) = Q(1, k)\f$)
  *  \param qln_p    A pointer to the 3' slice of the Q matrix (\f$qln(l) = Q(l, n)\f$)
- *  \returns        Non Zero if everything went fine, 0 otherwise
+ *  \return         Non Zero if everything went fine, 0 otherwise
  */
 int get_pf_arrays(short **S_p,
                   short **S1_p,
@@ -226,7 +247,7 @@ int get_pf_arrays(short **S_p,
  *  \param length The length of the sequence
  *  \param dist   A pointer to the distance variable where the centroid distance will be written to
  *  \param pl     A pair list containing base pair probability information about the ensemble
- *  \returns      The centroid structure of the ensemble in dot-bracket notation
+ *  \return       The centroid structure of the ensemble in dot-bracket notation
  */
 char  *get_centroid_struct_pl(int length,
                               double *dist,
@@ -245,7 +266,7 @@ char  *get_centroid_struct_pl(int length,
  *  \param length The length of the sequence
  *  \param dist   A pointer to the distance variable where the centroid distance will be written to
  *  \param pr     A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
- *  \returns      The centroid structure of the ensemble in dot-bracket notation
+ *  \return       The centroid structure of the ensemble in dot-bracket notation
  */
 char  *get_centroid_struct_pr(int length,
                               double *dist,
@@ -259,7 +280,7 @@ char  *get_centroid_struct_pr(int length,
  *  \see mean_bp_distance_pr()
  * 
  *  \param    length
- *  \returns  mean base pair distance in thermodynamic ensemble
+ *  \return  mean base pair distance in thermodynamic ensemble
  */
 double  mean_bp_distance(int length);
 
@@ -276,7 +297,7 @@ double  mean_bp_distance(int length);
  * 
  *  \param length The length of the sequence
  *  \param pr     The matrix containing the base pair probabilities
- *  \returns      The mean pair distance of the structure ensemble
+ *  \return       The mean pair distance of the structure ensemble
  */
 double  mean_bp_distance_pr(int length,
                             FLT_OR_DBL *pr);

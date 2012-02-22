@@ -29,15 +29,17 @@ PRIVATE char *tokenize(char *line);
 PRIVATE void putoutzuker(SOLUTION* zukersolution);
 
 int main(int argc, char *argv[]){
-  struct        RNAsubopt_args_info args_info;
-  unsigned int  input_type;
-  unsigned int  rec_type, read_opt;
-  char          fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  char          *cstruc, *structure, *ParamFile, *ns_bases;
-  int           i, length, l, cl, sym, istty;
-  double        deltaf, deltap, betaScale;
-  int           delta, n_back, noconv, circular, dos, zuker;
-  pf_paramT     *pf_parameters;
+  struct          RNAsubopt_args_info args_info;
+  unsigned int    input_type;
+  unsigned int    rec_type, read_opt;
+  char            fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  char            *cstruc, *structure, *ParamFile, *ns_bases;
+  int             i, length, l, cl, sym, istty;
+  double          deltaf, deltap, betaScale;
+  int             delta, n_back, noconv, circular, dos, zuker;
+  paramT          *P;
+  pf_paramT       *pf_parameters;
+  model_detailsT  md;
 
   do_backtrack  = 1;
   dangles       = 2;
@@ -49,6 +51,9 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
   pf_parameters = NULL;
+  P             = NULL;
+
+  set_model_details(&md);
 
   /*
   #############################################
@@ -61,15 +66,15 @@ int main(int argc, char *argv[]){
   /* structure constraint */
   if(args_info.constraint_given)  fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
+  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)     md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
+  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
+  if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
+  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* take another energy parameter set */
@@ -96,7 +101,7 @@ int main(int argc, char *argv[]){
     print_energy = -999999;
   }
   /* logarithmic multiloop energies */
-  if(args_info.logML_given) logML = 1;
+  if(args_info.logML_given) md.logML = logML = 1;
   /* zuker subopts */
   if(args_info.zuker_given) zuker = 1;
 
@@ -160,6 +165,8 @@ int main(int argc, char *argv[]){
   /* set options we wanna pass to read_record */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
+
+  P = get_scaled_parameters(temperature, md);
 
   /*
   #############################################
@@ -241,14 +248,14 @@ int main(int argc, char *argv[]){
       st_back=1;
       ss = (char *) space(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
-      mfe = fold(rec_sequence, ss);
+      mfe = fold_par(rec_sequence, ss, P, fold_constrained, circular);
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(1.03*mfe)/kT/length);
       strncpy(ss, structure, length);
 
-      pf_parameters = get_boltzmann_factors(dangles, temperature, betaScale, pf_scale);
+      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
       /* ignore return value, we are not interested in the free energy */
-      (void) pf_fold_par(rec_sequence, ss, pf_parameters, do_backtrack, circular);
+      (void) pf_fold_par(rec_sequence, ss, pf_parameters, do_backtrack, fold_constrained, circular);
       free(ss);
       for (i=0; i<n_back; i++) {
         char *s;
@@ -261,7 +268,7 @@ int main(int argc, char *argv[]){
     }
     /* normal subopt */
     else if(!zuker){
-      (circular) ? subopt_circ(rec_sequence, structure, delta, stdout) : subopt(rec_sequence, structure, delta, stdout);
+      subopt_par(rec_sequence, structure, P, delta, fold_constrained, circular, stdout);
       if (dos) {
         int i;
         for (i=0; i<= MAXDOS && i<=delta/10; i++) {
@@ -312,6 +319,7 @@ int main(int argc, char *argv[]){
       else print_tty_input_seq();
     }
   }
+  free(P);
   return 0;
 }
 
