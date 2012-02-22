@@ -106,9 +106,11 @@ PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length; /* length in last call to init_pf_fold() */
+PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
+PRIVATE double      alpha = 1.0;
 
 #ifdef _OPENMP
 
@@ -119,7 +121,7 @@ PRIVATE char        *sequence=NULL;
          #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs)
+                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, alpha)
 
 #endif
 
@@ -129,11 +131,11 @@ PRIVATE char        *sequence=NULL;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void    init_partfunc_co(int length);
+PRIVATE void    init_partfunc_co(int length, pf_paramT *parameters);
 PRIVATE void    pf_co(const char *sequence);
 PRIVATE void    pf_co_bppm(const char *sequence, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
-PRIVATE void    scale_pf_params(unsigned int length);
+PRIVATE void    scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void    get_arrays(unsigned int length);
 PRIVATE void    make_ptypes(const short *S, const char *structure);
 PRIVATE void    backtrack(int i, int j);
@@ -145,7 +147,7 @@ PRIVATE void    backtrack(int i, int j);
 #################################
 */
 
-PRIVATE void init_partfunc_co(int length){
+PRIVATE void init_partfunc_co(int length, pf_paramT *parameters){
   if (length<1) nrerror("init_pf_fold: length must be greater 0");
 
 #ifdef _OPENMP
@@ -165,7 +167,7 @@ PRIVATE void init_partfunc_co(int length){
 #endif
   make_pair_matrix();
   get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
   init_length = length;
 }
 
@@ -237,20 +239,26 @@ PUBLIC void free_co_pf_arrays(void){
 
 /*-----------------------------------------------------------------*/
 PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
+  return co_pf_fold_par(sequence, structure, NULL, do_backtrack);
+}
+
+PUBLIC cofoldF co_pf_fold_par(char *sequence, char *structure, pf_paramT *parameters, int calculate_bppm){
 
   int         n;
   FLT_OR_DBL  Q;
   cofoldF     X;
   double      free_energy;
 
-  n = (int) strlen(sequence);
+  n       = (int) strlen(sequence);
+  do_bppm = calculate_bppm;
 
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_partfunc_co(n);
+  init_partfunc_co(n, parameters);
 #else
-  if (n > init_length) init_partfunc_co(n);
-  if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n);
+  if(parameters) init_partfunc_co(n, parameters);
+  else if (n > init_length) init_partfunc_co(n, parameters);
+  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n, parameters);
 #endif
 
  /* printf("mirnatog=%d\n",mirnatog); */
@@ -269,7 +277,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
   else Q = q[my_iindx[1]-n];
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_scale))*pf_params->kT/1000.0;
+  free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
   /*probability of molecules being bound together*/
@@ -305,7 +313,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
   }
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_backtrack){
+  if(do_bppm){
     pf_co_bppm(sequence, structure);
     /*
     *  Backward compatibility:
@@ -671,25 +679,26 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 }
 
 
-PRIVATE void scale_pf_params(unsigned int length)
-{
-  unsigned int i;
-  double  kT;
+PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
+  unsigned int  i;
+  double        kT, scaling_factor;
 
   if(pf_params) free(pf_params);
-  pf_params = get_scaled_pf_parameters();
 
-  kT = pf_params->kT;   /* kT in cal/mol  */
+  pf_params = (parameters) ? get_boltzmann_factor_copy(parameters) : get_boltzmann_factors(dangles, temperature, alpha, pf_scale);
+
+  scaling_factor  = pf_params->pf_scale;
+  kT              = pf_params->kT;        /* kT in cal/mol  */
 
    /* scaling factors (to avoid overflows) */
-  if (pf_scale == -1) { /* mean energy for random sequences: 184.3*length cal */
-    pf_scale = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
-    if (pf_scale<1) pf_scale=1;
+  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
+    if (scaling_factor<1) scaling_factor=1;
   }
   scale[0] = 1.;
-  scale[1] = 1./pf_scale;
+  scale[1] = 1./scaling_factor;
   expMLbase[0] = 1;
-  expMLbase[1] = pf_params->expMLbase/pf_scale;
+  expMLbase[1] = pf_params->expMLbase/scaling_factor;
   for (i=2; i<=length; i++) {
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
@@ -702,10 +711,13 @@ PRIVATE void scale_pf_params(unsigned int length)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_co_pf_params(int length)
-{
+PUBLIC void update_co_pf_params(int length){
+  update_co_pf_params_par(length, NULL);
+}
+
+PUBLIC void update_co_pf_params_par(int length, pf_paramT *parameters){
   make_pair_matrix();
-  scale_pf_params((unsigned) length);
+  scale_pf_params((unsigned) length, parameters);
 }
 
 /*---------------------------------------------------------------------------*/

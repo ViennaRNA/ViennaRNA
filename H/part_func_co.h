@@ -63,6 +63,11 @@ extern double F_monomer[2];
 cofoldF co_pf_fold( char *sequence,
                     char *structure);
 
+cofoldF co_pf_fold_par( char *sequence,
+                        char *structure,
+                        pf_paramT *parameters,
+                        int calculate_bppm);
+
 /**
  *  \brief Get a pointer to the base pair probability array
  * 
@@ -83,6 +88,9 @@ void    free_co_pf_arrays(void);
  *  \brief Recalculate energy parameters
  */
 void    update_co_pf_params(int length);
+
+void    update_co_pf_params_par(int length,
+                                pf_paramT *parameters);
 
 /**
  *  \brief Compute Boltzmann probabilities of dimerization without homodimers
