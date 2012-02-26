@@ -535,78 +535,78 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     } 
     else if(pair_table_snoop[i-1] && pair_table_snoop[i+2]){ /* interior loop of size 2 */
       if(pair_table_snoop[i-1] - pair_table_snoop[i+2] ==2){
-	X[i-1]=X[pair_table_snoop[i-1]-2];
-	Y[i-1]=Y[pair_table_snoop[i-1]-2];
-	X[i]=X[pair_table_snoop[i+2]];
-	Y[i]=Y[pair_table_snoop[i+2]];
-	i++;
+        X[i-1]=X[pair_table_snoop[i-1]-2];
+        Y[i-1]=Y[pair_table_snoop[i-1]-2];
+        X[i]=X[pair_table_snoop[i+2]];
+        Y[i]=Y[pair_table_snoop[i+2]];
+        i++;
       }
       else if(pair_table[pair_table_snoop[i-1]-1]){
-	X[i-1]=X[pair_table_snoop[i-1]-2];
-	Y[i-1]=Y[pair_table_snoop[i-1]-2];
-	X[i]=X[pair_table[pair_table_snoop[i-1]-1]-1];
-	Y[i]=Y[pair_table[pair_table_snoop[i-1]-1]-1];
-	i++;
+        X[i-1]=X[pair_table_snoop[i-1]-2];
+        Y[i-1]=Y[pair_table_snoop[i-1]-2];
+        X[i]=X[pair_table[pair_table_snoop[i-1]-1]-1];
+        Y[i]=Y[pair_table[pair_table_snoop[i-1]-1]-1];
+        i++;
       }
       else if(pair_table[pair_table_snoop[i-1]-2]){
-	X[i-1]=X[pair_table_snoop[i-1]-3];
-	Y[i-1]=Y[pair_table_snoop[i-1]-3];
-	X[i]=X[pair_table[pair_table_snoop[i-1]-2]-1];
-	Y[i]=Y[pair_table[pair_table_snoop[i-1]-2]-1];
-	i++;
+        X[i-1]=X[pair_table_snoop[i-1]-3];
+        Y[i-1]=Y[pair_table_snoop[i-1]-3];
+        X[i]=X[pair_table[pair_table_snoop[i-1]-2]-1];
+        Y[i]=Y[pair_table[pair_table_snoop[i-1]-2]-1];
+        i++;
       }
       else if(pair_table[pair_table_snoop[i-1]-3]){
-	X[i-1]=X[pair_table_snoop[i-1]-4];
-	Y[i-1]=Y[pair_table_snoop[i-1]-4];
-	X[i]=X[pair_table[pair_table_snoop[i-1]-3]-1];
-	Y[i]=Y[pair_table[pair_table_snoop[i-1]-3]-1];
-	i++;
+        X[i-1]=X[pair_table_snoop[i-1]-4];
+        Y[i-1]=Y[pair_table_snoop[i-1]-4];
+        X[i]=X[pair_table[pair_table_snoop[i-1]-3]-1];
+        Y[i]=Y[pair_table[pair_table_snoop[i-1]-3]-1];
+        i++;
       }
       else{
-	X[i-1]=X[pair_table_snoop[i-1]-2];
-	Y[i-1]=Y[pair_table_snoop[i-1]-2];
-	X[i]=X[pair_table_snoop[i+2]];
-	Y[i]=Y[pair_table_snoop[i+2]];
-	i++;
+        X[i-1]=X[pair_table_snoop[i-1]-2];
+        Y[i-1]=Y[pair_table_snoop[i-1]-2];
+        X[i]=X[pair_table_snoop[i+2]];
+        Y[i]=Y[pair_table_snoop[i+2]];
+        i++;
       }
     }
     else if(pair_table_snoop[i-1] && pair_table_snoop[i+3]){ /* interior loop of size 2 */
       if(pair_table[pair_table_snoop[i-1]-1]){
-	X[i-1]=0.5*(X[pair_table_snoop[i-1]-1]+X[pair_table_snoop[i-1]-2]);
-	Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-1]+Y[pair_table_snoop[i-1]-2]);
-	X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-1]-1]+X[pair_table_snoop[i-1]-2]);
-	Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-1]-1]+Y[pair_table_snoop[i-1]-2]);
-	X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-1]-2]+X[pair_table[pair_table_snoop[i-1]-1]-1]);
+        X[i-1]=0.5*(X[pair_table_snoop[i-1]-1]+X[pair_table_snoop[i-1]-2]);
+        Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-1]+Y[pair_table_snoop[i-1]-2]);
+        X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-1]-1]+X[pair_table_snoop[i-1]-2]);
+        Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-1]-1]+Y[pair_table_snoop[i-1]-2]);
+        X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-1]-2]+X[pair_table[pair_table_snoop[i-1]-1]-1]);
         Y[i+1]=0.5*(Y[pair_table[pair_table_snoop[i-1]-1]-2]+Y[pair_table[pair_table_snoop[i-1]-1]-1]);
-	i++;i++;
+        i++;i++;
 
       }
       else if(pair_table[pair_table_snoop[i-1]-2]){
-	X[i-1]=0.5*(X[pair_table_snoop[i-1]-2]+X[pair_table_snoop[i-1]-3]);
-	Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-2]+Y[pair_table_snoop[i-1]-3]);
-	X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-2]-1]+X[pair_table_snoop[i-1]-3]);
-	Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-2]-1]+Y[pair_table_snoop[i-1]-3]);
-	X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-2]-2]+X[pair_table[pair_table_snoop[i-1]-2]-1]);
+        X[i-1]=0.5*(X[pair_table_snoop[i-1]-2]+X[pair_table_snoop[i-1]-3]);
+        Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-2]+Y[pair_table_snoop[i-1]-3]);
+        X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-2]-1]+X[pair_table_snoop[i-1]-3]);
+        Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-2]-1]+Y[pair_table_snoop[i-1]-3]);
+        X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-2]-2]+X[pair_table[pair_table_snoop[i-1]-2]-1]);
         Y[i+1]=0.5*(Y[pair_table[pair_table_snoop[i-1]-2]-2]+Y[pair_table[pair_table_snoop[i-1]-2]-1]);
-	i++;i++;
+        i++;i++;
       }
       else if(pair_table[pair_table_snoop[i-1]-3]){
-	X[i-1]=0.5*(X[pair_table_snoop[i-1]-3]+X[pair_table_snoop[i-1]-4]);
-	Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-3]+Y[pair_table_snoop[i-1]-4]);
-	X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-3]-1]+X[pair_table_snoop[i-1]-4]);
-	Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-3]-1]+Y[pair_table_snoop[i-1]-4]);
-	X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-3]-2]+X[pair_table[pair_table_snoop[i-1]-3]-1]);
+        X[i-1]=0.5*(X[pair_table_snoop[i-1]-3]+X[pair_table_snoop[i-1]-4]);
+        Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-3]+Y[pair_table_snoop[i-1]-4]);
+        X[i]=  0.5*(X[pair_table[pair_table_snoop[i-1]-3]-1]+X[pair_table_snoop[i-1]-4]);
+        Y[i]=  0.5*(Y[pair_table[pair_table_snoop[i-1]-3]-1]+Y[pair_table_snoop[i-1]-4]);
+        X[i+1]=0.5*(X[pair_table[pair_table_snoop[i-1]-3]-2]+X[pair_table[pair_table_snoop[i-1]-3]-1]);
         Y[i+1]=0.5*(Y[pair_table[pair_table_snoop[i-1]-3]-2]+Y[pair_table[pair_table_snoop[i-1]-3]-1]);
-	i++;i++;
+        i++;i++;
       }
       else{
-	X[i-1]=X[pair_table_snoop[i-1]-2];
-	Y[i-1]=Y[pair_table_snoop[i-1]-2];
-	X[i]=X[pair_table_snoop[i-1]-2];
-	Y[i]=Y[pair_table_snoop[i-1]-2];
-	X[i+1]=X[pair_table_snoop[i-1]-2];
-	Y[i+1]=Y[pair_table_snoop[i-1]-2];
-	i++;i++;
+        X[i-1]=X[pair_table_snoop[i-1]-2];
+        Y[i-1]=Y[pair_table_snoop[i-1]-2];
+        X[i]=X[pair_table_snoop[i-1]-2];
+        Y[i]=Y[pair_table_snoop[i-1]-2];
+        X[i+1]=X[pair_table_snoop[i-1]-2];
+        Y[i+1]=Y[pair_table_snoop[i-1]-2];
+        i++;i++;
       }
     }
   }
@@ -680,17 +680,17 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
    }  
   size = MAX2((xmax-xmin),(ymax-ymin));
   fprintf(xyplot,
-	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
-	  "%%%%Creator: %s, ViennaRNA-%s\n"
-	  "%%%%CreationDate: %s"
-	  "%%%%Title: RNA Secondary Structure Plot\n"
-	  "%%%%BoundingBox: 66 210 518 662\n"
-	  "%%%%DocumentFonts: Helvetica\n"
-	  "%%%%Pages: 1\n"
-	  "%%%%EndComments\n\n"
-	  "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%Creator: %s, ViennaRNA-%s\n"
+          "%%%%CreationDate: %s"
+          "%%%%Title: RNA Secondary Structure Plot\n"
+          "%%%%BoundingBox: 66 210 518 662\n"
+          "%%%%DocumentFonts: Helvetica\n"
+          "%%%%Pages: 1\n"
+          "%%%%EndComments\n\n"
+          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
-	  "%% delete the appropriate line near the end of the file\n\n");
+          "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
   char **A;
   fprintf(xyplot, "%s", anote_macros);
@@ -701,7 +701,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   fprintf(xyplot, "%%%%EndProlog\n");
   
   fprintf(xyplot, "RNAplot begin\n"
-	  "%% data start here\n");
+          "%% data start here\n");
   /* cut_point */
   if (cut_point > 0 && cut_point <= strlen(string))
     fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
@@ -735,22 +735,22 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     fprintf(xyplot,"]\n bind def\n");
     fprintf(xyplot,"/invert false def\n");
     fprintf(xyplot,"/range 0.8 def\n");
-    fprintf(xyplot,"/drawreliability {\n"		      
-		   "/Smax 2.6 def\n"			 
-		   "  0	\n"			      
-		   "  coor 0 cutpoint getinterval {\n"
-		   "    aload pop\n"
-		   "    S 3 index get\n"
-		   "    Smax div range mul\n"     
-		   "    invert {range exch sub} if\n"  
-		   "    1 1 sethsbcolor\n"
-		   "    newpath\n"
-		   "    fsize 2.5 div 0 360 arc\n"
-		   "    fill\n"
-		   "    1 add\n"
-		   "  } forall\n"
-		   "\n"
-	           "} bind def\n"); 
+    fprintf(xyplot,"/drawreliability {\n"                      
+                   "/Smax 2.6 def\n"                         
+                   "  0        \n"                              
+                   "  coor 0 cutpoint getinterval {\n"
+                   "    aload pop\n"
+                   "    S 3 index get\n"
+                   "    Smax div range mul\n"     
+                   "    invert {range exch sub} if\n"  
+                   "    1 1 sethsbcolor\n"
+                   "    newpath\n"
+                   "    fsize 2.5 div 0 360 arc\n"
+                   "    fill\n"
+                   "    1 add\n"
+                   "  } forall\n"
+                   "\n"
+                   "} bind def\n"); 
   }
   fprintf(xyplot, "init\n\n");
   /*raw the data */
@@ -766,9 +766,9 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     fprintf(xyplot,"drawreliability\n");
   }
   fprintf(xyplot,
-	  "drawoutline\n"
-	  "drawpairs\n"
-	  "drawbases\n");
+          "drawoutline\n"
+          "drawpairs\n"
+          "drawbases\n");
   /* fprintf(xyplot, "%d cmark\n",c1); */
   /* fprintf(xyplot, "%d cmark\n",c2); */
   /* fprintf(xyplot, "%d cmark\n",c3); */
@@ -818,8 +818,8 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
       pfreq[type]++;
       if (type) {
-	if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
+        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
     for (pairings=0,s=1; s<=7; s++) {
@@ -831,12 +831,12 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       ps = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
       if ((ps==NULL) || (colorps == NULL))
-	  nrerror("out of memory in realloc");
+          nrerror("out of memory in realloc");
     }
 
     if (pfreq[0]<=2) {
       snprintf(pps, 64, "%d %d %s colorpair\n",
-	       i,j, colorMatrix[pairings-1][pfreq[0]]);
+               i,j, colorMatrix[pairings-1][pfreq[0]]);
       strcat(colorps, pps);
     }
 
@@ -1238,9 +1238,31 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef WITH_GQUADS
+const char *RNAdp_gquad_triangle =
+"/utri{\n"
+"  gsave\n"
+"  0.3 0.1 0.8 sethsbcolor\n"
+"  2 index dup 2 index dup\n"
+"  dup  3 1 roll dup 3 1 roll\n"
+"  dup  3 1 roll dup 3 1 roll\n"
+"  moveto\n"
+"  dup  exch 0.5 mul 0.5 sub exch  lineto\n"
+"  0.5 mul 0.5 sub lineto\n"
+"  fill\n"
+"  stroke\n"
+"  grestore\n"
+"} bind def\n";
+#endif
 
 
-PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile, plist *pl, plist *mf, char *comment) {
+
+PUBLIC int PS_dot_plot_list(char *seq,
+                            char *wastlfile,
+                            plist *pl,
+                            plist *mf,
+                            char *comment){
+
   FILE *wastl;
   int length;
   double tmp;
@@ -1250,11 +1272,23 @@ PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile, plist *pl, plist *mf, ch
   wastl = PS_dot_common(seq, wastlfile, comment, 0);
   if (wastl==NULL) return 0; /* return 0 for failure */
 
+
+#ifdef WITH_GQUADS
+  fprintf(wastl, "%s\n", RNAdp_gquad_triangle);
+#endif
+
   fprintf(wastl,"%%data starts here\n");
   /* print boxes in upper right half*/
   for (pl1=pl; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
-    fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
+    switch(pl1->type){
+#ifdef WITH_GQUADS
+      case 1:     fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+                  break;
+#endif
+      default:    fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
+                  break;
+    }
   }
 
   /* print boxes in lower left half (mfe) */
@@ -1725,7 +1759,7 @@ int PS_color_aln(const char *structure, const char *filename,
 }
 
 int aliPS_color_aln(const char *structure, const char *filename, 
-		    const char *seqs[], const char *names[]) {
+                    const char *seqs[], const char *names[]) {
   /* produce PS sequence alignment color-annotated by consensus structure */
 
   int N,i,j,k,x,y,tmp,columnWidth;
@@ -1749,35 +1783,35 @@ int aliPS_color_aln(const char *structure, const char *filename,
   };
 
   const char *alnPlotHeader =
-	"%%!PS-Adobe-3.0 EPSF-3.0\n"
-	"%%%%BoundingBox: %i %i %i %i\n"
-	"%%%%EndComments\n"
-	"%% draws Vienna RNA like colored boxes\n"
-	"/box { %% x1 y1 x2 y2 hue saturation\n"
-	"  gsave\n"
-	"  dup 0.3 mul 1 exch sub sethsbcolor\n"
-	"  exch 3 index sub exch 2 index sub rectfill\n"
-	"  grestore\n"
-	"} def\n"
-	"%% draws a box in current color\n"
-	"/box2 { %% x1 y1 x2 y2\n"
-	"  exch 3 index sub exch 2 index sub rectfill\n"
-	"} def\n"
-	"/string { %% (Text) x y\n"
-	" 6 add\n"
-	" moveto\n"
-	"  show\n"
-	"} def\n"
-	"0 %i translate\n"
-	"1 -1 scale\n"
-	"/Courier findfont\n"
-	"[10 0 0 -10 0 0] makefont setfont\n";
-	
+        "%%!PS-Adobe-3.0 EPSF-3.0\n"
+        "%%%%BoundingBox: %i %i %i %i\n"
+        "%%%%EndComments\n"
+        "%% draws Vienna RNA like colored boxes\n"
+        "/box { %% x1 y1 x2 y2 hue saturation\n"
+        "  gsave\n"
+        "  dup 0.3 mul 1 exch sub sethsbcolor\n"
+        "  exch 3 index sub exch 2 index sub rectfill\n"
+        "  grestore\n"
+        "} def\n"
+        "%% draws a box in current color\n"
+        "/box2 { %% x1 y1 x2 y2\n"
+        "  exch 3 index sub exch 2 index sub rectfill\n"
+        "} def\n"
+        "/string { %% (Text) x y\n"
+        " 6 add\n"
+        " moveto\n"
+        "  show\n"
+        "} def\n"
+        "0 %i translate\n"
+        "1 -1 scale\n"
+        "/Courier findfont\n"
+        "[10 0 0 -10 0 0] makefont setfont\n";
+        
   
   outfile = fopen(filename, "w");
   if (outfile == NULL) {
     fprintf(stderr, "can't open file %s - not doing alignment plot\n", 
-	    filename);
+            filename);
     return 0;
   }
   
@@ -1789,17 +1823,17 @@ int aliPS_color_aln(const char *structure, const char *filename,
   consStep=fontHeight*0.5;   /* distance between alignment and conservation curve */
   ssStep=2;                  /* distance between secondary structure line and sequences */
   rulerStep=2;               /* distance between sequences and ruler */
-  nameStep=3*fontWidth;	     /* distance between names and sequences */
+  nameStep=3*fontWidth;             /* distance between names and sequences */
   numberStep=fontWidth;      /* distance between sequeces and numbers */
   maxConsBar=2.5*fontHeight; /* Height of conservation curve */
-  startY=2;		     /* "y origin" */
-  namesX=fontWidth;	     /* "x origin" */
+  startY=2;                     /* "y origin" */
+  namesX=fontWidth;             /* "x origin" */
 
   /* Number of columns of the alignment */
   length=strlen(seqs[0]);
 
   /* Allocate memory for various strings, length*2 is (more than)
-	 enough for all of them */
+         enough for all of them */
   tmpBuffer = (char *) space((unsigned) columnWidth + length*2 );
   ssEscaped=(char *) space((unsigned) length*2 );
   ruler=(char *) space((unsigned) length*2  );
@@ -1833,7 +1867,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
   /* Calculate bounding box */
   tmpColumns=columnWidth;
   if (length<columnWidth){
-	tmpColumns=length;
+        tmpColumns=length;
   }
   imageWidth=ceil(namesX+(maxName+tmpColumns+maxNum)*fontWidth+2*nameStep+fontWidth+numberStep);
   imageHeight=startY+ceil((float)length/columnWidth)*((N+2)*lineStep+blockStep+consStep+ssStep+rulerStep);
@@ -1845,15 +1879,15 @@ int aliPS_color_aln(const char *structure, const char *filename,
   i=0;
   /* Init all with dots */
   for (i=0;i<(length);i++){
-	ruler[i]='.';
+        ruler[i]='.';
   }
   i=0;
   for (i=0;i<length;i++){
-	/* Write number every 10th position, leave out block breaks */
-	if ((i+1)%10==0 && (i+1)%columnWidth!=0){
-	  snprintf(tmpBuffer,length,"%i",i+1);
-	  strncpy(ruler+i,tmpBuffer,strlen(tmpBuffer));
-	}
+        /* Write number every 10th position, leave out block breaks */
+        if ((i+1)%10==0 && (i+1)%columnWidth!=0){
+          snprintf(tmpBuffer,length,"%i",i+1);
+          strncpy(ruler+i,tmpBuffer,strlen(tmpBuffer));
+        }
   }
   ruler[length]='\0';
   
@@ -1863,33 +1897,33 @@ int aliPS_color_aln(const char *structure, const char *filename,
     if ((j=pair_table[i])>i) {
       /* Repeat for open and closing position */
       for (k=0;k<2;k++){
-	int pairings, nonpair, s, col;
-	int ptype[8] = {0,0,0,0,0,0,0,0};
-	char *color;
-	col = (k==0)?i-1:j-1;
-	block=ceil((float)(col+1)/columnWidth);
-	xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
-	/* Repeat for each sequence */
-	for (s=pairings=nonpair=0; s<N; s++) {
-	  ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
-	}
-	for (pairings=0,s=1; s<=7; s++) {
-	  if (ptype[s]) pairings++;
-	}
-	nonpair=ptype[0];
-	if (nonpair <=2) {
-	  color = colorMatrix[pairings-1][nonpair];
-	  for (s=0; s<N; s++) {
-	    yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
-	    
-	    /* Color according due color information in pi-array, only if base pair is possible */
-	    if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
+        int pairings, nonpair, s, col;
+        int ptype[8] = {0,0,0,0,0,0,0,0};
+        char *color;
+        col = (k==0)?i-1:j-1;
+        block=ceil((float)(col+1)/columnWidth);
+        xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
+        /* Repeat for each sequence */
+        for (s=pairings=nonpair=0; s<N; s++) {
+          ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
+        }
+        for (pairings=0,s=1; s<=7; s++) {
+          if (ptype[s]) pairings++;
+        }
+        nonpair=ptype[0];
+        if (nonpair <=2) {
+          color = colorMatrix[pairings-1][nonpair];
+          for (s=0; s<N; s++) {
+            yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
+            
+            /* Color according due color information in pi-array, only if base pair is possible */
+            if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
 
-	      fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
-		      xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
-	    }
-	  }
-	}
+              fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
+                      xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
+            }
+          }
+        }
       }
     }
   }
@@ -1912,11 +1946,11 @@ int aliPS_color_aln(const char *structure, const char *filename,
     x=0;y=0;
     while ((c=tmpBuffer[x])){
       if (c=='.'){
-	ssEscaped[y++]='.';
+        ssEscaped[y++]='.';
       } else {
-	ssEscaped[y++]='\\';
-	ssEscaped[y++]=c;
-      }			 
+        ssEscaped[y++]='\\';
+        ssEscaped[y++]=c;
+      }                         
       x++;
     }
     ssEscaped[y]='\0';
@@ -1933,7 +1967,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
       
       match=0;
       for (j=0;j<(currPos+strlen(tmpBuffer));j++){
-	if (seqs[i][j] != '-') match++;
+        if (seqs[i][j] != '-') match++;
       }
       
       fprintf(outfile, "(%s) %.1f %.1f string\n", names[i],namesX,currY);
@@ -1955,30 +1989,30 @@ int aliPS_color_aln(const char *structure, const char *filename,
     for (i=currPos;(i<currPos+columnWidth && i<length);i++){
       match=0;
       for (j=0;j<N;j++){
-	if (cons[i] == seqs[j][i]) match++;
-	if (cons[i]=='U' && seqs[j][i]=='T') match++;
-	if (cons[i]=='T' && seqs[j][i]=='U') match++;
+        if (cons[i] == seqs[j][i]) match++;
+        if (cons[i]=='U' && seqs[j][i]=='T') match++;
+        if (cons[i]=='T' && seqs[j][i]=='U') match++;
       }
       score=(float)(match-1)/(N-1);
       
       if (cons[i] == '-' ||
-	  cons[i] == '_' ||
-	  cons[i] == '.'){
-	score=0;
+          cons[i] == '_' ||
+          cons[i] == '.'){
+        score=0;
       }
       
       barHeight=maxConsBar*score;
       if (barHeight==0){
-	barHeight=1;
+        barHeight=1;
       }
       
       xx=seqsX+(i-(columnWidth*currPos/columnWidth))*fontWidth;
       
       fprintf(outfile,"%.1f %.1f %.1f %.1f box2\n",
-	      xx,
-	      currY+maxConsBar-barHeight,
-	      xx+fontWidth,
-	      currY+maxConsBar);
+              xx,
+              currY+maxConsBar-barHeight,
+              xx+fontWidth,
+              currY+maxConsBar);
     }
     
     currY+=blockStep;

@@ -49,6 +49,7 @@ typedef struct plist {
   int i;
   int j;
   float p;
+  int type;
 } plist;
 
 /**

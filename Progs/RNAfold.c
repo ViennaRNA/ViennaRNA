@@ -299,10 +299,18 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
           FLT_OR_DBL *probs = export_bppm();
+#ifdef WITH_GQUADS
+          assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
+#else
           assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
+#endif
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
+#ifdef WITH_GQUADS
+          cent = get_centroid_struct_gquad_pr(length, &dist);
+#else
           cent = get_centroid_struct_pr(length, &dist, probs);
+#endif
           cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);

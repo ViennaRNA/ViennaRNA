@@ -17,5 +17,13 @@ int         gquad_contribution(int L, int l1, int l2, int l3);
 
 int         *get_gquad_matrix(short *S);
 FLT_OR_DBL  *get_gquad_pf_matrix(short *S, FLT_OR_DBL *scale);
-FLT_OR_DBL *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs,FLT_OR_DBL *scale);
+plist       *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs, FLT_OR_DBL *scale);
+plist       *get_plist_gquad_from_pr( short *S,
+                                      int gi,
+                                      int gj,
+                                      FLT_OR_DBL *G,
+                                      FLT_OR_DBL *probs,
+                                      FLT_OR_DBL *scale);
+plist       *get_plist_gquad_from_db(const char *structure, float pr);
+
 #endif

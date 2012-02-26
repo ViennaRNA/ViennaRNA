@@ -35,7 +35,7 @@
 
 #define WITH_GQUADS   1
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
 #include "gquad.h"
 #endif
 
@@ -97,7 +97,8 @@ PRIVATE short   *pair_table         = NULL; /* needed by energy of struct */
 PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
-#if WITH_GQUADS
+
+#ifdef WITH_GQUADS
 PRIVATE int     *ggg;
 #endif
 
@@ -192,7 +193,7 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_a = (int *) space(sizeof(int)*(size+1));
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+500)); /* add a guess of how many G's may be involved in a G quadruplex */
 #else
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
@@ -343,7 +344,7 @@ PUBLIC float fold_par(const char *string,
   BP  = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
   ggg = get_gquad_matrix(S);
 #endif
 
@@ -388,7 +389,7 @@ PUBLIC float fold_par(const char *string,
       int l;
       bonus_cnt++;
       for(l=1; l<=base_pair2[0].i; l++)
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
         if(base_pair2[l].i != base_pair2[l].j)
 #endif
         if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
@@ -534,7 +535,7 @@ PRIVATE int fill_arrays(const char *string) {
           new_c = MIN2(new_c, decomp);
         }
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
         /* now we include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
         /* therefore we should think about a term reflecting the number of unpaired         */
         /* nucleotides between the enclosing pair (i,j) and the g-quadruplex itself         */
@@ -608,7 +609,7 @@ PRIVATE int fill_arrays(const char *string) {
                     break;
         }
       }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
       new_fML = MIN2(new_fML, ggg[indx[j] + i]);
 #endif
 
@@ -695,7 +696,7 @@ PRIVATE int fill_arrays(const char *string) {
     case 0:   for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                   f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
 #endif
                   type = ptype[indx[j]+i];
@@ -703,7 +704,7 @@ PRIVATE int fill_arrays(const char *string) {
                   en = c[indx[j]+i];
                   f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
                 }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                 f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
 #endif
                 type=ptype[indx[j]+1];
@@ -717,7 +718,7 @@ PRIVATE int fill_arrays(const char *string) {
     case 2:   for(j=TURN+2; j<length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                   f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
 #endif
                   type = ptype[indx[j]+i];
@@ -725,7 +726,7 @@ PRIVATE int fill_arrays(const char *string) {
                   en = c[indx[j]+i];
                   f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, S1[i-1], S1[j+1], P));
                 }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                 f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
 #endif
                 type=ptype[indx[j]+1];
@@ -735,7 +736,7 @@ PRIVATE int fill_arrays(const char *string) {
               }
               f5[length] = f5[length-1];
               for (i=length-TURN-1; i>1; i--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                 f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
 #endif
                 type = ptype[indx[length]+i];
@@ -743,7 +744,7 @@ PRIVATE int fill_arrays(const char *string) {
                 en = c[indx[length]+i];
                 f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, S1[i-1], -1, P));
               }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
               f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
 #endif
               type=ptype[indx[length]+1];
@@ -758,7 +759,7 @@ PRIVATE int fill_arrays(const char *string) {
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                   f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
 #endif
                   type = ptype[indx[j]+i];
@@ -774,7 +775,7 @@ PRIVATE int fill_arrays(const char *string) {
                     f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], S1[j], P));
                   }
                 }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                 f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
 #endif
                 type = ptype[indx[j]+1];
@@ -842,7 +843,7 @@ PRIVATE void backtrack(const char *string, int s) {
       switch(dangle_model){
         case 0:   /* j is paired. Find pairing partner */
                   for(k=j-TURN-1,traced=0; k>=1; k--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                     if(fij == f5[k-1] + ggg[indx[j]+k]){
                       /* found the decomposition */
                       traced = j; jj = k - 1; gq = 1;
@@ -860,7 +861,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
         case 2:   mm3 = (j<length) ? S1[j+1] : -1;
                   for(k=j-TURN-1,traced=0; k>=1; k--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                     if(fij == f5[k-1] + ggg[indx[j]+k]){
                       /* found the decomposition */
                       traced = j; jj = k - 1; gq = 1;
@@ -877,7 +878,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   break;
 
         default:  for(traced = 0, k=j-TURN-1; k>1; k--){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                     if(fij == f5[k-1] + ggg[indx[j]+k]){
                       /* found the decomposition */
                       traced = j; jj = k - 1; gq = 1;
@@ -914,7 +915,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                   }
                   if(!traced){
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
                     if(fij == ggg[indx[j]+1]){
                       /* found the decomposition */
                       traced = j; jj = 0; gq = 1;
@@ -952,7 +953,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
       /* trace back the base pair found */
       i=k; j=traced;
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
       if(gq){
         /* goto backtrace of gquadruplex */
         goto repeat_gquad;
@@ -971,7 +972,7 @@ PRIVATE void backtrack(const char *string, int s) {
       }
 
       ij  = indx[j]+i;
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
       if(fij == ggg[ij]){
         /* go to backtracing of quadruplex */
         goto repeat_gquad;
@@ -1115,7 +1116,7 @@ PRIVATE void backtrack(const char *string, int s) {
     tt = rtype[type];
     i1 = i+1; j1 = j-1;
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
     /*
       actually also a multiloop case, but since this case does not
       include any further multiloop part that has to be backtraced,
@@ -1285,7 +1286,7 @@ PRIVATE void backtrack(const char *string, int s) {
         fprintf(stderr, "%s\n", string);
         nrerror("backtracking failed in repeat");
     }
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
   repeat_gquad:
@@ -1414,7 +1415,7 @@ PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
 
   for (k = 1; k <= bp[0].i; k++){
 
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
     /* Gquad bonds are marked as bp[i].i == bp[i].j */
     if(bp[k].i == bp[k].j){
       structure[bp[k].i-1] = '+';
@@ -1422,7 +1423,7 @@ PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
 #endif
     structure[bp[k].i-1] = '(';
     structure[bp[k].j-1] = ')';
-#if WITH_GQUADS
+#ifdef WITH_GQUADS
     }
 #endif
   }
@@ -2274,19 +2275,40 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
   /* convert bracket string to plist */
   short *pt;
-  int i, k = 0;
+  int i, k = 0, size, n;
+  plist *gpl, *ptr;
+
+  size  = strlen(struc);
+  n     = 2;
+
   pt  = make_pair_table(struc);
-  *pl = (plist *)space((strlen(struc)/2+1)*sizeof(plist));
-  for(i = 1; i < strlen(struc); i++){
+  *pl = (plist *)space(n*size*sizeof(plist));
+  for(i = 1; i < size; i++){
     if(pt[i]>i){
-      (*pl)[k].i    = i;
-      (*pl)[k].j    = pt[i];
-      (*pl)[k++].p  = pr;
+      (*pl)[k].i      = i;
+      (*pl)[k].j      = pt[i];
+      (*pl)[k].p      = pr;
+      (*pl)[k++].type = 0;
     }
   }
-  (*pl)[k].i    = 0;
-  (*pl)[k].j    = 0;
-  (*pl)[k++].p  = 0.;
+#ifdef WITH_GQUADS
+  gpl = get_plist_gquad_from_db(struc, pr);
+  for(ptr = gpl; ptr->i != 0; ptr++){
+    if (k == n * size - 1){
+      n *= 2;
+      *pl = (plist *)xrealloc(*pl, n * size * sizeof(plist));
+    }
+    (*pl)[k].i      = ptr->i;
+    (*pl)[k].j      = ptr->j;
+    (*pl)[k].p       = ptr->p;
+    (*pl)[k++].type = ptr->type;
+  }
+  free(gpl);
+#endif
+  (*pl)[k].i      = 0;
+  (*pl)[k].j      = 0;
+  (*pl)[k].p      = 0.;
+  (*pl)[k++].type = 0.;
   free(pt);
   *pl = (plist *)xrealloc(*pl, k * sizeof(plist));
 }
