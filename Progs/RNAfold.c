@@ -307,11 +307,12 @@ int main(int argc, char *argv[]){
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
 #ifdef WITH_GQUADS
-          cent = get_centroid_struct_gquad_pr(length, &dist);
+          cent    = get_centroid_struct_gquad_pr(length, &dist);
+          cent_en = energy_of_gquad_structure(rec_sequence, cent, 0);
 #else
-          cent = get_centroid_struct_pr(length, &dist, probs);
-#endif
+          cent    = get_centroid_struct_pr(length, &dist, probs);
           cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
+#endif
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {

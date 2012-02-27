@@ -35,6 +35,10 @@
 #include <omp.h>
 #endif
 
+#ifdef WITH_GQUADS
+#include "gquad.h"
+#endif
+
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp $";
@@ -81,6 +85,9 @@ PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE bondT           *base_pair2 = NULL;
 PRIVATE int             circular;
+#ifdef WITH_GQUADS
+PRIVATE int     *ggg;
+#endif
 
 #ifdef _OPENMP
 
@@ -90,8 +97,14 @@ PRIVATE int             circular;
          e.g.:
          #pragma omp parallel for copyin(P, ...)
 */
+#ifdef WITH_GQUADS
+#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
+                          pscore, init_length, sector, base_pair2, ggg)
+
+#else
 #pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
                           pscore, init_length, sector, base_pair2)
+#endif
 
 #endif
 
@@ -152,7 +165,11 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi1   = (int *) space(sizeof(int)*(size+1));
   DMLi2   = (int *) space(sizeof(int)*(size+1));
   if(base_pair2) free(base_pair2);
+#ifdef WITH_GQUADS
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+500)); /* add a guess of how many G's may be involved in a G quadruplex */
+#else
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
+#endif
 }
 
 PUBLIC  void  free_alifold_arrays(void){
@@ -169,6 +186,10 @@ PUBLIC  void  free_alifold_arrays(void){
   if(DMLi1)       free(DMLi1);
   if(DMLi2)       free(DMLi2);
   if(P)           free(P);
+#ifdef WITH_GQUADS
+  if(ggg)       free(ggg);
+  ggg = NULL;
+#endif
   indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   pscore      = NULL;
   base_pair   = NULL;
@@ -294,6 +315,10 @@ PRIVATE int fill_arrays(const char **strings) {
   length = strlen(strings[0]);
 
   /* init energies */
+#ifdef WITH_GQUADS
+  ggg = get_gquad_ali_matrix(S, n_seq, pscore);
+#endif
+
   for (j=1; j<=length; j++){
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
     for (i=(j>TURN?(j-TURN):1); i<j; i++) {

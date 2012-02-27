@@ -388,7 +388,9 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
     qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
-    Gj[j-TURN]=Gj[j-TURN+2]=Gj[j-TURN+1]=Gj[j]=0;/*Gj brauch ma noch!*/
+#ifdef WITH_GQUADS
+    Gj[j-TURN] = Gj[j-TURN+2] = Gj[j-TURN+1] = Gj[j] = 0;/*Gj brauch ma noch!*/
+#endif
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
       /*firstly that given i binds j : qb(i,j) */
@@ -426,7 +428,12 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
         qb[ij] = qbt1;
       } /* end if (type!=0) */
-      else qb[ij] = G[ij];/*0.0 or G[ij]*/;
+      else
+#ifdef WITH_GQUADS
+        qb[ij] = G[ij];
+#else
+        qb[ij] = 0.0;
+#endif
 
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
@@ -845,7 +852,7 @@ PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC char bppm_symbol(const float *x){
-  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|';
+//  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|';
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';
   if( x[2] > 0.667 )  return ')';
@@ -1296,7 +1303,11 @@ PUBLIC char *get_centroid_struct_gquad_pr( int length,
                 centroid[ptr->j-1] = '+';
               }
           }
+          /* skip everything within the gquad */
+          i = j; j = j+TURN+1;
           free(inner);
+          *dist += (1-p); /* right? */
+          break;
         } else {
             centroid[i-1] = '(';
             centroid[j-1] = ')';

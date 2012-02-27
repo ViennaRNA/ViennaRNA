@@ -33,8 +33,6 @@
 #include <omp.h>
 #endif
 
-#define WITH_GQUADS   1
-
 #ifdef WITH_GQUADS
 #include "gquad.h"
 #endif
@@ -99,7 +97,7 @@ PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
 
 #ifdef WITH_GQUADS
-PRIVATE int     *ggg;
+PRIVATE int     *ggg = NULL;
 #endif
 
 #ifdef _OPENMP
@@ -110,10 +108,18 @@ PRIVATE int     *ggg;
          e.g.:
          #pragma omp parallel for copyin(P, init_length, min_hairpin)
 */
+#ifdef WITH_GQUADS
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
                           Fc, FcH, FcI, FcM,\
                           sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained, ggg)
+#else
+#pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
+                          DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
+                          Fc, FcH, FcI, FcM,\
+                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained)
+#endif
+
 #endif
 
 /*
@@ -133,6 +139,13 @@ PRIVATE void  fill_arrays_circ(const char *string, int *bt);
 PRIVATE void  init_fold(int length, paramT *parameters);
 /* needed by cofold/eval */
 PRIVATE int   cut_in_loop(int i);
+
+#ifdef WITH_GQUADS
+PRIVATE int energy_of_gquad(const char *string,
+                            const char *structure,
+                            int verbosity_level);
+#endif
+
 
 /** deprecated functions */
 /*@unused@*/
@@ -227,6 +240,10 @@ PUBLIC void free_arrays(void){
   if(DMLi2_a)   free(DMLi2_a);
   if(DMLi2_o)   free(DMLi2_o);
   if(P)         free(P);
+#ifdef WITH_GQUADS
+  if(ggg)       free(ggg);
+  ggg = NULL;
+#endif
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
   ptype       = NULL;
@@ -344,10 +361,6 @@ PUBLIC float fold_par(const char *string,
   BP  = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
 
-#ifdef WITH_GQUADS
-  ggg = get_gquad_matrix(S);
-#endif
-
   energy = fill_arrays(string);
 
   if(circular){
@@ -429,6 +442,11 @@ PRIVATE int fill_arrays(const char *string) {
   length = (int) strlen(string);
 
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
+
+#ifdef WITH_GQUADS
+  ggg = get_gquad_matrix(S);
+#endif
+
 
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -1499,6 +1517,59 @@ PUBLIC float energy_of_struct_par(const char *string,
   S=ss; S1=ss1;
   return  (float) energy/100.;
 }
+
+#ifdef WITH_GQUADS
+PRIVATE int energy_of_gquad(const char *string,
+                            const char *structure,
+                            int verbosity_level){
+
+  int energy = 0;
+
+  return energy;
+}
+
+PUBLIC float energy_of_gquad_structure( const char *string,
+                                        const char *structure,
+                                        int verbosity_level){
+
+  int   energy, gge;
+  short *ss, *ss1;
+
+#ifdef _OPENMP
+  if(P == NULL) update_fold_params();
+#else
+  if((init_length<0)||(P==NULL)) update_fold_params();
+#endif
+
+  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+
+  if (strlen(structure)!=strlen(string))
+    nrerror("energy_of_struct: string and structure have unequal length");
+
+  /* save the S and S1 pointers in case they were already in use */
+  ss = S; ss1 = S1;
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
+
+  /* the pair_table looses every information about the gquad position
+     thus we have to find add the energy contributions for each loop
+     that contains a gquad by ourself, substract all miscalculated
+     contributions, i.e. loops that actually contain a gquad, from
+     energy_of_structure_pt()
+  */
+  gge = energy_of_gquad(string, structure, verbosity_level);
+
+  pair_table = make_pair_table(structure);
+
+  energy = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
+  energy += gge;
+
+  free(pair_table);
+  free(S); free(S1);
+  S=ss; S1=ss1;
+  return  (float) energy/100.;
+}
+#endif
 
 PUBLIC int energy_of_structure_pt(const char *string,
                                   short *ptable,

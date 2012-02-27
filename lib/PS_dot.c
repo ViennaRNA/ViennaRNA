@@ -1240,20 +1240,32 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
 
 #ifdef WITH_GQUADS
 const char *RNAdp_gquad_triangle =
-"/utri{\n"
+"/min { 2 copy gt { exch } if pop } bind def\n\n"
+"/utri{ % i j prob utri\n"
 "  gsave\n"
-"  0.3 0.1 0.8 sethsbcolor\n"
-"  2 index dup 2 index dup\n"
-"  dup  3 1 roll dup 3 1 roll\n"
-"  dup  3 1 roll dup 3 1 roll\n"
-"  moveto\n"
-"  dup  exch 0.5 mul 0.5 sub exch  lineto\n"
-"  0.5 mul 0.5 sub lineto\n"
-"  fill\n"
-"  stroke\n"
+"  1 min 2 div\n"
+"  1. exch sub dup 0.8 3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  exch dup 3 1 roll sub 1 add dup 0 exch neg 4 2 roll 0 3 -1 roll\n"
+"  0.5 sub dup len 1 add exch sub\n"
+"  moveto rlineto rlineto closepath fill\n"
 "  grestore\n"
 "} bind def\n";
 #endif
+
+
+static int sort_plist_by_type_desc(const void *p1, const void *p2){
+  if(((plist*)p1)->type > ((plist*)p2)->type) return -1;
+  if(((plist*)p1)->type < ((plist*)p2)->type) return 1;
+  return 0;
+}
+
+static int sort_plist_by_prob_asc(const void *p1, const void *p2){
+  if(((plist*)p1)->p > ((plist*)p2)->p) return 1;
+  if(((plist*)p1)->p < ((plist*)p2)->p) return -1;
+  return 0;
+}
 
 
 
@@ -1264,9 +1276,9 @@ PUBLIC int PS_dot_plot_list(char *seq,
                             char *comment){
 
   FILE *wastl;
-  int length;
+  int length, pl_size, gq_num;
   double tmp;
-  struct plist *pl1;
+  plist *pl1, *pl_tmp;
 
   length= strlen(seq);
   wastl = PS_dot_common(seq, wastlfile, comment, 0);
@@ -1278,6 +1290,16 @@ PUBLIC int PS_dot_plot_list(char *seq,
 #endif
 
   fprintf(wastl,"%%data starts here\n");
+
+#ifdef WITH_GQUADS
+  /* sort the plist to bring all gquad triangles to the front */
+  for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
+    if(pl1->type == 1) gq_num++;
+  qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
+  /* sort all gquad triangles by probability to bring lower probs to the front */
+  qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+#endif
+
   /* print boxes in upper right half*/
   for (pl1=pl; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
