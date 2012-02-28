@@ -1216,13 +1216,28 @@ PUBLIC plist *stackProb(double cutoff){
 
 /*-------------------------------------------------------------------------*/
 /* make arrays used for pf_fold available to other routines */
-PUBLIC int get_pf_arrays(short **S_p, short **S1_p, char **ptype_p, FLT_OR_DBL **qb_p, FLT_OR_DBL **qm_p, FLT_OR_DBL **q1k_p, FLT_OR_DBL **qln_p){
+PUBLIC int get_pf_arrays( short **S_p,
+                          short **S1_p,
+                          char **ptype_p,
+                          FLT_OR_DBL **qb_p,
+                          FLT_OR_DBL **qm_p,
+                          FLT_OR_DBL **q1k_p,
+                          FLT_OR_DBL **qln_p){
+
   if(qb == NULL) return(0); /* check if pf_fold() has been called */
   *S_p = S; *S1_p = S1; *ptype_p = ptype;
   *qb_p = qb; *qm_p = qm;
   *q1k_p = q1k; *qln_p = qln;
   return(1); /* success */
 }
+
+/* get the free energy of a subsequence from the q[] array */
+PUBLIC double get_subseq_F(int i, int j){
+  if (!q)
+    nrerror("call pf_fold() to fill q[] array before calling get_subseq_F()");
+  return ((-log(q[my_iindx[i]-j])-(j-i+1)*log(pf_params->pf_scale))*pf_params->kT/1000.0);
+}
+
 
 PUBLIC double mean_bp_distance(int length){
   return mean_bp_distance_pr(length, probs);
