@@ -1,0 +1,4 @@
+# ignore autotools generated files
+cmdlopt.sh
+RNAlib.info
+texinfo.tex
