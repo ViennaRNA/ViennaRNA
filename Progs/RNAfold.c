@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
+/* Last changed Time-stamp: <2012-02-15 18:20:49 ivo> */
 /*
                   Ineractive Access to folding Routines
 
@@ -28,6 +28,7 @@
 #include "MEA.h"
 #include "params.h"
 #include "RNAfold_cmdl.h"
+
 
 
 /*@unused@*/
@@ -243,7 +244,11 @@ int main(int argc, char *argv[]){
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-      if (!noPS) (void) PS_rna_plot(orig_sequence, structure, ffname);
+#ifdef WITH_GQUADS
+      if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
+#else
+      if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
+#endif
     }
     if (length>2000) free_arrays();
     if (pf) {

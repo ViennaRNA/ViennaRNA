@@ -39,5 +39,7 @@ plist       *get_plist_gquad_from_db( const char *structure,
 
 plist       *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs, FLT_OR_DBL *scale);
 
+int         parse_gquad(const char *struc, int *L, int l[3]);
+
 
 #endif

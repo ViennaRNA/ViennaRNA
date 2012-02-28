@@ -601,3 +601,37 @@ PUBLIC  int *make_ggggscores( const short *const* S,
   free(dm);
 #endif
 }
+
+int parse_gquad(const char *struc, int *L, int l[3]) {
+  /* given a dot-bracket structure (possibly) containing gquads encoded
+     by '+' signs, find first gquad, return end position or 0 if none found
+     Upon return L and l[] contain the number of stacked layers, as well as
+     the lengths of the linker regions.  
+     To parse a string with many gquads, call parse_gquad repeatedly e.g.
+     end1 = parse_gquad(struc, &L, l); ... ;
+     end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
+     end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ; 
+  */
+  int i, il, start, end, len;
+  
+  for (i=0; struc[i] && struc[i]!='+'; i++);
+  if (struc[i] == '+') { /* start of gquad */
+    for (il=0; il<=3; il++) {
+      start=i; /* pos of first '+' */
+      while (struc[++i] == '+');
+      end=i; len=end-start; 
+      if (il==0) *L=len;
+      else if (len!=*L)
+        nrerror("unequal stack lengths in gquad");
+      if (il==3) break;
+      while (struc[++i] == '.'); /* linker */
+      l[il] = i-end;
+      if (struc[i] != '+') nrerror("illegal character in gquad linker region");
+    }
+  }
+  else return 0;
+  /* printf("gquad at %d %d %d %d %d\n", end, *L, l[0], l[1], l[2]); */
+  return end;
+}
+
+  

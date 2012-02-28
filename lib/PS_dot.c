@@ -17,6 +17,9 @@
 #include "pair_mat.h"
 #include "aln_util.h"
 #include "plot_layouts.h"
+#ifdef WITH_GQUADS
+#include "gquad.h"
+#endif
 
 static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $";
 
@@ -483,6 +486,176 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   free(X); free(Y);
   return 1; /* success */
 }
+
+#ifdef WITH_GQUADS
+int PS_rna_plot_a_gquad(char *string,
+                        char *structure,
+                        char *ssfile,
+                        char *pre,
+                        char *post){
+  float  xmin, xmax, ymin, ymax, size;
+  int    i, length;
+  int    ee, gb, ge, Lg, l[3];
+  float *X, *Y;
+  FILE  *xyplot;
+  short *pair_table, *pair_table_g;;
+  char *c;
+
+  length = strlen(string);
+
+  xyplot = fopen(ssfile, "w");
+  if (xyplot == NULL) {
+    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    return 0;
+  }
+
+  pair_table = make_pair_table(structure);
+  pair_table_g = make_pair_table(structure);
+
+  ge=0;
+  while ( (ee=parse_gquad(structure+ge, &Lg, l)) >0 ) {
+    ge += ee;
+    gb=ge-Lg*4-l[0]-l[1]-l[2]+1;
+    /* add pseudo-base pair encloding gquad */
+    for (i=0; i<Lg; i++) {
+      pair_table_g[ge-i]=gb+i;
+      pair_table_g[gb+i]=ge-i;
+    }
+  } 
+      
+  X = (float *) space((length+1)*sizeof(float));
+  Y = (float *) space((length+1)*sizeof(float));
+  switch(rna_plot_type){
+    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table_g, X, Y);
+                                  break;
+    case VRNA_PLOT_TYPE_CIRCULAR: {
+                                    int radius = 3*length;
+                                    i = simple_circplot_coordinates(pair_table_g, X, Y);
+                                    for (i = 0; i < length; i++) {
+                                      X[i] *= radius;
+                                      X[i] += radius;
+                                      Y[i] *= radius;
+                                      Y[i] += radius;
+                                    }
+                                  }
+                                  break;
+    default:                      i = naview_xy_coordinates(pair_table_g, X, Y);
+                                  break;
+  }
+  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+
+  xmin = xmax = X[0];
+  ymin = ymax = Y[0];
+  for (i = 1; i < length; i++) {
+     xmin = X[i] < xmin ? X[i] : xmin;
+     xmax = X[i] > xmax ? X[i] : xmax;
+     ymin = Y[i] < ymin ? Y[i] : ymin;
+     ymax = Y[i] > ymax ? Y[i] : ymax;
+  }
+  size = MAX2((xmax-xmin),(ymax-ymin));
+
+  fprintf(xyplot,
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%Creator: %s, ViennaRNA-%s\n"
+          "%%%%CreationDate: %s"
+          "%%%%Title: RNA Secondary Structure Plot\n"
+          "%%%%BoundingBox: 66 210 518 662\n"
+          "%%%%DocumentFonts: Helvetica\n"
+          "%%%%Pages: 1\n"
+          "%%%%EndComments\n\n"
+          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+  fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
+          "%% delete the appropriate line near the end of the file\n\n");
+  fprintf(xyplot, "%s", RNAss_head);
+
+  if (pre || post) {
+    fprintf(xyplot, "%s", anote_macros);
+  }
+  fprintf(xyplot, "%%%%EndProlog\n");
+
+  fprintf(xyplot, "RNAplot begin\n"
+          "%% data start here\n");
+
+  /* cut_point */
+  if ((c = strchr(structure, '&'))) {
+    int cutpoint;
+    cutpoint = c - structure;
+    string[cutpoint] = ' '; /* replace & with space */
+    fprintf(xyplot, "/cutpoint %d def\n", cutpoint);
+  }
+
+  /* sequence */
+  fprintf(xyplot,"/sequence (\\\n");
+  i=0;
+  while (i<length) {
+    fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
+    i+=255;
+  }
+  fprintf(xyplot,") def\n");
+  /* coordinates */
+  fprintf(xyplot, "/coor [\n");
+  for (i = 0; i < length; i++)
+    fprintf(xyplot, "[%3.8f %3.8f]\n", X[i], Y[i]);
+  fprintf(xyplot, "] def\n");
+  /* correction coordinates for quadratic beziers in case we produce a circplot */
+  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
+    fprintf(xyplot, "/cpr %6.2f def\n", (float)3*length);
+  /* base pairs */
+  fprintf(xyplot, "/pairs [\n");
+  for (i = 1; i <= length; i++)
+    if (pair_table[i]>i)
+      fprintf(xyplot, "[%d %d]\n", i, pair_table[i]);
+  /* add gquad pairs */
+  ge=0;
+  while ( (ee=parse_gquad(structure+ge, &Lg, l)) >0 ) {
+    int k;
+    fprintf(xyplot, "%% gquad\n");
+    ge += ee;
+    gb=ge-Lg*4-l[0]-l[1]-l[2]+1; /* add pseudo-base pair encloding gquad */
+    for (k=0; k<Lg; k++) {
+      int ii, jj, il;
+      for (il=0, ii=gb+k; il<3; il++) {
+        jj = ii+l[il]+Lg;
+        fprintf(xyplot, "[%d %d]\n", ii, jj);
+        ii = jj;
+      }
+      jj = gb+k;
+      fprintf(xyplot, "[%d %d]\n", jj, ii);
+    }
+  }
+
+  fprintf(xyplot, "] def\n\n");
+
+  fprintf(xyplot, "init\n\n");
+  /* draw the data */
+  if (pre) {
+    fprintf(xyplot, "%% Start Annotations\n");
+    fprintf(xyplot, "%s\n", pre);
+    fprintf(xyplot, "%% End Annotations\n");
+  }
+  fprintf(xyplot,
+          "%% switch off outline pairs or bases by removing these lines\n"
+          "drawoutline\n"
+          "drawpairs\n"
+          "drawbases\n");
+
+  if (post) {
+    fprintf(xyplot, "%% Start Annotations\n");
+    fprintf(xyplot, "%s\n", post);
+    fprintf(xyplot, "%% End Annotations\n");
+  }
+  fprintf(xyplot, "%% show it\nshowpage\n");
+  fprintf(xyplot, "end\n");
+  fprintf(xyplot, "%%%%EOF\n");
+
+  fclose(xyplot);
+
+  free(pair_table);
+  free(pair_table_g);
+  free(X); free(Y);
+  return 1; /* success */
+}
+#endif
 
 
 int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relative_access, const char *seqs[])
