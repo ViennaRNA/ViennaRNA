@@ -147,7 +147,7 @@ PRIVATE int energy_of_gquad(const char *string,
 #endif
 
 
-/** deprecated functions */
+/* deprecated functions */
 /*@unused@*/
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
@@ -554,29 +554,41 @@ PRIVATE int fill_arrays(const char *string) {
         }
 
 #ifdef WITH_GQUADS
-        /* now we include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-        /* therefore we should think about a term reflecting the number of unpaired         */
-        /* nucleotides between the enclosing pair (i,j) and the g-quadruplex itself         */
+        /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
         if (!no_close) {
           tt = rtype[type];
           switch(dangles){
             case 0:     energy = E_MLstem(tt, -1, -1, P) + P->MLclosing; /* contribution from closing (i,j) */
-                        for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                        for(p = i + 2;
+                            p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+                            p++){
+                          if(S1[p] != 3) continue;
+                          int minq = j-i+p-MAXLOOP-2;
                           int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
-                          for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
-                            int up = (l1 + j - q - 1)*P->MLbase;
-                            new_c = MIN2(new_c, energy + ggg[indx[q] + p] + up);
+                          if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                            minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          for(q = minq; q < maxq; q++){
+                            if(S1[q] != 3) continue;
+                            int up  = (l1 + j - q - 1)*P->MLbase;
+                            int c   = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c);
                           }
                         }
                         break;
             case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
                         for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          if(S1[p] != 3) continue;
+                          int minq = j-i+p-MAXLOOP-2;
                           int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                           int l1    = p - i - 1;
-                          for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
-                            int up = (l1 + j - q - 1)*P->MLbase;
-                            new_c = MIN2(new_c, energy + ggg[indx[q] + p] + up);
+                          if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                            minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          for(q = minq; q < maxq; q++){
+                            if(S1[q] != 3) continue;
+                            int up  = (l1 + j - q - 1)*P->MLbase;
+                            int c   = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c);
                           }
                         }
                         break;
@@ -586,15 +598,24 @@ PRIVATE int fill_arrays(const char *string) {
                           int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
                           int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
                           for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                            if(S1[p] != 3) continue;
+                            int minq = j-i+p-MAXLOOP-2;
                             int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                             int l1    = p - i - 1;
-                            for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
-                              int up = (l1 + j - q - 1)*P->MLbase;
+                            if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                              minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                            for(q = minq; q < maxq; q++){
+                              if(S1[q] != 3) continue;
+                              int up  = (l1 + j - q - 1)*P->MLbase;
+                              int c0  = ggg[indx[q] + p] + constellation0;
+                              int c1  = ggg[indx[q-1] + p] + constellation1;
+                              int c2  = ggg[indx[q] + p + 1] + constellation2;
+                              int c3  = ggg[indx[q-1] + p + 1] + constellation3;
                               /* first case: no dangles contribute to the enclosing pair */
-                              new_c = MIN2(new_c, ggg[indx[q] + p] + constellation0);
-                              new_c = MIN2(new_c, ggg[indx[q-1] + p] + constellation1);
-                              new_c = MIN2(new_c, ggg[indx[q] + p + 1] + constellation2);
-                              new_c = MIN2(new_c, ggg[indx[q-1] + p + 1] + constellation3);
+                              new_c = MIN2(new_c, c0);
+                              new_c = MIN2(new_c, c1);
+                              new_c = MIN2(new_c, c2);
+                              new_c = MIN2(new_c, c3);
                             }
                           }
                         }
@@ -1136,10 +1157,6 @@ PRIVATE void backtrack(const char *string, int s) {
 
 #ifdef WITH_GQUADS
     /*
-      actually also a multiloop case, but since this case does not
-      include any further multiloop part that has to be backtraced,
-      we include it as a distinct case outside the multiloop decomposition
-      below
       The case that is handled here actually resembles something like
       an interior loop where the enclosing base pair is of regular
       kind and the enclosed pair is not a canonical one but a g-quadruplex
@@ -1148,9 +1165,12 @@ PRIVATE void backtrack(const char *string, int s) {
     switch(dangles){
       case 0:   en = E_MLstem(tt, -1, -1, P) + P->MLclosing;
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                  int minq = j-i+p-MAXLOOP-2;
                   int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
                   int l1    = p - i - 1;
-                  for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
+                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  for(q = minq; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
                     if(cij == en + ggg[indx[q] + p] + up){
                       /* go to backtracing of quadruplex */
@@ -1163,9 +1183,12 @@ PRIVATE void backtrack(const char *string, int s) {
                 break;
       case 2:   en = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                  int minq = j-i+p-MAXLOOP-2;
                   int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  int l1    = p-i-1;
-                  for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
+                  int l1    = p - i - 1;
+                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  for(q = minq; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
                     if(cij == en + ggg[indx[q] + p] + up){
                       /* go to backtracing of quadruplex */
@@ -1182,9 +1205,12 @@ PRIVATE void backtrack(const char *string, int s) {
                   int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
                   int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
                   for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    int minq = j-i+p-MAXLOOP-2;
                     int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                    int l1    = p-i-1;
-                    for(q = p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q < maxq; q++){
+                    int l1    = p - i - 1;
+                    if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
+                      minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    for(q = minq; q < maxq; q++){
                       int up = (l1+j-q-1)*P->MLbase;
                       /* first case: no dangles contribute to the enclosing pair */
                       if(cij == ggg[indx[q] + p] + constellation0){

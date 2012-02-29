@@ -18,9 +18,18 @@ int         gquad_contribution( int L,
                                 int l2,
                                 int l3);
 
+int         gquad_ali_contribution( int i,
+                                    int L,
+                                    int l1,
+                                    int l2,
+                                    int l3,
+                                    short **S,
+                                    int n_seq);
+
 int         *get_gquad_matrix(short *S);
 
-int         *get_gquad_ali_matrix(short **S,
+int         *get_gquad_ali_matrix(short *S_cons,
+                                  short **S,
                                   int n_seq,
                                   int *pscore);
 
@@ -40,6 +49,7 @@ plist       *get_plist_gquad_from_db( const char *structure,
 plist       *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs, FLT_OR_DBL *scale);
 
 int         parse_gquad(const char *struc, int *L, int l[3]);
+
 
 
 #endif

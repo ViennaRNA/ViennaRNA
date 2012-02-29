@@ -16,9 +16,12 @@
 #include "data_structures.h"
 #include "energy_const.h"
 #include "utils.h"
+#include "aln_util.h"
 #include "gquad.h"
 
 #define MINPSCORE -2 * UNIT
+#define alipen    5
+
 
 PUBLIC int gquad_contribution(int L, int l1, int l2, int l3){
   int a = -1800;
@@ -93,74 +96,127 @@ PUBLIC int *get_gquad_matrix(short *S){
   return data;
 }
 
-PUBLIC int *get_gquad_ali_matrix( short **S,
+PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short **S, int n_seq){
+  /* check for compatibility in the alignment */
+  int s, cnt;
+  int penalty = 0;
+  int gg_mismatch = 0;
+
+  /* check for compatibility in the alignment */
+  for(s=0;s<n_seq;s++){
+    int p0, p1, p2, p3, pen;
+    p0 = p1 = p2 = p3 = pen = 0;
+
+    /* check bottom layer */
+    if(S[s][i] != 3)                      p0 = 1;
+    if(S[s][i+L+l1] != 3)                 p1 = 1;
+    if(S[s][i + 2*L + l1 + l2] != 3)      p2 = 1;
+    if(S[s][i + 3*L + l1 + l2 + l3] != 3) p3 = 1;
+    if(p0 || p1 || p2 || p3) pen += alipen; /* add 1x penalty for missing bottom layer */
+
+    /* check top layer */
+    p0 = p1 = p2 = p3 = 0;
+    if(S[s][i+L-1] != 3)                      p0 = 1;
+    if(S[s][i+L+l1+L-1] != 3)                 p1 = 1;
+    if(S[s][i + 2*L + l1 + l2+L-1] != 3)      p2 = 1;
+    if(S[s][i + 3*L + l1 + l2 + l3+L-1] != 3) p3 = 1;
+    if(p0 || p1 || p2 || p3) pen += alipen; /* add 1x penalty for missing top layer */
+
+    /* check inner layers */
+    for(cnt=1;cnt<L-1;cnt++){
+      if(S[s][i+cnt] != 3)                      p0 = 1;
+      if(S[s][i+L+l1+cnt] != 3)                 p1 = 1;
+      if(S[s][i + 2*L + l1 + l2+cnt] != 3)      p2 = 1;
+      if(S[s][i + 3*L + l1 + l2 + l3+cnt] != 3) p3 = 1;
+      if(p0 || p1 || p2 || p3) pen += 2*alipen; /* add 2x penalty for missing inner layer */
+    }
+
+    /* if all layers are missing, we have a complete gg mismatch */
+    if(pen >= (2*alipen * (L-1)))
+      gg_mismatch++;
+    /* add the penalty to the score */
+    penalty += pen;
+  }
+  /* only one ggg mismatch allowed */
+  if(gg_mismatch > 1)
+    return INF;
+  else
+    return n_seq * gquad_contribution(L, l1, l2, l3) + penalty;
+}
+
+PUBLIC int *get_gquad_ali_matrix( short *S_cons,
+                                  short **S,
                                   int n_seq,
                                   int *pscore){
 
-  int n, size, *data, **gg, init_size, actual_size, s, i, j, L, l1, l2, l3, cnt, *my_index, *gggg_score;
+  int n, size, *data, *gg, **ggg, init_size, actual_size, s, i, j, L, l1, l2, l3, cnt, *my_index, *gggg_score;
 
-  int gggg_dm[5][5] = {{2, 2, 2, 2, 2}, /* hamming distance of gg to any other nucleotide arrangements */
-                      {2, 2, 2, 1, 2},  /* A */
-                      {2, 2, 2, 1, 2}, /* C */
-                      {1, 1, 1, 0, 1}, /* G */
-                      {2, 2, 2, 1, 2}, /* U */};
 
   n           = S[0][0];
   size        = (n * (n+1))/2 + 2;
   data        = (int *)space(sizeof(int) * size);
-  gg          = (int **)space(sizeof(int*)*(n_seq));
+  gg          = (int *)space(sizeof(int)*(n+1));
+  ggg         = (int **)space(sizeof(int*)*(n_seq));
   my_index    = get_indx(n);
   init_size   = 50;
   actual_size = 0;
   cnt         = 0;
+  for(s=0;s<n_seq;s++)
+    ggg[s] = (int *)space(sizeof(int) * (n+1));
 
-  for(s=0; s< n_seq;s++){
-    gg[s] = (int *)space(sizeof(int)*(n+1));
-    /*  make the g-island annotation for each sequence */
-    if(S[s][n]==3) gg[s][n] = 1;
-    for(i = n-1; i > 0; i--)
-      /* needs to be fixed for gapless contributions */
-      if(S[s][i] == 3) gg[s][i] = gg[s][i+1]+1;
+
+  /*  make the g-island annotation for consensus sequence */
+  if(S_cons[n]==3) gg[n] = 1;
+  for(i = n-1; i > 0; i--)
+    if(S_cons[i] == 3) gg[i] = gg[i+1]+1;
+
+  /* make the g-island annotation for each sequence in the alignment */
+  for(s=0;s<n_seq;s++){
+    if(S[s][n] == 3) ggg[s][n] = 1;
+    for(i=n-1;i>0;i--)
+      if(S[s][i] == 3) ggg[s][i] = ggg[s][i+1]+1;
   }
 
   /* prefill the upper triangular matrix with INF */
   for(i=0;i<size;i++) data[i] = INF;
 
-  /* now find all quadruplexes */
+  /* now find all quadruplexes compatible with consensus sequence */
   for(i = 1;
       i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
       i++){
-    for(L = VRNA_GQUAD_MAX_STACK_SIZE;
+    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
         L--){
       for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
           l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
           l1++){
-        for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-            l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-            l2++){
-          for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
-              l3++){
-            /* go through all sequences */
-            for(s=0; s<n_seq; s++){
-              /* check for pattern G^L..G^L..G^L..G^L */
-              int d1, d2, d3, d4;
-              d1  = L - MIN2(gg[s][i], L);
-              d2  = L - MIN2(gg[s][i+L+l1], L);
-              d3  = L - MIN2(gg[s][i + 2*L + l1 + l2], L);
-              d4  = L - MIN2(gg[s][i + 3*L + l1 + l2 + l3], L);
-              j   = i + 4*L + l1 + l2 + l3 - 1;
+        if(gg[i+L+l1] >= L)
+          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
+              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
+              l2++){
+            if(gg[i + 2*L + l1 + l2] >= L){
+              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
+                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
+                  l3++){
+                if(gg[i + 3*L + l1 + l2 + l3] >= L){
+                  j = i+4*L+l1+l2+l3-1;
+                  /* check for compatibility in the alignment */
+                  int en = gquad_ali_contribution(i, L, l1, l2, l3, S, n_seq);
+                  data[my_index[j]+i] = MIN2(data[my_index[j]+i], en);
+                }
+              }
             }
           }
-        }
       }
     }
   }
 
+  /* clean up */
   free(my_index);
-  for(i=0; i< n_seq;i++) free(gg[i]);
   free(gg);
+  for(s=0;s<n_seq;s++)
+    free(ggg[s]);
+  free(ggg);
   return data;
 }
 
