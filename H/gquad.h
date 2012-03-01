@@ -1,8 +1,10 @@
 #ifndef __VIENNA_RNA_PACKAGE_GQUAD_H__
 #define __VIENNA_RNA_PACKAGE_GQUAD_H__
 
+#include "data_structures.h"
+
 /**
- *  \file quad.h
+ *  \file gquad.h
  *  \brief Various functions related to G-quadruplex computations
  */
 
@@ -46,7 +48,10 @@ plist       *get_plist_gquad_from_pr( short *S,
 plist       *get_plist_gquad_from_db( const char *structure,
                                       float pr);
 
-plist       *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs, FLT_OR_DBL *scale);
+plist       *Gquadcomputeinnerprobability(short *S,
+                                          FLT_OR_DBL *G,
+                                          FLT_OR_DBL  *probs,
+                                          FLT_OR_DBL *scale);
 
 int         parse_gquad(const char *struc, int *L, int l[3]);
 

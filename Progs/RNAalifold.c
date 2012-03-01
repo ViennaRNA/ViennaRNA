@@ -267,10 +267,17 @@ int main(int argc, char *argv[]){
   if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
+#ifdef WITH_GQUADS
+    if (doColor)
+      (void) PS_rna_plot_a_gquad(string, structure, ffname, A[0], A[1]);
+    else
+      (void) PS_rna_plot_a_gquad(string, structure, ffname, NULL, A[1]);
+#else
     if (doColor)
       (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
     else
       (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
+#endif
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
