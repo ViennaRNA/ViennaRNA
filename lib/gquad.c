@@ -378,7 +378,18 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
                                       FLT_OR_DBL *G,
                                       FLT_OR_DBL *probs,
                                       FLT_OR_DBL *scale){ 
+  int L, l[3];
+  return  get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l);
+}
 
+PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
+                                      int gi,
+                                      int gj,
+                                      FLT_OR_DBL *G,
+                                      FLT_OR_DBL *probs,
+                                      FLT_OR_DBL *scale,
+                                      int *Lmax,
+                                      int lmax[3]){ 
   int n = S[0];
   int size = (n * (n+1))/2 + 2;
 
@@ -396,6 +407,7 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
   int cnt = 0;
   FLT_OR_DBL  e_con;
   int *my_index = get_iindx(n);
+  FLT_OR_DBL ggg_max_sum = 0.;
 
   /* first make the g-island annotation */
   if(S[gj]==3) gg[gj] = 1;
@@ -423,16 +435,21 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
                 if(gg[i + 3*L + l1 + l2 + l3] >= L){
                   /* insert the quadruplex into the list */
                   int x;
+                  FLT_OR_DBL gggm = 0;
                   j = i+4*L+l1+l2+l3-1;
                   /* do we need scaling here? */
                   /* is it (p | ggg(gi,gj)) * exp(ggg(i,j)) / G(i,j) ? */
                   e_con = probs[my_index[gi]-gj] * exp(-gquad_contribution(L, l1, l2, l3)*10./kT) * scale[j-i+1] / G[my_index[i]-j];
-
                   for (x=0; x<L; x++) {
+                    gggm += 4*(e_con + (1-e_con));
                     tempprobs[my_index[i+x]-(i+x+3*L+l1+l2+l3)]+= e_con;
                     tempprobs[my_index[i+x]-(i+x+L+l1)] += e_con; /*prob??*/
                     tempprobs[my_index[i+x+L+l1]-(i+x+2*L+l1+l2)]+= e_con;
                     tempprobs[my_index[i+x+2*L+l1+l2]-(i+x+3*L+l1+l2+l3)]+= e_con;
+                  }
+                  if(gggm > ggg_max_sum){
+                    ggg_max_sum = gggm;
+                    *Lmax = L; lmax[0] = l1; lmax[1] = l2; lmax[2] = l3;
                   }
                 }
               }

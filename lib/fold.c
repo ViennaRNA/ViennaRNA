@@ -143,6 +143,7 @@ PRIVATE int   cut_in_loop(int i);
 #ifdef WITH_GQUADS
 PRIVATE int energy_of_gquad(const char *string,
                             const char *structure,
+                            const short *s1,
                             int verbosity_level);
 #endif
 
@@ -1211,7 +1212,6 @@ PRIVATE void backtrack(const char *string, int s) {
                     if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                       minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                     for(q = minq; q < maxq; q++){
-                      int up = (l1+j-q-1)*P->MLbase;
                       /* first case: no dangles contribute to the enclosing pair */
                       if(cij == ggg[indx[q] + p] + constellation0){
                         i=p;j=q;
@@ -1339,7 +1339,7 @@ PRIVATE void backtrack(const char *string, int s) {
       of the g-quadruplex that should reside within position i,j
     */
     {
-      int cnt1, cnt2, cnt3, cnt4, l1, l2, l3, L, size;
+      int cnt1, l1, l2, l3, L, size;
       size = j-i+1;
 
       for(L=0; L < VRNA_GQUAD_MIN_STACK_SIZE;L++){
@@ -1545,12 +1545,113 @@ PUBLIC float energy_of_struct_par(const char *string,
 }
 
 #ifdef WITH_GQUADS
-PRIVATE int energy_of_gquad(const char *string,
-                            const char *structure,
-                            int verbosity_level){
 
-  int energy = 0;
+/* returns a correction term that may be added to the energy retrieved
+   from energy_of_struct_par() to correct misinterpreted loops. This
+   correction is necessary since energy_of_struct_par() will forget 
+   about the existance of gquadruplexes and just treat them as unpaired
+   regions.
+*/
 
+
+/* recursive variant */
+PRIVATE int en_corr_of_loop_gquad(int i,
+                                  int j,
+                                  const char *string,
+                                  const char *structure,
+                                  short *pt,
+                                  int *loop_idx,
+                                  const short *s1){
+
+  int pos, energy, p, q, r, s, u, type, type2;
+  int L, l[3];
+
+  energy = 0;
+  q = i;
+  while((pos = parse_gquad(structure + q-1, &L, l)) > 0){
+    q += pos-1;
+    p = q - 4*L - l[0] - l[1] - l[2] + 1;
+    if(q > j) break;
+    /* we've found the first g-quadruplex at position [p,q] */
+    energy += gquad_contribution(L, l[0], l[1], l[2]);
+    /* check if it's enclosed in a base pair */
+    if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
+    else{ /*  find its enclosing pair */
+      int num_elem, elem_i, elem_j, up_mis;
+      num_elem  = 0;
+      r         = p - 1;
+      up_mis    = q - p + 1;
+
+      /* seek for first pairing base located 5' of the g-quad */
+      for(r = p - 1; !pt[r] && (r >= i); r--);
+      if(r < i) nrerror("this hsould not happen");
+
+      if(r < pt[r]){ /* found the enclosing pair */
+        s = pt[r];
+      } else {
+        num_elem++;
+        elem_i = pt[r];
+        elem_j = r;
+        r = pt[r]-1 ;
+        /* seek for next pairing base 5' of r */
+        for(; !pt[r] && (r >= i); r--);
+        if(r < i) nrerror("so nich");
+        if(r < pt[r]){ /* found the enclosing pair */
+          s = pt[r];
+        } else {
+          /* hop over stems and unpaired nucleotides */
+          while((r > pt[r]) && (r >= i)){
+            if(pt[r]){ r = pt[r]; num_elem++;}
+            r--;
+          }
+          if(r < i) nrerror("so nich");
+          s = pt[r]; /* found the enclosing pair */
+        }
+      }
+      /* now we have the enclosing pair (r,s) */
+
+      u = q+1;
+      /* we know everything about the 5' part of this loop so check the 3' part */
+      while(u<s){
+        if(structure[u-1] == '.') u++;
+        else if (structure[u-1] == '+'){ /* found another gquad */
+          pos = parse_gquad(structure + u - 1, &L, l);
+          if(pos > 0){
+            energy += gquad_contribution(L, l[0], l[1], l[2]);
+            up_mis += pos - u + 1;
+            u += pos + 1;
+          }
+        } else { /* we must have found a stem */
+          if(!(u < pt[u])) nrerror("wtf!");
+          num_elem++; elem_i = u; elem_j = pt[u];
+          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1);
+          u = pt[u] + 1;
+        }
+      }
+      if(u!=s) nrerror("what the hell");
+      else{ /* we are done since we've found no other 3' structure element */
+        switch(num_elem){
+          /* g-quad was misinterpreted as hairpin closed by (r,s) */
+          case 0:   if((p-r-1 == 0) || (s-q-1 == 0)) nrerror("too few unpaired bases");
+                    type = pair[s1[r]][s1[s]];
+                    energy += P->MLclosing + E_MLstem(rtype[type], s1[s-1], s1[r+1], P) + (s-r-1-up_mis)*P->MLbase;
+                    energy -= E_Hairpin(s - r - 1, type, s1[r+1], s1[s-1], string + r - 1, P);
+                    
+                    break;
+          /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
+          case 1:   type = pair[s1[r]][s1[s]]; type2 = pair[s1[elem_i]][s1[elem_j]];
+                    energy += P->MLclosing + E_MLstem(rtype[type], s1[s-1], s1[r+1], P);
+                    energy += (elem_i-r-1+s-elem_j-1-up_mis) * P->MLbase + E_MLstem(type2, s1[elem_i-1], s1[elem_j+1], P);
+                    energy -= E_IntLoop(elem_i-r-1, s-elem_j-1, type, rtype[type2], s1[r+1], s1[s-1], s1[elem_i-1], s1[elem_j+1], P);
+                    break;
+          /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
+          default:  energy -= (up_mis) * P->MLbase;
+                    break;
+        }
+      }
+      q = s+1;
+    }
+  }
   return energy;
 }
 
@@ -1558,7 +1659,7 @@ PUBLIC float energy_of_gquad_structure( const char *string,
                                         const char *structure,
                                         int verbosity_level){
 
-  int   energy, gge;
+  int   energy, gge, *loop_idx;
   short *ss, *ss1;
 
 #ifdef _OPENMP
@@ -1583,14 +1684,15 @@ PUBLIC float energy_of_gquad_structure( const char *string,
      contributions, i.e. loops that actually contain a gquad, from
      energy_of_structure_pt()
   */
-  gge = energy_of_gquad(string, structure, verbosity_level);
+  pair_table  = make_pair_table(structure);
+  energy      = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
 
-  pair_table = make_pair_table(structure);
-
-  energy = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
-  energy += gge;
+  loop_idx    = make_loop_index_pt(pair_table);
+  gge         = en_corr_of_loop_gquad(1, S[0], string, structure, pair_table, loop_idx, S1);
+  energy     += gge;
 
   free(pair_table);
+  free(loop_idx);
   free(S); free(S1);
   S=ss; S1=ss1;
   return  (float) energy/100.;

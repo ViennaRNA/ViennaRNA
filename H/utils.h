@@ -483,6 +483,10 @@ short *make_pair_table_snoop(const char *structure);
  *  \param str2   Second structure in dot-bracket notation
  *  \return       The base pair distance between str1 and str2
  */
+
+int *make_loop_index_pt(short *pt);
+
+
 int bp_distance(const char *str1,
                 const char *str2);
 

@@ -761,6 +761,43 @@ PUBLIC short *copy_pair_table(const short *pt){
   return table;
 }
 
+
+PUBLIC int *make_loop_index_pt(short *pt){
+
+  /* number each position by which loop it belongs to (positions start
+     at 1) */
+  int i,hx,l,nl;
+  int length;
+  int *stack = NULL;
+  int *loop = NULL;
+
+  length = pt[0];
+  stack  = (int *) space(sizeof(int)*(length+1));
+  loop   = (int *) space(sizeof(int)*(length+2));
+  hx=l=nl=0;
+
+  for (i=1; i<=length; i++) {
+    if ((pt[i] != 0) && (i < pt[i])) { /* ( */
+      nl++; l=nl;
+      stack[hx++]=i;
+    }
+    loop[i]=l;
+
+    if ((pt[i] != 0) && (i > pt[i])) { /* ) */
+      --hx;
+      if (hx>0)
+        l = loop[stack[hx-1]];  /* index of enclosing loop   */
+      else l=0;                 /* external loop has index 0 */
+      if (hx<0) {
+        nrerror("unbalanced brackets in make_pair_table");
+      }
+    }
+  }
+  loop[0] = nl;
+  free(stack);
+  return (loop);
+}
+
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int bp_distance(const char *str1, const char *str2)

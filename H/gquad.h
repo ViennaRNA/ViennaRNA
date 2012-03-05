@@ -44,6 +44,14 @@ plist       *get_plist_gquad_from_pr( short *S,
                                       FLT_OR_DBL *G,
                                       FLT_OR_DBL *probs,
                                       FLT_OR_DBL *scale);
+plist       *get_plist_gquad_from_pr_max(short *S,
+                                      int gi,
+                                      int gj,
+                                      FLT_OR_DBL *G,
+                                      FLT_OR_DBL *probs,
+                                      FLT_OR_DBL *scale,
+                                      int *L,
+                                      int l[3]);
 
 plist       *get_plist_gquad_from_db( const char *structure,
                                       float pr);
