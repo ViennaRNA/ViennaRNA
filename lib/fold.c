@@ -324,7 +324,7 @@ PUBLIC float fold_par(const char *string,
 #ifdef _OPENMP
   init_fold(length, parameters);
 #else
-  if (parameters) init_partfunc(length, parameters);
+  if (parameters) init_fold(length, parameters);
   else if (length>init_length) init_fold(length, parameters);
   else if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 #endif

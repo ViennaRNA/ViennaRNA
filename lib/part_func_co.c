@@ -264,7 +264,7 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
 #else
   if(parameters) init_partfunc_co(n, parameters);
   else if (n > init_length) init_partfunc_co(n, parameters);
-  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n, parameters);
+  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params_par(n, parameters);
 #endif
 
  /* printf("mirnatog=%d\n",mirnatog); */
