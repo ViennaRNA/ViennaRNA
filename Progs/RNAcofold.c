@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
 
       if (cstruc!=NULL)
         strncpy(structure, cstruc, length+1);
-      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, fold_constrained, do_backtrack);
+      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, do_backtrack, fold_constrained);
 
       if (do_backtrack) {
         char *costruc;

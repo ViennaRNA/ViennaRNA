@@ -204,6 +204,7 @@ PRIVATE void get_arrays(unsigned int length){
   scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
 
   my_iindx  = get_iindx(length);
+  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
 }
 
@@ -230,13 +231,14 @@ PUBLIC void free_pf_arrays(void){
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
   if(my_iindx)  free(my_iindx);
+  if(iindx)     free(iindx); /* for backward compatibility and Perl wrapper */
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
 
   S = S1 = NULL;
   q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
-  my_iindx = jindx = NULL;
+  my_iindx = jindx = iindx = NULL;
   ptype = NULL;
 
 #ifdef SUN4
@@ -736,6 +738,8 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
     scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/pf_params->kT);
     if (scaling_factor<1) scaling_factor=1;
+    pf_params->pf_scale = scaling_factor;
+    pf_scale = pf_params->pf_scale; /* compatibility with RNAup, may be removed sometime */
   }
   scale[0] = 1.;
   scale[1] = 1./scaling_factor;
