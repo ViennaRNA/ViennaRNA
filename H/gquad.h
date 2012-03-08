@@ -14,6 +14,9 @@
 #define   VRNA_GQUAD_MIN_LINKER_LENGTH  1
 #define   VRNA_GQUAD_MIN_BOX_SIZE       (4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH)
 #define   VRNA_GQUAD_MAX_BOX_SIZE       (4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH)
+#define   VRNA_GQUAD_MISMATCH_PENALTY   300   /* penalty for incompatible nucleotides in an alignment that destruct a gquad layer */
+#define   VRNA_GQUAD_MISMATCH_NUM_ALI   1   /* maximum number of mismatching sequences in the alignment when gquad should be formed */
+
 
 int         gquad_contribution( int L,
                                 int l1,
@@ -27,6 +30,15 @@ int         gquad_ali_contribution( int i,
                                     int l3,
                                     short **S,
                                     int n_seq);
+
+void        gquad_ali_contribution_en(int i,
+                                      int L,
+                                      int l1,
+                                      int l2,
+                                      int l3,
+                                      const short **S,
+                                      int n_seq,
+                                      int en[2]);
 
 int         *get_gquad_matrix(short *S);
 

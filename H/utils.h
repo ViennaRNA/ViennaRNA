@@ -110,6 +110,10 @@
  *  placeholder for all constraining characters
  */
 #define VRNA_CONSTRAINT_ALL              128U
+/**
+ *  '+' switch for structure constraint (base is involved in a gquad)
+ */
+#define VRNA_CONSTRAINT_G                256U
 
 
 

@@ -247,7 +247,11 @@ int main(int argc, char *argv[]){
   } else {
     float *ens  = (float *)space(2*sizeof(float));
     min_en      = alifold((const char **)AS, structure);
+#ifdef WITH_GQUADS
+    energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+#else
     energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+#endif
     real_en     = ens[0];
     free(ens);
   }

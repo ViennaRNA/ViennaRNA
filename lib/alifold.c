@@ -128,6 +128,16 @@ PRIVATE void    stack_energy_pt(int i, const char **sequences, short *ptable,  i
 PRIVATE int     ML_Energy_pt(int i, int n_seq, short *pt);
 PRIVATE int     EL_Energy_pt(int i, int n_seq, short *pt);
 
+#ifdef WITH_GQUADS
+PRIVATE void en_corr_of_loop_gquad(int i,
+                                  int j,
+                                  const char **sequences,
+                                  const char *structure,
+                                  short *pt,
+                                  int *loop_idx,
+                                  int n_seq,
+                                  int en[2]);
+#endif
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -399,7 +409,7 @@ PRIVATE int fill_arrays(const char **strings) {
 #ifdef WITH_GQUADS
         decomp = 0;
         switch(dangles){
-          case 0:     decomp = n_seq*P->MLclosing;
+          case 0:     decomp = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                       for(s=0;s<n_seq;s++){
                         tt = rtype[type[s]];
                         decomp += E_MLstem(tt, -1, -1, P);
@@ -421,7 +431,7 @@ PRIVATE int fill_arrays(const char **strings) {
                         }
                       }
                       break;
-          case 2:     decomp = n_seq*P->MLclosing;
+          case 2:     decomp = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                       for(s=0;s<n_seq;s++){
                         tt = rtype[type[s]];
                         decomp += E_MLstem(tt, S[s][j-1], S[s][i+1], P);
@@ -476,7 +486,8 @@ PRIVATE int fill_arrays(const char **strings) {
       new_fML = MIN2(energy, new_fML);
 
 #ifdef WITH_GQUADS
-      new_fML = MIN2(new_fML, ggg[indx[j] + i]);
+      decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
+      new_fML = MIN2(new_fML, decomp);
 #endif
 
       /* modular decomposition -------------------------------*/
@@ -642,7 +653,7 @@ PRIVATE void backtrack(const char **strings, int s) {
 #ifdef WITH_GQUADS
                     if(fij == f5[i-1] + ggg[indx[j]+i]){
                       /* found the decomposition */
-                      traced = j; jj = k - 1; gq = 1;
+                      traced = j; jj = i - 1; gq = 1;
                       break;
                     }
 #endif
@@ -665,7 +676,7 @@ PRIVATE void backtrack(const char **strings, int s) {
 #ifdef WITH_GQUADS
                     if(fij == f5[i-1] + ggg[indx[j]+i]){
                       /* found the decomposition */
-                      traced = j; jj = k - 1; gq = 1;
+                      traced = j; jj = i - 1; gq = 1;
                       break;
                     }
 #endif
@@ -702,7 +713,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       }
 
 #ifdef WITH_GQUADS
-      if(fij == ggg[indx[j]+i]){
+      if(fij == ggg[indx[j]+i] + n_seq * E_MLstem(0, -1, -1, P)){
         /* go to backtracing of quadruplex */
         goto repeat_gquad;
       }
@@ -827,7 +838,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       that should then be decomposed further...
     */
     switch(dangles){
-      case 0:   mm = n_seq*P->MLclosing;
+      case 0:   mm = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                 for(s=0;s<n_seq;s++){
                   tt = rtype[type[s]];
                   mm += E_MLstem(tt, -1, -1, P);
@@ -854,7 +865,7 @@ PRIVATE void backtrack(const char **strings, int s) {
                   }
                 }
                 break;
-      default:  mm = n_seq*P->MLclosing;
+      default:  mm = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                 for(s=0;s<n_seq;s++){
                   tt = rtype[type[s]];
                   mm += E_MLstem(tt, S[s][j-1], S[s][i+1], P);
@@ -871,7 +882,7 @@ PRIVATE void backtrack(const char **strings, int s) {
                   for(q = minq; q < maxq; q++){
                     if(S_cons[q] != 3) continue;
                     int up  = (l1 + j - q - 1)*P->MLbase;
-                    int c   = mm + ggg[indx[q] + p] + up*n_seq;
+                    int c   = mm + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up*n_seq;
                     if(cij == c){
                       /* go to backtracing of quadruplex */
                       /* here we really need a goto to jump out of the loop as well as the switch */
@@ -1261,6 +1272,215 @@ PUBLIC float **readribosum(char *name){
   return dm;
 }
 
+
+#ifdef WITH_GQUADS
+PRIVATE void en_corr_of_loop_gquad(int i,
+                                  int j,
+                                  const char **sequences,
+                                  const char *structure,
+                                  short *pt,
+                                  int *loop_idx,
+                                  int n_seq,
+                                  int en[2]){
+
+  int pos, energy, en_covar, p, q, r, s, u, type, type2, gq_en[2];
+  int L, l[3];
+
+  energy = en_covar = 0;
+  q = i;
+  while((pos = parse_gquad(structure + q-1, &L, l)) > 0){
+    q += pos-1;
+    p = q - 4*L - l[0] - l[1] - l[2] + 1;
+    if(q > j) break;
+    /* we've found the first g-quadruplex at position [p,q] */
+    gquad_ali_contribution_en(q, L, l[0], l[1], l[2], (const short **)S, n_seq, gq_en);
+    energy    += gq_en[0];
+    en_covar  += gq_en[1];
+    /* check if it's enclosed in a base pair */
+    if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
+    else{
+      energy += E_MLstem(0, -1, -1, P) * n_seq;
+      /*  find its enclosing pair */
+      int num_elem, num_g, elem_i, elem_j, up_mis;
+      num_elem  = 0;
+      num_g     = 1;
+      r         = p - 1;
+      up_mis    = q - p + 1;
+
+      /* seek for first pairing base located 5' of the g-quad */
+      for(r = p - 1; !pt[r] && (r >= i); r--);
+      if(r < i) nrerror("this should not happen");
+
+      if(r < pt[r]){ /* found the enclosing pair */
+        s = pt[r];
+      } else {
+        num_elem++;
+        elem_i = pt[r];
+        elem_j = r;
+        r = pt[r]-1 ;
+        /* seek for next pairing base 5' of r */
+        for(; !pt[r] && (r >= i); r--);
+        if(r < i) nrerror("so nich");
+        if(r < pt[r]){ /* found the enclosing pair */
+          s = pt[r];
+        } else {
+          /* hop over stems and unpaired nucleotides */
+          while((r > pt[r]) && (r >= i)){
+            if(pt[r]){ r = pt[r]; num_elem++;}
+            r--;
+          }
+          if(r < i) nrerror("so nich");
+          s = pt[r]; /* found the enclosing pair */
+        }
+      }
+      /* now we have the enclosing pair (r,s) */
+
+      u = q+1;
+      /* we know everything about the 5' part of this loop so check the 3' part */
+      while(u<s){
+        if(structure[u-1] == '.') u++;
+        else if (structure[u-1] == '+'){ /* found another gquad */
+          pos = parse_gquad(structure + u - 1, &L, l);
+          if(pos > 0){
+            gquad_ali_contribution_en(u, L, l[0], l[1], l[2], (const short **)S, n_seq, gq_en);
+            energy += gq_en[0] + E_MLstem(0, -1, -1, P)*n_seq;
+            en_covar += gq_en[1];
+            up_mis += pos - u + 1;
+            u += pos + 1;
+            num_g++;
+          }
+        } else { /* we must have found a stem */
+          if(!(u < pt[u])) nrerror("wtf!");
+          num_elem++; elem_i = u; elem_j = pt[u];
+          en_corr_of_loop_gquad(u, pt[u], sequences, structure, pt, loop_idx, n_seq, gq_en);
+          energy    += gq_en[0];
+          en_covar  += gq_en[1];
+          u = pt[u] + 1;
+        }
+      }
+      if(u!=s) nrerror("what the hell");
+      else{ /* we are done since we've found no other 3' structure element */
+        switch(num_elem){
+          /* g-quad was misinterpreted as hairpin closed by (r,s) */
+          case 0:   if(num_g == 1)
+                      if((p-r-1 == 0) || (s-q-1 == 0))
+                        nrerror("too few unpaired bases");
+                    {
+                      int ee = 0;
+                      int cnt;
+                      for(cnt=0;cnt<n_seq;cnt++){
+                        type = pair[S[cnt][r]][S[cnt][s]];
+                        if(type == 0) type = 7;
+                        if ((a2s[cnt][s-1]-a2s[cnt][r])<3) ee+=600;
+                        else ee += E_Hairpin(a2s[cnt][r-1]-a2s[cnt][s], type, S3[cnt][r], S5[cnt][s], Ss[cnt]+(a2s[cnt][r-1]), P);
+                      }
+                      energy -= ee;
+                      ee = 0;
+                      for(cnt=0;cnt < n_seq; cnt++){
+                        type = pair[S[cnt][s]][S[cnt][r]];
+                        if(type == 0) type = 7;
+                        ee += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+                      }
+                      energy += ee;
+                    }
+                    energy += (P->MLclosing + (s-r-1-up_mis)*P->MLbase) * n_seq;
+                    break;
+          /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
+          case 1:   {
+                      int ee = 0;
+                      int cnt;
+                      for(cnt = 0; cnt<n_seq;cnt++){
+                        type = pair[S[cnt][r]][S[cnt][s]]; if(type == 0) type = 7;
+                        type2 = pair[S[cnt][elem_j]][S[cnt][elem_i]]; if(type2 == 0) type2 = 7;
+                        ee += E_IntLoop(a2s[cnt][elem_i-1]-a2s[cnt][r], a2s[cnt][s-1]-a2s[cnt][elem_j], type, type2, S3[cnt][r], S5[cnt][s], S5[cnt][elem_i], S3[cnt][elem_j], P);
+                      }
+                      energy -= ee;
+                      ee = 0;
+                      for(cnt = 0; cnt < n_seq; cnt++){
+                        type = pair[S[cnt][s]][S[cnt][r]];
+                        if(type == 0) type = 7;
+                        ee += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+                        type = pair[S[cnt][elem_i]][S[cnt][elem_j]];
+                        if(type == 0) type = 7;
+                        ee += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
+                      }
+                      energy += ee;
+                    }
+                    energy += (P->MLclosing + (elem_i-r-1+s-elem_j-1-up_mis) * P->MLbase) * n_seq;
+                    break;
+          /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
+          default:  energy -= (up_mis) * P->MLbase * n_seq;
+                    break;
+        }
+      }
+      q = s+1;
+    }
+  }
+  en[0] = energy;
+  en[1] = en_covar;
+}
+
+PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
+                                            const char *structure,
+                                            int n_seq,
+                                            float *energy){
+
+  int new=0;
+  unsigned int s, n;
+  short *pt;
+
+  short           **tempS;
+  short           **tempS5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short           **tempS3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char            **tempSs;
+  unsigned short  **tempa2s;
+
+  int *tempindx, *loop_idx;
+  int *temppscore;
+
+  int en_struct[2], gge[2];
+
+  if(sequences[0] != NULL){
+    n = (unsigned int) strlen(sequences[0]);
+    update_alifold_params();
+
+    /*save old memory*/
+    tempS = S; tempS3 = S3; tempS5 = S5; tempSs = Ss; tempa2s = a2s;
+    tempindx = indx; temppscore = pscore;
+
+    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, 0);
+    pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
+    indx    = get_indx(n);
+    make_pscores((const short *const*)S, sequences, n_seq, NULL);
+    new     = 1;
+
+    pt = make_pair_table(structure);
+    energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
+
+    loop_idx    = make_loop_index_pt(pt);
+    en_corr_of_loop_gquad(1, n, sequences, structure, pt, loop_idx, n_seq, gge);
+    en_struct[0] += gge[0];
+    en_struct[1] += gge[1];
+
+    free(loop_idx);
+    free(pt);
+    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
+    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
+
+    free(pscore);
+    free(indx);
+    free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
+
+    /* restore old memory */
+    S = tempS; S3 = tempS3; S5 = tempS5; Ss = tempSs; a2s = tempa2s;
+    indx = tempindx; pscore = temppscore;
+  }
+  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+
+  return energy[0];
+
+}
+#endif
 
 PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
   int new=0;

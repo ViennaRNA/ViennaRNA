@@ -897,7 +897,7 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
   char *c, *ptr;
   if(lines){
     if(option & VRNA_CONSTRAINT_ALL)
-      option |= VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK | VRNA_CONSTRAINT_X;
+      option |= VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_G;
 
     for(r=i=stop=0;lines[i];i++){
       l   = (int)strlen(lines[i]);
@@ -936,6 +936,10 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
                         *c = '.';
                       }
                       break;
+          case '+':   if(!(option & VRNA_CONSTRAINT_G)){
+                        warn_user("character '+' ignored in structure");
+                        *c = '.';
+                      }
           case '.':   break;
           case '&':   break; /* ignore concatenation char */
           default:    warn_user("unrecognized character in constraint structure");

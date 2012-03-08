@@ -139,8 +139,11 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
     }
 
+#ifdef WITH_GQUADS
+    energy = energy_of_gquad_structure(string, structure, verbose);
+#else
     energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
-
+#endif
     if (cut_point == -1)
       printf("%s\n%s", orig_sequence, structure);
     else {

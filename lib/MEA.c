@@ -1,6 +1,6 @@
 /*
-			       MEA.c
-		 c  Ivo L Hofacker, Vienna RNA package
+                               MEA.c
+                 c  Ivo L Hofacker, Vienna RNA package
 */
 /* Last changed Time-stamp: <2009-06-18 14:04:21 ivo> */
 
@@ -11,6 +11,8 @@
 #include <math.h>
 #include "fold_vars.h"
 #include "utils.h"
+#include "pair_mat.h"
+#include "MEA.h"
 
 /* compute an MEA structure, i.e. the structure maximising
    EA = \sum_{(i,j) \in S} 2\gamma p_{i,j} + \sum_{i is unpaired} p^u_i
@@ -52,13 +54,18 @@ struct MEAdat{
   char * structure;
 };
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired);
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired, short *S);
 
-float MEA(plist *p, char *structure, double gamma) {
+PUBLIC float MEA(plist *p, char *structure, double gamma) {
+  return MEA_seq(p, structure, NULL, gamma);
+}
+
+PUBLIC float MEA_seq(plist *p, char *structure, const char *sequence, double gamma){
 
   int i,j,n;
   Litem *li;
   plist *pp, *pl;
+  short *S = NULL;
 
   List *C;
   double MEA, *Mi, *Mi1, *tmp, *pu;
@@ -66,6 +73,11 @@ float MEA(plist *p, char *structure, double gamma) {
 
   n = strlen(structure);
   for (i=0; i<n; i++) structure[i] = '.';
+
+  if(sequence){
+    make_pair_matrix();
+    S = encode_sequence(sequence, 1);
+  }
 
   pu = space(sizeof(double)*(n+1));
   pp = pl = prune_sort(p, pu, n, gamma);
@@ -81,16 +93,16 @@ float MEA(plist *p, char *structure, double gamma) {
       double EA;
       Mi[j] = Mi[j-1] + pu[j];
       for (li=C[j].list; li<C[j].list+C[j].nelem; li++) {
-	EA = li->A + Mi[(li->i) -1];
-	Mi[j] = MAX2(Mi[j], EA);
+        EA = li->A + Mi[(li->i) -1];
+        Mi[j] = MAX2(Mi[j], EA);
       }
       if (pp->i == i && pp->j ==j) {
-	EA = 2*gamma*pp->p +  Mi1[j-1];
-	if (Mi[j]<EA) {
-	  Mi[j]=EA;
-	  pushC(&C[j], i, EA); /* only push into C[j] list if optimal */
-	}
-	pp++;
+        EA = 2*gamma*pp->p +  Mi1[j-1];
+        if (Mi[j]<EA) {
+          Mi[j]=EA;
+          pushC(&C[j], i, EA); /* only push into C[j] list if optimal */
+        }
+        pp++;
       }
 
     }
@@ -101,11 +113,12 @@ float MEA(plist *p, char *structure, double gamma) {
 
   bdat.structure = structure; bdat.gamma = gamma;
   bdat.C = C;  bdat.Mi=Mi1; bdat.pl=pl; bdat.pu = pu;
-  mea_backtrack(&bdat, 1, n, 0);
+  mea_backtrack(&bdat, 1, n, 0, S);
   free(Mi); free(Mi1); free(pl); free(pu);
   for (i=1; i<=n; i++)
     if (C[i].list) free(C[i].list);
   free(C);
+  if(S) free(S);
   return MEA;
 }
 
@@ -141,8 +154,8 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma) {
     if (pc->i > n) nrerror("mismatch between plist and structure in MEA()");
     if (pc->p*2*gamma > pu[pc->i] + pu[pc->j]) {
       if (nump+1 >= size) {
-	size += size/2 + 1;
-	pp = xrealloc(pp, size*sizeof(plist));
+        size += size/2 + 1;
+        pp = xrealloc(pp, size*sizeof(plist));
       }
       pp[nump++] = *pc;
     }
@@ -162,7 +175,7 @@ PRIVATE void pushC(List *c, int i, double a) {
   c->nelem++;
 }
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair) {
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, short *S){
   /* backtrack structure for the interval [i..j] */
   /* recursively calls itself, recomputes the necessary parts of the M matrix */
   List *C; Litem *li;
@@ -186,9 +199,9 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair) {
     for (k=i+1; k<=j; k++) {
       Mi[k] = Mi[k-1] + pu[k];
       for (li=C[k].list; li<C[k].list+C[k].nelem && li->i >= i; li++) {
-	double EA;
-	EA = li->A + Mi[(li->i) -1];
-	Mi[k] = MAX2(Mi[k], EA);
+        double EA;
+        EA = li->A + Mi[(li->i) -1];
+        Mi[k] = MAX2(Mi[k], EA);
       }
     }
   }
@@ -200,10 +213,9 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair) {
     j--;
   }
   for (li=C[j].list; li<C[j].list + C[j].nelem && li->i >= i; li++) {
-    double EA;
     if (Mi[j] <= li->A + Mi[(li->i) -1] + prec) {
-      if (li->i > i+3) mea_backtrack(bdat, i, (li->i)-1, 0);
-      mea_backtrack(bdat, li->i, j, 1);
+      if (li->i > i+3) mea_backtrack(bdat, i, (li->i)-1, 0, S);
+      mea_backtrack(bdat, li->i, j, 1, S);
       fail = 0;
     }
   }

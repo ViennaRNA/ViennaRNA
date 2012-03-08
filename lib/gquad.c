@@ -20,8 +20,6 @@
 #include "gquad.h"
 
 #define MINPSCORE -2 * UNIT
-#define alipen    5
-
 
 PUBLIC int gquad_contribution(int L, int l1, int l2, int l3){
   int a = -1800;
@@ -97,10 +95,17 @@ PUBLIC int *get_gquad_matrix(short *S){
 }
 
 PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short **S, int n_seq){
+  int en[2];
+  gquad_ali_contribution_en(i, L, l1, l2, l3, (const short **)S, n_seq, en);
+  return en[0] + en[1];
+}
+
+PUBLIC void gquad_ali_contribution_en(int i, int L, int l1, int l2, int l3, const short **S, int n_seq, int en[2]){
   /* check for compatibility in the alignment */
   int s, cnt;
   int penalty = 0;
   int gg_mismatch = 0;
+  en[0] = en[1] = 0;
 
   /* check for compatibility in the alignment */
   for(s=0;s<n_seq;s++){
@@ -112,7 +117,7 @@ PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short *
     if(S[s][i+L+l1] != 3)                 p1 = 1;
     if(S[s][i + 2*L + l1 + l2] != 3)      p2 = 1;
     if(S[s][i + 3*L + l1 + l2 + l3] != 3) p3 = 1;
-    if(p0 || p1 || p2 || p3) pen += alipen; /* add 1x penalty for missing bottom layer */
+    if(p0 || p1 || p2 || p3) pen += VRNA_GQUAD_MISMATCH_PENALTY; /* add 1x penalty for missing bottom layer */
 
     /* check top layer */
     p0 = p1 = p2 = p3 = 0;
@@ -120,7 +125,7 @@ PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short *
     if(S[s][i+L+l1+L-1] != 3)                 p1 = 1;
     if(S[s][i + 2*L + l1 + l2+L-1] != 3)      p2 = 1;
     if(S[s][i + 3*L + l1 + l2 + l3+L-1] != 3) p3 = 1;
-    if(p0 || p1 || p2 || p3) pen += alipen; /* add 1x penalty for missing top layer */
+    if(p0 || p1 || p2 || p3) pen += VRNA_GQUAD_MISMATCH_PENALTY; /* add 1x penalty for missing top layer */
 
     /* check inner layers */
     for(cnt=1;cnt<L-1;cnt++){
@@ -128,20 +133,23 @@ PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short *
       if(S[s][i+L+l1+cnt] != 3)                 p1 = 1;
       if(S[s][i + 2*L + l1 + l2+cnt] != 3)      p2 = 1;
       if(S[s][i + 3*L + l1 + l2 + l3+cnt] != 3) p3 = 1;
-      if(p0 || p1 || p2 || p3) pen += 2*alipen; /* add 2x penalty for missing inner layer */
+      if(p0 || p1 || p2 || p3) pen += 2*VRNA_GQUAD_MISMATCH_PENALTY; /* add 2x penalty for missing inner layer */
     }
 
     /* if all layers are missing, we have a complete gg mismatch */
-    if(pen >= (2*alipen * (L-1)))
+    if(pen >= (2*VRNA_GQUAD_MISMATCH_PENALTY * (L-1)))
       gg_mismatch++;
     /* add the penalty to the score */
     penalty += pen;
   }
   /* only one ggg mismatch allowed */
-  if(gg_mismatch > 1)
-    return INF;
-  else
-    return n_seq * gquad_contribution(L, l1, l2, l3) + penalty;
+  if(gg_mismatch > VRNA_GQUAD_MISMATCH_NUM_ALI){
+    en[0] = n_seq * gquad_contribution(L, l1, l2, l3);
+    en[1] = INF;
+  } else {
+    en[0] = n_seq * gquad_contribution(L, l1, l2, l3);
+    en[1] = penalty;
+  }
 }
 
 PUBLIC int *get_gquad_ali_matrix( short *S_cons,
@@ -382,6 +390,7 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
   return  get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l);
 }
 
+
 PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
                                       int gi,
                                       int gj,
@@ -414,11 +423,9 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   for(i=gj-1; i >= gi; i--)
     if(S[i] == 3) gg[i] = gg[i+1]+1;
 
+  i = gi;
   /* now find all quadruplexes */
-  for(i = gi;
-      i <= gj - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
-      i++){
-    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
+  for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
         L >= VRNA_GQUAD_MIN_STACK_SIZE;
         L--){
       for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
@@ -437,11 +444,12 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
                   int x;
                   FLT_OR_DBL gggm = 0;
                   j = i+4*L+l1+l2+l3-1;
+                  if(j!=gj) continue;
                   /* do we need scaling here? */
                   /* is it (p | ggg(gi,gj)) * exp(ggg(i,j)) / G(i,j) ? */
-                  e_con = probs[my_index[gi]-gj] * exp(-gquad_contribution(L, l1, l2, l3)*10./kT) * scale[j-i+1] / G[my_index[i]-j];
+                  e_con = probs[my_index[i]-j] * exp(-gquad_contribution(L, l1, l2, l3)*10./kT) * scale[j-i+1] / G[my_index[i]-j];
                   for (x=0; x<L; x++) {
-                    gggm += 4*(e_con + (1-e_con));
+                    gggm += (e_con + (1-e_con));
                     tempprobs[my_index[i+x]-(i+x+3*L+l1+l2+l3)]+= e_con;
                     tempprobs[my_index[i+x]-(i+x+L+l1)] += e_con; /*prob??*/
                     tempprobs[my_index[i+x+L+l1]-(i+x+2*L+l1+l2)]+= e_con;
@@ -456,7 +464,6 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
             }
           }
       }
-    }
   }
   for (i=gi;i<gj; i++) {
     for (j=i; j<=gj; j++) {
