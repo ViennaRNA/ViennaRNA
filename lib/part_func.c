@@ -1379,9 +1379,8 @@ PUBLIC char *get_centroid_struct_gquad_pr( int length,
       if ((p=probs[my_iindx[i]-j])>0.5) {
         /* check for presence of gquadruplex */
         if((S[i] == 3) && (S[j] == 3)){
-          plist *inner, *ptr;
           int L, l[3];
-          inner = get_plist_gquad_from_pr_max(S, i, j, G, probs, scale, &L, l, pf_params);
+          get_gquad_pattern_pf(S, i, j, pf_params, &L, l);
           for(k=0;k<L;k++){
             centroid[i+k-1]\
             = centroid[i+k+L+l[0]-1]\
@@ -1391,7 +1390,6 @@ PUBLIC char *get_centroid_struct_gquad_pr( int length,
           }
           /* skip everything within the gquad */
           i = j; j = j+TURN+1;
-          free(inner);
           *dist += (1-p); /* right? */
           break;
         } else {

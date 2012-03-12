@@ -24,8 +24,9 @@ float MEA(plist *p,
           double gamma);
 
 float MEA_seq(plist *p,
-              char *structure,
               const char *sequence,
-              double gamma);
+              char *structure,
+              double gamma,
+              pf_paramT *pf);
 
 #endif

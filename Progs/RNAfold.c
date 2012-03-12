@@ -313,7 +313,7 @@ int main(int argc, char *argv[]){
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
 #ifdef WITH_GQUADS
           cent    = get_centroid_struct_gquad_pr(length, &dist);
-          cent_en = energy_of_gquad_structure(rec_sequence, cent, 0);
+          cent_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0);
 #else
           cent    = get_centroid_struct_pr(length, &dist, probs);
           cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
@@ -342,9 +342,15 @@ int main(int argc, char *argv[]){
             float mea, mea_en;
             plist *pl;
             assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
+#ifdef WITH_GQUADS
+            mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
+            mea_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)structure, 0);
+            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+#else
             mea = MEA(pl, structure, MEAgamma);
             mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
             printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+#endif
             free(pl);
           }
         }
