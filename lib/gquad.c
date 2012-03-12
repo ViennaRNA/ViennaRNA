@@ -1,7 +1,7 @@
 /*
   gquad.c
 
-  Ronny Lorenz
+  Ronny Lorenz 2012
 
   Vienna RNA package
 */
@@ -19,365 +19,451 @@
 #include "aln_util.h"
 #include "gquad.h"
 
-#define MINPSCORE -2 * UNIT
+#ifndef INLINE
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+#endif
 
-PUBLIC int gquad_contribution(int L, int l1, int l2, int l3){
-  int a = -1800;
-  int b = 1200;
-  int c = INF;
+/**
+ *  Use this macro to loop over each G-quadruplex
+ *  delimited by a and b within the subsequence [c,d]
+ */
+#define FOR_EACH_GQUAD(a, b, c, d)  \
+          for((a) = (d) - VRNA_GQUAD_MIN_BOX_SIZE + 1; (a) >= (c); (a)--)\
+            for((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1;\
+                (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1);\
+                (b)++)
 
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+
+PRIVATE INLINE
+int *
+get_g_islands(short *S);
+
+PRIVATE INLINE
+int *
+get_g_islands_sub(short *S, int i, int j);
+
+/**
+ *  IMPORTANT:
+ *  If you don't know how to use this function, DONT'T USE IT!
+ *
+ *  The function pointer this function takes as argument is
+ *  used for individual calculations with each g-quadruplex
+ *  delimited by [i,j].
+ *  The function it points to always receives as first 3 arguments
+ *  position i, the stack size L and an array l[3] containing the
+ *  individual linker sizes.
+ *  The remaining 4 (void *) pointers of the callback function receive
+ *  the parameters 'data', 'P', 'aux1' and 'aux2' and thus may be
+ *  used to pass whatever data you like to.
+ *  As the names of those parameters suggest the convention is that
+ *  'data' should be used as a pointer where data is stored into,
+ *  e.g the MFE or PF and the 'P' parameter should actually be a
+ *  'paramT *' or 'pf_paramT *' type.
+ *  However, what you actually pass obviously depends on the
+ *  function the pointer is pointing to.
+ *
+ *  Although all of this may look like an overkill, it is found
+ *  to be almost as fast as implementing g-quadruplex enumeration
+ *  in each individual scenario, i.e. code duplication.
+ *  Using this function, however, ensures that all g-quadruplex
+ *  enumerations are absolutely identical.
+ */
+PRIVATE
+void
+process_gquad_enumeration(int *gg,
+                          int i,
+                          int j,
+                          void (*f)(int, int, int *,
+                                    void *, void *, void *, void *),
+                          void *data,
+                          void *P,
+                          void *aux1,
+                          void *aux2);
+
+/**
+ *  MFE callback for process_gquad_enumeration()
+ */
+PRIVATE
+void
+gquad_mfe(int i,
+          int L,
+          int *l,
+          void *data,
+          void *P,
+          void *NA,
+          void *NA2);
+
+PRIVATE
+void
+gquad_mfe_pos(int i,
+              int L,
+              int *l,
+              void *data,
+              void *P,
+              void *Lmfe,
+              void *lmfe);
+
+/**
+ * Partition function callback for process_gquad_enumeration()
+ */
+PRIVATE
+void
+gquad_pf( int i,
+          int L,
+          int *l,
+          void *data,
+          void *P,
+          void *NA,
+          void *NA2);
+
+/**
+ * Partition function callback for process_gquad_enumeration()
+ * in contrast to gquad_pf() it stores the stack size L and
+ * the linker lengths l[3] of the g-quadruplex that dominates
+ * the interval [i,j]
+ * (FLT_OR_DBL *)data must be 0. on entry
+ */
+PRIVATE
+void
+gquad_pf_pos( int i,
+              int L,
+              int *l,
+              void *data,
+              void *pf,
+              void *Lmax,
+              void *lmax);
+
+/**
+ * MFE (alifold) callback for process_gquad_enumeration()
+ */
+PRIVATE
+void
+gquad_mfe_ali(int i,
+              int L,
+              int *l,
+              void *data,
+              void *P,
+              void *S,
+              void *n_seq);
+
+/**
+ * MFE (alifold) callback for process_gquad_enumeration()
+ * with seperation of free energy and penalty contribution
+ */
+PRIVATE
+void
+gquad_mfe_ali_en( int i,
+                  int L,
+                  int *l,
+                  void *data,
+                  void *P,
+                  void *S,
+                  void *n_seq);
+
+PRIVATE
+void
+gquad_interact( int i,
+                int L,
+                int *l,
+                void *data,
+                void *pf,
+                void *index,
+                void *NA2);
+
+/* other useful static functions */
+
+PRIVATE
+int
+gquad_ali_penalty(int i,
+                  int L,
+                  int l[3],
+                  const short **S,
+                  paramT *P);
+
+/*
+#########################################
+# BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
+#      (all available in RNAlib)        #
+#########################################
+*/
+
+/********************************
+  Here are the G-quadruplex energy
+  contribution functions
+*********************************/
+
+PUBLIC int E_gquad( int L,
+                    int l[3],
+                    paramT *P){
+
+  int i, c = INF;
+
+  for(i=0;i<3;i++){
+    if(l[i] > VRNA_GQUAD_MAX_LINKER_LENGTH) return c;
+    if(l[i] < VRNA_GQUAD_MIN_LINKER_LENGTH) return c;
+  }
   if(L > VRNA_GQUAD_MAX_STACK_SIZE) return c;
-  else if(l1 > VRNA_GQUAD_MAX_LINKER_LENGTH) return c;
-  else if(l2 > VRNA_GQUAD_MAX_LINKER_LENGTH) return c;
-  else if(l3 > VRNA_GQUAD_MAX_LINKER_LENGTH) return c;
-  else return a*(L-1) + b*log(l1 + l2 + l3 -2);
+  if(L < VRNA_GQUAD_MIN_STACK_SIZE) return c;
+  
+  gquad_mfe(0, L, l,
+            (void *)(&c),
+            (void *)P,
+            NULL,
+            NULL);
+  return c;
 }
 
-PUBLIC int *get_gquad_matrix(short *S){
+PUBLIC FLT_OR_DBL exp_E_gquad(int L,
+                              int l[3],
+                              pf_paramT *pf){
 
-  int n = S[0];
-  int size = (n * (n+1))/2 + 2;
+  int i;
+  FLT_OR_DBL q = 0.;
 
-  int *data = (int *)space(sizeof(int) * size);
+  for(i=0;i<3;i++){
+    if(l[i] > VRNA_GQUAD_MAX_LINKER_LENGTH) return q;
+    if(l[i] < VRNA_GQUAD_MIN_LINKER_LENGTH) return q;
+  }
+  if(L > VRNA_GQUAD_MAX_STACK_SIZE) return q;
+  if(L < VRNA_GQUAD_MIN_STACK_SIZE) return q;
 
-  int *gg = (int *)space(sizeof(int)*(n+2));
+  gquad_pf( 0, L, l,
+            (void *)(&q),
+            (void *)pf,
+            NULL,
+            NULL);
+  return q;
+}
 
-  int init_size = 50;
-  int actual_size = 0;
-  int i, j, L, l1, l2, l3;
+PUBLIC int E_gquad_ali( int i,
+                        int L,
+                        int l[3],
+                        const short **S,
+                        int n_seq,
+                        paramT *P){
+
+  int en[2];
+  E_gquad_ali_en(i, L, l, S, n_seq, en, P);
+  return en[0] + en[1];
+}
+
+
+PUBLIC void E_gquad_ali_en( int i,
+                            int L,
+                            int l[3],
+                            const short **S,
+                            int n_seq,
+                            int en[2],
+                            paramT *P){
+
+  int j;
+  en[0] = en[1] = INF;
+
+  for(j=0;j<3;j++){
+    if(l[j] > VRNA_GQUAD_MAX_LINKER_LENGTH) return;
+    if(l[j] < VRNA_GQUAD_MIN_LINKER_LENGTH) return;
+  }
+  if(L > VRNA_GQUAD_MAX_STACK_SIZE) return;
+  if(L < VRNA_GQUAD_MIN_STACK_SIZE) return;
+
+  gquad_mfe_ali_en( i, L, l,
+                    (void *)(&(en[0])),
+                    (void *)P,
+                    (void *)S,
+                    (void *)(&n_seq));
+}
+
+/********************************
+  Now, the triangular matrix
+  generators for the G-quadruplex
+  contributions are following
+*********************************/
+
+PUBLIC int *get_gquad_matrix(short *S, paramT *P){
+
+  int n, size, i, j, *gg, *my_index, *data;
+
+  n         = S[0];
+  my_index  = get_indx(n);
+  gg        = get_g_islands(S);
+  size      = (n * (n+1))/2 + 2;
+  data      = (int *)space(sizeof(int) * size);
 
   /* prefill the upper triangular matrix with INF */
-  for(i=0;i<size;i++)
-    data[i] = INF;
+  for(i = 0; i < size; i++) data[i] = INF;
 
-  /* first make the g-island annotation */
-  int cnt = 0;
-  if(S[n]==3)
-    gg[n] = 1;
-  for(i=n-1; i > 0; i--){
-    if(S[i] == 3) gg[i] = gg[i+1]+1;
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_mfe,
+                              (void *)(&(data[my_index[j]+i])),
+                              (void *)P,
+                              NULL,
+                              NULL);
   }
 
-  int *my_index = get_indx(n);
-
-  /* now find all quadruplexes */
-  for(i = 1;
-      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
-      i++){
-    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-        L >= VRNA_GQUAD_MIN_STACK_SIZE;
-        L--){
-      for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-          l1++){
-        if(gg[i+L+l1] >= L)
-          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-              l2++){
-            if(gg[i + 2*L + l1 + l2] >= L){
-              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
-                  l3++){
-                if(gg[i + 3*L + l1 + l2 + l3] >= L){
-                  /* insert the quadruplex into the list */
-                  j = i+4*L+l1+l2+l3-1;
-                  data[my_index[j]+i] = MIN2(data[my_index[j]+i], gquad_contribution(L, l1, l2, l3));
-                }
-              }
-            }
-          }
-      }
-    }
-  }
   free(my_index);
   free(gg);
   return data;
 }
 
-PUBLIC  int gquad_ali_contribution(int i, int L, int l1, int l2, int l3, short **S, int n_seq){
-  int en[2];
-  gquad_ali_contribution_en(i, L, l1, l2, l3, (const short **)S, n_seq, en);
-  return en[0] + en[1];
-}
+PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
+                                        FLT_OR_DBL *scale,
+                                        pf_paramT *pf){
 
-PUBLIC void gquad_ali_contribution_en(int i, int L, int l1, int l2, int l3, const short **S, int n_seq, int en[2]){
-  /* check for compatibility in the alignment */
-  int s, cnt;
-  int penalty = 0;
-  int gg_mismatch = 0;
-  en[0] = en[1] = 0;
+  int n, size, *gg, i, j, *my_index;
+  FLT_OR_DBL *data;
 
-  /* check for compatibility in the alignment */
-  for(s=0;s<n_seq;s++){
-    int p0, p1, p2, p3, pen;
-    p0 = p1 = p2 = p3 = pen = 0;
 
-    /* check bottom layer */
-    if(S[s][i] != 3)                      p0 = 1;
-    if(S[s][i+L+l1] != 3)                 p1 = 1;
-    if(S[s][i + 2*L + l1 + l2] != 3)      p2 = 1;
-    if(S[s][i + 3*L + l1 + l2 + l3] != 3) p3 = 1;
-    if(p0 || p1 || p2 || p3) pen += VRNA_GQUAD_MISMATCH_PENALTY; /* add 1x penalty for missing bottom layer */
+  n         = S[0];
+  size      = (n * (n+1))/2 + 2;
+  data      = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
+  gg        = get_g_islands(S);
+  my_index  = get_iindx(n);
 
-    /* check top layer */
-    p0 = p1 = p2 = p3 = 0;
-    if(S[s][i+L-1] != 3)                      p0 = 1;
-    if(S[s][i+L+l1+L-1] != 3)                 p1 = 1;
-    if(S[s][i + 2*L + l1 + l2+L-1] != 3)      p2 = 1;
-    if(S[s][i + 3*L + l1 + l2 + l3+L-1] != 3) p3 = 1;
-    if(p0 || p1 || p2 || p3) pen += VRNA_GQUAD_MISMATCH_PENALTY; /* add 1x penalty for missing top layer */
-
-    /* check inner layers */
-    for(cnt=1;cnt<L-1;cnt++){
-      if(S[s][i+cnt] != 3)                      p0 = 1;
-      if(S[s][i+L+l1+cnt] != 3)                 p1 = 1;
-      if(S[s][i + 2*L + l1 + l2+cnt] != 3)      p2 = 1;
-      if(S[s][i + 3*L + l1 + l2 + l3+cnt] != 3) p3 = 1;
-      if(p0 || p1 || p2 || p3) pen += 2*VRNA_GQUAD_MISMATCH_PENALTY; /* add 2x penalty for missing inner layer */
-    }
-
-    /* if all layers are missing, we have a complete gg mismatch */
-    if(pen >= (2*VRNA_GQUAD_MISMATCH_PENALTY * (L-1)))
-      gg_mismatch++;
-    /* add the penalty to the score */
-    penalty += pen;
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf,
+                              (void *)(&(data[my_index[i]-j])),
+                              (void *)pf,
+                              NULL,
+                              NULL);
+    data[my_index[i]-j] *= scale[j-i+1];
   }
-  /* only one ggg mismatch allowed */
-  if(gg_mismatch > VRNA_GQUAD_MISMATCH_NUM_ALI){
-    en[0] = n_seq * gquad_contribution(L, l1, l2, l3);
-    en[1] = INF;
-  } else {
-    en[0] = n_seq * gquad_contribution(L, l1, l2, l3);
-    en[1] = penalty;
-  }
+
+  free(my_index);
+  free(gg);
+  return data;
 }
 
 PUBLIC int *get_gquad_ali_matrix( short *S_cons,
                                   short **S,
                                   int n_seq,
-                                  int *pscore){
+                                  paramT *P){
 
-  int n, size, *data, *gg, **ggg, init_size, actual_size, s, i, j, L, l1, l2, l3, cnt, *my_index, *gggg_score;
-
-
-  n           = S[0][0];
-  size        = (n * (n+1))/2 + 2;
-  data        = (int *)space(sizeof(int) * size);
-  gg          = (int *)space(sizeof(int)*(n+1));
-  ggg         = (int **)space(sizeof(int*)*(n_seq));
-  my_index    = get_indx(n);
-  init_size   = 50;
-  actual_size = 0;
-  cnt         = 0;
-  for(s=0;s<n_seq;s++)
-    ggg[s] = (int *)space(sizeof(int) * (n+1));
+  int n, size, *data, *gg;
+  int i, j, *my_index;
 
 
-  /*  make the g-island annotation for consensus sequence */
-  if(S_cons[n]==3) gg[n] = 1;
-  for(i = n-1; i > 0; i--)
-    if(S_cons[i] == 3) gg[i] = gg[i+1]+1;
-
-  /* make the g-island annotation for each sequence in the alignment */
-  for(s=0;s<n_seq;s++){
-    if(S[s][n] == 3) ggg[s][n] = 1;
-    for(i=n-1;i>0;i--)
-      if(S[s][i] == 3) ggg[s][i] = ggg[s][i+1]+1;
-  }
+  n         = S[0][0];
+  size      = (n * (n+1))/2 + 2;
+  data      = (int *)space(sizeof(int) * size);
+  gg        = get_g_islands(S_cons);
+  my_index  = get_indx(n);
 
   /* prefill the upper triangular matrix with INF */
   for(i=0;i<size;i++) data[i] = INF;
 
-  /* now find all quadruplexes compatible with consensus sequence */
-  for(i = 1;
-      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
-      i++){
-    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-        L >= VRNA_GQUAD_MIN_STACK_SIZE;
-        L--){
-      for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-          l1++){
-        if(gg[i+L+l1] >= L)
-          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-              l2++){
-            if(gg[i + 2*L + l1 + l2] >= L){
-              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
-                  l3++){
-                if(gg[i + 3*L + l1 + l2 + l3] >= L){
-                  j = i+4*L+l1+l2+l3-1;
-                  /* check for compatibility in the alignment */
-                  int en = gquad_ali_contribution(i, L, l1, l2, l3, S, n_seq);
-                  data[my_index[j]+i] = MIN2(data[my_index[j]+i], en);
-                }
-              }
-            }
-          }
-      }
-    }
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_mfe_ali,
+                              (void *)(&(data[my_index[j]+i])),
+                              (void *)P,
+                              (void *)S,
+                              (void *)(&n_seq));
   }
 
-  /* clean up */
-  free(my_index);
-  free(gg);
-  for(s=0;s<n_seq;s++)
-    free(ggg[s]);
-  free(ggg);
-  return data;
-}
-
-PUBLIC FLT_OR_DBL *get_gquad_pf_matrix(short *S, FLT_OR_DBL *scale){
-
-  int n = S[0];
-  int size = (n * (n+1))/2 + 2;
-
-  FLT_OR_DBL *data = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-
-  double kT = (temperature+K0)*GASCONST; /* in kcal/mol */
-
-  int *gg = (int *)space(sizeof(int)*(n+2));
-
-  int init_size = 50;
-  int actual_size = 0;
-  int i, j, L, l1, l2, l3;
-
-  /* no need for prefill since everything is initialized with 0 */
-
-  /* first make the g-island annotation */
-  int cnt = 0;
-  if(S[n]==3)
-    gg[n] = 1;
-  for(i=n-1; i > 0; i--){
-    if(S[i] == 3) gg[i] = gg[i+1]+1;
-  }
-
-  int *my_index = get_iindx(n);
-
-  /* now find all quadruplexes */
-  for(i = 1;
-      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
-      i++){
-    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-        L >= VRNA_GQUAD_MIN_STACK_SIZE;
-        L--){
-      for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-          l1++){
-        if(gg[i+L+l1] >= L)
-          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-              l2++){
-            if(gg[i + 2*L + l1 + l2] >= L){
-              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
-                  l3++){
-                if(gg[i + 3*L + l1 + l2 + l3] >= L){
-                  /* insert the quadruplex into the list */
-                  j = i+4*L+l1+l2+l3-1;
- 
-                  /* do we need scaling here? */
-                  data[my_index[i]-j] += exp(-gquad_contribution(L, l1, l2, l3)*10./kT)*scale[j-i+1];
-                }
-              }
-            }
-          }
-      }
-    }
-  }
   free(my_index);
   free(gg);
   return data;
 }
 
+PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
+  int x, size, actual_size, L, n, ge, ee, gb, l[3];
+  plist *pl;
 
+  actual_size = 0;
+  ge          = 0;
+  n           = 2;
+  size        = strlen(structure);
+  pl          = (plist *)space(n*size*sizeof(plist));
 
-PUBLIC plist *Gquadcomputeinnerprobability(short *S, FLT_OR_DBL *G, FLT_OR_DBL  *probs, FLT_OR_DBL *scale){ 
-
-  int n = S[0];
-  int size = (n * (n+1))/2 + 2;
-
-  FLT_OR_DBL *data = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-  FLT_OR_DBL *tempprobs = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-  plist *pl=(plist *)space((S[0])*sizeof(plist));
-
-  double kT = (temperature+K0)*GASCONST; /* in kcal/mol */
-
-  int *gg = (int *)space(sizeof(int)*(n+2));
-  int counter=0;
-  int init_size = 50;
-  int actual_size = 0;
-  int i, j, L, l1, l2, l3;
-  FLT_OR_DBL  e_con;
-  /* no need for prefill since everything is initialized with 0 */
-
-  /* first make the g-island annotation */
-  int cnt = 0;
-  if(S[n]==3)
-    gg[n] = 1;
-  for(i=n-1; i > 0; i--){
-    if(S[i] == 3) gg[i] = gg[i+1]+1;
-  }
-
-  int *my_index = get_iindx(n);
-
-  /* now find all quadruplexes */
-  for(i = 1;
-      i <= n - (4*VRNA_GQUAD_MIN_STACK_SIZE + 2);
-      i++){
-    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-        L >= VRNA_GQUAD_MIN_STACK_SIZE;
-        L--){
-      for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-          l1++){
-        if(gg[i+L+l1] >= L)
-          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-              l2++){
-            if(gg[i + 2*L + l1 + l2] >= L){
-              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+n-i - l1 - l2 - 4*L);
-                  l3++){
-                if(gg[i + 3*L + l1 + l2 + l3] >= L){
-                  /* insert the quadruplex into the list */
-                    int x;
-                    j = i+4*L+l1+l2+l3-1;
-                    /* do we need scaling here? */
-                  e_con=probs[my_index[i]-j]*exp(-gquad_contribution(L, l1, l2, l3)*10./kT)*scale[j-i+1]/G[my_index[i]-j];/*a): indexes? b: ist gesamtQ schon dividiert da?*/
-                  
-                  for (x=0; x<L; x++) {
-                    tempprobs[my_index[i+x]-(i+x+3*L+l1+l2+l3)]+= e_con;
-                    tempprobs[my_index[i+x]-(i+x+L+l1)] += e_con; /*prob??*/
-                    tempprobs[my_index[i+x+L+l1]-(i+x+2*L+l1+l2)]+= e_con;
-                    tempprobs[my_index[i+x+2*L+l1+l2]-(i+x+3*L+l1+l2+l3)]+= e_con;
-                  }
-                }
-              }
-            }
-          }
+  while((ee = parse_gquad(structure + ge, &L, l)) > 0){
+    ge += ee;
+    gb = ge - L*4 - l[0] - l[1] - l[2] + 1;
+    /* add pseudo-base pair encloding gquad */
+    for(x = 0; x < L; x++){
+      if (actual_size >= n * size - 5){
+        n *= 2;
+        pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
       }
-    }
-  }
-  for (i=0;i<n; i++) {
-    for (j=i; j<=n; j++) {
-      if (tempprobs[my_index[i]-j]>0.) {
-        pl[counter].i=i;
-        pl[counter].j=j;
-        pl[counter++].p=tempprobs[my_index[i]-j];
-      }
-    }
-    
-  }
-  pl[counter].i=pl[counter].j=0;
-  pl[counter++].p=0.;
-  /* shrink memory to actual size needed */
-  pl = (plist *) xrealloc(pl, counter * sizeof(plist));
+      pl[actual_size].i = gb + x;
+      pl[actual_size].j = ge + x - L + 1;
+      pl[actual_size].p = pr;
+      pl[actual_size++].type = 0;
 
-  free(my_index);
-  free (tempprobs);
- return pl;
+      pl[actual_size].i = gb + x;
+      pl[actual_size].j = gb + x + l[0] + L;
+      pl[actual_size].p = pr;
+      pl[actual_size++].type = 0;
+
+      pl[actual_size].i = gb + x + l[0] + L;
+      pl[actual_size].j = ge + x - 2*L - l[2] + 1;
+      pl[actual_size].p = pr;
+      pl[actual_size++].type = 0;
+
+      pl[actual_size].i = ge + x - 2*L - l[2] + 1;
+      pl[actual_size].j = ge + x - L + 1;
+      pl[actual_size].p = pr;
+      pl[actual_size++].type = 0;
+    }
+  } 
+
+  pl[actual_size].i = pl[actual_size].j = 0;
+  pl[actual_size++].p = 0;
+  pl = (plist *)xrealloc(pl, actual_size * sizeof(plist));
+  return pl;
+}
+
+PUBLIC void get_gquad_pattern_mfe(short *S,
+                                  int i,
+                                  int j,
+                                  paramT *P,
+                                  int *L,
+                                  int l[3]){
+
+  int *gg = get_g_islands_sub(S, i, j);
+  int c = INF;
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_pos,
+                            (void *)(&c),
+                            (void *)P,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
+}
+
+PUBLIC void get_gquad_pattern_pf( short *S,
+                                  int i,
+                                  int j,
+                                  pf_paramT *pf,
+                                  int *L,
+                                  int l[3]){
+
+  int *gg = get_g_islands_sub(S, i, j);
+  FLT_OR_DBL q = 0.;
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_pf_pos,
+                            (void *)(&q),
+                            (void *)pf,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
 }
 
 PUBLIC plist *get_plist_gquad_from_pr(short *S,
@@ -385,9 +471,11 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
                                       int gj,
                                       FLT_OR_DBL *G,
                                       FLT_OR_DBL *probs,
-                                      FLT_OR_DBL *scale){ 
+                                      FLT_OR_DBL *scale,
+                                      pf_paramT *pf){
+
   int L, l[3];
-  return  get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l);
+  return  get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l, pf);
 }
 
 
@@ -398,307 +486,68 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
                                       FLT_OR_DBL *probs,
                                       FLT_OR_DBL *scale,
                                       int *Lmax,
-                                      int lmax[3]){ 
-  int n = S[0];
-  int size = (n * (n+1))/2 + 2;
+                                      int lmax[3],
+                                      pf_paramT *pf){ 
 
-  FLT_OR_DBL *data = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-  FLT_OR_DBL *tempprobs = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-  plist *pl=(plist *)space((S[0]*S[0])*sizeof(plist));
+  int n, size, *gg, counter, i, j, *my_index;
+  FLT_OR_DBL pp, *tempprobs;
+  plist *pl;
+  
+  n         = S[0];
+  size      = (n * (n + 1))/2 + 2;
+  tempprobs = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
+  pl        = (plist *)space((S[0]*S[0])*sizeof(plist));
+  gg        = get_g_islands_sub(S, gi, gj);
+  counter   = 0;
+  my_index  = get_iindx(n);
 
-  double kT = (temperature+K0)*GASCONST; /* in kcal/mol */
+  process_gquad_enumeration(gg, gi, gj,
+                            &gquad_interact,
+                            (void *)tempprobs,
+                            (void *)pf,
+                            (void *)my_index,
+                            NULL);
 
-  int *gg = (int *)space(sizeof(int)*(n+2));
-  int counter=0;
-  int init_size = 50;
-  int actual_size = 0;
-  int i, j, L, l1, l2, l3;
-  int cnt = 0;
-  FLT_OR_DBL  e_con;
-  int *my_index = get_iindx(n);
-  FLT_OR_DBL ggg_max_sum = 0.;
+  pp = 0.;
+  process_gquad_enumeration(gg, gi, gj,
+                            &gquad_pf_pos,
+                            (void *)(&pp),
+                            (void *)pf,
+                            (void *)Lmax,
+                            (void *)lmax);
 
-  /* first make the g-island annotation */
-  if(S[gj]==3) gg[gj] = 1;
-  for(i=gj-1; i >= gi; i--)
-    if(S[i] == 3) gg[i] = gg[i+1]+1;
-
-  i = gi;
-  /* now find all quadruplexes */
-  for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-        L >= VRNA_GQUAD_MIN_STACK_SIZE;
-        L--){
-      for(l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-          l1 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+gj-i - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-          l1++){
-        if(gg[i+L+l1] >= L)
-          for(l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-              l2 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+gj-i - l1 - VRNA_GQUAD_MIN_LINKER_LENGTH - 4*L);
-              l2++){
-            if(gg[i + 2*L + l1 + l2] >= L){
-              for(l3 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  l3 <= MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH, 1+gj-i - l1 - l2 - 4*L);
-                  l3++){
-                if(gg[i + 3*L + l1 + l2 + l3] >= L){
-                  /* insert the quadruplex into the list */
-                  int x;
-                  FLT_OR_DBL gggm = 0;
-                  j = i+4*L+l1+l2+l3-1;
-                  if(j!=gj) continue;
-                  /* do we need scaling here? */
-                  /* is it (p | ggg(gi,gj)) * exp(ggg(i,j)) / G(i,j) ? */
-                  e_con = probs[my_index[i]-j] * exp(-gquad_contribution(L, l1, l2, l3)*10./kT) * scale[j-i+1] / G[my_index[i]-j];
-                  for (x=0; x<L; x++) {
-                    gggm += (e_con + (1-e_con));
-                    tempprobs[my_index[i+x]-(i+x+3*L+l1+l2+l3)]+= e_con;
-                    tempprobs[my_index[i+x]-(i+x+L+l1)] += e_con; /*prob??*/
-                    tempprobs[my_index[i+x+L+l1]-(i+x+2*L+l1+l2)]+= e_con;
-                    tempprobs[my_index[i+x+2*L+l1+l2]-(i+x+3*L+l1+l2+l3)]+= e_con;
-                  }
-                  if(gggm > ggg_max_sum){
-                    ggg_max_sum = gggm;
-                    *Lmax = L; lmax[0] = l1; lmax[1] = l2; lmax[2] = l3;
-                  }
-                }
-              }
-            }
-          }
-      }
-  }
+  pp = probs[my_index[gi]-gj] * scale[gj-gi+1] / G[my_index[gi]-gj];
   for (i=gi;i<gj; i++) {
     for (j=i; j<=gj; j++) {
       if (tempprobs[my_index[i]-j]>0.) {
         pl[counter].i=i;
         pl[counter].j=j;
-        pl[counter++].p=tempprobs[my_index[i]-j];
+        pl[counter++].p = pp * tempprobs[my_index[i]-j];
       }
     }
   }
   pl[counter].i = pl[counter].j = 0;
-  pl[counter++].p=0.;
+  pl[counter++].p = 0.;
   /* shrink memory to actual size needed */
   pl = (plist *) xrealloc(pl, counter * sizeof(plist));
 
+  gg += gi - 1; free(gg);
   free(my_index);
   free (tempprobs);
   return pl;
 }
 
-PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
-  int i, x, size, actual_size, L, cL, n;
-  plist *pl;
-  int   gg1, gg2, gg3, gg4;
-
-  actual_size = 0;
-  n           = 2;
-  size        = strlen(structure);
-  pl          = (plist *)space(n*size*sizeof(plist));
-
-  /* seek to first occurence of '+' or end of string */
-  for(i=0; i < size && structure[i] != '+'; i++);
-  while(i < size){
-    gg1 = gg2 = gg3 = gg4 = -1;
-    /* get size of gquad */
-    for(gg1 = i, L = 0; i < size && structure[i] == '+'; i++, L++);
-    /* now find the rest of the quad */
-    for(; i < size && structure[i] != '+'; i++);
-    if(i >= size)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    for(gg2 = i, cL = 0; i < size && structure[i] == '+'; i++, cL++);
-    if(L != cL)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    for(; i < size && structure[i] != '+'; i++);
-    if(i >= size)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    for(gg3 = i, cL = 0; i < size && structure[i] == '+'; i++, cL++);
-    if(L != cL)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    for(; i < size && structure[i] != '+'; i++);
-    if(i >= size)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    for(gg4 = i, cL = 0; i < size && structure[i] == '+'; i++, cL++);
-    if(L != cL)
-      nrerror("get_plist_gquad_from_db@gquad.c: misformatted dot bracket string");
-    /* finally add the gquadruplex to the list */
-    for (x=0; x<L; x++) {
-      if (actual_size >= n * size - 5){
-        n *= 2;
-        pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
-      }
-      pl[actual_size].i = gg1 + x + 1;
-      pl[actual_size].j = gg4 + x + 1;
-      pl[actual_size].p = pr;
-      pl[actual_size++].type = 0;
-
-      pl[actual_size].i = gg1 + x + 1;
-      pl[actual_size].j = gg2 + x + 1;
-      pl[actual_size].p = pr;
-      pl[actual_size++].type = 0;
-
-      pl[actual_size].i = gg2 + x + 1;
-      pl[actual_size].j = gg3 + x + 1;
-      pl[actual_size].p = pr;
-      pl[actual_size++].type = 0;
-
-      pl[actual_size].i = gg3 + x + 1;
-      pl[actual_size].j = gg4 + x + 1;
-      pl[actual_size].p = pr;
-      pl[actual_size++].type = 0;
-    }
-    for(; i < size && structure[i] != '+'; i++);
-  }
-
-  pl[actual_size].i = pl[actual_size].j = 0;
-  pl[actual_size++].p = 0;
-  pl = (plist *)xrealloc(pl, actual_size * sizeof(plist));
-  return pl;
-}
-
-PUBLIC  int *make_ggggscores( const short *const* S,
-                              const char **AS,
-                              int n_seq,
-                              const char *structure){
-
-#if 0
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
-#define NONE -10000 /* score for forbidden pairs */
-  int n,i,j,k,l,s, *indx;
-  int *gggg_score;
-  int gggg_dm[5][5] = {{2, 2, 2, 2, 2}, /* hamming distance of gg to any other nucleotide arrangements */
-                      {2, 2, 2, 1, 2},  /* A */
-                      {2, 2, 2, 1, 2}, /* C */
-                      {1, 1, 1, 0, 1}, /* G */
-                      {2, 2, 2, 1, 2}, /* U */};
-
-  n = S[0][0];  /* length of seqs */
-  indx = get_indx((unsigned int)n);
-
-  for (i=1; i<n; i++){
-    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
-      gggg_score[indx[j]+i] = NONE;
-
-    for (j=i+TURN+1; j<=n; j++) {
-      int pfreq[8]={0,0,0,0,0,0,0,0};
-      double score;
-      for (s=0; s<n_seq; s++) {
-        int type;
-        if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
-        else {
-          if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-          else type = pair[S[s][i]][S[s][j]];
-        }
-        pfreq[type]++;
-      }
-      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
-      for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
-        for (l=k; l<=6; l++)
-          score += pfreq[k]*pfreq[l]*dm[k][l];
-      /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j]+i] = cv_fact *
-        ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
-    }
-  }
-
-  if (noLonelyPairs) /* remove unwanted pairs */
-    for (k=1; k<n-TURN-1; k++)
-      for (l=1; l<=2; l++) {
-        int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l;
-        type = pscore[indx[j]+i];
-        while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
-          if ((otype<cv_fact*MINPSCORE)&&(ntype<cv_fact*MINPSCORE))  /* too many counterexamples */
-            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
-      }
-
-
-  if (fold_constrained&&(structure!=NULL)) {
-    int psij, hx, hx2, *stack, *stack2;
-    stack = (int *) space(sizeof(int)*(n+1));
-    stack2 = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=hx2=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '[':
-        stack2[hx2++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
-        break;
-      case ']':
-        if (hx2<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack2[--hx2];
-        pscore[indx[j]+i]=NONE;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        psij = pscore[indx[j]+i]; /* store for later */
-        for (k=j; k<=n; k++)
-          for (l=i; l<=j; l++)
-            pscore[indx[k]+l] = NONE;
-        for (l=i; l<=j; l++)
-          for (k=1; k<=i; k++)
-            pscore[indx[l]+k] = NONE;
-        for (k=i+1; k<j; k++)
-          pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
-        pscore[indx[j]+i] = (psij>0) ? psij : 0;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
-        break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack); free(stack2);
-  }
-  /*free dm */
-  for (i=0; i<7;i++) {
-    free(dm[i]);
-  }
-  free(dm);
-#endif
-}
-
-int parse_gquad(const char *struc, int *L, int l[3]) {
-  /* given a dot-bracket structure (possibly) containing gquads encoded
-     by '+' signs, find first gquad, return end position or 0 if none found
-     Upon return L and l[] contain the number of stacked layers, as well as
-     the lengths of the linker regions.  
-     To parse a string with many gquads, call parse_gquad repeatedly e.g.
-     end1 = parse_gquad(struc, &L, l); ... ;
-     end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
-     end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ; 
-  */
+PUBLIC int parse_gquad(const char *struc, int *L, int l[3]) {
   int i, il, start, end, len;
-  
+
   for (i=0; struc[i] && struc[i]!='+'; i++);
   if (struc[i] == '+') { /* start of gquad */
     for (il=0; il<=3; il++) {
       start=i; /* pos of first '+' */
-      while (struc[++i] == '+');
+      while (struc[++i] == '+'){
+        if((il) && (i-start == *L))
+          break;
+      }
       end=i; len=end-start; 
       if (il==0) *L=len;
       else if (len!=*L)
@@ -706,7 +555,8 @@ int parse_gquad(const char *struc, int *L, int l[3]) {
       if (il==3) break;
       while (struc[++i] == '.'); /* linker */
       l[il] = i-end;
-      if (struc[i] != '+') nrerror("illegal character in gquad linker region");
+      if (struc[i] != '+')
+        nrerror("illegal character in gquad linker region");
     }
   }
   else return 0;
@@ -714,4 +564,259 @@ int parse_gquad(const char *struc, int *L, int l[3]) {
   return end;
 }
 
+
+
+/*
+#########################################
+# BEGIN OF PRIVATE FUNCTION DEFINITIONS #
+#          (internal use only)          #
+#########################################
+*/
+
+PRIVATE int gquad_ali_penalty(int i,
+                              int L,
+                              int l[3],
+                              const short **S,
+                              paramT *P){
+
+  int s, cnt;
+  int penalty     = 0;
+  int gg_mismatch = 0;
+
+  /* check for compatibility in the alignment */
+  for(s = 0; S[s]; s++){
+    unsigned int  ld  = 0; /* !=0 if layer destruction was detected */
+    int           pen = 0;
+
+    /* check bottom layer */
+    if(S[s][i] != 3)                            ld |= 1U;
+    if(S[s][i + L + l[0]] != 3)                 ld |= 2U;
+    if(S[s][i + 2*L + l[0] + l[1]] != 3)        ld |= 4U;
+    if(S[s][i + 3*L + l[0] + l[1] + l[2]] != 3) ld |= 8U;
+     /* add 1x penalty for missing bottom layer */
+    if(ld) pen += VRNA_GQUAD_MISMATCH_PENALTY;
+
+    /* check top layer */
+    ld = 0;
+    if(S[s][i + L - 1] != 3)                        ld |= 1U;
+    if(S[s][i + 2*L + l[0] - 1] != 3)               ld |= 2U;
+    if(S[s][i + 3*L + l[0] + l[1] - 1] != 3)        ld |= 4U;
+    if(S[s][i + 4*L + l[0] + l[1] + l[2] - 1] != 3) ld |= 8U;
+     /* add 1x penalty for missing top layer */
+    if(ld) pen += VRNA_GQUAD_MISMATCH_PENALTY;
+
+    /* check inner layers */
+    for(cnt=1;cnt<L-1;cnt++){
+      if(S[s][i + cnt] != 3)                            ld |= 1U;
+      if(S[s][i + L + l[0] + cnt] != 3)                 ld |= 2U;
+      if(S[s][i + 2*L + l[0] + l[1] + cnt] != 3)        ld |= 4U;
+      if(S[s][i + 3*L + l[0] + l[1] + l[2] + cnt] != 3) ld |= 8U;
+      /* add 2x penalty for missing inner layer */
+      if(ld) pen += 2*VRNA_GQUAD_MISMATCH_PENALTY;
+    }
+
+    /* if all layers are missing, we have a complete gg mismatch */
+    if(pen >= (2*VRNA_GQUAD_MISMATCH_PENALTY * (L-1)))
+      gg_mismatch++;
+
+    /* add the penalty to the score */
+    penalty += pen;
+  }
+  /* if gg_mismatch exceeds maximum allowed, this g-quadruplex is forbidden */
+  if(gg_mismatch > VRNA_GQUAD_MISMATCH_NUM_ALI) return INF;
+  else return penalty;
+}
+
+
+PRIVATE void gquad_mfe( int i,
+                        int L,
+                        int *l,
+                        void *data,
+                        void *P,
+                        void *NA,
+                        void *NA2){
+
+  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  if(cc < *((int *)data))
+    *((int *)data) = cc;
+}
+
+PRIVATE void gquad_mfe_pos( int i,
+                            int L,
+                            int *l,
+                            void *data,
+                            void *P,
+                            void *Lmfe,
+                            void *lmfe){
+
+  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  if(cc < *((int *)data)){
+    *((int *)data)        = cc;
+    *((int *)Lmfe)        = L;
+    *((int *)lmfe)        = l[0];
+    *(((int *)lmfe) + 1)  = l[1];
+    *(((int *)lmfe) + 2)  = l[2];
+  }
+}
+
+PRIVATE void gquad_pf(int i,
+                      int L,
+                      int *l,
+                      void *data,
+                      void *pf,
+                      void *NA,
+                      void *NA2){
+
+  *((FLT_OR_DBL *)data) += ((pf_paramT *)pf)->expgquad[L][l[0] + l[1] + l[2]];
+}
+
+PRIVATE void gquad_pf_pos(int i,
+                          int L,
+                          int *l,
+                          void *data,
+                          void *pf,
+                          void *Lmax,
+                          void *lmax){
+
+  FLT_OR_DBL gq = ((pf_paramT *)pf)->expgquad[L][l[0] + l[1] + l[2]];
+  if(gq > *((FLT_OR_DBL *)data)){
+    *((FLT_OR_DBL *)data) = gq;
+    *((int *)Lmax)        = L;
+    *((int *)lmax)        = l[0];
+    *(((int *)lmax) + 1)  = l[1];
+    *(((int *)lmax) + 2)  = l[2];
+  }
+}
+
+PRIVATE void gquad_mfe_ali( int i,
+                            int L,
+                            int *l,
+                            void *data,
+                            void *P,
+                            void *S,
+                            void *n_seq){
+
+  int en[2], cc;
+  en[0] = en[1] = INF;
+  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), P, S, n_seq);
+  if(en[1] != INF){
+    cc  = en[0] + en[1];
+    if(cc < *((int *)data)) *((int *)data) = cc;
+  }
+}
+
+PRIVATE void gquad_mfe_ali_en(int i,
+                              int L,
+                              int *l,
+                              void *data,
+                              void *P,
+                              void *S,
+                              void *n_seq){
+
+  int en[2], cc, dd;
+  en[0] = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]] * (*(int *)n_seq);
+  en[1] = gquad_ali_penalty(i, L, l, (const short **)S, (paramT *)P);
+  if(en[1] != INF){
+    cc = en[0] + en[1];
+    dd = ((int *)data)[0] + ((int *)data)[1];
+    if(cc < dd){
+      ((int *)data)[0] = en[0];
+      ((int *)data)[1] = en[1];
+    }
+  }
+}
+
+PRIVATE void gquad_interact(int i,
+                      int L,
+                      int *l,
+                      void *data,
+                      void *pf,
+                      void *index,
+                      void *NA2){
+
+  int x, *idx;
+  FLT_OR_DBL gq, *pp;
+
+  idx = (int *)index;
+  pp  = (FLT_OR_DBL *)data;
+  gq  = exp_E_gquad(L, l, (pf_paramT *)pf);
+
+  for(x = 0; x < L; x++){
+    pp[idx[i + x] - (i + x + 3*L + l[0] + l[1] + l[2])] += gq;
+    pp[idx[i + x] - (i + x + L + l[0])] += gq;
+    pp[idx[i + x + L + l[0]] - (i + x + 2*L + l[0] + l[1])] += gq;
+    pp[idx[i + x + 2*L + l[0] + l[1]] - (i + x + 3*L + l[0] + l[1] + l[2])] += gq;
+  }
   
+}
+
+PRIVATE INLINE int *get_g_islands(short *S){
+  return get_g_islands_sub(S, 1, S[0]);
+}
+
+PRIVATE INLINE int *get_g_islands_sub(short *S, int i, int j){
+  int x, *gg;
+
+  gg = (int *)space(sizeof(int)*(j-i+2));
+  gg -= i - 1;
+
+  if(S[j]==3) gg[j] = 1;
+  for(x = j - 1; x >= i; x--)
+    if(S[x] == 3)
+      gg[x] = gg[x+1]+1;
+
+  return gg;
+}
+
+/**
+ *  We could've also created a macro that loops over all G-quadruplexes
+ *  delimited by i and j. However, for the fun of it we use this function
+ *  that receives a pointer to a callback function which in turn does the
+ *  actual computation for each quadruplex found.
+ */
+PRIVATE
+void
+process_gquad_enumeration(int *gg,
+                          int i,
+                          int j,
+                          void (*f)(int, int, int *,
+                                    void *, void *, void *, void *),
+                          void *data,
+                          void *P,
+                          void *aux1,
+                          void *aux2){
+
+  int L, l[3], n, max_linker, maxl0, maxl1;
+
+  n = j - i + 1;
+
+  if((n >= VRNA_GQUAD_MIN_BOX_SIZE) && (n <= VRNA_GQUAD_MAX_BOX_SIZE))
+    for(L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
+        L >= VRNA_GQUAD_MIN_STACK_SIZE;
+        L--)
+      if(gg[j-L+1] >= L){
+        max_linker = n-4*L;
+        if(     (max_linker >= 3*VRNA_GQUAD_MIN_LINKER_LENGTH)
+            &&  (max_linker <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH)){
+          maxl0 = MIN2( VRNA_GQUAD_MAX_LINKER_LENGTH,
+                        max_linker - 2*VRNA_GQUAD_MIN_LINKER_LENGTH
+                      );
+          for(l[0] = VRNA_GQUAD_MIN_LINKER_LENGTH;
+              l[0] <= maxl0;
+              l[0]++)
+            if(gg[i+L+l[0]] >= L){
+              maxl1 = MIN2( VRNA_GQUAD_MAX_LINKER_LENGTH,
+                            max_linker - l[0] - VRNA_GQUAD_MIN_LINKER_LENGTH
+                          );
+              for(l[1] = VRNA_GQUAD_MIN_LINKER_LENGTH;
+                  l[1] <= maxl1;
+                  l[1]++)
+                if(gg[i + 2*L + l[0] + l[1]] >= L){
+                  l[2] = max_linker - l[0] - l[1];
+                  f(i, L, &(l[0]), data, P, aux1, aux2);
+                }
+            }
+        }
+      }
+}
+

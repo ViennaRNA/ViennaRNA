@@ -54,6 +54,11 @@ PUBLIC paramT *get_scaled_parameters( double temperature,
   params->temperature   = temperature;
   tempf                 = ((temperature+K0)/Tmeasure);
 
+#ifdef WITH_GQUADS
+  for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++)
+      params->gquad[i][j] = GQuadAlpha37*(i-1) + (int)(((double)GQuadBeta37)*log(j - 2));
+#endif
   for (i=0; i<31; i++)
     params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
@@ -199,7 +204,15 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
   pf->pf_scale      = pf_scale;
   TT                = (temperature+K0)/(Tmeasure);
 
-   /* loop energies: hairpins, bulges, interior, mulit-loops */
+#ifdef WITH_GQUADS
+  for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
+      GT = ((double)GQuadAlpha37)*((double)(i-1)) + ((double)GQuadBeta37)*log(((double)j) - 2.);
+      pf->expgquad[i][j] = exp( -GT*10./kT);
+    }
+#endif
+
+  /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++){
     GT  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
     pf->exphairpin[i] = exp( -GT*10./kT);

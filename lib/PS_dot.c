@@ -1421,9 +1421,8 @@ const char *RNAdp_gquad_triangle =
 "  3 1 roll % prepare hsb color\n"
 "  sethsbcolor\n"
 "  % now produce the coordinates for lines\n"
-"  exch dup 3 1 roll sub 1 add dup 0 exch neg 4 2 roll 0 3 -1 roll\n"
-"  0.5 sub dup len 1 add exch sub\n"
-"  moveto rlineto rlineto closepath fill\n"
+"  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub\n"
+"  moveto lineto lineto closepath fill\n"
 "  grestore\n"
 "} bind def\n";
 #endif

@@ -140,14 +140,6 @@ PRIVATE void  init_fold(int length, paramT *parameters);
 /* needed by cofold/eval */
 PRIVATE int   cut_in_loop(int i);
 
-#ifdef WITH_GQUADS
-PRIVATE int energy_of_gquad(const char *string,
-                            const char *structure,
-                            const short *s1,
-                            int verbosity_level);
-#endif
-
-
 /* deprecated functions */
 /*@unused@*/
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
@@ -445,7 +437,7 @@ PRIVATE int fill_arrays(const char *string) {
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
 #ifdef WITH_GQUADS
-  ggg = get_gquad_matrix(S);
+  ggg = get_gquad_matrix(S, P);
 #endif
 
 
@@ -464,7 +456,9 @@ PRIVATE int fill_arrays(const char *string) {
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
     for (j = i+TURN+1; j <= length; j++) {
-      int p, q, ij;
+      int p, q, ij, jj, ee;
+      int minq, maxq, l1, up, c0, c1, c2, c3;
+      int MLenergy;
       ij = indx[j]+i;
       bonus = 0;
       type = ptype[ij];
@@ -490,7 +484,7 @@ PRIVATE int fill_arrays(const char *string) {
           --------------------------------------------------------*/
 
         for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-          int minq = j-i+p-MAXLOOP-2;
+          minq = j-i+p-MAXLOOP-2;
           if (minq<p+1+TURN) minq = p+1+TURN;
           for (q = minq; q < j; q++) {
             type_2 = ptype[indx[q]+p];
@@ -505,7 +499,8 @@ PRIVATE int fill_arrays(const char *string) {
             energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                                 S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
-            new_c = MIN2(energy+c[indx[q]+p], new_c);
+            ee = energy+c[indx[q]+p];
+            new_c = MIN2(new_c, ee);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
           } /* end q-loop */
@@ -514,7 +509,6 @@ PRIVATE int fill_arrays(const char *string) {
 
 
         if (!no_close) {
-          int MLenergy;
           decomp = DMLi1[j-1];
           tt = rtype[type];
           switch(dangle_model){
@@ -559,59 +553,85 @@ PRIVATE int fill_arrays(const char *string) {
         if (!no_close) {
           tt = rtype[type];
           switch(dangles){
-            case 0:     energy = E_MLstem(tt, -1, -1, P) + P->MLclosing; /* contribution from closing (i,j) */
+            case 0:     energy  = E_MLstem(tt, -1, -1, P)
+                                  + P->MLclosing
+                                  + E_MLstem(0, -1, -1, P);
                         for(p = i + 2;
                             p < j - VRNA_GQUAD_MIN_BOX_SIZE;
                             p++){
+                          l1    = p - i - 1;
+                          if(l1>MAXLOOP) break;
                           if(S1[p] != 3) continue;
-                          int minq = j-i+p-MAXLOOP-2;
-                          int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                          int l1    = p - i - 1;
+                          minq  = j - i + p - MAXLOOP - 2;
+                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          minq  = MAX2(c0, minq);
+                          c0    = j - 1;
+                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                          maxq  = MIN2(c0, maxq);
                           if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                             minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                           for(q = minq; q < maxq; q++){
                             if(S1[q] != 3) continue;
-                            int up  = (l1 + j - q - 1)*P->MLbase;
-                            int c   = energy + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up;
-                            new_c   = MIN2(new_c, c);
+                            up  = (l1 + j - q - 1)*P->MLbase;
+                            c0  = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
                           }
                         }
                         break;
-            case 2:     energy = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
+            case 2:     energy  = E_MLstem(tt, S1[j-1], S1[i+1], P)
+                                  + P->MLclosing
+                                  + E_MLstem(0, -1, -1, P);
                         for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          l1    = p - i - 1;
+                          if(l1>MAXLOOP) break;
                           if(S1[p] != 3) continue;
-                          int minq = j-i+p-MAXLOOP-2;
-                          int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                          int l1    = p - i - 1;
-                          if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                            minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          minq  = j - i + p - MAXLOOP - 2;
+                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          minq  = MAX2(c0, minq);
+                          c0    = j - 1;
+                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                          maxq  = MIN2(c0, maxq);
                           for(q = minq; q < maxq; q++){
                             if(S1[q] != 3) continue;
-                            int up  = (l1 + j - q - 1)*P->MLbase;
-                            int c   = energy + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up;
-                            new_c   = MIN2(new_c, c);
+                            up  = (l1 + j - q - 1)*P->MLbase;
+                            c0  = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
                           }
                         }
                         break;
            default:     {
-                          int constellation0 = E_MLstem(tt, -1, -1, P) + P->MLclosing;
-                          int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + P->MLclosing;
-                          int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
-                          int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
+                          int constellation0  = E_MLstem(tt, -1, -1, P)
+                                                + P->MLclosing
+                                                + E_MLstem(0, -1, -1, P);
+                          int constellation1  = E_MLstem(tt, S1[j-1], -1, P)
+                                                + P->MLbase
+                                                + P->MLclosing
+                                                + E_MLstem(0, -1, -1, P);
+                          int constellation2  = E_MLstem(tt, -1, S1[i+1], P)
+                                                + P->MLbase
+                                                + P->MLclosing
+                                                + E_MLstem(0, -1, -1, P);
+                          int constellation3  = E_MLstem(tt, S1[j-1], S1[i+1],P)
+                                                + 2 * P->MLbase
+                                                + P->MLclosing
+                                                + E_MLstem(0, -1, -1, P); 
                           for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                            l1    = p - i - 1;
+                            if(l1>MAXLOOP) break;
                             if(S1[p] != 3) continue;
-                            int minq = j-i+p-MAXLOOP-2;
-                            int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                            int l1    = p - i - 1;
-                            if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                              minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                            minq  = j - i + p - MAXLOOP - 2;
+                            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                            minq  = MAX2(c0, minq);
+                            c0    = j - 1;
+                            maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                            maxq  = MIN2(c0, maxq);
                             for(q = minq; q < maxq; q++){
                               if(S1[q] != 3) continue;
-                              int up  = (l1 + j - q - 1)*P->MLbase;
-                              int c0  = ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + constellation0;
-                              int c1  = ggg[indx[q-1] + p] + E_MLstem(0, -1, -1, P) + constellation1;
-                              int c2  = ggg[indx[q] + p + 1] + E_MLstem(0, -1, -1, P) + constellation2;
-                              int c3  = ggg[indx[q-1] + p + 1] + E_MLstem(0, -1, -1, P) + constellation3;
+                              up  = (l1 + j - q - 1)*P->MLbase;
+                              c0  = ggg[indx[q] + p]        + constellation0;
+                              c1  = ggg[indx[q-1] + p]      + constellation1;
+                              c2  = ggg[indx[q] + p + 1]    + constellation2;
+                              c3  = ggg[indx[q-1] + p + 1]  + constellation3;
                               /* first case: no dangles contribute to the enclosing pair */
                               new_c = MIN2(new_c, c0);
                               new_c = MIN2(new_c, c1);
@@ -838,8 +858,8 @@ PRIVATE int fill_arrays(const char *string) {
 *** If s>0 then s items have been already pushed onto the sector stack
 **/
 PRIVATE void backtrack(const char *string, int s) {
-  int   i, j, ij, k, mm3, length, energy, en, new;
-  int   no_close, type, type_2, tt;
+  int   i, j, ij, k, l1, mm5, mm3, length, energy, en, new;
+  int   no_close, type, type_2, tt, minq, maxq, c0, c1, c2, c3;
   int   bonus;
   int   b=0;
   int   dangle_model = P->model_details.dangles;
@@ -1123,7 +1143,6 @@ PRIVATE void backtrack(const char *string, int s) {
         continue;
 
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
-      int minq;
       minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
@@ -1164,16 +1183,22 @@ PRIVATE void backtrack(const char *string, int s) {
       that should then be decomposed further...
     */
     switch(dangles){
-      case 0:   en = E_MLstem(tt, -1, -1, P) + P->MLclosing;
+      case 0:   en  = E_MLstem(tt, -1, -1, P)
+                      + P->MLclosing
+                      + E_MLstem(0, -1, -1, P);
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                  int minq = j-i+p-MAXLOOP-2;
-                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  int l1    = p - i - 1;
-                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  l1    = p - i - 1;
+                  if(l1>MAXLOOP) break;
+                  if(S1[p] != 3) continue;
+                  minq  = j - i + p - MAXLOOP - 2;
+                  c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  minq  = MAX2(c0, minq);
+                  maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                  c0    = j - 1;
+                  maxq  = MIN2(c0, maxq);
                   for(q = minq; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
-                    if(cij == en + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up){
+                    if(cij == en + ggg[indx[q] + p] + up){
                       /* go to backtracing of quadruplex */
                       /* here we really need a goto to jump out of the loop as well as the switch */
                       i=p;j=q;
@@ -1182,16 +1207,22 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                 }
                 break;
-      case 2:   en = E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLclosing;
+      case 2:   en  = E_MLstem(tt, S1[j-1], S1[i+1], P)
+                      + P->MLclosing
+                      + E_MLstem(0, -1, -1, P);
                 for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                  int minq = j-i+p-MAXLOOP-2;
-                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  int l1    = p - i - 1;
-                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  l1    = p - i - 1;
+                  if(l1>MAXLOOP) break;
+                  if(S1[p] != 3) continue;
+                  minq  = j - i + p - MAXLOOP - 2;
+                  c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                  minq  = MAX2(c0, minq);
+                  maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                  c0    = j - 1;
+                  maxq  = MIN2(c0, maxq);
                   for(q = minq; q < maxq; q++){
                     int up = (l1+j-q-1)*P->MLbase;
-                    if(cij == en + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up){
+                    if(cij == en + ggg[indx[q] + p] + up){
                       /* go to backtracing of quadruplex */
                       /* here we really need a goto to jump out of the loop as well as the switch */
                       i=p;j=q;
@@ -1201,31 +1232,46 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
       default:  {
-                  int constellation0 = E_MLstem(tt, -1, -1, P) + P->MLclosing;
-                  int constellation1 = E_MLstem(tt, S1[j-1], -1, P) + P->MLbase + P->MLclosing;
-                  int constellation2 = E_MLstem(tt, -1, S1[i+1], P) + P->MLbase + P->MLclosing;
-                  int constellation3 = E_MLstem(tt, S1[j-1], S1[i+1],P) + 2*P->MLbase + P->MLclosing; 
+                  int constellation0  = E_MLstem(tt, -1, -1, P)
+                                        + P->MLclosing
+                                        + E_MLstem(0, -1, -1, P);
+                  int constellation1  = E_MLstem(tt, S1[j-1], -1, P)
+                                        + P->MLbase
+                                        + P->MLclosing
+                                        + E_MLstem(0, -1, -1, P);
+                  int constellation2  = E_MLstem(tt, -1, S1[i+1], P)
+                                        + P->MLbase
+                                        + P->MLclosing
+                                        + E_MLstem(0, -1, -1, P);
+                  int constellation3  = E_MLstem(tt, S1[j-1], S1[i+1],P)
+                                        + 2 * P->MLbase
+                                        + P->MLclosing
+                                        + E_MLstem(0, -1, -1, P); 
                   for(p = i1+1; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                    int minq = j-i+p-MAXLOOP-2;
-                    int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                    int l1    = p - i - 1;
-                    if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                      minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    l1    = p - i - 1;
+                    if(l1>MAXLOOP) break;
+                    if(S1[p] != 3) continue;
+                    minq  = j - i + p - MAXLOOP - 2;
+                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    minq  = MAX2(c0, minq);
+                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                    c0    = j - 1;
+                    maxq  = MIN2(c0, maxq);
                     for(q = minq; q < maxq; q++){
                       /* first case: no dangles contribute to the enclosing pair */
-                      if(cij == ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + constellation0){
+                      if(cij == ggg[indx[q] + p] + constellation0){
                         i=p;j=q;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q-1] + p] + E_MLstem(0, -1, -1, P) + constellation1){
+                      else if(cij == ggg[indx[q-1] + p] + constellation1){
                         i=p;j=q-1;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q] + p + 1] + E_MLstem(0, -1, -1, P) + constellation2){
+                      else if(cij == ggg[indx[q] + p + 1] + constellation2){
                         i=p+1;j=q;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q-1] + p + 1] + E_MLstem(0, -1, -1, P) + constellation3){
+                      else if(cij == ggg[indx[q-1] + p + 1] + constellation3){
                         i=p+1;j=q-1;
                         goto repeat_gquad;
                       }
@@ -1327,7 +1373,6 @@ PRIVATE void backtrack(const char *string, int s) {
       }
       else
 #endif
-        fprintf(stderr, "%s\n", string);
         nrerror("backtracking failed in repeat");
     }
 #ifdef WITH_GQUADS
@@ -1339,60 +1384,23 @@ PRIVATE void backtrack(const char *string, int s) {
       of the g-quadruplex that should reside within position i,j
     */
     {
-      int cnt1, l1, l2, l3, L, size;
-      size = j-i+1;
-
-      for(L=0; L < VRNA_GQUAD_MIN_STACK_SIZE;L++){
-        if(S1[i+L] != 3) break;
-        if(S1[j-L] != 3) break;
-      }
-
-      if(L == VRNA_GQUAD_MIN_STACK_SIZE){
-        /* continue only if minimum stack size starting from i is possible */
-        for(; L<=VRNA_GQUAD_MAX_STACK_SIZE;L++){
-          if(S1[i+L-1] != 3) break; /* break if no more consecutive G's 5' */
-          if(S1[j-L+1] != 3) break; /* break if no more consecutive G'1 3' */
-          for(    l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  (l1 <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-              &&  (size - 4*L - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - l1 >= 0);
-              l1++){
-            /* check whether we find the second stretch of consecutive G's */
-            for(cnt1 = 0; (cnt1 < L) && (S1[i+L+l1+cnt1] == 3); cnt1++);
-            if(cnt1 < L) continue;
-            for(    l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                    (l2 <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-                &&  (size - 4*L - VRNA_GQUAD_MIN_LINKER_LENGTH - l1 - l2 >= 0);
-                l2++){
-              /* check whether we find the third stretch of consectutive G's */
-              for(cnt1 = 0; (cnt1 < L) && (S1[i+2*L+l1+l2+cnt1] == 3); cnt1++);
-              if(cnt1 < L) continue;
-
-              /*
-                the length of the third linker now depends on position j as well
-                as the other linker lengths... so we do not have to loop too much
-              */
-              l3 = size - 4*L - l1 - l2;
-              if(l3 < VRNA_GQUAD_MIN_LINKER_LENGTH) break;
-              if(l3 > VRNA_GQUAD_MAX_LINKER_LENGTH) continue;
-              /* check for contribution */
-              if(ggg[indx[j]+i] == gquad_contribution(L, l1, l2, l3)){
-                int a;
-                /* fill the G's of the quadruplex into base_pair2 */
-                for(a=0;a<L;a++){
-                  base_pair2[++b].i = i+a;
-                  base_pair2[b].j   = i+a;
-                  base_pair2[++b].i = i+L+l1+a;
-                  base_pair2[b].j   = i+L+l1+a;
-                  base_pair2[++b].i = i+L+l1+L+l2+a;
-                  base_pair2[b].j   = i+L+l1+L+l2+a;
-                  base_pair2[++b].i = i+L+l1+L+l2+L+l3+a;
-                  base_pair2[b].j   = i+L+l1+L+l2+L+l3+a;
-                }
-                goto repeat_gquad_exit;
-              }
-            }
-          }
+      int l[3], L, a;
+      L = -1;
+      
+      get_gquad_pattern_mfe(S, i, j, P, &L, l);
+      if(L != -1){
+        /* fill the G's of the quadruplex into base_pair2 */
+        for(a=0;a<L;a++){
+          base_pair2[++b].i = i+a;
+          base_pair2[b].j   = i+a;
+          base_pair2[++b].i = i+L+l[0]+a;
+          base_pair2[b].j   = i+L+l[0]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
         }
+        goto repeat_gquad_exit;
       }
       nrerror("backtracking failed in repeat_gquad");
     }
@@ -1573,7 +1581,7 @@ PRIVATE int en_corr_of_loop_gquad(int i,
     p = q - 4*L - l[0] - l[1] - l[2] + 1;
     if(q > j) break;
     /* we've found the first g-quadruplex at position [p,q] */
-    energy += gquad_contribution(L, l[0], l[1], l[2]);
+    energy += E_gquad(L, l, P);
     /* check if it's enclosed in a base pair */
     if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
     else{
@@ -1620,9 +1628,9 @@ PRIVATE int en_corr_of_loop_gquad(int i,
         else if (structure[u-1] == '+'){ /* found another gquad */
           pos = parse_gquad(structure + u - 1, &L, l);
           if(pos > 0){
-            energy += gquad_contribution(L, l[0], l[1], l[2]) + E_MLstem(0, -1, -1, P);
-            up_mis += pos - u + 1;
-            u += pos + 1;
+            energy += E_gquad(L, l, P) + E_MLstem(0, -1, -1, P);
+            up_mis += pos;
+            u += pos;
             num_g++;
           }
         } else { /* we must have found a stem */
@@ -1641,15 +1649,32 @@ PRIVATE int en_corr_of_loop_gquad(int i,
                         nrerror("too few unpaired bases");
                     */
                     type = pair[s1[r]][s1[s]];
-                    energy += P->MLclosing + E_MLstem(rtype[type], s1[s-1], s1[r+1], P) + (s-r-1-up_mis)*P->MLbase;
-                    energy -= E_Hairpin(s - r - 1, type, s1[r+1], s1[s-1], string + r - 1, P);
-                    
+                    energy += P->MLclosing
+                              + E_MLstem(rtype[type], s1[s-1], s1[r+1], P)
+                              + (s - r - 1 - up_mis) * P->MLbase;
+                    energy -= E_Hairpin(s - r - 1,
+                                        type,
+                                        s1[r + 1],
+                                        s1[s - 1],
+                                        string + r - 1,
+                                        P);
                     break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-          case 1:   type = pair[s1[r]][s1[s]]; type2 = pair[s1[elem_i]][s1[elem_j]];
-                    energy += P->MLclosing + E_MLstem(rtype[type], s1[s-1], s1[r+1], P);
-                    energy += (elem_i-r-1+s-elem_j-1-up_mis) * P->MLbase + E_MLstem(type2, s1[elem_i-1], s1[elem_j+1], P);
-                    energy -= E_IntLoop(elem_i-r-1, s-elem_j-1, type, rtype[type2], s1[r+1], s1[s-1], s1[elem_i-1], s1[elem_j+1], P);
+          case 1:   type = pair[s1[r]][s1[s]];
+                    type2 = pair[s1[elem_i]][s1[elem_j]];
+                    energy += P->MLclosing
+                              + E_MLstem(rtype[type], s1[s-1], s1[r+1], P)
+                              + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
+                              + E_MLstem(type2, s1[elem_i-1], s1[elem_j+1], P);
+                    energy -= E_IntLoop(elem_i - r - 1,
+                                        s - elem_j - 1,
+                                        type,
+                                        rtype[type2],
+                                        s1[r + 1],
+                                        s1[s - 1],
+                                        s1[elem_i - 1],
+                                        s1[elem_j + 1],
+                                        P);
                     break;
           /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
           default:  energy -= (up_mis) * P->MLbase;

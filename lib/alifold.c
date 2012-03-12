@@ -222,11 +222,11 @@ PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S
     length = strlen(sequences[0]);
     for (s=0; sequences[s] != NULL; s++);
     n_seq = s;
-    *S    = (short **)          space(n_seq * sizeof(short *));
-    *S5   = (short **)          space(n_seq * sizeof(short *));
-    *S3   = (short **)          space(n_seq * sizeof(short *));
-    *a2s  = (unsigned short **) space(n_seq * sizeof(unsigned short *));
-    *Ss   = (char **)           space(n_seq * sizeof(char *));
+    *S    = (short **)          space((n_seq+1) * sizeof(short *));
+    *S5   = (short **)          space((n_seq+1) * sizeof(short *));
+    *S3   = (short **)          space((n_seq+1) * sizeof(short *));
+    *a2s  = (unsigned short **) space((n_seq+1) * sizeof(unsigned short *));
+    *Ss   = (char **)           space((n_seq+1) * sizeof(char *));
     for (s=0; s<n_seq; s++) {
       if(strlen(sequences[s]) != length) nrerror("uneqal seqence lengths");
       (*S5)[s]  = (short *)         space((length + 2) * sizeof(short));
@@ -236,6 +236,11 @@ PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S
       (*S)[s]   = (short *)         space((length + 2) * sizeof(short));
       encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
     }
+    (*S5)[n_seq]  = NULL;
+    (*S3)[n_seq]  = NULL;
+    (*a2s)[n_seq] = NULL;
+    (*Ss)[n_seq]  = NULL;
+    (*S)[n_seq]   = NULL;
   }
   else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
 }
@@ -335,8 +340,8 @@ PRIVATE int fill_arrays(const char **strings) {
 #ifdef WITH_GQUADS
   cons_seq = consensus(strings);
   /* make g-island annotation of the consensus */
-  S_cons = encode_sequence(cons_seq, 1);
-  ggg = get_gquad_ali_matrix(S_cons, S, n_seq, pscore);
+  S_cons = encode_sequence(cons_seq, 0);
+  ggg = get_gquad_ali_matrix(S_cons, S, n_seq, P);
 #endif
 
   for (j=1; j<=length; j++){
@@ -932,7 +937,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       of the g-quadruplex that should reside within position i,j
     */
     {
-      int cnt1, cnt2, cnt3, cnt4, l1, l2, l3, L, size;
+      int cnt1, cnt2, cnt3, cnt4, l[3], L, size;
       size = j-i+1;
 
       for(L=0; L < VRNA_GQUAD_MIN_STACK_SIZE;L++){
@@ -945,41 +950,41 @@ PRIVATE void backtrack(const char **strings, int s) {
         for(; L<=VRNA_GQUAD_MAX_STACK_SIZE;L++){
           if(S_cons[i+L-1] != 3) break; /* break if no more consecutive G's 5' */
           if(S_cons[j-L+1] != 3) break; /* break if no more consecutive G'1 3' */
-          for(    l1 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                  (l1 <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-              &&  (size - 4*L - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - l1 >= 0);
-              l1++){
+          for(    l[0] = VRNA_GQUAD_MIN_LINKER_LENGTH;
+                  (l[0] <= VRNA_GQUAD_MAX_LINKER_LENGTH)
+              &&  (size - 4*L - 2*VRNA_GQUAD_MIN_LINKER_LENGTH - l[0] >= 0);
+              l[0]++){
             /* check whether we find the second stretch of consecutive G's */
-            for(cnt1 = 0; (cnt1 < L) && (S_cons[i+L+l1+cnt1] == 3); cnt1++);
+            for(cnt1 = 0; (cnt1 < L) && (S_cons[i+L+l[0]+cnt1] == 3); cnt1++);
             if(cnt1 < L) continue;
-            for(    l2 = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                    (l2 <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-                &&  (size - 4*L - VRNA_GQUAD_MIN_LINKER_LENGTH - l1 - l2 >= 0);
-                l2++){
+            for(    l[1] = VRNA_GQUAD_MIN_LINKER_LENGTH;
+                    (l[1] <= VRNA_GQUAD_MAX_LINKER_LENGTH)
+                &&  (size - 4*L - VRNA_GQUAD_MIN_LINKER_LENGTH - l[0] - l[1] >= 0);
+                l[1]++){
               /* check whether we find the third stretch of consectutive G's */
-              for(cnt1 = 0; (cnt1 < L) && (S_cons[i+2*L+l1+l2+cnt1] == 3); cnt1++);
+              for(cnt1 = 0; (cnt1 < L) && (S_cons[i+2*L+l[0]+l[1]+cnt1] == 3); cnt1++);
               if(cnt1 < L) continue;
 
               /*
                 the length of the third linker now depends on position j as well
                 as the other linker lengths... so we do not have to loop too much
               */
-              l3 = size - 4*L - l1 - l2;
-              if(l3 < VRNA_GQUAD_MIN_LINKER_LENGTH) break;
-              if(l3 > VRNA_GQUAD_MAX_LINKER_LENGTH) continue;
+              l[2] = size - 4*L - l[0] - l[1];
+              if(l[2] < VRNA_GQUAD_MIN_LINKER_LENGTH) break;
+              if(l[2] > VRNA_GQUAD_MAX_LINKER_LENGTH) continue;
               /* check for contribution */
-              if(ggg[indx[j]+i] == gquad_ali_contribution(i, L, l1, l2, l3, S, n_seq)){
+              if(ggg[indx[j]+i] == E_gquad_ali(i, L, l, (const short **)S, n_seq, P)){
                 int a;
                 /* fill the G's of the quadruplex into base_pair2 */
                 for(a=0;a<L;a++){
                   base_pair2[++b].i = i+a;
                   base_pair2[b].j   = i+a;
-                  base_pair2[++b].i = i+L+l1+a;
-                  base_pair2[b].j   = i+L+l1+a;
-                  base_pair2[++b].i = i+L+l1+L+l2+a;
-                  base_pair2[b].j   = i+L+l1+L+l2+a;
-                  base_pair2[++b].i = i+L+l1+L+l2+L+l3+a;
-                  base_pair2[b].j   = i+L+l1+L+l2+L+l3+a;
+                  base_pair2[++b].i = i+L+l[0]+a;
+                  base_pair2[b].j   = i+L+l[0]+a;
+                  base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
+                  base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
+                  base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+                  base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
                 }
                 goto repeat_gquad_exit;
               }
@@ -1293,7 +1298,7 @@ PRIVATE void en_corr_of_loop_gquad(int i,
     p = q - 4*L - l[0] - l[1] - l[2] + 1;
     if(q > j) break;
     /* we've found the first g-quadruplex at position [p,q] */
-    gquad_ali_contribution_en(q, L, l[0], l[1], l[2], (const short **)S, n_seq, gq_en);
+    E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
     energy    += gq_en[0];
     en_covar  += gq_en[1];
     /* check if it's enclosed in a base pair */
@@ -1342,17 +1347,26 @@ PRIVATE void en_corr_of_loop_gquad(int i,
         else if (structure[u-1] == '+'){ /* found another gquad */
           pos = parse_gquad(structure + u - 1, &L, l);
           if(pos > 0){
-            gquad_ali_contribution_en(u, L, l[0], l[1], l[2], (const short **)S, n_seq, gq_en);
-            energy += gq_en[0] + E_MLstem(0, -1, -1, P)*n_seq;
+            E_gquad_ali_en(u, L, l, (const short **)S, n_seq, gq_en, P);
+            energy += gq_en[0] + E_MLstem(0, -1, -1, P) * n_seq;
             en_covar += gq_en[1];
-            up_mis += pos - u + 1;
-            u += pos + 1;
+            up_mis += pos;
+            u += pos;
             num_g++;
           }
         } else { /* we must have found a stem */
           if(!(u < pt[u])) nrerror("wtf!");
-          num_elem++; elem_i = u; elem_j = pt[u];
-          en_corr_of_loop_gquad(u, pt[u], sequences, structure, pt, loop_idx, n_seq, gq_en);
+          num_elem++;
+          elem_i = u;
+          elem_j = pt[u];
+          en_corr_of_loop_gquad(u,
+                                pt[u],
+                                sequences,
+                                structure,
+                                pt,
+                                loop_idx,
+                                n_seq,
+                                gq_en);
           energy    += gq_en[0];
           en_covar  += gq_en[1];
           u = pt[u] + 1;
@@ -1362,9 +1376,10 @@ PRIVATE void en_corr_of_loop_gquad(int i,
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
-          case 0:   if(num_g == 1)
+          case 0:   /*if(num_g == 1)
                       if((p-r-1 == 0) || (s-q-1 == 0))
                         nrerror("too few unpaired bases");
+                    */
                     {
                       int ee = 0;
                       int cnt;
@@ -1372,7 +1387,12 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                         type = pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
                         if ((a2s[cnt][s-1]-a2s[cnt][r])<3) ee+=600;
-                        else ee += E_Hairpin(a2s[cnt][r-1]-a2s[cnt][s], type, S3[cnt][r], S5[cnt][s], Ss[cnt]+(a2s[cnt][r-1]), P);
+                        else ee += E_Hairpin( a2s[cnt][r-1] - a2s[cnt][s],
+                                              type,
+                                              S3[cnt][r],
+                                              S5[cnt][s],
+                                              Ss[cnt] + a2s[cnt][r-1],
+                                              P);
                       }
                       energy -= ee;
                       ee = 0;
@@ -1390,9 +1410,19 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       int ee = 0;
                       int cnt;
                       for(cnt = 0; cnt<n_seq;cnt++){
-                        type = pair[S[cnt][r]][S[cnt][s]]; if(type == 0) type = 7;
-                        type2 = pair[S[cnt][elem_j]][S[cnt][elem_i]]; if(type2 == 0) type2 = 7;
-                        ee += E_IntLoop(a2s[cnt][elem_i-1]-a2s[cnt][r], a2s[cnt][s-1]-a2s[cnt][elem_j], type, type2, S3[cnt][r], S5[cnt][s], S5[cnt][elem_i], S3[cnt][elem_j], P);
+                        type = pair[S[cnt][r]][S[cnt][s]];
+                        if(type == 0) type = 7;
+                        type2 = pair[S[cnt][elem_j]][S[cnt][elem_i]];
+                        if(type2 == 0) type2 = 7;
+                        ee += E_IntLoop(a2s[cnt][elem_i-1] - a2s[cnt][r],
+                                        a2s[cnt][s-1] - a2s[cnt][elem_j],
+                                        type,
+                                        type2,
+                                        S3[cnt][r],
+                                        S5[cnt][s],
+                                        S5[cnt][elem_i],
+                                        S3[cnt][elem_j],
+                                        P);
                       }
                       energy -= ee;
                       ee = 0;

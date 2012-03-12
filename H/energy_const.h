@@ -27,4 +27,9 @@
 /** The maximum loop length */
 #define MAXLOOP 30
 
+#ifdef WITH_GQUADS
+#define   VRNA_GQUAD_MISMATCH_PENALTY   300   /* penalty for incompatible nucleotides in an alignment that destruct a gquad layer */
+#define   VRNA_GQUAD_MISMATCH_NUM_ALI   1   /* maximum number of mismatching sequences in the alignment when gquad should be formed */
+#endif
+
 #endif

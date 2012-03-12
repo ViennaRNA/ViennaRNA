@@ -2,7 +2,6 @@
 #define __VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H__
 
 #include "energy_const.h"
-
 /**
  *  \file data_structures.h
  *  \brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
@@ -32,7 +31,14 @@
  */
 #define MAXDOS                1000
 
-
+#ifdef WITH_GQUADS
+#define   VRNA_GQUAD_MAX_STACK_SIZE     7
+#define   VRNA_GQUAD_MIN_STACK_SIZE     2
+#define   VRNA_GQUAD_MAX_LINKER_LENGTH  15
+#define   VRNA_GQUAD_MIN_LINKER_LENGTH  1
+#define   VRNA_GQUAD_MIN_BOX_SIZE       (4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH)
+#define   VRNA_GQUAD_MAX_BOX_SIZE       (4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH)
+#endif
 
 
 /*
@@ -149,6 +155,10 @@ typedef struct{
   int     TripleC;
   int     MultipleCA;
   int     MultipleCB;
+#ifdef WITH_GQUADS
+  int gquad [VRNA_GQUAD_MAX_STACK_SIZE + 1]
+            [3*VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+#endif
 
   double  temperature;            /**<  \brief  Temperature used for loop contribution scaling */
 
@@ -193,6 +203,10 @@ typedef struct{
   double  expTripleC;
   double  expMultipleCA;
   double  expMultipleCB;
+#ifdef WITH_GQUADS
+  double  expgquad[VRNA_GQUAD_MAX_STACK_SIZE + 1]
+                  [3*VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+#endif
 
   double  kT;
   double  pf_scale;     /**<  \brief    Scaling factor to avoid over-/underflows */
