@@ -1390,6 +1390,9 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
           "dup 0.3 mul 1 exch sub sethsbcolor\n"
           "} bind def\n\n");
 
+  fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
+  fprintf(wastl,"%%start of base pair probability data\n");
+
   /* print boxes */
    i=0;
    while (pi[i].j>0) {
@@ -1471,20 +1474,25 @@ PUBLIC int PS_dot_plot_list(char *seq,
   qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
   /* sort all gquad triangles by probability to bring lower probs to the front */
   qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+
+  /* print triangles for g-quadruplexes in upper half */
+  fprintf(wastl,"\n%%start of quadruplex data\n");
+  for (pl1=pl; pl1->type == 1; pl1++) {
+    tmp = sqrt(pl1->p);
+    fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+  }
 #endif
 
+  fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
+  fprintf(wastl,"%%start of base pair probability data\n");
+
   /* print boxes in upper right half*/
-  for (pl1=pl; pl1->i>0; pl1++) {
+  for (; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
-    switch(pl1->type){
-#ifdef WITH_GQUADS
-      case 1:     fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
-                  break;
-#endif
-      default:    fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
-                  break;
-    }
+    if(pl1->type == 0)
+        fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
   }
+
 
   /* print boxes in lower left half (mfe) */
   for (pl1=mf; pl1->i>0; pl1++) {
@@ -1568,6 +1576,12 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *wastlfile, int winSize) {
           "} bind def\n\n"
           "%%BEGIN DATA\n");
 
+  if(winSize > 0)
+    fprintf(wastl, "\n%%draw the grid\ndrawgrid_turn\n\n");
+  else
+    fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
+  fprintf(wastl,"%%start of base pair probability data\n");
+
   /* print boxes */
    i=0;
    while (pi[i].j>0) {
@@ -1598,19 +1612,24 @@ int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) 
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
+  if(winSize > 0)
+    fprintf(wastl, "\n%%draw the grid\ndrawgrid_turn\n\n");
+  else
+    fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
+  fprintf(wastl,"%%start of base pair probability data\n");
   /* print boxes */
-   i=0;
-   while (pl[i].j>0) {
-     fprintf(wastl,"%d %d %1.4f ubox\n",
-              pl[i].i, pl[i].j, sqrt(pl[i].p));
-     i++;
-   }
+  i=0;
+  while (pl[i].j>0) {
+    fprintf(wastl,"%d %d %1.4f ubox\n",
+            pl[i].i, pl[i].j, sqrt(pl[i].p));
+    i++;
+  }
 
-   fprintf(wastl,"showpage\n"
-           "end\n"
-           "%%%%EOF\n");
-   fclose(wastl);
-   return 1; /* success */
+  fprintf(wastl,"showpage\n"
+                "end\n"
+                "%%%%EOF\n");
+  fclose(wastl);
+  return 1; /* success */
 }
 
 static FILE * PS_dot_common(char *seq, char *wastlfile,
@@ -1675,16 +1694,14 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
     fprintf(wastl, "%s", RNAdp_prolog_turn);
     fprintf(wastl,"0.5 dup translate\n"
           "drawseq_turn\n"
-          "45 rotate\n"
-          "drawgrid_turn\n");
+          "45 rotate\n\n");
   }
   else
     fprintf(wastl,"drawseq\n"
             "0.5 dup translate\n"
             "%% draw diagonal\n"
             "0.04 setlinewidth\n"
-            "0 len moveto len 0 lineto stroke \n\n"
-            "drawgrid\n");
+            "0 len moveto len 0 lineto stroke \n\n");
   return(wastl);
 }
 
