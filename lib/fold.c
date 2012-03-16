@@ -577,6 +577,33 @@ PRIVATE int fill_arrays(const char *string) {
                             new_c   = MIN2(new_c, c0);
                           }
                         }
+                        p = i + 1;
+                        if(S1[p] == 3){
+                          if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                            minq  = j - i + p - MAXLOOP - 2;
+                            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                            minq  = MAX2(c0, minq);
+                            c0    = j - 3;
+                            maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                            maxq  = MIN2(c0, maxq);
+                            for(q = minq; q < maxq; q++){
+                              if(S1[q] != 3) continue;
+                              up  = (j - q - 1)*P->MLbase;
+                              c0  = energy + ggg[indx[q] + p] + up;
+                              new_c   = MIN2(new_c, c0);
+                            }
+                          }
+                        }
+                        q = j - 1;
+                        if(S1[q] == 3)
+                          for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                            l1    = p - i - 1;
+                            if(l1>MAXLOOP) break;
+                            if(S1[p] != 3) continue;
+                            up  = l1*P->MLbase;
+                            c0  = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
+                          }
                         break;
             case 2:     energy  = E_MLstem(tt, S1[j-1], S1[i+1], P)
                                   + P->MLclosing
@@ -598,8 +625,36 @@ PRIVATE int fill_arrays(const char *string) {
                             new_c   = MIN2(new_c, c0);
                           }
                         }
+                        p = i + 1;
+                        if(S1[p] == 3){
+                          if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                            minq  = j - i + p - MAXLOOP - 2;
+                            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                            minq  = MAX2(c0, minq);
+                            c0    = j - 3;
+                            maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                            maxq  = MIN2(c0, maxq);
+                            for(q = minq; q < maxq; q++){
+                              if(S1[q] != 3) continue;
+                              up  = (j - q - 1)*P->MLbase;
+                              c0  = energy + ggg[indx[q] + p] + up;
+                              new_c   = MIN2(new_c, c0);
+                            }
+                          }
+                        }
+                        q = j - 1;
+                        if(S1[q] == 3)
+                          for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                            l1    = p - i - 1;
+                            if(l1>MAXLOOP) break;
+                            if(S1[p] != 3) continue;
+                            up  = l1*P->MLbase;
+                            c0  = energy + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
+                          }
                         break;
-           default:     {
+           default:     { /* dangles == 1 || 3 */
+                          /* cases below may be made simpler */
                           int constellation0  = E_MLstem(tt, -1, -1, P)
                                                 + P->MLclosing
                                                 + E_MLstem(0, -1, -1, P);
@@ -628,10 +683,10 @@ PRIVATE int fill_arrays(const char *string) {
                             for(q = minq; q < maxq; q++){
                               if(S1[q] != 3) continue;
                               up  = (l1 + j - q - 1)*P->MLbase;
-                              c0  = ggg[indx[q] + p]        + constellation0;
-                              c1  = ggg[indx[q-1] + p]      + constellation1;
-                              c2  = ggg[indx[q] + p + 1]    + constellation2;
-                              c3  = ggg[indx[q-1] + p + 1]  + constellation3;
+                              c0  = ggg[indx[q] + p]        + constellation0 + up;
+                              c1  = ggg[indx[q-1] + p]      + constellation1 + up;
+                              c2  = ggg[indx[q] + p + 1]    + constellation2 + up;
+                              c3  = ggg[indx[q-1] + p + 1]  + constellation3 + up;
                               /* first case: no dangles contribute to the enclosing pair */
                               new_c = MIN2(new_c, c0);
                               new_c = MIN2(new_c, c1);
@@ -639,7 +694,46 @@ PRIVATE int fill_arrays(const char *string) {
                               new_c = MIN2(new_c, c3);
                             }
                           }
-                        }
+                          p = i + 1;
+                          if(S1[p] == 3){
+                            if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                              minq  = j - i + p - MAXLOOP - 2;
+                              c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                              minq  = MAX2(c0, minq);
+                              c0    = j - 3;
+                              maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                              maxq  = MIN2(c0, maxq);
+                              for(q = minq; q < maxq; q++){
+                                if(S1[q] != 3) continue;
+                                up  = (j - q - 1)*P->MLbase;
+                                c0  = ggg[indx[q] + p]        + constellation0 + up;
+                                c1  = ggg[indx[q-1] + p]      + constellation1 + up;
+                                c2  = ggg[indx[q] + p + 1]    + constellation2 + up;
+                                c3  = ggg[indx[q-1] + p + 1]  + constellation3 + up;
+                                new_c = MIN2(new_c, c0);
+                                new_c = MIN2(new_c, c1);
+                                new_c = MIN2(new_c, c2);
+                                new_c = MIN2(new_c, c3);
+                              }
+                            }
+                          }
+                          q = j - 1;
+                          if(S1[q] == 3)
+                            for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                              l1    = p - i - 1;
+                              if(l1>MAXLOOP) break;
+                              if(S1[p] != 3) continue;
+                              up  = l1*P->MLbase;
+                              c0  = ggg[indx[q] + p]        + constellation0 + up;
+                              c1  = ggg[indx[q-1] + p]      + constellation1 + up;
+                              c2  = ggg[indx[q] + p + 1]    + constellation2 + up;
+                              c3  = ggg[indx[q-1] + p + 1]  + constellation3 + up;
+                              new_c = MIN2(new_c, c0);
+                              new_c = MIN2(new_c, c1);
+                              new_c = MIN2(new_c, c2);
+                              new_c = MIN2(new_c, c3);
+                            }
+                          }
                         break;
           }
         }
@@ -1206,6 +1300,37 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                   }
                 }
+                p = i1;
+                if(S1[p] == 3){
+                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                    minq  = j - i + p - MAXLOOP - 2;
+                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    minq  = MAX2(c0, minq);
+                    c0    = j - 3;
+                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                    maxq  = MIN2(c0, maxq);
+                    for(q = minq; q < maxq; q++){
+                      if(S1[q] != 3) continue;
+                      int up  = (j - q - 1)*P->MLbase;
+                      if(cij == en + ggg[indx[q] + p] + up){
+                        i = p; j=q;
+                        goto repeat_gquad;
+                      }
+                    }
+                  }
+                }
+                q = j1;
+                if(S1[q] == 3)
+                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    l1    = p - i - 1;
+                    if(l1>MAXLOOP) break;
+                    if(S1[p] != 3) continue;
+                    int up  = l1*P->MLbase;
+                    if(cij == en + ggg[indx[q] + p] + up){
+                      i = p; j = q;
+                      goto repeat_gquad;
+                    }
+                  }
                 break;
       case 2:   en  = E_MLstem(tt, S1[j-1], S1[i+1], P)
                       + P->MLclosing
@@ -1230,6 +1355,37 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                   }
                 }
+                p = i1;
+                if(S1[p] == 3){
+                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                    minq  = j - i + p - MAXLOOP - 2;
+                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    minq  = MAX2(c0, minq);
+                    c0    = j - 3;
+                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                    maxq  = MIN2(c0, maxq);
+                    for(q = minq; q < maxq; q++){
+                      if(S1[q] != 3) continue;
+                      int up  = (j - q - 1)*P->MLbase;
+                      if(cij == en + ggg[indx[q] + p] + up){
+                        i = p; j=q;
+                        goto repeat_gquad;
+                      }
+                    }
+                  }
+                }
+                q = j1;
+                if(S1[q] == 3)
+                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    l1    = p - i - 1;
+                    if(l1>MAXLOOP) break;
+                    if(S1[p] != 3) continue;
+                    int up  = l1*P->MLbase;
+                    if(cij == en + ggg[indx[q] + p] + up){
+                      i = p; j = q;
+                      goto repeat_gquad;
+                    }
+                  }
                 break;
       default:  {
                   int constellation0  = E_MLstem(tt, -1, -1, P)
@@ -1258,25 +1414,81 @@ PRIVATE void backtrack(const char *string, int s) {
                     c0    = j - 1;
                     maxq  = MIN2(c0, maxq);
                     for(q = minq; q < maxq; q++){
+                      int up = (l1 + j - q - 1) * P->MLbase;
                       /* first case: no dangles contribute to the enclosing pair */
-                      if(cij == ggg[indx[q] + p] + constellation0){
+                      if(cij == ggg[indx[q] + p] + up + constellation0){
                         i=p;j=q;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q-1] + p] + constellation1){
+                      else if(cij == ggg[indx[q-1] + p] + up + constellation1){
                         i=p;j=q-1;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q] + p + 1] + constellation2){
+                      else if(cij == ggg[indx[q] + p + 1] + up + constellation2){
                         i=p+1;j=q;
                         goto repeat_gquad;
                       }
-                      else if(cij == ggg[indx[q-1] + p + 1] + constellation3){
+                      else if(cij == ggg[indx[q-1] + p + 1] + up + constellation3){
                         i=p+1;j=q-1;
                         goto repeat_gquad;
                       }
                     }
                   }
+                  p = i1;
+                  if(S1[p] == 3){
+                    if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                      minq  = j - i + p - MAXLOOP - 2;
+                      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                      minq  = MAX2(c0, minq);
+                      c0    = j - 3;
+                      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                      maxq  = MIN2(c0, maxq);
+                      for(q = minq; q < maxq; q++){
+                        if(S1[q] != 3) continue;
+                        int up  = (j - q - 1)*P->MLbase;
+                        if(cij == ggg[indx[q] + p] + up + constellation0){
+                          i = p; j=q;
+                          goto repeat_gquad;
+                        }
+                        else if(cij == ggg[indx[q-1] + p] + up + constellation1){
+                          i=p;j=q-1;
+                          goto repeat_gquad;
+                        }
+                        else if(cij == ggg[indx[q] + p + 1] + up + constellation2){
+                          i=p+1;j=q;
+                          goto repeat_gquad;
+                        }
+                        else if(cij == ggg[indx[q-1] + p + 1] + up + constellation3){
+                          i=p+1;j=q-1;
+                          goto repeat_gquad;
+                        }
+                      }
+                    }
+                  }
+                  q = j1;
+                  if(S1[q] == 3)
+                    for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                      l1    = p - i - 1;
+                      if(l1>MAXLOOP) break;
+                      if(S1[p] != 3) continue;
+                      int up  = l1*P->MLbase;
+                      if(cij == en + ggg[indx[q] + p] + up + constellation0){
+                        i = p; j = q;
+                        goto repeat_gquad;
+                      }
+                      else if(cij == ggg[indx[q-1] + p] + up + constellation1){
+                        i=p;j=q-1;
+                        goto repeat_gquad;
+                      }
+                      else if(cij == ggg[indx[q] + p + 1] + up + constellation2){
+                        i=p+1;j=q;
+                        goto repeat_gquad;
+                      }
+                      else if(cij == ggg[indx[q-1] + p + 1] + up + constellation3){
+                        i=p+1;j=q-1;
+                        goto repeat_gquad;
+                      }
+                    }
                 }
                 break;
     }

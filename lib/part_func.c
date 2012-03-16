@@ -121,7 +121,7 @@ PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 #ifdef WITH_GQUADS
 
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, init_length,\
+                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
                           circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained, G, Gj, Gj1)
 
 #else
@@ -431,6 +431,29 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
             temp += G[my_iindx[k]-l] * expMLbase[u1 + j - l - 1] * expMLstem;
           }
         }
+        k = i + 1;
+        if(S1[k] == 3){
+          if(k < j - VRNA_GQUAD_MIN_BOX_SIZE){
+            minl  = j - i + k - MAXLOOP - 2;
+            u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+            minl  = MAX2(u, minl);
+            u     = j - 3;
+            maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+            maxl  = MIN2(u, maxl);
+            for(l = minl; l < maxl; l++){
+              if(S1[l] != 3) continue;
+              temp += G[my_iindx[k]-l] * expMLbase[j - l - 1] * expMLstem;
+            }
+          }
+        }
+        l = j - 1;
+        if(S1[l] == 3)
+          for(k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+            u    = k - i - 1;
+            if(u>MAXLOOP) break;
+            if(S1[k] != 3) continue;
+            temp += G[my_iindx[k]-l] * expMLbase[u] * expMLstem;
+          }
 #endif 
         tt = rtype[type];
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
@@ -728,7 +751,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
-        kl = iindx[k]-l;
+        kl = my_iindx[k]-l;
         type_2 = ptype[kl]; 
         if (type_2==0) continue;
         type_2 = rtype[type_2];
@@ -759,7 +782,44 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
 #ifdef WITH_GQUADS
       /* 2.5. bonding k,l as gquad enclosed by i,j */
-      if(l<n-1)
+      if(l < n - 3){
+        for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+          kl = my_iindx[k]-l;
+          if (G[kl]==0.) continue;
+          tmp2 = 0.;
+          i = k - 1;
+          for(j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--){
+            ij = my_iindx[i] - j;
+            type = ptype[ij];
+            if(!type) continue;
+            tmp2 += probs[ij]
+                    * expMLbase[j-l-1]
+                    * exp_E_MLstem(rtype[type], S1[j-1], S1[i+1], pf_params)
+                    * scale[2];
+          }
+          probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
+        }
+      }
+
+      if(l < n){
+        for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+          kl = my_iindx[k]-l;
+          if (G[kl]==0.) continue;
+          tmp2 = 0.;
+          j = l + 1;
+          for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
+            ij = my_iindx[i] - j;
+            type = ptype[ij];
+            if(!type) continue;
+            tmp2 += probs[ij]
+                    * expMLbase[k - i - 1]
+                    * exp_E_MLstem(rtype[type], S1[j-1], S1[i+1], pf_params)
+                    * scale[2];
+          }
+          probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
+        }
+      }
+      if (l < n - 1){
         for (k=3; k<=l-VRNA_GQUAD_MIN_BOX_SIZE; k++) {
           kl = my_iindx[k]-l;
           if (G[kl]==0.) continue;
@@ -778,6 +838,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
           }
           probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
         }
+      }
 #endif
 
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */

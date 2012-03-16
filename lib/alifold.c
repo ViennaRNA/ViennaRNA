@@ -354,7 +354,7 @@ PRIVATE int fill_arrays(const char **strings) {
   /* begin recursions */
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
     for (j = i+TURN+1; j <= length; j++) {
-      int ij, psc;
+      int ij, psc, l1, maxq, minq, up, c0;
       ij = indx[j]+i;
 
       for (s=0; s<n_seq; s++) {
@@ -378,7 +378,7 @@ PRIVATE int fill_arrays(const char **strings) {
           --------------------------------------------------------*/
 
         for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-          int minq = j-i+p-MAXLOOP-2;
+          minq = j-i+p-MAXLOOP-2;
           if (minq<p+1+TURN) minq = p+1+TURN;
           for (q = minq; q < j; q++) {
             if (pscore[indx[q]+p]<MINPSCORE) continue;
@@ -423,18 +423,45 @@ PRIVATE int fill_arrays(const char **strings) {
                           p < j - VRNA_GQUAD_MIN_BOX_SIZE;
                           p++){
                         if(S_cons[p] != 3) continue;
-                        int minq = j-i+p-MAXLOOP-2;
-                        int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                        int l1    = p - i - 1;
+                        minq  = j-i+p-MAXLOOP-2;
+                        maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                        l1    = p - i - 1;
                         if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                           minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                         for(q = minq; q < maxq; q++){
                           if(S_cons[q] != 3) continue;
-                          int up  = (l1 + j - q - 1)*P->MLbase;
-                          int c   = decomp + ggg[indx[q] + p] + up*n_seq;
-                          new_c   = MIN2(new_c, c);
+                          up    = (l1 + j - q - 1)*P->MLbase*n_seq;
+                          c0    = decomp + ggg[indx[q] + p] + up;
+                          new_c = MIN2(new_c, c0);
                         }
                       }
+                      p = i + 1;
+                      if(S_cons[p] == 3){
+                        if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                          minq  = j - i + p - MAXLOOP - 2;
+                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          minq  = MAX2(c0, minq);
+                          c0    = j - 3;
+                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                          maxq  = MIN2(c0, maxq);
+                          for(q = minq; q < maxq; q++){
+                            if(S_cons[q] != 3) continue;
+                            up  = (j - q - 1)*P->MLbase*n_seq;
+                            c0  = decomp + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
+                          }
+                        }
+                      }
+                      q = j - 1;
+                      if(S_cons[q] == 3)
+                        for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          l1    = p - i - 1;
+                          if(l1>MAXLOOP) break;
+                          if(S_cons[p] != 3) continue;
+                          up  = l1*P->MLbase*n_seq;
+                          c0  = decomp + ggg[indx[q] + p] + up;
+                          new_c   = MIN2(new_c, c0);
+                        }
                       break;
           case 2:     decomp = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                       for(s=0;s<n_seq;s++){
@@ -445,18 +472,45 @@ PRIVATE int fill_arrays(const char **strings) {
                           p < j - VRNA_GQUAD_MIN_BOX_SIZE;
                           p++){
                         if(S_cons[p] != 3) continue;
-                        int minq = j-i+p-MAXLOOP-2;
-                        int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                        int l1    = p - i - 1;
+                        minq  = j-i+p-MAXLOOP-2;
+                        maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                        l1    = p - i - 1;
                         if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                           minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                         for(q = minq; q < maxq; q++){
                           if(S_cons[q] != 3) continue;
-                          int up  = (l1 + j - q - 1)*P->MLbase;
-                          int c   = decomp + ggg[indx[q] + p] + up*n_seq;
-                          new_c   = MIN2(new_c, c);
+                          up    = (l1 + j - q - 1)*P->MLbase*n_seq;
+                          c0    = decomp + ggg[indx[q] + p] + up;
+                          new_c = MIN2(new_c, c0);
                         }
                       }
+                      p = i + 1;
+                      if(S_cons[p] == 3){
+                        if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                          minq  = j - i + p - MAXLOOP - 2;
+                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                          minq  = MAX2(c0, minq);
+                          c0    = j - 3;
+                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                          maxq  = MIN2(c0, maxq);
+                          for(q = minq; q < maxq; q++){
+                            if(S_cons[q] != 3) continue;
+                            up  = (j - q - 1)*P->MLbase*n_seq;
+                            c0  = decomp + ggg[indx[q] + p] + up;
+                            new_c   = MIN2(new_c, c0);
+                          }
+                        }
+                      }
+                      q = j - 1;
+                      if(S_cons[q] == 3)
+                        for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                          l1    = p - i - 1;
+                          if(l1>MAXLOOP) break;
+                          if(S_cons[p] != 3) continue;
+                          up  = l1*P->MLbase*n_seq;
+                          c0  = decomp + ggg[indx[q] + p] + up;
+                          new_c   = MIN2(new_c, c0);
+                        }
                       break;
         }
 #endif
@@ -600,7 +654,7 @@ PRIVATE void backtrack(const char **strings, int s) {
     ------------------------------------------------------------------*/
    /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
-  int   i, j, k, p, q, length, energy;
+  int   i, j, k, p, q, length, energy, up, c0, l1, minq, maxq;
   int   type_2, tt, mm;
   int   b=0, cov_en = 0;
   int   n_seq;
@@ -802,7 +856,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       continue;
     }
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
-      int minq = j-i+p-MAXLOOP-2;
+      minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
 
@@ -852,23 +906,52 @@ PRIVATE void backtrack(const char **strings, int s) {
                     p < j - VRNA_GQUAD_MIN_BOX_SIZE;
                     p++){
                   if(S_cons[p] != 3) continue;
-                  int minq = j-i+p-MAXLOOP-2;
-                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  int l1    = p - i - 1;
+                  minq  = j-i+p-MAXLOOP-2;
+                  maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                  l1    = p - i - 1;
                   if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                     minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                   for(q = minq; q < maxq; q++){
                     if(S_cons[q] != 3) continue;
-                    int up  = (l1 + j - q - 1)*P->MLbase;
-                    int c   = mm + ggg[indx[q] + p] + up*n_seq;
-                    if(cij == c){
-                      /* go to backtracing of quadruplex */
-                      /* here we really need a goto to jump out of the loop as well as the switch */
+                    up  = (l1 + j - q - 1)*P->MLbase*n_seq;
+                    c0  = mm + ggg[indx[q] + p] + up;
+                    if(cij == c0){
                       i=p;j=q;
                       goto repeat_gquad;
                     }
                   }
                 }
+                p = i1;
+                if(S_cons[p] == 3){
+                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                    minq  = j - i + p - MAXLOOP - 2;
+                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    minq  = MAX2(c0, minq);
+                    c0    = j - 3;
+                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                    maxq  = MIN2(c0, maxq);
+                    for(q = minq; q < maxq; q++){
+                      if(S_cons[q] != 3) continue;
+                      up  = (j - q - 1)*P->MLbase*n_seq;
+                      if(cij == mm + ggg[indx[q] + p] + up){
+                        i = p; j=q;
+                        goto repeat_gquad;
+                      }
+                    }
+                  }
+                }
+                q = j1;
+                if(S_cons[q] == 3)
+                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    l1    = p - i - 1;
+                    if(l1>MAXLOOP) break;
+                    if(S_cons[p] != 3) continue;
+                    up  = l1*P->MLbase*n_seq;
+                    if(cij == mm + ggg[indx[q] + p] + up){
+                      i = p; j = q;
+                      goto repeat_gquad;
+                    }
+                  }
                 break;
       default:  mm = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
                 for(s=0;s<n_seq;s++){
@@ -879,23 +962,52 @@ PRIVATE void backtrack(const char **strings, int s) {
                     p < j - VRNA_GQUAD_MIN_BOX_SIZE;
                     p++){
                   if(S_cons[p] != 3) continue;
-                  int minq = j-i+p-MAXLOOP-2;
-                  int maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  int l1    = p - i - 1;
+                  minq  = j-i+p-MAXLOOP-2;
+                  maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
+                  l1    = p - i - 1;
                   if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
                     minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                   for(q = minq; q < maxq; q++){
                     if(S_cons[q] != 3) continue;
-                    int up  = (l1 + j - q - 1)*P->MLbase;
-                    int c   = mm + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up*n_seq;
-                    if(cij == c){
-                      /* go to backtracing of quadruplex */
-                      /* here we really need a goto to jump out of the loop as well as the switch */
+                    up  = (l1 + j - q - 1)*P->MLbase*n_seq;
+                    c0  = mm + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up;
+                    if(cij == c0){
                       i=p;j=q;
                       goto repeat_gquad;
                     }
                   }
                 }
+                p = i1;
+                if(S_cons[p] == 3){
+                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                    minq  = j - i + p - MAXLOOP - 2;
+                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                    minq  = MAX2(c0, minq);
+                    c0    = j - 3;
+                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                    maxq  = MIN2(c0, maxq);
+                    for(q = minq; q < maxq; q++){
+                      if(S_cons[q] != 3) continue;
+                      up  = (j - q - 1)*P->MLbase*n_seq;
+                      if(cij == mm + ggg[indx[q] + p] + up){
+                        i = p; j=q;
+                        goto repeat_gquad;
+                      }
+                    }
+                  }
+                }
+                q = j1;
+                if(S_cons[q] == 3)
+                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                    l1    = p - i - 1;
+                    if(l1>MAXLOOP) break;
+                    if(S_cons[p] != 3) continue;
+                    up  = l1*P->MLbase*n_seq;
+                    if(cij == mm + ggg[indx[q] + p] + up){
+                      i = p; j = q;
+                      goto repeat_gquad;
+                    }
+                  }
                 break;
     }
 #endif
