@@ -413,106 +413,55 @@ PRIVATE int fill_arrays(const char **strings) {
 
 #ifdef WITH_GQUADS
         decomp = 0;
-        switch(dangles){
-          case 0:     decomp = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
-                      for(s=0;s<n_seq;s++){
-                        tt = rtype[type[s]];
-                        decomp += E_MLstem(tt, -1, -1, P);
-                      }
-                      for(p = i + 2;
-                          p < j - VRNA_GQUAD_MIN_BOX_SIZE;
-                          p++){
-                        if(S_cons[p] != 3) continue;
-                        minq  = j-i+p-MAXLOOP-2;
-                        maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                        l1    = p - i - 1;
-                        if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                          minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                        for(q = minq; q < maxq; q++){
-                          if(S_cons[q] != 3) continue;
-                          up    = (l1 + j - q - 1)*P->MLbase*n_seq;
-                          c0    = decomp + ggg[indx[q] + p] + up;
-                          new_c = MIN2(new_c, c0);
-                        }
-                      }
-                      p = i + 1;
-                      if(S_cons[p] == 3){
-                        if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
-                          minq  = j - i + p - MAXLOOP - 2;
-                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                          minq  = MAX2(c0, minq);
-                          c0    = j - 3;
-                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                          maxq  = MIN2(c0, maxq);
-                          for(q = minq; q < maxq; q++){
-                            if(S_cons[q] != 3) continue;
-                            up  = (j - q - 1)*P->MLbase*n_seq;
-                            c0  = decomp + ggg[indx[q] + p] + up;
-                            new_c   = MIN2(new_c, c0);
-                          }
-                        }
-                      }
-                      q = j - 1;
-                      if(S_cons[q] == 3)
-                        for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                          l1    = p - i - 1;
-                          if(l1>MAXLOOP) break;
-                          if(S_cons[p] != 3) continue;
-                          up  = l1*P->MLbase*n_seq;
-                          c0  = decomp + ggg[indx[q] + p] + up;
-                          new_c   = MIN2(new_c, c0);
-                        }
-                      break;
-          case 2:     decomp = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
-                      for(s=0;s<n_seq;s++){
-                        tt = rtype[type[s]];
-                        decomp += E_MLstem(tt, S[s][j-1], S[s][i+1], P);
-                      }
-                      for(p = i + 2;
-                          p < j - VRNA_GQUAD_MIN_BOX_SIZE;
-                          p++){
-                        if(S_cons[p] != 3) continue;
-                        minq  = j-i+p-MAXLOOP-2;
-                        maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                        l1    = p - i - 1;
-                        if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                          minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                        for(q = minq; q < maxq; q++){
-                          if(S_cons[q] != 3) continue;
-                          up    = (l1 + j - q - 1)*P->MLbase*n_seq;
-                          c0    = decomp + ggg[indx[q] + p] + up;
-                          new_c = MIN2(new_c, c0);
-                        }
-                      }
-                      p = i + 1;
-                      if(S_cons[p] == 3){
-                        if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
-                          minq  = j - i + p - MAXLOOP - 2;
-                          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                          minq  = MAX2(c0, minq);
-                          c0    = j - 3;
-                          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                          maxq  = MIN2(c0, maxq);
-                          for(q = minq; q < maxq; q++){
-                            if(S_cons[q] != 3) continue;
-                            up  = (j - q - 1)*P->MLbase*n_seq;
-                            c0  = decomp + ggg[indx[q] + p] + up;
-                            new_c   = MIN2(new_c, c0);
-                          }
-                        }
-                      }
-                      q = j - 1;
-                      if(S_cons[q] == 3)
-                        for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                          l1    = p - i - 1;
-                          if(l1>MAXLOOP) break;
-                          if(S_cons[p] != 3) continue;
-                          up  = l1*P->MLbase*n_seq;
-                          c0  = decomp + ggg[indx[q] + p] + up;
-                          new_c   = MIN2(new_c, c0);
-                        }
-                      break;
+        for(s=0;s<n_seq;s++){
+          tt = type[s];
+          if(dangles == 2)
+            decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+          if(tt > 2)
+            decomp += P->TerminalAU;
         }
+        for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+          l1    = p - i - 1;
+          if(l1>MAXLOOP) break;
+          if(S_cons[p] != 3) continue;
+          minq  = j - i + p - MAXLOOP - 2;
+          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+          minq  = MAX2(c0, minq);
+          c0    = j - 1;
+          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+          maxq  = MIN2(c0, maxq);
+          for(q = minq; q < maxq; q++){
+            if(S_cons[q] != 3) continue;
+            c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
+            new_c = MIN2(new_c, c0);
+          }
+        }
+
+        p = i + 1;
+        if(S_cons[p] == 3){
+          if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+            minq  = j - i + p - MAXLOOP - 2;
+            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+            minq  = MAX2(c0, minq);
+            c0    = j - 3;
+            maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+            maxq  = MIN2(c0, maxq);
+            for(q = minq; q < maxq; q++){
+              if(S_cons[q] != 3) continue;
+              c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
+              new_c   = MIN2(new_c, c0);
+            }
+          }
+        }
+        q = j - 1;
+        if(S_cons[q] == 3)
+          for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+            l1    = p - i - 1;
+            if(l1>MAXLOOP) break;
+            if(S_cons[p] != 3) continue;
+            c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
+            new_c   = MIN2(new_c, c0);
+          }
 #endif
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
@@ -896,120 +845,66 @@ PRIVATE void backtrack(const char **strings, int s) {
       kind and the enclosed pair is not a canonical one but a g-quadruplex
       that should then be decomposed further...
     */
-    switch(dangles){
-      case 0:   mm = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
-                for(s=0;s<n_seq;s++){
-                  tt = rtype[type[s]];
-                  mm += E_MLstem(tt, -1, -1, P);
-                }
-                for(p = i + 2;
-                    p < j - VRNA_GQUAD_MIN_BOX_SIZE;
-                    p++){
-                  if(S_cons[p] != 3) continue;
-                  minq  = j-i+p-MAXLOOP-2;
-                  maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  l1    = p - i - 1;
-                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                  for(q = minq; q < maxq; q++){
-                    if(S_cons[q] != 3) continue;
-                    up  = (l1 + j - q - 1)*P->MLbase*n_seq;
-                    c0  = mm + ggg[indx[q] + p] + up;
-                    if(cij == c0){
-                      i=p;j=q;
-                      goto repeat_gquad;
-                    }
-                  }
-                }
-                p = i1;
-                if(S_cons[p] == 3){
-                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
-                    minq  = j - i + p - MAXLOOP - 2;
-                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                    minq  = MAX2(c0, minq);
-                    c0    = j - 3;
-                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                    maxq  = MIN2(c0, maxq);
-                    for(q = minq; q < maxq; q++){
-                      if(S_cons[q] != 3) continue;
-                      up  = (j - q - 1)*P->MLbase*n_seq;
-                      if(cij == mm + ggg[indx[q] + p] + up){
-                        i = p; j=q;
-                        goto repeat_gquad;
-                      }
-                    }
-                  }
-                }
-                q = j1;
-                if(S_cons[q] == 3)
-                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                    l1    = p - i - 1;
-                    if(l1>MAXLOOP) break;
-                    if(S_cons[p] != 3) continue;
-                    up  = l1*P->MLbase*n_seq;
-                    if(cij == mm + ggg[indx[q] + p] + up){
-                      i = p; j = q;
-                      goto repeat_gquad;
-                    }
-                  }
-                break;
-      default:  mm = n_seq*(P->MLclosing + E_MLstem(0, -1, -1, P));
-                for(s=0;s<n_seq;s++){
-                  tt = rtype[type[s]];
-                  mm += E_MLstem(tt, S[s][j-1], S[s][i+1], P);
-                }
-                for(p = i + 2;
-                    p < j - VRNA_GQUAD_MIN_BOX_SIZE;
-                    p++){
-                  if(S_cons[p] != 3) continue;
-                  minq  = j-i+p-MAXLOOP-2;
-                  maxq  = MIN2(j-1, p + VRNA_GQUAD_MAX_BOX_SIZE+1);
-                  l1    = p - i - 1;
-                  if (minq < p + VRNA_GQUAD_MIN_BOX_SIZE - 1)
-                    minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                  for(q = minq; q < maxq; q++){
-                    if(S_cons[q] != 3) continue;
-                    up  = (l1 + j - q - 1)*P->MLbase*n_seq;
-                    c0  = mm + ggg[indx[q] + p] + E_MLstem(0, -1, -1, P) + up;
-                    if(cij == c0){
-                      i=p;j=q;
-                      goto repeat_gquad;
-                    }
-                  }
-                }
-                p = i1;
-                if(S_cons[p] == 3){
-                  if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
-                    minq  = j - i + p - MAXLOOP - 2;
-                    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                    minq  = MAX2(c0, minq);
-                    c0    = j - 3;
-                    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                    maxq  = MIN2(c0, maxq);
-                    for(q = minq; q < maxq; q++){
-                      if(S_cons[q] != 3) continue;
-                      up  = (j - q - 1)*P->MLbase*n_seq;
-                      if(cij == mm + ggg[indx[q] + p] + up){
-                        i = p; j=q;
-                        goto repeat_gquad;
-                      }
-                    }
-                  }
-                }
-                q = j1;
-                if(S_cons[q] == 3)
-                  for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                    l1    = p - i - 1;
-                    if(l1>MAXLOOP) break;
-                    if(S_cons[p] != 3) continue;
-                    up  = l1*P->MLbase*n_seq;
-                    if(cij == mm + ggg[indx[q] + p] + up){
-                      i = p; j = q;
-                      goto repeat_gquad;
-                    }
-                  }
-                break;
+    mm = 0;
+    for(s=0;s<n_seq;s++){
+      tt = type[s];
+      if(tt == 0) tt = 7;
+      if(dangles == 2)
+        mm += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+      if(tt > 2)
+        mm += P->TerminalAU;
     }
+
+    for(p = i + 2;
+      p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+      p++){
+      if(S_cons[p] != 3) continue;
+      l1    = p - i - 1;
+      if(l1>MAXLOOP) break;
+      minq  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minq  = MAX2(c0, minq);
+      c0    = j - 1;
+      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxq  = MIN2(c0, maxq);
+      for(q = minq; q < maxq; q++){
+        if(S_cons[q] != 3) continue;
+        c0  = mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
+        if(cij == c0){
+          i=p;j=q;
+          goto repeat_gquad;
+        }
+      }
+    }
+    p = i1;
+    if(S_cons[p] == 3){
+      if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+        minq  = j - i + p - MAXLOOP - 2;
+        c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+        minq  = MAX2(c0, minq);
+        c0    = j - 3;
+        maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+        maxq  = MIN2(c0, maxq);
+        for(q = minq; q < maxq; q++){
+          if(S_cons[q] != 3) continue;
+          if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1]){
+            i = p; j=q;
+            goto repeat_gquad;
+          }
+        }
+      }
+    }
+    q = j1;
+    if(S_cons[q] == 3)
+      for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+        l1    = p - i - 1;
+        if(l1>MAXLOOP) break;
+        if(S_cons[p] != 3) continue;
+        if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1]){
+          i = p; j = q;
+          goto repeat_gquad;
+        }
+      }
 #endif
 
     mm = n_seq*P->MLclosing;
@@ -1484,7 +1379,7 @@ PRIVATE void en_corr_of_loop_gquad(int i,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) nrerror("what the hell");
+      if(u!=s) nrerror("what the ...");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
@@ -1499,7 +1394,7 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                         type = pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
                         if ((a2s[cnt][s-1]-a2s[cnt][r])<3) ee+=600;
-                        else ee += E_Hairpin( a2s[cnt][r-1] - a2s[cnt][s],
+                        else ee += E_Hairpin( a2s[cnt][s-1] - a2s[cnt][r],
                                               type,
                                               S3[cnt][r],
                                               S5[cnt][s],
@@ -1509,13 +1404,16 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       energy -= ee;
                       ee = 0;
                       for(cnt=0;cnt < n_seq; cnt++){
-                        type = pair[S[cnt][s]][S[cnt][r]];
+                        type = pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
-                        ee += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+                        if(dangles == 2)
+                          ee += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
+                        if(type > 2)
+                          ee += P->TerminalAU;
                       }
                       energy += ee;
                     }
-                    energy += (P->MLclosing + (s-r-1-up_mis)*P->MLbase) * n_seq;
+                    energy += n_seq * P->internal_loop[s-r-1-up_mis];
                     break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
           case 1:   {
@@ -1598,7 +1496,6 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
 
     pt = make_pair_table(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
-
     loop_idx    = make_loop_index_pt(pt);
     en_corr_of_loop_gquad(1, n, sequences, structure, pt, loop_idx, n_seq, gge);
     en_struct[0] += gge[0];

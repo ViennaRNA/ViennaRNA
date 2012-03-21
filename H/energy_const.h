@@ -13,7 +13,7 @@
 /** 0 deg Celsius in Kelvin */
 #define K0  273.15
 /** Infinity as used in minimization routines */
-#define INF (INT_MAX/10)
+#define INF 10000000 /* (INT_MAX/10) */
 
 #define EMAX (INF/10)
 /** forbidden */

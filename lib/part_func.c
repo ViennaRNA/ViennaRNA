@@ -413,50 +413,11 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
         temp = 0.0;
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
-#ifdef WITH_GQUADS
-        for(k = i + 2;
-            k <= j - VRNA_GQUAD_MIN_BOX_SIZE;
-            k++){
-          u1 = k - i - 1;
-          if(u1 > MAXLOOP) break;
-          if(S1[k] != 3) continue;
-          minl  = j - i + k - MAXLOOP - 2;
-          u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-          minl  = MAX2(u, minl);
-          maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-          u     = j - 1;
-          maxl  = MIN2(u, maxl);
-          for(l = minl; l < maxl; l++){
-            if(S1[l] != 3) continue;
-            temp += G[my_iindx[k]-l] * expMLbase[u1 + j - l - 1] * expMLstem;
-          }
-        }
-        k = i + 1;
-        if(S1[k] == 3){
-          if(k < j - VRNA_GQUAD_MIN_BOX_SIZE){
-            minl  = j - i + k - MAXLOOP - 2;
-            u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-            minl  = MAX2(u, minl);
-            u     = j - 3;
-            maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-            maxl  = MIN2(u, maxl);
-            for(l = minl; l < maxl; l++){
-              if(S1[l] != 3) continue;
-              temp += G[my_iindx[k]-l] * expMLbase[j - l - 1] * expMLstem;
-            }
-          }
-        }
-        l = j - 1;
-        if(S1[l] == 3)
-          for(k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++){
-            u    = k - i - 1;
-            if(u>MAXLOOP) break;
-            if(S1[k] != 3) continue;
-            temp += G[my_iindx[k]-l] * expMLbase[u] * expMLstem;
-          }
-#endif 
         tt = rtype[type];
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+#ifdef WITH_GQUADS
+        qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params) * scale[2];
+#endif 
         qb[ij] = qbt1;
       }
       /* end if (type!=0) */
@@ -782,6 +743,8 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
 #ifdef WITH_GQUADS
       /* 2.5. bonding k,l as gquad enclosed by i,j */
+      FLT_OR_DBL *expintern    = &(pf_params->expinternal[0]);
+
       if(l < n - 3){
         for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
           kl = my_iindx[k]-l;
@@ -792,12 +755,9 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
             ij = my_iindx[i] - j;
             type = ptype[ij];
             if(!type) continue;
-            tmp2 += probs[ij]
-                    * expMLbase[j-l-1]
-                    * exp_E_MLstem(rtype[type], S1[j-1], S1[i+1], pf_params)
-                    * scale[2];
+            tmp2 += probs[ij] * expintern[j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
           }
-          probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
+          probs[kl] += tmp2 * G[kl];
         }
       }
 
@@ -811,14 +771,12 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
             ij = my_iindx[i] - j;
             type = ptype[ij];
             if(!type) continue;
-            tmp2 += probs[ij]
-                    * expMLbase[k - i - 1]
-                    * exp_E_MLstem(rtype[type], S1[j-1], S1[i+1], pf_params)
-                    * scale[2];
+            tmp2 += probs[ij] * expintern[k - i - 1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
           }
-          probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
+          probs[kl] += tmp2 * G[kl];
         }
       }
+
       if (l < n - 1){
         for (k=3; k<=l-VRNA_GQUAD_MIN_BOX_SIZE; k++) {
           kl = my_iindx[k]-l;
@@ -830,13 +788,10 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
               ij = my_iindx[i] - j;
               type = ptype[ij];
               if(!type) continue;
-              tmp2 += probs[ij]
-                      * expMLbase[u1+j-l-1]
-                      * exp_E_MLstem(rtype[type], S1[j-1], S1[i+1], pf_params)
-                      * scale[2];
+              tmp2 += probs[ij] * expintern[u1+j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
             }
           }
-          probs[kl] += tmp2 * G[kl] * expMLstem * expMLclosing;
+          probs[kl] += tmp2 * G[kl];
         }
       }
 #endif
