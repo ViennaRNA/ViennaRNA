@@ -13,12 +13,13 @@ Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
 Group:          Applications/Engineering
 License:        Free for non commercial use.
 URL:            http://www.tbi.univie.ac.at/~ivo/RNA/
-Source0:        %{name}-%{version}.tar.gz
+Source0:        http://www.tbi.univie.ac.at/~ronny/programs/%{name}-%{version}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:  perl gcc glibc-devel gd-devel info
 Requires:       perl libstdc++ glibc gd info
-Provides:       libRNA.a
+Provides:       libRNA.a = %{version}-%{release}
+Provides:       Kinfold
 
 %define manifest %{_builddir}/%{name}-%{version}-%{release}.manifest
 
@@ -33,7 +34,7 @@ structures, and the design of RNA sequences with a desired structure.
 %setup -q
 
 %build
-%configure --with-cluster --without-forester --prefix=$RPM_BUILD_ROOT/usr/
+%configure --with-cluster --without-forester --prefix=/usr/
 cd Perl
 perl Makefile.PL INSTALLDIRS=vendor
 cd ..
@@ -63,7 +64,17 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{manifest}
 %defattr(-,root,root,-)
 
+%docdir doc
+/usr/share/doc/ViennaRNA
+
 %changelog
+* Mon Mar 26 2012 Ronny Lorenz <ronny@tbi.univie.ac.at>
+- Restored z-score computation capabilities for RNALfold
+* Thu Mar 08 2012 Ronny Lorenz <ronny@tbi.univie.ac.at>
+- Introduced new threadsafety for several folding recursions
+- Boltzmann factor scaling for RNAfold, RNAsubopt, RNAalifold, RNAplfold and RNAcofold
+- Plugged several memory leaks
+- Fixed fastaheader to filename bug
 * Tue Jan 18 2011 Ronny Lorenz <ronny@tbi.univie.ac.at>
 - created first rpm version of Vienna RNA Package 2.0
 - Energy model for all secondary structure folding algorithms has changed!
