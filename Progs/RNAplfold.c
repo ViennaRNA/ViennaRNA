@@ -205,8 +205,14 @@ int main(int argc, char *argv[]){
     */
 
     if(length > 1000000){
-      if(!simply_putout)  printf("Switched to simple output mode!!!\n");
-      simply_putout=1;
+      if(!simply_putout && !unpaired){
+        printf("Switched to simple output mode!!!\n");
+        simply_putout = 1;
+      }
+    }
+    if(unpaired && simply_putout){
+      printf("Output simplification not possible if unpaired is switched on\n");
+      simply_putout = 0;
     }
 
     /* restore winsize if altered before */

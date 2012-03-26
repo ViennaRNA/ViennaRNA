@@ -330,6 +330,7 @@ AC_RNA_PACKAGE_IF_ENABLED([cluster],[
 AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
+  AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
 ])
 
 AM_CONDITIONAL(WITH_LARGE_PF, test "$with_pf_float" != "yes")
