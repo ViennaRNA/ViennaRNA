@@ -442,7 +442,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
       } /* switch(dangles)... */
 
       /* backtrack partial structure */
-      if (f3[i] != f3[i+1]) do_backtrack=1;
+      if (f3[i] != f3[i+1] && (f3[i+1] < 0)) do_backtrack=1;
       else if (do_backtrack) {
         int pairpartner; /*i+1?? is paired with pairpartner*/
         int en, cc;
@@ -573,7 +573,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
             else
               printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
           }
-        } else do_backtrack=1;
+        } else if (f3[i]<0)do_backtrack=1;
 
         if (do_backtrack) {
           int pairpartner; /*i+1?? is paired with pairpartner*/
@@ -583,8 +583,8 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           int info_avg;
           double my_z;
           int traced2 = 0;
-          fij = f3[i+1];
-          lind=i+1;
+          fij = f3[i];
+          lind=i;
           while(fij==f3[lind+1]) lind++;
 
           /*get pairpartner*/
@@ -658,7 +658,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
 #endif
           }
           else {
-            ss =  backtrack(string, lind , pairpartner + 1);
+            ss =  backtrack(string, lind , pairpartner+1);
             if (dangles==2)
               printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., 1);
             else
@@ -794,7 +794,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       }
       i=traced; j=k;
       structure[i-start] = '('; structure[j-start] = ')';
-      if ((jj==j+2) || (dangles==2)) structure[j+1-start] = '.';
+      if (((jj==j+2) || (dangles==2)) && (j < length)) structure[j+1-start] = '.';
       goto repeat1;
     }
     else { /* trace back in fML array */
@@ -1040,7 +1040,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   for (i=strlen(structure)-1; i>0 && structure[i] == '-'; i--)
     structure[i] = '\0';
   for (;i>=0; i--)
-    if (structure[i]=='-') structure[i]='.';
+   if (structure[i]=='-') structure[i]='.';
 
   return structure;
 }
