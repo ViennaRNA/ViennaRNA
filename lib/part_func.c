@@ -178,7 +178,7 @@ PRIVATE void init_partfunc(int length, pf_paramT *parameters){
 PRIVATE void get_arrays(unsigned int length){
   unsigned int size;
 
-  if(length >= sqrt(INT_MAX))
+  if((length +1) >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@part_func.c: sequence length exceeds addressable range");
 
   size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);

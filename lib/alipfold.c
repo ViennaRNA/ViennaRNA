@@ -147,7 +147,7 @@ PRIVATE void init_alipf_fold(int length, int n_seq, pf_paramT *parameters){
 PRIVATE void get_arrays(unsigned int length){
   unsigned int size,i;
 
-  if((length+1) >= sqrt(INT_MAX))
+  if((length+1) >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@alipfold.c: sequence length exceeds addressable range");
 
   size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);

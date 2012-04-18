@@ -137,7 +137,7 @@ PRIVATE void init_alifold(int length){
 }
 
 PRIVATE void get_arrays(unsigned int size){
-  if(size >= sqrt(INT_MAX))
+  if(size >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@alifold.c: sequence length exceeds addressable range");
 
   indx    = (int *) space(sizeof(int)*(size+1));
