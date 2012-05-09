@@ -32,16 +32,17 @@ PRIVATE char *tokenize(char *line);
 
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
-  unsigned int              input_type;
-  char                      *line, *string, *structure, *input_string, *orig_sequence;
+  char                      *string, *structure, *orig_sequence, *tmp;
+  char                      *rec_sequence, *rec_id, **rec_rest;
   char                      fname[FILENAME_MAX_LENGTH];
   char                      *ParamFile;
-  int                       i, l, length1, length2;
+  int                       i, length1, length2;
   float                     energy;
   int                       istty;
   int                       circular=0;
   int                       noconv=0;
   int                       verbose = 0;
+  unsigned int              rec_type, read_opt;
 
   string = orig_sequence = ParamFile = NULL;
 
@@ -79,57 +80,50 @@ int main(int argc, char *argv[]){
   #############################################
   */
 
-   if (ParamFile!=NULL) read_parameter_file(ParamFile);
-   update_fold_params();
+  if (ParamFile!=NULL) read_parameter_file(ParamFile);
 
-   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
+  istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
+
+  /* set options we wanna pass to read_record */
+  if(istty){
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+    print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+                            "Input sequence (upper or lower case) followed by structure");
+  }
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do {
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
+    if(rec_id){
+      (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
+    }
+    else fname[0] = '\0';
+
     cut_point = -1;
-    /*
-    ########################################################
-    # handle user input from 'stdin'
-    ########################################################
-    */
-    if(istty){
-      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
-      print_tty_input_seq_str("Input sequence & structure;   @ to quit");
-    }
 
-    /* extract filename from fasta header if available */
-    fname[0] = '\0';
-    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
-      printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-      free(input_string);
-    }
+    string    = tokenize(rec_sequence);
+    length2   = (int) strlen(string);
+    tmp       = extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
-    /* break on any error, EOF or quit request */
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else{
-      string    = tokenize(input_string); /* frees input_string */
-      length2   = (int) strlen(string);
-      free(input_string);
-    }
+    if(!tmp)
+      nrerror("structure missing");
 
-    /* get the structure */
-    input_type = get_input_line(&input_string, 0);
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
-    else{
-      structure = tokenize(input_string);
-      length1   = (int) strlen(structure);
-      free(input_string);
-    }
-
+    structure = tokenize(tmp);
+    length1   = (int) strlen(structure);
     if(length1 != length2)
-      nrerror("Sequence and Structure have unequal length.");
+      nrerror("structure and sequence differ in length!");
+
+    free(tmp);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) str_DNA2RNA(string);
@@ -162,13 +156,30 @@ int main(int argc, char *argv[]){
     else
       printf(" (%6.2f)\n", energy);
 
+    /* clean up */
+    (void) fflush(stdout);
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
+    free(structure);
+    /* free the rest of current dataset */
+    if(rec_rest){
+      for(i=0;rec_rest[i];i++) free(rec_rest[i]);
+      free(rec_rest);
+    }
+    rec_id = rec_sequence = structure = NULL;
+    rec_rest = NULL;
+
     free(string);
     free(orig_sequence);
-    free(structure);
-    string = structure = orig_sequence = NULL;
-    (void) fflush(stdout);
-  } while (1);
-  return 0;
+    string = orig_sequence = NULL;
+
+    /* print user help for the next round if we get input from tty */
+    if(istty){
+      print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+                              "Input sequence (upper or lower case) followed by structure");
+    }
+  }
+  return EXIT_SUCCESS;
 }
 
 PRIVATE char *tokenize(char *line)
