@@ -1123,7 +1123,7 @@ PRIVATE void backtrack(const char *string, int s) {
     type = ptype[ij];
 
     bonus = 0;
-    if (fold_constrained) {
+    if (struct_constrained) {
       if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
       if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
     }
@@ -2209,7 +2209,7 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (fold_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL))
     constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
 }
 

@@ -581,6 +581,67 @@ PUBLIC short *make_pair_table(const char *structure)
    return(table);
 }
 
+PUBLIC short *make_pair_table_pk(const char *structure){
+   short i,j,hx, hx2;
+   short length;
+   short *stack;
+   short *stack2;
+   short *table;
+
+   length = (short) strlen(structure);
+   stack  = (short *) space(sizeof(short)*(length+1));
+   stack2 = (short *) space(sizeof(short)*(length+1));
+   table  = (short *) space(sizeof(short)*(length+2));
+   table[0] = length;
+
+   for (hx=0, hx2=0, i=1; i<=length; i++) {
+      switch (structure[i-1]) {
+       case '(':
+         stack[hx++]=i;
+         break;
+       case ')':
+         j = stack[--hx];
+         if (hx<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced '()' brackets in make_pair_table_pk");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
+       case '[':
+         stack2[hx2++]=i;
+         break;
+       case ']':
+         j = stack2[--hx2];
+         if (hx2<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
+       default:   /* unpaired base, usually '.' */
+         table[i]= 0;
+         break;
+      }
+   }
+   if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced '()' brackets in make_pair_table_pk");
+   } else if (hx2!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+   }
+   free(stack);
+   free(stack2);
+   return(table);
+}
+
+PUBLIC int has_pseudoknot_pt(short *pt){
+  int n = (int) pt[0];
+
+}
+
 PUBLIC short *make_pair_table_snoop(const char *structure)
 {
     /* returns array representation of structure.

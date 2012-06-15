@@ -9,6 +9,9 @@ extern int    NumberOfHits;
 extern int    verbose;
 
 
+/**
+ *  \brief 
+ */
 dupVar  **PKLduplexfold_XS( const char *s1,
                             int **access_s1,
                             const int threshold,

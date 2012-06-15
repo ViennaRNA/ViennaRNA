@@ -1,5 +1,3 @@
-/* functions from part_func.c */
-/* calculate partition function and base pair probabilities */
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 
@@ -12,6 +10,18 @@
 #endif
 
 /**
+ *  \addtogroup pf_cofold
+ *  \brief Partition Function Cofolding
+ *
+ *  To simplify the implementation the partition function computation is done
+ *  internally in a null model that does not include the duplex initiation
+ *  energy, i.e. the entropic penalty for producing a dimer from two
+ *  monomers). The resulting free energies and pair probabilities are initially
+ *  relative to that null model. In a second step the free energies can be
+ *  corrected to include the dimerization penalty, and the pair probabilities
+ *  can be divided into the conditional pair probabilities given that a re
+ *  dimer is formed or not formed. See \cite bernhart:2006 for further details.
+ *  @{
  *  \file part_func_co.h
  * 
  *  \brief Partition function for two RNA sequences
@@ -196,6 +206,11 @@ ConcEnt *get_concentrations(double FEAB,
                             double FEA,
                             double FEB,
                             double *startconc);
+
+
+/**
+ *  @}
+ */
 
 /*
 #################################################

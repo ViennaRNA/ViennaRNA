@@ -69,7 +69,7 @@ typedef struct {
 } COORDINATE;
 
 /**
- *  stack of partial structures for backtracking
+ *  \brief  Stack of partial structures for backtracking
  */
 typedef struct sect {
   int  i;
@@ -78,7 +78,7 @@ typedef struct sect {
 } sect;
 
 /**
- *  base pair
+ *  \brief  Base pair
  */
 typedef struct bondT {
    unsigned int i;
@@ -86,7 +86,7 @@ typedef struct bondT {
 } bondT;
 
 /**
- *  base pair with associated energy
+ *  \brief  Base pair with associated energy
  */
 typedef struct bondTEn {
    int i;
@@ -99,16 +99,21 @@ typedef struct bondTEn {
  *
  */
 typedef struct{
-  int     dangles;      /*  dangle model (0,1,2 or 3) */
-  int     special_hp;   /*  include special hairpin contributions for tri, tetra and hexaloops */
-  int     noLP;         /*  only consider canonical structures, i.e. no 'lonely' base pairs */
-  int     noGU;         /*  do not allow GU pairs */
-  int     noGUclosure;  /*  do not allow loops to be closed by GU pair */
-  int     logML;        /*  use logarithmic scaling for multi loops */
+  int     dangles;      /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
+                              \note   Some function do not implement all dangle model but only a subset of
+                                      (0,1,2,3). Read the documentaion of the particular recurrences or
+                                      energy evaluation function for information about the provided dangle
+                                      model.
+                        */
+  int     special_hp;   /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
+  int     noLP;         /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
+  int     noGU;         /**<  \brief  Do not allow GU pairs */
+  int     noGUclosure;  /**<  \brief  Do not allow loops to be closed by GU pair */
+  int     logML;        /**<  \brief  Use logarithmic scaling for multi loops */
 } model_detailsT;
 
 /**
- *  The datastructure that contains temperature scaled energy parameters.
+ *  \brief The datastructure that contains temperature scaled energy parameters.
  */
 typedef struct{
   int id;
@@ -144,14 +149,14 @@ typedef struct{
   int     MultipleCA;
   int     MultipleCB;
 
-  double  temperature;  /*  temperature used for loop contribution scaling */
+  double  temperature;            /**<  \brief  Temperature used for loop contribution scaling */
 
-  model_detailsT model_details;
+  model_detailsT model_details;   /**<  \brief  Model details to be used in the recursions */
 
 }  paramT;
 
 /**
- *  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
+ *  \brief  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
 typedef struct{
   int     id;
@@ -189,13 +194,17 @@ typedef struct{
   double  expMultipleCB;
 
   double  kT;
-  double  pf_scale;
+  double  pf_scale;     /**<  \brief    Scaling factor to avoid over-/underflows */
 
-  double  temperature;  /*  temperature used for loop contribution scaling */
-  double  alpha;        /*  used for scaling the thermodynamic temperature in Boltzmann factors
-                            independently from the energy contributions */
+  double  temperature;  /**<  \brief    Temperature used for loop contribution scaling */
+  double  alpha;        /**<  \brief    Scaling factor for the thermodynamic temperature
+                              \details  This allows for temperature scaling in Boltzmann
+                                        factors independently from the energy contributions.
+                                        The resulting Boltzmann factors are then computed by
+                                        \f$ e^{-E/(\alpha \cdot K \cdot T)} \f$
+                        */
 
-  model_detailsT model_details;
+  model_detailsT model_details; /**<  \brief  Model details to be used in the recursions */
 
 }  pf_paramT;
 
@@ -209,7 +218,7 @@ typedef struct{
 
 
 /**
- *  base pair data structure used in subopt.c
+ *  \brief  Base pair data structure used in subopt.c
  */
 typedef struct {
   int i;
@@ -217,7 +226,7 @@ typedef struct {
 } PAIR;
 
 /**
- *  sequence interval stack element used in subopt.c
+ *  \brief  Sequence interval stack element used in subopt.c
  */
 typedef struct {
     int i;
@@ -226,11 +235,11 @@ typedef struct {
 } INTERVAL;
 
 /**
- *  solution element from subopt.c
+ *  \brief  Solution element from subopt.c
  */
 typedef struct {
-  float energy;                            /* energy of structure */
-  char *structure;
+  float energy;       /**< \brief Free Energy of structure in kcal/mol */
+  char *structure;    /**< \brief Structure in dot-bracket notation */
 } SOLUTION;
 
 /*
@@ -238,25 +247,35 @@ typedef struct {
 * COFOLD data structures
 * ############################################################
 */
+
+/**
+ *  \brief  
+ */
 typedef struct cofoldF {
   /* free energies for: */
-  double F0AB; /* null model without DuplexInit */
-  double FAB;  /* all states with DuplexInit corretion */
-  double FcAB; /* true hybrid states only */
-  double FA;   /* monomer A */
-  double FB;   /* monomer B */
+  double F0AB;  /**< \brief Null model without DuplexInit */
+  double FAB;   /**< \brief all states with DuplexInit correction */
+  double FcAB;  /**< \brief true hybrid states only */
+  double FA;    /**< \brief monomer A */
+  double FB;    /**< \brief monomer B */
 } cofoldF;
 
+/**
+ *  \brief  
+ */
 typedef struct ConcEnt {
-  double A0;    /*start concentration A*/
-  double B0;    /*start concentration B*/
-  double ABc;   /*End concentration AB*/
+  double A0;    /**< \brief start concentration A */
+  double B0;    /**< \brief start concentration B */
+  double ABc;   /**< \brief End concentration AB */
   double AAc;
   double BBc;
   double Ac;
   double Bc;
 } ConcEnt;
 
+/**
+ *  \brief  
+ */
 typedef struct pairpro{
   struct plist *AB;
   struct plist *AA;
@@ -267,20 +286,21 @@ typedef struct pairpro{
 
 /**
  *  \brief A base pair info structure
- * 
- *  for each base pair (i,j) the structure lists: its probability
- *  'p', an entropy-like measure for its well-definedness 'ent',
- *  and in 'bp[]' the frequency of each type of pair. 'bp[0]'
- *  contains the number of non-compatible sequences, 'bp[1]' the
- *  number of CG pairs, etc.
+ *
+ *  For each base pair (i,j) with i,j in [0, n-1] the structure lists:
+ *  - its probability 'p'
+ *  - an entropy-like measure for its well-definedness 'ent'
+ *  - the frequency of each type of pair in 'bp[]'
+ *    + 'bp[0]' contains the number of non-compatible sequences
+ *    + 'bp[1]' the number of CG pairs, etc.
  */
 typedef struct {
-   unsigned i;        /* i,j in [0, n-1] */
-   unsigned j;
-   float p;      /* probability */
-   float ent;    /* pseudo entropy for p(i,j) = S_i + S_j - p_ij*ln(p_ij) */
-   short bp[8];  /* frequencies of pair_types */
-   char comp;    /* 1 iff pair is in mfe structure */
+   unsigned i;    /**<  \brief  nucleotide position i */ 
+   unsigned j;    /**<  \brief  nucleotide position j */
+   float p;       /**< \brief  Probability */
+   float ent;     /**< \brief  Pseudo entropy for \f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) \f$ */
+   short bp[8];   /**< \brief  Frequencies of pair_types */
+   char comp;     /**< \brief  1 iff pair is in mfe structure */
 } pair_info;
 
 
@@ -290,6 +310,9 @@ typedef struct {
 * ############################################################
 */
 
+/**
+ *  \brief  
+ */
 typedef struct move {
   int i;  /* i,j>0 insert; i,j<0 delete */
   int j;
@@ -297,13 +320,19 @@ typedef struct move {
   int E;
 } move_t;
 
+/**
+ *  \brief  
+ */
 typedef struct intermediate {
-  short *pt;     /* pair table */
-  int Sen;       /* saddle energy so far */
-  int curr_en;   /* current energy */
-  move_t *moves; /* remaining moves to target */
+  short *pt;      /**<  \brief  pair table */
+  int Sen;        /**<  \brief  saddle energy so far */
+  int curr_en;    /**<  \brief  current energy */
+  move_t *moves;  /**<  \brief  remaining moves to target */
 } intermediate_t;
 
+/**
+ *  \brief  
+ */
 typedef struct path {
   double en;
   char *s;
@@ -314,38 +343,50 @@ typedef struct path {
 * RNAup data structures
 * ############################################################
 */
-typedef struct pu_contrib { /* contributions to prob_unpaired in */
-  double **H; /* hairpin loops */
-  double **I; /* interior loops */
-  double **M; /* multi loops */
-  double **E; /* exterior loop */
-  int length; /* length of the input sequence */
-  int w;      /* longest unpaired region */
+
+/**
+ *  \brief contributions to p_u
+ */
+typedef struct pu_contrib {
+  double **H; /**<  \brief  hairpin loops */
+  double **I; /**<  \brief  interior loops */
+  double **M; /**<  \brief  multi loops */
+  double **E; /**<  \brief  exterior loop */
+  int length; /**<  \brief  length of the input sequence */
+  int w;      /**<  \brief  longest unpaired region */
 } pu_contrib;
 
-typedef struct interact { /* contributions to prob_unpaired in */
-  double *Pi; /* probabilities of interaction */
-  double *Gi; /* free energies of interaction */
-  double Gikjl; /* full free energy for interaction between [k,i] k<i
-                   in longer seq and [j,l] j<l in shorter seq */
-  double Gikjl_wo; /* Gikjl without contributions for prob_unpaired */
-  int i; /* k<i in longer seq */
-  int k; /* k<i in longer seq */
-  int j; /*j<l in shorter seq */
-  int l; /*j<l in shorter seq */
-  int length; /* length of longer sequence */
+/**
+ *  \brief  
+ */
+typedef struct interact {
+  double *Pi;       /**<  \brief  probabilities of interaction */
+  double *Gi;       /**<  \brief  free energies of interaction */
+  double Gikjl;     /**<  \brief  full free energy for interaction between [k,i] k<i
+                                  in longer seq and [j,l] j<l in shorter seq */
+  double Gikjl_wo;  /**<  \brief  Gikjl without contributions for prob_unpaired */
+  int i;            /**<  \brief  k<i in longer seq */
+  int k;            /**<  \brief  k<i in longer seq */
+  int j;            /**<  \brief  j<l in shorter seq */
+  int l;            /**<  \brief  j<l in shorter seq */
+  int length;       /**<  \brief  length of longer sequence */
 } interact;
 
-typedef struct pu_out { /* collect all free_energy of beeing unpaired
-                           values for output */
-  int len;        /* sequence length */
-  int u_vals;     /* number of different -u values */
-  int contribs;   /* [-c "SHIME"] */
-  char **header;  /* header line */
-  double **u_values; /* (differnet -u values * [-c "SHIME"]) * seq len */
+/**
+ *  \brief  Collection of all free_energy of beeing unpaired values for output
+ */
+typedef struct pu_out {
+  int len;            /**<  \brief  sequence length */
+  int u_vals;         /**<  \brief  number of different -u values */
+  int contribs;       /**<  \brief  [-c "SHIME"] */
+  char **header;      /**<  \brief  header line */
+  double **u_values;  /**<  \brief  (the -u values * [-c "SHIME"]) * seq len */
 } pu_out;
 
-typedef struct constrain { /* constrains for cofolding */
+/**
+ *  \brief  constraints for cofolding 
+ */
+typedef struct constrain{
   int *indx;
   char *ptype;
 } constrain;
@@ -356,6 +397,9 @@ typedef struct constrain { /* constrains for cofolding */
 * ############################################################
 */
 
+/**
+ *  \brief  
+ */
 typedef struct {
   int i;
   int j;
@@ -381,12 +425,18 @@ typedef struct {
 * ############################################################
 */
 
+/**
+ *  \brief  
+ */
 typedef struct node {
   int k;
   int energy;
   struct node *next;
 } folden;
 
+/**
+ *  \brief  
+ */
 typedef struct {
   int i;
   int j;
@@ -417,10 +467,14 @@ typedef struct {
 * ############################################################
 */
 
+/**
+ *  \brief  
+ */
 typedef struct dupVar{
   int i;
   int j;
   int end;
+  char *pk_helix;
   char *structure;
   double energy;
   int offset;
@@ -431,6 +485,8 @@ typedef struct dupVar{
   int te;
   int qb;
   int qe;
+  int inactive;
+  int processed;
 } dupVar;
 
 
@@ -452,39 +508,41 @@ typedef struct dupVar{
  *  structure representative,
  *
  *  A value of #INF in k denotes the end of a list
+ *
+ *  \see  TwoDfoldList()
  */
 typedef struct{
-  int k;
-  int l;
-  float en;
-  char *s;
+  int k;          /**<  \brief  Distance to first reference */
+  int l;          /**<  \brief  Distance to second reference */
+  float en;       /**<  \brief  Free energy in kcal/mol */
+  char *s;        /**<  \brief  MFE representative structure in dot-bracket notation */
 } TwoDfold_solution;
 
 /**
- * \brief Variables compound for 2Dfold MFE folding
+ *  \brief Variables compound for 2Dfold MFE folding
  *
- *
+ *  \see get_TwoDfold_variables(), destroy_TwoDfold_variables(), TwoDfoldList()
  */
 typedef struct{
-  paramT          *P;
-  int             do_backtrack;
-  char            *ptype;   /* precomputed array of pair types */
-  char            *sequence;
-  short           *S, *S1;
-  unsigned int    maxD1;
-  unsigned int    maxD2;
+  paramT          *P;             /**<  \brief  Precomputed energy parameters and model details */
+  int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
+  char            *ptype;         /**<  \brief  Precomputed array of pair types */
+  char            *sequence;      /**<  \brief  The input sequence  */
+  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
+  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
+  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
 
 
-  unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
+  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
 
-  int             *my_iindx;    /* index for moving in quadratic distancy dimsensions */
+  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
 
   double          temperature;
 
-  unsigned int    *referenceBPs1; /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
 
   short           *reference_pt1;
   short           *reference_pt2;
@@ -584,43 +642,49 @@ typedef struct{
  *  as well as an attribute 'q' of type #FLT_OR_DBL
  *
  *  A value of #INF in k denotes the end of a list
+ *
+ *  \see  TwoDpfoldList()
  */
 typedef struct{
-  int k;
-  int l;
-  FLT_OR_DBL  q;
+  int k;          /**<  \brief  Distance to first reference */
+  int l;          /**<  \brief  Distance to second reference */
+  FLT_OR_DBL  q;  /**<  \brief  partition function */
 } TwoDpfold_solution;
 
 /**
- * \brief Variables compound for 2Dfold partition function folding
+ *  \brief  Variables compound for 2Dfold partition function folding
  *
- *
+ *  \see    get_TwoDpfold_variables(), get_TwoDpfold_variables_from_MFE(),
+ *          destroy_TwoDpfold_variables(), TwoDpfoldList()
  */
 typedef struct{
 
   unsigned int    alloc;
-  char            *ptype;   /* precomputed array of pair types */
-  char            *sequence;
-  short           *S, *S1;
-  double          temperature;      /* temperature in last call to scale_pf_params */
+  char            *ptype;         /**<  \brief  Precomputed array of pair types */
+  char            *sequence;      /**<  \brief  The input sequence  */
+  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
+  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
+  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
+
+  double          temperature;    /* temperature in last call to scale_pf_params */
   double          init_temp;      /* temperature in last call to scale_pf_params */
-  unsigned int    maxD1;
-  unsigned int    maxD2;
+  FLT_OR_DBL      *scale;
+  FLT_OR_DBL      pf_scale;
+  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
 
-  FLT_OR_DBL  *scale;
-  FLT_OR_DBL  pf_scale;
-  pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
+  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
+  int             *jindx;         /**<  \brief  Index for moving in the triangular matrix qm1 */
 
-  int             *my_iindx;         /* index for moving in quadratic distancy dimsensions */
-  int             *jindx;         /* index for moving in the triangle matrix qm1 */
-
-  unsigned int    *referenceBPs1;    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2;    /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
   short           *reference_pt1;
   short           *reference_pt2;
-  unsigned int    *mm1;         /* maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;         /* maximum matching matrix, reference struct 2 disallowed */
-  unsigned int    *bpdist;      /* matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+
+  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+
+  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
+
   int             circ;
   int             dangles;
   unsigned int    seq_length;

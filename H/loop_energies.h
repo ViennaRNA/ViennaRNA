@@ -357,6 +357,7 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
 INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
+  energy = INF;
 
   if (n1>n2) { nl=n1; ns=n2;}
   else {nl=n2; ns=n1;}
@@ -511,7 +512,7 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 
 INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
   int ul, us, no_close = 0;
-  double z;
+  double z = 0.;
 
   if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
     no_close = 1;

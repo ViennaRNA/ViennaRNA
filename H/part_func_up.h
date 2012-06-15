@@ -8,6 +8,10 @@
 #define   RNA_UP_MODE_3   4U
 
 /**
+ *  \addtogroup up_cofold
+ *  \brief  Partition Function Cofolding as a stepwise process
+ *
+ *  @{
  *  \file part_func_up.h
  *  \brief Partition Function Cofolding as stepwise process
  * 
@@ -129,5 +133,9 @@ pu_contrib  *get_pu_contrib_struct( unsigned int n,
  *  \brief Frees the output of function pf_unstru().
  */
 void        free_pu_contrib_struct(pu_contrib *pu);
+
+/**
+ * @}
+ */
 
 #endif

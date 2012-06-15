@@ -2,8 +2,16 @@
 #define __VIENNA_RNA_PACKAGE_INVERSE_H__
 
 /**
- *  \file inverse.h
- *  \brief Inverse folding routines
+ */
+
+/**
+ *  \addtogroup inverse_fold
+ *  We provide two functions that search for sequences with a given
+ *  structure, thereby inverting the folding routines.
+ *  
+ *  @{
+ *    \file inverse.h
+ *    \brief Inverse folding routines
  */
 
 /**
@@ -52,4 +60,8 @@ float inverse_fold( char *start,
  */
 float inverse_pf_fold(char *start,
                       const char *target);
+
+/**
+ *  @}
+ */
 #endif

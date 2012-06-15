@@ -448,6 +448,8 @@ char *unpack_structure(const char *packed);
  */
 short *make_pair_table(const char *structure);
 
+short *make_pair_table_pk(const char *structure);
+
 /**
  *  \brief Get an exact copy of a pair table
  *

@@ -45,6 +45,7 @@ int main(int argc, char *argv[]){
   double        energy, min_en, kT, sfact;
   int           doMEA, circular, lucky;
   double        MEAgamma, bppmThreshold, betaScale;
+  paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
 
@@ -127,6 +128,8 @@ int main(int argc, char *argv[]){
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
+
+  mfe_parameters = get_scaled_parameters(temperature, md);
 
   /*
   #############################################
@@ -225,7 +228,7 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
-    min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
+    min_en = fold_par(rec_sequence, structure, mfe_parameters, fold_constrained, circular);
 
     if(!lucky){
       printf("%s\n%s", orig_sequence, structure);
@@ -247,7 +250,7 @@ int main(int argc, char *argv[]){
       char *pf_struc = (char *) space((unsigned) length+1);
       if (md.dangles==1) {
           md.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
+          min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
           md.dangles=1;
       }
 
@@ -265,7 +268,7 @@ int main(int argc, char *argv[]){
       if(lucky){
         init_rand();
         char *s = (circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
-        min_en = (circular) ? energy_of_circ_structure(rec_sequence, s, 0) : energy_of_structure(rec_sequence, s, 0);
+        min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, s, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, s, mfe_parameters, 0);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
           printf("\n free energy = %6.2f kcal/mol\n", min_en);
@@ -300,7 +303,7 @@ int main(int argc, char *argv[]){
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
           cent = get_centroid_struct_pr(length, &dist, probs);
-          cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
+          cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
@@ -326,7 +329,7 @@ int main(int argc, char *argv[]){
             plist *pl;
             assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
             mea = MEA(pl, structure, MEAgamma);
-            mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
+            mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
             printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
             free(pl);
           }
@@ -364,5 +367,7 @@ int main(int argc, char *argv[]){
       else print_tty_input_seq();
     }
   }
+  
+  free(mfe_parameters);
   return EXIT_SUCCESS;
 }

@@ -10,6 +10,25 @@
 #endif
 
 /**
+ *  \addtogroup mfe_fold
+ *  \ingroup folding_routines
+ *  \brief This section covers all functions and variables related to the calculation
+ *  of minimum free energy (MFE) structures.
+ *
+ *  The library provides a fast dynamic programming minimum free energy
+ *  folding algorithm as described in \cite zuker:1981.
+ *  All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
+ *  sequences are described in this section.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See \cite hofacker:2006 for further details.
+ *
+ *  Nevertheless, the RNAlib also
+ *  provides interfaces for the prediction of consensus MFE structures of sequence alignments,
+ *  MFE structure for two hybridized sequences, local optimal structures and many more. For
+ *  those more specialized variants of MFE folding routines, please consult the appropriate
+ *  subsections (Modules) as listed above.
+ *  
  *  \file fold.h
  *  \brief MFE calculations and energy evaluations for single RNA sequences
  * 
@@ -23,11 +42,15 @@ extern  int logML;
 /** \brief do ML decomposition uniquely (for subopt)  */
 extern  int uniq_ML;
 
-/** brief set to first pos of second seq for cofolding  */
+/** \brief set to first pos of second seq for cofolding  */
 extern  int cut_point;
 
-/** brief verbose info from energy_of_struct  */
+/**
+ *  \brief verbose info from energy_of_struct
+ *  \ingroup eval
+ */
 extern  int eos_debug;
+
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
@@ -58,6 +81,8 @@ extern  int eos_debug;
  *  \note OpenMP: Passing NULL to the 'parameters' argument involves access to several global model
  *        detail variables and thus is not to be considered threadsafe
  *
+ *  \ingroup mfe_fold
+ *
  *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
@@ -85,6 +110,8 @@ float fold_par( const char *sequence,
  *
  *  Use fold_par() for a completely threadsafe variant
  *
+ *  \ingroup mfe_fold
+ *
  *  \see fold_par(), circfold()
  *
  *  \param sequence RNA sequence
@@ -104,6 +131,8 @@ float fold( const char *sequence,
  *
  *  Use fold_par() for a completely threadsafe variant
  *
+ *  \ingroup mfe_fold
+ *
  *  \see fold_par(), circfold()
  *
  *  \param sequence RNA sequence
@@ -116,6 +145,15 @@ float circfold( const char *sequence,
 
 
 /**
+ *  \addtogroup eval Energy evaluation
+ *  \ingroup folding_routines
+ *  @{
+ *    \brief This module contains all functions and variables related to energy evaluation
+ *    of sequence/structure pairs.
+ *  @}
+ */
+
+/**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
@@ -123,6 +161,8 @@ float circfold( const char *sequence,
  *  \note OpenMP: This function relies on several global model settings variables and thus is
  *        not to be considered threadsafe. See energy_of_struct_par() for a completely threadsafe
  *        implementation.
+ *
+ *  \ingroup eval
  *
  *  \see energy_of_struct_par(), energy_of_circ_structure()
  *
@@ -139,6 +179,8 @@ float energy_of_structure(const char *string,
  *  \brief Calculate the free energy of an already folded RNA
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
+ *
+ *  \ingroup eval
  *
  *  \see energy_of_circ_structure(), energy_of_structure_pt(), get_scaled_parameters()
  *
@@ -162,6 +204,8 @@ float energy_of_struct_par( const char *string,
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
  *
+ *  \ingroup eval
+ *
  *  \see energy_of_circ_struct_par(), energy_of_struct_par()
  *
  *  \param string           RNA sequence
@@ -177,6 +221,8 @@ float energy_of_circ_structure( const char *string,
  *  \brief Calculate the free energy of an already folded circular RNA
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
+ *
+ *  \ingroup eval
  *
  *  \see energy_of_struct_par(), get_scaled_parameters()
  *
@@ -202,6 +248,8 @@ float energy_of_circ_struct_par(const char *string,
  *        not to be considered threadsafe. See energy_of_struct_pt_par() for a completely threadsafe
  *        implementation.
  *
+ *  \ingroup eval
+ *
  *  \see make_pair_table(), energy_of_struct_pt_par()
  *
  *  \param string     RNA sequence
@@ -222,6 +270,8 @@ int energy_of_structure_pt( const char *string,
  *
  *  If verbosity level is set to a value >0, energies of structure elements are printed to stdout
  *
+ *  \ingroup eval
+ *
  *  \see make_pair_table(), energy_of_struct_par(), get_scaled_parameters()
  *
  *  \param string           RNA sequence in uppercase letters
@@ -241,6 +291,9 @@ int energy_of_struct_pt_par(const char *string,
 
 /**
  *  \brief Free arrays for mfe folding
+ *
+ *  \ingroup mfe_fold
+ *
  */
 void  free_arrays(void);
 
@@ -271,12 +324,21 @@ void letter_structure(char *structure,
 
 /**
  *  \brief Recalculate energy parameters
+ *
+ *  \ingroup mfe_fold
  */
 void  update_fold_params(void);
 
+/**
+ *
+ *  \ingroup mfe_fold
+ * 
+ */
 void update_fold_params_par(paramT *parameters);
 
 /**
+ *
+ *  \ingroup mfe_fold
  * 
  */
 char  *backtrack_fold_from_pair(char *sequence,
@@ -292,6 +354,8 @@ int   loop_energy(short *ptable,
                   int i);
 
 /**
+ *
+ *  \ingroup mfe_fold
  * 
  */
 void export_fold_arrays(int **f5_p,
@@ -302,6 +366,8 @@ void export_fold_arrays(int **f5_p,
                         char **ptype_p);
 
 /**
+ *
+ *  \ingroup mfe_fold
  * 
  */
 void export_fold_arrays_par(int **f5_p,
@@ -313,6 +379,8 @@ void export_fold_arrays_par(int **f5_p,
                             paramT **P_p);
 
 /**
+ *
+ *  \ingroup mfe_fold
  * 
  */
 void export_circfold_arrays(int *Fc_p,
@@ -328,6 +396,8 @@ void export_circfold_arrays(int *Fc_p,
                             char **ptype_p);
 
 /**
+ *
+ *  \ingroup mfe_fold
  * 
  */
 void export_circfold_arrays_par(int *Fc_p,
