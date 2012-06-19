@@ -37,6 +37,16 @@
                 (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1);\
                 (b)++)
 
+/**
+ *  This macro does almost the same as FOR_EACH_GQUAD() but keeps
+ *  the 5' delimiter fixed. 'b' is the 3' delimiter of the gquad,
+ *  for gquads within subsequence [a,c] that have 5' delimiter 'a'
+ */
+#define FOR_EACH_GQUAD_AT(a, b, c)  \
+          for((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1;\
+              (b) <= MIN2((c), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1);\
+              (b)++)
+
 
 /*
 #################################
@@ -373,6 +383,67 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
   }
 
   free(my_index);
+  free(gg);
+  return data;
+}
+
+PUBLIC int **get_gquad_L_matrix(short *S,
+                                int start,
+                                int maxdist,
+                                int **g,
+                                paramT *P){
+
+  int **data;
+  int n, i, j, k, l, *gg;
+  
+  n   = S[0];
+  gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
+
+  if(g){ /* we just update the gquadruplex contribution for the current
+            start and rotate the rest */
+    data = g;
+    /* we re-use the memory allocated previously */
+    data[start] = data[start + maxdist + 5];
+    data[start + maxdist + 5] = NULL;
+
+    /* prefill with INF */
+    for(i = 0; i < maxdist + 5; i++)
+      data[start][i] = INF;
+
+    /*  now we compute contributions for all gquads with 5' delimiter at
+        position 'start'
+    */
+    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
+      process_gquad_enumeration(gg, start, j,
+                                &gquad_mfe,
+                                (void *)(&(data[start][j-start])),
+                                (void *)P,
+                                NULL,
+                                NULL);
+    }
+
+  } else { /* create a new matrix from scratch since this is the first
+              call to this function */
+
+    /* allocate memory and prefill with INF */
+    data = (int **) space(sizeof(int *) * (n+1));
+    for(k = n; (k>n-maxdist-5) && (k>=0); k--){
+      data[k] = (int *) space(sizeof(int)*(maxdist+5));
+      for(i = 0; i < maxdist+5; i++) data[k][i] = INF;
+    }
+    
+    /* compute all contributions for the gquads in this interval */
+    FOR_EACH_GQUAD(i, j, n - maxdist - 4, n){
+      process_gquad_enumeration(gg, i, j,
+                                &gquad_mfe,
+                                (void *)(&(data[i][j-i])),
+                                (void *)P,
+                                NULL,
+                                NULL);
+    }
+  }
+
+  gg += start - 1;
   free(gg);
   return data;
 }

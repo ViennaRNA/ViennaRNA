@@ -32,6 +32,10 @@
 #include <omp.h>
 #endif
 
+#ifdef WITH_GQUADS
+#include "gquad.h"
+#endif
+
 
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: Lfold.c,v 1.9 2007/09/04 09:20:12 ivo Exp $";
@@ -75,19 +79,29 @@ PRIVATE struct svm_model  *avg_model = NULL;
 PRIVATE struct svm_model  *sd_model = NULL;
 #endif
 
+#ifdef WITH_GQUADS
+PRIVATE int           **ggg = NULL;
+#endif
+
+
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(P, ...)
-*/
+#ifdef WITH_GQUADS
 
 #ifdef USE_SVM
 #pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model)
 #else
 #pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length)
+#endif
+
+#else
+
+#ifdef USE_SVM
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model, ggg)
+#else
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, ggg)
+#endif
+
 #endif
 
 #endif
@@ -132,6 +146,7 @@ PRIVATE void get_arrays(unsigned int size, int maxdist){
   DMLi  = (int *)   space(sizeof(int)   *(maxdist+5));
   DMLi1 = (int *)   space(sizeof(int)   *(maxdist+5));
   DMLi2 = (int *)   space(sizeof(int)   *(maxdist+5));
+
   for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
     c[i] = (int *) space(sizeof(int)*(maxdist+5));
   }
@@ -162,6 +177,15 @@ PRIVATE void free_arrays(int maxdist){
   free(DMLi);
   free(DMLi1);
   free(DMLi2);
+#ifdef WITH_GQUADS
+  if(ggg){
+    for (i=0; (i<maxdist+5) && (i<=length); i++){
+      free(ggg[i]);
+    }
+    free(ggg);
+    ggg = NULL;
+  }
+#endif
 
   f3    = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   c     = fML = NULL;
@@ -227,6 +251,10 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
     for (i=(length-maxdist-4>0)?length-maxdist-4:1 ; i<j; i++)
       c[i][j-i] = fML[i][j-i] = INF;
   }
+#ifdef WITH_GQUADS
+  ggg = NULL;
+  ggg = get_gquad_L_matrix(S, length - maxdist - 4, maxdist, ggg, P);
+#endif
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
     for (j = i+TURN+1; j <= length && j <= i+maxdist; j++) {
@@ -305,6 +333,15 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           new_c = MIN2(new_c, decomp);
         }
 
+#ifdef WITH_GQUADS
+        /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+        if (!no_close) {
+          tt = rtype[type];
+          energy = E_GQuad_IntLoop_L(i, j, type, S1, ggg, maxdist, P);
+          new_c = MIN2(new_c, energy);
+        }
+
+#endif
         new_c = MIN2(new_c, cc1[j-1-(i+1)]+stackEnergy);
         cc[j-i] = new_c;
         if (noLonelyPairs)
@@ -315,7 +352,6 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
       } /* end >> if (pair) << */
 
       else c[i][j-i] = INF;
-
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
@@ -349,6 +385,10 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                   if(tt) new_fML = MIN2(new_fML, c[i+1][j-1-i-1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
                   break;
       }
+
+#ifdef WITH_GQUADS
+      new_fML = MIN2(new_fML, ggg[i][j - i] + E_MLstem(0, -1, -1, P));
+#endif
 
       /* modular decomposition -------------------------------*/
       for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
@@ -392,11 +432,17 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
         /* dont use dangling end and mismatch contributions at all */
         case 0:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], f3[j+1] + ggg[i][j-i]);
+#endif
                     if(type)
                       f3[i] = MIN2(f3[i], f3[j+1] + c[i][j-i] + E_ExtLoop(type, -1, -1, P));
                   }
                   if(length<=i+maxdist){
                     j=length;
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], ggg[i][j-i]);
+#endif
                     type = ptype[i][j-i];
                     if(type)
                       f3[i] = MIN2(f3[i], c[i][j-i] + E_ExtLoop(type, -1, -1, P));
@@ -405,11 +451,17 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
         /* always use dangles on both sides */
         case 2:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], f3[j+1] + ggg[i][j-i]);
+#endif
                     if(type)
                       f3[i] = MIN2(f3[i], f3[j+1] + c[i][j-i] + E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], P));
                   }
                   if(length<=i+maxdist){
                     j=length;
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], ggg[i][j-i]);
+#endif
                     type = ptype[i][j-i];
                     if(type)
                       f3[i] = MIN2(f3[i], c[i][j-i] + E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P));
@@ -418,6 +470,9 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
         /* normal dangles, aka dangles = 1 */
         default:  for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], f3[j+1] + ggg[i][j-i]);
+#endif
                     if(type){
                       f3[i] = MIN2(f3[i], f3[j+1] + c[i][j-i] + E_ExtLoop(type, -1, -1, P));
                       f3[i] = MIN2(f3[i], ((j+2<=length) ? f3[j+2] : 0) + c[i][j-i] + E_ExtLoop(type, -1, S1[j+1], P));
@@ -430,6 +485,9 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                   }
                   if(length<=i+maxdist){
                     j     = length;
+#ifdef WITH_GQUADS
+                    f3[i] = MIN2(f3[i], ggg[i][j-i]);
+#endif
                     type  = ptype[i][j-i];
                     if(type)
                       f3[i] = MIN2(f3[i], c[i][j-i] + E_ExtLoop(type, -1, -1, P));
@@ -463,12 +521,26 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                         if(fij == cc + f3[pairpartner + 1])
                           traced2 = 1;
                       }
+#ifdef WITH_GQUADS
+                      else {
+                        cc = ggg[lind][pairpartner-lind];
+                        if(fij == cc + f3[pairpartner + 1])
+                          traced2 = 1;
+                      }
+#endif
                       break;
             case 2:   if(type){
                         cc = c[lind][pairpartner-lind] + E_ExtLoop(type, (lind > 1) ? S1[lind-1] : -1, (pairpartner < length) ? S1[pairpartner+1] : -1, P);
                         if(fij == cc + f3[pairpartner + 1])
                           traced2 = 1;
                       }
+#ifdef WITH_GQUADS
+                      else {
+                        cc = ggg[lind][pairpartner-lind];
+                        if(fij == cc + f3[pairpartner + 1])
+                          traced2 = 1;
+                      }
+#endif
                       break;
             default:  if(type){
                         cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
@@ -484,6 +556,13 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                           }
                         }
                       }
+#ifdef WITH_GQUADS
+                      else {
+                        cc = ggg[lind][pairpartner-lind];
+                        if(fij == cc + f3[pairpartner + 1])
+                          traced2 = 1;
+                      }
+#endif
                       type = ptype[lind+1][pairpartner-lind-1];
                       if(type){
                         cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], -1, P);
@@ -501,7 +580,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           }
           if(traced2) break;
         }
-        if (!traced2) nrerror("backtrack failed in short backtrack");
+        if (!traced2) nrerror("backtrack failed in short backtrack 1");
         if (zsc){
 #ifdef USE_SVM
           int info_avg;
@@ -595,12 +674,26 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                           if(fij == cc + f3[pairpartner + 1])
                             traced2 = 1;
                         }
+#ifdef WITH_GQUADS
+                        else {
+                          cc = ggg[lind][pairpartner-lind];
+                          if(fij == cc + f3[pairpartner + 1])
+                            traced2 = 1;
+                        }
+#endif
                         break;
               case 2:   if(type){
                           cc = c[lind][pairpartner-lind] + E_ExtLoop(type, (lind > 1) ? S1[lind-1] : -1, (pairpartner < length) ? S1[pairpartner+1] : -1, P);
                           if(fij == cc + f3[pairpartner + 1])
                             traced2 = 1;
                         }
+#ifdef WITH_GQUADS
+                        else {
+                          cc = ggg[lind][pairpartner-lind];
+                          if(fij == cc + f3[pairpartner + 1])
+                            traced2 = 1;
+                        }
+#endif
                         break;
               default:  if(type){
                           cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
@@ -616,6 +709,13 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
                             }
                           }
                         }
+#ifdef WITH_GQUADS
+                        else {
+                          cc = ggg[lind][pairpartner-lind];
+                          if(fij == cc + f3[pairpartner + 1])
+                            traced2 = 1;
+                        }
+#endif
                         type = ptype[lind+1][pairpartner-lind-1];
                         if(type){
                           cc = c[lind+1][pairpartner-(lind+1)] + E_ExtLoop(type, S1[lind], -1, P);
@@ -634,7 +734,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
             }
             if(traced2) break;
           }
-          if (!traced2) nrerror("backtrack failed in short backtrack");
+          if (!traced2) nrerror("backtrack failed in short backtrack 2");
 
           if(zsc){
 #ifdef USE_SVM
@@ -677,7 +777,12 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
         c[i-1] = c[i+maxdist+4]; c[i+maxdist+4] = NULL;
         fML[i-1] = fML[i+maxdist+4]; fML[i+maxdist+4]=NULL;
         ptype[i-1] = ptype[i+maxdist+4]; ptype[i+maxdist+4] = NULL;
-        if (i>1) make_ptypes(S, i-1, maxdist, length);
+        if (i>1){
+          make_ptypes(S, i-1, maxdist, length);
+#ifdef WITH_GQUADS
+          ggg = get_gquad_L_matrix(S, i - 1, maxdist, ggg, P);
+#endif
+        }
         for (ii=0; ii<maxdist+5; ii++) {
           c[i-1][ii] = INF;
           fML[i-1][ii] = INF;
@@ -708,7 +813,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '-';
 
   while (s>0) {
-    int ml, fij, cij, traced, i1, j1, mm, mm5, mm3, mm53, p, q, jj=0;
+    int ml, fij, cij, traced, i1, j1, d3, d5, mm, mm5, mm3, mm53, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -735,6 +840,13 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       /* i or i+1 is paired. Find pairing partner */
       switch(dangles){
         case 0:   for(traced = 0, k=j; k>i+TURN; k--){
+#ifdef WITH_GQUADS
+                    if(fij == ggg[i][k-i] + f3[k+1]){
+                      /* found the decomposition */
+                      traced = i; jj = k + 1; gq = 1;
+                      break;
+                    }
+#endif
                     jj    = k+1;
                     type  = ptype[i][k-i];
                     if(type)
@@ -745,6 +857,13 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                   }
                   break;
         case 2:   for(traced = 0, k=j; k>i+TURN; k--){
+#ifdef WITH_GQUADS
+                    if(fij == ggg[i][k-i] + f3[k+1]){
+                      /* found the decomposition */
+                      traced = i; jj = k + 1; gq = 1;
+                      break;
+                    }
+#endif
                     jj    = k+1;
                     type  = ptype[i][k-i];
                     if(type)
@@ -755,6 +874,13 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                   }
                   break;
         default:  for(traced = 0,k=j; k>i+TURN; k--){
+#ifdef WITH_GQUADS
+                    if(fij == ggg[i][k-i] + f3[k+1]){
+                      /* found the decomposition */
+                      traced = i; jj = k + 1; gq = 1;
+                      break;
+                    }
+#endif
                     jj = k+1;
                     type = ptype[i+1][k-(i+1)];
                     if(type){
@@ -792,6 +918,12 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         sector[s].ml  = ml;
       }
       i=traced; j=k;
+#ifdef WITH_GQUADS
+      if(gq){
+        /* goto backtrace of gquadruplex */
+        goto repeat_gquad;
+      }
+#endif
       structure[i-start] = '('; structure[j-start] = ')';
       if (((jj==j+2) || (dangles==2)) && (j < length)) structure[j+1-start] = '.';
       goto repeat1;
@@ -810,6 +942,12 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         continue;
       }
 
+#ifdef WITH_GQUADS
+      if(fij == ggg[i][j-i] + E_MLstem(0, -1, -1, P)){
+        /* go to backtracing of quadruplex */
+        goto repeat_gquad;
+      }
+#endif
 
       switch(dangles){
         case 0:   tt = ptype[i][j-i];
@@ -942,6 +1080,21 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
     /* (i.j) must close a multi-loop */
     tt = rtype[type];
     i1 = i+1; j1 = j-1;
+
+#ifdef WITH_GQUADS
+    /*
+      The case that is handled here actually resembles something like
+      an interior loop where the enclosing base pair is of regular
+      kind and the enclosed pair is not a canonical one but a g-quadruplex
+      that should then be decomposed further...
+    */
+    if(backtrack_GQuad_IntLoop_L(cij, i, j, type, S, ggg, maxdist, &p, &q, P)){
+      i = p; j = q;
+      goto repeat_gquad;
+    }
+
+#endif
+
     sector[s+1].ml  = sector[s+2].ml = 1;
 
     switch(dangles){
@@ -1031,6 +1184,34 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
 #endif
         nrerror("backtracking failed in repeat");
     }
+#ifdef WITH_GQUADS
+    continue; /* this is a workarround to not accidentally proceed in the following block */
+
+  repeat_gquad:
+    /*
+      now we do some fancy stuff to backtrace the stacksize and linker lengths
+      of the g-quadruplex that should reside within position i,j
+    */
+    {
+      int l[3], L, a;
+      L = -1;
+      
+      get_gquad_pattern_mfe(S, i, j, P, &L, l);
+      if(L != -1){
+        /* fill the G's of the quadruplex into the structure string */
+        for(a=0;a<L;a++){
+          structure[i+a-start] = '+';
+          structure[i+L+l[0]+a-start] = '+';
+          structure[i+L+l[0]+L+l[1]+a-start] = '+';
+          structure[i+L+l[0]+L+l[1]+L+l[2]+a-start] = '+';
+        }
+        goto repeat_gquad_exit;
+      }
+      nrerror("backtracking failed in repeat_gquad");
+    }
+  repeat_gquad_exit:
+    asm("nop");
+#endif
 
   }
 

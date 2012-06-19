@@ -68,6 +68,12 @@ FLT_OR_DBL  *get_gquad_pf_matrix( short *S,
                                   FLT_OR_DBL *scale,
                                   pf_paramT *pf);
 
+int         **get_gquad_L_matrix( short *S,
+                                  int start,
+                                  int maxdist,
+                                  int **g,
+                                  paramT *P);
+
 void        get_gquad_pattern_mfe(short *S,
                                   int i,
                                   int j,
@@ -215,6 +221,103 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop(int c,
   return 0;
 }
 
+/**
+ *  backtrack an interior loop like enclosed g-quadruplex
+ *  with closing pair (i,j) with underlying Lfold matrix
+ *
+ *  \param c      The total contribution the loop should resemble
+ *  \param i      position i of enclosing pair
+ *  \param j      position j of enclosing pair
+ *  \param type   base pair type of enclosing pair (must be reverse type)
+ *  \param S      integer encoded sequence
+ *  \param ggg    triangular matrix containing g-quadruplex contributions
+ *  \param p      here the 5' position of the gquad is stored
+ *  \param q      here the 3' position of the gquad is stored
+ *  \param P      the datastructure containing the precalculated contibutions
+ *
+ *  \return       1 on success, 0 if no gquad found
+ */
+INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
+                                              int i,
+                                              int j,
+                                              int type,
+                                              short *S,
+                                              int **ggg,
+                                              int maxdist,
+                                              int *p,
+                                              int *q,
+                                              paramT *P){
+
+  int energy, dangles, k, l, maxl, minl, c0, l1;
+  short si, sj;
+
+  dangles = P->model_details.dangles;
+  si      = S[i + 1];
+  sj      = S[j - 1];
+  energy  = 0;
+
+  if(dangles == 2)
+    energy += P->mismatchI[type][si][sj];
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  k = i + 1;
+  if(S[k] == 3){
+    if(k < j - VRNA_GQUAD_MIN_BOX_SIZE){
+      minl  = j - i + k - MAXLOOP - 2;
+      c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minl  = MAX2(c0, minl);
+      c0    = j - 3;
+      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxl  = MIN2(c0, maxl);
+      for(l = minl; l < maxl; l++){
+        if(S[l] != 3) continue;
+        if(c == energy + ggg[k][l - k] + P->internal_loop[j - l - 1]){
+          *p = k; *q = l;
+          return 1;
+        }
+      }
+    }
+  }
+
+  for(k = i + 2;
+      k < j - VRNA_GQUAD_MIN_BOX_SIZE;
+      k++){
+    l1    = k - i - 1;
+    if(l1>MAXLOOP) break;
+    if(S[k] != 3) continue;
+    minl  = j - i + k - MAXLOOP - 2;
+    c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minl  = MAX2(c0, minl);
+    c0    = j - 1;
+    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxl  = MIN2(c0, maxl);
+    for(l = minl; l < maxl; l++){
+      if(S[l] != 3) continue;
+      if(c == energy + ggg[k][l - k] + P->internal_loop[l1 + j - l - 1]){
+        *p = k; *q = l;
+        return 1;
+      }
+    }
+  }
+
+  l = j - 1;
+  if(S[l] == 3)
+    for(k = i + 4;
+        k < j - VRNA_GQUAD_MIN_BOX_SIZE;
+        k++){
+      l1    = k - i - 1;
+      if(l1>MAXLOOP) break;
+      if(S[k] != 3) continue;
+      if(c == energy + ggg[k][l - k] + P->internal_loop[l1]){
+        *p = k; *q = l;
+        return 1;
+      }
+    }
+
+  return 0;
+}
 
 INLINE PRIVATE
 int
@@ -350,6 +453,83 @@ E_GQuad_IntLoop(int i,
   return ge;
 }
 
+INLINE PRIVATE
+int
+E_GQuad_IntLoop_L(int i,
+                  int j,
+                  int type,
+                  short *S,
+                  int **ggg,
+                  int maxdist,
+                  paramT *P){
+
+  int energy, ge, en1, en2, dangles, p, q, l1, minq, maxq;
+  int c0, c1, c2, c3, up, d53, d5, d3;
+  short si, sj;
+
+  dangles = P->model_details.dangles;
+  si      = S[i + 1];
+  sj      = S[j - 1];
+  energy  = 0;
+
+  if(dangles == 2)
+    energy += P->mismatchI[type][si][sj];
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  ge = INF;
+
+  p = i + 1;
+  if(S[p] == 3){
+    if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+      minq  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minq  = MAX2(c0, minq);
+      c0    = j - 3;
+      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxq  = MIN2(c0, maxq);
+      for(q = minq; q < maxq; q++){
+        if(S[q] != 3) continue;
+        c0  = energy + ggg[p][q-p] + P->internal_loop[j - q - 1];
+        ge  = MIN2(ge, c0);
+      }
+    }
+  }
+
+  for(p = i + 2;
+      p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+      p++){
+    l1    = p - i - 1;
+    if(l1>MAXLOOP) break;
+    if(S[p] != 3) continue;
+    minq  = j - i + p - MAXLOOP - 2;
+    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minq  = MAX2(c0, minq);
+    c0    = j - 1;
+    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxq  = MIN2(c0, maxq);
+    for(q = minq; q < maxq; q++){
+      if(S[q] != 3) continue;
+      c0  = energy + ggg[p][q - p] + P->internal_loop[l1 + j - q - 1];
+      ge   = MIN2(ge, c0);
+    }
+  }
+
+  q = j - 1;
+  if(S[q] == 3)
+    for(p = i + 4;
+        p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+        p++){
+      l1    = p - i - 1;
+      if(l1>MAXLOOP) break;
+      if(S[p] != 3) continue;
+      c0  = energy + ggg[p][q - p] + P->internal_loop[l1];
+      ge  = MIN2(ge, c0);
+    }
+
+  return ge;
+}
 
 INLINE PRIVATE
 FLT_OR_DBL
