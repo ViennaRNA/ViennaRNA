@@ -87,6 +87,31 @@ void      update_cofold_params(void);
 void      update_cofold_params_par(paramT *parameters);
 
 
+#ifdef WITH_GQUADS
+/**
+ *  \brief Export the arrays of partition function cofold
+ * 
+ *  Export the cofold arrays for use e.g. in the concentration
+ *  Computations or suboptimal secondary structure backtracking
+ *
+ *  \param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
+ *  \param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
+ *  \param  fML_p   A pointer to the 'M' array, i.e. array containing best free energy in interval [i,j] for any multiloop segment with at least one stem
+ *  \param  fM1_p   A pointer to the 'M1' array, i.e. array containing best free energy in interval [i,j] for multiloop segment with exactly one stem
+ *  \param  fc_p    A pointer to the 'fc' array, i.e. array ...
+ *  \param  ggg_p   A pointer to the 'ggg' array, i.e. array containing best free energy of a gquadruplex delimited by [i,j]
+ *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
+ *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
+ */
+void export_cofold_arrays(int **f5_p,
+                          int **c_p,
+                          int **fML_p,
+                          int **fM1_p,
+                          int **fc_p,
+                          int **ggg_p,
+                          int **indx_p,
+                          char **ptype_p);
+#else
 /**
  *  \brief Export the arrays of partition function cofold
  * 
@@ -108,6 +133,8 @@ void export_cofold_arrays(int **f5_p,
                           int **fc_p,
                           int **indx_p,
                           char **ptype_p);
+#endif
+
 
 /**
  *  @}
@@ -146,6 +173,7 @@ SOLUTION  *zukersubopt_par( const char *string,
  */
 void get_monomere_mfes( float *e1,
                         float *e2);
+
 
 /**
  *  allocate arrays for folding

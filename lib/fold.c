@@ -1313,8 +1313,17 @@ PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
     if (i>j) {
       temp=i; i=j; j=temp;
     }
+#ifdef WITH_GQUADS
+    /* Gquad bonds are marked as bp[i].i == bp[i].j */
+    if(i == j){
+      structure[i-1] = '+';
+    } else {
+#endif
     structure[i-1] = '(';
     structure[j-1] = ')';
+#ifdef WITH_GQUADS
+    }
+#endif
   }
 }
 

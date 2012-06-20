@@ -209,6 +209,24 @@ PUBLIC void free_co_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
+#ifdef WITH_GQUADS
+PUBLIC void export_cofold_arrays( int **f5_p,
+                                  int **c_p,
+                                  int **fML_p,
+                                  int **fM1_p,
+                                  int **fc_p,
+                                  int **ggg_p,
+                                  int **indx_p,
+                                  char **ptype_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  *f5_p = f5; *c_p = c;
+  *fML_p = fML; *fM1_p = fM1;
+  *ggg_p = ggg;
+  *indx_p = indx; *ptype_p = ptype;
+  *fc_p =fc;
+}
+#else
 PUBLIC void export_cofold_arrays( int **f5_p,
                                   int **c_p,
                                   int **fML_p,
@@ -223,6 +241,7 @@ PUBLIC void export_cofold_arrays( int **f5_p,
   *indx_p = indx; *ptype_p = ptype;
   *fc_p =fc;
 }
+#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -651,7 +670,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
   }
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -686,6 +705,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         case 0:   /* j or j-1 is paired. Find pairing partner */
                   for (k=j-TURN-1,traced=0; k>=i; k--) {
                     int cc;
+#ifdef WITH_GQUADS
+                    if(fij == ff[k-1] + ggg[indx[j]+k]){
+                      /* found the decomposition */
+                      traced = j; jj = k - 1; gq = 1;
+                      break;
+                    }
+#endif
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -702,6 +728,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         case 2:   /* j or j-1 is paired. Find pairing partner */
                   for (k=j-TURN-1,traced=0; k>=i; k--) {
                     int cc;
+#ifdef WITH_GQUADS
+                    if(fij == ff[k-1] + ggg[indx[j]+k]){
+                      /* found the decomposition */
+                      traced = j; jj = k - 1; gq = 1;
+                      break;
+                    }
+#endif
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -717,6 +750,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         default:  for(k=j-TURN-1,traced=0; k>=i; k--){
                     int cc;
                     type = ptype[indx[j]+k];
+#ifdef WITH_GQUADS
+                    if(fij == ff[k-1] + ggg[indx[j]+k]){
+                      /* found the decomposition */
+                      traced = j; jj = k - 1; gq = 1;
+                      break;
+                    }
+#endif
                     if(type){
                       cc = c[indx[j]+k];
                       if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
@@ -752,6 +792,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       i=k; j=traced;
+#ifdef WITH_GQUADS
+      if(gq){
+        /* goto backtrace of gquadruplex */
+        goto repeat_gquad;
+      }
+#endif
       base_pair2[++b].i = i;
       base_pair2[b].j   = j;
       goto repeat1;
@@ -833,6 +879,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         continue;
       }
 
+#ifdef WITH_GQUADS
+      if(fij == ggg[indx[j]+i] + E_MLstem(0, -1, -1, P)){
+        /* go to backtracing of quadruplex */
+        goto repeat_gquad;
+      }
+#endif
       tt  = ptype[indx[j]+i];
       cij = c[indx[j]+i];
       switch(dangle_model){
@@ -984,6 +1036,21 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     tt = rtype[type];
     i1 = i+1;
     j1 = j-1;
+#ifdef WITH_GQUADS
+    /*
+      The case that is handled here actually resembles something like
+      an interior loop where the enclosing base pair is of regular
+      kind and the enclosed pair is not a canonical one but a g-quadruplex
+      that should then be decomposed further...
+    */
+    if(SAME_STRAND(i,j)){
+      if(backtrack_GQuad_IntLoop(cij, i, j, type, S, ggg, indx, &p, &q, P)){
+        i = p; j = q;
+        goto repeat_gquad;
+      }
+    }
+
+#endif
     /* fake multi-loop */
     if(!SAME_STRAND(i,j)){
       int ii, jj, decomp;
@@ -1112,6 +1179,38 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 #endif
         nrerror("backtracking failed in repeat");
     }
+#ifdef WITH_GQUADS
+    continue; /* this is a workarround to not accidentally proceed in the following block */
+
+  repeat_gquad:
+    /*
+      now we do some fancy stuff to backtrace the stacksize and linker lengths
+      of the g-quadruplex that should reside within position i,j
+    */
+    {
+      int l[3], L, a;
+      L = -1;
+      
+      get_gquad_pattern_mfe(S, i, j, P, &L, l);
+      if(L != -1){
+        /* fill the G's of the quadruplex into base_pair2 */
+        for(a=0;a<L;a++){
+          base_pair2[++b].i = i+a;
+          base_pair2[b].j   = i+a;
+          base_pair2[++b].i = i+L+l[0]+a;
+          base_pair2[b].j   = i+L+l[0]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+        }
+        goto repeat_gquad_exit;
+      }
+      nrerror("backtracking failed in repeat_gquad");
+    }
+  repeat_gquad_exit:
+    asm("nop");
+#endif
 
   } /* end >> while (s>0) << */
 
@@ -1145,24 +1244,12 @@ PRIVATE void free_end(int *array, int i, int start) {
       energy = c[indx[jj]+ii];
       switch(dangle_model){
         case 0:   
-#if WITH_GQUADS
-                  if(SAME_STRAND(ii, jj))
-                    array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
-#endif
                   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
                   break;
         case 2:   
-#if WITH_GQUADS
-                  if(SAME_STRAND(ii, jj))
-                    array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
-#endif
                   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
                   break;
         default:     
-#if WITH_GQUADS
-                  if(SAME_STRAND(ii, jj))
-                    array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
-#endif
                   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
                   if(inc > 0){
                     if(j > left)
@@ -1173,6 +1260,11 @@ PRIVATE void free_end(int *array, int i, int start) {
                   break;
       }
     }
+#if WITH_GQUADS
+    if(SAME_STRAND(ii, jj))
+      array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
+#endif
+
     if (dangle_model%2==1) {
       /* interval ends in a dangle (i.e. i-inc is paired) */
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
@@ -1183,10 +1275,6 @@ PRIVATE void free_end(int *array, int i, int start) {
       si = (ii > left)  && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
       sj = (jj < right) && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-#if WITH_GQUADS
-      if(SAME_STRAND(ii, jj))
-        array[i] = MIN2(array[i], array[j - inc] + ggg[indx[jj]+ii]);
-#endif
       if(inc>0)
         array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, -1, sj, P));
       else

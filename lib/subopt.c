@@ -97,6 +97,11 @@
 #include <omp.h>
 #endif
 
+#ifdef WITH_GQUADS
+#include "gquad.h"
+#endif
+
+
 #define true              1
 #define false             0
 #define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
@@ -149,15 +154,23 @@ PRIVATE int     struct_constrained  = 0;
 PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
+#ifdef WITH_GQUADS
+PRIVATE int     *ggg = NULL;
+#endif
+
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin() in the PARALLEL directive!
-*/
+#ifdef WITH_GQUADS
+#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
+                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
+                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained, ggg)
+
+#else
 #pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
                           ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
                           fM2, Fc, FcH, FcI, FcM, circular, struct_constrained)
+
+#endif
 
 #endif
 
@@ -531,7 +544,11 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     min_en = energy_of_circ_struct_par(sequence, struc, P, 0);
   } else {
     min_en = cofold_par(sequence, struc, P, struct_constrained);
+#ifdef WITH_GQUADS
+    export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &ggg, &indx, &ptype);
+#else
     export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+#endif
     /* restore dangle model */
     P->model_details.dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
