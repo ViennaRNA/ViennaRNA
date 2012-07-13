@@ -452,7 +452,8 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
         case 2:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
 #ifdef WITH_GQUADS
-                    f3[i] = MIN2(f3[i], f3[j+1] + ggg[i][j-i]);
+                    if(ggg[i][j-i] != INF)
+											f3[i] = MIN2(f3[i], f3[j+1] + ggg[i][j-i]);
 #endif
                     if(type)
                       f3[i] = MIN2(f3[i], f3[j+1] + c[i][j-i] + E_ExtLoop(type, (i>1) ? S1[i-1] : -1, S1[j+1], P));
@@ -499,7 +500,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
       } /* switch(dangles)... */
 
       /* backtrack partial structure */
-      if (f3[i] != f3[i+1] && (f3[i+1] < 0)) do_backtrack=1;
+      if (f3[i] < f3[i+1]) do_backtrack=1;
       else if (do_backtrack) {
         int pairpartner; /*i+1?? is paired with pairpartner*/
         int cc;
@@ -664,7 +665,6 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           fij = f3[i];
           lind=i;
           while(fij==f3[lind+1]) lind++;
-
           /*get pairpartner*/
           for(pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
             type = ptype[lind][pairpartner-lind];
