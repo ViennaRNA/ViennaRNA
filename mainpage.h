@@ -743,7 +743,9 @@ resulting structures and base pairing probabilities.
 
 \code{.c}
 #include  <stdio.h>
+#include  <stdlib.h>
 #include  <math.h>
+#include  <string.h>
 #include  "utils.h"
 #include  "fold_vars.h"
 #include  "fold.h"
@@ -752,7 +754,7 @@ resulting structures and base pairing probabilities.
 #include  "RNAstruct.h"
 #include  "treedist.h"
 #include  "stringdist.h"
-#include  "ProfileDist.h"
+#include  "profiledist.h"
 
 void main()
 {
@@ -761,7 +763,7 @@ void main()
    float e1, e2, tree_dist, string_dist, profile_dist, kT;
    Tree *T1, *T2;
    swString *S1, *S2;
-   float **pf1, **pf2;
+   float *pf1, *pf2;
    FLT_OR_DBL *bppm;
    /* fold at 30C instead of the default 37C */
    temperature = 30.;      /* must be set *before* initializing  */
@@ -813,7 +815,7 @@ void main()
    e2 = pf_fold(seq2, struct2);
    /* get the base pair probability matrix for the previous run of pf_fold() */
    bppm = export_bppm();
-   pf2 = Make_bp_profile(strlen(seq2));
+   pf2 = Make_bp_profile_bppm(bppm, strlen(seq2));
 
    free_pf_arrays();  /* free space allocated for pf_fold() */
 

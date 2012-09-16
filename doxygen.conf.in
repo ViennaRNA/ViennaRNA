@@ -1308,7 +1308,7 @@ LATEX_SOURCE_CODE      = YES
 # bibliography, e.g. plainnat, or ieeetr. The default style is "plain". See
 # http://en.wikipedia.org/wiki/BibTeX for more info.
 
-LATEX_BIB_STYLE        = apalike
+LATEX_BIB_STYLE        = plain
 
 #---------------------------------------------------------------------------
 # configuration options related to the RTF output
