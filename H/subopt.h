@@ -7,8 +7,20 @@
 #define MAXDOS 1000
 
 /**
- *  \file subopt.h
- *  \brief RNAsubopt and density of states declarations
+ *  \addtogroup subopt_fold Enumerating Suboptimal Structures
+ *  \ingroup folding_routines
+ *  @{
+ *    \file subopt.h
+ *    \brief RNAsubopt and density of states declarations
+ *
+ *  @}
+ */
+
+/**
+ *  \addtogroup subopt_wuchty
+ *  @{
+ *
+ *  @}
  */
 
 /**
@@ -19,7 +31,9 @@
  *  directly written to a 'fp' (if 'fp' is not NULL), or
  *  (fp==NULL) returned in a #SOLUTION * list terminated
  *  by an entry were the 'structure' pointer is NULL.
- * 
+ *
+ *  \ingroup subopt_wuchty
+ *
  *  \param  seq
  *  \param  sequence
  *  \param  delta
@@ -31,6 +45,11 @@ SOLUTION *subopt (char *seq,
                   int delta,
                   FILE *fp);
 
+/**
+ *  \brief Returns list of subopt structures or writes to fp
+ * 
+ *  \ingroup subopt_wuchty
+ */
 SOLUTION *subopt_par( char *seq,
                       char *structure,
                       paramT *parameters,
@@ -45,6 +64,8 @@ SOLUTION *subopt_par( char *seq,
  *  This function is similar to subopt() but calculates secondary structures
  *  assuming the RNA sequence to be circular instead of linear
  * 
+ *  \ingroup subopt_wuchty
+ *
  *  \param  seq
  *  \param  sequence
  *  \param  delta
@@ -58,15 +79,39 @@ SOLUTION *subopt_circ ( char *seq,
 
 /**
  *  \brief Sort output by energy
+ * 
+ *  \ingroup subopt_wuchty
+ *
  */
 extern  int     subopt_sorted;
 
-extern  int     density_of_states[MAXDOS+1];
 
 /**
  *  \brief printing threshold for use with logML
+ * 
+ *  \ingroup subopt_wuchty
+ *
  */
 extern  double  print_energy;
 
+/**
+ *  \addtogroup dos
+ *  @{
+ */
+
+/**
+ *  \brief The Density of States
+ *
+ *  This array contains the density of states for an RNA sequences after a call to subopt_par(),
+ *  subopt() or subopt_circ().
+ *
+ *  \pre  Call one of the functions subopt_par(), subopt() or subopt_circ() prior accessing the contents
+ *        of this array
+ *  \see  subopt_par(), subopt(), subopt_circ()
+ *
+ */
+extern  int     density_of_states[MAXDOS+1];
+
+/** @} */ /* End of group dos */
+
 #endif
-/* End of file */

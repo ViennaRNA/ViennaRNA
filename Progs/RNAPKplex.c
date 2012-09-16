@@ -25,7 +25,6 @@
 
 int PlexHit_cmp (const void *c1, const void *c2);
 int PlexHit_cmp_energy (const void *c1, const void *c2);
-short *make_pk_pair_table(const char *structure);
 
 /*--------------------------------------------------------------------------*/
 
@@ -139,7 +138,7 @@ int main(int argc, char *argv[]) {
     ########################################################
     */
     if(id_s1){
-      printf("%s\n", id_s1);
+      if(!istty) printf("%s\n", id_s1);
       (void) sscanf(id_s1, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else {
@@ -253,8 +252,10 @@ int main(int argc, char *argv[]) {
       constraint = (char *) space(length+1);
       mfe_struct = (char *) space(length+1);
 
-      mfe = fold_par(s1, mfe_struct, par, 0, 0);
-
+      mfe = mfe_pk = fold_par(s1, mfe_struct, par, 0, 0);
+/*      if(verbose)
+          printf("%s (%6.2f) [mfe-pkfree]\n", mfe_struct, mfe);
+*/
       for(current = 0; current < NumberOfHits; current++){
         /* do evaluation for structures above the subopt threshold only */
         if(!PlexHits[current].inactive){
@@ -269,7 +270,7 @@ int main(int argc, char *argv[]) {
             constrainedEnergy = fold_par(s1, constraint, par, 1, 0);
 
             /* check if this structure is worth keeping */
-            if(constrainedEnergy + PlexHits[current].ddG + pk_penalty - subopts <= mfe){
+            if(constrainedEnergy + PlexHits[current].ddG + pk_penalty <= mfe_pk + subopts){
               /* add pseudo-knot brackets to the structure */
               for(i=PlexHits[current].tb - 1; i < PlexHits[current].te; i++)
                 if(PlexHits[current].structure[i-PlexHits[current].tb+1]=='(')
@@ -277,17 +278,17 @@ int main(int argc, char *argv[]) {
               for(i=PlexHits[current].qb - 1; i < PlexHits[current].qe; i++)
                 if(PlexHits[current].structure[i-PlexHits[current].qb+1+1+1+PlexHits[current].te-PlexHits[current].tb]==')')
                   constraint[i] = ']';
-              PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + (float) pk_penalty;
+              PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + (float) pk_penalty + PlexHits[current].dG1 + PlexHits[current].dG2;
               if(PlexHits[current].energy < mfe_pk) mfe_pk = PlexHits[current].energy;
-              if(mfe_pk < mfe) mfe = mfe_pk;
-	      free(PlexHits[current].structure);
+              free(PlexHits[current].structure);
               PlexHits[current].structure = strdup(constraint);
+              PlexHits[current].processed = 1;
             } else {
               PlexHits[current].inactive = 1;
             }
           } else {
             PlexHits[current].energy = mfe;
-            if(mfe + subopts < mfe_pk) mfe_pk = mfe;
+            if(mfe > mfe_pk + subopts) PlexHits[current].inactive = 1;
           }
           /*
             now go through the rest of the PlexHits array and mark all hits as inactive if they can
@@ -296,13 +297,18 @@ int main(int argc, char *argv[]) {
           for(i = 0; i < NumberOfHits; i++){
             if(!PlexHits[i].inactive){
               if(PlexHits[i].structure){
-                double cost = PlexHits[i].dG1;
-                if(PlexHits[i].dG2 > cost) cost = PlexHits[i].dG2;
-                cost += mfe + PlexHits[i].ddG + pk_penalty;
-                if(cost > mfe + subopts)
-                  PlexHits[i].inactive = 1;
+                if(!PlexHits[i].processed){
+                  double cost = PlexHits[i].dG1;
+                  if(PlexHits[i].dG2 > cost) cost = PlexHits[i].dG2;
+                  cost += mfe + PlexHits[i].ddG + pk_penalty;
+                  if(cost > mfe + subopts)
+                    PlexHits[i].inactive = 1;
+                } else {
+                  if(PlexHits[i].energy > mfe_pk + subopts)
+                    PlexHits[i].inactive = 1;
+                }
               } else {
-                if(mfe > mfe_pk)
+                if(mfe > mfe_pk + subopts)
                   PlexHits[i].inactive = 1;
               }
             }
@@ -326,6 +332,38 @@ int main(int argc, char *argv[]) {
         }
       }
 
+      /*
+      ########################################################
+      # Generate Plot for the best structure
+      ########################################################
+      */
+      
+      annotation  = (char *) space(sizeof(char)*300);
+      temp        = (char *) space(sizeof(char)*300);
+
+      /* and print the results to stdout */
+      for(i = 0; i < NumberOfHits; i++){
+        if(!PlexHits[i].inactive){
+          if (PlexHits[i].structure){
+            annotation  = (char *) space(sizeof(char)*300);
+            temp        = (char *) space(sizeof(char)*300);
+            sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[i].tb, PlexHits[i].te);
+            strcat(annotation, temp);
+            sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[i].qb, PlexHits[i].qe);
+            strcat(annotation, temp);
+            sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[i].tb, PlexHits[i].qe);
+            strcat(annotation, temp);
+            PS_rna_plot_a(s1, PlexHits[i].structure, fname, annotation, "");
+            free(annotation);
+            free(temp);
+          } else {
+            PS_rna_plot(s1, mfe_struct, fname);
+          }
+          break;
+        }
+      }
+
+#if 0
       if (verbose) {
         printf("\n");
         for(i=0;i<NumberOfHits;i++) {
@@ -334,7 +372,7 @@ int main(int argc, char *argv[]) {
       }
 
       current=-1;
-#if 0
+
       while((PlexHits[0].ddG+subopts>=PlexHits[current+1].ddG) && (current+1<NumberOfHits)) {
         current++;
 
@@ -437,11 +475,11 @@ int main(int argc, char *argv[]) {
       }
 #endif
 
-    /*
-    ########################################################
-    # free memory
-    ########################################################
-    */
+      /*
+      ########################################################
+      # free memory
+      ########################################################
+      */
       free(pl);
       free(pup[0]);
       free(pup);
@@ -479,63 +517,4 @@ int PlexHit_cmp_energy (const void *c1, const void *c2) {
   if(p1->energy > p2->energy) return 1;
   else if(p1->energy < p2->energy) return -1;
   return 0;
-}
-
-short *make_pk_pair_table(const char *structure) {
-    /* returns array representation of structure.
-       table[i] is 0 if unpaired or j if (i.j) pair.  */
-  short i, j, hrund, heckig;
-  short length;
-  short *stackrund, *stackeckig;
-  short *table;
-
-  length = (short) strlen(structure);
-  stackrund = (short *) space(sizeof(short)*(length+1));
-  stackeckig = (short *) space(sizeof(short)*(length+1));
-  table = (short *) space(sizeof(short)*(length+2));
-  table[0] = length;
-
-  for (hrund=0, heckig=0, i=1; i<=length; i++) {
-    switch (structure[i-1]) {
-      case '(':
-        stackrund[hrund++]=i;
-        break;
-      case ')':
-        j = stackrund[--hrund];
-        if (hrund<0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced () brackets in make_pk_pair_table");
-        }
-        table[i]=j;
-        table[j]=i;
-        break;
-      case '[':
-        stackeckig[heckig++]=i;
-        break;
-      case ']':
-        j = stackeckig[--heckig];
-        if (heckig<0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced [] brackets in make_pk_pair_table");
-        }
-        table[i]=j;
-        table[j]=i;
-        break;
-      default:   /* unpaired base, usually '.' */
-        table[i]= 0;
-      break;
-    }
-  }
-  if (hrund!=0) {
-    fprintf(stderr, "%s\n", structure);
-    nrerror("unbalanced () brackets in make_pk_pair_table");
-  }
-  if (heckig!=0) {
-    fprintf(stderr, "%s\n", structure);
-    nrerror("unbalanced [] brackets in make_pk_pair_table");
-  }
-
-  free(stackrund);
-  free(stackeckig);
-  return(table);
 }

@@ -10,22 +10,34 @@
 #endif
 
 /**
- *  \file LPfold.h
- *  \brief Function declarations of partition function variants of the Lfold algorithm
- * 
+ *  \addtogroup local_pf_fold
+ *  @{
+ *    \file LPfold.h
+ *    \brief Function declarations of partition function variants of the Lfold algorithm
+ *
+ *  @}
  */
+
 
 /**
  *  \brief
+ *
+ *  \ingroup local_pf_fold
  * 
  *  \param  length
  */
 void update_pf_paramsLP(int length);
 
+/**
+ *  \brief
+ *
+ *  \ingroup local_pf_fold
+ * 
+ */
 void update_pf_paramsLP_par(int length, pf_paramT *parameters);
 
 /**
- *  \brief Compute partition functions for locally stable secondary structures <b>(berni! update me)</b>
+ *  \brief Compute partition functions for locally stable secondary structures
  * 
  *  pfl_fold computes partition functions for every window of size
  *  'winSize' possible in a RNA molecule, allowing only pairs with a span
@@ -48,6 +60,9 @@ void update_pf_paramsLP_par(int length, pf_paramT *parameters);
  *  computed and saved in this array. If pUfp is given (i.e. not NULL), pU
  *  is not saved but put out imediately. If spup is given (i.e. is not NULL),
  *  the pair probabilities in pl are not saved but put out imediately.
+ *
+ *  \ingroup local_pf_fold
+ * 
  *  \param  sequence  RNA sequence
  *  \param  winSize   size of the window
  *  \param  pairSize  maximum size of base pair
@@ -67,7 +82,12 @@ plist *pfl_fold(char *sequence,
                 FILE *pUfp,
                 FILE *spup);
 
-
+/**
+ *  \brief Compute partition functions for locally stable secondary structures
+ * 
+ *  \ingroup local_pf_fold
+ * 
+ */
 plist *pfl_fold_par(char *sequence,
                     int winSize,
                     int pairSize,
@@ -84,6 +104,9 @@ plist *pfl_fold_par(char *sequence,
  * 
  *  Can write either the unpaired probabilities (accessibilities) pU or
  *  the opening energies -log(pU)kT into a file
+ * 
+ *  \ingroup local_pf_fold
+ * 
  *  \param  pU       pair probabilities
  *  \param  length   length of RNA sequence 
  *  \param  ulength  maximum length of unpaired stretch 
@@ -101,6 +124,9 @@ void    putoutpU_prob(double **pU,
  * 
  *  Can write either the unpaired probabilities (accessibilities) pU or
  *  the opening energies -log(pU)kT into a file
+ * 
+ *  \ingroup local_pf_fold
+ * 
  *  \param  pU       pair probabilities
  *  \param  length   length of RNA sequence 
  *  \param  ulength  maximum length of unpaired stretch 

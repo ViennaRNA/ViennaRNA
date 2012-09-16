@@ -2,12 +2,20 @@
 #define __VIENNA_RNA_PACKAGE_READ_EPARS_H__
 
 /**
+ *  \addtogroup energy_parameters_rw
+ *  \brief  Read and Write energy parameter sets from and to text files
+ *
+ *  A default set of parameters, identical to the one described in
+ *  \cite mathews:2004 and \cite turner:2010, is compiled into the library.
+ *
+ *  @{
  *  \file read_epars.h
- *  \brief Functions to read and write energy parameter sets from/to files
+ *
  */
 
 /**
  *  \brief
+ *
  */
 enum parset {
   UNKNOWN= -1, QUIT,
@@ -32,12 +40,18 @@ void  write_parameter_file(const char fname[]);
 
 /**
  *  \brief
+ *
  */
 enum  parset gettype(const char *ident);
 
 /**
  *  \brief
+ *
  */
 char  *settype(enum parset s);
+
+/**
+ *  @}
+ */
 
 #endif

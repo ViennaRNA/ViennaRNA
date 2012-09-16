@@ -10,6 +10,25 @@
 #endif
 
 /**
+ *  \addtogroup mfe_fold
+ *  \ingroup folding_routines
+ *  \brief This section covers all functions and variables related to the calculation
+ *  of minimum free energy (MFE) structures.
+ *
+ *  The library provides a fast dynamic programming minimum free energy
+ *  folding algorithm as described in \cite zuker:1981.
+ *  All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
+ *  sequences are described in this section.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See \cite hofacker:2006 for further details.
+ *
+ *  Nevertheless, the RNAlib also
+ *  provides interfaces for the prediction of consensus MFE structures of sequence alignments,
+ *  MFE structure for two hybridized sequences, local optimal structures and many more. For
+ *  those more specialized variants of MFE folding routines, please consult the appropriate
+ *  subsections (Modules) as listed above.
+ *  
  *  \file fold.h
  *  \brief MFE calculations and energy evaluations for single RNA sequences
  * 
@@ -52,6 +71,7 @@ extern  int cut_point;
  *  \ingroup eval
  */
 extern  int eos_debug;
+
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
@@ -144,6 +164,15 @@ float fold( const char *sequence,
 float circfold( const char *sequence,
                 char *structure);
 
+
+/**
+ *  \addtogroup eval Energy evaluation
+ *  \ingroup folding_routines
+ *  @{
+ *    \brief This module contains all functions and variables related to energy evaluation
+ *    of sequence/structure pairs.
+ *  @}
+ */
 
 /**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
