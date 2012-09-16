@@ -10,7 +10,7 @@
 
 \n
 
-\date     1994-2010
+\date     1994-2012
 \authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
 
 <h3>Table of Contents</h3>
@@ -104,7 +104,8 @@ void  free_arrays(void);
 \endverbatim
 \copybrief free_arrays()
 
-\see fold.h, cofold.h, 2Dfold.h, Lfold.h, alifold.h and subopt.h for a complete list of available functions.
+\see \ref mfe_fold, \ref eval and the following header-files:
+fold.h, cofold.h, 2Dfold.h, Lfold.h, alifold.h and subopt.h
 
 \htmlonly
 <hr>

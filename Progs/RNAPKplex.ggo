@@ -67,8 +67,8 @@ option  "energyCutoff" e
 "Energy cutoff or pseudoknot initiation cost. Minimum energy gain of a pseudoknot\
  interaction for it to be returned. Pseudoknots with smaller energy gains are\
  rejected.\n\n"
-int
-default="-810"
+double
+default="-8.10"
 optional
 
 option  "paramFile" P
@@ -91,9 +91,9 @@ details="NOTE: The final energy of a structure is calculated as the sum\
  a  pseudoknot and the energy of the pseudoknot-free part of the\
  structure. The -s option only takes the pseudoknot interaction\
  energy into account, so the final energy differences may be bigger\
- than the specified value (default=0).\n\n"
-int
-default="0"
+ than the specified value (default=0.).\n\n"
+double
+default="0.0"
 optional
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

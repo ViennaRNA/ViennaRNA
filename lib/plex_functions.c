@@ -50,7 +50,11 @@ PUBLIC  int     verbose             = 0;
 
 /*-----------------------------------------------------------------------duplexfold_XS---------------------------------------------------------------------------*/
 
-PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold, const int alignment_length) {
+PRIVATE void  duplexfold_XS(const char *s1,
+                            int **access_s1,
+                            const int threshold,
+                            const int alignment_length){
+
   int i, j, k, l, p, q, Emin=INF, l_min=0, k_min=0, j_min=0;
   int type, type2, type3, E, tempK;
   char *struc;
@@ -71,7 +75,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
     l_min=0;
     k_min=0;
 
-    //init all matrix elements to INF
+    /* init all matrix elements to INF */
     for (j=0; j<(n1-20); j++){
       for(k=0;k<alignment_length;k++){
         for(l=0;l<alignment_length;l++){
@@ -80,7 +84,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
       }
     }
 
-    //matrix starting values for (i,j)-basepairs
+    /* matrix starting values for (i,j)-basepairs */
     for(j=i+4; j<n1-10; j++) {
       type=ptype[indx[j]+i];
       if (type) {
@@ -91,7 +95,7 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
 
     int i_pos_begin=MAX2(9, i-alignment_length);
 
-    //fill matrix
+    /* fill matrix */
     for (k=i-1; k>i_pos_begin; k--) {
       tempK=alignment_length-i+k-1;
       for (l=i+5; l<n1-9; l++) {
@@ -108,13 +112,13 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
               if (type) {
                 c3[j-11][tempK][l-j] = MIN2(c3[j-11][tempK][l-j], c3[j-11][alignment_length-i+p-1][q-j]+E);
               }
-            }//next j
-          }//next q
-        }//next p
-      }//next l
-    }//next k
+            }/* next j */
+          }/* next q */
+        }/* next p */
+      }/* next l */
+    }/* next k */
 
-    //read out matrix minimum
+    /* read out matrix minimum */
     for(j=i+4; j<n1-10; j++) {
       type=ptype[indx[j]+i];
       if (!type) continue;
@@ -137,8 +141,8 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
     if(Emin  < threshold){
       struc = backtrack_XS(k_min, l_min, i, j_min, alignment_length);
 
-      //lets take care of the dangles
-      //find best combination
+      /* lets take care of the dangles */
+      /* find best combination */
       int dx_5, dx_3, dy_5, dy_3,dGx,dGy,bonus_x, bonus_y;
       dx_5 = dx_3 = dy_5 = dy_3 = dGx = dGy = bonus_x = bonus_y = 0;
       dGx = access_s1[i-k_min+1][i];
@@ -150,15 +154,14 @@ PRIVATE void duplexfold_XS(const char *s1, int **access_s1, const int threshold,
       PlexHits[NumberOfHits].ddG=(double) Emin * 0.01;
       PlexHits[NumberOfHits].dG1=(double) dGx*0.01 ;
       PlexHits[NumberOfHits].dG2=(double) dGy*0.01 ;
-      PlexHits[NumberOfHits].energy= PlexHits[NumberOfHits].ddG - PlexHits[NumberOfHits].dG1 - PlexHits[NumberOfHits].dG2;
+      PlexHits[NumberOfHits].energy = PlexHits[NumberOfHits].ddG - PlexHits[NumberOfHits].dG1 - PlexHits[NumberOfHits].dG2;
       PlexHits[NumberOfHits].structure = struc;
 
-      //output:
+      /* output: */
       if(PlexHits[NumberOfHits].energy * 100 < threshold){
         if (verbose) printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[NumberOfHits].structure, PlexHits[NumberOfHits].tb, PlexHits[NumberOfHits].te, PlexHits[NumberOfHits].qb, PlexHits[NumberOfHits].qe, PlexHits[NumberOfHits].ddG, PlexHits[NumberOfHits].energy, PlexHits[NumberOfHits].dG1, PlexHits[NumberOfHits].dG2);
         NumberOfHits++;
-        if(NumberOfHits==PlexHitsArrayLength-1) {
-          printf("Array PlexHits is full\n");
+        if(NumberOfHits==PlexHitsArrayLength-1){
           PlexHitsArrayLength*=2;
           PlexHits = (dupVar *) xrealloc(PlexHits,sizeof(dupVar)*PlexHitsArrayLength);
         }
@@ -236,8 +239,12 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int ali
   return struc;
 }
 
-PUBLIC  dupVar  **PKLduplexfold_XS(const char *s1, int **access_s1, const int threshold, const int alignment_length, const int delta)
-{
+PUBLIC  dupVar  **PKLduplexfold_XS( const char *s1,
+                                    int **access_s1,
+                                    const int threshold,
+                                    const int alignment_length,
+                                    const int delta){
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6))
     update_dfold_params();
 
@@ -258,8 +265,7 @@ PUBLIC  dupVar  **PKLduplexfold_XS(const char *s1, int **access_s1, const int th
 
 /*---------------------------------UTILS------------------------------------------*/
 
-PRIVATE void update_dfold_params(void)
-{
+PRIVATE void update_dfold_params(void){
   if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();

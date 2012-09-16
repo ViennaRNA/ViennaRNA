@@ -421,6 +421,7 @@ typedef struct dupVar{
   int i;
   int j;
   int end;
+  char *pk_helix;
   char *structure;
   double energy;
   int offset;
@@ -431,6 +432,7 @@ typedef struct dupVar{
   int te;
   int qb;
   int qe;
+  int inactive;
 } dupVar;
 
 
