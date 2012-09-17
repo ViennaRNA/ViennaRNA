@@ -366,8 +366,54 @@ char  *backtrack_fold_from_pair(char *sequence,
                                 int i,
                                 int j);
 
+/** 
+ * \brief Calculate energy of a move (closing or opening of a base pair)
+ *
+ *  If the parameters m1 and m2 are negative, it is deletion (opening)
+ *  of a base pair, otherwise it is insertion (opening).
+ *
+ *  \see              make_pair_table(), energy_of_move()
+ *  \param string     RNA sequence
+ *  \param structure  secondary structure in dot-bracket notation
+ *  \param m1         first coordinate of base pair
+ *  \param m2         second coordinate of base pair
+ *  \returns          energy change of the move in kcal/mol
+ */
+float energy_of_move( const char *string,
+                      const char *structure,
+                      int m1,
+                      int m2);
+
+
 /**
  * 
+ * \brief Calculate energy of a move (closing or opening of a base pair)
+ *
+ *  If the parameters m1 and m2 are negative, it is deletion (opening)
+ *  of a base pair, otherwise it is insertion (opening).
+ *
+ *  \see              make_pair_table(), energy_of_move()
+ *  \param pt         the pair table of the secondary structure
+ *  \param s          encoded RNA sequence
+ *  \param s1         encoded RNA sequence
+ *  \param m1         first coordinate of base pair
+ *  \param m2         second coordinate of base pair
+ *  \returns          energy change of the move in 10cal/mol
+ */
+int energy_of_move_pt(short *pt,
+                   short *s,
+                   short *s1,
+                   int m1,
+                   int m2);
+
+/**
+ * \brief Calculate energy of a loop
+ *
+ *  \param ptable     the pair table of the secondary structure
+ *  \param s          encoded RNA sequence
+ *  \param s1         encoded RNA sequence
+ *  \param i          position of covering base pair
+ *  \returns          free energy of the loop in 10cal/mol
  */
 int   loop_energy(short *ptable,
                   short *s,

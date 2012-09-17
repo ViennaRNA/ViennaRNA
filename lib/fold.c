@@ -2175,6 +2175,82 @@ PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
 
 /*---------------------------------------------------------------------------*/
 
+
+PUBLIC float energy_of_move(const char *string, const char *structure, int m1, int m2) {
+  int   energy;
+  short *ss, *ss1;
+
+#ifdef _OPENMP
+  if(P == NULL) update_fold_params();
+#else
+  if((init_length<0)||(P==NULL)) update_fold_params();
+#endif
+
+  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+
+  if (strlen(structure)!=strlen(string))
+    nrerror("energy_of_struct: string and structure have unequal length");
+
+  /* save the S and S1 pointers in case they were already in use */
+  ss = S; ss1 = S1;
+  S   = encode_sequence(string, 0);
+  S1  = encode_sequence(string, 1);
+
+  pair_table = make_pair_table(structure);
+
+  energy = energy_of_move_pt(pair_table, S, S1, m1, m2);
+
+  free(pair_table);
+  free(S); free(S1);
+  S=ss; S1=ss1;
+  return  (float) energy/100.;
+}
+
+/*---------------------------------------------------------------------------*/
+
+PUBLIC int energy_of_move_pt(short *pt, short *s, short *s1, int m1, int m2) {
+  /*compute change in energy given by move (m1,m2)*/
+  int en_post, en_pre, i,j,k,l, len;
+
+  len = pt[0];
+  k = (m1>0)?m1:-m1;
+  l = (m2>0)?m2:-m2;
+  /* first find the enclosing pair i<k<l<j */
+  for (j=l+1; j<=len; j++) {
+    if (pt[j]<=0) continue; /* unpaired */
+    if (pt[j]<k) break;   /* found it */
+    if (pt[j]>j) j=pt[j]; /* skip substructure */
+    else {
+      fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
+      nrerror("illegal move or broken pair table in energy_of_move()");
+    }
+  }
+  i = (j<=len) ? pt[j] : 0;
+  en_pre = loop_energy(pt, s, s1, i);
+  en_post = 0;
+  if (m1<0) { /*it's a delete move */
+    en_pre += loop_energy(pt, s, s1, k);
+    pt[k]=0;
+    pt[l]=0;
+  } else { /* insert move */
+    pt[k]=l;
+    pt[l]=k;
+    en_post += loop_energy(pt, s, s1, k);
+  }
+  en_post += loop_energy(pt, s, s1, i);
+  /*  restore pair table */
+  if (m1<0) {
+    pt[k]=l;
+    pt[l]=k;
+  } else {
+    pt[k]=0;
+    pt[l]=0;
+  }
+  return (en_post - en_pre);
+}
+
+
+
 PRIVATE int cut_in_loop(int i) {
   /* walk around the loop;  return j pos of pair after cut if
      cut_point in loop else 0 */
