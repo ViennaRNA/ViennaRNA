@@ -6,6 +6,8 @@
  *  \brief Various utility- and helper-functions used throughout the Vienna RNA package
  */
 
+#include "data_structures.h"
+
 /**
  *  Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF"
  */
@@ -611,5 +613,22 @@ unsigned int  *make_referenceBP_array(short *reference_pt,
 unsigned int  *compute_BPdifferences( short *pt1,
                                       short *pt2,
                                       unsigned int turn);
+
+/**
+ *  \brief Fill the base pair type encodings according to the model details
+ *
+ *  \param md   The model details datastructure
+ */
+void  fill_pair_matrices(model_detailsT *md);
+
+/**
+ *  \brief Get the integer encoding of the sequence according to the model details and encoding type
+ *
+ */
+short *get_sequence_encoding( const char *sequence,
+                              short type,
+                              model_detailsT *md);
+
+char  get_encoded_char(int enc, model_detailsT *md);
 
 #endif

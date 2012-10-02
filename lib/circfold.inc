@@ -14,8 +14,13 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   */
   int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
-  int i,j, p,q,length, energy;
+  int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
+  int *rtype;
+
   int dangle_model = P->model_details.dangles;
+
+
+  rtype         = &(P->model_details.rtype[0]);
 
   length = (int) strlen(string);
 

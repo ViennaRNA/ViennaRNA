@@ -199,7 +199,6 @@ extern char backtrack_type;
  */
 extern int gquad;
 
-
 char * option_string(void);
 
 /**
