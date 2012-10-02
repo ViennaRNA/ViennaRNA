@@ -50,6 +50,7 @@ static int encode_char(char c) {
 /*@null@*/
 extern char *nonstandards;
 extern void   nrerror(const char message[]);
+
 static void make_pair_matrix(void)
 {
    int i,j;
@@ -117,7 +118,7 @@ static void make_pair_matrix(void)
           pair[i][i-1] = 6;    /* DC <-> UA */
         }
       }
-      else nrerror("What energy_set are YOU using??");
+      else nrerror("Which energy_set are YOU using??");
       for (i=0; i<=MAXALPHA; i++) {
         for (j=0; j<=MAXALPHA; j++)
           rtype[pair[i][j]] = pair[j][i];

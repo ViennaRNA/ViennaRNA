@@ -32,6 +32,24 @@ PRIVATE char  *inbuf = NULL;
 PRIVATE char  *inbuf2 = NULL;
 PRIVATE unsigned int typebuf2 = 0;
 
+/* default values for the type/rtype stuff */
+PRIVATE const char Law_and_Order[] = "_ACGUTXKI";
+
+PRIVATE int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+PRIVATE int BP_pair[NBASES][NBASES]=
+/* _  A  C  G  U  X  K  I */
+{{ 0, 0, 0, 0, 0, 0, 0, 0},
+ { 0, 0, 0, 0, 5, 0, 0, 5},
+ { 0, 0, 0, 1, 0, 0, 0, 0},
+ { 0, 0, 2, 0, 3, 0, 0, 0},
+ { 0, 6, 0, 4, 0, 0, 0, 6},
+ { 0, 0, 0, 0, 0, 0, 2, 0},
+ { 0, 0, 0, 0, 0, 1, 0, 0},
+ { 0, 6, 0, 0, 5, 0, 0, 0}};
+
+
+PRIVATE int get_char_encoding(char c, model_detailsT *md);
+
 /*-------------------------------------------------------------------------*/
 
 PUBLIC void *space(unsigned size) {
@@ -661,8 +679,8 @@ PUBLIC short *make_pair_table_snoop(const char *structure)
      case '>':
        j = stack[--hx];
        if (hx<0) {
-	 fprintf(stderr, "%s\n", structure);
-	 nrerror("unbalanced brackets in make_pair_table");
+         fprintf(stderr, "%s\n", structure);
+         nrerror("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -698,39 +716,39 @@ PUBLIC short *alimake_pair_table(const char *structure)
    for (hx=0, i=1; i<=length; i++) {
       switch (structure[i-1]) {
        case '(':
-	 stack[hx++]=i;
-	 break;
+         stack[hx++]=i;
+         break;
        case ')':
-	 j = stack[--hx];
-	 if (hx<0) {
-	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_pair_table");
-	 }
-	 table[i]=j;
-	 table[j]=i;
-	 break;
+         j = stack[--hx];
+         if (hx<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced brackets in make_pair_table");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
        default:   /* unpaired base, usually '.' */
-	 table[i]= 0;
-	 break;
+         table[i]= 0;
+         break;
       }
    }
    for (hx=0, i=1; i<=length; i++) {
       switch (structure[i-1]) {
        case '<':
-	 stack[hx++]=i;
-	 break;
+         stack[hx++]=i;
+         break;
        case '>':
-	 j = stack[--hx];
-	 if (hx<0) {
-	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_pair_table");
-	 }
-	 table[i]=j;
-	 table[j]=i;
-	 break;
+         j = stack[--hx];
+         if (hx<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced brackets in make_pair_table");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
        default:   /* unpaired base, usually '.' */
-	 table[i]= table[i];
-	 break;
+         table[i]= table[i];
+         break;
       }
    }
    for (hx=0, i=1; i<=length; i++) {
@@ -741,8 +759,8 @@ PUBLIC short *alimake_pair_table(const char *structure)
      case ']':
        j = stack[--hx];
        if (hx<0) {
-	 fprintf(stderr, "%s\n", structure);
-	 nrerror("unbalanced brackets in make_pair_table");
+         fprintf(stderr, "%s\n", structure);
+         nrerror("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -999,7 +1017,13 @@ PUBLIC char *extract_record_rest_structure( const char **lines,
 
 
 
-PUBLIC void constrain_ptypes(const char *constraint, unsigned int length, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){
+PUBLIC void constrain_ptypes( const char *constraint,
+                              unsigned int length,
+                              char *ptype,
+                              int *BP,
+                              int min_loop_size,
+                              unsigned int idx_type){
+
   int n,i,j,k,l;
   int hx, *stack;
   char type;
@@ -1151,4 +1175,143 @@ PUBLIC unsigned int *compute_BPdifferences(short *pt1, short *pt2, unsigned int 
   }
   free(iindx);
   return array;
+}
+
+PUBLIC  void  fill_pair_matrices(model_detailsT *md){
+
+  int i,j;
+
+  /* nullify everything */
+  for(i = 0;i <= MAXALPHA; i++)
+    memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+  memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+
+  /* start setting actual base pair type encodings */
+  switch(md->energy_set){
+    case  0:    for(i = 0; i < 5; i++)
+                  md->alias[i] = (short) i;
+
+                md->alias[5] = 3; /* X <-> G */
+                md->alias[6] = 2; /* K <-> C */
+                md->alias[7] = 0; /* I <-> default base '@' */
+
+                for(i = 0; i < NBASES; i++)
+                    for(j = 0; j < NBASES; j++)
+                      md->pair[i][j] = BP_pair[i][j];
+
+                if(md->noGU)
+                  md->pair[3][4] = md->pair[4][3] = 0;
+
+                if(md->nonstandards != NULL) {  /* allow nonstandard bp's (encoded by type=7) */
+                   for(i = 0; i < (int)strlen(md->nonstandards); i += 2)
+                      md->pair[get_char_encoding(md->nonstandards[i], md)]
+                        [get_char_encoding(md->nonstandards[i+1], md)] = 7;
+                }
+
+                break;
+
+    case 1:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                }
+
+                break;
+
+    case 2:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 1;  /* A <-> A*/
+                  md->alias[i++] = 4;  /* B <-> U */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 5;    /* AB <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* BA <-> UA */
+                }
+
+                break;
+
+    case 3:     for(i = 1; i < MAXALPHA - 2; ){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                  md->alias[i++] = 1;  /* C <-> A */
+                  md->alias[i++] = 4;  /* D <-> U */
+                }
+                for(i = 1; i < MAXALPHA - 2; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                  i++;
+                  md->pair[i][i+1] = 5;    /* CD <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* DC <-> UA */
+                }
+
+                break;
+
+    default:    nrerror("Which energy_set are YOU using??");
+                break;
+  }
+
+  /* set the reverse base pair types */
+  for(i = 0; i <= MAXALPHA; i++){
+    for(j = 0; j <= MAXALPHA; j++){
+      md->rtype[md->pair[i][j]] = md->pair[j][i];
+    }
+  }
+
+  /* was used for energy_set == 0
+  for(i = 0; i < NBASES; i++)
+      for(j = 0; j < NBASES; j++)
+       md->rtype[md->pair[i][j]] = md->pair[j][i];
+  */
+}
+
+PUBLIC  short *get_sequence_encoding( const char *sequence,
+                                      short type,
+                                      model_detailsT *md){
+
+  unsigned int i,l = (unsigned int)strlen(sequence);
+  short         *S = (short *) space(sizeof(short)*(l+2));
+
+  switch(type){
+    /* standard encoding as always used for S */
+    case 0:   for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+                S[i]= (short) get_char_encoding(toupper(sequence[i-1]), md);
+              S[l+1] = S[1];
+              S[0] = (short) l;
+              break;
+    /* encoding for mismatches of nostandard bases (normally used for S1) */
+    case 1:   for(i=1; i<=l; i++)
+                S[i] = md->alias[(short)get_char_encoding(toupper(sequence[i-1]), md)];
+              S[l+1] = S[1];
+              S[0] = S[l];
+              break;
+  }
+
+  return S;
+}
+
+PRIVATE int get_char_encoding(char c, model_detailsT *md){
+  /* return numerical representation of base used e.g. in pair[][] */
+  int code;
+  if (md->energy_set>0) code = (int) (c-'A')+1;
+  else {
+    const char *pos;
+    pos = strchr(Law_and_Order, c);
+    if (pos==NULL) code=0;
+    else code = (int) (pos-Law_and_Order);
+    if (code>5) code = 0;
+    if (code>4) code--; /* make T and U equivalent */
+  }
+  return code;
+}
+
+PUBLIC  char  get_encoded_char(int enc, model_detailsT *md){
+  if(md->energy_set > 0) return (char)enc + 'A' - 1;
+  else return (char)Law_and_Order[enc];
 }

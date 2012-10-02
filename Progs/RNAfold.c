@@ -159,7 +159,7 @@ int main(int argc, char *argv[]){
     warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    /* nonstandards = space(33); */
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -167,11 +167,11 @@ int main(int argc, char *argv[]){
     }
     while (*c!='\0') {
       if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
+        md.nonstandards[i++]=*c++;
+        md.nonstandards[i++]=*c;
         if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
+          md.nonstandards[i++]=*c;
+          md.nonstandards[i++]=*(c-1);
         }
       }
       c++;

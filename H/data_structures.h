@@ -104,20 +104,25 @@ typedef struct bondTEn {
  *
  */
 typedef struct{
-  int     dangles;      /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
-                              \note   Some function do not implement all dangle model but only a subset of
-                                      (0,1,2,3). Read the documentaion of the particular recurrences or
-                                      energy evaluation function for information about the provided dangle
-                                      model.
-                        */
-  int     special_hp;   /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
-  int     noLP;         /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
-  int     noGU;         /**<  \brief  Do not allow GU pairs */
-  int     noGUclosure;  /**<  \brief  Do not allow loops to be closed by GU pair */
-  int     logML;        /**<  \brief  Use logarithmic scaling for multi loops */
-  int     circ;         /**<  \brief  Assume molecule to be circular */
-  int     gquad;        /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
+                                  \note   Some function do not implement all dangle model but only a subset of
+                                          (0,1,2,3). Read the documentaion of the particular recurrences or
+                                          energy evaluation function for information about the provided dangle
+                                          model.
+                            */
+  int     special_hp;       /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
+  int     noLP;             /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
+  int     noGU;             /**<  \brief  Do not allow GU pairs */
+  int     noGUclosure;      /**<  \brief  Do not allow loops to be closed by GU pair */
+  int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
+  int     circ;             /**<  \brief  Assume molecule to be circular */
+  int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
   int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
+  int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
+  char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
+  int     rtype[8];
+  short   alias[MAXALPHA+1];
+  int     pair[MAXALPHA+1][MAXALPHA+1];
 } model_detailsT;
 
 /**
@@ -261,7 +266,7 @@ typedef struct {
 */
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct cofoldF {
   /* free energies for: */
@@ -273,7 +278,7 @@ typedef struct cofoldF {
 } cofoldF;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct ConcEnt {
   double A0;    /**< \brief start concentration A */
@@ -286,7 +291,7 @@ typedef struct ConcEnt {
 } ConcEnt;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct pairpro{
   struct plist *AB;
@@ -307,7 +312,7 @@ typedef struct pairpro{
  *    + 'bp[1]' the number of CG pairs, etc.
  */
 typedef struct {
-   unsigned i;    /**<  \brief  nucleotide position i */ 
+   unsigned i;    /**<  \brief  nucleotide position i */
    unsigned j;    /**<  \brief  nucleotide position j */
    float p;       /**< \brief  Probability */
    float ent;     /**< \brief  Pseudo entropy for \f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) \f$ */
@@ -323,7 +328,7 @@ typedef struct {
 */
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct move {
   int i;  /* i,j>0 insert; i,j<0 delete */
@@ -333,7 +338,7 @@ typedef struct move {
 } move_t;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct intermediate {
   short *pt;      /**<  \brief  pair table */
@@ -343,7 +348,7 @@ typedef struct intermediate {
 } intermediate_t;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct path {
   double en;
@@ -369,7 +374,7 @@ typedef struct pu_contrib {
 } pu_contrib;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct interact {
   double *Pi;       /**<  \brief  probabilities of interaction */
@@ -396,7 +401,7 @@ typedef struct pu_out {
 } pu_out;
 
 /**
- *  \brief  constraints for cofolding 
+ *  \brief  constraints for cofolding
  */
 typedef struct constrain{
   int *indx;
@@ -410,7 +415,7 @@ typedef struct constrain{
 */
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct {
   int i;
@@ -438,7 +443,7 @@ typedef struct {
 */
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct node {
   int k;
@@ -447,7 +452,7 @@ typedef struct node {
 } folden;
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct {
   int i;
@@ -481,7 +486,7 @@ typedef struct {
 */
 
 /**
- *  \brief  
+ *  \brief
  */
 typedef struct dupVar{
   int i;

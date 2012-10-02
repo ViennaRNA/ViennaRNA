@@ -63,6 +63,8 @@ int         *strand;
 
 int         gquad = 0;            /* consider g-qudruplexes in the calculations */
 
+PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+
 PUBLIC char * option_string(void){
   static char options[100];
   *options = '\0';
@@ -78,6 +80,8 @@ PUBLIC char * option_string(void){
 }
 
 PUBLIC void set_model_details(model_detailsT *md){
+  int i = 0;
+
   if(md){
     md->dangles         = dangles;
     md->special_hp      = tetra_loop;
@@ -87,5 +91,16 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->logML           = logML;
     md->gquad           = gquad;
     md->canonicalBPonly = canonicalBPonly;
+    md->energy_set      = energy_set;
+    if(nonstandards){
+      memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
+    } else {
+      md->nonstandards[0] = (char)0;
+    }
+    /* set default values for the pair/rtype[pair] stuff */
+    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
+    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+    for(i = 0;i <= MAXALPHA; i++)
+      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
   }
 }

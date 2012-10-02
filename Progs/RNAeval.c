@@ -13,7 +13,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include "fold_vars.h"
-#include "fold.h"
+#include "eval.h"
 #include "utils.h"
 #include "read_epars.h"
 #include "RNAeval_cmdl.h"
