@@ -319,24 +319,36 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1,
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P){
+INLINE  PRIVATE int E_Hairpin(int size,
+                              int type,
+                              int si1,
+                              int sj1,
+                              const char *string,
+                              paramT *P){
+
   int energy;
 
-  energy = (size <= 30) ? P->hairpin[size] : P->hairpin[30]+(int)(P->lxc*log((size)/30.));
-  if (P->model_details.special_hp){
-    if (size == 4) { /* check for tetraloop bonus */
+  if(size <= 30)
+    energy = P->hairpin[size];
+  else
+    energy = P->hairpin[30] + (int)(P->lxc*log((size)/30.));
+
+  if(size < 3) return energy; /* should only be the case when folding alignments */
+
+  if(P->model_details.special_hp){
+    if(size == 4){ /* check for tetraloop bonus */
       char tl[7]={0}, *ts;
       strncpy(tl, string, 6);
       if ((ts=strstr(P->Tetraloops, tl)))
         return (P->Tetraloop_E[(ts - P->Tetraloops)/7]);
     }
-    else if (size == 6) {
+    else if(size == 6){
       char tl[9]={0}, *ts;
       strncpy(tl, string, 8);
       if ((ts=strstr(P->Hexaloops, tl)))
         return (energy = P->Hexaloop_E[(ts - P->Hexaloops)/9]);
     }
-    else if (size == 3) {
+    else if(size == 3){
       char tl[6]={0,0,0,0,0,0}, *ts;
       strncpy(tl, string, 5);
       if ((ts=strstr(P->Triloops, tl))) {
@@ -348,6 +360,56 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
   energy += P->mismatchH[type][si1][sj1];
 
   return energy;
+}
+
+INLINE  PRIVATE double exp_E_Hairpin( int u,
+                                      int type,
+                                      short si1,
+                                      short sj1,
+                                      const char *string,
+                                      pf_paramT *P){
+
+  double q, kT;
+  kT = P->kT;   /* kT in cal/mol  */
+
+  if(u <= 30)
+    q = P->exphairpin[u];
+  else
+    q = P->exphairpin[30] * exp( -(P->lxc*log( u/30.))*10./kT);
+
+  if(u < 3) return q; /* should only be the case when folding alignments */
+
+  if(P->model_details.special_hp){
+    if(u==4){
+      char tl[7]={0,0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 6);
+      if ((ts=strstr(P->Tetraloops, tl))){
+        if(type != 7)
+          return (P->exptetra[(ts-P->Tetraloops)/7]);
+        else
+          q *= P->exptetra[(ts-P->Tetraloops)/7];
+      }
+    }
+    else if(u==6){
+      char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 6);
+      if ((ts=strstr(P->Hexaloops, tl)))
+        return  (P->exphex[(ts-P->Hexaloops)/9]);
+    }
+    else if(u==3){
+      char tl[6]={0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 5);
+      if ((ts=strstr(P->Triloops, tl)))
+        return (P->exptri[(ts-P->Triloops)/6]);
+      if (type>2)
+        return q * P->expTermAU;
+      else
+        return q;
+    }
+  }
+  q *= P->expmismatchH[type][si1][sj1];
+
+  return q;
 }
 
 INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
@@ -465,46 +527,6 @@ INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
   return energy;
 }
 
-INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P){
-  double q, kT;
-  kT = P->kT;   /* kT in cal/mol  */
-
-  if(u <= 30)
-    q = P->exphairpin[u];
-  else
-    q = P->exphairpin[30] * exp( -(P->lxc*log( u/30.))*10./kT);
-
-  if(u < 3) return q; /* should only be the case when folding alignments */
-
-  if ((P->model_details.special_hp)&&(u==4)) {
-    char tl[7]={0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Tetraloops, tl))){
-      if(type != 7)
-        return (P->exptetra[(ts-P->Tetraloops)/7]);
-      else
-        q *= P->exptetra[(ts-P->Tetraloops)/7];
-    }
-  }
-  if ((tetra_loop)&&(u==6)) {
-    char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Hexaloops, tl)))
-      return  (P->exphex[(ts-P->Hexaloops)/9]);
-  }
-  if (u==3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(P->Triloops, tl)))
-      return (P->exptri[(ts-P->Triloops)/6]);
-    if (type>2)
-      q *= P->expTermAU;
-  }
-  else /* no mismatches for tri-loops */
-    q *= P->expmismatchH[type][si1][sj1];
-
-  return q;
-}
 
 INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
   int ul, us, no_close = 0;
@@ -564,13 +586,13 @@ INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
   double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
   double d3 = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
 
+  if(si1 >= 0 && sj1 >= 0)
+    energy = (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
+  else
+    energy = d5 * d3;
+
   if(type > 2)
     energy *= P->expTermAU;
-
-  if(si1 >= 0 && sj1 >= 0)
-    energy *= (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
-  else
-    energy *= d5 * d3;
 
   if(!extLoop) energy *= P->expMLintern[type];
   return energy;
@@ -579,13 +601,13 @@ INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
 INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){
-    energy *= P->expmismatchM[type][si1][sj1];
+    energy = P->expmismatchM[type][si1][sj1];
   }
   else if(si1 >= 0){
-    energy *= P->expdangle5[type][si1];
+    energy = P->expdangle5[type][si1];
   }
   else if(sj1 >= 0){
-    energy *= P->expdangle3[type][sj1];
+    energy = P->expdangle3[type][sj1];
   }
 
   if(type > 2)
@@ -598,13 +620,13 @@ INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
 INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P){
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){
-    energy *= P->expmismatchExt[type][si1][sj1];
+    energy = P->expmismatchExt[type][si1][sj1];
   }
   else if(si1 >= 0){
-    energy *= P->expdangle5[type][si1];
+    energy = P->expdangle5[type][si1];
   }
   else if(sj1 >= 0){
-    energy *= P->expdangle3[type][sj1];
+    energy = P->expdangle3[type][sj1];
   }
 
   if(type > 2)

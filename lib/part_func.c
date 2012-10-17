@@ -66,7 +66,9 @@
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
+#if 0
 #include "pair_mat.h"
+#endif
 #include "params.h"
 #include "loop_energies.h"
 #include "gquad.h"
@@ -100,7 +102,6 @@ PRIVATE int         *my_iindx=NULL;
 PRIVATE int         init_length = -1;   /* length in last call to init_pf_fold() */
 PRIVATE int         circular=0;
 PRIVATE int         do_bppm = 1;             /* do backtracking per default */
-PRIVATE int         struct_constrained = 0;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
@@ -109,13 +110,30 @@ PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         with_gquad = 0;
 
 PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
+PRIVATE double      alpha = 1.0;
+
+/* stuff needed for constrained folding */
+PRIVATE int     struct_constrained  = 0;
+PRIVATE char    *hard_constraints   = NULL;
+PRIVATE int     *hc_up_ext          = NULL;
+PRIVATE int     *hc_up_hp           = NULL;
+PRIVATE int     *hc_up_int          = NULL;
+PRIVATE int     *hc_up_ml           = NULL;
+
+#define IN_EXT_LOOP     (char)0x01
+#define IN_HP_LOOP      (char)0x02
+#define IN_INT_LOOP     (char)0x04
+#define IN_MB_LOOP      (char)0x08
+#define IN_INT_LOOP_ENC (char)0x10
+#define IN_MB_LOOP_ENC  (char)0x20
 
 #ifdef _OPENMP
 
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained,\
+                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length, hard_constraints, hc_up_ext, hc_up_hp, hc_up_int, hc_up_ml,\
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained,\
                           G, Gj, Gj1, with_gquad)
+
 
 #endif
 
@@ -127,7 +145,7 @@ PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 PRIVATE void  init_partfunc(int length, pf_paramT *parameters);
 PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void  get_arrays(unsigned int length);
-PRIVATE void  make_ptypes(const short *S, const char *structure);
+PRIVATE void  make_ptypes(const short *S, const char *structure, model_detailsT *md);
 PRIVATE void  pf_circ(const char *sequence, char *structure);
 PRIVATE void  pf_linear(const char *sequence, char *structure);
 PRIVATE void  pf_create_bppm(const char *sequence, char *structure);
@@ -160,7 +178,9 @@ PRIVATE void init_partfunc(int length, pf_paramT *parameters){
   fpsetfastmode(1);
 #endif
 #endif
+/*
   make_pair_matrix();
+*/
   get_arrays((unsigned) length);
   scale_pf_params((unsigned) length, parameters);
 
@@ -201,6 +221,14 @@ PRIVATE void get_arrays(unsigned int length){
   my_iindx  = get_iindx(length);
   iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
+
+  if(struct_constrained){
+    hard_constraints = (char *)space(sizeof(char)*((size*(size+1))/2+2));
+    hc_up_ext = (int *)space(sizeof(int)*(size+1));
+    hc_up_hp  = (int *)space(sizeof(int)*(size+2));
+    hc_up_int = (int *)space(sizeof(int)*(size+2));
+    hc_up_ml  = (int *)space(sizeof(int)*(size+2));
+  }
 }
 
 /**
@@ -234,11 +262,21 @@ PUBLIC void free_pf_arrays(void){
   if(Gj)        free(Gj);
   if(Gj1)       free(Gj1);
 
+  if(hard_constraints)  free(hard_constraints);
+  if(hc_up_ext)         free(hc_up_ext);
+  if(hc_up_hp)          free(hc_up_hp);
+  if(hc_up_int)         free(hc_up_int);
+  if(hc_up_ml)          free(hc_up_ml);
+  
   S = S1 = NULL;
   q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = G = Gj = Gj1 = NULL;
   my_iindx = jindx = iindx = NULL;
 
   ptype = NULL;
+
+  hard_constraints = NULL;
+  hc_up_ext = hc_up_hp = hc_up_int = hc_up_ml = NULL;
+
 
 #ifdef SUN4
   standard_arithmetic();
@@ -284,10 +322,10 @@ PUBLIC float pf_fold_par( const char *sequence,
 #endif
 
   with_gquad  = pf_params->model_details.gquad;
-  S           = encode_sequence(sequence, 0);
-  S1          = encode_sequence(sequence, 1);
+  S   = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
+  S1  = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
 
-  make_ptypes(S, structure);
+  make_ptypes(S, structure, &(pf_params->model_details));
 
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
@@ -327,7 +365,7 @@ PUBLIC float pf_fold_par( const char *sequence,
 
 PRIVATE void pf_linear(const char *sequence, char *structure){
 
-  int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt, minl, maxl;
+  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, type, type_2, tt, hc;
 
   int noGUclosure;
   FLT_OR_DBL expMLstem = 0.;
@@ -337,13 +375,14 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
 
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
+  int         *rtype;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   n = (int) strlen(sequence);
 
-
   noGUclosure = pf_params->model_details.noGUclosure;
+  rtype       = &(pf_params->model_details.rtype[0]);
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -368,48 +407,67 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
       /*firstly that given i binds j : qb(i,j) */
-      u = j-i-1; ij = my_iindx[i]-j;
-      type = ptype[ij];
-      if (type!=0) {
+      u     = j-i-1;
+      ij    = my_iindx[i]-j;
+      type  = ptype[ij];
+      hc    = hard_constraints[ij];
+      qbt1  = 0.;
+      
+      if(hc){
         /*hairpin contribution*/
-        if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
-        else
-          qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
+        if(hc & IN_HP_LOOP){
+          if(hc_up_hp[i+1] >= u)
+            qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
+        }
+
         /* interior loops with interior pair k,l */
-        for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
-          u1 = k-i-1;
-          for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-            type_2 = ptype[my_iindx[k]-l];
-            if (type_2) {
-              type_2 = rtype[type_2];
-              qbt1 += qb[my_iindx[k]-l] * (scale[u1+j-l+1] *
-                                        exp_E_IntLoop(u1, j-l-1, type, type_2,
-                                        S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params));
+        if(hc & IN_INT_LOOP){
+          int maxk = i+MAXLOOP+1;
+          maxk = MIN2(maxk, j - TURN - 2);
+          maxk = MIN2(maxk, i + 1 + hc_up_int[i+1]);
+          for (k=i+1; k<=maxk; k++) {
+            u1 = k-i-1;
+
+            int minl = MAX2(k+TURN+1,j-1-MAXLOOP+u1);
+            kl = my_iindx[k] - j + 1;
+            for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
+              if(hc_up_int[l+1] < u2) break;
+              if(hard_constraints[kl] & IN_INT_LOOP_ENC){
+                type_2 = rtype[ptype[kl]];
+                qbt1 += qb[kl] * (scale[u1+u2+2] *
+                                          exp_E_IntLoop(u1, u2, type, type_2,
+                                          S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params));
+              }
             }
           }
         }
+
         /*multiple stem loop contribution*/
-        ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
-        temp = 0.0;
-        for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
-        tt = rtype[type];
-        qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+        if(hc & IN_MB_LOOP){
+          ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
+          temp = 0.0;
+          kl = my_iindx[i+1]-(i+1);
+          for (k=i+2; k<=j-1; k++,kl--) temp += qm[kl]*qqm1[k];
+          tt = rtype[type];
+          qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
 
-        if(with_gquad){
-          qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params) * scale[2];
+          if(with_gquad){
+            qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params) * scale[2];
+          }
+
         }
-
-        qb[ij] = qbt1;
       }
-      /* end if (type!=0) */
-      else
-        qb[ij] = 0.0;
+      qb[ij] = qbt1;
 
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment i,j */
-      qqm[i] = qqm1[i]*expMLbase[1];
-      if (type) {
+      qqm[i] = 0.;
+
+      if(hc_up_ml[i])
+        qqm[i] = qqm1[i]*expMLbase[1];
+
+      if(hc & IN_MB_LOOP_ENC){
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
@@ -424,26 +482,43 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       /*construction of qm matrix containing multiple loop
         partition function contributions from segment i,j */
       temp = 0.0;
-      ii = my_iindx[i];  /* ii-k=[i,k-1] */
-      for (k=j; k>i; k--) temp += (qm[ii-(k-1)] + expMLbase[k-i])*qqm[k];
+      kl = my_iindx[i] - j + 1; /* ii-k=[i,k-1] */
+      for (k=j; k>i; k--, kl++){
+        temp += qm[kl] * qqm[k];
+      }
+      int maxk = MIN2(i+hc_up_ml[i], j);
+      ii = 1; /* length of unpaired stretch */
+      for (k=i+1; k<=maxk; k++, ii++){
+        temp += expMLbase[ii] * qqm[k];
+      }
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
-      qbt1=0.0;
-      if (type){
-        qbt1 += qb[ij];
-        qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+      qbt1 = 0.;
+
+      if(hc & IN_EXT_LOOP){
+        qbt1 = qb[ij] * exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+
+        if(with_gquad){
+          qbt1 += G[ij];
+        }
       }
 
-      if(with_gquad){
-        qbt1 += G[ij];
-      }
+      if(hc_up_ext[i])
+        qbt1 += qq1[i]*scale[1];
 
-      qq[i] = qq1[i]*scale[1] + qbt1;
+      qq[i] = qbt1;
 
       /*construction of partition function for segment i,j */
-      temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
+      temp = qq[i];
+
+      if(hc_up_ext[i] >= (j-i+1))
+        temp += 1.0*scale[j-i+1];
+
+      kl = my_iindx[i] - i;
+      for (k=i; k<j; k++, kl--)
+        temp += q[kl]*qq[k+1];
+
       q[ij] = temp;
       if (temp>Qmax) {
         Qmax = temp;
@@ -478,8 +553,10 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
 
   FLT_OR_DBL  qot;
   FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
+  int         *rtype;
 
   noGUclosure = pf_params->model_details.noGUclosure;
+  rtype       = &(pf_params->model_details.rtype[0]);
   qo = qho = qio = qmo = 0.;
 
   /* construct qm2 matrix from qm1 entries  */
@@ -546,12 +623,15 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  *tmp;
   FLT_OR_DBL  tmp2;
-  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
+  FLT_OR_DBL  expMLclosing;
   double      max_real;
+  int         *rtype;
 
   FLT_OR_DBL  expMLstem = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
 
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  expMLclosing  = pf_params->expMLclosing;
+  rtype         = &(pf_params->model_details.rtype[0]);
 
   if((S != NULL) && (S1 != NULL)){
     n = S[0];
@@ -785,69 +865,71 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
-      if (l<n) for (k=2; k<l-TURN; k++) {
-        i = k-1;
-        prmt = prmt1 = 0.0;
+      if (l<n)
+        for (k=2; k<l-TURN; k++) {
+          i = k-1;
+          prmt = prmt1 = 0.0;
 
-        ii = my_iindx[i];     /* ii-j=[i,j]     */
-        ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-        tt = ptype[ii-(l+1)]; tt=rtype[tt];
-        /* (i, l+1) closes the ML with substem (k,l) */
-        if(tt)
-          prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-
-        /* (i,j) with j>l+1 closes the ML with substem (k,l) */
-        for (j=l+2; j<=n; j++) {
-          tt = ptype[ii-j]; tt = rtype[tt];
+          ii = my_iindx[i];     /* ii-j=[i,j]     */
+          ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
+          tt = ptype[ii-(l+1)]; tt=rtype[tt];
+          /* (i, l+1) closes the ML with substem (k,l) */
           if(tt)
-            prmt += probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
-        }
-        kl = my_iindx[k]-l;
-        tt = ptype[kl];
-        prmt *= expMLclosing;
-        prml[ i] = prmt;
-        prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+            prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
-        prm_MLb = prm_MLb*expMLbase[1] + prml[i];
-        /* same as:    prm_MLb = 0;
-           for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+          int lj;
+          /* (i,j) with j>l+1 closes the ML with substem (k,l) */
+          for (j = l + 2, ij = my_iindx[i] - (l+2), lj=my_iindx[l+1]-(l+1); j<=n; j++, ij--, lj--) {
+            tt = ptype[ij]; tt = rtype[tt];
+            if(tt)
+              prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
+          }
+          kl = my_iindx[k]-l;
+          tt = ptype[kl];
+          prmt *= expMLclosing;
+          prml[ i] = prmt;
+          prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
 
-        prml[i] = prml[ i] + prm_l[i];
+          prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+          /* same as:    prm_MLb = 0;
+             for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-        if(with_gquad){
-          if ((!tt) && (G[kl] == 0.)) continue;
-        } else {
-          if (qb[kl] == 0.) continue;
-        }
+          prml[i] = prml[ i] + prm_l[i];
 
-        temp = prm_MLb;
+          if(with_gquad){
+            if ((!tt) && (G[kl] == 0.)) continue;
+          } else {
+            if (qb[kl] == 0.) continue;
+          }
 
-        for (i=1;i<=k-2; i++)
-          temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+          temp = prm_MLb;
 
-        if(with_gquad){
-          if(tt)
+          for (i=1;i<=k-2; i++)
+            temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+
+          if(with_gquad){
+            if(tt)
+              temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+            else
+              temp    *= G[kl] * expMLstem * scale[2];
+          } else {
             temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
-          else
-            temp    *= G[kl] * expMLstem * scale[2];
-        } else {
-          temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
-        }
+          }
 
-        probs[kl]  += temp;
+          probs[kl]  += temp;
 
-        if (probs[kl]>Qmax) {
-          Qmax = probs[kl];
-          if (Qmax>max_real/10.)
-            fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-              i, j, probs[kl], qb[kl]);
-        }
-        if (probs[kl]>=max_real) {
-          ov++;
-          probs[kl]=FLT_MAX;
-        }
+          if (probs[kl]>Qmax) {
+            Qmax = probs[kl];
+            if (Qmax>max_real/10.)
+              fprintf(stderr, "P close to overflow: %d %d %g %g\n",
+                i, j, probs[kl], qb[kl]);
+          }
+          if (probs[kl]>=max_real) {
+            ov++;
+            probs[kl]=FLT_MAX;
+          }
 
-      } /* end for (k=..) */
+        } /* end for (k=..) */
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
     }  /* end for (l=..)   */
@@ -893,6 +975,8 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
     pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
 
+  fill_pair_matrices(&(pf_params->model_details));
+
   scaling_factor = pf_params->pf_scale;
 
   /* scaling factors (to avoid overflows) */
@@ -920,13 +1004,11 @@ PUBLIC void update_pf_params(int length){
 
 PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
 #ifdef _OPENMP
-  make_pair_matrix(); /* is this really necessary? */
   scale_pf_params((unsigned) length, parameters);
 #else
   if(parameters) init_partfunc(length, parameters);
   else if (length>init_length) init_partfunc(length, parameters);  /* init not update */
   else {
-    make_pair_matrix();
     scale_pf_params((unsigned) length, parameters);
   }
 #endif
@@ -972,7 +1054,7 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int lengt
 
 
 /*---------------------------------------------------------------------------*/
-PRIVATE void make_ptypes(const short *S, const char *structure){
+PRIVATE void make_ptypes(const short *S, const char *structure, model_detailsT *md){
   int n,i,j,k,l, noLP;
 
   noLP = pf_params->model_details.noLP;
@@ -982,9 +1064,9 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
     for (l=1; l<=2; l++) {
       int type,ntype=0,otype=0;
       i=k; j = i+TURN+l; if (j>n) continue;
-      type = pair[S[i]][S[j]];
+      type = md->pair[S[i]][S[j]];
       while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
+        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
         if (noLP && (!otype) && (!ntype))
           type = 0; /* i.j can only form isolated pairs */
         qb[my_iindx[i]-j] = 0.;
@@ -997,6 +1079,45 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
 
   if (struct_constrained && (structure != NULL))
     constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
+
+  /*
+  ################################
+  Temporary hack to take the new
+  constrained folding matrices/arrays
+  into account
+  This obiously has to be handled
+  according to user data and stuff
+  later ;)
+  ################################
+  */
+
+  if(struct_constrained){
+    /* unpaired nucleotides are allowed in all contexts */
+    for(i = 1; i <= n; i++)
+      hard_constraints[my_iindx[i]-i] = IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP;
+
+    /* base pairs are allowed in all contexts */
+    for(i = 1; i < n - TURN; i++)
+      for(j = i + TURN + 1; j <= n; j++)
+        hard_constraints[my_iindx[i]-j] = (ptype[my_iindx[i]-j]) ? IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP | IN_INT_LOOP_ENC | IN_MB_LOOP_ENC : (char)0;
+
+    /* count number of nucleotides available for unpaired stretch in exterior loop */
+    for(i = n; i > 0; i--)
+      hc_up_ext[i] = n - i + 1;
+
+    /* count number of nucleotides available for unpaired stretch in hairpin loop */
+    for(i = n; i > 0; i--)
+      hc_up_hp[i] = n - i + 1;
+
+    /* count number of nucleotides available for unpaired stretch in interior loop */
+    for(i = n; i > 0; i--)
+      hc_up_int[i] = n - i + 1;
+
+    /* count number of nucleotides available for unpaired stretch in multibranch loop */
+    for(i = n; i > 0; i--)
+      hc_up_ml[i] = n - i + 1;
+
+  }
 }
 
 /*
@@ -1049,7 +1170,8 @@ char *pbacktrack(char *seq){
 char *pbacktrack_circ(char *seq){
   double r, qt;
   int i, j, k, l, n;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+  FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
+  int         *rtype        = &(pf_params->model_details.rtype[0]);
 
   sequence = seq;
   n = strlen(sequence);
@@ -1187,6 +1309,7 @@ PRIVATE void backtrack_qm2(int k, int n){
 
 PRIVATE void backtrack(int i, int j){
   int noGUclosure = pf_params->model_details.noGUclosure;
+  int   *rtype    = &(pf_params->model_details.rtype[0]);
 
   do {
     double r, qbt1;
@@ -1482,6 +1605,7 @@ PUBLIC plist *stackProb(double cutoff){
 
   int length  = S[0];
   int *index  = get_iindx(length);
+  int *rtype  = &(pf_params->model_details.rtype[0]);
 
   pl = (plist *) space(plsize*sizeof(plist));
 
