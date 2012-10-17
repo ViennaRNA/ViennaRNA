@@ -71,12 +71,6 @@ PRIVATE int     *Fmi      = NULL; /* holds row i of fML (avoids jumps in memory)
 PRIVATE int     *DMLi     = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
 PRIVATE int     *DMLi1    = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
 PRIVATE int     *DMLi2    = NULL; /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi_a   = NULL; /* DMLi_a[j] holds min energy for at least two multiloop stems in [i,j], where j is available for dangling onto a surrounding stem */
-PRIVATE int     *DMLi_o   = NULL; /* DMLi_o[j] holds min energy for at least two multiloop stems in [i,j], where j is unavailable for dangling onto a surrounding stem */
-PRIVATE int     *DMLi1_a  = NULL;
-PRIVATE int     *DMLi1_o  = NULL;
-PRIVATE int     *DMLi2_a  = NULL;
-PRIVATE int     *DMLi2_o  = NULL;
 PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies */
 PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
@@ -113,7 +107,7 @@ PRIVATE int     *hc_up_ml           = NULL;
 #ifdef _OPENMP
 
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
-                          DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
+                          DMLi, DMLi1, DMLi2,\
                           Fc, FcH, FcI, FcM, hard_constraints, hc_up_ext, hc_up_hp, hc_up_int, hc_up_ml,\
                           sector, ptype, S, S1, P, init_length, min_hairpin, BP, base_pair2, circular, struct_constrained,\
                           ggg, with_gquad)
@@ -190,14 +184,7 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi1 = (int *) space(sizeof(int)*(size+1));
   DMLi2 = (int *) space(sizeof(int)*(size+1));
 
-  DMLi_a  = (int *) space(sizeof(int)*(size+1));
-  DMLi_o  = (int *) space(sizeof(int)*(size+1));
-  DMLi1_a = (int *) space(sizeof(int)*(size+1));
-  DMLi1_o = (int *) space(sizeof(int)*(size+1));
-  DMLi2_a = (int *) space(sizeof(int)*(size+1));
-  DMLi2_o = (int *) space(sizeof(int)*(size+1));
-
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
 
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
@@ -229,12 +216,6 @@ PUBLIC void free_arrays(void){
   if(DMLi)      free(DMLi);
   if(DMLi1)     free(DMLi1);
   if(DMLi2)     free(DMLi2);
-  if(DMLi_a)    free(DMLi_a);
-  if(DMLi_o)    free(DMLi_o);
-  if(DMLi1_a)   free(DMLi1_a);
-  if(DMLi1_o)   free(DMLi1_o);
-  if(DMLi2_a)   free(DMLi2_a);
-  if(DMLi2_o)   free(DMLi2_o);
   if(P)         free(P);
   if(ggg)       free(ggg);
 
@@ -246,7 +227,7 @@ PUBLIC void free_arrays(void){
   if(hc_up_int)         free(hc_up_int);
   if(hc_up_ml)          free(hc_up_ml);
   
-  DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
+  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   ptype = NULL;
 
   hard_constraints = NULL;
@@ -357,7 +338,7 @@ PUBLIC float fold_par(const char *string,
 #else
   if (parameters) init_fold(length, parameters);
   else if (length>init_length) init_fold(length, parameters);
-  else if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  else if (fabs(P->temperature - temperature)>1e-6) update_fold_params_par(parameters);
 #endif
 
   with_gquad  = P->model_details.gquad;
@@ -434,7 +415,7 @@ PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, ij, k, length, energy, en, mm5, mm3;
   int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt;
+  int   no_close, type, type_2, tt, hc;
   int   bonus=0;
   
   int   dangle_model, noGUclosure, with_gquads;
@@ -468,27 +449,25 @@ PRIVATE int fill_arrays(const char *string) {
 
     for (j = i+TURN+1; j <= length; j++) {
       int p, q;
-      ij = indx[j]+i;
-      bonus = 0;
-      type = ptype[ij];
-      energy = INF;
-      /* enforcing structure constraints */
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
-      if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-      if ((BP[i]==-4)||(BP[j]==-4)) type=0;
+      ij      = indx[j]+i;
+      bonus   = 0;
+      type    = ptype[ij];
+      hc      = hard_constraints[ij];
+      energy  = INF;
 
-      no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
+      no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
-      if (type) {   /* we have a pair */
+      if (hc) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
+
         /* hairpin ----------------------------------------------*/
 
         /* CONSTRAINED HAIRPIN start */
         int u = j - i - 1;
         /* is this base pair allowed to close a hairpin loop ? */
-        if(hard_constraints[ij] & IN_HP_LOOP){
+        if(hc & IN_HP_LOOP){
           /* are all nucletides in the loop allowed to be unpaired ? */
           if(hc_up_hp[i+1] >= u)
             new_c = E_Hairpin(u, type, S1[i+1], S1[j-1], string+i-1, P);
@@ -501,155 +480,90 @@ PRIVATE int fill_arrays(const char *string) {
           --------------------------------------------------------*/
 
         /* CONSTRAINED INTERIOR LOOP start */
-#if 0
-        if(hard_constraints[ij] & IN_INT_LOOP){
-          for(p = i + 1; p <= MIN2(j - 2 - TURN,i + MAXLOOP + 1) ; p++){
-            int p_i = p - i - 1;
-
-            /* discard this configuration if [i+1:p-1] is not allowed to be unpaired */
-            if((p_i > 0) && (hc_up_int[i+1] < p_i)) break;
-
-            /* get start value for q */
-            int minq = j + p_i - MAXLOOP - 1;
-            if (minq < p + 1 + TURN) minq = p + 1 + TURN;
-
-            for(q = j-1; q>=minq; q--){
-              int j_q = j - q - 1;
-
-              /* discard this configuration if [q+1:j-1] is not allowed to be unpaired */
-              if((j_q > 0) && (hc_up_int[q+1] < j_q)) break;
-
-              int pq = indx[q] + p;
-
-              /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-              if(hard_constraints[pq] & IN_INT_LOOP_ENC){
-
-              type_2 = ptype[pq];
-
-              if (type_2==0) continue;
-              type_2 = rtype[type_2];
-
-              if (noGUclosure)
-                if (no_close||(type_2==3)||(type_2==4))
-                  if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
-
-              energy = E_IntLoop(p_i, j_q, type, type_2,
-                                  S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-
-              new_c = MIN2(energy+c[pq], new_c);
-              if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
-
-              }
-            } /* end q-loop */
-          } /* end p-loop */
-        }
-#else
-        if(hard_constraints[ij] & IN_INT_LOOP){
+        if(hc & IN_INT_LOOP){
           for(q = j - 1; q >= MAX2(i+TURN+2, j - MAXLOOP - 1); q--){
             int j_q = j - q - 1;
 
-            if((j_q > 0) && (!hc_up_int[q+1])) break;
+            if(hc_up_int[q+1] < j_q) break;
 
             int maxp = MAX2(i + 1, i + 1 + MAXLOOP - j_q);
             maxp = MIN2(maxp, q - TURN);
             int pq = indx[q] + i + 1;
             int p_i = 0;
             
+            maxp = MIN2(maxp, i+1+hc_up_int[i+1]);
             for(p = i+1; p <= maxp; p++, pq++, p_i++){
 
               /* discard this configuration if [i+1:p-1] is not allowed to be unpaired */
-              if((p_i > 0) && (hc_up_int[i+1] < p_i)) break;
 
               /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
               if(hard_constraints[pq] & IN_INT_LOOP_ENC){
 
-              type_2 = ptype[pq];
+                type_2 = rtype[ptype[pq]];
 
-              if (type_2==0) continue;
-              type_2 = rtype[type_2];
+                if (noGUclosure)
+                  if (no_close||(type_2==3)||(type_2==4))
+                    if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-              if (noGUclosure)
-                if (no_close||(type_2==3)||(type_2==4))
-                  if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+                energy = E_IntLoop(p_i, j_q, type, type_2,
+                                    S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
-              energy = E_IntLoop(p_i, j_q, type, type_2,
-                                  S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-
-              new_c = MIN2(energy+c[pq], new_c);
-              if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
+                if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
+                energy += c[pq];
+                new_c = MIN2(energy, new_c);
 
               }
             } /* end q-loop */
           } /* end p-loop */
         }
-#endif
+
         /* CONSTRAINED INTERIOR LOOP end */
 
         /* multi-loop decomposition ------------------------*/
 
 
         /* CONSTRAINED MULTIBRANCH LOOP start */
-        if(hard_constraints[ij] & IN_MB_LOOP){
-          if (!no_close) {
-            int MLenergy;
-            decomp = DMLi1[j-1];
-            tt = rtype[type];
-            switch(dangle_model){
-              /* no dangles */
-              case 0:   decomp += E_MLstem(tt, -1, -1, P);
-                        break;
+        if(hc & IN_MB_LOOP){
+          int MLenergy;
+          decomp = DMLi1[j-1];
+          tt = rtype[type];
+          switch(dangle_model){
+            /* no dangles */
+            case 0:   decomp += E_MLstem(tt, -1, -1, P);
+                      break;
 
-              /* double dangles */
-              case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
-                        break;
+            /* double dangles */
+            case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
+                      break;
 
-  #ifdef SPECIAL_DANGLES
-              /* normal dangles as ronny would think of them ;) */
-              case 5:   /* no dangles */
-                        decomp = INF;
-                        if(DMLi1_o[j-1] != (DMLi2_o[j-1] + P->MLbase))
-                          decomp = DMLi1_o[j-1] + E_MLstem(tt, -1, -1, P);
-
-                        /* 3' dangle ? */
-                        decomp = MIN2(decomp, DMLi2_o[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-
-                        /* 5' dangle ? */
-                        decomp = MIN2(decomp, DMLi1_a[j-1] + E_MLstem(tt, S1[j-1], -1, P));
-
-                        /* mismatch */
-                        decomp = MIN2(decomp, DMLi2_a[j-1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLbase);
-
-                        break;
-  #endif
-              /* normal dangles, aka dangles = 1 || 3 */
-              default:  decomp += E_MLstem(tt, -1, -1, P);
-                        if(hc_up_ml[i+1])
-                          decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-                        if(hc_up_ml[j-1] && hc_up_ml[i+1])
-                          decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
-                        if(hc_up_ml[j-1])
-                          decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
-                        break;
-            }
-            MLenergy = decomp + P->MLclosing;
-            new_c = MIN2(new_c, MLenergy);
+            /* normal dangles, aka dangles = 1 || 3 */
+            default:  decomp += E_MLstem(tt, -1, -1, P);
+                      if(hc_up_ml[i+1])
+                        decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
+                      if(hc_up_ml[j-1] && hc_up_ml[i+1])
+                        decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
+                      if(hc_up_ml[j-1])
+                        decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
+                      break;
           }
+          MLenergy = decomp + P->MLclosing;
+          new_c = MIN2(new_c, MLenergy);
 
           /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
           if (dangle_model==3) {
             decomp = INF;
             int i1k, k1j1;
-            for (k = i+2+TURN; k < j-2-TURN; k++) {
+            k1j1  = indx[j-1] + i + 2 + TURN + 1;
+            for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
               i1k   = indx[k] + i + 1;
-              k1j1  = indx[j-1] + k + 1;
               if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
-                type_2 = rtype[ptype[indx[k]+i+1]];
-                decomp = MIN2(decomp, c[indx[k]+i+1]+P->stack[type][type_2]+fML[indx[j-1]+k+1]);
+                type_2 = rtype[ptype[i1k]];
+                decomp = MIN2(decomp, c[i1k]+P->stack[type][type_2]+fML[k1j1]);
               }
               if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
-                type_2 = rtype[ptype[indx[j-1]+k+1]];
-                decomp = MIN2(decomp, c[indx[j-1]+k+1]+P->stack[type][type_2]+fML[indx[k]+i+1]);
+                type_2 = rtype[ptype[k1j1]];
+                decomp = MIN2(decomp, c[k1j1]+P->stack[type][type_2]+fML[i1k]);
               }
             }
             /* no TermAU penalty if coax stack */
@@ -683,15 +597,13 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* (i,j) + MLstem ? */
       new_fML = INF;
-      if(hard_constraints[ij] & IN_MB_LOOP_ENC){
-        if(type){
-          new_fML = c[ij];
-          switch(dangle_model){
-            case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
-                      break;
-            default:  new_fML += E_MLstem(type, -1, -1, P);
-                      break;
-          }
+      if(hc & IN_MB_LOOP_ENC){
+        new_fML = c[ij];
+        switch(dangle_model){
+          case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
+                    break;
+          default:  new_fML += E_MLstem(type, -1, -1, P);
+                    break;
         }
         if(uniq_ML) fM1[ij] = new_fML;
       }
@@ -710,6 +622,7 @@ PRIVATE int fill_arrays(const char *string) {
       switch(dangle_model){
         /* no dangles */
         case 0:   
+
         /* double dangles */
         case 2:   if(hc_up_ml[i])
                     new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
@@ -744,21 +657,21 @@ PRIVATE int fill_arrays(const char *string) {
       }
 
       /* modular decomposition -------------------------------*/
-      for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
-        decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+      int k1j = indx[j] + i + TURN + 2;
+      for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++)
+        decomp = MIN2(decomp, Fmi[k]+fML[k1j]);
       DMLi[j] = decomp;               /* store for use in ML decompositon */
       new_fML = MIN2(new_fML,decomp);
-
       /* coaxial stacking */
       if (dangle_model==3) {
         /* additional ML decomposition as two coaxially stacked helices */
-        for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++) {
-          if((hard_constraints[indx[k]+i] & IN_MB_LOOP_ENC) && (hard_constraints[indx[j]+k+1] & IN_MB_LOOP_ENC)){
-            type    = rtype[ptype[indx[k]+i]];
-            type_2  = rtype[ptype[indx[j]+k+1]];
-            decomp  = MIN2(decomp,
-                          c[indx[k]+i] + c[indx[j]+k+1] + P->stack[type][type_2]
-                      );
+        int ik, k1j;
+        for (k1j = indx[j]+i+TURN+2, decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++, k1j++){
+          ik = indx[k]+i;
+          if((hard_constraints[ik] & IN_MB_LOOP_ENC) && (hard_constraints[k1j] & IN_MB_LOOP_ENC)){
+            type    = rtype[ptype[ik]];
+            type_2  = rtype[ptype[k1j]];
+            decomp  = MIN2(decomp, c[ik] + c[k1j] + P->stack[type][type_2]);
           }
         }
 
@@ -799,26 +712,24 @@ PRIVATE int fill_arrays(const char *string) {
                   f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
                   ij = indx[j]+i;
-                  if(!hard_constraints[ij] & IN_EXT_LOOP) continue;
+                  if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
+
                   if(with_gquad){
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
-                  type = ptype[ij];
-                  if(!type) continue;
-                  en = c[ij];
-                  f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
+
+                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                  f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j] + 1;
-                if(!hard_constraints[ij] & IN_EXT_LOOP) continue;
+                if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
-                type=ptype[ij];
-                if(!type) continue;
-                en = c[ij];
-                f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, -1, P));
+                en    = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                f5[j] = MIN2(f5[j], en);
               }
               break;
 
@@ -828,57 +739,47 @@ PRIVATE int fill_arrays(const char *string) {
                   f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
                   ij = indx[j] + i;
-                  if(!hard_constraints[ij] & IN_EXT_LOOP) continue;
+                  if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
 
                   if(with_gquad){
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
 
-                  type = ptype[ij];
-                  if(!type) continue;
-                  en = c[ij];
-                  f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, S1[i-1], S1[j+1], P));
+                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S1[i-1], S1[j+1], P);
+                  f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j] + 1;
-                if(!hard_constraints[ij] & IN_EXT_LOOP) continue;
+                if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
-                type=ptype[ij];
-                if(!type) continue;
-                en = c[ij];
-                f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, S1[j+1], P));
+                en    = c[ij] + E_ExtLoop(ptype[ij], -1, S1[j+1], P);
+                f5[j] = MIN2(f5[j], en);
               }
               if(hc_up_ext[length])
                 f5[length] = f5[length-1];
               for (i=length-TURN-1; i>1; i--){
                 ij = indx[length] + i;
-                if(!hard_constraints[ij] & IN_EXT_LOOP) continue;
+                if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
                 }
 
-                type = ptype[ij];
-                if(!type) continue;
-                en = c[ij];
-                f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, S1[i-1], -1, P));
+                en          = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S1[i-1], -1, P);
+                f5[length]  = MIN2(f5[length], en);
               }
               ij = indx[length] + 1;
-              if(!hard_constraints[ij] & IN_EXT_LOOP) break;
+              if(!(hard_constraints[ij] & IN_EXT_LOOP)) break;
 
               if(with_gquad){
                 f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
               }
 
-              type=ptype[ij];
-              if(!type) break;
-              en = c[ij];
-              f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
-
-
+              en          = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+              f5[length]  = MIN2(f5[length], en);
               break;
 
     /* normal dangles, aka dangle_model = 1 || 3 */
@@ -893,23 +794,23 @@ PRIVATE int fill_arrays(const char *string) {
                       f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                     }
 
-                    type = ptype[ij];
-                    if(type){
-                      en = c[ij];
-                      f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
-                      if(hc_up_ext[i-1])
-                        f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], -1, P));
+                    type  = ptype[ij];
+                    en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
+                    f5[j] = MIN2(f5[j], en);
+                    if(hc_up_ext[i-1]){
+                      en    = f5[i-2] + c[ij] + E_ExtLoop(type, S1[i-1], -1, P);
+                      f5[j] = MIN2(f5[j], en);
                     }
                   }
                   ij = indx[j-1] + i;
                   if(hard_constraints[ij] & IN_EXT_LOOP){
-                    type = ptype[ij];
-                    if(type){
-                      en = c[ij];
-                      if(hc_up_ext[j]){
-                        f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, S1[j], P));
-                        if(hc_up_ext[i-1])
-                          f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], S1[j], P));
+                    if(hc_up_ext[j]){
+                      type  = ptype[ij];
+                      en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S1[j], P);
+                      f5[j] = MIN2(f5[j], en);
+                      if(hc_up_ext[i-1]){
+                        en    = f5[i-2] + c[ij] + E_ExtLoop(type, S1[i-1], S1[j], P);
+                        f5[j] = MIN2(f5[j], en);
                       }
                     }
                   }
@@ -921,14 +822,16 @@ PRIVATE int fill_arrays(const char *string) {
                     f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                   }
 
-                  type = ptype[ij];
-                  if(type) f5[j] = MIN2(f5[j], c[ij] + E_ExtLoop(type, -1, -1, P));
+                  type  = ptype[ij];
+                  en    = c[ij] + E_ExtLoop(type, -1, -1, P);
+                  f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j-1] + 1;
                 if(hard_constraints[ij] & IN_EXT_LOOP){
                   if(hc_up_ext[j]){
-                    type = ptype[ij];
-                    if(type) f5[j] = MIN2(f5[j], c[ij] + E_ExtLoop(type, -1, S1[j], P));
+                    type  = ptype[ij];
+                    en    = c[ij] + E_ExtLoop(type, -1, S1[j], P);
+                    f5[j] = MIN2(f5[j], en);
                   }
                 }
               }
