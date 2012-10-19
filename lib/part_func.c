@@ -618,7 +618,7 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
 
 /* calculate base pairing probs */
 PUBLIC void pf_create_bppm(const char *sequence, char *structure){
-  int n, i,j,k,l, ij, kl, ii, i1, ll, type, type_2, tt, u1, ov=0;
+  int n, i,j,k,l, ij, kl, ii,ll, u1, u2, type, type_2, tt, ov=0;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  *tmp;
@@ -757,15 +757,16 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
     } /* end if(circular)  */
     else {
       for (i=1; i<=n; i++) {
-        for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
+        for (j=i; j<=MIN2(i+TURN,n); j++)
+          probs[my_iindx[i]-j] = 0.;
+
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          type = ptype[ij];
-          if (type&&(qb[ij]>0.)) {
+          if(hard_constraints[ij] & IN_EXT_LOOP){
+            type      = ptype[ij];
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
-          }
-          else
+          } else
             probs[ij] = 0.;
         }
       }
@@ -775,33 +776,33 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
-        kl = my_iindx[k]-l;
-        type_2 = ptype[kl]; 
-        if (type_2==0) continue;
-        type_2 = rtype[type_2];
+        kl      = my_iindx[k]-l;
+        type_2  = ptype[kl];
+        type_2  = rtype[type_2];
+
         if (qb[kl]==0.) continue;
 
-        tmp2 = 0.;
-        for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
-          for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
-            ij = my_iindx[i] - j;
-            type = ptype[ij];
-            if (type && (probs[ij]>0.)) {
-              /* add *scale[u1+u2+2] */
-              tmp2 +=  probs[ij]
-                       * (scale[k-i+j-l]
-                       * exp_E_IntLoop(k - i - 1,
-                                       j - l - 1,
-                                       type,
-                                       type_2,
-                                       S1[i + 1],
-                                       S1[j - 1],
-                                       S1[k - 1],
-                                       S1[l + 1],
-                                       pf_params));
+        if(hard_constraints[kl] & IN_INT_LOOP_ENC){
+          for(i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++){
+            u1 = k - i - 1;
+            if(hc_up_int[i+1] < u1) continue;
+
+            for(j = l + 1; j <= MIN2(l + MAXLOOP - k + i + 2, n); j++){
+              u2 = j-l-1;
+              if(hc_up_int[l+1] < u2) break;
+
+              ij = my_iindx[i] - j;
+              if(hard_constraints[ij] & IN_INT_LOOP){
+                type = ptype[ij];
+                if(probs[ij] > 0){
+                  probs[kl] +=  probs[ij]
+                                * scale[k-i+j-l]
+                                * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+                }
+              }
             }
           }
-        probs[kl] += tmp2;
+        }
       }
 
       if(with_gquad){
@@ -867,68 +868,73 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
       prm_MLb = 0.;
       if (l<n)
         for (k=2; k<l-TURN; k++) {
-          i = k-1;
-          prmt = prmt1 = 0.0;
-
-          ii = my_iindx[i];     /* ii-j=[i,j]     */
-          ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-          tt = ptype[ii-(l+1)]; tt=rtype[tt];
-          /* (i, l+1) closes the ML with substem (k,l) */
-          if(tt)
-            prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-
-          int lj;
-          /* (i,j) with j>l+1 closes the ML with substem (k,l) */
-          for (j = l + 2, ij = my_iindx[i] - (l+2), lj=my_iindx[l+1]-(l+1); j<=n; j++, ij--, lj--) {
-            tt = ptype[ij]; tt = rtype[tt];
-            if(tt)
-              prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
-          }
           kl = my_iindx[k]-l;
-          tt = ptype[kl];
-          prmt *= expMLclosing;
-          prml[ i] = prmt;
-          prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+          prmt = prmt1 = 0.0;
+          if(hard_constraints[kl] & IN_MB_LOOP_ENC){
+            i = k-1;
 
-          prm_MLb = prm_MLb*expMLbase[1] + prml[i];
-          /* same as:    prm_MLb = 0;
-             for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+            ii = my_iindx[i];     /* ii-j=[i,j]     */
+            ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
+            tt = ptype[ii-(l+1)]; tt=rtype[tt];
+            if(hard_constraints[ii-(l+1)] & IN_MB_LOOP){
+              if(tt)
+                prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+            }
 
-          prml[i] = prml[ i] + prm_l[i];
+            int lj;
+            ij = my_iindx[i] - (l+2);
+            lj = my_iindx[l+1]-(l+1);
+            for (j = l + 2; j<=n; j++, ij--, lj--){
+              if(hard_constraints[ij] & IN_MB_LOOP){
+                tt = ptype[ij]; tt = rtype[tt];
+                if(tt)
+                  prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
+              }
+            }
+            tt = ptype[kl];
+            prmt *= expMLclosing;
+            prml[ i] = prmt;
+            prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
 
-          if(with_gquad){
-            if ((!tt) && (G[kl] == 0.)) continue;
-          } else {
-            if (qb[kl] == 0.) continue;
-          }
+            prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+            /* same as:    prm_MLb = 0;
+               for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-          temp = prm_MLb;
+            prml[i] = prml[ i] + prm_l[i];
 
-          for (i=1;i<=k-2; i++)
-            temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+            if(with_gquad){
+              if ((!tt) && (G[kl] == 0.)) continue;
+            } else {
+              if (qb[kl] == 0.) continue;
+            }
 
-          if(with_gquad){
-            if(tt)
+            temp = prm_MLb;
+
+            for (i=1;i<=k-2; i++)
+              temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+
+            if(with_gquad){
+              if(tt)
+                temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+              else
+                temp    *= G[kl] * expMLstem * scale[2];
+            } else {
               temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
-            else
-              temp    *= G[kl] * expMLstem * scale[2];
-          } else {
-            temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
-          }
+            }
 
-          probs[kl]  += temp;
+            probs[kl]  += temp;
 
-          if (probs[kl]>Qmax) {
-            Qmax = probs[kl];
-            if (Qmax>max_real/10.)
-              fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                i, j, probs[kl], qb[kl]);
+            if (probs[kl]>Qmax) {
+              Qmax = probs[kl];
+              if (Qmax>max_real/10.)
+                fprintf(stderr, "P close to overflow: %d %d %g %g\n",
+                  i, j, probs[kl], qb[kl]);
+            }
+            if (probs[kl]>=max_real) {
+              ov++;
+              probs[kl]=FLT_MAX;
+            }
           }
-          if (probs[kl]>=max_real) {
-            ov++;
-            probs[kl]=FLT_MAX;
-          }
-
         } /* end for (k=..) */
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 

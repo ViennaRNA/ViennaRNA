@@ -468,7 +468,7 @@ PRIVATE int fill_arrays(const char *string) {
         int u = j - i - 1;
         /* is this base pair allowed to close a hairpin loop ? */
         if(hc & IN_HP_LOOP){
-          /* are all nucletides in the loop allowed to be unpaired ? */
+          /* are all nucleotides in the loop allowed to be unpaired ? */
           if(hc_up_hp[i+1] >= u)
             new_c = E_Hairpin(u, type, S1[i+1], S1[j-1], string+i-1, P);
         }
@@ -538,12 +538,18 @@ PRIVATE int fill_arrays(const char *string) {
 
             /* normal dangles, aka dangles = 1 || 3 */
             default:  decomp += E_MLstem(tt, -1, -1, P);
-                      if(hc_up_ml[i+1])
-                        decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-                      if(hc_up_ml[j-1] && hc_up_ml[i+1])
-                        decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
-                      if(hc_up_ml[j-1])
-                        decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase);
+                      if(hc_up_ml[i+1]){
+                        en = DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
+                        decomp = MIN2(decomp, en);
+                      }
+                      if(hc_up_ml[j-1] && hc_up_ml[i+1]){
+                        en = DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase;
+                        decomp = MIN2(decomp, en);
+                      }
+                      if(hc_up_ml[j-1]){
+                        en = DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
+                        decomp = MIN2(decomp, en);
+                      }
                       break;
           }
           MLenergy = decomp + P->MLclosing;
@@ -558,12 +564,14 @@ PRIVATE int fill_arrays(const char *string) {
             for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
               i1k   = indx[k] + i + 1;
               if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
-                type_2 = rtype[ptype[i1k]];
-                decomp = MIN2(decomp, c[i1k]+P->stack[type][type_2]+fML[k1j1]);
+                type_2  = rtype[ptype[i1k]];
+                en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
+                decomp  = MIN2(decomp, en);
               }
               if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
-                type_2 = rtype[ptype[k1j1]];
-                decomp = MIN2(decomp, c[k1j1]+P->stack[type][type_2]+fML[i1k]);
+                type_2  = rtype[ptype[k1j1]];
+                en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
+                decomp  = MIN2(decomp, en);
               }
             }
             /* no TermAU penalty if coax stack */
@@ -611,8 +619,11 @@ PRIVATE int fill_arrays(const char *string) {
       if(with_gquad){
         new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
       }
-      if(hc_up_ml[j-1] && uniq_ML)
-        fM1[ij] = MIN2(fM1[ij], fM1[indx[j-1]+i] + P->MLbase);
+
+      if(hc_up_ml[j-1] && uniq_ML){
+        en      = fM1[indx[j-1]+i] + P->MLbase;
+        fM1[ij] = MIN2(fM1[ij], en);
+      }
 
       /* free ends ? -----------------------------------------*/
       /*  we must not just extend 3'/5' end by unpaired nucleotides if
