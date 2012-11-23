@@ -75,9 +75,6 @@
 #include <omp.h>
 #endif
 
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
-
 #define ISOLATED  256.0
 
 /*
@@ -109,8 +106,6 @@ PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params=NULL;    /* the precomputed Boltzmann weights */
 PRIVATE short       *S=NULL, *S1=NULL;
 
-PRIVATE double      alpha = 1.0;
-
 
 #ifdef _OPENMP
 
@@ -122,7 +117,7 @@ PRIVATE double      alpha = 1.0;
 */
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained)
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained)
 
 
 #endif
@@ -720,7 +715,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
 PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   unsigned int  i;
-  double        kT, scaling_factor;
+  double        scaling_factor;
 
   if(pf_params) free(pf_params);
 

@@ -193,7 +193,7 @@ PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *struct
 
 PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   unsigned int i, j, ij;
-  int cnt1, cnt2, cnt3, cnt4;
+  int cnt1;
   if(vars == NULL) return;
 
   free(vars->E_C_rem);
@@ -203,7 +203,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   if(vars->E_M2_rem) free(vars->E_M2_rem);
 
 #ifdef _OPENMP
-  #pragma omp sections private(i,j,ij,cnt1,cnt2,cnt3,cnt4)
+  #pragma omp sections private(i,j,ij,cnt1)
   {
 
   #pragma omp section
@@ -586,7 +586,6 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
   unsigned int i, d1, d2;
   unsigned int maxD1;
   unsigned int maxD2;
-  unsigned int mm;
   unsigned int length;
   TwoDfold_solution **output;
 
@@ -663,7 +662,6 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
   unsigned int  i, d1, d2;
   unsigned int  maxD1;
   unsigned int  maxD2;
-  unsigned int  mm;
   unsigned int  length;
   unsigned int  counter = 0;
   int           en = 0;
@@ -771,15 +769,11 @@ PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *
 
 PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
-  unsigned int  d, i, j, ij, k, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           ***E_C, ***E_M, ***E_M1, ***E_F5, cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ;
-  int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1,**l_min_values_f, **l_max_values_f;
-  int           *k_min_values, *k_max_values, *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1,*k_min_values_f, *k_max_values_f;
+  unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
+  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   paramT        *P;
-  int           ***E_F3;
-  int           **l_min_values_f3, **l_max_values_f3, *k_min_values_f3, *k_max_values_f3;
 
   /* dereferenciate things we often need */
   P               = vars->P;
@@ -800,43 +794,9 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
   bpdist          = vars->bpdist;
   circ            = vars->circ;
 
-  E_F5            = vars->E_F5;
-  l_min_values_f  = vars->l_min_values_f;
-  l_max_values_f  = vars->l_max_values_f;
-  k_min_values_f  = vars->k_min_values_f;
-  k_max_values_f  = vars->k_max_values_f;
-
-  E_C             = vars->E_C;
-  l_min_values    = vars->l_min_values;
-  l_max_values    = vars->l_max_values;
-  k_min_values    = vars->k_min_values;
-  k_max_values    = vars->k_max_values;
-
-  E_M             = vars->E_M;
-  l_min_values_m  = vars->l_min_values_m;
-  l_max_values_m  = vars->l_max_values_m;
-  k_min_values_m  = vars->k_min_values_m;
-  k_max_values_m  = vars->k_max_values_m;
-
-  E_M1            = vars->E_M1;
-  l_min_values_m1 = vars->l_min_values_m1;
-  l_max_values_m1 = vars->l_max_values_m1;
-  k_min_values_m1 = vars->k_min_values_m1;
-  k_max_values_m1 = vars->k_max_values_m1;
-
-  if(compute_2Dfold_F3){
-    E_F3            = vars->E_F3;
-    l_min_values_f3 = vars->l_min_values_f3;
-    l_max_values_f3 = vars->l_max_values_f3;
-    k_min_values_f3 = vars->k_min_values_f3;
-    k_max_values_f3 = vars->k_max_values_f3;
-  }
-
-
-
   for (d = TURN+2; d <= seq_length; d++) { /* i,j in [1..length] */
 #ifdef _OPENMP
-  #pragma omp parallel for private(additional_en, j, energy, temp2, i, ij, k, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
+  #pragma omp parallel for private(additional_en, j, energy, temp2, i, ij, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
 #endif
     for (j = d; j <= seq_length; j++) {
       unsigned int p, q, pq, u, maxp, dij;
@@ -848,9 +808,6 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
       type = ptype[ij];
 
       no_close = (((type==3)||(type==4))&&no_closingGU);
-
-      //k_min_values[ij] = 0;
-      //k_max_values[ij] = mm1[ij] + referenceBPs1[ij];
 
       if (type) {   /* we have a pair */
         /* increase or decrease distance-to-reference value depending whether (i,j) is included in
@@ -870,11 +827,6 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
         int min_k, max_k, min_l, max_l;
         int real_min_k, real_max_k, *min_l_real, *max_l_real;
 
-        //max_k = mm1[my_iindx[i+1]-j+1] + d1;
-        //max_l = mm2[my_iindx[i+1]-j+1] + d2;
-
-        //min_k = referenceBPs1[ij] - referenceBPs1[my_iindx[i+1]-j+1] + base_d1;
-        //min_l = referenceBPs2[ij] - referenceBPs2[my_iindx[i+1]-j+1] + base_d2;
         min_l = min_k = 0;
         max_k = mm1[ij] + referenceBPs1[ij];
         max_l = mm2[ij] + referenceBPs2[ij];
@@ -1475,14 +1427,14 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
   /* prepare first entries in E_F5 */
   for(cnt1 = 1; cnt1 <= TURN+1; cnt1++){
-    E_F5[cnt1] = (int **)space(sizeof(int *));
-    E_F5[cnt1][0] = (int *)space(sizeof(int));
-    E_F5[cnt1][0][0] = 0;
+    vars->E_F5[cnt1] = (int **)space(sizeof(int *));
+    vars->E_F5[cnt1][0] = (int *)space(sizeof(int));
+    vars->E_F5[cnt1][0][0] = 0;
     vars->E_F5_rem[cnt1] = INF;
-    k_min_values_f[cnt1] = k_max_values_f[cnt1] = 0;
-    l_min_values_f[cnt1] = (int *)space(sizeof(int));
-    l_max_values_f[cnt1] = (int *)space(sizeof(int));
-    l_min_values_f[cnt1][0] = l_max_values_f[cnt1][0] = 0;
+    vars->k_min_values_f[cnt1] = vars->k_max_values_f[cnt1] = 0;
+    vars->l_min_values_f[cnt1] = (int *)space(sizeof(int));
+    vars->l_max_values_f[cnt1] = (int *)space(sizeof(int));
+    vars->l_min_values_f[cnt1][0] = vars->l_max_values_f[cnt1][0] = 0;
 #ifdef COUNT_STATES
     vars->N_F5[cnt1] = (unsigned long **)space(sizeof(unsigned long *));
     vars->N_F5[cnt1][0] = (unsigned long *)space(sizeof(unsigned long));
@@ -1689,13 +1641,13 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
     /* prepare first entries in E_F3 */
     for(cnt1 = seq_length; cnt1 >= seq_length-TURN-1; cnt1--){
-      E_F3[cnt1]        = (int **)space(sizeof(int *));
-      E_F3[cnt1][0]     = (int *) space(sizeof(int));
-      E_F3[cnt1][0][0]  = 0;
-      k_min_values_f3[cnt1]     = k_max_values_f3[cnt1] = 0;
-      l_min_values_f3[cnt1]     = (int *)space(sizeof(int));
-      l_max_values_f3[cnt1]     = (int *)space(sizeof(int));
-      l_min_values_f3[cnt1][0]  = l_max_values_f3[cnt1][0] = 0;
+      vars->E_F3[cnt1]        = (int **)space(sizeof(int *));
+      vars->E_F3[cnt1][0]     = (int *) space(sizeof(int));
+      vars->E_F3[cnt1][0][0]  = 0;
+      vars->k_min_values_f3[cnt1]     = vars->k_max_values_f3[cnt1] = 0;
+      vars->l_min_values_f3[cnt1]     = (int *)space(sizeof(int));
+      vars->l_max_values_f3[cnt1]     = (int *)space(sizeof(int));
+      vars->l_min_values_f3[cnt1][0]  = vars->l_max_values_f3[cnt1][0] = 0;
     }
     /* begin calculations */
     for (j=seq_length-TURN-2; j >= 1; j--){
@@ -2067,7 +2019,7 @@ PRIVATE void backtrack_f5(unsigned int j, int k, int l, char *structure, TwoDfol
 }
 
 PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *structure, TwoDfold_vars *vars){
-  unsigned int p, q, pq, ij, maxp, seq_length, maxD1, maxD2;
+  unsigned int p, q, pq, ij, maxp, maxD1, maxD2;
   int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4;
   int           **l_min_values, **l_max_values,**l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
@@ -2079,7 +2031,6 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
 
   P               = vars->P;
   sequence        = vars->sequence;
-  seq_length      = vars->seq_length;
   S1              = vars->S1;
   ptype           = vars->ptype;
   my_iindx        = vars->my_iindx;
@@ -2328,11 +2279,10 @@ PRIVATE void backtrack_m(unsigned int i, unsigned int j, int k, int l, char *str
   int           ***E_C, ***E_M, *E_C_rem, *E_M_rem;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
-  char  *ptype, *sequence;
+  char  *ptype;
   paramT   *P;
 
   P           = vars->P;
-  sequence    = vars->sequence;
   seq_length  = vars->seq_length;
   S1          = vars->S1;
   circ        = vars->circ;
@@ -2677,11 +2627,10 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *sequence, *ptype;
   int **E_Fc, **E_FcH, **E_FcI, **E_FcM, ***E_C, ***E_M, ***E_M2;
-  int *E_C_rem, *E_M1_rem, *E_M_rem, *E_M2_rem, E_Fc_rem, E_FcH_rem, E_FcI_rem, E_FcM_rem;
+  int *E_C_rem, *E_M_rem, *E_M2_rem, E_Fc_rem, E_FcH_rem, E_FcI_rem, E_FcM_rem;
   int **l_min_values, **l_max_values, *k_min_values, *k_max_values;
   int **l_min_values_m, **l_max_values_m, *k_min_values_m, *k_max_values_m;
   int **l_min_values_m2, **l_max_values_m2, *k_min_values_m2, *k_max_values_m2;
-  int *l_min_values_fc, *l_max_values_fc, k_min_values_fc, k_max_values_fc;
   int *l_min_values_fcH, *l_max_values_fcH, k_min_values_fcH, k_max_values_fcH;
   int *l_min_values_fcI, *l_max_values_fcI, k_min_values_fcI, k_max_values_fcI;
   int *l_min_values_fcM, *l_max_values_fcM, k_min_values_fcM, k_max_values_fcM;
@@ -2717,10 +2666,6 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
   k_max_values_m2   = vars->k_max_values_m2;
 
   E_Fc              = vars->E_Fc;
-  l_min_values_fc   = vars->l_min_values_fc;
-  l_max_values_fc   = vars->l_max_values_fc;
-  k_min_values_fc   = vars->k_min_values_fc;
-  k_max_values_fc   = vars->k_max_values_fc;
 
   E_FcI             = vars->E_FcI;
   l_min_values_fcI  = vars->l_min_values_fcI;
@@ -2741,7 +2686,6 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
   k_max_values_fcM  = vars->k_max_values_fcM;
 
   E_C_rem          = vars->E_C_rem;
-  E_M1_rem         = vars->E_M1_rem;
   E_M_rem          = vars->E_M_rem;
   E_M2_rem         = vars->E_M2_rem;
   E_Fc_rem         = vars->E_Fc_rem;
@@ -2814,7 +2758,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
           ij = my_iindx[i]-j;
           u = seq_length-j + i-1;
           if (u<TURN) continue;
-          type = rtype[ptype[ij]];
+          type = rtype[(unsigned int)ptype[ij]];
           if (!type) continue;
 
           for(p = j+1; p < seq_length ; p++){
@@ -2827,7 +2771,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
             for(q = qmin; q <= seq_length; q++){
               unsigned int u2;
               pq = my_iindx[p]-q;
-              type_2 = rtype[ptype[pq]];
+              type_2 = rtype[(unsigned int)ptype[pq]];
               if (type_2==0) continue;
               u2 = i-1 + seq_length-q;
               if (u1+u2>MAXLOOP) continue;
@@ -3050,7 +2994,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
                   unsigned int u2;
                   pq = my_iindx[p]-q;
                   if(!E_C[pq]) continue;
-                  type_2 = rtype[ptype[pq]];
+                  type_2 = rtype[(unsigned int)ptype[pq]];
                   if (type_2==0) continue;
                   u2 = i-1 + seq_length-q;
                   if (u1+u2>MAXLOOP) continue;
@@ -3116,7 +3060,6 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
   int *my_iindx, cnt1, cnt2, cnt3, cnt4;
   int ***E_M1, ***E_M2, *E_M2_rem, *E_M1_rem, e;
   int **l_min_values_m1, **l_max_values_m1, *k_min_values_m1, *k_max_values_m1;
-  int **l_min_values_m2, **l_max_values_m2, *k_min_values_m2, *k_max_values_m2;
 
   n               = vars->seq_length;
   my_iindx        = vars->my_iindx;
@@ -3132,10 +3075,6 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
   E_M1_rem        = vars->E_M1_rem;
 
   E_M2            = vars->E_M2;
-  l_min_values_m2 = vars->l_min_values_m2;
-  l_max_values_m2 = vars->l_max_values_m2;
-  k_min_values_m2 = vars->k_min_values_m2;
-  k_max_values_m2 = vars->k_max_values_m2;
 
   E_M2_rem        = vars->E_M2_rem;
 
@@ -3231,15 +3170,14 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
 }
 
 PRIVATE void mfe_circ(TwoDfold_vars *vars){
-  unsigned int  d, i, j, k, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, energy, dangles, cnt1, cnt2, cnt3, cnt4;
-  short         *S1, *reference_pt1, *reference_pt2;
+  unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
+  int           *my_iindx, energy, cnt1, cnt2, cnt3, cnt4;
+  short         *S1;
   char          *sequence, *ptype;
-  int           ***E_C, ***E_M, ***E_M1, ***E_M2, **E_Fc, **E_FcH, **E_FcI, **E_FcM;
-  int           *E_C_rem, *E_M_rem, *E_M1_rem, *E_M2_rem, E_Fc_rem, E_FcH_rem, E_FcI_rem, E_FcM_rem;
-  int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1, **l_min_values_m2, **l_max_values_m2;
-  int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1, *k_min_values_m2, *k_max_values_m2;
-  int           *l_min_values_fc, *l_max_values_fc, *l_min_values_fcH, *l_max_values_fcH, *l_min_values_fcI, *l_max_values_fcI, *l_min_values_fcM, *l_max_values_fcM;
+  int           ***E_C, ***E_M, ***E_M1;
+  int           *E_C_rem, *E_M_rem, *E_M1_rem;
+  int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1;
+  int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
 
   paramT        *P;
 
@@ -3250,12 +3188,9 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   maxD2           = vars->maxD2;
   S1              = vars->S1;
   ptype           = vars->ptype;
-  reference_pt1   = vars->reference_pt1;
-  reference_pt2   = vars->reference_pt2;
   my_iindx        = vars->my_iindx;
   referenceBPs1   = vars->referenceBPs1;
   referenceBPs2   = vars->referenceBPs2;
-  dangles         = vars->dangles;
   mm1             = vars->mm1;
   mm2             = vars->mm2;
   bpdist          = vars->bpdist;
@@ -3278,20 +3213,9 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   k_min_values_m1 = vars->k_min_values_m1;
   k_max_values_m1 = vars->k_max_values_m1;
 
-  E_M2            = vars->E_M2;
-  l_min_values_m2 = vars->l_min_values_m2;
-  l_max_values_m2 = vars->l_max_values_m2;
-  k_min_values_m2 = vars->k_min_values_m2;
-  k_max_values_m2 = vars->k_max_values_m2;
-
   E_C_rem        = vars->E_C_rem;
   E_M_rem        = vars->E_M_rem;
   E_M1_rem       = vars->E_M1_rem;
-  E_M2_rem       = vars->E_M2_rem;
-  E_Fc_rem       = INF;
-  E_FcH_rem      = INF;
-  E_FcI_rem      = INF;
-  E_FcM_rem      = INF;
 
 #ifdef _OPENMP
   #pragma omp parallel for private(d1,d2,cnt1,cnt2,cnt3,cnt4,j, i)
@@ -3324,8 +3248,8 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                   vars->l_max_values_m2[i]
                  );
 
-    preparePosteriorBoundaries( k_max_values_m2[i] - k_min_values_m2[i] + 1,
-                                k_min_values_m2[i],
+    preparePosteriorBoundaries( vars->k_max_values_m2[i] - vars->k_min_values_m2[i] + 1,
+                                vars->k_min_values_m2[i],
                                 &min_k_real,
                                 &max_k_real,
                                 &min_l_real,
@@ -3342,11 +3266,11 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
             for(cnt2 = l_min_values_m1[my_iindx[j+1]-seq_length][cnt1];
                 cnt2 <= l_max_values_m1[my_iindx[j+1]-seq_length][cnt1];
                 cnt2++)
-              E_M2_rem[i] = MIN2(E_M2_rem[i],
+              vars->E_M2_rem[i] = MIN2(vars->E_M2_rem[i],
                                   E_M1_rem[my_iindx[i]-j] + E_M1[my_iindx[j+1]-seq_length][cnt1][cnt2/2]
                                   );
         if(E_M1_rem[my_iindx[j+1]-seq_length] != INF)
-          E_M2_rem[i] = MIN2(E_M2_rem[i], E_M1_rem[my_iindx[i]-j] + E_M1_rem[my_iindx[j+1]-seq_length]);
+          vars->E_M2_rem[i] = MIN2(vars->E_M2_rem[i], E_M1_rem[my_iindx[i]-j] + E_M1_rem[my_iindx[j+1]-seq_length]);
       }
       if(E_M1_rem[my_iindx[j+1]-seq_length] != INF){
         if(E_M1[my_iindx[i]-j])
@@ -3356,7 +3280,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
             for(cnt2 = l_min_values_m1[my_iindx[i]-j][cnt1];
                 cnt2 <= l_max_values_m1[my_iindx[i]-j][cnt1];
                 cnt2 += 2)
-              E_M2_rem[i] = MIN2(E_M2_rem[i],
+              vars->E_M2_rem[i] = MIN2(vars->E_M2_rem[i],
                                   E_M1[my_iindx[i]-j][cnt1][cnt2/2] + E_M1_rem[my_iindx[j+1]-seq_length]
                                   );
       }
@@ -3373,7 +3297,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
           for(cnt3 = k_min_values_m1[my_iindx[j+1]-seq_length]; cnt3 <= k_max_values_m1[my_iindx[j+1]-seq_length]; cnt3++)
             for(cnt4 = l_min_values_m1[my_iindx[j+1]-seq_length][cnt3]; cnt4 <= l_max_values_m1[my_iindx[j+1]-seq_length][cnt3]; cnt4+=2){
               if(((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)){
-                E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2( E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
+                vars->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2( vars->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
                                                                         E_M1[my_iindx[i]-j][cnt1][cnt2/2] + E_M1[my_iindx[j+1]-seq_length][cnt3][cnt4/2]
                                                                       );
                 updatePosteriorBoundaries(cnt1+cnt3+d1,
@@ -3385,7 +3309,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                                           );
               }
               else{
-                E_M2_rem[i] = MIN2(E_M2_rem[i],
+                vars->E_M2_rem[i] = MIN2(vars->E_M2_rem[i],
                                     E_M1[my_iindx[i]-j][cnt1][cnt2/2] + E_M1[my_iindx[j+1]-seq_length][cnt3][cnt4/2]
                                     );
               }
@@ -3560,21 +3484,6 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   }
 #endif
 
-
-  E_Fc              = vars->E_Fc;
-  E_FcH             = vars->E_FcH;
-  E_FcI             = vars->E_FcI;
-  E_FcM             = vars->E_FcM;
-
-  l_min_values_fc   = vars->l_min_values_fc;
-  l_max_values_fc   = vars->l_max_values_fc;
-  l_min_values_fcH  = vars->l_min_values_fcH;
-  l_max_values_fcH  = vars->l_max_values_fcH;
-  l_min_values_fcI  = vars->l_min_values_fcI;
-  l_max_values_fcI  = vars->l_max_values_fcI;
-  l_min_values_fcM  = vars->l_min_values_fcM;
-  l_max_values_fcM  = vars->l_max_values_fcM;
-
   /* begin actual energy calculations */
 #ifdef _OPENMP
   #pragma omp sections private(d, d1,d2,cnt1,cnt2,cnt3,cnt4,j, i, energy)
@@ -3585,8 +3494,8 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
 #endif
   for (d = TURN+2; d <= seq_length; d++) /* i,j in [1..length] */
     for (j = d; j <= seq_length; j++) {
-      unsigned int  u, ij, p, q, pq;
-      int           type, type_2, no_close;
+      unsigned int  u, ij;
+      int           type, no_close;
       char          loopseq[10];
       i = j-d+1;
       ij = my_iindx[i]-j;
@@ -3611,13 +3520,13 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
       energy = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P);
 
       if(E_C_rem[ij] != INF)
-        E_FcH_rem = MIN2(E_FcH_rem, E_C_rem[ij] + energy);
+        vars->E_FcH_rem = MIN2(vars->E_FcH_rem, E_C_rem[ij] + energy);
 
       if (!E_C[ij]) continue;
       for(cnt1 = k_min_values[ij]; cnt1 <= k_max_values[ij]; cnt1++)
         for(cnt2 = l_min_values[ij][cnt1]; cnt2 <= l_max_values[ij][cnt1]; cnt2 += 2){
           if(((cnt1 + d1) <= maxD1) && ((cnt2 + d2) <= maxD2)){
-            E_FcH[cnt1 + d1][(cnt2+d2)/2] = MIN2( E_FcH[cnt1 + d1][(cnt2+d2)/2],
+            vars->E_FcH[cnt1 + d1][(cnt2+d2)/2] = MIN2( vars->E_FcH[cnt1 + d1][(cnt2+d2)/2],
                                                   energy + E_C[ij][cnt1][cnt2/2]
                                                 );
             updatePosteriorBoundaries(cnt1 + d1,
@@ -3629,7 +3538,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                                     );
           }
           else
-            E_FcH_rem = MIN2(E_FcH_rem, energy + E_C[ij][cnt1][cnt2/2]);
+            vars->E_FcH_rem = MIN2(vars->E_FcH_rem, energy + E_C[ij][cnt1][cnt2/2]);
         }
     }
   /* end of i-j loop */
@@ -3679,7 +3588,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
           for(q = qmin; q <= seq_length; q++){
             unsigned int u2;
             pq = my_iindx[p]-q;
-            type_2 = rtype[ptype[pq]];
+            type_2 = rtype[(unsigned int)ptype[pq]];
             if (type_2==0) continue;
             u2 = i-1 + seq_length-q;
             if (u1+u2>MAXLOOP) continue;
@@ -3692,7 +3601,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
             energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
 
             if(E_C_rem[pq] != INF)
-              E_FcI_rem = MIN2(E_FcI_rem, E_C_rem[ij] + E_C_rem[pq] + energy);
+              vars->E_FcI_rem = MIN2(vars->E_FcI_rem, E_C_rem[ij] + E_C_rem[pq] + energy);
 
             if(E_C[pq])
               for(cnt1 = k_min_values[pq];
@@ -3701,7 +3610,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 for(cnt2 = l_min_values[pq][cnt1];
                     cnt2 <= l_max_values[pq][cnt1];
                     cnt2 += 2)
-                  E_FcI_rem = MIN2(E_FcI_rem, E_C_rem[ij] + E_C[pq][cnt1][cnt2/2] + energy);
+                  vars->E_FcI_rem = MIN2(vars->E_FcI_rem, E_C_rem[ij] + E_C[pq][cnt1][cnt2/2] + energy);
           }
         }
       }
@@ -3717,7 +3626,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
           for(q = qmin; q <= seq_length; q++){
             unsigned int u2;
             pq = my_iindx[p]-q;
-            type_2 = rtype[ptype[pq]];
+            type_2 = rtype[(unsigned int)ptype[pq]];
             if (type_2==0) continue;
             u2 = i-1 + seq_length-q;
             if (u1+u2>MAXLOOP) continue;
@@ -3735,7 +3644,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                 for(cnt2 = l_min_values[ij][cnt1];
                     cnt2 <= l_max_values[ij][cnt1];
                     cnt2 += 2)
-                  E_FcI_rem = MIN2(E_FcI_rem, E_C[ij][cnt1][cnt2/2] + E_C_rem[pq] + energy);
+                  vars->E_FcI_rem = MIN2(vars->E_FcI_rem, E_C[ij][cnt1][cnt2/2] + E_C_rem[pq] + energy);
             }
 
             if(E_C[pq])
@@ -3752,8 +3661,8 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                         cnt4 <= l_max_values[pq][cnt3];
                         cnt4 += 2){
                       if(((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)){
-                        E_FcI[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2(
-                                                                          E_FcI[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
+                        vars->E_FcI[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2(
+                                                                          vars->E_FcI[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
                                                                           E_C[ij][cnt1][cnt2/2]
                                                                         + E_C[pq][cnt3][cnt4/2]
                                                                         + energy
@@ -3767,8 +3676,8 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                                                 );
                       }
                       else{
-                        E_FcI_rem = MIN2(
-                                      E_FcI_rem,
+                        vars->E_FcI_rem = MIN2(
+                                      vars->E_FcI_rem,
                                       E_C[ij][cnt1][cnt2/2]
                                     + E_C[pq][cnt3][cnt4/2]
                                     + energy
@@ -3807,18 +3716,18 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
       d2 = base_d2 - referenceBPs2[my_iindx[1]-i] - referenceBPs2[my_iindx[i+1]-seq_length];
 
       if(E_M_rem[my_iindx[1]-i] != INF){
-        if(E_M2[i+1])
-          for(cnt1 = k_min_values_m2[i+1];
-              cnt1 <= k_max_values_m2[i+1];
+        if(vars->E_M2[i+1])
+          for(cnt1 = vars->k_min_values_m2[i+1];
+              cnt1 <= vars->k_max_values_m2[i+1];
               cnt1++)
-            for(cnt2 = l_min_values_m2[i+1][cnt1];
-                cnt2 <= l_max_values_m2[i+1][cnt1];
+            for(cnt2 = vars->l_min_values_m2[i+1][cnt1];
+                cnt2 <= vars->l_max_values_m2[i+1][cnt1];
                 cnt2 += 2)
-              E_FcM_rem = MIN2(E_FcM_rem, E_M_rem[my_iindx[1]-i] + E_M2[i+1][cnt1][cnt2/2] + P->MLclosing);
-        if(E_M2_rem[i+1] != INF)
-          E_FcM_rem = MIN2(E_FcM_rem, E_M_rem[my_iindx[1]-i] + E_M2_rem[i+1] + P->MLclosing);
+              vars->E_FcM_rem = MIN2(vars->E_FcM_rem, E_M_rem[my_iindx[1]-i] + vars->E_M2[i+1][cnt1][cnt2/2] + P->MLclosing);
+        if(vars->E_M2_rem[i+1] != INF)
+          vars->E_FcM_rem = MIN2(vars->E_FcM_rem, E_M_rem[my_iindx[1]-i] + vars->E_M2_rem[i+1] + P->MLclosing);
       }
-      if(E_M2_rem[i+1] != INF){
+      if(vars->E_M2_rem[i+1] != INF){
         if(E_M[my_iindx[1]-i])
           for(cnt1 = k_min_values_m[my_iindx[1]-i];
               cnt1 <= k_max_values_m[my_iindx[1]-i];
@@ -3826,20 +3735,20 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
             for(cnt2 = l_min_values_m[my_iindx[1]-i][cnt1];
                 cnt2 <= l_max_values_m[my_iindx[1]-i][cnt1];
                 cnt2 += 2)
-              E_FcM_rem = MIN2(E_FcM_rem, E_M[my_iindx[1]-i][cnt1][cnt2/2] + E_M2_rem[i+1] + P->MLclosing);
+              vars->E_FcM_rem = MIN2(vars->E_FcM_rem, E_M[my_iindx[1]-i][cnt1][cnt2/2] + vars->E_M2_rem[i+1] + P->MLclosing);
       }
 
       if(!E_M[my_iindx[1]-i]) continue;
-      if(!E_M2[i+1]) continue;
+      if(!vars->E_M2[i+1]) continue;
       for(cnt1 = k_min_values_m[my_iindx[1]-i]; cnt1 <= k_max_values_m[my_iindx[1]-i]; cnt1++)
         for(cnt2 = l_min_values_m[my_iindx[1]-i][cnt1]; cnt2 <= l_max_values_m[my_iindx[1]-i][cnt1]; cnt2 += 2)
-          for(cnt3 = k_min_values_m2[i+1]; cnt3 <= k_max_values_m2[i+1]; cnt3++)
-            for(cnt4 = l_min_values_m2[i+1][cnt3]; cnt4 <= l_max_values_m2[i+1][cnt3]; cnt4 += 2){
+          for(cnt3 = vars->k_min_values_m2[i+1]; cnt3 <= vars->k_max_values_m2[i+1]; cnt3++)
+            for(cnt4 = vars->l_min_values_m2[i+1][cnt3]; cnt4 <= vars->l_max_values_m2[i+1][cnt3]; cnt4 += 2){
               if(((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)){
-                E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2(
-                                                                  E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
+                vars->E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2] = MIN2(
+                                                                  vars->E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2)/2],
                                                                   E_M[my_iindx[1]-i][cnt1][cnt2/2]
-                                                                + E_M2[i+1][cnt3][cnt4/2]
+                                                                + vars->E_M2[i+1][cnt3][cnt4/2]
                                                                 + P->MLclosing
                                                                     );
                 updatePosteriorBoundaries(cnt1 + cnt3 + d1,
@@ -3851,10 +3760,10 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
                                         );
               }
               else{
-                E_FcM_rem = MIN2(
-                              E_FcM_rem,
+                vars->E_FcM_rem = MIN2(
+                              vars->E_FcM_rem,
                               E_M[my_iindx[1]-i][cnt1][cnt2/2]
-                            + E_M2[i+1][cnt3][cnt4/2]
+                            + vars->E_M2[i+1][cnt3][cnt4/2]
                             + P->MLclosing
                                   );
               }
@@ -3880,17 +3789,11 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
 
 
   /* compute E_Fc_rem */
-  E_Fc_rem = MIN2(E_FcH_rem, E_FcI_rem);
-  E_Fc_rem = MIN2(E_Fc_rem, E_FcM_rem);
+  vars->E_Fc_rem = MIN2(vars->E_FcH_rem, vars->E_FcI_rem);
+  vars->E_Fc_rem = MIN2(vars->E_Fc_rem, vars->E_FcM_rem);
   /* add the case were structure is unfolded chain */
   if((referenceBPs1[my_iindx[1]-seq_length] > maxD1) || (referenceBPs2[my_iindx[1]-seq_length] > maxD2))
-    E_Fc_rem = MIN2(E_Fc_rem, 0);
-
-  /* store values in ds */
-  vars->E_Fc_rem   = E_Fc_rem;
-  vars->E_FcH_rem  = E_FcH_rem;
-  vars->E_FcI_rem  = E_FcI_rem;
-  vars->E_FcM_rem  = E_FcM_rem;
+    vars->E_Fc_rem = MIN2(vars->E_Fc_rem, 0);
 
 
   /* compute all E_Fc */
@@ -3962,7 +3865,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
 
 
 PRIVATE void adjustArrayBoundaries(int ***array, int *k_min, int *k_max, int **l_min, int **l_max, int k_min_post, int k_max_post, int *l_min_post, int *l_max_post){
-  int cnt1, cnt2;
+  int cnt1;
   int k_diff_pre  = k_min_post - *k_min;
   int mem_size    = k_max_post - k_min_post + 1;
 
@@ -4108,7 +4011,7 @@ INLINE  PRIVATE void  prepareArray(int ***array, int min_k, int max_k, int *min_
 }
 
 INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k, int *min_l, int *max_l){
-  int i, j, mem;
+  int i, mem;
   *array  = (unsigned long **)space(sizeof(unsigned long *) * (max_k - min_k + 1));
   *array  -= min_k;
 

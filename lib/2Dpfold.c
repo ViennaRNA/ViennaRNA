@@ -502,13 +502,12 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars)
 }
 
 PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
-  unsigned int size = ((vars->seq_length+1)*(vars->seq_length+2)/2);
   unsigned int i, j, ij;
-  int cnt1, cnt2, cnt3, cnt4;
+  int cnt1;
   if(vars == NULL) return;
 
 #ifdef _OPENMP
-  #pragma omp sections private(i,j,ij,cnt1,cnt2,cnt3,cnt4)
+  #pragma omp sections private(i,j,ij)
   {
 
   #pragma omp section
@@ -786,7 +785,7 @@ PRIVATE void initialize_TwoDpfold_vars(TwoDpfold_vars *vars){
 }
 
 TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int distance2){
-  unsigned int  i, mm, maxD1 = 0, maxD2 = 0, counter = 0;
+  unsigned int  maxD1 = 0, maxD2 = 0, counter = 0;
   int           cnt1, cnt2, k_min, k_max, l_min, l_max, ndx;
   FLT_OR_DBL    q = 0.;
 
@@ -866,7 +865,7 @@ TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int dista
 }
 
 PUBLIC FLT_OR_DBL **TwoDpfold(TwoDpfold_vars *vars, int distance1, int distance2){
-  unsigned int  i, d1, d2;
+  unsigned int  i;
   unsigned int  maxD1 = 0;
   unsigned int  maxD2 = 0;
   unsigned int  mm;
@@ -916,7 +915,7 @@ PUBLIC FLT_OR_DBL **TwoDpfold(TwoDpfold_vars *vars, int distance1, int distance2
 }
 
 PUBLIC FLT_OR_DBL **TwoDpfold_circ(TwoDpfold_vars *vars, int distance1, int distance2){
-  unsigned int i, d1, d2;
+  unsigned int i;
   unsigned int maxD1 = 0;
   unsigned int maxD2 = 0;
   unsigned int mm;
@@ -971,21 +970,9 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
   unsigned int  *referenceBPs1, *referenceBPs2,
                 d, i, j, ij, seq_length, maxD1,
                 maxD2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4,
-                *k_min_values, *k_max_values,
-                *k_min_values_m, *k_max_values_m,
-                *k_min_values_m1, *k_max_values_m1,
-                *k_min_values_b, *k_max_values_b,
-                **l_min_values, **l_max_values,
-                **l_min_values_m, **l_max_values_m,
-                **l_min_values_m1, **l_max_values_m1,
-                **l_min_values_b, **l_max_values_b;
+  int           *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4;
   double        max_real;
-  FLT_OR_DBL    *scale, Qmax,
-                ***Q, ***Q_B,
-                ***Q_M, ***Q_M1,
-                *Q_rem, *Q_B_rem,
-                *Q_M_rem, *Q_M1_rem;
+  FLT_OR_DBL    *scale, Qmax;
   pf_paramT     *pf_params;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -1009,36 +996,6 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
   mm1           = vars->mm1;
   mm2           = vars->mm2;
   bpdist        = vars->bpdist;
-
-
-  Q = vars->Q;
-  k_min_values = vars->k_min_values;
-  k_max_values = vars->k_max_values;
-  l_min_values = vars->l_min_values;
-  l_max_values = vars->l_max_values;
-
-  Q_B = vars->Q_B;
-  k_min_values_b = vars->k_min_values_b;
-  k_max_values_b = vars->k_max_values_b;
-  l_min_values_b = vars->l_min_values_b;
-  l_max_values_b = vars->l_max_values_b;
-
-  Q_M = vars->Q_M;
-  k_min_values_m = vars->k_min_values_m;
-  k_max_values_m = vars->k_max_values_m;
-  l_min_values_m = vars->l_min_values_m;
-  l_max_values_m = vars->l_max_values_m;
-
-  Q_M1 = vars->Q_M1;
-  k_min_values_m1 = vars->k_min_values_m1;
-  k_max_values_m1 = vars->k_max_values_m1;
-  l_min_values_m1 = vars->l_min_values_m1;
-  l_max_values_m1 = vars->l_max_values_m1;
-
-  Q_rem           = vars->Q_rem;
-  Q_B_rem         = vars->Q_B_rem;
-  Q_M_rem         = vars->Q_M_rem;
-  Q_M1_rem        = vars->Q_M1_rem;
 
 
   /*array initialization ; qb,qm,q
@@ -1141,7 +1098,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_B_rem[ij] = exp_E_Hairpin(dij, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[dij+2];
+              vars->Q_B_rem[ij] = exp_E_Hairpin(dij, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[dij+2];
             }
           }
         /*--------------------------------------------------------
@@ -1167,8 +1124,8 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
             da = base_da + referenceBPs1[ij] - referenceBPs1[kl];
             db = base_db + referenceBPs2[ij] - referenceBPs2[kl];
 
-            if(Q_B_rem[kl]){
-              Q_B_rem[ij] += Q_B_rem[kl] * aux_en;
+            if(vars->Q_B_rem[kl]){
+              vars->Q_B_rem[ij] += vars->Q_B_rem[kl] * aux_en;
             }
             if(!vars->Q_B[kl]) continue;
             for(cnt1 = vars->k_min_values_b[kl];
@@ -1190,7 +1147,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   }
                 }
                 else{
-                  Q_B_rem[ij] += vars->Q_B[kl][cnt1][cnt2/2] * aux_en;
+                  vars->Q_B_rem[ij] += vars->Q_B[kl][cnt1][cnt2/2] * aux_en;
                 }
               }
 
@@ -1203,7 +1160,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
             tt = rtype[type];
             temp2 = pf_params->expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
 
-            if(Q_M_rem[my_iindx[i+1]-u]){
+            if(vars->Q_M_rem[my_iindx[i+1]-u]){
               if(vars->Q_M1[jindx[j-1]+u+1])
                 for(cnt1 = vars->k_min_values_m1[jindx[j-1]+u+1];
                     cnt1 <= vars->k_max_values_m1[jindx[j-1]+u+1];
@@ -1211,12 +1168,12 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   for(cnt2 = vars->l_min_values_m1[jindx[j-1]+u+1][cnt1];
                       cnt2 <= vars->l_max_values_m1[jindx[j-1]+u+1][cnt1];
                       cnt2 += 2)
-                    Q_B_rem[ij] += Q_M_rem[my_iindx[i+1]-u] * vars->Q_M1[jindx[j-1]+u+1][cnt1][cnt2/2] * temp2;
+                    vars->Q_B_rem[ij] += vars->Q_M_rem[my_iindx[i+1]-u] * vars->Q_M1[jindx[j-1]+u+1][cnt1][cnt2/2] * temp2;
 
-              if(Q_M1_rem[jindx[j-1]+u+1])
-                Q_B_rem[ij] += Q_M_rem[my_iindx[i+1]-u] * Q_M1_rem[jindx[j-1]+u+1] * temp2;
+              if(vars->Q_M1_rem[jindx[j-1]+u+1])
+                vars->Q_B_rem[ij] += vars->Q_M_rem[my_iindx[i+1]-u] * vars->Q_M1_rem[jindx[j-1]+u+1] * temp2;
             }
-            if(Q_M1_rem[jindx[j-1]+u+1]){
+            if(vars->Q_M1_rem[jindx[j-1]+u+1]){
               if(vars->Q_M[my_iindx[i+1]-u])
                 for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u];
                     cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u];
@@ -1224,7 +1181,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1];
                       cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1];
                       cnt2 += 2)
-                    Q_B_rem[ij] += vars->Q_M[my_iindx[i+1]-u][cnt1][cnt2/2] * Q_M1_rem[jindx[j-1]+u+1] * temp2;
+                    vars->Q_B_rem[ij] += vars->Q_M[my_iindx[i+1]-u][cnt1][cnt2/2] * vars->Q_M1_rem[jindx[j-1]+u+1] * temp2;
             }
 
             /* get distance to reference if closing the multiloop
@@ -1262,7 +1219,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                       }
                     }
                     else{
-                      Q_B_rem[ij] +=  vars->Q_M[my_iindx[i+1]-u][cnt1][cnt2/2]
+                      vars->Q_B_rem[ij] +=  vars->Q_M[my_iindx[i+1]-u][cnt1][cnt2/2]
                                     * vars->Q_M1[jindx[j-1]+u+1][cnt3][cnt4/2]
                                     * temp2;
                     }
@@ -1364,8 +1321,8 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       da = referenceBPs1[ij] - referenceBPs1[ij+1];
       db = referenceBPs2[ij] - referenceBPs2[ij+1];
 
-      if(Q_M_rem[ij+1])
-        Q_M_rem[ij] += Q_M_rem[ij+1] * pf_params->expMLbase * scale[1];
+      if(vars->Q_M_rem[ij+1])
+        vars->Q_M_rem[ij] += vars->Q_M_rem[ij+1] * pf_params->expMLbase * scale[1];
 
       if(vars->Q_M[ij+1])
         for(cnt1 = vars->k_min_values_m[ij+1];
@@ -1387,13 +1344,13 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_M_rem[ij] += vars->Q_M[ij+1][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
+              vars->Q_M_rem[ij] += vars->Q_M[ij+1][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
             }
           }
         }
 
-      if(Q_M1_rem[jindx[j-1]+i])
-        Q_M1_rem[jindx[j]+i] += Q_M1_rem[jindx[j-1]+i] * pf_params->expMLbase * scale[1];
+      if(vars->Q_M1_rem[jindx[j-1]+i])
+        vars->Q_M1_rem[jindx[j]+i] += vars->Q_M1_rem[jindx[j-1]+i] * pf_params->expMLbase * scale[1];
 
       if(vars->Q_M1[jindx[j-1]+i])
         for(cnt1 = vars->k_min_values_m1[jindx[j-1]+i];
@@ -1415,7 +1372,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_M1_rem[jindx[j]+i] += vars->Q_M1[jindx[j-1]+i][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
+              vars->Q_M1_rem[jindx[j]+i] += vars->Q_M1[jindx[j-1]+i][cnt1][cnt2/2] * pf_params->expMLbase * scale[1];
             }
           }
 
@@ -1424,9 +1381,9 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       if((!no_close) && type){
         FLT_OR_DBL aux_en = exp_E_MLstem(type, (i>1) || circ ? S1[i-1] : -1, (j<seq_length) || circ ? S1[j+1] : -1, pf_params);
 
-        if(Q_B_rem[ij]){
-          Q_M_rem[ij]           += Q_B_rem[ij] * aux_en;
-          Q_M1_rem[jindx[j]+i]  += Q_B_rem[ij] * aux_en;
+        if(vars->Q_B_rem[ij]){
+          vars->Q_M_rem[ij]           += vars->Q_B_rem[ij] * aux_en;
+          vars->Q_M1_rem[jindx[j]+i]  += vars->Q_B_rem[ij] * aux_en;
         }
 
         if(vars->Q_B[ij]){
@@ -1466,8 +1423,8 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
         tt = ptype[my_iindx[k]-j];
         temp2 = exp_E_MLstem(tt, S1[k-1], (j<seq_length) || circ ? S1[j+1] : -1, pf_params);
 
-        if(Q_B_rem[my_iindx[k]-j]){
-          Q_M_rem[ij] += Q_B_rem[my_iindx[k]-j] * pow(pf_params->expMLbase, (double)(k-i)) * scale[k-i] * temp2;
+        if(vars->Q_B_rem[my_iindx[k]-j]){
+          vars->Q_M_rem[ij] += vars->Q_B_rem[my_iindx[k]-j] * pow(pf_params->expMLbase, (double)(k-i)) * scale[k-i] * temp2;
           if(vars->Q_M[ii-k+1])
             for(cnt1 = vars->k_min_values_m[ii-k+1];
                 cnt1 <= vars->k_max_values_m[ii-k+1];
@@ -1475,12 +1432,12 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               for(cnt2 = vars->l_min_values_m[ii-k+1][cnt1];
                   cnt2 <= vars->l_max_values_m[ii-k+1][cnt1];
                   cnt2 += 2)
-                Q_M_rem[ij] += vars->Q_M[ii-k+1][cnt1][cnt2/2] * Q_B_rem[my_iindx[k]-j] * temp2;
+                vars->Q_M_rem[ij] += vars->Q_M[ii-k+1][cnt1][cnt2/2] * vars->Q_B_rem[my_iindx[k]-j] * temp2;
 
-          if(Q_M_rem[ii-k+1])
-            Q_M_rem[ij] += Q_M_rem[ii-k+1] * Q_B_rem[my_iindx[k]-j] * temp2;
+          if(vars->Q_M_rem[ii-k+1])
+            vars->Q_M_rem[ij] += vars->Q_M_rem[ii-k+1] * vars->Q_B_rem[my_iindx[k]-j] * temp2;
         }
-        if(Q_M_rem[ii-k+1]){
+        if(vars->Q_M_rem[ii-k+1]){
           if(vars->Q_B[my_iindx[k]-j])
             for(cnt1 = vars->k_min_values_b[my_iindx[k]-j];
                 cnt1 <= vars->k_max_values_b[my_iindx[k]-j];
@@ -1488,7 +1445,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               for(cnt2 = vars->l_min_values_b[my_iindx[k]-j][cnt1];
                   cnt2 <= vars->l_max_values_b[my_iindx[k]-j][cnt1];
                   cnt2 += 2)
-                Q_M_rem[ij] += Q_M_rem[my_iindx[k]-j] * vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * temp2;
+                vars->Q_M_rem[ij] += vars->Q_M_rem[my_iindx[k]-j] * vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * temp2;
         }
 
         /* add contributions of QM(i,k-1)*QB(k,j)*e^b and
@@ -1521,7 +1478,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_M_rem[ij] += vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * pow(pf_params->expMLbase, (double)(k-i)) * scale[k-i] * temp2;
+              vars->Q_M_rem[ij] += vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * pow(pf_params->expMLbase, (double)(k-i)) * scale[k-i] * temp2;
             }
           }
 
@@ -1554,7 +1511,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   }
                 }
                 else{
-                  Q_M_rem[ij] += vars->Q_M[ii-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
+                  vars->Q_M_rem[ij] += vars->Q_M[ii-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
                 }
               }
       }
@@ -1623,8 +1580,8 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       if (type){
         aux_en = exp_E_ExtLoop(type, (i>1) || circ ? S1[i-1] : -1, (j < seq_length) || circ ? S1[j+1] : -1, pf_params);
 
-        if(Q_B_rem[ij])
-          Q_rem[ij] += Q_B_rem[ij] * aux_en;
+        if(vars->Q_B_rem[ij])
+          vars->Q_rem[ij] += vars->Q_B_rem[ij] * aux_en;
 
         if(vars->Q_B[ij])
           for(cnt1 = vars->k_min_values_b[ij];
@@ -1647,8 +1604,8 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       }
 
       /* j is unpaired */
-      if(Q_rem[ij+1])
-        Q_rem[ij] += Q_rem[ij+1] * scale[1];
+      if(vars->Q_rem[ij+1])
+        vars->Q_rem[ij] += vars->Q_rem[ij+1] * scale[1];
 
       /* da = dbp(T1_{i,j}, T1_{i,j-1})
       *  db = dbp(T2_{i,j}, T2_{i,j-1})
@@ -1675,7 +1632,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_rem[ij] += vars->Q[ij+1][cnt1][cnt2/2] * scale[1];
+              vars->Q_rem[ij] += vars->Q[ij+1][cnt1][cnt2/2] * scale[1];
             }
           }
 
@@ -1683,7 +1640,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
         tt = ptype[my_iindx[k]-j];
         temp2 = exp_E_ExtLoop(tt, S1[k-1], (j<seq_length) || circ ? S1[j+1] : -1, pf_params);
 
-        if(Q_rem[my_iindx[i]-k+1]){
+        if(vars->Q_rem[my_iindx[i]-k+1]){
           if(vars->Q_B[my_iindx[k]-j])
             for(cnt1 = vars->k_min_values_b[my_iindx[k]-j];
                 cnt1 <=  vars->k_max_values_b[my_iindx[k]-j];
@@ -1691,11 +1648,11 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               for(cnt2 = vars->l_min_values_b[my_iindx[k]-j][cnt1];
                   cnt2 <= vars->l_max_values_b[my_iindx[k]-j][cnt1];
                   cnt2 += 2)
-                Q_rem[ij] += Q_rem[my_iindx[i]-k+1] * vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * temp2;
-          if(Q_B_rem[my_iindx[k]-j])
-            Q_rem[ij] += Q_rem[my_iindx[i]-k+1] * Q_B_rem[my_iindx[k]-j] * temp2;
+                vars->Q_rem[ij] += vars->Q_rem[my_iindx[i]-k+1] * vars->Q_B[my_iindx[k]-j][cnt1][cnt2/2] * temp2;
+          if(vars->Q_B_rem[my_iindx[k]-j])
+            vars->Q_rem[ij] += vars->Q_rem[my_iindx[i]-k+1] * vars->Q_B_rem[my_iindx[k]-j] * temp2;
         }
-        if(Q_B_rem[my_iindx[k]-j]){
+        if(vars->Q_B_rem[my_iindx[k]-j]){
           if(vars->Q[my_iindx[i]-k+1])
             for(cnt1 = vars->k_min_values[my_iindx[i]-k+1];
                 cnt1 <= vars->k_max_values[my_iindx[i]-k+1];
@@ -1703,7 +1660,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
               for(cnt2 = vars->l_min_values[my_iindx[i]-k+1][cnt1];
                   cnt2 <= vars->l_max_values[my_iindx[i]-k+1][cnt1];
                   cnt2 += 2)
-                Q_rem[ij] += vars->Q[my_iindx[i]-k+1][cnt1][cnt2/2] * Q_B_rem[my_iindx[k]-j] * temp2;
+                vars->Q_rem[ij] += vars->Q[my_iindx[i]-k+1][cnt1][cnt2/2] * vars->Q_B_rem[my_iindx[k]-j] * temp2;
         }
 
         /* da = dbp{T1_{i,j}, T1_{k,j}
@@ -1740,7 +1697,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
                   }
                 }
                 else{
-                  Q_rem[ij] += vars->Q[my_iindx[i]-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
+                  vars->Q_rem[ij] += vars->Q[my_iindx[i]-k+1][cnt1][cnt2/2] * vars->Q_B[my_iindx[k]-j][cnt3][cnt4/2] * temp2;
                 }
               }
       }
@@ -1792,15 +1749,11 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
 
   unsigned int  d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2, *mm1, *mm2, *bpdist;
   int         *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4;
-  double      max_real;
-  short       *S1, *reference_pt1, *reference_pt2;
+  short       *S1;
   unsigned int  *referenceBPs1, *referenceBPs2;
   char        *sequence, *ptype;
-  FLT_OR_DBL  *scale, qot;
+  FLT_OR_DBL  *scale;
   pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
-
-
-  max_real        =  (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   pf_params       = vars->pf_params;
   sequence        = vars->sequence;
@@ -1810,8 +1763,6 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   S1              = vars->S1;
   ptype           = vars->ptype;
   scale           = vars->scale;
-  reference_pt1   = vars->reference_pt1;
-  reference_pt2   = vars->reference_pt2;
   my_iindx        = vars->my_iindx;
   jindx           = vars->jindx;
   referenceBPs1   = vars->referenceBPs1;
@@ -1821,12 +1772,10 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   mm2             = vars->mm2;
   bpdist          = vars->bpdist;
 
-  FLT_OR_DBL      ***Q_B, ***Q_M, ***Q_M1, ***Q_M2, **Q_c, **Q_cH, **Q_cI, **Q_cM;
-  FLT_OR_DBL      *Q_B_rem, *Q_M_rem, *Q_M1_rem, *Q_M2_rem, Q_c_rem, Q_cH_rem, Q_cI_rem, Q_cM_rem;
-  int             **l_min_values_b, **l_max_values_b, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1, **l_min_values_m2, **l_max_values_m2;
-  int             *k_min_values_b, *k_max_values_b,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1, *k_min_values_m2, *k_max_values_m2;
-  int             k_min_values_qc, k_max_values_qc, k_min_values_qcH, k_max_values_qcH, k_min_values_qcI, k_max_values_qcI, k_min_values_qcM, k_max_values_qcM;
-  int             *l_min_values_qc, *l_max_values_qc, *l_min_values_qcH, *l_max_values_qcH, *l_min_values_qcI, *l_max_values_qcI, *l_min_values_qcM, *l_max_values_qcM;
+  FLT_OR_DBL      ***Q_B, ***Q_M, ***Q_M1;
+  FLT_OR_DBL      *Q_B_rem, *Q_M_rem, *Q_M1_rem;
+  int             **l_min_values_b, **l_max_values_b, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1;
+  int             *k_min_values_b, *k_max_values_b,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
 
   Q_B             = vars->Q_B;
   l_min_values_b  = vars->l_min_values_b;
@@ -1846,45 +1795,15 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   k_min_values_m1 = vars->k_min_values_m1;
   k_max_values_m1 = vars->k_max_values_m1;
 
-  Q_M2            = vars->Q_M2;
-  l_min_values_m2 = vars->l_min_values_m2;
-  l_max_values_m2 = vars->l_max_values_m2;
-  k_min_values_m2 = vars->k_min_values_m2;
-  k_max_values_m2 = vars->k_max_values_m2;
-
-  Q_c             = vars->Q_c;
-  l_min_values_qc = vars->l_min_values_qc;
-  l_max_values_qc = vars->l_max_values_qc;
-  k_min_values_qc = vars->k_min_values_qc;
-  k_max_values_qc = vars->k_max_values_qc;
-
-  Q_cI             = vars->Q_cI;
-  l_min_values_qcI = vars->l_min_values_qcI;
-  l_max_values_qcI = vars->l_max_values_qcI;
-  k_min_values_qcI = vars->k_min_values_qcI;
-  k_max_values_qcI = vars->k_max_values_qcI;
-
-  Q_cH             = vars->Q_cH;
-  l_min_values_qcH = vars->l_min_values_qcH;
-  l_max_values_qcH = vars->l_max_values_qcH;
-  k_min_values_qcH = vars->k_min_values_qcH;
-  k_max_values_qcH = vars->k_max_values_qcH;
-
-  Q_cM             = vars->Q_cM;
-  l_min_values_qcM = vars->l_min_values_qcM;
-  l_max_values_qcM = vars->l_max_values_qcM;
-  k_min_values_qcM = vars->k_min_values_qcM;
-  k_max_values_qcM = vars->k_max_values_qcM;
-
 
   Q_B_rem        = vars->Q_B_rem;
   Q_M_rem        = vars->Q_M_rem;
   Q_M1_rem       = vars->Q_M1_rem;
-  Q_M2_rem       = vars->Q_M2_rem;
-  Q_c_rem        = 0.;
-  Q_cH_rem       = 0.;
-  Q_cI_rem       = 0.;
-  Q_cM_rem       = 0.;
+
+  vars->Q_c_rem   = 0.;
+  vars->Q_cH_rem  = 0.;
+  vars->Q_cI_rem  = 0.;
+  vars->Q_cM_rem  = 0.;
 
 
   /* construct qm2 matrix from qm1 entries  */
@@ -2176,7 +2095,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
       qot = exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
       
       if(Q_B_rem[pq])
-        Q_cH_rem += Q_B_rem[pq] * qot;
+        vars->Q_cH_rem += Q_B_rem[pq] * qot;
       
       if(Q_B[pq]){
         for(cnt1 = k_min_values_b[pq];
@@ -2198,7 +2117,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
               }
             }
             else{
-              Q_cH_rem += Q_B[pq][cnt1][cnt2/2] * qot;
+              vars->Q_cH_rem += Q_B[pq][cnt1][cnt2/2] * qot;
             }
           }
       }
@@ -2227,7 +2146,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
             qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
 
             if(Q_B_rem[kl])
-              Q_cI_rem += Q_B_rem[pq] * Q_B_rem[kl] * qot;
+              vars->Q_cI_rem += Q_B_rem[pq] * Q_B_rem[kl] * qot;
 
             if(Q_B[kl])
               for(cnt1 = k_min_values_b[kl];
@@ -2236,7 +2155,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                 for(cnt2 = l_min_values_b[kl][cnt1];
                     cnt2 <= l_max_values_b[kl][cnt1];
                     cnt2 += 2)
-                  Q_cI_rem += Q_B_rem[pq] * Q_B[kl][cnt1][cnt2/2] * qot;
+                  vars->Q_cI_rem += Q_B_rem[pq] * Q_B[kl][cnt1][cnt2/2] * qot;
           }
         }
 
@@ -2268,7 +2187,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                 for(cnt2 = l_min_values_b[pq][cnt1];
                     cnt2 <= l_max_values_b[pq][cnt1];
                     cnt2 += 2)
-                  Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B_rem[kl] * qot;
+                  vars->Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B_rem[kl] * qot;
             }
 
             if(!Q_B[kl]) continue;
@@ -2297,7 +2216,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                       }
                     }
                     else{
-                      Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B[kl][cnt3][cnt4/2] * qot;
+                      vars->Q_cI_rem += Q_B[pq][cnt1][cnt2/2] * Q_B[kl][cnt3][cnt4/2] * qot;
                     }
                   }
           }
@@ -2343,9 +2262,9 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
             for(cnt2 = vars->l_min_values_m2[k+1][cnt1];
                 cnt2 <= vars->l_max_values_m2[k+1][cnt1];
                 cnt2 += 2)
-              Q_cM_rem += Q_M_rem[my_iindx[1]-k] * vars->Q_M2[k+1][cnt1][cnt2/2] * pf_params->expMLclosing;
+              vars->Q_cM_rem += Q_M_rem[my_iindx[1]-k] * vars->Q_M2[k+1][cnt1][cnt2/2] * pf_params->expMLclosing;
         if(vars->Q_M2_rem[k+1])
-          Q_cM_rem += Q_M_rem[my_iindx[1]-k] * vars->Q_M2_rem[k+1] * pf_params->expMLclosing;
+          vars->Q_cM_rem += Q_M_rem[my_iindx[1]-k] * vars->Q_M2_rem[k+1] * pf_params->expMLclosing;
       }
       if(vars->Q_M2_rem[k+1]){
         if(Q_M[my_iindx[1]-k])
@@ -2355,7 +2274,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
             for(cnt2 = l_min_values_m[my_iindx[1]-k][cnt1];
                 cnt2 <= l_max_values_m[my_iindx[1]-k][cnt1];
                 cnt2 += 2)
-              Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2_rem[k+1] * pf_params->expMLclosing;
+              vars->Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2_rem[k+1] * pf_params->expMLclosing;
       }
 
       /* get distancies to references
@@ -2382,7 +2301,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
                   }
                 }
                 else{
-                  Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2[k+1][cnt3][cnt4/2] * pf_params->expMLclosing;
+                  vars->Q_cM_rem += Q_M[my_iindx[1]-k][cnt1][cnt2/2] * vars->Q_M2[k+1][cnt3][cnt4/2] * pf_params->expMLclosing;
                 }
               }
     }
@@ -2451,10 +2370,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
       }
     }
 
-  vars->Q_cH_rem  = Q_cH_rem;
-  vars->Q_cI_rem  = Q_cI_rem;
-  vars->Q_cM_rem  = Q_cM_rem;
-  vars->Q_c_rem   = Q_cH_rem + Q_cI_rem + Q_cM_rem;
+  vars->Q_c_rem   = vars->Q_cH_rem + vars->Q_cI_rem + vars->Q_cM_rem;
 
   /* add the case were structure is unfolded chain */
   if((referenceBPs1[my_iindx[1]-seq_length] <= maxD1) && (referenceBPs2[my_iindx[1]-seq_length] <= maxD2)){
@@ -3225,7 +3141,7 @@ PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         ij = my_iindx[i]-j;
-        type = rtype[ptype[ij]];
+        type = rtype[(unsigned int)ptype[ij]];
         if(!ptype) continue;
 
         if(Q_B_rem[ij])
@@ -3356,7 +3272,7 @@ PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         ij = my_iindx[i]-j;
-        type = rtype[ptype[ij]];
+        type = rtype[(unsigned int)ptype[ij]];
         if(!ptype) continue;
         if(!Q_B[ij]) continue;
         for(p=j+1; p < n; p++){
@@ -3761,8 +3677,8 @@ PRIVATE void backtrack_qm2( TwoDpfold_vars *vars,
 
 
 PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j) {
-  FLT_OR_DBL      r, qt, *qln, *scale;
-  unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
+  FLT_OR_DBL      *scale;
+  unsigned int    maxD1, maxD2, base_d1, base_d2, da, db;
   unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype, *sequence;
@@ -3771,7 +3687,6 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsig
 
   pf_params   = vars->pf_params;
   sequence    = vars->sequence;
-  n           = vars->seq_length;
   maxD1       = vars->maxD1;
   maxD2       = vars->maxD2;
   my_iindx    = vars->my_iindx;
@@ -3784,15 +3699,9 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsig
   referenceBPs1   = vars->referenceBPs1;
   referenceBPs2   = vars->referenceBPs2;
 
-  FLT_OR_DBL  ***Q, ***Q_B, ***Q_M, ***Q_M1, *Q_rem, *Q_B_rem, *Q_M_rem, *Q_M1_rem;
-  int         *k_min_values, *k_max_values, *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1,*k_min_values_b, *k_max_values_b;
-  int         **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1,**l_min_values_b, **l_max_values_b;
-
-  Q = vars->Q;
-  k_min_values = vars->k_min_values;
-  k_max_values = vars->k_max_values;
-  l_min_values = vars->l_min_values;
-  l_max_values = vars->l_max_values;
+  FLT_OR_DBL  ***Q_B, ***Q_M, ***Q_M1, *Q_B_rem, *Q_M_rem, *Q_M1_rem;
+  int         *k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1,*k_min_values_b, *k_max_values_b;
+  int         **l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1,**l_min_values_b, **l_max_values_b;
 
   Q_B = vars->Q_B;
   k_min_values_b = vars->k_min_values_b;
@@ -3812,7 +3721,6 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsig
   l_min_values_m1 = vars->l_min_values_m1;
   l_max_values_m1 = vars->l_max_values_m1;
 
-  Q_rem     = vars->Q_rem;
   Q_B_rem   = vars->Q_B_rem;
   Q_M_rem   = vars->Q_M_rem;
   Q_M1_rem  = vars->Q_M1_rem;
@@ -4114,16 +4022,14 @@ backtrack_ml_early_escape:
 
 PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j){
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  FLT_OR_DBL      r, qt, *qln, *scale;
-  unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, remaining_d1, remaining_d2;
+  FLT_OR_DBL      r, qt, *scale;
+  unsigned int    maxD1, maxD2, da, db;
   unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
-  char            *ptype, *sequence;
-  short           *S1, *reference_pt1, *reference_pt2;
+  char            *ptype;
+  short           *S1;
   int             *my_iindx, *jindx, cnt1, cnt2;
   pf_params       = vars->pf_params;
-  sequence        = vars->sequence;
-  n               = vars->seq_length;
   maxD1           = vars->maxD1;
   maxD2           = vars->maxD2;
   my_iindx        = vars->my_iindx;
@@ -4133,8 +4039,6 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, u
   S1              = vars->S1;
   referenceBPs1   = vars->referenceBPs1;
   referenceBPs2   = vars->referenceBPs2;
-  reference_pt1   = vars->reference_pt1;
-  reference_pt2   = vars->reference_pt2;
 
   FLT_OR_DBL  ***Q_B, ***Q_M1, *Q_B_rem, *Q_M1_rem;
   int         *k_min_values_m1, *k_max_values_m1,*k_min_values_b, *k_max_values_b;
@@ -4215,24 +4119,18 @@ backtrack_qm1_early_escape:
 
 PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsigned int i, unsigned int j){
   /* divide multiloop into qm and qm1  */
-  FLT_OR_DBL      r, qt, *qln, *scale;
-  unsigned int    n, start, maxD1, maxD2, base_d1, base_d2, da, db, da2, db2, remaining_d1, remaining_d2;
+  FLT_OR_DBL      r, *scale;
+  unsigned int    maxD1, maxD2, da, db, da2, db2;
   unsigned int    *referenceBPs1, *referenceBPs2;
   pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
-  char            *ptype, *sequence;
-  short           *S1, *reference_pt1, *reference_pt2;
   int             *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4;
 
   pf_params   = vars->pf_params;
-  sequence    = vars->sequence;
-  n           = vars->seq_length;
   maxD1       = vars->maxD1;
   maxD2       = vars->maxD2;
   my_iindx    = vars->my_iindx;
   jindx       = vars->jindx;
   scale       = vars->scale;
-  ptype       = vars->ptype;
-  S1          = vars->S1;
   referenceBPs1  = vars->referenceBPs1;
   referenceBPs2  = vars->referenceBPs2;
 
@@ -4258,7 +4156,7 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, un
   unsigned int k;
   while(j>i){
     /* now backtrack  [i ... j] in qm[] */
-    int sw;
+
     /* find qm contribution */
     if(d1 == -1)
       r = urn() * Q_M_rem[my_iindx[i]-j];
@@ -4444,7 +4342,7 @@ PRIVATE void  adjustArrayBoundaries(FLT_OR_DBL ***array,
                                     int k_min_post, int k_max_post,
                                     int *l_min_post, int *l_max_post){
 
-  int cnt1, cnt2;
+  int cnt1;
   int k_diff_pre  = k_min_post - *k_min;
   int mem_size    = k_max_post - k_min_post + 1;
 

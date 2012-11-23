@@ -8,7 +8,7 @@ EXTRA_DIST = $(pscript) Fold
 
 LDADD = -L../lib -lRNA -lm
 
-INCLUDES = -I$(srcdir)/../H
+AM_CPPFLAGS = -I$(srcdir)/../H
 
 $(pscript) : Makefile
 	if test -n "@PerlCmd@"; then \

@@ -77,7 +77,6 @@ PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
 PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
-PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
 PRIVATE bondT   *base_pair2 = NULL;
@@ -614,7 +613,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
   }
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -678,7 +677,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                   break;
 
         default:  for(k=j-TURN-1,traced=0; k>=i; k--){
-                    int cc, en;
+                    int cc;
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -789,7 +788,6 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     }
 
     else { /* true multi-loop backtrack in fML */
-      int cij1=INF, ci1j=INF, ci1j1=INF;
       if (fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
         sector[++s].i = i+1;
         sector[s].j   = j;
@@ -904,7 +902,6 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
           continue;
     }
     else {
-      int ee = 0;
       if(dangle_model){
         if(cij == E_ExtLoop(rtype[type], SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)) continue;
       }
@@ -1099,7 +1096,7 @@ PRIVATE void free_end(int *array, int i, int start) {
   }
 
   for (j=start; inc*(i-j)>TURN; j+=inc) {
-    int d3, d5, ii, jj;
+    int ii, jj;
     short si, sj;
     if (i>j) { ii = j; jj = i;} /* inc>0 */
     else     { ii = i; jj = j;} /* inc<0 */
@@ -1200,7 +1197,7 @@ PRIVATE void backtrack(const char *sequence) {
   backtrack_co(sequence, 0,0);
 }
 
-PRIVATE comp_pair(const void *A, const void *B) {
+PRIVATE int comp_pair(const void *A, const void *B) {
   bondT *x,*y;
   int ex, ey;
   x = (bondT *) A;
@@ -1223,8 +1220,8 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
    This is slightly wasteful compared to the normal solution */
 
   char      *doubleseq, *structure, *mfestructure, **todo;
-  int       i, j, k, counter, num_pairs, psize, p;
-  float     energy, mfenergy;
+  int       i, j, counter, num_pairs, psize, p;
+  float     energy;
   SOLUTION  *zukresults;
   bondT     *pairlist;
 
@@ -1260,7 +1257,6 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   make_ptypes(S, NULL); /* no constraint folding possible (yet?) with zukersubopt */
 
   (void)fill_arrays(doubleseq);
-  mfenergy = f5[cut_point-1];
 
   psize     = length;
   pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));

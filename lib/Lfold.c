@@ -218,7 +218,6 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
   int   no_close, type, type_2, tt;
   int   fij;
   int   lind;
-  short mm5, mm3;
 
   length = (int) strlen(string);
   prev=NULL;
@@ -445,7 +444,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
       if (f3[i] != f3[i+1] && (f3[i+1] < 0)) do_backtrack=1;
       else if (do_backtrack) {
         int pairpartner; /*i+1?? is paired with pairpartner*/
-        int en, cc;
+        int cc;
         int traced2=0;
         fij = f3[i+1];
         lind=i+1;
@@ -577,7 +576,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
 
         if (do_backtrack) {
           int pairpartner; /*i+1?? is paired with pairpartner*/
-          int en, cc;
+          int cc;
           double average_free_energy;
           double sd_free_energy;
           int info_avg;
@@ -709,7 +708,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '-';
 
   while (s>0) {
-    int ml, fij, cij, traced, i1, j1, d3, d5, mm, mm5, mm3, mm53, p, q, jj=0;
+    int ml, fij, cij, traced, i1, j1, mm, mm5, mm3, mm53, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -798,8 +797,6 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       goto repeat1;
     }
     else { /* trace back in fML array */
-      int cij1=INF, ci1j=INF, ci1j1=INF;
-
       if (fML[i][j-1-i]+P->MLbase == fij) {  /* 3' end is unpaired */
         sector[++s].i = i;
         sector[s].j   = j-1;

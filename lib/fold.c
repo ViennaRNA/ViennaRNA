@@ -33,9 +33,6 @@
 #include <omp.h>
 #endif
 
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
-
 #define PAREN
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
@@ -84,7 +81,6 @@ PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
 PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
-PRIVATE int     min_hairpin = TURN;
 PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
                         -1: | = base must be paired
                         -2: < = base must be paired with j<i
@@ -107,7 +103,7 @@ PRIVATE int     struct_constrained  = 0;
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
                           DMLi, DMLi1, DMLi2, DMLi_a, DMLi_o, DMLi1_a, DMLi1_o, DMLi2_a, DMLi2_o,\
                           Fc, FcH, FcI, FcM,\
-                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, pair_table, base_pair2, circular, struct_constrained)
+                          sector, ptype, S, S1, P, init_length, BP, pair_table, base_pair2, circular, struct_constrained)
 
 #endif
 
@@ -402,9 +398,6 @@ PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, k, length, energy, en, mm5, mm3;
   int   decomp, new_fML, max_separation;
-#ifdef SPECIAL_DANGLES
-  int   decomp_a, decomp_o;
-#endif
   int   no_close, type, type_2, tt;
   int   bonus=0;
   
@@ -420,14 +413,6 @@ PRIVATE int fill_arrays(const char *string) {
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
   }
-
-#ifdef SPECIAL_DANGLES
-  if(dangle_model == 5){
-    for (j=1; j<=length; j++) {
-      DMLi_a[j]=DMLi_o[j]=DMLi1_a[j]=DMLi1_o[j]=DMLi2_a[j]=DMLi2_o[j]=INF;
-    }
-  }
-#endif
 
   for (j = 1; j<=length; j++)
     for (i=(j>TURN?(j-TURN):1); i<j; i++) {
@@ -502,24 +487,6 @@ PRIVATE int fill_arrays(const char *string) {
             case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
                       break;
 
-#ifdef SPECIAL_DANGLES
-            /* normal dangles as ronny would think of them ;) */
-            case 5:   /* no dangles */
-                      decomp = INF;
-                      if(DMLi1_o[j-1] != (DMLi2_o[j-1] + P->MLbase))
-                        decomp = DMLi1_o[j-1] + E_MLstem(tt, -1, -1, P);
-
-                      /* 3' dangle ? */
-                      decomp = MIN2(decomp, DMLi2_o[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
-
-                      /* 5' dangle ? */
-                      decomp = MIN2(decomp, DMLi1_a[j-1] + E_MLstem(tt, S1[j-1], -1, P));
-
-                      /* mismatch */
-                      decomp = MIN2(decomp, DMLi2_a[j-1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + P->MLbase);
-
-                      break;
-#endif
             /* normal dangles, aka dangles = 1 || 3 */
             default:  decomp += E_MLstem(tt, -1, -1, P);
                       decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
@@ -588,48 +555,12 @@ PRIVATE int fill_arrays(const char *string) {
         case 0:   new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
                   break;
+
         /* double dangles */
         case 2:   new_fML = MIN2(new_fML, fML[ij+1]+P->MLbase);
                   new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
                   break;
-#ifdef SPECIAL_DANGLES
-        /* normal dangles as ronny would think of them ;) */
-        case 5:   /* modular decomposition */
-                  for(decomp = INF, k = j-TURN-2; k > i+TURN+1; k--){
-                    tt = ptype[indx[j]+k];
-                    if(tt){
-                      en = c[indx[j]+k];
-                      if(Fmi[k-1] != Fmi[k-2] + P->MLbase)
-                        decomp = MIN2(decomp, Fmi[k-1] + en + E_MLstem(tt, -1, -1, P));
-                      decomp = MIN2(decomp, Fmi[k-2] + en + E_MLstem(tt, S1[k-1], -1, P) + P->MLbase);
-                    }
-                    tt = ptype[indx[j-1]+k];
-                    if(tt){
-                      en = c[indx[j-1]+k];
-                      if(Fmi[k-1] != Fmi[k-2] + P->MLbase)
-                        decomp = MIN2(decomp, Fmi[k-1] + en + E_MLstem(tt, -1, S1[j], P) + P->MLbase);
-                      decomp = MIN2(decomp, Fmi[k-2] + en + E_MLstem(tt, S1[k-1], S1[j], P) + 2*P->MLbase);
-                    }
-                  }
-                  DMLi_o[j] = decomp;
-                  DMLi_a[j] = MIN2(DMLi_a[j-1] + P->MLbase, DMLi_o[j-1] + P->MLbase);
-                  new_fML = MIN2(decomp , DMLi_a[j]);
-                  new_fML = MIN2(new_fML, Fmi[j-1]  + P->MLbase);
-                  new_fML = MIN2(new_fML, fML[ij+1] + P->MLbase);
-                  /* all variants of having only 1 stem in [i,j] */
-                  /* (i,j) */
-                  if(type)  new_fML = MIN2(new_fML, c[ij] + E_MLstem(type, -1, -1, P));
-                  /* (i+1,j) */
-                  tt = ptype[ij+1];
-                  if(tt)  new_fML = MIN2(new_fML, c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) ;
-                  /* (i,j-1) */
-                  tt = ptype[indx[j-1]+i];
-                  if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase);
-                  /* (i+1,j-1) */
-                  tt = ptype[indx[j-1]+i+1];
-                  if(tt)  new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase);
-                  break;
-#endif
+
         /* normal dangles, aka dangle_model = 1 || 3 */
         default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
                   mm3 = ((j<length) || circular) ? S1[j] : -1;
@@ -645,16 +576,11 @@ PRIVATE int fill_arrays(const char *string) {
       }
 
       /* modular decomposition -------------------------------*/
-#ifdef SPECIAL_DANGLES
-      if(dangle_model != 5){
-#endif
-        for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
-          decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
-        DMLi[j] = decomp;               /* store for use in ML decompositon */
-        new_fML = MIN2(new_fML,decomp);
-#ifdef SPECIAL_DANGLES
-      }
-#endif
+      for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
+        decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+      DMLi[j] = decomp;               /* store for use in ML decompositon */
+      new_fML = MIN2(new_fML,decomp);
+
       /* coaxial stacking */
       if (dangle_model==3) {
         /* additional ML decomposition as two coaxially stacked helices */
@@ -684,13 +610,6 @@ PRIVATE int fill_arrays(const char *string) {
     {
       int *FF; /* rotate the auxilliary arrays */
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
-#ifdef SPECIAL_DANGLES
-      if(dangle_model == 5){
-        FF = DMLi2_a; DMLi2_a = DMLi1_a; DMLi1_a = DMLi_a; DMLi_a = FF;
-        FF = DMLi2_o; DMLi2_o = DMLi1_o; DMLi1_o = DMLi_o; DMLi_o = FF;
-        for (j=1; j<=length; j++) {DMLi_a[j]=DMLi_o[j]=INF; }
-      }
-#endif
       FF = cc1; cc1=cc; cc=FF;
       for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
     }
@@ -744,68 +663,6 @@ PRIVATE int fill_arrays(const char *string) {
               f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
               break;
 
-#ifdef SPECIAL_DANGLES
-    /* normal dangles as ronny would think of them ;) */
-    case 5:   for(j=TURN+2; j<length; j++){
-                f5[j] = f5[j-1];
-                for (i=j-TURN-1; i>1; i--) {
-                  char sw = (f5[i-1] != f5[i-2]);
-                  type = ptype[indx[j]+i];
-                  if(type){
-                    en = c[indx[j]+i];
-                    f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], -1, P));
-                    if(sw)
-                      f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
-                  }
-                  type = ptype[indx[j-1]+i];
-                  if(type){
-                    en = c[indx[j-1]+i];
-                    f5[j] = MIN2(f5[j], f5[i-2] + en + E_ExtLoop(type, S1[i-1], S1[j], P));
-                    if(sw)
-                      f5[j] = MIN2(f5[j], f5[i-1] + en + E_ExtLoop(type, -1, S1[j], P));
-                  }
-                }
-                type=ptype[indx[j]+1];
-                if(type){
-                  en = c[indx[j]+1];
-                  f5[j] = MIN2(f5[j], en + E_ExtLoop(type, -1, -1, P));
-                }
-                type=ptype[indx[j-1]+1];
-                if(type){
-                  en = c[indx[j-1]+1];
-                  f5[j]  = MIN2(f5[j], en + E_ExtLoop(type, -1, S1[j], P));
-                }
-              }
-              f5[length] = f5[length-1];
-              for (i=length-TURN-1; i>1; i--) {
-                char sw = (f5[i-1] != f5[i-2]);
-                type = ptype[indx[length]+i];
-                if(type){
-                  en = c[indx[length]+i];
-                  f5[length] = MIN2(f5[length], f5[i-2] + en + E_ExtLoop(type, S1[i-1], -1, P));
-                  if(sw)
-                    f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, -1, -1, P));
-                }
-                type = ptype[indx[length-1]+i];
-                if(type){
-                  en = c[indx[length-1]+i];
-                  f5[length] = MIN2(f5[length], f5[i-2] + en + E_ExtLoop(type, S1[i-1], S1[length], P));
-                  if(sw)
-                    f5[length] = MIN2(f5[length], f5[i-1] + en + E_ExtLoop(type, -1, S1[length], P));
-                }
-              }
-              type=ptype[indx[length]+1];
-              if(type){
-                en = c[indx[length]+1];
-                f5[length] = MIN2(f5[length], en + E_ExtLoop(type, -1, -1, P));
-              }
-              type=ptype[indx[length-1]+1];
-              if(type){
-                en = c[indx[length-1]+1];
-                f5[length]  = MIN2(f5[length], en + E_ExtLoop(type, -1, S1[length], P));
-              }
-              break;
-#endif
     /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
                 f5[j] = f5[j-1];
@@ -843,7 +700,7 @@ PRIVATE int fill_arrays(const char *string) {
 *** If s>0 then s items have been already pushed onto the sector stack
 **/
 PRIVATE void backtrack(const char *string, int s) {
-  int   i, j, ij, k, mm5, mm3, length, energy, en, new;
+  int   i, j, ij, k, mm3, length, energy, en, new;
   int   no_close, type, type_2, tt;
   int   bonus;
   int   b=0;
@@ -856,7 +713,7 @@ PRIVATE void backtrack(const char *string, int s) {
     sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')? 2: 0);
   }
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -904,47 +761,6 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                   break;
 
-#ifdef SPECIAL_DANGLES
-        case 5:   for(k=j-TURN-1,traced=0; k>1; k--){
-                    type = ptype[indx[j]+k];
-                    en = c[indx[j]+k];
-                    if(type){
-                      if(fij == f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
-                        traced = j; jj = k-1; ml=0; jj = k-1; break;
-                      }
-                      if(fij == f5[k-2] + en + E_ExtLoop(type, S1[k-1], -1, P)){
-                        traced = j; jj = k-2; ml=0; jj = k-1; break;
-                      }
-                    }
-                    type = ptype[indx[j-1]+k];
-                    if(type){
-                      en = c[indx[j-1]+k];
-                      if(fij == f5[k-1] + en + E_ExtLoop(type, -1, S1[j], P)){
-                        traced = j-1; jj=k-1; ml=0; break;
-                      }
-                      if(fij == f5[k-2] + en + E_ExtLoop(type, S1[k-1], S1[j], P)){
-                        traced = j-1; jj=k-2; ml = 0; break;
-                      }
-                    }
-                  }
-                  if(!traced){
-                    type = ptype[indx[j]+1];
-                    en = c[indx[j]+1];
-                    if(type){
-                      if(fij == en + E_ExtLoop(type, -1, -1, P)){
-                        traced = j; ml = 0; jj = 0; break;
-                      }
-                    }
-                    type = ptype[indx[j-1]+1];
-                    if(type){
-                      en = c[indx[j-1]+1];
-                      if(fij == en + E_ExtLoop(type, -1, S1[j], P)){
-                        traced = j-1; ml = 0; jj = 0; break;
-                      }
-                    }
-                  }
-                  break;
-#endif
         default:  for(traced = 0, k=j-TURN-1; k>1; k--){
                     type = ptype[indx[j] + k];
                     if(type){
@@ -1010,7 +826,6 @@ PRIVATE void backtrack(const char *string, int s) {
       goto repeat1;
     }
     else { /* trace back in fML array */
-      int cij1=INF, ci1j=INF, ci1j1=INF;
       if (fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
         sector[++s].i = i+1;
         sector[s].j   = j;
@@ -1036,32 +851,6 @@ PRIVATE void backtrack(const char *string, int s) {
                   }
                   break;
 
-#ifdef SPECIAL_DANGLES
-        case 5:   if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = j;
-                    goto repeat1;
-                  }
-                  tt = ptype[ij+1];
-                  if(fij == c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
-                    base_pair2[++b].i = ++i;
-                    base_pair2[b].j   = j;
-                    goto repeat1;
-                  }
-                  tt = ptype[indx[j-1]+i];
-                  if(fij == c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = --j;
-                    goto repeat1;
-                  }
-                  tt = ptype[indx[j-1]+i+1];
-                  if(fij == c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
-                    base_pair2[++b].i = ++i;
-                    base_pair2[b].j   = --j;
-                    goto repeat1;
-                  }
-                  break;
-#endif
         default:  if(fij == en + E_MLstem(tt, -1, -1, P)){
                     base_pair2[++b].i = i;
                     base_pair2[b].j   = j;
@@ -1199,28 +988,6 @@ PRIVATE void backtrack(const char *string, int s) {
                 }
                 break;
 
-#ifdef SPECIAL_DANGLES
-      case 5:   for(k = i+2+TURN; k < j-2-TURN; k++){
-                  en = cij - P->MLclosing - bonus;
-                  if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
-                    break;
-                  }
-                  else if(en == fML[indx[k]+i+2] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase){
-                    i1 = i+2;
-                    break;
-                  }
-                  else if(en == fML[indx[k]+i+1] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase){
-                    j1 = j-2;
-                    break;
-                  }
-                  else if(en == fML[indx[k]+i+2] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase){
-                    i1 = i+2;
-                    j1 = j-2;
-                    break;
-                  }
-                }
-                break;
-#endif
       default:  for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing - bonus;
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
@@ -1732,27 +1499,6 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
-#ifdef SPECIAL_DANGLES
-      case 5:  {
-                  int tmp;
-                  if(q_prev + 2 < p){
-                    E3_available = E3_occupied;
-                    E3_occupied  = INF;
-                  }
-                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
-                  tmp = (mm3 < 0) ? INF :  MIN2(
-                                                E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
-                                                E3_available + E_ExtLoop(tt, mm5, mm3, P)
-                                              );
-                  E3_available =       MIN2(
-                                                E3_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                                E3_available + E_ExtLoop(tt, mm5, -1, P)
-                                              );
-                  E3_occupied = tmp;
-                }
-                break;
-#endif
       default:  {
                   int tmp;
                   if(q_prev + 2 < p){
@@ -1802,14 +1548,13 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
 
   int energy, cx_energy, tmp, tmp2, best_energy=INF;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
-  int mlintern[NBPAIRS+1], mlclosing, mlbase;
+  int mlintern[NBPAIRS+1];
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
   int E_mm5_occupied;   /* energy of 5' part where 5' mismatch of current stem is unavailable */
   int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
-  int length = (int)pt[0];
   int dangle_model = P->model_details.dangles;
 
   if(i >= pt[i])
@@ -1824,7 +1569,6 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   q_prev2     = i;
 
   for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
-  mlclosing = P->MLclosing; mlbase = P->MLbase;
 
   /* seek to opening base of first stem */
   while(p <= j && !pair_table[p]) p++;
@@ -1961,67 +1705,6 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = best_energy;
               break;
 
-#ifdef SPECIAL_DANGLES
-    case 5:   E_mm5_available = E2_mm5_available  = INF;
-              E_mm5_occupied  = E2_mm5_occupied   = 0;
-              while(p < j){
-                /* p must have a pairing partner */
-                q  = (int)pair_table[p];
-                /* get type of base pair (p,q) */
-                tt = pair[S[p]][S[q]];
-                if(tt==0) tt=7;
-                if(q_prev + 2 < p){
-                  E_mm5_available = E_mm5_occupied;
-                  E_mm5_occupied  = INF;
-                }
-                if(q_prev2 + 2 < p){
-                  E2_mm5_available = E2_mm5_occupied;
-                  E2_mm5_occupied = INF;
-                }
-                mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && !pair_table[q+1])  ? S1[q+1] : -1;
-                tmp = (mm3 < 0) ? INF :  MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                E_mm5_available =       MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E_mm5_occupied = tmp;
-                tmp2 = (mm3 < 0) ? INF :  MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                E2_mm5_available =       MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E2_mm5_occupied = tmp2;
-                /* seek to the next stem */
-                p = q + 1;
-                q_prev = q_prev2 = q;
-                while (p <= j && !pair_table[p]) p++;
-                u += p - q - 1; /* add unpaired nucleotides */
-              }
-              /* now lets see how we get the minimum including the enclosing stem */
-              type = pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
-              energy = INF;
-              if(q_prev + 2 < j){
-                energy = MIN2(energy, E_mm5_occupied + E_MLstem(type, mm5, -1, P));
-                energy = MIN2(energy, E2_mm5_occupied + E_MLstem(type, mm5, mm3, P));
-              }
-              else{
-                energy = MIN2(energy, E_mm5_occupied + E_MLstem(type, -1, -1, P));
-                energy = MIN2(energy, E2_mm5_occupied + E_MLstem(type, -1, mm3, P));
-              }
-              energy = MIN2(energy, E_mm5_available + E_MLstem(type, mm5, -1, P));
-              energy = MIN2(energy, E2_mm5_available + E_MLstem(type, mm5, mm3, P));
-              break;
-
-#endif
     default:  E_mm5_available = E2_mm5_available  = INF;
               E_mm5_occupied  = E2_mm5_occupied   = 0;
               while(p < j){
@@ -2490,12 +2173,9 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   **  we do this a bit different to previous implementations
   */
   if(is_extloop){
-    int mm5_prev, mm3_prev;
-    int tt_prev = 0;
     energy = 0;
     i1  = i;
     p   = i+1;
-    mm5_prev = mm3_prev = -1;
 
     int E_mm5_available, E_mm5_occupied;
     /* find out if we may have 5' mismatch for the next stem */

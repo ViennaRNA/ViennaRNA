@@ -104,9 +104,6 @@
 #define STACK_BULGE1      1         /* stacking energies for bulges of size 1 */
 #define MAXALPHA          20        /* maximal length of alphabet */
 
-/*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
-
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -924,7 +921,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       /* if we reach here, i should be 1 and j should be n respectively                                                                         */
       for(k=i; k<j; k++)
         for (l=k+turn+1; l <= j; l++){
-          int kl, type, u, new_c, tmpE, no_close;
+          int kl, type, u, tmpE, no_close;
           u = j-l + k-1;        /* get the hairpin loop length */
           if(u<turn) continue;
 
@@ -933,8 +930,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
           no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
-          if (no_close) new_c = FORBIDDEN;
-          else{
+          if (!no_close){
             /* now lets have a look at the hairpin energy */
             char loopseq[10];
             if (u<7){
@@ -964,11 +960,10 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       /* now we search for our exterior interior loop possibilities */
       for(k=i; k<j; k++)
         for (l=k+turn+1; l <= j; l++){
-          int kl, type, tmpE, no_close;
+          int kl, type, tmpE;
 
           kl = indx[l]+k;        /* just confusing these indices ;-) */
           type = ptype[kl];
-          no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
 
@@ -1153,13 +1148,11 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
 
   register int  k, p, q, energy, new;
   register int  mm;
-  register int  no_close, no_close_2, type, type_2;
+  register int  no_close, type, type_2;
   int           rt;
   int           dangle_model  = P->model_details.dangles;
   int           noLP          = P->model_details.noLP;
   int           noGUclosure   = P->model_details.noGUclosure;
-
-  no_close_2 = 0;
 
   type = ptype[indx[j]+i];
   if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);

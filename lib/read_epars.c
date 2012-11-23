@@ -17,8 +17,6 @@
 #include "energy_par.h"
 #include "read_epars.h"
 
-static char rcsid[] = "$Id: read_epars.c,v 1.10 2004/12/10 16:32:35 ivo Exp $";
-
 #define PUBLIC
 #define PRIVATE   static
 #define PARSET 20
