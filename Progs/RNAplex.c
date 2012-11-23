@@ -1292,6 +1292,7 @@ static int print_struc(duplexT const *dup) {
   return init-l1-1;
 }
 #endif
+
 static int ** read_plfold_i(char *fname, const int beg, const int end, double verhaeltnis, const int length)
 {
   double begin = BeginTimer();

@@ -614,33 +614,13 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
       /* no dangles */
       case 0:   energy += E_ExtLoop(tt, -1, -1, P);
                 break;
+
       /* the beloved double dangles */
       case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? S1[p-1] : -1;
                 mm3 = ((SAME_STRAND(q,q+1)) && (q<length))  ? S1[q+1] : -1;
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
-#ifdef SPECIAL_DANGLES
-      case 5:  {
-                  int tmp;
-                  if(q_prev + 2 < p){
-                    E3_available = E3_occupied;
-                    E3_occupied  = INF;
-                  }
-                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
-                  tmp = (mm3 < 0) ? INF :  MIN2(
-                                                E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
-                                                E3_available + E_ExtLoop(tt, mm5, mm3, P)
-                                              );
-                  E3_available =       MIN2(
-                                                E3_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                                E3_available + E_ExtLoop(tt, mm5, -1, P)
-                                              );
-                  E3_occupied = tmp;
-                }
-                break;
-#endif
       default:  {
                   int tmp;
                   if(q_prev + 2 < p){
@@ -850,67 +830,6 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               energy = best_energy;
               break;
 
-#ifdef SPECIAL_DANGLES
-    case 5:   E_mm5_available = E2_mm5_available  = INF;
-              E_mm5_occupied  = E2_mm5_occupied   = 0;
-              while(p < j){
-                /* p must have a pairing partner */
-                q  = (int)pair_table[p];
-                /* get type of base pair (p,q) */
-                tt = pair[S[p]][S[q]];
-                if(tt==0) tt=7;
-                if(q_prev + 2 < p){
-                  E_mm5_available = E_mm5_occupied;
-                  E_mm5_occupied  = INF;
-                }
-                if(q_prev2 + 2 < p){
-                  E2_mm5_available = E2_mm5_occupied;
-                  E2_mm5_occupied = INF;
-                }
-                mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && !pair_table[q+1])  ? S1[q+1] : -1;
-                tmp = (mm3 < 0) ? INF :  MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                E_mm5_available =       MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E_mm5_occupied = tmp;
-                tmp2 = (mm3 < 0) ? INF :  MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                E2_mm5_available =       MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E2_mm5_occupied = tmp2;
-                /* seek to the next stem */
-                p = q + 1;
-                q_prev = q_prev2 = q;
-                while (p <= j && !pair_table[p]) p++;
-                u += p - q - 1; /* add unpaired nucleotides */
-              }
-              /* now lets see how we get the minimum including the enclosing stem */
-              type = pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
-              energy = INF;
-              if(q_prev + 2 < j){
-                energy = MIN2(energy, E_mm5_occupied + E_MLstem(type, mm5, -1, P));
-                energy = MIN2(energy, E2_mm5_occupied + E_MLstem(type, mm5, mm3, P));
-              }
-              else{
-                energy = MIN2(energy, E_mm5_occupied + E_MLstem(type, -1, -1, P));
-                energy = MIN2(energy, E2_mm5_occupied + E_MLstem(type, -1, mm3, P));
-              }
-              energy = MIN2(energy, E_mm5_available + E_MLstem(type, mm5, -1, P));
-              energy = MIN2(energy, E2_mm5_available + E_MLstem(type, mm5, mm3, P));
-              break;
-
-#endif
     default:  E_mm5_available = E2_mm5_available  = INF;
               E_mm5_occupied  = E2_mm5_occupied   = 0;
               while(p < j){
@@ -952,7 +871,6 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                                             );
                 E2_mm5_available =      MIN2(tmp2, E2_mm5_available + E_MLstem(tt, -1, -1, P));
                 E2_mm5_occupied = tmp;
-                //printf("(%d,%d): \n E_o = %d, E_a = %d, E2_o = %d, E2_a = %d\n", p, q, E_mm5_occupied,E_mm5_available,E2_mm5_occupied,E2_mm5_available);
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;

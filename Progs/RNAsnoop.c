@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         break;
       }
       
-      /*   skip comment lines and get filenames */
+      /* skip comment lines and get filenames */
       while ((*line_s=='*')||(*line_s=='\0')||(*line_s=='>')) {
         if (*line_s=='>')
           name_s = (char *) space(strlen(line_s)+1);
