@@ -10,6 +10,6 @@ pkginclude_HEADERS = energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
 	findpath.h loop_energies.h data_structures.h MEA.h mm.h \
 	naview.h 2Dfold.h 2Dpfold.h read_epars.h convert_epars.h PKplex.h\
 	plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
-	gquad.h eval.h ${SVM_UTILS_H}
+	constraints.h gquad.h eval.h ${SVM_UTILS_H}
 
 EXTRA_DIST = $(pkginclude_HEADERS)

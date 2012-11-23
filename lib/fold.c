@@ -24,11 +24,9 @@
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
-#if 0
-#include "pair_mat.h"
-#endif
 #include "params.h"
 #include "loop_energies.h"
+#include "constraints.h"
 #include "data_structures.h"
 #include "gquad.h"
 #include "fold.h"
@@ -77,39 +75,21 @@ PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
 PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
-PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
-                        -1: | = base must be paired
-                        -2: < = base must be paired with j<i
-                        -3: > = base must be paired with j>i
-                        -4: x = base must not pair
-                        positive int: base is paired with int      */
 PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular            = 0;
 
 /* stuff needed for constrained folding */
-PRIVATE int     struct_constrained  = 0;
 PRIVATE int     with_gquad          = 0;
 PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 
-PRIVATE char    *hard_constraints   = NULL;
-PRIVATE int     *hc_up_ext          = NULL;
-PRIVATE int     *hc_up_hp           = NULL;
-PRIVATE int     *hc_up_int          = NULL;
-PRIVATE int     *hc_up_ml           = NULL;
-
-#define IN_EXT_LOOP     (char)0x01
-#define IN_HP_LOOP      (char)0x02
-#define IN_INT_LOOP     (char)0x04
-#define IN_MB_LOOP      (char)0x08
-#define IN_INT_LOOP_ENC (char)0x10
-#define IN_MB_LOOP_ENC  (char)0x20
+PRIVATE int               struct_constrained  = 0;
+PRIVATE hard_constraintT  *hc                 = NULL;
 
 #ifdef _OPENMP
 
 #pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
-                          DMLi, DMLi1, DMLi2,\
-                          Fc, FcH, FcI, FcM, hard_constraints, hc_up_ext, hc_up_hp, hc_up_int, hc_up_ml,\
-                          sector, ptype, S, S1, P, init_length, min_hairpin, BP, base_pair2, circular, struct_constrained,\
+                          DMLi, DMLi1, DMLi2, Fc, FcH, FcI, FcM, hc,\
+                          sector, ptype, S, S1, P, init_length, base_pair2, circular, struct_constrained,\
                           ggg, with_gquad)
 
 #endif
@@ -120,12 +100,6 @@ PRIVATE int     *hc_up_ml           = NULL;
 #################################
 */
 PRIVATE void  get_arrays(unsigned int size);
-PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
-PRIVATE int   energy_of_extLoop_pt(int i, short *pair_table);
-PRIVATE int   energy_of_ml_pt(int i, short *pt);
-PRIVATE int   ML_Energy(int i, int is_extloop);
-PRIVATE void  make_ptypes(const short *S, const char *structure, model_detailsT *md);
-
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  fill_arrays_circ(const char *string, int *bt);
@@ -173,8 +147,6 @@ PRIVATE void get_arrays(unsigned int size){
   if (uniq_ML)
     fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 
-  ptype = (char *)space(sizeof(char)*((size*(size+1))/2+2));
-
   f5    = (int *) space(sizeof(int)*(size+2));
   f53   = (int *) space(sizeof(int)*(size+2));
   cc    = (int *) space(sizeof(int)*(size+2));
@@ -189,13 +161,6 @@ PRIVATE void get_arrays(unsigned int size){
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
 
-  if(struct_constrained){
-    hard_constraints = (char *)space(sizeof(char)*((size*(size+1))/2+2));
-    hc_up_ext = (int *)space(sizeof(int)*(size+1));
-    hc_up_hp  = (int *)space(sizeof(int)*(size+2));
-    hc_up_int = (int *)space(sizeof(int)*(size+2));
-    hc_up_ml  = (int *)space(sizeof(int)*(size+2));
-  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -221,17 +186,12 @@ PUBLIC void free_arrays(void){
 
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
 
-  if(hard_constraints)  free(hard_constraints);
-  if(hc_up_ext)         free(hc_up_ext);
-  if(hc_up_hp)          free(hc_up_hp);
-  if(hc_up_int)         free(hc_up_int);
-  if(hc_up_ml)          free(hc_up_ml);
-  
+  if(hc)        destroy_hard_constraints(hc);
+
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   ptype = NULL;
 
-  hard_constraints = NULL;
-  hc_up_ext = hc_up_hp = hc_up_int = hc_up_ml = NULL;
+  hc  = NULL;
 
   base_pair   = NULL;
   base_pair2  = NULL;
@@ -304,11 +264,19 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
                                     int **indx_p,
                                     char **ptype_p,
                                     paramT **P_p){
-  export_circfold_arrays(Fc_p, FcH_p, FcI_p, FcM_p, fM2_p, f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
+  export_circfold_arrays( Fc_p,
+                          FcH_p,
+                          FcI_p,
+                          FcM_p,
+                          fM2_p,
+                          f5_p,
+                          c_p,
+                          fML_p,
+                          fM1_p,
+                          indx_p,
+                          ptype_p);
   *P_p = P;
 }
-/*--------------------------------------------------------------------------*/
-
 
 PUBLIC float fold(const char *string, char *structure){
   return fold_par(string, structure, NULL, fold_constrained, 0);
@@ -324,14 +292,17 @@ PUBLIC float fold_par(const char *string,
                       int is_constrained,
                       int is_circular){
 
-  int i, length, energy, bonus, bonus_cnt, s;
+  int i, length, energy, s;
+  unsigned int constraint_options;
 
-  bonus               = 0;
-  bonus_cnt           = 0;
   s                   = 0;
   circular            = is_circular;
   struct_constrained  = is_constrained;
   length              = (int) strlen(string);
+  constraint_options  = 0;
+  /* prepare constraint options */
+  if(struct_constrained && structure)
+    constraint_options |= VRNA_CONSTRAINT_DB;
 
 #ifdef _OPENMP
   init_fold(length, parameters);
@@ -342,17 +313,14 @@ PUBLIC float fold_par(const char *string,
 #endif
 
   with_gquad  = P->model_details.gquad;
-  S   = get_sequence_encoding(string, 0, &(P->model_details));
-  S1  = get_sequence_encoding(string, 1, &(P->model_details));
-
-  BP  = (int *)space(sizeof(int)*(length+2));
-  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
-    if(base_pair2)
-      free(base_pair2);
-    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
-  }
-
-  make_ptypes(S, structure, &(P->model_details));
+  S     = get_sequence_encoding(string, 0, &(P->model_details));
+  S1    = get_sequence_encoding(string, 1, &(P->model_details));
+  ptype = get_ptypes(S, &(P->model_details), 0);
+  hc    = get_hard_constraints( (const char *)structure,
+                                (unsigned int)length,
+                                ptype,
+                                TURN,
+                                constraint_options);
 
   energy = fill_arrays(string);
 
@@ -375,30 +343,7 @@ PUBLIC float fold_par(const char *string,
   */
   base_pair = base_pair2;
 
-  /* check constraints */
-  for(i=1;i<=length;i++) {
-    if((BP[i]<0)&&(BP[i]>-4)) {
-      bonus_cnt++;
-      if((BP[i]==-3)&&(structure[i-1]==')')) bonus++;
-      if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
-      if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
-    }
-
-    if(BP[i]>i) {
-      int l;
-      bonus_cnt++;
-      for(l=1; l<=base_pair2[0].i; l++)
-        if(base_pair2[l].i != base_pair2[l].j)
-          if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
-    }
-  }
-
-  if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
-  bonus*=BONUS;
-
-  free(S); free(S1); free(BP);
-
-  energy += bonus;      /*remove bonus energies from result */
+  free(S); free(S1);
 
   if (backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
@@ -413,16 +358,23 @@ PUBLIC float fold_par(const char *string,
 **/
 PRIVATE int fill_arrays(const char *string) {
 
-  int   i, j, ij, k, length, energy, en, mm5, mm3;
+  int   i, j, ij, p, q, k, length, energy, en, mm5, mm3;
   int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt, hc;
-  int   bonus=0;
-  
-  int   dangle_model, noGUclosure, with_gquads;
+  int   no_close, type, type_2, tt;
+
+  int   dangle_model, noGUclosure, noLP, with_gquads;
   int   *rtype;
+
+  int   hc_decompose;
+  char  *hard_constraints = hc->matrix;
+  int   *hc_up_ext        = hc->up_ext;
+  int   *hc_up_hp         = hc->up_hp;
+  int   *hc_up_int        = hc->up_int;
+  int   *hc_up_ml         = hc->up_ml;
 
   dangle_model  = P->model_details.dangles;
   noGUclosure   = P->model_details.noGUclosure;
+  noLP          = P->model_details.noLP;
   rtype         = &(P->model_details.rtype[0]);
 
   length = (int) strlen(string);
@@ -448,18 +400,16 @@ PRIVATE int fill_arrays(const char *string) {
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
     for (j = i+TURN+1; j <= length; j++) {
-      int p, q;
-      ij      = indx[j]+i;
-      bonus   = 0;
-      type    = ptype[ij];
-      hc      = hard_constraints[ij];
-      energy  = INF;
+      ij            = indx[j]+i;
+      type          = ptype[ij];
+      hc_decompose  = hard_constraints[ij];
+      energy        = INF;
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
-      if (hc) {   /* we have a pair */
+      if (hc_decompose) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
 
         /* hairpin ----------------------------------------------*/
@@ -467,7 +417,7 @@ PRIVATE int fill_arrays(const char *string) {
         /* CONSTRAINED HAIRPIN start */
         int u = j - i - 1;
         /* is this base pair allowed to close a hairpin loop ? */
-        if(hc & IN_HP_LOOP){
+        if(hc_decompose & IN_HP_LOOP){
           /* are all nucleotides in the loop allowed to be unpaired ? */
           if(hc_up_hp[i+1] >= u)
             new_c = E_Hairpin(u, type, S1[i+1], S1[j-1], string+i-1, P);
@@ -480,7 +430,7 @@ PRIVATE int fill_arrays(const char *string) {
           --------------------------------------------------------*/
 
         /* CONSTRAINED INTERIOR LOOP start */
-        if(hc & IN_INT_LOOP){
+        if(hc_decompose & IN_INT_LOOP){
           for(q = j - 1; q >= MAX2(i+TURN+2, j - MAXLOOP - 1); q--){
             int j_q = j - q - 1;
 
@@ -493,8 +443,6 @@ PRIVATE int fill_arrays(const char *string) {
             
             maxp = MIN2(maxp, i+1+hc_up_int[i+1]);
             for(p = i+1; p <= maxp; p++, pq++, p_i++){
-
-              /* discard this configuration if [i+1:p-1] is not allowed to be unpaired */
 
               /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
               if(hard_constraints[pq] & IN_INT_LOOP_ENC){
@@ -521,9 +469,8 @@ PRIVATE int fill_arrays(const char *string) {
 
         /* multi-loop decomposition ------------------------*/
 
-
         /* CONSTRAINED MULTIBRANCH LOOP start */
-        if(hc & IN_MB_LOOP){
+        if(hc_decompose & IN_MB_LOOP){
           int MLenergy;
           decomp = DMLi1[j-1];
           tt = rtype[type];
@@ -591,9 +538,9 @@ PRIVATE int fill_arrays(const char *string) {
         }
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-        cc[j] = new_c + bonus;
-        if (noLonelyPairs)
-          c[ij] = cc1[j-1]+stackEnergy+bonus;
+        cc[j] = new_c;
+        if (noLP)
+          c[ij] = cc1[j-1]+stackEnergy;
         else
           c[ij] = cc[j];
 
@@ -605,7 +552,7 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* (i,j) + MLstem ? */
       new_fML = INF;
-      if(hc & IN_MB_LOOP_ENC){
+      if(hc_decompose & IN_MB_LOOP_ENC){
         new_fML = c[ij];
         switch(dangle_model){
           case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
@@ -861,11 +808,12 @@ PRIVATE int fill_arrays(const char *string) {
 *** If s>0 then s items have been already pushed onto the sector stack
 **/
 PRIVATE void backtrack(const char *string, int s) {
-  int   i, j, ij, k, l1, mm5, mm3, length, energy, en, new;
+  int   i, j, ij, k, mm3, length, energy, en, new;
   int   no_close, type, type_2, tt, minq, maxq, c0, c1, c2, c3;
-  int   bonus;
   int   b=0;
   int   dangle_model  = P->model_details.dangles;
+  int   noLP          = P->model_details.noLP;
+  int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
 
   length = strlen(string);
@@ -1129,17 +1077,12 @@ PRIVATE void backtrack(const char *string, int s) {
 
     type = ptype[ij];
 
-    bonus = 0;
-    if (struct_constrained) {
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
-      if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-    }
-    if (noLonelyPairs)
+    if (noLP)
       if (cij == c[ij]){
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
-        cij -= P->stack[type][type_2] + bonus;
+        cij -= P->stack[type][type_2];
         base_pair2[++b].i = i+1;
         base_pair2[b].j   = j-1;
         i++; j--;
@@ -1149,11 +1092,11 @@ PRIVATE void backtrack(const char *string, int s) {
     canonical = 1;
 
 
-    no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
+    no_close = (((type==3)||(type==4))&&noGUclosure);
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else
-      if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus)
+      if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P))
         continue;
 
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
@@ -1164,7 +1107,7 @@ PRIVATE void backtrack(const char *string, int s) {
         type_2 = ptype[indx[q]+p];
         if (type_2==0) continue;
         type_2 = rtype[type_2];
-        if (no_closingGU)
+        if (noGUclosure)
           if (no_close||(type_2==3)||(type_2==4))
             if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -1172,7 +1115,7 @@ PRIVATE void backtrack(const char *string, int s) {
         energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                             S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
-        new = energy+c[indx[q]+p]+bonus;
+        new = energy+c[indx[q]+p];
         traced = (cij == new);
         if (traced) {
           base_pair2[++b].i = p;
@@ -1205,14 +1148,14 @@ PRIVATE void backtrack(const char *string, int s) {
     sector[s+1].ml  = sector[s+2].ml = 1;
 
     switch(dangle_model){
-      case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing - bonus;
+      case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
                     break;
                 }
                 break;
 
-      case 2:   en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing - bonus;
+      case 2:   en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                     if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
                       break;
@@ -1220,7 +1163,7 @@ PRIVATE void backtrack(const char *string, int s) {
                 break;
 
       default:  for(k = i+2+TURN; k < j-2-TURN; k++){
-                  en = cij - P->MLclosing - bonus;
+                  en = cij - P->MLclosing;
                   if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
                     break;
                   }
@@ -1434,83 +1377,9 @@ PUBLIC void update_fold_params_par(paramT *parameters){
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  /* deprecated
-  make_pair_matrix();
-  */
+
   fill_pair_matrices(&(P->model_details));
   if (init_length < 0) init_length=0;
-}
-
-/*---------------------------------------------------------------------------*/
-PRIVATE void make_ptypes(const short *S, const char *structure, model_detailsT *md) {
-  int n,i,j,k,l;
-
-  n=S[0];
-  for (k=1; k<n-TURN; k++)
-    for (l=1; l<=2; l++) {
-      int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l; if (j>n) continue;
-      type = md->pair[S[i]][S[j]];
-      while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-        if (noLonelyPairs && (!otype) && (!ntype))
-          type = 0; /* i.j can only form isolated pairs */
-        ptype[indx[j]+i] = (char) type;
-        otype =  type;
-        type  = ntype;
-        i--; j++;
-      }
-    }
-
-  /*
-  ################################
-  Temporary hack to take the new
-  constrained folding matrices/arrays
-  into account
-  This obiously has to be handled
-  according to user data and stuff
-  later ;)
-  ################################
-  */
-
-  if(struct_constrained){
-    if (structure != NULL)
-      constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
-
-    if(md->canonicalBPonly)
-      for(i=1;i<n;i++)
-        for(j=i+1;j<=n;j++)
-          if(ptype[indx[j]+i] == 7){
-            warn_user("removing non-canonical base pair from constraint");
-            ptype[indx[j]+i] = 0;
-          }
-
-    /* unpaired nucleotides are allowed in all contexts */
-    for(i = 1; i <= n; i++)
-      hard_constraints[indx[i]+i] = IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP;
-
-    /* base pairs are allowed in all contexts */
-    for(i = 1; i < n - TURN; i++)
-      for(j = i + TURN + 1; j <= n; j++)
-        hard_constraints[indx[j]+i] = (ptype[indx[j]+i]) ? IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP | IN_INT_LOOP_ENC | IN_MB_LOOP_ENC : (char)0;
-
-    /* count number of nucleotides available for unpaired stretch in exterior loop */
-    for(i = n; i > 0; i--)
-      hc_up_ext[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in hairpin loop */
-    for(i = n; i > 0; i--)
-      hc_up_hp[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in interior loop */
-    for(i = n; i > 0; i--)
-      hc_up_int[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in multibranch loop */
-    for(i = n; i > 0; i--)
-      hc_up_ml[i] = n - i + 1;
-
-  }
 }
 
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){

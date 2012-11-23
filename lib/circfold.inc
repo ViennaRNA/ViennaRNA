@@ -14,32 +14,27 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   */
   int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
-  int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
-  int *rtype;
+  int i,j, p,q,length, energy;
 
-  int dangle_model = P->model_details.dangles;
+  int   dangle_model  = P->model_details.dangles;
+  int   noGUclosure   = P->model_details.noGUclosure;
+  int   *rtype        = &(P->model_details.rtype[0]);
 
 
-  rtype         = &(P->model_details.rtype[0]);
 
   length = (int) strlen(string);
 
   FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
   for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
-      int ij, bonus=0, type, u, new_c, no_close;
+      int ij, type, u, new_c, no_close;
       u = length-j + i-1;
       if (u<TURN) continue;
 
       ij = indx[j]+i;
       type = ptype[ij];
 
-      /* enforcing structure constraints */
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
-      if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-      if ((BP[i]==-4)||(BP[j]==-4)) type=0;
-
-      no_close = (((type==3)||(type==4))&&no_closingGU&&(bonus==0));
+      no_close = (((type==3)||(type==4))&&noGUclosure);
 
       /* if (j-i-1 > max_separation) type = 0; */  /* forces locality degree */
 
@@ -53,7 +48,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
           strcpy(loopseq , string+j-1);
           strncat(loopseq, string, i);
         }
-        new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+bonus+c[ij];
+        new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+c[ij];
       }
       if (new_c<FcH) {
         FcH = new_c; Hi=i; Hj=j;

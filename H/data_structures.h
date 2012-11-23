@@ -226,6 +226,17 @@ typedef struct{
 }  pf_paramT;
 
 
+typedef struct {
+  char    *matrix;
+  int     *up_ext;
+  int     *up_hp;
+  int     *up_int;
+  int     *up_ml;
+} hard_constraintT;
+
+typedef struct {
+
+} soft_constraintT;
 
 /*
 * ############################################################

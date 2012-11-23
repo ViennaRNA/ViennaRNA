@@ -66,12 +66,10 @@
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
-#if 0
-#include "pair_mat.h"
-#endif
 #include "params.h"
 #include "loop_energies.h"
 #include "gquad.h"
+#include "constraints.h"
 #include "part_func.h"
 
 #ifdef _OPENMP

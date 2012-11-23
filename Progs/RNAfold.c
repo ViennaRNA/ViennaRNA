@@ -27,6 +27,7 @@
 #include "read_epars.h"
 #include "MEA.h"
 #include "params.h"
+#include "constraints.h"
 #include "RNAfold_cmdl.h"
 
 

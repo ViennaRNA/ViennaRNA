@@ -165,6 +165,7 @@ float   pf_circ_fold( const char *sequence,
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
  *
  *  \ingroup subopt_stochbt
+ *  \pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
  *  \pre    pf_fold_par() or pf_fold() have to be called first to fill the partition function matrices
  *
  *  \param  sequence  The RNA sequence

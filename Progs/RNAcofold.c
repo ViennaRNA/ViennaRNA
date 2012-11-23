@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "read_epars.h"
 #include "params.h"
+#include "constraints.h"
 #include "RNAcofold_cmdl.h"
 
 /*@unused@*/
