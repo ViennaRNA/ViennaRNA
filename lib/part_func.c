@@ -409,7 +409,6 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
           if(hc_up_hp[i+1] >= u)
             qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
         }
-
         /* interior loops with interior pair k,l */
         if(hc_decompose & IN_INT_LOOP){
           int maxk = i+MAXLOOP+1;
@@ -446,6 +445,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
           }
 
         }
+
       }
       qb[ij] = qbt1;
 
@@ -502,12 +502,13 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       /*construction of partition function for segment i,j */
       temp = qq[i];
 
-      if(hc_up_ext[j] >= (j-i+1))
+      if(hc_up_ext[i] >= (j-i+1))
         temp += 1.0*scale[j-i+1];
 
       kl = my_iindx[i] - i;
       for (k=i; k<j; k++, kl--)
         temp += q[kl]*qq[k+1];
+
 
       q[ij] = temp;
       if (temp>Qmax) {
@@ -866,43 +867,44 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
         for (k=2; k<l-TURN; k++) {
           kl = my_iindx[k]-l;
           prmt = prmt1 = 0.0;
-          if(hard_constraints[kl] & IN_MB_LOOP_ENC){
-            i = k-1;
+          i = k-1;
 
-            ii = my_iindx[i];     /* ii-j=[i,j]     */
-            ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-            tt = ptype[ii-(l+1)]; tt=rtype[tt];
-            if(hard_constraints[ii-(l+1)] & IN_MB_LOOP){
+          ii = my_iindx[i];     /* ii-j=[i,j]     */
+          ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
+          tt = ptype[ii-(l+1)]; tt=rtype[tt];
+          if(hard_constraints[ii-(l+1)] & IN_MB_LOOP){
+            if(tt)
+              prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+          }
+          int lj;
+          ij = my_iindx[i] - (l+2);
+          lj = my_iindx[l+1]-(l+1);
+          for (j = l + 2; j<=n; j++, ij--, lj--){
+            if(hard_constraints[ij] & IN_MB_LOOP){
+              tt = ptype[ij]; tt = rtype[tt];
               if(tt)
-                prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+                prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
             }
+          }
 
-            int lj;
-            ij = my_iindx[i] - (l+2);
-            lj = my_iindx[l+1]-(l+1);
-            for (j = l + 2; j<=n; j++, ij--, lj--){
-              if(hard_constraints[ij] & IN_MB_LOOP){
-                tt = ptype[ij]; tt = rtype[tt];
-                if(tt)
-                  prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
-              }
-            }
-            tt = ptype[kl];
-            prmt *= expMLclosing;
-            prml[ i] = prmt;
-            prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+          tt = ptype[kl];
+          prmt *= expMLclosing;
+          prml[ i] = prmt;
+          prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
 
-            prm_MLb = prm_MLb*expMLbase[1] + prml[i];
-            /* same as:    prm_MLb = 0;
-               for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
+          prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+          /* same as:    prm_MLb = 0;
+             for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-            prml[i] = prml[ i] + prm_l[i];
+          prml[i] = prml[ i] + prm_l[i];
 
-            if(with_gquad){
-              if ((!tt) && (G[kl] == 0.)) continue;
-            } else {
-              if (qb[kl] == 0.) continue;
-            }
+          if(with_gquad){
+            if ((!tt) && (G[kl] == 0.)) continue;
+          } else {
+            if (qb[kl] == 0.) continue;
+          }
+
+          if(hard_constraints[kl] & IN_MB_LOOP_ENC){
 
             temp = prm_MLb;
 
