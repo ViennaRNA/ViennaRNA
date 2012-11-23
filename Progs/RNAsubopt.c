@@ -20,6 +20,7 @@
 #include "read_epars.h"
 #include "subopt.h"
 #include "params.h"
+#include "constraints.h"
 #include "RNAsubopt_cmdl.h"
 
 /*@unused@*/

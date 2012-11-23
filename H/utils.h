@@ -514,31 +514,6 @@ void print_tty_input_seq(void);
 void print_tty_input_seq_str(const char *s);
 
 /**
- *  \brief Print structure constraint characters to stdout
- *  (full constraint support)
- *
- */
-void print_tty_constraint_full(void);
-
-/**
- *  \brief Print structure constraint characters to stdout.
- *  (constraint support is specified by option parameter)
- *
- *  Currently available options are:\n
- *  #VRNA_CONSTRAINT_PIPE (paired with another base)\n
- *  #VRNA_CONSTRAINT_DOT (no constraint at all)\n
- *  #VRNA_CONSTRAINT_X (base must not pair)\n
- *  #VRNA_CONSTRAINT_ANG_BRACK (paired downstream/upstream)\n
- *  #VRNA_CONSTRAINT_RND_BRACK (base i pairs base j)\n
- * 
- *  pass a collection of options as one value like this:
- *  \verbatim print_tty_constraint(option_1 | option_2 | option_n) \endverbatim
- * 
- *  \param option Option switch that tells which constraint help will be printed
- */
-void print_tty_constraint(unsigned int option);
-
-/**
  *  \brief Convert a DNA input sequence to RNA alphabet
  *
  *  This function substitudes <i>T</i> and <i>t</i> with <i>U</i> and <i>u</i>, respectively
@@ -585,27 +560,6 @@ int   *get_iindx(unsigned int length);
  */
 int   *get_indx(unsigned int length);
 
-void getConstraint( char **cstruc,
-                    const char **lines,
-                    unsigned int option);
-
-/**
- *  \brief Insert constraining pair types according to constraint structure string
- *
- *  \see get_indx(), get_iindx()
- *
- *  \param constraint     The structure constraint string
- *  \param length         The actual length of the sequence (constraint may be shorter)
- *  \param ptype          A pointer to the basepair type array
- *  \param min_loop_size  The minimal loop size (usually \ref TURN )
- *  \param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
- */
-void constrain_ptypes(const char *constraint,
-                      unsigned int length,
-                      char *ptype,
-                      int *BP,
-                      int min_loop_size,
-                      unsigned int idx_type);
 
 unsigned int  *make_referenceBP_array(short *reference_pt,
                                       unsigned int turn);
@@ -630,5 +584,9 @@ short *get_sequence_encoding( const char *sequence,
                               model_detailsT *md);
 
 char  get_encoded_char(int enc, model_detailsT *md);
+
+char  *get_ptypes(const short *S,
+                  model_detailsT *md,
+                  unsigned int idx_type);
 
 #endif

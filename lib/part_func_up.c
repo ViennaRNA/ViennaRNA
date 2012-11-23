@@ -128,7 +128,7 @@ PRIVATE void        scale_int(const char *s,
 PRIVATE void        encode_seq( const char *s1,
                                 const char *s2);
 
-PRIVATE constrain   *get_ptypes(char *S,
+PRIVATE constrain   *get_ptypes_up(char *S,
                                 const char *structure);
 
 PRIVATE void        get_up_arrays(unsigned int length);
@@ -563,7 +563,7 @@ PUBLIC interact *pf_interact( const char *s1,
   set_encoded_seq(s1, &S, &S1);
   set_encoded_seq(s2, &SS, &SS2);
 
-  cc = get_ptypes(Seq,cstruc);
+  cc = get_ptypes_up(Seq,cstruc);
 
   get_interact_arrays(n1, n2, p_c, p_c2, w, incr5, incr3, &p_c_S, &p_c2_S);
 
@@ -1360,7 +1360,7 @@ PUBLIC int Up_plot(pu_contrib *p_c, pu_contrib *p_c_sh, interact *pint, char *of
 
 /*-------------------------------------------------------------------------*/
 /* copy from part_func_co.c */
-PRIVATE constrain *get_ptypes(char *Seq, const char *structure) {
+PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
   int n,i,j,k,l, length;
   constrain *con;
   short *s, *s1;

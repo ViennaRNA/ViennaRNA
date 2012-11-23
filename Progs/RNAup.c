@@ -26,6 +26,7 @@
 #include "part_func_up.h"
 #include "duplex.h"
 #include "energy_const.h"
+#include "constraints.h"
 #include "RNAup_cmdl.h"
 
 /*@unused@*/
