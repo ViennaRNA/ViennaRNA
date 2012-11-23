@@ -111,24 +111,13 @@ PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 PRIVATE double      alpha = 1.0;
 
 /* stuff needed for constrained folding */
-PRIVATE int     struct_constrained  = 0;
-PRIVATE char    *hard_constraints   = NULL;
-PRIVATE int     *hc_up_ext          = NULL;
-PRIVATE int     *hc_up_hp           = NULL;
-PRIVATE int     *hc_up_int          = NULL;
-PRIVATE int     *hc_up_ml           = NULL;
-
-#define IN_EXT_LOOP     (char)0x01
-#define IN_HP_LOOP      (char)0x02
-#define IN_INT_LOOP     (char)0x04
-#define IN_MB_LOOP      (char)0x08
-#define IN_INT_LOOP_ENC (char)0x10
-#define IN_MB_LOOP_ENC  (char)0x20
+PRIVATE int               struct_constrained  = 0;
+PRIVATE hard_constraintT  *hc                 = NULL;
 
 #ifdef _OPENMP
 
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length, hard_constraints, hc_up_ext, hc_up_hp, hc_up_int, hc_up_ml,\
+                          probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length, hc,\
                           circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained,\
                           G, Gj, Gj1, with_gquad)
 
@@ -143,7 +132,6 @@ PRIVATE int     *hc_up_ml           = NULL;
 PRIVATE void  init_partfunc(int length, pf_paramT *parameters);
 PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void  get_arrays(unsigned int length);
-PRIVATE void  make_ptypes(const short *S, const char *structure, model_detailsT *md);
 PRIVATE void  pf_circ(const char *sequence, char *structure);
 PRIVATE void  pf_linear(const char *sequence, char *structure);
 PRIVATE void  pf_create_bppm(const char *sequence, char *structure);
@@ -220,13 +208,6 @@ PRIVATE void get_arrays(unsigned int length){
   iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
 
-  if(struct_constrained){
-    hard_constraints = (char *)space(sizeof(char)*((size*(size+1))/2+2));
-    hc_up_ext = (int *)space(sizeof(int)*(size+1));
-    hc_up_hp  = (int *)space(sizeof(int)*(size+2));
-    hc_up_int = (int *)space(sizeof(int)*(size+2));
-    hc_up_ml  = (int *)space(sizeof(int)*(size+2));
-  }
 }
 
 /**
@@ -259,21 +240,15 @@ PUBLIC void free_pf_arrays(void){
   if(G)         free(G);
   if(Gj)        free(Gj);
   if(Gj1)       free(Gj1);
+  if(hc)        destroy_hard_constraints(hc);
 
-  if(hard_constraints)  free(hard_constraints);
-  if(hc_up_ext)         free(hc_up_ext);
-  if(hc_up_hp)          free(hc_up_hp);
-  if(hc_up_int)         free(hc_up_int);
-  if(hc_up_ml)          free(hc_up_ml);
-  
   S = S1 = NULL;
   q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = G = Gj = Gj1 = NULL;
   my_iindx = jindx = iindx = NULL;
 
   ptype = NULL;
 
-  hard_constraints = NULL;
-  hc_up_ext = hc_up_hp = hc_up_int = hc_up_ml = NULL;
+  hc = NULL;
 
 
 #ifdef SUN4
@@ -305,11 +280,17 @@ PUBLIC float pf_fold_par( const char *sequence,
 
   FLT_OR_DBL  Q;
   double      free_energy;
-  int         n = (int) strlen(sequence);
+  unsigned int constraint_options;
+  int         n;
 
+  n                   = (int) strlen(sequence);
   circular            = is_circular;
   do_bppm             = calculate_bppm;
   struct_constrained  = is_constrained;
+  constraint_options  = VRNA_CONSTRAINT_IINDX;
+  if(struct_constrained && structure)
+    constraint_options |= VRNA_CONSTRAINT_DB;
+
 
 #ifdef _OPENMP
   init_partfunc(n, parameters);
@@ -320,10 +301,14 @@ PUBLIC float pf_fold_par( const char *sequence,
 #endif
 
   with_gquad  = pf_params->model_details.gquad;
-  S   = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
-  S1  = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
-
-  make_ptypes(S, structure, &(pf_params->model_details));
+  S     = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
+  S1    = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
+  ptype = get_ptypes(S, &(pf_params->model_details), 1);
+  hc    = get_hard_constraints( (const char *)structure,
+                                (unsigned int)n,
+                                ptype,
+                                TURN,
+                                constraint_options);
 
   /* do the linear pf fold and fill all matrices  */
   pf_linear(sequence, structure);
@@ -363,7 +348,7 @@ PUBLIC float pf_fold_par( const char *sequence,
 
 PRIVATE void pf_linear(const char *sequence, char *structure){
 
-  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, type, type_2, tt, hc;
+  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, type, type_2, tt;
 
   int noGUclosure;
   FLT_OR_DBL expMLstem = 0.;
@@ -374,6 +359,13 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
   int         *rtype;
+
+  int         hc_decompose;
+  char        *hard_constraints = hc->matrix;
+  int         *hc_up_ext        = hc->up_ext;
+  int         *hc_up_hp         = hc->up_hp;
+  int         *hc_up_int        = hc->up_int;
+  int         *hc_up_ml         = hc->up_ml;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -403,23 +395,23 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
 
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
-      /* construction of partition function of segment i,j*/
-      /*firstly that given i binds j : qb(i,j) */
-      u     = j-i-1;
-      ij    = my_iindx[i]-j;
-      type  = ptype[ij];
-      hc    = hard_constraints[ij];
+      /* construction of partition function of segment i,j */
+      /* firstly that given i binds j : qb(i,j) */
+      u             = j-i-1;
+      ij            = my_iindx[i]-j;
+      type          = ptype[ij];
+      hc_decompose  = hard_constraints[ij];
       qbt1  = 0.;
       
-      if(hc){
+      if(hc_decompose){
         /*hairpin contribution*/
-        if(hc & IN_HP_LOOP){
+        if(hc_decompose & IN_HP_LOOP){
           if(hc_up_hp[i+1] >= u)
             qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
         }
 
         /* interior loops with interior pair k,l */
-        if(hc & IN_INT_LOOP){
+        if(hc_decompose & IN_INT_LOOP){
           int maxk = i+MAXLOOP+1;
           maxk = MIN2(maxk, j - TURN - 2);
           maxk = MIN2(maxk, i + 1 + hc_up_int[i+1]);
@@ -441,7 +433,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         }
 
         /*multiple stem loop contribution*/
-        if(hc & IN_MB_LOOP){
+        if(hc_decompose & IN_MB_LOOP){
           ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
           temp = 0.0;
           kl = my_iindx[i+1]-(i+1);
@@ -462,10 +454,10 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
          from segment i,j */
       qqm[i] = 0.;
 
-      if(hc_up_ml[i])
+      if(hc_up_ml[j])
         qqm[i] = qqm1[i]*expMLbase[1];
 
-      if(hc & IN_MB_LOOP_ENC){
+      if(hc_decompose & IN_MB_LOOP_ENC){
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
@@ -494,7 +486,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
 
-      if(hc & IN_EXT_LOOP){
+      if(hc_decompose & IN_EXT_LOOP){
         qbt1 = qb[ij] * exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
 
         if(with_gquad){
@@ -502,7 +494,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         }
       }
 
-      if(hc_up_ext[i])
+      if(hc_up_ext[j])
         qbt1 += qq1[i]*scale[1];
 
       qq[i] = qbt1;
@@ -510,7 +502,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       /*construction of partition function for segment i,j */
       temp = qq[i];
 
-      if(hc_up_ext[i] >= (j-i+1))
+      if(hc_up_ext[j] >= (j-i+1))
         temp += 1.0*scale[j-i+1];
 
       kl = my_iindx[i] - i;
@@ -626,6 +618,12 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
   int         *rtype;
 
   FLT_OR_DBL  expMLstem = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
+  int         hc_decompose;
+  char        *hard_constraints = hc->matrix;
+  int         *hc_up_ext        = hc->up_ext;
+  int         *hc_up_hp         = hc->up_hp;
+  int         *hc_up_int        = hc->up_int;
+  int         *hc_up_ml         = hc->up_ml;
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   expMLclosing  = pf_params->expMLclosing;
@@ -1054,82 +1052,6 @@ PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int lengt
   }
   structure[length] = '\0';
   free(index);
-}
-
-
-/*---------------------------------------------------------------------------*/
-PRIVATE void make_ptypes(const short *S, const char *structure, model_detailsT *md){
-  int n,i,j,k,l, noLP;
-
-  noLP = pf_params->model_details.noLP;
-
-  n=S[0];
-  for (k=1; k<n-TURN; k++)
-    for (l=1; l<=2; l++) {
-      int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l; if (j>n) continue;
-      type = md->pair[S[i]][S[j]];
-      while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-        if (noLP && (!otype) && (!ntype))
-          type = 0; /* i.j can only form isolated pairs */
-        qb[my_iindx[i]-j] = 0.;
-        ptype[my_iindx[i]-j] = (char) type;
-        otype =  type;
-        type  = ntype;
-        i--; j++;
-      }
-    }
-
-  /*
-  ################################
-  Temporary hack to take the new
-  constrained folding matrices/arrays
-  into account
-  This obiously has to be handled
-  according to user data and stuff
-  later ;)
-  ################################
-  */
-
-  if(struct_constrained){
-    if (structure != NULL) 
-      constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
-
-    if(md->canonicalBPonly)
-      for(i=1;i<n;i++)
-        for(j=i+1;j<=n;j++)
-          if(ptype[my_iindx[i]+j] == 7){
-            warn_user("removing non-canonical base pair from constraint");
-            ptype[my_iindx[i]+j] = 0;
-          }
-
-    /* unpaired nucleotides are allowed in all contexts */
-    for(i = 1; i <= n; i++)
-      hard_constraints[my_iindx[i]-i] = IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP;
-
-    /* base pairs are allowed in all contexts */
-    for(i = 1; i < n - TURN; i++)
-      for(j = i + TURN + 1; j <= n; j++)
-        hard_constraints[my_iindx[i]-j] = (ptype[my_iindx[i]-j]) ? IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP | IN_INT_LOOP_ENC | IN_MB_LOOP_ENC : (char)0;
-
-    /* count number of nucleotides available for unpaired stretch in exterior loop */
-    for(i = n; i > 0; i--)
-      hc_up_ext[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in hairpin loop */
-    for(i = n; i > 0; i--)
-      hc_up_hp[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in interior loop */
-    for(i = n; i > 0; i--)
-      hc_up_int[i] = n - i + 1;
-
-    /* count number of nucleotides available for unpaired stretch in multibranch loop */
-    for(i = n; i > 0; i--)
-      hc_up_ml[i] = n - i + 1;
-
-  }
 }
 
 /*

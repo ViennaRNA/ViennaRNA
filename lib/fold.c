@@ -183,12 +183,9 @@ PUBLIC void free_arrays(void){
   if(DMLi2)     free(DMLi2);
   if(P)         free(P);
   if(ggg)       free(ggg);
-
-  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
-
   if(hc)        destroy_hard_constraints(hc);
 
-  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
   ptype = NULL;
 
   hc  = NULL;
