@@ -225,15 +225,38 @@ typedef struct{
 
 }  pf_paramT;
 
-
+/**
+ *  \brief  The hard constraints data structure
+ *
+ *  The content of this data structure determines the decomposition pattern
+ *  used in the folding recursions.
+ *
+ *  \see get_hard_constraints(), destroy_hard_constraints()
+ *  \ingroup hard_constraints
+ */
 typedef struct {
-  char    *matrix;
-  int     *up_ext;
-  int     *up_hp;
-  int     *up_int;
-  int     *up_ml;
+  char    *matrix;  /**<  \brief  Upper triangular matrix encoding where a
+                                  base pair or unpaired nucleotide is allowed
+                    */
+  int     *up_ext;  /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in an exterior loop
+                    */
+  int     *up_hp;   /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in a hairpin loop
+                    */
+  int     *up_int;  /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in an interior loop
+                    */
+  int     *up_ml;   /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in a multi branched loop
+                    */
 } hard_constraintT;
 
+/**
+ *  \brief  The soft constraints data structure
+ *
+ *  \ingroup soft_constraints
+ */
 typedef struct {
 
 } soft_constraintT;
