@@ -288,7 +288,12 @@ PUBLIC float pf_fold_par( const char *sequence,
   struct_constrained  = is_constrained;
   constraint_options  = VRNA_CONSTRAINT_IINDX;
   if(struct_constrained && structure)
-    constraint_options |= VRNA_CONSTRAINT_DB;
+    constraint_options |=   VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
 
 #ifdef _OPENMP

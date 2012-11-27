@@ -21,7 +21,6 @@
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
-#include "pair_mat.h"
 #include "params.h"
 #include "subopt.h"
 #include "fold.h"
@@ -641,8 +640,9 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
   int   i, j, k, length, energy, new;
   int   no_close, type, type_2, tt;
   int   dangle_model  = P->model_details.dangles;
-  int   noGUclosure   = P->model_details.noGUclosure;
   int   noLP          = P->model_details.noLP;
+  int   noGUclosure   = P->model_details.noGUclosure;
+  int   *rtype        = &(P->model_details.rtype[0]);
 
   /* int   b=0;*/
 
@@ -1309,7 +1309,8 @@ PUBLIC void update_cofold_params_par(paramT *parameters){
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  make_pair_matrix();
+
+  fill_pair_matrices(&(P->model_details));
   if (init_length < 0) init_length=0;
 }
 
@@ -1362,6 +1363,14 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   zukresults          = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
   mfestructure[0]     = '\0';
   constraint_options  = 0;
+  /* prepare constraint options */
+  if(struct_constrained && structure)
+    constraint_options |=   VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
   /* double the sequence */
   strcpy(doubleseq,string);
@@ -1379,8 +1388,8 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
 #endif
 
 
-  S     = encode_sequence(doubleseq, 0);
-  S1    = encode_sequence(doubleseq, 1);
+  S     = get_sequence_encoding(doubleseq, 0, &(P->model_details));
+  S1    = get_sequence_encoding(doubleseq, 1, &(P->model_details));
   S1[0] = S[0]; /* store length at pos. 0 */
   ptype = get_ptypes(S, &(P->model_details), 0);
   hc    = get_hard_constraints( (const char *)structure,
