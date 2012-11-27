@@ -382,7 +382,6 @@ INLINE  PRIVATE int E_hp_loop(const char *sequence,
   return INF;
 }
 
-
 INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       int type,
                                       short si1,

@@ -100,8 +100,6 @@ PRIVATE hard_constraintT  *hc                 = NULL;
 
 PRIVATE void  init_cofold(int length, paramT *parameters);
 PRIVATE void  get_arrays(unsigned int size);
-/* PRIVATE void  scale_parameters(void); */
-/* PRIVATE void  make_ptypes(const short *S, const char *structure); */
 PRIVATE void  backtrack(const char *sequence);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  free_end(int *array, int i, int start);
@@ -348,31 +346,46 @@ PRIVATE int fill_arrays(const char *string) {
     maxj=(zuker)? (MIN2(i+cut_point-1,length)):length;
     for (j = i+TURN+1; j <= maxj; j++) {
       int p, q, ij;
-      ij = indx[j]+i;
-      type = ptype[ij];
+      ij            = indx[j]+i;
+      type          = ptype[ij];
+      hc_decompose  = hard_constraints[ij];
+      energy        = INF;
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
       if (hc_decompose) {   /* we have a pair */
-        int new_c=0, stackEnergy=INF;
+        int new_c=INF, stackEnergy=INF;
         short si, sj;
         si  = SAME_STRAND(i, i+1) ? S1[i+1] : -1;
         sj  = SAME_STRAND(j-1, j) ? S1[j-1] : -1;
         /* hairpin ----------------------------------------------*/
 
         if (SAME_STRAND(i,j)) {
-          if (no_close) new_c = FORBIDDEN;
-          else
-            new_c = E_Hairpin(j-i-1, type, si, sj, string+i-1, P);
+          if(!no_close){
+            energy = E_hp_loop( string,
+                                (unsigned int)i,
+                                (unsigned int)j,
+                                type,
+                                S1,
+                                hc_decompose,
+                                hc_up_hp,
+                                NULL,
+                                P);
+          }
         }
         else {
-          if (dangle_model)
-            new_c += E_ExtLoop(rtype[type], sj, si, P);
-          else
-            new_c += E_ExtLoop(rtype[type], -1, -1, P);
+          /* hairpin-like exterior loop */
+          if(hc_decompose & IN_EXT_LOOP){
+            if (dangle_model)
+              energy = E_ExtLoop(rtype[type], sj, si, P);
+            else
+              energy = E_ExtLoop(rtype[type], -1, -1, P);
+          }
         }
+        new_c = MIN2(new_c, energy);
+
         /*--------------------------------------------------------
           check for elementary structures involving more than one
           closing pair.
@@ -382,7 +395,8 @@ PRIVATE int fill_arrays(const char *string) {
           int minq = j-i+p-MAXLOOP-2;
           if (minq<p+1+TURN) minq = p+1+TURN;
           for (q = minq; q < j; q++) {
-            type_2 = ptype[indx[q]+p];
+            int pq = indx[q] + p;
+            type_2 = ptype[pq];
 
             if (type_2==0) continue;
             type_2 = rtype[type_2];
@@ -402,7 +416,7 @@ PRIVATE int fill_arrays(const char *string) {
                                     dangle_model,
                                     P);
 
-            new_c = MIN2(energy+c[indx[q]+p], new_c);
+            new_c = MIN2(new_c, energy+c[indx[q]+p]);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
           } /* end q-loop */

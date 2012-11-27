@@ -297,6 +297,7 @@ PUBLIC float fold_par(const char *string,
   struct_constrained  = is_constrained;
   length              = (int) strlen(string);
   constraint_options  = 0;
+
   /* prepare constraint options */
   if(struct_constrained && structure)
     constraint_options |=   VRNA_CONSTRAINT_DB
@@ -413,17 +414,19 @@ PRIVATE int fill_arrays(const char *string) {
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
       if (hc_decompose) {   /* we have a pair */
-        int new_c=0, stackEnergy=INF;
+        int new_c=INF, stackEnergy=INF;
         /* hairpin ----------------------------------------------*/
-        new_c += E_hp_loop( string,
-                            (unsigned int)i,
-                            (unsigned int)j,
-                            type,
-                            S1,
-                            hc_decompose,
-                            hc_up_hp,
-                            NULL,
-                            P);
+        if(!no_close)
+          energy = E_hp_loop( string,
+                              (unsigned int)i,
+                              (unsigned int)j,
+                              type,
+                              S1,
+                              hc_decompose,
+                              hc_up_hp,
+                              NULL,
+                              P);
+        new_c = MIN2(new_c, energy);
 
         /*--------------------------------------------------------
           check for elementary structures involving more than one
@@ -459,7 +462,7 @@ PRIVATE int fill_arrays(const char *string) {
 
                 if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
                 energy += c[pq];
-                new_c = MIN2(energy, new_c);
+                new_c = MIN2(new_c, energy);
 
               }
             } /* end q-loop */
