@@ -229,12 +229,27 @@ typedef struct{
  *  \brief  The hard constraints data structure
  *
  *  The content of this data structure determines the decomposition pattern
- *  used in the folding recursions.
+ *  used in the folding recursions. Attribute 'matrix' is used as source for
+ *  the branching pattern of the decompositions during all folding recursions.
+ *  Any entry in matrix[i,j] consists of the 6 LSB that allows to distinguish the
+ *  following types of base pairs:
+ *  - in the exterior loop (#IN_EXT_LOOP)
+ *  - enclosing a hairpin (#IN_HP_LOOP)
+ *  - enclosing an interior loop (#IN_INT_LOOP)
+ *  - enclosed by an exterior loop (#IN_INT_LOOP_ENC)
+ *  - enclosing a multi branch loop (#IN_MB_LOOP)
+ *  - enclosed by a multi branch loop (#IN_MB_LOOP_ENC)
  *
- *  \see get_hard_constraints(), destroy_hard_constraints()
+ *  The four linear arrays 'up_xxx' provide the number of available unpaired
+ *  nucleotides (including position i) 3' of each position in the sequence.
+ *
+ *  \see  get_hard_constraints(), destroy_hard_constraints(), #IN_EXT_LOOP,
+ *        #IN_HP_LOOP, #IN_INT_LOOP, #IN_EXT_LOOP_ENC, #IN_MB_LOOP, #IN_MB_LOOP_ENC
+ *        
  *  \ingroup hard_constraints
  */
 typedef struct {
+  char    *config;
   char    *matrix;  /**<  \brief  Upper triangular matrix encoding where a
                                   base pair or unpaired nucleotide is allowed
                     */

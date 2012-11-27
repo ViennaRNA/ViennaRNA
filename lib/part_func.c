@@ -108,7 +108,6 @@ PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         with_gquad = 0;
 
 PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
-PRIVATE double      alpha = 1.0;
 
 /* stuff needed for constrained folding */
 PRIVATE int               struct_constrained  = 0;
@@ -118,7 +117,7 @@ PRIVATE hard_constraintT  *hc                 = NULL;
 
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length, hc,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained,\
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained,\
                           G, Gj, Gj1, with_gquad)
 
 
