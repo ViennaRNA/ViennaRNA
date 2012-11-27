@@ -59,6 +59,29 @@
  *
  */
 #define VRNA_CONSTRAINT_RND_BRACK         16U
+
+/**
+ *  \brief  Flag that is used to indicate the character 'l' in pseudo dot-bracket
+ *  notation of hard constraints.
+ *
+ *  Use this definition to indicate the usage of 'l' character (intramolecular pairs only)
+ *
+ *  \ingroup  hard_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_INTRAMOLECULAR    2048U
+
+/**
+ *  \brief  Flag that is used to indicate the character 'e' in pseudo dot-bracket
+ *  notation of hard constraints.
+ *
+ *  Use this definition to indicate the usage of 'e' character (intermolecular pairs only)
+ *
+ *  \ingroup  hard_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_INTERMOLECULAR    4096U
+
 /**
  *  \brief  constraint may span over several lines
  *  
@@ -107,42 +130,42 @@
 
 
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair in the exterior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
 #define IN_EXT_LOOP     (char)0x01
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair encloses hairpin loop
  *  
  *  \ingroup  hard_constraints
  *
  */
 #define IN_HP_LOOP      (char)0x02
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair encloses an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
 #define IN_INT_LOOP     (char)0x04
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair is enclosed in an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
 #define IN_MB_LOOP      (char)0x08
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair encloses a multi branch loop
  *
  *  \ingroup  hard_constraints
  *
  */
 #define IN_INT_LOOP_ENC (char)0x10
 /**
- *  \brief  
+ *  \brief  Hard constraints flag, base pair is enclosed in a multi branch loop
  *  
  *  \ingroup  hard_constraints
  *
@@ -191,14 +214,23 @@ void print_tty_constraint_full(void);
  *  \param constraint     The structure constraint string
  *  \param length         The actual length of the sequence (constraint may be shorter)
  *  \param ptype          A pointer to the basepair type array
+ *  \param BP             (not used anymore)
  *  \param min_loop_size  The minimal loop size (usually \ref TURN )
  *  \param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
  */
 void constrain_ptypes(const char *constraint,
                       unsigned int length,
                       char *ptype,
+                      int *BP,
                       int min_loop_size,
                       unsigned int idx_type);
+
+void apply_DB_constraint( const char *constraint,
+                          char *ptype,
+                          unsigned int length,
+                          unsigned int min_loop_size,
+                          int cut,
+                          unsigned int options);
 
 /**
  *  \brief  Get a hard constraint from pseudo dot-bracket notation as specified
@@ -267,6 +299,5 @@ hard_constraintT  *get_hard_constraints(  const char *constraint,
  *
  */
 void destroy_hard_constraints(hard_constraintT *hc);
-
 
 #endif

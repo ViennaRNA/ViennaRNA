@@ -78,21 +78,17 @@ PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
 PRIVATE bondT   *base_pair2 = NULL;
-PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
-                        -1: | = base must be paired
-                        -2: < = base must be paired with j<i
-                        -3: > = base must be paired with j>i
-                        -4: x = base must not pair
-                        positive int: base is paired with int      */
-PRIVATE int     struct_constrained  = 0;
-PRIVATE int     with_gquad          = 0;
 
+PRIVATE int     with_gquad          = 0;
 PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
+
+PRIVATE int               struct_constrained  = 0;
+PRIVATE hard_constraintT  *hc                 = NULL;
 
 #ifdef _OPENMP
 
 #pragma omp threadprivate(mfe1, mfe2, indx, c, cc, cc1, f5, fc, fML, fM1, Fmi, DMLi, DMLi1, DMLi2,\
-                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP, struct_constrained,\
+                          ptype, S, S1, P, zuker, sector, length, base_pair2, struct_constrained, hc,\
                           ggg, with_gquad)
 
 #endif
@@ -106,7 +102,7 @@ PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 PRIVATE void  init_cofold(int length, paramT *parameters);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
-PRIVATE void  make_ptypes(const short *S, const char *structure);
+/* PRIVATE void  make_ptypes(const short *S, const char *structure); */
 PRIVATE void  backtrack(const char *sequence);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  free_end(int *array, int i, int start);
@@ -178,9 +174,10 @@ PUBLIC void free_co_arrays(void){
   if(DMLi2)       free(DMLi2);
   if(P)           free(P);
   if(ggg)         free(ggg);
-
+  if(hc)        destroy_hard_constraints(hc);
   indx = c = fML = f5 = cc = cc1 = fc = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
   ptype       = NULL;
+  hc          = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
@@ -232,12 +229,25 @@ PUBLIC float cofold_par(const char *string,
                         paramT *parameters,
                         int is_constrained){
 
-  int i, length, energy, bonus=0, bonus_cnt=0;
+  int i, length, energy;
+  unsigned int constraint_options;
 
   zuker = 0;
 
   struct_constrained  = is_constrained;
   length              = (int) strlen(string);
+  constraint_options  = 0;
+
+  /* prepare constraint options */
+  if(struct_constrained && structure)
+    constraint_options |=   VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK
+                          | VRNA_CONSTRAINT_INTRAMOLECULAR
+                          | VRNA_CONSTRAINT_INTERMOLECULAR;
 
 #ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
@@ -249,12 +259,16 @@ PUBLIC float cofold_par(const char *string,
 #endif
 
   with_gquad  = P->model_details.gquad;
-  S           = encode_sequence(string, 0);
-  S1          = encode_sequence(string, 1);
-  S1[0]       = S[0]; /* store length at pos. 0 */
+  S     = get_sequence_encoding(string, 0, &(P->model_details));
+  S1    = get_sequence_encoding(string, 1, &(P->model_details));
+  ptype = get_ptypes(S, &(P->model_details), 0);
+  hc    = get_hard_constraints( (const char *)structure,
+                                (unsigned int)length,
+                                ptype,
+                                TURN,
+                                constraint_options);
 
-  BP = (int *)space(sizeof(int)*(length+2));
-  make_ptypes(S, structure);
+  S1[0] = S[0]; /* store length at pos. 0 in S1 too */
 
   energy = fill_arrays(string);
 
@@ -280,30 +294,7 @@ PUBLIC float cofold_par(const char *string,
   }
   */
 
-  /* check constraints */
-  for(i=1;i<=length;i++) {
-    if((BP[i]<0)&&(BP[i]>-4)) {
-      bonus_cnt++;
-      if((BP[i]==-3)&&(structure[i-1]==')')) bonus++;
-      if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
-      if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
-    }
-
-    if(BP[i]>i) {
-      int l;
-      bonus_cnt++;
-      for(l=1; l<=base_pair2[0].i; l++)
-        if(base_pair2[l].i != base_pair2[l].j)
-          if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
-    }
-  }
-
-  if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
-  bonus*=BONUS;
-
-  free(S); free(S1); free(BP);
-
-  energy += bonus;      /*remove bonus energies from result */
+  free(S); free(S1);
 
   if (backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
@@ -319,10 +310,21 @@ PRIVATE int fill_arrays(const char *string) {
   int   i, j, k, length, energy;
   int   decomp, new_fML, max_separation;
   int   no_close, type, type_2, tt, maxj;
-  int   bonus=0;
-  int   dangle_model  = P->model_details.dangles;
-  int   noGUclosure   = P->model_details.noGUclosure;
-  int   noLP          = P->model_details.noLP;
+
+  int   dangle_model, noGUclosure, noLP;
+  int   *rtype;
+
+  int   hc_decompose;
+  char  *hard_constraints = hc->matrix;
+  int   *hc_up_ext        = hc->up_ext;
+  int   *hc_up_hp         = hc->up_hp;
+  int   *hc_up_int        = hc->up_int;
+  int   *hc_up_ml         = hc->up_ml;
+
+  dangle_model  = P->model_details.dangles;
+  noGUclosure   = P->model_details.noGUclosure;
+  noLP          = P->model_details.noLP;
+  rtype         = &(P->model_details.rtype[0]);
 
   length = (int) strlen(string);
 
@@ -348,19 +350,13 @@ PRIVATE int fill_arrays(const char *string) {
     for (j = i+TURN+1; j <= maxj; j++) {
       int p, q, ij;
       ij = indx[j]+i;
-      bonus = 0;
       type = ptype[ij];
 
-      /* enforcing structure constraints */
-      if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
-      if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-      if ((BP[i]==-4)||(BP[j]==-4)) type=0;
-
-      no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
+      no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
-      if (type) {   /* we have a pair */
+      if (hc_decompose) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
         short si, sj;
         si  = SAME_STRAND(i, i+1) ? S1[i+1] : -1;
@@ -485,10 +481,10 @@ PRIVATE int fill_arrays(const char *string) {
         }
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-        cc[j] = new_c + bonus;
+        cc[j] = new_c;
         if (noLP){
           if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
-            c[ij] = cc1[j-1]+stackEnergy+bonus;
+            c[ij] = cc1[j-1]+stackEnergy;
           else /* currently we don't allow stacking over the cut point */
             c[ij] = FORBIDDEN;
         }
@@ -644,7 +640,6 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
 
   int   i, j, k, length, energy, new;
   int   no_close, type, type_2, tt;
-  int   bonus;
   int   dangle_model  = P->model_details.dangles;
   int   noGUclosure   = P->model_details.noGUclosure;
   int   noLP          = P->model_details.noLP;
@@ -981,17 +976,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     if (canonical)  cij = c[indx[j]+i];
     type = ptype[indx[j]+i];
 
-    bonus = 0;
-
-    if ((BP[i]==j)||(BP[i]==-1)||(BP[i]==-2)) bonus -= BONUS;
-    if ((BP[j]==-1)||(BP[j]==-3)) bonus -= BONUS;
-
     if (noLP)
       if (cij == c[indx[j]+i]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
-        cij -= P->stack[type][type_2] + bonus;
+        cij -= P->stack[type][type_2];
         base_pair2[++b].i = i+1;
         base_pair2[b].j   = j-1;
         i++; j--;
@@ -1001,12 +991,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     canonical = 1;
 
 
-    no_close = (((type==3)||(type==4))&&noGUclosure&&(bonus==0));
+    no_close = (((type==3)||(type==4))&&noGUclosure);
     if (SAME_STRAND(i,j)) {
       if (no_close) {
         if (cij == FORBIDDEN) continue;
       } else
-        if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P)+bonus)
+        if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P))
           continue;
     }
     else {
@@ -1037,7 +1027,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
           energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
         }
 
-        new = energy+c[indx[q]+p]+bonus;
+        new = energy+c[indx[q]+p];
         traced = (cij == new);
         if (traced) {
           base_pair2[++b].i = p;
@@ -1111,7 +1101,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     }
 
     /* true multi-loop */
-    mm = bonus + P->MLclosing;
+    mm = P->MLclosing;
     sector[s+1].ml  = sector[s+2].ml = 1;
     int ml0   = E_MLstem(tt, -1, -1, P);
     int ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
@@ -1323,33 +1313,6 @@ PUBLIC void update_cofold_params_par(paramT *parameters){
   if (init_length < 0) init_length=0;
 }
 
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void make_ptypes(const short *S, const char *structure) {
-  int n,i,j,k,l;
-  int noLP = P->model_details.noLP;
-
-  n=S[0];
-  for (k=1; k<n-TURN; k++)
-    for (l=1; l<=2; l++) {
-      int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l; if (j>n) continue;
-      type = pair[S[i]][S[j]];
-      while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = pair[S[i-1]][S[j+1]];
-        if (noLP && (!otype) && (!ntype))
-          type = 0; /* i.j can only form isolated pairs */
-        ptype[indx[j]+i] = (char) type;
-        otype =  type;
-        type  = ntype;
-        i--; j++;
-      }
-    }
-
-  if (struct_constrained && (structure != NULL))
-    constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
-}
-
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {
   /*exports monomere free energies*/
   *e1 = mfe1;
@@ -1388,16 +1351,17 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   float     energy;
   SOLUTION  *zukresults;
   bondT     *pairlist;
+  unsigned int constraint_options;
 
-  num_pairs       = counter = 0;
-  zuker           = 1;
-  length          = (int)strlen(string);
-  doubleseq       = (char *)space((2*length+1)*sizeof(char));
-  mfestructure    = (char *) space((unsigned) 2*length+1);
-  structure       = (char *) space((unsigned) 2*length+1);
-  zukresults      = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
-  mfestructure[0] = '\0';
-  BP              = (int *)space(sizeof(int)*(2*length+2));
+  num_pairs           = counter = 0;
+  zuker               = 1;
+  length              = (int)strlen(string);
+  doubleseq           = (char *)space((2*length+1)*sizeof(char));
+  mfestructure        = (char *) space((unsigned) 2*length+1);
+  structure           = (char *) space((unsigned) 2*length+1);
+  zukresults          = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
+  mfestructure[0]     = '\0';
+  constraint_options  = 0;
 
   /* double the sequence */
   strcpy(doubleseq,string);
@@ -1418,7 +1382,12 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   S     = encode_sequence(doubleseq, 0);
   S1    = encode_sequence(doubleseq, 1);
   S1[0] = S[0]; /* store length at pos. 0 */
-  make_ptypes(S, NULL); /* no constraint folding possible (yet?) with zukersubopt */
+  ptype = get_ptypes(S, &(P->model_details), 0);
+  hc    = get_hard_constraints( (const char *)structure,
+                                (unsigned int)(2*length),
+                                ptype,
+                                TURN,
+                                constraint_options);
 
   (void)fill_arrays(doubleseq);
 
@@ -1484,7 +1453,7 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   free(mfestructure);
   free(doubleseq);
   zuker=0;
-  free(S); free(S1); free(BP);
+  free(S); free(S1);
   return zukresults;
 }
 

@@ -9,6 +9,7 @@
 #include "params.h"
 #include "fold_vars.h"
 #include "energy_par.h"
+#include "constraints.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -361,6 +362,26 @@ INLINE  PRIVATE int E_Hairpin(int size,
 
   return energy;
 }
+
+INLINE  PRIVATE int E_hp_loop(const char *sequence,
+                              unsigned int i,
+                              unsigned int j,
+                              char type,
+                              short *S,
+                              char hc,
+                              int *hc_up,
+                              soft_constraintT *sc,
+                              paramT *P){
+  int u = j - i - 1;
+  /* is this base pair allowed to close a hairpin loop ? */
+  if(hc & IN_HP_LOOP){
+    /* are all nucleotides in the loop allowed to be unpaired ? */
+    if(hc_up[i+1] >= u)
+      return E_Hairpin(u, type, S[i+1], S[j-1], sequence+i-1, P);
+  }
+  return INF;
+}
+
 
 INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       int type,

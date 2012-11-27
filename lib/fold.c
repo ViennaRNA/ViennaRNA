@@ -298,7 +298,12 @@ PUBLIC float fold_par(const char *string,
   constraint_options  = 0;
   /* prepare constraint options */
   if(struct_constrained && structure)
-    constraint_options |= VRNA_CONSTRAINT_DB;
+    constraint_options |=   VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
 #ifdef _OPENMP
   init_fold(length, parameters);
@@ -319,7 +324,6 @@ PUBLIC float fold_par(const char *string,
                                 constraint_options);
 
   energy = fill_arrays(string);
-
   if(circular){
     fill_arrays_circ(string, &s);
     energy = Fc;
@@ -356,7 +360,9 @@ PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, ij, p, q, k, length, energy, en, mm5, mm3;
   int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt;
+  int   no_close, type_2, tt;
+
+  char  type;
 
   int   dangle_model, noGUclosure, noLP, with_gquads;
   int   *rtype;
@@ -407,18 +413,16 @@ PRIVATE int fill_arrays(const char *string) {
 
       if (hc_decompose) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
-
         /* hairpin ----------------------------------------------*/
-
-        /* CONSTRAINED HAIRPIN start */
-        int u = j - i - 1;
-        /* is this base pair allowed to close a hairpin loop ? */
-        if(hc_decompose & IN_HP_LOOP){
-          /* are all nucleotides in the loop allowed to be unpaired ? */
-          if(hc_up_hp[i+1] >= u)
-            new_c = E_Hairpin(u, type, S1[i+1], S1[j-1], string+i-1, P);
-        }
-        /* CONSTRAINED HAIRPIN end */
+        new_c += E_hp_loop( string,
+                            (unsigned int)i,
+                            (unsigned int)j,
+                            type,
+                            S1,
+                            hc_decompose,
+                            hc_up_hp,
+                            NULL,
+                            P);
 
         /*--------------------------------------------------------
           check for elementary structures involving more than one

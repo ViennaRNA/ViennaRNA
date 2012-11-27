@@ -110,7 +110,6 @@ PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
-PRIVATE double      alpha = 1.0;
 PRIVATE int         struct_constrained = 0;
 
 #ifdef _OPENMP
@@ -118,7 +117,7 @@ PRIVATE int         struct_constrained = 0;
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, alpha, struct_constrained)
+                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, struct_constrained)
 
 #endif
 
@@ -695,7 +694,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   } else {
     model_detailsT md;
     set_model_details(&md);
-    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
+    pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
 
   scaling_factor  = pf_params->pf_scale;
