@@ -390,7 +390,6 @@ PRIVATE int fill_arrays(const char *string) {
           check for elementary structures involving more than one
           closing pair.
           --------------------------------------------------------*/
-
         for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
           int minq = j-i+p-MAXLOOP-2;
           if (minq<p+1+TURN) minq = p+1+TURN;
@@ -406,9 +405,11 @@ PRIVATE int fill_arrays(const char *string) {
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
             if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
-              energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
+              if((hard_constraints[pq] & IN_INT_LOOP_ENC) && (hard_constraints[ij] & IN_INT_LOOP))
+                energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
             else
-              energy = E_IntLoop_Co(rtype[type], rtype[type_2],
+              if((hard_constraints[pq] & IN_EXT_LOOP) && (hard_constraints[ij] & IN_EXT_LOOP))
+                energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                                     i, j, p, q,
                                     cut_point,
                                     si, sj,
@@ -429,39 +430,61 @@ PRIVATE int fill_arrays(const char *string) {
           int MLenergy;
 
           if((si >= 0) && (sj >= 0)){
-            decomp = DMLi1[j-1];
-            tt = rtype[type];
-            MLenergy = P->MLclosing;
-            switch(dangle_model){
-              case 0:   MLenergy += decomp + E_MLstem(tt, -1, -1, P);
-                        break;
-              case 2:   MLenergy += decomp + E_MLstem(tt, sj, si, P);
-                        break;
-              default:  decomp += E_MLstem(tt, -1, -1, P);
-                        decomp = MIN2(decomp, DMLi1[j-2] + E_MLstem(tt, sj, -1, P) + P->MLbase);
-                        decomp = MIN2(decomp, DMLi2[j-1] + E_MLstem(tt, -1, si, P) + P->MLbase);
-                        decomp = MIN2(decomp, DMLi2[j-2] + E_MLstem(tt, sj, si, P) + 2*P->MLbase);
-                        MLenergy += decomp;
-                        break;
+            if(hard_constraints[ij] & IN_MB_LOOP){
+              decomp    = DMLi1[j-1];
+              tt        = rtype[type];
+              MLenergy  = P->MLclosing;
+              switch(dangle_model){
+                case 0:   MLenergy += decomp + E_MLstem(tt, -1, -1, P);
+                          break;
+                case 2:   MLenergy += decomp + E_MLstem(tt, sj, si, P);
+                          break;
+                default:  decomp += E_MLstem(tt, -1, -1, P);
+                          if(hc_up_ml[j-1]){
+                            energy = DMLi1[j-2] + E_MLstem(tt, sj, -1, P) + P->MLbase;
+                            decomp = MIN2(decomp, energy);
+                          }
+                          if(hc_up_ml[i+1]){
+                            energy = DMLi2[j-1] + E_MLstem(tt, -1, si, P) + P->MLbase;
+                            decomp = MIN2(decomp, energy);
+                          }
+                          if((hc_up_ml[i+1]) && (hc_up_ml[j-1])){
+                            energy = DMLi2[j-2] + E_MLstem(tt, sj, si, P) + 2*P->MLbase;
+                            decomp = MIN2(decomp, energy);
+                          }
+                          MLenergy += decomp;
+                          break;
+              }
+              new_c = MIN2(new_c, MLenergy);
             }
-            new_c = MIN2(new_c, MLenergy);
           }
 
           if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
-            decomp = fc[i+1] + fc[j-1];
-            tt = rtype[type];
-            switch(dangle_model){
-              case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
-                        break;
-              case 2:   decomp += E_ExtLoop(tt, sj, si, P);
-                        break;
-              default:  decomp += E_ExtLoop(tt, -1, -1, P);
-                        decomp = MIN2(decomp, fc[i+2] + fc[j-2] + E_ExtLoop(tt, sj, si, P));
-                        decomp = MIN2(decomp, fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, si, P));
-                        decomp = MIN2(decomp, fc[i+1] + fc[j-2] + E_ExtLoop(tt, sj, -1, P));
-                        break;
+            if(hard_constraints[ij] & IN_EXT_LOOP){
+              decomp = fc[i+1] + fc[j-1];
+              tt = rtype[type];
+              switch(dangle_model){
+                case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
+                          break;
+                case 2:   decomp += E_ExtLoop(tt, sj, si, P);
+                          break;
+                default:  decomp += E_ExtLoop(tt, -1, -1, P);
+                          if((hc_up_ext[i+1]) && (hc_up_ext[j-1])){
+                            energy = fc[i+2] + fc[j-2] + E_ExtLoop(tt, sj, si, P);
+                            decomp = MIN2(decomp, energy);
+                          }
+                          if(hc_up_ext[i+1]){
+                            energy = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, si, P);
+                            decomp = MIN2(decomp, energy);
+                          }
+                          if(hc_up_ext[j-1]){
+                            energy = fc[i+1] + fc[j-2] + E_ExtLoop(tt, sj, -1, P);
+                            decomp = MIN2(decomp, energy);
+                          }
+                          break;
+              }
+              new_c = MIN2(new_c, decomp);
             }
-            new_c = MIN2(new_c, decomp);
           }
         } /* end >> if (!no_close) << */
 
@@ -469,15 +492,20 @@ PRIVATE int fill_arrays(const char *string) {
 
         if (dangle_model==3) {
           decomp = INF;
-          for (k = i+2+TURN; k < j-2-TURN; k++) {
-            type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
-            if (type_2)
-              decomp = MIN2(decomp, c[indx[k]+i+1]+P->stack[type][type_2]+
-                            fML[indx[j-1]+k+1]);
-            type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2];
-            if (type_2)
-              decomp = MIN2(decomp, c[indx[j-1]+k+1]+P->stack[type][type_2]+
-                            fML[indx[k]+i+1]);
+          int i1k, k1j1;
+          k1j1  = indx[j-1] + i + 2 + TURN + 1;
+          for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++) {
+            i1k = indx[k]+i+1;
+            if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
+              type_2  = rtype[ptype[i1k]];
+              energy  = c[i1k] + P->stack[type][type_2] + fML[k1j1];
+              decomp  = MIN2(decomp, energy);
+            }
+            if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
+              type_2  = rtype[ptype[k1j1]];
+              energy  = c[k1j1] + P->stack[type][type_2] + fML[i1k];
+              decomp  = MIN2(decomp, energy);
+            }
           }
           /* no TermAU penalty if coax stack */
           decomp += 2*P->MLintern[1] + P->MLclosing;
@@ -513,41 +541,55 @@ PRIVATE int fill_arrays(const char *string) {
       /* free ends ? -----------------------------------------*/
       new_fML=INF;
       if (SAME_STRAND(i-1,i)) {
-        if (SAME_STRAND(i,i+1)) new_fML = fML[ij+1]+P->MLbase;
-        if (SAME_STRAND(j-1,j)) new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
-        if (SAME_STRAND(j,j+1)) {
-          energy = c[ij];
-          if(dangle_model == 2)
-            energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
-          else
-            energy += E_MLstem(type, -1, -1, P);
-
-          new_fML = MIN2(new_fML, energy);
-
-          if(with_gquad){
-            int gggg = ggg[ij] + E_MLstem(0, -1, -1, P);
-            energy = MIN2(energy, gggg);
-            new_fML = MIN2(new_fML, energy);
+        if (SAME_STRAND(i,i+1))
+          if(hc_up_ml[i])
+            new_fML = fML[ij+1]+P->MLbase;
+        if (SAME_STRAND(j-1,j))
+          if(hc_up_ml[j]){
+            new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->MLbase);
+            if(uniq_ML)
+              fM1[ij] = fM1[indx[j-1]+i] + P->MLbase;
           }
+        if (SAME_STRAND(j,j+1)) {
+          if(hard_constraints[ij] & IN_MB_LOOP_ENC){
+            energy = c[ij];
+            if(dangle_model == 2)
+              energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
+            else
+              energy += E_MLstem(type, -1, -1, P);
+            new_fML = MIN2(new_fML, energy);
 
-          if(uniq_ML){
-            fM1[ij] = energy;
-            if(SAME_STRAND(j-1,j))
-              fM1[ij] = MIN2(energy, fM1[indx[j-1]+i] + P->MLbase);
+            if(with_gquad){
+              int gggg = ggg[ij] + E_MLstem(0, -1, -1, P);
+              energy = MIN2(energy, gggg);
+              new_fML = MIN2(new_fML, energy);
+            }
+
+            if(uniq_ML)
+              fM1[ij] = MIN2(fM1[ij], energy);
           }
         }
         if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
-            tt = ptype[ij+1]; /* i+1,j */
-            new_fML = MIN2(new_fML, c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P));
+            if((hard_constraints[ij+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i])){
+              tt      = ptype[ij+1]; /* i+1,j */
+              energy  = c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P);
+              new_fML = MIN2(new_fML, energy);
+            }
           }
           if (SAME_STRAND(j-1,j)) {
-            tt = ptype[indx[j-1]+i]; /* i,j-1 */
-            new_fML = MIN2(new_fML, c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P));
+            if((hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC) && (hc_up_ml[j])){
+              tt      = ptype[indx[j-1]+i]; /* i,j-1 */
+              energy  = c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P);
+              new_fML = MIN2(new_fML, energy);
+            }
           }
           if ((SAME_STRAND(j-1,j))&&(SAME_STRAND(i,i+1))) {
-            tt = ptype[indx[j-1]+i+1]; /* i+1,j-1 */
-            new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P));
+            if((hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i]) && (hc_up_ml[j])){
+              tt      = ptype[indx[j-1]+i+1]; /* i+1,j-1 */
+              energy  = c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P);
+              new_fML = MIN2(new_fML, energy);
+            }
           }
         }
       }
