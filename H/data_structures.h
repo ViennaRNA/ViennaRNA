@@ -249,7 +249,6 @@ typedef struct{
  *  \ingroup hard_constraints
  */
 typedef struct {
-  char    *config;
   char    *matrix;  /**<  \brief  Upper triangular matrix encoding where a
                                   base pair or unpaired nucleotide is allowed
                     */
