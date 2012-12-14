@@ -40,9 +40,6 @@
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#define LOCALITY          0.      /* locality parameter for base-pairs */
-
-#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
 
 /*
 #################################
@@ -58,18 +55,12 @@ PUBLIC  int uniq_ML   = 0;  /* do ML decomposition uniquely (for subopt) */
 */
 PRIVATE int     *indx     = NULL; /* index for moving in the triangle matrices c[] and fMl[]*/
 PRIVATE int     *c        = NULL; /* energy array, given that i-j pair */
-PRIVATE int     *cc       = NULL; /* linear array for calculating canonical structures */
-PRIVATE int     *cc1      = NULL; /*   "     "        */
 PRIVATE int     *f5       = NULL; /* energy of 5' end */
-PRIVATE int     *f53      = NULL; /* energy of 5' end with 3' nucleotide not available for mismatches */
 PRIVATE int     *fML      = NULL; /* multi-loop auxiliary energy array */
 PRIVATE int     *fM1      = NULL; /* second ML array, only for subopt */
 PRIVATE int     *fM2      = NULL; /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
-PRIVATE int     *Fmi      = NULL; /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int     *DMLi     = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi1    = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi2    = NULL; /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies */
+PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies for circfolding */
+
 PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
 PRIVATE short   *S = NULL, *S1 = NULL;
@@ -87,8 +78,7 @@ PRIVATE hard_constraintT  *hc                 = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(indx, c, cc, cc1, f5, f53, fML, fM1, fM2, Fmi,\
-                          DMLi, DMLi1, DMLi2, Fc, FcH, FcI, FcM, hc,\
+#pragma omp threadprivate(indx, c, f5, fML, fM1, fM2, Fc, FcH, FcI, FcM, hc,\
                           sector, ptype, S, S1, P, init_length, base_pair2, circular, struct_constrained,\
                           ggg, with_gquad)
 
@@ -148,13 +138,6 @@ PRIVATE void get_arrays(unsigned int size){
     fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
 
   f5    = (int *) space(sizeof(int)*(size+2));
-  f53   = (int *) space(sizeof(int)*(size+2));
-  cc    = (int *) space(sizeof(int)*(size+2));
-  cc1   = (int *) space(sizeof(int)*(size+2));
-  Fmi   = (int *) space(sizeof(int)*(size+1));
-  DMLi  = (int *) space(sizeof(int)*(size+1));
-  DMLi1 = (int *) space(sizeof(int)*(size+1));
-  DMLi2 = (int *) space(sizeof(int)*(size+1));
 
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
   /* extra array(s) for circfold() */
@@ -169,22 +152,15 @@ PUBLIC void free_arrays(void){
   if(c)         free(c);
   if(fML)       free(fML);
   if(f5)        free(f5);
-  if(f53)       free(f53);
-  if(cc)        free(cc);
-  if(cc1)       free(cc1);
   if(ptype)     free(ptype);
   if(fM1)       free(fM1);
   if(fM2)       free(fM2);
   if(base_pair2) free(base_pair2);
-  if(Fmi)       free(Fmi);
-  if(DMLi)      free(DMLi);
-  if(DMLi1)     free(DMLi1);
-  if(DMLi2)     free(DMLi2);
   if(P)         free(P);
   if(ggg)       free(ggg);
   if(hc)        destroy_hard_constraints(hc);
 
-  indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
+  indx = c = fML = f5 = fM1 = fM2 = ggg = NULL;
   ptype = NULL;
 
   hc  = NULL;
@@ -360,13 +336,19 @@ PUBLIC float fold_par(const char *string,
 PRIVATE int fill_arrays(const char *string) {
 
   int   i, j, ij, p, q, k, length, energy, en, mm5, mm3;
-  int   decomp, new_fML, max_separation;
+  int   decomp, new_fML, new_c, stackEnergy;
   int   no_close, type_2, tt;
 
   char  type;
 
   int   dangle_model, noGUclosure, noLP, with_gquads;
   int   *rtype;
+
+  int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
+  int   *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
+  int   *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int   *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
   int   hc_decompose;
   char  *hard_constraints = hc->matrix;
@@ -379,24 +361,34 @@ PRIVATE int fill_arrays(const char *string) {
   noGUclosure   = P->model_details.noGUclosure;
   noLP          = P->model_details.noLP;
   rtype         = &(P->model_details.rtype[0]);
-
-  length = (int) strlen(string);
-
-  max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
+  length        = (int) strlen(string);
 
   if(with_gquad)
     ggg = get_gquad_matrix(S, P);
 
+  /* allocate memory for all helper arrays */
+  cc    = (int *) space(sizeof(int)*(length + 2));
+  cc1   = (int *) space(sizeof(int)*(length + 2));
+  Fmi   = (int *) space(sizeof(int)*(length + 1));
+  DMLi  = (int *) space(sizeof(int)*(length + 1));
+  DMLi1 = (int *) space(sizeof(int)*(length + 1));
+  DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
-  for (j=1; j<=length; j++) {
-    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
+  /* prefill helper arrays */
+  for(j = 1; j <= length; j++){
+    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
   }
 
-  for (j = 1; j<=length; j++)
-    for (i=(j>TURN?(j-TURN):1); i<j; i++) {
-      c[indx[j]+i] = fML[indx[j]+i] = INF;
-      if (uniq_ML) fM1[indx[j]+i] = INF;
+
+  /* prefill matrices with init contributions */
+  for(j = 1; j <= length; j++)
+    for(i = (j > TURN ? (j - TURN) : 1); i < j; i++){
+      c[indx[j] + i] = fML[indx[j] + i] = INF;
+      if(uniq_ML)
+        fM1[indx[j] + i] = INF;
     }
+
+  /* start recursion */
 
   if (length <= TURN) return 0;
 
@@ -410,10 +402,8 @@ PRIVATE int fill_arrays(const char *string) {
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
 
-      if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
-
       if (hc_decompose) {   /* we have a pair */
-        int new_c=INF, stackEnergy=INF;
+        new_c = INF;
         /* hairpin ----------------------------------------------*/
         if(!no_close)
           energy = E_hp_loop( string,
@@ -459,7 +449,6 @@ PRIVATE int fill_arrays(const char *string) {
                 energy = E_IntLoop(p_i, j_q, type, type_2,
                                     S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
-                if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
                 energy += c[pq];
                 new_c = MIN2(new_c, energy);
 
@@ -540,6 +529,11 @@ PRIVATE int fill_arrays(const char *string) {
           }
         }
 
+        stackEnergy = INF;
+        if((hc_decompose & IN_INT_LOOP) && (hard_constraints[indx[j-1] + i + 1] & IN_INT_LOOP_ENC)){
+          type_2 = rtype[ptype[indx[j-1] + i + 1]];
+          stackEnergy = P->stack[type][type_2];
+        }
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c;
         if (noLP)
@@ -797,6 +791,15 @@ PRIVATE int fill_arrays(const char *string) {
                 }
               }
   }
+
+  /* clean up memory */
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
   return f5[length];
 }
 
