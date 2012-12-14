@@ -948,11 +948,16 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
   TOL=1e-6; /*Tolerance for convergence*/
   ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
   do {
-    det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA);
-    xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
-            (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
-    yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
-            (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
+    /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
+    det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
+    /* xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
+       (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det; */
+    xn  = ( (2.0 * KBB * cB*cB + cB - concB) * (KAB *cA) - KAB*cA*cB*(4. * KBB*cB + 1.) -
+	    (2.0 * KAA * cA*cA + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
+    /* yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
+       (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det; */
+    yn  = ( (2.0 * KAA * cA*cA + cA - concA) * (KAB *cB) - KAB*cA*cB*(4. * KAA*cA + 1.) -
+            (2.0 * KBB * cB*cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
     EPS = fabs(xn/cA) + fabs(yn/cB);
     cA += xn;
     cB += yn;
