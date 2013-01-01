@@ -1,9 +1,13 @@
 
 
 if WITH_LIBSVM
-  RNALfold_LINK = ${CXXLD} -o $@
+  RNALfold_LINK = ${CXXLD} \
+                  $(AM_CXXFLAGS) $(CXXFLAGS) \
+                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
 else
-  RNALfold_LINK = ${CCLD} -o $@
+  RNALfold_LINK = ${CCLD} \
+                  $(AM_CFLAGS) $(CFLAGS) \
+                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 

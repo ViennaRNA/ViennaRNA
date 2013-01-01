@@ -1,6 +1,6 @@
 SUBDIRS = lib Progs man Utils H @subdirs@
 
-pkgdata_DATA = rna_turner1999.par rna_turner2004.par rna_andronescu2007.par dna_mathews1999.par dna_mathews2004.par
+pkgdata_DATA = rna_turner1999.par rna_turner2004.par rna_andronescu2007.par dna_mathews1999.par dna_mathews2004.par viennarna.bib
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc
@@ -42,10 +42,17 @@ if WITH_REFERENCE_MANUAL_BUILD
 
 ##--------------------------------------------------##
 ## This is the rule how to generate the tagfile     ##
+## and the actual reference manual sources          ##
+##                                                  ##
+## here we need to chdir into the output directory  ##
+## and get the bibtex file since otherwise doxygen  ##
+## would not link the references correctly          ##
 ##--------------------------------------------------##
 $(REFERENCE_MANUAL_FILES_TAG):  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
 	-rm -rf @DOXYGEN_DOCDIR@
-	@doxygen@ @DOXYGEN_CONF@
+	mkdir -p @DOXYGEN_DOCDIR@
+	cp viennarna.bib @DOXYGEN_DOCDIR@/
+	cd @DOXYGEN_DOCDIR@; @doxygen@ ../@DOXYGEN_CONF@
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
