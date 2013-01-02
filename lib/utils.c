@@ -233,7 +233,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
     return VRNA_INPUT_QUIT;
   }
   /* print line read if not disabled */
-  //if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
+  /* if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line); */
 
   /* eliminate whitespaces at the end of the line read */
   if(!(option & VRNA_INPUT_NO_TRUNCATION)){

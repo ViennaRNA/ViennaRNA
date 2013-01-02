@@ -60,7 +60,7 @@ static char rcsid[] = "$Id: energy_par.c,v 1.6 2004/08/12 12:11:57 ivo Exp $";
 PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
 
 
-//PUBLIC double lxc37=107.9;
+/* PUBLIC double lxc37=107.9; */
 PUBLIC double lxc37=107.856;
 PUBLIC int ML_intern37=-90;
 PUBLIC int ML_interndH=-220;

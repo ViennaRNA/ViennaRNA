@@ -522,18 +522,18 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
 /*     ymin = Y[i] < ymin ? Y[i] : ymin; */
 /*     ymax = Y[i] > ymax ? Y[i] : ymax; */
 /*   } */
-  //localize centre of the interaction bucket. Geometry
+  /* localize centre of the interaction bucket. Geometry */
   
-  for (i = 1; i < cut_point; i++) {  //interior loop of size 0
+  for (i = 1; i < cut_point; i++) {  /* interior loop of size 0 */
     if(pair_table_snoop[i] != 0){ 
       X[i-1]=X[pair_table_snoop[i]-1]; 
       Y[i-1]=Y[pair_table_snoop[i]-1]; 
     }
-    else if(pair_table_snoop[i-1] && pair_table_snoop[i+1]){ //interior loop of size 1
+    else if(pair_table_snoop[i-1] && pair_table_snoop[i+1]){ /* interior loop of size 1 */
       X[i-1]=X[pair_table_snoop[i-1] -1-1];
       Y[i-1]=Y[pair_table_snoop[i-1] -1-1];
     } 
-    else if(pair_table_snoop[i-1] && pair_table_snoop[i+2]){ //interior loop of size 2
+    else if(pair_table_snoop[i-1] && pair_table_snoop[i+2]){ /* interior loop of size 2 */
       if(pair_table_snoop[i-1] - pair_table_snoop[i+2] ==2){
 	X[i-1]=X[pair_table_snoop[i-1]-2];
 	Y[i-1]=Y[pair_table_snoop[i-1]-2];
@@ -570,7 +570,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
 	i++;
       }
     }
-    else if(pair_table_snoop[i-1] && pair_table_snoop[i+3]){ //interior loop of size 2
+    else if(pair_table_snoop[i-1] && pair_table_snoop[i+3]){ /* interior loop of size 2 */
       if(pair_table[pair_table_snoop[i-1]-1]){
 	X[i-1]=0.5*(X[pair_table_snoop[i-1]-1]+X[pair_table_snoop[i-1]-2]);
 	Y[i-1]=0.5*(Y[pair_table_snoop[i-1]-1]+Y[pair_table_snoop[i-1]-2]);
@@ -615,11 +615,11 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   double R ;
   double d ;
   float X0=-1,Y0=-1,X1=-1,Y1=-1,X2=-1,Y2=-1;
-//  int c1,c2,c3;
+/*   int c1,c2,c3; */
   for(i=1;i<cut_point; i++){
     if(pair_table_snoop[i]){
       X0=X[pair_table_snoop[i]-1];Y0=Y[pair_table_snoop[i]-1];
-  //    c1=pair_table_snoop[i];
+  /*     c1=pair_table_snoop[i]; */
       i++;
       break;
     }
@@ -627,7 +627,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   for(;i<cut_point; i++){
     if(pair_table_snoop[i]){
       X1=X[pair_table_snoop[i]-1];Y1=Y[pair_table_snoop[i]-1];
-    //  c2=pair_table_snoop[i];
+    /*   c2=pair_table_snoop[i]; */
       i++;
       break;
     }
@@ -635,7 +635,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   for(;i<cut_point; i++){
     if(pair_table_snoop[i]){
       X2=X[pair_table_snoop[i]-1];Y2=Y[pair_table_snoop[i]-1];
-    //  c3=pair_table_snoop[i];
+    /*   c3=pair_table_snoop[i]; */
       i++;
       break;
     }
@@ -669,7 +669,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   double alpha_p =   (X1 -X2)/(Y2-Y1);
   double b =         (Y0+Y1 -alpha*(X0+X1))*0.5;
   double b_p =       (Y1+Y2 -alpha_p*(X1+X2))*0.5;
-  //   if(abs(alpha -alpha_p) > 0.0000001){
+  /*    if(abs(alpha -alpha_p) > 0.0000001){ */
   xC  =  (b_p - b) / (alpha - alpha_p);
   yC  =  alpha * xC + b;
   R   =  sqrt((xC-X0)*(xC-X0) + (yC-Y0)*(yC-Y0));
@@ -769,9 +769,9 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
 	  "drawoutline\n"
 	  "drawpairs\n"
 	  "drawbases\n");
-  //fprintf(xyplot, "%d cmark\n",c1);
-  //fprintf(xyplot, "%d cmark\n",c2);
-  //fprintf(xyplot, "%d cmark\n",c3);
+  /* fprintf(xyplot, "%d cmark\n",c1); */
+  /* fprintf(xyplot, "%d cmark\n",c2); */
+  /* fprintf(xyplot, "%d cmark\n",c3); */
   if (seqs) { 
      fprintf(xyplot, "%% Start Annotations\n"); 
      fprintf(xyplot, "%s\n", A[1]); 
@@ -1810,8 +1810,8 @@ int aliPS_color_aln(const char *structure, const char *filename,
 /*     if(structur[i] == '<') structur[i]='('; */
 /*     if(structur[i] == '>') structur[i]=')'; */
 /*   } */
-//  structur[length]='\0';   
-//  printf("%s \n", structur);
+/*   structur[length]='\0';    */
+/*   printf("%s \n", structur); */
    pair_table=alimake_pair_table(structure);
   /* Get length of longest name and count sequences in alignment*/
 

@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
             access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length);
           }
           if(access_s1 == NULL){
-            printf("Accessibility file %s not found, look at next target RNA\n",file_s1);
+            printf("Accessibility file %s not found or corrupt, look at next target RNA\n",file_s1);
             free(file_s1);
             free(s1);
             free(id_s1);

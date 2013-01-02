@@ -1229,7 +1229,7 @@ PUBLIC int energy_of_struct_pt_par( const char *string,
   S1 = s1;
 
   length = S[0];
-//  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
+/*   energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1); */
     energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(0, ptable);
   if (verbosity_level>0)
     printf("External loop                           : %5d\n", energy);
@@ -1746,7 +1746,7 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                                             );
                 E2_mm5_available =      MIN2(tmp2, E2_mm5_available + E_MLstem(tt, -1, -1, P));
                 E2_mm5_occupied = tmp;
-                //printf("(%d,%d): \n E_o = %d, E_a = %d, E2_o = %d, E2_a = %d\n", p, q, E_mm5_occupied,E_mm5_available,E2_mm5_occupied,E2_mm5_available);
+                /* printf("(%d,%d): \n E_o = %d, E_a = %d, E2_o = %d, E2_a = %d\n", p, q, E_mm5_occupied,E_mm5_available,E2_mm5_occupied,E2_mm5_available); */
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;

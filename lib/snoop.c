@@ -25,7 +25,7 @@
 #include "params.h"
 #include "snoop.h"
 #include "PS_dot.h"
-//#include "fold.h"
+/* #include "fold.h" */
 #include "duplex.h"
 #include "loop_energies.h"
 /*@unused@*/
@@ -182,7 +182,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   type = (int *) space(n_seq*sizeof(int));
   type2 = (int *) space(n_seq*sizeof(int));
   type3 = (int *) space(n_seq*sizeof(int));
-  //  encode_seqs(s1, s2);
+  /*   encode_seqs(s1, s2); */
   for (i=6; i<=n1-5; i++) {
     int U; U=0;
     for (s=0; s<n_seq; s++) {
@@ -221,7 +221,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
 	  temp=temp->next;
 	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       for (s=0; s<n_seq; s++) {
 	c[i][j] += E_ExtLoop(type[s], Sali1[s][i-1],Sali2[s][j+1],P);
       }
@@ -278,8 +278,8 @@ snoopT alisnoopfold(const char **s1, const char **s2,
 			     half_stem, max_half_stem, min_s2, 
 			     max_s2, min_s1, max_s1, min_d1, 
 			     min_d2,(const short**) Sali1,(const short**) Sali2);
-  //if (i_min<n1-5) i_min++;
-  //if (j_min>6 ) j_min--;
+  /* if (i_min<n1-5) i_min++; */
+  /* if (j_min>6 ) j_min--; */
   l1 = strchr(struc, '&')-struc;
   mfe.i = i_min-5;
   mfe.j = j_min-5;
@@ -314,7 +314,7 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
 
 
   short **Sali1, **Sali2;
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j,s,n_seq, n1, n2, E, n_subopt=0, n_max;
   char *struc;
   snoopT mfe;
@@ -338,7 +338,7 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
 	return NULL;
   }
   thresh = MIN2((int) ((mfe.Duplex_Er + mfe.Duplex_El + mfe.Loop_E)*100+0.1 + 410) + delta, threshTE );
- //subopt[n_subopt++]=mfe;
+ /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
   n1 = strlen(s1[0]);
   n2 = strlen(s2[0]);
@@ -365,8 +365,8 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
       if (psc<MINPSCORE) continue;
       E = Ed = r[i][j];
       for  (s=0; s<n_seq; s++) {
-	//	if (i<n1-5) Ed += P->dangle3[type[s]][Sali1[s][i+1]];
-	//      if (j>6)  Ed += P->dangle5[type[s]][Sali2[s][j-1]];
+	/* 	if (i<n1-5) Ed += P->dangle3[type[s]][Sali1[s][i+1]]; */
+	/*       if (j>6)  Ed += P->dangle5[type[s]][Sali2[s][j-1]]; */
 	if (type[s]>2) Ed += P->TerminalAU;
       }
       if (Ed>thresh) continue;
@@ -391,14 +391,14 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
          (Duplex_Er + Duplex_El) > threshDE || 
 	 (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
 	 (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
-	 	//printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n"
-		//       " Duplex_Er + Duplex_El %d  threshDE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n", 
-		//	 Duplex_Er , threshRE , Duplex_El ,threshLE,
-	        //         Duplex_Er + Duplex_El, threshDE,
-        	//         Duplex_Er + Duplex_El+  Loop_E , threshTE,
-                //	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE); 
+	 	/* printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n" */
+		/*        " Duplex_Er + Duplex_El %d  threshDE %d \n" */
+		/*        " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n" */
+		/*        " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n",  */
+		/* 	 Duplex_Er , threshRE , Duplex_El ,threshLE, */
+	        /*          Duplex_Er + Duplex_El, threshDE, */
+        	/*          Duplex_Er + Duplex_El+  Loop_E , threshTE, */
+                /* 	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE);  */
 	 	Duplex_Er=0; 
 		Duplex_El=0;
 		Loop_E = 0;
@@ -425,7 +425,7 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
       subopt[n_subopt].psct = -psct * 0.01;
       subopt[n_subopt++].structure = struc;
       
-      //i=u;
+      /* i=u; */
       Duplex_Er=0; Duplex_El=0; Loop_E=0; Loop_D=0;u=0;pscd=0;psct=0;
     }
   }
@@ -463,7 +463,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, *type,*type2,*type3,type4, E, traced, i0, j0,s,n_seq,psc;
-  int traced_r=0; //flag for following backtrack in c or r
+  int traced_r=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
   n1 = (int) Sali1[0][0];
@@ -484,7 +484,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
-  i0=i; j0=j; //MIN2(i+1,n1); j0=MAX2(j-1,1);!modified
+  i0=i; j0=j; /* MIN2(i+1,n1); j0=MAX2(j-1,1);!modified */
   for (s=0; s<n_seq; s++) {
     type[s] = pair[Sali1[s][i]][Sali2[s][j]];
     if(type[s]==0) type[s] = 7;
@@ -532,7 +532,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
 	  U+=Sali1[s][i-2];
 	}
 	U = (U==(n_seq)*4?1:0);
-	if(/*  pair[Sali1[i+1]][Sali2[j-1]] && */   //only U's are allowed
+	if(/*  pair[Sali1[i+1]][Sali2[j-1]] && */   /* only U's are allowed */
 	    U && j < max_s1 && j > min_s1 && 
 	    j > n2 - max_s2 - max_half_stem && 
 	    j < n2 -min_s2 -half_stem ) {
@@ -550,18 +550,18 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
 	    }
 	    psc2 = covscore(type2, n_seq);
 	    psc3 = covscore(type3, n_seq);
-	    if(psc2>MINPSCORE /*&& pair[Sali1[i-4]][Sali2[k+2]]*/    ){  //introduce structure from RNAfold
+	    if(psc2>MINPSCORE /*&& pair[Sali1[i-4]][Sali2[k+2]]*/    ){  /* introduce structure from RNAfold */
 	      if(E==c[i-3][k+1]+temp->energy){
 		*Loop_E=temp->energy;
 		st1[i-3]= '|';
 		*u=i-2;
 		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
+		/* int fix_ij=indx[k-1+1]+j+1; */
 		for(a=0; a< MISMATCH ;a++){
 		  for(b=0; b< MISMATCH ; b++){
 		    int ij=indx[k-1-a+1]+j+1+b;
 		    if(cLoop[ij]==temp->energy) {
-		      //int bla;
+		      /* int bla; */
 		      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
 		    a=INF; b=INF;	
 		    }
@@ -573,18 +573,18 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
 		break;
 	      }
 	    }
-	     if (psc3>MINPSCORE  /*&& pair[Sali1[i-5]][Sali2[k+2]]*/){  //introduce structure from RNAfold
+	     if (psc3>MINPSCORE  /*&& pair[Sali1[i-5]][Sali2[k+2]]*/){  /* introduce structure from RNAfold */
 	      if(E==c[i-4][k+1]+temp->energy){
 		*Loop_E=temp->energy;
 		st1[i-3]= '|';
 		*u=i-2;
 		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
+		/* int fix_ij=indx[k-1+1]+j+1; */
 		for(a=0; a< MISMATCH ;a++){
 		  for(b=0; b< MISMATCH ; b++){
 		    int ij=indx[k-1-a+1]+j+1+b;
 		    if(cLoop[ij]==temp->energy) {
-		      //int bla;
+		      /* int bla; */
 		      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
 		      a=INF; b=INF;	
 		    }
@@ -595,12 +595,12 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
 		i=i-4;j=k+1;
 		break;
 	      }
-	    } //else if
+	    } /* else if */
 	    temp=temp->next;
-	  } //while temp-> next
-	} //test on j 
-      }//traced?
-    }//traced_r?
+	  } /* while temp-> next */
+	} /* test on j  */
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = c[i][j]; traced=0;
       st1[i-1] = '<';
@@ -652,40 +652,40 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
   }
 /*   if (i>1)  i--;  */
 /*   if (j<n2) j++;  */
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i0-i+1+n2-1+1+2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i0-i+1+n2-1+1+2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*      	struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*      	if(k<j0) {struct_const[k-1]='<';} */
+    /*      	if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
 
-  //  char duplexseq_1[j0+1];
-  //char duplexseq_2[n2-j+3];
+  /*   char duplexseq_1[j0+1]; */
+  /* char duplexseq_2[n2-j+3]; */
   if(j<n2){
     char **duplexseq_1, **duplexseq_2;
     duplexseq_1 = (char**) space((n_seq+1) * sizeof(char*));
     duplexseq_2 = (char**) space((n_seq+1) * sizeof(char*));
     for(s=0; s<n_seq; s++){
-      duplexseq_1[s] = (char*) space((j0)*sizeof(char)); //modfied j0+1
-      duplexseq_2[s] = (char*) space((n2-j+2)*sizeof(char)); //modified j+3
-      strncpy(duplexseq_1[s], snoseq[s], j0-1); //modified j0
-      strcpy(duplexseq_2[s], snoseq[s] + j); //modified j-1
-      duplexseq_1[s][j0-1]='\0'; //modified j0
-      duplexseq_2[s][n2-j+1]='\0';//modified j+2
+      duplexseq_1[s] = (char*) space((j0)*sizeof(char)); /* modfied j0+1 */
+      duplexseq_2[s] = (char*) space((n2-j+2)*sizeof(char)); /* modified j+3 */
+      strncpy(duplexseq_1[s], snoseq[s], j0-1); /* modified j0 */
+      strcpy(duplexseq_2[s], snoseq[s] + j); /* modified j-1 */
+      duplexseq_1[s][j0-1]='\0'; /* modified j0 */
+      duplexseq_2[s][n2-j+1]='\0';/* modified j+2 */
     }
     duplexseq_1[n_seq]=NULL;
     duplexseq_2[n_seq]=NULL;
@@ -714,13 +714,13 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
     free(temp.structure);
   }
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
   free(type);free(type2);free(type3);
-  //free_arrays();
+  /* free_arrays(); */
   return struc;
 }
 
@@ -741,25 +741,25 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
  position = (int*) space((n1+3)*sizeof(int));
 
 
-  //int Eminj, Emin_l;
-  int i, j; //l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+  /* int Eminj, Emin_l; */
+  int i, j; /* l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
@@ -810,7 +810,7 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
 	  }
       	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       lc[idx][j] += E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, P);
       /**
       *** if (i>1)    lc[idx][j] += P->dangle5[type][SS1[i-1]];
@@ -878,25 +878,25 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
  position = (int*) space((n1+3)*sizeof(int));
 
 
- //int Eminj, Emin_l;
-  int i, j;// l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+ /* int Eminj, Emin_l; */
+  int i, j;/*  l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist,  &foldlist_XS); 
@@ -930,7 +930,7 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
     int idx_4=(i-4)%5;
 
     for (j=lim_maxj; j>lim_minj; j--) {
-      int type, type2;// E, k,l;
+      int type, type2;/*  E, k,l; */
       type = pair[S1[i]][S2[j]];
       lpair[idx][j] = type;
       lc[idx][j] = (type) ? P->DuplexInit + 2*penalty : INF;
@@ -947,49 +947,49 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
 	temp=foldlist[j+1];
 	while(temp->next){
 	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour
+	  /* if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour */
 	  if(lpair[idx_3][k+1] /*&& lpair[idx_4][k+2]*/){
 	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_3][k+1]+temp->energy);/*--NU--*/
 	  }
 	  /*else*/ if(lpair[idx_4][k+1]){/*--NUN--*/
 	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_4][k+1]+temp->energy);
 	  }
-	    // }
+	    /*  } */
 	  temp=temp->next;
 	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       lc[idx][j] += E_ExtLoop(type,  SS1[i-1] , SS2[j+1] , P);
       /**
       ***      lc[idx][j] += P->dangle5[type][SS1[i-1]];
       ***      lc[idx][j] += P->dangle3[type][SS2[j+1]];
       ***      if (type>2) lc[idx][j] += P->TerminalAU;
       **/
-      //      if(j<n2 && i>1){
-      //type2=pair[S1[i-1]][S2[j+1]];
+      /*       if(j<n2 && i>1){ */
+      /* type2=pair[S1[i-1]][S2[j+1]]; */
 	type2=lpair[idx_1][j+1];
 	if(type2>0 ){
 	  lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lc[idx][j]);
 	  lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lr[idx][j]);
 	}
-	//}
-	//      if(j<n2-1 && i>2){
-	//type2=pair[S1[i-2]][S2[j+2]];
+	/* } */
+	/*       if(j<n2-1 && i>2){ */
+	/* type2=pair[S1[i-2]][S2[j+2]]; */
 	type2=lpair[idx_2][j+2];
 	if(type2>0 ){
 	  lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lc[idx][j]);
 	  lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lr[idx][j]);
-	  //	}
+	  /* 	} */
       }
-	//      if(j<n2-2 && i>3){
-	//type2 = pair[S1[i-3]][S2[j+3]];
+	/*       if(j<n2-2 && i>3){ */
+	/* type2 = pair[S1[i-3]][S2[j+3]]; */
 	type2 =lpair[idx_3][j+3];
 	if(type2>0 ){
 	  lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lc[idx][j]);
 	  lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lr[idx][j]);
-	  //	}
+	  /* 	} */
       }
-      //min_colonne=MIN2(lr[idx][j]+(type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]], min_colonne);
+      /* min_colonne=MIN2(lr[idx][j]+(type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]], min_colonne); */
       int bla;
       bla=lr[idx][j]+E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1], P)+2*penalty;
       min_colonne=MIN2(bla, min_colonne);
@@ -1024,9 +1024,9 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
   int count=0;
   int pos=n1+1;
   int threshold = MIN2(threshTE , max + delta );
-  //printf("threshTE %d max %d\n", threshTE, max);
-  //#pragma omp parallel for
-  //  for(pos=n1+1;pos>distance;pos--){
+  /* printf("threshTE %d max %d\n", threshTE, max); */
+  /* #pragma omp parallel for */
+  /*   for(pos=n1+1;pos>distance;pos--){ */
   while(pos-- > 5){
     int temp_min=0;
     if(position[pos]<(threshold)){
@@ -1043,7 +1043,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       strcpy(s3, "NNNNN");
       strncat(s3, (s1+begin-1), pos-begin+2);
       strcat(s3,"NNNNN\0");
-      //printf("%s s3\n", s3); 
+      /* printf("%s s3\n", s3);  */
       snoopT test;
       test = snoopfold(s3, s2, penalty, threshloop, threshLE, threshRE, threshDE, threshD, half_stem, max_half_stem, min_s2, max_s2, min_s1, 
 		       max_s1, min_d1, min_d2);
@@ -1116,7 +1116,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
 	free(temp_seq);
 	free(temp_struc);
 	count++;
-	//free(psoutput);
+	/* free(psoutput); */
       }
       free(s4);
       free(test.structure);
@@ -1140,7 +1140,7 @@ snoopT snoopfold(const char *s1, const char *s2,
 		 const int threshD,
 		 const int half_stem, const int max_half_stem, 
 		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //int Eminj, Emin_l;
+  /* int Eminj, Emin_l; */
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   snoopT mfe;
@@ -1190,18 +1190,18 @@ snoopT snoopfold(const char *s1, const char *s2,
 	temp=foldlist[j+1];
 	while(temp->next){
 	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour
+	  /* if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour */
 	  if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
 	    r[i][j]=MIN2(r[i][j], c[i-3][k+1]+temp->energy);
 	  }
 	  /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
 	    r[i][j]=MIN2(r[i][j], c[i-4][k+1]+temp->energy);
 	  }
-	  //}
+	  /* } */
 	  temp=temp->next;
 	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** c[i][j] += P->dangle5[type][SS1[i-1]];
       *** c[i][j] += P->dangle3[type][SS2[j+1]];
@@ -1270,17 +1270,17 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
 		 const int threshD,
 		 const int half_stem, const int max_half_stem, 
 		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //int Eminj, Emin_l;
+  /* int Eminj, Emin_l; */
   int i, j, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden** foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
@@ -1331,18 +1331,18 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
 	temp=foldlist[j+1];
 	while(temp->next){
 	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour
+	  /* if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour */
 	  if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
 	    r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-3][k+1]+temp->energy+ di[3]);
 	  }
 	  /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
 	    r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-4][k+1]+temp->energy + di[4]);
 	  }
-	  //}
+	  /* } */
 	  temp=temp->next;
 	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** c_fill[i][j] += P->dangle5[type][SS1[i-1]];
       *** c_fill[i][j] += P->dangle3[type][SS2[j+1]];
@@ -1386,7 +1386,7 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
 
 
 
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j, n1, n2, E, n_subopt=0, n_max;
   char *struc;
   snoopT mfe;
@@ -1413,7 +1413,7 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
 	return NULL;
   }
   thresh = MIN2((int) ((mfe.Duplex_Er + mfe.Duplex_El + mfe.Loop_E)*100+0.1 + 410) + delta, threshTE );
- //subopt[n_subopt++]=mfe;
+ /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
   
   n1 = strlen(s1); n2=strlen(s2);
@@ -1447,14 +1447,14 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
          (Duplex_Er + Duplex_El) > threshDE || 
 	 (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
 	 (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
-	 	//printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n"
-		//       " Duplex_Er + Duplex_El %d  threshDE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n", 
-		//	 Duplex_Er , threshRE , Duplex_El ,threshLE,
-	        //         Duplex_Er + Duplex_El, threshDE,
-        	//         Duplex_Er + Duplex_El+  Loop_E , threshTE,
-                //	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE); 
+	 	/* printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n" */
+		/*        " Duplex_Er + Duplex_El %d  threshDE %d \n" */
+		/*        " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n" */
+		/*        " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n",  */
+		/* 	 Duplex_Er , threshRE , Duplex_El ,threshLE, */
+	        /*          Duplex_Er + Duplex_El, threshDE, */
+        	/*          Duplex_Er + Duplex_El+  Loop_E , threshTE, */
+                /* 	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE);  */
 	 	Duplex_Er=0; 
 		Duplex_El=0;
 		Loop_E = 0;
@@ -1501,10 +1501,10 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
 
 
 
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j, E,  n_max;
-  //char *struc;
-  //snoopT mfe;
+  /* char *struc; */
+  /* snoopT mfe; */
 
   int thresh;
 
@@ -1522,8 +1522,8 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
     delay_free=0;
   }
   thresh = MIN2(-100, threshTE +alignment_length*30);  
-  //  n1=strlen(s1); 
-  //  n2=strlen(s2);
+  /*   n1=strlen(s1);  */
+  /*   n2=strlen(s2); */
   
   int n3=strlen(s1);
   int n4=strlen(s2);
@@ -1608,7 +1608,7 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
 	and=end_t+1;
 	pipe=test.u -test.i + 1;
 	cut_point = end_t +1 ;
-	char *catseq, *catstruct;// *fname; 
+	char *catseq, *catstruct;/*  *fname;  */
 	catseq = (char*) space(n5 + end_q -begin_q +2);
 	catstruct = (char*) space(n5 + end_q -begin_q +2);
 	strcpy(catseq, s5);
@@ -1660,7 +1660,7 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
-  int traced_r=0; //flag for following backtrack in c or r
+  int traced_r=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
 
@@ -1718,13 +1718,13 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
 	  temp=foldlist[j+1];
 	  while(temp->next) {
 	    int k = temp->k;
-	    if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/    ){  //introduce structure from RNAfold
+	    if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/    ){  /* introduce structure from RNAfold */
 	      if(E==c[i-3][k+1]+temp->energy){
 		*Loop_E=temp->energy;
 		st1[i-3]= '|';
 		*u=i-2;
 		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
+		/* int fix_ij=indx[k-1+1]+j+1; */
 		for(a=0; a< MISMATCH ;a++){
 		  for(b=0; b< MISMATCH ; b++){
 		    int ij=indx[k-1-a+1]+j+1+b;
@@ -1740,13 +1740,13 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
 		break;
 	      }
 	    }
-	    /*else*/ if (pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/){  //introduce structure from RNAfold
+	    /*else*/ if (pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/){  /* introduce structure from RNAfold */
 	      if(E==c[i-4][k+1]+temp->energy){
 		*Loop_E=temp->energy;
 		st1[i-3]= '|';
 		*u=i-2;
 		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
+		/* int fix_ij=indx[k-1+1]+j+1; */
 		for(a=0; a< MISMATCH ;a++){
 		  for(b=0; b< MISMATCH ; b++){
 		    int ij=indx[k-1-a+1]+j+1+b;
@@ -1761,12 +1761,12 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
 		i=i-4;j=k+1;
 		break;
 	      }
-	    } //else if
+	    } /* else if */
 	    temp=temp->next;
-	  } //while temp-> next
-	} //test on j 
-      }//traced?
-    }//traced_r?
+	  } /* while temp-> next */
+	} /* test on j  */
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = c[i][j]; traced=0;
       st1[i-1] = '<';
@@ -1809,25 +1809,25 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
   }
 /*   if (i>1)  i--; */
 /*   if (j<n2) j++; */  
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i0-i+1+n2-1+1+2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i0-i+1+n2-1+1+2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*      	struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*      	if(k<j0) {struct_const[k-1]='<';} */
+    /*      	if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
   char duplexseq_1[j0];
   char duplexseq_2[n2-j+2];
@@ -1856,12 +1856,12 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
     free(temp.structure);
   } 
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
-  //free_arrays();
+  /* free_arrays(); */
   return struc;
 }
 
@@ -1876,8 +1876,8 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
@@ -1887,17 +1887,17 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
  position = (int*) space((n1+3)*sizeof(int));
  position_j = (int*) space((n1+3)*sizeof(int));
 
- //int Eminj, Emin_l;
-  int i, j;// l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+ /* int Eminj, Emin_l; */
+  int i, j;/*  l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
@@ -1939,7 +1939,7 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
     di3=MIN2(di3,495);
     di4=MIN2(di4,660);
     for (j=lim_maxj; j>lim_minj; j--) {
-      int type, type2;// E, k,l;
+      int type, type2;/*  E, k,l; */
       type = pair[S1[i]][S2[j]];
       lpair[idx][j] = type;
       lc[idx][j] = (type) ? P->DuplexInit + access_s1[1][i] : INF;
@@ -1956,26 +1956,26 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
 	temp=foldlist[j+1];
 	while(temp->next){
 	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour
-	  if(lpair[idx_3][k+1] && lc[idx_3][k+1] /*+di3*/ < 411 /*&& lpair[idx_4][k+2]*/){ // remove second condition
+	  /* if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour */
+	  if(lpair[idx_3][k+1] && lc[idx_3][k+1] /*+di3*/ < 411 /*&& lpair[idx_4][k+2]*/){ /*  remove second condition */
 	    lr[idx][j]=MIN2(lr[idx][j], di3 + lc[idx_3][k+1]+temp->energy);/*--NU--*/
 	  }
-	  /*else*/ if(lpair[idx_4][k+1] && /*di4 +*/ lc[idx_4][k+1] < 411  ){/*--NUN--*/ // remove second condition 
+	  /*else*/ if(lpair[idx_4][k+1] && /*di4 +*/ lc[idx_4][k+1] < 411  ){/*--NUN--*/ /*  remove second condition  */
 	    lr[idx][j]=MIN2(lr[idx][j], di4 + lc[idx_4][k+1]+temp->energy);
 	  }
-	    // }
+	    /*  } */
 	  temp=temp->next;
 	}
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** lc[idx][j] += P->dangle5[type][SS1[i-1]];
       *** lc[idx][j] += P->dangle3[type][SS2[j+1]];
       *** if (type>2) lc[idx][j] += P->TerminalAU;
       **/
       lc[idx][j]+=E_ExtLoop(type, SS1[i-1] ,  SS2[j+1] , P);
-      //      if(j<n2 && i>1){
-      //type2=pair[S1[i-1]][S2[j+1]];
+      /*       if(j<n2 && i>1){ */
+      /* type2=pair[S1[i-1]][S2[j+1]]; */
 	type2=lpair[idx_1][j+1];
 	if(type2>0 ){
 	  lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1, lc[idx][j]);
@@ -2041,9 +2041,9 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
   int pos=n1-4;
   int max_pos_j;
   int threshold = MIN2(threshTE + alignment_length*30, -100);
-  //printf("threshTE %d max %d\n", threshTE, max);
-  //#pragma omp parallel for
-  //  for(pos=n1+1;pos>distance;pos--){
+  /* printf("threshTE %d max %d\n", threshTE, max); */
+  /* #pragma omp parallel for */
+  /*   for(pos=n1+1;pos>distance;pos--){ */
   while(pos-->5){
     int temp_min=0;
     if(position[pos]<(threshold)){
@@ -2104,7 +2104,7 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
 	and=end_t+1;
 	pipe=test.u -test.i + 1;
 	cut_point = end_t +1 ;
-	char *catseq, *catstruct;// *fname; 
+	char *catseq, *catstruct;/*  *fname;  */
 	catseq = (char*) space(n5 + end_q -begin_q +2);
 	catstruct = (char*) space(n5 + end_q -begin_q +2);
 	strcpy(catseq, s5);
@@ -2145,7 +2145,7 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
 		 const int threshD,
 		 const int half_stem, const int max_half_stem, 
 		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //  int Eminj, Emin_l;
+  /*   int Eminj, Emin_l; */
   int a,b,i, j, Emin=INF, a_min=0, b_min=0;
   char *struc;
   snoopT mfe;
@@ -2181,17 +2181,17 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   encode_seqs(s1, s2);
   i=n1-5;
   j=pos_j;
-  //printf("tar: %s\nsno: %s\n ", s1, s2);
-  //printf("pos_i %d pos_j %d\n", pos_i, pos_j);
-  //printf("type %d n1 %d n2 %d S1[n1] %d S2[n2] %d", pair[S1[i]][S2[j]], n1, n2, S1[n1], S2[n2]);
+  /* printf("tar: %s\nsno: %s\n ", s1, s2); */
+  /* printf("pos_i %d pos_j %d\n", pos_i, pos_j); */
+  /* printf("type %d n1 %d n2 %d S1[n1] %d S2[n2] %d", pair[S1[i]][S2[j]], n1, n2, S1[n1], S2[n2]); */
   int type, type2, E, p,q;    
   r[i][j] = P->DuplexInit; 
-  //r[i][j] += P->dangle3[rtype[type]][SS1[i+1]] + P->dangle5[rtype[type]][SS2[j-1]]; 
+  /* r[i][j] += P->dangle3[rtype[type]][SS1[i+1]] + P->dangle5[rtype[type]][SS2[j-1]];  */
   
   if(pair[S1[i]][S2[j]]>2) r[i][j]+=P->TerminalAU;
-  for(a=i-1; a>0;a--){ //i-1
+  for(a=i-1; a>0;a--){ /* i-1 */
     r[a+1][0]=INF;
-    for(b=j+1; b<=n2-min_d2;b++){ //j+1
+    for(b=j+1; b<=n2-min_d2;b++){ /* j+1 */
       r[a][b]=INF;
       type = pair[S1[a]][S2[b]]; 
        if(!type) continue; 
@@ -2200,7 +2200,7 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
 	 temp=foldlist_XS[b-1]; 
 	 while(temp->next) {     
 	   int k = temp->k; 
-	   if(pair[S1[a+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+3][k-1] + access_s1[i-(a+3)+1][pos_i] < 411*/) { //remove last condition last condition is to check if the interaction is stable enough
+	   if(pair[S1[a+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+3][k-1] + access_s1[i-(a+3)+1][pos_i] < 411*/) { /* remove last condition last condition is to check if the interaction is stable enough */
 	     c[a][b]=MIN2(c[a][b], r[a+3][k-1]+temp->energy); 
 	   }
 	   temp=temp->next;
@@ -2211,14 +2211,14 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
 	 temp=foldlist_XS[b-1]; 
 	 while(temp->next){ 
 	   int k = temp->k; 
-	   if(pair[S1[a+4]][S2[k-1]] &&  k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+4][k-1] + access_s1[i-(a+4)+1][pos_i] < 411 */ ) { //remove last condition 
+	   if(pair[S1[a+4]][S2[k-1]] &&  k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+4][k-1] + access_s1[i-(a+4)+1][pos_i] < 411 */ ) { /* remove last condition  */
 	     c[a][b]=MIN2(c[a][b], r[a+4][k-1]+temp->energy); 
 	   }
 	   temp=temp->next;
 	 }
        }
-       for(p=a+1; p<n1 && (p-a) < MAXLOOP_L; p++) { //p < n1
-	 for (q=b-1; q > 1  ; q--) {  //q > 1
+       for(p=a+1; p<n1 && (p-a) < MAXLOOP_L; p++) { /* p < n1 */
+	 for (q=b-1; q > 1  ; q--) {  /* q > 1 */
 	   if (p-a+b-q>2*MAXLOOP_L-2) break; 
 	   if (abs((p-a)-(b-q)) >= ASS ) continue; 
 	   type2 = pair[S1[p]][S2[q]]; 
@@ -2230,8 +2230,8 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
        }
        E = c[a][b];  
        if (type>2) E += P->TerminalAU;  
-       //       E +=P->dangle5[rtype[type]][SS1[i+1]];
-       //E +=P->dangle5[rtype[type]][SS2[j-1]]; 
+       /*        E +=P->dangle5[rtype[type]][SS1[i+1]]; */
+       /* E +=P->dangle5[rtype[type]][SS2[j-1]];  */
        E+=access_s1[i-a+1][pos_i]; 
        if (E<Emin) { 
 	 Emin=E; a_min=a; b_min=b; 
@@ -2277,7 +2277,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
-  int traced_c=0; //flag for following backtrack in c or r
+  int traced_c=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
 
@@ -2290,7 +2290,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
   type=pair[S1[i]][S2[j]];
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
   i0=i;j0=j;
-  //  i0=MAX2(i,1); j0=MIN2(j+1,n2);
+  /*   i0=MAX2(i,1); j0=MIN2(j+1,n2); */
   while (i<=n1 && j>=1 ) {
     if(!traced_c) {
       E = c[i][j]; traced=0;
@@ -2347,7 +2347,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
 	    temp=temp->next;
 	  }
 	}
-	if (S1[i+2]==4){  //introduce structure from RNAfold
+	if (S1[i+2]==4){  /* introduce structure from RNAfold */
 	  folden * temp;
 	  temp=foldlist_XS[j-1];
 	  while(temp->next) {
@@ -2377,8 +2377,8 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
 	    temp=temp->next;
 	  }
 	}
-      }//traced?
-    }//traced_r?
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = r[i][j]; traced=0;
       st1[i] = '<';
@@ -2415,26 +2415,26 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
   }
 
   
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i-i0+1+n2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i-i0+1+n2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
 
   for (k=MIN2(i0,1); k<=i; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*      	struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*      	if(k<j0) {struct_const[k-1]='<';} */
+    /*      	if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
   char duplexseq_1[j];
   char duplexseq_2[n2-j0+2];
@@ -2463,7 +2463,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
     free(temp.structure);
   } 
   strcpy(struc, st1+MAX2(i0,1)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
@@ -2473,7 +2473,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
     free(c);
     free(r);
     free(S1);free(S2);free(SS1);free(SS2);
-    //free_arrays();
+    /* free_arrays(); */
   return struc;
 }
 
@@ -2522,7 +2522,7 @@ PRIVATE short * aliencode_seq(const char *sequence) {
     Stemp[i]= (short) encode_char(toupper(sequence[i-1]));
 
   /* for circular folding add first base at position n+1 */
-  //Stemp[l+1] = Stemp[1];
+  /* Stemp[l+1] = Stemp[1]; */
 
   return Stemp;
 }

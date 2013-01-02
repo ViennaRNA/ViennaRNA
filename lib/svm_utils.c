@@ -412,7 +412,7 @@ PRIVATE char **splitFields(char* string){
           currField=NULL;
         }
 
-        //printf("%s|\n",output[nField-1]);
+        /* printf("%s|\n",output[nField-1]); */
   }
 
   if (nField==0){
@@ -463,7 +463,7 @@ PRIVATE char **splitLines(char* string){
 
 }
 
-// for both splitLines and splitFields
+/*  for both splitLines and splitFields */
 void freeFields(char** fields){
 
   int i=0;

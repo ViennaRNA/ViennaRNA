@@ -132,7 +132,7 @@ PRIVATE void  duplexfold_XS(const char *s1,
           type2=ptype[indx[l]+k];
           if (!type2) continue;
           E = c3[j-11][max_interaction_length-i+k-1][l-j];
-//          printf("[%d,%d][%d,%d]\t%6.2f\t%6.2f\t%6.2f\n", i, k, l, j, E/100., access_s1[i-k+1][i]/100., access_s1[l-j+1][l]/100.);
+/*           printf("[%d,%d][%d,%d]\t%6.2f\t%6.2f\t%6.2f\n", i, k, l, j, E/100., access_s1[i-k+1][i]/100., access_s1[l-j+1][l]/100.); */
           E+=access_s1[i-k+1][i]+access_s1[l-j+1][l];
           E+=E_ExtLoop(type2,((k>i_pos_begin+1)? SS1[k-1]:-1),((l<j_pos_end-1)? SS1[l+1]:-1),P);
           E+=E_ExtLoop(rtype[type], SS1[j-1], SS1[i+1], P);

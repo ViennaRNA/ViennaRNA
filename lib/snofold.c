@@ -45,7 +45,7 @@ PRIVATE void  letter_structure(char *structure, int length) UNUSED;
 PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
-//PRIVATE int   stack_energy(int i, const char *string);
+/* PRIVATE int   stack_energy(int i, const char *string); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void encode_seq(const char *sequence);
 PRIVATE void  backtrack(const char *sequence, int s);
@@ -54,7 +54,7 @@ PRIVATE int   fill_arrays(const char *sequence, const int max_asymm, const int t
 /*@unused@*/
 
 
-//alifold
+/* alifold */
 PRIVATE void alisnoinitialize_fold(const int length);
 PRIVATE void make_pscores(const short *const* S, const char *const* AS,int n_seq, const char *structure);
 PRIVATE int   *pscore;  /* precomputed array of pair types */
@@ -68,7 +68,7 @@ PRIVATE int alibacktrack(const char **strings, int s);
 
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
-//end alifold
+/* end alifold */
 
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
@@ -99,11 +99,11 @@ static sect sector[MAXSECTORS]; /* stack of partial structures for backtracking 
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 /* needed by cofold/eval */
-//PRIVATE int cut_in_loop(int i);
-//PRIVATE int min_hairpin = TURN;
+/* PRIVATE int cut_in_loop(int i); */
+/* PRIVATE int min_hairpin = TURN; */
 
 /* some definitions to take circfold into account...	*/
-//PRIVATE int   *fM2 = NULL;	/* fM2 = multiloop region with exactly two stems, extending to 3' end	*/
+/* PRIVATE int   *fM2 = NULL;*/	/* fM2 = multiloop region with exactly two stems, extending to 3' end	*/
 PUBLIC	int   Fc, FcH, FcI, FcM; /* parts of the exterior loop energies			*/
 /*--------------------------------------------------------------------------*/
 
@@ -272,10 +272,11 @@ float snofold(const char *string, const int max_assym, const int threshloop,
   make_ptypes(S, structure);
   energy=fill_arrays(string, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
 
-//if 0	/*no structure output, no backtrack*/
-//  backtrack(string, 0);
-//  parenthesis_structure(structure, length);
-//endif
+#if 0
+  /*no structure output, no backtrack*/
+  backtrack(string, 0);
+  parenthesis_structure(structure, length);
+#endif
   free(structure);
   free(S); free(S1); free(BP);
   return (float) energy/100.;
@@ -403,7 +404,7 @@ float alisnofold(const char **strings, const int max_assym, const int threshloop
   int s,n_seq, length, energy;
   char * structure;
   length = (int) strlen(strings[0]);
-  //structure = (char *) space((unsigned) length+1);
+  /* structure = (char *) space((unsigned) length+1); */
   structure = NULL;
   if (length>init_length) alisnoinitialize_fold(length);
   if (fabs(P->temperature - temperature)>1e-6) snoupdate_fold_params();
@@ -423,7 +424,7 @@ float alisnofold(const char **strings, const int max_assym, const int threshloop
   free(structure);
   for (s=0; s<n_seq; s++) free(Sali[s]);
   free(Sali);
-  //free(structure);
+  /* free(structure); */
   /*  free(S)*/; free(S1); free(BP);
   return (float) energy/100.;
 }
@@ -433,7 +434,7 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
 			   const int max_half_stem) {
 
   int   i, j, length, energy;
-  //int   decomp, new_fML;
+  /* int   decomp, new_fML; */
   int   *type, type_2;
   int   bonus,n_seq,s;
 
@@ -442,10 +443,10 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
   type = (int *) space(n_seq*sizeof(int));
   length = strlen(strings[0]);
   bonus=0;
-  //  max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
+  /*   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); */ /* not in use */
   
-    //for (i=(j>TURN?(j-TURN):1); i<j; i++) {
-    //}
+    /* for (i=(j>TURN?(j-TURN):1); i<j; i++) { */
+    /* } */
     for (i = (length)-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
       for (j = i+TURN+1; j <= length; j++) {
 	int p, q, ij,psc;
@@ -456,7 +457,7 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
 	}
 	psc = pscore[indx[j]+i];
 	if (psc>=MINPSCORE) {   /* we have a pair */
-	int new_c=0, stackEnergy=INF; //seems that new_c immer den minimum von cij enthaelt
+	int new_c=0, stackEnergy=INF; /* seems that new_c immer den minimum von cij enthaelt */
 	/* hairpin ----------------------------------------------*/
 	
 	for (new_c=s=0; s<n_seq; s++)
@@ -513,7 +514,7 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
     foldlist[i]->energy=INF;
 
   }
-  folden* head; //we save the stem loop information in a list like structure
+  folden* head; /* we save the stem loop information in a list like structure */
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
     int max_k, min_k;
@@ -532,7 +533,7 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
 	mLoop[ij]=INF;	
       }
       else{
-	if(j>=min_k-1 && j < max_k){ //comment if out to recover the known behaviour
+	if(j>=min_k-1 && j < max_k){ /* comment if out to recover the known behaviour */
 	  head = (folden*) space(sizeof(folden));
 	  head->k=j;
 	  head->energy=mLoop[ij];
@@ -545,7 +546,7 @@ PRIVATE int alifill_arrays(const char **strings, const int max_asymm, const int 
     
   }
   free(type);
-  return mLoop[indx[length]+1];//mLoop; 
+  return mLoop[indx[length]+1];/* mLoop;  */
 }
 
 PRIVATE int alibacktrack(const char **strings, int s) {
@@ -558,7 +559,7 @@ PRIVATE int alibacktrack(const char **strings, int s) {
 
   /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
-  int   i, j, length, energy;//, new;
+  int   i, j, length, energy;/* , new; */
   int   type_2;
   int   bonus,n_seq,*type;  int   b=0,cov_en = 0;
 
@@ -673,7 +674,7 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
 			const int min_s2, const int max_s2, const int half_stem, const int max_half_stem) {
 
   int   i, j,  length, energy;
-  //  int   decomp;//, new_fML;
+  /*   int   decomp;*/ /*, new_fML; */
   int   no_close, type, type_2;
   int   bonus;
   int min_c;
@@ -681,15 +682,15 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
   min_c=INF;
   length = (int) strlen(string);
   bonus=0;
-  //  max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
+  /*   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); */ /* not in use */
 
 
   
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
-    //printf("i=%d\t",i); 
+    /* printf("i=%d\t",i);  */
     for (j = i+TURN+1; j <= length; j++) {
-//	printf("j=%d,",j);
+/* 	printf("j=%d,",j); */
       int p, q, ij;
       ij = indx[j]+i;
       type = ptype[ij];
@@ -697,15 +698,15 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
 
       no_close = (((type==3)||(type==4))&&no_closingGU);
 
-      //if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
+      /* if (j-i-1 > max_separation) type = 0;  */ /* forces locality degree */
 
       if (type) {   /* we have a pair */
-	int new_c=0, stackEnergy=INF; //seems that new_c immer den minimum von cij enthaelt
+	int new_c=0, stackEnergy=INF; /* seems that new_c immer den minimum von cij enthaelt */
 	/* hairpin ----------------------------------------------*/
 
 	if (no_close) new_c = FORBIDDEN;
 	else
-	  new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1,P); //computes hair pin structure for subsequence i...j
+	  new_c = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1,P); /* computes hair pin structure for subsequence i...j */
 
 	/*--------------------------------------------------------      
 	  check for elementary structures involving more than one
@@ -775,7 +776,7 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
     foldlist_XS[i]->k=INF+1;
     foldlist_XS[i]->energy=INF;
   }
-  folden* head; //we save the stem loop information in a list like structure
+  folden* head; /* we save the stem loop information in a list like structure */
   folden* head_XS;
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
     int max_k, min_k;
@@ -789,13 +790,13 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
     	for(a=0; a< MISMATCH ;a++){
 	  for(b=0; b< MISMATCH ; b++){
 	      mLoop[ij]=MIN2(mLoop[ij],  c[indx[j-a]+i+b]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+1]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+1]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+1]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+2]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+2]);
-	    //#mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+2]);
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+1]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+1]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+1]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+2]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+2]); */
+	    /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+2]); */
 	  }
 	}
 	
@@ -804,7 +805,7 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
 	  mLoop[ij]=INF;	
 	}
 	else{
-	  if(j>=min_k-1 && j <= max_k){ //comment if out to recover the known behaviour
+	  if(j>=min_k-1 && j <= max_k){ /* comment if out to recover the known behaviour */
 	    head = (folden*) space(sizeof(folden));
 	    head->k=j;
 	    head->energy=mLoop[ij];
@@ -842,9 +843,9 @@ PRIVATE int fill_arrays(const char *string, const int max_asymm, const int thres
 /*      }      */
 /*    }  */
 /*    printf("Count %d \n", count); */
-   return mLoop[indx[length]+1];//mLoop;
-  //printf("\nmin_array = %d\n", min_c);
-  //return f5[length];
+   return mLoop[indx[length]+1];/* mLoop; */
+  /* printf("\nmin_array = %d\n", min_c); */
+  /* return f5[length]; */
 }
 
 
@@ -861,7 +862,7 @@ PRIVATE void backtrack(const char *string, int s) {
   /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
   int   i, j, /*k,*/ length, energy, new;
-  int   no_close, type, type_2;//, tt;
+  int   no_close, type, type_2;/* , tt; */
   int   bonus;
   int   b=0;
 
@@ -943,22 +944,22 @@ PRIVATE void backtrack(const char *string, int s) {
     /* end of repeat: --------------------------------------------------*/
 
     /* (i.j) must close a multi-loop */
-//    tt = rtype[type];
-//    mm = bonus+P->MLclosing+P->MLintern[tt];
-//    d5 = P->dangle5[tt][S1[j-1]];
-//    d3 = P->dangle3[tt][S1[i+1]];
+/*     tt = rtype[type]; */
+/*     mm = bonus+P->MLclosing+P->MLintern[tt]; */
+/*     d5 = P->dangle5[tt][S1[j-1]]; */
+/*     d3 = P->dangle3[tt][S1[i+1]]; */
     i1 = i+1; j1 = j-1;
     sector[s+1].ml  = sector[s+2].ml = 1;
 
-//     if (k<=j-3-TURN) { /* found the decomposition */
-//      sector[++s].i = i1;
-//      sector[s].j   = k;
-//      sector[++s].i = k+1;
-//      sector[s].j   = j1;
-//    } else {
-//	nrerror("backtracking failed in repeat");
-//    }
-//
+/*      if (k<=j-3-TURN) { */ /* found the decomposition */
+/*       sector[++s].i = i1; */
+/*       sector[s].j   = k; */
+/*       sector[++s].i = k+1; */
+/*       sector[s].j   = j1; */
+/*     } else { */
+/* 	nrerror("backtracking failed in repeat"); */
+/*     } */
+/*  */
   }
 
   base_pair[0].i = b;    /* save the total number of base pairs */
@@ -988,7 +989,7 @@ char *alisnobacktrack_fold_from_pair(const char **strings, int i, int j, int *co
   sector[1].j  = j;
   sector[1].ml = 2;
   base_pair[0].i=0;
-  //encode_seq(sequence);
+  /* encode_seq(sequence); */
   Sali = (short **) space(n_seq*sizeof(short *));
   for (s=0; s<n_seq; s++) {
     if (strlen(strings[s]) != length) nrerror("uneqal seqence lengths");
@@ -1049,7 +1050,7 @@ PRIVATE short * aliencode_seq(const char *sequence) {
     Stemp[i]= (short) encode_char(toupper(sequence[i-1]));
 
   /* for circular folding add first base at position n+1 */
-  //Stemp[l+1] = Stemp[1];
+  /* Stemp[l+1] = Stemp[1]; */
 
   return Stemp;
 }
@@ -1109,84 +1110,87 @@ PUBLIC void snoupdate_fold_params(void)
 }
 
 /*---------------------------------------------------------------------------*/
-//PRIVATE short  *pair_table;
+/* PRIVATE short  *pair_table; */
 
 
 /*---------------------------------------------------------------------------*/
-//PRIVATE int stack_energy(int i, const char *string)
-//{
-//  /* calculate energy of substructure enclosed by (i,j) */
-//  int ee, energy = 0;
-//  int j, p, q, type;
-//
-//  j=pair_table[i];
-//  type = pair[S[i]][S[j]];
-//  if (type==0) {
-//    type=7;
-//  }
-//
-//  p=i; q=j;
-//  while (p<q) { /* process all stacks and interior loops */
-//    int type_2;
-//    while (pair_table[++p]==0);
-//    while (pair_table[--q]==0);
-//    if ((pair_table[q]!=(short)p)||(p>q)) break;
-//    type_2 = pair[S[q]][S[p]];
-//    if (type_2==0) {
-//      type_2=7;
-//    }
-//    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
-//    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-//      ee = LoopEnergy(p-i-1, j-q-1, type, type_2,
-//		      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
-//    energy += ee;
-//    i=p; j=q; type = rtype[type_2];
-//  } /* end while */
-//
-//  /* p,q don't pair must have found hairpin or multiloop */
-//
-//  if (p>q) {                       /* hair pin */
-//    if (SAME_STRAND(i,j))
-//      ee = snoHairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
-//    energy += ee;
-//
-//    return energy;
-//  }
-//
-//  /* (i,j) is exterior pair of multiloop */
-//  while (p<j) {
-//    /* add up the contributions of the substructures of the ML */
-//    energy += stack_energy(p, string);
-//    p = pair_table[p];
-//    /* search for next base pair in multiloop */
-//    while (pair_table[++p]==0);
-//  }
-//  {
-//    int ii;
-//    ii = cut_in_loop(i);
-//  }
-//  energy += ee;
-//
-//  return energy;
-//}
+#if 0
+PRIVATE int stack_energy(int i, const char *string)
+{
+  /* calculate energy of substructure enclosed by (i,j) */
+  int ee, energy = 0;
+  int j, p, q, type;
+
+  j=pair_table[i];
+  type = pair[S[i]][S[j]];
+  if (type==0) {
+    type=7;
+  }
+
+  p=i; q=j;
+  while (p<q) { /* process all stacks and interior loops */
+    int type_2;
+    while (pair_table[++p]==0);
+    while (pair_table[--q]==0);
+    if ((pair_table[q]!=(short)p)||(p>q)) break;
+    type_2 = pair[S[q]][S[p]];
+    if (type_2==0) {
+      type_2=7;
+    }
+    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
+    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
+      ee = LoopEnergy(p-i-1, j-q-1, type, type_2,
+		      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
+    energy += ee;
+    i=p; j=q; type = rtype[type_2];
+  } /* end while */
+
+  /* p,q don't pair must have found hairpin or multiloop */
+
+  if (p>q) {                       /* hair pin */
+    if (SAME_STRAND(i,j))
+      ee = snoHairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
+    energy += ee;
+
+    return energy;
+  }
+
+  /* (i,j) is exterior pair of multiloop */
+  while (p<j) {
+    /* add up the contributions of the substructures of the ML */
+    energy += stack_energy(p, string);
+    p = pair_table[p];
+    /* search for next base pair in multiloop */
+    while (pair_table[++p]==0);
+  }
+  {
+    int ii;
+    ii = cut_in_loop(i);
+  }
+  energy += ee;
+
+  return energy;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
 
 
 /*---------------------------------------------------------------------------*/
 
-
-/*---------------------------------------------------------------------------*/
-
-//PRIVATE int cut_in_loop(int i) {
-//  /* walk around the loop;  return j pos of pair after cut if
-//     cut_point in loop else 0 */
-//  int  p, j;
-//  p = j = pair_table[i];
-//  do {
-//    i  = pair_table[p];  p = i+1;
-//    while ( pair_table[p]==0 ) p++;
-//  } while (p!=j && SAME_STRAND(i,p));
-//  return SAME_STRAND(i,p) ? 0 : pair_table[p];
-//}
+#if 0
+PRIVATE int cut_in_loop(int i) {
+  /* walk around the loop;  return j pos of pair after cut if
+     cut_point in loop else 0 */
+  int  p, j;
+  p = j = pair_table[i];
+  do {
+    i  = pair_table[p];  p = i+1;
+    while ( pair_table[p]==0 ) p++;
+  } while (p!=j && SAME_STRAND(i,p));
+  return SAME_STRAND(i,p) ? 0 : pair_table[p];
+}
+#endif
 
 /*---------------------------------------------------------------------------*/
 

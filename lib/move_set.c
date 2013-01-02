@@ -23,7 +23,7 @@
 int compare(short *lhs, short *rhs)
 {
 
-  //printf("%d ", (int)lhs[0]);
+  /* printf("%d ", (int)lhs[0]); */
 
   int i=1;
   char l=0,r=0;
@@ -200,7 +200,7 @@ int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
   if (Enc->funct) {
     int end = Enc->funct(str, min);
 
-    // undo moves
+    /*  undo moves */
     if (Enc->bp_left2!=0) do_move(str->structure, -Enc->bp_left2, -Enc->bp_right2);
     do_move(str->structure, -Enc->bp_left, -Enc->bp_right);
     str->energy = last_en;
@@ -336,7 +336,7 @@ inline bool try_insert(const short *pt, const char *seq, int i, int j)
   return (j-i>MINGAP && pt[j]==0 && pt[i]==0 && compat(seq[i-1], seq[j-1]));
 }
 
-// try insert base pair (i,j)
+/*  try insert base pair (i,j) */
 inline bool try_insert_seq(const char *seq, int i, int j)
 {
   if (i<=0 || j<=0) return false;
@@ -602,20 +602,20 @@ void construct_moves(Encoded *Enc, short *structure)
       Enc->moves_from[Enc->num_moves]=-i;
       Enc->moves_to[Enc->num_moves]=-structure[i];
       Enc->num_moves++;
-      //fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]);
+      /* fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]); */
     } else {
       int j;
       for (j=i+1; j<=structure[0]; j++) {
-        //fprintf(stderr, "check (%d, %d)\n", i, j);
+        /* fprintf(stderr, "check (%d, %d)\n", i, j); */
         if (structure[j]==0) {
           if (try_insert_seq(Enc->seq,i,j)) {
             Enc->moves_from[Enc->num_moves]=i;
             Enc->moves_to[Enc->num_moves]=j;
             Enc->num_moves++;
-            //fprintf(stderr, "add  i(%d, %d)\n", i, j);
+            /* fprintf(stderr, "add  i(%d, %d)\n", i, j); */
             continue;
           }
-        } else if (structure[j]>j) { // '('
+        } else if (structure[j]>j) { /*  '(' */
           j = structure[j];
         } else break;
       }
@@ -652,7 +652,7 @@ int move_rset(Encoded *Enc, struct_en *str)
 
   if (Enc->verbose_lvl>0) { fprintf(stderr, "  start of MR:\n  "); print_str(stderr, str->structure); fprintf(stderr, " %d\n\n", str->energy); }
 
-  // construct and permute possible moves
+  /*  construct and permute possible moves */
   construct_moves(Enc, str->structure);
 
   /* find first lower one*/
@@ -775,7 +775,7 @@ int move_deepest( char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
   int i;
@@ -830,7 +830,7 @@ int move_first(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
   int i;
@@ -885,10 +885,10 @@ int move_rand(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
-  // allocate memory for moves
+  /*  allocate memory for moves */
   enc.moves_from = (int*) space(ptable[0]*ptable[0]*sizeof(int));
   enc.moves_to = (int*) space(ptable[0]*ptable[0]*sizeof(int));
 
@@ -947,7 +947,7 @@ int browse_neighs(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=funct;
 
   int i;

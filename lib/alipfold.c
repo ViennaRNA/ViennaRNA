@@ -1234,7 +1234,7 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
         *prob=*prob*expMLbase[k-i]/(qm[ii-(k-1)] + expMLbase[k-i]);
       }
       j = k-1;
-      //whatishere??
+      /* whatishere?? */
     }
   }
   free(type);
