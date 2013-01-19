@@ -697,6 +697,72 @@ PUBLIC void destroy_hard_constraints(hard_constraintT *hc){
   }
 }
 
+PUBLIC soft_constraintT *get_soft_constraints(  const double *constraints,
+                                                unsigned int n,
+                                                unsigned int options){
+
+  unsigned int i, j;
+  soft_constraintT *sc;
+
+  sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
+  sc->constraints       = NULL;
+  sc->free_energies     = NULL;
+  sc->boltzmann_factors = NULL;
+
+  if(constraints){
+    /*  copy the provided constraints to the data structure.
+        Here, we just assume that the softconstraints are already free
+        energy contributions per nucleotide.
+        We can also apply any function to the data in sc->constraints
+        at this point if we want to...
+    */
+    sc->constraints = (double *)space(sizeof(double) * (n + 1));
+    memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
+
+    if(options & VRNA_CONSTRAINT_SOFT_MFE){
+      /*  allocate memory such that we can access the soft constraint
+          energies of a subsequence of length j starting at position i
+          via sc->free_energies[i][j]
+      */
+      sc->free_energies = (int **)space(sizeof(int *) * (n + 2));
+      for(i = 0; i <= n; i++){
+        sc->free_energies[i] = (int *)space(sizeof(int) * (n - i + 2));
+      }
+
+      sc->free_energies[n+1] = NULL;
+
+      for(i = 1; i <= n; i++){
+        for(j = 1; j <= (n - i + 1); j++){
+          sc->free_energies[i][j] = sc->free_energies[i][j-1] + (int)(sc->constraints[i+j-1]*100);
+        }
+      }
+
+    }
+    if(options & VRNA_CONSTRAINT_SOFT_PF){
+
+    }
+  }
+
+  return sc;
+}
+
+PUBLIC void destroy_soft_constraints(soft_constraintT *sc){
+  int     i, *ptr, *ptr2;
+  double  *ptr3;
+  if(sc){
+    if(sc->constraints)       free(sc->constraints);
+    if(sc->free_energies){
+      for(i = 0; sc->free_energies[i]; free(sc->free_energies[i++]));
+      free(sc->free_energies);
+    }
+    if(sc->boltzmann_factors){
+      for(i = 0; sc->boltzmann_factors[i]; free(sc->boltzmann_factors[i++]));
+      free(sc->boltzmann_factors);
+    }
+    free(sc);
+  }
+}
+
 PRIVATE INLINE  void adjust_ptypes( char *ptype,
                                     hard_constraintT *hc,
                                     unsigned int length,

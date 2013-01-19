@@ -272,7 +272,9 @@ typedef struct {
  *  \ingroup soft_constraints
  */
 typedef struct {
-
+  double  *constraints;
+  int     **free_energies;
+  double  **boltzmann_factors;
 } soft_constraintT;
 
 /*

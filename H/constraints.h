@@ -128,6 +128,9 @@
  */
 #define VRNA_CONSTRAINT_IINDX             1024U
 
+#define VRNA_CONSTRAINT_SOFT_MFE          8192U
+
+#define VRNA_CONSTRAINT_SOFT_PF           16384U
 
 /**
  *  \brief  Hard constraints flag, base pair in the exterior loop
@@ -300,4 +303,10 @@ hard_constraintT  *get_hard_constraints(  const char *constraint,
  */
 void destroy_hard_constraints(hard_constraintT *hc);
 
+
+soft_constraintT *get_soft_constraints( const double *constraints,
+                                        unsigned int n,
+                                        unsigned int options);
+
+void destroy_soft_constraints(soft_constraintT *sc);
 #endif
