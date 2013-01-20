@@ -683,6 +683,7 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *constraint,
   /* adjust the ptype to take non-canonical pairs into account */
   adjust_ptypes(ptype, hc, n, options & VRNA_CONSTRAINT_IINDX);
 
+  free(idx);
   return hc;
 }
 

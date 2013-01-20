@@ -364,8 +364,8 @@ INLINE  PRIVATE int E_Hairpin(int size,
 }
 
 INLINE  PRIVATE int E_hp_loop(const char *sequence,
-                              unsigned int i,
-                              unsigned int j,
+                              int i,
+                              int j,
                               char type,
                               short *S,
                               char hc,
@@ -399,7 +399,7 @@ INLINE PRIVATE int E_int_loop(const char *sequence,
                               soft_constraintT *sc,
                               int *c,
                               paramT *P){
-  int q, p, type, type_2, *rtype, noGUclosure, no_close, energy;
+  int q, p, j_q, p_i, pq, max_q, max_p, type, type_2, *rtype, noGUclosure, no_close, energy;
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
   int e             = INF;
@@ -412,19 +412,20 @@ INLINE PRIVATE int E_int_loop(const char *sequence,
     rtype       = &(P->model_details.rtype[0]);
     noGUclosure = P->model_details.noGUclosure;
     no_close    = (((type==3)||(type==4))&&noGUclosure);
-
-    for(q = j - 1; q >= MAX2(i+TURN+2, j - MAXLOOP - 1); q--){
-      int j_q = j - q - 1;
+    max_q       = i+TURN+2;
+    max_q       = MAX2(max_q, j - MAXLOOP - 1);
+    for(q = j - 1; q >= max_q; q--){
+      j_q = j - q - 1;
 
       if(hc_up[q+1] < j_q) break;
+      pq = indx[q] + i + 1;
+      p_i = 0;
 
-      int maxp = MAX2(i + 1, i + 1 + MAXLOOP - j_q);
-      maxp = MIN2(maxp, q - TURN);
-      int pq = indx[q] + i + 1;
-      int p_i = 0;
+      max_p = MAX2(i + 1, i + 1 + MAXLOOP - j_q);
+      max_p = MIN2(max_p, q - TURN);
       
-      maxp = MIN2(maxp, i+1+hc_up[i+1]);
-      for(p = i+1; p <= maxp; p++, pq++, p_i++){
+      max_p = MIN2(max_p, i+1+hc_up[i+1]);
+      for(p = i+1; p <= max_p; p++, pq++, p_i++){
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if(hc[pq] & IN_INT_LOOP_ENC){
@@ -461,19 +462,24 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
                                     int *hc_up,
                                     soft_constraintT *sc,
                                     int *c,
+                                    int *fML,
                                     int *dmli1,
                                     int *dmli2,
                                     paramT *P){
 
+  int k, decomp, MLenergy, en, type, type_2, tt;
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
   int e             = INF;
   int dangle_model  = P->model_details.dangles;
   int *rtype        = &(P->model_details.rtype[0]);
 
+  type              = ptype[ij];
+
+
   if(hc_decompose & IN_MB_LOOP){
-    int MLenergy;
-    decomp = DMLi1[j-1];
+    MLenergy;
+    decomp = dmli1[j-1];
     tt = rtype[type];
     switch(dangle_model){
       /* no dangles */
@@ -481,21 +487,21 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
                 break;
 
       /* double dangles */
-      case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
+      case 2:   decomp += E_MLstem(tt, S[j-1], S[i+1], P);
                 break;
 
       /* normal dangles, aka dangles = 1 || 3 */
       default:  decomp += E_MLstem(tt, -1, -1, P);
-                if(hc_up_ml[i+1]){
-                  en = DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
+                if(hc_up[i+1]){
+                  en = dmli2[j-1] + E_MLstem(tt, -1, S[i+1], P) + P->MLbase;
                   decomp = MIN2(decomp, en);
                 }
-                if(hc_up_ml[j-1] && hc_up_ml[i+1]){
-                  en = DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase;
+                if(hc_up[j-1] && hc_up[i+1]){
+                  en = dmli2[j-2] + E_MLstem(tt, S[j-1], S[i+1], P) + 2*P->MLbase;
                   decomp = MIN2(decomp, en);
                 }
-                if(hc_up_ml[j-1]){
-                  en = DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
+                if(hc_up[j-1]){
+                  en = dmli1[j-2] + E_MLstem(tt, S[j-1], -1, P) + P->MLbase;
                   decomp = MIN2(decomp, en);
                 }
                 break;
@@ -504,19 +510,18 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
     e = MIN2(e, MLenergy);
 
     /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
-
     if (dangle_model==3) {
-      decomp = INF;
       int i1k, k1j1;
+      decomp = INF;
       k1j1  = indx[j-1] + i + 2 + TURN + 1;
       for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
         i1k   = indx[k] + i + 1;
-        if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
+        if(hc[i1k] & IN_MB_LOOP_ENC){
           type_2  = rtype[ptype[i1k]];
           en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
           decomp  = MIN2(decomp, en);
         }
-        if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
+        if(hc[k1j1] & IN_MB_LOOP_ENC){
           type_2  = rtype[ptype[k1j1]];
           en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
           decomp  = MIN2(decomp, en);
@@ -527,7 +532,6 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
       e = MIN2(e, decomp);
     }
   }
-
   return e;
 }
 

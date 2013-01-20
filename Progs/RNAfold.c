@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
-    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+    if((args_info.dangles_given < 0) || (args_info.dangles_given > 3))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;

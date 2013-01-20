@@ -99,6 +99,35 @@ typedef struct bondTEn {
    int energy;
 } bondTEn;
 
+#define ALLOC_NOTHING     0
+#define ALLOC_F5          1
+#define ALLOC_F3          2
+#define ALLOC_FC          4
+#define ALLOC_C           8
+#define ALLOC_FML         16
+#define ALLOC_FM1         32
+#define ALLOC_FM2         64
+
+#define ALLOC_MFE_DEFAULT (ALLOC_F5 | ALLOC_C | ALLOC_FML)
+#define ALLOC_MFE_UNIQ_ML (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1)
+#define ALLOC_MFE_CIRC    (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1 | ALLOC_FM2)
+
+typedef struct{
+  unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
+  int     *c;   /* energy array, given that i-j pair */
+  int     *f5;  /* energy of 5' end */
+  int     *f3;  /* energy of 3' end */
+  int     *fc;  /* energy of 3' end (cofolding) */
+  int     *fML; /* multi-loop auxiliary energy array */
+  int     *fM1; /* second ML array, only for subopt */
+  int     *fM2; /* fM2 = multiloop region with exactly two stems, extending to 3' end */
+  int     Fc;   /* parts of the exterior loop energies for circfolding */
+  int     FcH;
+  int     FcI;
+  int     FcM;
+} mfe_matrices;
+
+
 /**
  *  \brief The data structure that contains the complete model details used throughout the calculations
  *
