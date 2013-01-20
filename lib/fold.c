@@ -35,6 +35,7 @@
 #include <omp.h>
 #endif
 
+#define OPENMP_LESS
 
 #define PAREN
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
@@ -77,6 +78,9 @@ PRIVATE int               struct_constrained  = 0;
 PRIVATE hard_constraintT  *hc                 = NULL;
 PRIVATE soft_constraintT  *sc                 = NULL;
 
+/* some (hopefully) temporary backward compatibility stuff */
+PRIVATE mfe_matrices *backward_compat_matrices = NULL;
+
 #ifdef _OPENMP
 
 #pragma omp threadprivate(indx, c, f5, fML, fM1, fM2, Fc, FcH, FcI, FcM, hc, sc, \
@@ -118,8 +122,21 @@ PRIVATE void init_fold(int length, paramT *parameters){
 #endif
 
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
+#ifndef OPENMP_LESS
   free_arrays();
   get_arrays((unsigned) length);
+#else
+  if(base_pair2)
+    free(base_pair2);
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+length/2));
+  if(backward_compat_matrices)
+    destroy_mfe_matrices(backward_compat_matrices);
+  backward_compat_matrices = get_mfe_matrices_alloc((unsigned int)length, ALLOC_MFE_DEFAULT);
+  f5  = backward_compat_matrices->f5;
+  c   = backward_compat_matrices->c;
+  fML = backward_compat_matrices->fML;
+
+#endif
   init_length=length;
 
   indx = get_indx((unsigned)length);
@@ -145,6 +162,82 @@ PRIVATE void get_arrays(unsigned int size){
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
 
+}
+
+INLINE void init_array(int *array, int alength, int value){
+  int i;
+  for(i = 0; i<alength; i++) array[i] = value;
+}
+
+PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
+                                              unsigned int alloc_vector){
+
+  mfe_matrices  *vars   = (mfe_matrices *)space(sizeof(mfe_matrices));
+
+  vars->allocated       = 0;
+  vars->f5              = NULL;
+  vars->f3              = NULL;
+  vars->fc              = NULL;
+  vars->c               = NULL;
+  vars->fML             = NULL;
+  vars->fM1             = NULL;
+  vars->fM2             = NULL;
+  vars->FcH             = INF;
+  vars->FcI             = INF;
+  vars->FcM             = INF;
+  vars->Fc              = INF;
+
+  if(alloc_vector){
+    vars->allocated = alloc_vector;
+    unsigned int size     = ((n + 1) * (n + 2)) >> 1;
+    unsigned int lin_size = n + 2;
+
+    if(alloc_vector & ALLOC_F5){
+      vars->f5  = (int *) space(sizeof(int) * lin_size);
+      //init_array(vars->f5, lin_size, INF);
+    }
+    if(alloc_vector & ALLOC_F3){
+      vars->f3  = (int *) space(sizeof(int) * lin_size);
+      //init_array(vars->f3, lin_size, INF);
+    }
+    if(alloc_vector & ALLOC_FC){
+      vars->fc  = (int *) space(sizeof(int) * lin_size);
+      //init_array(vars->fc, lin_size, INF);
+    }
+    if(alloc_vector & ALLOC_C){
+      vars->c      = (int *) space(sizeof(int) * size);
+      //init_array(vars->c, size, INF);
+    }
+    if(alloc_vector & ALLOC_FML){
+      vars->fML    = (int *) space(sizeof(int) * size);
+      //init_array(vars->fML, size, INF);
+    }
+    if(alloc_vector & ALLOC_FM1){
+      vars->fM1    = (int *) space(sizeof(int) * size);
+      //init_array(vars->fM1, size, INF);
+    }
+    if(alloc_vector & ALLOC_FM2){
+      vars->fM2    = (int *) space(sizeof(int) * lin_size);
+      //init_array(vars->fM2, lin_size, INF);
+    }
+  }
+
+  return vars;
+}
+
+PUBLIC void destroy_mfe_matrices(mfe_matrices *self){
+  if(self){
+    if(self->allocated){
+      if(self->allocated & ALLOC_F5)      { free(self->f5);    self->f5     = NULL;}
+      if(self->allocated & ALLOC_F3)      { free(self->f3);    self->f3     = NULL;}
+      if(self->allocated & ALLOC_FC)      { free(self->fc);    self->fc     = NULL;}
+      if(self->allocated & ALLOC_C)       { free(self->c);     self->c      = NULL;}
+      if(self->allocated & ALLOC_FML)     { free(self->fML);   self->fML    = NULL;}
+      if(self->allocated & ALLOC_FM1)     { free(self->fM1);   self->fM1    = NULL;}
+      if(self->allocated & ALLOC_FM2)     { free(self->fM2);   self->fM2    = NULL;}
+    }
+    free(self);
+  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -359,12 +452,17 @@ PRIVATE int fill_arrays(const char *string) {
   int   dangle_model, noGUclosure, noLP, with_gquads;
   int   *rtype;
 
+  /* the folding matrices */
+  int   *my_f5, *my_c, *my_fML;
+
+  /* some auxilary matrices */
   int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
   int   *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
   int   *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
   int   *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
   int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
+  /* constraints stuff */
   int   hc_decompose;
   char  *hard_constraints = hc->matrix;
   int   *hc_up_ext        = hc->up_ext;
@@ -390,6 +488,17 @@ PRIVATE int fill_arrays(const char *string) {
   DMLi1 = (int *) space(sizeof(int)*(length + 1));
   DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
+  /* dereference of the folding matrices */
+#ifndef OPENMP_LESS
+  my_f5   = f5;
+  my_c    = c;
+  my_fML  = fML;
+#else
+  my_f5   = backward_compat_matrices->f5;
+  my_c    = backward_compat_matrices->c;
+  my_fML  = backward_compat_matrices->fML;
+#endif
+
   /* prefill helper arrays */
   for(j = 1; j <= length; j++){
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
@@ -399,7 +508,7 @@ PRIVATE int fill_arrays(const char *string) {
   /* prefill matrices with init contributions */
   for(j = 1; j <= length; j++)
     for(i = (j > TURN ? (j - TURN) : 1); i < j; i++){
-      c[indx[j] + i] = fML[indx[j] + i] = INF;
+      my_c[indx[j] + i] = my_fML[indx[j] + i] = INF;
       if(uniq_ML)
         fM1[indx[j] + i] = INF;
     }
@@ -424,8 +533,8 @@ PRIVATE int fill_arrays(const char *string) {
         /* CONSTRAINED HAIRPIN LOOP start */
         if(!no_close){
           energy = E_hp_loop( string,
-                              (unsigned int)i,
-                              (unsigned int)j,
+                              i,
+                              j,
                               type,
                               S1,
                               hc_decompose,
@@ -451,75 +560,29 @@ PRIVATE int fill_arrays(const char *string) {
                               hard_constraints,
                               hc_up_int,
                               sc,
-                              c,
+                              my_c,
                               P);
         new_c = MIN2(new_c, energy);
         /* CONSTRAINED INTERIOR LOOP end */
 
         /* CONSTRAINED MULTIBRANCH LOOP start */
-#if 0
         if(!no_close){
-
-        }
-#else
-        if(hc_decompose & IN_MB_LOOP){
-          int MLenergy;
-          decomp = DMLi1[j-1];
-          tt = rtype[type];
-          switch(dangle_model){
-            /* no dangles */
-            case 0:   decomp += E_MLstem(tt, -1, -1, P);
-                      break;
-
-            /* double dangles */
-            case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
-                      break;
-
-            /* normal dangles, aka dangles = 1 || 3 */
-            default:  decomp += E_MLstem(tt, -1, -1, P);
-                      if(hc_up_ml[i+1]){
-                        en = DMLi2[j-1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
-                        decomp = MIN2(decomp, en);
-                      }
-                      if(hc_up_ml[j-1] && hc_up_ml[i+1]){
-                        en = DMLi2[j-2] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase;
-                        decomp = MIN2(decomp, en);
-                      }
-                      if(hc_up_ml[j-1]){
-                        en = DMLi1[j-2] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
-                        decomp = MIN2(decomp, en);
-                      }
-                      break;
-          }
-          MLenergy = decomp + P->MLclosing;
-          new_c = MIN2(new_c, MLenergy);
-
-          /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
-
-          if (dangle_model==3) {
-            decomp = INF;
-            int i1k, k1j1;
-            k1j1  = indx[j-1] + i + 2 + TURN + 1;
-            for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
-              i1k   = indx[k] + i + 1;
-              if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
-                type_2  = rtype[ptype[i1k]];
-                en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
-                decomp  = MIN2(decomp, en);
-              }
-              if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
-                type_2  = rtype[ptype[k1j1]];
-                en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
-                decomp  = MIN2(decomp, en);
-              }
-            }
-            /* no TermAU penalty if coax stack */
-            decomp += 2*P->MLintern[1] + P->MLclosing;
-            new_c = MIN2(new_c, decomp);
-          }
+          energy = E_mb_loop_fast(  i,
+                                    j,
+                                    ptype,
+                                    S1,
+                                    indx,
+                                    hard_constraints,
+                                    hc_up_ml,
+                                    sc,
+                                    my_c,
+                                    my_fML,
+                                    DMLi1,
+                                    DMLi2,
+                                    P);
+          new_c = MIN2(new_c, energy);
         }
         /* CONSTRAINED MULTIBRANCH LOOP end */
-#endif
 
         if(with_gquad){
           /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
@@ -539,13 +602,13 @@ PRIVATE int fill_arrays(const char *string) {
           }
           new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
           cc[j] = new_c;
-          c[ij] = cc1[j-1]+stackEnergy;
+          my_c[ij] = cc1[j-1]+stackEnergy;
         } else {
-          c[ij] = new_c;
+          my_c[ij] = new_c;
         }
       } /* end >> if (pair) << */
 
-      else c[ij] = INF;
+      else my_c[ij] = INF;
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
@@ -559,21 +622,22 @@ PRIVATE int fill_arrays(const char *string) {
           default:  new_fML += E_MLstem(type, -1, -1, P);
                     break;
         }
-        if(uniq_ML) fM1[ij] = new_fML;
       }
 
       if(with_gquad){
         new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
       }
 
-      /* compute fM1 for unique decomposition */
-      if(hc_up_ml[j-1] && uniq_ML){
-        en = fM1[indx[j-1]+i] + P->MLbase;
-        if(sc)
-          if(sc->free_energies)
-            en += sc->free_energies[j][1];
+      if(uniq_ML){  /* compute fM1 for unique decomposition */
+        fM1[ij] = new_fML;
+        if(hc_up_ml[j-1]){
+          en = fM1[indx[j-1]+i] + P->MLbase;
+          if(sc)
+            if(sc->free_energies)
+              en += sc->free_energies[j][1];
 
-        fM1[ij] = MIN2(fM1[ij], en);
+          fM1[ij] = MIN2(fM1[ij], en);
+        }
       }
 
       /* free ends ? -----------------------------------------*/
@@ -587,14 +651,14 @@ PRIVATE int fill_arrays(const char *string) {
 
         /* double dangles */
         case 2:   if(hc_up_ml[i]){
-                    en = fML[ij + 1] + P->MLbase;
+                    en = my_fML[ij + 1] + P->MLbase;
                     if(sc)
                       if(sc->free_energies)
                         en += sc->free_energies[i][1];
                     new_fML = MIN2(new_fML, en);
                   }
                   if(hc_up_ml[j]){
-                    en = fML[indx[j - 1] + i] + P->MLbase;
+                    en = my_fML[indx[j - 1] + i] + P->MLbase;
                     if(sc)
                       if(sc->free_energies)
                         en += sc->free_energies[j][1];
@@ -604,26 +668,31 @@ PRIVATE int fill_arrays(const char *string) {
                   break;
 
         /* normal dangles, aka dangle_model = 1 || 3 */
-        default:  mm5 = ((i>1) || circular) ? S1[i] : -1;
-                  mm3 = ((j<length) || circular) ? S1[j] : -1;
-                  new_fML = MIN2(new_fML, fML[ij+1] + P->MLbase);
-                  new_fML = MIN2(new_fML, fML[indx[j-1]+i] + P->MLbase);
+        default:  mm5     = ((i>1) || circular) ? S1[i] : -1;
+                  mm3     = ((j<length) || circular) ? S1[j] : -1;
+                  en      = my_fML[ij+1] + P->MLbase;
+                  new_fML = MIN2(new_fML, en);
+                  en      = my_fML[indx[j-1]+i] + P->MLbase;
+                  new_fML = MIN2(new_fML, en);
                   if(hard_constraints[ij+1] & IN_MB_LOOP_ENC){
                     if(hc_up_ml[i]){
-                      tt = ptype[ij+1];
-                      new_fML = MIN2(new_fML, c[ij+1] + E_MLstem(tt, mm5, -1, P) + P->MLbase);
+                      tt      = ptype[ij+1];
+                      en      = my_c[ij+1] + E_MLstem(tt, mm5, -1, P) + P->MLbase;
+                      new_fML = MIN2(new_fML, en);
                     }
                   }
                   if(hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC){
                     if(hc_up_ml[j]){
-                      tt = ptype[indx[j-1]+i];
-                      new_fML = MIN2(new_fML, c[indx[j-1]+i] + E_MLstem(tt, -1, mm3, P) + P->MLbase);
+                      tt      = ptype[indx[j-1]+i];
+                      en      = my_c[indx[j-1]+i] + E_MLstem(tt, -1, mm3, P) + P->MLbase;
+                      new_fML = MIN2(new_fML, en);
                     }
                   }
                   if(hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC){
                     if(hc_up_ml[i] && hc_up_ml[j]){
-                      tt = ptype[indx[j-1]+i+1];
-                      new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + E_MLstem(tt, mm5, mm3, P) + 2*P->MLbase);
+                      tt      = ptype[indx[j-1]+i+1];
+                      en      = my_c[indx[j-1]+i+1] + E_MLstem(tt, mm5, mm3, P) + 2*P->MLbase;
+                      new_fML = MIN2(new_fML, en);
                     }
                   }
                   break;
@@ -632,7 +701,7 @@ PRIVATE int fill_arrays(const char *string) {
       /* modular decomposition -------------------------------*/
       int k1j = indx[j] + i + TURN + 2;
       for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++)
-        decomp = MIN2(decomp, Fmi[k]+fML[k1j]);
+        decomp = MIN2(decomp, Fmi[k]+my_fML[k1j]);
       DMLi[j] = decomp;               /* store for use in ML decompositon */
       new_fML = MIN2(new_fML,decomp);
       /* coaxial stacking */
@@ -644,7 +713,7 @@ PRIVATE int fill_arrays(const char *string) {
           if((hard_constraints[ik] & IN_MB_LOOP_ENC) && (hard_constraints[k1j] & IN_MB_LOOP_ENC)){
             type    = rtype[ptype[ik]];
             type_2  = rtype[ptype[k1j]];
-            decomp  = MIN2(decomp, c[ik] + c[k1j] + P->stack[type][type_2]);
+            decomp  = MIN2(decomp, my_c[ik] + my_c[k1j] + P->stack[type][type_2]);
           }
         }
 
@@ -659,7 +728,7 @@ PRIVATE int fill_arrays(const char *string) {
 #endif
         new_fML = MIN2(new_fML, decomp);
       }
-      fML[ij] = Fmi[j] = new_fML;     /* substring energy */
+      my_fML[ij] = Fmi[j] = new_fML;     /* substring energy */
 
     }
 
@@ -673,15 +742,15 @@ PRIVATE int fill_arrays(const char *string) {
 
   /* calculate energies of 5' and 3' fragments */
 
-  f5[0] = 0;
+  my_f5[0] = 0;
   for(i = 1; i <= TURN + 1; i++){
     if(hc_up_ext[i]){
-      f5[i] = f5[i-1];
+      my_f5[i] = my_f5[i-1];
       if(sc)
         if(sc->free_energies)
-          f5[i] += sc->free_energies[i][1];
+          my_f5[i] += sc->free_energies[i][1];
     } else {
-      f5[i] = INF;
+      my_f5[i] = INF;
     }
   }
   /* duplicated code may be faster than conditions inside loop ;) */
@@ -689,10 +758,10 @@ PRIVATE int fill_arrays(const char *string) {
     /* dont use dangling end and mismatch contributions at all */
     case 0:   for(j=TURN+2; j<=length; j++){
                 if(hc_up_ext[j]){
-                  f5[j] = f5[j-1];
+                  my_f5[j] = my_f5[j-1];
                   if(sc)
                     if(sc->free_energies)
-                      f5[j] += sc->free_energies[j][1];
+                      my_f5[j] += sc->free_energies[j][1];
                 }
                 for (i=j-TURN-1; i>1; i--){
                   ij = indx[j]+i;
@@ -702,8 +771,8 @@ PRIVATE int fill_arrays(const char *string) {
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
 
-                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
-                  f5[j] = MIN2(f5[j], en);
+                  en    = my_f5[i-1] + my_c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                  my_f5[j] = MIN2(my_f5[j], en);
                 }
                 ij = indx[j] + 1;
                 if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
@@ -712,18 +781,18 @@ PRIVATE int fill_arrays(const char *string) {
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
-                en    = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
-                f5[j] = MIN2(f5[j], en);
+                en    = my_c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                my_f5[j] = MIN2(my_f5[j], en);
               }
               break;
 
     /* always use dangles on both sides */
     case 2:   for(j=TURN+2; j<length; j++){
                 if(hc_up_ext[j]){
-                  f5[j] = f5[j-1];
+                  my_f5[j] = my_f5[j-1];
                   if(sc)
                     if(sc->free_energies)
-                      f5[j] += sc->free_energies[j][1];
+                      my_f5[j] += sc->free_energies[j][1];
                 }
                 for (i=j-TURN-1; i>1; i--){
                   ij = indx[j] + i;
@@ -733,8 +802,8 @@ PRIVATE int fill_arrays(const char *string) {
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
 
-                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S1[i-1], S1[j+1], P);
-                  f5[j] = MIN2(f5[j], en);
+                  en    = my_f5[i-1] + my_c[ij] + E_ExtLoop(ptype[ij], S1[i-1], S1[j+1], P);
+                  my_f5[j] = MIN2(my_f5[j], en);
                 }
                 ij = indx[j] + 1;
                 if(!(hard_constraints[ij] & IN_EXT_LOOP)) continue;
@@ -743,14 +812,14 @@ PRIVATE int fill_arrays(const char *string) {
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
-                en    = c[ij] + E_ExtLoop(ptype[ij], -1, S1[j+1], P);
-                f5[j] = MIN2(f5[j], en);
+                en    = my_c[ij] + E_ExtLoop(ptype[ij], -1, S1[j+1], P);
+                my_f5[j] = MIN2(my_f5[j], en);
               }
               if(hc_up_ext[length]){
-                f5[length] = f5[length-1];
+                my_f5[length] = my_f5[length-1];
                 if(sc)
                   if(sc->free_energies)
-                    f5[length] += sc->free_energies[length][1];
+                    my_f5[length] += sc->free_energies[length][1];
               }
               for (i=length-TURN-1; i>1; i--){
                 ij = indx[length] + i;
@@ -760,8 +829,8 @@ PRIVATE int fill_arrays(const char *string) {
                   f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
                 }
 
-                en          = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S1[i-1], -1, P);
-                f5[length]  = MIN2(f5[length], en);
+                en          = my_f5[i-1] + my_c[ij] + E_ExtLoop(ptype[ij], S1[i-1], -1, P);
+                my_f5[length]  = MIN2(my_f5[length], en);
               }
               ij = indx[length] + 1;
               if(!(hard_constraints[ij] & IN_EXT_LOOP)) break;
@@ -770,14 +839,14 @@ PRIVATE int fill_arrays(const char *string) {
                 f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
               }
 
-              en          = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
-              f5[length]  = MIN2(f5[length], en);
+              en          = my_c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+              my_f5[length]  = MIN2(my_f5[length], en);
               break;
 
     /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
                 if(hc_up_ext[j])
-                  f5[j] = f5[j-1];
+                  my_f5[j] = my_f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
                   ij = indx[j] + i;
                   if(hard_constraints[ij] & IN_EXT_LOOP){
@@ -787,22 +856,22 @@ PRIVATE int fill_arrays(const char *string) {
                     }
 
                     type  = ptype[ij];
-                    en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
-                    f5[j] = MIN2(f5[j], en);
+                    en    = my_f5[i-1] + my_c[ij] + E_ExtLoop(type, -1, -1, P);
+                    my_f5[j] = MIN2(my_f5[j], en);
                     if(hc_up_ext[i-1]){
-                      en    = f5[i-2] + c[ij] + E_ExtLoop(type, S1[i-1], -1, P);
-                      f5[j] = MIN2(f5[j], en);
+                      en    = my_f5[i-2] + my_c[ij] + E_ExtLoop(type, S1[i-1], -1, P);
+                      my_f5[j] = MIN2(my_f5[j], en);
                     }
                   }
                   ij = indx[j-1] + i;
                   if(hard_constraints[ij] & IN_EXT_LOOP){
                     if(hc_up_ext[j]){
                       type  = ptype[ij];
-                      en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S1[j], P);
-                      f5[j] = MIN2(f5[j], en);
+                      en    = my_f5[i-1] + my_c[ij] + E_ExtLoop(type, -1, S1[j], P);
+                      my_f5[j] = MIN2(my_f5[j], en);
                       if(hc_up_ext[i-1]){
-                        en    = f5[i-2] + c[ij] + E_ExtLoop(type, S1[i-1], S1[j], P);
-                        f5[j] = MIN2(f5[j], en);
+                        en    = my_f5[i-2] + my_c[ij] + E_ExtLoop(type, S1[i-1], S1[j], P);
+                        my_f5[j] = MIN2(my_f5[j], en);
                       }
                     }
                   }
@@ -815,15 +884,15 @@ PRIVATE int fill_arrays(const char *string) {
                   }
 
                   type  = ptype[ij];
-                  en    = c[ij] + E_ExtLoop(type, -1, -1, P);
-                  f5[j] = MIN2(f5[j], en);
+                  en    = my_c[ij] + E_ExtLoop(type, -1, -1, P);
+                  my_f5[j] = MIN2(my_f5[j], en);
                 }
                 ij = indx[j-1] + 1;
                 if(hard_constraints[ij] & IN_EXT_LOOP){
                   if(hc_up_ext[j]){
                     type  = ptype[ij];
-                    en    = c[ij] + E_ExtLoop(type, -1, S1[j], P);
-                    f5[j] = MIN2(f5[j], en);
+                    en    = my_c[ij] + E_ExtLoop(type, -1, S1[j], P);
+                    my_f5[j] = MIN2(my_f5[j], en);
                   }
                 }
               }
@@ -837,7 +906,7 @@ PRIVATE int fill_arrays(const char *string) {
   free(DMLi1);
   free(DMLi2);
 
-  return f5[length];
+  return my_f5[length];
 }
 
 #include "circfold.inc"
@@ -858,6 +927,20 @@ PRIVATE void backtrack(const char *string, int s) {
   int   noLP          = P->model_details.noLP;
   int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
+
+  /* the folding matrices */
+  int   *my_f5, *my_c, *my_fML;
+
+
+#ifndef OPENMP_LESS
+  my_f5   = f5;
+  my_c    = c;
+  my_fML  = fML;
+#else
+  my_f5   = backward_compat_matrices->f5;
+  my_c    = backward_compat_matrices->c;
+  my_fML  = backward_compat_matrices->fML;
+#endif
 
   length = strlen(string);
   if (s==0) {
@@ -885,11 +968,11 @@ PRIVATE void backtrack(const char *string, int s) {
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
     if(ml == 1){
-      fij = fML[indx[j] + i];
-      fi  = fML[indx[j - 1] + i] + P->MLbase;
+      fij = my_fML[indx[j] + i];
+      fi  = my_fML[indx[j - 1] + i] + P->MLbase;
     } else {
-      fij = f5[j];
-      fi  = f5[j-1];
+      fij = my_f5[j];
+      fi  = my_f5[j-1];
     }
 
     if(sc)
@@ -918,7 +1001,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
                     type = ptype[indx[j]+k];
                     if(type)
-                      if(fij == E_ExtLoop(type, -1, -1, P) + c[indx[j]+k] + f5[k-1]){
+                      if(fij == E_ExtLoop(type, -1, -1, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
                         break;
                       }
@@ -938,7 +1021,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
                     type = ptype[indx[j]+k];
                     if(type)
-                      if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + c[indx[j]+k] + f5[k-1]){
+                      if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
                         break;
                       }
@@ -957,13 +1040,13 @@ PRIVATE void backtrack(const char *string, int s) {
 
                     type = ptype[indx[j] + k];
                     if(type){
-                      en = c[indx[j] + k];
-                      if(fij == f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
+                      en = my_c[indx[j] + k];
+                      if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
                         traced = j;
                         jj = k-1;
                         break;
                       }
-                      if(fij == f5[k-2] + en + E_ExtLoop(type, S1[k-1], -1, P)){
+                      if(fij == my_f5[k-2] + en + E_ExtLoop(type, S1[k-1], -1, P)){
                         traced = j;
                         jj = k-2;
                         break;
@@ -971,13 +1054,13 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                     type = ptype[indx[j-1] + k];
                     if(type){
-                      en = c[indx[j-1] + k];
-                      if(fij == f5[k-1] + en + E_ExtLoop(type, -1, S1[j], P)){
+                      en = my_c[indx[j-1] + k];
+                      if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, S1[j], P)){
                         traced = j-1;
                         jj = k-1;
                         break;
                       }
-                      if(fij == f5[k-2] + en + E_ExtLoop(type, S1[k-1], S1[j], P)){
+                      if(fij == my_f5[k-2] + en + E_ExtLoop(type, S1[k-1], S1[j], P)){
                         traced = j-1;
                         jj = k-2;
                         break;
@@ -996,7 +1079,7 @@ PRIVATE void backtrack(const char *string, int s) {
 
                     type = ptype[indx[j]+1];
                     if(type){
-                      if(fij == c[indx[j]+1] + E_ExtLoop(type, -1, -1, P)){
+                      if(fij == my_c[indx[j]+1] + E_ExtLoop(type, -1, -1, P)){
                         traced = j;
                         jj = 0;
                         break;
@@ -1004,7 +1087,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                     type = ptype[indx[j-1]+1];
                     if(type){
-                      if(fij == c[indx[j-1]+1] + E_ExtLoop(type, -1, S1[j], P)){
+                      if(fij == my_c[indx[j-1]+1] + E_ExtLoop(type, -1, S1[j], P)){
                         traced = j-1;
                         jj = 0;
                         break;
@@ -1036,7 +1119,7 @@ PRIVATE void backtrack(const char *string, int s) {
       goto repeat1;
     }
     else { /* trace back in fML array */
-      en = fML[indx[j]+i+1]+P->MLbase;
+      en = my_fML[indx[j]+i+1]+P->MLbase;
 
       if(sc)
         if(sc->free_energies)
@@ -1059,7 +1142,7 @@ PRIVATE void backtrack(const char *string, int s) {
       }
 
       tt  = ptype[ij];
-      en  = c[ij];
+      en  = my_c[ij];
       switch(dangle_model){
         case 0:   if(fij == en + E_MLstem(tt, -1, -1, P)){
                     base_pair2[++b].i = i;
@@ -1081,19 +1164,19 @@ PRIVATE void backtrack(const char *string, int s) {
                     goto repeat1;
                   }
                   tt = ptype[ij+1];
-                  if(fij == c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
+                  if(fij == my_c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
                     base_pair2[++b].i = ++i;
                     base_pair2[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i];
-                  if(fij == c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
+                  if(fij == my_c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
                     base_pair2[++b].i = i;
                     base_pair2[b].j   = --j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i+1];
-                  if(fij == c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
+                  if(fij == my_c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
                     base_pair2[++b].i = ++i;
                     base_pair2[b].j   = --j;
                     goto repeat1;
@@ -1102,7 +1185,7 @@ PRIVATE void backtrack(const char *string, int s) {
       }
 
       for(k = i + 1 + TURN; k <= j - 2 - TURN; k++)
-        if(fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
+        if(fij == (my_fML[indx[k]+i]+my_fML[indx[j]+k+1]))
           break;
 
       if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
@@ -1111,7 +1194,7 @@ PRIVATE void backtrack(const char *string, int s) {
           type    = rtype[ptype[indx[k]+i]];
           type_2  = rtype[ptype[indx[j]+k+1]];
           if (type && type_2)
-            if (fij == c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]+
+            if (fij == my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]+
                        2*P->MLintern[1])
               break;
         }
@@ -1131,12 +1214,12 @@ PRIVATE void backtrack(const char *string, int s) {
 
     /*----- begin of "repeat:" -----*/
     ij = indx[j]+i;
-    if (canonical)  cij = c[ij];
+    if (canonical)  cij = my_c[ij];
 
     type = ptype[ij];
 
     if (noLP)
-      if (cij == c[ij]){
+      if (cij == my_c[ij]){
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
@@ -1180,7 +1263,7 @@ PRIVATE void backtrack(const char *string, int s) {
         energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                             S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
-        new = energy+c[indx[q]+p];
+        new = energy+my_c[indx[q]+p];
         if(sc)
           if(sc->free_energies)
             new += sc->free_energies[i+1][p-i-1] + sc->free_energies[q+1][j-q-1];
@@ -1219,32 +1302,32 @@ PRIVATE void backtrack(const char *string, int s) {
     switch(dangle_model){
       case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
-                  if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
+                  if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1])
                     break;
                 }
                 break;
 
       case 2:   en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing;
                 for(k = i+2+TURN; k < j-2-TURN; k++){
-                    if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1])
+                    if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1])
                       break;
                 }
                 break;
 
       default:  for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing;
-                  if(en == fML[indx[k]+i+1] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
+                  if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
                     break;
                   }
-                  else if(en == fML[indx[k]+i+2] + fML[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase){
+                  else if(en == my_fML[indx[k]+i+2] + my_fML[indx[j-1]+k+1] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase){
                     i1 = i+2;
                     break;
                   }
-                  else if(en == fML[indx[k]+i+1] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase){
+                  else if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase){
                     j1 = j-2;
                     break;
                   }
-                  else if(en == fML[indx[k]+i+2] + fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase){
+                  else if(en == my_fML[indx[k]+i+2] + my_fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase){
                     i1 = i+2;
                     j1 = j-2;
                     break;
@@ -1254,7 +1337,7 @@ PRIVATE void backtrack(const char *string, int s) {
                   if(dangle_model == 3){
                     type_2 = rtype[ptype[indx[k]+i+1]];
                     if (type_2) {
-                      en = c[indx[k]+i+1]+P->stack[type][type_2]+fML[indx[j-1]+k+1];
+                      en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
                         ml = 2;
                         sector[s+1].ml  = 2;
@@ -1264,7 +1347,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     }
                     type_2 = rtype[ptype[indx[j-1]+k+1]];
                     if (type_2) {
-                      en = c[indx[j-1]+k+1]+P->stack[type][type_2]+fML[indx[k]+i+1];
+                      en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
                         sector[s+2].ml = 2;
                         traced = 1;

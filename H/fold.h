@@ -48,6 +48,11 @@
  *  @}
  */
 
+mfe_matrices  *get_mfe_matrices_alloc(  unsigned int n,
+                                        unsigned int alloc_vector);
+
+void destroy_mfe_matrices(mfe_matrices *self);
+
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence
