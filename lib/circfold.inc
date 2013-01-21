@@ -16,10 +16,21 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int i,j, p,q,length, energy;
 
+  /* the folding matrices */
+  int   *my_c, *my_fML;
+
   int   dangle_model  = P->model_details.dangles;
   int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
 
+  /* dereference of the folding matrices */
+#ifndef OPENMP_LESS
+  my_c    = c;
+  my_fML  = fML;
+#else
+  my_c    = backward_compat_matrices->c;
+  my_fML  = backward_compat_matrices->fML;
+#endif
 
 
   length = (int) strlen(string);
@@ -48,7 +59,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
           strcpy(loopseq , string+j-1);
           strncat(loopseq, string, i);
         }
-        new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+c[ij];
+        new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+my_c[ij];
       }
       if (new_c<FcH) {
         FcH = new_c; Hi=i; Hj=j;
@@ -67,7 +78,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
           u2 = i-1 + length-q;
           if (u1+u2>MAXLOOP) continue;
           energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
-          new_c = c[ij] + c[indx[q]+p] + energy;
+          new_c = my_c[ij] + my_c[indx[q]+p] + energy;
           if (new_c<FcI) {
             FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
           }
@@ -83,12 +94,12 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
     int u;
     fM2[i] = INF;
     for (u=i+TURN; u<length-TURN; u++)
-      fM2[i] = MIN2(fM2[i], fML[indx[u]+i] + fML[indx[length]+u+1]);
+      fM2[i] = MIN2(fM2[i], my_fML[indx[u]+i] + my_fML[indx[length]+u+1]);
   }
 
   for (i=TURN+1; i<length-2*TURN; i++) {
     int fm;
-    fm = fML[indx[i]+1]+fM2[i+1]+P->MLclosing;
+    fm = my_fML[indx[i]+1]+fM2[i+1]+P->MLclosing;
     if (fm<FcM) {
       FcM=fm; Mi=i;
     }
@@ -102,17 +113,17 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d3[i] = INF;
       for (u=2+TURN; u<i-TURN; u++)
-        fM_d3[i] = MIN2(fM_d3[i], fML[indx[u]+2] + fML[indx[i]+u+1]);
+        fM_d3[i] = MIN2(fM_d3[i], my_fML[indx[u]+2] + my_fML[indx[i]+u+1]);
     }
     for (i=2*TURN+1; i<length-TURN; i++) {
       int fm, type;
       type = ptype[indx[length]+i+1];
       if (type==0) continue;
-      fm = fM_d3[i]+c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
+      fm = fM_d3[i]+my_c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
       if (fm<FcMd3) {
         FcMd3=fm; Md3i=i;
       }
-      fm = fM_d3[i-1]+c[indx[length]+i+1]+E_MLstem(type, S1[i], S1[1], P) + P->MLclosing;
+      fm = fM_d3[i-1]+my_c[indx[length]+i+1]+E_MLstem(type, S1[i], S1[1], P) + P->MLclosing;
       if (fm<FcMd3) {
         FcMd3=fm; Md3i=-i;
       }
@@ -121,17 +132,17 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d5[i] = INF;
       for (u=i+TURN; u<length-TURN; u++)
-        fM_d5[i] = MIN2(fM_d5[i], fML[indx[u]+i] + fML[indx[length-1]+u+1]);
+        fM_d5[i] = MIN2(fM_d5[i], my_fML[indx[u]+i] + my_fML[indx[length-1]+u+1]);
     }
     for (i=TURN+1; i<length-2*TURN; i++) {
       int fm, type;
       type = ptype[indx[i]+1];
       if (type==0) continue;
-      fm = E_MLstem(type, S1[length], -1, P) + c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;
+      fm = E_MLstem(type, S1[length], -1, P) + my_c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;
       if (fm<FcMd5) {
         FcMd5=fm; Md5i=i;
       }
-      fm = E_MLstem(type, S1[length], S1[i+1], P) + c[indx[i]+1] + fM_d5[i+2] + P->MLclosing;
+      fm = E_MLstem(type, S1[length], S1[i+1], P) + my_c[indx[i]+1] + fM_d5[i+2] + P->MLclosing;
       if (fm<FcMd5) {
         FcMd5=fm; Md5i=-i;
       }
@@ -143,7 +154,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
       sector[(*bt)].ml = 2;
       i = (Md5i>0)?Md5i+1 : -Md5i+2; /* let's backtrack fm_d5[Md5i+1] */
       for (u=i+TURN; u<length-TURN; u++)
-        if (fM_d5[i] == fML[indx[u]+i] + fML[indx[length-1]+u+1]) {
+        if (fM_d5[i] == my_fML[indx[u]+i] + my_fML[indx[length-1]+u+1]) {
           sector[++(*bt)].i = i;
           sector[(*bt)].j = u;
           sector[(*bt)].ml = 1;
@@ -160,7 +171,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
       sector[(*bt)].ml = 2;
       i = (Md3i>0)? Md3i : -Md3i-1; /* let's backtrack fm_d3[Md3i] */
       for (u=2+TURN; u<i-TURN; u++)
-        if (fM_d3[i] == fML[indx[u]+2] + fML[indx[i]+u+1]) {
+        if (fM_d3[i] == my_fML[indx[u]+2] + my_fML[indx[i]+u+1]) {
           sector[++(*bt)].i = 2;
           sector[(*bt)].j = u;
           sector[(*bt)].ml = 1;
@@ -193,7 +204,7 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
       /* backtrack in fM2 */
       fm = fM2[Mi+1];
       for (u=Mi+TURN+1; u<length-TURN; u++)
-        if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
+        if (fm == my_fML[indx[u]+Mi+1] + my_fML[indx[length]+u+1]) {
                 sector[++(*bt)].i=Mi+1;
                 sector[(*bt)].j=u;
                 sector[(*bt)].ml = 1;
