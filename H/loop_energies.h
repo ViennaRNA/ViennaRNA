@@ -707,6 +707,182 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
   return e;
 }
 
+INLINE PRIVATE void E_ext_loop_5( int length,
+                                  char *ptype,
+                                  short *S,
+                                  int *indx,
+                                  char *hc,
+                                  int *hc_up,
+                                  soft_constraintT *sc,
+                                  int *f5,
+                                  int *c,
+                                  paramT *P){
+
+  int en, i, j, type;
+  int ij            = indx[j] + i;
+  int hc_decompose  = hc[ij];
+  int dangle_model  = P->model_details.dangles;
+  int *rtype        = &(P->model_details.rtype[0]);
+  int e             = INF;
+
+  f5[0] = 0;
+  for(i = 1; i <= TURN + 1; i++){
+    if(hc_up[i]){
+      f5[i] = f5[i-1];
+      if(sc)
+        if(sc->free_energies)
+          f5[i] += sc->free_energies[i][1];
+    } else {
+      f5[i] = INF;
+    }
+  }
+
+  /* duplicated code may be faster than conditions inside loop ;) */
+  switch(dangle_model){
+    /* dont use dangling end and mismatch contributions at all */
+    case 0:   for(j=TURN+2; j<=length; j++){
+                if(hc_up[j]){
+                  f5[j] = f5[j-1];
+                  if(sc)
+                    if(sc->free_energies)
+                      f5[j] += sc->free_energies[j][1];
+                }
+                for (i=j-TURN-1; i>1; i--){
+                  ij = indx[j]+i;
+                  if(!(hc[ij] & IN_EXT_LOOP)) continue;
+
+                  if(with_gquad){
+                    f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                  }
+
+                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                  f5[j] = MIN2(f5[j], en);
+                }
+                ij = indx[j] + 1;
+                if(!(hc[ij] & IN_EXT_LOOP)) continue;
+
+                if(with_gquad){
+                  f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+                }
+
+                en    = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                f5[j] = MIN2(f5[j], en);
+              }
+              break;
+
+    /* always use dangles on both sides */
+    case 2:   for(j=TURN+2; j<length; j++){
+                if(hc_up[j]){
+                  f5[j] = f5[j-1];
+                  if(sc)
+                    if(sc->free_energies)
+                      f5[j] += sc->free_energies[j][1];
+                }
+                for (i=j-TURN-1; i>1; i--){
+                  ij = indx[j] + i;
+                  if(!(hc[ij] & IN_EXT_LOOP)) continue;
+
+                  if(with_gquad){
+                    f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                  }
+
+                  en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], S[j+1], P);
+                  f5[j] = MIN2(f5[j], en);
+                }
+                ij = indx[j] + 1;
+                if(!(hc[ij] & IN_EXT_LOOP)) continue;
+
+                if(with_gquad){
+                  f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+                }
+
+                en    = c[ij] + E_ExtLoop(ptype[ij], -1, S[j+1], P);
+                f5[j] = MIN2(f5[j], en);
+              }
+              if(hc_up[length]){
+                f5[length] = f5[length-1];
+                if(sc)
+                  if(sc->free_energies)
+                    f5[length] += sc->free_energies[length][1];
+              }
+              for (i=length-TURN-1; i>1; i--){
+                ij = indx[length] + i;
+                if(!(hc[ij] & IN_EXT_LOOP)) continue;
+
+                if(with_gquad){
+                  f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
+                }
+
+                en          = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], -1, P);
+                f5[length]  = MIN2(f5[length], en);
+              }
+              ij = indx[length] + 1;
+              if(!(hc[ij] & IN_EXT_LOOP)) break;
+
+              if(with_gquad){
+                f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
+              }
+
+              en          = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+              f5[length]  = MIN2(f5[length], en);
+              break;
+
+    /* normal dangles, aka dangle_model = 1 || 3 */
+    default:  for(j=TURN+2; j<=length; j++){
+                if(hc_up[j])
+                  f5[j] = f5[j-1];
+                for (i=j-TURN-1; i>1; i--){
+                  ij = indx[j] + i;
+                  if(hc[ij] & IN_EXT_LOOP){
+
+                    if(with_gquad){
+                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                    }
+
+                    type  = ptype[ij];
+                    en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
+                    f5[j] = MIN2(f5[j], en);
+                    if(hc_up[i-1]){
+                      en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], -1, P);
+                      f5[j] = MIN2(f5[j], en);
+                    }
+                  }
+                  ij = indx[j-1] + i;
+                  if(hc[ij] & IN_EXT_LOOP){
+                    if(hc_up[j]){
+                      type  = ptype[ij];
+                      en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S[j], P);
+                      f5[j] = MIN2(f5[j], en);
+                      if(hc_up[i-1]){
+                        en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], S[j], P);
+                        f5[j] = MIN2(f5[j], en);
+                      }
+                    }
+                  }
+                }
+                ij = indx[j] + 1;
+                if(hc[ij] & IN_EXT_LOOP){
+
+                  if(with_gquad){
+                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+                  }
+
+                  type  = ptype[ij];
+                  en    = c[ij] + E_ExtLoop(type, -1, -1, P);
+                  f5[j] = MIN2(f5[j], en);
+                }
+                ij = indx[j-1] + 1;
+                if(hc[ij] & IN_EXT_LOOP){
+                  if(hc_up[j]){
+                    type  = ptype[ij];
+                    en    = c[ij] + E_ExtLoop(type, -1, S[j], P);
+                    f5[j] = MIN2(f5[j], en);
+                  }
+                }
+              }
+  }
+}
+
 
 INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       int type,
