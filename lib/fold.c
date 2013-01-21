@@ -191,34 +191,27 @@ PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
     unsigned int size     = ((n + 1) * (n + 2)) >> 1;
     unsigned int lin_size = n + 2;
 
-    if(alloc_vector & ALLOC_F5){
+    if(alloc_vector & ALLOC_F5)
       vars->f5  = (int *) space(sizeof(int) * lin_size);
-      //init_array(vars->f5, lin_size, INF);
-    }
-    if(alloc_vector & ALLOC_F3){
+
+    if(alloc_vector & ALLOC_F3)
       vars->f3  = (int *) space(sizeof(int) * lin_size);
-      //init_array(vars->f3, lin_size, INF);
-    }
-    if(alloc_vector & ALLOC_FC){
+
+    if(alloc_vector & ALLOC_FC)
       vars->fc  = (int *) space(sizeof(int) * lin_size);
-      //init_array(vars->fc, lin_size, INF);
-    }
-    if(alloc_vector & ALLOC_C){
+
+    if(alloc_vector & ALLOC_C)
       vars->c      = (int *) space(sizeof(int) * size);
-      //init_array(vars->c, size, INF);
-    }
-    if(alloc_vector & ALLOC_FML){
+
+    if(alloc_vector & ALLOC_FML)
       vars->fML    = (int *) space(sizeof(int) * size);
-      //init_array(vars->fML, size, INF);
-    }
-    if(alloc_vector & ALLOC_FM1){
+
+    if(alloc_vector & ALLOC_FM1)
       vars->fM1    = (int *) space(sizeof(int) * size);
-      //init_array(vars->fM1, size, INF);
-    }
-    if(alloc_vector & ALLOC_FM2){
+
+    if(alloc_vector & ALLOC_FM2)
       vars->fM2    = (int *) space(sizeof(int) * lin_size);
-      //init_array(vars->fM2, lin_size, INF);
-    }
+
   }
 
   return vars;
@@ -227,13 +220,20 @@ PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
 PUBLIC void destroy_mfe_matrices(mfe_matrices *self){
   if(self){
     if(self->allocated){
-      if(self->allocated & ALLOC_F5)      { free(self->f5);    self->f5     = NULL;}
-      if(self->allocated & ALLOC_F3)      { free(self->f3);    self->f3     = NULL;}
-      if(self->allocated & ALLOC_FC)      { free(self->fc);    self->fc     = NULL;}
-      if(self->allocated & ALLOC_C)       { free(self->c);     self->c      = NULL;}
-      if(self->allocated & ALLOC_FML)     { free(self->fML);   self->fML    = NULL;}
-      if(self->allocated & ALLOC_FM1)     { free(self->fM1);   self->fM1    = NULL;}
-      if(self->allocated & ALLOC_FM2)     { free(self->fM2);   self->fM2    = NULL;}
+      if(self->allocated & ALLOC_F5)
+        free(self->f5);
+      if(self->allocated & ALLOC_F3)
+        free(self->f3);
+      if(self->allocated & ALLOC_FC)
+        free(self->fc);
+      if(self->allocated & ALLOC_C)
+        free(self->c);
+      if(self->allocated & ALLOC_FML)
+        free(self->fML);
+      if(self->allocated & ALLOC_FM1)
+        free(self->fM1);
+      if(self->allocated & ALLOC_FM2)
+        free(self->fM2);
     }
     free(self);
   }
@@ -396,12 +396,12 @@ PUBLIC float fold_par(const char *string,
                                 TURN,
                                 constraint_options);
 
+
   /* test for the soft constraints */
+  /* 
   double *soft_constraints = (double *)space(sizeof(double) * (length + 1));
   for(i = 1; i <= length; i++)
     soft_constraints[i] = 0;
-
-  /* 
   sc = get_soft_constraints(soft_constraints, (unsigned int)length, VRNA_CONSTRAINT_SOFT_MFE);
   */
   sc = get_soft_constraints(NULL, (unsigned int)length, VRNA_CONSTRAINT_SOFT_MFE);
@@ -611,125 +611,42 @@ PRIVATE int fill_arrays(const char *string) {
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
-      /* (i,j) + MLstem ? */
-      new_fML = INF;
-      if(hc_decompose & IN_MB_LOOP_ENC){
-        new_fML = c[ij];
-        switch(dangle_model){
-          case 2:   new_fML += E_MLstem(type, (i==1) ? S1[length] : S1[i-1], S1[j+1], P);
-                    break;
-          default:  new_fML += E_MLstem(type, -1, -1, P);
-                    break;
-        }
-      }
+      my_fML[ij] = E_ml_stems_fast( i,
+                                    j,
+                                    length,
+                                    ptype,
+                                    S1,
+                                    indx,
+                                    hard_constraints,
+                                    hc_up_ml,
+                                    sc,
+                                    my_c,
+                                    my_fML,
+                                    Fmi,
+                                    DMLi,
+                                    circular,
+                                    P);
 
       if(with_gquad){
         new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
       }
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
-        fM1[ij] = new_fML;
-        if(hc_up_ml[j-1]){
-          en = fM1[indx[j-1]+i] + P->MLbase;
-          if(sc)
-            if(sc->free_energies)
-              en += sc->free_energies[j][1];
-
-          fM1[ij] = MIN2(fM1[ij], en);
-        }
+        fM1[ij] = E_ml_rightmost_stem(  i,
+                                        j,
+                                        length,
+                                        type,
+                                        S1,
+                                        indx,
+                                        hard_constraints,
+                                        hc_up_ml,
+                                        sc,
+                                        my_c,
+                                        fM1,
+                                        P);
       }
 
-      /* free ends ? -----------------------------------------*/
-      /*  we must not just extend 3'/5' end by unpaired nucleotides if
-      *   dangle_model == 1, this could lead to d5+d3 contributions were
-      *   mismatch must be taken!
-      */
-      switch(dangle_model){
-        /* no dangles */
-        case 0:   /* fall through */
-
-        /* double dangles */
-        case 2:   if(hc_up_ml[i]){
-                    en = my_fML[ij + 1] + P->MLbase;
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[i][1];
-                    new_fML = MIN2(new_fML, en);
-                  }
-                  if(hc_up_ml[j]){
-                    en = my_fML[indx[j - 1] + i] + P->MLbase;
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[j][1];
-
-                    new_fML = MIN2(new_fML, en);
-                  }
-                  break;
-
-        /* normal dangles, aka dangle_model = 1 || 3 */
-        default:  mm5     = ((i>1) || circular) ? S1[i] : -1;
-                  mm3     = ((j<length) || circular) ? S1[j] : -1;
-                  en      = my_fML[ij+1] + P->MLbase;
-                  new_fML = MIN2(new_fML, en);
-                  en      = my_fML[indx[j-1]+i] + P->MLbase;
-                  new_fML = MIN2(new_fML, en);
-                  if(hard_constraints[ij+1] & IN_MB_LOOP_ENC){
-                    if(hc_up_ml[i]){
-                      tt      = ptype[ij+1];
-                      en      = my_c[ij+1] + E_MLstem(tt, mm5, -1, P) + P->MLbase;
-                      new_fML = MIN2(new_fML, en);
-                    }
-                  }
-                  if(hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC){
-                    if(hc_up_ml[j]){
-                      tt      = ptype[indx[j-1]+i];
-                      en      = my_c[indx[j-1]+i] + E_MLstem(tt, -1, mm3, P) + P->MLbase;
-                      new_fML = MIN2(new_fML, en);
-                    }
-                  }
-                  if(hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC){
-                    if(hc_up_ml[i] && hc_up_ml[j]){
-                      tt      = ptype[indx[j-1]+i+1];
-                      en      = my_c[indx[j-1]+i+1] + E_MLstem(tt, mm5, mm3, P) + 2*P->MLbase;
-                      new_fML = MIN2(new_fML, en);
-                    }
-                  }
-                  break;
-      }
-
-      /* modular decomposition -------------------------------*/
-      int k1j = indx[j] + i + TURN + 2;
-      for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++)
-        decomp = MIN2(decomp, Fmi[k]+my_fML[k1j]);
-      DMLi[j] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
-      /* coaxial stacking */
-      if (dangle_model==3) {
-        /* additional ML decomposition as two coaxially stacked helices */
-        int ik, k1j;
-        for (k1j = indx[j]+i+TURN+2, decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++, k1j++){
-          ik = indx[k]+i;
-          if((hard_constraints[ik] & IN_MB_LOOP_ENC) && (hard_constraints[k1j] & IN_MB_LOOP_ENC)){
-            type    = rtype[ptype[ik]];
-            type_2  = rtype[ptype[k1j]];
-            decomp  = MIN2(decomp, my_c[ik] + my_c[k1j] + P->stack[type][type_2]);
-          }
-        }
-
-        decomp += 2*P->MLintern[1];        /* no TermAU penalty if coax stack */
-#if 0
-        /* This is needed for Y shaped ML loops with coax stacking of
-           interior pairts, but backtracking will fail if activated */
-        DMLi[j] = MIN2(DMLi[j], decomp);
-        DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
-        DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
-        new_fML = MIN2(new_fML, DMLi[j]);
-#endif
-        new_fML = MIN2(new_fML, decomp);
-      }
-      my_fML[ij] = Fmi[j] = new_fML;     /* substring energy */
-
-    }
+    } /* end of j-loop */
 
     {
       int *FF; /* rotate the auxilliary arrays */
@@ -737,7 +654,7 @@ PRIVATE int fill_arrays(const char *string) {
       FF = cc1; cc1=cc; cc=FF;
       for (j=1; j<=length; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
     }
-  }
+  } /* end of i-loop */
 
   /* calculate energies of 5' and 3' fragments */
 

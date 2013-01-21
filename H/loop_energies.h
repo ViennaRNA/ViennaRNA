@@ -399,7 +399,7 @@ INLINE PRIVATE int E_int_loop(const char *sequence,
                               soft_constraintT *sc,
                               int *c,
                               paramT *P){
-  int q, p, j_q, p_i, pq, max_q, max_p, type, type_2, *rtype, noGUclosure, no_close, energy;
+  int q, p, j_q, p_i, pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
   int e             = INF;
@@ -421,10 +421,13 @@ INLINE PRIVATE int E_int_loop(const char *sequence,
       pq = indx[q] + i + 1;
       p_i = 0;
 
-      max_p = MAX2(i + 1, i + 1 + MAXLOOP - j_q);
-      max_p = MIN2(max_p, q - TURN);
-      
-      max_p = MIN2(max_p, i+1+hc_up[i+1]);
+      max_p = i + 1;
+      tmp   = i + 1 + MAXLOOP - j_q;
+      max_p = MAX2(max_p, tmp);
+      tmp   = q - TURN;
+      max_p = MIN2(max_p, tmp);
+      tmp   = i + 1 + hc_up[i + 1];
+      max_p = MIN2(max_p, tmp);
       for(p = i+1; p <= max_p; p++, pq++, p_i++){
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
@@ -535,6 +538,176 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
   return e;
 }
 
+INLINE PRIVATE int E_ml_rightmost_stem( int i,
+                                  int j,
+                                  int length,
+                                  int type,
+                                  short *S,
+                                  int *indx,
+                                  char *hc,
+                                  int *hc_up,
+                                  soft_constraintT *sc,
+                                  int *c,
+                                  int *fm,
+                                  paramT *P){
+
+  int en;
+  int ij            = indx[j] + i;
+  int hc_decompose  = hc[ij];
+  int dangle_model  = P->model_details.dangles;
+  int e             = INF;
+
+  if(hc_decompose & IN_MB_LOOP_ENC){
+    e = c[ij];
+    switch(dangle_model){
+      case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
+                break;
+      default:  e += E_MLstem(type, -1, -1, P);
+                break;
+    }
+  }
+
+  if(hc_up[j]){
+    en = fm[indx[j - 1] + i] + P->MLbase;
+    if(sc)
+      if(sc->free_energies)
+        en += sc->free_energies[j][1];
+
+    e = MIN2(e, en);
+  }
+
+  return e;
+}
+
+INLINE  PRIVATE int E_ml_stems_fast(  int i,
+                                      int j,
+                                      int length,
+                                      char *ptype,
+                                      short *S,
+                                      int *indx,
+                                      char *hc,
+                                      int *hc_up,
+                                      soft_constraintT *sc,
+                                      int *c,
+                                      int *fm,
+                                      int *fmi,
+                                      int *dmli,
+                                      int circular,
+                                      paramT *P){
+
+  int k, en, decomp, mm5, mm3, type_2;
+  int ij            = indx[j] + i;
+  int hc_decompose  = hc[ij];
+  int dangle_model  = P->model_details.dangles;
+  int type          = ptype[ij];
+  int *rtype        = &(P->model_details.rtype[0]);
+  int e             = INF;
+
+  /*  extension with one unpaired nucleotide at the left
+      or full branch of (i,j)
+  */
+  e = E_ml_rightmost_stem(i,j,length,type,S,indx, hc,hc_up,sc,c,fm,P);
+
+  /*  extension with one unpaired nucleotide at 5' site
+      and all other variants which are needed for odd
+      dangle models
+  */
+  switch(dangle_model){
+    /* no dangles */
+    case 0:   /* fall through */
+
+    /* double dangles */
+    case 2:   if(hc_up[i]){
+                en = fm[ij + 1] + P->MLbase;
+                if(sc)
+                  if(sc->free_energies)
+                    en += sc->free_energies[i][1];
+                e = MIN2(e, en);
+              }
+              break;
+
+    /* normal dangles, aka dangle_model = 1 || 3 */
+    default:  mm5 = ((i>1) || circular) ? S[i] : -1;
+              mm3 = ((j<length) || circular) ? S[j] : -1;
+              if(hc_up[i]){
+                en = fm[ij+1] + P->MLbase;
+                if(sc)
+                  if(sc->free_energies)
+                    en += sc->free_energies[i][1];
+                e = MIN2(e, en);
+                if(hc[ij+1] & IN_MB_LOOP_ENC){
+                  type = ptype[ij+1];
+                  en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
+                  if(sc)
+                    if(sc->free_energies)
+                      en += sc->free_energies[i][1];
+                  e = MIN2(e, en);
+                }
+              }
+              if(hc_up[j]){
+                if(hc[indx[j-1]+i] & IN_MB_LOOP_ENC){
+                  type = ptype[indx[j-1]+i];
+                  en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
+                  if(sc)
+                    if(sc->free_energies)
+                      en += sc->free_energies[j][1];
+                  e = MIN2(e, en);
+                }
+              }
+              if(hc[indx[j-1]+i+1] & IN_MB_LOOP_ENC){
+                if(hc_up[i] && hc_up[j]){
+                  type = ptype[indx[j-1]+i+1];
+                  en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
+                  if(sc)
+                    if(sc->free_energies)
+                      en += sc->free_energies[j][1] + sc->free_energies[i][1];
+                  e = MIN2(e, en);
+                }
+              }
+              break;
+  }
+
+  /* modular decomposition -------------------------------*/
+  int k1j = indx[j] + i + TURN + 2;
+  for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++){
+    en = fmi[k] + fm[k1j];
+    decomp = MIN2(decomp, en);
+  }
+  dmli[j] = decomp;               /* store for use in fast ML decompositon */
+  e = MIN2(e, decomp);
+
+  /* coaxial stacking */
+  if (dangle_model==3) {
+    /* additional ML decomposition as two coaxially stacked helices */
+    int ik, k1j;
+    for (k1j = indx[j]+i+TURN+2, decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++, k1j++){
+      ik = indx[k]+i;
+      if((hc[ik] & IN_MB_LOOP_ENC) && (hc[k1j] & IN_MB_LOOP_ENC)){
+        type    = rtype[ptype[ik]];
+        type_2  = rtype[ptype[k1j]];
+        en      = c[ik] + c[k1j] + P->stack[type][type_2];
+        decomp  = MIN2(decomp, en);
+      }
+    }
+
+    decomp += 2*P->MLintern[1];        /* no TermAU penalty if coax stack */
+#if 0
+        /* This is needed for Y shaped ML loops with coax stacking of
+           interior pairts, but backtracking will fail if activated */
+        DMLi[j] = MIN2(DMLi[j], decomp);
+        DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
+        DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
+        new_fML = MIN2(new_fML, DMLi[j]);
+#endif
+    e = MIN2(e, decomp);
+  }
+
+  fmi[j] = e;
+
+  return e;
+}
+
+
 INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       int type,
                                       short si1,
@@ -587,7 +760,7 @@ INLINE  PRIVATE double exp_E_Hairpin( int u,
 
 INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, energy;
+  int nl, ns, u, energy;
   energy = INF;
 
   if (n1>n2) { nl=n1; ns=n2;}
@@ -635,7 +808,8 @@ INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
 
     }
     { /* generic interior loop (no else here!)*/
-      energy = (n1+n2<=MAXLOOP)?(P->internal_loop[n1+n2]) : (P->internal_loop[30]+(int)(P->lxc*log((n1+n2)/30.)));
+      u = nl + ns;
+      energy = (u <= MAXLOOP) ? (P->internal_loop[u]) : (P->internal_loop[30]+(int)(P->lxc*log((u)/30.)));
 
       energy += MIN2(MAX_NINIO, (nl-ns)*P->ninio[2]);
 
