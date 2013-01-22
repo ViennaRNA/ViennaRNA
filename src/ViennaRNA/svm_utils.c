@@ -8,8 +8,8 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/svm.h"
-#include "ViennaRNA/svm_utils.h"
+#include "svm.h"
+#include "svm_utils.h"
 
 #include "ViennaRNA/model_avg.inc"  /* defines avg_model_string */
 #include "ViennaRNA/model_sd.inc"   /* defines sd_model_string */

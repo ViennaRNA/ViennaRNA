@@ -1,1 +1,1 @@
-SUBDIRS = ViennaRNA bin Utils @CLUSTER_DIR@ @subdirs@
+SUBDIRS = ViennaRNA bin Utils @CLUSTER_DIR@
