@@ -25,8 +25,8 @@
 #include "ViennaRNA/Lfold.h"
 
 #ifdef USE_SVM
-#include "ViennaRNA/svm.h"
-#include "ViennaRNA/svm_utils.h"
+#include "svm.h"
+#include "svm_utils.h"
 #endif
 
 #ifdef _OPENMP
