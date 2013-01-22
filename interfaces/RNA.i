@@ -2,33 +2,33 @@
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 %{
-#include  "../H/data_structures.h"
-#include  "../H/utils.h"
-#include  "../H/fold_vars.h"
+#include  "../src/ViennaRNA/data_structures.h"
+#include  "../src/ViennaRNA/utils.h"
+#include  "../src/ViennaRNA/fold_vars.h"
 #undef fold
-#include  "../H/fold.h"
-#include  "../H/cofold.h"
-#include  "../H/part_func.h"
-#include  "../H/part_func_co.h"
-#include  "../H/naview.h"
-#include  "../H/plot_layouts.h"
-#include  "../H/PS_dot.h"
-#include  "../H/inverse.h"
-#include  "../H/RNAstruct.h"
-#include  "../H/treedist.h"
-#include  "../H/stringdist.h"
-#include  "../H/profiledist.h"
-#include  "../H/dist_vars.h"
-#include  "../H/pair_mat.h"
-#include  "../H/subopt.h"
-#include  "../H/energy_const.h"
-#include  "../H/params.h"
-#include  "../H/duplex.h"
-#include  "../H/alifold.h"
-#include  "../H/aln_util.h"
-#include  "../H/findpath.h"
-#include  "../H/Lfold.h"
-#include  "../H/read_epars.h"
+#include  "../src/ViennaRNA/fold.h"
+#include  "../src/ViennaRNA/cofold.h"
+#include  "../src/ViennaRNA/part_func.h"
+#include  "../src/ViennaRNA/part_func_co.h"
+#include  "../src/ViennaRNA/naview.h"
+#include  "../src/ViennaRNA/plot_layouts.h"
+#include  "../src/ViennaRNA/PS_dot.h"
+#include  "../src/ViennaRNA/inverse.h"
+#include  "../src/ViennaRNA/RNAstruct.h"
+#include  "../src/ViennaRNA/treedist.h"
+#include  "../src/ViennaRNA/stringdist.h"
+#include  "../src/ViennaRNA/profiledist.h"
+#include  "../src/ViennaRNA/dist_vars.h"
+#include  "../src/ViennaRNA/pair_mat.h"
+#include  "../src/ViennaRNA/subopt.h"
+#include  "../src/ViennaRNA/energy_const.h"
+#include  "../src/ViennaRNA/params.h"
+#include  "../src/ViennaRNA/duplex.h"
+#include  "../src/ViennaRNA/alifold.h"
+#include  "../src/ViennaRNA/aln_util.h"
+#include  "../src/ViennaRNA/findpath.h"
+#include  "../src/ViennaRNA/Lfold.h"
+#include  "../src/ViennaRNA/read_epars.h"
 
 %}
 //
@@ -75,7 +75,7 @@
 %newobject my_fold;
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
-%include  "../H/fold.h"
+%include  "../src/ViennaRNA/fold.h"
 
 %rename (cofold) my_cofold;
 
@@ -98,7 +98,7 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %newobject my_cofold;
 char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore cofold;
-%include  "../H/cofold.h"
+%include  "../src/ViennaRNA/cofold.h"
 
 //%subsection "Partition function Folding"
 
@@ -120,7 +120,7 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %ignore pf_fold;
-%include  "../H/part_func.h"
+%include  "../src/ViennaRNA/part_func.h"
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
@@ -153,7 +153,7 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
 %ignore ConcEnt;
 %ignore pairpro;
 %ignore cofoldF;
-%include  "../H/part_func_co.h"
+%include  "../src/ViennaRNA/part_func_co.h"
 
 %rename (get_concentrations) my_get_concentrations;
 %{
@@ -226,11 +226,11 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 
 %ignore inverse_fold;
 %ignore inverse_pf_fold;
-%include  "../H/inverse.h"
+%include  "../src/ViennaRNA/inverse.h"
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
-%include  "../H/fold_vars.h"
+%include  "../src/ViennaRNA/fold_vars.h"
 %extend bondT {
 	bondT *get(int i) {
 	   return self+i;
@@ -238,7 +238,7 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 }
 
 %ignore alifold;
-%include "../H/alifold.h"
+%include "../src/ViennaRNA/alifold.h"
 %rename (alifold) my_alifold;
 
 %{
@@ -315,7 +315,7 @@ COORDINATE *get_xy_coordinates(const char *structure);
 /*#################################*/
 
 
-//%include  "../H/subopt.h"
+//%include  "../src/ViennaRNA/subopt.h"
 // from subopt.h
 
 typedef struct {
@@ -391,10 +391,10 @@ int    loop_degree[1000];     // loop degrees of a structure
 int    loops;                 // n of loops and stacks
 int    unpaired, pairs;       // n of unpaired digits and pairs
 
-%include  "../H/treedist.h"
-%include  "../H/stringdist.h"
+%include  "../src/ViennaRNA/treedist.h"
+%include  "../src/ViennaRNA/stringdist.h"
 %newobject Make_bp_profile;
-%include  "../H/profiledist.h"
+%include  "../src/ViennaRNA/profiledist.h"
 // from dist_vars.h
 int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */
@@ -409,7 +409,7 @@ int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 %newobject unpack_structure;
 %newobject make_pair_table;
 
-%include "../H/utils.h"
+%include "../src/ViennaRNA/utils.h"
 
 // from read_epars.c
 extern void  read_parameter_file(char *fname);
@@ -487,7 +487,7 @@ strcpy(symbolset, "AUGC");
 
 %}
 
-//%include "../H/duplex.h"
+//%include "../src/ViennaRNA/duplex.h"
 typedef struct {
   int i;
   int j;
@@ -520,10 +520,10 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
-%include "../H/Lfold.h"
+%include "../src/ViennaRNA/Lfold.h"
 
-%include "../H/plot_layouts.h"
+%include "../src/ViennaRNA/plot_layouts.h"
 
-%include "../H/PS_dot.h"
+%include "../src/ViennaRNA/PS_dot.h"
 
-%include "../H/findpath.h"
+%include "../src/ViennaRNA/findpath.h"

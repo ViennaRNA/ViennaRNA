@@ -7,7 +7,7 @@ if WITH_REFERENCE_MANUAL
 ## is going to be installed                         ##
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_HTML
-    REFERENCE_MANUAL_FILES_HTML = html/*
+    REFERENCE_MANUAL_FILES_HTML = @DOXYGEN_DOCDIR@/html/*
     docdir_htmldir = $(docdir)/html
     docdir_html_DATA = $(REFERENCE_MANUAL_FILES_HTML)
     dist_docdir_htmldir = $(docdir)/html

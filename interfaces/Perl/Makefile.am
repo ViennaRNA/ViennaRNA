@@ -7,6 +7,8 @@ endif
 SOURCES = Makefile.PL RNA.pod
 
 EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi Makefile.PL
+AM_CPPFLAGS = -I$(top_srcdir)/src
+
 
 Makefile.perl: Makefile.PL Makefile
 	@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
