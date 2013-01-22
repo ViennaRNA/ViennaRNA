@@ -357,17 +357,17 @@ AC_RNA_PACKAGE_IF_ENABLED([python],[
 
 
 AC_RNA_PACKAGE_IF_ENABLED([kinfold],[
-  AC_CONFIG_SUBDIRS([src/Kinfold])
+  AC_CONFIG_SUBDIRS([Kinfold])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([forester],[
-  AC_CONFIG_SUBDIRS([src/RNAforester])
+  AC_CONFIG_SUBDIRS([RNAforester])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([cluster],[
   AC_DEFINE([WITH_CLUSTER], [1], [Analyse{Dists,Seqs}])
   AC_SUBST([CLUSTER_DIR], [Cluster])
-  AC_CONFIG_FILES([Cluster/Makefile])
+  AC_CONFIG_FILES([src/Cluster/Makefile])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([svm],[
