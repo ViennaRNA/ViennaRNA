@@ -1,4 +1,4 @@
-SUBDIRS = lib Progs man Utils H misc doc interfaces @CLUSTER_DIR@ @subdirs@
+SUBDIRS = src man misc doc interfaces @subdirs@
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc

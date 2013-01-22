@@ -259,25 +259,25 @@ AC_RNA_ADD_PACKAGE( [kinfold],
                     [yes],
                     [with_kinfold=no],
                     [with_kinfold=yes],
-                    [Kinfold/Makefile.am])
+                    [src/Kinfold/Makefile.am])
 AC_RNA_ADD_PACKAGE( [forester],
                     [RNAforester program],
                     [yes],
                     [with_forester=no],
                     [with_forester=yes],
-                    [RNAforester/Makefile.am])
+                    [src/RNAforester/Makefile.am])
 AC_RNA_ADD_PACKAGE( [cluster],
                     [AnalyseSeqs and AnalyseDists],
                     [no],
                     [with_cluster=yes],
                     [with_cluster=no],
-                    [Cluster/Makefile.am])
+                    [src/Cluster/Makefile.am])
 AC_RNA_ADD_PACKAGE( [svm],
                     [svm classifiers],
                     [yes],
                     [with_svm=no],
                     [with_svm=yes],
-                    [libsvm-${SVM_VERSION}/svm.cpp libsvm-${SVM_VERSION}/svm.h])
+                    [src/libsvm-${SVM_VERSION}/svm.cpp src/libsvm-${SVM_VERSION}/svm.h])
 AC_RNA_ADD_PACKAGE( [doc_pdf],
                     [PDF RNAlib reference manual],
                     [yes],
@@ -357,11 +357,11 @@ AC_RNA_PACKAGE_IF_ENABLED([python],[
 
 
 AC_RNA_PACKAGE_IF_ENABLED([kinfold],[
-  AC_CONFIG_SUBDIRS([Kinfold])
+  AC_CONFIG_SUBDIRS([src/Kinfold])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([forester],[
-  AC_CONFIG_SUBDIRS([RNAforester])
+  AC_CONFIG_SUBDIRS([src/RNAforester])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([cluster],[
@@ -386,7 +386,7 @@ AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
 AC_CONFIG_FILES([interfaces/Makefile])
-AC_CONFIG_FILES([Makefile RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
