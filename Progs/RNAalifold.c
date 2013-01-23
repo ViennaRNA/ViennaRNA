@@ -334,7 +334,7 @@ int main(int argc, char *argv[]){
         cent = get_centroid_struct_pr(length, &dist, probs);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
-        /*cent_en = energy_of_struct(string, cent);*//*ali*/
+        /*cent_en = energy_of_struct(string, cent);*/ /*ali*/
         printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
         free(cent);
         free(ens);
@@ -586,7 +586,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *m
           ncomp++;
         }}
       cp[c].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-      cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2./*pi[i].bp[0]*//(n_seq)));
+      cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2. /*pi[i].bp[0]*/ /(n_seq)));
       c++;
     }
   }

@@ -51,7 +51,6 @@
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced multiloop stem
  */
-//#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
 INLINE  PRIVATE int E_MLstem( int type,
                               int si1,
                               int sj1,
@@ -63,7 +62,6 @@ INLINE  PRIVATE int E_MLstem( int type,
  *  \see E_MLstem()
  *  \return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
-//#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
 INLINE  PRIVATE double exp_E_MLstem(int type,
                                     int si1,
                                     int sj1,
@@ -88,7 +86,6 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced exterior-loop stem
  */
-//#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
 INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
                               int sj1,
@@ -100,7 +97,6 @@ INLINE  PRIVATE int E_ExtLoop(int type,
  *  \see E_ExtLoop()
  *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
-//#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
 INLINE  PRIVATE double exp_E_ExtLoop( int type,
                                       int si1,
                                       int sj1,

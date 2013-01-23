@@ -453,6 +453,7 @@ typedef struct {
   float Duplex_Ol;
   float Duplex_Or;
   float Duplex_Ot;
+  float fullStemEnergy;
 } snoopT;
 
 

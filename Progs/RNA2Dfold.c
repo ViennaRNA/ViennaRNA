@@ -256,7 +256,7 @@ int main(int argc, char *argv[]){
         fprintf(stdout, "scaling factor %f\n", pf_scale);
 
       /* get all variables need for the folding process (some memory will be preallocated there too) */
-      //TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars);
+      /* TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars); */
       /* we dont need the mfe vars and arrays anymore, so we can savely free their occupying memory */
       destroy_TwoDfold_variables(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);

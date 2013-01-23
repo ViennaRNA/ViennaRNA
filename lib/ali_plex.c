@@ -78,8 +78,8 @@ PRIVATE void      alifind_max(const int *position, const int *position_j,const i
 PRIVATE void      aliplot_max(const int max, const int max_pos, const int max_pos_j, 
                            const int alignment_length, const char *s1[], const char *s2[], const int extension_cost, const int fast);
 PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],const int **access_s1, 
-                                const int **access_s2, const int i_pos, const int j_pos, const int threshold);
-PRIVATE char *    alibacktrack_XS(int i, int j, const short *s1[], const short *s2[], const int** access_s1, const int** access_s2);
+                                 const int **access_s2, const int i_pos, const int j_pos, const int threshold,const int i_flag, const int j_flag);
+PRIVATE char *    alibacktrack_XS(int i, int j, const short *s1[], const short *s2[], const int** access_s1, const int** access_s2,const int i_flag, const int j_flag);
 PRIVATE void  alifind_max_XS(const int *position, const int *position_j, 
                                  const int delta,  const int threshold, const int alignment_length,
                                  const char* s1[], const char* s2[], 
@@ -294,17 +294,17 @@ duplexT** aliLduplexfold(const char *s1[], const char *s2[], const int threshold
   int bopen=b_b;
   int bext=b_a+extension_cost;
   int iopen=il_b;
-  int iext_s=2*(il_a+extension_cost);//iext_s 2 nt nucleotide extension of interior loop, on i and j side
-  int iext_ass=50+il_a+extension_cost;//iext_ass assymetric extension of interior loop, either on i or on j side.
-  int min_colonne=INF; //enthaelt das maximum einer kolonne
+  int iext_s=2*(il_a+extension_cost);/* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
+  int iext_ass=50+il_a+extension_cost;/* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int min_colonne=INF; /* enthaelt das maximum einer kolonne */
   int i_length;
-  int max_pos;//get position of the best hit
+  int max_pos;/* get position of the best hit */
   int max_pos_j;
   int temp;
   int min_j_colonne;
   int max=INF;
-  //FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1
-  int *position; //contains the position of the hits with energy > E
+  /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
+  int *position; /* contains the position of the hits with energy > E */
   int *position_j;
   
   
@@ -386,8 +386,8 @@ duplexT** aliLduplexfold(const char *s1[], const char *s2[], const int threshold
       *** c_by -> arrives in stack from large bulge on query
       *** 
       **/
-      int c_stack, c_10, c_01, c_11, c_22, c_21, c_12, c_23, c_32, c_in, c_in2x, c_in2y, c_bx, c_by, c_inx, c_iny;  //matrix c
-      int in, in_x, in_y, in_xy; // in begin, in_x assymetric, in_y assymetric, in_xy symetric;
+      int c_stack, c_10, c_01, c_11, c_22, c_21, c_12, c_23, c_32, c_in, c_in2x, c_in2y, c_bx, c_by, c_inx, c_iny;  /* matrix c */
+      int in, in_x, in_y, in_xy; /*  in begin, in_x assymetric, in_y assymetric, in_xy symetric; */
       int inx, inx_x;
       int iny, iny_y;
       int bx, bx_x; 
@@ -509,7 +509,7 @@ duplexT** aliLduplexfold(const char *s1[], const char *s2[], const int threshold
     position_j[i+delta]=min_j_colonne;
     i++;
   }
-  //printf("MAX:%d ",max);
+  /* printf("MAX:%d ",max); */
   for (s=0; s<n_seq; s++) {free(S1[s]);free(S2[s]);}
   free(S1); free(S2); 
   if(max<threshold){
@@ -517,7 +517,7 @@ duplexT** aliLduplexfold(const char *s1[], const char *s2[], const int threshold
   }
   aliplot_max(max, max_pos, max_pos_j,alignment_length, s1, s2, extension_cost,fast);
   for (i=0; i<=4; i++) {free(lc[i]);free(lin[i]);free(lbx[i]);free(lby[i]);free(linx[i]);free(liny[i]);}
-  //free(lc[0]);free(lin[0]);free(lbx[0]);free(lby[0]);free(linx[0]);free(liny[0]);
+  /* free(lc[0]);free(lin[0]);free(lbx[0]);free(lby[0]);free(linx[0]);free(liny[0]); */
   free(lc);free(lin);free(lbx);free(lby);free(linx);free(liny);
   free(position);
   free(position_j);
@@ -557,7 +557,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
   else{
     pos=n1-9;
     while(pos-- > 10) {
-      //printf("delta %d position:%d value:%d\n", delta, pos, position[pos]);
+      /* printf("delta %d position:%d value:%d\n", delta, pos, position[pos]); */
       int temp_min=0;
       if(position[pos+delta]<(threshold)){
         int search_range;
@@ -570,7 +570,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
         pos-=temp_min;
         int max_pos_j;
         max_pos_j=position_j[pos+delta];
-        //printf("%d %d %d\n", pos, max_pos_j,position[pos+delta]);
+        /* printf("%d %d %d\n", pos, max_pos_j,position[pos+delta]); */
         int begin_t=MAX2(11, pos-alignment_length+1);
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1);
@@ -589,7 +589,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
         }
         duplexT test;
         test = aliduplexfold((const char**)s3, (const char**)s4, extension_cost);
-        //printf("test %d threshold %d",test.energy*100,(threshold/n_seq));
+        /* printf("test %d threshold %d",test.energy*100,(threshold/n_seq)); */
         if(test.energy * 100 < (int) (threshold/n_seq)){
           int l1=strchr(test.structure, '&')-test.structure;
                    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
@@ -613,8 +613,8 @@ PRIVATE void aliplot_max(const int max, const int max_pos, const int max_pos_j, 
 {
   int n_seq;
   for (n_seq=0; !(s1[n_seq]==NULL); n_seq++);
-  n1 = strlen(s1[0]); //get length of alignment
-  n2 = strlen(s2[0]); //get length of alignment
+  n1 = strlen(s1[0]); /* get length of alignment */
+  n2 = strlen(s2[0]); /* get length of alignment */
   if(fast==1){
     printf("target upper bound %d: query lower bound %d (%5.2f)\n", 
            max_pos-10, max_pos_j-10, (double) ((double)max)/(100*n_seq));
@@ -623,7 +623,7 @@ PRIVATE void aliplot_max(const int max, const int max_pos, const int max_pos_j, 
     int begin_t=MAX2(11, max_pos-alignment_length+1);
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1);
-    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
+    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
     char **s3, **s4;
     s3 = (char**) space(sizeof(char*)*(n_seq+1));
     s4 = (char**) space(sizeof(char*)*(n_seq+1));
@@ -656,8 +656,9 @@ PRIVATE void aliplot_max(const int max, const int max_pos, const int max_pos_j, 
 }
 
 PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
-                         const int **access_s1, const int **access_s2, 
-                         const int i_pos, const int j_pos, const int threshold){
+                                 const int **access_s1, const int **access_s2, 
+                                 const int i_pos, const int j_pos, const int threshold,
+                                 const int i_flag, const int j_flag){
   int i,j,s,p,q, Emin=INF, l_min=0, k_min=0;
   char *struc;
   short **S1,**S2;
@@ -670,7 +671,7 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   for (s=0; s1[s]!=NULL; s++);
   n_seq = s;
   for (s=0; s2[s]!=NULL; s++);
-  //printf("%d \n",i_pos);
+  /* printf("%d \n",i_pos); */
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
@@ -693,19 +694,22 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   type =  (int *) space(n_seq*sizeof(int));
   type2 = (int *) space(n_seq*sizeof(int));
   int type3, E, k,l;
-  i=n3-1; j=2;
+  i=n3-i_flag; j=1+j_flag;
   for (s=0; s<n_seq; s++) {
     type[s] = pair[S1[s][i]][S2[s][j]];
   }
   c[i][j] = n_seq*P->DuplexInit - covscore(type,n_seq); 
   for (s=0; s<n_seq; s++) if (type[s]==0) type[s]=7; 
   for (s=0; s<n_seq; s++) {
-    c[i][j]+=E_ExtLoop(rtype[type[s]], S2[s][j-1] ,S1[s][i+1],P);
+    c[i][j]+=E_ExtLoop(rtype[type[s]], (j_flag ? S2[s][j-1] : -1) , (i_flag ? S1[s][i+1] : -1),  P);
   }
-  for (k=i-1; k>0 ; k--) {
-    c[k+1][0]=INF;
-    for (l=j+1; l<=n4; l++) {
-      c[k][l]=INF;
+  k_min=i; l_min=j; Emin=c[i][j];
+  for (k=i; k>1 ; k--) {
+    if(k<i) c[k+1][0]=INF;
+    for (l=j; l<=n4-1; l++) {
+      if(!(k==i && l==j)){
+        c[k][l]=INF;
+      }
       int psc2;
       for(s=0;s<n_seq;s++){
         type2[s] = pair[S1[s][k]][S2[s][l]];
@@ -713,8 +717,8 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
       psc2=covscore(type2, n_seq);
       if (psc2<MINPSCORE) continue;
       for (s=0; s<n_seq; s++) if (type2[s]==0) type2[s]=7;
-      for (p=k+1; p< n3 && p<k+MAXLOOP-1; p++) {                  
-        for (q = l-1; q > 1; q--) {
+      for (p=k+1; p<= n3 -i_flag && p<k+MAXLOOP-1; p++) {                  
+        for (q = l-1; q >= 1+j_flag; q--) {
           if (p-k+l-q-2>MAXLOOP) break;
           for(E=s=0;s<n_seq;s++){
             type3=pair[S1[s][p]][S2[s][q]];
@@ -745,16 +749,16 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
       free(S1[i]);
       free(S2[i]);
     }
-    free(S1); free(S2); //free(SS1); free(SS2);
+    free(S1); free(S2); /* free(SS1); free(SS2); */
     free(type);free(type2);
     return mfe;
     } else{
-     struc = alibacktrack_XS(k_min, l_min,(const short int**)S1,(const short int**)S2,access_s1, access_s2);
+    struc = alibacktrack_XS(k_min, l_min,(const short int**)S1,(const short int**)S2,access_s1, access_s2,i_flag,j_flag);
     }
   int dx_5, dx_3, dy_5, dy_3,dGx,dGy,bonus_x, bonus_y,temp_dangle;
   dx_5=0; dx_3=0; dy_5=0; dy_3=0;dGx=0;dGy=0;bonus_x=0; bonus_y=0;temp_dangle=0;
   dGx =n_seq*(access_s1[i-k_min+1][i_pos]);dx_3=0; dx_5=0;bonus_x=0; 
-  dGy = n_seq*access_s2[l_min-1][j_pos + (l_min-1)-1]; 
+  dGy =n_seq*access_s2[l_min-j+1][j_pos + (l_min-1)-1]; 
   mfe.tb=i_pos -9 - i + k_min -1 -dx_5;
   mfe.te=i_pos -9 -1 + dx_3;
   mfe.qb=j_pos -9 -1 - dy_5;
@@ -775,7 +779,7 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
 }
 
 PRIVATE char *alibacktrack_XS(int i, int j, const short *S1[], const short *S2[], 
-                              const int** access_s1, const int ** access_s2) {
+                              const int** access_s1, const int ** access_s2, const int i_flag, const int j_flag) {
   int n3,n4,k, l, *type, type2, E, traced, i0, j0,s,n_seq,psc;
   char *st1=NULL, *st2=NULL, *struc=NULL;
   
@@ -791,7 +795,7 @@ PRIVATE char *alibacktrack_XS(int i, int j, const short *S1[], const short *S2[]
   type = (int *) space(n_seq*sizeof(int));
   
   i0=i;/*MAX2(i-1,1);*/j0=j;/*MIN2(j+1,n4);*/
-  while (i<=n3-1 && j>=2) {
+  while (i<=n3-i_flag && j>=1+j_flag) {
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
     st2[j-1] = ')'; 
@@ -849,17 +853,17 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
   int bopen=b_b;
   int bext=b_a;
   int iopen=il_b;
-  int iext_s=2*(il_a);//iext_s 2 nt nucleotide extension of interior loop, on i and j side
-  int iext_ass=50+il_a;//iext_ass assymetric extension of interior loop, either on i or on j side.
-  int min_colonne=INF; //enthaelt das maximum einer kolonne
+  int iext_s=2*(il_a);/* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
+  int iext_ass=50+il_a;/* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int min_colonne=INF; /* enthaelt das maximum einer kolonne */
   int i_length;
-  int max_pos;//get position of the best hit
+  int max_pos;/* get position of the best hit */
   int max_pos_j;
   int temp;
   int min_j_colonne;
   int max=INF;
-  //FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1
-  int *position; //contains the position of the hits with energy > E
+  /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
+  int *position; /* contains the position of the hits with energy > E */
   int *position_j;
   int maxPenalty[4];
   
@@ -925,7 +929,7 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
   }
   i=10;
   i_length= n1 - 9 ;
-  int di1,di2,di3,di4; //contains accessibility penalty
+  int di1,di2,di3,di4; /* contains accessibility penalty */
   while(i < i_length) {
     int idx=i%5;
     int idx_1=(i-1)%5;
@@ -953,14 +957,14 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
       dj3=MIN2(dj3,maxPenalty[2]);
       dj4=MIN2(dj4,maxPenalty[3]);
       int psc;
-      for (s=0; s<n_seq; s++) { //initialize type1
+      for (s=0; s<n_seq; s++) { /* initialize type1 */
         type[s] = pair[S1[s][i]][S2[s][j]];
       }
       psc = covscore(type, n_seq); 
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s]=7;
       lc[idx][j] = ((psc >= MINPSCORE) ? n_seq*(P->DuplexInit + access_s1[1][i] + access_s2[1][j]) : INF);
-      int c_stack, c_10, c_01, c_11, c_22, c_21, c_12, c_23, c_32, c_in, c_in2x, c_in2y, c_bx, c_by, c_inx, c_iny;  //matrix c
-      int in,  in_x, in_y, in_xy; // in begin, in_x assymetric, in_y assymetric, in_xy symetric;
+      int c_stack, c_10, c_01, c_11, c_22, c_21, c_12, c_23, c_32, c_in, c_in2x, c_in2y, c_bx, c_by, c_inx, c_iny;  /* matrix c */
+      int in,  in_x, in_y, in_xy; /*  in begin, in_x assymetric, in_y assymetric, in_xy symetric; */
       int inx, inx_x;
       int iny, iny_y;
       int bx,  bx_x; 
@@ -1082,7 +1086,7 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
     position_j[i+delta]=min_j_colonne;
     i++;
   }
-  //printf("MAX: %d",max);
+  /* printf("MAX: %d",max); */
   for (s=0; s<n_seq; s++) {free(S1[s]);free(S2[s]);}
   free(S1); free(S2); 
   if(max<threshold){
@@ -1090,7 +1094,7 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
   }
   aliplot_max_XS(max, max_pos, max_pos_j,alignment_length, s1, s2, access_s1, access_s2, fast); 
   for (i=0; i<=4; i++) {free(lc[i]);free(lin[i]);free(lbx[i]);free(lby[i]);free(linx[i]);free(liny[i]);}
-  //free(lc[0]);free(lin[0]);free(lbx[0]);free(lby[0]);free(linx[0]);free(liny[0]);
+  /* free(lc[0]);free(lin[0]);free(lbx[0]);free(lby[0]);free(linx[0]);free(liny[0]); */
   free(lc);free(lin);free(lbx);free(lby);free(linx);free(liny);
   free(position);
   free(position_j);
@@ -1125,7 +1129,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
         max_pos_j=position_j[pos+delta];
         int max;
         max=position[pos+delta];
-        //        printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
+        /*         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100); */
         pos=MAX2(10,pos-delta);
       }
     }
@@ -1133,7 +1137,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
   else{
     pos=n1-9;
     while( pos-- > 10 ) {
-      //printf("delta %d position:%d value:%d\n", delta, pos, position[pos]);
+      /* printf("delta %d position:%d value:%d\n", delta, pos, position[pos]); */
       int temp_min=0;
       if(position[pos+delta]<(threshold)){
         int search_range;
@@ -1145,12 +1149,15 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
         }
         pos-=temp_min; 
         int max_pos_j;
-        max_pos_j=position_j[pos+delta]; //position on j
-        //printf("%d %d %d\n", pos, max_pos_j,position[pos+delta]);
-        int begin_t=MAX2(9, pos-alignment_length); //only get the position that binds..
-        int end_t  =MIN2(n1-10, pos);              //..no dangles
-        int begin_q=MAX2(9, max_pos_j-2);
-        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
+        max_pos_j=position_j[pos+delta]; /* position on j */
+        int begin_t=MAX2(11, pos-alignment_length);
+        int end_t  =MIN2(n1-10, pos+1);            
+        int begin_q=MAX2(11, max_pos_j-1);
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+        int i_flag;
+        int j_flag;
+        i_flag = (end_t   ==  pos+1?1:0);
+        j_flag = (begin_q == max_pos_j-1?1:0);
         char **s3, **s4;
         s3 = (char**) space(sizeof(char*)*(n_seq+1));
         s4 = (char**) space(sizeof(char*)*(n_seq+1));
@@ -1164,8 +1171,8 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
           s4[i][end_q - begin_q +1]='\0';
         }
         duplexT test;
-        test = aliduplexfold_XS((const char**) s3, (const char**) s4, access_s1, access_s2,pos, max_pos_j,threshold);
-        //        printf("position %d approximation %d test %d threshold %d\n", pos, position[pos+delta], (int)test.energy,(int)(threshold/n_seq));
+        test = aliduplexfold_XS((const char**) s3, (const char**) s4, access_s1, access_s2,pos, max_pos_j,threshold,i_flag,j_flag);
+        /*         printf("position %d approximation %d test %d threshold %d\n", pos, position[pos+delta], (int)test.energy,(int)(threshold/n_seq)); */
         if(test.energy*100  < (int) (threshold/n_seq)){
         printf("%s %3d,%-3d: %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure,
                test.tb,test.te,test.qb,test.qe, test.ddG/n_seq, test.energy/n_seq, test.dG1/n_seq, test.dG2/n_seq);
@@ -1176,7 +1183,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
           free(s3[i]);free(s4[i]);
         }
         free(s3);free(s4);
-        //free(test.structure);
+        /* free(test.structure); */
       }
     }
   }
@@ -1188,18 +1195,22 @@ PRIVATE void aliplot_max_XS(const int max, const int max_pos, const int max_pos_
 
   int n_seq;
   for (n_seq=0; !(s1[n_seq]==NULL); n_seq++);
-  n1 = strlen(s1[0]); //get length of alignment
-  n2 = strlen(s2[0]); //get length of alignme
+  n1 = strlen(s1[0]); /* get length of alignment */
+  n2 = strlen(s2[0]); /* get length of alignme */
   
   if(fast){
     printf("target upper bound %d: query lower bound %d (%5.2f)\n", 
            max_pos-10, max_pos_j-10, (double) ((double)max)/(100*n_seq));
   }
   else{
-    int begin_t=MAX2(9, max_pos-alignment_length); //only get the position that binds..
-    int end_t  =MIN2(n1-10, max_pos);              //..no dangles
-    int begin_q=MAX2(9, max_pos_j-2);
-    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
+    int begin_t=MAX2(11, max_pos-alignment_length); /* only get the position that binds.. */
+    int end_t  =MIN2(n1-10, max_pos+1);              /* ..no dangles */
+    int begin_q=MAX2(11, max_pos_j-1);
+    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+    int i_flag;
+    int j_flag;
+    i_flag = (end_t   == max_pos+1?1:0);
+    j_flag = (begin_q == max_pos_j-1?1:0);
     char **s3, **s4;
     s3 = (char**) space(sizeof(char*)*(n_seq+1));
     s4 = (char**) space(sizeof(char*)*(n_seq+1));
@@ -1213,7 +1224,7 @@ PRIVATE void aliplot_max_XS(const int max, const int max_pos, const int max_pos_
       s4[i][end_q - begin_q +1]='\0';
     }
     duplexT test;
-    test = aliduplexfold_XS((const char**) s3, (const char**) s4, access_s1, access_s2,max_pos, max_pos_j,INF);
+    test = aliduplexfold_XS((const char**) s3, (const char**) s4, access_s1, access_s2,max_pos, max_pos_j,INF,i_flag,j_flag);
     printf("%s %3d,%-3d: %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure,
            test.tb,test.te,test.qb,test.qe, test.ddG/n_seq, test.energy/n_seq, test.dG1/n_seq, test.dG2/n_seq);
     free(test.structure);

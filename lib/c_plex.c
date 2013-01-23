@@ -1,11 +1,11 @@
  /* Last changed Time-stamp: <2007-10-30 14:06:22 htafer> */
 /*                
-	   compute the duplex structure of two RNA strands,
-		allowing only inter-strand base pairs.
-	 see cofold() for computing hybrid structures without
-			     restriction.
-			     Ivo Hofacker
-			  Vienna RNA package
+           compute the duplex structure of two RNA strands,
+                allowing only inter-strand base pairs.
+         see cofold() for computing hybrid structures without
+                             restriction.
+                             Ivo Hofacker
+                          Vienna RNA package
 
 */
 
@@ -95,19 +95,19 @@ PRIVATE paramT *P = NULL;
 PRIVATE int   **c = NULL;/*, **in, **bx, **by;*/      /* energy array used in duplexfold */
 /* PRIVATE int ****c_XS; */
 PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL, **linx = NULL, **liny = NULL;   /* energy array used in Lduplexfold
-					     this arrays contains only 3 columns
-					     In this way I reduce my memory use and
-					     I can make most of my computation and 
-					     accession in the computer cash
-					     which is the main performance boost*/
-					     
+                                             this arrays contains only 3 columns
+                                             In this way I reduce my memory use and
+                                             I can make most of my computation and 
+                                             accession in the computer cash
+                                             which is the main performance boost*/
+                                             
 
 
 /*PRIVATE int last_cell;                    this variable is the last_cell containing
-					    the information about the alignment
-					    useful only if there is an alignment 
-					    which extends till the last nucleotide of 
-					    the long sequence*/
+                                            the information about the alignment
+                                            useful only if there is an alignment 
+                                            which extends till the last nucleotide of 
+                                            the long sequence*/
 
 PRIVATE short  *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;/*contains the sequences*/
 PRIVATE int   n1,n2;    /* sequence lengths */
@@ -118,7 +118,7 @@ PRIVATE int delay_free=0;
 /*-----------------------------------------------------------------------duplexfold_XS---------------------------------------------------------------------------*/
 
 PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **access_s1, const int **access_s2, 
-			       const int i_pos, const int j_pos, const int threshold, const char* structure) {
+                               const int i_pos, const int j_pos, const int threshold, const char* structure) {
   int i, j,p,q,Emin=INF, l_min=0, k_min=0;
   char *struc;
   struc=NULL;
@@ -179,28 +179,28 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **acces
       type2 = pair[S1[k]][S2[l]];
       if (!type2) continue;
       for (p=k+1; p< n3 && p<k+MAXLOOP-1; p++){
-	for (q = l-1; q >= previous_const[l] && q > 1; q--) {
-	  if (p-k+l-q-2>MAXLOOP) break;
-	  type3=pair[S1[p]][S2[q]];
-	  if(!type3) continue;
-	  E = E_IntLoop(p-k-1, l-q-1, type2, rtype[type3],SS1[k+1], SS2[l-1], SS1[p-1], SS2[q+1],P) + bonus_2;
-	  c[k][l] = MIN2(c[k][l], c[p][q]+E);
-	}
+        for (q = l-1; q >= previous_const[l] && q > 1; q--) {
+          if (p-k+l-q-2>MAXLOOP) break;
+          type3=pair[S1[p]][S2[q]];
+          if(!type3) continue;
+          E = E_IntLoop(p-k-1, l-q-1, type2, rtype[type3],SS1[k+1], SS2[l-1], SS1[p-1], SS2[q+1],P) + bonus_2;
+          c[k][l] = MIN2(c[k][l], c[p][q]+E);
+        }
       }
       E = c[k][l]; 
       if (type2>2) E += P->TerminalAU;
       E+=access_s1[i-k+1][i_pos]+access_s2[l-1][j_pos+(l-1)-1];
       if (k>1 && l<n4 && !(structure[l]=='|') ){
-	E+=P->mismatchExt[type2][SS1[k-1]][SS2[l+1]];
+        E+=P->mismatchExt[type2][SS1[k-1]][SS2[l+1]];
       }
       else if(k>1){
-	E += P->dangle5[type2][SS1[k-1]]; 
+        E += P->dangle5[type2][SS1[k-1]]; 
       }
       else if(l<n4 && !(structure[l]=='|')){
-	E += P->dangle3[type2][SS2[l+1]];
+        E += P->dangle3[type2][SS2[l+1]];
       }
       if (E<Emin) {
-	Emin=E; k_min=k; l_min=l;
+        Emin=E; k_min=k; l_min=l;
       } 
     }
   }
@@ -274,29 +274,29 @@ PRIVATE char *backtrack_CXS (int i, int j, const int **access_s1,const int **acc
     if (!type) nrerror("backtrack failed in fold duplex bli");
     for (k=i+1; k<=n3 && k>i-MAXLOOP-2; k++) {
       for (l=j-1; l >= previous_const[j] && l>=1; l--) {
-	int LE;
-	if (i-k+l-j-2>MAXLOOP) break;
-	type2 = pair[S1[k]][S2[l]];
-	if (!type2) continue;
-	LE = E_IntLoop(k-i-1, j-l-1, type, rtype[type2], SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P) + bonus_2;
-	if (E == c[k][l]+LE) {
-	  *Emin-=bonus_2;
-	  traced=1; 
-	  i=k; j=l;
-	  break;
-	}
+        int LE;
+        if (i-k+l-j-2>MAXLOOP) break;
+        type2 = pair[S1[k]][S2[l]];
+        if (!type2) continue;
+        LE = E_IntLoop(k-i-1, j-l-1, type, rtype[type2], SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P) + bonus_2;
+        if (E == c[k][l]+LE) {
+          *Emin-=bonus_2;
+          traced=1; 
+          i=k; j=l;
+          break;
+        }
       }
       if (traced) break;
     }
     if (!traced) { 
       if(i<n3 && j>1 && !(structure[j-2]=='|')){
-	E -= P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]];
+        E -= P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]];
       }
       else if (i<n3){
-	E -= P->dangle3[rtype[type]][SS1[i+1]];/* +access_s1[1][i+1]; */
+        E -= P->dangle3[rtype[type]][SS1[i+1]];/* +access_s1[1][i+1]; */
       }
       else if (j>1){
-	E -= (!(structure[j-2]=='|') ? P->dangle5[rtype[type]][SS2[j-1]] : 0);/* +access_s2[1][j+1]; */
+        E -= (!(structure[j-2]=='|') ? P->dangle5[rtype[type]][SS2[j-1]] : 0);/* +access_s2[1][j+1]; */
       }
       if (type>2) E -= P->TerminalAU;
 
@@ -304,8 +304,8 @@ PRIVATE char *backtrack_CXS (int i, int j, const int **access_s1,const int **acc
       if (E != P->DuplexInit + bonus_2)  {
         nrerror("backtrack failed in fold duplex bal");
       } else {
-	*Emin-=bonus_2;
-	break;
+        *Emin-=bonus_2;
+        break;
       }
     }
   }
@@ -389,7 +389,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
     linx[0][j]=linx[1][j]=linx[2][j]=linx[3][j]=linx[4][j]=INF;
   }
   
-  i=10 /*target_dead*/; /* start from 2 (	i=4) because no structure allowed to begin with a single base pair */
+  i=10 /*target_dead*/; /* start from 2 (        i=4) because no structure allowed to begin with a single base pair */
   i_length= n1 - 9  /*- target_dead*/ ; 
   while(i < i_length) {
     int idx=i%5;
@@ -398,7 +398,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
     int idx_3=(i-3)%5;
     int idx_4=(i-4)%5;
     int di1,di2,di3,di4;
-    di1 = access_s1[5][i]   - access_s1[4][i-1];	   
+    di1 = access_s1[5][i]   - access_s1[4][i-1];           
     di2 = access_s1[5][i-1] - access_s1[4][i-2] + di1;
     di3 = access_s1[5][i-2] - access_s1[4][i-3] + di2;
     di4 = access_s1[5][i-3] - access_s1[4][i-4] + di3;
@@ -411,7 +411,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
       /* ----------------------------------------------------------update lin lbx lby matrix */
       int bonus_2 = (structure[j-1]=='|' ? bonus :0 );
       int dj1,dj2,dj3,dj4;
-      dj1 = access_s2[5][j+4] - access_s2[4][j+4];	
+      dj1 = access_s2[5][j+4] - access_s2[4][j+4];        
       dj2 = access_s2[5][j+5] - access_s2[4][j+5] + dj1;
       dj3 = access_s2[5][j+6] - access_s2[4][j+6] + dj2;
       dj4 = access_s2[5][j+7] - access_s2[4][j+7] + dj3;
@@ -423,57 +423,57 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
       type  = pair[S1[i]][S2[j]];
       lc[idx][j]= type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] + bonus_2 : INF;
       if(!bonus_2){
-	type2=pair[S2[j+1]][S1[i-1]];
-	lin[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,lin[idx_1][j]+iext_ass + di1); 
-	lin[idx][j]=MIN2(lin[idx][j],lin[idx][j+1]+iext_ass + dj1);
-	lin[idx][j]=MIN2(lin[idx][j],lin[idx_1][j+1]+iext_s + di1 + dj1);
-	linx[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,linx[idx_1][j]+iext_ass + di1);
-	liny[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,liny[idx][j+1]+iext_ass + dj1); 
-	type2=pair[S2[j+1]][S1[i]];
-	lby[idx][j]=MIN2(lby[idx][j+1]+bext + dj1 , 
-			 lc[idx][j+1]+bopen+bext+(type2>2?P->TerminalAU:0)+dj1);
+        type2=pair[S2[j+1]][S1[i-1]];
+        lin[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,lin[idx_1][j]+iext_ass + di1); 
+        lin[idx][j]=MIN2(lin[idx][j],lin[idx][j+1]+iext_ass + dj1);
+        lin[idx][j]=MIN2(lin[idx][j],lin[idx_1][j+1]+iext_s + di1 + dj1);
+        linx[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,linx[idx_1][j]+iext_ass + di1);
+        liny[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,liny[idx][j+1]+iext_ass + dj1); 
+        type2=pair[S2[j+1]][S1[i]];
+        lby[idx][j]=MIN2(lby[idx][j+1]+bext + dj1 , 
+                         lc[idx][j+1]+bopen+bext+(type2>2?P->TerminalAU:0)+dj1);
       }
       else{
-	lin[idx][j] = lby[idx][j] = linx[idx][j]= liny[idx][j]=INF; /* all loop containing "|" are rejected */
+        lin[idx][j] = lby[idx][j] = linx[idx][j]= liny[idx][j]=INF; /* all loop containing "|" are rejected */
       }
       type2=pair[S2[j]][S1[i-1]];
       lbx[idx][j]=MIN2(lbx[idx_1][j]+bext + di1, lc[idx_1][j]+bopen+bext+(type2>2?P->TerminalAU:0) + di1);
       /* --------------------------------------------------------------- end update recursion */
       if(!type){continue;} 
       if(!(structure[j]=='|')){
-	lc[idx][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]];
+        lc[idx][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]];
       }
       else{
-	lc[idx][j]+=P->dangle5[type][SS1[i-1]];
+        lc[idx][j]+=P->dangle5[type][SS1[i-1]];
       }
       lc[idx][j]+=(type>2?P->TerminalAU:0);
       /* type > 2 -> no GC or CG pair */
       /* ------------------------------------------------------------------update c  matrix  */
       /*  Be careful, no lc may come from a region where a "|" is in a loop, avoided in lin = lby = INF ... jedoch fuer klein loops muss man aufpassen .. */
       if((type2=pair[S1[i-1]][S2[j+1]]))
-	lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1+dj1, lc[idx][j]); /* 0x0+1x1 */
+        lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1+dj1, lc[idx][j]); /* 0x0+1x1 */
       if((type2=pair[S1[i-2]][S2[j+1]]))
-	lc[idx][j]=MIN2(lc[idx_2][j+1]+E_IntLoop(1,0,type2, rtype[type],SS1[i-1], SS2[j], SS1[i-1], SS2[j+1], P)+di2+dj1,lc[idx][j]);/* 0x1 +1x1 */
+        lc[idx][j]=MIN2(lc[idx_2][j+1]+E_IntLoop(1,0,type2, rtype[type],SS1[i-1], SS2[j], SS1[i-1], SS2[j+1], P)+di2+dj1,lc[idx][j]);/* 0x1 +1x1 */
       /* kleine loops checks wird in den folgenden if test gemacht. */
       if(!(structure[j]=='|')){
-	if((type2=pair[S1[i-1]][S2[j+2]]))
-	  lc[idx][j]=MIN2(lc[idx_1][j+2]+E_IntLoop(0,1,type2, rtype[type],SS1[i], SS2[j+1], SS1[i-1], SS2[j+1], P)+di1+dj2,lc[idx][j]);/* 1x0 + 1x1 */
-	if((type2=pair[S1[i-2]][S2[j+2]]))
-	  lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2+dj2, lc[idx][j]); /*  1x1 +1x1 */
-	if((type2 = pair[S1[i-3]][S2[j+2]]))
-	  lc[idx][j]=MIN2(lc[idx_3][j+2]+E_IntLoop(2,1,type2, rtype[type],SS1[i-2], SS2[j+1], SS1[i-1], SS2[j+1], P)+di3+dj2, lc[idx][j]); /*  2x1 +1x1 */
-	if(!(structure[j+1]=='|')){
-	  if((type2 = pair[S1[i-3]][S2[j+3]]))
-	    lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3+dj3,lc[idx][j]);/* 2x2 + 1x1 */
-	  if((type2 = pair[S1[i-2]][S2[j+3]]))
-	    lc[idx][j]=MIN2(lc[idx_2][j+3]+E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P)+di2+dj3, lc[idx][j]);/*  1x2 +1x1 */
-	  if((type2 = pair[S1[i-4]][S2[j+3]]))
-	    lc[idx][j]=MIN2(lc[idx_4][j+3]+E_IntLoop(3,2,type2, rtype[type],SS1[i-3], SS2[j+2], SS1[i-1], SS2[j+1], P)+di4+dj3, lc[idx][j]);
-	  if(!(structure[j+2]=='|')){
-	    if((type2 = pair[S1[i-3]][S2[j+4]]))
-	      lc[idx][j]=MIN2(lc[idx_3][j+4]+E_IntLoop(2,3,type2, rtype[type],SS1[i-2], SS2[j+3], SS1[i-1], SS2[j+1], P)+di3+dj4, lc[idx][j]);
-	  }
-	}
+        if((type2=pair[S1[i-1]][S2[j+2]]))
+          lc[idx][j]=MIN2(lc[idx_1][j+2]+E_IntLoop(0,1,type2, rtype[type],SS1[i], SS2[j+1], SS1[i-1], SS2[j+1], P)+di1+dj2,lc[idx][j]);/* 1x0 + 1x1 */
+        if((type2=pair[S1[i-2]][S2[j+2]]))
+          lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2+dj2, lc[idx][j]); /*  1x1 +1x1 */
+        if((type2 = pair[S1[i-3]][S2[j+2]]))
+          lc[idx][j]=MIN2(lc[idx_3][j+2]+E_IntLoop(2,1,type2, rtype[type],SS1[i-2], SS2[j+1], SS1[i-1], SS2[j+1], P)+di3+dj2, lc[idx][j]); /*  2x1 +1x1 */
+        if(!(structure[j+1]=='|')){
+          if((type2 = pair[S1[i-3]][S2[j+3]]))
+            lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3+dj3,lc[idx][j]);/* 2x2 + 1x1 */
+          if((type2 = pair[S1[i-2]][S2[j+3]]))
+            lc[idx][j]=MIN2(lc[idx_2][j+3]+E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P)+di2+dj3, lc[idx][j]);/*  1x2 +1x1 */
+          if((type2 = pair[S1[i-4]][S2[j+3]]))
+            lc[idx][j]=MIN2(lc[idx_4][j+3]+E_IntLoop(3,2,type2, rtype[type],SS1[i-3], SS2[j+2], SS1[i-1], SS2[j+1], P)+di4+dj3, lc[idx][j]);
+          if(!(structure[j+2]=='|')){
+            if((type2 = pair[S1[i-3]][S2[j+4]]))
+              lc[idx][j]=MIN2(lc[idx_3][j+4]+E_IntLoop(2,3,type2, rtype[type],SS1[i-2], SS2[j+3], SS1[i-1], SS2[j+1], P)+di3+dj4, lc[idx][j]);
+          }
+        }
       }
       /* internal->stack  */
       lc[idx][j]=MIN2(lin[idx_3][j+3]+P->mismatchI[rtype[type]][SS1[i-1]][SS2[j+1]]+di3+dj3+2*iext_s, lc[idx][j]);
@@ -491,11 +491,11 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
       /* if(j<=const5end){ */
       temp=min_colonne;
       min_colonne=MIN2(lc[idx][j]+(type>2?P->TerminalAU:0)+
-		       (!(structure[j-2]=='|') ? 
-			P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]] : P->dangle3[rtype[type]][SS1[i+1]]),
-		       min_colonne);
+                       (!(structure[j-2]=='|') ? 
+                        P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]] : P->dangle3[rtype[type]][SS1[i+1]]),
+                       min_colonne);
       if(temp>min_colonne){
-	min_j_colonne=j;
+        min_j_colonne=j;
       }
       /* } */
       /* ---------------------------------------------------------------------end update */
@@ -530,21 +530,21 @@ PRIVATE void find_max_CXS(const int *position, const int *position_j,const int d
   if(fast==1){
     while(10 < pos--){
       int temp_min=0;
-      if(position[pos+delta]<(threshold)){                        		
-	int search_range;                                           	
-	search_range=delta+1;                                       	
-	while(--search_range){   
-	  if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
-	    temp_min=search_range;                                  	
-	  }                                                         	
-	}                                                           	
-	pos-=temp_min;                                              	
-	int max_pos_j;                                              	
-	max_pos_j=position_j[pos+delta];
-	int max;
-	max=position[pos+delta];
-	printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
-	pos=MAX2(10,pos-delta);
+      if(position[pos+delta]<(threshold)){                                        
+        int search_range;                                                   
+        search_range=delta+1;                                               
+        while(--search_range){   
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;                                          
+          }                                                                 
+        }                                                                   
+        pos-=temp_min;                                                      
+        int max_pos_j;                                                      
+        max_pos_j=position_j[pos+delta];
+        int max;
+        max=position[pos+delta];
+        printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
+        pos=MAX2(10,pos-delta);
       }
     }
   }
@@ -553,48 +553,48 @@ PRIVATE void find_max_CXS(const int *position, const int *position_j,const int d
     while( pos-- > 10 ){
       int temp_min=0;
       if(position[pos+delta]<(threshold)){
-	int search_range;
-	search_range=delta+1;
-	while(--search_range){
-	  if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
-	    temp_min=search_range;
-	  }
-	}
-	pos-=temp_min; /* position on i */
-	int max_pos_j;
-	max_pos_j=position_j[pos+delta]; /* position on j */
-	/* int begin_t=MAX2(9, pos-alignment_length); */
-	/* int end_t  =MIN2(n1-10, pos); */
-	/* int begin_q=MAX2(9, max_pos_j-2); */
-	/* int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2); */
-	int begin_t=MAX2(9,pos-alignment_length);
-	int end_t  =pos;
-	int begin_q=max_pos_j-2;
-	int end_q  =MIN2(n2-9,max_pos_j+alignment_length-2);
-	char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
-	char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
-	char *local_structure = (char*) space(sizeof(char) * ( end_q - begin_q +2));
-	strncpy(s3, (s1+begin_t),  end_t - begin_t+1);
-	strncpy(s4, (s2+begin_q) , end_q - begin_q+1 );
-	strncpy(local_structure, (structure+begin_q), end_q - begin_q +1);
-	s3[end_t -begin_t +1 ]='\0';
-	s4[end_q -begin_q +1 ]='\0';
-	local_structure[end_q - begin_q +1]='\0';
-	duplexT test;
-	test = duplexfold_CXS(s3,s4,access_s1,access_s2,pos, max_pos_j,threshold,local_structure);
-	if(test.energy * 100 < (threshold - constthreshold)){
-	  int l1=strchr(test.structure, '&')-test.structure;
-	  int dL = strrchr(structure,'|') - strchr(structure,'|');
-	  dL+=1;
-	  if(dL <=  strlen(test.structure)-l1-1){
-	    printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
-		   test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
-	    pos=MAX2(10,pos-delta);
-	  }
-	}
-	free(s3);free(s4);
-	free(test.structure);
-	free(local_structure);
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min; /* position on i */
+        int max_pos_j;
+        max_pos_j=position_j[pos+delta]; /* position on j */
+        /* int begin_t=MAX2(9, pos-alignment_length); */
+        /* int end_t  =MIN2(n1-10, pos); */
+        /* int begin_q=MAX2(9, max_pos_j-2); */
+        /* int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2); */
+        int begin_t=MAX2(9,pos-alignment_length);
+        int end_t  =pos;
+        int begin_q=max_pos_j-2;
+        int end_q  =MIN2(n2-9,max_pos_j+alignment_length-2);
+        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
+        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+        char *local_structure = (char*) space(sizeof(char) * ( end_q - begin_q +2));
+        strncpy(s3, (s1+begin_t),  end_t - begin_t+1);
+        strncpy(s4, (s2+begin_q) , end_q - begin_q+1 );
+        strncpy(local_structure, (structure+begin_q), end_q - begin_q +1);
+        s3[end_t -begin_t +1 ]='\0';
+        s4[end_q -begin_q +1 ]='\0';
+        local_structure[end_q - begin_q +1]='\0';
+        duplexT test;
+        test = duplexfold_CXS(s3,s4,access_s1,access_s2,pos, max_pos_j,threshold,local_structure);
+        if(test.energy * 100 < (threshold - constthreshold)){
+          int l1=strchr(test.structure, '&')-test.structure;
+          int dL = strrchr(structure,'|') - strchr(structure,'|');
+          dL+=1;
+          if(dL <=  strlen(test.structure)-l1-1){
+            printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
+                   test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
+            pos=MAX2(10,pos-delta);
+          }
+        }
+        free(s3);free(s4);
+        free(test.structure);
+        free(local_structure);
       }
     }
   }
@@ -627,7 +627,7 @@ PRIVATE void plot_max_CXS(const int max, const int max_pos, const int max_pos_j,
     dL+=1;
     if(dL<=strlen(test.structure)-l1-1){
       printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
-	     test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
+             test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
     }
     free(s3);free(s4);free(test.structure);free(local_structure);
     
@@ -676,39 +676,39 @@ PRIVATE duplexT duplexfold_C(const char *s1, const char *s2, const int extension
       c[i][j] = type ? P->DuplexInit +2 * extension_cost + bonus_2: INF;
       if(!type){ continue;}
       if(j<n4 && i>1 && !(structure[j]=='|') ) {
-	c[i][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
+        c[i][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
       }
       else if(i>1){
-	c[i][j] += P->dangle5[type][SS1[i-1]]+ extension_cost;
+        c[i][j] += P->dangle5[type][SS1[i-1]]+ extension_cost;
       }
       else if(j<n4 && !(structure[j]=='|')){
-	c[i][j] += P->dangle3[type][SS2[j+1]]+ extension_cost;
+        c[i][j] += P->dangle3[type][SS2[j+1]]+ extension_cost;
       }
       if (type>2) c[i][j] += P->TerminalAU;
       for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
-	for (l=j+1; l<=previous_const[j]; l++) {
-	  if (i-k+l-j-2>MAXLOOP) break;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P)+(i-k+l-j)*extension_cost + bonus_2;
-	  c[i][j] = MIN2(c[i][j], c[k][l]+E);
-	}
+        for (l=j+1; l<=previous_const[j]; l++) {
+          if (i-k+l-j-2>MAXLOOP) break;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                        SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P)+(i-k+l-j)*extension_cost + bonus_2;
+          c[i][j] = MIN2(c[i][j], c[k][l]+E);
+        }
       }
       E = c[i][j]; 
       if(i<n3 && j>1 && !(structure[j-2]=='|')){
-	E+= P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]]+2*extension_cost;
+        E+= P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]]+2*extension_cost;
       }
       else if (i<n3){
-	E += P->dangle3[rtype[type]][SS1[i+1]]+extension_cost;
+        E += P->dangle3[rtype[type]][SS1[i+1]]+extension_cost;
       }
       else if (j>1 && !(structure[j-2]=='|')){
-	E += P->dangle5[rtype[type]][SS2[j-1]]+extension_cost;
+        E += P->dangle5[rtype[type]][SS2[j-1]]+extension_cost;
       }
       if (type>2) E += P->TerminalAU;
 
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }  
@@ -764,39 +764,39 @@ PRIVATE char *backtrack_C(int i, int j, const int extension_cost, const char* st
     if (!type) nrerror("backtrack failed in fold duplex a");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
       for (l=j+1; l<=previous_const[j]; l++) {
-	int LE;
-	if (i-k+l-j-2>MAXLOOP) break;
-	type2 = pair[S1[k]][S2[l]];
-	if (!type2) continue;
-	LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-		       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P)+(i-k+l-j)*extension_cost + bonus_2;
-	if (E == c[k][l]+LE) { 
-	  *Emin-=bonus_2;
-	  traced=1; 
-	  i=k; j=l;
-	  break;
-	}
+        int LE;
+        if (i-k+l-j-2>MAXLOOP) break;
+        type2 = pair[S1[k]][S2[l]];
+        if (!type2) continue;
+        LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                       SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P)+(i-k+l-j)*extension_cost + bonus_2;
+        if (E == c[k][l]+LE) { 
+          *Emin-=bonus_2;
+          traced=1; 
+          i=k; j=l;
+          break;
+        }
       }
       if (traced) break;
     }
     if (!traced) { 
       
       if (i>1 && j<n4 && !(structure[j]=='|')){
-	E -=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
+        E -=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
       }
       else if(i>1){
-	E -= P->dangle5[type][SS1[i-1]]+extension_cost;
+        E -= P->dangle5[type][SS1[i-1]]+extension_cost;
       }
       else if (j<n4 && !(structure[j]=='|')){
-	E -= P->dangle3[type][SS2[j+1]]+ extension_cost;
+        E -= P->dangle3[type][SS2[j+1]]+ extension_cost;
       }
       /* if (j<n4) E -= P->dangle3[type][SS2[j+1]]+extension_cost; */
       if (type>2) E -= P->TerminalAU;
       if (E != P->DuplexInit+2*extension_cost + bonus_2) {
-	nrerror("backtrack failed in fold duplex b");
+        nrerror("backtrack failed in fold duplex b");
       } else {
-	*Emin-=bonus_2;
-	break;
+        *Emin-=bonus_2;
+        break;
       }
     }
   }
@@ -902,27 +902,27 @@ duplexT ** Lduplexfold_C(const char *s1, const char *s2, const int threshold, co
       type = pair[S1[i]][S2[j]];
       lc[idx][j]=type ? P->DuplexInit + 2*extension_cost + bonus_2 : INF; /* to avoid that previous value influence result should actually not be erforderlich */
       if(!bonus_2){
-	type2=pair[S2[j+1]][S1[i-1]];
-	lin[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s, lin[idx_1][j]+iext_ass);
-	lin[idx][j]=MIN2(lin[idx][j],lin[idx][j+1]+iext_ass);
-	lin[idx][j]=MIN2(lin[idx][j],lin[idx_1][j+1]+iext_s);
-	linx[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+iopen+iext_s,linx[idx_1][j]+iext_ass);
-	liny[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+iopen+iext_s,liny[idx][j+1]+iext_ass); 
-	type2=pair[S2[j+1]][S1[i]];
-	lby[idx][j]=MIN2(lby[idx][j+1]+bext, lc[idx][j+1]+bopen+bext+(type2>2?P->TerminalAU:0));
+        type2=pair[S2[j+1]][S1[i-1]];
+        lin[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s, lin[idx_1][j]+iext_ass);
+        lin[idx][j]=MIN2(lin[idx][j],lin[idx][j+1]+iext_ass);
+        lin[idx][j]=MIN2(lin[idx][j],lin[idx_1][j+1]+iext_s);
+        linx[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+iopen+iext_s,linx[idx_1][j]+iext_ass);
+        liny[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatch1nI[type2][SS2[j]][SS1[i]]+iopen+iext_s,liny[idx][j+1]+iext_ass); 
+        type2=pair[S2[j+1]][S1[i]];
+        lby[idx][j]=MIN2(lby[idx][j+1]+bext, lc[idx][j+1]+bopen+bext+(type2>2?P->TerminalAU:0));
       }
       else{
-	lin[idx][j] = lby[idx][j] = linx[idx][j]= liny[idx][j]=INF;
+        lin[idx][j] = lby[idx][j] = linx[idx][j]= liny[idx][j]=INF;
       }
       type2=pair[S2[j]][S1[i-1]];
       lbx[idx][j]=MIN2(lbx[idx_1][j]+bext, lc[idx_1][j]+bopen+bext+(type2>2?P->TerminalAU:0));
       /* --------------------------------------------------------------- end update recursion */
       if(!type){continue;}
       if(!(structure[j]=='|')){
-	lc[idx][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
+        lc[idx][j]+=P->mismatchExt[type][SS1[i-1]][SS2[j+1]]+2*extension_cost;
       }
       else{
-	lc[idx][j]+=P->dangle5[type][SS1[i-1]]+extension_cost;
+        lc[idx][j]+=P->dangle5[type][SS1[i-1]]+extension_cost;
       }
       lc[idx][j]+=(type>2?P->TerminalAU:0);
       /* type > 2 -> no GC or CG pair */
@@ -934,24 +934,24 @@ duplexT ** Lduplexfold_C(const char *s1, const char *s2, const int threshold, co
       lc[idx][j]=MIN2(lc[idx_2][j+1]+E_IntLoop(1,0,type2, rtype[type],SS1[i-1], SS2[j], SS1[i-1], SS2[j+1], P)+3*extension_cost,lc[idx][j]);
       /* kleine loops checks wird in den folgenden if test gemacht. */
       if(!(structure[j]=='|')){
-	type2=pair[S1[i-1]][S2[j+2]];
-	lc[idx][j]=MIN2(lc[idx_1][j+2]+E_IntLoop(0,1,type2, rtype[type],SS1[i], SS2[j+1], SS1[i-1], SS2[j+1], P)+3*extension_cost,lc[idx][j]);
-	type2=pair[S1[i-2]][S2[j+2]];
-	lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*extension_cost, lc[idx][j]);
-	type2 = pair[S1[i-3]][S2[j+2]];
-	lc[idx][j]=MIN2(lc[idx_3][j+2]+E_IntLoop(2,1,type2, rtype[type],SS1[i-2], SS2[j+1], SS1[i-1], SS2[j+1], P)+5*extension_cost, lc[idx][j]);
-	if(!(structure[j+1]=='|')){
-	  type2 = pair[S1[i-3]][S2[j+3]];
-	  lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*extension_cost,lc[idx][j]);
-	  type2 = pair[S1[i-2]][S2[j+3]];
-	  lc[idx][j]=MIN2(lc[idx_2][j+3]+E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P)+5*extension_cost, lc[idx][j]);
-	  type2 = pair[S1[i-4]][S2[j+3]];
-	  lc[idx][j]=MIN2(lc[idx_4][j+3]+E_IntLoop(3,2,type2, rtype[type],SS1[i-3], SS2[j+2], SS1[i-1], SS2[j+1], P)+7*extension_cost, lc[idx][j]);
-	  if(!(structure[j+2]=='|')){
-	    type2 = pair[S1[i-3]][S2[j+4]];
-	    lc[idx][j]=MIN2(lc[idx_3][j+4]+E_IntLoop(2,3,type2, rtype[type],SS1[i-2], SS2[j+3], SS1[i-1], SS2[j+1], P)+7*extension_cost, lc[idx][j]);
-	  }
-	}
+        type2=pair[S1[i-1]][S2[j+2]];
+        lc[idx][j]=MIN2(lc[idx_1][j+2]+E_IntLoop(0,1,type2, rtype[type],SS1[i], SS2[j+1], SS1[i-1], SS2[j+1], P)+3*extension_cost,lc[idx][j]);
+        type2=pair[S1[i-2]][S2[j+2]];
+        lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*extension_cost, lc[idx][j]);
+        type2 = pair[S1[i-3]][S2[j+2]];
+        lc[idx][j]=MIN2(lc[idx_3][j+2]+E_IntLoop(2,1,type2, rtype[type],SS1[i-2], SS2[j+1], SS1[i-1], SS2[j+1], P)+5*extension_cost, lc[idx][j]);
+        if(!(structure[j+1]=='|')){
+          type2 = pair[S1[i-3]][S2[j+3]];
+          lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*extension_cost,lc[idx][j]);
+          type2 = pair[S1[i-2]][S2[j+3]];
+          lc[idx][j]=MIN2(lc[idx_2][j+3]+E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P)+5*extension_cost, lc[idx][j]);
+          type2 = pair[S1[i-4]][S2[j+3]];
+          lc[idx][j]=MIN2(lc[idx_4][j+3]+E_IntLoop(3,2,type2, rtype[type],SS1[i-3], SS2[j+2], SS1[i-1], SS2[j+1], P)+7*extension_cost, lc[idx][j]);
+          if(!(structure[j+2]=='|')){
+            type2 = pair[S1[i-3]][S2[j+4]];
+            lc[idx][j]=MIN2(lc[idx_3][j+4]+E_IntLoop(2,3,type2, rtype[type],SS1[i-2], SS2[j+3], SS1[i-1], SS2[j+1], P)+7*extension_cost, lc[idx][j]);
+          }
+        }
       }
       /* internal->stack  */
       lc[idx][j]=MIN2(lin[idx_3][j+3]+P->mismatchI[rtype[type]][SS1[i-1]][SS2[j+1]]+2*extension_cost+2*iext_s, lc[idx][j]);
@@ -969,13 +969,13 @@ duplexT ** Lduplexfold_C(const char *s1, const char *s2, const int threshold, co
       /*       if(j<=const5end){ */
       temp=min_colonne;        
       min_colonne=MIN2(lc[idx][j]+(type>2?P->TerminalAU:0)+
-		       (!(structure[j-2]=='|') ? 
-			P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]]+2*extension_cost : 
-			P->dangle3[rtype[type]][SS1[i+1]]+extension_cost),
-		       min_colonne);
+                       (!(structure[j-2]=='|') ? 
+                        P->mismatchExt[rtype[type]][SS2[j-1]][SS1[i+1]]+2*extension_cost : 
+                        P->dangle3[rtype[type]][SS1[i+1]]+extension_cost),
+                       min_colonne);
       if(temp>min_colonne){
-	min_j_colonne=j;
-	/* 	} */
+        min_j_colonne=j;
+        /*         } */
       }
       /* ---------------------------------------------------------------------end update       */
     }
@@ -1009,22 +1009,22 @@ PRIVATE void find_max_C(const int *position, const int *position_j,const int del
   int pos=n1-9;
   if(fast==1){
     while(10 < pos--){
-      int temp_min=0;                                               		
-      if(position[pos+delta]<(threshold)){                          		
-	int search_range;                                           		
-	search_range=delta+1;                                       		
-	while(--search_range){                                      		
-	  if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){		
-	    temp_min=search_range;                                  		
-	  }                                                         		
-	}                                                           		
-	pos-=temp_min;                                              		
-	int max_pos_j;                                              		
-	max_pos_j=position_j[pos+delta];
-	int max;
-	max=position[pos+delta];
-	printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
-	pos=MAX2(10,pos-delta);
+      int temp_min=0;                                                               
+      if(position[pos+delta]<(threshold)){                                          
+        int search_range;                                                           
+        search_range=delta+1;                                                       
+        while(--search_range){                                                      
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){                
+            temp_min=search_range;                                                  
+          }                                                                         
+        }                                                                           
+        pos-=temp_min;                                                              
+        int max_pos_j;                                                              
+        max_pos_j=position_j[pos+delta];
+        int max;
+        max=position[pos+delta];
+        printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
+        pos=MAX2(10,pos-delta);
       }
     }
   }
@@ -1033,53 +1033,53 @@ PRIVATE void find_max_C(const int *position, const int *position_j,const int del
     while(10 < pos--){
       int temp_min=0;
       if(position[pos+delta]<(threshold)){
-	int search_range;
-	search_range=delta+1;
-	while(--search_range){
-	  if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
-	    temp_min=search_range;
-	  }
-	}
-	pos-=temp_min;
-	int max_pos_j;
-	max_pos_j=position_j[pos+delta];
-	/* max_pos_j und pos entsprechen die realen position
-	   in der erweiterten sequenz. 
-	   pos=1 -> position 1 in the sequence (and not 0 like in C)
-	   max_pos_j -> position 1 in the sequence ( not 0 like in C)
-	*/
-	int begin_t=MAX2(11, pos-alignment_length+1);
-	int end_t  =MIN2(n1-10, pos+1);
-	int begin_q=MAX2(11, max_pos_j-1);
-	int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
-	char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
-	char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
-	char *local_structure = (char*) space(sizeof(char)*(end_q - begin_q +2));
-	strncpy(s3, (s1+begin_t-1),  end_t - begin_t +1);
-	strncpy(s4, (s2+begin_q-1) , end_q - begin_q +1);
-	strncpy(local_structure, (structure+begin_q-1) , end_q - begin_q +1 );
-	s3[end_t -begin_t +1 ]='\0';
-	s4[end_q -begin_q +1 ]='\0';
-	local_structure[end_q - begin_q +1]='\0';
-	duplexT test;
-	test = duplexfold_C(s3, s4, extension_cost,local_structure);
-	if(test.energy * 100 < (threshold-constthreshold)){
-	  int l1=strchr(test.structure, '&')-test.structure;
-	  int dL = strrchr(structure,'|') - strchr(structure,'|');
-	  dL+=1;
-	  if(dL <=  strlen(test.structure)-l1-1){
-	    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
-		   begin_t-10+test.i-l1, 
-		   begin_t-10+test.i-1, 
-		   begin_q-10 + test.j-1 , 
-		   (begin_q -11) + test.j + strlen(test.structure)-l1-2, 
-		   test.energy);
-	    pos=MAX2(10,pos-delta);
-	  }
-	}
-	free(s3);free(s4);
-	free(test.structure);
-	free(local_structure);
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min;
+        int max_pos_j;
+        max_pos_j=position_j[pos+delta];
+        /* max_pos_j und pos entsprechen die realen position
+           in der erweiterten sequenz. 
+           pos=1 -> position 1 in the sequence (and not 0 like in C)
+           max_pos_j -> position 1 in the sequence ( not 0 like in C)
+        */
+        int begin_t=MAX2(11, pos-alignment_length+1);
+        int end_t  =MIN2(n1-10, pos+1);
+        int begin_q=MAX2(11, max_pos_j-1);
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
+        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
+        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+        char *local_structure = (char*) space(sizeof(char)*(end_q - begin_q +2));
+        strncpy(s3, (s1+begin_t-1),  end_t - begin_t +1);
+        strncpy(s4, (s2+begin_q-1) , end_q - begin_q +1);
+        strncpy(local_structure, (structure+begin_q-1) , end_q - begin_q +1 );
+        s3[end_t -begin_t +1 ]='\0';
+        s4[end_q -begin_q +1 ]='\0';
+        local_structure[end_q - begin_q +1]='\0';
+        duplexT test;
+        test = duplexfold_C(s3, s4, extension_cost,local_structure);
+        if(test.energy * 100 < (threshold-constthreshold)){
+          int l1=strchr(test.structure, '&')-test.structure;
+          int dL = strrchr(structure,'|') - strchr(structure,'|');
+          dL+=1;
+          if(dL <=  strlen(test.structure)-l1-1){
+            printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
+                   begin_t-10+test.i-l1, 
+                   begin_t-10+test.i-1, 
+                   begin_q-10 + test.j-1 , 
+                   (begin_q -11) + test.j + strlen(test.structure)-l1-2, 
+                   test.energy);
+            pos=MAX2(10,pos-delta);
+          }
+        }
+        free(s3);free(s4);
+        free(test.structure);
+        free(local_structure);
       }
     }
   }
@@ -1110,8 +1110,8 @@ PRIVATE void plot_max_C(const int max, const int max_pos, const int max_pos_j, c
     dL+=1;
     if(dL <=  strlen(test.structure)-l1-1){
       printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
-	     begin_t-10+test.i-l1, begin_t-10+test.i-1, begin_q-10 +test.j-1 , 
-	     (begin_q -11) + test.j + strlen(test.structure)-l1-2  , test.energy);
+             begin_t-10+test.i-l1, begin_t-10+test.i-1, begin_q-10 +test.j-1 , 
+             (begin_q -11) + test.j + strlen(test.structure)-l1-2  , test.energy);
       free(s3);free(s4);free(test.structure);
     }
     free(local_structure);

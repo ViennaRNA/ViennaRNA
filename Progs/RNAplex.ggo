@@ -100,7 +100,7 @@ off
 option "probe-concentration" Q
 "Set the probe concentration for the Tm computation\n\n"
 double
-default="1.0"
+default="0.1"
 optional
 
 option "na-concentration" N

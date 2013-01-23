@@ -21,7 +21,8 @@ snoopT snoopfold( const char *s1,
                   const int min_s1,
                   const int max_s1,
                   const int min_d1,
-                  const int min_d2);
+                  const int min_d2,
+		  const int fullStemEnergy);
 
 /** 
 *** computes snoRNA-RNA suboptimal interactions in RNAduplex manner
@@ -48,7 +49,8 @@ snoopT *snoop_subopt( const char *s1,
                       const int min_s1,
                       const int max_s1,
                       const int min_d1,
-                      const int min_d2);
+                      const int min_d2,
+		      const int fullStemEnergy);
 
 /** 
 *** computes snoRNA-RNA suboptimal interactions in a RNAplex manner
@@ -78,7 +80,8 @@ void Lsnoop_subopt( const char *s1,
                     const int min_d1,
                     const int min_d2,
                     const int alignment_length,
-                    const char* name);
+                    const char* name,
+		    const int fullStemEnergy);
 
 /** 
 *** computes snoRNA-RNA suboptimal interactions in a RNAplex manner. The stem energy is saved into a list of struct, leading to a runtime improvement of 20%
@@ -108,7 +111,8 @@ void Lsnoop_subopt_list ( const char *s1,
                           const int min_d1,
                           const int min_d2,
                           const int alignment_length,
-                          const char *name);
+                          const char *name,
+			  const int fullStemEnergy);
 
 /** 
 *** computes snoRNA-RNA suboptimal interactions in a RNAplex manner. The stem energy is saved into a list of struct, leading to a runtime improvement of 20%. It considers accessibility
@@ -138,7 +142,8 @@ void Lsnoop_subopt_list_XS (const char *s1,
                             const int min_d1,
                             const int min_d2,
                             const int alignment_length,
-                            const char *name);
+                            const char *name,
+			    const int fullStemEnergy);
 
 
 /** 
@@ -169,7 +174,8 @@ void snoop_subopt_XS (const char *s1,
                       const int min_d1,
                       const int min_d2,
                       const int alignment_length,
-                      const char *name);
+                      const char *name,
+		      const int fullStemEnergy);
 
 /**
 *** aliduplex-like alignment version of snoop_subopt
@@ -268,7 +274,8 @@ snoopT snoopfold_XS(const char *s1,
                     const int min_s1,
                     const int max_s1,
                     const int min_d1,
-                    const int min_d2);
+                    const int min_d2,
+		    const int fullStemEnergy);
 
 
 
