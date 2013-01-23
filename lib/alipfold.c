@@ -1269,3 +1269,26 @@ PRIVATE void backtrack_qm1(int i,int j, int n_seq, double *prob) {
 PUBLIC FLT_OR_DBL *export_ali_bppm(void){
   return probs;
 }
+
+/*-------------------------------------------------------------------------*/
+/* make arrays used for alipf_fold available to other routines */
+PUBLIC int get_alipf_arrays( short ***S_p,
+			     short ***S5_p,
+			     short ***S3_p,
+			     unsigned short ***a2s_p,
+			     char ***Ss_p,
+			     FLT_OR_DBL **qb_p,
+			     FLT_OR_DBL **qm_p,
+			     FLT_OR_DBL **q1k_p,
+			     FLT_OR_DBL **qln_p,
+			     short **pscore_p) {
+
+    if(qb == NULL) return(0); /* check if alipf_fold() has been called */
+    *S_p = S; *S5_p = S5; *S3_p = S3;
+    *a2s_p=a2s;
+    *Ss_p=Ss;
+    *qb_p = qb; *qm_p = qm;
+    *q1k_p = q1k; *qln_p = qln;
+    *pscore_p = pscore;
+    return(1); /* success */
+}

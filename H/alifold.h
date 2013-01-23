@@ -338,4 +338,36 @@ void  free_alipf_arrays(void);
  */
 char  *alipbacktrack(double *prob);
 
+
+/**
+ *  \brief Get pointers to (almost) all relavant arrays used in alifold's partition function computation
+ *
+ *  \ingroup consensus_fold
+ *
+ *  \note To obtain meaningful pointers, call alipf_fold first!
+ *
+ *  \see pf_alifold(), alipf_circ_fold()
+ *
+ *  \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
+ *  \param S5_p     A pointer to the 'S5' array
+ *  \param S3_p     A pointer to the 'S3' array
+ *  \param a2s_p    A pointer to the pair type matrix
+ *  \param Ss_p     A pointer to the 'Ss' array
+ *  \param qb_p     A pointer to the Q<sup>B</sup> matrix
+ *  \param qm_p     A pointer to the Q<sup>M</sup> matrix
+ *  \param q1k_p    A pointer to the 5' slice of the Q matrix (\f$q1k(k) = Q(1, k)\f$)
+ *  \param qln_p    A pointer to the 3' slice of the Q matrix (\f$qln(l) = Q(l, n)\f$)
+ *  \return         Non Zero if everything went fine, 0 otherwise
+ */
+int get_alipf_arrays(short ***S_p,
+		     short ***S5_p,
+		     short ***S3_p,
+		     unsigned short ***a2s_p,
+		     char ***Ss_p,
+		     FLT_OR_DBL **qb_p,
+		     FLT_OR_DBL **qm_p,
+		     FLT_OR_DBL **q1k_p,
+		     FLT_OR_DBL **qln_p,
+		     short **pscore);
+
 #endif
