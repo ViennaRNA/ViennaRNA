@@ -16,7 +16,7 @@ AM_SILENT_RULES([yes])
 AM_INIT_AUTOMAKE([1.11])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 dnl configure options
 AM_WITH_DMALLOC
