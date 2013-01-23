@@ -445,13 +445,13 @@ int main(int argc, char *argv[]) {
     else
       print_path(seq,s2);
     free(path);
+    path = NULL;
     route = get_path(seq, s1, s2, maxkeep);
     for (r=route; r->s; r++) {
       printf("%s %6.2f - %6.2f\n", r->s, energy_of_struct(seq,r->s), r->en);
       free(r->s);
     }
   }
-  free(route);
   free(seq); free(s1); free(s2);
   return(EXIT_SUCCESS);
 }
