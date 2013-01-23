@@ -181,7 +181,7 @@ AC_RNA_PACKAGE_IF_ENABLED([doc],[
     AC_SUBST([DOXYGEN_GENERATE_HTML], [ifelse([$with_doc_html], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
-    AC_CONFIG_FILES([${DOXYGEN_CONF}])
+    AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/${DOXYGEN_CONF}])
 
   else
 
@@ -210,11 +210,11 @@ AC_RNA_PACKAGE_IF_ENABLED([doc],[
 AC_SUBST([REFERENCE_MANUAL_PDF_NAME], [ifelse([$with_doc_pdf],
                                               [no],
                                               [],
-                                              [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf])])
+                                              [$DOXYGEN_PROJECT_NAME.pdf])])
 AC_SUBST([REFERENCE_MANUAL_TAGFILE],  [ifelse([$doxygen],
                                               [no],
                                               [],
-                                              [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.tag])])
+                                              [$DOXYGEN_PROJECT_NAME.tag])])
 
 
 # setup variables used in Makefile.am
@@ -310,7 +310,8 @@ AC_RNA_PACKAGE_IF_ENABLED([perl],[
     with_pf_float=yes
   fi
   AC_MSG_RESULT([$with_pf_float])
-  AC_CONFIG_SUBDIRS([Perl])
+  AC_DEFINE([WITH_PERL_INTERFACE], [1], [Create the perl interface to RNAlib])
+  AC_SUBST([PERL_INTERFACE], [Perl])
   AC_CONFIG_FILES([Perl/Makefile Perl/Makefile.PL])
 ])
 
@@ -323,7 +324,8 @@ AC_RNA_PACKAGE_IF_ENABLED([forester],[
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([cluster],[
-  AC_CONFIG_SUBDIRS([Cluster])
+  AC_DEFINE([WITH_CLUSTER], [1], [Analyse{Dists,Seqs}])
+  AC_SUBST([CLUSTER_DIR], [Cluster])
   AC_CONFIG_FILES([Cluster/Makefile])
 ])
 
@@ -343,7 +345,7 @@ AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 
-AC_CONFIG_FILES([Makefile ViennaRNA.spec RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile])
+AC_CONFIG_FILES([Makefile misc/Makefile misc/ViennaRNA.spec RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile doc/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 

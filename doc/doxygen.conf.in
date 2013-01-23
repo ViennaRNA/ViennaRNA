@@ -52,7 +52,6 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-#OUTPUT_DIRECTORY       = @DOXYGEN_DOCDIR@
 OUTPUT_DIRECTORY       = .
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
@@ -656,7 +655,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ../mainpage.h ../H ../lib
+INPUT                  = mainpage.h ../H ../lib
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -1010,7 +1009,7 @@ GENERATE_HTMLHELP      = NO
 # can add a path in front of the file if the result should not be
 # written to the html output directory.
 
-CHM_FILE               = ../@DOXYGEN_PROJECT_NAME@.chm
+CHM_FILE               = @DOXYGEN_PROJECT_NAME@.chm
 
 # If the GENERATE_HTMLHELP tag is set to YES, the HHC_LOCATION tag can
 # be used to specify the location (absolute path including file name) of
@@ -1551,7 +1550,6 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 
-#GENERATE_TAGFILE       = @DOXYGEN_DOCDIR@/@DOXYGEN_PROJECT_NAME@.tag
 GENERATE_TAGFILE       = @DOXYGEN_PROJECT_NAME@.tag
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed
