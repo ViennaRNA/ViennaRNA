@@ -31,14 +31,12 @@
  */
 #define MAXDOS                1000
 
-#ifdef WITH_GQUADS
 #define   VRNA_GQUAD_MAX_STACK_SIZE     7
 #define   VRNA_GQUAD_MIN_STACK_SIZE     2
 #define   VRNA_GQUAD_MAX_LINKER_LENGTH  15
 #define   VRNA_GQUAD_MIN_LINKER_LENGTH  1
 #define   VRNA_GQUAD_MIN_BOX_SIZE       ((4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH))
 #define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
-#endif
 
 
 /*
@@ -117,6 +115,7 @@ typedef struct{
   int     noGU;         /**<  \brief  Do not allow GU pairs */
   int     noGUclosure;  /**<  \brief  Do not allow loops to be closed by GU pair */
   int     logML;        /**<  \brief  Use logarithmic scaling for multi loops */
+  int     gq;           /**<  \brief  Include G-quadruplexes in structure prediction */
 } model_detailsT;
 
 /**
@@ -155,10 +154,8 @@ typedef struct{
   int     TripleC;
   int     MultipleCA;
   int     MultipleCB;
-#ifdef WITH_GQUADS
-  int gquad [VRNA_GQUAD_MAX_STACK_SIZE + 1]
-            [3*VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
-#endif
+  int     gquad [VRNA_GQUAD_MAX_STACK_SIZE + 1]
+                [3*VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
 
   double  temperature;            /**<  \brief  Temperature used for loop contribution scaling */
 
@@ -203,10 +200,8 @@ typedef struct{
   double  expTripleC;
   double  expMultipleCA;
   double  expMultipleCB;
-#ifdef WITH_GQUADS
   double  expgquad[VRNA_GQUAD_MAX_STACK_SIZE + 1]
                   [3*VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
-#endif
 
   double  kT;
   double  pf_scale;     /**<  \brief    Scaling factor to avoid over-/underflows */

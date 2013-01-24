@@ -92,7 +92,9 @@ extern int  HexaloopdH[]; /* Bonus energy for special Triloops */
 
 #ifdef WITH_GQUADS
 extern int GQuadAlpha37;
+extern int GQuadAlphadH;
 extern int GQuadBeta37;
+extern int GQuadBetadH;
 #endif
 extern double Tmeasure;       /* temperature of param measurements */
 

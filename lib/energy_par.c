@@ -83,7 +83,9 @@ PUBLIC int MultipleCB37=160;
 PUBLIC int MultipleCBdH=760;
 #ifdef WITH_GQUADS
 PUBLIC int GQuadAlpha37 = -1800;
+PUBLIC int GQuadAlphadH = -11934;
 PUBLIC int GQuadBeta37 = 1200;
+PUBLIC int GQuadBetadH = 0;
 #endif
 
 PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] =
