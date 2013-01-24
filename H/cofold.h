@@ -87,9 +87,8 @@ void      update_cofold_params(void);
 void      update_cofold_params_par(paramT *parameters);
 
 
-#ifdef WITH_GQUADS
 /**
- *  \brief Export the arrays of partition function cofold
+ *  \brief Export the arrays of partition function cofold (with gquadruplex support)
  * 
  *  Export the cofold arrays for use e.g. in the concentration
  *  Computations or suboptimal secondary structure backtracking
@@ -103,15 +102,15 @@ void      update_cofold_params_par(paramT *parameters);
  *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-void export_cofold_arrays(int **f5_p,
-                          int **c_p,
-                          int **fML_p,
-                          int **fM1_p,
-                          int **fc_p,
-                          int **ggg_p,
-                          int **indx_p,
-                          char **ptype_p);
-#else
+void export_cofold_arrays_gq( int **f5_p,
+                              int **c_p,
+                              int **fML_p,
+                              int **fM1_p,
+                              int **fc_p,
+                              int **ggg_p,
+                              int **indx_p,
+                              char **ptype_p);
+
 /**
  *  \brief Export the arrays of partition function cofold
  * 
@@ -133,7 +132,6 @@ void export_cofold_arrays(int **f5_p,
                           int **fc_p,
                           int **indx_p,
                           char **ptype_p);
-#endif
 
 
 /**

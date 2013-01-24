@@ -91,16 +91,12 @@
 #include "params.h"
 #include "loop_energies.h"
 #include "cofold.h"
+#include "gquad.h"
 #include "subopt.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#ifdef WITH_GQUADS
-#include "gquad.h"
-#endif
-
 
 #define true              1
 #define false             0
@@ -153,24 +149,17 @@ PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
 PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
+PRIVATE int     with_gquad          = 0;
 
-#ifdef WITH_GQUADS
+
 PRIVATE int     *ggg = NULL;
-#endif
 
 #ifdef _OPENMP
 
-#ifdef WITH_GQUADS
 #pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
                           ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained, ggg)
-
-#else
-#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
-                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained)
-
-#endif
+                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained,\
+                          ggg, with_gquad)
 
 #endif
 
@@ -180,10 +169,10 @@ PRIVATE int     *ggg = NULL;
 #################################
 */
 PRIVATE void      make_pair(int i, int j, STATE *state);
-#ifdef WITH_GQUADS
+
 /* mark a gquadruplex in the resulting dot-bracket structure */
 PRIVATE void      make_gquad(int i, int L, int l[3], STATE *state);
-#endif
+
 PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
                                     /*@only@*/ /*@null@*/ char *structure,
@@ -225,7 +214,6 @@ make_pair(int i, int j, STATE *state)
   state->structure[j-1] = ')';
 }
 
-#ifdef WITH_GQUADS
 PRIVATE void
 make_gquad(int i, int L, int l[3], STATE *state)
 {
@@ -237,7 +225,6 @@ make_gquad(int i, int L, int l[3], STATE *state)
     state->structure[i - 1 + x + 3*L + l[0] + l[1] + l[2]] = '+';
   }
 }
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -545,6 +532,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
   logML       = P->model_details.logML;
   old_dangles = dangle_model = P->model_details.dangles;
+  with_gquad  = P->model_details.gquad;
 
   /* temporarily set dangles to 2 if necessary */
   if((P->model_details.dangles != 0) && (P->model_details.dangles != 2))
@@ -562,11 +550,13 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     min_en = energy_of_circ_struct_par(sequence, struc, P, 0);
   } else {
     min_en = cofold_par(sequence, struc, P, struct_constrained);
-#ifdef WITH_GQUADS
-    export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &ggg, &indx, &ptype);
-#else
-    export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
-#endif
+
+    if(with_gquad){
+      export_cofold_arrays_gq(&f5, &c, &fML, &fM1, &fc, &ggg, &indx, &ptype);
+    } else {
+      export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+    }
+
     /* restore dangle model */
     P->model_details.dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */

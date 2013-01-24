@@ -57,6 +57,7 @@ int main(int argc, char *argv[]){
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack  = 1;
   dangles       = 2;
+  gquad         = 0;
   sfact         = 1.07;
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
@@ -84,6 +85,8 @@ int main(int argc, char *argv[]){
   if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   /* set energy model */
   if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
@@ -159,6 +162,10 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  if(circular && gquad){
+    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+  }
+
   make_pair_matrix();
 
   if (circular && noLonelyPairs)
@@ -247,11 +254,11 @@ int main(int argc, char *argv[]){
   } else {
     float *ens  = (float *)space(2*sizeof(float));
     min_en      = alifold((const char **)AS, structure);
-#ifdef WITH_GQUADS
-    energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
-#else
-    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
-#endif
+    if(md.gquad)
+      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+    else
+      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+
     real_en     = ens[0];
     free(ens);
   }
@@ -271,17 +278,18 @@ int main(int argc, char *argv[]){
   if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
-#ifdef WITH_GQUADS
-    if (doColor)
-      (void) PS_rna_plot_a_gquad(string, structure, ffname, A[0], A[1]);
-    else
-      (void) PS_rna_plot_a_gquad(string, structure, ffname, NULL, A[1]);
-#else
-    if (doColor)
-      (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
-    else
-      (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
-#endif
+
+    if(md.gquad){
+      if (doColor)
+        (void) PS_rna_plot_a_gquad(string, structure, ffname, A[0], A[1]);
+      else
+        (void) PS_rna_plot_a_gquad(string, structure, ffname, NULL, A[1]);
+    } else {
+      if (doColor)
+        (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
+      else
+        (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
+    }
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)

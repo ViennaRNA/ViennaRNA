@@ -150,12 +150,10 @@ float   energy_of_alistruct(const char **sequences,
                             int n_seq,
                             float *energy);
 
-#ifdef WITH_GQUADS
 float   energy_of_ali_gquad_structure(const char **sequences,
                                       const char *structure,
                                       int n_seq,
                                       float *energy);
-#endif
 
 /*
 #############################################################

@@ -260,7 +260,6 @@ void  assign_plist_from_pr( plist **pl,
                             int length,
                             double cutoff);
 
-#ifdef WITH_GQUADS
 /* this doesn't work if free_pf_arrays() is called before */
 void assign_plist_gquad_from_pr(plist **pl,
                                 int length,
@@ -268,7 +267,6 @@ void assign_plist_gquad_from_pr(plist **pl,
 
 char *get_centroid_struct_gquad_pr(int length,
                                   double *dist);
-#endif
 
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation

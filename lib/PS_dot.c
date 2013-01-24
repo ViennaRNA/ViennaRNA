@@ -16,10 +16,8 @@
 #include "PS_dot.h"
 #include "pair_mat.h"
 #include "aln_util.h"
-#include "plot_layouts.h"
-#ifdef WITH_GQUADS
 #include "gquad.h"
-#endif
+#include "plot_layouts.h"
 
 static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $";
 
@@ -487,7 +485,6 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   return 1; /* success */
 }
 
-#ifdef WITH_GQUADS
 int PS_rna_plot_a_gquad(char *string,
                         char *structure,
                         char *ssfile,
@@ -655,7 +652,6 @@ int PS_rna_plot_a_gquad(char *string,
   free(X); free(Y);
   return 1; /* success */
 }
-#endif
 
 
 int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relative_access, const char *seqs[])
@@ -1414,7 +1410,6 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
 
 /*---------------------------------------------------------------------------*/
 
-#ifdef WITH_GQUADS
 const char *RNAdp_gquad_triangle =
 "/min { 2 copy gt { exch } if pop } bind def\n\n"
 "/utri{ % i j prob utri\n"
@@ -1428,7 +1423,6 @@ const char *RNAdp_gquad_triangle =
 "  moveto lineto lineto closepath fill\n"
 "  grestore\n"
 "} bind def\n";
-#endif
 
 
 static int sort_plist_by_type_desc(const void *p1, const void *p2){
@@ -1461,13 +1455,10 @@ PUBLIC int PS_dot_plot_list(char *seq,
   if (wastl==NULL) return 0; /* return 0 for failure */
 
 
-#ifdef WITH_GQUADS
   fprintf(wastl, "%s\n", RNAdp_gquad_triangle);
-#endif
 
   fprintf(wastl,"%%data starts here\n");
 
-#ifdef WITH_GQUADS
   /* sort the plist to bring all gquad triangles to the front */
   for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
     if(pl1->type == 1) gq_num++;
@@ -1481,7 +1472,6 @@ PUBLIC int PS_dot_plot_list(char *seq,
     tmp = sqrt(pl1->p);
     fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
   }
-#endif
 
   fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
   fprintf(wastl,"%%start of base pair probability data\n");

@@ -28,21 +28,14 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "ribo.h"
-#include "alifold.h"
 #include "aln_util.h"
 #include "loop_energies.h"
+#include "gquad.h"
+#include "alifold.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#ifdef WITH_GQUADS
-#include "gquad.h"
-#endif
-
-
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: alifold.c,v 1.18 2009/02/27 16:25:54 ivo Exp $";
 
 #define PAREN
 #define STACK_BULGE1  1     /* stacking energies for bulges of size 1 */
@@ -85,29 +78,18 @@ PRIVATE int             *pscore = NULL;     /* precomputed array of pair types *
 PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 PRIVATE bondT           *base_pair2 = NULL;
-PRIVATE int             circular;
-#ifdef WITH_GQUADS
-PRIVATE int             *ggg    = NULL;
-PRIVATE char            *cons_seq = NULL;
-PRIVATE short           *S_cons = NULL;
-#endif
+PRIVATE int             circular    = 0;
+PRIVATE int             with_gquad  = 0;
+
+PRIVATE int             *ggg        = NULL; /* minimum free energies of the gquadruplexes */
+PRIVATE char            *cons_seq   = NULL;
+PRIVATE short           *S_cons     = NULL;
 
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(P, ...)
-*/
-#ifdef WITH_GQUADS
 #pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
-                          pscore, init_length, sector, base_pair2, ggg)
-
-#else
-#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
-                          pscore, init_length, sector, base_pair2)
-#endif
+                          pscore, init_length, sector, base_pair2,\
+                          ggg, with_gquad, cons_seq, S_cons)
 
 #endif
 
@@ -128,16 +110,15 @@ PRIVATE void    stack_energy_pt(int i, const char **sequences, short *ptable,  i
 PRIVATE int     ML_Energy_pt(int i, int n_seq, short *pt);
 PRIVATE int     EL_Energy_pt(int i, int n_seq, short *pt);
 
-#ifdef WITH_GQUADS
-PRIVATE void en_corr_of_loop_gquad(int i,
-                                  int j,
-                                  const char **sequences,
-                                  const char *structure,
-                                  short *pt,
-                                  int *loop_idx,
-                                  int n_seq,
-                                  int en[2]);
-#endif
+PRIVATE void    en_corr_of_loop_gquad(int i,
+                                      int j,
+                                      const char **sequences,
+                                      const char *structure,
+                                      short *pt,
+                                      int *loop_idx,
+                                      int n_seq,
+                                      int en[2]);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -178,11 +159,8 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi1   = (int *) space(sizeof(int)*(size+1));
   DMLi2   = (int *) space(sizeof(int)*(size+1));
   if(base_pair2) free(base_pair2);
-#ifdef WITH_GQUADS
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+500)); /* add a guess of how many G's may be involved in a G quadruplex */
-#else
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
-#endif
+
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
 }
 
 PUBLIC  void  free_alifold_arrays(void){
@@ -199,20 +177,18 @@ PUBLIC  void  free_alifold_arrays(void){
   if(DMLi1)       free(DMLi1);
   if(DMLi2)       free(DMLi2);
   if(P)           free(P);
-#ifdef WITH_GQUADS
-  if(ggg)       free(ggg);
-  ggg = NULL;
-  if(cons_seq)  free(cons_seq);
-  cons_seq = NULL;
-  if(S_cons)    free(S_cons);
-  S_cons = NULL; 
-#endif
-  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  if(ggg)         free(ggg);
+  if(cons_seq)    free(cons_seq);
+  if(S_cons)      free(S_cons);
+
+  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
   pscore      = NULL;
   base_pair   = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
+  cons_seq    = NULL;
+  S_cons      = NULL; 
 }
 
 
@@ -283,7 +259,8 @@ PUBLIC float alifold(const char **strings, char *structure){
   if (fabs(P->temperature - temperature)>1e-6)  update_alifold_params();
 
   for (s=0; strings[s]!=NULL; s++);
-  n_seq = s;
+  n_seq       = s;
+  with_gquad  = P->model_details.gquad;
 
   alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short **) S, strings, n_seq, structure);
@@ -337,12 +314,13 @@ PRIVATE int fill_arrays(const char **strings) {
   length = strlen(strings[0]);
 
   /* init energies */
-#ifdef WITH_GQUADS
-  cons_seq = consensus(strings);
-  /* make g-island annotation of the consensus */
-  S_cons = encode_sequence(cons_seq, 0);
-  ggg = get_gquad_ali_matrix(S_cons, S, n_seq, P);
-#endif
+
+  if(with_gquad){
+    cons_seq = consensus(strings);
+    /* make g-island annotation of the consensus */
+    S_cons = encode_sequence(cons_seq, 0);
+    ggg = get_gquad_ali_matrix(S_cons, S, n_seq, P);
+  }
 
   for (j=1; j<=length; j++){
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -411,58 +389,58 @@ PRIVATE int fill_arrays(const char **strings) {
         MLenergy = decomp + n_seq*P->MLclosing;
         new_c = MIN2(new_c, MLenergy);
 
-#ifdef WITH_GQUADS
-        decomp = 0;
-        for(s=0;s<n_seq;s++){
-          tt = type[s];
-          if(dangles == 2)
-            decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
-          if(tt > 2)
-            decomp += P->TerminalAU;
-        }
-        for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-          l1    = p - i - 1;
-          if(l1>MAXLOOP) break;
-          if(S_cons[p] != 3) continue;
-          minq  = j - i + p - MAXLOOP - 2;
-          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-          minq  = MAX2(c0, minq);
-          c0    = j - 1;
-          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-          maxq  = MIN2(c0, maxq);
-          for(q = minq; q < maxq; q++){
-            if(S_cons[q] != 3) continue;
-            c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
-            new_c = MIN2(new_c, c0);
+        if(with_gquad){
+          decomp = 0;
+          for(s=0;s<n_seq;s++){
+            tt = type[s];
+            if(dangles == 2)
+              decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+            if(tt > 2)
+              decomp += P->TerminalAU;
           }
-        }
-
-        p = i + 1;
-        if(S_cons[p] == 3){
-          if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+          for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+            l1    = p - i - 1;
+            if(l1>MAXLOOP) break;
+            if(S_cons[p] != 3) continue;
             minq  = j - i + p - MAXLOOP - 2;
             c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
             minq  = MAX2(c0, minq);
-            c0    = j - 3;
+            c0    = j - 1;
             maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
             maxq  = MIN2(c0, maxq);
             for(q = minq; q < maxq; q++){
               if(S_cons[q] != 3) continue;
-              c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
-              new_c   = MIN2(new_c, c0);
+              c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
+              new_c = MIN2(new_c, c0);
             }
           }
-        }
-        q = j - 1;
-        if(S_cons[q] == 3)
-          for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-            l1    = p - i - 1;
-            if(l1>MAXLOOP) break;
-            if(S_cons[p] != 3) continue;
-            c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
-            new_c   = MIN2(new_c, c0);
+
+          p = i + 1;
+          if(S_cons[p] == 3){
+            if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+              minq  = j - i + p - MAXLOOP - 2;
+              c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+              minq  = MAX2(c0, minq);
+              c0    = j - 3;
+              maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+              maxq  = MIN2(c0, maxq);
+              for(q = minq; q < maxq; q++){
+                if(S_cons[q] != 3) continue;
+                c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
+                new_c   = MIN2(new_c, c0);
+              }
+            }
           }
-#endif
+          q = j - 1;
+          if(S_cons[q] == 3)
+            for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+              l1    = p - i - 1;
+              if(l1>MAXLOOP) break;
+              if(S_cons[p] != 3) continue;
+              c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
+              new_c   = MIN2(new_c, c0);
+            }
+        }
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
 
@@ -493,10 +471,10 @@ PRIVATE int fill_arrays(const char **strings) {
       }
       new_fML = MIN2(energy, new_fML);
 
-#ifdef WITH_GQUADS
-      decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-      new_fML = MIN2(new_fML, decomp);
-#endif
+      if(with_gquad){
+        decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
+        new_fML = MIN2(new_fML, decomp);
+      }
 
       /* modular decomposition -------------------------------*/
       for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
@@ -532,10 +510,12 @@ PRIVATE int fill_arrays(const char **strings) {
                   }
                   f5[j] = MIN2(f5[j], energy);
                 }
-#ifdef WITH_GQUADS
-                if(ggg[indx[j]+1] < INF)
-                  f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
-#endif
+
+                if(with_gquad){
+                  if(ggg[indx[j]+1] < INF)
+                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+                }
+
                 for(i = j - TURN - 1; i > 1; i--){
                   if(c[indx[j]+i]<INF){
                     energy = f5[i-1] + c[indx[j]+i];
@@ -546,10 +526,12 @@ PRIVATE int fill_arrays(const char **strings) {
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
-#ifdef WITH_GQUADS
-                  if(ggg[indx[j]+i] < INF)
-                    f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
-#endif
+
+                  if(with_gquad){
+                    if(ggg[indx[j]+i] < INF)
+                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                  }
+
                 }
               }
               break;
@@ -564,10 +546,12 @@ PRIVATE int fill_arrays(const char **strings) {
                   }
                   f5[j] = MIN2(f5[j], energy);
                 }
-#ifdef WITH_GQUADS
-                if(ggg[indx[j]+1] < INF)
-                  f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
-#endif
+
+                if(with_gquad){
+                  if(ggg[indx[j]+1] < INF)
+                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
+                }
+
                 for(i = j - TURN - 1; i > 1; i--){
                   if (c[indx[j]+i]<INF) {
                     energy = f5[i-1] + c[indx[j]+i];
@@ -578,10 +562,12 @@ PRIVATE int fill_arrays(const char **strings) {
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
-#ifdef WITH_GQUADS
-                  if(ggg[indx[j]+i] < INF)
-                    f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
-#endif
+
+                  if(with_gquad){
+                    if(ggg[indx[j]+i] < INF)
+                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                  }
+
                 }
               }
               break;
@@ -658,13 +644,15 @@ PRIVATE void backtrack(const char **strings, int s) {
                       }
                       if (fij == en) traced=j;
                     }
-#ifdef WITH_GQUADS
-                    if(fij == f5[i-1] + ggg[indx[j]+i]){
-                      /* found the decomposition */
-                      traced = j; jj = i - 1; gq = 1;
-                      break;
+
+                    if(with_gquad){
+                      if(fij == f5[i-1] + ggg[indx[j]+i]){
+                        /* found the decomposition */
+                        traced = j; jj = i - 1; gq = 1;
+                        break;
+                      }
                     }
-#endif
+
                     if (traced) break;
                   }
                   break;
@@ -681,13 +669,15 @@ PRIVATE void backtrack(const char **strings, int s) {
                       }
                       if (fij == en) traced=j;
                     }
-#ifdef WITH_GQUADS
-                    if(fij == f5[i-1] + ggg[indx[j]+i]){
-                      /* found the decomposition */
-                      traced = j; jj = i - 1; gq = 1;
-                      break;
+
+                    if(with_gquad){
+                      if(fij == f5[i-1] + ggg[indx[j]+i]){
+                        /* found the decomposition */
+                        traced = j; jj = i - 1; gq = 1;
+                        break;
+                      }
                     }
-#endif
+
                     if (traced) break;
                   }
                   break;
@@ -701,12 +691,12 @@ PRIVATE void backtrack(const char **strings, int s) {
 
       /* trace back the base pair found */
       j=traced;
-#ifdef WITH_GQUADS
-      if(gq){
+
+      if(with_gquad && gq){
         /* goto backtrace of gquadruplex */
         goto repeat_gquad;
       }
-#endif
+
       base_pair2[++b].i = i;
       base_pair2[b].j   = j;
       cov_en += pscore[indx[j]+i];
@@ -720,12 +710,12 @@ PRIVATE void backtrack(const char **strings, int s) {
         continue;
       }
 
-#ifdef WITH_GQUADS
-      if(fij == ggg[indx[j]+i] + n_seq * E_MLstem(0, -1, -1, P)){
-        /* go to backtracing of quadruplex */
-        goto repeat_gquad;
+      if(with_gquad){
+        if(fij == ggg[indx[j]+i] + n_seq * E_MLstem(0, -1, -1, P)){
+          /* go to backtracing of quadruplex */
+          goto repeat_gquad;
+        }
       }
-#endif
 
       cij = c[indx[j]+i];
       if(dangles){
@@ -838,74 +828,74 @@ PRIVATE void backtrack(const char **strings, int s) {
     i1 = i+1;
     j1 = j-1;
 
-#ifdef WITH_GQUADS
-    /*
-      The case that is handled here actually resembles something like
-      an interior loop where the enclosing base pair is of regular
-      kind and the enclosed pair is not a canonical one but a g-quadruplex
-      that should then be decomposed further...
-    */
-    mm = 0;
-    for(s=0;s<n_seq;s++){
-      tt = type[s];
-      if(tt == 0) tt = 7;
-      if(dangles == 2)
-        mm += P->mismatchI[tt][S3[s][i]][S5[s][j]];
-      if(tt > 2)
-        mm += P->TerminalAU;
-    }
-
-    for(p = i + 2;
-      p < j - VRNA_GQUAD_MIN_BOX_SIZE;
-      p++){
-      if(S_cons[p] != 3) continue;
-      l1    = p - i - 1;
-      if(l1>MAXLOOP) break;
-      minq  = j - i + p - MAXLOOP - 2;
-      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      minq  = MAX2(c0, minq);
-      c0    = j - 1;
-      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      maxq  = MIN2(c0, maxq);
-      for(q = minq; q < maxq; q++){
-        if(S_cons[q] != 3) continue;
-        c0  = mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
-        if(cij == c0){
-          i=p;j=q;
-          goto repeat_gquad;
-        }
+    if(with_gquad){
+      /*
+        The case that is handled here actually resembles something like
+        an interior loop where the enclosing base pair is of regular
+        kind and the enclosed pair is not a canonical one but a g-quadruplex
+        that should then be decomposed further...
+      */
+      mm = 0;
+      for(s=0;s<n_seq;s++){
+        tt = type[s];
+        if(tt == 0) tt = 7;
+        if(dangles == 2)
+          mm += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+        if(tt > 2)
+          mm += P->TerminalAU;
       }
-    }
-    p = i1;
-    if(S_cons[p] == 3){
-      if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+
+      for(p = i + 2;
+        p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+        p++){
+        if(S_cons[p] != 3) continue;
+        l1    = p - i - 1;
+        if(l1>MAXLOOP) break;
         minq  = j - i + p - MAXLOOP - 2;
         c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
         minq  = MAX2(c0, minq);
-        c0    = j - 3;
+        c0    = j - 1;
         maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
         maxq  = MIN2(c0, maxq);
         for(q = minq; q < maxq; q++){
           if(S_cons[q] != 3) continue;
-          if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1]){
-            i = p; j=q;
+          c0  = mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
+          if(cij == c0){
+            i=p;j=q;
             goto repeat_gquad;
           }
         }
       }
-    }
-    q = j1;
-    if(S_cons[q] == 3)
-      for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-        l1    = p - i - 1;
-        if(l1>MAXLOOP) break;
-        if(S_cons[p] != 3) continue;
-        if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1]){
-          i = p; j = q;
-          goto repeat_gquad;
+      p = i1;
+      if(S_cons[p] == 3){
+        if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+          minq  = j - i + p - MAXLOOP - 2;
+          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+          minq  = MAX2(c0, minq);
+          c0    = j - 3;
+          maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+          maxq  = MIN2(c0, maxq);
+          for(q = minq; q < maxq; q++){
+            if(S_cons[q] != 3) continue;
+            if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1]){
+              i = p; j=q;
+              goto repeat_gquad;
+            }
+          }
         }
       }
-#endif
+      q = j1;
+      if(S_cons[q] == 3)
+        for(p = i1 + 3; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+          l1    = p - i - 1;
+          if(l1>MAXLOOP) break;
+          if(S_cons[p] != 3) continue;
+          if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1]){
+            i = p; j = q;
+            goto repeat_gquad;
+          }
+        }
+    }
 
     mm = n_seq*P->MLclosing;
     if(dangles){
@@ -935,7 +925,6 @@ PRIVATE void backtrack(const char **strings, int s) {
         nrerror("backtracking failed in repeat");
     }
 
-#ifdef WITH_GQUADS
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
   repeat_gquad:
@@ -1003,7 +992,6 @@ PRIVATE void backtrack(const char **strings, int s) {
     }
   repeat_gquad_exit:
     asm("nop");
-#endif
 
   }
 
@@ -1285,7 +1273,6 @@ PUBLIC float **readribosum(char *name){
 }
 
 
-#ifdef WITH_GQUADS
 PRIVATE void en_corr_of_loop_gquad(int i,
                                   int j,
                                   const char **sequences,
@@ -1519,7 +1506,6 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
   return energy[0];
 
 }
-#endif
 
 PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
   int new=0;

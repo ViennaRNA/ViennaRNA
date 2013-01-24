@@ -115,7 +115,8 @@ typedef struct{
   int     noGU;         /**<  \brief  Do not allow GU pairs */
   int     noGUclosure;  /**<  \brief  Do not allow loops to be closed by GU pair */
   int     logML;        /**<  \brief  Use logarithmic scaling for multi loops */
-  int     gq;           /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     circ;         /**<  \brief  Assume molecule to be circular */
+  int     gquad;        /**<  \brief  Include G-quadruplexes in structure prediction */
 } model_detailsT;
 
 /**

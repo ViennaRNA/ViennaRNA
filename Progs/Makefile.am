@@ -18,7 +18,7 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 
 LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
-AM_CFLAGS = $(OPENMP_CFLAGS) -DWITH_GQUADS
+AM_CFLAGS = $(OPENMP_CFLAGS)
 
 AM_CPPFLAGS = -I$(srcdir)/../H -I$(srcdir)/../lib
 

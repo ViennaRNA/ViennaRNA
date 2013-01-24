@@ -259,11 +259,9 @@ float energy_of_circ_struct_par(const char *string,
                                 int verbosity_level);
 
 
-#ifdef WITH_GQUADS
 float energy_of_gquad_structure(const char *string,
                                 const char *structure,
                                 int verbosity_level);
-#endif
 
 /**
  *  \brief Calculate the free energy of an already folded RNA

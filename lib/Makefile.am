@@ -28,5 +28,5 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
 
 EXTRA_DIST = circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H}
 
-AM_CPPFLAGS = -I$(srcdir)/../H ${SVM_INC} @FPIC@ -DWITH_GQUADS
+AM_CPPFLAGS = -I$(srcdir)/../H ${SVM_INC} @FPIC@
 

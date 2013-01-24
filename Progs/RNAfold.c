@@ -62,6 +62,7 @@ int main(int argc, char *argv[]){
   noPS          = 0;
   noconv        = 0;
   circular      = 0;
+  gquad         = 0;
   fasta         = 0;
   cl            = l = length = 0;
   dangles       = 2;
@@ -94,6 +95,8 @@ int main(int argc, char *argv[]){
   if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
@@ -137,6 +140,10 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  if(circular && gquad){
+    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+  }
+
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -244,11 +251,11 @@ int main(int argc, char *argv[]){
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-#ifdef WITH_GQUADS
-      if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
-#else
-      if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
-#endif
+      if(gquad){
+        if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
+      } else {
+        if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
+      }
     }
     if (length>2000) free_arrays();
     if (pf) {
@@ -304,20 +311,23 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
           FLT_OR_DBL *probs = export_bppm();
-#ifdef WITH_GQUADS
-          assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
-#else
-          assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
-#endif
+
+          if(gquad)
+            assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
+          else
+            assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
+
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-#ifdef WITH_GQUADS
-          cent    = get_centroid_struct_gquad_pr(length, &dist);
-          cent_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0);
-#else
-          cent    = get_centroid_struct_pr(length, &dist, probs);
-          cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
-#endif
+
+          if(gquad){
+            cent    = get_centroid_struct_gquad_pr(length, &dist);
+            cent_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0);
+          } else {
+            cent    = get_centroid_struct_pr(length, &dist, probs);
+            cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
+          }
+
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
@@ -342,15 +352,17 @@ int main(int argc, char *argv[]){
             float mea, mea_en;
             plist *pl;
             assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
-#ifdef WITH_GQUADS
-            mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
-            mea_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)structure, 0);
-            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
-#else
-            mea = MEA(pl, structure, MEAgamma);
-            mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
-            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
-#endif
+
+            if(gquad){
+              mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
+              mea_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)structure, 0);
+              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            } else {
+              mea = MEA(pl, structure, MEAgamma);
+              mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
+              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            }
+
             free(pl);
           }
         }

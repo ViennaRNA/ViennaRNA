@@ -63,13 +63,11 @@ int PS_rna_plot_a(char *string,
                   char *pre,
                   char *post);
 
-#ifdef WITH_GQUADS
 int PS_rna_plot_a_gquad(char *string,
                         char *structure,
                         char *ssfile,
                         char *pre,
                         char *post);
-#endif
 
 /**
  *  \brief Produce a secondary structure graph in Graph Meta Language (gml) and write it to a file

@@ -54,14 +54,13 @@ PUBLIC paramT *get_scaled_parameters( double temp,
   params->temperature   = temp;
   tempf                 = ((params->temperature+K0)/Tmeasure);
 
-#ifdef WITH_GQUADS
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
     for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
       double GQuadAlpha_T = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * tempf;
       double GQuadBeta_T = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * tempf;
       params->gquad[i][j] = (int)GQuadAlpha_T*(i-1) + (int)(((double)GQuadBeta_T)*log(j - 2));
     }
-#endif
+
   for (i=0; i<31; i++)
     params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
   for (i=0; i<=MIN2(30,MAXLOOP); i++) {
@@ -207,7 +206,6 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   pf->pf_scale      = pf_scale;
   TT                = (temp+K0)/(Tmeasure);
 
-#ifdef WITH_GQUADS
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
     for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
       double GQuadAlpha_T = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
@@ -215,7 +213,6 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
       GT = ((double)GQuadAlpha_T)*((double)(i-1)) + ((double)GQuadBeta_T)*log(((double)j) - 2.);
       pf->expgquad[i][j] = exp( -GT*10./kT);
     }
-#endif
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++){

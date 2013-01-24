@@ -36,6 +36,7 @@ int main(int argc, char *argv[]){
   maxdist       = 150;
   zsc           = 0;
   min_z         = -2.0;
+  gquad         = 0;
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
@@ -77,6 +78,8 @@ int main(int argc, char *argv[]){
   nrerror("\'z\' option is available only if compiled with SVM support!");
 #endif
   }
+  /* gquadruplex support */
+  if(args_info.gquad_given)      gquad = 1;
 
   /* check for errorneous parameter options */
   if(maxdist < 0){

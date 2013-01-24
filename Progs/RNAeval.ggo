@@ -75,6 +75,11 @@ option  "circ" c
 flag
 off
 
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+flag
+off
+
 option  "logML" -
 "Recalculate energies of structures using a logarithmic energy function for multi-loops before output.\n"
 details="This option does not effect structure generation, only the energies that are printed out.\

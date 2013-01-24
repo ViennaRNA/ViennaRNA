@@ -104,11 +104,11 @@ int main(int argc, char *argv[]){
     switch (format[0]) {
       case 'p':
         strcat(ffname, ".ps");
-#ifdef WITH_GQUADS
+
         (void) PS_rna_plot_a_gquad(rec_sequence, structure, ffname, pre, post);
-#else
-        PS_rna_plot_a(rec_sequence, structure, ffname, pre, post);
-#endif
+
+        /* PS_rna_plot_a(rec_sequence, structure, ffname, pre, post); */
+
         break;
       case 'g':
         strcat(ffname, ".gml");

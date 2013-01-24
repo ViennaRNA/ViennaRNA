@@ -42,7 +42,7 @@ typedef struct List {
 } List;
 
 PRIVATE int comp_plist(const void *a, const void *b);
-PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S);
+PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, int gq);
 PRIVATE void pushC(List *c, int i, double a);
 
 struct MEAdat{
@@ -66,6 +66,7 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
   Litem *li;
   plist *pp, *pl;
   short *S = NULL;
+  int with_gquad = 0;
 
   List *C;
   double MEA, *Mi, *Mi1, *tmp, *pu;
@@ -78,9 +79,10 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
     make_pair_matrix();
     S = encode_sequence(sequence, 1);
   }
+  with_gquad = pf->model_details.gquad;
 
   pu = space(sizeof(double)*(n+1));
-  pp = pl = prune_sort(p, pu, n, gamma, S);
+  pp = pl = prune_sort(p, pu, n, gamma, S, with_gquad);
 
   C = (List*) space((n+1)*(sizeof(List)));
 
@@ -133,7 +135,7 @@ PRIVATE int comp_plist(const void *a, const void *b) {
 }
 
 
-PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S){
+PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, int gq){
   /*
      produce a list containing all base pairs with
      2*gamma*p_ij > p^u_i + p^u_j
@@ -145,27 +147,27 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S){
   for (i=1; i<=n; i++) pu[i]=1.;
 
   for (pc=p; pc->i >0; pc++) {
-#ifdef WITH_GQUADS
-    if(!S) nrerror("no sequence information available in MEA gquad!");
-    pu[pc->i] -= pc->p;
-    pu[pc->j] -= pc->p;
-    /* now remove all cases where i/j are within a gquad */
-    for(pc2=p; pc2->i > 0; pc2++){
-      if(S[pc2->i] != 3) continue;
-      if(S[pc2->j] != 3) continue;
-      /* check whether pc->i is enclosed in gquad */
-      if(pc2->i < pc->i)
-        if(pc2->j > pc->i)
-          pu[pc->i] -= pc2->p;
-      /* check whether pc->j is enclosed in gquad */
-      if(pc2->i < pc->j)
-        if(pc2->j > pc->j)
-          pu[pc->j] -= pc2->p;
+    if(gq){
+      if(!S) nrerror("no sequence information available in MEA gquad!");
+      pu[pc->i] -= pc->p;
+      pu[pc->j] -= pc->p;
+      /* now remove all cases where i/j are within a gquad */
+      for(pc2=p; pc2->i > 0; pc2++){
+        if(S[pc2->i] != 3) continue;
+        if(S[pc2->j] != 3) continue;
+        /* check whether pc->i is enclosed in gquad */
+        if(pc2->i < pc->i)
+          if(pc2->j > pc->i)
+            pu[pc->i] -= pc2->p;
+        /* check whether pc->j is enclosed in gquad */
+        if(pc2->i < pc->j)
+          if(pc2->j > pc->j)
+            pu[pc->j] -= pc2->p;
+      }
+    } else {
+      pu[pc->i] -= pc->p;
+      pu[pc->j] -= pc->p;
     }
-#else
-    pu[pc->i] -= pc->p;
-    pu[pc->j] -= pc->p;
-#endif
   }
   size = n+1;
   pp = space(sizeof(plist)*(n+1));
@@ -201,6 +203,8 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
   double *Mi, prec;
   double *pu;
   int fail=1, k;
+  int gq = pf->model_details.gquad;
+
 
   C = bdat->C;
   Mi = bdat->Mi;
@@ -210,18 +214,33 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
     int k;
     /* if pair == 1, insert pair and re-compute Mi values */
     /* else Mi is already filled */
-#ifdef WITH_GQUADS
-    if((S[i] == 3) && (S[j] == 3)){
-      int L, l[3];
-      get_gquad_pattern_pf(S, i, j, pf, &L, l);
-      for(k=0;k<L;k++){
-        bdat->structure[i+k-1]\
-        = bdat->structure[i+k+L+l[0]-1]\
-        = bdat->structure[i+k+2*L+l[0]+l[1]-1]\
-        = bdat->structure[i+k+3*L+l[0]+l[1]+l[2]-1]\
-        = '+';
+    if(gq){
+      if((S[i] == 3) && (S[j] == 3)){
+        int L, l[3];
+        get_gquad_pattern_pf(S, i, j, pf, &L, l);
+        for(k=0;k<L;k++){
+          bdat->structure[i+k-1]\
+          = bdat->structure[i+k+L+l[0]-1]\
+          = bdat->structure[i+k+2*L+l[0]+l[1]-1]\
+          = bdat->structure[i+k+3*L+l[0]+l[1]+l[2]-1]\
+          = '+';
+        }
+        return;
+      } else {
+        bdat->structure[i-1] = '(';
+        bdat->structure[j-1] = ')';
+        i++; j--;
+        /* We've done this before in MEA() but didn't keep the results */
+        Mi[i-1]=0; Mi[i]=pu[i];
+        for (k=i+1; k<=j; k++) {
+          Mi[k] = Mi[k-1] + pu[k];
+          for (li=C[k].list; li<C[k].list+C[k].nelem && li->i >= i; li++) {
+            double EA;
+            EA = li->A + Mi[(li->i) -1];
+            Mi[k] = MAX2(Mi[k], EA);
+          }
+        }
       }
-      return;
     } else {
       bdat->structure[i-1] = '(';
       bdat->structure[j-1] = ')';
@@ -237,21 +256,6 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
         }
       }
     }
-#else
-    bdat->structure[i-1] = '(';
-    bdat->structure[j-1] = ')';
-    i++; j--;
-    /* We've done this before in MEA() but didn't keep the results */
-    Mi[i-1]=0; Mi[i]=pu[i];
-    for (k=i+1; k<=j; k++) {
-      Mi[k] = Mi[k-1] + pu[k];
-      for (li=C[k].list; li<C[k].list+C[k].nelem && li->i >= i; li++) {
-        double EA;
-        EA = li->A + Mi[(li->i) -1];
-        Mi[k] = MAX2(Mi[k], EA);
-      }
-    }
-#endif
   }
 
   prec = DBL_EPSILON * Mi[j];
