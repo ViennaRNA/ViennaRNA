@@ -122,7 +122,7 @@ PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained, G, Gj, Gj1)
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained, G, Gj, Gj1)
 
 #else
 
