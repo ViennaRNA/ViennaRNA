@@ -41,7 +41,10 @@ int main(int argc, char *argv[]){
   int     pf, mfe, istty;
   int     repeat, found;
 
-  do_backtrack = 0; pf = 0; mfe = 1;
+  dangles = 2;
+  do_backtrack = 0;
+  pf = 0;
+  mfe = 1;
   repeat = 0;
   input_type = 0;
   input_string = ns_bases = NULL;
@@ -58,7 +61,12 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+  }
   /* do not allow wobble pairs (GU) */
   if(args_info.noGU_given)        noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */

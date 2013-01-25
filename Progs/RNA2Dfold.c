@@ -87,9 +87,12 @@ int main(int argc, char *argv[]){
     circ=1;
 
   /* dangle options */
-  if(args_info.dangles_given)
-    dangles=args_info.dangles_arg;
-
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+  }
   /* set number of threads for parallel computation */
   if(args_info.numThreads_given)
 #ifdef _OPENMP
