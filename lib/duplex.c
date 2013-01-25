@@ -61,10 +61,6 @@ PRIVATE int     n1,n2;                /* sequence lengths */
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(P)
 */
 #pragma omp threadprivate(P, c, S1, SS1, S2, SS2, n1, n2)
 

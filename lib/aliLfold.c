@@ -86,10 +86,6 @@ PRIVATE int             energyprev;
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, pscore, length, S, dm, S5, S3, Ss, a2s, energyout, energyprev)
 

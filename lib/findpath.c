@@ -38,10 +38,6 @@ PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(seq, S, S1, BP_dist, path, path_fwd)
 
