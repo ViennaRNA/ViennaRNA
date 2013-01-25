@@ -1,0 +1,205 @@
+#!/usr/bin/env gri
+
+\maxX = "-1"
+\maxY = "-1"
+\energyResolution = "-1"
+
+// get the number of command line arguments
+.n. = {rpn argc}
+// reduce it by 1 since program instance is a call itself
+.n. -= 1
+
+
+# check the command line parameters
+if {rpn .n. 3 <}
+  \energyResolution = {rpn .n. argv}
+  .n. -= 1
+end if
+
+if {rpn .n. 2 <}
+  \maxY = {rpn .n. argv}
+  .n. -= 1
+end if
+
+if {rpn .n. 1 <}
+  \maxX = {rpn .n. argv}
+  .n. -= 1
+end if
+
+// extract the file name of the data given
+\f = {rpn .n. argv}
+
+// get the 3rd line in the data file (this is the first reference structure
+\t1 = system awk 'NR==3 {print $1}' \f
+
+// get the 4th line in the data file (this is the second reference structure)
+\t2 = system awk 'NR==4 {print $1}' \f
+
+// extract the actual data columns (1,2,7) to a temporary file
+system awk 'NR>6 {print $1, $2, $7}' \f > \f.TMP
+
+// open the temporary file
+open \f.TMP
+
+// read the data
+read columns x y z
+
+// close the temporary file
+close
+
+// remove the temporary file
+unlink \f.TMP
+
+// set the output file name of the postscript image
+set postscript filename \f.ps
+
+// set the font size of the x coordinate label
+set x size 14
+
+//set the font size of the y coordinate label
+set y size 14
+
+// set the x label
+//set x name "\t1"
+set x name "distance to ground state"
+
+//set the y label
+set y name "distance to metastable state"
+
+// get the maximum value in x direction
+if {rpn \maxX 0 >}
+  .xmax. = {rpn x max}
+  //.xmax. = 26
+else
+  .xmax. = \maxX
+end if
+
+.xmin. = {rpn x min}
+
+// set the range of the x axis
+set x axis 0 .xmax. 5
+
+// get the maximum value in y direction
+if {rpn \maxY 0 >}
+  .ymax. = {rpn y max}
+  //.ymax. = 26
+else
+  .ymax. = \maxY
+end if
+
+.ymin. = {rpn y min}
+
+//set the range of the y axis
+set y axis 0 .ymax. 5
+
+// draw both axes
+draw axes
+
+// set line width
+set line width symbol 2
+
+// set symbol size
+set symbol size 2
+
+// draw symbol bullet
+set font size 12
+
+// create a grid for the data values
+set x grid 0 .xmax. 1
+set y grid 0 .ymax. 1
+
+// convert actual read data to the grid points
+// Use default method (Barnes)
+convert columns to grid objective 2 2 2 2 # 2 2 4 1 # 2 2 3 2
+
+
+// get minimal z value
+.tmp. = {rpn z min}
+//.tmp. = -100
+
+.zmin. = {rpn .tmp. ceil}
+
+// get maximal z value
+if {rpn \energyResolution 0 >}
+  .zmax. = {rpn z max}
+else
+  .zmax. = {rpn .zmin. \energyResolution +}
+end if
+
+if {rpn .zmax. 0 <}
+  .zmax. = 0
+end if
+
+if {rpn -4 .zmin. >}
+  .zmin. = -4
+end if
+
+.zminbk. = .zmin.
+
+// set z range for the color image
+set image range .zmin. .zmax.
+
+// set color gradient for the image 
+set image colorscale hsb .666 1 1 .zmin. hsb 0 1 1 .zmax.
+
+// create the image using the gridded data
+convert grid to image 
+
+#set image colorscale \scale
+// draw the image 
+draw image
+
+// set line width and style
+set line width rapidograph 0
+
+// prepare some variables for contour plot
+
+// lower zmin value to the next number divisile by 4
+.zmin. -= {rpn .zmin. 4 remainder}
+
+// set zmin2
+.zmin2. = .zmin.
+.zmin2. += 2
+
+
+// draw contour lines in range [.zmin.:0] with step size 4
+draw contour .zmin. 0 4 unlabelled
+
+// set line width and style
+set line width rapidograph 4x0
+
+// draw contour lines in range [.zmin. + 2:0] with step size 2
+draw contour .zmin2. 0 2 unlabelled
+
+// set line width and style
+set line width rapidograph 4x0
+
+// set dashed line style
+set dash 0.1 0.1
+
+// dra contour lines without label in range [.zmin. + 2:0] with step size 1 
+draw contour .zmin2. 0 1 unlabelled
+
+// hide everything that sould not be there
+set color rgb 0 1 1
+
+//draw polygon filled -1 -1 .xmin. -1 -1 .ymin.
+
+// redraw axes in case they were hidden by something else
+.tmp. = {rpn .zminbk. -4 /}
+.increment. = {rpn .tmp. ceil}
+
+set color rgb 0 0 0
+draw axes
+.increment. = 4
+
+set dash off
+draw image palette left .zminbk. right .zmax. increment .increment.
+//draw image histogram
+
+.xpos. = {rpn .xmax. 2 /}
+.ypos. = {rpn .ymax. 1 +}
+draw label "Minimum free energy in kcal/mol" centered at .xpos. .ypos.
+
+// quit gri
+quit
