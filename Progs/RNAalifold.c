@@ -222,7 +222,7 @@ int main(int argc, char *argv[]){
   }
 
   if (istty && (clust_file == stdin))
-    print_tty_input_seq_str("Input aligned sequences in clustalw format");
+    print_tty_input_seq_str("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
 
   n_seq = read_clustal(clust_file, AS, names);
   if (n_seq==0) nrerror("no sequences found");
