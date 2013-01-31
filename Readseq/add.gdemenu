@@ -1,0 +1,123 @@
+#
+# dgg added new readseq formats, 29 dec 92
+#
+
+item:Export Foreign Format
+itemmethod:readseq in1 -pipe -all -form=$FORMAT > $OUTPUTFILE
+itemhelp:readseq.help
+
+arg:FORMAT
+argtype:choice_menu
+argchoice:GenBank:genbank
+argchoice:IG/Stanford:ig
+argchoice:NBRF:nbrf
+argchoice:EMBL:embl
+argchoice:GCG:gcg
+argchoice:DNA Strider:strider
+argchoice:Fitch:fitch
+argchoice:Pearson/Fasta:pearson
+argchoice:Zuker:zuker
+argchoice:Olsen:olsen
+argchoice:Phylip:phylip
+#argchoice:Phylip v3.2:phylip3.2
+argchoice:Plain text:raw
+argchoice:ASN.1:asn
+argchoice:PIR:pir
+argchoice:MSF:msf
+argchoice:PAUP:paup
+argchoice:Pretty:pretty -nametop -nameleft=3 -numright -nameright -numtop
+
+arg:OUTPUTFILE
+argtype:text
+arglabel:Save as?
+
+in:in1
+informat:genbank
+
+
+#
+#dgg addition for new readseq, 24 dec 92
+#
+
+item:Pretty Print
+itemmethod:readseq in1 -p -a -f=pretty $NAMELEFT $NAMERIGHT $NUMTOP $NUMBOT $NUMLEFT $NUMRIGHT -col=$COLS -width=$WIDTH $MATCH $GAPC > in1.pretty; (textedit in1.pretty; /bin/rm -f in1 in1.pretty)&
+itemhelp:readseq.help
+
+#nametop is bad !?
+
+in:in1
+informat:genbank
+
+arg:NAMETOP
+argtype:chooser
+arglabel:Names at top  ?
+argchoice:No:
+argchoice:Yes:-nametop
+
+arg:NAMELEFT
+argtype:chooser
+arglabel:Names at left ?
+argchoice:No:
+argchoice:Yes:-nameleft
+
+arg:NAMERIGHT
+argtype:chooser
+arglabel:Names at right?
+argchoice:Yes:-nameright
+argchoice:No:
+
+arg:NUMTOP
+argtype:chooser
+arglabel:Numbers at top  ?
+argchoice:Yes:-numtop
+argchoice:No:
+
+arg:NUMBOT
+argtype:chooser
+arglabel:Numbers at tail ?
+argchoice:No:
+argchoice:Yes:-numbot
+
+arg:NUMLEFT
+argtype:chooser
+arglabel:Numbers at left ?
+argchoice:Yes:-numleft
+argchoice:No:
+
+arg:NUMRIGHT
+argtype:chooser
+arglabel:Numbers at right?
+argchoice:Yes:-numright
+argchoice:No:
+
+arg:MATCH
+argtype:chooser
+arglabel:Use match '.' for 2..n species?
+argchoice:No:
+argchoice:Yes:-match
+
+arg:GAPC
+argtype:chooser
+arglabel:Count gap symbols?
+argchoice:No:
+argchoice:Yes:-gap
+
+arg:WIDTH
+argtype:slider
+arglabel:Sequence width?
+argmin:10
+argmax:200
+argvalue:50
+
+arg:COLS
+argtype:slider
+arglabel:Column spacers?
+argmin:0
+argmax:50
+argvalue:10
+
+
+### pretty print insert end
+#
+
+

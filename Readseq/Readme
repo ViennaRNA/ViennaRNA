@@ -1,0 +1,160 @@
+
+ * ReadSeq  -- 1 Feb 93
+ *
+ * Reads and writes nucleic/protein sequences in various
+ * formats. Data files may have multiple sequences.
+ *
+ * Copyright 1990 by d.g.gilbert
+ * biology dept., indiana university, bloomington, in 47405
+ * e-mail: gilbertd@bio.indiana.edu
+ *
+ * This program may be freely copied and used by anyone.
+ * Developers are encourged to incorporate parts in their
+ * programs, rather than devise their own private sequence
+ * format.
+ *
+ * This should compile and run with any ANSI C compiler.
+ * Please advise me of any bugs, additions or corrections.
+
+Readseq has been updated.   There have been a number of enhancements
+and a few bug corrections since the previous general release in Nov 91
+(see below).  If you are using earlier versions, I recommend you update to
+this release.
+
+Readseq is particularly useful as it automatically detects many
+sequence formats, and interconverts among them.
+Formats added to this release include
+  + MSF multi sequence format used by GCG software
+  + PAUP's multiple sequence (NEXUS) format
+  + PIR/CODATA format used by PIR
+  + ASN.1 format used by NCBI
+  + Pretty print with various options for nice looking output.
+
+As well, Phylip format can now be used as input.  Options to
+reverse-compliment and to degap sequences have been added.  A menu
+addition for users of the GDE sequence editor is included.
+
+This program is available thru Internet gopher, as
+
+  gopher ftp.bio.indiana.edu
+  browse into the IUBio-Software+Data/molbio/readseq/ folder
+  select the readseq.shar document
+
+Or thru anonymous FTP in this manner:
+  my_computer> ftp  ftp.bio.indiana.edu  (or IP address 129.79.224.25)
+    username:  anonymous
+    password:  my_username@my_computer
+  ftp> cd molbio/readseq
+  ftp> get readseq.shar
+  ftp> bye
+
+readseq.shar is a Unix shell archive of the readseq files.
+This file can be editted by any text editor to reconstitute the
+original files, for those who do not have a Unix system or an
+Unshar program.  Read the top of this .shar file for further
+instructions.
+
+There are also pre-compiled executables for the following computers:
+Silicon Graphics Iris, Sparc (Sun Sparcstation & clones), VMS-Vax,
+Macintosh. Use binary ftp to transfer these, except Macintosh.  The
+Mac version is just the command-line program in a window, not very
+handy.
+
+C source files:
+  readseq.c ureadseq.c ureadasn.c ureadseq.h
+Document files:
+  Readme (this doc)
+  Readseq.help (longer than this doc)
+  Formats (description of sequence file formats)
+  add.gdemenu (GDE program users can add this to the .GDEmenu file)
+  Stdfiles -- test sequence files
+  Makefile -- Unix make file
+  Make.com -- VMS make file
+  *.std    -- files for testing validity of readseq
+
+
+Example usage:
+  readseq
+      -- for interactive use
+  readseq my.1st.seq  my.2nd.seq  -all  -format=genbank  -output=my.gb
+      -- convert all of two input files to one genbank format output file
+  readseq my.seq -all -form=pretty -nameleft=3 -numleft -numright -numtop -match
+      -- output to standard output a file in a pretty format
+  readseq my.seq -item=9,8,3,2 -degap -CASE -rev -f=msf -out=my.rev
+      -- select 4 items from input, degap, reverse, and uppercase them
+  cat *.seq | readseq -pipe -all -format=asn > bunch-of.asn
+      -- pipe a bunch of data thru readseq, converting all to asn
+
+
+The brief usage of readseq is as follows. The "[]" denote
+optional parts of the syntax:
+
+  readseq -help
+readSeq (27Dec92), multi-format molbio sequence reader.
+usage: readseq [-options] in.seq > out.seq
+ options
+    -a[ll]         select All sequences
+    -c[aselower]   change to lower case
+    -C[ASEUPPER]   change to UPPER CASE
+    -degap[=-]     remove gap symbols
+    -i[tem=2,3,4]  select Item number(s) from several
+    -l[ist]        List sequences only
+    -o[utput=]out.seq  redirect Output
+    -p[ipe]        Pipe (command line, <stdin, >stdout)
+    -r[everse]     change to Reverse-complement
+    -v[erbose]     Verbose progress
+    -f[ormat=]#    Format number for output,  or
+    -f[ormat=]Name Format name for output:
+         1. IG/Stanford           10. Olsen (in-only)
+         2. GenBank/GB            11. Phylip3.2
+         3. NBRF                  12. Phylip
+         4. EMBL                  13. Plain/Raw
+         5. GCG                   14. PIR/CODATA
+         6. DNAStrider            15. MSF
+         7. Fitch                 16. ASN.1
+         8. Pearson/Fasta         17. PAUP
+         9. Zuker                 18. Pretty (out-only)
+
+   Pretty format options:
+    -wid[th]=#            sequence line width
+    -tab=#                left indent
+    -col[space]=#         column space within sequence line on output
+    -gap[count]           count gap chars in sequence numbers
+    -nameleft, -nameright[=#]   name on left/right side [=max width]
+    -nametop              name at top/bottom
+    -numleft, -numright   seq index on left/right side
+    -numtop, -numbot      index on top/bottom
+    -match[=.]            use match base for 2..n species
+    -inter[line=#]        blank line(s) between sequence blocks
+
+
+
+Recent changes:
+
+4 May 92
++ added 32 bit CRC checksum as alternative to GCG 6.5bit checksum
+Aug 92
+= fixed Olsen format input to handle files w/ more sequences,
+  not to mess up when more than one seq has same identifier,
+  and to convert number masks to symbols.
+= IG format fix to understand ^L
+30 Dec 92
+* revised command-line & interactive interface.  Suggested form is now
+    readseq infile -format=genbank -output=outfile -item=1,3,4 ...
+  but remains compatible with prior commandlines:
+    readseq infile -f2 -ooutfile -i3 ...
++ added GCG MSF multi sequence file format
++ added PIR/CODATA format
++ added NCBI ASN.1 sequence file format
++ added Pretty, multi sequence pretty output (only)
++ added PAUP multi seq format
++ added degap option
++ added Gary Williams (GWW, G.Williams@CRC.AC.UK) reverse-complement option.
++ added support for reading Phylip formats (interleave & sequential)
+* string fixes, dropped need for compiler flags NOSTR, FIXTOUPPER, NEEDSTRCASECMP
+* changed 32bit checksum to default, -DSMALLCHECKSUM for GCG version
+
+1Feb93
+= reverted Genbank output format to fixed left margin 
+  (change in 30 Dec release), so GDE and others relying on fixed margin
+  can read this.
