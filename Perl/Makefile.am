@@ -10,7 +10,7 @@ EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi Makefile.PL \
 	     RNA.i tmaps.i
 
 Makefile.perl: Makefile.PL Makefile
-	@PerlCmd@ Makefile.PL
+	@PerlCmd@ Makefile.PL LDDLFLAGS="${LDFLAGS} -shared"
 
 # the perl command repairs some errors in the SWIG CVS version
 RNA_wrap.c: RNA.i tmaps.i

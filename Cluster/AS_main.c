@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include "distance_matrix.h"
 #include "statgeom.h"
@@ -226,7 +227,7 @@ main(int argc, char *argv[])
 	    for(j=0;j<nn[i];j++) free(ss[i][j]);
 	    free(ss[i]);
          }
-	 free(ss);
+	 /* free(ss); */ /* attempt to free a non-heap object */
       }
       else {
          printf_taxa_list();
