@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+ 
+from distutils.core import setup, Extension
+import os
+import sys
+ 
+old_filename = "RNA.py"
+new_filename = "__init__.py"
+if os.path.exists(old_filename):
+    os.rename(old_filename, new_filename)
+ 
+extra_link_args = ['@OPENMP_CFLAGS@', '-shared']
+extra_compile_args=['@OPENMP_CFLAGS@']
+
+if sys.platform != 'darwin':
+    extra_link_args.append('-s')
+ 
+extension = Extension("_RNA",
+                      ["RNA_wrap.c"],
+                      include_dirs=['../../H'],
+                      libraries=['RNA'],
+                      library_dirs=['../../lib'],
+                      extra_compile_args=extra_compile_args,
+                      extra_link_args=extra_link_args
+                      )
+ 
+setup(name="RNA",
+      version="@PACKAGE_VERSION@",
+      description="@PACKAGE_NAME@",
+      author="Ivo Hofacker, Institute for Theoretical Chemistry, University of Vienna",
+      url="@PACKAGE_URL@",
+      package_dir = {'RNA':'.'},
+      packages = ['RNA'],
+      ext_modules=[extension],
+      )

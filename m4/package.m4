@@ -237,11 +237,23 @@ with_pf_float=no
 dnl add packages to the configure process
 
 AC_RNA_ADD_PACKAGE( [perl],
-                    [Perl module],
+                    [Perl interface],
                     [yes],
                     [with_perl=no],
                     [with_perl=yes],
-                    [Perl/Makefile.am])
+                    [interfaces/Perl/Makefile.am])
+AC_RNA_ADD_PACKAGE( [python],
+                    [Python interface],
+                    [yes],
+                    [with_python=no],
+                    [with_python=yes],
+                    [interfaces/Python/Makefile.am])
+AC_RNA_ADD_PACKAGE( [ruby],
+                    [Ruby interface],
+                    [no],
+                    [with_ruby=yes],
+                    [with_ruby=no],
+                    [interfaces/Ruby/Makefile.am])
 AC_RNA_ADD_PACKAGE( [kinfold],
                     [Kinfold program],
                     [yes],
@@ -286,6 +298,16 @@ AC_RNA_ADD_PACKAGE( [doc],
 
 ## begin with initialization according to configure-time specific options
 
+## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
+AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
+bla=`${GREP} "^#define LARGE_PF" H/data_structures.h`
+if test "x$bla" = "x";
+then
+  with_pf_float=yes
+fi
+AC_MSG_RESULT([$with_pf_float])
+
+# check prerequisites for Perl interface
 AC_PATH_PROG(PerlCmd, perl)
 ifelse([$PerlCmd], [],[
   AC_MSG_WARN([No suitable Perl found -- will not build Perl module])
@@ -301,19 +323,38 @@ ifelse([$PerlCmd], [],[
 ])
 
 
+# prepare all files for perl interface
 AC_RNA_PACKAGE_IF_ENABLED([perl],[
-  ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
-  AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-  bla=`${GREP} "^#define LARGE_PF" H/data_structures.h`
-  if test "x$bla" = "x";
-  then
-    with_pf_float=yes
-  fi
-  AC_MSG_RESULT([$with_pf_float])
   AC_DEFINE([WITH_PERL_INTERFACE], [1], [Create the perl interface to RNAlib])
   AC_SUBST([PERL_INTERFACE], [Perl])
-  AC_CONFIG_FILES([Perl/Makefile Perl/Makefile.PL])
+  AC_CONFIG_FILES([interfaces/Perl/Makefile interfaces/Perl/Makefile.PL])
 ])
+
+# check prerequisites for Python interface
+AC_PATH_PROG(PythonCmd, python)
+ifelse([$PythonCmd], [], [
+  AC_MSG_WARN([No suitable Python found -- will not build Python extension])
+  AC_MSG_WARN([You may set the PythonCmd environment variable to point to
+                a suitable python binary])
+  with_python="no"
+],[
+  version_test=`$PythonCmd interfaces/Python/version_test.py`
+  if test "x$version_test" = "xok"; then :
+  else
+    AC_MSG_WARN([You need Python >= 2.5 and < 3.0 to build the Python extension])
+    AC_MSG_WARN([You may set the PythonCmd environment variable to point to
+                a suitable python binary])
+    with_python="no"
+  fi
+])
+
+# prepare all files for python interface
+AC_RNA_PACKAGE_IF_ENABLED([python],[
+  AC_DEFINE([WITH_PYTHON_INTERFACE], [1], [Create the python interface to RNAlib])
+  AC_SUBST([PYTHON_INTERFACE], [Python])
+  AC_CONFIG_FILES([interfaces/Python/Makefile interfaces/Python/setup.py])
+])
+
 
 AC_RNA_PACKAGE_IF_ENABLED([kinfold],[
   AC_CONFIG_SUBDIRS([Kinfold])
@@ -336,7 +377,6 @@ AC_RNA_PACKAGE_IF_ENABLED([svm],[
 ])
 
 AM_CONDITIONAL(WITH_LARGE_PF, test "$with_pf_float" != "yes")
-AM_CONDITIONAL(MAKE_PERL_EXT, test "$with_perl" != "no")
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
@@ -344,8 +384,9 @@ AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 
 AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
-
-AC_CONFIG_FILES([Makefile misc/Makefile misc/ViennaRNA.spec RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile doc/Makefile])
+AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
+AC_CONFIG_FILES([interfaces/Makefile])
+AC_CONFIG_FILES([Makefile RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile doc/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
@@ -370,10 +411,17 @@ AC_MSG_NOTICE(
 [
 Configure successful with the following options:
 
-  Perl Extension:       ${with_perl:-yes}
+RNAlib Interfaces:
+  Perl Interface:       ${with_perl:-yes}
+  Python Interface:     ${with_python:-yes}
+  Ruby Interface:       ${with_ruby:-yes}
+
+Extra Programs:
   Analyse{Dists,Seqs}:  ${with_cluster:-no}
   Kinfold:              ${with_kinfold:-yes}
   RNAforester:          ${with_forester:-yes}
+
+Other Options:
   SVM:                  ${with_svm:-yes}
   Documentation:        ${with_doc:-no}
     (HTML):             ${with_doc_html:-no}

@@ -2,8 +2,8 @@
 #
 # Copyright (c) 2001 Ivo Hofacker, Peter Stadler, ivo@tbi.univie.ac.at
 #
-Name:           ViennaRNA
-Version:        @VERSION@
+Name:           @PACKAGE_NAME@
+Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
 Summary:        RNA Secondary Structure Prediction and Comparison
 
@@ -12,7 +12,7 @@ Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
 
 Group:          Applications/Engineering
 License:        Free for non commercial use.
-URL:            http://www.tbi.univie.ac.at/~ivo/RNA/
+URL:            @PACKAGE_URL@
 Source0:        http://www.tbi.univie.ac.at/~ronny/programs/%{name}-%{version}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
