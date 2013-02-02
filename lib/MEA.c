@@ -79,7 +79,8 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
     make_pair_matrix();
     S = encode_sequence(sequence, 1);
   }
-  with_gquad = pf->model_details.gquad;
+  if(pf)
+    with_gquad = pf->model_details.gquad;
 
   pu = space(sizeof(double)*(n+1));
   pp = pl = prune_sort(p, pu, n, gamma, S, with_gquad);
@@ -203,7 +204,9 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
   double *Mi, prec;
   double *pu;
   int fail=1, k;
-  int gq = pf->model_details.gquad;
+  int gq = 0;
+  if(pf)
+    gq = pf->model_details.gquad;
 
 
   C = bdat->C;
