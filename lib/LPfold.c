@@ -538,35 +538,35 @@ PUBLIC plist *pfl_fold_par( char *sequence,
       if ((ulength)&&(k-MAXLOOP-1>0)){
         /* if (pUoutput) pU[k-MAXLOOP-1]=(double *)space((ulength+2)*sizeof(double)); */
         if(split){ /*generate the new arrays, if you want them somewhere else, you have to generate them and overgive them ;)*/
-	  double **pUO;
-	  double **pUI;
-	  double **pUM;
-	  double **pUH;
-	  pUO= (double **)  space((n+1)*sizeof(double *));
-	  pUI= (double **)  space((n+1)*sizeof(double *));
-	  pUM= (double **)  space((n+1)*sizeof(double *));
-	  pUH= (double **)  space((n+1)*sizeof(double *));
-	  if (pUoutput) {
-	    for (i=1; i<=ulength; i++) {
-	      pUH[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-	      pUI[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-	      pUO[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-	      pUM[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-	    }
-	  }
-	  //dont want to have that yet?
-	  /*  else {
-	    for (i=1; i<=n; i++) pU[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-	    }*/
-	  compute_pU_splitup(k-MAXLOOP-1,ulength,pU,pUO,pUH, pUI, pUM, winSize, n, sequence);
-	  if (pUoutput) {
-	    putoutpU_splitup(pUO,k-MAXLOOP-1, ulength, pUfp,'E');
-	    putoutpU_splitup(pUH,k-MAXLOOP-1, ulength, pUfp,'H');
-	    putoutpU_splitup(pUI,k-MAXLOOP-1, ulength, pUfp,'I');
-	    putoutpU_splitup(pUM,k-MAXLOOP-1, ulength, pUfp,'M');
-	  }
-	}
-	else {
+          double **pUO;
+          double **pUI;
+          double **pUM;
+          double **pUH;
+          pUO= (double **)  space((n+1)*sizeof(double *));
+          pUI= (double **)  space((n+1)*sizeof(double *));
+          pUM= (double **)  space((n+1)*sizeof(double *));
+          pUH= (double **)  space((n+1)*sizeof(double *));
+          if (pUoutput) {
+            for (i=1; i<=ulength; i++) {
+              pUH[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUI[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUO[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUM[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+            }
+          }
+          //dont want to have that yet?
+          /*  else {
+            for (i=1; i<=n; i++) pU[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+            }*/
+          compute_pU_splitup(k-MAXLOOP-1,ulength,pU,pUO,pUH, pUI, pUM, winSize, n, sequence);
+          if (pUoutput) {
+            putoutpU_splitup(pUO,k-MAXLOOP-1, ulength, pUfp,'E');
+            putoutpU_splitup(pUH,k-MAXLOOP-1, ulength, pUfp,'H');
+            putoutpU_splitup(pUI,k-MAXLOOP-1, ulength, pUfp,'I');
+            putoutpU_splitup(pUM,k-MAXLOOP-1, ulength, pUfp,'M');
+          }
+        }
+        else {
         compute_pU(k-MAXLOOP-1,ulength,pU, winSize, n, sequence);
 
         /* here, we put out and free pUs not in use any more (hopefully) */
@@ -1014,9 +1014,14 @@ PRIVATE void putoutpU_splitup(double **pUx, int k, int ulength, FILE *fp, char i
 }
 
 PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int energies) {
+  putoutpU_prob_par(pU, length, ulength, fp, energies, pf_params);
+}
+
+
+PUBLIC void putoutpU_prob_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters){
   /*put out unpaireds */
   int i,k;
-  double kT= pf_params->kT/1000.0;
+  double kT = parameters->kT/1000.0;
   double temp;
   if (energies) fprintf(fp,"#opening energies\n #i$\tl=");
   else  fprintf(fp,"#unpaired probabilities\n #i$\tl=");
@@ -1043,9 +1048,14 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
 }
 
 PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int energies) {
+  putoutpU_prob_bin_par(pU, length, ulength, fp, energies, pf_params);
+}
+
+PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters) {
+
   /*put out unpaireds */
   int i,k;
-  double kT= pf_params->kT/1000.0;
+  double kT= parameters->kT/1000.0;
   double temp;
   int *p;
   p = (int*) space(sizeof(int)*1);
@@ -1066,13 +1076,13 @@ PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int
     }
     for (k=1; k<=length; k++){/* write data now */
       if (i>k) {
-	p[0]=1000000;         /* check if u > pos */
-	fwrite(p,sizeof(int),1,fp);
-	continue;
+        p[0]=1000000;         /* check if u > pos */
+        fwrite(p,sizeof(int),1,fp);
+        continue;
       }
       else{
-	p[0]= (int) rint(100 *(-log(pU[k][i])*kT));
-	fwrite(p,sizeof(int),1,fp);
+        p[0]= (int) rint(100 *(-log(pU[k][i])*kT));
+        fwrite(p,sizeof(int),1,fp);
       }
     }
     for (k=1; k<=9; k++){/* finish by writing the last 10 entries */
@@ -1088,12 +1098,6 @@ PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int
   fflush(fp);
 }
 
-
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-PUBLIC void init_pf_foldLP(int length){ /* DO NOTHING */}
 
 /*
  Here: Space for questions...
@@ -1196,7 +1200,7 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
       if (ptype[k][obp]) {
         temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
         QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
-	QBM[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
+        QBM[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
       }
     }
   }
@@ -1365,3 +1369,11 @@ PUBLIC void putoutpU_prob_splitup(double **pU, double **pUO, double **pUH, doubl
   }
   fflush(fp);
 }
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void init_pf_foldLP(int length){ /* DO NOTHING */}
+

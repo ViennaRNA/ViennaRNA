@@ -459,6 +459,10 @@ PUBLIC  unsigned int read_record(char **header, char **sequence, char ***rest, u
       (*rest)[rest_count-1] = input_string;
       input_string = NULL;
     }
+    /*
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) return input_type;
+    */
+
     /*  finished reading everything...
     *   we now put the last line into the buffer if necessary
     *   since it should belong to the next record

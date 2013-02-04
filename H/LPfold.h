@@ -99,6 +99,14 @@ plist *pfl_fold_par(char *sequence,
                     pf_paramT *parameters);
 
 
+void putoutpU_prob_par( double **pU,
+                        int length,
+                        int ulength,
+                        FILE *fp,
+                        int energies,
+                        pf_paramT *parameters);
+
+
 /**
  *  \brief Writes the unpaired probabilities (pU) or opening energies into a file
  * 
@@ -118,6 +126,13 @@ void    putoutpU_prob(double **pU,
                       int ulength,
                       FILE *fp,
                       int energies);
+
+void putoutpU_prob_bin_par( double **pU,
+                            int length,
+                            int ulength,
+                            FILE *fp,
+                            int energies,
+                            pf_paramT *parameters);
 
 /**
  *  \brief Writes the unpaired probabilities (pU) or opening energies into a binary file 

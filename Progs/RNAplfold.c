@@ -310,10 +310,10 @@ int main(int argc, char *argv[]){
           }
           pUfp = fopen(openenergies ? fname4 : fname1, "w");
           if(binaries){
-            putoutpU_prob_bin(pup, length, unpaired, pUfp, openenergies);
+            putoutpU_prob_bin_par(pup, length, unpaired, pUfp, openenergies, pf_parameters);
           }
           else{
-            putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+            putoutpU_prob_par(pup, length, unpaired, pUfp, openenergies, pf_parameters);
           }
           fclose(pUfp);
         }
