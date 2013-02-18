@@ -361,6 +361,40 @@ PUBLIC float fold_par(const char *string,
                       int is_constrained,
                       int is_circular){
 
+  hard_constraintT *my_hc;
+  soft_constraintT *my_sc;
+  unsigned int constraint_options;
+
+  constraint_options  = 0;
+
+  /* prepare constraint options */
+  if(is_constrained && structure)
+    constraint_options |=   VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
+
+  my_hc = get_hard_constraints( (const char *)structure,
+                                (unsigned int)length,
+                                ptype,
+                                TURN,
+                                constraint_options);
+
+  my_sc = NULL;
+
+
+  return fold_constrained(string, structure, parameters, my_hc, my_sc, is_circular);
+}
+
+PUBLIC float fold_constrained(const char *string,
+                              char *structure,
+                              paramT *parameters,
+                              hard_constraintT *my_hc,
+                              soft_constraintT *my_sc,
+                              int is_circular){
+
   int i, j, length, energy, s;
   unsigned int constraint_options;
 
@@ -369,6 +403,8 @@ PUBLIC float fold_par(const char *string,
   struct_constrained  = is_constrained;
   length              = (int) strlen(string);
   constraint_options  = 0;
+  sc                  = my_sc;
+  hc                  = my_hc;
 
   /* prepare constraint options */
   if(struct_constrained && structure)
@@ -398,14 +434,6 @@ PUBLIC float fold_par(const char *string,
                                 constraint_options);
 
 
-  /* test for the soft constraints */
-  /* 
-  double *soft_constraints = (double *)space(sizeof(double) * (length + 1));
-  for(i = 1; i <= length; i++)
-    soft_constraints[i] = 0;
-  sc = get_soft_constraints(soft_constraints, (unsigned int)length, VRNA_CONSTRAINT_SOFT_MFE);
-  */
-  sc = get_soft_constraints(NULL, (unsigned int)length, VRNA_CONSTRAINT_SOFT_MFE);
 
 
   energy = fill_arrays(string);

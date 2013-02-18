@@ -305,6 +305,30 @@ typedef struct {
   double  *constraints;
   int     **free_energies;
   double  **boltzmann_factors;
+
+  /* generalized soft contraints */
+  int (*f)( int,
+            int,
+            int,
+            int,
+            char,
+            void *);            /**<  \brief  A function pointer used for pseudo
+                                              energy contribution in MFE calculations
+                                */
+
+  FLT_OR_DBL (*exp_f)(int,
+                      int,
+                      int,
+                      int,
+                      char,
+                      void *);  /**<  \brief  A function pointer used for pseudo energy
+                                              contribution boltzmann factors in PF
+                                              calculations
+                                */
+
+  void *data;                   /**<  \brief  A pointer to the data object necessary for
+                                              for pseudo energy contribution functions
+                                */
 } soft_constraintT;
 
 /*

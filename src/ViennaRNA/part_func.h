@@ -174,6 +174,8 @@ float   pf_circ_fold( const char *sequence,
  */
 char    *pbacktrack(char *sequence);
 
+char    *pbacktrack5(char *sequence, int length);
+
 /**
  *  \brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
  * 
