@@ -709,6 +709,10 @@ PUBLIC soft_constraintT *get_soft_constraints(  const double *constraints,
   sc->constraints       = NULL;
   sc->free_energies     = NULL;
   sc->boltzmann_factors = NULL;
+  sc->f                 = NULL;
+  sc->exp_f             = NULL;
+  sc->data              = NULL;
+
 
   if(constraints){
     /*  copy the provided constraints to the data structure.

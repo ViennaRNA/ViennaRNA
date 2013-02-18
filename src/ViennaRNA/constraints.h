@@ -176,6 +176,82 @@
 #define IN_MB_LOOP_ENC  (char)0x20
 
 /**
+ *  \brief  Generalized constraint folding flag indicating hairpin loop decomposition step
+ *
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_PAIR_HP     1
+
+/**
+ *  \brief  Generalized constraint folding flag indicating interior loop decomposition step
+ *
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_PAIR_IL     2
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_PAIR_ML     3
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_ML_ML_ML    5
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_ML_UP_3     4
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_ML_UP_5     6
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_ML_UP       11
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_EXT_EXT     9
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_EXT_UP_3    7
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_EXT_UP_5    10
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_EXT_UP      8
+
+/**
+ *  \ingroup  constraints
+ *
+ */
+#define VRNA_DECOMP_EXT_STEM_UP 12
+
+/**
  *  \brief Print structure constraint characters to stdout.
  *  (constraint support is specified by option parameter)
  *
