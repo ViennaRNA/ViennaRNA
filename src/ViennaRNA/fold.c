@@ -37,7 +37,6 @@
 
 #define OPENMP_LESS
 
-#define PAREN
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
 #define MAXSECTORS        500     /* dimension for a backtrack array */
@@ -47,7 +46,6 @@
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC  int uniq_ML   = 0;  /* do ML decomposition uniquely (for subopt) */
 
 /*
 #################################
@@ -96,7 +94,7 @@ PRIVATE mfe_matrices *backward_compat_matrices = NULL;
 */
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  backtrack(const char *sequence, int s);
-PRIVATE int   fill_arrays(const char *sequence);
+PRIVATE int   fill_arrays(vrna_fold_compound *vc);
 PRIVATE void  fill_arrays_circ(const char *string, int *bt);
 PRIVATE void  init_fold(int length, paramT *parameters);
 
@@ -347,28 +345,80 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
   *P_p = P;
 }
 
-PUBLIC float fold(const char *string, char *structure){
+PUBLIC vrna_fold_compound *
+get_fold_compound_mfe(const char *sequence, paramT *P){
+  return get_fold_compound_mfe_constrained(sequence, NULL, NULL, P);
+}
+
+PUBLIC vrna_fold_compound *
+get_fold_compound_mfe_constrained(const char *sequence,
+                                  hard_constraintT *hc,
+                                  soft_constraintT *sc,
+                                  paramT *P){
+
+  vrna_fold_compound *vc;
+
+  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+
+  vc->params              = get_parameter_copy(P);
+
+  vc->sequence            = strdup(sequence);
+  vc->length              = strlen(sequence);
+  vc->sequence_encoding   = get_sequence_encoding(sequence, 1, &(P->model_details));
+  vc->sequence_encoding2  = get_sequence_encoding(sequence, 0, &(P->model_details));
+
+  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
+  vc->exp_params          = NULL;
+
+  vc->matrices            = (void *)get_mfe_matrices_alloc(vc->length, ALLOC_MFE_DEFAULT);
+
+  vc->hc                  = hc ? hc : get_hard_constraints(sequence, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+  vc->sc                  = sc ? sc : NULL;
+
+  vc->iindx               = NULL;
+  vc->jindx               = get_indx(vc->length);
+
+  return vc;
+}
+
+
+PUBLIC float
+fold( const char *string,
+      char *structure){
+
   return fold_par(string, structure, NULL, fold_constrained, 0);
 }
 
-PUBLIC float circfold(const char *string, char *structure){
+PUBLIC float
+circfold( const char *string,
+          char *structure){
+
   return fold_par(string, structure, NULL, fold_constrained, 1);
 }
 
-PUBLIC float fold_par(const char *string,
-                      char *structure,
-                      paramT *parameters,
-                      int is_constrained,
-                      int is_circular){
+PUBLIC float
+fold_par( const char *string,
+          char *structure,
+          paramT *parameters,
+          int is_constrained,
+          int is_circular){
 
+  unsigned int length;
+  vrna_fold_compound *vc;
   hard_constraintT *my_hc;
   soft_constraintT *my_sc;
-  unsigned int constraint_options;
 
-  constraint_options  = 0;
+  my_hc   = NULL;
+  my_sc   = NULL;
+  vc      = NULL;
+  length  = strlen(string);
 
-  /* prepare constraint options */
-  if(is_constrained && structure)
+  /* prepare global params data structure */
+  init_fold(length, parameters);
+
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
     constraint_options |=   VRNA_CONSTRAINT_DB
                           | VRNA_CONSTRAINT_PIPE
                           | VRNA_CONSTRAINT_DOT
@@ -376,78 +426,50 @@ PUBLIC float fold_par(const char *string,
                           | VRNA_CONSTRAINT_ANG_BRACK
                           | VRNA_CONSTRAINT_RND_BRACK;
 
-  my_hc = get_hard_constraints( (const char *)structure,
-                                (unsigned int)length,
-                                ptype,
-                                TURN,
-                                constraint_options);
+    my_hc = get_hard_constraints( string,
+                                  (const char *)structure,
+                                  &(P->model_details),
+                                  TURN,
+                                  constraint_options);
+  }
 
+  /* no soft constraints available for simple interface */
   my_sc = NULL;
 
+  vc = get_fold_compound_mfe_constrained( string, my_hc, my_sc, P);
 
-  return fold_constrained(string, structure, parameters, my_hc, my_sc, is_circular);
+  return vrna_fold(vc, structure);
 }
 
-PUBLIC float fold_constrained(const char *string,
-                              char *structure,
-                              paramT *parameters,
-                              hard_constraintT *my_hc,
-                              soft_constraintT *my_sc,
-                              int is_circular){
+PUBLIC float
+vrna_fold(vrna_fold_compound *vc,
+          char *structure){
 
   int i, j, length, energy, s;
-  unsigned int constraint_options;
 
-  s                   = 0;
-  circular            = is_circular;
-  struct_constrained  = is_constrained;
-  length              = (int) strlen(string);
-  constraint_options  = 0;
-  sc                  = my_sc;
-  hc                  = my_hc;
-
-  /* prepare constraint options */
-  if(struct_constrained && structure)
-    constraint_options |=   VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
-
-#ifdef _OPENMP
-  init_fold(length, parameters);
-#else
-  if (parameters) init_fold(length, parameters);
-  else if (length>init_length) init_fold(length, parameters);
-  else if (fabs(P->temperature - temperature)>1e-6) update_fold_params_par(parameters);
-#endif
+  s       = 0;
+  length  = (int) vc->length;
+  sc      = vc->sc;
+  hc      = vc->hc;
 
   with_gquad  = P->model_details.gquad;
-  S     = get_sequence_encoding(string, 0, &(P->model_details));
-  S1    = get_sequence_encoding(string, 1, &(P->model_details));
-  ptype = get_ptypes(S, &(P->model_details), 0);
-  hc    = get_hard_constraints( (const char *)structure,
-                                (unsigned int)length,
-                                ptype,
-                                TURN,
-                                constraint_options);
+  S       = get_sequence_encoding(vc->sequence, 0, &(vc->params->model_details));
+  S1      = vc->sequence_encoding;
+  ptype   = vc->ptype;
+  hc      = vc->hc;
+  sc      = vc->sc;
 
 
 
 
-  energy = fill_arrays(string);
+  energy = fill_arrays(vc);
   if(circular){
-    fill_arrays_circ(string, &s);
+    fill_arrays_circ(vc->sequence, &s);
     energy = Fc;
   }
-  backtrack(string, s);
+  backtrack(vc->sequence, s);
 
-#ifdef PAREN
   parenthesis_structure(structure, base_pair2, length);
-#else
-  letter_structure(structure, base_pair2, length);
-#endif
 
   /*
   *  Backward compatibility:
@@ -458,9 +480,9 @@ PUBLIC float fold_constrained(const char *string,
 
   free(S); free(S1);
 
-  if (backtrack_type=='C')
+  if (vc->params->model_details.backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
-  else if (backtrack_type=='M')
+  else if (vc->params->model_details.backtrack_type=='M')
     return (float) fML[indx[length]+1]/100.;
   else
     return (float) energy/100.;
@@ -469,16 +491,17 @@ PUBLIC float fold_constrained(const char *string,
 /**
 *** fill "c", "fML" and "f5" arrays and return  optimal energy
 **/
-PRIVATE int fill_arrays(const char *string) {
+PRIVATE int fill_arrays(vrna_fold_compound *vc){
 
   int   i, j, ij, p, q, k, length, energy, en, mm5, mm3;
   int   decomp, new_fML, new_c, stackEnergy;
   int   no_close, type_2, tt;
 
-  char  type;
+  char  type, *string, *ptype;
 
-  int   dangle_model, noGUclosure, noLP, with_gquads;
-  int   *rtype;
+  paramT  *P;
+  int   dangle_model, noGUclosure, noLP, uniq_ML, with_gquads;
+  int   *rtype, *indx;
 
   /* the folding matrices */
   int   *my_f5, *my_c, *my_fML;
@@ -491,6 +514,8 @@ PRIVATE int fill_arrays(const char *string) {
   int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
   /* constraints stuff */
+  hard_constraintT  *hc   = vc->hc;
+
   int   hc_decompose;
   char  *hard_constraints = hc->matrix;
   int   *hc_up_ext        = hc->up_ext;
@@ -498,12 +523,26 @@ PRIVATE int fill_arrays(const char *string) {
   int   *hc_up_int        = hc->up_int;
   int   *hc_up_ml         = hc->up_ml;
 
+  soft_constraintT  *sc   = vc->sc;
 
+  string        = vc->sequence;
+  length        = (int)vc->length;
+
+  ptype         = vc->ptype;
+  indx          = vc->jindx;
+
+  P             = vc->params;
   dangle_model  = P->model_details.dangles;
   noGUclosure   = P->model_details.noGUclosure;
   noLP          = P->model_details.noLP;
+  uniq_ML       = P->model_details.uniq_ML;
   rtype         = &(P->model_details.rtype[0]);
-  length        = (int) strlen(string);
+
+  /* dereference the folding matrices */
+  mfe_matrices *matrices = (mfe_matrices *)vc->matrices;
+  my_f5   = matrices->f5;
+  my_c    = matrices->c;
+  my_fML  = matrices->fML;
 
   if(with_gquad)
     ggg = get_gquad_matrix(S, P);
@@ -516,16 +555,6 @@ PRIVATE int fill_arrays(const char *string) {
   DMLi1 = (int *) space(sizeof(int)*(length + 1));
   DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
-  /* dereference of the folding matrices */
-#ifndef OPENMP_LESS
-  my_f5   = f5;
-  my_c    = c;
-  my_fML  = fML;
-#else
-  my_f5   = backward_compat_matrices->f5;
-  my_c    = backward_compat_matrices->c;
-  my_fML  = backward_compat_matrices->fML;
-#endif
 
   /* prefill helper arrays */
   for(j = 1; j <= length; j++){
@@ -740,6 +769,12 @@ PRIVATE void backtrack(const char *string, int s) {
   my_c    = backward_compat_matrices->c;
   my_fML  = backward_compat_matrices->fML;
 #endif
+
+  char  *hard_constraints = hc->matrix;
+  int   *hc_up_ext        = hc->up_ext;
+  int   *hc_up_hp         = hc->up_hp;
+  int   *hc_up_int        = hc->up_int;
+  int   *hc_up_ml         = hc->up_ml;
 
   length = strlen(string);
   if (s==0) {

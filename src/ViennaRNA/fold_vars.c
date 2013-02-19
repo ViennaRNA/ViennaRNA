@@ -11,6 +11,7 @@
 #include "ViennaRNA/fold_vars.h"
 
 int         circ = 0;
+int         uniq_ML   = 0;        /* do ML decomposition uniquely (for subopt) */
 
 int         noGU = 0;             /* GU not allowed at all */
 
@@ -91,6 +92,9 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->logML           = logML;
     md->gquad           = gquad;
     md->canonicalBPonly = canonicalBPonly;
+    md->circ            = circ;
+    md->uniq_ML         = uniq_ML;
+    md->backtrack_type  = backtrack_type;
     md->energy_set      = energy_set;
     if(nonstandards){
       memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));

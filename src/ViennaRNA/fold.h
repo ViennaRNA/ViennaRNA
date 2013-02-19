@@ -102,6 +102,9 @@ float fold_par( const char *sequence,
                 int is_constrained,
                 int is_circular);
 
+float vrna_fold(vrna_fold_compound *vc,
+                char *structure);
+
 /**
  *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
  *
@@ -144,6 +147,13 @@ float fold( const char *sequence,
 float circfold( const char *sequence,
                 char *structure);
 
+
+vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
+
+vrna_fold_compound *get_fold_compound_mfe_constrained( const char *sequence,
+                                                              hard_constraintT *hc,
+                                                              soft_constraintT *sc,
+                                                              paramT *P);
 
 /**
  *  \brief Free arrays for mfe folding

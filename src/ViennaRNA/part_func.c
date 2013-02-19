@@ -309,9 +309,9 @@ PUBLIC float pf_fold_par( const char *sequence,
   S     = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
   S1    = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
   ptype = get_ptypes(S, &(pf_params->model_details), 1);
-  hc    = get_hard_constraints( (const char *)structure,
-                                (unsigned int)n,
-                                ptype,
+  hc    = get_hard_constraints( sequence,
+                                (const char *)structure,
+                                &(pf_params->model_details),
                                 TURN,
                                 constraint_options);
 
