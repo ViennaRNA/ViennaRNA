@@ -558,18 +558,21 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
   }
 }
 
-PUBLIC  hard_constraintT  *get_hard_constraints(  const char *constraint,
-                                                  unsigned int n,
-                                                  char *ptype,
+PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
+                                                  const char *constraint,
+                                                  model_detailsT  *md,
                                                   unsigned int min_loop_size,
                                                   unsigned int options){
 
-  unsigned int      i, j, ij;
+  unsigned int      i, j, ij, n;
   int               *idx;
   hard_constraintT  *hc;
+  short             *S;
 
+  n   = strlen(sequence);
   hc  = (hard_constraintT *)space(sizeof(hard_constraintT));
   idx = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
+  S   = get_sequence_encoding(sequence, 0, md);
 
   /* allocate memory for the hard constraints data structure */
   hc->matrix  = (char *)space(sizeof(char)*((n*(n+1))/2+2));
@@ -594,13 +597,13 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *constraint,
     for(i = 1; i < n; i++){
       ij = idx[i]-i-min_loop_size-1;
       for(j=i+min_loop_size+1; j <= n; j++,ij--)
-        hc->matrix[ij] = (ptype[ij])  ?   IN_EXT_LOOP
-                                        | IN_HP_LOOP
-                                        | IN_INT_LOOP
-                                        | IN_MB_LOOP
-                                        | IN_INT_LOOP_ENC
-                                        | IN_MB_LOOP_ENC
-                                      : (char)0;
+        hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
+                                                | IN_HP_LOOP
+                                                | IN_INT_LOOP
+                                                | IN_MB_LOOP
+                                                | IN_INT_LOOP_ENC
+                                                | IN_MB_LOOP_ENC
+                                              : (char)0;
     }
   } else { /* indx[j] + i */
     /* 1. unpaired nucleotides are allowed in all contexts */
@@ -614,13 +617,13 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *constraint,
     for(j = n; j > min_loop_size + 1; j--){
       ij = idx[j]+1;
       for(i=1; i < j - min_loop_size; i++, ij++)
-        hc->matrix[ij] = (ptype[ij])  ?   IN_EXT_LOOP
-                                        | IN_HP_LOOP
-                                        | IN_INT_LOOP
-                                        | IN_MB_LOOP
-                                        | IN_INT_LOOP_ENC
-                                        | IN_MB_LOOP_ENC
-                                      : (char)0;
+        hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
+                                                | IN_HP_LOOP
+                                                | IN_INT_LOOP
+                                                | IN_MB_LOOP
+                                                | IN_INT_LOOP_ENC
+                                                | IN_MB_LOOP_ENC
+                                              : (char)0;
     }
   }
 
@@ -680,10 +683,9 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *constraint,
 
   }
 
-  /* adjust the ptype to take non-canonical pairs into account */
-  adjust_ptypes(ptype, hc, n, options & VRNA_CONSTRAINT_IINDX);
-
   free(idx);
+  free(S);
+
   return hc;
 }
 

@@ -145,9 +145,11 @@ typedef struct{
   int     noGU;             /**<  \brief  Do not allow GU pairs */
   int     noGUclosure;      /**<  \brief  Do not allow loops to be closed by GU pair */
   int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
-  int     circ;             /**<  \brief  Assume molecule to be circular */
+  int     circ;             /**<  \brief  Assume RNA to be circular instead of linear */
   int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
   int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
+  char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
   int     rtype[8];
   short   alias[MAXALPHA+1];
@@ -329,6 +331,28 @@ typedef struct {
                                               for pseudo energy contribution functions
                                 */
 } soft_constraintT;
+
+
+typedef struct{
+
+  unsigned int length;
+  char  *sequence;
+  short *sequence_encoding;
+  short *sequence_encoding2;
+  char  *ptype;
+
+  hard_constraintT  *hc;
+  soft_constraintT  *sc;
+
+  void              *matrices;
+
+  paramT            *params;
+  pf_paramT         *exp_params;
+
+  int               *iindx;
+  int               *jindx;
+
+} vrna_fold_compound;
 
 /*
 * ############################################################

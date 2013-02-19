@@ -361,9 +361,9 @@ void getConstraint( char **cstruc,
  *  \param  min_loop_size The minimal loop size for hairpin loops (mostly #TURN)
  *  \param  options       The option flags
  */
-hard_constraintT  *get_hard_constraints(  const char *constraint,
-                                          unsigned int n,
-                                          char *ptype,
+hard_constraintT  *get_hard_constraints(  const char *sequence,
+                                          const char *constraint,
+                                          model_detailsT *md,
                                           unsigned int min_loop_size,
                                           unsigned int options);
 

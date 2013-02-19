@@ -259,9 +259,9 @@ PUBLIC float cofold_par(const char *string,
   S     = get_sequence_encoding(string, 0, &(P->model_details));
   S1    = get_sequence_encoding(string, 1, &(P->model_details));
   ptype = get_ptypes(S, &(P->model_details), 0);
-  hc    = get_hard_constraints( (const char *)structure,
-                                (unsigned int)length,
-                                ptype,
+  hc    = get_hard_constraints( string,
+                                (const char *)structure,
+                                &(P->model_details),
                                 TURN,
                                 constraint_options);
 
@@ -1448,9 +1448,9 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   S1    = get_sequence_encoding(doubleseq, 1, &(P->model_details));
   S1[0] = S[0]; /* store length at pos. 0 */
   ptype = get_ptypes(S, &(P->model_details), 0);
-  hc    = get_hard_constraints( (const char *)structure,
-                                (unsigned int)(2*length),
-                                ptype,
+  hc    = get_hard_constraints( doubleseq,
+                                (const char *)structure,
+                                &(P->model_details),
                                 TURN,
                                 constraint_options);
 
