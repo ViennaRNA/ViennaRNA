@@ -78,6 +78,7 @@ PRIVATE soft_constraintT  *sc                 = NULL;
 
 /* some (hopefully) temporary backward compatibility stuff */
 PRIVATE mfe_matrices *backward_compat_matrices = NULL;
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
@@ -414,7 +415,7 @@ fold_par( const char *string,
   length  = strlen(string);
 
   /* prepare global params data structure */
-  init_fold(length, parameters);
+  update_fold_params_par(parameters);
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
   if(is_constrained && structure){
@@ -438,6 +439,28 @@ fold_par( const char *string,
 
   vc = get_fold_compound_mfe_constrained( string, my_hc, my_sc, P);
 
+  /* backward compatibility stuff */
+  if(base_pair2)
+    free(base_pair2);
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+length/2));
+
+  init_length = (int)length;
+
+  f5    = ((mfe_matrices *)vc->matrices)->f5;
+  c     = ((mfe_matrices *)vc->matrices)->c;
+  fML   = ((mfe_matrices *)vc->matrices)->fML;
+  indx  = vc->jindx;
+  sc    = vc->sc;
+  hc    = vc->hc;
+
+  S     = vc->sequence_encoding2;
+  S1    = vc->sequence_encoding;
+  ptype = vc->ptype;
+  hc    = vc->hc;
+  sc    = vc->sc;
+  
+
+
   return vrna_fold(vc, structure);
 }
 
@@ -449,18 +472,6 @@ vrna_fold(vrna_fold_compound *vc,
 
   s       = 0;
   length  = (int) vc->length;
-  sc      = vc->sc;
-  hc      = vc->hc;
-
-  with_gquad  = P->model_details.gquad;
-  S       = get_sequence_encoding(vc->sequence, 0, &(vc->params->model_details));
-  S1      = vc->sequence_encoding;
-  ptype   = vc->ptype;
-  hc      = vc->hc;
-  sc      = vc->sc;
-
-
-
 
   energy = fill_arrays(vc);
   if(circular){
@@ -760,15 +771,9 @@ PRIVATE void backtrack(const char *string, int s) {
   int   *my_f5, *my_c, *my_fML;
 
 
-#ifndef OPENMP_LESS
   my_f5   = f5;
   my_c    = c;
   my_fML  = fML;
-#else
-  my_f5   = backward_compat_matrices->f5;
-  my_c    = backward_compat_matrices->c;
-  my_fML  = backward_compat_matrices->fML;
-#endif
 
   char  *hard_constraints = hc->matrix;
   int   *hc_up_ext        = hc->up_ext;
