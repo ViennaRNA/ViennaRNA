@@ -363,47 +363,51 @@ INLINE  PRIVATE int E_Hairpin(int size,
   return energy;
 }
 
-INLINE  PRIVATE int E_hp_loop(const char *sequence,
-                              int i,
+INLINE  PRIVATE int E_hp_loop(int i,
                               int j,
-                              char type,
-                              short *S,
-                              char hc,
-                              int *hc_up,
-                              soft_constraintT *sc,
-                              paramT *P){
+                              vrna_fold_compound *vc){
+
   int u = j - i - 1;
   int e;
+
+  short   *S      = vc->sequence_encoding;
+  int     *idx    = vc->jindx;
+  int     type    = vc->ptype[idx[j]+i];
+  paramT  *P      = vc->params;
+  char    hc      = vc->hc->matrix[idx[j]+i];
+  int     *hc_up  = vc->hc->up_hp;
+
   /* is this base pair allowed to close a hairpin loop ? */
   if(hc & IN_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
-      e = E_Hairpin(u, type, S[i+1], S[j-1], sequence+i-1, P);
-      if(sc)
-        if(sc->free_energies)
-          e += sc->free_energies[i+1][u];
+      e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
+      if(vc->sc){
+        if(vc->sc->free_energies)
+          e += vc->sc->free_energies[i+1][u];
+      }
       return e;
     }
   }
   return INF;
 }
 
-INLINE PRIVATE int E_int_loop(const char *sequence,
-                              int i,
+INLINE PRIVATE int E_int_loop(int i,
                               int j,
-                              char *ptype,
-                              short *S,
-                              int *indx,
-                              char *hc,
-                              int *hc_up,
-                              soft_constraintT *sc,
-                              int *c,
-                              paramT *P){
-  int q, p, j_q, p_i, pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
-  int ij            = indx[j] + i;
-  int hc_decompose  = hc[ij];
-  int e             = INF;
+                              vrna_fold_compound *vc){
 
+  int q, p, j_q, p_i, pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
+  char              *ptype        = vc->ptype;
+  short             *S            = vc->sequence_encoding;
+  int               *indx         = vc->jindx;
+  char              *hc           = vc->hc->matrix;
+  int               *hc_up        = vc->hc->up_int;
+  soft_constraintT  *sc           = vc->sc; 
+  paramT            *P            = vc->params;
+  int               ij            = indx[j] + i;
+  int               hc_decompose  = hc[ij];
+  int               e             = INF;
+  int               *c            = vc->matrices->c;
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & IN_INT_LOOP){
@@ -458,19 +462,22 @@ INLINE PRIVATE int E_int_loop(const char *sequence,
 
 INLINE PRIVATE int E_mb_loop_fast(  int i,
                                     int j,
-                                    char *ptype,
-                                    short *S,
-                                    int *indx,
-                                    char *hc,
-                                    int *hc_up,
-                                    soft_constraintT *sc,
-                                    int *c,
-                                    int *fML,
+                                    vrna_fold_compound *vc,
                                     int *dmli1,
-                                    int *dmli2,
-                                    paramT *P){
+                                    int *dmli2){
 
   int k, decomp, MLenergy, en, type, type_2, tt;
+
+  char              *ptype  = vc->ptype;
+  short             *S      = vc->sequence_encoding;
+  int               *indx   = vc->jindx;
+  char              *hc     = vc->hc->matrix;
+  int               *hc_up  = vc->hc->up_ml;
+  soft_constraintT  *sc     = vc->sc;
+  int               *c      = vc->matrices->c;
+  int               *fML    = vc->matrices->fML;
+  paramT            *P      = vc->params;
+
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
   int e             = INF;
@@ -481,7 +488,6 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
 
 
   if(hc_decompose & IN_MB_LOOP){
-    MLenergy;
     decomp = dmli1[j-1];
     tt = rtype[type];
     switch(dangle_model){
@@ -581,27 +587,29 @@ INLINE PRIVATE int E_ml_rightmost_stem( int i,
 
 INLINE  PRIVATE int E_ml_stems_fast(  int i,
                                       int j,
-                                      int length,
-                                      char *ptype,
-                                      short *S,
-                                      int *indx,
-                                      char *hc,
-                                      int *hc_up,
-                                      soft_constraintT *sc,
-                                      int *c,
-                                      int *fm,
+                                      vrna_fold_compound *vc,
                                       int *fmi,
-                                      int *dmli,
-                                      int circular,
-                                      paramT *P){
+                                      int *dmli){
 
   int k, en, decomp, mm5, mm3, type_2;
-  int ij            = indx[j] + i;
-  int hc_decompose  = hc[ij];
-  int dangle_model  = P->model_details.dangles;
-  int type          = ptype[ij];
-  int *rtype        = &(P->model_details.rtype[0]);
-  int e             = INF;
+
+  int               length        = (int)vc->length;
+  char              *ptype        = vc->ptype;
+  short             *S            = vc->sequence_encoding;
+  int               *indx         = vc->jindx;
+  char              *hc           = vc->hc->matrix;
+  int               *hc_up        = vc->hc->up_ml;
+  soft_constraintT  *sc           = vc->sc;
+  int               *c            = vc->matrices->c;
+  int               *fm           = vc->matrices->fML;
+  paramT            *P            = vc->params;
+  int               ij            = indx[j] + i;
+  int               hc_decompose  = hc[ij];
+  int               dangle_model  = P->model_details.dangles;
+  int               type          = ptype[ij];
+  int               *rtype        = &(P->model_details.rtype[0]);
+  int               circular      = P->model_details.circ;
+  int               e             = INF;
 
   /*  extension with one unpaired nucleotide at the left
       or full branch of (i,j)
@@ -707,23 +715,21 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
   return e;
 }
 
-INLINE PRIVATE void E_ext_loop_5( int length,
-                                  char *ptype,
-                                  short *S,
-                                  int *indx,
-                                  char *hc,
-                                  int *hc_up,
-                                  soft_constraintT *sc,
-                                  int *f5,
-                                  int *c,
-                                  paramT *P){
+INLINE PRIVATE void E_ext_loop_5( vrna_fold_compound  *vc){
 
   int en, i, j, type;
-  int ij            = indx[j] + i;
-  int hc_decompose  = hc[ij];
-  int dangle_model  = P->model_details.dangles;
-  int *rtype        = &(P->model_details.rtype[0]);
-  int e             = INF;
+  int               length        = (int)vc->length;
+  char              *ptype        = vc->ptype;
+  short             *S            = vc->sequence_encoding;
+  int               *indx         = vc->jindx;
+  char              *hc           = vc->hc->matrix;
+  int               *hc_up        = vc->hc->up_ext;
+  soft_constraintT  *sc           = vc->sc;
+  int               *f5           = vc->matrices->f5;
+  int               *c            = vc->matrices->c;
+  paramT            *P            = vc->params;
+  int               ij            = indx[j] + i;
+  int               dangle_model  = P->model_details.dangles;
 
   f5[0] = 0;
   for(i = 1; i <= TURN + 1; i++){

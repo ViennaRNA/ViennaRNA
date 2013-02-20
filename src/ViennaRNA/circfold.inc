@@ -24,13 +24,8 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   int   *rtype        = &(P->model_details.rtype[0]);
 
   /* dereference of the folding matrices */
-#ifndef OPENMP_LESS
   my_c    = c;
   my_fML  = fML;
-#else
-  my_c    = backward_compat_matrices->c;
-  my_fML  = backward_compat_matrices->fML;
-#endif
 
 
   length = (int) strlen(string);

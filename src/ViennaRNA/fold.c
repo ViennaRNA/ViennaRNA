@@ -64,7 +64,6 @@ PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtrack
 PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
 PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
-PRIVATE int     init_length = -1;
 PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular            = 0;
 
@@ -77,13 +76,12 @@ PRIVATE hard_constraintT  *hc                 = NULL;
 PRIVATE soft_constraintT  *sc                 = NULL;
 
 /* some (hopefully) temporary backward compatibility stuff */
-PRIVATE mfe_matrices *backward_compat_matrices = NULL;
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(indx, c, f5, fML, fM1, fM2, Fc, FcH, FcI, FcM, hc, sc, \
-                          sector, ptype, S, S1, P, init_length, base_pair2, circular, struct_constrained,\
+#pragma omp threadprivate(indx, c, f5, fML, fM1, fM2, Fc, FcH, FcI, FcM, hc, sc, backward_compat_compound, \
+                          sector, ptype, S, S1, P, base_pair2, circular, struct_constrained,\
                           ggg, with_gquad)
 
 #endif
@@ -121,22 +119,8 @@ PRIVATE void init_fold(int length, paramT *parameters){
 #endif
 
   if (length<1) nrerror("initialize_fold: argument must be greater 0");
-#ifndef OPENMP_LESS
   free_arrays();
   get_arrays((unsigned) length);
-#else
-  if(base_pair2)
-    free(base_pair2);
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+length/2));
-  if(backward_compat_matrices)
-    destroy_mfe_matrices(backward_compat_matrices);
-  backward_compat_matrices = get_mfe_matrices_alloc((unsigned int)length, ALLOC_MFE_DEFAULT);
-  f5  = backward_compat_matrices->f5;
-  c   = backward_compat_matrices->c;
-  fML = backward_compat_matrices->fML;
-
-#endif
-  init_length=length;
 
   indx = get_indx((unsigned)length);
 
@@ -169,6 +153,9 @@ INLINE void init_array(int *array, int alength, int value){
 
 PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
                                               unsigned int alloc_vector){
+
+  if(n >= (unsigned int)sqrt((double)INT_MAX))
+    nrerror("get_mfe_matrices_alloc@fold.c: sequence length exceeds addressable range");
 
   mfe_matrices  *vars   = (mfe_matrices *)space(sizeof(mfe_matrices));
 
@@ -241,29 +228,9 @@ PUBLIC void destroy_mfe_matrices(mfe_matrices *self){
 /*--------------------------------------------------------------------------*/
 
 PUBLIC void free_arrays(void){
-  if(indx)      free(indx);
-  if(c)         free(c);
-  if(fML)       free(fML);
-  if(f5)        free(f5);
-  if(ptype)     free(ptype);
-  if(fM1)       free(fM1);
-  if(fM2)       free(fM2);
-  if(base_pair2) free(base_pair2);
-  if(P)         free(P);
-  if(ggg)       free(ggg);
-  if(hc)        destroy_hard_constraints(hc);
-  if(sc)        destroy_soft_constraints(sc);
-
-  indx = c = fML = f5 = fM1 = fM2 = ggg = NULL;
-  ptype = NULL;
-
-  hc  = NULL;
-  sc  = NULL;
-
-  base_pair   = NULL;
-  base_pair2  = NULL;
-  P           = NULL;
-  init_length = 0;
+  if(ggg)       free(ggg);ggg = NULL;
+  if(backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -274,6 +241,7 @@ PUBLIC void export_fold_arrays( int **f5_p,
                                 int **fM1_p,
                                 int **indx_p,
                                 char **ptype_p){
+
   /* make the DP arrays available to routines such as subopt() */
   *f5_p     = f5;
   *c_p      = c;
@@ -347,6 +315,7 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
 
 PUBLIC vrna_fold_compound *
 get_fold_compound_mfe(const char *sequence, paramT *P){
+
   return get_fold_compound_mfe_constrained(sequence, NULL, NULL, P);
 }
 
@@ -370,7 +339,7 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
   vc->exp_params          = NULL;
 
-  vc->matrices            = (void *)get_mfe_matrices_alloc(vc->length, ALLOC_MFE_DEFAULT);
+  vc->matrices            = get_mfe_matrices_alloc(vc->length, ALLOC_MFE_DEFAULT);
 
   vc->hc                  = hc ? hc : get_hard_constraints(sequence, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
   vc->sc                  = sc ? sc : NULL;
@@ -379,6 +348,37 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc->jindx               = get_indx(vc->length);
 
   return vc;
+}
+
+PUBLIC  void
+destroy_fold_compound(vrna_fold_compound *vc){
+
+  if(vc){
+    if(vc->matrices)
+      destroy_mfe_matrices(vc->matrices);
+    if(vc->sequence)
+      free(vc->sequence);
+    if(vc->sequence_encoding)
+      free(vc->sequence_encoding);
+    if(vc->sequence_encoding2)
+      free(vc->sequence_encoding2);
+    if(vc->ptype)
+      free(vc->ptype);
+    if(vc->iindx)
+      free(vc->iindx);
+    if(vc->jindx)
+      free(vc->jindx);
+    if(vc->params)
+      free(vc->params);
+    if(vc->exp_params)
+      free(vc->exp_params);
+    if(vc->hc)
+      destroy_hard_constraints(vc->hc);
+    if(vc->sc)
+      destroy_soft_constraints(vc->sc);
+
+    free(vc);
+  }
 }
 
 
@@ -403,10 +403,10 @@ fold_par( const char *string,
           int is_constrained,
           int is_circular){
 
-  unsigned int length;
-  vrna_fold_compound *vc;
-  hard_constraintT *my_hc;
-  soft_constraintT *my_sc;
+  unsigned int        length;
+  vrna_fold_compound  *vc;
+  hard_constraintT    *my_hc;
+  soft_constraintT    *my_sc;
 
   my_hc   = NULL;
   my_sc   = NULL;
@@ -419,7 +419,7 @@ fold_par( const char *string,
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
-    constraint_options |=   VRNA_CONSTRAINT_DB
+    constraint_options |= VRNA_CONSTRAINT_DB
                           | VRNA_CONSTRAINT_PIPE
                           | VRNA_CONSTRAINT_DOT
                           | VRNA_CONSTRAINT_X
@@ -443,11 +443,9 @@ fold_par( const char *string,
     free(base_pair2);
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+length/2));
 
-  init_length = (int)length;
-
-  f5    = ((mfe_matrices *)vc->matrices)->f5;
-  c     = ((mfe_matrices *)vc->matrices)->c;
-  fML   = ((mfe_matrices *)vc->matrices)->fML;
+  f5    = vc->matrices->f5;
+  c     = vc->matrices->c;
+  fML   = vc->matrices->fML;
   indx  = vc->jindx;
   sc    = vc->sc;
   hc    = vc->hc;
@@ -458,6 +456,11 @@ fold_par( const char *string,
   hc    = vc->hc;
   sc    = vc->sc;
   
+  if(backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
+
+  backward_compat_compound = vc;
+
 
 
   return vrna_fold(vc, structure);
@@ -467,7 +470,7 @@ PUBLIC float
 vrna_fold(vrna_fold_compound *vc,
           char *structure){
 
-  int i, j, length, energy, s;
+  int length, energy, s;
 
   s       = 0;
   length  = (int) vc->length;
@@ -488,8 +491,6 @@ vrna_fold(vrna_fold_compound *vc,
   */
   base_pair = base_pair2;
 
-  free(S); free(S1);
-
   if (vc->params->model_details.backtrack_type=='C')
     return (float) c[indx[length]+1]/100.;
   else if (vc->params->model_details.backtrack_type=='M')
@@ -503,18 +504,18 @@ vrna_fold(vrna_fold_compound *vc,
 **/
 PRIVATE int fill_arrays(vrna_fold_compound *vc){
 
-  int   i, j, ij, p, q, k, length, energy, en, mm5, mm3;
-  int   decomp, new_fML, new_c, stackEnergy;
-  int   no_close, type_2, tt;
+  int   i, j, ij, length, energy;
+  int   new_c, stackEnergy;
+  int   no_close, type_2;
 
-  char  type, *string, *ptype;
-
+  char  type, *ptype;
   paramT  *P;
-  int   dangle_model, noGUclosure, noLP, uniq_ML, with_gquads;
+  int   noGUclosure, noLP, uniq_ML, with_gquads;
   int   *rtype, *indx;
 
   /* the folding matrices */
-  int   *my_f5, *my_c, *my_fML;
+  mfe_matrices *matrices;
+  int   *my_f5, *my_c, *my_fML, *my_fM1;
 
   /* some auxilary matrices */
   int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
@@ -528,31 +529,27 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
 
   int   hc_decompose;
   char  *hard_constraints = hc->matrix;
-  int   *hc_up_ext        = hc->up_ext;
-  int   *hc_up_hp         = hc->up_hp;
-  int   *hc_up_int        = hc->up_int;
   int   *hc_up_ml         = hc->up_ml;
 
   soft_constraintT  *sc   = vc->sc;
 
-  string        = vc->sequence;
   length        = (int)vc->length;
 
   ptype         = vc->ptype;
   indx          = vc->jindx;
 
   P             = vc->params;
-  dangle_model  = P->model_details.dangles;
   noGUclosure   = P->model_details.noGUclosure;
   noLP          = P->model_details.noLP;
   uniq_ML       = P->model_details.uniq_ML;
   rtype         = &(P->model_details.rtype[0]);
 
   /* dereference the folding matrices */
-  mfe_matrices *matrices = (mfe_matrices *)vc->matrices;
-  my_f5   = matrices->f5;
-  my_c    = matrices->c;
-  my_fML  = matrices->fML;
+  matrices  = vc->matrices;
+  my_f5     = matrices->f5;
+  my_c      = matrices->c;
+  my_fML    = matrices->fML;
+  my_fM1    = matrices->fM1;
 
   if(with_gquad)
     ggg = get_gquad_matrix(S, P);
@@ -577,7 +574,7 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
     for(i = (j > TURN ? (j - TURN) : 1); i < j; i++){
       my_c[indx[j] + i] = my_fML[indx[j] + i] = INF;
       if(uniq_ML)
-        fM1[indx[j] + i] = INF;
+        my_fM1[indx[j] + i] = INF;
     }
 
   /* start recursion */
@@ -597,59 +594,19 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
       if (hc_decompose) {   /* we have a pair */
         new_c = INF;
 
-        /* CONSTRAINED HAIRPIN LOOP start */
         if(!no_close){
-          energy = E_hp_loop( string,
-                              i,
-                              j,
-                              type,
-                              S1,
-                              hc_decompose,
-                              hc_up_hp,
-                              sc,
-                              P);
+          /* check for hairpin loop */
+          energy = E_hp_loop(i, j, vc);
           new_c = MIN2(new_c, energy);
+
+          /* check for multibranch loops */
+          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          new_c   = MIN2(new_c, energy);
         }
-        /* CONSTRAINED HAIRPIN LOOP end */
 
-        /*--------------------------------------------------------
-          check for elementary structures involving more than one
-          closing pair.
-          --------------------------------------------------------*/
-
-        /* CONSTRAINED INTERIOR LOOP start */
-        energy = E_int_loop(  string,
-                              i,
-                              j,
-                              ptype,
-                              S1,
-                              indx,
-                              hard_constraints,
-                              hc_up_int,
-                              sc,
-                              my_c,
-                              P);
+        /* check for interior loops */
+        energy = E_int_loop(i, j, vc);
         new_c = MIN2(new_c, energy);
-        /* CONSTRAINED INTERIOR LOOP end */
-
-        /* CONSTRAINED MULTIBRANCH LOOP start */
-        if(!no_close){
-          energy = E_mb_loop_fast(  i,
-                                    j,
-                                    ptype,
-                                    S1,
-                                    indx,
-                                    hard_constraints,
-                                    hc_up_ml,
-                                    sc,
-                                    my_c,
-                                    my_fML,
-                                    DMLi1,
-                                    DMLi2,
-                                    P);
-          new_c = MIN2(new_c, energy);
-        }
-        /* CONSTRAINED MULTIBRANCH LOOP end */
 
         if(with_gquad){
           /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
@@ -679,28 +636,14 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
-      my_fML[ij] = E_ml_stems_fast( i,
-                                    j,
-                                    length,
-                                    ptype,
-                                    S1,
-                                    indx,
-                                    hard_constraints,
-                                    hc_up_ml,
-                                    sc,
-                                    my_c,
-                                    my_fML,
-                                    Fmi,
-                                    DMLi,
-                                    circular,
-                                    P);
+      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
 
       if(with_gquad){
         new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
       }
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
-        fM1[ij] = E_ml_rightmost_stem(  i,
+        my_fM1[ij] = E_ml_rightmost_stem(i,
                                         j,
                                         length,
                                         type,
@@ -710,7 +653,7 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
                                         hc_up_ml,
                                         sc,
                                         my_c,
-                                        fM1,
+                                        my_fM1,
                                         P);
       }
 
@@ -725,16 +668,7 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
   } /* end of i-loop */
 
   /* calculate energies of 5' fragments */
-  E_ext_loop_5( length,
-                ptype,
-                S1,
-                indx,
-                hard_constraints,
-                hc_up_ext,
-                sc,
-                my_f5,
-                my_c,
-                P);
+  E_ext_loop_5(vc);
 
   /* clean up memory */
   free(cc);
@@ -1369,7 +1303,6 @@ PUBLIC void update_fold_params_par(paramT *parameters){
   }
 
   fill_pair_matrices(&(P->model_details));
-  if (init_length < 0) init_length=0;
 }
 
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
