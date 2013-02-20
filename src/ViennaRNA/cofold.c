@@ -364,15 +364,7 @@ PRIVATE int fill_arrays(const char *string) {
 
         if (SAME_STRAND(i,j)) {
           if(!no_close){
-            energy = E_hp_loop( string,
-                                (unsigned int)i,
-                                (unsigned int)j,
-                                type,
-                                S1,
-                                hc_decompose,
-                                hc_up_hp,
-                                NULL,
-                                P);
+            energy = E_hp_loop(i, j, NULL);
           }
         }
         else {

@@ -345,7 +345,8 @@ typedef struct{
   hard_constraintT  *hc;
   soft_constraintT  *sc;
 
-  void              *matrices;
+  mfe_matrices  *matrices;
+
 
   paramT            *params;
   pf_paramT         *exp_params;
