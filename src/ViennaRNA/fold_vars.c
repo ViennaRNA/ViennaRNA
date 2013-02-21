@@ -8,6 +8,7 @@
 **/
 #include <string.h>
 #include <stdio.h>
+#include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 
 int         circ = 0;
@@ -106,5 +107,8 @@ PUBLIC void set_model_details(model_detailsT *md){
     memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
     for(i = 0;i <= MAXALPHA; i++)
       memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+    fill_pair_matrices(md);
+
   }
 }

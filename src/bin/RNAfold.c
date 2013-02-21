@@ -73,6 +73,7 @@ int main(int argc, char *argv[]){
   doMEA         = 0;
   betaScale     = 1.;
 
+  /* apply default model details */
   set_model_details(&md);
 
 
@@ -116,9 +117,9 @@ int main(int argc, char *argv[]){
   /* set pf scaling factor */
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circular=1;
+  if(args_info.circ_given)        md.circ = circular = 1;
   /* always look on the bright side of life */
-  if(args_info.ImFeelingLucky_given)  lucky = pf = st_back = 1;
+  if(args_info.ImFeelingLucky_given)  md.uniq_ML = lucky = pf = st_back = 1;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));

@@ -150,12 +150,13 @@ float circfold( const char *sequence,
                 char *structure);
 
 
-vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
+vrna_fold_compound *get_fold_compound_mfe(const char *sequence,
+                                          paramT *P);
 
-vrna_fold_compound *get_fold_compound_mfe_constrained( const char *sequence,
-                                                              hard_constraintT *hc,
-                                                              soft_constraintT *sc,
-                                                              paramT *P);
+vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
+                                                      hard_constraintT *hc,
+                                                      soft_constraintT *sc,
+                                                      paramT *P);
 
 /**
  *  \brief Free arrays for mfe folding
@@ -203,6 +204,9 @@ void  update_fold_params(void);
  * 
  */
 void update_fold_params_par(paramT *parameters);
+
+void vrna_update_fold_params( paramT *parameters,
+                              vrna_fold_compound *vc);
 
 /**
  *

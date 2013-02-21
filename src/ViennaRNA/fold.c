@@ -35,10 +35,6 @@
 #include <omp.h>
 #endif
 
-#define OPENMP_LESS
-
-#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
-#define NEW_NINIO         1       /* new asymetry penalty */
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
 /*
@@ -52,37 +48,15 @@
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE int     *indx     = NULL; /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int     *c        = NULL; /* energy array, given that i-j pair */
-PRIVATE int     *f5       = NULL; /* energy of 5' end */
-PRIVATE int     *fML      = NULL; /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1      = NULL; /* second ML array, only for subopt */
-PRIVATE int     *fM2      = NULL; /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
-PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies for circfolding */
-
-PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
-PRIVATE short   *S = NULL, *S1 = NULL;
-PRIVATE paramT  *P          = NULL;
-PRIVATE bondT   *base_pair2         = NULL; /* this replaces base_pair from fold_vars.c */
-PRIVATE int     circular            = 0;
-
-/* stuff needed for constrained folding */
 PRIVATE int     with_gquad          = 0;
 PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 
-PRIVATE int               struct_constrained  = 0;
-PRIVATE hard_constraintT  *hc                 = NULL;
-PRIVATE soft_constraintT  *sc                 = NULL;
-
-/* some (hopefully) temporary backward compatibility stuff */
+/* some backward compatibility stuff */
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(indx, c, f5, fML, fM1, fM2, Fc, FcH, FcI, FcM, hc, sc, backward_compat_compound, \
-                          sector, ptype, S, S1, P, base_pair2, circular, struct_constrained,\
-                          ggg, with_gquad)
+#pragma omp threadprivate(backward_compat_compound, ggg, with_gquad)
 
 #endif
 
@@ -91,12 +65,10 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  get_arrays(unsigned int size);
-PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(vrna_fold_compound *vc);
-PRIVATE void  fill_arrays_circ(const char *string, int *bt);
-PRIVATE void  init_fold(int length, paramT *parameters);
-
+PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
+PRIVATE plist *backtrack(bondT *bp_stack, sect bt_stack[], int s, vrna_fold_compound *vc);
+  
 /* deprecated functions */
 /*@unused@*/
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
@@ -109,48 +81,6 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-
-/* allocate memory for folding process */
-PRIVATE void init_fold(int length, paramT *parameters){
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  if (length<1) nrerror("initialize_fold: argument must be greater 0");
-  free_arrays();
-  get_arrays((unsigned) length);
-
-  indx = get_indx((unsigned)length);
-
-  update_fold_params_par(parameters);
-}
-
-/*--------------------------------------------------------------------------*/
-
-PRIVATE void get_arrays(unsigned int size){
-  if(size >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_arrays@fold.c: sequence length exceeds addressable range");
-
-  c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  if (uniq_ML)
-    fM1 = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-
-  f5    = (int *) space(sizeof(int)*(size+2));
-
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
-
-  /* extra array(s) for circfold() */
-  if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
-
-}
-
-INLINE void init_array(int *array, int alength, int value){
-  int i;
-  for(i = 0; i<alength; i++) array[i] = value;
-}
 
 PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
                                               unsigned int alloc_vector){
@@ -230,8 +160,10 @@ PUBLIC void destroy_mfe_matrices(mfe_matrices *self){
 
 PUBLIC void free_arrays(void){
   if(ggg)       free(ggg);ggg = NULL;
-  if(backward_compat_compound)
+  if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -244,12 +176,14 @@ PUBLIC void export_fold_arrays( int **f5_p,
                                 char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
-  *f5_p     = f5;
-  *c_p      = c;
-  *fML_p    = fML;
-  *fM1_p    = fM1;
-  *indx_p   = indx;
-  *ptype_p  = ptype;
+  if(backward_compat_compound){
+    *f5_p     = backward_compat_compound->matrices->f5;
+    *c_p      = backward_compat_compound->matrices->c;
+    *fML_p    = backward_compat_compound->matrices->fML;
+    *fM1_p    = backward_compat_compound->matrices->fM1;
+    *indx_p   = backward_compat_compound->jindx;
+    *ptype_p  = backward_compat_compound->ptype;
+  }
 }
 
 PUBLIC void export_fold_arrays_par( int **f5_p,
@@ -259,8 +193,11 @@ PUBLIC void export_fold_arrays_par( int **f5_p,
                                     int **indx_p,
                                     char **ptype_p,
                                     paramT **P_p){
+
   export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p,ptype_p);
-  *P_p = P;
+
+  if(backward_compat_compound)
+    *P_p  = backward_compat_compound->params;
 }
 
 PUBLIC void export_circfold_arrays( int *Fc_p,
@@ -274,18 +211,16 @@ PUBLIC void export_circfold_arrays( int *Fc_p,
                                     int **fM1_p,
                                     int **indx_p,
                                     char **ptype_p){
+
   /* make the DP arrays available to routines such as subopt() */
-  *f5_p     = f5;
-  *c_p      = c;
-  *fML_p    = fML;
-  *fM1_p    = fM1;
-  *fM2_p    = fM2;
-  *Fc_p     = Fc;
-  *FcH_p    = FcH;
-  *FcI_p    = FcI;
-  *FcM_p    = FcM;
-  *indx_p   = indx;
-  *ptype_p  = ptype;
+  export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
+  if(backward_compat_compound){
+    *Fc_p   = backward_compat_compound->matrices->Fc;
+    *FcH_p  = backward_compat_compound->matrices->FcH;
+    *FcI_p  = backward_compat_compound->matrices->FcI;
+    *FcM_p  = backward_compat_compound->matrices->FcM;
+    *fM2_p  = backward_compat_compound->matrices->fM2;
+  }
 }
 
 PUBLIC void export_circfold_arrays_par( int *Fc_p,
@@ -300,6 +235,7 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
                                     int **indx_p,
                                     char **ptype_p,
                                     paramT **P_p){
+
   export_circfold_arrays( Fc_p,
                           FcH_p,
                           FcI_p,
@@ -311,7 +247,8 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
                           fM1_p,
                           indx_p,
                           ptype_p);
-  *P_p = P;
+  if(backward_compat_compound)
+    *P_p  = backward_compat_compound->params;
 }
 
 PUBLIC vrna_fold_compound *
@@ -326,21 +263,45 @@ get_fold_compound_mfe_constrained(const char *sequence,
                                   soft_constraintT *sc,
                                   paramT *P){
 
-  vrna_fold_compound *vc;
+  vrna_fold_compound  *vc;
+  paramT              *params;
+  unsigned int        alloc_vector, length;
 
+  /* sanity check */
+  length = (sequence) ? strlen(sequence) : 0;
+  if(length == 0)
+    nrerror("get_fold_compound_mfe_constraint@fold.c: sequence length must be greater 0");
+
+    /* prepare the parameters datastructure */
+  if(P){
+    params = get_parameter_copy(P);
+  } else { /* this fallback relies on global parameters and thus is not threadsafe */
+    model_detailsT md;
+    set_model_details(&md);
+    params = get_scaled_parameters(temperature, md);
+  }
+
+  /* prepare the allocation vector for the folding matrices */
+  alloc_vector = ALLOC_MFE_DEFAULT;
+  if(params->model_details.circ)
+    alloc_vector |= ALLOC_MFE_CIRC;
+  if(params->model_details.uniq_ML)
+    alloc_vector |= ALLOC_MFE_UNIQ_ML;
+
+  /* start making the fold compound */
   vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
 
-  vc->params              = get_parameter_copy(P);
+  vc->params              = params;
 
   vc->sequence            = strdup(sequence);
   vc->length              = strlen(sequence);
-  vc->sequence_encoding   = get_sequence_encoding(sequence, 1, &(P->model_details));
-  vc->sequence_encoding2  = get_sequence_encoding(sequence, 0, &(P->model_details));
+  vc->sequence_encoding   = get_sequence_encoding(sequence, 1, &(params->model_details));
+  vc->sequence_encoding2  = get_sequence_encoding(sequence, 0, &(params->model_details));
 
   vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
   vc->exp_params          = NULL;
 
-  vc->matrices            = get_mfe_matrices_alloc(vc->length, ALLOC_MFE_DEFAULT);
+  vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
 
   vc->hc                  = hc ? hc : get_hard_constraints(sequence, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
   vc->sc                  = sc ? sc : NULL;
@@ -408,14 +369,26 @@ fold_par( const char *string,
   vrna_fold_compound  *vc;
   hard_constraintT    *my_hc;
   soft_constraintT    *my_sc;
+  paramT              *P;
 
   my_hc   = NULL;
   my_sc   = NULL;
   vc      = NULL;
   length  = strlen(string);
 
-  /* prepare global params data structure */
-  update_fold_params_par(parameters);
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  /* we need the parameter structure for hard constraints */
+  if(parameters)
+    P = get_parameter_copy(parameters);
+  else{
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
   if(is_constrained && structure){
@@ -437,32 +410,16 @@ fold_par( const char *string,
   /* no soft constraints available for simple interface */
   my_sc = NULL;
 
+  /* get compound structure */
   vc = get_fold_compound_mfe_constrained( string, my_hc, my_sc, P);
 
-  /* backward compatibility stuff */
-  if(base_pair2)
-    free(base_pair2);
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+length/2));
-
-  f5    = vc->matrices->f5;
-  c     = vc->matrices->c;
-  fML   = vc->matrices->fML;
-  indx  = vc->jindx;
-  sc    = vc->sc;
-  hc    = vc->hc;
-
-  S     = vc->sequence_encoding2;
-  S1    = vc->sequence_encoding;
-  ptype = vc->ptype;
-  hc    = vc->hc;
-  sc    = vc->sc;
-  
   if(backward_compat_compound)
     destroy_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
 
-
+  /* cleanup */
+  free(P);
 
   return vrna_fold(vc, structure);
 }
@@ -471,31 +428,38 @@ PUBLIC float
 vrna_fold(vrna_fold_compound *vc,
           char *structure){
 
-  int length, energy, s;
+  int     length, energy, s;
+  sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  bondT   *bp;
+
 
   s       = 0;
   length  = (int) vc->length;
 
   energy = fill_arrays(vc);
-  if(circular){
-    fill_arrays_circ(vc->sequence, &s);
-    energy = Fc;
+  if(vc->params->model_details.circ){
+    fill_arrays_circ(vc, bt_stack, &s);
+    energy = vc->matrices->Fc;
   }
-  backtrack(vc->sequence, s);
 
-  parenthesis_structure(structure, base_pair2, length);
+  bp = (bondT *)space(sizeof(bondT) * (1 + length/2));
+
+  backtrack(bp, bt_stack, s, vc);
+
+  parenthesis_structure(structure, bp, length);
 
   /*
   *  Backward compatibility:
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanish from within the package!
   */
-  base_pair = base_pair2;
+  if(base_pair) free(base_pair);
+  base_pair = bp;
 
   if (vc->params->model_details.backtrack_type=='C')
-    return (float) c[indx[length]+1]/100.;
+    return (float) vc->matrices->c[vc->jindx[length]+1]/100.;
   else if (vc->params->model_details.backtrack_type=='M')
-    return (float) fML[indx[length]+1]/100.;
+    return (float) vc->matrices->fML[vc->jindx[length]+1]/100.;
   else
     return (float) energy/100.;
 }
@@ -505,52 +469,40 @@ vrna_fold(vrna_fold_compound *vc,
 **/
 PRIVATE int fill_arrays(vrna_fold_compound *vc){
 
-  int   i, j, ij, length, energy;
-  int   new_c, stackEnergy;
-  int   no_close, type_2;
+  int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
+  int               noGUclosure, noLP, uniq_ML, with_gquads, *rtype, *indx;
+  int               *my_f5, *my_c, *my_fML, *my_fM1, hc_decompose, *hc_up_ml;
+  int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
+  int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
+  int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  char              type, *ptype, *hard_constraints;
+  short             *S, *S1;
+  paramT            *P;
+  mfe_matrices      *matrices;
+  hard_constraintT  *hc;
+  soft_constraintT  *sc;
 
-  char  type, *ptype;
-  paramT  *P;
-  int   noGUclosure, noLP, uniq_ML, with_gquads;
-  int   *rtype, *indx;
-
-  /* the folding matrices */
-  mfe_matrices *matrices;
-  int   *my_f5, *my_c, *my_fML, *my_fM1;
-
-  /* some auxilary matrices */
-  int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
-  int   *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
-  int   *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int   *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
-
-  /* constraints stuff */
-  hard_constraintT  *hc   = vc->hc;
-
-  int   hc_decompose;
-  char  *hard_constraints = hc->matrix;
-  int   *hc_up_ml         = hc->up_ml;
-
-  soft_constraintT  *sc   = vc->sc;
-
-  length        = (int)vc->length;
-
-  ptype         = vc->ptype;
-  indx          = vc->jindx;
-
-  P             = vc->params;
-  noGUclosure   = P->model_details.noGUclosure;
-  noLP          = P->model_details.noLP;
-  uniq_ML       = P->model_details.uniq_ML;
-  rtype         = &(P->model_details.rtype[0]);
-
-  /* dereference the folding matrices */
-  matrices  = vc->matrices;
-  my_f5     = matrices->f5;
-  my_c      = matrices->c;
-  my_fML    = matrices->fML;
-  my_fM1    = matrices->fM1;
+  length            = (int)vc->length;
+  ptype             = vc->ptype;
+  indx              = vc->jindx;
+  P                 = vc->params;
+  S                 = vc->sequence_encoding2;
+  S1                = vc->sequence_encoding;
+  noGUclosure       = P->model_details.noGUclosure;
+  noLP              = P->model_details.noLP;
+  uniq_ML           = P->model_details.uniq_ML;
+  rtype             = &(P->model_details.rtype[0]);
+  hc                = vc->hc;
+  hard_constraints  = hc->matrix;
+  hc_up_ml          = hc->up_ml;
+  sc                = vc->sc;
+  matrices          = vc->matrices;
+  my_f5             = matrices->f5;
+  my_c              = matrices->c;
+  my_fML            = matrices->fML;
+  my_fM1            = matrices->fM1;
 
   if(with_gquad)
     ggg = get_gquad_matrix(S, P);
@@ -682,7 +634,7 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
   return my_f5[length];
 }
 
-#include "ViennaRNA/circfold.inc"
+#include "circfold.inc"
 
 /**
 *** trace back through the "c", "f5" and "fML" arrays to get the
@@ -690,47 +642,60 @@ PRIVATE int fill_arrays(vrna_fold_compound *vc){
 *** This is fast, since only few structure elements are recalculated.
 ***
 *** normally s=0.
-*** If s>0 then s items have been already pushed onto the sector stack
+*** If s>0 then s items have been already pushed onto the bt_stack
 **/
-PRIVATE void backtrack(const char *string, int s) {
+PRIVATE plist *
+backtrack(bondT *bp_stack,
+          sect bt_stack[],
+          int s,
+          vrna_fold_compound *vc){
+
   int   i, j, ij, k, mm3, length, energy, en, new;
   int   no_close, type, type_2, tt, minq, maxq, c0, c1, c2, c3;
   int   b=0;
-  int   dangle_model  = P->model_details.dangles;
-  int   noLP          = P->model_details.noLP;
-  int   noGUclosure   = P->model_details.noGUclosure;
-  int   *rtype        = &(P->model_details.rtype[0]);
+  char  *string         = vc->sequence;
+  paramT  *P            = vc->params;
+  int     *indx         = vc->jindx;
+  char    *ptype        = vc->ptype;
+
+  short *S1             = vc->sequence_encoding;
+  int   dangle_model    = P->model_details.dangles;
+  int   noLP            = P->model_details.noLP;
+  int   noGUclosure     = P->model_details.noGUclosure;
+  int   *rtype          = &(P->model_details.rtype[0]);
+  char  backtrack_type = P->model_details.backtrack_type;
 
   /* the folding matrices */
   int   *my_f5, *my_c, *my_fML;
 
+  length  = vc->length;
+  my_f5   = vc->matrices->f5;
+  my_c    = vc->matrices->c;
+  my_fML  = vc->matrices->fML;
 
-  my_f5   = f5;
-  my_c    = c;
-  my_fML  = fML;
+  char  *hard_constraints = vc->hc->matrix;
+  int   *hc_up_ext        = vc->hc->up_ext;
+  int   *hc_up_hp         = vc->hc->up_hp;
+  int   *hc_up_int        = vc->hc->up_int;
+  int   *hc_up_ml         = vc->hc->up_ml;
 
-  char  *hard_constraints = hc->matrix;
-  int   *hc_up_ext        = hc->up_ext;
-  int   *hc_up_hp         = hc->up_hp;
-  int   *hc_up_int        = hc->up_int;
-  int   *hc_up_ml         = hc->up_ml;
+  soft_constraintT  *sc   = vc->sc;
 
-  length = strlen(string);
   if (s==0) {
-    sector[++s].i = 1;
-    sector[s].j = length;
-    sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')? 2: 0);
+    bt_stack[++s].i = 1;
+    bt_stack[s].j = length;
+    bt_stack[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')? 2: 0);
   }
   while (s>0) {
     int ml, fij, fi, cij, traced, i1, j1, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
-    i  = sector[s].i;
-    j  = sector[s].j;
-    ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
+    i  = bt_stack[s].i;
+    j  = bt_stack[s].j;
+    ml = bt_stack[s--].ml;   /* ml is a flag indicating if backtracking is to
                               occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
-      base_pair2[++b].i = i;
-      base_pair2[b].j   = j;
+      bp_stack[++b].i = i;
+      bp_stack[b].j   = j;
       goto repeat1;
     }
 
@@ -753,9 +718,9 @@ PRIVATE void backtrack(const char *string, int s) {
         fi += sc->free_energies[j][1];
 
     if (fij == fi) {  /* 3' end is unpaired */
-      sector[++s].i = i;
-      sector[s].j   = j-1;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = i;
+      bt_stack[s].j   = j-1;
+      bt_stack[s].ml  = ml;
       continue;
     }
 
@@ -874,10 +839,9 @@ PRIVATE void backtrack(const char *string, int s) {
         fprintf(stderr, "%s\n", string);
         nrerror("backtrack failed in f5");
       }
-      /* push back the remaining f5 portion */
-      sector[++s].i = 1;
-      sector[s].j   = jj;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = 1;
+      bt_stack[s].j   = jj;
+      bt_stack[s].ml  = ml;
 
       /* trace back the base pair found */
       i=k; j=traced;
@@ -887,8 +851,8 @@ PRIVATE void backtrack(const char *string, int s) {
         goto repeat_gquad;
       }
 
-      base_pair2[++b].i = i;
-      base_pair2[b].j   = j;
+      bp_stack[++b].i = i;
+      bp_stack[b].j   = j;
       goto repeat1;
     }
     else { /* trace back in fML array */
@@ -899,9 +863,9 @@ PRIVATE void backtrack(const char *string, int s) {
           en += sc->free_energies[i][1];
 
       if (en == fij) { /* 5' end is unpaired */
-        sector[++s].i = i+1;
-        sector[s].j   = j;
-        sector[s].ml  = ml;
+        bt_stack[++s].i = i+1;
+        bt_stack[s].j   = j;
+        bt_stack[s].ml  = ml;
         continue;
       }
 
@@ -918,40 +882,40 @@ PRIVATE void backtrack(const char *string, int s) {
       en  = my_c[ij];
       switch(dangle_model){
         case 0:   if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = j;
+                    bp_stack[++b].i = i;
+                    bp_stack[b].j   = j;
                     goto repeat1;
                   }
                   break;
 
         case 2:   if(fij == en + E_MLstem(tt, S1[i-1], S1[j+1], P)){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = j;
+                    bp_stack[++b].i = i;
+                    bp_stack[b].j   = j;
                     goto repeat1;
                   }
                   break;
 
         default:  if(fij == en + E_MLstem(tt, -1, -1, P)){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = j;
+                    bp_stack[++b].i = i;
+                    bp_stack[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[ij+1];
                   if(fij == my_c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
-                    base_pair2[++b].i = ++i;
-                    base_pair2[b].j   = j;
+                    bp_stack[++b].i = ++i;
+                    bp_stack[b].j   = j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i];
                   if(fij == my_c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
-                    base_pair2[++b].i = i;
-                    base_pair2[b].j   = --j;
+                    bp_stack[++b].i = i;
+                    bp_stack[b].j   = --j;
                     goto repeat1;
                   }
                   tt = ptype[indx[j-1]+i+1];
                   if(fij == my_c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
-                    base_pair2[++b].i = ++i;
-                    base_pair2[b].j   = --j;
+                    bp_stack[++b].i = ++i;
+                    bp_stack[b].j   = --j;
                     goto repeat1;
                   }
                   break;
@@ -972,12 +936,12 @@ PRIVATE void backtrack(const char *string, int s) {
               break;
         }
       }
-      sector[++s].i = i;
-      sector[s].j   = k;
-      sector[s].ml  = ml;
-      sector[++s].i = k+1;
-      sector[s].j   = j;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = i;
+      bt_stack[s].j   = k;
+      bt_stack[s].ml  = ml;
+      bt_stack[++s].i = k+1;
+      bt_stack[s].j   = j;
+      bt_stack[s].ml  = ml;
 
       if (k>j-2-TURN) nrerror("backtrack failed in fML");
       continue;
@@ -997,8 +961,8 @@ PRIVATE void backtrack(const char *string, int s) {
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
         cij -= P->stack[type][type_2];
-        base_pair2[++b].i = i+1;
-        base_pair2[b].j   = j-1;
+        bp_stack[++b].i = i+1;
+        bp_stack[b].j   = j-1;
         i++; j--;
         canonical=0;
         goto repeat1;
@@ -1043,8 +1007,8 @@ PRIVATE void backtrack(const char *string, int s) {
 
         traced = (cij == new);
         if (traced) {
-          base_pair2[++b].i = p;
-          base_pair2[b].j   = q;
+          bp_stack[++b].i = p;
+          bp_stack[b].j   = q;
           i = p, j = q;
           goto repeat1;
         }
@@ -1070,7 +1034,7 @@ PRIVATE void backtrack(const char *string, int s) {
       }
     }
 
-    sector[s+1].ml  = sector[s+2].ml = 1;
+    bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
 
     switch(dangle_model){
       case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing;
@@ -1113,7 +1077,7 @@ PRIVATE void backtrack(const char *string, int s) {
                       en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
                         ml = 2;
-                        sector[s+1].ml  = 2;
+                        bt_stack[s+1].ml  = 2;
                         traced = 1;
                         break;
                       }
@@ -1122,7 +1086,7 @@ PRIVATE void backtrack(const char *string, int s) {
                     if (type_2) {
                       en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
-                        sector[s+2].ml = 2;
+                        bt_stack[s+2].ml = 2;
                         traced = 1;
                         break;
                       }
@@ -1133,10 +1097,10 @@ PRIVATE void backtrack(const char *string, int s) {
     }
 
     if (k<=j-3-TURN) { /* found the decomposition */
-      sector[++s].i = i1;
-      sector[s].j   = k;
-      sector[++s].i = k+1;
-      sector[s].j   = j1;
+      bt_stack[++s].i = i1;
+      bt_stack[s].j   = k;
+      bt_stack[++s].i = k+1;
+      bt_stack[s].j   = j1;
     } else {
 #if 0
       /* Y shaped ML loops fon't work yet */
@@ -1155,8 +1119,8 @@ PRIVATE void backtrack(const char *string, int s) {
           if (cij != fML[indx[j-1]+i+1] + mm + P->MLbase)
             fprintf(stderr,  "backtracking failed in repeat");
         /* if we arrive here we can express cij via fML[i1,j1]+dangles */
-        sector[++s].i = i1;
-        sector[s].j   = j1;
+        bt_stack[++s].i = i1;
+        bt_stack[s].j   = j1;
       }
       else
 #endif
@@ -1196,21 +1160,36 @@ PRIVATE void backtrack(const char *string, int s) {
 
   } /* end of infinite while loop */
 
-  base_pair2[0].i = b;    /* save the total number of base pairs */
+  bp_stack[0].i = b;    /* save the total number of base pairs */
 }
 
 PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
-  char *structure;
-  sector[1].i  = i;
-  sector[1].j  = j;
-  sector[1].ml = 2;
-  base_pair2[0].i=0;
-  S   = get_sequence_encoding(sequence, 0, &(P->model_details));
-  S1  = get_sequence_encoding(sequence, 1, &(P->model_details));
-  backtrack(sequence, 1);
-  structure = (char *) space((strlen(sequence)+1)*sizeof(char));
-  parenthesis_structure(structure, base_pair2, strlen(sequence));
-  free(S);free(S1);
+  char          *structure;
+  unsigned int  length;
+  bondT         *bp;
+  sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+
+  if(sequence){
+    length = strlen(sequence);
+    structure = (char *) space((length + 1)*sizeof(char));
+    bp = (bondT *)space(sizeof(bondT) * (1+length/2));
+  } else {
+    nrerror("backtrack_fold_from_pair@fold.c: no sequence given");
+  }
+
+  bt_stack[1].i  = i;
+  bt_stack[1].j  = j;
+  bt_stack[1].ml = 2;
+
+  bp[0].i = 0; /* ??? this is set by backtrack anyway... */
+
+  backtrack(bp, bt_stack, 1, backward_compat_compound);
+  parenthesis_structure(structure, bp, length);
+
+  /* backward compatibitlity stuff */
+  if(base_pair) free(base_pair);
+  base_pair = bp;
+
   return structure;
 }
 
@@ -1294,17 +1273,28 @@ PUBLIC void update_fold_params(void){
 }
 
 PUBLIC void update_fold_params_par(paramT *parameters){
-  if(P) free(P);
-  if(parameters){
-    P = get_parameter_copy(parameters);
-  } else {
-    model_detailsT md;
-    set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
-  }
-
-  fill_pair_matrices(&(P->model_details));
+  vrna_update_fold_params(parameters, backward_compat_compound);
 }
+
+PUBLIC  void
+vrna_update_fold_params(paramT *parameters, vrna_fold_compound *vc){
+
+  if(vc){
+    if(vc->params)
+      free(vc->params);
+    if(parameters){
+      vc->params = get_parameter_copy(parameters);
+    } else {
+      model_detailsT md;
+      set_model_details(&md);
+      vc->params = get_scaled_parameters(temperature, md);
+    }
+
+    /* what about re-setting the backward compatibility compound here? */
+    backward_compat_compound = vc;
+  }
+}
+
 
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
   /* convert bracket string to plist */
@@ -1352,7 +1342,11 @@ PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
+#define NEW_NINIO         1       /* new asymetry penalty */
+
 PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
+  paramT  *P  = backward_compat_compound->params;
   int energy;
 
   energy = (size <= 30) ? P->hairpin[size] :
@@ -1391,6 +1385,10 @@ PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
+
+  paramT  *P  = backward_compat_compound->params;
+  short   *S1 = backward_compat_compound->sequence_encoding;
+
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int n1, n2, m, energy;
   n1 = p-i-1;
@@ -1434,6 +1432,8 @@ PUBLIC int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
 
 PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
                       int si1, int sj1, int sp1, int sq1) {
+
+  paramT  *P  = backward_compat_compound->params;
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
 
