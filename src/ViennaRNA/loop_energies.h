@@ -370,21 +370,24 @@ INLINE  PRIVATE int E_hp_loop(int i,
   int u = j - i - 1;
   int e;
 
-  short   *S      = vc->sequence_encoding;
-  int     *idx    = vc->jindx;
-  int     type    = vc->ptype[idx[j]+i];
-  paramT  *P      = vc->params;
-  char    hc      = vc->hc->matrix[idx[j]+i];
-  int     *hc_up  = vc->hc->up_hp;
+  short   *S        = vc->sequence_encoding;
+  int     *idx      = vc->jindx;
+  int     type      = vc->ptype[idx[j]+i];
+  paramT  *P        = vc->params;
+  char    hc        = vc->hc->matrix[idx[j]+i];
+  int     *hc_up    = vc->hc->up_hp;
+  soft_constraintT  *sc = vc->sc;
 
   /* is this base pair allowed to close a hairpin loop ? */
   if(hc & IN_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
       e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
-      if(vc->sc){
-        if(vc->sc->free_energies)
-          e += vc->sc->free_energies[i+1][u];
+      if(sc){
+        if(sc->free_energies)
+          e += sc->free_energies[i+1][u];
+        if(sc->f)
+          e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
       return e;
     }
@@ -396,9 +399,14 @@ INLINE PRIVATE int E_int_loop(int i,
                               int j,
                               vrna_fold_compound *vc){
 
-  int q, p, j_q, p_i, pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
+  int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
+  short *S_p1, *S_q1;
+  char              *ptype_pq;
+  char              *hc_pq;
   char              *ptype        = vc->ptype;
   short             *S            = vc->sequence_encoding;
+  short             S_i1          = S[i+1];
+  short             S_j1          = S[j-1];
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_int;
@@ -422,38 +430,51 @@ INLINE PRIVATE int E_int_loop(int i,
       j_q = j - q - 1;
 
       if(hc_up[q+1] < j_q) break;
-      pq = indx[q] + i + 1;
-      p_i = 0;
 
-      max_p = i + 1;
-      tmp   = i + 1 + MAXLOOP - j_q;
-      max_p = MAX2(max_p, tmp);
-      tmp   = q - TURN;
-      max_p = MIN2(max_p, tmp);
-      tmp   = i + 1 + hc_up[i + 1];
-      max_p = MIN2(max_p, tmp);
-      for(p = i+1; p <= max_p; p++, pq++, p_i++){
+      pq        = indx[q] + i + 1;
+      p_i       = 0;
+      max_p     = i + 1;
+      tmp       = i + 1 + MAXLOOP - j_q;
+      max_p     = MAX2(max_p, tmp);
+      tmp       = q - TURN;
+      max_p     = MIN2(max_p, tmp);
+      tmp       = i + 1 + hc_up[i + 1];
+      max_p     = MIN2(max_p, tmp);
+      hc_pq     = hc + pq;
+      c_pq      = c + pq;
+      ptype_pq  = ptype + pq;
+      S_p1      = S + i;
+      S_q1      = S + q + 1;
+      for(p = i+1; p <= max_p; p++){
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if(hc[pq] & IN_INT_LOOP_ENC){
+        if(*hc_pq & IN_INT_LOOP_ENC){
 
-          type_2 = rtype[ptype[pq]];
+          type_2 = rtype[*ptype_pq];
 
           if (noGUclosure)
             if (no_close||(type_2==3)||(type_2==4))
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          energy = E_IntLoop(p_i, j_q, type, type_2, S[i+1], S[j-1], S[p-1], S[q+1], P);
-          energy += c[pq];
+          energy = E_IntLoop(p_i, j_q, type, type_2, S_i1, S_j1, *S_p1, *S_q1, P);
+          energy += *c_pq;
 
           /* add soft constraints */
-          if(sc)
+          if(sc){
             if(sc->free_energies)
               energy += sc->free_energies[i+1][p_i] + sc->free_energies[q+1][j_q];
+            if(sc->f)
+              energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+          }
 
           e = MIN2(e, energy);
 
         }
+        hc_pq++;    /* get hc[pq + 1] */
+        c_pq++;     /* get c[pq + 1] */
+        p_i++;      /* increase unpaired region [i+1...p-1] */
+        ptype_pq++; /* get ptype[pq + 1] */
+        S_p1++;
       } /* end q-loop */
     } /* end p-loop */
   }
@@ -470,6 +491,8 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
 
   char              *ptype  = vc->ptype;
   short             *S      = vc->sequence_encoding;
+  short             S_i1    = S[i+1];
+  short             S_j1    = S[j-1];
   int               *indx   = vc->jindx;
   char              *hc     = vc->hc->matrix;
   int               *hc_up  = vc->hc->up_ml;
@@ -496,21 +519,25 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
                 break;
 
       /* double dangles */
-      case 2:   decomp += E_MLstem(tt, S[j-1], S[i+1], P);
+      case 2:   decomp += E_MLstem(tt, S_j1, S_i1, P);
                 break;
 
       /* normal dangles, aka dangles = 1 || 3 */
       default:  decomp += E_MLstem(tt, -1, -1, P);
                 if(hc_up[i+1]){
-                  en = dmli2[j-1] + E_MLstem(tt, -1, S[i+1], P) + P->MLbase;
+                  en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+                  if(sc){
+                    if(sc->free_energies)
+                      en += sc->free_energies[i+1][1];
+                  }
                   decomp = MIN2(decomp, en);
                 }
                 if(hc_up[j-1] && hc_up[i+1]){
-                  en = dmli2[j-2] + E_MLstem(tt, S[j-1], S[i+1], P) + 2*P->MLbase;
+                  en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
                   decomp = MIN2(decomp, en);
                 }
                 if(hc_up[j-1]){
-                  en = dmli1[j-2] + E_MLstem(tt, S[j-1], -1, P) + P->MLbase;
+                  en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
                   decomp = MIN2(decomp, en);
                 }
                 break;
@@ -717,7 +744,7 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
 
 INLINE PRIVATE void E_ext_loop_5( vrna_fold_compound  *vc){
 
-  int en, i, j, type;
+  int en, i, j, ij, type;
   int               length        = (int)vc->length;
   char              *ptype        = vc->ptype;
   short             *S            = vc->sequence_encoding;
@@ -728,7 +755,6 @@ INLINE PRIVATE void E_ext_loop_5( vrna_fold_compound  *vc){
   int               *f5           = vc->matrices->f5;
   int               *c            = vc->matrices->c;
   paramT            *P            = vc->params;
-  int               ij            = indx[j] + i;
   int               dangle_model  = P->model_details.dangles;
 
   f5[0] = 0;

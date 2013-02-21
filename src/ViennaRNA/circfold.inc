@@ -2,7 +2,7 @@
 /* this file contains code for folding circular RNAs */
 /* it's #include'd into fold.c */
 
-PRIVATE void fill_arrays_circ(const char *string, int *bt){
+PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
   /* variant of fold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -14,19 +14,26 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   */
   int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
+  int FcH, FcI, FcM, Fc, *fM2;
   int i,j, p,q,length, energy;
 
   /* the folding matrices */
   int   *my_c, *my_fML;
+
+  paramT  *P          = vc->params;
+  char *string        = vc->sequence;
+  char *ptype         = vc->ptype;
+  int   *indx         = vc->jindx;
+  short *S1           = vc->sequence_encoding;
 
   int   dangle_model  = P->model_details.dangles;
   int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
 
   /* dereference of the folding matrices */
-  my_c    = c;
-  my_fML  = fML;
-
+  my_c    = vc->matrices->c;
+  my_fML  = vc->matrices->fML;
+  fM2     = vc->matrices->fM2;
 
   length = (int) strlen(string);
 
@@ -144,35 +151,35 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
     }
     if (FcMd5<MIN2(Fc,FcMd3)) {
       /* looks like we have to do this ... */
-      sector[++(*bt)].i = 1;
-      sector[(*bt)].j = (Md5i>0)?Md5i:-Md5i;
-      sector[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = 1;
+      bt_stack[(*bt)].j = (Md5i>0)?Md5i:-Md5i;
+      bt_stack[(*bt)].ml = 2;
       i = (Md5i>0)?Md5i+1 : -Md5i+2; /* let's backtrack fm_d5[Md5i+1] */
       for (u=i+TURN; u<length-TURN; u++)
         if (fM_d5[i] == my_fML[indx[u]+i] + my_fML[indx[length-1]+u+1]) {
-          sector[++(*bt)].i = i;
-          sector[(*bt)].j = u;
-          sector[(*bt)].ml = 1;
-          sector[++(*bt)].i =u+1;
-          sector[(*bt)].j = length-1;
-          sector[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i = i;
+          bt_stack[(*bt)].j = u;
+          bt_stack[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i =u+1;
+          bt_stack[(*bt)].j = length-1;
+          bt_stack[(*bt)].ml = 1;
           break;
         }
       Fc = FcMd5;
     } else if (FcMd3<Fc) {
       /* here we go again... */
-      sector[++(*bt)].i = (Md3i>0)?Md3i+1:-Md3i+1;
-      sector[(*bt)].j = length;
-      sector[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = (Md3i>0)?Md3i+1:-Md3i+1;
+      bt_stack[(*bt)].j = length;
+      bt_stack[(*bt)].ml = 2;
       i = (Md3i>0)? Md3i : -Md3i-1; /* let's backtrack fm_d3[Md3i] */
       for (u=2+TURN; u<i-TURN; u++)
         if (fM_d3[i] == my_fML[indx[u]+2] + my_fML[indx[i]+u+1]) {
-          sector[++(*bt)].i = 2;
-          sector[(*bt)].j = u;
-          sector[(*bt)].ml = 1;
-          sector[++(*bt)].i =u+1;
-          sector[(*bt)].j = i;
-          sector[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i = 2;
+          bt_stack[(*bt)].j = u;
+          bt_stack[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i =u+1;
+          bt_stack[(*bt)].j = i;
+          bt_stack[(*bt)].ml = 1;
           break;
         }
       Fc = FcMd3;
@@ -182,17 +189,17 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
   }
   else if(Fc < INF){
     if (FcH==Fc) {
-      sector[++(*bt)].i = Hi;
-      sector[(*bt)].j = Hj;
-      sector[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = Hi;
+      bt_stack[(*bt)].j = Hj;
+      bt_stack[(*bt)].ml = 2;
     }
     else if (FcI==Fc) {
-      sector[++(*bt)].i = Ii;
-      sector[(*bt)].j = Ij;
-      sector[(*bt)].ml = 2;
-      sector[++(*bt)].i = Ip;
-      sector[(*bt)].j = Iq;
-      sector[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = Ii;
+      bt_stack[(*bt)].j = Ij;
+      bt_stack[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = Ip;
+      bt_stack[(*bt)].j = Iq;
+      bt_stack[(*bt)].ml = 2;
     }
     else if (FcM==Fc) { /* grumpf we found a Multiloop */
       int fm, u;
@@ -200,18 +207,22 @@ PRIVATE void fill_arrays_circ(const char *string, int *bt){
       fm = fM2[Mi+1];
       for (u=Mi+TURN+1; u<length-TURN; u++)
         if (fm == my_fML[indx[u]+Mi+1] + my_fML[indx[length]+u+1]) {
-                sector[++(*bt)].i=Mi+1;
-                sector[(*bt)].j=u;
-                sector[(*bt)].ml = 1;
-                sector[++(*bt)].i=u+1;
-                sector[(*bt)].j=length;
-                sector[(*bt)].ml = 1;
+                bt_stack[++(*bt)].i=Mi+1;
+                bt_stack[(*bt)].j=u;
+                bt_stack[(*bt)].ml = 1;
+                bt_stack[++(*bt)].i=u+1;
+                bt_stack[(*bt)].j=length;
+                bt_stack[(*bt)].ml = 1;
                 break;
         }
-      sector[++(*bt)].i = 1;
-      sector[(*bt)].j = Mi;
-      sector[(*bt)].ml = 1;
+      bt_stack[++(*bt)].i = 1;
+      bt_stack[(*bt)].j = Mi;
+      bt_stack[(*bt)].ml = 1;
     }
   }
+  vc->matrices->FcH = FcH;
+  vc->matrices->FcI = FcI;
+  vc->matrices->FcM = FcM;
+  vc->matrices->Fc  = Fc;
 }
 
