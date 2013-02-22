@@ -48,13 +48,6 @@
  *  @}
  */
 
-mfe_matrices  *get_mfe_matrices_alloc(  unsigned int n,
-                                        unsigned int alloc_vector);
-
-void destroy_mfe_matrices(mfe_matrices *self);
-
-void destroy_fold_compound(vrna_fold_compound *vc);
-
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence
@@ -149,14 +142,6 @@ float fold( const char *sequence,
 float circfold( const char *sequence,
                 char *structure);
 
-
-vrna_fold_compound *get_fold_compound_mfe(const char *sequence,
-                                          paramT *P);
-
-vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
-                                                      hard_constraintT *hc,
-                                                      soft_constraintT *sc,
-                                                      paramT *P);
 
 /**
  *  \brief Free arrays for mfe folding

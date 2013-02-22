@@ -109,16 +109,18 @@ typedef struct bondTEn {
 #define ALLOC_FM1         32
 #define ALLOC_FM2         64
 
-#define ALLOC_MFE_DEFAULT (ALLOC_F5 | ALLOC_C | ALLOC_FML)
-#define ALLOC_MFE_UNIQ_ML (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1)
-#define ALLOC_MFE_CIRC    (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1 | ALLOC_FM2)
+#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
+#define ALLOC_MFE_UNIQ_ML         (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1)
+#define ALLOC_MFE_CIRC            (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1 | ALLOC_FM2)
+#define ALLOC_MFE_HYBRID          (ALLOC_MFE_DEFAULT | ALLOC_FC)
+#define ALLOC_MFE_HYBRID_UNIQ_ML  (ALLOC_MFE_HYBRID | ALLOC_FM1)
 
 typedef struct{
   unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
   int     *c;   /* energy array, given that i-j pair */
   int     *f5;  /* energy of 5' end */
   int     *f3;  /* energy of 3' end */
-  int     *fc;  /* energy of 3' end (cofolding) */
+  int     *fc;  /* energy from i to cutpoint (and vice versa if i>cut) */
   int     *fML; /* multi-loop auxiliary energy array */
   int     *fM1; /* second ML array, only for subopt */
   int     *fM2; /* fM2 = multiloop region with exactly two stems, extending to 3' end */
@@ -150,6 +152,7 @@ typedef struct{
   int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
   int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
   int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
+  int     do_backtrack;     /**<  \brief  Specifies whether or not backtracking will be performed */
   char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
   int     rtype[8];
@@ -337,6 +340,7 @@ typedef struct {
 typedef struct{
 
   unsigned int length;
+  int   cutpoint;
   char  *sequence;
   short *sequence_encoding;
   short *sequence_encoding2;
@@ -905,5 +909,28 @@ typedef struct{
   FLT_OR_DBL      Q_cM_rem;
 
 } TwoDpfold_vars;
+
+
+/*
+* ############################################################
+* Useful functions to retrieve/destroy data structures
+* ############################################################
+*/
+
+mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
+                                       unsigned int alloc_vector);
+
+void destroy_mfe_matrices(mfe_matrices *self);
+
+vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
+
+vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
+                                                      hard_constraintT *hc,
+                                                      soft_constraintT *sc,
+                                                      paramT *P);
+
+void destroy_fold_compound(vrna_fold_compound *vc);
+
+
 
 #endif

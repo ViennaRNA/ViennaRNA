@@ -95,6 +95,7 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->canonicalBPonly = canonicalBPonly;
     md->circ            = circ;
     md->uniq_ML         = uniq_ML;
+    md->do_backtrack    = do_backtrack;
     md->backtrack_type  = backtrack_type;
     md->energy_set      = energy_set;
     if(nonstandards){

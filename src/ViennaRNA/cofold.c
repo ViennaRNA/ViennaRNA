@@ -32,8 +32,6 @@
 #include <omp.h>
 #endif
 
-#define PAREN
-
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
 #define MAXSECTORS        500     /* dimension for a backtrack array */
@@ -56,24 +54,10 @@
 #################################
 */
 
+/* some backward compatibility stuff */
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+
 PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
-PRIVATE int     *indx   = NULL;   /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int     *c      = NULL;   /* energy array, given that i-j pair */
-PRIVATE int     *cc     = NULL;   /* linear array for calculating canonical structures */
-PRIVATE int     *cc1    = NULL;   /*   "     "        */
-PRIVATE int     *f5     = NULL;   /* energy of 5' end */
-PRIVATE int     *fc     = NULL;   /* energy from i to cutpoint (and vice versa if i>cut) */
-PRIVATE int     *fML    = NULL;   /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1    = NULL;   /* second ML array, only for subopt */
-PRIVATE int     *Fmi    = NULL;   /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int     *DMLi   = NULL;   /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi1  = NULL;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi2  = NULL;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char    *ptype  = NULL;   /* precomputed array of pair types */
-PRIVATE short   *S = NULL, *S1 = NULL;
-PRIVATE paramT  *P          = NULL;
-PRIVATE int     init_length = -1;
-PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
 PRIVATE bondT   *base_pair2 = NULL;
@@ -82,13 +66,10 @@ PRIVATE int     with_gquad          = 0;
 PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 
 PRIVATE int               struct_constrained  = 0;
-PRIVATE hard_constraintT  *hc                 = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(mfe1, mfe2, indx, c, cc, cc1, f5, fc, fML, fM1, Fmi, DMLi, DMLi1, DMLi2,\
-                          ptype, S, S1, P, zuker, sector, length, base_pair2, struct_constrained, hc,\
-                          ggg, with_gquad)
+#pragma omp threadprivate(mfe1, mfe2, sector, length, base_pair2, struct_constrained, backward_compat_compound, ggg, with_gquad))
 
 #endif
 
@@ -101,7 +82,7 @@ PRIVATE hard_constraintT  *hc                 = NULL;
 PRIVATE void  init_cofold(int length, paramT *parameters);
 PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  backtrack(const char *sequence);
-PRIVATE int   fill_arrays(const char *sequence);
+PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start);
 
 /*
@@ -110,74 +91,14 @@ PRIVATE void  free_end(int *array, int i, int start);
 #################################
 */
 
-/*--------------------------------------------------------------------------*/
-PRIVATE void init_cofold(int length, paramT *parameters){
+PUBLIC void
+free_co_arrays(void){
 
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  if (length<1) nrerror("init_cofold: argument must be greater 0");
-  free_co_arrays();
-  get_arrays((unsigned) length);
-  init_length=length;
-
-  indx = get_indx((unsigned) length);
-
-  update_cofold_params_par(parameters);
-}
-
-/*--------------------------------------------------------------------------*/
-
-PRIVATE void get_arrays(unsigned int size){
-  if(size >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_arrays@cofold.c: sequence length exceeds addressable range");
-
-  c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  if (uniq_ML)
-    fM1    = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-
-  ptype = (char *) space(sizeof(char)*((size*(size+1))/2+2));
-  f5    = (int *) space(sizeof(int)*(size+2));
-  fc    = (int *) space(sizeof(int)*(size+2));
-  cc    = (int *) space(sizeof(int)*(size+2));
-  cc1   = (int *) space(sizeof(int)*(size+2));
-  Fmi   = (int *) space(sizeof(int)*(size+1));
-  DMLi  = (int *) space(sizeof(int)*(size+1));
-  DMLi1 = (int *) space(sizeof(int)*(size+1));
-  DMLi2 = (int *) space(sizeof(int)*(size+1));
-
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
-}
-
-/*--------------------------------------------------------------------------*/
-
-PUBLIC void free_co_arrays(void){
-  if(indx)        free(indx);
-  if(c)           free(c);
-  if(fML)         free(fML);
-  if(f5)          free(f5);
-  if(cc)          free(cc);
-  if(cc1)         free(cc1);
-  if(fc)          free(fc);
-  if(ptype)       free(ptype);
-  if(fM1)         free(fM1);
-  if(base_pair2)  free(base_pair2);
-  if(Fmi)         free(Fmi);
-  if(DMLi)        free(DMLi);
-  if(DMLi1)       free(DMLi1);
-  if(DMLi2)       free(DMLi2);
-  if(P)           free(P);
-  if(ggg)         free(ggg);
-  if(hc)        destroy_hard_constraints(hc);
-  indx = c = fML = f5 = cc = cc1 = fc = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
-  ptype       = NULL;
-  hc          = NULL;
-  base_pair2  = NULL;
-  P           = NULL;
-  init_length = 0;
+  if(ggg)         free(ggg);ggg = NULL;
+  if(backward_compat_compound){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
 }
 
 
@@ -209,35 +130,53 @@ PUBLIC void export_cofold_arrays( int **f5_p,
                                   char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
-  *f5_p = f5; *c_p = c;
-  *fML_p = fML; *fM1_p = fM1;
-  *indx_p = indx; *ptype_p = ptype;
-  *fc_p =fc;
 }
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC float cofold(const char *string, char *structure) {
+PUBLIC float
+cofold( const char *string,
+        char *structure){
+
   return cofold_par(string, structure, NULL, fold_constrained);
 }
 
-PUBLIC float cofold_par(const char *string,
-                        char *structure,
-                        paramT *parameters,
-                        int is_constrained){
+PUBLIC float
+cofold_par( const char *string,
+            char *structure,
+            paramT *parameters,
+            int is_constrained){
 
-  int i, length, energy;
-  unsigned int constraint_options;
+  unsigned int        length;
+  char                *seq;
+  vrna_fold_compound  *vc;
+  hard_constraintT    *my_hc;
+  soft_constraintT    *my_sc;
+  paramT              *P;
 
-  zuker = 0;
+  my_hc   = NULL;
+  my_sc   = NULL;
+  vc      = NULL;
+  length  = strlen(string);
 
-  struct_constrained  = is_constrained;
-  length              = (int) strlen(string);
-  constraint_options  = 0;
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
 
-  /* prepare constraint options */
-  if(struct_constrained && structure)
-    constraint_options |=   VRNA_CONSTRAINT_DB
+  /* we need the parameter structure for hard constraints */
+  if(parameters)
+    P = get_parameter_copy(parameters);
+  else{
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
                           | VRNA_CONSTRAINT_PIPE
                           | VRNA_CONSTRAINT_DOT
                           | VRNA_CONSTRAINT_X
@@ -246,36 +185,62 @@ PUBLIC float cofold_par(const char *string,
                           | VRNA_CONSTRAINT_INTRAMOLECULAR
                           | VRNA_CONSTRAINT_INTERMOLECULAR;
 
-#ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_cofold(length, parameters);
-#else
-  if(parameters) init_cofold(length, parameters);
-  else if (length>init_length) init_cofold(length, parameters);
-  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
-#endif
+    my_hc = get_hard_constraints( string,
+                                  (const char *)structure,
+                                  &(P->model_details),
+                                  TURN,
+                                  constraint_options);
+  }
 
   with_gquad  = P->model_details.gquad;
-  S     = get_sequence_encoding(string, 0, &(P->model_details));
-  S1    = get_sequence_encoding(string, 1, &(P->model_details));
-  ptype = get_ptypes(S, &(P->model_details), 0);
-  hc    = get_hard_constraints( string,
-                                (const char *)structure,
-                                &(P->model_details),
-                                TURN,
-                                constraint_options);
 
-  S1[0] = S[0]; /* store length at pos. 0 in S1 too */
+  /* no soft constraints available for simple interface */
+  my_sc = NULL;
 
-  energy = fill_arrays(string);
+  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
+  seq = (char *)space(sizeof(char) * (length + 2));
+  if(cut_point > -1){
+    int i;
+    for(i = 0; i < cut_point; i++)
+      seq[i] = string[i];
+    seq[i++] = '&';
+    for(;i<(int)length;i++)
+      seq[i] = string[i];
+  } else { /* this ensures the allocation of all cofold matrices */
+    seq[0] = '&';
+    strcat(seq + 1, string);
+  }
 
-  backtrack(string);
+  /* get compound structure */
+  vc = get_fold_compound_mfe_constrained( seq, my_hc, my_sc, P);
 
-#ifdef PAREN
+  if(backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
+
+  backward_compat_compound = vc;
+
+  /* cleanup */
+  free(P);
+  free(seq);
+
+  return vrna_cofold(vc, structure);
+}
+
+PUBLIC float
+vrna_cofold(vrna_fold_compound *vc,
+            char *structure){
+
+  int i, length, energy;
+
+  length              = (int) vc->length;
+
+  vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
+
+  energy = fill_arrays(vc, 0);
+
+  backtrack(vc->sequence);
+
   parenthesis_structure(structure, base_pair2, length);
-#else
-  letter_structure(structure, base_pair2, length);
-#endif
 
   /*
   *  Backward compatibility:
@@ -291,39 +256,72 @@ PUBLIC float cofold_par(const char *string,
   }
   */
 
-  free(S); free(S1);
-
-  if (backtrack_type=='C')
-    return (float) c[indx[length]+1]/100.;
-  else if (backtrack_type=='M')
-    return (float) fML[indx[length]+1]/100.;
+  if (vc->params->model_details.backtrack_type=='C')
+    return (float) vc->matrices->c[vc->jindx[length]+1]/100.;
+  else if (vc->params->model_details.backtrack_type=='M')
+    return (float) vc->matrices->fML[vc->jindx[length]+1]/100.;
   else
     return (float) energy/100.;
 }
 
-PRIVATE int fill_arrays(const char *string) {
+PRIVATE int
+fill_arrays(vrna_fold_compound *vc,
+            int zuker){
+
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
-  int   decomp, new_fML, max_separation;
-  int   no_close, type, type_2, tt, maxj;
+  int   decomp, new_fML, max_separation, cut_point, uniq_ML;
+  int   no_close, type, type_2, tt, maxj, *indx;
+  int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc;
+  int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
+  int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
+  int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
-  int   dangle_model, noGUclosure, noLP;
+  int   dangle_model, noGUclosure, noLP, hc_decompose;
   int   *rtype;
+  char              *ptype, *hard_constraints;
+  short             *S, *S1;
+  paramT            *P;
+  mfe_matrices      *matrices;
+  hard_constraintT  *hc;
+  soft_constraintT  *sc;
 
-  int   hc_decompose;
-  char  *hard_constraints = hc->matrix;
+  length            = (int)vc->length;
+  ptype             = vc->ptype;
+  indx              = vc->jindx;
+  P                 = vc->params;
+  S                 = vc->sequence_encoding2;
+  S1                = vc->sequence_encoding;
+  dangle_model      = P->model_details.dangles;
+  noGUclosure       = P->model_details.noGUclosure;
+  noLP              = P->model_details.noLP;
+  uniq_ML           = P->model_details.uniq_ML;
+  rtype             = &(P->model_details.rtype[0]);
+  hc                = vc->hc;
+  hard_constraints  = hc->matrix;
+  sc                = vc->sc;
+  matrices          = vc->matrices;
+  my_f5             = matrices->f5;
+  my_c              = matrices->c;
+  my_fML            = matrices->fML;
+  my_fM1            = matrices->fM1;
+  my_fc             = matrices->fc;
+
   int   *hc_up_ext        = hc->up_ext;
   int   *hc_up_hp         = hc->up_hp;
   int   *hc_up_int        = hc->up_int;
   int   *hc_up_ml         = hc->up_ml;
 
-  dangle_model  = P->model_details.dangles;
-  noGUclosure   = P->model_details.noGUclosure;
-  noLP          = P->model_details.noLP;
-  rtype         = &(P->model_details.rtype[0]);
-
-  length = (int) strlen(string);
+  /* allocate memory for all helper arrays */
+  cc    = (int *) space(sizeof(int)*(length + 2));
+  cc1   = (int *) space(sizeof(int)*(length + 2));
+  Fmi   = (int *) space(sizeof(int)*(length + 1));
+  DMLi  = (int *) space(sizeof(int)*(length + 1));
+  DMLi1 = (int *) space(sizeof(int)*(length + 1));
+  DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
 
@@ -332,13 +330,13 @@ PRIVATE int fill_arrays(const char *string) {
 
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
-    fc[j]=0;
+    my_fc[j]=0;
   }
 
   for (j = 1; j<=length; j++)
     for (i=1; i<=j; i++) {
-      c[indx[j]+i] = fML[indx[j]+i] = INF;
-      if (uniq_ML) fM1[indx[j]+i] = INF;
+      my_c[indx[j]+i] = my_fML[indx[j]+i] = INF;
+      if (uniq_ML) my_fM1[indx[j]+i] = INF;
     }
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
@@ -409,7 +407,7 @@ PRIVATE int fill_arrays(const char *string) {
                                     dangle_model,
                                     P);
 
-            new_c = MIN2(new_c, energy+c[indx[q]+p]);
+            new_c = MIN2(new_c, energy+my_c[indx[q]+p]);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
           } /* end q-loop */
@@ -453,7 +451,7 @@ PRIVATE int fill_arrays(const char *string) {
 
           if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
             if(hard_constraints[ij] & IN_EXT_LOOP){
-              decomp = fc[i+1] + fc[j-1];
+              decomp = my_fc[i+1] + my_fc[j-1];
               tt = rtype[type];
               switch(dangle_model){
                 case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
@@ -462,15 +460,15 @@ PRIVATE int fill_arrays(const char *string) {
                           break;
                 default:  decomp += E_ExtLoop(tt, -1, -1, P);
                           if((hc_up_ext[i+1]) && (hc_up_ext[j-1])){
-                            energy = fc[i+2] + fc[j-2] + E_ExtLoop(tt, sj, si, P);
+                            energy = my_fc[i+2] + my_fc[j-2] + E_ExtLoop(tt, sj, si, P);
                             decomp = MIN2(decomp, energy);
                           }
                           if(hc_up_ext[i+1]){
-                            energy = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, si, P);
+                            energy = my_fc[i+2] + my_fc[j-1] + E_ExtLoop(tt, -1, si, P);
                             decomp = MIN2(decomp, energy);
                           }
                           if(hc_up_ext[j-1]){
-                            energy = fc[i+1] + fc[j-2] + E_ExtLoop(tt, sj, -1, P);
+                            energy = my_fc[i+1] + my_fc[j-2] + E_ExtLoop(tt, sj, -1, P);
                             decomp = MIN2(decomp, energy);
                           }
                           break;
@@ -490,12 +488,12 @@ PRIVATE int fill_arrays(const char *string) {
             i1k = indx[k]+i+1;
             if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
               type_2  = rtype[ptype[i1k]];
-              energy  = c[i1k] + P->stack[type][type_2] + fML[k1j1];
+              energy  = my_c[i1k] + P->stack[type][type_2] + my_fML[k1j1];
               decomp  = MIN2(decomp, energy);
             }
             if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
               type_2  = rtype[ptype[k1j1]];
-              energy  = c[k1j1] + P->stack[type][type_2] + fML[i1k];
+              energy  = my_c[k1j1] + P->stack[type][type_2] + my_fML[i1k];
               decomp  = MIN2(decomp, energy);
             }
           }
@@ -517,16 +515,16 @@ PRIVATE int fill_arrays(const char *string) {
         cc[j] = new_c;
         if (noLP){
           if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
-            c[ij] = cc1[j-1]+stackEnergy;
+            my_c[ij] = cc1[j-1]+stackEnergy;
           else /* currently we don't allow stacking over the cut point */
-            c[ij] = FORBIDDEN;
+            my_c[ij] = FORBIDDEN;
         }
         else
-          c[ij] = cc[j];
+          my_c[ij] = cc[j];
 
       } /* end >> if (pair) << */
 
-      else c[ij] = INF;
+      else my_c[ij] = INF;
 
 
       /* done with c[i,j], now compute fML[i,j] */
@@ -535,16 +533,16 @@ PRIVATE int fill_arrays(const char *string) {
       if (SAME_STRAND(i-1,i)) {
         if (SAME_STRAND(i,i+1))
           if(hc_up_ml[i])
-            new_fML = fML[ij+1]+P->MLbase;
+            new_fML = my_fML[ij+1]+P->MLbase;
         if (SAME_STRAND(j-1,j))
           if(hc_up_ml[j]){
-            new_fML = MIN2(new_fML, fML[indx[j-1]+i]+P->MLbase);
+            new_fML = MIN2(new_fML, my_fML[indx[j-1]+i]+P->MLbase);
             if(uniq_ML)
-              fM1[ij] = fM1[indx[j-1]+i] + P->MLbase;
+              my_fM1[ij] = my_fM1[indx[j-1]+i] + P->MLbase;
           }
         if (SAME_STRAND(j,j+1)) {
           if(hard_constraints[ij] & IN_MB_LOOP_ENC){
-            energy = c[ij];
+            energy = my_c[ij];
             if(dangle_model == 2)
               energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
             else
@@ -558,28 +556,28 @@ PRIVATE int fill_arrays(const char *string) {
             }
 
             if(uniq_ML)
-              fM1[ij] = MIN2(fM1[ij], energy);
+              my_fM1[ij] = MIN2(my_fM1[ij], energy);
           }
         }
         if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
             if((hard_constraints[ij+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i])){
               tt      = ptype[ij+1]; /* i+1,j */
-              energy  = c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P);
+              energy  = my_c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P);
               new_fML = MIN2(new_fML, energy);
             }
           }
           if (SAME_STRAND(j-1,j)) {
             if((hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC) && (hc_up_ml[j])){
               tt      = ptype[indx[j-1]+i]; /* i,j-1 */
-              energy  = c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P);
+              energy  = my_c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P);
               new_fML = MIN2(new_fML, energy);
             }
           }
           if ((SAME_STRAND(j-1,j))&&(SAME_STRAND(i,i+1))) {
             if((hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i]) && (hc_up_ml[j])){
               tt      = ptype[indx[j-1]+i+1]; /* i+1,j-1 */
-              energy  = c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P);
+              energy  = my_c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P);
               new_fML = MIN2(new_fML, energy);
             }
           }
@@ -597,10 +595,10 @@ PRIVATE int fill_arrays(const char *string) {
         int stopp;     /*loop 1 up to cut, then loop 2*/
         stopp=(cut_point>0)? (cut_point):(j-2-TURN);
         for (decomp=INF, k = i+1+TURN; k<stopp; k++)
-          decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+          decomp = MIN2(decomp, Fmi[k]+my_fML[indx[j]+k+1]);
         k++;
         for (;k <= j-2-TURN;k++)
-          decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
+          decomp = MIN2(decomp, Fmi[k]+my_fML[indx[j]+k+1]);
       }
       DMLi[j] = decomp;               /* store for use in ML decompositon */
       new_fML = MIN2(new_fML,decomp);
@@ -615,7 +613,7 @@ PRIVATE int fill_arrays(const char *string) {
           type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
           if (type && type_2)
             decomp = MIN2(decomp,
-                          c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]);
+                          my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]);
         }
         k++;
         for (;k <= j-2-TURN; k++) {
@@ -623,7 +621,7 @@ PRIVATE int fill_arrays(const char *string) {
           type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
           if (type && type_2)
             decomp = MIN2(decomp,
-                          c[indx[k]+i]+c[indx[j]+k+1]+P->stack[type][type_2]);
+                          my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]);
         }
 
         decomp += 2*P->MLintern[1];
@@ -639,15 +637,15 @@ PRIVATE int fill_arrays(const char *string) {
         new_fML = MIN2(new_fML, decomp);
       }
 
-      fML[ij] = Fmi[j] = new_fML;     /* substring energy */
+      my_fML[ij] = Fmi[j] = new_fML;     /* substring energy */
 
     }
 
     if (i==cut_point)
       for (j=i; j<=maxj; j++)
-        free_end(fc, j, cut_point);
+        free_end(my_fc, j, cut_point);
     if (i<cut_point)
-      free_end(fc,i,cut_point-1);
+      free_end(my_fc,i,cut_point-1);
 
 
     {
@@ -661,18 +659,18 @@ PRIVATE int fill_arrays(const char *string) {
   /* calculate energies of 5' and 3' fragments */
 
   for (i=1; i<=length; i++)
-    free_end(f5, i, 1);
+    free_end(my_f5, i, 1);
 
   if (cut_point>0) {
-    mfe1=f5[cut_point-1];
-    mfe2=fc[length];
+    mfe1=my_f5[cut_point-1];
+    mfe2=my_fc[length];
     /* add DuplexInit, check whether duplex*/
     for (i=cut_point; i<=length; i++) {
-      f5[i]=MIN2(f5[i]+P->DuplexInit, fc[i]+fc[1]);
+      my_f5[i]=MIN2(my_f5[i]+P->DuplexInit, my_fc[i]+my_fc[1]);
     }
   }
 
-  energy = f5[length];
+  energy = my_f5[length];
   if (cut_point<1) mfe1=mfe2=energy;
   return energy;
 }
@@ -691,6 +689,18 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
   int   noLP          = P->model_details.noLP;
   int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
+
+  char  *string         = vc->sequence;
+  paramT  *P            = vc->params;
+  int     *indx         = vc->jindx;
+  char    *ptype        = vc->ptype;
+
+  short *S1             = vc->sequence_encoding;
+  int   dangle_model    = P->model_details.dangles;
+  int   noLP            = P->model_details.noLP;
+  int   noGUclosure     = P->model_details.noGUclosure;
+  int   *rtype          = &(P->model_details.rtype[0]);
+  char  backtrack_type = P->model_details.backtrack_type;
 
   /* int   b=0;*/
 
@@ -1357,9 +1367,6 @@ PUBLIC void update_cofold_params_par(paramT *parameters){
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-
-  fill_pair_matrices(&(P->model_details));
-  if (init_length < 0) init_length=0;
 }
 
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {
@@ -1426,15 +1433,8 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   cut_point = length + 1;
 
   /* get mfe and do forward recursion */
-#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_cofold(2 * length, parameters);
-#else
-  if(parameters) init_cofold(2 * length, parameters);
-  else if ((2 * length) > init_length) init_cofold(2 * length, parameters);
-  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
-#endif
-
 
   S     = get_sequence_encoding(doubleseq, 0, &(P->model_details));
   S1    = get_sequence_encoding(doubleseq, 1, &(P->model_details));
@@ -1446,7 +1446,7 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
                                 TURN,
                                 constraint_options);
 
-  (void)fill_arrays(doubleseq);
+  (void)fill_arrays(NULL, 1);
 
   psize     = length;
   pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));
