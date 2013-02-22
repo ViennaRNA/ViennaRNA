@@ -74,6 +74,9 @@ float cofold_par( const char *string,
                   paramT *parameters,
                   int is_constrained);
 
+float vrna_cofold(vrna_fold_compound *vc,
+                  char *structure);
+
 /**
  *  \brief Free memory occupied by cofold()
  */

@@ -82,83 +82,8 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 #################################
 */
 
-PUBLIC mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
-                                              unsigned int alloc_vector){
-
-  if(n >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_mfe_matrices_alloc@fold.c: sequence length exceeds addressable range");
-
-  mfe_matrices  *vars   = (mfe_matrices *)space(sizeof(mfe_matrices));
-
-  vars->allocated       = 0;
-  vars->f5              = NULL;
-  vars->f3              = NULL;
-  vars->fc              = NULL;
-  vars->c               = NULL;
-  vars->fML             = NULL;
-  vars->fM1             = NULL;
-  vars->fM2             = NULL;
-  vars->FcH             = INF;
-  vars->FcI             = INF;
-  vars->FcM             = INF;
-  vars->Fc              = INF;
-
-  if(alloc_vector){
-    vars->allocated = alloc_vector;
-    unsigned int size     = ((n + 1) * (n + 2)) >> 1;
-    unsigned int lin_size = n + 2;
-
-    if(alloc_vector & ALLOC_F5)
-      vars->f5  = (int *) space(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_F3)
-      vars->f3  = (int *) space(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_FC)
-      vars->fc  = (int *) space(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_C)
-      vars->c      = (int *) space(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_FML)
-      vars->fML    = (int *) space(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_FM1)
-      vars->fM1    = (int *) space(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_FM2)
-      vars->fM2    = (int *) space(sizeof(int) * lin_size);
-
-  }
-
-  return vars;
-}
-
-PUBLIC void destroy_mfe_matrices(mfe_matrices *self){
-  if(self){
-    if(self->allocated){
-      if(self->allocated & ALLOC_F5)
-        free(self->f5);
-      if(self->allocated & ALLOC_F3)
-        free(self->f3);
-      if(self->allocated & ALLOC_FC)
-        free(self->fc);
-      if(self->allocated & ALLOC_C)
-        free(self->c);
-      if(self->allocated & ALLOC_FML)
-        free(self->fML);
-      if(self->allocated & ALLOC_FM1)
-        free(self->fM1);
-      if(self->allocated & ALLOC_FM2)
-        free(self->fM2);
-    }
-    free(self);
-  }
-}
-
-/*--------------------------------------------------------------------------*/
-
-PUBLIC void free_arrays(void){
+PUBLIC void
+free_arrays(void){
   if(ggg)       free(ggg);ggg = NULL;
   if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
@@ -166,14 +91,13 @@ PUBLIC void free_arrays(void){
   }
 }
 
-/*--------------------------------------------------------------------------*/
-
-PUBLIC void export_fold_arrays( int **f5_p,
-                                int **c_p,
-                                int **fML_p,
-                                int **fM1_p,
-                                int **indx_p,
-                                char **ptype_p){
+PUBLIC void
+export_fold_arrays( int **f5_p,
+                    int **c_p,
+                    int **fML_p,
+                    int **fM1_p,
+                    int **indx_p,
+                    char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
   if(backward_compat_compound){
@@ -186,13 +110,14 @@ PUBLIC void export_fold_arrays( int **f5_p,
   }
 }
 
-PUBLIC void export_fold_arrays_par( int **f5_p,
-                                    int **c_p,
-                                    int **fML_p,
-                                    int **fM1_p,
-                                    int **indx_p,
-                                    char **ptype_p,
-                                    paramT **P_p){
+PUBLIC void
+export_fold_arrays_par( int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **indx_p,
+                        char **ptype_p,
+                        paramT **P_p){
 
   export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p,ptype_p);
 
@@ -200,17 +125,18 @@ PUBLIC void export_fold_arrays_par( int **f5_p,
     *P_p  = backward_compat_compound->params;
 }
 
-PUBLIC void export_circfold_arrays( int *Fc_p,
-                                    int *FcH_p,
-                                    int *FcI_p,
-                                    int *FcM_p,
-                                    int **fM2_p,
-                                    int **f5_p,
-                                    int **c_p,
-                                    int **fML_p,
-                                    int **fM1_p,
-                                    int **indx_p,
-                                    char **ptype_p){
+PUBLIC void
+export_circfold_arrays( int *Fc_p,
+                        int *FcH_p,
+                        int *FcI_p,
+                        int *FcM_p,
+                        int **fM2_p,
+                        int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **indx_p,
+                        char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
   export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
@@ -223,18 +149,19 @@ PUBLIC void export_circfold_arrays( int *Fc_p,
   }
 }
 
-PUBLIC void export_circfold_arrays_par( int *Fc_p,
-                                    int *FcH_p,
-                                    int *FcI_p,
-                                    int *FcM_p,
-                                    int **fM2_p,
-                                    int **f5_p,
-                                    int **c_p,
-                                    int **fML_p,
-                                    int **fM1_p,
-                                    int **indx_p,
-                                    char **ptype_p,
-                                    paramT **P_p){
+PUBLIC void
+export_circfold_arrays_par( int *Fc_p,
+                            int *FcH_p,
+                            int *FcI_p,
+                            int *FcM_p,
+                            int **fM2_p,
+                            int **f5_p,
+                            int **c_p,
+                            int **fML_p,
+                            int **fM1_p,
+                            int **indx_p,
+                            char **ptype_p,
+                            paramT **P_p){
 
   export_circfold_arrays( Fc_p,
                           FcH_p,
@@ -250,99 +177,6 @@ PUBLIC void export_circfold_arrays_par( int *Fc_p,
   if(backward_compat_compound)
     *P_p  = backward_compat_compound->params;
 }
-
-PUBLIC vrna_fold_compound *
-get_fold_compound_mfe(const char *sequence, paramT *P){
-
-  return get_fold_compound_mfe_constrained(sequence, NULL, NULL, P);
-}
-
-PUBLIC vrna_fold_compound *
-get_fold_compound_mfe_constrained(const char *sequence,
-                                  hard_constraintT *hc,
-                                  soft_constraintT *sc,
-                                  paramT *P){
-
-  vrna_fold_compound  *vc;
-  paramT              *params;
-  unsigned int        alloc_vector, length;
-
-  /* sanity check */
-  length = (sequence) ? strlen(sequence) : 0;
-  if(length == 0)
-    nrerror("get_fold_compound_mfe_constraint@fold.c: sequence length must be greater 0");
-
-    /* prepare the parameters datastructure */
-  if(P){
-    params = get_parameter_copy(P);
-  } else { /* this fallback relies on global parameters and thus is not threadsafe */
-    model_detailsT md;
-    set_model_details(&md);
-    params = get_scaled_parameters(temperature, md);
-  }
-
-  /* prepare the allocation vector for the folding matrices */
-  alloc_vector = ALLOC_MFE_DEFAULT;
-  if(params->model_details.circ)
-    alloc_vector |= ALLOC_MFE_CIRC;
-  if(params->model_details.uniq_ML)
-    alloc_vector |= ALLOC_MFE_UNIQ_ML;
-
-  /* start making the fold compound */
-  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
-
-  vc->params              = params;
-
-  vc->sequence            = strdup(sequence);
-  vc->length              = strlen(sequence);
-  vc->sequence_encoding   = get_sequence_encoding(sequence, 1, &(params->model_details));
-  vc->sequence_encoding2  = get_sequence_encoding(sequence, 0, &(params->model_details));
-
-  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
-  vc->exp_params          = NULL;
-
-  vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
-
-  vc->hc                  = hc ? hc : get_hard_constraints(sequence, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
-  vc->sc                  = sc ? sc : NULL;
-
-  vc->iindx               = NULL;
-  vc->jindx               = get_indx(vc->length);
-
-  return vc;
-}
-
-PUBLIC  void
-destroy_fold_compound(vrna_fold_compound *vc){
-
-  if(vc){
-    if(vc->matrices)
-      destroy_mfe_matrices(vc->matrices);
-    if(vc->sequence)
-      free(vc->sequence);
-    if(vc->sequence_encoding)
-      free(vc->sequence_encoding);
-    if(vc->sequence_encoding2)
-      free(vc->sequence_encoding2);
-    if(vc->ptype)
-      free(vc->ptype);
-    if(vc->iindx)
-      free(vc->iindx);
-    if(vc->jindx)
-      free(vc->jindx);
-    if(vc->params)
-      free(vc->params);
-    if(vc->exp_params)
-      free(vc->exp_params);
-    if(vc->hc)
-      destroy_hard_constraints(vc->hc);
-    if(vc->sc)
-      destroy_soft_constraints(vc->sc);
-
-    free(vc);
-  }
-}
-
 
 PUBLIC float
 fold( const char *string,
@@ -467,7 +301,8 @@ vrna_fold(vrna_fold_compound *vc,
 /**
 *** fill "c", "fML" and "f5" arrays and return  optimal energy
 **/
-PRIVATE int fill_arrays(vrna_fold_compound *vc){
+PRIVATE int
+fill_arrays(vrna_fold_compound *vc){
 
   int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
   int               noGUclosure, noLP, uniq_ML, with_gquads, *rtype, *indx;
@@ -1163,7 +998,11 @@ backtrack(bondT *bp_stack,
   bp_stack[0].i = b;    /* save the total number of base pairs */
 }
 
-PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
+PUBLIC char *
+backtrack_fold_from_pair( char *sequence,
+                          int i,
+                          int j){
+
   char          *structure;
   unsigned int  length;
   bondT         *bp;
@@ -1195,7 +1034,11 @@ PUBLIC char *backtrack_fold_from_pair(char *sequence, int i, int j) {
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void letter_structure(char *structure, bondT *bp, int length){
+PUBLIC void
+letter_structure( char *structure,
+                  bondT *bp,
+                  int length){
+
   int   n, k, x, y;
   char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -1225,7 +1068,11 @@ PUBLIC void letter_structure(char *structure, bondT *bp, int length){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
+PUBLIC void
+parenthesis_structure(char *structure,
+                      bondT *bp,
+                      int length){
+
   int n, k;
 
   for (n = 0; n < length; structure[n++] = '.');
@@ -1242,7 +1089,11 @@ PUBLIC void parenthesis_structure(char *structure, bondT *bp, int length){
   }
 }
 
-PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
+PUBLIC void
+parenthesis_zuker(char *structure,
+                  bondT *bp,
+                  int length){
+
   int k, i, j, temp;
 
   for (k = 0; k < length; structure[k++] = '.');
@@ -1268,16 +1119,21 @@ PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_fold_params(void){
+PUBLIC void
+update_fold_params(void){
+
   update_fold_params_par(NULL);
 }
 
-PUBLIC void update_fold_params_par(paramT *parameters){
+PUBLIC void
+update_fold_params_par(paramT *parameters){
+
   vrna_update_fold_params(parameters, backward_compat_compound);
 }
 
 PUBLIC  void
-vrna_update_fold_params(paramT *parameters, vrna_fold_compound *vc){
+vrna_update_fold_params(paramT *parameters,
+                        vrna_fold_compound *vc){
 
   if(vc){
     if(vc->params)
@@ -1296,7 +1152,11 @@ vrna_update_fold_params(paramT *parameters, vrna_fold_compound *vc){
 }
 
 
-PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){
+PUBLIC void
+assign_plist_from_db( plist **pl,
+                      const char *struc,
+                      float pr){
+
   /* convert bracket string to plist */
   short *pt;
   int i, k = 0, size, n;

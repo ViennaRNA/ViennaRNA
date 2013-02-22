@@ -7,6 +7,7 @@
 #include  "../src/ViennaRNA/fold_vars.h"
 #undef fold
 #include  "../src/ViennaRNA/fold.h"
+#include  "../src/ViennaRNA/eval.h"
 #include  "../src/ViennaRNA/cofold.h"
 #include  "../src/ViennaRNA/part_func.h"
 #include  "../src/ViennaRNA/part_func_co.h"
@@ -76,6 +77,11 @@
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
 %include  "../src/ViennaRNA/fold.h"
+%include  "../src/ViennaRNA/eval.h"
+
+
+%include  "../src/ViennaRNA/eval.h"
+
 
 %rename (cofold) my_cofold;
 
