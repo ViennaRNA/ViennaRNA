@@ -320,12 +320,13 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1,
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-INLINE  PRIVATE int E_Hairpin(int size,
-                              int type,
-                              int si1,
-                              int sj1,
-                              const char *string,
-                              paramT *P){
+INLINE PRIVATE int
+E_Hairpin(int size,
+          int type,
+          int si1,
+          int sj1,
+          const char *string,
+          paramT *P){
 
   int energy;
 
@@ -363,9 +364,10 @@ INLINE  PRIVATE int E_Hairpin(int size,
   return energy;
 }
 
-INLINE  PRIVATE int E_hp_loop(int i,
-                              int j,
-                              vrna_fold_compound *vc){
+INLINE PRIVATE int
+E_hp_loop(int i,
+          int j,
+          vrna_fold_compound *vc){
 
   int u = j - i - 1;
   int e;
@@ -395,9 +397,10 @@ INLINE  PRIVATE int E_hp_loop(int i,
   return INF;
 }
 
-INLINE PRIVATE int E_int_loop(int i,
-                              int j,
-                              vrna_fold_compound *vc){
+INLINE PRIVATE int
+E_int_loop( int i,
+            int j,
+            vrna_fold_compound *vc){
 
   int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
   short *S_p1, *S_q1;
@@ -481,11 +484,12 @@ INLINE PRIVATE int E_int_loop(int i,
   return e;
 }
 
-INLINE PRIVATE int E_mb_loop_fast(  int i,
-                                    int j,
-                                    vrna_fold_compound *vc,
-                                    int *dmli1,
-                                    int *dmli2){
+INLINE PRIVATE int
+E_mb_loop_fast( int i,
+                int j,
+                vrna_fold_compound *vc,
+                int *dmli1,
+                int *dmli2){
 
   int k, decomp, MLenergy, en, type, type_2, tt;
 
@@ -571,18 +575,19 @@ INLINE PRIVATE int E_mb_loop_fast(  int i,
   return e;
 }
 
-INLINE PRIVATE int E_ml_rightmost_stem( int i,
-                                  int j,
-                                  int length,
-                                  int type,
-                                  short *S,
-                                  int *indx,
-                                  char *hc,
-                                  int *hc_up,
-                                  soft_constraintT *sc,
-                                  int *c,
-                                  int *fm,
-                                  paramT *P){
+INLINE PRIVATE int
+E_ml_rightmost_stem(int i,
+                    int j,
+                    int length,
+                    int type,
+                    short *S,
+                    int *indx,
+                    char *hc,
+                    int *hc_up,
+                    soft_constraintT *sc,
+                    int *c,
+                    int *fm,
+                    paramT *P){
 
   int en;
   int ij            = indx[j] + i;
@@ -612,13 +617,14 @@ INLINE PRIVATE int E_ml_rightmost_stem( int i,
   return e;
 }
 
-INLINE  PRIVATE int E_ml_stems_fast(  int i,
-                                      int j,
-                                      vrna_fold_compound *vc,
-                                      int *fmi,
-                                      int *dmli){
+INLINE PRIVATE int
+E_ml_stems_fast(int i,
+                int j,
+                vrna_fold_compound *vc,
+                int *fmi,
+                int *dmli){
 
-  int k, en, decomp, mm5, mm3, type_2;
+  int k, en, decomp, mm5, mm3, type_2, k1j;
 
   int               length        = (int)vc->length;
   char              *ptype        = vc->ptype;
@@ -631,7 +637,6 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
   int               *fm           = vc->matrices->fML;
   paramT            *P            = vc->params;
   int               ij            = indx[j] + i;
-  int               hc_decompose  = hc[ij];
   int               dangle_model  = P->model_details.dangles;
   int               type          = ptype[ij];
   int               *rtype        = &(P->model_details.rtype[0]);
@@ -703,7 +708,7 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
   }
 
   /* modular decomposition -------------------------------*/
-  int k1j = indx[j] + i + TURN + 2;
+  k1j = indx[j] + i + TURN + 2;
   for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++){
     en = fmi[k] + fm[k1j];
     decomp = MIN2(decomp, en);
@@ -742,7 +747,8 @@ INLINE  PRIVATE int E_ml_stems_fast(  int i,
   return e;
 }
 
-INLINE PRIVATE void E_ext_loop_5( vrna_fold_compound  *vc){
+INLINE PRIVATE void
+E_ext_loop_5( vrna_fold_compound *vc){
 
   int en, i, j, ij, type;
   int               length        = (int)vc->length;
@@ -916,12 +922,13 @@ INLINE PRIVATE void E_ext_loop_5( vrna_fold_compound  *vc){
 }
 
 
-INLINE  PRIVATE double exp_E_Hairpin( int u,
-                                      int type,
-                                      short si1,
-                                      short sj1,
-                                      const char *string,
-                                      pf_paramT *P){
+INLINE PRIVATE double
+exp_E_Hairpin(int u,
+              int type,
+              short si1,
+              short sj1,
+              const char *string,
+              pf_paramT *P){
 
   double q, kT;
   kT = P->kT;   /* kT in cal/mol  */
@@ -966,7 +973,17 @@ INLINE  PRIVATE double exp_E_Hairpin( int u,
   return q;
 }
 
-INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
+INLINE PRIVATE int
+E_IntLoop(int n1,
+          int n2,
+          int type,
+          int type_2,
+          int si1,
+          int sj1,
+          int sp1,
+          int sq1,
+          paramT *P){
+
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, u, energy;
   energy = INF;
@@ -1153,7 +1170,12 @@ INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
   return energy;
 }
 
-INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
+INLINE PRIVATE double
+exp_E_MLstem( int type,
+              int si1,
+              int sj1,
+              pf_paramT *P){
+
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){
     energy = P->expmismatchM[type][si1][sj1];
@@ -1172,7 +1194,12 @@ INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P){
   return energy;
 }
 
-INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P){
+INLINE PRIVATE double
+exp_E_ExtLoop(int type,
+              int si1,
+              int sj1,
+              pf_paramT *P){
+
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){
     energy = P->expmismatchExt[type][si1][sj1];
@@ -1190,25 +1217,41 @@ INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P){
   return energy;
 }
 
-INLINE  PRIVATE int     E_IntLoop_Co(int type, int type_2, int i, int j, int p, int q, int cutpoint, short si1, short sj1, short sp1, short sq1, int dangles, paramT *P){
-  int energy = 0;
+INLINE PRIVATE int
+E_IntLoop_Co( int type,
+              int type_2,
+              int i,
+              int j,
+              int p,
+              int q,
+              int cutpoint,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1,
+              int dangles,
+              paramT *P){
+
+  int energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
+
+  energy = 0;
   if(type > 2)   energy += P->TerminalAU;
   if(type_2 > 2) energy += P->TerminalAU;
 
   if(!dangles) return energy;
 
-  int ci = (i>=cutpoint)||((i+1)<cutpoint);
-  int cj = ((j-1)>=cutpoint)||(j<cutpoint);
-  int cp = ((p-1)>=cutpoint)||(p<cutpoint);
-  int cq = (q>=cutpoint)||((q+1)<cutpoint);
+  ci = (i>=cutpoint)||((i+1)<cutpoint);
+  cj = ((j-1)>=cutpoint)||(j<cutpoint);
+  cp = ((p-1)>=cutpoint)||(p<cutpoint);
+  cq = (q>=cutpoint)||((q+1)<cutpoint);
 
-  int d3    = ci  ? P->dangle3[type][si1]   : 0;
-  int d5    = cj  ? P->dangle5[type][sj1]   : 0;
-  int d5_2  = cp  ? P->dangle5[type_2][sp1] : 0;
-  int d3_2  = cq  ? P->dangle3[type_2][sq1] : 0;
+  d3    = ci  ? P->dangle3[type][si1]   : 0;
+  d5    = cj  ? P->dangle5[type][sj1]   : 0;
+  d5_2  = cp  ? P->dangle5[type_2][sp1] : 0;
+  d3_2  = cq  ? P->dangle3[type_2][sq1] : 0;
 
-  int tmm   = (cj && ci) ? P->mismatchExt[type][sj1][si1]   : d5 + d3;
-  int tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
+  tmm   = (cj && ci) ? P->mismatchExt[type][sj1][si1]   : d5 + d3;
+  tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
 
   if(dangles == 2) return energy + tmm + tmm_2;
 

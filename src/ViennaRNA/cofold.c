@@ -74,8 +74,6 @@ PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 #################################
 */
 
-PRIVATE void  init_cofold(int length, paramT *parameters);
-PRIVATE void  get_arrays(unsigned int size);
 PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound *vc);
 PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
@@ -99,30 +97,29 @@ free_co_arrays(void){
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC void export_cofold_arrays_gq(  int **f5_p,
-                                      int **c_p,
-                                      int **fML_p,
-                                      int **fM1_p,
-                                      int **fc_p,
-                                      int **ggg_p,
-                                      int **indx_p,
-                                      char **ptype_p){
+PUBLIC void
+export_cofold_arrays_gq(int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **fc_p,
+                        int **ggg_p,
+                        int **indx_p,
+                        char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
-  *f5_p = f5; *c_p = c;
-  *fML_p = fML; *fM1_p = fM1;
+  export_cofold_arrays(f5_p, c_p, fML_p, fM1_p, fc_p, indx_p, ptype_p);
   *ggg_p = ggg;
-  *indx_p = indx; *ptype_p = ptype;
-  *fc_p =fc;
 }
 
-PUBLIC void export_cofold_arrays( int **f5_p,
-                                  int **c_p,
-                                  int **fML_p,
-                                  int **fM1_p,
-                                  int **fc_p,
-                                  int **indx_p,
-                                  char **ptype_p){
+PUBLIC void
+export_cofold_arrays( int **f5_p,
+                      int **c_p,
+                      int **fML_p,
+                      int **fM1_p,
+                      int **fc_p,
+                      int **indx_p,
+                      char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
   if(backward_compat_compound){
@@ -231,14 +228,14 @@ cofold_par( const char *string,
 }
 
 PUBLIC float
-vrna_cofold(vrna_fold_compound *vc,
-            char *structure){
+vrna_cofold(vrna_fold_compound  *vc,
+            char                *structure){
 
-  int i, length, energy;
+  int     length, energy;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   bondT   *bp;
 
-  length              = (int) vc->length;
+  length = (int) vc->length;
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
@@ -274,8 +271,8 @@ vrna_cofold(vrna_fold_compound *vc,
 }
 
 PRIVATE int
-fill_arrays(vrna_fold_compound *vc,
-            int zuker){
+fill_arrays(vrna_fold_compound  *vc,
+            int                 zuker){
 
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
@@ -288,11 +285,12 @@ fill_arrays(vrna_fold_compound *vc,
   int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
   int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
   int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  int   *hc_up_ext, *hc_up_ml;
 
   int   dangle_model, noGUclosure, noLP, hc_decompose;
   int   *rtype;
   char              *ptype, *hard_constraints;
-  short             *S, *S1;
+  short             *S1;
   paramT            *P;
   mfe_matrices      *matrices;
   hard_constraintT  *hc;
@@ -302,7 +300,6 @@ fill_arrays(vrna_fold_compound *vc,
   ptype             = vc->ptype;
   indx              = vc->jindx;
   P                 = vc->params;
-  S                 = vc->sequence_encoding2;
   S1                = vc->sequence_encoding;
   dangle_model      = P->model_details.dangles;
   noGUclosure       = P->model_details.noGUclosure;
@@ -320,10 +317,8 @@ fill_arrays(vrna_fold_compound *vc,
   my_fc             = matrices->fc;
   cut_point         = vc->cutpoint;
 
-  int   *hc_up_ext        = hc->up_ext;
-  int   *hc_up_hp         = hc->up_hp;
-  int   *hc_up_int        = hc->up_int;
-  int   *hc_up_ml         = hc->up_ml;
+  hc_up_ext         = hc->up_ext;
+  hc_up_ml          = hc->up_ml;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -404,10 +399,10 @@ fill_arrays(vrna_fold_compound *vc,
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-            if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
+            if (SAME_STRAND(i,p) && SAME_STRAND(q,j)){
               if((hard_constraints[pq] & IN_INT_LOOP_ENC) && (hard_constraints[ij] & IN_INT_LOOP))
                 energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
-            else
+            } else {
               if((hard_constraints[pq] & IN_EXT_LOOP) && (hard_constraints[ij] & IN_EXT_LOOP))
                 energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                                     i, j, p, q,
@@ -416,7 +411,7 @@ fill_arrays(vrna_fold_compound *vc,
                                     S1[p-1], S1[q+1],
                                     dangle_model,
                                     P);
-
+            }
             new_c = MIN2(new_c, energy+my_c[indx[q]+p]);
             if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
 
@@ -491,8 +486,8 @@ fill_arrays(vrna_fold_compound *vc,
         /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
         if (dangle_model==3) {
-          decomp = INF;
           int i1k, k1j1;
+          decomp = INF;
           k1j1  = indx[j-1] + i + 2 + TURN + 1;
           for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++) {
             i1k = indx[k]+i+1;
@@ -697,8 +692,9 @@ PRIVATE void backtrack_co(sect bt_stack[],
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
 
-  int   i, j, k, length, energy, new;
-  int   no_close, type, type_2, tt;
+  int   i, j, k, length, energy, new, ml0, ml5, ml3, ml53, no_close, type, type_2, tt;
+  soft_constraintT      *sc;
+  hard_constraintT      *hc;
   char  *string         = vc->sequence;
   paramT  *P            = vc->params;
   int     *indx         = vc->jindx;
@@ -720,14 +716,8 @@ PRIVATE void backtrack_co(sect bt_stack[],
   my_c    = vc->matrices->c;
   my_fML  = vc->matrices->fML;
   my_fc   = vc->matrices->fc;
-
-  char  *hard_constraints = vc->hc->matrix;
-  int   *hc_up_ext        = vc->hc->up_ext;
-  int   *hc_up_hp         = vc->hc->up_hp;
-  int   *hc_up_int        = vc->hc->up_int;
-  int   *hc_up_ml         = vc->hc->up_ml;
-
-  soft_constraintT  *sc   = vc->sc;
+  hc      = vc->hc;
+  sc      = vc->sc;
 
   /* int   b=0;*/
 
@@ -1189,10 +1179,10 @@ PRIVATE void backtrack_co(sect bt_stack[],
     /* true multi-loop */
     mm = P->MLclosing;
     bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
-    int ml0   = E_MLstem(tt, -1, -1, P);
-    int ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
-    int ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
-    int ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
+    ml0   = E_MLstem(tt, -1, -1, P);
+    ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
+    ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
+    ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
     for (traced = 0, k = i+2+TURN; k < j-2-TURN; k++) {
       switch(dangle_model){
         case 0:   /* no dangles */
@@ -1317,20 +1307,17 @@ free_end( int *array,
           int start,
           vrna_fold_compound *vc){
 
-  int inc, type, energy, length, j, left, right, cut_point;
-  int dangle_model, *indx;
-  int *c;
-  paramT  *P;
-  short *S, *S1;
-  char  *ptype;
-  mfe_matrices *matrices;
+  int inc, type, energy, length, j, left, right, cut_point, dangle_model, *indx, *c;
+  paramT        *P;
+  short         *S1;
+  char          *ptype;
+  mfe_matrices  *matrices;
 
   cut_point     = vc->cutpoint;
   P             = vc->params;
   dangle_model  = P->model_details.dangles;
   inc           = (i>start)? 1:-1;
   length        = (int)vc->length;
-  S             = vc->sequence_encoding2;
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
   indx          = vc->jindx;
@@ -1510,17 +1497,15 @@ vrna_zukersubopt(vrna_fold_compound *vc){
    "double" sequence, compute dimerarray entries, track back every base pair.
    This is slightly wasteful compared to the normal solution */
 
-  char      *string, *doubleseq, *structure, *mfestructure, **todo, *ptype;
-  int       i, j, counter, num_pairs, psize, p, *indx, *c;
-  unsigned int length, doublelength;
-  float     energy;
-  SOLUTION  *zukresults;
-  bondT     *pairlist, *bp_list;
-  unsigned int constraint_options;
-  sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  char          *structure, *mfestructure, **todo, *ptype;
+  int           i, j, counter, num_pairs, psize, p, *indx, *c;
+  unsigned int  length, doublelength;
+  float         energy;
+  SOLUTION      *zukresults;
+  bondT         *pairlist, *bp_list;
+  sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   mfe_matrices  *matrices;
 
-  doubleseq       = vc->sequence;
   doublelength    = vc->length;
   length          = doublelength/2;
   indx            = vc->jindx;
