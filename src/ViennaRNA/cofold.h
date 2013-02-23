@@ -164,6 +164,8 @@ SOLUTION  *zukersubopt(const char *string);
 SOLUTION  *zukersubopt_par( const char *string,
                             paramT *parameters);
 
+SOLUTION *vrna_zukersubopt(vrna_fold_compound *vc);
+
 /**
  *  \brief get_monomer_free_energies
  *

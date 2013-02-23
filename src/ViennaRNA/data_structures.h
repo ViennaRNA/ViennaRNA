@@ -117,6 +117,7 @@ typedef struct bondTEn {
 
 typedef struct{
   unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
+  unsigned int length;
   int     *c;   /* energy array, given that i-j pair */
   int     *f5;  /* energy of 5' end */
   int     *f3;  /* energy of 3' end */

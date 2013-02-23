@@ -66,6 +66,7 @@ get_mfe_matrices_alloc( unsigned int n,
   mfe_matrices  *vars   = (mfe_matrices *)space(sizeof(mfe_matrices));
 
   vars->allocated       = 0;
+  vars->length          = 0;
   vars->f5              = NULL;
   vars->f3              = NULL;
   vars->fc              = NULL;
@@ -80,6 +81,7 @@ get_mfe_matrices_alloc( unsigned int n,
 
   if(alloc_vector){
     vars->allocated = alloc_vector;
+    vars->length    = n;
     unsigned int size     = ((n + 1) * (n + 2)) >> 1;
     unsigned int lin_size = n + 2;
 
@@ -149,7 +151,7 @@ get_fold_compound_mfe_constrained(const char *sequence,
   paramT              *params;
   unsigned int        alloc_vector, length;
   int                 cut_point;
-  char                *seq;
+  char                *seq, *seq2;
 
   cut_point = -1;
 
@@ -158,8 +160,8 @@ get_fold_compound_mfe_constrained(const char *sequence,
   if(length == 0)
     nrerror("get_fold_compound_mfe_constraint@data_structures.c: sequence length must be greater 0");
 
-  seq = tokenize(sequence, &cut_point); /* splice out the '&' if concatenated sequences and reset cut_point */
-
+  seq2 = strdup(sequence);
+  seq = tokenize(seq2, &cut_point); /* splice out the '&' if concatenated sequences and reset cut_point */
 
     /* prepare the parameters datastructure */
   if(P){
@@ -187,18 +189,18 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
 
   vc->params              = params;
-  vc->cut_point           = cut_point;
-  vc->sequence            = strdup(sequence);
-  vc->length              = strlen(sequence);
-  vc->sequence_encoding   = get_sequence_encoding(sequence, 1, &(params->model_details));
-  vc->sequence_encoding2  = get_sequence_encoding(sequence, 0, &(params->model_details));
+  vc->cutpoint            = cut_point;
+  vc->sequence            = seq;
+  vc->length              = strlen(seq);
+  vc->sequence_encoding   = get_sequence_encoding(seq, 1, &(params->model_details));
+  vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &(params->model_details));
 
   vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
   vc->exp_params          = NULL;
 
   vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
 
-  vc->hc                  = hc ? hc : get_hard_constraints(sequence, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
   vc->sc                  = sc ? sc : NULL;
 
   vc->iindx               = NULL;

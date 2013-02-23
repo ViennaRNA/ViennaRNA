@@ -208,7 +208,7 @@ fold_par( const char *string,
   my_hc   = NULL;
   my_sc   = NULL;
   vc      = NULL;
-  length  = strlen(string);
+  length  = (int)strlen(string);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
