@@ -542,7 +542,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
 
   turn = (cut_point<0) ? 3 : 0;
-  uniq_ML = 1;
+  P->model_details.uniq_ML = uniq_ML = 1;
   if(circular){
     min_en = fold_par(sequence, struc, P, struct_constrained, circular);
     export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype);
