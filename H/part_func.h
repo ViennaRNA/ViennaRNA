@@ -29,7 +29,14 @@
  */
 
 /**
- *  a flag indicating that auxilary arrays are needed throughout the computations which are necessary for stochastic backtracking
+ *  \brief Flag indicating that auxilary arrays are needed throughout the computations. This is essential for stochastic backtracking
+ *
+ *  Set this variable to 1 prior to a call of pf_fold() to ensure that all matrices needed for stochastic backtracking
+ *  are filled in the forward recursions
+ *
+ *  \ingroup subopt_stochbt
+ *
+ *  \see pbacktrack(), pbacktrack_circ
  */
 extern  int st_back;
 
