@@ -287,7 +287,7 @@ int main(int argc, char *argv[]){
     else{
       SOLUTION *zr;
       int i;
-      if (fname[0] != '\0') printf(">%s\n", fname);
+      if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
       if (cut_point!=-1) {
         nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
