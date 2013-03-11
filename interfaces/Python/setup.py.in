@@ -17,9 +17,9 @@ if sys.platform != 'darwin':
  
 extension = Extension("_RNA",
                       ["RNA_wrap.c"],
-                      include_dirs=['../../H'],
+                      include_dirs=['../../src'],
                       libraries=['RNA'],
-                      library_dirs=['../../lib'],
+                      library_dirs=['../../src'],
                       extra_compile_args=extra_compile_args,
                       extra_link_args=extra_link_args
                       )
