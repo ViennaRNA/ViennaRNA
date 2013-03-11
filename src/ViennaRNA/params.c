@@ -561,13 +561,7 @@ PUBLIC paramT *get_parameter_copy(paramT *par){
 /*###########################################*/
 
 PUBLIC paramT *copy_parameters(void){
-  paramT *copy;
-  if (p.id != id) return scale_parameters();
-  else{
-    copy = (paramT *) space(sizeof(paramT));
-    memcpy(copy, &p, sizeof(paramT));
-  }
-  return copy;
+  return scale_parameters();
 }
 
 PUBLIC paramT *set_parameters(paramT *dest){
@@ -576,13 +570,7 @@ PUBLIC paramT *set_parameters(paramT *dest){
 }
 
 PUBLIC pf_paramT *copy_pf_param(void){
-  pf_paramT *copy, *new;
-  if (pf.id != pf_id) return get_scaled_pf_parameters();
-  else{
-    copy = (pf_paramT *) space(sizeof(pf_paramT));
-    memcpy(copy, &pf, sizeof(pf_paramT));
-  }
-  return copy;
+  return get_scaled_pf_parameters();
 }
 
 PUBLIC pf_paramT *set_pf_param(paramT *dest){
