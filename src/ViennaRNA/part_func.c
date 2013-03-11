@@ -105,7 +105,6 @@ PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params=NULL;    /* the precomputed Boltzmann weights */
 PRIVATE short       *S=NULL, *S1=NULL;
-PRIVATE int         with_gquad = 0;
 
 PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 
@@ -119,7 +118,7 @@ PRIVATE soft_constraintT  *sc                 = NULL;
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length, hc, sc, \
                           circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained,\
-                          G, Gj, Gj1, with_gquad)
+                          G, Gj, Gj1)
 
 
 #endif
@@ -305,7 +304,6 @@ PUBLIC float pf_fold_par( const char *sequence,
   else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params_par(n, parameters);
 #endif
 
-  with_gquad  = pf_params->model_details.gquad;
   S     = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
   S1    = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
   ptype = get_ptypes(S, &(pf_params->model_details), 1);
@@ -364,6 +362,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
   int         *rtype;
+  int         with_gquad = pf_params->model_details.gquad;
 
   int         hc_decompose;
   char        *hard_constraints = hc->matrix;
@@ -539,6 +538,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
 
       if(hc_decompose & IN_EXT_LOOP){
         qbt1 = qb[ij] * exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+      }
 
       if(hc_up_ext[j]){
         q_temp = qq1[i] * scale[1];
@@ -610,7 +610,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
 PRIVATE void pf_circ(const char *sequence, char *structure){
 
   int u, p, q, k, l;
-  int noGUclosure;
+  int noGUclosure, with_gquad;
   int n = (int) strlen(sequence);
 
   FLT_OR_DBL  qot;
@@ -618,7 +618,9 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
   int         *rtype;
 
   noGUclosure = pf_params->model_details.noGUclosure;
+  with_gquad  = pf_params->model_details.gquad;
   rtype       = &(pf_params->model_details.rtype[0]);
+
   qo = qho = qio = qmo = 0.;
 
   /* construct qm2 matrix from qm1 entries  */
@@ -687,7 +689,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
   FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing;
   double      max_real;
-  int         *rtype;
+  int         *rtype, with_gquad;
 
   FLT_OR_DBL  expMLstem = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   int         hc_decompose;
@@ -699,6 +701,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   expMLclosing  = pf_params->expMLclosing;
+  with_gquad    = pf_params->model_details.gquad;
   rtype         = &(pf_params->model_details.rtype[0]);
 
   if((S != NULL) && (S1 != NULL)){

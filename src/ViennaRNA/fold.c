@@ -48,15 +48,13 @@
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE int     with_gquad          = 0;
-PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(backward_compat_compound, ggg, with_gquad)
+#pragma omp threadprivate(backward_compat_compound)
 
 #endif
 
@@ -84,7 +82,6 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 
 PUBLIC void
 free_arrays(void){
-  if(ggg)       free(ggg);ggg = NULL;
   if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
@@ -305,8 +302,8 @@ PRIVATE int
 fill_arrays(vrna_fold_compound *vc){
 
   int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
-  int               noGUclosure, noLP, uniq_ML, with_gquads, *rtype, *indx;
-  int               *my_f5, *my_c, *my_fML, *my_fM1, hc_decompose, *hc_up_ml;
+  int               noGUclosure, noLP, uniq_ML, with_gquad, *rtype, *indx;
+  int               *my_f5, *my_c, *my_fML, *my_fM1, *my_ggg, hc_decompose, *hc_up_ml;
   int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
   int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
   int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
@@ -328,6 +325,7 @@ fill_arrays(vrna_fold_compound *vc){
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
+  with_gquad        = P->model_details.gquad;
   rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
@@ -338,9 +336,7 @@ fill_arrays(vrna_fold_compound *vc){
   my_c              = matrices->c;
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
-
-  if(with_gquad)
-    ggg = get_gquad_matrix(S, P);
+  my_ggg            = matrices->ggg;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -396,15 +392,6 @@ fill_arrays(vrna_fold_compound *vc){
         energy = E_int_loop(i, j, vc);
         new_c = MIN2(new_c, energy);
 
-        if(with_gquad){
-          /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-          if (!no_close) {
-            tt = rtype[type];
-            energy = E_GQuad_IntLoop(i, j, type, S1, ggg, indx, P);
-            new_c = MIN2(new_c, energy);
-          }
-        }
-
         /* remember stack energy for --noLP option */
         if(noLP){
           stackEnergy = INF;
@@ -427,7 +414,8 @@ fill_arrays(vrna_fold_compound *vc){
       my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
 
       if(with_gquad){
-        new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
+        energy = my_ggg[indx[j] + i] + E_MLstem(0, -1, -1, P);
+        my_fML[ij] = MIN2(my_fML[ij], energy);
       }
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
@@ -494,19 +482,22 @@ backtrack(bondT *bp_stack,
   char    *ptype        = vc->ptype;
 
   short *S1             = vc->sequence_encoding;
+  short *S              = vc->sequence_encoding2;
   int   dangle_model    = P->model_details.dangles;
   int   noLP            = P->model_details.noLP;
   int   noGUclosure     = P->model_details.noGUclosure;
   int   *rtype          = &(P->model_details.rtype[0]);
-  char  backtrack_type = P->model_details.backtrack_type;
+  char  backtrack_type  = P->model_details.backtrack_type;
+  int   with_gquad      = P->model_details.gquad;
 
   /* the folding matrices */
-  int   *my_f5, *my_c, *my_fML;
+  int   *my_f5, *my_c, *my_fML, *my_ggg;
 
   length  = vc->length;
   my_f5   = vc->matrices->f5;
   my_c    = vc->matrices->c;
   my_fML  = vc->matrices->fML;
+  my_ggg  = vc->matrices->ggg;
 
   char  *hard_constraints = vc->hc->matrix;
   int   *hc_up_ext        = vc->hc->up_ext;
@@ -565,7 +556,7 @@ backtrack(bondT *bp_stack,
                   for(k=j-TURN-1,traced=0; k>=1; k--){
 
                     if(with_gquad){
-                      if(fij == f5[k-1] + ggg[indx[j]+k]){
+                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
                         /* found the decomposition */
                         traced = j; jj = k - 1; gq = 1;
                         break;
@@ -585,7 +576,7 @@ backtrack(bondT *bp_stack,
                   for(k=j-TURN-1,traced=0; k>=1; k--){
 
                     if(with_gquad){
-                      if(fij == f5[k-1] + ggg[indx[j]+k]){
+                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
                         /* found the decomposition */
                         traced = j; jj = k - 1; gq = 1;
                         break;
@@ -604,7 +595,7 @@ backtrack(bondT *bp_stack,
         default:  for(traced = 0, k=j-TURN-1; k>1; k--){
 
                     if(with_gquad){
-                      if(fij == f5[k-1] + ggg[indx[j]+k]){
+                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
                         /* found the decomposition */
                         traced = j; jj = k - 1; gq = 1;
                         break;
@@ -643,7 +634,7 @@ backtrack(bondT *bp_stack,
                   if(!traced){
 
                     if(with_gquad){
-                      if(fij == ggg[indx[j]+1]){
+                      if(fij == my_ggg[indx[j]+1]){
                         /* found the decomposition */
                         traced = j; jj = 0; gq = 1;
                         break;
@@ -707,7 +698,7 @@ backtrack(bondT *bp_stack,
       ij  = indx[j]+i;
 
       if(with_gquad){
-        if(fij == ggg[ij] + E_MLstem(0, -1, -1, P)){
+        if(fij == my_ggg[ij] + E_MLstem(0, -1, -1, P)){
           /* go to backtracing of quadruplex */
           goto repeat_gquad;
         }
@@ -863,7 +854,7 @@ backtrack(bondT *bp_stack,
         kind and the enclosed pair is not a canonical one but a g-quadruplex
         that should then be decomposed further...
       */
-      if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, ggg, indx, &p, &q, P)){
+      if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, my_ggg, indx, &p, &q, P)){
         i = p; j = q;
         goto repeat_gquad;
       }
@@ -977,14 +968,14 @@ backtrack(bondT *bp_stack,
       if(L != -1){
         /* fill the G's of the quadruplex into base_pair2 */
         for(a=0;a<L;a++){
-          base_pair2[++b].i = i+a;
-          base_pair2[b].j   = i+a;
-          base_pair2[++b].i = i+L+l[0]+a;
-          base_pair2[b].j   = i+L+l[0]+a;
-          base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
-          base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
-          base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
-          base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+          bp_stack[++b].i = i+a;
+          bp_stack[b].j   = i+a;
+          bp_stack[++b].i = i+L+l[0]+a;
+          bp_stack[b].j   = i+L+l[0]+a;
+          bp_stack[++b].i = i+L+l[0]+L+l[1]+a;
+          bp_stack[b].j   = i+L+l[0]+L+l[1]+a;
+          bp_stack[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+          bp_stack[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
         }
         goto repeat_gquad_exit;
       }

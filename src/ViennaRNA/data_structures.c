@@ -25,6 +25,7 @@
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
+#include "ViennaRNA/gquad.h"
 #include "ViennaRNA/constraints.h"
 
 #ifdef _OPENMP
@@ -78,6 +79,7 @@ get_mfe_matrices_alloc( unsigned int n,
   vars->FcI             = INF;
   vars->FcM             = INF;
   vars->Fc              = INF;
+  vars->ggg             = NULL;
 
   if(alloc_vector){
     vars->allocated = alloc_vector;
@@ -130,6 +132,8 @@ destroy_mfe_matrices(mfe_matrices *self){
         free(self->fM1);
       if(self->allocated & ALLOC_FM2)
         free(self->fM2);
+      if(self->ggg);
+        free(self->ggg);
     }
     free(self);
   }
@@ -199,6 +203,10 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc->exp_params          = NULL;
 
   vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
+
+  /* get gquadruplex matrix if needed */
+  if(vc->params->model_details.gquad)
+    vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
 
   vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
   vc->sc                  = sc ? sc : NULL;

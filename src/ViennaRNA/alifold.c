@@ -30,6 +30,7 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alifold.h"
+#include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/loop_energies.h"
 
 #ifdef _OPENMP

@@ -1,4 +1,4 @@
-\input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
+  \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
 @c Last changed Time-stamp: <2010-03-11 21:47:46 ivo>
 @set revision $Id: RNAlib.texinfo,v 1.25 2009/01/13 17:49:58 ivo Exp $
 @setfilename RNAlib.info
@@ -39,7 +39,7 @@ Revision @value{revision}
 @ifinfo
 This file documents the Vienna RNA Package Version @value{Version}
 
-Copyright @copyright{1994-2002} Ivo Hofacker and Peter Stadler
+Copyright @copyright{} 1994-2002 Ivo Hofacker and Peter Stadler
 @end ifinfo
 
 @menu

@@ -11,6 +11,7 @@
 #include <math.h>
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/MEA.h"
 
 /* compute an MEA structure, i.e. the structure maximising
@@ -75,8 +76,15 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
   for (i=0; i<n; i++) structure[i] = '.';
 
   if(sequence){
-    make_pair_matrix();
-    S = encode_sequence(sequence, 1);
+    if(pf){
+      S = get_sequence_encoding(sequence, 1, &(pf->model_details));
+    } else {
+      pf_paramT *pf_params;
+      pf_params = get_scaled_pf_parameters();
+      S = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
+      with_gquad = pf_params->model_details.gquad;
+      free(pf_params);
+    }
   }
   if(pf)
     with_gquad = pf->model_details.gquad;
