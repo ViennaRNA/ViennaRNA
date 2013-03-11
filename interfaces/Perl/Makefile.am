@@ -11,14 +11,17 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 
 
 Makefile.perl: Makefile.PL Makefile
-	@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
+	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE=
 
 # the perl command repairs some errors in the SWIG CVS version
 RNA_wrap.c: ../RNA.i ../tmaps.i
-	swig -perl5 -shadow $(USE_LARGE_PF) -I../ RNA.i
+	$(AM_V_GEN)swig -perl5 -shadow $(USE_LARGE_PF) -I../ RNA.i
 
-all-local: RNA_wrap.c Makefile.perl
-	$(MAKE) -f Makefile.perl
+Perl_interface: RNA_wrap.c Makefile.perl
+	$(AM_V_GEN)$(MAKE) -f Makefile.perl
+
+all-local: Perl_interface
+	
 
 install-exec-local: all-local
 	$(MAKE) -f Makefile.perl install

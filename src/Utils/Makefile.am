@@ -17,7 +17,7 @@ LDADD = -L$(top_srcdir)/src/ViennaRNA/ -lRNA -lm
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
 $(pscript) : Makefile
-	if test -n "@PerlCmd@"; then \
+	$(AM_V_GEN)if test -n "@PerlCmd@"; then \
 	  @PerlCmd@ -npi -e 's|^#!\S+|#!@PerlCmd@|' $@ ; \
 	fi
 
