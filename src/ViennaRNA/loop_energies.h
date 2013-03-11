@@ -10,6 +10,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/gquad.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -419,6 +420,8 @@ E_int_loop( int i,
   int               hc_decompose  = hc[ij];
   int               e             = INF;
   int               *c            = vc->matrices->c;
+  int               *ggg          = vc->matrices->ggg;
+  int               with_gquad    = P->model_details.gquad;
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & IN_INT_LOOP){
@@ -480,6 +483,15 @@ E_int_loop( int i,
         S_p1++;
       } /* end q-loop */
     } /* end p-loop */
+
+    if(with_gquad){
+      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+      if (!no_close) {
+        energy = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
+        e = MIN2(e, energy);
+      }
+    }
+
   }
   return e;
 }
@@ -762,6 +774,8 @@ E_ext_loop_5( vrna_fold_compound *vc){
   int               *c            = vc->matrices->c;
   paramT            *P            = vc->params;
   int               dangle_model  = P->model_details.dangles;
+  int               *ggg          = vc->matrices->ggg;
+  int               with_gquad    = P->model_details.gquad;
 
   f5[0] = 0;
   for(i = 1; i <= TURN + 1; i++){

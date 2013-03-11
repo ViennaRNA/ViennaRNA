@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/read_epars.h"

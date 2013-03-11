@@ -147,6 +147,12 @@ PRIVATE int en_corr_of_loop_gquad(int i,
 
   int pos, energy, p, q, r, s, u, type, type2;
   int L, l[3];
+  int *rtype;
+  model_detailsT  *md;
+
+  md    = &(P->model_details);
+  rtype = &(md->rtype[0]);
+
 
   energy = 0;
   q = i;
@@ -226,7 +232,7 @@ PRIVATE int en_corr_of_loop_gquad(int i,
                       if((p-r-1 == 0) || (s-q-1 == 0))
                         nrerror("too few unpaired bases");
                     */
-                    type = pair[s1[r]][s1[s]];
+                    type = md->pair[s1[r]][s1[s]];
                     if(dangles == 2)
                       energy += P->mismatchI[type][s1[r+1]][s1[s-1]];
                     if(type > 2)
@@ -241,8 +247,8 @@ PRIVATE int en_corr_of_loop_gquad(int i,
                                         P);
                     break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-          case 1:   type = pair[s1[r]][s1[s]];
-                    type2 = pair[s1[elem_i]][s1[elem_j]];
+          case 1:   type = md->pair[s1[r]][s1[s]];
+                    type2 = md->pair[s1[elem_i]][s1[elem_j]];
                     energy += P->MLclosing
                               + E_MLstem(rtype[type], s1[s-1], s1[r+1], P)
                               + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
@@ -292,8 +298,8 @@ energy_of_gquad_struct_par( const char *string,
 
   /* save the S and S1 pointers in case they were already in use */
   ss = S; ss1 = S1;
-  S   = encode_sequence(string, 0);
-  S1  = encode_sequence(string, 1);
+  S   = get_sequence_encoding(string, 0, &(P->model_details));
+  S1  = get_sequence_encoding(string, 1, &(P->model_details));
 
   /* the pair_table looses every information about the gquad position
      thus we have to find add the energy contributions for each loop

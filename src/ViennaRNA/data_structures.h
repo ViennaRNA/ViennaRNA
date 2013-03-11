@@ -125,6 +125,7 @@ typedef struct{
   int     *fML; /* multi-loop auxiliary energy array */
   int     *fM1; /* second ML array, only for subopt */
   int     *fM2; /* fM2 = multiloop region with exactly two stems, extending to 3' end */
+  int     *ggg; /* energies of g-quadruplexes */
   int     Fc;   /* parts of the exterior loop energies for circfolding */
   int     FcH;
   int     FcI;

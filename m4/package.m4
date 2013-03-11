@@ -300,12 +300,13 @@ AC_RNA_ADD_PACKAGE( [doc],
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-bla=`${GREP} "^#define LARGE_PF" H/data_structures.h`
+bla=`${GREP} "^#define LARGE_PF" src/ViennaRNA/data_structures.h`
 if test "x$bla" = "x";
 then
   with_pf_float=yes
 fi
 AC_MSG_RESULT([$with_pf_float])
+AM_CONDITIONAL([WITH_LARGE_PF], [test "$with_pf_float" != "yes"])
 
 # check prerequisites for Perl interface
 AC_PATH_PROG(PerlCmd, perl)
@@ -376,7 +377,6 @@ AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
 ])
 
-AM_CONDITIONAL(WITH_LARGE_PF, test "$with_pf_float" != "yes")
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
@@ -410,6 +410,8 @@ eval _pdfdir=$(eval printf "%s" $pdfdir)
 AC_MSG_NOTICE(
 [
 Configure successful with the following options:
+
+bla:  $(with_pf_float:-yes)
 
 RNAlib Interfaces:
   Perl Interface:       ${with_perl:-yes}
