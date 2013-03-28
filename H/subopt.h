@@ -35,13 +35,13 @@
  *  \ingroup subopt_wuchty
  *
  *  \param  seq
- *  \param  sequence
+ *  \param  structure
  *  \param  delta
  *  \param  fp
  *  \return
  */
 SOLUTION *subopt (char *seq,
-                  char *sequence,
+                  char *structure,
                   int delta,
                   FILE *fp);
 
