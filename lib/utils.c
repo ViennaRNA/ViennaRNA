@@ -355,7 +355,7 @@ PUBLIC  unsigned int get_multi_input_line(char **string, unsigned int option){
                     }
                     /* mmmh? it really seems to be a constraint */
                     /* fallthrough */
-      case  '<': case  '.': case  '|': case  '(': case ')': case '[': case ']': case '{': case '}': case ',':
+      case  '<': case  '.': case  '|': case  '(': case ')': case '[': case ']': case '{': case '}': case ',': case '+':
                     /* seems to be a structure or a constraint */
                     /* either we concatenate this line to one that we read previously */
                     if(option & VRNA_INPUT_FASTA_HEADER){
