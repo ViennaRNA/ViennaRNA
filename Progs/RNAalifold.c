@@ -397,6 +397,7 @@ int main(int argc, char *argv[]){
       (void) PS_color_dot_plot(string, cp, ffname);
       free(cp);
       free(pl);
+      free(mfel);
     }
     free(mfe_struc);
     free_alipf_arrays();

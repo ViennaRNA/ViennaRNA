@@ -147,7 +147,6 @@ PRIVATE void get_arrays(unsigned int size){
   if(size >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@alifold.c: sequence length exceeds addressable range");
 
-  indx    = (int *) space(sizeof(int)*(size+1));
   c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   pscore  = (int *) space(sizeof(int)*((size*(size+1))/2+2));
