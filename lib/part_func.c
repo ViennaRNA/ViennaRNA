@@ -1268,15 +1268,18 @@ PUBLIC void assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, doub
       }
       (*pl)[count].i    = i;
       (*pl)[count].j    = j;
-      (*pl)[count++].p  = probs[index[i] - j];
+      (*pl)[count].p  = probs[index[i] - j];
+      (*pl)[count++].type = 0;
     }
   }
   /* mark the end of pl */
   (*pl)[count].i   = 0;
   (*pl)[count].j   = 0;
-  (*pl)[count++].p = 0.;
+  (*pl)[count].p = 0.;
+  (*pl)[count++].type = 0;
   /* shrink memory to actual size needed */
   *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
+
   free(index);
 }
 
