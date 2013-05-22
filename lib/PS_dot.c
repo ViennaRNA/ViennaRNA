@@ -1454,11 +1454,6 @@ PUBLIC int PS_dot_plot_list(char *seq,
   wastl = PS_dot_common(seq, wastlfile, comment, 0);
   if (wastl==NULL) return 0; /* return 0 for failure */
 
-  plist *pl5 = pl;
-  for (; pl5->i>0; pl5++) {
-    printf("%d %d %1.9f %d ubox\n", pl5->i, pl5->j, pl5->type, pl5->p);
-  }
-
   fprintf(wastl, "%s\n", RNAdp_gquad_triangle);
 
   fprintf(wastl,"%%data starts here\n");

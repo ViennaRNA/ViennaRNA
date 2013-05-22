@@ -244,9 +244,9 @@ AC_RNA_ADD_PACKAGE( [perl],
                     [interfaces/Perl/Makefile.am])
 AC_RNA_ADD_PACKAGE( [python],
                     [Python interface],
-                    [yes],
-                    [with_python=no],
+                    [no],
                     [with_python=yes],
+                    [with_python=no],
                     [interfaces/Python/Makefile.am])
 AC_RNA_ADD_PACKAGE( [ruby],
                     [Ruby interface],
