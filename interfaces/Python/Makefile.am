@@ -6,7 +6,7 @@ endif
 
 SOURCES = setup.py
 
-EXTRA_DIST = RNA_wrap.c setup.py
+EXTRA_DIST = RNA_wrap.c setup.py version_test.py __init__.py
 
 RNA_wrap.c: ../RNA.i ../tmaps.i
 	swig -python -shadow $(USE_LARGE_PF) -I../ RNA.i
