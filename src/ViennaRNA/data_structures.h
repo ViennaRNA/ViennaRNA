@@ -310,7 +310,9 @@ typedef struct {
 typedef struct {
   double  *constraints;
   int     **free_energies;
-  double  **boltzmann_factors;
+  int     *en_basepair;
+  FLT_OR_DBL  **boltzmann_factors;
+  FLT_OR_DBL  *exp_en_basepair;
 
   /* generalized soft contraints */
   int (*f)( int,

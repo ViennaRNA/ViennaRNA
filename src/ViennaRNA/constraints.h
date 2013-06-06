@@ -128,9 +128,38 @@
  */
 #define VRNA_CONSTRAINT_IINDX             1024U
 
+/**
+ *  \brief  Soft constraints flag, apply constraints for NFE calculations
+ *  
+ *  \ingroup  soft_constraints
+ *
+ */
 #define VRNA_CONSTRAINT_SOFT_MFE          8192U
 
+/**
+ *  \brief  Soft constraints flag, apply constraints for partition function calculations
+ *  
+ *  \ingroup  soft_constraints
+ *
+ */
 #define VRNA_CONSTRAINT_SOFT_PF           16384U
+
+
+/**
+ *  \brief  Soft constraints flag, apply constraints for unpaired nucleotides
+ *  
+ *  \ingroup  soft_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_SOFT_UP           32768U
+
+/**
+ *  \brief  Soft constraints flag, apply constraints for base pairs
+ *  
+ *  \ingroup  soft_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_SOFT_BP           65536U
 
 /**
  *  \brief  Hard constraints flag, base pair in the exterior loop
@@ -380,9 +409,35 @@ hard_constraintT  *get_hard_constraints(  const char *sequence,
 void destroy_hard_constraints(hard_constraintT *hc);
 
 
-soft_constraintT *get_soft_constraints( const double *constraints,
-                                        unsigned int n,
-                                        unsigned int options);
+void add_soft_constraints(  vrna_fold_compound *vc,
+                            const double *constraints,
+                            unsigned int options);
+
+void add_soft_constraints_bp( vrna_fold_compound *vc,
+                              const double **constraints,
+                              unsigned int options);
+
+void add_soft_constraints_bp_mfe( vrna_fold_compound *vc,
+                                  const double **constraints,
+                                  unsigned int options);
+
+void add_soft_constraints_bp_pf(vrna_fold_compound *vc,
+                                const double **constraints,
+                                unsigned int options);
+
+void add_soft_constraints_up( vrna_fold_compound *vc,
+                              const double *constraints,
+                              unsigned int options);
+
+void add_soft_constraints_up_mfe( vrna_fold_compound *vc,
+                                  const double *constraints,
+                                  unsigned int options);
+
+void add_soft_constraints_up_pf(vrna_fold_compound *vc,
+                                const double *constraints,
+                                unsigned int options);
+
+void remove_soft_constraints(vrna_fold_compound *vc);
 
 void destroy_soft_constraints(soft_constraintT *sc);
 #endif

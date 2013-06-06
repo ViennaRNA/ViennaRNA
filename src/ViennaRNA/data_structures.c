@@ -84,7 +84,7 @@ get_mfe_matrices_alloc( unsigned int n,
   if(alloc_vector){
     vars->allocated = alloc_vector;
     vars->length    = n;
-    unsigned int size     = ((n + 1) * (n + 2)) >> 1;
+    unsigned int size     = ((n + 1) * (n + 2)) / 2;
     unsigned int lin_size = n + 2;
 
     if(alloc_vector & ALLOC_F5)
@@ -209,7 +209,7 @@ get_fold_compound_mfe_constrained(const char *sequence,
     vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
 
   vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
-  vc->sc                  = sc ? sc : NULL;
+  vc->sc                  = sc;
 
   vc->iindx               = NULL;
   vc->jindx               = get_indx(vc->length);

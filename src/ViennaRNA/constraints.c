@@ -8,6 +8,7 @@
 #include <string.h>
 #include <limits.h>
 
+#include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/constraints.h"
@@ -700,64 +701,251 @@ PUBLIC void destroy_hard_constraints(hard_constraintT *hc){
   }
 }
 
-PUBLIC soft_constraintT *get_soft_constraints(  const double *constraints,
-                                                unsigned int n,
-                                                unsigned int options){
 
-  unsigned int i, j;
-  soft_constraintT *sc;
+PUBLIC void
+add_soft_constraints( vrna_fold_compound *vc,
+                      const double *constraints,
+                      unsigned int options){
+  unsigned int      n;
+  soft_constraintT  *sc;
 
-  sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
-  sc->constraints       = NULL;
-  sc->free_energies     = NULL;
-  sc->boltzmann_factors = NULL;
-  sc->f                 = NULL;
-  sc->exp_f             = NULL;
-  sc->data              = NULL;
+  if(vc){
+    sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
+    sc->constraints       = NULL;
+    sc->free_energies     = NULL;
+    sc->en_basepair       = NULL;
+    sc->boltzmann_factors = NULL;
+    sc->exp_en_basepair   = NULL;
+    sc->f                 = NULL;
+    sc->exp_f             = NULL;
+    sc->data              = NULL;
+    n                     = vc->length;
 
+    if(vc->sc)
+      destroy_soft_constraints(vc->sc);
+    vc->sc  = sc;
 
-  if(constraints){
-    /*  copy the provided constraints to the data structure.
-        Here, we just assume that the softconstraints are already free
-        energy contributions per nucleotide.
-        We can also apply any function to the data in sc->constraints
-        at this point if we want to...
-    */
-    sc->constraints = (double *)space(sizeof(double) * (n + 1));
-    memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
-
-    if(options & VRNA_CONSTRAINT_SOFT_MFE){
-      /*  allocate memory such that we can access the soft constraint
-          energies of a subsequence of length j starting at position i
-          via sc->free_energies[i][j]
+    if(constraints){
+      /*  copy the provided constraints to the data structure.
+          Here, we just assume that the softconstraints are already free
+          energy contributions per nucleotide.
+          We can also apply any function to the data in sc->constraints
+          at this point if we want to...
       */
-      sc->free_energies = (int **)space(sizeof(int *) * (n + 2));
-      for(i = 0; i <= n; i++){
-        sc->free_energies[i] = (int *)space(sizeof(int) * (n - i + 2));
-      }
+      sc->constraints = (double *)space(sizeof(double) * (n + 1));
+      memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
 
-      sc->free_energies[n+1] = NULL;
-
-      for(i = 1; i <= n; i++){
-        for(j = 1; j <= (n - i + 1); j++){
-          sc->free_energies[i][j] = sc->free_energies[i][j-1] + (int)(sc->constraints[i+j-1]*100);
-        }
-      }
-
-    }
-    if(options & VRNA_CONSTRAINT_SOFT_PF){
+      if(options & VRNA_CONSTRAINT_SOFT_UP)
+        add_soft_constraints_up(vc, NULL, options);
 
     }
   }
+}
 
-  return sc;
+PUBLIC void
+add_soft_constraints_bp(vrna_fold_compound *vc,
+                        const double **constraints,
+                        unsigned int options){
+                        
+
+  if(options & VRNA_CONSTRAINT_SOFT_MFE)
+    add_soft_constraints_bp_mfe(vc, constraints, options);
+
+  if(options & VRNA_CONSTRAINT_SOFT_PF)
+    add_soft_constraints_bp_pf(vc, constraints, options);
+}
+
+PUBLIC void
+add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
+                            const double **constraints,
+                            unsigned int options){
+
+  unsigned int      i, j, n;
+  soft_constraintT  *sc;
+  int               *idx;
+
+  if(vc && constraints){
+    n   = vc->length;
+    sc  = vc->sc;
+
+    if(!sc)
+      add_soft_constraints(vc, NULL, options | VRNA_CONSTRAINT_SOFT_MFE);
+    else{
+      if(sc->en_basepair)
+        free(sc->en_basepair);
+      sc->en_basepair     = (int *)space(sizeof(int) * (((n + 1) * (n + 2)) / 2));
+
+      idx = vc->jindx;
+      for(i = 1; i < n; i++)
+        for(j=i+1; j<=n; j++)
+          sc->en_basepair[idx[j]+i] = constraints[i][j];
+    }
+  }
+}
+
+PUBLIC void
+add_soft_constraints_bp_pf( vrna_fold_compound *vc,
+                            const double **constraints,
+                            unsigned int options){
+
+  unsigned int      i, j, n;
+  soft_constraintT  *sc;
+  int               *idx;
+
+  if(vc && constraints){
+    n   = vc->length;
+    sc  = vc->sc;
+
+    if(!sc)
+      add_soft_constraints(vc, NULL, options | VRNA_CONSTRAINT_SOFT_PF);
+    else{
+      pf_paramT *exp_params = vc->exp_params;
+      double    GT          = 0.;
+      double    temperature = exp_params->temperature;
+      double    BetaScale   = exp_params->alpha;
+      double    kT          = exp_params->kT;
+      double    pf_scale    = exp_params->pf_scale;
+      double    TT          = (temperature+K0)/(Tmeasure);
+
+      if(sc->exp_en_basepair)
+        free(sc->exp_en_basepair);
+      sc->exp_en_basepair     = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+
+      idx = vc->iindx;
+      for(i = 1; i < n; i++)
+        for(j=i+1; j<=n; j++){
+          GT = constraints[i][j] * TT;
+          sc->exp_en_basepair[idx[i]-j] = exp( -GT * 10./ kT);
+        }
+    }
+  }
+}
+
+PUBLIC void
+add_soft_constraints_up(vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options){
+
+  if(options & VRNA_CONSTRAINT_SOFT_MFE)
+    add_soft_constraints_up_mfe(vc, constraints, options);
+
+  if(options & VRNA_CONSTRAINT_SOFT_PF)
+    add_soft_constraints_up_pf(vc, constraints, options);
+}
+
+PUBLIC void
+add_soft_constraints_up_mfe(vrna_fold_compound *vc,
+                            const double *constraints,
+                            unsigned int options){
+  unsigned int i, j, n;
+  soft_constraintT  *sc;
+
+  if(vc){
+    n   = vc->length;
+    sc  = vc->sc;
+
+    if(!sc)
+      add_soft_constraints(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_MFE);
+    else{
+      const double *my_constraints = (constraints) ? constraints : (const double *)sc->constraints;
+      if(my_constraints){
+        /*  allocate memory such that we can access the soft constraint
+            energies of a subsequence of length j starting at position i
+            via sc->free_energies[i][j]
+        */
+        if(sc->free_energies){
+          for(i = 0; i <= n; i++)
+            if(sc->free_energies[i])
+              free(sc->free_energies[i]);
+          free(sc->free_energies);
+        }
+
+        sc->free_energies = (int **)space(sizeof(int *) * (n + 2));
+        for(i = 0; i <= n; i++)
+          sc->free_energies[i] = (int *)space(sizeof(int) * (n - i + 2));
+
+        sc->free_energies[n+1] = NULL;
+
+        for(i = 1; i <= n; i++){
+          for(j = 1; j <= (n - i + 1); j++){
+            sc->free_energies[i][j] = sc->free_energies[i][j-1] + (int)(my_constraints[i+j-1]*100);
+          }
+        }
+      }
+    }
+  }
+}
+
+PUBLIC void
+add_soft_constraints_up_pf( vrna_fold_compound *vc,
+                            const double *constraints,
+                            unsigned int options){
+  unsigned int i, j, n;
+  soft_constraintT  *sc;
+
+  if(vc && constraints){
+    n   = vc->length;
+    sc  = vc->sc;
+
+    if(!sc)
+      add_soft_constraints(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
+    else{
+      pf_paramT *exp_params = vc->exp_params;
+      double    GT          = 0.;
+      double    temperature = exp_params->temperature;
+      double    BetaScale   = exp_params->alpha;
+      double    kT          = exp_params->kT;
+      double    pf_scale    = exp_params->pf_scale;
+      double    TT          = (temperature+K0)/(Tmeasure);
+
+      /* #################################### */
+      /* # single nucleotide contributions  # */
+      /* #################################### */
+
+      /*  allocate memory such that we can access the soft constraint
+          energies of a subsequence of length j starting at position i
+          via sc->boltzmann_factors[i][j]
+      */
+      if(sc->boltzmann_factors){
+        for(i = 0; i <= n; i++)
+          if(sc->boltzmann_factors[i])
+            free(sc->boltzmann_factors[i]);
+        free(sc->boltzmann_factors);
+      }
+
+      sc->boltzmann_factors = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * (n + 2));
+      for(i = 0; i <= n; i++){
+        sc->boltzmann_factors[i] = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n - i + 2));
+        for(j = 0; j < n - i + 2; j++)
+          sc->boltzmann_factors[i][j] = 1.;
+      }
+
+      sc->boltzmann_factors[n+1] = NULL;
+
+      for(i = 1; i <= n; i++){
+        for(j = 1; j <= (n - i + 1); j++){
+          GT  = (double)((int)(sc->constraints[i+j-1]*100)) * TT;
+          sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp( -GT*10./kT);
+        }
+      }
+    }
+  }
+}
+
+PUBLIC void
+remove_soft_constraints(vrna_fold_compound *vc){
+  if(vc){
+    destroy_soft_constraints(vc->sc);
+    vc->sc = NULL;
+  }
 }
 
 PUBLIC void destroy_soft_constraints(soft_constraintT *sc){
   int     i, *ptr, *ptr2;
   double  *ptr3;
   if(sc){
-    if(sc->constraints)       free(sc->constraints);
+    if(sc->constraints)
+      free(sc->constraints);
     if(sc->free_energies){
       for(i = 0; sc->free_energies[i]; free(sc->free_energies[i++]));
       free(sc->free_energies);
@@ -766,6 +954,12 @@ PUBLIC void destroy_soft_constraints(soft_constraintT *sc){
       for(i = 0; sc->boltzmann_factors[i]; free(sc->boltzmann_factors[i++]));
       free(sc->boltzmann_factors);
     }
+    if(sc->en_basepair)
+      free(sc->en_basepair);
+
+    if(sc->exp_en_basepair)
+      free(sc->exp_en_basepair);
+
     free(sc);
   }
 }
