@@ -57,14 +57,14 @@ PRIVATE char *tokenize(char *line, int *cut_point);
 #################################
 */
 
-PUBLIC mfe_matrices  *
+PUBLIC mfe_matricesT  *
 get_mfe_matrices_alloc( unsigned int n,
                         unsigned int alloc_vector){
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  mfe_matrices  *vars   = (mfe_matrices *)space(sizeof(mfe_matrices));
+  mfe_matricesT *vars   = (mfe_matricesT *)space(sizeof(mfe_matricesT));
 
   vars->allocated       = 0;
   vars->length          = 0;
@@ -114,7 +114,7 @@ get_mfe_matrices_alloc( unsigned int n,
 }
 
 PUBLIC void
-destroy_mfe_matrices(mfe_matrices *self){
+destroy_mfe_matrices(mfe_matricesT *self){
 
   if(self){
     if(self->allocated){
@@ -248,6 +248,186 @@ destroy_fold_compound(vrna_fold_compound *vc){
   }
 }
 
+PUBLIC pf_matricesT  *
+get_pf_matrices_alloc(unsigned int n,
+                      unsigned int alloc_vector){
+
+  if(n >= (unsigned int)sqrt((double)INT_MAX))
+    nrerror("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+
+  pf_matricesT  *vars   = (pf_matricesT *)space(sizeof(pf_matricesT));
+
+  vars->allocated       = 0;
+  vars->length          = 0;
+  vars->q               = NULL;
+  vars->qb              = NULL;
+  vars->qm              = NULL;
+  vars->qm1             = NULL;
+  vars->qm2             = NULL;
+  vars->qho             = 0.;
+  vars->qio             = 0.;
+  vars->qmo             = 0.;
+  vars->qo              = 0.;
+  vars->G               = NULL;
+  vars->q1k             = NULL;
+  vars->qln             = NULL;
+
+  vars->scale           = NULL;
+  vars->expMLbase       = NULL;
+
+  if(alloc_vector){
+    vars->allocated = alloc_vector;
+    vars->length    = n;
+    unsigned int size     = ((n + 1) * (n + 2)) / 2;
+    unsigned int lin_size = n + 2;
+
+    if(alloc_vector & ALLOC_F)
+      vars->q     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+
+    if(alloc_vector & ALLOC_C)
+      vars->qb    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+
+    if(alloc_vector & ALLOC_FML)
+      vars->qm    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+
+    if(alloc_vector & ALLOC_FM1)
+      vars->qm1   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+
+    if(alloc_vector & ALLOC_FM2)
+      vars->qm2   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+
+    if(alloc_vector & ALLOC_PROBS)
+      vars->probs = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+
+  }
+
+  return vars;
+}
+
+PUBLIC void
+destroy_pf_matrices(pf_matricesT *self){
+
+  if(self){
+    if(self->allocated){
+      if(self->allocated & ALLOC_F)
+        free(self->q);
+      if(self->allocated & ALLOC_C)
+        free(self->qb);
+      if(self->allocated & ALLOC_FML)
+        free(self->qm);
+      if(self->allocated & ALLOC_FM1)
+        free(self->qm1);
+      if(self->allocated & ALLOC_FM2)
+        free(self->qm2);
+      if(self->allocated & ALLOC_PROBS)
+        free(self->probs);
+      if(self->G)
+        free(self->G);
+      if(self->scale)
+        free(self->scale);
+      if(self->expMLbase)
+        free(self->expMLbase);
+    }
+    free(self);
+  }
+}
+
+PUBLIC vrna_fold_compound *
+get_fold_compound_pf_constrained( const char *sequence,
+                                  hard_constraintT *hc,
+                                  soft_constraintT *sc,
+                                  pf_paramT *P){
+
+  vrna_fold_compound  *vc;
+  pf_paramT           *params;
+  unsigned int        alloc_vector, length;
+  int                 cut_point, i;
+  char                *seq, *seq2;
+  double              scaling_factor;
+
+  cut_point = -1;
+
+  /* sanity check */
+  length = (sequence) ? strlen(sequence) : 0;
+  if(length == 0)
+    nrerror("get_fold_compound_mfe_constraint@data_structures.c: sequence length must be greater 0");
+
+  seq2 = strdup(sequence);
+  seq = tokenize(seq2, &cut_point); /* splice out the '&' if concatenated sequences and reset cut_point */
+
+    /* prepare the parameters datastructure */
+  if(P){
+    params = get_boltzmann_factor_copy(P);
+  } else { /* this fallback relies on global parameters and thus is not threadsafe */
+    model_detailsT md;
+    set_model_details(&md);
+    params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  }
+
+  /* prepare the allocation vector for the folding matrices */
+  if(cut_point > -1){
+    alloc_vector = ALLOC_PF_HYBRID;
+    if(params->model_details.uniq_ML)
+      alloc_vector |= ALLOC_PF_HYBRID_UNIQ_ML;
+  } else {
+    alloc_vector = ALLOC_PF_DEFAULT;
+    if(params->model_details.circ)
+      alloc_vector |= ALLOC_PF_CIRC;
+    if(params->model_details.uniq_ML)
+      alloc_vector |= ALLOC_PF_UNIQ_ML;
+  }
+
+  /* start making the fold compound */
+  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+
+  vc->exp_params          = params;
+  vc->cutpoint            = cut_point;
+  vc->sequence            = seq;
+  vc->length              = strlen(seq);
+  vc->sequence_encoding   = get_sequence_encoding(seq, 1, &(params->model_details));
+  vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &(params->model_details));
+
+  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
+  vc->params              = NULL;
+
+  vc->exp_matrices        = get_pf_matrices_alloc(vc->length, alloc_vector);
+
+  /* get gquadruplex matrix if needed */
+//  if(vc->params->model_details.gquad)
+//    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, scale, vc->exp_params);
+
+  /* fill additional helper arrays for scaling etc. */
+  scaling_factor = params->pf_scale;
+  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    scaling_factor = exp(-(-185+(params->temperature-37.)*7.27)/params->kT);
+    if (scaling_factor<1) scaling_factor=1;
+    params->pf_scale = scaling_factor;
+    pf_scale = params->pf_scale; /* compatibility with RNAup, may be removed sometime */
+  }
+  vc->exp_matrices->scale[0] = 1.;
+  vc->exp_matrices->scale[1] = 1./scaling_factor;
+  vc->exp_matrices->expMLbase[0] = 1;
+  vc->exp_matrices->expMLbase[1] = params->expMLbase/scaling_factor;
+  for (i=2; i<=length; i++) {
+    vc->exp_matrices->scale[i] = vc->exp_matrices->scale[i/2]*vc->exp_matrices->scale[i-(i/2)];
+    vc->exp_matrices->expMLbase[i] = pow(params->expMLbase, (double)i) * vc->exp_matrices->scale[i];
+  }
+
+  /* get gquadruplex matrix if needed */
+  if(vc->params->model_details.gquad)
+    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+
+
+
+  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->exp_params->model_details), TURN, (unsigned int)0);
+  vc->sc                  = sc;
+
+  vc->iindx               = get_iindx(vc->length);
+  iindx                   = get_iindx(vc->length); /* for backward compatibility and Perl wrapper (they need the global iindx) */
+  vc->jindx               = get_indx(vc->length);
+
+  return vc;
+}
 
 PRIVATE char *tokenize(char *line, int *cut_point){
   char *pos, *copy;
