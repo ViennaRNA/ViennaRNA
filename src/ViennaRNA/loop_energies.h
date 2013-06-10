@@ -389,6 +389,10 @@ E_hp_loop(int i,
       if(sc){
         if(sc->free_energies)
           e += sc->free_energies[i+1][u];
+
+        if(sc->en_basepair)
+          e += sc->en_basepair[idx[j]+i];
+
         if(sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
@@ -468,7 +472,13 @@ E_int_loop( int i,
           /* add soft constraints */
           if(sc){
             if(sc->free_energies)
-              energy += sc->free_energies[i+1][p_i] + sc->free_energies[q+1][j_q];
+              energy += sc->free_energies[i+1][p_i]
+                        + sc->free_energies[q+1][j_q];
+
+            if(sc->en_basepair)
+              energy += sc->en_basepair[ij]
+                        + sc->en_basepair[pq];
+
             if(sc->f)
               energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
           }
@@ -481,6 +491,7 @@ E_int_loop( int i,
         p_i++;      /* increase unpaired region [i+1...p-1] */
         ptype_pq++; /* get ptype[pq + 1] */
         S_p1++;
+        pq++;
       } /* end q-loop */
     } /* end p-loop */
 
@@ -545,15 +556,33 @@ E_mb_loop_fast( int i,
                   if(sc){
                     if(sc->free_energies)
                       en += sc->free_energies[i+1][1];
+
+                    if(sc->en_basepair)
+                      en += sc->en_basepair[ij];
                   }
                   decomp = MIN2(decomp, en);
                 }
                 if(hc_up[j-1] && hc_up[i+1]){
                   en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
+                  if(sc){
+                    if(sc->free_energies)
+                      en += sc->free_energies[i+1][1]
+                            + sc->free_energies[j-1][1];
+
+                    if(sc->en_basepair)
+                      en += sc->en_basepair[ij];
+                  }
                   decomp = MIN2(decomp, en);
                 }
                 if(hc_up[j-1]){
                   en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
+                  if(sc){
+                    if(sc->free_energies)
+                      en += sc->free_energies[j-1][1];
+
+                    if(sc->en_basepair)
+                      en += sc->en_basepair[ij];
+                  }
                   decomp = MIN2(decomp, en);
                 }
                 break;
@@ -571,11 +600,19 @@ E_mb_loop_fast( int i,
         if(hc[i1k] & IN_MB_LOOP_ENC){
           type_2  = rtype[ptype[i1k]];
           en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
+          if(sc){
+            if(sc->en_basepair)
+              en += + sc->en_basepair[ij];
+          }
           decomp  = MIN2(decomp, en);
         }
         if(hc[k1j1] & IN_MB_LOOP_ENC){
           type_2  = rtype[ptype[k1j1]];
           en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
+          if(sc){
+            if(sc->en_basepair)
+              en += +sc->en_basepair[ij];
+          }
           decomp  = MIN2(decomp, en);
         }
       }

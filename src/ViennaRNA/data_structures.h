@@ -345,11 +345,11 @@ typedef struct {
  *  \ingroup soft_constraints
  */
 typedef struct {
-  double  *constraints;
-  int     **free_energies;
-  int     *en_basepair;
-  FLT_OR_DBL  **boltzmann_factors;
-  FLT_OR_DBL  *exp_en_basepair;
+  double      *constraints;         /**<  \brief Backup storage for energy contributions of single nucleotides */
+  int         **free_energies;      /**<  \brief Energy contribution for unpaired sequence stretches */
+  int         *en_basepair;         /**<  \brief Energy contribution for base pairs */
+  FLT_OR_DBL  **boltzmann_factors;  /**<  \brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  FLT_OR_DBL  *exp_en_basepair;     /**<  \brief Boltzmann Factors of the energy contribution for base pairs */
 
   /* generalized soft contraints */
   int (*f)( int,

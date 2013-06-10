@@ -360,15 +360,15 @@ pf_linear(vrna_fold_compound *vc){
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
-  if(with_gquad){
+  if(with_gquad)
     expMLstem = exp_E_MLstem(0, -1, -1, pf_params);
-  }
+
 
   for (d=0; d<=TURN; d++)
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = my_iindx[i]-j;
-      q[ij]=1.0*scale[d+1];
+      q[ij]=1.0*scale[d+1]; /* do we need to apply hc here as well? */
       qb[ij]=qm[ij]=0.0;
     }
  
@@ -393,6 +393,12 @@ pf_linear(vrna_fold_compound *vc){
             qbt1 =  exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)
                     * scale[u+2];
             if(sc){
+              if(sc->boltzmann_factors)
+                qbt1 *= sc->boltzmann_factors[i+1][u];
+
+              if(sc->exp_en_basepair)
+                qbt1 *= sc->exp_en_basepair[ij];
+
               if(sc->f)
                 qbt1 *= sc->f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
             }
@@ -417,6 +423,14 @@ pf_linear(vrna_fold_compound *vc){
                         * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
                 if(sc){
+                  if(sc->boltzmann_factors)
+                    q_temp *= sc->boltzmann_factors[i+1][u1]
+                              * sc->boltzmann_factors[l+1][u2];
+
+                  if(sc->exp_en_basepair)
+                    q_temp *= sc->exp_en_basepair[ij]
+                              * sc->exp_en_basepair[kl];
+
                   if(sc->f)
                     q_temp *= sc->f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
                 }
@@ -436,6 +450,9 @@ pf_linear(vrna_fold_compound *vc){
             q_temp = qm[kl] * qqm1[k];
 
             if(sc){
+              if(sc->exp_en_basepair)
+                q_temp *= sc->exp_en_basepair[ij];
+
               if(sc->f)
                 q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_PAIR_ML, sc->data);
             }
@@ -443,10 +460,14 @@ pf_linear(vrna_fold_compound *vc){
             temp += q_temp;
           }
           tt = rtype[type];
-          qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+          qbt1 += temp
+                  * expMLclosing
+                  * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
+                  * scale[2];
 
           if(with_gquad){
-            qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params) * scale[2];
+            qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params)
+                    * scale[2];
           }
 
         }
@@ -463,6 +484,9 @@ pf_linear(vrna_fold_compound *vc){
         q_temp  =  qqm1[i] * expMLbase[1];
 
         if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[j][1];
+
           if(sc->f)
             q_temp *= sc->f(i, j, j-1, n, VRNA_DECOMP_ML_UP_3, sc->data);
         }
@@ -504,6 +528,9 @@ pf_linear(vrna_fold_compound *vc){
         q_temp = expMLbase[ii] * qqm[k];
 
         if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[i][ii];
+
           if(sc->f)
             q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
         }
@@ -524,6 +551,9 @@ pf_linear(vrna_fold_compound *vc){
         q_temp = qq1[i] * scale[1];
 
         if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[j][1];
+
           if(sc->f)
             q_temp *= sc->f(i, j, j-1, n, VRNA_DECOMP_EXT_UP_3, sc->data);
         }
@@ -544,6 +574,9 @@ pf_linear(vrna_fold_compound *vc){
         q_temp = 1.0 * scale[j-i+1];
 
         if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[i][j-i+1];
+
           if(sc->f)
             q_temp *= sc->f(i, j, n, n, VRNA_DECOMP_EXT_UP, sc->data);
         }
