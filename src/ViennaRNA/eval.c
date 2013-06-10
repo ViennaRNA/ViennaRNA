@@ -992,11 +992,7 @@ PUBLIC float energy_of_move(const char *string, const char *structure, int m1, i
   int   energy;
   short *ss, *ss1;
 
-#ifdef _OPENMP
   if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
 
   if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
 

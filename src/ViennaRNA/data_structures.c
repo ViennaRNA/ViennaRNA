@@ -199,7 +199,7 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc->sequence_encoding   = get_sequence_encoding(seq, 1, &(params->model_details));
   vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &(params->model_details));
 
-  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
+  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(params->model_details), 0);
   vc->exp_params          = NULL;
 
   vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
@@ -214,6 +214,7 @@ get_fold_compound_mfe_constrained(const char *sequence,
   vc->iindx               = NULL;
   vc->jindx               = get_indx(vc->length);
 
+  free(seq2);
   return vc;
 }
 
@@ -223,6 +224,8 @@ destroy_fold_compound(vrna_fold_compound *vc){
   if(vc){
     if(vc->matrices)
       destroy_mfe_matrices(vc->matrices);
+    if(vc->exp_matrices)
+      destroy_pf_matrices(vc->exp_matrices);
     if(vc->sequence)
       free(vc->sequence);
     if(vc->sequence_encoding)
@@ -299,6 +302,16 @@ get_pf_matrices_alloc(unsigned int n,
     if(alloc_vector & ALLOC_PROBS)
       vars->probs = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
 
+    if(alloc_vector & ALLOC_AUX){
+      vars->q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+      vars->qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+    }
+
+    /*  always alloc the helper arrays for unpaired nucleotides in multi-
+        branch loops and scaling
+    */
+    vars->scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+    vars->expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
   }
 
   return vars;
@@ -323,6 +336,10 @@ destroy_pf_matrices(pf_matricesT *self){
         free(self->probs);
       if(self->G)
         free(self->G);
+      if(self->allocated & ALLOC_AUX){
+        free(self->q1k);
+        free(self->qln);
+      }
       if(self->scale)
         free(self->scale);
       if(self->expMLbase)
@@ -387,14 +404,14 @@ get_fold_compound_pf_constrained( const char *sequence,
   vc->sequence_encoding   = get_sequence_encoding(seq, 1, &(params->model_details));
   vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &(params->model_details));
 
-  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(P->model_details), 0);
+  vc->ptype               = get_ptypes(vc->sequence_encoding2, &(params->model_details), 1);
   vc->params              = NULL;
 
   vc->exp_matrices        = get_pf_matrices_alloc(vc->length, alloc_vector);
 
   /* get gquadruplex matrix if needed */
-//  if(vc->params->model_details.gquad)
-//    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, scale, vc->exp_params);
+  if(params->model_details.gquad)
+    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, params);
 
   /* fill additional helper arrays for scaling etc. */
   scaling_factor = params->pf_scale;
@@ -414,17 +431,19 @@ get_fold_compound_pf_constrained( const char *sequence,
   }
 
   /* get gquadruplex matrix if needed */
-  if(vc->params->model_details.gquad)
-    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+  if(params->model_details.gquad)
+    vc->exp_matrices->G   = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, params);
 
 
 
-  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->exp_params->model_details), TURN, (unsigned int)0);
+  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(params->model_details), TURN, VRNA_CONSTRAINT_IINDX);
   vc->sc                  = sc;
 
   vc->iindx               = get_iindx(vc->length);
   iindx                   = get_iindx(vc->length); /* for backward compatibility and Perl wrapper (they need the global iindx) */
   vc->jindx               = get_indx(vc->length);
+
+  free(seq2);
 
   return vc;
 }

@@ -92,14 +92,9 @@ PUBLIC  int         st_back = 0;
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
-PRIVATE int         do_bppm = 1;             /* do backtracking per default */
-
-/* stuff needed for constrained folding */
-PRIVATE int               struct_constrained  = 0;
-
 #ifdef _OPENMP
 
-#pragma omp threadprivate(do_bppm, struct_constrained, backward_compat_compound)
+#pragma omp threadprivate(backward_compat_compound)
 
 #endif
 
@@ -182,7 +177,7 @@ pf_fold_par(const char *sequence,
     exp_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
 
-  if(struct_constrained && structure){
+  if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_IINDX
                           |  VRNA_CONSTRAINT_DB
@@ -227,6 +222,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
   pf_matricesT    *matrices;
   char            *sequemce;
 
+  params    = vc->exp_params;
   n         = vc->length;
   md        = &(params->model_details);
   matrices  = vc->exp_matrices;
@@ -252,7 +248,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
     pf_circ(vc); /* do post processing step for circular RNAs */
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(do_bppm){
+  if(md->do_backtrack){
     pf_create_bppm(vc, structure);
     /*
     *  Backward compatibility:
@@ -501,6 +497,7 @@ pf_linear(vrna_fold_compound *vc){
 
         temp += q_temp;
       }
+
       int maxk = MIN2(i+hc_up_ml[i], j);
       ii = 1; /* length of unpaired stretch */
       for (k=i+1; k<=maxk; k++, ii++){
@@ -513,6 +510,7 @@ pf_linear(vrna_fold_compound *vc){
 
         temp += q_temp;
       }
+
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
@@ -580,8 +578,7 @@ pf_linear(vrna_fold_compound *vc){
     tmp = qqm1; qqm1=qqm; qqm=tmp;
 
   }
-  
-  
+
   /* clean up */
   free(qq);
   free(qq1);
@@ -594,7 +591,8 @@ pf_linear(vrna_fold_compound *vc){
 /* NOTE: this is the postprocessing step ONLY     */
 /* You have to call pf_linear first to calculate  */
 /* complete circular case!!!                      */
-PRIVATE void pf_circ(vrna_fold_compound *vc){
+PRIVATE void
+pf_circ(vrna_fold_compound *vc){
 
   int u, p, q, k, l;
   int noGUclosure, with_gquad;
@@ -740,6 +738,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   ptype             = vc->ptype;
 
   circular          = md->circ;
+  with_gquad        = md->gquad;
 
   hc                = vc->hc;
   sc                = vc->sc;
@@ -1195,7 +1194,9 @@ vrna_update_pf_params(pf_paramT *params,
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char bppm_symbol(const float *x){
+PUBLIC char
+bppm_symbol(const float *x){
+
 /*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';
@@ -1209,7 +1210,11 @@ PUBLIC char bppm_symbol(const float *x){
   return ':';
 }
 
-PUBLIC void bppm_to_structure(char *structure, FLT_OR_DBL *p, unsigned int length){
+PUBLIC void
+bppm_to_structure(char *structure,
+                  FLT_OR_DBL *p,
+                  unsigned int length){
+
   int    i, j;
   int   *index = get_iindx(length);
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
@@ -1801,16 +1806,16 @@ assign_plist_from_pr( plist **pl,
         n *= 2;
         *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
       }
-      (*pl)[count].i    = i;
-      (*pl)[count].j    = j;
-      (*pl)[count].p  = probs[index[i] - j];
+      (*pl)[count].i      = i;
+      (*pl)[count].j      = j;
+      (*pl)[count].p      = probs[index[i] - j];
       (*pl)[count++].type = 0;
     }
   }
   /* mark the end of pl */
-  (*pl)[count].i   = 0;
-  (*pl)[count].j   = 0;
-  (*pl)[count].p = 0.;
+  (*pl)[count].i      = 0;
+  (*pl)[count].j      = 0;
+  (*pl)[count].p      = 0.;
   (*pl)[count++].type = 0;
   /* shrink memory to actual size needed */
   *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
@@ -1819,9 +1824,10 @@ assign_plist_from_pr( plist **pl,
 }
 
 /* this doesn't work if free_pf_arrays() is called before */
-PUBLIC void assign_plist_gquad_from_pr( plist **pl,
-                                        int length,
-                                        double cut_off){
+PUBLIC void
+assign_plist_gquad_from_pr( plist **pl,
+                            int length,
+                            double cut_off){
 
   int i, j, k, n, count, *index;
   FLT_OR_DBL  *probs, *G, *scale;
@@ -2101,13 +2107,14 @@ stackProb(double cutoff){
 
 /*-------------------------------------------------------------------------*/
 /* make arrays used for pf_fold available to other routines */
-PUBLIC int get_pf_arrays( short **S_p,
-                          short **S1_p,
-                          char **ptype_p,
-                          FLT_OR_DBL **qb_p,
-                          FLT_OR_DBL **qm_p,
-                          FLT_OR_DBL **q1k_p,
-                          FLT_OR_DBL **qln_p){
+PUBLIC int
+get_pf_arrays(short **S_p,
+              short **S1_p,
+              char **ptype_p,
+              FLT_OR_DBL **qb_p,
+              FLT_OR_DBL **qm_p,
+              FLT_OR_DBL **q1k_p,
+              FLT_OR_DBL **qln_p){
 
   if(backward_compat_compound){
     if(backward_compat_compound->exp_matrices)
@@ -2126,7 +2133,10 @@ PUBLIC int get_pf_arrays( short **S_p,
 }
 
 /* get the free energy of a subsequence from the q[] array */
-PUBLIC double get_subseq_F(int i, int j){
+PUBLIC double
+get_subseq_F( int i,
+              int j){
+
   if(backward_compat_compound)
     if(backward_compat_compound->exp_matrices)
       if(backward_compat_compound->exp_matrices->q){
@@ -2140,7 +2150,9 @@ PUBLIC double get_subseq_F(int i, int j){
 }
 
 
-PUBLIC double mean_bp_distance(int length){
+PUBLIC double
+mean_bp_distance(int length){
+
   if(backward_compat_compound)
     if(backward_compat_compound->exp_matrices)
       if(backward_compat_compound->exp_matrices->probs)
@@ -2149,7 +2161,10 @@ PUBLIC double mean_bp_distance(int length){
   nrerror("mean_bp_distance: you need to call vrna_pf_fold first");
 }
 
-PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *p){
+PUBLIC double
+mean_bp_distance_pr(int length,
+                    FLT_OR_DBL *p){
+
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
      this can be computed from the pair probs p_ij as
@@ -2169,7 +2184,9 @@ PUBLIC double mean_bp_distance_pr(int length, FLT_OR_DBL *p){
   return 2*d;
 }
 
-PUBLIC FLT_OR_DBL *export_bppm(void){
+PUBLIC FLT_OR_DBL *
+export_bppm(void){
+
   if(backward_compat_compound)
     if(backward_compat_compound->exp_matrices)
       if(backward_compat_compound->exp_matrices->probs)
@@ -2183,7 +2200,10 @@ PUBLIC FLT_OR_DBL *export_bppm(void){
 /*###########################################*/
 
 /* this function is deprecated since it is not threadsafe */
-PUBLIC char *centroid(int length, double *dist) {
+PUBLIC char *
+centroid( int length,
+          double *dist) {
+
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
      <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
@@ -2217,7 +2237,9 @@ PUBLIC char *centroid(int length, double *dist) {
 
 
 /* This function is deprecated since it uses the global array pr for calculations */
-PUBLIC double mean_bp_dist(int length) {
+PUBLIC double
+mean_bp_dist(int length) {
+
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
      this can be computed from the pair probs p_ij as
@@ -2239,8 +2261,13 @@ PUBLIC double mean_bp_dist(int length) {
 }
 
 /*----------------------------------------------------------------------*/
-PUBLIC double expHairpinEnergy(int u, int type, short si1, short sj1,
-                                const char *string) {
+PUBLIC double
+expHairpinEnergy( int u,
+                  int type,
+                  short si1,
+                  short sj1,
+                  const char *string) {
+
 /* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
 
   pf_paramT *pf_params = backward_compat_compound->exp_params;
@@ -2276,8 +2303,17 @@ PUBLIC double expHairpinEnergy(int u, int type, short si1, short sj1,
 
   return q;
 }
-PUBLIC double expLoopEnergy(int u1, int u2, int type, int type2,
-                             short si1, short sj1, short sp1, short sq1) {
+
+PUBLIC double
+expLoopEnergy(int u1,
+              int u2,
+              int type,
+              int type2,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1) {
+
 /* compute Boltzmann weight of interior loop,
    multiply by scale[u1+u2+2] for scaling */
   double z=0;
@@ -2333,11 +2369,13 @@ PUBLIC double expLoopEnergy(int u1, int u2, int type, int type2,
   return z;
 }
 
-PUBLIC void init_pf_circ_fold(int length){
+PUBLIC void
+init_pf_circ_fold(int length){
 /* DO NOTHING */
 }
 
-PUBLIC void init_pf_fold(int length){
+PUBLIC void
+init_pf_fold(int length){
 /* DO NOTHING */
 }
 
