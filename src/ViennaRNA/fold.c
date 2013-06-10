@@ -312,7 +312,7 @@ fill_arrays(vrna_fold_compound *vc){
   char              type, *ptype, *hard_constraints;
   short             *S, *S1;
   paramT            *P;
-  mfe_matrices      *matrices;
+  mfe_matricesT     *matrices;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
 

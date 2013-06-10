@@ -47,6 +47,9 @@ extern  int st_back;
 #################################################
 */
 
+float vrna_pf_fold( vrna_fold_compound *vc,
+                    char *structure);
+
 /**
  *  \brief Compute the partition function \f$Q\f$ for a given RNA sequence
  *
@@ -176,6 +179,8 @@ char    *pbacktrack(char *sequence);
 
 char    *pbacktrack5(char *sequence, int length);
 
+char    *vrna_pbacktrack5(int length,  vrna_fold_compound *vc);
+
 /**
  *  \brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
  * 
@@ -189,6 +194,8 @@ char    *pbacktrack5(char *sequence, int length);
  *  \return           A sampled secondary structure in dot-bracket notation
  */
 char    *pbacktrack_circ(char *sequence);
+
+char    *vrna_pbacktrack_circ(vrna_fold_compound *vc);
 
 /**
  *  \brief Free arrays for the partition function recursions
@@ -225,6 +232,9 @@ void  update_pf_params(int length);
  *
  */
 void update_pf_params_par(int length, pf_paramT *parameters);
+
+void vrna_update_pf_params( pf_paramT *params,
+                            vrna_fold_compound *vc);
 
 /**
  *  \brief Get a pointer to the base pair probability array

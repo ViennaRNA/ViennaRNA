@@ -101,19 +101,29 @@ typedef struct bondTEn {
 } bondTEn;
 
 #define ALLOC_NOTHING     0
-#define ALLOC_F5          1
-#define ALLOC_F3          2
-#define ALLOC_FC          4
-#define ALLOC_C           8
-#define ALLOC_FML         16
-#define ALLOC_FM1         32
-#define ALLOC_FM2         64
+#define ALLOC_F           1
+#define ALLOC_F5          2
+#define ALLOC_F3          4
+#define ALLOC_FC          8
+#define ALLOC_C           16
+#define ALLOC_FML         32
+#define ALLOC_FM1         64
+#define ALLOC_FM2         128
+#define ALLOC_PROBS       256
 
 #define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
 #define ALLOC_MFE_UNIQ_ML         (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1)
 #define ALLOC_MFE_CIRC            (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_FM1 | ALLOC_FM2)
 #define ALLOC_MFE_HYBRID          (ALLOC_MFE_DEFAULT | ALLOC_FC)
 #define ALLOC_MFE_HYBRID_UNIQ_ML  (ALLOC_MFE_HYBRID | ALLOC_FM1)
+
+#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
+#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS)
+#define ALLOC_PF_UNIQ_ML          (ALLOC_PF_DEFAULT | ALLOC_FM1)
+#define ALLOC_PF_CIRC             (ALLOC_PF_UNIQ_ML | ALLOC_FM2)
+#define ALLOC_PF_HYBRID           (ALLOC_PF_DEFAULT | ALLOC_FC)
+#define ALLOC_PF_HYBRID_UNIQ_ML   (ALLOC_PF_HYBRID | ALLOC_FM1)
+
 
 typedef struct{
   unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
@@ -130,7 +140,32 @@ typedef struct{
   int     FcH;
   int     FcI;
   int     FcM;
-} mfe_matrices;
+} mfe_matricesT;
+
+typedef struct{
+  unsigned int allocated;
+  unsigned int length;
+  FLT_OR_DBL  *q;
+  FLT_OR_DBL  *qb;
+  FLT_OR_DBL  *qm;
+  FLT_OR_DBL  *qm1;
+  FLT_OR_DBL  *probs;
+  FLT_OR_DBL  *q1k;
+  FLT_OR_DBL  *qln;
+  FLT_OR_DBL  *G;
+  FLT_OR_DBL  *Gj;
+  FLT_OR_DBL  *Gj1;
+
+  FLT_OR_DBL  qo;
+  FLT_OR_DBL  *qm2;
+  FLT_OR_DBL  qho;
+  FLT_OR_DBL  qio;
+  FLT_OR_DBL  qmo;
+
+  FLT_OR_DBL  *scale;
+  FLT_OR_DBL  *expMLbase;
+} pf_matricesT;
+
 
 
 /**
@@ -352,8 +387,8 @@ typedef struct{
   hard_constraintT  *hc;
   soft_constraintT  *sc;
 
-  mfe_matrices  *matrices;
-
+  mfe_matricesT     *matrices;
+  pf_matricesT      *exp_matrices;
 
   paramT            *params;
   pf_paramT         *exp_params;
@@ -920,10 +955,10 @@ typedef struct{
 * ############################################################
 */
 
-mfe_matrices  *get_mfe_matrices_alloc( unsigned int n,
+mfe_matricesT *get_mfe_matrices_alloc( unsigned int n,
                                        unsigned int alloc_vector);
 
-void destroy_mfe_matrices(mfe_matrices *self);
+void destroy_mfe_matrices(mfe_matricesT *self);
 
 vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
 
@@ -934,6 +969,16 @@ vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
 
 void destroy_fold_compound(vrna_fold_compound *vc);
 
+
+pf_matricesT  *get_pf_matrices_alloc(unsigned int n,
+                                    unsigned int alloc_vector);
+
+void destroy_pf_matrices(pf_matricesT *self);
+
+vrna_fold_compound *get_fold_compound_pf_constrained( const char *sequence,
+                                                      hard_constraintT *hc,
+                                                      soft_constraintT *sc,
+                                                      pf_paramT *P);
 
 
 #endif
