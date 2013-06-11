@@ -476,8 +476,8 @@ E_int_loop( int i,
                         + sc->free_energies[q+1][j_q];
 
             if(sc->en_basepair)
-              energy += sc->en_basepair[ij]
-                        + sc->en_basepair[pq];
+              energy += sc->en_basepair[ij];
+/*                        + sc->en_basepair[pq];*/ /* this should already be included in c[pq] */
 
             if(sc->f)
               energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);

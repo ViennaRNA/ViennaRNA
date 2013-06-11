@@ -755,6 +755,32 @@ add_soft_constraints_bp(vrna_fold_compound *vc,
     add_soft_constraints_bp_pf(vc, constraints, options);
 }
 
+
+PUBLIC int
+add_soft_constraints_mathews( vrna_fold_compound *vc,
+                              const char *shape_file,
+                              unsigned int options){
+
+  double **pseudo_energies = NULL;
+  char *line;
+
+  /* read the shape file */
+  FILE *fp;
+  if(!(fp = fopen(shape_file, "r"))){
+    warn_user("SHAPE data file could not be opened. No shape data will be used.");
+    return 0;
+  }
+
+  while((line=get_line(fp))){
+    printf("%s\n", line);
+  }
+
+  fclose(fp);
+
+
+  return 1; /* success */
+}
+
 PUBLIC void
 add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
                             const double **constraints,

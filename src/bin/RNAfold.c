@@ -243,7 +243,13 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
+    vrna_fold_compound *vc = get_fold_compound_mfe(rec_sequence, mfe_parameters);
+    add_soft_constraints_mathews(vc, "SHAPE/AF324493.shape", (unsigned int)0);
+    min_en = vrna_fold(vc, structure);  
+
+/*
     min_en = fold_par(rec_sequence, structure, mfe_parameters, fold_constrained, circular);
+*/
 
     if(!lucky){
       printf("%s\n%s", orig_sequence, structure);
@@ -384,6 +390,7 @@ int main(int argc, char *argv[]){
     (void) fflush(stdout);
 
     /* clean up */
+    destroy_fold_compound(vc);
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);

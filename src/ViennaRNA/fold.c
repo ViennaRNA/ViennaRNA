@@ -787,6 +787,10 @@ backtrack(bondT *bp_stack,
            (i+1.j-1) must be a pair                */
         type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
         cij -= P->stack[type][type_2];
+        if(sc){
+          if(sc->en_basepair)
+            cij -= sc->en_basepair[ij];
+        }
         bp_stack[++b].i = i+1;
         bp_stack[b].j   = j-1;
         i++; j--;
@@ -802,10 +806,13 @@ backtrack(bondT *bp_stack,
     } else {
       en = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P);
 
-      if(sc)
+      if(sc){
         if(sc->free_energies)
           en += sc->free_energies[i+1][j-i-1];
-
+      
+        if(sc->en_basepair)
+          en += sc->en_basepair[ij];
+      }
       if (cij == en)
         continue;
     }
@@ -827,10 +834,14 @@ backtrack(bondT *bp_stack,
                             S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
         new = energy+my_c[indx[q]+p];
-        if(sc)
+        if(sc){
           if(sc->free_energies)
-            new += sc->free_energies[i+1][p-i-1] + sc->free_energies[q+1][j-q-1];
-
+            new +=  sc->free_energies[i+1][p-i-1]
+                    + sc->free_energies[q+1][j-q-1];
+        
+          if(sc->en_basepair)
+            new += sc->en_basepair[ij];
+        }
         traced = (cij == new);
         if (traced) {
           bp_stack[++b].i = p;
@@ -864,6 +875,10 @@ backtrack(bondT *bp_stack,
 
     switch(dangle_model){
       case 0:   en = cij - E_MLstem(tt, -1, -1, P) - P->MLclosing;
+                if(sc){
+                  if(sc->en_basepair)
+                    en -= sc->en_basepair[ij];
+                }
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                   if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1])
                     break;
@@ -871,6 +886,10 @@ backtrack(bondT *bp_stack,
                 break;
 
       case 2:   en = cij - E_MLstem(tt, S1[j-1], S1[i+1], P) - P->MLclosing;
+                if(sc){
+                  if(sc->en_basepair)
+                    en -= sc->en_basepair[ij];
+                }
                 for(k = i+2+TURN; k < j-2-TURN; k++){
                     if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1])
                       break;
@@ -879,6 +898,10 @@ backtrack(bondT *bp_stack,
 
       default:  for(k = i+2+TURN; k < j-2-TURN; k++){
                   en = cij - P->MLclosing;
+                  if(sc){
+                    if(sc->en_basepair)
+                      en -= sc->en_basepair[ij];
+                  }
                   if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
                     break;
                   }
@@ -901,6 +924,10 @@ backtrack(bondT *bp_stack,
                     type_2 = rtype[ptype[indx[k]+i+1]];
                     if (type_2) {
                       en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
+                      if(sc){
+                        if(sc->en_basepair)
+                          en -= sc->en_basepair[ij];
+                      }
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
                         ml = 2;
                         bt_stack[s+1].ml  = 2;
@@ -911,6 +938,10 @@ backtrack(bondT *bp_stack,
                     type_2 = rtype[ptype[indx[j-1]+k+1]];
                     if (type_2) {
                       en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
+                      if(sc){
+                        if(sc->en_basepair)
+                          en -= sc->en_basepair[ij];
+                      }
                       if (cij == en+2*P->MLintern[1]+P->MLclosing) {
                         bt_stack[s+2].ml = 2;
                         traced = 1;
