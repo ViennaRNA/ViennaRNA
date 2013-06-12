@@ -759,10 +759,13 @@ add_soft_constraints_bp(vrna_fold_compound *vc,
 PUBLIC int
 add_soft_constraints_mathews( vrna_fold_compound *vc,
                               const char *shape_file,
+                              double m,
+                              double b,
                               unsigned int options){
 
-  double **pseudo_energies = NULL;
-  char *line;
+  float   reactivity, *reactivities;
+  char    *line, nucleotide, *sequence;
+  int     i, j, r, position, *pseudo_energies, *idx;
 
   /* read the shape file */
   FILE *fp;
@@ -771,12 +774,60 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
     return 0;
   }
 
-  while((line=get_line(fp))){
-    printf("%s\n", line);
-  }
+  reactivities  = (float *)space(sizeof(float) * (vc->length + 1));
+  sequence      = (char *)space(sizeof(char) * (vc->length + 1));
 
+  while((line=get_line(fp))){
+    r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
+    if(r){
+      if((position <= 0) || (position > vc->length))
+        nrerror("provided shape data outside of sequence scope");
+
+      switch(r){
+        case 1:   nucleotide = 'N';
+                  /* fall through */
+        case 2:   reactivity = -1.;
+                  /* fall through */
+        default:  sequence[position-1]    = nucleotide;
+                  reactivities[position]  = reactivity;
+                  break;
+      }
+    }
+    free(line);
+  }
   fclose(fp);
 
+  sequence[vc->length] = '\0';
+
+  /* double check information by comparing the sequence read from */
+  if(strcmp(vc->sequence, sequence))
+    warn_user("input sequence differs from sequence provided via SHAPE file!");
+
+  /* convert reactivities to pseudo energies */
+  for(i = 1; i <= vc->length; i++){
+    if(reactivities[i] < 0)
+      reactivities[i] = 0.;
+    else
+      reactivities[i] = m * log(reactivities[i] + 1.) + b;
+  }
+
+  /* create the pseudo energy lookup table for the recursions */
+  idx = vc->jindx;
+  pseudo_energies = (int *)space(sizeof(int) * (((vc->length + 1) * (vc->length + 2)) / 2));
+  for(i = 1; i<vc->length; i++)
+    for(j = i + 1; j <= vc->length; j++)
+      pseudo_energies[idx[j] + i] = (int)((reactivities[i] + reactivities[j]) * 100.);
+
+  if(vc->sc){
+    if(vc->sc->en_basepair){
+      free(vc->sc->en_basepair);
+    }
+  } else {
+    add_soft_constraints(vc, NULL, options);
+  }
+
+  vc->sc->en_basepair = pseudo_energies;
+  free(reactivities);
 
   return 1; /* success */
 }
