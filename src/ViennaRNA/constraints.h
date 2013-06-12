@@ -415,6 +415,8 @@ void add_soft_constraints(  vrna_fold_compound *vc,
 
 int add_soft_constraints_mathews( vrna_fold_compound *vc,
                                   const char *shape_file,
+                                  double m,
+                                  double b,
                                   unsigned int options);
 
 void add_soft_constraints_bp( vrna_fold_compound *vc,

@@ -249,7 +249,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     vrna_fold_compound *vc = get_fold_compound_mfe(rec_sequence, mfe_parameters);
-    add_soft_constraints_mathews(vc, "SHAPE/AF324493.shape", (unsigned int)0);
+    add_soft_constraints_mathews(vc, "SHAPE/AF324493.shape", 1.8, -0.6, (unsigned int)0);
     min_en = vrna_fold(vc, structure);  
 
 /*

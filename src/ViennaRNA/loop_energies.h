@@ -390,9 +390,9 @@ E_hp_loop(int i,
         if(sc->free_energies)
           e += sc->free_energies[i+1][u];
 
-        if(sc->en_basepair)
+        if(sc->en_basepair){
           e += sc->en_basepair[idx[j]+i];
-
+        }
         if(sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
@@ -543,10 +543,18 @@ E_mb_loop_fast( int i,
     switch(dangle_model){
       /* no dangles */
       case 0:   decomp += E_MLstem(tt, -1, -1, P);
+                if(sc){
+                  if(sc->en_basepair)
+                    decomp += sc->en_basepair[ij];
+                }
                 break;
 
       /* double dangles */
       case 2:   decomp += E_MLstem(tt, S_j1, S_i1, P);
+                if(sc){
+                  if(sc->en_basepair)
+                    decomp += sc->en_basepair[ij];
+                }
                 break;
 
       /* normal dangles, aka dangles = 1 || 3 */
