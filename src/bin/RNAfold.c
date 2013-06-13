@@ -40,12 +40,13 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
   char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
+  char          *shape_file, *shape_method;
   char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char          *ns_bases, *c;
   int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
-  int           doMEA, circular, lucky;
+  int           doMEA, circular, lucky, with_shapes, verbose;
   double        MEAgamma, bppmThreshold, betaScale;
   paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
@@ -72,6 +73,10 @@ int main(int argc, char *argv[]){
   lucky         = 0;
   doMEA         = 0;
   betaScale     = 1.;
+  shape_file    = NULL;
+  shape_method  = NULL;
+  with_shapes   = 0;
+  verbose       = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -140,6 +145,17 @@ int main(int argc, char *argv[]){
   }
   if(args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
+  /* SHAPE reactivity data */
+  if(args_info.shape_given){
+    with_shapes = 1;
+    shape_file = strdup(args_info.shape_arg);
+  }
+  if(args_info.shapeMethod_given){
+    shape_method = strdup(args_info.shapeMethod_arg);
+  }
+  if(args_info.verbose_given){
+    verbose = 1;
+  }
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -249,7 +265,26 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     vrna_fold_compound *vc = get_fold_compound_mfe(rec_sequence, mfe_parameters);
-    add_soft_constraints_mathews(vc, "SHAPE/AF324493.shape", 1.8, -0.6, (unsigned int)0);
+    if(with_shapes){
+      float p1, p2;
+      char    method;
+      p1      = 1.8;
+      p2      = -0.6;
+      method  = 'M';
+
+      if(shape_method){
+        if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
+          warn_user("Method for SHAPE reactivity data conversion not recognized!");
+        }
+      }
+
+      switch(method){
+        case  'M':  
+        default:    if(verbose)
+                      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
+                    add_soft_constraints_mathews(vc, shape_file, p1, p2, (unsigned int)0);
+      }
+    }
     min_en = vrna_fold(vc, structure);  
 
 /*
