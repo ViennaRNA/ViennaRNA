@@ -32,6 +32,12 @@ description "The program reads RNA sequences from stdin, calculates their minimu
 section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
+option  "verbose" v
+"Be verbose\n"
+flag
+off
+
+
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
 details="The program reads first the\
@@ -215,6 +221,28 @@ default="1."
 optional
 dependon="partfunc"
 hidden
+
+option  "shape" -
+"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
+string
+typestr="SHAPE file"
+optional
+
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="Currently, the only data conversion method available is according to Pollom et al 2013.\
+ This method is the default and is recognized by a capital 'M' in the provided parameter, i.e.:\
+ --shapeMethod=\"M\" is the default setting. The slope 'm' and the intercept 'b' can be set to a\
+ non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before.\
+ To alter these parameters, e.g. m=1.9 and b=-0.7, use a\
+ parameter string like this: --shapeMethod=\"Mm1.9b-0.7\". You may also provide only one of the two\
+ parameters like: --shapeMethod=\"Mm1.9\" or --shapeMethod=\"Mb-0.7\"."
+string
+typestr="M[mX][bY]"
+dependon="shape"
+optional
+
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

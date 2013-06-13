@@ -832,6 +832,40 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
   return 1; /* success */
 }
 
+PUBLIC  int
+parse_soft_constraints_shape_method(  const char *method_string,
+                                      char *method,
+                                      float *param_1,
+                                      float *param_2){
+  int r;
+  float p1;
+  float p2;
+
+  if(method_string){
+    switch(method_string[0]){
+      case  'M':  *method = 'M';
+                  if(method_string[1]){
+                    r = sscanf(method_string+1, "m%fb%f", &p1, &p2);
+                    if(r != 2){
+                      r = sscanf(method_string+1, "m%f", &p1);
+                      if(!r){
+                        p1 = 1.8; /* default value for m */
+                        r = sscanf(method_string+1, "b%f", &p2);
+                        if(!r){
+                          p2 = -0.6; /* default value for b*/
+                          warn_user("SHAPE method parameters not recognized! Using default parameters!");
+                        }
+                      }
+                    }
+                    *param_1 = p1;
+                    *param_2 = p2;
+                  }
+                  return 1;
+    }
+  }
+  return 0; /* failure */
+}
+
 PUBLIC void
 add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
                             const double **constraints,
