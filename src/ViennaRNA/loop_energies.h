@@ -479,6 +479,11 @@ E_int_loop( int i,
               energy += sc->en_basepair[ij];
 /*                        + sc->en_basepair[pq];*/ /* this should already be included in c[pq] */
 
+            if(sc->en_stack)
+              if((p==i+1) && (q == j-1))
+                energy += sc->en_stack[ij]
+                          + sc->en_stack[pq];
+
             if(sc->f)
               energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
           }

@@ -242,6 +242,11 @@ typestr="M[mX][bY]"
 dependon="shape"
 optional
 
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
+optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
