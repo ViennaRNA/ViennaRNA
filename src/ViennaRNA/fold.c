@@ -66,7 +66,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 PRIVATE int   fill_arrays(vrna_fold_compound *vc);
 PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
 PRIVATE plist *backtrack(bondT *bp_stack, sect bt_stack[], int s, vrna_fold_compound *vc);
-  
+
 /* deprecated functions */
 /*@unused@*/
 int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
@@ -337,6 +337,7 @@ fill_arrays(vrna_fold_compound *vc){
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
   my_ggg            = matrices->ggg;
+
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -809,7 +810,7 @@ backtrack(bondT *bp_stack,
       if(sc){
         if(sc->free_energies)
           en += sc->free_energies[i+1][j-i-1];
-      
+
         if(sc->en_basepair)
           en += sc->en_basepair[ij];
       }
@@ -838,9 +839,14 @@ backtrack(bondT *bp_stack,
           if(sc->free_energies)
             new +=  sc->free_energies[i+1][p-i-1]
                     + sc->free_energies[q+1][j-q-1];
-        
+
           if(sc->en_basepair)
             new += sc->en_basepair[ij];
+
+          if(sc->en_stack)
+            if((p == i+1) && (q == j-1))
+              new +=  sc->en_stack[ij]
+                      + sc->en_stack[indx[q] + p];
         }
         traced = (cij == new);
         if (traced) {
@@ -994,7 +1000,7 @@ backtrack(bondT *bp_stack,
     {
       int l[3], L, a;
       L = -1;
-      
+
       get_gquad_pattern_mfe(S, i, j, P, &L, l);
       if(L != -1){
         /* fill the G's of the quadruplex into base_pair2 */

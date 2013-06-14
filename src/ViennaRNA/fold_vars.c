@@ -65,6 +65,8 @@ int         *strand;
 
 int         gquad = 0;            /* consider g-qudruplexes in the calculations */
 
+int         max_bp_span = -1;     /* base pairs may span the entire sequence length by default */
+
 PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 
 PUBLIC char * option_string(void){
@@ -98,6 +100,7 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->do_backtrack    = do_backtrack;
     md->backtrack_type  = backtrack_type;
     md->energy_set      = energy_set;
+    md->max_bp_span     = max_bp_span;
     if(nonstandards){
       memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
     } else {

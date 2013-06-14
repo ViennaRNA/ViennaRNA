@@ -204,6 +204,13 @@ extern int gquad;
  */
 extern int canonicalBPonly;
 
+/**
+ *  \brief Maximum allowed base pair span
+ *
+ *  A value of -1 indicates no restriction for distant base pairs.
+ */
+extern int max_bp_span;
+
 char * option_string(void);
 
 /**

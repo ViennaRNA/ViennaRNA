@@ -77,6 +77,7 @@ int main(int argc, char *argv[]){
   shape_method  = NULL;
   with_shapes   = 0;
   verbose       = 0;
+  max_bp_span   = -1;
 
   /* apply default model details */
   set_model_details(&md);
@@ -155,6 +156,9 @@ int main(int argc, char *argv[]){
   }
   if(args_info.verbose_given){
     verbose = 1;
+  }
+  if(args_info.maxBPspan_given){
+    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
   }
 
   /* free allocated memory of command line data structure */

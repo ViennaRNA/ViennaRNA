@@ -566,14 +566,17 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
                                                   unsigned int options){
 
   unsigned int      i, j, ij, n;
-  int               *idx;
+  int               *idx, max_span;
   hard_constraintT  *hc;
   short             *S;
 
-  n   = strlen(sequence);
-  hc  = (hard_constraintT *)space(sizeof(hard_constraintT));
-  idx = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
-  S   = get_sequence_encoding(sequence, 0, md);
+  n         = strlen(sequence);
+  hc        = (hard_constraintT *)space(sizeof(hard_constraintT));
+  idx       = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
+  S         = get_sequence_encoding(sequence, 0, md);
+  max_span  = md->max_bp_span;
+  if((max_span < 5) || (max_span > n))
+    max_span  = n;
 
   /* allocate memory for the hard constraints data structure */
   hc->matrix  = (char *)space(sizeof(char)*((n*(n+1))/2+2));
@@ -597,7 +600,9 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
     /* 2. all canonical base pairs are allowed in all contexts */
     for(i = 1; i < n; i++){
       ij = idx[i]-i-min_loop_size-1;
-      for(j=i+min_loop_size+1; j <= n; j++,ij--)
+      for(j=i+min_loop_size+1; j <= n; j++,ij--){
+        if((j-i+1) > max_span)
+          break;
         hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
                                                 | IN_HP_LOOP
                                                 | IN_INT_LOOP
@@ -605,6 +610,7 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
                                                 | IN_INT_LOOP_ENC
                                                 | IN_MB_LOOP_ENC
                                               : (char)0;
+      }
     }
   } else { /* indx[j] + i */
     /* 1. unpaired nucleotides are allowed in all contexts */
@@ -618,13 +624,17 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
     for(j = n; j > min_loop_size + 1; j--){
       ij = idx[j]+1;
       for(i=1; i < j - min_loop_size; i++, ij++)
-        hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
+        if((j-i+1) > max_span){
+          hc->matrix[ij] = (char)0;
+        } else {
+          hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
                                                 | IN_HP_LOOP
                                                 | IN_INT_LOOP
                                                 | IN_MB_LOOP
                                                 | IN_INT_LOOP_ENC
                                                 | IN_MB_LOOP_ENC
                                               : (char)0;
+        }
     }
   }
 
@@ -819,14 +829,14 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
       pseudo_energies[idx[j] + i] = (int)((reactivities[i] + reactivities[j]) * 100.);
 
   if(vc->sc){
-    if(vc->sc->en_basepair){
-      free(vc->sc->en_basepair);
+    if(vc->sc->en_stack){
+      free(vc->sc->en_stack);
     }
   } else {
     add_soft_constraints(vc, NULL, options);
   }
 
-  vc->sc->en_basepair = pseudo_energies;
+  vc->sc->en_stack = pseudo_energies;
   free(reactivities);
 
   return 1; /* success */

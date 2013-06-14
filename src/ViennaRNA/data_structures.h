@@ -193,6 +193,7 @@ typedef struct{
   int     do_backtrack;     /**<  \brief  Specifies whether or not backtracking will be performed */
   char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
+  int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
   int     rtype[8];
   short   alias[MAXALPHA+1];
   int     pair[MAXALPHA+1][MAXALPHA+1];
@@ -351,8 +352,8 @@ typedef struct {
   FLT_OR_DBL  **boltzmann_factors;  /**<  \brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
   FLT_OR_DBL  *exp_en_basepair;     /**<  \brief Boltzmann Factors of the energy contribution for base pairs */
 
-  int         *en_stack;            /**<  \brief Pseudo Energy contribution per nucleotide involved in a stack */
-  FLT_OR_DBL  *exp_en_stack;        /**<  \brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int         *en_stack;            /**<  \brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_en_stack;        /**<  \brief Boltzmann weighted pseudo energy contribution per base pair involved in a stack */
 
   /* generalized soft contraints */
   int (*f)( int,
