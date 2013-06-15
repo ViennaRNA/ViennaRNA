@@ -403,6 +403,35 @@ typedef struct{
 
 } vrna_fold_compound;
 
+
+typedef struct{
+
+  unsigned int    length;
+  char            *ptype;
+  short           **S;
+  short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char            **Ss;
+  unsigned short  **a2s;
+  int             *pscore;     /* precomputed array of pair types */
+
+  char            *cons_seq;
+  short           *S_cons;
+
+  hard_constraintT  **hc;
+  soft_constraintT  **sc;
+
+  mfe_matricesT     *matrices;
+  pf_matricesT      *exp_matrices;
+
+  paramT            *params;
+  pf_paramT         *exp_params;
+
+  int               *iindx;
+  int               *jindx;
+
+} vrna_alifold_compound;
+
 /*
 * ############################################################
 * SUBOPT data structures

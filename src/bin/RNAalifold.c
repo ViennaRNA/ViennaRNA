@@ -62,6 +62,7 @@ int main(int argc, char *argv[]){
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
   betaScale     = 1.;
+  max_bp_span   = -1;
 
   set_model_details(&md);
 
@@ -151,6 +152,11 @@ int main(int argc, char *argv[]){
     RibosumFile = NULL;
     ribo = 1;
   }
+
+  if(args_info.maxBPspan_given){
+    max_bp_span = args_info.maxBPspan_arg;
+  }
+
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
     clust_file = fopen(args_info.inputs[0], "r");
