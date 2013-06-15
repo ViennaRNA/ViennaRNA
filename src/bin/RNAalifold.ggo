@@ -249,6 +249,13 @@ optional
 dependon="partfunc"
 hidden
 
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
+optional
+
+
 
 
 text  "Caveats:\n\nSequences are not weighted. If possible, do not mix very similar and\

@@ -76,20 +76,23 @@ PRIVATE int             *DMLi1  = NULL;     /*             MIN(fML[i+1,k]+fML[k+
 PRIVATE int             *DMLi2  = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE int             *pscore = NULL;     /* precomputed array of pair types */
 PRIVATE int             init_length = -1;
-PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-PRIVATE bondT           *base_pair2 = NULL;
-PRIVATE int             circular    = 0;
-PRIVATE int             with_gquad  = 0;
+PRIVATE sect              sector[MAXSECTORS]; /* stack of partial structures for backtracking */
+PRIVATE bondT             *base_pair2 = NULL;
+PRIVATE int               circular    = 0;
+PRIVATE int               with_gquad  = 0;
 
-PRIVATE int             *ggg        = NULL; /* minimum free energies of the gquadruplexes */
-PRIVATE char            *cons_seq   = NULL;
-PRIVATE short           *S_cons     = NULL;
+PRIVATE int               *ggg        = NULL; /* minimum free energies of the gquadruplexes */
+PRIVATE char              *cons_seq   = NULL;
+PRIVATE short             *S_cons     = NULL;
+PRIVATE hard_constraintT  **hc         = NULL;
+PRIVATE soft_constraintT  **sc         = NULL;
+
 
 #ifdef _OPENMP
 
 #pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
                           pscore, init_length, sector, base_pair2,\
-                          ggg, with_gquad, cons_seq, S_cons)
+                          ggg, with_gquad, cons_seq, S_cons, sc, hc)
 
 #endif
 
@@ -243,6 +246,16 @@ PUBLIC void update_alifold_params(void){
   if (init_length < 0) init_length=0;
 }
 
+PUBLIC float
+vrna_alifold( const char **strings,
+              char *structure,
+              vrna_alifold_compound *vc){
+  sc = vc->sc;
+  hc = vc->hc;
+  return alifold(strings, structure);
+}
+
+
 PUBLIC float alifold(const char **strings, char *structure){
   int  length, energy, s, n_seq;
 
@@ -354,7 +367,11 @@ PRIVATE int fill_arrays(const char **strings) {
         for (new_c=s=0; s<n_seq; s++) {
           if ((a2s[s][j-1]-a2s[s][i])<3) new_c+=600;
           else  new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
-       }
+          if(sc){
+            if(sc[s]->en_basepair)
+              new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+          }
+        }
         /*--------------------------------------------------------
           check for elementary structures involving more than one
           closing pair.
@@ -371,9 +388,22 @@ PRIVATE int fill_arrays(const char **strings) {
               energy += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
                                    S3[s][i], S5[s][j],
                                    S5[s][p], S3[s][q], P);
+              if(sc){
+                if(sc[s]->en_basepair)
+                  energy += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]]
+                            + sc[s]->en_basepair[indx[a2s[s][q]] + a2s[s][p]];
+              }
             }
             new_c = MIN2(new_c, energy + c[indx[q]+p]);
-            if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
+            if ((p==i+1)&&(j==q+1)){
+              if(sc){
+                for(s = 0; s < n_seq; s++)
+                  if(sc[s]->en_stack)
+                    energy += sc[s]->en_stack[indx[a2s[s][j]] + a2s[s][i]]
+                              + sc[s]->en_stack[indx[a2s[s][q]] + a2s[s][p]];
+                }
+              stackEnergy = energy; /* remember stack energy */
+            }
           } /* end q-loop */
         } /* end p-loop */
 
@@ -390,6 +420,11 @@ PRIVATE int fill_arrays(const char **strings) {
             tt = rtype[type[s]];
             decomp += E_MLstem(tt, -1, -1, P);
           }
+        }
+        if(sc)
+          for(s=0; s<n_seq; s++){
+            if(sc[s]->en_basepair)
+              decomp += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
         }
         MLenergy = decomp + n_seq*P->MLclosing;
         new_c = MIN2(new_c, MLenergy);
@@ -779,6 +814,10 @@ PRIVATE void backtrack(const char **strings, int s) {
           type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
           if (type_2==0) type_2 = 7;
           cij -= P->stack[type[ss]][type_2];
+          if(sc){
+            if(sc[ss]->en_basepair)
+              cij -= sc[s]->en_basepair[indx[a2s[ss][j]] + a2s[ss][i]];
+          }
         }
         cij += pscore[indx[j]+i];
         base_pair2[++b].i = i+1;
@@ -1089,7 +1128,7 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000 /* score for forbidden pairs */
-  int n,i,j,k,l,s;
+  int n,i,j,k,l,s, max_span;
 
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
@@ -1114,6 +1153,9 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
     }
   }
 
+  max_span = P->model_details.max_bp_span;
+  if((max_span < TURN+2) || (max_span > n))
+    max_span = n;
   for (i=1; i<n; i++) {
     for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
       pscore[indx[j]+i] = NONE;
@@ -1136,6 +1178,10 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       /* counter examples score -1, gap-gap scores -0.25   */
       pscore[indx[j]+i] = cv_fact *
         ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+
+      if((j - i + 1) > max_span){
+        pscore[indx[j]+i] = NONE;
+      }
     }
   }
 
