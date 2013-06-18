@@ -66,14 +66,8 @@ PRIVATE unsigned short  **a2s   = NULL;
 PRIVATE paramT          *P      = NULL;
 PRIVATE int             *indx   = NULL;     /* index for moving in the triangle matrices c[] and fMl[]*/
 PRIVATE int             *c      = NULL;     /* energy array, given that i-j pair */
-PRIVATE int             *cc     = NULL;     /* linear array for calculating canonical structures */
-PRIVATE int             *cc1    = NULL;     /*   "     "        */
 PRIVATE int             *f5     = NULL;     /* energy of 5' end */
 PRIVATE int             *fML    = NULL;     /* multi-loop auxiliary energy array */
-PRIVATE int             *Fmi    = NULL;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int             *DMLi   = NULL;     /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi1  = NULL;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi2  = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 PRIVATE int             *pscore = NULL;     /* precomputed array of pair types */
 PRIVATE int             init_length = -1;
 PRIVATE sect              sector[MAXSECTORS]; /* stack of partial structures for backtracking */
@@ -90,7 +84,7 @@ PRIVATE soft_constraintT  **sc         = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, cc, cc1, f5, fML, Fmi, DMLi, DMLi1, DMLi2,\
+#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, f5, fML,\
                           pscore, init_length, sector, base_pair2,\
                           ggg, with_gquad, cons_seq, S_cons, sc, hc)
 
@@ -154,12 +148,6 @@ PRIVATE void get_arrays(unsigned int size){
   fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   pscore  = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   f5      = (int *) space(sizeof(int)*(size+2));
-  cc      = (int *) space(sizeof(int)*(size+2));
-  cc1     = (int *) space(sizeof(int)*(size+2));
-  Fmi     = (int *) space(sizeof(int)*(size+1));
-  DMLi    = (int *) space(sizeof(int)*(size+1));
-  DMLi1   = (int *) space(sizeof(int)*(size+1));
-  DMLi2   = (int *) space(sizeof(int)*(size+1));
   if(base_pair2) free(base_pair2);
 
   base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
@@ -170,20 +158,14 @@ PUBLIC  void  free_alifold_arrays(void){
   if(c)           free(c);
   if(fML)         free(fML);
   if(f5)          free(f5);
-  if(cc)          free(cc);
-  if(cc1)         free(cc1);
   if(pscore)      free(pscore);
   if(base_pair2)  free(base_pair2);
-  if(Fmi)         free(Fmi);
-  if(DMLi)        free(DMLi);
-  if(DMLi1)       free(DMLi1);
-  if(DMLi2)       free(DMLi2);
   if(P)           free(P);
   if(ggg)         free(ggg);
   if(cons_seq)    free(cons_seq);
   if(S_cons)      free(S_cons);
 
-  indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
+  indx = c = fML = f5 = ggg = NULL;
   pscore      = NULL;
   base_pair   = NULL;
   base_pair2  = NULL;
@@ -194,7 +176,15 @@ PUBLIC  void  free_alifold_arrays(void){
 }
 
 
-PUBLIC void alloc_sequence_arrays(const char **sequences, short ***S, short ***S5, short ***S3, unsigned short ***a2s, char ***Ss, int circ){
+PUBLIC void
+alloc_sequence_arrays(const char **sequences,
+                      short ***S,
+                      short ***S5,
+                      short ***S3,
+                      unsigned short ***a2s,
+                      char ***Ss,
+                      int circ){
+
   unsigned int s, n_seq, length;
   if(sequences[0] != NULL){
     length = strlen(sequences[0]);
@@ -324,12 +314,25 @@ PRIVATE int fill_arrays(const char **strings) {
   int   i, j, k, p, q, length, energy, new_c;
   int   decomp, MLenergy, new_fML;
   int   s, n_seq, *type, type_2, tt;
+  int   *cc;        /* linear array for calculating canonical structures */
+  int   *cc1;       /*   "     "        */
+  int   *Fmi;       /* holds row i of fML (avoids jumps in memory) */
+  int   *DMLi;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+  int   *DMLi1;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+  int   *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 
   /* count number of sequences */
   for (n_seq=0; strings[n_seq]!=NULL; n_seq++);
 
-  type = (int *) space(n_seq*sizeof(int));
   length = strlen(strings[0]);
+
+  type  = (int *) space(n_seq*sizeof(int));
+  cc    = (int *) space(sizeof(int)*(length+2));
+  cc1   = (int *) space(sizeof(int)*(length+2));
+  Fmi   = (int *) space(sizeof(int)*(length+1));
+  DMLi  = (int *) space(sizeof(int)*(length+1));
+  DMLi1 = (int *) space(sizeof(int)*(length+1));
+  DMLi2 = (int *) space(sizeof(int)*(length+1));
 
   /* init energies */
 
@@ -613,6 +616,12 @@ PRIVATE int fill_arrays(const char **strings) {
               break;
   }
   free(type);
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
   return(f5[length]);
 }
 

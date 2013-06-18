@@ -448,6 +448,73 @@ get_fold_compound_pf_constrained( const char *sequence,
   return vc;
 }
 
+PUBLIC vrna_alifold_compound *
+get_alifold_compound_mfe(const char **sequences, paramT *P){
+
+  return get_alifold_compound_mfe_constrained(sequences, NULL, NULL, P);
+}
+
+PUBLIC vrna_alifold_compound *
+get_alifold_compound_mfe_constrained( const char **sequences,
+                                      hard_constraintT **hc,
+                                      soft_constraintT **sc,
+                                      paramT *P){
+
+  vrna_alifold_compound *vc;
+  paramT                *params;
+  unsigned int          alloc_vector, length;
+
+  /* sanity check */
+  length = (sequences) ? strlen(sequences[0]) : 0;
+  if(length == 0)
+    nrerror("get_alifold_compound_mfe_constraint@data_structures.c: sequence length must be greater 0");
+
+    /* prepare the parameters datastructure */
+  if(P){
+    params = get_parameter_copy(P);
+  } else { /* this fallback relies on global parameters and thus is not threadsafe */
+    model_detailsT md;
+    set_model_details(&md);
+    params = get_scaled_parameters(temperature, md);
+  }
+
+  /* prepare the allocation vector for the folding matrices */
+  alloc_vector = ALLOC_MFE_DEFAULT;
+  if(params->model_details.circ)
+    alloc_vector |= ALLOC_MFE_CIRC;
+  if(params->model_details.uniq_ML)
+    alloc_vector |= ALLOC_MFE_UNIQ_ML;
+
+  /* start making the alfold compound */
+  vc                      = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
+
+  vc->params              = params;
+  vc->sequences           = sequences;
+  vc->length              = strlen(sequences[0]);
+
+  /* reserve more memory */
+  vc->pscore              = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+
+
+  vc->exp_params          = NULL;
+  vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
+
+  /* get gquadruplex matrix if needed */
+  if(vc->params->model_details.gquad){
+    vc->cons_seq  = consensus(sequences);
+    vc->S_cons    = encode_sequence(vc->cons_seq, 0);
+    vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+  }
+
+  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+  vc->sc                  = sc;
+
+  vc->iindx               = NULL;
+  vc->jindx               = get_indx(vc->length);
+
+  return vc;
+}
+
 PRIVATE char *tokenize(char *line, int *cut_point){
   char *pos, *copy;
   int cut = -1;
