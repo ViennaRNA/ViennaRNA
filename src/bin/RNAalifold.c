@@ -42,11 +42,12 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           n_seq, i, length, sym, r, noPS;
+  int           s, n_seq, i, length, sym, r, noPS, with_shapes, verbose;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
+  char          **shape_files, *shape_method;
   FILE          *clust_file = stdin;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
@@ -62,7 +63,11 @@ int main(int argc, char *argv[]){
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
   betaScale     = 1.;
+  shape_files   = NULL;
+  shape_method  = NULL;
+  with_shapes   = 0;
   max_bp_span   = -1;
+  verbose       = 0;
 
   set_model_details(&md);
 
@@ -159,6 +164,47 @@ int main(int argc, char *argv[]){
     max_bp_span = args_info.maxBPspan_arg;
   }
 
+  if(args_info.verbose_given){
+    verbose = 1;
+  }
+
+  /* SHAPE reactivity data */
+  if(args_info.shape_given){
+    if(verbose)
+      fprintf(stderr, "SHAPE reactivity data corretion activated\n");
+
+    with_shapes       = 1;
+    shape_files       = (char **)space(sizeof(char*) * (args_info.shape_given + 1));
+    /* find longest string in argument list */
+    unsigned int longest_string = 0;
+    for(s = 0; s < args_info.shape_given; s++)
+      if(strlen(args_info.shape_arg[s]) > longest_string)
+        longest_string = strlen(args_info.shape_arg[s]);
+
+    char *tmp_string  = (char *)space(sizeof(char) * (longest_string + 1));
+    int   tmp_number  = 0;
+
+    for(s = 0; s < args_info.shape_given; s++){
+      if(verbose)
+        fprintf(stderr, "using file %s as shape reactivity data\n", args_info.shape_arg[s]);
+      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
+      if(sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2){
+        if(shape_files[tmp_number-1])
+          fprintf(stderr, "WARNING: duplicate SHAPE reactivity data for sequence number %d\n", tmp_number);
+        shape_files[tmp_number-1] = strdup(tmp_string);
+      } else {
+        if(shape_files[s])
+          fprintf(stderr, "WARNING: duplicate SHAPE reactivity data for sequence number %d\n", s + 1);
+        shape_files[s] = strdup(args_info.shape_arg[s]);
+      }
+    }
+    free(tmp_string);
+  }
+
+  if(args_info.shapeMethod_given){
+    shape_method = strdup(args_info.shapeMethod_arg);
+  }
+
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
     clust_file = fopen(args_info.inputs[0], "r");
@@ -234,6 +280,11 @@ int main(int argc, char *argv[]){
 
   n_seq = read_clustal(clust_file, AS, names);
   if (n_seq==0) nrerror("no sequences found");
+
+  if(with_shapes){
+    if(s != n_seq)
+      warn_user("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+  }
 
   if (clust_file != stdin) fclose(clust_file);
   /*
@@ -413,6 +464,8 @@ int main(int argc, char *argv[]){
   }
   if (cstruc!=NULL) free(cstruc);
   (void) fflush(stdout);
+  if(shape_files)
+    free(shape_files);
   free(string);
   free(structure);
   for (i=0; AS[i]; i++) {

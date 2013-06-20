@@ -26,6 +26,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/constraints.h"
 
 #ifdef _OPENMP
@@ -462,7 +463,7 @@ get_alifold_compound_mfe_constrained( const char **sequences,
 
   vrna_alifold_compound *vc;
   paramT                *params;
-  unsigned int          alloc_vector, length;
+  unsigned int          alloc_vector, length, s;
 
   /* sanity check */
   length = (sequences) ? strlen(sequences[0]) : 0;
@@ -489,24 +490,33 @@ get_alifold_compound_mfe_constrained( const char **sequences,
   vc                      = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
 
   vc->params              = params;
-  vc->sequences           = sequences;
+  for(s=0;sequences[s];s++)
+    vc->sequences[s]      = strdup(sequences[s]);
+
+  vc->n_seq               = s;
   vc->length              = strlen(sequences[0]);
 
   /* reserve more memory */
-  vc->pscore              = (int *) space(sizeof(int)*((size*(size+1))/2+2));
+  vc->pscore              = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
 
   vc->exp_params          = NULL;
-  vc->matrices            = get_mfe_matrices_alloc(vc->length, alloc_vector);
+  vc->matrices            = get_mfe_matrices_alloc(length, alloc_vector);
 
   /* get gquadruplex matrix if needed */
   if(vc->params->model_details.gquad){
-    vc->cons_seq  = consensus(sequences);
-    vc->S_cons    = encode_sequence(vc->cons_seq, 0);
+    vc->cons_seq      = consensus(sequences);
+    vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &(vc->params->model_details));
     vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
   }
 
-  vc->hc                  = hc ? hc : get_hard_constraints(seq, NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+  if(hc)
+    for(s=0; sequences[s]; s++)
+      vc->hc[s] = hc[s] ? hc[s] : get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+  else
+    for(s=0; sequences[s]; s++)
+      vc->hc[s] = get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+
   vc->sc                  = sc;
 
   vc->iindx               = NULL;
