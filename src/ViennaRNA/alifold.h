@@ -86,6 +86,9 @@ void update_alifold_params(void);
 float  alifold( const char **strings,
                 char *structure);
 
+float  vrna_alifold_tmp(const char **strings,
+                        char *structure,
+                        vrna_alifold_compound *vc);
 
 /**
  *  \brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear

@@ -194,6 +194,12 @@ typedef struct{
   char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
   int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
+
+  int     oldAliEn;         /**<  \brief  Use old alifold energy model */
+  int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
+  double  cv_fact;
+  double  nc_fact;
+
   int     rtype[8];
   short   alias[MAXALPHA+1];
   int     pair[MAXALPHA+1][MAXALPHA+1];
@@ -1024,5 +1030,7 @@ vrna_alifold_compound *get_alifold_compound_mfe_constrained(const char **sequenc
                                                             hard_constraintT **hc,
                                                             soft_constraintT **sc,
                                                             paramT *P);
+
+void destroy_alifold_compound(vrna_alifold_compound *vc);
 
 #endif

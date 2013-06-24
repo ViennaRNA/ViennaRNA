@@ -23,6 +23,7 @@
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
+#include "ViennaRNA/constraints.h"
 #include "RNAalifold_cmdl.h"
 
 /*@unused@*/
@@ -48,6 +49,7 @@ int main(int argc, char *argv[]){
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   char          **shape_files, *shape_method;
+  int           *shape_file_association;
   FILE          *clust_file = stdin;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]){
   MEAgamma      = 1.0;
   betaScale     = 1.;
   shape_files   = NULL;
+  shape_file_association = 0;
   shape_method  = NULL;
   with_shapes   = 0;
   max_bp_span   = -1;
@@ -171,10 +174,12 @@ int main(int argc, char *argv[]){
   /* SHAPE reactivity data */
   if(args_info.shape_given){
     if(verbose)
-      fprintf(stderr, "SHAPE reactivity data corretion activated\n");
+      fprintf(stderr, "SHAPE reactivity data correction activated\n");
 
-    with_shapes       = 1;
-    shape_files       = (char **)space(sizeof(char*) * (args_info.shape_given + 1));
+    with_shapes             = 1;
+    shape_files             = (char **)space(sizeof(char*) * (args_info.shape_given + 1));
+    shape_file_association  = (int *)space(sizeof(int*) * (args_info.shape_given + 1));
+
     /* find longest string in argument list */
     unsigned int longest_string = 0;
     for(s = 0; s < args_info.shape_given; s++)
@@ -189,15 +194,16 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "using file %s as shape reactivity data\n", args_info.shape_arg[s]);
       /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
       if(sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2){
-        if(shape_files[tmp_number-1])
-          fprintf(stderr, "WARNING: duplicate SHAPE reactivity data for sequence number %d\n", tmp_number);
-        shape_files[tmp_number-1] = strdup(tmp_string);
+        shape_files[s]            = strdup(tmp_string);
+        shape_file_association[s] = tmp_number - 1;
       } else {
-        if(shape_files[s])
-          fprintf(stderr, "WARNING: duplicate SHAPE reactivity data for sequence number %d\n", s + 1);
         shape_files[s] = strdup(args_info.shape_arg[s]);
+        shape_file_association[s] = s;
       }
     }
+    
+    shape_file_association[s] = -1;
+
     free(tmp_string);
   }
 
@@ -282,8 +288,13 @@ int main(int argc, char *argv[]){
   if (n_seq==0) nrerror("no sequences found");
 
   if(with_shapes){
+    
     if(s != n_seq)
       warn_user("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+
+    shape_files             = (char **)xrealloc(shape_files, (n_seq + 1) * sizeof(char *));
+    shape_file_association  = (int *)xrealloc(shape_file_association, (n_seq + 1) * sizeof(int));
+
   }
 
   if (clust_file != stdin) fclose(clust_file);
@@ -294,7 +305,7 @@ int main(int argc, char *argv[]){
   */
 
   length    = (int)   strlen(AS[0]);
-  structure = (char *)space((unsigned) length+1);
+  structure = (char *)space((unsigned)length + 1);
 
   if(fold_constrained && cstruc != NULL)
     strncpy(structure, cstruc, length);
@@ -317,7 +328,32 @@ int main(int argc, char *argv[]){
     real_en = s/i;
   } else {
     float *ens  = (float *)space(2*sizeof(float));
-    min_en      = alifold((const char **)AS, structure);
+
+    if(with_shapes){
+      vrna_alifold_compound *vc = get_alifold_compound_mfe_constrained((const char **)AS, NULL, NULL, NULL);
+      float p1, p2;
+      char    method;
+      p1      = 1.8;
+      p2      = -0.6;
+      method  = 'M';
+
+      if(shape_method){
+        if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
+          warn_user("Method for SHAPE reactivity data conversion not recognized!");
+        }
+      }
+
+      switch(method){
+        case  'M':  
+        default:    if(verbose)
+                      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
+                    add_soft_constraints_alignment_mathews(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, (unsigned int)0);
+      }
+
+      min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
+    } else {
+      min_en      = alifold((const char **)AS, structure);
+    }
     if(md.gquad)
       energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
     else

@@ -257,7 +257,7 @@ hidden
 option  "shape" -
 "Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
 string
-typestr="SHAPE file"
+typestr="SHAPE files"
 multiple(1-)
 optional
 

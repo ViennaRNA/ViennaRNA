@@ -169,3 +169,25 @@ char *consens_mis(const char*AS[]) {
   }
   return cons;
 }
+
+PUBLIC char *
+get_ungapped_sequence(const char *seq){
+
+  char  *tmp_sequence, *a, *b;
+  int   i;
+
+  tmp_sequence = strdup(seq);
+
+  b = tmp_sequence;
+  i = 0;
+  do{
+    if((*b=='-')||(*b=='_')||(*b=='~')||(*b=='.')) continue;
+    tmp_sequence[i] = *b;
+    i++;
+  }while(*(++b));
+
+  tmp_sequence = (char *)xrealloc(tmp_sequence, (i+1)*sizeof(char));
+  tmp_sequence[i] = '\0';
+
+  return tmp_sequence;
+}

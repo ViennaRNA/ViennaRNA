@@ -585,8 +585,22 @@ short *get_sequence_encoding( const char *sequence,
 
 char  get_encoded_char(int enc, model_detailsT *md);
 
+void  get_sequence_encoding_gapped( const char *sequence,
+                                    short **S,
+                                    short **s5,
+                                    short **s3,
+                                    char **ss,
+                                    unsigned short **as,
+                                    model_detailsT *md);
+
 char  *get_ptypes(const short *S,
                   model_detailsT *md,
                   unsigned int idx_type);
+
+int   *get_pscores( const short *const* S,
+                    const char **AS,
+                    int n_seq,
+                    float **distance_matrix,
+                    model_detailsT *md);
 
 #endif
