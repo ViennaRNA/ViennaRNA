@@ -11,6 +11,7 @@
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/constraints.h"
 
 
@@ -37,82 +38,92 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE INLINE  void hc_cant_pair(unsigned int i,
-                                  char c_option,
-                                  char *hc,
-                                  unsigned int length,
-                                  unsigned int min_loop_size,
-                                  int *index,
-                                  unsigned int idx_type);
+PRIVATE INLINE  void
+hc_cant_pair( unsigned int i,
+              char c_option,
+              char *hc,
+              unsigned int length,
+              unsigned int min_loop_size,
+              int *index,
+              unsigned int idx_type);
 
-PRIVATE INLINE  void hc_must_pair(unsigned int i,
-                                  char c_option,
-                                  char *hc,
-                                  int *index,
-                                  unsigned int idx_type);
+PRIVATE INLINE  void
+hc_must_pair( unsigned int i,
+              char c_option,
+              char *hc,
+              int *index,
+              unsigned int idx_type);
 
-PRIVATE INLINE  void hc_pairs_upstream( unsigned int i,
-                                        char c_option,
-                                        char *hc,
-                                        unsigned int min_loop_size,
-                                        int *index,
-                                        unsigned int idx_type);
+PRIVATE INLINE  void
+hc_pairs_upstream(unsigned int i,
+                  char c_option,
+                  char *hc,
+                  unsigned int min_loop_size,
+                  int *index,
+                  unsigned int idx_type);
 
-PRIVATE INLINE  void hc_pairs_downstream( unsigned int i,
-                                          char c_option,
-                                          char *hc,
-                                          unsigned int length,
-                                          unsigned int min_loop_size,
-                                          int *index,
-                                          unsigned int idx_type);
+PRIVATE INLINE  void
+hc_pairs_downstream(unsigned int i,
+                    char c_option,
+                    char *hc,
+                    unsigned int length,
+                    unsigned int min_loop_size,
+                    int *index,
+                    unsigned int idx_type);
 
-PRIVATE INLINE  void hc_allow_pair( unsigned int i,
-                                    unsigned int j,
-                                    char c_option,
-                                    char *hc,
-                                    int *index,
-                                    unsigned int idx_type);
+PRIVATE INLINE  void
+hc_allow_pair(unsigned int i,
+              unsigned int j,
+              char c_option,
+              char *hc,
+              int *index,
+              unsigned int idx_type);
 
-PRIVATE INLINE  void hc_weak_enforce_pair(unsigned int i,
-                                          unsigned int j,
-                                          char c_option,
-                                          char *hc,
-                                          unsigned int length,
-                                          unsigned int min_loop_size,
-                                          int *index,
-                                          unsigned int idx_type);
+PRIVATE INLINE  void
+hc_weak_enforce_pair( unsigned int i,
+                      unsigned int j,
+                      char c_option,
+                      char *hc,
+                      unsigned int length,
+                      unsigned int min_loop_size,
+                      int *index,
+                      unsigned int idx_type);
 
-PRIVATE INLINE  void hc_enforce_pair(unsigned int i,
-                                      unsigned int j,
-                                      char c_option,
-                                      char *hc,
-                                      unsigned int length,
-                                      unsigned int min_loop_size,
-                                      int *index,
-                                      unsigned int idx_type);
+PRIVATE INLINE  void
+hc_enforce_pair(unsigned int i,
+                unsigned int j,
+                char c_option,
+                char *hc,
+                unsigned int length,
+                unsigned int min_loop_size,
+                int *index,
+                unsigned int idx_type);
 
-PRIVATE INLINE  void hc_intramolecular_only(unsigned int i,
-                                            char c_option,
-                                            char *hc,
-                                            unsigned int length,
-                                            unsigned int min_loop_size,
-                                            int cut,
-                                            int *index,
-                                            unsigned int idx_type);
+PRIVATE INLINE  void
+hc_intramolecular_only( unsigned int i,
+                        char c_option,
+                        char *hc,
+                        unsigned int length,
+                        unsigned int min_loop_size,
+                        int cut,
+                        int *index,
+                        unsigned int idx_type);
 
-PRIVATE INLINE  void hc_intermolecular_only(unsigned int i,
-                                            char c_option,
-                                            char *hc,
-                                            unsigned int length,
-                                            unsigned int min_loop_size,
-                                            int cut,
-                                            int *index,
-                                            unsigned int idx_type);
+PRIVATE INLINE  void
+hc_intermolecular_only( unsigned int i,
+                        char c_option,
+                        char *hc,
+                        unsigned int length,
+                        unsigned int min_loop_size,
+                        int cut,
+                        int *index,
+                        unsigned int idx_type);
 
-PRIVATE INLINE  void adjust_ptypes( char *ptype,
-                                    hard_constraintT *hc,
-                                    unsigned int length,
-                                    unsigned int idx_type);
+PRIVATE INLINE  void
+adjust_ptypes(char *ptype,
+              hard_constraintT *hc,
+              unsigned int length,
+              unsigned int idx_type);
 
 
 /*
@@ -120,7 +131,9 @@ PRIVATE INLINE  void adjust_ptypes( char *ptype,
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-PUBLIC  void  print_tty_constraint_full(void){
+PUBLIC  void
+print_tty_constraint_full(void){
+
   print_tty_constraint(   VRNA_CONSTRAINT_PIPE
                         | VRNA_CONSTRAINT_DOT
                         | VRNA_CONSTRAINT_X
@@ -128,7 +141,9 @@ PUBLIC  void  print_tty_constraint_full(void){
                         | VRNA_CONSTRAINT_RND_BRACK);
 }
 
-PUBLIC  void  print_tty_constraint(unsigned int option){
+PUBLIC  void
+print_tty_constraint(unsigned int option){
+
   if(!(option & VRNA_CONSTRAINT_NO_HEADER)) printf("Input structure constraints using the following notation:\n");
   if(option & VRNA_CONSTRAINT_PIPE)       printf("| : paired with another base\n");
   if(option & VRNA_CONSTRAINT_DOT)        printf(". : no constraint at all\n");
@@ -138,12 +153,13 @@ PUBLIC  void  print_tty_constraint(unsigned int option){
 }
 
 
-PUBLIC void constrain_ptypes( const char *constraint,
-                              unsigned int length,
-                              char *ptype,
-                              int *BP,
-                              int min_loop_size,
-                              unsigned int idx_type){
+PUBLIC void
+constrain_ptypes( const char *constraint,
+                  unsigned int length,
+                  char *ptype,
+                  int *BP,
+                  int min_loop_size,
+                  unsigned int idx_type){
 
   apply_DB_constraint(constraint,
                       ptype,
@@ -158,12 +174,13 @@ PUBLIC void constrain_ptypes( const char *constraint,
                     | ((idx_type) ? VRNA_CONSTRAINT_IINDX : (unsigned int)0));
 }
 
-PUBLIC void apply_DB_constraint(const char *constraint,
-                                char *hc,
-                                unsigned int length,
-                                unsigned int min_loop_size,
-                                int cut,
-                                unsigned int options){
+PUBLIC void
+apply_DB_constraint(const char *constraint,
+                    char *hc,
+                    unsigned int length,
+                    unsigned int min_loop_size,
+                    int cut,
+                    unsigned int options){
 
   int n,i,j,k,l;
   int hx, *stack;
@@ -255,14 +272,15 @@ PUBLIC void apply_DB_constraint(const char *constraint,
   free(stack);
 }
 
-PRIVATE INLINE  void hc_intramolecular_only(unsigned int i,
-                                            char c_option,
-                                            char *hc,
-                                            unsigned int length,
-                                            unsigned int min_loop_size,
-                                            int cut,
-                                            int *index,
-                                            unsigned int idx_type){
+PRIVATE INLINE  void
+hc_intramolecular_only( unsigned int i,
+                        char c_option,
+                        char *hc,
+                        unsigned int length,
+                        unsigned int min_loop_size,
+                        int cut,
+                        int *index,
+                        unsigned int idx_type){
 
   unsigned int l;
 
@@ -285,14 +303,15 @@ PRIVATE INLINE  void hc_intramolecular_only(unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_intermolecular_only(unsigned int i,
-                                            char c_option,
-                                            char *hc,
-                                            unsigned int length,
-                                            unsigned int min_loop_size,
-                                            int cut,
-                                            int *index,
-                                            unsigned int idx_type){
+PRIVATE INLINE  void
+hc_intermolecular_only( unsigned int i,
+                        char c_option,
+                        char *hc,
+                        unsigned int length,
+                        unsigned int min_loop_size,
+                        int cut,
+                        int *index,
+                        unsigned int idx_type){
 
   unsigned int l;
 
@@ -325,23 +344,25 @@ PRIVATE INLINE  void hc_intermolecular_only(unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_cant_pair(unsigned int i,
-                                  char c_option,
-                                  char *hc,
-                                  unsigned int length,
-                                  unsigned int min_loop_size,
-                                  int *index,
-                                  unsigned int idx_type){
+PRIVATE INLINE  void
+hc_cant_pair( unsigned int i,
+              char c_option,
+              char *hc,
+              unsigned int length,
+              unsigned int min_loop_size,
+              int *index,
+              unsigned int idx_type){
 
   hc_pairs_upstream(i, c_option, hc, min_loop_size, index, idx_type);
   hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index, idx_type);
 }
 
-PRIVATE INLINE  void hc_must_pair(unsigned int i,
-                                  char c_option,
-                                  char *hc,
-                                  int *index,
-                                  unsigned int idx_type){
+PRIVATE INLINE  void
+hc_must_pair( unsigned int i,
+              char c_option,
+              char *hc,
+              int *index,
+              unsigned int idx_type){
 
   if(idx_type){
     hc[index[i]-i] &= ~c_option;
@@ -350,12 +371,13 @@ PRIVATE INLINE  void hc_must_pair(unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_pairs_upstream( unsigned int i,
-                                        char c_option,
-                                        char *hc,
-                                        unsigned int min_loop_size,
-                                        int *index,
-                                        unsigned int idx_type){
+PRIVATE INLINE  void
+hc_pairs_upstream(unsigned int i,
+                  char c_option,
+                  char *hc,
+                  unsigned int min_loop_size,
+                  int *index,
+                  unsigned int idx_type){
 
   unsigned int l;
 
@@ -372,13 +394,14 @@ PRIVATE INLINE  void hc_pairs_upstream( unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_pairs_downstream( unsigned int i,
-                                          char c_option,
-                                          char *hc,
-                                          unsigned int length,
-                                          unsigned int min_loop_size,
-                                          int *index,
-                                          unsigned int idx_type){
+PRIVATE INLINE  void
+hc_pairs_downstream(unsigned int i,
+                    char c_option,
+                    char *hc,
+                    unsigned int length,
+                    unsigned int min_loop_size,
+                    int *index,
+                    unsigned int idx_type){
 
   unsigned int l;
 
@@ -393,12 +416,13 @@ PRIVATE INLINE  void hc_pairs_downstream( unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_allow_pair( unsigned int i,
-                                    unsigned int j,
-                                    char c_option,
-                                    char *hc,
-                                    int *index,
-                                    unsigned int idx_type){
+PRIVATE INLINE  void
+hc_allow_pair(unsigned int i,
+              unsigned int j,
+              char c_option,
+              char *hc,
+              int *index,
+              unsigned int idx_type){
 
   if(idx_type){
     hc[index[i] - j] |= c_option;
@@ -407,14 +431,15 @@ PRIVATE INLINE  void hc_allow_pair( unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_weak_enforce_pair(unsigned int i,
-                                          unsigned int j,
-                                          char c_option,
-                                          char *hc,
-                                          unsigned int length,
-                                          unsigned int min_loop_size,
-                                          int *index,
-                                          unsigned int idx_type){
+PRIVATE INLINE  void
+hc_weak_enforce_pair( unsigned int i,
+                      unsigned int j,
+                      char c_option,
+                      char *hc,
+                      unsigned int length,
+                      unsigned int min_loop_size,
+                      int *index,
+                      unsigned int idx_type){
 
   unsigned int k, l;
 
@@ -454,14 +479,15 @@ PRIVATE INLINE  void hc_weak_enforce_pair(unsigned int i,
   }
 }
 
-PRIVATE INLINE  void hc_enforce_pair(unsigned int i,
-                                      unsigned int j,
-                                      char c_option,
-                                      char *hc,
-                                      unsigned int length,
-                                      unsigned int min_loop_size,
-                                      int *index,
-                                      unsigned int idx_type){
+PRIVATE INLINE  void
+hc_enforce_pair(unsigned int i,
+                unsigned int j,
+                char c_option,
+                char *hc,
+                unsigned int length,
+                unsigned int min_loop_size,
+                int *index,
+                unsigned int idx_type){
 
   hc_weak_enforce_pair( i,
                         j,
@@ -483,7 +509,11 @@ PRIVATE INLINE  void hc_enforce_pair(unsigned int i,
   }
 }
 
-PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option){
+PUBLIC void
+getConstraint(char **cstruc,
+              const char **lines,
+              unsigned int option){
+
   int r, i, j, l, cl, stop;
   char *c, *ptr;
   if(lines){
@@ -559,22 +589,27 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
   }
 }
 
-PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
-                                                  const char *constraint,
-                                                  model_detailsT  *md,
-                                                  unsigned int min_loop_size,
-                                                  unsigned int options){
+
+
+PUBLIC  hard_constraintT  *
+get_hard_constraints( const char *sequence,
+                      const char *constraint,
+                      model_detailsT  *md,
+                      unsigned int min_loop_size,
+                      unsigned int options){
 
   unsigned int      i, j, ij, n;
   int               *idx, max_span;
   hard_constraintT  *hc;
   short             *S;
+  char              *tmp_sequence;
 
-  n         = strlen(sequence);
-  hc        = (hard_constraintT *)space(sizeof(hard_constraintT));
-  idx       = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
-  S         = get_sequence_encoding(sequence, 0, md);
-  max_span  = md->max_bp_span;
+  tmp_sequence  = (options & VRNA_CONSTRAINT_UNGAP) ? get_ungapped_sequence(sequence) : strdup(sequence);
+  n             = strlen(tmp_sequence);
+  hc            = (hard_constraintT *)space(sizeof(hard_constraintT));
+  idx           = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
+  S             = get_sequence_encoding(tmp_sequence, 0, md);
+  max_span      = md->max_bp_span;
   if((max_span < 5) || (max_span > n))
     max_span  = n;
 
@@ -694,13 +729,16 @@ PUBLIC  hard_constraintT  *get_hard_constraints(  const char *sequence,
 
   }
 
+  free(tmp_sequence);
   free(idx);
   free(S);
 
   return hc;
 }
 
-PUBLIC void destroy_hard_constraints(hard_constraintT *hc){
+PUBLIC void
+destroy_hard_constraints(hard_constraintT *hc){
+
   if(hc){
     if(hc->matrix)  free(hc->matrix);
     if(hc->up_ext)  free(hc->up_ext);
@@ -724,6 +762,7 @@ add_soft_constraints( vrna_fold_compound *vc,
     sc->constraints       = NULL;
     sc->free_energies     = NULL;
     sc->en_basepair       = NULL;
+    sc->en_stack          = NULL;
     sc->boltzmann_factors = NULL;
     sc->exp_en_basepair   = NULL;
     sc->f                 = NULL;
@@ -842,11 +881,104 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
   return 1; /* success */
 }
 
+PUBLIC int
+add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
+                                        const char **shape_files,
+                                        const int *shape_file_association,
+                                        double m,
+                                        double b,
+                                        unsigned int options){
+
+  float   reactivity, *reactivities;
+  char    *line, nucleotide, *sequence;
+  int     s, i, j, r, position, *pseudo_energies, *idx, n_seq;
+
+  n_seq = vc->n_seq;
+  vc->sc = (soft_constraintT **)space(sizeof(soft_constraintT *) * (n_seq + 1));
+  for(s = 0; s < n_seq; s++){
+    soft_constraintT *sc = (soft_constraintT *)space(sizeof(soft_constraintT));
+    sc->constraints       = NULL;
+    sc->free_energies     = NULL;
+    sc->en_basepair       = NULL;
+    sc->en_stack          = NULL;
+    sc->boltzmann_factors = NULL;
+    sc->exp_en_basepair   = NULL;
+    sc->f                 = NULL;
+    sc->exp_f             = NULL;
+    sc->data              = NULL;
+    vc->sc[s]             = sc;
+  }
+
+  for(s = 0; shape_file_association[s] != -1; s++){
+    if(shape_file_association[s] > n_seq)
+      warn_user("SHAPE file association exceeds sequence number in alignment");
+
+    /* read the shape file */
+    FILE *fp;
+    if(!(fp = fopen(shape_files[s], "r"))){
+      fprintf(stderr, "WARNING: SHAPE data file %d could not be opened. No shape data will be used.\n", s);
+    } else {
+
+      reactivities  = (float *)space(sizeof(float) * (vc->length + 1));
+      sequence      = (char *)space(sizeof(char) * (vc->length + 1));
+
+      while((line=get_line(fp))){
+        r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
+        if(r){
+          if((position <= 0) || (position > vc->length))
+            nrerror("provided shape data outside of sequence scope");
+
+          switch(r){
+            case 1:   nucleotide = 'N';
+                      /* fall through */
+            case 2:   reactivity = -1.;
+                      /* fall through */
+            default:  sequence[position-1]    = nucleotide;
+                      reactivities[position]  = reactivity;
+                      break;
+          }
+        }
+        free(line);
+      }
+      fclose(fp);
+
+      sequence[vc->length] = '\0';
+
+      /* double check information by comparing the sequence read from */
+      char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
+      if(strcmp(tmp_seq, sequence)){
+        fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n");
+      }
+      free(tmp_seq);
+
+      /* convert reactivities to pseudo energies */
+      for(i = 1; i <= vc->length; i++){
+        if(reactivities[i] < 0)
+          reactivities[i] = 0.;
+        else
+          reactivities[i] = m * log(reactivities[i] + 1.) + b;
+      }
+
+      /* create the pseudo energy lookup table for the recursions */
+      idx = vc->jindx;
+      pseudo_energies = (int *)space(sizeof(int) * (((vc->length + 1) * (vc->length + 2)) / 2));
+      for(i = 1; i<vc->length; i++)
+        for(j = i + 1; j <= vc->length; j++)
+          pseudo_energies[idx[j] + i] = (int)((reactivities[i] + reactivities[j]) * 100.);
+
+      vc->sc[shape_file_association[s]]->en_stack = pseudo_energies;
+      free(reactivities);
+    }
+  }
+  return 1; /* success */
+}
+
 PUBLIC  int
 parse_soft_constraints_shape_method(  const char *method_string,
                                       char *method,
                                       float *param_1,
                                       float *param_2){
+
   int r;
   float p1;
   float p2;
@@ -958,6 +1090,7 @@ PUBLIC void
 add_soft_constraints_up_mfe(vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
+
   unsigned int i, j, n;
   soft_constraintT  *sc;
 
@@ -1001,6 +1134,7 @@ PUBLIC void
 add_soft_constraints_up_pf( vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
+
   unsigned int i, j, n;
   soft_constraintT  *sc;
 
@@ -1055,13 +1189,16 @@ add_soft_constraints_up_pf( vrna_fold_compound *vc,
 
 PUBLIC void
 remove_soft_constraints(vrna_fold_compound *vc){
+
   if(vc){
     destroy_soft_constraints(vc->sc);
     vc->sc = NULL;
   }
 }
 
-PUBLIC void destroy_soft_constraints(soft_constraintT *sc){
+PUBLIC void
+destroy_soft_constraints(soft_constraintT *sc){
+
   int     i, *ptr, *ptr2;
   double  *ptr3;
   if(sc){
@@ -1085,10 +1222,11 @@ PUBLIC void destroy_soft_constraints(soft_constraintT *sc){
   }
 }
 
-PRIVATE INLINE  void adjust_ptypes( char *ptype,
-                                    hard_constraintT *hc,
-                                    unsigned int length,
-                                    unsigned int idx_type){
+PRIVATE INLINE  void
+adjust_ptypes(char *ptype,
+              hard_constraintT *hc,
+              unsigned int length,
+              unsigned int idx_type){
 
   unsigned  int i,j;
   int           *index;

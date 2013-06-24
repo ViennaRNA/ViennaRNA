@@ -50,8 +50,6 @@
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC double cv_fact=1.; /* should be made static to not interfere with other threads */
-PUBLIC double nc_fact=1.; /* should be made static to not interfere with other threads */
 
 /*
 #################################
@@ -237,16 +235,20 @@ PUBLIC void update_alifold_params(void){
 }
 
 PUBLIC float
-vrna_alifold( const char **strings,
+vrna_alifold_tmp( const char **strings,
               char *structure,
               vrna_alifold_compound *vc){
+
   sc = vc->sc;
   hc = vc->hc;
   return alifold(strings, structure);
 }
 
 
-PUBLIC float alifold(const char **strings, char *structure){
+PUBLIC float
+alifold(const char **strings,
+        char *structure){
+
   int  length, energy, s, n_seq;
 
   circular = 0;
@@ -391,16 +393,17 @@ PRIVATE int fill_arrays(const char **strings) {
                             + sc[s]->en_basepair[indx[a2s[s][q]] + a2s[s][p]];
               }
             }
-            new_c = MIN2(new_c, energy + c[indx[q]+p]);
             if ((p==i+1)&&(j==q+1)){
               if(sc){
                 for(s = 0; s < n_seq; s++)
-                  if(sc[s]->en_stack)
+                  if(sc[s]->en_stack){
                     energy += sc[s]->en_stack[indx[a2s[s][j]] + a2s[s][i]]
                               + sc[s]->en_stack[indx[a2s[s][q]] + a2s[s][p]];
+                  }
                 }
               stackEnergy = energy; /* remember stack energy */
             }
+            new_c = MIN2(new_c, energy + c[indx[q]+p]);
           } /* end q-loop */
         } /* end p-loop */
 
@@ -493,7 +496,7 @@ PRIVATE int fill_arrays(const char **strings) {
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      new_fML = fML[ij+1]+n_seq*P->MLbase;
+      new_fML = fML[ij+1] + n_seq * P->MLbase;
       new_fML = MIN2(fML[indx[j-1]+i]+n_seq*P->MLbase, new_fML);
       energy = c[ij];
       if(dangles){
@@ -856,6 +859,15 @@ PRIVATE void backtrack(const char **strings, int s) {
                                S3[ss][i], S5[ss][j],
                                S5[ss][p], S3[ss][q], P);
 
+        }
+        if ((p==i+1)&&(j==q+1)){
+          if(sc){
+            for(s = 0; s < n_seq; s++)
+              if(sc[s]->en_stack){
+                energy += sc[s]->en_stack[indx[a2s[s][j]] + a2s[s][i]]
+                          + sc[s]->en_stack[indx[a2s[s][q]] + a2s[s][p]];
+              }
+            }
         }
         traced = (cij == energy+c[indx[q]+p]);
         if (traced) {

@@ -7,4 +7,7 @@ int read_clustal( FILE *clust,
 /*@only@*/ /*@notnull@*/ char *consensus(const char *AS[]);
 /*@only@*/ /*@notnull@*/ char *consens_mis(const char *AS[]);
 
+char *
+get_ungapped_sequence(const char *seq);
+
 #endif

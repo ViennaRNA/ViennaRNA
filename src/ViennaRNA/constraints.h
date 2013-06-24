@@ -162,6 +162,14 @@
 #define VRNA_CONSTRAINT_SOFT_BP           65536U
 
 /**
+ *  \brief  Soft constraints flag, remove gaps from aligned sequence
+ *  
+ *  \ingroup  soft_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_UNGAP             131072U
+
+/**
  *  \brief  Hard constraints flag, base pair in the exterior loop
  *  
  *  \ingroup  hard_constraints
@@ -418,6 +426,13 @@ int add_soft_constraints_mathews( vrna_fold_compound *vc,
                                   double m,
                                   double b,
                                   unsigned int options);
+
+int add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
+                                            const char **shape_files,
+                                            const int *shape_file_association,
+                                            double m,
+                                            double b,
+                                            unsigned int options);
 
 int parse_soft_constraints_shape_method(const char *method_string,
                                         char *method,

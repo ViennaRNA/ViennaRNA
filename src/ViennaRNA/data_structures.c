@@ -490,10 +490,13 @@ get_alifold_compound_mfe_constrained( const char **sequences,
   vc                      = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
 
   vc->params              = params;
-  for(s=0;sequences[s];s++)
-    vc->sequences[s]      = strdup(sequences[s]);
+  for(s=0;sequences[s];s++);
 
   vc->n_seq               = s;
+  vc->sequences           = (char **)space(sizeof(char *) * (vc->n_seq + 1));
+  for(s = 0; sequences[s]; s++)
+    vc->sequences[s]      = strdup(sequences[s]);
+
   vc->length              = strlen(sequences[0]);
 
   /* reserve more memory */
@@ -510,12 +513,38 @@ get_alifold_compound_mfe_constrained( const char **sequences,
     vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
   }
 
+  vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
+  vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+  vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+  vc->a2s = (unsigned short **) space((vc->n_seq+1) * sizeof(unsigned short *));
+  vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
+
+  for (s=0; s<vc->n_seq; s++) {
+    if(strlen(vc->sequences[s]) != vc->length) nrerror("uneqal seqence lengths");
+
+    get_sequence_encoding_gapped( vc->sequences[s],
+                                  &(vc->S[s]),
+                                  &(vc->S5[s]),
+                                  &(vc->S3[s]),
+                                  &(vc->Ss[s]),
+                                  &(vc->a2s[s]),
+                                  &(vc->params->model_details));
+  }
+  vc->S5[vc->n_seq]  = NULL;
+  vc->S3[vc->n_seq]  = NULL;
+  vc->a2s[vc->n_seq] = NULL;
+  vc->Ss[vc->n_seq]  = NULL;
+  vc->S[vc->n_seq]   = NULL;
+
+
+#if 0
   if(hc)
-    for(s=0; sequences[s]; s++)
+    for(s = 0; sequences[s]; s++)
       vc->hc[s] = hc[s] ? hc[s] : get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
   else
     for(s=0; sequences[s]; s++)
       vc->hc[s] = get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
+#endif
 
   vc->sc                  = sc;
 
@@ -523,6 +552,58 @@ get_alifold_compound_mfe_constrained( const char **sequences,
   vc->jindx               = get_indx(vc->length);
 
   return vc;
+}
+
+PUBLIC void
+destroy_alifold_compound(vrna_alifold_compound *vc){
+  int s;
+
+  if(vc){
+    if(vc->matrices)
+      destroy_mfe_matrices(vc->matrices);
+    if(vc->exp_matrices)
+      destroy_pf_matrices(vc->exp_matrices);
+
+    for(s = 0;s < vc->n_seq; s++)
+      free(vc->sequences[s]);
+    free(vc->sequences);
+
+    for (s=0; s < vc->n_seq; s++){
+      free(vc->S[s]);
+      free(vc->S5[s]);
+      free(vc->S3[s]);
+      free(vc->a2s[s]);
+      free(vc->Ss[s]);
+    }
+    free(vc->S);
+    free(vc->S5);
+    free(vc->S3);
+    free(vc->a2s);
+    free(vc->Ss);
+
+    free(vc->cons_seq);
+    free(vc->S_cons);
+
+    if(vc->pscore)
+      free(vc->pscore);
+    if(vc->iindx)
+      free(vc->iindx);
+    if(vc->jindx)
+      free(vc->jindx);
+    if(vc->params)
+      free(vc->params);
+    if(vc->exp_params)
+      free(vc->exp_params);
+    if(vc->hc)
+      for (s=0; s < vc->n_seq; s++)
+        destroy_hard_constraints(vc->hc[s]);
+    if(vc->sc)
+      for (s=0; s < vc->n_seq; s++)
+        destroy_soft_constraints(vc->sc[s]);
+
+
+    free(vc);
+  }
 }
 
 PRIVATE char *tokenize(char *line, int *cut_point){

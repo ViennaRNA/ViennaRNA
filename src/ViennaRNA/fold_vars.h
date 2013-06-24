@@ -12,6 +12,12 @@
 #define PUBLIC
 #define PRIVATE static
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
 /**
  *  \brief Global switch to activate/deactivate folding with structure constraints
  */
@@ -205,6 +211,13 @@ extern int gquad;
  *  A value of -1 indicates no restriction for distant base pairs.
  */
 extern int max_bp_span;
+
+
+extern double cv_fact;
+
+extern double nc_fact;
+
+
 
 char * option_string(void);
 
