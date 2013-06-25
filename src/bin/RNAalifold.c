@@ -188,8 +188,6 @@ int main(int argc, char *argv[]){
     int   tmp_number  = 0;
 
     for(s = 0; s < args_info.shape_given; s++){
-      if(verbose)
-        fprintf(stderr, "using file %s as shape reactivity data\n", args_info.shape_arg[s]);
       /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
       if(sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2){
         shape_files[s]            = strdup(tmp_string);
@@ -198,6 +196,8 @@ int main(int argc, char *argv[]){
         shape_files[s] = strdup(args_info.shape_arg[s]);
         shape_file_association[s] = s;
       }
+      if(verbose)
+        fprintf(stderr, "using SHAPE reactivity data provided in file %s for sequence %d\n", shape_files[s], shape_file_association[s]+1);
     }
     
     shape_file_association[s] = -1;
