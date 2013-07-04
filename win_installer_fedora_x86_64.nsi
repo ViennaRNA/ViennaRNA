@@ -22,7 +22,7 @@ FunctionEnd
 # Name of the software
 name "${PACKAGE}"
 # Name of the installer
-outfile "Install-ViennaRNA-${VERSION}.exe"
+outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 
 # define the directory to install to, the desktop in this case as specified  
 # by the predefined $DESKTOP variable
@@ -120,10 +120,10 @@ section "ViennaRNA Package"
 
 
   # then all the necessary libraries
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
-  #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
-  #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
+  #File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
+  #File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
   File ".local"
 
   # we also want an uninstall to be installed
