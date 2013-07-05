@@ -13,9 +13,14 @@
 @setchapternewpage odd
 @end ifinfo
 
+@dircategory Vienna RNA library
+@direntry
+* libRNA.a (texinfo).           A Library for folding and comparing RNA secondary structures
+@end direntry
+
 @titlepage
 @sp 10
-@title{Vienna RNA Package}
+@title Vienna RNA Package
 @sp 10
 @subtitle A Library for folding and comparing RNA secondary structures
 
@@ -30,10 +35,6 @@ Revision @value{revision}
 @node Top, Introduction, (dir), (dir)
 @comment node-name, next,          previous, up
 
-@dircategory Vienna RNA library
-@direntry
-* libRNA.a (texinfo).           A Library for folding and comparing RNA secondary structures
-@end direntry
 
 @ifinfo
 This file documents the Vienna RNA Package Version @value{Version}

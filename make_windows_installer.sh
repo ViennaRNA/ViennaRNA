@@ -10,12 +10,18 @@ export ac_cv_func_malloc_0_nonnull=yes
 
 case "$1" in
 
-arch-mingw64) echo "Making Windows Installer using Arch Linux mingw32 installation of mingw-w64"
+arch64) echo "Making Windows Installer using Arch Linux mingw-w64 installation"
               echo -ne "...making 32bit version..."
-              ./configure --host=i486-mingw32 --without-perl --without-forester --with-cluster &>> ${WIN_INSTALLER_LOG}
+              ./configure --host=i686-w64-mingw32 --without-perl --without-forester --with-cluster &>> ${WIN_INSTALLER_LOG}
               make clean &>> ${WIN_INSTALLER_LOG}
               make &>> ${WIN_INSTALLER_LOG}
-              makensis win_installer_archlinux_i486.nsi &>> ${WIN_INSTALLER_LOG}
+              makensis win_installer_archlinux_i686.nsi &>> ${WIN_INSTALLER_LOG}
+              echo -ne " done\n"
+              echo -ne "...making 64bit version..."
+              ./configure --host=x86_64-w64-mingw32 --without-perl --without-forester --with-cluster &>> ${WIN_INSTALLER_LOG}
+              make clean &>> ${WIN_INSTALLER_LOG}
+              make &>> ${WIN_INSTALLER_LOG}
+              makensis win_installer_archlinux_x86_64.nsi &>> ${WIN_INSTALLER_LOG}
               echo -ne " done\n"
               ;;
 
