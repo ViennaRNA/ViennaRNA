@@ -5,7 +5,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_ENERGY_PAR_H__
 #define __VIENNA_RNA_PACKAGE_ENERGY_PAR_H__
 
-#include "ViennaRNA/energy_const.h"
+#include <ViennaRNA/energy_const.h>
 
 #define PUBLIC
 

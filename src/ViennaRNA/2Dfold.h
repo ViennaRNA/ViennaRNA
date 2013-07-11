@@ -29,7 +29,7 @@
  *
  */
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))

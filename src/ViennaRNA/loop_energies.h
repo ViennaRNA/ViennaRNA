@@ -6,11 +6,11 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/gquad.h"
+#include <ViennaRNA/params.h>
+#include <ViennaRNA/fold_vars.h>
+#include <ViennaRNA/energy_par.h>
+#include <ViennaRNA/constraints.h>
+#include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
 # define INLINE inline

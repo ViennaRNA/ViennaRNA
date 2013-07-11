@@ -1,7 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_SNOOP_H__
 #define __VIENNA_RNA_PACKAGE_SNOOP_H__
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 /** 
 *** computes snoRNA-RNA interactions in RNAduplex manner
 **/

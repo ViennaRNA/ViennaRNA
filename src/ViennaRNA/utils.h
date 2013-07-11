@@ -6,7 +6,7 @@
  *  \brief Various utility- and helper-functions used throughout the Vienna RNA package
  */
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 /**
  *  Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF"

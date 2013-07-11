@@ -1,8 +1,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_PARAMS_H__
 #define __VIENNA_RNA_PACKAGE_PARAMS_H__
 
-#include "ViennaRNA/energy_const.h"
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/energy_const.h>
+#include <ViennaRNA/data_structures.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
