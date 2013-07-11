@@ -1,7 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 #define   RNA_UP_MODE_1   1U
 #define   RNA_UP_MODE_2   2U

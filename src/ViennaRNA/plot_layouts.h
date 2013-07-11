@@ -9,8 +9,8 @@
 #ifndef __VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H__
 #define __VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H__
 
-#include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/naview.h"
+#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/naview.h>
 
 #ifndef PI
 #define  PI       3.141592654

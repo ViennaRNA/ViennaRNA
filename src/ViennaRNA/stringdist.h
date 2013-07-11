@@ -6,7 +6,7 @@
  *  \brief Functions for String Alignment
  */
 
-#include "ViennaRNA/dist_vars.h"
+#include <ViennaRNA/dist_vars.h>
 
 
 /**

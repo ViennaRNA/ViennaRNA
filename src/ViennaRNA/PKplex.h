@@ -1,7 +1,7 @@
 #ifndef PKPLEX_H
 #define PKPLEX_H
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 extern dupVar *PlexHits;
 extern int    PlexHitsArrayLength;

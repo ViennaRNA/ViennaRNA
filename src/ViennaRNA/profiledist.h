@@ -7,7 +7,7 @@
 #define DEPRECATED(func) func
 #endif
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 /** \file profiledist.h  */
 

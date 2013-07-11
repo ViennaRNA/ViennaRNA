@@ -6,7 +6,7 @@
  *  \brief Functions for Tree Edit Distances
  */
 
-#include "ViennaRNA/dist_vars.h"
+#include <ViennaRNA/dist_vars.h>
 
 /**
  *  \brief Constructs a Tree ( essentially the postorder list ) of the

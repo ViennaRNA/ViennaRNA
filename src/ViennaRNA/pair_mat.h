@@ -1,6 +1,6 @@
 #include <ctype.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/fold_vars.h"
+#include <ViennaRNA/utils.h>
+#include <ViennaRNA/fold_vars.h>
 
 #define NBASES 8
 /*@notnull@*/

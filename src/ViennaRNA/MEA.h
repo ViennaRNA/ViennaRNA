@@ -1,7 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_MEA_H__
 #define __VIENNA_RNA_PACKAGE_MEA_H__
 
-#include "ViennaRNA/data_structures.h"
+#include <ViennaRNA/data_structures.h>
 
 /**
  *  \file MEA.h

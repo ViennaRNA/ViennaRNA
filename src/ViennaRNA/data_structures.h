@@ -1,7 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H__
 #define __VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H__
 
-#include "ViennaRNA/energy_const.h"
+#include <ViennaRNA/energy_const.h>
 
 /**
  *  \file data_structures.h
