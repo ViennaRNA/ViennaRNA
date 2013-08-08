@@ -539,26 +539,28 @@ int main(int argc, char *argv[])
 
 PRIVATE char *tokenize(char *line)
 {
-  char *pos, *copy;
+  char *pos, *copy = NULL;
   int cut = -1;
 
-  copy = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  pos = strchr(copy, '&');
-  if (pos) {
-    cut = (int) (pos-copy)+1;
-    if (cut >= strlen(copy)) cut = -1;
-    if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-    for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-  }
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
+  if(line){
+    copy = (char *) space(strlen(line)+1);
+    (void) sscanf(line, "%s", copy);
+    pos = strchr(copy, '&');
+    if (pos) {
+      cut = (int) (pos-copy)+1;
+      if (cut >= strlen(copy)) cut = -1;
+      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
     }
+    if (cut > -1) {
+      if (cut_point==-1) cut_point = cut;
+      else if (cut_point != cut) {
+        fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+        nrerror("Sequence and Structure have different cut points.");
+      }
+    }
+    free(line);
   }
-  free(line);
   return copy;
 }
 
