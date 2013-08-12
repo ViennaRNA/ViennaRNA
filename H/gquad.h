@@ -565,6 +565,7 @@ exp_E_GQuad_IntLoop(int i,
       maxl  = MIN2(u, maxl);
       for(l = minl; l < maxl; l++){
         if(S[l] != 3) continue;
+        if(G[index[k]-l] == 0.) continue;
         q += qe * G[index[k]-l] * expintern[j - l - 1];
       }
     }
@@ -585,6 +586,7 @@ exp_E_GQuad_IntLoop(int i,
     maxl  = MIN2(r, maxl);
     for(l = minl; l < maxl; l++){
       if(S[l] != 3) continue;
+      if(G[index[k]-l] == 0.) continue;
       q += qe * G[index[k]-l] * expintern[u + j - l - 1];
     }
   }
@@ -595,6 +597,7 @@ exp_E_GQuad_IntLoop(int i,
       u    = k - i - 1;
       if(u>MAXLOOP) break;
       if(S[k] != 3) continue;
+      if(G[index[k]-l] == 0.) continue;
       q += qe * G[index[k]-l] * expintern[u];
     }
 

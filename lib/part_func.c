@@ -727,6 +727,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
       if(with_gquad){
         /* 2.5. bonding k,l as gquad enclosed by i,j */
         FLT_OR_DBL *expintern = &(pf_params->expinternal[0]);
+        FLT_OR_DBL qe;
 
         if(l < n - 3){
           for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
@@ -738,23 +739,8 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
               ij = my_iindx[i] - j;
               type = ptype[ij];
               if(!type) continue;
-              tmp2 += probs[ij] * expintern[j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
-            }
-            probs[kl] += tmp2 * G[kl];
-          }
-        }
-
-        if(l < n){
-          for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
-            kl = my_iindx[k]-l;
-            if (G[kl]==0.) continue;
-            tmp2 = 0.;
-            j = l + 1;
-            for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
-              ij = my_iindx[i] - j;
-              type = ptype[ij];
-              if(!type) continue;
-              tmp2 += probs[ij] * expintern[k - i - 1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
+              qe = (type > 2) ? pf_params->expTermAU : 1.;
+              tmp2 += probs[ij] * qe * expintern[j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
             }
             probs[kl] += tmp2 * G[kl];
           }
@@ -771,8 +757,26 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
                 ij = my_iindx[i] - j;
                 type = ptype[ij];
                 if(!type) continue;
-                tmp2 += probs[ij] * expintern[u1+j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
+                qe = (type > 2) ? pf_params->expTermAU : 1.;
+                tmp2 += probs[ij] * qe * expintern[u1+j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
               }
+            }
+            probs[kl] += tmp2 * G[kl];
+          }
+        }
+
+        if(l < n){
+          for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+            kl = my_iindx[k]-l;
+            if (G[kl]==0.) continue;
+            tmp2 = 0.;
+            j = l + 1;
+            for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
+              ij = my_iindx[i] - j;
+              type = ptype[ij];
+              if(!type) continue;
+              qe = (type > 2) ? pf_params->expTermAU : 1.;
+              tmp2 += probs[ij] * qe * expintern[k - i - 1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
             }
             probs[kl] += tmp2 * G[kl];
           }
