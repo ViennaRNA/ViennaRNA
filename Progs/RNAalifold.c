@@ -32,9 +32,9 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE void  print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
+PRIVATE void  print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
-PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *mfel);
+PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
@@ -386,14 +386,14 @@ int main(int argc, char *argv[]){
       if (!aliout) {
         fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-        print_aliout(AS, pl, n_seq, mfe_struc, aliout);
+        print_aliout(AS, pl, bppmThreshold, n_seq, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
         strcpy(ffname, fname);
         strcat(ffname, "_dp.ps");
       } else strcpy(ffname, "alidot.ps");
-      cp = make_color_pinfo(AS,pl, n_seq, mfel);
+      cp = make_color_pinfo(AS,pl, bppmThreshold, n_seq, mfel);
       (void) PS_color_dot_plot(string, cp, ffname);
       free(cp);
       free(pl);
@@ -511,7 +511,6 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 
 /*-------------------------------------------------------------------------*/
 
-#define PMIN 0.0008
 PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
   pair_info *p1, *p2;
   int  i, nc1, nc2;
@@ -526,7 +525,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout) {
+PRIVATE void print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout) {
   int i, j, k, n, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
@@ -543,7 +542,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
     duck[i] -=  p * log(p);
     duck[j] -=  p * log(p);
 
-    if (p<PMIN) continue;
+    if (p<threshold) continue;
 
     pi[num_p].i = i;
     pi[num_p].j = j;
@@ -585,7 +584,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
 }
 
 
-PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *mfel) {
+PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel) {
   /* produce info for PS_color_dot_plot */
   cpair *cp;
   int i, n,s, a, b,z,t,j, c;
@@ -595,7 +594,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *m
   cp = (cpair *) space(sizeof(cpair)*(n+1));
   for (i=0; i<n; i++) {
     int ncomp=0;
-    if(pl[i].p>PMIN) {
+    if(pl[i].p>threshold) {
       cp[c].i = pl[i].i;
       cp[c].j = pl[i].j;
       cp[c].p = pl[i].p;
