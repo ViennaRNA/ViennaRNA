@@ -947,7 +947,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       /* double check information by comparing the sequence read from */
       char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
       if(strcmp(tmp_seq, sequence)){
-        fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n");
+        fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
       }
       free(tmp_seq);
 

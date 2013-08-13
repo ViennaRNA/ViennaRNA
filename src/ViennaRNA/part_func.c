@@ -2012,7 +2012,9 @@ get_centroid_struct_gquad_pr( int length,
       } else
         *dist += p;
     }
+/* 
   free(my_iindx);
+*/
   centroid[length] = '\0';
   return centroid;
 }
