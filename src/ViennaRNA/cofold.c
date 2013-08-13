@@ -1127,7 +1127,7 @@ PRIVATE void backtrack_co(sect bt_stack[],
         that should then be decomposed further...
       */
       if(SAME_STRAND(i,j)){
-        if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, my_ggg, indx, &p, &q, P)){
+        if(backtrack_GQuad_IntLoop(cij, i, j, type, S, my_ggg, indx, &p, &q, P)){
           i = p; j = q;
           goto repeat_gquad;
         }

@@ -871,7 +871,7 @@ backtrack(bondT *bp_stack,
         kind and the enclosed pair is not a canonical one but a g-quadruplex
         that should then be decomposed further...
       */
-      if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, my_ggg, indx, &p, &q, P)){
+      if(backtrack_GQuad_IntLoop(cij, i, j, type, S, my_ggg, indx, &p, &q, P)){
         i = p; j = q;
         goto repeat_gquad;
       }
