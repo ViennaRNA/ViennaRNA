@@ -123,6 +123,16 @@ gquad_mfe_pos(int i,
               void *Lmfe,
               void *lmfe);
 
+PRIVATE
+void
+gquad_pos_exhaustive( int i,
+                      int L,
+                      int *l,
+                      void *data,
+                      void *P,
+                      void *Lex,
+                      void *lex);
+
 /**
  * Partition function callback for process_gquad_enumeration()
  */
@@ -516,6 +526,28 @@ PUBLIC void get_gquad_pattern_mfe(short *S,
   free(gg);
 }
 
+PUBLIC void
+get_gquad_pattern_exhaustive( short *S,
+                              int i,
+                              int j,
+                              paramT *P,
+                              int *L,
+                              int *l,
+                              int threshold){
+
+  int *gg = get_g_islands_sub(S, i, j);
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_pos_exhaustive,
+                            (void *)(&threshold),
+                            (void *)P,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
+}
+
 PUBLIC void get_gquad_pattern_pf( short *S,
                                   int i,
                                   int j,
@@ -729,6 +761,36 @@ PRIVATE void gquad_mfe_pos( int i,
     *(((int *)lmfe) + 2)  = l[2];
   }
 }
+
+PRIVATE
+void
+gquad_pos_exhaustive( int i,
+                      int L,
+                      int *l,
+                      void *data,
+                      void *P,
+                      void *Lex,
+                      void *lex){
+
+  int cnt;
+  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  if(cc <= *((int *)data)){
+    /*  since Lex is an array of L values and lex an
+        array of l triples we need to find out where
+        the current gquad position is to be stored...
+		the below implementation might be slow but we
+		still use it for now
+    */
+    for(cnt = 0; ((int *)Lex)[cnt] != -1; cnt++);
+
+    *((int *)Lex + cnt)           = L;
+    *((int *)Lex + cnt + 1)       = -1;
+    *(((int *)lex) + (3*cnt) + 0) = l[0];
+    *(((int *)lex) + (3*cnt) + 1) = l[1];
+    *(((int *)lex) + (3*cnt) + 2) = l[2];
+  }
+}
+
 
 PRIVATE void gquad_pf(int i,
                       int L,

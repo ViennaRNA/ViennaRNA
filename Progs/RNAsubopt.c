@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
   char            *cstruc, *structure, *ParamFile, *ns_bases;
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
-  int             delta, n_back, noconv, circular, dos, zuker;
+  int             delta, n_back, noconv, circular, dos, zuker, gquad;
   paramT          *P;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
@@ -44,6 +44,7 @@ int main(int argc, char *argv[]){
   do_backtrack  = 1;
   dangles       = 2;
   betaScale     = 1.;
+  gquad         = 0;
   delta         = 100;
   deltap = n_back = noconv = circular = dos = zuker = 0;
   rec_type      = read_opt = 0;
@@ -80,6 +81,8 @@ int main(int argc, char *argv[]){
   if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* take another energy parameter set */

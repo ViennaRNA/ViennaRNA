@@ -192,8 +192,8 @@ PRIVATE char*     get_structure(STATE * state);
 PRIVATE int       compare(const void *solution1, const void *solution2);
 PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
 PRIVATE char      *costring(char *string);
-PRIVATE void      repeat(int i, int j, STATE * state,
-                  int part_energy, int temp_energy);
+PRIVATE void      repeat(int i, int j, STATE * state, int part_energy, int temp_energy);
+PRIVATE void      repeat_gquad( int i, int j, STATE *state, int part_energy, int temp_energy);
 
 /*
 #################################
@@ -884,6 +884,20 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       for (k = j-turn-1; k > 1; k--) {
 
+        if(with_gquad){
+          if(SAME_STRAND(k,j)){
+            element_energy = 0;
+            if(f5[k-1] + ggg[indx[j]+k] + element_energy + best_energy <= threshold){
+              temp_state = copy_state(state);
+              new_interval = make_interval(1,k-1,0);
+              push(temp_state->Intervals, new_interval);
+              /* backtrace the quadruplex */
+              repeat_gquad(k, j, temp_state, element_energy, f5[k-1]);
+              free_state_node(temp_state);
+            }
+          }
+        }
+
         type = ptype[indx[j]+k];
         if (type==0)   continue;
 
@@ -921,6 +935,14 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
         if (c[indx[j]+1] + element_energy + best_energy <= threshold)
           repeat(1, j, state, element_energy, 0);
+      } else if (with_gquad){
+        if(SAME_STRAND(k,j)){
+          element_energy = 0;
+          if(ggg[indx[j]+1] + element_energy + best_energy <= threshold){
+            /* backtrace the quadruplex */
+            repeat_gquad(1, j, state, element_energy, 0);
+          }
+        }
       }
     }/* end array_flag == 0 && !circular*/
   /* or do we subopt circular? */
@@ -1161,6 +1183,52 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 }
 
 /*---------------------------------------------------------------------------*/
+PRIVATE void
+repeat_gquad( int i,
+              int j,
+              STATE *state,
+              int part_energy,
+              int temp_energy){
+
+  /* find all gquads that fit into the energy range and the interval [i,j] */
+  STATE *new_state;
+  best_energy += part_energy; /* energy of current structural element */
+  best_energy += temp_energy; /* energy from unpushed interval */
+
+  if(SAME_STRAND(i,j)){
+    element_energy = ggg[indx[j] + i];
+    if(element_energy + best_energy <= threshold){
+      int cnt;
+      int *L;
+      int *l;
+      /* find out how many gquads we might expect in the interval [i,j] */
+      L = (int *)space(sizeof(int) * 256);
+      l = (int *)space(sizeof(int) * 256 * 3);
+      L[0] = -1;
+
+      get_gquad_pattern_exhaustive(S1, i, j, P, L, l, element_energy + best_energy);
+
+      for(cnt = 0; L[cnt] != -1; cnt++){
+        new_state = copy_state(state);
+
+        make_gquad(i, L[cnt], &(l[3*cnt]), new_state);
+        new_state->partial_energy += part_energy;
+        new_state->partial_energy += element_energy;
+        /* new_state->best_energy =
+           hairpin[unpaired] + element_energy + best_energy; */
+        push(Stack, new_state);
+      }
+      free(L);
+      free(l);
+    }
+  }
+
+  best_energy -= part_energy;
+  best_energy -= temp_energy;
+  return;
+}
+
+
 
 PRIVATE void
 repeat(int i, int j, STATE * state, int part_energy, int temp_energy)

@@ -81,6 +81,15 @@ void        get_gquad_pattern_mfe(short *S,
                                   int *L,
                                   int l[3]);
 
+void
+get_gquad_pattern_exhaustive( short *S,
+                              int i,
+                              int j,
+                              paramT *P,
+                              int *L,
+                              int *l,
+                              int threshold);
+
 void        get_gquad_pattern_pf( short *S,
                                   int i,
                                   int j,
