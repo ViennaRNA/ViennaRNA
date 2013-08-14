@@ -426,6 +426,8 @@ best_attainable_energy(STATE * state)
         sum += fc[next->i];
       else if (next->array_flag == 5)
         sum += fc[next->j];
+      else if (next->array_flag == 6)
+        sum += ggg[indx[next->j] + next->i];
     }
 
   return sum;
@@ -1177,6 +1179,18 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         repeat(cut_point, j, state, element_energy, 0);
     }
   } /* array_flag == 5 */
+
+  if (array_flag == 6) { /* we have a gquad */
+      repeat_gquad(i, j, state, 0, 0);
+      if (nopush){
+        fprintf(stderr, "%d,%d", i, j);
+        fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
+      }
+      return;
+  
+  
+  }
+
   if (nopush)
     push_back(state);
   return;
@@ -1206,7 +1220,7 @@ repeat_gquad( int i,
       l = (int *)space(sizeof(int) * 256 * 3);
       L[0] = -1;
 
-      get_gquad_pattern_exhaustive(S1, i, j, P, L, l, element_energy + best_energy);
+      get_gquad_pattern_exhaustive(S1, i, j, P, L, l, threshold - best_energy);
 
       for(cnt = 0; L[cnt] != -1; cnt++){
         new_state = copy_state(state);
@@ -1391,6 +1405,27 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       /* new_state->best_energy =
          hairpin[unpaired] + element_energy + best_energy; */
       push(Stack, new_state);
+    }
+
+    if(with_gquad){
+      /* now we have to find all loops where (i,j) encloses a gquad */
+      int cnt, *p, *q, *en;
+      p = q = en = NULL;
+      en = E_GQuad_IntLoop_exhaustive(i, j, &p, &q, type, S1, ggg, threshold - best_energy, indx, P);
+      for(cnt = 0; p[cnt] != -1; cnt++){
+          new_state = copy_state(state);
+          make_pair(i, j, new_state);
+
+          new_interval = make_interval(p[cnt], q[cnt], 6);
+          push(new_state->Intervals, new_interval);
+          new_state->partial_energy += part_energy;
+          new_state->partial_energy += en[cnt];
+          /* new_state->best_energy = new + best_energy; */
+          push(Stack, new_state);
+      }
+      free(en);
+      free(p);
+      free(q);
     }
   }
 

@@ -511,6 +511,10 @@ PRIVATE int fill_arrays(const char *string) {
           if(dangle_model == 2) energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
           else energy += E_MLstem(type, -1, -1, P);
           new_fML = MIN2(new_fML, energy);
+          if(with_gquad){
+            energy = ggg[ij] + E_MLstem(0, -1, -1, P);
+            new_fML = MIN2(new_fML, energy);
+          }
           if(uniq_ML){
             fM1[ij] = energy;
             if(SAME_STRAND(j-1,j)) fM1[ij] = MIN2(energy, fM1[indx[j-1]+i] + P->MLbase);
