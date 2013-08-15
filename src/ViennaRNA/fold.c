@@ -273,7 +273,7 @@ vrna_fold(vrna_fold_compound *vc,
     energy = vc->matrices->Fc;
   }
 
-  bp = (bondT *)space(sizeof(bondT) * (1 + length/2));
+  bp = (bondT *)space(sizeof(bondT) * (1 + length/2 + 200)); /* add a guess of how many G's may be involved in a G quadruplex */
 
   backtrack(bp, bt_stack, s, vc);
 
