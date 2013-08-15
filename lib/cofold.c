@@ -812,7 +812,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       if(fc[i] == fc[k+1] + c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
                         traced = i;
                       }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
+                      }
                     }
+
                     if (traced) break;
                   }
                   break;
@@ -822,6 +828,11 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                     if(type){
                       if(fc[i] == fc[k+1] + c[indx[k]+i] + E_ExtLoop(type,(i>1 && SAME_STRAND(i-1,i)) ? S1[i-1] : -1,  SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
                         traced = i;
+                      }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
                       }
                     }
                     if (traced) break;
@@ -837,7 +848,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       else if(fc[i] == fc[k+2] + c[indx[k]+i] + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
                         traced = i; jj=k+2; break;
                       }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
+                      }
                     }
+
                     type = ptype[indx[k]+i+1];
                     if(type){
                       if(fc[i] == fc[k+1] + c[indx[k]+i+1] + E_ExtLoop(type, SAME_STRAND(i, i+1) ? S1[i] : -1, -1, P)){
@@ -860,6 +877,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       j=k; i=traced;
+      if(with_gquad && gq){
+        /* goto backtrace of gquadruplex */
+        goto repeat_gquad;
+      }
+
+
       base_pair2[++b].i = i;
       base_pair2[b].j   = j;
       goto repeat1;

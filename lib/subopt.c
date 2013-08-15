@@ -642,7 +642,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -652,7 +652,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
           }
 #endif
         if (logML || (dangle_model==1) || (dangle_model==3)) { /* recalc energy */
-          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
@@ -1131,6 +1131,16 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
     for (k = i+TURN+1; k < j; k++) {
 
+      if(with_gquad){
+        if(fc[k+1] + ggg[indx[k]+i] + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(k+1,j, 4);
+          push(temp_state->Intervals, new_interval);
+          repeat_gquad(i, k, temp_state, 0, fc[k+1]);
+          free_state_node(temp_state);
+        }
+      }
+
       type = ptype[indx[k]+i];
       if (type==0)   continue;
 
@@ -1157,6 +1167,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
         repeat(i, cut_point-1, state, element_energy, 0);
+    } else if(with_gquad){
+      if(ggg[indx[cut_point -1] + i] + best_energy <= threshold)
+        repeat_gquad(i, cut_point - 1, state, 0, 0);
     }
   } /* array_flag == 4 */
 
@@ -1175,6 +1188,16 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     }
 
     for (k = j-TURN-1; k > i; k--) {
+
+      if(with_gquad){
+        if(fc[k-1] + ggg[indx[j] + k] + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(i, k-1, 5);
+          push(temp_state->Intervals, new_interval);
+          repeat_gquad(k, j, temp_state, 0, fc[k-1]);
+          free_state_node(temp_state);
+        }
+      }
 
       type = ptype[indx[j]+k];
       if (type==0)   continue;
@@ -1201,6 +1224,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
         repeat(cut_point, j, state, element_energy, 0);
+    } else if (with_gquad){
+      if(ggg[indx[j] + cut_point] + best_energy <= threshold)
+        repeat_gquad(cut_point, j, state, 0, 0);
     }
   } /* array_flag == 5 */
 

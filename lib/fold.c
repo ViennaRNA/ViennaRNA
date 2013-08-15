@@ -1513,20 +1513,24 @@ PRIVATE int en_corr_of_loop_gquad(int i,
   return energy;
 }
 
-PUBLIC float energy_of_gquad_structure( const char *string,
-                                        const char *structure,
-                                        int verbosity_level){
+PUBLIC float
+energy_of_gquad_structure(const char *string,
+                          const char *structure,
+                          int verbosity_level){
+
+  return energy_of_gquad_struct_par(string, structure, NULL, verbosity_level);
+}
+
+PUBLIC float
+energy_of_gquad_struct_par( const char *string,
+                            const char *structure,
+                            paramT *parameters,
+                            int verbosity_level){
 
   int   energy, gge, *loop_idx;
   short *ss, *ss1;
 
-#ifdef _OPENMP
-  if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  update_fold_params_par(parameters);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
