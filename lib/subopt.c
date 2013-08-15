@@ -785,6 +785,11 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       cij = c[indx[j] + i] + element_energy;
       if (cij + best_energy <= threshold)
         repeat(i, j, state, element_energy, 0);
+    } else if (with_gquad){
+      element_energy = E_MLstem(0, -1, -1, P);
+      cij = ggg[indx[j] + i] + element_energy;
+      if(cij + best_energy <= threshold)
+        repeat_gquad(i, j, state, element_energy, 0);
     }
   }                                   /* array_flag == 3 || array_flag == 1 */
 
@@ -799,6 +804,19 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     if ((SAME_STRAND(i-1,i))&&(SAME_STRAND(j,j+1))) { /*backtrack in FML only if multiloop is possible*/
       for ( k = i+turn+1 ; k <= j-1-turn ; k++) {
         /* Multiloop decomposition if i,j contains more than 1 stack */
+        
+        if(with_gquad){
+          if(SAME_STRAND(k, k+1)){
+            element_energy = E_MLstem(0, -1, -1, P);
+            if(fML[indx[k]+i] + ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold){
+              temp_state = copy_state (state);
+              new_interval = make_interval (i, k, 1);
+              push (temp_state->Intervals, new_interval);
+              repeat_gquad(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+              free_state_node(temp_state);
+            }
+          }
+        }
 
         type = ptype[indx[j]+k+1];
         if (type==0) continue;
@@ -830,6 +848,12 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     else if (i==cut_point) stopp=0;   /*not a multi loop*/
     for (k = i ; k <= stopp; k++) {
       /* Multiloop decomposition if i,j contains only 1 stack */
+      if(with_gquad){
+        element_energy = E_MLstem(0, -1, -1, P) + P->MLbase*(k-i+1);
+        if(ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold)
+          repeat_gquad(k+1, j, state, element_energy, 0);
+      }
+
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
 
@@ -1370,7 +1394,6 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
         element_energy + best_energy)  <= threshold)
       {
         INTERVAL *interval1, *interval2;
-
         new_state = copy_state(state);
         interval1 = make_interval(i+1, k, 1);
         interval2 = make_interval(k+1, j-1, 3);
@@ -1408,7 +1431,7 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
     }
 
     if(with_gquad){
-      /* now we have to find all loops where (i,j) encloses a gquad */
+      /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
       int cnt, *p, *q, *en;
       p = q = en = NULL;
       en = E_GQuad_IntLoop_exhaustive(i, j, &p, &q, type, S1, ggg, threshold - best_energy, indx, P);

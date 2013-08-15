@@ -1404,7 +1404,11 @@ PRIVATE int en_corr_of_loop_gquad(int i,
     /* check if it's enclosed in a base pair */
     if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
     else{
-      energy += E_MLstem(0, -1, -1, P);
+      energy += E_MLstem(0, -1, -1, P); /*  do not forget to remove this energy if
+                                            the gquad is the only one surrounded by
+                                            the enclosing pair
+                                        */
+
       /*  find its enclosing pair */
       int num_elem, num_g, elem_i, elem_j, up_mis;
       num_elem  = 0;
@@ -1473,6 +1477,7 @@ PRIVATE int en_corr_of_loop_gquad(int i,
                     if(type > 2)
                       energy += P->TerminalAU;
                     energy += P->internal_loop[s - r - 1 - up_mis];
+                    energy -= E_MLstem(0, -1, -1, P);
                     energy -= E_Hairpin(s - r - 1,
                                         type,
                                         s1[r + 1],
