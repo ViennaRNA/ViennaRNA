@@ -88,6 +88,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "list.h"
+#include "ViennaRNA/eval.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/cofold.h"

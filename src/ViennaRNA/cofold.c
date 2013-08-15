@@ -237,7 +237,7 @@ vrna_cofold(vrna_fold_compound  *vc,
 
   energy = fill_arrays(vc, 0);
 
-  bp = (bondT *)space(sizeof(bondT) * (1 + length/2));
+  bp = (bondT *)space(sizeof(bondT) * (1 + length/2 + 200)); /* add a guess of how many G's may be involved in a G quadruplex */
 
   backtrack(bt_stack, bp, vc);
 
@@ -549,15 +549,16 @@ fill_arrays(vrna_fold_compound  *vc,
               energy += E_MLstem(type, -1, -1, P);
             new_fML = MIN2(new_fML, energy);
 
-            if(with_gquad){
-              int gggg = ggg[ij] + E_MLstem(0, -1, -1, P);
-              energy = MIN2(energy, gggg);
-              new_fML = MIN2(new_fML, energy);
-            }
-
             if(uniq_ML)
               my_fM1[ij] = MIN2(my_fM1[ij], energy);
+          } else if (with_gquad) {
+              int gggg = my_ggg[ij] + E_MLstem(0, -1, -1, P);
+              energy = MIN2(energy, gggg);
+              new_fML = MIN2(new_fML, energy);
+              if(uniq_ML)
+                my_fM1[ij] = MIN2(my_fM1[ij], energy);
           }
+        
         }
         if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
@@ -882,7 +883,7 @@ PRIVATE void backtrack_co(sect bt_stack[],
                         traced = i;
                       }
                     } else if (with_gquad){
-                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                      if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
                         traced = i; gq = 1;
                         break;
                       }
@@ -899,7 +900,7 @@ PRIVATE void backtrack_co(sect bt_stack[],
                         traced = i;
                       }
                     } else if (with_gquad){
-                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                      if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
                         traced = i; gq = 1;
                         break;
                       }
@@ -918,7 +919,7 @@ PRIVATE void backtrack_co(sect bt_stack[],
                         traced = i; jj=k+2; break;
                       }
                     } else if (with_gquad){
-                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                      if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
                         traced = i; gq = 1;
                         break;
                       }
