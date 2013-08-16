@@ -1266,8 +1266,9 @@ repeat_gquad( int i,
       int *L;
       int *l;
       /* find out how many gquads we might expect in the interval [i,j] */
-      L = (int *)space(sizeof(int) * 256);
-      l = (int *)space(sizeof(int) * 256 * 3);
+      int num_gquads = get_gquad_count(S1, i, j);
+      L = (int *)space(sizeof(int) * num_gquads);
+      l = (int *)space(sizeof(int) * num_gquads * 3);
       L[0] = -1;
 
       get_gquad_pattern_exhaustive(S1, i, j, P, L, l, threshold - best_energy);

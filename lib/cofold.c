@@ -156,7 +156,7 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi1 = (int *) space(sizeof(int)*(size+1));
   DMLi2 = (int *) space(sizeof(int)*(size+1));
 
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -254,6 +254,12 @@ PUBLIC float cofold_par(const char *string,
   S1[0]       = S[0]; /* store length at pos. 0 */
 
   BP = (int *)space(sizeof(int)*(length+2));
+  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
+    if(base_pair2)
+      free(base_pair2);
+    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
+  }
+
   make_ptypes(S, structure);
 
   energy = fill_arrays(string);
