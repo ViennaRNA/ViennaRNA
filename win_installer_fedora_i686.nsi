@@ -1,4 +1,4 @@
-!define VERSION "2.1.2"
+!define VERSION "2.1.3"
 !define PACKAGE "ViennaRNA Package"
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE}"
 BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistry / University of Vienna ]"
