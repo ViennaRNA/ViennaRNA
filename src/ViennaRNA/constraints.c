@@ -922,6 +922,9 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       reactivities  = (float *)space(sizeof(float) * (vc->length + 1));
       sequence      = (char *)space(sizeof(char) * (vc->length + 1));
 
+      for(i = 1; i <= vc->length; i++)
+        reactivities[i] = -1.;
+
       while((line=get_line(fp))){
         r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
         if(r){
