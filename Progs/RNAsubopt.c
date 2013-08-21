@@ -124,6 +124,17 @@ int main(int argc, char *argv[]){
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
+    else if(gquad){
+      warn_user("G-quadruplex support for Zuker subopts not implemented yet");
+      RNAsubopt_cmdline_parser_print_help();
+      exit(1);
+    }
+  }
+
+  if(gquad && (n_back > 0)){
+    warn_user("G-quadruplex support for stochastic backtracking not implemented yet");
+    RNAsubopt_cmdline_parser_print_help();
+    exit(1);
   }
 
   /* free allocated memory of command line data structure */
