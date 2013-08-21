@@ -122,6 +122,7 @@ section "ViennaRNA Package"
   # then all the necessary libraries
   File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
   File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
   #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
   #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
   File ".local"
@@ -200,6 +201,7 @@ section "Uninstall"
 
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\pthreadGC2.dll
+  delete $INSTDIR\libgcc_s_sjlj-1.dll
   delete $INSTDIR\.local
 
   rmDir  $INSTDIR
