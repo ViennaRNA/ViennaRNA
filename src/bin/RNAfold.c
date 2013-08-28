@@ -284,8 +284,22 @@ int main(int argc, char *argv[]){
                     add_soft_constraints_mathews(vc, shape_file, p1, p2, (unsigned int)0);
       }
     }
-    min_en = vrna_fold(vc, structure);  
 
+    if(fold_constrained){
+      unsigned int constraint_options = 0;
+      constraint_options |= VRNA_CONSTRAINT_DB
+                            | VRNA_CONSTRAINT_PIPE
+                            | VRNA_CONSTRAINT_DOT
+                            | VRNA_CONSTRAINT_X
+                            | VRNA_CONSTRAINT_ANG_BRACK
+                            | VRNA_CONSTRAINT_RND_BRACK;
+
+      hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, constraint_options);
+      vc->hc = my_hc;
+    }
+
+    min_en = vrna_fold(vc, structure);
+    
 /*
     min_en = fold_par(rec_sequence, structure, mfe_parameters, fold_constrained, circular);
 */

@@ -679,7 +679,9 @@ get_hard_constraints( const char *sequence,
   /* ############################### */
 
   if(options & VRNA_CONSTRAINT_DB){ /* constraints from dot-bracket notation */
+/*
     printf("reading constraints from dot-bracket\n");
+*/
     apply_DB_constraint(constraint,
                         hc->matrix,
                         n,
@@ -689,7 +691,9 @@ get_hard_constraints( const char *sequence,
   }
 
   if(options & VRNA_CONSTRAINT_FILE){ /* constraints from file */
+/*
     printf("reading constraints from file\n");
+*/
   }
 
 
