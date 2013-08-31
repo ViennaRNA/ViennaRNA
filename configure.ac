@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([ViennaRNA],[2.1.2],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.a/~ivo/RNA])
+AC_INIT([ViennaRNA],[2.2.0a],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.a/~ivo/RNA])
 AC_PREREQ([2.59])
 AC_CONFIG_AUX_DIR(config)
 
@@ -20,6 +20,9 @@ AC_CONFIG_HEADERS([config.h])
 
 dnl configure options
 AM_WITH_DMALLOC
+
+dnl unit testing support
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.4], [],[AC_MSG_ERROR([check is missing])])
 
 AC_ARG_VAR(PERLPREFIX, [Prefix for installation of the Perl module. 
 By default the perl module is installed wherever Perl thinks it belongs, ignoring the $prefix used by configure])
