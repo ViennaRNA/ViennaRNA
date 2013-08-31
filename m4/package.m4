@@ -396,6 +396,8 @@ AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 
+AC_CONFIG_FILES([tests/Makefile])
+
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
 ])
@@ -418,8 +420,6 @@ eval _pdfdir=$(eval printf "%s" $pdfdir)
 AC_MSG_NOTICE(
 [
 Configure successful with the following options:
-
-bla:  $(with_pf_float:-yes)
 
 RNAlib Interfaces:
   Perl Interface:       ${with_perl:-yes}

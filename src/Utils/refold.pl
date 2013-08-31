@@ -50,29 +50,29 @@ foreach my $a (@$aln) {
     my $cons = $constraint;
     my @pt = make_pair_table($cons);
     my %pair = ("AU" => 5,
-		"GC" => 1, 
-		"CG" => 2, 
-		"UA" => 6,
-		"GU" => 3, 
-		"GT" => 3, 
-		"TG" => 4, 
-		"UG" => 4,
-		"AT" => 5, 
-		"TA" => 6);
+                "GC" => 1, 
+                "CG" => 2, 
+                "UA" => 6,
+                "GU" => 3, 
+                "GT" => 3, 
+                "TG" => 4, 
+                "UG" => 4,
+                "AT" => 5, 
+                "TA" => 6);
 
 
     for my $p (0..length($seq)-1) {
-	# open non-compatible pairs as well as pairs to a gap position
-	my $c = substr($seq,$p,1);
-	if ($c eq '-') {
-	    substr($cons,$p,1) = 'x'; # mark for removal
-	    substr($cons,$pt[$p],1) = '.' 
-		if $pt[$p]>0  && substr($cons,$pt[$p],1) ne 'x';   # open pair
-	}
-	elsif ($pt[$p]>$p) {
-	    substr($cons,$p,1) = substr($cons,$pt[$p],1) = '.'
-		unless exists $pair{$c . substr($seq,$pt[$p],1)};
-	}
+        # remove non-compatible pairs as well as pairs to a gap position
+        my $c = substr($seq,$p,1);
+        if ($c eq '-') {
+            substr($cons,$p,1) = 'x'; # mark for removal
+            substr($cons,$pt[$p],1) = '.' 
+                if $pt[$p]>0  && substr($cons,$pt[$p],1) ne 'x';   # open pair
+        }
+        elsif ($pt[$p]>$p) {
+            substr($cons,$p,1) = substr($cons,$pt[$p],1) = '.'
+                unless exists $pair{$c . substr($seq,$pt[$p],1)};
+        }
     }
 #    print STDERR length($seq), length($cons), "\n";
     $cons =~ s/x//g;
@@ -98,14 +98,14 @@ sub make_pair_table {
 
    foreach my $c (split(//,$structure)) {
        if ($c eq '.') {
-	  $table[$i]= -1;
+          $table[$i]= -1;
      } elsif ($c eq '(') {
-	  $olist[$hx++]=$i;
+          $olist[$hx++]=$i;
      } elsif ($c eq ')') {
-	 my $j = $olist[--$hx];
-	 die ("unbalanced brackets in make_pair_table") if ($hx<0);
-	 $table[$i]=$j;
-	 $table[$j]=$i;
+         my $j = $olist[--$hx];
+         die ("unbalanced brackets in make_pair_table") if ($hx<0);
+         $table[$i]=$j;
+         $table[$j]=$i;
      }
       $i++;
    }
@@ -115,19 +115,19 @@ sub make_pair_table {
 
 sub read_alifold {
     while (<>) {
-	return $1 if /^([(.)]+)/;
+        return $1 if /^([(.)]+)/;
     }
 }
 
 sub read_dot {
     my $cons = '.' x $len;
     while(<>) {
-	next if /^%/;
-	next unless /lbox$/;
-	my @F = split;
-	next if $F[5] < $thresh;
-	substr($cons,$F[3]-1,1) = '(';
-	substr($cons,$F[4]-1,1) = ')';
+        next if /^%/;
+        next unless /lbox$/;
+        my @F = split;
+        next if $F[5] < $thresh;
+        substr($cons,$F[3]-1,1) = '(';
+        substr($cons,$F[4]-1,1) = ')';
     }
     return $cons;
 }
@@ -148,34 +148,34 @@ sub readClustal{
   my @out=();
   my (%order, $order, %alignments);
   while(<>) {
-	last if eof;
-	next if ( /^\s+$/ );
-	my ($seqname, $aln_line) = ('', '');
-	if( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
-	  # clustal 1.4 format
-	  ($seqname,$aln_line) = ("$1/$2-$3",$4);
-	} elsif( /^(\S+)\s+([A-Z\-]+)\s*$/ ) {
-	  ($seqname,$aln_line) = ($1,$2);
-	} else {
-	  next;
+        last if eof;
+        next if ( /^\s+$/ );
+        my ($seqname, $aln_line) = ('', '');
+        if( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
+          # clustal 1.4 format
+          ($seqname,$aln_line) = ("$1/$2-$3",$4);
+        } elsif( /^(\S+)\s+([A-Z\-]+)\s*$/ ) {
+          ($seqname,$aln_line) = ($1,$2);
+        } else {
+          next;
   }
-	if( !exists $order{$seqname} ) {
-	  $order{$seqname} = $order++;
-	}
-	$alignments{$seqname} .= $aln_line;
+        if( !exists $order{$seqname} ) {
+          $order{$seqname} = $order++;
+        }
+        $alignments{$seqname} .= $aln_line;
   }
 
   foreach my $name ( sort { $order{$a} <=> $order{$b} } keys %alignments ) {
-	if( $name =~ /(\S+):(\d+)-(\d+)/ ) {
-	  (my $sname,my $start, my $end) = ($1,$2,$3);
-	} else {
-	  (my $sname, my $start) = ($name,1);
-	  my $str  = $alignments{$name};
-	  $str =~ s/[^A-Za-z]//g;
-	  my $end = length($str);
-	}
-	my $seq=$alignments{$name};
-	push @out, {name=>$name,seq=>$seq};
+        if( $name =~ /(\S+):(\d+)-(\d+)/ ) {
+          (my $sname,my $start, my $end) = ($1,$2,$3);
+        } else {
+          (my $sname, my $start) = ($name,1);
+          my $str  = $alignments{$name};
+          $str =~ s/[^A-Za-z]//g;
+          my $end = length($str);
+        }
+        my $seq=$alignments{$name};
+        push @out, {name=>$name,seq=>$seq};
   }
   return [@out];
 }
@@ -205,16 +205,16 @@ sub getPairs{
 
   # return nothing if there are no pairs
   if (!($ss=~tr/(/(/)){
-	return ();
+        return ();
   }
 
   my @aln=();
   foreach my $row (@inputAln){
-	my $seq=$row->{seq};
-	$seq=uc($seq);
-	$seq=~s/T/U/g;
-	my @tmp=split(//,$seq);
-	push @aln,\@tmp;
+        my $seq=$row->{seq};
+        $seq=uc($seq);
+        $seq=~s/T/U/g;
+        my @tmp=split(//,$seq);
+        push @aln,\@tmp;
   }
   my @ss=split(//,$ss);
 
@@ -223,54 +223,54 @@ sub getPairs{
 
   foreach my $column (0..$#ss){
 
-	my $currChar=$ss[$column];
+        my $currChar=$ss[$column];
 
-	if ($currChar eq '('){
-	  push @stack,$column;
-	}
+        if ($currChar eq '('){
+          push @stack,$column;
+        }
 
-	if ($currChar eq ')'){
-	  my $openedCol=pop @stack;
-	  push @pairs,{open=>$openedCol,close=>$column};
-	}
+        if ($currChar eq ')'){
+          my $openedCol=pop @stack;
+          push @pairs,{open=>$openedCol,close=>$column};
+        }
   }
 
   @pairs=sort {$a->{open} <=> $b->{open}} @pairs;
 
   foreach my $i (0..$#pairs){
-	#print "$i: $pairs[$i]->{open} - $pairs[$i]->{close}\n";
+        #print "$i: $pairs[$i]->{open} - $pairs[$i]->{close}\n";
 
-	my @all=();
-	my @pairing=();
-	my @nonpairing=();
+        my @all=();
+        my @pairing=();
+        my @nonpairing=();
 
-	for my $j (0..$#aln){
-	  my $currPair=$aln[$j][$pairs[$i]->{open}].$aln[$j][$pairs[$i]->{close}];
-	  push @all,$currPair;
-	}
+        for my $j (0..$#aln){
+          my $currPair=$aln[$j][$pairs[$i]->{open}].$aln[$j][$pairs[$i]->{close}];
+          push @all,$currPair;
+        }
 
-	for my $pair (@all){
-	  if (($pair eq 'AU') or
-		  ($pair eq 'UA') or
-		  ($pair eq 'GC') or
-		  ($pair eq 'CG') or
-		  ($pair eq 'UG') or
-		  ($pair eq 'GU')){
+        for my $pair (@all){
+          if (($pair eq 'AU') or
+                  ($pair eq 'UA') or
+                  ($pair eq 'GC') or
+                  ($pair eq 'CG') or
+                  ($pair eq 'UG') or
+                  ($pair eq 'GU')){
 
-		push @pairing, $pair;
-	  } elsif ($pair eq "--"){
-		# do nothing
-	  } else {
-		push @nonpairing,$pair;
-	  }
-	}
+                push @pairing, $pair;
+          } elsif ($pair eq "--"){
+                # do nothing
+          } else {
+                push @nonpairing,$pair;
+          }
+        }
 
-	undef my %saw;
+        undef my %saw;
     my @uniquePairing = grep(!$saw{$_}++, @pairing);
 
-	$pairs[$i]->{all}=[@all];
-	$pairs[$i]->{pairing}=[@uniquePairing];
-	$pairs[$i]->{nonpairing}=[@nonpairing];
+        $pairs[$i]->{all}=[@all];
+        $pairs[$i]->{pairing}=[@uniquePairing];
+        $pairs[$i]->{nonpairing}=[@nonpairing];
   }
 
   return @pairs;
