@@ -403,8 +403,8 @@ PRIVATE int fill_arrays(const char **strings) {
               if(sc){
                 for(s = 0; s < n_seq; s++)
                   if(sc[s]->en_stack){
-                    energy += sc[s]->en_stack[indx[a2s[s][j]] + a2s[s][i]]
-                              + sc[s]->en_stack[indx[a2s[s][q]] + a2s[s][p]];
+                    energy += sc[s]->en_stack[indx[j] + i]
+                              + sc[s]->en_stack[indx[q] + p];
                   }
                 }
               stackEnergy = energy; /* remember stack energy */
@@ -870,8 +870,8 @@ PRIVATE void backtrack(const char **strings, int s) {
           if(sc){
             for(ss = 0; ss < n_seq; ss++)
               if(sc[ss]->en_stack){
-                energy += sc[ss]->en_stack[indx[a2s[ss][j]] + a2s[ss][i]]
-                          + sc[ss]->en_stack[indx[a2s[ss][q]] + a2s[ss][p]];
+                energy += sc[ss]->en_stack[indx[j] + i]
+                          + sc[ss]->en_stack[indx[q] + p];
               }
             }
         }

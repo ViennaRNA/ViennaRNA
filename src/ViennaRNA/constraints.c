@@ -893,9 +893,9 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
                                         double b,
                                         unsigned int options){
 
-  float   reactivity, *reactivities;
+  float   reactivity, *reactivities, e1, e2;
   char    *line, nucleotide, *sequence;
-  int     s, i, j, r, position, *pseudo_energies, *idx, n_seq;
+  int     s, i, j, p, q,  r, position, *pseudo_energies, *idx, n_seq;
 
   n_seq = vc->n_seq;
   vc->sc = (soft_constraintT **)space(sizeof(soft_constraintT *) * (n_seq + 1));
@@ -969,10 +969,19 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       /* create the pseudo energy lookup table for the recursions */
       idx = vc->jindx;
       pseudo_energies = (int *)space(sizeof(int) * (((vc->length + 1) * (vc->length + 2)) / 2));
-      for(i = 1; i<vc->length; i++)
-        for(j = i + 1; j <= vc->length; j++)
-          pseudo_energies[idx[j] + i] = (int)((reactivities[i] + reactivities[j]) * 100.);
-
+      for(p = 0, i = 1; i<vc->length; i++){
+        e1 = (i - p > 0) ? reactivities[i - p] : 0.;
+        if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+          p++; e1 = 0.;
+        }
+        for(q = 0, j = i + 1; j <= vc->length; j++){
+          e2 = (j - q > 0) ? reactivities[j - q] : 0.;
+          if(vc->sequences[shape_file_association[s]][j-1] == '-'){
+            q++; e2 = 0.;
+          }
+          pseudo_energies[idx[j] + i] = (int)((e1 + e2) * 100.);
+        }
+      }
       vc->sc[shape_file_association[s]]->en_stack = pseudo_energies;
       free(reactivities);
     }
