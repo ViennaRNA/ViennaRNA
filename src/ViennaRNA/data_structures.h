@@ -434,6 +434,7 @@ typedef struct{
 
   paramT            *params;
   pf_paramT         *exp_params;
+  int               oldAliEn;
 
   int               *iindx;
   int               *jindx;

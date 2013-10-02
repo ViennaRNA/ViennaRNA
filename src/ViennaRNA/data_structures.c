@@ -513,6 +513,8 @@ get_alifold_compound_mfe_constrained( const char **sequences,
     vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
   }
 
+  vc->oldAliEn            = oldAliEn;
+
   vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
   vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
   vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
