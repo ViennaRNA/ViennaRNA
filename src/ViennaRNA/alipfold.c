@@ -78,6 +78,9 @@ PRIVATE pf_paramT       *pf_params = NULL;
 PRIVATE char            *pstruc=NULL;
 PRIVATE double          alpha = 1.0;
 PRIVATE int             struct_constrained = 0;
+PRIVATE hard_constraintT  **hc  = NULL;
+PRIVATE soft_constraintT  **sc  = NULL;
+
 
 #ifdef _OPENMP
 
@@ -87,7 +90,8 @@ PRIVATE int             struct_constrained = 0;
                           probs, prml, prm_l, prm_l1, q1k, qln,\
                           scale, pscore, circular,\
                           qo, qho, qio, qmo, qm2, jindx, my_iindx,\
-                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha, struct_constrained)
+                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha, struct_constrained, \
+                          hc, sc)
 
 #endif
 
@@ -217,21 +221,41 @@ PUBLIC void free_alipf_arrays(void){
 }
 
 /*-----------------------------------------------------------------*/
-PUBLIC float alipf_fold(const char **sequences, char *structure, plist **pl){
+PUBLIC float
+alipf_fold( const char **sequences,
+                  char *structure,
+                  plist **pl){
+
   return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 0);
 }
 
-PUBLIC float alipf_circ_fold(const char **sequences, char *structure, plist **pl){
+PUBLIC float
+alipf_circ_fold(const char **sequences,
+                      char *structure,
+                      plist **pl){
+
   return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 1);
 }
 
-PUBLIC float alipf_fold_par(const char **sequences,
-                            char *structure,
-                            plist **pl,
-                            pf_paramT *parameters,
-                            int calculate_bppm,
-                            int is_constrained,
-                            int is_circular){
+PUBLIC float
+vrna_alipf_fold_tmp( const char **strings,
+              char *structure,
+              plist **pl,
+              vrna_alifold_compound *vc){
+
+  sc = vc->sc;
+  hc = vc->hc;
+  return alipf_fold(strings, structure, pl);
+}
+
+PUBLIC float
+alipf_fold_par( const char **sequences,
+                char *structure,
+                plist **pl,
+                pf_paramT *parameters,
+                int calculate_bppm,
+                int is_constrained,
+                int is_circular){
 
   int         n, s, n_seq;
   FLT_OR_DBL  Q;

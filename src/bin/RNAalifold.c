@@ -233,8 +233,8 @@ int main(int argc, char *argv[]){
 
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, "
-            "some structures may be missed when using -noLP\n"
-            "Try rotating your sequence a few times\n");
+              "some structures may be missed when using -noLP\n"
+              "Try rotating your sequence a few times\n");
 
   if (ParamFile != NULL) read_parameter_file(ParamFile);
 
@@ -316,50 +316,66 @@ int main(int argc, char *argv[]){
   # begin actual calculations
   ########################################################
   */
+  unsigned int options = VRNA_CONSTRAINT_SOFT_MFE;
 
-  if (circular) {
-    int     i;
-    double  s = 0;
-    min_en    = circalifold((const char **)AS, structure);
-    for (i=0; AS[i]!=NULL; i++)
-      s += energy_of_circ_structure(AS[i], structure, -1);
-    real_en = s/i;
-  } else {
-    float *ens  = (float *)space(2*sizeof(float));
+  if(pf)
+    options |= VRNA_CONSTRAINT_SOFT_PF;
 
-    if(with_shapes){
-      vrna_alifold_compound *vc = get_alifold_compound_mfe_constrained((const char **)AS, NULL, NULL, NULL);
-      float p1, p2;
-      char    method;
-      p1      = 1.8;
-      p2      = -0.6;
-      method  = 'M';
+  if(with_shapes){
+    vrna_alifold_compound *vc;
 
-      if(shape_method){
-        if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
-          warn_user("Method for SHAPE reactivity data conversion not recognized!");
-        }
+    float p1, p2;
+    char    method;
+    p1      = 1.8;
+    p2      = -0.6;
+    method  = 'M';
+    vc = vrna_alifold_get_compund_constraints((const char **)AS,
+                                              NULL,
+                                              NULL,
+                                              NULL,
+                                              NULL,
+                                              NULL,
+                                              options);
+
+    if(shape_method){
+      if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
+        warn_user("Method for SHAPE reactivity data conversion not recognized!");
       }
-
-      switch(method){
-        case  'M':  
-        default:    if(verbose)
-                      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                    add_soft_constraints_alignment_mathews(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, (unsigned int)0);
-      }
-
-      min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
-    } else {
-      min_en      = alifold((const char **)AS, structure);
     }
-    if(md.gquad)
-      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
-    else
-      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
 
-    real_en     = ens[0];
-    free(ens);
+    switch(method){
+      case  'M':  
+      default:    if(verbose)
+                    fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
+                  add_soft_constraints_alignment_mathews(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, (unsigned int)0);
+    }
+
+    min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
+
+  } else { /* no shapes */
+    if (circular) {
+      int     i;
+      double  s = 0;
+      min_en    = circalifold((const char **)AS, structure);
+      for (i=0; AS[i]!=NULL; i++)
+        s += energy_of_circ_structure(AS[i], structure, -1);
+      real_en   = s/i;
+    } else {
+      min_en    = alifold((const char **)AS, structure);
+    }
   }
+
+  float *ens    = (float *)space(2*sizeof(float));
+
+  if(md.gquad)
+    energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+  else
+    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+
+  real_en       = ens[0];
+
+  free(ens);
+
 
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);

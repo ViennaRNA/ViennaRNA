@@ -251,6 +251,12 @@ void  free_sequence_arrays( unsigned int n_seq,
  *  @}
  */
 
+
+float vrna_alipf_fold_tmp(const char **strings,
+                          char *structure,
+                          plist **pl,
+                          vrna_alifold_compound *vc);
+
 /**
  *  \brief
  * 
