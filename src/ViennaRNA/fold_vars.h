@@ -18,6 +18,31 @@
 #define DEPRECATED(func) func
 #endif
 
+
+#define VRNA_DEFAULT_DANGLES
+
+#define VRNA_DEFAULT_SPECIAL_HP
+
+#define VRNA_DEFAULT_CANONICAL_STRUCTURES
+
+#define VRNA_DEFAULT_NO_GU_PAIRS
+
+#define VRNA_DEFAULT_NO_GU_CLOSURE
+
+#define VRNA_DEFAULT_LOG_ML
+
+#define VRNA_DEFAULT_GQUAD
+
+#define VRNA_DEFAULT_CIRC
+
+#define VRNA_DEFAULT_BACKTRACK
+
+#define VRNA_DEFAULT_BACKTRACK_TYPE
+
+#define VRNA_DEFAULT_ENERGY_SET
+
+#define VRNA_DEFAULT_MAX_PAIR_SPAN
+
 /**
  *  \brief Global switch to activate/deactivate folding with structure constraints
  */

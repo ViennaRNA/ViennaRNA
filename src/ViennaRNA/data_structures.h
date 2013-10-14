@@ -154,8 +154,6 @@ typedef struct{
   FLT_OR_DBL  *q1k;
   FLT_OR_DBL  *qln;
   FLT_OR_DBL  *G;
-  FLT_OR_DBL  *Gj;
-  FLT_OR_DBL  *Gj1;
 
   FLT_OR_DBL  qo;
   FLT_OR_DBL  *qm2;
@@ -1031,6 +1029,15 @@ vrna_alifold_compound *get_alifold_compound_mfe_constrained(const char **sequenc
                                                             hard_constraintT **hc,
                                                             soft_constraintT **sc,
                                                             paramT *P);
+
+vrna_alifold_compound *vrna_alifold_get_compund_constraints(const char **sequences,
+                                                            hard_constraintT **hc,
+                                                            soft_constraintT **sc,
+                                                            model_detailsT *model_details,
+                                                            paramT *P,
+                                                            pf_paramT *pf,
+                                                            unsigned int options);
+
 
 void destroy_alifold_compound(vrna_alifold_compound *vc);
 

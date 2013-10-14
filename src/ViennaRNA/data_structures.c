@@ -461,59 +461,114 @@ get_alifold_compound_mfe_constrained( const char **sequences,
                                       soft_constraintT **sc,
                                       paramT *P){
 
+  return vrna_alifold_get_compund_constraints(sequences, hc, sc, NULL, P, NULL, VRNA_CONSTRAINT_SOFT_MFE);
+}
+
+PUBLIC vrna_alifold_compound *
+vrna_alifold_get_compund_constraints( const char **sequences,
+                                      hard_constraintT **hc,
+                                      soft_constraintT **sc,
+                                      model_detailsT *model_details,
+                                      paramT *P,
+                                      pf_paramT *pf,
+                                      unsigned int options){
+
   vrna_alifold_compound *vc;
   paramT                *params;
+  pf_paramT             *exp_params;
+  model_detailsT        md;
   unsigned int          alloc_vector, length, s;
+
+  alloc_vector  = 0;
+  params        = NULL;
+  exp_params    = NULL;
 
   /* sanity check */
   length = (sequences) ? strlen(sequences[0]) : 0;
   if(length == 0)
     nrerror("get_alifold_compound_mfe_constraint@data_structures.c: sequence length must be greater 0");
 
-    /* prepare the parameters datastructure */
-  if(P){
-    params = get_parameter_copy(P);
-  } else { /* this fallback relies on global parameters and thus is not threadsafe */
-    model_detailsT md;
-    set_model_details(&md);
-    params = get_scaled_parameters(temperature, md);
-  }
-
-  /* prepare the allocation vector for the folding matrices */
-  alloc_vector = ALLOC_MFE_DEFAULT;
-  if(params->model_details.circ)
-    alloc_vector |= ALLOC_MFE_CIRC;
-  if(params->model_details.uniq_ML)
-    alloc_vector |= ALLOC_MFE_UNIQ_ML;
-
   /* start making the alfold compound */
-  vc                      = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
+  vc = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
 
-  vc->params              = params;
   for(s=0;sequences[s];s++);
 
-  vc->n_seq               = s;
-  vc->sequences           = (char **)space(sizeof(char *) * (vc->n_seq + 1));
+  vc->n_seq           = s;
+  vc->sequences       = (char **)space(sizeof(char *) * (vc->n_seq + 1));
   for(s = 0; sequences[s]; s++)
-    vc->sequences[s]      = strdup(sequences[s]);
+    vc->sequences[s]  = strdup(sequences[s]);
 
-  vc->length              = strlen(sequences[0]);
+  vc->length          = strlen(sequences[0]);
+  vc->pscore          = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
-  /* reserve more memory */
-  vc->pscore              = (int *) space(sizeof(int)*((length*(length+1))/2+2));
-
-
-  vc->exp_params          = NULL;
-  vc->matrices            = get_mfe_matrices_alloc(length, alloc_vector);
+  if(model_details){
+    md = *model_details;
+  } else {
+    set_model_details(&md);
+  }
 
   /* get gquadruplex matrix if needed */
   if(vc->params->model_details.gquad){
     vc->cons_seq      = consensus(sequences);
     vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &(vc->params->model_details));
-    vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
   }
 
   vc->oldAliEn            = oldAliEn;
+
+  /* prepare the parameters datastructure */
+
+  /* Minimum free energy specific things following */
+  if(options & VRNA_CONSTRAINT_SOFT_MFE){
+    if(P){
+      params = get_parameter_copy(P);
+    } else { /* this fallback relies on global parameters and thus is not threadsafe */
+      params = get_scaled_parameters(temperature, md);
+    }
+    vc->params  = params;
+
+    alloc_vector = ALLOC_MFE_DEFAULT;
+    if(md.circ)
+      alloc_vector |= ALLOC_MFE_CIRC;
+    if(md.uniq_ML)
+      alloc_vector |= ALLOC_MFE_UNIQ_ML;
+    vc->matrices  = get_mfe_matrices_alloc(length, alloc_vector);
+
+    /* get gquadruplex matrix if needed */
+    if(md.gquad){
+      vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+    }
+
+    vc->jindx               = get_indx(vc->length);
+  }
+
+
+  /* Partition function specific things following */
+  if(options & VRNA_CONSTRAINT_SOFT_PF){
+    if(pf){
+      exp_params = get_boltzmann_factor_copy(pf);
+    } else { /* this fallback relies on global parameters and thus is not threadsafe */
+      exp_params = get_boltzmann_factors_ali(s, temperature, 1.0, md, pf_scale);
+    }
+    vc->exp_params  = exp_params;
+
+    alloc_vector = ALLOC_PF_DEFAULT;
+    if(md.circ)
+      alloc_vector |= ALLOC_PF_CIRC;
+    if(md.uniq_ML)
+      alloc_vector |= ALLOC_PF_UNIQ_ML;
+    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
+
+    /* get gquadruplex matrix if needed */
+    if(md.gquad){
+      vc->exp_matrices->G = NULL;
+    }
+
+    vc->iindx = get_iindx(vc->length);
+    if(!vc->jindx)
+      vc->jindx = get_indx(vc->length);
+
+  }
+
 
   vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
   vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
@@ -530,13 +585,16 @@ get_alifold_compound_mfe_constrained( const char **sequences,
                                   &(vc->S3[s]),
                                   &(vc->Ss[s]),
                                   &(vc->a2s[s]),
-                                  &(vc->params->model_details));
+                                  &md);
   }
   vc->S5[vc->n_seq]  = NULL;
   vc->S3[vc->n_seq]  = NULL;
   vc->a2s[vc->n_seq] = NULL;
   vc->Ss[vc->n_seq]  = NULL;
   vc->S[vc->n_seq]   = NULL;
+
+
+
 
 
 #if 0
@@ -548,10 +606,8 @@ get_alifold_compound_mfe_constrained( const char **sequences,
       vc->hc[s] = get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
 #endif
 
-  vc->sc                  = sc;
-
-  vc->iindx               = NULL;
-  vc->jindx               = get_indx(vc->length);
+  vc->sc  = sc;
+  vc->hc  = hc;
 
   return vc;
 }
