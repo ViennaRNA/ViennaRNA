@@ -845,8 +845,10 @@ backtrack(bondT *bp_stack,
 
           if(sc->en_stack)
             if((p == i+1) && (q == j-1))
-              new +=  sc->en_stack[ij]
-                      + sc->en_stack[indx[q] + p];
+              new +=    sc->en_stack[i]
+                      + sc->en_stack[p]
+                      + sc->en_stack[q]
+                      + sc->en_stack[j];
         }
         traced = (cij == new);
         if (traced) {

@@ -359,7 +359,7 @@ typedef struct {
   FLT_OR_DBL  *exp_en_basepair;     /**<  \brief Boltzmann Factors of the energy contribution for base pairs */
 
   int         *en_stack;            /**<  \brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL  *exp_en_stack;        /**<  \brief Boltzmann weighted pseudo energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_en_stack;        /**<  \brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
 
   /* generalized soft contraints */
   int (*f)( int,

@@ -399,8 +399,8 @@ pf_linear(vrna_fold_compound *vc){
               if(sc->exp_en_basepair)
                 qbt1 *= sc->exp_en_basepair[ij];
 
-              if(sc->f)
-                qbt1 *= sc->f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
+              if(sc->exp_f)
+                qbt1 *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
             }
           }
         }
@@ -431,8 +431,16 @@ pf_linear(vrna_fold_compound *vc){
                     q_temp *= sc->exp_en_basepair[ij]
                               * sc->exp_en_basepair[kl];
 
-                  if(sc->f)
-                    q_temp *= sc->f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+                  if(sc->exp_f)
+                    q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+                  if(sc->exp_en_stack)
+                    if((i+1 == k) && (j-1 == l)){
+                      q_temp *=   sc->exp_en_stack[i]
+                                * sc->exp_en_stack[k]
+                                * sc->exp_en_stack[l]
+                                * sc->exp_en_stack[j];
+                    }
                 }
 
                 qbt1 += q_temp;
@@ -453,8 +461,8 @@ pf_linear(vrna_fold_compound *vc){
               if(sc->exp_en_basepair)
                 q_temp *= sc->exp_en_basepair[ij];
 
-              if(sc->f)
-                q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_PAIR_ML, sc->data);
+              if(sc->exp_f)
+                q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_PAIR_ML, sc->data);
             }
 
             temp += q_temp;
@@ -487,8 +495,8 @@ pf_linear(vrna_fold_compound *vc){
           if(sc->boltzmann_factors)
             q_temp *= sc->boltzmann_factors[j][1];
 
-          if(sc->f)
-            q_temp *= sc->f(i, j, j-1, n, VRNA_DECOMP_ML_UP_3, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, j-1, n, VRNA_DECOMP_ML_UP_3, sc->data);
         }
 
         qqm[i] = q_temp;
@@ -515,8 +523,8 @@ pf_linear(vrna_fold_compound *vc){
         q_temp = qm[kl] * qqm[k];
 
         if(sc){
-          if(sc->f)
-            q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
         }
 
         temp += q_temp;
@@ -531,8 +539,8 @@ pf_linear(vrna_fold_compound *vc){
           if(sc->boltzmann_factors)
             q_temp *= sc->boltzmann_factors[i][ii];
 
-          if(sc->f)
-            q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
         }
 
         temp += q_temp;
@@ -554,8 +562,8 @@ pf_linear(vrna_fold_compound *vc){
           if(sc->boltzmann_factors)
             q_temp *= sc->boltzmann_factors[j][1];
 
-          if(sc->f)
-            q_temp *= sc->f(i, j, j-1, n, VRNA_DECOMP_EXT_UP_3, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, j-1, n, VRNA_DECOMP_EXT_UP_3, sc->data);
         }
 
         qbt1 += q_temp;
@@ -577,8 +585,8 @@ pf_linear(vrna_fold_compound *vc){
           if(sc->boltzmann_factors)
             q_temp *= sc->boltzmann_factors[i][j-i+1];
 
-          if(sc->f)
-            q_temp *= sc->f(i, j, n, n, VRNA_DECOMP_EXT_UP, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_EXT_UP, sc->data);
         }
 
         temp += q_temp;
@@ -588,8 +596,8 @@ pf_linear(vrna_fold_compound *vc){
         q_temp = q[kl] * qq[k+1];
 
         if(sc){
-          if(sc->f)
-            q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_EXT_EXT, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_EXT_EXT, sc->data);
         }
 
         temp += q_temp;
@@ -972,9 +980,22 @@ pf_create_bppm( vrna_fold_compound *vc,
               if(hard_constraints[ij] & IN_INT_LOOP){
                 type = ptype[ij];
                 if(probs[ij] > 0){
-                  probs[kl] +=  probs[ij]
-                                * scale[k-i+j-l]
-                                * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+                  tmp2 =  probs[ij]
+                          * scale[k-i+j-l]
+                          * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+
+                  if(sc){
+                    if(sc->exp_en_stack){
+                      if((i+1 == k) && (j-1 == l)){
+                        tmp2 *=   sc->exp_en_stack[i]
+                                * sc->exp_en_stack[k]
+                                * sc->exp_en_stack[l]
+                                * sc->exp_en_stack[j];
+                      }
+                    }
+                  }
+
+                  probs[kl] += tmp2;
                 }
               }
             }
@@ -1356,8 +1377,8 @@ vrna_pbacktrack5( int length,
       q_temp = qln[i+1]*scale[1];
 
       if(sc){
-        if(sc->f)
-          q_temp *= sc->f(i, length, i+1, n, VRNA_DECOMP_EXT_UP_5, sc->data);
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, length, i+1, n, VRNA_DECOMP_EXT_UP_5, sc->data);
       }
 
       if (r > q_temp)  break; /* i is paired */
@@ -1375,13 +1396,13 @@ vrna_pbacktrack5( int length,
         if (j<length){
           qkl *= qln[j+1];
           if(sc){
-            if(sc->f)
-              qkl *= sc->f(i, length, j, length, VRNA_DECOMP_EXT_EXT, sc->data);
+            if(sc->exp_f)
+              qkl *= sc->exp_f(i, length, j, length, VRNA_DECOMP_EXT_EXT, sc->data);
           }
         } else {
           if(sc){
-            if(sc->f)
-              qkl *= sc->f(i, length, j, length, VRNA_DECOMP_EXT_STEM_UP, sc->data);
+            if(sc->exp_f)
+              qkl *= sc->exp_f(i, length, j, length, VRNA_DECOMP_EXT_STEM_UP, sc->data);
           }
         }
 
@@ -1562,8 +1583,8 @@ backtrack_qm( int i,
         q_temp = expMLbase[k-i] * qm1[jindx[j]+k];
 
         if(sc){
-          if(sc->f)
-            q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
         }
 
         qmt += q_temp;
@@ -1571,8 +1592,8 @@ backtrack_qm( int i,
         q_temp = qm[my_iindx[i]-(k-1)] * qm1[jindx[j]+k];
 
         if(sc){
-          if(sc->f)
-            q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
         }
 
         qmt += q_temp;
@@ -1588,8 +1609,8 @@ backtrack_qm( int i,
     q_temp = expMLbase[k-i];
 
     if(sc){
-      if(sc->f)
-        q_temp *= sc->f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
+      if(sc->exp_f)
+        q_temp *= sc->exp_f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
     }
 
     r = urn() * (qm[my_iindx[i]-(k-1)] + q_temp);
@@ -1647,8 +1668,8 @@ backtrack_qm1(int i,
                 * expMLbase[j-l];
 
       if(sc){
-        if(sc->f)
-          q_temp *= sc->f(i, j, l, n, VRNA_DECOMP_ML_UP_3, sc->data);
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, j, l, n, VRNA_DECOMP_ML_UP_3, sc->data);
       }
 
       qt += q_temp;
@@ -1737,8 +1758,8 @@ backtrack(int i,
       q_temp = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
       if(sc){
-        if(sc->f)
-          q_temp *= sc->f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
       }
 
       qbt1 = q_temp;
@@ -1759,8 +1780,16 @@ backtrack(int i,
                    * exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
           if(sc){
-            if(sc->f)
-              q_temp *= sc->f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+            if(sc->exp_en_stack)
+              if((i + 1 == k) && (j - 1 == l))
+                q_temp *=   sc->exp_en_stack[i]
+                          * sc->exp_en_stack[k]
+                          * sc->exp_en_stack[l]
+                          * sc->exp_en_stack[j];
+
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
           }
 
           qbt1 += q_temp;
@@ -1787,8 +1816,8 @@ backtrack(int i,
       q_temp = qm[ii-(k-1)] * qm1[jj+k];
 
       if(sc){
-        if(sc->f)
-          q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
       }
 
       qt += q_temp;
@@ -1798,8 +1827,8 @@ backtrack(int i,
       q_temp = qm[ii-(k-1)] * qm1[jj+k];
 
       if(sc){
-        if(sc->f)
-          q_temp *= sc->f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
       }
 
       qt += q_temp;
