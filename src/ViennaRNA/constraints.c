@@ -767,6 +767,7 @@ add_soft_constraints( vrna_fold_compound *vc,
     sc->free_energies     = NULL;
     sc->en_basepair       = NULL;
     sc->en_stack          = NULL;
+    sc->exp_en_stack      = NULL;
     sc->boltzmann_factors = NULL;
     sc->exp_en_basepair   = NULL;
     sc->f                 = NULL;
@@ -864,22 +865,35 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
       reactivities[i] = m * log(reactivities[i] + 1.) + b;
   }
 
-  /* create the pseudo energy lookup table for the recursions */
-  idx = vc->jindx;
-  pseudo_energies = (int *)space(sizeof(int) * (((vc->length + 1) * (vc->length + 2)) / 2));
-  for(i = 1; i<vc->length; i++)
-    for(j = i + 1; j <= vc->length; j++)
-      pseudo_energies[idx[j] + i] = (int)((reactivities[i] + reactivities[j]) * 100.);
+  /* begin actual storage of the pseudo energies */
 
-  if(vc->sc){
-    if(vc->sc->en_stack){
-      free(vc->sc->en_stack);
-    }
-  } else {
+  if(!vc->sc)
     add_soft_constraints(vc, NULL, options);
+
+  /* Add contributions for use in regular free energy recursions */
+  if(options & VRNA_CONSTRAINT_SOFT_MFE){
+
+    if(!vc->sc->en_stack)
+      vc->sc->en_stack = (int *)space(sizeof(int) * (vc->length + 1));
+
+    for(i = 1; i <= vc->length; i++)
+      vc->sc->en_stack[i] += (int)(reactivities[i] * 100.);
   }
 
-  vc->sc->en_stack = pseudo_energies;
+  /* Add contributions for use in partition function recursions */
+  if(options & VRNA_CONSTRAINT_SOFT_PF){
+
+    if(!vc->sc->exp_en_stack){
+      vc->sc->exp_en_stack = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
+      for(i = 0; i <= vc->length; i++)
+        vc->sc->exp_en_stack[i] = 1.;
+    }
+
+    for(i = 1; i <= vc->length; i++)
+      vc->sc->exp_en_stack[i] *= exp(-reactivities[i] / sc->exp_params->kT);
+
+  }
+
   free(reactivities);
 
   return 1; /* success */

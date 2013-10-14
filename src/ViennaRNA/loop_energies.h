@@ -481,8 +481,10 @@ E_int_loop( int i,
 
             if(sc->en_stack)
               if((p==i+1) && (q == j-1))
-                energy += sc->en_stack[ij]
-                          + sc->en_stack[pq];
+                energy +=   sc->en_stack[i]
+                          + sc->en_stack[p]
+                          + sc->en_stack[q]
+                          + sc->en_stack[j];
 
             if(sc->f)
               energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
