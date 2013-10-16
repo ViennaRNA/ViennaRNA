@@ -919,6 +919,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
     sc->free_energies     = NULL;
     sc->en_basepair       = NULL;
     sc->en_stack          = NULL;
+    sc->exp_en_stack      = NULL;
     sc->boltzmann_factors = NULL;
     sc->exp_en_basepair   = NULL;
     sc->f                 = NULL;
@@ -981,22 +982,33 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       }
 
       /* create the pseudo energy lookup table for the recursions */
-      idx = vc->jindx;
-      pseudo_energies = (int *)space(sizeof(int) * (((vc->length + 1) * (vc->length + 2)) / 2));
-      for(p = 0, i = 1; i<vc->length; i++){
-        e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-        if(vc->sequences[shape_file_association[s]][i-1] == '-'){
-          p++; e1 = 0.;
-        }
-        for(q = 0, j = i + 1; j <= vc->length; j++){
-          e2 = (j - q > 0) ? reactivities[j - q] : 0.;
-          if(vc->sequences[shape_file_association[s]][j-1] == '-'){
-            q++; e2 = 0.;
+      if(options & VRNA_CONSTRAINT_SOFT_MFE){
+        pseudo_energies = (int *)space(sizeof(int) * (vc->length + 1));
+        for(p = 0, i = 1; i<=vc->length; i++){
+          e1 = (i - p > 0) ? reactivities[i - p] : 0.;
+          if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+            p++; e1 = 0.;
           }
-          pseudo_energies[idx[j] + i] = (int)((e1 + e2) * 100.);
+          pseudo_energies[i] = (int)(e1 * 100.);
         }
+        vc->sc[shape_file_association[s]]->en_stack = pseudo_energies;
       }
-      vc->sc[shape_file_association[s]]->en_stack = pseudo_energies;
+
+      if(options & VRNA_CONSTRAINT_SOFT_PF){
+        FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
+        for(i=0;i<=vc->length;i++)
+          exp_pe[i] = 1.;
+
+        for(p = 0, i = 1; i<=vc->length; i++){
+          e1 = (i - p > 0) ? reactivities[i - p] : 0.;
+          if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+            p++; e1 = 0.;
+          }
+          exp_pe[i] = exp(-e1 / vc->exp_params->kT);
+        }
+        vc->sc[shape_file_association[s]]->exp_en_stack = exp_pe;
+      }
+      
       free(reactivities);
     }
   }

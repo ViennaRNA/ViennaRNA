@@ -347,7 +347,7 @@ int main(int argc, char *argv[]){
       case  'M':  
       default:    if(verbose)
                     fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                  add_soft_constraints_alignment_mathews(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, (unsigned int)0);
+                  add_soft_constraints_alignment_mathews(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, options);
     }
 
     min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
