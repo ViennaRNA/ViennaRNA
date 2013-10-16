@@ -531,7 +531,8 @@ vrna_alifold_get_compund_constraints( const char **sequences,
       alloc_vector |= ALLOC_MFE_CIRC;
     if(md.uniq_ML)
       alloc_vector |= ALLOC_MFE_UNIQ_ML;
-    vc->matrices  = get_mfe_matrices_alloc(length, alloc_vector);
+//    vc->matrices  = get_mfe_matrices_alloc(length, alloc_vector);
+    vc->matrices = NULL;
 
     /* get gquadruplex matrix if needed */
     if(md.gquad){
@@ -556,7 +557,8 @@ vrna_alifold_get_compund_constraints( const char **sequences,
       alloc_vector |= ALLOC_PF_CIRC;
     if(md.uniq_ML)
       alloc_vector |= ALLOC_PF_UNIQ_ML;
-    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
+//    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
+    vc->exp_matrices = NULL;
 
     /* get gquadruplex matrix if needed */
     if(md.gquad){
