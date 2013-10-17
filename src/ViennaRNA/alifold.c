@@ -332,6 +332,8 @@ PRIVATE int fill_arrays(const char **strings) {
 
   /* init energies */
 
+  int max_bpspan = (P->model_details.max_bp_span > 0) ? P->model_details.max_bp_span : length;
+
   if(with_gquad){
     cons_seq = consensus(strings);
     /* make g-island annotation of the consensus */
@@ -358,7 +360,7 @@ PRIVATE int fill_arrays(const char **strings) {
       }
 
       psc = pscore[indx[j]+i];
-      if (psc>=MINPSCORE) {   /* a pair to consider */
+      if (psc>=MINPSCORE && ((j - i) < max_bpspan)) {   /* a pair to consider */
         int stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
 

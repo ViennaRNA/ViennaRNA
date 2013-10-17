@@ -160,7 +160,6 @@ int main(int argc, char *argv[]){
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
 
-  mfe_parameters = get_scaled_parameters(temperature, md);
 
   /*
   #############################################
@@ -211,6 +210,9 @@ int main(int argc, char *argv[]){
   /* set options we wanna pass to read_record */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
+
+  mfe_parameters = get_scaled_parameters(temperature, md);
+
 
   /*
   #############################################

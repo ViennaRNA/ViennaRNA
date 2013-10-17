@@ -162,7 +162,7 @@ int main(int argc, char *argv[]){
   }
 
   if(args_info.maxBPspan_given){
-    max_bp_span = args_info.maxBPspan_arg;
+    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
   }
 
   if(args_info.verbose_given){
@@ -332,7 +332,7 @@ int main(int argc, char *argv[]){
     vc = vrna_alifold_get_compund_constraints((const char **)AS,
                                               NULL,
                                               NULL,
-                                              NULL,
+                                              &md,
                                               NULL,
                                               NULL,
                                               options);
