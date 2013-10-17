@@ -217,6 +217,9 @@ int main(int argc, char *argv[]){
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
+  mfe_parameters = get_scaled_parameters(temperature, md);
+
+
   /*
   #############################################
   # main loop: continue until end of file

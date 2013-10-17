@@ -330,6 +330,9 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
   kTn   = pf_params->kT/10.;   /* kT in cal/mol  */
   type  = (int *)space(sizeof(int) * n_seq);
 
+  int max_bpspan = (pf_params->model_details.max_bp_span > 0) ? pf_params->model_details.max_bp_span : n;
+
+
   /* array initialization ; qb,qm,q
      qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
@@ -356,7 +359,7 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
         if (type[s]==0) type[s]=7;
       }
       psc = pscore[ij];
-      if (psc>=cv_fact*MINPSCORE) {   /* otherwise ignore this pair */
+      if (psc>=cv_fact*MINPSCORE && ((j-i) < max_bpspan)) {   /* otherwise ignore this pair */
 
         /* hairpin contribution */
         for (qbt1=1,s=0; s<n_seq; s++) {
