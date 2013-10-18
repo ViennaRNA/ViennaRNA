@@ -245,7 +245,13 @@ vrna_alipf_fold_tmp( const char **strings,
 
   sc = vc->sc;
   hc = vc->hc;
-  return alipf_fold(strings, structure, pl);
+  return alipf_fold_par(strings,
+                        structure,
+                        pl,
+                        vc->exp_params,
+                        vc->exp_params->model_details.do_backtrack,
+                        fold_constrained,
+                        vc->exp_params->model_details.circ);
 }
 
 PUBLIC float
@@ -393,11 +399,16 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
                 if((i + 1 == k) && (j - 1 == l))
                   if(sc[s])
                     if(sc[s]->exp_en_stack)
-                      if((i + 1 == k) && (j - 1 == l))
+                      if((i + 1 == k) && (j - 1 == l)){
+//                         printf("using shape %d at (%d,%d)(%d,%d) of %g\n", s, i, j, k, l, sc[s]->exp_en_stack[i]
+//                                   * sc[s]->exp_en_stack[k]
+//                                   * sc[s]->exp_en_stack[l]
+//                                   * sc[s]->exp_en_stack[j]);
                         qloop *=    sc[s]->exp_en_stack[i]
                                   * sc[s]->exp_en_stack[k]
                                   * sc[s]->exp_en_stack[l]
                                   * sc[s]->exp_en_stack[j];
+                      }
 
             }
             

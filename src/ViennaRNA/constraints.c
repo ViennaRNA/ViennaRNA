@@ -978,11 +978,12 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
         if(reactivities[i] < 0)
           reactivities[i] = 0.;
         else
-          reactivities[i] = m * log(reactivities[i] + 1.) + b;
+          reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
       }
 
       /* create the pseudo energy lookup table for the recursions */
       if(options & VRNA_CONSTRAINT_SOFT_MFE){
+        printf("preparing pseudo energies for MFE recursions\n");
         pseudo_energies = (int *)space(sizeof(int) * (vc->length + 1));
         for(p = 0, i = 1; i<=vc->length; i++){
           e1 = (i - p > 0) ? reactivities[i - p] : 0.;
@@ -995,6 +996,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       }
 
       if(options & VRNA_CONSTRAINT_SOFT_PF){
+        printf("preparing pseudo energies for PF recursions\n");
         FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
         for(i=0;i<=vc->length;i++)
           exp_pe[i] = 1.;
@@ -1004,7 +1006,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
           if(vc->sequences[shape_file_association[s]][i-1] == '-'){
             p++; e1 = 0.;
           }
-          exp_pe[i] = exp(-e1 / vc->exp_params->kT);
+          exp_pe[i] = exp(-(e1 * 1000.) / /* ((temperature+K0)*GASCONST) */ vc->exp_params->kT );
         }
         vc->sc[shape_file_association[s]]->exp_en_stack = exp_pe;
       }

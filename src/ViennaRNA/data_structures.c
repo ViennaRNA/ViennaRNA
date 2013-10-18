@@ -501,6 +501,7 @@ vrna_alifold_get_compund_constraints( const char **sequences,
   vc->length          = strlen(sequences[0]);
   vc->pscore          = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
+  /* copy the user-provided model details or just create them from the default options */
   if(model_details){
     md = *model_details;
   } else {
