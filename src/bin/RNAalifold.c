@@ -321,8 +321,9 @@ int main(int argc, char *argv[]){
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
 
+  vrna_alifold_compound *vc;
+
   if(with_shapes){
-    vrna_alifold_compound *vc;
 
     float p1, p2;
     char    method;
@@ -426,7 +427,13 @@ int main(int argc, char *argv[]){
     if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
     pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
-    energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, fold_constrained, circular);
+
+    if(with_shapes){
+      vc->exp_params = pf_parameters;
+      energy = vrna_alipf_fold_tmp((const char **)AS, structure, NULL, vc);
+    }
+    else
+      energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, fold_constrained, circular);
 
     if (n_back>0) {
       /*stochastic sampling*/
