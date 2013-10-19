@@ -88,6 +88,16 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  *  \param[in]      is_circular     Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
  *  \return         The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
+
+float
+pf_fold_par_tmp(const char *sequence,
+            char *structure,
+            pf_paramT *parameters,
+            int calculate_bppm,
+            int is_constrained,
+            int is_circular,
+            soft_constraintT *sc_p);
+
 float   pf_fold_par(  const char *sequence,
                       char *structure,
                       pf_paramT *parameters,
