@@ -890,7 +890,7 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
     }
 
     for(i = 1; i <= vc->length; i++)
-      vc->sc->exp_en_stack[i] *= exp(-reactivities[i] / vc->exp_params->kT);
+      vc->sc->exp_en_stack[i] *= exp(-(reactivities[i] * 1000.)/ vc->exp_params->kT);
 
   }
 
@@ -1261,6 +1261,12 @@ destroy_soft_constraints(soft_constraintT *sc){
 
     if(sc->exp_en_basepair)
       free(sc->exp_en_basepair);
+
+    if(sc->en_stack)
+      free(sc->en_stack);
+
+    if(sc->exp_en_stack)
+      free(sc->exp_en_stack);
 
     free(sc);
   }

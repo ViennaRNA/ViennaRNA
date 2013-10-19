@@ -283,7 +283,7 @@ int main(int argc, char *argv[]){
         case  'M':  
         default:    if(verbose)
                       fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                    add_soft_constraints_mathews(vc, shape_file, p1, p2, (unsigned int)0);
+                    add_soft_constraints_mathews(vc, shape_file, p1, p2, VRNA_CONSTRAINT_SOFT_MFE);
       }
     }
 
@@ -334,7 +334,6 @@ int main(int argc, char *argv[]){
           md.dangles=1;
       }
 
-      /* */
 
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
@@ -343,7 +342,38 @@ int main(int argc, char *argv[]){
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
+      /* */
+
+      if(with_shapes){
+        float p1, p2;
+        char    method;
+        p1      = 1.8;
+        p2      = -0.6;
+        method  = 'M';
+
+        if(shape_method){
+          if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
+            warn_user("Method for SHAPE reactivity data conversion not recognized!");
+          }
+        }
+
+        switch(method){
+          case  'M':  
+          default:    if(verbose)
+                        fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
+                      vc->exp_params = pf_parameters;
+                      add_soft_constraints_mathews(vc, shape_file, p1, p2, VRNA_CONSTRAINT_SOFT_PF);
+        }
+
+        energy = pf_fold_par_tmp(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular, vc->sc);
+
+        vc->exp_params = NULL;
+        vc->sc = NULL;
+      } else {
+
+        energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
+
+      }
 
       if(lucky){
         init_rand();

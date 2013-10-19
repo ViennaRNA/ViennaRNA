@@ -153,6 +153,18 @@ pf_fold_par(const char *sequence,
             int is_constrained,
             int is_circular){
 
+  return pf_fold_par_tmp(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular, NULL);
+}
+
+PUBLIC float
+pf_fold_par_tmp(const char *sequence,
+            char *structure,
+            pf_paramT *parameters,
+            int calculate_bppm,
+            int is_constrained,
+            int is_circular,
+            soft_constraintT *sc_p){
+
   FLT_OR_DBL  Q;
   double      free_energy;
   unsigned int constraint_options;
@@ -195,7 +207,7 @@ pf_fold_par(const char *sequence,
   }
 
   /* no soft constraints available for simple interface */
-  my_sc = NULL;
+  my_sc = sc_p;
 
   /* get compound structure */
   vc = get_fold_compound_pf_constrained(sequence, my_hc, my_sc, exp_params);
