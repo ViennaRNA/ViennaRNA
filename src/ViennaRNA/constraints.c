@@ -983,7 +983,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
 
       /* create the pseudo energy lookup table for the recursions */
       if(options & VRNA_CONSTRAINT_SOFT_MFE){
-        printf("preparing pseudo energies for MFE recursions\n");
+        //printf("preparing pseudo energies for MFE recursions\n");
         pseudo_energies = (int *)space(sizeof(int) * (vc->length + 1));
         for(p = 0, i = 1; i<=vc->length; i++){
           e1 = (i - p > 0) ? reactivities[i - p] : 0.;
@@ -996,7 +996,7 @@ add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
       }
 
       if(options & VRNA_CONSTRAINT_SOFT_PF){
-        printf("preparing pseudo energies for PF recursions\n");
+        //printf("preparing pseudo energies for PF recursions\n");
         FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
         for(i=0;i<=vc->length;i++)
           exp_pe[i] = 1.;
