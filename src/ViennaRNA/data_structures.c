@@ -508,12 +508,6 @@ vrna_alifold_get_compund_constraints( const char **sequences,
     set_model_details(&md);
   }
 
-  /* get gquadruplex matrix if needed */
-  if(vc->params->model_details.gquad){
-    vc->cons_seq      = consensus(sequences);
-    vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &(vc->params->model_details));
-  }
-
   vc->oldAliEn            = oldAliEn;
 
   /* prepare the parameters datastructure */
@@ -537,6 +531,8 @@ vrna_alifold_get_compund_constraints( const char **sequences,
 
     /* get gquadruplex matrix if needed */
     if(md.gquad){
+      vc->cons_seq      = consensus(sequences);
+      vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &md);
       vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
     }
 
