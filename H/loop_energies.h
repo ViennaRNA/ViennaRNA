@@ -476,29 +476,31 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 
   if(u < 3) return q; /* should only be the case when folding alignments */
 
-  if ((P->model_details.special_hp)&&(u==4)) {
-    char tl[7]={0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Tetraloops, tl))){
-      if(type != 7)
-        return (P->exptetra[(ts-P->Tetraloops)/7]);
-      else
-        q *= P->exptetra[(ts-P->Tetraloops)/7];
+  if(P->model_details.special_hp){
+    if(u==4) {
+      char tl[7]={0,0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 6);
+      if ((ts=strstr(P->Tetraloops, tl))){
+        if(type != 7)
+          return (P->exptetra[(ts-P->Tetraloops)/7]);
+        else
+          q *= P->exptetra[(ts-P->Tetraloops)/7];
+      }
     }
-  }
-  if ((tetra_loop)&&(u==6)) {
-    char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 6);
-    if ((ts=strstr(P->Hexaloops, tl)))
-      return  (P->exphex[(ts-P->Hexaloops)/9]);
-  }
-  if (u==3) {
-    char tl[6]={0,0,0,0,0,0}, *ts;
-    strncpy(tl, string, 5);
-    if ((ts=strstr(P->Triloops, tl)))
-      return (P->exptri[(ts-P->Triloops)/6]);
-    if (type>2)
-      q *= P->expTermAU;
+    if (u==6) {
+      char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 8);
+      if ((ts=strstr(P->Hexaloops, tl)))
+        return  (P->exphex[(ts-P->Hexaloops)/9]);
+    }
+    if (u==3) {
+      char tl[6]={0,0,0,0,0,0}, *ts;
+      strncpy(tl, string, 5);
+      if ((ts=strstr(P->Triloops, tl)))
+        return (P->exptri[(ts-P->Triloops)/6]);
+      if (type>2)
+        q *= P->expTermAU;
+    }
   }
   else /* no mismatches for tri-loops */
     q *= P->expmismatchH[type][si1][sj1];
