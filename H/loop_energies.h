@@ -502,8 +502,8 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
         q *= P->expTermAU;
     }
   }
-  else /* no mismatches for tri-loops */
-    q *= P->expmismatchH[type][si1][sj1];
+  /* no mismatches for tri-loops */
+  q *= P->expmismatchH[type][si1][sj1];
 
   return q;
 }
