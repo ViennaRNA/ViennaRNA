@@ -40,6 +40,51 @@
 #define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
 
 
+/* the definitions below indicate which arrays should be allocated upon retrieval of a matrices data structure */
+#define ALLOC_NOTHING     0
+#define ALLOC_F           1
+#define ALLOC_F5          2
+#define ALLOC_F3          4
+#define ALLOC_FC          8
+#define ALLOC_C           16
+#define ALLOC_FML         32
+#define ALLOC_FM1         64
+#define ALLOC_FM2         128
+#define ALLOC_PROBS       256
+#define ALLOC_AUX         512
+
+#define ALLOC_CIRC        1024
+#define ALLOC_HYBRID      2048
+#define ALLOC_UNIQ        4096
+
+
+#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_AUX)
+#define ALLOC_MFE_UNIQ_ML         (ALLOC_MFE_DEFAULT | ALLOC_FM1)
+#define ALLOC_MFE_CIRC            (ALLOC_MFE_UNIQ_ML | ALLOC_FM2)
+#define ALLOC_MFE_HYBRID          (ALLOC_MFE_DEFAULT | ALLOC_FC)
+#define ALLOC_MFE_HYBRID_UNIQ_ML  (ALLOC_MFE_HYBRID | ALLOC_FM1)
+
+#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
+#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
+#define ALLOC_PF_UNIQ_ML          (ALLOC_PF_DEFAULT | ALLOC_FM1)
+#define ALLOC_PF_CIRC             (ALLOC_PF_UNIQ_ML | ALLOC_FM2)
+#define ALLOC_PF_HYBRID           (ALLOC_PF_DEFAULT | ALLOC_FC)
+#define ALLOC_PF_HYBRID_UNIQ_ML   (ALLOC_PF_HYBRID | ALLOC_FM1)
+
+
+/* the definitions below should be used for functions the return/receive/destroy fold compound data structures */
+
+#define VRNA_OPTION_MFE       1
+
+#define VRNA_OPTION_PF        2
+
+#define VRNA_OPTION_HYBRID    4
+
+
+
+
+
+
 /*
 * ############################################################
 * Here are the type definitions of various datastructures
@@ -100,31 +145,6 @@ typedef struct bondTEn {
    int energy;
 } bondTEn;
 
-#define ALLOC_NOTHING     0
-#define ALLOC_F           1
-#define ALLOC_F5          2
-#define ALLOC_F3          4
-#define ALLOC_FC          8
-#define ALLOC_C           16
-#define ALLOC_FML         32
-#define ALLOC_FM1         64
-#define ALLOC_FM2         128
-#define ALLOC_PROBS       256
-#define ALLOC_AUX         512
-
-#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_AUX)
-#define ALLOC_MFE_UNIQ_ML         (ALLOC_MFE_DEFAULT | ALLOC_FM1)
-#define ALLOC_MFE_CIRC            (ALLOC_MFE_UNIQ_ML | ALLOC_FM2)
-#define ALLOC_MFE_HYBRID          (ALLOC_MFE_DEFAULT | ALLOC_FC)
-#define ALLOC_MFE_HYBRID_UNIQ_ML  (ALLOC_MFE_HYBRID | ALLOC_FM1)
-
-#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
-#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
-#define ALLOC_PF_UNIQ_ML          (ALLOC_PF_DEFAULT | ALLOC_FM1)
-#define ALLOC_PF_CIRC             (ALLOC_PF_UNIQ_ML | ALLOC_FM2)
-#define ALLOC_PF_HYBRID           (ALLOC_PF_DEFAULT | ALLOC_FC)
-#define ALLOC_PF_HYBRID_UNIQ_ML   (ALLOC_PF_HYBRID | ALLOC_FM1)
-
 
 typedef struct{
   unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
@@ -172,6 +192,9 @@ typedef struct{
  *
  */
 typedef struct{
+  double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
+  double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
+  double  pf_scale;         /**<  \brief  A scaling factor to avoid under-/overflow of the partition function */
   int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
                                   \note   Some function do not implement all dangle model but only a subset of
                                           (0,1,2,3). Read the documentaion of the particular recurrences or
@@ -1002,6 +1025,27 @@ mfe_matricesT *get_mfe_matrices_alloc( unsigned int n,
 
 void destroy_mfe_matrices(mfe_matricesT *self);
 
+pf_matricesT  *get_pf_matrices_alloc(unsigned int n,
+                                    unsigned int alloc_vector);
+
+void destroy_pf_matrices(pf_matricesT *self);
+
+/*
+* ############################################################
+* VRNA fold compound related functions
+* ############################################################
+*/
+
+/* General stuff */
+
+vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
+                                            model_detailsT *md_p,
+                                            unsigned int options);
+
+void destroy_fold_compound(vrna_fold_compound *vc);
+
+/* MFE stuff */
+
 vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
 
 vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
@@ -1009,26 +1053,20 @@ vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
                                                       soft_constraintT *sc,
                                                       paramT *P);
 
-void destroy_fold_compound(vrna_fold_compound *vc);
-
-
-pf_matricesT  *get_pf_matrices_alloc(unsigned int n,
-                                    unsigned int alloc_vector);
-
-void destroy_pf_matrices(pf_matricesT *self);
+/* partition function stuff */
 
 vrna_fold_compound *get_fold_compound_pf_constrained( const char *sequence,
                                                       hard_constraintT *hc,
                                                       soft_constraintT *sc,
                                                       pf_paramT *P);
 
-vrna_alifold_compound *get_alifold_compound_mfe(const char **sequences,
-                                                paramT *P);
+/*
+* ############################################################
+* VRNA alifold compound related functions
+* ############################################################
+*/
 
-vrna_alifold_compound *get_alifold_compound_mfe_constrained(const char **sequences,
-                                                            hard_constraintT **hc,
-                                                            soft_constraintT **sc,
-                                                            paramT *P);
+/* General stuff */
 
 vrna_alifold_compound *vrna_alifold_get_compund_constraints(const char **sequences,
                                                             hard_constraintT **hc,
@@ -1038,7 +1076,17 @@ vrna_alifold_compound *vrna_alifold_get_compund_constraints(const char **sequenc
                                                             pf_paramT *pf,
                                                             unsigned int options);
 
-
 void destroy_alifold_compound(vrna_alifold_compound *vc);
+
+/* MFE stuff */
+vrna_alifold_compound *get_alifold_compound_mfe(const char **sequences,
+                                                paramT *P);
+
+vrna_alifold_compound *get_alifold_compound_mfe_constrained(const char **sequences,
+                                                            hard_constraintT **hc,
+                                                            soft_constraintT **sc,
+                                                            paramT *P);
+
+/* partition function stuff */
 
 #endif

@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
   */
   if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
   if(args_info.constraint_given)  fold_constrained=1;
   /* do not take special tetra loop energies into account */
@@ -115,13 +115,13 @@ int main(int argc, char *argv[]){
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given) md.energy_set = energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
   if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
-  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  if(args_info.pfScale_given)     md.pf_scale = sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)        md.circ = circular = 1;
   /* always look on the bright side of life */
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
-  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
+  if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
   /* do not produce postscript output */
   if(args_info.noPS_given)        noPS=1;
   /* partition function settings */
@@ -271,7 +271,12 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
+
+#if 0
     vrna_fold_compound *vc = get_fold_compound_mfe(rec_sequence, mfe_parameters);
+#endif
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+
     if(with_shapes){
       float p1, p2;
       char    method;

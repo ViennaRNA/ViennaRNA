@@ -252,6 +252,114 @@ destroy_fold_compound(vrna_fold_compound *vc){
   }
 }
 
+
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound( const char *sequence,
+                        model_detailsT *md_p,
+                        unsigned int options){
+
+  vrna_fold_compound *vc = NULL;
+  model_detailsT      md;
+  unsigned int        alloc_vector, length;
+  int                 cut_point;
+  char                *seq, *seq2;
+
+  /* default values */
+  cut_point     = -1;
+  alloc_vector  = ALLOC_NOTHING;
+
+
+  /* sanity check */
+  length = (sequence) ? strlen(sequence) : 0;
+  if(length == 0)
+    nrerror("vrna_get_fold_compound@data_structures.c: sequence length must be greater 0");
+
+  seq2 = strdup(sequence);
+  seq = tokenize(seq2, &cut_point); /*  splice out the '&' if concatenated sequences and
+                                        reset cut_point... this should also be safe for
+                                        single sequences */
+
+  /* get a copy of the model details */
+  if(md_p)
+    md = *md_p;
+  else /* this fallback relies on global parameters and thus is not threadsafe */
+    set_model_details(&md);
+
+  /* prepare the allocation vector for the DP matrices */
+  if(options & VRNA_OPTION_HYBRID){
+    alloc_vector |= ALLOC_HYBRID;
+    if(cut_point < 0)
+      warn_user("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
+  }
+
+  if(options & VRNA_OPTION_MFE)
+    alloc_vector |= ALLOC_MFE_DEFAULT;
+
+  if(options & VRNA_OPTION_PF)
+    alloc_vector |= (md.do_backtrack) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
+
+  if(md.uniq_ML)
+    alloc_vector |= ALLOC_UNIQ;
+
+  if(md.circ)
+    alloc_vector |= ALLOC_CIRC;
+  
+/*
+   if(cut_point > -1){
+    alloc_vector = ALLOC_MFE_HYBRID;
+    if(params->model_details.uniq_ML)
+      alloc_vector |= ALLOC_MFE_HYBRID_UNIQ_ML;
+  } else {
+    alloc_vector = ALLOC_MFE_DEFAULT;
+    if(params->model_details.circ)
+      alloc_vector |= ALLOC_MFE_CIRC;
+    if(params->model_details.uniq_ML)
+      alloc_vector |= ALLOC_MFE_UNIQ_ML;
+  }
+*/
+
+  /* start making the fold compound */
+  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc->cutpoint            = cut_point;
+  vc->sequence            = seq;
+  vc->length              = strlen(seq);
+  vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
+  vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
+  vc->ptype               = get_ptypes(vc->sequence_encoding2, &md, 0);
+
+  if(options & VRNA_OPTION_MFE){
+    vc->params    = vrna_get_energy_contributions(md);
+    vc->matrices  = get_mfe_matrices_alloc(vc->length, alloc_vector);
+    if(md.gquad)
+      vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+  } else {
+    vc->params    = NULL;
+    vc->matrices  = NULL;
+  }
+
+
+  if(options & VRNA_OPTION_PF){
+    vc->exp_params    = vrna_get_boltzmann_factors(md);
+    vc->exp_matrices  = get_pf_matrices_alloc(vc->length, alloc_vector);
+    if(md.gquad)
+      vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+  } else {
+    vc->exp_params    = NULL;
+    vc->exp_matrices  = NULL;
+  }
+
+  vc->hc                  = get_hard_constraints(seq, NULL, &md, TURN, (unsigned int)0); /* note that this call is flawed in partitio function since we use jindx access here */
+  vc->sc                  = NULL;
+
+  vc->iindx               = get_iindx(vc->length);
+  vc->jindx               = get_indx(vc->length);
+
+  free(seq2);
+  return vc;
+}
+
+
+
 PUBLIC pf_matricesT  *
 get_pf_matrices_alloc(unsigned int n,
                       unsigned int alloc_vector){
