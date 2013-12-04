@@ -40,6 +40,12 @@ PUBLIC paramT *scale_parameters(void){
   return get_scaled_parameters(temperature, md);
 }
 
+PUBLIC paramT *
+vrna_get_energy_contributions(model_detailsT md){
+
+  return get_scaled_parameters(md.temperature, md);
+}
+
 PUBLIC paramT *get_scaled_parameters( double temp,
                                       model_detailsT md){
 
@@ -186,6 +192,13 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void){
   model_detailsT  md;
   set_model_details(&md);
   return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+}
+
+
+PUBLIC pf_paramT *
+vrna_get_boltzmann_factors(model_detailsT md){
+
+  return  get_boltzmann_factors(md.temperature, md.betaScale, md, md.pf_scale);
 }
 
 PUBLIC pf_paramT *get_boltzmann_factors(double temp,

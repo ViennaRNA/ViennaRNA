@@ -35,6 +35,10 @@
  */
 paramT *scale_parameters(void);
 
+
+paramT *vrna_get_energy_contributions(model_detailsT md);
+
+
 /**
  * \brief Get precomputed energy contributions for all the known loop types
  *
@@ -61,6 +65,8 @@ paramT *get_parameter_copy(paramT *par);
  *  \return The datastructure containing Boltzmann weights for use in partition function calculations
  */
 pf_paramT *get_scaled_pf_parameters(void);
+
+pf_paramT *vrna_get_boltzmann_factors(model_detailsT md);
 
 /**
  *  \brief Get precomputed Boltzmann factors of the loop type

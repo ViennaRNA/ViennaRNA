@@ -106,6 +106,10 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->ribo            = ribo;
     md->cv_fact         = cv_fact;
     md->nc_fact         = nc_fact;
+    md->temperature     = temperature;
+    md->betaScale       = 1.;
+    md->pf_scale        = pf_scale;
+
     if(nonstandards){
       memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
     } else {
