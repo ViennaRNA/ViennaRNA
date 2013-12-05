@@ -382,6 +382,14 @@ AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 
+# check if we need to include -lgomp into the ldflags of our pkg-config file
+if test "$enable_openmp" != no; then
+  LIBGOMPFLAG=-lgomp
+else
+  LIBGOMPFLAG=
+fi
+AC_SUBST(LIBGOMPFLAG)
+
 AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
