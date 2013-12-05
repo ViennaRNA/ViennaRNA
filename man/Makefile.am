@@ -1,4 +1,4 @@
-info_TEXINFOS = RNAlib.texinfo
+info_TEXINFOS = RNAlib.texi
 
 dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 RNAeval.1\
                 RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1\

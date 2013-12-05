@@ -5,89 +5,27 @@
 #include <limits.h>
 #include <time.h>
 
-#include "fold.h"
-
 #include "move_set.h"
 
-/* maximum degeneracy value - if degeneracy is greater than this, program segfaults*/
+#include "pair_mat.h"
+#include "fold_vars.h"
+#include "fold.h"
+#include "utils.h"
+
+/* maximum degeneracy value - if degeneracy is greater than this, program segfaults */
 #define MAX_DEGEN 100
 #define MINGAP 3
 
-
-#define space(a) malloc(a)
 
 #define bool int
 #define true 1
 #define false 0
 
-int compare(short *lhs, short *rhs)
-{
-
-  /* printf("%d ", (int)lhs[0]); */
-
-  int i=1;
-  char l=0,r=0;
-  while (i<=lhs[0]) {
-    l = (lhs[i]==0?'.':(lhs[i]<lhs[lhs[i]]?'(':')'));
-    r = (rhs[i]==0?'.':(rhs[i]<rhs[rhs[i]]?'(':')'));
-    if (l != r) break;
-    i++;
-  }
-
-  return (i<=lhs[0] && l>r);
-}
-
-int find_min(short *arr[MAX_DEGEN], int begin, int end) {
-  short *min = arr[begin];
-  short min_num = begin;
-  int i;
-
-  for (i=begin+1; i<end; i++) {
-    if (compare(arr[i], min)) {
-      min = arr[i];
-      min_num = i;
-    }
-  }
-  return min_num;
-}
-
-int equals(const short *first, const short *second)
-{
-  int i=1;
-  while (i<=first[0] && first[i]==second[i]) {
-    i++;
-  }
-  if (i>first[0]) return 1;
-  else return 0;
-}
-
-void copy_arr(short *dest, short *src)
-{
-  if (!src || !dest) {
-    fprintf(stderr, "Empty pointer in copying\n");
-    return;
-  }
-  memcpy(dest, src, sizeof(short)*(src[0]+1));
-}
-
-short *allocopy(short *src)
-{
-  short *res = (short*) space(sizeof(short)*(src[0]+1));
-  copy_arr(res, src);
-  return res;
-}
-
-/* ############################## DECLARATION #####################################*/
-/* private functions & declarations*/
-
-static int cnt_move = 0;
-int count_move() {return cnt_move;}
-
-/*check if base is lone*/
-int lone_base(short *pt, int i);
-
-/* can move be done on this structure? (move is in the Enc)*/
-int check_insert(struct_en *str, int i, int j);
+/*
+#################################
+# PRIVATE DATA STRUCTURES       #
+#################################
+*/
 
 /* internal struct with moves, sequence, degeneracy and options*/
 typedef struct _Encoded {
@@ -95,7 +33,7 @@ typedef struct _Encoded {
   short *s0;
   short *s1;
 
-  char  *seq;
+  const char  *seq;
 
   /* moves*/
   int   bp_left;
@@ -129,9 +67,117 @@ typedef struct _Encoded {
 
 } Encoded;
 
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE int cnt_move = 0;
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE int     compare(short *lhs, short *rhs);
+PRIVATE int     find_min(short *arr[MAX_DEGEN], int begin, int end);
+PRIVATE int     equals(const short *first, const short *second);
+PRIVATE int     count_move(void);
+PRIVATE int     lone_base(short *pt, int i);
+PRIVATE int     check_insert(struct_en *str, int i, int j);
+PRIVATE void    free_degen(Encoded *Enc);
+PRIVATE inline void do_move(short *pt, int bp_left, int bp_right);
+PRIVATE int     update_deepest(Encoded *Enc, struct_en *str, struct_en *min);
+PRIVATE int     deletions(Encoded *Enc, struct_en *str, struct_en *minim);
+PRIVATE inline  bool compat(char a, char b);
+PRIVATE inline  bool try_insert(const short *pt, const char *seq, int i, int j);
+PRIVATE inline  bool try_insert_seq(const char *seq, int i, int j);
+PRIVATE int     insertions(Encoded *Enc, struct_en *str, struct_en *minim);
+PRIVATE int     shifts(Encoded *Enc, struct_en *str, struct_en *minim);
+PRIVATE int     move_set(Encoded *Enc, struct_en *str);
+PRIVATE void    construct_moves(Encoded *Enc, short *structure);
+PRIVATE int     move_rset(Encoded *Enc, struct_en *str);
+PRIVATE int     find_lone_pair(short* str);
+
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
+PRIVATE int
+compare(short *lhs, short *rhs){
+
+  //printf("%d ", (int)lhs[0]);
+
+  int i=1;
+  char l=0,r=0;
+  while (i<=lhs[0]) {
+    l = (lhs[i]==0?'.':(lhs[i]<lhs[lhs[i]]?')':'('));
+    r = (rhs[i]==0?'.':(rhs[i]<rhs[rhs[i]]?')':'('));
+    if (l != r) break;
+    i++;
+  }
+
+  return (i<=lhs[0] && l>r);
+}
+
+PRIVATE int
+find_min(short *arr[MAX_DEGEN], int begin, int end){
+
+  short *min = arr[begin];
+  short min_num = begin;
+  int i;
+
+  for (i=begin+1; i<end; i++) {
+    if (compare(arr[i], min)) {
+      min = arr[i];
+      min_num = i;
+    }
+  }
+  return min_num;
+}
+
+PRIVATE int
+equals(const short *first, const short *second){
+
+  int i=1;
+  while (i<=first[0] && first[i]==second[i]) {
+    i++;
+  }
+  if (i>first[0]) return 1;
+  else return 0;
+}
+
+PUBLIC void
+copy_arr(short *dest, short *src){
+  if (!src || !dest) {
+    fprintf(stderr, "Empty pointer in copying\n");
+    return;
+  }
+  memcpy(dest, src, sizeof(short)*(src[0]+1));
+}
+
+PUBLIC short *
+allocopy(short *src){
+  short *res = (short*) space(sizeof(short)*(src[0]+1));
+  copy_arr(res, src);
+  return res;
+}
+
+PRIVATE int
+count_move(void){
+
+  return cnt_move;
+}
+
+
+
 /* frees all things allocated by degeneracy...*/
-void free_degen(Encoded *Enc)
-{
+PRIVATE void
+free_degen(Encoded *Enc){
+
   int i;
   for (i=Enc->begin_unpr; i<Enc->end_unpr; i++) {
     if (Enc->unprocessed[i]) {
@@ -151,26 +197,9 @@ void free_degen(Encoded *Enc)
   Enc->end_unpr=0;
 }
 
-/* ############################## IMPLEMENTATION #####################################*/
+PRIVATE inline void
+do_move(short *pt, int bp_left, int bp_right){
 
-/* reads a line no matter how long*/
-char* my_getline(FILE *fp)
-{
-  char s[512], *line, *cp;
-  line = NULL;
-  do {
-    if(fgets(s, 512, fp) == NULL) break;
-    cp = strchr(s, '\n');
-    if(cp != NULL) *cp = '\0';
-    if(line == NULL) line = (char *) calloc(strlen(s) + 1, sizeof(char));
-    else line = (char *) realloc(line, strlen(s) + strlen(line) + 1);
-    strcat (line, s);
-  } while (cp == NULL);
-  return (line);
-}
-
-inline void do_move(short *pt, int bp_left, int bp_right)
-{
   /* delete*/
   if (bp_left<0) {
     pt[-bp_left]=0;
@@ -182,8 +211,9 @@ inline void do_move(short *pt, int bp_left, int bp_right)
 }
 
 /* done with all structures along the way to deepest*/
-int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
-{
+PRIVATE int
+update_deepest(Encoded *Enc, struct_en *str, struct_en *min){
+
   /* apply move + get its energy*/
   int tmp_en;
   tmp_en = str->energy + energy_of_move_pt(str->structure, Enc->s0, Enc->s1, Enc->bp_left, Enc->bp_right);
@@ -200,7 +230,7 @@ int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
   if (Enc->funct) {
     int end = Enc->funct(str, min);
 
-    /*  undo moves */
+    // undo moves
     if (Enc->bp_left2!=0) do_move(str->structure, -Enc->bp_left2, -Enc->bp_right2);
     do_move(str->structure, -Enc->bp_left, -Enc->bp_right);
     str->energy = last_en;
@@ -243,7 +273,7 @@ int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
         break;
       }
     }
-    for (i=Enc->begin_unpr; !found && i<Enc->end_pr; i++) {
+    for (i=Enc->begin_unpr; !found && i<Enc->end_unpr; i++) {
       if (equals(Enc->unprocessed[i], str->structure)) {
         found = 1;
         break;
@@ -251,6 +281,7 @@ int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
     }
 
     if (!found) {
+      //print_stren(stderr, str); // fprintf(stderr, " %6.2f\n", str->energy);
       Enc->unprocessed[Enc->end_unpr]=allocopy(str->structure);
       Enc->end_unpr++;
     }
@@ -269,8 +300,9 @@ int update_deepest(Encoded *Enc, struct_en *str, struct_en *min)
 
 
 /* deletions move set*/
-int deletions(Encoded *Enc, struct_en *str, struct_en *minim)
-{
+PRIVATE int
+deletions(Encoded *Enc, struct_en *str, struct_en *minim){
+
   int cnt = 0;
   short *pt = str->structure;
   int len = pt[0];
@@ -314,7 +346,9 @@ int deletions(Encoded *Enc, struct_en *str, struct_en *minim)
 }
 
   /* compatible base pair?*/
-inline bool compat(char a, char b) {
+PRIVATE inline bool
+compat(char a, char b){
+
   if (a=='A' && b=='U') return true;
   if (a=='C' && b=='G') return true;
   if (a=='G' && b=='U') return true;
@@ -330,22 +364,24 @@ inline bool compat(char a, char b) {
 }
 
 /* try insert base pair (i,j)*/
-inline bool try_insert(const short *pt, const char *seq, int i, int j)
-{
+PRIVATE inline bool
+try_insert(const short *pt, const char *seq, int i, int j){
+
   if (i<=0 || j<=0 || i>pt[0] || j>pt[0]) return false;
   return (j-i>MINGAP && pt[j]==0 && pt[i]==0 && compat(seq[i-1], seq[j-1]));
 }
 
-/*  try insert base pair (i,j) */
-inline bool try_insert_seq(const char *seq, int i, int j)
-{
+// try insert base pair (i,j)
+PRIVATE inline bool
+try_insert_seq(const char *seq, int i, int j){
   if (i<=0 || j<=0) return false;
   return (j-i>MINGAP && compat(seq[i-1], seq[j-1]));
 }
 
 /* insertions move set*/
-int insertions(Encoded *Enc, struct_en *str, struct_en *minim)
-{
+PRIVATE int
+insertions(Encoded *Enc, struct_en *str, struct_en *minim){
+
   int cnt = 0;
   short *pt = str->structure;
   int len = pt[0];
@@ -401,8 +437,9 @@ int insertions(Encoded *Enc, struct_en *str, struct_en *minim)
 }
 
 /*shift move set*/
-int shifts(Encoded *Enc, struct_en *str, struct_en *minim)
-{
+PRIVATE int
+shifts(Encoded *Enc, struct_en *str, struct_en *minim){
+
   int cnt = 0;
   int brack_num = 0;
   short *pt = str->structure;
@@ -523,8 +560,9 @@ int shifts(Encoded *Enc, struct_en *str, struct_en *minim)
 }
 
 /* move to deepest (or first) neighbour*/
-int move_set(Encoded *Enc, struct_en *str)
-{
+PRIVATE int
+move_set(Encoded *Enc, struct_en *str){
+
   /* count how many times called*/
   cnt_move++;
 
@@ -591,8 +629,9 @@ int move_set(Encoded *Enc, struct_en *str)
   return cnt;
 }
 
-void construct_moves(Encoded *Enc, short *structure)
-{
+PRIVATE void
+construct_moves(Encoded *Enc, short *structure){
+
   /* generate all possible moves (less than n^2)*/
   Enc->num_moves = 0;
   int i;
@@ -602,20 +641,20 @@ void construct_moves(Encoded *Enc, short *structure)
       Enc->moves_from[Enc->num_moves]=-i;
       Enc->moves_to[Enc->num_moves]=-structure[i];
       Enc->num_moves++;
-      /* fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]); */
+      //fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]);
     } else {
       int j;
       for (j=i+1; j<=structure[0]; j++) {
-        /* fprintf(stderr, "check (%d, %d)\n", i, j); */
+        //fprintf(stderr, "check (%d, %d)\n", i, j);
         if (structure[j]==0) {
           if (try_insert_seq(Enc->seq,i,j)) {
             Enc->moves_from[Enc->num_moves]=i;
             Enc->moves_to[Enc->num_moves]=j;
             Enc->num_moves++;
-            /* fprintf(stderr, "add  i(%d, %d)\n", i, j); */
+            //fprintf(stderr, "add  i(%d, %d)\n", i, j);
             continue;
           }
-        } else if (structure[j]>j) { /*  '(' */
+        } else if (structure[j]>j) { // '('
           j = structure[j];
         } else break;
       }
@@ -636,8 +675,9 @@ void construct_moves(Encoded *Enc, short *structure)
   }
 }
 
-int move_rset(Encoded *Enc, struct_en *str)
-{
+PRIVATE int
+move_rset(Encoded *Enc, struct_en *str){
+
   /* count how many times called*/
   cnt_move++;
 
@@ -652,7 +692,7 @@ int move_rset(Encoded *Enc, struct_en *str)
 
   if (Enc->verbose_lvl>0) { fprintf(stderr, "  start of MR:\n  "); print_str(stderr, str->structure); fprintf(stderr, " %d\n\n", str->energy); }
 
-  /*  construct and permute possible moves */
+  // construct and permute possible moves
   construct_moves(Enc, str->structure);
 
   /* find first lower one*/
@@ -698,8 +738,9 @@ int move_rset(Encoded *Enc, struct_en *str)
 }
 
 /*check if base is lone*/
-int lone_base(short *pt, int i)
-{
+PRIVATE int
+lone_base(short *pt, int i){
+
   if (i<=0 || i>pt[0]) return 0;
   /* is not a base pair*/
   if (pt[i]==0) return 0;
@@ -718,8 +759,9 @@ int lone_base(short *pt, int i)
 }
 
 /* if the structure has lone pairs*/
-int find_lone_pair(short* str)
-{
+PRIVATE int
+find_lone_pair(short* str){
+
   int i;
   for(i=1; i<str[0]; i++) {
     if (str[i]==0) continue; /* '.'*/
@@ -740,15 +782,50 @@ int find_lone_pair(short* str)
   return -1;
 }
 
+PUBLIC int
+move_standard(char *seq,
+              char *struc,
+              enum MOVE_TYPE type,
+              int verbosity_level,
+              int shifts,
+              int noLP){
 
-int move_deepest( char *string,
-                  short *ptable,
-                  short *s,
-                  short *s1,
-                  int verbosity_level,
-                  int shifts,
-                  int noLP)
-{
+  make_pair_matrix();
+
+  short int *s0 = encode_sequence(seq, 0);
+  short int *s1 = encode_sequence(seq, 1);
+  short int *str = make_pair_table(struc);
+
+  int energy = 0;
+  switch (type){
+  case GRADIENT: energy = move_gradient(seq, str, s0, s1, verbosity_level, shifts, noLP); break;
+  case FIRST: energy = move_first(seq, str, s0, s1, verbosity_level, shifts, noLP); break;
+  case ADAPTIVE: energy = move_adaptive(seq, str, s0, s1, verbosity_level); break;
+  }
+
+  int i=1;
+  for (; i<=str[0]; i++) {
+    if (str[i]==0) struc[i-1]='.';
+    else if (str[i]>str[str[i]]) struc[i-1]='(';
+      else struc[i-1]=')';
+  }
+
+  free(s0);
+  free(s1);
+  free(str);
+
+  return energy;
+}
+
+PUBLIC int
+move_gradient(char *string,
+              short *ptable,
+              short *s,
+              short *s1,
+              int verbosity_level,
+              int shifts,
+              int noLP){
+
   cnt_move = 0;
 
   Encoded enc;
@@ -775,7 +852,7 @@ int move_deepest( char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  /*  function */
+  // function
   enc.funct=NULL;
 
   int i;
@@ -796,14 +873,15 @@ int move_deepest( char *string,
   return str.energy;
 }
 
-int move_first(   char *string,
-                  short *ptable,
-                  short *s,
-                  short *s1,
-                  int verbosity_level,
-                  int shifts,
-                  int noLP)
-{
+PUBLIC int
+move_first( char *string,
+            short *ptable,
+            short *s,
+            short *s1,
+            int verbosity_level,
+            int shifts,
+            int noLP){
+
   cnt_move = 0;
 
   Encoded enc;
@@ -830,7 +908,7 @@ int move_first(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  /*  function */
+  // function
   enc.funct=NULL;
 
   int i;
@@ -851,12 +929,13 @@ int move_first(   char *string,
   return str.energy;
 }
 
-int move_rand(   char *string,
-                  short *ptable,
-                  short *s,
-                  short *s1,
-                  int verbosity_level)
-{
+PUBLIC int
+move_adaptive(char *string,
+              short *ptable,
+              short *s,
+              short *s1,
+              int verbosity_level){
+
   srand(time(NULL));
 
   cnt_move = 0;
@@ -885,10 +964,10 @@ int move_rand(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  /*  function */
+  // function
   enc.funct=NULL;
 
-  /*  allocate memory for moves */
+  // allocate memory for moves
   enc.moves_from = (int*) space(ptable[0]*ptable[0]*sizeof(int));
   enc.moves_to = (int*) space(ptable[0]*ptable[0]*sizeof(int));
 
@@ -912,15 +991,39 @@ int move_rand(   char *string,
   return str.energy;
 }
 
-int browse_neighs(   char *string,
+PUBLIC int
+browse_neighs(char *seq,
+              char *struc,
+              int verbosity_level,
+              int shifts,
+              int noLP,
+              int (*funct) (struct_en*, struct_en*)){
+
+  make_pair_matrix();
+
+  short int *s0 = encode_sequence(seq, 0);
+  short int *s1 = encode_sequence(seq, 1);
+  short int *str = make_pair_table(struc);
+
+  int res = browse_neighs_pt(seq, str, s0, s1, verbosity_level, shifts, noLP, funct);
+
+  free(s0);
+  free(s1);
+  free(str);
+
+  return res;
+}
+
+PUBLIC int
+browse_neighs_pt( char *string,
                   short *ptable,
                   short *s,
                   short *s1,
                   int verbosity_level,
                   int shifts,
                   int noLP,
-                  int (*funct) (struct_en*, struct_en*))
-{
+                  int (*funct) (struct_en*, struct_en*)){
+
   cnt_move = 0;
 
   Encoded enc;
@@ -947,7 +1050,7 @@ int browse_neighs(   char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  /*  function */
+  // function
   enc.funct=funct;
 
   int i;
@@ -967,12 +1070,14 @@ int browse_neighs(   char *string,
 }
 
 /* printf*/
-void print_stren(FILE *out, struct_en *str) {
+PUBLIC void
+print_stren(FILE *out, struct_en *str) {
   print_str(out, str->structure);
   fprintf(out, " %6.2f\n", str->energy/100.0);
 }
 
-void print_str(FILE *out, short *str) {
+PUBLIC void
+print_str(FILE *out, short *str) {
   int i;
   for (i=1; i<=str[0]; i++) {
     if (str[i]==0) fprintf(out, ".");
@@ -982,3 +1087,44 @@ void print_str(FILE *out, short *str) {
 }
 
 
+#ifdef TEST_MOVESET
+// sample usage:
+int main() {
+  char seq[20] = "ACCCCCCTCTGTAGGGGGA";
+  char str[20] = ".((.(.........).)).";
+
+  // move to the local minimum and display it
+  int energy = move_standard(seq, str, GRADIENT, 0, 0, 0);
+  fprintf(stdout, "%s %6.2f\n\n", str, energy/100.0);
+
+  //now create an array of every structure in neighbourhood of str structure
+  struct_en *list = NULL;
+  int list_length = 0;
+
+  int get_list(struct_en *new_one, struct_en *old_one)
+  {
+    // enlarge the list
+    list_length++;
+    list = (struct_en*) realloc(list, list_length*sizeof(struct_en));
+
+    // copy the structure
+    list[list_length-1].energy = new_one->energy;
+    list[list_length-1].structure = allocopy(new_one->structure);
+
+    // we want to continue -> return 0
+    return 0;
+  }
+  browse_neighs(seq, str, 0, 0, 0, get_list);
+
+  // print them and free the memory:
+  int i;
+  for (i=0; i<list_length; i++) {
+    print_stren(stdout, &list[i]);
+    free(list[i].structure);
+  }
+  free(list);
+
+  return 0;
+}
+
+#endif
