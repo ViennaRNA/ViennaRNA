@@ -1,0 +1,22 @@
+# Name of your program
+package "ct2db" # don't use package if you're using automake
+purpose "Produce dot bracket notation of an RNA secondary structure from Zuker's .ct file"
+
+# Version of your program
+version "1.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=ct2db_cmdl --unamed-opts --include-getopt --default-optional --func-name=ct2db_cmdline_parser --arg-struct-name=ct2db_args_info"
+
+description "Convert Zuker's .ct files to dot-bracket string\n"
+
+option  "removePK"  p
+"Remove pseudoknots from structure\n"
+flag
+off
+
+option  "verbose"   v
+"Be verbose\n"
+flag
+off
