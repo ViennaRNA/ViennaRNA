@@ -1019,7 +1019,7 @@ exp_E_Hairpin(int u,
     }
     else if(u==6){
       char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
-      strncpy(tl, string, 6);
+      strncpy(tl, string, 8);
       if ((ts=strstr(P->Hexaloops, tl)))
         return  (P->exphex[(ts-P->Hexaloops)/9]);
     }

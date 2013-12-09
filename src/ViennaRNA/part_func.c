@@ -997,6 +997,17 @@ pf_create_bppm( vrna_fold_compound *vc,
                           * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
                   if(sc){
+                    if(sc->boltzmann_factors)
+                      tmp2 *=   sc->boltzmann_factors[i+1][u1]
+                              * sc->boltzmann_factors[l+1][u2];
+
+                    if(sc->exp_en_basepair)
+                      tmp2 *=   sc->exp_en_basepair[ij]
+                              * sc->exp_en_basepair[kl];
+
+                    if(sc->exp_f)
+                      tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
                     if(sc->exp_en_stack){
                       if((i+1 == k) && (j-1 == l)){
                         tmp2 *=   sc->exp_en_stack[i]
@@ -1080,32 +1091,72 @@ pf_create_bppm( vrna_fold_compound *vc,
         for (k=2; k<l-TURN; k++) {
           kl = my_iindx[k]-l;
           prmt = prmt1 = 0.0;
-          i = k-1;
+          i = k-1; 
 
           ii = my_iindx[i];     /* ii-j=[i,j]     */
           ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-          tt = ptype[ii-(l+1)]; tt=rtype[tt];
+          tt = ptype[ii-(l+1)];tt=rtype[tt];
           if(hard_constraints[ii-(l+1)] & IN_MB_LOOP){
-            if(tt)
+            if(tt){
               prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+              
+              if(sc){
+                /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+/*
+                if(sc->exp_f)
+                  prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
+*/
+              }
+            }
           }
           int lj;
+          FLT_OR_DBL ppp;
           ij = my_iindx[i] - (l+2);
           lj = my_iindx[l+1]-(l+1);
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hard_constraints[ij] & IN_MB_LOOP){
               tt = ptype[ij]; tt = rtype[tt];
-              if(tt)
-                prmt += probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
+              if(tt){
+                /* which decomposition is covered here? =>
+                  i + 1 = k < l < j:
+                  (i,j)       -> enclosing pair
+                  (k, l)      -> enclosed pair
+                  (l+1, j-1)  -> multiloop part with at least one stem
+                  
+                */
+                ppp = probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
+                if(sc){
+/*
+                  if(sc->exp_f)
+                    ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
+*/
+                }
+                prmt += ppp;
+              }
             }
           }
 
           tt = ptype[kl];
           prmt *= expMLclosing;
           prml[ i] = prmt;
-          prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+          ppp = prm_l1[i]*expMLbase[1];
+          if(sc){
+            if(sc->boltzmann_factors)
+              ppp *= sc->boltzmann_factors[l+1][1]; /* which nucleotide is considered unpaired here? l? */
 
-          prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+            if(sc_exp_f)
+              ppp *= sc->exp_f(, sc->data);
+          }
+          prm_l[i] = ppp+prmt1;
+          ppp = prm_MLb*expMLbase[1];
+          if(sc){
+            if(sc->boltzmann_factors)
+              ppp *= sc->boltzmann_factors[i][1]; /* which nucleotide is considered unpaired here? l? */
+
+            if(sc->exp_f)
+              ppp *= sc->exp_f(, sc->data);
+          }
+          prm_MLb = ppp + prml[i];
           /* same as:    prm_MLb = 0;
              for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
