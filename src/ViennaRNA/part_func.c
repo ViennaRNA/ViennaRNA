@@ -1,59 +1,8 @@
 /*
                   partiton function for RNA secondary structures
 
-                  Ivo L Hofacker
+                  Ivo L Hofacker + Ronny Lorenz
                   Vienna RNA package
-*/
-/*
-  $Log: part_func.c,v $
-  Revision 1.29  2008/02/23 10:10:49  ivo
-  list returned from StackProb was sometimes not terminated correctly
-
-  Revision 1.28  2008/01/08 15:08:10  ivo
-  circular fold would fail for open chain
-
-  Revision 1.27  2007/12/05 13:04:04  ivo
-  add various circfold variants from Ronny
-
-  Revision 1.26  2007/09/19 12:41:56  ivo
-  add computation of centroid() structure for RNAfold -p
-
-  Revision 1.25  2007/04/30 15:12:00  ivo
-  merge RNAup into package
-
-  Revision 1.24  2007/03/03 17:57:44  ivo
-  make sure entries in scale[] decrease to 0
-
-  Revision 1.23  2006/12/01 12:40:23  ivo
-  undo Ulli's accidental commit
-
-  Revision 1.21  2006/08/04 15:39:06  ivo
-  new function stackProb returns probability for stacks
-  p[(i,j)(i+1,j-1)]
-
-  Revision 1.20  2004/08/12 12:14:46  ivo
-  update
-
-  Revision 1.19  2004/05/14 16:28:05  ivo
-  fix the bug in make_ptype here too (fixed in 1.27 of fold.c)
-
-  Revision 1.18  2004/02/17 10:46:52  ivo
-  make sure init_pf_fold is called before scale_parameters
-
-  Revision 1.17  2004/02/09 18:37:59  ivo
-  new mean_bp_dist() function to compute ensemble diversity
-
-  Revision 1.16  2003/08/04 09:14:09  ivo
-  finish up stochastic backtracking
-
-  Revision 1.15  2002/03/19 16:51:12  ivo
-  more on stochastic backtracking (still incomplete)
-
-  Revision 1.14  2002/02/08 17:37:23  ivo
-  set freed S,S1 pointers to NULL
-
-  Revision 1.13  2001/11/16 17:30:04  ivo
-  add stochastic backtracking (still incomplete)
 */
 #include <config.h>
 #include <stdio.h>
@@ -185,14 +134,14 @@ pf_fold_par_tmp(const char *sequence,
     exp_params = get_boltzmann_factor_copy(parameters);
   else{
     model_detailsT md;
-    set_model_details(&md);
-    exp_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+    set_model_details(&md); /* get global default parameters */
+    exp_params = vrna_get_boltzmann_factors(md);
   }
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_IINDX
-                          |  VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_DB
                           | VRNA_CONSTRAINT_PIPE
                           | VRNA_CONSTRAINT_DOT
                           | VRNA_CONSTRAINT_X
@@ -767,19 +716,19 @@ pf_create_bppm( vrna_fold_compound *vc,
   FLT_OR_DBL  *q, *qb, *qm, *qm1, *G, *probs, *scale, *expMLbase;
   FLT_OR_DBL  qo;
 
-  char        *ptype;
+  char              *ptype;
 
-  double      max_real;
-  int         *rtype, with_gquad;
-  char        *sequence;
-  short       *S, *S1;
+  double            max_real;
+  int               *rtype, with_gquad;
+  char              *sequence;
+  short             *S, *S1;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
-  int         *my_iindx, *jindx;
-  int         circular;
-  pf_paramT       *pf_params;
-  pf_matricesT    *matrices;
-  model_detailsT  *md;
+  int               *my_iindx, *jindx;
+  int               circular;
+  pf_paramT         *pf_params;
+  pf_matricesT      *matrices;
+  model_detailsT    *md;
 
 
   pf_params         = vc->exp_params;
@@ -808,7 +757,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   expMLbase         = matrices->expMLbase;
   qo                = matrices->qo;
 
-  FLT_OR_DBL  expMLstem = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
+  FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   int         hc_decompose;
   char        *hard_constraints = hc->matrix;
   int         *hc_up_ext        = hc->up_ext;
@@ -836,7 +785,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 
     for (k=1; k<=n; k++) {
       q1k[k] = q[my_iindx[1] - k];
-      qln[k] = q[my_iindx[k] -n];
+      qln[k] = q[my_iindx[k] - n];
     }
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
@@ -993,7 +942,7 @@ pf_create_bppm( vrna_fold_compound *vc,
                 type = ptype[ij];
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
-                          * scale[k-i+j-l]
+                          * scale[u1 + u2 + 2]
                           * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
                   if(sc){
@@ -1142,19 +1091,23 @@ pf_create_bppm( vrna_fold_compound *vc,
           ppp = prm_l1[i]*expMLbase[1];
           if(sc){
             if(sc->boltzmann_factors)
-              ppp *= sc->boltzmann_factors[l+1][1]; /* which nucleotide is considered unpaired here? l? */
+              ppp *= sc->boltzmann_factors[l+1][1];
 
+/*
             if(sc_exp_f)
               ppp *= sc->exp_f(, sc->data);
+*/
           }
           prm_l[i] = ppp+prmt1;
           ppp = prm_MLb*expMLbase[1];
           if(sc){
             if(sc->boltzmann_factors)
-              ppp *= sc->boltzmann_factors[i][1]; /* which nucleotide is considered unpaired here? l? */
+              ppp *= sc->boltzmann_factors[i][1];
 
+/*
             if(sc->exp_f)
               ppp *= sc->exp_f(, sc->data);
+*/
           }
           prm_MLb = ppp + prml[i];
           /* same as:    prm_MLb = 0;
