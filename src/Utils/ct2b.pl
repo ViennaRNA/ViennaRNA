@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # -*-Perl-*-
 # Last changed Time-stamp: <1999-09-29 13:24:23 ivo>
 # produce dot bracket notation of an RNA secondary structure from

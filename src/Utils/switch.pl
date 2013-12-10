@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2011-05-27 17:10:13 stef>
 # tool for the design of bistable RNA molecules

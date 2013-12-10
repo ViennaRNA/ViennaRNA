@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-CPerl-*-
 # Last changed Time-stamp: <2012-11-19 17:22:03 ivo>
 # $Id: relplot.pl,v 1.10 2008/10/09 07:11:21 ivo Exp $
