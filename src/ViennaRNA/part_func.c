@@ -954,9 +954,6 @@ pf_create_bppm( vrna_fold_compound *vc,
                       tmp2 *=   sc->exp_en_basepair[ij]
                               * sc->exp_en_basepair[kl];
 
-                    if(sc->exp_f)
-                      tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
-
                     if(sc->exp_en_stack){
                       if((i+1 == k) && (j-1 == l)){
                         tmp2 *=   sc->exp_en_stack[i]
@@ -965,6 +962,9 @@ pf_create_bppm( vrna_fold_compound *vc,
                                 * sc->exp_en_stack[j];
                       }
                     }
+
+                    if(sc->exp_f)
+                      tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
                   }
 
                   probs[kl] += tmp2;
@@ -1051,6 +1051,9 @@ pf_create_bppm( vrna_fold_compound *vc,
               
               if(sc){
                 /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+                if(sc->exp_en_basepair)
+                  prmt1 *= sc->exp_en_basepair[ii - (l+1)];
+
 /*
                 if(sc->exp_f)
                   prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
@@ -1075,6 +1078,9 @@ pf_create_bppm( vrna_fold_compound *vc,
                 */
                 ppp = probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
                 if(sc){
+                  if(sc->exp_en_basepair)
+                    ppp *= sc->exp_en_basepair[ij];
+
 /*
                   if(sc->exp_f)
                     ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
@@ -1084,11 +1090,14 @@ pf_create_bppm( vrna_fold_compound *vc,
               }
             }
           }
+          prmt *= expMLclosing;
 
           tt = ptype[kl];
-          prmt *= expMLclosing;
+
           prml[ i] = prmt;
-          ppp = prm_l1[i]*expMLbase[1];
+
+          /* l+1 is unpaired */
+          ppp = prm_l1[i] * expMLbase[1];
           if(sc){
             if(sc->boltzmann_factors)
               ppp *= sc->boltzmann_factors[l+1][1];
@@ -1099,6 +1108,8 @@ pf_create_bppm( vrna_fold_compound *vc,
 */
           }
           prm_l[i] = ppp+prmt1;
+
+          /* i is unpaired */
           ppp = prm_MLb*expMLbase[1];
           if(sc){
             if(sc->boltzmann_factors)
@@ -1160,14 +1171,30 @@ pf_create_bppm( vrna_fold_compound *vc,
         ij = my_iindx[i]-j;
 
         if(with_gquad){
-          if (qb[ij] > 0.)
-            probs[ij] *= qb[ij];
+          if (qb[ij] > 0.){
+            tmp2 = qb[ij];
+
+            if(sc){
+              if(sc->exp_en_basepair)
+                tmp2 *= sc->exp_en_basepair[ij];
+            }
+
+            probs[ij] *= tmp2;
+          }
+
           if (G[ij] > 0.){
             probs[ij] += q1k[i-1] * G[ij] * qln[j+1]/q1k[n];
           }
         } else {
-          if (qb[ij] > 0.)
-            probs[ij] *= qb[ij];
+          if (qb[ij] > 0.){
+            tmp2 = qb[ij];
+
+            if(sc){
+              if(sc->exp_en_basepair)
+                tmp2 *= sc->exp_en_basepair[ij];
+            }
+
+            probs[ij] *= tmp2;
         }
       }
 

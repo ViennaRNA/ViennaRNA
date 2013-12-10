@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2008-08-26 16:04:00 ivo>
 # produce Pauline Hogeweg's mountain representation *_dp.ps files
