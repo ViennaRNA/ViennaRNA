@@ -6,6 +6,8 @@
  *  \brief Various utility- and helper-functions used throughout the Vienna RNA package
  */
 
+#include <stdio.h>
+
 #include <ViennaRNA/data_structures.h>
 
 /**
