@@ -214,6 +214,7 @@ apply_DB_constraint(const char *constraint,
       case '|':   if(options & VRNA_CONSTRAINT_PIPE){
                     hc_must_pair(j, c_option, hc, index, idx_type);
                   }
+                  break;
 
       /* weak enforced pair 'open' */
       case '(':   if(options & VRNA_CONSTRAINT_RND_BRACK){
