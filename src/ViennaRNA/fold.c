@@ -338,6 +338,7 @@ fill_arrays(vrna_fold_compound *vc){
   my_fM1            = matrices->fM1;
   my_ggg            = matrices->ggg;
 
+  if (length <= TURN) return 0;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -363,8 +364,6 @@ fill_arrays(vrna_fold_compound *vc){
     }
 
   /* start recursion */
-
-  if (length <= TURN) return 0;
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
