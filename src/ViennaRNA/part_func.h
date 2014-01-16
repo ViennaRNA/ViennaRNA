@@ -64,7 +64,7 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  *  denote base pairs, all other characters are ignored. Any pairs
  *  conflicting with the constraint will be forbidden. This is usually sufficient
  *  to ensure the constraints are honored.
- *  If tha parameter calculate_bppm is set to 0 base pairing probabilities will not
+ *  If the parameter calculate_bppm is set to 0 base pairing probabilities will not
  *  be computed (saving CPU time), otherwise after calculations took place #pr will
  *  contain the probability that bases \a i and \a j pair.
  * 
