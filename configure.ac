@@ -21,9 +21,6 @@ AC_CONFIG_HEADERS([config.h])
 dnl configure options
 AM_WITH_DMALLOC
 
-dnl unit testing support
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.4], [],[AC_MSG_ERROR([check is missing])])
-
 AC_ARG_VAR(PERLPREFIX, [Prefix for installation of the Perl module. 
 By default the perl module is installed wherever Perl thinks it belongs, ignoring the $prefix used by configure])
 

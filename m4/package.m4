@@ -295,6 +295,11 @@ AC_RNA_ADD_PACKAGE( [doc],
                       with_doc_pdf=no
                       with_doc_html=no],
                     [with_doc=yes])
+AC_RNA_ADD_PACKAGE( [check],
+                    [Unit tests],
+                    [no],
+                    [with_check=yes],
+                    [with_check=no])
 
 ## begin with initialization according to configure-time specific options
 
@@ -332,12 +337,14 @@ AC_RNA_PACKAGE_IF_ENABLED([perl],[
 ])
 
 # check prerequisites for Python interface
+AC_RNA_PACKAGE_IF_ENABLED([python],[
 AC_PATH_PROG(PythonCmd, python)
 ifelse([$PythonCmd], [], [
   AC_MSG_WARN([No suitable Python found -- will not build Python extension])
   AC_MSG_WARN([You may set the PythonCmd environment variable to point to
                 a suitable python binary])
   with_python="no"
+  enabled_but_failed_python="(No python executable found)"
 ],[
   version_test=`$PythonCmd interfaces/Python/version_test.py`
   if test "x$version_test" = "xok"; then :
@@ -346,7 +353,9 @@ ifelse([$PythonCmd], [], [
     AC_MSG_WARN([You may set the PythonCmd environment variable to point to
                 a suitable python binary])
     with_python="no"
+    enabled_but_failed_python="(Python executable is of wrong version)"
   fi
+])
 ])
 
 # prepare all files for python interface
@@ -377,10 +386,26 @@ AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
 ])
 
+# check prerequisties for unit testing support
+AC_RNA_PACKAGE_IF_ENABLED([check],[
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.4], [],[
+  AC_MSG_WARN([check not found -- will not build Unit tests])
+  with_check="no"
+  enabled_but_failed_check="(check framework not found)"
+])
+])
+
+AC_RNA_PACKAGE_IF_ENABLED([check],[
+  AC_DEFINE([WITH_CHECK], [1], [Include Unit tests])
+  AC_SUBST([CHECK_DIR], [tests])
+  AC_CONFIG_FILES([tests/Makefile])
+])
+
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
+AM_CONDITIONAL(WITH_CHECK, test "$with_check" != "yes")
 
 # check if we need to include -lgomp into the ldflags of our pkg-config file
 if test "$enable_openmp" != no; then
@@ -395,8 +420,6 @@ AC_RNA_DOCUMENTATION_INIT([RNAlib])
 AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
-
-AC_CONFIG_FILES([tests/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
@@ -422,9 +445,9 @@ AC_MSG_NOTICE(
 Configure successful with the following options:
 
 RNAlib Interfaces:
-  Perl Interface:       ${with_perl:-yes}
-  Python Interface:     ${with_python:-yes}
-  Ruby Interface:       ${with_ruby:-yes}
+  Perl Interface:       ${with_perl:-yes}      $enabled_but_failed_perl
+  Python Interface:     ${with_python:-yes}      $enabled_but_failed_python
+  Ruby Interface:       ${with_ruby:-yes}      $enabled_but_failed_ruby
 
 Extra Programs:
   Analyse{Dists,Seqs}:  ${with_cluster:-no}
@@ -436,6 +459,10 @@ Other Options:
   Documentation:        ${with_doc:-no}
     (HTML):             ${with_doc_html:-no}
     (PDF):              ${with_doc_pdf:-no}
+
+Unit Tests:
+  check:                ${with_check:-no}      $enabled_but_failed_check
+
 -
 Files will be installed in the following directories:
 

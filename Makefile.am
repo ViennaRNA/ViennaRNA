@@ -1,4 +1,4 @@
-SUBDIRS = src man misc doc interfaces @subdirs@ tests
+SUBDIRS = src man misc doc interfaces @subdirs@ @CHECK_DIR@
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc

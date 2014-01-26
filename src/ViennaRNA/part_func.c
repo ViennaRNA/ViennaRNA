@@ -1195,6 +1195,7 @@ pf_create_bppm( vrna_fold_compound *vc,
             }
 
             probs[ij] *= tmp2;
+          }
         }
       }
 
