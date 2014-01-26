@@ -500,6 +500,7 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
         return (P->exptri[(ts-P->Triloops)/6]);
       if (type>2)
         return q * P->expTermAU;
+      return q;
     }
   }
   /* no mismatches for tri-loops */
