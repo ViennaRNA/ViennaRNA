@@ -117,6 +117,7 @@ typedef struct{
   int     logML;        /**<  \brief  Use logarithmic scaling for multi loops */
   int     circ;         /**<  \brief  Assume molecule to be circular */
   int     gquad;        /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
 } model_detailsT;
 
 /**

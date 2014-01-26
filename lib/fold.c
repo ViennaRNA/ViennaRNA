@@ -118,7 +118,7 @@ PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
 PRIVATE int   energy_of_extLoop_pt(int i, short *pair_table);
 PRIVATE int   energy_of_ml_pt(int i, short *pt);
 PRIVATE int   ML_Energy(int i, int is_extloop);
-PRIVATE void  make_ptypes(const short *S, const char *structure);
+PRIVATE void  make_ptypes(const short *S, const char *structure, paramT *P);
 PRIVATE void  backtrack(const char *sequence, int s);
 PRIVATE int   fill_arrays(const char *sequence);
 PRIVATE void  fill_arrays_circ(const char *string, int *bt);
@@ -339,7 +339,7 @@ PUBLIC float fold_par(const char *string,
     base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
   }
 
-  make_ptypes(S, structure);
+  make_ptypes(S, structure, P);
 
   energy = fill_arrays(string);
 
@@ -2313,7 +2313,7 @@ PRIVATE int cut_in_loop(int i) {
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void make_ptypes(const short *S, const char *structure) {
+PRIVATE void make_ptypes(const short *S, const char *structure, paramT *P) {
   int n,i,j,k,l;
 
   n=S[0];
@@ -2333,8 +2333,16 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (struct_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL)){
     constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
+    if(P->model_details.canonicalBPonly)
+      for(i=1;i<n;i++)
+        for(j=i+1;j<=n;j++)
+          if(ptype[indx[j]+i] == 7){
+            warn_user("removing non-canonical base pair from constraint");
+            ptype[indx[j]+i] = 0;
+          }
+  }
 }
 
 PUBLIC void assign_plist_from_db(plist **pl, const char *struc, float pr){

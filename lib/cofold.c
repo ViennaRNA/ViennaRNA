@@ -1352,8 +1352,16 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
       }
     }
 
-  if (struct_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL)){
     constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
+    if(P->model_details.canonicalBPonly)
+      for(i=1;i<n;i++)
+        for(j=i+1;j<=n;j++)
+          if(ptype[indx[j]+i] == 7){
+            warn_user("removing non-canonical base pair from constraint");
+            ptype[indx[j]+i] = 0;
+          }
+  }
 }
 
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {

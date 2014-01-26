@@ -777,6 +777,13 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
                   break;
       }
     }
+    if(pf_params->model_details.canonicalBPonly)
+      for(i=1;i<n;i++)
+        for(j=i+1;j<=n;j++)
+          if(ptype[my_iindx[i]+j] == 7){
+            warn_user("removing non-canonical base pair from constraint");
+            ptype[my_iindx[i]+j] = 0;
+          }
   }
   if (mirnatog==1) {   /*microRNA toggle: no intramolec. bp in 2. molec*/
     for (j=cut_point; j<n; j++) {
