@@ -267,9 +267,9 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
  /* printf("mirnatog=%d\n",mirnatog); */
 
   if(S) free(S);
-  S   = encode_sequence(sequence, 0);
+  S   = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
   if(S1) free(S1);
-  S1  = encode_sequence(sequence, 1);
+  S1  = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
 
   make_ptypes(S, structure);
 
