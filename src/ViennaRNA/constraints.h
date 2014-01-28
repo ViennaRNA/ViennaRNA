@@ -129,7 +129,7 @@
 #define VRNA_CONSTRAINT_IINDX             1024U
 
 /**
- *  \brief  Soft constraints flag, apply constraints for NFE calculations
+ *  \brief  Soft constraints flag, apply constraints for MFE calculations
  *  
  *  \ingroup  soft_constraints
  *
