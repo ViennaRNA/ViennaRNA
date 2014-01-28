@@ -338,7 +338,6 @@ fill_arrays(vrna_fold_compound *vc){
   my_fM1            = matrices->fM1;
   my_ggg            = matrices->ggg;
 
-  if (length <= TURN) return 0;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -364,6 +363,18 @@ fill_arrays(vrna_fold_compound *vc){
     }
 
   /* start recursion */
+
+  if (length <= TURN){
+    /* clean up memory */
+    free(cc);
+    free(cc1);
+    free(Fmi);
+    free(DMLi);
+    free(DMLi1);
+    free(DMLi2);
+    /* return free energy of unfolded chain */
+    return 0;
+  }
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
