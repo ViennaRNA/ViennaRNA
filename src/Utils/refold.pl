@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2006-08-15 22:04:27 ivo>
 # after predicting a conensus structure using RNAalifold,

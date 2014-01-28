@@ -460,6 +460,16 @@ fill_arrays(vrna_fold_compound *vc){
 
 #include "circfold.inc"
 
+
+PUBLIC plist *
+vrna_backtrack_from_intervals(bondT *bp_stack,
+                              sect bt_stack[],
+                              int s,
+                              vrna_fold_compound *vc){
+
+  return backtrack(bp_stack, bt_stack, s, vc);
+} 
+
 /**
 *** trace back through the "c", "f5" and "fML" arrays to get the
 *** base pairing list. No search for equivalent structures is done.

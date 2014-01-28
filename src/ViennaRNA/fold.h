@@ -202,6 +202,11 @@ char  *backtrack_fold_from_pair(char *sequence,
                                 int i,
                                 int j);
 
+plist *vrna_backtrack_from_intervals(bondT *bp_stack,
+                              sect bt_stack[],
+                              int s,
+                              vrna_fold_compound *vc);
+
 /**
  *
  *  \ingroup mfe_fold

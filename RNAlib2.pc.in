@@ -9,4 +9,4 @@ Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lRNA
 Libs.private: -lm
-Cflags: -I${includedir}/ViennaRNA
+Cflags: -I${includedir}
