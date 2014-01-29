@@ -1427,6 +1427,9 @@ vrna_pbacktrack5( int length,
       q_temp = qln[i+1]*scale[1];
 
       if(sc){
+        if (sc->boltzmann_factors)
+          q_temp *= sc->boltzmann_factors[i][1];
+
         if(sc->exp_f)
           q_temp *= sc->exp_f(i, length, i+1, n, VRNA_DECOMP_EXT_UP_5, sc->data);
       }
@@ -1635,6 +1638,9 @@ backtrack_qm( int i,
         q_temp = expMLbase[k-i] * qm1[jindx[j]+k];
 
         if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[i][k-i];
+
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
         }
@@ -1661,6 +1667,9 @@ backtrack_qm( int i,
     q_temp = expMLbase[k-i];
 
     if(sc){
+      if(sc->boltzmann_factors)
+        q_temp *= sc->boltzmann_factors[i][k-i];
+
       if(sc->exp_f)
         q_temp *= sc->exp_f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
     }
@@ -1720,6 +1729,9 @@ backtrack_qm1(int i,
                 * expMLbase[j-l];
 
       if(sc){
+        if(sc->boltzmann_factors)
+          q_temp *= sc->boltzmann_factors[l+1][j-l];
+
         if(sc->exp_f)
           q_temp *= sc->exp_f(i, j, l, n, VRNA_DECOMP_ML_UP_3, sc->data);
       }
@@ -1810,6 +1822,9 @@ backtrack(int i,
       q_temp = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
       if(sc){
+        if(sc->boltzmann_factors)
+          q_temp *= sc->boltzmann_factors[i+1][u];
+
         if(sc->exp_f)
           q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
       }
@@ -1822,16 +1837,19 @@ backtrack(int i,
     for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;
       for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-        int type_2;
-        type_2 = ptype[my_iindx[k]-l];
+        int type_2 = ptype[my_iindx[k]-l];
         if (type_2) {
+          int u2 = j-l-1;
           type_2 = rtype[type_2];
           /* add *scale[u1+u2+2] */
           q_temp = qb[my_iindx[k]-l]
-                   * scale[u1+j-l+1]
-                   * exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+                   * scale[u1+u2+2]
+                   * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
           if(sc){
+            if(sc->boltzmann_factors)
+              q_temp *=   sc->boltzmann_factors[i+1][u1]
+                        * sc->boltzmann_factors[l+1][u2];
 
             if(sc->exp_en_stack)
               if((i + 1 == k) && (j - 1 == l))
