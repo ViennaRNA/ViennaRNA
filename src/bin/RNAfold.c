@@ -310,6 +310,7 @@ int main(int argc, char *argv[]){
       hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, constraint_options);
       vc->hc = my_hc;
     }
+    
 
     min_en = vrna_fold(vc, structure);
     
@@ -355,6 +356,24 @@ int main(int argc, char *argv[]){
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
       /* */
 
+#if 0 /* test for correctness of soft constraints in base pair prob computation */
+      vc->exp_params = pf_parameters;
+      double *sc_up = (double *)space(sizeof(double) * (length + 1));
+      double **sc_bp = (double **)space(sizeof(double *) * (length + 1));
+      int j;
+      for(i=1;i<=length;i++){
+        sc_up[i] = -4.;
+        sc_bp[i] = (double *)space(sizeof(double) * (length + 1));
+        for(j=i+1; j <= length;j++)
+          sc_bp[i][j] = -8.;
+      }
+      vc->iindx = get_iindx(length);
+
+      add_soft_constraints_up_pf(vc, sc_up, VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
+      add_soft_constraints_bp_pf(vc, (const double **)sc_bp, 0);
+      vc->exp_params = NULL;
+#endif
+
       if(with_shapes){
         float p1, p2;
         char    method;
@@ -382,8 +401,12 @@ int main(int argc, char *argv[]){
         vc->sc = NULL;
       } else {
 
+#if 0 /* test for correctness of soft constraints in base pair prob computation */
+        energy = pf_fold_par_tmp(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular, vc->sc);
+        vc->sc = NULL;
+#else
         energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
-
+#endif
       }
 
       if(lucky){
