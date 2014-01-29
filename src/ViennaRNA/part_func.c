@@ -1363,12 +1363,12 @@ PUBLIC char *
 vrna_pbacktrack5( int length,
                   vrna_fold_compound *vc){
 
-  double r, qt, q_temp;
-  int i,j,n, k, start;
-  char *sequence, *pstruc;
-  int *my_iindx;
+  double            r, qt, q_temp, qkl;
+  int               i,j,ij, n, k, start, type;
+  char              *sequence, *pstruc;
+  int               *my_iindx, hc_decompose;
   FLT_OR_DBL        *q, *qb, *scale;
-  char              *ptype;
+  char              *ptype, *hard_constraints;
   short             *S, *S1;
   pf_matricesT      *matrices;
   hard_constraintT  *hc;
@@ -1392,8 +1392,10 @@ vrna_pbacktrack5( int length,
   qb        = matrices->qb;
   scale     = matrices->scale;
 
-  FLT_OR_DBL *q1k    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-  FLT_OR_DBL *qln    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  hard_constraints  = hc->matrix;
+
+  FLT_OR_DBL *q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+  FLT_OR_DBL *qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
   if(length > n)
     nrerror("part_func.c@pbacktrack5: 3'-end exceeds sequence length");
@@ -1426,7 +1428,7 @@ vrna_pbacktrack5( int length,
       q_temp = qln[i+1]*scale[1];
 
       if(sc){
-        if (sc->boltzmann_factors)
+        if (sc->boltzmann_factors)  
           q_temp *= sc->boltzmann_factors[i][1];
 
         if(sc->exp_f)
@@ -1439,13 +1441,11 @@ vrna_pbacktrack5( int length,
     /* now find the pairing partner j */
     r = urn() * (qln[i] - q_temp);
     for (qt=0, j=i+1; j<=length; j++) {
-      int type;
-      type = ptype[my_iindx[i]-j];
-      char  *hard_constraints = hc->matrix;
-      int   hc_decompose      = hard_constraints[ij];
+      ij            = my_iindx[i]-j;
+      type          = ptype[ij];
+      hc_decompose  = hard_constraints[ij];
       if (hc_decompose & IN_EXT_LOOP) {
-        double qkl;
-        qkl = qb[my_iindx[i]-j] * exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+        qkl = qb[ij] * exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
 
         if (j<length){
           qkl *= qln[j+1];
