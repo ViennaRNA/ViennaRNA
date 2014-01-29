@@ -791,7 +791,7 @@ add_soft_constraints( vrna_fold_compound *vc,
       memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
 
       if(options & VRNA_CONSTRAINT_SOFT_UP)
-        add_soft_constraints_up(vc, NULL, options);
+        add_soft_constraints_up(vc, constraints, options);
 
     }
   }
@@ -1076,7 +1076,7 @@ add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
       idx = vc->jindx;
       for(i = 1; i < n; i++)
         for(j=i+1; j<=n; j++)
-          sc->en_basepair[idx[j]+i] = constraints[i][j];
+          sc->en_basepair[idx[j]+i] = (int)(constraints[i][j] * 100.);
     }
   }
 }
@@ -1092,30 +1092,30 @@ add_soft_constraints_bp_pf( vrna_fold_compound *vc,
 
   if(vc && constraints){
     n   = vc->length;
-    sc  = vc->sc;
 
-    if(!sc)
+    if(!vc->sc)
       add_soft_constraints(vc, NULL, options | VRNA_CONSTRAINT_SOFT_PF);
-    else{
-      pf_paramT *exp_params = vc->exp_params;
-      double    GT          = 0.;
-      double    temperature = exp_params->temperature;
-      double    BetaScale   = exp_params->alpha;
-      double    kT          = exp_params->kT;
-      double    pf_scale    = exp_params->pf_scale;
-      double    TT          = (temperature+K0)/(Tmeasure);
 
-      if(sc->exp_en_basepair)
-        free(sc->exp_en_basepair);
-      sc->exp_en_basepair     = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+    sc = vc->sc;
 
-      idx = vc->iindx;
-      for(i = 1; i < n; i++)
-        for(j=i+1; j<=n; j++){
-          GT = constraints[i][j] * TT;
-          sc->exp_en_basepair[idx[i]-j] = exp( -GT * 10./ kT);
-        }
-    }
+    pf_paramT *exp_params = vc->exp_params;
+    double    GT          = 0.;
+    double    temperature = exp_params->temperature;
+    double    BetaScale   = exp_params->alpha;
+    double    kT          = exp_params->kT;
+    double    pf_scale    = exp_params->pf_scale;
+    double    TT          = (temperature+K0)/(Tmeasure);
+
+    if(sc->exp_en_basepair)
+      free(sc->exp_en_basepair);
+    sc->exp_en_basepair     = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+
+    idx = vc->iindx;
+    for(i = 1; i < n; i++)
+      for(j=i+1; j<=n; j++){
+        GT = constraints[i][j] * TT * 1000.;
+        sc->exp_en_basepair[idx[i]-j] = exp( -GT / kT);
+      }
   }
 }
 
@@ -1224,8 +1224,8 @@ add_soft_constraints_up_pf( vrna_fold_compound *vc,
 
       for(i = 1; i <= n; i++){
         for(j = 1; j <= (n - i + 1); j++){
-          GT  = (double)((int)(sc->constraints[i+j-1]*100)) * TT;
-          sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp( -GT*10./kT);
+          GT  = (double)((int)(sc->constraints[i+j-1])) * TT * 1000.;
+          sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp( -GT / kT);
         }
       }
     }

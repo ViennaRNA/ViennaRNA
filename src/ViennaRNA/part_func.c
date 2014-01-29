@@ -329,7 +329,11 @@ pf_linear(vrna_fold_compound *vc){
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = my_iindx[i]-j;
-      q[ij]=1.0*scale[d+1]; /* do we need to apply hc here as well? */
+      q[ij]=1.0*scale[d+1]; /* do we need to apply hc here as well? YES we should */
+      if(sc){
+        if(sc->boltzmann_factors)
+          q[ij] *= sc->boltzmann_factors[i][d+1];
+      }
       qb[ij]=qm[ij]=0.0;
     }
  
@@ -353,6 +357,7 @@ pf_linear(vrna_fold_compound *vc){
           if(hc_up_hp[i+1] >= u){
             qbt1 =  exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)
                     * scale[u+2];
+            
             if(sc){
               if(sc->boltzmann_factors)
                 qbt1 *= sc->boltzmann_factors[i+1][u];
@@ -389,8 +394,7 @@ pf_linear(vrna_fold_compound *vc){
                               * sc->boltzmann_factors[l+1][u2];
 
                   if(sc->exp_en_basepair)
-                    q_temp *= sc->exp_en_basepair[ij]
-                              * sc->exp_en_basepair[kl];
+                    q_temp *= sc->exp_en_basepair[ij];
 
                   if(sc->exp_f)
                     q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -539,6 +543,7 @@ pf_linear(vrna_fold_compound *vc){
       /*construction of partition function for segment i,j */
       temp = qq[i];
 
+      /* the whole stretch [i,j] is unpaired */
       if(hc_up_ext[i] >= (j-i+1)){
         q_temp = 1.0 * scale[j-i+1];
 
@@ -552,6 +557,7 @@ pf_linear(vrna_fold_compound *vc){
 
         temp += q_temp;
       }
+
       kl = my_iindx[i] - i;
       for (k=i; k<j; k++, kl--){
         q_temp = q[kl] * qq[k+1];
@@ -951,8 +957,7 @@ pf_create_bppm( vrna_fold_compound *vc,
                               * sc->boltzmann_factors[l+1][u2];
 
                     if(sc->exp_en_basepair)
-                      tmp2 *=   sc->exp_en_basepair[ij]
-                              * sc->exp_en_basepair[kl];
+                      tmp2 *=   sc->exp_en_basepair[ij];
 
                     if(sc->exp_en_stack){
                       if((i+1 == k) && (j-1 == l)){
@@ -1080,7 +1085,6 @@ pf_create_bppm( vrna_fold_compound *vc,
                 if(sc){
                   if(sc->exp_en_basepair)
                     ppp *= sc->exp_en_basepair[ij];
-
 /*
                   if(sc->exp_f)
                     ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
@@ -1172,14 +1176,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 
         if(with_gquad){
           if (qb[ij] > 0.){
-            tmp2 = qb[ij];
-
-            if(sc){
-              if(sc->exp_en_basepair)
-                tmp2 *= sc->exp_en_basepair[ij];
-            }
-
-            probs[ij] *= tmp2;
+            probs[ij] *= qb[ij];
           }
 
           if (G[ij] > 0.){
@@ -1187,14 +1184,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           }
         } else {
           if (qb[ij] > 0.){
-            tmp2 = qb[ij];
-
-            if(sc){
-              if(sc->exp_en_basepair)
-                tmp2 *= sc->exp_en_basepair[ij];
-            }
-
-            probs[ij] *= tmp2;
+            probs[ij] *= qb[ij];
           }
         }
       }
