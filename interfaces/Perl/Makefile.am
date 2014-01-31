@@ -9,7 +9,7 @@ SOURCES = Makefile.PL RNA.pod
 EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi Makefile.PL
 
 Makefile.perl: Makefile.PL Makefile
-	@PerlCmd@ Makefile.PL PREFIX=$(prefix) LDDLFLAGS="${LDFLAGS} -shared"
+	@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= LDDLFLAGS="${LDFLAGS} -shared"
 
 # the perl command repairs some errors in the SWIG CVS version
 RNA_wrap.c: ../RNA.i ../tmaps.i
