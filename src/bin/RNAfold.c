@@ -37,6 +37,24 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 
 /*--------------------------------------------------------------------------*/
 
+static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_method, const char *shape_file, int verbose, unsigned int constraint_type)
+{
+  float p1, p2;
+  char method;
+
+  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(method == 'M')
+  {
+    if(verbose)
+      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
+    add_soft_constraints_mathews(vc, shape_file, p1, p2, constraint_type);
+  }
+}
+
 int main(int argc, char *argv[]){
   struct        RNAfold_args_info args_info;
   char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
@@ -273,26 +291,8 @@ int main(int argc, char *argv[]){
 #endif
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
-    if(with_shapes){
-      float p1, p2;
-      char    method;
-      p1      = 1.8;
-      p2      = -0.6;
-      method  = 'M';
-
-      if(shape_method){
-        if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
-          warn_user("Method for SHAPE reactivity data conversion not recognized!");
-        }
-      }
-
-      switch(method){
-        case  'M':  
-        default:    if(verbose)
-                      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                    add_soft_constraints_mathews(vc, shape_file, p1, p2, VRNA_CONSTRAINT_SOFT_MFE);
-      }
-    }
+    if(with_shapes)
+      add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
     if(fold_constrained){
       unsigned int constraint_options = 0;
@@ -371,26 +371,7 @@ int main(int argc, char *argv[]){
 #endif
 
       if(with_shapes){
-        float p1, p2;
-        char    method;
-        p1      = 1.8;
-        p2      = -0.6;
-        method  = 'M';
-
-        if(shape_method){
-          if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
-            warn_user("Method for SHAPE reactivity data conversion not recognized!");
-          }
-        }
-
-        switch(method){
-          case  'M':  
-          default:    if(verbose)
-                        fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                      vc->exp_params = pf_parameters;
-                      add_soft_constraints_mathews(vc, shape_file, p1, p2, VRNA_CONSTRAINT_SOFT_PF);
-        }
-
+        add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
         energy = pf_fold_par_tmp(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular, vc->sc);
 
         vc->exp_params = NULL;
