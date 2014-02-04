@@ -13,6 +13,7 @@
 *** of single linear or circular RNA molecules.
 **/
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -41,18 +42,65 @@ static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_meth
 {
   float p1, p2;
   char method;
+  char *sequence;
+  double *values;
+  int length = vc->length;
 
   if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
     warn_user("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
-  if(method == 'M')
-  {
-    if(verbose)
-      fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-    add_soft_constraints_mathews(vc, shape_file, p1, p2, constraint_type);
+  if(verbose){
+    fprintf(stderr, "Using SHAPE method '%c'", method);
+    if(method != 'W'){
+      if(method == 'C')
+        fprintf(stderr, " with parameter p1=%f", p1);
+      else
+        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+    }
+    fputc('\n', stderr);
   }
+
+  if(method == 'M'){
+    add_soft_constraints_mathews(vc, shape_file, p1, p2, constraint_type);
+    return;
+  }
+
+  sequence = space(sizeof(char) * (length + 1));
+  values = space(sizeof(double) * (length + 1));
+  parse_soft_constraints_file(shape_file, length, 0, sequence, values);
+
+  if(method == 'C'){
+    double *sc_up = space(sizeof(double) * (length + 1));
+    double **sc_bp = space(sizeof(double *) * (length + 1));
+    int i;
+
+    for(i = 1; i <= length; ++i){
+      int j;
+
+      assert(values[i] >= 0 && values[i] <= 1);
+
+      sc_up[i] = p1 * fabs(values[i] - 1);
+      sc_bp[i] = space(sizeof(double) * (length + 1));
+      for(j = i + TURN + 1; j <= length; ++j)
+        sc_bp[i][j] = p1 * (values[i] + values[j]);
+    }
+
+    add_soft_constraints_up(vc, sc_up, constraint_type);
+    add_soft_constraints_bp(vc, (const double**)sc_bp, constraint_type);
+
+    for(i = 1; i <= length; ++i)
+      free(sc_bp[i]);
+    free(sc_bp);
+    free(sc_up);
+  } else {
+    assert(method == 'W');
+    add_soft_constraints_up(vc, values, constraint_type);
+  }
+
+  free(values);
+  free(sequence);
 }
 
 int main(int argc, char *argv[]){
