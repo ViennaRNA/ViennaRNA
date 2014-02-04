@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <unistd.h>
 
 static int deltaCompare(double a, double b)
 {
