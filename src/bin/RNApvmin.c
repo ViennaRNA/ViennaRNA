@@ -10,7 +10,7 @@
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
-#include "ViennaRNA/pertubation_fold.h"
+#include "ViennaRNA/perturbation_fold.h"
 #include "RNApvmin_cmdl.h"
 
 static void print_progress(int iteration, double score)
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]){
     pf_parameters = vrna_get_boltzmann_factors(md);
     vc = get_fold_compound_pf_constrained(rec_sequence, NULL, NULL, pf_parameters);
 
-    vrna_find_pertubation_vector(vc, prob_unpaired, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, prob_unpaired, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
     free(pf_parameters);
     destroy_fold_compound(vc);
 
