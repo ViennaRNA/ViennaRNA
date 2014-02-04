@@ -14,7 +14,7 @@ args "--file-name=RNAsnoop_cmdl --include-getopt --default-optional --func-name=
 description "reads a target RNA sequence and a H/ACA snoRNA sequence
 from a target and query file, respectively and computes optimal
 and suboptimal secondary structures for their hybridization. The
-calculation can be done roughly done in O(nm), where is n the length
+calculation can be done roughly in O(nm), where is n the length
 of the target sequence and m is the length of the snoRNA stem, as it
 is specially tailored to the special case of H/ACA snoRNA. For general
 purpose target predictions, please have a look at RNAduplex, RNAup,
