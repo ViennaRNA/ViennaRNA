@@ -81,8 +81,7 @@ double vrna_evaluate_pertubation_vector_score(vrna_fold_compound *vc, const doub
 
   calculate_probability_unpaired(vc, p_prob_unpaired);
 
-  destroy_soft_constraints(vc->sc);
-  vc->sc = NULL;
+  remove_soft_constraints(vc);
 
   for (i = 1; i <= length; ++i)
   {
@@ -138,8 +137,7 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
     vc->hc = NULL;
   }
 
-  destroy_soft_constraints(vc->sc);
-  vc->sc = NULL;
+  remove_soft_constraints(vc);
   vc->hc = hc_backup;
 
   free(hc_string);
@@ -186,8 +184,7 @@ void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *e
     assert(prob_unpaired[i] >= 0 && prob_unpaired[i] <= 1);
   }
 
-  destroy_soft_constraints(vc->sc);
-  vc->sc = NULL;
+  remove_soft_constraints(vc);
 }
 
 static void allocateProbabilityArrays(double **unpaired, double ***conditional_unpaired, int length)
