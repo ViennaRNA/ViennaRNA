@@ -17,6 +17,7 @@ START_TEST(test_fold)
 }
 END_TEST
 
+TCase* constraints_testcase();
 TCase* utils_testcase();
 TCase* loop_energies_testcase();
 
@@ -30,6 +31,7 @@ fold_suite(void)
   tcase_add_test(tc_core, test_fold);
   suite_add_tcase(s, tc_core);
 
+  suite_add_tcase(s, constraints_testcase());
   suite_add_tcase(s, utils_testcase());
   suite_add_tcase(s, loop_energies_testcase());
 

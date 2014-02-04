@@ -754,6 +754,67 @@ destroy_hard_constraints(hard_constraintT *hc){
   }
 }
 
+PUBLIC int
+parse_soft_constraints_file(const char *file_name, int length, double default_value, char *sequence, double *values)
+{
+  FILE *fp;
+  char *line;
+  int i;
+  int count = 0;
+
+  if(!(fp = fopen(file_name, "r"))){
+    warn_user("SHAPE data file could not be opened");
+    return 0;
+  }
+
+  for (i = 0; i < length; ++i)
+  {
+    sequence[i] = 'N';
+    values[i + 1] = default_value;
+  }
+
+  sequence[length] = '\0';
+
+  while((line=get_line(fp))){
+    int r;
+    int position;
+    char nucleotide;
+    double reactivity;
+
+    r = sscanf(line, "%d %c %lf", &position, &nucleotide, &reactivity);
+    if(r > 0){
+      if((position <= 0) || (position > length))
+      {
+        warn_user("Provided SHAPE data outside of sequence scope");
+        fclose(fp);
+        return 0;
+      }
+
+      switch(r){
+        case 1:   nucleotide = 'N';
+                  /* fall through */
+        case 2:   reactivity = default_value;
+                  /* fall through */
+        default:  sequence[position-1] = nucleotide;
+                  values[position] = reactivity;
+                  ++count;
+                  break;
+      }
+    }
+    free(line);
+  }
+
+  fclose(fp);
+
+  if(!count)
+  {
+      warn_user("SHAPE data file is empty");
+      return 0;
+  }
+
+  return 1;
+}
+
 
 PUBLIC void
 add_soft_constraints( vrna_fold_compound *vc,
