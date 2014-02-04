@@ -417,6 +417,24 @@ hard_constraintT  *get_hard_constraints(  const char *sequence,
 void destroy_hard_constraints(hard_constraintT *hc);
 
 
+/**
+  * \brief Parse information from a given soft constraints file
+  *
+  * This function parses the informations from a given file and stores the result
+  * in the preallocated string sequence and the double array values.
+  *
+  * \param file_name     Path to the constraints file
+  * \param length        Length of the sequence (file entries exceeding this limit will cause an error)
+  * \param default_value Value for missing indices
+  * \param sequence      Pointer to an array used for storring the sequence obtained from the constraints file
+  * \param values        Pointer to an array used for storring the values obtained from the constraints file
+  */
+int parse_soft_constraints_file(const char *file_name,
+                                int length,
+                                double default_value,
+                                char *sequence,
+                                double *values);
+
 void add_soft_constraints(  vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options);
