@@ -1,4 +1,4 @@
-#include "pertubation_fold.h"
+#include "perturbation_fold.h"
 
 #include "constraints.h"
 #include "eval.h"
@@ -64,7 +64,7 @@ static soft_constraintT* addSoftConstraint(vrna_fold_compound *vc, const double 
   vc->sc = sc;
 }
 
-double vrna_evaluate_pertubation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared)
+double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared)
 {
   double ret = 0;
   double *p_prob_unpaired;
@@ -208,7 +208,7 @@ static void freeProbabilityArrays(double *unpaired, double **conditional_unpaire
   free(conditional_unpaired);
 }
 
-void vrna_evaluate_pertubation_vector_gradient(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int sample_size, double *gradient)
+void vrna_evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int sample_size, double *gradient)
 {
   double *p_prob_unpaired;
   double **p_conditional_prob_unpaired;
@@ -241,7 +241,7 @@ void vrna_evaluate_pertubation_vector_gradient(vrna_fold_compound *vc, const dou
   freeProbabilityArrays(p_prob_unpaired, p_conditional_prob_unpaired, length);
 }
 
-void vrna_find_pertubation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int sample_size, double *epsilon, progress_callback callback)
+void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int sample_size, double *epsilon, progress_callback callback)
 {
   int iteration_count = 0;
   int length = vc->length;
@@ -250,7 +250,7 @@ void vrna_find_pertubation_vector(vrna_fold_compound *vc, const double *q_prob_u
   double *new_epsilon = space(sizeof(double) * (length + 1));
   double *gradient = space(sizeof(double) * (length + 1));
 
-  double score = vrna_evaluate_pertubation_vector_score(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared);
+  double score = vrna_evaluate_perturbation_vector_score(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared);
 
   if (callback)
     callback(0, score);
@@ -262,7 +262,7 @@ void vrna_find_pertubation_vector(vrna_fold_compound *vc, const double *q_prob_u
 
     ++iteration_count;
 
-    vrna_evaluate_pertubation_vector_gradient(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared, sample_size, gradient);
+    vrna_evaluate_perturbation_vector_gradient(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared, sample_size, gradient);
 
     step_size = 0.5 / calculate_norm(gradient, length);
 
@@ -272,7 +272,7 @@ void vrna_find_pertubation_vector(vrna_fold_compound *vc, const double *q_prob_u
       for (i = 1; i <= length; ++i)
         new_epsilon[i] = epsilon[i] - step_size * gradient[i];
 
-      new_score = vrna_evaluate_pertubation_vector_score(vc, new_epsilon, q_prob_unpaired, sigma_squared, tau_squared);
+      new_score = vrna_evaluate_perturbation_vector_score(vc, new_epsilon, q_prob_unpaired, sigma_squared, tau_squared);
       step_size /= 2;
     } while (new_score > score && step_size >= 1e-15);
 
