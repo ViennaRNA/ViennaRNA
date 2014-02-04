@@ -1086,32 +1086,52 @@ parse_soft_constraints_shape_method(  const char *method_string,
                                       float *param_2){
 
   int r;
-  float p1;
-  float p2;
 
-  if(method_string){
-    switch(method_string[0]){
-      case  'M':  *method = 'M';
-                  if(method_string[1]){
-                    r = sscanf(method_string+1, "m%fb%f", &p1, &p2);
-                    if(r != 2){
-                      r = sscanf(method_string+1, "m%f", &p1);
-                      if(!r){
-                        p1 = 1.8; /* default value for m */
-                        r = sscanf(method_string+1, "b%f", &p2);
-                        if(!r){
-                          p2 = -0.6; /* default value for b*/
-                          warn_user("SHAPE method parameters not recognized! Using default parameters!");
-                        }
-                      }
-                    }
-                    *param_1 = p1;
-                    *param_2 = p2;
-                  }
-                  return 1;
+  char m;
+  const char *params = method_string + 1;
+  const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
+
+  *method = m;
+  *param_1 = 0;
+  *param_2 = 0;
+
+  if (!method_string || !method_string[0])
+    return 0;
+
+  *method = m = method_string[0];
+
+  if (m == 'C')
+  {
+    *method = 'C';
+    *param_1 = 1;
+    if(params && !sscanf(params, "b%f", param_1))
+      warn_user(warning);
+  }
+  else if (m == 'M')
+  {
+    *param_1 = 1.8;
+    *param_2 = -0.6;
+    *method = 'M';
+    if(params){
+      r = sscanf(params, "m%fb%f", param_1, param_2);
+      if(r != 2){
+        r = sscanf(params, "m%f", param_1);
+        if(!r){
+          r = sscanf(params, "b%f", param_2);
+          if(!r){
+            warn_user(warning);
+          }
+        }
+      }
     }
   }
-  return 0; /* failure */
+  else if (m != 'W')
+  {
+    *method = 0;
+    return 0;
+  }
+
+  return 1;
 }
 
 PUBLIC void
