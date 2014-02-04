@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
   char          *shape_file, *shape_method;
   char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char          *ns_bases, *c;
-  int           i, length, l, cl, sym, r, istty, pf, noPS, noconv, fasta;
+  int           i, length, l, cl, sym, istty, pf, noPS, noconv;
   unsigned int  rec_type, read_opt;
   double        energy, min_en, kT, sfact;
   int           doMEA, circular, lucky, with_shapes, verbose;
@@ -65,7 +65,6 @@ int main(int argc, char *argv[]){
   noconv        = 0;
   circular      = 0;
   gquad         = 0;
-  fasta         = 0;
   cl            = l = length = 0;
   dangles       = 2;
   MEAgamma      = 1.;
