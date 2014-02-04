@@ -91,6 +91,9 @@ double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const dou
     ret += epsilon[i] * epsilon[i] / tau_squared;
 
     //add penalty for mismatches between observed and predicted probabilities
+    if (q_prob_unpaired[i] < 0) //ignore positions with missing data
+      continue;
+
     diff = p_prob_unpaired[i] - q_prob_unpaired[i];
     ret += diff * diff / sigma_squared;
   }
@@ -229,6 +232,9 @@ void vrna_evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const do
 
     for (i = 1; i <= length; ++i)
     {
+      if (q_prob_unpaired[i] < 0) //ignore positions with missing data
+        continue;
+
       sum +=  (p_prob_unpaired[i] - q_prob_unpaired[i]) *
               p_prob_unpaired[i] *
               (p_prob_unpaired[mu] - p_conditional_prob_unpaired[i][mu]) /
