@@ -14,7 +14,7 @@ endif
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-    RNAparconv RNAPKplex RNAplex RNAsnoop
+    RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
 LDADD = $(OPENMP_CFLAGS) $(top_srcdir)/src/ViennaRNA/libRNA.a
 
@@ -43,7 +43,8 @@ GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAplex_cmdl.c RNAplex_cmdl.h\
               RNAsnoop_cmdl.c RNAsnoop_cmdl.h\
               RNAdistance_cmdl.c RNAdistance_cmdl.h\
-              RNApdist_cmdl.c RNApdist_cmdl.h
+              RNApdist_cmdl.c RNApdist_cmdl.h \
+              RNApvmin_cmdl.c RNApvmin_cmdl.h
 
 GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
               RNAup.ggo RNALfold.ggo RNALalifold.ggo\
@@ -51,7 +52,7 @@ GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
               RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
               RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
               RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo\
-              RNApdist.ggo
+              RNApdist.ggo RNApvmin.ggo
 
 EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
@@ -219,3 +220,10 @@ RNApdist_cmdl.h  RNApdist_cmdl.c: RNApdist.ggo
 	$(AM_V_GEN)gengetopt -i RNApdist.ggo
 
 RNApdist_SOURCES=RNApdist_cmdl.c RNApdist.c
+
+RNApvmin.c:    RNApvmin_cmdl.h
+
+RNApvmin_cmdl.h  RNApvmin_cmdl.c: RNApvmin.ggo
+	$(AM_V_GEN)gengetopt -i RNApvmin.ggo
+
+RNApvmin_SOURCES=RNApvmin_cmdl.c RNApvmin.c
