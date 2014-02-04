@@ -956,6 +956,7 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
 
   }
 
+  free(sequence);
   free(reactivities);
 
   return 1; /* success */
