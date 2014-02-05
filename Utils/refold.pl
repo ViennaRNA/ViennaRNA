@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2006-08-15 22:04:27 ivo>
 # after predicting a conensus structure using RNAalifold,
@@ -17,16 +17,19 @@ use strict;
 
 my $thresh = 0.9;
 my $help = 0;
+my $TURN = 3;
 
 GetOptions ('-t=f' => \$thresh,
-	    "help"=>\$help,
-	    "h"=>\$help,
-	    );
+            'turn' => \$TURN,
+            "help"=>\$help,
+            "h"=>\$help,
+            );
 
 if ($help){
   print "\  refold.pl [-t threshold] myseqs.aln alidot.ps | RNAfold -C\n";
-  print "or refold.pl myseqs.aln myseqs.alifold | RNAfold -C\n";
-  print " -t ... use only pairs with p>thresh (default: 0.9)\n\n";
+  print "or refold.pl [--turn looplength] myseqs.aln myseqs.alifold | RNAfold -C\n";
+  print " -t ... use only pairs with p>thresh (default: 0.9)\n";
+  print " --turn ... use only pairs closing hairpins with length > looplength (default: 3)\n\n";
   exit(1);
 }
 
@@ -74,6 +77,14 @@ foreach my $a (@$aln) {
 #    print STDERR length($seq), length($cons), "\n";
     $cons =~ s/x//g;
     $seq  =~ s/-//g;
+
+    # remove all hairpins with length < TURN
+    @pt = make_pair_table($cons);
+    for my $p (0..length($seq)-1) {
+      next if $p > $pt[$p];
+      substr($cons,$p,1) = substr($cons,$pt[$p],1) = '.'
+        if $pt[$p] - $p - 1 < $TURN;
+    }
 #    print STDERR length($seq), length($cons), "\n";
     print "$seq\n$cons\n";
 }
@@ -274,7 +285,7 @@ refold.pl - refold using consensus structure as constraint
 =head1 SYNOPSIS
 
   refold.pl [-t thresh] file.aln alidot.ps
-  refold.pl file.aln file.alifold
+  refold.pl [--turn length] file.aln file.alifold
 
 =head1 DESCRIPTION
 
@@ -299,6 +310,11 @@ used.
 
 use only pairs with p>thresh as constraint. Only applicable when
 reading consensus structure from a dot plot.
+
+=item B<--turn> I<length>
+
+use only pairs closing a hairpin with looplength >length. This option
+allows for setting minimal loop length of hairpin loops (default: 3)
 
 =back
 

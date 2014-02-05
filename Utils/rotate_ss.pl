@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2004-08-09 16:50:14 ivo>
 # $Id: rotate_ss.pl,v 1.4 2006/02/28 14:44:14 ivo Exp $

@@ -1361,9 +1361,10 @@ PUBLIC void assign_plist_gquad_from_pr( plist **pl,
     }
   }
   /* mark the end of pl */
-  (*pl)[count].i   = 0;
-  (*pl)[count].j   = 0;
-  (*pl)[count++].p = 0.;
+  (*pl)[count].i    = 0;
+  (*pl)[count].j    = 0;
+  (*pl)[count].type = 0;
+  (*pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
   *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
   free(index);
@@ -1502,9 +1503,10 @@ PUBLIC plist *stackProb(double cutoff){
       p *= exp_E_IntLoop(0,0,ptype[index[i]-j],rtype[ptype[index[i+1]-(j-1)]],
                          0,0,0,0, pf_params)*scale[2];/* add *scale[u1+u2+2] */
       if (p>cutoff) {
-        pl[num].i = i;
-        pl[num].j = j;
-        pl[num++].p = p;
+        pl[num].i     = i;
+        pl[num].j     = j;
+        pl[num].type  = 0;
+        pl[num++].p   = p;
         if (num>=plsize) {
           plsize *= 2;
           pl = xrealloc(pl, plsize*sizeof(plist));
