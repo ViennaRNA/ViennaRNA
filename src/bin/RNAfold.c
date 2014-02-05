@@ -97,7 +97,7 @@ int main(int argc, char *argv[]){
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
-    if((args_info.dangles_given < 0) || (args_info.dangles_given > 3))
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -110,6 +110,8 @@ int main(int argc, char *argv[]){
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
   if(args_info.gquad_given)       md.gquad = gquad = 1;
+  /* enforce canonical base pairs in any case? */
+  if(args_info.canonicalBPonly_given)       md.canonicalBPonly = canonicalBPonly = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
@@ -207,12 +209,11 @@ int main(int argc, char *argv[]){
     else print_tty_input_seq();
   }
 
+  mfe_parameters = get_scaled_parameters(temperature, md);
+
   /* set options we wanna pass to read_record */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
-
-  mfe_parameters = get_scaled_parameters(temperature, md);
-
 
   /*
   #############################################

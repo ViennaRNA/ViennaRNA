@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2011-05-27 17:10:13 stef>
+# Last changed Time-stamp: <2012-12-04 19:24:24 stef>
 # tool for the design of bistable RNA molecules
 
 
@@ -10,7 +10,7 @@
 use RNA;
 use Getopt::Long;
 use strict;
-use vars qw/$opt_debug $opt_v $ParamFile/;
+use vars qw/$opt_debug $opt_v $ParamFile $opt_circ/;
 my $sE;
 my %pair = ("AU", 5, "GC", 1, "CG", 2, "GU", 3, "UG", 4, "UA", 6);
 my %mut = ('A' => 'G', 'G' => 'A', 'U' => 'C', 'C' => 'U');
@@ -27,8 +27,8 @@ my $Temperature2;
 my ($optseq, $optcost, $e);
 my @fibo = (0,1);
 my %cos;
-my $cpnt= -1;
-my $dg = 0;
+my $cpnt= -1; # Cofold
+my $dg = 0;   # deltaG for normal Switches
 
  Getopt::Long::config('no_ignore_case');
 &usage() unless GetOptions("T=f" => \$Temperature1,
@@ -46,6 +46,7 @@ my $dg = 0;
                            "bar=f" => \$bar,
                            "g=f" => \$small,
                            "dG=f" => \$dg,
+                           "circ", # circular RNA switches
                            "v");
 
 $RNA::temperature = $Temperature1;
@@ -58,8 +59,6 @@ my $interactiv = init_ia(0);
 my $ia = 1 if -t STDIN && -t STDOUT && $#ARGV < 0;
  RNA::read_parameter_file($ParamFile) if ($ParamFile);
  RNA::init_rand();
-# don't call update at this stage since no sequence is known yet
-#if ($cpnt != -1) { RNA::update_cofold_params() } else {  RNA::update_fold_params() }
  srand();
 
 for(;;) { # main loop
@@ -128,30 +127,32 @@ sub fibo {
 
 
 sub process_input {
-   $_ = <>;
+    $_ = <>;
    return 0 if !defined $_;
-   chomp;
-   $fist = $_;
+    chomp;
+    $fist = $_;
    return 0 if $fist eq '@';
-   chomp($_ = <>);
-   $sest = $_;
-   $cpnt = index($fist, "&")+1;
- die "ERROR: Different Cut-Points set!\n"
-     if ($cpnt != index($sest, "&")+1);
-   if ($cpnt) {
-       $fist =~ s/&//g;
-       $sest =~ s/&//g;
-       $RNA::cut_point = $cpnt;
-   } else { $cpnt = -1 }
-   die "structures have unequal length"
-       if (length($fist) != length($sest));
-   chomp($_ = <>);
-   $_ .= 'N' x (length($fist)-length); # pad with N
-#   print "$_\n";
-   $cons = uc $_;
-   # all init functions are deprecated since ViennaRNA 2.0 
-   #if ($cpnt != -1) { &RNA::init_co_pf_fold(length($fist)); } else { &RNA::init_pf_fold(length($fist)); }
-   return 1;
+    $cpnt = index($fist, "&")+1;
+    chomp($_ = <>);
+    $sest = $_;
+    die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($sest, "&")+1);
+    die "ERROR: Structures have unequal length" if (length($fist) != length($sest));
+    if ($cpnt) {
+        die "ERROR: Cut-Point and circular?\n" if ($opt_circ);
+        $fist =~ s/&//g;
+        $sest =~ s/&//g;
+        $RNA::cut_point = $cpnt;
+    } else { $cpnt = -1 }
+    # Sequence Constraints (no force bases supported)
+    chomp($_ = <>);
+    $cons = uc $_;
+    if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
+        die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
+        $cons =~ s/&//g;
+    }
+    $cons .= 'N' x (length($fist)-length); # pad with N
+    #print "$cons\n";
+    return 1;
 }
 
 sub init_ia {
@@ -377,46 +378,55 @@ sub cost_function {
    my $seq = shift;
    my $refcost = shift;
    $RNA::temperature = $Temperature1;
-   my $f1;
+   my ($f1, $e1, $e1s);
    if ($cpnt != -1) {
        $f1 = RNA::co_pf_fold($seq, undef);
+       $e1 = RNA::energy_of_struct($seq, $fist);
+       $e1s = RNA::energy_of_struct($seq, $sest);
+   } elsif ($opt_circ) {
+       $f1 = RNA::pf_circ_fold($seq, undef);
+       $e1 = RNA::energy_of_circ_struct($seq, $fist);
+       $e1s = RNA::energy_of_circ_struct($seq, $sest);
    } else {
        $f1 = RNA::pf_fold($seq, undef);
-   }
-   my $e1 = RNA::energy_of_struct($seq, $fist);
-   my $e1s = RNA::energy_of_struct($seq, $sest);
+       $e1 = RNA::energy_of_struct($seq, $fist);
+       $e1s = RNA::energy_of_struct($seq, $sest);
+   } 
    my $cost;
 
    if ($Temperature1 != $Temperature2) {
       $RNA::temperature = $Temperature2;
-      my $f2;
-      if ($cpnt != -1)  {
+      my ($f2, $e2, $e2s);
+      if ($cpnt != -1) {
           $f2 = RNA::co_pf_fold($seq, undef);
+          $e2 = RNA::energy_of_struct($seq, $fist);
+          $e2s = RNA::energy_of_struct($seq, $sest);
+      } elsif ($opt_circ) {
+          $f2 = RNA::pf_circ_fold($seq, undef);
+          $e2 = RNA::energy_of_circ_struct($seq, $fist);
+          $e2s = RNA::energy_of_circ_struct($seq, $sest);
       } else {
           $f2 = RNA::pf_fold($seq, undef);
-      }
-      my $e2 = RNA::energy_of_struct($seq, $sest);
-      my $e2s = RNA::energy_of_struct($seq, $fist);
+          $e2 = RNA::energy_of_struct($seq, $fist);
+          $e2s = RNA::energy_of_struct($seq, $sest);
+      } 
+      
       $cost = ($e1-$f1)+($e2-$f2) +
           $small*(($e1-$e1s+$dg) + ($e2 - $e2s+$dg));
-   } else {
-       $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dg)*($e1-$e1s+$dg);
-       if ($bar && ((!defined $refcost) || $cost<$refcost)) {
-#           eval {
-#               require RNA::barrier;
-#           }; die $@ if $@;
-#           $sE = (RNA::barrier::find_saddle($seq, $fist, $sest, 20))[0];
-           $sE = RNA::find_saddle($seq, $fist, $sest, 20)/100.;
-           $sE -= ($e1+$e1s)/2;
-           printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) ;
-           $cost += (0.1*$small*($sE - $bar)*($sE - $bar));
-       }
-   }
+  } else {
+      $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dg)*($e1-$e1s+$dg);
+      if ($bar && ((!defined $refcost) || $cost<$refcost)) {
+          $sE = RNA::find_saddle($seq, $fist, $sest, 20)/100.;
+          $sE -= ($e1+$e1s)/2;
+          printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) ;
+          $cost += (0.1*$small*($sE - $bar)*($sE - $bar));
+      }
+  }
 
-   my $d = class_dist($seq, $cons);
-   $cost += $d*50*$small;
+  my $d = class_dist($seq, $cons);
+  $cost += $d*50*$small;
 
-   return $cost;
+  return $cost;
 }
 
 sub calc_number_of_seq {
@@ -484,6 +494,7 @@ standard Vienna RNA options:
  -noGU        no GU or UG basepairs allowed
  -noClosingGU no closing GU or UG basepairs allowed
  -noLP        no lonely basepairs allowed
+ -circ        design circular RNA
  -P <string>  read fold-parameters from file <string>
 infile format:
 1st-line structure one
@@ -572,7 +583,7 @@ refolding paths.
 
 =item ViennaRNA standard options
 
-the -noLP, -P <paramfile>, -d, -d2, -4, -noGU, -noClosingGU,
+the -noLP, -P <paramfile>, -d, -d2, -4, -noGU, -noClosingGU, -circ,
 should work as usual. See the RNAfold man page for details.
 
 =back

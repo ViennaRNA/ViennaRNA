@@ -148,7 +148,7 @@ PRIVATE void get_arrays(unsigned int size){
   f5      = (int *) space(sizeof(int)*(size+2));
   if(base_pair2) free(base_pair2);
 
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
 PUBLIC  void  free_alifold_arrays(void){
@@ -265,6 +265,12 @@ alifold(const char **strings,
   for (s=0; strings[s]!=NULL; s++);
   n_seq       = s;
   with_gquad  = P->model_details.gquad;
+
+  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
+    if(base_pair2)
+      free(base_pair2);
+    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
+  }
 
   alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short **) S, strings, n_seq, structure);

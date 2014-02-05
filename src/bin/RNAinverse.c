@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
-    if((args_info.dangles_given < 0) || (args_info.dangles_given > 3))
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
@@ -104,12 +104,13 @@ int main(int argc, char *argv[]){
   /* free allocated memory of command line data structure */
   RNAinverse_cmdline_parser_free (&args_info);
 
+  if (ParamFile!=NULL)
+    read_parameter_file(ParamFile);
+
   kT = (temperature+273.15)*1.98717/1000.0;
 
   istty = (isatty(fileno(stdout))&&isatty(fileno(stdin)));
 
-  if (ParamFile!=NULL)
-    read_parameter_file(ParamFile);
 
   give_up = (repeat<0);
 

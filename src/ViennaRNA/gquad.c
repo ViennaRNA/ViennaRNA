@@ -200,6 +200,26 @@ gquad_interact( int i,
                 void *index,
                 void *NA2);
 
+PRIVATE
+void
+gquad_count(int i,
+            int L,
+            int *l,
+            void *data,
+            void *NA,
+            void *NA2,
+            void *NA3);
+
+PRIVATE
+void
+gquad_count_layers( int i,
+                    int L,
+                    int *l,
+                    void *data,
+                    void *NA,
+                    void *NA2,
+                    void *NA3);
+
 /* other useful static functions */
 
 PRIVATE
@@ -640,6 +660,48 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   return pl;
 }
 
+PUBLIC int
+get_gquad_count(short *S,
+                int i,
+                int j){
+
+  int *gg     = get_g_islands_sub(S, i, j);
+  int p,q,counter = 0;
+
+  FOR_EACH_GQUAD(p, q, i, j)
+    process_gquad_enumeration(gg, p, q,
+                              &gquad_count,
+                              (void *)(&counter),
+                              NULL,
+                              NULL,
+                              NULL);
+
+  gg += i - 1;
+  free(gg);
+  return counter;
+}
+
+PUBLIC int
+get_gquad_layer_count(short *S,
+                      int i,
+                      int j){
+
+  int *gg     = get_g_islands_sub(S, i, j);
+  int p,q,counter = 0;
+
+  FOR_EACH_GQUAD(p, q, i, j)
+    process_gquad_enumeration(gg, p, q,
+                              &gquad_count_layers,
+                              (void *)(&counter),
+                              NULL,
+                              NULL,
+                              NULL);
+
+  gg += i - 1;
+  free(gg);
+  return counter;
+}
+
 PUBLIC int parse_gquad(const char *struc, int *L, int l[3]) {
   int i, il, start, end, len;
 
@@ -789,6 +851,32 @@ gquad_pos_exhaustive( int i,
     *(((int *)lex) + (3*cnt) + 1) = l[1];
     *(((int *)lex) + (3*cnt) + 2) = l[2];
   }
+}
+
+PRIVATE
+void
+gquad_count(int i,
+            int L,
+            int *l,
+            void *data,
+            void *NA,
+            void *NA2,
+            void *NA3){
+
+  *((int *)data) += 1;
+}
+
+PRIVATE
+void
+gquad_count_layers( int i,
+                    int L,
+                    int *l,
+                    void *data,
+                    void *NA,
+                    void *NA2,
+                    void *NA3){
+
+  *((int *)data) += L;
 }
 
 

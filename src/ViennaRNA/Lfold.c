@@ -641,7 +641,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
             else
               printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
           }
-        } else if (f3[i]<0)do_backtrack=1;
+        } else if ((f3[i]<0) && (!zsc)) do_backtrack=1;
 
         if (do_backtrack) {
           int pairpartner; /*i+1?? is paired with pairpartner*/

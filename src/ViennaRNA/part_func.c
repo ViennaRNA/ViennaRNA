@@ -2226,7 +2226,7 @@ stackProb(double cutoff){
       if (p>cutoff) {
         pl[num].i     = i;
         pl[num].j     = j;
-        pl[num].type  = j;
+        pl[num].type  = 0;
         pl[num++].p   = p;
         if (num>=plsize) {
           plsize *= 2;

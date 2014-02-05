@@ -59,6 +59,8 @@ char        backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
 
 int         *cut_points;
 
+int         canonicalBPonly = 0;  /* remove non-canonical base pairs from structure constraint */
+
 int         *strand;
 
 int         gquad = 0;            /* consider g-qudruplexes in the calculations */
@@ -96,6 +98,7 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->noGUclosure     = no_closingGU;
     md->logML           = logML;
     md->gquad           = gquad;
+    md->canonicalBPonly = canonicalBPonly;
     md->circ            = circ;
     md->uniq_ML         = uniq_ML;
     md->do_backtrack    = do_backtrack;

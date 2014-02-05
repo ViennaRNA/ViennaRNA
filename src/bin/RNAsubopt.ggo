@@ -34,6 +34,12 @@ details="The program reads first the\
 flag
 off
 
+option  "canonicalBPonly" -
+"Remove non-canonical base pairs from the structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
 option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
@@ -100,7 +106,8 @@ flag
 off
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n(no support of G-quadruplex\
+ prediction for stochastic backtracking and Zuker-style suboptimals yet)\n"
 flag
 off
 

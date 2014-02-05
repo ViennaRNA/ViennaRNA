@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
-    if((args_info.dangles_given < 0) || (args_info.dangles_given > 3))
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -84,6 +84,8 @@ int main(int argc, char *argv[]){
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
   if(args_info.gquad_given)       md.gquad = gquad = 1;
+  /* enforce canonical base pairs in any case? */
+  if(args_info.canonicalBPonly_given) md.canonicalBPonly = canonicalBPonly = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* take another energy parameter set */
@@ -125,6 +127,17 @@ int main(int argc, char *argv[]){
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
+    else if(gquad){
+      warn_user("G-quadruplex support for Zuker subopts not implemented yet");
+      RNAsubopt_cmdline_parser_print_help();
+      exit(1);
+    }
+  }
+
+  if(gquad && (n_back > 0)){
+    warn_user("G-quadruplex support for stochastic backtracking not implemented yet");
+    RNAsubopt_cmdline_parser_print_help();
+    exit(1);
   }
 
   /* free allocated memory of command line data structure */

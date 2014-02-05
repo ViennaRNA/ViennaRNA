@@ -231,6 +231,11 @@ extern char backtrack_type;
 extern int gquad;
 
 /**
+ *  Do not use this variable, it will eventually be removed in one of the next versions
+ */
+extern int canonicalBPonly;
+
+/**
  *  \brief Maximum allowed base pair span
  *
  *  A value of -1 indicates no restriction for distant base pairs.

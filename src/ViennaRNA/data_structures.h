@@ -208,6 +208,7 @@ typedef struct{
   int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
   int     circ;             /**<  \brief  Assume RNA to be circular instead of linear */
   int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
   int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
   int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
   int     do_backtrack;     /**<  \brief  Specifies whether or not backtracking will be performed */

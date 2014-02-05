@@ -110,6 +110,7 @@ PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
+PRIVATE double      alpha = 1.0;
 PRIVATE int         struct_constrained = 0;
 
 #ifdef _OPENMP
@@ -117,7 +118,7 @@ PRIVATE int         struct_constrained = 0;
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, struct_constrained)
+                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, alpha, struct_constrained)
 
 #endif
 
@@ -694,7 +695,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   } else {
     model_detailsT md;
     set_model_details(&md);
-    pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
   }
 
   scaling_factor  = pf_params->pf_scale;
@@ -776,6 +777,13 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
                   break;
       }
     }
+    if(pf_params->model_details.canonicalBPonly)
+      for(i=1;i<n;i++)
+        for(j=i+1;j<=n;j++)
+          if(ptype[my_iindx[i]+j] == 7){
+            warn_user("removing non-canonical base pair from constraint");
+            ptype[my_iindx[i]+j] = 0;
+          }
   }
   if (mirnatog==1) {   /*microRNA toggle: no intramolec. bp in 2. molec*/
     for (j=cut_point; j<n; j++) {

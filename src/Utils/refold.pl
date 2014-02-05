@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2006-08-15 22:04:27 ivo>
 # after predicting a conensus structure using RNAalifold,
@@ -29,7 +29,7 @@ if ($help){
   print "\  refold.pl [-t threshold] myseqs.aln alidot.ps | RNAfold -C\n";
   print "or refold.pl [--turn looplength] myseqs.aln myseqs.alifold | RNAfold -C\n";
   print " -t ... use only pairs with p>thresh (default: 0.9)\n";
-  print " --turn ... use only pairs closing hairpins with length > looplengthh (default: 3)\n\n";
+  print " --turn ... use only pairs closing hairpins with length > looplength (default: 3)\n\n";
   exit(1);
 }
 

@@ -117,6 +117,15 @@ plist       *get_plist_gquad_from_pr_max(short *S,
 plist       *get_plist_gquad_from_db( const char *structure,
                                       float pr);
 
+int         get_gquad_count(short *S,
+                            int i,
+                            int j);
+
+int         get_gquad_layer_count(short *S,
+                            int i,
+                            int j);
+
+
 /**
  *  given a dot-bracket structure (possibly) containing gquads encoded
  *  by '+' signs, find first gquad, return end position or 0 if none found
