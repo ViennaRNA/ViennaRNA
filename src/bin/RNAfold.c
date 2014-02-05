@@ -76,6 +76,8 @@ static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_meth
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
 
+    normalize_shape_reactivities_to_probabilities_linear(values, length);
+
     for(i = 1; i <= length; ++i){
       int j;
 
