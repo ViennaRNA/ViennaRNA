@@ -435,6 +435,8 @@ int parse_soft_constraints_file(const char *file_name,
                                 char *sequence,
                                 double *values);
 
+void normalize_shape_reactivities_to_probabilities_linear(double *values,
+                                                          int length);
 void add_soft_constraints(  vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options);
