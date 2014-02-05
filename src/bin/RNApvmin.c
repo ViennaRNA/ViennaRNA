@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
   char *rec_sequence;
   char **rec_rest;
   char *shape_sequence;
-  double *prob_unpaired;
+  double *shape_data;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;
@@ -80,20 +80,24 @@ int main(int argc, char *argv[]){
   length  = strlen(rec_sequence);
 
   shape_sequence = space(sizeof(char) * (length + 1));
-  prob_unpaired = space(sizeof(double) * (length + 1));
+  shape_data = space(sizeof(double) * (length + 1));
 
-  if(parse_soft_constraints_file(args_info.inputs[0], length, 0.5, shape_sequence, prob_unpaired))
+  if(parse_soft_constraints_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
   {
     double *epsilon;
     pf_paramT *pf_parameters;
     vrna_fold_compound *vc;
     size_t i;
 
+    //use a cuttoff approach to divide into paired/unpaired
+    for (i = 1; i <= length; ++i)
+      shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
+
     epsilon = space(sizeof(double) * (length + 1));
     pf_parameters = vrna_get_boltzmann_factors(md);
     vc = get_fold_compound_pf_constrained(rec_sequence, NULL, NULL, pf_parameters);
 
-    vrna_find_perturbation_vector(vc, prob_unpaired, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
     free(pf_parameters);
     destroy_fold_compound(vc);
 
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]){
     free(epsilon);
   }
 
-  free(prob_unpaired);
+  free(shape_data);
   free(shape_sequence);
 
   free(rec_sequence);

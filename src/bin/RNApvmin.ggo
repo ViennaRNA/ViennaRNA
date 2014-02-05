@@ -12,9 +12,10 @@ args "--file-name=RNApvmin_cmdl --include-getopt --default-optional --unamed-opt
 
 description "The programs reads a RNA sequence from stdin and uses an iterative minimization process to \
 calculate a perturbation vector that minimizes the discripancies between predicted pairing probabilites \
-and given experimentally determined pairing probabilities. \
+and observed pairing probabilities (deduced from given shape reactivities). \
 Experimental data is read from a given multiline plain text file with the format \
-'[position] [nucleotide] [unpaired probability]' (e.g. '3 A 0.7'). \
+'[position] [nucleotide] [absolute shape reactivity]' (e.g. '3 A 0.7'). A simple cutoff approach is used \
+to distinguish between unpaired and paired nucleotides. \
 The objective function used for the minimization may be weighted by choosing appropriate values for \
 sigma and tau.\n\
 
@@ -24,6 +25,13 @@ Once the minimization has terminated, the obtained perturbation vector is writte
 # Options
 section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+
+option  "cutoff"  -
+"Cutoff value used to decide whether a certain position is paired or unpaired based on its shape reactivity. \
+A shape reactivitiy below the cutoff will be treated as paired."
+double
+default="0.25"
+optional
 
 option  "sigma"  -
 "Weighting factor for the contribution of perturbation vector energies to the objective function."
