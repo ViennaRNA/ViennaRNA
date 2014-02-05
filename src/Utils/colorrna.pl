@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # -*-CPerl-*-
 # Last changed Time-stamp: <2005-11-07 12:08:38 ivo>
 # $Id: colorrna.pl,v 1.1 2005/11/07 12:42:27 ivo Exp $
