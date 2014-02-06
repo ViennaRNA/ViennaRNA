@@ -156,7 +156,7 @@ START_TEST(test_parse_soft_constraints_file)
   unlink(tempfile);
 
   //garbage + entry
-  writeTempFile(tempfile, "\nblablabla\n1 A 0.5\n\ngarbage\n");
+  writeTempFile(tempfile, "\nblablabla\n#evil_comment 123\n1 A 0.5\n\ngarbage\n");
   ck_assert_int_eq(parse_soft_constraints_file(tempfile, 1, 0, sequence, values), 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
