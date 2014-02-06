@@ -258,7 +258,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
   double score = vrna_evaluate_perturbation_vector_score(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared);
 
   if (callback)
-    callback(0, score);
+    callback(0, score, epsilon);
 
   do
   {
@@ -285,7 +285,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
       break;
 
     if (callback)
-      callback(iteration_count, new_score);
+      callback(iteration_count, new_score, new_epsilon);
 
     improvement = 1 - new_score / score;
     score = new_score;

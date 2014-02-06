@@ -13,9 +13,38 @@
 #include "ViennaRNA/perturbation_fold.h"
 #include "RNApvmin_cmdl.h"
 
-static void print_progress(int iteration, double score)
+static size_t g_length = 0;
+static const char *g_statpath = 0;
+static const char *g_sequence = 0;
+
+static void print_perturbation_vector(FILE *f, double *epsilon)
 {
+  size_t i;
+  for(i = 1; i <= g_length; ++i)
+    fprintf(f, "%zu %c %f\n", i, g_sequence[i-1], epsilon[i]);
+}
+
+static void print_progress(int iteration, double score, double *epsilon)
+{
+  FILE *f;
+  char path[256];
+
   fprintf(stderr, "Iteration: %d\t Score: %f\n", iteration, score);
+
+  if(!g_statpath)
+    return;
+
+  sprintf(path, "%s_%04d", g_statpath, iteration);
+  f = fopen(path, "w");
+  if(!f) {
+    fprintf(stderr, "Couldn't open file '%s'\n", path);
+    return;
+  }
+
+  fprintf(f, "#iteration %d\n#score %f\n", iteration, score);
+  print_perturbation_vector(f, epsilon);
+
+  fclose(f);
 }
 
 int main(int argc, char *argv[]){
@@ -62,6 +91,8 @@ int main(int argc, char *argv[]){
     md.noGUclosure = 1;
   if(args_info.energyModel_given)
     md.energy_set = args_info.energyModel_arg;
+  if(args_info.intermediatePath_given)
+    g_statpath = args_info.intermediatePath_arg;
 
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
@@ -77,7 +108,8 @@ int main(int argc, char *argv[]){
 
   md.uniq_ML = 1;
 
-  length  = strlen(rec_sequence);
+  g_sequence = rec_sequence;
+  g_length = length  = strlen(rec_sequence);
 
   shape_sequence = space(sizeof(char) * (length + 1));
   shape_data = space(sizeof(double) * (length + 1));
@@ -101,8 +133,7 @@ int main(int argc, char *argv[]){
     free(pf_parameters);
     destroy_fold_compound(vc);
 
-    for (i = 1; i <= length; ++i)
-      printf("%zu %c %f\n", i, rec_sequence[i-1], epsilon[i]);
+    print_perturbation_vector(stdout, epsilon);
 
     free(epsilon);
   }
