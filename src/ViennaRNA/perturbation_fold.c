@@ -41,7 +41,7 @@ static double calculate_norm(double *vector, int length)
   return sqrt(sum);
 }
 
-static soft_constraintT* addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int length)
+static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int length)
 {
   soft_constraintT *sc;
   int i, j;
@@ -69,7 +69,6 @@ double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const dou
   double ret = 0;
   double *p_prob_unpaired;
   int i;
-  soft_constraintT *sc;
   int length = vc->length;
 
   //calculate pairing probabilty in the pertubated energy model
