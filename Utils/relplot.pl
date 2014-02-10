@@ -1,9 +1,8 @@
 #!/usr/local/bin/perl -w
-# -*-CPerl-*-
-# Last changed Time-stamp: <2012-11-19 17:22:03 ivo>
-# $Id: relplot.pl,v 1.10 2008/10/09 07:11:21 ivo Exp $
+#
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
+#
 use strict;
 use Getopt::Std;
 $main::VERSION = 1.3;
@@ -19,8 +18,10 @@ sub HELP_MESSAGE {
 
 HELP_MESSAGE() unless $#ARGV >0;
 my $macro_seen= 0;
-my %mfe = ();        # hash of mfe pairs
-my @ss_ps = ('',''); # head and tail of the ss.ps file
+my %mfe = ();         # hash of mfe pairs
+my @ss_ps = ('','');  # head and tail of the ss.ps file
+my $cut_point = -1;   # account for shift of base pair positions 
+                      # between rna.ps and dot.ps upon cofolding
 
 my $n = swallow_ss_ps();    # read ss plot
 my @sp = posent();   # read dot plot and compute entropies
@@ -64,11 +65,11 @@ if (!$macro_seen) {
       10 tics div 1 scale
       0 1 tics
       {
-	  dup 0 moveto 0.5 add
-	  tics div range mul
-	  invert {range exch sub} if
-	  1 1 sethsbcolor
-	  1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
+          dup 0 moveto 0.5 add
+          tics div range mul
+          invert {range exch sub} if
+          1 1 sethsbcolor
+          1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
       } for
     grestore
     0 setgray
@@ -95,6 +96,9 @@ sub swallow_ss_ps {
   my $tail=0;
   while (<>) {
     $macro_seen=1 if /drawreliability /;
+    if(/^\/sequence/ .. /^\) def/){
+      $cut_point = $-[1] if /^[acgtunACGTUN]+(\s)[acgtunACGTUN]+/;
+    }
     $length ++ if /^\/coor/ .. /^\] def/;
     if (/^\/pairs/ .. /^\] def/) {
       $mfe{$1,$2}=1 if /(\d+)\s+(\d+)/;
@@ -115,16 +119,22 @@ sub posent {
     next unless /(\d+)\s+(\d+)\s+([0-9.Ee-]+)\s+ubox/;
     my ($i, $j, $p) = ($1, $2, $3);
 
+    # account for position shift in rna.ps if input comes from cofold
+    if($cut_point > 0){
+      $i = $i + 1 if $i > $cut_point;
+      $j = $j + 1 if $j > $cut_point;
+    }
+
     $p *= $p;
     if ($opt_p) {
       $sp[$i] = $sp[$j] = $p if exists  $mfe{$i,$j};
     } else {
       if ($opt_a) {
-	$sp[$i] = $sp[$j] = 1-$p if exists  $mfe{$i,$j};
+        $sp[$i] = $sp[$j] = 1-$p if exists  $mfe{$i,$j};
       } else {
-	my $ss = ($p>0)?$p*log($p):0;
-	$sp[$i] += $ss;
-	$sp[$j] += $ss;
+        my $ss = ($p>0)?$p*log($p):0;
+        $sp[$i] += $ss;
+        $sp[$j] += $ss;
       }
     }
     $pp[$i] += $p;
@@ -155,7 +165,7 @@ relplot - annotate a secdonary structure plot with reliability information
 =head1 DESCRIPTION
 
 relplot reads an RNA secondary structure plot and a dot plot
-containing pair probabilities, as produces by C<RNAfold -p>, and
+containing pair probabilities, as produced by C<RNAfold -p> or C<RNAcofold -p>, and
 writes a new secondary structure with reliability annotation to
 stdout.  The anotation is used to colorize the plot and can use either
 "positional entropy" (default), or pair probabilities (with -p).
