@@ -125,6 +125,14 @@ adjust_ptypes(char *ptype,
               unsigned int length,
               unsigned int idx_type);
 
+PRIVATE void
+apply_DB_constraint(const char *constraint,
+                    char *ptype,
+                    unsigned int length,
+                    unsigned int min_loop_size,
+                    int cut,
+                    unsigned int options);
+
 
 /*
 #################################
@@ -174,7 +182,7 @@ constrain_ptypes( const char *constraint,
                     | ((idx_type) ? VRNA_CONSTRAINT_IINDX : (unsigned int)0));
 }
 
-PUBLIC void
+PRIVATE void
 apply_DB_constraint(const char *constraint,
                     char *hc,
                     unsigned int length,
@@ -857,9 +865,10 @@ normalize_shape_reactivities_to_probabilities_linear(double *values, int length)
 }
 
 PUBLIC void
-add_soft_constraints( vrna_fold_compound *vc,
-                      const double *constraints,
-                      unsigned int options){
+vrna_sc_add(vrna_fold_compound *vc,
+          const double *constraints,
+          unsigned int options){
+
   unsigned int      n;
   soft_constraintT  *sc;
 
@@ -878,7 +887,7 @@ add_soft_constraints( vrna_fold_compound *vc,
     n                     = vc->length;
 
     if(vc->sc)
-      destroy_soft_constraints(vc->sc);
+      vrna_sc_destroy(vc->sc);
     vc->sc  = sc;
 
     if(constraints){
@@ -970,7 +979,7 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
   /* begin actual storage of the pseudo energies */
 
   if(!vc->sc)
-    add_soft_constraints(vc, NULL, options);
+    vrna_sc_add(vc, NULL, options);
 
   /* Add contributions for use in regular free energy recursions */
   if(options & VRNA_CONSTRAINT_SOFT_MFE){
@@ -1189,7 +1198,7 @@ add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
     sc  = vc->sc;
 
     if(!sc)
-      add_soft_constraints(vc, NULL, options | VRNA_CONSTRAINT_SOFT_MFE);
+      vrna_sc_add(vc, NULL, options | VRNA_CONSTRAINT_SOFT_MFE);
     else{
       if(sc->en_basepair)
         free(sc->en_basepair);
@@ -1216,7 +1225,7 @@ add_soft_constraints_bp_pf( vrna_fold_compound *vc,
     n   = vc->length;
 
     if(!vc->sc)
-      add_soft_constraints(vc, NULL, options | VRNA_CONSTRAINT_SOFT_PF);
+      vrna_sc_add(vc, NULL, options | VRNA_CONSTRAINT_SOFT_PF);
 
     sc = vc->sc;
 
@@ -1266,7 +1275,7 @@ add_soft_constraints_up_mfe(vrna_fold_compound *vc,
     sc  = vc->sc;
 
     if(!sc)
-      add_soft_constraints(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_MFE);
+      vrna_sc_add(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_MFE);
     else{
       const double *my_constraints = (constraints) ? constraints : (const double *)sc->constraints;
       if(my_constraints){
@@ -1289,7 +1298,8 @@ add_soft_constraints_up_mfe(vrna_fold_compound *vc,
 
         for(i = 1; i <= n; i++){
           for(j = 1; j <= (n - i + 1); j++){
-            sc->free_energies[i][j] = sc->free_energies[i][j-1] + (int)(my_constraints[i+j-1]*100);
+            sc->free_energies[i][j] =   sc->free_energies[i][j-1]
+                                      + (int)(my_constraints[i+j-1] * 100); /* convert to 10kal/mol */
           }
         }
       }
@@ -1310,7 +1320,7 @@ add_soft_constraints_up_pf( vrna_fold_compound *vc,
     sc  = vc->sc;
 
     if(!sc)
-      add_soft_constraints(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
+      vrna_sc_add(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
     else{
       pf_paramT *exp_params = vc->exp_params;
       double    GT          = 0.;
@@ -1346,8 +1356,9 @@ add_soft_constraints_up_pf( vrna_fold_compound *vc,
 
       for(i = 1; i <= n; i++){
         for(j = 1; j <= (n - i + 1); j++){
-          GT  = (double)((int)(sc->constraints[i+j-1])) * TT * 1000.;
-          sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp( -GT / kT);
+          GT  = (double)((int)(sc->constraints[i+j-1])) * TT * 1000.; /* convert to cal/mol */
+          sc->boltzmann_factors[i][j] =   sc->boltzmann_factors[i][j-1]
+                                        * exp( -GT / kT);
         }
       }
     }
@@ -1355,16 +1366,16 @@ add_soft_constraints_up_pf( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-remove_soft_constraints(vrna_fold_compound *vc){
+vrna_sc_remove(vrna_fold_compound *vc){
 
   if(vc){
-    destroy_soft_constraints(vc->sc);
+    vrna_sc_destroy(vc->sc);
     vc->sc = NULL;
   }
 }
 
 PUBLIC void
-destroy_soft_constraints(soft_constraintT *sc){
+vrna_sc_destroy(soft_constraintT *sc){
 
   int     i, *ptr, *ptr2;
   double  *ptr3;

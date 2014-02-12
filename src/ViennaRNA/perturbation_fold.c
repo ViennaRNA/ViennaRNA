@@ -80,7 +80,7 @@ double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const dou
 
   calculate_probability_unpaired(vc, p_prob_unpaired);
 
-  remove_soft_constraints(vc);
+  vrna_sc_remove(vc);
 
   for (i = 1; i <= length; ++i)
   {
@@ -139,7 +139,7 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
     vc->hc = NULL;
   }
 
-  remove_soft_constraints(vc);
+  vrna_sc_remove(vc);
   vc->hc = hc_backup;
 
   free(hc_string);
@@ -186,7 +186,7 @@ void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *e
     assert(prob_unpaired[i] >= 0 && prob_unpaired[i] <= 1);
   }
 
-  remove_soft_constraints(vc);
+  vrna_sc_remove(vc);
 }
 
 static void allocateProbabilityArrays(double **unpaired, double ***conditional_unpaired, int length)
