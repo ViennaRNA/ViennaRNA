@@ -341,13 +341,6 @@ void constrain_ptypes(const char *constraint,
                       int min_loop_size,
                       unsigned int idx_type);
 
-void apply_DB_constraint( const char *constraint,
-                          char *ptype,
-                          unsigned int length,
-                          unsigned int min_loop_size,
-                          int cut,
-                          unsigned int options);
-
 /**
  *  \brief  Get a hard constraint from pseudo dot-bracket notation as specified
  *          in the ViennaRNA Package extension of the FASTA format.
@@ -437,9 +430,27 @@ int parse_soft_constraints_file(const char *file_name,
 
 void normalize_shape_reactivities_to_probabilities_linear(double *values,
                                                           int length);
-void add_soft_constraints(  vrna_fold_compound *vc,
-                            const double *constraints,
-                            unsigned int options);
+
+/**
+ *  \brief Add soft constraints to a fold_compound
+ *
+ *  This function adds a proper soft constraints data structure
+ *  to the fold_compound data structure.
+ *  Current behavior upon already existing soft constraints is
+ *  to remove them first before adding the new ones.
+ *  This behavior will probably change in the near future in favor
+ *  of adding additional soft constraints on top of others.
+ *
+ *  If no constraints are passed an empty soft constraints data
+ *  structure is created.
+ *  Otherwise, the provided constraint values are assumed to
+ *  specify energy contributions in units of kcal/mol for unpaired
+ *  positions.
+ *
+ */
+void vrna_sc_add( vrna_fold_compound *vc,
+                  const double *constraints,
+                  unsigned int options);
 
 int add_soft_constraints_mathews( vrna_fold_compound *vc,
                                   const char *shape_file,
@@ -483,7 +494,8 @@ void add_soft_constraints_up_pf(vrna_fold_compound *vc,
                                 const double *constraints,
                                 unsigned int options);
 
-void remove_soft_constraints(vrna_fold_compound *vc);
+void vrna_sc_remove(vrna_fold_compound *vc);
 
-void destroy_soft_constraints(soft_constraintT *sc);
+void vrna_sc_destroy(soft_constraintT *sc);
+
 #endif

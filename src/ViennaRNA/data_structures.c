@@ -246,7 +246,7 @@ destroy_fold_compound(vrna_fold_compound *vc){
     if(vc->hc)
       destroy_hard_constraints(vc->hc);
     if(vc->sc)
-      destroy_soft_constraints(vc->sc);
+      vrna_sc_destroy(vc->sc);
 
     free(vc);
   }
@@ -764,7 +764,7 @@ destroy_alifold_compound(vrna_alifold_compound *vc){
         destroy_hard_constraints(vc->hc[s]);
     if(vc->sc)
       for (s=0; s < vc->n_seq; s++)
-        destroy_soft_constraints(vc->sc[s]);
+        vrna_sc_destroy(vc->sc[s]);
 
 
     free(vc);
