@@ -452,50 +452,50 @@ void vrna_sc_add( vrna_fold_compound *vc,
                   const double *constraints,
                   unsigned int options);
 
-int add_soft_constraints_mathews( vrna_fold_compound *vc,
-                                  const char *shape_file,
-                                  double m,
-                                  double b,
-                                  unsigned int options);
+int vrna_sc_add_mathews(vrna_fold_compound *vc,
+                        const char *shape_file,
+                        double m,
+                        double b,
+                        unsigned int options);
 
-int add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
-                                            const char **shape_files,
-                                            const int *shape_file_association,
-                                            double m,
-                                            double b,
-                                            unsigned int options);
+int vrna_sc_add_mathews_ali(vrna_alifold_compound *vc,
+                            const char **shape_files,
+                            const int *shape_file_association,
+                            double m,
+                            double b,
+                            unsigned int options);
+
+void vrna_sc_add_bp(vrna_fold_compound *vc,
+                    const double **constraints,
+                    unsigned int options);
+
+void vrna_sc_add_bp_mfe(vrna_fold_compound *vc,
+                        const double **constraints,
+                        unsigned int options);
+
+void vrna_sc_add_bp_pf( vrna_fold_compound *vc,
+                        const double **constraints,
+                        unsigned int options);
+
+void vrna_sc_add_up(vrna_fold_compound *vc,
+                    const double *constraints,
+                    unsigned int options);
+
+void vrna_sc_add_up_mfe(vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options);
+
+void vrna_sc_add_up_pf( vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options);
+
+void vrna_sc_remove(vrna_fold_compound *vc);
+
+void vrna_sc_destroy(soft_constraintT *sc);
 
 int parse_soft_constraints_shape_method(const char *method_string,
                                         char *method,
                                         float *param_1,
                                         float *param_2);
-
-void add_soft_constraints_bp( vrna_fold_compound *vc,
-                              const double **constraints,
-                              unsigned int options);
-
-void add_soft_constraints_bp_mfe( vrna_fold_compound *vc,
-                                  const double **constraints,
-                                  unsigned int options);
-
-void add_soft_constraints_bp_pf(vrna_fold_compound *vc,
-                                const double **constraints,
-                                unsigned int options);
-
-void add_soft_constraints_up( vrna_fold_compound *vc,
-                              const double *constraints,
-                              unsigned int options);
-
-void add_soft_constraints_up_mfe( vrna_fold_compound *vc,
-                                  const double *constraints,
-                                  unsigned int options);
-
-void add_soft_constraints_up_pf(vrna_fold_compound *vc,
-                                const double *constraints,
-                                unsigned int options);
-
-void vrna_sc_remove(vrna_fold_compound *vc);
-
-void vrna_sc_destroy(soft_constraintT *sc);
 
 #endif

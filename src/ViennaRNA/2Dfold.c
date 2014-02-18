@@ -70,7 +70,12 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
 #################################
 */
 
-PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *structure1, const char *structure2, int circ){
+PUBLIC TwoDfold_vars *
+vrna_TwoDfold_get_vars( const char *seq,
+                        const char *structure1,
+                        const char *structure2,
+                        int circ){
+
   unsigned int size, length, i;
   int *index;
   TwoDfold_vars *vars;
@@ -79,7 +84,7 @@ PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *struct
   vars->sequence     = (char *)space(length + 1);
   strcpy(vars->sequence, seq);
   vars->seq_length   = length;
-  if(vars->seq_length < 1) nrerror("get_TwoDfold_variables: sequence must be longer than 0");
+  if(vars->seq_length < 1) nrerror("vrna_TwoDfold_get_vars: sequence must be longer than 0");
   size                        = ((length + 1) * (length + 2)/2);
 
   vars->reference_pt1   = make_pair_table(structure1);
@@ -191,7 +196,9 @@ PUBLIC TwoDfold_vars *get_TwoDfold_variables(const char *seq, const char *struct
   return vars;
 }
 
-PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
+PUBLIC void
+vrna_TwoDfold_destroy_vars(TwoDfold_vars *vars){
+
   unsigned int i, j, ij;
   int cnt1;
   if(vars == NULL) return;
@@ -658,7 +665,20 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
   return output;
 }
 
-PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2){
+PUBLIC TwoDfold_solution *
+TwoDfoldList( TwoDfold_vars *vars,
+              int distance1,
+              int distance2){
+
+  return vrna_TwoDfold(vars, distance1, distance2);
+}
+
+
+PUBLIC TwoDfold_solution *
+vrna_TwoDfold(TwoDfold_vars *vars,
+              int distance1,
+              int distance2){
+
   unsigned int  i, d1, d2;
   unsigned int  maxD1;
   unsigned int  maxD2;
@@ -680,7 +700,7 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+              "vrna_TwoDfold@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -689,7 +709,7 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+              "vrna_TwoDfold@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -755,7 +775,12 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
 }
 
 
-PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *vars){
+PUBLIC char *
+vrna_TwoDfold_backtrack_f5( unsigned int j,
+                            int k,
+                            int l,
+                            TwoDfold_vars *vars){
+
   unsigned int i;
   char *mfe_structure = (char *)space(j+1);
   if(j < TURN + 2) return NULL;
@@ -4020,5 +4045,36 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
     (*array)[i] = (unsigned long *)space(sizeof(unsigned long) * mem);
     (*array)[i] -= min_l[i]/2;
   }
+}
+
+/*
+#################################
+# OLD API support               #
+#################################
+*/
+
+
+PUBLIC TwoDfold_vars *
+get_TwoDfold_variables( const char *seq,
+                        const char *structure1,
+                        const char *structure2,
+                        int circ){
+
+  return vrna_TwoDfold_get_vars(seq, structure1, structure2, circ);
+}
+
+PUBLIC char *
+TwoDfold_backtrack_f5(unsigned int j,
+                      int k,
+                      int l,
+                      TwoDfold_vars *vars){
+
+  return vrna_TwoDfold_backtrack_f5(j, k, l, vars);
+}
+
+PUBLIC void
+destroy_TwoDfold_variables(TwoDfold_vars *vars){
+
+  vrna_TwoDfold_destroy_vars(vars);
 }
 

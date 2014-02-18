@@ -63,7 +63,7 @@ static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_meth
   }
 
   if(method == 'M'){
-    add_soft_constraints_mathews(vc, shape_file, p1, p2, constraint_type);
+    vrna_sc_add_mathews(vc, shape_file, p1, p2, constraint_type);
     return;
   }
 
@@ -89,8 +89,8 @@ static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_meth
         sc_bp[i][j] = p1 * (values[i] + values[j]);
     }
 
-    add_soft_constraints_up(vc, sc_up, constraint_type);
-    add_soft_constraints_bp(vc, (const double**)sc_bp, constraint_type);
+    vrna_sc_add_up(vc, sc_up, constraint_type);
+    vrna_sc_add_bp(vc, (const double**)sc_bp, constraint_type);
 
     for(i = 1; i <= length; ++i)
       free(sc_bp[i]);
@@ -98,7 +98,7 @@ static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_meth
     free(sc_up);
   } else {
     assert(method == 'W');
-    add_soft_constraints_up(vc, values, constraint_type);
+    vrna_sc_add_up(vc, values, constraint_type);
   }
 
   free(values);
@@ -415,8 +415,8 @@ int main(int argc, char *argv[]){
       }
       vc->iindx = get_iindx(length);
 
-      add_soft_constraints_up_pf(vc, sc_up, VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
-      add_soft_constraints_bp_pf(vc, (const double **)sc_bp, 0);
+      vrna_sc_add_up_pf(vc, sc_up, VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
+      vrna_sc_add_bp_pf(vc, (const double **)sc_bp, 0);
       vc->exp_params = NULL;
 #endif
 
