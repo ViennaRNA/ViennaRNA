@@ -134,6 +134,9 @@ pu_contrib  *get_pu_contrib_struct( unsigned int n,
  */
 void        free_pu_contrib_struct(pu_contrib *pu);
 
+void
+free_pu_contrib(pu_contrib *pu);
+
 /**
  * @}
  */
