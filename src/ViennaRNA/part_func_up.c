@@ -179,7 +179,15 @@ PUBLIC pu_contrib *get_pu_contrib_struct(unsigned int n, unsigned int w){
   return pu;
 }
 
-PUBLIC  void  free_pu_contrib_struct(pu_contrib *pu){
+PUBLIC  void
+free_pu_contrib(pu_contrib *pu){
+
+  free_pu_contrib_struct(pu);
+}
+
+PUBLIC  void
+free_pu_contrib_struct(pu_contrib *pu){
+
   unsigned int i;
   if(pu != NULL){
     for(i=0;i<=pu->length;i++){
