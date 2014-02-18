@@ -901,28 +901,28 @@ vrna_sc_add(vrna_fold_compound *vc,
       memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
 
       if(options & VRNA_CONSTRAINT_SOFT_UP)
-        add_soft_constraints_up(vc, constraints, options);
+        vrna_sc_add_up(vc, constraints, options);
 
     }
   }
 }
 
 PUBLIC void
-add_soft_constraints_bp(vrna_fold_compound *vc,
+vrna_sc_add_bp(vrna_fold_compound *vc,
                         const double **constraints,
                         unsigned int options){
                         
 
   if(options & VRNA_CONSTRAINT_SOFT_MFE)
-    add_soft_constraints_bp_mfe(vc, constraints, options);
+    vrna_sc_add_bp_mfe(vc, constraints, options);
 
   if(options & VRNA_CONSTRAINT_SOFT_PF)
-    add_soft_constraints_bp_pf(vc, constraints, options);
+    vrna_sc_add_bp_pf(vc, constraints, options);
 }
 
 
 PUBLIC int
-add_soft_constraints_mathews( vrna_fold_compound *vc,
+vrna_sc_add_mathews( vrna_fold_compound *vc,
                               const char *shape_file,
                               double m,
                               double b,
@@ -1012,7 +1012,7 @@ add_soft_constraints_mathews( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-add_soft_constraints_alignment_mathews( vrna_alifold_compound *vc,
+vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
                                         const char **shape_files,
                                         const int *shape_file_association,
                                         double m,
@@ -1185,7 +1185,7 @@ parse_soft_constraints_shape_method(  const char *method_string,
 }
 
 PUBLIC void
-add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
+vrna_sc_add_bp_mfe(vrna_fold_compound *vc,
                             const double **constraints,
                             unsigned int options){
 
@@ -1213,7 +1213,7 @@ add_soft_constraints_bp_mfe(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-add_soft_constraints_bp_pf( vrna_fold_compound *vc,
+vrna_sc_add_bp_pf( vrna_fold_compound *vc,
                             const double **constraints,
                             unsigned int options){
 
@@ -1251,19 +1251,19 @@ add_soft_constraints_bp_pf( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-add_soft_constraints_up(vrna_fold_compound *vc,
+vrna_sc_add_up(vrna_fold_compound *vc,
                         const double *constraints,
                         unsigned int options){
 
   if(options & VRNA_CONSTRAINT_SOFT_MFE)
-    add_soft_constraints_up_mfe(vc, constraints, options);
+    vrna_sc_add_up_mfe(vc, constraints, options);
 
   if(options & VRNA_CONSTRAINT_SOFT_PF)
-    add_soft_constraints_up_pf(vc, constraints, options);
+    vrna_sc_add_up_pf(vc, constraints, options);
 }
 
 PUBLIC void
-add_soft_constraints_up_mfe(vrna_fold_compound *vc,
+vrna_sc_add_up_mfe(vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
 
@@ -1308,7 +1308,7 @@ add_soft_constraints_up_mfe(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-add_soft_constraints_up_pf( vrna_fold_compound *vc,
+vrna_sc_add_up_pf( vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
 

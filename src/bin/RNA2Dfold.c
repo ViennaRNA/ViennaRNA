@@ -223,9 +223,9 @@ int main(int argc, char *argv[]){
     printf("%s (%6.2f) <ref 2>\n", structure2, (circ) ? energy_of_circ_structure(string, structure2, 0) : energy_of_structure(string,structure2, 0));
 
     /* get all variables need for the folding process (some memory will be preallocated here too) */
-    TwoDfold_vars *mfe_vars = get_TwoDfold_variables(string, structure1, structure2, circ);
+    TwoDfold_vars *mfe_vars = vrna_TwoDfold_get_vars(string, structure1, structure2, circ);
     mfe_vars->do_backtrack = do_backtrack;
-    TwoDfold_solution *mfe_s = TwoDfoldList(mfe_vars, maxDistance1, maxDistance2);
+    TwoDfold_solution *mfe_s = vrna_TwoDfold(mfe_vars, maxDistance1, maxDistance2);
 
     if(!pf){
 #ifdef COUNT_STATES
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]){
       /* get all variables need for the folding process (some memory will be preallocated there too) */
       /* TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars); */
       /* we dont need the mfe vars and arrays anymore, so we can savely free their occupying memory */
-      destroy_TwoDfold_variables(mfe_vars);
+      vrna_TwoDfold_destroy_vars(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);
 
       TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxD1, maxD2);
@@ -328,7 +328,7 @@ int main(int argc, char *argv[]){
       destroy_TwoDpfold_variables(q_vars);
     }
     else
-      destroy_TwoDfold_variables(mfe_vars);
+      vrna_TwoDfold_destroy_vars(mfe_vars);
 
     free_arrays();
     free(string);

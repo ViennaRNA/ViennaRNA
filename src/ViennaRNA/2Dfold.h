@@ -46,7 +46,7 @@
  * 
  *  \note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
  * 
- *  \see destroy_TwoDfold_variables(), TwoDfold(), TwoDfold_circ
+ *  \see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
  * 
  *  \param seq          The RNA sequence
  *  \param structure1   The first reference structure in dot-bracket notation
@@ -54,21 +54,32 @@
  *  \param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
  *  \returns            A datastructure prefilled with folding options and allocated memory
  */
-TwoDfold_vars *get_TwoDfold_variables(const char *seq,
-                                      const char *structure1,
-                                      const char *structure2,
-                                      int circ);
+TwoDfold_vars *
+vrna_TwoDfold_get_vars( const char *seq,
+                        const char *structure1,
+                        const char *structure2,
+                        int circ);
+
+DEPRECATED(TwoDfold_vars *
+get_TwoDfold_variables( const char *seq,
+                        const char *structure1,
+                        const char *structure2,
+                        int circ));
 
 /**
  *  \brief Destroy a TwoDfold_vars datastructure without memory loss
  * 
  *  This function free's all allocated memory that depends on the datastructure given.
  * 
- *  \see get_TwoDfold_variables()
+ *  \see vrna_TwoDfold_get_vars()
  * 
  *  \param our_variables  A pointer to the datastructure to be destroyed
  */
-void          destroy_TwoDfold_variables(TwoDfold_vars *our_variables);
+void
+vrna_TwoDfold_destroy_vars(TwoDfold_vars *our_variables);
+
+DEPRECATED(void
+destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
 
 /**
  * 
@@ -95,15 +106,21 @@ DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables,
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- * \see get_TwoDfold_variables(), destroy_TwoDfold_variables(), #TwoDfold_solution
+ * \see vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars(), #TwoDfold_solution
  *
  * \param vars      the datastructure containing all predefined folding attributes
  * \param distance1 maximum distance to reference1 (-1 means no restriction)
  * \param distance2 maximum distance to reference2 (-1 means no restriction)
  */
-TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars,
-                                int distance1,
-                                int distance2);
+TwoDfold_solution *
+vrna_TwoDfold(TwoDfold_vars *vars,
+              int distance1,
+              int distance2);
+
+DEPRECATED(TwoDfold_solution *
+TwoDfoldList( TwoDfold_vars *vars,
+              int distance1,
+              int distance2));
 
 /**
  * \brief Backtrack a minimum free energy structure from a 5' section of specified length
@@ -112,22 +129,27 @@ TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars,
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
- * specified in TwoDfoldList() belong to.
+ * specified in vrna_TwoDfold() belong to.
  * \note The argument 'vars' must contain precalculated energy values in the energy matrices,
- * i.e. a call to TwoDfoldList() preceding this function is mandatory!
+ * i.e. a call to vrna_TwoDfold() preceding this function is mandatory!
  *
- * \see TwoDfoldList(), get_TwoDfold_variables(), destroy_TwoDfold_variables()
+ * \see vrna_TwoDfold(), vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars()
  *
  * \param j     The length in nucleotides beginning from the 5' end
  * \param k     distance to reference1 (may be -1)
  * \param l     distance to reference2
  * \param vars  the datastructure containing all predefined folding attributes
  */
-char *TwoDfold_backtrack_f5(unsigned int j,
+char *
+vrna_TwoDfold_backtrack_f5( unsigned int j,
                             int k,
                             int l,
                             TwoDfold_vars *vars);
 
+DEPRECATED(char *TwoDfold_backtrack_f5(unsigned int j,
+                            int k,
+                            int l,
+                            TwoDfold_vars *vars));
 /**
  *  @}
  */

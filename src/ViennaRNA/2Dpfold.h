@@ -75,7 +75,7 @@ void            destroy_TwoDpfold_variables(TwoDpfold_vars *vars);
  *
  * This function computes the partition functions for all distance classes
  * according the two reference structures specified in the datastructure 'vars'.
- * Similar to TwoDfoldList() the arguments maxDistance1 and maxDistance2 specify
+ * Similar to vrna_TwoDfold() the arguments maxDistance1 and maxDistance2 specify
  * the maximum distance to both reference structures. A value of '-1' in either of
  * them makes the appropriate distance restrictionless, i.e. all basepair distancies
  * to the reference are taken into account during computation.
