@@ -495,6 +495,15 @@ short *make_pair_table_snoop(const char *structure);
 int *make_loop_index_pt(short *pt);
 
 
+/**
+ *  \brief Convert a pair table into dot-parenthesis notation
+ *
+ *  \param pt The pair table to be copied
+ *  \return   A char pointer to the dot-bracket string
+ */
+char *vrna_pt_to_db(short *pt);
+
+
 int bp_distance(const char *str1,
                 const char *str2);
 
