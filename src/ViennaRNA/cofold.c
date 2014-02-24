@@ -32,11 +32,8 @@
 #include <omp.h>
 #endif
 
-#define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
-#define NEW_NINIO         1       /* new asymetry penalty */
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#define LOCALITY          0.      /* locality parameter for base-pairs */
-#undef TURN
+#undef  TURN
 #define TURN              0       /* reset minimal base pair span for intermolecular pairings */
 #define TURN2             3       /* used by zukersubopt */
 #define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
@@ -75,49 +72,25 @@ PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound *vc)
 PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
 
+/* wrappers for old API compatibility */
+PRIVATE void      wrap_array_export(int **f5_p,int **c_p,int **fML_p,int **fM1_p,int **fc_p,int **indx_p,char **ptype_p);
+PRIVATE float     wrap_cofold(const char *string,char *structure,paramT *parameters,int is_constrained);
+PRIVATE SOLUTION *wrap_zukersubopt( const char *string,paramT *parameters);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
 
-PUBLIC void
-free_co_arrays(void){
-
-  if(backward_compat_compound){
-    destroy_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
-  }
-}
-
-
-/*--------------------------------------------------------------------------*/
-
-PUBLIC void
-export_cofold_arrays_gq(int **f5_p,
-                        int **c_p,
-                        int **fML_p,
-                        int **fM1_p,
-                        int **fc_p,
-                        int **ggg_p,
-                        int **indx_p,
-                        char **ptype_p){
-
-  /* make the DP arrays available to routines such as subopt() */
-  export_cofold_arrays(f5_p, c_p, fML_p, fM1_p, fc_p, indx_p, ptype_p);
-  if(backward_compat_compound){
-    *ggg_p = backward_compat_compound->matrices->ggg;
-  }
-}
-
-PUBLIC void
-export_cofold_arrays( int **f5_p,
-                      int **c_p,
-                      int **fML_p,
-                      int **fM1_p,
-                      int **fc_p,
-                      int **indx_p,
-                      char **ptype_p){
+PRIVATE void
+wrap_array_export(int **f5_p,
+                  int **c_p,
+                  int **fML_p,
+                  int **fM1_p,
+                  int **fc_p,
+                  int **indx_p,
+                  char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
   if(backward_compat_compound){
@@ -133,15 +106,8 @@ export_cofold_arrays( int **f5_p,
 
 /*--------------------------------------------------------------------------*/
 
-PUBLIC float
-cofold( const char *string,
-        char *structure){
-
-  return cofold_par(string, structure, NULL, fold_constrained);
-}
-
-PUBLIC float
-cofold_par( const char *string,
+PRIVATE float
+wrap_cofold(const char *string,
             char *structure,
             paramT *parameters,
             int is_constrained){
@@ -241,7 +207,7 @@ vrna_cofold(vrna_fold_compound  *vc,
 
   backtrack(bt_stack, bp, vc);
 
-  parenthesis_structure(structure, bp, length);
+  vrna_parenthesis_structure(structure, bp, length);
 
   /*
   *  Backward compatibility:
@@ -273,7 +239,7 @@ fill_arrays(vrna_fold_compound  *vc,
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
-  int   decomp, new_fML, max_separation, cut_point, uniq_ML;
+  int   decomp, new_fML, cut_point, uniq_ML;
   int   no_close, type, type_2, tt, maxj, *indx;
   int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc, *my_ggg;
   int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
@@ -326,8 +292,6 @@ fill_arrays(vrna_fold_compound  *vc,
   DMLi1 = (int *) space(sizeof(int)*(length + 1));
   DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
-  max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
-
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
     my_fc[j]=0;
@@ -350,8 +314,6 @@ fill_arrays(vrna_fold_compound  *vc,
       energy        = INF;
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
-
-      if (j-i-1 > max_separation) type = 0;  /* forces locality degree */
 
       if (hc_decompose) {   /* we have a pair */
         int new_c=INF, stackEnergy=INF;
@@ -1429,15 +1391,9 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 }
 #endif
 
-PUBLIC SOLUTION *
-zukersubopt(const char *string) {
-
-  return zukersubopt_par(string, NULL);
-}
-
-PUBLIC SOLUTION *
-zukersubopt_par(const char *string,
-                paramT *parameters){
+PRIVATE SOLUTION *
+wrap_zukersubopt( const char *string,
+                  paramT *parameters){
 
   unsigned int        length;
   char                *doubleseq;
@@ -1565,7 +1521,7 @@ vrna_zukersubopt(vrna_fold_compound *vc){
       bt_stack[1].ml  = 2;
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
       energy = c[indx[j]+i]+c[indx[i+length]+j];
-      parenthesis_zuker(structure, bp_list, length);
+      vrna_parenthesis_zuker(structure, bp_list, length);
       zukresults[counter].energy      = energy;
       zukresults[counter++].structure = strdup(structure);
       for (k = 1; k <= bp_list[0].i; k++) { /* mark all pairs in structure as done */
@@ -1607,4 +1563,76 @@ vrna_zukersubopt(vrna_fold_compound *vc){
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PUBLIC void initialize_cofold(int length){ /* DO NOTHING */ }
+PUBLIC void
+initialize_cofold(int length){ /* DO NOTHING */ }
+
+PUBLIC void
+free_co_arrays(void){
+
+  if(backward_compat_compound){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
+}
+
+
+/*--------------------------------------------------------------------------*/
+
+PUBLIC void
+export_cofold_arrays_gq(int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **fc_p,
+                        int **ggg_p,
+                        int **indx_p,
+                        char **ptype_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  wrap_array_export(f5_p, c_p, fML_p, fM1_p, fc_p, indx_p, ptype_p);
+  if(backward_compat_compound){
+    *ggg_p = backward_compat_compound->matrices->ggg;
+  }
+}
+
+PUBLIC void
+export_cofold_arrays( int **f5_p,
+                      int **c_p,
+                      int **fML_p,
+                      int **fM1_p,
+                      int **fc_p,
+                      int **indx_p,
+                      char **ptype_p){
+
+  wrap_array_export(f5_p, c_p, fML_p, fM1_p, fc_p, indx_p, ptype_p);
+}
+
+PUBLIC float
+cofold( const char *string,
+        char *structure){
+
+  return wrap_cofold(string, structure, NULL, fold_constrained);
+}
+
+PUBLIC float
+cofold_par( const char *string,
+            char *structure,
+            paramT *parameters,
+            int is_constrained){
+
+  return wrap_cofold(string, structure, parameters, is_constrained);
+}
+
+PUBLIC SOLUTION *
+zukersubopt(const char *string) {
+
+  return wrap_zukersubopt(string, NULL);
+}
+
+PUBLIC SOLUTION *
+zukersubopt_par(const char *string,
+                paramT *parameters){
+
+  return wrap_zukersubopt(string, parameters);
+}
+

@@ -79,7 +79,9 @@
  *
  *  \ingroup mfe_fold
  *
- *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \deprecated use vrna_fold() instead
+ *
+ *  \see vrna_fold(), fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
  *  \param structure      A pointer to the character array where the
@@ -91,14 +93,55 @@
  *
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-float fold_par( const char *sequence,
-                char *structure,
-                paramT *parameters,
-                int is_constrained,
-                int is_circular);
+DEPRECATED(float 
+fold_par( const char *sequence,
+          char *structure,
+          paramT *parameters,
+          int is_constrained,
+          int is_circular));
 
-float vrna_fold(vrna_fold_compound *vc,
-                char *structure);
+/**
+ *  \brief Compute minimum free energy and an appropriate secondary
+ *  structure of an RNA sequence
+ * 
+ *  The first parameter given, the RNA sequence, must be \a uppercase and should only contain
+ *  an alphabet \f$\Sigma\f$ that is understood by the RNAlib\n
+ *  (e.g. \f$ \Sigma = \{A,U,C,G\} \f$)\n
+ *
+ *  The second parameter, \a structure, must always point to an allocated
+ *  block of memory with a size of at least \f$\mathrm{strlen}(\mathrm{sequence})+1\f$
+ *
+ *  If the third parameter is NULL, global model detail settings are assumed for the folding
+ *  recursions. Otherwise, the provided parameters are used.
+ *
+ *  The fourth parameter indicates whether a secondary structure constraint in enhanced dot-bracket
+ *  notation is passed through the structure parameter or not. If so, the characters " | x < > " are
+ *  recognized to mark bases that are paired, unpaired, paired upstream, or downstream, respectively.
+ *  Matching brackets " ( ) " denote base pairs, dots "." are used for unconstrained bases.
+ *
+ *  To indicate that the RNA sequence is circular and thus has to be post-processed, set the last
+ *  parameter to non-zero
+ *
+ *  After a successful call of fold_par(), a backtracked secondary structure (in dot-bracket notation)
+ *  that exhibits the minimum of free energy will be written to the memory \a structure is pointing to.
+ *  The function returns the minimum of free energy for any fold of the sequence given.
+ *
+ *  \note OpenMP: Passing NULL to the 'parameters' argument involves access to several global model
+ *        detail variables and thus is not to be considered threadsafe
+ *
+ *  \ingroup mfe_fold
+ *
+ *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *
+ *  \param vc             fold compound
+ *  \param structure      A pointer to the character array where the
+ *                        secondary structure in dot-bracket notation will be written to
+ *
+ *  \return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_fold(vrna_fold_compound *vc,
+          char *structure);
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
@@ -111,6 +154,8 @@ float vrna_fold(vrna_fold_compound *vc,
  *
  *  \ingroup mfe_fold
  *
+ *  \deprecated use vrna_fold() instead
+ *
  *  \see fold_par(), circfold()
  *
  *  \param sequence RNA sequence
@@ -118,8 +163,9 @@ float vrna_fold(vrna_fold_compound *vc,
  *         secondary structure in dot-bracket notation will be written to
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-float fold( const char *sequence,
-            char *structure);
+DEPRECATED(float 
+fold( const char *sequence,
+      char *structure));
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
@@ -139,8 +185,9 @@ float fold( const char *sequence,
  *         secondary structure in dot-bracket notation will be written to
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-float circfold( const char *sequence,
-                char *structure);
+DEPRECATED(float 
+circfold( const char *sequence,
+          char *structure));
 
 
 /**
@@ -149,7 +196,7 @@ float circfold( const char *sequence,
  *  \ingroup mfe_fold
  *
  */
-void  free_arrays(void);
+DEPRECATED(void free_arrays(void));
 
 
 /**
@@ -157,9 +204,22 @@ void  free_arrays(void);
  * 
  *  \note This function is threadsafe
  */
-void  parenthesis_structure(char *structure,
+void
+vrna_parenthesis_structure( char *structure,
                             bondT *bp,
                             int length);
+
+/**
+ *  \brief Create a dot-backet/parenthesis structure from backtracking stack
+ *
+ *  \deprecated use vrna_parenthesis_structure() instead
+ * 
+ *  \note This function is threadsafe
+ */
+DEPRECATED(void 
+parenthesis_structure(char *structure,
+                      bondT *bp,
+                      int length));
 
 /**
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -167,31 +227,64 @@ void  parenthesis_structure(char *structure,
  * 
  *  \note This function is threadsafe
  */
-void parenthesis_zuker( char *structure,
+void
+vrna_parenthesis_zuker( char *structure,
                         bondT *bp,
                         int length);
 
-void letter_structure(char *structure,
+/**
+ *  \brief Create a dot-backet/parenthesis structure from backtracking stack
+ *  obtained by zuker suboptimal calculation in cofold.c
+ * 
+ *  \deprecated use vrna_parenthesis_zuker instead
+ * 
+ *  \note This function is threadsafe
+ */
+DEPRECATED(void 
+parenthesis_zuker(char *structure,
+                  bondT *bp,
+                  int length));
+
+
+void
+vrna_letter_structure(char *structure,
                       bondT *bp,
                       int length);
+
+DEPRECATED(void 
+letter_structure( char *structure,
+                  bondT *bp,
+                  int length));
 
 
 /**
  *  \brief Recalculate energy parameters
+ *
+ *  \deprecated use vrna_update_fold_params() instead
  *
  *  \ingroup mfe_fold
  */
 void  update_fold_params(void);
 
 /**
+ *  \brief Recalculate energy parameters
+ *
+ *  \deprecated use vrna_update_fold_params() instead
  *
  *  \ingroup mfe_fold
  * 
  */
-void update_fold_params_par(paramT *parameters);
+DEPRECATED(void 
+update_fold_params_par(paramT *parameters));
 
-void vrna_update_fold_params( paramT *parameters,
-                              vrna_fold_compound *vc);
+/**
+ *
+ *  \ingroup mfe_fold
+ * 
+ */
+void
+vrna_update_fold_params(paramT *parameters,
+                        vrna_fold_compound *vc);
 
 /**
  *
@@ -202,7 +295,8 @@ char  *backtrack_fold_from_pair(char *sequence,
                                 int i,
                                 int j);
 
-plist *vrna_backtrack_from_intervals(bondT *bp_stack,
+plist *
+vrna_backtrack_from_intervals(bondT *bp_stack,
                               sect bt_stack[],
                               int s,
                               vrna_fold_compound *vc);
@@ -212,32 +306,53 @@ plist *vrna_backtrack_from_intervals(bondT *bp_stack,
  *  \ingroup mfe_fold
  * 
  */
-void export_fold_arrays(int **f5_p,
+DEPRECATED(void 
+export_fold_arrays( int **f5_p,
+                    int **c_p,
+                    int **fML_p,
+                    int **fM1_p,
+                    int **indx_p,
+                    char **ptype_p));
+
+/**
+ *
+ *  \ingroup mfe_fold
+ * 
+ */
+DEPRECATED(void 
+export_fold_arrays_par( int **f5_p,
                         int **c_p,
                         int **fML_p,
                         int **fM1_p,
                         int **indx_p,
-                        char **ptype_p);
+                        char **ptype_p,
+                        paramT **P_p));
 
 /**
  *
  *  \ingroup mfe_fold
  * 
  */
-void export_fold_arrays_par(int **f5_p,
-                            int **c_p,
-                            int **fML_p,
-                            int **fM1_p,
-                            int **indx_p,
-                            char **ptype_p,
-                            paramT **P_p);
+DEPRECATED(void 
+export_circfold_arrays( int *Fc_p,
+                        int *FcH_p,
+                        int *FcI_p,
+                        int *FcM_p,
+                        int **fM2_p,
+                        int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **indx_p,
+                        char **ptype_p));
 
 /**
  *
  *  \ingroup mfe_fold
  * 
  */
-void export_circfold_arrays(int *Fc_p,
+DEPRECATED(void 
+export_circfold_arrays_par( int *Fc_p,
                             int *FcH_p,
                             int *FcI_p,
                             int *FcM_p,
@@ -247,25 +362,8 @@ void export_circfold_arrays(int *Fc_p,
                             int **fML_p,
                             int **fM1_p,
                             int **indx_p,
-                            char **ptype_p);
-
-/**
- *
- *  \ingroup mfe_fold
- * 
- */
-void export_circfold_arrays_par(int *Fc_p,
-                                int *FcH_p,
-                                int *FcI_p,
-                                int *FcM_p,
-                                int **fM2_p,
-                                int **f5_p,
-                                int **c_p,
-                                int **fML_p,
-                                int **fM1_p,
-                                int **indx_p,
-                                char **ptype_p,
-                                paramT **P_p);
+                            char **ptype_p,
+                            paramT **P_p));
 
 
 /**

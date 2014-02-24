@@ -63,6 +63,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+
 PRIVATE int   fill_arrays(vrna_fold_compound *vc);
 PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
 PRIVATE plist *backtrack(bondT *bp_stack, sect bt_stack[], int s, vrna_fold_compound *vc);
@@ -73,6 +74,10 @@ int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
 int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
 int HairpinE(int size, int type, int si1, int sj1, const char *string);
 
+/* wrappers for old API compatibility */
+PRIVATE float wrap_fold( const char *string, char *structure, paramT *parameters, int is_constrained, int is_circular);
+PRIVATE void  wrap_array_export(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
+PRIVATE void  wrap_array_export_circ( int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p);
 
 /*
 #################################
@@ -80,21 +85,13 @@ int HairpinE(int size, int type, int si1, int sj1, const char *string);
 #################################
 */
 
-PUBLIC void
-free_arrays(void){
-  if(backward_compat_compound){
-    destroy_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
-  }
-}
-
-PUBLIC void
-export_fold_arrays( int **f5_p,
-                    int **c_p,
-                    int **fML_p,
-                    int **fM1_p,
-                    int **indx_p,
-                    char **ptype_p){
+PRIVATE void
+wrap_array_export(int **f5_p,
+                  int **c_p,
+                  int **fML_p,
+                  int **fM1_p,
+                  int **indx_p,
+                  char **ptype_p){
 
   /* make the DP arrays available to routines such as subopt() */
   if(backward_compat_compound){
@@ -107,36 +104,14 @@ export_fold_arrays( int **f5_p,
   }
 }
 
-PUBLIC void
-export_fold_arrays_par( int **f5_p,
-                        int **c_p,
-                        int **fML_p,
-                        int **fM1_p,
-                        int **indx_p,
-                        char **ptype_p,
-                        paramT **P_p){
-
-  export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p,ptype_p);
-
-  if(backward_compat_compound)
-    *P_p  = backward_compat_compound->params;
-}
-
-PUBLIC void
-export_circfold_arrays( int *Fc_p,
+PRIVATE void
+wrap_array_export_circ( int *Fc_p,
                         int *FcH_p,
                         int *FcI_p,
                         int *FcM_p,
-                        int **fM2_p,
-                        int **f5_p,
-                        int **c_p,
-                        int **fML_p,
-                        int **fM1_p,
-                        int **indx_p,
-                        char **ptype_p){
+                        int **fM2_p){
 
   /* make the DP arrays available to routines such as subopt() */
-  export_fold_arrays(f5_p, c_p, fML_p, fM1_p, indx_p, ptype_p);
   if(backward_compat_compound){
     *Fc_p   = backward_compat_compound->matrices->Fc;
     *FcH_p  = backward_compat_compound->matrices->FcH;
@@ -146,51 +121,8 @@ export_circfold_arrays( int *Fc_p,
   }
 }
 
-PUBLIC void
-export_circfold_arrays_par( int *Fc_p,
-                            int *FcH_p,
-                            int *FcI_p,
-                            int *FcM_p,
-                            int **fM2_p,
-                            int **f5_p,
-                            int **c_p,
-                            int **fML_p,
-                            int **fM1_p,
-                            int **indx_p,
-                            char **ptype_p,
-                            paramT **P_p){
-
-  export_circfold_arrays( Fc_p,
-                          FcH_p,
-                          FcI_p,
-                          FcM_p,
-                          fM2_p,
-                          f5_p,
-                          c_p,
-                          fML_p,
-                          fM1_p,
-                          indx_p,
-                          ptype_p);
-  if(backward_compat_compound)
-    *P_p  = backward_compat_compound->params;
-}
-
-PUBLIC float
-fold( const char *string,
-      char *structure){
-
-  return fold_par(string, structure, NULL, fold_constrained, 0);
-}
-
-PUBLIC float
-circfold( const char *string,
-          char *structure){
-
-  return fold_par(string, structure, NULL, fold_constrained, 1);
-}
-
-PUBLIC float
-fold_par( const char *string,
+PRIVATE float
+wrap_fold( const char *string,
           char *structure,
           paramT *parameters,
           int is_constrained,
@@ -277,7 +209,7 @@ vrna_fold(vrna_fold_compound *vc,
 
   backtrack(bp, bt_stack, s, vc);
 
-  parenthesis_structure(structure, bp, length);
+  vrna_parenthesis_structure(structure, bp, length);
 
   /*
   *  Backward compatibility:
@@ -1073,7 +1005,7 @@ backtrack_fold_from_pair( char *sequence,
   bp[0].i = 0; /* ??? this is set by backtrack anyway... */
 
   backtrack(bp, bt_stack, 1, backward_compat_compound);
-  parenthesis_structure(structure, bp, length);
+  vrna_parenthesis_structure(structure, bp, length);
 
   /* backward compatibitlity stuff */
   if(base_pair) free(base_pair);
@@ -1085,9 +1017,9 @@ backtrack_fold_from_pair( char *sequence,
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void
-letter_structure( char *structure,
-                  bondT *bp,
-                  int length){
+vrna_letter_structure(char *structure,
+                      bondT *bp,
+                      int length){
 
   int   n, k, x, y;
   char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -1119,9 +1051,9 @@ letter_structure( char *structure,
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void
-parenthesis_structure(char *structure,
-                      bondT *bp,
-                      int length){
+vrna_parenthesis_structure( char *structure,
+                            bondT *bp,
+                            int length){
 
   int n, k;
 
@@ -1140,9 +1072,9 @@ parenthesis_structure(char *structure,
 }
 
 PUBLIC void
-parenthesis_zuker(char *structure,
-                  bondT *bp,
-                  int length){
+vrna_parenthesis_zuker( char *structure,
+                        bondT *bp,
+                        int length){
 
   int k, i, j, temp;
 
@@ -1168,18 +1100,6 @@ parenthesis_zuker(char *structure,
 
 
 /*---------------------------------------------------------------------------*/
-
-PUBLIC void
-update_fold_params(void){
-
-  update_fold_params_par(NULL);
-}
-
-PUBLIC void
-update_fold_params_par(paramT *parameters){
-
-  vrna_update_fold_params(parameters, backward_compat_compound);
-}
 
 PUBLIC  void
 vrna_update_fold_params(paramT *parameters,
@@ -1251,6 +1171,141 @@ assign_plist_from_db( plist **pl,
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
+
+PUBLIC void
+free_arrays(void){
+  if(backward_compat_compound){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
+}
+
+PUBLIC float
+fold_par( const char *string,
+          char *structure,
+          paramT *parameters,
+          int is_constrained,
+          int is_circular){
+
+  return wrap_fold(string, structure, parameters, is_constrained, is_circular);
+
+}
+
+PUBLIC float
+fold( const char *string,
+      char *structure){
+
+  return wrap_fold(string, structure, NULL, fold_constrained, 0);
+}
+
+PUBLIC float
+circfold( const char *string,
+          char *structure){
+
+  return wrap_fold(string, structure, NULL, fold_constrained, 1);
+}
+
+PUBLIC void
+initialize_fold(int length){
+
+  /* DO NOTHING */
+}
+
+PUBLIC void
+parenthesis_structure(char *structure,
+                      bondT *bp,
+                      int length){
+
+  return vrna_parenthesis_structure(structure, bp, length);
+}
+
+PUBLIC void
+letter_structure( char *structure,
+                  bondT *bp,
+                  int length){
+
+  vrna_letter_structure(structure, bp, length);
+}
+
+PUBLIC void
+parenthesis_zuker(char *structure,
+                  bondT *bp,
+                  int length){
+
+  return vrna_parenthesis_zuker(structure, bp, length);
+}
+
+PUBLIC void
+update_fold_params(void){
+
+  vrna_update_fold_params(NULL, backward_compat_compound);
+}
+
+PUBLIC void
+update_fold_params_par(paramT *parameters){
+
+  vrna_update_fold_params(parameters, backward_compat_compound);
+}
+
+PUBLIC void
+export_fold_arrays( int **f5_p,
+                    int **c_p,
+                    int **fML_p,
+                    int **fM1_p,
+                    int **indx_p,
+                    char **ptype_p){
+
+  wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
+}
+
+PUBLIC void
+export_fold_arrays_par( int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **indx_p,
+                        char **ptype_p,
+                        paramT **P_p){
+
+  wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
+  if(backward_compat_compound) *P_p  = backward_compat_compound->params;
+}
+
+PUBLIC void
+export_circfold_arrays( int *Fc_p,
+                        int *FcH_p,
+                        int *FcI_p,
+                        int *FcM_p,
+                        int **fM2_p,
+                        int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **indx_p,
+                        char **ptype_p){
+
+  wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
+  wrap_array_export_circ(Fc_p,FcH_p,FcI_p,FcM_p,fM2_p);
+}
+
+PUBLIC void
+export_circfold_arrays_par( int *Fc_p,
+                            int *FcH_p,
+                            int *FcI_p,
+                            int *FcM_p,
+                            int **fM2_p,
+                            int **f5_p,
+                            int **c_p,
+                            int **fML_p,
+                            int **fM1_p,
+                            int **indx_p,
+                            char **ptype_p,
+                            paramT **P_p){
+
+  wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
+  wrap_array_export_circ(Fc_p,FcH_p,FcI_p,FcM_p,fM2_p);
+  if(backward_compat_compound) *P_p  = backward_compat_compound->params;
+}
 
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
 #define NEW_NINIO         1       /* new asymetry penalty */
@@ -1405,9 +1460,5 @@ PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
     }
   }
   return energy;
-}
-
-PUBLIC void initialize_fold(int length){
-  /* DO NOTHING */
 }
 

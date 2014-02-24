@@ -126,7 +126,7 @@ vrna_TwoDpfold_destroy_vars(TwoDpfold_vars *vars);
  *
  * \param vars   the datastructure to be free'd
  */
-DEPRECATED(void
+DEPRECATED(void 
 destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
 
 /**

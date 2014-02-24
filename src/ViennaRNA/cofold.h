@@ -58,36 +58,64 @@
  * 
  *  \ingroup mfe_cofold
  *
+ *  \deprecated use vrna_cofold() instead
+ *
  *  \param    sequence  The two sequences concatenated
  *  \param    structure Will hold the barcket dot structure of the dimer molecule
  *  \return   minimum free energy of the structure
  */
-float cofold( const char *sequence,
-              char *structure);
+DEPRECATED(float 
+cofold( const char *sequence,
+        char *structure));
+
+/**
+ *  \brief Compute the minimum free energy of two interacting RNA molecules
+ *
+ *  \deprecated use vrna_cofold() instead
+ * 
+ */
+DEPRECATED(float 
+cofold_par( const char *string,
+            char *structure,
+            paramT *parameters,
+            int is_constrained));
 
 /**
  *  \brief Compute the minimum free energy of two interacting RNA molecules
  * 
+ *  The code is analog to the vrna_fold() function.
+ * 
+ *  \ingroup mfe_cofold
+ *
+ *  \param    vc  fold compound
+ *  \param    structure Will hold the barcket dot structure of the dimer molecule
+ *  \return   minimum free energy of the structure
  */
-float cofold_par( const char *string,
-                  char *structure,
-                  paramT *parameters,
-                  int is_constrained);
-
 float vrna_cofold(vrna_fold_compound *vc,
                   char *structure);
 
 /**
  *  \brief Free memory occupied by cofold()
+ *
+ *  \deprecated This function will only free memory allocated by a prior call of cofold() or cofold_par().
+ *  See vrna_cofold() for how to use the new API
+ *
+ *  \note folding matrices now reside in the fold compound, and should be free'd there
+ *  \see  vrna_fc_destroy(), vrna_cofold()
  */
-void      free_co_arrays(void);
+DEPRECATED(void free_co_arrays(void));
 
 /**
  *  \brief Recalculate parameters
  */
-void      update_cofold_params(void);
+void
+update_cofold_params(void);
 
-void      update_cofold_params_par(paramT *parameters);
+/**
+ *  \brief Recalculate parameters
+ */
+void
+update_cofold_params_par(paramT *parameters);
 
 
 /**
@@ -95,6 +123,11 @@ void      update_cofold_params_par(paramT *parameters);
  * 
  *  Export the cofold arrays for use e.g. in the concentration
  *  Computations or suboptimal secondary structure backtracking
+ *
+ *  \deprecated folding matrices now reside within the fold compound. Thus, this function will
+ *  only work in conjunction with a prior call to cofold() or cofold_par()
+ *
+ *  \see vrna_cofold() for the new API
  *
  *  \param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  \param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
@@ -105,20 +138,26 @@ void      update_cofold_params_par(paramT *parameters);
  *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-void export_cofold_arrays_gq( int **f5_p,
-                              int **c_p,
-                              int **fML_p,
-                              int **fM1_p,
-                              int **fc_p,
-                              int **ggg_p,
-                              int **indx_p,
-                              char **ptype_p);
+DEPRECATED(void 
+export_cofold_arrays_gq(int **f5_p,
+                        int **c_p,
+                        int **fML_p,
+                        int **fM1_p,
+                        int **fc_p,
+                        int **ggg_p,
+                        int **indx_p,
+                        char **ptype_p));
 
 /**
  *  \brief Export the arrays of partition function cofold
  * 
  *  Export the cofold arrays for use e.g. in the concentration
  *  Computations or suboptimal secondary structure backtracking
+ *
+ *  \deprecated folding matrices now reside within the fold compound. Thus, this function will
+ *  only work in conjunction with a prior call to cofold() or cofold_par()
+ *
+ *  \see vrna_cofold() for the new API
  *
  *  \param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  \param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
@@ -128,13 +167,14 @@ void export_cofold_arrays_gq( int **f5_p,
  *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-void export_cofold_arrays(int **f5_p,
-                          int **c_p,
-                          int **fML_p,
-                          int **fM1_p,
-                          int **fc_p,
-                          int **indx_p,
-                          char **ptype_p);
+DEPRECATED(void 
+export_cofold_arrays( int **f5_p,
+                      int **c_p,
+                      int **fML_p,
+                      int **fM1_p,
+                      int **fc_p,
+                      int **indx_p,
+                      char **ptype_p));
 
 
 /**
@@ -150,21 +190,40 @@ void export_cofold_arrays(int **f5_p,
  *
  *  \ingroup subopt_zuker
  *
+ *  \deprecated use vrna_zukersubopt() instead
+ *
  *  \param  string  RNA sequence
  *  \return         List of zuker suboptimal structures
  */
-SOLUTION  *zukersubopt(const char *string);
+DEPRECATED(SOLUTION  *
+zukersubopt(const char *string));
 
 /**
  *  \brief Compute Zuker type suboptimal structures
  *
  *  \ingroup subopt_zuker
  *
+ *  \deprecated use vrna_zukersubopt() instead
+ *
  */
-SOLUTION  *zukersubopt_par( const char *string,
-                            paramT *parameters);
+DEPRECATED(SOLUTION  *
+zukersubopt_par(const char *string,
+                paramT *parameters));
 
-SOLUTION *vrna_zukersubopt(vrna_fold_compound *vc);
+/**
+ *  \brief Compute Zuker type suboptimal structures
+ *
+ *  Compute Suboptimal structures according to M. Zuker, i.e. for every 
+ *  possible base pair the minimum energy structure containing the resp. base pair. 
+ *  Returns a list of these structures and their energies.
+ *
+ *  \ingroup subopt_zuker
+ *
+ *  \param  vc  fold compound
+ *  \return     List of zuker suboptimal structures
+ */
+SOLUTION *
+vrna_zukersubopt(vrna_fold_compound *vc);
 
 /**
  *  \brief get_monomer_free_energies
