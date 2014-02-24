@@ -113,7 +113,12 @@ INLINE  PRIVATE void  prepareArray(
 #################################
 */
 
-PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *structure1, char *structure2, int circ){
+PUBLIC TwoDpfold_vars *
+vrna_TwoDpfold_get_vars(const char *seq,
+                        const char *structure1,
+                        char *structure2,
+                        int circ){
+
   unsigned int    size, length;
   int *index;
   TwoDpfold_vars  *vars;
@@ -220,7 +225,9 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables(const char *seq, const char *stru
   return vars;
 }
 
-PUBLIC TwoDpfold_vars *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars){
+PUBLIC TwoDpfold_vars *
+vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
+
   unsigned int i, j, size, length;
   int cnt1, ij, jij;
   TwoDpfold_vars *vars;
@@ -501,7 +508,9 @@ PUBLIC TwoDpfold_vars *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars)
   return vars;
 }
 
-PUBLIC void destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
+PUBLIC void
+vrna_TwoDpfold_destroy_vars(TwoDpfold_vars *vars){
+
   unsigned int i, j, ij;
   int cnt1;
   if(vars == NULL) return;
@@ -784,7 +793,11 @@ PRIVATE void initialize_TwoDpfold_vars(TwoDpfold_vars *vars){
   make_pair_matrix();
 }
 
-TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int distance2){
+PUBLIC TwoDpfold_solution *
+vrna_TwoDpfold(TwoDpfold_vars *vars,
+              int distance1,
+              int distance2){
+
   unsigned int  maxD1 = 0, maxD2 = 0, counter = 0;
   int           cnt1, cnt2, k_min, k_max, l_min, l_max, ndx;
   FLT_OR_DBL    q = 0.;
@@ -803,7 +816,7 @@ TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int dista
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "TwoDpfoldList@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
+              "vrna_TwoDpfold@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -812,7 +825,7 @@ TwoDpfold_solution *TwoDpfoldList(TwoDpfold_vars *vars, int distance1, int dista
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "TwoDpfoldList@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
+              "vrna_TwoDpfold@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -2453,11 +2466,20 @@ PRIVATE void scale_pf_params2(TwoDpfold_vars *vars)
 * ###################################################
 */
 
-PUBLIC char *TwoDpfold_pbacktrack(TwoDpfold_vars *vars, int d1, int d2){
-  return TwoDpfold_pbacktrack5(vars, d1, d2, vars->seq_length);
+PUBLIC char *
+vrna_TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
+                          int d1,
+                          int d2){
+
+  return vrna_TwoDpfold_pbacktrack5(vars, d1, d2, vars->seq_length);
 }
 
-PUBLIC char *TwoDpfold_pbacktrack5(TwoDpfold_vars *vars, int d1, int d2, unsigned int length){
+PUBLIC char *
+vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
+                      int d1,
+                      int d2,
+                      unsigned int length){
+
   char            *pstruc, *ptype;
   short           *S1;
   unsigned int    i, j, n, start, maxD1, maxD2, da, db,
@@ -4485,5 +4507,56 @@ INLINE PRIVATE  void  prepareArray(FLT_OR_DBL ***array, int min_k, int max_k, in
     (*array)[i] = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
     (*array)[i] -= min_l[i]/2;
   }
+}
+
+/*
+#################################
+# DEPRECATED FUNCTIONS BELOW    #
+#################################
+*/
+PUBLIC char *
+TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
+                      int d1,
+                      int d2){
+
+  return vrna_TwoDpfold_pbacktrack5(vars, d1, d2, vars->seq_length);
+}
+
+PUBLIC char *
+TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
+                      int d1,
+                      int d2,
+                      unsigned int length){
+
+  return vrna_TwoDpfold_pbacktrack5(vars, d1, d2, length);
+}
+
+PUBLIC TwoDpfold_vars *
+get_TwoDpfold_variables(const char *seq,
+                        const char *structure1,
+                        char *structure2,
+                        int circ){
+
+  return vrna_TwoDpfold_get_vars(seq, structure1, structure2, circ);
+}
+
+PUBLIC TwoDpfold_vars *
+get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars){
+
+  return vrna_TwoDpfold_get_vars_from_MFE(mfe_vars);
+}
+
+PUBLIC void
+destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
+
+  return vrna_TwoDpfold_destroy_vars(vars);
+}
+
+TwoDpfold_solution *
+TwoDpfoldList(TwoDpfold_vars *vars,
+              int distance1,
+              int distance2){
+
+  return vrna_TwoDpfold(vars, distance1, distance2);
 }
 
