@@ -66,13 +66,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 PRIVATE int   fill_arrays(vrna_fold_compound *vc);
 PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
-PRIVATE plist *backtrack(bondT *bp_stack, sect bt_stack[], int s, vrna_fold_compound *vc);
-
-/* deprecated functions */
-/*@unused@*/
-int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2);
-int LoopEnergy(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1);
-int HairpinE(int size, int type, int si1, int sj1, const char *string);
+PRIVATE plist *backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
 
 /* wrappers for old API compatibility */
 PRIVATE float wrap_fold( const char *string, char *structure, paramT *parameters, int is_constrained, int is_circular);
@@ -207,7 +201,7 @@ vrna_fold(vrna_fold_compound *vc,
 
   bp = (bondT *)space(sizeof(bondT) * (1 + length/2 + 200)); /* add a guess of how many G's may be involved in a G quadruplex */
 
-  backtrack(bp, bt_stack, s, vc);
+  backtrack(vc, bp, bt_stack, s);
 
   vrna_parenthesis_structure(structure, bp, length);
 
@@ -404,12 +398,12 @@ fill_arrays(vrna_fold_compound *vc){
 
 
 PUBLIC plist *
-vrna_backtrack_from_intervals(bondT *bp_stack,
+vrna_backtrack_from_intervals(vrna_fold_compound *vc,
+                              bondT *bp_stack,
                               sect bt_stack[],
-                              int s,
-                              vrna_fold_compound *vc){
+                              int s){
 
-  return backtrack(bp_stack, bt_stack, s, vc);
+  return backtrack(vc, bp_stack, bt_stack, s);
 } 
 
 /**
@@ -421,10 +415,10 @@ vrna_backtrack_from_intervals(bondT *bp_stack,
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
 PRIVATE plist *
-backtrack(bondT *bp_stack,
+backtrack(vrna_fold_compound *vc,
+          bondT *bp_stack,
           sect bt_stack[],
-          int s,
-          vrna_fold_compound *vc){
+          int s){
 
   int   i, j, ij, k, mm3, length, energy, en, new;
   int   no_close, type, type_2, tt, minq, maxq, c0, c1, c2, c3;
@@ -782,7 +776,6 @@ backtrack(bondT *bp_stack,
           if (no_close||(type_2==3)||(type_2==4))
             if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-        /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
         energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                             S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
 
@@ -1004,7 +997,7 @@ backtrack_fold_from_pair( char *sequence,
 
   bp[0].i = 0; /* ??? this is set by backtrack anyway... */
 
-  backtrack(bp, bt_stack, 1, backward_compat_compound);
+  backtrack(backward_compat_compound, bp, bt_stack, 1);
   vrna_parenthesis_structure(structure, bp, length);
 
   /* backward compatibitlity stuff */
@@ -1102,8 +1095,8 @@ vrna_parenthesis_zuker( char *structure,
 /*---------------------------------------------------------------------------*/
 
 PUBLIC  void
-vrna_update_fold_params(paramT *parameters,
-                        vrna_fold_compound *vc){
+vrna_update_fold_params(vrna_fold_compound *vc,
+                        paramT *parameters){
 
   if(vc){
     if(vc->params)
@@ -1238,13 +1231,13 @@ parenthesis_zuker(char *structure,
 PUBLIC void
 update_fold_params(void){
 
-  vrna_update_fold_params(NULL, backward_compat_compound);
+  vrna_update_fold_params(backward_compat_compound, NULL);
 }
 
 PUBLIC void
 update_fold_params_par(paramT *parameters){
 
-  vrna_update_fold_params(parameters, backward_compat_compound);
+  vrna_update_fold_params(backward_compat_compound, parameters);
 }
 
 PUBLIC void

@@ -283,8 +283,8 @@ update_fold_params_par(paramT *parameters));
  * 
  */
 void
-vrna_update_fold_params(paramT *parameters,
-                        vrna_fold_compound *vc);
+vrna_update_fold_params(vrna_fold_compound *vc,
+                        paramT *parameters);
 
 /**
  *
@@ -296,10 +296,10 @@ char  *backtrack_fold_from_pair(char *sequence,
                                 int j);
 
 plist *
-vrna_backtrack_from_intervals(bondT *bp_stack,
+vrna_backtrack_from_intervals(vrna_fold_compound *vc,
+                              bondT *bp_stack,
                               sect bt_stack[],
-                              int s,
-                              vrna_fold_compound *vc);
+                              int s);
 
 /**
  *

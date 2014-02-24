@@ -1353,13 +1353,13 @@ free_end( int *array,
 PUBLIC void
 update_cofold_params(void){
 
-  update_cofold_params_par(NULL);
+  vrna_update_fold_params(backward_compat_compound, NULL);
 }
 
 PUBLIC void
 update_cofold_params_par(paramT *parameters){
 
-  vrna_update_fold_params(parameters, backward_compat_compound);
+  vrna_update_fold_params(backward_compat_compound, parameters);
 }
 
 PUBLIC void get_monomere_mfes(float *e1, float *e2) {
