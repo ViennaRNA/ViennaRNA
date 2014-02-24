@@ -37,7 +37,6 @@
 #include <omp.h>
 #endif
 
-#define PAREN
 #define STACK_BULGE1  1     /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1     /* new asymetry penalty */
 #define MAXSECTORS    500   /* dimension for a backtrack array */
@@ -279,11 +278,7 @@ alifold(const char **strings,
 
   backtrack((const char **)strings, 0);
 
-#ifdef PAREN
-  parenthesis_structure(structure, base_pair2, length);
-#else
-  letter_structure(structure, base_pair2, length);
-#endif
+  vrna_parenthesis_structure(structure, base_pair2, length);
 
   /*
   *  Backward compatibility:

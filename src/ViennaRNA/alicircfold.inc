@@ -162,11 +162,7 @@ float circalifold(const char **strings, char *structure) {
   }
   backtrack(strings, s);
 
-#ifdef PAREN
-  parenthesis_structure(structure, base_pair2, length);
-#else
-  letter_structure(structure, base_pair2, length);
-#endif
+  vrna_parenthesis_structure(structure, base_pair2, length);
 
   /*
   *  Backward compatibility:
