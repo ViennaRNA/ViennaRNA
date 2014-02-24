@@ -820,6 +820,26 @@ PUBLIC int *make_loop_index_pt(short *pt){
   return (loop);
 }
 
+PUBLIC char *
+vrna_pt_to_db(short *pt){
+
+  int i;
+  char *dotbracket = NULL;
+  if(pt){
+    dotbracket = (char *)space((pt[0]+1)*sizeof(char));
+
+    for(i=1; i<=pt[0]; i++)
+      dotbracket[i-1] = '.';
+      if(pt[i] > i){
+        dotbracket[i-1] = '(';
+        dotbracket[pt[i]-1] = ')';
+      }
+
+    dotbracket[i-1] = '\0';
+  }
+  return dotbracket;
+}
+
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int bp_distance(const char *str1, const char *str2)
