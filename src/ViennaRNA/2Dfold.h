@@ -161,7 +161,7 @@ get_TwoDfold_variables( const char *seq,
  * 
  *  \param our_variables  A pointer to the datastructure to be destroyed
  */
-DEPRECATED(void
+DEPRECATED(void 
 destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
 
 /**
