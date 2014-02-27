@@ -44,23 +44,20 @@ hc_cant_pair( unsigned int i,
               char *hc,
               unsigned int length,
               unsigned int min_loop_size,
-              int *index,
-              unsigned int idx_type);
+              int *index);
 
 PRIVATE INLINE  void
 hc_must_pair( unsigned int i,
               char c_option,
               char *hc,
-              int *index,
-              unsigned int idx_type);
+              int *index);
 
 PRIVATE INLINE  void
 hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
                   unsigned int min_loop_size,
-                  int *index,
-                  unsigned int idx_type);
+                  int *index);
 
 PRIVATE INLINE  void
 hc_pairs_downstream(unsigned int i,
@@ -68,16 +65,14 @@ hc_pairs_downstream(unsigned int i,
                     char *hc,
                     unsigned int length,
                     unsigned int min_loop_size,
-                    int *index,
-                    unsigned int idx_type);
+                    int *index);
 
 PRIVATE INLINE  void
 hc_allow_pair(unsigned int i,
               unsigned int j,
               char c_option,
               char *hc,
-              int *index,
-              unsigned int idx_type);
+              int *index);
 
 PRIVATE INLINE  void
 hc_weak_enforce_pair( unsigned int i,
@@ -86,8 +81,7 @@ hc_weak_enforce_pair( unsigned int i,
                       char *hc,
                       unsigned int length,
                       unsigned int min_loop_size,
-                      int *index,
-                      unsigned int idx_type);
+                      int *index);
 
 PRIVATE INLINE  void
 hc_enforce_pair(unsigned int i,
@@ -96,8 +90,7 @@ hc_enforce_pair(unsigned int i,
                 char *hc,
                 unsigned int length,
                 unsigned int min_loop_size,
-                int *index,
-                unsigned int idx_type);
+                int *index);
 
 PRIVATE INLINE  void
 hc_intramolecular_only( unsigned int i,
@@ -106,8 +99,7 @@ hc_intramolecular_only( unsigned int i,
                         unsigned int length,
                         unsigned int min_loop_size,
                         int cut,
-                        int *index,
-                        unsigned int idx_type);
+                        int *index);
 
 PRIVATE INLINE  void
 hc_intermolecular_only( unsigned int i,
@@ -116,14 +108,13 @@ hc_intermolecular_only( unsigned int i,
                         unsigned int length,
                         unsigned int min_loop_size,
                         int cut,
-                        int *index,
-                        unsigned int idx_type);
+                        int *index);
 
 PRIVATE INLINE  void
 adjust_ptypes(char *ptype,
               hard_constraintT *hc,
               unsigned int length,
-              unsigned int idx_type);
+              unsigned int indx_type);
 
 PRIVATE void
 apply_DB_constraint(const char *constraint,
@@ -178,8 +169,7 @@ constrain_ptypes( const char *constraint,
                     | VRNA_CONSTRAINT_DOT
                     | VRNA_CONSTRAINT_X
                     | VRNA_CONSTRAINT_ANG_BRACK
-                    | VRNA_CONSTRAINT_RND_BRACK
-                    | ((idx_type) ? VRNA_CONSTRAINT_IINDX : (unsigned int)0));
+                    | VRNA_CONSTRAINT_RND_BRACK);
 }
 
 PRIVATE void
@@ -195,14 +185,12 @@ apply_DB_constraint(const char *constraint,
   char type;
   int *index;
   char c_option;
-  unsigned int idx_type;
 
   if(constraint == NULL) return;
 
   n         = (int)strlen(constraint);
   stack     = (int *) space(sizeof(int)*(n+1));
-  idx_type  = options & VRNA_CONSTRAINT_IINDX;
-  index     = (idx_type) ? get_iindx(length) : get_indx(length);
+  index     = get_indx(length);
   c_option  =   IN_EXT_LOOP
               | IN_HP_LOOP
               | IN_INT_LOOP
@@ -214,13 +202,13 @@ apply_DB_constraint(const char *constraint,
     switch (constraint[j-1]) {
        /* can't pair */
        case 'x':  if(options & VRNA_CONSTRAINT_X){
-                    hc_cant_pair(j, c_option, hc, length, min_loop_size, index, idx_type);
+                    hc_cant_pair(j, c_option, hc, length, min_loop_size, index);
                   }
                   break;
 
       /* must pair, i.e. may not be unpaired */
       case '|':   if(options & VRNA_CONSTRAINT_PIPE){
-                    hc_must_pair(j, c_option, hc, index, idx_type);
+                    hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
@@ -237,31 +225,31 @@ apply_DB_constraint(const char *constraint,
                       nrerror("unbalanced brackets in constraints");
                     }
                     i = stack[--hx];
-                    hc_weak_enforce_pair(i, j, c_option, hc, length, min_loop_size, index, idx_type);
+                    hc_weak_enforce_pair(i, j, c_option, hc, length, min_loop_size, index);
                   }
                   break;
 
       /* pairs upstream */
       case '<':   if(options & VRNA_CONSTRAINT_ANG_BRACK){
-                    hc_pairs_upstream(j, c_option, hc, min_loop_size, index, idx_type);
+                    hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
                   }
                   break;
 
       /* pairs downstream */
       case '>':   if(options & VRNA_CONSTRAINT_ANG_BRACK){
-                    hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index, idx_type);
+                    hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
                   }
                   break;
 
       /* only intramolecular basepairing */
       case 'l':   if(options & VRNA_CONSTRAINT_INTRAMOLECULAR){
-                    hc_intramolecular_only(j, c_option, hc, length, min_loop_size, cut, index, idx_type);
+                    hc_intramolecular_only(j, c_option, hc, length, min_loop_size, cut, index);
                   }
                   break;
 
       /* only intermolecular bp */
       case 'e':   if(options & VRNA_CONSTRAINT_INTERMOLECULAR){
-                    hc_intermolecular_only(j, c_option, hc, length, min_loop_size, cut, index, idx_type);
+                    hc_intermolecular_only(j, c_option, hc, length, min_loop_size, cut, index);
                   }
                   break;
 
@@ -288,27 +276,17 @@ hc_intramolecular_only( unsigned int i,
                         unsigned int length,
                         unsigned int min_loop_size,
                         int cut,
-                        int *index,
-                        unsigned int idx_type){
+                        int *index){
 
   unsigned int l;
 
   if(cut > 1){
-    if(idx_type){
-      if(i < cut)
-        for(l = MAX2(i+min_loop_size, cut); l <= length; l++)
-          hc[index[i] - l] &= ~c_option;
-      else
-        for(l = 1; l < MIN2(cut, i-min_loop_size); l++)
-          hc[index[l] - i] &= ~c_option;
-    } else {
-      if(i < cut)
-        for(l = MAX2(i+min_loop_size, cut); l <= length; l++)
-          hc[index[l] + i] &= ~c_option;
-      else
-        for(l = 1; l < MIN2(cut, i-min_loop_size); l++)
-          hc[index[i] + l] &= ~c_option;
-    }
+    if(i < cut)
+      for(l = MAX2(i+min_loop_size, cut); l <= length; l++)
+        hc[index[l] + i] &= ~c_option;
+    else
+      for(l = 1; l < MIN2(cut, i-min_loop_size); l++)
+        hc[index[i] + l] &= ~c_option;
   }
 }
 
@@ -319,36 +297,21 @@ hc_intermolecular_only( unsigned int i,
                         unsigned int length,
                         unsigned int min_loop_size,
                         int cut,
-                        int *index,
-                        unsigned int idx_type){
+                        int *index){
 
   unsigned int l;
 
   if(cut > 1){
-    if(idx_type){
-      if(i < cut){
-        for(l = 1; l < i; l++)
-          hc[index[l] - i] &= ~c_option;
-        for(l = i + 1; l < cut; l++)
-          hc[index[i] - l] &= ~c_option;
-      } else {
-        for(l = cut; l < i; l++)
-          hc[index[l] - i] &= ~c_option;
-        for(l = i + 1; l <= length; l++)
-          hc[index[i] - l] &= ~c_option;
-      }
+    if(i < cut){
+      for(l = 1; l < i; l++)
+        hc[index[i] + l] &= ~c_option;
+      for(l = i + 1; l < cut; l++)
+        hc[index[l] + i] &= ~c_option;
     } else {
-      if(i < cut){
-        for(l = 1; l < i; l++)
-          hc[index[i] + l] &= ~c_option;
-        for(l = i + 1; l < cut; l++)
-          hc[index[l] + i] &= ~c_option;
-      } else {
-        for(l = cut; l < i; l++)
-          hc[index[i] + l] &= ~c_option;
-        for(l = i + 1; l <= length; l++)
-          hc[index[l] + i] &= ~c_option;
-      }
+      for(l = cut; l < i; l++)
+        hc[index[i] + l] &= ~c_option;
+      for(l = i + 1; l <= length; l++)
+        hc[index[l] + i] &= ~c_option;
     }
   }
 }
@@ -359,25 +322,19 @@ hc_cant_pair( unsigned int i,
               char *hc,
               unsigned int length,
               unsigned int min_loop_size,
-              int *index,
-              unsigned int idx_type){
+              int *index){
 
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index, idx_type);
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index, idx_type);
+  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
+  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
 }
 
 PRIVATE INLINE  void
 hc_must_pair( unsigned int i,
               char c_option,
               char *hc,
-              int *index,
-              unsigned int idx_type){
+              int *index){
 
-  if(idx_type){
-    hc[index[i]-i] &= ~c_option;
-  } else {
-    hc[index[i]+i] &= ~c_option;
-  }
+  hc[index[i]+i] &= ~c_option;
 }
 
 PRIVATE INLINE  void
@@ -385,20 +342,13 @@ hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
                   unsigned int min_loop_size,
-                  int *index,
-                  unsigned int idx_type){
+                  int *index){
 
   unsigned int l;
 
   if(min_loop_size < i){
-    if(idx_type){
-      for(l = 1; l < i - min_loop_size; l++){
-        hc[index[l] - i] &= ~c_option;
-      }
-    } else {
-      for(l = 1; l < i - min_loop_size; l++){
-        hc[index[i] + l] &= ~c_option;
-      }
+    for(l = 1; l < i - min_loop_size; l++){
+      hc[index[i] + l] &= ~c_option;
     }
   }
 }
@@ -409,19 +359,12 @@ hc_pairs_downstream(unsigned int i,
                     char *hc,
                     unsigned int length,
                     unsigned int min_loop_size,
-                    int *index,
-                    unsigned int idx_type){
+                    int *index){
 
   unsigned int l;
 
-  if(idx_type){
-    for(l = i + min_loop_size + 1; l <= length; l++){
-      hc[index[i] - l] &= ~c_option;
-    }
-  } else {
-    for(l = i + min_loop_size + 1; l <= length; l++){
-      hc[index[l] + i] &= ~c_option;
-    }
+  for(l = i + min_loop_size + 1; l <= length; l++){
+    hc[index[l] + i] &= ~c_option;
   }
 }
 
@@ -430,14 +373,9 @@ hc_allow_pair(unsigned int i,
               unsigned int j,
               char c_option,
               char *hc,
-              int *index,
-              unsigned int idx_type){
+              int *index){
 
-  if(idx_type){
-    hc[index[i] - j] |= c_option;
-  } else {
-    hc[index[j] + i] |= c_option;
-  }
+  hc[index[j] + i] |= c_option;
 }
 
 PRIVATE INLINE  void
@@ -447,45 +385,31 @@ hc_weak_enforce_pair( unsigned int i,
                       char *hc,
                       unsigned int length,
                       unsigned int min_loop_size,
-                      int *index,
-                      unsigned int idx_type){
+                      int *index){
 
   unsigned int k, l;
 
   /* don't allow pairs (k,i) 1 <= k < i */
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index, idx_type);
+  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
   /* don't allow pairs (i,k) i < k <= n */ 
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index, idx_type);
+  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
   /* don't allow pairs (k,j) 1 <= k < j */
-  hc_pairs_upstream(j, c_option, hc, min_loop_size, index, idx_type);
+  hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
   /* don't allow pairs (j,k) j < k <= n */ 
-  hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index, idx_type);
+  hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
 
-  if(idx_type){
-    /* don't allow pairs i < k < j < l */
-    for(k = i+1; k < j; k++)
-      for(l = j+1; l <= length; l++)
-        hc[index[k] - l] = 0;
-    /* don't allow pairs k<i<l<j */
-    for(k = 1; k < i; k++)
-      for(l = i+1; l < j; l++)
-        hc[index[k] - l] = 0;
-    /* allow base pair (i,j) */
-    hc[index[i] - j] |= c_option;
-  } else {
-    /* don't allow pairs i < k < j < l */
-    for(k = i+1; k < j; k++)
-      for(l = j+1; l <= length; l++){
-        hc[index[l] + k] = 0;
-      }
-    /* don't allow pairs k<i<l<j */
-    for(k = 1; k < i; k++)
-      for(l = i+1; l < j; l++){
-        hc[index[l] + k] = 0;
-      }
-    /* allow base pair (i,j) */
-    hc[index[j] + i] |= c_option;
-  }
+  /* don't allow pairs i < k < j < l */
+  for(k = i+1; k < j; k++)
+    for(l = j+1; l <= length; l++){
+      hc[index[l] + k] = 0;
+    }
+  /* don't allow pairs k<i<l<j */
+  for(k = 1; k < i; k++)
+    for(l = i+1; l < j; l++){
+      hc[index[l] + k] = 0;
+    }
+  /* allow base pair (i,j) */
+  hc[index[j] + i] |= c_option;
 }
 
 PRIVATE INLINE  void
@@ -495,8 +419,7 @@ hc_enforce_pair(unsigned int i,
                 char *hc,
                 unsigned int length,
                 unsigned int min_loop_size,
-                int *index,
-                unsigned int idx_type){
+                int *index){
 
   hc_weak_enforce_pair( i,
                         j,
@@ -504,18 +427,11 @@ hc_enforce_pair(unsigned int i,
                         hc,
                         length,
                         min_loop_size,
-                        index,
-                        idx_type);
+                        index);
 
-  if(idx_type){
-    /* forbid i and j to be unpaired */
-    hc[index[i] - i] = 0;
-    hc[index[j] - j] = 0;
-  } else {
-    /* forbid i and j to be unpaired */
-    hc[index[i] + i] = 0;
-    hc[index[j] + j] = 0;
-  }
+  /* forbid i and j to be unpaired */
+  hc[index[i] + i] = 0;
+  hc[index[j] + j] = 0;
 }
 
 PUBLIC void
@@ -616,7 +532,7 @@ get_hard_constraints( const char *sequence,
   tmp_sequence  = (options & VRNA_CONSTRAINT_UNGAP) ? get_ungapped_sequence(sequence) : strdup(sequence);
   n             = strlen(tmp_sequence);
   hc            = (hard_constraintT *)space(sizeof(hard_constraintT));
-  idx           = (options & VRNA_CONSTRAINT_IINDX) ? get_iindx(n) : get_indx(n);
+  idx           = get_indx(n);
   S             = get_sequence_encoding(tmp_sequence, 0, md);
   max_span      = md->max_bp_span;
   if((max_span < 5) || (max_span > n))
@@ -633,53 +549,28 @@ get_hard_constraints( const char *sequence,
   /* prefill default values  */
   /* ####################### */
 
-  if(options & VRNA_CONSTRAINT_IINDX){ /* iindx[i]-j */
-    /* 1. unpaired nucleotides are allowed in all contexts */
-    for(i = 1; i <= n; i++)
-      hc->matrix[idx[i] - i]  =   IN_EXT_LOOP
-                                | IN_HP_LOOP
-                                | IN_INT_LOOP
-                                | IN_MB_LOOP;
+  /* 1. unpaired nucleotides are allowed in all contexts */
+  for(i = 1; i <= n; i++)
+    hc->matrix[idx[i] + i]  =   IN_EXT_LOOP
+                              | IN_HP_LOOP
+                              | IN_INT_LOOP
+                              | IN_MB_LOOP;
 
-    /* 2. all canonical base pairs are allowed in all contexts */
-    for(i = 1; i < n; i++){
-      ij = idx[i]-i-min_loop_size-1;
-      for(j=i+min_loop_size+1; j <= n; j++,ij--){
-        if((j-i+1) > max_span)
-          break;
+  /* 2. all canonical base pairs are allowed in all contexts */
+  for(j = n; j > min_loop_size + 1; j--){
+    ij = idx[j]+1;
+    for(i=1; i < j - min_loop_size; i++, ij++)
+      if((j-i+1) > max_span){
+        hc->matrix[ij] = (char)0;
+      } else {
         hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
-                                                | IN_HP_LOOP
-                                                | IN_INT_LOOP
-                                                | IN_MB_LOOP
-                                                | IN_INT_LOOP_ENC
-                                                | IN_MB_LOOP_ENC
-                                              : (char)0;
+                                              | IN_HP_LOOP
+                                              | IN_INT_LOOP
+                                              | IN_MB_LOOP
+                                              | IN_INT_LOOP_ENC
+                                              | IN_MB_LOOP_ENC
+                                            : (char)0;
       }
-    }
-  } else { /* indx[j] + i */
-    /* 1. unpaired nucleotides are allowed in all contexts */
-    for(i = 1; i <= n; i++)
-      hc->matrix[idx[i] + i]  =   IN_EXT_LOOP
-                                | IN_HP_LOOP
-                                | IN_INT_LOOP
-                                | IN_MB_LOOP;
-
-    /* 2. all canonical base pairs are allowed in all contexts */
-    for(j = n; j > min_loop_size + 1; j--){
-      ij = idx[j]+1;
-      for(i=1; i < j - min_loop_size; i++, ij++)
-        if((j-i+1) > max_span){
-          hc->matrix[ij] = (char)0;
-        } else {
-          hc->matrix[ij] = md->pair[S[i]][S[j]] ? IN_EXT_LOOP
-                                                | IN_HP_LOOP
-                                                | IN_INT_LOOP
-                                                | IN_MB_LOOP
-                                                | IN_INT_LOOP_ENC
-                                                | IN_MB_LOOP_ENC
-                                              : (char)0;
-        }
-    }
   }
 
 
@@ -710,37 +601,20 @@ get_hard_constraints( const char *sequence,
   /* do some post processing */
   /* ####################### */
 
-  if(options & VRNA_CONSTRAINT_IINDX){ /* iindx[i]-j */
-    /* compute the number of nucleotides available to be unpaired */
+  /* compute the number of nucleotides available to be unpaired */
 
-    for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
-      hc->up_ext[i] = (hc->matrix[idx[i]-i] & IN_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
+  for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
+    hc->up_ext[i] = (hc->matrix[idx[i]+i] & IN_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
 
-    for(hc->up_hp[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
-      hc->up_hp[i] = (hc->matrix[idx[i]-i] & IN_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
-
-    for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
-      hc->up_int[i] = (hc->matrix[idx[i]-i] & IN_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
-
-    for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
-      hc->up_ml[i] = (hc->matrix[idx[i]-i] & IN_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
-
-  } else { /* indx[j] + i */
-    /* compute the number of nucleotides available to be unpaired */
-
-    for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
-      hc->up_ext[i] = (hc->matrix[idx[i]+i] & IN_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
-
-    for(hc->up_hp[n+1] = 0, i = n; i > 0; i--){  /* unpaired stretch in hairpin loop */
-      hc->up_hp[i] = (hc->matrix[idx[i]+i] & IN_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
-    }
-    for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
-      hc->up_int[i] = (hc->matrix[idx[i]+i] & IN_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
-
-    for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
-      hc->up_ml[i] = (hc->matrix[idx[i]+i] & IN_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
-
+  for(hc->up_hp[n+1] = 0, i = n; i > 0; i--){  /* unpaired stretch in hairpin loop */
+    hc->up_hp[i] = (hc->matrix[idx[i]+i] & IN_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
   }
+  for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
+    hc->up_int[i] = (hc->matrix[idx[i]+i] & IN_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
+
+  for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
+    hc->up_ml[i] = (hc->matrix[idx[i]+i] & IN_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
+
 
   free(tmp_sequence);
   free(idx);
