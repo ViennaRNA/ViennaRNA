@@ -234,8 +234,8 @@ void  update_pf_params(int length);
  */
 void update_pf_params_par(int length, pf_paramT *parameters);
 
-void vrna_update_pf_params( pf_paramT *params,
-                            vrna_fold_compound *vc);
+void vrna_update_pf_params( vrna_fold_compound *vc,
+                            pf_paramT *params);
 
 /**
  *  \brief Get a pointer to the base pair probability array

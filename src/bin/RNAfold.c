@@ -400,7 +400,7 @@ int main(int argc, char *argv[]){
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      vrna_update_pf_params(pf_parameters, vc);
+      vrna_update_pf_params(vc,pf_parameters);
 
 
       /* */
