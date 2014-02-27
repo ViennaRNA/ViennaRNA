@@ -51,6 +51,8 @@
 #################################
 */
 PRIVATE char *tokenize(char *line, int *cut_point);
+PRIVATE void vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
 
 /*
 #################################
@@ -329,9 +331,7 @@ vrna_get_fold_compound( const char *sequence,
 
   if(options & VRNA_OPTION_MFE){
     vc->params    = vrna_get_energy_contributions(md);
-    vc->matrices  = get_mfe_matrices_alloc(vc->length, alloc_vector);
-    if(md.gquad)
-      vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+    vrna_add_mfe_matrices(vc, alloc_vector);
   } else {
     vc->params    = NULL;
     vc->matrices  = NULL;
@@ -340,9 +340,7 @@ vrna_get_fold_compound( const char *sequence,
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params    = vrna_get_boltzmann_factors(md);
-    vc->exp_matrices  = get_pf_matrices_alloc(vc->length, alloc_vector);
-    if(md.gquad)
-      vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+    vrna_add_pf_matrices(vc, alloc_vector);
   } else {
     vc->exp_params    = NULL;
     vc->exp_matrices  = NULL;
@@ -357,6 +355,35 @@ vrna_get_fold_compound( const char *sequence,
   free(seq2);
   return vc;
 }
+
+
+PRIVATE void
+vrna_add_pf_matrices( vrna_fold_compound *vc,
+                      unsigned int alloc_vector){
+
+  if(vc){
+    vc->exp_matrices  = get_pf_matrices_alloc(vc->length, alloc_vector);
+    if(vc->exp_params->model_details.gquad)
+      vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+
+    vrna_update_pf_params(NULL, vc);
+  }
+}
+
+PRIVATE void
+vrna_add_mfe_matrices(vrna_fold_compound *vc,
+                      unsigned int alloc_vector){
+
+  if(vc){
+    vc->matrices = get_mfe_matrices_alloc(vc->length, alloc_vector);
+    if(vc->params->model_details.gquad)
+      vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+
+//    vrna_update_pf_params(NULL, vc);
+  }
+}
+
+
 
 
 

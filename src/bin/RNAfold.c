@@ -400,6 +400,9 @@ int main(int argc, char *argv[]){
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
+      vrna_update_pf_params(pf_parameters, vc);
+
+
       /* */
 
 #if 0 /* test for correctness of soft constraints in base pair prob computation */
@@ -420,21 +423,27 @@ int main(int argc, char *argv[]){
       vc->exp_params = NULL;
 #endif
 
-      if(with_shapes){
+      if(with_shapes)
         add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
-        energy = pf_fold_par_tmp(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular, vc->sc);
 
-        vc->exp_params = NULL;
-        vc->sc = NULL;
+      if(fold_constrained){
+        unsigned int constraint_options = 0;
+        constraint_options |= VRNA_CONSTRAINT_DB
+                              | VRNA_CONSTRAINT_PIPE
+                              | VRNA_CONSTRAINT_DOT
+                              | VRNA_CONSTRAINT_X
+                              | VRNA_CONSTRAINT_ANG_BRACK
+                              | VRNA_CONSTRAINT_RND_BRACK;
+
+        hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, constraint_options | VRNA_CONSTRAINT_IINDX);
+        vc->hc = my_hc;
       } else {
-
-#if 0 /* test for correctness of soft constraints in base pair prob computation */
-        energy = pf_fold_par_tmp(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular, vc->sc);
-        vc->sc = NULL;
-#else
-        energy = pf_fold_par(rec_sequence, pf_struc, pf_parameters, do_backtrack, fold_constrained, circular);
-#endif
+        hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, VRNA_CONSTRAINT_IINDX);
+        vc->ptype               = get_ptypes(vc->sequence_encoding2, &(vc->params->model_details), 1);
+        vc->hc = my_hc;
       }
+
+      energy = vrna_pf_fold(vc, pf_struc);
 
       if(lucky){
         init_rand();
@@ -469,7 +478,8 @@ int main(int argc, char *argv[]){
           plist *pl1,*pl2;
           char *cent;
           double dist, cent_en;
-          FLT_OR_DBL *probs = export_bppm();
+//          FLT_OR_DBL *probs = export_bppm();
+          FLT_OR_DBL *probs = vc->exp_matrices->probs;
 
           if(gquad)
             assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
@@ -530,7 +540,7 @@ int main(int argc, char *argv[]){
           printf("ensemble diversity %-6.2f", mean_bp_distance(length));
         printf("\n");
       }
-      free_pf_arrays();
+//      free_pf_arrays();
       free(pf_parameters);
     }
     (void) fflush(stdout);

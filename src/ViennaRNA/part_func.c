@@ -60,6 +60,16 @@ PRIVATE void  backtrack_qm(int i, int j, char *pstruc, vrna_fold_compound *vc);
 PRIVATE void  backtrack_qm1(int i,int j, char *pstruc, vrna_fold_compound *vc);
 PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound *vc);
 
+PRIVATE float
+wrap_pf_fold( const char *sequence,
+              char *structure,
+              pf_paramT *parameters,
+              int calculate_bppm,
+              int is_constrained,
+              int is_circular,
+              soft_constraintT *sc_p);
+
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -67,52 +77,14 @@ PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound *vc);
 */
 
 
-/**
-*** Allocate memory for all matrices and other stuff
-**/
-PUBLIC void
-free_pf_arrays(void){
-
-  if(backward_compat_compound){
-    destroy_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
-  }
-}
-
-/*-----------------------------------------------------------------*/
-PUBLIC float
-pf_fold(const char *sequence,
-        char *structure){
-
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 0);
-}
-
-PUBLIC float
-pf_circ_fold( const char *sequence,
-              char *structure){
-
-  return pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained, 1);
-}
-
-PUBLIC float
-pf_fold_par(const char *sequence,
-            char *structure,
-            pf_paramT *parameters,
-            int calculate_bppm,
-            int is_constrained,
-            int is_circular){
-
-  return pf_fold_par_tmp(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular, NULL);
-}
-
-PUBLIC float
-pf_fold_par_tmp(const char *sequence,
-            char *structure,
-            pf_paramT *parameters,
-            int calculate_bppm,
-            int is_constrained,
-            int is_circular,
-            soft_constraintT *sc_p){
+PRIVATE float
+wrap_pf_fold( const char *sequence,
+              char *structure,
+              pf_paramT *parameters,
+              int calculate_bppm,
+              int is_constrained,
+              int is_circular,
+              soft_constraintT *sc_p){
 
   FLT_OR_DBL  Q;
   double      free_energy;
@@ -237,7 +209,8 @@ vrna_pf_fold( vrna_fold_compound *vc,
     fprintf(stderr, "pf_scale too large\n");
   free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
   /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+  if (n>1600)
+    fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
 #ifdef SUN4
   standard_arithmetic();
@@ -1272,7 +1245,14 @@ PUBLIC void
 update_pf_params_par( int length,
                       pf_paramT *parameters){
 
-  vrna_update_pf_params(parameters, backward_compat_compound);
+  pf_paramT *p = NULL;
+  if(parameters == NULL){
+    model_detailsT md;
+    set_model_details(&md);
+    p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  }
+  vrna_update_pf_params(p, backward_compat_compound);
+  free(p);
 }
 
 PUBLIC void
@@ -1280,14 +1260,28 @@ vrna_update_pf_params(pf_paramT *params,
                       vrna_fold_compound *vc){
 
   if(vc){
-    if(vc->exp_params)
-      free(vc->exp_params);
     if(params){
+      if(vc->exp_params)
+        free(vc->exp_params);
       vc->exp_params = get_boltzmann_factor_copy(params);
-    } else {
-      model_detailsT md;
-      set_model_details(&md);
-      vc->exp_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+    }
+
+    /* fill additional helper arrays for scaling etc. */
+    int i;
+    double scaling_factor = vc->exp_params->pf_scale;
+    if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+      scaling_factor = exp(-(-185+(vc->exp_params->temperature-37.)*7.27)/vc->exp_params->kT);
+      if (scaling_factor<1) scaling_factor=1;
+      vc->exp_params->pf_scale = scaling_factor;
+      pf_scale = vc->exp_params->pf_scale; /* compatibility with RNAup, may be removed sometime */
+    }
+    vc->exp_matrices->scale[0] = 1.;
+    vc->exp_matrices->scale[1] = 1./scaling_factor;
+    vc->exp_matrices->expMLbase[0] = 1;
+    vc->exp_matrices->expMLbase[1] = vc->exp_params->expMLbase/scaling_factor;
+    for (i=2; i<=vc->length; i++) {
+      vc->exp_matrices->scale[i] = vc->exp_matrices->scale[i/2]*vc->exp_matrices->scale[i-(i/2)];
+      vc->exp_matrices->expMLbase[i] = pow(vc->exp_params->expMLbase, (double)i) * vc->exp_matrices->scale[i];
     }
 
     /* what about re-setting the backward compatibility compound here? */
@@ -2510,6 +2504,44 @@ init_pf_circ_fold(int length){
 PUBLIC void
 init_pf_fold(int length){
 /* DO NOTHING */
+}
+
+/**
+*** Allocate memory for all matrices and other stuff
+**/
+PUBLIC void
+free_pf_arrays(void){
+
+  if(backward_compat_compound){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
+}
+
+/*-----------------------------------------------------------------*/
+PUBLIC float
+pf_fold(const char *sequence,
+        char *structure){
+
+  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 0, NULL);
+}
+
+PUBLIC float
+pf_circ_fold( const char *sequence,
+              char *structure){
+
+  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 1, NULL);
+}
+
+PUBLIC float
+pf_fold_par(const char *sequence,
+            char *structure,
+            pf_paramT *parameters,
+            int calculate_bppm,
+            int is_constrained,
+            int is_circular){
+
+  return wrap_pf_fold(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular, NULL);
 }
 
 
