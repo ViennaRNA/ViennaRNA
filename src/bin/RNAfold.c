@@ -426,22 +426,8 @@ int main(int argc, char *argv[]){
       if(with_shapes)
         add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
 
-      if(fold_constrained){
-        unsigned int constraint_options = 0;
-        constraint_options |= VRNA_CONSTRAINT_DB
-                              | VRNA_CONSTRAINT_PIPE
-                              | VRNA_CONSTRAINT_DOT
-                              | VRNA_CONSTRAINT_X
-                              | VRNA_CONSTRAINT_ANG_BRACK
-                              | VRNA_CONSTRAINT_RND_BRACK;
-
-        hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, constraint_options | VRNA_CONSTRAINT_IINDX);
-        vc->hc = my_hc;
-      } else {
-        hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, VRNA_CONSTRAINT_IINDX);
-        vc->ptype               = get_ptypes(vc->sequence_encoding2, &(vc->params->model_details), 1);
-        vc->hc = my_hc;
-      }
+      /* this is a hack for ptypes since we access them differently between mfe and partition function */
+      vc->ptype = get_ptypes(vc->sequence_encoding2, &(vc->params->model_details), 1);
 
       energy = vrna_pf_fold(vc, pf_struc);
 
