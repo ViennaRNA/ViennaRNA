@@ -366,7 +366,7 @@ vrna_add_pf_matrices( vrna_fold_compound *vc,
     if(vc->exp_params->model_details.gquad)
       vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
 
-    vrna_update_pf_params(NULL, vc);
+    vrna_update_pf_params(vc, NULL);
   }
 }
 
@@ -379,7 +379,7 @@ vrna_add_mfe_matrices(vrna_fold_compound *vc,
     if(vc->params->model_details.gquad)
       vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
 
-//    vrna_update_pf_params(NULL, vc);
+//    vrna_update_pf_params(vc, NULL);
   }
 }
 

@@ -1251,13 +1251,13 @@ update_pf_params_par( int length,
     set_model_details(&md);
     p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
-  vrna_update_pf_params(p, backward_compat_compound);
+  vrna_update_pf_params(backward_compat_compound, p);
   free(p);
 }
 
 PUBLIC void
-vrna_update_pf_params(pf_paramT *params,
-                      vrna_fold_compound *vc){
+vrna_update_pf_params(vrna_fold_compound *vc,
+                      pf_paramT *params){
 
   if(vc){
     if(params){
