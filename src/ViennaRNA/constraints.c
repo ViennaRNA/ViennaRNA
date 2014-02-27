@@ -670,29 +670,45 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
   while((line=get_line(fp))){
     int r;
     int position;
-    char nucleotide;
-    double reactivity;
+    unsigned char nucleotide = 'N';
+    double reactivity = default_value;
+    char *second_entry = 0;
+    char *third_entry = 0;
+    char *c;
 
-    r = sscanf(line, "%d %c %lf", &position, &nucleotide, &reactivity);
-    if(r > 0){
-      if((position <= 0) || (position > length))
-      {
-        warn_user("Provided SHAPE data outside of sequence scope");
-        fclose(fp);
-        return 0;
-      }
+    if(sscanf(line, "%d", &position) != 1)
+      continue;
 
-      switch(r){
-        case 1:   nucleotide = 'N';
-                  /* fall through */
-        case 2:   reactivity = default_value;
-                  /* fall through */
-        default:  sequence[position-1] = nucleotide;
-                  values[position] = reactivity;
-                  ++count;
-                  break;
+    if(position <= 0 || position > length)
+    {
+      warn_user("Provided SHAPE data outside of sequence scope");
+      fclose(fp);
+      return 0;
+    }
+
+    for(c = line + 1; *c; ++c){
+      if(isspace(*(c-1)) && !isspace(*c)) {
+        if(!second_entry){
+          second_entry = c;
+        }else{
+          third_entry = c;
+          break;
+        }
       }
     }
+
+    if(second_entry){
+      if(third_entry){
+        sscanf(second_entry, "%c", &nucleotide);
+        sscanf(third_entry, "%lf", &reactivity);
+      }else if(sscanf(second_entry, "%lf", &reactivity) != 1)
+        sscanf(second_entry, "%c", &nucleotide);
+    }
+
+    sequence[position-1] = nucleotide;
+    values[position] = reactivity;
+    ++count;
+
     free(line);
   }
 
