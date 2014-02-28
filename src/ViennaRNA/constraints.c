@@ -516,19 +516,27 @@ getConstraint(char **cstruc,
 
 
 
-PUBLIC  hard_constraintT  *
-get_hard_constraints( const char *sequence,
-                      const char *constraint,
-                      model_detailsT  *md,
-                      unsigned int min_loop_size,
-                      unsigned int options){
+PUBLIC  void
+vrna_hc_add(vrna_fold_compound *vc,
+            const char *constraint,
+            unsigned int options){
 
-  unsigned int      i, j, ij, n;
+  unsigned int      i, j, ij, n, min_loop_size;
   int               *idx, max_span;
   hard_constraintT  *hc;
   short             *S;
-  char              *tmp_sequence;
+  char              *tmp_sequence, *sequence;
+  model_detailsT    *md;
 
+  if(vc->params)
+    md = &(vc->params->model_details);
+  else if(vc->exp_params)
+    md = &(vc->exp_params->model_details);
+  else
+    nrerror("constraints.c@vrna_hc_add: fold compound has no params or exp_params");
+
+  sequence      = vc->sequence;
+  min_loop_size = md->min_loop_size;
   tmp_sequence  = (options & VRNA_CONSTRAINT_UNGAP) ? get_ungapped_sequence(sequence) : strdup(sequence);
   n             = strlen(tmp_sequence);
   hc            = (hard_constraintT *)space(sizeof(hard_constraintT));
@@ -620,7 +628,9 @@ get_hard_constraints( const char *sequence,
   free(idx);
   free(S);
 
-  return hc;
+  /* set new hard constraints */
+  free(vc->hc);
+  vc->hc = hc;
 }
 
 PUBLIC void

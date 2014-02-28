@@ -122,16 +122,8 @@ wrap_fold( const char *string,
           int is_constrained,
           int is_circular){
 
-  unsigned int        length;
   vrna_fold_compound  *vc;
-  hard_constraintT    *my_hc;
-  soft_constraintT    *my_sc;
   paramT              *P;
-
-  my_hc   = NULL;
-  my_sc   = NULL;
-  vc      = NULL;
-  length  = (int)strlen(string);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -139,12 +131,22 @@ wrap_fold( const char *string,
 #endif
 
   /* we need the parameter structure for hard constraints */
-  if(parameters)
+  if(parameters){
     P = get_parameter_copy(parameters);
-  else{
+  } else {
     model_detailsT md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
+  }
+  P->model_details.circ = is_circular;
+
+  vc = vrna_get_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
   }
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
@@ -157,26 +159,13 @@ wrap_fold( const char *string,
                           | VRNA_CONSTRAINT_ANG_BRACK
                           | VRNA_CONSTRAINT_RND_BRACK;
 
-    my_hc = get_hard_constraints( string,
-                                  (const char *)structure,
-                                  &(P->model_details),
-                                  TURN,
-                                  constraint_options);
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
-
-  /* no soft constraints available for simple interface */
-  my_sc = NULL;
-
-  /* get compound structure */
-  vc = get_fold_compound_mfe_constrained( string, my_hc, my_sc, P);
 
   if(backward_compat_compound)
     destroy_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
-
-  /* cleanup */
-  free(P);
 
   return vrna_fold(vc, structure);
 }

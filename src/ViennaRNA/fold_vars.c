@@ -105,6 +105,7 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->backtrack_type  = backtrack_type;
     md->energy_set      = energy_set;
     md->max_bp_span     = max_bp_span;
+    md->min_loop_size   = TURN;
     md->oldAliEn        = oldAliEn;
     md->ribo            = ribo;
     md->cv_fact         = cv_fact;

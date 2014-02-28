@@ -363,9 +363,9 @@ void getConstraint( char **cstruc,
                     unsigned int option);
 
 /**
- *  \brief  Get a hard_constraints data structure used in the folding recursions.
+ *  \brief  Add hard constraints to a #vrna_fold_compound data structure
  *
- *  Use this function to obtain a data structure of type #hard_constraintsT that
+ *  Use this function to add a data structure of type #hard_constraintsT that
  *  specifies which decomposition steps are allowed/enforced during the recursions.
  *  The function allows for passing a string 'constraint' that can either be a
  *  filename that points to a hard constraints definition file or it may be a
@@ -375,27 +375,18 @@ void getConstraint( char **cstruc,
  *  to options are passed, no further hard constraints then the ones induced by
  *  canonical base pairing (as supplied with the ptype argument) are applied.
  *
- *  \see      destroy_hard_constraints(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB,
- *            get_ptypes()
+ *  \see      destroy_hard_constraints(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
  *
- *  \pre      The parameter ptype has to be filled prior to a call of this function
- *            since it is used to specify the default decompositions (i.e. canonical
- *            base pairs)
  *  \ingroup  hard_constraints
  *
+ *  \param  vc            The fold compound
  *  \param  constraint    A string with either the filename of the hard constraint definitions
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
- *  \param  n             The length of the sequence
- *  \param  ptype         An upper triangular array that contains the encoded base pair types
- *                        for this sequence
- *  \param  min_loop_size The minimal loop size for hairpin loops (mostly #TURN)
  *  \param  options       The option flags
  */
-hard_constraintT  *get_hard_constraints(  const char *sequence,
-                                          const char *constraint,
-                                          model_detailsT *md,
-                                          unsigned int min_loop_size,
-                                          unsigned int options);
+void vrna_hc_add( vrna_fold_compound *vc,
+                  const char *constraint,
+                  unsigned int options);
 
 /**
  *  \brief  Free the memory allocated by a #hard_constraintT data structure

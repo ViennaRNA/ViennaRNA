@@ -38,8 +38,13 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 
 /*--------------------------------------------------------------------------*/
 
-static void add_shape_constraints(vrna_fold_compound *vc, const char *shape_method, const char *shape_file, int verbose, unsigned int constraint_type)
-{
+static void
+add_shape_constraints(vrna_fold_compound *vc,
+                      const char *shape_method,
+                      const char *shape_file,
+                      int verbose,
+                      unsigned int constraint_type){
+
   float p1, p2;
   char method;
   char *sequence;
@@ -334,13 +339,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-#if 0
-    vrna_fold_compound *vc = get_fold_compound_mfe(rec_sequence, mfe_parameters);
-#endif
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
-
-    if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
     if(fold_constrained){
       unsigned int constraint_options = 0;
@@ -351,16 +350,14 @@ int main(int argc, char *argv[]){
                             | VRNA_CONSTRAINT_ANG_BRACK
                             | VRNA_CONSTRAINT_RND_BRACK;
 
-      hard_constraintT *my_hc = get_hard_constraints(vc->sequence, (const char *)structure, &(vc->params->model_details), TURN, constraint_options);
-      vc->hc = my_hc;
+      vrna_hc_add(vc, (const char *)structure, constraint_options);
     }
-    
+
+    if(with_shapes)
+      add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
+
 
     min_en = vrna_fold(vc, structure);
-    
-/*
-    min_en = fold_par(rec_sequence, structure, mfe_parameters, fold_constrained, circular);
-*/
 
     if(!lucky){
       printf("%s\n%s", orig_sequence, structure);
@@ -397,11 +394,10 @@ int main(int argc, char *argv[]){
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
+      /* rescale exp_params according to mfe computed above */
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
       vrna_update_pf_params(vc,pf_parameters);
 
-
-      /* */
 
 #if 0 /* test for correctness of soft constraints in base pair prob computation */
       vc->exp_params = pf_parameters;
@@ -423,9 +419,6 @@ int main(int argc, char *argv[]){
 
       if(with_shapes)
         add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
-
-      /* this is a hack for ptypes since we access them differently between mfe and partition function */
-      vc->ptype = get_ptypes(vc->sequence_encoding2, &(vc->params->model_details), 1);
 
       energy = vrna_pf_fold(vc, pf_struc);
 

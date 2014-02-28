@@ -86,20 +86,10 @@ wrap_pf_fold( const char *sequence,
               int is_circular,
               soft_constraintT *sc_p){
 
-  FLT_OR_DBL  Q;
-  double      free_energy;
-  unsigned int constraint_options;
-  int         n;
-
   vrna_fold_compound  *vc;
-  hard_constraintT    *my_hc;
-  soft_constraintT    *my_sc;
   pf_paramT           *exp_params;
 
   vc                  = NULL;
-  my_hc               = NULL;
-  my_sc               = NULL;
-  n                   = (int) strlen(sequence);
 
   /* we need pf_paramT datastructure to correctly init default hard constraints */
   if(parameters)
@@ -108,6 +98,17 @@ wrap_pf_fold( const char *sequence,
     model_detailsT md;
     set_model_details(&md); /* get global default parameters */
     exp_params = vrna_get_boltzmann_factors(md);
+  }
+  exp_params->model_details.circ          = is_circular;
+  exp_params->model_details.do_backtrack  = calculate_bppm;
+
+  vc = vrna_get_fold_compound(sequence, &(exp_params->model_details), VRNA_OPTION_PF);
+
+  if(parameters){ /* replace exp_params if necessary */
+    free(vc->exp_params);
+    vc->exp_params = exp_params;
+  } else {
+    free(exp_params);
   }
 
   if(is_constrained && structure){
@@ -119,25 +120,14 @@ wrap_pf_fold( const char *sequence,
                           | VRNA_CONSTRAINT_ANG_BRACK
                           | VRNA_CONSTRAINT_RND_BRACK;
 
-    my_hc = get_hard_constraints( sequence,
-                                  (const char *)structure,
-                                  &(exp_params->model_details),
-                                  TURN,
-                                  constraint_options);
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
-
-  /* no soft constraints available for simple interface */
-  my_sc = sc_p;
-
-  /* get compound structure */
-  vc = get_fold_compound_pf_constrained(sequence, my_hc, my_sc, exp_params);
 
   if(backward_compat_compound)
     destroy_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
-
-  free(exp_params);
+  iindx = backward_compat_compound->iindx;
 
   return vrna_pf_fold(vc, structure);
 }
@@ -324,7 +314,7 @@ pf_linear(vrna_fold_compound *vc){
       /* firstly that given i binds j : qb(i,j) */
       u             = j-i-1;
       ij            = my_iindx[i]-j;
-      type          = ptype[ij];
+      type          = ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
       qbt1  = 0.;
       q_temp = 0.;
@@ -361,7 +351,7 @@ pf_linear(vrna_fold_compound *vc){
             for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
               if(hc_up_int[l+1] < u2) break;
               if(hard_constraints[jindx[l] + k] & IN_INT_LOOP_ENC){
-                type_2 = rtype[ptype[kl]];
+                type_2 = rtype[ptype[jindx[l] + k]];
                 q_temp = qb[kl]
                         * scale[u1+u2+2]
                         * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
@@ -637,7 +627,7 @@ pf_circ(vrna_fold_compound *vc){
       /* 1. get exterior hairpin contribution  */
       u = n-q + p-1;
       if (u<TURN) continue;
-      type = ptype[my_iindx[p]-q];
+      type = ptype[jindx[q] + p];
       if (!type) continue;
        /* cause we want to calc the exterior loops, we need the reversed pair type from now on  */
       type=rtype[type];
@@ -664,7 +654,7 @@ pf_circ(vrna_fold_compound *vc){
 
           if((ln1+ln2) > MAXLOOP) continue;
 
-          type2 = ptype[my_iindx[k]-l];
+          type2 = ptype[jindx[l] + k];
           if(!type2) continue;
           qio += qb[my_iindx[p]-q] * qb[my_iindx[k]-l] * exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l+1], S1[k-1], S1[p-1], S1[q+1], pf_params) * scale[ln1+ln2];
         }
@@ -781,7 +771,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           probs[my_iindx[i]-j] = 0;
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          type = ptype[ij];
+          type = ptype[jindx[j] + i];
           if (type&&(qb[ij]>0.)) {
             probs[ij] = 1./qo;
             int rt = rtype[type];
@@ -807,7 +797,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               if(lstart<k+TURN+1) lstart = k + TURN + 1;
               for(l=lstart; l < i; l++){
                 int ln2, type_2;
-                type_2 = ptype[my_iindx[k]-l];
+                type_2 = ptype[jindx[l] + k];
                 if (type_2==0) continue;
                 ln2 = i - l - 1;
                 if(ln1+ln2>MAXLOOP) continue;
@@ -833,7 +823,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               if(lstart<k+TURN+1) lstart = k + TURN + 1;
               for(l=lstart; l <= n; l++){
                 int ln2, type_2;
-                type_2 = ptype[my_iindx[k]-l];
+                type_2 = ptype[jindx[l] + k];
                 if (type_2==0) continue;
                 ln2 = i - 1 + n - l;
                 if(ln1+ln2>MAXLOOP) continue;
@@ -890,7 +880,7 @@ pf_create_bppm( vrna_fold_compound *vc,
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
           if(hard_constraints[jindx[j] + i] & IN_EXT_LOOP){
-            type      = ptype[ij];
+            type      = ptype[jindx[j] + i];
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
@@ -904,7 +894,7 @@ pf_create_bppm( vrna_fold_compound *vc,
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
         kl      = my_iindx[k]-l;
-        type_2  = ptype[kl];
+        type_2  = ptype[jindx[l] + k];
         type_2  = rtype[type_2];
 
         if (qb[kl]==0.) continue;
@@ -920,7 +910,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 
               ij = my_iindx[i] - j;
               if(hard_constraints[jindx[j] + i] & IN_INT_LOOP){
-                type = ptype[ij];
+                type = ptype[jindx[j] + i];
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
                           * scale[u1 + u2 + 2]
@@ -968,7 +958,7 @@ pf_create_bppm( vrna_fold_compound *vc,
             i = k - 1;
             for(j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--){
               ij = my_iindx[i] - j;
-              type = ptype[ij];
+              type = ptype[jindx[j] + i];
               if(!type) continue;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
@@ -990,7 +980,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               u1 = k - i - 1;
               for (j=l+2; j<=MIN2(l + MAXLOOP - u1 + 1,n); j++) {
                 ij = my_iindx[i] - j;
-                type = ptype[ij];
+                type = ptype[jindx[j] + i];
                 if(!type) continue;
                 qe = (type > 2) ? pf_params->expTermAU : 1.;
                 tmp2 +=   probs[ij]
@@ -1012,7 +1002,7 @@ pf_create_bppm( vrna_fold_compound *vc,
             j = l + 1;
             for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
               ij = my_iindx[i] - j;
-              type = ptype[ij];
+              type = ptype[jindx[j] + i];
               if(!type) continue;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
@@ -1036,7 +1026,8 @@ pf_create_bppm( vrna_fold_compound *vc,
 
           ii = my_iindx[i];     /* ii-j=[i,j]     */
           ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-          tt = ptype[ii-(l+1)];tt=rtype[tt];
+          tt = ptype[jindx[l+1] + i];
+          tt = rtype[tt];
           if(hard_constraints[jindx[l+1] + i] & IN_MB_LOOP){
             if(tt){
               prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
@@ -1059,7 +1050,8 @@ pf_create_bppm( vrna_fold_compound *vc,
           lj = my_iindx[l+1]-(l+1);
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hard_constraints[jindx[j] + i] & IN_MB_LOOP){
-              tt = ptype[ij]; tt = rtype[tt];
+              tt = ptype[jindx[j] + i];
+              tt = rtype[tt];
               if(tt){
                 /* which decomposition is covered here? =>
                   i + 1 = k < l < j:
@@ -1083,7 +1075,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           }
           prmt *= expMLclosing;
 
-          tt = ptype[kl];
+          tt = ptype[jindx[l] + k];
 
           prml[ i] = prmt;
 
@@ -1283,8 +1275,6 @@ vrna_update_pf_params(vrna_fold_compound *vc,
       vc->exp_matrices->expMLbase[i] = pow(vc->exp_params->expMLbase, (double)i) * vc->exp_matrices->scale[i];
     }
 
-    /* what about re-setting the backward compatibility compound here? */
-    backward_compat_compound = vc;
   }
 }
 
@@ -1437,7 +1427,7 @@ vrna_pbacktrack5( int length,
     r = urn() * (qln[i] - q_temp);
     for (qt=0, j=i+1; j<=length; j++) {
       ij            = my_iindx[i]-j;
-      type          = ptype[ij];
+      type          = ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & IN_EXT_LOOP) {
         qkl = qb[ij] * exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
@@ -1540,7 +1530,7 @@ vrna_pbacktrack_circ(vrna_fold_compound *vc){
       u = n-j + i-1;
       if (u<TURN) continue;
 
-      type = ptype[my_iindx[i]-j];
+      type = ptype[jindx[j] + i];
       if (!type) continue;
 
       type=rtype[type];
@@ -1568,7 +1558,7 @@ vrna_pbacktrack_circ(vrna_fold_compound *vc){
             ln2 = (i - 1) + (n - l);
             if((ln1+ln2) > MAXLOOP) continue;
 
-            type2 = ptype[my_iindx[k]-l];
+            type2 = ptype[jindx[l] + k];
             if(!type) continue;
             type2 = rtype[type2];
             qt += qb[my_iindx[i]-j] * qb[my_iindx[k]-l] * exp_E_IntLoop(ln2, ln1, type2, type, S1[l+1], S1[k-1], S1[i-1], S1[j+1], pf_params) * scale[ln1 + ln2];
@@ -1717,7 +1707,7 @@ backtrack_qm1(int i,
   r = urn() * qm1[jindx[j]+i];
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
-    type = ptype[ii-l];
+    type = ptype[jindx[l] + i];
     if (type){
       q_temp =  qb[ii-l]
                 * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params)
@@ -1809,7 +1799,7 @@ backtrack(int i,
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
     r = urn() * qb[my_iindx[i]-j];
-    type = ptype[my_iindx[i]-j];
+    type = ptype[jindx[j] + i];
     u = j-i-1;
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
@@ -1832,7 +1822,7 @@ backtrack(int i,
     for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
       u1 = k-i-1;
       for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-        int type_2 = ptype[my_iindx[k]-l];
+        int type_2 = ptype[jindx[l] + k];
         if (type_2) {
           int u2 = j-l-1;
           type_2 = rtype[type_2];
@@ -2200,6 +2190,7 @@ stackProb(double cutoff){
   pf_params   = backward_compat_compound->exp_params;
   int length  = backward_compat_compound->length;
   int *index  = backward_compat_compound->iindx;
+  int *jindx  = backward_compat_compound->jindx;
   int *rtype  = &(pf_params->model_details.rtype[0]);
 
   ptype       = backward_compat_compound->ptype;
@@ -2216,7 +2207,7 @@ stackProb(double cutoff){
       if((p=probs[index[i]-j]) < cutoff) continue;
       if (qb[index[i+1]-(j-1)]<FLT_MIN) continue;
       p *= qb[index[i+1]-(j-1)]/qb[index[i]-j];
-      p *= exp_E_IntLoop(0,0,ptype[index[i]-j],rtype[ptype[index[i+1]-(j-1)]],
+      p *= exp_E_IntLoop(0,0,ptype[jindx[j]+i],rtype[ptype[jindx[j-1] + i+1]],
                          0,0,0,0, pf_params)*scale[2];/* add *scale[u1+u2+2] */
       if (p>cutoff) {
         pl[num].i     = i;
@@ -2250,7 +2241,7 @@ get_pf_arrays(short **S_p,
       if(backward_compat_compound->exp_matrices->qb){
         *S_p      = backward_compat_compound->sequence_encoding2;
         *S1_p     = backward_compat_compound->sequence_encoding;
-        *ptype_p  = backward_compat_compound->ptype;
+        *ptype_p  = backward_compat_compound->ptype_pf_compat;
         *qb_p     = backward_compat_compound->exp_matrices->qb;
         *qm_p     = backward_compat_compound->exp_matrices->qm;
         *q1k_p    = backward_compat_compound->exp_matrices->q1k;
@@ -2517,6 +2508,7 @@ free_pf_arrays(void){
   if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
+    iindx = NULL;
   }
 }
 

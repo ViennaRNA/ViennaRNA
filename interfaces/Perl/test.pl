@@ -74,7 +74,7 @@ $B/=2e-5;
 ok((abs($AB-0.0)+abs($AA-0.00578)+abs($BB-0.01100)+abs($A-0.48843)+abs($B-0.47801))<0.0001);
 $RNA::cut_point=-1;
 
-# pf_fold
+# pf_fo ld
 my $f = RNA::pf_fold($seq1, $struct);
 ok(($f<$mfe)&&($mfe-$f<0.8));
 
