@@ -115,12 +115,8 @@ wrap_cofold(const char *string,
   unsigned int        length;
   char                *seq;
   vrna_fold_compound  *vc;
-  hard_constraintT    *my_hc;
-  soft_constraintT    *my_sc;
   paramT              *P;
 
-  my_hc   = NULL;
-  my_sc   = NULL;
   vc      = NULL;
   length  = strlen(string);
 
@@ -137,6 +133,31 @@ wrap_cofold(const char *string,
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
+  P->model_details.min_loop_size = TURN;  /* set min loop length to 0 */
+
+  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
+  seq = (char *)space(sizeof(char) * (length + 2));
+  if(cut_point > -1){
+    int i;
+    for(i = 0; i < cut_point-1; i++)
+      seq[i] = string[i];
+    seq[i] = '&';
+    for(;i<(int)length;i++)
+      seq[i+1] = string[i];
+  } else { /* this ensures the allocation of all cofold matrices via vrna_get_fold_compound */
+    seq[0] = '&';
+    strcat(seq + 1, string);
+  }
+
+  /* get compound structure */
+  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
   if(is_constrained && structure){
@@ -150,32 +171,8 @@ wrap_cofold(const char *string,
                           | VRNA_CONSTRAINT_INTRAMOLECULAR
                           | VRNA_CONSTRAINT_INTERMOLECULAR;
 
-    my_hc = get_hard_constraints( string,
-                                  (const char *)structure,
-                                  &(P->model_details),
-                                  TURN,
-                                  constraint_options);
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
-
-  /* no soft constraints available for simple interface */
-  my_sc = NULL;
-
-  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
-  seq = (char *)space(sizeof(char) * (length + 2));
-  if(cut_point > -1){
-    int i;
-    for(i = 0; i < cut_point-1; i++)
-      seq[i] = string[i];
-    seq[i] = '&';
-    for(;i<(int)length;i++)
-      seq[i+1] = string[i];
-  } else { /* this ensures the allocation of all cofold matrices */
-    seq[0] = '&';
-    strcat(seq + 1, string);
-  }
-
-  /* get compound structure */
-  vc = get_fold_compound_mfe_constrained( seq, my_hc, my_sc, P);
 
   if(backward_compat_compound)
     destroy_fold_compound(backward_compat_compound);
@@ -183,7 +180,6 @@ wrap_cofold(const char *string,
   backward_compat_compound = vc;
 
   /* cleanup */
-  free(P);
   free(seq);
 
   return vrna_cofold(vc, structure);
@@ -291,6 +287,7 @@ fill_arrays(vrna_fold_compound  *vc,
   DMLi  = (int *) space(sizeof(int)*(length + 1));
   DMLi1 = (int *) space(sizeof(int)*(length + 1));
   DMLi2 = (int *) space(sizeof(int)*(length + 1));
+
 
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -1420,20 +1417,22 @@ wrap_zukersubopt( const char *string,
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
+  P->model_details.min_loop_size = TURN;  /* set min loop length to 0 */
 
   doubleseq = (char *)space((2*length+2)*sizeof(char));
   strcpy(doubleseq,string);
   doubleseq[length] = '&';
   strcat(doubleseq, string);
 
-  /* no hard constraints available for simple interface */
-  my_hc = NULL;
-
-  /* no soft constraints available for simple interface */
-  my_sc = NULL;
-
   /* get compound structure */
-  vc = get_fold_compound_mfe_constrained( doubleseq, my_hc, my_sc, P);
+  vc = vrna_get_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
 
   if(backward_compat_compound)
     destroy_fold_compound(backward_compat_compound);
@@ -1441,7 +1440,6 @@ wrap_zukersubopt( const char *string,
   backward_compat_compound = vc;
 
   /* cleanup */
-  free(P);
   free(doubleseq);
 
   return vrna_zukersubopt(vc);

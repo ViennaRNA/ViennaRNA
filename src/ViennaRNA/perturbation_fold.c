@@ -120,8 +120,7 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
 
   for (i = 1; i <= length; ++i)
   {
-    unsigned int constraint_options = VRNA_CONSTRAINT_IINDX
-                                      | VRNA_CONSTRAINT_DB
+    unsigned int constraint_options = VRNA_CONSTRAINT_DB
                                       | VRNA_CONSTRAINT_PIPE
                                       | VRNA_CONSTRAINT_DOT
                                       | VRNA_CONSTRAINT_X
@@ -131,7 +130,7 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
     memset(hc_string, '.', length);
     hc_string[i - 1] = 'x';
 
-    vc->hc = get_hard_constraints(vc->sequence, hc_string, &(vc->exp_params->model_details), TURN, constraint_options);
+    vrna_hc_add(vc, hc_string, constraint_options);
     vrna_pf_fold(vc, NULL);
     calculate_probability_unpaired(vc, conditional_prob_unpaired[i]);
 

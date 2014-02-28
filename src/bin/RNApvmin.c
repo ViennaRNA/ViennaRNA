@@ -117,7 +117,6 @@ int main(int argc, char *argv[]){
   if(parse_soft_constraints_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
   {
     double *epsilon;
-    pf_paramT *pf_parameters;
     vrna_fold_compound *vc;
     size_t i;
 
@@ -126,11 +125,10 @@ int main(int argc, char *argv[]){
       shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
 
     epsilon = space(sizeof(double) * (length + 1));
-    pf_parameters = vrna_get_boltzmann_factors(md);
-    vc = get_fold_compound_pf_constrained(rec_sequence, NULL, NULL, pf_parameters);
+    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
 
     vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
-    free(pf_parameters);
+
     destroy_fold_compound(vc);
 
     print_perturbation_vector(stdout, epsilon);

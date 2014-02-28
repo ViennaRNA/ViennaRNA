@@ -48,7 +48,8 @@ PRIVATE int BP_pair[NBASES][NBASES]=
  { 0, 6, 0, 0, 5, 0, 0, 0}};
 
 
-PRIVATE int get_char_encoding(char c, model_detailsT *md);
+PRIVATE int   get_char_encoding(char c, model_detailsT *md);
+PRIVATE char  *wrap_get_ptypes(const short *S, model_detailsT *md);  /* provides backward compatibility for old ptypes array in pf computations */
 
 /*-------------------------------------------------------------------------*/
 
@@ -1254,50 +1255,65 @@ get_sequence_encoding_gapped( const char *sequence,
   }
 }
 
-PUBLIC  char  *get_ptypes(const short *S,
-                          model_detailsT *md,
-                          unsigned int idx_type){
+
+
+PUBLIC char *
+vrna_get_ptypes(const short *S,
+                model_detailsT *md){
+
+  char *ptype;
+  int n,i,j,k,l,*idx;
+  int min_loop_size = md->min_loop_size;
+
+  n     = S[0];
+  ptype = (char *)space(sizeof(char)*((n*(n+1))/2+2));
+  idx   = get_indx(n);
+
+  for (k=1; k<n-min_loop_size; k++)
+    for (l=1; l<=2; l++) {
+      int type,ntype=0,otype=0;
+      i=k; j = i+min_loop_size+l; if (j>n) continue;
+      type = md->pair[S[i]][S[j]];
+      while ((i>=1)&&(j<=n)) {
+        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
+        if (md->noLP && (!otype) && (!ntype))
+          type = 0; /* i.j can only form isolated pairs */
+        ptype[idx[j]+i] = (char) type;
+        otype =  type;
+        type  = ntype;
+        i--; j++;
+      }
+    }
+  free(idx);
+  return ptype;
+}
+
+PRIVATE char *
+wrap_get_ptypes(const short *S,
+                model_detailsT *md){
 
   char *ptype;
   int n,i,j,k,l,*idx;
 
   n     = S[0];
   ptype = (char *)space(sizeof(char)*((n*(n+1))/2+2));
-  idx   = (idx_type) ? get_iindx(n) : get_indx(n);
+  idx   = get_iindx(n);
 
-  if(idx_type){
-    for (k=1; k<n-TURN; k++)
-      for (l=1; l<=2; l++) {
-        int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l; if (j>n) continue;
-        type = md->pair[S[i]][S[j]];
-        while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-          if (md->noLP && (!otype) && (!ntype))
-            type = 0; /* i.j can only form isolated pairs */
-          ptype[idx[i]-j] = (char) type;
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
+  for (k=1; k<n-TURN; k++)
+    for (l=1; l<=2; l++) {
+      int type,ntype=0,otype=0;
+      i=k; j = i+TURN+l; if (j>n) continue;
+      type = md->pair[S[i]][S[j]];
+      while ((i>=1)&&(j<=n)) {
+        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
+        if (md->noLP && (!otype) && (!ntype))
+          type = 0; /* i.j can only form isolated pairs */
+        ptype[idx[i]-j] = (char) type;
+        otype =  type;
+        type  = ntype;
+        i--; j++;
       }
-  } else {
-    for (k=1; k<n-TURN; k++)
-      for (l=1; l<=2; l++) {
-        int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l; if (j>n) continue;
-        type = md->pair[S[i]][S[j]];
-        while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-          if (md->noLP && (!otype) && (!ntype))
-            type = 0; /* i.j can only form isolated pairs */
-          ptype[idx[j]+i] = (char) type;
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
-      }
-  }
+    }
   free(idx);
   return ptype;
 }
@@ -1403,3 +1419,19 @@ get_pscores(const short *const* S,
   free(indx);
   return pscore;
 }
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC char *
+get_ptypes( const short *S,
+            model_detailsT *md,
+            unsigned int idx_type){
+
+  if(idx_type)
+    return wrap_get_ptypes(S, md);
+  else
+    return vrna_get_ptypes(S, md);
+}
+

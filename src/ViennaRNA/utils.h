@@ -10,6 +10,12 @@
 
 #include <ViennaRNA/data_structures.h>
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
 /**
  *  Output flag of \ref get_input_line():  "An ERROR has occured, maybe EOF"
  */
@@ -604,9 +610,21 @@ void  get_sequence_encoding_gapped( const char *sequence,
                                     unsigned short **as,
                                     model_detailsT *md);
 
-char  *get_ptypes(const short *S,
+
+/**
+ *  \brief Get an array of the numerical encoding for each possible base pair (i,j)
+ *
+ *  \note This array is always indexed via jindx, in contrast to previously
+ *  different indexing between mfe and pf variants!
+ *  \see  get_indx(), vrna_get_ptypes(), #vrna_fold_compound
+ *
+ */
+char  *vrna_get_ptypes( const short *S,
+                        model_detailsT *md);
+
+DEPRECATED(char  *get_ptypes(const short *S,
                   model_detailsT *md,
-                  unsigned int idx_type);
+                  unsigned int idx_type));
 
 int   *get_pscores( const short *const* S,
                     const char **AS,

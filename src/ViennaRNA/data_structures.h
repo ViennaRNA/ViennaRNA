@@ -58,18 +58,10 @@
 #define ALLOC_UNIQ        4096
 
 
-#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML | ALLOC_AUX)
-#define ALLOC_MFE_UNIQ_ML         (ALLOC_MFE_DEFAULT | ALLOC_FM1)
-#define ALLOC_MFE_CIRC            (ALLOC_MFE_UNIQ_ML | ALLOC_FM2)
-#define ALLOC_MFE_HYBRID          (ALLOC_MFE_DEFAULT | ALLOC_FC)
-#define ALLOC_MFE_HYBRID_UNIQ_ML  (ALLOC_MFE_HYBRID | ALLOC_FM1)
+#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
 
 #define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
 #define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
-#define ALLOC_PF_UNIQ_ML          (ALLOC_PF_DEFAULT | ALLOC_FM1)
-#define ALLOC_PF_CIRC             (ALLOC_PF_UNIQ_ML | ALLOC_FM2)
-#define ALLOC_PF_HYBRID           (ALLOC_PF_DEFAULT | ALLOC_FC)
-#define ALLOC_PF_HYBRID_UNIQ_ML   (ALLOC_PF_HYBRID | ALLOC_FM1)
 
 
 /* the definitions below should be used for functions the return/receive/destroy fold compound data structures */
@@ -215,6 +207,12 @@ typedef struct{
   char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
   int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
+
+  int     min_loop_size;    /**<  \brief  Minimum size of hairpin loops
+                              
+                                  \note The default value for this field is #TURN, however, it may
+                                  be 0 in cofolding context.
+                            */
 
   int     oldAliEn;         /**<  \brief  Use old alifold energy model */
   int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
@@ -411,11 +409,24 @@ typedef struct {
 typedef struct{
 
   unsigned int length;
-  int   cutpoint;
+  int   cutpoint;               /**<  \brief  The position of the (cofold) cutpoint within the provided sequence.
+                                      If there is no cutpoint, this field will be set to -1
+                                */
   char  *sequence;
   short *sequence_encoding;
   short *sequence_encoding2;
-  char  *ptype;
+  char  *ptype;                 /**<  \brief Pair type array
+                                      
+                                      Contains the numerical encoding of the pair type for each pair (i,j) used
+                                      in MFE, Partition function and Evaluation computations.
+                                      \note This array is always indexed via jindx, in contrast to previously
+                                      different indexing between mfe and pf variants!
+                                      \see  get_indx(), vrna_get_ptypes()
+                                */
+  char  *ptype_pf_compat;       /**<  \brief  ptype array indexed via iindx
+                                      \deprecated  This attribute will vanish in the future!
+                                      It's meant for backward compatibility only!
+                                */
 
   hard_constraintT  *hc;
   soft_constraintT  *sc;
@@ -1044,21 +1055,6 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
 
 void destroy_fold_compound(vrna_fold_compound *vc);
 
-/* MFE stuff */
-
-vrna_fold_compound *get_fold_compound_mfe(const char *sequence, paramT *P);
-
-vrna_fold_compound *get_fold_compound_mfe_constrained(const char *sequence,
-                                                      hard_constraintT *hc,
-                                                      soft_constraintT *sc,
-                                                      paramT *P);
-
-/* partition function stuff */
-
-vrna_fold_compound *get_fold_compound_pf_constrained( const char *sequence,
-                                                      hard_constraintT *hc,
-                                                      soft_constraintT *sc,
-                                                      pf_paramT *P);
 
 /*
 * ############################################################
