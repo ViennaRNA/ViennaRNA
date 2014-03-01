@@ -101,6 +101,15 @@
  *  \defgroup   dos                       Compute the Density of States
  *  \ingroup    class_fold
  *
+ *  \defgroup   constraints               Constraining the Secondary Structure Recursions
+ *  \ingroup    folding_routines
+ *
+ *  \defgroup   hard_constraints          Hard Constraints
+ *  \ingroup    constraints
+ *
+ *  \defgroup   soft_constraints          Soft Constraints
+ *  \ingroup    constraints
+ *
  *  \defgroup   parse                     Parsing and Comparing - Functions to Manipulate Structures
  */
 

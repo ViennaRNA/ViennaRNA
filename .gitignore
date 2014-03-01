@@ -14,7 +14,7 @@ config.*
 stamp-h1
 
 # ignore document directory and doxygen config
-doxygen.conf
+doc/doxygen.conf
 
 # ignore all tar.gz archives
 *.tar.gz
