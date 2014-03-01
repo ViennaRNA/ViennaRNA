@@ -1,0 +1,9 @@
+# ignore doxygen config
+doxygen.conf
+
+# ignore doxygen output
+html
+latex
+doxygen.warnings
+*.tag
+*.pdf

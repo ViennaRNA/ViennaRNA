@@ -13,16 +13,10 @@ config.*
 .deps
 stamp-h1
 
-# ignore document directory and doxygen config
-doc/doxygen.conf
-
 # ignore all tar.gz archives
 *.tar.gz
 # except the libsvm sources
 !libsvm*.tar.gz
-
-# ignore Fedora RPM spec file
-ViennaRNA.spec
 
 # ignore pkg-config file
 RNAlib2.pc
