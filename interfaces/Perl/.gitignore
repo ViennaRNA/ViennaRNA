@@ -1,10 +1,18 @@
 #ignore all files that are created by autotools
 Makefile.PL
 Makefile.perl.old
+Makefile.perl
 
 # ignore files that are created by SWIG
 RNA.pm
-RNA_wrap.c
+RNA_wrap.*
 RNA.bs
 blib
 pm_to_blib
+MYMETA.*
+
+# ignore make check output
+test_ss.ps
+test_ss_a.ps
+test.coord
+test.par
