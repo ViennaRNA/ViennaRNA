@@ -69,6 +69,9 @@ wrap_pf_fold( const char *sequence,
               int is_circular,
               soft_constraintT *sc_p);
 
+PRIVATE void
+wrap_update_pf_params(int length,
+                      pf_paramT *parameters);
 
 /*
 #################################
@@ -1226,14 +1229,8 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void
-update_pf_params(int length){
-
-  update_pf_params_par(length, NULL);
-}
-
-PUBLIC void
-update_pf_params_par( int length,
+PRIVATE void
+wrap_update_pf_params(int length,
                       pf_paramT *parameters){
 
   pf_paramT *p = NULL;
@@ -1328,23 +1325,14 @@ bppm_to_structure(char *structure,
   p(S) = exp(-E(S)/kT)/Z
 */
 PUBLIC char *
-pbacktrack(char *seq){
+vrna_pbacktrack(vrna_fold_compound *vc){
 
-  int n = (int)strlen(seq);
-  return pbacktrack5(seq, n);
+  return vrna_pbacktrack5(vc, vc->length);
 }
 
 PUBLIC char *
-pbacktrack5(char *seq,
-            int length){
-
-  /* the seq parameter must no differ to the one stored globally anyway, so we just ignore it */
-  return vrna_pbacktrack5(length, backward_compat_compound);
-}
-
-PUBLIC char *
-vrna_pbacktrack5( int length,
-                  vrna_fold_compound *vc){
+vrna_pbacktrack5( vrna_fold_compound *vc,
+                  int length){
 
   double            r, qt, q_temp, qkl;
   int               i,j,ij, n, k, start, type;
@@ -2032,142 +2020,7 @@ assign_plist_gquad_from_pr( plist **pl,
   free(index);
 }
 
-/* this doesn't work if free_pf_arrays() is called before */
-PUBLIC char *
-get_centroid_struct_gquad_pr( int length,
-                              double *dist){
 
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i,j, k;
-  double p;
-  char  *centroid;
-  short *S;
-  pf_matricesT  *matrices;
-  FLT_OR_DBL    *probs;
-  int           *my_iindx;
-  pf_paramT     *pf_params;
-
-
-  if(!backward_compat_compound){
-    nrerror("get_centroid_struct_gquad_pr: run vrna_pf_fold first!");
-  } else if( !backward_compat_compound->exp_matrices->probs){
-    nrerror("get_centroid_struct_gquad_pr: probs==NULL!");
-  }
-
-  pf_params   = backward_compat_compound->exp_params;
-  S           = backward_compat_compound->sequence_encoding2;
-  my_iindx    = backward_compat_compound->iindx;
-
-  matrices    = backward_compat_compound->exp_matrices;
-  probs       = matrices->probs;
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++) {
-      if ((p=probs[my_iindx[i]-j])>0.5) {
-        /* check for presence of gquadruplex */
-        if((S[i] == 3) && (S[j] == 3)){
-          int L, l[3];
-          get_gquad_pattern_pf(S, i, j, pf_params, &L, l);
-          for(k=0;k<L;k++){
-            centroid[i+k-1]\
-            = centroid[i+k+L+l[0]-1]\
-            = centroid[i+k+2*L+l[0]+l[1]-1]\
-            = centroid[i+k+3*L+l[0]+l[1]+l[2]-1]\
-            = '+';
-          }
-          /* skip everything within the gquad */
-          i = j; j = j+TURN+1;
-          *dist += (1-p); /* right? */
-          break;
-        } else {
-            centroid[i-1] = '(';
-            centroid[j-1] = ')';
-        }
-        *dist += (1-p);
-      } else
-        *dist += p;
-    }
-/* 
-  free(my_iindx);
-*/
-  centroid[length] = '\0';
-  return centroid;
-}
-
-/* this function is a threadsafe replacement for centroid() */
-PUBLIC char *
-get_centroid_struct_pl( int length,
-                        double *dist,
-                        plist *pl){
-
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i;
-  char *centroid;
-
-  if (pl==NULL)
-    nrerror("get_centroid_struct: pl==NULL!");
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=0; pl[i].i>0; i++){
-    if ((pl[i].p)>0.5) {
-      centroid[pl[i].i-1] = '(';
-      centroid[pl[i].j-1] = ')';
-      *dist += (1-pl[i].p);
-    } else
-      *dist += pl[i].p;
-  }
-  centroid[length] = '\0';
-  return centroid;
-}
-
-/* this function is a threadsafe replacement for centroid() */
-PUBLIC char *
-get_centroid_struct_pr( int length,
-                        double *dist,
-                        FLT_OR_DBL *probs){
-
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i,j;
-  double p;
-  char  *centroid;
-  int   *index = get_iindx(length);
-
-  if (probs == NULL)
-    nrerror("get_centroid_struct_pr: probs==NULL!");
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++) {
-      if ((p=probs[index[i]-j])>0.5) {
-        centroid[i-1] = '(';
-        centroid[j-1] = ')';
-        *dist += (1-p);
-      } else
-        *dist += p;
-    }
-  free(index);
-  centroid[length] = '\0';
-  return centroid;
-}
 
 PUBLIC plist *
 stackProb(double cutoff){
@@ -2224,33 +2077,6 @@ stackProb(double cutoff){
   return pl;
 }
 
-/*-------------------------------------------------------------------------*/
-/* make arrays used for pf_fold available to other routines */
-PUBLIC int
-get_pf_arrays(short **S_p,
-              short **S1_p,
-              char **ptype_p,
-              FLT_OR_DBL **qb_p,
-              FLT_OR_DBL **qm_p,
-              FLT_OR_DBL **q1k_p,
-              FLT_OR_DBL **qln_p){
-
-  if(backward_compat_compound){
-    if(backward_compat_compound->exp_matrices)
-      if(backward_compat_compound->exp_matrices->qb){
-        *S_p      = backward_compat_compound->sequence_encoding2;
-        *S1_p     = backward_compat_compound->sequence_encoding;
-        *ptype_p  = backward_compat_compound->ptype_pf_compat;
-        *qb_p     = backward_compat_compound->exp_matrices->qb;
-        *qm_p     = backward_compat_compound->exp_matrices->qm;
-        *q1k_p    = backward_compat_compound->exp_matrices->q1k;
-        *qln_p    = backward_compat_compound->exp_matrices->qln;
-        return 1;
-      }
-  }
-  return 0;
-}
-
 /* get the free energy of a subsequence from the q[] array */
 PUBLIC double
 get_subseq_F( int i,
@@ -2303,16 +2129,6 @@ mean_bp_distance_pr(int length,
   return 2*d;
 }
 
-PUBLIC FLT_OR_DBL *
-export_bppm(void){
-
-  if(backward_compat_compound)
-    if(backward_compat_compound->exp_matrices)
-      if(backward_compat_compound->exp_matrices->probs)
-        return backward_compat_compound->exp_matrices->probs;
-
-  return NULL;
-}
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -2323,35 +2139,10 @@ PUBLIC char *
 centroid( int length,
           double *dist) {
 
-  /* compute the centroid structure of the ensemble, i.e. the strutcure
-     with the minimal average distance to all other structures
-     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
-     Thus, the centroid is simply the structure containing all pairs with
-     p_ij>0.5 */
-  int i,j;
-  double p;
-  char *centroid;
-
   if (pr==NULL)
     nrerror("pr==NULL. You need to call pf_fold() before centroid()");
 
-  int *my_iindx = get_iindx(length);
-
-  *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
-  for (i=0; i<length; i++) centroid[i]='.';
-  for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++) {
-      if ((p=pr[my_iindx[i]-j])>0.5) {
-        centroid[i-1] = '(';
-        centroid[j-1] = ')';
-        *dist += (1-p);
-      } else
-        *dist += p;
-    }
-
-  free(my_iindx);
-  return centroid;
+  return vrna_get_centroid_struct_pr(length, dist, pr);
 }
 
 
@@ -2511,6 +2302,44 @@ free_pf_arrays(void){
   }
 }
 
+PUBLIC FLT_OR_DBL *
+export_bppm(void){
+
+  if(backward_compat_compound)
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->probs)
+        return backward_compat_compound->exp_matrices->probs;
+
+  return NULL;
+}
+
+/*-------------------------------------------------------------------------*/
+/* make arrays used for pf_fold available to other routines */
+PUBLIC int
+get_pf_arrays(short **S_p,
+              short **S1_p,
+              char **ptype_p,
+              FLT_OR_DBL **qb_p,
+              FLT_OR_DBL **qm_p,
+              FLT_OR_DBL **q1k_p,
+              FLT_OR_DBL **qln_p){
+
+  if(backward_compat_compound){
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->qb){
+        *S_p      = backward_compat_compound->sequence_encoding2;
+        *S1_p     = backward_compat_compound->sequence_encoding;
+        *ptype_p  = backward_compat_compound->ptype_pf_compat;
+        *qb_p     = backward_compat_compound->exp_matrices->qb;
+        *qm_p     = backward_compat_compound->exp_matrices->qm;
+        *q1k_p    = backward_compat_compound->exp_matrices->q1k;
+        *qln_p    = backward_compat_compound->exp_matrices->qln;
+        return 1;
+      }
+  }
+  return 0;
+}
+
 /*-----------------------------------------------------------------*/
 PUBLIC float
 pf_fold(const char *sequence,
@@ -2535,6 +2364,41 @@ pf_fold_par(const char *sequence,
             int is_circular){
 
   return wrap_pf_fold(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular, NULL);
+}
+
+PUBLIC char *
+pbacktrack(char *seq){
+
+  int n = (int)strlen(seq);
+  return vrna_pbacktrack5(backward_compat_compound, n);
+}
+
+PUBLIC char *
+pbacktrack5(char *seq,
+            int length){
+
+  /* the seq parameter must no differ to the one stored globally anyway, so we just ignore it */
+  return vrna_pbacktrack5(backward_compat_compound, length);
+}
+
+PUBLIC void
+update_pf_params(int length){
+
+  wrap_update_pf_params(length, NULL);
+}
+
+PUBLIC void
+update_pf_params_par( int length,
+                      pf_paramT *parameters){
+
+  wrap_update_pf_params(length, parameters);
+}
+
+PUBLIC char *
+get_centroid_struct_gquad_pr( int length,
+                              double *dist){
+
+  return vrna_get_centroid_struct(backward_compat_compound, dist);
 }
 
 
