@@ -157,7 +157,7 @@ void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *e
 
   for (s = 0; s < sample_size; ++s)
   {
-    char *sample = vrna_pbacktrack5(vc->length, vc);
+    char *sample = vrna_pbacktrack(vc);
 
     for (i = 1; i <= length; ++i)
     {

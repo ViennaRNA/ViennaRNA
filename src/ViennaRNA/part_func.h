@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/centroid.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -47,6 +48,35 @@ extern  int st_back;
 #################################################
 */
 
+/**
+ *  \brief Compute the partition function \f$Q\f$ for a given RNA sequence
+ *
+ *  If \a structure is not a NULL pointer on input, it contains on
+ *  return a string consisting of the letters " . , | { } ( ) " denoting
+ *  bases that are essentially unpaired, weakly paired, strongly paired without
+ *  preference, weakly upstream (downstream) paired, or strongly up-
+ *  (down-)stream paired bases, respectively.
+ *  If #fold_constrained is not 0, the \a structure string is
+ *  interpreted on input as a list of constraints for the folding. The
+ *  character "x" marks bases that must be unpaired, matching brackets " ( ) "
+ *  denote base pairs, all other characters are ignored. Any pairs
+ *  conflicting with the constraint will be forbidden. This is usually sufficient
+ *  to ensure the constraints are honored.
+ *  If the parameter calculate_bppm is set to 0 base pairing probabilities will not
+ *  be computed (saving CPU time), otherwise after calculations took place #pr will
+ *  contain the probability that bases \a i and \a j pair.
+ * 
+ *  \ingroup pf_fold
+ *
+ *  \note           The global array #pr is deprecated and the user who wants the calculated
+ *                  base pair probabilities for further computations is advised to use the function
+ *                  export_bppm()
+ *  \see            vnra_get_fold_compound(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  \param[in,out]  vc              The fold compound data structure
+ *  \param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
+ *                                  pseudo-dot-bracket notation (may be NULL, too)
+ *  \return         The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
+ */
 float vrna_pf_fold( vrna_fold_compound *vc,
                     char *structure);
 
@@ -88,13 +118,12 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  *  \param[in]      is_circular     Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
  *  \return         The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
-
-float   pf_fold_par(  const char *sequence,
+DEPRECATED(float   pf_fold_par(  const char *sequence,
                       char *structure,
                       pf_paramT *parameters,
                       int calculate_bppm,
                       int is_constrained,
-                      int is_circular);
+                      int is_circular));
 
 /**
  *  \brief Compute the partition function \f$Q\f$ of an RNA sequence
@@ -135,8 +164,8 @@ float   pf_fold_par(  const char *sequence,
  *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \return           The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
-float   pf_fold(const char *sequence,
-                char *structure);
+DEPRECATED(float   pf_fold(const char *sequence,
+                char *structure));
 
 /**
  *  \brief Compute the partition function of a circular RNA sequence
@@ -163,8 +192,8 @@ float   pf_fold(const char *sequence,
  *                  stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \return         The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
-float   pf_circ_fold( const char *sequence,
-                      char *structure);
+DEPRECATED(float   pf_circ_fold( const char *sequence,
+                      char *structure));
 
 /**
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
@@ -176,11 +205,35 @@ float   pf_circ_fold( const char *sequence,
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation
  */
-char    *pbacktrack(char *sequence);
+DEPRECATED(char    *pbacktrack(char *sequence));
 
-char    *pbacktrack5(char *sequence, int length);
+DEPRECATED(char    *pbacktrack5(char *sequence, int length));
 
-char    *vrna_pbacktrack5(int length,  vrna_fold_compound *vc);
+/**
+ *  \brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability\n
+ *
+ *  \ingroup subopt_stochbt
+ *  \pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_get_fold_compound()
+ *  \pre    vrna_pf_fold() hasto be called first to fill the partition function matrices
+ *
+ *  \param  vc      The fold compound data structure
+ *  \param  length  The length of the subsequence to consider (starting with 5' end)
+ *  \return         A sampled secondary structure in dot-bracket notation
+ */
+char    *vrna_pbacktrack5(vrna_fold_compound *vc, int length);
+
+/**
+ *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
+ *
+ *  \ingroup subopt_stochbt
+ *  \pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_get_fold_compound()
+ *  \pre    vrna_pf_fold() hasto be called first to fill the partition function matrices
+ *
+ *  \param  vc      The fold compound data structure
+ *  \param  length  The length of the subsequence to consider (starting with 5' end)
+ *  \return         A sampled secondary structure in dot-bracket notation
+ */
+char    *vrna_pbacktrack(vrna_fold_compound *vc);
 
 /**
  *  \brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
@@ -194,7 +247,7 @@ char    *vrna_pbacktrack5(int length,  vrna_fold_compound *vc);
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation
  */
-char    *pbacktrack_circ(char *sequence);
+DEPRECATED(char    *pbacktrack_circ(char *sequence));
 
 char    *vrna_pbacktrack_circ(vrna_fold_compound *vc);
 
@@ -213,7 +266,7 @@ char    *vrna_pbacktrack_circ(vrna_fold_compound *vc);
  *  \post   All memory allocated by pf_fold_par(), pf_fold() or pf_circ_fold() will be free'd
  *  \see    pf_fold_par(), pf_fold(), pf_circ_fold()
  */
-void  free_pf_arrays(void);
+DEPRECATED(void  free_pf_arrays(void));
 
 /**
  *  \brief Recalculate energy parameters
@@ -224,7 +277,7 @@ void  free_pf_arrays(void);
  *  \ingroup pf_fold
  *
  */
-void  update_pf_params(int length);
+DEPRECATED(void  update_pf_params(int length));
 
 /**
  *  \brief Recalculate energy parameters
@@ -232,7 +285,7 @@ void  update_pf_params(int length);
  *  \ingroup pf_fold
  *
  */
-void update_pf_params_par(int length, pf_paramT *parameters);
+DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
 
 void vrna_update_pf_params( vrna_fold_compound *vc,
                             pf_paramT *params);
@@ -253,7 +306,7 @@ void vrna_update_pf_params( vrna_fold_compound *vc,
  *
  *  \return A pointer to the base pair probability array
  */
-FLT_OR_DBL  *export_bppm(void);
+DEPRECATED(FLT_OR_DBL  *export_bppm(void));
 
 /*
 #################################################
@@ -288,9 +341,6 @@ void assign_plist_gquad_from_pr(plist **pl,
                                 int length,
                                 double cut_off);
 
-char *get_centroid_struct_gquad_pr(int length,
-                                  double *dist);
-
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
  *
@@ -319,45 +369,6 @@ int get_pf_arrays(short **S_p,
  */
 double get_subseq_F(int i, int j);
 
-/**
- *  \brief Get the centroid structure of the ensemble
- * 
- *  This function is a threadsafe replacement for \ref centroid() with a 'plist' input
- * 
- *  The centroid is the structure with the minimal average distance to all other structures
- *  \n \f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$ \n
- *  Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
- *  The distance of the centroid to the ensemble is written to the memory adressed by \a dist.
- *
- *  \ingroup            centroid_fold
- *  \param[in]  length  The length of the sequence
- *  \param[out] dist    A pointer to the distance variable where the centroid distance will be written to
- *  \param[in]  pl      A pair list containing base pair probability information about the ensemble
- *  \return             The centroid structure of the ensemble in dot-bracket notation
- */
-char  *get_centroid_struct_pl(int length,
-                              double *dist,
-                              plist *pl);
-
-/**
- *  \brief Get the centroid structure of the ensemble
- * 
- *  This function is a threadsafe replacement for \ref centroid() with a probability array input
- * 
- *  The centroid is the structure with the minimal average distance to all other structures
- *  \n \f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} \f$ \n
- *  Thus, the centroid is simply the structure containing all pairs with \f$p_ij>0.5\f$
- *  The distance of the centroid to the ensemble is written to the memory adressed by \a dist.
- * 
- *  \ingroup              centroid_fold
- *  \param[in]    length  The length of the sequence
- *  \param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
- *  \param[in]    pr      A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
- *  \return               The centroid structure of the ensemble in dot-bracket notation
- */
-char  *get_centroid_struct_pr(int length,
-                              double *dist,
-                              FLT_OR_DBL *pr);
 
 /**
  *  \brief Get the mean base pair distance of the last partition function computation
@@ -425,8 +436,14 @@ DEPRECATED(void init_pf_fold(int length));
  *  \deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
  *  \see get_centroid_struct_pl(), get_centroid_struct_pr()
  */
-DEPRECATED(char *centroid(int length,
-                          double *dist));     /* mean pair distance of ensemble */
+DEPRECATED(char *centroid(int length, double *dist));
+
+/**
+ *  \deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
+ *  \see vrna_get_centroid_struct(), vrna_get_centroid_struct_pr(), vrna_get_centroid_struct_pl()
+ */
+DEPRECATED(char *get_centroid_struct_gquad_pr(int length,
+                                  double *dist));
 
 /**
  *  get the mean pair distance of ensemble
