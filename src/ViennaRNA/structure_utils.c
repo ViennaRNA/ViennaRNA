@@ -12,10 +12,22 @@
 #include <string.h>
 
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/utils.h"
+#include "ViennaRNA/params.h"
+#include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structure_utils.h"
 
+PRIVATE plist *
+wrap_get_plist( pf_matricesT *matrices,
+                int length,
+                int *index,
+                short *S,
+                pf_paramT *pf_params,
+                double cut_off);
 
-PUBLIC char *pack_structure(const char *struc) {
+PUBLIC char *
+vrna_pack_structure(const char *struc){
+
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   unsigned char *packed;
@@ -49,7 +61,9 @@ PUBLIC char *pack_structure(const char *struc) {
   return (char *) packed;
 }
 
-PUBLIC char *unpack_structure(const char *packed) {
+PUBLIC char *
+vrna_unpack_structure(const char *packed){
+
   /* 5:1 compression using base 3 encoding */
   int i,j,l;
   char *struc;
@@ -444,3 +458,358 @@ PUBLIC unsigned int *compute_BPdifferences(short *pt1, short *pt2, unsigned int 
   free(iindx);
   return array;
 }
+
+PUBLIC char
+bppm_symbol(const float *x){
+
+/*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
+  if( x[0] > 0.667 )  return '.';
+  if( x[1] > 0.667 )  return '(';
+  if( x[2] > 0.667 )  return ')';
+  if( (x[1]+x[2]) > x[0] ) {
+    if( (x[1]/(x[1]+x[2])) > 0.667) return '{';
+    if( (x[2]/(x[1]+x[2])) > 0.667) return '}';
+    else return '|';
+  }
+  if( x[0] > (x[1]+x[2]) ) return ',';
+  return ':';
+}
+
+PUBLIC void
+bppm_to_structure(char *structure,
+                  FLT_OR_DBL *p,
+                  unsigned int length){
+
+  int    i, j;
+  int   *index = get_iindx(length);
+  float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
+
+  for( j=1; j<=length; j++ ) {
+    P[0] = 1.0;
+    P[1] = P[2] = 0.0;
+    for( i=1; i<j; i++) {
+      P[2] += p[index[i]-j];    /* j is paired downstream */
+      P[0] -= p[index[i]-j];    /* j is unpaired */
+    }
+    for( i=j+1; i<=length; i++ ) {
+      P[1] += p[index[j]-i];    /* j is paired upstream */
+      P[0] -= p[index[j]-i];    /* j is unpaired */
+    }
+    structure[j-1] = bppm_symbol(P);
+  }
+  structure[length] = '\0';
+  free(index);
+}
+
+PUBLIC void
+assign_plist_from_pr( plist **pl,
+                      FLT_OR_DBL *probs,
+                      int length,
+                      double cut_off){
+
+  int i, j, n, count, *index;
+
+  index = get_iindx(length);
+  pf_matricesT  *matrices = (pf_matricesT *)space(sizeof(pf_matricesT));
+
+  matrices->probs = probs;
+  model_detailsT  md;
+  set_model_details(&md);
+  md.gquad = 0;
+  pf_paramT *pf_params = vrna_get_boltzmann_factors(md);
+
+  *pl = wrap_get_plist( matrices,
+                        length,
+                        index,
+                        NULL,
+                        pf_params,
+                        cut_off);
+
+  free(index);
+  free(pf_params);
+  free(matrices);
+}
+
+PUBLIC plist *
+vrna_get_plist_from_pr( vrna_fold_compound *vc,
+                        double cut_off){
+
+  int i, j, k, n, count, *index, length;
+  FLT_OR_DBL  *probs, *G, *scale;
+  pf_matricesT  *matrices;
+  short         *S;
+  pf_paramT     *pf_params;
+  plist         *pl;
+
+  if(!vc){
+    nrerror("vrna_get_plist_from_pr: run vrna_pf_fold first!");
+  } else if( !vc->exp_matrices->probs){
+    nrerror("vrna_get_plist_from_pr: probs==NULL!");
+  }
+
+  return wrap_get_plist(vc->exp_matrices,
+                        vc->length,
+                        vc->iindx,
+                        vc->sequence_encoding2,
+                        vc->exp_params,
+                        cut_off);
+}
+
+PRIVATE plist *
+wrap_get_plist( pf_matricesT *matrices,
+                int length,
+                int *index,
+                short *S,
+                pf_paramT *pf_params,
+                double cut_off){
+
+  int i, j, k, n, count;
+  FLT_OR_DBL  *probs, *G, *scale;
+  plist         *pl;
+
+  probs     = matrices->probs;
+  G         = matrices->G;
+  scale     = matrices->scale;
+
+  count = 0;
+  n     = 2;
+
+  /* first guess of the size needed for pl */
+  pl = (plist *)space(n*length*sizeof(plist));
+
+  for (i=1; i<length; i++) {
+    for (j=i+1; j<=length; j++) {
+      /* skip all entries below the cutoff */
+      if (probs[index[i]-j] < cut_off) continue;
+
+      /* do we need to allocate more memory? */
+      if (count == n * length - 1){
+        n *= 2;
+        pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+      }
+
+      /* check for presence of gquadruplex */
+      if((S[i] == 3) && (S[j] == 3)){
+          /* add probability of a gquadruplex at position (i,j)
+             for dot_plot
+          */
+          (pl)[count].i      = i;
+          (pl)[count].j      = j;
+          (pl)[count].p      = probs[index[i] - j];
+          (pl)[count++].type = 1;
+          /* now add the probabilies of it's actual pairing patterns */
+          plist *inner, *ptr;
+          inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+          for(ptr=inner; ptr->i != 0; ptr++){
+              if (count == n * length - 1){
+                n *= 2;
+                pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+              }
+              /* check if we've already seen this pair */
+              for(k = 0; k < count; k++)
+                if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
+                  break;
+              (pl)[k].i      = ptr->i;
+              (pl)[k].j      = ptr->j;
+              (pl)[k].type = 0;
+              if(k == count){
+                (pl)[k].p  = ptr->p;
+                count++;
+              } else
+                (pl)[k].p  += ptr->p;
+          }
+      } else {
+          (pl)[count].i      = i;
+          (pl)[count].j      = j;
+          (pl)[count].p      = probs[index[i] - j];
+          (pl)[count++].type = 0;
+      }
+    }
+  }
+  /* mark the end of pl */
+  (pl)[count].i    = 0;
+  (pl)[count].j    = 0;
+  (pl)[count].type = 0;
+  (pl)[count++].p  = 0.;
+  /* shrink memory to actual size needed */
+  pl = (plist *)xrealloc(pl, count * sizeof(plist));
+
+  return pl;
+}
+
+PUBLIC void
+vrna_letter_structure(char *structure,
+                      bondT *bp,
+                      int length){
+
+  int   n, k, x, y;
+  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  for (n = 0; n < length; structure[n++] = ' ');
+  structure[length] = '\0';
+
+  for (n = 0, k = 1; k <= bp[0].i; k++) {
+    y = bp[k].j;
+    x = bp[k].i;
+    if (x-1 > 0 && y+1 <= length) {
+      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
+        structure[x-1] = structure[x-2];
+        structure[y-1] = structure[x-1];
+        continue;
+      }
+    }
+    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
+      structure[x-1] = structure[x];
+      structure[y-1] = structure[x-1];
+      continue;
+    }
+    n++;
+    structure[x-1] = alpha[n-1];
+    structure[y-1] = alpha[n-1];
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+PUBLIC void
+vrna_parenthesis_structure( char *structure,
+                            bondT *bp,
+                            int length){
+
+  int n, k;
+
+  for (n = 0; n < length; structure[n++] = '.');
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++){
+
+    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[bp[k].i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[bp[k].i-1] = '(';
+      structure[bp[k].j-1] = ')';
+    }
+  }
+}
+
+PUBLIC void
+vrna_parenthesis_zuker( char *structure,
+                        bondT *bp,
+                        int length){
+
+  int k, i, j, temp;
+
+  for (k = 0; k < length; structure[k++] = '.');
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++) {
+    i=bp[k].i;
+    j=bp[k].j;
+    if (i>length) i-=length;
+    if (j>length) j-=length;
+    if (i>j) {
+      temp=i; i=j; j=temp;
+    }
+    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[i-1] = '(';
+      structure[j-1] = ')';
+    }
+  }
+}
+
+PUBLIC plist *
+vrna_get_plist_from_db( const char *struc,
+                        float pr){
+
+  /* convert bracket string to plist */
+  short *pt;
+  int i, k = 0, size, n;
+  plist *gpl, *ptr, *pl;
+
+  size  = strlen(struc);
+  n     = 2;
+
+  pt  = make_pair_table(struc);
+  pl = (plist *)space(n*size*sizeof(plist));
+  for(i = 1; i < size; i++){
+    if(pt[i]>i){
+      (pl)[k].i      = i;
+      (pl)[k].j      = pt[i];
+      (pl)[k].p      = pr;
+      (pl)[k++].type = 0;
+    }
+  }
+
+  gpl = get_plist_gquad_from_db(struc, pr);
+  for(ptr = gpl; ptr->i != 0; ptr++){
+    if (k == n * size - 1){
+      n *= 2;
+      pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
+    }
+    (pl)[k].i      = ptr->i;
+    (pl)[k].j      = ptr->j;
+    (pl)[k].p       = ptr->p;
+    (pl)[k++].type = ptr->type;
+  }
+  free(gpl);
+
+  (pl)[k].i      = 0;
+  (pl)[k].j      = 0;
+  (pl)[k].p      = 0.;
+  (pl)[k++].type = 0.;
+  free(pt);
+  pl = (plist *)xrealloc(pl, k * sizeof(plist));
+
+  return pl;
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC char *
+pack_structure(const char *struc){
+
+  return vrna_pack_structure(struc);
+}
+
+PUBLIC char *
+unpack_structure(const char *packed){
+
+  return vrna_unpack_structure(packed);
+}
+
+PUBLIC void
+parenthesis_structure(char *structure,
+                      bondT *bp,
+                      int length){
+
+  return vrna_parenthesis_structure(structure, bp, length);
+}
+
+PUBLIC void
+letter_structure( char *structure,
+                  bondT *bp,
+                  int length){
+
+  vrna_letter_structure(structure, bp, length);
+}
+
+PUBLIC void
+parenthesis_zuker(char *structure,
+                  bondT *bp,
+                  int length){
+
+  return vrna_parenthesis_zuker(structure, bp, length);
+}
+
+PUBLIC void
+assign_plist_from_db( plist **pl,
+                      const char *struc,
+                      float pr){
+
+  *pl = vrna_get_plist_from_db(struc, pr);
+}
+

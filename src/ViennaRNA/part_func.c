@@ -73,6 +73,12 @@ PRIVATE void
 wrap_update_pf_params(int length,
                       pf_paramT *parameters);
 
+PRIVATE double
+wrap_mean_bp_distance(FLT_OR_DBL *p,
+                      int length,
+                      int *index,
+                      int turn);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -1277,48 +1283,6 @@ vrna_update_pf_params(vrna_fold_compound *vc,
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC char
-bppm_symbol(const float *x){
-
-/*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
-  if( x[0] > 0.667 )  return '.';
-  if( x[1] > 0.667 )  return '(';
-  if( x[2] > 0.667 )  return ')';
-  if( (x[1]+x[2]) > x[0] ) {
-    if( (x[1]/(x[1]+x[2])) > 0.667) return '{';
-    if( (x[2]/(x[1]+x[2])) > 0.667) return '}';
-    else return '|';
-  }
-  if( x[0] > (x[1]+x[2]) ) return ',';
-  return ':';
-}
-
-PUBLIC void
-bppm_to_structure(char *structure,
-                  FLT_OR_DBL *p,
-                  unsigned int length){
-
-  int    i, j;
-  int   *index = get_iindx(length);
-  float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
-
-  for( j=1; j<=length; j++ ) {
-    P[0] = 1.0;
-    P[1] = P[2] = 0.0;
-    for( i=1; i<j; i++) {
-      P[2] += p[index[i]-j];    /* j is paired downstream */
-      P[0] -= p[index[i]-j];    /* j is unpaired */
-    }
-    for( i=j+1; i<=length; i++ ) {
-      P[1] += p[index[j]-i];    /* j is paired upstream */
-      P[0] -= p[index[j]-i];    /* j is unpaired */
-    }
-    structure[j-1] = bppm_symbol(P);
-  }
-  structure[length] = '\0';
-  free(index);
-}
-
 /*
   stochastic backtracking in pf_fold arrays
   returns random structure S with Boltzman probabilty
@@ -1886,139 +1850,6 @@ backtrack(int i,
   }
 }
 
-PUBLIC void
-assign_plist_from_pr( plist **pl,
-                      FLT_OR_DBL *probs,
-                      int length,
-                      double cut_off){
-
-  int i, j, n, count, *index;
-  count = 0;
-  n     = 2;
-
-  index = get_iindx(length);
-
-  /* first guess of the size needed for pl */
-  *pl = (plist *)space(n*length*sizeof(plist));
-
-  for (i=1; i<length; i++) {
-    for (j=i+1; j<=length; j++) {
-      /* skip all entries below the cutoff */
-      if (probs[index[i]-j] < cut_off) continue;
-      /* do we need to allocate more memory? */
-      if (count == n * length - 1){
-        n *= 2;
-        *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
-      }
-      (*pl)[count].i      = i;
-      (*pl)[count].j      = j;
-      (*pl)[count].p      = probs[index[i] - j];
-      (*pl)[count++].type = 0;
-    }
-  }
-  /* mark the end of pl */
-  (*pl)[count].i      = 0;
-  (*pl)[count].j      = 0;
-  (*pl)[count].p      = 0.;
-  (*pl)[count++].type = 0;
-  /* shrink memory to actual size needed */
-  *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
-
-  free(index);
-}
-
-/* this doesn't work if free_pf_arrays() is called before */
-PUBLIC void
-assign_plist_gquad_from_pr( plist **pl,
-                            int length,
-                            double cut_off){
-
-  int i, j, k, n, count, *index;
-  FLT_OR_DBL  *probs, *G, *scale;
-  pf_matricesT  *matrices;
-  short         *S;
-  pf_paramT     *pf_params;
-
-  if(!backward_compat_compound){
-    *pl = NULL;
-    return;
-  } else if( !backward_compat_compound->exp_matrices->probs){
-    *pl = NULL;
-    return;
-  }
-
-  pf_params = backward_compat_compound->exp_params;
-  S         = backward_compat_compound->sequence_encoding2;
-  matrices  = backward_compat_compound->exp_matrices;
-  probs     = matrices->probs;
-  G         = matrices->G;
-  scale     = matrices->scale;
-  index     = backward_compat_compound->iindx;
-
-  count = 0;
-  n     = 2;
-
-  /* first guess of the size needed for pl */
-  *pl = (plist *)space(n*length*sizeof(plist));
-
-  for (i=1; i<length; i++) {
-    for (j=i+1; j<=length; j++) {
-      /* skip all entries below the cutoff */
-      if (probs[index[i]-j] < cut_off) continue;
-
-      /* do we need to allocate more memory? */
-      if (count == n * length - 1){
-        n *= 2;
-        *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
-      }
-
-      /* check for presence of gquadruplex */
-      if((S[i] == 3) && (S[j] == 3)){
-          /* add probability of a gquadruplex at position (i,j)
-             for dot_plot
-          */
-          (*pl)[count].i      = i;
-          (*pl)[count].j      = j;
-          (*pl)[count].p      = probs[index[i] - j];
-          (*pl)[count++].type = 1;
-          /* now add the probabilies of it's actual pairing patterns */
-          plist *inner, *ptr;
-          inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
-          for(ptr=inner; ptr->i != 0; ptr++){
-              if (count == n * length - 1){
-                n *= 2;
-                *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
-              }
-              /* check if we've already seen this pair */
-              for(k = 0; k < count; k++)
-                if(((*pl)[k].i == ptr->i) && ((*pl)[k].j == ptr->j))
-                  break;
-              (*pl)[k].i      = ptr->i;
-              (*pl)[k].j      = ptr->j;
-              (*pl)[k].type = 0;
-              if(k == count){
-                (*pl)[k].p  = ptr->p;
-                count++;
-              } else
-                (*pl)[k].p  += ptr->p;
-          }
-      } else {
-          (*pl)[count].i      = i;
-          (*pl)[count].j      = j;
-          (*pl)[count].p      = probs[index[i] - j];
-          (*pl)[count++].type = 0;
-      }
-    }
-  }
-  /* mark the end of pl */
-  (*pl)[count].i    = 0;
-  (*pl)[count].j    = 0;
-  (*pl)[count].type = 0;
-  (*pl)[count++].p  = 0.;
-  /* shrink memory to actual size needed */
-  *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
-  free(index);
-}
 
 
 
@@ -2095,38 +1926,59 @@ get_subseq_F( int i,
 }
 
 
-PUBLIC double
-mean_bp_distance(int length){
+PRIVATE double
+wrap_mean_bp_distance(FLT_OR_DBL *p,
+                      int length,
+                      int *index,
+                      int turn){
 
-  if(backward_compat_compound)
-    if(backward_compat_compound->exp_matrices)
-      if(backward_compat_compound->exp_matrices->probs)
-        return mean_bp_distance_pr(backward_compat_compound->length, backward_compat_compound->exp_matrices->probs);
-
-  nrerror("mean_bp_distance: you need to call vrna_pf_fold first");
-}
-
-PUBLIC double
-mean_bp_distance_pr(int length,
-                    FLT_OR_DBL *p){
+  int         i,j;
+  double      d;
 
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
      this can be computed from the pair probs p_ij as
      <d> = \sum_{ij} p_{ij}(1-p_{ij}) */
-  int i,j;
-  double d=0;
-  int *index = get_iindx((unsigned int) length);
-
-  if (p==NULL)
-    nrerror("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
 
   for (i=1; i<=length; i++)
-    for (j=i+TURN+1; j<=length; j++)
+    for (j=i+turn+1; j<=length; j++)
       d += p[index[i]-j] * (1-p[index[i]-j]);
 
-  free(index);
   return 2*d;
+}
+
+
+PUBLIC double
+vrna_mean_bp_distance_pr( int length,
+                          FLT_OR_DBL *p){
+
+  int *index = get_iindx((unsigned int) length);
+  double d;
+
+  if (p==NULL)
+    nrerror("vrna_mean_bp_distance_pr: p==NULL. You need to supply a valid probability matrix");
+
+  d = wrap_mean_bp_distance(p, length, index, TURN);
+
+  free(index);
+  return d;
+}
+
+PUBLIC double
+vrna_mean_bp_distance(vrna_fold_compound *vc){
+
+  if(!vc){
+    nrerror("vrna_mean_bp_distance: run vrna_pf_fold first!");
+  } else if(!vc->exp_matrices){
+    nrerror("vrna_mean_bp_distance: exp_matrices==NULL!");
+  } else if( !vc->exp_matrices->probs){
+    nrerror("vrna_mean_bp_distance: probs==NULL!");
+  }
+
+  return wrap_mean_bp_distance( vc->exp_matrices->probs,
+                                vc->length,
+                                vc->iindx,
+                                vc->exp_params->model_details.min_loop_size);
 }
 
 
@@ -2399,6 +2251,47 @@ get_centroid_struct_gquad_pr( int length,
                               double *dist){
 
   return vrna_get_centroid_struct(backward_compat_compound, dist);
+}
+
+PUBLIC void
+assign_plist_gquad_from_pr( plist **pl,
+                            int length, /* ignored */
+                            double cut_off){
+
+  if(!backward_compat_compound){
+    *pl = NULL;
+  } else if( !backward_compat_compound->exp_matrices->probs){
+    *pl = NULL;
+  } else {
+    *pl = vrna_get_plist_from_pr(backward_compat_compound, cut_off);
+  }
+}
+
+PUBLIC double
+mean_bp_distance(int length){
+
+  if(backward_compat_compound)
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->probs)
+        return vrna_mean_bp_distance(backward_compat_compound);
+
+  nrerror("mean_bp_distance: you need to call vrna_pf_fold first");
+}
+
+PUBLIC double
+mean_bp_distance_pr(int length,
+                    FLT_OR_DBL *p){
+
+  double d=0;
+  int *index = get_iindx((unsigned int) length);
+
+  if (p==NULL)
+    nrerror("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+
+  d = wrap_mean_bp_distance(p, length, index, TURN);
+
+  free(index);
+  return d;
 }
 
 

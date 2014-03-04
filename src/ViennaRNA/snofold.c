@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
@@ -41,8 +42,6 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 #define NEW_NINIO     1   /* new asymetry penalty */
 
 /*@unused@*/
-PRIVATE void  letter_structure(char *structure, int length) UNUSED;
-PRIVATE void  parenthesis_structure(char *structure, int length);
 PRIVATE void  get_arrays(unsigned int size);
 /* PRIVATE void  scale_parameters(void); */
 /* PRIVATE int   stack_energy(int i, const char *string); */
@@ -291,7 +290,7 @@ int snofold(const char *string, char *structure, const int max_assym, const int 
 #if 0
         /*no structure output, no backtrack*/
   backtrack(string, 0);
-  parenthesis_structure(structure, length);
+  vrna_parenthesis_structure(structure, base_pair, length);
 #endif
   free(structure);
   free(S); free(S1); /* free(BP); */
@@ -435,7 +434,7 @@ float alisnofold(const char **strings, const int max_assym, const int threshloop
   energy=alifill_arrays(strings, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   alibacktrack((const char **)strings, 0);
   structure = (char *) space((length+1)*sizeof(char));
-  parenthesis_structure(structure, length);
+  vrna_parenthesis_structure(structure, base_pair, length);
 
   free(structure);
   for (s=0; s<n_seq; s++) free(Sali[s]);
@@ -997,7 +996,7 @@ char *snobacktrack_fold_from_pair(const char *sequence, int i, int j) {
   encode_seq(sequence);
   backtrack(sequence, 1);
   structure = (char *) space((strlen(sequence)+1)*sizeof(char));
-  parenthesis_structure(structure, strlen(sequence));
+  vrna_parenthesis_structure(structure, base_pair, strlen(sequence));
   free(S);free(S1);
   return structure;
 }
@@ -1020,7 +1019,7 @@ char *alisnobacktrack_fold_from_pair(const char **strings, int i, int j, int *co
   }
   *cov=alibacktrack(strings, 1);
   structure = (char *) space((length+1)*sizeof(char));
-  parenthesis_structure(structure, length);
+  vrna_parenthesis_structure(structure, base_pair, length);
   free(S);free(S1);
   for (s=0; s<n_seq; s++) {
     free(Sali[s]);
@@ -1078,50 +1077,6 @@ PRIVATE short * aliencode_seq(const char *sequence) {
   return Stemp;
 }
 
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void letter_structure(char *structure, int length)
-{
-  int n, k, x, y;
-
-  for (n = 0; n <= length-1; structure[n++] = ' ') ;
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= base_pair[0].i; k++) {
-    y = base_pair[k].j;
-    x = base_pair[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE void parenthesis_structure(char *structure, int length)
-{
-  int n, k;
-
-  for (n = 0; n <= length-1; structure[n++] = '.') ;
-  structure[length] = '\0';
-
-  for (k = 1; k <= base_pair[0].i; k++) {
-    structure[base_pair[k].i-1] = '(';
-    structure[base_pair[k].j-1] = ')';
-  }
-}
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void snoupdate_fold_params(void)
