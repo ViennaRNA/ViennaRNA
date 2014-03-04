@@ -26,6 +26,7 @@
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
@@ -378,7 +379,10 @@ int main(int argc, char *argv[]){
         if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
       }
     }
-    if (length>2000) free_arrays();
+    if (length>2000){
+      destroy_mfe_matrices(vc->matrices);
+      vc->matrices = NULL;
+    }
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
       if (md.dangles==1) {
@@ -424,7 +428,7 @@ int main(int argc, char *argv[]){
 
       if(lucky){
         init_rand();
-        char *s = (circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
+        char *s = (circular) ? pbacktrack_circ(rec_sequence) : vrna_pbacktrack(vc);
         min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, s, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, s, mfe_parameters, 0);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
@@ -455,24 +459,11 @@ int main(int argc, char *argv[]){
           plist *pl1,*pl2;
           char *cent;
           double dist, cent_en;
-//          FLT_OR_DBL *probs = export_bppm();
-          FLT_OR_DBL *probs = vc->exp_matrices->probs;
 
-          if(gquad)
-            assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
-          else
-            assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
-
-          assign_plist_from_db(&pl2, structure, 0.95*0.95);
-          /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-
-          if(gquad){
-            cent    = get_centroid_struct_gquad_pr(length, &dist);
-            cent_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0);
-          } else {
-            cent    = get_centroid_struct_pr(length, &dist, probs);
-            cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
-          }
+          pl1     = vrna_get_plist_from_pr(vc, bppmThreshold);
+          pl2     = vrna_get_plist_from_db(structure, 0.95*0.95);
+          cent    = vrna_get_centroid_struct(vc, &dist);
+          cent_en = (gquad) ? energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0) : (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
 
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
@@ -496,8 +487,7 @@ int main(int argc, char *argv[]){
           free(pf_struc);
           if(doMEA){
             float mea, mea_en;
-            plist *pl;
-            assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
+            plist *pl = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
@@ -514,7 +504,7 @@ int main(int argc, char *argv[]){
         }
         printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
         if (do_backtrack)
-          printf("ensemble diversity %-6.2f", mean_bp_distance(length));
+          printf("ensemble diversity %-6.2f", vrna_mean_bp_distance(vc));
         printf("\n");
       }
 //      free_pf_arrays();

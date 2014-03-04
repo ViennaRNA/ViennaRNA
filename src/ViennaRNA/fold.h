@@ -163,9 +163,7 @@ vrna_fold(vrna_fold_compound *vc,
  *         secondary structure in dot-bracket notation will be written to
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-DEPRECATED(float 
-fold( const char *sequence,
-      char *structure));
+DEPRECATED(float fold( const char *sequence, char *structure));
 
 /**
  *  \brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
@@ -185,9 +183,7 @@ fold( const char *sequence,
  *         secondary structure in dot-bracket notation will be written to
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-DEPRECATED(float 
-circfold( const char *sequence,
-          char *structure));
+DEPRECATED(float circfold( const char *sequence, char *structure));
 
 
 /**
@@ -199,63 +195,6 @@ circfold( const char *sequence,
 DEPRECATED(void free_arrays(void));
 
 
-/**
- *  \brief Create a dot-backet/parenthesis structure from backtracking stack
- * 
- *  \note This function is threadsafe
- */
-void
-vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
-                            int length);
-
-/**
- *  \brief Create a dot-backet/parenthesis structure from backtracking stack
- *
- *  \deprecated use vrna_parenthesis_structure() instead
- * 
- *  \note This function is threadsafe
- */
-DEPRECATED(void 
-parenthesis_structure(char *structure,
-                      bondT *bp,
-                      int length));
-
-/**
- *  \brief Create a dot-backet/parenthesis structure from backtracking stack
- *  obtained by zuker suboptimal calculation in cofold.c
- * 
- *  \note This function is threadsafe
- */
-void
-vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length);
-
-/**
- *  \brief Create a dot-backet/parenthesis structure from backtracking stack
- *  obtained by zuker suboptimal calculation in cofold.c
- * 
- *  \deprecated use vrna_parenthesis_zuker instead
- * 
- *  \note This function is threadsafe
- */
-DEPRECATED(void 
-parenthesis_zuker(char *structure,
-                  bondT *bp,
-                  int length));
-
-
-void
-vrna_letter_structure(char *structure,
-                      bondT *bp,
-                      int length);
-
-DEPRECATED(void 
-letter_structure( char *structure,
-                  bondT *bp,
-                  int length));
-
 
 /**
  *  \brief Recalculate energy parameters
@@ -264,7 +203,7 @@ letter_structure( char *structure,
  *
  *  \ingroup mfe_fold
  */
-void  update_fold_params(void);
+DEPRECATED(void update_fold_params(void));
 
 /**
  *  \brief Recalculate energy parameters
@@ -274,8 +213,7 @@ void  update_fold_params(void);
  *  \ingroup mfe_fold
  * 
  */
-DEPRECATED(void 
-update_fold_params_par(paramT *parameters));
+DEPRECATED(void update_fold_params_par(paramT *parameters));
 
 /**
  *
@@ -366,26 +304,6 @@ export_circfold_arrays_par( int *Fc_p,
                             paramT **P_p));
 
 
-/**
- *  \brief Create a plist from a dot-bracket string
- * 
- *  The dot-bracket string is parsed and for each base pair an
- *  entry in the plist is created. The probability of each pair in
- *  the list is set by a function parameter.
- * 
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- * 
- *  This function is threadsafe
- * 
- *  \param pl     A pointer to the plist that is to be created
- *  \param struc  The secondary structure in dot-bracket notation
- *  \param pr     The probability for each base pair
- */
-void assign_plist_from_db(plist **pl,
-                          const char *struc,
-                          float pr);
 
 /* finally moved the loop energy function declarations to this header...  */
 /* BUT: The functions only exist for backward compatibility reasons!      */

@@ -998,88 +998,6 @@ backtrack_fold_from_pair( char *sequence,
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void
-vrna_letter_structure(char *structure,
-                      bondT *bp,
-                      int length){
-
-  int   n, k, x, y;
-  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-  for (n = 0; n < length; structure[n++] = ' ');
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= bp[0].i; k++) {
-    y = bp[k].j;
-    x = bp[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PUBLIC void
-vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
-                            int length){
-
-  int n, k;
-
-  for (n = 0; n < length; structure[n++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++){
-
-    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp[k].i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[bp[k].i-1] = '(';
-      structure[bp[k].j-1] = ')';
-    }
-  }
-}
-
-PUBLIC void
-vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length){
-
-  int k, i, j, temp;
-
-  for (k = 0; k < length; structure[k++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++) {
-    i=bp[k].i;
-    j=bp[k].j;
-    if (i>length) i-=length;
-    if (j>length) j-=length;
-    if (i>j) {
-      temp=i; i=j; j=temp;
-    }
-    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[i-1] = '(';
-      structure[j-1] = ')';
-    }
-  }
-}
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -1103,51 +1021,6 @@ vrna_update_fold_params(vrna_fold_compound *vc,
   }
 }
 
-
-PUBLIC void
-assign_plist_from_db( plist **pl,
-                      const char *struc,
-                      float pr){
-
-  /* convert bracket string to plist */
-  short *pt;
-  int i, k = 0, size, n;
-  plist *gpl, *ptr;
-
-  size  = strlen(struc);
-  n     = 2;
-
-  pt  = make_pair_table(struc);
-  *pl = (plist *)space(n*size*sizeof(plist));
-  for(i = 1; i < size; i++){
-    if(pt[i]>i){
-      (*pl)[k].i      = i;
-      (*pl)[k].j      = pt[i];
-      (*pl)[k].p      = pr;
-      (*pl)[k++].type = 0;
-    }
-  }
-
-  gpl = get_plist_gquad_from_db(struc, pr);
-  for(ptr = gpl; ptr->i != 0; ptr++){
-    if (k == n * size - 1){
-      n *= 2;
-      *pl = (plist *)xrealloc(*pl, n * size * sizeof(plist));
-    }
-    (*pl)[k].i      = ptr->i;
-    (*pl)[k].j      = ptr->j;
-    (*pl)[k].p       = ptr->p;
-    (*pl)[k++].type = ptr->type;
-  }
-  free(gpl);
-
-  (*pl)[k].i      = 0;
-  (*pl)[k].j      = 0;
-  (*pl)[k].p      = 0.;
-  (*pl)[k++].type = 0.;
-  free(pt);
-  *pl = (plist *)xrealloc(*pl, k * sizeof(plist));
-}
 
 
 /*###########################################*/
@@ -1191,30 +1064,6 @@ PUBLIC void
 initialize_fold(int length){
 
   /* DO NOTHING */
-}
-
-PUBLIC void
-parenthesis_structure(char *structure,
-                      bondT *bp,
-                      int length){
-
-  return vrna_parenthesis_structure(structure, bp, length);
-}
-
-PUBLIC void
-letter_structure( char *structure,
-                  bondT *bp,
-                  int length){
-
-  vrna_letter_structure(structure, bp, length);
-}
-
-PUBLIC void
-parenthesis_zuker(char *structure,
-                  bondT *bp,
-                  int length){
-
-  return vrna_parenthesis_zuker(structure, bp, length);
 }
 
 PUBLIC void

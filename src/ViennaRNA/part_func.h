@@ -314,32 +314,6 @@ DEPRECATED(FLT_OR_DBL  *export_bppm(void));
 #################################################
 */
 
-/**
- *  \brief Create a plist from a probability matrix
- * 
- *  The probability matrix given is parsed and all pair probabilities above
- *  the given threshold are used to create an entry in the plist
- * 
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- * 
- *  \note This function is threadsafe
- *  \ingroup            pf_fold
- *  \param[out] pl      A pointer to the plist that is to be created
- *  \param[in]  probs   The probability matrix used for creting the plist
- *  \param[in]  length  The length of the RNA sequence
- *  \param[in]  cutoff  The cutoff value
- */
-void  assign_plist_from_pr( plist **pl,
-                            FLT_OR_DBL *probs,
-                            int length,
-                            double cutoff);
-
-/* this doesn't work if free_pf_arrays() is called before */
-void assign_plist_gquad_from_pr(plist **pl,
-                                int length,
-                                double cut_off);
 
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
@@ -373,16 +347,15 @@ double get_subseq_F(int i, int j);
 /**
  *  \brief Get the mean base pair distance of the last partition function computation
  * 
- *  \note To ensure thread-safety, use the function mean_bp_distance_pr() instead!
- *
  *  \ingroup pf_fold
  *
- *  \see mean_bp_distance_pr()
+ *  \deprecated Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead!
+ *  \see vrna_mean_bp_distance(), vrna_mean_bp_distance_pr()
  * 
  *  \param    length
  *  \return  mean base pair distance in thermodynamic ensemble
  */
-double  mean_bp_distance(int length);
+DEPRECATED(double  mean_bp_distance(int length));
 
 /**
  *  \brief Get the mean base pair distance in the thermodynamic ensemble
@@ -393,7 +366,7 @@ double  mean_bp_distance(int length);
  *  this can be computed from the pair probs \f$p_ij\f$ as\n
  *  \f$<d> = \sum_{ij} p_{ij}(1-p_{ij})\f$
  * 
- *  \note This function is threadsafe
+ *  \deprecated Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead!
  * 
  *  \ingroup pf_fold
  *
@@ -401,22 +374,38 @@ double  mean_bp_distance(int length);
  *  \param pr     The matrix containing the base pair probabilities
  *  \return       The mean pair distance of the structure ensemble
  */
-double  mean_bp_distance_pr(int length,
-                            FLT_OR_DBL *pr);
+DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr));
 
 /**
- *  \brief Create a dot-bracket like structure string from base pair probability matrix
+ *  \brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
+ * 
+ *  \f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)\f$\n
+ *  this can be computed from the pair probs \f$p_ij\f$ as\n
+ *  \f$<d> = \sum_{ij} p_{ij}(1-p_{ij})\f$
+ * 
+ *  \ingroup pf_fold
+ *
+ *  \param length The length of the sequence
+ *  \param pr     The matrix containing the base pair probabilities
+ *  \return       The mean pair distance of the structure ensemble
  */
-void  bppm_to_structure(char *structure,
-                        FLT_OR_DBL *pr,
-                        unsigned int length);
+double vrna_mean_bp_distance_pr(int length, FLT_OR_DBL *pr);
+
+/**
+ *  \brief Get the mean base pair distance in the thermodynamic ensemble
+ * 
+ *  \f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)\f$\n
+ *  this can be computed from the pair probs \f$p_ij\f$ as\n
+ *  \f$<d> = \sum_{ij} p_{ij}(1-p_{ij})\f$
+ * 
+ *  \ingroup pf_fold
+ *
+ *  \param vc     The fold compound data structure
+ *  \return       The mean pair distance of the structure ensemble
+ */
+double vrna_mean_bp_distance(vrna_fold_compound *vc);
 
 plist *stackProb(double cutoff);
-
-/**
- *  \brief Get a pseudo dot bracket notation for a given probability information
- */
-char    bppm_symbol(const float *x);
 
 
 /*
@@ -472,5 +461,10 @@ DEPRECATED(double expHairpinEnergy( int u,
                                     short si1,
                                     short sj1,
                                     const char *string));
+
+/* this doesn't work if free_pf_arrays() is called before */
+DEPRECATED(void assign_plist_gquad_from_pr(plist **pl,
+                                int length,
+                                double cut_off));
 
 #endif
