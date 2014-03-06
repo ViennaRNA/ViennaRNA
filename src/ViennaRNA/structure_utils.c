@@ -17,6 +17,11 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structure_utils.h"
 
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
 PRIVATE plist *
 wrap_get_plist( pf_matricesT *matrices,
                 int length,
@@ -24,6 +29,12 @@ wrap_get_plist( pf_matricesT *matrices,
                 short *S,
                 pf_paramT *pf_params,
                 double cut_off);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 PUBLIC char *
 vrna_pack_structure(const char *struc){
@@ -92,8 +103,9 @@ vrna_unpack_structure(const char *packed){
   return struc;
 }
 
-PUBLIC short *make_pair_table(const char *structure)
-{
+PUBLIC short *
+vrna_pt_get(const char *structure){
+
     /* returns array representation of structure.
        table[i] is 0 if unpaired or j if (i.j) pair.  */
    short i,j,hx;
@@ -133,7 +145,9 @@ PUBLIC short *make_pair_table(const char *structure)
    return(table);
 }
 
-PUBLIC short *make_pair_table_pk(const char *structure){
+PUBLIC short *
+vrna_pt_pk_get(const char *structure){
+
    short i,j,hx, hx2;
    short length;
    short *stack;
@@ -189,8 +203,10 @@ PUBLIC short *make_pair_table_pk(const char *structure){
    return(table);
 }
 
-PUBLIC short *make_pair_table_snoop(const char *structure)
-{
+
+PUBLIC short *
+vrna_pt_snoop_get(const char *structure){
+
     /* returns array representation of structure.
        table[i] is 0 if unpaired or j if (i.j) pair.  */
    short i,j,hx;
@@ -231,8 +247,10 @@ PUBLIC short *make_pair_table_snoop(const char *structure)
 }
 
 
-PUBLIC short *alimake_pair_table(const char *structure)
-{
+
+PUBLIC short *
+vrna_pt_ali_get(const char *structure){
+
     /* returns array representation of structure.
        table[i] is 0 if unpaired or j if (i.j) pair.  */
    short i,j,hx;
@@ -309,14 +327,16 @@ PUBLIC short *alimake_pair_table(const char *structure)
    return(table);
 }
 
-PUBLIC short *copy_pair_table(const short *pt){
+PUBLIC short *
+vrna_pt_copy(const short *pt){
   short *table = (short *)space(sizeof(short) * (pt[0]+2));
   memcpy(table, pt, sizeof(short)*(pt[0]+2));
   return table;
 }
 
 
-PUBLIC int *make_loop_index_pt(short *pt){
+PUBLIC int *
+vrna_get_loop_index(const short *pt){
 
   /* number each position by which loop it belongs to (positions start
      at 1) */
@@ -374,8 +394,9 @@ vrna_pt_to_db(short *pt){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int bp_distance(const char *str1, const char *str2)
-{
+PUBLIC int
+vrna_bp_distance(const char *str1, const char *str2){
+
   /* dist = {number of base pairs in one structure but not in the other} */
   /* same as edit distance with pair_open pair_close as move set */
    int dist;
@@ -383,8 +404,8 @@ PUBLIC int bp_distance(const char *str1, const char *str2)
    short *t1, *t2;
 
    dist = 0;
-   t1 = make_pair_table(str1);
-   t2 = make_pair_table(str2);
+   t1 = vrna_pt_get(str1);
+   t2 = vrna_pt_get(str2);
 
    l = (t1[0]<t2[0])?t1[0]:t2[0];    /* minimum of the two lengths */
 
@@ -400,7 +421,10 @@ PUBLIC int bp_distance(const char *str1, const char *str2)
 /* get a matrix containing the number of basepairs of a reference structure for each interval [i,j] with i<j
 *  access it via iindx!!!
 */
-PUBLIC unsigned int *make_referenceBP_array(short *reference_pt, unsigned int turn){
+PUBLIC unsigned int *
+vrna_refBPcnt_matrix( const short *reference_pt,
+                      unsigned int turn){
+
   unsigned int i,j,k,ij,length;
   int *iindx;
   unsigned int *array;
@@ -429,7 +453,12 @@ PUBLIC unsigned int *make_referenceBP_array(short *reference_pt, unsigned int tu
   return array;
 }
 
-PUBLIC unsigned int *compute_BPdifferences(short *pt1, short *pt2, unsigned int turn){
+
+PUBLIC unsigned int *
+vrna_refBPdist_matrix(const short *pt1,
+                      const short *pt2,
+                      unsigned int turn){
+
   unsigned int *array;
   unsigned int n, size, i, j, ij, d;
   n = (unsigned int)pt1[0];
@@ -499,35 +528,6 @@ bppm_to_structure(char *structure,
   }
   structure[length] = '\0';
   free(index);
-}
-
-PUBLIC void
-assign_plist_from_pr( plist **pl,
-                      FLT_OR_DBL *probs,
-                      int length,
-                      double cut_off){
-
-  int i, j, n, count, *index;
-
-  index = get_iindx(length);
-  pf_matricesT  *matrices = (pf_matricesT *)space(sizeof(pf_matricesT));
-
-  matrices->probs = probs;
-  model_detailsT  md;
-  set_model_details(&md);
-  md.gquad = 0;
-  pf_paramT *pf_params = vrna_get_boltzmann_factors(md);
-
-  *pl = wrap_get_plist( matrices,
-                        length,
-                        index,
-                        NULL,
-                        pf_params,
-                        cut_off);
-
-  free(index);
-  free(pf_params);
-  free(matrices);
 }
 
 PUBLIC plist *
@@ -731,7 +731,7 @@ vrna_get_plist_from_db( const char *struc,
   size  = strlen(struc);
   n     = 2;
 
-  pt  = make_pair_table(struc);
+  pt  = vrna_pt_get(struc);
   pl = (plist *)space(n*size*sizeof(plist));
   for(i = 1; i < size; i++){
     if(pt[i]>i){
@@ -806,10 +806,96 @@ parenthesis_zuker(char *structure,
 }
 
 PUBLIC void
+assign_plist_from_pr( plist **pl,
+                      FLT_OR_DBL *probs,
+                      int length,
+                      double cut_off){
+
+  int i, j, n, count, *index;
+
+  index = get_iindx(length);
+  pf_matricesT  *matrices = (pf_matricesT *)space(sizeof(pf_matricesT));
+
+  matrices->probs = probs;
+  model_detailsT  md;
+  set_model_details(&md);
+  md.gquad = 0;
+  pf_paramT *pf_params = vrna_get_boltzmann_factors(md);
+
+  *pl = wrap_get_plist( matrices,
+                        length,
+                        index,
+                        NULL,
+                        pf_params,
+                        cut_off);
+
+  free(index);
+  free(pf_params);
+  free(matrices);
+}
+
+PUBLIC void
 assign_plist_from_db( plist **pl,
                       const char *struc,
                       float pr){
 
   *pl = vrna_get_plist_from_db(struc, pr);
+}
+
+PUBLIC short *
+make_pair_table(const char *structure){
+
+  return vrna_pt_get(structure);
+}
+
+PUBLIC short *
+copy_pair_table(const short *pt){
+
+  return vrna_pt_copy(pt);
+}
+
+PUBLIC short *
+make_pair_table_pk(const char *structure){
+
+  return vrna_pt_pk_get(structure);
+}
+
+PUBLIC short *
+make_pair_table_snoop(const char *structure){
+
+  return vrna_pt_snoop_get(structure);
+}
+
+PUBLIC short *
+alimake_pair_table(const char *structure){
+
+  return vrna_pt_ali_get(structure);
+}
+
+PUBLIC int *
+make_loop_index_pt(short *pt){
+
+  return vrna_get_loop_index((const short*)pt);
+}
+
+PUBLIC int
+bp_distance(const char *str1, const char *str2){
+
+  return vrna_bp_distance(str1, str2);
+}
+
+PUBLIC unsigned int *
+make_referenceBP_array( short *reference_pt,
+                        unsigned int turn){
+
+  return vrna_refBPcnt_matrix((const short *)reference_pt, turn);
+}
+
+PUBLIC unsigned int *
+compute_BPdifferences(short *pt1,
+                      short *pt2,
+                      unsigned int turn){
+
+  return vrna_refBPdist_matrix((const short *)pt1, (const short *)pt2, turn);
 }
 

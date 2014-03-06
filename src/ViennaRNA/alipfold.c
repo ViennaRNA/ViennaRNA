@@ -400,10 +400,6 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
                   if(sc[s])
                     if(sc[s]->exp_en_stack)
                       if((i + 1 == k) && (j - 1 == l)){
-//                         printf("using shape %d at (%d,%d)(%d,%d) of %g\n", s, i, j, k, l, sc[s]->exp_en_stack[i]
-//                                   * sc[s]->exp_en_stack[k]
-//                                   * sc[s]->exp_en_stack[l]
-//                                   * sc[s]->exp_en_stack[j]);
                         qloop *=    sc[s]->exp_en_stack[i]
                                   * sc[s]->exp_en_stack[k]
                                   * sc[s]->exp_en_stack[l]

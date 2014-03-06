@@ -13,6 +13,7 @@
 #include "ViennaRNA/RNAstruct.h"
 #include "ViennaRNA/treedist.h"
 #include "ViennaRNA/stringdist.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/data_structures.h"
 #include "RNAdistance_cmdl.h"
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
         if (ttype[tt]=='P') {
           for (i=1; i<n; i++) {
             for (j=0; j<i; j++)
-              printf("%g ", (float) bp_distance(P[i], P[j]));
+              printf("%g ", (float) vrna_bp_distance(P[i], P[j]));
             printf("\n");
           }
           printf("\n");
@@ -245,7 +246,7 @@ int main(int argc, char *argv[])
             it++;
           }
           else if (ttype[i]=='P') {
-            dist = (float) bp_distance(P[0], P[1]);
+            dist = (float) vrna_bp_distance(P[0], P[1]);
             free(P[0]); free(P[1]);
           }
           else /* isupper(ttype[i]) */ {
@@ -272,7 +273,7 @@ int main(int argc, char *argv[])
             it++;
           }
           else if (ttype[i]=='P') {
-            dist = (float) bp_distance(P[0], P[1]);
+            dist = (float) vrna_bp_distance(P[0], P[1]);
             free(P[1]);
           }
           else /* if(isupper(ttype[i])) */ {
@@ -300,7 +301,7 @@ int main(int argc, char *argv[])
             it++;
           }
           else if (ttype[i]=='P') {
-            dist = (float) bp_distance(P[0], P[1]);
+            dist = (float) vrna_bp_distance(P[0], P[1]);
             free(P[0]); P[0] = P[1];
           }
           else /* if(isupper(ttype[i])) */ {

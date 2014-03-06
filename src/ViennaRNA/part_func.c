@@ -55,6 +55,8 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 PRIVATE void  pf_circ(vrna_fold_compound *vc);
 PRIVATE void  pf_linear(vrna_fold_compound *vc);
 PRIVATE void  pf_create_bppm(vrna_fold_compound *vc, char *structure);
+PRIVATE char  *wrap_pbacktrack_circ(vrna_fold_compound *vc);
+
 PRIVATE void  backtrack(int i, int j, char *pstruc, vrna_fold_compound *vc);
 PRIVATE void  backtrack_qm(int i, int j, char *pstruc, vrna_fold_compound *vc);
 PRIVATE void  backtrack_qm1(int i,int j, char *pstruc, vrna_fold_compound *vc);
@@ -1291,6 +1293,11 @@ vrna_update_pf_params(vrna_fold_compound *vc,
 PUBLIC char *
 vrna_pbacktrack(vrna_fold_compound *vc){
 
+  if(vc)
+    if(vc->exp_params)
+      if(vc->exp_params->model_details.circ)
+        return wrap_pbacktrack_circ(vc);
+
   return vrna_pbacktrack5(vc, vc->length);
 }
 
@@ -1414,13 +1421,13 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
 PUBLIC char *
 pbacktrack_circ(char *seq){
 
-  return vrna_pbacktrack_circ(backward_compat_compound);
+  return wrap_pbacktrack_circ(backward_compat_compound);
 
 }
 
 
-PUBLIC char *
-vrna_pbacktrack_circ(vrna_fold_compound *vc){
+PRIVATE char *
+wrap_pbacktrack_circ(vrna_fold_compound *vc){
 
   double r, qt;
   int i, j, k, l, n;

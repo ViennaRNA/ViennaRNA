@@ -473,7 +473,7 @@ PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
    free(xstruc);
    free_tree(T1);
 #else
-   distance = (double) bp_distance(target, structure);
+   distance = (double) vrna_bp_distance(target, structure);
 #endif
    cost2 = energy_of_structure(string, target, 0) - energy;
    return (double) distance;

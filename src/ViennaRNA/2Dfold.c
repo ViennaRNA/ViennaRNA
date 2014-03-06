@@ -87,11 +87,11 @@ vrna_TwoDfold_get_vars( const char *seq,
   if(vars->seq_length < 1) nrerror("vrna_TwoDfold_get_vars: sequence must be longer than 0");
   size                        = ((length + 1) * (length + 2)/2);
 
-  vars->reference_pt1   = make_pair_table(structure1);
-  vars->reference_pt2   = make_pair_table(structure2);
-  vars->referenceBPs1   = make_referenceBP_array(vars->reference_pt1, TURN);
-  vars->referenceBPs2   = make_referenceBP_array(vars->reference_pt2, TURN);
-  vars->bpdist          = compute_BPdifferences(vars->reference_pt1, vars->reference_pt2, TURN);
+  vars->reference_pt1   = vrna_pt_get(structure1);
+  vars->reference_pt2   = vrna_pt_get(structure2);
+  vars->referenceBPs1   = vrna_refBPcnt_matrix(vars->reference_pt1, TURN);
+  vars->referenceBPs2   = vrna_refBPcnt_matrix(vars->reference_pt2, TURN);
+  vars->bpdist          = vrna_refBPdist_matrix(vars->reference_pt1, vars->reference_pt2, TURN);
   vars->do_backtrack    = 1;
   vars->dangles         = dangles;
   vars->circ            = circ;

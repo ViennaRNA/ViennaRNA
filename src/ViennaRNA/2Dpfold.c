@@ -131,16 +131,16 @@ vrna_TwoDpfold_get_vars(const char *seq,
   if(vars->seq_length < 1) nrerror("get_TwoDfold_variables: sequence must be longer than 0");
   size                = ((length + 1) * (length + 2)/2);
 
-  vars->reference_pt1 = make_pair_table(structure1);
-  vars->reference_pt2 = make_pair_table(structure2);
-  vars->referenceBPs1 = make_referenceBP_array(vars->reference_pt1, TURN); /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  vars->referenceBPs2 = make_referenceBP_array(vars->reference_pt2, TURN); /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  vars->reference_pt1 = vrna_pt_get(structure1);
+  vars->reference_pt2 = vrna_pt_get(structure2);
+  vars->referenceBPs1 = vrna_refBPcnt_matrix(vars->reference_pt1, TURN); /* matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  vars->referenceBPs2 = vrna_refBPcnt_matrix(vars->reference_pt2, TURN); /* matrix containing number of basepairs of reference structure2 in interval [i,j] */
 
   /* compute maximum matching with reference structure 1 disallowed */
   vars->mm1           = maximumMatchingConstraint(vars->sequence, vars->reference_pt1);
   /* compute maximum matching with reference structure 2 disallowed */
   vars->mm2           = maximumMatchingConstraint(vars->sequence, vars->reference_pt2);
-  vars->bpdist        = compute_BPdifferences(vars->reference_pt1, vars->reference_pt2, TURN);
+  vars->bpdist        = vrna_refBPdist_matrix(vars->reference_pt1, vars->reference_pt2, TURN);
 
   vars->dangles       = dangles;
   vars->circ          = circ;
@@ -237,16 +237,16 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
   vars->seq_length    = length;
   size                = ((length + 1) * (length + 2)/2);
 
-  vars->reference_pt1 = copy_pair_table(mfe_vars->reference_pt1);
-  vars->reference_pt2 = copy_pair_table(mfe_vars->reference_pt2);
-  vars->referenceBPs1 = make_referenceBP_array(vars->reference_pt1, TURN);
-  vars->referenceBPs2 = make_referenceBP_array(vars->reference_pt2, TURN);
+  vars->reference_pt1 = vrna_pt_copy(mfe_vars->reference_pt1);
+  vars->reference_pt2 = vrna_pt_copy(mfe_vars->reference_pt2);
+  vars->referenceBPs1 = vrna_refBPcnt_matrix(vars->reference_pt1, TURN);
+  vars->referenceBPs2 = vrna_refBPcnt_matrix(vars->reference_pt2, TURN);
 
   /* compute maximum matching with reference structure 1 disallowed */
   vars->mm1           = maximumMatchingConstraint(vars->sequence, vars->reference_pt1);
   /* compute maximum matching with reference structure 2 disallowed */
   vars->mm2           = maximumMatchingConstraint(vars->sequence, vars->reference_pt2);
-  vars->bpdist        = compute_BPdifferences(vars->reference_pt1, vars->reference_pt2, TURN);
+  vars->bpdist        = vrna_refBPdist_matrix(vars->reference_pt1, vars->reference_pt2, TURN);
 
 
   vars->dangles      = mfe_vars->dangles;

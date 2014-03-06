@@ -290,8 +290,8 @@ int main(int argc, char *argv[])
       }
     }
     /*compute mfe of AB dimer*/
-    min_en = cofold(rec_sequence, structure);
-    assign_plist_from_db(&mfAB, structure, 0.95);
+    min_en  = cofold(rec_sequence, structure);
+    mfAB    = vrna_get_plist_from_db(structure, 0.95);
 
     {
       char *pstring, *pstruct;
@@ -601,7 +601,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       cut_point=-1;
       tempstruc = (char *) space((unsigned)length+1);
       min_en = fold(string, tempstruc);
-      assign_plist_from_db(mfpl, tempstruc, 0.95);
+      *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
       free_arrays();
       /*En=pf_fold(string, tempstruc);*/
       /* init_co_pf_fold(length); <- obsolete */
@@ -622,7 +622,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       cut_point=length+1;
       tempstruc = (char *) space((unsigned)length*2+1);
       min_en = cofold(Newstring, tempstruc);
-      assign_plist_from_db(mfpl, tempstruc, 0.95);
+      *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
       free_co_arrays();
       /* init_co_pf_fold(2*length); <- obsolete */
       par = get_boltzmann_factor_copy(parameters);
