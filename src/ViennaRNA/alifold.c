@@ -1554,9 +1554,9 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
     make_pscores((const short *const*)S, sequences, n_seq, NULL);
     new     = 1;
 
-    pt = make_pair_table(structure);
+    pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
-    loop_idx    = make_loop_index_pt(pt);
+    loop_idx    = vrna_get_loop_index(pt);
     en_corr_of_loop_gquad(1, n, sequences, structure, pt, loop_idx, n_seq, gge);
     en_struct[0] += gge[0];
     en_struct[1] += gge[1];
@@ -1610,7 +1610,7 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     make_pscores((const short *const*)S, sequences, n_seq, NULL);
     new     = 1;
 
-    pt = make_pair_table(structure);
+    pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
 
     free(pt);

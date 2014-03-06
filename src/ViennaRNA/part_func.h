@@ -100,6 +100,8 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  * 
  *  \ingroup pf_fold
  *
+ *  \deprecated Use vrna_pf_fold() instead
+ *
  *  \note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
  *                  export_bppm()
@@ -108,7 +110,7 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
- *  \see            pf_fold(), pf_circ_fold(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  \see            vrna_pf_fold(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
  *  \param[in]      sequence        The RNA sequence input
  *  \param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
@@ -186,7 +188,8 @@ DEPRECATED(float   pf_fold(const char *sequence,
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
- *  \see            pf_fold_par(), pf_fold()
+ *  \see            vrna_pf_fold()
+ *  \deprecated     Use vrna_pf_fold() instead!
  *  \param[in]      sequence   The RNA sequence input
  *  \param[in,out]  structure  A pointer to a char array where a base pair probability information can be
  *                  stored in a pseudo-dot-bracket notation (may be NULL, too)
@@ -229,6 +232,9 @@ char    *vrna_pbacktrack5(vrna_fold_compound *vc, int length);
  *  \pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_get_fold_compound()
  *  \pre    vrna_pf_fold() hasto be called first to fill the partition function matrices
  *
+ *  \note The function will automagically detect cicular RNAs based on the model_details in exp_params as
+ *        provided via the #vrna_fold_compound
+ *
  *  \param  vc      The fold compound data structure
  *  \param  length  The length of the subsequence to consider (starting with 5' end)
  *  \return         A sampled secondary structure in dot-bracket notation
@@ -241,15 +247,16 @@ char    *vrna_pbacktrack(vrna_fold_compound *vc);
  *  This function does the same as \ref pbacktrack() but assumes the RNA molecule to be circular
  *
  *  \ingroup subopt_stochbt
+
  *  \pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
  *  \pre    pf_fold_par() or pf_circ_fold() have to be called first to fill the partition function matrices
+ *
+ *  \deprecated Use vrna_pbacktrack() instead.
  *
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation
  */
 DEPRECATED(char    *pbacktrack_circ(char *sequence));
-
-char    *vrna_pbacktrack_circ(vrna_fold_compound *vc);
 
 /**
  *  \brief Free arrays for the partition function recursions

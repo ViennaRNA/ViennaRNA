@@ -794,7 +794,7 @@ move_standard(char *seq,
 
   short int *s0 = encode_sequence(seq, 0);
   short int *s1 = encode_sequence(seq, 1);
-  short int *str = make_pair_table(struc);
+  short int *str = vrna_pt_get(struc);
 
   int energy = 0;
   switch (type){
@@ -1003,7 +1003,7 @@ browse_neighs(char *seq,
 
   short int *s0 = encode_sequence(seq, 0);
   short int *s1 = encode_sequence(seq, 1);
-  short int *str = make_pair_table(struc);
+  short int *str = vrna_pt_get(struc);
 
   int res = browse_neighs_pt(seq, str, s0, s1, verbosity_level, shifts, noLP, funct);
 

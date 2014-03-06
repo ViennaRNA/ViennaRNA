@@ -325,7 +325,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
   n = strlen(AS[0]);
   maxl = 1024;
   ps = (char *) space(maxl);
-  ptable = make_pair_table(structure);
+  ptable = vrna_pt_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;

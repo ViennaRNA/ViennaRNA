@@ -119,7 +119,7 @@ PUBLIC float energy_of_struct_par(const char *string,
   S   = get_sequence_encoding(string, 0, &(P->model_details));
   S1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   energy = energy_of_struct_pt_par(string, pair_table, S, S1, parameters, verbosity_level);
 
@@ -307,10 +307,10 @@ energy_of_gquad_struct_par( const char *string,
      contributions, i.e. loops that actually contain a gquad, from
      energy_of_structure_pt()
   */
-  pair_table  = make_pair_table(structure);
+  pair_table  = vrna_pt_get(structure);
   energy      = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
 
-  loop_idx    = make_loop_index_pt(pair_table);
+  loop_idx    = vrna_get_loop_index(pair_table);
   gge         = en_corr_of_loop_gquad(1, S[0], string, structure, pair_table, loop_idx, S1);
   energy     += gge;
 
@@ -398,7 +398,7 @@ PUBLIC  float energy_of_circ_struct_par(  const char *string,
   S   = get_sequence_encoding(string, 0, &(P->model_details));
   S1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   length = S[0];
 
@@ -1004,7 +1004,7 @@ PUBLIC float energy_of_move(const char *string, const char *structure, int m1, i
   S   = get_sequence_encoding(string, 0, &(P->model_details));
   S1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   energy = energy_of_move_pt(pair_table, S, S1, m1, m2);
 

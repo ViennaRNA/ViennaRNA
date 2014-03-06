@@ -64,7 +64,7 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
   length = strlen(string);
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   switch(option){
   case 'X' :
@@ -370,7 +370,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
     return 0;
   }
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
@@ -506,8 +506,8 @@ int PS_rna_plot_a_gquad(char *string,
     return 0;
   }
 
-  pair_table = make_pair_table(structure);
-  pair_table_g = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
+  pair_table_g = vrna_pt_get(structure);
 
   ge=0;
   while ( (ee=parse_gquad(structure+ge, &Lg, l)) >0 ) {
@@ -671,8 +671,8 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     return 0;
   }
 
-  pair_table = make_pair_table(structure);
-  pair_table_snoop = make_pair_table_snoop(structure);
+  pair_table = vrna_pt_get(structure);
+  pair_table_snoop = vrna_pt_snoop_get(structure);
 
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
@@ -978,7 +978,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   A = (char **) space(sizeof(char *)*2);
   ps = (char *) space(maxl);
   colorps = (char *) space(maxl);
-  ptable = alimake_pair_table(structure);
+  ptable = vrna_pt_ali_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
@@ -1047,7 +1047,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
     return 0;
   }
 
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   X = (float *) space((length+1)*sizeof(float));
   Y = (float *) space((length+1)*sizeof(float));
@@ -1187,7 +1187,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
      return 0;
   }
   length = strlen(string);
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   /* make coordinates */
   X = (float *) space((length+1)*sizeof(float));
@@ -1270,7 +1270,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   }
 
   length = strlen(string);
-  pair_table = make_pair_table(structure);
+  pair_table = vrna_pt_get(structure);
 
   /* make coordinates */
   X = (float *) space((length+1)*sizeof(float));
@@ -1775,7 +1775,7 @@ int PS_color_aln(const char *structure, const char *filename,
   ssEscaped=(char *) space((unsigned) length*2);
   ruler=(char *) space((unsigned) length*2);
 
-  pair_table=make_pair_table(structure);
+  pair_table=vrna_pt_get(structure);
   /* Get length of longest name and count sequences in alignment*/
 
   for (i=maxName=N=0; names[i] != NULL; i++) {
@@ -2047,7 +2047,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
 /*   } */
 /*   structur[length]='\0';    */
 /*   printf("%s \n", structur); */
-   pair_table=alimake_pair_table(structure);
+   pair_table=vrna_pt_ali_get(structure);
   /* Get length of longest name and count sequences in alignment*/
 
   for (i=maxName=N=0; names[i] != NULL; i++) {

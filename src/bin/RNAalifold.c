@@ -467,7 +467,7 @@ int main(int argc, char *argv[]){
       plist *pl, *mfel;
 
       assign_plist_from_pr(&pl, probs, length, bppmThreshold);
-      assign_plist_from_db(&mfel, mfe_struc, 0.95*0.95);
+      mfel = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
@@ -577,7 +577,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   A = (char **) space(sizeof(char *)*2);
   ps = (char *) space(maxl);
   colorps = (char *) space(maxl);
-  ptable = make_pair_table(structure);
+  ptable = vrna_pt_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
@@ -652,7 +652,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, double threshold, int n_seq, cha
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
-  ptable = make_pair_table(mfe);
+  ptable = vrna_pt_get(mfe);
 
   for (k=0; k<n; k++) {
     int s, type;

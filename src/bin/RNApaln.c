@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
       structure = (char *) space((length+1)*sizeof(char));
       mfe = fold(line, structure);
       /* get pairlist from dot-bracket string */
-      assign_plist_from_db(&mfe_pl, structure, 0.95*0.95);
+      mfe_pl = vrna_get_plist_from_db(structure, 0.95*0.95);
       pf_scale = exp(-(1.07*mfe)/kT/length);
       /* init_pf_fold(length); <- obsolete */
       (void) pf_fold(line,structure);

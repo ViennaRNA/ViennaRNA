@@ -966,7 +966,7 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
     }
   }
 
-  pt = make_pair_table(pt_inter);
+  pt = vrna_pt_get(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
   (*intra_l)=(char*)space(sizeof(char)*(len1+1));

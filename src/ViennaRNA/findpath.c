@@ -247,8 +247,8 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   int i, len, d, dist=0, result;
   intermediate_t *current, *next;
 
-  pt1 = make_pair_table(struc1);
-  pt2 = make_pair_table(struc2);
+  pt1 = vrna_pt_get(struc1);
+  pt2 = vrna_pt_get(struc2);
   len = (int) strlen(struc1);
 
   mlist = (move_t *) space(sizeof(move_t)*len); /* bp_dist < n */

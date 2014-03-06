@@ -428,7 +428,7 @@ int main(int argc, char *argv[]){
 
       if(lucky){
         init_rand();
-        char *s = (circular) ? pbacktrack_circ(rec_sequence) : vrna_pbacktrack(vc);
+        char *s = vrna_pbacktrack(vc);
         min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, s, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, s, mfe_parameters, 0);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
