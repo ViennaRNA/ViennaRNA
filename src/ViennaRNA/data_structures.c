@@ -338,7 +338,7 @@ get_pf_matrices_alloc(unsigned int n,
     if(alloc_vector & ALLOC_FML)
       vars->qm    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
 
-    if(alloc_vector & ALLOC_FM1)
+    if(alloc_vector & ALLOC_UNIQ)
       vars->qm1   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_FM2)
@@ -373,7 +373,7 @@ destroy_pf_matrices(pf_matricesT *self){
         free(self->qb);
       if(self->allocated & ALLOC_FML)
         free(self->qm);
-      if(self->allocated & ALLOC_FM1)
+      if(self->allocated & ALLOC_UNIQ)
         free(self->qm1);
       if(self->allocated & ALLOC_FM2)
         free(self->qm2);
