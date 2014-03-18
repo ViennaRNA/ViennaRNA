@@ -19,7 +19,7 @@ extension = Extension("_RNA",
                       ["RNA_wrap.c"],
                       include_dirs=['../../src'],
                       libraries=['RNA'],
-                      library_dirs=['../../src'],
+                      library_dirs=['../../src/ViennaRNA'],
                       extra_compile_args=extra_compile_args,
                       extra_link_args=extra_link_args
                       )
