@@ -66,6 +66,42 @@ option  "noPS"  -
 flag
 off
 
+option  "output"  -
+"Select structure output format\n"
+details="The following output formats are recognized:\n\n\
+ T ... Thermodynamic properties, i.e. all free energies, scores, etc.\n\
+       (file extension: .th)\n\n\
+ P ... Parenthesis-Dot, a.k.a. dot-bracket annotation\n\
+       (file extension: .db)\n\n\
+ H ... Helix List, i.e. 3 columns listing start, end, and length of helices\n\
+       (file extension: .hx)\n\n\
+ C ... Connect Format, as introduced with Michael Zuker's mfold\n\
+       (file extension: .ct)\n\nNote: Some output formats do not allow for more data than the structure. Thus,\
+ leaving out thermodynamic properties (format \"T\") may result in loss of prediction data.\n\n"
+string
+typestr="PHC"
+default="P"
+dependon="outfile"
+optional
+
+option  "outfile" o
+"Print output to file instead of stdout\n"
+details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
+ If a FASTA header precedes the input sequence, the output file will be prefixed with its appropriate ID.\
+ The resulting output file names then become for instance\n\n\"fastaID_filename_mfe.db\"\n\n with the suffixes\n\n\
+ \"_mfe\" ... MFE structure\n\n\
+ \"_cent\" ... Centroid structure\n\n\
+ \"_mea\" ... MEA structure\n\n\
+ for each of the available structure outputs.\n\nNote for batch mode:\
+ In case no FASTA headers are present in the input, only a single output file per structure type\
+ will be created. The individual results are then concatenated using the separator line:\n\n\
+ \"## NEXT RESULT ##\"\n\n"
+string
+typestr="<filename>"
+optional
+
+
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"

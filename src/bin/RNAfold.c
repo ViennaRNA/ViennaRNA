@@ -125,6 +125,8 @@ int main(int argc, char *argv[]){
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
+  char            *outfile;
+  int             out_th, out_db, out_hx, out_ct;
   paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
@@ -154,6 +156,10 @@ int main(int argc, char *argv[]){
   with_shapes   = 0;
   verbose       = 0;
   max_bp_span   = -1;
+
+  outfile       = NULL;
+  out_th = out_db = 1;
+  out_hx = out_ct = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -234,6 +240,10 @@ int main(int argc, char *argv[]){
   if(args_info.maxBPspan_given){
     md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
   }
+  if(args_info.outfile_given){
+    outfile = strdup(args_info.outfile_arg);
+  }
+
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -306,7 +316,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     if(rec_id){
-      if(!istty) printf("%s\n", rec_id);
+      if(!istty && !outfile) printf("%s\n", rec_id);
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
@@ -364,11 +374,45 @@ int main(int argc, char *argv[]){
     min_en = vrna_fold(vc, structure);
 
     if(!lucky){
-      printf("%s\n%s", orig_sequence, structure);
-      if (istty)
-        printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-      else
-        printf(" (%6.2f)\n", min_en);
+      if(outfile){
+        char *mfe_file_name = NULL;
+        char *th_file_name  = NULL;
+        char *prefix        = NULL;
+        
+        if(fname[0] != '\0'){
+          prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+          strcpy(prefix, fname);
+          strcpy(prefix, "_");
+          strcpy(prefix, outfile);
+        } else {
+          prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+          strcpy(prefix, outfile);
+        }
+
+        if(out_th){
+          th_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 7));
+        }
+        
+        if(out_db){
+        
+        }
+        
+        if(out_hx){
+        
+        }
+        
+        if(out_ct){
+        
+        }
+
+      } else {
+        printf("%s\n%s", orig_sequence, structure);
+        if (istty){
+          printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+        } else {
+          printf(" (%6.2f)\n", min_en);
+        }
+      }
       (void) fflush(stdout);
 
       if(fname[0] != '\0'){

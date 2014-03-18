@@ -391,5 +391,6 @@ plist *vrna_get_plist_from_db(const char *struc, float pr);
  */
 DEPRECATED(void assign_plist_from_db(plist **pl, const char *struc, float pr));
 
+void vrna_helix_list_from_db(const char *db, FILE *file);
 
 #endif
