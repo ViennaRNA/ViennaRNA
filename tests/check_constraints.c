@@ -71,6 +71,13 @@ START_TEST(test_parse_soft_constraints_file)
   ck_assert(deltaCompare(values[1], 0.5));
   unlink(tempfile);
 
+  //1 entry 2 columns
+  writeTempFile(tempfile, "1 0.5\n");
+  ck_assert_int_eq(parse_soft_constraints_file(tempfile, 1, 0, sequence, values), 1);
+  ck_assert_str_eq(sequence, "N");
+  ck_assert(deltaCompare(values[1], 0.5));
+  unlink(tempfile);
+
   //multiple entries
   writeTempFile(tempfile, "1 A 0.1\n2 T 0.2\n3 G 0.3\n4 C 0.4\n");
   ck_assert_int_eq(parse_soft_constraints_file(tempfile, 4, 0, sequence, values), 1);
@@ -89,6 +96,14 @@ START_TEST(test_parse_soft_constraints_file)
   ck_assert(deltaCompare(values[2], 2));
   ck_assert(deltaCompare(values[3], 0.3));
   ck_assert(deltaCompare(values[4], 0.1));
+  unlink(tempfile);
+
+  //whitespaces
+  writeTempFile(tempfile, "1 \t 0.5\n2    A\t1\n");
+  ck_assert_int_eq(parse_soft_constraints_file(tempfile, 2, 0, sequence, values), 1);
+  ck_assert_str_eq(sequence, "NA");
+  ck_assert(deltaCompare(values[1], 0.5));
+  ck_assert(deltaCompare(values[2], 1));
   unlink(tempfile);
 
   //missing value
