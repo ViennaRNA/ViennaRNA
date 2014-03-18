@@ -30,6 +30,9 @@ wrap_get_plist( pf_matricesT *matrices,
                 pf_paramT *pf_params,
                 double cut_off);
 
+PRIVATE void
+find_helices(short *pt, int i, int j, FILE *file);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -766,6 +769,41 @@ vrna_get_plist_from_db( const char *struc,
   pl = (plist *)xrealloc(pl, k * sizeof(plist));
 
   return pl;
+}
+
+PRIVATE void
+find_helices(short *pt, int i, int j, FILE *file){
+
+  FILE *out = (file) ? file : stdout;
+  int h_start, h_length, h_end;
+
+  h_start = h_length = h_end = 0;
+
+  for(;i < j; i++){
+    if(i > pt[i]) continue;
+    h_start = i;
+    h_end   = pt[i];
+    h_length = 1;
+    while(pt[i+1] == (pt[i]-1)){
+      h_length++;
+      i++;
+    }
+    if(i < h_end){
+      find_helices(pt, i+1, h_end, file);
+    }
+    if(h_length > 1){
+      fprintf(out, "%d %d %d\n", h_start, h_end, h_length);
+    }
+    i = pt[h_start] - 1;
+  }
+}
+
+PUBLIC void
+vrna_helix_list_from_db(const char *db, FILE *file){
+
+  short *pt = make_pair_table(db);
+
+  find_helices(pt, 1, pt[0], file);
 }
 
 /*###########################################*/
