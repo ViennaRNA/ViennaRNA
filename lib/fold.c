@@ -2257,44 +2257,63 @@ PUBLIC float energy_of_move(const char *string, const char *structure, int m1, i
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int energy_of_move_pt(short *pt, short *s, short *s1, int m1, int m2) {
-  /*compute change in energy given by move (m1,m2)*/
-  int en_post, en_pre, i,j,k,l, len;
+    /*compute change in energy given by move (m1,m2)*/
+    int en_post, en_pre, i,j,k,l, len;
 
-  len = pt[0];
-  k = (m1>0)?m1:-m1;
-  l = (m2>0)?m2:-m2;
-  /* first find the enclosing pair i<k<l<j */
-  for (j=l+1; j<=len; j++) {
-    if (pt[j]<=0) continue; /* unpaired */
-    if (pt[j]<k) break;   /* found it */
-    if (pt[j]>j) j=pt[j]; /* skip substructure */
-    else {
-      fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
-      nrerror("illegal move or broken pair table in energy_of_move()");
+    len = pt[0];
+    k = (m1>0)?m1:-m1;
+    l = (m2>0)?m2:-m2;
+    /* first find the enclosing pair i<k<l<j */
+    for (j=l+1; j<=len; j++) {
+        if (pt[j]<=0) continue; /* unpaired */
+        if (pt[j]<k) break;   /* found it */
+        if (pt[j]>j) j=pt[j]; /* skip substructure */
+        else {
+            fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
+            nrerror("illegal move or broken pair table in energy_of_move()");
+        }
     }
-  }
-  i = (j<=len) ? pt[j] : 0;
-  en_pre = loop_energy(pt, s, s1, i);
-  en_post = 0;
-  if (m1<0) { /*it's a delete move */
-    en_pre += loop_energy(pt, s, s1, k);
-    pt[k]=0;
-    pt[l]=0;
-  } else { /* insert move */
-    pt[k]=l;
-    pt[l]=k;
-    en_post += loop_energy(pt, s, s1, k);
-  }
-  en_post += loop_energy(pt, s, s1, i);
-  /*  restore pair table */
-  if (m1<0) {
-    pt[k]=l;
-    pt[l]=k;
-  } else {
-    pt[k]=0;
-    pt[l]=0;
-  }
-  return (en_post - en_pre);
+    i = (j<=len) ? pt[j] : 0;
+    en_pre = loop_energy(pt, s, s1, i);
+    en_post = 0;
+    if (m1<0) { /*it's a delete move */
+        en_pre += loop_energy(pt, s, s1, k);
+        pt[k]=0;
+        pt[l]=0;
+    } else { /* insert move */
+        pt[k]=l;
+        pt[l]=k;
+        en_post += loop_energy(pt, s, s1, k);
+    }
+    en_post += loop_energy(pt, s, s1, i);
+    /*  restore pair table */
+    if (m1<0) {
+        pt[k]=l;
+        pt[l]=k;
+    } else {
+        pt[k]=0;
+        pt[l]=0;
+    }
+
+    /* Cofolding -- Check if move changes COFOLD-Penalty */
+    if (!SAME_STRAND(k,l)) {
+        int p, c; p=c=0;
+        for (p=1; p < cut_point; ) { /* Count basepairs between two strands */
+            if (pt[p] != 0) {
+                if (SAME_STRAND(p,pt[p])) /* Skip stuff */
+                    p=pt[p];
+                else { c++; } /* Count a basepair */
+            }
+            p++;
+        }
+        if (m1<0 && c==1) /* First and only inserted basepair */
+            return (en_post - en_pre - P->DuplexInit);
+        else
+            if (c==0) /* Must have been a delete move */
+                return (en_post - en_pre + P->DuplexInit);
+    }
+
+    return (en_post - en_pre);
 }
 
 
