@@ -30,3 +30,7 @@ RNAlib2.pc
 # ignore all postscript files that might be generated
 *.ps
 
+# ignore .o files in lib
+*/*o
+.*un~
+*~
