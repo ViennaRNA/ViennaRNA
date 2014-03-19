@@ -1,3 +1,6 @@
 [submodule "src/Kinfold"]
 	path = src/Kinfold
 	url = git@krios.tbi.univie.ac.at:rna/kinfold.git
+[submodule "src/RNAforester"]
+	path = src/RNAforester
+	url = git@krios.tbi.univie.ac.at:rna/rnaforester.git
