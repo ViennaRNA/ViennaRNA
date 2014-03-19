@@ -9,6 +9,7 @@ depcomp
 missing
 compile
 install-sh
+config
 config.*
 .deps
 stamp-h1
@@ -24,7 +25,4 @@ RNAlib2.pc
 # ignore all postscript files that might be generated
 *.ps
 
-# ignore .o files in lib
-*/*o
-.*un~
-*~
+win_installer.log
