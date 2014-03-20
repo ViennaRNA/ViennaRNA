@@ -106,8 +106,6 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
 {
   int length = vc->length;
   int i;
-  char *hc_string;
-  hard_constraintT *hc_backup;
 
   addSoftConstraint(vc, epsilon, length);
   vc->exp_params->model_details.do_backtrack = 1;
@@ -115,11 +113,11 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
   vrna_pf_fold(vc, NULL);
   calculate_probability_unpaired(vc, prob_unpaired);
 
-  hc_string = space(sizeof(char) * (length + 1));
-  hc_backup = vc->hc;
-
+  #pragma omp parallel for private(i)
   for (i = 1; i <= length; ++i)
   {
+    vrna_fold_compound *restricted_vc;
+    char *hc_string;
     unsigned int constraint_options = VRNA_CONSTRAINT_DB
                                       | VRNA_CONSTRAINT_PIPE
                                       | VRNA_CONSTRAINT_DOT
@@ -127,21 +125,22 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
                                       | VRNA_CONSTRAINT_ANG_BRACK
                                       | VRNA_CONSTRAINT_RND_BRACK;
 
+    hc_string = space(sizeof(char) * (length + 1));
     memset(hc_string, '.', length);
     hc_string[i - 1] = 'x';
 
-    vrna_hc_add(vc, hc_string, constraint_options);
-    vrna_pf_fold(vc, NULL);
-    calculate_probability_unpaired(vc, conditional_prob_unpaired[i]);
+    restricted_vc = vrna_get_fold_compound(vc->sequence, &(vc->exp_params->model_details), VRNA_OPTION_PF);
+    vrna_hc_add(restricted_vc, hc_string, constraint_options);
+    free(hc_string);
 
-    destroy_hard_constraints(vc->hc);
-    vc->hc = NULL;
+    vrna_pf_fold(restricted_vc, NULL);
+    calculate_probability_unpaired(restricted_vc, conditional_prob_unpaired[i]);
+
+    restricted_vc->sc = NULL;
+    destroy_fold_compound(restricted_vc);
   }
 
   vrna_sc_remove(vc);
-  vc->hc = hc_backup;
-
-  free(hc_string);
 }
 
 void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *epsilon, int sample_size, double *prob_unpaired, double **conditional_prob_unpaired)
@@ -155,20 +154,24 @@ void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *e
 
   vrna_pf_fold(vc, NULL);
 
+  #pragma omp parallel for private(s)
   for (s = 0; s < sample_size; ++s)
   {
     char *sample = vrna_pbacktrack(vc);
 
-    for (i = 1; i <= length; ++i)
+    #pragma omp critical
     {
-      if (sample[i-1] != '.')
-        continue;
+      for (i = 1; i <= length; ++i)
+      {
+        if (sample[i-1] != '.')
+          continue;
 
-      ++prob_unpaired[i];
+        ++prob_unpaired[i];
 
-      for (j = 1; j <= length; ++j)
-        if (sample[j-1] == '.')
-          ++conditional_prob_unpaired[i][j];
+        for (j = 1; j <= length; ++j)
+          if (sample[j-1] == '.')
+            ++conditional_prob_unpaired[i][j];
+      }
     }
 
     free(sample);
