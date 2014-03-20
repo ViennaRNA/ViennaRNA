@@ -59,6 +59,7 @@ int main(int argc, char *argv[]){
   char **rec_rest;
   char *shape_sequence;
   double *shape_data;
+  int i;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;
@@ -141,6 +142,9 @@ int main(int argc, char *argv[]){
 
   free(rec_sequence);
   free(rec_id);
+  for(i = 0; rec_rest[i]; ++i)
+    free(rec_rest[i]);
+  free(rec_rest);
 
   RNApvmin_cmdline_parser_free (&args_info);
 
