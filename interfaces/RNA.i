@@ -4,6 +4,7 @@
 %{
 #include  "../src/ViennaRNA/data_structures.h"
 #include  "../src/ViennaRNA/utils.h"
+#include  "../src/ViennaRNA/structure_utils.h"
 #include  "../src/ViennaRNA/fold_vars.h"
 #undef fold
 #include  "../src/ViennaRNA/fold.h"
@@ -416,6 +417,7 @@ int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 %newobject make_pair_table;
 
 %include "../src/ViennaRNA/utils.h"
+%include "../src/ViennaRNA/structure_utils.h"
 
 // from read_epars.c
 extern void  read_parameter_file(char *fname);
