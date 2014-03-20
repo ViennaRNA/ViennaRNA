@@ -378,19 +378,28 @@ int main(int argc, char *argv[]){
         char *mfe_file_name = NULL;
         char *th_file_name  = NULL;
         char *prefix        = NULL;
-        
+
         if(fname[0] != '\0'){
           prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
-          strcpy(prefix, fname);
-          strcpy(prefix, "_");
           strcpy(prefix, outfile);
+          strcat(prefix, "_");
+          strcat(prefix, fname);
         } else {
-          prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+          prefix = (char *)space(sizeof(char) * (strlen(outfile) + 1));
           strcpy(prefix, outfile);
         }
 
         if(out_th){
           th_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 7));
+          strcpy(th_file_name, prefix);
+          strcat(th_file_name, ".th");
+
+          FILE *fp = fopen((const char *)th_file_name, "a"); 
+          if(!fp)
+            nrerror("Failed to open file for writing");
+
+          fprintf(fp, "sequence = %s\nmfe = %6.2f kcal/mol\n", orig_sequence, min_en);
+          fclose(fp);
         }
         
         if(out_db){
