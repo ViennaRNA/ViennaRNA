@@ -153,6 +153,7 @@ START_TEST(test_get_ptypes)
   int *idx;
   char *ptype;
 
+  details.min_loop_size = TURN;
   int results[][3] = {{7, 2, 1},
                       {8, 1, 5},
                       {8, 3, 3},
