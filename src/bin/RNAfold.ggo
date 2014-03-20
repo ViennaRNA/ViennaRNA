@@ -86,16 +86,16 @@ details="The following output formats are recognized:\n\n\
        (file extension: .ct)\n\nNote: Some output formats do not allow for more data than the structure. Thus,\
  leaving out thermodynamic properties (format \"T\") may result in loss of prediction data.\n\n"
 string
-typestr="PHC"
-default="P"
+typestr="TPHC"
+default="TP"
 dependon="outfile"
 optional
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
 details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
- If a FASTA header precedes the input sequence, the output file will be prefixed with its appropriate ID.\
- The resulting output file names then become for instance\n\n\"fastaID_filename_mfe.db\"\n\n with the suffixes\n\n\
+ If a FASTA header precedes the input sequence, the output file will be suffixed with its appropriate ID.\
+ The resulting output file names then become for instance\n\n\"filename_fastaID_mfe.db\"\n\n with the infixes\n\n\
  \"_mfe\" ... MFE structure\n\n\
  \"_cent\" ... Centroid structure\n\n\
  \"_mea\" ... MEA structure\n\n\
