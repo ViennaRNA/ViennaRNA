@@ -1256,7 +1256,7 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
 
       for(i = 1; i <= n; i++){
         for(j = 1; j <= (n - i + 1); j++){
-          GT  = (double)((int)(sc->constraints[i+j-1])) * TT * 1000.; /* convert to cal/mol */
+          GT  = (double)((int)(sc->constraints[i+j-1] * 100)) * TT * 10.; /* convert to cal/mol */
           sc->boltzmann_factors[i][j] =   sc->boltzmann_factors[i][j-1]
                                         * exp( -GT / kT);
         }
