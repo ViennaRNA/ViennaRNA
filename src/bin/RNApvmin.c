@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
     vrna_fold_compound *vc;
     size_t i;
 
-    //use a cuttoff approach to divide into paired/unpaired
+    //use a cutoff approach to divide into paired/unpaired
     for (i = 1; i <= length; ++i)
       shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
 
