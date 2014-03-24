@@ -45,6 +45,15 @@ double
 default="0.01"
 optional
 
+option "objectiveFunction"  -
+"The energies of the perturbation vector and the discripancies between predicted and observed pairing probabilities contribute to the objective \
+function. This parameter defines, which function is used to process the contributions before summing them up.
+0 square
+1 absolute"
+int
+default="0"
+optional
+
 option  "sampleSize"  -
 "The iterative minimization process requires to evaluate the gradient of the objective function. \
 A sample size of 0 leads to an analytical evaluation which scales as O(N^4). \
