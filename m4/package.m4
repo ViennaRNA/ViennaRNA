@@ -441,7 +441,7 @@ AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
 AC_CONFIG_FILES([interfaces/Makefile])
-AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile RNAlib2.pc src/json/Makefile src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
