@@ -94,6 +94,11 @@ int main(int argc, char *argv[]){
     md.energy_set = args_info.energyModel_arg;
   if(args_info.intermediatePath_given)
     g_statpath = args_info.intermediatePath_arg;
+  if(args_info.objectiveFunction_arg < 0 || args_info.objectiveFunction_arg > 1)
+  {
+    warn_user("required objective function mode not implemented, falling back to default");
+    args_info.objectiveFunction_arg = 0;
+  }
 
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
@@ -128,7 +133,7 @@ int main(int argc, char *argv[]){
     epsilon = space(sizeof(double) * (length + 1));
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
 
-    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.objectiveFunction_arg, args_info.sampleSize_arg, epsilon, print_progress);
 
     destroy_fold_compound(vc);
 
