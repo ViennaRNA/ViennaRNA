@@ -253,6 +253,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
   int iteration_count = 0;
   int length = vc->length;
   double improvement;
+  const double min_improvement = 0.0001;
 
   double *new_epsilon = space(sizeof(double) * (length + 1));
   double *gradient = space(sizeof(double) * (length + 1));
@@ -280,8 +281,9 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
         new_epsilon[i] = epsilon[i] - step_size * gradient[i];
 
       new_score = vrna_evaluate_perturbation_vector_score(vc, new_epsilon, q_prob_unpaired, sigma_squared, tau_squared);
+      improvement = 1 - new_score / score;
       step_size /= 2;
-    } while (new_score > score && step_size >= 1e-15);
+    } while (improvement < min_improvement && step_size >= 1e-15);
 
     if (new_score > score)
       break;
@@ -289,10 +291,9 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
     if (callback)
       callback(iteration_count, new_score, new_epsilon);
 
-    improvement = 1 - new_score / score;
     score = new_score;
     memcpy(epsilon, new_epsilon, sizeof(double) * (length+1));
-  } while (improvement >= 0.0001);
+  } while (improvement >= min_improvement);
 
   free(gradient);
   free(new_epsilon);
