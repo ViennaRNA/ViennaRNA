@@ -563,13 +563,14 @@ wrap_get_plist( pf_matricesT *matrices,
                 pf_paramT *pf_params,
                 double cut_off){
 
-  int i, j, k, n, count;
+  int i, j, k, n, count, gquad;
   FLT_OR_DBL  *probs, *G, *scale;
   plist         *pl;
 
   probs     = matrices->probs;
   G         = matrices->G;
   scale     = matrices->scale;
+  gquad     = pf_params->model_details.gquad;
 
   count = 0;
   n     = 2;
@@ -589,7 +590,7 @@ wrap_get_plist( pf_matricesT *matrices,
       }
 
       /* check for presence of gquadruplex */
-      if((S[i] == 3) && (S[j] == 3)){
+      if((S[i] == 3) && (S[j] == 3) && gquad){
           /* add probability of a gquadruplex at position (i,j)
              for dot_plot
           */
