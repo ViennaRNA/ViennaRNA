@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
   char            *outfile;
-  int             out_th, out_db, out_hx, out_ct;
+  int           out_th, out_db, out_hx, out_ct, out_bps;
   paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
@@ -158,8 +158,8 @@ int main(int argc, char *argv[]){
   max_bp_span   = -1;
 
   outfile       = NULL;
-  out_th = out_db = 1;
-  out_hx = out_ct = 0;
+  out_th = out_db = 1;  /* default to thermodynamic properties and dot bracket string */
+  out_hx = out_ct = out_bps = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -245,7 +245,31 @@ int main(int argc, char *argv[]){
   if(args_info.outfile_given){
     outfile = strdup(args_info.outfile_arg);
   }
-
+  if(args_info.format_given){
+    char *o,*s;
+    out_th = out_db = out_hx = out_ct = 0; /* reset defaults */
+    o = strdup(args_info.format_arg);
+    /* print thermodynamic properties? */
+    s = strchr(o, 'T');
+    if(s != NULL)
+      out_th = 1;
+    /* print dot-parenthesis string? */
+    s = strchr(o, 'P');
+    if(s != NULL)
+      out_db = 1;
+    /* print helix list? */
+    s = strchr(o, 'H');
+    if(s != NULL)
+      out_hx = 1;
+    /* print connect file? */
+    s = strchr(o, 'C');
+    if(s != NULL)
+      out_ct = 1;
+    /* print bpseq file? */
+    s = strchr(o, 'B');
+    if(s != NULL)
+      out_bps = 1;
+  }
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -375,24 +399,32 @@ int main(int argc, char *argv[]){
 
     min_en = vrna_fold(vc, structure);
 
+    char *th_file_name  = NULL;
+    char *db_file_name  = NULL;
+    char *hx_file_name  = NULL;
+    char *ct_file_name  = NULL;
+    char *bps_file_name = NULL;
+    char *prefix        = NULL;
+
+    if(outfile){
+
+      /* prepare the file prefix */
+      if(fname[0] != '\0'){
+        prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+        strcpy(prefix, outfile);
+        strcat(prefix, "_");
+        strcat(prefix, fname);
+      } else {
+        prefix = (char *)space(sizeof(char) * (strlen(outfile) + 1));
+        strcpy(prefix, outfile);
+      }
+    }
+
     if(!lucky){
       if(outfile){
-        char *mfe_file_name = NULL;
-        char *th_file_name  = NULL;
-        char *prefix        = NULL;
-
-        if(fname[0] != '\0'){
-          prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
-          strcpy(prefix, outfile);
-          strcat(prefix, "_");
-          strcat(prefix, fname);
-        } else {
-          prefix = (char *)space(sizeof(char) * (strlen(outfile) + 1));
-          strcpy(prefix, outfile);
-        }
 
         if(out_th){
-          th_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 7));
+          th_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
           strcpy(th_file_name, prefix);
           strcat(th_file_name, ".th");
 
@@ -405,17 +437,56 @@ int main(int argc, char *argv[]){
         }
         
         if(out_db){
-        
+          
         }
-        
+
         if(out_hx){
-        
+          hx_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
+          strcpy(hx_file_name, prefix);
+          strcat(hx_file_name, ".hx");
+
+          FILE *fp = fopen((const char *)hx_file_name, "a");
+          if(!fp)
+            nrerror("Failed to open file for writing");
+
+          vrna_structure_print_helix_list((const char *)structure, fp);
+
+          fclose(fp);
         }
         
         if(out_ct){
-        
+          ct_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
+          strcpy(ct_file_name, prefix);
+          strcat(ct_file_name, ".ct");
+
+          FILE *fp = fopen((const char *)ct_file_name, "a");
+          if(!fp)
+            nrerror("Failed to open file for writing");
+
+          vrna_structure_print_ct((const char *)orig_sequence,
+                                  (const char *)structure,
+                                  min_en,
+                                  (const char *)(fname[0] != '\0' ? fname : "MFE-structure"),
+                                  fp);
+
+          fclose(fp);
         }
 
+        if(out_bps){
+          bps_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 11));
+          strcpy(bps_file_name, prefix);
+          strcat(bps_file_name, ".bpseq");
+
+          FILE *fp = fopen((const char *)bps_file_name, "a");
+          if(!fp)
+            nrerror("Failed to open file for writing");
+
+          vrna_structure_print_bpseq( (const char *)orig_sequence,
+                                      (const char *)structure,
+                                      fp);
+
+          fclose(fp);
+        }
       } else {
         printf("%s\n%s", orig_sequence, structure);
         if (istty){
