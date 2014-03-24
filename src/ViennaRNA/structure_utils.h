@@ -303,10 +303,9 @@ char    bppm_symbol(const float *x);
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
  * 
  */
-void
-vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
-                            int length);
+void vrna_parenthesis_structure(  char *structure,
+                                  bondT *bp,
+                                  int length);
 
 /**
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -315,10 +314,9 @@ vrna_parenthesis_structure( char *structure,
  * 
  *  \note This function is threadsafe
  */
-DEPRECATED(void 
-parenthesis_structure(char *structure,
-                      bondT *bp,
-                      int length));
+DEPRECATED(void parenthesis_structure(char *structure,
+                                      bondT *bp,
+                                      int length));
 
 /**
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -326,10 +324,9 @@ parenthesis_structure(char *structure,
  * 
  *  \note This function is threadsafe
  */
-void
-vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length);
+void vrna_parenthesis_zuker(char *structure,
+                            bondT *bp,
+                            int length);
 
 /**
  *  \brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -339,21 +336,17 @@ vrna_parenthesis_zuker( char *structure,
  * 
  *  \note This function is threadsafe
  */
-DEPRECATED(void 
-parenthesis_zuker(char *structure,
-                  bondT *bp,
-                  int length));
+DEPRECATED(void parenthesis_zuker(char *structure,
+                                  bondT *bp,
+                                  int length));
 
+void vrna_letter_structure( char *structure,
+                            bondT *bp,
+                            int length);
 
-void
-vrna_letter_structure(char *structure,
-                      bondT *bp,
-                      int length);
-
-DEPRECATED(void 
-letter_structure( char *structure,
-                  bondT *bp,
-                  int length));
+DEPRECATED(void letter_structure( char *structure,
+                                  bondT *bp,
+                                  int length));
 
 /**
  *  \brief Create a plist from a dot-bracket string
@@ -391,6 +384,27 @@ plist *vrna_get_plist_from_db(const char *struc, float pr);
  */
 DEPRECATED(void assign_plist_from_db(plist **pl, const char *struc, float pr));
 
-void vrna_helix_list_from_db(const char *db, FILE *file);
+/**
+ *  \brief Print a secondary structure as helix list
+ *
+ *  \param  db    The structure in dot-bracket format
+ *  \param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
+ */
+void vrna_structure_print_helix_list(const char *db, FILE *file);
+
+/**
+ *  \brief Print a secondary structure as connect table
+ *
+ *  \param  seq         The RNA sequence
+ *  \param  db          The structure in dot-bracket format
+ *  \param  energy      The free energy of the structure
+ *  \param  identifier  An optional identifier for the sequence
+ *  \param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
+ */
+void vrna_structure_print_ct( const char *seq,
+                              const char *db,
+                              float energy,
+                              const char *identifier,
+                              FILE *file);
 
 #endif
