@@ -819,10 +819,10 @@ vrna_structure_print_ct(const char *seq,
   int i, power_d;
   FILE *out = (file) ? file : stdout;
 
-  short *pt = vrna_pt_get(db);
-
   if(strlen(seq) != strlen(db))
     nrerror("vrna_ct_from_dbsequence and ");
+
+  short *pt = vrna_pt_get(db);
 
   for(power_d=0;pow(10,power_d) <= (int)strlen(seq);power_d++);
 
@@ -866,6 +866,28 @@ vrna_structure_print_ct(const char *seq,
                 power_d, 0,
                 power_d, pt[i+1],
                 power_d, i+1);
+
+  /* clean up */
+  free(pt);
+  fflush(out);
+}
+
+PUBLIC void
+vrna_structure_print_bpseq( const char *seq,
+                            const char *db,
+                            FILE *file){
+
+  int i;
+  FILE *out = (file) ? file : stdout;
+
+  if(strlen(seq) != strlen(db))
+    nrerror("vrna_ct_from_dbsequence and ");
+
+  short *pt = vrna_pt_get(db);
+
+  for(i = 1; i <= pt[0]; i++){
+    fprintf(out, "%d %c %d\n", i, (char)toupper(seq[i-1]), pt[i]);
+  }
 
   /* clean up */
   free(pt);
