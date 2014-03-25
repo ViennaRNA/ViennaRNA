@@ -629,7 +629,7 @@ vrna_hc_add(vrna_fold_compound *vc,
   free(S);
 
   /* set new hard constraints */
-  free(vc->hc);
+  destroy_hard_constraints(vc->hc);
   vc->hc = hc;
 }
 
