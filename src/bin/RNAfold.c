@@ -30,6 +30,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
 

@@ -18,7 +18,7 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
                       naview.h 2Dfold.h 2Dpfold.h read_epars.h convert_epars.h PKplex.h\
                       plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
-                      structure_utils.h model.h ${SVM_UTILS_H}
+                      structure_utils.h model.h file_formats.h ${SVM_UTILS_H}
 
 libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     treedist.c energy_par.c inverse.c ProfileDist.c \
@@ -31,7 +31,7 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c\
                     snoop.c move_set.c gquad.c eval.c constraints.c data_structures.c\
                     perturbation_fold.c centroid.c structure_utils.c model.c \
-                    ${SVM_SRC} ${SVM_UTILS}
+                    file_formats.c ${SVM_SRC} ${SVM_UTILS}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
 
