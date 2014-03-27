@@ -13,6 +13,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/perturbation_fold.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNApvmin_cmdl.h"
 
 static size_t g_length = 0;
@@ -138,7 +139,7 @@ int main(int argc, char *argv[]){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
 
-  rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt);
+  rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt);
   if (rec_type & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
     return 0;
 

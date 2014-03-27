@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNAplot_cmdl.h"
 
 #define PRIVATE static
@@ -54,7 +56,7 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  /* set options we wanna pass to read_record */
+  /* set options we wanna pass to vrna_read_fasta_record() */
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
     print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
@@ -66,7 +68,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     if(rec_id){
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]){
 
     length = (int)strlen(rec_sequence);
 
-    structure = extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
+    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if(!structure) nrerror("structure missing");
     if((int)strlen(structure) != length) nrerror("structure and sequence differ in length!");

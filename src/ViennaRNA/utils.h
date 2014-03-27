@@ -329,8 +329,6 @@ int   hamming_bound(const char *s1, const char *s2, int n);
 /*@only@*/ /*@null@*/
 char  *get_line(FILE *fp);
 
-int skip_comment_lines(char **line);
-
 /**
  *  Retrieve a line from 'stdin' savely while skipping comment characters and
  *  other features
@@ -353,85 +351,6 @@ int skip_comment_lines(char **line);
  */
 unsigned int get_input_line(char **string,
                             unsigned int options);
-
-unsigned int get_multi_input_line(char **string,
-                                  unsigned int options);
-
-/**
- *  \brief  Get a data record from stdin
- * 
- *  This function may be used to obtain complete datasets from stdin. A dataset is always
- *  defined to contain at least a sequence. If data on stdin starts with a fasta header,
- *  i.e. a line like
- *  \verbatim >some header info \endverbatim
- *  then read_record() will assume that the sequence that follows the header may span
- *  over several lines. To disable this behavior and to assign a single line to the argument
- *  'sequence' one can pass VRNA_INPUT_NO_SPAN in the 'options' argument.
- *  If no fasta header is read in the beginning of a data block, a sequence must not span over
- *  multiple lines!\n
- *  Unless the options #VRNA_INPUT_NOSKIP_COMMENTS or #VRNA_INPUT_NOSKIP_BLANK_LINES are passed,
- *  a sequence may be interrupted by lines starting with a comment character or empty lines.\n
- *  A sequence is regarded as completely read if it was either assumed to not span over multiple
- *  lines, a secondary structure or structure constraint follows the sequence on the next line
- *  or a new header marks the beginning of a new sequence...\n
- *  All lines following the sequence (this includes comments) and not initiating a new dataset are
- *  available through the line-array 'rest'. Here one can usually find the structure constraint or
- *  other information belonging to the current dataset. Filling of 'rest' may be prevented by
- *  passing #VRNA_INPUT_NO_REST to the options argument.\n
- * 
- *  \note This function will exit any program with an error message if no sequence could be read!
- * 
- *  The main purpose of this function is to be able to easily parse blocks of data from stdin
- *  in the header of a loop where all calculations for the appropriate data is done inside the
- *  loop. The loop may be then left on certain return values, e.g.:
- *  \verbatim
-char *id, *seq, **rest;
-int  i;
-while(!(read_record(&id, &seq, &rest, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
-  if(id) printf("%s\n", id);
-  printf("%s\n", seq);
-  if(rest)
-    for(i=0;rest[i];i++)
-      printf("%s\n", rest[i]);
-} \endverbatim
- * 
- *  In the example above, the while loop will be terminated when read_record() returns either an
- *  error or a user initiated quit request.\n
- *  As long as data is read from stdin, the id is printed if it is available for the current block
- *  of data. The sequence will be printed in any case and if some more lines belong to the current
- *  block of data each line will be printed as well.
- * 
- *  \note Do not forget to free the memory occupied by header, sequence and rest!
- * 
- *  \param  header    A pointer which will be set such that it points to the header of the record
- *  \param  sequence  A pointer which will be set such that it points to the sequence of the record
- *  \param  rest      A pointer which will be set such that it points to an array of lines which also belong to the record
- *  \param  options   Some options which may be passed to alter the behavior of the function, use 0 for no options
- *  \return           A flag with information about what the function actually did read
- */
-unsigned int read_record( char **header,
-                          char **sequence,
-                          char  ***rest,
-                          unsigned int options);
-
-
-/* \brief Extract a dot-bracket structure string from (multiline)character array
- *
- * This function extracts a dot-bracket structure string from the 'rest' array as
- * returned by read_record() and returns it. All occurences of comments within the
- * 'lines' array will be skipped as long as they do not break the structure string.
- * If no structure could be read, this function returns NULL.
- *
- * \see read_record()
- *
- * \param lines   The (multiline) character array to be parsed
- * \param length  The assumed length of the dot-bracket string (passing a value < 1 results in no length limit)
- * \param option  Some options which may be passed to alter the behavior of the function, use 0 for no options
- * \return        The dot-bracket string read from lines or NULL
- */
-char *extract_record_rest_structure(const char **lines,
-                                    unsigned int length,
-                                    unsigned int option);
 
 
 
