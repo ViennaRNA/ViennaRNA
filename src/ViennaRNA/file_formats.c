@@ -94,7 +94,7 @@ vrna_structure_print_ct(const char *seq,
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    nrerror("vrna_ct_from_dbsequence and ");
+    nrerror("vrna_structure_print_ct: sequence and structure have unequal length!");
 
   short *pt = vrna_pt_get(db);
 
@@ -155,7 +155,7 @@ vrna_structure_print_bpseq( const char *seq,
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    nrerror("vrna_ct_from_dbsequence and ");
+    nrerror("vrna_structure_print_bpseq: sequence and structure have unequal length!");
 
   short *pt = vrna_pt_get(db);
 
