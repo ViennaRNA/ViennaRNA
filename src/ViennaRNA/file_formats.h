@@ -59,7 +59,7 @@ void vrna_structure_print_bpseq(const char *seq,
  *  \verbatim >some header info \endverbatim
  *  then vrna_read_fasta_record() will assume that the sequence that follows the header may span
  *  over several lines. To disable this behavior and to assign a single line to the argument
- *  'sequence' one can pass VRNA_INPUT_NO_SPAN in the 'options' argument.
+ *  'sequence' one can pass #VRNA_INPUT_NO_SPAN in the 'options' argument.
  *  If no fasta header is read in the beginning of a data block, a sequence must not span over
  *  multiple lines!\n
  *  Unless the options #VRNA_INPUT_NOSKIP_COMMENTS or #VRNA_INPUT_NOSKIP_BLANK_LINES are passed,
@@ -97,7 +97,6 @@ while(!(vrna_read_fasta_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | 
   free(seq);
   free(id);
 } \endverbatim
- * 
  *  In the example above, the while loop will be terminated when vrna_read_fasta_record() returns
  *  either an error, EOF, or a user initiated quit request.\n
  *  As long as data is read from stdin (we are passing NULL as the file pointer), the id is
@@ -149,7 +148,7 @@ DEPRECATED(char *extract_record_rest_structure( const char **lines,
 /**
  *  \brief  Get a data record from stdin
  * 
- *  \deprecated This function is deprecated! Use vrna_read_fast_record() as a replacment.
+ *  \deprecated This function is deprecated! Use vrna_read_fasta_record() as a replacment.
  *
  */
 DEPRECATED(unsigned int read_record(char **header,
