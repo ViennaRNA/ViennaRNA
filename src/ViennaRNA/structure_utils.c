@@ -31,9 +31,6 @@ wrap_get_plist( pf_matricesT *matrices,
                 pf_paramT *pf_params,
                 double cut_off);
 
-PRIVATE void
-find_helices(short *pt, int i, int j, FILE *file);
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -538,13 +535,6 @@ PUBLIC plist *
 vrna_get_plist_from_pr( vrna_fold_compound *vc,
                         double cut_off){
 
-  int i, j, k, n, count, *index, length;
-  FLT_OR_DBL  *probs, *G, *scale;
-  pf_matricesT  *matrices;
-  short         *S;
-  pf_paramT     *pf_params;
-  plist         *pl;
-
   if(!vc){
     nrerror("vrna_get_plist_from_pr: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
@@ -772,128 +762,6 @@ vrna_get_plist_from_db( const char *struc,
   return pl;
 }
 
-PRIVATE void
-find_helices(short *pt, int i, int j, FILE *file){
-
-  FILE *out = (file) ? file : stdout;
-  int h_start, h_length, h_end;
-
-  h_start = h_length = h_end = 0;
-
-  for(;i < j; i++){
-    if(i > pt[i]) continue;
-    h_start = i;
-    h_end   = pt[i];
-    h_length = 1;
-    while(pt[i+1] == (pt[i]-1)){
-      h_length++;
-      i++;
-    }
-    if(i < h_end){
-      find_helices(pt, i+1, h_end, file);
-    }
-    if(h_length > 1){
-      fprintf(out, "%d %d %d\n", h_start, h_end, h_length);
-    }
-    i = pt[h_start] - 1;
-  }
-}
-
-PUBLIC void
-vrna_structure_print_helix_list(const char *db,
-                                FILE *file){
-
-  short *pt = vrna_pt_get(db);
-
-  find_helices(pt, 1, pt[0], file);
-  free(pt);
-}
-
-PUBLIC void
-vrna_structure_print_ct(const char *seq,
-                        const char *db,
-                        float energy,
-                        const char *identifier,
-                        FILE *file){
-
-  int i, power_d;
-  FILE *out = (file) ? file : stdout;
-
-  if(strlen(seq) != strlen(db))
-    nrerror("vrna_ct_from_dbsequence and ");
-
-  short *pt = vrna_pt_get(db);
-
-  for(power_d=0;pow(10,power_d) <= (int)strlen(seq);power_d++);
-
-  /*
-    Connect table file format looks like this:
-
-    300  ENERGY = 7.0  example
-      1 G       0    2   22    1
-      2 G       1    3   21    2
-
-    where the headerline is followed by 6 columns with:
-    1. Base number: index n
-    2. Base (A, C, G, T, U, X)
-    3. Index n-1  (0 if first nucleotide)
-    4. Index n+1  (0 if last nucleotide)
-    5. Number of the base to which n is paired. No pairing is indicated by 0 (zero).
-    6. Natural numbering.
-  */
-
-  /* print header */
-  fprintf(out, "%d  ENERGY = %6.2f", strlen(seq), energy);
-  if(identifier)
-    fprintf(out, "  %s\n", identifier);
-
-  /* print structure information except for last line */
-  /* TODO: modify the structure information for cofold */
-  for(i = 0; i < strlen(seq) - 1; i++){
-    fprintf(out, "%*d %c %*d %*d %*d %*d\n",
-                  power_d, i+1,           /* nucleotide index */
-                  (char)toupper(seq[i]),  /* nucleotide char */
-                  power_d, i,             /* nucleotide predecessor index */
-                  power_d, i+2,           /* nucleotide successor index */
-                  power_d, pt[i+1],       /* pairing partner index */
-                  power_d, i+1);          /* nucleotide natural numbering */
-  }
-  /* print last line */
-  fprintf(out, "%*d %c %*d %*d %*d %*d\n",
-                power_d, i+1,
-                (char)toupper(seq[i]),
-                power_d, i,
-                power_d, 0,
-                power_d, pt[i+1],
-                power_d, i+1);
-
-  /* clean up */
-  free(pt);
-  fflush(out);
-}
-
-PUBLIC void
-vrna_structure_print_bpseq( const char *seq,
-                            const char *db,
-                            FILE *file){
-
-  int i;
-  FILE *out = (file) ? file : stdout;
-
-  if(strlen(seq) != strlen(db))
-    nrerror("vrna_ct_from_dbsequence and ");
-
-  short *pt = vrna_pt_get(db);
-
-  for(i = 1; i <= pt[0]; i++){
-    fprintf(out, "%d %c %d\n", i, (char)toupper(seq[i-1]), pt[i]);
-  }
-
-  /* clean up */
-  free(pt);
-  fflush(out);
-}
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -940,16 +808,18 @@ assign_plist_from_pr( plist **pl,
                       int length,
                       double cut_off){
 
-  int i, j, n, count, *index;
-
-  index = get_iindx(length);
-  pf_matricesT  *matrices = (pf_matricesT *)space(sizeof(pf_matricesT));
-
-  matrices->probs = probs;
+  int *index;
+  pf_matricesT *matrices;
   model_detailsT  md;
+  pf_paramT *pf_params;
+
+  index     = get_iindx(length);
+  matrices  = (pf_matricesT *)space(sizeof(pf_matricesT));
+
   set_model_details(&md);
-  md.gquad = 0;
-  pf_paramT *pf_params = vrna_get_boltzmann_factors(md);
+  md.gquad        = 0;
+  pf_params       = vrna_get_boltzmann_factors(md);
+  matrices->probs = probs;
 
   *pl = wrap_get_plist( matrices,
                         length,

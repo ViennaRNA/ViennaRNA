@@ -384,38 +384,4 @@ plist *vrna_get_plist_from_db(const char *struc, float pr);
  */
 DEPRECATED(void assign_plist_from_db(plist **pl, const char *struc, float pr));
 
-/**
- *  \brief Print a secondary structure as helix list
- *
- *  \param  db    The structure in dot-bracket format
- *  \param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
- */
-void vrna_structure_print_helix_list(const char *db, FILE *file);
-
-/**
- *  \brief Print a secondary structure as connect table
- *
- *  \param  seq         The RNA sequence
- *  \param  db          The structure in dot-bracket format
- *  \param  energy      The free energy of the structure
- *  \param  identifier  An optional identifier for the sequence
- *  \param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
- */
-void vrna_structure_print_ct( const char *seq,
-                              const char *db,
-                              float energy,
-                              const char *identifier,
-                              FILE *file);
-
-/**
- *  \brief Print a secondary structure in bpseq format
- *
- *  \param  seq         The RNA sequence
- *  \param  db          The structure in dot-bracket format
- *  \param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
- */
-void vrna_structure_print_bpseq(const char *seq,
-                                const char *db,
-                                FILE *file);
-
 #endif
