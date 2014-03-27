@@ -428,6 +428,10 @@ int main(int argc, char *argv[]){
 
       energy = vrna_pf_fold(vc, pf_struc);
 
+      /* in case we abort because of floating point errors */
+      if (length>1600)
+        fprintf(stderr, "free energy = %8.2f\n", energy);
+
       if(lucky){
         init_rand();
         char *s = vrna_pbacktrack(vc);
