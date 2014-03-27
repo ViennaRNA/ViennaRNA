@@ -2,9 +2,11 @@
 #include <stdlib.h>
 
 
+#include <math.h>
 #include <unistd.h>
 #include <string.h>
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
@@ -124,18 +126,32 @@ int main(int argc, char *argv[]){
   {
     double *epsilon;
     vrna_fold_compound *vc;
+    char *structure;
+    pf_paramT *pf_parameters;
     size_t i;
+    float mfe;
+    const double kT = (md.temperature + K0) * GASCONST / 1000.;
 
     //use a cutoff approach to divide into paired/unpaired
     for (i = 1; i <= length; ++i)
       shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
 
-    epsilon = space(sizeof(double) * (length + 1));
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
+    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
+    structure = space(sizeof(char) * (length + 1));
+    mfe = vrna_fold(vc, structure);
+    free(structure);
+    destroy_fold_compound(vc);
 
+    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
+    pf_scale = exp(-(args_info.pfScale_arg * mfe) / kT / length);
+    pf_parameters = get_boltzmann_factors(md.temperature, md.betaScale, md, pf_scale);
+    vrna_update_pf_params(vc, pf_parameters);
+
+    epsilon = space(sizeof(double) * (length + 1));
     vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.objectiveFunction_arg, args_info.sampleSize_arg, epsilon, print_progress);
 
     destroy_fold_compound(vc);
+    free(pf_parameters);
 
     print_perturbation_vector(stdout, epsilon);
 
