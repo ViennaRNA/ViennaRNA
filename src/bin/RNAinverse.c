@@ -16,6 +16,7 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNAinverse_cmdl.h"
 
 #ifdef dmalloc

@@ -19,6 +19,7 @@
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNAeval_cmdl.h"
 
 #ifdef __GNUC__
@@ -117,7 +118,8 @@ int main(int argc, char *argv[]){
 
   P = vrna_get_energy_contributions(md);
 
-  /* set options we wanna pass to read_record */
+  /* set options we wanna pass to vrna_read_fasta_record() */
+
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
     print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
@@ -130,7 +132,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     if(rec_id){
@@ -142,7 +144,7 @@ int main(int argc, char *argv[]){
 
     string    = tokenize(rec_sequence);
     length2   = (int) strlen(string);
-    tmp       = extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
+    tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if(!tmp)
       nrerror("structure missing");

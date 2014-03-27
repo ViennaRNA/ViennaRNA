@@ -322,7 +322,7 @@ int main(int argc, char *argv[]){
 
   mfe_parameters = get_scaled_parameters(temperature, md);
 
-  /* set options we wanna pass to read_record */
+  /* set options we wanna pass to vrna_read_fasta_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -332,7 +332,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*

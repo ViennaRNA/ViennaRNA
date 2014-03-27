@@ -16,6 +16,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/Lfold.h"
+#include "ViennaRNA/file_formats.h"
 #include "RNALfold_cmdl.h"
 
 /*@unused@*/
@@ -135,7 +136,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
