@@ -71,6 +71,17 @@ optional
 
 section "Model Details"
 
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows)."
+details="Useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences."
+double
+typestr="scaling factor"
+default="1.07"
+optional
+hidden
+
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
