@@ -291,8 +291,6 @@ energy_of_gquad_struct_par( const char *string,
   int   energy, gge, *loop_idx;
   short *ss, *ss1;
 
-  update_fold_params_par(parameters);
-
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
@@ -676,14 +674,13 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
 
   int energy, cx_energy, tmp, tmp2, best_energy=INF;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
-  int mlintern[NBPAIRS+1], mlclosing, mlbase;
+  int mlintern[NBPAIRS+1];
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
   int E_mm5_occupied;   /* energy of 5' part where 5' mismatch of current stem is unavailable */
   int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
-  int length = (int)pt[0];
   int dangle_model = P->model_details.dangles;
   int *rtype = &(P->model_details.rtype[0]);
 
@@ -699,7 +696,6 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   q_prev2     = i;
 
   for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
-  mlclosing = P->MLclosing; mlbase = P->MLbase;
 
   /* seek to opening base of first stem */
   while(p <= j && !pair_table[p]) p++;
@@ -992,10 +988,6 @@ PUBLIC float energy_of_move(const char *string, const char *structure, int m1, i
   int   energy;
   short *ss, *ss1;
 
-  if(P == NULL) update_fold_params();
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
-
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
@@ -1105,12 +1097,9 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   **  we do this a bit different to previous implementations
   */
   if(is_extloop){
-    int mm5_prev, mm3_prev;
-    int tt_prev = 0;
     energy = 0;
     i1  = i;
     p   = i+1;
-    mm5_prev = mm3_prev = -1;
 
     int E_mm5_available, E_mm5_occupied;
     /* find out if we may have 5' mismatch for the next stem */

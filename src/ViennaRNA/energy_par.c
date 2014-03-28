@@ -47,8 +47,6 @@
 
 
 #include "ViennaRNA/energy_const.h"
-/*@unused@*/
-static char rcsid[] = "$Id: energy_par.c,v 1.6 2004/08/12 12:11:57 ivo Exp $";
 
 #define NST 0     /* Energy for nonstandard stacked pairs */
 #define DEF -50   /* Default terminal mismatch, used for I */

@@ -290,7 +290,7 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
   /*Computation of "real" Partition function*/
   /*Need that for concentrations*/
   if (cut_point>0){
-    double kT, pbound, QAB, QToT, Qzero;
+    double kT, QAB, QToT, Qzero;
 
     kT = pf_params->kT/1000.0;
     Qzero=q[my_iindx[1]-n];
@@ -302,8 +302,7 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
       }}
 
     QToT=q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]+QAB;
-    pbound=1-(q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]/QToT);
-     X.FAB  = -kT*(log(QToT)+n*log(pf_params->pf_scale));
+    X.FAB  = -kT*(log(QToT)+n*log(pf_params->pf_scale));
     X.F0AB = -kT*(log(Qzero)+n*log(pf_params->pf_scale));
     X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_params->pf_scale)) : 999;
     X.FA = -kT*(log(q[my_iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_params->pf_scale));
@@ -618,7 +617,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
           for (t=n; t>l; t--) {
             for (k=1; k<cut_point; k++) {
               kt=my_iindx[k]-t;
-              type=rtype[ptype[kt]];
+              type=rtype[(unsigned char)ptype[kt]];
               temp = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (SAME_STRAND(k,k+1)) ? S1[k+1] : -1, pf_params) * scale[2];
               if (l+1<t)               temp*=q[my_iindx[l+1]-(t-1)];
               if (SAME_STRAND(k,k+1))  temp*=q[my_iindx[k+1]-(cut_point-1)];
@@ -644,7 +643,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
             for (k=cut_point; k<=n; k++) {
               sk=my_iindx[s]-k;
               if (qb[sk]) {
-                type=rtype[ptype[sk]];
+                type=rtype[(unsigned char)ptype[sk]];
                 temp=probs[sk]*exp_E_ExtLoop(type, (SAME_STRAND(k-1,k)) ? S1[k-1] : -1, S1[s+1], pf_params)*scale[2];
                 if (s+1<t)               temp*=q[my_iindx[s+1]-(t-1)];
                 if (SAME_STRAND(k-1,k))  temp*=q[my_iindx[cut_point]-(k-1)];

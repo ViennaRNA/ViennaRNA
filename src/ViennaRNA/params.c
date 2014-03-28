@@ -589,7 +589,7 @@ PUBLIC paramT *set_parameters(paramT *dest){
 }
 
 PUBLIC pf_paramT *copy_pf_param(void){
-  pf_paramT *copy, *new;
+  pf_paramT *copy;
   if (pf.id != pf_id) return get_scaled_pf_parameters();
   else{
     copy = (pf_paramT *) space(sizeof(pf_paramT));

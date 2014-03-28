@@ -84,7 +84,6 @@ PRIVATE int     find_min(short *arr[MAX_DEGEN], int begin, int end);
 PRIVATE int     equals(const short *first, const short *second);
 PRIVATE int     count_move(void);
 PRIVATE int     lone_base(short *pt, int i);
-PRIVATE int     check_insert(struct_en *str, int i, int j);
 PRIVATE void    free_degen(Encoded *Enc);
 PRIVATE inline void do_move(short *pt, int bp_left, int bp_right);
 PRIVATE int     update_deepest(Encoded *Enc, struct_en *str, struct_en *min);

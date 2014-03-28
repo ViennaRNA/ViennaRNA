@@ -206,10 +206,10 @@ free_pu_contrib_struct(pu_contrib *pu){
 
 /* you have to call pf_fold(sequence, structure); befor pf_unstru */
 PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
-  int           n, i, j, v, k, l, o, p, ij, kl, po, u, u1, d, type, type_2, tt, uu;
+  int           n, i, j, v, k, l, o, p, ij, kl, po, u, u1, d, type, type_2, tt;
   unsigned int  size;
   double        temp, tqm2;
-  double        qbt1, *tmp, Zuij, sum_l, *sum_M;
+  double        qbt1, *tmp, sum_l, *sum_M;
   double        *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
   double        *store_M_qm_o,*store_M_mlbase;    /* multiloop contributions */
   pu_contrib    *pu_test;
@@ -449,12 +449,9 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       }
       tqm2=0.;
       for(i=o+1; i < p; i++) {
-        uu=0;
         tqm2+=qqm[i]*qm[my_iindx[i+1]-p];
 
         if(type !=0) {
-          double temp2;
-          temp2=0;
           /* structured region qq_1m2[i-1] left of unpaired r. expMLbase[p-i]*/
           /* @expMLbase:  note distance of p-i == p+1-i+1 */
            store_M_mlbase[my_iindx[i]-p+1] +=  qq_1m2[i-1]*expMLbase[p-i]*temp;
@@ -478,9 +475,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   }
 
   /* 1. region [i,j] exterior to all loops */
-  Zuij=0.;
   for (i=1; i<=n; i++) {
-    uu=0;
     for(j=i; j<MIN2(i+w,n+1);j++){
       ij=my_iindx[i]-j;
       temp=q1k[i-1]*1*scale[j-i+1]*qln[j+1]/q1k[n];
@@ -539,7 +534,7 @@ PUBLIC interact *pf_interact( const char *s1,
                               int incr3,
                               int incr5){
 
-  int         i, j, k,l,n1,n2,add_i5,add_i3,i_max,k_max, pc_size;
+  int         i, j, k,l,n1,n2,add_i5,add_i3, pc_size;
   double      temp, Z, rev_d, E, Z2,**p_c_S, **p_c2_S, int_scale;
   FLT_OR_DBL  ****qint_4, **qint_ik;
   /* PRIVATE double **pint; array for pf_up() output */
@@ -846,7 +841,6 @@ PUBLIC interact *pf_interact( const char *s1,
 
 
   Z2=0.0;
-  i_max = k_max = 0;
   for (i=1; i<=n1; i++) {
     for (k=i; k<=n1 && k<i+w; k++) {
       Z2+=qint_ik[i][k];
@@ -959,7 +953,7 @@ PUBLIC interact *pf_interact( const char *s1,
 /*------------------------------------------------------------------------*/
 /* use an extra scale for pf_interact, here sl is the longer sequence */
 PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
-  int       n,nl,l_scales;
+  int       n,nl;
   duplexT   mfe;
   double    kT;
 
@@ -1113,7 +1107,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
 /*-------------------------------------------------------------------------*/
 /* make a results structure containing all u-values & the header */
 PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_contrib) {
-  int i, j, k, l, g,ws,num_u_vals,unstr,count,contribs,size,w,len;
+  int i, j, k, l, num_u_vals,count,contribs,size,w,len;
   int S,E,H,I,M;
   int off_S, off_E, off_H, off_I, off_M;
   /* double **p_cont,**p_cont_sh, dG_u; p_u AND its contributions */
@@ -1265,7 +1259,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
 
   /* write the header of the output file:  */
   /*  # timestamp commandlineaufruf   */
-  /*  # length and name of first sequence (target)
+  /*  # length and name of first sequence (target) */
   /*  # first seq */
   /*  # length and name of second sequence (interaction partner) */
   /*  # second seq */

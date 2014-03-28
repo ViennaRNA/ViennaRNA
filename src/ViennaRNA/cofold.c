@@ -252,7 +252,6 @@ fill_arrays(vrna_fold_compound  *vc,
   paramT            *P;
   mfe_matricesT     *matrices;
   hard_constraintT  *hc;
-  soft_constraintT  *sc;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -267,7 +266,6 @@ fill_arrays(vrna_fold_compound  *vc,
   rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
-  sc                = vc->sc;
   matrices          = vc->matrices;
   my_f5             = matrices->f5;
   my_c              = matrices->c;
@@ -306,7 +304,7 @@ fill_arrays(vrna_fold_compound  *vc,
     for (j = i+TURN+1; j <= maxj; j++) {
       int p, q, ij;
       ij            = indx[j]+i;
-      type          = ptype[ij];
+      type          = (unsigned char)ptype[ij];
       hc_decompose  = hard_constraints[ij];
       energy        = INF;
 
@@ -446,12 +444,12 @@ fill_arrays(vrna_fold_compound  *vc,
           for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++) {
             i1k = indx[k]+i+1;
             if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
-              type_2  = rtype[ptype[i1k]];
+              type_2  = rtype[(unsigned char)ptype[i1k]];
               energy  = my_c[i1k] + P->stack[type][type_2] + my_fML[k1j1];
               decomp  = MIN2(decomp, energy);
             }
             if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
-              type_2  = rtype[ptype[k1j1]];
+              type_2  = rtype[(unsigned char)ptype[k1j1]];
               energy  = my_c[k1j1] + P->stack[type][type_2] + my_fML[i1k];
               decomp  = MIN2(decomp, energy);
             }
@@ -648,8 +646,6 @@ PRIVATE void backtrack_co(sect bt_stack[],
     ------------------------------------------------------------------*/
 
   int   i, j, k, length, energy, new, ml0, ml5, ml3, ml53, no_close, type, type_2, tt;
-  soft_constraintT      *sc;
-  hard_constraintT      *hc;
   char  *string         = vc->sequence;
   paramT  *P            = vc->params;
   int     *indx         = vc->jindx;
@@ -674,8 +670,6 @@ PRIVATE void backtrack_co(sect bt_stack[],
   my_fML  = vc->matrices->fML;
   my_fc   = vc->matrices->fc;
   my_ggg  = vc->matrices->ggg;
-  hc      = vc->hc;
-  sc      = vc->sc;
 
   /* int   b=0;*/
 
@@ -1395,12 +1389,8 @@ wrap_zukersubopt( const char *string,
   unsigned int        length;
   char                *doubleseq;
   vrna_fold_compound  *vc;
-  hard_constraintT    *my_hc;
-  soft_constraintT    *my_sc;
   paramT              *P;
 
-  my_hc   = NULL;
-  my_sc   = NULL;
   vc      = NULL;
   length  = (int)strlen(string);
 

@@ -89,7 +89,7 @@ PUBLIC duplexT duplexfold(const char *s1, const char *s2){
 }
 
 PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
-  int i, j, l1, Emin=INF, i_min=0, j_min=0;
+  int i, j, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
 
@@ -137,11 +137,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   struc = backtrack(i_min, j_min);
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
-  l1 = strchr(struc, '&')-struc;
-  /*
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min,
-       j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
-  */
+
   mfe.i = i_min;
   mfe.j = j_min;
   mfe.energy = (float) Emin/100.;
@@ -287,7 +283,7 @@ PUBLIC duplexT aliduplexfold(const char *s1[], const char *s2[]){
 }
 
 PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_up) {
-  int i, j, s, n_seq, l1, Emin=INF, i_min=0, j_min=0;
+  int i, j, s, n_seq, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
   short **S1, **S2;
@@ -359,11 +355,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   struc = alibacktrack(i_min, j_min, (const short **)S1,(const short **)S2);
   if (i_min<n1) i_min++;
   if (j_min>1 ) j_min--;
-  l1 = strchr(struc, '&')-struc;
-  /*
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", struc, i_min+1-l1, i_min,
-       j_min, j_min+strlen(struc)-l1-2, Emin*0.01);
-  */
+
   mfe.i = i_min;
   mfe.j = j_min;
   mfe.energy = (float) (Emin/(100.*n_seq));

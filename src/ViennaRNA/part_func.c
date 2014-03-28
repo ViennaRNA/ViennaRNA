@@ -153,7 +153,6 @@ vrna_pf_fold( vrna_fold_compound *vc,
   model_detailsT  *md;
   pf_paramT       *params;
   pf_matricesT    *matrices;
-  char            *sequemce;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -226,9 +225,9 @@ vrna_pf_fold( vrna_fold_compound *vc,
 PRIVATE void
 pf_linear(vrna_fold_compound *vc){
 
-  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, type, type_2, tt;
+  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii;
+  unsigned char type, type_2, tt;
 
-  int         noGUclosure;
   FLT_OR_DBL  expMLstem = 0.;
 
   FLT_OR_DBL  temp, Qmax=0;
@@ -237,7 +236,7 @@ pf_linear(vrna_fold_compound *vc){
   FLT_OR_DBL  *q, *qb, *qm, *qm1, *G;
   FLT_OR_DBL  *scale;
   FLT_OR_DBL  *expMLbase;
-  short             *S, *S1;
+  short       *S1;
   int         *my_iindx, *jindx;
   char        *ptype, *sequence;
 
@@ -269,7 +268,6 @@ pf_linear(vrna_fold_compound *vc){
   scale     = matrices->scale;
   expMLbase = matrices->expMLbase;
 
-  S         = vc->sequence_encoding2;
   S1        = vc->sequence_encoding;
 
   int         hc_decompose;
@@ -281,7 +279,6 @@ pf_linear(vrna_fold_compound *vc){
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
-  noGUclosure = md->noGUclosure;
   rtype       = &(md->rtype[0]);
 
   /* allocate memory for helper arrays */
@@ -325,7 +322,7 @@ pf_linear(vrna_fold_compound *vc){
       /* firstly that given i binds j : qb(i,j) */
       u             = j-i-1;
       ij            = my_iindx[i]-j;
-      type          = ptype[jindx[j] + i];
+      type          = (unsigned char)ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
       qbt1  = 0.;
       q_temp = 0.;
@@ -362,7 +359,7 @@ pf_linear(vrna_fold_compound *vc){
             for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
               if(hc_up_int[l+1] < u2) break;
               if(hard_constraints[jindx[l] + k] & IN_INT_LOOP_ENC){
-                type_2 = rtype[ptype[jindx[l] + k]];
+                type_2 = rtype[(unsigned char)ptype[jindx[l] + k]];
                 q_temp = qb[kl]
                         * scale[u1+u2+2]
                         * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
@@ -582,15 +579,14 @@ PRIVATE void
 pf_circ(vrna_fold_compound *vc){
 
   int u, p, q, k, l;
-  int noGUclosure, with_gquad;
+  int noGUclosure;
   int n;
   char  *sequence;
-  char  *structure;
   int   *my_iindx;
   int   *jindx;
   char  *ptype;
   FLT_OR_DBL  *scale;
-  short             *S, *S1;
+  short       *S1;
 
   pf_paramT     *pf_params = vc->exp_params;
   FLT_OR_DBL    *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo;
@@ -610,7 +606,6 @@ pf_circ(vrna_fold_compound *vc){
 
   ptype     = vc->ptype;
   scale     = matrices->scale;
-  S                 = vc->sequence_encoding2;
   S1                = vc->sequence_encoding;
 
 
@@ -619,7 +614,6 @@ pf_circ(vrna_fold_compound *vc){
   int         *rtype;
 
   noGUclosure = pf_params->model_details.noGUclosure;
-  with_gquad  = pf_params->model_details.gquad;
   rtype       = &(pf_params->model_details.rtype[0]);
 
   qo = qho = qio = qmo = 0.;
@@ -692,7 +686,8 @@ PUBLIC void
 pf_create_bppm( vrna_fold_compound *vc,
                 char *structure){
 
-  int n, i,j,k,l, ij, kl, ii,ll, u1, u2, type, type_2, tt, ov=0;
+  int n, i,j,k,l, ij, kl, ii, u1, u2, ov=0;
+  unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  *tmp;
@@ -782,10 +777,10 @@ pf_create_bppm( vrna_fold_compound *vc,
           probs[my_iindx[i]-j] = 0;
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          type = ptype[jindx[j] + i];
+          type = (unsigned char)ptype[jindx[j] + i];
           if (type&&(qb[ij]>0.)) {
             probs[ij] = 1./qo;
-            int rt = rtype[type];
+            unsigned char rt = rtype[type];
 
             /* 1.1. Exterior Hairpin Contribution */
             int u = i + n - j -1;
@@ -808,7 +803,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               if(lstart<k+TURN+1) lstart = k + TURN + 1;
               for(l=lstart; l < i; l++){
                 int ln2, type_2;
-                type_2 = ptype[jindx[l] + k];
+                type_2 = (unsigned char)ptype[jindx[l] + k];
                 if (type_2==0) continue;
                 ln2 = i - l - 1;
                 if(ln1+ln2>MAXLOOP) continue;
@@ -834,7 +829,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               if(lstart<k+TURN+1) lstart = k + TURN + 1;
               for(l=lstart; l <= n; l++){
                 int ln2, type_2;
-                type_2 = ptype[jindx[l] + k];
+                type_2 = (unsigned char)ptype[jindx[l] + k];
                 if (type_2==0) continue;
                 ln2 = i - 1 + n - l;
                 if(ln1+ln2>MAXLOOP) continue;
@@ -891,7 +886,7 @@ pf_create_bppm( vrna_fold_compound *vc,
         for (j=i+TURN+1; j<=n; j++) {
           ij = my_iindx[i]-j;
           if(hard_constraints[jindx[j] + i] & IN_EXT_LOOP){
-            type      = ptype[jindx[j] + i];
+            type      = (unsigned char)ptype[jindx[j] + i];
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           } else
@@ -905,7 +900,7 @@ pf_create_bppm( vrna_fold_compound *vc,
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
         kl      = my_iindx[k]-l;
-        type_2  = ptype[jindx[l] + k];
+        type_2  = (unsigned char)ptype[jindx[l] + k];
         type_2  = rtype[type_2];
 
         if (qb[kl]==0.) continue;
@@ -921,7 +916,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 
               ij = my_iindx[i] - j;
               if(hard_constraints[jindx[j] + i] & IN_INT_LOOP){
-                type = ptype[jindx[j] + i];
+                type = (unsigned char)ptype[jindx[j] + i];
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
                           * scale[u1 + u2 + 2]
@@ -969,7 +964,7 @@ pf_create_bppm( vrna_fold_compound *vc,
             i = k - 1;
             for(j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--){
               ij = my_iindx[i] - j;
-              type = ptype[jindx[j] + i];
+              type = (unsigned char)ptype[jindx[j] + i];
               if(!type) continue;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
@@ -991,7 +986,7 @@ pf_create_bppm( vrna_fold_compound *vc,
               u1 = k - i - 1;
               for (j=l+2; j<=MIN2(l + MAXLOOP - u1 + 1,n); j++) {
                 ij = my_iindx[i] - j;
-                type = ptype[jindx[j] + i];
+                type = (unsigned char)ptype[jindx[j] + i];
                 if(!type) continue;
                 qe = (type > 2) ? pf_params->expTermAU : 1.;
                 tmp2 +=   probs[ij]
@@ -1013,7 +1008,7 @@ pf_create_bppm( vrna_fold_compound *vc,
             j = l + 1;
             for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
               ij = my_iindx[i] - j;
-              type = ptype[jindx[j] + i];
+              type = (unsigned char)ptype[jindx[j] + i];
               if(!type) continue;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
@@ -1036,8 +1031,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           i = k-1; 
 
           ii = my_iindx[i];     /* ii-j=[i,j]     */
-          ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-          tt = ptype[jindx[l+1] + i];
+          tt = (unsigned char)ptype[jindx[l+1] + i];
           tt = rtype[tt];
           if(hard_constraints[jindx[l+1] + i] & IN_MB_LOOP){
             if(tt){
@@ -1061,7 +1055,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           lj = my_iindx[l+1]-(l+1);
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hard_constraints[jindx[j] + i] & IN_MB_LOOP){
-              tt = ptype[jindx[j] + i];
+              tt = (unsigned char)ptype[jindx[j] + i];
               tt = rtype[tt];
               if(tt){
                 /* which decomposition is covered here? =>
@@ -1086,7 +1080,7 @@ pf_create_bppm( vrna_fold_compound *vc,
           }
           prmt *= expMLclosing;
 
-          tt = ptype[jindx[l] + k];
+          tt = (unsigned char)ptype[jindx[l] + k];
 
           prml[ i] = prmt;
 
@@ -1307,17 +1301,16 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
 
   double            r, qt, q_temp, qkl;
   int               i,j,ij, n, k, start, type;
-  char              *sequence, *pstruc;
+  char              *pstruc;
   int               *my_iindx, *jindx, hc_decompose;
   FLT_OR_DBL        *q, *qb, *scale;
   char              *ptype, *hard_constraints;
-  short             *S, *S1;
+  short             *S1;
   pf_matricesT      *matrices;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
   pf_paramT         *pf_params;
 
-  sequence  = vc->sequence;
   n         = vc->length;
 
   pf_params = vc->exp_params;
@@ -1328,7 +1321,6 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   hc        = vc->hc;
   sc        = vc->sc;
   ptype     = vc->ptype;
-  S         = vc->sequence_encoding2;
   S1        = vc->sequence_encoding;
 
   q         = matrices->q;
@@ -1432,11 +1424,11 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
   double r, qt;
   int i, j, k, l, n;
   pf_paramT   *pf_params;
-  FLT_OR_DBL  qo, qho, qio, qmo;
+  FLT_OR_DBL  qo, qmo;
   FLT_OR_DBL  *scale, *qb, *qm, *qm2;
   char        *sequence, *ptype, *pstruc;
   int         *my_iindx, *jindx;
-  short             *S, *S1;
+  short       *S1;
 
   pf_matricesT  *matrices;
 
@@ -1445,12 +1437,9 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
   ptype         = vc->ptype;
   my_iindx      = vc->iindx;
   jindx         = vc->jindx;
-  S             = vc->sequence_encoding2;
   S1            = vc->sequence_encoding;
 
   qo            = matrices->qo;
-  qho           = matrices->qho;
-  qio           = matrices->qio;
   qmo           = matrices->qmo;
   qb            = matrices->qb;
   qm            = matrices->qm;
@@ -1550,11 +1539,10 @@ backtrack_qm( int i,
               vrna_fold_compound *vc){
 
   /* divide multiloop into qm and qm1  */
-  double qmt, r, q_temp;
-  int k, n, nomorepairs = 0;
-  FLT_OR_DBL  *qm, *qm1, *expMLbase, *scale;
-  int         *my_iindx, *jindx;
-  hard_constraintT  *hc;
+  double            qmt, r, q_temp;
+  int               k, n;
+  FLT_OR_DBL        *qm, *qm1, *expMLbase;
+  int               *my_iindx, *jindx;
   soft_constraintT  *sc;
 
   n = j;
@@ -1563,14 +1551,11 @@ backtrack_qm( int i,
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
 
-  hc        = vc->hc;
   sc        = vc->sc;
 
   qm        = matrices->qm;
   qm1       = matrices->qm1;
   expMLbase = matrices->expMLbase;
-  scale     = matrices->scale;
-
 
   while(j>i){
     /* now backtrack  [i ... j] in qm[] */
@@ -1633,12 +1618,11 @@ backtrack_qm1(int i,
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, type, n;
   double qt, r, q_temp;
-  FLT_OR_DBL  *qm1, *qb, *scale, *expMLbase;
+  FLT_OR_DBL  *qm1, *qb, *expMLbase;
   pf_matricesT  *matrices;
   int           *my_iindx, *jindx;
   char          *ptype;
-  short             *S, *S1;
-  hard_constraintT  *hc;
+  short             *S1;
   soft_constraintT  *sc;
   pf_paramT         *pf_params;
 
@@ -1649,15 +1633,12 @@ backtrack_qm1(int i,
 
   ptype     = vc->ptype;
 
-  hc        = vc->hc;
   sc        = vc->sc;
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
   qm1       = matrices->qm1;
-  scale     = matrices->scale;
   expMLbase = matrices->expMLbase;
-  S         = vc->sequence_encoding2;
   S1        = vc->sequence_encoding;
 
 
@@ -1696,9 +1677,8 @@ backtrack_qm2(int k,
   double qom2t, r;
   int u;
   FLT_OR_DBL *qm1, *qm2;
-  int *my_iindx, *jindx;
+  int *jindx;
 
-  my_iindx = vc->iindx;
   jindx     = vc->jindx;
   qm1       = vc->exp_matrices->qm1;
   qm2       = vc->exp_matrices->qm2;
@@ -1725,19 +1705,16 @@ backtrack(int i,
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   pf_matricesT      *matrices;
   int               *my_iindx, *jindx;
-  hard_constraintT  *hc;
   soft_constraintT  *sc;
-  short             *S, *S1;
+  short             *S1;
 
   sequence    = vc->sequence;
   pf_params   = vc->exp_params;
   ptype       = vc->ptype;
-  S           = vc->sequence_encoding2;
   S1          = vc->sequence_encoding;
   my_iindx    = vc->iindx;
   jindx       = vc->jindx;
 
-  hc          = vc->hc;
   sc          = vc->sc;
 
   matrices    = vc->exp_matrices;
@@ -1752,12 +1729,15 @@ backtrack(int i,
   double r, qbt1, qt, q_temp;
   n = j;
   do {
-    int k, l, type, u, u1;
+    int k, l, u, u1, max_k, min_l;
+    unsigned char type;
+    k = i;
+    l = j;
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
     r = urn() * qb[my_iindx[i]-j];
-    type = ptype[jindx[j] + i];
+    type = (unsigned char)ptype[jindx[j] + i];
     u = j-i-1;
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
@@ -1777,10 +1757,13 @@ backtrack(int i,
     }
     if (qbt1>=r) return; /* found the hairpin we're done */
 
-    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
-      u1 = k-i-1;
-      for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-        int type_2 = ptype[jindx[l] + k];
+    max_k = MIN2(i+MAXLOOP+1,j-TURN-2);
+    l = MAX2(i+TURN+2,j-MAXLOOP-1);
+    for (k = i + 1; k<=max_k; k++) {
+      u1    = k-i-1;
+      min_l = MAX2(k+TURN+1,j-1-MAXLOOP+u1);
+      for (l=min_l; l<j; l++) {
+        unsigned char type_2 = (unsigned char)ptype[jindx[l] + k];
         if (type_2) {
           int u2 = j-l-1;
           type_2 = rtype[type_2];
@@ -1819,7 +1802,7 @@ backtrack(int i,
 
   /* backtrack in multi-loop */
   {
-    int k, ii, jj, ij;
+    int k, ii, jj;
 
     i++; j--;
     /* find the first split index */
@@ -1897,7 +1880,7 @@ stackProb(double cutoff){
       if((p=probs[index[i]-j]) < cutoff) continue;
       if (qb[index[i+1]-(j-1)]<FLT_MIN) continue;
       p *= qb[index[i+1]-(j-1)]/qb[index[i]-j];
-      p *= exp_E_IntLoop(0,0,ptype[jindx[j]+i],rtype[ptype[jindx[j-1] + i+1]],
+      p *= exp_E_IntLoop(0,0,(unsigned char)ptype[jindx[j]+i],rtype[(unsigned char)ptype[jindx[j-1] + i+1]],
                          0,0,0,0, pf_params)*scale[2];/* add *scale[u1+u2+2] */
       if (p>cutoff) {
         pl[num].i     = i;
@@ -1930,6 +1913,7 @@ get_subseq_F( int i,
       }
 
   nrerror("call pf_fold() to fill q[] array before calling get_subseq_F()");
+  return 0.; /* we will never get to this point */
 }
 
 
@@ -1940,7 +1924,7 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
                       int turn){
 
   int         i,j;
-  double      d;
+  double      d = 0.;
 
   /* compute the mean base pair distance in the thermodynamic ensemble */
   /* <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
@@ -2283,6 +2267,7 @@ mean_bp_distance(int length){
         return vrna_mean_bp_distance(backward_compat_compound);
 
   nrerror("mean_bp_distance: you need to call vrna_pf_fold first");
+  return 0.; /* we will never get to this point */
 }
 
 PUBLIC double

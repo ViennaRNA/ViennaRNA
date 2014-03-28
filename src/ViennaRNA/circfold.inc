@@ -75,7 +75,7 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
         if (qmin<p+TURN+1) qmin = p+TURN+1;
         for (q = qmin; q <=length; q++) {
           int u2, type_2/*, si1, sq1*/;
-          type_2 = rtype[ptype[indx[q]+p]];
+          type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
           if (type_2==0) continue;
           u2 = i-1 + length-q;
           if (u1+u2>MAXLOOP) continue;

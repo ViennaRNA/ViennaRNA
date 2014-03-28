@@ -248,7 +248,7 @@ PUBLIC float
 alifold(const char **strings,
         char *structure){
 
-  int  length, energy, s, n_seq;
+  int  length, s, n_seq;
 
   circular = 0;
   length = (int) strlen(strings[0]);
@@ -274,7 +274,7 @@ alifold(const char **strings,
   alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
   make_pscores((const short **) S, strings, n_seq, structure);
 
-  energy = fill_arrays((const char **)strings);
+  (void)fill_arrays((const char **)strings);
 
   backtrack((const char **)strings, 0);
 
@@ -352,7 +352,7 @@ PRIVATE int fill_arrays(const char **strings) {
   /* begin recursions */
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
     for (j = i+TURN+1; j <= length; j++) {
-      int ij, psc, l1, maxq, minq, up, c0;
+      int ij, psc, l1, maxq, minq, c0;
       ij = indx[j]+i;
 
       for (s=0; s<n_seq; s++) {
@@ -640,7 +640,7 @@ PRIVATE void backtrack(const char **strings, int s) {
     ------------------------------------------------------------------*/
    /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
-  int   i, j, k, p, q, length, energy, up, c0, l1, minq, maxq;
+  int   i, j, k, p, q, length, energy, c0, l1, minq, maxq;
   int   type_2, tt, mm;
   int   b=0, cov_en = 0;
   int   n_seq;
@@ -655,7 +655,7 @@ PRIVATE void backtrack(const char **strings, int s) {
     sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
   }
   while (s>0) {
-    int ss, ml, fij, fi, cij, traced, i1, j1, d3, d5, jj=0, gq=0;
+    int ss, ml, fij, fi, cij, traced, i1, j1, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -684,7 +684,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       switch(dangles){
         case 0:   /* j or j-1 is paired. Find pairing partner */
                   for (i=j-TURN-1,traced=0; i>=1; i--) {
-                    int cc, en;
+                    int en;
                     jj = i-1;
                     if (c[indx[j]+i]<INF) {
                       en = c[indx[j]+i] + f5[i-1];
@@ -709,7 +709,7 @@ PRIVATE void backtrack(const char **strings, int s) {
                   break;
         default:  /* j or j-1 is paired. Find pairing partner */
                   for (i=j-TURN-1,traced=0; i>=1; i--) {
-                    int cc, en;
+                    int en;
                     jj = i-1;
                     if (c[indx[j]+i]<INF) {
                       en = c[indx[j]+i] + f5[i-1];
@@ -999,7 +999,7 @@ PRIVATE void backtrack(const char **strings, int s) {
       of the g-quadruplex that should reside within position i,j
     */
     {
-      int cnt1, cnt2, cnt3, cnt4, l[3], L, size;
+      int cnt1, l[3], L, size;
       size = j-i+1;
 
       for(L=0; L < VRNA_GQUAD_MIN_STACK_SIZE;L++){
@@ -1525,8 +1525,7 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
                                             int n_seq,
                                             float *energy){
 
-  int new=0;
-  unsigned int s, n;
+  unsigned int n;
   short *pt;
 
   short           **tempS;
@@ -1552,7 +1551,6 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
     pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
     indx    = get_indx(n);
     make_pscores((const short *const*)S, sequences, n_seq, NULL);
-    new     = 1;
 
     pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
@@ -1581,8 +1579,8 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
 }
 
 PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
-  int new=0;
-  unsigned int s, n;
+
+  unsigned int n;
   short *pt;
 
   short           **tempS;
@@ -1608,7 +1606,6 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
     indx    = get_indx(n);
     make_pscores((const short *const*)S, sequences, n_seq, NULL);
-    new     = 1;
 
     pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
@@ -1764,7 +1761,7 @@ PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
 }
 
 PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
-  int   energy, tt, i1, j, p, q, s;
+  int   energy, tt, j, p, q, s;
   short d5, d3;
 
   j = pt[0];

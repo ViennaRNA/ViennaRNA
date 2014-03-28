@@ -71,7 +71,7 @@ PUBLIC void free_path(path_t *path){
 }
 
 PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *struc2, int max) {
-  int maxl, maxE, i;
+  int maxl, maxE;
   const char *tmp;
   move_t *bestpath=NULL;
   int dir;

@@ -213,7 +213,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
 
   int   i, j, k, length, energy;
   int   decomp, new_fML,MLenergy ;
-  int   *type, type_2, tt, s, n_seq, no_close, lastf, lastf2, thisj, lastj, lastj2;
+  int   *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj;
 
   lastf = lastf2 = INF;
 
@@ -344,11 +344,9 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
 
     /* calculate energies of 5' and 3' fragments */
     {
-      static int do_backtrack = 0, prev_i=0, prev_j=0;
+      static int do_backtrack = 0, prev_i=0;
       static char * prev=NULL;
       char *ss;
-      int tempf3=length;
-      int k;
       int thisf=0;
       f3[i] = f3[i+1];
       for (j=i+TURN+1; j<length && j<=i+maxdist; j++) {
@@ -376,7 +374,6 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           energy += f3[j+1];
           if(f3[i] > energy){
             f3[i] = energy;
-            tempf3 = j+1;
           }
         }
       }
@@ -416,9 +413,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
             prev          =  backtrack(strings, i , MIN2(maxdist,length-i));
             prev_i        = i;
             do_backtrack  = 0;
-            prev_j        = thisj;
             lastf2        = lastf;
-            lastj2        = lastj;
             energyprev    = f3[i];
           }
         }
@@ -465,14 +460,12 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           prev = ss;
           energyprev = energyout;
           prev_i = i+1;
-          prev_j = lastj;
           do_backtrack = 0;
           backtrack_type='F';
         }
       }
       lastf2 = lastf;
       lastf  = thisf;
-      lastj2 = lastj;
       lastj  = thisj;
 
 
@@ -553,7 +546,7 @@ PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '.';
 
   while (s>0) {
-    int ml, fij, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
+    int ml, fij, cij, traced, i1, j1, mm, p, q, jj=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -885,7 +878,7 @@ PRIVATE void make_pscores(const char ** AS,
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
-  int n,j,k,l,s;
+  int n,j,l;
   n=S[0][0];  /* length of seqs */
 
   /*first allocate space:*/
@@ -900,10 +893,9 @@ PRIVATE void make_pscores(const char ** AS,
   }
 
   if (noLonelyPairs) { /* remove unwanted lonely pairs */
-    int type, otype=0, ntype=0;
+    int otype=0, ntype=0;
     for (j=i+TURN; ((j<n)&&(j<i+maxd)); j++) {
       if ((i>1) && (j<n)) otype = cov_score(AS, i-1, j+1);
-      type=pscore[i][j-i];
       if (i<n) ntype=pscore[i+1][j-1-(i+1)];
       else ntype=NONE;
 
