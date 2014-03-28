@@ -347,8 +347,7 @@ E_GQuad_IntLoop(int i,
                 int *index,
                 paramT *P){
 
-  int energy, ge, en1, en2, dangles, p, q, l1, minq, maxq;
-  int c0, c1, c2, c3, up, d53, d5, d3;
+  int energy, ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
 
   dangles = P->model_details.dangles;
@@ -484,8 +483,7 @@ E_GQuad_IntLoop_exhaustive( int i,
                             int *index,
                             paramT *P){
 
-  int energy, *ge, en1, en2, dangles, p, q, l1, minq, maxq;
-  int c0, c1, c2, c3, up, d53, d5, d3;
+  int energy, *ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
   int cnt = 0;
 
@@ -581,8 +579,7 @@ E_GQuad_IntLoop_L(int i,
                   int maxdist,
                   paramT *P){
 
-  int energy, ge, en1, en2, dangles, p, q, l1, minq, maxq;
-  int c0, c1, c2, c3, up, d53, d5, d3;
+  int energy, ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
 
   dangles = P->model_details.dangles;
