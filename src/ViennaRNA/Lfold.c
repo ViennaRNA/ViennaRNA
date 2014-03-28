@@ -800,7 +800,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '-';
 
   while (s>0) {
-    int ml, fij, cij, traced, i1, j1, d3, d5, mm, mm5, mm3, mm53, p, q, jj=0, gq=0;
+    int ml, fij, cij, traced, i1, j1, mm, mm5, mm3, mm53, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;

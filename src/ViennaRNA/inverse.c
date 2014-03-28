@@ -28,10 +28,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-/*@unused@*/
-static char rcsid[] = "$Id: inverse.c,v 1.13 2009/03/19 09:45:28 ivo Exp $";
-#define PUBLIC
-#define PRIVATE static
+
 PRIVATE double  adaptive_walk(char *start, const char *target);
 PRIVATE void   shuffle(int *list, int len);
 PRIVATE void   make_start(char* start, const char *structure);

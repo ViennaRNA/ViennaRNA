@@ -50,11 +50,8 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   FILE *gmlfile;
   int i;
   int length;
-  int labels=0;
   short *pair_table;
   float *X, *Y;
-
-  if (isupper(option)) labels = 1;
 
   gmlfile = fopen(ssfile, "w");
   if (gmlfile == NULL) {
@@ -355,7 +352,7 @@ static const char *anote_macros =
 
 int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post)
 {
-  float  xmin, xmax, ymin, ymax, size;
+  float  xmin, xmax, ymin, ymax;
   int    i, length;
   float *X, *Y;
   FILE  *xyplot;
@@ -401,7 +398,6 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
      ymin = Y[i] < ymin ? Y[i] : ymin;
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
-  size = MAX2((xmax-xmin),(ymax-ymin));
 
   fprintf(xyplot,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
@@ -490,7 +486,7 @@ int PS_rna_plot_a_gquad(char *string,
                         char *ssfile,
                         char *pre,
                         char *post){
-  float  xmin, xmax, ymin, ymax, size;
+  float  xmin, xmax, ymin, ymax;
   int    i, length;
   int    ee, gb, ge, Lg, l[3];
   float *X, *Y;
@@ -549,7 +545,6 @@ int PS_rna_plot_a_gquad(char *string,
      ymin = Y[i] < ymin ? Y[i] : ymin;
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
-  size = MAX2((xmax-xmin),(ymax-ymin));
 
   fprintf(xyplot,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
@@ -656,7 +651,6 @@ int PS_rna_plot_a_gquad(char *string,
 
 int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relative_access, const char *seqs[])
 {
-  float  xmin, xmax, ymin, ymax, size;
   int    i, length;
   float *X, *Y;
   FILE  *xyplot;
@@ -682,8 +676,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     i = naview_xy_coordinates(pair_table, X, Y);
   if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
 /*   printf("cut_point %d\n", cut_point); */
-  xmin = xmax = X[0];
-  ymin = ymax = Y[0];
+
 /*   for (i = 1; i < length; i++) { */
 /*     printf("%d X %f Y %f \n", i, X[i], Y[i]); */
 /*     xmin = X[i] < xmin ? X[i] : xmin; */
@@ -781,8 +774,6 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   }
   double xC;
   double yC;
-  double R ;
-  double d ;
   float X0=-1,Y0=-1,X1=-1,Y1=-1,X2=-1,Y2=-1;
 /*   int c1,c2,c3; */
   for(i=1;i<cut_point; i++){
@@ -841,13 +832,11 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   /*    if(abs(alpha -alpha_p) > 0.0000001){ */
   xC  =  (b_p - b) / (alpha - alpha_p);
   yC  =  alpha * xC + b;
-  R   =  sqrt((xC-X0)*(xC-X0) + (yC-Y0)*(yC-Y0));
-  d   = sqrt((X0-X1)*(X0-X1) + (Y0-Y1)*(Y0-Y1));
-   for (i = 1; i < cut_point; i++) {  
+  for (i = 1; i < cut_point; i++) {  
      X[i-1] = X[i-1] + 0.25*(xC-X[i-1]);  
      Y[i-1] = Y[i-1] + 0.25*(yC-Y[i-1]);  
-   }  
-  size = MAX2((xmax-xmin),(ymax-ymin));
+  }  
+
   fprintf(xyplot,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
           "%%%%Creator: %s, ViennaRNA-%s\n"
@@ -1376,9 +1365,8 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
   /* produce color PostScript dot plot from cpair */
 
   FILE *wastl;
-  int i, length;
+  int i;
 
-  length= strlen(seq);
   wastl = PS_dot_common(seq, wastlfile, NULL, 0);
   if (wastl==NULL)  return 0; /* return 0 for failure */
 
@@ -1446,11 +1434,10 @@ PUBLIC int PS_dot_plot_list(char *seq,
                             char *comment){
 
   FILE *wastl;
-  int length, pl_size, gq_num;
+  int pl_size, gq_num;
   double tmp;
-  plist *pl1, *pl_tmp;
+  plist *pl1;
 
-  length= strlen(seq);
   wastl = PS_dot_common(seq, wastlfile, comment, 0);
   if (wastl==NULL) return 0; /* return 0 for failure */
 
@@ -1553,9 +1540,8 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *wastlfile, int winSize) {
   /* produce color PostScript dot plot from cpair */
 
   FILE *wastl;
-  int i, length;
+  int i;
 
-  length= strlen(seq);
   wastl = PS_dot_common(seq, wastlfile, NULL, winSize);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
@@ -1594,9 +1580,8 @@ int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) 
   /* produce color PostScript dot plot from cpair */
 
   FILE *wastl;
-  int i, length;
+  int i;
 
-  length= strlen(seq);
   wastl = PS_dot_common(seq, wastlfile, NULL, winSize);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
@@ -1626,9 +1611,8 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
   char name[31], *c;
-  int i, length;
+  int i;
 
-  length= strlen(seq);
   wastl = fopen(wastlfile,"w");
   if (wastl==NULL) {
     fprintf(stderr, "can't open %s for dot plot\n", wastlfile);

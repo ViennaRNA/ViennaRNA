@@ -14,8 +14,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-/*@unused@*/
-static char rcsid[] = "$Id: aln_util.c,v 1.4 2007/02/02 15:18:13 ivo Exp $";
 
 #define MAX_NUM_NAMES    500
 int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
@@ -173,7 +171,7 @@ char *consens_mis(const char*AS[]) {
 PUBLIC char *
 get_ungapped_sequence(const char *seq){
 
-  char  *tmp_sequence, *a, *b;
+  char  *tmp_sequence, *b;
   int   i;
 
   tmp_sequence = strdup(seq);

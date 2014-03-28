@@ -224,8 +224,9 @@ fill_arrays(vrna_fold_compound *vc){
   int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
   int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
   int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
-  char              type, *ptype, *hard_constraints;
-  short             *S, *S1;
+  unsigned char     type;
+  char              *ptype, *hard_constraints;
+  short             *S1;
   paramT            *P;
   mfe_matricesT     *matrices;
   hard_constraintT  *hc;
@@ -235,7 +236,6 @@ fill_arrays(vrna_fold_compound *vc){
   ptype             = vc->ptype;
   indx              = vc->jindx;
   P                 = vc->params;
-  S                 = vc->sequence_encoding2;
   S1                = vc->sequence_encoding;
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
@@ -295,7 +295,7 @@ fill_arrays(vrna_fold_compound *vc){
 
     for (j = i+TURN+1; j <= length; j++) {
       ij            = indx[j]+i;
-      type          = ptype[ij];
+      type          = (unsigned char)ptype[ij];
       hc_decompose  = hard_constraints[ij];
       energy        = INF;
 
@@ -322,7 +322,7 @@ fill_arrays(vrna_fold_compound *vc){
         if(noLP){
           stackEnergy = INF;
           if((hc_decompose & IN_INT_LOOP) && (hard_constraints[indx[j-1] + i + 1] & IN_INT_LOOP_ENC)){
-            type_2 = rtype[ptype[indx[j-1] + i + 1]];
+            type_2 = rtype[(unsigned char)ptype[indx[j-1] + i + 1]];
             stackEnergy = P->stack[type][type_2];
           }
           new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
@@ -410,8 +410,9 @@ backtrack(vrna_fold_compound *vc,
           int s){
 
   int   i, j, ij, k, mm3, length, energy, en, new;
-  int   no_close, type, type_2, tt, minq, maxq, c0, c1, c2, c3;
+  int   no_close, minq;
   int   b=0;
+  unsigned char type, tt, type_2;
   char  *string         = vc->sequence;
   paramT  *P            = vc->params;
   int     *indx         = vc->jindx;
@@ -434,12 +435,6 @@ backtrack(vrna_fold_compound *vc,
   my_c    = vc->matrices->c;
   my_fML  = vc->matrices->fML;
   my_ggg  = vc->matrices->ggg;
-
-  char  *hard_constraints = vc->hc->matrix;
-  int   *hc_up_ext        = vc->hc->up_ext;
-  int   *hc_up_hp         = vc->hc->up_hp;
-  int   *hc_up_int        = vc->hc->up_int;
-  int   *hc_up_ml         = vc->hc->up_ml;
 
   soft_constraintT  *sc   = vc->sc;
 
@@ -499,7 +494,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    type = ptype[indx[j]+k];
+                    type = (unsigned char)ptype[indx[j]+k];
                     if(type)
                       if(fij == E_ExtLoop(type, -1, -1, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
@@ -519,7 +514,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    type = ptype[indx[j]+k];
+                    type = (unsigned char)ptype[indx[j]+k];
                     if(type)
                       if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
@@ -538,7 +533,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    type = ptype[indx[j] + k];
+                    type = (unsigned char)ptype[indx[j] + k];
                     if(type){
                       en = my_c[indx[j] + k];
                       if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
@@ -552,7 +547,7 @@ backtrack(vrna_fold_compound *vc,
                         break;
                       }
                     }
-                    type = ptype[indx[j-1] + k];
+                    type = (unsigned char)ptype[indx[j-1] + k];
                     if(type){
                       en = my_c[indx[j-1] + k];
                       if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, S1[j], P)){
@@ -577,7 +572,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    type = ptype[indx[j]+1];
+                    type = (unsigned char)ptype[indx[j]+1];
                     if(type){
                       if(fij == my_c[indx[j]+1] + E_ExtLoop(type, -1, -1, P)){
                         traced = j;
@@ -585,7 +580,7 @@ backtrack(vrna_fold_compound *vc,
                         break;
                       }
                     }
-                    type = ptype[indx[j-1]+1];
+                    type = (unsigned char)ptype[indx[j-1]+1];
                     if(type){
                       if(fij == my_c[indx[j-1]+1] + E_ExtLoop(type, -1, S1[j], P)){
                         traced = j-1;
@@ -640,7 +635,7 @@ backtrack(vrna_fold_compound *vc,
         }
       }
 
-      tt  = ptype[ij];
+      tt  = (unsigned char)ptype[ij];
       en  = my_c[ij];
       switch(dangle_model){
         case 0:   if(fij == en + E_MLstem(tt, -1, -1, P)){
@@ -662,19 +657,19 @@ backtrack(vrna_fold_compound *vc,
                     bp_stack[b].j   = j;
                     goto repeat1;
                   }
-                  tt = ptype[ij+1];
+                  tt = (unsigned char)ptype[ij+1];
                   if(fij == my_c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
                     bp_stack[++b].i = ++i;
                     bp_stack[b].j   = j;
                     goto repeat1;
                   }
-                  tt = ptype[indx[j-1]+i];
+                  tt = (unsigned char)ptype[indx[j-1]+i];
                   if(fij == my_c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
                     bp_stack[++b].i = i;
                     bp_stack[b].j   = --j;
                     goto repeat1;
                   }
-                  tt = ptype[indx[j-1]+i+1];
+                  tt = (unsigned char)ptype[indx[j-1]+i+1];
                   if(fij == my_c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
                     bp_stack[++b].i = ++i;
                     bp_stack[b].j   = --j;
@@ -690,8 +685,8 @@ backtrack(vrna_fold_compound *vc,
       if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
         ml = 2;
         for (k = i+1+TURN; k <= j - 2 - TURN; k++) {
-          type    = rtype[ptype[indx[k]+i]];
-          type_2  = rtype[ptype[indx[j]+k+1]];
+          type    = rtype[(unsigned char)ptype[indx[k]+i]];
+          type_2  = rtype[(unsigned char)ptype[indx[j]+k+1]];
           if (type && type_2)
             if (fij == my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]+
                        2*P->MLintern[1])
@@ -715,13 +710,13 @@ backtrack(vrna_fold_compound *vc,
     ij = indx[j]+i;
     if (canonical)  cij = my_c[ij];
 
-    type = ptype[ij];
+    type = (unsigned char)ptype[ij];
 
     if (noLP)
       if (cij == my_c[ij]){
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
+        type_2 = (unsigned char)ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
         cij -= P->stack[type][type_2];
         if(sc){
           if(sc->en_basepair)
@@ -758,7 +753,7 @@ backtrack(vrna_fold_compound *vc,
       if (minq<p+1+TURN) minq = p+1+TURN;
       for (q = j-1; q >= minq; q--) {
 
-        type_2 = ptype[indx[q]+p];
+        type_2 = (unsigned char)ptype[indx[q]+p];
         if (type_2==0) continue;
         type_2 = rtype[type_2];
         if (noGUclosure)
@@ -863,7 +858,7 @@ backtrack(vrna_fold_compound *vc,
                   /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                   /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                   if(dangle_model == 3){
-                    type_2 = rtype[ptype[indx[k]+i+1]];
+                    type_2 = rtype[(unsigned char)ptype[indx[k]+i+1]];
                     if (type_2) {
                       en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                       if(sc){
@@ -877,7 +872,7 @@ backtrack(vrna_fold_compound *vc,
                         break;
                       }
                     }
-                    type_2 = rtype[ptype[indx[j-1]+k+1]];
+                    type_2 = rtype[(unsigned char)ptype[indx[j-1]+k+1]];
                     if (type_2) {
                       en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                       if(sc){
@@ -967,9 +962,9 @@ backtrack_fold_from_pair( char *sequence,
                           int i,
                           int j){
 
-  char          *structure;
-  unsigned int  length;
-  bondT         *bp;
+  char          *structure  = NULL;
+  unsigned int  length      = 0;
+  bondT         *bp         = NULL;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
 
   if(sequence){

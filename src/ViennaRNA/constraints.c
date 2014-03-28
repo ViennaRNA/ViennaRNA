@@ -180,9 +180,8 @@ apply_DB_constraint(const char *constraint,
                     int cut,
                     unsigned int options){
 
-  int n,i,j,k,l;
+  int n,i,j;
   int hx, *stack;
-  char type;
   int *index;
   char c_option;
 
@@ -439,7 +438,7 @@ getConstraint(char **cstruc,
               const char **lines,
               unsigned int option){
 
-  int r, i, j, l, cl, stop;
+  int r, i, l, cl, stop;
   char *c, *ptr;
   if(lines){
     if(option & VRNA_CONSTRAINT_ALL)
@@ -668,7 +667,6 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
   sequence[length] = '\0';
 
   while((line=get_line(fp))){
-    int r;
     int position;
     unsigned char nucleotide = 'N';
     double reactivity = default_value;
@@ -830,7 +828,7 @@ vrna_sc_add_mathews( vrna_fold_compound *vc,
 
   float   reactivity, *reactivities;
   char    *line, nucleotide, *sequence;
-  int     i, j, r, position, *pseudo_energies, *idx;
+  int     i, r, position;
 
   /* read the shape file */
   FILE *fp;
@@ -919,9 +917,9 @@ vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
                                         double b,
                                         unsigned int options){
 
-  float   reactivity, *reactivities, e1, e2;
+  float   reactivity, *reactivities, e1;
   char    *line, nucleotide, *sequence;
-  int     s, i, j, p, q,  r, position, *pseudo_energies, *idx, n_seq;
+  int     s, i, p, r, position, *pseudo_energies, n_seq;
 
   n_seq = vc->n_seq;
   vc->sc = (soft_constraintT **)space(sizeof(soft_constraintT *) * (n_seq + 1));
@@ -1030,10 +1028,10 @@ vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
 }
 
 PUBLIC  int
-parse_soft_constraints_shape_method(  const char *method_string,
-                                      char *method,
-                                      float *param_1,
-                                      float *param_2){
+parse_soft_constraints_shape_method(const char *method_string,
+                                    char *method,
+                                    float *param_1,
+                                    float *param_2){
 
   int r;
 
@@ -1041,7 +1039,6 @@ parse_soft_constraints_shape_method(  const char *method_string,
   const char *params = method_string + 1;
   const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
 
-  *method = m;
   *param_1 = 0;
   *param_2 = 0;
 
@@ -1132,9 +1129,7 @@ vrna_sc_add_bp_pf( vrna_fold_compound *vc,
     pf_paramT *exp_params = vc->exp_params;
     double    GT          = 0.;
     double    temperature = exp_params->temperature;
-    double    BetaScale   = exp_params->alpha;
     double    kT          = exp_params->kT;
-    double    pf_scale    = exp_params->pf_scale;
     double    TT          = (temperature+K0)/(Tmeasure);
 
     if(sc->exp_en_basepair)
@@ -1225,9 +1220,7 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
       pf_paramT *exp_params = vc->exp_params;
       double    GT          = 0.;
       double    temperature = exp_params->temperature;
-      double    BetaScale   = exp_params->alpha;
       double    kT          = exp_params->kT;
-      double    pf_scale    = exp_params->pf_scale;
       double    TT          = (temperature+K0)/(Tmeasure);
 
       /* #################################### */
@@ -1277,8 +1270,7 @@ vrna_sc_remove(vrna_fold_compound *vc){
 PUBLIC void
 vrna_sc_destroy(soft_constraintT *sc){
 
-  int     i, *ptr, *ptr2;
-  double  *ptr3;
+  int i;
   if(sc){
     if(sc->constraints)
       free(sc->constraints);

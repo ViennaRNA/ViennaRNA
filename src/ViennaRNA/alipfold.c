@@ -35,9 +35,6 @@
 #include <omp.h>
 #endif
 
-/*@unused@*/
-static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
-
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */
 #define ISOLATED  256.0
@@ -145,7 +142,7 @@ PRIVATE void init_alipf_fold(int length, int n_seq, pf_paramT *parameters){
 *** Allocate memory for all matrices and other stuff
 **/
 PRIVATE void get_arrays(unsigned int length){
-  unsigned int size,i;
+  unsigned int size;
 
   if((length+1) >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@alipfold.c: sequence length exceeds addressable range");
@@ -323,7 +320,7 @@ PUBLIC FLT_OR_DBL *alipf_export_bppm(void){
 PRIVATE void alipf_linear(const char **sequences, char *structure)
 {
   int         s, n, n_seq, i,j,k,l, ij, u, u1, d, ii, *type, type_2, tt;
-  FLT_OR_DBL  temp, Qmax=0;
+  FLT_OR_DBL  temp;
   FLT_OR_DBL  qbt1, *tmp;
   double      kTn;
 
@@ -482,7 +479,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 {
   int s;
   int n, n_seq, i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
-  FLT_OR_DBL temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL temp, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
@@ -499,8 +496,6 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
     prm_l[i]=prm_l1[i]=prml[i]=0;
 
   /* backtracking to construct binding probabilities of pairs*/
-  Qmax=0;
-
   for (k=1; k<=n; k++) {
     q1k[k] = q[my_iindx[1] - k];
     qln[k] = q[my_iindx[k] -n];
@@ -524,14 +519,12 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
             type[s] = pair[S[s][j]][S[s][i]];
             if (type[s]==0) type[s]=7;
           }
-          int rt;
 
           /* 1.1. Exterior Hairpin Contribution */
           int u = i + n - j -1;
           for (qbt1=1.,s=0; s<n_seq; s++) {
 
             char loopseq[10];
-            char *ts;
             if (u<7){
               strcpy(loopseq , sequences[s]+j-1);
               strncat(loopseq, sequences[s], i);
@@ -1013,9 +1006,7 @@ PUBLIC void alipf_circ(const char **sequences, char *structure){
   for (s=0; sequences[s]!=NULL; s++);
   n_seq = s;
 
-  double kTn;
   FLT_OR_DBL qbt1, qot;
-  kTn = pf_params->kT/10.;   /* kT in cal/mol  */
   type  = (int *)space(sizeof(int) * n_seq);
 
   qo = qho = qio = qmo = 0.;
@@ -1095,7 +1086,7 @@ PUBLIC void alipf_circ(const char **sequences, char *structure){
 
 /*brauch ma nurnoch pscores!*/
 PUBLIC char *alipbacktrack(double *prob) {
-  double r, gr, qt, kTn;
+  double r, gr, qt;
   int k,i,j, start,s,n, n_seq;
   double probs=1;
 
@@ -1105,7 +1096,6 @@ PUBLIC char *alipbacktrack(double *prob) {
 
   n = S[0][0];
   n_seq = N_seq;
-  kTn = pf_params->kT/10.;
   /*sequence = seq;*/
   if (do_bppm==0) {
     for (k=1; k<=n; k++) {
@@ -1167,11 +1157,10 @@ PUBLIC char *alipbacktrack(double *prob) {
 PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
   /*backtrack given i,j basepair!*/
   double kTn = pf_params->kT/10.;
-  double tempwert;
   int *type = (int *)space(sizeof(int) * n_seq);
 
   do {
-    double r, qbt1;
+    double r, qbt1, max_k, min_l;
     int k, l, u, u1,s;
     pstruc[i-1] = '('; pstruc[j-1] = ')';
     for (s=0; s<n_seq; s++) {
@@ -1198,9 +1187,13 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
       return; /* found the hairpin we're done */
     }
 
-    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++){
+    
+    max_k = MIN2(i+MAXLOOP+1,j-TURN-2);
+    l = MAX2(i+TURN+2,j-MAXLOOP-1);
+    for (k=i+1; k<=max_k; k++){
+      min_l = MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1);
 
-      for (l=MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1); l<j; l++){
+      for (l=min_l; l<j; l++){
         double qloop=1;
         int type_2;
         if (qb[my_iindx[k]-l]==0) {qloop=0; continue;}
@@ -1241,7 +1234,6 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
   } while (1);
 
   /* backtrack in multi-loop */
-  tempwert=(qb[my_iindx[i]-j]/exp(pscore[my_iindx[i]-j]/kTn));
   {
     double r, qt;
     int k, ii, jj;
@@ -1255,7 +1247,7 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
     for (qt=0., k=i+1; k<j; k++) {
       qt += qm[ii-(k-1)]*qm1[jj+k];
       if (qt>=r){
-        *prob=*prob*qm[ii-(k-1)]*qm1[jj+k]/qttemp;/*qttemp;tempwert*/
+        *prob=*prob*qm[ii-(k-1)]*qm1[jj+k]/qttemp;/*qttemp;*/
         /*        prob*=qm[ii-(k-1)]*qm1[jj+k];*/
         break;
       }

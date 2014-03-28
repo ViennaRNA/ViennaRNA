@@ -407,9 +407,10 @@ E_int_loop( int i,
             int j,
             vrna_fold_compound *vc){
 
-  int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, type, type_2, *rtype, noGUclosure, no_close, energy;
+  int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, *rtype, noGUclosure, no_close, energy;
   short *S_p1, *S_q1;
   char              *ptype_pq;
+  unsigned char     type, type_2;
   char              *hc_pq;
   char              *ptype        = vc->ptype;
   short             *S            = vc->sequence_encoding;
@@ -430,7 +431,7 @@ E_int_loop( int i,
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & IN_INT_LOOP){
 
-    type        = ptype[ij];
+    type        = (unsigned char)ptype[ij];
     rtype       = &(P->model_details.rtype[0]);
     noGUclosure = P->model_details.noGUclosure;
     no_close    = (((type==3)||(type==4))&&noGUclosure);
@@ -460,7 +461,7 @@ E_int_loop( int i,
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if(*hc_pq & IN_INT_LOOP_ENC){
 
-          type_2 = rtype[*ptype_pq];
+          type_2 = rtype[(unsigned char)*ptype_pq];
 
           if (noGUclosure)
             if (no_close||(type_2==3)||(type_2==4))
@@ -521,7 +522,8 @@ E_mb_loop_fast( int i,
                 int *dmli1,
                 int *dmli2){
 
-  int k, decomp, MLenergy, en, type, type_2, tt;
+  int k, decomp, MLenergy, en;
+  unsigned char type, type_2, tt;
 
   char              *ptype  = vc->ptype;
   short             *S      = vc->sequence_encoding;
@@ -541,7 +543,7 @@ E_mb_loop_fast( int i,
   int dangle_model  = P->model_details.dangles;
   int *rtype        = &(P->model_details.rtype[0]);
 
-  type              = ptype[ij];
+  type              = (unsigned char)ptype[ij];
 
 
   if(hc_decompose & IN_MB_LOOP){
@@ -613,7 +615,7 @@ E_mb_loop_fast( int i,
       for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
         i1k   = indx[k] + i + 1;
         if(hc[i1k] & IN_MB_LOOP_ENC){
-          type_2  = rtype[ptype[i1k]];
+          type_2  = rtype[(unsigned char)ptype[i1k]];
           en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
           if(sc){
             if(sc->en_basepair)
@@ -622,7 +624,7 @@ E_mb_loop_fast( int i,
           decomp  = MIN2(decomp, en);
         }
         if(hc[k1j1] & IN_MB_LOOP_ENC){
-          type_2  = rtype[ptype[k1j1]];
+          type_2  = rtype[(unsigned char)ptype[k1j1]];
           en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
           if(sc){
             if(sc->en_basepair)
@@ -787,8 +789,8 @@ E_ml_stems_fast(int i,
     for (k1j = indx[j]+i+TURN+2, decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++, k1j++){
       ik = indx[k]+i;
       if((hc[ik] & IN_MB_LOOP_ENC) && (hc[k1j] & IN_MB_LOOP_ENC)){
-        type    = rtype[ptype[ik]];
-        type_2  = rtype[ptype[k1j]];
+        type    = rtype[(unsigned char)ptype[ik]];
+        type_2  = rtype[(unsigned char)ptype[k1j]];
         en      = c[ik] + c[k1j] + P->stack[type][type_2];
         decomp  = MIN2(decomp, en);
       }

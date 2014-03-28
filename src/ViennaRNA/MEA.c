@@ -12,6 +12,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/params.h"
+#include "ViennaRNA/gquad.h"
 #include "ViennaRNA/MEA.h"
 
 /* compute an MEA structure, i.e. the structure maximising
@@ -210,7 +211,7 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
   List *C; Litem *li;
   double *Mi, prec;
   double *pu;
-  int fail=1, k;
+  int fail=1;
   int gq = 0;
   if(pf)
     gq = pf->model_details.gquad;

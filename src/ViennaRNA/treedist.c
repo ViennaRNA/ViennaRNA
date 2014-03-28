@@ -9,10 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include  "edit_cost.h"
-#include  "dist_vars.h"
-#include  "utils.h"
-static char rcsid[] = "$Id: treedist.c,v 1.3 1997/11/03 10:39:43 ivo Rel $";
+#include "ViennaRNA/edit_cost.h"
+#include "ViennaRNA/dist_vars.h"
+#include "ViennaRNA/utils.h"
 
 #define PRIVATE  static
 #define PUBLIC
@@ -434,7 +433,7 @@ PRIVATE void print_keyroots(int *keyroots)
 
 PRIVATE void print_postorder_list(Postorder_list *pl)
 {
-   register i;
+   register int i;
    char     label[100];
 
    printf("--->  postorder list  <---\n\n");

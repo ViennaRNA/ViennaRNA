@@ -57,10 +57,8 @@ PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE char        **ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
-PRIVATE int         init_length = 0;  /* length in last call to init_pf_fold() */
 PRIVATE pf_paramT   *pf_params=NULL;
 PRIVATE short       *S=NULL, *S1=NULL;
-PRIVATE int         unpaired;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
 PRIVATE double      alpha = 1.0;
@@ -69,10 +67,10 @@ PRIVATE double      alpha = 1.0;
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
-#pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, my_iindx, init_length, pf_params,\
+#pragma omp threadprivate(cutoff, num_p, scale, ptype, jindx, my_iindx, pf_params,\
                           expMLbase, q, qb, qm, qqm, qqm1, qq, qq1, pR, qm2, QI5, q2l, qmb,\
                           prml, prm_l, prm_l1, q1k, qln,\
-                          S, S1, unpaired, ulength, pUoutput, alpha)
+                          S, S1, ulength, pUoutput, alpha)
 
 #endif
 
@@ -248,7 +246,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
                             FILE *spup,
                             pf_paramT *parameters){
 
-  int         n, m, i, j, k, l, u, u1, ii, type, type_2, tt, ov, do_dpp, simply_putout, noGUclosure;
+  int         n, m, i, j, k, l, u, u1, type, type_2, tt, ov, do_dpp, simply_putout, noGUclosure;
   double      max_real;
   FLT_OR_DBL  temp, Qmax, prm_MLb, prmt, prmt1, qbt1, *tmp, expMLclosing;
   plist       *dpp, *pl;
@@ -352,7 +350,6 @@ PUBLIC plist *pfl_fold_par( char *sequence,
             }
           }
           /*multiple stem loop contribution*/
-          ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
           temp = 0.0;
           for (k=i+2; k<=j-1; k++) temp += qm[i+1][k-1]*qqm1[k];
           tt = rtype[type];
@@ -758,7 +755,7 @@ PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
 
     if ((qb[start][j]*qb[start-1][(j+1)])>10e-200) {
       int type=ptype[start-1][j+1];
-      int type_2=rtype[ptype[start][j]];
+      int type_2=rtype[(unsigned char)ptype[start][j]];
       tmp=qb[start][j]/qb[start-1][(j+1)]*exp_E_IntLoop(0, 0, type, type_2,
                                                         S1[start], S1[j], S1[start-1], S1[j+1], pf_params) * scale[2];
        temp[count].i=start;
@@ -834,7 +831,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
           temp  +=  qm[i5+1][k] * qm[k+ulength+1][j3-1] * expMLbase[ulength]; /* ({}|-----|{}) */
 
         /* add dangles, multloopclosing etc. */
-        temp  *=  exp_E_MLstem(rtype[ptype[i5][j3]], S1[j3-1], S1[i5+1], pf_params) * scale[2] * expMLclosing;
+        temp  *=  exp_E_MLstem(rtype[(unsigned char)ptype[i5][j3]], S1[j3-1], S1[i5+1], pf_params) * scale[2] * expMLclosing;
         /*add hairpins*/
         temp  +=  exp_E_Hairpin(j3-i5-1, ptype[i5][j3], S1[i5+1], S1[j3-1], sequence+i5-1, pf_params) * scale[j3-i5+1];
         /*add outer probability*/
@@ -946,7 +943,7 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   for (len=1; len<ulength; len++) {
     for (obp=k+len+TURN+TURN; obp<=MIN2(n,k+winSize-1); obp++) {
       if (ptype[k][obp]) {
-        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
+        temp      =   exp_E_MLstem(rtype[(unsigned char)ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
         QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
       }
     }
@@ -1009,7 +1006,7 @@ PRIVATE void putoutpU_splitup(double **pUx, int k, int ulength, FILE *fp, char i
   for (i=1; i<=MIN2(ulength,k); i++) {
     fprintf(fp,"%.5g\t",pUx[k][i]);
   }
-  fprintf(fp,"\t%s\n",ident);
+  fprintf(fp,"\t%c\n",ident);
   free(pUx[k]);
 }
 
@@ -1056,7 +1053,6 @@ PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp,
   /*put out unpaireds */
   int i,k;
   double kT= parameters->kT/1000.0;
-  double temp;
   int *p;
   p = (int*) space(sizeof(int)*1);
   /* write first line */
@@ -1146,7 +1142,7 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
           temp  +=  qm[i5+1][k] * qm[k+ulength+1][j3-1] * expMLbase[ulength]; /* ({}|-----|{}) */
 
         /* add dangles, multloopclosing etc. */
-        temp  *=  exp_E_MLstem(rtype[ptype[i5][j3]], S1[j3-1], S1[i5+1], pf_params) * scale[2] * expMLclosing;
+        temp  *=  exp_E_MLstem(rtype[(unsigned char)ptype[i5][j3]], S1[j3-1], S1[i5+1], pf_params) * scale[2] * expMLclosing;
         /*add hairpins*/
         temp  +=  exp_E_Hairpin(j3-i5-1, ptype[i5][j3], S1[i5+1], S1[j3-1], sequence+i5-1, pf_params) * scale[j3-i5+1];
         /*add outer probability*/
@@ -1198,7 +1194,7 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
   for (len=1; len<ulength; len++) {
     for (obp=k+len+TURN+TURN; obp<=MIN2(n,k+winSize-1); obp++) {
       if (ptype[k][obp]) {
-        temp      =   exp_E_MLstem(rtype[ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
+        temp      =   exp_E_MLstem(rtype[(unsigned char)ptype[k][obp]], S1[obp-1], S1[k+1], pf_params) * scale[2] * expMLbase[len] * expMLclosing; /* k:obp */
         QBE[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
         QBM[len]  +=  pR[k][obp] * temp * qm2[k+len+1][obp-1]; /* add (___()()) */
       }
