@@ -424,7 +424,7 @@ PUBLIC int **get_gquad_L_matrix(short *S,
                                 paramT *P){
 
   int **data;
-  int n, i, j, k, l, *gg;
+  int n, i, j, k, *gg;
   
   n   = S[0];
   gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
