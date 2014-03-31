@@ -278,6 +278,12 @@ AC_RNA_ADD_PACKAGE( [svm],
                     [with_svm=no],
                     [with_svm=yes],
                     [src/libsvm-${SVM_VERSION}/svm.cpp src/libsvm-${SVM_VERSION}/svm.h])
+AC_RNA_ADD_PACKAGE( [json],
+                    [json in/out support],
+                    [yes],
+                    [with_json=no],
+                    [with_json=yes],
+                    [src/json/json.c src/json/json.h])
 AC_RNA_ADD_PACKAGE( [doc_pdf],
                     [PDF RNAlib reference manual],
                     [yes],
@@ -391,6 +397,10 @@ AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
 ])
 
+AC_RNA_PACKAGE_IF_ENABLED([json],[
+  AC_DEFINE([WITH_JSON_SUPPORT], [1], [Add JSON support for input and output functions])
+])
+
 # check prerequisties for unit testing support
 AC_RNA_PACKAGE_IF_ENABLED([check],[
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.4], [],[
@@ -426,6 +436,7 @@ AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
+AM_CONDITIONAL(WITH_JSON, test "$with_json" != "no")
 AM_CONDITIONAL(WITH_CHECK, test "$with_check" != "yes")
 AM_CONDITIONAL(WITH_GSL, test "$with_gsl" != "no")
 
@@ -441,7 +452,7 @@ AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
 AC_CONFIG_FILES([interfaces/Makefile])
-AC_CONFIG_FILES([Makefile RNAlib2.pc src/json/Makefile src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
@@ -478,6 +489,7 @@ Extra Programs:
 
 Other Options:
   SVM:                  ${with_svm:-yes}
+  JSON:                 ${with_json:-yes}
   Documentation:        ${with_doc:-no}
     (HTML):             ${with_doc_html:-no}
     (PDF):              ${with_doc_pdf:-no}
