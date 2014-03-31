@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 lib_LIBRARIES = libRNA.a
 
 
@@ -7,6 +9,12 @@ if WITH_LIBSVM
   SVM_H       = ../@LIBSVM_DIR@/svm.h
   SVM_UTILS   = svm_utils.c
   SVM_UTILS_H = svm_utils.h
+endif
+
+if WITH_JSON
+  JSON_SRC    = ../json/json.c
+  JSON_H      = ../json/json.h
+  JSON_INC    = -I$(top_srcdir)/src/json
 endif
 
 pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
@@ -31,16 +39,16 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c\
                     snoop.c move_set.c gquad.c eval.c constraints.c data_structures.c\
                     perturbation_fold.c centroid.c structure_utils.c model.c \
-                    file_formats.c ${SVM_SRC} ${SVM_UTILS}
+                    file_formats.c ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
 
 
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
-                  1.8.4_epars.h 1.8.4_intloops.h
+                  1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}
 
-EXTRA_DIST = $(pkginclude_HEADERS) circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H}
+EXTRA_DIST = $(pkginclude_HEADERS) circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H} ${JSON_H}
 
-AM_CPPFLAGS = -I$(top_srcdir)/src ${SVM_INC} @FPIC@
+AM_CPPFLAGS = -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FPIC@
 
