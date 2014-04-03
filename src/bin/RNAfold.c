@@ -398,7 +398,7 @@ int main(int argc, char *argv[]){
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
 
-    min_en = vrna_fold(vc, structure);
+    min_en = (double)vrna_fold(vc, structure);
 
     char *th_file_name  = NULL;
     char *db_file_name  = NULL;

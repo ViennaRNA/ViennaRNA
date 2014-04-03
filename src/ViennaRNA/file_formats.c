@@ -16,6 +16,9 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#if WITH_JSON_SUPPORT
+# include <json/json.h>
+#endif
 #include "ViennaRNA/file_formats.h"
 
 /*
@@ -40,11 +43,27 @@ find_helices(short *pt, int i, int j, FILE *file);
 PRIVATE unsigned int
 read_multiple_input_lines(char **string, FILE *file, unsigned int option);
 
+PRIVATE void
+elim_trailing_ws(char *string);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+
+PRIVATE void
+elim_trailing_ws(char *string){    /* eliminate whitespaces at the end of a character string */
+
+  int i, l = strlen(string);
+
+  for(i = l-1; i >= 0; i--){
+    if      (string[i] == ' ')  continue;
+    else if (string[i] == '\t') continue;
+    else                        break;
+  }
+  string[(i >= 0) ? (i+1) : 0] = '\0';
+}
 
 PRIVATE void
 find_helices(short *pt, int i, int j, FILE *file){
@@ -168,6 +187,42 @@ vrna_structure_print_bpseq( const char *seq,
   fflush(out);
 }
 
+#if WITH_JSON_SUPPORT
+
+PUBLIC void
+vrna_structure_print_json(  const char *seq,
+                            const char *db,
+                            double energy,
+                            const char *identifier,
+                            FILE *file){
+
+  FILE *out = (file) ? file : stdout;
+
+  JsonNode *data  = json_mkobject();
+  JsonNode *value;
+
+  if(identifier){
+    value = json_mkstring(identifier);
+    json_append_member(data, "id", value);
+  }
+
+  value = json_mkstring(seq);
+  json_append_member(data, "sequence", value);
+
+  value = json_mknumber(energy);
+  json_append_member(data, "mfe", value);
+
+  value = json_mkstring(db);
+  json_append_member(data, "structure", value);
+
+  
+  fprintf(out, "%s\n", json_stringify(data, "\t"));
+
+  fflush(out);
+}
+
+#endif
+
 PRIVATE  unsigned int
 read_multiple_input_lines(char **string,
                           FILE *file,
@@ -192,14 +247,8 @@ read_multiple_input_lines(char **string,
     l = (int)strlen(line);
 
     /* eliminate whitespaces at the end of the line read */
-    if(!(option & VRNA_INPUT_NO_TRUNCATION)){
-      for(i = l-1; i >= 0; i--){
-        if      (line[i] == ' ')  continue;
-        else if (line[i] == '\t') continue;
-        else                      break;
-      }
-      line[(i >= 0) ? (i+1) : 0] = '\0';
-    }
+    if(!(option & VRNA_INPUT_NO_TRUNCATION))
+      elim_trailing_ws(line);
 
     l           = (int)strlen(line);
     str_length  = (*string) ? (int) strlen(*string) : 0;
