@@ -50,6 +50,16 @@ void vrna_structure_print_bpseq(const char *seq,
                                 const char *db,
                                 FILE *file);
 
+#if WITH_JSON_SUPPORT
+
+void vrna_structure_print_json( const char *seq,
+                                const char *db,
+                                double energy,
+                                const char *identifier,
+                                FILE *file);
+
+#endif
+
 /**
  *  \brief  Get a (fasta) data set from a file or stdin
  * 
