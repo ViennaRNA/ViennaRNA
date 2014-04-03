@@ -203,8 +203,9 @@ typedef struct{
   int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
   int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
   int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
-  int     do_backtrack;     /**<  \brief  Specifies whether or not backtracking will be performed */
+  int     backtrack;        /**<  \brief  Specifies whether or not secondary structures should be backtraced */
   char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
+  int     compute_bpp;      /**<  \brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
   char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
   int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
 

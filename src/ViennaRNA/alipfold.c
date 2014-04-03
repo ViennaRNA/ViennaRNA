@@ -246,7 +246,7 @@ vrna_alipf_fold_tmp( const char **strings,
                         structure,
                         pl,
                         vc->exp_params,
-                        vc->exp_params->model_details.do_backtrack,
+                        vc->exp_params->model_details.compute_bpp,
                         fold_constrained,
                         vc->exp_params->model_details.circ);
 }
