@@ -86,7 +86,7 @@ double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const dou
   p_prob_unpaired = space(sizeof(double) * (length + 1));
 
   addSoftConstraint(vc, epsilon, length);
-  vc->exp_params->model_details.do_backtrack = 1;
+  vc->exp_params->model_details.compute_bpp = 1;
   vrna_pf_fold(vc, NULL);
 
   calculate_probability_unpaired(vc, p_prob_unpaired);
@@ -114,7 +114,7 @@ void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const doub
   int i;
 
   addSoftConstraint(vc, epsilon, length);
-  vc->exp_params->model_details.do_backtrack = 1;
+  vc->exp_params->model_details.compute_bpp = 1;
 
   vrna_pf_fold(vc, NULL);
   calculate_probability_unpaired(vc, prob_unpaired);
@@ -158,7 +158,7 @@ void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *e
   st_back = 1;
 
   addSoftConstraint(vc, epsilon, length);
-  vc->exp_params->model_details.do_backtrack = 0;
+  vc->exp_params->model_details.compute_bpp = 0;
 
   vrna_pf_fold(vc, NULL);
 

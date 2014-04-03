@@ -188,19 +188,23 @@ vrna_fold(vrna_fold_compound *vc,
     energy = vc->matrices->Fc;
   }
 
-  bp = (bondT *)space(sizeof(bondT) * (1 + length/2 + 200)); /* add a guess of how many G's may be involved in a G quadruplex */
+  if(structure && vc->params->model_details.backtrack){
+    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
-  backtrack(vc, bp, bt_stack, s);
+    backtrack(vc, bp, bt_stack, s);
 
-  vrna_parenthesis_structure(structure, bp, length);
+    vrna_parenthesis_structure(structure, bp, length);
 
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanish from within the package!
-  */
-  if(base_pair) free(base_pair);
-  base_pair = bp;
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "base_pair" vanish from within the package!
+    */
+    {
+      if(base_pair) free(base_pair);
+      base_pair = bp;
+    }
+  }
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;

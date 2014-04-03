@@ -91,28 +91,29 @@ PUBLIC void set_model_details(model_detailsT *md){
   int i = 0;
 
   if(md){
-    md->dangles         = dangles;
-    md->special_hp      = tetra_loop;
-    md->noLP            = noLonelyPairs;
-    md->noGU            = noGU;
-    md->noGUclosure     = no_closingGU;
-    md->logML           = logML;
-    md->gquad           = gquad;
-    md->canonicalBPonly = canonicalBPonly;
-    md->circ            = circ;
-    md->uniq_ML         = uniq_ML;
-    md->do_backtrack    = do_backtrack;
-    md->backtrack_type  = backtrack_type;
-    md->energy_set      = energy_set;
-    md->max_bp_span     = max_bp_span;
-    md->min_loop_size   = TURN;
-    md->oldAliEn        = oldAliEn;
-    md->ribo            = ribo;
-    md->cv_fact         = cv_fact;
-    md->nc_fact         = nc_fact;
-    md->temperature     = temperature;
-    md->betaScale       = 1.;
-    md->pf_scale        = pf_scale;
+    md->dangles           = dangles;
+    md->special_hp        = tetra_loop;
+    md->noLP              = noLonelyPairs;
+    md->noGU              = noGU;
+    md->noGUclosure       = no_closingGU;
+    md->logML             = logML;
+    md->gquad             = gquad;
+    md->canonicalBPonly   = canonicalBPonly;
+    md->circ              = circ;
+    md->uniq_ML           = uniq_ML;
+    md->compute_bpp       = do_backtrack;
+    md->backtrack         = 1;
+    md->backtrack_type    = backtrack_type;
+    md->energy_set        = energy_set;
+    md->max_bp_span       = max_bp_span;
+    md->min_loop_size     = TURN;
+    md->oldAliEn          = oldAliEn;
+    md->ribo              = ribo;
+    md->cv_fact           = cv_fact;
+    md->nc_fact           = nc_fact;
+    md->temperature       = temperature;
+    md->betaScale         = 1.;
+    md->pf_scale          = pf_scale;
 
     if(nonstandards){
       memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));

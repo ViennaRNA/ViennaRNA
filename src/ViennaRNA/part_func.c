@@ -110,8 +110,8 @@ wrap_pf_fold( const char *sequence,
     set_model_details(&md); /* get global default parameters */
     exp_params = vrna_get_boltzmann_factors(md);
   }
-  exp_params->model_details.circ          = is_circular;
-  exp_params->model_details.do_backtrack  = calculate_bppm;
+  exp_params->model_details.circ        = is_circular;
+  exp_params->model_details.compute_bpp = calculate_bppm;
 
   vc = vrna_get_fold_compound(sequence, &(exp_params->model_details), VRNA_OPTION_PF);
 
@@ -180,7 +180,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
     pf_circ(vc); /* do post processing step for circular RNAs */
 
   /* calculate base pairing probability matrix (bppm)  */
-  if(md->do_backtrack){
+  if(md->compute_bpp){
     pf_create_bppm(vc, structure);
     /*
     *  Backward compatibility:

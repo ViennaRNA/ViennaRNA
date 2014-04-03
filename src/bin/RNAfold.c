@@ -112,16 +112,16 @@ add_shape_constraints(vrna_fold_compound *vc,
 }
 
 int main(int argc, char *argv[]){
-  struct        RNAfold_args_info args_info;
-  char          *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char          *shape_file, *shape_method;
-  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
-  char          *ns_bases, *c;
-  int           i, length, l, cl, sym, istty, pf, noPS, noconv;
-  unsigned int  rec_type, read_opt;
-  double        energy, min_en, kT, sfact;
-  int           doMEA, circular, lucky, with_shapes, verbose;
-  double        MEAgamma, bppmThreshold, betaScale;
+  struct          RNAfold_args_info args_info;
+  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
+  char            *shape_file, *shape_method;
+  char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
+  char            *ns_bases, *c;
+  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp;
+  unsigned int    rec_type, read_opt;
+  double          energy, min_en, kT, sfact;
+  int             doMEA, circular, lucky, with_shapes, verbose;
+  double          MEAgamma, bppmThreshold, betaScale;
   paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]){
   ParamFile     = NULL;
   ns_bases      = NULL;
   pf_parameters = NULL;
-  do_backtrack  = 1;
+  do_bpp        = do_backtrack  = 1;  /* set local (do_bpp) and global (do_backtrack) default for bpp computation */
   pf            = 0;
   sfact         = 1.07;
   noPS          = 0;
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]){
   if(args_info.partfunc_given){
     pf = 1;
     if(args_info.partfunc_arg != 1)
-      do_backtrack = args_info.partfunc_arg;
+      do_bpp = md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
   /* MEA (maximum expected accuracy) settings */
   if(args_info.MEA_given){
@@ -450,16 +450,16 @@ int main(int argc, char *argv[]){
       }
       else{
       
-        if (do_backtrack) {
+        if (do_bpp) {
           printf("%s", pf_struc);
           if (!istty) printf(" [%6.2f]\n", energy);
           else printf("\n");
         }
-        if ((istty)||(!do_backtrack))
+        if ((istty)||(!do_bpp))
           printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
 
 
-        if (do_backtrack) {
+        if (do_bpp) {
           plist *pl1,*pl2;
           char *cent;
           double dist, cent_en;
@@ -477,7 +477,7 @@ int main(int argc, char *argv[]){
           } else strcpy(ffname, "dot.ps");
           (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
           free(pl2);
-          if (do_backtrack==2) {
+          if (do_bpp==2) {
             pl2 = stackProb(1e-5);
             if (fname[0]!='\0') {
               strcpy(ffname, fname);
@@ -507,7 +507,7 @@ int main(int argc, char *argv[]){
           }
         }
         printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
-        if (do_backtrack)
+        if (do_bpp)
           printf("ensemble diversity %-6.2f", vrna_mean_bp_distance(vc));
         printf("\n");
       }

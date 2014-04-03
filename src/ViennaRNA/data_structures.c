@@ -219,7 +219,7 @@ vrna_get_fold_compound( const char *sequence,
     alloc_vector |= ALLOC_MFE_DEFAULT;
 
   if(options & VRNA_OPTION_PF)
-    alloc_vector |= (md.do_backtrack) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
+    alloc_vector |= (md.compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
 
   if(md.uniq_ML)
     alloc_vector |= ALLOC_UNIQ;
