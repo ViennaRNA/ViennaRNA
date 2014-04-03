@@ -207,9 +207,6 @@ vrna_pf_fold( vrna_fold_compound *vc,
   if (Q<=FLT_MIN)
     fprintf(stderr, "pf_scale too large\n");
   free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
-  /* in case we abort because of floating point errors */
-  if (n>1600)
-    fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
 #ifdef SUN4
   standard_arithmetic();
