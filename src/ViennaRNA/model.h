@@ -14,12 +14,37 @@
 #define MAXALPHA              20
 #endif
 
+#define VRNA_MODEL_DEFAULT_TEMPERATURE    37.0
+#define VRNA_MODEL_DEFAULT_PF_SCALE       -1
+#define VRNA_MODEL_DEFAULT_BETA_SCALE     1.
+#define VRNA_MODEL_DEFAULT_DANGLES        2
+#define VRNA_MODEL_DEFAULT_SPECIAL_HP     1
+#define VRNA_MODEL_DEFAULT_NO_LP          0
+#define VRNA_MODEL_DEFAULT_NO_GU          0
+#define VRNA_MODEL_DEFAULT_NO_GU_CLOSURE  0
+#define VRNA_MODEL_DEFAULT_CIRC           0
+#define VRNA_MODEL_DEFAULT_GQUAD          0
+#define VRNA_MODEL_DEFAULT_CANONICAL_BP   0
+#define VRNA_MODEL_DEFAULT_UNIQ_ML        0
+#define VRNA_MODEL_DEFAULT_ENERGY_SET     0
+#define VRNA_MODEL_DEFAULT_BACKTRACK      1
+#define VRNA_MODEL_DEFAULT_BACKTRACK_TYPE 'F'
+#define VRNA_MODEL_DEFAULT_COMPUTE_BPP    1
+#define VRNA_MODEL_DEFAULT_MAX_BP_SPAN    -1
+#define VRNA_MODEL_DEFAULT_LOG_ML         0
+#define VRNA_MODEL_DEFAULT_ALI_OLD_EN     0
+#define VRNA_MODEL_DEFAULT_ALI_RIBO       0
+#define VRNA_MODEL_DEFAULT_ALI_CV_FACT    1.
+#define VRNA_MODEL_DEFAULT_ALI_NC_FACT    1.
 
 
 /**
  *  \file model.h
  *  \brief The model details data structure and its corresponding modifiers
  */
+
+
+
 
 /* BEGIN deprecated global variables: */
 
@@ -232,6 +257,34 @@ typedef struct{
  *  \param md A pointer to the data structure that shall be initialized
  */
 void vrna_md_set_default(model_detailsT *md);
+
+
+void vrna_md_set_nonstandards(model_detailsT *md, const char *ns);
+
+
+void vrna_md_set_dangles(model_detailsT *md, int d);
+
+
+int vrna_md_get_dangles(model_detailsT *md);
+
+
+void vrna_md_set_temperature(model_detailsT *md, double T);
+
+
+double vrna_md_get_temperature(model_detailsT *md);
+
+
+void vrna_md_set_special_hp(model_detailsT *md, int shp);
+
+
+int vrna_md_get_special_hp(model_detailsT *md);
+
+
+void vrna_md_set_gquad(model_detailsT *md, int g);
+
+
+int vrna_md_get_gquad(model_detailsT *md);
+
 
 /**
  * \brief Set default model details
