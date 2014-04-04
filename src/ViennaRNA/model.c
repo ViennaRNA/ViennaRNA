@@ -34,47 +34,47 @@
     Package v3
 */
 
-double      temperature = 37.0;
+double      temperature = VRNA_MODEL_DEFAULT_TEMPERATURE;
 
-double      pf_scale = -1;        /* scaling factor to avoid floating point overflows */
+double      pf_scale = VRNA_MODEL_DEFAULT_PF_SCALE;        /* scaling factor to avoid floating point overflows */
 
-int         dangles = 2;          /* use dangling end energies */
+int         dangles = VRNA_MODEL_DEFAULT_DANGLES;          /* use dangling end energies */
 
-int         tetra_loop = 1;       /* Fold with specially stable 4-loops */
+int         tetra_loop = VRNA_MODEL_DEFAULT_SPECIAL_HP;       /* Fold with specially stable 4-loops */
 
-int         noLonelyPairs = 0;    /* avoid helices of length 1 */
+int         noLonelyPairs = VRNA_MODEL_DEFAULT_NO_LP;    /* avoid helices of length 1 */
 
-int         noGU = 0;             /* GU not allowed at all */
+int         noGU = VRNA_MODEL_DEFAULT_NO_GU;             /* GU not allowed at all */
 
-int         no_closingGU = 0;     /* GU allowed only inside stacks */
+int         no_closingGU = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;     /* GU allowed only inside stacks */
 
-int         circ = 0;
+int         circ = VRNA_MODEL_DEFAULT_CIRC;
 
-int         gquad = 0;            /* consider g-qudruplexes in the calculations */
+int         gquad = VRNA_MODEL_DEFAULT_GQUAD;            /* consider g-qudruplexes in the calculations */
 
-int         canonicalBPonly = 0;  /* remove non-canonical base pairs from structure constraint */
+int         canonicalBPonly = VRNA_MODEL_DEFAULT_CANONICAL_BP;  /* remove non-canonical base pairs from structure constraint */
 
-int         uniq_ML   = 0;        /* do ML decomposition uniquely (for subopt) */
+int         uniq_ML   = VRNA_MODEL_DEFAULT_UNIQ_ML;        /* do ML decomposition uniquely (for subopt) */
 
-int         energy_set = 0;       /* 0 = BP; 1=any with GC; 2=any with AU parameters */
+int         energy_set = VRNA_MODEL_DEFAULT_ENERGY_SET;       /* 0 = BP; 1=any with GC; 2=any with AU parameters */
 
-int         do_backtrack = 1;     /* calculate pair prob matrix in part_func() */
+int         do_backtrack = VRNA_MODEL_DEFAULT_COMPUTE_BPP;     /* calculate pair prob matrix in part_func() */
 
-char        backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
+char        backtrack_type = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE; /* 'C' require (1,N) to be bonded;
                                     'M' seq is part of s multi loop */
 char        *nonstandards = (char *)0;  /* contains allowed non standard bases */
 
-int         max_bp_span = -1;     /* base pairs may span the entire sequence length by default */
+int         max_bp_span = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;     /* base pairs may span the entire sequence length by default */
 
-int         oldAliEn = 0;         /* use old alifold-energies (without removing gaps) */
+int         oldAliEn = VRNA_MODEL_DEFAULT_ALI_OLD_EN;         /* use old alifold-energies (without removing gaps) */
 
-int         ribo = 0;             /* use ribosum instead of classic covariance term */
+int         ribo = VRNA_MODEL_DEFAULT_ALI_RIBO;             /* use ribosum instead of classic covariance term */
 
-double      cv_fact = 1.;
+double      cv_fact = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
 
-double      nc_fact = 1.;
+double      nc_fact = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
 
-int         logML     = 0;        /* if nonzero use logarithmic ML energy in energy_of_struct */
+int         logML     = VRNA_MODEL_DEFAULT_LOG_ML;        /* if nonzero use logarithmic ML energy in energy_of_struct */
 
 
 /*
@@ -98,13 +98,133 @@ PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 */
 
 PUBLIC void
-set_model_details(model_detailsT *md){
+vrna_md_set_default(model_detailsT *md){
 
-  return vrna_md_set_default(md);
+  int i = 0;
+
+  if(md){
+    md->dangles           = VRNA_MODEL_DEFAULT_DANGLES;
+    md->special_hp        = VRNA_MODEL_DEFAULT_SPECIAL_HP;
+    md->noLP              = VRNA_MODEL_DEFAULT_NO_LP;
+    md->noGU              = VRNA_MODEL_DEFAULT_NO_GU;
+    md->noGUclosure       = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;
+    md->logML             = VRNA_MODEL_DEFAULT_LOG_ML;
+    md->gquad             = VRNA_MODEL_DEFAULT_GQUAD;
+    md->canonicalBPonly   = VRNA_MODEL_DEFAULT_CANONICAL_BP;
+    md->circ              = VRNA_MODEL_DEFAULT_CIRC;
+    md->uniq_ML           = VRNA_MODEL_DEFAULT_UNIQ_ML;
+    md->compute_bpp       = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
+    md->backtrack         = VRNA_MODEL_DEFAULT_BACKTRACK;
+    md->backtrack_type    = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE;
+    md->energy_set        = VRNA_MODEL_DEFAULT_ENERGY_SET;
+    md->max_bp_span       = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
+    md->min_loop_size     = TURN;
+    md->oldAliEn          = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
+    md->ribo              = VRNA_MODEL_DEFAULT_ALI_RIBO;
+    md->cv_fact           = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
+    md->nc_fact           = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
+    md->temperature       = VRNA_MODEL_DEFAULT_TEMPERATURE;
+    md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
+    md->pf_scale          = VRNA_MODEL_DEFAULT_PF_SCALE;
+    md->nonstandards[0]   = (char)0;
+
+    /* set default values for the pair/rtype[pair] stuff */
+    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
+    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+    for(i = 0;i <= MAXALPHA; i++)
+      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+    fill_pair_matrices(md);
+
+  }
 }
 
 PUBLIC void
-vrna_md_set_default(model_detailsT *md){
+vrna_md_set_nonstandards(model_detailsT *md, const char *ns){
+
+  if(md)
+    if(ns){
+      unsigned int n = strlen(ns);
+      if(n < 33){
+        memcpy(md->nonstandards, ns, strlen(ns)*sizeof(char));
+        md->nonstandards[n] = '\0';
+      } else
+        warn_user("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
+    }
+}
+
+PUBLIC void
+vrna_md_set_dangles(model_detailsT *md, int d){
+
+  if(md)
+    if((d >= 0) && (d <= 3))
+      md->dangles = d;
+}
+
+PUBLIC int
+vrna_md_get_dangles(model_detailsT *md){
+
+  if(md)
+    return md->dangles;
+  else
+    return -1;
+}
+
+PUBLIC void
+vrna_md_set_temperature(model_detailsT *md, double T){
+
+  if(md)
+    if(T >= -K0)
+      md->temperature = T;
+}
+
+PUBLIC double
+vrna_md_get_temperature(model_detailsT *md){
+
+  if(md)
+    return md->temperature;
+  else
+    return -K0 - 1.;
+}
+
+PUBLIC void
+vrna_md_set_special_hp(model_detailsT *md, int shp){
+
+  if(md)
+    md->special_hp = shp;
+}
+
+PUBLIC int
+vrna_md_get_special_hp(model_detailsT *md){
+
+  if(md)
+    return md->special_hp;
+  else
+    return -1;
+}
+
+PUBLIC void
+vrna_md_set_gquad(model_detailsT *md, int g){
+
+  if(md)
+    md->gquad = g;
+}
+
+PUBLIC int
+vrna_md_get_gquad(model_detailsT *md){
+
+  if(md)
+    return md->gquad;
+  else
+    return -1;
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void
+set_model_details(model_detailsT *md){
 
   int i = 0;
 
@@ -120,7 +240,7 @@ vrna_md_set_default(model_detailsT *md){
     md->circ              = circ;
     md->uniq_ML           = uniq_ML;
     md->compute_bpp       = do_backtrack;
-    md->backtrack         = 1;
+    md->backtrack         = VRNA_MODEL_DEFAULT_BACKTRACK;
     md->backtrack_type    = backtrack_type;
     md->energy_set        = energy_set;
     md->max_bp_span       = max_bp_span;
@@ -130,7 +250,7 @@ vrna_md_set_default(model_detailsT *md){
     md->cv_fact           = cv_fact;
     md->nc_fact           = nc_fact;
     md->temperature       = temperature;
-    md->betaScale         = 1.;
+    md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_scale          = pf_scale;
 
     if(nonstandards){
@@ -148,3 +268,4 @@ vrna_md_set_default(model_detailsT *md){
 
   }
 }
+
