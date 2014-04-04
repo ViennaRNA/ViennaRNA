@@ -34,48 +34,27 @@
     Package v3
 */
 
-double      temperature = VRNA_MODEL_DEFAULT_TEMPERATURE;
-
-double      pf_scale = VRNA_MODEL_DEFAULT_PF_SCALE;        /* scaling factor to avoid floating point overflows */
-
-int         dangles = VRNA_MODEL_DEFAULT_DANGLES;          /* use dangling end energies */
-
-int         tetra_loop = VRNA_MODEL_DEFAULT_SPECIAL_HP;       /* Fold with specially stable 4-loops */
-
-int         noLonelyPairs = VRNA_MODEL_DEFAULT_NO_LP;    /* avoid helices of length 1 */
-
-int         noGU = VRNA_MODEL_DEFAULT_NO_GU;             /* GU not allowed at all */
-
-int         no_closingGU = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;     /* GU allowed only inside stacks */
-
-int         circ = VRNA_MODEL_DEFAULT_CIRC;
-
-int         gquad = VRNA_MODEL_DEFAULT_GQUAD;            /* consider g-qudruplexes in the calculations */
-
-int         canonicalBPonly = VRNA_MODEL_DEFAULT_CANONICAL_BP;  /* remove non-canonical base pairs from structure constraint */
-
-int         uniq_ML   = VRNA_MODEL_DEFAULT_UNIQ_ML;        /* do ML decomposition uniquely (for subopt) */
-
-int         energy_set = VRNA_MODEL_DEFAULT_ENERGY_SET;       /* 0 = BP; 1=any with GC; 2=any with AU parameters */
-
-int         do_backtrack = VRNA_MODEL_DEFAULT_COMPUTE_BPP;     /* calculate pair prob matrix in part_func() */
-
-char        backtrack_type = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE; /* 'C' require (1,N) to be bonded;
-                                    'M' seq is part of s multi loop */
-char        *nonstandards = (char *)0;  /* contains allowed non standard bases */
-
-int         max_bp_span = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;     /* base pairs may span the entire sequence length by default */
-
-int         oldAliEn = VRNA_MODEL_DEFAULT_ALI_OLD_EN;         /* use old alifold-energies (without removing gaps) */
-
-int         ribo = VRNA_MODEL_DEFAULT_ALI_RIBO;             /* use ribosum instead of classic covariance term */
-
-double      cv_fact = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
-
-double      nc_fact = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
-
-int         logML     = VRNA_MODEL_DEFAULT_LOG_ML;        /* if nonzero use logarithmic ML energy in energy_of_struct */
-
+double  temperature     = VRNA_MODEL_DEFAULT_TEMPERATURE;
+double  pf_scale        = VRNA_MODEL_DEFAULT_PF_SCALE;
+int     dangles         = VRNA_MODEL_DEFAULT_DANGLES;
+int     tetra_loop      = VRNA_MODEL_DEFAULT_SPECIAL_HP;
+int     noLonelyPairs   = VRNA_MODEL_DEFAULT_NO_LP;
+int     noGU            = VRNA_MODEL_DEFAULT_NO_GU;
+int     no_closingGU    = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;
+int     circ            = VRNA_MODEL_DEFAULT_CIRC;
+int     gquad           = VRNA_MODEL_DEFAULT_GQUAD;
+int     canonicalBPonly = VRNA_MODEL_DEFAULT_CANONICAL_BP;
+int     uniq_ML         = VRNA_MODEL_DEFAULT_UNIQ_ML;
+int     energy_set      = VRNA_MODEL_DEFAULT_ENERGY_SET;
+int     do_backtrack    = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
+char    backtrack_type  = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE;
+char    *nonstandards   = (char *)0;
+int     max_bp_span     = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
+int     oldAliEn        = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
+int     ribo            = VRNA_MODEL_DEFAULT_ALI_RIBO;
+double  cv_fact         = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
+double  nc_fact         = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
+int     logML           = VRNA_MODEL_DEFAULT_LOG_ML;
 
 /*
 #################################

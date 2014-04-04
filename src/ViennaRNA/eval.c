@@ -23,6 +23,7 @@
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
