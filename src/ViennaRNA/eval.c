@@ -36,7 +36,6 @@
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC  int logML     = 0;  /* if nonzero use logarithmic ML energy in energy_of_struct */
 PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
 PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 
