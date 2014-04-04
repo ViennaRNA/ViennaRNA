@@ -2,6 +2,8 @@
 #define __VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H__
 
 #include <ViennaRNA/energy_const.h>
+#include <ViennaRNA/model.h>
+
 
 /**
  *  \file data_structures.h
@@ -18,13 +20,6 @@
 
 #ifndef NBASES
 #define NBASES 8
-#endif
-
-#ifndef MAXALPHA
-/**
- *  \brief Maximal length of alphabet
- */
-#define MAXALPHA              20
 #endif
 
 /**
@@ -177,53 +172,6 @@ typedef struct{
   FLT_OR_DBL  *expMLbase;
 } pf_matricesT;
 
-
-
-/**
- *  \brief The data structure that contains the complete model details used throughout the calculations
- *
- */
-typedef struct{
-  double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
-  double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
-  double  pf_scale;         /**<  \brief  A scaling factor to avoid under-/overflow of the partition function */
-  int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
-                                  \note   Some function do not implement all dangle model but only a subset of
-                                          (0,1,2,3). Read the documentaion of the particular recurrences or
-                                          energy evaluation function for information about the provided dangle
-                                          model.
-                            */
-  int     special_hp;       /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
-  int     noLP;             /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
-  int     noGU;             /**<  \brief  Do not allow GU pairs */
-  int     noGUclosure;      /**<  \brief  Do not allow loops to be closed by GU pair */
-  int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
-  int     circ;             /**<  \brief  Assume RNA to be circular instead of linear */
-  int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
-  int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
-  int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
-  int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
-  int     backtrack;        /**<  \brief  Specifies whether or not secondary structures should be backtraced */
-  char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
-  int     compute_bpp;      /**<  \brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
-  char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
-  int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
-
-  int     min_loop_size;    /**<  \brief  Minimum size of hairpin loops
-                              
-                                  \note The default value for this field is #TURN, however, it may
-                                  be 0 in cofolding context.
-                            */
-
-  int     oldAliEn;         /**<  \brief  Use old alifold energy model */
-  int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
-  double  cv_fact;
-  double  nc_fact;
-
-  int     rtype[8];
-  short   alias[MAXALPHA+1];
-  int     pair[MAXALPHA+1][MAXALPHA+1];
-} model_detailsT;
 
 /**
  *  \brief The datastructure that contains temperature scaled energy parameters.
