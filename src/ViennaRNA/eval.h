@@ -1,6 +1,7 @@
 #ifndef __VIENNA_RNA_PACKAGE_EVAL_H__
 #define __VIENNA_RNA_PACKAGE_EVAL_H__
 
+#include <stdio.h>
 #include <ViennaRNA/data_structures.h>
 
 #ifdef __GNUC__
@@ -36,6 +37,27 @@ extern  int eos_debug;
  *    of sequence/structure pairs.
  *  @}
  */
+
+
+float vrna_eval_structure(const char *string,
+                    const char *structure,
+                    paramT *parameters);
+
+float vrna_eval_structure_verbose(const char *string,
+                            const char *structure,
+                            paramT *parameters,
+                            FILE *file);
+
+float vrna_eval_structure_pt( const char *string,
+                        const short *pt,
+                        paramT *parameters);
+
+float vrna_eval_structure_pt_verbose( const char *string,
+                                const short *pt,
+                                paramT *parameters,
+                                FILE *file);
+
+
 
 /**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
