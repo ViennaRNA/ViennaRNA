@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
+#include <stdarg.h>
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
@@ -46,32 +47,36 @@ PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 #################################
 */
 
-PRIVATE short   *S = NULL, *S1 = NULL;
-PRIVATE paramT  *P            = NULL;
-PRIVATE short   *pair_table   = NULL;
-
-#ifdef _OPENMP
-
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(P, init_length, min_hairpin)
-*/
-#pragma omp threadprivate(S, S1, P, pair_table)
-
-#endif
-
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE int   stack_energy(int i, const char *string, int verbostiy_level);
-PRIVATE int   energy_of_extLoop_pt(int i, short *pair_table);
-PRIVATE int   energy_of_ml_pt(int i, short *pt);
-PRIVATE int   ML_Energy(int i, int is_extloop);
-PRIVATE int   cut_in_loop(int i);
+PRIVATE int   stack_energy( int i,
+                            const char *string,
+                            const short *pt,
+                            short *s,
+                            short *s1,
+                            FILE *file,
+                            paramT *params,
+                            int verbostiy_level);
+PRIVATE int   energy_of_extLoop_pt( int i,
+                                    const short *pt,
+                                    short *s,
+                                    short *s1,
+                                    paramT *params);
+PRIVATE int   energy_of_ml_pt(int i,
+                              const short *pt,
+                              short *s,
+                              short *s1,
+                              paramT *params);
+PRIVATE int   ML_Energy(int i,
+                        const short *pt,
+                        short *s,
+                        short *s1,
+                        paramT *params,
+                        int is_extloop);
+PRIVATE int   cut_in_loop(int i, const short *pt);
 
 
 /*
@@ -80,8 +85,9 @@ PRIVATE int   cut_in_loop(int i);
 #################################
 */
 
-PRIVATE void  update_params(paramT *parameters){
-  if(P) free(P);
+PRIVATE  paramT *
+get_updated_params(paramT *parameters){
+  paramT *P = NULL;
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
@@ -90,42 +96,143 @@ PRIVATE void  update_params(paramT *parameters){
     P = get_scaled_parameters(temperature, md);
   }
   fill_pair_matrices(&(P->model_details));
-/*
-  make_pair_matrix();
-*/
+  return P;
 }
 
-PUBLIC  float energy_of_structure(const char *string,
-                                  const char *structure,
-                                  int verbosity_level){
+PRIVATE int
+eval_pt(const char *string,
+        const short *pt,
+        short *s,
+        short *s1,
+        FILE *file,
+        paramT *params,
+        int verbosity_level){
+
+  int   i, length, energy;
+  short *ss, *ss1;
+
+  FILE *out = (file) ? file : stdout;
+
+  length = s[0];
+
+  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, pt, s, s1, params) : energy_of_extLoop_pt(0, pt, s, s1, params);
+  if (verbosity_level>0)
+    fprintf(out, "External loop                           : %5d\n", energy);
+  for (i=1; i<=length; i++) {
+    if (pt[i]==0) continue;
+    energy += stack_energy(i, string, pt, s, s1, out, params, verbosity_level);
+    i=pt[i];
+  }
+  for (i=1; !SAME_STRAND(i,length); i++) {
+    if (!SAME_STRAND(i,pt[i])) {
+      energy+=params->DuplexInit;
+      break;
+    }
+  }
+
+  return energy;
+}
+
+
+
+PUBLIC  float
+vrna_eval_structure(const char *string,
+                    const char *structure,
+                    paramT *parameters){
+
+  short *pt = vrna_pt_get(structure);
+  float res = vrna_eval_structure_pt(string, (const short *)pt, parameters);
+  free(pt);
+  return res;
+}
+
+PUBLIC float
+vrna_eval_structure_verbose(const char *string,
+                            const char *structure,
+                            paramT *parameters,
+                            FILE *file){
+
+  short *pt = vrna_pt_get(structure);
+  float res = vrna_eval_structure_pt_verbose(string, (const short *)pt, parameters, file);
+  free(pt);
+  return res;
+}
+
+PUBLIC float
+vrna_eval_structure_pt( const char *string,
+                        const short *pt,
+                        paramT *parameters){
+
+  if(pt && string){
+    if(pt[0] != (short)strlen(string))
+      nrerror("energy_of_struct: string and structure have unequal length");
+
+    paramT *P = get_updated_params(parameters); /* this ensures a proper P data structure */
+    short *s  = get_sequence_encoding(string, 0, &(P->model_details));
+    short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+
+    float en = eval_pt(string, pt, s, s1, NULL, P, 0);
+    free(s);
+    free(s1);
+    free(P);
+  } else
+    return INF/100.;
+}
+
+PUBLIC float
+vrna_eval_structure_pt_verbose( const char *string,
+                                const short *pt,
+                                paramT *parameters,
+                                FILE *file){
+
+
+}
+
+
+PUBLIC int
+vrna_eval_move(void){
+
+
+}
+
+PUBLIC int
+vrna_eval_move_pt(void){
+
+
+}
+
+PUBLIC  float
+energy_of_structure(const char *string,
+                    const char *structure,
+                    int verbosity_level){
 
   return energy_of_struct_par(string, structure, NULL, verbosity_level);
 }
 
-PUBLIC float energy_of_struct_par(const char *string,
-                                  const char *structure,
-                                  paramT *parameters,
-                                  int verbosity_level){
-  int   energy;
-  short *ss, *ss1;
+PUBLIC float
+energy_of_struct_par( const char *string,
+                      const char *structure,
+                      paramT *parameters,
+                      int verbosity_level){
 
-  update_params(parameters);
+  int   energy;
+  short *s, *s1, *pt;
+
+  paramT *P = get_updated_params(parameters);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = get_sequence_encoding(string, 0, &(P->model_details));
-  S1  = get_sequence_encoding(string, 1, &(P->model_details));
+  s   = get_sequence_encoding(string, 0, &(P->model_details));
+  s1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = vrna_pt_get(structure);
+  pt = vrna_pt_get(structure);
 
-  energy = energy_of_struct_pt_par(string, pair_table, S, S1, parameters, verbosity_level);
+  energy = energy_of_struct_pt_par(string, pt, s, s1, P, verbosity_level);
 
-  free(pair_table);
-  free(S); free(S1);
-  S=ss; S1=ss1;
+  free(pt);
+  free(s); free(s1);
+  free(P);
   return  (float) energy/100.;
 }
 
@@ -137,13 +244,15 @@ PUBLIC float energy_of_struct_par(const char *string,
 
     recursive variant
 */
-PRIVATE int en_corr_of_loop_gquad(int i,
-                                  int j,
-                                  const char *string,
-                                  const char *structure,
-                                  short *pt,
-                                  int *loop_idx,
-                                  const short *s1){
+PRIVATE int
+en_corr_of_loop_gquad(int i,
+                      int j,
+                      const char *string,
+                      const char *structure,
+                      short *pt,
+                      int *loop_idx,
+                      const short *s1,
+                      paramT *P){
 
   int pos, energy, p, q, r, s, u, type, type2;
   int L, l[3];
@@ -220,7 +329,7 @@ PRIVATE int en_corr_of_loop_gquad(int i,
         } else { /* we must have found a stem */
           if(!(u < pt[u])) nrerror("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
-          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1);
+          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1, P);
           u = pt[u] + 1;
         }
       }
@@ -289,15 +398,15 @@ energy_of_gquad_struct_par( const char *string,
                             int verbosity_level){
 
   int   energy, gge, *loop_idx;
-  short *ss, *ss1;
+  short *s, *s1, *pt;
+
+  paramT *P = get_updated_params(parameters);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = get_sequence_encoding(string, 0, &(P->model_details));
-  S1  = get_sequence_encoding(string, 1, &(P->model_details));
+  s   = get_sequence_encoding(string, 0, &(P->model_details));
+  s1  = get_sequence_encoding(string, 1, &(P->model_details));
 
   /* the pair_table looses every information about the gquad position
      thus we have to find add the energy contributions for each loop
@@ -305,154 +414,150 @@ energy_of_gquad_struct_par( const char *string,
      contributions, i.e. loops that actually contain a gquad, from
      energy_of_structure_pt()
   */
-  pair_table  = vrna_pt_get(structure);
-  energy      = energy_of_structure_pt(string, pair_table, S, S1, verbosity_level);
+  pt          = vrna_pt_get(structure);
+  energy      = energy_of_struct_pt_par(string, pt, s, s1, P, verbosity_level);
 
-  loop_idx    = vrna_get_loop_index(pair_table);
-  gge         = en_corr_of_loop_gquad(1, S[0], string, structure, pair_table, loop_idx, S1);
+  loop_idx    = vrna_get_loop_index(pt);
+  gge         = en_corr_of_loop_gquad(1, s[0], string, structure, pt, loop_idx, s1, P);
   energy     += gge;
 
-  free(pair_table);
+  free(pt);
   free(loop_idx);
-  free(S); free(S1);
-  S=ss; S1=ss1;
+  free(s); free(s1);
+  free(P);
   return  (float) energy/100.;
 }
 
-PUBLIC int energy_of_structure_pt(const char *string,
-                                  short *ptable,
-                                  short *s,
-                                  short *s1,
-                                  int verbosity_level){
-  return energy_of_struct_pt_par(string, ptable, s, s1, NULL, verbosity_level);
+PUBLIC int
+energy_of_structure_pt( const char *string,
+                        short *pt,
+                        short *s,
+                        short *s1,
+                        int verbosity_level){
+
+  return energy_of_struct_pt_par(string, pt, s, s1, NULL, verbosity_level);
 }
 
-PUBLIC int energy_of_struct_pt_par( const char *string,
-                                    short *ptable,
-                                    short *s,
-                                    short *s1,
-                                    paramT *parameters,
-                                    int verbosity_level){
+PUBLIC int
+energy_of_struct_pt_par(const char *string,
+                        short *pt,
+                        short *s,
+                        short *s1,
+                        paramT *parameters,
+                        int verbosity_level){
+
   /* auxiliary function for kinfold,
      for most purposes call energy_of_struct instead */
 
   int   i, length, energy;
-  short *ss, *ss1;
 
-  update_params(parameters);
+  paramT *P = get_updated_params(parameters);
 
-  pair_table = ptable;
-  ss  = S;
-  ss1 = S1;
-  S = s;
-  S1 = s1;
-
-  length = S[0];
+  length = s[0];
 /*
-  energy =  backtrack_type=='M' ? ML_Energy(0, 0) : ML_Energy(0, 1);
+  energy =  backtrack_type=='M' ? ML_Energy(0, (const short *)pt, s, s1, 0) : ML_Energy(0, (const short *)pt, s, s1, 1);
 */
-  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, ptable) : energy_of_extLoop_pt(0, ptable);
+  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, (const short *)pt, s, s1, P) : energy_of_extLoop_pt(0, pt, s, s1, P);
   if (verbosity_level>0)
-    printf("External loop                           : %5d\n", energy);
+    fprintf(stdout, "External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
-    if (pair_table[i]==0) continue;
-    energy += stack_energy(i, string, verbosity_level);
-    i=pair_table[i];
+    if (pt[i]==0) continue;
+    energy += stack_energy(i, string, pt, s, s1, stdout, P, verbosity_level);
+    i=pt[i];
   }
   for (i=1; !SAME_STRAND(i,length); i++) {
-    if (!SAME_STRAND(i,pair_table[i])) {
+    if (!SAME_STRAND(i,pt[i])) {
       energy+=P->DuplexInit;
       break;
     }
   }
-  S   = ss;
-  S1  = ss1;
   return energy;
 }
 
-PUBLIC float energy_of_circ_structure(const char *string,
-                                      const char *structure,
-                                      int verbosity_level){
+PUBLIC float
+energy_of_circ_structure( const char *string,
+                          const char *structure,
+                          int verbosity_level){
+
   return energy_of_circ_struct_par(string, structure, NULL, verbosity_level);
 }
 
-PUBLIC  float energy_of_circ_struct_par(  const char *string,
-                                          const char *structure,
-                                          paramT *parameters,
-                                          int verbosity_level){
+PUBLIC float
+energy_of_circ_struct_par(const char *string,
+                          const char *structure,
+                          paramT *parameters,
+                          int verbosity_level){
 
   int   i, j, length, energy=0, en0, degree=0, type;
-  short *ss, *ss1;
+  short *s, *s1, *pt;
 
-  update_params(parameters);
+  paramT *P = get_updated_params(parameters);
 
   int dangle_model = P->model_details.dangles;
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = get_sequence_encoding(string, 0, &(P->model_details));
-  S1  = get_sequence_encoding(string, 1, &(P->model_details));
+  s   = get_sequence_encoding(string, 0, &(P->model_details));
+  s1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = vrna_pt_get(structure);
+  pt = vrna_pt_get(structure);
 
-  length = S[0];
+  length = s[0];
 
   for (i=1; i<=length; i++) {
-    if (pair_table[i]==0) continue;
+    if (pt[i]==0) continue;
     degree++;
-    energy += stack_energy(i, string, verbosity_level);
-    i=pair_table[i];
+    energy += stack_energy(i, string, (const short *)pt, s, s1, stdout, P, verbosity_level);
+    i=pt[i];
   }
 
-  if (degree==0) return 0.;
-  for (i=1; pair_table[i]==0; i++);
-  j = pair_table[i];
-  type = P->model_details.pair[S[j]][S[i]];
+  if (degree==0){ free(pt); return 0.;}
+  for (i=1; pt[i]==0; i++);
+  j = pt[i];
+  type = P->model_details.pair[s[j]][s[i]];
   if (type==0) type=7;
   if (degree==1) {
     char loopseq[10];
     int u, si1, sj1;
-    for (i=1; pair_table[i]==0; i++);
+    for (i=1; pt[i]==0; i++);
     u = length-j + i-1;
     if (u<7) {
       strcpy(loopseq , string+j-1);
       strncat(loopseq, string, i);
     }
-    si1 = (i==1)?S1[length] : S1[i-1];
-    sj1 = (j==length)?S1[1] : S1[j+1];
+    si1 = (i==1) ? s1[length] : s1[i-1];
+    sj1 = (j==length) ? s1[1] : s1[j+1];
     en0 = E_Hairpin(u, type, sj1, si1, loopseq, P);
   } else
     if (degree==2) {
       int p,q, u1,u2, si1, sq1, type_2;
-      for (p=j+1; pair_table[p]==0; p++);
-      q=pair_table[p];
+      for (p=j+1; pt[p]==0; p++);
+      q=pt[p];
       u1 = p-j-1;
       u2 = i-1 + length-q;
-      type_2 = P->model_details.pair[S[q]][S[p]];
+      type_2 = P->model_details.pair[s[q]][s[p]];
       if (type_2==0) type_2=7;
-      si1 = (i==1)? S1[length] : S1[i-1];
-      sq1 = (q==length)? S1[1] : S1[q+1];
+      si1 = (i==1)? s1[length] : s1[i-1];
+      sq1 = (q==length)? s1[1] : s1[q+1];
       en0 = E_IntLoop(u1, u2, type, type_2,
-                       S1[j+1], si1, S1[p-1], sq1,P);
+                       s1[j+1], si1, s1[p-1], sq1,P);
     } else { /* degree > 2 */
-      en0 = ML_Energy(0, 0) - P->MLintern[0];
+      en0 = ML_Energy(0, (const short *)pt, s, s1, P, 0) - P->MLintern[0];
       if (dangle_model) {
         int d5, d3;
-        if (pair_table[1]) {
-          j = pair_table[1];
-          type = P->model_details.pair[S[1]][S[j]];
+        if (pt[1]) {
+          j = pt[1];
+          type = P->model_details.pair[s[1]][s[j]];
           if (dangle_model==2)
-            en0 += P->dangle5[type][S1[length]];
+            en0 += P->dangle5[type][s1[length]];
           else { /* dangle_model==1 */
-            if (pair_table[length]==0) {
-              d5 = P->dangle5[type][S1[length]];
-              if (pair_table[length-1]!=0) {
+            if (pt[length]==0) {
+              d5 = P->dangle5[type][s1[length]];
+              if (pt[length-1]!=0) {
                 int tt;
-                tt = P->model_details.pair[S[pair_table[length-1]]][S[length-1]];
-                d3 = P->dangle3[tt][S1[length]];
+                tt = P->model_details.pair[s[pt[length-1]]][s[length-1]];
+                d3 = P->dangle3[tt][s1[length]];
                 if (d3<d5) d5 = 0;
                 else d5 -= d3;
               }
@@ -460,17 +565,17 @@ PUBLIC  float energy_of_circ_struct_par(  const char *string,
             }
           }
         }
-        if (pair_table[length]) {
-          i = pair_table[length];
-          type = P->model_details.pair[S[i]][S[length]];
+        if (pt[length]) {
+          i = pt[length];
+          type = P->model_details.pair[s[i]][s[length]];
           if (dangle_model==2)
-            en0 += P->dangle3[type][S1[1]];
+            en0 += P->dangle3[type][s1[1]];
           else { /* dangle_model==1 */
-            if (pair_table[1]==0) {
-              d3 = P->dangle3[type][S1[1]];
-              if (pair_table[2]) {
+            if (pt[1]==0) {
+              d3 = P->dangle3[type][s1[1]];
+              if (pt[2]) {
                 int tt;
-                tt = P->model_details.pair[S[2]][S[pair_table[2]]];
+                tt = P->model_details.pair[s[2]][s[pt[2]]];
                 d5 = P->dangle5[tt][1];
                 if (d5<d3) d3=0;
                 else d3 -= d5;
@@ -483,27 +588,36 @@ PUBLIC  float energy_of_circ_struct_par(  const char *string,
     }
 
   if (verbosity_level>0)
-    printf("External loop                           : %5d\n", en0);
+    fprintf(stdout, "External loop                           : %5d\n", en0);
   energy += en0;
   /* fprintf(stderr, "ext loop degree %d tot %d\n", degree, energy); */
-  free(S); free(S1);
-  S=ss; S1=ss1;
+  free(s); free(s1);
+  free(pt);
+  free(P);
   return  (float) energy/100.0;
 }
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE int stack_energy( int i,
-                          const char *string,
-                          int verbosity_level){
+PRIVATE int
+stack_energy( int i,
+              const char *string,
+              const short *pt,
+              short *s,
+              short *s1,
+              FILE *file,
+              paramT *P,
+              int verbosity_level){
+
+  FILE *out = (file) ? file : stdout;
 
   /* calculate energy of substructure enclosed by (i,j) */
   int ee, energy = 0;
   int j, p, q, type;
   int *rtype = &(P->model_details.rtype[0]);
 
-  j=pair_table[i];
-  type = P->model_details.pair[S[i]][S[j]];
+  j=pt[i];
+  type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
     if (verbosity_level>=0)
@@ -514,10 +628,10 @@ PRIVATE int stack_energy( int i,
   p=i; q=j;
   while (p<q) { /* process all stacks and interior loops */
     int type_2;
-    while (pair_table[++p]==0);
-    while (pair_table[--q]==0);
-    if ((pair_table[q]!=(short)p)||(p>q)) break;
-    type_2 = P->model_details.pair[S[q]][S[p]];
+    while (pt[++p]==0);
+    while (pt[--q]==0);
+    if ((pt[q]!=(short)p)||(p>q)) break;
+    type_2 = P->model_details.pair[s[q]][s[p]];
     if (type_2==0) {
       type_2=7;
       if (verbosity_level>=0)
@@ -526,11 +640,11 @@ PRIVATE int stack_energy( int i,
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-      ee = E_IntLoop(p-i-1, j-q-1, type, type_2, S1[i+1], S1[j-1], S1[p-1], S1[q+1],P);
+      ee = E_IntLoop(p-i-1, j-q-1, type, type_2, s1[i+1], s1[j-1], s1[p-1], s1[q+1],P);
     else
-      ee = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
+      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P);
     if (verbosity_level>0)
-      printf("Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
+      fprintf(out, "Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
              i,j,string[i-1],string[j-1],p,q,string[p-1],string[q-1], ee);
     energy += ee;
     i=p; j=q; type = rtype[type_2];
@@ -540,12 +654,12 @@ PRIVATE int stack_energy( int i,
 
   if (p>q) {                       /* hair pin */
     if (SAME_STRAND(i,j))
-      ee = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], string+i-1, P);
+      ee = E_Hairpin(j-i-1, type, s1[i+1], s1[j-1], string+i-1, P);
     else
-      ee = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
+      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P);
     energy += ee;
     if (verbosity_level>0)
-      printf("Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
+      fprintf(out, "Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
              i, j, string[i-1],string[j-1], ee);
 
     return energy;
@@ -554,19 +668,19 @@ PRIVATE int stack_energy( int i,
   /* (i,j) is exterior pair of multiloop */
   while (p<j) {
     /* add up the contributions of the substructures of the ML */
-    energy += stack_energy(p, string, verbosity_level);
-    p = pair_table[p];
+    energy += stack_energy(p, string, pt, s, s1, out, P, verbosity_level);
+    p = pt[p];
     /* search for next base pair in multiloop */
-    while (pair_table[++p]==0);
+    while (pt[++p]==0);
   }
   {
     int ii;
-    ii = cut_in_loop(i);
-    ee = (ii==0) ? energy_of_ml_pt(i, pair_table) : energy_of_extLoop_pt(ii, pair_table);
+    ii = cut_in_loop(i, pt);
+    ee = (ii==0) ? energy_of_ml_pt(i, pt, s, s1, P) : energy_of_extLoop_pt(ii, pt, s, s1, P);
   }
   energy += ee;
   if (verbosity_level>0)
-    printf("Multi    loop (%3d,%3d) %c%c              : %5d\n",
+    fprintf(out, "Multi    loop (%3d,%3d) %c%c              : %5d\n",
            i,j,string[i-1],string[j-1],ee);
 
   return energy;
@@ -582,10 +696,16 @@ PRIVATE int stack_energy( int i,
 *** for all stems branching off the exterior
 *** loop
 **/
-PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
+PRIVATE int
+energy_of_extLoop_pt( int i,
+                      const short *pt,
+                      short *s,
+                      short *s1,
+                      paramT *P){
+
   int energy, mm5, mm3;
   int p, q, q_prev;
-  int length = (int)pair_table[0];
+  int length = (int)pt[0];
 
   /* helper variables for dangles == 1 case */
   int E3_available;  /* energy of 5' part where 5' mismatch is available for current stem */
@@ -604,14 +724,14 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
   }
 
   /* seek to opening base of first stem */
-  while(p <= length && !pair_table[p]) p++;
+  while(p <= length && !pt[p]) p++;
 
   while(p < length){
     int tt;
     /* p must have a pairing partner */
-    q  = (int)pair_table[p];
+    q  = (int)pt[p];
     /* get type of base pair (p,q) */
-    tt = P->model_details.pair[S[p]][S[q]];
+    tt = P->model_details.pair[s[p]][s[q]];
     if(tt==0) tt=7;
 
     switch(dangle_model){
@@ -620,8 +740,8 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
                 break;
 
       /* the beloved double dangles */
-      case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && (q<length))  ? S1[q+1] : -1;
+      case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? s1[p-1] : -1;
+                mm3 = ((SAME_STRAND(q,q+1)) && (q<length))  ? s1[q+1] : -1;
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
@@ -631,8 +751,8 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
                     E3_available = MIN2(E3_available, E3_occupied);
                     E3_occupied  = E3_available;
                   }
-                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pair_table[p-1])       ? S1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pair_table[q+1])  ? S1[q+1] : -1;
+                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pt[p-1])       ? s1[p-1] : -1;
+                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pt[q+1])  ? s1[q+1] : -1;
                   tmp = MIN2(
                                                 E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
                                                 E3_available + E_ExtLoop(tt, mm5, mm3, P)
@@ -649,7 +769,7 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
     /* seek to the next stem */
     p = q + 1;
     q_prev = q;
-    while (p <= length && !pair_table[p]) p++;
+    while (p <= length && !pt[p]) p++;
     if(p==i) break; /* cut was in loop */
   }
 
@@ -670,7 +790,12 @@ PRIVATE int energy_of_extLoop_pt(int i, short *pair_table) {
 *** We don't allow the last helix to stack with the first, thus we have to
 *** walk around the Loop twice with two starting points and take the minimum
 ***/
-PRIVATE int energy_of_ml_pt(int i, short *pt){
+PRIVATE int
+energy_of_ml_pt(int i,
+                const short *pt,
+                short *s,
+                short *s1,
+                paramT *P){
 
   int energy, cx_energy, tmp, tmp2, best_energy=INF;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
@@ -698,64 +823,64 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
   for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
 
   /* seek to opening base of first stem */
-  while(p <= j && !pair_table[p]) p++;
+  while(p <= j && !pt[p]) p++;
   u = p - i - 1;
 
   switch(dangle_model){
     case 0:   while(p < j){
                 /* p must have a pairing partner */
-                q  = (int)pair_table[p];
+                q  = (int)pt[p];
                 /* get type of base pair (p,q) */
-                tt = P->model_details.pair[S[p]][S[q]];
+                tt = P->model_details.pair[s[p]][s[q]];
                 if(tt==0) tt=7;
                 energy += E_MLstem(tt, -1, -1, P);
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
-                while (p <= j && !pair_table[p]) p++;
+                while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
               }
               /* now lets get the energy of the enclosing stem */
-              type = P->model_details.pair[S[j]][S[i]]; if (type==0) type=7;
+              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
               energy += E_MLstem(type, -1, -1, P);
               break;
 
     case 2:   while(p < j){
                 /* p must have a pairing partner */
-                q  = (int)pair_table[p];
+                q  = (int)pt[p];
                 /* get type of base pair (p,q) */
-                tt = P->model_details.pair[S[p]][S[q]];
+                tt = P->model_details.pair[s[p]][s[q]];
                 if(tt==0) tt=7;
-                mm5 = (SAME_STRAND(p-1,p))  ? S1[p-1] : -1;
-                mm3 = (SAME_STRAND(q,q+1))  ? S1[q+1] : -1;
+                mm5 = (SAME_STRAND(p-1,p))  ? s1[p-1] : -1;
+                mm3 = (SAME_STRAND(q,q+1))  ? s1[q+1] : -1;
                 energy += E_MLstem(tt, mm5, mm3, P);
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
-                while (p <= j && !pair_table[p]) p++;
+                while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
               }
-              type = P->model_details.pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
-              energy += E_MLstem(type, S1[j-1], S1[i+1], P);
+              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
+              mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
+              mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
+              energy += E_MLstem(type, s1[j-1], s1[i+1], P);
               break;
 
     case 3:   /* we treat helix stacking different */
               for (count=0; count<2; count++) { /* do it twice */
                 ld5 = 0; /* 5' dangle energy on prev pair (type) */
                 if ( i==0 ) {
-                  j = (unsigned int)pair_table[0]+1;
+                  j = (unsigned int)pt[0]+1;
                   type = 0;  /* no pair */
                 }
                 else {
-                  j = (unsigned int)pair_table[i];
-                  type = P->model_details.pair[S[j]][S[i]]; if (type==0) type=7;
+                  j = (unsigned int)pt[i];
+                  type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
                   /* prime the ld5 variable */
                   if (SAME_STRAND(j-1,j)) {
-                    ld5 = P->dangle5[type][S1[j-1]];
-                    if ((p=(unsigned int)pair_table[j-2]) && SAME_STRAND(j-2, j-1))
-                    if (P->dangle3[P->model_details.pair[S[p]][S[j-2]]][S1[j-1]]<ld5) ld5 = 0;
+                    ld5 = P->dangle5[type][s1[j-1]];
+                    if ((p=(unsigned int)pt[j-2]) && SAME_STRAND(j-2, j-1))
+                    if (P->dangle3[P->model_details.pair[s[p]][s[j-2]]][s1[j-1]]<ld5) ld5 = 0;
                   }
                 }
                 i1=i; p = i+1; u=0;
@@ -764,17 +889,17 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                   new_cx = INF;
 
                   /* hop over unpaired positions */
-                  while (p <= (unsigned int)pair_table[0] && pair_table[p]==0) p++;
+                  while (p <= (unsigned int)pt[0] && pt[p]==0) p++;
 
                   /* memorize number of unpaired positions */
                   u += p-i1-1;
                   /* get position of pairing partner */
-                  if ( p == (unsigned int)pair_table[0]+1 ){
+                  if ( p == (unsigned int)pt[0]+1 ){
                     q = 0;tt = 0; /* virtual root pair */
                   } else {
-                    q  = (unsigned int)pair_table[p];
+                    q  = (unsigned int)pt[p];
                     /* get type of base pair P->q */
-                    tt = P->model_details.pair[S[p]][S[q]]; if (tt==0) tt=7;
+                    tt = P->model_details.pair[s[p]][s[q]]; if (tt==0) tt=7;
                   }
 
                   energy += mlintern[tt];
@@ -782,9 +907,9 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
 
                   dang5=dang3=0;
                   if ((SAME_STRAND(p-1,p))&&(p>1))
-                    dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
-                  if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)S[0]))
-                    dang3 = P->dangle3[type][S1[i1+1]]; /* 3'dangle of previous pair */
+                    dang5=P->dangle5[tt][s1[p-1]];      /* 5'dangle of pq pair */
+                  if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)s[0]))
+                    dang3 = P->dangle3[type][s1[i1+1]]; /* 3'dangle of previous pair */
 
                   switch (p-i1-1) {
                     case 0:   /* adjacent helices */
@@ -825,9 +950,9 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                 best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
                 /* fprintf(stderr, "%6.2d\t", energy); */
                 /* skip a helix and start again */
-                while (pair_table[p]==0) p++;
-                if (i == (unsigned int)pair_table[p]) break;
-                i = (unsigned int)pair_table[p];
+                while (pt[p]==0) p++;
+                if (i == (unsigned int)pt[p]) break;
+                i = (unsigned int)pt[p];
               } /* end doing it twice */
               energy = best_energy;
               break;
@@ -836,9 +961,9 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
               E_mm5_occupied  = E2_mm5_occupied   = 0;
               while(p < j){
                 /* p must have a pairing partner */
-                q  = (int)pair_table[p];
+                q  = (int)pt[p];
                 /* get type of base pair (p,q) */
-                tt = P->model_details.pair[S[p]][S[q]];
+                tt = P->model_details.pair[s[p]][s[q]];
                 if(tt==0) tt=7;
                 if(q_prev + 2 < p){
                   E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
@@ -848,8 +973,8 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                   E2_mm5_available  = MIN2(E2_mm5_available, E2_mm5_occupied);
                   E2_mm5_occupied   = E2_mm5_available;
                 }
-                mm5 = ((SAME_STRAND(p-1,p)) && !pair_table[p-1])  ? S1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && !pair_table[q+1])  ? S1[q+1] : -1;
+                mm5 = ((SAME_STRAND(p-1,p)) && !pt[p-1])  ? s1[p-1] : -1;
+                mm3 = ((SAME_STRAND(q,q+1)) && !pt[q+1])  ? s1[q+1] : -1;
                 tmp =                   MIN2(
                                               E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
                                               E_mm5_available + E_MLstem(tt, mm5, mm3, P)
@@ -876,13 +1001,13 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
-                while (p <= j && !pair_table[p]) p++;
+                while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
               }
               /* now lets see how we get the minimum including the enclosing stem */
-              type = P->model_details.pair[S[j]][S[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pair_table[j-1])  ? S1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pair_table[i+1])  ? S1[i+1] : -1;
+              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
+              mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
+              mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
               if(q_prev + 2 < p){
                 E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
                 E_mm5_occupied  = E_mm5_available;
@@ -915,100 +1040,114 @@ PRIVATE int energy_of_ml_pt(int i, short *pt){
 }
 
 
-PUBLIC int loop_energy(short * ptable, short *s, short *s1, int i) {
+PUBLIC int
+loop_energy(short *pt,
+            short *s,
+            short *s1,
+            int i){
+
   /* compute energy of a single loop closed by base pair (i,j) */
   int j, type, p,q, energy;
-  short *Sold, *S1old, *ptold;
 
-  ptold=pair_table;   Sold = S;   S1old = S1;
-  pair_table = ptable;   S = s;   S1 = s1;
+  paramT *P = get_updated_params(NULL);
 
   if (i==0) { /* evaluate exterior loop */
-    energy = energy_of_extLoop_pt(0,pair_table);
-    pair_table=ptold; S=Sold; S1=S1old;
+    energy = energy_of_extLoop_pt(0,pt, s, s1, P);
+    free(P);
     return energy;
   }
-  j = pair_table[i];
+  j = pt[i];
   if (j<i) nrerror("i is unpaired in loop_energy()");
-  type = P->model_details.pair[S[i]][S[j]];
+  type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
     if (eos_debug>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              get_encoded_char(S[i], &(P->model_details)), get_encoded_char(S[j], &(P->model_details)));
+              get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
 
-  while (pair_table[++p]==0);
-  while (pair_table[--q]==0);
+  while (pt[++p]==0);
+  while (pt[--q]==0);
   if (p>q) { /* Hairpin */
     char loopseq[8] = "";
     if (SAME_STRAND(i,j)) {
       if (j-i-1<7) {
         int u;
-        for (u=0; i+u<=j; u++) loopseq[u] = get_encoded_char(S[i+u], &(P->model_details));
+        for (u=0; i+u<=j; u++) loopseq[u] = get_encoded_char(s[i+u], &(P->model_details));
         loopseq[u] = '\0';
       }
-      energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], loopseq, P);
+      energy = E_Hairpin(j-i-1, type, s1[i+1], s1[j-1], loopseq, P);
     } else {
-      energy = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
+      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P);
     }
   }
-  else if (pair_table[q]!=(short)p) { /* multi-loop */
+  else if (pt[q]!=(short)p) { /* multi-loop */
     int ii;
-    ii = cut_in_loop(i);
-    energy = (ii==0) ? energy_of_ml_pt(i, pair_table) : energy_of_extLoop_pt(ii, pair_table);
+    ii = cut_in_loop(i, (const short *)pt);
+    energy = (ii==0) ? energy_of_ml_pt(i, (const short *)pt, s, s1, P) : energy_of_extLoop_pt(ii, (const short *)pt, s, s1, P);
   }
   else { /* found interior loop */
     int type_2;
-    type_2 = P->model_details.pair[S[q]][S[p]];
+    type_2 = P->model_details.pair[s[q]][s[p]];
     if (type_2==0) {
       type_2=7;
       if (eos_debug>=0)
         fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              get_encoded_char(S[p], &(P->model_details)), get_encoded_char(S[q], &(P->model_details)));
+              get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
     }
     /* energy += LoopEnergy(i, j, p, q, type, type_2); */
     if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
       energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                          S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
+                          s1[i+1], s1[j-1], s1[p-1], s1[q+1], P);
     else
-      energy = energy_of_extLoop_pt(cut_in_loop(i), pair_table);
+      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P);
   }
 
-  pair_table=ptold; S=Sold; S1=S1old;
+  free(P);
   return energy;
 }
 
 /*---------------------------------------------------------------------------*/
 
 
-PUBLIC float energy_of_move(const char *string, const char *structure, int m1, int m2) {
+PUBLIC float
+energy_of_move( const char *string,
+                const char *structure,
+                int m1,
+                int m2){
+
   int   energy;
-  short *ss, *ss1;
+  short *s, *s1, *pt;
+
+  paramT *P = get_updated_params(NULL);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");
 
-  /* save the S and S1 pointers in case they were already in use */
-  ss = S; ss1 = S1;
-  S   = get_sequence_encoding(string, 0, &(P->model_details));
-  S1  = get_sequence_encoding(string, 1, &(P->model_details));
+  s   = get_sequence_encoding(string, 0, &(P->model_details));
+  s1  = get_sequence_encoding(string, 1, &(P->model_details));
 
-  pair_table = vrna_pt_get(structure);
+  pt = vrna_pt_get(structure);
 
-  energy = energy_of_move_pt(pair_table, S, S1, m1, m2);
+  energy = energy_of_move_pt(pt, s, s1, m1, m2);
 
-  free(pair_table);
-  free(S); free(S1);
-  S=ss; S1=ss1;
+  free(pt);
+  free(s); free(s1);
+  free(P);
   return  (float) energy/100.;
 }
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC int energy_of_move_pt(short *pt, short *s, short *s1, int m1, int m2) {
+PUBLIC int
+energy_of_move_pt(short *pt,
+                  short *s,
+                  short *s1,
+                  int m1,
+                  int m2){
+
   /*compute change in energy given by move (m1,m2)*/
   int en_post, en_pre, i,j,k,l, len;
 
@@ -1049,16 +1188,16 @@ PUBLIC int energy_of_move_pt(short *pt, short *s, short *s1, int m1, int m2) {
   return (en_post - en_pre);
 }
 
+PRIVATE int
+cut_in_loop(int i, const short *pt){
 
-
-PRIVATE int cut_in_loop(int i) {
   /* walk around the loop;  return j pos of pair after cut if
      cut_point in loop else 0 */
   int  p, j;
-  p = j = pair_table[i];
+  p = j = pt[i];
   do {
-    i  = pair_table[p];  p = i+1;
-    while ( pair_table[p]==0 ) p++;
+    i  = pt[p];  p = i+1;
+    while ( pt[p]==0 ) p++;
   } while (p!=j && SAME_STRAND(i,p));
   return SAME_STRAND(i,p) ? 0 : j;
 }
@@ -1068,7 +1207,14 @@ PRIVATE int cut_in_loop(int i) {
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PRIVATE int ML_Energy(int i, int is_extloop) {
+PRIVATE int
+ML_Energy(int i,
+          const short *pt,
+          short *s,
+          short *s1,
+          paramT *P,
+          int is_extloop){
+
   /* i is the 5'-base of the closing pair (or 0 for exterior loop)
      loop is scored as ML if extloop==0 else as exterior loop
 
@@ -1106,24 +1252,24 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
 
     int E_mm5_available, E_mm5_occupied;
     /* find out if we may have 5' mismatch for the next stem */
-    while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
+    while (p <= (int)pt[0] && pt[p]==0) p++;
     /* get position of pairing partner */
-    if(p < (int)pair_table[0]){
+    if(p < (int)pt[0]){
         E_mm5_occupied  = (p - i - 1 > 0) ? INF : 0;
         E_mm5_available = (p - i - 1 > 0) ? 0 : INF;
     }
 
-    if(p < (int)pair_table[0])
+    if(p < (int)pt[0])
       do{
         int tt;
         /* p must have a pairing partner */
-        q  = (int)pair_table[p];
+        q  = (int)pt[p];
         /* get type of base pair (p,q) */
-        tt = P->model_details.pair[S[p]][S[q]];
+        tt = P->model_details.pair[s[p]][s[q]];
         if(tt==0) tt=7;
 
-        int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? S1[p-1]: -1;
-        int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pair_table[0])) ? S1[q+1]: -1;
+        int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? s1[p-1]: -1;
+        int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pt[0])) ? s1[q+1]: -1;
 
         switch(dangle_model){
           /* dangle_model == 0 */
@@ -1132,8 +1278,8 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
           /* dangle_model == 1 */
           case 1: {
                     /* check for unpaired nucleotide 3' to the current stem */
-                    int u3 = ((q < pair_table[0]) && (pair_table[q+1] == 0)) ? 1 : 0;
-                    if(pair_table[p-1] != 0) mm5 = -1;
+                    int u3 = ((q < pt[0]) && (pt[q+1] == 0)) ? 1 : 0;
+                    if(pt[p-1] != 0) mm5 = -1;
 
                     if(!u3){
                       mm3 = -1;
@@ -1167,8 +1313,8 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
 
         /* seek to the next stem */
         p = q + 1;
-        while (p <= (int)pair_table[0] && pair_table[p]==0) p++;
-        if(p == (int)pair_table[0] + 1){
+        while (p <= (int)pt[0] && pt[p]==0) p++;
+        if(p == (int)pt[0] + 1){
           if(dangle_model == 1)
             energy = (p > q + 1) ? E_mm5_occupied : E_mm5_available;
           q = 0;
@@ -1181,18 +1327,18 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
     for (count=0; count<2; count++) { /* do it twice */
       int ld5 = 0; /* 5' dangle energy on prev pair (type) */
       if ( i==0 ) {
-        j = (unsigned int)pair_table[0]+1;
+        j = (unsigned int)pt[0]+1;
         type = 0;  /* no pair */
       }
       else {
-        j = (unsigned int)pair_table[i];
-        type = P->model_details.pair[S[j]][S[i]]; if (type==0) type=7;
+        j = (unsigned int)pt[i];
+        type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
 
         if (dangle_model==3) { /* prime the ld5 variable */
           if (SAME_STRAND(j-1,j)) {
-            ld5 = P->dangle5[type][S1[j-1]];
-            if ((p=(unsigned int)pair_table[j-2]) && SAME_STRAND(j-2, j-1))
-                if (P->dangle3[P->model_details.pair[S[p]][S[j-2]]][S1[j-1]]<ld5) ld5 = 0;
+            ld5 = P->dangle5[type][s1[j-1]];
+            if ((p=(unsigned int)pt[j-2]) && SAME_STRAND(j-2, j-1))
+                if (P->dangle3[P->model_details.pair[s[p]][s[j-2]]][s1[j-1]]<ld5) ld5 = 0;
           }
         }
       }
@@ -1202,17 +1348,17 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         int tt, new_cx = INF;
 
         /* hop over unpaired positions */
-        while (p <= (unsigned int)pair_table[0] && pair_table[p]==0) p++;
+        while (p <= (unsigned int)pt[0] && pt[p]==0) p++;
 
         /* memorize number of unpaired positions */
         u += p-i1-1;
         /* get position of pairing partner */
-        if ( p == (unsigned int)pair_table[0]+1 ){
+        if ( p == (unsigned int)pt[0]+1 ){
           q = 0;tt = 0; /* virtual root pair */
         } else {
-        q  = (unsigned int)pair_table[p];
+        q  = (unsigned int)pt[p];
           /* get type of base pair P->q */
-        tt = P->model_details.pair[S[p]][S[q]]; if (tt==0) tt=7;
+        tt = P->model_details.pair[s[p]][s[q]]; if (tt==0) tt=7;
         }
 
         energy += mlintern[tt];
@@ -1221,9 +1367,9 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
         if (dangle_model) {
           int dang5=0, dang3=0, dang;
           if ((SAME_STRAND(p-1,p))&&(p>1))
-            dang5=P->dangle5[tt][S1[p-1]];      /* 5'dangle of pq pair */
-          if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)S[0]))
-            dang3 = P->dangle3[type][S1[i1+1]]; /* 3'dangle of previous pair */
+            dang5=P->dangle5[tt][s1[p-1]];      /* 5'dangle of pq pair */
+          if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)s[0]))
+            dang3 = P->dangle3[type][s1[i1+1]]; /* 3'dangle of previous pair */
 
           switch (p-i1-1) {
           case 0: /* adjacent helices */
@@ -1272,9 +1418,9 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
       /* fprintf(stderr, "%6.2d\t", energy); */
       if (dangle_model!=3 || is_extloop) break;  /* may break cofold with co-ax */
       /* skip a helix and start again */
-      while (pair_table[p]==0) p++;
-      if (i == (unsigned int)pair_table[p]) break;
-      i = (unsigned int)pair_table[p];
+      while (pt[p]==0) p++;
+      if (i == (unsigned int)pt[p]) break;
+      i = (unsigned int)pt[p];
     }
     energy = best_energy;
     energy += mlclosing;
@@ -1288,15 +1434,26 @@ PRIVATE int ML_Energy(int i, int is_extloop) {
   return energy;
 }
 
-PUBLIC float energy_of_struct(const char *string, const char *structure){
+PUBLIC float
+energy_of_struct( const char *string,
+                  const char *structure){
+
   return energy_of_structure(string, structure, eos_debug);
 }
 
-PUBLIC int energy_of_struct_pt(const char *string, short * ptable, short *s, short *s1){
-  return energy_of_structure_pt(string, ptable, s, s1, eos_debug);
+PUBLIC int
+energy_of_struct_pt(const char *string,
+                    short *pt,
+                    short *s,
+                    short *s1){
+
+  return energy_of_structure_pt(string, pt, s, s1, eos_debug);
 }
 
-PUBLIC float energy_of_circ_struct(const char *string, const char *structure){
+PUBLIC float
+energy_of_circ_struct(const char *string,
+                      const char *structure){
+
   return energy_of_circ_structure(string, structure, eos_debug);
 }
 
