@@ -11,6 +11,11 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/structure_utils.h>
 
+/* two helper macros to indicate whether a function should be exported in
+the library or stays hidden */
+#define PUBLIC
+#define PRIVATE static
+
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else

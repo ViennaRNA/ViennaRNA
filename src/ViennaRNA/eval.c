@@ -23,6 +23,7 @@
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
@@ -36,7 +37,6 @@
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC  int logML     = 0;  /* if nonzero use logarithmic ML energy in energy_of_struct */
 PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
 PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 
