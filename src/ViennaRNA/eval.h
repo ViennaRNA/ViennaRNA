@@ -39,42 +39,166 @@ extern  int eos_debug;
  */
 
 
+/**
+ *  \brief Calculate the free energy of an already folded RNA
+ *
+ *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  vrna_get_energy_contributions()
+ *
+ *  \param string           RNA sequence in uppercase letters
+ *  \param structure        Secondary structure in dot-bracket notation
+ *  \param P       A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
 float vrna_eval_structure(const char *string,
-                    const char *structure,
-                    paramT *parameters);
+                          const char *structure,
+                          paramT *P);
 
+/**
+ *  \brief Calculate the free energy of an already folded RNA and print contributions per loop.
+ *
+ *  This function allows for detailed energy evaluation of a given sequence/structure pair.
+ *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
+ *  based on individual loops to a file handle. If NULL is passed as file handle, this function
+ *  defaults to print to stdout.
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  vrna_get_energy_contributions()
+ *
+ *  \param string           RNA sequence in uppercase letters
+ *  \param structure        Secondary structure in dot-bracket notation
+ *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param file             A file handle where this function should print to (may be NULL).
+ *  \return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
 float vrna_eval_structure_verbose(const char *string,
-                            const char *structure,
-                            paramT *parameters,
-                            FILE *file);
+                                  const char *structure,
+                                  paramT *P,
+                                  FILE *file);
 
-float vrna_eval_structure_pt( const char *string,
-                        const short *pt,
-                        paramT *parameters);
+/**
+ *  \brief Calculate the free energy of an already folded RNA
+ *
+ *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see vrna_pt_get(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  vrna_get_energy_contributions()
+ *
+ *  \param string           RNA sequence in uppercase letters
+ *  \param pt               Secondary structure as pair_table
+ *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \return                 The free energy of the input structure given the input sequence in 10cal/mol
+ */
+int vrna_eval_structure_pt( const char *string,
+                            const short *pt,
+                            paramT *P);
 
-float vrna_eval_structure_pt_verbose( const char *string,
-                                const short *pt,
-                                paramT *parameters,
-                                FILE *file);
+/**
+ *  \brief Calculate the free energy of an already folded RNA
+ *
+ *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
+ *  based on individual loops to a file handle. If NULL is passed as file handle, this function
+ *  defaults to print to stdout.
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see vrna_pt_get(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  vrna_get_energy_contributions()
+ *
+ *  \param string           RNA sequence in uppercase letters
+ *  \param pt               Secondary structure as pair_table
+ *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param file             A file handle where this function should print to (may be NULL).
+ *  \return                 The free energy of the input structure given the input sequence in 10cal/mol
+ */
+int vrna_eval_structure_pt_verbose( const char *string,
+                                    const short *pt,
+                                    paramT *P,
+                                    FILE *file);
 
+/**
+ * \brief Calculate energy of a loop
+ *
+ *  \param pt         the pair table of the secondary structure
+ *  \param s          encoded RNA sequence
+ *  \param s1         encoded RNA sequence
+ *  \param i          position of covering base pair
+ *  \param P          A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \returns          free energy of the loop in 10cal/mol
+ */
 int vrna_eval_loop_pt(const short *pt,
                       const short *s,
                       const short *s1,
                       int i,
-                      paramT *params);
+                      paramT *P);
 
-int vrna_eval_move( const char *string,
-                    const char *structure,
-                    int m1,
-                    int m2,
-                    paramT *params);
+/** 
+ * \brief Calculate energy of a move (closing or opening of a base pair)
+ *
+ *  If the parameters m1 and m2 are negative, it is deletion (opening)
+ *  of a base pair, otherwise it is insertion (opening).
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see              vrna_eval_move_pt(), vrna_get_energy_contributions()
+ *  \param string     RNA sequence
+ *  \param structure  secondary structure in dot-bracket notation
+ *  \param m1         first coordinate of base pair
+ *  \param m2         second coordinate of base pair
+ *  \param P          A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \returns          energy change of the move in kcal/mol
+ */
+float vrna_eval_move( const char *string,
+                      const char *structure,
+                      int m1,
+                      int m2,
+                      paramT *P);
 
+/**
+ * 
+ * \brief Calculate energy of a move (closing or opening of a base pair)
+ *
+ *  If the parameters m1 and m2 are negative, it is deletion (opening)
+ *  of a base pair, otherwise it is insertion (opening).
+ *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
+ *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *
+ *  \ingroup eval
+ *
+ *  \see              vrna_eval_move(), vrna_get_energy_contributions()
+ *  \param pt         the pair table of the secondary structure
+ *  \param s          encoded RNA sequence
+ *  \param s1         encoded RNA sequence
+ *  \param m1         first coordinate of base pair
+ *  \param m2         second coordinate of base pair
+ *  \param P          A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \returns          energy change of the move in 10cal/mol
+ */
 int vrna_eval_move_pt(short *pt,
                       const short *s,
                       const short *s1,
                       int m1,
                       int m2,
-                      paramT *params);
+                      paramT *P);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings

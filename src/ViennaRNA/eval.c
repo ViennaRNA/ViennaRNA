@@ -161,7 +161,7 @@ vrna_eval_structure_verbose(const char *string,
   return en;
 }
 
-PUBLIC float
+PUBLIC int
 vrna_eval_structure_pt( const char *string,
                         const short *pt,
                         paramT *parameters){
@@ -178,12 +178,12 @@ vrna_eval_structure_pt( const char *string,
     free(s);
     free(s1);
     free(P);
-    return (float)en/100.;
+    return en;
   } else
-    return (float)INF/100.;
+    return INF;
 }
 
-PUBLIC float
+PUBLIC int
 vrna_eval_structure_pt_verbose( const char *string,
                                 const short *pt,
                                 paramT *parameters,
@@ -201,9 +201,9 @@ vrna_eval_structure_pt_verbose( const char *string,
     free(s);
     free(s1);
     free(P);
-    return (float)en/100.;
+    return en;
   } else
-    return (float)INF/100.;
+    return INF;
 }
 
 PUBLIC int
@@ -276,7 +276,7 @@ vrna_eval_loop_pt(const short *pt,
   return energy;
 }
 
-PUBLIC int
+PUBLIC float
 vrna_eval_move( const char *string,
                 const char *structure,
                 int m1,
