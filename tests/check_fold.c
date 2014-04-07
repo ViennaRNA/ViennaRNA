@@ -28,7 +28,7 @@ START_TEST(test_sample_structure)
 
   set_model_details(&md);
   md.uniq_ML = 1;
-  md.do_backtrack = 0;
+  md.compute_bpp = 0;
 
   vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_PF);
 
