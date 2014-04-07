@@ -20,7 +20,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
-#include <stdarg.h>
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
