@@ -57,7 +57,24 @@ float vrna_eval_structure_pt_verbose( const char *string,
                                 paramT *parameters,
                                 FILE *file);
 
+int vrna_eval_loop_pt(const short *pt,
+                      const short *s,
+                      const short *s1,
+                      int i,
+                      paramT *params);
 
+int vrna_eval_move( const char *string,
+                    const char *structure,
+                    int m1,
+                    int m2,
+                    paramT *params);
+
+int vrna_eval_move_pt(short *pt,
+                      const short *s,
+                      const short *s1,
+                      int m1,
+                      int m2,
+                      paramT *params);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings
