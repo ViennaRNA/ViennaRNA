@@ -11,6 +11,13 @@
 #endif
 
 /**
+ *  \file eval.h
+ *  \brief Functions and variables related to energy evaluation
+ *  of sequence/structure pairs.
+ */
+
+
+/**
  *  \defgroup eval Energy evaluation
  *  @{
  *    \brief This module contains all functions and variables related to energy evaluation
@@ -132,6 +139,12 @@ int vrna_eval_structure_pt_verbose( const char *string,
                                     const short *pt,
                                     paramT *P,
                                     FILE *file);
+
+int vrna_eval_structure_pt_fast(const char *string,
+                                const short *pt,
+                                const short *s,
+                                const short *s1,
+                                paramT *parameters);
 
 /**
  * \brief Calculate energy of a loop
