@@ -126,7 +126,6 @@ int main(int argc, char *argv[]){
   {
     double *epsilon;
     vrna_fold_compound *vc;
-    char *structure;
     pf_paramT *pf_parameters;
     size_t i;
     float mfe;
@@ -137,9 +136,7 @@ int main(int argc, char *argv[]){
       shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
-    structure = space(sizeof(char) * (length + 1));
-    mfe = vrna_fold(vc, structure);
-    free(structure);
+    mfe = vrna_fold(vc, NULL);
     destroy_fold_compound(vc);
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
