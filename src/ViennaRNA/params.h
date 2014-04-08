@@ -119,11 +119,11 @@ pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
  *  independent thermodynamic temperature
  *
  */
-PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
-                                            double temperature,
-                                            double betaScale,
-                                            model_detailsT md,
-                                            double pf_scale);
+pf_paramT *get_boltzmann_factors_ali( unsigned int n_seq,
+                                      double temperature,
+                                      double betaScale,
+                                      model_detailsT md,
+                                      double pf_scale);
 
 /**
  *  @}
