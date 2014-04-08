@@ -13,6 +13,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/model.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
@@ -43,10 +46,15 @@ int main(int argc, char *argv[]){
   int                       noconv=0;
   int                       verbose = 0;
   unsigned int              rec_type, read_opt;
+  model_detailsT md;
+  paramT *P;
 
   string  = orig_sequence = ParamFile = NULL;
   gquad   = 0;
   dangles = 2;
+
+  /* apply default model details */
+  vrna_md_set_default(&md);
 
   /*
   #############################################
@@ -54,31 +62,38 @@ int main(int argc, char *argv[]){
   #############################################
   */
   if(RNAeval_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+
   /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     tetra_loop=0;
+  if(args_info.noTetra_given)
+    md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
-      dangles = args_info.dangles_arg;
+      md.dangles = dangles = args_info.dangles_arg;
   }
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given)
+    md.energy_set = energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
   if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circular=1;
+  if(args_info.circ_given)
+    md.circ = circular = 1;
   /* logarithmic multiloop energies */
-  if(args_info.logML_given)       logML = 1;
+  if(args_info.logML_given)
+    md.logML = logML = 1;
   /* be verbose */
   if(args_info.verbose_given)     verbose = 1;
   /* gquadruplex support */
-  if(args_info.gquad_given)       gquad = 1;
+  if(args_info.gquad_given)
+    md.gquad = gquad = 1;
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
@@ -99,6 +114,8 @@ int main(int argc, char *argv[]){
   if(circular && gquad){
     nrerror("G-Quadruplex support is currently not available for circular RNA structures");
   }
+
+  P = vrna_get_energy_contributions(md);
 
   /* set options we wanna pass to read_record */
   if(istty){
@@ -151,10 +168,10 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
     }
 
-    if(gquad)
-      energy = energy_of_gquad_structure(string, structure, verbose);
+    if(verbose)
+      energy = vrna_eval_structure_verbose(string, structure, P, NULL);
     else
-      energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
+      energy = vrna_eval_structure(string, structure, P);
 
     if (cut_point == -1)
       printf("%s\n%s", orig_sequence, structure);

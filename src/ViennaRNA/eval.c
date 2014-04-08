@@ -206,6 +206,26 @@ vrna_eval_structure_pt_verbose( const char *string,
 }
 
 PUBLIC int
+vrna_eval_structure_pt_fast(const char *string,
+                            const short *pt,
+                            const short *s,
+                            const short *s1,
+                            paramT *parameters){
+
+  if(pt && string){
+    if(pt[0] != (short)strlen(string))
+      nrerror("energy_of_struct: string and structure have unequal length");
+
+    paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
+
+    int en = eval_pt(string, pt, s, s1, NULL, P, 0);
+    free(P);
+    return en;
+  } else
+    return INF;
+}
+
+PUBLIC int
 vrna_eval_loop_pt(const short *pt,
                   const short *s,
                   const short *s1,
@@ -1394,7 +1414,16 @@ PUBLIC float
 energy_of_struct( const char *string,
                   const char *structure){
 
-  return energy_of_structure(string, structure, eos_debug);
+  float en;
+  paramT *P = get_updated_params(NULL, 1);
+
+  if(eos_debug > 0)
+    en = vrna_eval_structure_verbose(string, structure, P, NULL);
+  else
+    en = vrna_eval_structure(string, structure, P);
+
+  free(P);
+  return en;
 }
 
 PUBLIC int
@@ -1403,14 +1432,33 @@ energy_of_struct_pt(const char *string,
                     short *s,
                     short *s1){
 
-  return energy_of_structure_pt(string, pt, s, s1, eos_debug);
+  if(pt && string){
+    if(pt[0] != (short)strlen(string))
+      nrerror("energy_of_structure_pt: string and structure have unequal length");
+
+    paramT *P = get_updated_params(NULL, 1);
+    int en = eval_pt(string, pt, s, s1, NULL, P, eos_debug);
+    free(P);
+    return en;
+  } else
+    return INF;
 }
 
 PUBLIC float
 energy_of_circ_struct(const char *string,
                       const char *structure){
 
-  return energy_of_circ_structure(string, structure, eos_debug);
+  float en;
+  paramT *P = get_updated_params(NULL, 1);
+  P->model_details.circ = 1;
+
+  if(eos_debug > 0)
+    en = vrna_eval_structure_verbose(string, structure, P, NULL);
+  else
+    en = vrna_eval_structure(string, structure, P);
+
+  free(P);
+  return en;
 }
 
 PUBLIC  float

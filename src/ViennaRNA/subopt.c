@@ -533,6 +533,9 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     P = get_scaled_parameters(temperature, md);
   }
 
+  P->model_details.circ     = is_circular;
+  P->model_details.uniq_ML  = uniq_ML = 1;
+
   logML       = P->model_details.logML;
   old_dangles = dangle_model = P->model_details.dangles;
   with_gquad  = P->model_details.gquad;
@@ -543,14 +546,13 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
 
   turn = (cut_point<0) ? 3 : 0;
-  P->model_details.uniq_ML = uniq_ML = 1;
   if(circular){
     min_en = fold_par(sequence, struc, P, struct_constrained, circular);
     export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype);
     /* restore dangle model */
     P->model_details.dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
-    min_en = energy_of_circ_struct_par(sequence, struc, P, 0);
+    min_en = vrna_eval_structure(sequence, struc, P);
   } else {
     min_en = cofold_par(sequence, struc, P, struct_constrained);
 
@@ -563,7 +565,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     /* restore dangle model */
     P->model_details.dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
-    min_en = energy_of_struct_par(sequence, struc, P, 0);
+    min_en = vrna_eval_structure(sequence, struc, P);
   }
 
   free(struc);
@@ -643,7 +645,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+        structure_energy = vrna_eval_structure(sequence, structure, P);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -653,7 +655,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
           }
 #endif
         if (logML || (dangle_model==1) || (dangle_model==3)) { /* recalc energy */
-          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+          structure_energy = vrna_eval_structure(sequence, structure, P);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
