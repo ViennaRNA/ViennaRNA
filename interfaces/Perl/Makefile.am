@@ -11,7 +11,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 
 
 Makefile.perl: Makefile.PL Makefile
-	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE=
+	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
 
 # the perl command repairs some errors in the SWIG CVS version
 RNA_wrap.c: ../RNA.i ../tmaps.i
