@@ -78,31 +78,32 @@ System specific notes:
 
 MacOS X users:
 
-Depending on your version of gcc (< 4.4 ?) it might be necessary to deactivate OpenMP support by passing the option
+Depending on your version of gcc (< 4.4 ?) it might be necessary to deactivate
+OpenMP support by passing the option
 
 --disable-openmp
 
-to the ./configure script, since the OpenMP support is only partial in earlier versions of gcc shipped for MacOS X.
+to the ./configure script, since the OpenMP support is only partial in earlier
+versions of gcc shipped for MacOS X.
 
-Additionally, since MacOS X 10.5 the perl installation distributed with MacOS X seems to always include so called
-fat-binaries, i.e. binaries for multiple architecture types. Although this may be a nice portability feature of MacOS X
-it will break compilation of the perl interface to the RNAlib!
-To circumvent this problem you have two options
+Additionally, since MacOS X 10.5 the perl installation distributed with MacOS X
+seems to always include so called fat-binaries, i.e. binaries for multiple
+architecture types. Although this may be a nice portability feature of MacOS X
+it will break compilation of the perl interface to the RNAlib using default options!
 
-1. Compile the perl interface without fat-binary support. Do so by setting the global shell variable ARCHFLAGS to
-include only the target architecture used for compiling RNAlib. E.g. do the following before executing make
+To circumvent the above problems please execute the configure script with at least
+the following options and additional environment variables to turn on multi
+architecture compilation/linking:
 
-export ARCHFLAGS="-arch x86_64"
+./configure --disable-openmp \
+            --disable-dependency-tracking \
+            CFLAGS="-arch i386 -arch x86_64 -O2" \
+            CXXFLAGS="-arch i386 -arch x86_64 -O2"
 
-2. Compile the complete ViennaRNA package with fat-binary support. Therefore, run the ./configure script in the
-following manner
+We have tested and verified the above command under Mac OS X 10.8.4 using Xcode 4.6.2
 
-./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-            CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-            CPP="gcc -E" CXXCPP="g++ -E"
+In case it doesn't work for your system, please file a bug report to rna@tbi.univie.ac.at
 
-The second option is not guaranteed to produce a working result, thus we suggest using the first one to create a
-single architecture build of the RNAlib perl interface! 
 
 General remarks:
 
