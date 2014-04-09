@@ -192,10 +192,58 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 /* BEGIN interface for energy parameters      */
 /**********************************************/
 
-/* hide data fields of paramT from SWIG */
+/* do not create default constructor and hide data fields of paramT from SWIG */
+%nodefaultctor paramT;
 typedef struct {} paramT;
-/* hide data fields of paramT from SWIG */
+/* do not create default constructor and hide data fields of paramT from SWIG */
+%nodefaultctor pf_paramT;
 typedef struct {} pf_paramT;
+
+/* make a nice object oriented interface to paramT */
+%extend paramT {
+  paramT(){
+    model_detailsT md;
+    vrna_md_set_default(&md);
+    paramT *P = vrna_get_energy_contributions(md);
+    return P;
+  }
+  paramT(model_detailsT *md){
+    paramT *P = vrna_get_energy_contributions(*md);
+    return P;
+  }
+}
+
+/* make a nice object oriented interface to pf_paramT */
+%extend pf_paramT {
+  pf_paramT(){
+    model_detailsT md;
+    vrna_md_set_default(&md);
+    pf_paramT *P = vrna_get_boltzmann_factors(md);
+    return P;
+  }
+  pf_paramT(model_detailsT *md){
+    pf_paramT *P = vrna_get_boltzmann_factors(*md);
+    return P;
+  }
+}
+
+%ignore scale_parameters;
+%ignore vrna_get_energy_contributions;
+%ignore get_scaled_parameters;
+%ignore get_parameter_copy;
+%ignore get_scaled_pf_parameters;
+%ignore vrna_get_boltzmann_factors;
+%ignore get_boltzmann_factors;
+%ignore get_boltzmann_factor_copy;
+/*
+%ignore get_scaled_alipf_parameters;
+%ignore get_boltzmann_factors_ali;
+*/
+%ignore copy_parameters;
+%ignore set_parameters;
+%ignore scale_pf_parameters;
+%ignore copy_pf_param;
+%ignore set_pf_param;
 
 %include "../src/ViennaRNA/params.h"
 %include "../src/ViennaRNA/data_structures.h"
