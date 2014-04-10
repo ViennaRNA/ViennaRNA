@@ -79,6 +79,27 @@
 %newobject my_fold;
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
+
+/* these functions remain for now due to backward compatibility reasons
+%ignore update_fold_params
+%ignore free_arrays
+%ignore circfold
+*/
+
+%ignore vrna_fold;
+%ignore fold_par;
+%ignore update_fold_params_par;
+%ignore initialize_fold;
+%ignore HairpinE;
+%ignore LoopEnergy;
+%ignore export_circfold_arrays_par;
+%ignore export_circfold_arrays;
+%ignore export_fold_arrays;
+%ignore export_fold_arrays_par;
+%ignore vrna_backtrack_from_intervals;
+%ignore backtrack_fold_from_pair;
+%ignore vrna_update_fold_params;
+
 %include  "../src/ViennaRNA/fold.h"
 
 /**********************************************/
@@ -246,7 +267,13 @@ typedef struct {} pf_paramT;
 %ignore set_pf_param;
 
 %include "../src/ViennaRNA/params.h"
+
+
 %include "../src/ViennaRNA/data_structures.h"
+
+/**********************************************/
+/* BEGIN interface for cofold                 */
+/**********************************************/
 
 %rename (cofold) my_cofold;
 
@@ -269,9 +296,25 @@ typedef struct {} pf_paramT;
 %newobject my_cofold;
 char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore cofold;
+
+/* these functions remain for now due to backward compatibility reasons
+%ignore free_co_arrays;
+%ignore update_cofold_params;
+%ignore zukersubopt;
+%ignore initialize_cofold;
+*/
+%ignore cofold_par;
+%ignore update_cofold_params_par;
+%ignore export_cofold_arrays_gq;
+%ignore export_cofold_arrays;
+%ignore zukersubopt_par;
+%ignore get_monomere_mfes;
+
 %include  "../src/ViennaRNA/cofold.h"
 
-//%subsection "Partition function Folding"
+/**********************************************/
+/* BEGIN interface for partition function     */
+/**********************************************/
 
 %rename (pf_fold) my_pf_fold;
 %{
@@ -289,9 +332,38 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %newobject my_pf_fold;
 char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
-
 %ignore pf_fold;
+
+/* these functions remain for now due to backward compatibility reasons
+%ignore pf_circ_fold;
+%ignore pbacktrack;
+%ignore pbacktrack5;
+%ignore pbacktrack_circ;
+%ignore free_pf_arrays;
+%ignore update_pf_params;
+%ignore mean_bp_distance;
+%ignore init_pf_fold;
+%ignore centroid;
+*/
+%ignore pf_fold_par;
+%ignore update_pf_params_par;
+%ignore export_bppm;
+%ignore get_pf_arrays;
+%ignore get_subseq_F;
+%ignore mean_bp_distance_pr;
+%ignore stackProb;
+%ignore get_centroid_struct_gquad_pr;
+%ignore mean_bp_dist;
+%ignore expHairpinEnergy;
+%ignore expLoopEnergy;
+%ignore assign_plist_gquad_from_pr;
+
 %include  "../src/ViennaRNA/part_func.h"
+
+/**********************************************/
+/* BEGIN interface for cofold partition       */
+/* function                                   */
+/**********************************************/
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
