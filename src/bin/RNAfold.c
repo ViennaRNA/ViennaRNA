@@ -385,10 +385,10 @@ int main(int argc, char *argv[]){
     }
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
-      if (md.dangles==1) {
-          md.dangles=2;   /* recompute with dangles as in pf_fold() */
+      if (mfe_parameters->model_details.dangles==1) {
+          mfe_parameters->model_details.dangles=2;   /* recompute with dangles as in pf_fold() */
           min_en = vrna_eval_structure(rec_sequence, structure, mfe_parameters);
-          md.dangles=1;
+          mfe_parameters->model_details.dangles=1;
       }
 
 
