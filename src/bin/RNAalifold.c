@@ -37,6 +37,81 @@ PRIVATE void  print_aliout(char **AS, plist *pl, double threshold, int n_seq, ch
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 
+PRIVATE void
+add_shape_constraints(vrna_fold_compound *vc,
+                      const char *shape_method,
+                      const char **shape_files,
+                      const int *shape_file_association,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+  char *sequence;
+  double *values;
+  int length = vc->length;
+
+  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    fprintf(stderr, "Using SHAPE method '%c'", method);
+    if(method != 'W'){
+      if(method == 'C')
+        fprintf(stderr, " with parameter p1=%f", p1);
+      else
+        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+    }
+    fputc('\n', stderr);
+  }
+
+  if(method == 'M'){
+    vrna_sc_add_mathews_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    return;
+  }
+
+#if 0
+  sequence = space(sizeof(char) * (length + 1));
+  values = space(sizeof(double) * (length + 1));
+  parse_soft_constraints_file(shape_file, length, method == 'C' ? 0.5 : 0, sequence, values);
+
+  if(method == 'C'){
+    double *sc_up = space(sizeof(double) * (length + 1));
+    double **sc_bp = space(sizeof(double *) * (length + 1));
+    int i;
+
+    normalize_shape_reactivities_to_probabilities_linear(values, length);
+
+    for(i = 1; i <= length; ++i){
+      int j;
+
+      assert(values[i] >= 0 && values[i] <= 1);
+
+      sc_up[i] = p1 * fabs(values[i] - 1);
+      sc_bp[i] = space(sizeof(double) * (length + 1));
+      for(j = i + TURN + 1; j <= length; ++j)
+        sc_bp[i][j] = p1 * (values[i] + values[j]);
+    }
+
+    vrna_sc_add_up(vc, sc_up, constraint_type);
+    vrna_sc_add_bp(vc, (const double**)sc_bp, constraint_type);
+
+    for(i = 1; i <= length; ++i)
+      free(sc_bp[i]);
+    free(sc_bp);
+    free(sc_up);
+  } else {
+    assert(method == 'W');
+    vrna_sc_add_up(vc, values, constraint_type);
+  }
+
+  free(values);
+  free(sequence);
+#endif
+}
+
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
@@ -343,49 +418,31 @@ int main(int argc, char *argv[]){
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
 
-  vrna_alifold_compound *vc;
+  vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
-  if(with_shapes){
+  if(fold_constrained){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
-    float p1, p2;
-    char    method;
-    p1      = 1.8;
-    p2      = -0.6;
-    method  = 'M';
-    vc = vrna_alifold_get_compund_constraints((const char **)AS,
-                                              NULL,
-                                              NULL,
-                                              &md,
-                                              NULL,
-                                              NULL,
-                                              options);
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
+  }
 
-    if(shape_method){
-      if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
-        warn_user("Method for SHAPE reactivity data conversion not recognized!");
-      }
-    }
+  if(with_shapes)
+    add_shape_constraints(vc, shape_method, shape_files, shape_file_association, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
-    switch(method){
-      case  'M':  
-      default:    if(verbose)
-                    fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                  vrna_sc_add_mathews_ali(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, options);
-    }
+  min_en = vrna_alifold(vc, structure);
 
-    min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
-
-  } else { /* no shapes */
-    if (circular) {
-      int     i;
-      double  s = 0;
-      min_en    = circalifold((const char **)AS, structure);
-      for (i=0; AS[i]!=NULL; i++)
-        s += vrna_eval_structure(AS[i], structure, P);
-      real_en   = s/i;
-    } else {
-      min_en    = alifold((const char **)AS, structure);
-    }
+  if(md.circ){
+    int     i;
+    double  s = 0;
+    for (i=0; AS[i]!=NULL; i++)
+      s += vrna_eval_structure(AS[i], structure, vc->params);
+    real_en   = s/i;
   }
 
   float *ens    = (float *)space(2*sizeof(float));
@@ -433,7 +490,7 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
   /* free mfe arrays */
-  free_alifold_arrays();
+//  free_alifold_arrays();
 
   if (pf) {
     float energy, kT;

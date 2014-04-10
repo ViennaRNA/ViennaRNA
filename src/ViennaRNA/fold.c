@@ -1040,6 +1040,7 @@ vrna_update_fold_params(vrna_fold_compound *vc,
 
 PUBLIC void
 free_arrays(void){
+
   if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;

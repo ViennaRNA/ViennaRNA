@@ -35,6 +35,17 @@
 #define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
 
 
+/**
+ *  \brief fold_compound_type Single Sequence
+ */
+#define   VRNA_VC_TYPE_SINGLE     1
+
+/**
+ *  \brief fold_compound_type Sequence Alignment
+ */
+#define   VRNA_VC_TYPE_ALIGNMENT  2
+
+
 /* the definitions below indicate which arrays should be allocated upon retrieval of a matrices data structure */
 #define ALLOC_NOTHING     0
 #define ALLOC_F           1
@@ -357,28 +368,47 @@ typedef struct {
 
 typedef struct{
 
-  unsigned int length;
-  int   cutpoint;               /**<  \brief  The position of the (cofold) cutpoint within the provided sequence.
+  unsigned int  type;            /**<  \brief The type of the fold_compound */
+  unsigned int  length;
+  int           cutpoint;               /**<  \brief  The position of the (cofold) cutpoint within the provided sequence.
                                       If there is no cutpoint, this field will be set to -1
                                 */
-  char  *sequence;
-  short *sequence_encoding;
-  short *sequence_encoding2;
-  char  *ptype;                 /**<  \brief Pair type array
-                                      
-                                      Contains the numerical encoding of the pair type for each pair (i,j) used
-                                      in MFE, Partition function and Evaluation computations.
-                                      \note This array is always indexed via jindx, in contrast to previously
-                                      different indexing between mfe and pf variants!
-                                      \see  get_indx(), vrna_get_ptypes()
-                                */
-  char  *ptype_pf_compat;       /**<  \brief  ptype array indexed via iindx
-                                      \deprecated  This attribute will vanish in the future!
-                                      It's meant for backward compatibility only!
-                                */
+  union {
+    struct {
+      char  *sequence;
+      short *sequence_encoding;
+      short *sequence_encoding2;
+      char  *ptype;                 /**<  \brief Pair type array
+                                     
+                                          Contains the numerical encoding of the pair type for each pair (i,j) used
+                                          in MFE, Partition function and Evaluation computations.
+                                          \note This array is always indexed via jindx, in contrast to previously
+                                          different indexing between mfe and pf variants!
+                                          \see  get_indx(), vrna_get_ptypes()
+                                    */
+      char  *ptype_pf_compat;       /**<  \brief  ptype array indexed via iindx
+                                          \deprecated  This attribute will vanish in the future!
+                                          It's meant for backward compatibility only!
+                                    */
+      soft_constraintT  *sc;
+    };
+    struct {
+      char  **sequences;
+      unsigned int    n_seq;
+      char            *cons_seq;
+      short           *S_cons;
+      short           **S;
+      short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+      short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+      char            **Ss;
+      unsigned short  **a2s;
+      int *pscore;     /* precomputed array of pair types */
+      soft_constraintT  **scs;
+      int               oldAliEn;
+    };
+  };
 
   hard_constraintT  *hc;
-  soft_constraintT  *sc;
 
   mfe_matricesT     *matrices;
   pf_matricesT      *exp_matrices;
@@ -1001,6 +1031,10 @@ void destroy_pf_matrices(pf_matricesT *self);
 vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
                                             model_detailsT *md_p,
                                             unsigned int options);
+
+vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequence,
+                                                model_detailsT *md_p,
+                                                unsigned int options);
 
 void destroy_fold_compound(vrna_fold_compound *vc);
 
