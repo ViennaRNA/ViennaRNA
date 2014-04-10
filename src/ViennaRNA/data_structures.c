@@ -53,6 +53,7 @@
 PRIVATE char *tokenize(char *line, int *cut_point);
 PRIVATE void vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
 
 /*
 #################################
@@ -180,32 +181,147 @@ vrna_get_fold_compound( const char *sequence,
                         model_detailsT *md_p,
                         unsigned int options){
 
-  vrna_fold_compound *vc = NULL;
+  int length;
+  vrna_fold_compound *vc;
+
+  if(sequence == NULL) return NULL;
+
+  /* sanity check */
+  length = strlen(sequence);
+  if(length == 0)
+    nrerror("vrna_get_fold_compound: sequence length must be greater 0");
+
+  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
+  set_fold_compound(vc, md_p, options);
+
+  return vc;
+}
+
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound_ali( const char **sequences,
+                            model_detailsT *md_p,
+                            unsigned int options){
+
+  int s, n_seq, length;
+  vrna_fold_compound *vc;
+  
+  if(sequences == NULL) return NULL;
+
+  for(s=0;sequences[s];s++); /* count the sequences */
+
+  n_seq = s;
+
+  length = strlen(sequences[0]);
+  /* sanity check */
+  if(length == 0)
+    nrerror("vrna_get_fold_compound_ali: sequence length must be greater 0");
+  for(s = 0; s < n_seq; s++)
+    if(strlen(sequences[s]) != length)
+      nrerror("vrna_get_fold_compound_ali: uneqal sequence lengths in alignment");
+
+  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_ALIGNMENT;
+
+  vc->n_seq     = n_seq;
+  vc->length    = length;
+  vc->sequences = (char **)space(sizeof(char *) * (vc->n_seq + 1));
+  for(s = 0; sequences[s]; s++)
+    vc->sequences[s] = strdup(sequences[s]);
+
+  set_fold_compound(vc, md_p, options);
+
+  return vc;
+}
+
+PRIVATE void
+set_fold_compound(vrna_fold_compound *vc,
+                  model_detailsT *md_p,
+                  unsigned int options){
+
+
+  char *sequence, **sequences;
   model_detailsT      md;
-  unsigned int        alloc_vector, length;
+  unsigned int        alloc_vector, length, s;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
 
+  sequence    = NULL;
+  sequences   = NULL;
+
   /* default values */
-  cp     = -1;
+  cp            = -1;
   alloc_vector  = ALLOC_NOTHING;
-
-
-  /* sanity check */
-  length = (sequence) ? strlen(sequence) : 0;
-  if(length == 0)
-    nrerror("vrna_get_fold_compound@data_structures.c: sequence length must be greater 0");
-
-  seq2 = strdup(sequence);
-  seq = tokenize(seq2, &cp); /*  splice out the '&' if concatenated sequences and
-                                        reset cp... this should also be safe for
-                                        single sequences */
 
   /* get a copy of the model details */
   if(md_p)
     md = *md_p;
   else /* this fallback relies on global parameters and thus is not threadsafe */
     set_model_details(&md);
+
+  length    = vc->length;
+
+  if(vc->type == VRNA_VC_TYPE_SINGLE){
+    sequence  = vc->sequence;
+
+    seq2 = strdup(sequence);
+    seq = tokenize(seq2, &cp); /*  splice out the '&' if concatenated sequences and
+                                          reset cp... this should also be safe for
+                                          single sequences */
+    vc->cutpoint            = cp;
+    free(vc->sequence);
+    vc->sequence            = seq;
+    vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
+    vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
+    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
+    vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+    vc->sc                  = NULL;
+    free(seq2);
+  }
+  else if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+    sequences     = vc->sequences;
+
+    vc->cons_seq  = consensus((const char **)sequences);
+    vc->S_cons    = get_sequence_encoding(vc->cons_seq, 0, &md);
+
+    vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
+
+    vc->oldAliEn  = md.oldAliEn;
+
+    vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->a2s = (unsigned short **) space((vc->n_seq+1) * sizeof(unsigned short *));
+    vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
+
+    for (s = 0; s < vc->n_seq; s++) {
+#if 0
+      get_sequence_encoding_gapped( vc->sequences[s],
+                                    &(vc->S[s]),
+                                    &(vc->S5[s]),
+                                    &(vc->S3[s]),
+                                    &(vc->Ss[s]),
+                                    &(vc->a2s[s]),
+                                    &md);
+#else
+      vc->S5[s]  = (short *)         space((length + 2) * sizeof(short));
+      vc->S3[s]  = (short *)         space((length + 2) * sizeof(short));
+      vc->a2s[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
+      vc->Ss[s]  = (char *)          space((length + 2) * sizeof(char));
+      vc->S[s]   = (short *)         space((length + 2) * sizeof(short));
+      encode_ali_sequence(vc->sequences[s], vc->S[s], vc->S5[s], vc->S3[s], vc->Ss[s], vc->a2s[s], md.circ);
+    }
+#endif
+    vc->S5[vc->n_seq]  = NULL;
+    vc->S3[vc->n_seq]  = NULL;
+    vc->a2s[vc->n_seq] = NULL;
+    vc->Ss[vc->n_seq]  = NULL;
+    vc->S[vc->n_seq]   = NULL;
+
+    vc->scs       = NULL;
+  }
 
   /* prepare the allocation vector for the DP matrices */
   if(options & VRNA_OPTION_HYBRID){
@@ -227,15 +343,6 @@ vrna_get_fold_compound( const char *sequence,
   if(md.circ)
     alloc_vector |= ALLOC_CIRC;
 
-  /* start making the fold compound */
-  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
-  vc->cutpoint            = cp;
-  vc->sequence            = seq;
-  vc->length              = strlen(seq);
-  vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
-  vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
-  vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
-  vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
 
   if(options & VRNA_OPTION_MFE){
     vc->params    = vrna_get_energy_contributions(md);
@@ -256,13 +363,10 @@ vrna_get_fold_compound( const char *sequence,
 
   vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
 
-  vc->sc                  = NULL;
 
   vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
   vc->jindx               = get_indx(vc->length);
 
-  free(seq2);
-  return vc;
 }
 
 
@@ -285,8 +389,12 @@ vrna_add_mfe_matrices(vrna_fold_compound *vc,
 
   if(vc){
     vc->matrices = get_mfe_matrices_alloc(vc->length, alloc_vector);
-    if(vc->params->model_details.gquad)
-      vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+    if(vc->params->model_details.gquad){
+      if(vc->type == VRNA_VC_TYPE_SINGLE)
+        vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+      else if(vc->type == VRNA_VC_TYPE_ALIGNMENT);
+        vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+    }
 
 //    vrna_update_pf_params(vc, NULL);
   }
@@ -443,6 +551,9 @@ vrna_alifold_get_compund_constraints( const char **sequences,
   for(s = 0; sequences[s]; s++)
     vc->sequences[s]  = strdup(sequences[s]);
 
+  vc->cons_seq      = consensus(sequences);
+  vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &md);
+
   vc->length          = strlen(sequences[0]);
   vc->pscore          = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
@@ -476,8 +587,6 @@ vrna_alifold_get_compund_constraints( const char **sequences,
 
     /* get gquadruplex matrix if needed */
     if(md.gquad){
-      vc->cons_seq      = consensus(sequences);
-      vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &md);
       vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
     }
 
@@ -499,7 +608,7 @@ vrna_alifold_get_compund_constraints( const char **sequences,
       alloc_vector |= ALLOC_CIRC;
     if(md.uniq_ML)
       alloc_vector |= ALLOC_UNIQ;
-//    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
+    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
     vc->exp_matrices = NULL;
 
     /* get gquadruplex matrix if needed */

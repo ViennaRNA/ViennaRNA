@@ -806,6 +806,55 @@ vrna_sc_add(vrna_fold_compound *vc,
 }
 
 PUBLIC void
+vrna_sc_add_ali(vrna_fold_compound *vc,
+                const double **constraints,
+                unsigned int options){
+
+  unsigned int      n, s;
+  soft_constraintT  *sc;
+
+  if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
+    if(!vc->sc)
+      vc->scs  = (soft_constraintT **)space(sizeof(soft_constraintT*) * (vc->n_seq + 1));
+    for(s = 0; s < vc->n_seq; s++){
+      sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
+      sc->constraints       = NULL;
+      sc->free_energies     = NULL;
+      sc->en_basepair       = NULL;
+      sc->en_stack          = NULL;
+      sc->exp_en_stack      = NULL;
+      sc->boltzmann_factors = NULL;
+      sc->exp_en_basepair   = NULL;
+      sc->f                 = NULL;
+      sc->exp_f             = NULL;
+      sc->data              = NULL;
+
+      if(vc->scs[s])
+        vrna_sc_destroy(vc->scs[s]);
+      vc->scs[s]  = sc;
+    }
+
+#if 0
+    n                     = vc->length;
+    if(constraints){
+      /*  copy the provided constraints to the data structure.
+          Here, we just assume that the softconstraints are already free
+          energy contributions per nucleotide.
+          We can also apply any function to the data in sc->constraints
+          at this point if we want to...
+      */
+      sc->constraints = (double *)space(sizeof(double) * (n + 1));
+      memcpy((void *)(sc->constraints), (const void *)constraints, sizeof(double) * (n+1));
+
+      if(options & VRNA_CONSTRAINT_SOFT_UP)
+        vrna_sc_add_up(vc, constraints, options);
+
+    }
+#endif
+  }
+}
+
+PUBLIC void
 vrna_sc_add_bp(vrna_fold_compound *vc,
                         const double **constraints,
                         unsigned int options){
@@ -910,33 +959,21 @@ vrna_sc_add_mathews( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
-                                        const char **shape_files,
-                                        const int *shape_file_association,
-                                        double m,
-                                        double b,
-                                        unsigned int options){
+vrna_sc_add_mathews_ali( vrna_fold_compound *vc,
+                         const char **shape_files,
+                         const int *shape_file_association,
+                         double m,
+                         double b,
+                         unsigned int options){
 
   float   reactivity, *reactivities, e1;
   char    *line, nucleotide, *sequence;
   int     s, i, p, r, position, *pseudo_energies, n_seq;
 
   n_seq = vc->n_seq;
-  vc->sc = (soft_constraintT **)space(sizeof(soft_constraintT *) * (n_seq + 1));
-  for(s = 0; s < n_seq; s++){
-    soft_constraintT *sc = (soft_constraintT *)space(sizeof(soft_constraintT));
-    sc->constraints       = NULL;
-    sc->free_energies     = NULL;
-    sc->en_basepair       = NULL;
-    sc->en_stack          = NULL;
-    sc->exp_en_stack      = NULL;
-    sc->boltzmann_factors = NULL;
-    sc->exp_en_basepair   = NULL;
-    sc->f                 = NULL;
-    sc->exp_f             = NULL;
-    sc->data              = NULL;
-    vc->sc[s]             = sc;
-  }
+
+  if(!vc->sc)
+    vrna_sc_add_ali(vc, NULL, options);
 
   for(s = 0; shape_file_association[s] != -1; s++){
     if(shape_file_association[s] > n_seq)
@@ -991,9 +1028,9 @@ vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
           reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
       }
 
-      /* create the pseudo energy lookup table for the recursions */
+      /* begin actual storage of the pseudo energies */
+
       if(options & VRNA_CONSTRAINT_SOFT_MFE){
-        //printf("preparing pseudo energies for MFE recursions\n");
         pseudo_energies = (int *)space(sizeof(int) * (vc->length + 1));
         for(p = 0, i = 1; i<=vc->length; i++){
           e1 = (i - p > 0) ? reactivities[i - p] : 0.;
@@ -1002,11 +1039,10 @@ vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
           }
           pseudo_energies[i] = (int)(e1 * 100.);
         }
-        vc->sc[shape_file_association[s]]->en_stack = pseudo_energies;
+        vc->scs[shape_file_association[s]]->en_stack = pseudo_energies;
       }
 
       if(options & VRNA_CONSTRAINT_SOFT_PF){
-        //printf("preparing pseudo energies for PF recursions\n");
         FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
         for(i=0;i<=vc->length;i++)
           exp_pe[i] = 1.;
@@ -1016,9 +1052,9 @@ vrna_sc_add_mathews_ali( vrna_alifold_compound *vc,
           if(vc->sequences[shape_file_association[s]][i-1] == '-'){
             p++; e1 = 0.;
           }
-          exp_pe[i] = exp(-(e1 * 1000.) / /* ((temperature+K0)*GASCONST) */ vc->exp_params->kT );
+          exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
         }
-        vc->sc[shape_file_association[s]]->exp_en_stack = exp_pe;
+        vc->scs[shape_file_association[s]]->exp_en_stack = exp_pe;
       }
       
       free(reactivities);

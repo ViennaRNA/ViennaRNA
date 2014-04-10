@@ -744,46 +744,44 @@ get_sequence_encoding_gapped( const char *sequence,
                               model_detailsT *md){
 
   unsigned  int   i,l;
-            short *S, *s5, *s3;
-  unsigned  short *as, p;
-  char            *ss;
+  unsigned  short p;
 
   l     = strlen(sequence);
 
-  s5   = (short *)         space((l + 2) * sizeof(short));
-  s3   = (short *)         space((l + 2) * sizeof(short));
-  as  = (unsigned short *)space((l + 2) * sizeof(unsigned short));
-  ss   = (char *)          space((l + 2) * sizeof(char));
-  S    = (short *)         space((l + 2) * sizeof(short));
+  (*s5_p)   = (short *)         space((l + 2) * sizeof(short));
+  (*s3_p)   = (short *)         space((l + 2) * sizeof(short));
+  (*as_p)  = (unsigned short *)space((l + 2) * sizeof(unsigned short));
+  (*ss_p)   = (char *)          space((l + 2) * sizeof(char));
+  (*S_p)    = (short *)         space((l + 2) * sizeof(short));
 
 
-  S[0]  = (short) l;
-  s5[0] = s5[1] = 0;
+  (*S_p)[0]  = (short) l;
+  (*s5_p)[0] = (*s5_p)[1] = 0;
 
   /* make numerical encoding of sequence */
   for(i=1; i<=l; i++){
-    S[i] = (short) get_char_encoding(toupper(sequence[i-1]), md);
+    (*S_p)[i] = (short) get_char_encoding(toupper(sequence[i-1]), md);
   }
 
   if(md->oldAliEn){
     /* use alignment sequences in all energy evaluations */
-    ss[0]=sequence[0];
+    (*ss_p)[0]=sequence[0];
     for(i=1; i<l; i++){
-      s5[i] = S[i-1];
-      s3[i] = S[i+1];
-      ss[i] = sequence[i];
-      as[i] = i;
+      (*s5_p)[i] = (*S_p)[i-1];
+      (*s3_p)[i] = (*S_p)[i+1];
+      (*ss_p)[i] = sequence[i];
+      (*as_p)[i] = i;
     }
-    ss[l]   = sequence[l];
-    as[l]   = l;
-    s5[l]   = S[l-1];
-    s3[l]   = 0;
-    S[l+1]  = S[1];
-    s5[1]   = 0;
+    (*ss_p)[l]   = sequence[l];
+    (*as_p)[l]   = l;
+    (*s5_p)[l]   = (*S_p)[l-1];
+    (*s3_p)[l]   = 0;
+    (*S_p)[l+1]  = (*S_p)[1];
+    (*s5_p)[1]   = 0;
     if(md->circ){
-      s5[1]   = S[l];
-      s3[l]   = S[1];
-      ss[l+1] = S[1];
+      (*s5_p)[1]   = (*S_p)[l];
+      (*s3_p)[l]   = (*S_p)[1];
+      (*ss_p)[l+1] = (*S_p)[1];
     }
   }
   else{
@@ -792,37 +790,37 @@ get_sequence_encoding_gapped( const char *sequence,
         char c5;
         c5 = sequence[i-1];
         if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
-        s5[1] = S[i];
+        (*s5_p)[1] = (*S_p)[i];
         break;
       }
       for (i=1; i<=l; i++) {
         char c3;
         c3 = sequence[i-1];
         if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
-        s3[l] = S[i];
+        (*s3_p)[l] = (*S_p)[i];
         break;
       }
     }
-    else  s5[1]=s3[l]=0;
+    else  (*s5_p)[1]=(*s3_p)[l]=0;
 
     for(i=1,p=0; i<=l; i++){
       char c5;
       c5 = sequence[i-1];
       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.'))
-        s5[i+1]=s5[i];
+        (*s5_p)[i+1]=(*s5_p)[i];
       else { /* no gap */
-        ss[p++]=sequence[i-1]; /*start at 0!!*/
-        s5[i+1]=S[i];
+        (*ss_p)[p++]=sequence[i-1]; /*start at 0!!*/
+        (*s5_p)[i+1]=(*S_p)[i];
       }
-      as[i]=p;
+      (*as_p)[i]=p;
     }
     for (i=l; i>=1; i--) {
       char c3;
       c3 = sequence[i-1];
       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.'))
-        s3[i-1]=s3[i];
+        (*s3_p)[i-1]=(*s3_p)[i];
       else
-        s3[i-1]=S[i];
+        (*s3_p)[i-1]=(*S_p)[i];
     }
   }
 }

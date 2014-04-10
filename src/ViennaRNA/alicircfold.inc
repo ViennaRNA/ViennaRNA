@@ -2,7 +2,7 @@
 /* this file contains code for alifolding circular RNAs */
 /* it's #include'd into alifold.c */
 
-float circalifold(const char **strings, char *structure) {
+PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
   /* variant of alifold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -12,34 +12,40 @@ float circalifold(const char **strings, char *structure) {
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
              (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int *fM2, Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi;
+  int Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int FcMd3, FcMd5;
   int i,j, p,q,length, energy;
-  int n_seq, psc, s=0;
-  int *type;
+  int n_seq, psc;
+  int *type, s;
 
-  circular = 1;
-  /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
-  length = (int) strlen(strings[0]);
+  short           **S     = vc->S;                                                                   
+  short           **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short           **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char            **Ss    = vc->Ss;                                                                   
+  unsigned short  **a2s   = vc->a2s;                                                                   
+  paramT          *P      = vc->params;                                                                   
+  model_detailsT  *md     = &(P->model_details);
+  int             *indx   = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c      = vc->matrices->c;     /* energy array, given that i-j pair */                       
+  int             *fML    = vc->matrices->fML;     /* multi-loop auxiliary energy array */                       
+  int             *fM2    = vc->matrices->fM2;
+  int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
 
-#ifdef USE_OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_alifold(length);
-#else
-  if (length > init_length) init_alifold(length);
-#endif
-  if (fabs(P->temperature - temperature)>1e-6) update_alifold_params();
+  hard_constraintT *hc    = vc->hc;
+  soft_constraintT **sc   = vc->scs;
+
+  char **strings;
+  strings = vc->sequences;
+  n_seq   = vc->n_seq;
+  length  = vc->length;
+
+  int   dangle_model  = P->model_details.dangles;
+  int   noGUclosure   = P->model_details.noGUclosure;
+  int   *rtype        = &(P->model_details.rtype[0]);
+  type                = (int *) space(n_seq*sizeof(int));
 
   oldAliEn=1; /* TODO allow new gap treatment in alicircfold() */
-  for (s=0; strings[s]!=NULL; s++);
-  n_seq = s;
-  type = (int *) space(n_seq*sizeof(int));
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
-  make_pscores((const short **) S, strings, n_seq, structure);
-
-  /* compute all arrays used by fold() for linear RNA */
-  energy = fill_arrays((const char **) strings);
 
   /* extra arrays for circfold() */
   fM2 =  (int *) space(sizeof(int)*(length+2));
@@ -61,7 +67,7 @@ float circalifold(const char **strings, char *structure) {
         char loopseq[10];
         int rt, si1, sj1;
 
-        type[s] = pair[S[s][i]][S[s][j]];
+        type[s] = md->pair[S[s][i]][S[s][j]];
         if (type[s]==0) type[s]=7;
 
         rt=rtype[type[s]];
@@ -94,7 +100,7 @@ float circalifold(const char **strings, char *structure) {
           for (energy = s=0; s<n_seq; s++) {
             int rt;
             rt=rtype[type[s]];
-            type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+            type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
             if (type_2 ==0) type_2=7;
             si1 = (i==1)? S[s][length] : S[s][i-1];
             sq1 = (q==length)? S[s][1] : S[s][q+1];
@@ -130,17 +136,17 @@ float circalifold(const char **strings, char *structure) {
   Fc = MIN2(Fc, FcM);
 
   if (FcH==Fc) {
-    sector[++s].i = Hi;
-    sector[s].j = Hj;
-    sector[s].ml = 2;
+    bt_stack[++(*bt)].i = Hi;
+    bt_stack[(*bt)].j = Hj;
+    bt_stack[(*bt)].ml = 2;
   }
   else if (FcI==Fc) {
-    sector[++s].i = Ii;
-    sector[s].j = Ij;
-    sector[s].ml = 2;
-    sector[++s].i = Ip;
-    sector[s].j = Iq;
-    sector[s].ml = 2;
+    bt_stack[++(*bt)].i = Ii;
+    bt_stack[(*bt)].j = Ij;
+    bt_stack[(*bt)].ml = 2;
+    bt_stack[++(*bt)].i = Ip;
+    bt_stack[(*bt)].j = Iq;
+    bt_stack[(*bt)].ml = 2;
   }
   else if (FcM==Fc) { /* grumpf we found a Multiloop */
     int fm, u;
@@ -148,38 +154,20 @@ float circalifold(const char **strings, char *structure) {
     fm = fM2[Mi+1];
     for (u=Mi+TURN+1; u<length-TURN; u++)
       if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
-        sector[++s].i=Mi+1;
-        sector[s].j=u;
-        sector[s].ml = 1;
-        sector[++s].i=u+1;
-        sector[s].j=length;
-        sector[s].ml = 1;
+        bt_stack[++(*bt)].i=Mi+1;
+        bt_stack[(*bt)].j=u;
+        bt_stack[(*bt)].ml = 1;
+        bt_stack[++(*bt)].i=u+1;
+        bt_stack[(*bt)].j=length;
+        bt_stack[(*bt)].ml = 1;
         break;
       }
-    sector[++s].i = 1;
-    sector[s].j = Mi;
-    sector[s].ml = 1;
+    bt_stack[++(*bt)].i = 1;
+    bt_stack[(*bt)].j = Mi;
+    bt_stack[(*bt)].ml = 1;
   }
-  backtrack(strings, s);
-
-  vrna_parenthesis_structure(structure, base_pair2, length);
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanishs from within the package!
-  */
-  base_pair = base_pair2;
-  /*
-  {
-    if(base_pair) free(base_pair);
-    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
-    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
-  }
-  */
-  free(fM2);
-  free(type);
-  free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
-
-  return (float) Fc/(n_seq*100.);
+  vc->matrices->FcH = FcH;
+  vc->matrices->FcI = FcI;
+  vc->matrices->FcM = FcM;
+  vc->matrices->Fc  = Fc;
 }

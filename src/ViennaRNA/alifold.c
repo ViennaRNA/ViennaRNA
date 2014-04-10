@@ -21,11 +21,12 @@
 #include <string.h>
 #include <limits.h>
 
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/pair_mat.h"
+#include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/gquad.h"
@@ -55,35 +56,13 @@
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE short           **S     = NULL;
-PRIVATE short           **S5    = NULL;     /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3    = NULL;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss    = NULL;
-PRIVATE unsigned short  **a2s   = NULL;
-PRIVATE paramT          *P      = NULL;
-PRIVATE int             *indx   = NULL;     /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int             *c      = NULL;     /* energy array, given that i-j pair */
-PRIVATE int             *f5     = NULL;     /* energy of 5' end */
-PRIVATE int             *fML    = NULL;     /* multi-loop auxiliary energy array */
-PRIVATE int             *pscore = NULL;     /* precomputed array of pair types */
-PRIVATE int             init_length = -1;
-PRIVATE sect              sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-PRIVATE bondT             *base_pair2 = NULL;
-PRIVATE int               circular    = 0;
-PRIVATE int               with_gquad  = 0;
 
-PRIVATE int               *ggg        = NULL; /* minimum free energies of the gquadruplexes */
-PRIVATE char              *cons_seq   = NULL;
-PRIVATE short             *S_cons     = NULL;
-PRIVATE hard_constraintT  **hc         = NULL;
-PRIVATE soft_constraintT  **sc         = NULL;
-
+/* some backward compatibility stuff */
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(S, S5, S3, Ss, a2s, P, indx, c, f5, fML,\
-                          pscore, init_length, sector, base_pair2,\
-                          ggg, with_gquad, cons_seq, S_cons, sc, hc)
+#pragma omp threadprivate(backward_compat_compound)
 
 #endif
 
@@ -93,85 +72,35 @@ PRIVATE soft_constraintT  **sc         = NULL;
 #################################
 */
 
-PRIVATE void  init_alifold(int length);
-PRIVATE void  get_arrays(unsigned int size);
-PRIVATE void  make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
-PRIVATE int   fill_arrays(const char **strings);
-PRIVATE void  backtrack(const char **strings, int s);
+PRIVATE int   fill_arrays(vrna_fold_compound *vc);
+PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
+PRIVATE void  backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE void  make_pscores(vrna_fold_compound *vc, const char *structure);
 
-PRIVATE void    energy_of_alistruct_pt(const char **sequences,short * ptable, int n_seq, int *energy);
-PRIVATE void    stack_energy_pt(int i, const char **sequences, short *ptable,  int n_seq, int *energy);
-PRIVATE int     ML_Energy_pt(int i, int n_seq, short *pt);
-PRIVATE int     EL_Energy_pt(int i, int n_seq, short *pt);
+PRIVATE void    energy_of_alistruct_pt(vrna_fold_compound *vc, short * ptable, int *energy);
+PRIVATE void    stack_energy_pt(vrna_fold_compound *vc, int i, short *ptable, int *energy);
+PRIVATE int     ML_Energy_pt(vrna_fold_compound *vc, int i, short *pt);
+PRIVATE int     EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt);
 
-PRIVATE void    en_corr_of_loop_gquad(int i,
+PRIVATE void    en_corr_of_loop_gquad(vrna_fold_compound *vc,
+                                      int i,
                                       int j,
-                                      const char **sequences,
                                       const char *structure,
                                       short *pt,
                                       int *loop_idx,
-                                      int n_seq,
                                       int en[2]);
+
+PRIVATE float   wrap_alifold( const char **strings,
+                              char *structure,
+                              paramT *parameters,
+                              int is_constrained,
+                              int is_circular);
 
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-
-/* unsafe function that will be replaced by a threadsafe companion in the future */
-PRIVATE void init_alifold(int length){
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  if (length < 1) nrerror("initialize_fold: argument must be greater 0");
-  free_alifold_arrays();
-  get_arrays((unsigned) length);
-  init_length = length;
-
-  indx = get_indx((unsigned)length);
-
-  update_alifold_params();
-}
-
-PRIVATE void get_arrays(unsigned int size){
-  if(size >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_arrays@alifold.c: sequence length exceeds addressable range");
-
-  c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  pscore  = (int *) space(sizeof(int)*((size*(size+1))/2+2));
-  f5      = (int *) space(sizeof(int)*(size+2));
-  if(base_pair2) free(base_pair2);
-
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
-}
-
-PUBLIC  void  free_alifold_arrays(void){
-  if(indx)        free(indx);
-  if(c)           free(c);
-  if(fML)         free(fML);
-  if(f5)          free(f5);
-  if(pscore)      free(pscore);
-  if(base_pair2)  free(base_pair2);
-  if(P)           free(P);
-  if(ggg)         free(ggg);
-  if(cons_seq)    free(cons_seq);
-  if(S_cons)      free(S_cons);
-
-  indx = c = fML = f5 = ggg = NULL;
-  pscore      = NULL;
-  base_pair   = NULL;
-  base_pair2  = NULL;
-  P           = NULL;
-  init_length = 0;
-  cons_seq    = NULL;
-  S_cons      = NULL; 
-}
-
 
 PUBLIC void
 alloc_sequence_arrays(const char **sequences,
@@ -226,91 +155,163 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
   free(*Ss);  *Ss   = NULL;
 }
 
-PUBLIC void update_alifold_params(void){
-  if(P) free(P);
-  P = scale_parameters();
-  make_pair_matrix();
-  if (init_length < 0) init_length=0;
+PUBLIC  void
+vrna_update_alifold_params( vrna_fold_compound *vc,
+                            paramT *parameters){
+
+  if(vc){
+    if(vc->params)
+      free(vc->params);
+    if(parameters){
+      vc->params = get_parameter_copy(parameters);
+    } else {
+      model_detailsT md;
+      set_model_details(&md);
+      vc->params = get_scaled_parameters(temperature, md);
+    }
+
+    /* what about re-setting the backward compatibility compound here? */
+    backward_compat_compound = vc;
+  }
 }
 
-PUBLIC float
-vrna_alifold_tmp( const char **strings,
+
+PRIVATE float
+wrap_alifold( const char **strings,
               char *structure,
-              vrna_alifold_compound *vc){
+              paramT *parameters,
+              int is_constrained,
+              int is_circular){
 
-  sc = vc->sc;
-  hc = vc->hc;
-  return alifold(strings, structure);
-}
-
-
-PUBLIC float
-alifold(const char **strings,
-        char *structure){
-
-  int  length, s, n_seq;
-
-  circular = 0;
-  length = (int) strlen(strings[0]);
+  vrna_fold_compound  *vc;
+  paramT              *P;
 
 #ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_alifold(length);
-#else
-  if (length>init_length) init_alifold(length);
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
 #endif
-  if (fabs(P->temperature - temperature)>1e-6)  update_alifold_params();
 
-  for (s=0; strings[s]!=NULL; s++);
-  n_seq       = s;
-  with_gquad  = P->model_details.gquad;
+  /* we need the parameter structure for hard constraints */
+  if(parameters){
+    P = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+  P->model_details.circ = is_circular;
 
-  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
-    if(base_pair2)
-      free(base_pair2);
-    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
+  vc = vrna_get_fold_compound_ali(strings, &(P->model_details), VRNA_OPTION_MFE);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
   }
 
-  alloc_sequence_arrays(strings, &S, &S5, &S3, &a2s, &Ss, circular);
-  make_pscores((const short **) S, strings, n_seq, structure);
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
-  (void)fill_arrays((const char **)strings);
-
-  backtrack((const char **)strings, 0);
-
-  vrna_parenthesis_structure(structure, base_pair2, length);
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanishs from within the package!
-  */
-  base_pair = base_pair2;
-  /*
-  {
-    if(base_pair) free(base_pair);
-    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
-    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
-  */
-  free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
+
+  if(backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
+
+  backward_compat_compound = vc;
+
+  return vrna_alifold(vc, structure);
+}
+
+
+
+PUBLIC float
+vrna_alifold( vrna_fold_compound *vc,
+              char *structure){
+
+  int  length, s, n_seq, energy;
+  char **strings;
+  sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  bondT *bp;
+
+  strings     = vc->sequences;
+  length      = vc->length;
+  n_seq       = vc->n_seq;
+  s           = 0;
+
+  make_pscores(vc, structure);
+
+  energy = fill_arrays(vc);
+  if(vc->params->model_details.circ){
+    fill_arrays_circ(vc, bt_stack, &s);
+    energy = vc->matrices->Fc;
+  }
+
+  if(structure && vc->params->model_details.backtrack){
+    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
+    backtrack(vc, bp, bt_stack, s);
+
+    vrna_parenthesis_structure(structure, bp, length);
+
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "base_pair" vanishs from within the package!
+    */
+    {
+      if(base_pair) free(base_pair);
+      base_pair = bp;
+    }
+  }
 
   if (backtrack_type=='C')
-    return (float) c[indx[length]+1]/(n_seq*100.);
+    return (float) vc->matrices->c[vc->jindx[length]+1]/(n_seq*100.);
   else if (backtrack_type=='M')
-    return (float) fML[indx[length]+1]/(n_seq*100.);
+    return (float) vc->matrices->fML[vc->jindx[length]+1]/(n_seq*100.);
   else
-    return (float) f5[length]/(n_seq*100.);
+    return (float) energy/(n_seq*100.);
 }
 
 
 /**
 *** the actual forward recursion to fill the energy arrays
 **/
-PRIVATE int fill_arrays(const char **strings) {
+PRIVATE int
+fill_arrays(vrna_fold_compound *vc){
+
   int   i, j, k, p, q, length, energy, new_c;
   int   decomp, MLenergy, new_fML;
   int   s, n_seq, *type, type_2, tt;
+
+  short           **S     = vc->S;                                                                   
+  short           **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short           **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char            **Ss    = vc->Ss;                                                                   
+  unsigned short  **a2s   = vc->a2s;                                                                   
+  paramT          *P      = vc->params;                                                                   
+  model_detailsT  *md     = &(P->model_details);
+  int             *indx   = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c      = vc->matrices->c;     /* energy array, given that i-j pair */                       
+  int             *f5     = vc->matrices->f5;     /* energy of 5' end */                                        
+  int             *fML    = vc->matrices->fML;     /* multi-loop auxiliary energy array */                       
+  int             *ggg    = vc->matrices->ggg;
+  int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
+  char            *cons_seq = vc->cons_seq;
+  short           *S_cons   = vc->S_cons;
+  int             *rtype    = &(P->model_details.rtype[0]);
+
+  hard_constraintT *hc    = vc->hc;
+  soft_constraintT **sc   = vc->scs;
+
   int   *cc;        /* linear array for calculating canonical structures */
   int   *cc1;       /*   "     "        */
   int   *Fmi;       /* holds row i of fML (avoids jumps in memory) */
@@ -318,10 +319,10 @@ PRIVATE int fill_arrays(const char **strings) {
   int   *DMLi1;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
   int   *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 
-  /* count number of sequences */
-  for (n_seq=0; strings[n_seq]!=NULL; n_seq++);
-
-  length = strlen(strings[0]);
+  char **strings;
+  strings = vc->sequences;
+  n_seq   = vc->n_seq;
+  length  = vc->length;
 
   type  = (int *) space(n_seq*sizeof(int));
   cc    = (int *) space(sizeof(int)*(length+2));
@@ -334,13 +335,6 @@ PRIVATE int fill_arrays(const char **strings) {
   /* init energies */
 
   int max_bpspan = (P->model_details.max_bp_span > 0) ? P->model_details.max_bp_span : length;
-
-  if(with_gquad){
-    cons_seq = consensus(strings);
-    /* make g-island annotation of the consensus */
-    S_cons = encode_sequence(cons_seq, 0);
-    ggg = get_gquad_ali_matrix(S_cons, S, n_seq, P);
-  }
 
   for (j=1; j<=length; j++){
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -356,7 +350,7 @@ PRIVATE int fill_arrays(const char **strings) {
       ij = indx[j]+i;
 
       for (s=0; s<n_seq; s++) {
-        type[s] = pair[S[s][i]][S[s][j]];
+        type[s] = md->pair[S[s][i]][S[s][j]];
         if (type[s]==0) type[s]=7;
       }
 
@@ -385,7 +379,7 @@ PRIVATE int fill_arrays(const char **strings) {
           for (q = minq; q < j; q++) {
             if (pscore[indx[q]+p]<MINPSCORE) continue;
             for (energy = s=0; s<n_seq; s++) {
-              type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
               if (type_2 == 0) type_2 = 7;
               energy += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
                                    S3[s][i], S5[s][j],
@@ -434,7 +428,7 @@ PRIVATE int fill_arrays(const char **strings) {
         MLenergy = decomp + n_seq*P->MLclosing;
         new_c = MIN2(new_c, MLenergy);
 
-        if(with_gquad){
+        if(P->model_details.gquad){
           decomp = 0;
           for(s=0;s<n_seq;s++){
             tt = type[s];
@@ -516,7 +510,7 @@ PRIVATE int fill_arrays(const char **strings) {
       }
       new_fML = MIN2(energy, new_fML);
 
-      if(with_gquad){
+      if(P->model_details.gquad){
         decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
         new_fML = MIN2(new_fML, decomp);
       }
@@ -549,14 +543,14 @@ PRIVATE int fill_arrays(const char **strings) {
                 if (c[indx[j]+1]<INF){
                   energy = c[indx[j]+1];
                   for(s = 0; s < n_seq; s++){
-                    tt = pair[S[s][1]][S[s][j]];
+                    tt = md->pair[S[s][1]][S[s][j]];
                     if(tt==0) tt=7;
                     energy += E_ExtLoop(tt, -1, -1, P);
                   }
                   f5[j] = MIN2(f5[j], energy);
                 }
 
-                if(with_gquad){
+                if(P->model_details.gquad){
                   if(ggg[indx[j]+1] < INF)
                     f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
@@ -565,14 +559,14 @@ PRIVATE int fill_arrays(const char **strings) {
                   if(c[indx[j]+i]<INF){
                     energy = f5[i-1] + c[indx[j]+i];
                     for(s = 0; s < n_seq; s++){
-                      tt = pair[S[s][i]][S[s][j]];
+                      tt = md->pair[S[s][i]][S[s][j]];
                       if(tt==0) tt=7;
                       energy += E_ExtLoop(tt, -1, -1, P);
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
 
-                  if(with_gquad){
+                  if(P->model_details.gquad){
                     if(ggg[indx[j]+i] < INF)
                       f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
@@ -585,14 +579,14 @@ PRIVATE int fill_arrays(const char **strings) {
                 if (c[indx[j]+1]<INF) {
                   energy = c[indx[j]+1];
                   for(s = 0; s < n_seq; s++){
-                    tt = pair[S[s][1]][S[s][j]];
+                    tt = md->pair[S[s][1]][S[s][j]];
                     if(tt==0) tt=7;
                     energy += E_ExtLoop(tt, -1, (j<length) ? S3[s][j] : -1, P);
                   }
                   f5[j] = MIN2(f5[j], energy);
                 }
 
-                if(with_gquad){
+                if(P->model_details.gquad){
                   if(ggg[indx[j]+1] < INF)
                     f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
@@ -601,14 +595,14 @@ PRIVATE int fill_arrays(const char **strings) {
                   if (c[indx[j]+i]<INF) {
                     energy = f5[i-1] + c[indx[j]+i];
                     for(s = 0; s < n_seq; s++){
-                      tt = pair[S[s][i]][S[s][j]];
+                      tt = md->pair[S[s][i]][S[s][j]];
                       if(tt==0) tt=7;
                       energy += E_ExtLoop(tt, S5[s][i], (j < length) ? S3[s][j] : -1, P);
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
 
-                  if(with_gquad){
+                  if(P->model_details.gquad){
                     if(ggg[indx[j]+i] < INF)
                       f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
@@ -632,7 +626,12 @@ PRIVATE int fill_arrays(const char **strings) {
 /**
 *** backtrack in the energy matrices to obtain a structure with MFE
 **/
-PRIVATE void backtrack(const char **strings, int s) {
+PRIVATE void
+backtrack(vrna_fold_compound *vc,
+          bondT *bp_stack,
+          sect bt_stack[],
+          int s) {
+
   /*------------------------------------------------------------------
     trace back through the "c", "f5" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
@@ -645,25 +644,48 @@ PRIVATE void backtrack(const char **strings, int s) {
   int   b=0, cov_en = 0;
   int   n_seq;
   int *type;
-  length = strlen(strings[0]);
-  for (n_seq=0; strings[n_seq]!=NULL; n_seq++);
-  type = (int *) space(n_seq*sizeof(int));
+  char **strings;
+  short           **S     = vc->S;                                                                   
+  short           **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short           **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char            **Ss    = vc->Ss;                                                                   
+  unsigned short  **a2s   = vc->a2s;                                                                   
+  paramT          *P      = vc->params;                                                                   
+  model_detailsT  *md     = &(P->model_details);
+  int             *indx   = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c      = vc->matrices->c;     /* energy array, given that i-j pair */                       
+  int             *f5     = vc->matrices->f5;     /* energy of 5' end */                                        
+  int             *fML    = vc->matrices->fML;     /* multi-loop auxiliary energy array */                       
+  int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
+  int             *ggg    = vc->matrices->ggg;
+  char            *cons_seq = vc->cons_seq;
+  short           *S_cons   = vc->S_cons;
+  int             *rtype    = &(P->model_details.rtype[0]);
+
+  hard_constraintT *hc    = vc->hc;
+  soft_constraintT **sc   = vc->scs;
+
+  strings = vc->sequences;
+  n_seq   = vc->n_seq;
+  length  = vc->length;
+
+  type    = (int *) space(n_seq*sizeof(int));
 
   if (s==0) {
-    sector[++s].i = 1;
-    sector[s].j = length;
-    sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
+    bt_stack[++s].i = 1;
+    bt_stack[s].j = length;
+    bt_stack[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
   }
   while (s>0) {
     int ss, ml, fij, fi, cij, traced, i1, j1, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
-    i  = sector[s].i;
-    j  = sector[s].j;
-    ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
+    i  = bt_stack[s].i;
+    j  = bt_stack[s].j;
+    ml = bt_stack[s--].ml;   /* ml is a flag indicating if backtracking is to
                               occur in the fML- (1) or in the f-array (0) */
     if (ml==2) {
-      base_pair2[++b].i = i;
-      base_pair2[b].j   = j;
+      bp_stack[++b].i = i;
+      bp_stack[b].j   = j;
       cov_en += pscore[indx[j]+i];
       goto repeat1;
     }
@@ -674,9 +696,9 @@ PRIVATE void backtrack(const char **strings, int s) {
     fi  = (ml)?(fML[indx[j-1]+i]+n_seq*P->MLbase):f5[j-1];
 
     if (fij == fi) {  /* 3' end is unpaired */
-      sector[++s].i = i;
-      sector[s].j   = j-1;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = i;
+      bt_stack[s].j   = j-1;
+      bt_stack[s].ml  = ml;
       continue;
     }
 
@@ -689,14 +711,14 @@ PRIVATE void backtrack(const char **strings, int s) {
                     if (c[indx[j]+i]<INF) {
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
-                        type[ss] = pair[S[ss][i]][S[ss][j]];
+                        type[ss] = md->pair[S[ss][i]][S[ss][j]];
                         if (type[ss]==0) type[ss] = 7;
                         en += E_ExtLoop(type[ss], -1, -1, P);
                       }
                       if (fij == en) traced=j;
                     }
 
-                    if(with_gquad){
+                    if(P->model_details.gquad){
                       if(fij == f5[i-1] + ggg[indx[j]+i]){
                         /* found the decomposition */
                         traced = j; jj = i - 1; gq = 1;
@@ -714,14 +736,14 @@ PRIVATE void backtrack(const char **strings, int s) {
                     if (c[indx[j]+i]<INF) {
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
-                        type[ss] = pair[S[ss][i]][S[ss][j]];
+                        type[ss] = md->pair[S[ss][i]][S[ss][j]];
                         if (type[ss]==0) type[ss] = 7;
                         en += E_ExtLoop(type[ss], (i>1) ? S5[ss][i]: -1, (j < length) ? S3[ss][j] : -1, P);
                       }
                       if (fij == en) traced=j;
                     }
 
-                    if(with_gquad){
+                    if(P->model_details.gquad){
                       if(fij == f5[i-1] + ggg[indx[j]+i]){
                         /* found the decomposition */
                         traced = j; jj = i - 1; gq = 1;
@@ -736,32 +758,32 @@ PRIVATE void backtrack(const char **strings, int s) {
 
       if (!traced) nrerror("backtrack failed in f5");
       /* push back the remaining f5 portion */
-      sector[++s].i = 1;
-      sector[s].j   = jj;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = 1;
+      bt_stack[s].j   = jj;
+      bt_stack[s].ml  = ml;
 
       /* trace back the base pair found */
       j=traced;
 
-      if(with_gquad && gq){
+      if(P->model_details.gquad && gq){
         /* goto backtrace of gquadruplex */
         goto repeat_gquad;
       }
 
-      base_pair2[++b].i = i;
-      base_pair2[b].j   = j;
+      bp_stack[++b].i = i;
+      bp_stack[b].j   = j;
       cov_en += pscore[indx[j]+i];
       goto repeat1;
     }
     else { /* trace back in fML array */
       if (fML[indx[j]+i+1]+n_seq*P->MLbase == fij) { /* 5' end is unpaired */
-        sector[++s].i = i+1;
-        sector[s].j   = j;
-        sector[s].ml  = ml;
+        bt_stack[++s].i = i+1;
+        bt_stack[s].j   = j;
+        bt_stack[s].ml  = ml;
         continue;
       }
 
-      if(with_gquad){
+      if(P->model_details.gquad){
         if(fij == ggg[indx[j]+i] + n_seq * E_MLstem(0, -1, -1, P)){
           /* go to backtracing of quadruplex */
           goto repeat_gquad;
@@ -771,14 +793,14 @@ PRIVATE void backtrack(const char **strings, int s) {
       cij = c[indx[j]+i];
       if(dangles){
         for(ss = 0; ss < n_seq; ss++){
-          tt = pair[S[ss][i]][S[ss][j]];
+          tt = md->pair[S[ss][i]][S[ss][j]];
           if(tt==0) tt=7;
           cij += E_MLstem(tt, S5[ss][i], S3[ss][j], P);
         }
       }
       else{
         for(ss = 0; ss < n_seq; ss++){
-          tt = pair[S[ss][i]][S[ss][j]];
+          tt = md->pair[S[ss][i]][S[ss][j]];
           if(tt==0) tt=7;
           cij += E_MLstem(tt, -1, -1, P);
         }
@@ -786,8 +808,8 @@ PRIVATE void backtrack(const char **strings, int s) {
 
       if (fij==cij){
         /* found a pair */
-        base_pair2[++b].i = i;
-        base_pair2[b].j   = j;
+        bp_stack[++b].i = i;
+        bp_stack[b].j   = j;
         cov_en += pscore[indx[j]+i];
         goto repeat1;
       }
@@ -796,12 +818,12 @@ PRIVATE void backtrack(const char **strings, int s) {
         if (fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
           break;
 
-      sector[++s].i = i;
-      sector[s].j   = k;
-      sector[s].ml  = ml;
-      sector[++s].i = k+1;
-      sector[s].j   = j;
-      sector[s].ml  = ml;
+      bt_stack[++s].i = i;
+      bt_stack[s].j   = k;
+      bt_stack[s].ml  = ml;
+      bt_stack[++s].i = k+1;
+      bt_stack[s].j   = j;
+      bt_stack[s].ml  = ml;
 
       if (k>j-2-TURN) nrerror("backtrack failed in fML");
       continue;
@@ -813,7 +835,7 @@ PRIVATE void backtrack(const char **strings, int s) {
     if (canonical)  cij = c[indx[j]+i];
 
     for (ss=0; ss<n_seq; ss++) {
-      type[ss] = pair[S[ss][i]][S[ss][j]];
+      type[ss] = md->pair[S[ss][i]][S[ss][j]];
       if (type[ss]==0) type[ss] = 7;
     }
 
@@ -822,7 +844,7 @@ PRIVATE void backtrack(const char **strings, int s) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
         for (ss=0; ss<n_seq; ss++) {
-          type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
+          type_2 = md->pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
           if (type_2==0) type_2 = 7;
           cij -= P->stack[type[ss]][type_2];
           if(sc){
@@ -831,8 +853,8 @@ PRIVATE void backtrack(const char **strings, int s) {
           }
         }
         cij += pscore[indx[j]+i];
-        base_pair2[++b].i = i+1;
-        base_pair2[b].j   = j-1;
+        bp_stack[++b].i = i+1;
+        bp_stack[b].j   = j-1;
         cov_en += pscore[indx[j-1]+i+1];
         i++; j--;
         canonical=0;
@@ -857,7 +879,7 @@ PRIVATE void backtrack(const char **strings, int s) {
         if (c[indx[q]+p]>=INF) continue;
 
         for (ss=energy=0; ss<n_seq; ss++) {
-          type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
+          type_2 = md->pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
           if (type_2==0) type_2 = 7;
           energy += E_IntLoop(a2s[ss][p-1]-a2s[ss][i],a2s[ss][j-1]-a2s[ss][q],
                                type[ss], type_2,
@@ -878,8 +900,8 @@ PRIVATE void backtrack(const char **strings, int s) {
         }
         traced = (cij == energy+c[indx[q]+p]);
         if (traced) {
-          base_pair2[++b].i = p;
-          base_pair2[b].j   = q;
+          bp_stack[++b].i = p;
+          bp_stack[b].j   = q;
           cov_en += pscore[indx[q]+p];
           i = p, j = q;
           goto repeat1;
@@ -894,7 +916,7 @@ PRIVATE void backtrack(const char **strings, int s) {
     i1 = i+1;
     j1 = j-1;
 
-    if(with_gquad){
+    if(P->model_details.gquad){
       /*
         The case that is handled here actually resembles something like
         an interior loop where the enclosing base pair is of regular
@@ -976,17 +998,17 @@ PRIVATE void backtrack(const char **strings, int s) {
         mm += E_MLstem(tt, -1, -1, P);
       }
     }
-    sector[s+1].ml  = sector[s+2].ml = 1;
+    bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
 
     for (k = i1+TURN+1; k < j1-TURN-1; k++){
       if(cij == fML[indx[k]+i1] + fML[indx[j1]+k+1] + mm) break;
     }
 
     if (k<=j-3-TURN) { /* found the decomposition */
-      sector[++s].i = i1;
-      sector[s].j   = k;
-      sector[++s].i = k+1;
-      sector[s].j   = j1;
+      bt_stack[++s].i = i1;
+      bt_stack[s].j   = k;
+      bt_stack[++s].i = k+1;
+      bt_stack[s].j   = j1;
     } else {
         nrerror("backtracking failed in repeat");
     }
@@ -1039,14 +1061,14 @@ PRIVATE void backtrack(const char **strings, int s) {
                 int a;
                 /* fill the G's of the quadruplex into base_pair2 */
                 for(a=0;a<L;a++){
-                  base_pair2[++b].i = i+a;
-                  base_pair2[b].j   = i+a;
-                  base_pair2[++b].i = i+L+l[0]+a;
-                  base_pair2[b].j   = i+L+l[0]+a;
-                  base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
-                  base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
-                  base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
-                  base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+                  bp_stack[++b].i = i+a;
+                  bp_stack[b].j   = i+a;
+                  bp_stack[++b].i = i+L+l[0]+a;
+                  bp_stack[b].j   = i+L+l[0]+a;
+                  bp_stack[++b].i = i+L+l[0]+L+l[1]+a;
+                  bp_stack[b].j   = i+L+l[0]+L+l[1]+a;
+                  bp_stack[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+                  bp_stack[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
                 }
                 goto repeat_gquad_exit;
               }
@@ -1063,7 +1085,7 @@ PRIVATE void backtrack(const char **strings, int s) {
 
   /* fprintf(stderr, "covariance energy %6.2f\n", cov_en/100.);  */
 
-  base_pair2[0].i = b;    /* save the total number of base pairs */
+  bp_stack[0].i = b;    /* save the total number of base pairs */
   free(type);
 }
 
@@ -1144,13 +1166,22 @@ PUBLIC void encode_ali_sequence(const char *sequence, short *S, short *s5, short
   }
 }
 
-PRIVATE void make_pscores(const short *const* S, const char **AS,
-                          int n_seq, const char *structure) {
+PRIVATE void make_pscores(vrna_fold_compound *vc, const char *structure) {
+
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000 /* score for forbidden pairs */
-  int n,i,j,k,l,s, max_span;
+  int i,j,k,l,s, max_span;
+
+  short **S   = vc->S;
+  char **AS   = vc->sequences;
+  int n_seq   = vc->n_seq;
+  paramT *P   = vc->params;
+  model_detailsT  *md = &(P->model_details);
+  int *pscore = vc->pscore;     /* precomputed array of pair types */                         
+  int *indx   = vc->jindx;
+  int n       = vc->length;
 
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
@@ -1161,10 +1192,10 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
                   {0,2,2,2,1,2,0} /* UA */};
 
   float **dm;
-  n=S[0][0];  /* length of seqs */
+
   if (ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum(AS,n_seq,n);
+    else dm=get_ribosum((const char **)AS, n_seq, n);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));
@@ -1189,7 +1220,7 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
         if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
         else {
           if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-          else type = pair[S[s][i]][S[s][j]];
+          else type = md->pair[S[s][i]][S[s][j]];
         }
         pfreq[type]++;
       }
@@ -1346,17 +1377,32 @@ PUBLIC float **readribosum(char *name){
 }
 
 
-PRIVATE void en_corr_of_loop_gquad(int i,
-                                  int j,
-                                  const char **sequences,
-                                  const char *structure,
-                                  short *pt,
-                                  int *loop_idx,
-                                  int n_seq,
-                                  int en[2]){
+PRIVATE void
+en_corr_of_loop_gquad(vrna_fold_compound *vc,
+                      int i,
+                      int j,
+                      const char *structure,
+                      short *pt,
+                      int *loop_idx,
+                      int en[2]){
 
   int pos, energy, en_covar, p, q, r, s, u, type, type2, gq_en[2];
   int L, l[3];
+
+  char **sequences = vc->sequences;
+  short           **S     = vc->S;                                                                   
+  short           **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short           **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char            **Ss    = vc->Ss;                                                                   
+  unsigned short  **a2s   = vc->a2s;                                                                   
+  paramT          *P      = vc->params;                                                                   
+  model_detailsT  *md     = &(P->model_details);
+  int             *indx   = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c      = vc->matrices->c;     /* energy array, given that i-j pair */                       
+  int             *f5     = vc->matrices->f5;     /* energy of 5' end */                                        
+  int             *fML    = vc->matrices->fML;     /* multi-loop auxiliary energy array */                       
+  int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
+  int             n_seq   = vc->n_seq;
 
   energy = en_covar = 0;
   q = i;
@@ -1426,13 +1472,12 @@ PRIVATE void en_corr_of_loop_gquad(int i,
           num_elem++;
           elem_i = u;
           elem_j = pt[u];
-          en_corr_of_loop_gquad(u,
+          en_corr_of_loop_gquad(vc,
+                                u,
                                 pt[u],
-                                sequences,
                                 structure,
                                 pt,
                                 loop_idx,
-                                n_seq,
                                 gq_en);
           energy    += gq_en[0];
           en_covar  += gq_en[1];
@@ -1451,7 +1496,7 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       int ee = 0;
                       int cnt;
                       for(cnt=0;cnt<n_seq;cnt++){
-                        type = pair[S[cnt][r]][S[cnt][s]];
+                        type = md->pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
                         if ((a2s[cnt][s-1]-a2s[cnt][r])<3) ee+=600;
                         else ee += E_Hairpin( a2s[cnt][s-1] - a2s[cnt][r],
@@ -1464,7 +1509,7 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       energy -= ee;
                       ee = 0;
                       for(cnt=0;cnt < n_seq; cnt++){
-                        type = pair[S[cnt][r]][S[cnt][s]];
+                        type = md->pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
                         if(dangles == 2)
                           ee += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
@@ -1480,9 +1525,9 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       int ee = 0;
                       int cnt;
                       for(cnt = 0; cnt<n_seq;cnt++){
-                        type = pair[S[cnt][r]][S[cnt][s]];
+                        type = md->pair[S[cnt][r]][S[cnt][s]];
                         if(type == 0) type = 7;
-                        type2 = pair[S[cnt][elem_j]][S[cnt][elem_i]];
+                        type2 = md->pair[S[cnt][elem_j]][S[cnt][elem_i]];
                         if(type2 == 0) type2 = 7;
                         ee += E_IntLoop(a2s[cnt][elem_i-1] - a2s[cnt][r],
                                         a2s[cnt][s-1] - a2s[cnt][elem_j],
@@ -1497,10 +1542,10 @@ PRIVATE void en_corr_of_loop_gquad(int i,
                       energy -= ee;
                       ee = 0;
                       for(cnt = 0; cnt < n_seq; cnt++){
-                        type = pair[S[cnt][s]][S[cnt][r]];
+                        type = md->pair[S[cnt][s]][S[cnt][r]];
                         if(type == 0) type = 7;
                         ee += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-                        type = pair[S[cnt][elem_i]][S[cnt][elem_j]];
+                        type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
                         if(type == 0) type = 7;
                         ee += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
                       }
@@ -1540,22 +1585,22 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
   int en_struct[2], gge[2];
 
   if(sequences[0] != NULL){
-    n = (unsigned int) strlen(sequences[0]);
-    update_alifold_params();
+    
+    vrna_fold_compound  *vc;
 
-    /*save old memory*/
-    tempS = S; tempS3 = S3; tempS5 = S5; tempSs = Ss; tempa2s = a2s;
-    tempindx = indx; temppscore = pscore;
+    model_detailsT md;
+    set_model_details(&md);
 
-    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, 0);
-    pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
-    indx    = get_indx(n);
-    make_pscores((const short *const*)S, sequences, n_seq, NULL);
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+
+    n = vc->length;
+
+    make_pscores(vc, NULL);
 
     pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
+    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
     loop_idx    = vrna_get_loop_index(pt);
-    en_corr_of_loop_gquad(1, n, sequences, structure, pt, loop_idx, n_seq, gge);
+    en_corr_of_loop_gquad(vc, 1, n, structure, pt, loop_idx, gge);
     en_struct[0] += gge[0];
     en_struct[1] += gge[1];
 
@@ -1564,13 +1609,11 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
     energy[0] = (float)en_struct[0]/(float)(100*n_seq);
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
-    free(pscore);
-    free(indx);
-    free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
+    if(backward_compat_compound)
+      destroy_fold_compound(backward_compat_compound);
 
-    /* restore old memory */
-    S = tempS; S3 = tempS3; S5 = tempS5; Ss = tempSs; a2s = tempa2s;
-    indx = tempindx; pscore = temppscore;
+    backward_compat_compound = vc;
+
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
 
@@ -1595,61 +1638,77 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
   int en_struct[2];
 
   if(sequences[0] != NULL){
-    n = (unsigned int) strlen(sequences[0]);
-    update_alifold_params();
+    vrna_fold_compound  *vc;
 
-    /*save old memory*/
-    tempS = S; tempS3 = S3; tempS5 = S5; tempSs = Ss; tempa2s = a2s;
-    tempindx = indx; temppscore = pscore;
+    model_detailsT md;
+    set_model_details(&md);
 
-    alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, 0);
-    pscore  = (int *) space(sizeof(int)*((n+1)*(n+2)/2));
-    indx    = get_indx(n);
-    make_pscores((const short *const*)S, sequences, n_seq, NULL);
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+
+    n = vc->length;
+
+    make_pscores(vc, NULL);
 
     pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(sequences,pt, n_seq, &(en_struct[0]));
+    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
 
     free(pt);
     energy[0] = (float)en_struct[0]/(float)(100*n_seq);
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
-    free(pscore);
-    free(indx);
-    free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
+    if(backward_compat_compound)
+      destroy_fold_compound(backward_compat_compound);
 
-    /* restore old memory */
-    S = tempS; S3 = tempS3; S5 = tempS5; Ss = tempSs; a2s = tempa2s;
-    indx = tempindx; pscore = temppscore;
+    backward_compat_compound = vc;
+
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 }
 
-PRIVATE void energy_of_alistruct_pt(const char **sequences, short *pt, int n_seq, int *energy){
-  int i, length;
+PRIVATE void energy_of_alistruct_pt(vrna_fold_compound *vc, short *pt, int *energy){
 
-  length = S[0][0];
-  energy[0] =  backtrack_type=='M' ? ML_Energy_pt(0, n_seq, pt) : EL_Energy_pt(0, n_seq, pt);
+  char **sequences  = vc->sequences;
+  int n_seq         = vc->n_seq;
+  int length        = vc->length;
+  int i;
+
+  energy[0] =  backtrack_type=='M' ? ML_Energy_pt(vc, 0, pt) : EL_Energy_pt(vc, 0, pt);
   energy[1] = 0;
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
-    stack_energy_pt(i, sequences, pt, n_seq, energy);
+    stack_energy_pt(vc, i, pt, energy);
     i=pt[i];
   }
 }
 
-PRIVATE void stack_energy_pt(int i, const char **sequences, short *pt, int n_seq, int *energy)
-{
+PRIVATE void
+stack_energy_pt(vrna_fold_compound *vc, int i, short *pt, int *energy){
+
   /* calculate energy of substructure enclosed by (i,j) */
+  char            **sequences = vc->sequences;
+  short           **S         = vc->S;                                                                       
+  short           **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/               
+  short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/               
+  char            **Ss        = vc->Ss;                                                                      
+  unsigned short  **a2s       = vc->a2s;                                                                     
+  paramT          *P          = vc->params;                                                                  
+  model_detailsT  *md         = &(P->model_details);
+  int             *indx       = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c          = vc->matrices->c;     /* energy array, given that i-j pair */                   
+  int             *f5         = vc->matrices->f5;     /* energy of 5' end */                                    
+  int             *fML        = vc->matrices->fML;     /* multi-loop auxiliary energy array */                   
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */                        
+  int             n_seq       = vc->n_seq;                                                                   
+
   int ee= 0;
   int j, p, q, s;
   int *type = (int *) space(n_seq*sizeof(int));
 
   j = pt[i];
   for (s=0; s<n_seq; s++) {
-    type[s] = pair[S[s][i]][S[s][j]];
+    type[s] = md->pair[S[s][i]][S[s][j]];
     if (type[s]==0) {
     type[s]=7;
     }
@@ -1662,7 +1721,7 @@ PRIVATE void stack_energy_pt(int i, const char **sequences, short *pt, int n_seq
     if ((pt[q]!=(short)p)||(p>q)) break;
     ee=0;
     for (s=0; s<n_seq; s++) {
-      type_2 = pair[S[s][q]][S[s][p]];
+      type_2 = md->pair[S[s][q]][S[s][p]];
       if (type_2==0) {
         type_2=7;
       }
@@ -1672,7 +1731,7 @@ PRIVATE void stack_energy_pt(int i, const char **sequences, short *pt, int n_seq
     energy[1] += pscore[indx[j]+i];
     i=p; j=q;
     for (s=0; s<n_seq; s++) {
-      type[s] = pair[S[s][i]][S[s][j]];
+      type[s] = md->pair[S[s][i]][S[s][j]];
       if (type[s]==0) type[s]=7;
     }
   }  /* end while */
@@ -1694,22 +1753,37 @@ PRIVATE void stack_energy_pt(int i, const char **sequences, short *pt, int n_seq
   energy[1] += pscore[indx[j]+i];
   while (p<j) {
     /* add up the contributions of the substructures of the ML */
-    stack_energy_pt(p, sequences, pt, n_seq, energy);
+    stack_energy_pt(vc, p, pt, energy);
     p = pt[p];
     /* search for next base pair in multiloop */
     while (pt[++p]==0);
   }
-  energy[0] += ML_Energy_pt(i, n_seq, pt);
+  energy[0] += ML_Energy_pt(vc, i, pt);
   free(type);
 }
 
 
 
-PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
+PRIVATE int ML_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
+
   /* i is the 5'-base of the closing pair */
 
   int   energy, tt, i1, j, p, q, u, s;
   short d5, d3;
+
+  short           **S         = vc->S;                                                                       
+  short           **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/               
+  short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/               
+  char            **Ss        = vc->Ss;                                                                      
+  unsigned short  **a2s       = vc->a2s;                                                                     
+  paramT          *P          = vc->params;                                                                  
+  model_detailsT  *md         = &(P->model_details);
+  int             *indx       = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c          = vc->matrices->c;     /* energy array, given that i-j pair */                   
+  int             *f5         = vc->matrices->f5;     /* energy of 5' end */                                    
+  int             *fML        = vc->matrices->fML;     /* multi-loop auxiliary energy array */                   
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */                        
+  int             n_seq       = vc->n_seq;                                                                   
 
   j = pt[i];
   i1  = i;
@@ -1728,7 +1802,7 @@ PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
 
     for (s=0; s< n_seq; s++) {
       /* get type of base pair P->q */
-      tt = pair[S[s][p]][S[s][q]];
+      tt = md->pair[S[s][p]][S[s][q]];
       if (tt==0) tt=7;
       d5 = dangles && (a2s[s][p]>1) && (tt!=0) ? S5[s][p] : -1;
       d3 = dangles && (a2s[s][q]<a2s[s][S[0][0]]) ? S3[s][q] : -1;
@@ -1742,14 +1816,14 @@ PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
     energy  += P->MLclosing * n_seq;
     if(dangles){
       for (s=0; s<n_seq; s++){
-        tt = pair[S[s][j]][S[s][i]];
+        tt = md->pair[S[s][j]][S[s][i]];
         if (tt==0) tt=7;
         energy += E_MLstem(tt, S5[s][j], S3[s][i], P);
       }
     }
     else{
       for (s=0; s<n_seq; s++){
-        tt = pair[S[s][j]][S[s][i]];
+        tt = md->pair[S[s][j]][S[s][i]];
         if (tt==0) tt=7;
         energy += E_MLstem(tt, -1, -1, P);
       }
@@ -1760,9 +1834,23 @@ PRIVATE int ML_Energy_pt(int i, int n_seq, short *pt){
   return energy;
 }
 
-PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
+PRIVATE int EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
   int   energy, tt, j, p, q, s;
   short d5, d3;
+
+  short           **S         = vc->S;                                                                       
+  short           **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/               
+  short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/               
+  char            **Ss        = vc->Ss;                                                                      
+  unsigned short  **a2s       = vc->a2s;                                                                     
+  paramT          *P          = vc->params;                                                                  
+  model_detailsT  *md         = &(P->model_details);
+  int             *indx       = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
+  int             *c          = vc->matrices->c;     /* energy array, given that i-j pair */                   
+  int             *f5         = vc->matrices->f5;     /* energy of 5' end */                                    
+  int             *fML        = vc->matrices->fML;     /* multi-loop auxiliary energy array */                   
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */                        
+  int             n_seq       = vc->n_seq;                                                                   
 
   j = pt[0];
 
@@ -1777,7 +1865,7 @@ PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
     q  = pt[p];
     for (s=0; s< n_seq; s++) {
       /* get type of base pair P->q */
-      tt = pair[S[s][p]][S[s][q]];
+      tt = md->pair[S[s][p]][S[s][q]];
       if (tt==0) tt=7;
       d5 = dangles && (a2s[s][p]>1) && (tt!=0) ? S5[s][p] : -1;
       d3 = dangles && (a2s[s][q]<a2s[s][S[0][0]]) ? S3[s][q] : -1;
@@ -1787,5 +1875,37 @@ PRIVATE int EL_Energy_pt(int i, int n_seq, short *pt){
   }while(p < j);
 
   return energy;
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void
+free_alifold_arrays(void){
+
+  if(backward_compat_compound){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+  }
+}
+
+PUBLIC float
+alifold(const char **strings,
+        char *structure){
+
+  return wrap_alifold(strings, structure, NULL, fold_constrained, 0);
+}
+
+PUBLIC float circalifold( const char **strings,
+                          char *structure) {
+
+  return wrap_alifold(strings, structure, NULL, fold_constrained, 1);
+}
+
+PUBLIC void 
+update_alifold_params(void){
+
+  vrna_update_alifold_params(backward_compat_compound, NULL);
 }
 

@@ -65,6 +65,8 @@ extern  double  nc_fact;
  */
 void update_alifold_params(void);
 
+void vrna_update_alifold_params(vrna_fold_compound *vc,
+                                paramT *parameters);
 
 /**
  *  \brief Compute MFE and according consensus structure of an alignment of sequences
@@ -89,6 +91,9 @@ float  alifold( const char **strings,
 float  vrna_alifold_tmp(const char **strings,
                         char *structure,
                         vrna_alifold_compound *vc);
+
+float vrna_alifold( vrna_fold_compound *vc,
+                    char *structure);
 
 /**
  *  \brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
