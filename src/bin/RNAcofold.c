@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
   plist   *mfB;
   double  *ConcAandB;
   unsigned int    rec_type, read_opt;
+  paramT          *P;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
 
@@ -106,11 +107,14 @@ int main(int argc, char *argv[])
   */
   if(RNAcofold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)            temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)      fold_constrained=1;
+  if(args_info.constraint_given)
+    fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)         md.special_hp = tetra_loop=0;
+  if(args_info.noTetra_given)
+    md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
@@ -119,36 +123,50 @@ int main(int argc, char *argv[])
      md.dangles = dangles = args_info.dangles_arg;
   }
   /* do not allow weak pairs */
-  if(args_info.noLP_given)            md.noLP = noLonelyPairs = 1;
+  if(args_info.noLP_given)
+    md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)            md.noGU = noGU = 1;
+  if(args_info.noGU_given)
+    md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)     md.noGUclosure = no_closingGU = 1;
+  if(args_info.noClosingGU_given)
+    md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
-  if(args_info.gquad_given)           md.gquad = gquad = 1;
+  if(args_info.gquad_given)
+    md.gquad = gquad = 1;
   /* enforce canonical base pairs in any case? */
-  if(args_info.canonicalBPonly_given) md.canonicalBPonly = canonicalBPonly = 1;
+  if(args_info.canonicalBPonly_given)
+    md.canonicalBPonly = canonicalBPonly = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)          noconv = 1;
+  if(args_info.noconv_given)
+    noconv = 1;
   /* set energy model */
-  if(args_info.energyModel_given)     energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given)
+    md.energy_set = energy_set = args_info.energyModel_arg;
   /*  */
-  if(args_info.noPS_given)            noPS = 1;
+  if(args_info.noPS_given)
+    noPS = 1;
   /* take another energy parameter set */
-  if(args_info.paramFile_given)       ParamFile = strdup(args_info.paramFile_arg);
+  if(args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)             ns_bases = strdup(args_info.nsp_arg);
+  if(args_info.nsp_given)
+    ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
-  if(args_info.pfScale_given)         sfact = args_info.pfScale_arg;
+  if(args_info.pfScale_given)
+    sfact = args_info.pfScale_arg;
 
-  if(args_info.all_pf_given)          doT = pf = 1;
+  if(args_info.all_pf_given)
+    doT = pf = 1;
   /* concentrations from stdin */
-  if(args_info.concentrations_given)  doC = doT = pf = 1;
+  if(args_info.concentrations_given)
+    doC = doT = pf = 1;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
-  if(args_info.betaScale_given)       betaScale = args_info.betaScale_arg;
+  if(args_info.betaScale_given)
+    betaScale = args_info.betaScale_arg;
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
     doC = cofi = doT = pf = 1;
@@ -157,7 +175,7 @@ int main(int argc, char *argv[])
   if(args_info.partfunc_given){
     pf = 1;
     if(args_info.partfunc_arg != -1)
-      do_backtrack = args_info.partfunc_arg;
+      md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free (&args_info);
@@ -195,6 +213,8 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+
+  P = vrna_get_energy_contributions(md);
 
   /* print user help if we get input from tty */
   if(istty){
@@ -339,9 +359,9 @@ int main(int argc, char *argv[])
       cofoldF AB, AA, BB;
       FLT_OR_DBL *probs;
       if (dangles==1) {
-        dangles=2;   /* recompute with dangles as in pf_fold() */
-        min_en = energy_of_structure(rec_sequence, structure, 0);
-        dangles=1;
+        P->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
+        min_en = vrna_eval_structure(rec_sequence, structure, P);
+        P->model_details.dangles = dangles = 1;
       }
 
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */

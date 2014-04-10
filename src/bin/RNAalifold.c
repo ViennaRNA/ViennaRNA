@@ -51,6 +51,7 @@ int main(int argc, char *argv[]){
   char          **shape_files, *shape_method;
   int           *shape_file_association;
   FILE          *clust_file = stdin;
+  paramT        *P;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
 
@@ -81,44 +82,57 @@ int main(int argc, char *argv[]){
   */
   if(RNAalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)  fold_constrained=1;
+  if(args_info.constraint_given)
+    fold_constrained = 1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
+  if(args_info.noTetra_given)
+    md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
       warn_user("required dangle model not implemented, falling back to default dangles=2");
     else
-      md.dangles = dangles=args_info.dangles_arg;
+      md.dangles = dangles = args_info.dangles_arg;
   }
   /* do not allow weak pairs */
-  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
+  if(args_info.noLP_given)
+    md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        md.noGU = noGU = 1;
+  if(args_info.noGU_given)
+    md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  if(args_info.noClosingGU_given)
+    md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
-  if(args_info.gquad_given)       md.gquad = gquad = 1;
+  if(args_info.gquad_given)
+    md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given)
+    md.energy_set = energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  if(args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  if(args_info.nsp_given)
+    ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
-  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  if(args_info.pfScale_given)
+    sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circular=1;
+  if(args_info.circ_given)
+    md.circ = circular = 1;
   /* do not produce postscript output */
-  if(args_info.noPS_given)        noPS = 1;
+  if(args_info.noPS_given)
+    noPS = 1;
   /* partition function settings */
   if(args_info.partfunc_given){
     pf = 1;
     if(args_info.partfunc_arg != -1)
-      do_backtrack = args_info.partfunc_arg;
+      md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
   /* MEA (maximum expected accuracy) settings */
   if(args_info.MEA_given){
@@ -126,39 +140,47 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
-  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
+  if(args_info.betaScale_given)
+    betaScale = args_info.betaScale_arg;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* set cfactor */
-  if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
+  if(args_info.cfactor_given)
+    md.cv_fact = cv_fact = args_info.cfactor_arg;
   /* set nfactor */
-  if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
-  if(args_info.endgaps_given)     endgaps = 1;
-  if(args_info.mis_given)         mis = 1;
-  if(args_info.color_given)       doColor=1;
-  if(args_info.aln_given)         doAlnPS=1;
-  if(args_info.old_given)         oldAliEn = 1;
+  if(args_info.nfactor_given)
+    md.nc_fact = nc_fact = args_info.nfactor_arg;
+  if(args_info.endgaps_given)
+    endgaps = 1;
+  if(args_info.mis_given)
+    mis = 1;
+  if(args_info.color_given)
+    doColor=1;
+  if(args_info.aln_given)
+    doAlnPS=1;
+  if(args_info.old_given)
+    md.oldAliEn = oldAliEn = 1;
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
-    do_backtrack = 0;
+    md.compute_bpp = do_backtrack = 0;
     pf = 1;
     init_rand();
   }
   if(args_info.stochBT_en_given){
     n_back = args_info.stochBT_en_arg;
-    do_backtrack = 0;
+    md.compute_bpp = do_backtrack = 0;
     pf = 1;
     eval_energy = 1;
     init_rand();
   }
   if(args_info.ribosum_file_given){
     RibosumFile = strdup(args_info.ribosum_file_arg);
-    ribo = 1;
+    md.ribo = ribo = 1;
   }
   if(args_info.ribosum_scoring_given){
     RibosumFile = NULL;
-    ribo = 1;
+    md.ribo = ribo = 1;
   }
 
   if(args_info.maxBPspan_given){
@@ -229,7 +251,7 @@ int main(int argc, char *argv[]){
     nrerror("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  make_pair_matrix();
+  make_pair_matrix(); /* why */
 
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, "
@@ -359,7 +381,7 @@ int main(int argc, char *argv[]){
       double  s = 0;
       min_en    = circalifold((const char **)AS, structure);
       for (i=0; AS[i]!=NULL; i++)
-        s += energy_of_circ_structure(AS[i], structure, -1);
+        s += vrna_eval_structure(AS[i], structure, P);
       real_en   = s/i;
     } else {
       min_en    = alifold((const char **)AS, structure);
@@ -474,7 +496,7 @@ int main(int argc, char *argv[]){
         cent = get_centroid_struct_pr(length, &dist, probs);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
-        /*cent_en = energy_of_struct(string, cent);*/ /*ali*/
+
         printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
         free(cent);
         free(ens);
@@ -488,7 +510,7 @@ int main(int argc, char *argv[]){
         if(circular)
           energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else
-          ens[0] = energy_of_structure(string, structure, 0);
+          ens[0] = vrna_eval_structure(string, structure, P);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
         free(pl2);

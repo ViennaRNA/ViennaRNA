@@ -5,6 +5,9 @@
 #include <limits.h>
 
 #include "ViennaRNA/findpath.h"
+#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/model.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
@@ -55,7 +58,7 @@ PRIVATE int     compare_energy(const void *A, const void *B);
 PRIVATE int     compare_moves_when(const void *A, const void *B);
 PRIVATE void    free_intermediate(intermediate_t *i);
 PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
-PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist);
+PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist, paramT *P);
 
 /*
 #################################
@@ -119,8 +122,12 @@ PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *str
 PUBLIC void print_path(const char *seq, const char *struc) {
   int d;
   char *s;
+  model_detailsT md;
+  paramT *P;
+  set_model_details(&md); /* use current global model */
+  P = vrna_get_energy_contributions(md);
   s = strdup(struc);
-  printf("%s\n%s %6.2f\n", seq, s, energy_of_structure(seq,s, 0));
+  printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure(seq,s,P));
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
   for (d=0; d<BP_dist; d++) {
     int i,j;
@@ -130,14 +137,19 @@ PUBLIC void print_path(const char *seq, const char *struc) {
     } else {
       s[i-1] = '('; s[j-1] = ')';
     }
-    printf("%s %6.2f - %6.2f\n", s, energy_of_structure(seq,s, 0), path[d].E/100.0);
+    printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure(seq,s,P), path[d].E/100.0);
   }
   free(s);
+  free(P);
 }
 
 PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int maxkeep) {
   int E, d;
   path_t *route=NULL;
+  model_detailsT md;
+  paramT *P;
+  set_model_details(&md); /* use current global model */
+  P = vrna_get_energy_contributions(md);
 
   E = find_saddle(seq, s1, s2, maxkeep);
 
@@ -148,7 +160,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = energy_of_structure(seq, s1, 0);
+    route[0].en = vrna_eval_structure(seq, s1, P);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -166,7 +178,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = energy_of_structure(seq, s2, 0);
+    route[BP_dist].en = vrna_eval_structure(seq, s2, P);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -190,10 +202,17 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
 #endif
 
   free(path);path=NULL;
+  free(P);
   return (route);
 }
 
-PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
+PRIVATE int
+try_moves(intermediate_t c,
+          int maxE,
+          intermediate_t *next,
+          int dist,
+          paramT *P){
+
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
   short *pt;
@@ -222,9 +241,9 @@ PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + energy_of_move_pt(c.pt, S, S1, i, j);
+    en = c.curr_en + vrna_eval_move_pt(c.pt, S, S1, i, j, P);
 #else
-    en = energy_of_structure_pt(seq, pt, S, S1, 0);
+    en = vrna_eval_structure_pt_fast(seq, pt, S, S1, P);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -246,6 +265,10 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   move_t *mlist;
   int i, len, d, dist=0, result;
   intermediate_t *current, *next;
+  model_detailsT md;
+  paramT *P;
+  set_model_details(&md); /* use current global model */
+  P = vrna_get_energy_contributions(md);
 
   pt1 = vrna_pt_get(struc1);
   pt2 = vrna_pt_get(struc2);
@@ -271,7 +294,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   BP_dist = dist;
   current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = energy_of_structure_pt(seq, pt1, S, S1, 0);
+  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_fast(seq, pt1, S, S1, P);
   current[0].moves = mlist;
   next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -280,7 +303,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
     intermediate_t *cc;
 
     for (c=0; current[c].pt != NULL; c++) {
-      num_next += try_moves(current[c], maxE, next+num_next, d);
+      num_next += try_moves(current[c], maxE, next+num_next, d, P);
     }
     if (num_next==0) {
       for (cc=current; cc->pt != NULL; cc++) free_intermediate(cc);
@@ -312,6 +335,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   path = current[0].moves;
   result = current[0].Sen;
   free(current[0].pt); free(current);
+  free(P);
   return(result);
 }
 
@@ -416,17 +440,24 @@ int main(int argc, char *argv[]) {
   int E, maxkeep=10;
   int verbose=0, i;
   path_t *route, *r;
+  model_detailsT md;
+  paramT *P;
+  set_model_details(&md); /* use current global model */
+  P = vrna_get_energy_contributions(md);
+
 
   for (i=1; i<argc; i++) {
     switch ( argv[i][1] ) {
-    case 'm': if (strcmp(argv[i],"-m")==0)
-        sscanf(argv[++i], "%d", &maxkeep);
-      break;
-    case 'v':  verbose = !strcmp(argv[i],"-v");
-      break;
-    case 'd': if (strcmp(argv[i],"-d")==0)
-        sscanf(argv[++i], "%d", &dangles);
-      break;
+      case 'm': if (strcmp(argv[i],"-m")==0)
+                  sscanf(argv[++i], "%d", &maxkeep);
+                break;
+      case 'v': verbose = !strcmp(argv[i],"-v");
+                break;
+      case 'd': if (strcmp(argv[i],"-d")==0){
+                  sscanf(argv[++i], "%d", &dangles);
+                  md.dangles = dangles;
+                }
+                break;
     }
   }
   seq = get_line(stdin);
@@ -444,11 +475,11 @@ int main(int argc, char *argv[]) {
     path = NULL;
     route = get_path(seq, s1, s2, maxkeep);
     for (r=route; r->s; r++) {
-      printf("%s %6.2f - %6.2f\n", r->s, energy_of_struct(seq,r->s), r->en);
+      printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P), r->en);
       free(r->s);
     }
   }
-  free(seq); free(s1); free(s2);
+  free(seq); free(s1); free(s2); free(P);
   return(EXIT_SUCCESS);
 }
 #endif

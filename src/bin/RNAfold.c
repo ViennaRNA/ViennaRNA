@@ -385,10 +385,10 @@ int main(int argc, char *argv[]){
     }
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
-      if (md.dangles==1) {
-          md.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
-          md.dangles=1;
+      if (mfe_parameters->model_details.dangles==1) {
+          mfe_parameters->model_details.dangles=2;   /* recompute with dangles as in pf_fold() */
+          min_en = vrna_eval_structure(rec_sequence, structure, mfe_parameters);
+          mfe_parameters->model_details.dangles=1;
       }
 
 
@@ -433,7 +433,7 @@ int main(int argc, char *argv[]){
       if(lucky){
         init_rand();
         char *s = vrna_pbacktrack(vc);
-        min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, s, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, s, mfe_parameters, 0);
+        min_en = vrna_eval_structure((const char *)rec_sequence, (const char *)s, mfe_parameters);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
           printf("\n free energy = %6.2f kcal/mol\n", min_en);
@@ -467,8 +467,7 @@ int main(int argc, char *argv[]){
           pl1     = vrna_get_plist_from_pr(vc, bppmThreshold);
           pl2     = vrna_get_plist_from_db(structure, 0.95*0.95);
           cent    = vrna_get_centroid_struct(vc, &dist);
-          cent_en = (gquad) ? energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0) : (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
-
+          cent_en = vrna_eval_structure((const char *)rec_sequence, (const char *)cent, mfe_parameters);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
@@ -495,13 +494,11 @@ int main(int argc, char *argv[]){
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
-              mea_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)structure, 0);
-              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
             } else {
               mea = MEA(pl, structure, MEAgamma);
-              mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
-              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
             }
+            mea_en = vrna_eval_structure((const char *)rec_sequence, (const char *)structure, mfe_parameters);
+            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
 
             free(pl);
           }
