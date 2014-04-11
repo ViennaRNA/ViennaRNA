@@ -1012,7 +1012,7 @@ vrna_update_fold_params(vrna_fold_compound *vc,
 
     /* what about re-setting the backward compatibility compound here? */
     if(backward_compat_compound && backward_compat)
-      destroy_fold_compund(backward_compat_compound);
+      destroy_fold_compound(backward_compat_compound);
 
     backward_compat_compound  = vc;
     backward_compat           = 0;
