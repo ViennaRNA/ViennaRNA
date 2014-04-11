@@ -54,8 +54,6 @@
 #define ALLOC_FC          8
 #define ALLOC_C           16
 #define ALLOC_FML         32
-#define ALLOC_FM1         64
-#define ALLOC_FM2         128
 #define ALLOC_PROBS       256
 #define ALLOC_AUX         512
 
