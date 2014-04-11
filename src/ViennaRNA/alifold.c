@@ -38,10 +38,7 @@
 #include <omp.h>
 #endif
 
-#define STACK_BULGE1  1     /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1     /* new asymetry penalty */
 #define MAXSECTORS    500   /* dimension for a backtrack array */
-#define LOCALITY        0.  /* locality parameter for base-pairs */
 
 /*
 #################################
@@ -195,11 +192,9 @@ vrna_alifold( vrna_fold_compound *vc,
               char *structure){
 
   int  length, s, n_seq, energy;
-  char **strings;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   bondT *bp;
 
-  strings     = vc->sequences;
   length      = vc->length;
   n_seq       = vc->n_seq;
   s           = 0;
@@ -254,7 +249,6 @@ fill_arrays(vrna_fold_compound *vc){
   int   *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 
 
-  char            **strings     = vc->sequences;
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
   short           **S           = vc->S;                                                                   
@@ -270,7 +264,6 @@ fill_arrays(vrna_fold_compound *vc){
   int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
   int             *ggg          = vc->matrices->ggg;
   int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
-  char            *cons_seq     = vc->cons_seq;
   short           *S_cons       = vc->S_cons;
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
@@ -596,7 +589,6 @@ backtrack(vrna_fold_compound *vc,
 
   int  i, j, k, p, q, energy, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
 
-  char            **strings     = vc->sequences;
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
   short           **S           = vc->S;                                                                   
@@ -612,7 +604,6 @@ backtrack(vrna_fold_compound *vc,
   int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
   int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
   int             *ggg          = vc->matrices->ggg;
-  char            *cons_seq     = vc->cons_seq;
   short           *S_cons       = vc->S_cons;
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
@@ -1041,8 +1032,6 @@ backtrack(vrna_fold_compound *vc,
   free(type);
 }
 
-/*--------New scoring part-----------------------------------*/
-
 PUBLIC int
 vrna_ali_get_mpi( char *Alseq[],
                   int n_seq,
@@ -1068,7 +1057,6 @@ vrna_ali_get_mpi( char *Alseq[],
 
 }
 
-
 PRIVATE void
 en_corr_of_loop_gquad(vrna_fold_compound *vc,
                       int i,
@@ -1081,7 +1069,6 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   int pos, energy, en_covar, p, q, r, s, u, type, type2, gq_en[2];
   int L, l[3];
 
-  char            **sequences   = vc->sequences;
   short           **S           = vc->S;                                                                   
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
@@ -1089,11 +1076,6 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   unsigned short  **a2s         = vc->a2s;                                                                   
   paramT          *P            = vc->params;                                                                
   model_detailsT  *md           = &(P->model_details);
-  int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1258,91 +1240,8 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   en[1] = en_covar;
 }
 
-PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
-                                            const char *structure,
-                                            int n_seq,
-                                            float *energy){
-
-  unsigned int  n;
-  short         *pt;
-  int           *loop_idx;
-  int           en_struct[2], gge[2];
-
-  if(sequences[0] != NULL){
-    
-    vrna_fold_compound  *vc;
-
-    model_detailsT md;
-    set_model_details(&md);
-
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
-
-    n = vc->length;
-
-    pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
-    loop_idx    = vrna_get_loop_index(pt);
-    en_corr_of_loop_gquad(vc, 1, n, structure, pt, loop_idx, gge);
-    en_struct[0] += gge[0];
-    en_struct[1] += gge[1];
-
-    free(loop_idx);
-    free(pt);
-    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
-    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
-
-    if(backward_compat_compound && backward_compat)
-      destroy_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 1;
-
-  }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
-
-  return energy[0];
-
-}
-
-PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy){
-
-  unsigned int  n;
-  short         *pt;
-  int           en_struct[2];
-
-  if(sequences[0] != NULL){
-    vrna_fold_compound  *vc;
-
-    model_detailsT md;
-    set_model_details(&md);
-
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
-
-    n = vc->length;
-
-    pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
-
-    free(pt);
-    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
-    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
-
-    if(backward_compat_compound && backward_compat)
-      destroy_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 1;
-
-  }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
-
-  return energy[0];
-}
-
 PRIVATE void energy_of_alistruct_pt(vrna_fold_compound *vc, short *pt, int *energy){
 
-  char **sequences  = vc->sequences;
-  int n_seq         = vc->n_seq;
   int length        = vc->length;
   int i;
 
@@ -1359,7 +1258,6 @@ PRIVATE void
 stack_energy_pt(vrna_fold_compound *vc, int i, short *pt, int *energy){
 
   /* calculate energy of substructure enclosed by (i,j) */
-  char            **sequences = vc->sequences;
   short           **S         = vc->S;                                                                       
   short           **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/               
   short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/               
@@ -1368,9 +1266,6 @@ stack_energy_pt(vrna_fold_compound *vc, int i, short *pt, int *energy){
   paramT          *P          = vc->params;                                                                  
   model_detailsT  *md         = &(P->model_details);
   int             *indx       = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
-  int             *c          = vc->matrices->c;     /* energy array, given that i-j pair */                   
-  int             *f5         = vc->matrices->f5;     /* energy of 5' end */                                    
-  int             *fML        = vc->matrices->fML;     /* multi-loop auxiliary energy array */                   
   int             *pscore     = vc->pscore;     /* precomputed array of pair types */                        
   int             n_seq       = vc->n_seq;                                                                   
 
@@ -1446,15 +1341,9 @@ PRIVATE int ML_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
   short           **S           = vc->S;                                                                     
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/             
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/             
-  char            **Ss          = vc->Ss;                                                                    
   unsigned short  **a2s         = vc->a2s;                                                                   
   paramT          *P            = vc->params;                                                                
   model_detailsT  *md           = &(P->model_details);
-  int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
   int             n_seq         = vc->n_seq;                                                                 
   int             dangle_model  = md->dangles;
 
@@ -1514,15 +1403,9 @@ PRIVATE int EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
   short           **S           = vc->S;                                                                     
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/             
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/             
-  char            **Ss          = vc->Ss;                                                                    
   unsigned short  **a2s         = vc->a2s;                                                                   
   paramT          *P            = vc->params;                                                                
   model_detailsT  *md           = &(P->model_details);
-  int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
   int             n_seq         = vc->n_seq;                                                                 
   int             dangle_model  = md->dangles;
 
@@ -1737,3 +1620,85 @@ get_mpi(char *Alseq[],
   return vrna_ali_get_mpi(Alseq, n_seq, length, mini);
 }
 
+PUBLIC float
+energy_of_ali_gquad_structure(const char **sequences,
+                              const char *structure,
+                              int n_seq,
+                              float *energy){
+
+  unsigned int  n;
+  short         *pt;
+  int           *loop_idx;
+  int           en_struct[2], gge[2];
+
+  if(sequences[0] != NULL){
+    
+    vrna_fold_compound  *vc;
+
+    model_detailsT md;
+    set_model_details(&md);
+
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+
+    n = vc->length;
+
+    pt = vrna_pt_get(structure);
+    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
+    loop_idx    = vrna_get_loop_index(pt);
+    en_corr_of_loop_gquad(vc, 1, n, structure, pt, loop_idx, gge);
+    en_struct[0] += gge[0];
+    en_struct[1] += gge[1];
+
+    free(loop_idx);
+    free(pt);
+    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
+    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
+
+    if(backward_compat_compound && backward_compat)
+      destroy_fold_compound(backward_compat_compound);
+
+    backward_compat_compound  = vc;
+    backward_compat           = 1;
+
+  }
+  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+
+  return energy[0];
+
+}
+
+PUBLIC  float
+energy_of_alistruct(const char **sequences,
+                    const char *structure,
+                    int n_seq,
+                    float *energy){
+
+  short         *pt;
+  int           en_struct[2];
+
+  if(sequences[0] != NULL){
+    vrna_fold_compound  *vc;
+
+    model_detailsT md;
+    set_model_details(&md);
+
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+
+    pt = vrna_pt_get(structure);
+    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
+
+    free(pt);
+    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
+    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
+
+    if(backward_compat_compound && backward_compat)
+      destroy_fold_compound(backward_compat_compound);
+
+    backward_compat_compound  = vc;
+    backward_compat           = 1;
+
+  }
+  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+
+  return energy[0];
+}

@@ -39,8 +39,6 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
   n_seq   = vc->n_seq;
   length  = vc->length;
 
-  int   dangle_model  = P->model_details.dangles;
-  int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
   type                = (int *) space(n_seq*sizeof(int));
 
