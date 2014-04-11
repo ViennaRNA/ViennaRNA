@@ -69,6 +69,16 @@ of the objective function. The number of the iteration will be appended to the g
 string
 optional
 
+option  "minimizer"  -
+"Set the minimizing algorithm used for finding an appropriate perturbation vector. \
+The default option uses a custom implementation of the gradient descent algorithms while all \
+other options represent various algorithms implemented in the GNU Scientific Library. \
+When the GNU Scientific Library can not be found, only the default minimizer is available."
+enum
+values="conjugate_fr","conjugate_pr","vector_bfgs", "vector_bfgs2", "steepest_descent", "default"
+default="default"
+optional
+
 section "Model Details"
 
 option  "pfScale" S

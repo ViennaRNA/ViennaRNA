@@ -61,6 +61,7 @@ int main(int argc, char *argv[]){
   char **rec_rest;
   char *shape_sequence;
   double *shape_data;
+  int algorithm = VRNA_MINIMIZER_DEFAULT;
   int i;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
@@ -100,6 +101,21 @@ int main(int argc, char *argv[]){
   {
     warn_user("required objective function mode not implemented, falling back to default");
     args_info.objectiveFunction_arg = 0;
+  }
+  if(args_info.minimizer_given)
+  {
+    struct {int algorithm; int arg;} mapper[] = {{VRNA_MINIMIZER_CONJUGATE_FR, minimizer_arg_conjugate_fr},
+                                                 {VRNA_MINIMIZER_CONJUGATE_PR, minimizer_arg_conjugate_pr},
+                                                 {VRNA_MINIMIZER_VECTOR_BFGS, minimizer_arg_vector_bfgs},
+                                                 {VRNA_MINIMIZER_VECTOR_BFGS2, minimizer_arg_vector_bfgs2},
+                                                 {VRNA_MINIMIZER_STEEPEST_DESCENT, minimizer_arg_steepest_descent},
+                                                 {0, 0}};
+    for(i = 0; mapper[i].algorithm; ++i)
+      if(args_info.minimizer_arg == mapper[i].arg)
+      {
+        algorithm = mapper[i].algorithm;
+        break;
+      }
   }
 
 
@@ -145,7 +161,7 @@ int main(int argc, char *argv[]){
     vrna_update_pf_params(vc, pf_parameters);
 
     epsilon = space(sizeof(double) * (length + 1));
-    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.objectiveFunction_arg, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.objectiveFunction_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
 
     destroy_fold_compound(vc);
     free(pf_parameters);

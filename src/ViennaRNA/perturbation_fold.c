@@ -1,5 +1,6 @@
 #include "perturbation_fold.h"
 
+#include <config.h>
 #include "constraints.h"
 #include "eval.h"
 #include "fold_vars.h"
@@ -11,6 +12,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef WITH_GSL
+
+#include <gsl/gsl_multimin.h>
+
+typedef struct parameters_gsl {
+  vrna_fold_compound *vc;
+  const double *q_prob_unpaired;
+  double sigma_squared;
+  double tau_squared;
+  int method;
+  int sample_size;
+} parameters_gsl;
+
+gsl_vector* to_gsl_vector(double *values, size_t size)
+{
+  gsl_vector *ret = space(sizeof(gsl_vector));
+  ret->size = size;
+  ret->data = values;
+  ret->stride = 1;
+
+  return ret;
+}
+
+double f_gsl(const gsl_vector *x, void *params)
+{
+  parameters_gsl *p = params;
+
+  return vrna_evaluate_perturbation_vector_score(p->vc, x->data, p->q_prob_unpaired, p->sigma_squared, p->tau_squared, p->method);
+}
+
+void df_gsl(const gsl_vector *x, void *params, gsl_vector *df)
+{
+  parameters_gsl *p = params;
+
+  gsl_vector_set(df, 0, 0);
+  vrna_evaluate_perturbation_vector_gradient(p->vc, x->data, p->q_prob_unpaired, p->sigma_squared, p->tau_squared, p->method, p->sample_size, df->data);
+}
+
+void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
+{
+  *f = f_gsl(x, params);
+  df_gsl(x, params, g);
+}
+
+#endif //WITH_GSL
 
 static void calculate_probability_unpaired(vrna_fold_compound *vc, double *probability)
 {
@@ -271,10 +318,78 @@ void vrna_evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const do
   freeProbabilityArrays(p_prob_unpaired, p_conditional_prob_unpaired, length);
 }
 
-void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int method, int sample_size, double *epsilon, progress_callback callback)
+void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int method, int algorithm, int sample_size, double *epsilon, progress_callback callback)
 {
   int iteration_count = 0;
   int length = vc->length;
+
+#ifdef WITH_GSL
+  const gsl_multimin_fdfminimizer_type *minimizer_type = 0;
+
+  struct {int type; const gsl_multimin_fdfminimizer_type *gsl_type;} algorithms[] = {{VRNA_MINIMIZER_CONJUGATE_FR, gsl_multimin_fdfminimizer_conjugate_fr},
+                                                                                     {VRNA_MINIMIZER_CONJUGATE_PR, gsl_multimin_fdfminimizer_conjugate_pr},
+                                                                                     {VRNA_MINIMIZER_VECTOR_BFGS, gsl_multimin_fdfminimizer_vector_bfgs},
+                                                                                     {VRNA_MINIMIZER_VECTOR_BFGS2, gsl_multimin_fdfminimizer_vector_bfgs2},
+                                                                                     {VRNA_MINIMIZER_STEEPEST_DESCENT, gsl_multimin_fdfminimizer_steepest_descent},
+                                                                                     {0, NULL}};
+  int i;
+  for (i = 0; algorithms[i].type; ++i)
+    if (algorithms[i].type == algorithm)
+    {
+      minimizer_type = algorithms[i].gsl_type;
+      break;
+    }
+
+  if (minimizer_type)
+  {
+    parameters_gsl parameters;
+    gsl_multimin_function_fdf fdf;
+    gsl_multimin_fdfminimizer *minimizer;
+    gsl_vector *vector;
+
+    int iter = 0;
+    int status;
+
+    parameters.vc = vc;
+    parameters.q_prob_unpaired = q_prob_unpaired;
+    parameters.sigma_squared = sigma_squared;
+    parameters.tau_squared = tau_squared;
+    parameters.method = method;
+    parameters.sample_size = sample_size;
+
+    fdf.n = length + 1;
+    fdf.f = &f_gsl;
+    fdf.df = &df_gsl;
+    fdf.fdf = &fdf_gsl;
+    fdf.params = (void*)&parameters;
+
+    minimizer = gsl_multimin_fdfminimizer_alloc(gsl_multimin_fdfminimizer_conjugate_fr, length + 1);
+    vector = gsl_vector_calloc(length + 1);
+
+    gsl_multimin_fdfminimizer_set(minimizer, &fdf, vector, 0.01, 1e-4);
+    callback(0, minimizer->f, minimizer->x->data);
+
+    do
+    {
+      ++iteration_count;
+      status = gsl_multimin_fdfminimizer_iterate(minimizer);
+      callback(iteration_count, minimizer->f, minimizer->x->data);
+
+      if (status)
+        break;
+
+      status = gsl_multimin_test_gradient(minimizer->gradient, 1e-3);
+    }
+    while (status == GSL_CONTINUE);
+
+    gsl_multimin_fdfminimizer_free(minimizer);
+    memcpy(epsilon, vector->data, sizeof(double) * (length + 1));
+    gsl_vector_free(vector);
+
+    return;
+  }
+#endif //WITH_GSL
+
   double improvement;
   const double min_improvement = 0.0001;
 
