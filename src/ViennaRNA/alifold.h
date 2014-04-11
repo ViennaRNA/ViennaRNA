@@ -88,10 +88,6 @@ void vrna_update_alifold_params(vrna_fold_compound *vc,
 float  alifold( const char **strings,
                 char *structure);
 
-float  vrna_alifold_tmp(const char **strings,
-                        char *structure,
-                        vrna_alifold_compound *vc);
-
 float vrna_alifold( vrna_fold_compound *vc,
                     char *structure);
 

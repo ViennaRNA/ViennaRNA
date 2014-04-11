@@ -145,19 +145,13 @@ destroy_mfe_matrices(mfe_matricesT *self){
 PUBLIC  void
 destroy_fold_compound(vrna_fold_compound *vc){
 
+  int s;
+
   if(vc){
+
+    /* first destroy common attributes */
     destroy_mfe_matrices(vc->matrices);
     destroy_pf_matrices(vc->exp_matrices);
-    if(vc->sequence)
-      free(vc->sequence);
-    if(vc->sequence_encoding)
-      free(vc->sequence_encoding);
-    if(vc->sequence_encoding2)
-      free(vc->sequence_encoding2);
-    if(vc->ptype)
-      free(vc->ptype);
-    if(vc->ptype_pf_compat)
-      free(vc->ptype_pf_compat);
     if(vc->iindx)
       free(vc->iindx);
     if(vc->jindx)
@@ -168,8 +162,45 @@ destroy_fold_compound(vrna_fold_compound *vc){
       free(vc->exp_params);
     if(vc->hc)
       destroy_hard_constraints(vc->hc);
-    if(vc->sc)
-      vrna_sc_destroy(vc->sc);
+
+    /* now distinguish the vc type */
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(vc->sequence)
+        free(vc->sequence);
+      if(vc->sequence_encoding)
+        free(vc->sequence_encoding);
+      if(vc->sequence_encoding2)
+        free(vc->sequence_encoding2);
+      if(vc->ptype)
+        free(vc->ptype);
+      if(vc->ptype_pf_compat)
+        free(vc->ptype_pf_compat);
+      if(vc->sc)
+        vrna_sc_destroy(vc->sc);
+
+    } else if (vc->type == VRNA_VC_TYPE_ALIGNMENT){
+      for(s=0;s<vc->n_seq;s++){
+        free(vc->sequences[s]);
+        free(vc->S[s]);
+        free(vc->S5[s]);
+        free(vc->S3[s]);
+        free(vc->Ss[s]);
+        free(vc->a2s[s]);
+      }
+      free(vc->sequences);
+      free(vc->cons_seq);
+      free(vc->S_cons);
+      free(vc->S);
+      free(vc->S5);
+      free(vc->S3);
+      free(vc->Ss);
+      free(vc->a2s);
+      if(vc->scs){
+        for(s=0;s<vc->n_seq;s++)
+          free(vc->scs[s]);
+        free(vc->scs);
+      }
+    }
 
     free(vc);
   }
