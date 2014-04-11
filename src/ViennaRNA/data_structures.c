@@ -327,7 +327,7 @@ set_fold_compound(vrna_fold_compound *vc,
                 "Falling back to oldAliEn model for alifold due to circular RNA");
       md.oldAliEn = 1;
     }
-    vc->oldAliEn  = md.oldAliEn;
+    oldAliEn = vc->oldAliEn  = md.oldAliEn;
 
     vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
     vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));

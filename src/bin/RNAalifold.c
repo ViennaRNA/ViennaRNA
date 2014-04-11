@@ -450,19 +450,19 @@ int main(int argc, char *argv[]){
     for (i=0; AS[i]!=NULL; i++)
       s += vrna_eval_structure(AS[i], structure, vc->params);
     real_en   = s/i;
+  } else {
+
+    float *ens    = (float *)space(2*sizeof(float));
+
+    if(md.gquad)
+      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+    else
+      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+
+    real_en       = ens[0];
+
+    free(ens);
   }
-
-  float *ens    = (float *)space(2*sizeof(float));
-
-  if(md.gquad)
-    energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
-  else
-    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
-
-  real_en       = ens[0];
-
-  free(ens);
-
 
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
