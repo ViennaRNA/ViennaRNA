@@ -395,5 +395,8 @@ int get_alipf_arrays(short ***S_p,
 		     FLT_OR_DBL **qln_p,
 		     int **pscore);
 
+pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc,
+                                  const char *structure,
+                                  double threshold);
 
 #endif

@@ -34,11 +34,6 @@
 #include <omp.h>
 #endif
 
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
-#define ISOLATED  256.0
-#define PMIN 0.0008
-
 /*
 #################################
 # PUBLIC GLOBAL VARIABLES       #
@@ -69,7 +64,6 @@ PRIVATE int                 backward_compat           = 0;
 
 PRIVATE void      scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters);
 PRIVATE void      get_arrays(unsigned int length);
-PRIVATE pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc);
 PRIVATE void      alipf_linear(vrna_fold_compound *vc, char *structure);
 PRIVATE void      alipf_create_bppm(vrna_fold_compound *vc, char *structure, struct plist **pl);
 PRIVATE void      backtrack(vrna_fold_compound *vc, char *pstruc, int i, int j, double *prob);
@@ -753,12 +747,15 @@ compare_pair_info(const void *pi1,
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-PRIVATE pair_info *
-vrna_ali_get_pair_info(vrna_fold_compound *vc){
+PUBLIC pair_info *
+vrna_ali_get_pair_info( vrna_fold_compound *vc,
+                        const char *structure,
+                        double threshold){
 
   int i,j, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
+  short *ptable = NULL;
 
   short **S = vc->S;
   char **AS = vc->sequences;
@@ -770,30 +767,32 @@ vrna_ali_get_pair_info(vrna_fold_compound *vc){
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((n+1)*sizeof(double));
-  for (i=1; i<n; i++)
-    for (j=i+TURN+1; j<=n; j++)
-      if ((p=probs[my_iindx[i]-j])>0) {
-        duck[i] -=  p * log(p);
-        duck[j] -=  p * log(p);
-      }
+  if(structure)
+    ptable = vrna_pt_get(structure);
 
   for (i=1; i<n; i++)
     for (j=i+TURN+1; j<=n; j++) {
-      if ((p=probs[my_iindx[i]-j])>=PMIN) {
+      if ((p=probs[my_iindx[i]-j])>=threshold) {
+        duck[i] -=  p * log(p);
+        duck[j] -=  p * log(p);
+
         int type, s;
-        pi[num_p].i = i;
-        pi[num_p].j = j;
-        pi[num_p].p = p;
-        pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
+        pi[num_p].i   = i;
+        pi[num_p].j   = j;
+        pi[num_p].p   = p;
+        pi[num_p].ent = duck[i]+duck[j]-p*log(p);
+
         for (type=0; type<8; type++) pi[num_p].bp[type]=0;
         for (s=0; s<n_seq; s++) {
-          if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
-          else {
-            if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-            else type = md->pair[S[s][i]][S[s][j]];
-          }
+          type = md->pair[S[s][i]][S[s][j]];
+          if(S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
+          if ((AS[s][i-1] == '-')||(AS[s][j-1] == '-')) type = 7;
+          if ((AS[s][i-1] == '~')||(AS[s][j-1] == '~')) type = 7;
           pi[num_p].bp[type]++;
         }
+        if(ptable)
+          pi[num_p].comp = (ptable[i] == j) ? 1:0;
+
         num_p++;
         if (num_p>=max_p) {
           max_p *= 2;
@@ -805,6 +804,8 @@ vrna_ali_get_pair_info(vrna_fold_compound *vc){
   pi = xrealloc(pi, (num_p+1)*sizeof(pair_info));
   pi[num_p].i=0;
   qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
+
+  free(ptable);
   return pi;
 }
 
