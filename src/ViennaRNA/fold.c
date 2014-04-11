@@ -50,11 +50,12 @@
 */
 
 /* some backward compatibility stuff */
+PRIVATE int                 backward_compat           = 0;
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(backward_compat_compound)
+#pragma omp threadprivate(backward_compat_compound, backward_compat)
 
 #endif
 
@@ -162,10 +163,11 @@ wrap_fold( const char *string,
     vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
 
-  if(backward_compat_compound)
+  if(backward_compat_compound && backward_compat)
     destroy_fold_compound(backward_compat_compound);
 
-  backward_compat_compound = vc;
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
 
   return vrna_fold(vc, structure);
 }
@@ -1004,19 +1006,29 @@ PUBLIC  void
 vrna_update_fold_params(vrna_fold_compound *vc,
                         paramT *parameters){
 
+  vrna_fold_compound *v;
   if(vc){
-    if(vc->params)
-      free(vc->params);
-    if(parameters){
-      vc->params = get_parameter_copy(parameters);
-    } else {
-      model_detailsT md;
-      set_model_details(&md);
-      vc->params = get_scaled_parameters(temperature, md);
-    }
+    v = vc;
 
     /* what about re-setting the backward compatibility compound here? */
-    backward_compat_compound = vc;
+    if(backward_compat_compound && backward_compat)
+      destroy_fold_compund(backward_compat_compound);
+
+    backward_compat_compound  = vc;
+    backward_compat           = 0;
+  } else if(backward_compat_compound && backward_compat){
+    v = backward_compat_compound;
+  } else
+    return;
+
+  if(v->params)
+    free(v->params);
+  if(parameters){
+    v->params = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    v->params = get_scaled_parameters(temperature, md);
   }
 }
 
@@ -1031,6 +1043,7 @@ free_arrays(void){
   if(backward_compat_compound){
     destroy_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
+    backward_compat          = 0;
   }
 }
 
@@ -1068,13 +1081,13 @@ initialize_fold(int length){
 PUBLIC void
 update_fold_params(void){
 
-  vrna_update_fold_params(backward_compat_compound, NULL);
+  vrna_update_fold_params(NULL, NULL);
 }
 
 PUBLIC void
 update_fold_params_par(paramT *parameters){
 
-  vrna_update_fold_params(backward_compat_compound, parameters);
+  vrna_update_fold_params(NULL, parameters);
 }
 
 PUBLIC void
