@@ -129,6 +129,22 @@ int get_mpi(char *Alseq[],
             int *mini);
 
 /**
+ *  \brief Get the mean pairwise identity in steps from ?to?(ident)
+ * 
+ *  \ingroup consensus_fold
+ * 
+ *  \param Alseq
+ *  \param n_seq  The number of sequences in the alignment
+ *  \param length The length of the alignment
+ *  \param mini
+ *  \return       The mean pairwise identity
+ */
+int vrna_ali_get_mpi( char *Alseq[],
+                      int n_seq,
+                      int length,
+                      int *mini);
+
+/**
  *  \brief Read a ribosum or other user-defined scoring matrix
  * 
  *  \ingroup consensus_fold
