@@ -385,7 +385,9 @@ set_fold_compound(vrna_fold_compound *vc,
 
 
   if(options & VRNA_OPTION_PF){
-    vc->exp_params    = vrna_get_boltzmann_factors(md);
+    vc->exp_params    = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+                            vrna_get_boltzmann_factors(md) : \
+                            vrna_get_boltzmann_factors_ali(vc->n_seq, md);
     vrna_add_pf_matrices(vc, alloc_vector);
   } else {
     vc->exp_params    = NULL;

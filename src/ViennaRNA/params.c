@@ -379,6 +379,12 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
   return get_boltzmann_factors_ali(n_seq, temperature, 1.0, md, pf_scale);
 }
 
+PUBLIC pf_paramT *
+vrna_get_boltzmann_factors_ali(unsigned int n_seq, model_detailsT md){
+
+  return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, md.pf_scale);
+}
+
 PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
                                             double temperature,
                                             double betaScale,
