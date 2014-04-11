@@ -322,6 +322,11 @@ set_fold_compound(vrna_fold_compound *vc,
 
     vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
+    if(md.circ){
+      warn_user("Not implemented yet: "
+                "Falling back to oldAliEn model for alifold due to circular RNA");
+      md.oldAliEn = 1;
+    }
     vc->oldAliEn  = md.oldAliEn;
 
     vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
@@ -374,9 +379,10 @@ set_fold_compound(vrna_fold_compound *vc,
   if(md.uniq_ML)
     alloc_vector |= ALLOC_UNIQ;
 
-  if(md.circ)
-    alloc_vector |= ALLOC_CIRC;
-
+  if(md.circ){
+    md.uniq_ML = 1;
+    alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
+  }
 
   if(options & VRNA_OPTION_MFE){
     vc->params    = vrna_get_energy_contributions(md);
@@ -486,7 +492,7 @@ get_pf_matrices_alloc(unsigned int n,
     if(alloc_vector & ALLOC_UNIQ)
       vars->qm1   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
 
-    if(alloc_vector & ALLOC_FM2)
+    if(alloc_vector & ALLOC_CIRC)
       vars->qm2   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
 
     if(alloc_vector & ALLOC_PROBS)
@@ -520,7 +526,7 @@ destroy_pf_matrices(pf_matricesT *self){
         free(self->qm);
       if(self->allocated & ALLOC_UNIQ)
         free(self->qm1);
-      if(self->allocated & ALLOC_FM2)
+      if(self->allocated & ALLOC_CIRC)
         free(self->qm2);
       if(self->allocated & ALLOC_PROBS)
         free(self->probs);
