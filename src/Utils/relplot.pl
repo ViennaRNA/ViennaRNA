@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 #
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy

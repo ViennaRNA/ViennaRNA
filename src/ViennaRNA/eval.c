@@ -117,6 +117,12 @@ PRIVATE float   wrap_eval_structure(const char *string,
                                     FILE *file,
                                     int verbosity);
 
+PRIVATE int wrap_eval_loop_pt(const short *pt,
+                              const short *s,
+                              const short *s1,
+                              int i,
+                              paramT *params,
+                              int verbosity);
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -132,7 +138,7 @@ vrna_eval_structure(const char *string,
   short *s  = get_sequence_encoding(string, 0, &(P->model_details));
   short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
   short *pt = vrna_pt_get(structure);
-  float en  = wrap_eval_structure(string, structure, pt, s, s1, P, NULL, 0);
+  float en  = wrap_eval_structure(string, structure, pt, s, s1, P, NULL, -1);
 
   free(P);
   free(pt);
@@ -173,7 +179,7 @@ vrna_eval_structure_pt( const char *string,
     short *s  = get_sequence_encoding(string, 0, &(P->model_details));
     short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
 
-    int en = eval_pt(string, pt, s, s1, NULL, P, 0);
+    int en = eval_pt(string, pt, s, s1, NULL, P, -1);
     free(s);
     free(s1);
     free(P);
@@ -218,7 +224,7 @@ vrna_eval_structure_pt_fast(const char *string,
 
     paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
 
-    int en = eval_pt(string, pt, s, s1, NULL, P, 0);
+    int en = eval_pt(string, pt, s, s1, NULL, P, -1);
     free(P);
     return en;
   } else
@@ -231,6 +237,17 @@ vrna_eval_loop_pt(const short *pt,
                   const short *s1,
                   int i,
                   paramT *params){
+
+  return wrap_eval_loop_pt(pt, s, s1, i, params, -1);
+}
+
+PRIVATE int
+wrap_eval_loop_pt(const short *pt,
+                  const short *s,
+                  const short *s1,
+                  int i,
+                  paramT *params,
+                  int verbosity){
 
   /* compute energy of a single loop closed by base pair (i,j) */
   int j, type, p,q, energy;
@@ -247,7 +264,7 @@ vrna_eval_loop_pt(const short *pt,
   type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
-    if (eos_debug>=0)
+    if (verbosity>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
               get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
   }
@@ -279,7 +296,7 @@ vrna_eval_loop_pt(const short *pt,
     type_2 = P->model_details.pair[s[q]][s[p]];
     if (type_2==0) {
       type_2=7;
-      if (eos_debug>=0)
+      if (verbosity>=0)
         fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
               get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
     }
@@ -1624,7 +1641,7 @@ loop_energy(short *pt,
 
   paramT *P = get_updated_params(NULL,1);
 
-  int en = vrna_eval_loop_pt(pt, s, s1, i, P);
+  int en = wrap_eval_loop_pt(pt, s, s1, i, P, eos_debug);
 
   free(P);
   return en;
