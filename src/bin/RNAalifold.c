@@ -492,7 +492,7 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
   /* free mfe arrays */
-//  free_alifold_arrays();
+  free_alifold_arrays();
 
   if (pf) {
     float energy, kT;

@@ -59,10 +59,11 @@
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE int backward_compat = 0;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(backward_compat_compound)
+#pragma omp threadprivate(backward_compat_compound, backward_compat)
 
 #endif
 
@@ -159,19 +160,30 @@ PUBLIC  void
 vrna_update_alifold_params( vrna_fold_compound *vc,
                             paramT *parameters){
 
+  vrna_fold_compound *v;
+
   if(vc){
-    if(vc->params)
-      free(vc->params);
-    if(parameters){
-      vc->params = get_parameter_copy(parameters);
-    } else {
-      model_detailsT md;
-      set_model_details(&md);
-      vc->params = get_scaled_parameters(temperature, md);
-    }
+    v = vc;
 
     /* what about re-setting the backward compatibility compound here? */
-    backward_compat_compound = vc;
+    if(backward_compat_compound && backward_compat)
+      destroy_fold_compound(backward_compat_compound);
+
+    backward_compat_compound  = vc;
+    backward_compat           = 0;
+  } else if(backward_compat_compound && backward_compat){
+    v = backward_compat_compound;
+  } else
+    return;
+
+  if(v->params)
+    free(v->params);
+  if(parameters){
+    v->params = get_parameter_copy(parameters);
+  } else {
+    model_detailsT md;
+    set_model_details(&md);
+    v->params = get_scaled_parameters(temperature, md);
   }
 }
 
@@ -223,10 +235,11 @@ wrap_alifold( const char **strings,
     vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
 
-  if(backward_compat_compound)
+  if(backward_compat_compound && backward_compat)
     destroy_fold_compound(backward_compat_compound);
 
-  backward_compat_compound = vc;
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
 
   return vrna_alifold(vc, structure);
 }
@@ -1609,10 +1622,11 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
     energy[0] = (float)en_struct[0]/(float)(100*n_seq);
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
-    if(backward_compat_compound)
+    if(backward_compat_compound && backward_compat)
       destroy_fold_compound(backward_compat_compound);
 
-    backward_compat_compound = vc;
+    backward_compat_compound  = vc;
+    backward_compat           = 1;
 
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
@@ -1656,10 +1670,11 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     energy[0] = (float)en_struct[0]/(float)(100*n_seq);
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
-    if(backward_compat_compound)
+    if(backward_compat_compound && backward_compat)
       destroy_fold_compound(backward_compat_compound);
 
-    backward_compat_compound = vc;
+    backward_compat_compound  = vc;
+    backward_compat           = 1;
 
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
@@ -1884,9 +1899,10 @@ PRIVATE int EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
 PUBLIC void
 free_alifold_arrays(void){
 
-  if(backward_compat_compound){
+  if(backward_compat_compound && backward_compat){
     destroy_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
+    backward_compat_compound  = NULL;
+    backward_compat           = 0;
   }
 }
 
@@ -1906,6 +1922,6 @@ PUBLIC float circalifold( const char **strings,
 PUBLIC void 
 update_alifold_params(void){
 
-  vrna_update_alifold_params(backward_compat_compound, NULL);
+  vrna_update_alifold_params(NULL, NULL);
 }
 
