@@ -590,7 +590,8 @@ wrap_get_plist( pf_matricesT *matrices,
       }
 
       /* check for presence of gquadruplex */
-      if((S[i] == 3) && (S[j] == 3) && gquad){
+      if(gquad){
+        if((S[i] == 3) && (S[j] == 3)){
           /* add probability of a gquadruplex at position (i,j)
              for dot_plot
           */
@@ -619,6 +620,7 @@ wrap_get_plist( pf_matricesT *matrices,
               } else
                 (pl)[k].p  += ptr->p;
           }
+        }
       } else {
           (pl)[count].i      = i;
           (pl)[count].j      = j;
