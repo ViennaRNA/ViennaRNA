@@ -422,37 +422,6 @@ typedef struct{
 } vrna_fold_compound;
 
 
-typedef struct{
-
-  unsigned int    length;
-  char            *ptype;
-  char            **sequences;
-  unsigned int    n_seq;
-  short           **S;
-  short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char            **Ss;
-  unsigned short  **a2s;
-  int             *pscore;     /* precomputed array of pair types */
-
-  char            *cons_seq;
-  short           *S_cons;
-
-  hard_constraintT  **hc;
-  soft_constraintT  **sc;
-
-  mfe_matricesT     *matrices;
-  pf_matricesT      *exp_matrices;
-
-  paramT            *params;
-  pf_paramT         *exp_params;
-  int               oldAliEn;
-
-  int               *iindx;
-  int               *jindx;
-
-} vrna_alifold_compound;
-
 /*
 * ############################################################
 * SUBOPT data structures
@@ -1038,33 +1007,6 @@ vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequence,
 
 void destroy_fold_compound(vrna_fold_compound *vc);
 
-
-/*
-* ############################################################
-* VRNA alifold compound related functions
-* ############################################################
-*/
-
-/* General stuff */
-
-vrna_alifold_compound *vrna_alifold_get_compund_constraints(const char **sequences,
-                                                            hard_constraintT **hc,
-                                                            soft_constraintT **sc,
-                                                            model_detailsT *model_details,
-                                                            paramT *P,
-                                                            pf_paramT *pf,
-                                                            unsigned int options);
-
-void destroy_alifold_compound(vrna_alifold_compound *vc);
-
-/* MFE stuff */
-vrna_alifold_compound *get_alifold_compound_mfe(const char **sequences,
-                                                paramT *P);
-
-vrna_alifold_compound *get_alifold_compound_mfe_constrained(const char **sequences,
-                                                            hard_constraintT **hc,
-                                                            soft_constraintT **sc,
-                                                            paramT *P);
 
 /* partition function stuff */
 
