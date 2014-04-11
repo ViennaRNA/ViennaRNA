@@ -354,7 +354,6 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->Ss[vc->n_seq]  = NULL;
     vc->S[vc->n_seq]   = NULL;
 
-    make_pscores(vc);
     vc->scs       = NULL;
   }
 
@@ -400,10 +399,11 @@ set_fold_compound(vrna_fold_compound *vc,
 
   vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
 
-
   vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
   vc->jindx               = get_indx(vc->length);
 
+  if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+    make_pscores(vc);
 }
 
 
@@ -588,13 +588,12 @@ make_pscores(vrna_fold_compound *vc){
   short           **S         = vc->S;
   char            **AS        = vc->sequences;
   int             n_seq       = vc->n_seq;
-  pf_paramT       *pf_params  = vc->exp_params;
-  model_detailsT  *md         = &(pf_params->model_details);
+  model_detailsT  *md         = (vc->params) ? &(vc->params->model_details) : &(vc->exp_params->model_details);
   int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
   int             *indx       = vc->jindx;                                             
   int             n           = vc->length;                                            
 
-  int noLP = pf_params->model_details.noLP;
+  int noLP = md->noLP;
 
   if (md->ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
