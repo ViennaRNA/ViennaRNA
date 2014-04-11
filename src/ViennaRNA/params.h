@@ -125,6 +125,9 @@ pf_paramT *get_boltzmann_factors_ali( unsigned int n_seq,
                                       model_detailsT md,
                                       double pf_scale);
 
+pf_paramT *vrna_get_boltzmann_factors_ali(unsigned int n_seq,
+                                          model_detailsT md);
+
 /**
  *  @}
  */

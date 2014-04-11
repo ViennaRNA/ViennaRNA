@@ -328,7 +328,7 @@ int main(int argc, char *argv[]){
     nrerror("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  make_pair_matrix(); /* why */
+  make_pair_matrix(); /* for make_color_pinfo */
 
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, "
@@ -435,7 +435,12 @@ int main(int argc, char *argv[]){
   }
 
   if(with_shapes)
-    add_shape_constraints(vc, shape_method, shape_files, shape_file_association, verbose, VRNA_CONSTRAINT_SOFT_MFE);
+    add_shape_constraints(vc, \
+                          shape_method, \
+                          (const char **)shape_files, \
+                          shape_file_association, \
+                          verbose, \
+                          VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
   min_en = vrna_alifold(vc, structure);
 
@@ -507,21 +512,20 @@ int main(int argc, char *argv[]){
 
     if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
+    /* rescale energy parameters according to above calculated pf_scale */
     pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
 
-    if(with_shapes){
-      vc->exp_params = pf_parameters;
-      energy = vrna_alipf_fold_tmp((const char **)AS, structure, NULL, vc);
-    }
-    else
-      energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, fold_constrained, circular);
+    /* change energy parameters in vc */
+    vrna_update_pf_params(vc, pf_parameters);
+
+    energy = vrna_alipf_fold(vc, structure, NULL);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
         char *s;
         double prob=1.;
-        s = alipbacktrack(&prob);
+        s = vrna_ali_pbacktrack(vc, &prob);
         printf("%s ", s);
         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
         printf("\n");
@@ -544,15 +548,14 @@ int main(int argc, char *argv[]){
       cpair *cp;
       char *cent;
       double dist;
-      FLT_OR_DBL *probs = export_ali_bppm();
       plist *pl, *mfel;
 
-      assign_plist_from_pr(&pl, probs, length, bppmThreshold);
-      mfel = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
+      pl    = vrna_get_plist_from_pr(vc, bppmThreshold);
+      mfel  = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
-        cent = get_centroid_struct_pr(length, &dist, probs);
+        cent = vrna_get_centroid_struct(vc, &dist);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
 
@@ -563,7 +566,7 @@ int main(int argc, char *argv[]){
       if(doMEA){
         float mea, *ens;
         plist *pl2;
-        assign_plist_from_pr(&pl2, probs, length, 1e-4/(1+MEAgamma));
+        pl2 = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
         if(circular)

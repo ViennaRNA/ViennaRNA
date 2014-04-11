@@ -53,42 +53,14 @@
 # PRIVATE GLOBAL VARIABLES      #
 #################################
 */
-PRIVATE FLT_OR_DBL      *expMLbase=NULL;
-PRIVATE FLT_OR_DBL      *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
-PRIVATE FLT_OR_DBL      *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
-PRIVATE FLT_OR_DBL      *probs=NULL;
-PRIVATE FLT_OR_DBL      *scale=NULL;
-PRIVATE short           *pscore=NULL;   /* precomputed array of covariance bonus/malus */
-/* some additional things for circfold  */
-PRIVATE int             circular=0;
-PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2=NULL;
-PRIVATE int             *jindx=NULL;
-PRIVATE int             *my_iindx=NULL;
-PRIVATE int             do_bppm = 1;             /* do backtracking per default */
-PRIVATE short           **S=NULL;
-PRIVATE short           **S5=NULL;               /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3=NULL;               /*S3[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss=NULL;
-PRIVATE unsigned short  **a2s=NULL;
-PRIVATE int             N_seq = 0;
-PRIVATE pf_paramT       *pf_params = NULL;
-PRIVATE char            *pstruc=NULL;
-PRIVATE double          alpha = 1.0;
-PRIVATE int             struct_constrained = 0;
-PRIVATE hard_constraintT  **hc  = NULL;
-PRIVATE soft_constraintT  **sc  = NULL;
 
+/* some backward compatibility stuff */
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-*/
-#pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1,\
-                          probs, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pscore, circular,\
-                          qo, qho, qio, qmo, qm2, jindx, my_iindx,\
-                          S, S5, S3, Ss, a2s, N_seq, pf_params, pstruc, alpha, struct_constrained, \
-                          hc, sc)
+#pragma omp threadprivate(backward_compat_compound, backward_compat)
 
 #endif
 
@@ -98,16 +70,23 @@ PRIVATE soft_constraintT  **sc  = NULL;
 #################################
 */
 
-PRIVATE void      init_alipf_fold(int length, int n_seq, pf_paramT *parameters);
 PRIVATE void      scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters);
 PRIVATE void      get_arrays(unsigned int length);
-PRIVATE void      make_pscores(const short *const *S, const char **AS, int n_seq, const char *structure);
-PRIVATE pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq);
-PRIVATE void      alipf_circ(const char **sequences, char *structure);
-PRIVATE void      alipf_linear(const char **sequences, char *structure);
-PRIVATE void      alipf_create_bppm(const char **sequences, char *structure, struct plist **pl);
-PRIVATE void      backtrack(int i, int j, int n_seq, double *prob);
-PRIVATE void      backtrack_qm1(int i,int j, int n_seq, double *prob);
+PRIVATE void      make_pscores(vrna_fold_compound *vc, const char *structure);
+PRIVATE pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc);
+PRIVATE void      alipf_linear(vrna_fold_compound *vc, char *structure);
+PRIVATE void      alipf_create_bppm(vrna_fold_compound *vc, char *structure, struct plist **pl);
+PRIVATE void      backtrack(vrna_fold_compound *vc, char *pstruc, int i, int j, double *prob);
+PRIVATE void      backtrack_qm1(vrna_fold_compound *vc, char *pstruc, int i,int j, double *prob);
+PRIVATE float     wrap_alipf_fold(const char **sequences,
+                char *structure,
+                plist **pl,
+                pf_paramT *parameters,
+                int calculate_bppm,
+                int is_constrained,
+                int is_circular);
+PRIVATE void      wrap_alipf_circ(vrna_fold_compound *vc,
+                                  char *structure);
 
 
 
@@ -117,142 +96,10 @@ PRIVATE void      backtrack_qm1(int i,int j, int n_seq, double *prob);
 #################################
 */
 
-PRIVATE void init_alipf_fold(int length, int n_seq, pf_paramT *parameters){
-  if (length<1) nrerror("init_alipf_fold: length must be greater 0");
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-#ifdef SUN4
-  nonstandard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(1);
-#endif
-#endif
-  make_pair_matrix();
-  free_alipf_arrays(); /* free previous allocation */
-  get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length, n_seq, parameters);
-}
-
-/**
-*** Allocate memory for all matrices and other stuff
-**/
-PRIVATE void get_arrays(unsigned int length){
-  unsigned int size;
-
-  if((length+1) >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_arrays@alipfold.c: sequence length exceeds addressable range");
-
-  size  = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
-
-  q     = (FLT_OR_DBL *) space(size);
-  qb    = (FLT_OR_DBL *) space(size);
-  qm    = (FLT_OR_DBL *) space(size);
-  qm1   = (FLT_OR_DBL *) space(size);
-  qm2   = (circular) ? (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2)) : NULL;
-
-  pscore    = (short *) space(sizeof(short)*((length+1)*(length+2)/2));
-  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-
-  my_iindx  = get_iindx(length);
-  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = get_indx(length);
-}
-
-/*----------------------------------------------------------------------*/
-
-
-PUBLIC void free_alipf_arrays(void){
-  if(q)         free(q);
-  if(qb)        free(qb);
-  if(qm)        free(qm);
-  if(qm1)       free(qm1);
-  if(qm2)       free(qm2);
-  if(pscore)    free(pscore);
-  if(qq)        free(qq);
-  if(qq1)       free(qq1);
-  if(qqm)       free(qqm);
-  if(qqm1)      free(qqm1);
-  if(q1k)       free(q1k);
-  if(qln)       free(qln);
-  if(prm_l)     free(prm_l);
-  if(prm_l1)    free(prm_l1);
-  if(prml)      free(prml);
-  if(expMLbase) free(expMLbase);
-  if(scale)     free(scale);
-  if(my_iindx)  free(my_iindx);
-  if(iindx)     free(iindx); /* for backward compatibility and Perl wrapper */
-  if(jindx)     free(jindx);
-
-  if(S){
-    free_sequence_arrays(N_seq, &S, &S5, &S3, &a2s, &Ss);
-    N_seq = 0;
-    S = NULL;
-  }
-  pr = NULL; /* ? */
-  q = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = scale = NULL;
-  my_iindx   = jindx = iindx = NULL;
-  pscore  = NULL;
-
-#ifdef SUN4
-  standard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(0);
-#endif
-#endif
-}
 
 /*-----------------------------------------------------------------*/
-PUBLIC float
-alipf_fold( const char **sequences,
-                  char *structure,
-                  plist **pl){
-
-  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 0);
-}
-
-PUBLIC float
-alipf_circ_fold(const char **sequences,
-                      char *structure,
-                      plist **pl){
-
-  return alipf_fold_par(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 1);
-}
-
-PUBLIC float
-vrna_alipf_fold_tmp( const char **strings,
-              char *structure,
-              plist **pl,
-              vrna_alifold_compound *vc){
-
-  sc = vc->sc;
-  hc = vc->hc;
-  return alipf_fold_par(strings,
-                        structure,
-                        pl,
-                        vc->exp_params,
-                        vc->exp_params->model_details.compute_bpp,
-                        fold_constrained,
-                        vc->exp_params->model_details.circ);
-}
-
-PUBLIC float
-alipf_fold_par( const char **sequences,
+PRIVATE float
+wrap_alipf_fold(const char **sequences,
                 char *structure,
                 plist **pl,
                 pf_paramT *parameters,
@@ -260,80 +107,160 @@ alipf_fold_par( const char **sequences,
                 int is_constrained,
                 int is_circular){
 
-  int         n, s, n_seq;
+  int                 n_seq;
+  vrna_fold_compound  *vc;
+  pf_paramT           *exp_params;
+
+  if(sequences == NULL) return 0.;
+
+  for(n_seq=0;sequences[n_seq];n_seq++); /* count the sequences */
+  
+  vc                  = NULL;
+
+  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  if(parameters)
+    exp_params = get_boltzmann_factor_copy(parameters);
+  else{
+    model_detailsT md;
+    set_model_details(&md); /* get global default parameters */
+    exp_params = vrna_get_boltzmann_factors_ali(n_seq, md);
+  }
+  exp_params->model_details.circ        = is_circular;
+  exp_params->model_details.compute_bpp = calculate_bppm;
+
+  vc = vrna_get_fold_compound_ali(sequences, &(exp_params->model_details), VRNA_OPTION_PF);
+
+  if(parameters){ /* replace exp_params if necessary */
+    free(vc->exp_params);
+    vc->exp_params = exp_params;
+  } else {
+    free(exp_params);
+  }
+
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
+
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
+  }
+
+  if(backward_compat_compound && backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
+
+  backward_compat_compound  = vc;
+  iindx                     = backward_compat_compound->iindx;
+  backward_compat           = 1;
+
+  return vrna_alipf_fold(vc, structure, pl);
+}
+
+PUBLIC float
+vrna_alipf_fold(vrna_fold_compound *vc,
+                char *structure,
+                plist **pl){
+
+  int         s;
   FLT_OR_DBL  Q;
   float       free_energy;
 
-  circular            = is_circular;
-  do_bppm             = calculate_bppm;
-  struct_constrained  = is_constrained;
+  int             n         = vc->length;
+  int             n_seq     = vc->n_seq;
+  pf_paramT       *params   = vc->exp_params;
+  model_detailsT  *md       = &(params->model_details);
+  pf_matricesT    *matrices = vc->exp_matrices;
 
-  if(circular)
-    oldAliEn  = 1; /* may be removed if circular alipf fold works with gapfree stuff */
+  make_pscores(vc, structure);
 
-  n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++);
-  n_seq = N_seq = s;
-
-  init_alipf_fold(n, n_seq, parameters);
-
-  alloc_sequence_arrays(sequences, &S, &S5, &S3, &a2s, &Ss, circular);
-  make_pscores((const short *const*)S, sequences, n_seq, structure);
-
-  alipf_linear(sequences, structure);
+  alipf_linear(vc, structure);
 
   /* calculate post processing step for circular  */
   /* RNAs                                         */
-  if(circular)
-    alipf_circ(sequences, structure);
+  if(md->circ)
+    wrap_alipf_circ(vc, structure);
 
-  if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
-  else Q = (circular) ? qo : q[my_iindx[1]-n];
+  if (md->backtrack_type=='C')      Q = matrices->qb[vc->iindx[1]-n];
+  else if (md->backtrack_type=='M') Q = matrices->qm[vc->iindx[1]-n];
+  else Q = (md->circ) ? matrices->qo : matrices->q[vc->iindx[1]-n];
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/(1000.0 * n_seq);
+  free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/(1000.0 * n_seq);
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_bppm){
-    alipf_create_bppm(sequences, structure, pl);
+  if(md->compute_bpp){
+    alipf_create_bppm(vc, structure, pl);
     /*
     *  Backward compatibility:
     *  This block may be removed if deprecated functions
     *  relying on the global variable "pr" vanish from within the package!
     */
-    pr = probs;
+    pr = matrices->probs;
   }
 
   return free_energy;
 }
 
-PUBLIC FLT_OR_DBL *alipf_export_bppm(void){
-  return probs;
-}
 
 
+PRIVATE void
+alipf_linear( vrna_fold_compound *vc,
+              char *structure){
 
-PRIVATE void alipf_linear(const char **sequences, char *structure)
-{
-  int         s, n, n_seq, i,j,k,l, ij, u, u1, d, ii, *type, type_2, tt;
+  int         s, i,j,k,l, ij, u, u1, d, ii, *type, type_2, tt;
   FLT_OR_DBL  temp;
   FLT_OR_DBL  qbt1, *tmp;
+  FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   double      kTn;
 
-  FLT_OR_DBL  expMLclosing  = pf_params->expMLclosing;
+  char            **sequences   = vc->sequences;
+  int             n_seq         = vc->n_seq;
+  int             n             = vc->length;
 
-  for(s=0; sequences[s]!=NULL; s++);
 
-  n_seq = s;
-  n     = (int) strlen(sequences[0]);
+  short             **S           = vc->S;                                                                   
+  short             **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss          = vc->Ss;                                                                   
+  unsigned short    **a2s         = vc->a2s;                                                                   
+  pf_paramT         *pf_params    = vc->exp_params;
+  pf_matricesT      *matrices     = vc->exp_matrices;
+  model_detailsT    *md           = &(pf_params->model_details);
+  hard_constraintT  *hc           = vc->hc;
+  soft_constraintT  **sc          = vc->scs;
+  int               *my_iindx     = vc->iindx;
+  int               *jindx        = vc->jindx;
+  FLT_OR_DBL        *q            = matrices->q;
+  FLT_OR_DBL        *qb           = matrices->qb;
+  FLT_OR_DBL        *qm           = matrices->qm;
+  FLT_OR_DBL        *qm1          = matrices->qm1;
+  FLT_OR_DBL        *G            = matrices->G;
+  int               *pscore       = vc->pscore;     /* precomputed array of pair types */                      
+  char              *cons_seq     = vc->cons_seq;
+  short             *S_cons       = vc->S_cons;
+  int               *rtype        = &(md->rtype[0]);
+  int               dangle_model  = md->dangles;
+  int               circular      = md->circ;
+  FLT_OR_DBL        *scale        = matrices->scale;
+  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
+
   kTn   = pf_params->kT/10.;   /* kT in cal/mol  */
   type  = (int *)space(sizeof(int) * n_seq);
 
   int max_bpspan = (pf_params->model_details.max_bp_span > 0) ? pf_params->model_details.max_bp_span : n;
+
+  /* allocate memory for helper arrays */
+  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
 
   /* array initialization ; qb,qm,q
@@ -472,23 +399,69 @@ PRIVATE void alipf_linear(const char **sequences, char *structure)
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
 
+  /* clean up */
   free(type);
+  free(qq);
+  free(qq1);
+  free(qqm);
+  free(qqm1);
+
 }
 
-PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **pl)
-{
+PRIVATE void
+alipf_create_bppm(vrna_fold_compound *vc,
+                  char *structure,
+                  plist **pl){
+
   int s;
-  int n, n_seq, i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
+  int i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
   FLT_OR_DBL temp, prm_MLb;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+
+  char            **sequences   = vc->sequences;
+  int             n_seq         = vc->n_seq;
+  int             n             = vc->length;
+
+
+  short             **S           = vc->S;                                                                   
+  short             **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss          = vc->Ss;                                                                   
+  unsigned short    **a2s         = vc->a2s;                                                                   
+  pf_paramT         *pf_params    = vc->exp_params;
+  pf_matricesT      *matrices     = vc->exp_matrices;
+  model_detailsT    *md           = &(pf_params->model_details);
+  hard_constraintT  *hc           = vc->hc;
+  soft_constraintT  **sc          = vc->scs;
+  int               *my_iindx     = vc->iindx;
+  int               *jindx        = vc->jindx;
+  FLT_OR_DBL        *q            = matrices->q;
+  FLT_OR_DBL        *qb           = matrices->qb;
+  FLT_OR_DBL        *qm           = matrices->qm;
+  FLT_OR_DBL        *qm1          = matrices->qm1;
+  FLT_OR_DBL        *G            = matrices->G;
+  FLT_OR_DBL        qo            = matrices->qo;
+  int               *pscore       = vc->pscore;     /* precomputed array of pair types */                      
+  char              *cons_seq     = vc->cons_seq;
+  short             *S_cons       = vc->S_cons;
+  int               *rtype        = &(md->rtype[0]);
+  int               dangle_model  = md->dangles;
+  int               circular      = md->circ;
+  FLT_OR_DBL        *scale        = matrices->scale;
+  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
+  FLT_OR_DBL        *probs        = matrices->probs;
 
   double kTn;
-  n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++);
-  n_seq = s;
-  type  = (int *)space(sizeof(int) * n_seq);
+
+  FLT_OR_DBL *q1k    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+  FLT_OR_DBL *qln    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+
+    type  = (int *)space(sizeof(int) * n_seq);
 
   kTn = pf_params->kT/10.;   /* kT in cal/mol  */
 
@@ -502,8 +475,6 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
   }
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
-
-  probs = q;     /* recycling */
 
   /* 1. exterior pair i,j and initialization of pr array */
   if(circular){
@@ -758,7 +729,7 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    assign_plist_from_pr(pl, probs, n, /*cut_off:*/ 1e-6);
+    *pl = vrna_get_plist_from_pr(vc, /*cut_off:*/ 1e-6);
 
   if (structure!=NULL)
     bppm_to_structure(structure, probs, n);
@@ -770,43 +741,11 @@ PRIVATE void alipf_create_bppm(const char **sequences, char *structure, plist **
   free(type);
 }
 
-PRIVATE void scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters){
-  unsigned int i;
-  double  kT, scaling_factor;
-
-  if(pf_params) free(pf_params);
-
-  if(parameters){
-    pf_params = get_boltzmann_factor_copy(parameters);
-  } else {
-    model_detailsT  md;
-    set_model_details(&md);
-    pf_params = get_boltzmann_factors_ali(n_seq, temperature, alpha, md, pf_scale);
-  }
-
-  scaling_factor  = pf_params->pf_scale;
-  kT              = pf_params->kT / n_seq;
-
-  /* scaling factors (to avoid overflows) */
-  if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
-    scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
-    if (scaling_factor<1) scaling_factor=1;
-    pf_params->pf_scale = scaling_factor;
-  }
-  scale[0] = 1.;
-  scale[1] = 1./scaling_factor;
-
-  expMLbase[0] = 1;
-  expMLbase[1] = pf_params->expMLbase/scaling_factor;
-  for (i=2; i<=length; i++) {
-    scale[i] = scale[i/2]*scale[i-(i/2)];
-    expMLbase[i] = pow(pf_params->expMLbase, (double)i) * scale[i];
-  }
-}
-
-
 /*---------------------------------------------------------------------------*/
-PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
+PRIVATE int
+compare_pair_info(const void *pi1,
+                  const void *pi2){
+
   pair_info *p1, *p2;
   int  i, nc1, nc2;
   p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
@@ -820,11 +759,20 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq) {
-  int i,j,n, num_p=0, max_p = 64;
+PRIVATE pair_info *
+vrna_ali_get_pair_info(vrna_fold_compound *vc){
+
+  int i,j, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
-  n = S[0][0];
+
+  short **S = vc->S;
+  char **AS = vc->sequences;
+  int n_seq = vc->n_seq;
+  int n     = vc->length;
+  int         *my_iindx = vc->iindx;
+  FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
+
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((n+1)*sizeof(double));
   for (i=1; i<n; i++)
@@ -866,14 +814,18 @@ pair_info *make_pairinfo(const short *const* S, const char **AS, int n_seq) {
 }
 
 /*---------------------------------------------------------------------------*/
-PRIVATE void make_pscores(const short *const* S, const char **AS,
-                          int n_seq, const char *structure) {
+PRIVATE void
+make_pscores( vrna_fold_compound *vc,
+              const char *structure) {
+
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
-#define NONE -10000 /* score for forbidden pairs */
-  int n,i,j,k,l,s,score;
 
+#define NONE -10000 /* score for forbidden pairs */
+
+  int i,j,k,l,s, max_span;
+  float **dm;
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
                   {0,2,0,1,2,2,2} /* GC */,
@@ -882,61 +834,72 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
                   {0,2,2,1,2,0,2} /* AU */,
                   {0,2,2,2,1,2,0} /* UA */};
 
-  float **dm;
+  short           **S         = vc->S;
+  char            **AS        = vc->sequences;
+  int             n_seq       = vc->n_seq;
+  pf_paramT       *pf_params  = vc->exp_params;
+  model_detailsT  *md         = &(pf_params->model_details);
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  int             *indx       = vc->jindx;                                             
+  int             n           = vc->length;                                            
+
   int noLP = pf_params->model_details.noLP;
 
-  n=S[0][0];  /* length of seqs */
-  if (ribo) {
+  if (md->ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum(AS,n_seq,n);
+    else dm=get_ribosum((const char **)AS, n_seq, n);
   }
   else { /*use usual matrix*/
     dm=(float **)space(7*sizeof(float*));
     for (i=0; i<7;i++) {
       dm[i]=(float *)space(7*sizeof(float));
       for (j=0; j<7; j++)
-        dm[i][j] = olddm[i][j];
+        dm[i][j] = (float) olddm[i][j];
     }
   }
 
-  n=S[0][0];  /* length of seqs */
+  max_span = md->max_bp_span;
+  if((max_span < TURN+2) || (max_span > n))
+    max_span = n;
   for (i=1; i<n; i++) {
     for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
-      pscore[my_iindx[i]-j] = NONE;
+      pscore[indx[j]+i] = NONE;
     for (j=i+TURN+1; j<=n; j++) {
       int pfreq[8]={0,0,0,0,0,0,0,0};
+      double score;
       for (s=0; s<n_seq; s++) {
         int type;
         if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
         else {
           if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-          else type = pair[S[s][i]][S[s][j]];
+          else type = md->pair[S[s][i]][S[s][j]];
         }
         pfreq[type]++;
       }
-      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[my_iindx[i]-j] = NONE; continue;}
+      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
       for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
         for (l=k; l<=6; l++)
-          /* scores for replacements between pairtypes    */
-          /* consistent or compensatory mutations score 1 or 2  */
           score += pfreq[k]*pfreq[l]*dm[k][l];
-      /* counter examples score -1, gap-gap scores -0.25  */
-      pscore[my_iindx[i]-j] = cv_fact *
-        ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+      /* counter examples score -1, gap-gap scores -0.25   */
+      pscore[indx[j]+i] = md->cv_fact *
+        ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+
+      if((j - i + 1) > max_span){
+        pscore[indx[j]+i] = NONE;
+      }
     }
   }
 
-  if (noLP) /* remove unwanted pairs */
-    for (k=1; k<=n-TURN-1; k++)
+  if (md->noLP) /* remove unwanted pairs */
+    for (k=1; k<n-TURN-1; k++)
       for (l=1; l<=2; l++) {
         int type,ntype=0,otype=0;
         i=k; j = i+TURN+l;
-        type = pscore[my_iindx[i]-j];
+        type = pscore[indx[j]+i];
         while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = pscore[my_iindx[i-1]-j-1];
-          if ((otype<cv_fact*MINPSCORE)&&(ntype<cv_fact*MINPSCORE))
-            /* too many counterexamples */
-            pscore[my_iindx[i]-j] = NONE; /* i.j can only form isolated pairs */
+          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
+          if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
+            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
           otype =  type;
           type  = ntype;
           i--; j++;
@@ -944,39 +907,53 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       }
 
 
-  if (struct_constrained&&(structure!=NULL)) {
-    int psij, hx, *stack;
+  if (fold_constrained&&(structure!=NULL)) {
+    int psij, hx, hx2, *stack, *stack2;
     stack = (int *) space(sizeof(int)*(n+1));
+    stack2 = (int *) space(sizeof(int)*(n+1));
 
-    for(hx=0, j=1; j<=n; j++) {
+    for(hx=hx2=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
-      case 'x': /* j can't pair */
-        for (l=1; l<j-TURN; l++) pscore[my_iindx[l]-j] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[my_iindx[j]-l] = NONE;
+      case 'x': /* can't pair */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
         break;
       case '(':
         stack[hx++]=j;
         /* fallthrough */
-      case '<': /* j pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[my_iindx[l]-j] = NONE;
+      case '[':
+        stack2[hx2++]=j;
+        /* fallthrough */
+      case '<': /* pairs upstream */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
         break;
-      case ')': /* j pairs with i */
+      case ']':
+        if (hx2<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack2[--hx2];
+        pscore[indx[j]+i]=NONE;
+        break;
+      case ')':
         if (hx<=0) {
           fprintf(stderr, "%s\n", structure);
           nrerror("unbalanced brackets in constraints");
         }
         i = stack[--hx];
-        psij = pscore[my_iindx[i]-j]; /* store for later */
+        psij = pscore[indx[j]+i]; /* store for later */
+        for (k=j; k<=n; k++)
+          for (l=i; l<=j; l++)
+            pscore[indx[k]+l] = NONE;
         for (l=i; l<=j; l++)
-          for (k=j; k<=n; k++) pscore[my_iindx[l]-k] = NONE;
-        for (k=1; k<=i; k++)
-          for (l=i; l<=j; l++) pscore[my_iindx[k]-l] = NONE;
+          for (k=1; k<=i; k++)
+            pscore[indx[l]+k] = NONE;
         for (k=i+1; k<j; k++)
-          pscore[my_iindx[k]-j] = pscore[my_iindx[i]-k] = NONE;
-        pscore[my_iindx[i]-j] = (psij>0) ? psij : 0;
+          pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
+        pscore[indx[j]+i] = (psij>0) ? psij : 0;
         /* fallthrough */
-      case '>': /* j pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[my_iindx[j]-l] = NONE;
+      case '>': /* pairs downstream */
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
         break;
       }
     }
@@ -984,8 +961,9 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
       fprintf(stderr, "%s\n", structure);
       nrerror("unbalanced brackets in constraint string");
     }
-    free(stack);
+    free(stack); free(stack2);
   }
+  /*free dm */
   for (i=0; i<7;i++) {
     free(dm[i]);
   }
@@ -997,16 +975,37 @@ PRIVATE void make_pscores(const short *const* S, const char **AS,
 /* You have to call alipf_linear first to calculate  */
 /* circular case!!!                                  */
 
-PUBLIC void alipf_circ(const char **sequences, char *structure){
+PRIVATE void
+wrap_alipf_circ(vrna_fold_compound *vc,
+                char *structure){
 
-  int u, p, q, k, l, n_seq, s, *type;
-  FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
+  int u, p, q, k, l, s, *type;
+  FLT_OR_DBL qbt1, qot, qo, qho, qio, qmo;
 
-  int n = (int) strlen(sequences[0]);
-  for (s=0; sequences[s]!=NULL; s++);
-  n_seq = s;
+  char              **sequences = vc->sequences;
+  int               n_seq       = vc->n_seq;
+  int               n           = vc->length;
+  short             **S         = vc->S;                                                                   
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss        = vc->Ss;                                                                   
+  unsigned short    **a2s       = vc->a2s;                                                                   
+  pf_paramT         *pf_params  = vc->exp_params;
+  pf_matricesT      *matrices   = vc->exp_matrices;
+  model_detailsT    *md         = &(pf_params->model_details);
+  int               *my_iindx   = vc->iindx;
+  int               *jindx      = vc->jindx;
+  hard_constraintT  *hc         = vc->hc;
+  soft_constraintT  **sc        = vc->scs;
+  FLT_OR_DBL        *qb         = matrices->qb;
+  FLT_OR_DBL        *qm         = matrices->qm;
+  FLT_OR_DBL        *qm1        = matrices->qm1;
+  FLT_OR_DBL        *qm2        = matrices->qm2;
+  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  FLT_OR_DBL        *scale      = matrices->scale;
+  FLT_OR_DBL        *expMLbase  = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
-  FLT_OR_DBL qbt1, qot;
   type  = (int *)space(sizeof(int) * n_seq);
 
   qo = qho = qio = qmo = 0.;
@@ -1080,33 +1079,60 @@ PUBLIC void alipf_circ(const char **sequences, char *structure){
   /* add additional pf of 1.0 to take open chain into account */
   qo = qho + qio + qmo + 1.0*scale[n];
 
+  matrices->qo    = qo;
+  matrices->qho   = qho;
+  matrices->qio   = qio;
+  matrices->qmo   = qmo;
+
   free(type);
 }
 
 
-/*brauch ma nurnoch pscores!*/
-PUBLIC char *alipbacktrack(double *prob) {
+PUBLIC char *
+vrna_ali_pbacktrack(vrna_fold_compound *vc,
+                    double *prob){
+
   double r, gr, qt;
-  int k,i,j, start,s,n, n_seq;
+  int k,i,j, start,s;
   double probs=1;
+  char  *pstruc = NULL;
 
-  if (q == NULL)
-    nrerror("can't backtrack without pf arrays.\n"
-            "Call pf_fold() before pbacktrack()");
+  char              **sequences = vc->sequences;
+  int               n_seq       = vc->n_seq;
+  int               n           = vc->length;
+  short             **S         = vc->S;                                                                   
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss        = vc->Ss;                                                                   
+  unsigned short    **a2s       = vc->a2s;                                                                   
+  pf_paramT         *pf_params  = vc->exp_params;
+  pf_matricesT      *matrices   = vc->exp_matrices;
+  model_detailsT    *md         = &(pf_params->model_details);
+  int               *my_iindx   = vc->iindx;
+  int               *jindx      = vc->jindx;
+  hard_constraintT  *hc         = vc->hc;
+  soft_constraintT  **sc        = vc->scs;
+  FLT_OR_DBL        *q          = matrices->q;
+  FLT_OR_DBL        *qb         = matrices->qb;
 
-  n = S[0][0];
-  n_seq = N_seq;
-  /*sequence = seq;*/
-  if (do_bppm==0) {
-    for (k=1; k<=n; k++) {
-      qln[k] = q[my_iindx[k] -n];
-    }
-    qln[n+1] = 1.0;
-  }
+  FLT_OR_DBL *q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+  FLT_OR_DBL *qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+
+  FLT_OR_DBL        *scale        = matrices->scale;
+  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
   pstruc = space((n+1)*sizeof(char));
 
-  for (i=0; i<n; i++) pstruc[i] = '.';
+  for (i=0; i<n; i++)
+    pstruc[i] = '.';
+
+  for (k=1; k<=n; k++) {
+    q1k[k] = q[my_iindx[1] - k];
+    qln[k] = q[my_iindx[k] - n];
+  }
+  q1k[0] = 1.0;
+  qln[n+1] = 1.0;
 
   start = 1;
   while (start<n) {
@@ -1147,14 +1173,44 @@ PUBLIC char *alipbacktrack(double *prob) {
     }
     if (j==n+1) nrerror("backtracking failed in ext loop");
     start = j+1;
-    backtrack(i,j, n_seq, prob); /*?*/
+    backtrack(vc, pstruc, i, j, prob); /*?*/
   }
 
   return pstruc;
 }
 
 
-PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
+PRIVATE void
+backtrack(vrna_fold_compound *vc,
+          char *pstruc,
+          int i,
+          int j,
+          double *prob){
+
+  char              **sequences = vc->sequences;
+  int               n_seq       = vc->n_seq;
+  int               n           = vc->length;
+  short             **S         = vc->S;                                                                   
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss        = vc->Ss;                                                                   
+  unsigned short    **a2s       = vc->a2s;                                                                   
+  pf_paramT         *pf_params  = vc->exp_params;
+  pf_matricesT      *matrices   = vc->exp_matrices;
+  model_detailsT    *md         = &(pf_params->model_details);
+  int               *my_iindx   = vc->iindx;
+  int               *jindx      = vc->jindx;
+  hard_constraintT  *hc         = vc->hc;
+  soft_constraintT  **sc        = vc->scs;
+  FLT_OR_DBL        *qb         = matrices->qb;
+  FLT_OR_DBL        *qm         = matrices->qm;
+  FLT_OR_DBL        *qm1        = matrices->qm1;
+  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
+
+  FLT_OR_DBL        *scale        = matrices->scale;
+  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
+
   /*backtrack given i,j basepair!*/
   double kTn = pf_params->kT/10.;
   int *type = (int *)space(sizeof(int) * n_seq);
@@ -1254,7 +1310,7 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
     }
     if (k>=j) nrerror("backtrack failed, can't find split index ");
 
-    backtrack_qm1(k, j, n_seq, prob);
+    backtrack_qm1(vc, pstruc, k, j, prob);
 
     j = k-1;
     while (j>i) {
@@ -1277,7 +1333,7 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
       }
       if (k>j) nrerror("backtrack failed in qm");
 
-      backtrack_qm1(k,j, n_seq, prob);
+      backtrack_qm1(vc, pstruc, k, j, prob);
 
       if (k<i+TURN) break; /* no more pairs */
       r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
@@ -1292,7 +1348,35 @@ PRIVATE void backtrack(int i, int j, int n_seq, double *prob) {
   free(type);
 }
 
-PRIVATE void backtrack_qm1(int i,int j, int n_seq, double *prob) {
+PRIVATE void
+backtrack_qm1(vrna_fold_compound *vc,
+              char *pstruc,
+              int i,
+              int j,
+              double *prob){
+
+  char              **sequences = vc->sequences;
+  int               n_seq       = vc->n_seq;
+  int               n           = vc->length;
+  short             **S         = vc->S;                                                                   
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss        = vc->Ss;                                                                   
+  unsigned short    **a2s       = vc->a2s;                                                                   
+  pf_paramT         *pf_params  = vc->exp_params;
+  pf_matricesT      *matrices   = vc->exp_matrices;
+  model_detailsT    *md         = &(pf_params->model_details);
+  int               *my_iindx   = vc->iindx;
+  int               *jindx      = vc->jindx;
+  hard_constraintT  *hc         = vc->hc;
+  soft_constraintT  **sc        = vc->scs;
+  FLT_OR_DBL        *qb         = matrices->qb;
+  FLT_OR_DBL        *qm1        = matrices->qm1;
+  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  FLT_OR_DBL        *scale        = matrices->scale;
+  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
+
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, xtype,s;
   double qt, r, tempz;
@@ -1315,32 +1399,111 @@ PRIVATE void backtrack_qm1(int i,int j, int n_seq, double *prob) {
   }
   if (l>j) nrerror("backtrack failed in qm1");
 
-  backtrack(i,l, n_seq, prob);
+  backtrack(vc, pstruc, i, l, prob);
 }
 
-PUBLIC FLT_OR_DBL *export_ali_bppm(void){
-  return probs;
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC float
+alipf_fold( const char **sequences,
+                  char *structure,
+                  plist **pl){
+
+  return wrap_alipf_fold(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 0);
+}
+
+PUBLIC float
+alipf_circ_fold(const char **sequences,
+                      char *structure,
+                      plist **pl){
+
+  return wrap_alipf_fold(sequences, structure, pl, NULL, do_backtrack, fold_constrained, 1);
+}
+
+PUBLIC float
+alipf_fold_par( const char **sequences,
+                char *structure,
+                plist **pl,
+                pf_paramT *parameters,
+                int calculate_bppm,
+                int is_constrained,
+                int is_circular){
+
+  return wrap_alipf_fold(sequences, structure, pl, parameters, calculate_bppm, is_constrained, is_circular);
+}
+
+PUBLIC FLT_OR_DBL *
+alipf_export_bppm(void){
+
+  if(backward_compat_compound)
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->probs)
+        return backward_compat_compound->exp_matrices->probs;
+
+  return NULL;
+}
+
+PUBLIC FLT_OR_DBL *
+export_ali_bppm(void){
+
+  if(backward_compat_compound)
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->probs)
+        return backward_compat_compound->exp_matrices->probs;
+
+  return NULL;
+}
+
+/*brauch ma nurnoch pscores!*/
+PUBLIC char *
+alipbacktrack(double *prob){
+
+  return vrna_ali_pbacktrack(backward_compat_compound, prob);
 }
 
 /*-------------------------------------------------------------------------*/
 /* make arrays used for alipf_fold available to other routines */
-PUBLIC int get_alipf_arrays( short ***S_p,
-			     short ***S5_p,
-			     short ***S3_p,
-			     unsigned short ***a2s_p,
-			     char ***Ss_p,
-			     FLT_OR_DBL **qb_p,
-			     FLT_OR_DBL **qm_p,
-			     FLT_OR_DBL **q1k_p,
-			     FLT_OR_DBL **qln_p,
-			     short **pscore_p) {
+PUBLIC int
+get_alipf_arrays( short ***S_p,
+                  short ***S5_p,
+                  short ***S3_p,
+                  unsigned short ***a2s_p,
+                  char ***Ss_p,
+                  FLT_OR_DBL **qb_p,
+                  FLT_OR_DBL **qm_p,
+                  FLT_OR_DBL **q1k_p,
+                  FLT_OR_DBL **qln_p,
+                  int **pscore_p) {
 
-    if(qb == NULL) return(0); /* check if alipf_fold() has been called */
-    *S_p = S; *S5_p = S5; *S3_p = S3;
-    *a2s_p=a2s;
-    *Ss_p=Ss;
-    *qb_p = qb; *qm_p = qm;
-    *q1k_p = q1k; *qln_p = qln;
-    *pscore_p = pscore;
-    return(1); /* success */
+  if(backward_compat_compound){
+    if(backward_compat_compound->exp_matrices)
+      if(backward_compat_compound->exp_matrices->qb){
+        *S_p      = backward_compat_compound->S;
+        *S5_p     = backward_compat_compound->S5;
+        *S3_p     = backward_compat_compound->S3;
+        *a2s_p    = backward_compat_compound->a2s;
+        *Ss_p     = backward_compat_compound->Ss;
+        *qb_p     = backward_compat_compound->exp_matrices->qb;
+        *qm_p     = backward_compat_compound->exp_matrices->qm;
+        *q1k_p    = backward_compat_compound->exp_matrices->q1k;
+        *qln_p    = backward_compat_compound->exp_matrices->qln;
+        *pscore_p = backward_compat_compound->pscore;
+        return 1;
+      }
+  }
+  return 0;
+}
+
+PUBLIC void
+free_alipf_arrays(void){
+
+  if(backward_compat_compound && backward_compat){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound = NULL;
+    iindx = NULL;
+  }
 }

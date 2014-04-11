@@ -269,10 +269,9 @@ void  free_sequence_arrays( unsigned int n_seq,
  */
 
 
-float vrna_alipf_fold_tmp(const char **strings,
-                          char *structure,
-                          plist **pl,
-                          vrna_alifold_compound *vc);
+float vrna_alipf_fold(vrna_fold_compound *vc,
+                      char *structure,
+                      plist **pl);
 
 /**
  *  \brief
@@ -369,6 +368,7 @@ void  free_alipf_arrays(void);
  */
 char  *alipbacktrack(double *prob);
 
+char *vrna_ali_pbacktrack(vrna_fold_compound *vc, double *prob);
 
 /**
  *  \brief Get pointers to (almost) all relavant arrays used in alifold's partition function computation
@@ -399,6 +399,7 @@ int get_alipf_arrays(short ***S_p,
 		     FLT_OR_DBL **qm_p,
 		     FLT_OR_DBL **q1k_p,
 		     FLT_OR_DBL **qln_p,
-		     short **pscore);
+		     int **pscore);
+
 
 #endif
