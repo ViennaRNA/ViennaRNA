@@ -29,6 +29,7 @@
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/part_func.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -336,7 +337,7 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
 
     for (s = 0; s < vc->n_seq; s++) {
-#if 0
+#if 1
       get_sequence_encoding_gapped( vc->sequences[s],
                                     &(vc->S[s]),
                                     &(vc->S5[s]),
@@ -351,8 +352,8 @@ set_fold_compound(vrna_fold_compound *vc,
       vc->Ss[s]  = (char *)          space((length + 2) * sizeof(char));
       vc->S[s]   = (short *)         space((length + 2) * sizeof(short));
       encode_ali_sequence(vc->sequences[s], vc->S[s], vc->S5[s], vc->S3[s], vc->Ss[s], vc->a2s[s], md.circ);
-    }
 #endif
+    }
     vc->S5[vc->n_seq]  = NULL;
     vc->S3[vc->n_seq]  = NULL;
     vc->a2s[vc->n_seq] = NULL;
@@ -598,8 +599,6 @@ make_pscores(vrna_fold_compound *vc){
   int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
   int             *indx       = vc->jindx;                                             
   int             n           = vc->length;                                            
-
-  int noLP = md->noLP;
 
   if (md->ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);

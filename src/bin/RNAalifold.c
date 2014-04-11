@@ -47,9 +47,6 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   float p1, p2;
   char method;
-  char *sequence;
-  double *values;
-  int length = vc->length;
 
   if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
     warn_user("Method for SHAPE reactivity data conversion not recognized!");
@@ -71,45 +68,6 @@ add_shape_constraints(vrna_fold_compound *vc,
     vrna_sc_add_mathews_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
-
-#if 0
-  sequence = space(sizeof(char) * (length + 1));
-  values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'C' ? 0.5 : 0, sequence, values);
-
-  if(method == 'C'){
-    double *sc_up = space(sizeof(double) * (length + 1));
-    double **sc_bp = space(sizeof(double *) * (length + 1));
-    int i;
-
-    normalize_shape_reactivities_to_probabilities_linear(values, length);
-
-    for(i = 1; i <= length; ++i){
-      int j;
-
-      assert(values[i] >= 0 && values[i] <= 1);
-
-      sc_up[i] = p1 * fabs(values[i] - 1);
-      sc_bp[i] = space(sizeof(double) * (length + 1));
-      for(j = i + TURN + 1; j <= length; ++j)
-        sc_bp[i][j] = p1 * (values[i] + values[j]);
-    }
-
-    vrna_sc_add_up(vc, sc_up, constraint_type);
-    vrna_sc_add_bp(vc, (const double**)sc_bp, constraint_type);
-
-    for(i = 1; i <= length; ++i)
-      free(sc_bp[i]);
-    free(sc_bp);
-    free(sc_up);
-  } else {
-    assert(method == 'W');
-    vrna_sc_add_up(vc, values, constraint_type);
-  }
-
-  free(values);
-  free(sequence);
-#endif
 }
 
 /*--------------------------------------------------------------------------*/
@@ -118,7 +76,7 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           s, n_seq, i, length, sym, r, noPS, with_shapes, verbose;
+  int           s, n_seq, i, length, sym, noPS, with_shapes, verbose;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -126,7 +84,6 @@ int main(int argc, char *argv[]){
   char          **shape_files, *shape_method;
   int           *shape_file_association;
   FILE          *clust_file = stdin;
-  paramT        *P;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
 
@@ -494,7 +451,7 @@ int main(int argc, char *argv[]){
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
-    PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
+    PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
   free_alifold_arrays();
@@ -572,7 +529,7 @@ int main(int argc, char *argv[]){
         if(circular)
           energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else
-          ens[0] = vrna_eval_structure(string, structure, P);
+          ens[0] = vrna_eval_structure(string, structure, vc->params);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
         free(pl2);
@@ -713,20 +670,6 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
-  pair_info *p1, *p2;
-  int  i, nc1, nc2;
-  p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
-  for (nc1=nc2=0, i=1; i<=6; i++) {
-    if (p1->bp[i]>0) nc1++;
-    if (p2->bp[i]>0) nc2++;
-  }
-  /* sort mostly by probability, add
-     epsilon * comp_mutations/(non-compatible+1) to break ties */
-  return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
-         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
-}
-
 PRIVATE void
 print_aliout( vrna_fold_compound *vc,
               plist *pl,
@@ -734,57 +677,13 @@ print_aliout( vrna_fold_compound *vc,
               char *mfe,
               FILE *aliout){
 
-  int i, j, k, n, num_p=0, max_p = 64;
+  int k;
   pair_info *pi;
-  double *duck, p;
-  short *ptable = NULL;
   char  **AS    = vc->sequences;
   int   n_seq   = vc->n_seq;
 
-  for (n=0; pl[n].i>0; n++);
-
-#if 0
-  max_p = 64; pi = space(max_p*sizeof(pair_info));
-  duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
-  ptable = vrna_pt_get(mfe);
-
-  for (k=0; k<n; k++) {
-    int s, type;
-    p = pl[k].p; i=pl[k].i; j = pl[k].j;
-    duck[i] -=  p * log(p);
-    duck[j] -=  p * log(p);
-
-    if (p<threshold) continue;
-
-    pi[num_p].i = i;
-    pi[num_p].j = j;
-    pi[num_p].p = p;
-    pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
-    for (type=0; type<8; type++) pi[num_p].bp[type]=0;
-    for (s=0; s<n_seq; s++) {
-      int a,b;
-      a=encode_char(toupper(AS[s][i-1]));
-      b=encode_char(toupper(AS[s][j-1]));
-      type = pair[a][b];
-      if ((AS[s][i-1] == '-')||(AS[s][j-1] == '-')) type = 7;
-      if ((AS[s][i-1] == '~')||(AS[s][j-1] == '~')) type = 7;
-      pi[num_p].bp[type]++;
-      pi[num_p].comp = (ptable[i] == j) ? 1:0;
-    }
-    num_p++;
-    if (num_p>=max_p) {
-      max_p *= 2;
-      pi = xrealloc(pi, max_p * sizeof(pair_info));
-    }
-  }
-  free(duck);
-  pi[num_p].i=0;
-  qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
-  for (i=0; pi[i].i>0; i++) /* why do we do this again? */
-    pi[i].comp = (ptable[pi[i].i] == pi[i].j) ? 1:0;
-#else
   pi = vrna_ali_get_pair_info(vc, (const char *)mfe, threshold);
-#endif
+
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",
           n_seq, (int) strlen(AS[0]));
@@ -794,7 +693,6 @@ print_aliout( vrna_fold_compound *vc,
     print_pi(pi[k], aliout);
 
   fprintf(aliout, "%s\n", mfe);
-  free(ptable);
   free(pi);
 }
 

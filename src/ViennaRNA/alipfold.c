@@ -62,19 +62,17 @@ PRIVATE int                 backward_compat           = 0;
 #################################
 */
 
-PRIVATE void      scale_pf_params(unsigned int length, int n_seq, pf_paramT *parameters);
-PRIVATE void      get_arrays(unsigned int length);
 PRIVATE void      alipf_linear(vrna_fold_compound *vc, char *structure);
 PRIVATE void      alipf_create_bppm(vrna_fold_compound *vc, char *structure, struct plist **pl);
 PRIVATE void      backtrack(vrna_fold_compound *vc, char *pstruc, int i, int j, double *prob);
 PRIVATE void      backtrack_qm1(vrna_fold_compound *vc, char *pstruc, int i,int j, double *prob);
 PRIVATE float     wrap_alipf_fold(const char **sequences,
-                char *structure,
-                plist **pl,
-                pf_paramT *parameters,
-                int calculate_bppm,
-                int is_constrained,
-                int is_circular);
+                                  char *structure,
+                                  plist **pl,
+                                  pf_paramT *parameters,
+                                  int calculate_bppm,
+                                  int is_constrained,
+                                  int is_circular);
 PRIVATE void      wrap_alipf_circ(vrna_fold_compound *vc,
                                   char *structure);
 
@@ -154,7 +152,6 @@ vrna_alipf_fold(vrna_fold_compound *vc,
                 char *structure,
                 plist **pl){
 
-  int         s;
   FLT_OR_DBL  Q;
   float       free_energy;
 
@@ -207,7 +204,6 @@ alipf_linear( vrna_fold_compound *vc,
   FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   double      kTn;
 
-  char            **sequences   = vc->sequences;
   int             n_seq         = vc->n_seq;
   int             n             = vc->length;
 
@@ -228,12 +224,8 @@ alipf_linear( vrna_fold_compound *vc,
   FLT_OR_DBL        *qb           = matrices->qb;
   FLT_OR_DBL        *qm           = matrices->qm;
   FLT_OR_DBL        *qm1          = matrices->qm1;
-  FLT_OR_DBL        *G            = matrices->G;
   int               *pscore       = vc->pscore;     /* precomputed array of pair types */                      
-  char              *cons_seq     = vc->cons_seq;
-  short             *S_cons       = vc->S_cons;
   int               *rtype        = &(md->rtype[0]);
-  int               dangle_model  = md->dangles;
   int               circular      = md->circ;
   FLT_OR_DBL        *scale        = matrices->scale;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
@@ -415,7 +407,6 @@ alipf_create_bppm(vrna_fold_compound *vc,
   short             **S           = vc->S;                                                                   
   short             **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss          = vc->Ss;                                                                   
   unsigned short    **a2s         = vc->a2s;                                                                   
   pf_paramT         *pf_params    = vc->exp_params;
   pf_matricesT      *matrices     = vc->exp_matrices;
@@ -428,13 +419,9 @@ alipf_create_bppm(vrna_fold_compound *vc,
   FLT_OR_DBL        *qb           = matrices->qb;
   FLT_OR_DBL        *qm           = matrices->qm;
   FLT_OR_DBL        *qm1          = matrices->qm1;
-  FLT_OR_DBL        *G            = matrices->G;
   FLT_OR_DBL        qo            = matrices->qo;
   int               *pscore       = vc->pscore;     /* precomputed array of pair types */                      
-  char              *cons_seq     = vc->cons_seq;
-  short             *S_cons       = vc->S_cons;
   int               *rtype        = &(md->rtype[0]);
-  int               dangle_model  = md->dangles;
   int               circular      = md->circ;
   FLT_OR_DBL        *scale        = matrices->scale;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
@@ -827,7 +814,6 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   pf_matricesT      *matrices   = vc->exp_matrices;
@@ -842,7 +828,6 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   FLT_OR_DBL        *qm2        = matrices->qm2;
   int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
   FLT_OR_DBL        *scale      = matrices->scale;
-  FLT_OR_DBL        *expMLbase  = matrices->expMLbase;
   FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
   type  = (int *)space(sizeof(int) * n_seq);
@@ -936,19 +921,15 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   double probs=1;
   char  *pstruc = NULL;
 
-  char              **sequences = vc->sequences;
   int               n_seq       = vc->n_seq;
   int               n           = vc->length;
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss        = vc->Ss;                                                                   
-  unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   pf_matricesT      *matrices   = vc->exp_matrices;
   model_detailsT    *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
-  int               *jindx      = vc->jindx;
   hard_constraintT  *hc         = vc->hc;
   soft_constraintT  **sc        = vc->scs;
   FLT_OR_DBL        *q          = matrices->q;
@@ -958,8 +939,6 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   FLT_OR_DBL *qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
   FLT_OR_DBL        *scale        = matrices->scale;
-  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
-  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
   pstruc = space((n+1)*sizeof(char));
 
@@ -1026,9 +1005,7 @@ backtrack(vrna_fold_compound *vc,
           int j,
           double *prob){
 
-  char              **sequences = vc->sequences;
   int               n_seq       = vc->n_seq;
-  int               n           = vc->length;
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
@@ -1048,7 +1025,6 @@ backtrack(vrna_fold_compound *vc,
 
   FLT_OR_DBL        *scale        = matrices->scale;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
-  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
   /*backtrack given i,j basepair!*/
   double kTn = pf_params->kT/10.;
@@ -1194,14 +1170,10 @@ backtrack_qm1(vrna_fold_compound *vc,
               int j,
               double *prob){
 
-  char              **sequences = vc->sequences;
   int               n_seq       = vc->n_seq;
-  int               n           = vc->length;
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss        = vc->Ss;                                                                   
-  unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   pf_matricesT      *matrices   = vc->exp_matrices;
   model_detailsT    *md         = &(pf_params->model_details);
@@ -1211,10 +1183,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   soft_constraintT  **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm1        = matrices->qm1;
-  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
-  FLT_OR_DBL        *scale        = matrices->scale;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
-  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, xtype,s;
