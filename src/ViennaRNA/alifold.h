@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_ALIFOLD_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/ribo.h>
 
 /**
  *  \addtogroup consensus_fold
@@ -144,13 +145,6 @@ int vrna_ali_get_mpi( char *Alseq[],
                       int length,
                       int *mini);
 
-/**
- *  \brief Read a ribosum or other user-defined scoring matrix
- * 
- *  \ingroup consensus_fold
- * 
- */
-float   **readribosum(char *name);
 
 /**
  *  \brief Calculate the free energy of a consensus structure given a set of aligned sequences

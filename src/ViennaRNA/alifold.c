@@ -42,8 +42,6 @@
 #define NEW_NINIO     1     /* new asymetry penalty */
 #define MAXSECTORS    500   /* dimension for a backtrack array */
 #define LOCALITY        0.  /* locality parameter for base-pairs */
-#define UNIT 100
-#define MINPSCORE -2 * UNIT
 
 /*
 #################################
@@ -76,7 +74,6 @@ PRIVATE int                 backward_compat           = 0;
 PRIVATE int     fill_arrays(vrna_fold_compound *vc);
 PRIVATE void    fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
 PRIVATE void    backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
-PRIVATE void    make_pscores(vrna_fold_compound *vc, const char *structure);
 
 PRIVATE void    energy_of_alistruct_pt(vrna_fold_compound *vc, short * ptable, int *energy);
 PRIVATE void    stack_energy_pt(vrna_fold_compound *vc, int i, short *ptable, int *energy);
@@ -206,8 +203,6 @@ vrna_alifold( vrna_fold_compound *vc,
   length      = vc->length;
   n_seq       = vc->n_seq;
   s           = 0;
-
-  make_pscores(vc, structure);
 
   energy = fill_arrays(vc);
   if(vc->params->model_details.circ){
@@ -1046,160 +1041,6 @@ backtrack(vrna_fold_compound *vc,
   free(type);
 }
 
-PRIVATE void
-make_pscores( vrna_fold_compound *vc,
-              const char *structure){
-
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
-
-#define NONE -10000 /* score for forbidden pairs */
-
-  int i,j,k,l,s, max_span;
-  float **dm;
-  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
-                  {0,0,2,2,1,2,2} /* CG */,
-                  {0,2,0,1,2,2,2} /* GC */,
-                  {0,2,1,0,2,1,2} /* GU */,
-                  {0,1,2,2,0,2,1} /* UG */,
-                  {0,2,2,1,2,0,2} /* AU */,
-                  {0,2,2,2,1,2,0} /* UA */};
-
-  short           **S     = vc->S;
-  char            **AS    = vc->sequences;
-  int             n_seq   = vc->n_seq;
-  paramT          *P      = vc->params;
-  model_detailsT  *md     = &(P->model_details);
-  int             *pscore = vc->pscore;     /* precomputed array of pair types */                 
-  int             *indx   = vc->jindx;
-  int             n       = vc->length;
-
-  if (md->ribo) {
-    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum((const char **)AS, n_seq, n);
-  }
-  else { /*use usual matrix*/
-    dm=(float **)space(7*sizeof(float*));
-    for (i=0; i<7;i++) {
-      dm[i]=(float *)space(7*sizeof(float));
-      for (j=0; j<7; j++)
-        dm[i][j] = (float) olddm[i][j];
-    }
-  }
-
-  max_span = md->max_bp_span;
-  if((max_span < TURN+2) || (max_span > n))
-    max_span = n;
-  for (i=1; i<n; i++) {
-    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
-      pscore[indx[j]+i] = NONE;
-    for (j=i+TURN+1; j<=n; j++) {
-      int pfreq[8]={0,0,0,0,0,0,0,0};
-      double score;
-      for (s=0; s<n_seq; s++) {
-        int type;
-        if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
-        else {
-          if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-          else type = md->pair[S[s][i]][S[s][j]];
-        }
-        pfreq[type]++;
-      }
-      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
-      for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
-        for (l=k; l<=6; l++)
-          score += pfreq[k]*pfreq[l]*dm[k][l];
-      /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j]+i] = md->cv_fact *
-        ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
-
-      if((j - i + 1) > max_span){
-        pscore[indx[j]+i] = NONE;
-      }
-    }
-  }
-
-  if (md->noLP) /* remove unwanted pairs */
-    for (k=1; k<n-TURN-1; k++)
-      for (l=1; l<=2; l++) {
-        int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l;
-        type = pscore[indx[j]+i];
-        while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
-          if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
-            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
-      }
-
-
-  if (fold_constrained&&(structure!=NULL)) {
-    int psij, hx, hx2, *stack, *stack2;
-    stack = (int *) space(sizeof(int)*(n+1));
-    stack2 = (int *) space(sizeof(int)*(n+1));
-
-    for(hx=hx2=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
-        break;
-      case '(':
-        stack[hx++]=j;
-        /* fallthrough */
-      case '[':
-        stack2[hx2++]=j;
-        /* fallthrough */
-      case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
-        break;
-      case ']':
-        if (hx2<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack2[--hx2];
-        pscore[indx[j]+i]=NONE;
-        break;
-      case ')':
-        if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
-        }
-        i = stack[--hx];
-        psij = pscore[indx[j]+i]; /* store for later */
-        for (k=j; k<=n; k++)
-          for (l=i; l<=j; l++)
-            pscore[indx[k]+l] = NONE;
-        for (l=i; l<=j; l++)
-          for (k=1; k<=i; k++)
-            pscore[indx[l]+k] = NONE;
-        for (k=i+1; k<j; k++)
-          pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
-        pscore[indx[j]+i] = (psij>0) ? psij : 0;
-        /* fallthrough */
-      case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
-        break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
-    }
-    free(stack); free(stack2);
-  }
-  /*free dm */
-  for (i=0; i<7;i++) {
-    free(dm[i]);
-  }
-  free(dm);
-}
-
 /*--------New scoring part-----------------------------------*/
 
 PUBLIC int
@@ -1225,40 +1066,6 @@ vrna_ali_get_mpi( char *Alseq[],
   if (pairnum>0)   return (int) (sumident*100/pairnum);
   else return 0;
 
-}
-
-PUBLIC float **readribosum(char *name){
-
-  float **dm;
-  char *line;
-  FILE *fp;
-  int i=0;
-  int who=0;
-  float a,b,c,d,e,f;
-  int translator[7]={0,5,1,2,3,6,4};
-
-  fp=fopen(name,"r");
-  dm=(float **)space(7*sizeof(float*));
-  for (i=0; i<7;i++) {
-    dm[i]=(float *)space(7*sizeof(float));
-  }
-  while(1) { /*bisma hoit fertisch san*/
-    line=get_line(fp);
-    if (*line=='#') continue;
-    i=0;
-    i=sscanf(line,"%f %f %f %f %f %f",&a,&b,&c,&d,&e,&f);
-    if (i==0) break;
-    dm[translator[++who]][translator[1]]=a;
-    dm[translator[who]][translator[2]]=b;
-    dm[translator[who]][translator[3]]=c;
-    dm[translator[who]][translator[4]]=d;
-    dm[translator[who]][translator[5]]=e;
-    dm[translator[who]][translator[6]]=f;
-    free(line);
-    if (who==6) break;
-  }
-  fclose(fp);
-  return dm;
 }
 
 
@@ -1472,8 +1279,6 @@ PUBLIC float energy_of_ali_gquad_structure( const char **sequences,
 
     n = vc->length;
 
-    make_pscores(vc, NULL);
-
     pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
     loop_idx    = vrna_get_loop_index(pt);
@@ -1514,8 +1319,6 @@ PUBLIC  float energy_of_alistruct(const char **sequences, const char *structure,
     vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
 
     n = vc->length;
-
-    make_pscores(vc, NULL);
 
     pt = vrna_pt_get(structure);
     energy_of_alistruct_pt(vc, pt, &(en_struct[0]));

@@ -30,10 +30,6 @@
 #include "ViennaRNA/loop_energies.h"
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $";
-#define UNIT 100
-#define MINPSCORE -2*UNIT
-#define PUBLIC
-#define PRIVATE static
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */

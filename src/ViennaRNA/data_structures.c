@@ -27,6 +27,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/ribo.h"
 #include "ViennaRNA/constraints.h"
 
 #ifdef _OPENMP
@@ -54,6 +55,7 @@ PRIVATE char *tokenize(char *line, int *cut_point);
 PRIVATE void vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
+PRIVATE void make_pscores(vrna_fold_compound *vc);
 
 /*
 #################################
@@ -195,6 +197,7 @@ destroy_fold_compound(vrna_fold_compound *vc){
       free(vc->S3);
       free(vc->Ss);
       free(vc->a2s);
+      free(vc->pscore);
       if(vc->scs){
         for(s=0;s<vc->n_seq;s++)
           free(vc->scs[s]);
@@ -351,6 +354,7 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->Ss[vc->n_seq]  = NULL;
     vc->S[vc->n_seq]   = NULL;
 
+    make_pscores(vc);
     vc->scs       = NULL;
   }
 
@@ -771,4 +775,160 @@ PRIVATE char *tokenize(char *line, int *cut_point){
     }
   }
   return copy;
+}
+
+PRIVATE void
+make_pscores(vrna_fold_compound *vc){
+
+  /* calculate co-variance bonus for each pair depending on  */
+  /* compensatory/consistent mutations and incompatible seqs */
+  /* should be 0 for conserved pairs, >0 for good pairs      */
+
+#define NONE -10000 /* score for forbidden pairs */
+
+  char *structure = NULL;
+  int i,j,k,l,s, max_span;
+  float **dm;
+  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
+                  {0,0,2,2,1,2,2} /* CG */,
+                  {0,2,0,1,2,2,2} /* GC */,
+                  {0,2,1,0,2,1,2} /* GU */,
+                  {0,1,2,2,0,2,1} /* UG */,
+                  {0,2,2,1,2,0,2} /* AU */,
+                  {0,2,2,2,1,2,0} /* UA */};
+
+  short           **S         = vc->S;
+  char            **AS        = vc->sequences;
+  int             n_seq       = vc->n_seq;
+  pf_paramT       *pf_params  = vc->exp_params;
+  model_detailsT  *md         = &(pf_params->model_details);
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  int             *indx       = vc->jindx;                                             
+  int             n           = vc->length;                                            
+
+  int noLP = pf_params->model_details.noLP;
+
+  if (md->ribo) {
+    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+    else dm=get_ribosum((const char **)AS, n_seq, n);
+  }
+  else { /*use usual matrix*/
+    dm=(float **)space(7*sizeof(float*));
+    for (i=0; i<7;i++) {
+      dm[i]=(float *)space(7*sizeof(float));
+      for (j=0; j<7; j++)
+        dm[i][j] = (float) olddm[i][j];
+    }
+  }
+
+  max_span = md->max_bp_span;
+  if((max_span < TURN+2) || (max_span > n))
+    max_span = n;
+  for (i=1; i<n; i++) {
+    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
+      pscore[indx[j]+i] = NONE;
+    for (j=i+TURN+1; j<=n; j++) {
+      int pfreq[8]={0,0,0,0,0,0,0,0};
+      double score;
+      for (s=0; s<n_seq; s++) {
+        int type;
+        if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
+        else {
+          if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
+          else type = md->pair[S[s][i]][S[s][j]];
+        }
+        pfreq[type]++;
+      }
+      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
+      for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
+        for (l=k; l<=6; l++)
+          score += pfreq[k]*pfreq[l]*dm[k][l];
+      /* counter examples score -1, gap-gap scores -0.25   */
+      pscore[indx[j]+i] = md->cv_fact *
+        ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+
+      if((j - i + 1) > max_span){
+        pscore[indx[j]+i] = NONE;
+      }
+    }
+  }
+
+  if (md->noLP) /* remove unwanted pairs */
+    for (k=1; k<n-TURN-1; k++)
+      for (l=1; l<=2; l++) {
+        int type,ntype=0,otype=0;
+        i=k; j = i+TURN+l;
+        type = pscore[indx[j]+i];
+        while ((i>=1)&&(j<=n)) {
+          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
+          if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
+            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
+          otype =  type;
+          type  = ntype;
+          i--; j++;
+        }
+      }
+
+
+  if (fold_constrained&&(structure!=NULL)) {
+    int psij, hx, hx2, *stack, *stack2;
+    stack = (int *) space(sizeof(int)*(n+1));
+    stack2 = (int *) space(sizeof(int)*(n+1));
+
+    for(hx=hx2=0, j=1; j<=n; j++) {
+      switch (structure[j-1]) {
+      case 'x': /* can't pair */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        break;
+      case '(':
+        stack[hx++]=j;
+        /* fallthrough */
+      case '[':
+        stack2[hx2++]=j;
+        /* fallthrough */
+      case '<': /* pairs upstream */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        break;
+      case ']':
+        if (hx2<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack2[--hx2];
+        pscore[indx[j]+i]=NONE;
+        break;
+      case ')':
+        if (hx<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack[--hx];
+        psij = pscore[indx[j]+i]; /* store for later */
+        for (k=j; k<=n; k++)
+          for (l=i; l<=j; l++)
+            pscore[indx[k]+l] = NONE;
+        for (l=i; l<=j; l++)
+          for (k=1; k<=i; k++)
+            pscore[indx[l]+k] = NONE;
+        for (k=i+1; k<j; k++)
+          pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
+        pscore[indx[j]+i] = (psij>0) ? psij : 0;
+        /* fallthrough */
+      case '>': /* pairs downstream */
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        break;
+      }
+    }
+    if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced brackets in constraint string");
+    }
+    free(stack); free(stack2);
+  }
+  /*free dm */
+  for (i=0; i<7;i++) {
+    free(dm[i]);
+  }
+  free(dm);
 }

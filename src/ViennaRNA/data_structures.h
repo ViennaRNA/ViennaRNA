@@ -402,7 +402,7 @@ typedef struct{
       short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
       char            **Ss;
       unsigned short  **a2s;
-      int *pscore;     /* precomputed array of pair types */
+      int               *pscore;     /* precomputed array of pair types */
       soft_constraintT  **scs;
       int               oldAliEn;
     };

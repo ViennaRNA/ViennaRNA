@@ -1102,3 +1102,38 @@ float **get_ribosum(const char **Alseq, int n_seq, int length){
   }
   return ribo;
 }
+
+PUBLIC float **readribosum(char *name){
+
+  float **dm;
+  char *line;
+  FILE *fp;
+  int i=0;
+  int who=0;
+  float a,b,c,d,e,f;
+  int translator[7]={0,5,1,2,3,6,4};
+
+  fp=fopen(name,"r");
+  dm=(float **)space(7*sizeof(float*));
+  for (i=0; i<7;i++) {
+    dm[i]=(float *)space(7*sizeof(float));
+  }
+  while(1) { /*bisma hoit fertisch san*/
+    line=get_line(fp);
+    if (*line=='#') continue;
+    i=0;
+    i=sscanf(line,"%f %f %f %f %f %f",&a,&b,&c,&d,&e,&f);
+    if (i==0) break;
+    dm[translator[++who]][translator[1]]=a;
+    dm[translator[who]][translator[2]]=b;
+    dm[translator[who]][translator[3]]=c;
+    dm[translator[who]][translator[4]]=d;
+    dm[translator[who]][translator[5]]=e;
+    dm[translator[who]][translator[6]]=f;
+    free(line);
+    if (who==6) break;
+  }
+  fclose(fp);
+  return dm;
+}
+
