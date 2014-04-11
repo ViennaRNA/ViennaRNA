@@ -23,7 +23,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/params.h"
@@ -249,7 +248,7 @@ alipf_linear( vrna_fold_compound *vc,
   kTn   = pf_params->kT/10.;   /* kT in cal/mol  */
   type  = (int *)space(sizeof(int) * n_seq);
 
-  int max_bpspan = (pf_params->model_details.max_bp_span > 0) ? pf_params->model_details.max_bp_span : n;
+  int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : n;
 
   /* allocate memory for helper arrays */
   qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
@@ -280,10 +279,10 @@ alipf_linear( vrna_fold_compound *vc,
        ij = my_iindx[i]-j;
 
       for (s=0; s<n_seq; s++) {
-        type[s] = pair[S[s][i]][S[s][j]];
+        type[s] = md->pair[S[s][i]][S[s][j]];
         if (type[s]==0) type[s]=7;
       }
-      psc = pscore[ij];
+      psc = pscore[jindx[j]+i];
       if (psc>=cv_fact*MINPSCORE && ((j-i) < max_bpspan)) {   /* otherwise ignore this pair */
 
         /* hairpin contribution */
@@ -307,7 +306,7 @@ alipf_linear( vrna_fold_compound *vc,
             if (qb[my_iindx[k]-l]==0) {qloop=0; continue;}
             for (s=0; s<n_seq; s++) {
               u1 = a2s[s][k-1]-a2s[s][i]/*??*/;
-              type_2 = pair[S[s][l]][S[s][k]]; if (type_2 == 0) type_2 = 7;
+              type_2 = md->pair[S[s][l]][S[s][k]]; if (type_2 == 0) type_2 = 7;
               qloop *= exp_E_IntLoop( u1, a2s[s][j-1]-a2s[s][l],
                                   type[s], type_2, S3[s][i],
                                   S5[s][j], S5[s][k], S3[s][l],
@@ -353,7 +352,7 @@ alipf_linear( vrna_fold_compound *vc,
         qbt1 *= exp_E_MLstem(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
       }
       qqm[i] += qb[ij]*qbt1;
-      qm1[jindx[j]+i] = qqm[i]; /* for circ folding and stochBT */
+      if(qm1) qm1[jindx[j]+i] = qqm[i]; /* for circ folding and stochBT */
 
       /* construction of qm matrix containing multiple loop
          partition function contributions from segment i,j */
@@ -478,11 +477,11 @@ alipf_create_bppm(vrna_fold_compound *vc,
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
         if (qb[ij]>0.) {
-          probs[ij] =  exp(pscore[ij]/kTn)/qo;
+          probs[ij] =  exp(pscore[jindx[j]+i]/kTn)/qo;
 
           /* get pair types  */
           for (s=0; s<n_seq; s++) {
-            type[s] = pair[S[s][j]][S[s][i]];
+            type[s] = md->pair[S[s][j]][S[s][i]];
             if (type[s]==0) type[s]=7;
           }
 
@@ -524,7 +523,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
                 ln2a-=a2s[s][l];
                 ln1a= a2s[s][n]-a2s[s][j];
                 ln1a+=a2s[s][k-1];
-                type_2 = pair[S[s][l]][S[s][k]];
+                type_2 = md->pair[S[s][l]][S[s][k]];
                 if (type_2 == 0) type_2 = 7;
                 qloop *= exp_E_IntLoop(ln1a, ln2a, type[s], type_2,
                             S[s][j+1],
@@ -556,7 +555,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
               for (s=0; s<n_seq; s++){
                     ln1 = a2s[s][k] - a2s[s][j+1];
                     ln2 = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
-                    type_2 = pair[S[s][l]][S[s][k]];
+                    type_2 = md->pair[S[s][l]][S[s][k]];
                     if (type_2 == 0) type_2 = 7;
                     qloop *= exp_E_IntLoop(ln2, ln1, type_2, type[s],
                             S3[s][l],
@@ -605,10 +604,10 @@ alipf_create_bppm(vrna_fold_compound *vc,
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
         if (qb[ij]>0.){
-          probs[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[ij]/kTn);
+          probs[ij] = q1k[i-1]*qln[j+1]/q1k[n] * exp(pscore[jindx[j]+i]/kTn);
           for (s=0; s<n_seq; s++) {
             int typ;
-            typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
+            typ = md->pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
             probs[ij] *= exp_E_ExtLoop(typ, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
           }
         } else
@@ -624,7 +623,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
       kl = my_iindx[k]-l;
       if (qb[kl]==0) continue;
       for (s=0; s<n_seq; s++) {
-            type[s] = pair[S[s][l]][S[s][k]];
+            type[s] = md->pair[S[s][l]][S[s][k]];
             if (type[s]==0) type[s]=7;
       }
 
@@ -635,7 +634,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
             double qloop=1;
             for (s=0; s<n_seq; s++) {
               int typ;
-              typ = pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
+              typ = md->pair[S[s][i]][S[s][j]]; if (typ==0) typ=7;
               qloop *=  exp_E_IntLoop(a2s[s][k-1]-a2s[s][i], a2s[s][j-1]-a2s[s][l], typ, type[s], S3[s][i], S5[s][j], S5[s][k], S3[s][l], pf_params);
 
               if(sc)
@@ -650,7 +649,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
             pp += probs[ij]*qloop*scale[k-i + j-l];
           }
         }
-      probs[kl] += pp * exp(pscore[kl]/kTn);
+      probs[kl] += pp * exp(pscore[jindx[l]+k]/kTn);
     }
     /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
     prm_MLb = 0.;
@@ -662,7 +661,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
       ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
       prmt1 = probs[ii-(l+1)];
       for (s=0; s<n_seq; s++) {
-        tt = pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
+        tt = md->pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
         prmt1 *= exp_E_MLstem(tt, S5[s][l+1], S3[s][i], pf_params) * expMLclosing;
       }
 
@@ -670,7 +669,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
         double pp=1;
         if (probs[ii-j]==0) continue;
         for (s=0; s<n_seq; s++) {
-          tt=pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
+          tt=md->pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
           pp *=  exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params)*expMLclosing;
         }
         prmt +=  probs[ii-j]*pp*qm[ll-(j-1)];
@@ -694,10 +693,10 @@ alipf_create_bppm(vrna_fold_compound *vc,
         temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
 
       for (s=0; s<n_seq; s++) {
-        tt=pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
+        tt=md->pair[S[s][k]][S[s][l]]; if (tt==0) tt=7;
         temp *= exp_E_MLstem(tt, S5[s][k], S3[s][l], pf_params);
       }
-      probs[kl] += temp * scale[2] * exp(pscore[kl]/kTn);
+      probs[kl] += temp * scale[2] * exp(pscore[jindx[l]+k]/kTn);
 
 
 #ifndef LARGE_PF
@@ -719,7 +718,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   for (i=1; i<=n; i++)
     for (j=i+TURN+1; j<=n; j++) {
       ij = my_iindx[i]-j;
-      probs[ij] *= qb[ij] *exp(-pscore[ij]/kTn);
+      probs[ij] *= qb[ij] *exp(-pscore[jindx[j]+i]/kTn);
     }
 
   /* did we get an adress where to save a pair-list? */
@@ -767,6 +766,7 @@ vrna_ali_get_pair_info(vrna_fold_compound *vc){
   int n     = vc->length;
   int         *my_iindx = vc->iindx;
   FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
+  model_detailsT  *md = &(vc->exp_params->model_details);
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((n+1)*sizeof(double));
@@ -790,7 +790,7 @@ vrna_ali_get_pair_info(vrna_fold_compound *vc){
           if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
           else {
             if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-            else type = pair[S[s][i]][S[s][j]];
+            else type = md->pair[S[s][i]][S[s][j]];
           }
           pi[num_p].bp[type]++;
         }
@@ -861,7 +861,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
       u = n-q + p-1;
       if (u<TURN) continue;
 
-      psc = pscore[my_iindx[p]-q];
+      psc = pscore[jindx[q]+p];
 
       if(psc<cv_fact*MINPSCORE) continue;
 
@@ -870,7 +870,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
       /* for the closing pair was already done in the forward recursion              */
       for (qbt1=1,s=0; s<n_seq; s++) {
         char loopseq[10];
-            type[s] = pair[S[s][q]][S[s][p]];
+            type[s] = md->pair[S[s][q]][S[s][p]];
             if (type[s]==0) type[s]=7;
 
             if (u<9){
@@ -900,7 +900,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
               for (s=0; s<n_seq; s++){
                 int ln1a=a2s[s][k-1]-a2s[s][q];
                 int ln2a=a2s[s][n]-a2s[s][l]+a2s[s][p-1];
-                type_2 = pair[S[s][l]][S[s][k]];
+                type_2 = md->pair[S[s][l]][S[s][k]];
                 if (type_2 == 0) type_2 = 7;
                 qloop *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s], S3[s][l], S5[s][k], S5[s][p], S3[s][q], pf_params);
               }
@@ -998,11 +998,11 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
       if (qb[my_iindx[i]-j]>0) {
         qkl = qb[my_iindx[i]-j]*qln[j+1];  /*if psc too small qb=0!*/
         for (s=0; s< n_seq; s++) {
-          xtype=pair[S[s][i]][S[s][j]];
+          xtype=md->pair[S[s][i]][S[s][j]];
           if (xtype==0) xtype=7;
           qkl *= exp_E_ExtLoop(xtype, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
         }
-        qt += qkl; /*?*exp(pscore[my_iindx[i]-j]/kTn)*/
+        qt += qkl; /*?*exp(pscore[jindx[j]+i]/kTn)*/
         if (qt > r) {
           *prob=*prob*(qkl/(qln[i] - qln[i+1]*scale[1]));/*probs*=qkl;*/
           break; /* j is paired */
@@ -1058,10 +1058,10 @@ backtrack(vrna_fold_compound *vc,
     int k, l, u, u1,s;
     pstruc[i-1] = '('; pstruc[j-1] = ')';
     for (s=0; s<n_seq; s++) {
-      type[s] = pair[S[s][i]][S[s][j]];
+      type[s] = md->pair[S[s][i]][S[s][j]];
       if (type[s]==0) type[s]=7;
     }
-    r = urn() * (qb[my_iindx[i]-j]/exp(pscore[my_iindx[i]-j]/kTn)); /*?*exp(pscore[my_iindx[i]-j]/kTn)*/
+    r = urn() * (qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)); /*?*exp(pscore[jindx[j]+i]/kTn)*/
 
     qbt1=1.;
     for (s=0; s<n_seq; s++){
@@ -1076,7 +1076,7 @@ backtrack(vrna_fold_compound *vc,
     qbt1 *= scale[j-i+1];
 
     if (qbt1>r) {
-      *prob=*prob*qbt1/(qb[my_iindx[i]-j]/exp(pscore[my_iindx[i]-j]/kTn));/*probs*=qbt1;*/
+      *prob=*prob*qbt1/(qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn));/*probs*=qbt1;*/
       free(type);
       return; /* found the hairpin we're done */
     }
@@ -1093,7 +1093,7 @@ backtrack(vrna_fold_compound *vc,
         if (qb[my_iindx[k]-l]==0) {qloop=0; continue;}
         for (s=0; s<n_seq; s++) {
           u1 = a2s[s][k-1]-a2s[s][i]/*??*/;
-          type_2 = pair[S[s][l]][S[s][k]]; if (type_2 == 0) type_2 = 7;
+          type_2 = md->pair[S[s][l]][S[s][k]]; if (type_2 == 0) type_2 = 7;
           qloop *= exp_E_IntLoop(u1, a2s[s][j-1]-a2s[s][l], type[s], type_2,
                                  S3[s][i], S5[s][j],S5[s][k], S3[s][l], pf_params);
           if(sc)
@@ -1109,7 +1109,7 @@ backtrack(vrna_fold_compound *vc,
         qbt1 += qb[my_iindx[k]-l] * qloop * scale[k-i+j-l];
 
         if (qbt1 > r) {
-         *prob=*prob*qb[my_iindx[k]-l] * qloop * scale[k-i+j-l]/(qb[my_iindx[i]-j]/exp(pscore[my_iindx[i]-j]/kTn));
+         *prob=*prob*qb[my_iindx[k]-l] * qloop * scale[k-i+j-l]/(qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn));
          /*
           prob*=qb[my_iindx[k]-l] * qloop * scale[k-i+j-l];
          */
@@ -1122,7 +1122,7 @@ backtrack(vrna_fold_compound *vc,
       i=k; j=l;
     }
     else {
-       *prob=*prob*(1-qbt1/(qb[my_iindx[i]-j]/exp(pscore[my_iindx[i]-j]/kTn)));
+       *prob=*prob*(1-qbt1/(qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)));
       break;
     }
   } while (1);
@@ -1224,7 +1224,7 @@ backtrack_qm1(vrna_fold_compound *vc,
     if (qb[ii-l]==0) continue;
     tempz=1.;
     for (s=0; s<n_seq; s++) {
-      xtype = pair[S[s][i]][S[s][l]];
+      xtype = md->pair[S[s][i]][S[s][l]];
       if (xtype==0) xtype=7;
       tempz*=exp_E_MLstem(xtype, S5[s][i], S3[s][l], pf_params);
     }
