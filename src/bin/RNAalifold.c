@@ -33,7 +33,7 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE void  print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout);
+PRIVATE void  print_aliout(vrna_fold_compound *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 
@@ -584,7 +584,7 @@ int main(int argc, char *argv[]){
       if (!aliout) {
         fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-        print_aliout(AS, pl, bppmThreshold, n_seq, mfe_struc, aliout);
+        print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
@@ -725,13 +725,23 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-PRIVATE void print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout) {
+PRIVATE void
+print_aliout( vrna_fold_compound *vc,
+              plist *pl,
+              double threshold,
+              char *mfe,
+              FILE *aliout){
+
   int i, j, k, n, num_p=0, max_p = 64;
   pair_info *pi;
   double *duck, p;
-  short *ptable;
+  short *ptable = NULL;
+  char  **AS    = vc->sequences;
+  int   n_seq   = vc->n_seq;
+
   for (n=0; pl[n].i>0; n++);
 
+#if 0
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
   ptable = vrna_pt_get(mfe);
@@ -768,16 +778,19 @@ PRIVATE void print_aliout(char **AS, plist *pl, double threshold, int n_seq, cha
   free(duck);
   pi[num_p].i=0;
   qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
-
+  for (i=0; pi[i].i>0; i++) /* why do we do this again? */
+    pi[i].comp = (ptable[pi[i].i] == pi[i].j) ? 1:0;
+#else
+  pi = vrna_ali_get_pair_info(vc, (const char *)mfe, threshold);
+#endif
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",
           n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
 
-  for (k=0; pi[k].i>0; k++) {
-    pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
+  for (k=0; pi[k].i>0; k++)
     print_pi(pi[k], aliout);
-  }
+
   fprintf(aliout, "%s\n", mfe);
   free(ptable);
   free(pi);
