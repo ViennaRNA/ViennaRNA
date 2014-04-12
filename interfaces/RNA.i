@@ -3,6 +3,7 @@
 %pragma(perl5)  include="RNA.pod"
 %{
 #include  "../src/ViennaRNA/data_structures.h"
+#include  "../src/ViennaRNA/model.h"
 #include  "../src/ViennaRNA/utils.h"
 #include  "../src/ViennaRNA/structure_utils.h"
 #include  "../src/ViennaRNA/fold_vars.h"
@@ -78,8 +79,8 @@
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
 %include  "../src/ViennaRNA/fold.h"
-%include  "../src/ViennaRNA/eval.h"
 
+%include  "../src/ViennaRNA/model.h"
 
 %include  "../src/ViennaRNA/eval.h"
 
