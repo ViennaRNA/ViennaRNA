@@ -385,7 +385,6 @@ alipf_linear( vrna_fold_compound *vc,
   free(qq1);
   free(qqm);
   free(qqm1);
-
 }
 
 PRIVATE void
@@ -430,26 +429,33 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
   double kTn;
 
-  FLT_OR_DBL *q1k    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-  FLT_OR_DBL *qln    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prm_l   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prm_l1  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prml    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  type                = (int *)space(sizeof(int) * n_seq);
 
-    type  = (int *)space(sizeof(int) * n_seq);
+  if((matrices->q1k == NULL) || (matrices->qln == NULL)){
+    free(matrices->q1k);
+    matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+    free(matrices->qln)
+    matrices->qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  }
 
-  kTn = pf_params->kT/10.;   /* kT in cal/mol  */
+  FLT_OR_DBL *q1k    = matrices->q1k;
+  FLT_OR_DBL *qln    = matrices->qln;
 
-  for (i=0; i<=n; i++)
-    prm_l[i]=prm_l1[i]=prml[i]=0;
-
-  /* backtracking to construct binding probabilities of pairs*/
   for (k=1; k<=n; k++) {
     q1k[k] = q[my_iindx[1] - k];
     qln[k] = q[my_iindx[k] -n];
   }
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
+
+
+  kTn = pf_params->kT/10.;   /* kT in cal/mol  */
+
+  for (i=0; i<=n; i++)
+    prm_l[i]=prm_l1[i]=prml[i]=0;
 
   /* 1. exterior pair i,j and initialization of pr array */
   if(circular){
@@ -714,6 +720,9 @@ alipf_create_bppm(vrna_fold_compound *vc,
         ov, pf_params->pf_scale);
 
   free(type);
+  free(prm_l);
+  free(prm_l1);
+  free(prml);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -935,15 +944,16 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   FLT_OR_DBL        *q          = matrices->q;
   FLT_OR_DBL        *qb         = matrices->qb;
 
-  FLT_OR_DBL *q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-  FLT_OR_DBL *qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  if((matrices->q1k == NULL) || (matrices->qln == NULL){
+    free(matrices->q1k);
+    matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+    free(matrices->qln);
+    matrices->qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  }
 
-  FLT_OR_DBL        *scale        = matrices->scale;
-
-  pstruc = space((n+1)*sizeof(char));
-
-  for (i=0; i<n; i++)
-    pstruc[i] = '.';
+  FLT_OR_DBL *q1k   = matrices->q1k;
+  FLT_OR_DBL *qln   = matrices->qln;
+  FLT_OR_DBL *scale = matrices->scale;
 
   for (k=1; k<=n; k++) {
     q1k[k] = q[my_iindx[1] - k];
@@ -951,6 +961,12 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   }
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
+
+  pstruc = space((n+1)*sizeof(char));
+
+  for (i=0; i<n; i++)
+    pstruc[i] = '.';
+
 
   start = 1;
   while (start<n) {
@@ -1311,7 +1327,8 @@ free_alipf_arrays(void){
 
   if(backward_compat_compound && backward_compat){
     destroy_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
-    iindx = NULL;
+    backward_compat_compound  = NULL;
+    backward_compat           = 0;
+    iindx                     = NULL;
   }
 }
