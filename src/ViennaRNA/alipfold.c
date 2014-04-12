@@ -437,7 +437,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   if((matrices->q1k == NULL) || (matrices->qln == NULL)){
     free(matrices->q1k);
     matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-    free(matrices->qln)
+    free(matrices->qln);
     matrices->qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
   }
 
@@ -944,7 +944,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   FLT_OR_DBL        *q          = matrices->q;
   FLT_OR_DBL        *qb         = matrices->qb;
 
-  if((matrices->q1k == NULL) || (matrices->qln == NULL){
+  if((matrices->q1k == NULL) || (matrices->qln == NULL)){
     free(matrices->q1k);
     matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
     free(matrices->qln);
