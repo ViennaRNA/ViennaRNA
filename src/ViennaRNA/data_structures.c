@@ -518,30 +518,17 @@ PUBLIC void
 destroy_pf_matrices(pf_matricesT *self){
 
   if(self){
-    if(self->allocated){
-      if(self->allocated & ALLOC_F)
-        free(self->q);
-      if(self->allocated & ALLOC_C)
-        free(self->qb);
-      if(self->allocated & ALLOC_FML)
-        free(self->qm);
-      if(self->allocated & ALLOC_UNIQ)
-        free(self->qm1);
-      if(self->allocated & ALLOC_CIRC)
-        free(self->qm2);
-      if(self->allocated & ALLOC_PROBS)
-        free(self->probs);
-      if(self->G)
-        free(self->G);
-      if(self->allocated & ALLOC_AUX){
-        free(self->q1k);
-        free(self->qln);
-      }
-      if(self->scale)
-        free(self->scale);
-      if(self->expMLbase)
-        free(self->expMLbase);
-    }
+    free(self->q);
+    free(self->qb);
+    free(self->qm);
+    free(self->qm1);
+    free(self->qm2);
+    free(self->probs);
+    free(self->G);
+    free(self->q1k);
+    free(self->qln);
+    free(self->scale);
+    free(self->expMLbase);
     free(self);
   }
 }
