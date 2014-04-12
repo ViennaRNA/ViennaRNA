@@ -397,7 +397,7 @@ int main(int argc, char *argv[]){
                           verbose, \
                           VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
-  min_en = vrna_alifold(vc, structure);
+  min_en = vrna_ali_fold(vc, structure);
 
   if(md.circ){
     int     i;
@@ -452,7 +452,8 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
-  free_alifold_arrays();
+  destroy_mfe_matrices(vc->matrices);
+  vc->matrices = NULL;
 
   if (pf) {
     float energy, kT;
@@ -473,7 +474,7 @@ int main(int argc, char *argv[]){
     /* change energy parameters in vc */
     vrna_update_pf_params(vc, pf_parameters);
 
-    energy = vrna_alipf_fold(vc, structure, NULL);
+    energy = vrna_ali_pf_fold(vc, structure, NULL);
 
     if (n_back>0) {
       /*stochastic sampling*/
@@ -555,7 +556,7 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    free_alipf_arrays();
+    destroy_fold_compound(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);

@@ -97,38 +97,6 @@ PRIVATE float   wrap_alifold( const char **strings,
 #################################
 */
 
-PUBLIC  void
-vrna_update_alifold_params( vrna_fold_compound *vc,
-                            paramT *parameters){
-
-  vrna_fold_compound *v;
-
-  if(vc){
-    v = vc;
-
-    /* what about re-setting the backward compatibility compound here? */
-    if(backward_compat_compound && backward_compat)
-      destroy_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 0;
-  } else if(backward_compat_compound && backward_compat){
-    v = backward_compat_compound;
-  } else
-    return;
-
-  if(v->params)
-    free(v->params);
-  if(parameters){
-    v->params = get_parameter_copy(parameters);
-  } else {
-    model_detailsT md;
-    set_model_details(&md);
-    v->params = get_scaled_parameters(temperature, md);
-  }
-}
-
-
 PRIVATE float
 wrap_alifold( const char **strings,
               char *structure,
@@ -182,13 +150,13 @@ wrap_alifold( const char **strings,
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_alifold(vc, structure);
+  return vrna_ali_fold(vc, structure);
 }
 
 
 
 PUBLIC float
-vrna_alifold( vrna_fold_compound *vc,
+vrna_ali_fold(vrna_fold_compound *vc,
               char *structure){
 
   int  length, s, n_seq, energy;
@@ -1464,7 +1432,18 @@ PUBLIC float circalifold( const char **strings,
 PUBLIC void 
 update_alifold_params(void){
 
-  vrna_update_alifold_params(NULL, NULL);
+  vrna_fold_compound *v;
+
+  if(backward_compat_compound && backward_compat){
+    v = backward_compat_compound;
+
+    if(v->params)
+      free(v->params);
+
+    model_detailsT md;
+    set_model_details(&md);
+    v->params = vrna_get_energy_contributions(md);
+  }
 }
 
 PUBLIC void
