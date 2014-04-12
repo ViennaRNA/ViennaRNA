@@ -296,8 +296,6 @@ set_fold_compound(vrna_fold_compound *vc,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     set_model_details(&md);
 
-  length    = vc->length;
-
   if(vc->type == VRNA_VC_TYPE_SINGLE){
     sequence  = vc->sequence;
 
@@ -308,6 +306,7 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->cutpoint            = cp;
     free(vc->sequence);
     vc->sequence            = seq;
+    vc->length              = length = strlen(seq);
     vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
     vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
     vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
@@ -317,6 +316,8 @@ set_fold_compound(vrna_fold_compound *vc,
   }
   else if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
     sequences     = vc->sequences;
+
+    vc->length    = length = vc->length;
 
     vc->cons_seq  = consensus((const char **)sequences);
     vc->S_cons    = get_sequence_encoding(vc->cons_seq, 0, &md);
