@@ -35,9 +35,9 @@ structures, and the design of RNA sequences with a desired structure.
 
 %build
 %configure --with-cluster --without-forester --prefix=/usr/
-cd Perl
+cd interfaces/Perl
 perl Makefile.PL INSTALLDIRS=vendor
-cd ..
+cd ../..
 make %{?_smp_mflags}
 
 %install
@@ -64,8 +64,8 @@ rm -rf $RPM_BUILD_ROOT
 %files -f %{manifest}
 %defattr(-,root,root,-)
 
-%docdir doc
-/usr/share/doc/ViennaRNA
+%doc doc/RNAlib-2.1.7.pdf
+#/usr/share/doc/ViennaRNA
 
 %changelog
 * Mon Mar 26 2012 Ronny Lorenz <ronny@tbi.univie.ac.at>

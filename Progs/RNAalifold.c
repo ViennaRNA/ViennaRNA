@@ -151,6 +151,9 @@ int main(int argc, char *argv[]){
     RibosumFile = NULL;
     ribo = 1;
   }
+  if(args_info.layout_type_given)
+    rna_plot_type = args_info.layout_type_arg;
+
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
     clust_file = fopen(args_info.inputs[0], "r");

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 # -*-Perl-*-
 # Last changed Time-stamp: <2005-11-07 13:31:34 ivo>
 # Produce coloured Hogeweg mountain representation in PostScript.

@@ -1074,7 +1074,6 @@ static void construct_extruded_segment(struct connection *cp, struct connection 
       bases[nend].y = bases[end].y - 0.5*dy;
       start = nstart;
       end = nend;
-      n -= 2;
     }
     do {
       collision = false;
