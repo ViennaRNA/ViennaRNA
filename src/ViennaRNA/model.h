@@ -237,7 +237,7 @@ typedef struct{
 
   int     oldAliEn;         /**<  \brief  Use old alifold energy model */
   int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
-  double  cv_fact;
+  double  cv_fact;          /**<  \brief  Covariance scaling factor for consensus structure prediction */
   double  nc_fact;
 
   int     rtype[8];

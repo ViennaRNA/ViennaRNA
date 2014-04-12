@@ -144,13 +144,13 @@ wrap_alipf_fold(const char **sequences,
   iindx                     = backward_compat_compound->iindx;
   backward_compat           = 1;
 
-  return vrna_alipf_fold(vc, structure, pl);
+  return vrna_ali_pf_fold(vc, structure, pl);
 }
 
 PUBLIC float
-vrna_alipf_fold(vrna_fold_compound *vc,
-                char *structure,
-                plist **pl){
+vrna_ali_pf_fold( vrna_fold_compound *vc,
+                  char *structure,
+                  plist **pl){
 
   FLT_OR_DBL  Q;
   float       free_energy;
@@ -269,7 +269,7 @@ alipf_linear( vrna_fold_compound *vc,
         if (type[s]==0) type[s]=7;
       }
       psc = pscore[jindx[j]+i];
-      if (psc>=cv_fact*MINPSCORE && ((j-i) < max_bpspan)) {   /* otherwise ignore this pair */
+      if (psc>=md->cv_fact*MINPSCORE && ((j-i) < max_bpspan)) {   /* otherwise ignore this pair */
 
         /* hairpin contribution */
         for (qbt1=1,s=0; s<n_seq; s++) {
@@ -849,7 +849,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
 
       psc = pscore[jindx[q]+p];
 
-      if(psc<cv_fact*MINPSCORE) continue;
+      if(psc<md->cv_fact*MINPSCORE) continue;
 
       /* 1. exterior hairpin contribution  */
       /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */

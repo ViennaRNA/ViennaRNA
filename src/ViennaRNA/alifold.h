@@ -4,6 +4,12 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/ribo.h>
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
 /**
  *  \addtogroup consensus_fold
  *  \brief compute various properties (consensus MFE structures, partition function,
@@ -38,19 +44,23 @@
  *  energy function of alignment folding algorithms
  * 
  *  \ingroup consensus_fold
- * 
+ *
+ *  \deprecated See #model_detailsT.cv_fact, and vrna_ali_fold() to avoid using global variables
+ *
  *  Default is 1.
  */
-extern  double  cv_fact;
+DEPRECATED(extern  double  cv_fact);
 /**
  *  \brief This variable controls the magnitude of the penalty for non-compatible sequences in
  *  the covariance term of alignment folding algorithms.
  * 
  *  \ingroup consensus_fold
  * 
+ *  \deprecated See #model_detailsT.nc_fact, and vrna_ali_fold() to avoid using global variables
+ *
  *  Default is 1.
  */
-extern  double  nc_fact;
+DEPRECATED(extern  double  nc_fact);
 
 /*
 ##############################################
@@ -59,75 +69,28 @@ extern  double  nc_fact;
 */
 
 /**
- *  \brief Update the energy parameters for alifold function
- * 
- *  Call this to recalculate the pair matrix and energy parameters after a
- *  change in folding parameters like #temperature
- */
-void update_alifold_params(void);
-
-void vrna_update_alifold_params(vrna_fold_compound *vc,
-                                paramT *parameters);
-
-/**
  *  \brief Compute MFE and according consensus structure of an alignment of sequences
  * 
- *  This function predicts the consensus structure for the aligned 'sequences'
- *  and returns the minimum free energy; the mfe structure in bracket
+ *  This function predicts the consensus structure for the aligned stored in
+ *  vc and returns the minimum free energy; the mfe structure in bracket
  *  notation is returned in 'structure'.
+ *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
  * 
- *  Sufficient space must be allocated for 'structure' before calling
- *  alifold().
+ *  \note Sufficient space must be allocated for 'structure' before calling
+ *  vrna_ali_fold(). Passing NULL to the 'structure' or setting #model_detailsT.backtrack to
+ *  0 turns of backtracing an no structure will be returned.
  * 
  *  \ingroup consensus_mfe_fold
+ *
+ *  \see vrna_get_fold_compound_ali()
  * 
- *  \param strings    A pointer to a NULL terminated array of character arrays
- *  \param structure  A pointer to a character array that may contain a constraining consensus structure
- *                    (will be overwritten by a consensus structure that exhibits the MFE)
+ *  \param vc         The fold compound structure of type #VRNA_VC_TYPE_ALIGNMENT
+ *  \param structure  A pointer to a character array that will be overwritten by
+ *                    a consensus structure that exhibits the MFE. (Maybe NULL)
  *  \return           The free energy score in kcal/mol
  */
-float  alifold( const char **strings,
-                char *structure);
-
-float vrna_alifold( vrna_fold_compound *vc,
+float vrna_ali_fold( vrna_fold_compound *vc,
                     char *structure);
-
-/**
- *  \brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
- * 
- *  \ingroup consensus_mfe_fold
- * 
- *  \param strings    A pointer to a NULL terminated array of character arrays
- *  \param structure  A pointer to a character array that may contain a constraining consensus structure
- *                    (will be overwritten by a consensus structure that exhibits the MFE)
- *  \return           The free energy score in kcal/mol
- */
-float  circalifold( const char **strings,
-                    char *structure);
-
-/**
- *  \brief Free the memory occupied by MFE alifold functions
- * 
- *  \ingroup consensus_mfe_fold
- * 
- */
-void    free_alifold_arrays(void);
-
-/**
- *  \brief Get the mean pairwise identity in steps from ?to?(ident)
- * 
- *  \ingroup consensus_fold
- * 
- *  \param Alseq
- *  \param n_seq  The number of sequences in the alignment
- *  \param length The length of the alignment
- *  \param mini
- *  \return       The mean pairwise identity
- */
-int get_mpi(char *Alseq[],
-            int n_seq,
-            int length,
-            int *mini);
 
 /**
  *  \brief Get the mean pairwise identity in steps from ?to?(ident)
@@ -144,6 +107,73 @@ int vrna_ali_get_mpi( char *Alseq[],
                       int n_seq,
                       int length,
                       int *mini);
+
+/**
+ *  \brief Compute MFE and according consensus structure of an alignment of sequences
+ * 
+ *  This function predicts the consensus structure for the aligned 'sequences'
+ *  and returns the minimum free energy; the mfe structure in bracket
+ *  notation is returned in 'structure'.
+ * 
+ *  Sufficient space must be allocated for 'structure' before calling
+ *  alifold().
+ * 
+ *  \ingroup consensus_mfe_fold
+ * 
+ *  \deprecated Usage of this function is discouraged! Use vrna_ali_fold() instead
+ *  \see vrna_ali_fold()
+ *
+ *  \param strings    A pointer to a NULL terminated array of character arrays
+ *  \param structure  A pointer to a character array that may contain a constraining consensus structure
+ *                    (will be overwritten by a consensus structure that exhibits the MFE)
+ *  \return           The free energy score in kcal/mol
+ */
+DEPRECATED(float alifold( const char **strings, char *structure));
+
+/**
+ *  \brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
+ * 
+ *  \ingroup consensus_mfe_fold
+ * 
+ *  \deprecated Usage of this function is discouraged! Use vrna_ali_fold() instead
+ *  \see vrna_ali_fold()
+ * 
+ *  \param strings    A pointer to a NULL terminated array of character arrays
+ *  \param structure  A pointer to a character array that may contain a constraining consensus structure
+ *                    (will be overwritten by a consensus structure that exhibits the MFE)
+ *  \return           The free energy score in kcal/mol
+ */
+DEPRECATED(float circalifold( const char **strings, char *structure));
+
+/**
+ *  \brief Free the memory occupied by MFE alifold functions
+ * 
+ *  \deprecated Usage of this function is discouraged! It only
+ *  affects memory being free'd that was allocated by an old API
+ *  function before. Release of memory occupied by the newly introduced
+ *  #vrna_fold_compound is handled by vrna_destroy_fold_compound()
+ *
+ *  \see vrna_destroy_fold_compound()
+ *
+ *  \ingroup consensus_mfe_fold
+ * 
+ */
+DEPRECATED(void free_alifold_arrays(void));
+
+/**
+ *  \brief Get the mean pairwise identity in steps from ?to?(ident)
+ * 
+ *  \ingroup consensus_fold
+ *
+ *  \deprecated Use vrna_ali_get_mpi() as a replacement
+ *
+ *  \param Alseq
+ *  \param n_seq  The number of sequences in the alignment
+ *  \param length The length of the alignment
+ *  \param mini
+ *  \return       The mean pairwise identity
+ */
+DEPRECATED(int get_mpi(char *Alseq[], int n_seq, int length, int *mini));
 
 
 /**
@@ -263,15 +293,53 @@ void  free_sequence_arrays( unsigned int n_seq,
  */
 
 
-float vrna_alipf_fold(vrna_fold_compound *vc,
+/**
+ *  \brief Compute partition function and base pair probabilities for
+ *  a sequence alignment.
+ * 
+ *  The partition function version of vrna_ali_fold() works in analogy to
+ *  vrna_pf_fold(). Pair probabilities are returned via the 'pl' variable
+ *  as a list of #plist structs. The list is terminated by the first entry
+ *  with pl.i = 0.
+ * 
+ *  \ingroup consensus_pf_fold
+ *
+ *  \see vrna_ali_get_pair_info() for a replacement of pl with more detailed
+ *  information
+ * 
+ *  \param vc         The #vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT
+ *  \param structure  A pointer to a character array of length of the alignment (Maybe NULL)
+ *  \param pl         A pointer to a #plist pointer where the pair probabilities are stored (Maybe NULL)
+ *  \return           Gibbs free energy of the consensus fold space
+ */
+float vrna_ali_pf_fold(vrna_fold_compound *vc,
                       char *structure,
                       plist **pl);
+
+/**
+ *  \brief Retrieve an array of #pair_info structures from precomputed pair probabilities
+ *
+ *  This array of structures contains information about positionwise pair probabilies,
+ *  base pair entropy and more
+ *
+ *  \see #pair_info, and vrna_ali_pf_fold()
+ *
+ *  \param  vc          The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
+ *  \param  threshold   Do not include results with pair probabilities below threshold
+ *  \return             The #pair_info array
+ */
+pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc,
+                                  const char *structure,
+                                  double threshold);
 
 /**
  *  \brief
  * 
  *  \ingroup consensus_pf_fold
  * 
+ *  \deprecated Use vrna_ali_pf_fold() instead
+ *
  *  \param  sequences
  *  \param  structure
  *  \param  pl
@@ -281,13 +349,13 @@ float vrna_alipf_fold(vrna_fold_compound *vc,
  *  \param  is_circular
  *  \return
  */
-float alipf_fold_par( const char **sequences,
+DEPRECATED(float alipf_fold_par( const char **sequences,
                       char *structure,
                       plist **pl,
                       pf_paramT *parameters,
                       int calculate_bppm,
                       int is_constrained,
-                      int is_circular);
+                      int is_circular));
 
 /**
  *  \brief
@@ -300,28 +368,28 @@ float alipf_fold_par( const char **sequences,
  * 
  *  \ingroup consensus_pf_fold
  * 
+ *  \deprecated Use vrna_ali_pf_fold() instead
+ *
  *  \param sequences
  *  \param structure
  *  \param pl
  *  \return
  */
-float alipf_fold( const char **sequences,
-                  char *structure,
-                  plist **pl);
+DEPRECATED(float alipf_fold( const char **sequences, char *structure, plist **pl));
 
 /**
  *  \brief
  * 
  *  \ingroup consensus_pf_fold
+ *
+ *  \deprecated Use vrna_ali_pf_fold() instead
  * 
  *  \param sequences
  *  \param structure
  *  \param pl
  *  \return
  */
-float alipf_circ_fold(const char **sequences,
-                      char *structure,
-                      plist **pl);
+DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, plist **pl));
 
 
 /**
@@ -331,19 +399,32 @@ float alipf_circ_fold(const char **sequences,
  *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
  * 
  *  \ingroup consensus_pf_fold
+ *
+ *  \deprecated Usage of this function is discouraged! The new #vrna_fold_compound
+ *  allows direct access to the folding matrices, including the pair probabilities!
+ *  The pair probability array returned here reflects the one of the latest call
+ *  to vrna_ali_pf_fold(), or any of the old API calls for consensus structure
+ *  partition function folding.
  * 
- *  \see get_iindx()
+ *  \see #vrna_fold_compound, vrna_get_fold_compound_ali(), and vrna_ali_pf_fold()
+ *
  *  \return A pointer to the base pair probability array
  */
-FLT_OR_DBL *export_ali_bppm(void);
+DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
 
 /**
- *  \brief
+ *  \brief Free the memory occupied by folding matrices allocated by alipf_fold, alipf_circ_fold, etc.
  *
  *  \ingroup consensus_pf_fold
  * 
+ *  \deprecated Usage of this function is discouraged! This function only free's memory
+ *  allocated by old API function calls. Memory allocated by any of the new API calls (starting with vrna_)
+ *  will be not affected!
+ *
+ *  \see #vrna_fold_compound, vrna_destroy_fold_compound()
+ *
  */
-void  free_alipf_arrays(void);
+DEPRECATED(void  free_alipf_arrays(void));
 
 /**
  *  \addtogroup consensus_stochbt
@@ -356,13 +437,26 @@ void  free_alipf_arrays(void);
  *  \brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability\n
  * 
  *  \ingroup consensus_stochbt
- * 
+ *
+ *  \see vrna_ali_pf_fold() for precomputing the partition function matrices, and
+ *
+ *  \param  vc    The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  prob  to be described (berni)
  *  \return       A sampled consensus secondary structure in dot-bracket notation
  */
-char  *alipbacktrack(double *prob);
-
 char *vrna_ali_pbacktrack(vrna_fold_compound *vc, double *prob);
+
+/**
+ *  \brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability\n
+ * 
+ *  \ingroup consensus_stochbt
+ *
+ *  \deprecated Use vrna_ali_pbacktrack() instead!
+ *
+ *  \param  prob  to be described (berni)
+ *  \return       A sampled consensus secondary structure in dot-bracket notation
+ */
+DEPRECATED(char  *alipbacktrack(double *prob));
 
 /**
  *  \brief Get pointers to (almost) all relavant arrays used in alifold's partition function computation
@@ -372,6 +466,11 @@ char *vrna_ali_pbacktrack(vrna_fold_compound *vc, double *prob);
  *  \note To obtain meaningful pointers, call alipf_fold first!
  *
  *  \see pf_alifold(), alipf_circ_fold()
+ *
+ *  \deprecated It is discouraged to use this function! The new #vrna_fold_compound allows
+ *  direct access to all necessary consensus structure prediction related variables!
+ *
+ *  \see #vrna_fold_compound, vrna_get_fold_compound_ali(), vrna_ali_pf_fold()
  *
  *  \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  \param S5_p     A pointer to the 'S5' array
@@ -384,19 +483,29 @@ char *vrna_ali_pbacktrack(vrna_fold_compound *vc, double *prob);
  *  \param qln_p    A pointer to the 3' slice of the Q matrix (\f$qln(l) = Q(l, n)\f$)
  *  \return         Non Zero if everything went fine, 0 otherwise
  */
-int get_alipf_arrays(short ***S_p,
-		     short ***S5_p,
-		     short ***S3_p,
-		     unsigned short ***a2s_p,
-		     char ***Ss_p,
-		     FLT_OR_DBL **qb_p,
-		     FLT_OR_DBL **qm_p,
-		     FLT_OR_DBL **q1k_p,
-		     FLT_OR_DBL **qln_p,
-		     int **pscore);
+DEPRECATED(int get_alipf_arrays(short ***S_p,
+                     short ***S5_p,
+                     short ***S3_p,
+                     unsigned short ***a2s_p,
+                     char ***Ss_p,
+                     FLT_OR_DBL **qb_p,
+                     FLT_OR_DBL **qm_p,
+                     FLT_OR_DBL **q1k_p,
+                     FLT_OR_DBL **qln_p,
+                     int **pscore));
 
-pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc,
-                                  const char *structure,
-                                  double threshold);
+
+/**
+ *  \brief Update the energy parameters for alifold function
+ *
+ *  Call this to recalculate the pair matrix and energy parameters after a
+ *  change in folding parameters like #temperature
+ *
+ *  \ingroup  consensus_fold
+ *  \deprecated Usage of this function is discouraged! The new API uses #vrna_fold_compound
+ *  to lump all folding related necessities together, including the energy parameters. Use
+ *  vrna_update_fold_params() to update the energy parameters within a #vrna_fold_compound.
+ */
+DEPRECATED(void update_alifold_params(void));
 
 #endif
