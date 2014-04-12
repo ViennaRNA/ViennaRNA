@@ -27,7 +27,9 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/ribo.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/part_func.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -53,6 +55,8 @@
 PRIVATE char *tokenize(char *line, int *cut_point);
 PRIVATE void vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
+PRIVATE void make_pscores(vrna_fold_compound *vc);
 
 /*
 #################################
@@ -144,19 +148,13 @@ destroy_mfe_matrices(mfe_matricesT *self){
 PUBLIC  void
 destroy_fold_compound(vrna_fold_compound *vc){
 
+  int s;
+
   if(vc){
+
+    /* first destroy common attributes */
     destroy_mfe_matrices(vc->matrices);
     destroy_pf_matrices(vc->exp_matrices);
-    if(vc->sequence)
-      free(vc->sequence);
-    if(vc->sequence_encoding)
-      free(vc->sequence_encoding);
-    if(vc->sequence_encoding2)
-      free(vc->sequence_encoding2);
-    if(vc->ptype)
-      free(vc->ptype);
-    if(vc->ptype_pf_compat)
-      free(vc->ptype_pf_compat);
     if(vc->iindx)
       free(vc->iindx);
     if(vc->jindx)
@@ -167,8 +165,46 @@ destroy_fold_compound(vrna_fold_compound *vc){
       free(vc->exp_params);
     if(vc->hc)
       destroy_hard_constraints(vc->hc);
-    if(vc->sc)
-      vrna_sc_destroy(vc->sc);
+
+    /* now distinguish the vc type */
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(vc->sequence)
+        free(vc->sequence);
+      if(vc->sequence_encoding)
+        free(vc->sequence_encoding);
+      if(vc->sequence_encoding2)
+        free(vc->sequence_encoding2);
+      if(vc->ptype)
+        free(vc->ptype);
+      if(vc->ptype_pf_compat)
+        free(vc->ptype_pf_compat);
+      if(vc->sc)
+        vrna_sc_destroy(vc->sc);
+
+    } else if (vc->type == VRNA_VC_TYPE_ALIGNMENT){
+      for(s=0;s<vc->n_seq;s++){
+        free(vc->sequences[s]);
+        free(vc->S[s]);
+        free(vc->S5[s]);
+        free(vc->S3[s]);
+        free(vc->Ss[s]);
+        free(vc->a2s[s]);
+      }
+      free(vc->sequences);
+      free(vc->cons_seq);
+      free(vc->S_cons);
+      free(vc->S);
+      free(vc->S5);
+      free(vc->S3);
+      free(vc->Ss);
+      free(vc->a2s);
+      free(vc->pscore);
+      if(vc->scs){
+        for(s=0;s<vc->n_seq;s++)
+          free(vc->scs[s]);
+        free(vc->scs);
+      }
+    }
 
     free(vc);
   }
@@ -180,32 +216,152 @@ vrna_get_fold_compound( const char *sequence,
                         model_detailsT *md_p,
                         unsigned int options){
 
-  vrna_fold_compound *vc = NULL;
+  int length;
+  vrna_fold_compound *vc;
+
+  if(sequence == NULL) return NULL;
+
+  /* sanity check */
+  length = strlen(sequence);
+  if(length == 0)
+    nrerror("vrna_get_fold_compound: sequence length must be greater 0");
+
+  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
+  set_fold_compound(vc, md_p, options);
+
+  return vc;
+}
+
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound_ali( const char **sequences,
+                            model_detailsT *md_p,
+                            unsigned int options){
+
+  int s, n_seq, length;
+  vrna_fold_compound *vc;
+  
+  if(sequences == NULL) return NULL;
+
+  for(s=0;sequences[s];s++); /* count the sequences */
+
+  n_seq = s;
+
+  length = strlen(sequences[0]);
+  /* sanity check */
+  if(length == 0)
+    nrerror("vrna_get_fold_compound_ali: sequence length must be greater 0");
+  for(s = 0; s < n_seq; s++)
+    if(strlen(sequences[s]) != length)
+      nrerror("vrna_get_fold_compound_ali: uneqal sequence lengths in alignment");
+
+  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_ALIGNMENT;
+
+  vc->n_seq     = n_seq;
+  vc->length    = length;
+  vc->sequences = (char **)space(sizeof(char *) * (vc->n_seq + 1));
+  for(s = 0; sequences[s]; s++)
+    vc->sequences[s] = strdup(sequences[s]);
+
+  set_fold_compound(vc, md_p, options);
+
+  return vc;
+}
+
+PRIVATE void
+set_fold_compound(vrna_fold_compound *vc,
+                  model_detailsT *md_p,
+                  unsigned int options){
+
+
+  char *sequence, **sequences;
   model_detailsT      md;
-  unsigned int        alloc_vector, length;
+  unsigned int        alloc_vector, length, s;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
 
+  sequence    = NULL;
+  sequences   = NULL;
+
   /* default values */
-  cp     = -1;
+  cp            = -1;
   alloc_vector  = ALLOC_NOTHING;
-
-
-  /* sanity check */
-  length = (sequence) ? strlen(sequence) : 0;
-  if(length == 0)
-    nrerror("vrna_get_fold_compound@data_structures.c: sequence length must be greater 0");
-
-  seq2 = strdup(sequence);
-  seq = tokenize(seq2, &cp); /*  splice out the '&' if concatenated sequences and
-                                        reset cp... this should also be safe for
-                                        single sequences */
 
   /* get a copy of the model details */
   if(md_p)
     md = *md_p;
   else /* this fallback relies on global parameters and thus is not threadsafe */
     set_model_details(&md);
+
+  length    = vc->length;
+
+  if(vc->type == VRNA_VC_TYPE_SINGLE){
+    sequence  = vc->sequence;
+
+    seq2 = strdup(sequence);
+    seq = tokenize(seq2, &cp); /*  splice out the '&' if concatenated sequences and
+                                          reset cp... this should also be safe for
+                                          single sequences */
+    vc->cutpoint            = cp;
+    free(vc->sequence);
+    vc->sequence            = seq;
+    vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
+    vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
+    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
+    vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+    vc->sc                  = NULL;
+    free(seq2);
+  }
+  else if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+    sequences     = vc->sequences;
+
+    vc->cons_seq  = consensus((const char **)sequences);
+    vc->S_cons    = get_sequence_encoding(vc->cons_seq, 0, &md);
+
+    vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
+
+    if(md.circ){
+      warn_user("Not implemented yet: "
+                "Falling back to oldAliEn model for alifold due to circular RNA");
+      md.oldAliEn = 1;
+    }
+    oldAliEn = vc->oldAliEn  = md.oldAliEn;
+
+    vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
+    vc->a2s = (unsigned short **) space((vc->n_seq+1) * sizeof(unsigned short *));
+    vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
+
+    for (s = 0; s < vc->n_seq; s++) {
+#if 1
+      get_sequence_encoding_gapped( vc->sequences[s],
+                                    &(vc->S[s]),
+                                    &(vc->S5[s]),
+                                    &(vc->S3[s]),
+                                    &(vc->Ss[s]),
+                                    &(vc->a2s[s]),
+                                    &md);
+#else
+      vc->S5[s]  = (short *)         space((length + 2) * sizeof(short));
+      vc->S3[s]  = (short *)         space((length + 2) * sizeof(short));
+      vc->a2s[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
+      vc->Ss[s]  = (char *)          space((length + 2) * sizeof(char));
+      vc->S[s]   = (short *)         space((length + 2) * sizeof(short));
+      encode_ali_sequence(vc->sequences[s], vc->S[s], vc->S5[s], vc->S3[s], vc->Ss[s], vc->a2s[s], md.circ);
+#endif
+    }
+    vc->S5[vc->n_seq]  = NULL;
+    vc->S3[vc->n_seq]  = NULL;
+    vc->a2s[vc->n_seq] = NULL;
+    vc->Ss[vc->n_seq]  = NULL;
+    vc->S[vc->n_seq]   = NULL;
+
+    vc->scs       = NULL;
+  }
 
   /* prepare the allocation vector for the DP matrices */
   if(options & VRNA_OPTION_HYBRID){
@@ -224,18 +380,10 @@ vrna_get_fold_compound( const char *sequence,
   if(md.uniq_ML)
     alloc_vector |= ALLOC_UNIQ;
 
-  if(md.circ)
-    alloc_vector |= ALLOC_CIRC;
-
-  /* start making the fold compound */
-  vc                      = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
-  vc->cutpoint            = cp;
-  vc->sequence            = seq;
-  vc->length              = strlen(seq);
-  vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
-  vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
-  vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
-  vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+  if(md.circ){
+    md.uniq_ML = 1;
+    alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
+  }
 
   if(options & VRNA_OPTION_MFE){
     vc->params    = vrna_get_energy_contributions(md);
@@ -247,7 +395,9 @@ vrna_get_fold_compound( const char *sequence,
 
 
   if(options & VRNA_OPTION_PF){
-    vc->exp_params    = vrna_get_boltzmann_factors(md);
+    vc->exp_params    = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+                            vrna_get_boltzmann_factors(md) : \
+                            vrna_get_boltzmann_factors_ali(vc->n_seq, md);
     vrna_add_pf_matrices(vc, alloc_vector);
   } else {
     vc->exp_params    = NULL;
@@ -256,13 +406,11 @@ vrna_get_fold_compound( const char *sequence,
 
   vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
 
-  vc->sc                  = NULL;
-
   vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
   vc->jindx               = get_indx(vc->length);
 
-  free(seq2);
-  return vc;
+  if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+    make_pscores(vc);
 }
 
 
@@ -285,8 +433,12 @@ vrna_add_mfe_matrices(vrna_fold_compound *vc,
 
   if(vc){
     vc->matrices = get_mfe_matrices_alloc(vc->length, alloc_vector);
-    if(vc->params->model_details.gquad)
-      vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+    if(vc->params->model_details.gquad){
+      if(vc->type == VRNA_VC_TYPE_SINGLE)
+        vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+      else if(vc->type == VRNA_VC_TYPE_ALIGNMENT);
+        vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+    }
 
 //    vrna_update_pf_params(vc, NULL);
   }
@@ -341,7 +493,7 @@ get_pf_matrices_alloc(unsigned int n,
     if(alloc_vector & ALLOC_UNIQ)
       vars->qm1   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
 
-    if(alloc_vector & ALLOC_FM2)
+    if(alloc_vector & ALLOC_CIRC)
       vars->qm2   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
 
     if(alloc_vector & ALLOC_PROBS)
@@ -366,245 +518,21 @@ PUBLIC void
 destroy_pf_matrices(pf_matricesT *self){
 
   if(self){
-    if(self->allocated){
-      if(self->allocated & ALLOC_F)
-        free(self->q);
-      if(self->allocated & ALLOC_C)
-        free(self->qb);
-      if(self->allocated & ALLOC_FML)
-        free(self->qm);
-      if(self->allocated & ALLOC_UNIQ)
-        free(self->qm1);
-      if(self->allocated & ALLOC_FM2)
-        free(self->qm2);
-      if(self->allocated & ALLOC_PROBS)
-        free(self->probs);
-      if(self->G)
-        free(self->G);
-      if(self->allocated & ALLOC_AUX){
-        free(self->q1k);
-        free(self->qln);
-      }
-      if(self->scale)
-        free(self->scale);
-      if(self->expMLbase)
-        free(self->expMLbase);
-    }
+    free(self->q);
+    free(self->qb);
+    free(self->qm);
+    free(self->qm1);
+    free(self->qm2);
+    free(self->probs);
+    free(self->G);
+    free(self->q1k);
+    free(self->qln);
+    free(self->scale);
+    free(self->expMLbase);
     free(self);
   }
 }
 
-PUBLIC vrna_alifold_compound *
-get_alifold_compound_mfe(const char **sequences, paramT *P){
-
-  return get_alifold_compound_mfe_constrained(sequences, NULL, NULL, P);
-}
-
-PUBLIC vrna_alifold_compound *
-get_alifold_compound_mfe_constrained( const char **sequences,
-                                      hard_constraintT **hc,
-                                      soft_constraintT **sc,
-                                      paramT *P){
-
-  return vrna_alifold_get_compund_constraints(sequences, hc, sc, NULL, P, NULL, VRNA_CONSTRAINT_SOFT_MFE);
-}
-
-PUBLIC vrna_alifold_compound *
-vrna_alifold_get_compund_constraints( const char **sequences,
-                                      hard_constraintT **hc,
-                                      soft_constraintT **sc,
-                                      model_detailsT *model_details,
-                                      paramT *P,
-                                      pf_paramT *pf,
-                                      unsigned int options){
-
-  vrna_alifold_compound *vc;
-  paramT                *params;
-  pf_paramT             *exp_params;
-  model_detailsT        md;
-  unsigned int          alloc_vector, length, s;
-
-  alloc_vector  = 0;
-  params        = NULL;
-  exp_params    = NULL;
-
-  /* sanity check */
-  length = (sequences) ? strlen(sequences[0]) : 0;
-  if(length == 0)
-    nrerror("get_alifold_compound_mfe_constraint@data_structures.c: sequence length must be greater 0");
-
-  /* start making the alfold compound */
-  vc = (vrna_alifold_compound *)space(sizeof(vrna_alifold_compound));
-
-  for(s=0;sequences[s];s++);
-
-  vc->n_seq           = s;
-  vc->sequences       = (char **)space(sizeof(char *) * (vc->n_seq + 1));
-  for(s = 0; sequences[s]; s++)
-    vc->sequences[s]  = strdup(sequences[s]);
-
-  vc->length          = strlen(sequences[0]);
-  vc->pscore          = (int *) space(sizeof(int)*((length*(length+1))/2+2));
-
-  /* copy the user-provided model details or just create them from the default options */
-  if(model_details){
-    md = *model_details;
-  } else {
-    set_model_details(&md);
-  }
-
-  vc->oldAliEn            = oldAliEn;
-
-  /* prepare the parameters datastructure */
-
-  /* Minimum free energy specific things following */
-  if(options & VRNA_CONSTRAINT_SOFT_MFE){
-    if(P){
-      params = get_parameter_copy(P);
-    } else { /* this fallback relies on global parameters and thus is not threadsafe */
-      params = get_scaled_parameters(temperature, md);
-    }
-    vc->params  = params;
-
-    alloc_vector = ALLOC_MFE_DEFAULT;
-    if(md.circ)
-      alloc_vector |= ALLOC_CIRC;
-    if(md.uniq_ML)
-      alloc_vector |= ALLOC_UNIQ;
-//    vc->matrices  = get_mfe_matrices_alloc(length, alloc_vector);
-    vc->matrices = NULL;
-
-    /* get gquadruplex matrix if needed */
-    if(md.gquad){
-      vc->cons_seq      = consensus(sequences);
-      vc->S_cons        = get_sequence_encoding(vc->cons_seq, 0, &md);
-      vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
-    }
-
-    vc->jindx               = get_indx(vc->length);
-  }
-
-
-  /* Partition function specific things following */
-  if(options & VRNA_CONSTRAINT_SOFT_PF){
-    if(pf){
-      exp_params = get_boltzmann_factor_copy(pf);
-    } else { /* this fallback relies on global parameters and thus is not threadsafe */
-      exp_params = get_boltzmann_factors_ali(s, temperature, 1.0, md, pf_scale);
-    }
-    vc->exp_params  = exp_params;
-
-    alloc_vector = ALLOC_PF_DEFAULT;
-    if(md.circ)
-      alloc_vector |= ALLOC_CIRC;
-    if(md.uniq_ML)
-      alloc_vector |= ALLOC_UNIQ;
-//    vc->exp_matrices  = get_pf_matrices_alloc(length, alloc_vector);
-    vc->exp_matrices = NULL;
-
-    /* get gquadruplex matrix if needed */
-    if(md.gquad){
-      vc->exp_matrices->G = NULL;
-    }
-
-    vc->iindx = get_iindx(vc->length);
-    if(!vc->jindx)
-      vc->jindx = get_indx(vc->length);
-
-  }
-
-
-  vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
-  vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
-  vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
-  vc->a2s = (unsigned short **) space((vc->n_seq+1) * sizeof(unsigned short *));
-  vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
-
-  for (s=0; s<vc->n_seq; s++) {
-    if(strlen(vc->sequences[s]) != vc->length) nrerror("uneqal seqence lengths");
-
-    get_sequence_encoding_gapped( vc->sequences[s],
-                                  &(vc->S[s]),
-                                  &(vc->S5[s]),
-                                  &(vc->S3[s]),
-                                  &(vc->Ss[s]),
-                                  &(vc->a2s[s]),
-                                  &md);
-  }
-  vc->S5[vc->n_seq]  = NULL;
-  vc->S3[vc->n_seq]  = NULL;
-  vc->a2s[vc->n_seq] = NULL;
-  vc->Ss[vc->n_seq]  = NULL;
-  vc->S[vc->n_seq]   = NULL;
-
-
-
-
-
-#if 0
-  if(hc)
-    for(s = 0; sequences[s]; s++)
-      vc->hc[s] = hc[s] ? hc[s] : get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
-  else
-    for(s=0; sequences[s]; s++)
-      vc->hc[s] = get_hard_constraints(sequences[s], NULL, &(vc->params->model_details), TURN, (unsigned int)0);
-#endif
-
-  vc->sc  = sc;
-  vc->hc  = hc;
-
-  return vc;
-}
-
-PUBLIC void
-destroy_alifold_compound(vrna_alifold_compound *vc){
-  int s;
-
-  if(vc){
-    destroy_mfe_matrices(vc->matrices);
-    destroy_pf_matrices(vc->exp_matrices);
-
-    for(s = 0;s < vc->n_seq; s++)
-      free(vc->sequences[s]);
-    free(vc->sequences);
-
-    for (s=0; s < vc->n_seq; s++){
-      free(vc->S[s]);
-      free(vc->S5[s]);
-      free(vc->S3[s]);
-      free(vc->a2s[s]);
-      free(vc->Ss[s]);
-    }
-    free(vc->S);
-    free(vc->S5);
-    free(vc->S3);
-    free(vc->a2s);
-    free(vc->Ss);
-
-    free(vc->cons_seq);
-    free(vc->S_cons);
-
-    if(vc->pscore)
-      free(vc->pscore);
-    if(vc->iindx)
-      free(vc->iindx);
-    if(vc->jindx)
-      free(vc->jindx);
-    if(vc->params)
-      free(vc->params);
-    if(vc->exp_params)
-      free(vc->exp_params);
-    if(vc->hc)
-      for (s=0; s < vc->n_seq; s++)
-        destroy_hard_constraints(vc->hc[s]);
-    if(vc->sc)
-      for (s=0; s < vc->n_seq; s++)
-        vrna_sc_destroy(vc->sc[s]);
-
-
-    free(vc);
-  }
-}
 
 PRIVATE char *tokenize(char *line, int *cut_point){
   char *pos, *copy;
@@ -629,4 +557,157 @@ PRIVATE char *tokenize(char *line, int *cut_point){
     }
   }
   return copy;
+}
+
+PRIVATE void
+make_pscores(vrna_fold_compound *vc){
+
+  /* calculate co-variance bonus for each pair depending on  */
+  /* compensatory/consistent mutations and incompatible seqs */
+  /* should be 0 for conserved pairs, >0 for good pairs      */
+
+#define NONE -10000 /* score for forbidden pairs */
+
+  char *structure = NULL;
+  int i,j,k,l,s, max_span;
+  float **dm;
+  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
+                  {0,0,2,2,1,2,2} /* CG */,
+                  {0,2,0,1,2,2,2} /* GC */,
+                  {0,2,1,0,2,1,2} /* GU */,
+                  {0,1,2,2,0,2,1} /* UG */,
+                  {0,2,2,1,2,0,2} /* AU */,
+                  {0,2,2,2,1,2,0} /* UA */};
+
+  short           **S         = vc->S;
+  char            **AS        = vc->sequences;
+  int             n_seq       = vc->n_seq;
+  model_detailsT  *md         = (vc->params) ? &(vc->params->model_details) : &(vc->exp_params->model_details);
+  int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  int             *indx       = vc->jindx;                                             
+  int             n           = vc->length;                                            
+
+  if (md->ribo) {
+    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+    else dm=get_ribosum((const char **)AS, n_seq, n);
+  }
+  else { /*use usual matrix*/
+    dm=(float **)space(7*sizeof(float*));
+    for (i=0; i<7;i++) {
+      dm[i]=(float *)space(7*sizeof(float));
+      for (j=0; j<7; j++)
+        dm[i][j] = (float) olddm[i][j];
+    }
+  }
+
+  max_span = md->max_bp_span;
+  if((max_span < TURN+2) || (max_span > n))
+    max_span = n;
+  for (i=1; i<n; i++) {
+    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
+      pscore[indx[j]+i] = NONE;
+    for (j=i+TURN+1; j<=n; j++) {
+      int pfreq[8]={0,0,0,0,0,0,0,0};
+      double score;
+      for (s=0; s<n_seq; s++) {
+        int type;
+        if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
+        else {
+          if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
+          else type = md->pair[S[s][i]][S[s][j]];
+        }
+        pfreq[type]++;
+      }
+      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
+      for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
+        for (l=k; l<=6; l++)
+          score += pfreq[k]*pfreq[l]*dm[k][l];
+      /* counter examples score -1, gap-gap scores -0.25   */
+      pscore[indx[j]+i] = md->cv_fact *
+        ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+
+      if((j - i + 1) > max_span){
+        pscore[indx[j]+i] = NONE;
+      }
+    }
+  }
+
+  if (md->noLP) /* remove unwanted pairs */
+    for (k=1; k<n-TURN-1; k++)
+      for (l=1; l<=2; l++) {
+        int type,ntype=0,otype=0;
+        i=k; j = i+TURN+l;
+        type = pscore[indx[j]+i];
+        while ((i>=1)&&(j<=n)) {
+          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
+          if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
+            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
+          otype =  type;
+          type  = ntype;
+          i--; j++;
+        }
+      }
+
+
+  if (fold_constrained&&(structure!=NULL)) {
+    int psij, hx, hx2, *stack, *stack2;
+    stack = (int *) space(sizeof(int)*(n+1));
+    stack2 = (int *) space(sizeof(int)*(n+1));
+
+    for(hx=hx2=0, j=1; j<=n; j++) {
+      switch (structure[j-1]) {
+      case 'x': /* can't pair */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        break;
+      case '(':
+        stack[hx++]=j;
+        /* fallthrough */
+      case '[':
+        stack2[hx2++]=j;
+        /* fallthrough */
+      case '<': /* pairs upstream */
+        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        break;
+      case ']':
+        if (hx2<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack2[--hx2];
+        pscore[indx[j]+i]=NONE;
+        break;
+      case ')':
+        if (hx<=0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in constraints");
+        }
+        i = stack[--hx];
+        psij = pscore[indx[j]+i]; /* store for later */
+        for (k=j; k<=n; k++)
+          for (l=i; l<=j; l++)
+            pscore[indx[k]+l] = NONE;
+        for (l=i; l<=j; l++)
+          for (k=1; k<=i; k++)
+            pscore[indx[l]+k] = NONE;
+        for (k=i+1; k<j; k++)
+          pscore[indx[k]+i] = pscore[indx[j]+k] = NONE;
+        pscore[indx[j]+i] = (psij>0) ? psij : 0;
+        /* fallthrough */
+      case '>': /* pairs downstream */
+        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        break;
+      }
+    }
+    if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced brackets in constraint string");
+    }
+    free(stack); free(stack2);
+  }
+  /*free dm */
+  for (i=0; i<7;i++) {
+    free(dm[i]);
+  }
+  free(dm);
 }

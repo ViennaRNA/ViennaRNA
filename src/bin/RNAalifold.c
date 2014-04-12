@@ -33,9 +33,42 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE void  print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout);
+PRIVATE void  print_aliout(vrna_fold_compound *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
+
+PRIVATE void
+add_shape_constraints(vrna_fold_compound *vc,
+                      const char *shape_method,
+                      const char **shape_files,
+                      const int *shape_file_association,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+
+  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    fprintf(stderr, "Using SHAPE method '%c'", method);
+    if(method != 'W'){
+      if(method == 'C')
+        fprintf(stderr, " with parameter p1=%f", p1);
+      else
+        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+    }
+    fputc('\n', stderr);
+  }
+
+  if(method == 'M'){
+    vrna_sc_add_mathews_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    return;
+  }
+}
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
@@ -43,7 +76,7 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           s, n_seq, i, length, sym, r, noPS, with_shapes, verbose;
+  int           s, n_seq, i, length, sym, noPS, with_shapes, verbose;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -51,7 +84,6 @@ int main(int argc, char *argv[]){
   char          **shape_files, *shape_method;
   int           *shape_file_association;
   FILE          *clust_file = stdin;
-  paramT        *P;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
 
@@ -251,7 +283,7 @@ int main(int argc, char *argv[]){
     nrerror("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  make_pair_matrix(); /* why */
+  make_pair_matrix(); /* for make_color_pinfo */
 
   if (circular && noLonelyPairs)
     warn_user("depending on the origin of the circular sequence, "
@@ -343,62 +375,49 @@ int main(int argc, char *argv[]){
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
 
-  vrna_alifold_compound *vc;
+  vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
-  if(with_shapes){
+  if(fold_constrained){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
 
-    float p1, p2;
-    char    method;
-    p1      = 1.8;
-    p2      = -0.6;
-    method  = 'M';
-    vc = vrna_alifold_get_compund_constraints((const char **)AS,
-                                              NULL,
-                                              NULL,
-                                              &md,
-                                              NULL,
-                                              NULL,
-                                              options);
-
-    if(shape_method){
-      if(!parse_soft_constraints_shape_method((const char *)shape_method, &method, &p1, &p2)){
-        warn_user("Method for SHAPE reactivity data conversion not recognized!");
-      }
-    }
-
-    switch(method){
-      case  'M':  
-      default:    if(verbose)
-                    fprintf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f\n", method, p1, p2);
-                  vrna_sc_add_mathews_ali(vc, (const char **)shape_files, (const int *)shape_file_association, p1, p2, options);
-    }
-
-    min_en      = vrna_alifold_tmp((const char **)AS, structure, vc);
-
-  } else { /* no shapes */
-    if (circular) {
-      int     i;
-      double  s = 0;
-      min_en    = circalifold((const char **)AS, structure);
-      for (i=0; AS[i]!=NULL; i++)
-        s += vrna_eval_structure(AS[i], structure, P);
-      real_en   = s/i;
-    } else {
-      min_en    = alifold((const char **)AS, structure);
-    }
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
 
-  float *ens    = (float *)space(2*sizeof(float));
+  if(with_shapes)
+    add_shape_constraints(vc, \
+                          shape_method, \
+                          (const char **)shape_files, \
+                          shape_file_association, \
+                          verbose, \
+                          VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
-  if(md.gquad)
-    energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
-  else
-    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+  min_en = vrna_ali_fold(vc, structure);
 
-  real_en       = ens[0];
+  if(md.circ){
+    int     i;
+    double  s = 0;
+    for (i=0; AS[i]!=NULL; i++)
+      s += vrna_eval_structure(AS[i], structure, vc->params);
+    real_en   = s/i;
+  } else {
 
-  free(ens);
+    float *ens    = (float *)space(2*sizeof(float));
 
+    if(md.gquad)
+      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+    else
+      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+
+    real_en       = ens[0];
+
+    free(ens);
+  }
 
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
@@ -430,10 +449,11 @@ int main(int argc, char *argv[]){
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
-    PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
+    PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
-  free_alifold_arrays();
+  destroy_mfe_matrices(vc->matrices);
+  vc->matrices = NULL;
 
   if (pf) {
     float energy, kT;
@@ -448,21 +468,20 @@ int main(int argc, char *argv[]){
 
     if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
+    /* rescale energy parameters according to above calculated pf_scale */
     pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
 
-    if(with_shapes){
-      vc->exp_params = pf_parameters;
-      energy = vrna_alipf_fold_tmp((const char **)AS, structure, NULL, vc);
-    }
-    else
-      energy = alipf_fold_par((const char **)AS, structure, NULL, pf_parameters, do_backtrack, fold_constrained, circular);
+    /* change energy parameters in vc */
+    vrna_update_pf_params(vc, pf_parameters);
+
+    energy = vrna_ali_pf_fold(vc, structure, NULL);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
         char *s;
         double prob=1.;
-        s = alipbacktrack(&prob);
+        s = vrna_ali_pbacktrack(vc, &prob);
         printf("%s ", s);
         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
         printf("\n");
@@ -485,15 +504,14 @@ int main(int argc, char *argv[]){
       cpair *cp;
       char *cent;
       double dist;
-      FLT_OR_DBL *probs = export_ali_bppm();
       plist *pl, *mfel;
 
-      assign_plist_from_pr(&pl, probs, length, bppmThreshold);
-      mfel = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
+      pl    = vrna_get_plist_from_pr(vc, bppmThreshold);
+      mfel  = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
-        cent = get_centroid_struct_pr(length, &dist, probs);
+        cent = vrna_get_centroid_struct(vc, &dist);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
 
@@ -504,13 +522,13 @@ int main(int argc, char *argv[]){
       if(doMEA){
         float mea, *ens;
         plist *pl2;
-        assign_plist_from_pr(&pl2, probs, length, 1e-4/(1+MEAgamma));
+        pl2 = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
         if(circular)
           energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else
-          ens[0] = vrna_eval_structure(string, structure, P);
+          ens[0] = vrna_eval_structure(string, structure, vc->params);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
         free(pl2);
@@ -524,7 +542,7 @@ int main(int argc, char *argv[]){
       if (!aliout) {
         fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-        print_aliout(AS, pl, bppmThreshold, n_seq, mfe_struc, aliout);
+        print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
@@ -538,7 +556,7 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    free_alipf_arrays();
+    destroy_fold_compound(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -651,75 +669,29 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
-  pair_info *p1, *p2;
-  int  i, nc1, nc2;
-  p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
-  for (nc1=nc2=0, i=1; i<=6; i++) {
-    if (p1->bp[i]>0) nc1++;
-    if (p2->bp[i]>0) nc2++;
-  }
-  /* sort mostly by probability, add
-     epsilon * comp_mutations/(non-compatible+1) to break ties */
-  return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
-         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
-}
+PRIVATE void
+print_aliout( vrna_fold_compound *vc,
+              plist *pl,
+              double threshold,
+              char *mfe,
+              FILE *aliout){
 
-PRIVATE void print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout) {
-  int i, j, k, n, num_p=0, max_p = 64;
+  int k;
   pair_info *pi;
-  double *duck, p;
-  short *ptable;
-  for (n=0; pl[n].i>0; n++);
+  char  **AS    = vc->sequences;
+  int   n_seq   = vc->n_seq;
 
-  max_p = 64; pi = space(max_p*sizeof(pair_info));
-  duck =  (double *) space((strlen(mfe)+1)*sizeof(double));
-  ptable = vrna_pt_get(mfe);
-
-  for (k=0; k<n; k++) {
-    int s, type;
-    p = pl[k].p; i=pl[k].i; j = pl[k].j;
-    duck[i] -=  p * log(p);
-    duck[j] -=  p * log(p);
-
-    if (p<threshold) continue;
-
-    pi[num_p].i = i;
-    pi[num_p].j = j;
-    pi[num_p].p = p;
-    pi[num_p].ent =  duck[i]+duck[j]-p*log(p);
-    for (type=0; type<8; type++) pi[num_p].bp[type]=0;
-    for (s=0; s<n_seq; s++) {
-      int a,b;
-      a=encode_char(toupper(AS[s][i-1]));
-      b=encode_char(toupper(AS[s][j-1]));
-      type = pair[a][b];
-      if ((AS[s][i-1] == '-')||(AS[s][j-1] == '-')) type = 7;
-      if ((AS[s][i-1] == '~')||(AS[s][j-1] == '~')) type = 7;
-      pi[num_p].bp[type]++;
-      pi[num_p].comp = (ptable[i] == j) ? 1:0;
-    }
-    num_p++;
-    if (num_p>=max_p) {
-      max_p *= 2;
-      pi = xrealloc(pi, max_p * sizeof(pair_info));
-    }
-  }
-  free(duck);
-  pi[num_p].i=0;
-  qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
+  pi = vrna_ali_get_pair_info(vc, (const char *)mfe, threshold);
 
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",
           n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
 
-  for (k=0; pi[k].i>0; k++) {
-    pi[k].comp = (ptable[pi[k].i] == pi[k].j) ? 1:0;
+  for (k=0; pi[k].i>0; k++)
     print_pi(pi[k], aliout);
-  }
+
   fprintf(aliout, "%s\n", mfe);
-  free(ptable);
   free(pi);
 }
 

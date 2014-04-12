@@ -68,8 +68,7 @@ wrap_pf_fold( const char *sequence,
               pf_paramT *parameters,
               int calculate_bppm,
               int is_constrained,
-              int is_circular,
-              soft_constraintT *sc_p);
+              int is_circular);
 
 PRIVATE void
 wrap_update_pf_params(int length,
@@ -94,8 +93,7 @@ wrap_pf_fold( const char *sequence,
               pf_paramT *parameters,
               int calculate_bppm,
               int is_constrained,
-              int is_circular,
-              soft_constraintT *sc_p){
+              int is_circular){
 
   vrna_fold_compound  *vc;
   pf_paramT           *exp_params;
@@ -1246,6 +1244,7 @@ PUBLIC void
 vrna_update_pf_params(vrna_fold_compound *vc,
                       pf_paramT *params){
 
+  double kT;
   if(vc){
     if(params){
       if(vc->exp_params)
@@ -1253,11 +1252,16 @@ vrna_update_pf_params(vrna_fold_compound *vc,
       vc->exp_params = get_boltzmann_factor_copy(params);
     }
 
+    kT = vc->exp_params->kT;
+
+    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+      kT /= vc->n_seq;
+
     /* fill additional helper arrays for scaling etc. */
     int i;
     double scaling_factor = vc->exp_params->pf_scale;
     if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
-      scaling_factor = exp(-(-185+(vc->exp_params->temperature-37.)*7.27)/vc->exp_params->kT);
+      scaling_factor = exp(-(-185+(vc->exp_params->temperature-37.)*7.27)/kT);
       if (scaling_factor<1) scaling_factor=1;
       vc->exp_params->pf_scale = scaling_factor;
       pf_scale = vc->exp_params->pf_scale; /* compatibility with RNAup, may be removed sometime */
@@ -2185,14 +2189,14 @@ PUBLIC float
 pf_fold(const char *sequence,
         char *structure){
 
-  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 0, NULL);
+  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 0);
 }
 
 PUBLIC float
 pf_circ_fold( const char *sequence,
               char *structure){
 
-  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 1, NULL);
+  return wrap_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained, 1);
 }
 
 PUBLIC float
@@ -2203,7 +2207,7 @@ pf_fold_par(const char *sequence,
             int is_constrained,
             int is_circular){
 
-  return wrap_pf_fold(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular, NULL);
+  return wrap_pf_fold(sequence, structure, parameters, calculate_bppm, is_constrained, is_circular);
 }
 
 PUBLIC char *
