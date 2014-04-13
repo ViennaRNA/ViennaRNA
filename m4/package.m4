@@ -300,6 +300,11 @@ AC_RNA_ADD_PACKAGE( [check],
                     [no],
                     [with_check=yes],
                     [with_check=no])
+AC_RNA_ADD_PACKAGE( [gsl],
+                    [GNU Scientific Library],
+                    [yes],
+                    [with_gsl=no],
+                    [with_gsl=yes])
 
 ## begin with initialization according to configure-time specific options
 
@@ -401,11 +406,28 @@ AC_RNA_PACKAGE_IF_ENABLED([check],[
   AC_CONFIG_FILES([tests/Makefile])
 ])
 
+# check prerequisties for gsl support
+AC_RNA_PACKAGE_IF_ENABLED([gsl],[
+  AC_CHECK_LIB([m],[cos])
+  AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+  AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
+
+  if test "$ac_cv_lib_gsl_gsl_blas_dgemm" != yes; then
+    AC_MSG_WARN("Can't find libgsl. Falling back to default implementation.")
+    with_gsl="no"
+  fi
+])
+
+AC_RNA_PACKAGE_IF_ENABLED([gsl],[
+  AC_DEFINE([WITH_GSL], [1], [Use GNU Scientific Library])
+])
+
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 AM_CONDITIONAL(WITH_CHECK, test "$with_check" != "yes")
+AM_CONDITIONAL(WITH_GSL, test "$with_gsl" != "no")
 
 # check if we need to include -lgomp into the ldflags of our pkg-config file
 if test "$enable_openmp" != no; then
