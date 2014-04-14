@@ -101,6 +101,8 @@ typedef void (*progress_callback)(int iteration, double score, double *epsilon);
  * The found vector of perturbation energies will be stored in the array epsilon.
  * The progress of the minimization process can be tracked by implementing and passing a callback function.
  *
+ * See \cite washietl:2012 for further details.
+ *
  * \param vc                 Pointer to a fold compound
  * \param q_prob_unpaired    Pointer to an array containing the probability to be unpaired for each nucleotide
  * \param objective_function The type of objective function to be used (VRNA_OBJECTIVE_FUNCTION_QUADRATIC / VRNA_OBJECTIVE_FUNCTION_LINEAR)
