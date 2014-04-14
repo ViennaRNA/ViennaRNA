@@ -13,9 +13,6 @@
 #define VRNA_MINIMIZER_VECTOR_BFGS2 4
 #define VRNA_MINIMIZER_STEEPEST_DESCENT 5
 
-double vrna_evaluate_perturbation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function);
-void vrna_evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int sample_size, double *gradient);
-
 typedef void (*progress_callback)(int iteration, double score, double *epsilon);
 void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int algorithm, int sample_size, double *epsilon, progress_callback callback);
 
