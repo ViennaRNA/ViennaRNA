@@ -347,7 +347,6 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
     gsl_multimin_fdfminimizer *minimizer;
     gsl_vector *vector;
 
-    int iter = 0;
     int status;
 
     parameters.vc = vc;
