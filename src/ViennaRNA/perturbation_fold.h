@@ -14,6 +14,6 @@
 #define VRNA_MINIMIZER_STEEPEST_DESCENT 5
 
 typedef void (*progress_callback)(int iteration, double score, double *epsilon);
-void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int algorithm, int sample_size, double *epsilon, progress_callback callback);
+void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, int objective_function, double sigma_squared, double tau_squared, int algorithm, int sample_size, double *epsilon, progress_callback callback);
 
 #endif
