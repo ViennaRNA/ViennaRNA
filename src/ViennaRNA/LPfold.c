@@ -111,7 +111,7 @@ PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
   omp_set_dynamic(0);
   free_pf_arrays_L(); /* free previous allocation */
 #else
-  if (init_length>0) free_pf_arrays_L(); /* free previous allocation */
+  free_pf_arrays_L(); /* free previous allocation */
 #endif
 
 #ifdef SUN4
@@ -125,9 +125,6 @@ PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
   get_arrays_L((unsigned) length);
   scale_pf_params((unsigned) length, parameters);
 
-#ifndef _OPENMP
-  init_length = length;
-#endif
 }
 
 PRIVATE void get_arrays_L(unsigned int length){
@@ -203,9 +200,6 @@ PRIVATE void free_pf_arrays_L(void){
 #endif
 #endif
 
-#ifndef _OPENMP
-  init_length=0;
-#endif
 }
 
 PUBLIC void update_pf_paramsLP(int length){
@@ -213,16 +207,7 @@ PUBLIC void update_pf_paramsLP(int length){
 }
 
 PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
-#ifdef _OPENMP
   init_partfunc_L(length, parameters);
-#else
-  if(parameters) init_partfunc_L(length, parameters);
-  else if (length > init_length) init_partfunc_L(length, parameters);
-  else {
-    /*   make_pair_matrix();*/
-    scale_pf_params((unsigned) length, parameters);
-  }
-#endif
 }
 
 PUBLIC plist *pfl_fold( char *sequence,
@@ -275,14 +260,8 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   n = (int) strlen(sequence);
   if (n<TURN+2) return 0;
 
-#ifdef _OPENMP
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc_L(n, parameters);
-#else
-  if(parameters) init_partfunc_L(n, parameters);
-  else if (n > init_length) init_partfunc_L(n, parameters);
-  else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_paramsLP_par(n, parameters);
-#endif
 
   expMLclosing  = pf_params->expMLclosing;
   noGUclosure   = pf_params->model_details.noGUclosure;
