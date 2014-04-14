@@ -308,7 +308,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
 }
 #endif //WITH_GSL
 
-void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int algorithm, int sample_size, double *epsilon, progress_callback callback)
+void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, int objective_function, double sigma_squared, double tau_squared, int algorithm, int sample_size, double *epsilon, progress_callback callback)
 {
   int iteration_count = 0;
   int length = vc->length;

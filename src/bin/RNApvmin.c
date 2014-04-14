@@ -161,7 +161,7 @@ int main(int argc, char *argv[]){
     vrna_update_pf_params(vc, pf_parameters);
 
     epsilon = space(sizeof(double) * (length + 1));
-    vrna_find_perturbation_vector(vc, shape_data, args_info.sigma_arg, args_info.tau_arg, args_info.objectiveFunction_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, args_info.sigma_arg, args_info.tau_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
 
     destroy_fold_compound(vc);
     free(pf_parameters);
