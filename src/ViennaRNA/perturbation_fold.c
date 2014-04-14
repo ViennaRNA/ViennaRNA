@@ -26,16 +26,6 @@ typedef struct parameters_gsl {
   int sample_size;
 } parameters_gsl;
 
-gsl_vector* to_gsl_vector(double *values, size_t size)
-{
-  gsl_vector *ret = space(sizeof(gsl_vector));
-  ret->size = size;
-  ret->data = values;
-  ret->stride = 1;
-
-  return ret;
-}
-
 double f_gsl(const gsl_vector *x, void *params)
 {
   parameters_gsl *p = params;
