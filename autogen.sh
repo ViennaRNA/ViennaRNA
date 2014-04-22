@@ -8,8 +8,8 @@
 #       and we can state that dev people need Perl on their machine
 #
 
-[ -d ./Kinfold ] ||  mkdir Kinfold
-[ -d ./RNAforester ] ||  mkdir RNAforester
+# [ -d ./Kinfold ] ||  mkdir Kinfold
+# [ -d ./RNAforester ] ||  mkdir RNAforester
 
 set -e
 
@@ -21,14 +21,14 @@ set -e
 #fi
 
 # Produce aclocal.m4, so autoconf gets the automake macros it needs
-echo "Creating aclocal.m4..."
-aclocal
+# echo "Creating aclocal.m4..."
+#aclocal -I m4
 
-autoheader
+# autoheader
 
 # Produce all the `Makefile.in's, verbosely, and create neat missing things
 # like `libtool', `install-sh', etc.
-automake --add-missing --gnu
+# automake --add-missing --gnu
 
 # If there's a config.cache file, we may need to delete it.  
 # If we have an existing configure script, save a copy for comparison.
@@ -38,7 +38,7 @@ fi
 
 # Produce ./configure
 echo "Creating configure..."
-autoconf
+autoreconf -vi -I config -I m4
 
 echo ""
 echo "You can run ./configure now."
