@@ -352,7 +352,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
     fdf.fdf = &fdf_gsl;
     fdf.params = (void*)&parameters;
 
-    minimizer = gsl_multimin_fdfminimizer_alloc(gsl_multimin_fdfminimizer_conjugate_fr, length + 1);
+    minimizer = gsl_multimin_fdfminimizer_alloc(minimizer_type, length + 1);
     vector = gsl_vector_calloc(length + 1);
 
     gsl_multimin_fdfminimizer_set(minimizer, &fdf, vector, 0.01, 1e-4);
