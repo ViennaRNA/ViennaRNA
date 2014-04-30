@@ -69,6 +69,14 @@ of the objective function. The number of the iteration will be appended to the g
 string
 optional
 
+option  "initialVector"  -
+"Defines the initial perturbation vector which will be used as starting vector for the minimization process. \
+The value 0 results in a null vector. Every other value x will be used to populate the initial vector with \
+random numbers from the interval [-x,x]."
+double
+default="0"
+optional
+
 option  "minimizer"  -
 "Set the minimizing algorithm used for finding an appropriate perturbation vector. \
 The default option uses a custom implementation of the gradient descent algorithms while all \

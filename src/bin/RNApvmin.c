@@ -49,6 +49,17 @@ static void print_progress(int iteration, double score, double *epsilon)
   fclose(f);
 }
 
+static void init_perturbation_vector(double *epsilon, int length, double max_energy)
+{
+  int i;
+
+  if (max_energy == 0)
+    return;
+
+  for (i = 1; i <= length; ++i)
+    epsilon[i] = max_energy * (urn() * 2 - 1);
+}
+
 int main(int argc, char *argv[]){
   struct RNApvmin_args_info args_info;
   model_detailsT md;
@@ -72,6 +83,7 @@ int main(int argc, char *argv[]){
     return 1;
   }
 
+  init_rand();
   set_model_details(&md);
 
   if(args_info.paramFile_given)
@@ -161,6 +173,7 @@ int main(int argc, char *argv[]){
     vrna_update_pf_params(vc, pf_parameters);
 
     epsilon = space(sizeof(double) * (length + 1));
+    init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
     vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, args_info.sigma_arg, args_info.tau_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
 
     destroy_fold_compound(vc);
