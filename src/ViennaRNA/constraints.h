@@ -175,42 +175,57 @@
  *  \ingroup  hard_constraints
  *
  */
-#define IN_EXT_LOOP     (char)0x01
+#define IN_EXT_LOOP                 (char)0x01
+#define VRNA_CONTEXT_EXT_LOOP       (char)0x01
 /**
  *  \brief  Hard constraints flag, base pair encloses hairpin loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_HP_LOOP      (char)0x02
+#define IN_HP_LOOP                  (char)0x02
+#define VRNA_CONTEXT_HP_LOOP        (char)0x02
 /**
  *  \brief  Hard constraints flag, base pair encloses an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_INT_LOOP     (char)0x04
+#define IN_INT_LOOP                 (char)0x04
+#define VRNA_CONTEXT_INT_LOOP       (char)0x04
 /**
  *  \brief  Hard constraints flag, base pair is enclosed in an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_MB_LOOP      (char)0x08
+#define IN_MB_LOOP                  (char)0x08
+#define VRNA_CONTEXT_MB_LOOP        (char)0x08
 /**
  *  \brief  Hard constraints flag, base pair encloses a multi branch loop
  *
  *  \ingroup  hard_constraints
  *
  */
-#define IN_INT_LOOP_ENC (char)0x10
+#define IN_INT_LOOP_ENC             (char)0x10
+#define VRNA_CONTEXT_INT_LOOP_ENC   (char)0x10
 /**
  *  \brief  Hard constraints flag, base pair is enclosed in a multi branch loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_MB_LOOP_ENC  (char)0x20
+#define IN_MB_LOOP_ENC              (char)0x20
+#define VRNA_CONTEXT_MB_LOOP_ENC    (char)0x20
+
+#define VRNA_CONTEXT_ALL_LOOPS      VRNA_CONTEXT_EXT_LOOP \
+                                    | VRNA_CONTEXT_HP_LOOP \
+                                    | VRNA_CONTEXT_INT_LOOP \
+                                    | VRNA_CONTEXT_INT_LOOP_ENC \
+                                    | VRNA_CONTEXT_MB_LOOP \
+                                    | VRNA_CONTEXT_MB_LOOP_ENC
+
+#define VRNA_CONTEXT_ENFORCE        (char)0x40
 
 /**
  *  \brief  Generalized constraint folding flag indicating hairpin loop decomposition step
@@ -387,6 +402,29 @@ void getConstraint( char **cstruc,
 void vrna_hc_add( vrna_fold_compound *vc,
                   const char *constraint,
                   unsigned int options);
+
+void vrna_hc_add_up(vrna_fold_compound *vc,
+                    int i,
+                    char option);
+
+void vrna_hc_add_bp(vrna_fold_compound *vc,
+                    int i,
+                    int j,
+                    char option);
+
+/**
+ *  \brief  Reset hard constraints to default values
+ *
+ *  This function resets the hard constraints to its default values, i.e.
+ *  all positions may be unpaired in all contexts, and base pairs are
+ *  allowed in all contexts, if they resemble canonical pairs
+ *
+ *  \ingroup  hard_constraints
+ *
+ *  \param  vc            The fold compound
+ */
+void vrna_hc_reset(vrna_fold_compound *vc);
+
 
 /**
  *  \brief  Free the memory allocated by a #hard_constraintT data structure
