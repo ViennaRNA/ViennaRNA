@@ -124,6 +124,11 @@ apply_DB_constraint(const char *constraint,
                     int cut,
                     unsigned int options);
 
+PRIVATE void
+hc_reset_to_default(vrna_fold_compound *vc);
+
+PRIVATE void
+hc_update_up(vrna_fold_compound *vc);
 
 /*
 #################################
@@ -513,48 +518,36 @@ getConstraint(char **cstruc,
   }
 }
 
+PRIVATE void
+hc_reset_to_default(vrna_fold_compound *vc){
 
-
-PUBLIC  void
-vrna_hc_add(vrna_fold_compound *vc,
-            const char *constraint,
-            unsigned int options){
-
-  unsigned int      i, j, ij, n, min_loop_size;
-  int               *idx, max_span;
+  unsigned int      i, j, ij, min_loop_size, n;
+  int               max_span, *idx;
+  model_detailsT    *md;
   hard_constraintT  *hc;
   short             *S;
-  char              *tmp_sequence, *sequence;
-  model_detailsT    *md;
+
+  n   = vc->length;
+  hc  = vc->hc;
+  idx = vc->jindx;
+  S   = vc->sequence_encoding;
 
   if(vc->params)
-    md = &(vc->params->model_details);
+    md  = &(vc->params->model_details);
   else if(vc->exp_params)
-    md = &(vc->exp_params->model_details);
+    md  = &(vc->exp_params->model_details);
   else
-    nrerror("constraints.c@vrna_hc_add: fold compound has no params or exp_params");
+    nrerror("missing model_details in fold_compound");
 
-  sequence      = vc->sequence;
   min_loop_size = md->min_loop_size;
-  tmp_sequence  = (options & VRNA_CONSTRAINT_UNGAP) ? get_ungapped_sequence(sequence) : strdup(sequence);
-  n             = strlen(tmp_sequence);
-  hc            = (hard_constraintT *)space(sizeof(hard_constraintT));
-  idx           = get_indx(n);
-  S             = get_sequence_encoding(tmp_sequence, 0, md);
   max_span      = md->max_bp_span;
+
   if((max_span < 5) || (max_span > n))
     max_span  = n;
 
-  /* allocate memory for the hard constraints data structure */
-  hc->matrix  = (char *)space(sizeof(char)*((n*(n+1))/2+2));
-  hc->up_ext  = (int *)space(sizeof(int)*(n+2));
-  hc->up_hp   = (int *)space(sizeof(int)*(n+2));
-  hc->up_int  = (int *)space(sizeof(int)*(n+2));
-  hc->up_ml   = (int *)space(sizeof(int)*(n+2));
-
-  /* ####################### */
-  /* prefill default values  */
-  /* ####################### */
+  /* ######################### */
+  /* fill with default values  */
+  /* ######################### */
 
   /* 1. unpaired nucleotides are allowed in all contexts */
   for(i = 1; i <= n; i++)
@@ -580,6 +573,70 @@ vrna_hc_add(vrna_fold_compound *vc,
       }
   }
 
+}
+
+PRIVATE void
+hc_update_up(vrna_fold_compound *vc){
+
+  unsigned int      i, n;
+  int               *idx;
+  hard_constraintT  *hc;
+
+  n   = vc->length;
+  idx = vc->jindx;
+  hc  = vc->hc;
+
+  for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
+    hc->up_ext[i] = (hc->matrix[idx[i]+i] & IN_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
+
+  for(hc->up_hp[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
+    hc->up_hp[i] = (hc->matrix[idx[i]+i] & IN_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
+
+  for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
+    hc->up_int[i] = (hc->matrix[idx[i]+i] & IN_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
+
+  for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
+    hc->up_ml[i] = (hc->matrix[idx[i]+i] & IN_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
+
+}
+
+PUBLIC  void
+vrna_hc_add(vrna_fold_compound *vc,
+            const char *constraint,
+            unsigned int options){
+
+  unsigned int      n, min_loop_size;
+  hard_constraintT  *hc;
+  model_detailsT    *md;
+
+  if(vc->params)
+    md = &(vc->params->model_details);
+  else if(vc->exp_params)
+    md = &(vc->exp_params->model_details);
+  else
+    nrerror("constraints.c@vrna_hc_add: fold compound has no params or exp_params");
+
+  min_loop_size = md->min_loop_size;
+  n             = vc->length;
+
+  /* allocate memory for the hard constraints data structure */
+
+  hc          = (hard_constraintT *)space(sizeof(hard_constraintT));
+  hc->matrix  = (char *)space(sizeof(char)*((n*(n+1))/2+2));
+  hc->up_ext  = (int *)space(sizeof(int)*(n+2));
+  hc->up_hp   = (int *)space(sizeof(int)*(n+2));
+  hc->up_int  = (int *)space(sizeof(int)*(n+2));
+  hc->up_ml   = (int *)space(sizeof(int)*(n+2));
+
+  /* set new hard constraints */
+  destroy_hard_constraints(vc->hc);
+  vc->hc = hc;
+
+  /* ####################### */
+  /* prefill default values  */
+  /* ####################### */
+
+  hc_reset_to_default(vc);
 
   /* ############################### */
   /* apply user supplied constraints */
@@ -603,34 +660,99 @@ vrna_hc_add(vrna_fold_compound *vc,
 */
   }
 
-
-  /* ####################### */
-  /* do some post processing */
-  /* ####################### */
-
-  /* compute the number of nucleotides available to be unpaired */
-
-  for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
-    hc->up_ext[i] = (hc->matrix[idx[i]+i] & IN_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
-
-  for(hc->up_hp[n+1] = 0, i = n; i > 0; i--){  /* unpaired stretch in hairpin loop */
-    hc->up_hp[i] = (hc->matrix[idx[i]+i] & IN_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
-  }
-  for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
-    hc->up_int[i] = (hc->matrix[idx[i]+i] & IN_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
-
-  for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
-    hc->up_ml[i] = (hc->matrix[idx[i]+i] & IN_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
-
-
-  free(tmp_sequence);
-  free(idx);
-  free(S);
-
-  /* set new hard constraints */
-  destroy_hard_constraints(vc->hc);
-  vc->hc = hc;
+  hc_update_up(vc);
 }
+
+PUBLIC void
+vrna_hc_add_up( vrna_fold_compound *vc,
+                int i,
+                char option){
+
+  int j;
+
+  if(vc)
+    if(vc->hc){
+      if((i <= 0) || (i > vc->length)){
+        warn_user("vrna_hc_add_up: position out of range, not doing anything");
+        return;
+      }
+
+      vc->hc->matrix[vc->jindx[i] + i] = option & (IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP);
+
+      if(option & VRNA_CONTEXT_ENFORCE){
+        /* do not allow i to be paired with any other nucleotide */
+        for(j = 1; j < i; j++)
+          vc->hc->matrix[vc->jindx[i] + j] = (char)0;
+        for(j = i+1; j <= vc->length; j++)
+          vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+      }
+
+      hc_update_up(vc);
+    }
+}
+
+PUBLIC void
+vrna_hc_add_bp( vrna_fold_compound *vc,
+                int i,
+                int j,
+                char option){
+
+  int p,q, k;
+
+  if(vc)
+    if(vc->hc){
+      if((i <= 0) || (i > vc->length) || (j <= 0) || (j > vc->length)){
+        warn_user("vrna_hc_add_bp: position out of range, not doing anything");
+        return;
+      }
+
+      if(i == j){
+        warn_user("vrna_hc_add_bp: positions do not differ, not doing anything");
+        return;
+      }
+
+      if(i < j){
+        p = i;
+        q = j;
+      } else {
+        p = j;
+        q = i;
+      }
+
+      vc->hc->matrix[vc->jindx[q] + p] = option & (IN_EXT_LOOP | IN_HP_LOOP | IN_INT_LOOP | IN_MB_LOOP | IN_INT_LOOP_ENC | IN_MB_LOOP_ENC);
+
+      if(option & VRNA_CONTEXT_ENFORCE){
+        /* do not allow i,j to pair with any other nucleotide k */
+        for(k = 1; k < p; k++)
+          vc->hc->matrix[vc->jindx[p] + k] = (char)0;
+        for(k = p+1; k <= vc->length; k++)
+          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
+        for(k = 1; k < q; k++)
+          vc->hc->matrix[vc->jindx[q] + k] = (char)0;
+        for(k = p+1; k <= vc->length; k++)
+          vc->hc->matrix[vc->jindx[k] + q] = (char)0;
+
+        /* do not allow i,j to be unpaired */
+        vc->hc->matrix[vc->jindx[p] + p] = (char)0;
+        vc->hc->matrix[vc->jindx[q] + q] = (char)0;
+        hc_update_up(vc);
+      }
+    }
+}
+
+PUBLIC void
+vrna_hc_reset(vrna_fold_compound *vc){
+
+  if(vc)
+    if(vc->hc){
+
+      hc_reset_to_default(vc);
+      hc_update_up(vc);
+
+    }
+
+}
+
 
 PUBLIC void
 destroy_hard_constraints(hard_constraintT *hc){
@@ -644,6 +766,12 @@ destroy_hard_constraints(hard_constraintT *hc){
     free(hc);
   }
 }
+
+
+/* And now, for something completely different...
+ *
+ * ... the soft constraints section follows below
+ */
 
 PUBLIC int
 parse_soft_constraints_file(const char *file_name, int length, double default_value, char *sequence, double *values)
