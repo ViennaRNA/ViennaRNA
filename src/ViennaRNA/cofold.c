@@ -324,7 +324,7 @@ fill_arrays(vrna_fold_compound  *vc,
         }
         else {
           /* hairpin-like exterior loop */
-          if(hc_decompose & IN_EXT_LOOP){
+          if(hc_decompose & VRNA_HC_CONTEXT_EXT_LOOP){
             if (dangle_model)
               energy = E_ExtLoop(rtype[type], sj, si, P);
             else
@@ -352,10 +352,10 @@ fill_arrays(vrna_fold_compound  *vc,
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
             if (SAME_STRAND(i,p) && SAME_STRAND(q,j)){
-              if((hard_constraints[pq] & IN_INT_LOOP_ENC) && (hard_constraints[ij] & IN_INT_LOOP))
+              if((hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP))
                 energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
             } else {
-              if((hard_constraints[pq] & IN_EXT_LOOP) && (hard_constraints[ij] & IN_EXT_LOOP))
+              if((hard_constraints[pq] & VRNA_HC_CONTEXT_EXT_LOOP) && (hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP))
                 energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                                     i, j, p, q,
                                     cut_point,
@@ -377,7 +377,7 @@ fill_arrays(vrna_fold_compound  *vc,
           int MLenergy;
 
           if((si >= 0) && (sj >= 0)){
-            if(hard_constraints[ij] & IN_MB_LOOP){
+            if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
               decomp    = DMLi1[j-1];
               tt        = rtype[type];
               MLenergy  = P->MLclosing;
@@ -407,7 +407,7 @@ fill_arrays(vrna_fold_compound  *vc,
           }
 
           if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
-            if(hard_constraints[ij] & IN_EXT_LOOP){
+            if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
               decomp = my_fc[i+1] + my_fc[j-1];
               tt = rtype[type];
               switch(dangle_model){
@@ -443,12 +443,12 @@ fill_arrays(vrna_fold_compound  *vc,
           k1j1  = indx[j-1] + i + 2 + TURN + 1;
           for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++) {
             i1k = indx[k]+i+1;
-            if(hard_constraints[i1k] & IN_MB_LOOP_ENC){
+            if(hard_constraints[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
               type_2  = rtype[(unsigned char)ptype[i1k]];
               energy  = my_c[i1k] + P->stack[type][type_2] + my_fML[k1j1];
               decomp  = MIN2(decomp, energy);
             }
-            if(hard_constraints[k1j1] & IN_MB_LOOP_ENC){
+            if(hard_constraints[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
               type_2  = rtype[(unsigned char)ptype[k1j1]];
               energy  = my_c[k1j1] + P->stack[type][type_2] + my_fML[i1k];
               decomp  = MIN2(decomp, energy);
@@ -498,7 +498,7 @@ fill_arrays(vrna_fold_compound  *vc,
               my_fM1[ij] = my_fM1[indx[j-1]+i] + P->MLbase;
           }
         if (SAME_STRAND(j,j+1)) {
-          if(hard_constraints[ij] & IN_MB_LOOP_ENC){
+          if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
             energy = my_c[ij];
             if(dangle_model == 2)
               energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
@@ -519,21 +519,21 @@ fill_arrays(vrna_fold_compound  *vc,
         }
         if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
-            if((hard_constraints[ij+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i])){
+            if((hard_constraints[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[i])){
               tt      = ptype[ij+1]; /* i+1,j */
               energy  = my_c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P);
               new_fML = MIN2(new_fML, energy);
             }
           }
           if (SAME_STRAND(j-1,j)) {
-            if((hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC) && (hc_up_ml[j])){
+            if((hard_constraints[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[j])){
               tt      = ptype[indx[j-1]+i]; /* i,j-1 */
               energy  = my_c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P);
               new_fML = MIN2(new_fML, energy);
             }
           }
           if ((SAME_STRAND(j-1,j))&&(SAME_STRAND(i,i+1))) {
-            if((hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC) && (hc_up_ml[i]) && (hc_up_ml[j])){
+            if((hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[i]) && (hc_up_ml[j])){
               tt      = ptype[indx[j-1]+i+1]; /* i+1,j-1 */
               energy  = my_c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P);
               new_fML = MIN2(new_fML, energy);
