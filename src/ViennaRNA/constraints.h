@@ -175,57 +175,51 @@
  *  \ingroup  hard_constraints
  *
  */
-#define IN_EXT_LOOP                 (char)0x01
-#define VRNA_CONTEXT_EXT_LOOP       (char)0x01
+#define VRNA_HC_CONTEXT_EXT_LOOP       (char)0x01
 /**
  *  \brief  Hard constraints flag, base pair encloses hairpin loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_HP_LOOP                  (char)0x02
-#define VRNA_CONTEXT_HP_LOOP        (char)0x02
+#define VRNA_HC_CONTEXT_HP_LOOP        (char)0x02
 /**
  *  \brief  Hard constraints flag, base pair encloses an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_INT_LOOP                 (char)0x04
-#define VRNA_CONTEXT_INT_LOOP       (char)0x04
+#define VRNA_HC_CONTEXT_INT_LOOP       (char)0x04
 /**
  *  \brief  Hard constraints flag, base pair is enclosed in an interior loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_MB_LOOP                  (char)0x08
-#define VRNA_CONTEXT_MB_LOOP        (char)0x08
+#define VRNA_HC_CONTEXT_MB_LOOP        (char)0x08
 /**
  *  \brief  Hard constraints flag, base pair encloses a multi branch loop
  *
  *  \ingroup  hard_constraints
  *
  */
-#define IN_INT_LOOP_ENC             (char)0x10
-#define VRNA_CONTEXT_INT_LOOP_ENC   (char)0x10
+#define VRNA_HC_CONTEXT_INT_LOOP_ENC  (char)0x10
 /**
  *  \brief  Hard constraints flag, base pair is enclosed in a multi branch loop
  *  
  *  \ingroup  hard_constraints
  *
  */
-#define IN_MB_LOOP_ENC              (char)0x20
-#define VRNA_CONTEXT_MB_LOOP_ENC    (char)0x20
+#define VRNA_HC_CONTEXT_MB_LOOP_ENC   (char)0x20
 
-#define VRNA_CONTEXT_ALL_LOOPS      VRNA_CONTEXT_EXT_LOOP \
-                                    | VRNA_CONTEXT_HP_LOOP \
-                                    | VRNA_CONTEXT_INT_LOOP \
-                                    | VRNA_CONTEXT_INT_LOOP_ENC \
-                                    | VRNA_CONTEXT_MB_LOOP \
-                                    | VRNA_CONTEXT_MB_LOOP_ENC
+#define VRNA_HC_CONTEXT_ALL_LOOPS     VRNA_HC_CONTEXT_EXT_LOOP \
+                                      | VRNA_HC_CONTEXT_HP_LOOP \
+                                      | VRNA_HC_CONTEXT_INT_LOOP \
+                                      | VRNA_HC_CONTEXT_INT_LOOP_ENC \
+                                      | VRNA_HC_CONTEXT_MB_LOOP \
+                                      | VRNA_HC_CONTEXT_MB_LOOP_ENC
 
-#define VRNA_CONTEXT_ENFORCE        (char)0x40
+#define VRNA_HC_CONTEXT_ENFORCE       (char)0x40
 
 /**
  *  \brief  Generalized constraint folding flag indicating hairpin loop decomposition step
@@ -390,7 +384,7 @@ void getConstraint( char **cstruc,
  *  to options are passed, no further hard constraints then the ones induced by
  *  canonical base pairing (as supplied with the ptype argument) are applied.
  *
- *  \see      destroy_hard_constraints(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
+ *  \see      vrna_hc_free(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
  *
  *  \ingroup  hard_constraints
  *
@@ -436,7 +430,7 @@ void vrna_hc_reset(vrna_fold_compound *vc);
  *  \ingroup  hard_constraints
  *
  */
-void destroy_hard_constraints(hard_constraintT *hc);
+void vrna_hc_free(hard_constraintT *hc);
 
 
 /**

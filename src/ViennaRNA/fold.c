@@ -327,7 +327,7 @@ fill_arrays(vrna_fold_compound *vc){
         /* remember stack energy for --noLP option */
         if(noLP){
           stackEnergy = INF;
-          if((hc_decompose & IN_INT_LOOP) && (hard_constraints[indx[j-1] + i + 1] & IN_INT_LOOP_ENC)){
+          if((hc_decompose & VRNA_HC_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1] + i + 1] & VRNA_HC_CONTEXT_INT_LOOP_ENC)){
             type_2 = rtype[(unsigned char)ptype[indx[j-1] + i + 1]];
             stackEnergy = P->stack[type][type_2];
           }

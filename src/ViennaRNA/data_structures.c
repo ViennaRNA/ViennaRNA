@@ -164,7 +164,7 @@ destroy_fold_compound(vrna_fold_compound *vc){
     if(vc->exp_params)
       free(vc->exp_params);
     if(vc->hc)
-      destroy_hard_constraints(vc->hc);
+      vrna_hc_free(vc->hc);
 
     /* now distinguish the vc type */
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -364,6 +364,9 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->scs       = NULL;
   }
 
+  vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
+  vc->jindx               = get_indx(vc->length);
+
   /* prepare the allocation vector for the DP matrices */
   if(options & VRNA_OPTION_HYBRID){
     md.min_loop_size = 0;
@@ -405,13 +408,11 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->exp_matrices  = NULL;
   }
 
-  vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
-
-  vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
-  vc->jindx               = get_indx(vc->length);
-
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
     make_pscores(vc);
+
+  vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
+
 }
 
 
