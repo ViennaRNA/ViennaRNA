@@ -479,13 +479,13 @@ void vrna_sc_add_ali( vrna_fold_compound *vc,
                       const double **constraints,
                       unsigned int options);
 
-int vrna_sc_add_mathews(vrna_fold_compound *vc,
+int vrna_sc_add_deigan(vrna_fold_compound *vc,
                         const char *shape_file,
                         double m,
                         double b,
                         unsigned int options);
 
-int vrna_sc_add_mathews_ali(vrna_fold_compound *vc,
+int vrna_sc_add_deigan_ali(vrna_fold_compound *vc,
                             const char **shape_files,
                             const int *shape_file_association,
                             double m,
