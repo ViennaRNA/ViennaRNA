@@ -10,6 +10,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/energy_const.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
