@@ -528,6 +528,9 @@ int main(int argc, char *argv[]){
     rec_id = rec_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
 
+    if(with_shapes)
+      break;
+
     /* print user help for the next round if we get input from tty */
     if(istty){
       if(fold_constrained){
