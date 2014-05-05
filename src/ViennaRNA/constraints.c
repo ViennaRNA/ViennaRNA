@@ -812,12 +812,16 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
     char *c;
 
     if(sscanf(line, "%d", &position) != 1)
+    {
+      free(line);
       continue;
+    }
 
     if(position <= 0 || position > length)
     {
       warn_user("Provided SHAPE data outside of sequence scope");
       fclose(fp);
+      free(line);
       return 0;
     }
 
