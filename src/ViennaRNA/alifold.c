@@ -236,8 +236,10 @@ fill_arrays(vrna_fold_compound *vc){
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
 
-  hard_constraintT *hc          = vc->hc;
-  soft_constraintT **sc         = vc->scs;
+  hard_constraintT  *hc               = vc->hc;
+  soft_constraintT  **sc              = vc->scs;
+
+  char              *hard_constraints = hc->matrix;
 
   type  = (int *) space(n_seq*sizeof(int));
   cc    = (int *) space(sizeof(int)*(length+2));
@@ -270,131 +272,161 @@ fill_arrays(vrna_fold_compound *vc){
       }
 
       psc = pscore[indx[j]+i];
-      if (psc>=MINPSCORE && ((j - i) < max_bpspan)) {   /* a pair to consider */
+      if (hard_constraints[ij]) {   /* a pair to consider */
         int stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
 
-
-        for (new_c=s=0; s<n_seq; s++) {
-          if ((a2s[s][j-1]-a2s[s][i])<3) new_c+=600;
-          else  new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
-          if(sc){
-            if(sc[s]->en_basepair)
-              new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
-          }
+        if(hard_constraints[ij] & VRNA_HC_CONTEXT_HP_LOOP){
+          if(hc->up_hp[i+1] >= j - i - 1)
+            for (new_c=s=0; s<n_seq; s++) {
+              int u = a2s[s][j-1]-a2s[s][i];
+              if (u < 3) new_c+=600;
+              else  new_c += E_Hairpin(u, type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
+              if(sc){
+                if(sc[s]){
+                  if(sc[s]->en_basepair)
+                    new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+                  if(sc[s]->free_energies)
+                    new_c += sc[s]->free_energies[a2s[s][i]+1][u];
+                }
+              }
+            }
         }
+
         /*--------------------------------------------------------
           check for elementary structures involving more than one
           closing pair.
           --------------------------------------------------------*/
 
-        for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-          minq = j-i+p-MAXLOOP-2;
-          if (minq<p+1+TURN) minq = p+1+TURN;
-          for (q = minq; q < j; q++) {
-            if (pscore[indx[q]+p]<MINPSCORE) continue;
-            for (energy = s=0; s<n_seq; s++) {
-              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-              if (type_2 == 0) type_2 = 7;
-              energy += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2,
-                                   S3[s][i], S5[s][j],
-                                   S5[s][p], S3[s][q], P);
-              if(sc){
-                if(sc[s]->en_basepair)
-                  energy += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]]
-                            + sc[s]->en_basepair[indx[a2s[s][q]] + a2s[s][p]];
-              }
-            }
-            if ((p==i+1)&&(j==q+1)){
-              if(sc){
-                for(s = 0; s < n_seq; s++)
-                  if(sc[s]->en_stack){
-                    energy +=   sc[s]->en_stack[i]
-                              + sc[s]->en_stack[p]
-                              + sc[s]->en_stack[q]
-                              + sc[s]->en_stack[j];
+        if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+          for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
+            if(hc->up_int[i+1] < p - i - 1)
+              continue;
+
+            minq = j-i+p-MAXLOOP-2;
+            if (minq<p+1+TURN) minq = p+1+TURN;
+            for (q = minq; q < j; q++) {
+              if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+                continue;
+              if(hc->up_int[q+1] < j - q - 1)
+                continue;
+
+              int u1 = a2s[s][p-1]-a2s[s][i];
+              int u2 = a2s[s][j-1]-a2s[s][q];
+              for (energy = s=0; s<n_seq; s++) {
+                type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+                if (type_2 == 0) type_2 = 7;
+                energy += E_IntLoop(u1, u2, type[s], type_2,
+                                     S3[s][i], S5[s][j],
+                                     S5[s][p], S3[s][q], P);
+                if(sc){
+                  if(sc[s]){
+                    if(sc[s]->en_basepair)
+                      energy +=   sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]]
+                                + sc[s]->en_basepair[indx[a2s[s][q]] + a2s[s][p]];
+                    if(sc[s]->free_energies)
+                      energy +=   sc[s]->free_energies[a2s[s][i]+1][u1]
+                                + sc[s]->free_energies[a2s[s][q]+1][u2];
                   }
                 }
-              stackEnergy = energy; /* remember stack energy */
+              }
+
+              if ((p==i+1)&&(j==q+1)){
+                if(sc){
+                  for(s = 0; s < n_seq; s++)
+                    if(sc[s]->en_stack){
+                      energy +=   sc[s]->en_stack[i]
+                                + sc[s]->en_stack[p]
+                                + sc[s]->en_stack[q]
+                                + sc[s]->en_stack[j];
+                    }
+                  }
+                stackEnergy = energy; /* remember stack energy */
+              }
+              new_c = MIN2(new_c, energy + c[indx[q]+p]);
+            } /* end q-loop */
+          } /* end p-loop */
+
+          if(md->gquad){
+            decomp = 0;
+            for(s=0;s<n_seq;s++){
+              tt = type[s];
+              if(dangle_model == 2)
+                decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+              if(tt > 2)
+                decomp += P->TerminalAU;
             }
-            new_c = MIN2(new_c, energy + c[indx[q]+p]);
-          } /* end q-loop */
-        } /* end p-loop */
-
-        /* multi-loop decomposition ------------------------*/
-        decomp = DMLi1[j-1];
-        if(dangle_model){
-          for(s=0; s<n_seq; s++){
-            tt = rtype[type[s]];
-            decomp += E_MLstem(tt, S5[s][j], S3[s][i], P);
-          }
-        }
-        else{
-          for(s=0; s<n_seq; s++){
-            tt = rtype[type[s]];
-            decomp += E_MLstem(tt, -1, -1, P);
-          }
-        }
-        if(sc)
-          for(s=0; s<n_seq; s++){
-            if(sc[s]->en_basepair)
-              decomp += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
-        }
-        MLenergy = decomp + n_seq*P->MLclosing;
-        new_c = MIN2(new_c, MLenergy);
-
-        if(md->gquad){
-          decomp = 0;
-          for(s=0;s<n_seq;s++){
-            tt = type[s];
-            if(dangle_model == 2)
-              decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
-            if(tt > 2)
-              decomp += P->TerminalAU;
-          }
-          for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-            l1    = p - i - 1;
-            if(l1>MAXLOOP) break;
-            if(S_cons[p] != 3) continue;
-            minq  = j - i + p - MAXLOOP - 2;
-            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-            minq  = MAX2(c0, minq);
-            c0    = j - 1;
-            maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-            maxq  = MIN2(c0, maxq);
-            for(q = minq; q < maxq; q++){
-              if(S_cons[q] != 3) continue;
-              c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
-              new_c = MIN2(new_c, c0);
-            }
-          }
-
-          p = i + 1;
-          if(S_cons[p] == 3){
-            if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+            for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+              l1    = p - i - 1;
+              if(l1>MAXLOOP) break;
+              if(S_cons[p] != 3) continue;
               minq  = j - i + p - MAXLOOP - 2;
               c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
               minq  = MAX2(c0, minq);
-              c0    = j - 3;
+              c0    = j - 1;
               maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
               maxq  = MIN2(c0, maxq);
               for(q = minq; q < maxq; q++){
                 if(S_cons[q] != 3) continue;
-                c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
-                new_c   = MIN2(new_c, c0);
+                c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
+                new_c = MIN2(new_c, c0);
               }
             }
-          }
-          q = j - 1;
-          if(S_cons[q] == 3)
-            for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-              l1    = p - i - 1;
-              if(l1>MAXLOOP) break;
-              if(S_cons[p] != 3) continue;
-              c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
-              new_c   = MIN2(new_c, c0);
+
+            p = i + 1;
+            if(S_cons[p] == 3){
+              if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+                minq  = j - i + p - MAXLOOP - 2;
+                c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                minq  = MAX2(c0, minq);
+                c0    = j - 3;
+                maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                maxq  = MIN2(c0, maxq);
+                for(q = minq; q < maxq; q++){
+                  if(S_cons[q] != 3) continue;
+                  c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
+                  new_c   = MIN2(new_c, c0);
+                }
+              }
             }
+            q = j - 1;
+            if(S_cons[q] == 3)
+              for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
+                l1    = p - i - 1;
+                if(l1>MAXLOOP) break;
+                if(S_cons[p] != 3) continue;
+                c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
+                new_c   = MIN2(new_c, c0);
+              }
+          }
+        } /* end if interior loop */
+
+        /* multi-loop decomposition ------------------------*/
+        if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+          decomp = DMLi1[j-1];
+          if(dangle_model){
+            for(s=0; s<n_seq; s++){
+              tt = rtype[type[s]];
+              decomp += E_MLstem(tt, S5[s][j], S3[s][i], P);
+            }
+          }
+          else{
+            for(s=0; s<n_seq; s++){
+              tt = rtype[type[s]];
+              decomp += E_MLstem(tt, -1, -1, P);
+            }
+          }
+          if(sc)
+            for(s=0; s<n_seq; s++){
+              if(sc[s]){
+                if(sc[s]->en_basepair)
+                  decomp += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+              }
+            }
+          MLenergy = decomp + n_seq*P->MLclosing;
+          new_c = MIN2(new_c, MLenergy);
         }
+
 
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
 
@@ -409,26 +441,52 @@ fill_arrays(vrna_fold_compound *vc){
       else c[ij] = INF;
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
+      new_fML = INF;
 
-      new_fML = fML[ij+1] + n_seq * P->MLbase;
-      new_fML = MIN2(fML[indx[j-1]+i]+n_seq*P->MLbase, new_fML);
-      energy = c[ij];
-      if(dangle_model){
-        for (s=0; s<n_seq; s++) {
-          energy += E_MLstem(type[s], S5[s][i], S3[s][j], P);
+      if(hc->up_ml[i]){
+        energy = fML[ij+1] + n_seq * P->MLbase;
+        if(sc)
+          for(s=0; s < n_seq; s++){
+            if(sc[s]){
+              if(sc[s]->free_energies)
+                energy += sc[s]->free_energies[a2s[s][i]][1];
+            }
+          }
+        new_fML = MIN2(new_fML, energy);
+      }
+
+      if(hc->up_ml[j]){
+        energy = fML[indx[j-1]+i] + n_seq * P->MLbase;
+        if(sc)
+          for(s=0;s < n_seq; s++){
+            if(sc[s]){
+              if(sc[s]->free_energies)
+                energy += sc[s]->free_energies[a2s[s][j]][1];
+            }
+          }
+        new_fML = MIN2(new_fML, energy);
+      }
+
+      if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        energy = c[ij];
+        if(dangle_model){
+          for (s=0; s<n_seq; s++) {
+            energy += E_MLstem(type[s], S5[s][i], S3[s][j], P);
+          }
+        }
+        else{
+          for (s=0; s<n_seq; s++) {
+            energy += E_MLstem(type[s], -1, -1, P);
+          }
+        }
+        new_fML = MIN2(energy, new_fML);
+
+        if(md->gquad){
+          decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
+          new_fML = MIN2(new_fML, decomp);
         }
       }
-      else{
-        for (s=0; s<n_seq; s++) {
-          energy += E_MLstem(type[s], -1, -1, P);
-        }
-      }
-      new_fML = MIN2(energy, new_fML);
 
-      if(md->gquad){
-        decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-        new_fML = MIN2(new_fML, decomp);
-      }
 
       /* modular decomposition -------------------------------*/
       for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
@@ -451,30 +509,43 @@ fill_arrays(vrna_fold_compound *vc){
   } /* END for i */
   /* calculate energies of 5' and 3' fragments */
 
-  f5[TURN + 1] = 0;
+  for(j = 1; j <= TURN + 1; j++){
+    if(hc->up_ext[j]){
+      energy = f5[j-1];
+      if((energy < INF) && sc)
+        for(s=0;s < n_seq; s++){
+          if(sc[s]){
+            if(sc[s]->free_energies)
+              energy += sc[s]->free_energies[a2s[s][j]][1];
+          }
+        }
+    } else {
+      energy = INF;
+    }
+    f5[j] = energy;
+  }
+
   switch(dangle_model){
     case 0:   for(j = TURN + 2; j <= length; j++){
-                f5[j] = f5[j-1];
-                if (c[indx[j]+1]<INF){
-                  energy = c[indx[j]+1];
-                  for(s = 0; s < n_seq; s++){
-                    tt = md->pair[S[s][1]][S[s][j]];
-                    if(tt==0) tt=7;
-                    energy += E_ExtLoop(tt, -1, -1, P);
-                  }
+                f5[j] = INF;
+
+                if(hc->up_ext[j]){
+                  energy = f5[j-1];
+                  if((energy < INF) && sc)
+                    for(s=0; s < n_seq; s++){
+                      if(sc[s]){
+                        if(sc[s]->free_energies)
+                          energy += sc[s]->free_energies[a2s[s][j]][1];
+                      }
+                    }
                   f5[j] = MIN2(f5[j], energy);
                 }
 
-                if(md->gquad){
-                  if(ggg[indx[j]+1] < INF)
-                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
-                }
-
-                for(i = j - TURN - 1; i > 1; i--){
-                  if(c[indx[j]+i]<INF){
-                    energy = f5[i-1] + c[indx[j]+i];
+                if (hard_constraints[indx[j]+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if(c[indx[j]+1] < INF){
+                    energy = c[indx[j]+1];
                     for(s = 0; s < n_seq; s++){
-                      tt = md->pair[S[s][i]][S[s][j]];
+                      tt = md->pair[S[s][1]][S[s][j]];
                       if(tt==0) tt=7;
                       energy += E_ExtLoop(tt, -1, -1, P);
                     }
@@ -482,46 +553,81 @@ fill_arrays(vrna_fold_compound *vc){
                   }
 
                   if(md->gquad){
-                    if(ggg[indx[j]+i] < INF)
-                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                    if(ggg[indx[j]+1] < INF)
+                      f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                   }
-
-                }
-              }
-              break;
-    default:  for(j = TURN + 2; j <= length; j++){
-                f5[j] = f5[j-1];
-                if (c[indx[j]+1]<INF) {
-                  energy = c[indx[j]+1];
-                  for(s = 0; s < n_seq; s++){
-                    tt = md->pair[S[s][1]][S[s][j]];
-                    if(tt==0) tt=7;
-                    energy += E_ExtLoop(tt, -1, (j<length) ? S3[s][j] : -1, P);
-                  }
-                  f5[j] = MIN2(f5[j], energy);
-                }
-
-                if(md->gquad){
-                  if(ggg[indx[j]+1] < INF)
-                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
                 for(i = j - TURN - 1; i > 1; i--){
-                  if (c[indx[j]+i]<INF) {
-                    energy = f5[i-1] + c[indx[j]+i];
+                  if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(c[indx[j]+i]<INF){
+                      energy = f5[i-1] + c[indx[j]+i];
+                      for(s = 0; s < n_seq; s++){
+                        tt = md->pair[S[s][i]][S[s][j]];
+                        if(tt==0) tt=7;
+                        energy += E_ExtLoop(tt, -1, -1, P);
+                      }
+                      f5[j] = MIN2(f5[j], energy);
+                    }
+
+                    if(md->gquad){
+                      if(ggg[indx[j]+i] < INF)
+                        f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                    }
+                  }
+                }
+              }
+              break;
+
+    default:  for(j = TURN + 2; j <= length; j++){
+                f5[j] = INF;
+
+                if(hc->up_ext[j]){
+                  energy = f5[j-1];
+                  if((energy < INF) && sc)
+                    for(s=0; s < n_seq; s++){
+                      if(sc[s]){
+                        if(sc[s]->free_energies)
+                          energy += sc[s]->free_energies[a2s[s][j]][1];
+                      }
+                    }
+                  f5[j] = MIN2(f5[j], energy);
+                }
+
+                if(hard_constraints[indx[j]+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if (c[indx[j]+1]<INF) {
+                    energy = c[indx[j]+1];
                     for(s = 0; s < n_seq; s++){
-                      tt = md->pair[S[s][i]][S[s][j]];
+                      tt = md->pair[S[s][1]][S[s][j]];
                       if(tt==0) tt=7;
-                      energy += E_ExtLoop(tt, S5[s][i], (j < length) ? S3[s][j] : -1, P);
+                      energy += E_ExtLoop(tt, -1, (j<length) ? S3[s][j] : -1, P);
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
 
                   if(md->gquad){
-                    if(ggg[indx[j]+i] < INF)
-                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                    if(ggg[indx[j]+1] < INF)
+                      f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                   }
+                }
 
+                for(i = j - TURN - 1; i > 1; i--){
+                  if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (c[indx[j]+i]<INF) {
+                      energy = f5[i-1] + c[indx[j]+i];
+                      for(s = 0; s < n_seq; s++){
+                        tt = md->pair[S[s][i]][S[s][j]];
+                        if(tt==0) tt=7;
+                        energy += E_ExtLoop(tt, S5[s][i], (j < length) ? S3[s][j] : -1, P);
+                      }
+                      f5[j] = MIN2(f5[j], energy);
+                    }
+
+                    if(md->gquad){
+                      if(ggg[indx[j]+i] < INF)
+                        f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
+                    }
+                  }
                 }
               }
               break;
