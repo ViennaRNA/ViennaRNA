@@ -1006,7 +1006,7 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
 
 
 PUBLIC int
-vrna_sc_add_mathews( vrna_fold_compound *vc,
+vrna_sc_add_deigan( vrna_fold_compound *vc,
                               const char *shape_file,
                               double m,
                               double b,
@@ -1096,7 +1096,7 @@ vrna_sc_add_mathews( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_sc_add_mathews_ali( vrna_fold_compound *vc,
+vrna_sc_add_deigan_ali( vrna_fold_compound *vc,
                          const char **shape_files,
                          const int *shape_file_association,
                          double m,
@@ -1220,18 +1220,16 @@ parse_soft_constraints_shape_method(const char *method_string,
 
   *method = m = method_string[0];
 
-  if (m == 'C')
+  if (m == 'Z')
   {
-    *method = 'C';
     *param_1 = 1;
     if(params && !sscanf(params, "b%f", param_1))
       warn_user(warning);
   }
-  else if (m == 'M')
+  else if (m == 'D')
   {
     *param_1 = 1.8;
     *param_2 = -0.6;
-    *method = 'M';
     if(params){
       r = sscanf(params, "m%fb%f", param_1, param_2);
       if(r != 2){

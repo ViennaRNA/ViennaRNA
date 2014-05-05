@@ -235,79 +235,79 @@ START_TEST(test_parse_soft_constraints_shape_method)
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("M", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("D", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mm", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Dm", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mb", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Db", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mmb", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Dmb", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mm3b4", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Dm3b4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3));
   ck_assert(deltaCompare(p2, 4));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mm3.4b4.5", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Dm3.4b4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, 4.5));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mm3.4", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Dm3.4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Mb4.5", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Db4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'M');
+  ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, 4.5));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("C", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Z", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'C');
+  ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 1));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Cb4.5", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Zb4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'C');
+  ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 4.5));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Cx", &method, &p1, &p2);
+  ret = parse_soft_constraints_shape_method("Zx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
-  ck_assert_int_eq(method, 'C');
+  ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 1));
   ck_assert(deltaCompare(p2, 0));
 
