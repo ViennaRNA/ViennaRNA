@@ -606,6 +606,51 @@ hc_update_up(vrna_fold_compound *vc){
   for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
     hc->up_ml[i] = (hc->matrix[idx[i]+i] & VRNA_HC_CONTEXT_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
 
+  /*
+   *  loop arround once more until we find a nucleotide that mustn't
+   *  be unpaired (needed for circular folding)
+   */
+
+  if(hc->matrix[idx[1]+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+    hc->up_ext[n+1] = hc->up_ext[1];
+    for(i = n; i > 0; i--){
+      if(hc->matrix[idx[i]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+        hc->up_ext[i] = MIN2(n, 1 + hc->up_ext[i+1]);
+      } else
+        break;
+    }
+  }
+
+  if(hc->matrix[idx[1]+1] & VRNA_HC_CONTEXT_HP_LOOP){
+    hc->up_hp[n+1] = hc->up_hp[1];
+    for(i = n; i > 0; i--){
+      if(hc->matrix[idx[i]+i] & VRNA_HC_CONTEXT_HP_LOOP){
+        hc->up_hp[i] = MIN2(n, 1 + hc->up_hp[i+1]);
+      } else
+        break;
+    }
+  }
+
+  if(hc->matrix[idx[1]+1] & VRNA_HC_CONTEXT_INT_LOOP){
+    hc->up_int[n+1] = hc->up_int[1];
+    for(i = n; i > 0; i--){
+      if(hc->matrix[idx[i]+i] & VRNA_HC_CONTEXT_INT_LOOP){
+        hc->up_int[i] = MIN2(n, 1 + hc->up_int[i+1]);
+      } else
+        break;
+    }
+  }
+
+  if(hc->matrix[idx[1]+1] & VRNA_HC_CONTEXT_MB_LOOP){
+    hc->up_ml[n+1] = hc->up_ml[1];
+    for(i = n; i > 0; i--){
+      if(hc->matrix[idx[i]+i] & VRNA_HC_CONTEXT_MB_LOOP){
+        hc->up_ml[i] = MIN2(n, 1 + hc->up_ml[i+1]);
+      } else
+        break;
+    }
+  }
+
 }
 
 PUBLIC  void
