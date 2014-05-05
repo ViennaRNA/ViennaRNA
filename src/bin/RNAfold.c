@@ -68,8 +68,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  if(method == 'M'){
-    vrna_sc_add_mathews(vc, shape_file, p1, p2, constraint_type);
+  if(method == 'D'){
+    vrna_sc_add_deigan(vc, shape_file, p1, p2, constraint_type);
     return;
   }
 

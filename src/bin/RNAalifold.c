@@ -64,8 +64,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  if(method == 'M'){
-    vrna_sc_add_mathews_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+  if(method == 'D'){
+    vrna_sc_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
 }

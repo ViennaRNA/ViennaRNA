@@ -263,15 +263,15 @@ optional
 
 option  "shapeMethod" -
 "Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="Currently, the only data conversion method available is according to Pollom et al 2013.\
- This method is the default and is recognized by a capital 'M' in the provided parameter, i.e.:\
- --shapeMethod=\"M\" is the default setting. The slope 'm' and the intercept 'b' can be set to a\
- non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before.\
- To alter these parameters, e.g. m=1.9 and b=-0.7, use a\
- parameter string like this: --shapeMethod=\"Mm1.9b-0.7\". You may also provide only one of the two\
- parameters like: --shapeMethod=\"Mm1.9\" or --shapeMethod=\"Mb-0.7\"."
+details="Currently, the only data conversion method available is according to Deigan et al 2009. \
+ This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
+ --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+ non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before. \
+ To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+ parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+ parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\"."
 string
-typestr="M[mX][bY]"
+typestr="D[mX][bY]"
 dependon="shape"
 optional
 
