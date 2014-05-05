@@ -404,25 +404,6 @@ int main(int argc, char *argv[]){
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
       vrna_update_pf_params(vc,pf_parameters);
 
-
-#if 0 /* test for correctness of soft constraints in base pair prob computation */
-      vc->exp_params = pf_parameters;
-      double *sc_up = (double *)space(sizeof(double) * (length + 1));
-      double **sc_bp = (double **)space(sizeof(double *) * (length + 1));
-      int j;
-      for(i=1;i<=length;i++){
-        sc_up[i] = -4.;
-        sc_bp[i] = (double *)space(sizeof(double) * (length + 1));
-        for(j=i+1; j <= length;j++)
-          sc_bp[i][j] = -8.;
-      }
-      vc->iindx = get_iindx(length);
-
-      vrna_sc_add_up_pf(vc, sc_up, VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
-      vrna_sc_add_bp_pf(vc, (const double **)sc_bp, 0);
-      vc->exp_params = NULL;
-#endif
-
       if(with_shapes)
         add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
 
