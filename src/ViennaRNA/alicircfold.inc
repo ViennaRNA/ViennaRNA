@@ -69,14 +69,14 @@ fill_arrays_circ( vrna_fold_compound *vc,
           for (s=0; s<n_seq; s++) {
             char loopseq[10];
             int rt, si1, sj1;
-            int u1 = a2s[s][j-1]-a2s[s][i];
+            int u1 = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
 
             type[s] = md->pair[S[s][i]][S[s][j]];
             if (type[s]==0) type[s]=7;
 
             rt=rtype[type[s]];
             if (u1<7) {
-              strcpy(loopseq , Ss[s] + a2s[s][j-1]);
+              strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
               strncat(loopseq, Ss[s], i);
             }
             si1 = S5[s][i];
@@ -90,8 +90,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
                 if(sc[s]->en_basepair)
                   new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
                 if(sc[s]->free_energies){
-                  new_c +=    ((i > 1) ? sc[s]->free_energies[1][a2s[s][i-1]] : 0)
-                            + ((j < length) ? sc[s]->free_energies[a2s[s][j+1]][a2s[s][length] - a2s[s][j]] : 0);
+                  new_c +=    ((i > 1) ? sc[s]->free_energies[1][a2s[s][i] - 1] : 0)
+                            + ((j < length) ? sc[s]->free_energies[a2s[s][j] + 1][a2s[s][length] - a2s[s][j]] : 0);
                 }
               }
             }
@@ -132,25 +132,25 @@ fill_arrays_circ( vrna_fold_compound *vc,
               if (type_2 ==0) type_2=7;
               si1 = S5[s][i];
               sq1 = S3[s][q];
-              u1 = a2s[s][p-1] - a2s[s][j];
-              u2 = a2s[s][i-1] + (a2s[s][length] - a2s[s][q]);
+              u1 = a2s[s][p] - 1 - a2s[s][j];
+              u2 = a2s[s][i] - 1 + (a2s[s][length] - a2s[s][q]);
               energy += E_IntLoop(u1, u2, rt, type_2,
                                    S3[s][j], si1, S5[s][p], sq1, P);
             }
             if(sc)
               for(s = 0; s < n_seq; s++){
                 if(sc[s]){
-                  u1 = a2s[s][p-1] - a2s[s][j];
-                  u2 = a2s[s][i-1] + (a2s[s][length] - a2s[s][q]);
+                  u1 = a2s[s][p] - 1 - a2s[s][j];
+                  u2 = a2s[s][i] - 1 + (a2s[s][length] - a2s[s][q]);
                   if((u1+u2 == 0) && (sc[s]->en_stack))
                     energy +=   sc[s]->en_stack[a2s[s][i]]
                               + sc[s]->en_stack[a2s[s][j]]
                               + sc[s]->en_stack[a2s[s][p]]
                               + sc[s]->en_stack[a2s[s][q]];
                   if(sc[s]->free_energies)
-                    energy +=   sc[s]->free_energies[a2s[s][j+1]][u1];
-                              + ((q < length) ? sc[s]->free_energies[a2s[s][q+1]][a2s[s][length]-a2s[s][q]] : 0)
-                              + ((i > 1) ? sc[s]->free_energies[1][a2s[s][i-1]] : 0);
+                    energy +=   sc[s]->free_energies[a2s[s][j] + 1][u1];
+                              + ((q < length) ? sc[s]->free_energies[a2s[s][q]+1][a2s[s][length]-a2s[s][q]] : 0)
+                              + ((i > 1) ? sc[s]->free_energies[1][a2s[s][i]-1] : 0);
                 }
               }
             new_c = c[ij] + c[indx[q]+p] + energy;
