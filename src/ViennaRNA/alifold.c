@@ -311,9 +311,9 @@ fill_arrays(vrna_fold_compound *vc){
               if(hc->up_int[q+1] < j - q - 1)
                 continue;
 
-              int u1 = a2s[s][p-1]-a2s[s][i];
-              int u2 = a2s[s][j-1]-a2s[s][q];
               for (energy = s=0; s<n_seq; s++) {
+                int u1 = a2s[s][p-1]-a2s[s][i];
+                int u2 = a2s[s][j-1]-a2s[s][q];
                 type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
                 if (type_2 == 0) type_2 = 7;
                 energy += E_IntLoop(u1, u2, type[s], type_2,
@@ -684,7 +684,6 @@ backtrack(vrna_fold_compound *vc,
 
   hard_constraintT *hc          = vc->hc;
   soft_constraintT **sc         = vc->scs;
-
 
   type = (int *) space(n_seq*sizeof(int));
 
