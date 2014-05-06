@@ -406,6 +406,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   short             **S           = vc->S;                                                                   
   short             **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss          = vc->Ss;
   unsigned short    **a2s         = vc->a2s;                                                                   
   pf_paramT         *pf_params    = vc->exp_params;
   pf_matricesT      *matrices     = vc->exp_matrices;
@@ -475,13 +476,14 @@ alipf_create_bppm(vrna_fold_compound *vc,
           /* 1.1. Exterior Hairpin Contribution */
           int u = i + n - j -1;
           for (qbt1=1.,s=0; s<n_seq; s++) {
+            int u1 = a2s[s][i] - 1 + a2s[s][n] - a2s[s][j];
 
             char loopseq[10];
-            if (u<7){
-              strcpy(loopseq , sequences[s]+j-1);
-              strncat(loopseq, sequences[s], i);
+            if (u1<9){
+              strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
+              strncat(loopseq, Ss[s], a2s[s][i]);
             }
-            qbt1 *= exp_E_Hairpin(u, type[s], S[s][j+1], S[s][(i>1) ? i-1 : n], loopseq, pf_params);
+            qbt1 *= exp_E_Hairpin(u1, type[s], S3[s][j], S5[s][i], loopseq, pf_params);
           }
           tmp2 = qbt1 * scale[u];
 
@@ -550,7 +552,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
                             S5[s][i],
                             S3[s][j], pf_params);
               }
-              tmp2 += qb[my_iindx[k] - l] * qloop * scale[(k-j-1)+(i-1+n-l)];
+              tmp2 += qb[my_iindx[k] - l] * qloop * scale[ln1+ln2];
             }
           }
 
