@@ -840,6 +840,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   FLT_OR_DBL        *scale      = matrices->scale;
   FLT_OR_DBL        expMLclosing      = pf_params->expMLclosing;
   char              *hard_constraints = hc->matrix;
+  int               *rtype            = &(md->rtype[0]);
 
   type  = (int *)space(sizeof(int) * n_seq);
 
@@ -862,22 +863,27 @@ wrap_alipf_circ(vrna_fold_compound *vc,
 
       if(!hard_constraints[pq]) continue;
 
+      for(s = 0; s < n_seq; s++){
+        type[s] = md->pair[S[s][p]][S[s][q]];
+        if (type[s]==0) type[s]=7;
+      }
+
       /* 1. exterior hairpin contribution  */
       /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */
       /* for the closing pair was already done in the forward recursion              */
       if(hard_constraints[pq] & VRNA_HC_CONTEXT_HP_LOOP){
         if(hc->up_hp[q+1] > u){
           for (qbt1=1,s=0; s<n_seq; s++) {
+            int rt;
             char loopseq[10];
-            u       = a2s[s][n] - a2s[s][q] + a2s[s][p] - 1;
-            type[s] = md->pair[S[s][q]][S[s][p]];
-            if (type[s]==0) type[s]=7;
+            u   = a2s[s][n] - a2s[s][q] + a2s[s][p] - 1;
+            rt  = rtype[type[s]];
 
             if (u<9){
               strcpy(loopseq , Ss[s] + a2s[s][q] - 1);
-              strncat(loopseq, Ss[s], p);
+              strncat(loopseq, Ss[s], a2s[s][p]);
             }
-            qbt1 *= exp_E_Hairpin(u, type[s], S3[s][q], S5[s][p], loopseq, pf_params);
+            qbt1 *= exp_E_Hairpin(u, rt, S3[s][q], S5[s][p], loopseq, pf_params);
           }
           if(sc)
             for(s = 0; s < n_seq; s++){
@@ -922,9 +928,10 @@ wrap_alipf_circ(vrna_fold_compound *vc,
             for (s=0; s<n_seq; s++){
               int ln1a = a2s[s][k] - 1 - a2s[s][q];
               int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
+              int rt = rtype[type[s]];
               type_2 = md->pair[S[s][l]][S[s][k]];
               if (type_2 == 0) type_2 = 7;
-              qloop *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s], S3[s][l], S5[s][k], S5[s][p], S3[s][q], pf_params);
+              qloop *= exp_E_IntLoop(ln1a, ln2a, rt, type_2, S3[s][q], S5[s][p], S5[s][k], S3[s][l], pf_params);
             }
             if(sc)
               for(s = 0; s < n_seq; s++){
@@ -1108,7 +1115,7 @@ backtrack(vrna_fold_compound *vc,
       u = a2s[s][j-1]-a2s[s][i];
       if (a2s[s][i]<1) continue;
       char loopseq[10];
-      if(u < 7){
+      if(u < 9){
         strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
       }
       qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
