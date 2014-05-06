@@ -332,11 +332,6 @@ set_fold_compound(vrna_fold_compound *vc,
 
     vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
-    if(md.circ){
-      warn_user("Not implemented yet: "
-                "Falling back to oldAliEn model for alifold due to circular RNA");
-      md.oldAliEn = 1;
-    }
     oldAliEn = vc->oldAliEn  = md.oldAliEn;
 
     vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
