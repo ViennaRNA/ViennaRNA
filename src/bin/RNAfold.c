@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
   doMEA         = 0;
   betaScale     = 1.;
   shape_file    = NULL;
-  shape_method  = NULL;
+  shape_method  = "D";
   with_shapes   = 0;
   verbose       = 0;
   max_bp_span   = -1;
