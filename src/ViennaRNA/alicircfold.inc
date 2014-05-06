@@ -2,7 +2,11 @@
 /* this file contains code for alifolding circular RNAs */
 /* it's #include'd into alifold.c */
 
-PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
+PRIVATE void
+fill_arrays_circ( vrna_fold_compound *vc,
+                  sect bt_stack[],
+                  int *bt){
+
   /* variant of alifold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -31,8 +35,9 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
   int             *fM2    = vc->matrices->fM2;
   int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
 
-  hard_constraintT *hc    = vc->hc;
-  soft_constraintT **sc   = vc->scs;
+  hard_constraintT  *hc               = vc->hc;
+  soft_constraintT  **sc              = vc->scs;
+  char              *hard_constraints = hc->matrix;
 
   char **strings;
   strings = vc->sequences;
@@ -41,9 +46,6 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
 
   int   *rtype        = &(P->model_details.rtype[0]);
   type                = (int *) space(n_seq*sizeof(int));
-
-  oldAliEn=1; /* TODO allow new gap treatment in alicircfold() */
-
 
   /* extra arrays for circfold() */
   fM2 =  (int *) space(sizeof(int)*(length+2));
@@ -58,56 +60,103 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
 
       psc = pscore[indx[j]+i];
 
-      if (psc<MINPSCORE) continue;
+      if (!hard_constraints[ij])
+        continue;
 
       new_c = 0;
-      for (s=0; s<n_seq; s++) {
-        char loopseq[10];
-        int rt, si1, sj1;
+      if(hard_constraints[ij] & VRNA_HC_CONTEXT_HP_LOOP){
+        if(hc->up_hp[j+1] >= u){
+          for (s=0; s<n_seq; s++) {
+            char loopseq[10];
+            int rt, si1, sj1;
+            int u1 = a2s[s][j-1]-a2s[s][i];
 
-        type[s] = md->pair[S[s][i]][S[s][j]];
-        if (type[s]==0) type[s]=7;
+            type[s] = md->pair[S[s][i]][S[s][j]];
+            if (type[s]==0) type[s]=7;
 
-        rt=rtype[type[s]];
-        if (u<7) {
-          strcpy(loopseq , strings[s]+j-1);
-          strncat(loopseq, strings[s], i);
-        }
-        si1 = (i==1)?S[s][length] : S[s][i-1];
-        sj1 = (j==length)?S[s][1] : S[s][j+1];
-        new_c += E_Hairpin(u, rt, sj1, si1,  loopseq, P);
-      }
-      new_c += +c[ij];
-      if (new_c<FcH) {
-        FcH = new_c; Hi=i; Hj=j;
-      }
-
-      for (p = j+1; p < length ; p++) {
-        int u1, qmin;
-        u1 = p-j-1;
-        if (u1+i-1>MAXLOOP) break;
-        qmin = u1+i-1+length-MAXLOOP;
-        if (qmin<p+TURN+1) qmin = p+TURN+1;
-        for (q = qmin; q <=length; q++) {
-          int u2, si1, sq1, type_2;
-
-          if (pscore[indx[q]+p]<MINPSCORE) continue;
-
-          u2 = i-1 + length-q;
-          if (u1+u2>MAXLOOP) continue;
-          for (energy = s=0; s<n_seq; s++) {
-            int rt;
             rt=rtype[type[s]];
-            type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-            if (type_2 ==0) type_2=7;
-            si1 = (i==1)? S[s][length] : S[s][i-1];
-            sq1 = (q==length)? S[s][1] : S[s][q+1];
-            energy += E_IntLoop(u1, u2, rt, type_2,
-                                 S[s][j+1], si1, S[s][p-1], sq1, P);
+            if (u1<7) {
+              strcpy(loopseq , Ss[s] + a2s[s][j-1]);
+              strncat(loopseq, Ss[s], i);
+            }
+            si1 = S5[s][i];
+            sj1 = S3[s][j];
+            if (u1 < 3) new_c+=600;
+            else new_c += E_Hairpin(u1, rt, sj1, si1,  loopseq, P);
           }
-          new_c = c[ij] + c[indx[q]+p] + energy;
-          if (new_c<FcI) {
-            FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
+          if(sc)
+            for(s=0;s < n_seq; s++){
+              if(sc[s]){
+                if(sc[s]->en_basepair)
+                  new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+                if(sc[s]->free_energies){
+                  new_c +=    ((i > 1) ? sc[s]->free_energies[1][a2s[s][i-1]] : 0)
+                            + ((j < length) ? sc[s]->free_energies[a2s[s][j+1]][a2s[s][length] - a2s[s][j]] : 0);
+                }
+              }
+            }
+          new_c += c[ij];
+          if (new_c<FcH) {
+            FcH = new_c; Hi=i; Hj=j;
+          }
+        }
+      }
+
+      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+        for (p = j+1; p < length ; p++) {
+          int u1, qmin;
+          u1 = p-j-1;
+          if(u1 + i - 1 > MAXLOOP)
+            break;
+          if(hc->up_int[j+1] < u1)
+            break;
+
+          qmin = u1+i-1+length-MAXLOOP;
+          if (qmin<p+TURN+1) qmin = p+TURN+1;
+          for (q = qmin; q <=length; q++) {
+            int u2, si1, sq1, type_2;
+            u2 = i-1 + length-q;
+
+            if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+              continue;
+
+            if(u1+u2>MAXLOOP)
+              continue;
+            if(hc->up_int[q+1] < u2)
+              continue;
+
+            for (energy = s=0; s<n_seq; s++) {
+              int rt;
+              rt=rtype[type[s]];
+              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+              if (type_2 ==0) type_2=7;
+              si1 = S5[s][i];
+              sq1 = S3[s][q];
+              u1 = a2s[s][p-1] - a2s[s][j];
+              u2 = a2s[s][i-1] + (a2s[s][length] - a2s[s][q]);
+              energy += E_IntLoop(u1, u2, rt, type_2,
+                                   S3[s][j], si1, S5[s][p], sq1, P);
+            }
+            if(sc)
+              for(s = 0; s < n_seq; s++){
+                if(sc[s]){
+                  u1 = a2s[s][p-1] - a2s[s][j];
+                  u2 = a2s[s][i-1] + (a2s[s][length] - a2s[s][q]);
+                  if((u1+u2 == 0) && (sc[s]->en_stack))
+                    energy +=   sc[s]->en_stack[a2s[s][i]]
+                              + sc[s]->en_stack[a2s[s][j]]
+                              + sc[s]->en_stack[a2s[s][p]]
+                              + sc[s]->en_stack[a2s[s][q]];
+                  if(sc[s]->free_energies)
+                    energy +=   sc[s]->free_energies[a2s[s][j+1]][u1];
+                              + ((q < length) ? sc[s]->free_energies[a2s[s][q+1]][a2s[s][length]-a2s[s][q]] : 0)
+                              + ((i > 1) ? sc[s]->free_energies[1][a2s[s][i-1]] : 0);
+                }
+              }
+            new_c = c[ij] + c[indx[q]+p] + energy;
+            if (new_c<FcI) {
+              FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
+            }
           }
         }
       }
