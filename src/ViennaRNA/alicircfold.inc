@@ -44,7 +44,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
   n_seq   = vc->n_seq;
   length  = vc->length;
 
-  int   *rtype        = &(P->model_details.rtype[0]);
+  int   *rtype        = &(md->rtype[0]);
   type                = (int *) space(n_seq*sizeof(int));
 
   /* extra arrays for circfold() */
@@ -63,6 +63,11 @@ fill_arrays_circ( vrna_fold_compound *vc,
       if (!hard_constraints[ij])
         continue;
 
+      for(s = 0; s < n_seq; s++){
+        type[s] = md->pair[S[s][i]][S[s][j]];
+        if (type[s]==0) type[s]=7;
+      }
+
       new_c = 0;
       if(hard_constraints[ij] & VRNA_HC_CONTEXT_HP_LOOP){
         if(hc->up_hp[j+1] >= u){
@@ -71,13 +76,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
             int rt, si1, sj1;
             int u1 = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
 
-            type[s] = md->pair[S[s][i]][S[s][j]];
-            if (type[s]==0) type[s]=7;
-
             rt=rtype[type[s]];
             if (u1<9) {
               strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
-              strncat(loopseq, Ss[s], i);
+              strncat(loopseq, Ss[s], a2s[s][i]);
             }
             si1 = S5[s][i];
             sj1 = S3[s][j];
