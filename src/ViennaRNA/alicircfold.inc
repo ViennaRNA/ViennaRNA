@@ -75,7 +75,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
             if (type[s]==0) type[s]=7;
 
             rt=rtype[type[s]];
-            if (u1<7) {
+            if (u1<9) {
               strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
               strncat(loopseq, Ss[s], i);
             }
@@ -87,8 +87,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
           if(sc)
             for(s=0;s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->en_basepair)
-                  new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
                 if(sc[s]->free_energies){
                   new_c +=    ((i > 1) ? sc[s]->free_energies[1][a2s[s][i] - 1] : 0)
                             + ((j < length) ? sc[s]->free_energies[a2s[s][j] + 1][a2s[s][length] - a2s[s][j]] : 0);
@@ -119,7 +117,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
             if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
               continue;
-
             if(u1+u2>MAXLOOP)
               continue;
             if(hc->up_int[q+1] < u2)
@@ -148,7 +145,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
                               + sc[s]->en_stack[a2s[s][p]]
                               + sc[s]->en_stack[a2s[s][q]];
                   if(sc[s]->free_energies)
-                    energy +=   sc[s]->free_energies[a2s[s][j] + 1][u1];
+                    energy +=   sc[s]->free_energies[a2s[s][j] + 1][u1]
                               + ((q < length) ? sc[s]->free_energies[a2s[s][q]+1][a2s[s][length]-a2s[s][q]] : 0)
                               + ((i > 1) ? sc[s]->free_energies[1][a2s[s][i]-1] : 0);
                 }
