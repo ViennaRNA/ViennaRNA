@@ -814,7 +814,7 @@ PRIVATE void
 wrap_alipf_circ(vrna_fold_compound *vc,
                 char *structure){
 
-  int u, p, q, k, l, s, *type;
+  int u, p, q, pq, k, l, s, *type;
   FLT_OR_DBL qbt1, qot, qo, qho, qio, qmo;
 
   char              **sequences = vc->sequences;
@@ -823,6 +823,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   pf_matricesT      *matrices   = vc->exp_matrices;
@@ -837,7 +838,8 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   FLT_OR_DBL        *qm2        = matrices->qm2;
   int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
   FLT_OR_DBL        *scale      = matrices->scale;
-  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
+  FLT_OR_DBL        expMLclosing      = pf_params->expMLclosing;
+  char              *hard_constraints = hc->matrix;
 
   type  = (int *)space(sizeof(int) * n_seq);
 
@@ -855,53 +857,96 @@ wrap_alipf_circ(vrna_fold_compound *vc,
       int psc;
       u = n-q + p-1;
       if (u<TURN) continue;
+      pq  = jindx[q] + p;
+      psc = pscore[pq];
 
-      psc = pscore[jindx[q]+p];
-
-      if(psc<md->cv_fact*MINPSCORE) continue;
+      if(!hard_constraints[pq]) continue;
 
       /* 1. exterior hairpin contribution  */
       /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */
       /* for the closing pair was already done in the forward recursion              */
-      for (qbt1=1,s=0; s<n_seq; s++) {
-        char loopseq[10];
+      if(hard_constraints[pq] & VRNA_HC_CONTEXT_HP_LOOP){
+        if(hc->up_hp[q+1] > u){
+          for (qbt1=1,s=0; s<n_seq; s++) {
+            char loopseq[10];
+            u       = a2s[s][n] - a2s[s][q] + a2s[s][p] - 1;
             type[s] = md->pair[S[s][q]][S[s][p]];
             if (type[s]==0) type[s]=7;
 
             if (u<9){
-              strcpy(loopseq , sequences[s]+q-1);
-              strncat(loopseq, sequences[s], p);
+              strcpy(loopseq , Ss[s] + a2s[s][q] - 1);
+              strncat(loopseq, Ss[s], p);
             }
-        qbt1 *= exp_E_Hairpin(u, type[s], S[s][q+1], S[s][(p>1) ? p-1 : n], loopseq, pf_params);
+            qbt1 *= exp_E_Hairpin(u, type[s], S3[s][q], S5[s][p], loopseq, pf_params);
+          }
+          if(sc)
+            for(s = 0; s < n_seq; s++){
+              if(sc[s]){
+                if(sc[s]->boltzmann_factors){
+                  qbt1 *=   ((p > 1) ? sc[s]->boltzmann_factors[1][a2s[s][p]-1] : 1.)
+                          * ((q < n) ? sc[s]->boltzmann_factors[a2s[s][q]+1][a2s[s][n] - a2s[s][q]] : 1.);
+                }
+              }
+            }
+          qho += qb[my_iindx[p]-q] * qbt1 * scale[u];
+        }
       }
-      qho += qb[my_iindx[p]-q] * qbt1 * scale[u];
-
       /* 2. exterior interior loop contribution*/
 
-      for(k=q+1; k < n; k++){
-        int ln1, lstart;
-        ln1 = k - q - 1;
-        if(ln1+p-1>MAXLOOP) break;
-        lstart = ln1+p-1+n-MAXLOOP;
-        if(lstart<k+TURN+1) lstart = k + TURN + 1;
-        for(l=lstart;l <= n; l++){
-          int ln2, type_2;
+      if(hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP){
+        for(k=q+1; k < n; k++){
+          int ln1, lstart;
+          ln1 = k - q - 1;
+          if(ln1 + p - 1 > MAXLOOP)
+            break;
+          if(hc->up_int[q+1] < ln1)
+            break;
 
-              ln2 = (p - 1) + (n - l);
-              if((ln1+ln2) > MAXLOOP) continue;
-              double qloop=1.;
-              if (qb[my_iindx[k]-l]==0.){ qloop=0.; continue;}
+          lstart = ln1+p-1+n-MAXLOOP;
+          if(lstart<k+TURN+1) lstart = k + TURN + 1;
+          for(l=lstart;l <= n; l++){
+            int ln2, type_2;
 
-              for (s=0; s<n_seq; s++){
-                int ln1a=a2s[s][k-1]-a2s[s][q];
-                int ln2a=a2s[s][n]-a2s[s][l]+a2s[s][p-1];
-                type_2 = md->pair[S[s][l]][S[s][k]];
-                if (type_2 == 0) type_2 = 7;
-                qloop *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s], S3[s][l], S5[s][k], S5[s][p], S3[s][q], pf_params);
-              }
-              qio += qb[my_iindx[p]-q] * qb[my_iindx[k]-l] * qloop * scale[ln1+ln2];
+            ln2 = (p - 1) + (n - l);
+
+            if(!(hard_constraints[jindx[l]+k] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+              continue;
+            if((ln1+ln2) > MAXLOOP)
+              continue;
+            if(hc->up_int[l+1] < ln2)
+              continue;
+
+            double qloop=1.;
+            if (qb[my_iindx[k]-l]==0.){ qloop=0.; continue;}
+
+            for (s=0; s<n_seq; s++){
+              int ln1a = a2s[s][k] - 1 - a2s[s][q];
+              int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
+              type_2 = md->pair[S[s][l]][S[s][k]];
+              if (type_2 == 0) type_2 = 7;
+              qloop *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s], S3[s][l], S5[s][k], S5[s][p], S3[s][q], pf_params);
             }
-      } /* end of kl double loop */
+            if(sc)
+              for(s = 0; s < n_seq; s++){
+                int ln1a = a2s[s][k] - 1 - a2s[s][q];
+                int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
+                if(sc[s]){
+                  if((ln1a+ln2a == 0) && (sc[s]->exp_en_stack))
+                    qloop *=    sc[s]->exp_en_stack[a2s[s][p]]
+                              * sc[s]->exp_en_stack[a2s[s][q]]
+                              * sc[s]->exp_en_stack[a2s[s][k]]
+                              * sc[s]->exp_en_stack[a2s[s][l]];
+                  if(sc[s]->boltzmann_factors)
+                    qloop *=    sc[s]->boltzmann_factors[a2s[s][q] + 1][ln1a]
+                              * ((l < n) ? sc[s]->boltzmann_factors[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
+                              * ((p > 1) ? sc[s]->boltzmann_factors[1][a2s[s][p]-1] : 1.);
+                }
+              }
+
+            qio += qb[my_iindx[p]-q] * qb[my_iindx[k]-l] * qloop * scale[ln1+ln2];
+          }
+        } /* end of kl double loop */
+      }
     }
   } /* end of pq double loop */
 
@@ -910,7 +955,9 @@ wrap_alipf_circ(vrna_fold_compound *vc,
     qmo += qm[my_iindx[1]-k] * qm2[k+1] * pow(expMLclosing,n_seq);
 
   /* add additional pf of 1.0 to take open chain into account */
-  qo = qho + qio + qmo + 1.0*scale[n];
+  qo = qho + qio + qmo;
+  if(hc->up_ext[1] >= n)
+     qo += 1.0 * scale[n];
 
   matrices->qo    = qo;
   matrices->qho   = qho;

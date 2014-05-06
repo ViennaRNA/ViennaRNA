@@ -566,6 +566,7 @@ hc_reset_to_default(vrna_fold_compound *vc){
         if((j-i+1) > max_span){
           hc->matrix[ij] = (char)0;
         } else {
+/*           hc->matrix[ij] = (vc->pscore[idx[j]+i] >= md->cv_fact*MINPSCORE) ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0; */
           hc->matrix[ij] = (vc->pscore[idx[j]+i] >= MINPSCORE) ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0;
         }
     }
