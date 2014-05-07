@@ -281,15 +281,17 @@ fill_arrays(vrna_fold_compound *vc){
               int u = a2s[s][j-1]-a2s[s][i];
               if (u < 3) new_c+=600;
               else  new_c += E_Hairpin(u, type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
-              if(sc){
+            }
+            if(sc)
+              for(s = 0; s < n_seq; s++){
                 if(sc[s]){
+                  int u = a2s[s][j-1]-a2s[s][i];
                   if(sc[s]->en_basepair)
                     new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
                   if(sc[s]->free_energies)
                     new_c += sc[s]->free_energies[a2s[s][i]+1][u];
                 }
               }
-            }
         }
 
         /*--------------------------------------------------------
@@ -300,7 +302,7 @@ fill_arrays(vrna_fold_compound *vc){
         if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
           for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
             if(hc->up_int[i+1] < p - i - 1)
-              continue;
+              break;
 
             minq = j-i+p-MAXLOOP-2;
             if (minq<p+1+TURN) minq = p+1+TURN;
@@ -318,11 +320,15 @@ fill_arrays(vrna_fold_compound *vc){
                 energy += E_IntLoop(u1, u2, type[s], type_2,
                                      S3[s][i], S5[s][j],
                                      S5[s][p], S3[s][q], P);
-                if(sc){
+              }
+
+              if(sc){
+                for(s = 0; s < n_seq; s++){
                   if(sc[s]){
+                    int u1 = a2s[s][p-1]-a2s[s][i];
+                    int u2 = a2s[s][j-1]-a2s[s][q];
                     if(sc[s]->en_basepair)
-                      energy +=   sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]]
-                                + sc[s]->en_basepair[indx[a2s[s][q]] + a2s[s][p]];
+                      energy +=   sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
                     if(sc[s]->free_energies)
                       energy +=   sc[s]->free_energies[a2s[s][i]+1][u1]
                                 + sc[s]->free_energies[a2s[s][q]+1][u2];
