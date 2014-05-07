@@ -14,6 +14,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
+#include "ViennaRNA/aln_util.h"
 
 #define MAX_NUM_NAMES    500
 int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
@@ -189,3 +190,186 @@ get_ungapped_sequence(const char *seq){
 
   return tmp_sequence;
 }
+
+PUBLIC int
+vrna_ali_get_mpi( char *Alseq[],
+                  int n_seq,
+                  int length,
+                  int *mini){
+
+  int   i, j, k, pairnum = 0, sumident = 0;
+  float ident = 0, minimum = 1.;
+
+  for(j=0; j<n_seq-1; j++)
+    for(k=j+1; k<n_seq; k++) {
+      ident=0;
+      for (i=1; i<=length; i++){
+        if (Alseq[k][i]==Alseq[j][i]) ident++;
+        pairnum++;
+      }
+      if ((ident/length)<minimum) minimum=ident/(float)length;
+      sumident+=ident;
+    }
+  mini[0]=(int)(minimum*100.);
+  if (pairnum>0)   return (int) (sumident*100/pairnum);
+  else return 0;
+
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC int
+get_mpi(char *Alseq[],
+        int n_seq,
+        int length,
+        int *mini){
+
+  return vrna_ali_get_mpi(Alseq, n_seq, length, mini);
+}
+
+PUBLIC void
+alloc_sequence_arrays(const char **sequences,
+                      short ***S,
+                      short ***S5,
+                      short ***S3,
+                      unsigned short ***a2s,
+                      char ***Ss,
+                      int circ){
+
+  unsigned int s, n_seq, length;
+  if(sequences[0] != NULL){
+    length = strlen(sequences[0]);
+    for (s=0; sequences[s] != NULL; s++);
+    n_seq = s;
+    *S    = (short **)          space((n_seq+1) * sizeof(short *));
+    *S5   = (short **)          space((n_seq+1) * sizeof(short *));
+    *S3   = (short **)          space((n_seq+1) * sizeof(short *));
+    *a2s  = (unsigned short **) space((n_seq+1) * sizeof(unsigned short *));
+    *Ss   = (char **)           space((n_seq+1) * sizeof(char *));
+    for (s=0; s<n_seq; s++) {
+      if(strlen(sequences[s]) != length) nrerror("uneqal seqence lengths");
+      (*S5)[s]  = (short *)         space((length + 2) * sizeof(short));
+      (*S3)[s]  = (short *)         space((length + 2) * sizeof(short));
+      (*a2s)[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
+      (*Ss)[s]  = (char *)          space((length + 2) * sizeof(char));
+      (*S)[s]   = (short *)         space((length + 2) * sizeof(short));
+      encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
+    }
+    (*S5)[n_seq]  = NULL;
+    (*S3)[n_seq]  = NULL;
+    (*a2s)[n_seq] = NULL;
+    (*Ss)[n_seq]  = NULL;
+    (*S)[n_seq]   = NULL;
+  }
+  else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
+}
+
+PUBLIC void
+free_sequence_arrays( unsigned int n_seq,
+                      short ***S,
+                      short ***S5,
+                      short ***S3,
+                      unsigned short ***a2s,
+                      char ***Ss){
+
+  unsigned int s;
+  for (s=0; s<n_seq; s++) {
+    free((*S)[s]);
+    free((*S5)[s]);
+    free((*S3)[s]);
+    free((*a2s)[s]);
+    free((*Ss)[s]);
+  }
+  free(*S);   *S    = NULL;
+  free(*S5);  *S5   = NULL;
+  free(*S3);  *S3   = NULL;
+  free(*a2s); *a2s  = NULL;
+  free(*Ss);  *Ss   = NULL;
+}
+
+PUBLIC void
+encode_ali_sequence(const char *sequence,
+                    short *S,
+                    short *s5,
+                    short *s3,
+                    char *ss,
+                    unsigned short *as,
+                    int circular){
+
+  unsigned int i,l;
+  unsigned short p;
+  l     = strlen(sequence);
+  S[0]  = (short) l;
+  s5[0] = s5[1] = 0;
+
+  /* make numerical encoding of sequence */
+  for(i=1; i<=l; i++){
+    short ctemp;
+    ctemp=(short) encode_char(toupper(sequence[i-1]));
+    S[i]= ctemp ;
+  }
+
+  if (oldAliEn){
+    /* use alignment sequences in all energy evaluations */
+    ss[0]=sequence[0];
+    for(i=1; i<l; i++){
+      s5[i] = S[i-1];
+      s3[i] = S[i+1];
+      ss[i] = sequence[i];
+      as[i] = i;
+    }
+    ss[l]   = sequence[l];
+    as[l]   = l;
+    s5[l]   = S[l-1];
+    s3[l]   = 0;
+    S[l+1]  = S[1];
+    s5[1]   = 0;
+    if (circular) {
+      s5[1]   = S[l];
+      s3[l]   = S[1];
+      ss[l+1] = S[1];
+    }
+  }
+  else{
+    if(circular){
+      for(i=l; i>0; i--){
+        char c5;
+        c5 = sequence[i-1];
+        if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
+        s5[1] = S[i];
+        break;
+      }
+      for (i=1; i<=l; i++) {
+        char c3;
+        c3 = sequence[i-1];
+        if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
+        s3[l] = S[i];
+        break;
+      }
+    }
+    else  s5[1]=s3[l]=0;
+
+    for(i=1,p=0; i<=l; i++){
+      char c5;
+      c5 = sequence[i-1];
+      if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.'))
+        s5[i+1]=s5[i];
+      else { /* no gap */
+        ss[p++]=sequence[i-1]; /*start at 0!!*/
+        s5[i+1]=S[i];
+      }
+      as[i]=p;
+    }
+    for (i=l; i>=1; i--) {
+      char c3;
+      c3 = sequence[i-1];
+      if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.'))
+        s3[i-1]=s3[i];
+      else
+        s3[i-1]=S[i];
+    }
+  }
+}
+
