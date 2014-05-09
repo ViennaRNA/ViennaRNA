@@ -117,7 +117,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
             int u2, si1, sq1, type_2;
             u2 = i-1 + length-q;
 
-            if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+            if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP))
               continue;
             if(u1+u2>MAXLOOP)
               continue;
