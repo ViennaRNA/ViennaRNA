@@ -613,10 +613,11 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
           /* 1.2. Exterior Interior Loop Contribution */
           /* recycling of k and l... */
-          /* 1.2.1. first we calc exterior loop energy with constraint, that i,j  */
-          /* delimtis the "right" part of the interior loop                        */
-          /* (l,k) is "outer pair"                                                */
-          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP){
+
+            /* 1.2.1. first we calc exterior loop energy with constraint, that i,j  */
+            /* delimtis the "right" part of the interior loop                       */
+            /* (l,k) is "outer pair"                                                */
             for(k=1; k < i-TURN-1; k++){
               /* so first, lets calc the length of loop between j and k */
               int ln1, lstart;
@@ -678,11 +679,10 @@ alipf_create_bppm(vrna_fold_compound *vc,
                 tmp2 += qb[my_iindx[k] - l] * qloop * scale[ln1+ln2];
               }
             }
-          }
-          /* 1.2.2. second we calc exterior loop energy with constraint, that i,j  */
-          /* delimtis the "left" part of the interior loop                        */
-          /* (j,i) is "outer pair"                                                */
-          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP){
+
+            /* 1.2.2. second we calc exterior loop energy with constraint, that i,j */
+            /* delimtis the "left" part of the interior loop                        */
+            /* (j,i) is "outer pair"                                                */
             for(k=j+1; k < n-TURN; k++){
               /* so first, lets calc the length of loop between l and i */
               int ln1, lstart;
@@ -701,7 +701,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
                   continue;
                 if(hc->up_int[l+1] < ln2)
                   continue;
-                if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+                if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP))
                   continue;
 
                 double qloop=1.;
@@ -753,18 +753,44 @@ alipf_create_bppm(vrna_fold_compound *vc,
             }
             /* 1.3.2 Left part    */
             for(k=TURN+2; k < i-TURN-2; k++){
+              if(hc->up_ml[j+1] < n-j)
+                break;
 
               for (tmp3=1, s=0; s<n_seq; s++){
                 tmp3 *= exp_E_MLstem(rtype[type[s]], S5[s][i], S3[s][j], pf_params);
               }
+
+              if(sc)
+                for(s = 0; s < n_seq; s++){
+                  if(sc[s]){
+                    if(sc[s]->exp_en_basepair)
+                      tmp3 *= sc[s]->exp_en_basepair[jindx[a2s[s][j]] + a2s[s][i]];
+                    if(sc[s]->boltzmann_factors)
+                      tmp3 *= sc[s]->boltzmann_factors[a2s[s][j]+1][a2s[s][n]-a2s[s][j]];
+                  }
+                }
+
               tmp2 += qm[my_iindx[1]-k] * qm1[jindx[i-1]+k+1] * tmp3 * expMLbase[n-j] * pow(expMLclosing,n_seq);
             }
             /* 1.3.3 Right part    */
             for(k=j+TURN+2; k < n-TURN-1;k++){
+              if(hc->up_ml[1] < i-1)
+                break;
 
               for (tmp3=1, s=0; s<n_seq; s++){
                 tmp3 *= exp_E_MLstem(rtype[type[s]], S5[s][i], S3[s][j], pf_params);
               }
+
+              if(sc)
+                for(s = 0; s < n_seq; s++){
+                  if(sc[s]){
+                    if(sc[s]->exp_en_basepair)
+                      tmp3 *= sc[s]->exp_en_basepair[jindx[a2s[s][j]] + a2s[s][i]];
+                    if(sc[s]->boltzmann_factors)
+                      tmp3 *= sc[s]->boltzmann_factors[a2s[s][1]][a2s[s][i]-a2s[s][1]];
+                  }
+                }
+
               tmp2 += qm[my_iindx[j+1]-k] * qm1[jindx[n]+k+1] * tmp3 * expMLbase[i-1] * pow(expMLclosing,n_seq);
             }
           }
@@ -1104,7 +1130,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
 
             ln2 = (p - 1) + (n - l);
 
-            if(!(hard_constraints[jindx[l]+k] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+            if(!(hard_constraints[jindx[l]+k] & VRNA_HC_CONTEXT_INT_LOOP))
               continue;
             if((ln1+ln2) > MAXLOOP)
               continue;
