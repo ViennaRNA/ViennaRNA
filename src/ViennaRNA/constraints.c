@@ -729,6 +729,9 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
       }
 
       vc->hc->matrix[vc->jindx[q] + p] = option & VRNA_HC_CONTEXT_ALL_LOOPS;
+      if(vc->hc->matrix[vc->jindx[q] + p])
+        if(vc->ptype[vc->jindx[q] + p] == 0)
+          vc->ptype[vc->jindx[q] + p] = 7;
 
       if(option & VRNA_HC_CONTEXT_ENFORCE){
 
