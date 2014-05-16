@@ -706,7 +706,7 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
                 int j,
                 char option){
 
-  int p,q, k;
+  int p,q, k, l;
 
   if(vc)
     if(vc->hc){
@@ -731,19 +731,29 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
       vc->hc->matrix[vc->jindx[q] + p] = option & VRNA_HC_CONTEXT_ALL_LOOPS;
 
       if(option & VRNA_HC_CONTEXT_ENFORCE){
+
         /* do not allow i,j to pair with any other nucleotide k */
-        for(k = 1; k < p; k++)
+        for(k = 1; k < p; k++){
           vc->hc->matrix[vc->jindx[p] + k] = (char)0;
-        for(k = p+1; k <= vc->length; k++)
-          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
-        for(k = 1; k < q; k++)
           vc->hc->matrix[vc->jindx[q] + k] = (char)0;
-        for(k = p+1; k <= vc->length; k++)
+          for(l = p+1; l < q; l++)
+            vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+        }
+        for(k = p+1; k < q; k++){
+          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
+          vc->hc->matrix[vc->jindx[q] + k] = (char)0;
+          for(l = q + 1; l <= vc->length; l++)
+            vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+        }
+        for(k = q+1; k <= vc->length; k++){
+          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
           vc->hc->matrix[vc->jindx[k] + q] = (char)0;
+        }
 
         /* do not allow i,j to be unpaired */
         vc->hc->matrix[vc->jindx[p] + p] = (char)0;
         vc->hc->matrix[vc->jindx[q] + q] = (char)0;
+
         hc_update_up(vc);
       }
     }

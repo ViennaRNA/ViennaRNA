@@ -847,6 +847,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
   switch(dangle_model){
     /* dont use dangling end and mismatch contributions at all */
     case 0:   for(j=TURN+2; j<=length; j++){
+                f5[j] = INF;
                 if(hc_up[j]){
                   f5[j] = f5[j-1];
                   if(sc)
@@ -878,6 +879,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
 
     /* always use dangles on both sides */
     case 2:   for(j=TURN+2; j<length; j++){
+                f5[j] = INF;
                 if(hc_up[j]){
                   f5[j] = f5[j-1];
                   if(sc)
@@ -935,6 +937,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
 
     /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=TURN+2; j<=length; j++){
+                f5[j] = INF;
                 if(hc_up[j])
                   f5[j] = f5[j-1];
                 for (i=j-TURN-1; i>1; i--){
