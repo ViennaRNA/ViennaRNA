@@ -52,11 +52,15 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE char *tokenize(char *line, int *cut_point);
-PRIVATE void vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
-PRIVATE void vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
-PRIVATE void set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
-PRIVATE void make_pscores(vrna_fold_compound *vc);
+PRIVATE char            *tokenize(char *line, int *cut_point);
+PRIVATE void            vrna_add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void            vrna_add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void            set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
+PRIVATE void            make_pscores(vrna_fold_compound *vc);
+PRIVATE mfe_matricesT   *get_mfe_matrices_alloc( unsigned int n, unsigned int alloc_vector);
+PRIVATE pf_matricesT    *get_pf_matrices_alloc(unsigned int n, unsigned int alloc_vector);
+
+
 
 /*
 #################################
@@ -64,7 +68,7 @@ PRIVATE void make_pscores(vrna_fold_compound *vc);
 #################################
 */
 
-PUBLIC mfe_matricesT  *
+PRIVATE mfe_matricesT  *
 get_mfe_matrices_alloc( unsigned int n,
                         unsigned int alloc_vector){
 
@@ -121,40 +125,44 @@ get_mfe_matrices_alloc( unsigned int n,
 }
 
 PUBLIC void
-destroy_mfe_matrices(mfe_matricesT *self){
+vrna_free_mfe_matrices(vrna_fold_compound *vc){
 
-  if(self){
-    if(self->allocated){
-      if(self->allocated & ALLOC_F5)
-        free(self->f5);
-      if(self->allocated & ALLOC_F3)
-        free(self->f3);
-      if(self->allocated & ALLOC_HYBRID)
-        free(self->fc);
-      if(self->allocated & ALLOC_C)
-        free(self->c);
-      if(self->allocated & ALLOC_FML)
-        free(self->fML);
-      if(self->allocated & ALLOC_UNIQ)
-        free(self->fM1);
-      if(self->allocated & ALLOC_CIRC)
-        free(self->fM2);
-      free(self->ggg);
+  if(vc){
+    mfe_matricesT *self = vc->matrices;
+    if(self){
+      if(self->allocated){
+        if(self->allocated & ALLOC_F5)
+          free(self->f5);
+        if(self->allocated & ALLOC_F3)
+          free(self->f3);
+        if(self->allocated & ALLOC_HYBRID)
+          free(self->fc);
+        if(self->allocated & ALLOC_C)
+          free(self->c);
+        if(self->allocated & ALLOC_FML)
+          free(self->fML);
+        if(self->allocated & ALLOC_UNIQ)
+          free(self->fM1);
+        if(self->allocated & ALLOC_CIRC)
+          free(self->fM2);
+        free(self->ggg);
+      }
+      free(self);
+      vc->matrices = NULL;
     }
-    free(self);
   }
 }
 
 PUBLIC  void
-destroy_fold_compound(vrna_fold_compound *vc){
+vrna_free_fold_compound(vrna_fold_compound *vc){
 
   int s;
 
   if(vc){
 
     /* first destroy common attributes */
-    destroy_mfe_matrices(vc->matrices);
-    destroy_pf_matrices(vc->exp_matrices);
+    vrna_free_mfe_matrices(vc);
+    vrna_free_pf_matrices(vc);
     if(vc->iindx)
       free(vc->iindx);
     if(vc->jindx)
@@ -450,7 +458,7 @@ vrna_add_mfe_matrices(vrna_fold_compound *vc,
 
 
 
-PUBLIC pf_matricesT  *
+PRIVATE pf_matricesT  *
 get_pf_matrices_alloc(unsigned int n,
                       unsigned int alloc_vector){
 
@@ -517,21 +525,25 @@ get_pf_matrices_alloc(unsigned int n,
 }
 
 PUBLIC void
-destroy_pf_matrices(pf_matricesT *self){
+vrna_free_pf_matrices(vrna_fold_compound *vc){
 
-  if(self){
-    free(self->q);
-    free(self->qb);
-    free(self->qm);
-    free(self->qm1);
-    free(self->qm2);
-    free(self->probs);
-    free(self->G);
-    free(self->q1k);
-    free(self->qln);
-    free(self->scale);
-    free(self->expMLbase);
-    free(self);
+  if(vc){
+    if(vc->exp_matrices){
+      pf_matricesT  *self = vc->exp_matrices;
+      free(self->q);
+      free(self->qb);
+      free(self->qm);
+      free(self->qm1);
+      free(self->qm2);
+      free(self->probs);
+      free(self->G);
+      free(self->q1k);
+      free(self->qln);
+      free(self->scale);
+      free(self->expMLbase);
+      free(self);
+      vc->exp_matrices = NULL;
+    }
   }
 }
 

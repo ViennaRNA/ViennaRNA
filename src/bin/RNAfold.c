@@ -381,10 +381,10 @@ int main(int argc, char *argv[]){
         if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
       }
     }
-    if (length>2000){
-      destroy_mfe_matrices(vc->matrices);
-      vc->matrices = NULL;
-    }
+
+    if (length>2000)
+      vrna_free_mfe_matrices(vc);
+
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
       if (mfe_parameters->model_details.dangles==1) {
@@ -497,7 +497,7 @@ int main(int argc, char *argv[]){
     (void) fflush(stdout);
 
     /* clean up */
-    destroy_fold_compound(vc);
+    vrna_free_fold_compound(vc);
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);

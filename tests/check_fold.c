@@ -45,7 +45,7 @@ START_TEST(test_sample_structure)
   ck_assert_int_eq(strlen(sample), 16);
   free(sample);
 
-  destroy_fold_compound(vc);
+  vrna_free_fold_compound(vc);
 }
 END_TEST
 
@@ -119,7 +119,7 @@ START_TEST(test_sc_sanity_check)
     ck_assert(plist_constrained[i].p == plist_unconstrained[i].p);
   }
 
-  destroy_fold_compound(vc);
+  vrna_free_fold_compound(vc);
 
   for(i = 1; i <= length; ++i)
     free(sc_bp[i]);

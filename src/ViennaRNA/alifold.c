@@ -145,7 +145,7 @@ wrap_alifold( const char **strings,
   }
 
   if(backward_compat_compound && backward_compat)
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -1410,7 +1410,7 @@ PUBLIC void
 free_alifold_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
@@ -1634,7 +1634,7 @@ energy_of_ali_gquad_structure(const char **sequences,
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
     if(backward_compat_compound && backward_compat)
-      destroy_fold_compound(backward_compat_compound);
+      vrna_free_fold_compound(backward_compat_compound);
 
     backward_compat_compound  = vc;
     backward_compat           = 1;
@@ -1671,7 +1671,7 @@ energy_of_alistruct(const char **sequences,
     energy[1] = (float)en_struct[1]/(float)(100*n_seq);
 
     if(backward_compat_compound && backward_compat)
-      destroy_fold_compound(backward_compat_compound);
+      vrna_free_fold_compound(backward_compat_compound);
 
     backward_compat_compound  = vc;
     backward_compat           = 1;

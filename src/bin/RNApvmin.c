@@ -165,7 +165,7 @@ int main(int argc, char *argv[]){
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
     mfe = vrna_fold(vc, NULL);
-    destroy_fold_compound(vc);
+    vrna_free_fold_compound(vc);
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
     pf_scale = exp(-(args_info.pfScale_arg * mfe) / kT / length);
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
     vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, args_info.sigma_arg, args_info.tau_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
 
-    destroy_fold_compound(vc);
+    vrna_free_fold_compound(vc);
     free(pf_parameters);
 
     print_perturbation_vector(stdout, epsilon);

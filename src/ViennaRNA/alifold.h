@@ -151,9 +151,9 @@ DEPRECATED(float circalifold( const char **strings, char *structure));
  *  \deprecated Usage of this function is discouraged! It only
  *  affects memory being free'd that was allocated by an old API
  *  function before. Release of memory occupied by the newly introduced
- *  #vrna_fold_compound is handled by vrna_destroy_fold_compound()
+ *  #vrna_fold_compound is handled by vrna_vrna_free_fold_compound()
  *
- *  \see vrna_destroy_fold_compound()
+ *  \see vrna_vrna_free_fold_compound()
  *
  *  \ingroup consensus_mfe_fold
  * 
@@ -421,7 +421,7 @@ DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
  *  allocated by old API function calls. Memory allocated by any of the new API calls (starting with vrna_)
  *  will be not affected!
  *
- *  \see #vrna_fold_compound, vrna_destroy_fold_compound()
+ *  \see #vrna_fold_compound, vrna_vrna_free_fold_compound()
  *
  */
 DEPRECATED(void  free_alipf_arrays(void));

@@ -175,7 +175,7 @@ wrap_cofold(const char *string,
   }
 
   if(backward_compat_compound)
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
 
@@ -1425,7 +1425,7 @@ wrap_zukersubopt( const char *string,
   }
 
   if(backward_compat_compound)
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
 
@@ -1558,7 +1558,7 @@ PUBLIC void
 free_co_arrays(void){
 
   if(backward_compat_compound){
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
   }
 }

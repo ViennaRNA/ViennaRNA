@@ -973,27 +973,9 @@ typedef struct{
 
 /*
 * ############################################################
-* Useful functions to retrieve/destroy data structures
-* ############################################################
-*/
-
-mfe_matricesT *get_mfe_matrices_alloc( unsigned int n,
-                                       unsigned int alloc_vector);
-
-void destroy_mfe_matrices(mfe_matricesT *self);
-
-pf_matricesT  *get_pf_matrices_alloc(unsigned int n,
-                                    unsigned int alloc_vector);
-
-void destroy_pf_matrices(pf_matricesT *self);
-
-/*
-* ############################################################
 * VRNA fold compound related functions
 * ############################################################
 */
-
-/* General stuff */
 
 vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
                                             model_detailsT *md_p,
@@ -1003,9 +985,10 @@ vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequence,
                                                 model_detailsT *md_p,
                                                 unsigned int options);
 
-void destroy_fold_compound(vrna_fold_compound *vc);
+void vrna_free_fold_compound(vrna_fold_compound *vc);
 
+void vrna_free_mfe_matrices(vrna_fold_compound *vc);
 
-/* partition function stuff */
+void vrna_free_pf_matrices(vrna_fold_compound *vc);
 
 #endif
