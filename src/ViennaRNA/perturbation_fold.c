@@ -375,8 +375,9 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
     }
     while (status == GSL_CONTINUE);
 
+    memcpy(epsilon, minimizer->x->data, sizeof(double) * (length + 1));
+
     gsl_multimin_fdfminimizer_free(minimizer);
-    memcpy(epsilon, vector->data, sizeof(double) * (length + 1));
     gsl_vector_free(vector);
 
     return;
