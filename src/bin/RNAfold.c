@@ -60,7 +60,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   if(verbose){
     fprintf(stderr, "Using SHAPE method '%c'", method);
     if(method != 'W'){
-      if(method == 'C')
+      if(method == 'Z')
         fprintf(stderr, " with parameter p1=%f", p1);
       else
         fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
@@ -77,7 +77,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   values = space(sizeof(double) * (length + 1));
   parse_soft_constraints_file(shape_file, length, method == 'C' ? 0.5 : 0, sequence, values);
 
-  if(method == 'C'){
+  if(method == 'Z'){
     double *sc_up = space(sizeof(double) * (length + 1));
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
