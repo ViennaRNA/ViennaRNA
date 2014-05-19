@@ -452,8 +452,7 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
-  destroy_mfe_matrices(vc->matrices);
-  vc->matrices = NULL;
+  vrna_free_mfe_matrices(vc);
 
   if (pf) {
     float energy, kT;
@@ -556,7 +555,7 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    destroy_fold_compound(vc);
+    vrna_free_fold_compound(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);

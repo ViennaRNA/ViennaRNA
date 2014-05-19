@@ -133,7 +133,7 @@ wrap_pf_fold( const char *sequence,
   }
 
   if(backward_compat_compound)
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
 
   backward_compat_compound = vc;
   iindx = backward_compat_compound->iindx;
@@ -2140,7 +2140,7 @@ PUBLIC void
 free_pf_arrays(void){
 
   if(backward_compat_compound){
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
     iindx = NULL;
   }

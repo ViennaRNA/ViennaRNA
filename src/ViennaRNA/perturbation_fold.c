@@ -150,7 +150,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
     calculate_probability_unpaired(restricted_vc, conditional_prob_unpaired[i]);
 
     restricted_vc->sc = NULL;
-    destroy_fold_compound(restricted_vc);
+    vrna_free_fold_compound(restricted_vc);
   }
 
   vrna_sc_remove(vc);
