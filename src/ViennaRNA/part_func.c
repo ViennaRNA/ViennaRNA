@@ -1029,19 +1029,17 @@ pf_create_bppm( vrna_fold_compound *vc,
           tt = (unsigned char)ptype[jindx[l+1] + i];
           tt = rtype[tt];
           if(hard_constraints[jindx[l+1] + i] & VRNA_HC_CONTEXT_MB_LOOP){
-            if(tt){
-              prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-              
-              if(sc){
-                /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
-                if(sc->exp_en_basepair)
-                  prmt1 *= sc->exp_en_basepair[ii - (l+1)];
+            prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+            
+            if(sc){
+              /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+              if(sc->exp_en_basepair)
+                prmt1 *= sc->exp_en_basepair[ii - (l+1)];
 
 /*
-                if(sc->exp_f)
-                  prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
+              if(sc->exp_f)
+                prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
 */
-              }
             }
           }
           int lj;
@@ -1052,25 +1050,23 @@ pf_create_bppm( vrna_fold_compound *vc,
             if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
               tt = (unsigned char)ptype[jindx[j] + i];
               tt = rtype[tt];
-              if(tt){
-                /* which decomposition is covered here? =>
-                  i + 1 = k < l < j:
-                  (i,j)       -> enclosing pair
-                  (k, l)      -> enclosed pair
-                  (l+1, j-1)  -> multiloop part with at least one stem
-                  
-                */
-                ppp = probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
-                if(sc){
-                  if(sc->exp_en_basepair)
-                    ppp *= sc->exp_en_basepair[ij];
+              /* which decomposition is covered here? =>
+                i + 1 = k < l < j:
+                (i,j)       -> enclosing pair
+                (k, l)      -> enclosed pair
+                (l+1, j-1)  -> multiloop part with at least one stem
+                
+              */
+              ppp = probs[ij] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[lj];
+              if(sc){
+                if(sc->exp_en_basepair)
+                  ppp *= sc->exp_en_basepair[ij];
 /*
-                  if(sc->exp_f)
-                    ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
+                if(sc->exp_f)
+                  ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
 */
-                }
-                prmt += ppp;
               }
+              prmt += ppp;
             }
           }
           prmt *= expMLclosing;
