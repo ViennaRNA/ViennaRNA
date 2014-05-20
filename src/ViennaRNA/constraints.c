@@ -1239,7 +1239,7 @@ parse_soft_constraints_shape_method(const char *method_string,
 
   if (m == 'Z')
   {
-    *param_1 = 1;
+    *param_1 = 0.89;
     if(params && !sscanf(params, "b%f", param_1))
       warn_user(warning);
   }

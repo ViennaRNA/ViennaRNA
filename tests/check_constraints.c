@@ -294,7 +294,7 @@ START_TEST(test_parse_soft_constraints_shape_method)
   ret = parse_soft_constraints_shape_method("Z", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
-  ck_assert(deltaCompare(p1, 1));
+  ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
@@ -308,7 +308,7 @@ START_TEST(test_parse_soft_constraints_shape_method)
   ret = parse_soft_constraints_shape_method("Zx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
-  ck_assert(deltaCompare(p1, 1));
+  ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
