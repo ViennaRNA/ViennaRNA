@@ -23,9 +23,9 @@ START_TEST(test_normalize_shape_reactivities_to_probabilities_linear)
   double upper_range_values2[] = { 0, 1.2, 1.7};
 
   normalize_shape_reactivities_to_probabilities_linear(negative_values, 3);
-  ck_assert(deltaCompare(negative_values[1], 0));
-  ck_assert(deltaCompare(negative_values[2], 0));
-  ck_assert(deltaCompare(negative_values[3], 0));
+  ck_assert(deltaCompare(negative_values[1], 0.5));
+  ck_assert(deltaCompare(negative_values[2], 0.5));
+  ck_assert(deltaCompare(negative_values[3], 0.5));
 
   normalize_shape_reactivities_to_probabilities_linear(hardcoded_range_values, 7);
   ck_assert(deltaCompare(hardcoded_range_values[1], 0.175));
