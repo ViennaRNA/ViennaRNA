@@ -75,7 +75,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = space(sizeof(char) * (length + 1));
   values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'C' ? 0.5 : 0, sequence, values);
+  parse_soft_constraints_file(shape_file, length, method == 'Z' ? -1 : 0, sequence, values);
 
   if(method == 'Z'){
     double *sc_up = space(sizeof(double) * (length + 1));

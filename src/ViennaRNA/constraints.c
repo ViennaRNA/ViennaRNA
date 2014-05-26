@@ -897,8 +897,10 @@ normalize_shape_reactivities_to_probabilities_linear(double *values, int length)
     double lower_source = 0;
     double lower_target = 0;
 
-    if(values[i] <= 0){
-      values[i] = 0;
+    if(values[i] == 0)
+      continue;
+    if(values[i] < 0){
+      values[i] = 0.5;
       continue;
     }
 
