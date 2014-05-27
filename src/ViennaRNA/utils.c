@@ -507,27 +507,36 @@ PUBLIC  void  fill_pair_matrices(model_detailsT *md){
   */
 }
 
-PUBLIC  short *get_sequence_encoding( const char *sequence,
-                                      short type,
-                                      model_detailsT *md){
+PUBLIC short *
+vrna_seq_encode(const char *sequence,
+                model_detailsT *md){
+
+  unsigned int  i, l;
+  short         *S = vrna_seq_encode_simple(sequence, md);
+
+  l = (unsigned int)S[0];
+
+  for(i=1; i<=l; i++)
+    S[i] = md->alias[S[i]];
+
+  S[l+1] = S[1];
+  S[0] = S[l];
+
+  return S;
+}
+
+PUBLIC short *
+vrna_seq_encode_simple( const char *sequence,
+                        model_detailsT *md){
 
   unsigned int i,l = (unsigned int)strlen(sequence);
   short         *S = (short *) space(sizeof(short)*(l+2));
 
-  switch(type){
-    /* standard encoding as always used for S */
-    case 0:   for(i=1; i<=l; i++) /* make numerical encoding of sequence */
-                S[i]= (short) get_char_encoding(toupper(sequence[i-1]), md);
-              S[l+1] = S[1];
-              S[0] = (short) l;
-              break;
-    /* encoding for mismatches of nostandard bases (normally used for S1) */
-    case 1:   for(i=1; i<=l; i++)
-                S[i] = md->alias[(short)get_char_encoding(toupper(sequence[i-1]), md)];
-              S[l+1] = S[1];
-              S[0] = S[l];
-              break;
-  }
+  for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+    S[i]= (short) get_char_encoding(toupper(sequence[i-1]), md);
+
+  S[l+1] = S[1];
+  S[0] = (short) l;
 
   return S;
 }
@@ -553,13 +562,13 @@ PUBLIC  char  get_encoded_char(int enc, model_detailsT *md){
 }
 
 PUBLIC void
-get_sequence_encoding_gapped( const char *sequence,
-                              short **S_p,
-                              short **s5_p,
-                              short **s3_p,
-                              char **ss_p,
-                              unsigned short **as_p,
-                              model_detailsT *md){
+vrna_ali_encode(const char *sequence,
+                    short **S_p,
+                    short **s5_p,
+                    short **s3_p,
+                    char **ss_p,
+                    unsigned short **as_p,
+                    model_detailsT *md){
 
   unsigned  int   i,l;
   unsigned  short p;
@@ -570,16 +579,11 @@ get_sequence_encoding_gapped( const char *sequence,
   (*s3_p)   = (short *)         space((l + 2) * sizeof(short));
   (*as_p)  = (unsigned short *)space((l + 2) * sizeof(unsigned short));
   (*ss_p)   = (char *)          space((l + 2) * sizeof(char));
-  (*S_p)    = (short *)         space((l + 2) * sizeof(short));
-
-
-  (*S_p)[0]  = (short) l;
-  (*s5_p)[0] = (*s5_p)[1] = 0;
 
   /* make numerical encoding of sequence */
-  for(i=1; i<=l; i++){
-    (*S_p)[i] = (short) get_char_encoding(toupper(sequence[i-1]), md);
-  }
+  (*S_p)    = vrna_seq_encode_simple(sequence, md);
+
+  (*s5_p)[0] = (*s5_p)[1] = 0;
 
   if(md->oldAliEn){
     /* use alignment sequences in all energy evaluations */

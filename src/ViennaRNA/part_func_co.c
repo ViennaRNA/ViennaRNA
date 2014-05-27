@@ -268,9 +268,9 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
  /* printf("mirnatog=%d\n",mirnatog); */
 
   if(S) free(S);
-  S   = get_sequence_encoding(sequence, 0, &(pf_params->model_details));
+  S   = vrna_seq_encode_simple(sequence, &(pf_params->model_details));
   if(S1) free(S1);
-  S1  = get_sequence_encoding(sequence, 1, &(pf_params->model_details));
+  S1  = vrna_seq_encode(sequence, &(pf_params->model_details));
 
   make_ptypes(S, structure);
 

@@ -113,7 +113,7 @@ vrna_md_set_default(model_detailsT *md){
     for(i = 0;i <= MAXALPHA; i++)
       memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
 
-    fill_pair_matrices(md);
+    vrna_md_update(md);
 
   }
 }
@@ -198,6 +198,13 @@ vrna_md_get_gquad(model_detailsT *md){
     return -1;
 }
 
+PUBLIC void
+vrna_md_update(model_detailsT *md){
+
+  if(md)
+    fill_pair_matrices(md);
+}
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -243,7 +250,7 @@ set_model_details(model_detailsT *md){
     for(i = 0;i <= MAXALPHA; i++)
       memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
 
-    fill_pair_matrices(md);
+    vrna_md_update(md);
 
   }
 }
