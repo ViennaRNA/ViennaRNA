@@ -534,7 +534,8 @@ eval_circ_pt( const char *string,
       en0 = E_IntLoop(u1, u2, type, type_2,
                        s1[j+1], si1, s1[p-1], sq1,P);
     } else { /* degree > 2 */
-      en0 = ML_Energy(0, (const short *)pt, s, s1, P, 0) - P->MLintern[0];
+      en0 = energy_of_ml_pt(0, (const short *)pt, s, s1, P) - P->MLintern[0];
+#if 0
       if (dangle_model) {
         int d5, d3;
         if (pt[1]) {
@@ -576,6 +577,7 @@ eval_circ_pt( const char *string,
           }
         }
       }
+#endif
     }
 
   if (verbosity_level>0)
@@ -951,7 +953,10 @@ energy_of_ml_pt(int i,
   if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
 
-  j = (int)pt[i];
+  if(i == 0)
+    j = (int)pt[0] + 1;
+  else
+    j = (int)pt[i];
 
   /* init the variables */
   energy      = 0;
@@ -980,8 +985,12 @@ energy_of_ml_pt(int i,
                 u += p - q - 1; /* add unpaired nucleotides */
               }
               /* now lets get the energy of the enclosing stem */
-              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-              energy += E_MLstem(type, -1, -1, P);
+              if(i > 0){  /* actual closing pair */
+                type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
+                energy += E_MLstem(type, -1, -1, P);
+              } else {  /* virtual closing pair */
+                energy += E_MLstem(0, -1, -1, P);
+              }
               break;
 
     case 2:   while(p < j){
@@ -999,10 +1008,14 @@ energy_of_ml_pt(int i,
                 while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
               }
-              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
-              energy += E_MLstem(type, s1[j-1], s1[i+1], P);
+              if(i > 0){  /* actual closing pair */
+                type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
+                mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
+                mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
+                energy += E_MLstem(type, s1[j-1], s1[i+1], P);
+              } else {  /* virtual closing pair */
+                energy += E_MLstem(0, -1, -1, P);
+              }
               break;
 
     case 3:   /* we treat helix stacking different */
@@ -1343,9 +1356,9 @@ ML_Energy(int i,
         if ( p == (unsigned int)pt[0]+1 ){
           q = 0;tt = 0; /* virtual root pair */
         } else {
-        q  = (unsigned int)pt[p];
+          q = (unsigned int)pt[p];
           /* get type of base pair P->q */
-        tt = P->model_details.pair[s[p]][s[q]]; if (tt==0) tt=7;
+          tt = P->model_details.pair[s[p]][s[q]]; if (tt==0) tt=7;
         }
 
         energy += mlintern[tt];
