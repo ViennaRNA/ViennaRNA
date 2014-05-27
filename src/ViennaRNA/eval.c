@@ -128,8 +128,8 @@ vrna_eval_structure(const char *string,
                     paramT *parameters){
 
   paramT *P = get_updated_params(parameters, 0);
-  short *s  = get_sequence_encoding(string, 0, &(P->model_details));
-  short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
+  short *s1 = vrna_seq_encode(string, &(P->model_details));
   short *pt = vrna_pt_get(structure);
   float en  = wrap_eval_structure(string, structure, pt, s, s1, P, NULL, -1);
 
@@ -147,8 +147,8 @@ vrna_eval_structure_verbose(const char *string,
                             FILE *file){
 
   paramT *P = get_updated_params(parameters, 0);
-  short *s  = get_sequence_encoding(string, 0, &(P->model_details));
-  short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
+  short *s1 = vrna_seq_encode(string, &(P->model_details));
   short *pt = vrna_pt_get(structure);
   float en  = wrap_eval_structure(string, structure, pt, s, s1, P, file, 1);
 
@@ -169,8 +169,8 @@ vrna_eval_structure_pt( const char *string,
       nrerror("energy_of_struct: string and structure have unequal length");
 
     paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
-    short *s  = get_sequence_encoding(string, 0, &(P->model_details));
-    short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+    short *s  = vrna_seq_encode_simple(string, &(P->model_details));
+    short *s1 = vrna_seq_encode(string, &(P->model_details));
 
     int en = eval_pt(string, pt, s, s1, NULL, P, -1);
     free(s);
@@ -192,8 +192,8 @@ vrna_eval_structure_pt_verbose( const char *string,
       nrerror("energy_of_struct: string and structure have unequal length");
 
     paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
-    short *s  = get_sequence_encoding(string, 0, &(P->model_details));
-    short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+    short *s  = vrna_seq_encode_simple(string, &(P->model_details));
+    short *s1 = vrna_seq_encode(string, &(P->model_details));
 
     int en = eval_pt(string, pt, s, s1, file, P, 1);
     free(s);
@@ -317,8 +317,8 @@ vrna_eval_move( const char *string,
 
   paramT *P = get_updated_params(params, 0);
   short *pt = vrna_pt_get(structure);
-  short *s  = get_sequence_encoding(string, 0, &(P->model_details));
-  short *s1 = get_sequence_encoding(string, 1, &(P->model_details));
+  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
+  short *s1 = vrna_seq_encode(string, &(P->model_details));
 
   int en = vrna_eval_move_pt(pt, s, s1, m1, m2, P);
 

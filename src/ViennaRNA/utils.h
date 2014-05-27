@@ -430,20 +430,20 @@ void  fill_pair_matrices(model_detailsT *md);
  *  \brief Get the integer encoding of the sequence according to the model details and encoding type
  *
  */
-short *get_sequence_encoding( const char *sequence,
-                              short type,
-                              model_detailsT *md);
+short *vrna_seq_encode(const char *sequence, model_detailsT *md);
+
+short *vrna_seq_encode_simple(const char *sequence, model_detailsT *md);
+
 
 char  get_encoded_char(int enc, model_detailsT *md);
 
-void  get_sequence_encoding_gapped( const char *sequence,
-                                    short **S,
-                                    short **s5,
-                                    short **s3,
-                                    char **ss,
-                                    unsigned short **as,
-                                    model_detailsT *md);
-
+void  vrna_ali_encode(const char *sequence,
+                      short **S_p,
+                      short **s5_p,
+                      short **s3_p,
+                      char **ss_p,
+                      unsigned short **as_p,
+                      model_detailsT *md);
 
 /**
  *  \brief Get an array of the numerical encoding for each possible base pair (i,j)

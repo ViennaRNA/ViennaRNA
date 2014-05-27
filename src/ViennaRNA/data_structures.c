@@ -315,8 +315,8 @@ set_fold_compound(vrna_fold_compound *vc,
     free(vc->sequence);
     vc->sequence            = seq;
     vc->length              = length = strlen(seq);
-    vc->sequence_encoding   = get_sequence_encoding(seq, 1, &md);
-    vc->sequence_encoding2  = get_sequence_encoding(seq, 0, &md);
+    vc->sequence_encoding   = vrna_seq_encode(seq, &md);
+    vc->sequence_encoding2  = vrna_seq_encode_simple(seq, &md);
     vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
     vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
     vc->sc                  = NULL;
@@ -328,7 +328,7 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->length    = length = vc->length;
 
     vc->cons_seq  = consensus((const char **)sequences);
-    vc->S_cons    = get_sequence_encoding(vc->cons_seq, 0, &md);
+    vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, &md);
 
     vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
 
@@ -342,13 +342,13 @@ set_fold_compound(vrna_fold_compound *vc,
 
     for (s = 0; s < vc->n_seq; s++) {
 #if 1
-      get_sequence_encoding_gapped( vc->sequences[s],
-                                    &(vc->S[s]),
-                                    &(vc->S5[s]),
-                                    &(vc->S3[s]),
-                                    &(vc->Ss[s]),
-                                    &(vc->a2s[s]),
-                                    &md);
+      vrna_ali_encode(vc->sequences[s],
+                      &(vc->S[s]),
+                      &(vc->S5[s]),
+                      &(vc->S3[s]),
+                      &(vc->Ss[s]),
+                      &(vc->a2s[s]),
+                      &md);
 #else
       vc->S5[s]  = (short *)         space((length + 2) * sizeof(short));
       vc->S3[s]  = (short *)         space((length + 2) * sizeof(short));

@@ -285,6 +285,10 @@ void vrna_md_set_gquad(model_detailsT *md, int g);
 
 int vrna_md_get_gquad(model_detailsT *md);
 
+/**
+ *  \brief Update the model details
+ */
+void vrna_md_update(model_detailsT *md);
 
 /**
  * \brief Set default model details
