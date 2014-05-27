@@ -72,13 +72,6 @@ PRIVATE int   energy_of_ml_pt(int i,
                               const short *s1,
                               paramT *params);
 
-PRIVATE int   ML_Energy(int i,
-                        const short *pt,
-                        const short *s,
-                        const short *s1,
-                        paramT *params,
-                        int is_extloop);
-
 PRIVATE int   cut_in_loop(int i, const short *pt);
 
 PRIVATE int   eval_pt(const char *string,
@@ -940,6 +933,7 @@ energy_of_ml_pt(int i,
 
   int energy, cx_energy, tmp, tmp2, best_energy=INF;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
+  int e_stem, e_stem5, e_stem3, e_stem53;
   int mlintern[NBPAIRS+1];
 
   /* helper variables for dangles == 1|5 case */
@@ -1127,57 +1121,66 @@ energy_of_ml_pt(int i,
                 }
                 mm5 = ((SAME_STRAND(p-1,p)) && !pt[p-1])  ? s1[p-1] : -1;
                 mm3 = ((SAME_STRAND(q,q+1)) && !pt[q+1])  ? s1[q+1] : -1;
-                tmp =                   MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                tmp   =                 MIN2(tmp, E_mm5_available + E_MLstem(tt, -1, mm3, P));
-                tmp2  =                 MIN2(
-                                              E_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E_mm5_available =       MIN2(tmp2, E_mm5_available  + E_MLstem(tt, -1, -1, P));
-                E_mm5_occupied  = tmp;
+                e_stem    = E_MLstem(tt, -1, -1, P);
+                e_stem5   = E_MLstem(tt, mm5, -1, P);
+                e_stem3   = E_MLstem(tt, -1, mm3, P);
+                e_stem53  = E_MLstem(tt, mm5, mm3, P);
 
-                tmp =                  MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, mm3, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, mm3, P)
-                                            );
-                tmp =                   MIN2(tmp, E2_mm5_available + E_MLstem(tt, -1, mm3, P));
-                tmp2 =                  MIN2(
-                                              E2_mm5_occupied  + E_MLstem(tt, -1, -1, P),
-                                              E2_mm5_available + E_MLstem(tt, mm5, -1, P)
-                                            );
-                E2_mm5_available =      MIN2(tmp2, E2_mm5_available + E_MLstem(tt, -1, -1, P));
-                E2_mm5_occupied = tmp;
+                tmp   = E_mm5_occupied + e_stem3;
+                tmp   = MIN2(tmp, E_mm5_available + e_stem53);
+                tmp   = MIN2(tmp, E_mm5_available + e_stem3);
+                tmp2  = E_mm5_occupied + e_stem;
+                tmp2  = MIN2(tmp2, E_mm5_available + e_stem5);
+                tmp2  = MIN2(tmp2, E_mm5_available + e_stem); 
+
+                E_mm5_occupied  = tmp;
+                E_mm5_available = tmp2;
+
+                tmp   = E2_mm5_occupied + e_stem3;
+                tmp   = MIN2(tmp, E2_mm5_available + e_stem53);
+                tmp   = MIN2(tmp, E2_mm5_available + e_stem3);
+                tmp2  = E2_mm5_occupied + e_stem;
+                tmp2  = MIN2(tmp2, E2_mm5_available + e_stem5);
+                tmp2  = MIN2(tmp2, E2_mm5_available + e_stem);
+                
+                E2_mm5_occupied   = tmp;
+                E2_mm5_available  = tmp2;
+
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
                 while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
               }
+              if(i > 0){  /* actual closing pair */
+                type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
+                mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
+                mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
+                if(q_prev + 2 < p){
+                  E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
+                  E_mm5_occupied  = E_mm5_available;
+                }
+                if(q_prev2 + 2 < p){
+                  E2_mm5_available  = MIN2(E2_mm5_available, E2_mm5_occupied);
+                  E2_mm5_occupied   = E2_mm5_available;
+                }
+                e_stem    = E_MLstem(type, -1, -1, P);
+                e_stem5   = E_MLstem(type, mm5, -1, P);
+                e_stem3   = E_MLstem(type, -1, mm3, P);
+                e_stem53  = E_MLstem(type, mm5, mm3, P);
+              } else {  /* virtual closing pair */
+                e_stem = e_stem5 = e_stem3 = e_stem53 = E_MLstem(0, -1, -1, P);
+              }
               /* now lets see how we get the minimum including the enclosing stem */
-              type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-              mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
-              mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
-              if(q_prev + 2 < p){
-                E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
-                E_mm5_occupied  = E_mm5_available;
-              }
-              if(q_prev2 + 2 < p){
-                E2_mm5_available  = MIN2(E2_mm5_available, E2_mm5_occupied);
-                E2_mm5_occupied   = E2_mm5_available;
-              }
-              energy = MIN2(E_mm5_occupied  + E_MLstem(type, -1, -1, P),
-                            E_mm5_available + E_MLstem(type, mm5, -1, P)
-                          );
-              energy = MIN2(energy, E_mm5_available   + E_MLstem(type, -1, -1, P));
-              energy = MIN2(energy, E2_mm5_occupied   + E_MLstem(type, -1, mm3, P));
-              energy = MIN2(energy, E2_mm5_occupied   + E_MLstem(type, -1, -1, P));
-              energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, mm5, mm3, P));
-              energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, -1, mm3, P));
-              energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, mm5, -1, P));
-              energy = MIN2(energy, E2_mm5_available  + E_MLstem(type, -1, -1, P));
+              energy = E_mm5_occupied  + e_stem;
+              energy = MIN2(energy, E_mm5_available   + e_stem5);
+              energy = MIN2(energy, E_mm5_available   + e_stem);
+              energy = MIN2(energy, E2_mm5_occupied   + e_stem3);
+              energy = MIN2(energy, E2_mm5_occupied   + e_stem);
+              energy = MIN2(energy, E2_mm5_available  + e_stem53);
+              energy = MIN2(energy, E2_mm5_available  + e_stem3);
+              energy = MIN2(energy, E2_mm5_available  + e_stem5);
+              energy = MIN2(energy, E2_mm5_available  + e_stem);
               break;
   }/* end switch dangle_model */
 
@@ -1205,233 +1208,6 @@ cut_in_loop(int i, const short *pt){
     while ( pt[p]==0 ) p++;
   } while (p!=j && SAME_STRAND(i,p));
   return SAME_STRAND(i,p) ? 0 : j;
-}
-
-PRIVATE int
-ML_Energy(int i,
-          const short *pt,
-          const short *s,
-          const short *s1,
-          paramT *P,
-          int is_extloop){
-
-  /* i is the 5'-base of the closing pair (or 0 for exterior loop)
-     loop is scored as ML if extloop==0 else as exterior loop
-
-     since each helix can coaxially stack with at most one of its
-     neighbors we need an auxiliarry variable  cx_energy
-     which contains the best energy given that the last two pairs stack.
-     energy  holds the best energy given the previous two pairs do not
-     stack (i.e. the two current helices may stack)
-     We don't allow the last helix to stack with the first, thus we have to
-     walk around the Loop twice with two starting points and take the minimum
-  */
-
-  int energy, cx_energy, best_energy=INF;
-  int i1, j, p, q, u, x, type, count;
-  int mlintern[NBPAIRS+1], mlclosing, mlbase;
-  int dangle_model = P->model_details.dangles;
-  int *rtype = &(P->model_details.rtype[0]);
-
-  if (is_extloop) {
-    for (x = 0; x <= NBPAIRS; x++)
-      mlintern[x] = P->MLintern[x]-P->MLintern[1]; /* 0 or TerminalAU */
-    mlclosing = mlbase = 0;
-  } else {
-    for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
-    mlclosing = P->MLclosing; mlbase = P->MLbase;
-  }
-
-  /*  as we do not only have dangling end but also mismatch contributions,
-  **  we do this a bit different to previous implementations
-  */
-  if(is_extloop){
-    energy = 0;
-    i1  = i;
-    p   = i+1;
-
-    int E_mm5_available, E_mm5_occupied;
-    /* find out if we may have 5' mismatch for the next stem */
-    while (p <= (int)pt[0] && pt[p]==0) p++;
-    /* get position of pairing partner */
-    if(p < (int)pt[0]){
-        E_mm5_occupied  = (p - i - 1 > 0) ? INF : 0;
-        E_mm5_available = (p - i - 1 > 0) ? 0 : INF;
-    }
-
-    if(p < (int)pt[0])
-      do{
-        int tt;
-        /* p must have a pairing partner */
-        q  = (int)pt[p];
-        /* get type of base pair (p,q) */
-        tt = P->model_details.pair[s[p]][s[q]];
-        if(tt==0) tt=7;
-
-        int mm5 = ((SAME_STRAND(p-1,p)) && (p>1)) ? s1[p-1]: -1;
-        int mm3 = ((SAME_STRAND(q,q+1)) && (q<(unsigned int)pt[0])) ? s1[q+1]: -1;
-
-        switch(dangle_model){
-          /* dangle_model == 0 */
-          case 0: energy += E_ExtLoop(tt, -1, -1, P);
-                  break;
-          /* dangle_model == 1 */
-          case 1: {
-                    /* check for unpaired nucleotide 3' to the current stem */
-                    int u3 = ((q < pt[0]) && (pt[q+1] == 0)) ? 1 : 0;
-                    if(pt[p-1] != 0) mm5 = -1;
-
-                    if(!u3){
-                      mm3 = -1;
-                      E_mm5_occupied  = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, -1, P)
-                                            );
-                      E_mm5_available = E_mm5_occupied;
-                    }
-                    else{
-                      E_mm5_occupied  = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, mm3, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, mm3, P)
-                                            );
-                      E_mm5_available = MIN2(
-                                              E_mm5_occupied  + E_ExtLoop(tt, -1, -1, P),
-                                              E_mm5_available + E_ExtLoop(tt, mm5, -1, P)
-                                            );
-                    }
-                  }
-                  break;
-
-          /* the beloved case dangle_model == 2 */
-          case 2: energy += E_ExtLoop(tt, mm5, mm3, P);
-                  break;
-
-          /* dangle_model == 3 a.k.a. helix stacking */
-          case 3: break;
-
-        } /* end switch dangle_model */
-
-        /* seek to the next stem */
-        p = q + 1;
-        while (p <= (int)pt[0] && pt[p]==0) p++;
-        if(p == (int)pt[0] + 1){
-          if(dangle_model == 1)
-            energy = (p > q + 1) ? E_mm5_occupied : E_mm5_available;
-          q = 0;
-          break;
-        }
-      } while(q != i);
-  }
-  /* not exterior loop */
-  else{
-    for (count=0; count<2; count++) { /* do it twice */
-      int ld5 = 0; /* 5' dangle energy on prev pair (type) */
-      if ( i==0 ) {
-        j = (unsigned int)pt[0]+1;
-        type = 0;  /* no pair */
-      }
-      else {
-        j = (unsigned int)pt[i];
-        type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-
-        if (dangle_model==3) { /* prime the ld5 variable */
-          if (SAME_STRAND(j-1,j)) {
-            ld5 = P->dangle5[type][s1[j-1]];
-            if ((p=(unsigned int)pt[j-2]) && SAME_STRAND(j-2, j-1))
-                if (P->dangle3[P->model_details.pair[s[p]][s[j-2]]][s1[j-1]]<ld5) ld5 = 0;
-          }
-        }
-      }
-      i1=i; p = i+1; u=0;
-      energy = 0; cx_energy=INF;
-      do { /* walk around the multi-loop */
-        int tt, new_cx = INF;
-
-        /* hop over unpaired positions */
-        while (p <= (unsigned int)pt[0] && pt[p]==0) p++;
-
-        /* memorize number of unpaired positions */
-        u += p-i1-1;
-        /* get position of pairing partner */
-        if ( p == (unsigned int)pt[0]+1 ){
-          q = 0;tt = 0; /* virtual root pair */
-        } else {
-          q = (unsigned int)pt[p];
-          /* get type of base pair P->q */
-          tt = P->model_details.pair[s[p]][s[q]]; if (tt==0) tt=7;
-        }
-
-        energy += mlintern[tt];
-        cx_energy += mlintern[tt];
-
-        if (dangle_model) {
-          int dang5=0, dang3=0, dang;
-          if ((SAME_STRAND(p-1,p))&&(p>1))
-            dang5=P->dangle5[tt][s1[p-1]];      /* 5'dangle of pq pair */
-          if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)s[0]))
-            dang3 = P->dangle3[type][s1[i1+1]]; /* 3'dangle of previous pair */
-
-          switch (p-i1-1) {
-          case 0: /* adjacent helices */
-            if (dangle_model==2)
-              energy += dang3+dang5;
-            else if (dangle_model==3 && i1!=0) {
-              if (SAME_STRAND(i1,p)) {
-                new_cx = energy + P->stack[rtype[type]][rtype[tt]];
-                /* subtract 5'dangle and TerminalAU penalty */
-                new_cx += -ld5 - mlintern[tt]-mlintern[type]+2*mlintern[1];
-              }
-              ld5=0;
-              energy = MIN2(energy, cx_energy);
-            }
-            break;
-          case 1: /* 1 unpaired base between helices */
-            dang = (dangle_model==2)?(dang3+dang5):MIN2(dang3, dang5);
-            if (dangle_model==3) {
-              energy = energy +dang; ld5 = dang - dang3;
-              /* may be problem here: Suppose
-                 cx_energy>energy, cx_energy+dang5<energy
-                 and the following helices are also stacked (i.e.
-                 we'll subtract the dang5 again */
-              if (cx_energy+dang5 < energy) {
-                energy = cx_energy+dang5;
-                ld5 = dang5;
-              }
-              new_cx = INF;  /* no coax stacking with mismatch for now */
-            } else
-              energy += dang;
-            break;
-          default: /* many unpaired base between helices */
-            energy += dang5 +dang3;
-            if (dangle_model==3) {
-              energy = MIN2(energy, cx_energy + dang5);
-              new_cx = INF;  /* no coax stacking possible */
-              ld5 = dang5;
-            }
-          }
-          type = tt;
-        }
-        if (dangle_model==3) cx_energy = new_cx;
-        i1 = q; p=q+1;
-      } while (q!=i);
-      best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
-      /* fprintf(stderr, "%6.2d\t", energy); */
-      if (dangle_model!=3 || is_extloop) break;  /* may break cofold with co-ax */
-      /* skip a helix and start again */
-      while (pt[p]==0) p++;
-      if (i == (unsigned int)pt[p]) break;
-      i = (unsigned int)pt[p];
-    }
-    energy = best_energy;
-    energy += mlclosing;
-    /* logarithmic ML loop energy if logML */
-    if ( (!is_extloop) && logML && (u>6) )
-      energy += 6*mlbase+(int)(P->lxc*log((double)u/6.));
-    else
-      energy += mlbase*u;
-    /* fprintf(stderr, "\n"); */
-  }
-  return energy;
 }
 
 /*
