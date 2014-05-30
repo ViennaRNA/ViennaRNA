@@ -451,8 +451,22 @@ int parse_soft_constraints_file(const char *file_name,
                                 char *sequence,
                                 double *values);
 
-void normalize_shape_reactivities_to_probabilities_linear(double *values,
-                                                          int length);
+
+/**
+  * \brief Convert SHAPE reactivity values to probabilities for being unpaired
+  *
+  * This function parses the informations from a given file and stores the result
+  * in the preallocated string sequence and the double array values.
+  *
+  * \param shape_conversion String definining the method used for the conversion process
+  * \param values           Pointer to an array of SHAPE reactivities
+  * \param length           Length of the array of SHAPE reactivities
+  * \param default_value    Result used for position with invalid/missing reactivity values
+  */
+int convert_shape_reactivities_to_probabilities(const char *shape_conversion,
+                                                double *values,
+                                                int length,
+                                                double default_value);
 
 /**
  *  \brief Add soft constraints to a fold_compound

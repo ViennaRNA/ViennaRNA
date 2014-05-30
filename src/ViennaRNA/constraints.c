@@ -875,47 +875,71 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
   return 1;
 }
 
-PUBLIC void
-normalize_shape_reactivities_to_probabilities_linear(double *values, int length)
+PUBLIC int
+convert_shape_reactivities_to_probabilities(const char *shape_conversion, double *values, int length, double default_value)
 {
-  int i, j;
-  double max;
-  double map_info[4][2] = {{0.25, 0.35},
+  if(!shape_conversion || !(*shape_conversion) || length <= 0)
+    return 0;
+
+  if(*shape_conversion == 'S')
+    return 1;
+
+  if(*shape_conversion == 'M'){
+    int i, j;
+    double max;
+    double map_info[4][2] = {{0.25, 0.35},
                            {0.30, 0.55},
                            {0.70, 0.85},
                            {0, 1}};
 
-  if(!length)
-    return;
+    max = values[1];
+    for(i = 2; i <= length; ++i)
+      max = MAX2(max, values[i]);
+    map_info[3][0] = max;
 
-  max = values[1];
-  for(i = 2; i <= length; ++i)
-    max = MAX2(max, values[i]);
-  map_info[3][0] = max;
+    for(i = 1; i <= length; ++i){
+      double lower_source = 0;
+      double lower_target = 0;
 
-  for(i = 1; i <= length; ++i){
-    double lower_source = 0;
-    double lower_target = 0;
-
-    if(values[i] == 0)
-      continue;
-    if(values[i] < 0){
-      values[i] = 0.5;
-      continue;
-    }
-
-    for(j = 0; j < 4; ++j){
-      if(values[i] > lower_source && values[i] <= map_info[j][0]){
-        double diff_source = map_info[j][0] - lower_source;
-        double diff_target = map_info[j][1] - lower_target;
-        values[i] = (values[i] - lower_source) / diff_source * diff_target + lower_target;
-        break;
+      if(values[i] == 0)
+        continue;
+      if(values[i] < 0){
+        values[i] = default_value;
+        continue;
       }
 
-      lower_source = map_info[j][0];
-      lower_target = map_info[j][1];
+      for(j = 0; j < 4; ++j){
+        if(values[i] > lower_source && values[i] <= map_info[j][0]){
+          double diff_source = map_info[j][0] - lower_source;
+          double diff_target = map_info[j][1] - lower_target;
+          values[i] = (values[i] - lower_source) / diff_source * diff_target + lower_target;
+          break;
+        }
+
+        lower_source = map_info[j][0];
+        lower_target = map_info[j][1];
+      }
     }
+
+    return 1;
   }
+
+  if (*shape_conversion == 'C'){
+    float cutoff = 0.25;
+    int i;
+
+    sscanf(shape_conversion + 1, "%f", &cutoff);
+
+    for (i = 1; i <= length; ++i){
+      if (values[i] < 0)
+        values[i] = default_value;
+      else
+        values[i] = values[i] < cutoff ? 0 : 1;
+    }
+    return 1;
+  }
+
+  return 0;
 }
 
 PUBLIC void
