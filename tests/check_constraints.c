@@ -15,19 +15,37 @@ static int deltaCompare(double a, double b)
   return 0;
 }
 
-START_TEST(test_normalize_shape_reactivities_to_probabilities_linear)
+START_TEST(test_convert_shape_reactivities_to_probabilities)
 {
+  int ret;
   double negative_values[] = {0, -100, -1, -1e-10};
   double hardcoded_range_values[] = { 0, 0.125, 0.25, 0.275, 0.3, 0.5, 0.7};
   double upper_range_values[] = { 0, 0.8, 0.9, 1};
   double upper_range_values2[] = { 0, 1.2, 1.7};
+  double cutoff_values_default[] = { 0, -1, 0.24, 0.25, 0.26 };
+  double cutoff_values[] = { 0, -1, 0.49, 0.50, 0.51 };
+  double skip_values[] = { 0, -1, 0.5, 2 };
 
-  normalize_shape_reactivities_to_probabilities_linear(negative_values, 3);
-  ck_assert(deltaCompare(negative_values[1], 0.5));
-  ck_assert(deltaCompare(negative_values[2], 0.5));
-  ck_assert(deltaCompare(negative_values[3], 0.5));
+  ret = convert_shape_reactivities_to_probabilities(NULL, NULL, 0, 0);
+  ck_assert_int_eq(ret, 0);
 
-  normalize_shape_reactivities_to_probabilities_linear(hardcoded_range_values, 7);
+  ret = convert_shape_reactivities_to_probabilities("", NULL, 0, 0);
+  ck_assert_int_eq(ret, 0);
+
+  ret = convert_shape_reactivities_to_probabilities("X", NULL, 0, 0);
+  ck_assert_int_eq(ret, 0);
+
+  ret = convert_shape_reactivities_to_probabilities("M", NULL, 0, 0);
+  ck_assert_int_eq(ret, 0);
+
+  ret = convert_shape_reactivities_to_probabilities("M", negative_values, 3, 0.123);
+  ck_assert_int_eq(ret, 1);
+  ck_assert(deltaCompare(negative_values[1], 0.123));
+  ck_assert(deltaCompare(negative_values[2], 0.123));
+  ck_assert(deltaCompare(negative_values[3], 0.123));
+
+  ret = convert_shape_reactivities_to_probabilities("M", hardcoded_range_values, 7, 0);
+  ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(hardcoded_range_values[1], 0.175));
   ck_assert(deltaCompare(hardcoded_range_values[2], 0.35));
   ck_assert(deltaCompare(hardcoded_range_values[3], 0.45));
@@ -35,14 +53,36 @@ START_TEST(test_normalize_shape_reactivities_to_probabilities_linear)
   ck_assert(deltaCompare(hardcoded_range_values[5], 0.7));
   ck_assert(deltaCompare(hardcoded_range_values[6], 0.85));
 
-  normalize_shape_reactivities_to_probabilities_linear(upper_range_values, 3);
+  ret = convert_shape_reactivities_to_probabilities("M", upper_range_values, 3, 0);
+  ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(upper_range_values[1], 0.9));
   ck_assert(deltaCompare(upper_range_values[2], 0.95));
   ck_assert(deltaCompare(upper_range_values[3], 1));
 
-  normalize_shape_reactivities_to_probabilities_linear(upper_range_values2, 2);
+  ret = convert_shape_reactivities_to_probabilities("M", upper_range_values2, 2, 0);
+  ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(upper_range_values2[1], 0.925));
   ck_assert(deltaCompare(upper_range_values2[2], 1));
+
+  ret = convert_shape_reactivities_to_probabilities("C", cutoff_values_default, 4, 0.5);
+  ck_assert_int_eq(ret, 1);
+  ck_assert(deltaCompare(cutoff_values_default[1], 0.5));
+  ck_assert(deltaCompare(cutoff_values_default[2], 0));
+  ck_assert(deltaCompare(cutoff_values_default[3], 1));
+  ck_assert(deltaCompare(cutoff_values_default[4], 1));
+
+  ret = convert_shape_reactivities_to_probabilities("C0.5", cutoff_values, 4, 0.5);
+  ck_assert_int_eq(ret, 1);
+  ck_assert(deltaCompare(cutoff_values[1], 0.5));
+  ck_assert(deltaCompare(cutoff_values[2], 0));
+  ck_assert(deltaCompare(cutoff_values[3], 1));
+  ck_assert(deltaCompare(cutoff_values[4], 1));
+
+  ret = convert_shape_reactivities_to_probabilities("S", skip_values, 3, 0.5);
+  ck_assert_int_eq(ret, 1);
+  ck_assert(deltaCompare(skip_values[1], -1));
+  ck_assert(deltaCompare(skip_values[2], 0.5));
+  ck_assert(deltaCompare(skip_values[3], 2));
 }
 END_TEST
 
@@ -337,7 +377,7 @@ END_TEST
 TCase* constraints_testcase()
 {
   TCase *tc = tcase_create("constraints");
-  tcase_add_test(tc, test_normalize_shape_reactivities_to_probabilities_linear);
+  tcase_add_test(tc, test_convert_shape_reactivities_to_probabilities);
   tcase_add_test(tc, test_parse_soft_constraints_file);
   tcase_add_test(tc, test_parse_soft_constraints_shape_method);
 

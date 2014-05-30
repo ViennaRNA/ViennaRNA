@@ -159,10 +159,7 @@ int main(int argc, char *argv[]){
     float mfe;
     const double kT = (md.temperature + K0) * GASCONST / 1000.;
 
-    //use a cutoff approach to divide into paired/unpaired
-    for (i = 1; i <= length; ++i)
-      if (shape_data[i] > 0)
-        shape_data[i] = shape_data[i] < args_info.cutoff_arg ? 0 : 1;
+    convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
     mfe = vrna_fold(vc, NULL);
