@@ -259,6 +259,17 @@ typestr="[D/Z/W] + [optional parameters]"
 dependon="shape"
 optional
 
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n"
+string
+typestr="M/C[cutoff]/S"
+default="M"
+optional
+
 option  "maxBPspan" -
 "Set the maximum base pair span\n"
 int

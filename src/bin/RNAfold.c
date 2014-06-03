@@ -42,6 +42,7 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 static void
 add_shape_constraints(vrna_fold_compound *vc,
                       const char *shape_method,
+                      const char *shape_conversion,
                       const char *shape_file,
                       int verbose,
                       unsigned int constraint_type){
@@ -82,7 +83,7 @@ add_shape_constraints(vrna_fold_compound *vc,
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
 
-    normalize_shape_reactivities_to_probabilities_linear(values, length);
+    convert_shape_reactivities_to_probabilities(shape_conversion, values, length, 0.5);
 
     for(i = 1; i <= length; ++i){
       int j;
@@ -114,7 +115,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 int main(int argc, char *argv[]){
   struct          RNAfold_args_info args_info;
   char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char            *shape_file, *shape_method;
+  char            *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
   int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp;
@@ -225,6 +226,7 @@ int main(int argc, char *argv[]){
   if(args_info.shapeMethod_given){
     shape_method = strdup(args_info.shapeMethod_arg);
   }
+  shape_conversion = strdup(args_info.shapeConversion_arg);
   if(args_info.verbose_given){
     verbose = 1;
   }
@@ -355,7 +357,7 @@ int main(int argc, char *argv[]){
     }
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
 
     min_en = vrna_fold(vc, structure);
@@ -403,7 +405,7 @@ int main(int argc, char *argv[]){
       vrna_update_pf_params(vc,pf_parameters);
 
       if(with_shapes)
-        add_shape_constraints(vc, shape_method, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
+        add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);
 
       energy = vrna_pf_fold(vc, pf_struc);
 
