@@ -28,7 +28,6 @@ static char rcsid[] = "$Id: RNAinverse.c,v 1.11 2000/09/28 12:59:21 ivo Rel $";
 
 #define  REPEAT_DEFAULT  100
 
-PRIVATE void usage(void);
 extern int inv_verbose;
 
 int main(int argc, char *argv[]){
@@ -79,7 +78,7 @@ int main(int argc, char *argv[]){
   if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
   /* alter the alphabet */
   if(args_info.alphabet_given){
-    symbolset=args_info.alphabet_arg;
+    symbolset = strdup(args_info.alphabet_arg);
     /* symbolset should only have uppercase characters */
     for (l = 0; l < (int)strlen(symbolset); l++)
       symbolset[l] = toupper(symbolset[l]);
@@ -87,7 +86,8 @@ int main(int argc, char *argv[]){
   /* set function for optimization */
   if(args_info.function_given){
     if(strlen(args_info.function_arg) > 2){
-      RNAinverse_cmdline_parser_print_help(); exit(EXIT_FAILURE);
+      RNAinverse_cmdline_parser_print_help();
+      exit(EXIT_FAILURE);
     }
     else{
       if((*args_info.function_arg == 'm') || (*(args_info.function_arg+1) == 'm')) mfe = 1;
@@ -245,12 +245,5 @@ int main(int argc, char *argv[]){
     free(start);
     (void) fflush(stdout);
   } while (1);
-  return 0;
-}
-
-
-PRIVATE void usage(void)
-{
-  nrerror("usage: RNAinverse [-F[mp]] [-a ALPHABET] [-R [repeats]] [-f final]\n"
-          "                  [-T temp] [-4] [-d[2]] [-noGU] [-P paramfile] [-e e_set] [-v]");
+  return EXIT_SUCCESS;
 }
