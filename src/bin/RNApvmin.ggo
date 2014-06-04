@@ -26,11 +26,15 @@ Once the minimization has terminated, the obtained perturbation vector is writte
 section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
-option  "cutoff"  -
-"Cutoff value used to decide whether a certain position is paired or unpaired based on its shape reactivity. \
-A shape reactivitiy below the cutoff will be treated as paired."
-double
-default="0.25"
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n"
+string
+typestr="M/C[cutoff]/S"
+default="C"
 optional
 
 option  "sigma"  -
