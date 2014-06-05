@@ -1,5 +1,6 @@
 /* constraints handling */
 
+#include <assert.h>
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -875,17 +876,69 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
   return 1;
 }
 
+PRIVATE void
+parse_parameter_string(char *string, char c1, char c2, float *v1, float *v2)
+{
+  char fmt[8];
+  const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
+  int r;
+
+  assert(c1);
+  assert(v1);
+
+  if(!string || !(*string))
+    return;
+
+  if(c2 == 0 || v2 == NULL){
+    sprintf(fmt, "%c%%f", c1);
+    r = sscanf(string, fmt, v1);
+
+    if(!r)
+      warn_user(warning);
+
+    return;
+  }
+
+  sprintf(fmt, "%c%%f%c%%f", c1, c2);
+  r = sscanf(string, fmt, v1, v2);
+
+  if(r!=2){
+    sprintf(fmt, "%c%%f", c1);
+    r = sscanf(string, fmt, v1);
+
+    if(!r){
+      sprintf(fmt, "%c%%f", c2);
+      r = sscanf(string, fmt, v2);
+
+      if(!r)
+        warn_user(warning);
+    }
+  }
+}
+
 PUBLIC int
 convert_shape_reactivities_to_probabilities(const char *shape_conversion, double *values, int length, double default_value)
 {
+  int *indices;
+  int i, j;
+  int index;
+  int ret = 1;
+
   if(!shape_conversion || !(*shape_conversion) || length <= 0)
     return 0;
 
   if(*shape_conversion == 'S')
     return 1;
 
+  indices = space(sizeof(int) * (length + 1));
+  for (i = 1, j = 0; i <= length; ++i){
+    if(values[i] < 0)
+      values[i] = default_value;
+    else
+      indices[j++] = i;
+  }
+
   if(*shape_conversion == 'M'){
-    int i, j;
     double max;
     double map_info[4][2] = {{0.25, 0.35},
                            {0.30, 0.55},
@@ -897,22 +950,20 @@ convert_shape_reactivities_to_probabilities(const char *shape_conversion, double
       max = MAX2(max, values[i]);
     map_info[3][0] = max;
 
-    for(i = 1; i <= length; ++i){
+    for(i = 0; indices[i]; ++i){
       double lower_source = 0;
       double lower_target = 0;
 
-      if(values[i] == 0)
+      index = indices[i];
+
+      if(values[index] == 0)
         continue;
-      if(values[i] < 0){
-        values[i] = default_value;
-        continue;
-      }
 
       for(j = 0; j < 4; ++j){
-        if(values[i] > lower_source && values[i] <= map_info[j][0]){
+        if(values[index] > lower_source && values[index] <= map_info[j][0]){
           double diff_source = map_info[j][0] - lower_source;
           double diff_target = map_info[j][1] - lower_target;
-          values[i] = (values[i] - lower_source) / diff_source * diff_target + lower_target;
+          values[index] = (values[index] - lower_source) / diff_source * diff_target + lower_target;
           break;
         }
 
@@ -920,26 +971,39 @@ convert_shape_reactivities_to_probabilities(const char *shape_conversion, double
         lower_target = map_info[j][1];
       }
     }
-
-    return 1;
   }
-
-  if (*shape_conversion == 'C'){
+  else if (*shape_conversion == 'C'){
     float cutoff = 0.25;
     int i;
 
     sscanf(shape_conversion + 1, "%f", &cutoff);
 
-    for (i = 1; i <= length; ++i){
-      if (values[i] < 0)
-        values[i] = default_value;
-      else
-        values[i] = values[i] < cutoff ? 0 : 1;
+    for(i = 0; indices[i]; ++i){
+      index = indices[i];
+      values[index] = values[index] < cutoff ? 0 : 1;
     }
-    return 1;
   }
+  else if (*shape_conversion == 'L' || *shape_conversion == 'O'){
+    int i;
+    float slope = (*shape_conversion == 'L') ? 0.68 : 1.6;
+    float intercept = (*shape_conversion == 'L') ? 0.2 : -2.29;
 
-  return 0;
+    parse_parameter_string(shape_conversion + 1, 's', 'i', &slope, &intercept);
+
+    for(i = 0; indices[i]; ++i){
+      double v;
+      index = indices[i];
+
+      v = (*shape_conversion == 'L') ? values[index] : log(values[index]);
+      values[index] = MAX2(MIN2((v - intercept) / slope, 1),0);
+    }
+  }
+  else
+    ret = 0;
+
+  free(indices);
+
+  return ret;
 }
 
 PUBLIC void
@@ -1253,7 +1317,6 @@ parse_soft_constraints_shape_method(const char *method_string,
 
   char m;
   const char *params = method_string + 1;
-  const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
 
   *param_1 = 0;
   *param_2 = 0;
@@ -1266,25 +1329,13 @@ parse_soft_constraints_shape_method(const char *method_string,
   if (m == 'Z')
   {
     *param_1 = 0.89;
-    if(params && !sscanf(params, "b%f", param_1))
-      warn_user(warning);
+    parse_parameter_string(params, 'b', '\0', param_1, NULL);
   }
   else if (m == 'D')
   {
     *param_1 = 1.8;
     *param_2 = -0.6;
-    if(params){
-      r = sscanf(params, "m%fb%f", param_1, param_2);
-      if(r != 2){
-        r = sscanf(params, "m%f", param_1);
-        if(!r){
-          r = sscanf(params, "b%f", param_2);
-          if(!r){
-            warn_user(warning);
-          }
-        }
-      }
-    }
+    parse_parameter_string(params, 'm', 'b', param_1, param_2);
   }
   else if (m != 'W')
   {
