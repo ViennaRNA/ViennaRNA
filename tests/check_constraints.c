@@ -418,12 +418,54 @@ START_TEST(test_parse_soft_constraints_shape_method)
 }
 END_TEST
 
+START_TEST(test_vrna_sc_add_sp)
+{
+  model_detailsT md;
+  vrna_fold_compound *vc;
+  double values[] = { 0, 0, 1, -0.5 };
+
+  set_model_details(&md);
+  vc = vrna_get_fold_compound("AUG", &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+
+  vrna_sc_add_sp_mfe(vc, values, VRNA_CONSTRAINT_SOFT_MFE);
+  ck_assert(deltaCompare(vc->sc->en_stack[1], 0));
+  ck_assert(deltaCompare(vc->sc->en_stack[2], 100));
+  ck_assert(deltaCompare(vc->sc->en_stack[3], -50));
+  ck_assert(!vc->sc->exp_en_stack);
+  vrna_sc_remove(vc);
+
+  vrna_sc_add_sp(vc, values, VRNA_CONSTRAINT_SOFT_MFE);
+  ck_assert(deltaCompare(vc->sc->en_stack[1], 0));
+  ck_assert(deltaCompare(vc->sc->en_stack[2], 100));
+  ck_assert(deltaCompare(vc->sc->en_stack[3], -50));
+  ck_assert(!vc->sc->exp_en_stack);
+  vrna_sc_remove(vc);
+
+  vrna_sc_add_sp_pf(vc, values, VRNA_CONSTRAINT_SOFT_PF);
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[1], 1));
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[2], 0.197398));
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[3], 2.250755));
+  ck_assert(!vc->sc->en_stack);
+  vrna_sc_remove(vc);
+
+  vrna_sc_add_sp(vc, values, VRNA_CONSTRAINT_SOFT_PF);
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[1], 1));
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[2], 0.197398));
+  ck_assert(deltaCompare(vc->sc->exp_en_stack[3], 2.250755));
+  ck_assert(!vc->sc->en_stack);
+  vrna_sc_remove(vc);
+
+  vrna_free_fold_compound(vc);
+}
+END_TEST
+
 TCase* constraints_testcase()
 {
   TCase *tc = tcase_create("constraints");
   tcase_add_test(tc, test_convert_shape_reactivities_to_probabilities);
   tcase_add_test(tc, test_parse_soft_constraints_file);
   tcase_add_test(tc, test_parse_soft_constraints_shape_method);
+  tcase_add_test(tc, test_vrna_sc_add_sp);
 
   return tc;
 }
