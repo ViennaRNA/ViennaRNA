@@ -69,16 +69,18 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  if(method == 'D'){
-    vrna_sc_add_deigan(vc, shape_file, p1, p2, constraint_type);
-    return;
-  }
-
   sequence = space(sizeof(char) * (length + 1));
   values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'Z' ? -1 : 0, sequence, values);
+  parse_soft_constraints_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
-  if(method == 'Z'){
+  if(method == 'D'){
+    int i;
+    for (i = 1; i <= length; ++i)
+      values[i] = values[i] < 0 ? 0 : p1 * log(values[i] + 1) + p2;
+
+    vrna_sc_add_sp(vc, values, constraint_type);
+  }
+  else if(method == 'Z'){
     double *sc_up = space(sizeof(double) * (length + 1));
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
