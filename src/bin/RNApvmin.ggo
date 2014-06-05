@@ -30,11 +30,13 @@ option  "shapeConversion" -
 "Specify the method used to convert SHAPE reactivities to pairing probabilities.\n"
 details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n"
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
 string
-typestr="M/C[cutoff]/S"
-default="C"
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
 optional
 
 option  "sigma"  -

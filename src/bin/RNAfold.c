@@ -148,7 +148,7 @@ int main(int argc, char *argv[]){
   doMEA         = 0;
   betaScale     = 1.;
   shape_file    = NULL;
-  shape_method  = "D";
+  shape_method  = NULL;
   with_shapes   = 0;
   verbose       = 0;
   max_bp_span   = -1;
@@ -223,9 +223,8 @@ int main(int argc, char *argv[]){
     with_shapes = 1;
     shape_file = strdup(args_info.shape_arg);
   }
-  if(args_info.shapeMethod_given){
-    shape_method = strdup(args_info.shapeMethod_arg);
-  }
+
+  shape_method = strdup(args_info.shapeMethod_arg);
   shape_conversion = strdup(args_info.shapeConversion_arg);
   if(args_info.verbose_given){
     verbose = 1;
