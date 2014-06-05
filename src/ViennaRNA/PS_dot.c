@@ -1339,14 +1339,14 @@ const char *RNAdp_prolog =
 "  0 exch len {\n"
 "     dup dup\n"
 "     0 moveto\n"
-"     len lineto \n"
+"     len lineto\n"
 "     dup\n"
 "     len exch sub 0 exch moveto\n"
 "     len exch len exch sub lineto\n"
 "     stroke\n"
 "  } for\n"
 "  [] 0 setdash\n"
-"  0.04 setlinewidth \n"
+"  0.04 setlinewidth\n"
 "  currentdict /cutpoint known {\n"
 "    cutpoint 1 sub\n"
 "    dup dup -1 moveto len 1 add lineto\n"
@@ -1674,7 +1674,7 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
             "0.5 dup translate\n"
             "%% draw diagonal\n"
             "0.04 setlinewidth\n"
-            "0 len moveto len 0 lineto stroke \n\n");
+            "0 len moveto len 0 lineto stroke\n\n");
   return(wastl);
 }
 
