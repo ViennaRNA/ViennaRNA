@@ -4,7 +4,6 @@
                  c  Ivo L Hofacker and Walter Fontana
                           Vienna RNA package
 */
-/* Last changed Time-stamp: <2008-11-25 16:34:36 ivo> */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +11,17 @@
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <sys/types.h>
+#include <stdint.h>
+
+/* for getpid() we need some distinction between UNIX and Win systems */
+#ifdef _WIN32
+#include <windows.h>
+#define getpid() GetCurrentProcessId() /* rename windows specific getpid function */
+#else
+#include <unistd.h>
+#endif
+
 #include "../config.h"
 #include "ViennaRNA/utils.h"
 
@@ -104,16 +114,73 @@ PUBLIC void warn_user(const char message[]){
   fprintf(stderr, "WARNING: %s\n", message);
 }
 
+PRIVATE uint32_t
+rj_mix( uint32_t a,
+        uint32_t b,
+        uint32_t c){
+
+/*
+  This is Robert Jenkins' 96 bit Mix function
+
+  we use it to produce a more diverse seed for our random number
+  generators. E.g.:
+  
+  seed = rj_mix(clock(), time(NULL), getpid());
+
+  original comments on that function can be found below
+*/
+
+
+/*
+--------------------------------------------------------------------
+mix -- mix 3 32-bit values reversibly.
+For every delta with one or two bits set, and the deltas of all three
+  high bits or all three low bits, whether the original value of a,b,c
+  is almost all zero or is uniformly distributed,
+* If mix() is run forward or backward, at least 32 bits in a,b,c
+  have at least 1/4 probability of changing.
+* If mix() is run forward, every bit of c will change between 1/3 and
+  2/3 of the time.  (Well, 22/100 and 78/100 for some 2-bit deltas.)
+mix() was built out of 36 single-cycle latency instructions in a 
+  structure that could supported 2x parallelism, like so:
+      a -= b; 
+      a -= c; x = (c>>13);
+      b -= c; a ^= x;
+      b -= a; x = (a<<8);
+      c -= a; b ^= x;
+      c -= b; x = (b>>13);
+      ...
+  Unfortunately, superscalar Pentiums and Sparcs can't take advantage 
+  of that parallelism.  They've also turned some of those single-cycle
+  latency instructions into multi-cycle latency instructions.  Still,
+  this is the fastest good hash I could find.  There were about 2^^68
+  to choose from.  I only looked at a billion or so.
+--------------------------------------------------------------------
+*/
+
+  a=a-b;  a=a-c;  a=a^(c >> 13);
+  b=b-c;  b=b-a;  b=b^(a << 8); 
+  c=c-a;  c=c-b;  c=c^(b >> 13);
+  a=a-b;  a=a-c;  a=a^(c >> 12);
+  b=b-c;  b=b-a;  b=b^(a << 16);
+  c=c-a;  c=c-b;  c=c^(b >> 5);
+  a=a-b;  a=a-c;  a=a^(c >> 3);
+  b=b-c;  b=b-a;  b=b^(a << 10);
+  c=c-a;  c=c-b;  c=c^(b >> 15);
+  return c;
+}
+
 /*------------------------------------------------------------------------*/
 PUBLIC void init_rand(void)
 {
-  time_t t;
-  (void) time(&t);
-  xsubi[0] = xsubi[1] = xsubi[2] = (unsigned short) t;  /* lower 16 bit */
-  xsubi[1] += (unsigned short) ((unsigned)t >> 6);
-  xsubi[2] += (unsigned short) ((unsigned)t >> 12);
+
+  uint32_t seed = rj_mix(clock(), time(NULL), getpid());
+
+  xsubi[0] = xsubi[1] = xsubi[2] = (unsigned short) seed;  /* lower 16 bit */
+  xsubi[1] += (unsigned short) ((unsigned)seed >> 6);
+  xsubi[2] += (unsigned short) ((unsigned)seed >> 12);
 #ifndef HAVE_ERAND48
-  srand((unsigned int) t);
+  srand((unsigned int) seed);
 #endif
 }
 
