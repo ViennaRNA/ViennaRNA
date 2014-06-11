@@ -403,6 +403,66 @@ E_hp_loop(int i,
 }
 
 INLINE PRIVATE int
+E_hp_loop_ali(int i,
+              int j,
+              vrna_fold_compound *vc){
+
+  int u, e, s, *type;
+  int               n_seq   = vc->n_seq;
+  int               *idx    = vc->jindx;
+  paramT            *P      = vc->params;
+  model_detailsT    *md     = &(P->model_details);
+  short             **S     = vc->S;                                                                 
+  short             **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/          
+  short             **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/          
+  char              **Ss    = vc->Ss;                                                                 
+  unsigned short    **a2s   = vc->a2s;                                                                 
+  char              hc      = vc->hc->matrix[idx[j]+i];
+  int               *hc_up  = vc->hc->up_hp;
+  soft_constraintT  **sc    = vc->scs;
+
+  type = (int *)space(sizeof(int) * n_seq);
+
+  for (s=0; s<n_seq; s++) {
+    type[s] = md->pair[S[s][i]][S[s][j]];
+    if (type[s]==0) type[s]=7;
+  }
+
+  /* is this base pair allowed to close a hairpin loop ? */
+  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+    if(hc_up[i+1] >= j - i - 1){
+      for (e=s=0; s<n_seq; s++) {
+        u = a2s[s][j-1] - a2s[s][i];
+        if (u < 3) e += 600;
+        else  e += E_Hairpin(u, type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
+      }
+
+      if(sc)
+        for(s = 0; s < n_seq; s++){
+          if(sc[s]){
+            u = a2s[s][j-1]-a2s[s][i];
+
+            if(sc[s]->free_energies)
+              e += sc[s]->free_energies[a2s[s][i]+1][u];
+
+            if(sc[s]->en_basepair)
+              e += sc[s]->en_basepair[idx[j] + i];
+
+            if(sc[s]->f)
+              e += sc[s]->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc[s]->data);
+          }
+        }
+
+      free(type);
+      return e;
+    }
+  }
+
+  free(type);
+  return INF;
+}
+
+INLINE PRIVATE int
 E_int_loop( int i,
             int j,
             vrna_fold_compound *vc){
