@@ -64,12 +64,12 @@ START_TEST(test_get_encoded_char)
 }
 END_TEST
 
-START_TEST(test_get_sequence_encoding)
+START_TEST(test_sequence_encoding)
 {
   model_detailsT details = {0};
   short *data;
 
-  data = get_sequence_encoding("_AUGC", 0, &details);
+  data = vrna_seq_encode_simple("_AUGC", &details);
   ck_assert_int_eq(data[0], 5); //sequence length
   ck_assert_int_eq(data[1], 0);
   ck_assert_int_eq(data[2], 1);
@@ -79,7 +79,7 @@ START_TEST(test_get_sequence_encoding)
   ck_assert_int_eq(data[6], 0); //value stored in data[1]
   free(data);
 
-  data = get_sequence_encoding("augc", 0, &details);
+  data = vrna_seq_encode_simple("augc", &details);
   ck_assert_int_eq(data[0], 4); //sequence length
   ck_assert_int_eq(data[1], 1);
   ck_assert_int_eq(data[2], 4);
@@ -197,7 +197,7 @@ TCase* utils_testcase()
   TCase *tc = tcase_create("utils");
   tcase_add_test(tc, test_get_char_encoding);
   tcase_add_test(tc, test_get_encoded_char);
-  tcase_add_test(tc, test_get_sequence_encoding);
+  tcase_add_test(tc, test_sequence_encoding);
   tcase_add_test(tc, test_fill_pair_matrices);
   tcase_add_test(tc, test_get_ptypes);
 
