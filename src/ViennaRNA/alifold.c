@@ -247,7 +247,7 @@ fill_arrays(vrna_fold_compound *vc){
   DMLi  = (int *) space(sizeof(int)*(length+1));
   DMLi1 = (int *) space(sizeof(int)*(length+1));
   DMLi2 = (int *) space(sizeof(int)*(length+1));
-
+  
   /* init energies */
 
   int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : length;
@@ -287,7 +287,7 @@ fill_arrays(vrna_fold_compound *vc){
                 if(sc[s]){
                   int u = a2s[s][j-1]-a2s[s][i];
                   if(sc[s]->en_basepair)
-                    new_c += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+                    new_c += sc[s]->en_basepair[indx[j] + i];
                   if(sc[s]->free_energies)
                     new_c += sc[s]->free_energies[a2s[s][i]+1][u];
                 }
@@ -327,25 +327,26 @@ fill_arrays(vrna_fold_compound *vc){
                   if(sc[s]){
                     int u1 = a2s[s][p-1]-a2s[s][i];
                     int u2 = a2s[s][j-1]-a2s[s][q];
+
                     if(sc[s]->en_basepair)
-                      energy +=   sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+                      energy +=   sc[s]->en_basepair[indx[j] + i];
+
                     if(sc[s]->free_energies)
                       energy +=   sc[s]->free_energies[a2s[s][i]+1][u1]
                                 + sc[s]->free_energies[a2s[s][q]+1][u2];
+
+                    if(u1 + u2 == 0)
+                      if(sc[s]->en_stack)
+                        energy +=   sc[s]->en_stack[i]
+                                  + sc[s]->en_stack[p]
+                                  + sc[s]->en_stack[q]
+                                  + sc[s]->en_stack[j];
+
                   }
                 }
               }
 
               if ((p==i+1)&&(j==q+1)){
-                if(sc){
-                  for(s = 0; s < n_seq; s++)
-                    if(sc[s]->en_stack){
-                      energy +=   sc[s]->en_stack[i]
-                                + sc[s]->en_stack[p]
-                                + sc[s]->en_stack[q]
-                                + sc[s]->en_stack[j];
-                    }
-                  }
                 stackEnergy = energy; /* remember stack energy */
               }
               new_c = MIN2(new_c, energy + c[indx[q]+p]);
@@ -425,7 +426,7 @@ fill_arrays(vrna_fold_compound *vc){
             for(s=0; s<n_seq; s++){
               if(sc[s]){
                 if(sc[s]->en_basepair)
-                  decomp += sc[s]->en_basepair[indx[a2s[s][j]] + a2s[s][i]];
+                  decomp += sc[s]->en_basepair[indx[j] + i];
               }
             }
           MLenergy = decomp + n_seq*P->MLclosing;
@@ -870,7 +871,7 @@ backtrack(vrna_fold_compound *vc,
           cij -= P->stack[type[ss]][type_2];
           if(sc){
             if(sc[ss]->en_basepair)
-              cij -= sc[s]->en_basepair[indx[a2s[ss][j]] + a2s[ss][i]];
+              cij -= sc[s]->en_basepair[indx[j] + i];
           }
         }
         cij += pscore[indx[j]+i];
@@ -886,8 +887,9 @@ backtrack(vrna_fold_compound *vc,
 
     {int cc=0;
     for (ss=0; ss<n_seq; ss++) {
-        if ((a2s[ss][j-1]-a2s[ss][i])<3) cc+=600;
-        else cc += E_Hairpin(a2s[ss][j-1]-a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss]+a2s[ss][i-1], P);
+      int u = a2s[ss][j-1] - a2s[ss][i];
+        if (u < 3) cc+=600;
+        else cc += E_Hairpin(u, type[ss], S3[ss][i], S5[ss][j], Ss[ss]+a2s[ss][i-1], P);
       }
     if (cij == cc) /* found hairpin */
       continue;
@@ -900,25 +902,35 @@ backtrack(vrna_fold_compound *vc,
         if (c[indx[q]+p]>=INF) continue;
 
         for (ss=energy=0; ss<n_seq; ss++) {
+          int u1 = a2s[ss][p-1] - a2s[ss][i];
+          int u2 = a2s[ss][j-1] - a2s[ss][q];
           type_2 = md->pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
           if (type_2==0) type_2 = 7;
-          energy += E_IntLoop(a2s[ss][p-1]-a2s[ss][i],a2s[ss][j-1]-a2s[ss][q],
-                               type[ss], type_2,
-                               S3[ss][i], S5[ss][j],
-                               S5[ss][p], S3[ss][q], P);
+          energy += E_IntLoop(u1, u2, type[ss], type_2, S3[ss][i], S5[ss][j], S5[ss][p], S3[ss][q], P);
 
         }
-        if ((p==i+1)&&(j==q+1)){
-          if(sc){
-            for(ss = 0; ss < n_seq; ss++)
-              if(sc[ss]->en_stack){
-                energy +=   sc[ss]->en_stack[i]
-                          + sc[ss]->en_stack[p]
-                          + sc[ss]->en_stack[q]
-                          + sc[ss]->en_stack[j];
-              }
+
+        if(sc)
+          for(ss = 0; ss < n_seq; ss++)
+            if(sc[ss]){
+              int u1 = a2s[ss][p-1] - a2s[ss][i];
+              int u2 = a2s[ss][j-1] - a2s[ss][q];
+
+              if(u1 + u2 == 0)
+                if(sc[ss]->en_stack)
+                  energy +=   sc[ss]->en_stack[i]
+                            + sc[ss]->en_stack[p]
+                            + sc[ss]->en_stack[q]
+                            + sc[ss]->en_stack[j];
+
+              if(sc[ss]->en_basepair)
+                energy += sc[ss]->en_basepair[indx[j] + i];
+
+              if(sc[ss]->free_energies)
+                energy +=   sc[ss]->free_energies[a2s[ss][i] + 1][u1]
+                          + sc[ss]->free_energies[a2s[ss][q] + 1][u2];
             }
-        }
+
         traced = (cij == energy+c[indx[q]+p]);
         if (traced) {
           bp_stack[++b].i = p;
