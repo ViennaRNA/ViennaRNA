@@ -493,12 +493,6 @@ void vrna_sc_add_ali( vrna_fold_compound *vc,
                       const double **constraints,
                       unsigned int options);
 
-int vrna_sc_add_deigan(vrna_fold_compound *vc,
-                        const char *shape_file,
-                        double m,
-                        double b,
-                        unsigned int options);
-
 int vrna_sc_add_deigan_ali(vrna_fold_compound *vc,
                             const char **shape_files,
                             const int *shape_file_association,
@@ -529,6 +523,19 @@ void vrna_sc_add_up_mfe(vrna_fold_compound *vc,
 void vrna_sc_add_up_pf( vrna_fold_compound *vc,
                         const double *constraints,
                         unsigned int options);
+
+void vrna_sc_add_sp(vrna_fold_compound *vc,
+                    const double *constraints,
+                    unsigned int options);
+
+void vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options);
+
+void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options);
+
 
 void vrna_sc_remove(vrna_fold_compound *vc);
 

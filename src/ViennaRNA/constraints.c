@@ -1111,97 +1111,6 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
     vrna_sc_add_bp_pf(vc, constraints, options);
 }
 
-
-PUBLIC int
-vrna_sc_add_deigan( vrna_fold_compound *vc,
-                              const char *shape_file,
-                              double m,
-                              double b,
-                              unsigned int options){
-
-  float   reactivity, *reactivities;
-  char    *line, nucleotide, *sequence;
-  int     i, r, position;
-
-  /* read the shape file */
-  FILE *fp;
-  if(!(fp = fopen(shape_file, "r"))){
-    warn_user("SHAPE data file could not be opened. No shape data will be used.");
-    return 0;
-  }
-
-  reactivities  = (float *)space(sizeof(float) * (vc->length + 1));
-  sequence      = (char *)space(sizeof(char) * (vc->length + 1));
-
-  while((line=get_line(fp))){
-    r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
-    if(r){
-      if((position <= 0) || (position > vc->length))
-        nrerror("provided shape data outside of sequence scope");
-
-      switch(r){
-        case 1:   nucleotide = 'N';
-                  /* fall through */
-        case 2:   reactivity = -1.;
-                  /* fall through */
-        default:  sequence[position-1]    = nucleotide;
-                  reactivities[position]  = reactivity;
-                  break;
-      }
-    }
-    free(line);
-  }
-  fclose(fp);
-
-  sequence[vc->length] = '\0';
-
-  /* double check information by comparing the sequence read from */
-  if(strcmp(vc->sequence, sequence))
-    warn_user("input sequence differs from sequence provided via SHAPE file!");
-
-  /* convert reactivities to pseudo energies */
-  for(i = 1; i <= vc->length; i++){
-    if(reactivities[i] < 0)
-      reactivities[i] = 0.;
-    else
-      reactivities[i] = m * log(reactivities[i] + 1.) + b;
-  }
-
-  /* begin actual storage of the pseudo energies */
-
-  if(!vc->sc)
-    vrna_sc_add(vc, NULL, options);
-
-  /* Add contributions for use in regular free energy recursions */
-  if(options & VRNA_CONSTRAINT_SOFT_MFE){
-
-    if(!vc->sc->en_stack)
-      vc->sc->en_stack = (int *)space(sizeof(int) * (vc->length + 1));
-
-    for(i = 1; i <= vc->length; i++)
-      vc->sc->en_stack[i] += (int)(reactivities[i] * 100.);
-  }
-
-  /* Add contributions for use in partition function recursions */
-  if(options & VRNA_CONSTRAINT_SOFT_PF){
-
-    if(!vc->sc->exp_en_stack){
-      vc->sc->exp_en_stack = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
-      for(i = 0; i <= vc->length; i++)
-        vc->sc->exp_en_stack[i] = 1.;
-    }
-
-    for(i = 1; i <= vc->length; i++)
-      vc->sc->exp_en_stack[i] *= exp(-(reactivities[i] * 1000.)/ vc->exp_params->kT);
-
-  }
-
-  free(sequence);
-  free(reactivities);
-
-  return 1; /* success */
-}
-
 PUBLIC int
 vrna_sc_add_deigan_ali( vrna_fold_compound *vc,
                          const char **shape_files,
@@ -1521,6 +1430,53 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
       }
     }
   }
+}
+
+PUBLIC void
+vrna_sc_add_sp(vrna_fold_compound *vc,
+                        const double *constraints,
+                        unsigned int options){
+
+  if(options & VRNA_CONSTRAINT_SOFT_MFE)
+    vrna_sc_add_sp_mfe(vc, constraints, options);
+
+  if(options & VRNA_CONSTRAINT_SOFT_PF)
+    vrna_sc_add_sp_pf(vc, constraints, options);
+}
+
+PUBLIC void
+vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
+                            const double *constraints,
+                            unsigned int options){
+  int i;
+
+  if(!vc->sc)
+    vrna_sc_add(vc, NULL, options);
+
+  if(!vc->sc->en_stack)
+    vc->sc->en_stack = (int *)space(sizeof(int) * (vc->length + 1));
+
+  for(i = 1; i <= vc->length; ++i)
+    vc->sc->en_stack[i] += (int)(constraints[i] * 100.);
+}
+
+PUBLIC void
+vrna_sc_add_sp_pf( vrna_fold_compound *vc,
+                            const double *constraints,
+                            unsigned int options){
+  int i;
+
+  if(!vc->sc)
+    vrna_sc_add(vc, NULL, options);
+
+  if(!vc->sc->exp_en_stack){
+    vc->sc->exp_en_stack = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (vc->length + 1));
+    for(i = 0; i <= vc->length; ++i)
+      vc->sc->exp_en_stack[i] = 1;
+  }
+
+  for(i = 1; i <= vc->length; ++i)
+    vc->sc->exp_en_stack[i] *= exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
 }
 
 PUBLIC void
