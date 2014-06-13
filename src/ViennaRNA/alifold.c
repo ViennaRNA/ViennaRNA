@@ -649,7 +649,7 @@ backtrack(vrna_fold_compound *vc,
    /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
 
-  int  i, j, k, p, q, energy, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
+  int  i, j, k, p, q, energy, en, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
 
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
@@ -669,6 +669,7 @@ backtrack(vrna_fold_compound *vc,
   short           *S_cons       = vc->S_cons;
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
+  int             with_gquad    = md->gquad;
 
   hard_constraintT *hc          = vc->hc;
   soft_constraintT **sc         = vc->scs;
@@ -696,8 +697,20 @@ backtrack(vrna_fold_compound *vc,
 
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
-    fij = (ml)? fML[indx[j]+i] : f5[j];
-    fi  = (ml)?(fML[indx[j-1]+i]+n_seq*P->MLbase):f5[j-1];
+    if(ml != 0){
+      fij = fML[indx[j]+i];
+      fi  = (hc->up_ml[j]) ? fML[indx[j-1]+i] + n_seq*P->MLbase : INF;
+    } else {
+      fij = f5[j];
+      fi  = (hc->up_ext[j]) ? f5[j-1] : INF;
+    }
+
+    if(sc)
+      for(ss = 0; ss < n_seq; ss++)
+        if(sc[ss]){
+          if(sc[ss]->free_energies)
+            fi += sc[ss]->free_energies[a2s[ss][j]][1];
+        }
 
     if (fij == fi) {  /* 3' end is unpaired */
       bt_stack[++s].i = i;
@@ -712,7 +725,8 @@ backtrack(vrna_fold_compound *vc,
                   for (i=j-TURN-1,traced=0; i>=1; i--) {
                     int en;
                     jj = i-1;
-                    if (c[indx[j]+i]<INF) {
+
+                    if (hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
                         type[ss] = md->pair[S[ss][i]][S[ss][j]];
@@ -722,7 +736,7 @@ backtrack(vrna_fold_compound *vc,
                       if (fij == en) traced=j;
                     }
 
-                    if(md->gquad){
+                    if(with_gquad){
                       if(fij == f5[i-1] + ggg[indx[j]+i]){
                         /* found the decomposition */
                         traced = j; jj = i - 1; gq = 1;
@@ -737,7 +751,7 @@ backtrack(vrna_fold_compound *vc,
                   for (i=j-TURN-1,traced=0; i>=1; i--) {
                     int en;
                     jj = i-1;
-                    if (c[indx[j]+i]<INF) {
+                    if (hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
                         type[ss] = md->pair[S[ss][i]][S[ss][j]];
@@ -747,7 +761,7 @@ backtrack(vrna_fold_compound *vc,
                       if (fij == en) traced=j;
                     }
 
-                    if(md->gquad){
+                    if(with_gquad){
                       if(fij == f5[i-1] + ggg[indx[j]+i]){
                         /* found the decomposition */
                         traced = j; jj = i - 1; gq = 1;
@@ -769,7 +783,7 @@ backtrack(vrna_fold_compound *vc,
       /* trace back the base pair found */
       j=traced;
 
-      if(md->gquad && gq){
+      if(with_gquad && gq){
         /* goto backtrace of gquadruplex */
         goto repeat_gquad;
       }
@@ -780,11 +794,22 @@ backtrack(vrna_fold_compound *vc,
       goto repeat1;
     }
     else { /* trace back in fML array */
-      if (fML[indx[j]+i+1]+n_seq*P->MLbase == fij) { /* 5' end is unpaired */
-        bt_stack[++s].i = i+1;
-        bt_stack[s].j   = j;
-        bt_stack[s].ml  = ml;
-        continue;
+      if(hc->up_ml[i]){
+        en = fML[indx[j]+i+1] + n_seq * P->MLbase;
+
+        if(sc)
+          for(ss = 0; ss < n_seq; ss++)
+            if(sc[ss]){
+              if(sc[ss]->free_energies)
+                en += sc[ss]->free_energies[a2s[ss][i]][1];
+            }
+
+        if(en == fij) { /* 5' end is unpaired */
+          bt_stack[++s].i = i+1;
+          bt_stack[s].j   = j;
+          bt_stack[s].ml  = ml;
+          continue;
+        }
       }
 
       if(md->gquad){
@@ -794,28 +819,30 @@ backtrack(vrna_fold_compound *vc,
         }
       }
 
-      cij = c[indx[j]+i];
-      if(dangle_model){
-        for(ss = 0; ss < n_seq; ss++){
-          tt = md->pair[S[ss][i]][S[ss][j]];
-          if(tt==0) tt=7;
-          cij += E_MLstem(tt, S5[ss][i], S3[ss][j], P);
+      if(hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        cij = c[indx[j]+i];
+        if(dangle_model){
+          for(ss = 0; ss < n_seq; ss++){
+            tt = md->pair[S[ss][i]][S[ss][j]];
+            if(tt==0) tt=7;
+            cij += E_MLstem(tt, S5[ss][i], S3[ss][j], P);
+          }
         }
-      }
-      else{
-        for(ss = 0; ss < n_seq; ss++){
-          tt = md->pair[S[ss][i]][S[ss][j]];
-          if(tt==0) tt=7;
-          cij += E_MLstem(tt, -1, -1, P);
+        else{
+          for(ss = 0; ss < n_seq; ss++){
+            tt = md->pair[S[ss][i]][S[ss][j]];
+            if(tt==0) tt=7;
+            cij += E_MLstem(tt, -1, -1, P);
+          }
         }
-      }
 
-      if (fij==cij){
-        /* found a pair */
-        bp_stack[++b].i = i;
-        bp_stack[b].j   = j;
-        cov_en += pscore[indx[j]+i];
-        goto repeat1;
+        if (fij==cij){
+          /* found a pair */
+          bp_stack[++b].i = i;
+          bp_stack[b].j   = j;
+          cov_en += pscore[indx[j]+i];
+          goto repeat1;
+        }
       }
 
       for (k = i+1+TURN; k <= j-2-TURN; k++)
@@ -876,7 +903,11 @@ backtrack(vrna_fold_compound *vc,
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
       minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;
+      if(hc->up_int[i+1] < (p - i - 1)) break;
+
       for (q = j-1; q >= minq; q--) {
+
+        if(hc->up_int[q+1] < (j - q - 1)) break;
 
         if (c[indx[q]+p]>=INF) continue;
 
@@ -928,7 +959,7 @@ backtrack(vrna_fold_compound *vc,
     i1 = i+1;
     j1 = j-1;
 
-    if(md->gquad){
+    if(with_gquad){
       /*
         The case that is handled here actually resembles something like
         an interior loop where the enclosing base pair is of regular
@@ -997,33 +1028,44 @@ backtrack(vrna_fold_compound *vc,
         }
     }
 
-    mm = n_seq*P->MLclosing;
-    if(dangle_model){
-      for(ss = 0; ss < n_seq; ss++){
-        tt = rtype[type[ss]];
-        mm += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
+    if(hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+      mm = n_seq*P->MLclosing;
+      if(dangle_model){
+        for(ss = 0; ss < n_seq; ss++){
+          tt = rtype[type[ss]];
+          mm += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
+        }
       }
-    }
-    else{
-      for(ss = 0; ss < n_seq; ss++){
-        tt = rtype[type[ss]];
-        mm += E_MLstem(tt, -1, -1, P);
+      else{
+        for(ss = 0; ss < n_seq; ss++){
+          tt = rtype[type[ss]];
+          mm += E_MLstem(tt, -1, -1, P);
+        }
       }
-    }
-    bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
 
-    for (k = i1+TURN+1; k < j1-TURN-1; k++){
-      if(cij == fML[indx[k]+i1] + fML[indx[j1]+k+1] + mm) break;
-    }
+      if(sc)
+        for(ss = 0; ss < n_seq; ss++)
+          if(sc[ss]){
+            if(sc[ss]->en_basepair)
+              mm += sc[ss]->en_basepair[indx[j] + i];
+          }
 
-    if (k<=j-3-TURN) { /* found the decomposition */
-      bt_stack[++s].i = i1;
-      bt_stack[s].j   = k;
-      bt_stack[++s].i = k+1;
-      bt_stack[s].j   = j1;
-    } else {
-        nrerror("backtracking failed in repeat");
-    }
+      bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
+
+      for (k = i1+TURN+1; k < j1-TURN-1; k++){
+        if(cij == fML[indx[k]+i1] + fML[indx[j1]+k+1] + mm) break;
+      }
+
+      if (k<=j-3-TURN) { /* found the decomposition */
+        bt_stack[++s].i = i1;
+        bt_stack[s].j   = k;
+        bt_stack[++s].i = k+1;
+        bt_stack[s].j   = j1;
+      } else {
+          nrerror("backtracking failed in repeat");
+      }
+    } else
+      nrerror("backtracking failed in repeat");
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
