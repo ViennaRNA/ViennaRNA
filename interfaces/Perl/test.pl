@@ -33,7 +33,7 @@ ok($RNA::temperature, 37);
 # fold a sequence
 
 # old obsolete way of calling fold()
-my $struct = $seq1;  # wierd way of allocating space
+my $struct = "";  # wierd way of allocating space
 my $mfe=RNA::fold($seq1, $struct);
 ok($struct, $struc1);
 
