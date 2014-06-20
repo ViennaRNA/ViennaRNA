@@ -1589,11 +1589,11 @@ backtrack_qm1(vrna_fold_compound *vc,
     for (s=0; s<n_seq; s++) {
       xtype = md->pair[S[s][i]][S[s][l]];
       if (xtype==0) xtype=7;
-      tempz* = exp_E_MLstem(xtype, S5[s][i], S3[s][l], pf_params);
+      tempz *= exp_E_MLstem(xtype, S5[s][i], S3[s][l], pf_params);
     }
     qt +=  qb[ii-l]*tempz*expMLbase[j-l];
     if (qt>=r) {
-      *prob =   *prob
+      *prob = *prob
               * qb[ii-l]
               * tempz
               * expMLbase[j-l]
