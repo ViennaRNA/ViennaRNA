@@ -12,12 +12,6 @@ GENGETOPT_FILES =  ct2db.ggo
 
 EXTRA_DIST = $(pscript) Fold ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
-GENGETOPT_CMDL =  ct2db_cmdl.c ct2db_cmdl.h
-
-GENGETOPT_FILES =  ct2db.ggo
-
-EXTRA_DIST = $(pscript) Fold ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
-
 LDADD = -L$(top_srcdir)/src/ViennaRNA -lRNA -lm
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
