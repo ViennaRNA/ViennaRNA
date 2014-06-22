@@ -227,6 +227,8 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
+  if(args_info.layout_type_given)
+    rna_plot_type = args_info.layout_type_arg;
   /* SHAPE reactivity data */
   if(args_info.shape_given){
     with_shapes = 1;

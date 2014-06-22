@@ -61,6 +61,12 @@ option "noPS"   -
 flag
 off
 
+option  "layout-type"  t
+"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
+int
+default="1"
+optional
+hidden
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\

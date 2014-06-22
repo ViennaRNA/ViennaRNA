@@ -214,6 +214,8 @@ int main(int argc, char *argv[]){
     RibosumFile = NULL;
     md.ribo = ribo = 1;
   }
+  if(args_info.layout_type_given)
+    rna_plot_type = args_info.layout_type_arg;
 
   if(args_info.maxBPspan_given){
     md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;

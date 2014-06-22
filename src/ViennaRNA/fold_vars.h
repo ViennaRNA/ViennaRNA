@@ -85,7 +85,6 @@ extern int   *iindx;
 
 
 
-
 char * option_string(void);
 
 #endif

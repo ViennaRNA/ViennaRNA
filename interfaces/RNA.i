@@ -558,13 +558,8 @@ COORDINATE *get_xy_coordinates(const char *structure);
 /*#################################*/
 
 
-//%include  "../src/ViennaRNA/subopt.h"
+%include  "../src/ViennaRNA/subopt.h"
 // from subopt.h
-
-typedef struct {
-  float energy;                            /* energy of structure */
-  char *structure;
-} SOLUTION;
 
 %newobject subopt;
 extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);

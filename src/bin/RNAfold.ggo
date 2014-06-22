@@ -66,6 +66,13 @@ option  "noPS"  -
 flag
 off
 
+option  "layout-type"  t
+"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
+int
+default="1"
+optional
+hidden
+
 option  "format"  -
 "Select structure output format\n"
 details="The following output formats are recognized:\n\n\
@@ -101,6 +108,7 @@ details="Specifying a file name/prefix will create text output files in formats 
 string
 typestr="<filename>"
 optional
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\

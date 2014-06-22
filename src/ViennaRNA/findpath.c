@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2008-10-09 16:23:36 ivo> */
+/* gcc -fopenmp -g3 -DTEST_FINDPATH findpath.c -o FINDpath -lRNA -lm -I ../H/ -L ./ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +57,13 @@ PRIVATE int     compare_ptable(const void *A, const void *B);
 PRIVATE int     compare_energy(const void *A, const void *B);
 PRIVATE int     compare_moves_when(const void *A, const void *B);
 PRIVATE void    free_intermediate(intermediate_t *i);
+
+/* TEST_FINDPATH, COFOLD */
+PRIVATE char *tokenize(const char *line);
+PRIVATE char *costring(const char *string);
+PRIVATE void  usage(void);
+
+
 PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
 PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist, paramT *P);
 
@@ -127,7 +134,18 @@ PUBLIC void print_path(const char *seq, const char *struc) {
   set_model_details(&md); /* use current global model */
   P = vrna_get_energy_contributions(md);
   s = strdup(struc);
-  printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure(seq,s,P));
+  if (cut_point == -1)
+    printf("%s\n%s\n", seq, s);
+    /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure(seq,s,P)); */
+  else {
+    char *pstruct, *pseq;
+    pstruct = costring(s);
+    pseq = costring(seq);
+    printf("%s\n%s\n", pseq, pstruct);
+    /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure(seq,s,P)); */
+    free(pstruct);
+    free(pseq);
+  }
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
   for (d=0; d<BP_dist; d++) {
     int i,j;
@@ -137,7 +155,7 @@ PUBLIC void print_path(const char *seq, const char *struc) {
     } else {
       s[i-1] = '('; s[j-1] = ')';
     }
-    printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure(seq,s,P), path[d].E/100.0);
+    /* printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure(seq,s,P), path[d].E/100.0); */
   }
   free(s);
   free(P);
@@ -436,8 +454,8 @@ PRIVATE move_t* copy_moves(move_t *mvs) {
 #ifdef TEST_FINDPATH
 
 int main(int argc, char *argv[]) {
-  char *seq, *s1, *s2;
-  int E, maxkeep=10;
+  char *line, *seq, *s1, *s2;
+  int E, maxkeep=1000;
   int verbose=0, i;
   path_t *route, *r;
   model_detailsT md;
@@ -458,28 +476,99 @@ int main(int argc, char *argv[]) {
                   md.dangles = dangles;
                 }
                 break;
+      default: usage();
     }
   }
-  seq = get_line(stdin);
-  s1 = get_line(stdin);
-  s2 = get_line(stdin);
+
+  cut_point = -1;
+  line = get_line(stdin);
+  seq = tokenize(line);
+  free(line);   
+  line = get_line(stdin);
+  s1 = tokenize(line);
+  free(line);
+  line = get_line(stdin);
+  s2 = tokenize(line);
+  free(line);
 
   E = find_saddle(seq, s1, s2, maxkeep);
   printf("saddle_energy = %6.2f\n", E/100.);
   if (verbose) {
-    if (path_fwd)
-      print_path(seq,s1);
-    else
-      print_path(seq,s2);
-    free(path);
-    path = NULL;
-    route = get_path(seq, s1, s2, maxkeep);
-    for (r=route; r->s; r++) {
-      printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P), r->en);
-      free(r->s);
-    }
+      if (path_fwd)
+          print_path(seq,s1);
+      else
+          print_path(seq,s2);
+      free(path);
+      path = NULL;
+      route = get_path(seq, s1, s2, maxkeep);
+      for (r=route; r->s; r++) {
+          if (cut_point == -1) {
+              printf("%s %6.2f\n", r->s, r->en);
+              /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P), r->en); */
+          } else {
+              char *pstruct;
+              pstruct = costring(r->s);
+              printf("%s %6.2f\n", pstruct, r->en);
+              /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure(seq,r->s,P), r->en); */
+              free(pstruct);
+          }
+          free(r->s);
+      }
+      free(route);
   }
   free(seq); free(s1); free(s2); free(P);
   return(EXIT_SUCCESS);
 }
 #endif
+
+
+/* COFOLD */
+static char *tokenize(const char *line)
+{
+  char *token, *copy, *ctmp;
+  int cut = -1;
+
+  copy = (char *) space(strlen(line)+1);
+  ctmp = (char *) space(strlen(line)+1);
+  (void) sscanf(line, "%s", copy);
+  ctmp[0] = '\0';
+  token = strtok(copy, "&");
+  cut = strlen(token)+1;
+  while (token) {
+    strcat(ctmp, token);
+    token = strtok(NULL, "&");
+  }
+  if (cut > strlen(ctmp)) cut = -1;
+  if (cut > -1) {
+    if (cut_point==-1) cut_point = cut;
+    else if (cut_point != cut) {
+      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+      nrerror("Sequence and Structure have different cut points.");
+    }
+  }
+  free(copy);
+
+  return ctmp;
+}
+
+static char *costring(const char *string)
+{
+  char *ctmp;
+  int len;
+
+  len = strlen(string);
+  ctmp = (char *)space((len+2) * sizeof(char));
+  /* first sequence */
+  (void) strncpy(ctmp, string, cut_point-1);
+  /* spacer */
+  ctmp[cut_point-1] = '&';
+  /* second sequence */
+  (void) strcat(ctmp, string+cut_point-1);
+
+  return ctmp;
+}
+
+static void usage(void)
+{
+  nrerror("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
+}
