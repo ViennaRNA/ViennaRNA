@@ -942,7 +942,7 @@ backtrack(vrna_fold_compound *vc,
                         if(sc->free_energies)
                           tmp_en -= sc->free_energies[i+1][1] + sc->free_energies[j-1][1];
 
-                      if(en == my_fML[indx[k]+i+2] + my_fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase){
+                      if(tmp_en == my_fML[indx[k]+i+2] + my_fML[indx[j-2]+k+1] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase){
                         i1 = i+2;
                         j1 = j-2;
                         break;
