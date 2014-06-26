@@ -566,10 +566,11 @@ hc_reset_to_default(vrna_fold_compound *vc){
         if((j-i+1) > max_span){
           hc->matrix[ij] = (char)0;
         } else {
-/*           hc->matrix[ij] = (vc->pscore[idx[j]+i] >= md->cv_fact*MINPSCORE) ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0; */
-          hc->matrix[ij] = (vc->pscore[idx[j]+i] >= MINPSCORE) ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0;
+          hc->matrix[ij] = (vc->pscore[idx[j]+i] >= md->cv_fact*MINPSCORE) ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0;
         }
     }
+    /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
+    /* this should be included in the pscore which is checked above */
   } else {
     /* 2. all canonical base pairs are allowed in all contexts */
     for(j = n; j > min_loop_size + 1; j--){
@@ -581,21 +582,21 @@ hc_reset_to_default(vrna_fold_compound *vc){
           hc->matrix[ij] = md->pair[S[i]][S[j]] ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0;
         }
     }
-  }
 
-  /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
-  /* this should be fixed such that ij loses its hard constraint type if it does not
-     allow for enclosing an interior loop, etc.
-  */
-  if(md->noLP)
-    for(i = 1; i < n; i++)
-      for(j = i + min_loop_size + 1; j <= n; j++){
-        if(hc->matrix[idx[j] +i]){
-          if(!vc->ptype[idx[j] + i]){
-            hc->matrix[idx[j] + i] = (char)0;
+    /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
+    /* this should be fixed such that ij loses its hard constraint type if it does not
+       allow for enclosing an interior loop, etc.
+    */
+    if(md->noLP)
+      for(i = 1; i < n; i++)
+        for(j = i + min_loop_size + 1; j <= n; j++){
+          if(hc->matrix[idx[j] +i]){
+            if(!vc->ptype[idx[j] + i]){
+              hc->matrix[idx[j] + i] = (char)0;
+            }
           }
         }
-      }
+  }
 }
 
 PRIVATE void
