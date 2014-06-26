@@ -311,6 +311,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
 void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, int objective_function, double sigma_squared, double tau_squared, int algorithm, int sample_size, double *epsilon, progress_callback callback)
 {
   int iteration_count = 0;
+  const int max_iterations = 100;
   int length = vc->length;
 
 #ifdef WITH_GSL
@@ -373,7 +374,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
 
       status = gsl_multimin_test_gradient(minimizer->gradient, 1e-3);
     }
-    while (status == GSL_CONTINUE);
+    while (status == GSL_CONTINUE && iteration_count < max_iterations);
 
     memcpy(epsilon, minimizer->x->data, sizeof(double) * (length + 1));
 
@@ -425,7 +426,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
 
     score = new_score;
     memcpy(epsilon, new_epsilon, sizeof(double) * (length+1));
-  } while (improvement >= min_improvement);
+  } while (improvement >= min_improvement && iteration_count < max_iterations);
 
   free(gradient);
   free(new_epsilon);
