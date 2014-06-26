@@ -463,10 +463,6 @@ backtrack(vrna_fold_compound *vc,
       goto repeat1;
     }
 
-    else if(ml==7) { /* indicates that i,j are enclosing a gquadruplex */
-      /* actually, do something here */
-    }
-
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
     if(ml == 1){
@@ -755,14 +751,17 @@ backtrack(vrna_fold_compound *vc,
           break;
 
       if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
+        int ik, k1j, tmp_en;
         ml = 2;
-        for (k = i+1+TURN; k <= j - 2 - TURN; k++) {
-          type    = rtype[(unsigned char)ptype[indx[k]+i]];
-          type_2  = rtype[(unsigned char)ptype[indx[j]+k+1]];
-          if (type && type_2)
-            if (fij == my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]+
-                       2*P->MLintern[1])
+        for (k1j = indx[j]+i+TURN+2, k = i+1+TURN; k <= j - 2 - TURN; k++, k1j++) {
+          ik = indx[k]+i;
+          if((hc->matrix[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+            type    = rtype[(unsigned char)ptype[ik]];
+            type_2  = rtype[(unsigned char)ptype[k1j]];
+            tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
+            if (fij == tmp_en)
               break;
+          }
         }
       }
       bt_stack[++s].i = i;
@@ -952,8 +951,8 @@ backtrack(vrna_fold_compound *vc,
                     /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                     /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                     if(dangle_model == 3){
-                      type_2 = rtype[(unsigned char)ptype[indx[k]+i+1]];
-                      if (type_2) {
+                      if(hc->matrix[indx[k]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                        type_2 = rtype[(unsigned char)ptype[indx[k]+i+1]];
                         en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                         if(sc){
                           if(sc->en_basepair)
@@ -966,8 +965,8 @@ backtrack(vrna_fold_compound *vc,
                           break;
                         }
                       }
-                      type_2 = rtype[(unsigned char)ptype[indx[j-1]+k+1]];
-                      if (type_2) {
+                      if(hc->matrix[indx[j-1]+k+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                        type_2 = rtype[(unsigned char)ptype[indx[j-1]+k+1]];
                         en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                         if(sc){
                           if(sc->en_basepair)

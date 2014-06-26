@@ -679,7 +679,7 @@ E_mb_loop_fast( int i,
           en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
           if(sc){
             if(sc->en_basepair)
-              en += + sc->en_basepair[ij];
+              en += sc->en_basepair[ij];
           }
           decomp  = MIN2(decomp, en);
         }

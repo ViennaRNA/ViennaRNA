@@ -1030,17 +1030,17 @@ backtrack(vrna_fold_compound *vc,
 
     if(hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
       mm = n_seq*P->MLclosing;
-      if(dangle_model){
-        for(ss = 0; ss < n_seq; ss++){
-          tt = rtype[type[ss]];
-          mm += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
-        }
-      }
-      else{
-        for(ss = 0; ss < n_seq; ss++){
-          tt = rtype[type[ss]];
-          mm += E_MLstem(tt, -1, -1, P);
-        }
+      switch(dangle_model){
+        case 0:   for(ss = 0; ss < n_seq; ss++){
+                    tt = rtype[type[ss]];
+                    mm += E_MLstem(tt, -1, -1, P);
+                  }
+                  break;
+        default:  for(ss = 0; ss < n_seq; ss++){
+                    tt = rtype[type[ss]];
+                    mm += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
+                  }
+                  break;
       }
 
       if(sc)
