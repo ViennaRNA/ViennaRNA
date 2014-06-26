@@ -582,6 +582,20 @@ hc_reset_to_default(vrna_fold_compound *vc){
         }
     }
   }
+
+  /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
+  /* this should be fixed such that ij loses its hard constraint type if it does not
+     allow for enclosing an interior loop, etc.
+  */
+  if(md->noLP)
+    for(i = 1; i < n; i++)
+      for(j = i + min_loop_size + 1; j <= n; j++){
+        if(hc->matrix[idx[j] +i]){
+          if(!vc->ptype[idx[j] + i]){
+            hc->matrix[idx[j] + i] = (char)0;
+          }
+        }
+      }
 }
 
 PRIVATE void
