@@ -10,12 +10,12 @@ usage "RNApvmin [options] <file.shape>"
 args "--file-name=RNApvmin_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNApvmin_cmdline_parser --arg-struct-name=RNApvmin_args_info"
 
 
-description "The programs reads a RNA sequence from stdin and uses an iterative minimization process to \
+description "The program reads a RNA sequence from stdin and uses an iterative minimization process to \
 calculate a perturbation vector that minimizes the discripancies between predicted pairing probabilites \
 and observed pairing probabilities (deduced from given shape reactivities). \
-Experimental data is read from a given multiline plain text file with the format \
-'[position] [nucleotide] [absolute shape reactivity]' (e.g. '3 A 0.7'). A simple cutoff approach is used \
-to distinguish between unpaired and paired nucleotides. \
+Experimental data is read from a given SHAPE file and normalized to pairing probabilities. \
+The experimental data has to be provided in a multiline plain text file where \
+each line has the format '[position] [nucleotide] [absolute shape reactivity]' (e.g. '3 A 0.7'). \
 The objective function used for the minimization may be weighted by choosing appropriate values for \
 sigma and tau.\n\
 
