@@ -12,7 +12,7 @@ our ($opt_p, $opt_a);
 getopts('pa');
 
 sub HELP_MESSAGE {
-  print STDERR "\nusage: $0 [-p] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
+  print STDERR "\nusage: $0 [-p] [-a] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
   print STDERR "For more details run\n\tperldoc -F $0\n";
 }
 
@@ -156,7 +156,7 @@ sub posent {
 
 =head1 NAME
 
-relplot - annotate a secdonary structure plot with reliability information
+relplot - annotate a secondary structure plot with reliability information
 
 =head1 SYNOPSIS
 
