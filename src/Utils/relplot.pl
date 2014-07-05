@@ -8,11 +8,12 @@ use Getopt::Std;
 $main::VERSION = 1.3;
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 
-our ($opt_p, $opt_a);
-getopts('pa');
+our ($opt_p, $opt_a, $opt_s);
+getopts('pas');
 
 sub HELP_MESSAGE {
   print STDERR "\nusage: $0 [-p] [-a] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
+  print STDERR "\nusage: $0 -s FOO_ss.ps FOO.shape > FOO_rss.ps\n";
   print STDERR "For more details run\n\tperldoc -F $0\n";
 }
 
@@ -24,8 +25,8 @@ my $cut_point = -1;   # account for shift of base pair positions
                       # between rna.ps and dot.ps upon cofolding
 
 my $n = swallow_ss_ps();    # read ss plot
-my @sp = posent();   # read dot plot and compute entropies
-my $Smax = ($opt_p || $opt_a) ? 1 : 0;
+my @sp = $opt_s ? swallow_shape() : posent();   # read shape file or dot plot and compute entropies
+my $Smax = ($opt_p || $opt_a || $opt_s) ? 1 : 0;
 if (!$opt_p) {
   foreach (@sp) {
     $Smax = $_ if $_>$Smax;
@@ -45,7 +46,8 @@ if (!$macro_seen) {
     S 3 index get
     Smax div range mul
     invert {range exch sub} if
-    1 1 sethsbcolor
+    dup 0 ge
+    {1 1 sethsbcolor} {pop 1 1 1 setrgbcolor} ifelse
     newpath
     fsize 2 div 0 360 arc
     fill
@@ -154,6 +156,32 @@ sub posent {
   return @sp;
 }
 
+sub swallow_shape {
+  my %shape;
+  my @shapearray;
+  my $max = 0;
+  while(<>) {
+    chomp;
+
+    my @columns = split(/\s+/, $_);
+    my $length = scalar @columns;
+    next if not $length;
+
+    my $index = int($columns[0]);
+    my $value = $length > 1 ? $columns[-1] : -1;
+    next if $value ne $value + 0;
+    $shape{$index} = $value;
+    $max = $index if $index > $max;
+  }
+
+  for(my $i = 1; $i <= $max; $i++)
+  {
+    push(@shapearray, exists $shape{$i} ? $shape{$i} : -1);
+  }
+
+  return @shapearray;
+}
+
 =head1 NAME
 
 relplot - annotate a secondary structure plot with reliability information
@@ -161,6 +189,7 @@ relplot - annotate a secondary structure plot with reliability information
 =head1 SYNOPSIS
 
    relplot [-p] [-a] file_ss.ps file_dp.ps > file_rss.ps
+   relplot -s file_ss.ps file.shape > file_rss.ps
 
 =head1 DESCRIPTION
 
@@ -186,6 +215,9 @@ Entropy (repsectively probability) is encoded as color hue, ranging
 from red for low entropy, well-defined regions, (high probability
 pairs) via yellow and green to blue and violet for regions with very
 high entropy (low probability).
+
+If the -s switch is given, the second given file will be interpreted as SHAPE file
+and reactivity values defined in the file will be used to annotate the secondary structure plot.
 
 You may have to manually move the color legend to a convenient
 position. Just edit the postscript file and change the two numbers in the
