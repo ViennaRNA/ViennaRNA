@@ -30,7 +30,7 @@ my %cos;
 my $cpnt= -1; # Cofold
 my $dg = 0;   # deltaG for normal Switches
 
- Getopt::Long::config('no_ignore_case');
+Getopt::Long::config('no_ignore_case');
 &usage() unless GetOptions("T=f" => \$Temperature1,
                            "T2=f" => \$Temperature2,
                            "4" => sub {$RNA::tetra_loop = 0},
@@ -57,13 +57,16 @@ $nom = ($nom >= 1) ? $nom : 1000;
 $border = ($border >=1) ? $border : 100;
 my $interactiv = init_ia(0);
 my $ia = 1 if -t STDIN && -t STDOUT && $#ARGV < 0;
- RNA::read_parameter_file($ParamFile) if ($ParamFile);
- RNA::init_rand();
- srand();
+RNA::read_parameter_file($ParamFile) if ($ParamFile);
+RNA::init_rand();
+srand();
 
 for(;;) { # main loop
    $interactiv->() if $ia;
    last if !process_input();
+   if ($bar && $opt_circ) {
+     print STDERR "Cannot optimize barriers for circular species\n"; $bar=0;
+   }
 
    my @fist = make_pair_table ($fist);
    my @sest = make_pair_table ($sest);
@@ -526,7 +529,8 @@ For details of the algorithm see:  Flamm et al.,
 "Design of Multi-Stable RNA Molecules", RNA 7:254-265 (2001)
 
 Input consists of three lines, the first two containing the target
-structures in dot bracket notations. The third line may be used to
+structures in dot bracket notations. Structures may contain a '&' to 
+model bistability of two interacting RNAs (using RNAcofold algorithm). The third line may be used to
 define sequence constraints: It contains a sequence string using
 IUPAC codes for nucleotide classes (i.e. C<Y> for pyrimidine, C<R> for
 purine, C<N> for anything...). If the line is empty or shorter than the
@@ -558,10 +562,9 @@ Parameter of the cost function that weights the importance of
 equal energies, and desired energy barriers.
 
 The cost function primarily optimizes product of Boltzman
-probabilities of the two structures C<p(S1)*P(S2)>, in addition it
+probabilities of the two structures C<P(S1)*P(S2)>, in addition it
 contains a penalty proportional to C<[E(S1)-E(S2)]^2> that
-enforces equal energies for both structures. With the --bar it
-also tries design for a given energy barrier. The -g parameter
+enforces equal energies for both structures. The -g parameter
 defines the weight of these additional cost function terms.
 
 =item B<-T> <float>
@@ -577,9 +580,12 @@ temperatures at which structures S1 and S2 should be prefered.
 
 Size of the desired energy barrier between the two structures in
 kcal/mol. A fast heuristic that looks at shortest refolding paths is
-used to estimate the barrier. Requires a recent version of the Vienna
-RNA package that includes the find_saddle() function for estimating
-refolding paths.
+used to estimate the barrier.
+
+=item B<-dG> <float>
+
+Specify an energy difference between the two optimized structures 
+(kcal/mol). The energy is added to the second conformation.
 
 =item ViennaRNA standard options
 
