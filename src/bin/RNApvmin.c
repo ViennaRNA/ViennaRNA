@@ -156,7 +156,6 @@ int main(int argc, char *argv[]){
     double *epsilon;
     vrna_fold_compound *vc;
     pf_paramT *pf_parameters;
-    size_t i;
     float mfe;
     const double kT = (md.temperature + K0) * GASCONST / 1000.;
 
