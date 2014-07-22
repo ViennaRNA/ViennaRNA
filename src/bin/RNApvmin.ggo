@@ -39,16 +39,11 @@ typestr="M/C/S/L/O  + [optional parameters]"
 default="O"
 optional
 
-option  "sigma"  -
-"Weighting factor for the contribution of perturbation vector energies to the objective function."
+option  "tauSigmaRatio"  -
+"Ratio of the weighting factors tau and sigma. A high ratio will lead to a solution as close as possible to the experimental data, \
+while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies."
 double
-default="0.02"
-optional
-
-option  "tau"  -
-"Weighting factor for the contribution of discripancies between predicted and observed pairing probabilities to the objective function."
-double
-default="0.01"
+default="0.5"
 optional
 
 option "objectiveFunction"  -

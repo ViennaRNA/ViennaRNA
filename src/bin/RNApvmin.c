@@ -84,6 +84,12 @@ int main(int argc, char *argv[]){
     return 1;
   }
 
+  if(args_info.tauSigmaRatio_arg <= 0)
+  {
+    warn_user("invalid value for tauSigmaRatio");
+    return 1;
+  }
+
   init_rand();
   set_model_details(&md);
 
@@ -158,6 +164,8 @@ int main(int argc, char *argv[]){
     pf_paramT *pf_parameters;
     float mfe;
     const double kT = (md.temperature + K0) * GASCONST / 1000.;
+    const double tau = 0.01;
+    const double sigma = tau / args_info.tauSigmaRatio_arg;
 
     convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
 
@@ -172,7 +180,7 @@ int main(int argc, char *argv[]){
 
     epsilon = space(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
-    vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, args_info.sigma_arg, args_info.tau_arg, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, sigma, tau, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
 
     vrna_free_fold_compound(vc);
     free(pf_parameters);
