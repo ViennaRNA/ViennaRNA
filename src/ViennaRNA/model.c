@@ -199,6 +199,38 @@ vrna_md_get_gquad(model_detailsT *md){
 }
 
 PUBLIC void
+vrna_md_set_nolp(model_detailsT *md){
+
+  if(md)
+    md->noLP = 1;
+}
+
+PUBLIC int
+vrna_md_get_nolp(model_detailsT *md){
+
+  if(md)
+    return md->noLP;
+  else
+    return -1;
+}
+
+PUBLIC void
+vrna_md_set_betascale(model_detailsT *md, double b){
+
+  if(md)
+    md->betaScale = b;
+}
+
+PUBLIC double
+vrna_md_get_betascale(model_detailsT *md){
+  
+  if(md)
+    return md->betaScale;
+  else
+    return -1;
+}
+
+PUBLIC void
 vrna_md_update(model_detailsT *md){
 
   if(md)

@@ -285,6 +285,18 @@ void vrna_md_set_gquad(model_detailsT *md, int g);
 
 int vrna_md_get_gquad(model_detailsT *md);
 
+
+void vrna_md_set_nolp(model_detailsT *md);
+
+
+int vrna_md_get_nolp(model_detailsT *md);
+
+
+void vrna_md_set_betascale(model_detailsT *md, double b);
+
+
+double vrna_md_get_betascale(model_detailsT *md);
+
 /**
  *  \brief Update the model details
  */
