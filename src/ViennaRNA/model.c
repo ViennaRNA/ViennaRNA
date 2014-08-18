@@ -199,10 +199,10 @@ vrna_md_get_gquad(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_nolp(model_detailsT *md){
+vrna_md_set_nolp(model_detailsT *md, int nolp){
 
   if(md)
-    md->noLP = 1;
+    md->noLP = (nolp) ? 1 : 0;
 }
 
 PUBLIC int
