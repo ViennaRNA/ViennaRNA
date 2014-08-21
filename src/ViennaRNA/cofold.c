@@ -360,8 +360,6 @@ fill_arrays(vrna_fold_compound  *vc,
         if (SAME_STRAND(j-1,j))
           if(hc_up_ml[j]){
             new_fML = MIN2(new_fML, my_fML[indx[j-1]+i]+P->MLbase);
-            if(uniq_ML)
-              my_fM1[ij] = my_fM1[indx[j-1]+i] + P->MLbase;
           }
         if (SAME_STRAND(j,j+1)) {
           if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
@@ -371,18 +369,13 @@ fill_arrays(vrna_fold_compound  *vc,
             else
               energy += E_MLstem(type, -1, -1, P);
             new_fML = MIN2(new_fML, energy);
-
-            if(uniq_ML)
-              my_fM1[ij] = MIN2(my_fM1[ij], energy);
           } else if (with_gquad) {
               int gggg = my_ggg[ij] + E_MLstem(0, -1, -1, P);
               energy = MIN2(energy, gggg);
               new_fML = MIN2(new_fML, energy);
-              if(uniq_ML)
-                my_fM1[ij] = MIN2(my_fM1[ij], energy);
           }
-        
         }
+
         if (dangle_model%2==1) {  /* normal dangles */
           if (SAME_STRAND(i,i+1)) {
             if((hard_constraints[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[i])){
@@ -406,6 +399,11 @@ fill_arrays(vrna_fold_compound  *vc,
             }
           }
         }
+
+        if(uniq_ML){  /* compute fM1 for unique decomposition */
+          my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
+        }
+
       }
 
       if(with_gquad){
