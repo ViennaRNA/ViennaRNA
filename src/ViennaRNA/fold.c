@@ -1129,7 +1129,7 @@ vrna_update_fold_params(vrna_fold_compound *vc,
 PUBLIC void
 free_arrays(void){
 
-  if(backward_compat_compound){
+  if(backward_compat_compound && backward_compat){
     vrna_free_fold_compound(backward_compat_compound);
     backward_compat_compound = NULL;
     backward_compat          = 0;
