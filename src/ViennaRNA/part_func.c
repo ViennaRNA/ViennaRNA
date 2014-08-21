@@ -40,10 +40,11 @@ PUBLIC  int         st_back = 0;
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(backward_compat_compound)
+#pragma omp threadprivate(backward_compat_compound, backward_compat)
 
 #endif
 
@@ -132,10 +133,11 @@ wrap_pf_fold( const char *sequence,
     vrna_hc_add(vc, (const char *)structure, constraint_options);
   }
 
-  if(backward_compat_compound)
+  if(backward_compat_compound && backward_compat)
     vrna_free_fold_compound(backward_compat_compound);
 
-  backward_compat_compound = vc;
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
   iindx = backward_compat_compound->iindx;
 
   return vrna_pf_fold(vc, structure);
@@ -684,7 +686,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   int n, i,j,k,l, ij, kl, ii, u1, u2, ov=0;
   unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
-  FLT_OR_DBL  prmt,prmt1;
+  FLT_OR_DBL  prmt, prmt1;
   FLT_OR_DBL  *tmp;
   FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing;
@@ -2135,9 +2137,10 @@ init_pf_fold(int length){
 PUBLIC void
 free_pf_arrays(void){
 
-  if(backward_compat_compound){
+  if(backward_compat_compound && backward_compat){
     vrna_free_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
+    backward_compat_compound  = NULL;
+    backward_compat           = 0;
     iindx = NULL;
   }
 }
