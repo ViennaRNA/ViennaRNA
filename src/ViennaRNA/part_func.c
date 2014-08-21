@@ -97,29 +97,29 @@ wrap_pf_fold( const char *sequence,
               int is_circular){
 
   vrna_fold_compound  *vc;
-  pf_paramT           *exp_params;
-
+  model_detailsT      md;
   vc                  = NULL;
 
   /* we need pf_paramT datastructure to correctly init default hard constraints */
   if(parameters)
-    exp_params = get_boltzmann_factor_copy(parameters);
+    md = parameters->model_details;
   else{
-    model_detailsT md;
     set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_get_boltzmann_factors(md);
   }
-  exp_params->model_details.circ        = is_circular;
-  exp_params->model_details.compute_bpp = calculate_bppm;
+  md.circ         = is_circular;
+  md.compute_bpp  = calculate_bppm;
 
-  vc = vrna_get_fold_compound(sequence, &(exp_params->model_details), VRNA_OPTION_PF);
+  vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_PF);
 
+#if 0
   if(parameters){ /* replace exp_params if necessary */
     free(vc->exp_params);
     vc->exp_params = exp_params;
   } else {
     free(exp_params);
   }
+#endif
+  
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
@@ -1257,13 +1257,13 @@ vrna_update_pf_params(vrna_fold_compound *vc,
 
     /* fill additional helper arrays for scaling etc. */
     int i;
-    double scaling_factor = vc->exp_params->pf_scale;
-    if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
+    double scaling_factor = vc->exp_params->model_details.pf_scale;
+    if (scaling_factor < 1.) { /* mean energy for random sequences: 184.3*length cal */
       scaling_factor = exp(-(-185+(vc->exp_params->temperature-37.)*7.27)/kT);
-      if (scaling_factor<1) scaling_factor=1;
-      vc->exp_params->pf_scale = scaling_factor;
-      pf_scale = vc->exp_params->pf_scale; /* compatibility with RNAup, may be removed sometime */
+      if (scaling_factor<1) scaling_factor = 1.;
     }
+    vc->exp_params->pf_scale = vc->exp_params->model_details.pf_scale = scaling_factor;
+    pf_scale = scaling_factor; /* compatibility with RNAup, may be removed sometime */
     vc->exp_matrices->scale[0] = 1.;
     vc->exp_matrices->scale[1] = 1./scaling_factor;
     vc->exp_matrices->expMLbase[0] = 1;
