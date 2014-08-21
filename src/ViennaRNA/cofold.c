@@ -407,7 +407,7 @@ backtrack_co( sect bt_stack[],
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
 
-  int   i, j, k, length, energy, new, ml0, ml5, ml3, ml53, no_close, type, type_2, tt;
+  int   i, j, ij, k, length, energy, en, new, ml0, ml5, ml3, ml53, no_close, type, type_2, tt;
   char  *string         = vc->sequence;
   paramT  *P            = vc->params;
   int     *indx         = vc->jindx;
@@ -422,6 +422,9 @@ backtrack_co( sect bt_stack[],
   int   *rtype          = &(P->model_details.rtype[0]);
   char  backtrack_type  = P->model_details.backtrack_type;
   int   cut_point       = vc->cutpoint;
+  hard_constraintT  *hc = vc->hc;
+  soft_constraintT  *sc = vc->sc;
+  char              *hard_constraints = hc->matrix;
 
   /* the folding matrices */
   int   *my_f5, *my_c, *my_fML, *my_fc, *my_ggg;
@@ -457,12 +460,25 @@ backtrack_co( sect bt_stack[],
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
 
 
-    if (ml==0) {fij = my_f5[j]; fi = my_f5[j-1];}
-    else if (ml==1) {fij = my_fML[indx[j]+i]; fi = my_fML[indx[j-1]+i]+P->MLbase;}
+    if (ml==0){
+      fij = my_f5[j];
+      fi  = (hc->up_ext[j]) ? my_f5[j-1] : INF;
+      if(sc)
+        if(sc->free_energies)
+          fi += sc->free_energies[j][1];
+    } 
+    else if (ml==1){
+      fij = my_fML[indx[j]+i];
+      fi  = (hc->up_ml[j]) ? my_fML[indx[j-1]+i] + P->MLbase : INF;
+      if(sc)
+        if(sc->free_energies)
+          fi += sc->free_energies[j][1];
+    }
     else /* 3 or 4 */ {
       fij = my_fc[j];
-      fi = (ml==3) ? INF : my_fc[j-1];
+      fi = (ml==3) ? INF : ( (hc->up_ext[j]) ? my_fc[j-1] : INF);
     }
+
     if (fij == fi) {  /* 3' end is unpaired */
       bt_stack[++s].i = i;
       bt_stack[s].j   = j-1;
@@ -486,8 +502,8 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    type = ptype[indx[j]+k];
-                    if(type){
+                    if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
+                      type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
                       if(fij == ff[k-1] + cc + E_ExtLoop(type, -1, -1, P)){
@@ -511,8 +527,8 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    type = ptype[indx[j]+k];
-                    if(type){
+                    if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
+                      type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
                       if(fij == ff[k-1] + cc + E_ExtLoop(type, (k>1) && SAME_STRAND(k-1,k) ? S1[k-1] : -1, (j<length) && SAME_STRAND(j,j+1) ? S1[j+1] : -1, P)){
@@ -525,7 +541,6 @@ backtrack_co( sect bt_stack[],
 
         default:  for(k=j-TURN-1,traced=0; k>=i; k--){
                     int cc;
-                    type = ptype[indx[j]+k];
 
                     if(with_gquad){
                       if(fij == ff[k-1] + my_ggg[indx[j]+k]){
@@ -535,33 +550,57 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(type){
+                    if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
+                      type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
                       if(fij == ff[k-1] + cc + E_ExtLoop(type, -1, -1, P)){
                         traced = j; jj = k-1; break;
                       }
-                      if((k>1) && SAME_STRAND(k-1,k))
-                        if(fij == ff[k-2] + cc + E_ExtLoop(type, S1[k-1], -1, P)){
-                              traced=j; jj=k-2; break;
+                      if(hc->up_ext[k-1]){
+                        if((k>1) && SAME_STRAND(k-1,k)){
+                          en = cc;
+                          if(sc)
+                            if(sc->free_energies)
+                              en += sc->free_energies[k-1][1];
+
+                          if(fij == ff[k-2] + en + E_ExtLoop(type, S1[k-1], -1, P)){
+                                traced=j; jj=k-2; break;
+                          }
                         }
+                      }
                     }
 
-                    type = ptype[indx[j-1]+k];
-                    if(type && SAME_STRAND(j-1,j)){
-                      cc = my_c[indx[j-1]+k];
-                      if (!SAME_STRAND(k,j-1)) cc += P->DuplexInit; /*???*/
-                      if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
+                    if(hard_constraints[indx[j-1]+k] & IN_EXT_LOOP){
+                      type = ptype[indx[j-1]+k];
+                      if(hc->up_ext[j]){
+                        if(SAME_STRAND(j-1,j)){
+                          cc = my_c[indx[j-1]+k];
+                          if (!SAME_STRAND(k,j-1))
+                            cc += P->DuplexInit; /*???*/
+                          if(sc)
+                            if(sc->free_energies)
+                              cc += sc->free_energies[j][1];
+
+                          if (fij == cc + ff[k-1] + E_ExtLoop(type, -1, S1[j], P)){
                             traced=j-1; jj = k-1; break;
-                      }
-                      if(k>i){
-                        if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
-                          traced=j-1; jj=k-2; break;
+                          }
+
+                          if(k>i){
+                            if(hc->up_ext[k-1]){
+                              if(sc)
+                                if(sc->free_energies)
+                                  cc += sc->free_energies[k-1][1];
+
+                              if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
+                                traced=j-1; jj=k-2; break;
+                              }
+                            }
+                          }
                         }
                       }
                     }
                   }
-
                   break;
       }
       if (!traced) nrerror("backtrack failed in f5 (or fc)");
@@ -582,22 +621,32 @@ backtrack_co( sect bt_stack[],
       goto repeat1;
     }
     else if (ml==3) { /* backtrack in fc[i<cut,j=cut-1] */
-      if (my_fc[i] == my_fc[i+1]) { /* 5' end is unpaired */
-        bt_stack[++s].i = i+1;
-        bt_stack[s].j   = j;
-        bt_stack[s].ml  = ml;
-        continue;
+      if(hc->up_ext[i]){
+        en = my_fc[i+1];
+        if(sc)
+          if(sc->free_energies)
+            en += sc->free_energies[i][1];
+
+        if (my_fc[i] == en) { /* 5' end is unpaired */
+          bt_stack[++s].i = i+1;
+          bt_stack[s].j   = j;
+          bt_stack[s].ml  = ml;
+          continue;
+        }
       }
+
       /* i or i+1 is paired. Find pairing partner */
       switch(dangle_model){
         case 0:   for (k=i+TURN+1, traced=0; k<=j; k++){
                     jj=k+1;
-                    type = ptype[indx[k]+i];
-                    if (type) {
+                    if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
+                      type = ptype[indx[k]+i];
                       if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
                         traced = i;
                       }
-                    } else if (with_gquad){
+                    }
+
+                    if (with_gquad){
                       if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
                         traced = i; gq = 1;
                         break;
@@ -609,45 +658,73 @@ backtrack_co( sect bt_stack[],
                   break;
         case 2:   for (k=i+TURN+1, traced=0; k<=j; k++){
                     jj=k+1;
-                    type = ptype[indx[k]+i];
-                    if(type){
+                    if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
+                      type = ptype[indx[k]+i];
                       if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type,(i>1 && SAME_STRAND(i-1,i)) ? S1[i-1] : -1,  SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
                         traced = i;
                       }
-                    } else if (with_gquad){
-                      if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
-                        traced = i; gq = 1;
-                        break;
-                      }
                     }
-                    if (traced) break;
-                  }
-                  break;
-        default:  for(k=i+TURN+1, traced=0; k<=j; k++){
-                    jj=k+1;
-                    type = ptype[indx[k]+i];
-                    if(type){
-                      if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
-                        traced = i; break;
-                      }
-                      else if(my_fc[i] == my_fc[k+2] + my_c[indx[k]+i] + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
-                        traced = i; jj=k+2; break;
-                      }
-                    } else if (with_gquad){
+
+                    if (with_gquad){
                       if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
                         traced = i; gq = 1;
                         break;
                       }
                     }
 
-                    type = ptype[indx[k]+i+1];
-                    if(type){
-                      if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i+1] + E_ExtLoop(type, SAME_STRAND(i, i+1) ? S1[i] : -1, -1, P)){
-                        traced = i+1; break;
+                    if (traced) break;
+                  }
+                  break;
+        default:  for(k=i+TURN+1, traced=0; k<=j; k++){
+                    jj=k+1;
+                    if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
+                      type = ptype[indx[k]+i];
+                      if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
+                        traced = i; break;
                       }
-                      if(k<j){
-                        if(my_fc[i] == my_fc[k+2] + my_c[indx[k]+i+1] + E_ExtLoop(type, SAME_STRAND(i, i+1) ? S1[i] : -1, SAME_STRAND(k, k+1) ? S1[k+1] : -1, P)){
-                          traced = i+1; jj=k+2; break;
+                      if(hc->up_ext[k+1]){
+                        en = my_c[indx[k]+i];
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[k+1][1];
+
+                        if(my_fc[i] == my_fc[k+2] + en + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
+                          traced = i; jj=k+2; break;
+                        }
+                      }
+                    }
+
+                    if (with_gquad){
+                      if(my_fc[i] == my_fc[k+1] + my_ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
+                      }
+                    }
+
+                    if(hard_constraints[indx[k]+i+1] & IN_EXT_LOOP){
+                      int s5 = SAME_STRAND(i, i+1) ? S1[i] : -1;
+                      int s3 = SAME_STRAND(k, k+1) ? S1[k+1] : -1;
+                      if(hc->up_ext[i]){
+                        type = ptype[indx[k]+i+1];
+                        en = my_c[indx[k]+i+1];
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[i][1];
+
+                        if(my_fc[i] == en + my_fc[k+1] + E_ExtLoop(type, s5, -1, P)){
+                          traced = i+1; break;
+                        }
+
+                        if(k<j){
+                          if(hc->up_ext[k+1]){
+                            if(sc)
+                              if(sc->free_energies)
+                                en += sc->free_energies[k+1][1];
+
+                            if(my_fc[i] == en + my_fc[k+2] + E_ExtLoop(type, s5, s3, P)){
+                              traced = i+1; jj=k+2; break;
+                            }
+                          }
                         }
                       }
                     }
@@ -674,11 +751,18 @@ backtrack_co( sect bt_stack[],
     }
 
     else { /* true multi-loop backtrack in fML */
-      if (my_fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
-        bt_stack[++s].i = i+1;
-        bt_stack[s].j   = j;
-        bt_stack[s].ml  = ml;
-        continue;
+      if(hc->up_ml[i]){
+        en = my_fML[indx[j]+i+1] + P->MLbase;
+        if(sc)
+          if(sc->free_energies)
+            en += sc->free_energies[i][1];
+
+        if (en == fij) { /* 5' end is unpaired */
+          bt_stack[++s].i = i+1;
+          bt_stack[s].j   = j;
+          bt_stack[s].ml  = ml;
+          continue;
+        }
       }
 
       if(with_gquad){
@@ -691,43 +775,73 @@ backtrack_co( sect bt_stack[],
       tt  = ptype[indx[j]+i];
       cij = my_c[indx[j]+i];
       switch(dangle_model){
-        case 0:   if(fij == cij + E_MLstem(tt, -1, -1, P)){
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
-                  }
+        case 0:   if(hard_constraints[indx[j]+i] & IN_MB_LOOP_ENC)
+                    if(fij == cij + E_MLstem(tt, -1, -1, P)){
+                      bp_list[++b].i  = i;
+                      bp_list[b].j    = j;
+                      goto repeat1;
+                    }
                   break;
-        case 2:   if(fij == cij + E_MLstem(tt, (i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P)){
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
-                  }
+        case 2:   if(hard_constraints[indx[j]+i] & IN_MB_LOOP_ENC)
+                    if(fij == cij + E_MLstem(tt, (i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P)){
+                      bp_list[++b].i  = i;
+                      bp_list[b].j    = j;
+                      goto repeat1;
+                    }
                   break;
-        default:  if(fij == cij + E_MLstem(tt, -1, -1, P)){
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
+        default:  if(hard_constraints[indx[j]+i] & IN_MB_LOOP_ENC)
+                    if(fij == cij + E_MLstem(tt, -1, -1, P)){
+                      bp_list[++b].i  = i;
+                      bp_list[b].j    = j;
+                      goto repeat1;
+                    }
+                  if(hard_constraints[indx[j]+i+1] & IN_MB_LOOP_ENC){
+                    if(hc->up_ml[i]){
+                      tt = ptype[indx[j]+i+1];
+                      en = my_c[indx[j]+i+1] + P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i][1];
+
+                      if(fij == en + E_MLstem(tt, S1[i], -1, P)){
+                        i++;
+                        bp_list[++b].i  = i;
+                        bp_list[b].j    = j;
+                        goto repeat1;
+                      }
+                    }
                   }
-                  tt = ptype[indx[j]+i+1];
-                  if(fij == my_c[indx[j]+i+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P)){
-                    i++;
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
+                  if(hard_constraints[indx[j-1]+i] & IN_MB_LOOP_ENC){
+                    if(hc->up_ml[j]){
+                      tt = ptype[indx[j-1]+i];
+                      en = my_c[indx[j-1]+i] + P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[j][1];
+
+                      if(fij == en + E_MLstem(tt, -1, S1[j], P)){
+                        j--;
+                        bp_list[++b].i  = i;
+                        bp_list[b].j    = j;
+                        goto repeat1;
+                      }
+                    }
                   }
-                  tt = ptype[indx[j-1]+i];
-                  if(fij == my_c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P)){
-                    j--;
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
-                  }
-                  tt = ptype[indx[j-1]+i+1];
-                  if(fij == my_c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P)){
-                    i++; j--;
-                    bp_list[++b].i  = i;
-                    bp_list[b].j    = j;
-                    goto repeat1;
+                  if(hard_constraints[indx[j-1]+i+1] & IN_MB_LOOP_ENC){
+                    if(hc->up_ml[i] && hc->up_ml[j]){
+                      tt = ptype[indx[j-1]+i+1];
+                      en = my_c[indx[j-1]+i+1] + 2*P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i][1] + sc->free_energies[j][1];
+
+                      if(fij == en + E_MLstem(tt, S1[i], S1[j], P)){
+                        i++; j--;
+                        bp_list[++b].i  = i;
+                        bp_list[b].j    = j;
+                        goto repeat1;
+                      }
+                    }
                   }
                   break;
       }
@@ -740,12 +854,15 @@ backtrack_co( sect bt_stack[],
       if ((dangle_model==3)&&(k>j-2-TURN)) { /* must be coax stack */
         ml = 2;
         for (k = i+1+TURN; k <= j-2-TURN; k++) {
-          type = ptype[indx[k]+i];  type= rtype[type];
-          type_2 = ptype[indx[j]+k+1]; type_2= rtype[type_2];
-          if (type && type_2)
-            if (fij == my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]+
-                2*P->MLintern[1])
+          if((hard_constraints[indx[k]+i] & IN_MB_LOOP_ENC) && (hard_constraints[indx[j]+k+1] & IN_MB_LOOP_ENC)){
+            type    = ptype[indx[k]+i];
+            type    = rtype[type];
+            type_2  = ptype[indx[j]+k+1];
+            type_2  = rtype[type_2];
+
+            if (fij == my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2] + 2*P->MLintern[1])
               break;
+          }
         }
       }
 
@@ -763,71 +880,107 @@ backtrack_co( sect bt_stack[],
   repeat1:
 
     /*----- begin of "repeat:" -----*/
-    if (canonical)  cij = my_c[indx[j]+i];
-    type = ptype[indx[j]+i];
+    ij = indx[j]+i;
+    if (canonical)  cij = my_c[ij];
+    type = ptype[ij];
 
     if (noLP)
-      if (cij == my_c[indx[j]+i]) {
+      if (cij == my_c[ij]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        type_2 = ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
-        cij -= P->stack[type][type_2];
-        bp_list[++b].i = i+1;
-        bp_list[b].j   = j-1;
-        i++; j--;
-        canonical=0;
-        goto repeat1;
+        if((hard_constraints[ij] & IN_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & IN_INT_LOOP_ENC)){
+          type_2 = ptype[indx[j-1]+i+1];
+          type_2 = rtype[type_2];
+          cij -= P->stack[type][type_2];
+          if(sc){
+            if(sc->en_basepair)
+              cij -= sc->en_basepair[ij];
+            if(sc->en_stack)
+              cij -=    sc->en_stack[i]
+                      + sc->en_stack[i+1]
+                      + sc->en_stack[j-1]
+                      + sc->en_stack[j];
+          }
+          bp_list[++b].i = i+1;
+          bp_list[b].j   = j-1;
+          i++; j--;
+          canonical=0;
+          goto repeat1;
+        }
       }
     canonical = 1;
 
 
     no_close = (((type==3)||(type==4))&&noGUclosure);
-    if (SAME_STRAND(i,j)) {
-      if (no_close) {
-        if (cij == FORBIDDEN) continue;
-      } else
-        if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P))
+    if (no_close) {
+      if (cij == FORBIDDEN) continue;
+    } else {
+      energy = E_hp_loop(i, j, vc);
+      if (cij == energy) continue;
+    }
+
+    if(hard_constraints[ij] & IN_INT_LOOP){
+      for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
+        int minq;
+
+        if(hc->up_int[i+1] < (p - i - 1))
           continue;
-    }
-    else {
-      if(dangle_model){
-        if(cij == E_ExtLoop(rtype[type], SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)) continue;
-      }
-      else if(cij == E_ExtLoop(rtype[type], -1, -1, P)) continue;
-    }
 
-    for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
-      int minq;
-      minq = j-i+p-MAXLOOP-2;
-      if (minq<p+1+TURN) minq = p+1+TURN;
-      for (q = j-1; q >= minq; q--) {
+        minq = j-i+p-MAXLOOP-2;
+        if (minq<p+1+TURN) minq = p+1+TURN;
+        for (q = j-1; q >= minq; q--) {
 
-        type_2 = ptype[indx[q]+p];
-        if (type_2==0) continue;
-        type_2 = rtype[type_2];
-        if (noGUclosure)
-          if (no_close||(type_2==3)||(type_2==4))
-            if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+          if(!(hard_constraints[indx[q]+p] & IN_INT_LOOP_ENC))
+            continue;
 
-        /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-        if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
-          energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                              S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-        else {
-          energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
+          if(hc->up_int[q+1] < (j - q - 1))
+            continue;
+
+          type_2 = ptype[indx[q]+p];
+          type_2 = rtype[type_2];
+
+          if (noGUclosure)
+            if (no_close||(type_2==3)||(type_2==4))
+              if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+
+          /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
+          if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
+            energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+                                S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
+          else {
+            energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
+          }
+
+          new = energy+my_c[indx[q]+p];
+          if(sc){
+            if(sc->free_energies)
+              new +=  sc->free_energies[i+1][p-i-1]
+                      + sc->free_energies[q+1][j-q-1];
+
+            if(sc->en_basepair)
+              new += sc->en_basepair[ij];
+
+            if(sc->en_stack)
+              if((p == i+1) && (q == j-1))
+                new +=    sc->en_stack[i]
+                        + sc->en_stack[p]
+                        + sc->en_stack[q]
+                        + sc->en_stack[j];
+
+            if(sc->f)
+              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+          }
+
+          traced = (cij == new);
+          if (traced) {
+            bp_list[++b].i = p;
+            bp_list[b].j   = q;
+            i = p, j = q;
+            goto repeat1;
+          }
         }
-
-        new = energy+my_c[indx[q]+p];
-        traced = (cij == new);
-        if (traced) {
-          bp_list[++b].i = p;
-          bp_list[b].j   = q;
-          i = p, j = q;
-          goto repeat1;
-        }
       }
     }
-
     /* end of repeat: --------------------------------------------------*/
 
     /* (i.j) must close a fake or true multi-loop */
@@ -855,30 +1008,71 @@ backtrack_co( sect bt_stack[],
       int ii, jj, decomp;
       ii = jj = 0;
       decomp = my_fc[i1] + my_fc[j1];
-      switch(dangle_model){
-        case 0:   if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
-                    ii=i1, jj=j1;
-                  }
-                  break;
-        case 2:   if(cij == decomp + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
-                    ii=i1, jj=j1;
-                  }
+      if(sc)
+        if(sc->en_basepair)
+          decomp += sc->en_basepair[ij];
 
+      switch(dangle_model){
+        case 0:   if(hard_constraints[ij] & IN_MB_LOOP)
+                    if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
+                      ii=i1, jj=j1;
+                    }
                   break;
-        default:  if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
-                    ii=i1, jj=j1;
-                  }
-                  else if(cij == my_fc[i+2] + my_fc[j-1] + E_ExtLoop(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
-                    ii = i+2; jj = j1;
-                  }
-                  else if(cij == my_fc[i+1] + my_fc[j-2] + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P)){
-                    ii = i1; jj = j-2;
-                  }
-                  else if(cij == my_fc[i+2] + my_fc[j-2] + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
-                    ii = i+2; jj = j-2;
+        case 2:   if(hard_constraints[ij] & IN_MB_LOOP)
+                    if(cij == decomp + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
+                      ii=i1, jj=j1;
+                    }
+                  break;
+        default:  if(hard_constraints[ij] & IN_MB_LOOP){
+                    if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
+                      ii=i1, jj=j1;
+                      break;
+                    }
+                    int s5 = SAME_STRAND(j-1,j) ? S1[j-1] : -1;
+                    int s3 = SAME_STRAND(i,i+1) ? S1[i+1] : -1;
+                    if(hc->up_ext[i+1]){
+                      en = my_fc[i+2] + my_fc[j-1];
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      if(cij == en + E_ExtLoop(tt, -1, s3, P)){
+                        ii = i+2; jj = j1;
+                        break;
+                      }
+                    }
+                    if(hc->up_ext[j-1]){
+                      en = my_fc[i+1] + my_fc[j-2];
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[j-1][1];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      if(cij == en + E_ExtLoop(tt, s5, -1, P)){
+                        ii = i1; jj = j-2;
+                        break;
+                      }
+                    }
+                    if((hc->up_ext[j-1]) && (hc->up_ext[i+1])){
+                      en = my_fc[i+2] + my_fc[j-2];
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1] + sc->free_energies[j-1][1];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      if(cij == en + E_ExtLoop(tt, s5, s3, P)){
+                        ii = i+2; jj = j-2;
+                        break;
+                      }
+                    }
                   }
                   break;
       }
+
       if(ii){
         bt_stack[++s].i = ii;
         bt_stack[s].j   = cut_point-1;
@@ -890,95 +1084,130 @@ backtrack_co( sect bt_stack[],
       }
     }
 
-    /* true multi-loop */
-    mm = P->MLclosing;
-    bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
-    ml0   = E_MLstem(tt, -1, -1, P);
-    ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
-    ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
-    ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
-    for (traced = 0, k = i+2+TURN; k < j-2-TURN; k++) {
-      switch(dangle_model){
-        case 0:   /* no dangles */
-                  if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml0)
-                    traced = i+1;
-                  break;
-        case 2:   /*double dangles */
-                  if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml53)
-                    traced = i+1;
-                  break;
-        default:  /* normal dangles */
-                  if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml0){
-                    traced = i+1;
-                    break;
-                  }
-                  else if (cij == my_fML[indx[k]+i+2] + my_fML[indx[j-1]+k+1] + ml3 + mm + P->MLbase){
-                    traced = i1 = i+2;
-                    break;
-                  }
-                  else if (cij == my_fML[indx[k]+i+1] + my_fML[indx[j-2]+k+1] + ml5 + mm + P->MLbase){
-                    traced = i1 = i+1; j1 = j-2;
-                    break;
-                  }
-                  else if (cij == my_fML[indx[k]+i+2] + my_fML[indx[j-2]+k+1] + ml53 + mm + 2*P->MLbase){
-                    traced = i1 = i+2; j1 = j-2;
-                    break;
-                  }
-                  break;
-      }
-      if(traced) break;
-      /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
-      /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
-      if (dangle_model==3) {
-        int en;
-        type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
-        if (type_2) {
-          en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
-          if (cij == en+2*P->MLintern[1]+P->MLclosing) {
-            ml = 2;
-            bt_stack[s+1].ml  = 2;
-            break;
-          }
-        }
-        type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2];
-        if (type_2) {
-          en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
-          if (cij == en+2*P->MLintern[1]+P->MLclosing) {
-            bt_stack[s+2].ml = 2;
-            break;
-          }
-        }
-      }
-    }
-    if (k<=j-3-TURN) { /* found the decomposition */
-      bt_stack[++s].i = i1;
-      bt_stack[s].j   = k;
-      bt_stack[++s].i = k+1;
-      bt_stack[s].j   = j1;
-    } else {
-#if 0
-      /* Y shaped ML loops don't work yet */
-      if (dangle_model==3) {
-        /* (i,j) must close a Y shaped ML loop with coax stacking */
-        if (cij == fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
-          i1 = i+2;
-          j1 = j-2;
-        } else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + P->MLbase)
-          j1 = j-2;
-        else if (cij ==  fML[indx[j-1]+i+2] + mm + d3 + P->MLbase)
-          i1 = i+2;
-        else /* last chance */
-          if (cij != fML[indx[j-1]+i+1] + mm + P->MLbase)
-            fprintf(stderr,  "backtracking failed in repeat");
-        /* if we arrive here we can express cij via fML[i1,j1]+dangles */
-        bt_stack[++s].i = i1;
-        bt_stack[s].j   = j1;
-      }
-      else
-#endif
-        nrerror("backtracking failed in repeat");
-    }
+    if(hard_constraints[ij] & IN_MB_LOOP){
+      /* true multi-loop */
+      mm = P->MLclosing;
+      if(sc)
+        if(sc->en_basepair)
+          mm += sc->en_basepair[ij];
 
+      bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
+      ml0   = E_MLstem(tt, -1, -1, P);
+      ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
+      ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
+      ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
+      for (traced = 0, k = i+2+TURN; k < j-2-TURN; k++) {
+        switch(dangle_model){
+          case 0:   /* no dangles */
+                    if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml0)
+                      traced = i+1;
+                    break;
+          case 2:   /*double dangles */
+                    if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml53)
+                      traced = i+1;
+                    break;
+          default:  /* normal dangles */
+                    if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml0){
+                      traced = i+1;
+                      break;
+                    }
+                    if(hc->up_ml[i+1]){
+                      en = mm;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1];
+
+                      if (cij == my_fML[indx[k]+i+2] + my_fML[indx[j-1]+k+1] + ml3 + en + P->MLbase){
+                        traced = i1 = i+2;
+                        break;
+                      }
+                    }
+                    if(hc->up_ml[j-1]){
+                      en = mm;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[j-1][1];
+
+                      if (cij == my_fML[indx[k]+i+1] + my_fML[indx[j-2]+k+1] + ml5 + en + P->MLbase){
+                        traced = i1 = i+1; j1 = j-2;
+                        break;
+                      }
+                    }
+                    if(hc->up_ml[i+1] && hc->up_ml[j-1]){
+                      en = mm;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1] + sc->free_energies[j-1][1];
+
+                      if (cij == my_fML[indx[k]+i+2] + my_fML[indx[j-2]+k+1] + ml53 + en + 2*P->MLbase){
+                        traced = i1 = i+2; j1 = j-2;
+                        break;
+                      }
+                    }
+                    break;
+        }
+        if(traced) break;
+        /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
+        /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
+        if(dangle_model==3){
+          int en;
+          if(hard_constraints[indx[k]+i+1] & IN_MB_LOOP_ENC){
+            type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
+            en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
+            if(sc)
+              if(sc->en_basepair)
+                en -= sc->en_basepair[ij];
+
+            if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+              ml = 2;
+              bt_stack[s+1].ml  = 2;
+              break;
+            }
+          }
+          if(hard_constraints[indx[j-1]+k+1] & IN_MB_LOOP_ENC){
+            type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2];
+            en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
+            if(sc)
+              if(sc->en_basepair)
+                en -= sc->en_basepair[ij];
+
+            if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+              bt_stack[s+2].ml = 2;
+              break;
+            }
+          }
+        }
+      }
+
+      if (k<=j-3-TURN) { /* found the decomposition */
+        bt_stack[++s].i = i1;
+        bt_stack[s].j   = k;
+        bt_stack[++s].i = k+1;
+        bt_stack[s].j   = j1;
+      } else {
+#if 0
+        /* Y shaped ML loops don't work yet */
+        if (dangle_model==3) {
+          /* (i,j) must close a Y shaped ML loop with coax stacking */
+          if (cij == fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
+            i1 = i+2;
+            j1 = j-2;
+          } else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + P->MLbase)
+            j1 = j-2;
+          else if (cij ==  fML[indx[j-1]+i+2] + mm + d3 + P->MLbase)
+            i1 = i+2;
+          else /* last chance */
+            if (cij != fML[indx[j-1]+i+1] + mm + P->MLbase)
+              fprintf(stderr,  "backtracking failed in repeat");
+          /* if we arrive here we can express cij via fML[i1,j1]+dangles */
+          bt_stack[++s].i = i1;
+          bt_stack[s].j   = j1;
+        }
+        else
+#endif
+          nrerror("backtracking failed in repeat");
+      }
+    }
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
   repeat_gquad:

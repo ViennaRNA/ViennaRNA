@@ -108,14 +108,12 @@ DEPRECATED(void free_co_arrays(void));
 /**
  *  \brief Recalculate parameters
  */
-void
-update_cofold_params(void);
+DEPRECATED(void update_cofold_params(void));
 
 /**
  *  \brief Recalculate parameters
  */
-void
-update_cofold_params_par(paramT *parameters);
+DEPRECATED(void update_cofold_params_par(paramT *parameters));
 
 
 /**
@@ -138,15 +136,14 @@ update_cofold_params_par(paramT *parameters);
  *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-DEPRECATED(void 
-export_cofold_arrays_gq(int **f5_p,
-                        int **c_p,
-                        int **fML_p,
-                        int **fM1_p,
-                        int **fc_p,
-                        int **ggg_p,
-                        int **indx_p,
-                        char **ptype_p));
+DEPRECATED(void export_cofold_arrays_gq(int **f5_p,
+                                        int **c_p,
+                                        int **fML_p,
+                                        int **fM1_p,
+                                        int **fc_p,
+                                        int **ggg_p,
+                                        int **indx_p,
+                                        char **ptype_p));
 
 /**
  *  \brief Export the arrays of partition function cofold
@@ -167,14 +164,13 @@ export_cofold_arrays_gq(int **f5_p,
  *  \param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  \param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-DEPRECATED(void 
-export_cofold_arrays( int **f5_p,
-                      int **c_p,
-                      int **fML_p,
-                      int **fM1_p,
-                      int **fc_p,
-                      int **indx_p,
-                      char **ptype_p));
+DEPRECATED(void export_cofold_arrays( int **f5_p,
+                                      int **c_p,
+                                      int **fML_p,
+                                      int **fM1_p,
+                                      int **fc_p,
+                                      int **indx_p,
+                                      char **ptype_p));
 
 
 /**
@@ -195,8 +191,7 @@ export_cofold_arrays( int **f5_p,
  *  \param  string  RNA sequence
  *  \return         List of zuker suboptimal structures
  */
-DEPRECATED(SOLUTION  *
-zukersubopt(const char *string));
+DEPRECATED(SOLUTION  *zukersubopt(const char *string));
 
 /**
  *  \brief Compute Zuker type suboptimal structures
@@ -206,9 +201,7 @@ zukersubopt(const char *string));
  *  \deprecated use vrna_zukersubopt() instead
  *
  */
-DEPRECATED(SOLUTION  *
-zukersubopt_par(const char *string,
-                paramT *parameters));
+DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, paramT *parameters));
 
 /**
  *  \brief Compute Zuker type suboptimal structures
@@ -222,8 +215,7 @@ zukersubopt_par(const char *string,
  *  \param  vc  fold compound
  *  \return     List of zuker suboptimal structures
  */
-SOLUTION *
-vrna_zukersubopt(vrna_fold_compound *vc);
+SOLUTION *vrna_zukersubopt(vrna_fold_compound *vc);
 
 /**
  *  \brief get_monomer_free_energies
@@ -233,8 +225,7 @@ vrna_zukersubopt(vrna_fold_compound *vc);
  *  \param e1 A pointer to a variable where the energy of molecule A will be written to
  *  \param e2 A pointer to a variable where the energy of molecule B will be written to
  */
-void get_monomere_mfes( float *e1,
-                        float *e2);
+DEPRECATED(void get_monomere_mfes( float *e1, float *e2));
 
 
 /**
