@@ -138,20 +138,18 @@ wrap_co_pf_fold(char *sequence,
 
   int                 length;
   vrna_fold_compound  *vc;
-  pf_paramT           *exp_params;
+  model_detailsT      md;
 
   vc = NULL;
   length  = strlen(sequence);
 
   /* we need pf_paramT datastructure to correctly init default hard constraints */
   if(parameters)
-    exp_params = get_boltzmann_factor_copy(parameters);
+    md = parameters->model_details;
   else{
-    model_detailsT md;
     set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_get_boltzmann_factors(md);
   }
-  exp_params->model_details.compute_bpp = calculate_bppm;
+  md.compute_bpp = calculate_bppm;
 
   char *seq = (char *)space(sizeof(char) * (length + 2));
   if(cut_point > -1){
@@ -166,7 +164,7 @@ wrap_co_pf_fold(char *sequence,
     strcat(seq + 1, sequence);
   }
 
-  vc = vrna_get_fold_compound(seq, &(exp_params->model_details), VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+  vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
