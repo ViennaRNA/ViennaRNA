@@ -347,24 +347,8 @@ fill_arrays(vrna_fold_compound *vc){
 
       my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
 
-      if(with_gquad){
-        energy = my_ggg[indx[j] + i] + E_MLstem(0, -1, -1, P);
-        my_fML[ij] = MIN2(my_fML[ij], energy);
-      }
-
       if(uniq_ML){  /* compute fM1 for unique decomposition */
-        my_fM1[ij] = E_ml_rightmost_stem(i,
-                                        j,
-                                        length,
-                                        type,
-                                        S1,
-                                        indx,
-                                        hard_constraints,
-                                        hc_up_ml,
-                                        sc,
-                                        my_c,
-                                        my_fM1,
-                                        P);
+        my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
       }
 
     } /* end of j-loop */

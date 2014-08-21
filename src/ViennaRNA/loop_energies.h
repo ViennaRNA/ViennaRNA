@@ -933,41 +933,54 @@ E_mb_loop_stack(int i,
 INLINE PRIVATE int
 E_ml_rightmost_stem(int i,
                     int j,
-                    int length,
-                    int type,
-                    short *S,
-                    int *indx,
-                    char *hc,
-                    int *hc_up,
-                    soft_constraintT *sc,
-                    int *c,
-                    int *fm,
-                    paramT *P){
+                    vrna_fold_compound *vc){
 
-  int en;
-  int ij            = indx[j] + i;
-  int hc_decompose  = hc[ij];
-  int dangle_model  = P->model_details.dangles;
-  int e             = INF;
+  int               en;
+  int               length        = vc->length;
+  short             *S            = vc->sequence_encoding;
+  int               *indx         = vc->jindx;
+  char              *hc           = vc->hc->matrix;
+  int               *hc_up        = vc->hc->up_ml;
+  soft_constraintT  *sc           = vc->sc;
+  int               *c            = vc->matrices->c;
+  int               *fm           = vc->matrices->fML;
+  int               *ggg          = vc->matrices->ggg;
+  paramT            *P            = vc->params;
+  int               ij            = indx[j] + i;
+  int               type          = vc->ptype[ij];
+  int               hc_decompose  = hc[ij];
+  int               dangle_model  = P->model_details.dangles;
+  int               with_gquad    = P->model_details.gquad;
+  int               cp            = vc->cutpoint;
+  int               e             = INF;
 
   if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-    e = c[ij];
-    switch(dangle_model){
-      case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
-                break;
-      default:  e += E_MLstem(type, -1, -1, P);
-                break;
+    if((cp < 0) || ((j >= cp) || ((j + 1) < cp))){
+      e = c[ij];
+      switch(dangle_model){
+        case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
+                  break;
+        default:  e += E_MLstem(type, -1, -1, P);
+                  break;
+      }
     }
   }
 
-  if(hc_up[j]){
-    en = fm[indx[j - 1] + i] + P->MLbase;
-    if(sc)
-      if(sc->free_energies)
-        en += sc->free_energies[j][1];
+  if(with_gquad)
+    if((cp < 0) || ((i >= cp) || (j < cp))){
+      en  = ggg[ij] + E_MLstem(0, -1, -1, P);
+      e   = MIN2(e, en);
+    }
 
-    e = MIN2(e, en);
-  }
+  if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
+    if(hc_up[j]){
+      en = fm[indx[j - 1] + i] + P->MLbase;
+      if(sc)
+        if(sc->free_energies)
+          en += sc->free_energies[j][1];
+
+      e = MIN2(e, en);
+    }
 
   return e;
 }
@@ -1001,7 +1014,7 @@ E_ml_stems_fast(int i,
   /*  extension with one unpaired nucleotide at the left
       or full branch of (i,j)
   */
-  e = E_ml_rightmost_stem(i,j,length,type,S,indx, hc,hc_up,sc,c,fm,P);
+  e = E_ml_rightmost_stem(i,j,vc);
 
   /*  extension with one unpaired nucleotide at 5' site
       and all other variants which are needed for odd
