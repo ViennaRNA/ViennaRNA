@@ -430,6 +430,7 @@ backtrack(vrna_fold_compound *vc,
 
   hard_constraintT *hc    = vc->hc;
   soft_constraintT  *sc   = vc->sc;
+  char              *hard_constraints = hc->matrix;
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -459,9 +460,10 @@ backtrack(vrna_fold_compound *vc,
       fi  = (hc->up_ext[j]) ? my_f5[j-1] : INF;
     }
 
-    if(sc)
+    if(sc){
       if(sc->free_energies)
         fi += sc->free_energies[j][1];
+    }
 
     if (fij == fi) {  /* 3' end is unpaired */
       bt_stack[++s].i = i;
@@ -773,17 +775,25 @@ backtrack(vrna_fold_compound *vc,
       if (cij == my_c[ij]){
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        type_2 = (unsigned char)ptype[indx[j-1]+i+1]; type_2 = rtype[type_2];
-        cij -= P->stack[type][type_2];
-        if(sc){
-          if(sc->en_basepair)
-            cij -= sc->en_basepair[ij];
+        if((hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_INT_LOOP_ENC)){
+          type_2 = (unsigned char)ptype[indx[j-1]+i+1];
+          type_2 = rtype[type_2];
+          cij -= P->stack[type][type_2];
+          if(sc){
+            if(sc->en_basepair)
+              cij -= sc->en_basepair[ij];
+              if(sc->en_stack)
+                cij -=    sc->en_stack[i]
+                        + sc->en_stack[i+1]
+                        + sc->en_stack[j-1]
+                        + sc->en_stack[j];
+          }
+          bp_stack[++b].i = i+1;
+          bp_stack[b].j   = j-1;
+          i++; j--;
+          canonical=0;
+          goto repeat1;
         }
-        bp_stack[++b].i = i+1;
-        bp_stack[b].j   = j-1;
-        i++; j--;
-        canonical=0;
-        goto repeat1;
       }
     canonical = 1;
 
@@ -834,6 +844,8 @@ backtrack(vrna_fold_compound *vc,
                         + sc->en_stack[p]
                         + sc->en_stack[q]
                         + sc->en_stack[j];
+            if(sc->f)
+              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
           }
           traced = (cij == new);
           if (traced) {
