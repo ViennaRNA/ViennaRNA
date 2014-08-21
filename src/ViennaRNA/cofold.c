@@ -1250,11 +1250,13 @@ free_end( int *array,
           int start,
           vrna_fold_compound *vc){
 
-  int inc, type, energy, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
+  int inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   paramT        *P;
   short         *S1;
-  char          *ptype;
+  char          *ptype, *hard_constraints;
   mfe_matricesT *matrices;
+  hard_constraintT *hc;
+  soft_constraintT *sc;
 
   cp            = vc->cutpoint;
   P             = vc->params;
@@ -1269,9 +1271,16 @@ free_end( int *array,
   matrices      = vc->matrices;
   c             = matrices->c;
   ggg           = matrices->ggg;
+  hc            = vc->hc;
+  sc            = vc->sc;
+  hard_constraints  = hc->matrix;
 
-  if (i==start) array[i]=0;
-  else array[i] = array[i-inc];
+  if(hc->up_ext[i]){
+    if (i==start) array[i]=0;
+    else array[i] = array[i-inc];
+  } else
+    array[i] = INF;
+
   if (inc>0) {
     left = start; right=i;
   } else {
@@ -1284,25 +1293,40 @@ free_end( int *array,
     if (i>j) { ii = j; jj = i;} /* inc>0 */
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
-    if (type) {  /* i is paired with j */
+    if(hard_constraints[indx[jj]+ii] & IN_EXT_LOOP){
       si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
       switch(dangle_model){
-        case 0:   
-                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+        case 0:   en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
+                  array[i] = MIN2(array[i], en);
                   break;
-        case 2:   
-                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
+        case 2:   en = array[j-inc] + energy + E_ExtLoop(type, si, sj, P);
+                  array[i] = MIN2(array[i], en);
                   break;
-        default:     
-                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+        default:  en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
+                  array[i] = MIN2(array[i], en);
                   if(inc > 0){
-                    if(j > left)
-                    array[i] = MIN2(array[i], array[j-2] + energy + E_ExtLoop(type, si, -1, P));
+                    if(j > left){
+                      if(hc->up_ext[ii-1]){
+                        en = array[j-2] + energy + E_ExtLoop(type, si, -1, P);
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[ii-1][1];
+
+                        array[i] = MIN2(array[i], en);
+                      }
+                    }
+                  } else if(j < right){
+                    if(hc->up_ext[jj+1]){
+                      en = array[j+2] + energy + E_ExtLoop(type, -1, sj, P);
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[jj+1][1];
+
+                      array[i] = MIN2(array[i], en);
+                    }
                   }
-                  else if(j < right)
-                    array[i] = MIN2(array[i], array[j+2] + energy + E_ExtLoop(type, -1, sj, P));
                   break;
       }
     }
@@ -1316,18 +1340,41 @@ free_end( int *array,
       /* interval ends in a dangle (i.e. i-inc is paired) */
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
       else     { ii = i+1; jj = j;} /* inc<0 */
-      type = ptype[indx[jj]+ii];
-      if (!type) continue;
 
+      if (!(hard_constraints[indx[jj]+ii] & IN_EXT_LOOP)) continue;
+
+      type = ptype[indx[jj]+ii];
       si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-      if(inc>0)
-        array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, -1, sj, P));
-      else
-        array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, si, -1, P));
+      if(inc>0){
+        if(hc->up_ext[jj-1]){
+          en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
+          if(sc)
+            if(sc->free_energies)
+              en += sc->free_energies[jj+1][1];
+
+          array[i] = MIN2(array[i], en);
+        }
+      } else {
+        if(hc->up_ext[ii-1]){
+          en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
+          if(sc)
+            if(sc->free_energies)
+              en += sc->free_energies[ii-1][1];
+
+          array[i] = MIN2(array[i], en);
+        }
+      }
       if(j!= start){ /* dangle_model on both sides */
-        array[i] = MIN2(array[i], array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P));
+        if(hc->up_ext[jj-1] && hc->up_ext[ii-1]){
+          en = array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P);
+          if(sc)
+            if(sc->free_energies)
+              en += sc->free_energies[ii-1][1] + sc->free_energies[jj+1][1];
+
+          array[i] = MIN2(array[i], en);
+        }
       }
     }
   }
