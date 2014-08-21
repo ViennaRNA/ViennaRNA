@@ -34,7 +34,7 @@
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 #define TURN2             3       /* used by zukersubopt */
-#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /*
 #################################
@@ -232,7 +232,7 @@ fill_arrays(vrna_fold_compound  *vc,
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
-  int   decomp, new_fML, cut_point, uniq_ML;
+  int   decomp, new_fML, cp, uniq_ML;
   int   no_close, type, type_2, tt, maxj, *indx;
   int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc, *my_ggg;
   int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
@@ -270,7 +270,7 @@ fill_arrays(vrna_fold_compound  *vc,
   my_fM1            = matrices->fM1;
   my_fc             = matrices->fc;
   my_ggg            = matrices->ggg;
-  cut_point         = vc->cutpoint;
+  cp                = vc->cutpoint;
   turn              = P->model_details.min_loop_size;
 
   hc_up_ext         = hc->up_ext;
@@ -298,7 +298,7 @@ fill_arrays(vrna_fold_compound  *vc,
 
   for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
 
-    maxj=(zuker)? (MIN2(i+cut_point-1,length)):length;
+    maxj=(zuker)? (MIN2(i+cp-1,length)):length;
     for (j = i+turn+1; j <= maxj; j++) {
       int ij;
       ij            = indx[j]+i;
@@ -336,7 +336,7 @@ fill_arrays(vrna_fold_compound  *vc,
           new_c           = MIN2(new_c, cc1[j-1]+stackEnergy);
           cc[j]           = new_c;
 
-          if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
+          if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp))
             my_c[ij] = cc1[j-1]+stackEnergy;
           else /* currently we don't allow stacking over the cut point */
             my_c[ij] = FORBIDDEN;
@@ -359,11 +359,11 @@ fill_arrays(vrna_fold_compound  *vc,
 
     }
 
-    if (i==cut_point)
+    if (i==cp)
       for (j=i; j<=maxj; j++)
-        free_end(my_fc, j, cut_point, vc);
-    if (i<cut_point)
-      free_end(my_fc,i,cut_point-1, vc);
+        free_end(my_fc, j, cp, vc);
+    if (i<cp)
+      free_end(my_fc,i,cp-1, vc);
 
 
     {
@@ -379,17 +379,17 @@ fill_arrays(vrna_fold_compound  *vc,
   for (i=1; i<=length; i++)
     free_end(my_f5, i, 1, vc);
 
-  if (cut_point>0) {
-    mfe1=my_f5[cut_point-1];
+  if (cp>0) {
+    mfe1=my_f5[cp-1];
     mfe2=my_fc[length];
     /* add DuplexInit, check whether duplex*/
-    for (i=cut_point; i<=length; i++) {
+    for (i=cp; i<=length; i++) {
       my_f5[i]=MIN2(my_f5[i]+P->DuplexInit, my_fc[i]+my_fc[1]);
     }
   }
 
   energy = my_f5[length];
-  if (cut_point<1) mfe1=mfe2=energy;
+  if (cp<1) mfe1=mfe2=energy;
   return energy;
 }
 
@@ -421,7 +421,7 @@ backtrack_co( sect bt_stack[],
   int   turn            = P->model_details.min_loop_size;
   int   *rtype          = &(P->model_details.rtype[0]);
   char  backtrack_type  = P->model_details.backtrack_type;
-  int   cut_point       = vc->cutpoint;
+  int   cp              = vc->cutpoint;
   hard_constraintT  *hc = vc->hc;
   soft_constraintT  *sc = vc->sc;
   char              *hard_constraints = hc->matrix;
@@ -505,7 +505,7 @@ backtrack_co( sect bt_stack[],
                     if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
-                      if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
+                      if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
                       if(fij == ff[k-1] + cc + E_ExtLoop(type, -1, -1, P)){
                         traced = j; jj = k-1;
                       }
@@ -530,8 +530,8 @@ backtrack_co( sect bt_stack[],
                     if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
-                      if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
-                      if(fij == ff[k-1] + cc + E_ExtLoop(type, (k>1) && SAME_STRAND(k-1,k) ? S1[k-1] : -1, (j<length) && SAME_STRAND(j,j+1) ? S1[j+1] : -1, P)){
+                      if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
+                      if(fij == ff[k-1] + cc + E_ExtLoop(type, (k>1) && ON_SAME_STRAND(k-1,k,cp) ? S1[k-1] : -1, (j<length) && ON_SAME_STRAND(j,j+1,cp) ? S1[j+1] : -1, P)){
                         traced = j; jj = k-1;
                       }
                     }
@@ -553,12 +553,12 @@ backtrack_co( sect bt_stack[],
                     if(hard_constraints[indx[j]+k] & IN_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
-                      if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
+                      if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
                       if(fij == ff[k-1] + cc + E_ExtLoop(type, -1, -1, P)){
                         traced = j; jj = k-1; break;
                       }
                       if(hc->up_ext[k-1]){
-                        if((k>1) && SAME_STRAND(k-1,k)){
+                        if((k>1) && ON_SAME_STRAND(k-1,k,cp)){
                           en = cc;
                           if(sc)
                             if(sc->free_energies)
@@ -574,9 +574,9 @@ backtrack_co( sect bt_stack[],
                     if(hard_constraints[indx[j-1]+k] & IN_EXT_LOOP){
                       type = ptype[indx[j-1]+k];
                       if(hc->up_ext[j]){
-                        if(SAME_STRAND(j-1,j)){
+                        if(ON_SAME_STRAND(j-1,j,cp)){
                           cc = my_c[indx[j-1]+k];
-                          if (!SAME_STRAND(k,j-1))
+                          if (!ON_SAME_STRAND(k,j-1,cp))
                             cc += P->DuplexInit; /*???*/
                           if(sc)
                             if(sc->free_energies)
@@ -592,7 +592,7 @@ backtrack_co( sect bt_stack[],
                                 if(sc->free_energies)
                                   cc += sc->free_energies[k-1][1];
 
-                              if (fij == ff[k-2] + cc + E_ExtLoop(type, SAME_STRAND(k-1,k) ? S1[k-1] : -1, S1[j], P)){
+                              if (fij == ff[k-2] + cc + E_ExtLoop(type, ON_SAME_STRAND(k-1,k,cp) ? S1[k-1] : -1, S1[j], P)){
                                 traced=j-1; jj=k-2; break;
                               }
                             }
@@ -660,7 +660,7 @@ backtrack_co( sect bt_stack[],
                     jj=k+1;
                     if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
                       type = ptype[indx[k]+i];
-                      if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type,(i>1 && SAME_STRAND(i-1,i)) ? S1[i-1] : -1,  SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
+                      if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type,(i>1 && ON_SAME_STRAND(i-1,i,cp)) ? S1[i-1] : -1,  ON_SAME_STRAND(k,k+1,cp) ? S1[k+1] : -1, P)){
                         traced = i;
                       }
                     }
@@ -688,7 +688,7 @@ backtrack_co( sect bt_stack[],
                           if(sc->free_energies)
                             en += sc->free_energies[k+1][1];
 
-                        if(my_fc[i] == my_fc[k+2] + en + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
+                        if(my_fc[i] == my_fc[k+2] + en + E_ExtLoop(type, -1, ON_SAME_STRAND(k,k+1,cp) ? S1[k+1] : -1, P)){
                           traced = i; jj=k+2; break;
                         }
                       }
@@ -702,8 +702,8 @@ backtrack_co( sect bt_stack[],
                     }
 
                     if(hard_constraints[indx[k]+i+1] & IN_EXT_LOOP){
-                      int s5 = SAME_STRAND(i, i+1) ? S1[i] : -1;
-                      int s3 = SAME_STRAND(k, k+1) ? S1[k+1] : -1;
+                      int s5 = ON_SAME_STRAND(i, i+1,cp) ? S1[i] : -1;
+                      int s3 = ON_SAME_STRAND(k, k+1,cp) ? S1[k+1] : -1;
                       if(hc->up_ext[i]){
                         type = ptype[indx[k]+i+1];
                         en = my_c[indx[k]+i+1];
@@ -944,11 +944,11 @@ backtrack_co( sect bt_stack[],
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
           /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-          if (SAME_STRAND(i,p) && SAME_STRAND(q,j))
+          if (ON_SAME_STRAND(i,p,cp) && ON_SAME_STRAND(q,j,cp))
             energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
                                 S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
           else {
-            energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cut_point, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
+            energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cp, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
           }
 
           new = energy+my_c[indx[q]+p];
@@ -995,7 +995,7 @@ backtrack_co( sect bt_stack[],
         kind and the enclosed pair is not a canonical one but a g-quadruplex
         that should then be decomposed further...
       */
-      if(SAME_STRAND(i,j)){
+      if(ON_SAME_STRAND(i,j,cp)){
         if(backtrack_GQuad_IntLoop(cij, i, j, type, S, my_ggg, indx, &p, &q, P)){
           i = p; j = q;
           goto repeat_gquad;
@@ -1004,7 +1004,7 @@ backtrack_co( sect bt_stack[],
     }
 
     /* fake multi-loop */
-    if(!SAME_STRAND(i,j)){
+    if(!ON_SAME_STRAND(i,j,cp)){
       int ii, jj, decomp;
       ii = jj = 0;
       decomp = my_fc[i1] + my_fc[j1];
@@ -1019,7 +1019,7 @@ backtrack_co( sect bt_stack[],
                     }
                   break;
         case 2:   if(hard_constraints[ij] & IN_MB_LOOP)
-                    if(cij == decomp + E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)){
+                    if(cij == decomp + E_ExtLoop(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, P)){
                       ii=i1, jj=j1;
                     }
                   break;
@@ -1028,8 +1028,8 @@ backtrack_co( sect bt_stack[],
                       ii=i1, jj=j1;
                       break;
                     }
-                    int s5 = SAME_STRAND(j-1,j) ? S1[j-1] : -1;
-                    int s3 = SAME_STRAND(i,i+1) ? S1[i+1] : -1;
+                    int s5 = ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1;
+                    int s3 = ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1;
                     if(hc->up_ext[i+1]){
                       en = my_fc[i+2] + my_fc[j-1];
                       if(sc){
@@ -1075,9 +1075,9 @@ backtrack_co( sect bt_stack[],
 
       if(ii){
         bt_stack[++s].i = ii;
-        bt_stack[s].j   = cut_point-1;
+        bt_stack[s].j   = cp-1;
         bt_stack[s].ml  = 3;
-        bt_stack[++s].i = cut_point;
+        bt_stack[++s].i = cp;
         bt_stack[s].j   = jj;
         bt_stack[s].ml  = 4;
         continue;
@@ -1093,9 +1093,9 @@ backtrack_co( sect bt_stack[],
 
       bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
       ml0   = E_MLstem(tt, -1, -1, P);
-      ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
-      ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
-      ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
+      ml5   = E_MLstem(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, -1, P);
+      ml3   = E_MLstem(tt, -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, P);
+      ml53  = E_MLstem(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, P);
       for (traced = 0, k = i+2+turn; k < j-2-turn; k++) {
         switch(dangle_model){
           case 0:   /* no dangles */
@@ -1250,13 +1250,13 @@ free_end( int *array,
           int start,
           vrna_fold_compound *vc){
 
-  int inc, type, energy, length, j, left, right, cut_point, dangle_model, with_gquad, *indx, *c, *ggg, turn;
+  int inc, type, energy, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   paramT        *P;
   short         *S1;
   char          *ptype;
   mfe_matricesT *matrices;
 
-  cut_point     = vc->cutpoint;
+  cp            = vc->cutpoint;
   P             = vc->params;
   dangle_model  = P->model_details.dangles;
   with_gquad    = P->model_details.gquad;
@@ -1285,8 +1285,8 @@ free_end( int *array,
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
     if (type) {  /* i is paired with j */
-      si = (ii>1)       && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
-      sj = (jj<length)  && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
+      si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
+      sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
       switch(dangle_model){
         case 0:   
@@ -1308,7 +1308,7 @@ free_end( int *array,
     }
 
     if(with_gquad){
-      if(SAME_STRAND(ii, jj))
+      if(ON_SAME_STRAND(ii, jj,cp))
         array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
     }
 
@@ -1319,8 +1319,8 @@ free_end( int *array,
       type = ptype[indx[jj]+ii];
       if (!type) continue;
 
-      si = (ii > left)  && SAME_STRAND(ii-1,ii) ? S1[ii-1] : -1;
-      sj = (jj < right) && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
+      si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
+      sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
       if(inc>0)
         array[i] = MIN2(array[i], array[j - inc] + energy + E_ExtLoop(type, -1, sj, P));
