@@ -144,8 +144,8 @@ wrap_cofold(const char *string,
     for(;i<(int)length;i++)
       seq[i+1] = string[i];
   } else { /* this ensures the allocation of all cofold matrices via vrna_get_fold_compound */
-    seq[0] = '&';
-    strcat(seq + 1, string);
+    free(seq);
+    seq = strdup(string);
   }
 
   /* get compound structure */

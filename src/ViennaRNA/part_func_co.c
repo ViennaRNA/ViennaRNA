@@ -160,8 +160,8 @@ wrap_co_pf_fold(char *sequence,
     for(;i<(int)length;i++)
       seq[i+1] = sequence[i];
   } else { /* this ensures the allocation of all cofold matrices via vrna_get_fold_compound */
-    seq[0] = '&';
-    strcat(seq + 1, sequence);
+    free(seq);
+    seq = strdup(sequence);
   }
 
   vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
