@@ -80,6 +80,7 @@ extern double F_monomer[2];
 cofoldF co_pf_fold( char *sequence,
                     char *structure);
 
+cofoldF vrna_co_pf_fold(vrna_fold_compound *vc, char *structure);
 /**
  *  \brief Calculate partition function and base pair probabilities
  *

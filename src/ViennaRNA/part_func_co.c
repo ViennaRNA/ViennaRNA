@@ -72,10 +72,6 @@
 #include <omp.h>
 #endif
 
-
-/*@unused@*/
-PRIVATE char rcsid[] UNUSED = "$Id: part_func_co.c,v 1.10 2007/05/10 17:27:01 ivo Exp $";
-
 #define ISOLATED  256.0
 #undef TURN
 #define TURN 0
@@ -98,27 +94,29 @@ double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 #################################
 */
 PRIVATE FLT_OR_DBL  *expMLbase=NULL;
-PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
-PRIVATE FLT_OR_DBL  *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL, *probs=NULL;
+PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL;
+PRIVATE FLT_OR_DBL  *q1k=NULL, *qln=NULL, *probs=NULL;
 PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE pf_paramT   *pf_params = NULL;
 PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
-PRIVATE int         init_length; /* length in last call to init_pf_fold() */
 PRIVATE int         do_bppm = 1;             /* do backtracking per default */
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE char        *pstruc=NULL;
 PRIVATE char        *sequence=NULL;
-PRIVATE double      alpha = 1.0;
 PRIVATE int         struct_constrained = 0;
+
+/* some backward compatibility stuff */
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
-#pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
-                          scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, alpha, struct_constrained)
+#pragma omp threadprivate(expMLbase, q, qb, qm, qm1, q1k, qln, scale, pf_params, ptype, jindx, my_iindx, S, S1, pstruc, sequence, probs, do_bppm, struct_constrained, \
+                          backward_compat_compound, backward_compat)
 
 #endif
 
@@ -128,14 +126,18 @@ PRIVATE int         struct_constrained = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void    init_partfunc_co(int length, pf_paramT *parameters);
-PRIVATE void    pf_co(const char *sequence);
+PRIVATE void    pf_co(vrna_fold_compound *vc);
 PRIVATE void    pf_co_bppm(const char *sequence, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE void    scale_pf_params(unsigned int length, pf_paramT *parameters);
 PRIVATE void    get_arrays(unsigned int length);
 PRIVATE void    make_ptypes(const short *S, const char *structure);
 PRIVATE void    backtrack(int i, int j);
+PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
+                                char *structure,
+                                pf_paramT *parameters,
+                                int calculate_bppm,
+                                int is_constrained);
 
 
 /*
@@ -144,15 +146,73 @@ PRIVATE void    backtrack(int i, int j);
 #################################
 */
 
-PRIVATE void init_partfunc_co(int length, pf_paramT *parameters){
-  if (length<1) nrerror("init_pf_fold: length must be greater 0");
+/*-----------------------------------------------------------------*/
+PRIVATE cofoldF
+wrap_co_pf_fold(char *sequence,
+                char *structure,
+                pf_paramT *parameters,
+                int calculate_bppm,
+                int is_constrained){
+
+  vrna_fold_compound  *vc;
+  pf_paramT           *exp_params;
+
+  vc = NULL;
+
+  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  if(parameters)
+    exp_params = get_boltzmann_factor_copy(parameters);
+  else{
+    model_detailsT md;
+    set_model_details(&md); /* get global default parameters */
+    exp_params = vrna_get_boltzmann_factors(md);
+  }
+  exp_params->model_details.compute_bpp = calculate_bppm;
+
+  vc = vrna_get_fold_compound(sequence, &(exp_params->model_details), VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK;
+
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
+  }
+
+  if(backward_compat_compound)
+    destroy_fold_compound(backward_compat_compound);
+
+  backward_compat_compound = vc;
+  iindx = backward_compat_compound->iindx;
+
+  return vrna_co_pf_fold(vc, structure);
+}
+
+PUBLIC cofoldF
+vrna_co_pf_fold(vrna_fold_compound *vc,
+                char *structure){
+                
+  int         n;
+  FLT_OR_DBL  Q;
+  cofoldF     X;
+  double      free_energy;
+
+  model_detailsT  *md;
+  pf_paramT       *params;
+  pf_matricesT    *matrices;
+
+  params    = vc->exp_params;
+  n         = vc->length;
+  md        = &(params->model_details);
+  matrices  = vc->exp_matrices;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
-  free_co_pf_arrays(); /* free previous allocation */
-#else
-  if (init_length>0) free_co_pf_arrays(); /* free previous allocation */
 #endif
 
 #ifdef SUN4
@@ -162,151 +222,44 @@ PRIVATE void init_partfunc_co(int length, pf_paramT *parameters){
   fpsetfastmode(1);
 #endif
 #endif
-  make_pair_matrix();
-  get_arrays((unsigned) length);
-  scale_pf_params((unsigned) length, parameters);
-  init_length = length;
-}
 
-PRIVATE void get_arrays(unsigned int length){
-  unsigned int size;
+  pf_co(vc);
 
-  if((length +1) >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_arrays@part_func_co.c: sequence length exceeds addressable range");
+  if (md->backtrack_type=='C')
+    Q = matrices->qb[vc->iindx[1]-n];
+  else if (md->backtrack_type=='M')
+    Q = matrices->qm[vc->iindx[1]-n];
+  else Q = matrices->q[vc->iindx[1]-n];
 
-  size      = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
-  q         = (FLT_OR_DBL *) space(size);
-  qb        = (FLT_OR_DBL *) space(size);
-  qm        = (FLT_OR_DBL *) space(size);
-  probs     = (FLT_OR_DBL *) space(size);
-  qm1       = (FLT_OR_DBL *) space(size);
-  q1k       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  qln       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prm_l1    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  prml      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
-  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
-  my_iindx  = get_iindx(length);
-  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = get_indx(length);
-}
-
-PUBLIC void free_co_pf_arrays(void){
-  if(q)         free(q);
-  if(qb)        free(qb);
-  if(qm)        free(qm);
-  if(qm1)       free(qm1);
-  if(ptype)     free(ptype);
-  if(qq)        free(qq);
-  if(qq1)       free(qq1);
-  if(qqm)       free(qqm);
-  if(qqm1)      free(qqm1);
-  if(q1k)       free(q1k);
-  if(qln)       free(qln);
-  if(prm_l)     free(prm_l);
-  if(prm_l1)    free(prm_l1);
-  if(prml)      free(prml);
-  if(probs)     free(probs);
-  if(expMLbase) free(expMLbase);
-  if(scale)     free(scale);
-  if(my_iindx)  free(my_iindx);
-  if(iindx)     free(iindx); /* for backward compatibility and Perl wrapper */
-  if(jindx)     free(jindx);
-  if(S)         free(S);
-  if(S1)        free(S1);
-
-  init_length=0;
-  q = qb = qm = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = probs = NULL;
-  ptype = NULL;
-  S = S1 = NULL;
-  my_iindx = jindx = iindx = NULL;
-
-#ifdef SUN4
-  standard_arithmetic();
-#else
-#ifdef HP9
-  fpsetfastmode(0);
-#endif
-#endif
-}
-
-/*-----------------------------------------------------------------*/
-PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
-  return co_pf_fold_par(sequence, structure, NULL, do_backtrack, fold_constrained);
-}
-
-PUBLIC cofoldF co_pf_fold_par(char *sequence,
-                              char *structure,
-                              pf_paramT *parameters,
-                              int calculate_bppm,
-                              int is_constrained){
-
-  int         n;
-  FLT_OR_DBL  Q;
-  cofoldF     X;
-  double      free_energy;
-
-  n                   = (int) strlen(sequence);
-  do_bppm             = calculate_bppm;
-  struct_constrained  = is_constrained;
-
-#ifdef _OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_partfunc_co(n, parameters);
-#else
-  if(parameters) init_partfunc_co(n, parameters);
-  else if (n > init_length) init_partfunc_co(n, parameters);
-  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params_par(n, parameters);
-#endif
-
- /* printf("mirnatog=%d\n",mirnatog); */
-
-  if(S) free(S);
-  S   = vrna_seq_encode_simple(sequence, &(pf_params->model_details));
-  if(S1) free(S1);
-  S1  = vrna_seq_encode(sequence, &(pf_params->model_details));
-
-  make_ptypes(S, structure);
-
-  pf_co(sequence);
-
-  if (backtrack_type=='C')      Q = qb[my_iindx[1]-n];
-  else if (backtrack_type=='M') Q = qm[my_iindx[1]-n];
-  else Q = q[my_iindx[1]-n];
   /* ensemble free energy in Kcal/mol */
-  if (Q<=FLT_MIN) fprintf(stderr, "pf_scale too large\n");
-  free_energy = (-log(Q)-n*log(pf_params->pf_scale))*pf_params->kT/1000.0;
+  if (Q<=FLT_MIN)
+    fprintf(stderr, "pf_scale too large\n");
+  free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
   /*probability of molecules being bound together*/
 
-
   /*Computation of "real" Partition function*/
   /*Need that for concentrations*/
-  if (cut_point>0){
+  if (vc->cutpoint > 0){
     double kT, QAB, QToT, Qzero;
 
-    kT = pf_params->kT/1000.0;
-    Qzero=q[my_iindx[1]-n];
-    QAB=(q[my_iindx[1]-n]-q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n])*pf_params->expDuplexInit;
+    kT = params->kT/1000.0;
+    Qzero = matrices->q[vc->iindx[1] - n];
+    QAB = (matrices->q[vc->iindx[1] - n]- matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] * matrices->q[vc->iindx[vc->cutpoint] - n]) * params->expDuplexInit;
     /*correction for symmetry*/
-    if((n-(cut_point-1)*2)==0) {
-      if ((strncmp(sequence, sequence+cut_point-1, cut_point-1))==0) {
+    if((n - (vc->cutpoint - 1) * 2) == 0){
+      if((strncmp(sequence, sequence + vc->cutpoint - 1, vc->cutpoint - 1)) == 0){
         QAB/=2;
-      }}
+      }
+    }
 
-    QToT=q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]+QAB;
-    X.FAB  = -kT*(log(QToT)+n*log(pf_params->pf_scale));
-    X.F0AB = -kT*(log(Qzero)+n*log(pf_params->pf_scale));
-    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_params->pf_scale)) : 999;
-    X.FA = -kT*(log(q[my_iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_params->pf_scale));
-    X.FB = -kT*(log(q[my_iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_params->pf_scale));
+    QToT = matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] * matrices->q[vc->iindx[vc->cutpoint] - n] + QAB;
+    X.FAB  = -kT*(log(QToT)+n*log(params->pf_scale));
+    X.F0AB = -kT*(log(Qzero)+n*log(params->pf_scale));
+    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(params->pf_scale)) : 999;
+    X.FA = -kT * (log(matrices->q[vc->iindx[1] - (vc->cutpoint - 1)]) + (vc->cutpoint - 1) * log(params->pf_scale));
+    X.FB = -kT * (log(matrices->q[vc->iindx[vc->cutpoint] - n]) + (n - vc->cutpoint + 1) * log(params->pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
   }
@@ -316,7 +269,7 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
   }
 
   /* backtracking to construct binding probabilities of pairs*/
-  if(do_bppm){
+  if(md->compute_bpp){
     pf_co_bppm(sequence, structure);
     /*
     *  Backward compatibility:
@@ -332,23 +285,76 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
     }
     */
   }
+
+#ifdef SUN4
+  standard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(0);
+#endif
+#endif
+
   return X;
 }
 
 /* forward recursion of pf cofolding */
-PRIVATE void pf_co(const char *sequence){
+PRIVATE void
+pf_co(vrna_fold_compound *vc){
+
   int         n, i,j,k,l, ij, u,u1,ii, type, type_2, tt;
+  FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   FLT_OR_DBL  temp, Qmax=0;
   FLT_OR_DBL  qbt1, *tmp;
-  FLT_OR_DBL  expMLclosing;
-  double      max_real;
   int         noGUclosure = pf_params->model_details.noGUclosure;
+  FLT_OR_DBL  *q, *qb, *qm, *qm1;
+  FLT_OR_DBL  *scale;
+  FLT_OR_DBL  *expMLbase;
+  short       *S1;
+  int         *my_iindx, *jindx;
+  char        *ptype, *sequence;
+
+  pf_paramT   *pf_params;
+  pf_matricesT *matrices  = vc->exp_matrices;
+
+  pf_params             = vc->exp_params;
+  model_detailsT    *md = &(pf_params->model_details);
+  hard_constraintT  *hc = vc->hc;
+  soft_constraintT  *sc = vc->sc;
+
+  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
+  double      max_real;
+  int         *rtype;
+
+  sequence  = vc->sequence;
+  n         = vc->length;
+  my_iindx  = vc->iindx;
+  jindx     = vc->jindx;
+  ptype     = vc->ptype;
+
+  q         = matrices->q;
+  qb        = matrices->qb;
+  qm        = matrices->qm;
+  qm1       = matrices->qm1;
+  scale     = matrices->scale;
+  expMLbase = matrices->expMLbase;
+
+  S1        = vc->sequence_encoding;
+
+  int         hc_decompose;
+  char        *hard_constraints = hc->matrix;
+  int         *hc_up_ext        = hc->up_ext;
+  int         *hc_up_hp         = hc->up_hp;
+  int         *hc_up_int        = hc->up_int;
+  int         *hc_up_ml         = hc->up_ml;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   n = (int) strlen(sequence);
 
-  expMLclosing = pf_params->expMLclosing;
-
+  /* allocate memory for helper arrays */
+  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
@@ -361,7 +367,7 @@ PRIVATE void pf_co(const char *sequence){
     }
 
   for (i=0; i<=n; i++)
-    qq[i]=qq1[i]=qqm[i]=qqm1[i]=prm_l[i]=prm_l1[i]=prml[i]=0;
+    qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
@@ -478,6 +484,13 @@ PRIVATE void pf_co(const char *sequence){
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
   }
+
+  /* clean up */
+  free(qq);
+  free(qq1);
+  free(qqm);
+  free(qqm1);
+
 }
 
 /* backward recursion of pf cofolding */
@@ -497,6 +510,10 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
   /* backtracking to construct binding probabilities of pairs*/
   if ((S != NULL) && (S1 != NULL)) {
     FLT_OR_DBL   *Qlout, *Qrout;
+    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+
     Qmax=0;
     Qrout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
     Qlout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cut_point+2));
@@ -675,6 +692,12 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 
     if (structure!=NULL)
       bppm_to_structure(structure, probs, n);
+
+    /* clean up */
+    free(prm_l);
+    free(prm_l1);
+    free(prml);
+
   }   /* end if (do_backtrack)*/
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
@@ -694,7 +717,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   } else {
     model_detailsT md;
     set_model_details(&md);
-    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
+    pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
 
   scaling_factor  = pf_params->pf_scale;
@@ -1023,6 +1046,22 @@ PUBLIC FLT_OR_DBL *export_co_bppm(void){
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+PUBLIC cofoldF
+co_pf_fold(char *sequence, char *structure){
+
+  return wrap_co_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained);
+}
+
+PUBLIC cofoldF
+co_pf_fold_par( char *sequence,
+                char *structure,
+                pf_paramT *parameters,
+                int calculate_bppm,
+                int is_constrained){
+
+  return wrap_co_pf_fold(sequence, structure, parameters, calculate_bppm, is_constrained);
+}
+
 
 PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
   int i, j,n, count;
@@ -1050,3 +1089,13 @@ PUBLIC struct plist *get_plist(struct plist *pl, int length, double cut_off) {
 }
 
 PUBLIC void init_co_pf_fold(int length){ /* DO NOTHING */ }
+
+PUBLIC void
+free_co_pf_arrays(void){
+
+  if(backward_compat_compound && backward_compat){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound  = NULL;
+    backward_compat           = 0;
+  }
+}
