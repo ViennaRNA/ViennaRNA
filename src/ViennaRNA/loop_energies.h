@@ -316,6 +316,32 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1,
                                       pf_paramT *P);
 
 
+INLINE PRIVATE int E_IntLoop_Co(int type,
+                                int type_2,
+                                int i,
+                                int j,
+                                int p,
+                                int q,
+                                int cutpoint,
+                                short si1,
+                                short sj1,
+                                short sp1,
+                                short sq1,
+                                int dangles,
+                                paramT *P);
+
+/**
+ *  \brief Evaluate energy of a base pair stack closed by (i,j)
+ */
+INLINE PRIVATE int E_stack(int i, int j, vrna_fold_compound *vc);
+
+/**
+ *  \brief Evaluate energy of a multi branch helices stacking onto closing pair (i,j)
+ *
+ *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
+ */
+INLINE PRIVATE int E_mb_loop_stack(int i, int j, vrna_fold_compound *vc);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -366,36 +392,105 @@ E_Hairpin(int size,
 }
 
 INLINE PRIVATE int
+E_ext_loop( int i,
+            int j,
+            vrna_fold_compound *vc){
+
+  int     ij, en, e, type;
+
+  int     cp        = vc->cutpoint;
+  short   *S        = vc->sequence_encoding;
+  int     *idx      = vc->jindx;
+  char    *ptype    = vc->ptype;
+  paramT  *P        = vc->params;
+  model_detailsT  *md = &(P->model_details);
+  char            *hard_constraints = vc->hc->matrix;
+
+  e     = INF;
+  ij    = idx[j] + i;
+  type  = ptype[ij];
+
+  if((cp < 0) || (((i)>=cp)||((j)<cp))){ /* regular exterior loop */
+    switch(md->dangles){
+      case 0:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+                  e = E_ExtLoop(type, -1, -1, P);
+                break;
+      case 2:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+                  e = E_ExtLoop(type, S[i-1], S[j+1], P);
+                break;
+      default:  if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+                  e = E_ExtLoop(type, -1, -1, P);
+                ij = idx[j - 1] + i;
+                if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  type = vc->ptype[ij];
+                  en = E_ExtLoop(type, -1, S[j], P);
+                  e = MIN2(e, en);
+                }
+                ij = idx[j] + i + 1;
+                if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  type = vc->ptype[ij];
+                  en = E_ExtLoop(type, S[i], -1, P);
+                  e = MIN2(e, en);
+                }
+                break;
+    }
+  }
+
+  return e;
+}
+
+
+INLINE PRIVATE int
 E_hp_loop(int i,
           int j,
           vrna_fold_compound *vc){
 
-  int u = j - i - 1;
-  int e;
+  int   u, e, ij, type;
+  char  hc;
 
+  int     cp        = vc->cutpoint;
   short   *S        = vc->sequence_encoding;
   int     *idx      = vc->jindx;
-  int     type      = vc->ptype[idx[j]+i];
   paramT  *P        = vc->params;
-  char    hc        = vc->hc->matrix[idx[j]+i];
   int     *hc_up    = vc->hc->up_hp;
   soft_constraintT  *sc = vc->sc;
+  model_detailsT    *md = &(P->model_details);
 
-  /* is this base pair allowed to close a hairpin loop ? */
+
+  u     = j - i - 1;
+  ij    = idx[j] + i;
+  type  = vc->ptype[ij];
+  hc    = vc->hc->matrix[ij];
+
+  /* is this base pair allowed to close a hairpin (like) loop ? */
   if(hc & VRNA_HC_CONTEXT_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
-      e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
+
+      if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
+        e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
+      } else { /* hairpin-like exterior loop (for cofolding) */
+        short si, sj;
+        si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
+        sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+        if (md->dangles)
+          e = E_ExtLoop(md->rtype[type], sj, si, P);
+        else
+          e = E_ExtLoop(md->rtype[type], -1, -1, P);
+      }
+
+      /* add soft constraints */
       if(sc){
         if(sc->free_energies)
           e += sc->free_energies[i+1][u];
 
         if(sc->en_basepair){
-          e += sc->en_basepair[idx[j]+i];
+          e += sc->en_basepair[ij];
         }
         if(sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
+
       return e;
     }
   }
@@ -472,6 +567,7 @@ E_int_loop( int i,
   char              *ptype_pq;
   unsigned char     type, type_2;
   char              *hc_pq;
+  int               cp            = vc->cutpoint;
   char              *ptype        = vc->ptype;
   short             *S            = vc->sequence_encoding;
   short             S_i1          = S[i+1];
@@ -486,14 +582,15 @@ E_int_loop( int i,
   int               e             = INF;
   int               *c            = vc->matrices->c;
   int               *ggg          = vc->matrices->ggg;
-  int               with_gquad    = P->model_details.gquad;
+  model_detailsT    *md           = &(P->model_details);
+  int               with_gquad    = md->gquad;
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
 
     type        = (unsigned char)ptype[ij];
-    rtype       = &(P->model_details.rtype[0]);
-    noGUclosure = P->model_details.noGUclosure;
+    rtype       = &(md->rtype[0]);
+    noGUclosure = md->noGUclosure;
     no_close    = (((type==3)||(type==4))&&noGUclosure);
     max_q       = i+TURN+2;
     max_q       = MAX2(max_q, j - MAXLOOP - 1);
@@ -527,7 +624,20 @@ E_int_loop( int i,
             if (no_close||(type_2==3)||(type_2==4))
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          energy = E_IntLoop(p_i, j_q, type, type_2, S_i1, S_j1, *S_p1, *S_q1, P);
+          if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
+            energy = E_IntLoop(p_i, j_q, type, type_2, S_i1, S_j1, *S_p1, *S_q1, P);
+          } else { /* interior loop like cofold structure */
+            short si, sj;
+            si  = ((i >= cp) || ((i + 1) < cp)) ? S_i1 : -1;
+            sj  = (((j - 1) >= cp) || (j < cp)) ? S_j1 : -1;
+            energy = E_IntLoop_Co(rtype[type], rtype[type_2],
+                                    i, j, p, q,
+                                    cp,
+                                    si, sj,
+                                    *S_p1, *S_q1,
+                                    md->dangles,
+                                    P);
+          }
           energy += *c_pq;
 
           /* add soft constraints */
@@ -538,7 +648,6 @@ E_int_loop( int i,
 
             if(sc->en_basepair)
               energy += sc->en_basepair[ij];
-/*                        + sc->en_basepair[pq];*/ /* this should already be included in c[pq] */
 
             if(sc->en_stack)
               if((p==i+1) && (q == j-1))
@@ -565,7 +674,7 @@ E_int_loop( int i,
 
     if(with_gquad){
       /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      if (!no_close) {
+      if ((!no_close) && ((cp < 0) || ((i >= cp) || (j < cp)))) {
         energy = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
         e = MIN2(e, energy);
       }
@@ -576,6 +685,69 @@ E_int_loop( int i,
 }
 
 INLINE PRIVATE int
+E_stack(int i,
+        int j,
+        vrna_fold_compound *vc){
+
+  int e, ij, pq, p, q;
+  unsigned char type, type_2;
+
+  int               cp                = vc->cutpoint;
+  short             *S                = vc->sequence_encoding;
+  char              *ptype            = vc->ptype;
+  paramT            *P                = vc->params;
+  model_detailsT    *md               = &(P->model_details);
+  int               *rtype            = &(md->rtype[0]);
+  int               *indx             = vc->jindx;
+  char              *hard_constraints = vc->hc->matrix;
+  soft_constraintT  *sc               = vc->sc;
+
+  e       = INF;
+  p       = i + 1;
+  q       = j - 1;
+  ij      = indx[j] + i;
+  pq      = indx[q] + p;
+  type    = (unsigned char)ptype[ij];
+  type_2  = rtype[(unsigned char)ptype[pq]];
+
+  if((hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP)){
+    if ((cp < 0) || (((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular stack */
+      e = P->stack[type][type_2];
+    } else {  /* stack like cofold structure */
+      short si, sj;
+      si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
+      sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+      e   = E_IntLoop_Co(rtype[type], rtype[type_2],
+                                    i, j, p, q,
+                                    cp,
+                                    si, sj,
+                                    S[p-1], S[q+1],
+                                    md->dangles,
+                                    P);
+    }
+
+    /* add soft constraints */
+    if(sc){
+      if(sc->en_basepair)
+        e += sc->en_basepair[ij];
+
+      if(sc->en_stack)
+        if((p==i+1) && (q == j-1))
+          e +=  sc->en_stack[i]
+                + sc->en_stack[p]
+                + sc->en_stack[q]
+                + sc->en_stack[j];
+
+      if(sc->f)
+        e += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+    }
+  }
+
+  return e;
+}
+
+
+INLINE PRIVATE int
 E_mb_loop_fast( int i,
                 int j,
                 vrna_fold_compound *vc,
@@ -584,17 +756,18 @@ E_mb_loop_fast( int i,
 
   int k, decomp, MLenergy, en;
   unsigned char type, type_2, tt;
+  short S_i1, S_j1;
 
+  int               cp      = vc->cutpoint;
   char              *ptype  = vc->ptype;
   short             *S      = vc->sequence_encoding;
-  short             S_i1    = S[i+1];
-  short             S_j1    = S[j-1];
   int               *indx   = vc->jindx;
   char              *hc     = vc->hc->matrix;
   int               *hc_up  = vc->hc->up_ml;
   soft_constraintT  *sc     = vc->sc;
   int               *c      = vc->matrices->c;
   int               *fML    = vc->matrices->fML;
+  int               *fc     = vc->matrices->fc;
   paramT            *P      = vc->params;
 
   int ij            = indx[j] + i;
@@ -605,98 +778,154 @@ E_mb_loop_fast( int i,
 
   type              = (unsigned char)ptype[ij];
 
+  if(cp < 0){
+    S_i1    = S[i+1];
+    S_j1    = S[j-1];
+  } else {
+    S_i1  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
+    S_j1  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+  }
 
   if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP){
-    decomp = dmli1[j-1];
-    tt = rtype[type];
-    switch(dangle_model){
-      /* no dangles */
-      case 0:   decomp += E_MLstem(tt, -1, -1, P);
-                if(sc){
-                  if(sc->en_basepair)
-                    decomp += sc->en_basepair[ij];
-                }
-                break;
-
-      /* double dangles */
-      case 2:   decomp += E_MLstem(tt, S_j1, S_i1, P);
-                if(sc){
-                  if(sc->en_basepair)
-                    decomp += sc->en_basepair[ij];
-                }
-                break;
-
-      /* normal dangles, aka dangles = 1 || 3 */
-      default:  decomp += E_MLstem(tt, -1, -1, P);
-                if(hc_up[i+1]){
-                  en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+    if((S_i1 >= 0) && (S_j1 >= 0)){ /* regular multi branch loop */
+      decomp = dmli1[j-1];
+      tt = rtype[type];
+      switch(dangle_model){
+        /* no dangles */
+        case 0:   decomp += E_MLstem(tt, -1, -1, P);
                   if(sc){
-                    if(sc->free_energies)
-                      en += sc->free_energies[i+1][1];
-
                     if(sc->en_basepair)
-                      en += sc->en_basepair[ij];
+                      decomp += sc->en_basepair[ij];
                   }
-                  decomp = MIN2(decomp, en);
-                }
-                if(hc_up[j-1] && hc_up[i+1]){
-                  en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
+                  break;
+
+        /* double dangles */
+        case 2:   decomp += E_MLstem(tt, S_j1, S_i1, P);
                   if(sc){
-                    if(sc->free_energies)
-                      en += sc->free_energies[i+1][1]
-                            + sc->free_energies[j-1][1];
-
                     if(sc->en_basepair)
-                      en += sc->en_basepair[ij];
+                      decomp += sc->en_basepair[ij];
                   }
-                  decomp = MIN2(decomp, en);
-                }
-                if(hc_up[j-1]){
-                  en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
-                  if(sc){
-                    if(sc->free_energies)
-                      en += sc->free_energies[j-1][1];
+                  break;
 
-                    if(sc->en_basepair)
-                      en += sc->en_basepair[ij];
+        /* normal dangles, aka dangles = 1 || 3 */
+        default:  decomp += E_MLstem(tt, -1, -1, P);
+                  if(hc_up[i+1]){
+                    en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+                    if(sc){
+                      if(sc->free_energies)
+                        en += sc->free_energies[i+1][1];
+
+                      if(sc->en_basepair)
+                        en += sc->en_basepair[ij];
+                    }
+                    decomp = MIN2(decomp, en);
                   }
-                  decomp = MIN2(decomp, en);
-                }
-                break;
-    }
-    MLenergy = decomp + P->MLclosing;
-    e = MIN2(e, MLenergy);
+                  if(hc_up[j-1] && hc_up[i+1]){
+                    en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
+                    if(sc){
+                      if(sc->free_energies)
+                        en += sc->free_energies[i+1][1]
+                              + sc->free_energies[j-1][1];
 
-    /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
-    if (dangle_model==3) {
-      int i1k, k1j1;
-      decomp = INF;
-      k1j1  = indx[j-1] + i + 2 + TURN + 1;
-      for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
-        i1k   = indx[k] + i + 1;
-        if(hc[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-          type_2  = rtype[(unsigned char)ptype[i1k]];
-          en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
-          if(sc){
-            if(sc->en_basepair)
-              en += sc->en_basepair[ij];
-          }
-          decomp  = MIN2(decomp, en);
-        }
-        if(hc[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-          type_2  = rtype[(unsigned char)ptype[k1j1]];
-          en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
-          if(sc){
-            if(sc->en_basepair)
-              en += +sc->en_basepair[ij];
-          }
-          decomp  = MIN2(decomp, en);
-        }
+                      if(sc->en_basepair)
+                        en += sc->en_basepair[ij];
+                    }
+                    decomp = MIN2(decomp, en);
+                  }
+                  if(hc_up[j-1]){
+                    en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
+                    if(sc){
+                      if(sc->free_energies)
+                        en += sc->free_energies[j-1][1];
+
+                      if(sc->en_basepair)
+                        en += sc->en_basepair[ij];
+                    }
+                    decomp = MIN2(decomp, en);
+                  }
+                  break;
       }
-      /* no TermAU penalty if coax stack */
-      decomp += 2*P->MLintern[1] + P->MLclosing;
+      e = decomp + P->MLclosing;
+    }
+
+    if(!((i >= cp) || (j < cp))){ /* multibrach like cofold structure with cut somewhere between i and j */
+      decomp = fc[i+1] + fc[j-1];
+      tt = rtype[type];
+      switch(dangle_model){
+        case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
+                  break;
+        case 2:   decomp += E_ExtLoop(tt, S_j1, S_i1, P);
+                  break;
+        default:  decomp += E_ExtLoop(tt, -1, -1, P);
+                  if((hc_up[i+1]) && (hc_up[j-1])){
+                    en     = fc[i+2] + fc[j-2] + E_ExtLoop(tt, S_j1, S_i1, P);
+                    decomp = MIN2(decomp, en);
+                  }
+                  if(hc_up[i+1]){
+                    en     = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, S_i1, P);
+                    decomp = MIN2(decomp, en);
+                  }
+                  if(hc_up[j-1]){
+                    en     = fc[i+1] + fc[j-2] + E_ExtLoop(tt, S_j1, -1, P);
+                    decomp = MIN2(decomp, en);
+                  }
+                  break;
+      }
       e = MIN2(e, decomp);
     }
+  }
+  return e;
+}
+
+INLINE PRIVATE int
+E_mb_loop_stack(int i,
+                int j,
+                vrna_fold_compound *vc){
+
+  int e, decomp, en, i1k, k1j1, ij, k;
+  unsigned char type, type_2;
+
+  int               *indx   = vc->jindx;
+  char              *hc     = vc->hc->matrix;
+  int               *c      = vc->matrices->c;
+  int               *fML    = vc->matrices->fML;
+  paramT            *P      = vc->params;
+  model_detailsT    *md     = &(P->model_details);
+  char              *ptype  = vc->ptype;
+  int               *rtype  = &(md->rtype[0]);
+  soft_constraintT  *sc     = vc->sc;
+
+  e   = INF;
+  ij  = indx[j] + i;
+
+  if(hc[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+    decomp = INF;
+    k1j1  = indx[j-1] + i + 2 + TURN + 1;
+    for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
+      i1k   = indx[k] + i + 1;
+      if(hc[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        type_2  = rtype[(unsigned char)ptype[i1k]];
+        en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
+        if(sc){
+          if(sc->en_basepair)
+            en += sc->en_basepair[ij];
+        }
+        decomp  = MIN2(decomp, en);
+      }
+      if(hc[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        type_2  = rtype[(unsigned char)ptype[k1j1]];
+        en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
+        if(sc){
+          if(sc->en_basepair)
+            en += +sc->en_basepair[ij];
+        }
+        decomp  = MIN2(decomp, en);
+      }
+    }
+    /* no TermAU penalty if coax stack */
+    decomp += 2*P->MLintern[1] + P->MLclosing;
+    e = decomp;
+
   }
   return e;
 }

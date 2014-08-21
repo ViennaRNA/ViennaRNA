@@ -223,7 +223,7 @@ PRIVATE int
 fill_arrays(vrna_fold_compound *vc){
 
   int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
-  int               noGUclosure, noLP, uniq_ML, with_gquad, *rtype, *indx;
+  int               noGUclosure, noLP, uniq_ML, with_gquad, dangle_model, *rtype, *indx;
   int               *my_f5, *my_c, *my_fML, *my_fM1, *my_ggg, hc_decompose, *hc_up_ml;
   int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
   int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
@@ -247,6 +247,7 @@ fill_arrays(vrna_fold_compound *vc){
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
   with_gquad        = P->model_details.gquad;
+  dangle_model      = P->model_details.dangles;
   rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
@@ -320,22 +321,23 @@ fill_arrays(vrna_fold_compound *vc){
           new_c   = MIN2(new_c, energy);
         }
 
+        if(dangle_model == 3){ /* coaxial stacking */
+          energy  = E_mb_loop_stack(i, j, vc);
+          new_c   = MIN2(new_c, energy);
+        }
+
         /* check for interior loops */
         energy = E_int_loop(i, j, vc);
         new_c = MIN2(new_c, energy);
 
         /* remember stack energy for --noLP option */
         if(noLP){
-          stackEnergy = INF;
-          if((hc_decompose & VRNA_HC_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1] + i + 1] & VRNA_HC_CONTEXT_INT_LOOP_ENC)){
-            type_2 = rtype[(unsigned char)ptype[indx[j-1] + i + 1]];
-            stackEnergy = P->stack[type][type_2];
-          }
-          new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-          cc[j] = new_c;
-          my_c[ij] = cc1[j-1]+stackEnergy;
+          stackEnergy = E_stack(i, j, vc);
+          new_c       = MIN2(new_c, cc1[j-1]+stackEnergy);
+          cc[j]       = new_c;
+          my_c[ij]    = cc1[j-1]+stackEnergy;
         } else {
-          my_c[ij] = new_c;
+          my_c[ij]    = new_c;
         }
       } /* end >> if (pair) << */
 
