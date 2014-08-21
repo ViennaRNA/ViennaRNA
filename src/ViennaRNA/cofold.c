@@ -1582,7 +1582,7 @@ PUBLIC void
 free_co_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    destroy_fold_compound(backward_compat_compound);
+    vrna_free_fold_compound(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
