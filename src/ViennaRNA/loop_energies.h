@@ -584,6 +584,7 @@ E_int_loop( int i,
   int               *ggg          = vc->matrices->ggg;
   model_detailsT    *md           = &(P->model_details);
   int               with_gquad    = md->gquad;
+  int               turn          = md->min_loop_size;
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
@@ -592,7 +593,7 @@ E_int_loop( int i,
     rtype       = &(md->rtype[0]);
     noGUclosure = md->noGUclosure;
     no_close    = (((type==3)||(type==4))&&noGUclosure);
-    max_q       = i+TURN+2;
+    max_q       = i+turn+2;
     max_q       = MAX2(max_q, j - MAXLOOP - 1);
     for(q = j - 1; q >= max_q; q--){
       j_q = j - q - 1;
@@ -604,7 +605,7 @@ E_int_loop( int i,
       max_p     = i + 1;
       tmp       = i + 1 + MAXLOOP - j_q;
       max_p     = MAX2(max_p, tmp);
-      tmp       = q - TURN;
+      tmp       = q - turn;
       max_p     = MIN2(max_p, tmp);
       tmp       = i + 1 + hc_up[i + 1];
       max_p     = MIN2(max_p, tmp);
@@ -891,6 +892,7 @@ E_mb_loop_stack(int i,
   int               *fML    = vc->matrices->fML;
   paramT            *P      = vc->params;
   model_detailsT    *md     = &(P->model_details);
+  int               turn    = md->min_loop_size;
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);
   soft_constraintT  *sc     = vc->sc;
@@ -900,8 +902,8 @@ E_mb_loop_stack(int i,
 
   if(hc[ij] & VRNA_HC_CONTEXT_MB_LOOP){
     decomp = INF;
-    k1j1  = indx[j-1] + i + 2 + TURN + 1;
-    for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++){
+    k1j1  = indx[j-1] + i + 2 + turn + 1;
+    for (k = i+2+turn; k < j-2-turn; k++, k1j1++){
       i1k   = indx[k] + i + 1;
       if(hc[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
         type_2  = rtype[(unsigned char)ptype[i1k]];
@@ -1008,6 +1010,7 @@ E_ml_stems_fast(int i,
   paramT            *P            = vc->params;
   int               ij            = indx[j] + i;
   int               dangle_model  = P->model_details.dangles;
+  int               turn          = P->model_details.min_loop_size;
   int               type          = ptype[ij];
   int               *rtype        = &(P->model_details.rtype[0]);
   int               circular      = P->model_details.circ;
@@ -1089,14 +1092,14 @@ E_ml_stems_fast(int i,
   }
 
   /* modular decomposition -------------------------------*/
-  k1j = indx[j] + i + TURN + 2;
-  int stop = (cp > 0) ? (cp - 1) : (j - 2 - TURN);
-  for (decomp = INF, k = i + 1 + TURN; k <= stop; k++, k1j++){
+  k1j = indx[j] + i + turn + 2;
+  int stop = (cp > 0) ? (cp - 1) : (j - 2 - turn);
+  for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++){
     en = fmi[k] + fm[k1j];
     decomp = MIN2(decomp, en);
   }
   k++; k1j++;
-  for (;k <= j - 2 - TURN; k++, k1j++){
+  for (;k <= j - 2 - turn; k++, k1j++){
     en = fmi[k] + fm[k1j];
     decomp = MIN2(decomp, en);
   }
@@ -1108,8 +1111,8 @@ E_ml_stems_fast(int i,
   if (dangle_model==3) {
     /* additional ML decomposition as two coaxially stacked helices */
     int ik;
-    k1j = indx[j]+i+TURN+2;
-    for (decomp = INF, k = i + 1 + TURN; k <= stop; k++, k1j++){
+    k1j = indx[j]+i+turn+2;
+    for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++){
       ik = indx[k]+i;
       if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
@@ -1119,7 +1122,7 @@ E_ml_stems_fast(int i,
       }
     }
     k++; k1j++;
-    for (; k <= j-2-TURN; k++, k1j++){
+    for (; k <= j-2-turn; k++, k1j++){
       ik = indx[k]+i;
       if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
@@ -1163,9 +1166,10 @@ E_ext_loop_5( vrna_fold_compound *vc){
   int               dangle_model  = P->model_details.dangles;
   int               *ggg          = vc->matrices->ggg;
   int               with_gquad    = P->model_details.gquad;
+  int               turn          = P->model_details.min_loop_size;
 
   f5[0] = 0;
-  for(i = 1; i <= TURN + 1; i++){
+  for(i = 1; i <= turn + 1; i++){
     if(hc_up[i]){
       f5[i] = f5[i-1];
       if(sc)
@@ -1179,7 +1183,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
   /* duplicated code may be faster than conditions inside loop ;) */
   switch(dangle_model){
     /* dont use dangling end and mismatch contributions at all */
-    case 0:   for(j=TURN+2; j<=length; j++){
+    case 0:   for(j=turn+2; j<=length; j++){
                 f5[j] = INF;
                 if(hc_up[j]){
                   f5[j] = f5[j-1];
@@ -1187,7 +1191,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                     if(sc->free_energies)
                       f5[j] += sc->free_energies[j][1];
                 }
-                for (i=j-TURN-1; i>1; i--){
+                for (i=j-turn-1; i>1; i--){
                   ij = indx[j]+i;
                   if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
 
@@ -1211,7 +1215,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
               break;
 
     /* always use dangles on both sides */
-    case 2:   for(j=TURN+2; j<length; j++){
+    case 2:   for(j=turn+2; j<length; j++){
                 f5[j] = INF;
                 if(hc_up[j]){
                   f5[j] = f5[j-1];
@@ -1219,7 +1223,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                     if(sc->free_energies)
                       f5[j] += sc->free_energies[j][1];
                 }
-                for (i=j-TURN-1; i>1; i--){
+                for (i=j-turn-1; i>1; i--){
                   ij = indx[j] + i;
                   if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
 
@@ -1246,7 +1250,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   if(sc->free_energies)
                     f5[length] += sc->free_energies[length][1];
               }
-              for (i=length-TURN-1; i>1; i--){
+              for (i=length-turn-1; i>1; i--){
                 ij = indx[length] + i;
                 if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
 
@@ -1269,11 +1273,11 @@ E_ext_loop_5( vrna_fold_compound *vc){
               break;
 
     /* normal dangles, aka dangle_model = 1 || 3 */
-    default:  for(j=TURN+2; j<=length; j++){
+    default:  for(j=turn+2; j<=length; j++){
                 f5[j] = INF;
                 if(hc_up[j])
                   f5[j] = f5[j-1];
-                for (i=j-TURN-1; i>1; i--){
+                for (i=j-turn-1; i>1; i--){
                   ij = indx[j] + i;
                   if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
 
