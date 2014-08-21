@@ -52,13 +52,14 @@
 */
 
 /* some backward compatibility stuff */
+PRIVATE int                 backward_compat           = 0;
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(mfe1, mfe2, backward_compat_compound)
+#pragma omp threadprivate(mfe1, mfe2, backward_compat_compound, backward_compat)
 
 #endif
 
@@ -177,7 +178,8 @@ wrap_cofold(const char *string,
   if(backward_compat_compound)
     vrna_free_fold_compound(backward_compat_compound);
 
-  backward_compat_compound = vc;
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
 
   /* cleanup */
   free(seq);
@@ -199,26 +201,23 @@ vrna_cofold(vrna_fold_compound  *vc,
 
   energy = fill_arrays(vc, 0);
 
-  bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+  if(structure && vc->params->model_details.backtrack){
+    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
-  backtrack(bt_stack, bp, vc);
+    backtrack(bt_stack, bp, vc);
 
-  vrna_parenthesis_structure(structure, bp, length);
+    vrna_parenthesis_structure(structure, bp, length);
 
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanish from within the package!
-  */
-  if(base_pair) free(base_pair);
-  base_pair = bp;
-  /*
-  {
-    if(base_pair) free(base_pair);
-    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
-    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
+    /*
+    *  Backward compatibility:
+    *  This block may be removed if deprecated functions
+    *  relying on the global variable "base_pair" vanish from within the package!
+    */
+    {
+      if(base_pair) free(base_pair);
+      base_pair = bp;
+    }
   }
-  */
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;
@@ -238,11 +237,11 @@ fill_arrays(vrna_fold_compound  *vc,
   int   decomp, new_fML, cut_point, uniq_ML;
   int   no_close, type, type_2, tt, maxj, *indx;
   int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc, *my_ggg;
-  int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
-  int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
-  int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
+  int   *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
+  int   *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int   *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
   int   *hc_up_ext, *hc_up_ml;
 
   int   dangle_model, noGUclosure, with_gquad, noLP, hc_decompose;
@@ -633,11 +632,12 @@ fill_arrays(vrna_fold_compound  *vc,
   return energy;
 }
 
-PRIVATE void backtrack_co(sect bt_stack[],
-                          bondT *bp_list,
-                          int s,
-                          int b, /* b=0: start new structure, b \ne 0: add to existing structure */
-                          vrna_fold_compound *vc) {
+PRIVATE void
+backtrack_co( sect bt_stack[],
+              bondT *bp_list,
+              int s,
+              int b, /* b=0: start new structure, b \ne 0: add to existing structure */
+              vrna_fold_compound *vc) {
 
   /*------------------------------------------------------------------
     trace back through the "c", "fc", "f5" and "fML" arrays to get the
@@ -1341,24 +1341,6 @@ free_end( int *array,
   }
 }
 
-PUBLIC void
-update_cofold_params(void){
-
-  vrna_update_fold_params(backward_compat_compound, NULL);
-}
-
-PUBLIC void
-update_cofold_params_par(paramT *parameters){
-
-  vrna_update_fold_params(backward_compat_compound, parameters);
-}
-
-PUBLIC void get_monomere_mfes(float *e1, float *e2) {
-  /*exports monomere free energies*/
-  *e1 = mfe1;
-  *e2 = mfe2;
-}
-
 PRIVATE void
 backtrack(sect bt_stack[],
           bondT *bp_list,
@@ -1427,7 +1409,8 @@ wrap_zukersubopt( const char *string,
   if(backward_compat_compound)
     vrna_free_fold_compound(backward_compat_compound);
 
-  backward_compat_compound = vc;
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
 
   /* cleanup */
   free(doubleseq);
@@ -1471,7 +1454,7 @@ vrna_zukersubopt(vrna_fold_compound *vc){
 
   psize     = length;
   pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));
-  bp_list   = (bondT *)space(sizeof(bondT) * (1 + length/2));
+  bp_list   = (bondT *) space(sizeof(bondT) * (1 + length/2));
   todo      = (char **) space(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
     todo[i] = (char *) space(sizeof(char)*(length+1));
@@ -1532,8 +1515,10 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanish from within the package!
   */
-  if(base_pair) free(base_pair);
-  base_pair = bp_list;
+  {
+    if(base_pair) free(base_pair);
+    base_pair = bp_list;
+  }
 
   /* clean up */
   free(pairlist);
@@ -1557,9 +1542,10 @@ initialize_cofold(int length){ /* DO NOTHING */ }
 PUBLIC void
 free_co_arrays(void){
 
-  if(backward_compat_compound){
-    vrna_free_fold_compound(backward_compat_compound);
-    backward_compat_compound = NULL;
+  if(backward_compat_compound && backward_compat){
+    destroy_fold_compound(backward_compat_compound);
+    backward_compat_compound  = NULL;
+    backward_compat           = 0;
   }
 }
 
@@ -1622,5 +1608,49 @@ zukersubopt_par(const char *string,
                 paramT *parameters){
 
   return wrap_zukersubopt(string, parameters);
+}
+
+PUBLIC void
+update_cofold_params(void){
+
+  vrna_fold_compound *v;
+  
+  if(backward_compat_compound && backward_compat){
+    v = backward_compat_compound;
+
+    if(v->params)
+      free(v->params);
+
+    model_detailsT md;
+    set_model_details(&md);
+    v->params = vrna_get_energy_contributions(md);
+  }
+}
+
+PUBLIC void
+update_cofold_params_par(paramT *parameters){
+
+  vrna_fold_compound *v;
+  
+  if(backward_compat_compound && backward_compat){
+    v = backward_compat_compound;
+
+    if(v->params)
+      free(v->params);
+
+    if(parameters){
+      v->params = get_parameter_copy(parameters);
+    } else {
+      model_detailsT md;
+      set_model_details(&md);
+      v->params = vrna_get_energy_contributions(md);
+    }
+  }
+}
+
+PUBLIC void get_monomere_mfes(float *e1, float *e2) {
+  /*exports monomere free energies*/
+  *e1 = mfe1;
+  *e2 = mfe2;
 }
 
