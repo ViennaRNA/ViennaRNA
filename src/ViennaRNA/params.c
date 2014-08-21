@@ -204,7 +204,7 @@ vrna_get_boltzmann_factors(model_detailsT md){
 PUBLIC pf_paramT *get_boltzmann_factors(double temp,
                                         double betaScale,
                                         model_detailsT md,
-                                        double pf_scale){
+                                        double pfs){
 
   unsigned  int i, j, k, l;
   double        kT, TT;
@@ -216,7 +216,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   pf->temperature   = temp;
   pf->alpha         = betaScale;
   pf->kT = kT       = betaScale*(temp+K0)*GASCONST;   /* kT in cal/mol  */
-  pf->pf_scale      = pf_scale;
+  pf->pf_scale      = pf->model_details.pf_scale = pf_scale = pfs;
   TT                = (temp+K0)/(Tmeasure);
 
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
