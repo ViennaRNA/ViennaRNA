@@ -301,7 +301,7 @@ fill_arrays(vrna_fold_compound  *vc,
 
     maxj=(zuker)? (MIN2(i+cut_point-1,length)):length;
     for (j = i+TURN+1; j <= maxj; j++) {
-      int p, q, ij;
+      int ij;
       ij            = indx[j]+i;
       type          = (unsigned char)ptype[ij];
       hc_decompose  = hard_constraints[ij];
@@ -310,176 +310,43 @@ fill_arrays(vrna_fold_compound  *vc,
       no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (hc_decompose) {   /* we have a pair */
-        int new_c=INF, stackEnergy=INF;
-        short si, sj;
-        si  = SAME_STRAND(i, i+1) ? S1[i+1] : -1;
-        sj  = SAME_STRAND(j-1, j) ? S1[j-1] : -1;
-        /* hairpin ----------------------------------------------*/
+        int new_c = INF;
 
-        if (SAME_STRAND(i,j)) {
-          if(!no_close){
-            energy = E_hp_loop(i, j, vc);
-          }
+        if(!no_close){
+          /* check for hairpin loop */
+          energy = E_hp_loop(i, j, vc);
+          new_c = MIN2(new_c, energy);
+
+          /* check for multibranch loops */
+          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          new_c   = MIN2(new_c, energy);
         }
-        else {
-          /* hairpin-like exterior loop */
-          if(hc_decompose & VRNA_HC_CONTEXT_EXT_LOOP){
-            if (dangle_model)
-              energy = E_ExtLoop(rtype[type], sj, si, P);
-            else
-              energy = E_ExtLoop(rtype[type], -1, -1, P);
-          }
+
+        if (dangle_model==3) { /* coaxial stacking */
+          energy  = E_mb_loop_stack(i, j, vc);
+          new_c   = MIN2(new_c, energy);
         }
+
+        /* check for interior loops */
+        energy = E_int_loop(i, j, vc);
         new_c = MIN2(new_c, energy);
 
-        /*--------------------------------------------------------
-          check for elementary structures involving more than one
-          closing pair.
-          --------------------------------------------------------*/
-        for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-          int minq = j-i+p-MAXLOOP-2;
-          if (minq<p+1+TURN) minq = p+1+TURN;
-          for (q = minq; q < j; q++) {
-            int pq = indx[q] + p;
-            type_2 = ptype[pq];
+        /* remember stack energy for --noLP option */
+        if(noLP){
+          int stackEnergy = E_stack(i, j, vc);
+          new_c           = MIN2(new_c, cc1[j-1]+stackEnergy);
+          cc[j]           = new_c;
 
-            if (type_2==0) continue;
-            type_2 = rtype[type_2];
-
-            if (noGUclosure)
-              if (no_close||(type_2==3)||(type_2==4))
-                if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
-
-            if (SAME_STRAND(i,p) && SAME_STRAND(q,j)){
-              if((hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP))
-                energy = E_IntLoop(p-i-1, j-q-1, type, type_2, si, sj, S1[p-1], S1[q+1], P);
-            } else {
-              if((hard_constraints[pq] & VRNA_HC_CONTEXT_EXT_LOOP) && (hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP))
-                energy = E_IntLoop_Co(rtype[type], rtype[type_2],
-                                    i, j, p, q,
-                                    cut_point,
-                                    si, sj,
-                                    S1[p-1], S1[q+1],
-                                    dangle_model,
-                                    P);
-            }
-            new_c = MIN2(new_c, energy+my_c[indx[q]+p]);
-            if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
-
-          } /* end q-loop */
-        } /* end p-loop */
-
-        /* multi-loop decomposition ------------------------*/
-
-
-        if (!no_close) {
-          int MLenergy;
-
-          if((si >= 0) && (sj >= 0)){
-            if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
-              decomp    = DMLi1[j-1];
-              tt        = rtype[type];
-              MLenergy  = P->MLclosing;
-              switch(dangle_model){
-                case 0:   MLenergy += decomp + E_MLstem(tt, -1, -1, P);
-                          break;
-                case 2:   MLenergy += decomp + E_MLstem(tt, sj, si, P);
-                          break;
-                default:  decomp += E_MLstem(tt, -1, -1, P);
-                          if(hc_up_ml[j-1]){
-                            energy = DMLi1[j-2] + E_MLstem(tt, sj, -1, P) + P->MLbase;
-                            decomp = MIN2(decomp, energy);
-                          }
-                          if(hc_up_ml[i+1]){
-                            energy = DMLi2[j-1] + E_MLstem(tt, -1, si, P) + P->MLbase;
-                            decomp = MIN2(decomp, energy);
-                          }
-                          if((hc_up_ml[i+1]) && (hc_up_ml[j-1])){
-                            energy = DMLi2[j-2] + E_MLstem(tt, sj, si, P) + 2*P->MLbase;
-                            decomp = MIN2(decomp, energy);
-                          }
-                          MLenergy += decomp;
-                          break;
-              }
-              new_c = MIN2(new_c, MLenergy);
-            }
-          }
-
-          if (!SAME_STRAND(i,j)) { /* cut is somewhere in the multiloop*/
-            if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
-              decomp = my_fc[i+1] + my_fc[j-1];
-              tt = rtype[type];
-              switch(dangle_model){
-                case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
-                          break;
-                case 2:   decomp += E_ExtLoop(tt, sj, si, P);
-                          break;
-                default:  decomp += E_ExtLoop(tt, -1, -1, P);
-                          if((hc_up_ext[i+1]) && (hc_up_ext[j-1])){
-                            energy = my_fc[i+2] + my_fc[j-2] + E_ExtLoop(tt, sj, si, P);
-                            decomp = MIN2(decomp, energy);
-                          }
-                          if(hc_up_ext[i+1]){
-                            energy = my_fc[i+2] + my_fc[j-1] + E_ExtLoop(tt, -1, si, P);
-                            decomp = MIN2(decomp, energy);
-                          }
-                          if(hc_up_ext[j-1]){
-                            energy = my_fc[i+1] + my_fc[j-2] + E_ExtLoop(tt, sj, -1, P);
-                            decomp = MIN2(decomp, energy);
-                          }
-                          break;
-              }
-              new_c = MIN2(new_c, decomp);
-            }
-          }
-        } /* end >> if (!no_close) << */
-
-        /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
-
-        if (dangle_model==3) {
-          int i1k, k1j1;
-          decomp = INF;
-          k1j1  = indx[j-1] + i + 2 + TURN + 1;
-          for (k = i+2+TURN; k < j-2-TURN; k++, k1j1++) {
-            i1k = indx[k]+i+1;
-            if(hard_constraints[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-              type_2  = rtype[(unsigned char)ptype[i1k]];
-              energy  = my_c[i1k] + P->stack[type][type_2] + my_fML[k1j1];
-              decomp  = MIN2(decomp, energy);
-            }
-            if(hard_constraints[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-              type_2  = rtype[(unsigned char)ptype[k1j1]];
-              energy  = my_c[k1j1] + P->stack[type][type_2] + my_fML[i1k];
-              decomp  = MIN2(decomp, energy);
-            }
-          }
-          /* no TermAU penalty if coax stack */
-          decomp += 2*P->MLintern[1] + P->MLclosing;
-          new_c = MIN2(new_c, decomp);
-        }
-
-        if(with_gquad){
-          /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-          if (!no_close && SAME_STRAND(i,j)) {
-            tt = rtype[type];
-            energy = E_GQuad_IntLoop(i, j, type, S1, my_ggg, indx, P);
-            new_c = MIN2(new_c, energy);
-          }
-        }
-
-        new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-        cc[j] = new_c;
-        if (noLP){
           if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
             my_c[ij] = cc1[j-1]+stackEnergy;
           else /* currently we don't allow stacking over the cut point */
             my_c[ij] = FORBIDDEN;
+
+        } else {
+          my_c[ij] = new_c;
         }
-        else
-          my_c[ij] = cc[j];
 
       } /* end >> if (pair) << */
-
       else my_c[ij] = INF;
 
 
