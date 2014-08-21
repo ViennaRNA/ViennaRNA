@@ -33,8 +33,6 @@
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#undef  TURN
-#define TURN              0       /* reset minimal base pair span for intermolecular pairings */
 #define TURN2             3       /* used by zukersubopt */
 #define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
 
@@ -134,7 +132,7 @@ wrap_cofold(const char *string,
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  P->model_details.min_loop_size = TURN;  /* set min loop length to 0 */
+  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
   /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
   seq = (char *)space(sizeof(char) * (length + 2));
@@ -244,7 +242,7 @@ fill_arrays(vrna_fold_compound  *vc,
   int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
   int   *hc_up_ext, *hc_up_ml;
 
-  int   dangle_model, noGUclosure, with_gquad, noLP, hc_decompose;
+  int   dangle_model, noGUclosure, with_gquad, noLP, hc_decompose, turn;
   int   *rtype;
   char              *ptype, *hard_constraints;
   short             *S1;
@@ -273,6 +271,7 @@ fill_arrays(vrna_fold_compound  *vc,
   my_fc             = matrices->fc;
   my_ggg            = matrices->ggg;
   cut_point         = vc->cutpoint;
+  turn              = P->model_details.min_loop_size;
 
   hc_up_ext         = hc->up_ext;
   hc_up_ml          = hc->up_ml;
@@ -297,10 +296,10 @@ fill_arrays(vrna_fold_compound  *vc,
       if (uniq_ML) my_fM1[indx[j]+i] = INF;
     }
 
-  for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
+  for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
 
     maxj=(zuker)? (MIN2(i+cut_point-1,length)):length;
-    for (j = i+TURN+1; j <= maxj; j++) {
+    for (j = i+turn+1; j <= maxj; j++) {
       int ij;
       ij            = indx[j]+i;
       type          = (unsigned char)ptype[ij];
@@ -419,6 +418,7 @@ backtrack_co( sect bt_stack[],
   int   noLP            = P->model_details.noLP;
   int   noGUclosure     = P->model_details.noGUclosure;
   int   with_gquad      = P->model_details.gquad;
+  int   turn            = P->model_details.min_loop_size;
   int   *rtype          = &(P->model_details.rtype[0]);
   char  backtrack_type  = P->model_details.backtrack_type;
   int   cut_point       = vc->cutpoint;
@@ -457,7 +457,7 @@ backtrack_co( sect bt_stack[],
       goto repeat1;
     }
 
-    if (j < i+TURN+1) continue; /* no more pairs in this interval */
+    if (j < i+turn+1) continue; /* no more pairs in this interval */
 
 
     if (ml==0){
@@ -491,7 +491,7 @@ backtrack_co( sect bt_stack[],
       ff = (ml==4) ? my_fc : my_f5;
       switch(dangle_model){
         case 0:   /* j or j-1 is paired. Find pairing partner */
-                  for (k=j-TURN-1,traced=0; k>=i; k--) {
+                  for (k=j-turn-1,traced=0; k>=i; k--) {
                     int cc;
 
                     if(with_gquad){
@@ -516,7 +516,7 @@ backtrack_co( sect bt_stack[],
                   break;
 
         case 2:   /* j or j-1 is paired. Find pairing partner */
-                  for (k=j-TURN-1,traced=0; k>=i; k--) {
+                  for (k=j-turn-1,traced=0; k>=i; k--) {
                     int cc;
 
                     if(with_gquad){
@@ -539,7 +539,7 @@ backtrack_co( sect bt_stack[],
                   }
                   break;
 
-        default:  for(k=j-TURN-1,traced=0; k>=i; k--){
+        default:  for(k=j-turn-1,traced=0; k>=i; k--){
                     int cc;
 
                     if(with_gquad){
@@ -637,7 +637,7 @@ backtrack_co( sect bt_stack[],
 
       /* i or i+1 is paired. Find pairing partner */
       switch(dangle_model){
-        case 0:   for (k=i+TURN+1, traced=0; k<=j; k++){
+        case 0:   for (k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
                     if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
                       type = ptype[indx[k]+i];
@@ -656,7 +656,7 @@ backtrack_co( sect bt_stack[],
                     if (traced) break;
                   }
                   break;
-        case 2:   for (k=i+TURN+1, traced=0; k<=j; k++){
+        case 2:   for (k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
                     if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
                       type = ptype[indx[k]+i];
@@ -675,7 +675,7 @@ backtrack_co( sect bt_stack[],
                     if (traced) break;
                   }
                   break;
-        default:  for(k=i+TURN+1, traced=0; k<=j; k++){
+        default:  for(k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
                     if(hard_constraints[indx[k]+i] & IN_EXT_LOOP){
                       type = ptype[indx[k]+i];
@@ -847,13 +847,13 @@ backtrack_co( sect bt_stack[],
       }
 
       /* find next component of multiloop */
-      for (k = i+1+TURN; k <= j-2-TURN; k++)
+      for (k = i+1+turn; k <= j-2-turn; k++)
         if (fij == (my_fML[indx[k]+i]+my_fML[indx[j]+k+1]))
           break;
 
-      if ((dangle_model==3)&&(k>j-2-TURN)) { /* must be coax stack */
+      if ((dangle_model==3)&&(k>j-2-turn)) { /* must be coax stack */
         ml = 2;
-        for (k = i+1+TURN; k <= j-2-TURN; k++) {
+        for (k = i+1+turn; k <= j-2-turn; k++) {
           if((hard_constraints[indx[k]+i] & IN_MB_LOOP_ENC) && (hard_constraints[indx[j]+k+1] & IN_MB_LOOP_ENC)){
             type    = ptype[indx[k]+i];
             type    = rtype[type];
@@ -873,7 +873,7 @@ backtrack_co( sect bt_stack[],
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-turn) nrerror("backtrack failed in fML");
       continue;
     }
 
@@ -920,14 +920,14 @@ backtrack_co( sect bt_stack[],
     }
 
     if(hard_constraints[ij] & IN_INT_LOOP){
-      for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
+      for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1); p++) {
         int minq;
 
         if(hc->up_int[i+1] < (p - i - 1))
           continue;
 
         minq = j-i+p-MAXLOOP-2;
-        if (minq<p+1+TURN) minq = p+1+TURN;
+        if (minq<p+1+turn) minq = p+1+turn;
         for (q = j-1; q >= minq; q--) {
 
           if(!(hard_constraints[indx[q]+p] & IN_INT_LOOP_ENC))
@@ -1096,7 +1096,7 @@ backtrack_co( sect bt_stack[],
       ml5   = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, -1, P);
       ml3   = E_MLstem(tt, -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
       ml53  = E_MLstem(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P);
-      for (traced = 0, k = i+2+TURN; k < j-2-TURN; k++) {
+      for (traced = 0, k = i+2+turn; k < j-2-turn; k++) {
         switch(dangle_model){
           case 0:   /* no dangles */
                     if(cij == mm + my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + ml0)
@@ -1179,7 +1179,7 @@ backtrack_co( sect bt_stack[],
         }
       }
 
-      if (k<=j-3-TURN) { /* found the decomposition */
+      if (k<=j-3-turn) { /* found the decomposition */
         bt_stack[++s].i = i1;
         bt_stack[s].j   = k;
         bt_stack[++s].i = k+1;
@@ -1250,7 +1250,7 @@ free_end( int *array,
           int start,
           vrna_fold_compound *vc){
 
-  int inc, type, energy, length, j, left, right, cut_point, dangle_model, with_gquad, *indx, *c, *ggg;
+  int inc, type, energy, length, j, left, right, cut_point, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   paramT        *P;
   short         *S1;
   char          *ptype;
@@ -1260,6 +1260,7 @@ free_end( int *array,
   P             = vc->params;
   dangle_model  = P->model_details.dangles;
   with_gquad    = P->model_details.gquad;
+  turn          = P->model_details.min_loop_size;
   inc           = (i>start)? 1:-1;
   length        = (int)vc->length;
   S1            = vc->sequence_encoding;
@@ -1277,7 +1278,7 @@ free_end( int *array,
     left = i; right = start;
   }
 
-  for (j=start; inc*(i-j)>TURN; j+=inc) {
+  for (j=start; inc*(i-j)>turn; j+=inc) {
     int ii, jj;
     short si, sj;
     if (i>j) { ii = j; jj = i;} /* inc>0 */
@@ -1380,7 +1381,7 @@ wrap_zukersubopt( const char *string,
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  P->model_details.min_loop_size = TURN;  /* set min loop length to 0 */
+  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
   doubleseq = (char *)space((2*length+2)*sizeof(char));
   strcpy(doubleseq,string);
