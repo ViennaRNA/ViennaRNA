@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
       }
 
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      pf_scale = exp(-(sfact*min_en)/kT/length);
+      md.pf_scale = pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);

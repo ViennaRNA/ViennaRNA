@@ -149,7 +149,8 @@ wrap_co_pf_fold(char *sequence,
   else{
     set_model_details(&md); /* get global default parameters */
   }
-  md.compute_bpp = calculate_bppm;
+  md.compute_bpp    = calculate_bppm;
+  md.min_loop_size  = 0;
 
   char *seq = (char *)space(sizeof(char) * (length + 2));
   if(cut_point > -1){
