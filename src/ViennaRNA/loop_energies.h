@@ -954,34 +954,36 @@ E_ml_rightmost_stem(int i,
   int               cp            = vc->cutpoint;
   int               e             = INF;
 
-  if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+  if((cp < 0) || (((i - 1) >= cp) || (i < cp))){
     if((cp < 0) || ((j >= cp) || ((j + 1) < cp))){
-      e = c[ij];
-      switch(dangle_model){
-        case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
-                  break;
-        default:  e += E_MLstem(type, -1, -1, P);
-                  break;
+      if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        e = c[ij];
+        switch(dangle_model){
+          case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
+                    break;
+          default:  e += E_MLstem(type, -1, -1, P);
+                    break;
+        }
       }
+
+      if(with_gquad)
+        if((cp < 0) || ((i >= cp) || (j < cp))){
+          en  = ggg[ij] + E_MLstem(0, -1, -1, P);
+          e   = MIN2(e, en);
+        }
+
     }
+
+    if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
+      if(hc_up[j]){
+        en = fm[indx[j - 1] + i] + P->MLbase;
+        if(sc)
+          if(sc->free_energies)
+            en += sc->free_energies[j][1];
+
+        e = MIN2(e, en);
+      }
   }
-
-  if(with_gquad)
-    if((cp < 0) || ((i >= cp) || (j < cp))){
-      en  = ggg[ij] + E_MLstem(0, -1, -1, P);
-      e   = MIN2(e, en);
-    }
-
-  if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
-    if(hc_up[j]){
-      en = fm[indx[j - 1] + i] + P->MLbase;
-      if(sc)
-        if(sc->free_energies)
-          en += sc->free_energies[j][1];
-
-      e = MIN2(e, en);
-    }
-
   return e;
 }
 
@@ -1009,6 +1011,7 @@ E_ml_stems_fast(int i,
   int               type          = ptype[ij];
   int               *rtype        = &(P->model_details.rtype[0]);
   int               circular      = P->model_details.circ;
+  int               cp            = vc->cutpoint;
   int               e             = INF;
 
   /*  extension with one unpaired nucleotide at the left
@@ -1020,75 +1023,103 @@ E_ml_stems_fast(int i,
       and all other variants which are needed for odd
       dangle models
   */
-  switch(dangle_model){
-    /* no dangles */
-    case 0:   /* fall through */
+  if((cp < 0) || (((i - 1) >= cp) || (i < cp))){
+    switch(dangle_model){
+      /* no dangles */
+      case 0:   /* fall through */
 
-    /* double dangles */
-    case 2:   if(hc_up[i]){
-                en = fm[ij + 1] + P->MLbase;
-                if(sc)
-                  if(sc->free_energies)
-                    en += sc->free_energies[i][1];
-                e = MIN2(e, en);
-              }
-              break;
+      /* double dangles */
+      case 2:   if((cp < 0) || ((i >= cp) || ((i + 1) < cp)))
+                  if(hc_up[i]){
+                    en = fm[ij + 1] + P->MLbase;
+                    if(sc)
+                      if(sc->free_energies)
+                        en += sc->free_energies[i][1];
+                    e = MIN2(e, en);
+                  }
+                break;
 
-    /* normal dangles, aka dangle_model = 1 || 3 */
-    default:  mm5 = ((i>1) || circular) ? S[i] : -1;
-              mm3 = ((j<length) || circular) ? S[j] : -1;
-              if(hc_up[i]){
-                en = fm[ij+1] + P->MLbase;
-                if(sc)
-                  if(sc->free_energies)
-                    en += sc->free_energies[i][1];
-                e = MIN2(e, en);
-                if(hc[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-                  type = ptype[ij+1];
-                  en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
-                  if(sc)
-                    if(sc->free_energies)
-                      en += sc->free_energies[i][1];
-                  e = MIN2(e, en);
-                }
-              }
-              if(hc_up[j]){
-                if(hc[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-                  type = ptype[indx[j-1]+i];
-                  en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
-                  if(sc)
-                    if(sc->free_energies)
-                      en += sc->free_energies[j][1];
-                  e = MIN2(e, en);
-                }
-              }
-              if(hc[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-                if(hc_up[i] && hc_up[j]){
-                  type = ptype[indx[j-1]+i+1];
-                  en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
-                  if(sc)
-                    if(sc->free_energies)
-                      en += sc->free_energies[j][1] + sc->free_energies[i][1];
-                  e = MIN2(e, en);
-                }
-              }
-              break;
+      /* normal dangles, aka dangle_model = 1 || 3 */
+      default:  mm5 = ((i>1) || circular) ? S[i] : -1;
+                mm3 = ((j<length) || circular) ? S[j] : -1;
+                if((cp < 0) || ((i >= cp) || ((i + 1) < cp)))
+                  if(hc_up[i]){
+                    en = fm[ij+1] + P->MLbase;
+                    if(sc)
+                      if(sc->free_energies)
+                        en += sc->free_energies[i][1];
+                    e = MIN2(e, en);
+                    if(hc[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                      type = ptype[ij+1];
+                      en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i][1];
+                      e = MIN2(e, en);
+                    }
+                  }
+
+                if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
+                  if(hc_up[j]){
+                    if(hc[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                      type = ptype[indx[j-1]+i];
+                      en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[j][1];
+                      e = MIN2(e, en);
+                    }
+                  }
+
+                if(   (cp < 0)
+                    || (      (((j - 1) >= cp) || (j < cp))
+                          &&  ((i >= cp) || ((i + 1) < cp))))
+                  if(hc[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                    if(hc_up[i] && hc_up[j]){
+                      type = ptype[indx[j-1]+i+1];
+                      en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[j][1] + sc->free_energies[i][1];
+                      e = MIN2(e, en);
+                    }
+                  }
+                break;
+    }
   }
 
   /* modular decomposition -------------------------------*/
   k1j = indx[j] + i + TURN + 2;
-  for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++, k1j++){
+  int stop = (cp > 0) ? (cp - 1) : (j - 2 - TURN);
+  for (decomp = INF, k = i + 1 + TURN; k <= stop; k++, k1j++){
     en = fmi[k] + fm[k1j];
     decomp = MIN2(decomp, en);
   }
+  k++; k1j++;
+  for (;k <= j - 2 - TURN; k++, k1j++){
+    en = fmi[k] + fm[k1j];
+    decomp = MIN2(decomp, en);
+  }
+
   dmli[j] = decomp;               /* store for use in fast ML decompositon */
   e = MIN2(e, decomp);
 
   /* coaxial stacking */
   if (dangle_model==3) {
     /* additional ML decomposition as two coaxially stacked helices */
-    int ik, k1j;
-    for (k1j = indx[j]+i+TURN+2, decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++, k1j++){
+    int ik;
+    k1j = indx[j]+i+TURN+2;
+    for (decomp = INF, k = i + 1 + TURN; k <= stop; k++, k1j++){
+      ik = indx[k]+i;
+      if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+        type    = rtype[(unsigned char)ptype[ik]];
+        type_2  = rtype[(unsigned char)ptype[k1j]];
+        en      = c[ik] + c[k1j] + P->stack[type][type_2];
+        decomp  = MIN2(decomp, en);
+      }
+    }
+    k++; k1j++;
+    for (; k <= j-2-TURN; k++, k1j++){
       ik = indx[k]+i;
       if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
