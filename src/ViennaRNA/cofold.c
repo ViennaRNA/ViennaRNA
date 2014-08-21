@@ -345,121 +345,18 @@ fill_arrays(vrna_fold_compound  *vc,
         } else {
           my_c[ij] = new_c;
         }
-
       } /* end >> if (pair) << */
-      else my_c[ij] = INF;
 
+      else my_c[ij] = INF;
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
-      new_fML=INF;
-      if (SAME_STRAND(i-1,i)) {
-        if (SAME_STRAND(i,i+1))
-          if(hc_up_ml[i])
-            new_fML = my_fML[ij+1]+P->MLbase;
-        if (SAME_STRAND(j-1,j))
-          if(hc_up_ml[j]){
-            new_fML = MIN2(new_fML, my_fML[indx[j-1]+i]+P->MLbase);
-          }
-        if (SAME_STRAND(j,j+1)) {
-          if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
-            energy = my_c[ij];
-            if(dangle_model == 2)
-              energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
-            else
-              energy += E_MLstem(type, -1, -1, P);
-            new_fML = MIN2(new_fML, energy);
-          } else if (with_gquad) {
-              int gggg = my_ggg[ij] + E_MLstem(0, -1, -1, P);
-              energy = MIN2(energy, gggg);
-              new_fML = MIN2(new_fML, energy);
-          }
-        }
 
-        if (dangle_model%2==1) {  /* normal dangles */
-          if (SAME_STRAND(i,i+1)) {
-            if((hard_constraints[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[i])){
-              tt      = ptype[ij+1]; /* i+1,j */
-              energy  = my_c[ij+1] + P->MLbase + E_MLstem(tt, S1[i], -1, P);
-              new_fML = MIN2(new_fML, energy);
-            }
-          }
-          if (SAME_STRAND(j-1,j)) {
-            if((hard_constraints[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[j])){
-              tt      = ptype[indx[j-1]+i]; /* i,j-1 */
-              energy  = my_c[indx[j-1]+i] + P->MLbase + E_MLstem(tt, -1, S1[j], P);
-              new_fML = MIN2(new_fML, energy);
-            }
-          }
-          if ((SAME_STRAND(j-1,j))&&(SAME_STRAND(i,i+1))) {
-            if((hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc_up_ml[i]) && (hc_up_ml[j])){
-              tt      = ptype[indx[j-1]+i+1]; /* i+1,j-1 */
-              energy  = my_c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P);
-              new_fML = MIN2(new_fML, energy);
-            }
-          }
-        }
+      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
 
-        if(uniq_ML){  /* compute fM1 for unique decomposition */
-          my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
-        }
-
+      if(uniq_ML){  /* compute fM1 for unique decomposition */
+        my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
       }
-
-      if(with_gquad){
-        if(SAME_STRAND(i, j))
-          new_fML = MIN2(new_fML, my_ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
-      }
-
-      /* modular decomposition -------------------------------*/
-
-      {
-        int stopp;     /*loop 1 up to cut, then loop 2*/
-        stopp=(cut_point>0)? (cut_point):(j-2-TURN);
-        for (decomp=INF, k = i+1+TURN; k<stopp; k++)
-          decomp = MIN2(decomp, Fmi[k]+my_fML[indx[j]+k+1]);
-        k++;
-        for (;k <= j-2-TURN;k++)
-          decomp = MIN2(decomp, Fmi[k]+my_fML[indx[j]+k+1]);
-      }
-      DMLi[j] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
-
-      /* coaxial stacking */
-      if (dangle_model==3) {
-        int stopp;
-        stopp=(cut_point>0)? (cut_point):(j-2-TURN);
-        /* additional ML decomposition as two coaxially stacked helices */
-        for (decomp = INF, k = i+1+TURN; k<stopp; k++) {
-          type = ptype[indx[k]+i]; type = rtype[type];
-          type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
-          if (type && type_2)
-            decomp = MIN2(decomp,
-                          my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]);
-        }
-        k++;
-        for (;k <= j-2-TURN; k++) {
-          type = ptype[indx[k]+i]; type = rtype[type];
-          type_2 = ptype[indx[j]+k+1]; type_2 = rtype[type_2];
-          if (type && type_2)
-            decomp = MIN2(decomp,
-                          my_c[indx[k]+i]+my_c[indx[j]+k+1]+P->stack[type][type_2]);
-        }
-
-        decomp += 2*P->MLintern[1];
-
-#if 0
-        /* This is needed for Y shaped ML loops with coax stacking of
-           interior pairs, but backtracking will fail if activated */
-        DMLi[j] = MIN2(DMLi[j], decomp);
-        if (SAME_STRAND(j-1,j)) DMLi[j] = MIN2(DMLi[j], DMLi[j-1]+P->MLbase);
-        if (SAME_STRAND(i,i+1)) DMLi[j] = MIN2(DMLi[j], DMLi1[j]+P->MLbase);
-        new_fML = MIN2(new_fML, DMLi[j]);
-#endif
-        new_fML = MIN2(new_fML, decomp);
-      }
-
-      my_fML[ij] = Fmi[j] = new_fML;     /* substring energy */
 
     }
 
