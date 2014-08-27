@@ -309,7 +309,10 @@ fill_arrays(vrna_fold_compound *vc){
                   if(sc[s]){
                     int u1 = a2s[s][p-1]-a2s[s][i];
                     int u2 = a2s[s][j-1]-a2s[s][q];
-
+/*
+                    int u1 = p - i - 1;
+                    int u2 = j - q - 1;
+*/
                     if(sc[s]->en_basepair)
                       energy +=   sc[s]->en_basepair[indx[j] + i];
 
@@ -925,7 +928,10 @@ backtrack(vrna_fold_compound *vc,
             if(sc[ss]){
               int u1 = a2s[ss][p-1] - a2s[ss][i];
               int u2 = a2s[ss][j-1] - a2s[ss][q];
-
+/*
+              int u1 = p - i - 1;
+              int u2 = j - q - 1;
+*/
               if(u1 + u2 == 0)
                 if(sc[ss]->en_stack)
                   energy +=   sc[ss]->en_stack[i]

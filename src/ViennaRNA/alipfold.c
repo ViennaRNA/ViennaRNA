@@ -28,6 +28,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/alifold.h"
 
 #ifdef _OPENMP
@@ -255,7 +256,8 @@ alipf_linear( vrna_fold_compound *vc,
           for(s = 0; s < n_seq; s++)
             if(sc[s]){
               int u = d + 1 /* a2s[s][j] - a2s[s][i] + 1 */;
-              q[ij] *= sc[s]->boltzmann_factors[a2s[s][i]][u];
+              if(sc[s]->boltzmann_factors)
+                q[ij] *= sc[s]->boltzmann_factors[a2s[s][i]][u];
             }
       }
       qb[ij]=qm[ij]=0.0;
@@ -343,7 +345,10 @@ alipf_linear( vrna_fold_compound *vc,
                   if(sc[s]){
                     u1 = a2s[s][k-1] - a2s[s][i];
                     u2 = a2s[s][j-1] - a2s[s][l];
-
+/*
+                    u1 = k - i - 1;
+                    u2 = j - l - 1;
+*/
                     if(sc[s]->exp_en_basepair)
                       qloop *=    sc[s]->exp_en_basepair[jij];
 
@@ -352,11 +357,12 @@ alipf_linear( vrna_fold_compound *vc,
                                 * sc[s]->boltzmann_factors[a2s[s][l]+1][u2];
 
                     if(sc[s]->exp_en_stack)
-                      if(u1 + u2 == 0)
+                      if(u1 + u2 == 0){
                         qloop *=    sc[s]->exp_en_stack[i]
                                   * sc[s]->exp_en_stack[k]
                                   * sc[s]->exp_en_stack[l]
                                   * sc[s]->exp_en_stack[j];
+                      }
                   }
                 }
               }
@@ -406,7 +412,6 @@ alipf_linear( vrna_fold_compound *vc,
           }
         qqm[i] += temp;
       }
-
       if(hard_constraints[jij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
         for (qbt1=1, s=0; s<n_seq; s++) {
           qbt1 *= exp_E_MLstem(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
@@ -566,7 +571,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
   for (k=1; k<=n; k++) {
     q1k[k] = q[my_iindx[1] - k];
-    qln[k] = q[my_iindx[k] -n];
+    qln[k] = q[my_iindx[k] - n];
   }
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
@@ -817,7 +822,9 @@ alipf_create_bppm(vrna_fold_compound *vc,
   } /* end if(circular)  */
   else{
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
+      for (j=i; j<=MIN2(i+TURN,n); j++)
+        probs[my_iindx[i]-j] = 0;
+
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
         if ((qb[ij] > 0.) && (hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP)){
@@ -872,7 +879,10 @@ alipf_create_bppm(vrna_fold_compound *vc,
                 int u1, u2;
                 u1 = a2s[s][k-1] - a2s[s][i];
                 u2 = a2s[s][j-1] - a2s[s][l];
-
+/*
+                u1 = k - i - 1;
+                u2 = j - l - 1;
+*/
                 if(sc[s]->exp_en_basepair)
                   qloop *= sc[s]->exp_en_basepair[jindx[j] + i];
 
@@ -897,11 +907,12 @@ alipf_create_bppm(vrna_fold_compound *vc,
     }
     /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
     prm_MLb = 0.;
-    if (l<n) for (k=2; k<l-TURN; k++) {
+    if (l<n)
+      for (k=2; k<l-TURN; k++) {
       i = k-1;
       prmt = prmt1 = 0.;
 
-      if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(1 /* hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_MB_LOOP_ENC */){
         ii = my_iindx[i];     /* ii-j=[i,j]     */
         ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
         if(hard_constraints[jindx[l+1] + i] & VRNA_HC_CONTEXT_MB_LOOP){
@@ -920,14 +931,14 @@ alipf_create_bppm(vrna_fold_compound *vc,
             }
         }
 
-        for (j=l+2; j<=n; j++) {
+        for (j=l+2; j<=n; j++){
           pp = 1.;
           if(probs[ii-j]==0) continue;
           if(!(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP)) continue;
 
           for (s=0; s<n_seq; s++) {
-            tt=md->pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
-            pp *=  exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params)*expMLclosing;
+            tt = md->pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
+            pp *=  exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params) * expMLclosing;
           }
 
           if(sc)
@@ -938,14 +949,15 @@ alipf_create_bppm(vrna_fold_compound *vc,
               }
             }
 
-          prmt +=  probs[ii-j]*pp*qm[ll-(j-1)];
+          prmt +=  probs[ii-j] * pp * qm[ll-(j-1)];
         }
         kl = my_iindx[k]-l;
 
         prml[ i] = prmt;
+
         pp = 0.;
         if(hc->up_ml[l+1]){
-          pp = prm_l1[i]*expMLbase[1];
+          pp = prm_l1[i] * expMLbase[1];
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
@@ -968,6 +980,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
             }
         }
         prm_MLb = pp + prml[i];
+
         /* same as:    prm_MLb = 0;
            for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 

@@ -389,7 +389,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
                                             double temperature,
                                             double betaScale,
                                             model_detailsT md,
-                                            double pf_scale){
+                                            double pfs){
 
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int  i, j, k, l;
@@ -401,7 +401,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   pf->model_details = md;
   pf->alpha         = betaScale;
   pf->temperature   = temperature;
-  pf->pf_scale      = pf_scale;
+  pf->pf_scale      = pf->model_details.pf_scale = pf_scale = pfs;
   pf->kT = kTn      = ((double)n_seq)*betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT                = (temperature+K0)/(Tmeasure);
 

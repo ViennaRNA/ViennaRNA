@@ -1120,7 +1120,7 @@ vrna_sc_add_ali(vrna_fold_compound *vc,
   soft_constraintT  *sc;
 
   if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
-    if(!vc->sc)
+    if(!vc->scs)
       vc->scs  = (soft_constraintT **)space(sizeof(soft_constraintT*) * (vc->n_seq + 1));
     for(s = 0; s < vc->n_seq; s++){
       sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
@@ -1187,7 +1187,7 @@ vrna_sc_add_deigan_ali( vrna_fold_compound *vc,
 
   n_seq = vc->n_seq;
 
-  if(!vc->sc)
+  if(!vc->scs)
     vrna_sc_add_ali(vc, NULL, options);
 
   for(s = 0; shape_file_association[s] != -1; s++){
