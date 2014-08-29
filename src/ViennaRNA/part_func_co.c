@@ -75,7 +75,7 @@
 #define ISOLATED  256.0
 #undef TURN
 #define TURN 0
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
  */
@@ -137,10 +137,11 @@ wrap_co_pf_fold(char *sequence,
                 int is_constrained){
 
   int                 length;
+  char                *seq;
   vrna_fold_compound  *vc;
   model_detailsT      md;
 
-  vc = NULL;
+  vc      = NULL;
   length  = strlen(sequence);
 
   /* we need pf_paramT datastructure to correctly init default hard constraints */
@@ -152,7 +153,7 @@ wrap_co_pf_fold(char *sequence,
   md.compute_bpp    = calculate_bppm;
   md.min_loop_size  = 0;
 
-  char *seq = (char *)space(sizeof(char) * (length + 2));
+  seq = (char *)space(sizeof(char) * (length + 2));
   if(cut_point > -1){
     int i;
     for(i = 0; i < cut_point-1; i++)
@@ -194,12 +195,11 @@ PUBLIC cofoldF
 vrna_co_pf_fold(vrna_fold_compound *vc,
                 char *structure){
                 
-  int         n;
-  FLT_OR_DBL  Q;
-  cofoldF     X;
-  double      free_energy;
-  char        *sequence;
-
+  int             n;
+  FLT_OR_DBL      Q;
+  cofoldF         X;
+  double          free_energy;
+  char            *sequence;
   model_detailsT  *md;
   pf_paramT       *params;
   pf_matricesT    *matrices;
@@ -254,18 +254,18 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
       }
     }
 
-    QToT = matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] * matrices->q[vc->iindx[vc->cutpoint] - n] + QAB;
-    X.FAB  = -kT*(log(QToT)+n*log(params->pf_scale));
-    X.F0AB = -kT*(log(Qzero)+n*log(params->pf_scale));
-    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(params->pf_scale)) : 999;
-    X.FA = -kT * (log(matrices->q[vc->iindx[1] - (vc->cutpoint - 1)]) + (vc->cutpoint - 1) * log(params->pf_scale));
-    X.FB = -kT * (log(matrices->q[vc->iindx[vc->cutpoint] - n]) + (n - vc->cutpoint + 1) * log(params->pf_scale));
+    QToT    = matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] * matrices->q[vc->iindx[vc->cutpoint] - n] + QAB;
+    X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
+    X.F0AB  = -kT * (log(Qzero)+ n * log(params->pf_scale));
+    X.FcAB  = (QAB>1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
+    X.FA    = -kT * (log(matrices->q[vc->iindx[1] - (vc->cutpoint - 1)]) + (vc->cutpoint - 1) * log(params->pf_scale));
+    X.FB    = -kT * (log(matrices->q[vc->iindx[vc->cutpoint] - n]) + (n - vc->cutpoint + 1) * log(params->pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
   }
   else {
-    X.FA = X.FB = X.FAB = X.F0AB = free_energy;
-    X.FcAB = 0;
+    X.FA    = X.FB = X.FAB = X.F0AB = free_energy;
+    X.FcAB  = 0;
   }
 
   /* backtracking to construct binding probabilities of pairs*/
@@ -301,55 +301,62 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
 PRIVATE void
 pf_co(vrna_fold_compound *vc){
 
-  int         n, i,j,k,l, ij, u,u1,ii, type, type_2, tt;
-  FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
-  FLT_OR_DBL  temp, Qmax=0;
-  FLT_OR_DBL  qbt1, *tmp;
-  FLT_OR_DBL  *q, *qb, *qm, *qm1;
-  FLT_OR_DBL  *scale;
-  FLT_OR_DBL  *expMLbase;
-  short       *S1;
-  int         *my_iindx, *jindx;
-  char        *ptype, *sequence;
+  int               n, i,j,k,l, ij, u,u1,ii, type, type_2, tt, cp;
+  FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
+  FLT_OR_DBL        temp, Qmax=0;
+  FLT_OR_DBL        qbt1, *tmp;
+  FLT_OR_DBL        *q, *qb, *qm, *qm1;
+  FLT_OR_DBL        *scale;
+  FLT_OR_DBL        *expMLbase;
+  short             *S1;
+  int               *my_iindx, *jindx;
+  char              *ptype, *sequence;
+  model_detailsT    *md;
+  hard_constraintT  *hc;
+  soft_constraintT  *sc;
+  FLT_OR_DBL        expMLclosing;
+  int               noGUclosure;
+  double            max_real;
+  int               *rtype;
+  pf_paramT         *pf_params;
+  pf_matricesT      *matrices;
+  int               hc_decompose;
+  char              *hard_constraints;
+  int               *hc_up_ext;
+  int               *hc_up_hp;
+  int               *hc_up_int;
+  int               *hc_up_ml;
 
-  pf_paramT   *pf_params;
-  pf_matricesT *matrices  = vc->exp_matrices;
+  sequence          = vc->sequence;
+  S1                = vc->sequence_encoding;
+  n                 = vc->length;
+  cp                = vc->cutpoint;
+  my_iindx          = vc->iindx;
+  jindx             = vc->jindx;
+  ptype             = vc->ptype;
+  pf_params         = vc->exp_params;
+  md                = &(pf_params->model_details);
+  rtype             = &(md->rtype[0]);
+  hc                = vc->hc;
+  sc                = vc->sc;
+  expMLclosing      = pf_params->expMLclosing;
+  noGUclosure       = md->noGUclosure;
+  matrices          = vc->exp_matrices;
 
-  pf_params             = vc->exp_params;
-  model_detailsT    *md = &(pf_params->model_details);
-  hard_constraintT  *hc = vc->hc;
-  soft_constraintT  *sc = vc->sc;
+  q                 = matrices->q;
+  qb                = matrices->qb;
+  qm                = matrices->qm;
+  qm1               = matrices->qm1;
+  scale             = matrices->scale;
+  expMLbase         = matrices->expMLbase;
 
-  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
-  int         noGUclosure   = md->noGUclosure;
-  double      max_real;
-  int         *rtype;
+  hard_constraints  = hc->matrix;
+  hc_up_ext         = hc->up_ext;
+  hc_up_hp          = hc->up_hp;
+  hc_up_int         = hc->up_int;
+  hc_up_ml          = hc->up_ml;
 
-  sequence  = vc->sequence;
-  n         = vc->length;
-  my_iindx  = vc->iindx;
-  jindx     = vc->jindx;
-  ptype     = vc->ptype;
-  rtype     = &(md->rtype[0]);
-
-  q         = matrices->q;
-  qb        = matrices->qb;
-  qm        = matrices->qm;
-  qm1       = matrices->qm1;
-  scale     = matrices->scale;
-  expMLbase = matrices->expMLbase;
-
-  S1        = vc->sequence_encoding;
-
-  int         hc_decompose;
-  char        *hard_constraints = hc->matrix;
-  int         *hc_up_ext        = hc->up_ext;
-  int         *hc_up_hp         = hc->up_hp;
-  int         *hc_up_int        = hc->up_int;
-  int         *hc_up_ml         = hc->up_ml;
-
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
-  n = (int) strlen(sequence);
+  max_real          = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* allocate memory for helper arrays */
   qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
@@ -362,24 +369,25 @@ pf_co(vrna_fold_compound *vc){
 
   /* for (d=0; d<=TURN; d++) */
   for (i=1; i<=n/*-d*/; i++) {
-      ij = my_iindx[i]-i;
-      q[ij]=scale[1];
-      qb[ij]=qm[ij]=0.0;
+      ij      = my_iindx[i]-i;
+      q[ij]   = scale[1];
+      qb[ij]  = qm[ij] = 0.0;
     }
 
   for (i=0; i<=n; i++)
-    qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
+    qq[i] = qq1[i] = qqm[i] = qqm1[i] = 0;
 
   for (j=TURN+2;j<=n; j++) {
     for (i=j-TURN-1; i>=1; i--) {
       /* construction of partition function of segment i,j*/
        /*firstly that given i bound to j : qb(i,j) */
-      u = j-i-1; ij = my_iindx[i]-j;
-      type = ptype[jindx[j] + i];
-      qbt1=0;
+      u     = j-i-1;
+      ij    = my_iindx[i]-j;
+      type  = ptype[jindx[j] + i];
+      qbt1  = 0;
       if (type!=0) {
         /*hairpin contribution*/
-        if SAME_STRAND(i,j){
+        if (ON_SAME_STRAND(i,j,cp)){
           if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
           else
             qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*scale[u+2];
@@ -390,7 +398,7 @@ pf_co(vrna_fold_compound *vc){
         for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
           u1 = k-i-1;
           for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-            if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
+            if ((ON_SAME_STRAND(i,k,cp))&&(ON_SAME_STRAND(l,j,cp))){
               type_2 = ptype[jindx[l] + k];
               if (type_2) {
                 type_2 = rtype[type_2];
@@ -404,28 +412,28 @@ pf_co(vrna_fold_compound *vc){
         /*multiple stem loop contribution*/
         ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
         temp = 0.0;
-        if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) {
+        if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)) {
           for (k=i+2; k<=j-1; k++) {
-            if (SAME_STRAND(k-1,k))
+            if (ON_SAME_STRAND(k-1,k,cp))
               temp += qm[ii-(k-1)]*qqm1[k];
           }
-          tt = rtype[type];
-          temp*=exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*scale[2];
-          temp*=expMLclosing;
-          qbt1 += temp;
+          tt    =   rtype[type];
+          temp  *=  exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*scale[2];
+          temp  *=  expMLclosing;
+          qbt1  +=  temp;
         }
         /*qc contribution*/
         temp=0.0;
-        if (!SAME_STRAND(i,j)){
+        if (!ON_SAME_STRAND(i,j,cp)){
           tt = rtype[type];
-          temp=q[my_iindx[i+1]-(cut_point-1)]*q[my_iindx[cut_point]-(j-1)];
-          if ((j==cut_point)&&(i==cut_point-1)) temp=scale[2];
-          else if (i==cut_point-1) temp=q[my_iindx[cut_point]-(j-1)]*scale[1];
-          else if (j==cut_point) temp=q[my_iindx[i+1]-(cut_point-1)]*scale[1];
-          if (j>cut_point) temp*=scale[1];
-          if (i<cut_point-1) temp*=scale[1];
-          temp *= exp_E_ExtLoop(tt, SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, pf_params);
-          qbt1+=temp;
+          temp=q[my_iindx[i+1]-(cp-1)]*q[my_iindx[cp]-(j-1)];
+          if ((j==cp)&&(i==cp-1)) temp=scale[2];
+          else if (i==cp-1) temp=q[my_iindx[cp]-(j-1)]*scale[1];
+          else if (j==cp) temp=q[my_iindx[i+1]-(cp-1)]*scale[1];
+          if (j>cp) temp*=scale[1];
+          if (i<cp-1) temp*=scale[1];
+          temp  *=  exp_E_ExtLoop(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, pf_params);
+          qbt1  +=  temp;
         }
         qb[ij] = qbt1;
       } /* end if (type!=0) */
@@ -433,14 +441,14 @@ pf_co(vrna_fold_compound *vc){
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment i,j */
-      if (SAME_STRAND(j-1,j)) {
-        qqm[i] = qqm1[i]*expMLbase[1];
+      if (ON_SAME_STRAND(j-1,j,cp)) {
+        qqm[i] = qqm1[i] * expMLbase[1];
       }
       else qqm[i]=0;
-      if (type&&SAME_STRAND(i-1,i)&&SAME_STRAND(j,j+1)) {
-        qbt1 = qb[ij];
-        qbt1 *= exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
-        qqm[i] += qbt1;
+      if (type && ON_SAME_STRAND(i-1,i,cp) && ON_SAME_STRAND(j,j+1,cp)) {
+        qbt1    =   qb[ij];
+        qbt1    *=  exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+        qqm[i]  +=  qbt1;
       }
 
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
@@ -448,12 +456,12 @@ pf_co(vrna_fold_compound *vc){
 
       /*construction of qm matrix containing multiple loop
         partition function contributions from segment i,j */
-      temp = 0.0;
-      ii = my_iindx[i];  /* ii-k=[i,k] */
+      temp  = 0.0;
+      ii    = my_iindx[i];  /* ii-k=[i,k] */
 
       for (k=i+1; k<=j; k++) {
-        if (SAME_STRAND(k-1,k)) temp += (qm[ii-(k-1)])*qqm[k];
-        if (SAME_STRAND(i,k))   temp += expMLbase[k-i]*qqm[k];
+        if (ON_SAME_STRAND(k-1,k,cp)) temp += (qm[ii-(k-1)])*qqm[k];
+        if (ON_SAME_STRAND(i,k,cp))   temp += expMLbase[k-i]*qqm[k];
 
       }
 
@@ -462,12 +470,15 @@ pf_co(vrna_fold_compound *vc){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = qb[ij];
       if (type) {
-        qbt1 *= exp_E_ExtLoop(type, ((i>1)&&(SAME_STRAND(i-1,i))) ? S1[i-1] : -1, ((j<n)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1, pf_params);
+        qbt1 *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
       }
-      qq[i] = qq1[i]*scale[1] + qbt1;
+      qq[i] = qq1[i] * scale[1] + qbt1;
+
        /*construction of partition function for segment i,j */
-      temp = 1.0*scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++) temp += q[ii-k]*qq[k+1];
+      temp = 1.0 * scale[1+j-i] + qq[i];
+      for (k=i; k<=j-1; k++)
+        temp += q[ii-k]*qq[k+1];
+
       q[ij] = temp;
 
       if (temp>Qmax) {
@@ -498,28 +509,27 @@ pf_co(vrna_fold_compound *vc){
 PRIVATE void
 pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
-  int         n, i,j,k,l, ij, kl, ii, ll, type, type_2, tt, ov=0, *my_iindx, *jindx;
-  FLT_OR_DBL  temp, Qmax=0, prm_MLb;
-  FLT_OR_DBL  prmt,prmt1, *expMLbase;
-  FLT_OR_DBL  *tmp;
-  FLT_OR_DBL  expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
-  double      max_real;
-  pf_paramT   *pf_params;
-  model_detailsT  *md;
-  short           *S,*S1;
-  char            *ptype;
-
+  int               n, i,j,k,l, ij, kl, ii, ll, type, type_2, tt, ov=0, *my_iindx, *jindx, cp;
+  FLT_OR_DBL        temp, Qmax=0, prm_MLb;
+  FLT_OR_DBL        prmt,prmt1, *expMLbase;
+  FLT_OR_DBL        *tmp;
+  FLT_OR_DBL        expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
+  double            max_real;
+  pf_paramT         *pf_params;
+  model_detailsT    *md;
+  short             *S,*S1;
+  char              *ptype;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
   pf_matricesT      *matrices;
-
-  char *sequence;
+  char              *sequence;
   
   sequence      = vc->sequence;
   n             = vc->length;
+  cp            = vc->cutpoint;
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
-  expMLclosing = pf_params->expMLclosing;
+  expMLclosing  = pf_params->expMLclosing;
   S             = vc->sequence_encoding2;
   S1            = vc->sequence_encoding;
   jindx         = vc->jindx;
@@ -539,7 +549,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   hc            = vc->hc;
   sc            = vc->sc;
 
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
+  max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* backtracking to construct binding probabilities of pairs*/
   if ((S != NULL) && (S1 != NULL)) {
@@ -548,9 +558,9 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
     FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
-    Qmax=0;
-    Qrout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
-    Qlout=(FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cut_point+2));
+    Qmax  = 0;
+    Qrout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
+    Qlout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cp+2));
 
     for (k=1; k<=n; k++) {
       q1k[k] = q[my_iindx[1] - k];
@@ -565,11 +575,11 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
     for (i=1; i<=n; i++) {
       for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
       for (j=i+TURN+1; j<=n; j++) {
-        ij = my_iindx[i]-j;
-        type = ptype[jindx[j] + i];
+        ij    = my_iindx[i]-j;
+        type  = ptype[jindx[j] + i];
         if (type&&(qb[ij]>0.)) {
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
-          probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(SAME_STRAND(i-1,i))) ? S1[i-1] : -1, ((j<n)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1, pf_params);
+          probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
         } else
           probs[ij] = 0;
       }
@@ -579,15 +589,15 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
-        kl = my_iindx[k]-l;
-        type_2 = ptype[jindx[l] + k]; type_2 = rtype[type_2];
+        kl      = my_iindx[k]-l;
+        type_2  = ptype[jindx[l] + k]; type_2 = rtype[type_2];
         if (qb[kl]==0) continue;
 
         for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
           for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
-            if ((SAME_STRAND(i,k))&&(SAME_STRAND(l,j))){
-              ij = my_iindx[i] - j;
-              type = ptype[jindx[j] + i];
+            if ((ON_SAME_STRAND(i,k,cp)) && (ON_SAME_STRAND(l,j,cp))){
+              ij    = my_iindx[i] - j;
+              type  = ptype[jindx[j] + i];
               if ((probs[ij]>0)) {
                 probs[kl] += probs[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
                                                S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[k-i+j-l];
@@ -597,48 +607,49 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
       }
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
-      if ((l<n)&&(SAME_STRAND(l,l+1)))
+      if ((l<n)&&(ON_SAME_STRAND(l,l+1,cp)))
         for (k=2; k<l-TURN; k++) {
-          i = k-1;
-          prmt = prmt1 = 0.0;
+          i     = k-1;
+          prmt  = prmt1 = 0.0;
 
-          ii = my_iindx[i];     /* ii-j=[i,j]     */
-          ll = my_iindx[l+1];   /* ll-j=[l+1,j] */
-          tt = ptype[jindx[l+1] + i]; tt=rtype[tt];
-          if (SAME_STRAND(i,k)){
-            prmt1 = probs[ii-(l+1)]*expMLclosing;
-            prmt1 *= exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+          ii    = my_iindx[i];     /* ii-j=[i,j]     */
+          ll    = my_iindx[l+1];   /* ll-j=[l+1,j] */
+          tt    = ptype[jindx[l+1] + i]; tt=rtype[tt];
+          if (ON_SAME_STRAND(i,k,cp)){
+            prmt1 =   probs[ii-(l+1)]*expMLclosing;
+            prmt1 *=  exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
             for (j=l+2; j<=n; j++) {
-              if (SAME_STRAND(j-1,j)){ /*??*/
-                tt = ptype[jindx[j] + i]; tt = rtype[tt];
-                prmt += probs[ii-j]*exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*qm[ll-(j-1)];
+              if (ON_SAME_STRAND(j-1,j,cp)){ /*??*/
+                tt    =   ptype[jindx[j] + i];
+                tt    =   rtype[tt];
+                prmt  +=  probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*qm[ll-(j-1)];
               }
             }
           }
-          kl = my_iindx[k]-l;
-          tt = ptype[jindx[l] + k];
-          prmt *= expMLclosing;
-          prml[ i] = prmt;
-          prm_l[i] = prm_l1[i]*expMLbase[1]+prmt1;
+          kl        =   my_iindx[k]-l;
+          tt        =   ptype[jindx[l] + k];
+          prmt      *=  expMLclosing;
+          prml[ i]  =   prmt;
+          prm_l[i]  =   prm_l1[i] * expMLbase[1] + prmt1;
 
-          prm_MLb = prm_MLb*expMLbase[1] + prml[i];
+          prm_MLb   =   prm_MLb * expMLbase[1] + prml[i];
           /* same as:    prm_MLb = 0;
              for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-          prml[i] = prml[ i] + prm_l[i];
+          prml[i]   =   prml[ i] + prm_l[i];
 
           if (qb[kl] == 0.) continue;
 
           temp = prm_MLb;
 
           for (i=1;i<=k-2; i++) {
-            if ((SAME_STRAND(i,i+1))&&(SAME_STRAND(k-1,k))){
+            if ((ON_SAME_STRAND(i,i+1,cp)) && (ON_SAME_STRAND(k-1,k,cp))){
               temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
             }
           }
           temp *= exp_E_MLstem( tt,
-                                ((k>1)&&SAME_STRAND(k-1,k)) ? S1[k-1] : -1,
-                                ((l<n)&&SAME_STRAND(l,l+1)) ? S1[l+1] : -1,
+                                ((k>1) && ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1,
+                                ((l<n) && ON_SAME_STRAND(l,l+1,cp)) ? S1[l+1] : -1,
                                 pf_params) * scale[2];
           probs[kl] += temp;
 
@@ -659,59 +670,67 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
       /*computation of .(..(...)..&..). type features?*/
-      if (cut_point<=0) continue;  /* no .(..(...)..&..). type features*/
+      if (cp<=0) continue;  /* no .(..(...)..&..). type features*/
       if ((l==n)||(l<=2)) continue; /* no .(..(...)..&..). type features*/
       /*new version with O(n^3)??*/
-      if (l>cut_point) {
+      if (l>cp) {
         if (l<n) {
           int t,kt;
           for (t=n; t>l; t--) {
-            for (k=1; k<cut_point; k++) {
-              kt=my_iindx[k]-t;
-              type=rtype[(unsigned char)ptype[jindx[t] + k]];
-              temp = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (SAME_STRAND(k,k+1)) ? S1[k+1] : -1, pf_params) * scale[2];
-              if (l+1<t)               temp*=q[my_iindx[l+1]-(t-1)];
-              if (SAME_STRAND(k,k+1))  temp*=q[my_iindx[k+1]-(cut_point-1)];
-              Qrout[l]+=temp;
+            for (k=1; k<cp; k++) {
+              kt    = my_iindx[k]-t;
+              type  = rtype[(unsigned char)ptype[jindx[t] + k]];
+              temp  = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (ON_SAME_STRAND(k,k+1,cp)) ? S1[k+1] : -1, pf_params) * scale[2];
+              if (l+1<t)
+                temp    *=  q[my_iindx[l+1]-(t-1)];
+              if (ON_SAME_STRAND(k,k+1,cp))
+                temp    *=  q[my_iindx[k+1]-(cp-1)];
+              Qrout[l]  +=  temp;
             }
           }
         }
-        for (k=l-1; k>=cut_point; k--) {
+        for (k=l-1; k>=cp; k--) {
           if (qb[my_iindx[k]-l]) {
-            kl=my_iindx[k]-l;
-            type=ptype[jindx[l] + k];
-            temp = Qrout[l];
-            temp *= exp_E_ExtLoop(type, (k>cut_point) ? S1[k-1] : -1, (l < n) ? S1[l+1] : -1, pf_params);
-            if (k>cut_point) temp*=q[my_iindx[cut_point]-(k-1)];
-            probs[kl]+=temp;
+            kl        =   my_iindx[k]-l;
+            type      =   ptype[jindx[l] + k];
+            temp      =   Qrout[l];
+            temp      *=  exp_E_ExtLoop(type, (k>cp) ? S1[k-1] : -1, (l < n) ? S1[l+1] : -1, pf_params);
+            if (k>cp)
+              temp    *=  q[my_iindx[cp]-(k-1)];
+            probs[kl] +=  temp;
           }
         }
       }
-      else if (l==cut_point ) {
+      else if (l==cp ) {
         int t, sk,s;
-        for (t=2; t<cut_point;t++) {
+        for (t=2; t<cp;t++) {
           for (s=1; s<t; s++) {
-            for (k=cut_point; k<=n; k++) {
+            for (k=cp; k<=n; k++) {
               sk=my_iindx[s]-k;
               if (qb[sk]) {
-                type=rtype[(unsigned char)ptype[jindx[k] + s]];
-                temp=probs[sk]*exp_E_ExtLoop(type, (SAME_STRAND(k-1,k)) ? S1[k-1] : -1, S1[s+1], pf_params)*scale[2];
-                if (s+1<t)               temp*=q[my_iindx[s+1]-(t-1)];
-                if (SAME_STRAND(k-1,k))  temp*=q[my_iindx[cut_point]-(k-1)];
-                Qlout[t]+=temp;
+                type      =   rtype[(unsigned char)ptype[jindx[k] + s]];
+                temp      =   probs[sk]
+                              * exp_E_ExtLoop(type, (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1, S1[s+1], pf_params)
+                              * scale[2];
+                if (s+1<t)
+                  temp    *=  q[my_iindx[s+1]-(t-1)];
+                if (ON_SAME_STRAND(k-1,k,cp))
+                  temp    *=  q[my_iindx[cp]-(k-1)];
+                Qlout[t]  +=  temp;
               }
             }
           }
         }
       }
-      else if (l<cut_point) {
+      else if (l<cp) {
         for (k=1; k<l; k++) {
           if (qb[my_iindx[k]-l]) {
-            type=ptype[jindx[l] + k];
-            temp=Qlout[k];
-            temp *= exp_E_ExtLoop(type, (k>1) ? S1[k-1] : -1, (l<(cut_point-1)) ? S1[l+1] : -1, pf_params);
-            if (l+1<cut_point) temp*=q[my_iindx[l+1]-(cut_point-1)];
-            probs[my_iindx[k]-l]+=temp;
+            type    =   ptype[jindx[l] + k];
+            temp    =   Qlout[k];
+            temp    *=  exp_E_ExtLoop(type, (k>1) ? S1[k-1] : -1, (l<(cp-1)) ? S1[l+1] : -1, pf_params);
+            if (l+1<cp)
+              temp  *=  q[my_iindx[l+1]-(cp-1)];
+            probs[my_iindx[k]-l]  +=  temp;
           }
         }
       }
@@ -720,8 +739,8 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
     free(Qrout);
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
-        ij = my_iindx[i]-j;
-        probs[ij] *= qb[ij];
+        ij        =   my_iindx[i]-j;
+        probs[ij] *=  qb[ij];
       }
 
     if (structure!=NULL)
@@ -785,15 +804,16 @@ backtrack_qm1(vrna_fold_compound *vc,
               int i,
               int j,
               char *pstruc){
-  /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  int         ii, l, type, *jindx, *my_iindx;
-  double qt, r;
-  FLT_OR_DBL  *qm, *qm1, *qb, *expMLbase;
-  short       *S1;
-  char        *ptype;
 
-  pf_paramT         *pf_params;
-  pf_matricesT      *matrices;
+  /* i is paired to l, i<l<j; backtrack in qm1 to find l */
+  int           ii, l, type, *jindx, *my_iindx;
+  double        qt, r;
+  FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase;
+  short         *S1;
+  char          *ptype;
+
+  pf_paramT     *pf_params;
+  pf_matricesT  *matrices;
 
   pf_params     = vc->exp_params;
   S1            = vc->sequence_encoding;
@@ -807,8 +827,9 @@ backtrack_qm1(vrna_fold_compound *vc,
 
   jindx         = vc->jindx;
   my_iindx      = vc->iindx;
-  r = urn() * qm1[jindx[j]+i];
-  ii = my_iindx[i];
+
+  r   = urn() * qm1[jindx[j]+i];
+  ii  = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[jindx[l] + i];
     if (type)
@@ -825,12 +846,13 @@ backtrack(vrna_fold_compound *vc,
           int j,
           char *pstruc){
 
-  int         *jindx, *my_iindx;
-  FLT_OR_DBL  *qm, *qm1, *qb, *expMLbase, *scale;
-  pf_paramT         *pf_params;
-  pf_matricesT      *matrices;
-  short       *S1;
-  char        *ptype, *sequence;
+  int           *jindx, *my_iindx;
+  FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase, *scale;
+  pf_paramT     *pf_params;
+  pf_matricesT  *matrices;
+  short         *S1;
+  char          *ptype, *sequence;
+  int           noGUclosure;
 
   sequence      = vc->sequence;
   pf_params     = vc->exp_params;
@@ -845,7 +867,7 @@ backtrack(vrna_fold_compound *vc,
   scale         = matrices->scale;
   jindx         = vc->jindx;
   my_iindx      = vc->iindx;
-  int noGUclosure = pf_params->model_details.noGUclosure;
+  noGUclosure   = pf_params->model_details.noGUclosure;
 
   do {
     double r, qbt1;
@@ -853,9 +875,9 @@ backtrack(vrna_fold_compound *vc,
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
-    r = urn() * qb[my_iindx[i]-j];
-    type = ptype[jindx[j] + i];
-    u = j-i-1;
+    r     = urn() * qb[my_iindx[i]-j];
+    type  = ptype[jindx[j] + i];
+    u     = j - i - 1;
     /*hairpin contribution*/
     if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
     else
@@ -869,8 +891,8 @@ backtrack(vrna_fold_compound *vc,
         int type_2;
         type_2 = ptype[jindx[l] + k];
         if (type_2) {
-          type_2 = rtype[type_2];
-          qbt1 += qb[my_iindx[k]-l] *
+          type_2  =   rtype[type_2];
+          qbt1    +=  qb[my_iindx[k]-l] *
             exp_E_IntLoop(u1, j-l-1, type, type_2,
                           S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
         }
@@ -906,10 +928,10 @@ backtrack(vrna_fold_compound *vc,
     j = k-1;
     while (j>i) {
       /* now backtrack  [i ... j] in qm[] */
-      jj = jindx[j];
-      ii = my_iindx[i];
-      r = urn() * qm[ii - j];
-      qt = qm1[jj+i]; k=i;
+      jj  = jindx[j];
+      ii  = my_iindx[i];
+      r   = urn() * qm[ii - j];
+      qt  = qm1[jj+i]; k=i;
       if (qt<r)
         for (k=i+1; k<=j; k++) {
           qt += (qm[ii-(k-1)]+expMLbase[k-i])*qm1[jj+k];
@@ -932,28 +954,29 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
                                   struct plist *prA, struct plist *prB,
                                   int Alength) {
   /*computes binding probabilities and dimer free energies*/
-  int i, j;
-  double pAB;
-  double mykT;
-  struct plist  *lp1, *lp2;
-  int offset;
+  int     i, j;
+  double  pAB;
+  double  mykT;
+  struct  plist  *lp1, *lp2;
+  int     offset;
 
-  mykT=backward_compat_compound->exp_params->kT/1000.;
+  mykT = backward_compat_compound->exp_params->kT/1000.;
 
   /* pair probabilities in pr are relative to the null model (without DuplexInit) */
 
   /*Compute probabilities pAB, pAA, pBB*/
 
-  pAB=1.-exp((1/mykT)*(FAB-FA-FB));
+  pAB = 1. - exp((1/mykT)*(FAB-FA-FB));
 
   /* compute pair probabilities given that it is a dimer */
   /* AB dimer */
-  offset=0;
-  lp2=prA;
+  offset  = 0;
+  lp2     = prA;
   if (pAB>0)
     for (lp1=prAB; lp1->j>0; lp1++) {
       float pp=0;
-      i=lp1->i; j=lp1->j;
+      i = lp1->i;
+      j = lp1->j;
       while (offset+lp2->i < i && lp2->i>0) lp2++;
       if (offset+lp2->i == i)
         while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
@@ -971,14 +994,23 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
   return;
 }
 
-PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, double concB,double* ConcVec) {
-  double TOL, EPS, xn, yn, det, cA, cB;
-  int i=0;
+PRIVATE double *
+Newton_Conc(double KAB,
+            double KAA,
+            double KBB,
+            double concA,
+            double concB,
+            double* ConcVec){
+
+  double  TOL, EPS, xn, yn, det, cA, cB;
+  int     i;
+
+  i       = 0;
   /*Newton iteration for computing concentrations*/
-  cA=concA;
-  cB=concB;
-  TOL=1e-6; /*Tolerance for convergence*/
-  ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
+  cA      = concA;
+  cB      = concB;
+  TOL     = 1e-6; /*Tolerance for convergence*/
+  ConcVec = (double*)space(5*sizeof(double)); /* holds concentrations */
   do {
     /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
     det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
@@ -1000,25 +1032,31 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
     }
   } while(EPS>TOL);
 
-  ConcVec[0]= cA*cB*KAB ;/*AB concentration*/
-  ConcVec[1]= cA*cA*KAA ;/*AA concentration*/
-  ConcVec[2]= cB*cB*KBB ;/*BB concentration*/
-  ConcVec[3]= cA;        /* A concentration*/
-  ConcVec[4]= cB;        /* B concentration*/
+  ConcVec[0] = cA*cB*KAB ;/*AB concentration*/
+  ConcVec[1] = cA*cA*KAA ;/*AA concentration*/
+  ConcVec[2] = cB*cB*KBB ;/*BB concentration*/
+  ConcVec[3] = cA;        /* A concentration*/
+  ConcVec[4] = cB;        /* B concentration*/
 
   return ConcVec;
 }
 
-PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double *startconc)
-{
-  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
-  double *ConcVec;
-  int i;
-  struct ConcEnt *Concentration;
-  double KAA, KAB, KBB, kT;
+PUBLIC struct ConcEnt *
+get_concentrations( double FcAB,
+                    double FcAA,
+                    double FcBB,
+                    double FEA,
+                    double FEB,
+                    double *startconc){
 
-  kT=backward_compat_compound->exp_params->kT/1000.;
-  Concentration=(struct ConcEnt *)space(20*sizeof(struct ConcEnt));
+  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
+  double          *ConcVec;
+  int             i;
+  struct  ConcEnt *Concentration;
+  double          KAA, KAB, KBB, kT;
+
+  kT            = backward_compat_compound->exp_params->kT/1000.;
+  Concentration = (struct ConcEnt *)space(20*sizeof(struct ConcEnt));
  /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */
 
@@ -1027,18 +1065,18 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   KAB = exp(( FEA + FEB - FcAB)/kT);
   /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
   for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
-    ConcVec=Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
-    Concentration[i/2].A0=startconc[i];
-    Concentration[i/2].B0=startconc[i+1];
-    Concentration[i/2].ABc=ConcVec[0];
-    Concentration[i/2].AAc=ConcVec[1];
-    Concentration[i/2].BBc=ConcVec[2];
-    Concentration[i/2].Ac=ConcVec[3];
-    Concentration[i/2].Bc=ConcVec[4];
+    ConcVec                 = Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
+    Concentration[i/2].A0   = startconc[i];
+    Concentration[i/2].B0   = startconc[i+1];
+    Concentration[i/2].ABc  = ConcVec[0];
+    Concentration[i/2].AAc  = ConcVec[1];
+    Concentration[i/2].BBc  = ConcVec[2];
+    Concentration[i/2].Ac   = ConcVec[3];
+    Concentration[i/2].Bc   = ConcVec[4];
 
-   if (!(((i+2)/2)%20))  {
-     Concentration=(struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
-     }
+    if (!(((i+2)/2)%20))  {
+      Concentration = (struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+    }
     free(ConcVec);
   }
 

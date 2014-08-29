@@ -231,21 +231,18 @@ fill_arrays(vrna_fold_compound  *vc,
 
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
-  int   i, j, k, length, energy;
-  int   decomp, new_fML, cp, uniq_ML;
-  int   no_close, type, type_2, tt, maxj, *indx;
-  int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc, *my_ggg;
+  int   i, j, length, energy;
+  int   cp, uniq_ML;
+  int   no_close, type, maxj, *indx;
+  int   *my_f5, *my_c, *my_fML, *my_fM1, *my_fc;
   int   *cc, *cc1;  /* auxilary arrays for canonical structures     */
   int   *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
   int   *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
   int   *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
   int   *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
-  int   *hc_up_ext, *hc_up_ml;
 
-  int   dangle_model, noGUclosure, with_gquad, noLP, hc_decompose, turn;
-  int   *rtype;
+  int   dangle_model, noGUclosure, noLP, hc_decompose, turn;
   char              *ptype, *hard_constraints;
-  short             *S1;
   paramT            *P;
   mfe_matricesT     *matrices;
   hard_constraintT  *hc;
@@ -254,13 +251,10 @@ fill_arrays(vrna_fold_compound  *vc,
   ptype             = vc->ptype;
   indx              = vc->jindx;
   P                 = vc->params;
-  S1                = vc->sequence_encoding;
   dangle_model      = P->model_details.dangles;
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
-  with_gquad        = P->model_details.gquad;
-  rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
   matrices          = vc->matrices;
@@ -269,12 +263,8 @@ fill_arrays(vrna_fold_compound  *vc,
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
   my_fc             = matrices->fc;
-  my_ggg            = matrices->ggg;
   cp                = vc->cutpoint;
   turn              = P->model_details.min_loop_size;
-
-  hc_up_ext         = hc->up_ext;
-  hc_up_ml          = hc->up_ml;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) space(sizeof(int)*(length + 2));
@@ -313,8 +303,8 @@ fill_arrays(vrna_fold_compound  *vc,
 
         if(!no_close){
           /* check for hairpin loop */
-          energy = E_hp_loop(i, j, vc);
-          new_c = MIN2(new_c, energy);
+          energy  = E_hp_loop(i, j, vc);
+          new_c   = MIN2(new_c, energy);
 
           /* check for multibranch loops */
           energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
@@ -380,11 +370,11 @@ fill_arrays(vrna_fold_compound  *vc,
     free_end(my_f5, i, 1, vc);
 
   if (cp>0) {
-    mfe1=my_f5[cp-1];
-    mfe2=my_fc[length];
+    mfe1  = my_f5[cp-1];
+    mfe2  = my_fc[length];
     /* add DuplexInit, check whether duplex*/
     for (i=cp; i<=length; i++) {
-      my_f5[i]=MIN2(my_f5[i]+P->DuplexInit, my_fc[i]+my_fc[1]);
+      my_f5[i] = MIN2(my_f5[i]+P->DuplexInit, my_fc[i]+my_fc[1]);
     }
   }
 
@@ -1024,12 +1014,13 @@ backtrack_co( sect bt_stack[],
                     }
                   break;
         default:  if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+                    int s5,s3;
                     if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
                       ii=i1, jj=j1;
                       break;
                     }
-                    int s5 = ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1;
-                    int s3 = ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1;
+                    s5 = ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1;
+                    s3 = ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1;
                     if(hc->up_ext[i+1]){
                       en = my_fc[i+2] + my_fc[j-1];
                       if(sc){
@@ -1655,12 +1646,12 @@ update_cofold_params(void){
   vrna_fold_compound *v;
   
   if(backward_compat_compound && backward_compat){
+    model_detailsT md;
     v = backward_compat_compound;
 
     if(v->params)
       free(v->params);
 
-    model_detailsT md;
     set_model_details(&md);
     v->params = vrna_get_energy_contributions(md);
   }
