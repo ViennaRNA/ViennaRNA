@@ -301,7 +301,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
 PRIVATE void
 pf_co(vrna_fold_compound *vc){
 
-  int               n, i,j,k,l, ij, u,u1,ii, type, type_2, tt, cp;
+  int               n, i,j,k,l, ij, kl, u,u1,u2,ii, type, type_2, tt, cp, turn, maxk, minl, q_temp;
   FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   FLT_OR_DBL        temp, Qmax=0;
   FLT_OR_DBL        qbt1, *tmp;
@@ -342,6 +342,7 @@ pf_co(vrna_fold_compound *vc){
   expMLclosing      = pf_params->expMLclosing;
   noGUclosure       = md->noGUclosure;
   matrices          = vc->exp_matrices;
+  turn              = md->min_loop_size;
 
   q                 = matrices->q;
   qb                = matrices->qb;
@@ -370,58 +371,136 @@ pf_co(vrna_fold_compound *vc){
   /* for (d=0; d<=TURN; d++) */
   for (i=1; i<=n/*-d*/; i++) {
       ij      = my_iindx[i]-i;
-      q[ij]   = scale[1];
+      if(hc_up_ext[i]){
+        q[ij] = scale[1];
+
+        if(sc){
+          if(sc->boltzmann_factors)
+            q[ij] *= sc->boltzmann_factors[i][1];
+        }
+      } else {
+        q[ij] = 0.;
+      }
+
       qb[ij]  = qm[ij] = 0.0;
     }
 
   for (i=0; i<=n; i++)
     qq[i] = qq1[i] = qqm[i] = qqm1[i] = 0;
 
-  for (j=TURN+2;j<=n; j++) {
-    for (i=j-TURN-1; i>=1; i--) {
+  for (j = turn + 2; j <= n; j++) {
+    for (i = j - turn - 1; i >= 1; i--) {
       /* construction of partition function of segment i,j*/
        /*firstly that given i bound to j : qb(i,j) */
-      u     = j-i-1;
-      ij    = my_iindx[i]-j;
-      type  = ptype[jindx[j] + i];
-      qbt1  = 0;
-      if (type!=0) {
+      u             = j - i - 1;
+      ij            = my_iindx[i] - j;
+      type          = ptype[jindx[j] + i];
+      hc_decompose  = hard_constraints[jindx[j] + i];
+      qbt1          = 0;
+      q_temp        = 0.;
+
+      if(hc_decompose){
         /*hairpin contribution*/
-        if (ON_SAME_STRAND(i,j,cp)){
-          if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
-          else
-            qbt1 = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)*scale[u+2];
+        if(hc_decompose & VRNA_HC_CONTEXT_HP_LOOP){
+          if(hc_up_hp[i+1] >= u){
+            if (ON_SAME_STRAND(i,j,cp)){
+              if(((type==3)||(type==4)) && noGUclosure)
+                qbt1 = 0;
+              else{
+                qbt1 =  exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)
+                        * scale[u+2];
+                if(sc){
+                  if(sc->boltzmann_factors)
+                    qbt1 *= sc->boltzmann_factors[i+1][u];
 
-        }
+                  if(sc->exp_en_basepair)
+                    qbt1 *= sc->exp_en_basepair[ij];
 
-        /* interior loops with interior pair k,l */
-        for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
-          u1 = k-i-1;
-          for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
-            if ((ON_SAME_STRAND(i,k,cp))&&(ON_SAME_STRAND(l,j,cp))){
-              type_2 = ptype[jindx[l] + k];
-              if (type_2) {
-                type_2 = rtype[type_2];
-                qbt1 += qb[my_iindx[k]-l] *
-                  exp_E_IntLoop(u1, j-l-1, type, type_2,
-                                S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[u1+j-l+1];
+                  if(sc->exp_f)
+                    qbt1 *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
+                }
               }
             }
           }
         }
-        /*multiple stem loop contribution*/
-        ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
-        temp = 0.0;
-        if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)) {
-          for (k=i+2; k<=j-1; k++) {
-            if (ON_SAME_STRAND(k-1,k,cp))
-              temp += qm[ii-(k-1)]*qqm1[k];
+
+        /* interior loops with interior pair k,l */
+        if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
+          maxk = i + MAXLOOP + 1;
+          maxk = MIN2(maxk, j - TURN - 2);
+          maxk = MIN2(maxk, i + 1 + hc_up_int[i+1]);
+
+          for (k = i + 1; k <= maxk; k++) {
+            u1    = k-i-1;
+            minl  = MAX2(k + turn + 1, j - 1 - MAXLOOP + u1);
+            kl    = my_iindx[k] - j + 1;
+            for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
+              if(hc_up_int[l+1] < u2) break;
+              if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+
+                if ((ON_SAME_STRAND(i,k,cp))&&(ON_SAME_STRAND(l,j,cp))){
+                  type_2  =   ptype[jindx[l] + k];
+                  type_2  =   rtype[type_2];
+                  q_temp  +=  qb[my_iindx[k]-l]
+                              * exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)
+                              * scale[u1+j-l+1];
+
+                  if(sc){
+                    if(sc->boltzmann_factors)
+                      q_temp *= sc->boltzmann_factors[i+1][u1]
+                                * sc->boltzmann_factors[l+1][u2];
+
+                    if(sc->exp_en_basepair)
+                      q_temp *= sc->exp_en_basepair[ij];
+
+                    if(sc->exp_f)
+                      q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+                    if(sc->exp_en_stack)
+                      if((i+1 == k) && (j-1 == l)){
+                        q_temp *=   sc->exp_en_stack[i]
+                                  * sc->exp_en_stack[k]
+                                  * sc->exp_en_stack[l]
+                                  * sc->exp_en_stack[j];
+                      }
+                  }
+
+                  qbt1 += q_temp;
+                }
+              }
+            }
           }
-          tt    =   rtype[type];
-          temp  *=  exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*scale[2];
-          temp  *=  expMLclosing;
-          qbt1  +=  temp;
         }
+
+        /*multiple stem loop contribution*/
+        if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP){
+          ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
+          temp = 0.0;
+          kl = my_iindx[i+1]-(i+1);
+          if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)) {
+            for (k = i + 2; k <= j - 1; k++,kl--){
+              if (ON_SAME_STRAND(k-1,k,cp)){
+                q_temp = qm[kl] * qqm1[k];
+
+                if(sc){
+                  if(sc->exp_en_basepair)
+                    q_temp *= sc->exp_en_basepair[ij];
+
+                  if(sc->exp_f)
+                    q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_PAIR_ML, sc->data);
+                }
+
+                temp += q_temp;
+              }
+            }
+            tt    =   rtype[type];
+            qbt1  +=  temp
+                      * expMLclosing
+                      * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
+                      * scale[2];
+          }
+        }
+
         /*qc contribution*/
         temp=0.0;
         if (!ON_SAME_STRAND(i,j,cp)){
@@ -436,19 +515,36 @@ pf_co(vrna_fold_compound *vc){
           qbt1  +=  temp;
         }
         qb[ij] = qbt1;
-      } /* end if (type!=0) */
-      else qb[ij] = 0.0;
+      } else  /* end if allowed to be paired */
+        qb[ij] = 0.0;
+
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
          from segment i,j */
-      if (ON_SAME_STRAND(j-1,j,cp)) {
-        qqm[i] = qqm1[i] * expMLbase[1];
+      qqm[i] = 0.;
+
+      if(hc_up_ml[j]){
+        if (ON_SAME_STRAND(j-1,j,cp)) {
+          q_temp  =  qqm1[i] * expMLbase[1];
+
+          if(sc){
+            if(sc->boltzmann_factors)
+              q_temp *= sc->boltzmann_factors[j][1];
+
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, j-1, n, VRNA_DECOMP_ML_UP_3, sc->data);
+          }
+
+          qqm[i] = q_temp;
+        }
       }
-      else qqm[i]=0;
-      if (type && ON_SAME_STRAND(i-1,i,cp) && ON_SAME_STRAND(j,j+1,cp)) {
-        qbt1    =   qb[ij];
-        qbt1    *=  exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
-        qqm[i]  +=  qbt1;
+
+      if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        if(ON_SAME_STRAND(i-1,i,cp) && ON_SAME_STRAND(j,j+1,cp)){
+          qbt1    =   qb[ij];
+          qbt1    *=  exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+          qqm[i]  +=  qbt1;
+        }
       }
 
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking */
@@ -457,28 +553,92 @@ pf_co(vrna_fold_compound *vc){
       /*construction of qm matrix containing multiple loop
         partition function contributions from segment i,j */
       temp  = 0.0;
-      ii    = my_iindx[i];  /* ii-k=[i,k] */
+      kl = my_iindx[i] - j + 1; /* ii-k=[i,k-1] */
+      for (k=j; k>i; k--, kl++){
+        if (ON_SAME_STRAND(k-1,k,cp)){
+          q_temp = qm[kl] * qqm[k];
 
-      for (k=i+1; k<=j; k++) {
-        if (ON_SAME_STRAND(k-1,k,cp)) temp += (qm[ii-(k-1)])*qqm[k];
-        if (ON_SAME_STRAND(i,k,cp))   temp += expMLbase[k-i]*qqm[k];
+          if(sc){
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
+          }
 
+          temp += q_temp;
+        }
+      }
+
+      int maxk = MIN2(i+hc_up_ml[i], j);
+      ii = 1; /* length of unpaired stretch */
+      for (k=i+1; k<=maxk; k++, ii++){
+        if (ON_SAME_STRAND(i,k,cp)){
+          q_temp = expMLbase[ii] * qqm[k];
+
+          if(sc){
+            if(sc->boltzmann_factors)
+              q_temp *= sc->boltzmann_factors[i][ii];
+
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
+          }
+
+          temp += q_temp;
+        }
       }
 
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
-      qbt1 = qb[ij];
-      if (type) {
-        qbt1 *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
+      qbt1 = 0.;
+
+      if(hc_decompose & VRNA_HC_CONTEXT_EXT_LOOP){
+        qbt1 =  qb[ij]
+                * exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
       }
-      qq[i] = qq1[i] * scale[1] + qbt1;
+
+      if(hc_up_ext[j]){
+        q_temp = qq1[i] * scale[1];
+
+        if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[j][1];
+
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, j-1, n, VRNA_DECOMP_EXT_UP_3, sc->data);
+        }
+
+        qbt1 += q_temp;
+      }
+      qq[i] = qbt1;
 
        /*construction of partition function for segment i,j */
-      temp = 1.0 * scale[1+j-i] + qq[i];
-      for (k=i; k<=j-1; k++)
-        temp += q[ii-k]*qq[k+1];
+      temp = qq[i];
 
+      /* the whole stretch [i,j] is unpaired */
+      if(hc_up_ext[i] >= (j-i+1)){
+        q_temp = 1.0 * scale[j-i+1];
+
+        if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[i][j-i+1];
+
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_EXT_UP, sc->data);
+        }
+
+        temp += q_temp;
+      }
+
+      kl = my_iindx[i] - i;
+      for (k=i; k<j; k++, kl--){
+        q_temp = q[kl] * qq[k+1];
+
+        if(sc){
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_EXT_EXT, sc->data);
+        }
+
+        temp += q_temp;
+      }
       q[ij] = temp;
 
       if (temp>Qmax) {
