@@ -427,7 +427,7 @@ pf_co(vrna_fold_compound *vc){
         /* interior loops with interior pair k,l */
         if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
           maxk = i + MAXLOOP + 1;
-          maxk = MIN2(maxk, j - TURN - 2);
+          maxk = MIN2(maxk, j - turn - 2);
           maxk = MIN2(maxk, i + 1 + hc_up_int[i+1]);
 
           for (k = i + 1; k <= maxk; k++) {
@@ -669,8 +669,8 @@ pf_co(vrna_fold_compound *vc){
 PRIVATE void
 pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
-  int               n, i,j,k,l, ij, kl, ii, ll, type, type_2, tt, ov=0, *my_iindx, *jindx, cp;
-  FLT_OR_DBL        temp, Qmax=0, prm_MLb;
+  int               n, i,j,k,l, ij, kl, ii, ll, lj, u1, u2, type, type_2, tt, turn, ov=0, *my_iindx, *jindx, cp;
+  FLT_OR_DBL        temp, Qmax=0, prm_MLb, tmp2, ppp;
   FLT_OR_DBL        prmt,prmt1, *expMLbase;
   FLT_OR_DBL        *tmp;
   FLT_OR_DBL        expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
@@ -683,28 +683,40 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   soft_constraintT  *sc;
   pf_matricesT      *matrices;
   char              *sequence;
-  
-  sequence      = vc->sequence;
-  n             = vc->length;
-  cp            = vc->cutpoint;
-  pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
-  expMLclosing  = pf_params->expMLclosing;
-  S             = vc->sequence_encoding2;
-  S1            = vc->sequence_encoding;
-  jindx         = vc->jindx;
-  my_iindx      = vc->iindx;
-  ptype         = vc->ptype;
+  char              *hard_constraints;
+  int               *hc_up_ext;
+  int               *hc_up_hp;
+  int               *hc_up_int;
+  int               *hc_up_ml;
 
-  matrices      = vc->exp_matrices;
-  probs         = matrices->probs;
-  scale         = matrices->scale;
-  q1k           = matrices->q1k;
-  qln           = matrices->qln;
-  q             = matrices->q;
-  qb            = matrices->qb;
-  qm            = matrices->qm;
-  expMLbase     = matrices->expMLbase;
+  sequence          = vc->sequence;
+  n                 = vc->length;
+  cp                = vc->cutpoint;
+  pf_params         = vc->exp_params;
+  md                = &(pf_params->model_details);
+  expMLclosing      = pf_params->expMLclosing;
+  S                 = vc->sequence_encoding2;
+  S1                = vc->sequence_encoding;
+  jindx             = vc->jindx;
+  my_iindx          = vc->iindx;
+  ptype             = vc->ptype;
+  turn              = md->min_loop_size;
+
+  matrices          = vc->exp_matrices;
+  probs             = matrices->probs;
+  scale             = matrices->scale;
+  q1k               = matrices->q1k;
+  qln               = matrices->qln;
+  q                 = matrices->q;
+  qb                = matrices->qb;
+  qm                = matrices->qm;
+  expMLbase         = matrices->expMLbase;
+
+  hard_constraints  = hc->matrix;
+  hc_up_ext         = hc->up_ext;
+  hc_up_hp          = hc->up_hp;
+  hc_up_int         = hc->up_int;
+  hc_up_ml          = hc->up_ml;
 
   hc            = vc->hc;
   sc            = vc->sc;
@@ -729,15 +741,15 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
     q1k[0] = 1.0;
     qln[n+1] = 1.0;
 
-    /*    pr = q;     /  * recycling */
-
     /* 1. exterior pair i,j and initialization of pr array */
     for (i=1; i<=n; i++) {
-      for (j=i; j<=MIN2(i+TURN,n); j++) probs[my_iindx[i]-j] = 0;
-      for (j=i+TURN+1; j<=n; j++) {
-        ij    = my_iindx[i]-j;
-        type  = ptype[jindx[j] + i];
-        if (type&&(qb[ij]>0.)) {
+      for (j=i; j<=MIN2(i + turn, n); j++)
+        probs[my_iindx[i]-j] = 0;
+
+      for (j = i + turn + 1; j <= n; j++){
+        ij = my_iindx[i]-j;
+        if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
+          type  = ptype[jindx[j] + i];
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
           probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
         } else
@@ -745,54 +757,156 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
       }
     }
 
-    for (l=n; l>TURN+1; l--) {
+    for(l = n; l > turn + 1; l--){
 
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
-      for (k=1; k<l-TURN; k++) {
+      for(k = 1; k < l - turn; k++){
         kl      = my_iindx[k]-l;
-        type_2  = ptype[jindx[l] + k]; type_2 = rtype[type_2];
-        if (qb[kl]==0) continue;
+        type_2  = ptype[jindx[l] + k];
+        type_2  = rtype[type_2];
 
-        for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
-          for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
-            if ((ON_SAME_STRAND(i,k,cp)) && (ON_SAME_STRAND(l,j,cp))){
-              ij    = my_iindx[i] - j;
-              type  = ptype[jindx[j] + i];
-              if ((probs[ij]>0)) {
-                probs[kl] += probs[ij]*exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
-                                               S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)*scale[k-i+j-l];
+        if(qb[kl]==0.) continue;
+
+        if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+          for(i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++){
+            u1 = k - i - 1;
+            if(hc_up_int[i+1] < u1) continue;
+
+            for(j = l + 1; j <= MIN2(l + MAXLOOP - k + i + 2, n); j++){
+              u2 = j-l-1;
+              if(hc_up_int[l+1] < u2) break;
+
+              ij = my_iindx[i] - j;
+              if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP){
+
+                if ((ON_SAME_STRAND(i,k,cp)) && (ON_SAME_STRAND(l,j,cp))){
+                  type  = ptype[jindx[j] + i];
+                  if ((probs[ij]>0)) {
+                    tmp2  = probs[ij]
+                            * exp_E_IntLoop(k-i-1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)
+                            * scale[k-i+j-l];
+
+                    if(sc){
+                      if(sc->boltzmann_factors)
+                        tmp2 *=   sc->boltzmann_factors[i+1][u1]
+                                * sc->boltzmann_factors[l+1][u2];
+
+                      if(sc->exp_en_basepair)
+                        tmp2 *=   sc->exp_en_basepair[ij];
+
+                      if(sc->exp_en_stack){
+                        if((i+1 == k) && (j-1 == l)){
+                          tmp2 *=   sc->exp_en_stack[i]
+                                  * sc->exp_en_stack[k]
+                                  * sc->exp_en_stack[l]
+                                  * sc->exp_en_stack[j];
+                        }
+                      }
+
+                      if(sc->exp_f)
+                        tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+                    }
+
+                    probs[kl] += tmp2;
+                  }
+                }
               }
             }
           }
+        }
       }
+
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
-      if ((l<n)&&(ON_SAME_STRAND(l,l+1,cp)))
-        for (k=2; k<l-TURN; k++) {
-          i     = k-1;
+      if((l < n) && (ON_SAME_STRAND(l, l + 1, cp)))
+        for (k = 2; k < l - turn; k++) {
+          kl    = my_iindx[k]-l;
+          i     = k - 1;
           prmt  = prmt1 = 0.0;
 
           ii    = my_iindx[i];     /* ii-j=[i,j]     */
           ll    = my_iindx[l+1];   /* ll-j=[l+1,j] */
-          tt    = ptype[jindx[l+1] + i]; tt=rtype[tt];
+          tt    = ptype[jindx[l+1] + i];
+          tt    = rtype[tt];
           if (ON_SAME_STRAND(i,k,cp)){
-            prmt1 =   probs[ii-(l+1)]*expMLclosing;
-            prmt1 *=  exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-            for (j=l+2; j<=n; j++) {
-              if (ON_SAME_STRAND(j-1,j,cp)){ /*??*/
-                tt    =   ptype[jindx[j] + i];
-                tt    =   rtype[tt];
-                prmt  +=  probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)*qm[ll-(j-1)];
+            if(hard_constraints[jindx[l+1] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+              prmt1 = probs[ii-(l+1)]
+                      * expMLclosing
+                      * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+
+              if(sc){
+                /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+                if(sc->exp_en_basepair)
+                  prmt1 *= sc->exp_en_basepair[ii - (l+1)];
+
+/*
+                if(sc->exp_f)
+                  prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
+*/
+              }
+            }
+            ij = my_iindx[i] - (l+2);
+            lj = my_iindx[l+1]-(l+1);
+
+            for(j = l + 2; j <= n; j++, ij--, lj--){
+              if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+                if (ON_SAME_STRAND(j-1,j,cp)){ /*??*/
+                  tt    =   ptype[jindx[j] + i];
+                  tt    =   rtype[tt];
+                  /* which decomposition is covered here? =>
+                    i + 1 = k < l < j:
+                    (i,j)       -> enclosing pair
+                    (k, l)      -> enclosed pair
+                    (l+1, j-1)  -> multiloop part with at least one stem
+                  */
+                  ppp +=  probs[ii-j]
+                          * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
+                          * qm[ll-(j-1)];
+
+                  if(sc){
+                    if(sc->exp_en_basepair)
+                      ppp *= sc->exp_en_basepair[ij];
+/*
+                    if(sc->exp_f)
+                      ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
+*/
+                  }
+                  prmt += ppp;
+                }
               }
             }
           }
-          kl        =   my_iindx[k]-l;
-          tt        =   ptype[jindx[l] + k];
-          prmt      *=  expMLclosing;
-          prml[ i]  =   prmt;
-          prm_l[i]  =   prm_l1[i] * expMLbase[1] + prmt1;
+          prmt *= expMLclosing;
 
-          prm_MLb   =   prm_MLb * expMLbase[1] + prml[i];
+          tt        =   ptype[jindx[l] + k];
+
+          prml[ i]  =   prmt;
+
+          /* l+1 is unpaired */
+          ppp = prm_l1[i] * expMLbase[1];
+          if(sc){
+            if(sc->boltzmann_factors)
+              ppp *= sc->boltzmann_factors[l+1][1];
+
+/*
+            if(sc_exp_f)
+              ppp *= sc->exp_f(, sc->data);
+*/
+          }
+          prm_l[i]  =   ppp + prmt1;
+
+          /* i is unpaired */
+          ppp = prm_MLb*expMLbase[1];
+          if(sc){
+            if(sc->boltzmann_factors)
+              ppp *= sc->boltzmann_factors[i][1];
+
+/*
+            if(sc->exp_f)
+              ppp *= sc->exp_f(, sc->data);
+*/
+          }
+          prm_MLb = ppp + prml[i];
           /* same as:    prm_MLb = 0;
              for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
@@ -800,30 +914,31 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
           if (qb[kl] == 0.) continue;
 
-          temp = prm_MLb;
+          if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+            temp = prm_MLb;
 
-          for (i=1;i<=k-2; i++) {
-            if ((ON_SAME_STRAND(i,i+1,cp)) && (ON_SAME_STRAND(k-1,k,cp))){
-              temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+            for (i=1;i<=k-2; i++) {
+              if ((ON_SAME_STRAND(i,i+1,cp)) && (ON_SAME_STRAND(k-1,k,cp))){
+                temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
+              }
+            }
+            temp *= exp_E_MLstem( tt,
+                                  ((k>1) && ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1,
+                                  ((l<n) && ON_SAME_STRAND(l,l+1,cp)) ? S1[l+1] : -1,
+                                  pf_params) * scale[2];
+            probs[kl] += temp;
+
+            if (probs[kl]>Qmax) {
+              Qmax = probs[kl];
+              if (Qmax>max_real/10.)
+                fprintf(stderr, "P close to overflow: %d %d %g %g\n",
+                        i, j, probs[kl], qb[kl]);
+            }
+            if (probs[kl]>=max_real) {
+              ov++;
+              probs[kl]=FLT_MAX;
             }
           }
-          temp *= exp_E_MLstem( tt,
-                                ((k>1) && ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1,
-                                ((l<n) && ON_SAME_STRAND(l,l+1,cp)) ? S1[l+1] : -1,
-                                pf_params) * scale[2];
-          probs[kl] += temp;
-
-          if (probs[kl]>Qmax) {
-            Qmax = probs[kl];
-            if (Qmax>max_real/10.)
-              fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                      i, j, probs[kl], qb[kl]);
-          }
-          if (probs[kl]>=max_real) {
-            ov++;
-            probs[kl]=FLT_MAX;
-          }
-
         } /* end for (k=..) multloop*/
       else  /* set prm_l to 0 to get prm_l1 to be 0 */
         for (i=0; i<=n; i++) prm_l[i]=0;
@@ -840,11 +955,16 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
             for (k=1; k<cp; k++) {
               kt    = my_iindx[k]-t;
               type  = rtype[(unsigned char)ptype[jindx[t] + k]];
-              temp  = probs[kt] * exp_E_ExtLoop(type, S1[t-1], (ON_SAME_STRAND(k,k+1,cp)) ? S1[k+1] : -1, pf_params) * scale[2];
+              temp  = probs[kt]
+                      * exp_E_ExtLoop(type, S1[t-1], (ON_SAME_STRAND(k,k+1,cp)) ? S1[k+1] : -1, pf_params)
+                      * scale[2];
+
               if (l+1<t)
                 temp    *=  q[my_iindx[l+1]-(t-1)];
+
               if (ON_SAME_STRAND(k,k+1,cp))
                 temp    *=  q[my_iindx[k+1]-(cp-1)];
+
               Qrout[l]  +=  temp;
             }
           }
