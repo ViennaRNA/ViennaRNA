@@ -301,9 +301,9 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
 PRIVATE void
 pf_co(vrna_fold_compound *vc){
 
-  int               n, i,j,k,l, ij, kl, u,u1,u2,ii, type, type_2, tt, cp, turn, maxk, minl, q_temp;
+  int               n, i,j,k,l, ij, kl, u,u1,u2,ii, type, type_2, tt, cp, turn, maxk, minl;
   FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
-  FLT_OR_DBL        temp, Qmax=0;
+  FLT_OR_DBL        temp, q_temp, Qmax=0;
   FLT_OR_DBL        qbt1, *tmp;
   FLT_OR_DBL        *q, *qb, *qm, *qm1;
   FLT_OR_DBL        *scale;
@@ -567,7 +567,7 @@ pf_co(vrna_fold_compound *vc){
         }
       }
 
-      int maxk = MIN2(i+hc_up_ml[i], j);
+      maxk = MIN2(i+hc_up_ml[i], j);
       ii = 1; /* length of unpaired stretch */
       for (k=i+1; k<=maxk; k++, ii++){
         if (ON_SAME_STRAND(i,k,cp)){
