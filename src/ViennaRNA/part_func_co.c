@@ -439,12 +439,11 @@ pf_co(vrna_fold_compound *vc){
               if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
 
                 if ((ON_SAME_STRAND(i,k,cp))&&(ON_SAME_STRAND(l,j,cp))){
-                  type_2  =   ptype[jindx[l] + k];
-                  type_2  =   rtype[type_2];
-                  q_temp  +=  qb[my_iindx[k]-l]
-                              * exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)
-                              * scale[u1+j-l+1];
-
+                  type_2  = ptype[jindx[l] + k];
+                  type_2  = rtype[type_2];
+                  q_temp  = qb[my_iindx[k]-l]
+                            * exp_E_IntLoop(u1, j-l-1, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params)
+                            * scale[u1+j-l+1];
                   if(sc){
                     if(sc->boltzmann_factors)
                       q_temp *= sc->boltzmann_factors[i+1][u1]
@@ -712,14 +711,15 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   qm                = matrices->qm;
   expMLbase         = matrices->expMLbase;
 
+  hc                = vc->hc;
+  sc                = vc->sc;
+
   hard_constraints  = hc->matrix;
   hc_up_ext         = hc->up_ext;
   hc_up_hp          = hc->up_hp;
   hc_up_int         = hc->up_int;
   hc_up_ml          = hc->up_ml;
 
-  hc            = vc->hc;
-  sc            = vc->sc;
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -748,7 +748,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
       for (j = i + turn + 1; j <= n; j++){
         ij = my_iindx[i]-j;
-        if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
+        if((hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
           type  = ptype[jindx[j] + i];
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
           probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
@@ -859,9 +859,9 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
                     (k, l)      -> enclosed pair
                     (l+1, j-1)  -> multiloop part with at least one stem
                   */
-                  ppp +=  probs[ii-j]
-                          * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
-                          * qm[ll-(j-1)];
+                  ppp = probs[ii-j]
+                        * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
+                        * qm[ll-(j-1)];
 
                   if(sc){
                     if(sc->exp_en_basepair)
