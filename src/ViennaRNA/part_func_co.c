@@ -1,53 +1,10 @@
-/* Last changed Time-stamp: <2007-05-09 16:11:21 ivo> */
 /*
                   partiton function for RNA secondary structures
 
                   Ivo L Hofacker
                   Stephan Bernhart
+                  Ronny Lorenz
                   Vienna RNA package
-*/
-/*
-  $Log: part_func_co.c,v $
-  Revision 1.10  2007/05/10 17:27:01  ivo
-  make sure the relative error eps is positive in newton iteration
-
-  Revision 1.9  2006/05/10 15:12:11  ivo
-  some compiler choked on  double semicolon after declaration
-
-  Revision 1.8  2006/04/05 12:52:31  ivo
-  Fix performance bug (O(n^4) loop)
-
-  Revision 1.7  2006/01/19 11:30:04  ivo
-  compute_probabilities should only look at one dimer at a time
-
-  Revision 1.6  2006/01/18 12:55:40  ivo
-  major cleanup of berni code
-  fix bugs related to confusing which free energy is returned by co_pf_fold()
-
-  Revision 1.5  2006/01/16 11:32:25  ivo
-  small bug in multiloop pair probs
-
-  Revision 1.4  2006/01/05 18:13:40  ivo
-  update
-
-  Revision 1.3  2006/01/04 15:14:29  ivo
-  fix bug in concentration calculations
-
-  Revision 1.2  2004/12/23 12:14:41  berni
-  *** empty log message ***
-
-  Revision 1.1  2004/12/22 10:46:17  berni
-
-  Partition function Cofolding 0.9, Computation of concentrations.
-
-  Revision 1.16  2003/08/04 09:14:09  ivo
-  finish up stochastic backtracking
-
-  Revision 1.15  2002/03/19 16:51:12  ivo
-  more on stochastic backtracking (still incomplete)
-
-  Revision 1.13  2001/11/16 17:30:04  ivo
-  add stochastic backtracking (still incomplete)
 */
 
 #include <config.h>
@@ -61,7 +18,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
@@ -72,9 +28,6 @@
 #include <omp.h>
 #endif
 
-#define ISOLATED  256.0
-#undef TURN
-#define TURN 0
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /* #define SAME_STRAND(I,J) (((J)<cut_point)||((I)>=cut_point2)||(((I)>=cut_point)&&((J)<cut_point2)))
@@ -128,7 +81,12 @@ PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
 #################################
 */
 
-/*-----------------------------------------------------------------*/
+/*
+*****************************************
+* BEGIN backward compatibility wrappers *
+*****************************************
+*/
+
 PRIVATE cofoldF
 wrap_co_pf_fold(char *sequence,
                 char *structure,
@@ -190,6 +148,27 @@ wrap_co_pf_fold(char *sequence,
   free(seq);
   return vrna_co_pf_fold(vc, structure);
 }
+
+PRIVATE void
+wrap_update_pf_params(int length,
+                      pf_paramT *parameters){
+
+  pf_paramT *p = NULL;
+  if(parameters == NULL){
+    model_detailsT md;
+    set_model_details(&md);
+    p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  }
+
+  vrna_update_pf_params(backward_compat_compound, p);
+  free(p);
+}
+
+/*
+*****************************************
+* END backward compatibility wrappers   *
+*****************************************
+*/
 
 PUBLIC cofoldF
 vrna_co_pf_fold(vrna_fold_compound *vc,
@@ -687,6 +666,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   int               *hc_up_hp;
   int               *hc_up_int;
   int               *hc_up_ml;
+  int               *rtype;
 
   sequence          = vc->sequence;
   n                 = vc->length;
@@ -699,6 +679,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   jindx             = vc->jindx;
   my_iindx          = vc->iindx;
   ptype             = vc->ptype;
+  rtype             = &(md->rtype[0]);
   turn              = md->min_loop_size;
 
   matrices          = vc->exp_matrices;
@@ -1018,7 +999,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
     free(Qlout);
     free(Qrout);
     for (i=1; i<=n; i++)
-      for (j=i+TURN+1; j<=n; j++) {
+      for (j=i+turn+1; j<=n; j++) {
         ij        =   my_iindx[i]-j;
         probs[ij] *=  qb[ij];
       }
@@ -1040,40 +1021,6 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
 
 
-PRIVATE void
-wrap_update_pf_params(int length,
-                      pf_paramT *parameters){
-
-  pf_paramT *p = NULL;
-  if(parameters == NULL){
-    model_detailsT md;
-    set_model_details(&md);
-    p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-  }
-
-  vrna_update_pf_params(backward_compat_compound, p);
-  free(p);
-}
-
-/*----------------------------------------------------------------------*/
-PUBLIC void
-update_co_pf_params(int length){
-
-/*----------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-
-  wrap_update_pf_params(length, NULL);
-}
-
-PUBLIC void
-update_co_pf_params_par(int length,
-                        pf_paramT *parameters){
-
-/*---------------------------------------------------------------------------*/
-  wrap_update_pf_params(length, parameters);
-}
-
 /*
   stochastic backtracking in pf_fold arrays
   returns random structure S with Boltzman probabilty
@@ -1086,18 +1033,22 @@ backtrack_qm1(vrna_fold_compound *vc,
               char *pstruc){
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  int           ii, l, type, *jindx, *my_iindx;
+  int           ii, l, type, *jindx, *my_iindx, *rtype, turn;
   double        qt, r;
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase;
   short         *S1;
   char          *ptype;
+  model_detailsT  *md;
 
   pf_paramT     *pf_params;
   pf_matricesT  *matrices;
 
   pf_params     = vc->exp_params;
+  md            = &(pf_params->model_details);
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
+  rtype         = &(md->rtype[0]);
+  turn          = md->min_loop_size;
 
   matrices      = vc->exp_matrices;
   qb            = matrices->qb;
@@ -1110,7 +1061,7 @@ backtrack_qm1(vrna_fold_compound *vc,
 
   r   = urn() * qm1[jindx[j]+i];
   ii  = my_iindx[i];
-  for (qt=0., l=i+TURN+1; l<=j; l++) {
+  for (qt=0., l=i+turn+1; l<=j; l++) {
     type = ptype[jindx[l] + i];
     if (type)
       qt +=  qb[ii-l]*exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * expMLbase[j-l];
@@ -1126,18 +1077,22 @@ backtrack(vrna_fold_compound *vc,
           int j,
           char *pstruc){
 
-  int           *jindx, *my_iindx;
+  int           *jindx, *my_iindx, *rtype, turn;
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase, *scale;
   pf_paramT     *pf_params;
   pf_matricesT  *matrices;
   short         *S1;
   char          *ptype, *sequence;
   int           noGUclosure;
+  model_detailsT  *md;
 
   sequence      = vc->sequence;
   pf_params     = vc->exp_params;
+  md            = &(pf_params->model_details);
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
+  rtype         = &(md->rtype[0]);
+  turn          = md->min_loop_size;
 
   matrices      = vc->exp_matrices;
   qb            = matrices->qb;
@@ -1165,9 +1120,9 @@ backtrack(vrna_fold_compound *vc,
 
     if (qbt1>r) return; /* found the hairpin we're done */
 
-    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++) {
+    for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-turn-2); k++) {
       u1 = k-i-1;
-      for (l=MAX2(k+TURN+1,j-1-MAXLOOP+u1); l<j; l++) {
+      for (l=MAX2(k+turn+1,j-1-MAXLOOP+u1); l<j; l++) {
         int type_2;
         type_2 = ptype[jindx[l] + k];
         if (type_2) {
@@ -1221,7 +1176,7 @@ backtrack(vrna_fold_compound *vc,
 
       backtrack_qm1(vc, k,j, pstruc);
 
-      if (k<i+TURN) break; /* no more pairs */
+      if (k<i+turn) break; /* no more pairs */
       r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) break; /* no more pairs */
       j = k-1;
@@ -1363,15 +1318,6 @@ get_concentrations( double FcAB,
   return Concentration;
 }
 
-PUBLIC FLT_OR_DBL *
-export_co_bppm(void){
-
-  if(backward_compat_compound)
-    return backward_compat_compound->exp_matrices->probs;
-  else
-    return NULL;
-}
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -1439,3 +1385,32 @@ free_co_pf_arrays(void){
     backward_compat           = 0;
   }
 }
+
+PUBLIC FLT_OR_DBL *
+export_co_bppm(void){
+
+  if(backward_compat_compound)
+    return backward_compat_compound->exp_matrices->probs;
+  else
+    return NULL;
+}
+
+/*----------------------------------------------------------------------*/
+PUBLIC void
+update_co_pf_params(int length){
+
+/*----------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+
+  wrap_update_pf_params(length, NULL);
+}
+
+PUBLIC void
+update_co_pf_params_par(int length,
+                        pf_paramT *parameters){
+
+/*---------------------------------------------------------------------------*/
+  wrap_update_pf_params(length, parameters);
+}
+

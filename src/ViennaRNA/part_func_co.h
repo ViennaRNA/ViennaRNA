@@ -105,60 +105,6 @@ cofoldF co_pf_fold_par( char *sequence,
                         int is_constrained);
 
 /**
- *  \brief Get a pointer to the base pair probability array
- * 
- *  Accessing the base pair probabilities for a pair (i,j) is achieved by
- *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
- * 
- *  \see get_iindx()
- *  \return A pointer to the base pair probability array
- */
-FLT_OR_DBL *export_co_bppm(void);
-
-/**
- *  \brief Free the memory occupied by co_pf_fold()
- */
-void    free_co_pf_arrays(void);
-
-/**
- *  \brief Recalculate energy parameters
- *
- *  This function recalculates all energy parameters given
- *  the current model settings.
- *
- *  \note This function relies on the global variables #pf_scale, #dangles and
- *        #temperature. Thus it might not be threadsafe in certain situations.
- *        Use update_co_pf_params_par() instead.
- *
- *  \see get_boltzmann_factors(), update_co_pf_params_par()
- *
- *  \param    length      Length of the current RNA sequence
- */
-void    update_co_pf_params(int length);
-
-/**
- *  \brief Recalculate energy parameters
- *
- *  This function recalculates all energy parameters given
- *  the current model settings.
- *  It's second argument can either be NULL or a data structure
- *  containing the precomputed Boltzmann factors. In the first
- *  scenario, the necessary data structure will be created automatically
- *  according to the current global model settings, i.e. this
- *  mode might not be threadsafe.
- *  However, if the provided data structure is not NULL, threadsafety
- *  for the model parameters #dangles, #pf_scale and #temperature is regained, since their
- *  values are taken from this data structure during subsequent calculations.
- *
- *  \see get_boltzmann_factors(), update_co_pf_params()
- *
- *  \param    length      Length of the current RNA sequence
- *  \param    parameters  data structure containing the precomputed Boltzmann factors
- */
-void    update_co_pf_params_par(int length,
-                                pf_paramT *parameters);
-
-/**
  *  \brief Compute Boltzmann probabilities of dimerization without homodimers
  * 
  *  Given the pair probabilities and free energies (in the null model) for a
@@ -232,5 +178,58 @@ DEPRECATED(plist  *get_plist( struct plist *pl,
  *  \deprecated{ This function is deprecated and will be removed soon!}
  */
 DEPRECATED(void   init_co_pf_fold(int length));
+
+/**
+ *  \brief Get a pointer to the base pair probability array
+ * 
+ *  Accessing the base pair probabilities for a pair (i,j) is achieved by
+ *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
+ * 
+ *  \see get_iindx()
+ *  \return A pointer to the base pair probability array
+ */
+DEPRECATED(FLT_OR_DBL *export_co_bppm(void));
+
+/**
+ *  \brief Free the memory occupied by co_pf_fold()
+ */
+DEPRECATED(void free_co_pf_arrays(void));
+
+/**
+ *  \brief Recalculate energy parameters
+ *
+ *  This function recalculates all energy parameters given
+ *  the current model settings.
+ *
+ *  \note This function relies on the global variables #pf_scale, #dangles and
+ *        #temperature. Thus it might not be threadsafe in certain situations.
+ *        Use update_co_pf_params_par() instead.
+ *
+ *  \see get_boltzmann_factors(), update_co_pf_params_par()
+ *
+ *  \param    length      Length of the current RNA sequence
+ */
+DEPRECATED(void update_co_pf_params(int length));
+
+/**
+ *  \brief Recalculate energy parameters
+ *
+ *  This function recalculates all energy parameters given
+ *  the current model settings.
+ *  It's second argument can either be NULL or a data structure
+ *  containing the precomputed Boltzmann factors. In the first
+ *  scenario, the necessary data structure will be created automatically
+ *  according to the current global model settings, i.e. this
+ *  mode might not be threadsafe.
+ *  However, if the provided data structure is not NULL, threadsafety
+ *  for the model parameters #dangles, #pf_scale and #temperature is regained, since their
+ *  values are taken from this data structure during subsequent calculations.
+ *
+ *  \see get_boltzmann_factors(), update_co_pf_params()
+ *
+ *  \param    length      Length of the current RNA sequence
+ *  \param    parameters  data structure containing the precomputed Boltzmann factors
+ */
+DEPRECATED(void update_co_pf_params_par(int length, pf_paramT *parameters));
 
 #endif
