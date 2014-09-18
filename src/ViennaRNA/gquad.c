@@ -946,8 +946,16 @@ PRIVATE void gquad_mfe_ali( int i,
                             void *S,
                             void *n_seq){
 
-  int en[2], cc;
+  int j, en[2], cc;
   en[0] = en[1] = INF;
+
+  for(j=0;j<3;j++){
+    if(l[j] > VRNA_GQUAD_MAX_LINKER_LENGTH) return;
+    if(l[j] < VRNA_GQUAD_MIN_LINKER_LENGTH) return;
+  }
+  if(L > VRNA_GQUAD_MAX_STACK_SIZE) return;
+  if(L < VRNA_GQUAD_MIN_STACK_SIZE) return;
+
   gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), P, S, n_seq);
   if(en[1] != INF){
     cc  = en[0] + en[1];
