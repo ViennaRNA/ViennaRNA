@@ -484,7 +484,7 @@ typedef struct pairpro{
   struct plist *A;
   struct plist *B;
   struct plist *BB;
-}pairpro;
+} pairpro;
 
 /**
  *  \brief A base pair info structure

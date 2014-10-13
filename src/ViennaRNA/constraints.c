@@ -575,12 +575,25 @@ hc_reset_to_default(vrna_fold_compound *vc){
     /* 2. all canonical base pairs are allowed in all contexts */
     for(j = n; j > min_loop_size + 1; j--){
       ij = idx[j]+1;
-      for(i=1; i < j - min_loop_size; i++, ij++)
-        if((j-i+1) > max_span){
-          hc->matrix[ij] = (char)0;
-        } else {
-          hc->matrix[ij] = md->pair[S[i]][S[j]] ? VRNA_HC_CONTEXT_ALL_LOOPS : (char)0;
+      for(i=1; i < j - min_loop_size; i++, ij++){
+        char opt = (char)0;
+        if((j-i+1) <= max_span){
+          int t = md->pair[S[i]][S[j]];
+          switch(t){
+            case 0:   break;
+            case 3:   /* fallthrough */
+            case 4:   if(md->noGU){
+                        break;
+                      } else if(md->noGUclosure){
+                        opt = VRNA_HC_CONTEXT_ALL_LOOPS & ~(VRNA_HC_CONTEXT_HP_LOOP | VRNA_HC_CONTEXT_MB_LOOP);
+                        break;
+                      } /* else fallthrough */
+            default:  opt = VRNA_HC_CONTEXT_ALL_LOOPS;
+                      break;
+          }
         }
+        hc->matrix[ij] = opt;
+      }
     }
 
     /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
@@ -939,8 +952,12 @@ parse_soft_constraints_file(const char *file_name, int length, double default_va
 }
 
 PRIVATE void
-parse_parameter_string(char *string, char c1, char c2, float *v1, float *v2)
-{
+parse_parameter_string( const char *string,
+                        char c1,
+                        char c2,
+                        float *v1,
+                        float *v2){
+
   char fmt[8];
   const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
   int r;

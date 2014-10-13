@@ -66,8 +66,6 @@ PRIVATE int                 backward_compat           = 0;
 PRIVATE void    pf_co(vrna_fold_compound *vc);
 PRIVATE void    pf_co_bppm(vrna_fold_compound *vc, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
-PRIVATE void    get_arrays(unsigned int length);
-PRIVATE void    backtrack(vrna_fold_compound *vc, int i, int j, char *pstruc);
 PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
                                 char *structure,
                                 pf_paramT *parameters,
@@ -379,29 +377,9 @@ pf_co(vrna_fold_compound *vc){
       q_temp        = 0.;
 
       if(hc_decompose){
-        /*hairpin contribution*/
-        if(hc_decompose & VRNA_HC_CONTEXT_HP_LOOP){
-          if(hc_up_hp[i+1] >= u){
-            if (ON_SAME_STRAND(i,j,cp)){
-              if(((type==3)||(type==4)) && noGUclosure)
-                qbt1 = 0;
-              else{
-                qbt1 =  exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)
-                        * scale[u+2];
-                if(sc){
-                  if(sc->boltzmann_factors)
-                    qbt1 *= sc->boltzmann_factors[i+1][u];
-
-                  if(sc->exp_en_basepair)
-                    qbt1 *= sc->exp_en_basepair[ij];
-
-                  if(sc->exp_f)
-                    qbt1 *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
-                }
-              }
-            }
-          }
-        }
+        /* process hairpin loop(s) */
+        q_temp  =   exp_E_hp_loop(i, j, vc);
+        qbt1    +=  q_temp;
 
         /* interior loops with interior pair k,l */
         if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
@@ -925,9 +903,10 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
         for (i=0; i<=n; i++) prm_l[i]=0;
 
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
+
       /*computation of .(..(...)..&..). type features?*/
-      if (cp<=0) continue;  /* no .(..(...)..&..). type features*/
-      if ((l==n)||(l<=2)) continue; /* no .(..(...)..&..). type features*/
+      if (cp<=0) continue;            /* no .(..(...)..&..). type features*/
+      if ((l==n)||(l<=2)) continue;   /* no .(..(...)..&..). type features*/
       /*new version with O(n^3)??*/
       if (l>cp) {
         if (l<n) {
@@ -1019,8 +998,151 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
                     ov, pf_params->pf_scale);
 }
 
+PUBLIC void
+vrna_co_pf_dimer_probs( double FAB,
+                        double FA,
+                        double FB,
+                        struct plist *prAB,
+                        const plist *prA,
+                        const plist *prB,
+                        int Alength,
+                        const pf_paramT *exp_params) {
+
+  /*computes binding probabilities and dimer free energies*/
+  int         i, j;
+  double      pAB;
+  double      mykT;
+  const plist *lp2;
+  plist       *lp1;
+  int         offset;
+
+  mykT = exp_params->kT/1000.;
+
+  /* pair probabilities in pr are relative to the null model (without DuplexInit) */
+
+  /*Compute probabilities pAB, pAA, pBB*/
+
+  pAB = 1. - exp((1/mykT)*(FAB-FA-FB));
+
+  /* compute pair probabilities given that it is a dimer */
+  /* AB dimer */
+  offset  = 0;
+  lp2     = prA;
+  if (pAB>0)
+    for (lp1=prAB; lp1->j>0; lp1++) {
+      float pp=0;
+      i = lp1->i;
+      j = lp1->j;
+      while (offset+lp2->i < i && lp2->i>0) lp2++;
+      if (offset+lp2->i == i)
+        while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
+      if (lp2->j == 0) {lp2=prB; offset=Alength;}/* jump to next list */
+      if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
+        pp = lp2->p;
+        lp2++;
+      }
+      lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
+      if(lp1->p < 0.){
+        warn_user("vrna_co_pf_probs: numeric instability detected, probability below zero!");
+        lp1->p = 0.;
+      }
+    }
+
+  return;
+}
+
+PRIVATE double *
+Newton_Conc(double KAB,
+            double KAA,
+            double KBB,
+            double concA,
+            double concB,
+            double* ConcVec){
+
+  double  TOL, EPS, xn, yn, det, cA, cB;
+  int     i;
+
+  i       = 0;
+  /*Newton iteration for computing concentrations*/
+  cA      = concA;
+  cB      = concB;
+  TOL     = 1e-6; /*Tolerance for convergence*/
+  ConcVec = (double*)space(5*sizeof(double)); /* holds concentrations */
+  do {
+    /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
+    det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
+    /* xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
+       (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det; */
+    xn  = ( (2.0 * KBB * cB*cB + cB - concB) * (KAB *cA) - KAB*cA*cB*(4. * KBB*cB + 1.) -
+	    (2.0 * KAA * cA*cA + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
+    /* yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
+       (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det; */
+    yn  = ( (2.0 * KAA * cA*cA + cA - concA) * (KAB *cB) - KAB*cA*cB*(4. * KAA*cA + 1.) -
+            (2.0 * KBB * cB*cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
+    EPS = fabs(xn/cA) + fabs(yn/cB);
+    cA += xn;
+    cB += yn;
+    i++;
+    if (i>10000) {
+      fprintf(stderr, "Newton did not converge after %d steps!!\n",i);
+      break;
+    }
+  } while(EPS>TOL);
+
+  ConcVec[0] = cA*cB*KAB ;/*AB concentration*/
+  ConcVec[1] = cA*cA*KAA ;/*AA concentration*/
+  ConcVec[2] = cB*cB*KBB ;/*BB concentration*/
+  ConcVec[3] = cA;        /* A concentration*/
+  ConcVec[4] = cB;        /* B concentration*/
+
+  return ConcVec;
+}
+
+PUBLIC struct ConcEnt *
+vrna_co_pf_get_concentrations(double FcAB,
+                              double FcAA,
+                              double FcBB,
+                              double FEA,
+                              double FEB,
+                              const double *startconc,
+                              const pf_paramT *exp_params){
+
+  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
+  double          *ConcVec;
+  int             i;
+  struct  ConcEnt *Concentration;
+  double          KAA, KAB, KBB, kT;
+
+  kT            = exp_params->kT/1000.;
+  Concentration = (struct ConcEnt *)space(20*sizeof(struct ConcEnt));
+ /* Compute equilibrium constants */
+  /* again note the input free energies are not from the null model (without DuplexInit) */
+
+  KAA = exp(( 2.0 * FEA - FcAA)/kT);
+  KBB = exp(( 2.0 * FEB - FcBB)/kT);
+  KAB = exp(( FEA + FEB - FcAB)/kT);
+  /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
+  for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
+    ConcVec                 = Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
+    Concentration[i/2].A0   = startconc[i];
+    Concentration[i/2].B0   = startconc[i+1];
+    Concentration[i/2].ABc  = ConcVec[0];
+    Concentration[i/2].AAc  = ConcVec[1];
+    Concentration[i/2].BBc  = ConcVec[2];
+    Concentration[i/2].Ac   = ConcVec[3];
+    Concentration[i/2].Bc   = ConcVec[4];
+
+    if (!(((i+2)/2)%20))  {
+      Concentration = (struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+    }
+    free(ConcVec);
+  }
+
+  return Concentration;
+}
 
 
+#if 0
 /*
   stochastic backtracking in pf_fold arrays
   returns random structure S with Boltzman probabilty
@@ -1184,139 +1306,7 @@ backtrack(vrna_fold_compound *vc,
   }
 }
 
-PUBLIC void compute_probabilities(double FAB, double FA,double FB,
-                                  struct plist *prAB,
-                                  struct plist *prA, struct plist *prB,
-                                  int Alength) {
-  /*computes binding probabilities and dimer free energies*/
-  int     i, j;
-  double  pAB;
-  double  mykT;
-  struct  plist  *lp1, *lp2;
-  int     offset;
-
-  mykT = backward_compat_compound->exp_params->kT/1000.;
-
-  /* pair probabilities in pr are relative to the null model (without DuplexInit) */
-
-  /*Compute probabilities pAB, pAA, pBB*/
-
-  pAB = 1. - exp((1/mykT)*(FAB-FA-FB));
-
-  /* compute pair probabilities given that it is a dimer */
-  /* AB dimer */
-  offset  = 0;
-  lp2     = prA;
-  if (pAB>0)
-    for (lp1=prAB; lp1->j>0; lp1++) {
-      float pp=0;
-      i = lp1->i;
-      j = lp1->j;
-      while (offset+lp2->i < i && lp2->i>0) lp2++;
-      if (offset+lp2->i == i)
-        while ((offset+lp2->j) < j  && (lp2->j>0)) lp2++;
-      if (lp2->j == 0) {lp2=prB; offset=Alength;}/* jump to next list */
-      if ((offset+lp2->i==i) && (offset+lp2->j ==j)) {
-        pp = lp2->p;
-        lp2++;
-      }
-      lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
-      if(lp1->p < 0.){
-        warn_user("part_func_co: numeric instability detected, probability below zero!");
-        lp1->p = 0.;
-      }
-    }
-  return;
-}
-
-PRIVATE double *
-Newton_Conc(double KAB,
-            double KAA,
-            double KBB,
-            double concA,
-            double concB,
-            double* ConcVec){
-
-  double  TOL, EPS, xn, yn, det, cA, cB;
-  int     i;
-
-  i       = 0;
-  /*Newton iteration for computing concentrations*/
-  cA      = concA;
-  cB      = concB;
-  TOL     = 1e-6; /*Tolerance for convergence*/
-  ConcVec = (double*)space(5*sizeof(double)); /* holds concentrations */
-  do {
-    /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
-    det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
-    /* xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
-       (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det; */
-    xn  = ( (2.0 * KBB * cB*cB + cB - concB) * (KAB *cA) - KAB*cA*cB*(4. * KBB*cB + 1.) -
-	    (2.0 * KAA * cA*cA + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
-    /* yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
-       (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det; */
-    yn  = ( (2.0 * KAA * cA*cA + cA - concA) * (KAB *cB) - KAB*cA*cB*(4. * KAA*cA + 1.) -
-            (2.0 * KBB * cB*cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
-    EPS = fabs(xn/cA) + fabs(yn/cB);
-    cA += xn;
-    cB += yn;
-    i++;
-    if (i>10000) {
-      fprintf(stderr, "Newton did not converge after %d steps!!\n",i);
-      break;
-    }
-  } while(EPS>TOL);
-
-  ConcVec[0] = cA*cB*KAB ;/*AB concentration*/
-  ConcVec[1] = cA*cA*KAA ;/*AA concentration*/
-  ConcVec[2] = cB*cB*KBB ;/*BB concentration*/
-  ConcVec[3] = cA;        /* A concentration*/
-  ConcVec[4] = cB;        /* B concentration*/
-
-  return ConcVec;
-}
-
-PUBLIC struct ConcEnt *
-get_concentrations( double FcAB,
-                    double FcAA,
-                    double FcBB,
-                    double FEA,
-                    double FEB,
-                    double *startconc){
-
-  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
-  double          *ConcVec;
-  int             i;
-  struct  ConcEnt *Concentration;
-  double          KAA, KAB, KBB, kT;
-
-  kT            = backward_compat_compound->exp_params->kT/1000.;
-  Concentration = (struct ConcEnt *)space(20*sizeof(struct ConcEnt));
- /* Compute equilibrium constants */
-  /* again note the input free energies are not from the null model (without DuplexInit) */
-
-  KAA = exp(( 2.0 * FEA - FcAA)/kT);
-  KBB = exp(( 2.0 * FEB - FcBB)/kT);
-  KAB = exp(( FEA + FEB - FcAB)/kT);
-  /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
-  for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
-    ConcVec                 = Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
-    Concentration[i/2].A0   = startconc[i];
-    Concentration[i/2].B0   = startconc[i+1];
-    Concentration[i/2].ABc  = ConcVec[0];
-    Concentration[i/2].AAc  = ConcVec[1];
-    Concentration[i/2].BBc  = ConcVec[2];
-    Concentration[i/2].Ac   = ConcVec[3];
-    Concentration[i/2].Bc   = ConcVec[4];
-
-    if (!(((i+2)/2)%20))  {
-      Concentration = (struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
-    }
-    free(ConcVec);
-  }
-
-  return Concentration;
-}
+#endif
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -1368,6 +1358,31 @@ get_plist(struct plist *pl,
   pl[count++].p=0.;
   pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
   return pl;
+}
+
+PUBLIC void
+compute_probabilities(double FAB,
+                      double FA,
+                      double FB,
+                      struct plist *prAB,
+                      struct plist *prA,
+                      struct plist *prB,
+                      int Alength) {
+
+  if(backward_compat_compound && backward_compat){
+    vrna_co_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const pf_paramT *)backward_compat_compound->exp_params);
+  }
+}
+
+PUBLIC struct ConcEnt *
+get_concentrations( double FcAB,
+                    double FcAA,
+                    double FcBB,
+                    double FEA,
+                    double FEB,
+                    double *startconc){
+
+  return vrna_co_pf_get_concentrations(FcAB, FcAA, FcBB, FEA, FEB, (const double *)startconc, (const pf_paramT *)backward_compat_compound->exp_params);
 }
 
 PUBLIC void
