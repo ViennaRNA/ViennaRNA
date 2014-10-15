@@ -16,6 +16,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
@@ -220,7 +221,6 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
   /*Need that for concentrations*/
   if (vc->cutpoint > 0){
     double kT, QAB, QToT, Qzero;
-
     kT = params->kT/1000.0;
     Qzero = matrices->q[vc->iindx[1] - n];
     QAB = (matrices->q[vc->iindx[1] - n]- matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] * matrices->q[vc->iindx[vc->cutpoint] - n]) * params->expDuplexInit;

@@ -312,6 +312,10 @@ set_fold_compound(vrna_fold_compound *vc,
                                           reset cp... this should also be safe for
                                           single sequences */
     vc->cutpoint            = cp;
+
+    if((cp > 0) && (md.min_loop_size == TURN))
+      md.min_loop_size = 0;  /* is it safe to set this here? */
+
     free(vc->sequence);
     vc->sequence            = seq;
     vc->length              = length = strlen(seq);
@@ -372,7 +376,6 @@ set_fold_compound(vrna_fold_compound *vc,
 
   /* prepare the allocation vector for the DP matrices */
   if(options & VRNA_OPTION_HYBRID){
-    md.min_loop_size = 0;
     alloc_vector |= ALLOC_HYBRID;
     if(cp < 0)
       warn_user("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");

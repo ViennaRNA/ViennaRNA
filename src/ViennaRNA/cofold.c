@@ -115,6 +115,7 @@ wrap_cofold(const char *string,
   char                *seq;
   vrna_fold_compound  *vc;
   paramT              *P;
+  float               mfe;
 
   vc      = NULL;
   length  = strlen(string);
@@ -135,18 +136,7 @@ wrap_cofold(const char *string,
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
   /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
-  seq = (char *)space(sizeof(char) * (length + 2));
-  if(cut_point > -1){
-    int i;
-    for(i = 0; i < cut_point-1; i++)
-      seq[i] = string[i];
-    seq[i] = '&';
-    for(;i<(int)length;i++)
-      seq[i+1] = string[i];
-  } else { /* this ensures the allocation of all cofold matrices via vrna_get_fold_compound */
-    free(seq);
-    seq = strdup(string);
-  }
+  seq = vrna_cut_point_insert(string, cut_point);
 
   /* get compound structure */
   vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
@@ -1561,6 +1551,50 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   return zukresults;
 }
 
+PUBLIC char *
+vrna_cut_point_insert(const char *string,
+                      int cp){
+
+  char *ctmp;
+  int len;
+
+  if(cp > 0){
+    len = strlen(string);
+    ctmp = (char *)space((len+2) * sizeof(char));
+    /* first sequence */
+    (void) strncpy(ctmp, string, cp-1);
+    /* spacer */
+    ctmp[cp-1] = '&';
+    /* second sequence */
+    (void) strcat(ctmp, string+cp-1);
+  } else {
+    ctmp = strdup(string);
+  }
+  return ctmp;
+}
+
+PUBLIC char *
+vrna_cut_point_remove(const char *string,
+                      int *cp){
+
+  char *pos, *copy = NULL;
+
+  *cp = -1;
+
+  if(string){
+    copy = (char *) space(strlen(string)+1);
+    (void) sscanf(string, "%s", copy);
+    pos = strchr(copy, '&');
+    if (pos) {
+      *cp = (int)(pos - copy) + 1;
+      if (*cp >= strlen(copy)) *cp = -1;
+      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
+    }
+  }
+
+  return copy;
+}
 
 /*###########################################*/
 /*# deprecated functions below              #*/

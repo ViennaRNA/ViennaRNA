@@ -766,6 +766,7 @@ vrna_get_plist_from_db( const char *struc,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+
 PUBLIC char *
 pack_structure(const char *struc){
 
