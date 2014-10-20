@@ -608,8 +608,7 @@ do_partfunc(char *string,
   switch (Switch){
     case 1:   /* monomer */
               tempstruc = (char *) space((unsigned)length+1);
-              //parameters->model_details.min_loop_size = TURN;
-              printf("%s\n", string);
+              //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
               vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
               min_en = vrna_fold(vc, tempstruc);
               *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
@@ -630,7 +629,6 @@ do_partfunc(char *string,
               tempstruc = (char *) space((unsigned)length*2+2);
               Newstring = (char *)space(sizeof(char)*(length*2+2));
               strcat(Newstring, string); strcat(Newstring, "&"); strcat(Newstring, string);
-              printf("%s\n", Newstring);
               parameters->model_details.min_loop_size = 0;
               vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
               min_en = vrna_cofold(vc, tempstruc);

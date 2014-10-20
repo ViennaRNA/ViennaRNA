@@ -265,6 +265,9 @@ fill_arrays(vrna_fold_compound  *vc,
   DMLi2 = (int *) space(sizeof(int)*(length + 1));
 
 
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  turn = 0;
+
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
     my_fc[j]=0;
@@ -417,6 +420,9 @@ backtrack_co( sect bt_stack[],
   my_ggg  = vc->matrices->ggg;
 
   /* int   b=0;*/
+
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  turn = 0;
 
   length = strlen(string);
   if (s==0) {
@@ -1267,6 +1273,9 @@ free_end( int *array,
   } else {
     left = i; right = start;
   }
+
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  turn = 0;
 
   for (j=start; inc*(i-j)>turn; j+=inc) {
     int ii, jj;

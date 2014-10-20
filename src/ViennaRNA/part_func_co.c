@@ -342,6 +342,9 @@ pf_co(vrna_fold_compound *vc){
   qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
   qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
 
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  turn = 0;
+
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
@@ -679,6 +682,8 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   hc_up_int         = hc->up_int;
   hc_up_ml          = hc->up_ml;
 
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  turn = 0;
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
