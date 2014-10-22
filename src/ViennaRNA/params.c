@@ -211,6 +211,10 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   double        GT;
   pf_paramT     *pf;
 
+  md.pf_scale     = pf_scale;
+  md.temperature  = temp;
+  md.betaScale    = betaScale;
+
   pf                = (pf_paramT *)space(sizeof(pf_paramT));
   pf->model_details = md;
   pf->temperature   = temp;

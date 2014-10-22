@@ -106,14 +106,6 @@ typedef struct cpair {
   float p, hue, sat;
 } cpair;
 
-/**
- *  \brief this is a workarround for the SWIG Perl Wrapper RNA plot function
- *  that returns an array of type COORDINATE
- */
-typedef struct {
-  float X; /* X coords */
-  float Y; /* Y coords */
-} COORDINATE;
 
 /**
  *  \brief  Stack of partial structures for backtracking
@@ -492,7 +484,7 @@ typedef struct pairpro{
   struct plist *A;
   struct plist *B;
   struct plist *BB;
-}pairpro;
+} pairpro;
 
 /**
  *  \brief A base pair info structure

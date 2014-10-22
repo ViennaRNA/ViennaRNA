@@ -25,11 +25,10 @@
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
-PRIVATE char *costring(char *string);
 PRIVATE char *tokenize(char *line);
 PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, pf_paramT *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
-PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
+PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, pf_paramT *parameters);
 
 PRIVATE double bppmThreshold;
 
@@ -215,6 +214,7 @@ int main(int argc, char *argv[])
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
+  /* get energy parameters */
   P = vrna_get_energy_contributions(md);
 
   /* print user help if we get input from tty */
@@ -251,10 +251,15 @@ int main(int argc, char *argv[])
     }
     else fname[0] = '\0';
 
-    cut_point = -1;
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
-    rec_sequence  = tokenize(rec_sequence); /* frees input_string and sets cut_point */
-    length    = (int) strlen(rec_sequence);
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
+    length    = vc->length;
     structure = (char *) space((unsigned) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
@@ -275,12 +280,6 @@ int main(int argc, char *argv[])
       if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
 
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
-    /* store case-unmodified sequence */
-    orig_sequence = strdup(rec_sequence);
-    /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -288,12 +287,6 @@ int main(int argc, char *argv[])
       else
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
     }
-
-    /*
-    ########################################################
-    # begin actual computations
-    ########################################################
-    */
 
     if (doC) {
       FILE *fp;
@@ -310,19 +303,21 @@ int main(int argc, char *argv[])
         ConcAandB = read_concentrations(stdin);
       }
     }
-    /*compute mfe of AB dimer*/
-    min_en  = cofold(rec_sequence, structure);
+    /*
+    ########################################################
+    # begin actual computations
+    ########################################################
+    */
+
+    /* compute mfe of AB dimer */
+    min_en  = vrna_cofold(vc, structure);
     mfAB    = vrna_get_plist_from_db(structure, 0.95);
 
     {
       char *pstring, *pstruct;
-      if (cut_point == -1) {
-        pstring = strdup(orig_sequence);
-        pstruct = strdup(structure);
-      } else {
-        pstring = costring(orig_sequence);
-        pstruct = costring(structure);
-      }
+      pstring = strdup(orig_sequence);
+      pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
+
       printf("%s\n%s", pstring, pstruct);
       if (istty)
         printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -339,10 +334,10 @@ int main(int argc, char *argv[])
         } else {
           strcpy(ffname, "rna.ps");
         }
-        if (cut_point >= 0)
+        if (vc->cutpoint >= 0)
           sprintf(annot,
                   "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
-                  cut_point-1, cut_point+1, length+1);
+                  vc->cutpoint-1, vc->cutpoint+1, length+1);
         if(gquad){
           if (!noPS) (void) PS_rna_plot_a_gquad(pstring, pstruct, ffname, annot, NULL);
         } else {
@@ -353,40 +348,40 @@ int main(int argc, char *argv[])
       free(pstruct);
     }
 
-    if (length>2000)  free_co_arrays();
+    if (length>2000)
+      vrna_free_mfe_matrices(vc);
 
-    /*compute partition function*/
+    /* compute partition function */
     if (pf) {
       cofoldF AB, AA, BB;
       FLT_OR_DBL *probs;
-      if (dangles==1) {
+      if (dangles==1){
         P->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en = vrna_eval_structure(rec_sequence, structure, P);
         P->model_details.dangles = dangles = 1;
       }
 
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      pf_scale = exp(-(sfact*min_en)/kT/length);
+      md.pf_scale = pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
+      vrna_update_pf_params(vc,pf_parameters);
 
-      if (cstruc!=NULL)
-        strncpy(structure, cstruc, length+1);
-      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, do_backtrack, fold_constrained);
+      /* do we need to add hard constraints? */
+      if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
+
+      /* compute partition function */
+      AB = vrna_co_pf_fold(vc, structure);
 
       if (do_backtrack) {
         char *costruc;
-        costruc = (char *) space(sizeof(char)*(strlen(structure)+2));
-        if (cut_point<0) printf("%s", structure);
-        else {
-          strncpy(costruc, structure, cut_point-1);
-          strcat(costruc, "&");
-          strcat(costruc, structure+cut_point-1);
-          printf("%s", costruc);
-        }
+        costruc = vrna_cut_point_insert(structure, vc->cutpoint);
+        printf("%s", costruc);
+
         if (!istty) printf(" [%6.2f]\n", AB.FAB);
         else printf("\n");/*8.6.04*/
+        free(costruc);
       }
       if ((istty)||(!do_backtrack))
         printf(" free energy of ensemble = %6.2f kcal/mol\n", AB.FAB);
@@ -395,8 +390,7 @@ int main(int argc, char *argv[])
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
 
-      probs = export_co_bppm();
-      assign_plist_from_pr(&prAB, probs, length, bppmThreshold);
+      prAB = vrna_get_plist_from_pr(vc, bppmThreshold);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
@@ -406,25 +400,25 @@ int main(int argc, char *argv[])
         char *Newstring;
         char Newname[30];
         char comment[80];
-        if (cut_point<0) {
+        if (vc->cutpoint <= 0) {
           printf("Sorry, i cannot do that with only one molecule, please give me two or leave it\n");
           free(mfAB);
           free(prAB);
           continue;
         }
         if (dangles==1) dangles=2;
-        Alength=cut_point-1;        /*length of first molecule*/
-        Blength=length-cut_point+1; /*length of 2nd molecule*/
+        Alength = vc->cutpoint - 1;           /* length of first molecule */
+        Blength = length - vc->cutpoint + 1;  /* length of 2nd molecule   */
 
-        Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
-        Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
+        Astring = (char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
+        Bstring = (char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
         strncat(Astring,rec_sequence,Alength);
-        strncat(Bstring,rec_sequence+Alength,Blength);
+        strncat(Bstring,rec_sequence+Alength+1,Blength);
 
         orig_Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
         orig_Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
         strncat(orig_Astring,orig_sequence,Alength);
-        strncat(orig_Bstring,orig_sequence+Alength,Blength);
+        strncat(orig_Bstring,orig_sequence+Alength+1,Blength);
 
         /* compute AA dimer */
         AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA, pf_parameters);
@@ -438,14 +432,14 @@ int main(int argc, char *argv[])
         /* compute B monomer */
         do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
 
-        compute_probabilities(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength);
-        compute_probabilities(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength);
-        compute_probabilities(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength);
+        vrna_co_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
+        vrna_co_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
+        vrna_co_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
         printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
         if (doC) {
-          do_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB);
+          vrna_co_pf_get_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
           free(ConcAandB);/*freeen*/
         }
 
@@ -463,7 +457,10 @@ int main(int argc, char *argv[])
         /*write New name*/
         strcpy(Newname,"AB");
         strcat(Newname,ffname);
-        (void)PS_dot_plot_list(orig_sequence, Newname, prAB, mfAB, comment);
+        int cp = -1;
+        char *coseq = vrna_cut_point_remove(orig_sequence, &cp);
+        (void)PS_dot_plot_list(coseq, Newname, prAB, mfAB, comment);
+        free(coseq);
 
         /*AA dot_plot*/
         sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
@@ -525,12 +522,18 @@ int main(int argc, char *argv[])
       } else strcpy(ffname, "dot.ps");
 
       if (!doT) {
-        if (pf) {          (void) PS_dot_plot_list(rec_sequence, ffname, prAB, mfAB, "doof");
-        free(prAB);}
+        if (pf) {
+          int cp;
+          char *seq = vrna_cut_point_remove(rec_sequence, &cp);
+          (void) vrna_plot_dp_PS_list(seq, cp, ffname, prAB, mfAB, "doof");
+          free(prAB);
+          free(seq);
+        }
         free(mfAB);
       }
     }
-    if (!doT) free_co_pf_arrays();
+    if (!doT)
+      vrna_free_pf_matrices(vc);
 
     (void) fflush(stdout);
     
@@ -561,8 +564,8 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
-PRIVATE char *tokenize(char *line)
-{
+PRIVATE char *
+tokenize(char *line){
   char *pos, *copy = NULL;
   int cut = -1;
 
@@ -588,25 +591,15 @@ PRIVATE char *tokenize(char *line)
   return copy;
 }
 
-PRIVATE char *costring(char *string)
-{
-  char *ctmp;
-  int len;
+PRIVATE cofoldF
+do_partfunc(char *string,
+            int length,
+            int Switch,
+            struct plist **tpr,
+            struct plist **mfpl,
+            pf_paramT *parameters){
 
-  len = strlen(string);
-  ctmp = (char *)space((len+2) * sizeof(char));
-  /* first sequence */
-  (void) strncpy(ctmp, string, cut_point-1);
-  /* spacer */
-  ctmp[cut_point-1] = '&';
-  /* second sequence */
-  (void) strcat(ctmp, string+cut_point-1);
-
-  return ctmp;
-}
-
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mfpl, pf_paramT *parameters){
-  /*compute mfe and partition function of dimere or  monomer*/
+  /*compute mfe and partition function of dimer or monomer*/
   char *Newstring;
   char *tempstruc;
   double min_en;
@@ -615,63 +608,72 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
   pf_paramT *par;
   FLT_OR_DBL *probs;
   cofoldF X;
+  vrna_fold_compound *vc;
   kT = parameters->kT/1000.;
-  switch (Switch)
-    {
-    case 1: /*monomer*/
-      cut_point=-1;
-      tempstruc = (char *) space((unsigned)length+1);
-      min_en = fold(string, tempstruc);
-      *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
-      free_arrays();
-      /*En=pf_fold(string, tempstruc);*/
-      /* init_co_pf_fold(length); <- obsolete */
-      par = get_boltzmann_factor_copy(parameters);
-      par->pf_scale = exp(-(sfact*min_en)/kT/(length));
-      X=co_pf_fold_par(string, tempstruc, par, 1, fold_constrained);
-      probs = export_co_bppm();
-      assign_plist_from_pr(tpr, probs, length, bppmThreshold);
-      free_co_pf_arrays();
-      free(tempstruc);
-      free(par);
-      break;
+  switch (Switch){
+    case 1:   /* monomer */
+              tempstruc = (char *) space((unsigned)length+1);
+              //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
+              vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
+              min_en = vrna_fold(vc, tempstruc);
+              *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
+              vrna_free_mfe_matrices(vc);
 
-    case 2: /*dimer*/
-      Newstring=(char *)space(sizeof(char)*(length*2+1));
-      strcat(Newstring,string);
-      strcat(Newstring,string);
-      cut_point=length+1;
-      tempstruc = (char *) space((unsigned)length*2+1);
-      min_en = cofold(Newstring, tempstruc);
-      *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
-      free_co_arrays();
-      /* init_co_pf_fold(2*length); <- obsolete */
-      par = get_boltzmann_factor_copy(parameters);
-      par->pf_scale =exp(-(sfact*min_en)/kT/(2*length));
-      X=co_pf_fold_par(Newstring, tempstruc, par, 1, fold_constrained);
-      probs = export_co_bppm();
-      assign_plist_from_pr(tpr, probs, 2*length, bppmThreshold);
-      free_co_pf_arrays();
-      free(Newstring);
-      free(tempstruc);
-      free(par);
-      break;
+              par = get_boltzmann_factor_copy(parameters);
+              par->pf_scale = exp(-(sfact*min_en)/kT/(length));
+              vrna_update_pf_params(vc,par);
+              X = vrna_co_pf_fold(vc, tempstruc);
+              *tpr = vrna_get_plist_from_pr(vc, bppmThreshold);
+              vrna_free_fold_compound(vc);
+              free(tempstruc);
+              free(par);
+              parameters->model_details.min_loop_size = 0;
+              break;
 
-    default:
-      printf("Error in get_partfunc\n, computing neither mono- nor dimere!\n");
-      exit (42);
+    case 2:   /* dimer */
+              tempstruc = (char *) space((unsigned)length*2+2);
+              Newstring = (char *)space(sizeof(char)*(length*2+2));
+              strcat(Newstring, string); strcat(Newstring, "&"); strcat(Newstring, string);
+              parameters->model_details.min_loop_size = 0;
+              vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+              min_en = vrna_cofold(vc, tempstruc);
+              *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
+              vrna_free_mfe_matrices(vc);
 
-    }
+              par = get_boltzmann_factor_copy(parameters);
+              par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
+              vrna_update_pf_params(vc,par);
+              X = vrna_co_pf_fold(vc, tempstruc);
+              *tpr = vrna_get_plist_from_pr(vc, bppmThreshold);
+              vrna_free_fold_compound(vc);
+
+              free(Newstring);
+              free(tempstruc);
+              free(par);
+              break;
+
+    default:  printf("Error in get_partfunc\n, computing neither mono- nor dimere!\n");
+              exit (42);
+  }
+
   return X;
 }
 
 
-PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc) {
+PRIVATE void
+do_concentrations(double FEAB,
+                  double FEAA,
+                  double FEBB,
+                  double FEA,
+                  double FEB,
+                  double *startconc,
+                  pf_paramT *parameters){
+
   /* compute and print concentrations out of free energies, calls get_concentrations */
   struct ConcEnt *result;
   int i, n;
 
-  result=get_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc);
+  result=vrna_co_pf_get_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
 
   printf("Initial concentrations\t\trelative Equilibrium concentrations\n");
   printf("A\t\t B\t\t AB\t\t AA\t\t BB\t\t A\t\t B\n");

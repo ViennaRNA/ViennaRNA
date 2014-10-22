@@ -57,6 +57,13 @@
 %include typemaps.i
 %include tmaps.i  // additional typemaps
 
+/*############################################*/
+/* Include all relevant interface definitions */
+/*############################################*/
+%include essentials.i
+%include utils.i
+%include plotting.i
+
 //%title "Interface to the Vienna RNA library"
 //%section "Folding Routines"
 //%subsection "Minimum free Energy Folding"
@@ -107,167 +114,6 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 /**********************************************/
 
 %include  "../src/ViennaRNA/eval.h"
-
-/**********************************************/
-/* BEGIN interface for model details          */
-/**********************************************/
-
-/* hide data fields of model_detailsT from SWIG */
-%nodefaultctor model_detailsT;
-// typedef struct {} model_detailsT;
-
-/* make a nice object oriented interface to model_detailsT */
-%extend model_detailsT {
-
-  /* the default constructor */
-  model_detailsT(){
-    model_detailsT *md = (model_detailsT *)space(sizeof(model_detailsT));
-    vrna_md_set_default(md);
-    return md;
-  }
-  /* a constructor that provides backward compatibility (for now) */
-  model_detailsT(char *type){
-    model_detailsT *md = (model_detailsT *)space(sizeof(model_detailsT));
-    if(!strcmp(type, "global"))
-      set_model_details(md);
-    else
-      vrna_md_set_default(md);
-    return md;
-  }
-
-  int get_dangles(){
-    return $self->dangles;
-  }
-  void set_dangles(int d){
-    $self->dangles = d;
-  }
-  void set_default(){
-    vrna_md_set_default($self);
-  }
-  void set_from_globals(){
-    set_model_details($self);
-  }
-  void print(){
-    printf( "temperature:     %g\n"
-            "betaScale:       %g\n"
-            "pf_scale:        %g\n"
-            "dangles:         %d\n"
-            "special_hp:      %d\n"
-            "noLP:            %d\n"
-            "noGU:            %d\n"
-            "noGUclosure:     %d\n"
-            "logML:           %d\n"
-            "circ:            %d\n"
-            "gquad:           %d\n"
-            "canonicalBPonly: %d\n"
-            "uniq_ML:         %d\n"
-            "energy_set:      %d\n"
-            "backtrack:       %d\n"
-            "backtrack_type:  %c\n"
-            "compute_bpp:     %d\n"
-            "nonstandards:    %s\n"
-            "max_bp_span:     %d\n"
-            "min_loop_size:   %d\n"
-            "oldAliEn:        %d\n"
-            "ribo:            %d\n",
-            $self->temperature,
-            $self->betaScale,
-            $self->pf_scale,
-            $self->dangles,
-            $self->special_hp,
-            $self->noLP,
-            $self->noGU,
-            $self->noGUclosure,
-            $self->logML,
-            $self->circ,
-            $self->gquad,
-            $self->canonicalBPonly,
-            $self->uniq_ML,
-            $self->energy_set,
-            $self->backtrack,
-            $self->backtrack_type,
-            $self->compute_bpp,
-            $self->nonstandards,
-            $self->max_bp_span,
-            $self->min_loop_size,
-            $self->oldAliEn,
-            $self->ribo);
-  }
-}
-
-%ignore vrna_md_set_default;
-%ignore set_model_details;
-%ignore vrna_md_set_nonstandards;
-%ignore vrna_md_set_dangles;
-%ignore vrna_md_get_dangles;
-%ignore vrna_md_set_temperature;
-%ignore vrna_md_get_temperature;
-%ignore vrna_md_set_special_hp;
-%ignore vrna_md_get_special_hp;
-%ignore vrna_md_set_gquad;
-%ignore vrna_md_get_gquad;
-
-%include "../src/ViennaRNA/model.h"
-
-/**********************************************/
-/* BEGIN interface for energy parameters      */
-/**********************************************/
-
-/* do not create default constructor and hide data fields of paramT from SWIG */
-%nodefaultctor paramT;
-typedef struct {} paramT;
-/* do not create default constructor and hide data fields of paramT from SWIG */
-%nodefaultctor pf_paramT;
-typedef struct {} pf_paramT;
-
-/* make a nice object oriented interface to paramT */
-%extend paramT {
-  paramT(){
-    model_detailsT md;
-    vrna_md_set_default(&md);
-    paramT *P = vrna_get_energy_contributions(md);
-    return P;
-  }
-  paramT(model_detailsT *md){
-    paramT *P = vrna_get_energy_contributions(*md);
-    return P;
-  }
-}
-
-/* make a nice object oriented interface to pf_paramT */
-%extend pf_paramT {
-  pf_paramT(){
-    model_detailsT md;
-    vrna_md_set_default(&md);
-    pf_paramT *P = vrna_get_boltzmann_factors(md);
-    return P;
-  }
-  pf_paramT(model_detailsT *md){
-    pf_paramT *P = vrna_get_boltzmann_factors(*md);
-    return P;
-  }
-}
-
-%ignore scale_parameters;
-%ignore vrna_get_energy_contributions;
-%ignore get_scaled_parameters;
-%ignore get_parameter_copy;
-%ignore get_scaled_pf_parameters;
-%ignore vrna_get_boltzmann_factors;
-%ignore get_boltzmann_factors;
-%ignore get_boltzmann_factor_copy;
-/*
-%ignore get_scaled_alipf_parameters;
-%ignore get_boltzmann_factors_ali;
-*/
-%ignore copy_parameters;
-%ignore set_parameters;
-%ignore scale_pf_parameters;
-%ignore copy_pf_param;
-%ignore set_pf_param;
-
-%include "../src/ViennaRNA/params.h"
-
 
 %include "../src/ViennaRNA/data_structures.h"
 
@@ -506,57 +352,6 @@ char *consensus(const char **AS);
 char *consens_mis(const char **AS);
 
 
-/*#######################################*/
-/* Get coordinates for xy plot           */
-/*#######################################*/
-typedef struct {
-  float X; /* X coords */
-  float Y; /* Y coords */
-} COORDINATE;
-
-%{
-  COORDINATE *get_xy_coordinates(const char *structure){
-    int i;
-    short *table = make_pair_table(structure);
-    short length = (short) strlen(structure);
-
-    COORDINATE *coords = (COORDINATE *) space((length+1)*sizeof(COORDINATE));
-    float *X = (float *) space((length+1)*sizeof(float));
-    float *Y = (float *) space((length+1)*sizeof(float));
-
-    switch(rna_plot_type){
-      case VRNA_PLOT_TYPE_SIMPLE:   simple_xy_coordinates(table, X, Y);
-                                    break;
-      case VRNA_PLOT_TYPE_CIRCULAR: simple_circplot_coordinates(table, X, Y);
-                                    break;
-      default:                      naview_xy_coordinates(table, X, Y);
-                                    break;
-    }
-
-    for(i=0;i<=length;i++){
-      coords[i].X = X[i];
-      coords[i].Y = Y[i];
-    }
-    free(table);
-    free(X);
-    free(Y);
-    return(coords);
-  }
-%}
-
-COORDINATE *get_xy_coordinates(const char *structure);
-
-%extend COORDINATE {
-  COORDINATE *get(int i) {
-    return self+i;
-  }
-
-}
-
-/*#################################*/
-/* END get coordinates for xy plot */
-/*#################################*/
-
 
 %include  "../src/ViennaRNA/subopt.h"
 // from subopt.h
@@ -638,24 +433,6 @@ int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */
 int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 
-//%section "Utilities"
-%newobject space;
-%newobject time_stamp;
-%newobject random_string;
-%newobject get_line;
-%newobject pack_structure;
-%newobject unpack_structure;
-%newobject make_pair_table;
-
-%include "../src/ViennaRNA/utils.h"
-%include "../src/ViennaRNA/structure_utils.h"
-
-// from read_epars.c
-extern void  read_parameter_file(char *fname);
-/* read energy parameters from file */
-extern void  write_parameter_file(char *fname);
-/* write energy parameters to file */
-
 // this doesn't work currently
 %inline %{
 void *deref_any(void **ptr, int index) {
@@ -664,11 +441,6 @@ void *deref_any(void **ptr, int index) {
 }
 %}
 
-// from params.h
-
-extern paramT *scale_parameters(void);
-extern paramT *copy_parameters(void);
-extern paramT *set_parameters(paramT *dest);
 %{
 char *get_aligned_line(int i) {
   i = i % 2;
@@ -761,8 +533,5 @@ short *encode_seq(char *sequence);
 
 %include "../src/ViennaRNA/Lfold.h"
 
-%include "../src/ViennaRNA/plot_layouts.h"
-
-%include "../src/ViennaRNA/PS_dot.h"
 
 %include "../src/ViennaRNA/findpath.h"

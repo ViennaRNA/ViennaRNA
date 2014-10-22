@@ -29,7 +29,7 @@ static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $
 #define PMIN 0.00001
 
 /* local functions */
-PRIVATE FILE  *PS_dot_common(char *seq, char *wastlfile, char *comment,
+PRIVATE FILE  *PS_dot_common(char *seq, int cp, char *wastlfile, char *comment,
                              int winsize);
 PRIVATE char **annote(const char *structure, const char *AS[]);
 
@@ -1367,7 +1367,7 @@ int PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile) {
   FILE *wastl;
   int i;
 
-  wastl = PS_dot_common(seq, wastlfile, NULL, 0);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0);
   if (wastl==NULL)  return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
@@ -1425,20 +1425,30 @@ static int sort_plist_by_prob_asc(const void *p1, const void *p2){
   return 0;
 }
 
+PUBLIC int
+PS_dot_plot_list( char *seq,
+                  char *wastlfile,
+                  plist *pl,
+                  plist *mf,
+                  char *comment){
 
+  return vrna_plot_dp_PS_list(seq, cut_point, wastlfile, pl, mf, comment);
+}
 
-PUBLIC int PS_dot_plot_list(char *seq,
-                            char *wastlfile,
-                            plist *pl,
-                            plist *mf,
-                            char *comment){
+PUBLIC int
+vrna_plot_dp_PS_list( char *seq,
+                      int cp,
+                      char *wastlfile,
+                      plist *pl,
+                      plist *mf,
+                      char *comment){
 
   FILE *wastl;
   int pl_size, gq_num;
   double tmp;
   plist *pl1;
 
-  wastl = PS_dot_common(seq, wastlfile, comment, 0);
+  wastl = PS_dot_common(seq, cp, wastlfile, comment, 0);
   if (wastl==NULL) return 0; /* return 0 for failure */
 
   fprintf(wastl, "%s\n", RNAdp_gquad_triangle);
@@ -1542,7 +1552,7 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *wastlfile, int winSize) {
   FILE *wastl;
   int i;
 
-  wastl = PS_dot_common(seq, wastlfile, NULL, winSize);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -1582,7 +1592,7 @@ int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) 
   FILE *wastl;
   int i;
 
-  wastl = PS_dot_common(seq, wastlfile, NULL, winSize);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -1606,8 +1616,13 @@ int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) 
   return 1; /* success */
 }
 
-static FILE * PS_dot_common(char *seq, char *wastlfile,
-                            char *comment, int winsize) {
+static FILE *
+PS_dot_common(char *seq,
+              int cp,
+              char *wastlfile,
+              char *comment,
+              int winsize){
+
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
   char name[31], *c;
@@ -1652,7 +1667,7 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
   if (winsize>0)
     fprintf(wastl,"/winSize %d def\n",winsize);
   fprintf(wastl,"/len { sequence length } bind def\n\n");
-  if (cut_point>0) fprintf(wastl,"/cutpoint %d def\n\n", cut_point);
+  if (cp>0) fprintf(wastl,"/cutpoint %d def\n\n", cp);
 
 
   if (winsize>0)

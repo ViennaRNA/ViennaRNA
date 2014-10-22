@@ -158,6 +158,13 @@ int PS_dot_plot_list( char *seq,
                       plist *mf,
                       char *comment);
 
+int vrna_plot_dp_PS_list( char *seq,
+                          int cp,
+                          char *wastlfile,
+                          plist *pl,
+                          plist *mf,
+                          char *comment);
+
 int PS_dot_plot_turn( char *seq,
                       struct plist *pl,
                       char *filename,

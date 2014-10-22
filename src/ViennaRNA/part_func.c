@@ -1255,6 +1255,7 @@ vrna_update_pf_params(vrna_fold_compound *vc,
     if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
       kT /= vc->n_seq;
 
+    if(vc->cutpoint > 0) vc->exp_params->model_details.min_loop_size = 0;
     /* fill additional helper arrays for scaling etc. */
     int i;
     double scaling_factor = vc->exp_params->model_details.pf_scale;
