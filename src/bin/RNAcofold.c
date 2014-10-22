@@ -522,8 +522,13 @@ int main(int argc, char *argv[])
       } else strcpy(ffname, "dot.ps");
 
       if (!doT) {
-        if (pf) {          (void) PS_dot_plot_list(rec_sequence, ffname, prAB, mfAB, "doof");
-        free(prAB);}
+        if (pf) {
+          int cp;
+          char *seq = vrna_cut_point_remove(rec_sequence, &cp);
+          (void) vrna_plot_dp_PS_list(seq, cp, ffname, prAB, mfAB, "doof");
+          free(prAB);
+          free(seq);
+        }
         free(mfAB);
       }
     }
