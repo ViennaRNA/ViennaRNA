@@ -1,23 +1,6 @@
 #ifndef __VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H__
 #define __VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <ctype.h>
-#include <string.h>
-#include <ViennaRNA/params.h>
-#include <ViennaRNA/fold_vars.h>
-#include <ViennaRNA/energy_par.h>
-#include <ViennaRNA/constraints.h>
-#include <ViennaRNA/gquad.h>
-
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
 /**
  *  \file loop_energies.h
  *  \brief Energy evaluation for MFE and partition function calculations

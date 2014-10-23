@@ -24,23 +24,22 @@
  */
 
 /**
- *  \def E_ExtLoop(A,B,C,D)
  *  <H2>Compute the Energy contribution of an Exterior loop stem</H2>
  *  This definition is a wrapper for the E_Stem() funtion.
  *  It is substituted by an E_Stem() funtion call with argument
  *  extLoop=1, so the energy contribution returned reflects a
  *  stem introduced in an exterior-loop.<BR>
- *  As for the parameters B (si1) and C (sj1) of the substituted
+ *  As for the parameters si1 and sj1 of the substituted
  *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
  * 
  *  \see    E_Stem()
- *  \param  A The pair type of the stem-closing pair
- *  \param  B The 5'-mismatching nucleotide
- *  \param  C The 3'-mismatching nucleotide
- *  \param  D The datastructure containing scaled energy parameters
- *  \return   The energy contribution of the introduced exterior-loop stem
+ *  \param  type  The pair type of the stem-closing pair
+ *  \param  si1   The 5'-mismatching nucleotide
+ *  \param  sj1   The 3'-mismatching nucleotide
+ *  \param  P     The datastructure containing scaled energy parameters
+ *  \return       The energy contribution of the introduced exterior-loop stem
  */
 INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
@@ -48,7 +47,6 @@ INLINE  PRIVATE int E_ExtLoop(int type,
                               paramT *P);
 
 /**
- *  \def exp_E_ExtLoop(A,B,C,D)
  *  This is the partition function variant of \ref E_ExtLoop()
  *  \see E_ExtLoop()
  *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem

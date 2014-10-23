@@ -25,7 +25,8 @@
 
 
 /**
- *  <H2>Compute the Energy of a hairpin-loop</H2>
+ *  \brief Compute the Energy of a hairpin-loop
+ *
  *  To evaluate the free energy of a hairpin-loop, several parameters have to be known.
  *  A general hairpin-loop has this structure:<BR>
  *  <PRE>
@@ -63,7 +64,8 @@ INLINE  PRIVATE int E_Hairpin(int size,
                               paramT *P);
 
 /**
- *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
+ *  \brief Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop
+ *
  *  multiply by scale[u+2]
  *  @see get_scaled_pf_parameters()
  *  @see pf_paramT
