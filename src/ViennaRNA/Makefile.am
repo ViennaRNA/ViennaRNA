@@ -22,7 +22,8 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
                       profiledist.h treedist.h energy_const.h inverse.h PS_dot.h \
                       utils.h params.h subopt.h cofold.h duplex.h alifold.h aln_util.h \
                       part_func_co.h ProfileAln.h LPfold.h Lfold.h part_func_up.h ribo.h \
-                      findpath.h loop_energies.h data_structures.h MEA.h mm.h \
+                      findpath.h data_structures.h MEA.h mm.h loop_energies.h \
+                      exterior_loops.h hairpin_loops.h interior_loops.h multibranch_loops.h \
                       naview.h 2Dfold.h 2Dpfold.h read_epars.h convert_epars.h PKplex.h\
                       plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
