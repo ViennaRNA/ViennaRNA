@@ -54,13 +54,8 @@ typedef struct {
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE int     turn;
 PRIVATE LIST    *Stack = NULL;
 PRIVATE int     nopush;
-PRIVATE int     best_energy;          /* best_energy = remaining energy */
-PRIVATE int     minimal_energy;       /* minimum free energy */
-PRIVATE int     element_energy;       /* internal energy of a structural element */
-PRIVATE int     threshold;            /* minimal_energy + delta */
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
@@ -68,7 +63,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(turn, Stack, nopush, best_energy, minimal_energy, element_energy, threshold, backward_compat_compound, backward_compat)
+#pragma omp threadprivate(Stack, nopush, backward_compat_compound, backward_compat)
 
 #endif
 
@@ -102,7 +97,7 @@ PRIVATE void      UNUSED print_stack(LIST * list);
 PRIVATE void      push(LIST * list, /*@only@*/ void *data);
 PRIVATE void      *pop(LIST * list);
 PRIVATE int       best_attainable_energy(vrna_fold_compound *vc, STATE * state);
-PRIVATE void      scan_interval(vrna_fold_compound *vc, int i, int j, int array_flag, STATE * state);
+PRIVATE void      scan_interval(vrna_fold_compound *vc, int i, int j, int array_flag, int threshold, STATE * state);
 PRIVATE void      free_interval_node(/*@only@*/ INTERVAL * node);
 PRIVATE void      free_state_node(/*@only@*/ STATE * node);
 PRIVATE void      push_back(STATE * state);
@@ -110,8 +105,8 @@ PRIVATE char*     get_structure(STATE * state);
 PRIVATE int       compare(const void *solution1, const void *solution2);
 PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
 PRIVATE char      *costring(char *string);
-PRIVATE void      repeat(vrna_fold_compound *vc, int i, int j, STATE * state, int part_energy, int temp_energy);
-PRIVATE void      repeat_gquad(vrna_fold_compound *vc, int i, int j, STATE *state, int part_energy, int temp_energy);
+PRIVATE void      repeat(vrna_fold_compound *vc, int i, int j, STATE * state, int part_energy, int temp_energy, int best_energy, int threshold);
+PRIVATE void      repeat_gquad(vrna_fold_compound *vc, int i, int j, STATE *state, int part_energy, int temp_energy, int best_energy, int threshold);
 
 /*
 #################################
@@ -491,11 +486,12 @@ vrna_subopt(vrna_fold_compound *vc,
   INTERVAL      *interval;
   SOLUTION      *SolutionList;
   unsigned long max_sol, n_sol;
-  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad;
+  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad, threshold;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
   paramT          *P;
   model_detailsT  *md;
+  int           minimal_energy;
   int           Fc, FcH, FcI, FcM, *fM2;
   int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
   char          *ptype;
@@ -524,7 +520,6 @@ vrna_subopt(vrna_fold_compound *vc,
 
   struc = (char *)space(sizeof(char) * (length + 1));
 
-  turn = (cut_point<0) ? 3 : 0;
   if(circular){
     min_en = vrna_fold(vc, struc);
     Fc  = vc->matrices->Fc;
@@ -685,7 +680,7 @@ vrna_subopt(vrna_fold_compound *vc,
 
       interval = pop(state->Intervals);
 
-      scan_interval(vc, interval->i, interval->j, interval->array_flag, state);
+      scan_interval(vc, interval->i, interval->j, interval->array_flag, threshold, state);
 
       free_interval_node(interval);        /* free the current interval */
     }
@@ -710,6 +705,7 @@ scan_interval(vrna_fold_compound *vc,
               int i,
               int j,
               int array_flag,
+              int threshold,
               STATE * state){
 
   /* real backtrack routine */
@@ -727,9 +723,10 @@ scan_interval(vrna_fold_compound *vc,
   register int    type;
   register int    dangle_model;
   register int    noLP;
+  int             element_energy, best_energy;
   int             *fc, *f5, *c, *fML, *fM1, *ggg;
   int             Fc, FcH, FcI, FcM, *fM2;
-  int             length, *indx, *rtype, circular, with_gquad, noGUclosure;
+  int             length, *indx, *rtype, circular, with_gquad, noGUclosure, turn;
   char            *ptype, *sequence;
   short           *S, *S1;
 
@@ -748,6 +745,7 @@ scan_interval(vrna_fold_compound *vc,
   circular      = md->circ;
   with_gquad    = md->gquad;
   noGUclosure   = md->noGUclosure;
+  turn          = md->min_loop_size;
 
   fc  = vc->matrices->fc;
   f5  = vc->matrices->f5;
@@ -813,12 +811,12 @@ scan_interval(vrna_fold_compound *vc,
 
       cij = c[indx[j] + i] + element_energy;
       if (cij + best_energy <= threshold)
-        repeat(vc, i, j, state, element_energy, 0);
+        repeat(vc, i, j, state, element_energy, 0, best_energy, threshold);
     } else if (with_gquad){
       element_energy = E_MLstem(0, -1, -1, P);
       cij = ggg[indx[j] + i] + element_energy;
       if(cij + best_energy <= threshold)
-        repeat_gquad(vc, i, j, state, element_energy, 0);
+        repeat_gquad(vc, i, j, state, element_energy, 0, best_energy, threshold);
     }
   }                                   /* array_flag == 3 || array_flag == 1 */
 
@@ -841,7 +839,7 @@ scan_interval(vrna_fold_compound *vc,
               temp_state = copy_state (state);
               new_interval = make_interval (i, k, 1);
               push (temp_state->Intervals, new_interval);
-              repeat_gquad(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+              repeat_gquad(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i], best_energy, threshold);
               free_state_node(temp_state);
             }
           }
@@ -864,7 +862,7 @@ scan_interval(vrna_fold_compound *vc,
             temp_state = copy_state (state);
             new_interval = make_interval (i, k, 1);
             push (temp_state->Intervals, new_interval);
-            repeat(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+            repeat(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i], best_energy, threshold);
             free_state_node(temp_state);
           }
         }
@@ -880,7 +878,7 @@ scan_interval(vrna_fold_compound *vc,
       if(with_gquad){
         element_energy = E_MLstem(0, -1, -1, P) + P->MLbase*(k-i+1);
         if(ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold)
-          repeat_gquad(vc, k+1, j, state, element_energy, 0);
+          repeat_gquad(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
       }
 
       type = ptype[indx[j]+k+1];
@@ -897,7 +895,7 @@ scan_interval(vrna_fold_compound *vc,
       element_energy += P->MLbase*(k-i+1);
 
       if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
-        repeat(vc, k+1, j, state, element_energy, 0);
+        repeat(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
     }
   }                                                    /* array_flag == 1 */
 
@@ -908,7 +906,7 @@ scan_interval(vrna_fold_compound *vc,
       /* array_flag = 2:                  interval i,j was generated from a */
       /* stack, bulge, or internal loop in repeat() */
 
-      repeat(vc, i, j, state, 0, 0);
+      repeat(vc, i, j, state, 0, 0, best_energy, threshold);
 
       if (nopush){
         if (!noLP){
@@ -947,7 +945,7 @@ scan_interval(vrna_fold_compound *vc,
               new_interval = make_interval(1,k-1,0);
               push(temp_state->Intervals, new_interval);
               /* backtrace the quadruplex */
-              repeat_gquad(vc, k, j, temp_state, element_energy, f5[k-1]);
+              repeat_gquad(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
               free_state_node(temp_state);
             }
           }
@@ -975,7 +973,7 @@ scan_interval(vrna_fold_compound *vc,
             temp_state = copy_state(state);
             new_interval = make_interval(1, k-1, 0);
             push(temp_state->Intervals, new_interval);
-            repeat(vc, k, j, temp_state, element_energy, f5[k-1]);
+            repeat(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
             free_state_node(temp_state);
           }
       }
@@ -989,13 +987,13 @@ scan_interval(vrna_fold_compound *vc,
         if (!(SAME_STRAND(1,j))) element_energy+=P->DuplexInit;
 
         if (c[indx[j]+1] + element_energy + best_energy <= threshold)
-          repeat(vc, 1, j, state, element_energy, 0);
+          repeat(vc, 1, j, state, element_energy, 0, best_energy, threshold);
       } else if (with_gquad){
         if(SAME_STRAND(k,j)){
           element_energy = 0;
           if(ggg[indx[j]+1] + element_energy + best_energy <= threshold){
             /* backtrace the quadruplex */
-            repeat_gquad(vc, 1, j, state, element_energy, 0);
+            repeat_gquad(vc, 1, j, state, element_energy, 0, best_energy, threshold);
           }
         }
       }
@@ -1165,7 +1163,7 @@ scan_interval(vrna_fold_compound *vc,
           temp_state = copy_state(state);
           new_interval = make_interval(k+1,j, 4);
           push(temp_state->Intervals, new_interval);
-          repeat_gquad(vc, i, k, temp_state, 0, fc[k+1]);
+          repeat_gquad(vc, i, k, temp_state, 0, fc[k+1], best_energy, threshold);
           free_state_node(temp_state);
         }
       }
@@ -1183,7 +1181,7 @@ scan_interval(vrna_fold_compound *vc,
         temp_state = copy_state(state);
         new_interval = make_interval(k+1,j, 4);
         push(temp_state->Intervals, new_interval);
-        repeat(vc, i, k, temp_state, element_energy, fc[k+1]);
+        repeat(vc, i, k, temp_state, element_energy, fc[k+1], best_energy, threshold);
         free_state_node(temp_state);
       }
     }
@@ -1195,10 +1193,10 @@ scan_interval(vrna_fold_compound *vc,
         element_energy = E_ExtLoop(type, -1, -1, P);
 
       if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
-        repeat(vc, i, cut_point-1, state, element_energy, 0);
+        repeat(vc, i, cut_point-1, state, element_energy, 0, best_energy, threshold);
     } else if(with_gquad){
       if(ggg[indx[cut_point -1] + i] + best_energy <= threshold)
-        repeat_gquad(vc, i, cut_point - 1, state, 0, 0);
+        repeat_gquad(vc, i, cut_point - 1, state, 0, 0, best_energy, threshold);
     }
   } /* array_flag == 4 */
 
@@ -1223,7 +1221,7 @@ scan_interval(vrna_fold_compound *vc,
           temp_state = copy_state(state);
           new_interval = make_interval(i, k-1, 5);
           push(temp_state->Intervals, new_interval);
-          repeat_gquad(vc, k, j, temp_state, 0, fc[k-1]);
+          repeat_gquad(vc, k, j, temp_state, 0, fc[k-1], best_energy, threshold);
           free_state_node(temp_state);
         }
       }
@@ -1242,7 +1240,7 @@ scan_interval(vrna_fold_compound *vc,
         temp_state = copy_state(state);
         new_interval = make_interval(i, k-1, 5);
         push(temp_state->Intervals, new_interval);
-        repeat(vc, k, j, temp_state, element_energy, fc[k-1]);
+        repeat(vc, k, j, temp_state, element_energy, fc[k-1], best_energy, threshold);
         free_state_node(temp_state);
       }
     }
@@ -1252,15 +1250,15 @@ scan_interval(vrna_fold_compound *vc,
         element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
 
       if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
-        repeat(vc, cut_point, j, state, element_energy, 0);
+        repeat(vc, cut_point, j, state, element_energy, 0, best_energy, threshold);
     } else if (with_gquad){
       if(ggg[indx[j] + cut_point] + best_energy <= threshold)
-        repeat_gquad(vc, cut_point, j, state, 0, 0);
+        repeat_gquad(vc, cut_point, j, state, 0, 0, best_energy, threshold);
     }
   } /* array_flag == 5 */
 
   if (array_flag == 6) { /* we have a gquad */
-      repeat_gquad(vc, i, j, state, 0, 0);
+      repeat_gquad(vc, i, j, state, 0, 0, best_energy, threshold);
       if (nopush){
         fprintf(stderr, "%d,%d", i, j);
         fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
@@ -1282,9 +1280,11 @@ repeat_gquad( vrna_fold_compound *vc,
               int j,
               STATE *state,
               int part_energy,
-              int temp_energy){
+              int temp_energy,
+              int best_energy,
+              int threshold){
 
-  int *ggg, *indx;
+  int *ggg, *indx, element_energy;
   short *S, *S1;
   paramT *P;
 
@@ -1342,7 +1342,9 @@ repeat( vrna_fold_compound *vc,
         int j,
         STATE * state,
         int part_energy,
-        int temp_energy){
+        int temp_energy,
+        int best_energy,
+        int threshold){
 
   /* routine to find stacks, bulges, internal loops and  multiloops */
   /* within interval closed by basepair i,j */
@@ -1356,9 +1358,10 @@ repeat( vrna_fold_compound *vc,
   register int  mm;
   register int  no_close, type, type_2;
   char          *ptype, *sequence;
+  int           element_energy;
   int             *fc, *f5, *c, *fML, *fM1, *ggg;
   int             Fc, FcH, FcI, FcM, *fM2;
-  int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model;
+  int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model, turn;
   short         *S, *S1;
 
   sequence  = vc->sequence;
@@ -1375,6 +1378,7 @@ repeat( vrna_fold_compound *vc,
   noLP          = md->noLP;
   with_gquad    = md->gquad;
   dangle_model  = md->dangles;
+  turn          = md->min_loop_size;
 
   fc  = vc->matrices->fc;
   f5  = vc->matrices->f5;
