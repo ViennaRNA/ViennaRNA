@@ -1393,6 +1393,7 @@ repeat_gquad( vrna_fold_compound *vc,
   paramT *P;
 
   indx  = vc->jindx;
+  cp    = vc->cutpoint;
   ggg   = vc->matrices->ggg;
   S     = vc->sequence_encoding2;
   S1    = vc->sequence_encoding;
