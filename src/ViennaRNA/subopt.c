@@ -1388,7 +1388,7 @@ repeat_gquad( vrna_fold_compound *vc,
   S1    = vc->sequence_encoding;
   P     = vc->params;
 
-  int *ggg, *indx;
+  int *ggg, *indx, element_energy;
   short *S, *S1;
   paramT *P;
 
