@@ -1388,6 +1388,16 @@ repeat_gquad( vrna_fold_compound *vc,
   S1    = vc->sequence_encoding;
   P     = vc->params;
 
+  int *ggg, *indx;
+  short *S, *S1;
+  paramT *P;
+
+  indx  = vc->jindx;
+  ggg   = vc->matrices->ggg;
+  S     = vc->sequence_encoding2;
+  S1    = vc->sequence_encoding;
+  P     = vc->params;
+
   /* find all gquads that fit into the energy range and the interval [i,j] */
   STATE *new_state;
   best_energy += part_energy; /* energy of current structural element */
