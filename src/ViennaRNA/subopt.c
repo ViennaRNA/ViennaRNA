@@ -10,6 +10,7 @@
 #include <string.h>
 #include <math.h>
 #include "ViennaRNA/fold.h"
+#include "ViennaRNA/constraints.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
@@ -716,7 +717,7 @@ scan_interval(vrna_fold_compound *vc,
   INTERVAL        *new_interval;
   paramT          *P;
   model_detailsT  *md;
-  register int    k, fi, cij;
+  register int    k, fi, cij, ij;
   register int    type;
   register int    dangle_model;
   register int    noLP;
@@ -726,6 +727,8 @@ scan_interval(vrna_fold_compound *vc,
   int             length, *indx, *rtype, circular, with_gquad, noGUclosure, turn, cp;
   char            *ptype, *sequence;
   short           *S, *S1;
+  char            *hard_constraints, hc_decompose;
+  hard_constraintT  *hc;
 
   sequence  = vc->sequence;
   length    = vc->length;
@@ -757,6 +760,9 @@ scan_interval(vrna_fold_compound *vc,
   FcM = vc->matrices->FcM;
   fM2 = vc->matrices->fM2;
 
+  hc                = vc->hc;
+  hard_constraints  = hc->matrix;
+
   best_energy = best_attainable_energy(vc, state);  /* .. on remaining intervals */
   nopush = true;
 
@@ -769,6 +775,8 @@ scan_interval(vrna_fold_compound *vc,
     return;
   }
 
+  ij = indx[j] + i;
+
   /* 13131313131313131313131313131313131313131313131313131313131313131313131 */
   if (array_flag == 3 || array_flag == 1) {
     /* array_flag = 3: interval i,j was generated during */
@@ -779,25 +787,28 @@ scan_interval(vrna_fold_compound *vc,
     /*                 stack, bulge, or internal loop in repeat() */
     /*                 or in this block */
 
-    if (array_flag == 3)
-      fi = fM1[indx[j-1] + i] + P->MLbase;
-    else
-      fi = fML[indx[j-1] + i] + P->MLbase;
+    if(hc->up_ml[j]){
+      if (array_flag == 3)
+        fi = fM1[indx[j-1] + i] + P->MLbase;
+      else
+        fi = fML[indx[j-1] + i] + P->MLbase;
 
-    if ((fi + best_energy <= threshold)&&(ON_SAME_STRAND(j-1,j, cp))) {
-      /* no basepair, nibbling of 3'-end */
+      if ((fi + best_energy <= threshold)&&(ON_SAME_STRAND(j-1,j, cp))) {
+        /* no basepair, nibbling of 3'-end */
 
-      new_state = copy_state(state);
-      new_interval = make_interval(i, j-1, array_flag);
-      push(new_state->Intervals, new_interval);
-      new_state->partial_energy += P->MLbase;
-      /* new_state->best_energy = fi + best_energy; */
-      push(Stack, new_state);
+        new_state     = copy_state(state);
+        new_interval  = make_interval(i, j-1, array_flag);
+        push(new_state->Intervals, new_interval);
+        new_state->partial_energy += P->MLbase;
+        /* new_state->best_energy = fi + best_energy; */
+        push(Stack, new_state);
+      }
     }
 
-    type = ptype[indx[j]+i];
+    hc_decompose  = hard_constraints[ij];
 
-    if (type) { /* i,j may pair */
+    if (hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC) { /* i,j may pair */
+      type = ptype[ij];
 
       if(dangle_model)
         element_energy = E_MLstem(type,
@@ -807,12 +818,12 @@ scan_interval(vrna_fold_compound *vc,
       else
         element_energy = E_MLstem(type, -1, -1, P);
 
-      cij = c[indx[j] + i] + element_energy;
+      cij = c[ij] + element_energy;
       if (cij + best_energy <= threshold)
         repeat(vc, i, j, state, element_energy, 0, best_energy, threshold);
     } else if (with_gquad){
       element_energy = E_MLstem(0, -1, -1, P);
-      cij = ggg[indx[j] + i] + element_energy;
+      cij = ggg[ij] + element_energy;
       if(cij + best_energy <= threshold)
         repeat_gquad(vc, i, j, state, element_energy, 0, best_energy, threshold);
     }
