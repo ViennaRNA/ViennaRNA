@@ -77,6 +77,10 @@ SOLUTION *subopt_circ ( char *seq,
                         int delta,
                         FILE *fp);
 
+SOLUTION *vrna_subopt(vrna_fold_compound *vc,
+                      int delta,
+                      FILE *fp);
+
 /**
  *  \brief Sort output by energy
  * 

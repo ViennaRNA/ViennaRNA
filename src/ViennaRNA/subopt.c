@@ -1,77 +1,4 @@
 /*
-  $Log: subopt.c,v $
-  Revision 2.0  2010/12/06 20:04:20  ronny
-  repaired subopt for cofolding
-
-  Revision 1.24  2008/11/01 21:10:20  ivo
-  avoid rounding errors when computing DoS
-
-  Revision 1.23  2008/03/31 15:06:49  ivo
-  Add cofolding support in subopt
-
-  Revision 1.22  2008/02/23 09:42:35  ivo
-  fix circular folding bugs with dangles that cross the origin
-
-  Revision 1.21  2008/01/08 15:08:51  ivo
-  circular fold would fail for open chain
-
-  Revision 1.20  2008/01/08 14:08:20  ivo
-  add an option to compute the density of state
-
-  Revision 1.19  2007/12/05 13:04:04  ivo
-  add various circfold variants from Ronny
-
-  Revision 1.18  2003/10/06 08:56:45  ivo
-  use P->TerminalAU
-
-  Revision 1.17  2003/08/26 09:26:08  ivo
-  don't modify print_energy in subopt(); use doubles instead of floats
-
-  Revision 1.16  2001/10/01 13:50:00  ivo
-  sorted -> subopt_sorted
-
-  Revision 1.15  2001/09/17 10:30:42  ivo
-  move scale_parameters() into params.c
-  returns pointer to paramT structure
-
-  Revision 1.14  2001/08/31 15:02:19  ivo
-  Let subopt either write to file pointer or return a list of structures,
-  so we can nicely integrate it into the library
-
-  Revision 1.13  2001/04/05 07:35:08  ivo
-  remove uneeded declaration of TETRA_ENERGY
-
-  Revision 1.12  2000/10/10 08:53:20  ivo
-  adapted for new Turner energy parameters
-  supports all constraints that forbid pairs
-
-  Revision 1.11  2000/04/08 15:56:18  ivo
-  with noLonelyPairs=1 will produce no structures with isolated base pairs
-  (Giegerich's canonical structures)
-
-  Revision 1.10  1999/05/06 10:13:35  ivo
-  recalculte energies before printing if logML is set
-  + cosmetic changes
-
-  Revision 1.9  1998/05/19 16:31:52  ivo
-  added support for constrained folding
-
-  Revision 1.8  1998/03/30 14:44:54  ivo
-  cleanup of make_printout etc.
-
-  Revision 1.7  1998/03/30 14:39:31  ivo
-  replaced BasePairs list with structure string in STATE
-  save memory by not storing (and sorting) structures
-  modified for use with ViennaRNA-1.2.1
-
-  Revision 1.6  1997/10/21 11:34:09  walter
-  steve update
-
-  Revision 1.1  1997/08/04 21:05:32  walter
-  Initial revision
-
-*/
-/*
    suboptimal folding - Stefan Wuchty, Walter Fontana & Ivo Hofacker
 
                        Vienna RNA package
@@ -86,7 +13,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/pair_mat.h"
 #include "list.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/params.h"
@@ -132,35 +58,17 @@ PRIVATE int     turn;
 PRIVATE LIST    *Stack = NULL;
 PRIVATE int     nopush;
 PRIVATE int     best_energy;          /* best_energy = remaining energy */
-PRIVATE int     *f5 = NULL;           /* energy of 5 end */
-PRIVATE int     *c = NULL;            /* energy array, given that i-j pair */
-PRIVATE int     *fML = NULL;          /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1 = NULL;          /* another multi-loop auxiliary energy array */
-PRIVATE int     *fc = NULL;           /*energy array, from i (j)  to cut*/
-PRIVATE int     *indx = NULL;         /* index for moving in the triangle matrices c[] and f[] */
-PRIVATE short   *S=NULL, *S1=NULL;
-PRIVATE char    *ptype=NULL;
-PRIVATE paramT  *P = NULL;
-PRIVATE int     length;
 PRIVATE int     minimal_energy;       /* minimum free energy */
 PRIVATE int     element_energy;       /* internal energy of a structural element */
 PRIVATE int     threshold;            /* minimal_energy + delta */
-PRIVATE char    *sequence = NULL;
-PRIVATE int     circular            = 0;
-PRIVATE int     struct_constrained  = 0;
-PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
-PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
-PRIVATE int     with_gquad          = 0;
 
-
-PRIVATE int     *ggg = NULL;
+/* some backward compatibility stuff */
+PRIVATE int                 backward_compat           = 0;
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
-                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained,\
-                          ggg, with_gquad)
+#pragma omp threadprivate(turn, Stack, nopush, best_energy, minimal_energy, element_energy, threshold, backward_compat_compound, backward_compat)
 
 #endif
 
@@ -169,6 +77,15 @@ PRIVATE int     *ggg = NULL;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+PRIVATE SOLUTION *
+wrap_subopt(char *seq,
+            char *structure,
+            paramT *parameters,
+            int delta,
+            int is_constrained,
+            int is_circular,
+            FILE *fp);
+
 PRIVATE void      make_pair(int i, int j, STATE *state);
 
 /* mark a gquadruplex in the resulting dot-bracket structure */
@@ -177,15 +94,15 @@ PRIVATE void      make_gquad(int i, int L, int l[3], STATE *state);
 PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
                                     /*@only@*/ /*@null@*/ char *structure,
-                                    int partial_energy, int is_duplex);
+                                    int partial_energy, int is_duplex, int length);
 PRIVATE STATE     *copy_state(STATE * state);
 PRIVATE void      print_state(STATE * state);
 PRIVATE void      UNUSED print_stack(LIST * list);
 /*@only@*/ PRIVATE LIST *make_list(void);
 PRIVATE void      push(LIST * list, /*@only@*/ void *data);
 PRIVATE void      *pop(LIST * list);
-PRIVATE int       best_attainable_energy(STATE * state);
-PRIVATE void      scan_interval(int i, int j, int array_flag, STATE * state);
+PRIVATE int       best_attainable_energy(vrna_fold_compound *vc, STATE * state);
+PRIVATE void      scan_interval(vrna_fold_compound *vc, int i, int j, int array_flag, STATE * state);
 PRIVATE void      free_interval_node(/*@only@*/ INTERVAL * node);
 PRIVATE void      free_state_node(/*@only@*/ STATE * node);
 PRIVATE void      push_back(STATE * state);
@@ -193,8 +110,8 @@ PRIVATE char*     get_structure(STATE * state);
 PRIVATE int       compare(const void *solution1, const void *solution2);
 PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
 PRIVATE char      *costring(char *string);
-PRIVATE void      repeat(int i, int j, STATE * state, int part_energy, int temp_energy);
-PRIVATE void      repeat_gquad( int i, int j, STATE *state, int part_energy, int temp_energy);
+PRIVATE void      repeat(vrna_fold_compound *vc, int i, int j, STATE * state, int part_energy, int temp_energy);
+PRIVATE void      repeat_gquad(vrna_fold_compound *vc, int i, int j, STATE *state, int part_energy, int temp_energy);
 
 /*
 #################################
@@ -266,7 +183,8 @@ PRIVATE STATE *
 make_state(LIST * Intervals,
            char *structure,
            int partial_energy,
-           int is_duplex)
+           int is_duplex,
+           int length)
 {
   STATE *state;
 
@@ -404,31 +322,39 @@ pop(LIST * list)
 /*---------------------------------------------------------------------------*/
 
 PRIVATE int
-best_attainable_energy(STATE * state)
-{
+best_attainable_energy( vrna_fold_compound *vc,
+                        STATE *state){
+
   /* evaluation of best possible energy attainable within remaining intervals */
 
   register int sum;
-  INTERVAL *next;
+  INTERVAL        *next;
+  model_detailsT  *md;
+  mfe_matricesT   *matrices;
+  int             *indx;
+
+  md        = &(vc->params->model_details);
+  matrices  = vc->matrices;
+  indx      = vc->jindx;
 
   sum = state->partial_energy;  /* energy of already found elements */
 
   for (next = lst_first(state->Intervals); next; next = lst_next(next))
     {
       if (next->array_flag == 0)
-        sum += (circular) ? Fc : f5[next->j];
+        sum += (md->circ) ? matrices->Fc : matrices->f5[next->j];
       else if (next->array_flag == 1)
-        sum += fML[indx[next->j] + next->i];
+        sum += matrices->fML[indx[next->j] + next->i];
       else if (next->array_flag == 2)
-        sum += c[indx[next->j] + next->i];
+        sum += matrices->c[indx[next->j] + next->i];
       else if (next->array_flag == 3)
-        sum += fM1[indx[next->j] + next->i];
+        sum += matrices->fM1[indx[next->j] + next->i];
       else if (next->array_flag == 4)
-        sum += fc[next->i];
+        sum += matrices->fc[next->i];
       else if (next->array_flag == 5)
-        sum += fc[next->j];
+        sum += matrices->fc[next->j];
       else if (next->array_flag == 6)
-        sum += ggg[indx[next->j] + next->i];
+        sum += matrices->ggg[indx[next->j] + next->i];
     }
 
   return sum;
@@ -486,45 +412,25 @@ PRIVATE void make_output(SOLUTION *SL, FILE *fp)  /* prints stuff */
 /* start of subopt backtracking ---------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 
-PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp){
-  return subopt_par(seq, structure, NULL, delta, fold_constrained, 0, fp);
-}
+PRIVATE SOLUTION *
+wrap_subopt(char *string,
+            char *structure,
+            paramT *parameters,
+            int delta,
+            int is_constrained,
+            int is_circular,
+            FILE *fp){
 
-PUBLIC SOLUTION *subopt_circ(char *seq, char *structure, int delta, FILE *fp){
-  return subopt_par(seq, structure, NULL, delta, fold_constrained, 1, fp);
-}
+  vrna_fold_compound  *vc;
+  paramT              *P;
+  char                *seq;
 
-PUBLIC SOLUTION *subopt_par(char *seq,
-                            char *structure,
-                            paramT *parameters,
-                            int delta,
-                            int is_constrained,
-                            int is_circular,
-                            FILE *fp){
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
 
-  STATE         *state;
-  LIST          *Intervals;
-  INTERVAL      *interval;
-  SOLUTION      *SolutionList;
-  unsigned long max_sol, n_sol;
-  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model;
-  double        structure_energy, min_en, eprint;
-  char          *struc;
-
-  max_sol             = 128;
-  n_sol               = 0;
-  sequence            = seq;
-  length              = strlen(sequence);
-  circular            = is_circular;
-  struct_constrained  = is_constrained;
-
-  struc = (char *) space(sizeof(char)*(length+1));
-  if (struct_constrained) strncpy(struc, structure, length);
-
-  /* do mfe folding to get fill arrays and get ground state energy  */
-  /* in case dangles is neither 0 or 2, set dangles=2 while folding */
-
-  if(P) free(P);
+  /* we need the parameter structure for hard constraints */
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
@@ -532,38 +438,126 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
-
   P->model_details.circ     = is_circular;
   P->model_details.uniq_ML  = uniq_ML = 1;
 
-  logML       = P->model_details.logML;
-  old_dangles = dangle_model = P->model_details.dangles;
-  with_gquad  = P->model_details.gquad;
+  /* what about cofold sequences here? Is it safe to call the below cut_point_insert() ? */
+  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
+  seq = vrna_cut_point_insert(string, cut_point);
+
+  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | ((is_circular == 0) ? VRNA_OPTION_HYBRID : (char)0));
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
+
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_PIPE
+                          | VRNA_CONSTRAINT_DOT
+                          | VRNA_CONSTRAINT_X
+                          | VRNA_CONSTRAINT_ANG_BRACK
+                          | VRNA_CONSTRAINT_RND_BRACK
+                          | VRNA_CONSTRAINT_INTRAMOLECULAR
+                          | VRNA_CONSTRAINT_INTERMOLECULAR;
+
+    vrna_hc_add(vc, (const char *)structure, constraint_options);
+  }
+
+  if(backward_compat_compound && backward_compat)
+    vrna_free_fold_compound(backward_compat_compound);
+
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
+
+  /* cleanup */
+  free(seq);
+
+  return vrna_subopt(vc, delta, fp);
+}
+
+PUBLIC SOLUTION *
+vrna_subopt(vrna_fold_compound *vc,
+            int delta,
+            FILE *fp){
+
+  STATE         *state;
+  LIST          *Intervals;
+  INTERVAL      *interval;
+  SOLUTION      *SolutionList;
+  unsigned long max_sol, n_sol;
+  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad;
+  double        structure_energy, min_en, eprint;
+  char          *struc, *structure, *sequence;
+  paramT          *P;
+  model_detailsT  *md;
+  int           Fc, FcH, FcI, FcM, *fM2;
+  int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
+  char          *ptype;
+  short         *S, *S1;
+
+  max_sol             = 128;
+  n_sol               = 0;
+  sequence            = vc->sequence;
+  length              = vc->length;
+  S                   = vc->sequence_encoding2;
+  S1                  = vc->sequence_encoding;
+  P                   = vc->params;
+  md                  = &(P->model_details);
+
+  /* do mfe folding to get fill arrays and get ground state energy  */
+  /* in case dangles is neither 0 or 2, set dangles=2 while folding */
+
+  circular    = md->circ;
+  logML       = md->logML;
+  old_dangles = dangle_model = md->dangles;
+  with_gquad  = md->gquad;
 
   /* temporarily set dangles to 2 if necessary */
-  if((P->model_details.dangles != 0) && (P->model_details.dangles != 2))
-    P->model_details.dangles = 2;
+  if((md->dangles != 0) && (md->dangles != 2))
+    md->dangles = 2;
 
+  struc = (char *)space(sizeof(char) * (length + 1));
 
   turn = (cut_point<0) ? 3 : 0;
   if(circular){
-    min_en = fold_par(sequence, struc, P, struct_constrained, circular);
-    export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype);
+    min_en = vrna_fold(vc, struc);
+    Fc  = vc->matrices->Fc;
+    FcH = vc->matrices->FcH;
+    FcI = vc->matrices->FcI;
+    FcM = vc->matrices->FcM;
+    fM2  = vc->matrices->fM2;
+    f5    = vc->matrices->f5;
+    c     = vc->matrices->c;
+    fML   = vc->matrices->fML;
+    fM1   = vc->matrices->fM1;
+    ggg   = vc->matrices->ggg;
+    indx  = vc->jindx;
+    ptype = vc->ptype;
+
     /* restore dangle model */
-    P->model_details.dangles = old_dangles;
+    md->dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
     min_en = vrna_eval_structure(sequence, struc, P);
   } else {
-    min_en = cofold_par(sequence, struc, P, struct_constrained);
+    min_en = vrna_cofold(vc, struc);
 
-    if(with_gquad){
-      export_cofold_arrays_gq(&f5, &c, &fML, &fM1, &fc, &ggg, &indx, &ptype);
-    } else {
-      export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
-    }
+    fc    = vc->matrices->fc;
+    f5    = vc->matrices->f5;
+    c     = vc->matrices->c;
+    fML   = vc->matrices->fML;
+    fM1   = vc->matrices->fM1;
+    ggg   = vc->matrices->ggg;
+    indx  = vc->jindx;
+    ptype = vc->ptype;
 
     /* restore dangle model */
-    P->model_details.dangles = old_dangles;
+    md->dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
     min_en = vrna_eval_structure(sequence, struc, P);
   }
@@ -576,9 +570,6 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     fprintf(fp, "%s %6d %6d\n", SeQ, (int) (-0.1+100*min_en), delta);
     free(SeQ);
   }
-  make_pair_matrix();
-  S   = encode_sequence(sequence, 0);
-  S1  = encode_sequence(sequence, 1);
 
   /* Initialize ------------------------------------------------------------ */
 
@@ -598,7 +589,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
   Intervals = make_list();                                   /* initial state: */
   interval = make_interval(1, length, 0);          /* interval [1,length,0] */
   push(Intervals, interval);
-  state = make_state(Intervals, NULL, partial_energy,0);
+  state = make_state(Intervals, NULL, partial_energy,0, length);
   /* state->best_energy = minimal_energy; */
   push(Stack, state);
 
@@ -694,7 +685,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
       interval = pop(state->Intervals);
 
-      scan_interval(interval->i, interval->j, interval->array_flag, state);
+      scan_interval(vc, interval->i, interval->j, interval->array_flag, state);
 
       free_interval_node(interval);        /* free the current interval */
     }
@@ -702,9 +693,6 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     free_state_node(state);                     /* free the current state */
   } /* end of while (1) */
 
-  /* free arrays left over from cofold() */
-  free(S); free(S1);
-  (circular) ? free_arrays():free_co_arrays();
   if (fp) { /* we've printed everything -- free solutions */
     SOLUTION *sol;
     for (sol=SolutionList; sol->structure != NULL; sol++)
@@ -718,8 +706,12 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
 
 PRIVATE void
-scan_interval(int i, int j, int array_flag, STATE * state)
-{
+scan_interval(vrna_fold_compound *vc,
+              int i,
+              int j,
+              int array_flag,
+              STATE * state){
+
   /* real backtrack routine */
 
   /* array_flag = 0:  trace back in f5-array  */
@@ -727,15 +719,49 @@ scan_interval(int i, int j, int array_flag, STATE * state)
   /* array_flag = 2:  trace back in repeat()  */
   /* array_flag = 3:  trace back in fM1-array */
 
-  STATE *new_state, *temp_state;
-  INTERVAL *new_interval;
-  register int k, fi, cij;
-  register int type;
-  register int dangle_model = P->model_details.dangles;
-  register int noGUclosure  = P->model_details.noGUclosure;
-  register int noLP         = P->model_details.noLP;
+  STATE           *new_state, *temp_state;
+  INTERVAL        *new_interval;
+  paramT          *P;
+  model_detailsT  *md;
+  register int    k, fi, cij;
+  register int    type;
+  register int    dangle_model;
+  register int    noLP;
+  int             *fc, *f5, *c, *fML, *fM1, *ggg;
+  int             Fc, FcH, FcI, FcM, *fM2;
+  int             length, *indx, *rtype, circular, with_gquad, noGUclosure;
+  char            *ptype, *sequence;
+  short           *S, *S1;
 
-  best_energy = best_attainable_energy(state);  /* .. on remaining intervals */
+  sequence  = vc->sequence;
+  length    = vc->length;
+  indx      = vc->jindx;
+  ptype     = vc->ptype;
+  S         = vc->sequence_encoding2;
+  S1        = vc->sequence_encoding;
+  P         = vc->params;
+  md        = &(P->model_details);
+  rtype     = &(md->rtype[0]);
+
+  dangle_model  = md->dangles;
+  noLP          = md->noLP;
+  circular      = md->circ;
+  with_gquad    = md->gquad;
+  noGUclosure   = md->noGUclosure;
+
+  fc  = vc->matrices->fc;
+  f5  = vc->matrices->f5;
+  c   = vc->matrices->c;
+  fML = vc->matrices->fML;
+  fM1 = vc->matrices->fM1;
+  ggg = vc->matrices->ggg;
+  Fc  = vc->matrices->Fc;
+  FcH = vc->matrices->FcH;
+  FcI = vc->matrices->FcI;
+  FcM = vc->matrices->FcM;
+  fM2 = vc->matrices->fM2;
+
+  best_energy = best_attainable_energy(vc, state);  /* .. on remaining intervals */
   nopush = true;
 
   if ((i > 1) && (!array_flag))
@@ -787,12 +813,12 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       cij = c[indx[j] + i] + element_energy;
       if (cij + best_energy <= threshold)
-        repeat(i, j, state, element_energy, 0);
+        repeat(vc, i, j, state, element_energy, 0);
     } else if (with_gquad){
       element_energy = E_MLstem(0, -1, -1, P);
       cij = ggg[indx[j] + i] + element_energy;
       if(cij + best_energy <= threshold)
-        repeat_gquad(i, j, state, element_energy, 0);
+        repeat_gquad(vc, i, j, state, element_energy, 0);
     }
   }                                   /* array_flag == 3 || array_flag == 1 */
 
@@ -815,7 +841,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
               temp_state = copy_state (state);
               new_interval = make_interval (i, k, 1);
               push (temp_state->Intervals, new_interval);
-              repeat_gquad(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+              repeat_gquad(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i]);
               free_state_node(temp_state);
             }
           }
@@ -838,7 +864,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
             temp_state = copy_state (state);
             new_interval = make_interval (i, k, 1);
             push (temp_state->Intervals, new_interval);
-            repeat(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+            repeat(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i]);
             free_state_node(temp_state);
           }
         }
@@ -854,7 +880,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       if(with_gquad){
         element_energy = E_MLstem(0, -1, -1, P) + P->MLbase*(k-i+1);
         if(ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold)
-          repeat_gquad(k+1, j, state, element_energy, 0);
+          repeat_gquad(vc, k+1, j, state, element_energy, 0);
       }
 
       type = ptype[indx[j]+k+1];
@@ -871,7 +897,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       element_energy += P->MLbase*(k-i+1);
 
       if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
-        repeat(k+1, j, state, element_energy, 0);
+        repeat(vc, k+1, j, state, element_energy, 0);
     }
   }                                                    /* array_flag == 1 */
 
@@ -882,7 +908,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       /* array_flag = 2:                  interval i,j was generated from a */
       /* stack, bulge, or internal loop in repeat() */
 
-      repeat(i, j, state, 0, 0);
+      repeat(vc, i, j, state, 0, 0);
 
       if (nopush){
         if (!noLP){
@@ -921,7 +947,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
               new_interval = make_interval(1,k-1,0);
               push(temp_state->Intervals, new_interval);
               /* backtrace the quadruplex */
-              repeat_gquad(k, j, temp_state, element_energy, f5[k-1]);
+              repeat_gquad(vc, k, j, temp_state, element_energy, f5[k-1]);
               free_state_node(temp_state);
             }
           }
@@ -949,7 +975,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
             temp_state = copy_state(state);
             new_interval = make_interval(1, k-1, 0);
             push(temp_state->Intervals, new_interval);
-            repeat(k, j, temp_state, element_energy, f5[k-1]);
+            repeat(vc, k, j, temp_state, element_energy, f5[k-1]);
             free_state_node(temp_state);
           }
       }
@@ -963,13 +989,13 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         if (!(SAME_STRAND(1,j))) element_energy+=P->DuplexInit;
 
         if (c[indx[j]+1] + element_energy + best_energy <= threshold)
-          repeat(1, j, state, element_energy, 0);
+          repeat(vc, 1, j, state, element_energy, 0);
       } else if (with_gquad){
         if(SAME_STRAND(k,j)){
           element_energy = 0;
           if(ggg[indx[j]+1] + element_energy + best_energy <= threshold){
             /* backtrace the quadruplex */
-            repeat_gquad(1, j, state, element_energy, 0);
+            repeat_gquad(vc, 1, j, state, element_energy, 0);
           }
         }
       }
@@ -1139,7 +1165,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
           temp_state = copy_state(state);
           new_interval = make_interval(k+1,j, 4);
           push(temp_state->Intervals, new_interval);
-          repeat_gquad(i, k, temp_state, 0, fc[k+1]);
+          repeat_gquad(vc, i, k, temp_state, 0, fc[k+1]);
           free_state_node(temp_state);
         }
       }
@@ -1157,7 +1183,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         temp_state = copy_state(state);
         new_interval = make_interval(k+1,j, 4);
         push(temp_state->Intervals, new_interval);
-        repeat(i, k, temp_state, element_energy, fc[k+1]);
+        repeat(vc, i, k, temp_state, element_energy, fc[k+1]);
         free_state_node(temp_state);
       }
     }
@@ -1169,10 +1195,10 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         element_energy = E_ExtLoop(type, -1, -1, P);
 
       if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
-        repeat(i, cut_point-1, state, element_energy, 0);
+        repeat(vc, i, cut_point-1, state, element_energy, 0);
     } else if(with_gquad){
       if(ggg[indx[cut_point -1] + i] + best_energy <= threshold)
-        repeat_gquad(i, cut_point - 1, state, 0, 0);
+        repeat_gquad(vc, i, cut_point - 1, state, 0, 0);
     }
   } /* array_flag == 4 */
 
@@ -1197,7 +1223,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
           temp_state = copy_state(state);
           new_interval = make_interval(i, k-1, 5);
           push(temp_state->Intervals, new_interval);
-          repeat_gquad(k, j, temp_state, 0, fc[k-1]);
+          repeat_gquad(vc, k, j, temp_state, 0, fc[k-1]);
           free_state_node(temp_state);
         }
       }
@@ -1216,7 +1242,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         temp_state = copy_state(state);
         new_interval = make_interval(i, k-1, 5);
         push(temp_state->Intervals, new_interval);
-        repeat(k, j, temp_state, element_energy, fc[k-1]);
+        repeat(vc, k, j, temp_state, element_energy, fc[k-1]);
         free_state_node(temp_state);
       }
     }
@@ -1226,15 +1252,15 @@ scan_interval(int i, int j, int array_flag, STATE * state)
         element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
 
       if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
-        repeat(cut_point, j, state, element_energy, 0);
+        repeat(vc, cut_point, j, state, element_energy, 0);
     } else if (with_gquad){
       if(ggg[indx[j] + cut_point] + best_energy <= threshold)
-        repeat_gquad(cut_point, j, state, 0, 0);
+        repeat_gquad(vc, cut_point, j, state, 0, 0);
     }
   } /* array_flag == 5 */
 
   if (array_flag == 6) { /* we have a gquad */
-      repeat_gquad(i, j, state, 0, 0);
+      repeat_gquad(vc, i, j, state, 0, 0);
       if (nopush){
         fprintf(stderr, "%d,%d", i, j);
         fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
@@ -1251,11 +1277,22 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void
-repeat_gquad( int i,
+repeat_gquad( vrna_fold_compound *vc,
+              int i,
               int j,
               STATE *state,
               int part_energy,
               int temp_energy){
+
+  int *ggg, *indx;
+  short *S, *S1;
+  paramT *P;
+
+  indx  = vc->jindx;
+  ggg   = vc->matrices->ggg;
+  S     = vc->sequence_encoding2;
+  S1    = vc->sequence_encoding;
+  P     = vc->params;
 
   /* find all gquads that fit into the energy range and the interval [i,j] */
   STATE *new_state;
@@ -1300,21 +1337,56 @@ repeat_gquad( int i,
 
 
 PRIVATE void
-repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
-{
+repeat( vrna_fold_compound *vc,
+        int i,
+        int j,
+        STATE * state,
+        int part_energy,
+        int temp_energy){
+
   /* routine to find stacks, bulges, internal loops and  multiloops */
   /* within interval closed by basepair i,j */
 
-  STATE *new_state;
-  INTERVAL *new_interval;
+  STATE           *new_state;
+  INTERVAL        *new_interval;
+  paramT          *P;
+  model_detailsT  *md;
 
   register int  k, p, q, energy, new;
   register int  mm;
   register int  no_close, type, type_2;
-  int           rt;
-  int           dangle_model  = P->model_details.dangles;
-  int           noLP          = P->model_details.noLP;
-  int           noGUclosure   = P->model_details.noGUclosure;
+  char          *ptype, *sequence;
+  int             *fc, *f5, *c, *fML, *fM1, *ggg;
+  int             Fc, FcH, FcI, FcM, *fM2;
+  int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model;
+  short         *S, *S1;
+
+  sequence  = vc->sequence;
+  length    = vc->length;
+  S         = vc->sequence_encoding2;
+  S1        = vc->sequence_encoding;
+  ptype     = vc->ptype;
+  indx      = vc->jindx;
+  P         = vc->params;
+  md        = &(P->model_details);
+  rtype     = &(md->rtype[0]);
+
+  noGUclosure   = md->noGUclosure;
+  noLP          = md->noLP;
+  with_gquad    = md->gquad;
+  dangle_model  = md->dangles;
+
+  fc  = vc->matrices->fc;
+  f5  = vc->matrices->f5;
+  c   = vc->matrices->c;
+  fML = vc->matrices->fML;
+  fM1 = vc->matrices->fM1;
+  ggg = vc->matrices->ggg;
+  Fc  = vc->matrices->Fc;
+  FcH = vc->matrices->FcH;
+  FcI = vc->matrices->FcI;
+  FcM = vc->matrices->FcM;
+  fM2 = vc->matrices->fM2;
 
   type = ptype[indx[j]+i];
   if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);
@@ -1507,6 +1579,41 @@ PRIVATE char *costring(char *string)
 
   return ctmp;
 }
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC SOLUTION *
+subopt( char *seq,
+        char *structure,
+        int delta,
+        FILE *fp){
+
+  return wrap_subopt(seq, structure, NULL, delta, fold_constrained, 0, fp);
+}
+
+PUBLIC SOLUTION *
+subopt_circ(char *seq,
+            char *structure,
+            int delta,
+            FILE *fp){
+
+  return wrap_subopt(seq, structure, NULL, delta, fold_constrained, 1, fp);
+}
+
+PUBLIC SOLUTION *subopt_par(char *seq,
+                            char *structure,
+                            paramT *parameters,
+                            int delta,
+                            int is_constrained,
+                            int is_circular,
+                            FILE *fp){
+
+  return wrap_subopt(seq, structure, parameters, delta, is_constrained, is_circular, fp);
+}
+
+
 
 /*---------------------------------------------------------------------------*/
 /* Well, that is the end!----------------------------------------------------*/
