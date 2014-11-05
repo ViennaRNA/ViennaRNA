@@ -836,11 +836,11 @@ scan_interval(vrna_fold_compound *vc,
     /*                          stack, bulge, or internal loop in repeat() */
     /*                          or in this block */
 
-    int stopp;
+    int stopp, k1j;
     if ((ON_SAME_STRAND(i-1,i,cp))&&(ON_SAME_STRAND(j,j+1,cp))) { /*backtrack in FML only if multiloop is possible*/
       for ( k = i+turn+1 ; k <= j-1-turn ; k++) {
         /* Multiloop decomposition if i,j contains more than 1 stack */
-        
+
         if(with_gquad){
           if(ON_SAME_STRAND(k, k+1, cp)){
             element_energy = E_MLstem(0, -1, -1, P);
@@ -854,25 +854,30 @@ scan_interval(vrna_fold_compound *vc,
           }
         }
 
-        type = ptype[indx[j]+k+1];
-        if (type==0) continue;
+        k1j = indx[j] + k + 1;
 
-        if(dangle_model)
-          element_energy = E_MLstem(type,
-                                    (ON_SAME_STRAND(i-1,i,cp)) ? S1[k] : -1,
-                                    (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1,
-                                    P);
-        else
-          element_energy = E_MLstem(type, -1, -1, P);
+        if(hard_constraints[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+          short s5, s3;
+          type = ptype[k1j];
 
-        if (ON_SAME_STRAND(k,k+1, cp)) {
-          if (fML[indx[k]+i] + c[indx[j] + k+1] +
-              element_energy + best_energy <= threshold) {
-            temp_state = copy_state (state);
-            new_interval = make_interval (i, k, 1);
-            push (temp_state->Intervals, new_interval);
-            repeat(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i], best_energy, threshold);
-            free_state_node(temp_state);
+          switch(dangle_model){
+            case 2:   s5 = (ON_SAME_STRAND(i-1,i,cp)) ? S1[k] : -1;
+                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+                      break;
+            default:  s5 = s3 = -1;
+                      break;
+          }
+
+          element_energy = E_MLstem(type, s5, s3, P);
+
+          if(ON_SAME_STRAND(k, k+1, cp)){
+            if(fML[indx[k]+i] + c[indx[j] + k+1] + element_energy + best_energy <= threshold){
+              temp_state    = copy_state (state);
+              new_interval  = make_interval (i, k, 1);
+              push (temp_state->Intervals, new_interval);
+              repeat(vc, k+1, j, temp_state, element_energy, fML[indx[k]+i], best_energy, threshold);
+              free_state_node(temp_state);
+            }
           }
         }
       }
@@ -882,58 +887,72 @@ scan_interval(vrna_fold_compound *vc,
     stopp=MIN2(stopp, j-1-turn);
     if (i>cp) stopp=j-1-turn;
     else if (i==cp) stopp=0;   /*not a multi loop*/
-    for (k = i ; k <= stopp; k++) {
-      /* Multiloop decomposition if i,j contains only 1 stack */
-      if(with_gquad){
-        element_energy = E_MLstem(0, -1, -1, P) + P->MLbase*(k-i+1);
-        if(ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold)
-          repeat_gquad(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
-      }
 
-      type = ptype[indx[j]+k+1];
-      if (type==0) continue;
+    int up = 1;
+    for(k = i; k <= stopp; k++, up++){
 
-      if(dangle_model)
-        element_energy = E_MLstem(type,
-                                  (ON_SAME_STRAND(k-1,k,cp)) ? S1[k] : -1,
-                                  (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1,
-                                  P);
-      else
-        element_energy = E_MLstem(type, -1, -1, P);
+      if(hc->up_ml[i] >= up){
+        k1j = indx[j] + k + 1;
 
-      element_energy += P->MLbase*(k-i+1);
+        /* Multiloop decomposition if i,j contains only 1 stack */
+        if(with_gquad){
+          element_energy = E_MLstem(0, -1, -1, P) + P->MLbase * up;
+          if(ggg[k1j] + element_energy + best_energy <= threshold)
+            repeat_gquad(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
+        }
 
-      if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
-        repeat(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
-    }
-  }                                                    /* array_flag == 1 */
+        if(hard_constraints[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+          int s5, s3;
+          type = ptype[k1j];
 
-  /* 2222222222222222222222222222222222222222222222222222222222222222222222 */
+          switch(dangle_model){
+            case 2:   s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k] : -1;
+                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+                      break;
+            default:  s5 = s3 = -1;
+                      break;
+          }
 
-  if (array_flag == 2)
-    {
-      /* array_flag = 2:                  interval i,j was generated from a */
-      /* stack, bulge, or internal loop in repeat() */
+          element_energy = E_MLstem(type, s5, s3, P);
 
-      repeat(vc, i, j, state, 0, 0, best_energy, threshold);
+          element_energy += P->MLbase * up;
 
-      if (nopush){
-        if (!noLP){
-          fprintf(stderr, "%d,%d", i, j);
-          fprintf(stderr, "Oops, no solution in repeat!\n");
+          if (c[k1j] + element_energy + best_energy <= threshold)
+            repeat(vc, k+1, j, state, element_energy, 0, best_energy, threshold);
         }
       }
-      return;
     }
+  } /* array_flag == 1 */
 
-  /* 0000000000000000000000000000000000000000000000000000000000000000000000 */
+  /* 22222222222222222222222222222222222222222222222222 */
+  /*                                                    */
+  /* array_flag = 2:  interval i,j was generated from a */
+  /* stack, bulge, or internal loop in repeat()         */
+  /*                                                    */
+  /* 22222222222222222222222222222222222222222222222222 */
+  if(array_flag == 2){
+    repeat(vc, i, j, state, 0, 0, best_energy, threshold);
 
-  if ((array_flag == 0) && !circular)
-    {
-      /* array_flag = 0:                        interval i,j was found while */
-      /* tracing back through f5-array and c-array */
-      /* or within this block */
+    if (nopush){
+      if (!noLP){
+        fprintf(stderr, "%d,%d", i, j);
+        fprintf(stderr, "Oops, no solution in repeat!\n");
+      }
+    }
+    return;
+  }
 
+  /* 00000000000000000000000000000000000000000000000000 */
+  /*                                                    */
+  /* array_flag = 0:  interval i,j was found while      */
+  /* tracing back through f5-array and c-array          */
+  /* or within this block                               */
+  /*                                                    */
+  /* 00000000000000000000000000000000000000000000000000 */
+  if((array_flag == 0) && !circular){
+    int s5, s3, kj;
+
+    if(hc->up_ext[j]){
       if (f5[j-1] + best_energy <= threshold) {
         /* no basepair, nibbling of 3'-end */
 
@@ -943,70 +962,86 @@ scan_interval(vrna_fold_compound *vc,
         /* new_state->best_energy = f5[j-1] + best_energy; */
         push(Stack, new_state);
       }
+    }
 
-      for (k = j-turn-1; k > 1; k--) {
+    for (k = j-turn-1; k > 1; k--) {
+      kj = indx[j] + k;
 
-        if(with_gquad){
-          if(ON_SAME_STRAND(k,j,cp)){
-            element_energy = 0;
-            if(f5[k-1] + ggg[indx[j]+k] + element_energy + best_energy <= threshold){
-              temp_state = copy_state(state);
-              new_interval = make_interval(1,k-1,0);
-              push(temp_state->Intervals, new_interval);
-              /* backtrace the quadruplex */
-              repeat_gquad(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
-              free_state_node(temp_state);
-            }
+      if(with_gquad){
+        if(ON_SAME_STRAND(k,j,cp)){
+          element_energy = 0;
+          if(f5[k-1] + ggg[kj] + element_energy + best_energy <= threshold){
+            temp_state = copy_state(state);
+            new_interval = make_interval(1,k-1,0);
+            push(temp_state->Intervals, new_interval);
+            /* backtrace the quadruplex */
+            repeat_gquad(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
+            free_state_node(temp_state);
           }
         }
+      }
 
-        type = ptype[indx[j]+k];
-        if (type==0)   continue;
+      if(hard_constraints[kj] & VRNA_HC_CONTEXT_EXT_LOOP){
+        type = ptype[kj];
 
         /* k and j pair */
-        if(dangle_model)
-          element_energy = E_ExtLoop(type,
-                                    (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1,
-                                    ((j < length)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1,
-                                    P);
-        else
-          element_energy = E_ExtLoop(type, -1, -1, P);
+        switch(dangle_model){
+          case 2:   s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1;
+                    s3 = ((j < length)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1;
+                    break;
+          default:  s5 = s3 = -1;
+                    break;
+        }
+        
+        element_energy = E_ExtLoop(type, s5, s3, P);
 
         if (!(ON_SAME_STRAND(k,j,cp)))/*&&(state->is_duplex==0))*/ {
           element_energy+=P->DuplexInit;
           /*state->is_duplex=1;*/
         }
 
-        if (f5[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold)
-          {
-            temp_state = copy_state(state);
-            new_interval = make_interval(1, k-1, 0);
-            push(temp_state->Intervals, new_interval);
-            repeat(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
-            free_state_node(temp_state);
-          }
-      }
-      type = ptype[indx[j]+1];
-      if (type) {
-        if (dangle_model && (j < length)&&(ON_SAME_STRAND(j,j+1,cp)))
-          element_energy = E_ExtLoop(type, -1, S1[j+1], P);
-        else
-          element_energy = E_ExtLoop(type, -1, -1, P);
-
-        if (!(ON_SAME_STRAND(1,j,cp))) element_energy+=P->DuplexInit;
-
-        if (c[indx[j]+1] + element_energy + best_energy <= threshold)
-          repeat(vc, 1, j, state, element_energy, 0, best_energy, threshold);
-      } else if (with_gquad){
-        if(ON_SAME_STRAND(k,j,cp)){
-          element_energy = 0;
-          if(ggg[indx[j]+1] + element_energy + best_energy <= threshold){
-            /* backtrace the quadruplex */
-            repeat_gquad(vc, 1, j, state, element_energy, 0, best_energy, threshold);
-          }
+        if (f5[k-1] + c[kj] + element_energy + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(1, k-1, 0);
+          push(temp_state->Intervals, new_interval);
+          repeat(vc, k, j, temp_state, element_energy, f5[k-1], best_energy, threshold);
+          free_state_node(temp_state);
         }
       }
-    }/* end array_flag == 0 && !circular*/
+    }
+
+    kj = indx[j] + 1;
+
+    if(with_gquad){
+      if(ON_SAME_STRAND(k,j,cp)){
+        element_energy = 0;
+        if(ggg[kj] + element_energy + best_energy <= threshold){
+          /* backtrace the quadruplex */
+          repeat_gquad(vc, 1, j, state, element_energy, 0, best_energy, threshold);
+        }
+      }
+    }
+
+    if(hard_constraints[kj] & VRNA_HC_CONTEXT_EXT_LOOP){
+      type  = ptype[kj];
+      s5    = -1;
+
+      switch(dangle_model){
+        case 2:   s3 = (j < length) && (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+                  break;
+        default:  s3 = -1;
+                  break;
+      }
+
+      element_energy = E_ExtLoop(type, s5, s3, P);
+
+      if(!(ON_SAME_STRAND(1,j,cp)))
+        element_energy += P->DuplexInit;
+
+      if (c[kj] + element_energy + best_energy <= threshold)
+        repeat(vc, 1, j, state, element_energy, 0, best_energy, threshold);
+    }
+  } /* end array_flag == 0 && !circular*/
   /* or do we subopt circular? */
   else if(array_flag == 0){
     int k, l, p, q;
@@ -1151,24 +1186,32 @@ scan_interval(vrna_fold_compound *vc,
     }
   }        /* thats all folks for the circular case... */
 
-  /* 44444444444444444444444444444444444444444444444444444444444444 */
+  /* 44444444444444444444444444444444444444444444444444 */
+  /*                                                    */
+  /* array_flag = 4:  interval i,j was found while      */
+  /* tracing back through fc-array smaller than than cp */
+  /* or within this block                               */
+  /*                                                    */
+  /* 44444444444444444444444444444444444444444444444444 */
   if (array_flag == 4) {
-    /* array_flag = 4:                        interval i,j was found while */
-    /* tracing back through fc-array smaller than than cp*/
-    /* or within this block */
+    int ik, s5, s3;
 
-    if (fc[i+1] + best_energy <= threshold) {
-      /* no basepair, nibbling of 5'-end */
-      new_state = copy_state(state);
-      new_interval = make_interval(i+1, j , 4);
-      push(new_state->Intervals, new_interval);
-      push(Stack, new_state);
+    if(hc->up_ext[i]){
+      if (fc[i+1] + best_energy <= threshold) {
+        /* no basepair, nibbling of 5'-end */
+        new_state = copy_state(state);
+        new_interval = make_interval(i+1, j , 4);
+        push(new_state->Intervals, new_interval);
+        push(Stack, new_state);
+      }
     }
 
     for (k = i+TURN+1; k < j; k++) {
 
+      ik = indx[k] + i;
+
       if(with_gquad){
-        if(fc[k+1] + ggg[indx[k]+i] + best_energy <= threshold){
+        if(fc[k+1] + ggg[ik] + best_energy <= threshold){
           temp_state = copy_state(state);
           new_interval = make_interval(k+1,j, 4);
           push(temp_state->Intervals, new_interval);
@@ -1177,56 +1220,81 @@ scan_interval(vrna_fold_compound *vc,
         }
       }
 
-      type = ptype[indx[k]+i];
-      if (type==0)   continue;
+      if(hard_constraints[ik] & VRNA_HC_CONTEXT_EXT_LOOP){
+        type = ptype[ik];
 
-      /* k and j pair */
-      if (dangle_model)
-        element_energy = E_ExtLoop(type, (i > 1) ? S1[i-1]: -1, S1[k+1], P);
-      else  /* no dangles */
-        element_energy = E_ExtLoop(type, -1, -1, P);
+        switch(dangle_model){
+          case 2:   s5 = (i > 1) ? S1[i-1]: -1;
+                    s3 = S1[k+1];
+                    break;
+          default:  s5 = s3 = -1;
+                    break;
+        }
 
-      if (fc[k+1] + c[indx[k]+i] + element_energy + best_energy <= threshold) {
-        temp_state = copy_state(state);
-        new_interval = make_interval(k+1,j, 4);
-        push(temp_state->Intervals, new_interval);
-        repeat(vc, i, k, temp_state, element_energy, fc[k+1], best_energy, threshold);
-        free_state_node(temp_state);
+        element_energy = E_ExtLoop(type, s5, s3, P);
+
+        if (fc[k+1] + c[ik] + element_energy + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(k+1,j, 4);
+          push(temp_state->Intervals, new_interval);
+          repeat(vc, i, k, temp_state, element_energy, fc[k+1], best_energy, threshold);
+          free_state_node(temp_state);
+        }
       }
     }
-    type = ptype[indx[j]+i];
-    if (type) {
-      if (dangle_model)
-        element_energy = E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P);
-      else
-        element_energy = E_ExtLoop(type, -1, -1, P);
 
-      if (c[indx[cp-1]+i] + element_energy + best_energy <= threshold)
-        repeat(vc, i, cp-1, state, element_energy, 0, best_energy, threshold);
-    } else if(with_gquad){
-      if(ggg[indx[cp -1] + i] + best_energy <= threshold)
+    ik = indx[cp -1] + i; /* indx[j] + i; */
+
+    if(with_gquad){
+      if(ggg[ik] + best_energy <= threshold)
         repeat_gquad(vc, i, cp - 1, state, 0, 0, best_energy, threshold);
+    }
+
+    if(hard_constraints[ik] & VRNA_HC_CONTEXT_EXT_LOOP){
+      type  = ptype[ik];
+      s3    = -1;
+
+      switch(dangle_model){
+        case 2:   s5 = (i>1) ? S1[i-1] : -1;
+                  break;
+        default:  s5 = -1;
+                  break;
+      }
+
+      element_energy = E_ExtLoop(type, s5, s3, P);
+
+      if(c[ik] + element_energy + best_energy <= threshold)
+        repeat(vc, i, cp-1, state, element_energy, 0, best_energy, threshold);
     }
   } /* array_flag == 4 */
 
-  /*55555555555555555555555555555555555555555555555555555555555555555555555*/
+  /* 55555555555555555555555555555555555555555555555555 */
+  /*                                                    */
+  /* array_flag = 5:  interval cp=i,j was found while   */
+  /* tracing back through fc-array greater than cp      */
+  /* or within this block                               */
+  /*                                                    */
+  /* 55555555555555555555555555555555555555555555555555 */
   if (array_flag == 5) {
-    /* array_flag = 5:  interval cp=i,j was found while  */
-    /* tracing back through fc-array greater than cp     */
-    /* or within this block                                     */
+    int kj, s5, s3;
 
-    if (fc[j-1] + best_energy <= threshold) {
-      /* no basepair, nibbling of 3'-end */
-      new_state = copy_state(state);
-      new_interval = make_interval(i, j-1 , 5);
-      push(new_state->Intervals, new_interval);
-      push(Stack, new_state);
+    if(hc->up_ext[j]){
+
+      if (fc[j-1] + best_energy <= threshold) {
+        /* no basepair, nibbling of 3'-end */
+        new_state = copy_state(state);
+        new_interval = make_interval(i, j-1 , 5);
+        push(new_state->Intervals, new_interval);
+        push(Stack, new_state);
+      }
     }
 
+
     for (k = j-TURN-1; k > i; k--) {
+      kj = indx[j] + k;
 
       if(with_gquad){
-        if(fc[k-1] + ggg[indx[j] + k] + best_energy <= threshold){
+        if(fc[k-1] + ggg[kj] + best_energy <= threshold){
           temp_state = copy_state(state);
           new_interval = make_interval(i, k-1, 5);
           push(temp_state->Intervals, new_interval);
@@ -1235,46 +1303,62 @@ scan_interval(vrna_fold_compound *vc,
         }
       }
 
-      type = ptype[indx[j]+k];
-      if (type==0)   continue;
-      element_energy = 0;
+      if(hard_constraints[kj] & VRNA_HC_CONTEXT_EXT_LOOP){
+        type            = ptype[kj];
+        element_energy  = 0;
 
-      /* k and j pair */
-      if (dangle_model)
-        element_energy = E_ExtLoop(type, S1[k-1], (j < length) ? S1[j+1] : -1, P);
-      else
-        element_energy = E_ExtLoop(type, -1, -1, P);
+        switch(dangle_model){
+          case 2:   s5 = S1[k-1];
+                    s3 = (j < length) ? S1[j+1] : -1;
+                    break;
+          default:  s3 = s5 = -1;
+                    break;
+        }
 
-      if (fc[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold) {
-        temp_state = copy_state(state);
-        new_interval = make_interval(i, k-1, 5);
-        push(temp_state->Intervals, new_interval);
-        repeat(vc, k, j, temp_state, element_energy, fc[k-1], best_energy, threshold);
-        free_state_node(temp_state);
+        element_energy = E_ExtLoop(type, s5, s3, P);
+
+        if (fc[k-1] + c[kj] + element_energy + best_energy <= threshold) {
+          temp_state = copy_state(state);
+          new_interval = make_interval(i, k-1, 5);
+          push(temp_state->Intervals, new_interval);
+          repeat(vc, k, j, temp_state, element_energy, fc[k-1], best_energy, threshold);
+          free_state_node(temp_state);
+        }
       }
     }
-    type = ptype[indx[j]+i];
-    if (type) {
-      if(dangle_model)
-        element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
 
-      if (c[indx[j]+cp] + element_energy + best_energy <= threshold)
-        repeat(vc, cp, j, state, element_energy, 0, best_energy, threshold);
-    } else if (with_gquad){
-      if(ggg[indx[j] + cp] + best_energy <= threshold)
+    kj = indx[j] + cp; /* indx[j] + i; */
+
+    if(with_gquad){
+      if(ggg[kj] + best_energy <= threshold)
         repeat_gquad(vc, cp, j, state, 0, 0, best_energy, threshold);
+    }
+
+    if(hard_constraints[kj] & VRNA_HC_CONTEXT_EXT_LOOP){
+      type  = ptype[kj];
+      s5    = -1;
+
+      switch(dangle_model){
+        case 2:   s3 = (j<length) ? S1[j+1] : -1;
+                  break;
+        default:  s3 = -1;
+                  break;
+      }
+
+      element_energy = E_ExtLoop(type, s5, s3, P);
+
+      if (c[kj] + element_energy + best_energy <= threshold)
+        repeat(vc, cp, j, state, element_energy, 0, best_energy, threshold);
     }
   } /* array_flag == 5 */
 
   if (array_flag == 6) { /* we have a gquad */
-      repeat_gquad(vc, i, j, state, 0, 0, best_energy, threshold);
-      if (nopush){
-        fprintf(stderr, "%d,%d", i, j);
-        fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
-      }
-      return;
-  
-  
+    repeat_gquad(vc, i, j, state, 0, 0, best_energy, threshold);
+    if (nopush){
+      fprintf(stderr, "%d,%d", i, j);
+      fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
+    }
+    return;
   }
 
   if (nopush)
