@@ -303,8 +303,12 @@ E_ext_loop_5( vrna_fold_compound *vc){
     /* normal dangles, aka dangle_model = 1 || 3 */
     default:  for(j=turn+2; j<=length; j++){
                 f5[j] = INF;
-                if(hc_up[j])
+                if(hc_up[j]){
                   f5[j] = f5[j-1];
+                  if(sc)
+                    if(sc->free_energies)
+                      f5[j] += sc->free_energies[j][1];
+                }
                 for (i=j-turn-1; i>1; i--){
                   ij = indx[j] + i;
                   if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
@@ -318,6 +322,11 @@ E_ext_loop_5( vrna_fold_compound *vc){
                     f5[j] = MIN2(f5[j], en);
                     if(hc_up[i-1]){
                       en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], -1, P);
+
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i-1][1];
+
                       f5[j] = MIN2(f5[j], en);
                     }
                   }
@@ -326,9 +335,20 @@ E_ext_loop_5( vrna_fold_compound *vc){
                     if(hc_up[j]){
                       type  = ptype[ij];
                       en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S[j], P);
+
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[j][1];
+
                       f5[j] = MIN2(f5[j], en);
+
                       if(hc_up[i-1]){
                         en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], S[j], P);
+
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[i-1][1] + sc->free_energies[j][1];
+
                         f5[j] = MIN2(f5[j], en);
                       }
                     }
@@ -350,6 +370,11 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   if(hc_up[j]){
                     type  = ptype[ij];
                     en    = c[ij] + E_ExtLoop(type, -1, S[j], P);
+
+                    if(sc)
+                      if(sc->free_energies)
+                        en += sc->free_energies[j][1];
+
                     f5[j] = MIN2(f5[j], en);
                   }
                 }
