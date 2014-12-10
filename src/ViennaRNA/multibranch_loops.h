@@ -136,6 +136,10 @@ E_mb_loop_fast( int i,
 
         /* normal dangles, aka dangles = 1 || 3 */
         default:  decomp += E_MLstem(tt, -1, -1, P);
+                  if(sc){
+                    if(sc->en_basepair)
+                      decomp += sc->en_basepair[ij];
+                  }
                   if(hc_up[i+1]){
                     en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
                     if(sc){
@@ -234,24 +238,20 @@ E_mb_loop_stack(int i,
       if(hc[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
         type_2  = rtype[(unsigned char)ptype[i1k]];
         en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
-        if(sc){
-          if(sc->en_basepair)
-            en += sc->en_basepair[ij];
-        }
         decomp  = MIN2(decomp, en);
       }
       if(hc[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
         type_2  = rtype[(unsigned char)ptype[k1j1]];
         en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
-        if(sc){
-          if(sc->en_basepair)
-            en += +sc->en_basepair[ij];
-        }
         decomp  = MIN2(decomp, en);
       }
     }
     /* no TermAU penalty if coax stack */
     decomp += 2*P->MLintern[1] + P->MLclosing;
+    if(sc){
+      if(sc->en_basepair)
+        decomp += sc->en_basepair[ij];
+    }
     e = decomp;
 
   }

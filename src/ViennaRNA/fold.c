@@ -903,12 +903,12 @@ backtrack(vrna_fold_compound *vc,
                   }
                   break;
 
-        default:  for(k = i+2+TURN; k < j-2-TURN; k++){
-                    en = cij - P->MLclosing;
-                    if(sc){
-                      if(sc->en_basepair)
-                        en -= sc->en_basepair[ij];
-                    }
+        default:  en = cij - P->MLclosing;
+                  if(sc){
+                    if(sc->en_basepair)
+                      en -= sc->en_basepair[ij];
+                  }
+                  for(k = i+2+TURN; k < j-2-TURN; k++){
                     if(en == my_fML[indx[k]+i+1] + my_fML[indx[j-1]+k+1] + E_MLstem(tt, -1, -1, P)){
                       break;
                     }
@@ -949,14 +949,15 @@ backtrack(vrna_fold_compound *vc,
                     /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                     /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                     if(dangle_model == 3){
+                      int tmp_en = en;
                       if(hc->matrix[indx[k]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
                         type_2 = rtype[(unsigned char)ptype[indx[k]+i+1]];
-                        en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
+                        tmp_en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                         if(sc){
                           if(sc->en_basepair)
-                            en -= sc->en_basepair[ij];
+                            tmp_en += sc->en_basepair[ij];
                         }
-                        if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+                        if (cij == tmp_en+2*P->MLintern[1]+P->MLclosing) {
                           ml = 2;
                           bt_stack[s+1].ml  = 2;
                           traced = 1;
@@ -965,12 +966,12 @@ backtrack(vrna_fold_compound *vc,
                       }
                       if(hc->matrix[indx[j-1]+k+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
                         type_2 = rtype[(unsigned char)ptype[indx[j-1]+k+1]];
-                        en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
+                        tmp_en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                         if(sc){
                           if(sc->en_basepair)
-                            en -= sc->en_basepair[ij];
+                            tmp_en += sc->en_basepair[ij];
                         }
-                        if (cij == en+2*P->MLintern[1]+P->MLclosing) {
+                        if (cij == tmp_en+2*P->MLintern[1]+P->MLclosing) {
                           bt_stack[s+2].ml = 2;
                           traced = 1;
                           break;
