@@ -87,7 +87,7 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
   int i;
   int length = vc->length;
 
-  //calculate pairing probabilty in the pertubated energy model
+  /* calculate pairing probabilty in the pertubated energy model */
   p_prob_unpaired = space(sizeof(double) * (length + 1));
 
   addSoftConstraint(vc, epsilon, length);
@@ -100,11 +100,11 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
 
   for (i = 1; i <= length; ++i)
   {
-    //add penalty for pertubation energies
+    /* add penalty for pertubation energies */
     ret += evaluate_objective_function_contribution(epsilon[i], objective_function) / tau_squared;
 
-    //add penalty for mismatches between observed and predicted probabilities
-    if (q_prob_unpaired[i] >= 0) //ignore positions with missing data
+    /* add penalty for mismatches between observed and predicted probabilities */
+    if (q_prob_unpaired[i] >= 0) /* ignore positions with missing data */
       ret += evaluate_objective_function_contribution(p_prob_unpaired[i] - q_prob_unpaired[i], objective_function) / sigma_squared;
   }
 
@@ -248,7 +248,7 @@ static void evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const 
     {
       for (i = 1; i <= length; ++i)
       {
-        if (q_prob_unpaired[i] < 0) //ignore positions with missing data
+        if (q_prob_unpaired[i] < 0) /* ignore positions with missing data */
           continue;
 
         sum += (p_prob_unpaired[i] - q_prob_unpaired[i])
@@ -306,7 +306,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
   *f = f_gsl(x, params);
   df_gsl(x, params, g);
 }
-#endif //WITH_GSL
+#endif /* WITH_GSL */
 
 void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, int objective_function, double sigma_squared, double tau_squared, int algorithm, int sample_size, double *epsilon, progress_callback callback)
 {
@@ -383,7 +383,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
 
     return;
   }
-#endif //WITH_GSL
+#endif /* WITH_GSL */
 
   double improvement;
   const double min_improvement = 0.0001;

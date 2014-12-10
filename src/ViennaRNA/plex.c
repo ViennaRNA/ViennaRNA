@@ -307,8 +307,8 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
     if (!traced) {
 #if 0
       /**
-      ***if (i<n3) E -= P->dangle3[rtype[type]][SS1[i+1]];//+access_s1[1][i+1];
-      ***if (j>1)  E -= P->dangle5[rtype[type]][SS2[j-1]];//+access_s2[1][j+1];
+      ***if (i<n3) E -= P->dangle3[rtype[type]][SS1[i+1]];/* +access_s1[1][i+1]; */
+      ***if (j>1)  E -= P->dangle5[rtype[type]][SS2[j-1]];/* +access_s2[1][j+1]; */
       ***if (type>2) E -= P->TerminalAU;
       *** Changes with line below
       **/

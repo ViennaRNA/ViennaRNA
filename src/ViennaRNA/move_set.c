@@ -109,7 +109,7 @@ PRIVATE int     find_lone_pair(short* str);
 PRIVATE int
 compare(short *lhs, short *rhs){
 
-  //printf("%d ", (int)lhs[0]);
+  /* printf("%d ", (int)lhs[0]); */
 
   int i=1;
   char l=0,r=0;
@@ -230,7 +230,7 @@ update_deepest(Encoded *Enc, struct_en *str, struct_en *min){
   if (Enc->funct) {
     int end = Enc->funct(str, min);
 
-    // undo moves
+    /*  undo moves */
     if (Enc->bp_left2!=0) do_move(str->structure, -Enc->bp_left2, -Enc->bp_right2);
     do_move(str->structure, -Enc->bp_left, -Enc->bp_right);
     str->energy = last_en;
@@ -281,7 +281,7 @@ update_deepest(Encoded *Enc, struct_en *str, struct_en *min){
     }
 
     if (!found) {
-      //print_stren(stderr, str); // fprintf(stderr, " %6.2f\n", str->energy);
+      /* print_stren(stderr, str); // fprintf(stderr, " %6.2f\n", str->energy); */
       Enc->unprocessed[Enc->end_unpr]=allocopy(str->structure);
       Enc->end_unpr++;
     }
@@ -371,7 +371,7 @@ try_insert(const short *pt, const char *seq, int i, int j){
   return (j-i>MINGAP && pt[j]==0 && pt[i]==0 && compat(seq[i-1], seq[j-1]));
 }
 
-// try insert base pair (i,j)
+/*  try insert base pair (i,j) */
 PRIVATE inline bool
 try_insert_seq(const char *seq, int i, int j){
   if (i<=0 || j<=0) return false;
@@ -641,20 +641,20 @@ construct_moves(Encoded *Enc, short *structure){
       Enc->moves_from[Enc->num_moves]=-i;
       Enc->moves_to[Enc->num_moves]=-structure[i];
       Enc->num_moves++;
-      //fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]);
+      /* fprintf(stderr, "add  d(%d, %d)\n", i, str.structure[i]); */
     } else {
       int j;
       for (j=i+1; j<=structure[0]; j++) {
-        //fprintf(stderr, "check (%d, %d)\n", i, j);
+        /* fprintf(stderr, "check (%d, %d)\n", i, j); */
         if (structure[j]==0) {
           if (try_insert_seq(Enc->seq,i,j)) {
             Enc->moves_from[Enc->num_moves]=i;
             Enc->moves_to[Enc->num_moves]=j;
             Enc->num_moves++;
-            //fprintf(stderr, "add  i(%d, %d)\n", i, j);
+            /* fprintf(stderr, "add  i(%d, %d)\n", i, j); */
             continue;
           }
-        } else if (structure[j]>j) { // '('
+        } else if (structure[j]>j) { /*  '(' */
           j = structure[j];
         } else break;
       }
@@ -692,7 +692,7 @@ move_rset(Encoded *Enc, struct_en *str){
 
   if (Enc->verbose_lvl>0) { fprintf(stderr, "  start of MR:\n  "); print_str(stderr, str->structure); fprintf(stderr, " %d\n\n", str->energy); }
 
-  // construct and permute possible moves
+  /*  construct and permute possible moves */
   construct_moves(Enc, str->structure);
 
   /* find first lower one*/
@@ -852,7 +852,7 @@ move_gradient(char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
   int i;
@@ -908,7 +908,7 @@ move_first( char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
   int i;
@@ -964,10 +964,10 @@ move_adaptive(char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=NULL;
 
-  // allocate memory for moves
+  /*  allocate memory for moves */
   enc.moves_from = (int*) space(ptable[0]*ptable[0]*sizeof(int));
   enc.moves_to = (int*) space(ptable[0]*ptable[0]*sizeof(int));
 
@@ -1050,7 +1050,7 @@ browse_neighs_pt( char *string,
   enc.end_pr=0;
   enc.current_en=0;
 
-  // function
+  /*  function */
   enc.funct=funct;
 
   int i;
@@ -1088,35 +1088,35 @@ print_str(FILE *out, short *str) {
 
 
 #ifdef TEST_MOVESET
-// sample usage:
+/*  sample usage: */
 int main() {
   char seq[20] = "ACCCCCCTCTGTAGGGGGA";
   char str[20] = ".((.(.........).)).";
 
-  // move to the local minimum and display it
+  /*  move to the local minimum and display it */
   int energy = move_standard(seq, str, GRADIENT, 0, 0, 0);
   fprintf(stdout, "%s %6.2f\n\n", str, energy/100.0);
 
-  //now create an array of every structure in neighbourhood of str structure
+  /* now create an array of every structure in neighbourhood of str structure */
   struct_en *list = NULL;
   int list_length = 0;
 
   int get_list(struct_en *new_one, struct_en *old_one)
   {
-    // enlarge the list
+    /*  enlarge the list */
     list_length++;
     list = (struct_en*) realloc(list, list_length*sizeof(struct_en));
 
-    // copy the structure
+    /*  copy the structure */
     list[list_length-1].energy = new_one->energy;
     list[list_length-1].structure = allocopy(new_one->structure);
 
-    // we want to continue -> return 0
+    /*  we want to continue -> return 0 */
     return 0;
   }
   browse_neighs(seq, str, 0, 0, 0, get_list);
 
-  // print them and free the memory:
+  /*  print them and free the memory: */
   int i;
   for (i=0; i<list_length; i++) {
     print_stren(stdout, &list[i]);
