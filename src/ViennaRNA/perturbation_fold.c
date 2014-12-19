@@ -83,6 +83,7 @@ static double evaluate_objective_function_contribution(double value, int objecti
 static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function)
 {
   double ret = 0;
+  double ret2 = 0.;
   double *p_prob_unpaired;
   int i;
   int length = vc->length;
@@ -98,6 +99,7 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
 
   vrna_sc_remove(vc);
 
+  
   for (i = 1; i <= length; ++i)
   {
     //add penalty for pertubation energies
@@ -105,12 +107,13 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
 
     //add penalty for mismatches between observed and predicted probabilities
     if (q_prob_unpaired[i] >= 0) //ignore positions with missing data
-      ret += evaluate_objective_function_contribution(p_prob_unpaired[i] - q_prob_unpaired[i], objective_function) / sigma_squared;
+      ret2 += evaluate_objective_function_contribution(p_prob_unpaired[i] - q_prob_unpaired[i], objective_function) / sigma_squared;
   }
 
+  fprintf(stderr, "Score: pertubation: %g\tdiscrepancy: %g\n", ret, ret2);
   free(p_prob_unpaired);
 
-  return ret;
+  return ret + ret2;
 }
 
 static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const double *epsilon, double *prob_unpaired, double **conditional_prob_unpaired)
@@ -308,8 +311,21 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
 }
 #endif //WITH_GSL
 
-void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_unpaired, int objective_function, double sigma_squared, double tau_squared, int algorithm, int sample_size, double *epsilon, progress_callback callback)
-{
+PUBLIC void
+vrna_find_perturbation_vector(vrna_fold_compound *vc,
+                              const double *q_prob_unpaired,
+                              int objective_function,
+                              double sigma_squared,
+                              double tau_squared,
+                              int algorithm,
+                              int sample_size,
+                              double *epsilon,
+                              double initialStepSize,
+                              double minStepSize,
+                              double minImprovement,
+                              double minimizerTolerance,
+                              progress_callback callback){
+
   int iteration_count = 0;
   const int max_iterations = 100;
   int length = vc->length;
@@ -356,7 +372,8 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
     minimizer = gsl_multimin_fdfminimizer_alloc(minimizer_type, length + 1);
     vector = gsl_vector_calloc(length + 1);
 
-    gsl_multimin_fdfminimizer_set(minimizer, &fdf, vector, 0.01, 1e-4);
+    /* gsl_multimin_fdfminimizer_set(minimizer, &fdf, vector, 0.01, 1e-4); */
+    gsl_multimin_fdfminimizer_set(minimizer, &fdf, vector, initialStepSize, minimizerTolerance);
 
     if (callback)
       callback(0, minimizer->f, minimizer->x->data);
@@ -372,7 +389,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
       if (status)
         break;
 
-      status = gsl_multimin_test_gradient(minimizer->gradient, 1e-3);
+      status = gsl_multimin_test_gradient(minimizer->gradient, minimizerTolerance);
     }
     while (status == GSL_CONTINUE && iteration_count < max_iterations);
 
@@ -386,7 +403,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
 #endif //WITH_GSL
 
   double improvement;
-  const double min_improvement = 0.0001;
+  const double min_improvement = minImprovement;
 
   double *new_epsilon = space(sizeof(double) * (length + 1));
   double *gradient = space(sizeof(double) * (length + 1));
@@ -405,7 +422,8 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
 
     evaluate_perturbation_vector_gradient(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared, objective_function, sample_size, gradient);
 
-    step_size = 0.5 / calculate_norm(gradient, length);
+    /*    step_size = 0.5 / calculate_norm(gradient, length);*/
+    step_size = initialStepSize;
 
     do
     {
@@ -416,7 +434,7 @@ void vrna_find_perturbation_vector(vrna_fold_compound *vc, const double *q_prob_
       new_score = evaluate_perturbation_vector_score(vc, new_epsilon, q_prob_unpaired, sigma_squared, tau_squared, objective_function);
       improvement = 1 - new_score / score;
       step_size /= 2;
-    } while (improvement < min_improvement && step_size >= 1e-15);
+    } while ((improvement < min_improvement) && (step_size >= minStepSize));
 
     if (new_score > score)
       break;
