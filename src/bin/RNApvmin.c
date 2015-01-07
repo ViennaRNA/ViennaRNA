@@ -196,11 +196,9 @@ int main(int argc, char *argv[]){
 
     convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
+    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
     mfe = vrna_fold(vc, NULL);
-    vrna_free_fold_compound(vc);
 
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
     pf_scale = exp(-(args_info.pfScale_arg * mfe) / kT / length);
     pf_parameters = get_boltzmann_factors(md.temperature, md.betaScale, md, pf_scale);
     vrna_update_pf_params(vc, pf_parameters);

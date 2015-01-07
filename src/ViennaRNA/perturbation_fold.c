@@ -1,11 +1,13 @@
 #include "perturbation_fold.h"
 
 #include <config.h>
-#include "constraints.h"
 #include "eval.h"
 #include "fold_vars.h"
+#include "constraints.h"
+#include "fold.h"
 #include "part_func.h"
 #include "utils.h"
+#include "params.h"
 
 #include <assert.h>
 #include <math.h>
@@ -63,7 +65,19 @@ static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int
   {
     sc->boltzmann_factors[i][0] = 1;
     for (j = 1; j <= length - i + 1; ++j)
-      sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp(-epsilon[i + j - 1] / kT);
+      sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp(-(epsilon[i + j - 1]) / kT);
+  }
+
+  /* also add sc for MFE computation */
+  sc->free_energies = space(sizeof(int*) * (length + 2));
+  sc->free_energies[0] = space(sizeof(int));
+  for (i = 1; i <= length; ++i)
+    sc->free_energies[i] = space(sizeof(int) * (length - i + 2));
+
+  for (i = 1; i <= length; ++i){
+    sc->free_energies[i][0] = 0;
+    for (j = 1; j <= length - i + 1; ++j)
+      sc->free_energies[i][j] = sc->free_energies[i][j-1] + (epsilon[i + j - 1]*100.);
   }
 
   vc->sc = sc;
@@ -82,17 +96,32 @@ static double evaluate_objective_function_contribution(double value, int objecti
 
 static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function)
 {
-  double ret = 0;
+  double kT, ret = 0;
   double ret2 = 0.;
   double *p_prob_unpaired;
   int i;
   int length = vc->length;
+  pf_paramT *pf_parameters, *prev_parameters;
+  model_detailsT *md;
+
+  prev_parameters = vc->exp_params;
+  md = &(prev_parameters->model_details);
+  kT = prev_parameters->kT / 1000.;
 
   //calculate pairing probabilty in the pertubated energy model
   p_prob_unpaired = space(sizeof(double) * (length + 1));
 
   addSoftConstraint(vc, epsilon, length);
-  vc->exp_params->model_details.compute_bpp = 1;
+  /* get new (constrained) MFE */
+  float mfe = vrna_fold(vc, NULL);
+  double pf_scale = exp(-(1.07 * mfe) / kT / length);
+  md->pf_scale = pf_scale;
+  md->compute_bpp = 1;
+  
+  pf_parameters = vrna_get_boltzmann_factors(*md);
+  vrna_update_pf_params(vc, pf_parameters);
+  free(pf_parameters);
+
   vrna_pf_fold(vc, NULL);
 
   calculate_probability_unpaired(vc, p_prob_unpaired);
@@ -161,14 +190,28 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
 
 static void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *epsilon, int sample_size, double *prob_unpaired, double **conditional_prob_unpaired)
 {
+  double kT;
   int length = vc->length;
   int i, j, s;
+  pf_paramT *pf_parameters, *prev_parameters;
+  model_detailsT *md;
   st_back = 1;
+  prev_parameters = vc->exp_params;
+  md = &(prev_parameters->model_details);
+  kT = prev_parameters->kT / 1000.;
 
   addSoftConstraint(vc, epsilon, length);
-  vc->exp_params->model_details.compute_bpp = 0;
-
+  /* get new (constrained) MFE */
+  float mfe = vrna_fold(vc, NULL);
+  double pf_scale = exp(-(1.07 * mfe) / kT / length);
+  md->pf_scale = pf_scale;
+  md->compute_bpp = 0;
+  
+  pf_parameters = vrna_get_boltzmann_factors(*md);
+  vrna_update_pf_params(vc, pf_parameters);
+  free(pf_parameters);
   vrna_pf_fold(vc, NULL);
+
 
   #pragma omp parallel for private(s)
   for (s = 0; s < sample_size; ++s)
