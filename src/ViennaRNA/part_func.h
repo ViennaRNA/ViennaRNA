@@ -297,6 +297,9 @@ DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
 void vrna_update_pf_params( vrna_fold_compound *vc,
                             pf_paramT *params);
 
+void vrna_rescale_pf_params(vrna_fold_compound *vc,
+                            double *mfe);
+
 /**
  *  \brief Get a pointer to the base pair probability array
  *  \ingroup  pf_fold

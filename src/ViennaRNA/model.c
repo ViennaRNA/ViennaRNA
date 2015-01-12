@@ -105,6 +105,7 @@ vrna_md_set_default(model_detailsT *md){
     md->temperature       = VRNA_MODEL_DEFAULT_TEMPERATURE;
     md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_scale          = VRNA_MODEL_DEFAULT_PF_SCALE;
+    md->sfact             = 1.07;
     md->nonstandards[0]   = (char)0;
 
     /* set default values for the pair/rtype[pair] stuff */
@@ -270,6 +271,7 @@ set_model_details(model_detailsT *md){
     md->temperature       = temperature;
     md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_scale          = pf_scale;
+    md->sfact             = 1.07;
 
     if(nonstandards){
       memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));

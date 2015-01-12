@@ -204,7 +204,7 @@ int main(int argc, char *argv[]){
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
-  if(args_info.pfScale_given)     md.pf_scale = sfact = args_info.pfScale_arg;
+  if(args_info.pfScale_given)     md.sfact = sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)        md.circ = circular = 1;
   /* always look on the bright side of life */
@@ -521,16 +521,11 @@ int main(int argc, char *argv[]){
           mfe_parameters->model_details.dangles=1;
       }
 
+      vrna_rescale_pf_params(vc, &min_en);
 
-      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
-
-      /* rescale exp_params according to mfe computed above */
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      vrna_update_pf_params(vc,pf_parameters);
 
       if(with_shapes)
         add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_PF);

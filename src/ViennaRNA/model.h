@@ -239,7 +239,7 @@ typedef struct{
   int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
   double  cv_fact;          /**<  \brief  Covariance scaling factor for consensus structure prediction */
   double  nc_fact;
-
+  double  sfact;            /**<  \brief  Scaling factor for partition function scaling */
   int     rtype[8];
   short   alias[MAXALPHA+1];
   int     pair[MAXALPHA+1][MAXALPHA+1];

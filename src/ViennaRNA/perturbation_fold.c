@@ -101,26 +101,17 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
   double *p_prob_unpaired;
   int i;
   int length = vc->length;
-  pf_paramT *pf_parameters, *prev_parameters;
-  model_detailsT *md;
-
-  prev_parameters = vc->exp_params;
-  md = &(prev_parameters->model_details);
-  kT = prev_parameters->kT / 1000.;
 
   //calculate pairing probabilty in the pertubated energy model
   p_prob_unpaired = space(sizeof(double) * (length + 1));
 
   addSoftConstraint(vc, epsilon, length);
-  /* get new (constrained) MFE */
-  float mfe = vrna_fold(vc, NULL);
-  double pf_scale = exp(-(1.07 * mfe) / kT / length);
-  md->pf_scale = pf_scale;
-  md->compute_bpp = 1;
-  
-  pf_parameters = vrna_get_boltzmann_factors(*md);
-  vrna_update_pf_params(vc, pf_parameters);
-  free(pf_parameters);
+
+  vc->exp_params->model_details.compute_bpp = 1;
+
+  /* get new (constrained) MFE to scale pf computations properly */
+  double mfe = (double)vrna_fold(vc, NULL);
+  vrna_rescale_pf_params(vc, &mfe);
 
   vrna_pf_fold(vc, NULL);
 
@@ -193,23 +184,16 @@ static void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const do
   double kT;
   int length = vc->length;
   int i, j, s;
-  pf_paramT *pf_parameters, *prev_parameters;
-  model_detailsT *md;
-  st_back = 1;
-  prev_parameters = vc->exp_params;
-  md = &(prev_parameters->model_details);
-  kT = prev_parameters->kT / 1000.;
+  st_back = 1; /* is this really required? */
 
   addSoftConstraint(vc, epsilon, length);
-  /* get new (constrained) MFE */
-  float mfe = vrna_fold(vc, NULL);
-  double pf_scale = exp(-(1.07 * mfe) / kT / length);
-  md->pf_scale = pf_scale;
-  md->compute_bpp = 0;
-  
-  pf_parameters = vrna_get_boltzmann_factors(*md);
-  vrna_update_pf_params(vc, pf_parameters);
-  free(pf_parameters);
+
+  vc->exp_params->model_details.compute_bpp = 0;
+
+  /* get new (constrained) MFE to scale pf computations properly */
+  double mfe = (double)vrna_fold(vc, NULL);
+  vrna_rescale_pf_params(vc, &mfe);
+
   vrna_pf_fold(vc, NULL);
 
 
