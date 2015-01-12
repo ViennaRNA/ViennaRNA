@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN { plan tests => 24; }
+BEGIN { plan tests => 26; }
 
 use RNA;
 use warnings;
@@ -24,6 +24,8 @@ my $seq1  ="CGCAGGGAUACCCGCG";
 my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
 my $struc2="((((((...))).)))";
+
+
 # calculate a hamming distance (from util.c)
 ok(RNA::hamming($seq1, $seq2), 16);
 
@@ -164,3 +166,20 @@ my ($css, $cen) = RNA::alifold(\@align);
 ok($css,"(((.(((...)))..))).");
 ok(RNA::consens_mis(\@align), "SMBHBHYDRBGDVWmVKBB");
 RNA::free_alifold_arrays();
+
+# check the move_set.h functions
+$RNA::cut_point=-1;
+my $struc1_move = "(..............)";
+# move_standar( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
+RNA::move_standard($seq1, $struc1_move, 0, 0, 0, 0);
+ok($struc1_move, "................");
+
+my $struc1_move = "(..............)";
+RNA::move_standard($seq1, $struc1_move, 1, 0, 0, 0);
+ok($struc1_move, "(((.((....)).)))");
+
+#TODO use xsubi random generator, set seed and check here
+#my $struc1_move = "(..............)";
+#RNA::move_standard($seq1, $struc1_move, 2, 0, 0, 0);
+#ok("(((.(((...))))))", $struc1_move);
+#print STDERR join(',', unpack('S3', RNA::cdata($RNA::xsubi, 6))), "\n";

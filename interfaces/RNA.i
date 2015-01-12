@@ -33,6 +33,7 @@
 #include  "../src/ViennaRNA/findpath.h"
 #include  "../src/ViennaRNA/Lfold.h"
 #include  "../src/ViennaRNA/read_epars.h"
+#include  "../src/ViennaRNA/move_set.h"
 
 %}
 //
@@ -433,7 +434,7 @@ int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */
 int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 
-// this doesn't work currently
+// this doesnt work currently
 %inline %{
 void *deref_any(void **ptr, int index) {
    /* dereference arbitray pointer */
@@ -535,3 +536,20 @@ short *encode_seq(char *sequence);
 
 
 %include "../src/ViennaRNA/findpath.h"
+
+/**********************************************/
+/* BEGIN interface for cofold partition       */
+/* function                                   */
+/**********************************************/
+
+%include  "../src/ViennaRNA/move_set.h"
+
+%ignore move_gradient;
+%ignore move_first;
+%ignore move_adaptive;
+%ignore browse_neighs_pt;
+%ignore browse_neighs;
+%ignore print_stren;
+%ignore print_str;
+%ignore copy_arr;
+%ignore allocopy;
