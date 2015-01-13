@@ -48,7 +48,7 @@ option  "tauSigmaRatio"  -
 "Ratio of the weighting factors tau and sigma. A high ratio will lead to a solution as close as possible to the experimental data, \
 while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies."
 double
-default="0.5"
+default="2.0"
 optional
 
 option "objectiveFunction"  -
@@ -66,7 +66,7 @@ A sample size of 0 leads to an analytical evaluation which scales as O(N^4). \
 Choosing a sample size >0 estimates the gradient by sampling the given number of sequences from the ensemble, \
 which is much faster."
 int
-default="0"
+default="1000"
 optional
 
 option  "intermediatePath"  -
@@ -96,7 +96,7 @@ optional
 option  "initialStepSize" -
 "The initial stepsize for the minimizer methods\n"
 double
-default="0.1"
+default="0.01"
 optional
 hidden
 

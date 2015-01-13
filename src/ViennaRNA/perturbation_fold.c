@@ -144,7 +144,12 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
   addSoftConstraint(vc, epsilon, length);
   vc->exp_params->model_details.compute_bpp = 1;
 
+  /* get new (constrained) MFE to scale pf computations properly */
+  double mfe = (double)vrna_fold(vc, NULL);
+  vrna_rescale_pf_params(vc, &mfe);
+
   vrna_pf_fold(vc, NULL);
+
   calculate_probability_unpaired(vc, prob_unpaired);
 
   #pragma omp parallel for private(i)
