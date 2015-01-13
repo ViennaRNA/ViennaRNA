@@ -16,6 +16,10 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNApvmin_cmdl.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 static size_t g_length = 0;
 static const char *g_statpath = 0;
 static const char *g_sequence = 0;
@@ -75,6 +79,10 @@ int main(int argc, char *argv[]){
   double *shape_data;
   int algorithm = VRNA_MINIMIZER_DEFAULT;
   int i;
+  double initialStepSize    = 0.01;
+  double minStepSize        = 1e-15;
+  double minImprovement     = 1e-3;
+  double minimizerTolerance = 1e-3;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;
@@ -92,6 +100,14 @@ int main(int argc, char *argv[]){
 
   init_rand();
   set_model_details(&md);
+
+  /* set number of threads for parallel computation */
+  if(args_info.numThreads_given)
+#ifdef _OPENMP
+  omp_set_num_threads(args_info.numThreads_arg);
+#else
+  nrerror("\'j\' option is available only if compiled with OpenMP support!");
+#endif
 
   if(args_info.paramFile_given)
     read_parameter_file(args_info.paramFile_arg);
@@ -137,6 +153,19 @@ int main(int argc, char *argv[]){
       }
   }
 
+  if(args_info.initialStepSize_given)
+    initialStepSize = args_info.initialStepSize_arg;
+
+  if(args_info.minStepSize_given)
+    minStepSize = args_info.minStepSize_arg;
+
+  if(args_info.minImprovement_given)
+    minImprovement = args_info.minImprovement_arg;
+
+  if(args_info.minimizerTolerance_given)
+    minimizerTolerance = args_info.minimizerTolerance_arg;
+  if(args_info.pfScale_given)
+    md.sfact = args_info.pfScale_arg;
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if(istty)
@@ -161,29 +190,39 @@ int main(int argc, char *argv[]){
   {
     double *epsilon;
     vrna_fold_compound *vc;
-    pf_paramT *pf_parameters;
-    float mfe;
-    const double kT = (md.temperature + K0) * GASCONST / 1000.;
-    const double tau = 0.01;
-    const double sigma = tau / args_info.tauSigmaRatio_arg;
+
+    double mfe;
+    double tau = 0.01;
+    if(args_info.tauSigmaRatio_arg >= 10.)
+      tau *= 10;
+    if(args_info.tauSigmaRatio_arg >= 100.)
+      tau *= 10;
+    if(args_info.tauSigmaRatio_arg >= 1000.)
+      tau *= 10;
+    double sigma = tau / args_info.tauSigmaRatio_arg;
 
     convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE);
-    mfe = vrna_fold(vc, NULL);
-    vrna_free_fold_compound(vc);
-
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_PF);
-    pf_scale = exp(-(args_info.pfScale_arg * mfe) / kT / length);
-    pf_parameters = get_boltzmann_factors(md.temperature, md.betaScale, md, pf_scale);
-    vrna_update_pf_params(vc, pf_parameters);
+    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    mfe = (double)vrna_fold(vc, NULL);
+    vrna_rescale_pf_params(vc, &mfe);
 
     epsilon = space(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
-    vrna_find_perturbation_vector(vc, shape_data, args_info.objectiveFunction_arg, sigma, tau, algorithm, args_info.sampleSize_arg, epsilon, print_progress);
+    vrna_find_perturbation_vector(vc,
+                                  shape_data,
+                                  args_info.objectiveFunction_arg,
+                                  sigma, tau,
+                                  algorithm,
+                                  args_info.sampleSize_arg,
+                                  epsilon,
+                                  initialStepSize,
+                                  minStepSize,
+                                  minImprovement,
+                                  minimizerTolerance,
+                                  print_progress);
 
     vrna_free_fold_compound(vc);
-    free(pf_parameters);
 
     print_perturbation_vector(stdout, epsilon);
 

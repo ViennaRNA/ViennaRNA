@@ -1242,7 +1242,6 @@ PUBLIC void
 vrna_update_pf_params(vrna_fold_compound *vc,
                       pf_paramT *params){
 
-  double kT;
   if(vc){
     if(params){
       if(vc->exp_params)
@@ -1250,30 +1249,57 @@ vrna_update_pf_params(vrna_fold_compound *vc,
       vc->exp_params = get_boltzmann_factor_copy(params);
     }
 
-    kT = vc->exp_params->kT;
+    if(vc->cutpoint > 0)
+      vc->exp_params->model_details.min_loop_size = 0;
 
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
-      kT /= vc->n_seq;
-
-    if(vc->cutpoint > 0) vc->exp_params->model_details.min_loop_size = 0;
     /* fill additional helper arrays for scaling etc. */
-    int i;
-    double scaling_factor = vc->exp_params->model_details.pf_scale;
-    if (scaling_factor < 1.) { /* mean energy for random sequences: 184.3*length cal */
-      scaling_factor = exp(-(-185+(vc->exp_params->temperature-37.)*7.27)/kT);
-      if (scaling_factor<1) scaling_factor = 1.;
-    }
-    vc->exp_params->pf_scale = vc->exp_params->model_details.pf_scale = scaling_factor;
-    pf_scale = scaling_factor; /* compatibility with RNAup, may be removed sometime */
-    vc->exp_matrices->scale[0] = 1.;
-    vc->exp_matrices->scale[1] = 1./scaling_factor;
-    vc->exp_matrices->expMLbase[0] = 1;
-    vc->exp_matrices->expMLbase[1] = vc->exp_params->expMLbase/scaling_factor;
-    for (i=2; i<=vc->length; i++) {
-      vc->exp_matrices->scale[i] = vc->exp_matrices->scale[i/2]*vc->exp_matrices->scale[i-(i/2)];
-      vc->exp_matrices->expMLbase[i] = pow(vc->exp_params->expMLbase, (double)i) * vc->exp_matrices->scale[i];
-    }
+    vrna_rescale_pf_params(vc, NULL);
 
+    /* compatibility with RNAup, may be removed sometime */
+    pf_scale = vc->exp_params->pf_scale;
+  }
+}
+
+PRIVATE void
+rescale_params( vrna_fold_compound *vc){
+
+  int           i;
+  pf_paramT     *pf = vc->exp_params;
+  pf_matricesT  *m  = vc->exp_matrices;
+
+  m->scale[0] = 1.;
+  m->scale[1] = 1./pf->pf_scale;
+  m->expMLbase[0] = 1;
+  m->expMLbase[1] = pf->expMLbase / pf->pf_scale;
+  for (i=2; i<=vc->length; i++) {
+    m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
+    m->expMLbase[i] = pow(pf->expMLbase, (double)i) * m->scale[i];
+  }
+}
+
+PUBLIC void
+vrna_rescale_pf_params( vrna_fold_compound *vc,
+                        double *mfe){
+
+  if(vc){
+    pf_paramT *pf = vc->exp_params;
+    if(pf){
+      double kT = pf->kT;
+
+      if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+        kT /= vc->n_seq;
+
+      model_detailsT *md = &(pf->model_details);
+      if(mfe){
+        kT /= 1000.;
+        pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);
+      } else if(pf->pf_scale < 1.){  /* mean energy for random sequences: 184.3*length cal */
+        pf->pf_scale = exp(-(-185+(pf->temperature-37.)*7.27)/kT);
+        if(pf->pf_scale < 1.)
+          pf->pf_scale = 1.;
+      }
+      rescale_params(vc);
+    }
   }
 }
 

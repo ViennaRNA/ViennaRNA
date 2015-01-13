@@ -26,6 +26,11 @@ Once the minimization has terminated, the obtained perturbation vector is writte
 section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
+option  "numThreads"  j
+"Set the number of threads used for calculations (only available when compiled with OpenMP support)\n\n"
+int
+optional
+
 option  "shapeConversion" -
 "Specify the method used to convert SHAPE reactivities to pairing probabilities.\n"
 details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
@@ -43,7 +48,7 @@ option  "tauSigmaRatio"  -
 "Ratio of the weighting factors tau and sigma. A high ratio will lead to a solution as close as possible to the experimental data, \
 while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies."
 double
-default="0.5"
+default="2.0"
 optional
 
 option "objectiveFunction"  -
@@ -61,7 +66,7 @@ A sample size of 0 leads to an analytical evaluation which scales as O(N^4). \
 Choosing a sample size >0 estimates the gradient by sampling the given number of sequences from the ensemble, \
 which is much faster."
 int
-default="0"
+default="1000"
 optional
 
 option  "intermediatePath"  -
@@ -87,6 +92,35 @@ enum
 values="conjugate_fr","conjugate_pr","vector_bfgs", "vector_bfgs2", "steepest_descent", "default"
 default="default"
 optional
+
+option  "initialStepSize" -
+"The initial stepsize for the minimizer methods\n"
+double
+default="0.01"
+optional
+hidden
+
+option  "minStepSize" -
+"The minimal stepsize for the minizimer methods\n"
+double
+default="1e-15"
+optional
+hidden
+
+option  "minImprovement" -
+"The minimal improvement in the default minizimer method that has to be surpassed to considered a new result a better one\n"
+double
+default="1e-3"
+optional
+hidden
+
+option  "minimizerTolerance" -
+"The tolerance to be used in the GSL minimizer methods\n"
+double
+default="1e-3"
+optional
+hidden
+
 
 section "Model Details"
 

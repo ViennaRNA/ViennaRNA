@@ -268,6 +268,9 @@ DEPRECATED(char    *pbacktrack_circ(char *sequence));
  *  \note <b>OpenMP notice:</b><br>
  *  This function should be called before leaving a thread in order to avoid leaking memory
  *  
+ *  \deprecated See vrna_fold_compound and its related functions for how to free memory
+ *  occupied by the dynamic programming matrices
+ *
  *  \ingroup pf_fold
  *
  *  \post   All memory allocated by pf_fold_par(), pf_fold() or pf_circ_fold() will be free'd
@@ -281,6 +284,7 @@ DEPRECATED(void  free_pf_arrays(void));
  *  Call this function to recalculate the pair matrix and energy parameters
  *  after a change in folding parameters like #temperature
  *
+ *  \deprecated Use vrna_update_pf_params() instead
  *  \ingroup pf_fold
  *
  */
@@ -288,14 +292,71 @@ DEPRECATED(void  update_pf_params(int length));
 
 /**
  *  \brief Recalculate energy parameters
- * 
+ *
+ *  \deprecated Use vrna_update_pf_params() instead
  *  \ingroup pf_fold
  *
  */
 DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
 
+
+/**
+ *  \brief Update the energy parameters for subsequent partition function computations
+ *
+ *  This function can be used to properly assign new energy parameters to
+ *  a vrna_fold_compound. For this purpose, the data of the provided pointer `params`
+ *  will be copied into `vc` and a recomputation of the partition function scaling
+ *  factor is issued, if the `pf_scale` attribute of `params` is below `1.0`.
+ *
+ *  \see vrna_rescale_pf_params(), pf_paramT, model_detailsT, vrna_get_boltzmann_factors()
+ *
+ *  \ingroup pf_fold
+ *  \param  vc      The fold compound data structure
+ *  \param  params  A pointer to the new energy parameters
+ */
 void vrna_update_pf_params( vrna_fold_compound *vc,
                             pf_paramT *params);
+
+/**
+ *  \brief Rescale Boltzmann factors for partition function computations
+ *
+ *  This function may be used to (automatically) rescale the Boltzmann factors used
+ *  in partition function computations. Since partition functions over subsequences
+ *  can easily become extremely large, the RNAlib internally rescales them to avoid
+ *  numerical over- and/or underflow. Therefore, a proper scaling factor \f$s\f$ needs to
+ *  be chosen that in turn is then used to normalize the corresponding
+ *  partition functions \f$\hat{q}[i,j] = q[i,j] / s^{(j-i+1)}\f$.
+ *
+ *  This function provides two ways to automatically adjust the scaling
+ *  factor.
+ *  1. Automatic guess
+ *  2. Automatic adjustment according to MFE
+ *
+ *  Passing `NULL` as second parameter activates the _automatic guess mode_. Here,
+ *  the scaling factor is recomputed according to a mean free energy of `184.3*length` cal
+ *  for random sequences.
+ *  \note This recomputation only takes place if the `pf_scale` attribute of the
+ *  `exp_params` datastructure contained in `vc` has a value below `1.0`.
+ *
+ *  On the other hand, if the MFE for a sequence is known, it can be used to recompute
+ *  a more robust scaling factor, since it represents the lowest free energy of the entire
+ *  ensemble of structures, i.e. the highest Boltzmann factor. To activate this second
+ *  mode of _automatic adjustment according to MFE_, a pointer to the MFE value needs to
+ *  be passed as second argument. This value is then taken to compute the scaling factor
+ *  as \f$ s = exp((sfact * MFE) / kT / length )\f$, where sfact is an additional
+ *  scaling weight located in the model_detailsT datastructure of `exp_params` in `vc`.
+ *
+ *  The computed scaling factor \f$s\f$ will be stored as `pf_scale` attribute of the
+ *  `exp_params` datastructure in `vc`.
+ *
+ *  \see vrna_update_pf_params(), model_detailsT, pf_paramT, vrna_fold_compound
+ *  \ingroup pf_fold
+ *
+ *  \param  vc  The fold compound data structure
+ *  \param  mfe A pointer to the MFE (in kcal/mol) or NULL
+ */
+void vrna_rescale_pf_params(vrna_fold_compound *vc,
+                            double *mfe);
 
 /**
  *  \brief Get a pointer to the base pair probability array

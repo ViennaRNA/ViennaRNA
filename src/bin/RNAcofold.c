@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
   if(args_info.pfScale_given)
-    sfact = args_info.pfScale_arg;
+    md.sfact = sfact = args_info.pfScale_arg;
 
   if(args_info.all_pf_given)
     doT = pf = 1;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
   if(args_info.betaScale_given)
-    betaScale = args_info.betaScale_arg;
+    md.betaScale = betaScale = args_info.betaScale_arg;
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
     doC = cofi = doT = pf = 1;
@@ -361,12 +361,10 @@ int main(int argc, char *argv[])
         P->model_details.dangles = dangles = 1;
       }
 
+      vrna_rescale_pf_params(vc, &min_en);
       kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      md.pf_scale = pf_scale = exp(-(sfact*min_en)/kT/length);
-      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
-      vrna_update_pf_params(vc,pf_parameters);
+      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       /* do we need to add hard constraints? */
       if (cstruc!=NULL) strncpy(structure, cstruc, length+1);

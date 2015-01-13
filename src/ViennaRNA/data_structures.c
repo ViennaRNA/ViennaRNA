@@ -447,8 +447,6 @@ vrna_add_mfe_matrices(vrna_fold_compound *vc,
       else if(vc->type == VRNA_VC_TYPE_ALIGNMENT);
         vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
     }
-
-/*     vrna_update_pf_params(vc, NULL); */
   }
 }
 

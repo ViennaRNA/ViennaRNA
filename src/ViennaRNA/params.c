@@ -198,7 +198,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void){
 PUBLIC pf_paramT *
 vrna_get_boltzmann_factors(model_detailsT md){
 
-  return  get_boltzmann_factors(md.temperature, md.betaScale, md, md.pf_scale);
+  return  get_boltzmann_factors(md.temperature, md.betaScale, md, -1.);
 }
 
 PUBLIC pf_paramT *get_boltzmann_factors(double temp,
@@ -211,7 +211,6 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   double        GT;
   pf_paramT     *pf;
 
-  md.pf_scale     = pf_scale;
   md.temperature  = temp;
   md.betaScale    = betaScale;
 
@@ -220,7 +219,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   pf->temperature   = temp;
   pf->alpha         = betaScale;
   pf->kT = kT       = betaScale*(temp+K0)*GASCONST;   /* kT in cal/mol  */
-  pf->pf_scale      = pf->model_details.pf_scale = pf_scale = pfs;
+  pf->pf_scale      = pf_scale = pfs;
   TT                = (temp+K0)/(Tmeasure);
 
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
@@ -386,7 +385,7 @@ PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
 PUBLIC pf_paramT *
 vrna_get_boltzmann_factors_ali(unsigned int n_seq, model_detailsT md){
 
-  return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, md.pf_scale);
+  return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, -1.);
 }
 
 PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
@@ -405,7 +404,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   pf->model_details = md;
   pf->alpha         = betaScale;
   pf->temperature   = temperature;
-  pf->pf_scale      = pf->model_details.pf_scale = pf_scale = pfs;
+  pf->pf_scale      = pf_scale = pfs;
   pf->kT = kTn      = ((double)n_seq)*betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT                = (temperature+K0)/(Tmeasure);
 
