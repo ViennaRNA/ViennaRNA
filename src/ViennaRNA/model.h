@@ -206,7 +206,6 @@ extern  int logML;
 typedef struct{
   double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
   double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
-  double  pf_scale;         /**<  \brief  A scaling factor to avoid under-/overflow of the partition function */
   int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
                                   \note   Some function do not implement all dangle model but only a subset of
                                           (0,1,2,3). Read the documentaion of the particular recurrences or
