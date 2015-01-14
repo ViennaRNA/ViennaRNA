@@ -44,7 +44,6 @@ COORDINATE *get_xy_coordinates(const char *structure);
 %include "../src/ViennaRNA/plot_layouts.h"
 
 
-
 %include "../src/ViennaRNA/PS_dot.h"
 
 /*#################################*/

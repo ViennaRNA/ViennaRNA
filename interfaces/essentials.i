@@ -107,7 +107,7 @@ typedef struct {} pf_paramT;
   void print(){
     printf( "temperature:     %g\n"
             "betaScale:       %g\n"
-            "pf_scale:        %g\n"
+            "sfact:           %g\n"
             "dangles:         %d\n"
             "special_hp:      %d\n"
             "noLP:            %d\n"
@@ -129,7 +129,7 @@ typedef struct {} pf_paramT;
             "ribo:            %d\n",
             $self->temperature,
             $self->betaScale,
-            $self->pf_scale,
+            $self->sfact,
             $self->dangles,
             $self->special_hp,
             $self->noLP,
