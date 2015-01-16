@@ -523,6 +523,8 @@ int main(int argc, char *argv[]){
 
       vrna_rescale_pf_params(vc, &min_en);
 
+      kT = vc->exp_params->kT/1000.;
+
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);

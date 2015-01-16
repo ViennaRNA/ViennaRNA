@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
       }
 
       vrna_rescale_pf_params(vc, &min_en);
-      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
+      kT = vc->exp_params->kT/1000.;
 
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
