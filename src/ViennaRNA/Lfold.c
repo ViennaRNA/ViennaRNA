@@ -785,9 +785,9 @@ fill_arrays(const char *string,
     {
       int ii, *FF; /* rotate the auxilliary arrays */
 
-      /* check for values close to integer overflow */
+      /* check for values close to integer underflow */
       if(INT_CLOSE_TO_UNDERFLOW(f3[i])){
-        /* correct f3 free energies and increase overflow counter */
+        /* correct f3 free energies and increase underflow counter */
         int cnt, cnt2;
         for(cnt=i; cnt <= length && cnt <= lind + maxdist + 2; cnt++) {
           f3[cnt] -= UNDERFLOW_CORRECTION;
