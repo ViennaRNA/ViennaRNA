@@ -264,6 +264,7 @@ E_ml_rightmost_stem(int i,
                     vrna_fold_compound *vc){
 
   int               en;
+  paramT            *P            = vc->params;
   int               length        = vc->length;
   short             *S            = vc->sequence_encoding;
   int               *indx         = vc->jindx;
@@ -271,9 +272,8 @@ E_ml_rightmost_stem(int i,
   int               *hc_up        = vc->hc->up_ml;
   soft_constraintT  *sc           = vc->sc;
   int               *c            = vc->matrices->c;
-  int               *fm           = vc->matrices->fML;
+  int               *fm           = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
   int               *ggg          = vc->matrices->ggg;
-  paramT            *P            = vc->params;
   int               ij            = indx[j] + i;
   int               type          = vc->ptype[ij];
   int               hc_decompose  = hc[ij];
@@ -343,7 +343,7 @@ E_ml_stems_fast(int i,
   int               cp            = vc->cutpoint;
   int               e             = INF;
 
-  /*  extension with one unpaired nucleotide at the left
+  /*  extension with one unpaired nucleotide at the right (3' site)
       or full branch of (i,j)
   */
   e = E_ml_rightmost_stem(i,j,vc);
