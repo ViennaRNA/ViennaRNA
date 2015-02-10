@@ -39,8 +39,6 @@ int main(int argc, char *argv[]){
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
   int             delta, n_back, noconv, circular, dos, zuker, gquad;
-  paramT          *P;
-  pf_paramT       *pf_parameters;
   model_detailsT  md;
 
   do_backtrack  = 1;
@@ -53,10 +51,11 @@ int main(int argc, char *argv[]){
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
-  pf_parameters = NULL;
-  P             = NULL;
 
   set_model_details(&md);
+
+  /* switch on unique multibranch loop decomposition */
+  md.uniq_ML = 1;
 
   /*
   #############################################
@@ -65,11 +64,11 @@ int main(int argc, char *argv[]){
   */
   if(RNAsubopt_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
   if(args_info.constraint_given)  fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
+  if(args_info.noTetra_given)     md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
@@ -100,13 +99,13 @@ int main(int argc, char *argv[]){
   /* sorted output */
   if(args_info.sorted_given)      subopt_sorted = 1;
   /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        circular=1;
+  if(args_info.circ_given)        md.circ = circular = 1;
   /* stochastic backtracking */
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
     init_rand();
   }
-  if(args_info.betaScale_given)   betaScale = args_info.betaScale_arg;
+  if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
   /* density of states */
   if(args_info.dos_given){
     dos = 1;
@@ -189,8 +188,6 @@ int main(int argc, char *argv[]){
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
-  P = get_scaled_parameters(temperature, md);
-
   /*
   #############################################
   # main loop: continue until end of file
@@ -211,10 +208,16 @@ int main(int argc, char *argv[]){
     }
     else fname[0] = '\0';
 
-    cut_point = -1;
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
-    rec_sequence  = tokenize(rec_sequence); /* frees input_string and sets cut_point */
-    length    = (int) strlen(rec_sequence);
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    length    = vc->length;
+
     structure = (char *) space((unsigned) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
@@ -234,13 +237,6 @@ int main(int argc, char *argv[]){
 
       if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
-
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
-    /* store case-unmodified sequence */
-    orig_sequence = strdup(rec_sequence);
-    /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -266,26 +262,21 @@ int main(int argc, char *argv[]){
       char *ss;
       if (fname[0] != '\0') printf(">%s\n", fname);
 
-      st_back=1;
       ss = (char *) space(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
-      mfe = fold_par(rec_sequence, ss, P, fold_constrained, circular);
-      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-      pf_scale = exp(-(1.03*mfe)/kT/length);
-      strncpy(ss, structure, length);
-
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
+      mfe = vrna_fold(vc, ss);
+      /* rescale Boltzmann factors according to predicted MFE */
+      vrna_rescale_pf_params(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
-      (void) pf_fold_par(rec_sequence, ss, pf_parameters, do_backtrack, fold_constrained, circular);
+      (void)vrna_pf_fold(vc, ss);
+
       free(ss);
       for (i=0; i<n_back; i++) {
         char *s;
-        s =(circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
+        s = vrna_pbacktrack(vc);
         printf("%s\n", s);
         free(s);
       }
-      free_pf_arrays();
-      free(pf_parameters);
     }
     /* normal subopt */
     else if(!zuker){
@@ -293,7 +284,8 @@ int main(int argc, char *argv[]){
       if (fname[0] != '\0')
         printf("> %s [%d]\n", fname, delta);
 
-      subopt_par(rec_sequence, structure, P, delta, fold_constrained, circular, stdout);
+      vrna_subopt(vc, delta, stdout);
+
       if (dos) {
         int i;
         for (i=0; i<= MAXDOS && i<=delta/10; i++) {
@@ -310,7 +302,8 @@ int main(int argc, char *argv[]){
       if (cut_point!=-1) {
         nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
       }
-      zr = zukersubopt(rec_sequence);
+      zr = vrna_zukersubopt(vc);
+
       putoutzuker(zr);
       (void)fflush(stdout);
       for (i=0; zr[i].structure; i++) {
@@ -322,11 +315,14 @@ int main(int argc, char *argv[]){
     (void)fflush(stdout);
 
     /* clean up */
+    vrna_free_fold_compound(vc);
+
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
     free(structure);
+
     /* free the rest of current dataset */
     if(rec_rest){
       for(i=0;rec_rest[i];i++) free(rec_rest[i]);
@@ -346,8 +342,7 @@ int main(int argc, char *argv[]){
       else print_tty_input_seq();
     }
   }
-  free(P);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 PRIVATE char *tokenize(char *line)
