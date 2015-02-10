@@ -1270,9 +1270,6 @@ scan_interval(vrna_fold_compound *vc,
                   tmpE += sc->free_energies[1][k-1]
                           + sc->free_energies[l+1][j-l-1];
 
-                if(sc->en_basepair)
-                  tmpE += sc->en_basepair[kl];
-
                 if(sc->f) /* should this be (l,k) instead of (k,l) ? */
                   tmpE += sc->f(k, l, k, l, VRNA_DECOMP_PAIR_HP, sc->data);
               }
@@ -1331,10 +1328,11 @@ scan_interval(vrna_fold_compound *vc,
                               + sc->free_energies[1][k-1];
                     
                     if(sc->en_stack)
-                      tmpE += sc->en_stack[k]
-                              + sc->en_stack[l]
-                              + sc->en_stack[p]
-                              + sc->en_stack[q];
+                      if(u1 + u2 == 0)
+                        tmpE += sc->en_stack[k]
+                                + sc->en_stack[l]
+                                + sc->en_stack[p]
+                                + sc->en_stack[q];
                   }
 
                   if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
