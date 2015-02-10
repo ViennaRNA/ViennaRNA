@@ -1565,6 +1565,8 @@ repeat_gquad( vrna_fold_compound *vc,
   int *ggg, *indx, element_energy, cp;
   short *S, *S1;
   paramT *P;
+  hard_constraintT *hc;
+  soft_constraintT *sc;
 
   indx  = vc->jindx;
   cp    = vc->cutpoint;
@@ -1572,6 +1574,9 @@ repeat_gquad( vrna_fold_compound *vc,
   S     = vc->sequence_encoding2;
   S1    = vc->sequence_encoding;
   P     = vc->params;
+
+  hc    = vc->hc;
+  sc    = vc->sc;
 
   /* find all gquads that fit into the energy range and the interval [i,j] */
   STATE *new_state;
@@ -1635,7 +1640,7 @@ repeat( vrna_fold_compound *vc,
   paramT          *P;
   model_detailsT  *md;
 
-  register int  k, p, q, energy, new;
+  register int  ij, k, p, q, energy, new;
   register int  mm;
   register int  no_close, type, type_2;
   char          *ptype, *sequence;
@@ -1644,6 +1649,8 @@ repeat( vrna_fold_compound *vc,
   int             Fc, FcH, FcI, FcM, *fM2;
   int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
   short         *S, *S1;
+  hard_constraintT *hc;
+  soft_constraintT *sc;
 
   sequence  = vc->sequence;
   length    = vc->length;
@@ -1674,116 +1681,202 @@ repeat( vrna_fold_compound *vc,
   FcM = vc->matrices->FcM;
   fM2 = vc->matrices->fM2;
 
-  type = ptype[indx[j]+i];
+  hc    = vc->hc;
+  sc    = vc->sc;
+
+  ij = indx[j]+i;
+
+  type = ptype[ij];
   if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);
 
   no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
-  if (noLP) /* always consider the structure with additional stack */
-    if ((i+turn+2<j) && ((type_2 = ptype[indx[j-1]+i+1]))) {
-      energy = 0;
+  if(hc->matrix[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+    if (noLP) /* always consider the structure with additional stack */
+      if(i + turn + 2 < j){
+        if(hc->matrix[indx[j-1]+i+1] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+          type_2 = rtype[ptype[indx[j-1]+i+1]];
+          energy = 0;
 
-      if(ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j, cp))
-        energy = E_IntLoop(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
+          if(ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j, cp))
+            energy = E_IntLoop(0, 0, type, type_2,S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
-      new_state = derive_new_state(i+1, j-1, state, part_energy + energy, 2);
-      make_pair(i, j, new_state);
-      make_pair(i+1, j-1, new_state);
+          if(sc){
+            if(sc->en_basepair)
+              energy += sc->en_basepair[ij];
 
-      /* new_state->best_energy = new + best_energy; */
-      push(env->Stack, new_state);
-      env->nopush = false;
-      if (i==1 || state->structure[i-2]!='('  || state->structure[j]!=')')
-        /* adding a stack is the only possible structure */
-        return;
-    }
+            if(sc->en_stack)
+              energy += sc->en_stack[i]
+                        + sc->en_stack[i+1]
+                        + sc->en_stack[j-1]
+                        + sc->en_stack[j];
+
+            if(sc->f)
+              energy += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, sc->data);
+          }
+
+          new_state = derive_new_state(i+1, j-1, state, part_energy + energy, 2);
+          make_pair(i, j, new_state);
+          make_pair(i+1, j-1, new_state);
+
+          /* new_state->best_energy = new + best_energy; */
+          push(env->Stack, new_state);
+          env->nopush = false;
+          if (i==1 || state->structure[i-2]!='('  || state->structure[j]!=')')
+            /* adding a stack is the only possible structure */
+            return;
+        }
+      }
+  }
 
   best_energy += part_energy; /* energy of current structural element */
   best_energy += temp_energy; /* energy from unpushed interval */
 
-  for (p = i + 1; p <= MIN2 (j-2-turn,  i+MAXLOOP+1); p++) {
-    int minq = j-i+p-MAXLOOP-2;
-    if (minq<p+1+turn) minq = p+1+turn;
-    for (q = j - 1; q >= minq; q--) {
-      if ((noLP) && (p==i+1) && (q==j-1)) continue;
+  if(hc->matrix[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+    for (p = i + 1; p <= MIN2 (j-2-turn,  i+MAXLOOP+1); p++) {
+      int minq = j-i+p-MAXLOOP-2;
+      if (minq<p+1+turn) minq = p+1+turn;
 
-      type_2 = ptype[indx[q]+p];
-      if (type_2==0) continue;
+      if(hc->up_int[i+1] < (p - i - 1))
+        break;
 
-      if (noGUclosure)
-        if (no_close||(type_2==3)||(type_2==4))
-          if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+      for (q = j - 1; q >= minq; q--) {
+        if(hc->up_int[q+1] < (j - q - 1))
+          break;
 
-      if (ON_SAME_STRAND(i,p,cp) && ON_SAME_STRAND(q,j,cp)) {
-        energy = E_IntLoop(p-i-1, j-q-1, type, rtype[type_2],
-                            S1[i+1],S1[j-1],S1[p-1],S1[q+1], P);
+        /* skip stack if noLP, since we've already processed it above */
+        if((noLP) && (p==i+1) && (q==j-1))
+          continue;
 
-        new = energy + c[indx[q]+p];
+        if(!(hc->matrix[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+          continue;
 
-        if (new + best_energy <= threshold) {
-          /* stack, bulge, or interior loop */
-          fork_int_state(i, j, p, q, state, part_energy + energy, env);
-        }
-      }/*end of if block */
-    } /* end of q-loop */
-  } /* end of p-loop */
+        type_2 = ptype[indx[q]+p];
+
+        if (noGUclosure)
+          if (no_close||(type_2==3)||(type_2==4))
+            if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+
+        if (ON_SAME_STRAND(i,p,cp) && ON_SAME_STRAND(q,j,cp)) {
+          energy = E_IntLoop(p-i-1, j-q-1, type, rtype[type_2],
+                              S1[i+1],S1[j-1],S1[p-1],S1[q+1], P);
+
+          new = energy + c[indx[q]+p];
+
+          if(sc){
+            if(sc->free_energies)
+              new +=  sc->free_energies[i+1][p-i-1]
+                      + sc->free_energies[q+1][j-q-1];
+
+            if(sc->en_basepair)
+              new += sc->en_basepair[ij];
+
+            if(sc->en_stack)
+              if((p == i+1) && (q == j-1))
+                new +=  sc->en_stack[i]
+                        + sc->en_stack[p]
+                        + sc->en_stack[q]
+                        + sc->en_stack[j];
+
+            if(sc->f)
+              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+          }
+
+          if (new + best_energy <= threshold) {
+            /* stack, bulge, or interior loop */
+            fork_int_state(i, j, p, q, state, part_energy + energy, env);
+          }
+        }/*end of if block */
+      } /* end of q-loop */
+    } /* end of p-loop */
+  }
 
   if (!ON_SAME_STRAND(i,j,cp)) { /*look in fc*/
-    rt = rtype[type];
-    element_energy=0;
-    if (dangle_model)
-      element_energy = E_ExtLoop(rt, (ON_SAME_STRAND(j-1,j,cp)) ? S1[j-1] : -1, (ON_SAME_STRAND(i,i+1,cp)) ? S1[i+1] : -1, P);
-    else
-      element_energy = E_ExtLoop(rt, -1, -1, P);
-
-    if (fc[i+1] + fc[j-1] +element_energy + best_energy  <= threshold)
-      {
-        fork_two_states_pair(i, j, cp, state, part_energy + element_energy, 4, 5, env);
+    if(hc->matrix[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+      rt = rtype[type];
+      element_energy=0;
+      switch(dangle_model){
+        case 2:   element_energy = E_ExtLoop(rt, (ON_SAME_STRAND(j-1,j,cp)) ? S1[j-1] : -1, (ON_SAME_STRAND(i,i+1,cp)) ? S1[i+1] : -1, P);
+                  break;
+        default:  element_energy = E_ExtLoop(rt, -1, -1, P);
+                  break;
       }
+
+      if (fc[i+1] + fc[j-1] +element_energy + best_energy  <= threshold)
+        {
+          fork_two_states_pair(i, j, cp, state, part_energy + element_energy, 4, 5, env);
+        }
+    }
   }
 
   mm = P->MLclosing;
   rt = rtype[type];
 
-  for (k = i + 1 + turn; k <= j - 2 - turn; k++)  {
-    /* multiloop decomposition */
+  if(hc->matrix[ij] & VRNA_HC_CONTEXT_MB_LOOP){
 
     element_energy = mm;
-    if (dangle_model)
-      element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
-    else
-      element_energy = E_MLstem(rt, -1, -1, P) + mm;
+    switch(dangle_model){
+      case 2:   element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
+                break;
+      default:  element_energy = E_MLstem(rt, -1, -1, P) + mm;
+                break;
+    }
 
-    if ((fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
-        element_energy + best_energy)  <= threshold)
-      {
-        fork_two_states_pair(i, j, k+1, state, part_energy + element_energy, 1, 3, env);
-      }
-  } /* end of k-loop */
+    if(sc){
+      if(sc->en_basepair)
+        element_energy += sc->en_basepair[ij];
+    }
 
+    for (k = i + 1 + turn; k <= j - 2 - turn; k++)  {
+      /* multiloop decomposition */
+      if ((fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
+          element_energy + best_energy)  <= threshold)
+        {
+          fork_two_states_pair(i, j, k+1, state, part_energy + element_energy, 1, 3, env);
+        }
+    }
+  }
 
   if (ON_SAME_STRAND(i,j,cp)) {
-    if (no_close) element_energy = FORBIDDEN;
-    else
-      element_energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1, P);
-    if (element_energy + best_energy <= threshold) {
-      /* hairpin structure */
-      fork_state_pair(i, j, state, part_energy + element_energy, env);
+    if(hc->matrix[ij] & VRNA_HC_CONTEXT_HP_LOOP){
+
+      if(no_close)
+        element_energy = FORBIDDEN;
+      else
+          element_energy = E_hp_loop(i, j, vc);
+
+      if (element_energy + best_energy <= threshold) {
+        /* hairpin structure */
+        fork_state_pair(i, j, state, part_energy + element_energy, env);
+      }
     }
 
     if(with_gquad){
       /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
-      int cnt, *p, *q, *en;
+      int cnt, *p, *q, *en, tmp_en;
       p = q = en = NULL;
       en = E_GQuad_IntLoop_exhaustive(i, j, &p, &q, type, S1, ggg, threshold - best_energy, indx, P);
       for(cnt = 0; p[cnt] != -1; cnt++){
-          new_state = derive_new_state(p[cnt], q[cnt], state, part_energy + en[cnt], 6);
+        if((hc->up_int[i+1] >= p[cnt] - i - 1) && (hc->up_int[q[cnt]+1] >= j - q[cnt] - 1)){
+          tmp_en = en[cnt];
+
+          if(sc){
+            if(sc->en_basepair)
+              tmp_en += sc->en_basepair[ij];
+
+            if(sc->free_energies)
+              tmp_en += sc->free_energies[i+1][p[cnt] - i - 1]
+                        + sc->free_energies[q[cnt]+1][j - q[cnt] - 1];
+          }
+
+          new_state = derive_new_state(p[cnt], q[cnt], state, tmp_en + part_energy, 6);
 
           make_pair(i, j, new_state);
 
           /* new_state->best_energy = new + best_energy; */
           push(env->Stack, new_state);
           env->nopush = false;
+        }
       }
       free(en);
       free(p);
