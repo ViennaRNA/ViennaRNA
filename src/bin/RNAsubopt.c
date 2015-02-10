@@ -218,7 +218,7 @@ int main(int argc, char *argv[]){
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
 
-    structure = (char *) space((unsigned) length+1);
+    structure = (char *) space((char) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
@@ -235,7 +235,20 @@ int main(int argc, char *argv[]){
       else if(cl < length)  warn_user("structure constraint is shorter than sequence");
       else if(cl > length)  nrerror("structure constraint is too long");
 
-      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
+      if(cstruc){
+        strncpy(structure, cstruc, sizeof(char)*(cl+1));
+
+        /* convert pseudo-dot-bracket to actual hard constraints */
+        unsigned int constraint_options = 0;
+        constraint_options |= VRNA_CONSTRAINT_DB
+                              | VRNA_CONSTRAINT_PIPE
+                              | VRNA_CONSTRAINT_DOT
+                              | VRNA_CONSTRAINT_X
+                              | VRNA_CONSTRAINT_ANG_BRACK
+                              | VRNA_CONSTRAINT_RND_BRACK;
+
+        vrna_hc_add(vc, (const char *)structure, constraint_options);
+      }
     }
 
     if(istty){
@@ -350,24 +363,27 @@ PRIVATE char *tokenize(char *line)
   char *pos, *copy;
   int cut = -1;
 
-  copy = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  pos = strchr(copy, '&');
-  if (pos) {
-    cut = (int) (pos-copy)+1;
-    if (cut >= strlen(copy)) cut = -1;
-    if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-    for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-  }
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
-    }
-  }
+  copy = NULL;
 
-  free(line);
+  if(line){
+    copy = (char *) space(strlen(line)+1);
+    (void) sscanf(line, "%s", copy);
+    pos = strchr(copy, '&');
+    if (pos) {
+      cut = (int) (pos-copy)+1;
+      if (cut >= strlen(copy)) cut = -1;
+      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
+    }
+    if (cut > -1) {
+      if (cut_point==-1) cut_point = cut;
+      else if (cut_point != cut) {
+        fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
+        nrerror("Sequence and Structure have different cut points.");
+      }
+    }
+    free(line);
+  }
   return copy;
 }
 PRIVATE void putoutzuker(SOLUTION* zukersolution) {
