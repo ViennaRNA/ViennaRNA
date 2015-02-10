@@ -1210,91 +1210,146 @@ scan_interval(vrna_fold_compound *vc,
   } /* end array_flag == 0 && !circular*/
   /* or do we subopt circular? */
   else if(array_flag == 0){
-    int k, l, p, q;
+    int k, l, p, q, tmp_en;
     /* if we've done everything right, we will never reach this case more than once   */
     /* right after the initilization of the stack with ([1,n], empty, 0)              */
     /* lets check, if we can have an open chain without breaking the threshold        */
     /* this is an ugly work-arround cause in case of an open chain we do not have to  */
     /* backtrack anything further...                                                  */
-    if(0 <= threshold){
-      new_state = derive_new_state(1,2,state,0,0);
-      new_state->partial_energy = 0;
-      push(env->Stack, new_state);
-      env->nopush = false;
+    if(hc->up_ext[1] >= length){
+      tmp_en = 0;
+
+      if(sc){
+        if(sc->free_energies)
+          tmp_en += sc->free_energies[1][length];
+      }
+
+      if(tmp_en <= threshold){
+        new_state = derive_new_state(1,2,state,0,0);
+        new_state->partial_energy = 0;
+        push(env->Stack, new_state);
+        env->nopush = false;
+      }
     }
+
     /* ok, lets check if we can do an exterior hairpin without breaking the threshold */
     /* best energy should be 0 if we are here                                         */
     if(FcH + best_energy <= threshold){
       /* lets search for all exterior hairpin cases, that fit into our threshold barrier  */
       /* we use index k,l to avoid confusion with i,j index of our state...               */
       /* if we reach here, i should be 1 and j should be n respectively                   */
-      for(k=i; k<j; k++)
-        for (l=k+turn+1; l <= j; l++){
+      for(k=i; k<j; k++){
+        if(hc->up_hp[1] < k)
+          break;
+
+        for (l=j; l >= k + turn + 1; l--){
           int kl, type, u, tmpE, no_close;
           u = j-l + k-1;        /* get the hairpin loop length */
           if(u<turn) continue;
 
-          kl = indx[l]+k;        /* just confusing these indices ;-) */
-          type = ptype[kl];
-          no_close = ((type==3)||(type==4))&&noGUclosure;
-          type=rtype[type];
-          if (!type) continue;
-          if (!no_close){
-            /* now lets have a look at the hairpin energy */
-            char loopseq[10];
-            if (u<7){
-              strcpy(loopseq , sequence+l-1);
-              strncat(loopseq, sequence, k);
-            }
-            tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
+          if(hc->up_hp[l+1] < u)
+            break;
 
-          }
-          if(c[kl] + tmpE + best_energy <= threshold){
-            /* what we really have to do is something like this, isn't it?  */
-            /* we have to create a new state, with interval [k,l], then we  */
-            /* add our loop energy as initial energy of this state and put  */
-            /* the state onto the stack R... for further refinement...      */
-            /* we also denote this new interval to be scanned in C          */
-            fork_state(k, l, state, tmpE, 2, env);
+          if(hc->matrix[kl] & VRNA_HC_CONTEXT_HP_LOOP){
+            kl = indx[l]+k;        /* just confusing these indices ;-) */
+            type = ptype[kl];
+            no_close = ((type==3)||(type==4))&&noGUclosure;
+            type=rtype[type];
+
+            if (!no_close){
+              /* now lets have a look at the hairpin energy */
+              char loopseq[10];
+              if (u<7){
+                strcpy(loopseq , sequence+l-1);
+                strncat(loopseq, sequence, k);
+              }
+              tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
+
+              if(sc){
+                if(sc->free_energies)
+                  tmpE += sc->free_energies[1][k-1]
+                          + sc->free_energies[l+1][j-l-1];
+
+                if(sc->en_basepair)
+                  tmpE += sc->en_basepair[kl];
+
+                if(sc->f) /* should this be (l,k) instead of (k,l) ? */
+                  tmpE += sc->f(k, l, k, l, VRNA_DECOMP_PAIR_HP, sc->data);
+              }
+            }
+            if(c[kl] + tmpE + best_energy <= threshold){
+              /* what we really have to do is something like this, isn't it?  */
+              /* we have to create a new state, with interval [k,l], then we  */
+              /* add our loop energy as initial energy of this state and put  */
+              /* the state onto the stack R... for further refinement...      */
+              /* we also denote this new interval to be scanned in C          */
+              fork_state(k, l, state, tmpE, 2, env);
+            }
           }
         }
+      }
     }
 
     /* now lets see, if we can do an exterior interior loop without breaking the threshold */
     if(FcI + best_energy <= threshold){
       /* now we search for our exterior interior loop possibilities */
-      for(k=i; k<j; k++)
-        for (l=k+turn+1; l <= j; l++){
+      for(k=i; k<j; k++){
+        for (l=j; l >= k + turn + 1; l++){
           int kl, type, tmpE;
 
-          kl = indx[l]+k;        /* just confusing these indices ;-) */
-          type = ptype[kl];
-          type=rtype[type];
-          if (!type) continue;
+          kl    = indx[l]+k;        /* just confusing these indices ;-) */
+          if(hc->matrix[kl] & VRNA_HC_CONTEXT_INT_LOOP){
+            type  = ptype[kl];
+            type  = rtype[type];
 
-          for (p = l+1; p < j ; p++){
-            int u1, qmin;
-            u1 = p-l-1;
-            if (u1+k-1>MAXLOOP) break;
-            qmin = u1+k-1+j-MAXLOOP;
-            if(qmin<p+turn+1) qmin = p+turn+1;
-            for(q = qmin; q <=j; q++){
-              int u2, type_2;
-              type_2 = rtype[ptype[indx[q]+p]];
-              if(!type_2) continue;
-              u2 = k-1 + j-q;
-              if(u1+u2>MAXLOOP) continue;
-              tmpE = E_IntLoop(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1], P);
-              if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
-                /* ok, similar to the hairpin stuff, we add new states onto the stack R */
-                /* but in contrast to the hairpin decomposition, we have to add two new */
-                /* intervals, enclosed by k,l and p,q respectively and we also have to  */
-                /* add the partial energy, that comes from the exterior interior loop   */
-                fork_two_states(k, l, p, q, state, 2, 2, tmpE, env);
+            for (p = l+1; p < j ; p++){
+              int u1, qmin;
+              u1 = p-l-1;
+              if (u1+k-1>MAXLOOP) break;
+              if (hc->up_int[l+1] < u1) break;
+
+              qmin = u1+k-1+j-MAXLOOP;
+              if(qmin<p+turn+1) qmin = p+turn+1;
+
+              for(q = j; q >= qmin; q--){
+                int u2, type_2;
+
+                if(hc->up_int[q+1] < (j - q + k - 1))
+                  break;
+
+                if(hc->matrix[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP){
+                  type_2 = rtype[ptype[indx[q]+p]];
+                  
+                  u2 = k-1 + j-q;
+                  if(u1+u2>MAXLOOP) continue;
+                  tmpE = E_IntLoop(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1], P);
+                  
+                  if(sc){
+                    if(sc->free_energies)
+                      tmpE += sc->free_energies[l+1][p-l-1]
+                              + sc->free_energies[q+1][j-q]
+                              + sc->free_energies[1][k-1];
+                    
+                    if(sc->en_stack)
+                      tmpE += sc->en_stack[k]
+                              + sc->en_stack[l]
+                              + sc->en_stack[p]
+                              + sc->en_stack[q];
+                  }
+
+                  if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
+                    /* ok, similar to the hairpin stuff, we add new states onto the stack R */
+                    /* but in contrast to the hairpin decomposition, we have to add two new */
+                    /* intervals, enclosed by k,l and p,q respectively and we also have to  */
+                    /* add the partial energy, that comes from the exterior interior loop   */
+                    fork_two_states(k, l, p, q, state, 2, 2, tmpE, env);
+                  }
+                }
               }
             }
           }
         }
+      }
     }
 
     /* and last but not least, we have a look, if we can do an exterior multiloop within the energy threshold */
