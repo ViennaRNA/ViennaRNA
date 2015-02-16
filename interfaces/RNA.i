@@ -118,6 +118,8 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %include "../src/ViennaRNA/data_structures.h"
 
+%include  "../src/ViennaRNA/energy_const.h"
+
 /**********************************************/
 /* BEGIN interface for cofold                 */
 /**********************************************/
