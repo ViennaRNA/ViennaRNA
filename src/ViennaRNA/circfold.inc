@@ -2,7 +2,11 @@
 /* this file contains code for folding circular RNAs */
 /* it's #include'd into fold.c */
 
-PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
+PRIVATE void
+fill_arrays_circ( vrna_fold_compound *vc,
+                  sect bt_stack[],
+                  int *bt){
+
   /* variant of fold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -30,6 +34,10 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
   int   noGUclosure   = P->model_details.noGUclosure;
   int   *rtype        = &(P->model_details.rtype[0]);
 
+  hard_constraintT *hc    = vc->hc;
+  soft_constraintT  *sc   = vc->sc;
+  char              *hard_constraints = hc->matrix;
+
   /* dereference of the folding matrices */
   my_c    = vc->matrices->c;
   my_fML  = vc->matrices->fML;
@@ -45,6 +53,7 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
       if (u<TURN) continue;
 
       ij = indx[j]+i;
+
       type = ptype[ij];
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
@@ -52,41 +61,75 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
       /* if (j-i-1 > max_separation) type = 0; */  /* forces locality degree */
 
       type=rtype[type];
-      if (!type) continue;
-      if (no_close) new_c = FORBIDDEN;
-      else {
-        char loopseq[10];
-        /*int si1, sj1;*/
-        if (u<7) {
-          strcpy(loopseq , string+j-1);
-          strncat(loopseq, string, i);
-        }
-        new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+my_c[ij];
-      }
-      if (new_c<FcH) {
-        FcH = new_c; Hi=i; Hj=j;
-      }
 
-      for (p = j+1; p < length ; p++) {
-        int u1, qmin;
-        u1 = p-j-1;
-        if (u1+i-1>MAXLOOP) break;
-        qmin = u1+i-1+length-MAXLOOP;
-        if (qmin<p+TURN+1) qmin = p+TURN+1;
-        for (q = qmin; q <=length; q++) {
-          int u2, type_2/*, si1, sq1*/;
-          type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
-          if (type_2==0) continue;
-          u2 = i-1 + length-q;
-          if (u1+u2>MAXLOOP) continue;
-          energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
-          new_c = my_c[ij] + my_c[indx[q]+p] + energy;
-          if (new_c<FcI) {
-            FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
+      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+        if(hc->up_hp[j+1] >= u){
+          if (no_close) new_c = FORBIDDEN;
+          else {
+            char loopseq[10];
+            /*int si1, sj1;*/
+            if (u<7) {
+              strcpy(loopseq , string+j-1);
+              strncat(loopseq, string, i);
+            }
+            new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+my_c[ij];
+
+            if(sc){
+              if(sc->free_energies)
+                new_c +=  sc->free_energies[j+1][length-j]
+                          + sc->free_energies[1][i-1];
+
+                if(sc->f) /* should this be (j,i) instead of (i,j) ? */
+                  new_c += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+            }
+            if (new_c<FcH) {
+              FcH = new_c; Hi=i; Hj=j;
+            }
           }
         }
       }
-    }
+
+      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+        for (p = j+1; p < length ; p++) {
+          int u1, qmin;
+          u1 = p-j-1;
+          if (u1+i-1>MAXLOOP) break;
+          if (hc->up_int[j+1] < u1) break;
+
+          qmin = u1+i-1+length-MAXLOOP;
+          if (qmin<p+TURN+1) qmin = p+TURN+1;
+          for (q = length; q >= qmin; q--) {
+            int u2, type_2/*, si1, sq1*/;
+            u2 = i-1 + length-q;
+            if(hc->up_int[q+1] < u2) break;
+            if(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP){
+              type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
+              if (u1+u2>MAXLOOP) continue;
+              energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
+              new_c = my_c[ij] + my_c[indx[q]+p] + energy;
+
+              if(sc){
+                if(sc->free_energies)
+                  new_c +=  sc->free_energies[j+1][p-j-1]
+                            + sc->free_energies[q+1][length-q]
+                            + sc->free_energies[1][i-1];
+
+                if(sc->en_stack)
+                  if(u1 + u2 == 0)
+                    new_c +=  sc->en_stack[i]
+                              + sc->en_stack[j]
+                              + sc->en_stack[p]
+                              + sc->en_stack[q];
+              }
+
+              if (new_c<FcI) {
+                FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
+              }
+            }
+          }
+        }
+      }
+    } /* end of i,j loop */
   Fc = MIN2(FcI, FcH);
 
   /* compute the fM2 array (multi loops with exactly 2 helices) */
@@ -112,22 +155,30 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
     int u;
     fM_d3 =  (int *) space(sizeof(int)*(length+2));
     fM_d5 =  (int *) space(sizeof(int)*(length+2));
+
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d3[i] = INF;
       for (u=2+TURN; u<i-TURN; u++)
         fM_d3[i] = MIN2(fM_d3[i], my_fML[indx[u]+2] + my_fML[indx[i]+u+1]);
     }
+
     for (i=2*TURN+1; i<length-TURN; i++) {
       int fm, type;
       type = ptype[indx[length]+i+1];
-      if (type==0) continue;
-      fm = fM_d3[i]+my_c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
-      if (fm<FcMd3) {
-        FcMd3=fm; Md3i=i;
-      }
-      fm = fM_d3[i-1]+my_c[indx[length]+i+1]+E_MLstem(type, S1[i], S1[1], P) + P->MLclosing;
-      if (fm<FcMd3) {
-        FcMd3=fm; Md3i=-i;
+      if(hard_constraints[indx[length] + i + 1] & VRNA_HC_CONTEXT_MB_LOOP){
+        if(hc->up_ml[1]){
+          fm = fM_d3[i]+my_c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
+          if (fm<FcMd3) {
+            FcMd3=fm; Md3i=i;
+          }
+
+          if(hc->up_ml[i]){
+            fm = fM_d3[i-1]+my_c[indx[length]+i+1]+E_MLstem(type, S1[i], S1[1], P) + P->MLclosing;
+            if (fm<FcMd3) {
+              FcMd3=fm; Md3i=-i;
+            }
+          }
+        }
       }
     }
 
@@ -136,19 +187,26 @@ PRIVATE void fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt){
       for (u=i+TURN; u<length-TURN; u++)
         fM_d5[i] = MIN2(fM_d5[i], my_fML[indx[u]+i] + my_fML[indx[length-1]+u+1]);
     }
+
     for (i=TURN+1; i<length-2*TURN; i++) {
       int fm, type;
-      type = ptype[indx[i]+1];
-      if (type==0) continue;
-      fm = E_MLstem(type, S1[length], -1, P) + my_c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;
-      if (fm<FcMd5) {
-        FcMd5=fm; Md5i=i;
-      }
-      fm = E_MLstem(type, S1[length], S1[i+1], P) + my_c[indx[i]+1] + fM_d5[i+2] + P->MLclosing;
-      if (fm<FcMd5) {
-        FcMd5=fm; Md5i=-i;
+      if(hard_constraints[indx[i]+1] & VRNA_HC_CONTEXT_MB_LOOP){
+        type = ptype[indx[i]+1];
+        if(hc->up_ml[length]){
+          fm = E_MLstem(type, S1[length], -1, P) + my_c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;
+          if (fm<FcMd5) {
+            FcMd5=fm; Md5i=i;
+          }
+          if(hc->up_ml[i+1]){
+            fm = E_MLstem(type, S1[length], S1[i+1], P) + my_c[indx[i]+1] + fM_d5[i+2] + P->MLclosing;
+            if (fm<FcMd5) {
+              FcMd5=fm; Md5i=-i;
+            }
+          }
+        }
       }
     }
+
     if (FcMd5<MIN2(Fc,FcMd3)) {
       /* looks like we have to do this ... */
       bt_stack[++(*bt)].i = 1;

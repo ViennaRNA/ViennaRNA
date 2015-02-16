@@ -158,7 +158,7 @@ ok(int($e*100+0.5), 70);
 
 my $duplex = RNA::duplexfold($seq1, $seq2);
 
-ok($duplex->{structure}, "(.(.(((.....(((.&))))))...).).");
+ok($duplex->{structure}, ".(((.....(((.&)))))).");
 undef $duplex;
 
 my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");

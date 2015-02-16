@@ -348,8 +348,19 @@ int main(int argc, char *argv[]){
     }
     else fname[0] = '\0';
 
-    length  = (int)strlen(rec_sequence);
-    structure = (char *)space(sizeof(char) *(length+1));
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
+
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+
+    length    = vc->length;
+
+    structure = (char *) space(sizeof(char) * (length+1));
+    
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
@@ -362,15 +373,23 @@ int main(int argc, char *argv[]){
       if(cl == 0)           warn_user("structure constraint is missing");
       else if(cl < length)  warn_user("structure constraint is shorter than sequence");
       else if(cl > length)  nrerror("structure constraint is too long");
-      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
+      if(cstruc){
+        strncpy(structure, cstruc, sizeof(char)*(cl+1));
+
+        unsigned int constraint_options = 0;
+        constraint_options |= VRNA_CONSTRAINT_DB
+                              | VRNA_CONSTRAINT_PIPE
+                              | VRNA_CONSTRAINT_DOT
+                              | VRNA_CONSTRAINT_X
+                              | VRNA_CONSTRAINT_ANG_BRACK
+                              | VRNA_CONSTRAINT_RND_BRACK;
+
+        vrna_hc_add(vc, (const char *)structure, constraint_options);
+      }
     }
 
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
-    /* store case-unmodified sequence */
-    orig_sequence = strdup(rec_sequence);
-    /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    if(with_shapes)
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
     if(istty) printf("length = %d\n", length);
 
@@ -380,22 +399,6 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
-
-    if(fold_constrained){
-      unsigned int constraint_options = 0;
-      constraint_options |= VRNA_CONSTRAINT_DB
-                            | VRNA_CONSTRAINT_PIPE
-                            | VRNA_CONSTRAINT_DOT
-                            | VRNA_CONSTRAINT_X
-                            | VRNA_CONSTRAINT_ANG_BRACK
-                            | VRNA_CONSTRAINT_RND_BRACK;
-
-      vrna_hc_add(vc, (const char *)structure, constraint_options);
-    }
-
-    if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
 
 
     min_en = (double)vrna_fold(vc, structure);

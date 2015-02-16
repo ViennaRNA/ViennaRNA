@@ -277,9 +277,20 @@ int main(int argc, char *argv[])
       else if(cl < length)  warn_user("structure constraint is shorter than sequence");
       else if(cl > length)  nrerror("structure constraint is too long");
 
-      if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
-    }
+      if(cstruc){
+        strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
+        unsigned int constraint_options = 0;
+        constraint_options |= VRNA_CONSTRAINT_DB
+                              | VRNA_CONSTRAINT_PIPE
+                              | VRNA_CONSTRAINT_DOT
+                              | VRNA_CONSTRAINT_X
+                              | VRNA_CONSTRAINT_ANG_BRACK
+                              | VRNA_CONSTRAINT_RND_BRACK;
+
+        vrna_hc_add(vc, (const char *)structure, constraint_options);
+      }
+    }
 
     if(istty){
       if (cut_point == -1)
