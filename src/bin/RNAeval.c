@@ -171,7 +171,7 @@ int main(int argc, char *argv[]){
     }
 
     if(verbose)
-      energy = vrna_eval_structure_verbose(string, structure, P, NULL);
+      energy = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
     else
       energy = vrna_eval_structure(string, structure, P, NULL);
 

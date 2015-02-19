@@ -81,6 +81,8 @@ float vrna_eval_structure(const char *string,
  *  defaults to print to stdout.
  *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
  *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *  In cases were the last optional parameter 'sc' is not NULL, the corresponding soft constraint
+ *  pseudo-energies are added as well to the final free energy of the evaluated structure.
  *
  *  \ingroup eval
  *
@@ -90,12 +92,14 @@ float vrna_eval_structure(const char *string,
  *  \param string           RNA sequence in uppercase letters
  *  \param structure        Secondary structure in dot-bracket notation
  *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param sc               A data structure containing additional soft constraint pseudo-energies (may be NULL).
  *  \param file             A file handle where this function should print to (may be NULL).
  *  \return                 The free energy of the input structure given the input sequence in kcal/mol
  */
 float vrna_eval_structure_verbose(const char *string,
                                   const char *structure,
                                   paramT *P,
+                                  soft_constraintT *sc,
                                   FILE *file);
 
 /**
@@ -104,6 +108,8 @@ float vrna_eval_structure_verbose(const char *string,
  *  This function allows for energy evaluation of a given sequence/structure pair.
  *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
  *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *  In cases were the last optional parameter 'sc' is not NULL, the corresponding soft constraint
+ *  pseudo-energies are added as well to the final free energy of the evaluated structure.
  *
  *  \ingroup eval
  *
@@ -113,11 +119,13 @@ float vrna_eval_structure_verbose(const char *string,
  *  \param string           RNA sequence in uppercase letters
  *  \param pt               Secondary structure as pair_table
  *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param sc               A data structure containing additional soft constraint pseudo-energies (may be NULL).
  *  \return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
 int vrna_eval_structure_pt( const char *string,
                             const short *pt,
-                            paramT *P);
+                            paramT *P,
+                            soft_constraintT *sc);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA
@@ -128,6 +136,8 @@ int vrna_eval_structure_pt( const char *string,
  *  defaults to print to stdout.
  *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
  *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *  In cases were the last optional parameter 'sc' is not NULL, the corresponding soft constraint
+ *  pseudo-energies are added as well to the final free energy of the evaluated structure.
  *
  *  \ingroup eval
  *
@@ -137,19 +147,22 @@ int vrna_eval_structure_pt( const char *string,
  *  \param string           RNA sequence in uppercase letters
  *  \param pt               Secondary structure as pair_table
  *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param sc               A data structure containing additional soft constraint pseudo-energies (may be NULL).
  *  \param file             A file handle where this function should print to (may be NULL).
  *  \return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
 int vrna_eval_structure_pt_verbose( const char *string,
                                     const short *pt,
                                     paramT *P,
+                                    soft_constraintT *sc,
                                     FILE *file);
 
 int vrna_eval_structure_pt_fast(const char *string,
                                 const short *pt,
                                 const short *s,
                                 const short *s1,
-                                paramT *parameters);
+                                paramT *parameters,
+                                soft_constraintT *sc);
 
 /**
  * \brief Calculate energy of a loop
@@ -165,7 +178,8 @@ int vrna_eval_loop_pt(const short *pt,
                       const short *s,
                       const short *s1,
                       int i,
-                      paramT *P);
+                      paramT *P,
+                      soft_constraintT *sc);
 
 /** 
  * \brief Calculate energy of a move (closing or opening of a base pair)
@@ -189,7 +203,8 @@ float vrna_eval_move( const char *string,
                       const char *structure,
                       int m1,
                       int m2,
-                      paramT *P);
+                      paramT *P,
+                      soft_constraintT *sc);
 
 /**
  * 
@@ -216,7 +231,8 @@ int vrna_eval_move_pt(short *pt,
                       const short *s1,
                       int m1,
                       int m2,
-                      paramT *P);
+                      paramT *P,
+                      soft_constraintT *sc);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA using global model detail settings

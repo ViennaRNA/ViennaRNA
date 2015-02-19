@@ -178,7 +178,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = vrna_eval_structure(seq, s1, P,NULL);
+    route[0].en = vrna_eval_structure(seq, s1, P, NULL);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -196,7 +196,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = vrna_eval_structure(seq, s2, P,NULL);
+    route[BP_dist].en = vrna_eval_structure(seq, s2, P, NULL);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -259,9 +259,9 @@ try_moves(intermediate_t c,
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + vrna_eval_move_pt(c.pt, S, S1, i, j, P);
+    en = c.curr_en + vrna_eval_move_pt(c.pt, S, S1, i, j, P, NULL);
 #else
-    en = vrna_eval_structure_pt_fast(seq, pt, S, S1, P);
+    en = vrna_eval_structure_pt_fast(seq, pt, S, S1, P, NULL);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -312,7 +312,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   BP_dist = dist;
   current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_fast(seq, pt1, S, S1, P);
+  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_fast(seq, pt1, S, S1, P, NULL);
   current[0].moves = mlist;
   next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -504,12 +504,12 @@ int main(int argc, char *argv[]) {
       for (r=route; r->s; r++) {
           if (cut_point == -1) {
               printf("%s %6.2f\n", r->s, r->en);
-              /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P,NULL), r->en); */
+              /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P, NULL), r->en); */
           } else {
               char *pstruct;
               pstruct = costring(r->s);
               printf("%s %6.2f\n", pstruct, r->en);
-              /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure(seq,r->s,P,NULL), r->en); */
+              /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure(seq,r->s,P, NULL), r->en); */
               free(pstruct);
           }
           free(r->s);
