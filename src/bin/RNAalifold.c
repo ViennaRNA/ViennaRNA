@@ -405,7 +405,7 @@ int main(int argc, char *argv[]){
     int     i;
     double  s = 0;
     for (i=0; AS[i]!=NULL; i++)
-      s += vrna_eval_structure(AS[i], structure, vc->params);
+      s += vrna_eval_structure(AS[i], structure, vc->params, NULL);
     real_en   = s/i;
   } else {
 
@@ -529,7 +529,7 @@ int main(int argc, char *argv[]){
         if(circular)
           energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else
-          ens[0] = vrna_eval_structure(string, structure, vc->params);
+          ens[0] = vrna_eval_structure(string, structure, vc->params, NULL);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
         free(pl2);

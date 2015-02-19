@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/constraints.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -52,6 +53,8 @@ extern  int eos_debug;
  *  This function allows for energy evaluation of a given sequence/structure pair.
  *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
  *  will be used for energy evaluation. Otherwise, default parameters are used.
+ *  In cases were the last optional parameter 'sc' is not NULL, the corresponding soft constraint
+ *  pseudo-energies are added as well to the final free energy of the evaluated structure.
  *
  *  \ingroup eval
  *
@@ -60,12 +63,14 @@ extern  int eos_debug;
  *
  *  \param string           RNA sequence in uppercase letters
  *  \param structure        Secondary structure in dot-bracket notation
- *  \param P       A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param P                A data structure containing the prescaled energy contributions and the model details (may be NULL).
+ *  \param sc               A data structure containing additional soft constraint pseudo-energies (may be NULL).
  *  \return                 The free energy of the input structure given the input sequence in kcal/mol
  */
 float vrna_eval_structure(const char *string,
                           const char *structure,
-                          paramT *P);
+                          paramT *P,
+                          soft_constraintT *sc);
 
 /**
  *  \brief Calculate the free energy of an already folded RNA and print contributions per loop.

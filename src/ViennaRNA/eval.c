@@ -125,7 +125,8 @@ PRIVATE int wrap_eval_loop_pt(const short *pt,
 PUBLIC  float
 vrna_eval_structure(const char *string,
                     const char *structure,
-                    paramT *parameters){
+                    paramT *parameters,
+                    soft_constraintT *sc){
 
   paramT *P = get_updated_params(parameters, 0);
   short *s  = vrna_seq_encode_simple(string, &(P->model_details));
@@ -1226,7 +1227,7 @@ energy_of_struct( const char *string,
   if(eos_debug > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
   return en;
@@ -1261,7 +1262,7 @@ energy_of_circ_struct(const char *string,
   if(eos_debug > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
   return en;
@@ -1278,7 +1279,7 @@ energy_of_structure(const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
   return en;
@@ -1297,7 +1298,7 @@ energy_of_struct_par( const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
 
@@ -1317,7 +1318,7 @@ energy_of_gquad_structure(const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
 
@@ -1337,7 +1338,7 @@ energy_of_gquad_struct_par( const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
 
@@ -1395,7 +1396,7 @@ energy_of_circ_structure( const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
 
@@ -1415,7 +1416,7 @@ energy_of_circ_struct_par(const char *string,
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(string, structure, P, NULL);
   else
-    en = vrna_eval_structure(string, structure, P);
+    en = vrna_eval_structure(string, structure, P, NULL);
 
   free(P);
 

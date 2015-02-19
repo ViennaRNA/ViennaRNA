@@ -173,7 +173,7 @@ int main(int argc, char *argv[]){
     if(verbose)
       energy = vrna_eval_structure_verbose(string, structure, P, NULL);
     else
-      energy = vrna_eval_structure(string, structure, P);
+      energy = vrna_eval_structure(string, structure, P, NULL);
 
     if (cut_point == -1)
       printf("%s\n%s", orig_sequence, structure);

@@ -617,6 +617,7 @@ vrna_subopt(vrna_fold_compound *vc,
   int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
   char          *ptype;
   short         *S, *S1;
+  soft_constraintT *sc;
 
   max_sol             = 128;
   n_sol               = 0;
@@ -627,6 +628,7 @@ vrna_subopt(vrna_fold_compound *vc,
   S1                  = vc->sequence_encoding;
   P                   = vc->params;
   md                  = &(P->model_details);
+  sc                  = vc->sc;
 
   /* do mfe folding to get fill arrays and get ground state energy  */
   /* in case dangles is neither 0 or 2, set dangles=2 while folding */
@@ -660,7 +662,7 @@ vrna_subopt(vrna_fold_compound *vc,
     /* restore dangle model */
     md->dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
-    min_en = vrna_eval_structure(sequence, struc, P);
+    min_en = vrna_eval_structure(sequence, struc, P, sc);
   } else {
     min_en = vrna_cofold(vc, struc);
 
@@ -676,7 +678,7 @@ vrna_subopt(vrna_fold_compound *vc,
     /* restore dangle model */
     md->dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
-    min_en = vrna_eval_structure(sequence, struc, P);
+    min_en = vrna_eval_structure(sequence, struc, P, sc);
   }
 
   free(struc);
@@ -760,7 +762,7 @@ vrna_subopt(vrna_fold_compound *vc,
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = vrna_eval_structure(sequence, structure, P);
+        structure_energy = vrna_eval_structure(sequence, structure, P, sc);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -770,7 +772,7 @@ vrna_subopt(vrna_fold_compound *vc,
           }
 #endif
         if (logML || (dangle_model==1) || (dangle_model==3)) { /* recalc energy */
-          structure_energy = vrna_eval_structure(sequence, structure, P);
+          structure_energy = vrna_eval_structure(sequence, structure, P, sc);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */

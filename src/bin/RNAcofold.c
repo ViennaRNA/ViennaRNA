@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
       FLT_OR_DBL *probs;
       if (dangles==1){
         P->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
-        min_en = vrna_eval_structure(rec_sequence, structure, P);
+        min_en = vrna_eval_structure(rec_sequence, structure, P, vc->sc);
         P->model_details.dangles = dangles = 1;
       }
 
