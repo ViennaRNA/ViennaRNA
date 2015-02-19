@@ -380,14 +380,14 @@ vrna_pt_to_db(short *pt){
   char *dotbracket = NULL;
   if(pt){
     dotbracket = (char *)space((pt[0]+1)*sizeof(char));
+    memset(dotbracket, '.', pt[0]);
 
-    for(i=1; i<=pt[0]; i++)
-      dotbracket[i-1] = '.';
+    for(i=1; i<=pt[0]; i++){
       if(pt[i] > i){
         dotbracket[i-1] = '(';
         dotbracket[pt[i]-1] = ')';
       }
-
+    }
     dotbracket[i-1] = '\0';
   }
   return dotbracket;
