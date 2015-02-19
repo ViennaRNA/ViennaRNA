@@ -101,7 +101,8 @@ PRIVATE int   en_corr_of_loop_gquad(int i,
                                     const short *pt,
                                     const int *loop_idx,
                                     const short *s1,
-                                    paramT *P);
+                                    paramT *P,
+                                    soft_constraintT *sc);
 
 PRIVATE paramT  *get_updated_params(paramT *parameters, int compat);
 
@@ -472,7 +473,7 @@ wrap_eval_structure(const char *string,
 
   if(gq){
     int *loop_idx = vrna_get_loop_index(pt);
-    int gge       = en_corr_of_loop_gquad(1, s[0], string, structure, pt, loop_idx, s1, P);
+    int gge       = en_corr_of_loop_gquad(1, s[0], string, structure, pt, loop_idx, s1, P, sc);
     res          += gge;
     free(loop_idx);
   }
@@ -673,7 +674,8 @@ en_corr_of_loop_gquad(int i,
                       const short *pt,
                       const int *loop_idx,
                       const short *s1,
-                      paramT *P){
+                      paramT *P,
+                      soft_constraintT *sc){
 
   int pos, energy, p, q, r, s, u, type, type2;
   int L, l[3];
@@ -750,7 +752,7 @@ en_corr_of_loop_gquad(int i,
         } else { /* we must have found a stem */
           if(!(u < pt[u])) nrerror("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
-          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1, P);
+          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1, P, sc);
           u = pt[u] + 1;
         }
       }
@@ -775,6 +777,17 @@ en_corr_of_loop_gquad(int i,
                                         s1[s - 1],
                                         string + r - 1,
                                         P);
+                    if(sc){
+                      if(sc->free_energies)
+                        energy -= sc->free_energies[r+1][s - r - 1];
+
+                      if(sc->en_basepair)
+                        energy -= sc->en_basepair[md->pair[s1[r]][s1[s]]];
+
+                      if(sc->f)
+                        energy -= sc->f(r,s,r,s, VRNA_DECOMP_PAIR_HP, sc->data);
+                    }
+
                     break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
           case 1:   type = md->pair[s1[r]][s1[s]];
@@ -792,6 +805,19 @@ en_corr_of_loop_gquad(int i,
                                         s1[elem_i - 1],
                                         s1[elem_j + 1],
                                         P);
+
+                    if(sc){
+                      if(sc->free_energies)
+                        energy += sc->free_energies[r + 1][elem_i - r - 1]
+                                  + sc->free_energies[elem_j + 1][s - elem_j - 1];
+
+                      if(sc->en_basepair)
+                        energy += sc->en_basepair[md->pair[s1[r]][s1[s]]];
+
+                      if(sc->f)
+                        energy += sc->f(r, s, elem_i, elem_j, VRNA_DECOMP_PAIR_IL, sc->data);
+                    }
+
                     break;
           /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
           default:  energy -= (up_mis) * P->MLbase;
