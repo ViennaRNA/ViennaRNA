@@ -28,6 +28,32 @@ char *my_pf_fold(char *string, float *OUTPUT);
 char *my_pf_fold(char *string, char *constraints, float *OUTPUT);
 %ignore pf_fold;
 
+%rename (pf_circ_fold) my_pf_circ_fold;
+%{
+  char *my_pf_circ_fold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    *energy = pf_circ_fold(string, struc);
+    return(struc);
+  }
+  char *my_pf_circ_fold(char *string, char *constraints, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(string));
+    *energy = pf_circ_fold(string, struc);
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    return(struc);
+  }
+%}
+
+%newobject my_pf_circ_fold;
+char *my_pf_circ_fold(char *string, char *constraints, float *OUTPUT);
+char *my_pf_circ_fold(char *string, float *OUTPUT);
+
+%ignore pf_circ_fold;
+
 %newobject pbacktrack;
 extern char *pbacktrack(char *sequence);
 
