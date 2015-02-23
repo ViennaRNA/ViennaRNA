@@ -65,7 +65,8 @@ PRIVATE int   energy_of_extLoop_pt( int i,
                                     const short *pt,
                                     const short *s,
                                     const short *s1,
-                                    paramT *params);
+                                    paramT *params,
+                                    soft_constraintT *sc);
 
 PRIVATE int   energy_of_ml_pt(int i,
                               const short *pt,
@@ -257,13 +258,20 @@ wrap_eval_loop_pt(const short *pt,
                   int verbosity){
 
   /* compute energy of a single loop closed by base pair (i,j) */
-  int j, type, p,q, energy;
+  int j, type, p,q, energy, *idx;
 
+  idx       = NULL;
   paramT *P = get_updated_params(params, 0);
 
+  if(sc){
+    if(sc->en_basepair)
+      idx = get_indx((unsigned int)pt[0]);
+  }
+
   if (i==0) { /* evaluate exterior loop */
-    energy = energy_of_extLoop_pt(0,pt, s, s1, P);
+    energy = energy_of_extLoop_pt(0,pt, s, s1, P, sc);
     free(P);
+    free(idx);
     return energy;
   }
   j = pt[i];
@@ -281,7 +289,7 @@ wrap_eval_loop_pt(const short *pt,
   while (pt[++p]==0);
   while (pt[--q]==0);
   if (p>q) { /* Hairpin */
-    char loopseq[8] = "";
+    char loopseq[9] = "";
     if (SAME_STRAND(i,j)) {
       if (j-i-1<7) {
         int u;
@@ -295,19 +303,19 @@ wrap_eval_loop_pt(const short *pt,
           energy += sc->free_energies[i+1][j-i-1];
 
         if(sc->en_basepair)
-          energy += sc->en_basepair[P->model_details.pair[s[i]][s[j]]];
+          energy += sc->en_basepair[idx[j]+i]];
 
         if(sc->f)
           energy += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
     } else {
-      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P);
+      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P, sc);
     }
   }
   else if (pt[q]!=(short)p) { /* multi-loop */
     int ii;
     ii = cut_in_loop(i, (const short *)pt);
-    energy = (ii==0) ? energy_of_ml_pt(i, (const short *)pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, (const short *)pt, s, s1, P);
+    energy = (ii==0) ? energy_of_ml_pt(i, (const short *)pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, (const short *)pt, s, s1, P, sc);
   }
   else { /* found interior loop */
     int type_2;
@@ -330,7 +338,7 @@ wrap_eval_loop_pt(const short *pt,
                     + sc->free_energies[q+1][j-q-1];
 
         if(sc->en_basepair)
-          energy += sc->en_basepair[P->model_details.pair[s[i]][s[j]]];
+          energy += sc->en_basepair[idx[j]+i];
 
         if(sc->en_stack)
           if((i+1 == p) && (j-1 == q))
@@ -343,11 +351,13 @@ wrap_eval_loop_pt(const short *pt,
           energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
       }
     } else {
-      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P);
+      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P, sc);
     }
   }
 
   free(P);
+  free(idx);
+
   return energy;
 }
 
@@ -501,7 +511,7 @@ eval_pt(const char *string,
   if(params->model_details.gquad)
     warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
 
-  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, pt, s, s1, params, sc) : energy_of_extLoop_pt(0, pt, s, s1, params);
+  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, pt, s, s1, params, sc) : energy_of_extLoop_pt(0, pt, s, s1, params, sc);
   if (verbosity_level>0)
     fprintf(out, "External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
@@ -677,10 +687,16 @@ en_corr_of_loop_gquad(int i,
                       paramT *P,
                       soft_constraintT *sc){
 
-  int pos, energy, p, q, r, s, u, type, type2;
+  int pos, energy, p, q, r, s, u, type, type2, *idx;
   int L, l[3];
   int *rtype;
   model_detailsT  *md;
+
+  idx = NULL;
+  if(sc){
+    if(sc->en_basepair)
+      idx = get_indx((unsigned int)pt[0]);
+  }
 
   md    = &(P->model_details);
   rtype = &(md->rtype[0]);
@@ -782,7 +798,7 @@ en_corr_of_loop_gquad(int i,
                         energy -= sc->free_energies[r+1][s - r - 1];
 
                       if(sc->en_basepair)
-                        energy -= sc->en_basepair[md->pair[s1[r]][s1[s]]];
+                        energy -= sc->en_basepair[idx[s] + r];
 
                       if(sc->f)
                         energy -= sc->f(r,s,r,s, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -812,7 +828,7 @@ en_corr_of_loop_gquad(int i,
                                   + sc->free_energies[elem_j + 1][s - elem_j - 1];
 
                       if(sc->en_basepair)
-                        energy += sc->en_basepair[md->pair[s1[r]][s1[s]]];
+                        energy += sc->en_basepair[idx[s] + r];
 
                       if(sc->f)
                         energy += sc->f(r, s, elem_i, elem_j, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -827,6 +843,8 @@ en_corr_of_loop_gquad(int i,
       q = s+1;
     }
   }
+
+  free(idx);
   return energy;
 }
 
@@ -846,9 +864,15 @@ stack_energy( int i,
   FILE *out = (file) ? file : stdout;
 
   /* calculate energy of substructure enclosed by (i,j) */
-  int ee, energy = 0;
+  int ee, *idx, energy = 0;
   int j, p, q, type;
   int *rtype = &(P->model_details.rtype[0]);
+
+  idx = NULL;
+  if(sc){
+    if(sc->en_basepair)
+      idx = get_indx((unsigned int)pt[0]);
+  }
 
   j=pt[i];
   type = P->model_details.pair[s[i]][s[j]];
@@ -882,7 +906,7 @@ stack_energy( int i,
                 + sc->free_energies[q+1][j-q-1];
 
         if(sc->en_basepair)
-          ee += sc->en_basepair[P->model_details.pair[s[i]][s[j]]];
+          ee += sc->en_basepair[idx[j] + i];
 
         if(sc->en_stack)
           if((i+1 == p) && (j-1 == q))
@@ -895,7 +919,7 @@ stack_energy( int i,
           ee += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
       }
     } else { 
-      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P);
+      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P, sc);
     }
 
     if (verbosity_level>0)
@@ -918,7 +942,7 @@ stack_energy( int i,
           ee += sc->free_energies[i+1][j-i-1];
 
         if(sc->en_basepair){
-          ee += sc->en_basepair[P->model_details.pair[s[i]][s[j]]];
+          ee += sc->en_basepair[idx[j] + i];
         }
 
         if(sc->f)
@@ -926,7 +950,7 @@ stack_energy( int i,
       }
 
     } else {
-      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P);
+      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P, sc);
     }
     energy += ee;
 
@@ -948,13 +972,14 @@ stack_energy( int i,
   {
     int ii;
     ii = cut_in_loop(i, pt);
-    ee = (ii==0) ? energy_of_ml_pt(i, pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, pt, s, s1, P);
+    ee = (ii==0) ? energy_of_ml_pt(i, pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, pt, s, s1, P, sc);
   }
   energy += ee;
   if (verbosity_level>0)
     fprintf(out, "Multi    loop (%3d,%3d) %c%c              : %5d\n",
            i,j,string[i-1],string[j-1],ee);
 
+  free(idx);
   return energy;
 }
 
@@ -973,9 +998,10 @@ energy_of_extLoop_pt( int i,
                       const short *pt,
                       const short *s,
                       const short *s1,
-                      paramT *P){
+                      paramT *P,
+                      soft_constraintT *sc){
 
-  int energy, mm5, mm3;
+  int energy, mm5, mm3, bonus;
   int p, q, q_prev;
   int length = (int)pt[0];
 
@@ -987,6 +1013,7 @@ energy_of_extLoop_pt( int i,
 
   /* initialize vars */
   energy      = 0;
+  bonus       = 0;
   p           = (i==0) ? 1 : i;
   q_prev      = -1;
 
@@ -997,6 +1024,12 @@ energy_of_extLoop_pt( int i,
 
   /* seek to opening base of first stem */
   while(p <= length && !pt[p]) p++;
+
+  /* add soft constraints for first unpaired nucleotides */
+  if(sc){
+    if(sc->free_energies)
+      bonus += (i==0) ? sc->free_energies[1][p-1] : sc->free_energies[i][p-1];
+  }
 
   while(p < length){
     int tt;
@@ -1070,7 +1103,7 @@ energy_of_ml_pt(int i,
                 paramT *P,
                 soft_constraintT *sc){
 
-  int energy, cx_energy, tmp, tmp2, best_energy=INF;
+  int energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
   int e_stem, e_stem5, e_stem3, e_stem53;
   int mlintern[NBPAIRS+1];
@@ -1082,6 +1115,14 @@ energy_of_ml_pt(int i,
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
   int dangle_model = P->model_details.dangles;
   int *rtype = &(P->model_details.rtype[0]);
+
+
+  bonus = 0;
+  idx = NULL;
+  if(sc){
+    if(sc->en_basepair)
+      idx   = get_indx((unsigned int)pt[0]);
+  }
 
   if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
@@ -1097,11 +1138,18 @@ energy_of_ml_pt(int i,
   q_prev      = i-1;
   q_prev2     = i;
 
+
   for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
 
   /* seek to opening base of first stem */
   while(p <= j && !pt[p]) p++;
   u = p - i - 1;
+
+  /* add bonus energies for first stretch of unpaired nucleotides */
+  if(sc){
+    if(sc->free_energies)
+      bonus += sc->free_energies[i+1][u];
+  }
 
   switch(dangle_model){
     case 0:   while(p < j){
@@ -1111,16 +1159,33 @@ energy_of_ml_pt(int i,
                 tt = P->model_details.pair[s[p]][s[q]];
                 if(tt==0) tt=7;
                 energy += E_MLstem(tt, -1, -1, P);
+
+                if(sc){
+                  if(sc->en_basepair)
+                    energy += sc->en_basepair[idx[q]+p];
+                }
+
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
                 while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
+
+                if(sc){
+                  if(sc->free_energies)
+                    energy += sc->free_energies[q+1][p-q-1];
+                }
+                
               }
               /* now lets get the energy of the enclosing stem */
               if(i > 0){  /* actual closing pair */
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
                 energy += E_MLstem(type, -1, -1, P);
+
+                if(sc){
+                  if(sc->en_basepair)
+                    energy += sc->en_basepair[idx[j]+i];
+                }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
               }
@@ -1135,17 +1200,33 @@ energy_of_ml_pt(int i,
                 mm5 = (SAME_STRAND(p-1,p))  ? s1[p-1] : -1;
                 mm3 = (SAME_STRAND(q,q+1))  ? s1[q+1] : -1;
                 energy += E_MLstem(tt, mm5, mm3, P);
+
+                if(sc){
+                  if(sc->en_basepair)
+                    energy += sc->en_basepair[idx[q]+p];
+                }
+
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
                 while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
+
+                if(sc){
+                  if(sc->free_energies)
+                    energy += sc->free_energies[q+1][p-q-1];
+                }
               }
               if(i > 0){  /* actual closing pair */
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
                 mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
                 mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
                 energy += E_MLstem(type, s1[j-1], s1[i+1], P);
+
+                if(sc){
+                  if(sc->en_basepair)
+                    energy += sc->en_basepair[idx[j]+i];
+                }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
               }
@@ -1178,6 +1259,12 @@ energy_of_ml_pt(int i,
 
                   /* memorize number of unpaired positions */
                   u += p-i1-1;
+
+                  if(sc){
+                    if(sc->free_energies)
+                      energy += sc->free_energies[i1+1][p-i1-1];
+                  }
+
                   /* get position of pairing partner */
                   if ( p == (unsigned int)pt[0]+1 ){
                     q = 0;tt = 0; /* virtual root pair */
@@ -1290,6 +1377,11 @@ energy_of_ml_pt(int i,
                 q_prev = q_prev2 = q;
                 while (p <= j && !pt[p]) p++;
                 u += p - q - 1; /* add unpaired nucleotides */
+
+                if(sc){
+                  if(sc->free_energies)
+                    energy += sc->free_energies[q+1][p-q-1];
+                }
               }
               if(i > 0){  /* actual closing pair */
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
@@ -1329,6 +1421,9 @@ energy_of_ml_pt(int i,
     energy += 6*P->MLbase+(int)(P->lxc*log((double)u/6.));
   else
     energy += (u*P->MLbase);
+
+  /* clean up */
+  free(idx);
 
   return energy;
 }
