@@ -303,7 +303,7 @@ wrap_eval_loop_pt(const short *pt,
           energy += sc->free_energies[i+1][j-i-1];
 
         if(sc->en_basepair)
-          energy += sc->en_basepair[idx[j]+i]];
+          energy += sc->en_basepair[idx[j]+i];
 
         if(sc->f)
           energy += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);

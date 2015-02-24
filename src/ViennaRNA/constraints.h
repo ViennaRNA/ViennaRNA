@@ -539,7 +539,7 @@ void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
 
 void vrna_sc_remove(vrna_fold_compound *vc);
 
-void vrna_sc_destroy(soft_constraintT *sc);
+void vrna_sc_free(soft_constraintT *sc);
 
 int parse_soft_constraints_shape_method(const char *method_string,
                                         char *method,

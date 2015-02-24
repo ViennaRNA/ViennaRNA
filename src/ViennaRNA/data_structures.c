@@ -37,6 +37,35 @@
 
 /*
 #################################
+# PRIVATE MACROS                #
+#################################
+*/
+
+/* the definitions below indicate which arrays should be allocated upon retrieval of a matrices data structure */
+#define ALLOC_NOTHING     0
+#define ALLOC_F           1
+#define ALLOC_F5          2
+#define ALLOC_F3          4
+#define ALLOC_FC          8
+#define ALLOC_C           16
+#define ALLOC_FML         32
+#define ALLOC_PROBS       256
+#define ALLOC_AUX         512
+
+#define ALLOC_CIRC        1024
+#define ALLOC_HYBRID      2048
+#define ALLOC_UNIQ        4096
+
+
+#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
+
+#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
+#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
+
+
+
+/*
+#################################
 # GLOBAL VARIABLES              #
 #################################
 */
@@ -163,31 +192,20 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
     /* first destroy common attributes */
     vrna_free_mfe_matrices(vc);
     vrna_free_pf_matrices(vc);
-    if(vc->iindx)
-      free(vc->iindx);
-    if(vc->jindx)
-      free(vc->jindx);
-    if(vc->params)
-      free(vc->params);
-    if(vc->exp_params)
-      free(vc->exp_params);
-    if(vc->hc)
-      vrna_hc_free(vc->hc);
+    free(vc->iindx);
+    free(vc->jindx);
+    free(vc->params);
+    free(vc->exp_params);
+    vrna_hc_free(vc->hc);
 
     /* now distinguish the vc type */
     if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(vc->sequence)
-        free(vc->sequence);
-      if(vc->sequence_encoding)
-        free(vc->sequence_encoding);
-      if(vc->sequence_encoding2)
-        free(vc->sequence_encoding2);
-      if(vc->ptype)
-        free(vc->ptype);
-      if(vc->ptype_pf_compat)
-        free(vc->ptype_pf_compat);
-      if(vc->sc)
-        vrna_sc_destroy(vc->sc);
+      free(vc->sequence);
+      free(vc->sequence_encoding);
+      free(vc->sequence_encoding2);
+      free(vc->ptype);
+      free(vc->ptype_pf_compat);
+      vrna_sc_free(vc->sc);
 
     } else if (vc->type == VRNA_VC_TYPE_ALIGNMENT){
       for(s=0;s<vc->n_seq;s++){
@@ -209,7 +227,7 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
       free(vc->pscore);
       if(vc->scs){
         for(s=0;s<vc->n_seq;s++)
-          free(vc->scs[s]);
+          vrna_sc_free(vc->scs[s]);
         free(vc->scs);
       }
     }
@@ -371,47 +389,59 @@ set_fold_compound(vrna_fold_compound *vc,
     vc->scs       = NULL;
   }
 
-  vc->iindx               = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
-  vc->jindx               = get_indx(vc->length);
+  /* some default init values */
+  vc->iindx         = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
+  vc->jindx         = get_indx(vc->length);
 
-  /* prepare the allocation vector for the DP matrices */
-  if(options & VRNA_OPTION_HYBRID){
-    alloc_vector |= ALLOC_HYBRID;
-    if(cp < 0)
-      warn_user("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
-  }
+  vc->params        = NULL;
+  vc->exp_params    = NULL;
+  vc->matrices      = NULL;
+  vc->exp_matrices  = NULL;
 
+  /* now come the energy parameters */
   if(options & VRNA_OPTION_MFE)
-    alloc_vector |= ALLOC_MFE_DEFAULT;
-
-  if(options & VRNA_OPTION_PF)
-    alloc_vector |= (md.compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
-
-  if(md.uniq_ML)
-    alloc_vector |= ALLOC_UNIQ;
-
-  if(md.circ){
-    md.uniq_ML = 1;
-    alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
-  }
-
-  if(options & VRNA_OPTION_MFE){
-    vc->params    = vrna_get_energy_contributions(md);
-    vrna_add_mfe_matrices(vc, alloc_vector);
-  } else {
-    vc->params    = NULL;
-    vc->matrices  = NULL;
-  }
-
+    vc->params      = vrna_get_energy_contributions(md);
 
   if(options & VRNA_OPTION_PF){
-    vc->exp_params    = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
-                            vrna_get_boltzmann_factors(md) : \
-                            vrna_get_boltzmann_factors_ali(vc->n_seq, md);
-    vrna_add_pf_matrices(vc, alloc_vector);
-  } else {
-    vc->exp_params    = NULL;
-    vc->exp_matrices  = NULL;
+    vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+                        vrna_get_boltzmann_factors(md) : \
+                        vrna_get_boltzmann_factors_ali(vc->n_seq, md);
+  }
+
+  /* prepare the allocation vector for the DP matrices */
+  if(~(options & VRNA_OPTION_NO_DP_MATRICES)){
+
+    /* cofolding matrices ? */
+    if(options & VRNA_OPTION_HYBRID){
+      alloc_vector |= ALLOC_HYBRID;
+      if(cp < 0) /* we could also omit this message */
+        warn_user("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
+    }
+
+    /* default MFE matrices ? */
+    if(options & VRNA_OPTION_MFE)
+      alloc_vector |= ALLOC_MFE_DEFAULT;
+
+    /* default PF matrices ? */
+    if(options & VRNA_OPTION_PF)
+      alloc_vector |= (md.compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
+
+    /* unique ML decomposition ? */
+    if(md.uniq_ML)
+      alloc_vector |= ALLOC_UNIQ;
+
+    /* matrices for circular folding ? */
+    if(md.circ){
+      md.uniq_ML = 1;
+      alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
+    }
+
+    /* actually allocate memory now! */
+    if(options & VRNA_OPTION_MFE)
+      vrna_add_mfe_matrices(vc, alloc_vector);
+
+    if(options & VRNA_OPTION_PF)
+      vrna_add_pf_matrices(vc, alloc_vector);
   }
 
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT)

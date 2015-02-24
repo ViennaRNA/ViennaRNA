@@ -46,36 +46,16 @@
 #define   VRNA_VC_TYPE_ALIGNMENT  2
 
 
-/* the definitions below indicate which arrays should be allocated upon retrieval of a matrices data structure */
-#define ALLOC_NOTHING     0
-#define ALLOC_F           1
-#define ALLOC_F5          2
-#define ALLOC_F3          4
-#define ALLOC_FC          8
-#define ALLOC_C           16
-#define ALLOC_FML         32
-#define ALLOC_PROBS       256
-#define ALLOC_AUX         512
 
-#define ALLOC_CIRC        1024
-#define ALLOC_HYBRID      2048
-#define ALLOC_UNIQ        4096
+/* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
 
+#define VRNA_OPTION_MFE             1
 
-#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
+#define VRNA_OPTION_PF              2
 
-#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
-#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
+#define VRNA_OPTION_HYBRID          4
 
-
-/* the definitions below should be used for functions the return/receive/destroy fold compound data structures */
-
-#define VRNA_OPTION_MFE       1
-
-#define VRNA_OPTION_PF        2
-
-#define VRNA_OPTION_HYBRID    4
-
+#define VRNA_OPTION_NO_DP_MATRICES  8
 
 
 

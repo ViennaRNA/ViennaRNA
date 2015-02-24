@@ -1108,7 +1108,7 @@ vrna_sc_add(vrna_fold_compound *vc,
     n                     = vc->length;
 
     if(vc->sc)
-      vrna_sc_destroy(vc->sc);
+      vrna_sc_free(vc->sc);
     vc->sc  = sc;
 
     if(constraints){
@@ -1153,7 +1153,7 @@ vrna_sc_add_ali(vrna_fold_compound *vc,
       sc->data              = NULL;
 
       if(vc->scs[s])
-        vrna_sc_destroy(vc->scs[s]);
+        vrna_sc_free(vc->scs[s]);
       vc->scs[s]  = sc;
     }
 
@@ -1562,13 +1562,13 @@ PUBLIC void
 vrna_sc_remove(vrna_fold_compound *vc){
 
   if(vc){
-    vrna_sc_destroy(vc->sc);
+    vrna_sc_free(vc->sc);
     vc->sc = NULL;
   }
 }
 
 PUBLIC void
-vrna_sc_destroy(soft_constraintT *sc){
+vrna_sc_free(soft_constraintT *sc){
 
   int i;
   if(sc){
