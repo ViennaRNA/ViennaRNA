@@ -140,10 +140,15 @@ int main(int argc, char *argv[]){
     }
     else fname[0] = '\0';
 
-    cut_point = -1;
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
-    string    = tokenize(rec_sequence);
-    length2   = (int) strlen(string);
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
     tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if(!tmp)
@@ -151,31 +156,24 @@ int main(int argc, char *argv[]){
 
     structure = tokenize(tmp);
     length1   = (int) strlen(structure);
-    if(length1 != length2)
+    if(length1 != vc->length)
       nrerror("structure and sequence differ in length!");
 
     free(tmp);
-
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(string);
-    /* store case-unmodified sequence */
-    orig_sequence = strdup(string);
-    /* convert sequence to uppercase letters only */
-    str_uppercase(string);
 
     if(istty){
       if (cut_point == -1)
         printf("length = %d\n", length1);
       else
-        printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
+        printf("length1 = %d\nlength2 = %d\n", vc->cutpoint-1, length1-vc->cutpoint+1);
     }
 
     if(verbose)
-      energy = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+      energy = vrna_eval_structure_verbose(vc, structure, NULL);
     else
-      energy = vrna_eval_structure(string, structure, P, NULL);
+      energy = vrna_eval_structure(vc, structure);
 
-    if (cut_point == -1)
+    if (vc->cutpoint == -1)
       printf("%s\n%s", orig_sequence, structure);
     else {
       char *pstring, *pstruct;
@@ -206,6 +204,8 @@ int main(int argc, char *argv[]){
     free(string);
     free(orig_sequence);
     string = orig_sequence = NULL;
+
+    vrna_free_fold_compound(vc);
 
     /* print user help for the next round if we get input from tty */
     if(istty){

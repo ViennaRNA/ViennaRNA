@@ -51,47 +51,29 @@ PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE int   stack_energy( int i,
-                            const char *string,
+PRIVATE int   stack_energy( vrna_fold_compound *vc,
+                            int i,
                             const short *pt,
-                            const short *s,
-                            const short *s1,
                             FILE *file,
-                            paramT *params,
-                            soft_constraintT *sc,
                             int verbostiy_level);
 
-PRIVATE int   energy_of_extLoop_pt( int i,
-                                    const short *pt,
-                                    const short *s,
-                                    const short *s1,
-                                    paramT *params,
-                                    soft_constraintT *sc);
+PRIVATE int   energy_of_extLoop_pt( vrna_fold_compound *vc,
+                                    int i,
+                                    const short *pt);
 
-PRIVATE int   energy_of_ml_pt(int i,
-                              const short *pt,
-                              const short *s,
-                              const short *s1,
-                              paramT *params,
-                              soft_constraintT *sc);
+PRIVATE int   energy_of_ml_pt(vrna_fold_compound *vc,
+                              int i,
+                              const short *pt);
 
 PRIVATE int   cut_in_loop(int i, const short *pt);
 
-PRIVATE int   eval_pt(const char *string,
+PRIVATE int   eval_pt(vrna_fold_compound *vc,
                       const short *pt,
-                      const short *s,
-                      const short *s1,
                       FILE *file,
-                      paramT *params,
-                      soft_constraintT *sc,
                       int verbosity_level);
 
-PRIVATE int   eval_circ_pt( const char *string,
+PRIVATE int   eval_circ_pt( vrna_fold_compound *vc,
                             const short *pt,
-                            const short *s,
-                            const short *s1,
-                            paramT *P,
-                            soft_constraintT *sc,
                             FILE *file,
                             int verbosity_level);
 
@@ -107,22 +89,15 @@ PRIVATE int   en_corr_of_loop_gquad(int i,
 
 PRIVATE paramT  *get_updated_params(paramT *parameters, int compat);
 
-PRIVATE float   wrap_eval_structure(const char *string,
+PRIVATE float   wrap_eval_structure(vrna_fold_compound *vc,
                                     const char *structure,
                                     const short *pt,
-                                    const short *s,
-                                    const short *s1,
-                                    paramT *P,
-                                    soft_constraintT *sc,
                                     FILE *file,
                                     int verbosity);
 
-PRIVATE int wrap_eval_loop_pt(const short *pt,
-                              const short *s,
-                              const short *s1,
+PRIVATE int wrap_eval_loop_pt(vrna_fold_compound *vc,
                               int i,
-                              paramT *params,
-                              soft_constraintT *sc,
+                              const short *pt,
                               int verbosity);
 /*
 #################################
@@ -130,148 +105,158 @@ PRIVATE int wrap_eval_loop_pt(const short *pt,
 #################################
 */
 
+PUBLIC float
+vrna_eval_structure_simple( const char *string,
+                            const char *structure){
+
+  float e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound *vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+  /* evaluate structure */
+  e = vrna_eval_structure(vc, structure);
+
+  /* free fold_compound */
+  vrna_free_fold_compound(vc);
+
+  return e;
+}
+
 PUBLIC  float
-vrna_eval_structure(const char *string,
-                    const char *structure,
-                    paramT *parameters,
-                    soft_constraintT *sc){
+vrna_eval_structure(vrna_fold_compound *vc,
+                    const char *structure){
 
-  paramT *P = get_updated_params(parameters, 0);
-  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
-  short *s1 = vrna_seq_encode(string, &(P->model_details));
   short *pt = vrna_pt_get(structure);
-  float en  = wrap_eval_structure(string, structure, pt, s, s1, P, sc, NULL, -1);
+  float en  = wrap_eval_structure(vc, structure, pt, NULL, -1);
 
-  free(P);
   free(pt);
-  free(s);
-  free(s1);
   return en;
 }
 
 PUBLIC float
-vrna_eval_structure_verbose(const char *string,
+vrna_eval_structure_simple_verbose( const char *string,
+                                    const char *structure,
+                                    FILE *file){
+
+  float e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound *vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_verbose(vc, structure, file);
+
+  /* free fold_compound */
+  vrna_free_fold_compound(vc);
+
+  return e;
+}
+
+PUBLIC float
+vrna_eval_structure_verbose(vrna_fold_compound *vc,
                             const char *structure,
-                            paramT *parameters,
-                            soft_constraintT *sc,
                             FILE *file){
 
-  paramT *P = get_updated_params(parameters, 0);
-  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
-  short *s1 = vrna_seq_encode(string, &(P->model_details));
   short *pt = vrna_pt_get(structure);
-  float en  = wrap_eval_structure(string, structure, pt, s, s1, P, sc, file, 1);
+  float en  = wrap_eval_structure(vc, structure, pt, file, 1);
 
-  free(P);
   free(pt);
-  free(s);
-  free(s1);
   return en;
 }
 
 PUBLIC int
-vrna_eval_structure_pt( const char *string,
-                        const short *pt,
-                        paramT *parameters,
-                        soft_constraintT *sc){
+vrna_eval_structure_pt_simple(const char *string,
+                              const short *pt){
 
-  if(pt && string){
-    if(pt[0] != (short)strlen(string))
+  int e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound *vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_pt(vc, pt);
+
+  /* free fold_compound */
+  vrna_free_fold_compound(vc);
+
+  return e;
+}
+
+PUBLIC int
+vrna_eval_structure_pt( vrna_fold_compound *vc,
+                        const short *pt){
+
+  if(pt && vc){
+    if(pt[0] != (short)vc->length)
       nrerror("energy_of_struct: string and structure have unequal length");
 
-    paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
-    short *s  = vrna_seq_encode_simple(string, &(P->model_details));
-    short *s1 = vrna_seq_encode(string, &(P->model_details));
-
-    int en = eval_pt(string, pt, s, s1, NULL, P, sc, -1);
-    free(s);
-    free(s1);
-    free(P);
-    return en;
+    return eval_pt(vc, pt, NULL, -1);
   } else
     return INF;
 }
 
 PUBLIC int
-vrna_eval_structure_pt_verbose( const char *string,
+vrna_eval_structure_pt_simple_verbose(const char *string,
+                                      const short *pt,
+                                      FILE *file){
+
+  int e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound *vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_pt_verbose(vc, pt, file);
+
+  /* free fold_compound */
+  vrna_free_fold_compound(vc);
+
+  return e;
+
+}
+
+PUBLIC int
+vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
                                 const short *pt,
-                                paramT *parameters,
-                                soft_constraintT *sc,
                                 FILE *file){
 
-  if(pt && string){
-    if(pt[0] != (short)strlen(string))
+  if(pt && vc){
+    if(pt[0] != (short)vc->length)
       nrerror("energy_of_struct: string and structure have unequal length");
 
-    paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
-    short *s  = vrna_seq_encode_simple(string, &(P->model_details));
-    short *s1 = vrna_seq_encode(string, &(P->model_details));
-
-    int en = eval_pt(string, pt, s, s1, file, P, sc, 1);
-    free(s);
-    free(s1);
-    free(P);
-    return en;
+    return eval_pt(vc, pt, file, 1);
   } else
     return INF;
 }
 
 PUBLIC int
-vrna_eval_structure_pt_fast(const char *string,
-                            const short *pt,
-                            const short *s,
-                            const short *s1,
-                            paramT *parameters,
-                            soft_constraintT *sc){
-
-  if(pt && string){
-    if(pt[0] != (short)strlen(string))
-      nrerror("energy_of_struct: string and structure have unequal length");
-
-    paramT *P = get_updated_params(parameters, 0); /* this ensures a proper P data structure */
-
-    int en = eval_pt(string, pt, s, s1, NULL, P, sc, -1);
-    free(P);
-    return en;
-  } else
-    return INF;
-}
-
-PUBLIC int
-vrna_eval_loop_pt(const short *pt,
-                  const short *s,
-                  const short *s1,
+vrna_eval_loop_pt(vrna_fold_compound *vc,
                   int i,
-                  paramT *params,
-                  soft_constraintT *sc){
+                  const short *pt){
 
-  return wrap_eval_loop_pt(pt, s, s1, i, params, sc, -1);
+  return wrap_eval_loop_pt(vc, i, pt, -1);
 }
 
 PRIVATE int
-wrap_eval_loop_pt(const short *pt,
-                  const short *s,
-                  const short *s1,
+wrap_eval_loop_pt(vrna_fold_compound *vc,
                   int i,
-                  paramT *params,
-                  soft_constraintT *sc,
+                  const short *pt,
                   int verbosity){
 
   /* compute energy of a single loop closed by base pair (i,j) */
-  int j, type, p,q, energy, *idx;
+  int               j, type, p,q, energy, *idx;
+  short             *s, *s1;
+  soft_constraintT  *sc;
 
-  idx       = NULL;
-  paramT *P = get_updated_params(params, 0);
-
-  if(sc){
-    if(sc->en_basepair)
-      idx = get_indx((unsigned int)pt[0]);
-  }
+  paramT *P = vc->params;
+  idx       = vc->jindx;
+  s         = vc->sequence_encoding2;
+  s1        = vc->sequence_encoding;
+  sc        = vc->sc;
 
   if (i==0) { /* evaluate exterior loop */
-    energy = energy_of_extLoop_pt(0,pt, s, s1, P, sc);
-    free(P);
-    free(idx);
+    energy = energy_of_extLoop_pt(vc, 0, pt);
     return energy;
   }
   j = pt[i];
@@ -309,13 +294,13 @@ wrap_eval_loop_pt(const short *pt,
           energy += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
     } else {
-      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P, sc);
+      energy = energy_of_extLoop_pt(vc, cut_in_loop(i, (const short *)pt), (const short *)pt);
     }
   }
   else if (pt[q]!=(short)p) { /* multi-loop */
     int ii;
     ii = cut_in_loop(i, (const short *)pt);
-    energy = (ii==0) ? energy_of_ml_pt(i, (const short *)pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, (const short *)pt, s, s1, P, sc);
+    energy = (ii==0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc, ii, (const short *)pt);
   }
   else { /* found interior loop */
     int type_2;
@@ -351,49 +336,36 @@ wrap_eval_loop_pt(const short *pt,
           energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
       }
     } else {
-      energy = energy_of_extLoop_pt(cut_in_loop(i, (const short *)pt), (const short *)pt, s, s1, P, sc);
+      energy = energy_of_extLoop_pt(vc, cut_in_loop(i, (const short *)pt), (const short *)pt);
     }
   }
-
-  free(P);
-  free(idx);
 
   return energy;
 }
 
 PUBLIC float
-vrna_eval_move( const char *string,
+vrna_eval_move( vrna_fold_compound *vc,
                 const char *structure,
                 int m1,
-                int m2,
-                paramT *params,
-                soft_constraintT *sc){
+                int m2){
 
-  if (strlen(structure)!=strlen(string))
+  if (strlen(structure) != vc->length)
     nrerror("vrna_eval_move: sequence and structure have unequal length");
 
-  paramT *P = get_updated_params(params, 0);
   short *pt = vrna_pt_get(structure);
-  short *s  = vrna_seq_encode_simple(string, &(P->model_details));
-  short *s1 = vrna_seq_encode(string, &(P->model_details));
 
-  int en = vrna_eval_move_pt(pt, s, s1, m1, m2, P, sc);
+  int en = vrna_eval_move_pt(vc, pt, m1, m2);
 
-  free(s1);
-  free(s);
   free(pt);
-  free(P);
+
   return  (float)en/100.;
 }
 
 PUBLIC int
-vrna_eval_move_pt(short *pt,
-                  const short *s,
-                  const short *s1,
+vrna_eval_move_pt(vrna_fold_compound *vc,
+                  short *pt,
                   int m1,
-                  int m2,
-                  paramT *params,
-                  soft_constraintT *sc){
+                  int m2){
 
   /*compute change in energy given by move (m1,m2)*/
   int en_post, en_pre, i,j,k,l, len;
@@ -412,18 +384,18 @@ vrna_eval_move_pt(short *pt,
     }
   }
   i = (j<=len) ? pt[j] : 0;
-  en_pre = vrna_eval_loop_pt((const short *)pt, (const short *)s, (const short *)s1, i, params, sc);
+  en_pre = vrna_eval_loop_pt(vc, i, (const short *)pt);
   en_post = 0;
   if (m1<0) { /*it's a delete move */
-    en_pre += vrna_eval_loop_pt((const short *)pt, (const short *)s, (const short *)s1, k, params, sc);
+    en_pre += vrna_eval_loop_pt(vc, k, (const short *)pt);
     pt[k]=0;
     pt[l]=0;
   } else { /* insert move */
     pt[k]=l;
     pt[l]=k;
-    en_post += vrna_eval_loop_pt((const short *)pt, (const short *)s, (const short *)s1, k, params, sc);
+    en_post += vrna_eval_loop_pt(vc, k, (const short *)pt);
   }
-  en_post += vrna_eval_loop_pt((const short *)pt, (const short *)s, (const short *)s1, i, params, sc);
+  en_post += vrna_eval_loop_pt(vc, i, (const short *)pt);
   /*  restore pair table */
   if (m1<0) {
     pt[k]=l;
@@ -459,31 +431,28 @@ get_updated_params(paramT *parameters, int compat){
 }
 
 PRIVATE float
-wrap_eval_structure(const char *string,
+wrap_eval_structure(vrna_fold_compound *vc,
                     const char *structure,
                     const short *pt,
-                    const short *s,
-                    const short *s1,
-                    paramT *P,
-                    soft_constraintT *sc,
                     FILE *file,
                     int verbosity){
 
   int res;
   int gq;
 
-  gq = P->model_details.gquad;
-  P->model_details.gquad = 0;
-  if(P->model_details.circ){
-    res = eval_circ_pt(string, pt, s, s1, P, sc, file, verbosity);
+  gq = vc->params->model_details.gquad;
+  vc->params->model_details.gquad = 0;
+
+  if(vc->params->model_details.circ){
+    res = eval_circ_pt(vc, pt, file, verbosity);
   } else {
-    res = eval_pt(string, (const short *)pt, s, s1, file, P, sc, verbosity);
+    res = eval_pt(vc, (const short *)pt, file, verbosity);
   }
-  P->model_details.gquad = gq;
+  vc->params->model_details.gquad = gq;
 
   if(gq){
     int *loop_idx = vrna_get_loop_index(pt);
-    int gge       = en_corr_of_loop_gquad(1, s[0], string, structure, pt, loop_idx, s1, P, sc);
+    int gge       = en_corr_of_loop_gquad(1, vc->length, vc->sequence, structure, pt, loop_idx, vc->sequence_encoding, vc->params, vc->sc);
     res          += gge;
     free(loop_idx);
   }
@@ -492,13 +461,9 @@ wrap_eval_structure(const char *string,
 }
 
 PRIVATE int
-eval_pt(const char *string,
+eval_pt(vrna_fold_compound *vc,
         const short *pt,
-        const short *s,
-        const short *s1,
         FILE *file,
-        paramT *params,
-        soft_constraintT *sc,
         int verbosity_level){
 
   int   i, length, energy;
@@ -506,22 +471,22 @@ eval_pt(const char *string,
 
   FILE *out = (file) ? file : stdout;
 
-  length = s[0];
+  length = vc->length;
 
-  if(params->model_details.gquad)
+  if(vc->params->model_details.gquad)
     warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
 
-  energy =  backtrack_type=='M' ? energy_of_ml_pt(0, pt, s, s1, params, sc) : energy_of_extLoop_pt(0, pt, s, s1, params, sc);
+  energy =  backtrack_type=='M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
   if (verbosity_level>0)
     fprintf(out, "External loop                           : %5d\n", energy);
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
-    energy += stack_energy(i, string, pt, s, s1, out, params, sc, verbosity_level);
+    energy += stack_energy(vc, i, pt, out, verbosity_level);
     i=pt[i];
   }
   for (i=1; !SAME_STRAND(i,length); i++) {
     if (!SAME_STRAND(i,pt[i])) {
-      energy+=params->DuplexInit;
+      energy += vc->params->DuplexInit;
       break;
     }
   }
@@ -530,22 +495,28 @@ eval_pt(const char *string,
 }
 
 PRIVATE int
-eval_circ_pt( const char *string,
+eval_circ_pt( vrna_fold_compound *vc,
               const short *pt,
-              const short *s,
-              const short *s1,
-              paramT *P,
-              soft_constraintT *sc,
               FILE *file,
               int verbosity_level){
 
-  int   i, j, length, energy=0, en0, degree=0, type;
+  int               i, j, length, energy, en0, degree, type, dangle_model;
+  short             *s, *s1;
+  paramT            *P;
+  char              *string;
+  soft_constraintT  *sc;
 
-  int dangle_model = P->model_details.dangles;
+  energy        = 0;
+  degree        = 0;
+  string        = vc->sequence;
+  length        = vc->length;
+  s             = vc->sequence_encoding2;
+  s1            = vc->sequence_encoding;
+  P             = vc->params;
+  dangle_model  = P->model_details.dangles;
+  sc            = vc->sc;
 
   FILE *out = (file) ? file : stdout;
-
-  length = s[0];
 
   if(P->model_details.gquad)
     warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
@@ -553,7 +524,7 @@ eval_circ_pt( const char *string,
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
     degree++;
-    energy += stack_energy(i, string, (const short *)pt, s, s1, out, P, sc, verbosity_level);
+    energy += stack_energy(vc, i, (const short *)pt, out, verbosity_level);
     i=pt[i];
   }
 
@@ -611,7 +582,7 @@ eval_circ_pt( const char *string,
                     + sc->en_stack[q];
       }
     } else { /* degree > 2 */
-      en0 = energy_of_ml_pt(0, (const short *)pt, s, s1, P, sc) - P->MLintern[0];
+      en0 = energy_of_ml_pt(vc, 0, (const short *)pt) - P->MLintern[0];
 #if 0
       if (dangle_model) {
         int d5, d3;
@@ -851,28 +822,31 @@ en_corr_of_loop_gquad(int i,
 
 
 PRIVATE int
-stack_energy( int i,
-              const char *string,
+stack_energy( vrna_fold_compound *vc,
+              int i,
               const short *pt,
-              const short *s,
-              const short *s1,
               FILE *file,
-              paramT *P,
-              soft_constraintT *sc,
               int verbosity_level){
 
-  FILE *out = (file) ? file : stdout;
-
   /* calculate energy of substructure enclosed by (i,j) */
-  int ee, *idx, energy = 0;
-  int j, p, q, type;
-  int *rtype = &(P->model_details.rtype[0]);
 
-  idx = NULL;
-  if(sc){
-    if(sc->en_basepair)
-      idx = get_indx((unsigned int)pt[0]);
-  }
+  int               ee, *idx, energy, j, p, q, type, *rtype;
+  char              *string;
+  short             *s, *s1;
+  FILE              *out;
+  paramT            *P;
+  soft_constraintT  *sc;
+
+
+  string  = vc->sequence;
+  s       = vc->sequence_encoding2;
+  s1      = vc->sequence_encoding;
+  P       = vc->params;
+  sc      = vc->sc;
+  rtype   = &(P->model_details.rtype[0]);
+  idx     = vc->jindx;
+  energy  = 0;
+  out     = (file) ? file : stdout;
 
   j=pt[i];
   type = P->model_details.pair[s[i]][s[j]];
@@ -919,7 +893,7 @@ stack_energy( int i,
           ee += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
       }
     } else { 
-      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P, sc);
+      ee = energy_of_extLoop_pt(vc, cut_in_loop(i, pt), pt);
     }
 
     if (verbosity_level>0)
@@ -950,7 +924,7 @@ stack_energy( int i,
       }
 
     } else {
-      ee = energy_of_extLoop_pt(cut_in_loop(i, pt), pt, s, s1, P, sc);
+      ee = energy_of_extLoop_pt(vc, cut_in_loop(i, pt), pt);
     }
     energy += ee;
 
@@ -964,7 +938,7 @@ stack_energy( int i,
   /* (i,j) is exterior pair of multiloop */
   while (p<j) {
     /* add up the contributions of the substructures of the ML */
-    energy += stack_energy(p, string, pt, s, s1, out, P, sc, verbosity_level);
+    energy += stack_energy(vc, p, pt, out, verbosity_level);
     p = pt[p];
     /* search for next base pair in multiloop */
     while (pt[++p]==0);
@@ -972,14 +946,13 @@ stack_energy( int i,
   {
     int ii;
     ii = cut_in_loop(i, pt);
-    ee = (ii==0) ? energy_of_ml_pt(i, pt, s, s1, P, sc) : energy_of_extLoop_pt(ii, pt, s, s1, P, sc);
+    ee = (ii==0) ? energy_of_ml_pt(vc, i, pt) : energy_of_extLoop_pt(vc, ii, pt);
   }
   energy += ee;
   if (verbosity_level>0)
     fprintf(out, "Multi    loop (%3d,%3d) %c%c              : %5d\n",
            i,j,string[i-1],string[j-1],ee);
 
-  free(idx);
   return energy;
 }
 
@@ -994,24 +967,27 @@ stack_energy( int i,
 *** loop
 **/
 PRIVATE int
-energy_of_extLoop_pt( int i,
-                      const short *pt,
-                      const short *s,
-                      const short *s1,
-                      paramT *P,
-                      soft_constraintT *sc){
+energy_of_extLoop_pt( vrna_fold_compound *vc,
+                      int i,
+                      const short *pt){
 
-  int energy, mm5, mm3, bonus;
-  int p, q, q_prev;
-  int length = (int)pt[0];
+  int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model;
+  short             *s, *s1;
+  paramT            *P;
+  soft_constraintT  *sc;
 
   /* helper variables for dangles == 1 case */
   int E3_available;  /* energy of 5' part where 5' mismatch is available for current stem */
   int E3_occupied;   /* energy of 5' part where 5' mismatch is unavailable for current stem */
 
-  int dangle_model = P->model_details.dangles;
 
   /* initialize vars */
+  length      = vc->length;
+  s           = vc->sequence_encoding2;
+  s1          = vc->sequence_encoding;
+  P           = vc->params;
+  dangle_model = P->model_details.dangles;
+
   energy      = 0;
   bonus       = 0;
   p           = (i==0) ? 1 : i;
@@ -1096,33 +1072,35 @@ energy_of_extLoop_pt( int i,
 *** walk around the Loop twice with two starting points and take the minimum
 ***/
 PRIVATE int
-energy_of_ml_pt(int i,
-                const short *pt,
-                const short *s,
-                const short *s1,
-                paramT *P,
-                soft_constraintT *sc){
+energy_of_ml_pt(vrna_fold_compound *vc,
+                int i,
+                const short *pt){
 
   int energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
   int e_stem, e_stem5, e_stem3, e_stem53;
   int mlintern[NBPAIRS+1];
+  short *s, *s1;
+  paramT *P;
+  soft_constraintT *sc;
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
   int E_mm5_occupied;   /* energy of 5' part where 5' mismatch of current stem is unavailable */
   int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
+
+  s   = vc->sequence_encoding2;
+  s1  = vc->sequence_encoding;
+  P   = vc->params;
+  sc  = vc->sc;
+  idx = vc->jindx;
+
   int dangle_model = P->model_details.dangles;
   int *rtype = &(P->model_details.rtype[0]);
 
 
   bonus = 0;
-  idx = NULL;
-  if(sc){
-    if(sc->en_basepair)
-      idx   = get_indx((unsigned int)pt[0]);
-  }
 
   if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
@@ -1422,8 +1400,7 @@ energy_of_ml_pt(int i,
   else
     energy += (u*P->MLbase);
 
-  /* clean up */
-  free(idx);
+  energy += bonus;
 
   return energy;
 }
@@ -1454,15 +1431,20 @@ PUBLIC float
 energy_of_struct( const char *string,
                   const char *structure){
 
-  float en;
-  paramT *P = get_updated_params(NULL, 1);
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
+
+  set_model_details(&md);
+  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
 
   if(eos_debug > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
+
   return en;
 }
 
@@ -1472,13 +1454,21 @@ energy_of_struct_pt(const char *string,
                     short *s,
                     short *s1){
 
+  int                 en;
+  model_detailsT      md;
+  vrna_fold_compound *vc;
+
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       nrerror("energy_of_structure_pt: string and structure have unequal length");
 
-    paramT *P = get_updated_params(NULL, 1);
-    int en = eval_pt(string, pt, s, s1, NULL, P, NULL, eos_debug);
-    free(P);
+    set_model_details(&md);
+    vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+    en = eval_pt(vc, pt, NULL, eos_debug);
+
+    vrna_free_fold_compound(vc);
+
     return en;
   } else
     return INF;
@@ -1488,16 +1478,21 @@ PUBLIC float
 energy_of_circ_struct(const char *string,
                       const char *structure){
 
-  float en;
-  paramT *P = get_updated_params(NULL, 1);
-  P->model_details.circ = 1;
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
+
+  set_model_details(&md);
+  md.circ = 1;
+  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
 
   if(eos_debug > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
+
   return en;
 }
 
@@ -1506,15 +1501,21 @@ energy_of_structure(const char *string,
                     const char *structure,
                     int verbosity_level){
 
-  float en;
-  paramT *P = get_updated_params(NULL, 1);
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
+
+  set_model_details(&md);
+  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
+
   return en;
 }
 
@@ -1524,16 +1525,20 @@ energy_of_struct_par( const char *string,
                       paramT *parameters,
                       int verbosity_level){
 
-  float en;
+  float               en;
+  vrna_fold_compound  *vc;
 
-  paramT *P = get_updated_params(parameters, 1);
+  vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+  free(vc->params);
+  vc->params = get_updated_params(parameters, 1);
+
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -1544,16 +1549,20 @@ energy_of_gquad_structure(const char *string,
                           const char *structure,
                           int verbosity_level){
 
-  float en;
-  paramT *P = get_updated_params(NULL, 1);
-  P->model_details.gquad = 1;
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
+
+  set_model_details(&md);
+  md.gquad = 1;
+  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -1564,16 +1573,21 @@ energy_of_gquad_struct_par( const char *string,
                             paramT *parameters,
                             int verbosity_level){
 
-  float en;
-  paramT *P = get_updated_params(parameters, 1);
-  P->model_details.gquad = 1;
+
+  float               en;
+  vrna_fold_compound  *vc;
+
+  vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+  free(vc->params);
+  vc->params = get_updated_params(parameters, 1);
+  vc->params->model_details.gquad = 1;
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -1585,13 +1599,22 @@ energy_of_structure_pt( const char *string,
                         short *s1,
                         int verbosity_level){
 
+  int en;
+  model_detailsT md;
+  vrna_fold_compound *vc;
+
+
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       nrerror("energy_of_structure_pt: string and structure have unequal length");
 
-    paramT *P = get_updated_params(NULL, 1);
-    int en = eval_pt(string, pt, s, s1, NULL, P, NULL, verbosity_level);
-    free(P);
+    set_model_details(&md);
+    vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+    en = eval_pt(vc, pt, NULL, verbosity_level);
+
+    vrna_free_fold_compound(vc);
+
     return en;
   } else
     return INF;
@@ -1605,13 +1628,21 @@ energy_of_struct_pt_par(const char *string,
                         paramT *parameters,
                         int verbosity_level){
 
+  int en;
+  vrna_fold_compound *vc;
+
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       nrerror("energy_of_structure_pt: string and structure have unequal length");
 
-    paramT *P = get_updated_params(parameters, 1);
-    int en = eval_pt(string, pt, s, s1, NULL, P, NULL, verbosity_level);
-    free(P);
+    vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+    free(vc->params);
+    vc->params = get_updated_params(parameters, 1);
+
+    en = eval_pt(vc, pt, NULL, verbosity_level);
+
+    vrna_free_fold_compound(vc);
+
     return en;
   } else
     return INF;
@@ -1622,16 +1653,20 @@ energy_of_circ_structure( const char *string,
                           const char *structure,
                           int verbosity_level){
 
-  float en;
-  paramT *P = get_updated_params(NULL, 1);
-  P->model_details.circ = 1;
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
+
+  set_model_details(&md);
+  md.circ = 1;
+  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -1642,16 +1677,20 @@ energy_of_circ_struct_par(const char *string,
                           paramT *parameters,
                           int verbosity_level){
 
-  float en;
-  paramT *P = get_updated_params(parameters, 1);
-  P->model_details.circ = 1;
+  float               en;
+  vrna_fold_compound  *vc;
+
+  vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+  free(vc->params);
+  vc->params = get_updated_params(parameters, 1);
+  vc->params->model_details.circ = 1;
 
   if(verbosity_level > 0)
-    en = vrna_eval_structure_verbose(string, structure, P, NULL, NULL);
+    en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
-    en = vrna_eval_structure(string, structure, P, NULL);
+    en = vrna_eval_structure(vc, structure);
 
-  free(P);
+  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -1662,11 +1701,27 @@ loop_energy(short *pt,
             short *s1,
             int i){
 
-  paramT *P = get_updated_params(NULL,1);
+  int                 en, u;
+  char                *seq;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
 
-  int en = wrap_eval_loop_pt(pt, s, s1, i, P, NULL, eos_debug);
+  set_model_details(&md);
 
-  free(P);
+  /* convert encoded sequence back to actual string */
+  seq = (char *)space(sizeof(char) * (s[0]+1));
+  for(u = 1; u < s[0]; u++){
+    seq[u-1] = get_encoded_char(s[u], &md);
+  }
+  seq[u] = '\0';
+
+  vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+
+  en = wrap_eval_loop_pt(vc, i, pt, eos_debug);
+
+  vrna_free_fold_compound(vc);
+  free(seq);
+
   return en;
 }
 
@@ -1677,10 +1732,16 @@ energy_of_move( const char *string,
                 int m1,
                 int m2){
 
-  paramT *P = get_updated_params(NULL, 1);
-  float en  = vrna_eval_move(string, structure, m1, m2, P, NULL);
+  float               en;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
 
-  free(P);
+  set_model_details(&md);
+  vc  = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+  en  = vrna_eval_move(vc, structure, m1, m2);
+
+  vrna_free_fold_compound(vc);
+
   return en;
 }
 
@@ -1691,10 +1752,26 @@ energy_of_move_pt(short *pt,
                   int m1,
                   int m2){
 
-  paramT *P = get_updated_params(NULL, 1);
-  int en    = vrna_eval_move_pt(pt, s, s1, m1, m2, P, NULL);
+  int                 en, u;
+  char                *seq;
+  model_detailsT      md;
+  vrna_fold_compound  *vc;
 
-  free(P);
+  set_model_details(&md);
+
+  /* convert encoded sequence back to actual string */
+  seq = (char *)space(sizeof(char) * (s[0]+1));
+  for(u = 1; u < s[0]; u++){
+    seq[u-1] = get_encoded_char(s[u], &md);
+  }
+  seq[u] = '\0';
+
+  vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+  en  = vrna_eval_move_pt(vc, pt, m1, m2);
+
+  vrna_free_fold_compound(vc);
+  free(seq);
+
   return en;
 }
 

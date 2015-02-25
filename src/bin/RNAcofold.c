@@ -367,9 +367,9 @@ int main(int argc, char *argv[])
       cofoldF AB, AA, BB;
       FLT_OR_DBL *probs;
       if (dangles==1){
-        P->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
-        min_en = vrna_eval_structure(rec_sequence, structure, P, vc->sc);
-        P->model_details.dangles = dangles = 1;
+        vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
+        min_en = vrna_eval_structure(vc, structure);
+        vc->params->model_details.dangles = dangles = 1;
       }
 
       vrna_rescale_pf_params(vc, &min_en);
