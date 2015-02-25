@@ -26,6 +26,7 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
+#include "ViennaRNA/constraints.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/eval.h"
@@ -77,15 +78,11 @@ PRIVATE int   eval_circ_pt( vrna_fold_compound *vc,
                             FILE *file,
                             int verbosity_level);
 
-PRIVATE int   en_corr_of_loop_gquad(int i,
+PRIVATE int   en_corr_of_loop_gquad(vrna_fold_compound *vc,
+                                    int i,
                                     int j,
-                                    const char *string,
                                     const char *structure,
-                                    const short *pt,
-                                    const int *loop_idx,
-                                    const short *s1,
-                                    paramT *P,
-                                    soft_constraintT *sc);
+                                    const short *pt);
 
 PRIVATE paramT  *get_updated_params(paramT *parameters, int compat);
 
@@ -123,17 +120,6 @@ vrna_eval_structure_simple( const char *string,
   return e;
 }
 
-PUBLIC  float
-vrna_eval_structure(vrna_fold_compound *vc,
-                    const char *structure){
-
-  short *pt = vrna_pt_get(structure);
-  float en  = wrap_eval_structure(vc, structure, pt, NULL, -1);
-
-  free(pt);
-  return en;
-}
-
 PUBLIC float
 vrna_eval_structure_simple_verbose( const char *string,
                                     const char *structure,
@@ -153,18 +139,6 @@ vrna_eval_structure_simple_verbose( const char *string,
   return e;
 }
 
-PUBLIC float
-vrna_eval_structure_verbose(vrna_fold_compound *vc,
-                            const char *structure,
-                            FILE *file){
-
-  short *pt = vrna_pt_get(structure);
-  float en  = wrap_eval_structure(vc, structure, pt, file, 1);
-
-  free(pt);
-  return en;
-}
-
 PUBLIC int
 vrna_eval_structure_pt_simple(const char *string,
                               const short *pt){
@@ -181,19 +155,6 @@ vrna_eval_structure_pt_simple(const char *string,
   vrna_free_fold_compound(vc);
 
   return e;
-}
-
-PUBLIC int
-vrna_eval_structure_pt( vrna_fold_compound *vc,
-                        const short *pt){
-
-  if(pt && vc){
-    if(pt[0] != (short)vc->length)
-      nrerror("energy_of_struct: string and structure have unequal length");
-
-    return eval_pt(vc, pt, NULL, -1);
-  } else
-    return INF;
 }
 
 PUBLIC int
@@ -216,6 +177,42 @@ vrna_eval_structure_pt_simple_verbose(const char *string,
 
 }
 
+PUBLIC  float
+vrna_eval_structure(vrna_fold_compound *vc,
+                    const char *structure){
+
+  short *pt = vrna_pt_get(structure);
+  float en  = wrap_eval_structure(vc, structure, pt, NULL, -1);
+
+  free(pt);
+  return en;
+}
+
+PUBLIC float
+vrna_eval_structure_verbose(vrna_fold_compound *vc,
+                            const char *structure,
+                            FILE *file){
+
+  short *pt = vrna_pt_get(structure);
+  float en  = wrap_eval_structure(vc, structure, pt, file, 1);
+
+  free(pt);
+  return en;
+}
+
+PUBLIC int
+vrna_eval_structure_pt( vrna_fold_compound *vc,
+                        const short *pt){
+
+  if(pt && vc){
+    if(pt[0] != (short)vc->length)
+      nrerror("energy_of_struct: string and structure have unequal length");
+
+    return eval_pt(vc, pt, NULL, -1);
+  } else
+    return INF;
+}
+
 PUBLIC int
 vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
                                 const short *pt,
@@ -236,111 +233,6 @@ vrna_eval_loop_pt(vrna_fold_compound *vc,
                   const short *pt){
 
   return wrap_eval_loop_pt(vc, i, pt, -1);
-}
-
-PRIVATE int
-wrap_eval_loop_pt(vrna_fold_compound *vc,
-                  int i,
-                  const short *pt,
-                  int verbosity){
-
-  /* compute energy of a single loop closed by base pair (i,j) */
-  int               j, type, p,q, energy, *idx;
-  short             *s, *s1;
-  soft_constraintT  *sc;
-
-  paramT *P = vc->params;
-  idx       = vc->jindx;
-  s         = vc->sequence_encoding2;
-  s1        = vc->sequence_encoding;
-  sc        = vc->sc;
-
-  if (i==0) { /* evaluate exterior loop */
-    energy = energy_of_extLoop_pt(vc, 0, pt);
-    return energy;
-  }
-  j = pt[i];
-  if (j<i) nrerror("i is unpaired in loop_energy()");
-  type = P->model_details.pair[s[i]][s[j]];
-  if (type==0) {
-    type=7;
-    if (verbosity>=0)
-      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
-  }
-  p=i; q=j;
-
-
-  while (pt[++p]==0);
-  while (pt[--q]==0);
-  if (p>q) { /* Hairpin */
-    char loopseq[9] = "";
-    if (SAME_STRAND(i,j)) {
-      if (j-i-1<7) {
-        int u;
-        for (u=0; i+u<=j; u++) loopseq[u] = get_encoded_char(s[i+u], &(P->model_details));
-        loopseq[u] = '\0';
-      }
-      energy = E_Hairpin(j-i-1, type, s1[i+1], s1[j-1], loopseq, P);
-
-      if(sc){
-        if(sc->free_energies)
-          energy += sc->free_energies[i+1][j-i-1];
-
-        if(sc->en_basepair)
-          energy += sc->en_basepair[idx[j]+i];
-
-        if(sc->f)
-          energy += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-      }
-    } else {
-      energy = energy_of_extLoop_pt(vc, cut_in_loop(i, (const short *)pt), (const short *)pt);
-    }
-  }
-  else if (pt[q]!=(short)p) { /* multi-loop */
-    int ii;
-    ii = cut_in_loop(i, (const short *)pt);
-    energy = (ii==0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc, ii, (const short *)pt);
-  }
-  else { /* found interior loop */
-    int type_2;
-    type_2 = P->model_details.pair[s[q]][s[p]];
-    if (type_2==0) {
-      type_2=7;
-      if (verbosity>=0)
-        fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
-    }
-    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
-
-    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) ){
-      energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                          s1[i+1], s1[j-1], s1[p-1], s1[q+1], P);
-    
-      if(sc){
-        if(sc->free_energies)
-          energy += sc->free_energies[i+1][p-i-1]
-                    + sc->free_energies[q+1][j-q-1];
-
-        if(sc->en_basepair)
-          energy += sc->en_basepair[idx[j]+i];
-
-        if(sc->en_stack)
-          if((i+1 == p) && (j-1 == q))
-            energy += sc->en_stack[i]
-                      + sc->en_stack[j]
-                      + sc->en_stack[p]
-                      + sc->en_stack[q];
-
-        if(sc->f)
-          energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-      }
-    } else {
-      energy = energy_of_extLoop_pt(vc, cut_in_loop(i, (const short *)pt), (const short *)pt);
-    }
-  }
-
-  return energy;
 }
 
 PUBLIC float
@@ -430,6 +322,90 @@ get_updated_params(paramT *parameters, int compat){
   return P;
 }
 
+PRIVATE int
+wrap_eval_loop_pt(vrna_fold_compound *vc,
+                  int i,
+                  const short *pt,
+                  int verbosity){
+
+  /* compute energy of a single loop closed by base pair (i,j) */
+  int               j, type, p,q, energy, *idx;
+  short             *s, *s1;
+  soft_constraintT  *sc;
+
+  paramT *P = vc->params;
+  idx       = vc->jindx;
+  s         = vc->sequence_encoding2;
+  s1        = vc->sequence_encoding;
+  sc        = vc->sc;
+
+  if (i==0) { /* evaluate exterior loop */
+    energy = energy_of_extLoop_pt(vc, 0, pt);
+    return energy;
+  }
+  j = pt[i];
+  if (j<i) nrerror("i is unpaired in loop_energy()");
+  type = P->model_details.pair[s[i]][s[j]];
+  if (type==0) {
+    type=7;
+    if (verbosity>=0)
+      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
+              get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
+  }
+  p=i; q=j;
+
+
+  while (pt[++p]==0);
+  while (pt[--q]==0);
+  if (p>q) { /* Hairpin */
+    energy = vrna_eval_hp_loop(vc, i, j);
+  }
+  else if (pt[q]!=(short)p) { /* multi-loop */
+    int ii;
+    ii = cut_in_loop(i, (const short *)pt);
+    energy = (ii==0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc, ii, (const short *)pt);
+  }
+  else { /* found interior loop */
+    int type_2;
+    type_2 = P->model_details.pair[s[q]][s[p]];
+    if (type_2==0) {
+      type_2=7;
+      if (verbosity>=0)
+        fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
+              get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
+    }
+    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
+
+    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) ){
+      energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
+                          s1[i+1], s1[j-1], s1[p-1], s1[q+1], P);
+    
+      if(sc){
+        if(sc->free_energies)
+          energy += sc->free_energies[i+1][p-i-1]
+                    + sc->free_energies[q+1][j-q-1];
+
+        if(sc->en_basepair)
+          energy += sc->en_basepair[idx[j]+i];
+
+        if(sc->en_stack)
+          if((i+1 == p) && (j-1 == q))
+            energy += sc->en_stack[i]
+                      + sc->en_stack[j]
+                      + sc->en_stack[p]
+                      + sc->en_stack[q];
+
+        if(sc->f)
+          energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+      }
+    } else {
+      energy = energy_of_extLoop_pt(vc, cut_in_loop(i, (const short *)pt), (const short *)pt);
+    }
+  }
+
+  return energy;
+}
+
 PRIVATE float
 wrap_eval_structure(vrna_fold_compound *vc,
                     const char *structure,
@@ -451,10 +427,7 @@ wrap_eval_structure(vrna_fold_compound *vc,
   vc->params->model_details.gquad = gq;
 
   if(gq){
-    int *loop_idx = vrna_get_loop_index(pt);
-    int gge       = en_corr_of_loop_gquad(1, vc->length, vc->sequence, structure, pt, loop_idx, vc->sequence_encoding, vc->params, vc->sc);
-    res          += gge;
-    free(loop_idx);
+    res += en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt);
   }
 
   return (float)res/100.;
@@ -648,30 +621,27 @@ eval_circ_pt( vrna_fold_compound *vc,
     recursive variant
 */
 PRIVATE int
-en_corr_of_loop_gquad(int i,
+en_corr_of_loop_gquad(vrna_fold_compound *vc,
+                      int i,
                       int j,
-                      const char *string,
                       const char *structure,
-                      const short *pt,
-                      const int *loop_idx,
-                      const short *s1,
-                      paramT *P,
-                      soft_constraintT *sc){
+                      const short *pt){
 
-  int pos, energy, p, q, r, s, u, type, type2, *idx;
-  int L, l[3];
-  int *rtype;
-  model_detailsT  *md;
+  int               pos, energy, p, q, r, s, u, type, type2, *idx, L, l[3], *rtype, *loop_idx;
+  short             *s1;
+  char              *string;
+  paramT            *P;
+  model_detailsT    *md;
+  soft_constraintT  *sc;
 
-  idx = NULL;
-  if(sc){
-    if(sc->en_basepair)
-      idx = get_indx((unsigned int)pt[0]);
-  }
-
-  md    = &(P->model_details);
-  rtype = &(md->rtype[0]);
-
+  loop_idx  = vrna_get_loop_index(pt);
+  string    = vc->sequence;
+  s1        = vc->sequence_encoding;
+  idx       = vc->jindx;
+  P         = vc->params;
+  md        = &(P->model_details);
+  rtype     = &(md->rtype[0]);
+  sc        = vc->sc;
 
   energy = 0;
   q = i;
@@ -739,7 +709,7 @@ en_corr_of_loop_gquad(int i,
         } else { /* we must have found a stem */
           if(!(u < pt[u])) nrerror("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
-          energy += en_corr_of_loop_gquad(u, pt[u], string, structure, pt, loop_idx, s1, P, sc);
+          energy += en_corr_of_loop_gquad(vc, u, pt[u], structure, pt);
           u = pt[u] + 1;
         }
       }
@@ -758,22 +728,7 @@ en_corr_of_loop_gquad(int i,
                       energy += P->TerminalAU;
                     energy += P->internal_loop[s - r - 1 - up_mis];
                     energy -= E_MLstem(0, -1, -1, P);
-                    energy -= E_Hairpin(s - r - 1,
-                                        type,
-                                        s1[r + 1],
-                                        s1[s - 1],
-                                        string + r - 1,
-                                        P);
-                    if(sc){
-                      if(sc->free_energies)
-                        energy -= sc->free_energies[r+1][s - r - 1];
-
-                      if(sc->en_basepair)
-                        energy -= sc->en_basepair[idx[s] + r];
-
-                      if(sc->f)
-                        energy -= sc->f(r,s,r,s, VRNA_DECOMP_PAIR_HP, sc->data);
-                    }
+                    energy -= vrna_eval_hp_loop(vc, r, s);
 
                     break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
@@ -815,7 +770,7 @@ en_corr_of_loop_gquad(int i,
     }
   }
 
-  free(idx);
+  free(loop_idx);
   return energy;
 }
 
@@ -907,26 +862,8 @@ stack_energy( vrna_fold_compound *vc,
   /* p,q don't pair must have found hairpin or multiloop */
 
   if (p>q) {                       /* hair pin */
-    if (SAME_STRAND(i,j)){
-      ee = E_Hairpin(j-i-1, type, s1[i+1], s1[j-1], string+i-1, P);
-
-      /* add soft constraints */
-      if(sc){
-        if(sc->free_energies)
-          ee += sc->free_energies[i+1][j-i-1];
-
-        if(sc->en_basepair){
-          ee += sc->en_basepair[idx[j] + i];
-        }
-
-        if(sc->f)
-          ee += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-      }
-
-    } else {
-      ee = energy_of_extLoop_pt(vc, cut_in_loop(i, pt), pt);
-    }
-    energy += ee;
+    ee      = vrna_eval_hp_loop(vc, i, j);
+    energy  += ee;
 
     if (verbosity_level>0)
       fprintf(out, "Hairpin  loop (%3d,%3d) %c%c              : %5d\n",

@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/constraints.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
