@@ -133,6 +133,77 @@ INLINE PRIVATE int E_stack(int i, int j, vrna_fold_compound *vc);
 #################################
 */
 
+/*
+ *  ugly but fast interior loop evaluation
+ *
+ *  This function may be included in your own code, but actually only serves
+ *  as a fast inline block internally re-used throughout the RNAlib. It
+ *  evalutes the free energy of interior loops in single sequences or sequence
+ *  hybrids. Soft constraints are also applied if available.
+ *
+ *  NOTE: do not include into doxygen reference manual!
+ */
+INLINE PRIVATE int
+ubf_eval_int_loop(  int i,
+                    int j,
+                    int p,
+                    int q,
+                    int u1,
+                    int u2,
+                    short si,
+                    short sj,
+                    short sp,
+                    short sq,
+                    unsigned char type,
+                    unsigned char type_2,
+                    int *rtype,
+                    int ij,
+                    int cp,
+                    paramT *P,
+                    soft_constraintT *sc){
+
+  int             energy;
+
+  if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
+    energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  } else { /* interior loop like cofold structure */
+    short si, sj;
+    si  = ((i >= cp) || ((i + 1) < cp)) ? si : -1;
+    sj  = (((j - 1) >= cp) || (j < cp)) ? sj : -1;
+    energy = E_IntLoop_Co(rtype[type], rtype[type_2],
+                            i, j, p, q,
+                            cp,
+                            si, sj,
+                            sp, sq,
+                            P->model_details.dangles,
+                            P);
+  }
+
+  /* add soft constraints */
+  if(sc){
+    if(sc->free_energies)
+      energy += sc->free_energies[i+1][u1]
+                + sc->free_energies[q+1][u2];
+
+    if(sc->en_basepair)
+      energy += sc->en_basepair[ij];
+
+    if(sc->en_stack)
+      if((p==i+1) && (q == j-1))
+        energy +=   sc->en_stack[i]
+                  + sc->en_stack[p]
+                  + sc->en_stack[q]
+                  + sc->en_stack[j];
+
+    if(sc->f)
+      energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+  }
+
+  return energy;
+
+}
+
+
 INLINE PRIVATE int
 E_int_loop( int i,
             int j,
@@ -188,6 +259,7 @@ E_int_loop( int i,
       hc_pq     = hc + pq;
       c_pq      = c + pq;
       ptype_pq  = ptype + pq;
+
       S_p1      = S + i;
       S_q1      = S + q + 1;
       for(p = i+1; p <= max_p; p++){
@@ -201,41 +273,8 @@ E_int_loop( int i,
             if (no_close||(type_2==3)||(type_2==4))
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
-            energy = E_IntLoop(p_i, j_q, type, type_2, S_i1, S_j1, *S_p1, *S_q1, P);
-          } else { /* interior loop like cofold structure */
-            short si, sj;
-            si  = ((i >= cp) || ((i + 1) < cp)) ? S_i1 : -1;
-            sj  = (((j - 1) >= cp) || (j < cp)) ? S_j1 : -1;
-            energy = E_IntLoop_Co(rtype[type], rtype[type_2],
-                                    i, j, p, q,
-                                    cp,
-                                    si, sj,
-                                    *S_p1, *S_q1,
-                                    md->dangles,
-                                    P);
-          }
+          energy = ubf_eval_int_loop(i, j, p, q, p_i, j_q, S_i1, S_j1, *S_p1, *S_q1, type, type_2, rtype, ij, cp, P, sc);
           energy += *c_pq;
-
-          /* add soft constraints */
-          if(sc){
-            if(sc->free_energies)
-              energy += sc->free_energies[i+1][p_i]
-                        + sc->free_energies[q+1][j_q];
-
-            if(sc->en_basepair)
-              energy += sc->en_basepair[ij];
-
-            if(sc->en_stack)
-              if((p==i+1) && (q == j-1))
-                energy +=   sc->en_stack[i]
-                          + sc->en_stack[p]
-                          + sc->en_stack[q]
-                          + sc->en_stack[j];
-
-            if(sc->f)
-              energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-          }
 
           e = MIN2(e, energy);
 

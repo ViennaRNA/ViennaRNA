@@ -367,8 +367,13 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->length              = length = strlen(seq);
                                   vc->sequence_encoding   = vrna_seq_encode(seq, &md);
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, &md);
-                                  vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
-                                  vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+                                  if(!(options & VRNA_OPTION_EVAL_ONLY)){
+                                    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
+                                    vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+                                  } else {
+                                    vc->ptype           = NULL;
+                                    vc->ptype_pf_compat = NULL;
+                                  }
                                   vc->sc                  = NULL;
                                   free(seq2);
                                   break;
@@ -420,6 +425,7 @@ set_fold_compound(vrna_fold_compound *vc,
   vc->exp_params    = NULL;
   vc->matrices      = NULL;
   vc->exp_matrices  = NULL;
+  vc->hc            = NULL;
 
   /* now come the energy parameters */
   if(options & VRNA_OPTION_MFE)
@@ -432,7 +438,7 @@ set_fold_compound(vrna_fold_compound *vc,
   }
 
   /* prepare the allocation vector for the DP matrices */
-  if(~(options & VRNA_OPTION_NO_DP_MATRICES)){
+  if(!(options & VRNA_OPTION_EVAL_ONLY)){
 
     /* cofolding matrices ? */
     if(options & VRNA_OPTION_HYBRID){
@@ -470,7 +476,8 @@ set_fold_compound(vrna_fold_compound *vc,
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
     make_pscores(vc);
 
-  vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
+  if(!(options & VRNA_OPTION_EVAL_ONLY))
+    vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
 
 }
 

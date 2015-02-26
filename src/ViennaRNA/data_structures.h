@@ -55,7 +55,7 @@
 
 #define VRNA_OPTION_HYBRID          4
 
-#define VRNA_OPTION_NO_DP_MATRICES  8
+#define VRNA_OPTION_EVAL_ONLY       8
 
 
 

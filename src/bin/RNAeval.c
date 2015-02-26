@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
     /* convert sequence to uppercase letters only */
     str_uppercase(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
     tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 

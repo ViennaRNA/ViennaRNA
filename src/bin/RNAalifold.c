@@ -405,7 +405,7 @@ int main(int argc, char *argv[]){
     int     i;
     double  s = 0;
     for (i=0; AS[i]!=NULL; i++){
-      vrna_fold_compound *vc_tmp = vrna_get_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+      vrna_fold_compound *vc_tmp = vrna_get_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
       s += vrna_eval_structure(vc, structure);
       vrna_free_fold_compound(vc_tmp);
     }
@@ -532,7 +532,7 @@ int main(int argc, char *argv[]){
         if(circular)
           energy_of_alistruct((const char **)AS, structure, n_seq, ens);
         else{
-          vrna_fold_compound *vc_tmp = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_NO_DP_MATRICES);
+          vrna_fold_compound *vc_tmp = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
           ens[0] = vrna_eval_structure(vc, structure);
           vrna_free_fold_compound(vc);
         }
