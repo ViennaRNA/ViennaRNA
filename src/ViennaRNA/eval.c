@@ -355,7 +355,6 @@ eval_int_loop(vrna_fold_compound *vc,
                             P, sc);
 }
 
-
 PRIVATE  paramT *
 get_updated_params(paramT *parameters, int compat){
   paramT *P = NULL;
@@ -528,32 +527,19 @@ eval_circ_pt( vrna_fold_compound *vc,
     i=pt[i];
   }
 
-  if (degree==0){ return 0.;}
+  if (degree==0){
+    return 0.;
+  }
+
   for (i=1; pt[i]==0; i++);
+
   j = pt[i];
+
   type = P->model_details.pair[s[j]][s[i]];
   if (type==0) type=7;
+
   if (degree==1) {
-    char loopseq[10];
-    int u, si1, sj1;
-    for (i=1; pt[i]==0; i++);
-    u = length-j + i-1;
-    if (u<7) {
-      strcpy(loopseq , string+j-1);
-      strncat(loopseq, string, i);
-    }
-    si1 = (i==1) ? s1[length] : s1[i-1];
-    sj1 = (j==length) ? s1[1] : s1[j+1];
-    en0 = E_Hairpin(u, type, sj1, si1, loopseq, P);
-
-    if(sc){
-      if(sc->free_energies)
-        en0 +=  sc->free_energies[1][i-1]
-                + sc->free_energies[j+1][length-j];
-
-      if(sc->f) /* should this be (j,i) instead of (i,j) ? */
-        en0 += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-    }
+    en0 = vrna_eval_ext_hp_loop(vc, i, j);
   } else
     if (degree==2) {
       int p,q, u1,u2, si1, sq1, type_2;

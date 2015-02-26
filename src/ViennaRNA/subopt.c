@@ -1898,7 +1898,7 @@ repeat( vrna_fold_compound *vc,
       if(no_close)
         element_energy = FORBIDDEN;
       else
-          element_energy = E_hp_loop(i, j, vc);
+          element_energy = vrna_E_hp_loop(vc, i, j);
 
       if (element_energy + best_energy <= threshold) {
         /* hairpin structure */

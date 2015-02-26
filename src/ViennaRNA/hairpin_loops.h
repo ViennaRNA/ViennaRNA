@@ -94,6 +94,11 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
                   int i,
                   int j);
 
+INLINE PRIVATE int
+vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
+                      int i,
+                      int j);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -145,13 +150,13 @@ E_Hairpin(int size,
 }
 
 /**
- *  \brief High-Level function for hairpin loop energy evaluation
- *
-*/
+ *  \brief  Evaluate the free energy of a hairpin loop
+ *          and consider possible hard constraints
+ */
 INLINE PRIVATE int
-E_hp_loop(int i,
-          int j,
-          vrna_fold_compound *vc){
+vrna_E_hp_loop( vrna_fold_compound *vc,
+                int i,
+                int j){
 
   int   u, *hc_up;
   char  hc;
@@ -170,6 +175,82 @@ E_hp_loop(int i,
   return INF;
 }
 
+/**
+ *  \brief  Evaluate the free energy of an exterior hairpin loop
+ *          and consider possible hard constraints
+ */
+INLINE PRIVATE int
+vrna_E_ext_hp_loop( vrna_fold_compound *vc,
+                    int i,
+                    int j){
+
+  int   u, *hc_up;
+  char  hc;
+  
+  u     = vc->length - j + i - 1;
+  hc_up = vc->hc->up_hp;
+  hc    = vc->hc->matrix[vc->jindx[j] + i];
+
+  /* is this base pair allowed to close a hairpin (like) loop ? */
+  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+    /* are all nucleotides in the loop allowed to be unpaired ? */
+    if(hc_up[j+1] >= u){
+      return vrna_eval_ext_hp_loop(vc, i, j);
+    }
+  }
+  return INF;
+}
+
+/**
+ *  \brief Evaluate free energy of an exterior hairpin loop
+ *
+ *  \ingroup eval
+ *
+ */
+INLINE PRIVATE int
+vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
+                      int i,
+                      int j){
+
+  int   u, e, ij, type;
+  char loopseq[10];
+
+  short   *S        = vc->sequence_encoding;
+  int     *idx      = vc->jindx;
+  paramT  *P        = vc->params;
+  soft_constraintT  *sc = vc->sc;
+  model_detailsT    *md = &(P->model_details);
+
+  u     = vc->length - j + i - 1;
+  ij    = idx[j] + i;
+  type  = md->pair[S[j]][S[i]];
+
+
+  if (u<7) {
+    strcpy(loopseq , vc->sequence + j - 1);
+    strncat(loopseq, vc->sequence, i);
+  }
+
+  e = E_Hairpin(u, type, S[j + 1], S[i - 1],  loopseq, P);
+
+  if(sc){
+    if(sc->free_energies)
+      e +=  sc->free_energies[j + 1][vc->length - j]
+            + sc->free_energies[1][i - 1];
+
+    if(sc->f)
+      e += sc->f(j, i, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+  }
+
+  return e;
+}
+
+/**
+ *  \brief Evaluate free energy of a hairpin loop
+ *
+ *  \ingroup eval
+ *
+ */
 INLINE PRIVATE int
 vrna_eval_hp_loop(vrna_fold_compound *vc,
                   int i,
@@ -340,9 +421,9 @@ exp_E_Hairpin(int u,
  *  \see E_hp_loop() for it's free energy counterpart
 */
 INLINE PRIVATE double
-exp_E_hp_loop(int i,
-              int j,
-              vrna_fold_compound *vc){
+vrna_exp_E_hp_loop( vrna_fold_compound *vc,
+                    int i,
+                    int j){
 
   int         u, ij, type;
   char        hc;

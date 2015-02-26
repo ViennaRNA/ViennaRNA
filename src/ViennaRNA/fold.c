@@ -313,7 +313,7 @@ fill_arrays(vrna_fold_compound *vc){
 
         if(!no_close){
           /* check for hairpin loop */
-          energy = E_hp_loop(i, j, vc);
+          energy = vrna_E_hp_loop(vc, i, j);
           new_c = MIN2(new_c, energy);
 
           /* check for multibranch loops */
@@ -802,7 +802,7 @@ backtrack(vrna_fold_compound *vc,
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else {
-      en = E_hp_loop(i, j, vc);
+      en = vrna_E_hp_loop(vc, i, j);
 
       if (cij == en)
         continue;

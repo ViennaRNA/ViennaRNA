@@ -162,7 +162,7 @@ ubf_eval_int_loop(  int i,
                     paramT *P,
                     soft_constraintT *sc){
 
-  int             energy;
+  int energy;
 
   if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);

@@ -62,33 +62,18 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
       type=rtype[type];
 
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
-        if(hc->up_hp[j+1] >= u){
-          if (no_close) new_c = FORBIDDEN;
-          else {
-            char loopseq[10];
-            /*int si1, sj1;*/
-            if (u<7) {
-              strcpy(loopseq , string+j-1);
-              strncat(loopseq, string, i);
-            }
-            new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+my_c[ij];
+      /* exterior hairpin case */
+      if(no_close)
+        new_c = FORBIDDEN;
+      else
+        new_c = vrna_E_ext_hp_loop(vc, i, j)
+                + my_c[ij];
 
-            if(sc){
-              if(sc->free_energies)
-                new_c +=  sc->free_energies[j+1][length-j]
-                          + sc->free_energies[1][i-1];
-
-                if(sc->f) /* should this be (j,i) instead of (i,j) ? */
-                  new_c += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-            }
-            if (new_c<FcH) {
-              FcH = new_c; Hi=i; Hj=j;
-            }
-          }
-        }
+      if (new_c<FcH) {
+        FcH = new_c; Hi=i; Hj=j;
       }
 
+      /* exterior interior loop case */
       if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
         for (p = j+1; p < length ; p++) {
           int u1, qmin;

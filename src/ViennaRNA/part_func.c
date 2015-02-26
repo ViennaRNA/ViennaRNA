@@ -325,24 +325,10 @@ pf_linear(vrna_fold_compound *vc){
       q_temp = 0.;
 
       if(hc_decompose){
-        /*hairpin contribution*/
-        if(hc_decompose & VRNA_HC_CONTEXT_HP_LOOP){
-          if(hc_up_hp[i+1] >= u){
-            qbt1 =  exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params)
-                    * scale[u+2];
-            
-            if(sc){
-              if(sc->boltzmann_factors)
-                qbt1 *= sc->boltzmann_factors[i+1][u];
+        /* process hairpin loop(s) */
+        q_temp  =   vrna_exp_E_hp_loop(vc, i, j);
+        qbt1    +=  q_temp;
 
-              if(sc->exp_en_basepair)
-                qbt1 *= sc->exp_en_basepair[ij];
-
-              if(sc->exp_f)
-                qbt1 *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
-            }
-          }
-        }
         /* interior loops with interior pair k,l */
         if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
           int maxk = i+MAXLOOP+1;
