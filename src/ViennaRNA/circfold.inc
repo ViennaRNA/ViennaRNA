@@ -45,7 +45,9 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
   length = (int) strlen(string);
 
-  FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
+  FcH = FcI= FcM = FcMd3= FcMd5= INF;
+  Fc = 0;
+
   for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
       int ij, type, u, new_c, no_close;
@@ -204,7 +206,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
     free(fM_d3);
     free(fM_d5);
   }
-  else if(Fc < INF){
+  else if(Fc < 0){
     if (FcH==Fc) {
       bt_stack[++(*bt)].i = Hi;
       bt_stack[(*bt)].j = Hj;
@@ -236,6 +238,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
       bt_stack[(*bt)].j = Mi;
       bt_stack[(*bt)].ml = 1;
     }
+  } else { /* unstructured */
+    sector[++(*bt)].i = 1;
+    sector[(*bt)].j = 1;
+    sector[(*bt)].ml = 0;
   }
   vc->matrices->FcH = FcH;
   vc->matrices->FcI = FcI;

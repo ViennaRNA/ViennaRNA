@@ -49,7 +49,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
   /* extra arrays for circfold() */
   fM2 =  (int *) space(sizeof(int)*(length+2));
-  FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
+  FcH = FcI= FcM = FcMd3= FcMd5= INF;
+  Fc  = 0;
   for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
       int ij, u, new_c;
@@ -160,7 +161,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
         }
       }
     }
-  Fc = MIN2(FcI, FcH);
+  Fc = MIN2(Fc, FcH);
+  Fc = MIN2(Fc, FcI);
 
   /* compute the fM2 array (multi loops with exactly 2 helices) */
   /* to get a unique ML decomposition, just use fM1 instead of fML
@@ -211,6 +213,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
     bt_stack[++(*bt)].i = 1;
     bt_stack[(*bt)].j = Mi;
     bt_stack[(*bt)].ml = 1;
+  } else { /* must be totally unstructured */
+    sector[++s].i = 1;
+    sector[s].j = 1;
+    sector[s].ml = 0;
   }
   vc->matrices->FcH = FcH;
   vc->matrices->FcI = FcI;
