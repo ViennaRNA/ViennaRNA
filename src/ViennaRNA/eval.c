@@ -493,7 +493,7 @@ wrap_eval_structure(vrna_fold_compound *vc,
   if(vc->params->model_details.circ){
     res = eval_circ_pt(vc, pt, file, verbosity);
   } else {
-    res = eval_pt(vc, (const short *)pt, file, verbosity);
+    res = eval_pt(vc, pt, file, verbosity);
   }
   vc->params->model_details.gquad = gq;
 
@@ -1024,10 +1024,13 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   q_prev2     = i;
 
 
-  for (x = 0; x <= NBPAIRS; x++) mlintern[x] = P->MLintern[x];
+  for (x = 0; x <= NBPAIRS; x++)
+    mlintern[x] = P->MLintern[x];
 
   /* seek to opening base of first stem */
-  while(p <= j && !pt[p]) p++;
+  while(p <= j && !pt[p])
+    p++;
+
   u = p - i - 1;
 
   /* add bonus energies for first stretch of unpaired nucleotides */
@@ -1047,7 +1050,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->en_basepair)
-                    energy += sc->en_basepair[idx[q]+p];
+                    bonus += sc->en_basepair[idx[q]+p];
                 }
 
                 /* seek to the next stem */
@@ -1058,7 +1061,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->free_energies)
-                    energy += sc->free_energies[q+1][p-q-1];
+                    bonus += sc->free_energies[q+1][p-q-1];
                 }
                 
               }
@@ -1069,7 +1072,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->en_basepair)
-                    energy += sc->en_basepair[idx[j]+i];
+                    bonus += sc->en_basepair[idx[j]+i];
                 }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
@@ -1088,7 +1091,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->en_basepair)
-                    energy += sc->en_basepair[idx[q]+p];
+                    bonus += sc->en_basepair[idx[q]+p];
                 }
 
                 /* seek to the next stem */
@@ -1099,7 +1102,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->free_energies)
-                    energy += sc->free_energies[q+1][p-q-1];
+                    bonus += sc->free_energies[q+1][p-q-1];
                 }
               }
               if(i > 0){  /* actual closing pair */
@@ -1110,7 +1113,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->en_basepair)
-                    energy += sc->en_basepair[idx[j]+i];
+                    bonus += sc->en_basepair[idx[j]+i];
                 }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
@@ -1147,7 +1150,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                   if(sc){
                     if(sc->free_energies)
-                      energy += sc->free_energies[i1+1][p-i1-1];
+                      bonus += sc->free_energies[i1+1][p-i1-1];
                   }
 
                   /* get position of pairing partner */
@@ -1265,7 +1268,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
                 if(sc){
                   if(sc->free_energies)
-                    energy += sc->free_energies[q+1][p-q-1];
+                    bonus += sc->free_energies[q+1][p-q-1];
                 }
               }
               if(i > 0){  /* actual closing pair */
@@ -1307,9 +1310,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   else
     energy += (u*P->MLbase);
 
-  energy += bonus;
-
-  return energy;
+  return energy + bonus;
 }
 
 
