@@ -19,23 +19,20 @@ fill_arrays_circ( vrna_fold_compound *vc,
   int               Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi;
   int               *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int               FcH, FcI, FcM, Fc, *fM2;
-  int               i,j, ij, p, q, u, length, energy, new_c, fm, type;
-  int               *my_c, *my_fML, *indx, dangle_model, noGUclosure, *rtype, turn;
+  int               i,j, ij, u, length, new_c, fm, type;
+  int               *my_c, *my_fML, *indx, dangle_model, turn;
   paramT            *P;
-  char              *string, *ptype, *hard_constraints;
+  char              *ptype, *hard_constraints;
   short             *S1;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
 
   P                 = vc->params;
-  string            = vc->sequence;
   ptype             = vc->ptype;
   indx              = vc->jindx;
   S1                = vc->sequence_encoding;
 
   dangle_model      = P->model_details.dangles;
-  noGUclosure       = P->model_details.noGUclosure;
-  rtype             = &(P->model_details.rtype[0]);
   turn              = P->model_details.min_loop_size;
 
   hc                = vc->hc;

@@ -216,7 +216,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
   char loopseq[10];
 
   short   *S        = vc->sequence_encoding;
-  int     *idx      = vc->jindx;
   paramT  *P        = vc->params;
   soft_constraintT  *sc = vc->sc;
   model_detailsT    *md = &(P->model_details);
@@ -439,7 +438,6 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
   pf_paramT         *P      = vc->exp_params;
   int               *hc_up  = vc->hc->up_hp;
   soft_constraintT  *sc     = vc->sc;
-  model_detailsT    *md     = &(P->model_details);
   FLT_OR_DBL        *scale  = vc->exp_matrices->scale;
 
   q     = 0.;

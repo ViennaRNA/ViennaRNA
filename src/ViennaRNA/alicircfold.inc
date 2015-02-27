@@ -17,11 +17,11 @@ fill_arrays_circ( vrna_fold_compound *vc,
              (a pair (1,k) will form a 5' dangle with pos n)
   */
   int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi, FcMd3, FcMd5;
-  int               i,j, p,q,length, energy, n_seq, psc;, *type, *rtype, s;
-  int               *indx;, *c, *fML, *fM2, *pscore;
+  int               i, j, ij, p, q, u, length, energy, new_c, fm, n_seq, *type, *rtype, s, rt, si1, sj1;
+  int               *indx, *c, *fML, *fM2;
   short             **S, **S5, **S3;
   char              **Ss;
-  char              *hard_constraints, **strings;
+  char              *hard_constraints;
   unsigned short    **a2s;
   paramT            *P;
   model_detailsT    *md;
@@ -39,11 +39,9 @@ fill_arrays_circ( vrna_fold_compound *vc,
   c                 = vc->matrices->c;     /* energy array, given that i-j pair */
   fML               = vc->matrices->fML;     /* multi-loop auxiliary energy array */
   fM2               = vc->matrices->fM2;
-  pscore            = vc->pscore;     /* precomputed array of pair types */
   hc                = vc->hc;
   sc                = vc->scs;
   hard_constraints  = hc->matrix;
-  strings           = vc->sequences;
   n_seq             = vc->n_seq;
   length            = vc->length;
   rtype             = &(md->rtype[0]);
@@ -67,13 +65,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
   for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
-      int ij, u, new_c;
       u = length-j + i-1;
       if (u<TURN) continue;
 
       ij = indx[j]+i;
-
-      psc = pscore[indx[j]+i];
 
       if (!hard_constraints[ij])
         continue;
@@ -88,18 +83,17 @@ fill_arrays_circ( vrna_fold_compound *vc,
         if(hc->up_hp[j+1] >= u){
           for (s=0; s<n_seq; s++) {
             char loopseq[10];
-            int rt, si1, sj1;
-            int u1 = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
+            u = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
 
             rt=rtype[type[s]];
-            if (u1<9) {
+            if (u<9) {
               strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
               strncat(loopseq, Ss[s], a2s[s][i]);
             }
             si1 = S5[s][i];
             sj1 = S3[s][j];
-            if (u1 < 3) new_c+=600;
-            else new_c += E_Hairpin(u1, rt, sj1, si1,  loopseq, P);
+            if (u < 3) new_c+=600;
+            else new_c += E_Hairpin(u, rt, sj1, si1,  loopseq, P);
           }
           if(sc)
             for(s=0;s < n_seq; s++){
@@ -129,7 +123,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
           qmin = u1+i-1+length-MAXLOOP;
           if (qmin<p+TURN+1) qmin = p+TURN+1;
           for (q = qmin; q <=length; q++) {
-            int u2, si1, sq1, type_2;
+            int u2, sq1, type_2;
             u2 = i-1 + length-q;
 
             if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP))
@@ -140,7 +134,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
               continue;
 
             for (energy = s=0; s<n_seq; s++) {
-              int rt;
               rt=rtype[type[s]];
               type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
               if (type_2 ==0) type_2=7;
@@ -182,14 +175,12 @@ fill_arrays_circ( vrna_fold_compound *vc,
   /* to get a unique ML decomposition, just use fM1 instead of fML
      below. However, that will not work with dangles==1  */
   for (i=1; i<length-TURN; i++) {
-    int u;
     fM2[i] = INF;
     for (u=i+TURN; u<length-TURN; u++)
       fM2[i] = MIN2(fM2[i], fML[indx[u]+i] + fML[indx[length]+u+1]);
   }
 
   for (i=TURN+1; i<length-2*TURN; i++) {
-    int fm;
     fm = fML[indx[i]+1]+fM2[i+1]+n_seq*P->MLclosing;
     if (fm<FcM) {
       FcM=fm; Mi=i;
@@ -211,7 +202,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
     bt_stack[(*bt)].ml = 2;
   }
   else if (FcM==Fc) { /* grumpf we found a Multiloop */
-    int fm, u;
     /* backtrack in fM2 */
     fm = fM2[Mi+1];
     for (u=Mi+TURN+1; u<length-TURN; u++)
