@@ -225,6 +225,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
   ij    = idx[j] + i;
   type  = md->pair[S[j]][S[i]];
 
+  if(type == 0)
+    type = 7;
 
   if (u<7) {
     strcpy(loopseq , vc->sequence + j - 1);
@@ -269,6 +271,9 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
   u     = j - i - 1;
   ij    = idx[j] + i;
   type  = md->pair[S[i]][S[j]];
+
+  if(type == 0)
+    type = 7;
 
   if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
     e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);

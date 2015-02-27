@@ -323,7 +323,6 @@ eval_int_loop(vrna_fold_compound *vc,
 
   int             energy, ij, pq, u1, u2, cp, *rtype, *indx;
   unsigned char   type, type_2;
-  char            *ptype;
   short           *S, si, sj, sp, sq;
   paramT          *P;
   model_detailsT  *md;
@@ -347,12 +346,58 @@ eval_int_loop(vrna_fold_compound *vc,
   u2          = j - q - 1;
   sc          = vc->sc;
 
+  if(type == 0)
+    type = 7;
+  if(type_2 == 0)
+    type = 7;
+
   return ubf_eval_int_loop( i, j, p, q,
                             u1, u2,
                             si, sj, sp, sq,
                             type, type_2, rtype,
                             ij, cp,
                             P, sc);
+}
+
+INLINE PRIVATE int
+eval_ext_int_loop(vrna_fold_compound *vc,
+                  int i,
+                  int j,
+                  int p,
+                  int q){
+
+  int             energy, ij, pq, u1, u2, length;
+  unsigned char   type, type_2;
+  short           *S, si, sj, sp, sq;
+  paramT          *P;
+  model_detailsT  *md;
+  soft_constraintT  *sc;
+
+  length      = vc->length;
+  P           = vc->params;
+  md          = &(P->model_details);
+  S           = vc->sequence_encoding;
+  si          = S[j+1];
+  sj          = S[i-1];
+  sp          = S[p-1];
+  sq          = S[q+1];
+  type        = (unsigned char)md->pair[S[j]][S[i]];
+  type_2      = (unsigned char)md->pair[S[q]][S[p]];
+  u1          = p - j - 1;
+  u2          = i - 1 + length - q;
+  sc          = vc->sc;
+
+  if(type == 0)
+    type = 7;
+  if(type_2 == 0)
+    type = 7;
+
+  return ubf_eval_ext_int_loop( i, j, p, q,
+                                u1, u2,
+                                si, sj, sp, sq,
+                                type, type_2,
+                                length,
+                                P, sc);
 }
 
 PRIVATE  paramT *
@@ -499,7 +544,7 @@ eval_circ_pt( vrna_fold_compound *vc,
               FILE *file,
               int verbosity_level){
 
-  int               i, j, length, energy, en0, degree, type, dangle_model;
+  int               i, j, length, energy, en0, degree, dangle_model;
   short             *s, *s1;
   paramT            *P;
   char              *string;
@@ -535,84 +580,21 @@ eval_circ_pt( vrna_fold_compound *vc,
 
   j = pt[i];
 
-  type = P->model_details.pair[s[j]][s[i]];
-  if (type==0) type=7;
+  switch(degree){
+    case 1:   en0 = vrna_eval_ext_hp_loop(vc, i, j);
+              break;
+    case 2:   {
+                int p,q;
+                /* seek to next pair */
+                for (p=j+1; pt[p]==0; p++);
+                q=pt[p];
 
-  if (degree==1) {
-    en0 = vrna_eval_ext_hp_loop(vc, i, j);
-  } else
-    if (degree==2) {
-      int p,q, u1,u2, si1, sq1, type_2;
-      for (p=j+1; pt[p]==0; p++);
-      q=pt[p];
-      u1 = p-j-1;
-      u2 = i-1 + length-q;
-      type_2 = P->model_details.pair[s[q]][s[p]];
-      if (type_2==0) type_2=7;
-      si1 = (i==1)? s1[length] : s1[i-1];
-      sq1 = (q==length)? s1[1] : s1[q+1];
-      en0 = E_IntLoop(u1, u2, type, type_2,
-                       s1[j+1], si1, s1[p-1], sq1,P);
-
-      if(sc){
-        if(sc->free_energies)
-          en0 +=  sc->free_energies[j+1][p-j-1]
-                  + sc->free_energies[q+1][length-q]
-                  + sc->free_energies[1][i-1];
-
-        if(sc->en_stack)
-          if(u1 + u2 == 0)
-            en0 +=  sc->en_stack[i]
-                    + sc->en_stack[j]
-                    + sc->en_stack[p]
-                    + sc->en_stack[q];
-      }
-    } else { /* degree > 2 */
-      en0 = energy_of_ml_pt(vc, 0, (const short *)pt) - P->MLintern[0];
-#if 0
-      if (dangle_model) {
-        int d5, d3;
-        if (pt[1]) {
-          j = pt[1];
-          type = P->model_details.pair[s[1]][s[j]];
-          if (dangle_model==2)
-            en0 += P->dangle5[type][s1[length]];
-          else { /* dangle_model==1 */
-            if (pt[length]==0) {
-              d5 = P->dangle5[type][s1[length]];
-              if (pt[length-1]!=0) {
-                int tt;
-                tt = P->model_details.pair[s[pt[length-1]]][s[length-1]];
-                d3 = P->dangle3[tt][s1[length]];
-                if (d3<d5) d5 = 0;
-                else d5 -= d3;
+                en0 = eval_ext_int_loop(vc, i, j, p, q);
               }
-              en0 += d5;
-            }
-          }
-        }
-        if (pt[length]) {
-          i = pt[length];
-          type = P->model_details.pair[s[i]][s[length]];
-          if (dangle_model==2)
-            en0 += P->dangle3[type][s1[1]];
-          else { /* dangle_model==1 */
-            if (pt[1]==0) {
-              d3 = P->dangle3[type][s1[1]];
-              if (pt[2]) {
-                int tt;
-                tt = P->model_details.pair[s[2]][s[pt[2]]];
-                d5 = P->dangle5[tt][1];
-                if (d5<d3) d3=0;
-                else d3 -= d5;
-              }
-              en0 += d3;
-            }
-          }
-        }
-      }
-#endif
-    }
+              break;
+    default:  en0 = energy_of_ml_pt(vc, 0, (const short *)pt) - P->MLintern[0];
+              break;
+  }
 
   if (verbosity_level>0)
     fprintf(out, "External loop                           : %5d\n", en0);

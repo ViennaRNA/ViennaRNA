@@ -16,7 +16,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
              (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
+  int Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int FcH, FcI, FcM, Fc, *fM2;
   int i,j, p,q,length, energy;
@@ -74,48 +74,22 @@ fill_arrays_circ( vrna_fold_compound *vc,
       }
 
       /* exterior interior loop case */
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
-        for (p = j+1; p < length ; p++) {
-          int u1, qmin;
-          u1 = p-j-1;
-          if (u1+i-1>MAXLOOP) break;
-          if (hc->up_int[j+1] < u1) break;
+      ip = iq = 0;
+      new_c = vrna_E_ext_int_loop(vc, i, j, &ip, &iq)
+              + my_c[ij];
 
-          qmin = u1+i-1+length-MAXLOOP;
-          if (qmin<p+TURN+1) qmin = p+TURN+1;
-          for (q = length; q >= qmin; q--) {
-            int u2, type_2/*, si1, sq1*/;
-            u2 = i-1 + length-q;
-            if(hc->up_int[q+1] < u2) break;
-            if(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP){
-              type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
-              if (u1+u2>MAXLOOP) continue;
-              energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
-              new_c = my_c[ij] + my_c[indx[q]+p] + energy;
-
-              if(sc){
-                if(sc->free_energies)
-                  new_c +=  sc->free_energies[j+1][p-j-1]
-                            + sc->free_energies[q+1][length-q]
-                            + sc->free_energies[1][i-1];
-
-                if(sc->en_stack)
-                  if(u1 + u2 == 0)
-                    new_c +=  sc->en_stack[i]
-                              + sc->en_stack[j]
-                              + sc->en_stack[p]
-                              + sc->en_stack[q];
-              }
-
-              if (new_c<FcI) {
-                FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
-              }
-            }
-          }
+      if(ip != 0){
+        if(new_c < FcI){
+          FcI = new_c;
+          Ii = i;
+          Ij = j;
+          Ip = ip;
+          Iq = iq;
         }
       }
     } /* end of i,j loop */
-  Fc = MIN2(FcI, FcH);
+  Fc = MIN2(Fc, FcH);
+  Fc = MIN2(Fc, FcI);
 
   /* compute the fM2 array (multi loops with exactly 2 helices) */
   /* to get a unique ML decomposition, just use fM1 instead of fML
