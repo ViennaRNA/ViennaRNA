@@ -551,6 +551,7 @@ eval_circ_pt( vrna_fold_compound *vc,
   soft_constraintT  *sc;
 
   energy        = 0;
+  en0           = 0;
   degree        = 0;
   string        = vc->sequence;
   length        = vc->length;
@@ -565,6 +566,7 @@ eval_circ_pt( vrna_fold_compound *vc,
   if(P->model_details.gquad)
     warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
 
+  /* evaluate all stems in exterior loop */
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
     degree++;
@@ -572,17 +574,21 @@ eval_circ_pt( vrna_fold_compound *vc,
     i=pt[i];
   }
 
-  if (degree==0){
-    return 0.;
-  }
-
+  /* find first stem */
   for (i=1; pt[i]==0; i++);
-
   j = pt[i];
 
+  /* evaluate exterior loop itself */
   switch(degree){
+    case 0:   if(sc){
+                if(sc->free_energies)
+                  en0 += sc->free_energies[1][length];
+              }
+              break;
+
     case 1:   en0 = vrna_eval_ext_hp_loop(vc, i, j);
               break;
+
     case 2:   {
                 int p,q;
                 /* seek to next pair */
@@ -592,14 +598,16 @@ eval_circ_pt( vrna_fold_compound *vc,
                 en0 = eval_ext_int_loop(vc, i, j, p, q);
               }
               break;
-    default:  en0 = energy_of_ml_pt(vc, 0, (const short *)pt) - P->MLintern[0];
+
+    default:  en0 =   energy_of_ml_pt(vc, 0, (const short *)pt)
+                    - P->MLintern[0];
               break;
   }
 
   if (verbosity_level>0)
     fprintf(out, "External loop                           : %5d\n", en0);
+
   energy += en0;
-  /* fprintf(stderr, "ext loop degree %d tot %d\n", degree, energy); */
 
   return energy;
 }
@@ -814,7 +822,7 @@ stack_energy( vrna_fold_compound *vc,
 
   /* p,q don't pair must have found hairpin or multiloop */
 
-  if (p>q) {                       /* hair pin */
+  if (p>q) {                       /* hairpin */
     ee      = vrna_eval_hp_loop(vc, i, j);
     energy  += ee;
 
@@ -895,6 +903,7 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
   if(sc){
     if(sc->free_energies)
       bonus += (i==0) ? sc->free_energies[1][p-1] : sc->free_energies[i][p-1];
+    /* how do we handle generalized soft constraints here ? */
   }
 
   while(p < length){
@@ -941,13 +950,21 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
     p = q + 1;
     q_prev = q;
     while (p <= length && !pt[p]) p++;
+
+    /* add soft constraints for unpaired region */
+    if(sc){
+      if(sc->free_energies)
+        bonus += sc->free_energies[q_prev + 1][p - q_prev - 1];
+      /* how do we handle generalized soft constraints here ? */
+    }
+
     if(p==i) break; /* cut was in loop */
   }
 
   if(dangle_model%2 == 1)
     energy = MIN2(E3_occupied, E3_available);
 
-  return energy;
+  return energy + bonus;
 }
 
 /**
