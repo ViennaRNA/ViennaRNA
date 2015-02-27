@@ -16,41 +16,55 @@ fill_arrays_circ( vrna_fold_compound *vc,
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
              (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi;
-  int FcMd3, FcMd5;
-  int i,j, p,q,length, energy;
-  int n_seq, psc;
-  int *type, s;
+  int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi, FcMd3, FcMd5;
+  int               i,j, p,q,length, energy, n_seq, psc;, *type, *rtype, s;
+  int               *indx;, *c, *fML, *fM2, *pscore;
+  short             **S, **S5, **S3;
+  char              **Ss;
+  char              *hard_constraints, **strings;
+  unsigned short    **a2s;
+  paramT            *P;
+  model_detailsT    *md;
+  hard_constraintT  *hc;
+  soft_constraintT  **sc;
 
-  short           **S     = vc->S;                                                                   
-  short           **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short           **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char            **Ss    = vc->Ss;                                                                   
-  unsigned short  **a2s   = vc->a2s;                                                                   
-  paramT          *P      = vc->params;                                                                   
-  model_detailsT  *md     = &(P->model_details);
-  int             *indx   = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
-  int             *c      = vc->matrices->c;     /* energy array, given that i-j pair */                       
-  int             *fML    = vc->matrices->fML;     /* multi-loop auxiliary energy array */                       
-  int             *fM2    = vc->matrices->fM2;
-  int             *pscore = vc->pscore;     /* precomputed array of pair types */                         
-
-  hard_constraintT  *hc               = vc->hc;
-  soft_constraintT  **sc              = vc->scs;
-  char              *hard_constraints = hc->matrix;
-
-  char **strings;
-  strings = vc->sequences;
-  n_seq   = vc->n_seq;
-  length  = vc->length;
-
-  int   *rtype        = &(md->rtype[0]);
-  type                = (int *) space(n_seq*sizeof(int));
+  S                 = vc->S;
+  S5                = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3                = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  Ss                = vc->Ss;
+  a2s               = vc->a2s;
+  P                 = vc->params;
+  md                = &(P->model_details);
+  indx              = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
+  c                 = vc->matrices->c;     /* energy array, given that i-j pair */
+  fML               = vc->matrices->fML;     /* multi-loop auxiliary energy array */
+  fM2               = vc->matrices->fM2;
+  pscore            = vc->pscore;     /* precomputed array of pair types */
+  hc                = vc->hc;
+  sc                = vc->scs;
+  hard_constraints  = hc->matrix;
+  strings           = vc->sequences;
+  n_seq             = vc->n_seq;
+  length            = vc->length;
+  rtype             = &(md->rtype[0]);
+  type              = (int *) space(n_seq*sizeof(int));
 
   /* extra arrays for circfold() */
-  fM2 =  (int *) space(sizeof(int)*(length+2));
+  fM2 = (int *) space(sizeof(int)*(length+2));
   FcH = FcI= FcM = FcMd3= FcMd5= INF;
-  Fc  = 0;
+
+  if(hc->up_ext[1] >= length){
+    Fc = 0;
+    if(sc){
+      for(s = 0; s < n_seq; s++){
+        if(sc[s]->free_energies)
+          Fc += sc[s]->free_energies[1][a2s[s][length] - 1];
+      }
+    }
+  } else {
+    Fc = INF;
+  }
+
   for (i=1; i<length; i++)
     for (j=i+TURN+1; j <= length; j++) {
       int ij, u, new_c;
@@ -214,9 +228,9 @@ fill_arrays_circ( vrna_fold_compound *vc,
     bt_stack[(*bt)].j = Mi;
     bt_stack[(*bt)].ml = 1;
   } else { /* must be totally unstructured */
-    sector[++s].i = 1;
-    sector[s].j = 1;
-    sector[s].ml = 0;
+    bt_stack[++(*bt)].i = 1;
+    bt_stack[(*bt)].j = 1;
+    bt_stack[(*bt)].ml = 0;
   }
   vc->matrices->FcH = FcH;
   vc->matrices->FcI = FcI;

@@ -733,27 +733,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
                               + E_MLstem(rtype[type], s1[s-1], s1[r+1], P)
                               + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
                               + E_MLstem(type2, s1[elem_i-1], s1[elem_j+1], P);
-                    energy -= E_IntLoop(elem_i - r - 1,
-                                        s - elem_j - 1,
-                                        type,
-                                        rtype[type2],
-                                        s1[r + 1],
-                                        s1[s - 1],
-                                        s1[elem_i - 1],
-                                        s1[elem_j + 1],
-                                        P);
-
-                    if(sc){
-                      if(sc->free_energies)
-                        energy += sc->free_energies[r + 1][elem_i - r - 1]
-                                  + sc->free_energies[elem_j + 1][s - elem_j - 1];
-
-                      if(sc->en_basepair)
-                        energy += sc->en_basepair[idx[s] + r];
-
-                      if(sc->f)
-                        energy += sc->f(r, s, elem_i, elem_j, VRNA_DECOMP_PAIR_IL, sc->data);
-                    }
+                    energy -= eval_int_loop(vc, r, s, elem_i, elem_j);
 
                     break;
           /* gquad was misinterpreted as unpaired nucleotides in a multiloop */

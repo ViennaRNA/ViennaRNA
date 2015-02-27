@@ -212,7 +212,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
                       int i,
                       int j){
 
-  int   u, e, ij, type;
+  int   u, e, type;
   char loopseq[10];
 
   short   *S        = vc->sequence_encoding;
@@ -222,7 +222,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
   model_detailsT    *md = &(P->model_details);
 
   u     = vc->length - j + i - 1;
-  ij    = idx[j] + i;
   type  = md->pair[S[j]][S[i]];
 
   if(type == 0)
