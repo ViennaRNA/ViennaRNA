@@ -580,16 +580,19 @@ eval_circ_pt( vrna_fold_compound *vc,
 
   /* evaluate exterior loop itself */
   switch(degree){
-    case 0:   if(sc){
+    case 0:   /* unstructured */
+              if(sc){
                 if(sc->free_energies)
                   en0 += sc->free_energies[1][length];
               }
               break;
 
-    case 1:   en0 = vrna_eval_ext_hp_loop(vc, i, j);
+    case 1:   /* hairpin loop */
+              en0 = vrna_eval_ext_hp_loop(vc, i, j);
               break;
 
-    case 2:   {
+    case 2:   /* interior loop */
+              {
                 int p,q;
                 /* seek to next pair */
                 for (p=j+1; pt[p]==0; p++);
@@ -599,7 +602,8 @@ eval_circ_pt( vrna_fold_compound *vc,
               }
               break;
 
-    default:  en0 =   energy_of_ml_pt(vc, 0, (const short *)pt)
+    default:  /* multibranch loop */
+              en0 =   energy_of_ml_pt(vc, 0, (const short *)pt)
                     - P->MLintern[0];
               break;
   }
@@ -766,7 +770,7 @@ stack_energy( vrna_fold_compound *vc,
               FILE *file,
               int verbosity_level){
 
-  /* calculate energy of substructure enclosed by (i,j) */
+  /* recursively calculate energy of substructure enclosed by (i,j) */
 
   int               ee, *idx, energy, j, p, q, type, *rtype;
   char              *string;
@@ -1012,10 +1016,16 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   if(i >= pt[i])
     nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
 
-  if(i == 0)
+  if(i == 0){
     j = (int)pt[0] + 1;
-  else
+  } else {
     j = (int)pt[i];
+    /* (i,j) is closing pair of multibranch loop, add soft constraints */
+    if(sc){
+      if(sc->en_basepair)
+        bonus += sc->en_basepair[idx[j] + i];
+    }
+  }
 
   /* init the variables */
   energy      = 0;
@@ -1048,11 +1058,6 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 if(tt==0) tt=7;
                 energy += E_MLstem(tt, -1, -1, P);
 
-                if(sc){
-                  if(sc->en_basepair)
-                    bonus += sc->en_basepair[idx[q]+p];
-                }
-
                 /* seek to the next stem */
                 p = q + 1;
                 q_prev = q_prev2 = q;
@@ -1070,10 +1075,6 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
                 energy += E_MLstem(type, -1, -1, P);
 
-                if(sc){
-                  if(sc->en_basepair)
-                    bonus += sc->en_basepair[idx[j]+i];
-                }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
               }
@@ -1088,11 +1089,6 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 mm5 = (SAME_STRAND(p-1,p))  ? s1[p-1] : -1;
                 mm3 = (SAME_STRAND(q,q+1))  ? s1[q+1] : -1;
                 energy += E_MLstem(tt, mm5, mm3, P);
-
-                if(sc){
-                  if(sc->en_basepair)
-                    bonus += sc->en_basepair[idx[q]+p];
-                }
 
                 /* seek to the next stem */
                 p = q + 1;
@@ -1111,10 +1107,6 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
                 energy += E_MLstem(type, s1[j-1], s1[i+1], P);
 
-                if(sc){
-                  if(sc->en_basepair)
-                    bonus += sc->en_basepair[idx[j]+i];
-                }
               } else {  /* virtual closing pair */
                 energy += E_MLstem(0, -1, -1, P);
               }
