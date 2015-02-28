@@ -32,7 +32,7 @@
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/eval.h"
 
-#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /*
 #################################
@@ -67,7 +67,7 @@ PRIVATE int   energy_of_ml_pt(vrna_fold_compound *vc,
                               int i,
                               const short *pt);
 
-PRIVATE int   cut_in_loop(int i, const short *pt);
+PRIVATE int   cut_in_loop(int i, const short *pt, int cp);
 
 PRIVATE int   eval_pt(vrna_fold_compound *vc,
                       const short *pt,
@@ -446,11 +446,12 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
                   int verbosity){
 
   /* compute energy of a single loop closed by base pair (i,j) */
-  int               j, type, p,q, energy, *idx;
+  int               j, type, p,q, energy, *idx, cp;
   short             *s, *s1;
   soft_constraintT  *sc;
 
   paramT *P = vc->params;
+  cp        = vc->cutpoint;
   idx       = vc->jindx;
   s         = vc->sequence_encoding2;
   s1        = vc->sequence_encoding;
@@ -479,7 +480,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
   }
   else if (pt[q]!=(short)p) { /* multi-loop */
     int ii;
-    ii = cut_in_loop(i, (const short *)pt);
+    ii = cut_in_loop(i, (const short *)pt, cp);
     energy = (ii==0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc, ii, (const short *)pt);
   }
   else { /* found interior loop */
@@ -532,12 +533,13 @@ eval_pt(vrna_fold_compound *vc,
         FILE *file,
         int verbosity_level){
 
-  int   i, length, energy;
+  int   i, length, energy, cp;
   short *ss, *ss1;
-
-  FILE *out = (file) ? file : stdout;
-
-  length = vc->length;  
+  FILE  *out;
+  
+  out     = (file) ? file : stdout;
+  length  = vc->length;  
+  cp      = vc->cutpoint;
 
   if(vc->params->model_details.gquad)
     warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
@@ -550,8 +552,8 @@ eval_pt(vrna_fold_compound *vc,
     energy += stack_energy(vc, i, pt, out, verbosity_level);
     i=pt[i];
   }
-  for (i=1; !SAME_STRAND(i,length); i++) {
-    if (!SAME_STRAND(i,pt[i])) {
+  for (i=1; !ON_SAME_STRAND(i,length, cp); i++) {
+    if (!ON_SAME_STRAND(i,pt[i], cp)) {
       energy += vc->params->DuplexInit;
       break;
     }
@@ -794,7 +796,7 @@ stack_energy( vrna_fold_compound *vc,
 
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
-  int               ee, *idx, energy, j, p, q, type, *rtype;
+  int               ee, *idx, energy, j, p, q, type, *rtype, cp;
   char              *string;
   short             *s, *s1;
   FILE              *out;
@@ -803,6 +805,7 @@ stack_energy( vrna_fold_compound *vc,
 
 
   string  = vc->sequence;
+  cp      = vc->cutpoint;
   s       = vc->sequence_encoding2;
   s1      = vc->sequence_encoding;
   P       = vc->params;
@@ -869,7 +872,7 @@ stack_energy( vrna_fold_compound *vc,
   }
   {
     int ii;
-    ii = cut_in_loop(i, pt);
+    ii = cut_in_loop(i, pt, cp);
     ee = (ii==0) ? energy_of_ml_pt(vc, i, pt) : energy_of_extLoop_pt(vc, ii, pt);
   }
   energy += ee;
@@ -895,7 +898,7 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
                       int i,
                       const short *pt){
 
-  int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model;
+  int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, cp;
   short             *s, *s1;
   paramT            *P;
   soft_constraintT  *sc;
@@ -906,16 +909,17 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
 
 
   /* initialize vars */
-  length      = vc->length;
-  s           = vc->sequence_encoding2;
-  s1          = vc->sequence_encoding;
-  P           = vc->params;
-  dangle_model = P->model_details.dangles;
+  length        = vc->length;
+  cp            = vc->cutpoint;
+  s             = vc->sequence_encoding2;
+  s1            = vc->sequence_encoding;
+  P             = vc->params;
+  dangle_model  = P->model_details.dangles;
 
-  energy      = 0;
-  bonus       = 0;
-  p           = (i==0) ? 1 : i;
-  q_prev      = -1;
+  energy        = 0;
+  bonus         = 0;
+  p             = (i==0) ? 1 : i;
+  q_prev        = -1;
 
   if(dangle_model%2 == 1){
     E3_available = INF;
@@ -946,8 +950,8 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
                 break;
 
       /* the beloved double dangles */
-      case 2:   mm5 = ((SAME_STRAND(p-1,p)) && (p>1))       ? s1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && (q<length))  ? s1[q+1] : -1;
+      case 2:   mm5 = ((ON_SAME_STRAND(p - 1, p, cp)) && (p>1))       ? s1[p-1] : -1;
+                mm3 = ((ON_SAME_STRAND(q, q + 1, cp)) && (q<length))  ? s1[q+1] : -1;
                 energy += E_ExtLoop(tt, mm5, mm3, P);
                 break;
 
@@ -957,8 +961,8 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
                     E3_available = MIN2(E3_available, E3_occupied);
                     E3_occupied  = E3_available;
                   }
-                  mm5 = ((SAME_STRAND(p-1,p)) && (p>1) && !pt[p-1])       ? s1[p-1] : -1;
-                  mm3 = ((SAME_STRAND(q,q+1)) && (q<length) && !pt[q+1])  ? s1[q+1] : -1;
+                  mm5 = ((ON_SAME_STRAND(p - 1, p, cp)) && (p>1) && !pt[p-1])       ? s1[p-1] : -1;
+                  mm3 = ((ON_SAME_STRAND(q, q + 1, cp)) && (q<length) && !pt[q+1])  ? s1[q+1] : -1;
                   tmp = MIN2(
                                                 E3_occupied  + E_ExtLoop(tt, -1, mm3, P),
                                                 E3_available + E_ExtLoop(tt, mm5, mm3, P)
@@ -1009,7 +1013,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 int i,
                 const short *pt){
 
-  int energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx;
+  int energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx, cp;
   int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
   int e_stem, e_stem5, e_stem3, e_stem53;
   int mlintern[NBPAIRS+1];
@@ -1023,6 +1027,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   int E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
   int E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
 
+  cp  = vc->cutpoint;
   s   = vc->sequence_encoding2;
   s1  = vc->sequence_encoding;
   P   = vc->params;
@@ -1108,8 +1113,8 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 /* get type of base pair (p,q) */
                 tt = P->model_details.pair[s[p]][s[q]];
                 if(tt==0) tt=7;
-                mm5 = (SAME_STRAND(p-1,p))  ? s1[p-1] : -1;
-                mm3 = (SAME_STRAND(q,q+1))  ? s1[q+1] : -1;
+                mm5 = (ON_SAME_STRAND(p - 1, p, cp))  ? s1[p-1] : -1;
+                mm3 = (ON_SAME_STRAND(q, q + 1, cp))  ? s1[q+1] : -1;
                 energy += E_MLstem(tt, mm5, mm3, P);
 
                 /* seek to the next stem */
@@ -1125,8 +1130,8 @@ energy_of_ml_pt(vrna_fold_compound *vc,
               }
               if(i > 0){  /* actual closing pair */
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-                mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
-                mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
+                mm5 = ((ON_SAME_STRAND(j - 1, j, cp)) && !pt[j-1])  ? s1[j-1] : -1;
+                mm3 = ((ON_SAME_STRAND(i, i + 1, cp)) && !pt[i+1])  ? s1[i+1] : -1;
                 energy += E_MLstem(type, s1[j-1], s1[i+1], P);
 
               } else {  /* virtual closing pair */
@@ -1145,9 +1150,9 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                   j = (unsigned int)pt[i];
                   type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
                   /* prime the ld5 variable */
-                  if (SAME_STRAND(j-1,j)) {
+                  if (ON_SAME_STRAND(j - 1, j, cp)) {
                     ld5 = P->dangle5[type][s1[j-1]];
-                    if ((p=(unsigned int)pt[j-2]) && SAME_STRAND(j-2, j-1))
+                    if ((p=(unsigned int)pt[j-2]) && ON_SAME_STRAND(j - 2, j - 1, cp))
                     if (P->dangle3[P->model_details.pair[s[p]][s[j-2]]][s1[j-1]]<ld5) ld5 = 0;
                   }
                 }
@@ -1180,15 +1185,15 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                   cx_energy += mlintern[tt];
 
                   dang5=dang3=0;
-                  if ((SAME_STRAND(p-1,p))&&(p>1))
+                  if ((ON_SAME_STRAND(p - 1, p, cp))&&(p>1))
                     dang5=P->dangle5[tt][s1[p-1]];      /* 5'dangle of pq pair */
-                  if ((SAME_STRAND(i1,i1+1))&&(i1<(unsigned int)s[0]))
+                  if ((ON_SAME_STRAND(i1, i1 + 1, cp))&&(i1<(unsigned int)s[0]))
                     dang3 = P->dangle3[type][s1[i1+1]]; /* 3'dangle of previous pair */
 
                   switch (p-i1-1) {
                     case 0:   /* adjacent helices */
                               if (i1!=0){
-                                if (SAME_STRAND(i1,p)) {
+                                if (ON_SAME_STRAND(i1, p, cp)) {
                                   new_cx = energy + P->stack[rtype[type]][rtype[tt]];
                                   /* subtract 5'dangle and TerminalAU penalty */
                                   new_cx += -ld5 - mlintern[tt]-mlintern[type]+2*mlintern[1];
@@ -1247,8 +1252,8 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                   E2_mm5_available  = MIN2(E2_mm5_available, E2_mm5_occupied);
                   E2_mm5_occupied   = E2_mm5_available;
                 }
-                mm5 = ((SAME_STRAND(p-1,p)) && !pt[p-1])  ? s1[p-1] : -1;
-                mm3 = ((SAME_STRAND(q,q+1)) && !pt[q+1])  ? s1[q+1] : -1;
+                mm5 = ((ON_SAME_STRAND(p - 1, p, cp)) && !pt[p-1])  ? s1[p-1] : -1;
+                mm3 = ((ON_SAME_STRAND(q, q + 1, cp)) && !pt[q+1])  ? s1[q+1] : -1;
                 e_stem    = E_MLstem(tt, -1, -1, P);
                 e_stem5   = E_MLstem(tt, mm5, -1, P);
                 e_stem3   = E_MLstem(tt, -1, mm3, P);
@@ -1287,8 +1292,8 @@ energy_of_ml_pt(vrna_fold_compound *vc,
               }
               if(i > 0){  /* actual closing pair */
                 type = P->model_details.pair[s[j]][s[i]]; if (type==0) type=7;
-                mm5 = ((SAME_STRAND(j-1,j)) && !pt[j-1])  ? s1[j-1] : -1;
-                mm3 = ((SAME_STRAND(i,i+1)) && !pt[i+1])  ? s1[i+1] : -1;
+                mm5 = ((ON_SAME_STRAND(j - 1, j, cp)) && !pt[j-1])  ? s1[j-1] : -1;
+                mm3 = ((ON_SAME_STRAND(i, i + 1, cp)) && !pt[i+1])  ? s1[i+1] : -1;
                 if(q_prev + 2 < p){
                   E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
                   E_mm5_occupied  = E_mm5_available;
@@ -1330,7 +1335,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
 
 
 PRIVATE int
-cut_in_loop(int i, const short *pt){
+cut_in_loop(int i, const short *pt, int cp){
 
   /* walk around the loop;  return j pos of pair after cut if
      cut_point in loop else 0 */
@@ -1339,8 +1344,8 @@ cut_in_loop(int i, const short *pt){
   do {
     i  = pt[p];  p = i+1;
     while ( pt[p]==0 ) p++;
-  } while (p!=j && SAME_STRAND(i,p));
-  return SAME_STRAND(i,p) ? 0 : j;
+  } while (p!=j && ON_SAME_STRAND(i, p, cp));
+  return ON_SAME_STRAND(i, p, cp) ? 0 : j;
 }
 
 /*
