@@ -25,7 +25,6 @@
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
-PRIVATE char *tokenize(char *line);
 PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, pf_paramT *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, pf_paramT *parameters);
@@ -265,12 +264,16 @@ int main(int argc, char *argv[])
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       cstruc = NULL;
-      int cp = cut_point;
+      int cp = -1;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
       getConstraint(&cstruc, (const char **)rec_rest, coptions);
-      cstruc = tokenize(cstruc);
-      if(cut_point != cp) nrerror("cut point in sequence and structure constraint differs");
+      cstruc = vrna_cut_point_remove(cstruc, &cp);
+      if(vc->cutpoint != cp){
+        fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+        nrerror("Sequence and Structure have different cut points.");
+      }
+
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
       if(cl == 0)           warn_user("structure constraint is missing");
@@ -571,33 +574,6 @@ int main(int argc, char *argv[])
     }
   }
   return EXIT_SUCCESS;
-}
-
-PRIVATE char *
-tokenize(char *line){
-  char *pos, *copy = NULL;
-  int cut = -1;
-
-  if(line){
-    copy = (char *) space(strlen(line)+1);
-    (void) sscanf(line, "%s", copy);
-    pos = strchr(copy, '&');
-    if (pos) {
-      cut = (int) (pos-copy)+1;
-      if (cut >= strlen(copy)) cut = -1;
-      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-    }
-    if (cut > -1) {
-      if (cut_point==-1) cut_point = cut;
-      else if (cut_point != cut) {
-        fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-        nrerror("Sequence and Structure have different cut points.");
-      }
-    }
-    free(line);
-  }
-  return copy;
 }
 
 PRIVATE cofoldF

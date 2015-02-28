@@ -9,6 +9,7 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/fold.h"
+#include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/pair_mat.h"
@@ -58,11 +59,12 @@ PRIVATE int     compare_energy(const void *A, const void *B);
 PRIVATE int     compare_moves_when(const void *A, const void *B);
 PRIVATE void    free_intermediate(intermediate_t *i);
 
+#ifdef TEST_FINDPATH
+
 /* TEST_FINDPATH, COFOLD */
-PRIVATE char *tokenize(const char *line);
-PRIVATE char *costring(const char *string);
 PRIVATE void  usage(void);
 
+#endif
 
 PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
 PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist);
@@ -135,8 +137,8 @@ PUBLIC void print_path(const char *seq, const char *struc) {
     /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure_simple(seq,s)); */
   else {
     char *pstruct, *pseq;
-    pstruct = costring(s);
-    pseq = costring(seq);
+    pstruct = vrna_cut_point_insert(s, cut_point);
+    pseq = vrna_cut_point_insert(seq, cut_point);
     printf("%s\n%s\n", pseq, pstruct);
     /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure_simple(seq,s)); */
     free(pstruct);
@@ -461,13 +463,13 @@ int main(int argc, char *argv[]) {
 
   cut_point = -1;
   line = get_line(stdin);
-  seq = tokenize(line);
+  seq = vrna_cut_point_remove(line, &cut_point);
   free(line);   
   line = get_line(stdin);
-  s1 = tokenize(line);
+  s1 = vrna_cut_point_remove(line, &cut_point);
   free(line);
   line = get_line(stdin);
-  s2 = tokenize(line);
+  s2 = vrna_cut_point_remove(line, &cut_point);
   free(line);
 
   E = find_saddle(seq, s1, s2, maxkeep);
@@ -486,7 +488,7 @@ int main(int argc, char *argv[]) {
               /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure_simple(seq,r->s), r->en); */
           } else {
               char *pstruct;
-              pstruct = costring(r->s);
+              pstruct = vrna_cut_point_insert(r->s, cut_point);
               printf("%s %6.2f\n", pstruct, r->en);
               /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure_simple(seq,r->s), r->en); */
               free(pstruct);
@@ -498,56 +500,9 @@ int main(int argc, char *argv[]) {
   free(seq); free(s1); free(s2);
   return(EXIT_SUCCESS);
 }
-#endif
 
-
-/* COFOLD */
-static char *tokenize(const char *line)
-{
-  char *token, *copy, *ctmp;
-  int cut = -1;
-
-  copy = (char *) space(strlen(line)+1);
-  ctmp = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  ctmp[0] = '\0';
-  token = strtok(copy, "&");
-  cut = strlen(token)+1;
-  while (token) {
-    strcat(ctmp, token);
-    token = strtok(NULL, "&");
-  }
-  if (cut > strlen(ctmp)) cut = -1;
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
-    }
-  }
-  free(copy);
-
-  return ctmp;
-}
-
-static char *costring(const char *string)
-{
-  char *ctmp;
-  int len;
-
-  len = strlen(string);
-  ctmp = (char *)space((len+2) * sizeof(char));
-  /* first sequence */
-  (void) strncpy(ctmp, string, cut_point-1);
-  /* spacer */
-  ctmp[cut_point-1] = '&';
-  /* second sequence */
-  (void) strcat(ctmp, string+cut_point-1);
-
-  return ctmp;
-}
-
-static void usage(void)
-{
+static void usage(void){
   nrerror("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
 }
+
+#endif

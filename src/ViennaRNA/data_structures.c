@@ -81,7 +81,6 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE char            *tokenize(char *line, int *cut_point);
 PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void            set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
@@ -354,7 +353,7 @@ set_fold_compound(vrna_fold_compound *vc,
     case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
 
                                   seq2 = strdup(sequence);
-                                  seq = tokenize(seq2, &cp); /*  splice out the '&' if concatenated sequences and
+                                  seq = vrna_cut_point_remove(seq2, &cp); /*  splice out the '&' if concatenated sequences and
                                                                         reset cp... this should also be safe for
                                                                         single sequences */
                                   vc->cutpoint            = cp;
@@ -579,31 +578,6 @@ get_pf_matrices_alloc(unsigned int n,
   }
 
   return vars;
-}
-
-PRIVATE char *tokenize(char *line, int *cut_point){
-  char *pos, *copy;
-  int cut = -1;
-  copy = NULL;
-  if(line){
-    copy = (char *) space(strlen(line)+1);
-    (void) sscanf(line, "%s", copy);
-    pos = strchr(copy, '&');
-    if (pos) {
-      cut = (int) (pos-copy)+1;
-      if (cut >= strlen(copy)) cut = -1;
-      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-    }
-    if (cut > -1) {
-      if (*cut_point==-1) *cut_point = cut;
-      else if (*cut_point != cut) {
-        fprintf(stderr,"cut_point = %d cut = %d\n", *cut_point, cut);
-        nrerror("Sequence and Structure have different cut points.");
-      }
-    }
-  }
-  return copy;
 }
 
 PRIVATE void
