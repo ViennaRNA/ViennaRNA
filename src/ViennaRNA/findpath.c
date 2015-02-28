@@ -248,7 +248,7 @@ try_moves(intermediate_t c,
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + vrna_eval_move_pt_simple(c.pt, i, j, NULL);
+    en = c.curr_en + vrna_eval_move_pt_simple(seq, c.pt, i, j);
 #else
     en = vrna_eval_structure_pt_simple(seq, pt);
 #endif
