@@ -99,11 +99,11 @@ PRIVATE int wrap_eval_loop_pt(vrna_fold_compound *vc,
                               int verbosity);
 
 INLINE PRIVATE int
-eval_int_loop( vrna_fold_compound *vc,
-                    int i,
-                    int j,
-                    int p,
-                    int q);
+eval_int_loop(vrna_fold_compound *vc,
+              int i,
+              int j,
+              int p,
+              int q);
 
 /*
 #################################
@@ -350,23 +350,23 @@ eval_int_loop(vrna_fold_compound *vc,
   model_detailsT  *md;
   soft_constraintT  *sc;
 
-  cp          = vc->cutpoint;
-  indx        = vc->jindx;
-  P           = vc->params;
-  md          = &(P->model_details);
-  S           = vc->sequence_encoding;
-  si          = S[i+1];
-  sj          = S[j-1];
-  sp          = S[p-1];
-  sq          = S[q+1];
-  ij          = indx[j] + i;
-  pq          = indx[q] + p;
-  rtype       = &(md->rtype[0]);
-  type        = (unsigned char)md->pair[S[i]][S[j]];
-  type_2      = rtype[(unsigned char)md->pair[S[p]][S[q]]];
-  u1          = p - i - 1;
-  u2          = j - q - 1;
-  sc          = vc->sc;
+  cp      = vc->cutpoint;
+  indx    = vc->jindx;
+  P       = vc->params;
+  md      = &(P->model_details);
+  S       = vc->sequence_encoding;
+  si      = S[i+1];
+  sj      = S[j-1];
+  sp      = S[p-1];
+  sq      = S[q+1];
+  ij      = indx[j] + i;
+  pq      = indx[q] + p;
+  rtype   = &(md->rtype[0]);
+  type    = (unsigned char)md->pair[S[i]][S[j]];
+  type_2  = rtype[(unsigned char)md->pair[S[p]][S[q]]];
+  u1      = p - i - 1;
+  u2      = j - q - 1;
+  sc      = vc->sc;
 
   if(type == 0)
     type = 7;
@@ -395,19 +395,19 @@ eval_ext_int_loop(vrna_fold_compound *vc,
   model_detailsT  *md;
   soft_constraintT  *sc;
 
-  length      = vc->length;
-  P           = vc->params;
-  md          = &(P->model_details);
-  S           = vc->sequence_encoding;
-  si          = S[j+1];
-  sj          = S[i-1];
-  sp          = S[p-1];
-  sq          = S[q+1];
-  type        = (unsigned char)md->pair[S[j]][S[i]];
-  type_2      = (unsigned char)md->pair[S[q]][S[p]];
-  u1          = p - j - 1;
-  u2          = i - 1 + length - q;
-  sc          = vc->sc;
+  length  = vc->length;
+  P       = vc->params;
+  md      = &(P->model_details);
+  S       = vc->sequence_encoding;
+  si      = S[j+1];
+  sj      = S[i-1];
+  sp      = S[p-1];
+  sq      = S[q+1];
+  type    = (unsigned char)md->pair[S[j]][S[i]];
+  type_2  = (unsigned char)md->pair[S[q]][S[p]];
+  u1      = p - j - 1;
+  u2      = i - 1 + length - q;
+  sc      = vc->sc;
 
   if(type == 0)
     type = 7;
@@ -449,13 +449,14 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
   int               j, type, p,q, energy, *idx, cp;
   short             *s, *s1;
   soft_constraintT  *sc;
+  paramT            *P;
 
-  paramT *P = vc->params;
-  cp        = vc->cutpoint;
-  idx       = vc->jindx;
-  s         = vc->sequence_encoding2;
-  s1        = vc->sequence_encoding;
-  sc        = vc->sc;
+  P   = vc->params;
+  cp  = vc->cutpoint;
+  idx = vc->jindx;
+  s   = vc->sequence_encoding2;
+  s1  = vc->sequence_encoding;
+  sc  = vc->sc;
 
   if (i==0) { /* evaluate exterior loop */
     energy = energy_of_extLoop_pt(vc, 0, pt);
@@ -1013,13 +1014,13 @@ energy_of_ml_pt(vrna_fold_compound *vc,
                 int i,
                 const short *pt){
 
-  int energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx, cp;
-  int i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
-  int e_stem, e_stem5, e_stem3, e_stem53;
-  int mlintern[NBPAIRS+1];
-  short *s, *s1;
-  paramT *P;
-  soft_constraintT *sc;
+  int               energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx, cp;
+  int               i1, j, p, q, q_prev, q_prev2, u, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
+  int               e_stem, e_stem5, e_stem3, e_stem53;
+  int               mlintern[NBPAIRS+1];
+  short             *s, *s1;
+  paramT            *P;
+  soft_constraintT  *sc;
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */

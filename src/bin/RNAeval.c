@@ -31,9 +31,6 @@
 /*@unused@*/
 static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.10 2008/10/09 07:08:40 ivo Exp $";
 
-PRIVATE char *costring(char *string);
-PRIVATE char *tokenize(char *line);
-
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp;
@@ -154,7 +151,13 @@ int main(int argc, char *argv[]){
     if(!tmp)
       nrerror("structure missing");
 
-    structure = tokenize(tmp);
+    int cp = -1;
+    structure = vrna_cut_point_remove(tmp, &cp);
+    if(cp != vc->cutpoint){
+      fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+      nrerror("Sequence and Structure have different cut points.");
+    }
+
     length1   = (int) strlen(structure);
     if(length1 != vc->length)
       nrerror("structure and sequence differ in length!");
@@ -162,7 +165,7 @@ int main(int argc, char *argv[]){
     free(tmp);
 
     if(istty){
-      if (cut_point == -1)
+      if (vc->cutpoint == -1)
         printf("length = %d\n", length1);
       else
         printf("length1 = %d\nlength2 = %d\n", vc->cutpoint-1, length1-vc->cutpoint+1);
@@ -176,11 +179,8 @@ int main(int argc, char *argv[]){
     if (vc->cutpoint == -1)
       printf("%s\n%s", orig_sequence, structure);
     else {
-      char *pstring, *pstruct;
-      pstring = costring(orig_sequence);
-      pstruct = costring(structure);
-      printf("%s\n%s", pstring,  pstruct);
-      free(pstring);
+      char *pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
+      printf("%s\n%s", orig_sequence,  pstruct);
       free(pstruct);
     }
     if (istty)
@@ -214,49 +214,4 @@ int main(int argc, char *argv[]){
     }
   }
   return EXIT_SUCCESS;
-}
-
-PRIVATE char *tokenize(char *line)
-{
-  char *token, *copy, *ctmp;
-  int cut = -1;
-
-  copy = (char *) space(strlen(line)+1);
-  ctmp = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  ctmp[0] = '\0';
-  token = strtok(copy, "&");
-  cut = strlen(token)+1;
-  while (token) {
-    strcat(ctmp, token);
-    token = strtok(NULL, "&");
-  }
-  if (cut > strlen(ctmp)) cut = -1;
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
-    }
-  }
-  free(copy);
-
-  return ctmp;
-}
-
-PRIVATE char *costring(char *string)
-{
-  char *ctmp;
-  int len;
-
-  len = strlen(string);
-  ctmp = (char *)space((len+2) * sizeof(char));
-  /* first sequence */
-  (void) strncpy(ctmp, string, cut_point-1);
-  /* spacer */
-  ctmp[cut_point-1] = '&';
-  /* second sequence */
-  (void) strcat(ctmp, string+cut_point-1);
-
-  return ctmp;
 }
