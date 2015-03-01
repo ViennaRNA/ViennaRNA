@@ -9,6 +9,7 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/fold.h"
+#include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/pair_mat.h"
@@ -58,14 +59,15 @@ PRIVATE int     compare_energy(const void *A, const void *B);
 PRIVATE int     compare_moves_when(const void *A, const void *B);
 PRIVATE void    free_intermediate(intermediate_t *i);
 
+#ifdef TEST_FINDPATH
+
 /* TEST_FINDPATH, COFOLD */
-PRIVATE char *tokenize(const char *line);
-PRIVATE char *costring(const char *string);
 PRIVATE void  usage(void);
 
+#endif
 
 PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
-PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist, paramT *P);
+PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist);
 
 /*
 #################################
@@ -129,20 +131,16 @@ PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *str
 PUBLIC void print_path(const char *seq, const char *struc) {
   int d;
   char *s;
-  model_detailsT md;
-  paramT *P;
-  set_model_details(&md); /* use current global model */
-  P = vrna_get_energy_contributions(md);
   s = strdup(struc);
   if (cut_point == -1)
     printf("%s\n%s\n", seq, s);
-    /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure(seq,s,P)); */
+    /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure_simple(seq,s)); */
   else {
     char *pstruct, *pseq;
-    pstruct = costring(s);
-    pseq = costring(seq);
+    pstruct = vrna_cut_point_insert(s, cut_point);
+    pseq = vrna_cut_point_insert(seq, cut_point);
     printf("%s\n%s\n", pseq, pstruct);
-    /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure(seq,s,P)); */
+    /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure_simple(seq,s)); */
     free(pstruct);
     free(pseq);
   }
@@ -155,19 +153,14 @@ PUBLIC void print_path(const char *seq, const char *struc) {
     } else {
       s[i-1] = '('; s[j-1] = ')';
     }
-    /* printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure(seq,s,P), path[d].E/100.0); */
+    /* printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure_simple(seq,s), path[d].E/100.0); */
   }
   free(s);
-  free(P);
 }
 
 PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int maxkeep) {
   int E, d;
   path_t *route=NULL;
-  model_detailsT md;
-  paramT *P;
-  set_model_details(&md); /* use current global model */
-  P = vrna_get_energy_contributions(md);
 
   E = find_saddle(seq, s1, s2, maxkeep);
 
@@ -178,7 +171,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = vrna_eval_structure(seq, s1, P);
+    route[0].en = vrna_eval_structure_simple(seq, s1);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -196,7 +189,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = vrna_eval_structure(seq, s2, P);
+    route[BP_dist].en = vrna_eval_structure_simple(seq, s2);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -220,7 +213,6 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
 #endif
 
   free(path);path=NULL;
-  free(P);
   return (route);
 }
 
@@ -228,8 +220,7 @@ PRIVATE int
 try_moves(intermediate_t c,
           int maxE,
           intermediate_t *next,
-          int dist,
-          paramT *P){
+          int dist){
 
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
@@ -259,9 +250,9 @@ try_moves(intermediate_t c,
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + vrna_eval_move_pt(c.pt, S, S1, i, j, P);
+    en = c.curr_en + vrna_eval_move_pt_simple(seq, c.pt, i, j);
 #else
-    en = vrna_eval_structure_pt_fast(seq, pt, S, S1, P);
+    en = vrna_eval_structure_pt_simple(seq, pt);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -283,10 +274,6 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   move_t *mlist;
   int i, len, d, dist=0, result;
   intermediate_t *current, *next;
-  model_detailsT md;
-  paramT *P;
-  set_model_details(&md); /* use current global model */
-  P = vrna_get_energy_contributions(md);
 
   pt1 = vrna_pt_get(struc1);
   pt2 = vrna_pt_get(struc2);
@@ -312,7 +299,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   BP_dist = dist;
   current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_fast(seq, pt1, S, S1, P);
+  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_simple(seq, pt1);
   current[0].moves = mlist;
   next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -321,7 +308,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
     intermediate_t *cc;
 
     for (c=0; current[c].pt != NULL; c++) {
-      num_next += try_moves(current[c], maxE, next+num_next, d, P);
+      num_next += try_moves(current[c], maxE, next+num_next, d);
     }
     if (num_next==0) {
       for (cc=current; cc->pt != NULL; cc++) free_intermediate(cc);
@@ -353,7 +340,6 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   path = current[0].moves;
   result = current[0].Sen;
   free(current[0].pt); free(current);
-  free(P);
   return(result);
 }
 
@@ -458,11 +444,6 @@ int main(int argc, char *argv[]) {
   int E, maxkeep=1000;
   int verbose=0, i;
   path_t *route, *r;
-  model_detailsT md;
-  paramT *P;
-  set_model_details(&md); /* use current global model */
-  P = vrna_get_energy_contributions(md);
-
 
   for (i=1; i<argc; i++) {
     switch ( argv[i][1] ) {
@@ -482,13 +463,13 @@ int main(int argc, char *argv[]) {
 
   cut_point = -1;
   line = get_line(stdin);
-  seq = tokenize(line);
+  seq = vrna_cut_point_remove(line, &cut_point);
   free(line);   
   line = get_line(stdin);
-  s1 = tokenize(line);
+  s1 = vrna_cut_point_remove(line, &cut_point);
   free(line);
   line = get_line(stdin);
-  s2 = tokenize(line);
+  s2 = vrna_cut_point_remove(line, &cut_point);
   free(line);
 
   E = find_saddle(seq, s1, s2, maxkeep);
@@ -504,71 +485,24 @@ int main(int argc, char *argv[]) {
       for (r=route; r->s; r++) {
           if (cut_point == -1) {
               printf("%s %6.2f\n", r->s, r->en);
-              /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure(seq,r->s,P), r->en); */
+              /* printf("%s %6.2f - %6.2f\n", r->s, vrna_eval_structure_simple(seq,r->s), r->en); */
           } else {
               char *pstruct;
-              pstruct = costring(r->s);
+              pstruct = vrna_cut_point_insert(r->s, cut_point);
               printf("%s %6.2f\n", pstruct, r->en);
-              /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure(seq,r->s,P), r->en); */
+              /* printf("%s %6.2f - %6.2f\n", pstruct, vrna_eval_structure_simple(seq,r->s), r->en); */
               free(pstruct);
           }
           free(r->s);
       }
       free(route);
   }
-  free(seq); free(s1); free(s2); free(P);
+  free(seq); free(s1); free(s2);
   return(EXIT_SUCCESS);
 }
-#endif
 
-
-/* COFOLD */
-static char *tokenize(const char *line)
-{
-  char *token, *copy, *ctmp;
-  int cut = -1;
-
-  copy = (char *) space(strlen(line)+1);
-  ctmp = (char *) space(strlen(line)+1);
-  (void) sscanf(line, "%s", copy);
-  ctmp[0] = '\0';
-  token = strtok(copy, "&");
-  cut = strlen(token)+1;
-  while (token) {
-    strcat(ctmp, token);
-    token = strtok(NULL, "&");
-  }
-  if (cut > strlen(ctmp)) cut = -1;
-  if (cut > -1) {
-    if (cut_point==-1) cut_point = cut;
-    else if (cut_point != cut) {
-      fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
-    }
-  }
-  free(copy);
-
-  return ctmp;
-}
-
-static char *costring(const char *string)
-{
-  char *ctmp;
-  int len;
-
-  len = strlen(string);
-  ctmp = (char *)space((len+2) * sizeof(char));
-  /* first sequence */
-  (void) strncpy(ctmp, string, cut_point-1);
-  /* spacer */
-  ctmp[cut_point-1] = '&';
-  /* second sequence */
-  (void) strcat(ctmp, string+cut_point-1);
-
-  return ctmp;
-}
-
-static void usage(void)
-{
+static void usage(void){
   nrerror("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
 }
+
+#endif

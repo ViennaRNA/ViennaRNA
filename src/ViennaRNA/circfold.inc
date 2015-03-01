@@ -16,134 +16,92 @@ fill_arrays_circ( vrna_fold_compound *vc,
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
              (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
-  int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
-  int FcH, FcI, FcM, Fc, *fM2;
-  int i,j, p,q,length, energy;
+  int               Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi;
+  int               *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
+  int               FcH, FcI, FcM, Fc, *fM2;
+  int               i,j, ij, u, length, new_c, fm, type;
+  int               *my_c, *my_fML, *indx, dangle_model, turn;
+  paramT            *P;
+  char              *ptype, *hard_constraints;
+  short             *S1;
+  hard_constraintT  *hc;
+  soft_constraintT  *sc;
 
-  /* the folding matrices */
-  int   *my_c, *my_fML;
+  P                 = vc->params;
+  ptype             = vc->ptype;
+  indx              = vc->jindx;
+  S1                = vc->sequence_encoding;
 
-  paramT  *P          = vc->params;
-  char *string        = vc->sequence;
-  char *ptype         = vc->ptype;
-  int   *indx         = vc->jindx;
-  short *S1           = vc->sequence_encoding;
+  dangle_model      = P->model_details.dangles;
+  turn              = P->model_details.min_loop_size;
 
-  int   dangle_model  = P->model_details.dangles;
-  int   noGUclosure   = P->model_details.noGUclosure;
-  int   *rtype        = &(P->model_details.rtype[0]);
+  hc                = vc->hc;
+  sc                = vc->sc;
+  hard_constraints  = hc->matrix;
 
-  hard_constraintT *hc    = vc->hc;
-  soft_constraintT  *sc   = vc->sc;
-  char              *hard_constraints = hc->matrix;
+  my_c              = vc->matrices->c;
+  my_fML            = vc->matrices->fML;
+  fM2               = vc->matrices->fM2;
 
-  /* dereference of the folding matrices */
-  my_c    = vc->matrices->c;
-  my_fML  = vc->matrices->fML;
-  fM2     = vc->matrices->fM2;
+  length            = vc->length;
 
-  length = (int) strlen(string);
+  FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
 
-  FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
-  for (i=1; i<length; i++)
-    for (j=i+TURN+1; j <= length; j++) {
-      int ij, type, u, new_c, no_close;
+  if(hc->up_ext[1] >= length){
+    Fc = 0;
+    if(sc){
+      if(sc->free_energies)
+        Fc += sc->free_energies[1][length];
+    }
+  } else {
+    Fc = INF;
+  }
+
+  for(i = 1; i < length; i++)
+    for(j = i + turn + 1; j <= length; j++){
       u = length-j + i-1;
       if (u<TURN) continue;
 
-      ij = indx[j]+i;
+      ij = indx[j] + i;
 
-      type = ptype[ij];
+      /* exterior hairpin case */
+      new_c =   vrna_E_ext_hp_loop(vc, i, j)
+              + my_c[ij];
 
-      no_close = (((type==3)||(type==4))&&noGUclosure);
-
-      /* if (j-i-1 > max_separation) type = 0; */  /* forces locality degree */
-
-      type=rtype[type];
-
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
-        if(hc->up_hp[j+1] >= u){
-          if (no_close) new_c = FORBIDDEN;
-          else {
-            char loopseq[10];
-            /*int si1, sj1;*/
-            if (u<7) {
-              strcpy(loopseq , string+j-1);
-              strncat(loopseq, string, i);
-            }
-            new_c = E_Hairpin(u, type, S1[j+1], S1[i-1],  loopseq, P)+my_c[ij];
-
-            if(sc){
-              if(sc->free_energies)
-                new_c +=  sc->free_energies[j+1][length-j]
-                          + sc->free_energies[1][i-1];
-
-                if(sc->f) /* should this be (j,i) instead of (i,j) ? */
-                  new_c += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-            }
-            if (new_c<FcH) {
-              FcH = new_c; Hi=i; Hj=j;
-            }
-          }
-        }
+      if (new_c<FcH) {
+        FcH = new_c;
+        Hi  = i;
+        Hj  = j;
       }
 
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
-        for (p = j+1; p < length ; p++) {
-          int u1, qmin;
-          u1 = p-j-1;
-          if (u1+i-1>MAXLOOP) break;
-          if (hc->up_int[j+1] < u1) break;
+      /* exterior interior loop case */
+      ip = iq = 0;
+      new_c =   vrna_E_ext_int_loop(vc, i, j, &ip, &iq)
+              + my_c[ij];
 
-          qmin = u1+i-1+length-MAXLOOP;
-          if (qmin<p+TURN+1) qmin = p+TURN+1;
-          for (q = length; q >= qmin; q--) {
-            int u2, type_2/*, si1, sq1*/;
-            u2 = i-1 + length-q;
-            if(hc->up_int[q+1] < u2) break;
-            if(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP){
-              type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
-              if (u1+u2>MAXLOOP) continue;
-              energy = E_IntLoop(u1, u2, type, type_2, S1[j+1], S1[i-1], S1[p-1], S1[q+1], P);
-              new_c = my_c[ij] + my_c[indx[q]+p] + energy;
-
-              if(sc){
-                if(sc->free_energies)
-                  new_c +=  sc->free_energies[j+1][p-j-1]
-                            + sc->free_energies[q+1][length-q]
-                            + sc->free_energies[1][i-1];
-
-                if(sc->en_stack)
-                  if(u1 + u2 == 0)
-                    new_c +=  sc->en_stack[i]
-                              + sc->en_stack[j]
-                              + sc->en_stack[p]
-                              + sc->en_stack[q];
-              }
-
-              if (new_c<FcI) {
-                FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
-              }
-            }
-          }
+      if(ip != 0){
+        if(new_c < FcI){
+          FcI = new_c;
+          Ii  = i;
+          Ij  = j;
+          Ip  = ip;
+          Iq  = iq;
         }
       }
     } /* end of i,j loop */
-  Fc = MIN2(FcI, FcH);
+  Fc = MIN2(Fc, FcH);
+  Fc = MIN2(Fc, FcI);
 
   /* compute the fM2 array (multi loops with exactly 2 helices) */
   /* to get a unique ML decomposition, just use fM1 instead of fML
      below. However, that will not work with dangle_model==1  */
   for (i=1; i<length-TURN; i++) {
-    int u;
     fM2[i] = INF;
     for (u=i+TURN; u<length-TURN; u++)
       fM2[i] = MIN2(fM2[i], my_fML[indx[u]+i] + my_fML[indx[length]+u+1]);
   }
 
   for (i=TURN+1; i<length-2*TURN; i++) {
-    int fm;
     fm = my_fML[indx[i]+1]+fM2[i+1]+P->MLclosing;
     if (fm<FcM) {
       FcM=fm; Mi=i;
@@ -152,7 +110,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
   Fc = MIN2(Fc, FcM);
 
   if (dangle_model==1) {
-    int u;
     fM_d3 =  (int *) space(sizeof(int)*(length+2));
     fM_d5 =  (int *) space(sizeof(int)*(length+2));
 
@@ -163,7 +120,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
     }
 
     for (i=2*TURN+1; i<length-TURN; i++) {
-      int fm, type;
       type = ptype[indx[length]+i+1];
       if(hard_constraints[indx[length] + i + 1] & VRNA_HC_CONTEXT_MB_LOOP){
         if(hc->up_ml[1]){
@@ -189,7 +145,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
     }
 
     for (i=TURN+1; i<length-2*TURN; i++) {
-      int fm, type;
       if(hard_constraints[indx[i]+1] & VRNA_HC_CONTEXT_MB_LOOP){
         type = ptype[indx[i]+1];
         if(hc->up_ml[length]){
@@ -245,7 +200,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
     free(fM_d3);
     free(fM_d5);
   }
-  else if(Fc < INF){
+  else if(Fc < 0){
     if (FcH==Fc) {
       bt_stack[++(*bt)].i = Hi;
       bt_stack[(*bt)].j = Hj;
@@ -260,7 +215,6 @@ fill_arrays_circ( vrna_fold_compound *vc,
       bt_stack[(*bt)].ml = 2;
     }
     else if (FcM==Fc) { /* grumpf we found a Multiloop */
-      int fm, u;
       /* backtrack in fM2 */
       fm = fM2[Mi+1];
       for (u=Mi+TURN+1; u<length-TURN; u++)
@@ -277,6 +231,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
       bt_stack[(*bt)].j = Mi;
       bt_stack[(*bt)].ml = 1;
     }
+  } else { /* unstructured */
+    bt_stack[++(*bt)].i = 1;
+    bt_stack[(*bt)].j = 1;
+    bt_stack[(*bt)].ml = 0;
   }
   vc->matrices->FcH = FcH;
   vc->matrices->FcI = FcI;

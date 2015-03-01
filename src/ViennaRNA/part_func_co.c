@@ -381,7 +381,7 @@ pf_co(vrna_fold_compound *vc){
 
       if(hc_decompose){
         /* process hairpin loop(s) */
-        q_temp  =   exp_E_hp_loop(i, j, vc);
+        q_temp  =   vrna_exp_E_hp_loop(vc, i, j);
         qbt1    +=  q_temp;
 
         /* interior loops with interior pair k,l */

@@ -35,48 +35,6 @@
 #define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
 
 
-/**
- *  \brief fold_compound_type Single Sequence
- */
-#define   VRNA_VC_TYPE_SINGLE     1
-
-/**
- *  \brief fold_compound_type Sequence Alignment
- */
-#define   VRNA_VC_TYPE_ALIGNMENT  2
-
-
-/* the definitions below indicate which arrays should be allocated upon retrieval of a matrices data structure */
-#define ALLOC_NOTHING     0
-#define ALLOC_F           1
-#define ALLOC_F5          2
-#define ALLOC_F3          4
-#define ALLOC_FC          8
-#define ALLOC_C           16
-#define ALLOC_FML         32
-#define ALLOC_PROBS       256
-#define ALLOC_AUX         512
-
-#define ALLOC_CIRC        1024
-#define ALLOC_HYBRID      2048
-#define ALLOC_UNIQ        4096
-
-
-#define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
-
-#define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
-#define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
-
-
-/* the definitions below should be used for functions the return/receive/destroy fold compound data structures */
-
-#define VRNA_OPTION_MFE       1
-
-#define VRNA_OPTION_PF        2
-
-#define VRNA_OPTION_HYBRID    4
-
-
 
 
 
@@ -969,18 +927,136 @@ typedef struct{
 * ############################################################
 */
 
+/**
+ *  \brief fold_compound_type Single Sequence
+ */
+#define   VRNA_VC_TYPE_SINGLE     1
+
+/**
+ *  \brief fold_compound_type Sequence Alignment
+ */
+#define   VRNA_VC_TYPE_ALIGNMENT  2
+
+/* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
+
+/**
+ *  \brief  Option flag to specify requirement of Minimum Free Energy (MFE) DP matrices
+ *          and corresponding set of energy parameters
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ */
+#define VRNA_OPTION_MFE             1
+
+/**
+ *  \brief  Option flag to specify requirement of Partition Function (PF) DP matrices
+ *          and corresponding set of Boltzmann factors
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ */
+#define VRNA_OPTION_PF              2
+
+#define VRNA_OPTION_HYBRID          4
+
+/**
+ *  \brief  Option flag to specify that neither MFE, nor PF DP matrices are required
+ *
+ *  Use this flag in conjuntion with #VRNA_OPTION_MFE, and #VRNA_OPTION_PF to save
+ *  memory for a #vrna_fold_compound obtained from vrna_get_fold_compound(), or vrna_get_fold_compound_ali()
+ *  in cases where only energy evaluation but no structure prediction is required.
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_eval_structure()
+ */
+#define VRNA_OPTION_EVAL_ONLY       8
+
+
+
+/**
+ *  \brief  Retrieve a #vrna_fold_compound data structure for single sequences and hybridizing sequences
+ *
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing a single
+ *  sequence, or two contatenated sequences as input. For the latter, sequences need to be seperated by
+ *  an '&' character like this: \verbatim char *sequence = "GGGG&CCCC"; \endverbatim
+ *
+ *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
+ *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  of energy parameters. Use the macros:
+ *
+ *  - #VRNA_OPTION_MFE
+ *  - #VRNA_OPTION_PF
+ *  - #VRNA_OPTION_EVAL_ONLY
+ *
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *
+ *  \note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
+ *        on what energy parameter set is used
+ *
+ *  \see  vrna_get_fold_compound_ali(), #model_detailsT, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY
+ *
+ *  \param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
+ *  \param    md_p        An optional set of model details
+ *  \param    options     The options for DP matrices memory allocation
+ *  \return               A prefilled vrna_fold_compound that can be readily used for computations
+ */
 vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
                                             model_detailsT *md_p,
                                             unsigned int options);
 
-vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequence,
+/**
+ *  \brief  Retrieve a #vrna_fold_compound data structure for sequence alignments
+ *
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing an
+ *  alignment of sequences.
+ *
+ *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
+ *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  of energy parameters. Use the macros:
+ *
+ *  - #VRNA_OPTION_MFE
+ *  - #VRNA_OPTION_PF
+ *  - #VRNA_OPTION_EVAL_ONLY
+ *
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *
+ *  \note The sequence strings must be uppercase, and should contain only RNA (resp. DNA) alphabet including
+ *        gap characters depending on what energy parameter set is used.
+ *
+ *  \see  vrna_get_fold_compound(), #model_detailsT, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY,
+ *        read_clustal()
+ *
+ *  \param    sequences   A sequence alignment including 'gap' characters
+ *  \param    md_p        An optional set of model details
+ *  \param    options     The options for DP matrices memory allocation
+ *  \return               A prefilled vrna_fold_compound that can be readily used for computations
+ */
+vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
                                                 model_detailsT *md_p,
                                                 unsigned int options);
 
+/**
+ *  \brief  Free memory occupied by a #vrna_fold_compound
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_mfe_matrices(), vrna_free_pf_matrices()
+ *
+ *  \param  vc  The #vrna_fold_compound that is to be erased from memory
+ */
 void vrna_free_fold_compound(vrna_fold_compound *vc);
 
+/**
+ *  \brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_pf_matrices()
+ *
+ *  \param  vc  The #vrna_fold_compound storing the MFE DP matrices that are to be erased from memory
+ */
 void vrna_free_mfe_matrices(vrna_fold_compound *vc);
 
+/**
+ *  \brief  Free memory occupied by the Partition Function (PF) Dynamic Programming (DP) matrices
+ *
+ *  \see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_mfe_matrices()
+ *
+ *  \param  vc  The #vrna_fold_compound storing the PF DP matrices that are to be erased from memory
+ */
 void vrna_free_pf_matrices(vrna_fold_compound *vc);
 
 #endif

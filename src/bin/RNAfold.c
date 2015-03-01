@@ -518,10 +518,10 @@ int main(int argc, char *argv[]){
 
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
-      if (mfe_parameters->model_details.dangles==1) {
-          mfe_parameters->model_details.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = vrna_eval_structure(rec_sequence, structure, mfe_parameters);
-          mfe_parameters->model_details.dangles=1;
+      if (vc->params->model_details.dangles==1) {
+          vc->params->model_details.dangles=2;   /* recompute with dangles as in pf_fold() */
+          min_en = vrna_eval_structure(vc, structure);
+          vc->params->model_details.dangles=1;
       }
 
       vrna_rescale_pf_params(vc, &min_en);
@@ -544,7 +544,7 @@ int main(int argc, char *argv[]){
       if(lucky){
         init_rand();
         char *s = vrna_pbacktrack(vc);
-        min_en = vrna_eval_structure((const char *)rec_sequence, (const char *)s, mfe_parameters);
+        min_en = vrna_eval_structure(vc, (const char *)s);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
           printf("\n free energy = %6.2f kcal/mol\n", min_en);
@@ -578,7 +578,7 @@ int main(int argc, char *argv[]){
           pl1     = vrna_get_plist_from_pr(vc, bppmThreshold);
           pl2     = vrna_get_plist_from_db(structure, 0.95*0.95);
           cent    = vrna_get_centroid_struct(vc, &dist);
-          cent_en = vrna_eval_structure((const char *)rec_sequence, (const char *)cent, mfe_parameters);
+          cent_en = vrna_eval_structure(vc, (const char *)cent);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
@@ -608,7 +608,7 @@ int main(int argc, char *argv[]){
             } else {
               mea = MEA(pl, structure, MEAgamma);
             }
-            mea_en = vrna_eval_structure((const char *)rec_sequence, (const char *)structure, mfe_parameters);
+            mea_en = vrna_eval_structure(vc, (const char *)structure);
             printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
 
             free(pl);

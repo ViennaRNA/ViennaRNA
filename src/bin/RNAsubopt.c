@@ -27,7 +27,6 @@
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
 
-PRIVATE char *tokenize(char *line);
 PRIVATE void putoutzuker(SOLUTION* zukersolution);
 
 int main(int argc, char *argv[]){
@@ -223,12 +222,15 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       cstruc = NULL;
-      int cp = cut_point;
+      int cp = -1;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
       getConstraint(&cstruc, (const char **)rec_rest, coptions);
-      cstruc = tokenize(cstruc);
-      if(cut_point != cp) nrerror("cut point in sequence and structure constraint differs");
+      cstruc = vrna_cut_point_remove(cstruc, &cp);
+      if(vc->cutpoint != cp){
+        fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+        nrerror("Sequence and Structure have different cut points.");
+      }
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
       if(cl == 0)           warn_user("structure constraint is missing");
@@ -252,10 +254,10 @@ int main(int argc, char *argv[]){
     }
 
     if(istty){
-      if (cut_point == -1)
+      if (vc->cutpoint == -1)
         printf("length = %d\n", length);
       else
-        printf("length1 = %d\nlength2 = %d\n", cut_point-1, length-cut_point+1);
+        printf("length1 = %d\nlength2 = %d\n", vc->cutpoint - 1, length - vc->cutpoint + 1);
     }
 
     /*
@@ -312,7 +314,7 @@ int main(int argc, char *argv[]){
       int i;
       if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
-      if (cut_point!=-1) {
+      if (vc->cutpoint != -1) {
         nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
       }
       zr = vrna_zukersubopt(vc);
@@ -358,34 +360,6 @@ int main(int argc, char *argv[]){
   return EXIT_SUCCESS;
 }
 
-PRIVATE char *tokenize(char *line)
-{
-  char *pos, *copy;
-  int cut = -1;
-
-  copy = NULL;
-
-  if(line){
-    copy = (char *) space(strlen(line)+1);
-    (void) sscanf(line, "%s", copy);
-    pos = strchr(copy, '&');
-    if (pos) {
-      cut = (int) (pos-copy)+1;
-      if (cut >= strlen(copy)) cut = -1;
-      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-    }
-    if (cut > -1) {
-      if (cut_point==-1) cut_point = cut;
-      else if (cut_point != cut) {
-        fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-        nrerror("Sequence and Structure have different cut points.");
-      }
-    }
-    free(line);
-  }
-  return copy;
-}
 PRIVATE void putoutzuker(SOLUTION* zukersolution) {
   int i;
   printf("%s [%.2f]\n",zukersolution[0].structure,zukersolution[0].energy/100.);

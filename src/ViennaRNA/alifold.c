@@ -24,6 +24,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/fold.h"
+#include "ViennaRNA/eval.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/params.h"
@@ -70,19 +71,6 @@ PRIVATE int                 backward_compat           = 0;
 PRIVATE int     fill_arrays(vrna_fold_compound *vc);
 PRIVATE void    fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
 PRIVATE void    backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
-
-PRIVATE void    energy_of_alistruct_pt(vrna_fold_compound *vc, short * ptable, int *energy);
-PRIVATE void    stack_energy_pt(vrna_fold_compound *vc, int i, short *ptable, int *energy);
-PRIVATE int     ML_Energy_pt(vrna_fold_compound *vc, int i, short *pt);
-PRIVATE int     EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt);
-
-PRIVATE void    en_corr_of_loop_gquad(vrna_fold_compound *vc,
-                                      int i,
-                                      int j,
-                                      const char *structure,
-                                      short *pt,
-                                      int *loop_idx,
-                                      int en[2]);
 
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
@@ -1149,383 +1137,6 @@ backtrack(vrna_fold_compound *vc,
   free(type);
 }
 
-PRIVATE void
-en_corr_of_loop_gquad(vrna_fold_compound *vc,
-                      int i,
-                      int j,
-                      const char *structure,
-                      short *pt,
-                      int *loop_idx,
-                      int en[2]){
-
-  int pos, energy, en_covar, p, q, r, s, u, type, type2, gq_en[2];
-  int L, l[3];
-
-  short           **S           = vc->S;                                                                   
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char            **Ss          = vc->Ss;                                                                   
-  unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
-  int             n_seq         = vc->n_seq;
-  int             dangle_model  = md->dangles;
-
-  energy = en_covar = 0;
-  q = i;
-  while((pos = parse_gquad(structure + q-1, &L, l)) > 0){
-    q += pos-1;
-    p = q - 4*L - l[0] - l[1] - l[2] + 1;
-    if(q > j) break;
-    /* we've found the first g-quadruplex at position [p,q] */
-    E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
-    energy    += gq_en[0];
-    en_covar  += gq_en[1];
-    /* check if it's enclosed in a base pair */
-    if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
-    else{
-      energy += E_MLstem(0, -1, -1, P) * n_seq;
-      /*  find its enclosing pair */
-      int num_elem, num_g, elem_i, elem_j, up_mis;
-      num_elem  = 0;
-      num_g     = 1;
-      r         = p - 1;
-      up_mis    = q - p + 1;
-
-      /* seek for first pairing base located 5' of the g-quad */
-      for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) nrerror("this should not happen");
-
-      if(r < pt[r]){ /* found the enclosing pair */
-        s = pt[r];
-      } else {
-        num_elem++;
-        elem_i = pt[r];
-        elem_j = r;
-        r = pt[r]-1 ;
-        /* seek for next pairing base 5' of r */
-        for(; !pt[r] && (r >= i); r--);
-        if(r < i) nrerror("so nich");
-        if(r < pt[r]){ /* found the enclosing pair */
-          s = pt[r];
-        } else {
-          /* hop over stems and unpaired nucleotides */
-          while((r > pt[r]) && (r >= i)){
-            if(pt[r]){ r = pt[r]; num_elem++;}
-            r--;
-          }
-          if(r < i) nrerror("so nich");
-          s = pt[r]; /* found the enclosing pair */
-        }
-      }
-      /* now we have the enclosing pair (r,s) */
-
-      u = q+1;
-      /* we know everything about the 5' part of this loop so check the 3' part */
-      while(u<s){
-        if(structure[u-1] == '.') u++;
-        else if (structure[u-1] == '+'){ /* found another gquad */
-          pos = parse_gquad(structure + u - 1, &L, l);
-          if(pos > 0){
-            E_gquad_ali_en(u, L, l, (const short **)S, n_seq, gq_en, P);
-            energy += gq_en[0] + E_MLstem(0, -1, -1, P) * n_seq;
-            en_covar += gq_en[1];
-            up_mis += pos;
-            u += pos;
-            num_g++;
-          }
-        } else { /* we must have found a stem */
-          if(!(u < pt[u])) nrerror("wtf!");
-          num_elem++;
-          elem_i = u;
-          elem_j = pt[u];
-          en_corr_of_loop_gquad(vc,
-                                u,
-                                pt[u],
-                                structure,
-                                pt,
-                                loop_idx,
-                                gq_en);
-          energy    += gq_en[0];
-          en_covar  += gq_en[1];
-          u = pt[u] + 1;
-        }
-      }
-      if(u!=s) nrerror("what the ...");
-      else{ /* we are done since we've found no other 3' structure element */
-        switch(num_elem){
-          /* g-quad was misinterpreted as hairpin closed by (r,s) */
-          case 0:   /*if(num_g == 1)
-                      if((p-r-1 == 0) || (s-q-1 == 0))
-                        nrerror("too few unpaired bases");
-                    */
-                    {
-                      int ee = 0;
-                      int cnt;
-                      for(cnt=0;cnt<n_seq;cnt++){
-                        type = md->pair[S[cnt][r]][S[cnt][s]];
-                        if(type == 0) type = 7;
-                        if ((a2s[cnt][s-1]-a2s[cnt][r])<3) ee+=600;
-                        else ee += E_Hairpin( a2s[cnt][s-1] - a2s[cnt][r],
-                                              type,
-                                              S3[cnt][r],
-                                              S5[cnt][s],
-                                              Ss[cnt] + a2s[cnt][r-1],
-                                              P);
-                      }
-                      energy -= ee;
-                      ee = 0;
-                      for(cnt=0;cnt < n_seq; cnt++){
-                        type = md->pair[S[cnt][r]][S[cnt][s]];
-                        if(type == 0) type = 7;
-                        if(dangle_model == 2)
-                          ee += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
-                        if(type > 2)
-                          ee += P->TerminalAU;
-                      }
-                      energy += ee;
-                    }
-                    energy += n_seq * P->internal_loop[s-r-1-up_mis];
-                    break;
-          /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-          case 1:   {
-                      int ee = 0;
-                      int cnt;
-                      for(cnt = 0; cnt<n_seq;cnt++){
-                        type = md->pair[S[cnt][r]][S[cnt][s]];
-                        if(type == 0) type = 7;
-                        type2 = md->pair[S[cnt][elem_j]][S[cnt][elem_i]];
-                        if(type2 == 0) type2 = 7;
-                        ee += E_IntLoop(a2s[cnt][elem_i-1] - a2s[cnt][r],
-                                        a2s[cnt][s-1] - a2s[cnt][elem_j],
-                                        type,
-                                        type2,
-                                        S3[cnt][r],
-                                        S5[cnt][s],
-                                        S5[cnt][elem_i],
-                                        S3[cnt][elem_j],
-                                        P);
-                      }
-                      energy -= ee;
-                      ee = 0;
-                      for(cnt = 0; cnt < n_seq; cnt++){
-                        type = md->pair[S[cnt][s]][S[cnt][r]];
-                        if(type == 0) type = 7;
-                        ee += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-                        type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
-                        if(type == 0) type = 7;
-                        ee += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
-                      }
-                      energy += ee;
-                    }
-                    energy += (P->MLclosing + (elem_i-r-1+s-elem_j-1-up_mis) * P->MLbase) * n_seq;
-                    break;
-          /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
-          default:  energy -= (up_mis) * P->MLbase * n_seq;
-                    break;
-        }
-      }
-      q = s+1;
-    }
-  }
-  en[0] = energy;
-  en[1] = en_covar;
-}
-
-PRIVATE void energy_of_alistruct_pt(vrna_fold_compound *vc, short *pt, int *energy){
-
-  int length        = vc->length;
-  int i;
-
-  energy[0] =  vc->params->model_details.backtrack_type=='M' ? ML_Energy_pt(vc, 0, pt) : EL_Energy_pt(vc, 0, pt);
-  energy[1] = 0;
-  for (i=1; i<=length; i++) {
-    if (pt[i]==0) continue;
-    stack_energy_pt(vc, i, pt, energy);
-    i=pt[i];
-  }
-}
-
-PRIVATE void
-stack_energy_pt(vrna_fold_compound *vc, int i, short *pt, int *energy){
-
-  /* calculate energy of substructure enclosed by (i,j) */
-  short           **S         = vc->S;                                                                       
-  short           **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/               
-  short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/               
-  char            **Ss        = vc->Ss;                                                                      
-  unsigned short  **a2s       = vc->a2s;                                                                     
-  paramT          *P          = vc->params;                                                                  
-  model_detailsT  *md         = &(P->model_details);
-  int             *indx       = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/  
-  int             *pscore     = vc->pscore;     /* precomputed array of pair types */                        
-  int             n_seq       = vc->n_seq;                                                                   
-
-  int ee= 0;
-  int j, p, q, s;
-  int *type = (int *) space(n_seq*sizeof(int));
-
-  j = pt[i];
-  for (s=0; s<n_seq; s++) {
-    type[s] = md->pair[S[s][i]][S[s][j]];
-    if (type[s]==0) {
-    type[s]=7;
-    }
-  }
-  p=i; q=j;
-  while (p<q) { /* process all stacks and interior loops */
-    int type_2;
-    while (pt[++p]==0);
-    while (pt[--q]==0);
-    if ((pt[q]!=(short)p)||(p>q)) break;
-    ee=0;
-    for (s=0; s<n_seq; s++) {
-      type_2 = md->pair[S[s][q]][S[s][p]];
-      if (type_2==0) {
-        type_2=7;
-      }
-      ee += E_IntLoop(a2s[s][p-1]-a2s[s][i], a2s[s][j-1]-a2s[s][q], type[s], type_2, S3[s][i], S5[s][j], S5[s][p], S3[s][q], P);
-    }
-    energy[0] += ee;
-    energy[1] += pscore[indx[j]+i];
-    i=p; j=q;
-    for (s=0; s<n_seq; s++) {
-      type[s] = md->pair[S[s][i]][S[s][j]];
-      if (type[s]==0) type[s]=7;
-    }
-  }  /* end while */
-
-  /* p,q don't pair must have found hairpin or multiloop */
-
-  if (p>q) {
-    ee=0;/* hair pin */
-    for (s=0; s< n_seq; s++) {
-      if ((a2s[s][j-1]-a2s[s][i])<3) ee+=600;
-      else ee += E_Hairpin(a2s[s][j-1]-a2s[s][i], type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
-    }
-    energy[0] += ee;
-    energy[1] += pscore[indx[j]+i];
-    free(type);
-    return;
-  }
-  /* (i,j) is exterior pair of multiloop */
-  energy[1] += pscore[indx[j]+i];
-  while (p<j) {
-    /* add up the contributions of the substructures of the ML */
-    stack_energy_pt(vc, p, pt, energy);
-    p = pt[p];
-    /* search for next base pair in multiloop */
-    while (pt[++p]==0);
-  }
-  energy[0] += ML_Energy_pt(vc, i, pt);
-  free(type);
-}
-
-
-
-PRIVATE int ML_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
-
-  /* i is the 5'-base of the closing pair */
-
-  int   energy, tt, i1, j, p, q, u, s;
-  short d5, d3;
-
-  short           **S           = vc->S;                                                                     
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/             
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/             
-  unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
-  int             n_seq         = vc->n_seq;                                                                 
-  int             dangle_model  = md->dangles;
-
-  j = pt[i];
-  i1  = i;
-  p   = i+1;
-  u   = 0;
-  energy = 0;
-
-  do{ /* walk around the multi-loop */
-    /* hop over unpaired positions */
-    while (p < j && pt[p]==0) p++;
-    if(p >= j) break;
-    /* get position of pairing partner */
-    q  = pt[p];
-    /* memorize number of unpaired positions? no, we just approximate here */
-    u += p-i1-1;
-
-    for (s=0; s< n_seq; s++) {
-      /* get type of base pair P->q */
-      tt = md->pair[S[s][p]][S[s][q]];
-      if (tt==0) tt=7;
-      d5 = dangle_model && (a2s[s][p]>1) && (tt!=0) ? S5[s][p] : -1;
-      d3 = dangle_model && (a2s[s][q]<a2s[s][S[0][0]]) ? S3[s][q] : -1;
-      energy += E_MLstem(tt, d5, d3, P);
-    }
-    i1  = q;
-    p   = q + 1;
-  }while(1);
-
-  if(i > 0){
-    energy  += P->MLclosing * n_seq;
-    if(dangle_model){
-      for (s=0; s<n_seq; s++){
-        tt = md->pair[S[s][j]][S[s][i]];
-        if (tt==0) tt=7;
-        energy += E_MLstem(tt, S5[s][j], S3[s][i], P);
-      }
-    }
-    else{
-      for (s=0; s<n_seq; s++){
-        tt = md->pair[S[s][j]][S[s][i]];
-        if (tt==0) tt=7;
-        energy += E_MLstem(tt, -1, -1, P);
-      }
-    }
-  }
-  u += j - i1 - 1;
-  energy += u * P->MLbase * n_seq;
-  return energy;
-}
-
-PRIVATE int EL_Energy_pt(vrna_fold_compound *vc, int i, short *pt){
-  int   energy, tt, j, p, q, s;
-  short d5, d3;
-
-  short           **S           = vc->S;                                                                     
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/             
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/             
-  unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
-  int             n_seq         = vc->n_seq;                                                                 
-  int             dangle_model  = md->dangles;
-
-  j = pt[0];
-
-  p   = i+1;
-  energy = 0;
-
-  do{ /* walk along the backbone */
-    /* hop over unpaired positions */
-    while (p < j && pt[p]==0) p++;
-    if(p == j) break; /* no more stems */
-    /* get position of pairing partner */
-    q  = pt[p];
-    for (s=0; s< n_seq; s++) {
-      /* get type of base pair P->q */
-      tt = md->pair[S[s][p]][S[s][q]];
-      if (tt==0) tt=7;
-      d5 = dangle_model && (a2s[s][p]>1) && (tt!=0) ? S5[s][p] : -1;
-      d3 = dangle_model && (a2s[s][q]<a2s[s][S[0][0]]) ? S3[s][q] : -1;
-      energy += E_ExtLoop(tt, d5, d3, P);
-    }
-    p   = q + 1;
-  }while(p < j);
-
-  return energy;
-}
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -1579,7 +1190,6 @@ energy_of_ali_gquad_structure(const char **sequences,
   unsigned int  n;
   short         *pt;
   int           *loop_idx;
-  int           en_struct[2], gge[2];
 
   if(sequences[0] != NULL){
     
@@ -1587,29 +1197,14 @@ energy_of_ali_gquad_structure(const char **sequences,
 
     model_detailsT md;
     set_model_details(&md);
+    md.gquad = 1;
 
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
-    n = vc->length;
+    energy[0] = vrna_eval_structure(vc, structure);
+    energy[1] = vrna_eval_covar_structure(vc, structure);
 
-    pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
-    loop_idx    = vrna_get_loop_index(pt);
-    en_corr_of_loop_gquad(vc, 1, n, structure, pt, loop_idx, gge);
-    en_struct[0] += gge[0];
-    en_struct[1] += gge[1];
-
-    free(loop_idx);
-    free(pt);
-    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
-    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
-
-    if(backward_compat_compound && backward_compat)
-      vrna_free_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 1;
-
+    vrna_free_fold_compound(vc);
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
 
@@ -1624,7 +1219,6 @@ energy_of_alistruct(const char **sequences,
                     float *energy){
 
   short         *pt;
-  int           en_struct[2];
 
   if(sequences[0] != NULL){
     vrna_fold_compound  *vc;
@@ -1632,21 +1226,12 @@ energy_of_alistruct(const char **sequences,
     model_detailsT md;
     set_model_details(&md);
 
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE);
+    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
-    pt = vrna_pt_get(structure);
-    energy_of_alistruct_pt(vc, pt, &(en_struct[0]));
+    energy[0] = vrna_eval_structure(vc, structure);
+    energy[1] = vrna_eval_covar_structure(vc, structure);
 
-    free(pt);
-    energy[0] = (float)en_struct[0]/(float)(100*n_seq);
-    energy[1] = (float)en_struct[1]/(float)(100*n_seq);
-
-    if(backward_compat_compound && backward_compat)
-      vrna_free_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 1;
-
+    vrna_free_fold_compound(vc);
   }
   else nrerror("energy_of_alistruct(): no sequences in alignment!");
 
