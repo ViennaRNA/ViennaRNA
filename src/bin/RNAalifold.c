@@ -73,7 +73,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
-  unsigned int  input_type;
+  unsigned int  input_type, options, constraint_options, longest_string;
   char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           s, n_seq, i, length, sym, noPS, with_shapes, verbose;
@@ -83,6 +83,8 @@ int main(int argc, char *argv[]){
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   char          **shape_files, *shape_method;
   int           *shape_file_association;
+  char          *tmp_string;
+  int           tmp_number;
   FILE          *clust_file = stdin;
   pf_paramT     *pf_parameters;
   model_detailsT  md;
@@ -235,13 +237,13 @@ int main(int argc, char *argv[]){
     shape_file_association  = (int *)space(sizeof(int*) * (args_info.shape_given + 1));
 
     /* find longest string in argument list */
-    unsigned int longest_string = 0;
+    longest_string = 0;
     for(s = 0; s < args_info.shape_given; s++)
       if(strlen(args_info.shape_arg[s]) > longest_string)
         longest_string = strlen(args_info.shape_arg[s]);
 
-    char *tmp_string  = (char *)space(sizeof(char) * (longest_string + 1));
-    int   tmp_number  = 0;
+    tmp_string  = (char *)space(sizeof(char) * (longest_string + 1));
+    tmp_number  = 0;
 
     for(s = 0; s < args_info.shape_given; s++){
       /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
@@ -372,7 +374,7 @@ int main(int argc, char *argv[]){
   # begin actual calculations
   ########################################################
   */
-  unsigned int options = VRNA_CONSTRAINT_SOFT_MFE;
+  options = VRNA_CONSTRAINT_SOFT_MFE;
 
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
@@ -380,7 +382,7 @@ int main(int argc, char *argv[]){
   vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   if(fold_constrained){
-    unsigned int constraint_options = 0;
+    constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
                           | VRNA_CONSTRAINT_PIPE
                           | VRNA_CONSTRAINT_DOT

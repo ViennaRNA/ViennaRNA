@@ -81,8 +81,8 @@ E_mb_loop_fast( int i,
                 int *dmli1,
                 int *dmli2){
 
-  int k, decomp, MLenergy, en;
-  unsigned char type, type_2, tt;
+  int decomp, en;
+  unsigned char type, tt;
   short S_i1, S_j1;
 
   int               cp      = vc->cutpoint;
@@ -92,8 +92,6 @@ E_mb_loop_fast( int i,
   char              *hc     = vc->hc->matrix;
   int               *hc_up  = vc->hc->up_ml;
   soft_constraintT  *sc     = vc->sc;
-  int               *c      = vc->matrices->c;
-  int               *fML    = vc->matrices->fML;
   int               *fc     = vc->matrices->fc;
   paramT            *P      = vc->params;
 
@@ -227,8 +225,9 @@ E_mb_loop_stack(int i,
   int               *rtype  = &(md->rtype[0]);
   soft_constraintT  *sc     = vc->sc;
 
-  e   = INF;
-  ij  = indx[j] + i;
+  e     = INF;
+  ij    = indx[j] + i;
+  type  = ptype[ij];
 
   if(hc[ij] & VRNA_HC_CONTEXT_MB_LOOP){
     decomp = INF;
@@ -322,7 +321,7 @@ E_ml_stems_fast(int i,
                 int *fmi,
                 int *dmli){
 
-  int k, en, decomp, mm5, mm3, type_2, k1j;
+  int k, en, decomp, mm5, mm3, type_2, k1j, stop;
 
   int               length        = (int)vc->length;
   char              *ptype        = vc->ptype;
@@ -418,8 +417,8 @@ E_ml_stems_fast(int i,
   }
 
   /* modular decomposition -------------------------------*/
-  k1j = indx[j] + i + turn + 2;
-  int stop = (cp > 0) ? (cp - 1) : (j - 2 - turn);
+  k1j   = indx[j] + i + turn + 2;
+  stop  = (cp > 0) ? (cp - 1) : (j - 2 - turn);
   for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++){
     en = fmi[k] + fm[k1j];
     decomp = MIN2(decomp, en);

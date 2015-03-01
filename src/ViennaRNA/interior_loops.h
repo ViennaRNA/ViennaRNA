@@ -167,13 +167,13 @@ ubf_eval_int_loop(  int i,
   if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else { /* interior loop like cofold structure */
-    short si, sj;
-    si  = ((i >= cp) || ((i + 1) < cp)) ? si : -1;
-    sj  = (((j - 1) >= cp) || (j < cp)) ? sj : -1;
+    short Si, Sj;
+    Si  = ((i >= cp) || ((i + 1) < cp)) ? si : -1;
+    Sj  = (((j - 1) >= cp) || (j < cp)) ? sj : -1;
     energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                             i, j, p, q,
                             cp,
-                            si, sj,
+                            Si, Sj,
                             sp, sq,
                             P->model_details.dangles,
                             P);

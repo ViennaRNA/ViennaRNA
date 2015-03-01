@@ -49,7 +49,8 @@ extern  int eos_debug;
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *
- *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  This function allows for energy evaluation of a given pair of structure
+ *  and sequence (alignment).
  *  Model details, energy parameters, and possibly soft constraints are used as provided
  *  via the parameter 'vc'. The #vrna_fold_compound does not need to contain any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
@@ -57,9 +58,12 @@ extern  int eos_debug;
  vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     \endverbatim
  *
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *
  *  \ingroup eval
  *
- *  \see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  \see  vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *        vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_eval_covar_structure()
  *
  *  \param vc               A vrna_fold_compound containing the energy parameters and model details
  *  \param structure        Secondary structure in dot-bracket notation
