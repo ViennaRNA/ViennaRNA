@@ -72,6 +72,28 @@ extern  int eos_debug;
 float vrna_eval_structure(vrna_fold_compound *vc,
                           const char *structure);
 
+/**
+ *  \brief Calculate the pseudo energy derived by the covariance scores of a set of aligned sequences
+ *
+ *  Consensus structure prediction is driven by covariance scores of base pairs in rows of the
+ *  provided alignment. This function allows to retrieve the total amount of this covariance pseudo
+ *  energy scores.
+ *  The #vrna_fold_compound does not need to contain any DP matrices, but requires all most basic
+ *  init values as one would get from a call like this:
+ *  \verbatim
+ vc = vrna_get_fold_compound_ali(alignment, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    \endverbatim
+ *
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT only!
+ *
+ *  \ingroup eval
+ *
+ *  \see  vrna_get_fold_compound_ali(), vrna_eval_structure()
+ *
+ *  \param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  \param structure        Secondary (consensus) structure in dot-bracket notation
+ *  \return                 The covariance pseudo energy score of the input structure given the input sequence alignment in kcal/mol
+ */
 float vrna_eval_covar_structure(vrna_fold_compound *vc,
                                 const char *structure);
 
@@ -81,7 +103,8 @@ float vrna_eval_covar_structure(vrna_fold_compound *vc,
  *  This function allows for energy evaluation of a given sequence/structure pair.
  *  In contrast to vrna_eval_structure() this function assumes default model details
  *  and default energy parameters in order to evaluate the free energy of the secondary
- *  structure. Therefore, it serves as a simple interface function for energy evaluation.
+ *  structure. Therefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
  *
  *  \ingroup eval
  *
@@ -95,7 +118,7 @@ float vrna_eval_structure_simple( const char *string,
                                   const char *structure);
 
 /**
- *  \brief Calculate the free energy of an already folded RNA and print contributions per loop.
+ *  \brief Calculate the free energy of an already folded RNA and print contributions on a per-loop base.
  *
  *  This function allows for detailed energy evaluation of a given sequence/structure pair.
  *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
@@ -130,7 +153,8 @@ float vrna_eval_structure_verbose(vrna_fold_compound *vc,
  *  defaults to print to stdout.
  *  In contrast to vrna_eval_structure_verbose() this function assumes default model details
  *  and default energy parameters in order to evaluate the free energy of the secondary
- *  structure. Threefore, it serves as a simple interface function for energy evaluation.
+ *  structure. Threefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
  *
  *  \ingroup eval
  *
@@ -141,7 +165,6 @@ float vrna_eval_structure_verbose(vrna_fold_compound *vc,
  *  \param file             A file handle where this function should print to (may be NULL).
  *  \return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-
 float vrna_eval_structure_simple_verbose( const char *string,
                                           const char *structure,
                                           FILE *file);
@@ -150,7 +173,8 @@ float vrna_eval_structure_simple_verbose( const char *string,
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *
- *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  This function allows for energy evaluation of a given sequence/structure pair where
+ *  the structure is provided in pair_table format as obtained from vrna_pt_get().
  *  Model details, energy parameters, and possibly soft constraints are used as provided
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
@@ -160,7 +184,7 @@ float vrna_eval_structure_simple_verbose( const char *string,
  *
  *  \ingroup eval
  *
- *  \see vrna_pt_get(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  \see vrna_pt_get(), vrna_eval_structure(), vrna_eval_structure_pt_verbose()
  *
  *  \param vc               A vrna_fold_compound containing the energy parameters and model details
  *  \param pt               Secondary structure as pair_table
@@ -172,9 +196,14 @@ int vrna_eval_structure_pt( vrna_fold_compound *vc,
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *
+ *  In contrast to vrna_eval_structure_pt() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Threefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
  *  \ingroup eval
  *
- *  \see vrna_pt_get(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  \see vrna_pt_get(), vrna_eval_structure_simple(), vrna_eval_structure_pt()
  *
  *  \param string           RNA sequence in uppercase letters
  *  \param pt               Secondary structure as pair_table
@@ -186,18 +215,21 @@ int vrna_eval_structure_pt_simple(const char *string,
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *
- *  This function allows for energy evaluation of a given sequence/structure pair.
- *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
+ *  This function allows for energy evaluation of a given sequence/structure pair where
+ *  the structure is provided in pair_table format as obtained from vrna_pt_get().
+ *  Model details, energy parameters, and possibly soft constraints are used as provided
+ *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
+ *  but all the most basic init values as one would get from a call like this:
+ *  \verbatim
+ vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    \endverbatim
+ *  In contrast to vrna_eval_structure_pt() this function prints detailed energy contributions
  *  based on individual loops to a file handle. If NULL is passed as file handle, this function
  *  defaults to print to stdout.
- *  If the optional parameter 'P' is not NULL, the scoring model as determined by 'P'
- *  will be used for energy evaluation. Otherwise, default parameters are used.
- *  In cases were the last optional parameter 'sc' is not NULL, the corresponding soft constraint
- *  pseudo-energies are added as well to the final free energy of the evaluated structure.
  *
  *  \ingroup eval
  *
- *  \see vrna_pt_get(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *  \see vrna_pt_get(), vrna_eval_structure_pt(), vrna_eval_structure_verbose()
  *
  *  \param vc               A vrna_fold_compound containing the energy parameters and model details
  *  \param pt               Secondary structure as pair_table
@@ -208,6 +240,31 @@ int vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
                                     const short *pt,
                                     FILE *file);
 
+/**
+ *  \brief Calculate the free energy of an already folded RNA
+ *
+ *  This function allows for energy evaluation of a given sequence/structure pair where
+ *  the structure is provided in pair_table format as obtained from vrna_pt_get().
+ *  Model details, energy parameters, and possibly soft constraints are used as provided
+ *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
+ *  but all the most basic init values as one would get from a call like this:
+ *  \verbatim
+ vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    \endverbatim
+ *  In contrast to vrna_eval_structure_pt_verbose() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Threefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
+ *  \ingroup eval
+ *
+ *  \see vrna_pt_get(), vrna_eval_structure_pt_verbose(), vrna_eval_structure_simple()
+ *
+ *  \param string           RNA sequence in uppercase letters
+ *  \param pt               Secondary structure as pair_table
+ *  \param file             A file handle where this function should print to (may be NULL).
+ *  \return                 The free energy of the input structure given the input sequence in 10cal/mol
+ */
 int vrna_eval_structure_pt_simple_verbose(const char *string,
                                           const short *pt,
                                           FILE *file);
@@ -215,6 +272,7 @@ int vrna_eval_structure_pt_simple_verbose(const char *string,
 /**
  * \brief Calculate energy of a loop
  *
+ *  \param vc         A vrna_fold_compound containing the energy parameters and model details
  *  \param i          position of covering base pair
  *  \param pt         the pair table of the secondary structure
  *  \returns          free energy of the loop in 10cal/mol
@@ -232,6 +290,7 @@ int vrna_eval_loop_pt(vrna_fold_compound *vc,
  *  \ingroup eval
  *
  *  \see              vrna_eval_move_pt()
+ *  \param vc         A vrna_fold_compound containing the energy parameters and model details
  *  \param structure  secondary structure in dot-bracket notation
  *  \param m1         first coordinate of base pair
  *  \param m2         second coordinate of base pair
@@ -252,6 +311,7 @@ float vrna_eval_move( vrna_fold_compound *vc,
  *  \ingroup eval
  *
  *  \see              vrna_eval_move()
+ *  \param vc         A vrna_fold_compound containing the energy parameters and model details
  *  \param pt         the pair table of the secondary structure
  *  \param m1         first coordinate of base pair
  *  \param m2         second coordinate of base pair

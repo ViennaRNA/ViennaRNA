@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp;
   char                      *rec_sequence, *rec_id, **rec_rest;
-  char            *shape_file, *shape_method, *shape_conversion;
+  char                      *shape_file, *shape_method, *shape_conversion;
   char                      fname[FILENAME_MAX_LENGTH];
   char                      *ParamFile;
   int                       i, length1, length2, with_shapes;

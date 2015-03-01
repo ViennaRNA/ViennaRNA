@@ -54,50 +54,63 @@ PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE int   stack_energy( vrna_fold_compound *vc,
-                            int i,
-                            const short *pt,
-                            FILE *file,
-                            int verbostiy_level);
+PRIVATE int
+stack_energy( vrna_fold_compound *vc,
+              int i,
+              const short *pt,
+              FILE *file,
+              int verbostiy_level);
 
-PRIVATE int   energy_of_extLoop_pt( vrna_fold_compound *vc,
-                                    int i,
-                                    const short *pt);
+PRIVATE int
+energy_of_extLoop_pt( vrna_fold_compound *vc,
+                      int i,
+                      const short *pt);
 
-PRIVATE int   energy_of_ml_pt(vrna_fold_compound *vc,
-                              int i,
-                              const short *pt);
+PRIVATE int
+energy_of_ml_pt(vrna_fold_compound *vc,
+                int i,
+                const short *pt);
 
-PRIVATE int   cut_in_loop(int i, const short *pt, int cp);
+PRIVATE int
+cut_in_loop(int i,
+            const short *pt,
+            int cp);
 
-PRIVATE int   eval_pt(vrna_fold_compound *vc,
-                      const short *pt,
-                      FILE *file,
-                      int verbosity_level);
+PRIVATE int
+eval_pt(vrna_fold_compound *vc,
+        const short *pt,
+        FILE *file,
+        int verbosity_level);
 
-PRIVATE int   eval_circ_pt( vrna_fold_compound *vc,
-                            const short *pt,
-                            FILE *file,
-                            int verbosity_level);
+PRIVATE int
+eval_circ_pt( vrna_fold_compound *vc,
+              const short *pt,
+              FILE *file,
+              int verbosity_level);
 
-PRIVATE int   en_corr_of_loop_gquad(vrna_fold_compound *vc,
-                                    int i,
-                                    int j,
-                                    const char *structure,
-                                    const short *pt);
+PRIVATE int
+en_corr_of_loop_gquad(vrna_fold_compound *vc,
+                      int i,
+                      int j,
+                      const char *structure,
+                      const short *pt);
 
-PRIVATE paramT  *get_updated_params(paramT *parameters, int compat);
+PRIVATE paramT *
+get_updated_params( paramT *parameters,
+                    int compat);
 
-PRIVATE float   wrap_eval_structure(vrna_fold_compound *vc,
-                                    const char *structure,
-                                    const short *pt,
-                                    FILE *file,
-                                    int verbosity);
+PRIVATE float
+wrap_eval_structure(vrna_fold_compound *vc,
+                    const char *structure,
+                    const short *pt,
+                    FILE *file,
+                    int verbosity);
 
-PRIVATE int wrap_eval_loop_pt(vrna_fold_compound *vc,
-                              int i,
-                              const short *pt,
-                              int verbosity);
+PRIVATE int
+wrap_eval_loop_pt(vrna_fold_compound *vc,
+                  int i,
+                  const short *pt,
+                  int verbosity);
 
 INLINE PRIVATE int
 eval_int_loop(vrna_fold_compound *vc,
