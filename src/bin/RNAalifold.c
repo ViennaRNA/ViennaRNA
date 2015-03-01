@@ -411,17 +411,7 @@ int main(int argc, char *argv[]){
     }
     real_en   = s/i;
   } else {
-
-    float *ens    = (float *)space(2*sizeof(float));
-
-    if(md.gquad)
-      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
-    else
-      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
-
-    real_en       = ens[0];
-
-    free(ens);
+    real_en       = vrna_eval_structure(vc, structure);
   }
 
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
@@ -517,7 +507,8 @@ int main(int argc, char *argv[]){
         float *ens;
         cent = vrna_get_centroid_struct(vc, &dist);
         ens=(float *)space(2*sizeof(float));
-        energy_of_alistruct((const char **)AS, cent, n_seq, ens);
+        ens[0] = vrna_eval_structure(vc, cent);
+        ens[1] = vrna_eval_covar_structure(vc, cent);
 
         printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
         free(cent);
@@ -529,13 +520,9 @@ int main(int argc, char *argv[]){
         pl2 = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
-        if(circular)
-          energy_of_alistruct((const char **)AS, structure, n_seq, ens);
-        else{
-          vrna_fold_compound *vc_tmp = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-          ens[0] = vrna_eval_structure(vc, structure);
-          vrna_free_fold_compound(vc);
-        }
+        ens[0] = vrna_eval_structure(vc, structure);
+        ens[1] = vrna_eval_covar_structure(vc, structure);
+
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
         free(pl2);

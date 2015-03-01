@@ -68,6 +68,9 @@ extern  int eos_debug;
 float vrna_eval_structure(vrna_fold_compound *vc,
                           const char *structure);
 
+float vrna_eval_covar_structure(vrna_fold_compound *vc,
+                                const char *structure);
+
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *

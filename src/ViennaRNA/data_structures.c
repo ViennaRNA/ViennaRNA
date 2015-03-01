@@ -30,6 +30,7 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/cofold.h"
 
 #ifdef _OPENMP
 #include <omp.h>

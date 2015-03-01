@@ -16,10 +16,11 @@
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params.h"
-#include "ViennaRNA/eval.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/eval.h"
+#include "ViennaRNA/cofold.h"
 #include "RNAeval_cmdl.h"
 
 #ifdef __GNUC__

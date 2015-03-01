@@ -71,7 +71,7 @@ DEPRECATED(extern  double  nc_fact);
 /**
  *  \brief Compute MFE and according consensus structure of an alignment of sequences
  * 
- *  This function predicts the consensus structure for the aligned stored in
+ *  This function predicts the consensus structure for the alignment stored in
  *  vc and returns the minimum free energy; the mfe structure in bracket
  *  notation is returned in 'structure'.
  *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
@@ -148,7 +148,9 @@ DEPRECATED(void free_alifold_arrays(void));
  *  \brief Calculate the free energy of a consensus structure given a set of aligned sequences
  * 
  *  \ingroup consensus_fold
- * 
+ *
+ *  \deprecated Usage of this function is discouraged! Use vrna_eval_structure(), and vrna_eval_covar_structure() instead!
+ *
  *  \param  sequences   The NULL terminated array of sequences
  *  \param  structure   The consensus structure
  *  \param  n_seq       The number of sequences in the alignment
@@ -157,15 +159,9 @@ DEPRECATED(void free_alifold_arrays(void));
  *  \returns free energy in kcal/mol
  * 
  */
-float   energy_of_alistruct(const char **sequences,
-                            const char *structure,
-                            int n_seq,
-                            float *energy);
+DEPRECATED(float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy));
 
-float   energy_of_ali_gquad_structure(const char **sequences,
-                                      const char *structure,
-                                      int n_seq,
-                                      float *energy);
+DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const char *structure, int n_seq, float *energy));
 
 /*
 #############################################################
