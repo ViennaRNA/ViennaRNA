@@ -5,6 +5,7 @@
                            c Ivo L Hofacker
                           Vienna RNA Pckage
 */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,6 +19,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/constraints.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/cofold.h"
@@ -29,16 +31,89 @@
 #define UNUSED
 #endif
 
-/*@unused@*/
-static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.10 2008/10/09 07:08:40 ivo Exp $";
+static void
+add_shape_constraints(vrna_fold_compound *vc,
+                      const char *shape_method,
+                      const char *shape_conversion,
+                      const char *shape_file,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+  char *sequence;
+  double *values;
+  int length = vc->length;
+
+  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    fprintf(stderr, "Using SHAPE method '%c'", method);
+    if(method != 'W'){
+      if(method == 'Z')
+        fprintf(stderr, " with parameter p1=%f", p1);
+      else
+        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+    }
+    fputc('\n', stderr);
+  }
+
+  sequence = space(sizeof(char) * (length + 1));
+  values = space(sizeof(double) * (length + 1));
+  parse_soft_constraints_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+
+  if(method == 'D'){
+    int i;
+    for (i = 1; i <= length; ++i)
+      values[i] = values[i] < 0 ? 0 : p1 * log(values[i] + 1) + p2;
+
+    vrna_sc_add_sp(vc, values, constraint_type);
+  }
+  else if(method == 'Z'){
+    double *sc_up = space(sizeof(double) * (length + 1));
+    double **sc_bp = space(sizeof(double *) * (length + 1));
+    int i;
+
+    convert_shape_reactivities_to_probabilities(shape_conversion, values, length, 0.5);
+
+    for(i = 1; i <= length; ++i){
+      int j;
+
+      assert(values[i] >= 0 && values[i] <= 1);
+
+      sc_up[i] = p1 * fabs(values[i] - 1);
+      sc_bp[i] = space(sizeof(double) * (length + 1));
+      for(j = i + TURN + 1; j <= length; ++j)
+        sc_bp[i][j] = p1 * (values[i] + values[j]);
+    }
+
+    vrna_sc_add_up(vc, sc_up, constraint_type);
+    vrna_sc_add_bp(vc, (const double**)sc_bp, constraint_type);
+
+    for(i = 1; i <= length; ++i)
+      free(sc_bp[i]);
+    free(sc_bp);
+    free(sc_up);
+  } else {
+    assert(method == 'W');
+    vrna_sc_add_up(vc, values, constraint_type);
+  }
+
+  free(values);
+  free(sequence);
+}
 
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp;
   char                      *rec_sequence, *rec_id, **rec_rest;
+  char            *shape_file, *shape_method, *shape_conversion;
   char                      fname[FILENAME_MAX_LENGTH];
   char                      *ParamFile;
-  int                       i, length1, length2;
+  int                       i, length1, length2, with_shapes;
   float                     energy;
   int                       istty;
   int                       circular=0;
@@ -51,6 +126,9 @@ int main(int argc, char *argv[]){
   string  = orig_sequence = ParamFile = NULL;
   gquad   = 0;
   dangles = 2;
+  shape_file    = NULL;
+  shape_method  = NULL;
+  with_shapes   = 0;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -94,6 +172,17 @@ int main(int argc, char *argv[]){
   if(args_info.gquad_given)
     md.gquad = gquad = 1;
 
+  if(args_info.shape_given){
+    with_shapes = 1;
+    shape_file = strdup(args_info.shape_arg);
+  }
+
+  shape_method = strdup(args_info.shapeMethod_arg);
+  shape_conversion = strdup(args_info.shapeConversion_arg);
+  if(args_info.verbose_given){
+    verbose = 1;
+  }
+
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
 
@@ -133,6 +222,11 @@ int main(int argc, char *argv[]){
     !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
+    /*
+    ########################################################
+    # init everything according to the data we've read
+    ########################################################
+    */
     if(rec_id){
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
@@ -165,12 +259,21 @@ int main(int argc, char *argv[]){
 
     free(tmp);
 
+    if(with_shapes)
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
+
     if(istty){
       if (vc->cutpoint == -1)
         printf("length = %d\n", length1);
       else
         printf("length1 = %d\nlength2 = %d\n", vc->cutpoint-1, length1-vc->cutpoint+1);
     }
+
+    /*
+    ########################################################
+    # begin actual computations
+    ########################################################
+    */
 
     if(verbose)
       energy = vrna_eval_structure_verbose(vc, structure, NULL);
@@ -207,6 +310,9 @@ int main(int argc, char *argv[]){
     string = orig_sequence = NULL;
 
     vrna_free_fold_compound(vc);
+
+    if(with_shapes)
+      break;
 
     /* print user help for the next round if we get input from tty */
     if(istty){

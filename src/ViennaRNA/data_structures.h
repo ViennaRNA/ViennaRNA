@@ -35,16 +35,6 @@
 #define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
 
 
-/**
- *  \brief fold_compound_type Single Sequence
- */
-#define   VRNA_VC_TYPE_SINGLE     1
-
-/**
- *  \brief fold_compound_type Sequence Alignment
- */
-#define   VRNA_VC_TYPE_ALIGNMENT  2
-
 
 
 
@@ -936,6 +926,16 @@ typedef struct{
 * VRNA fold compound related functions
 * ############################################################
 */
+
+/**
+ *  \brief fold_compound_type Single Sequence
+ */
+#define   VRNA_VC_TYPE_SINGLE     1
+
+/**
+ *  \brief fold_compound_type Sequence Alignment
+ */
+#define   VRNA_VC_TYPE_ALIGNMENT  2
 
 /* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
 
