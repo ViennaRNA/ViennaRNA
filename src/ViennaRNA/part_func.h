@@ -123,7 +123,7 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  */
 DEPRECATED(float   pf_fold_par(  const char *sequence,
                       char *structure,
-                      pf_paramT *parameters,
+                      vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
                       int is_circular));
@@ -298,7 +298,7 @@ DEPRECATED(void  update_pf_params(int length));
  *  \ingroup pf_fold
  *
  */
-DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
+DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters));
 
 
 /**
@@ -309,14 +309,14 @@ DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
  *  will be copied into `vc` and a recomputation of the partition function scaling
  *  factor is issued, if the `pf_scale` attribute of `params` is below `1.0`.
  *
- *  \see vrna_rescale_pf_params(), pf_paramT, vrna_md_t, vrna_get_boltzmann_factors()
+ *  \see vrna_rescale_pf_params(), vrna_exp_param_t, vrna_md_t, vrna_get_boltzmann_factors()
  *
  *  \ingroup pf_fold
  *  \param  vc      The fold compound data structure
  *  \param  params  A pointer to the new energy parameters
  */
 void vrna_update_pf_params( vrna_fold_compound *vc,
-                            pf_paramT *params);
+                            vrna_exp_param_t *params);
 
 /**
  *  \brief Rescale Boltzmann factors for partition function computations
@@ -350,7 +350,7 @@ void vrna_update_pf_params( vrna_fold_compound *vc,
  *  The computed scaling factor \f$s\f$ will be stored as `pf_scale` attribute of the
  *  `exp_params` datastructure in `vc`.
  *
- *  \see vrna_update_pf_params(), vrna_md_t, pf_paramT, vrna_fold_compound
+ *  \see vrna_update_pf_params(), vrna_md_t, vrna_exp_param_t, vrna_fold_compound
  *  \ingroup pf_fold
  *
  *  \param  vc  The fold compound data structure

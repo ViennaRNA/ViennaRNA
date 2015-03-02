@@ -47,8 +47,8 @@ int main(int argc, char *argv[]){
   plist         *pl, *dpp = NULL;
   unsigned int  rec_type, read_opt;
   double        betaScale;
-  pf_paramT     *pf_parameters;
-  vrna_md_t     md;
+  vrna_exp_param_t  *pf_parameters;
+  vrna_md_t         md;
 
   dangles       = 2;
   cutoff        = 0.01;

@@ -369,7 +369,7 @@ DEPRECATED(float energy_of_structure(const char *string,
  */
 DEPRECATED(float energy_of_struct_par( const char *string,
                             const char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level));
 
 /**
@@ -415,7 +415,7 @@ DEPRECATED(float energy_of_circ_structure( const char *string,
  */
 DEPRECATED(float energy_of_circ_struct_par(const char *string,
                                 const char *structure,
-                                paramT *parameters,
+                                vrna_param_t *parameters,
                                 int verbosity_level));
 
 
@@ -425,7 +425,7 @@ DEPRECATED(float energy_of_gquad_structure(const char *string,
 
 DEPRECATED(float energy_of_gquad_struct_par( const char *string,
                                   const char *structure,
-                                  paramT *parameters,
+                                  vrna_param_t *parameters,
                                   int verbosity_level));
 
 
@@ -480,7 +480,7 @@ DEPRECATED(int energy_of_struct_pt_par(const char *string,
                             short *ptable,
                             short *s,
                             short *s1,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level));
 
 

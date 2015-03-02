@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
       printf("Probe mode\n");
       char *id_s1=NULL;
       char *s1=NULL;
-      paramT *P = NULL;
+      vrna_param_t *P = NULL;
       if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
 	update_fold_params();
 	P = scale_parameters();
@@ -1953,7 +1953,7 @@ static int get_sequence_length_from_alignment(char *sequence){
 }
 
 static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit parameters*/
-  paramT *P = NULL;
+  vrna_param_t *P = NULL;
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     P = scale_parameters();
@@ -2260,7 +2260,7 @@ double probcompute_newparameters(char *s1, double k_concentration, double tris_c
   /* ////////////////////////////////////////// */
   /* Folding Init */
   /* //////////////////////////////////////////   */
-  paramT *P = NULL;
+  vrna_param_t *P = NULL;
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     P = scale_parameters();

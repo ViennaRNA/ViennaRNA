@@ -78,7 +78,7 @@ get_g_islands_sub(short *S, int i, int j);
  *  As the names of those parameters suggest the convention is that
  *  'data' should be used as a pointer where data is stored into,
  *  e.g the MFE or PF and the 'P' parameter should actually be a
- *  'paramT *' or 'pf_paramT *' type.
+ *  'vrna_param_t *' or 'vrna_exp_param_t *' type.
  *  However, what you actually pass obviously depends on the
  *  function the pointer is pointing to.
  *
@@ -228,7 +228,7 @@ gquad_ali_penalty(int i,
                   int L,
                   int l[3],
                   const short **S,
-                  paramT *P);
+                  vrna_param_t *P);
 
 /*
 #########################################
@@ -244,7 +244,7 @@ gquad_ali_penalty(int i,
 
 PUBLIC int E_gquad( int L,
                     int l[3],
-                    paramT *P){
+                    vrna_param_t *P){
 
   int i, c = INF;
 
@@ -265,7 +265,7 @@ PUBLIC int E_gquad( int L,
 
 PUBLIC FLT_OR_DBL exp_E_gquad(int L,
                               int l[3],
-                              pf_paramT *pf){
+                              vrna_exp_param_t *pf){
 
   int i;
   FLT_OR_DBL q = 0.;
@@ -290,7 +290,7 @@ PUBLIC int E_gquad_ali( int i,
                         int l[3],
                         const short **S,
                         int n_seq,
-                        paramT *P){
+                        vrna_param_t *P){
 
   int en[2];
   E_gquad_ali_en(i, L, l, S, n_seq, en, P);
@@ -304,7 +304,7 @@ PUBLIC void E_gquad_ali_en( int i,
                             const short **S,
                             int n_seq,
                             int en[2],
-                            paramT *P){
+                            vrna_param_t *P){
 
   int j;
   en[0] = en[1] = INF;
@@ -329,7 +329,7 @@ PUBLIC void E_gquad_ali_en( int i,
   contributions are following
 *********************************/
 
-PUBLIC int *get_gquad_matrix(short *S, paramT *P){
+PUBLIC int *get_gquad_matrix(short *S, vrna_param_t *P){
 
   int n, size, i, j, *gg, *my_index, *data;
 
@@ -358,7 +358,7 @@ PUBLIC int *get_gquad_matrix(short *S, paramT *P){
 
 PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
                                         FLT_OR_DBL *scale,
-                                        pf_paramT *pf){
+                                        vrna_exp_param_t *pf){
 
   int n, size, *gg, i, j, *my_index;
   FLT_OR_DBL *data;
@@ -388,7 +388,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
 PUBLIC int *get_gquad_ali_matrix( short *S_cons,
                                   short **S,
                                   int n_seq,
-                                  paramT *P){
+                                  vrna_param_t *P){
 
   int n, size, *data, *gg;
   int i, j, *my_index;
@@ -421,7 +421,7 @@ PUBLIC int **get_gquad_L_matrix(short *S,
                                 int start,
                                 int maxdist,
                                 int **g,
-                                paramT *P){
+                                vrna_param_t *P){
 
   int **data;
   int n, i, j, k, *gg;
@@ -528,7 +528,7 @@ PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
 PUBLIC void get_gquad_pattern_mfe(short *S,
                                   int i,
                                   int j,
-                                  paramT *P,
+                                  vrna_param_t *P,
                                   int *L,
                                   int l[3]){
 
@@ -550,7 +550,7 @@ PUBLIC void
 get_gquad_pattern_exhaustive( short *S,
                               int i,
                               int j,
-                              paramT *P,
+                              vrna_param_t *P,
                               int *L,
                               int *l,
                               int threshold){
@@ -571,7 +571,7 @@ get_gquad_pattern_exhaustive( short *S,
 PUBLIC void get_gquad_pattern_pf( short *S,
                                   int i,
                                   int j,
-                                  pf_paramT *pf,
+                                  vrna_exp_param_t *pf,
                                   int *L,
                                   int l[3]){
 
@@ -595,7 +595,7 @@ PUBLIC plist *get_plist_gquad_from_pr(short *S,
                                       FLT_OR_DBL *G,
                                       FLT_OR_DBL *probs,
                                       FLT_OR_DBL *scale,
-                                      pf_paramT *pf){
+                                      vrna_exp_param_t *pf){
 
   int L, l[3];
   return  get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l, pf);
@@ -610,7 +610,7 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
                                       FLT_OR_DBL *scale,
                                       int *Lmax,
                                       int lmax[3],
-                                      pf_paramT *pf){ 
+                                      vrna_exp_param_t *pf){ 
 
   int n, size, *gg, counter, i, j, *my_index;
   FLT_OR_DBL pp, *tempprobs;
@@ -742,7 +742,7 @@ PRIVATE int gquad_ali_penalty(int i,
                               int L,
                               int l[3],
                               const short **S,
-                              paramT *P){
+                              vrna_param_t *P){
 
   int s, cnt;
   int penalty     = 0;
@@ -801,7 +801,7 @@ PRIVATE void gquad_mfe( int i,
                         void *NA,
                         void *NA2){
 
-  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
   if(cc < *((int *)data))
     *((int *)data) = cc;
 }
@@ -814,7 +814,7 @@ PRIVATE void gquad_mfe_pos( int i,
                             void *Lmfe,
                             void *lmfe){
 
-  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
   if(cc < *((int *)data)){
     *((int *)data)        = cc;
     *((int *)Lmfe)        = L;
@@ -835,7 +835,7 @@ gquad_pos_exhaustive( int i,
                       void *lex){
 
   int cnt;
-  int cc = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]];
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
   if(cc <= *((int *)data)){
     /*  since Lex is an array of L values and lex an
         array of l triples we need to find out where
@@ -888,7 +888,7 @@ PRIVATE void gquad_pf(int i,
                       void *NA,
                       void *NA2){
 
-  *((FLT_OR_DBL *)data) += ((pf_paramT *)pf)->expgquad[L][l[0] + l[1] + l[2]];
+  *((FLT_OR_DBL *)data) += ((vrna_exp_param_t *)pf)->expgquad[L][l[0] + l[1] + l[2]];
 }
 
 PRIVATE void gquad_pf_pos(int i,
@@ -899,7 +899,7 @@ PRIVATE void gquad_pf_pos(int i,
                           void *Lmax,
                           void *lmax){
 
-  FLT_OR_DBL gq = ((pf_paramT *)pf)->expgquad[L][l[0] + l[1] + l[2]];
+  FLT_OR_DBL gq = ((vrna_exp_param_t *)pf)->expgquad[L][l[0] + l[1] + l[2]];
   if(gq > *((FLT_OR_DBL *)data)){
     *((FLT_OR_DBL *)data) = gq;
     *((int *)Lmax)        = L;
@@ -935,8 +935,8 @@ PRIVATE void gquad_mfe_ali_en(int i,
                               void *n_seq){
 
   int en[2], cc, dd;
-  en[0] = ((paramT *)P)->gquad[L][l[0] + l[1] + l[2]] * (*(int *)n_seq);
-  en[1] = gquad_ali_penalty(i, L, l, (const short **)S, (paramT *)P);
+  en[0] = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]] * (*(int *)n_seq);
+  en[1] = gquad_ali_penalty(i, L, l, (const short **)S, (vrna_param_t *)P);
   if(en[1] != INF){
     cc = en[0] + en[1];
     dd = ((int *)data)[0] + ((int *)data)[1];
@@ -960,7 +960,7 @@ PRIVATE void gquad_interact(int i,
 
   idx = (int *)index;
   pp  = (FLT_OR_DBL *)data;
-  gq  = exp_E_gquad(L, l, (pf_paramT *)pf);
+  gq  = exp_E_gquad(L, l, (vrna_exp_param_t *)pf);
 
   for(x = 0; x < L; x++){
     pp[idx[i + x] - (i + x + 3*L + l[0] + l[1] + l[2])] += gq;

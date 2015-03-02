@@ -57,7 +57,7 @@ PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE char        **ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
-PRIVATE pf_paramT   *pf_params=NULL;
+PRIVATE vrna_exp_param_t   *pf_params=NULL;
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
@@ -80,10 +80,10 @@ PRIVATE double      alpha = 1.0;
 #################################
 */
 
-PRIVATE void  init_partfunc_L(int length, pf_paramT *parameters);
+PRIVATE void  init_partfunc_L(int length, vrna_exp_param_t *parameters);
 PRIVATE void  get_arrays_L(unsigned int length);
 PRIVATE void  free_pf_arrays_L(void);
-PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
+PRIVATE void  scale_pf_params(unsigned int length, vrna_exp_param_t *parameters);
 PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);
 PRIVATE void  FreeOldArrays(int i);
 PRIVATE void  GetNewArrays(int j, int winSize);
@@ -104,7 +104,7 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
 #################################
 */
 
-PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
+PRIVATE void init_partfunc_L(int length, vrna_exp_param_t *parameters){
   if (length<1) nrerror("init_partfunc_L: length must be greater 0");
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -206,7 +206,7 @@ PUBLIC void update_pf_paramsLP(int length){
   update_pf_paramsLP_par(length, NULL);
 }
 
-PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
+PUBLIC void update_pf_paramsLP_par(int length, vrna_exp_param_t *parameters){
   init_partfunc_L(length, parameters);
 }
 
@@ -229,7 +229,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
                             struct plist **dpp2,
                             FILE *pUfp,
                             FILE *spup,
-                            pf_paramT *parameters){
+                            vrna_exp_param_t *parameters){
 
   int         n, m, i, j, k, l, u, u1, type, type_2, tt, ov, do_dpp, simply_putout, noGUclosure;
   double      max_real;
@@ -596,7 +596,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   return pl;
 }
 
-PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
+PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
   unsigned int i;
   double  kT, scaling_factor;
 
@@ -994,7 +994,7 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
 }
 
 
-PUBLIC void putoutpU_prob_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters){
+PUBLIC void putoutpU_prob_par(double **pU,int length, int ulength, FILE *fp, int energies, vrna_exp_param_t *parameters){
   /*put out unpaireds */
   int i,k;
   double kT = parameters->kT/1000.0;
@@ -1027,7 +1027,7 @@ PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int
   putoutpU_prob_bin_par(pU, length, ulength, fp, energies, pf_params);
 }
 
-PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters) {
+PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp, int energies, vrna_exp_param_t *parameters) {
 
   /*put out unpaireds */
   int i,k;

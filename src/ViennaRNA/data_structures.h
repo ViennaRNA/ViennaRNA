@@ -467,11 +467,11 @@ typedef struct{
 
   struct vrna_hc_t  *hc;
 
-  vrna_mx_mfe_t     *matrices;
-  vrna_mx_pf_t      *exp_matrices;
+  vrna_mx_mfe_t           *matrices;
+  vrna_mx_pf_t            *exp_matrices;
 
-  struct paramT     *params;
-  struct pf_paramT  *exp_params;
+  struct vrna_param_t     *params;
+  struct vrna_exp_param_t *exp_params;
 
   int               *iindx;
   int               *jindx;

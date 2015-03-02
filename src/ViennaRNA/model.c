@@ -29,6 +29,8 @@
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /*  below are the evil global variables that will vanish
     as soon as we drop backward compatibility in ViennaRNA
     Package v3
@@ -55,6 +57,8 @@ int     ribo            = VRNA_MODEL_DEFAULT_ALI_RIBO;
 double  cv_fact         = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
 double  nc_fact         = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
 int     logML           = VRNA_MODEL_DEFAULT_LOG_ML;
+
+#endif
 
 /*
 #################################

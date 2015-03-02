@@ -101,7 +101,7 @@ PUBLIC  int snoop_subopt_sorted=0; /* from subopt.c, default 0 */
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 #define ASS                1
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 
 PRIVATE int   **c = NULL;      /* energy array, given that i-j pair */
 PRIVATE int   **r = NULL;

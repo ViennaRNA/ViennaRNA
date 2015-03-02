@@ -28,7 +28,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
-                pf_paramT *pf_params,
+                vrna_exp_param_t *pf_params,
                 double cut_off);
 
 /*
@@ -554,7 +554,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
-                pf_paramT *pf_params,
+                vrna_exp_param_t *pf_params,
                 double cut_off){
 
   int i, j, k, n, count, gquad;
@@ -809,10 +809,10 @@ assign_plist_from_pr( plist **pl,
                       int length,
                       double cut_off){
 
-  int *index;
-  vrna_mx_pf_t *matrices;
-  vrna_md_t  md;
-  pf_paramT *pf_params;
+  int              *index;
+  vrna_mx_pf_t     *matrices;
+  vrna_md_t        md;
+  vrna_exp_param_t *pf_params;
 
   index     = get_iindx(length);
   matrices  = (vrna_mx_pf_t *)space(sizeof(vrna_mx_pf_t));

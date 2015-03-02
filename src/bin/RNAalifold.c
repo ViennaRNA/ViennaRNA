@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
   char          *tmp_string;
   int           tmp_number;
   FILE          *clust_file = stdin;
-  pf_paramT     *pf_parameters;
+  vrna_exp_param_t  *pf_parameters;
   vrna_md_t     md;
 
   fname[0] = ffname[0] = gfname[0] = '\0';

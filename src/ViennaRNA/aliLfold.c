@@ -55,7 +55,7 @@ static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp 
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE paramT          *P = NULL;
+PRIVATE vrna_param_t    *P = NULL;
 PRIVATE int             **c = NULL;       /* energy array, given that i-j pair */
 PRIVATE int             *cc = NULL;       /* linear array for calculating canonical structures */
 PRIVATE int             *cc1 = NULL;      /*   "     "        */

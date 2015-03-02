@@ -44,7 +44,7 @@
  *  alphabet if the loop size is below 7. This is useful for unusually stable tri-, tetra- and hexa-loops
  *  which are treated differently (based on experimental data) if they are tabulated.
  *  @see scale_parameters()
- *  @see paramT
+ *  @see vrna_param_t
  *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
  * 
@@ -61,14 +61,14 @@ INLINE  PRIVATE int E_Hairpin(int size,
                               int si1,
                               int sj1,
                               const char *string,
-                              paramT *P);
+                              vrna_param_t *P);
 
 /**
  *  \brief Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop
  *
  *  multiply by scale[u+2]
  *  @see get_scaled_pf_parameters()
- *  @see pf_paramT
+ *  @see vrna_exp_param_t
  *  @see E_Hairpin()
  *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
@@ -86,7 +86,7 @@ INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       short si1,
                                       short sj1,
                                       const char *string,
-                                      pf_paramT *P);
+                                      vrna_exp_param_t *P);
 
 
 INLINE PRIVATE int
@@ -111,7 +111,7 @@ E_Hairpin(int size,
           int si1,
           int sj1,
           const char *string,
-          paramT *P){
+          vrna_param_t *P){
 
   int energy;
 
@@ -215,7 +215,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
   int               u, e, type;
   char              loopseq[10];
   short             *S;
-  paramT            *P;
+  vrna_param_t            *P;
   vrna_sc_t         *sc;
   vrna_md_t         *md;
 
@@ -264,7 +264,7 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
   int       cp        = vc->cutpoint;
   short     *S        = vc->sequence_encoding;
   int       *idx      = vc->jindx;
-  paramT    *P        = vc->params;
+  vrna_param_t    *P        = vc->params;
   vrna_sc_t *sc       = vc->sc;
   vrna_md_t       *md = &(P->model_details);
 
@@ -311,7 +311,7 @@ E_hp_loop_ali(int i,
   int u, e, s, *type;
   int               n_seq   = vc->n_seq;
   int               *idx    = vc->jindx;
-  paramT            *P      = vc->params;
+  vrna_param_t      *P      = vc->params;
   vrna_md_t         *md     = &(P->model_details);
   short             **S     = vc->S;                                                                 
   short             **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/          
@@ -376,7 +376,7 @@ exp_E_Hairpin(int u,
               short si1,
               short sj1,
               const char *string,
-              pf_paramT *P){
+              vrna_exp_param_t *P){
 
   double q, kT;
   kT = P->kT;   /* kT in cal/mol  */
@@ -438,7 +438,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
   int               cp      = vc->cutpoint;
   short             *S      = vc->sequence_encoding;
   int               *idx    = vc->jindx;
-  pf_paramT         *P      = vc->exp_params;
+  vrna_exp_param_t  *P      = vc->exp_params;
   int               *hc_up  = vc->hc->up_hp;
   vrna_sc_t         *sc     = vc->sc;
   FLT_OR_DBL        *scale  = vc->exp_matrices->scale;

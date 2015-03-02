@@ -103,7 +103,7 @@ extern double nc_fact;
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 PRIVATE int   **c = NULL;
 PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL,**linx = NULL, **liny = NULL;   
                                              

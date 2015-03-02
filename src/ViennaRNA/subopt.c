@@ -77,7 +77,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 PRIVATE SOLUTION *
 wrap_subopt(char *seq,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int delta,
             int is_constrained,
             int is_circular,
@@ -531,14 +531,14 @@ fork_two_states(int i,
 PRIVATE SOLUTION *
 wrap_subopt(char *string,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int delta,
             int is_constrained,
             int is_circular,
             FILE *fp){
 
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
   char                *seq;
 
 #ifdef _OPENMP
@@ -610,7 +610,7 @@ vrna_subopt(vrna_fold_compound *vc,
   int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad, threshold, cp;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
-  paramT          *P;
+  vrna_param_t  *P;
   vrna_md_t     *md;
   int           minimal_energy;
   int           Fc, FcH, FcI, FcM, *fM2;
@@ -849,7 +849,7 @@ scan_interval(vrna_fold_compound *vc,
 
   STATE           *new_state, *temp_state;
   INTERVAL        *new_interval;
-  paramT          *P;
+  vrna_param_t    *P;
   vrna_md_t       *md;
   register int    k, fi, cij, ij;
   register int    type;
@@ -1617,11 +1617,11 @@ repeat_gquad( vrna_fold_compound *vc,
               int threshold,
               subopt_env *env){
 
-  int       *ggg, *indx, element_energy, cp;
-  short     *S, *S1;
-  paramT    *P;
-  vrna_hc_t *hc;
-  vrna_sc_t *sc;
+  int           *ggg, *indx, element_energy, cp;
+  short         *S, *S1;
+  vrna_param_t  *P;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   indx  = vc->jindx;
   cp    = vc->cutpoint;
@@ -1692,7 +1692,7 @@ repeat( vrna_fold_compound *vc,
 
   STATE           *new_state;
   INTERVAL        *new_interval;
-  paramT          *P;
+  vrna_param_t    *P;
   vrna_md_t       *md;
 
   register int  ij, k, p, q, energy, new;
@@ -1968,7 +1968,7 @@ subopt_circ(char *seq,
 
 PUBLIC SOLUTION *subopt_par(char *seq,
                             char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int delta,
                             int is_constrained,
                             int is_circular,

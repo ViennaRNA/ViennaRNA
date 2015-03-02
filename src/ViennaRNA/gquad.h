@@ -20,18 +20,18 @@
 
 int         E_gquad(int L,
                     int l[3],
-                    paramT *P);
+                    vrna_param_t *P);
 
 FLT_OR_DBL exp_E_gquad( int L,
                         int l[3],
-                        pf_paramT *pf);
+                        vrna_exp_param_t *pf);
 
 int         E_gquad_ali(int i,
                         int L,
                         int l[3],
                         const short **S,
                         int n_seq,
-                        paramT *P);
+                        vrna_param_t *P);
 
 
 void        E_gquad_ali_en( int i,
@@ -40,7 +40,7 @@ void        E_gquad_ali_en( int i,
                             const short **S,
                             int n_seq,
                             int en[2],
-                            paramT *P);
+                            vrna_param_t *P);
 
 /**
  *  \brief Get a triangular matrix prefilled with minimum free energy
@@ -58,27 +58,27 @@ void        E_gquad_ali_en( int i,
  *  \param P  A pointer to the data structure containing the precomputed energy contributions
  *  \return   A pointer to the G-quadruplex contribution matrix
 */
-int         *get_gquad_matrix(short *S, paramT *P);
+int         *get_gquad_matrix(short *S, vrna_param_t *P);
 
 int         *get_gquad_ali_matrix(short *S_cons,
                                   short **S,
                                   int n_seq,
-                                  paramT *P);
+                                  vrna_param_t *P);
 
 FLT_OR_DBL  *get_gquad_pf_matrix( short *S,
                                   FLT_OR_DBL *scale,
-                                  pf_paramT *pf);
+                                  vrna_exp_param_t *pf);
 
 int         **get_gquad_L_matrix( short *S,
                                   int start,
                                   int maxdist,
                                   int **g,
-                                  paramT *P);
+                                  vrna_param_t *P);
 
 void        get_gquad_pattern_mfe(short *S,
                                   int i,
                                   int j,
-                                  paramT *P,
+                                  vrna_param_t *P,
                                   int *L,
                                   int l[3]);
 
@@ -86,7 +86,7 @@ void
 get_gquad_pattern_exhaustive( short *S,
                               int i,
                               int j,
-                              paramT *P,
+                              vrna_param_t *P,
                               int *L,
                               int *l,
                               int threshold);
@@ -94,7 +94,7 @@ get_gquad_pattern_exhaustive( short *S,
 void        get_gquad_pattern_pf( short *S,
                                   int i,
                                   int j,
-                                  pf_paramT *pf,
+                                  vrna_exp_param_t *pf,
                                   int *L,
                                   int l[3]);
 
@@ -104,7 +104,7 @@ plist       *get_plist_gquad_from_pr( short *S,
                                       FLT_OR_DBL *G,
                                       FLT_OR_DBL *probs,
                                       FLT_OR_DBL *scale,
-                                      pf_paramT *pf);
+                                      vrna_exp_param_t *pf);
 plist       *get_plist_gquad_from_pr_max(short *S,
                                       int gi,
                                       int gj,
@@ -113,7 +113,7 @@ plist       *get_plist_gquad_from_pr_max(short *S,
                                       FLT_OR_DBL *scale,
                                       int *L,
                                       int l[3],
-                                      pf_paramT *pf);
+                                      vrna_exp_param_t *pf);
 
 plist       *get_plist_gquad_from_db( const char *structure,
                                       float pr);
@@ -167,7 +167,7 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop(int c,
                                             int *index,
                                             int *p,
                                             int *q,
-                                            paramT *P){
+                                            vrna_param_t *P){
 
   int energy, dangles, k, l, maxl, minl, c0, l1;
   short si, sj;
@@ -265,7 +265,7 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               int maxdist,
                                               int *p,
                                               int *q,
-                                              paramT *P){
+                                              vrna_param_t *P){
 
   int energy, dangles, k, l, maxl, minl, c0, l1;
   short si, sj;
@@ -346,7 +346,7 @@ E_GQuad_IntLoop(int i,
                 short *S,
                 int *ggg,
                 int *index,
-                paramT *P){
+                vrna_param_t *P){
 
   int energy, ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
@@ -482,7 +482,7 @@ E_GQuad_IntLoop_exhaustive( int i,
                             int *ggg,
                             int threshold,
                             int *index,
-                            paramT *P){
+                            vrna_param_t *P){
 
   int energy, *ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
@@ -578,7 +578,7 @@ E_GQuad_IntLoop_L(int i,
                   short *S,
                   int **ggg,
                   int maxdist,
-                  paramT *P){
+                  vrna_param_t *P){
 
   int energy, ge, dangles, p, q, l1, minq, maxq, c0;
   short si, sj;
@@ -655,7 +655,7 @@ exp_E_GQuad_IntLoop(int i,
                     short *S,
                     FLT_OR_DBL *G,
                     int *index,
-                    pf_paramT *pf){
+                    vrna_exp_param_t *pf){
 
   int k, l, minl, maxl, u, r;
   FLT_OR_DBL q, qe, *expintern;

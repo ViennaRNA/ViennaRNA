@@ -70,7 +70,7 @@ PRIVATE void      backtrack_qm1(vrna_fold_compound *vc, char *pstruc, int i,int 
 PRIVATE float     wrap_alipf_fold(const char **sequences,
                                   char *structure,
                                   plist **pl,
-                                  pf_paramT *parameters,
+                                  vrna_exp_param_t *parameters,
                                   int calculate_bppm,
                                   int is_constrained,
                                   int is_circular);
@@ -91,14 +91,14 @@ PRIVATE float
 wrap_alipf_fold(const char **sequences,
                 char *structure,
                 plist **pl,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained,
                 int is_circular){
 
   int                 n_seq;
   vrna_fold_compound  *vc;
-  pf_paramT           *exp_params;
+  vrna_exp_param_t    *exp_params;
 
   if(sequences == NULL) return 0.;
 
@@ -106,7 +106,7 @@ wrap_alipf_fold(const char **sequences,
   
   vc                  = NULL;
 
-  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
     exp_params = get_boltzmann_factor_copy(parameters);
   else{
@@ -156,11 +156,11 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
   FLT_OR_DBL  Q;
   float       free_energy;
 
-  int             n         = vc->length;
-  int             n_seq     = vc->n_seq;
-  pf_paramT       *params   = vc->exp_params;
-  vrna_md_t       *md       = &(params->model_details);
-  vrna_mx_pf_t    *matrices = vc->exp_matrices;
+  int               n         = vc->length;
+  int               n_seq     = vc->n_seq;
+  vrna_exp_param_t  *params   = vc->exp_params;
+  vrna_md_t         *md       = &(params->model_details);
+  vrna_mx_pf_t      *matrices = vc->exp_matrices;
 
   alipf_linear(vc, structure);
 
@@ -212,7 +212,7 @@ alipf_linear( vrna_fold_compound *vc,
   short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/        
   char              **Ss              = vc->Ss;                                                               
   unsigned short    **a2s             = vc->a2s;                                                               
-  pf_paramT         *pf_params        = vc->exp_params;
+  vrna_exp_param_t  *pf_params        = vc->exp_params;
   vrna_mx_pf_t      *matrices         = vc->exp_matrices;
   vrna_md_t         *md               = &(pf_params->model_details);
   vrna_hc_t         *hc               = vc->hc;
@@ -531,7 +531,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss          = vc->Ss;
   unsigned short    **a2s         = vc->a2s;                                                                   
-  pf_paramT         *pf_params    = vc->exp_params;
+  vrna_exp_param_t  *pf_params    = vc->exp_params;
   vrna_mx_pf_t      *matrices     = vc->exp_matrices;
   vrna_md_t         *md           = &(pf_params->model_details);
   vrna_hc_t         *hc           = vc->hc;
@@ -1141,7 +1141,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
-  pf_paramT         *pf_params  = vc->exp_params;
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
@@ -1306,7 +1306,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  pf_paramT         *pf_params  = vc->exp_params;
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
@@ -1398,7 +1398,7 @@ backtrack(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
-  pf_paramT         *pf_params  = vc->exp_params;
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
@@ -1580,7 +1580,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  pf_paramT         *pf_params  = vc->exp_params;
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
@@ -1646,7 +1646,7 @@ PUBLIC float
 alipf_fold_par( const char **sequences,
                 char *structure,
                 plist **pl,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained,
                 int is_circular){

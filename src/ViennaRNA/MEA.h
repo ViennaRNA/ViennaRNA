@@ -28,6 +28,6 @@ float MEA_seq(plist *p,
               const char *sequence,
               char *structure,
               double gamma,
-              pf_paramT *pf);
+              vrna_exp_param_t *pf);
 
 #endif

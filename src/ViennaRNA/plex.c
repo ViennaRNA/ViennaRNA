@@ -113,7 +113,7 @@ PRIVATE char * fbacktrack_XS(int i, int j, const int **access_s1, const int **ac
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 
 /**
 *** energy array used in fduplexfold and fduplexfold_XS

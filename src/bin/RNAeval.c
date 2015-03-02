@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
   int                       verbose = 0;
   unsigned int              rec_type, read_opt;
   vrna_md_t                 md;
-  paramT *P;
+  vrna_param_t              *P;
 
   string  = orig_sequence = ParamFile = NULL;
   gquad   = 0;

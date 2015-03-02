@@ -2,37 +2,37 @@
 /* BEGIN interface for energy parameters      */
 /**********************************************/
 
-/* do not create default constructor and hide data fields of paramT from SWIG */
-%nodefaultctor paramT;
-typedef struct {} paramT;
-/* do not create default constructor and hide data fields of paramT from SWIG */
-%nodefaultctor pf_paramT;
-typedef struct {} pf_paramT;
+/* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+%nodefaultctor vrna_param_t;
+typedef struct {} vrna_param_t;
+/* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+%nodefaultctor vrna_exp_param_t;
+typedef struct {} vrna_exp_param_t;
 
-/* make a nice object oriented interface to paramT */
-%extend paramT {
-  paramT(){
+/* make a nice object oriented interface to vrna_param_t */
+%extend vrna_param_t {
+  vrna_param_t(){
     vrna_md_t md;
     vrna_md_set_default(&md);
-    paramT *P = vrna_get_energy_contributions(md);
+    vrna_param_t *P = vrna_get_energy_contributions(md);
     return P;
   }
-  paramT(vrna_md_t *md){
-    paramT *P = vrna_get_energy_contributions(*md);
+  vrna_param_t(vrna_md_t *md){
+    vrna_param_t *P = vrna_get_energy_contributions(*md);
     return P;
   }
 }
 
-/* make a nice object oriented interface to pf_paramT */
-%extend pf_paramT {
-  pf_paramT(){
+/* make a nice object oriented interface to vrna_exp_param_t */
+%extend vrna_exp_param_t {
+  vrna_exp_param_t(){
     vrna_md_t md;
     vrna_md_set_default(&md);
-    pf_paramT *P = vrna_get_boltzmann_factors(md);
+    vrna_exp_param_t *P = vrna_get_boltzmann_factors(md);
     return P;
   }
-  pf_paramT(vrna_md_t *md){
-    pf_paramT *P = vrna_get_boltzmann_factors(*md);
+  vrna_exp_param_t(vrna_md_t *md){
+    vrna_exp_param_t *P = vrna_get_boltzmann_factors(*md);
     return P;
   }
 }

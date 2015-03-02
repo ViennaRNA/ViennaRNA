@@ -25,9 +25,9 @@
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, pf_paramT *parameters);
+PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, vrna_exp_param_t *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
-PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, pf_paramT *parameters);
+PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, vrna_exp_param_t *parameters);
 
 PRIVATE double bppmThreshold;
 
@@ -64,9 +64,9 @@ int main(int argc, char *argv[])
   plist   *mfB;
   double  *ConcAandB;
   unsigned int    rec_type, read_opt;
-  paramT          *P;
-  pf_paramT       *pf_parameters;
-  vrna_md_t       md;
+  vrna_param_t      *P;
+  vrna_exp_param_t  *pf_parameters;
+  vrna_md_t         md;
 
 
   /*
@@ -582,7 +582,7 @@ do_partfunc(char *string,
             int Switch,
             struct plist **tpr,
             struct plist **mfpl,
-            pf_paramT *parameters){
+            vrna_exp_param_t *parameters){
 
   /*compute mfe and partition function of dimer or monomer*/
   char *Newstring;
@@ -590,7 +590,7 @@ do_partfunc(char *string,
   double min_en;
   double sfact=1.07;
   double kT;
-  pf_paramT *par;
+  vrna_exp_param_t *par;
   FLT_OR_DBL *probs;
   cofoldF X;
   vrna_fold_compound *vc;
@@ -652,7 +652,7 @@ do_concentrations(double FEAB,
                   double FEA,
                   double FEB,
                   double *startconc,
-                  pf_paramT *parameters){
+                  vrna_exp_param_t *parameters){
 
   /* compute and print concentrations out of free energies, calls get_concentrations */
   struct ConcEnt *result;

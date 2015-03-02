@@ -54,6 +54,127 @@
 #define MAXALPHA              20
 #endif
 
+#endif
+
+/**
+ *  \brief The data structure that contains the complete model details used throughout the calculations
+ *
+ */
+typedef struct vrna_md_t{
+  double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
+  double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
+  int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
+                                  \note   Some function do not implement all dangle model but only a subset of
+                                          (0,1,2,3). Read the documentaion of the particular recurrences or
+                                          energy evaluation function for information about the provided dangle
+                                          model.
+                            */
+  int     special_hp;       /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
+  int     noLP;             /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
+  int     noGU;             /**<  \brief  Do not allow GU pairs */
+  int     noGUclosure;      /**<  \brief  Do not allow loops to be closed by GU pair */
+  int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
+  int     circ;             /**<  \brief  Assume RNA to be circular instead of linear */
+  int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
+  int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
+  int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
+  int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
+  int     backtrack;        /**<  \brief  Specifies whether or not secondary structures should be backtraced */
+  char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
+  int     compute_bpp;      /**<  \brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
+  char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
+  int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
+
+  int     min_loop_size;    /**<  \brief  Minimum size of hairpin loops
+                              
+                                  \note The default value for this field is #TURN, however, it may
+                                  be 0 in cofolding context.
+                            */
+
+  int     oldAliEn;         /**<  \brief  Use old alifold energy model */
+  int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
+  double  cv_fact;          /**<  \brief  Covariance scaling factor for consensus structure prediction */
+  double  nc_fact;
+  double  sfact;            /**<  \brief  Scaling factor for partition function scaling */
+  int     rtype[8];
+  short   alias[MAXALPHA+1];
+  int     pair[MAXALPHA+1][MAXALPHA+1];
+} vrna_md_t;
+
+
+/**
+ * \brief Set default model details
+ *
+ *  Use this function if you wish to initialize a #vrna_md_t data structure with
+ *  its default values, i.e. the global model settings
+ *
+ *  \see
+ *
+ *  \param md A pointer to the data structure that is about to be initialized
+ */
+void vrna_md_set_default(vrna_md_t *md);
+
+
+void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
+
+
+void vrna_md_set_dangles(vrna_md_t *md, int d);
+
+
+int vrna_md_get_dangles(vrna_md_t *md);
+
+
+void vrna_md_set_temperature(vrna_md_t *md, double T);
+
+
+double vrna_md_get_temperature(vrna_md_t *md);
+
+
+void vrna_md_set_special_hp(vrna_md_t *md, int shp);
+
+
+int vrna_md_get_special_hp(vrna_md_t *md);
+
+
+void vrna_md_set_gquad(vrna_md_t *md, int g);
+
+
+int vrna_md_get_gquad(vrna_md_t *md);
+
+
+void vrna_md_set_nolp(vrna_md_t *md, int nolp);
+
+
+int vrna_md_get_nolp(vrna_md_t *md);
+
+
+void vrna_md_set_betascale(vrna_md_t *md, double b);
+
+
+double vrna_md_get_betascale(vrna_md_t *md);
+
+/**
+ *  \brief Update the model details
+ */
+void vrna_md_update(vrna_md_t *md);
+
+/**
+ * \brief Set default model details
+ *
+ *  Use this function if you wish to initialize a #vrna_md_t data structure with
+ *  its default values, i.e. the global model settings as provided by the deprecated
+ *  global variables.
+ *
+ *  \deprecated This function will vanish as soon as backward compatibility of
+ *              RNAlib is dropped (expected in version 3).
+ *              Use vrna_md_set_default instead!
+ *
+ *  \param md A pointer to the data structure that is about to be initialized
+ */
+void vrna_md_set_globals(vrna_md_t *md);
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
 #define model_detailsT        vrna_md_t               /* restore compatibility of struct rename */
 #define set_model_details(a)  vrna_md_set_globals(a)  /* restore compatibility of function rename */
 
@@ -211,124 +332,6 @@ extern  int logML;
 /* END deprecated global variables: */
 
 #endif
-
-/**
- *  \brief The data structure that contains the complete model details used throughout the calculations
- *
- */
-typedef struct vrna_md_t{
-  double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
-  double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
-  int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
-                                  \note   Some function do not implement all dangle model but only a subset of
-                                          (0,1,2,3). Read the documentaion of the particular recurrences or
-                                          energy evaluation function for information about the provided dangle
-                                          model.
-                            */
-  int     special_hp;       /**<  \brief  Include special hairpin contributions for tri, tetra and hexaloops */
-  int     noLP;             /**<  \brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
-  int     noGU;             /**<  \brief  Do not allow GU pairs */
-  int     noGUclosure;      /**<  \brief  Do not allow loops to be closed by GU pair */
-  int     logML;            /**<  \brief  Use logarithmic scaling for multi loops */
-  int     circ;             /**<  \brief  Assume RNA to be circular instead of linear */
-  int     gquad;            /**<  \brief  Include G-quadruplexes in structure prediction */
-  int     canonicalBPonly;  /**<  \brief  remove non-canonical bp's from constraint structures  */
-  int     uniq_ML;          /**<  \brief  Flag to ensure unique multibranch loop decomposition during folding */
-  int     energy_set;       /**<  \brief  Specifies the energy set that defines set of compatible base pairs */
-  int     backtrack;        /**<  \brief  Specifies whether or not secondary structures should be backtraced */
-  char    backtrack_type;   /**<  \brief  Specifies in which matrix to backtrack */
-  int     compute_bpp;      /**<  \brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
-  char    nonstandards[33]; /**<  \brief  contains allowed non standard bases */
-  int     max_bp_span;      /**<  \brief  maximum allowed base pair span */
-
-  int     min_loop_size;    /**<  \brief  Minimum size of hairpin loops
-                              
-                                  \note The default value for this field is #TURN, however, it may
-                                  be 0 in cofolding context.
-                            */
-
-  int     oldAliEn;         /**<  \brief  Use old alifold energy model */
-  int     ribo;             /**<  \brief  Use ribosum scoring table in alifold energy model */
-  double  cv_fact;          /**<  \brief  Covariance scaling factor for consensus structure prediction */
-  double  nc_fact;
-  double  sfact;            /**<  \brief  Scaling factor for partition function scaling */
-  int     rtype[8];
-  short   alias[MAXALPHA+1];
-  int     pair[MAXALPHA+1][MAXALPHA+1];
-} vrna_md_t;
-
-
-/**
- * \brief Set default model details
- *
- *  Use this function if you wish to initialize a #vrna_md_t data structure with
- *  its default values, i.e. the global model settings
- *
- *  \see
- *
- *  \param md A pointer to the data structure that is about to be initialized
- */
-void vrna_md_set_default(vrna_md_t *md);
-
-
-void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
-
-
-void vrna_md_set_dangles(vrna_md_t *md, int d);
-
-
-int vrna_md_get_dangles(vrna_md_t *md);
-
-
-void vrna_md_set_temperature(vrna_md_t *md, double T);
-
-
-double vrna_md_get_temperature(vrna_md_t *md);
-
-
-void vrna_md_set_special_hp(vrna_md_t *md, int shp);
-
-
-int vrna_md_get_special_hp(vrna_md_t *md);
-
-
-void vrna_md_set_gquad(vrna_md_t *md, int g);
-
-
-int vrna_md_get_gquad(vrna_md_t *md);
-
-
-void vrna_md_set_nolp(vrna_md_t *md, int nolp);
-
-
-int vrna_md_get_nolp(vrna_md_t *md);
-
-
-void vrna_md_set_betascale(vrna_md_t *md, double b);
-
-
-double vrna_md_get_betascale(vrna_md_t *md);
-
-/**
- *  \brief Update the model details
- */
-void vrna_md_update(vrna_md_t *md);
-
-/**
- * \brief Set default model details
- *
- *  Use this function if you wish to initialize a #vrna_md_t data structure with
- *  its default values, i.e. the global model settings as provided by the deprecated
- *  global variables.
- *
- *  \deprecated This function will vanish as soon as backward compatibility of
- *              RNAlib is dropped (expected in version 3).
- *              Use vrna_md_set_default instead!
- *
- *  \param md A pointer to the data structure that is about to be initialized
- */
-void vrna_md_set_globals(vrna_md_t *md);
-
 /**
  * @}
  */

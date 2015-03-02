@@ -101,7 +101,7 @@ void  vrna_co_pf_dimer_probs( double FAB,
                               const plist *prA,
                               const plist *prB,
                               int Alength,
-                              const pf_paramT *exp_params);
+                              const vrna_exp_param_t *exp_params);
 
 /**
  *  \brief Given two start monomer concentrations a and b, compute the
@@ -128,7 +128,7 @@ ConcEnt *vrna_co_pf_get_concentrations( double FcAB,
                                         double FEA,
                                         double FEB,
                                         const double *startconc,
-                                        const pf_paramT *exp_params);
+                                        const vrna_exp_param_t *exp_params);
 
 /**
  *  @}
@@ -177,7 +177,7 @@ DEPRECATED(cofoldF co_pf_fold( char *sequence, char *structure));
  *  \return               cofoldF structure containing a set of energies needed for
  *                        concentration computations.
  */
-DEPRECATED(cofoldF co_pf_fold_par(char *sequence, char *structure, pf_paramT *parameters, int calculate_bppm, int is_constrained));
+DEPRECATED(cofoldF co_pf_fold_par(char *sequence, char *structure, vrna_exp_param_t *parameters, int calculate_bppm, int is_constrained));
 
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
@@ -288,6 +288,6 @@ DEPRECATED(void update_co_pf_params(int length));
  *  \param    length      Length of the current RNA sequence
  *  \param    parameters  data structure containing the precomputed Boltzmann factors
  */
-DEPRECATED(void update_co_pf_params_par(int length, pf_paramT *parameters));
+DEPRECATED(void update_co_pf_params_par(int length, vrna_exp_param_t *parameters));
 
 #endif

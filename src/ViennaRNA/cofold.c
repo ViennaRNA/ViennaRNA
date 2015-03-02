@@ -73,8 +73,8 @@ PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
 
 /* wrappers for old API compatibility */
 PRIVATE void      wrap_array_export(int **f5_p,int **c_p,int **fML_p,int **fM1_p,int **fc_p,int **indx_p,char **ptype_p);
-PRIVATE float     wrap_cofold(const char *string,char *structure,paramT *parameters,int is_constrained);
-PRIVATE SOLUTION *wrap_zukersubopt( const char *string,paramT *parameters);
+PRIVATE float     wrap_cofold(const char *string,char *structure,vrna_param_t *parameters,int is_constrained);
+PRIVATE SOLUTION *wrap_zukersubopt( const char *string,vrna_param_t *parameters);
 
 /*
 #################################
@@ -108,13 +108,13 @@ wrap_array_export(int **f5_p,
 PRIVATE float
 wrap_cofold(const char *string,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int is_constrained){
 
   unsigned int        length;
   char                *seq;
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
   float               mfe;
 
   vc      = NULL;
@@ -233,7 +233,7 @@ fill_arrays(vrna_fold_compound  *vc,
 
   int   dangle_model, noGUclosure, noLP, hc_decompose, turn;
   char              *ptype, *hard_constraints;
-  paramT            *P;
+  vrna_param_t      *P;
   vrna_mx_mfe_t     *matrices;
   vrna_hc_t         *hc;
 
@@ -391,7 +391,7 @@ backtrack_co( sect bt_stack[],
 
   int   i, j, ij, k, length, energy, en, new, ml0, ml5, ml3, ml53, no_close, type, type_2, tt;
   char  *string         = vc->sequence;
-  paramT  *P            = vc->params;
+  vrna_param_t  *P      = vc->params;
   int     *indx         = vc->jindx;
   char    *ptype        = vc->ptype;
 
@@ -1238,7 +1238,7 @@ free_end( int *array,
           vrna_fold_compound *vc){
 
   int inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
-  paramT        *P;
+  vrna_param_t  *P;
   short         *S1;
   char          *ptype, *hard_constraints;
   vrna_mx_mfe_t *matrices;
@@ -1395,12 +1395,12 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 
 PRIVATE SOLUTION *
 wrap_zukersubopt( const char *string,
-                  paramT *parameters){
+                  vrna_param_t *parameters){
 
   unsigned int        length;
   char                *doubleseq;
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
 
   vc      = NULL;
   length  = (int)strlen(string);
@@ -1664,7 +1664,7 @@ cofold( const char *string,
 PUBLIC float
 cofold_par( const char *string,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int is_constrained){
 
   return wrap_cofold(string, structure, parameters, is_constrained);
@@ -1678,7 +1678,7 @@ zukersubopt(const char *string) {
 
 PUBLIC SOLUTION *
 zukersubopt_par(const char *string,
-                paramT *parameters){
+                vrna_param_t *parameters){
 
   return wrap_zukersubopt(string, parameters);
 }
@@ -1701,7 +1701,7 @@ update_cofold_params(void){
 }
 
 PUBLIC void
-update_cofold_params_par(paramT *parameters){
+update_cofold_params_par(vrna_param_t *parameters){
 
   vrna_fold_compound *v;
   

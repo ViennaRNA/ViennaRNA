@@ -24,36 +24,36 @@
 /*@unused@*/
 static char rcsid[] UNUSED = "$Id: params.c,v 1.9 2008/07/04 14:29:14 ivo Exp $";
 
-PRIVATE paramT p;
+PRIVATE vrna_param_t p;
 PRIVATE int id=-1;
 /* variables for partition function */
-PRIVATE pf_paramT pf;
+PRIVATE vrna_exp_param_t pf;
 PRIVATE int pf_id=-1;
 
 #ifdef _OPENMP
 #pragma omp threadprivate(id, pf_id)
 #endif
 
-PUBLIC paramT *scale_parameters(void){
+PUBLIC vrna_param_t *scale_parameters(void){
   vrna_md_t  md;
   set_model_details(&md);
   return get_scaled_parameters(temperature, md);
 }
 
-PUBLIC paramT *
+PUBLIC vrna_param_t *
 vrna_get_energy_contributions(vrna_md_t md){
 
   return get_scaled_parameters(md.temperature, md);
 }
 
-PUBLIC paramT *get_scaled_parameters( double temp,
+PUBLIC vrna_param_t *get_scaled_parameters( double temp,
                                       vrna_md_t md){
 
   unsigned int i,j,k,l;
   double tempf;
-  paramT *params;
+  vrna_param_t *params;
 
-  params  = (paramT *)space(sizeof(paramT));
+  params  = (vrna_param_t *)space(sizeof(vrna_param_t));
 
   /* store the model details */
   params->model_details = md;
@@ -188,20 +188,20 @@ PUBLIC paramT *get_scaled_parameters( double temp,
 /* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
 
 
-PUBLIC pf_paramT *get_scaled_pf_parameters(void){
+PUBLIC vrna_exp_param_t *get_scaled_pf_parameters(void){
   vrna_md_t  md;
   set_model_details(&md);
   return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
 }
 
 
-PUBLIC pf_paramT *
+PUBLIC vrna_exp_param_t *
 vrna_get_boltzmann_factors(vrna_md_t md){
 
   return  get_boltzmann_factors(md.temperature, md.betaScale, md, -1.);
 }
 
-PUBLIC pf_paramT *get_boltzmann_factors(double temp,
+PUBLIC vrna_exp_param_t *get_boltzmann_factors(double temp,
                                         double betaScale,
                                         vrna_md_t md,
                                         double pfs){
@@ -209,12 +209,12 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   unsigned  int i, j, k, l;
   double        kT, TT;
   double        GT;
-  pf_paramT     *pf;
+  vrna_exp_param_t     *pf;
 
   md.temperature  = temp;
   md.betaScale    = betaScale;
 
-  pf                = (pf_paramT *)space(sizeof(pf_paramT));
+  pf                = (vrna_exp_param_t *)space(sizeof(vrna_exp_param_t));
   pf->model_details = md;
   pf->temperature   = temp;
   pf->alpha         = betaScale;
@@ -376,19 +376,19 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   return pf;
 }
 
-PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
+PUBLIC vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq){
   vrna_md_t  md;
   set_model_details(&md);
   return get_boltzmann_factors_ali(n_seq, temperature, 1.0, md, pf_scale);
 }
 
-PUBLIC pf_paramT *
+PUBLIC vrna_exp_param_t *
 vrna_get_boltzmann_factors_ali(unsigned int n_seq, vrna_md_t md){
 
   return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, -1.);
 }
 
-PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
+PUBLIC vrna_exp_param_t *get_boltzmann_factors_ali(unsigned int n_seq,
                                             double temperature,
                                             double betaScale,
                                             vrna_md_t md,
@@ -398,9 +398,9 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   unsigned int  i, j, k, l;
   double        kTn, TT;
   double        GT;
-  pf_paramT     *pf;
+  vrna_exp_param_t     *pf;
 
-  pf                = (pf_paramT *)space(sizeof(pf_paramT));
+  pf                = (vrna_exp_param_t *)space(sizeof(vrna_exp_param_t));
   pf->model_details = md;
   pf->alpha         = betaScale;
   pf->temperature   = temperature;
@@ -560,58 +560,63 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   return pf;
 }
 
-PUBLIC pf_paramT *get_boltzmann_factor_copy(pf_paramT *par){
-  pf_paramT *copy = NULL;
+PUBLIC vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *par){
+  vrna_exp_param_t *copy = NULL;
   if(par){
-    copy = (pf_paramT *) space(sizeof(pf_paramT));
-    memcpy(copy, par, sizeof(pf_paramT));
+    copy = (vrna_exp_param_t *) space(sizeof(vrna_exp_param_t));
+    memcpy(copy, par, sizeof(vrna_exp_param_t));
   }
   return copy;
 }
 
-PUBLIC paramT *get_parameter_copy(paramT *par){
-  paramT *copy = NULL;
+PUBLIC vrna_param_t *get_parameter_copy(vrna_param_t *par){
+  vrna_param_t *copy = NULL;
   if(par){
-    copy = (paramT *) space(sizeof(paramT));
-    memcpy(copy, par, sizeof(paramT));
+    copy = (vrna_param_t *) space(sizeof(vrna_param_t));
+    memcpy(copy, par, sizeof(vrna_param_t));
   }
   return copy;
 }
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PUBLIC paramT *copy_parameters(void){
-  paramT *copy;
+PUBLIC vrna_param_t *copy_parameters(void){
+  vrna_param_t *copy;
   if (p.id != id) return scale_parameters();
   else{
-    copy = (paramT *) space(sizeof(paramT));
-    memcpy(copy, &p, sizeof(paramT));
+    copy = (vrna_param_t *) space(sizeof(vrna_param_t));
+    memcpy(copy, &p, sizeof(vrna_param_t));
   }
   return copy;
 }
 
-PUBLIC paramT *set_parameters(paramT *dest){
-  memcpy(&p, dest, sizeof(paramT));
+PUBLIC vrna_param_t *set_parameters(vrna_param_t *dest){
+  memcpy(&p, dest, sizeof(vrna_param_t));
   return &p;
 }
 
-PUBLIC pf_paramT *copy_pf_param(void){
-  pf_paramT *copy;
+PUBLIC vrna_exp_param_t *copy_pf_param(void){
+  vrna_exp_param_t *copy;
   if (pf.id != pf_id) return get_scaled_pf_parameters();
   else{
-    copy = (pf_paramT *) space(sizeof(pf_paramT));
-    memcpy(copy, &pf, sizeof(pf_paramT));
+    copy = (vrna_exp_param_t *) space(sizeof(vrna_exp_param_t));
+    memcpy(copy, &pf, sizeof(vrna_exp_param_t));
   }
   return copy;
 }
 
-PUBLIC pf_paramT *set_pf_param(paramT *dest){
-  memcpy(&pf, dest, sizeof(pf_paramT));
+PUBLIC vrna_exp_param_t *set_pf_param(vrna_param_t *dest){
+  memcpy(&pf, dest, sizeof(vrna_exp_param_t));
   return &pf;
 }
 
-PUBLIC pf_paramT *scale_pf_parameters(void){
+PUBLIC vrna_exp_param_t *scale_pf_parameters(void){
   return get_scaled_pf_parameters();
 }
+
+#endif
+

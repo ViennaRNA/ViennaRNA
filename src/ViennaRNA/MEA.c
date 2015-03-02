@@ -55,13 +55,13 @@ struct MEAdat{
   char * structure;
 };
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired, short *S, pf_paramT *pf);
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired, short *S, vrna_exp_param_t *pf);
 
 PUBLIC float MEA(plist *p, char *structure, double gamma) {
   return MEA_seq(p, NULL, structure, gamma, NULL);
 }
 
-PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gamma, pf_paramT *pf){
+PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gamma, vrna_exp_param_t *pf){
 
   int i,j,n;
   Litem *li;
@@ -80,7 +80,7 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
     if(pf){
       S = vrna_seq_encode(sequence, &(pf->model_details));
     } else {
-      pf_paramT *pf_params;
+      vrna_exp_param_t *pf_params;
       pf_params = get_scaled_pf_parameters();
       S = vrna_seq_encode(sequence, &(pf_params->model_details));
       with_gquad = pf_params->model_details.gquad;
@@ -205,7 +205,7 @@ PRIVATE void pushC(List *c, int i, double a) {
   c->nelem++;
 }
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, short *S, pf_paramT *pf){
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, short *S, vrna_exp_param_t *pf){
   /* backtrack structure for the interval [i..j] */
   /* recursively calls itself, recomputes the necessary parts of the M matrix */
   List *C; Litem *li;

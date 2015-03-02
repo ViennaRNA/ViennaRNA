@@ -1380,11 +1380,11 @@ vrna_sc_add_bp_pf( vrna_fold_compound *vc,
 
     sc = vc->sc;
 
-    pf_paramT *exp_params = vc->exp_params;
-    double    GT          = 0.;
-    double    temperature = exp_params->temperature;
-    double    kT          = exp_params->kT;
-    double    TT          = (temperature+K0)/(Tmeasure);
+    vrna_exp_param_t  *exp_params = vc->exp_params;
+    double            GT          = 0.;
+    double            temperature = exp_params->temperature;
+    double            kT          = exp_params->kT;
+    double            TT          = (temperature+K0)/(Tmeasure);
 
     if(sc->exp_en_basepair)
       free(sc->exp_en_basepair);
@@ -1471,11 +1471,11 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
     if(!sc)
       vrna_sc_add(vc, constraints, options | VRNA_CONSTRAINT_SOFT_UP | VRNA_CONSTRAINT_SOFT_PF);
     else{
-      pf_paramT *exp_params = vc->exp_params;
-      double    GT          = 0.;
-      double    temperature = exp_params->temperature;
-      double    kT          = exp_params->kT;
-      double    TT          = (temperature+K0)/(Tmeasure);
+      vrna_exp_param_t   *exp_params = vc->exp_params;
+      double             GT          = 0.;
+      double             temperature = exp_params->temperature;
+      double             kT          = exp_params->kT;
+      double             TT          = (temperature+K0)/(Tmeasure);
 
       /* #################################### */
       /* # single nucleotide contributions  # */

@@ -7,6 +7,9 @@
 #define DEPRECATED(func) func
 #endif
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 /**
  *  \addtogroup energy_parameters
  *  \brief All relevant functions to retrieve and copy precalculated energy parameter sets as well as
@@ -35,7 +38,7 @@
 /**
  *  \brief The datastructure that contains temperature scaled energy parameters.
  */
-typedef struct paramT{
+typedef struct vrna_param_t{
   int     id;
   int     stack[NBPAIRS+1][NBPAIRS+1];
   int     hairpin[31];
@@ -75,12 +78,12 @@ typedef struct paramT{
 
   vrna_md_t model_details;   /**<  \brief  Model details to be used in the recursions */
 
-} paramT;
+} vrna_param_t;
 
 /**
  *  \brief  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
-typedef struct pf_paramT{
+typedef struct vrna_exp_param_t{
   int     id;
   double  expstack[NBPAIRS+1][NBPAIRS+1];
   double  exphairpin[31];
@@ -130,7 +133,7 @@ typedef struct pf_paramT{
 
   vrna_md_t model_details; /**<  \brief  Model details to be used in the recursions */
 
-} pf_paramT;
+} vrna_exp_param_t;
 
 /**
  * \brief Get precomputed energy contributions for all the known loop types
@@ -141,10 +144,10 @@ typedef struct pf_paramT{
  *
  * \return     A set of precomputed energy contributions
  */
-paramT *scale_parameters(void);
+vrna_param_t *scale_parameters(void);
 
 
-paramT *vrna_get_energy_contributions(vrna_md_t md);
+vrna_param_t *vrna_get_energy_contributions(vrna_md_t md);
 
 
 /**
@@ -161,20 +164,20 @@ paramT *vrna_get_energy_contributions(vrna_md_t md);
  *  \param md           The model details
  *  \return             precomputed energy contributions and model settings
  */
-paramT *get_scaled_parameters(double temperature,
+vrna_param_t *get_scaled_parameters(double temperature,
                               vrna_md_t md);
 
-paramT *get_parameter_copy(paramT *par);
+vrna_param_t *get_parameter_copy(vrna_param_t *par);
 
 /**
- *  get a datastructure of type \ref pf_paramT which contains
+ *  get a datastructure of type \ref vrna_exp_param_t which contains
  *  the Boltzmann weights of several energy parameters scaled
  *  according to the current temperature
  *  \return The datastructure containing Boltzmann weights for use in partition function calculations
  */
-pf_paramT *get_scaled_pf_parameters(void);
+vrna_exp_param_t *get_scaled_pf_parameters(void);
 
-pf_paramT *vrna_get_boltzmann_factors(vrna_md_t md);
+vrna_exp_param_t *vrna_get_boltzmann_factors(vrna_md_t md);
 
 /**
  *  \brief Get precomputed Boltzmann factors of the loop type
@@ -199,7 +202,7 @@ pf_paramT *vrna_get_boltzmann_factors(vrna_md_t md);
  *  \param  pf_scale      The scaling factor for the Boltzmann factors
  *  \return               A set of precomputed Boltzmann factors
  */
-pf_paramT *get_boltzmann_factors( double temperature,
+vrna_exp_param_t *get_boltzmann_factors( double temperature,
                                   double betaScale,
                                   vrna_md_t md,
                                   double pf_scale);
@@ -212,14 +215,14 @@ pf_paramT *get_boltzmann_factors( double temperature,
  *  \param  parameters  The input data structure that shall be copied
  *  \return             A copy of the provided Boltzmann factor dataset
  */
-pf_paramT *get_boltzmann_factor_copy(pf_paramT *parameters);
+vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters);
 
 /**
  *  \brief Get precomputed Boltzmann factors of the loop type
  *  dependent energy contributions (alifold variant)
  *
  */
-pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
+vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq);
 
 /**
  *  \brief Get precomputed Boltzmann factors of the loop type
@@ -227,24 +230,31 @@ pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
  *  independent thermodynamic temperature
  *
  */
-pf_paramT *get_boltzmann_factors_ali( unsigned int n_seq,
+vrna_exp_param_t *get_boltzmann_factors_ali( unsigned int n_seq,
                                       double temperature,
                                       double betaScale,
                                       vrna_md_t md,
                                       double pf_scale);
 
-pf_paramT *vrna_get_boltzmann_factors_ali(unsigned int n_seq,
+vrna_exp_param_t *vrna_get_boltzmann_factors_ali(unsigned int n_seq,
                                           vrna_md_t md);
 
 /**
  *  @}
  */
 
-DEPRECATED(paramT     *copy_parameters(void));
-DEPRECATED(paramT     *set_parameters(paramT *dest));
-DEPRECATED(pf_paramT  *scale_pf_parameters(void));
-DEPRECATED(pf_paramT  *copy_pf_param(void));
-DEPRECATED(pf_paramT  *set_pf_param(paramT *dest));
+#ifdef  VRNA_BACKWARD_COMPAT
+
+#define paramT      vrna_param_t        /* restore compatibility of struct rename */
+#define pf_paramT   vrna_exp_param_t    /* restore compatibility of struct rename */
+
+DEPRECATED(vrna_param_t     *copy_parameters(void));
+DEPRECATED(vrna_param_t     *set_parameters(vrna_param_t *dest));
+DEPRECATED(vrna_exp_param_t *scale_pf_parameters(void));
+DEPRECATED(vrna_exp_param_t *copy_pf_param(void));
+DEPRECATED(vrna_exp_param_t *set_pf_param(vrna_param_t *dest));
+
+#endif
 
 
 

@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   double        pk_penalty;
   unsigned int  options=0;
   vrna_md_t     md;
-  paramT          *par;
+  vrna_param_t  *par;
 
   subopts       = 0.0;
   dangles       = 2;

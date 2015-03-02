@@ -76,7 +76,7 @@ PRIVATE int alibacktrack(const char **strings, int s);
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 #define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
 
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 
 PRIVATE int *indx = NULL; /* index for moving in the triangle matrices c[] and fMl[]*/
 

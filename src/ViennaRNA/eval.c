@@ -95,8 +95,8 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
                       const char *structure,
                       const short *pt);
 
-PRIVATE paramT *
-get_updated_params( paramT *parameters,
+PRIVATE vrna_param_t *
+get_updated_params( vrna_param_t *parameters,
                     int compat);
 
 PRIVATE float
@@ -436,7 +436,7 @@ eval_int_loop(vrna_fold_compound *vc,
   int             ij, u1, u2, cp, *rtype, *indx;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
-  paramT          *P;
+  vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_sc_t       *sc;
 
@@ -480,7 +480,7 @@ eval_ext_int_loop(vrna_fold_compound *vc,
   int             u1, u2, length;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
-  paramT          *P;
+  vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_sc_t       *sc;
 
@@ -511,9 +511,9 @@ eval_ext_int_loop(vrna_fold_compound *vc,
                                 P, sc);
 }
 
-PRIVATE  paramT *
-get_updated_params(paramT *parameters, int compat){
-  paramT *P = NULL;
+PRIVATE  vrna_param_t *
+get_updated_params(vrna_param_t *parameters, int compat){
+  vrna_param_t *P = NULL;
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
@@ -537,7 +537,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
   /* compute energy of a single loop closed by base pair (i,j) */
   int               j, type, p,q, energy, cp;
   short             *s;
-  paramT            *P;
+  vrna_param_t      *P;
 
   P   = vc->params;
   cp  = vc->cutpoint;
@@ -671,7 +671,7 @@ eval_circ_pt( vrna_fold_compound *vc,
               int verbosity_level){
 
   int               i, j, length, energy, en0, degree;
-  paramT            *P;
+  vrna_param_t      *P;
   vrna_sc_t         *sc;
   FILE              *out;
 
@@ -757,7 +757,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   int               pos, energy, p, q, r, s, u, type, type2, L, l[3], *rtype, *loop_idx;
   int               num_elem, num_g, elem_i, elem_j, up_mis;
   short             *s1;
-  paramT            *P;
+  vrna_param_t      *P;
   vrna_md_t         *md;
 
   loop_idx  = vrna_get_loop_index(pt);
@@ -891,7 +891,7 @@ stack_energy( vrna_fold_compound *vc,
   char              *string;
   short             *s;
   FILE              *out;
-  paramT            *P;
+  vrna_param_t      *P;
 
 
   string  = vc->sequence;
@@ -987,7 +987,7 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
 
   int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, cp;
   short             *s, *s1;
-  paramT            *P;
+  vrna_param_t      *P;
   vrna_sc_t         *sc;
 
   /* helper variables for dangles == 1 case */
@@ -1106,7 +1106,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   int               e_stem, e_stem5, e_stem3, e_stem53;
   int               mlintern[NBPAIRS+1];
   short             *s, *s1;
-  paramT            *P;
+  vrna_param_t      *P;
   vrna_sc_t         *sc;
 
   /* helper variables for dangles == 1|5 case */
@@ -1491,7 +1491,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   char            **Ss          = vc->Ss;
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
+  vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
@@ -1665,7 +1665,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
   int L, l[3];
 
   short           **S           = vc->S;
-  paramT          *P            = vc->params;
+  vrna_param_t    *P            = vc->params;
   int             n_seq         = vc->n_seq;
 
   en_covar = 0;
@@ -1759,7 +1759,7 @@ stack_energy_pt_ali(vrna_fold_compound *vc,
   short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   char            **Ss        = vc->Ss;
   unsigned short  **a2s       = vc->a2s;
-  paramT          *P          = vc->params;
+  vrna_param_t    *P          = vc->params;
   vrna_md_t       *md         = &(P->model_details);
   int             n_seq       = vc->n_seq;
 
@@ -1880,7 +1880,7 @@ ML_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
+  vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
@@ -1946,7 +1946,7 @@ EL_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
+  vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
@@ -2087,7 +2087,7 @@ energy_of_structure(const char *string,
 PUBLIC float
 energy_of_struct_par( const char *string,
                       const char *structure,
-                      paramT *parameters,
+                      vrna_param_t *parameters,
                       int verbosity_level){
 
   float               en;
@@ -2141,7 +2141,7 @@ energy_of_gquad_structure(const char *string,
 PUBLIC float
 energy_of_gquad_struct_par( const char *string,
                             const char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level){
 
 
@@ -2202,7 +2202,7 @@ energy_of_struct_pt_par(const char *string,
                         short *pt,
                         short *s,
                         short *s1,
-                        paramT *parameters,
+                        vrna_param_t *parameters,
                         int verbosity_level){
 
   int en;
@@ -2254,7 +2254,7 @@ energy_of_circ_structure( const char *string,
 PUBLIC float
 energy_of_circ_struct_par(const char *string,
                           const char *structure,
-                          paramT *parameters,
+                          vrna_param_t *parameters,
                           int verbosity_level){
 
   float               en;

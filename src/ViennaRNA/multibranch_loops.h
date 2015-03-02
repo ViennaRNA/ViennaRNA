@@ -45,7 +45,7 @@
 INLINE  PRIVATE int E_MLstem( int type,
                               int si1,
                               int sj1,
-                              paramT *P);
+                              vrna_param_t *P);
 
 /**
  *  \def exp_E_MLstem(A,B,C,D)
@@ -56,7 +56,7 @@ INLINE  PRIVATE int E_MLstem( int type,
 INLINE  PRIVATE double exp_E_MLstem(int type,
                                     int si1,
                                     int sj1,
-                                    pf_paramT *P);
+                                    vrna_exp_param_t *P);
 
 
 
@@ -93,7 +93,7 @@ E_mb_loop_fast( int i,
   int               *hc_up  = vc->hc->up_ml;
   vrna_sc_t         *sc     = vc->sc;
   int               *fc     = vc->matrices->fc;
-  paramT            *P      = vc->params;
+  vrna_param_t      *P      = vc->params;
 
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
@@ -218,7 +218,7 @@ E_mb_loop_stack(int i,
   char              *hc     = vc->hc->matrix;
   int               *c      = vc->matrices->c;
   int               *fML    = vc->matrices->fML;
-  paramT            *P      = vc->params;
+  vrna_param_t      *P      = vc->params;
   vrna_md_t         *md     = &(P->model_details);
   int               turn    = md->min_loop_size;
   char              *ptype  = vc->ptype;
@@ -263,7 +263,7 @@ E_ml_rightmost_stem(int i,
                     vrna_fold_compound *vc){
 
   int               en;
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               length        = vc->length;
   short             *S            = vc->sequence_encoding;
   int               *indx         = vc->jindx;
@@ -332,7 +332,7 @@ E_ml_stems_fast(int i,
   vrna_sc_t         *sc           = vc->sc;
   int               *c            = vc->matrices->c;
   int               *fm           = vc->matrices->fML;
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               ij            = indx[j] + i;
   int               dangle_model  = P->model_details.dangles;
   int               turn          = P->model_details.min_loop_size;
@@ -476,7 +476,7 @@ E_ml_stems_fast(int i,
 
 
 
-INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
+INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0){
     energy += P->mismatchM[type][si1][sj1];
@@ -502,7 +502,7 @@ INLINE PRIVATE double
 exp_E_MLstem( int type,
               int si1,
               int sj1,
-              pf_paramT *P){
+              vrna_exp_param_t *P){
 
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){

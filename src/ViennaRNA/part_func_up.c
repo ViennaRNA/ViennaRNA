@@ -90,7 +90,7 @@ static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo 
 #################################
 */
 PRIVATE short       *S=NULL, *S1=NULL, *SS=NULL, *SS2=NULL;
-PRIVATE pf_paramT   *Pf = NULL;/* use this structure for all the exp-arrays*/
+PRIVATE vrna_exp_param_t   *Pf = NULL;/* use this structure for all the exp-arrays*/
 PRIVATE FLT_OR_DBL  *qb=NULL, *qm=NULL, *prpr=NULL; /* add arrays for pf_unpaired()*/
 PRIVATE FLT_OR_DBL  *probs=NULL;
 PRIVATE FLT_OR_DBL  *q1k=NULL, *qln=NULL;

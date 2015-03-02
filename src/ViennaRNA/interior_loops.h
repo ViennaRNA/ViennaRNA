@@ -53,7 +53,7 @@
  *  \note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
  *  must be 'turned arround' when evaluating the free energy of the interior-loop
  *  \see scale_parameters()
- *  \see paramT
+ *  \see vrna_param_t
  *  \note This function is threadsafe
  * 
  *  \param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
@@ -75,13 +75,13 @@ INLINE  PRIVATE int E_IntLoop(int n1,
                               int sj1,
                               int sp1,
                               int sq1,
-                              paramT *P);
+                              vrna_param_t *P);
 
 /**
  *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
  *  multiply by scale[u1+u2+2] for scaling
  *  @see get_scaled_pf_parameters()
- *  @see pf_paramT
+ *  @see vrna_exp_param_t
  *  @see E_IntLoop()
  *  \note This function is threadsafe
  * 
@@ -104,7 +104,7 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1,
                                       short sj1,
                                       short sp1,
                                       short sq1,
-                                      pf_paramT *P);
+                                      vrna_exp_param_t *P);
 
 
 INLINE PRIVATE int E_IntLoop_Co(int type,
@@ -119,7 +119,7 @@ INLINE PRIVATE int E_IntLoop_Co(int type,
                                 short sp1,
                                 short sq1,
                                 int dangles,
-                                paramT *P);
+                                vrna_param_t *P);
 
 
 /**
@@ -159,7 +159,7 @@ ubf_eval_int_loop(  int i,
                     int *rtype,
                     int ij,
                     int cp,
-                    paramT *P,
+                    vrna_param_t *P,
                     vrna_sc_t *sc){
 
   int energy;
@@ -227,7 +227,7 @@ ubf_eval_ext_int_loop(int i,
                       unsigned char type,
                       unsigned char type_2,
                       int length,
-                      paramT *P,
+                      vrna_param_t *P,
                       vrna_sc_t *sc){
 
   int energy;
@@ -275,7 +275,7 @@ E_int_loop( int i,
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_int;
   vrna_sc_t         *sc           = vc->sc; 
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               ij            = indx[j] + i;
   int               hc_decompose  = hc[ij];
   int               e             = INF;
@@ -368,7 +368,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   unsigned char     type, type_2;
   vrna_md_t         *md;
   char              *ptype, *hc;
-  paramT            *P;
+  vrna_param_t      *P;
   short             *S;
   vrna_sc_t         *sc;
 
@@ -442,7 +442,7 @@ E_stack(int i,
   int               cp                = vc->cutpoint;
   short             *S                = vc->sequence_encoding;
   char              *ptype            = vc->ptype;
-  paramT            *P                = vc->params;
+  vrna_param_t      *P                = vc->params;
   vrna_md_t         *md               = &(P->model_details);
   int               *rtype            = &(md->rtype[0]);
   int               *indx             = vc->jindx;
@@ -502,7 +502,7 @@ E_IntLoop(int n1,
           int sj1,
           int sp1,
           int sq1,
-          paramT *P){
+          vrna_param_t *P){
 
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, u, energy;
@@ -564,7 +564,7 @@ E_IntLoop(int n1,
   return energy;
 }
 
-INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
+INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, vrna_exp_param_t *P){
   int ul, us, no_close = 0;
   double z = 0.;
 
@@ -630,7 +630,7 @@ E_IntLoop_Co( int type,
               short sp1,
               short sq1,
               int dangles,
-              paramT *P){
+              vrna_param_t *P){
 
   int energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
 

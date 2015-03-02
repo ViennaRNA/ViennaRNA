@@ -127,10 +127,10 @@ int main(int argc, char *argv[]){
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
   char            *outfile;
-  int           out_th, out_db, out_hx, out_ct, out_bps;
-  paramT          *mfe_parameters;
-  pf_paramT       *pf_parameters;
-  vrna_md_t       md;
+  int               out_th, out_db, out_hx, out_ct, out_bps;
+  vrna_param_t      *mfe_parameters;
+  vrna_exp_param_t  *pf_parameters;
+  vrna_md_t         md;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;

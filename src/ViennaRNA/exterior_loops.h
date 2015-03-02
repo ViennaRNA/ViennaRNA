@@ -44,7 +44,7 @@
 INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
                               int sj1,
-                              paramT *P);
+                              vrna_param_t *P);
 
 /**
  *  This is the partition function variant of \ref E_ExtLoop()
@@ -54,7 +54,7 @@ INLINE  PRIVATE int E_ExtLoop(int type,
 INLINE  PRIVATE double exp_E_ExtLoop( int type,
                                       int si1,
                                       int sj1,
-                                      pf_paramT *P);
+                                      vrna_exp_param_t *P);
 
 /**
  *  <H2>Compute the energy contribution of a stem branching off a loop-region</H2>
@@ -105,7 +105,7 @@ INLINE  PRIVATE int E_Stem( int type,
                             int si1,
                             int sj1,
                             int extLoop,
-                            paramT *P);
+                            vrna_param_t *P);
 
 /**
  *  <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
@@ -119,7 +119,7 @@ INLINE  PRIVATE double exp_E_Stem(int type,
                                   int si1,
                                   int sj1,
                                   int extLoop,
-                                  pf_paramT *P);
+                                  vrna_exp_param_t *P);
 
 
 /*
@@ -139,7 +139,7 @@ E_ext_loop( int i,
   short   *S        = vc->sequence_encoding;
   int     *idx      = vc->jindx;
   char    *ptype    = vc->ptype;
-  paramT  *P        = vc->params;
+  vrna_param_t  *P  = vc->params;
   vrna_md_t     *md = &(P->model_details);
   char            *hard_constraints = vc->hc->matrix;
 
@@ -190,7 +190,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
   vrna_sc_t         *sc           = vc->sc;
   int               *f5           = vc->matrices->f5;
   int               *c            = vc->matrices->c;
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               dangle_model  = P->model_details.dangles;
   int               *ggg          = vc->matrices->ggg;
   int               with_gquad    = P->model_details.gquad;
@@ -387,7 +387,7 @@ E_Stem( int type,
         int si1,
         int sj1,
         int extLoop,
-        paramT *P){
+        vrna_param_t *P){
 
   int energy = 0;
   int d5 = (si1 >= 0) ? P->dangle5[type][si1] : 0;
@@ -409,7 +409,7 @@ INLINE  PRIVATE int
 E_ExtLoop(int type,
           int si1,
           int sj1,
-          paramT *P){
+          vrna_param_t *P){
 
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0){
@@ -433,7 +433,7 @@ exp_E_Stem( int type,
             int si1,
             int sj1,
             int extLoop,
-            pf_paramT *P){
+            vrna_exp_param_t *P){
 
   double energy = 1.0;
   double d5 = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
@@ -455,7 +455,7 @@ INLINE PRIVATE double
 exp_E_ExtLoop(int type,
               int si1,
               int sj1,
-              pf_paramT *P){
+              vrna_exp_param_t *P){
 
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){

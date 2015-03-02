@@ -74,7 +74,7 @@ PRIVATE void    backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack
 
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
-                              paramT *parameters,
+                              vrna_param_t *parameters,
                               int is_constrained,
                               int is_circular);
 
@@ -87,12 +87,12 @@ PRIVATE float   wrap_alifold( const char **strings,
 PRIVATE float
 wrap_alifold( const char **strings,
               char *structure,
-              paramT *parameters,
+              vrna_param_t *parameters,
               int is_constrained,
               int is_circular){
 
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -211,7 +211,7 @@ fill_arrays(vrna_fold_compound *vc){
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
+  vrna_param_t    *P            = vc->params;                                                                
   vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
@@ -649,7 +649,7 @@ backtrack(vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
+  vrna_param_t    *P            = vc->params;                                                                
   vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 

@@ -239,7 +239,7 @@ pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc,
 DEPRECATED(float alipf_fold_par( const char **sequences,
                       char *structure,
                       plist **pl,
-                      pf_paramT *parameters,
+                      vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
                       int is_circular));

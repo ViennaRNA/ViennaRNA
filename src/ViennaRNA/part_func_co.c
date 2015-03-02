@@ -69,7 +69,7 @@ PRIVATE void    pf_co_bppm(vrna_fold_compound *vc, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
                                 char *structure,
-                                pf_paramT *parameters,
+                                vrna_exp_param_t *parameters,
                                 int calculate_bppm,
                                 int is_constrained);
 
@@ -89,7 +89,7 @@ PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
 PRIVATE cofoldF
 wrap_co_pf_fold(char *sequence,
                 char *structure,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained){
 
@@ -101,7 +101,7 @@ wrap_co_pf_fold(char *sequence,
   vc      = NULL;
   length  = strlen(sequence);
 
-  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
     md = parameters->model_details;
   else{
@@ -150,9 +150,9 @@ wrap_co_pf_fold(char *sequence,
 
 PRIVATE void
 wrap_update_pf_params(int length,
-                      pf_paramT *parameters){
+                      vrna_exp_param_t *parameters){
 
-  pf_paramT *p = NULL;
+  vrna_exp_param_t *p = NULL;
   if(parameters == NULL){
     vrna_md_t md;
     set_model_details(&md);
@@ -179,8 +179,8 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
   double          free_energy;
   char            *sequence;
   vrna_md_t       *md;
-  pf_paramT       *params;
-  vrna_mx_pf_t    *matrices;
+  vrna_exp_param_t  *params;
+  vrna_mx_pf_t      *matrices;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -295,7 +295,7 @@ pf_co(vrna_fold_compound *vc){
   int               noGUclosure;
   double            max_real;
   int               *rtype;
-  pf_paramT         *pf_params;
+  vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   int               hc_decompose;
   char              *hard_constraints;
@@ -634,7 +634,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   FLT_OR_DBL        *tmp;
   FLT_OR_DBL        expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
   double            max_real;
-  pf_paramT         *pf_params;
+  vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   short             *S,*S1;
   char              *ptype;
@@ -1011,7 +1011,7 @@ vrna_co_pf_dimer_probs( double FAB,
                         const plist *prA,
                         const plist *prB,
                         int Alength,
-                        const pf_paramT *exp_params) {
+                        const vrna_exp_param_t *exp_params) {
 
   /*computes binding probabilities and dimer free energies*/
   int         i, j;
@@ -1110,7 +1110,7 @@ vrna_co_pf_get_concentrations(double FcAB,
                               double FEA,
                               double FEB,
                               const double *startconc,
-                              const pf_paramT *exp_params){
+                              const vrna_exp_param_t *exp_params){
 
   /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
   double          *ConcVec;
@@ -1167,8 +1167,8 @@ backtrack_qm1(vrna_fold_compound *vc,
   char          *ptype;
   vrna_md_t     *md;
 
-  pf_paramT     *pf_params;
-  vrna_mx_pf_t  *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices;
 
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
@@ -1206,8 +1206,8 @@ backtrack(vrna_fold_compound *vc,
 
   int           *jindx, *my_iindx, *rtype, turn;
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase, *scale;
-  pf_paramT     *pf_params;
-  vrna_mx_pf_t  *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices;
   short         *S1;
   char          *ptype, *sequence;
   int           noGUclosure;
@@ -1326,7 +1326,7 @@ co_pf_fold(char *sequence, char *structure){
 PUBLIC cofoldF
 co_pf_fold_par( char *sequence,
                 char *structure,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained){
 
@@ -1375,7 +1375,7 @@ compute_probabilities(double FAB,
                       int Alength) {
 
   if(backward_compat_compound && backward_compat){
-    vrna_co_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const pf_paramT *)backward_compat_compound->exp_params);
+    vrna_co_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
   }
 }
 
@@ -1387,7 +1387,7 @@ get_concentrations( double FcAB,
                     double FEB,
                     double *startconc){
 
-  return vrna_co_pf_get_concentrations(FcAB, FcAA, FcBB, FEA, FEB, (const double *)startconc, (const pf_paramT *)backward_compat_compound->exp_params);
+  return vrna_co_pf_get_concentrations(FcAB, FcAA, FcBB, FEA, FEB, (const double *)startconc, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
 }
 
 PUBLIC void
@@ -1428,7 +1428,7 @@ update_co_pf_params(int length){
 
 PUBLIC void
 update_co_pf_params_par(int length,
-                        pf_paramT *parameters){
+                        vrna_exp_param_t *parameters){
 
 /*---------------------------------------------------------------------------*/
   wrap_update_pf_params(length, parameters);

@@ -91,7 +91,7 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2,const int **access
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 PRIVATE int   **c = NULL;/*, **in, **bx, **by;*/      /* energy array used in duplexfold */
 /* PRIVATE int ****c_XS; */
 PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL, **linx = NULL, **liny = NULL;   /* energy array used in Lduplexfold

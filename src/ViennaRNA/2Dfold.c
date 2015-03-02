@@ -81,11 +81,11 @@ vrna_TwoDfold_get_vars( const char *seq,
   TwoDfold_vars *vars;
   length = strlen(seq);
   vars = (TwoDfold_vars *)malloc(sizeof(TwoDfold_vars));
-  vars->sequence     = (char *)space(length + 1);
+  vars->sequence        = (char *)space(length + 1);
   strcpy(vars->sequence, seq);
-  vars->seq_length   = length;
+  vars->seq_length      = length;
   if(vars->seq_length < 1) nrerror("vrna_TwoDfold_get_vars: sequence must be longer than 0");
-  size                        = ((length + 1) * (length + 2)/2);
+  size                  = ((length + 1) * (length + 2)/2);
 
   vars->reference_pt1   = vrna_pt_get(structure1);
   vars->reference_pt2   = vrna_pt_get(structure2);
@@ -798,7 +798,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
   int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
-  paramT        *P;
+  vrna_param_t  *P;
 
   /* dereferenciate things we often need */
   P               = vars->P;
@@ -1855,8 +1855,8 @@ PRIVATE void backtrack_f5(unsigned int j, int k, int l, char *structure, TwoDfol
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype;
-  paramT   *P;
-  unsigned int da, db;
+  vrna_param_t   *P;
+  unsigned int   da, db;
 
   P               = vars->P;
   seq_length      = vars->seq_length;
@@ -2051,8 +2051,8 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
-  char  *ptype, *sequence;
-  paramT   *P;
+  char  *ptype,  *sequence;
+  vrna_param_t   *P;
 
   P               = vars->P;
   sequence        = vars->sequence;
@@ -2305,7 +2305,7 @@ PRIVATE void backtrack_m(unsigned int i, unsigned int j, int k, int l, char *str
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype;
-  paramT   *P;
+  vrna_param_t   *P;
 
   P           = vars->P;
   seq_length  = vars->seq_length;
@@ -2558,7 +2558,7 @@ PRIVATE void backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *st
 
   short         *S1;
   char          *ptype;
-  paramT        *P;
+  vrna_param_t  *P;
 
   P               = vars->P;
   seq_length      = vars->seq_length;
@@ -2659,7 +2659,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
   int *l_min_values_fcH, *l_max_values_fcH, k_min_values_fcH, k_max_values_fcH;
   int *l_min_values_fcI, *l_max_values_fcI, k_min_values_fcI, k_max_values_fcI;
   int *l_min_values_fcM, *l_max_values_fcM, k_min_values_fcM, k_max_values_fcM;
-  paramT   *P;
+  vrna_param_t   *P;
   P                 = vars->P;
   sequence          = vars->sequence;
   seq_length        = vars->seq_length;
@@ -3204,7 +3204,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
 
-  paramT        *P;
+  vrna_param_t  *P;
 
   P               = vars->P;
   sequence        = vars->sequence;

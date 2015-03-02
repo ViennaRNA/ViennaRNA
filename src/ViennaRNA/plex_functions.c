@@ -36,7 +36,7 @@ PRIVATE void  duplexfold_XS(const char *s1, int **access_s1, const int threshold
 PRIVATE char  *backtrack_XS(int kk, int ll, const int ii, const int jj, const int max_interaction_length);
 PRIVATE void  make_ptypes(const char *structure);
 
-PRIVATE paramT  *P = NULL;
+PRIVATE vrna_param_t  *P = NULL;
 PRIVATE int     ***c3 = NULL;      /* energy array used in duplexfold */
 PRIVATE short   *S1 = NULL, *SS1 = NULL;
 PRIVATE int     n1;

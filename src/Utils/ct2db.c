@@ -148,7 +148,7 @@ int main(int argc, char *argv[]){
     if(pkfree){
       float mea, MEAgamma;
       MEAgamma = 2.0;
-      pf_paramT *params = get_scaled_pf_parameters();
+      vrna_exp_param_t *params = get_scaled_pf_parameters();
 
       structure = (char *)space(sizeof(char) * (length + 1));
       strcpy(structure, seq);

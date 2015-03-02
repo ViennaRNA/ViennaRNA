@@ -65,7 +65,7 @@ typedef struct TwoDfold_solution{
  *  \see vrna_TwoDfold_get_vars(), vrna_TwoDfold(), vrna_TwoDfold_destroy_vars
  */
 typedef struct TwoDfold_vars{
-  struct paramT   *P;             /**<  \brief  Precomputed energy parameters and model details */
+  struct vrna_param_t   *P;             /**<  \brief  Precomputed energy parameters and model details */
   int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
   char            *ptype;         /**<  \brief  Precomputed array of pair types */
   char            *sequence;      /**<  \brief  The input sequence  */

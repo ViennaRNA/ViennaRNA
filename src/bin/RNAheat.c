@@ -200,8 +200,8 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
    /* init_pf_fold(length); <- obsolete */
-    pf_paramT       *pf_parameters = NULL;
-    vrna_md_t       md;
+    vrna_exp_param_t  *pf_parameters = NULL;
+    vrna_md_t         md;
     set_model_details(&md);
 
    for (i=0; i<2*m+1; i++) {

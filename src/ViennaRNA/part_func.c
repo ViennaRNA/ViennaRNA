@@ -65,14 +65,14 @@ PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound *vc);
 PRIVATE float
 wrap_pf_fold( const char *sequence,
               char *structure,
-              pf_paramT *parameters,
+              vrna_exp_param_t *parameters,
               int calculate_bppm,
               int is_constrained,
               int is_circular);
 
 PRIVATE void
 wrap_update_pf_params(int length,
-                      pf_paramT *parameters);
+                      vrna_exp_param_t *parameters);
 
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL *p,
@@ -90,7 +90,7 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
 PRIVATE float
 wrap_pf_fold( const char *sequence,
               char *structure,
-              pf_paramT *parameters,
+              vrna_exp_param_t *parameters,
               int calculate_bppm,
               int is_constrained,
               int is_circular){
@@ -99,7 +99,7 @@ wrap_pf_fold( const char *sequence,
   vrna_md_t           md;
   vc                  = NULL;
 
-  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
     md = parameters->model_details;
   else{
@@ -146,12 +146,12 @@ PUBLIC float
 vrna_pf_fold( vrna_fold_compound *vc,
               char *structure){
 
-  FLT_OR_DBL      Q;
-  double          free_energy;
-  int             n;
-  vrna_md_t       *md;
-  pf_paramT       *params;
-  vrna_mx_pf_t    *matrices;
+  FLT_OR_DBL        Q;
+  double            free_energy;
+  int               n;
+  vrna_md_t         *md;
+  vrna_exp_param_t  *params;
+  vrna_mx_pf_t      *matrices;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -236,8 +236,8 @@ pf_linear(vrna_fold_compound *vc){
   int         *my_iindx, *jindx;
   char        *ptype, *sequence;
 
-  pf_paramT     *pf_params;
-  vrna_mx_pf_t  *matrices = vc->exp_matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices = vc->exp_matrices;
 
   pf_params             = vc->exp_params;
   vrna_md_t       *md = &(pf_params->model_details);
@@ -570,7 +570,7 @@ pf_circ(vrna_fold_compound *vc){
   FLT_OR_DBL  *scale;
   short       *S1;
 
-  pf_paramT     *pf_params = vc->exp_params;
+  vrna_exp_param_t     *pf_params = vc->exp_params;
   FLT_OR_DBL    *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo;
   vrna_mx_pf_t  *matrices;
 
@@ -688,7 +688,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   vrna_sc_t         *sc;
   int               *my_iindx, *jindx;
   int               circular;
-  pf_paramT         *pf_params;
+  vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
 
@@ -1171,7 +1171,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 }
 
 #if 0
-PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
+PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
   unsigned int  i;
   double        scaling_factor;
 
@@ -1211,9 +1211,9 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
 
 PRIVATE void
 wrap_update_pf_params(int length,
-                      pf_paramT *parameters){
+                      vrna_exp_param_t *parameters){
 
-  pf_paramT *p = NULL;
+  vrna_exp_param_t *p = NULL;
   if(parameters == NULL){
     vrna_md_t md;
     set_model_details(&md);
@@ -1225,7 +1225,7 @@ wrap_update_pf_params(int length,
 
 PUBLIC void
 vrna_update_pf_params(vrna_fold_compound *vc,
-                      pf_paramT *params){
+                      vrna_exp_param_t *params){
 
   if(vc){
     if(params){
@@ -1249,8 +1249,8 @@ PRIVATE void
 rescale_params( vrna_fold_compound *vc){
 
   int           i;
-  pf_paramT     *pf = vc->exp_params;
-  vrna_mx_pf_t  *m  = vc->exp_matrices;
+  vrna_exp_param_t  *pf = vc->exp_params;
+  vrna_mx_pf_t      *m  = vc->exp_matrices;
 
   m->scale[0] = 1.;
   m->scale[1] = 1./pf->pf_scale;
@@ -1267,7 +1267,7 @@ vrna_rescale_pf_params( vrna_fold_compound *vc,
                         double *mfe){
 
   if(vc){
-    pf_paramT *pf = vc->exp_params;
+    vrna_exp_param_t *pf = vc->exp_params;
     if(pf){
       double kT = pf->kT;
 
@@ -1320,7 +1320,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   vrna_mx_pf_t      *matrices;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
-  pf_paramT         *pf_params;
+  vrna_exp_param_t  *pf_params;
 
   n         = vc->length;
 
@@ -1434,7 +1434,7 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
 
   double r, qt;
   int i, j, k, l, n;
-  pf_paramT   *pf_params;
+  vrna_exp_param_t   *pf_params;
   FLT_OR_DBL  qo, qmo;
   FLT_OR_DBL  *scale, *qb, *qm, *qm2;
   char        *sequence, *ptype, *pstruc;
@@ -1635,7 +1635,7 @@ backtrack_qm1(int i,
   char          *ptype;
   short         *S1;
   vrna_sc_t     *sc;
-  pf_paramT     *pf_params;
+  vrna_exp_param_t  *pf_params;
 
 
   pf_params = vc->exp_params;
@@ -1712,7 +1712,7 @@ backtrack(int i,
           vrna_fold_compound *vc){
 
   char              *ptype, *sequence;
-  pf_paramT         *pf_params;
+  vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   vrna_mx_pf_t      *matrices;
   int               *my_iindx, *jindx;
@@ -1860,7 +1860,7 @@ stackProb(double cutoff){
   plist *pl;
   int i,j,plsize=256;
   int num = 0;
-  pf_paramT *pf_params;
+  vrna_exp_param_t *pf_params;
   FLT_OR_DBL    *qb, *probs, *scale;
   vrna_mx_pf_t  *matrices;
   char          *ptype;
@@ -1918,7 +1918,7 @@ get_subseq_F( int i,
     if(backward_compat_compound->exp_matrices)
       if(backward_compat_compound->exp_matrices->q){
         int       *my_iindx   = backward_compat_compound->iindx;
-        pf_paramT *pf_params  = backward_compat_compound->exp_params;
+        vrna_exp_param_t *pf_params  = backward_compat_compound->exp_params;
         FLT_OR_DBL  *q        = backward_compat_compound->exp_matrices->q;
         return ((-log(q[my_iindx[i]-j])-(j-i+1)*log(pf_params->pf_scale))*pf_params->kT/1000.0);
       }
@@ -2034,7 +2034,7 @@ expHairpinEnergy( int u,
 
 /* compute Boltzmann weight of a hairpin loop, multiply by scale[u+2] */
 
-  pf_paramT *pf_params = backward_compat_compound->exp_params;
+  vrna_exp_param_t *pf_params = backward_compat_compound->exp_params;
 
   double q, kT;
   kT = pf_params->kT;   /* kT in cal/mol  */
@@ -2082,7 +2082,7 @@ expLoopEnergy(int u1,
    multiply by scale[u1+u2+2] for scaling */
   double z=0;
   int no_close = 0;
-  pf_paramT *pf_params = backward_compat_compound->exp_params;
+  vrna_exp_param_t *pf_params = backward_compat_compound->exp_params;
 
 
   if ((no_closingGU) && ((type2==3)||(type2==4)||(type==2)||(type==4)))
@@ -2213,7 +2213,7 @@ pf_circ_fold( const char *sequence,
 PUBLIC float
 pf_fold_par(const char *sequence,
             char *structure,
-            pf_paramT *parameters,
+            vrna_exp_param_t *parameters,
             int calculate_bppm,
             int is_constrained,
             int is_circular){
@@ -2244,7 +2244,7 @@ update_pf_params(int length){
 
 PUBLIC void
 update_pf_params_par( int length,
-                      pf_paramT *parameters){
+                      vrna_exp_param_t *parameters){
 
   wrap_update_pf_params(length, parameters);
 }

@@ -53,7 +53,7 @@ SOLUTION *subopt (char *seq,
  */
 SOLUTION *subopt_par( char *seq,
                       char *structure,
-                      paramT *parameters,
+                      vrna_param_t *parameters,
                       int delta,
                       int is_constrained,
                       int is_circular,
