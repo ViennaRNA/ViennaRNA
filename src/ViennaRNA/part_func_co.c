@@ -180,7 +180,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
   char            *sequence;
   vrna_md_t       *md;
   pf_paramT       *params;
-  vrna_mx_pfT     *matrices;
+  vrna_mx_pf_t    *matrices;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -296,7 +296,7 @@ pf_co(vrna_fold_compound *vc){
   double            max_real;
   int               *rtype;
   pf_paramT         *pf_params;
-  vrna_mx_pfT       *matrices;
+  vrna_mx_pf_t      *matrices;
   int               hc_decompose;
   char              *hard_constraints;
   int               *hc_up_ext;
@@ -640,7 +640,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   char              *ptype;
   vrna_hcT          *hc;
   vrna_scT          *sc;
-  vrna_mx_pfT       *matrices;
+  vrna_mx_pf_t      *matrices;
   char              *sequence;
   char              *hard_constraints;
   int               *hc_up_ext;
@@ -1168,7 +1168,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   vrna_md_t     *md;
 
   pf_paramT     *pf_params;
-  vrna_mx_pfT   *matrices;
+  vrna_mx_pf_t  *matrices;
 
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
@@ -1207,7 +1207,7 @@ backtrack(vrna_fold_compound *vc,
   int           *jindx, *my_iindx, *rtype, turn;
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase, *scale;
   pf_paramT     *pf_params;
-  vrna_mx_pfT   *matrices;
+  vrna_mx_pf_t  *matrices;
   short         *S1;
   char          *ptype, *sequence;
   int           noGUclosure;

@@ -399,7 +399,7 @@ typedef struct{
   int     FcH;
   int     FcI;
   int     FcM;
-} vrna_mx_mfeT;
+} vrna_mx_mfe_t;
 
 typedef struct{
   unsigned int allocated;
@@ -421,7 +421,7 @@ typedef struct{
 
   FLT_OR_DBL  *scale;
   FLT_OR_DBL  *expMLbase;
-} vrna_mx_pfT;
+} vrna_mx_pf_t;
 
 typedef struct{
 
@@ -467,8 +467,8 @@ typedef struct{
 
   struct vrna_hcT   *hc;
 
-  vrna_mx_mfeT      *matrices;
-  vrna_mx_pfT       *exp_matrices;
+  vrna_mx_mfe_t     *matrices;
+  vrna_mx_pf_t      *exp_matrices;
 
   struct paramT     *params;
   struct pf_paramT  *exp_params;

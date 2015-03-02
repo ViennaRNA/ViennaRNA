@@ -24,7 +24,7 @@
 #################################
 */
 PRIVATE plist *
-wrap_get_plist( vrna_mx_pfT *matrices,
+wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
@@ -550,7 +550,7 @@ vrna_get_plist_from_pr( vrna_fold_compound *vc,
 }
 
 PRIVATE plist *
-wrap_get_plist( vrna_mx_pfT *matrices,
+wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
@@ -810,12 +810,12 @@ assign_plist_from_pr( plist **pl,
                       double cut_off){
 
   int *index;
-  vrna_mx_pfT *matrices;
+  vrna_mx_pf_t *matrices;
   vrna_md_t  md;
   pf_paramT *pf_params;
 
   index     = get_iindx(length);
-  matrices  = (vrna_mx_pfT *)space(sizeof(vrna_mx_pfT));
+  matrices  = (vrna_mx_pf_t *)space(sizeof(vrna_mx_pf_t));
 
   set_model_details(&md);
   md.gquad        = 0;

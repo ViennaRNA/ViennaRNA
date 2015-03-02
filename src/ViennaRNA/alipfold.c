@@ -160,7 +160,7 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
   int             n_seq     = vc->n_seq;
   pf_paramT       *params   = vc->exp_params;
   vrna_md_t       *md       = &(params->model_details);
-  vrna_mx_pfT     *matrices = vc->exp_matrices;
+  vrna_mx_pf_t    *matrices = vc->exp_matrices;
 
   alipf_linear(vc, structure);
 
@@ -213,7 +213,7 @@ alipf_linear( vrna_fold_compound *vc,
   char              **Ss              = vc->Ss;                                                               
   unsigned short    **a2s             = vc->a2s;                                                               
   pf_paramT         *pf_params        = vc->exp_params;
-  vrna_mx_pfT       *matrices         = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices         = vc->exp_matrices;
   vrna_md_t         *md               = &(pf_params->model_details);
   vrna_hcT          *hc               = vc->hc;
   vrna_scT          **sc              = vc->scs;
@@ -532,7 +532,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   char              **Ss          = vc->Ss;
   unsigned short    **a2s         = vc->a2s;                                                                   
   pf_paramT         *pf_params    = vc->exp_params;
-  vrna_mx_pfT       *matrices     = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices     = vc->exp_matrices;
   vrna_md_t         *md           = &(pf_params->model_details);
   vrna_hcT          *hc           = vc->hc;
   vrna_scT          **sc          = vc->scs;
@@ -1142,7 +1142,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
-  vrna_mx_pfT       *matrices   = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
@@ -1307,7 +1307,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   pf_paramT         *pf_params  = vc->exp_params;
-  vrna_mx_pfT       *matrices   = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   vrna_hcT          *hc         = vc->hc;
@@ -1399,7 +1399,7 @@ backtrack(vrna_fold_compound *vc,
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
-  vrna_mx_pfT       *matrices   = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
@@ -1581,7 +1581,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   pf_paramT         *pf_params  = vc->exp_params;
-  vrna_mx_pfT       *matrices   = vc->exp_matrices;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
