@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
   int           out_th, out_db, out_hx, out_ct, out_bps;
   paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
-  model_detailsT  md;
+  vrna_md_t       md;
 
   rec_type      = read_opt = 0;
   rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;

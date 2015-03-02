@@ -219,7 +219,7 @@ E_mb_loop_stack(int i,
   int               *c      = vc->matrices->c;
   int               *fML    = vc->matrices->fML;
   paramT            *P      = vc->params;
-  model_detailsT    *md     = &(P->model_details);
+  vrna_md_t         *md     = &(P->model_details);
   int               turn    = md->min_loop_size;
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);

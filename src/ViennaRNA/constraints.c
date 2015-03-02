@@ -526,7 +526,7 @@ hc_reset_to_default(vrna_fold_compound *vc){
 
   unsigned int      i, j, ij, min_loop_size, n;
   int               max_span, *idx;
-  model_detailsT    *md;
+  vrna_md_t         *md;
   vrna_hcT          *hc;
   short             *S;
 
@@ -690,7 +690,7 @@ vrna_hc_add(vrna_fold_compound *vc,
 
   unsigned int      n, min_loop_size;
   vrna_hcT          *hc;
-  model_detailsT    *md;
+  vrna_md_t         *md;
 
   if(vc->params)
     md = &(vc->params->model_details);

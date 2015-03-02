@@ -110,7 +110,7 @@ wrap_alipf_fold(const char **sequences,
   if(parameters)
     exp_params = get_boltzmann_factor_copy(parameters);
   else{
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md); /* get global default parameters */
     exp_params = vrna_get_boltzmann_factors_ali(n_seq, md);
   }
@@ -159,7 +159,7 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
   int             n         = vc->length;
   int             n_seq     = vc->n_seq;
   pf_paramT       *params   = vc->exp_params;
-  model_detailsT  *md       = &(params->model_details);
+  vrna_md_t       *md       = &(params->model_details);
   vrna_mx_pfT     *matrices = vc->exp_matrices;
 
   alipf_linear(vc, structure);
@@ -214,7 +214,7 @@ alipf_linear( vrna_fold_compound *vc,
   unsigned short    **a2s             = vc->a2s;                                                               
   pf_paramT         *pf_params        = vc->exp_params;
   vrna_mx_pfT       *matrices         = vc->exp_matrices;
-  model_detailsT    *md               = &(pf_params->model_details);
+  vrna_md_t         *md               = &(pf_params->model_details);
   vrna_hcT          *hc               = vc->hc;
   vrna_scT          **sc              = vc->scs;
   int               *my_iindx         = vc->iindx;
@@ -533,7 +533,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
   unsigned short    **a2s         = vc->a2s;                                                                   
   pf_paramT         *pf_params    = vc->exp_params;
   vrna_mx_pfT       *matrices     = vc->exp_matrices;
-  model_detailsT    *md           = &(pf_params->model_details);
+  vrna_md_t         *md           = &(pf_params->model_details);
   vrna_hcT          *hc           = vc->hc;
   vrna_scT          **sc          = vc->scs;
   int               *my_iindx     = vc->iindx;
@@ -1075,7 +1075,7 @@ vrna_ali_get_pair_info( vrna_fold_compound *vc,
   int n     = vc->length;
   int         *my_iindx = vc->iindx;
   FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
-  model_detailsT  *md = &(vc->exp_params->model_details);
+  vrna_md_t   *md = &(vc->exp_params->model_details);
 
   max_p = 64; pi = space(max_p*sizeof(pair_info));
   duck =  (double *) space((n+1)*sizeof(double));
@@ -1143,7 +1143,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   vrna_mx_pfT       *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
   vrna_hcT          *hc         = vc->hc;
@@ -1308,7 +1308,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   pf_paramT         *pf_params  = vc->exp_params;
   vrna_mx_pfT       *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   vrna_hcT          *hc         = vc->hc;
   vrna_scT          **sc        = vc->scs;
@@ -1400,7 +1400,7 @@ backtrack(vrna_fold_compound *vc,
   unsigned short    **a2s       = vc->a2s;                                                                   
   pf_paramT         *pf_params  = vc->exp_params;
   vrna_mx_pfT       *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
   vrna_hcT          *hc         = vc->hc;
@@ -1582,7 +1582,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   pf_paramT         *pf_params  = vc->exp_params;
   vrna_mx_pfT       *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
   vrna_hcT          *hc         = vc->hc;

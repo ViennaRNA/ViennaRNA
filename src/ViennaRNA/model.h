@@ -7,12 +7,10 @@
 #define DEPRECATED(func) func
 #endif
 
-#ifndef MAXALPHA
-/**
- *  \brief Maximal length of alphabet
- */
-#define MAXALPHA              20
-#endif
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 
 #define VRNA_MODEL_DEFAULT_TEMPERATURE    37.0
 #define VRNA_MODEL_DEFAULT_PF_SCALE       -1
@@ -39,12 +37,27 @@
 
 
 /**
+ *  \addtogroup   basic_data_structures
+ *
+ *  @{
+ *
  *  \file model.h
  *  \brief The model details data structure and its corresponding modifiers
  */
 
 
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
+#ifndef MAXALPHA
+/**
+ *  \brief Maximal length of alphabet
+ */
+#define MAXALPHA              20
+#endif
+
+#define model_detailsT        vrna_md_t               /* restore compatibility of struct rename */
+#define set_model_details(a)  vrna_md_set_globals(a)  /* restore compatibility of function rename */
 
 /* BEGIN deprecated global variables: */
 
@@ -199,11 +212,13 @@ extern  int logML;
 
 /* END deprecated global variables: */
 
+#endif
+
 /**
  *  \brief The data structure that contains the complete model details used throughout the calculations
  *
  */
-typedef struct{
+typedef struct vrna_md_t{
   double  temperature;      /**<  \brief  The temperature used to scale the thermodynamic parameters */
   double  betaScale;        /**<  \brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
   int     dangles;          /**<  \brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
@@ -242,75 +257,82 @@ typedef struct{
   int     rtype[8];
   short   alias[MAXALPHA+1];
   int     pair[MAXALPHA+1][MAXALPHA+1];
-} model_detailsT;
+} vrna_md_t;
 
 
 /**
  * \brief Set default model details
  *
- *  Use this function if you wish to initialize a #model_detailsT data structure with
+ *  Use this function if you wish to initialize a #vrna_md_t data structure with
  *  its default values, i.e. the global model settings
  *
  *  \see
  *
- *  \param md A pointer to the data structure that shall be initialized
+ *  \param md A pointer to the data structure that is about to be initialized
  */
-void vrna_md_set_default(model_detailsT *md);
+void vrna_md_set_default(vrna_md_t *md);
 
 
-void vrna_md_set_nonstandards(model_detailsT *md, const char *ns);
+void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
 
 
-void vrna_md_set_dangles(model_detailsT *md, int d);
+void vrna_md_set_dangles(vrna_md_t *md, int d);
 
 
-int vrna_md_get_dangles(model_detailsT *md);
+int vrna_md_get_dangles(vrna_md_t *md);
 
 
-void vrna_md_set_temperature(model_detailsT *md, double T);
+void vrna_md_set_temperature(vrna_md_t *md, double T);
 
 
-double vrna_md_get_temperature(model_detailsT *md);
+double vrna_md_get_temperature(vrna_md_t *md);
 
 
-void vrna_md_set_special_hp(model_detailsT *md, int shp);
+void vrna_md_set_special_hp(vrna_md_t *md, int shp);
 
 
-int vrna_md_get_special_hp(model_detailsT *md);
+int vrna_md_get_special_hp(vrna_md_t *md);
 
 
-void vrna_md_set_gquad(model_detailsT *md, int g);
+void vrna_md_set_gquad(vrna_md_t *md, int g);
 
 
-int vrna_md_get_gquad(model_detailsT *md);
+int vrna_md_get_gquad(vrna_md_t *md);
 
 
-void vrna_md_set_nolp(model_detailsT *md, int nolp);
+void vrna_md_set_nolp(vrna_md_t *md, int nolp);
 
 
-int vrna_md_get_nolp(model_detailsT *md);
+int vrna_md_get_nolp(vrna_md_t *md);
 
 
-void vrna_md_set_betascale(model_detailsT *md, double b);
+void vrna_md_set_betascale(vrna_md_t *md, double b);
 
 
-double vrna_md_get_betascale(model_detailsT *md);
+double vrna_md_get_betascale(vrna_md_t *md);
 
 /**
  *  \brief Update the model details
  */
-void vrna_md_update(model_detailsT *md);
+void vrna_md_update(vrna_md_t *md);
 
 /**
  * \brief Set default model details
  *
- *  Use this function if you wish to initialize a #model_detailsT data structure with
- *  its default values, i.e. the global model settings
+ *  Use this function if you wish to initialize a #vrna_md_t data structure with
+ *  its default values, i.e. the global model settings as provided by the deprecated
+ *  global variables.
  *
- *  \deprecated Use vrna_md_set_default instead
+ *  \deprecated This function will vanish as soon as backward compatibility of
+ *              RNAlib is dropped (expected in version 3).
+ *              Use vrna_md_set_default instead!
  *
- *  \param md A pointer to the data structure that shall be initialized
+ *  \param md A pointer to the data structure that is about to be initialized
  */
-void set_model_details(model_detailsT *md);
+void vrna_md_set_globals(vrna_md_t *md);
+
+/**
+ * @}
+ */
 
 #endif

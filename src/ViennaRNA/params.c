@@ -35,19 +35,19 @@ PRIVATE int pf_id=-1;
 #endif
 
 PUBLIC paramT *scale_parameters(void){
-  model_detailsT  md;
+  vrna_md_t  md;
   set_model_details(&md);
   return get_scaled_parameters(temperature, md);
 }
 
 PUBLIC paramT *
-vrna_get_energy_contributions(model_detailsT md){
+vrna_get_energy_contributions(vrna_md_t md){
 
   return get_scaled_parameters(md.temperature, md);
 }
 
 PUBLIC paramT *get_scaled_parameters( double temp,
-                                      model_detailsT md){
+                                      vrna_md_t md){
 
   unsigned int i,j,k,l;
   double tempf;
@@ -189,21 +189,21 @@ PUBLIC paramT *get_scaled_parameters( double temp,
 
 
 PUBLIC pf_paramT *get_scaled_pf_parameters(void){
-  model_detailsT  md;
+  vrna_md_t  md;
   set_model_details(&md);
   return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
 }
 
 
 PUBLIC pf_paramT *
-vrna_get_boltzmann_factors(model_detailsT md){
+vrna_get_boltzmann_factors(vrna_md_t md){
 
   return  get_boltzmann_factors(md.temperature, md.betaScale, md, -1.);
 }
 
 PUBLIC pf_paramT *get_boltzmann_factors(double temp,
                                         double betaScale,
-                                        model_detailsT md,
+                                        vrna_md_t md,
                                         double pfs){
 
   unsigned  int i, j, k, l;
@@ -377,13 +377,13 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
 }
 
 PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
-  model_detailsT  md;
+  vrna_md_t  md;
   set_model_details(&md);
   return get_boltzmann_factors_ali(n_seq, temperature, 1.0, md, pf_scale);
 }
 
 PUBLIC pf_paramT *
-vrna_get_boltzmann_factors_ali(unsigned int n_seq, model_detailsT md){
+vrna_get_boltzmann_factors_ali(unsigned int n_seq, vrna_md_t md){
 
   return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, -1.);
 }
@@ -391,7 +391,7 @@ vrna_get_boltzmann_factors_ali(unsigned int n_seq, model_detailsT md){
 PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
                                             double temperature,
                                             double betaScale,
-                                            model_detailsT md,
+                                            vrna_md_t md,
                                             double pfs){
 
   /* scale energy parameters and pre-calculate Boltzmann weights */

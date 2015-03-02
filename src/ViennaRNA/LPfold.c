@@ -605,7 +605,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if(parameters){
     pf_params = get_boltzmann_factor_copy(parameters);
   } else {
-    model_detailsT  md;
+    vrna_md_t  md;
     set_model_details(&md);
     pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
   }

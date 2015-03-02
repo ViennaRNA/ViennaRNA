@@ -1,10 +1,6 @@
 #ifndef __VIENNA_RNA_PACKAGE_PARAMS_H__
 #define __VIENNA_RNA_PACKAGE_PARAMS_H__
 
-#include <ViennaRNA/energy_const.h>
-#include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/model.h>
-
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else
@@ -24,6 +20,17 @@
  *
  *  \file params.h
  */
+
+#include <ViennaRNA/energy_const.h>
+#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/model.h>
+
+#define   VRNA_GQUAD_MAX_STACK_SIZE     7
+#define   VRNA_GQUAD_MIN_STACK_SIZE     2
+#define   VRNA_GQUAD_MAX_LINKER_LENGTH  15
+#define   VRNA_GQUAD_MIN_LINKER_LENGTH  1
+#define   VRNA_GQUAD_MIN_BOX_SIZE       ((4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH))
+#define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
 
 /**
  *  \brief The datastructure that contains temperature scaled energy parameters.
@@ -66,7 +73,7 @@ typedef struct paramT{
 
   double  temperature;            /**<  \brief  Temperature used for loop contribution scaling */
 
-  model_detailsT model_details;   /**<  \brief  Model details to be used in the recursions */
+  vrna_md_t model_details;   /**<  \brief  Model details to be used in the recursions */
 
 } paramT;
 
@@ -121,7 +128,7 @@ typedef struct pf_paramT{
                                         \f$ e^{-E/(\alpha \cdot K \cdot T)} \f$
                         */
 
-  model_detailsT model_details; /**<  \brief  Model details to be used in the recursions */
+  vrna_md_t model_details; /**<  \brief  Model details to be used in the recursions */
 
 } pf_paramT;
 
@@ -137,7 +144,7 @@ typedef struct pf_paramT{
 paramT *scale_parameters(void);
 
 
-paramT *vrna_get_energy_contributions(model_detailsT md);
+paramT *vrna_get_energy_contributions(vrna_md_t md);
 
 
 /**
@@ -148,14 +155,14 @@ paramT *vrna_get_energy_contributions(model_detailsT md);
  *  data structure that contains the model details as well, such that subsequent
  *  folding recursions are able to retrieve the correct model settings
  *
- *  \see #model_detailsT, set_model_details()
+ *  \see #vrna_md_t, set_model_details()
  *
  *  \param temperature  The temperature in degrees Celcius
  *  \param md           The model details
  *  \return             precomputed energy contributions and model settings
  */
 paramT *get_scaled_parameters(double temperature,
-                              model_detailsT md);
+                              vrna_md_t md);
 
 paramT *get_parameter_copy(paramT *par);
 
@@ -167,7 +174,7 @@ paramT *get_parameter_copy(paramT *par);
  */
 pf_paramT *get_scaled_pf_parameters(void);
 
-pf_paramT *vrna_get_boltzmann_factors(model_detailsT md);
+pf_paramT *vrna_get_boltzmann_factors(vrna_md_t md);
 
 /**
  *  \brief Get precomputed Boltzmann factors of the loop type
@@ -194,7 +201,7 @@ pf_paramT *vrna_get_boltzmann_factors(model_detailsT md);
  */
 pf_paramT *get_boltzmann_factors( double temperature,
                                   double betaScale,
-                                  model_detailsT md,
+                                  vrna_md_t md,
                                   double pf_scale);
 
 /**
@@ -223,11 +230,11 @@ pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq);
 pf_paramT *get_boltzmann_factors_ali( unsigned int n_seq,
                                       double temperature,
                                       double betaScale,
-                                      model_detailsT md,
+                                      vrna_md_t md,
                                       double pf_scale);
 
 pf_paramT *vrna_get_boltzmann_factors_ali(unsigned int n_seq,
-                                          model_detailsT md);
+                                          vrna_md_t md);
 
 /**
  *  @}

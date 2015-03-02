@@ -420,7 +420,7 @@ END_TEST
 
 START_TEST(test_vrna_sc_add_sp)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   double values[] = { 0, 0, 1, -0.5 };
 

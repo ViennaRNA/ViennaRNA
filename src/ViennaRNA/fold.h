@@ -82,7 +82,7 @@
  *
  *  \deprecated use vrna_fold() instead
  *
- *  \see vrna_fold(), fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \see vrna_fold(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
  *  \param structure      A pointer to the character array where the
@@ -132,7 +132,7 @@ fold_par( const char *sequence,
  *
  *  \ingroup mfe_fold
  *
- *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \see fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
  *  \param vc             fold compound
  *  \param structure      A pointer to the character array where the

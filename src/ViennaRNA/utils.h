@@ -424,18 +424,18 @@ int   *get_indx(unsigned int length);
  *
  *  \param md   The model details datastructure
  */
-void  fill_pair_matrices(model_detailsT *md);
+void  fill_pair_matrices(vrna_md_t *md);
 
 /**
  *  \brief Get the integer encoding of the sequence according to the model details and encoding type
  *
  */
-short *vrna_seq_encode(const char *sequence, model_detailsT *md);
+short *vrna_seq_encode(const char *sequence, vrna_md_t *md);
 
-short *vrna_seq_encode_simple(const char *sequence, model_detailsT *md);
+short *vrna_seq_encode_simple(const char *sequence, vrna_md_t *md);
 
 
-char  get_encoded_char(int enc, model_detailsT *md);
+char  get_encoded_char(int enc, vrna_md_t *md);
 
 void  vrna_ali_encode(const char *sequence,
                       short **S_p,
@@ -443,7 +443,7 @@ void  vrna_ali_encode(const char *sequence,
                       short **s3_p,
                       char **ss_p,
                       unsigned short **as_p,
-                      model_detailsT *md);
+                      vrna_md_t *md);
 
 /**
  *  \brief Get an array of the numerical encoding for each possible base pair (i,j)
@@ -454,16 +454,16 @@ void  vrna_ali_encode(const char *sequence,
  *
  */
 char  *vrna_get_ptypes( const short *S,
-                        model_detailsT *md);
+                        vrna_md_t *md);
 
 DEPRECATED(char  *get_ptypes(const short *S,
-                  model_detailsT *md,
+                  vrna_md_t *md,
                   unsigned int idx_type));
 
 int   *get_pscores( const short *const* S,
                     const char **AS,
                     int n_seq,
                     float **distance_matrix,
-                    model_detailsT *md);
+                    vrna_md_t *md);
 
 #endif

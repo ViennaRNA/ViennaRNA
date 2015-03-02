@@ -46,7 +46,7 @@
  * 
  *  \ingroup consensus_fold
  *
- *  \deprecated See #model_detailsT.cv_fact, and vrna_ali_fold() to avoid using global variables
+ *  \deprecated See #vrna_md_t.cv_fact, and vrna_ali_fold() to avoid using global variables
  *
  *  Default is 1.
  */
@@ -57,7 +57,7 @@ DEPRECATED(extern  double  cv_fact);
  * 
  *  \ingroup consensus_fold
  * 
- *  \deprecated See #model_detailsT.nc_fact, and vrna_ali_fold() to avoid using global variables
+ *  \deprecated See #vrna_md_t.nc_fact, and vrna_ali_fold() to avoid using global variables
  *
  *  Default is 1.
  */
@@ -78,7 +78,7 @@ DEPRECATED(extern  double  nc_fact);
  *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
  * 
  *  \note Sufficient space must be allocated for 'structure' before calling
- *  vrna_ali_fold(). Passing NULL to the 'structure' or setting #model_detailsT.backtrack to
+ *  vrna_ali_fold(). Passing NULL to the 'structure' or setting #vrna_md_t.backtrack to
  *  0 turns of backtracing an no structure will be returned.
  * 
  *  \ingroup consensus_mfe_fold

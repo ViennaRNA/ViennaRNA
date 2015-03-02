@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   double        subopts;
   double        pk_penalty;
   unsigned int  options=0;
-  model_detailsT  md;
+  vrna_md_t     md;
   paramT          *par;
 
   subopts       = 0.0;

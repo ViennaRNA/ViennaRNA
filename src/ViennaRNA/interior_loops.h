@@ -281,7 +281,7 @@ E_int_loop( int i,
   int               e             = INF;
   int               *c            = vc->matrices->c;
   int               *ggg          = vc->matrices->ggg;
-  model_detailsT    *md           = &(P->model_details);
+  vrna_md_t         *md           = &(P->model_details);
   int               with_gquad    = md->gquad;
   int               turn          = md->min_loop_size;
 
@@ -366,7 +366,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
 
   int ij, q, p, e, u1, u2, qmin, energy, *rtype, length, *indx, *hc_up, *c, turn;
   unsigned char     type, type_2;
-  model_detailsT    *md;
+  vrna_md_t         *md;
   char              *ptype, *hc;
   paramT            *P;
   short             *S;
@@ -443,7 +443,7 @@ E_stack(int i,
   short             *S                = vc->sequence_encoding;
   char              *ptype            = vc->ptype;
   paramT            *P                = vc->params;
-  model_detailsT    *md               = &(P->model_details);
+  vrna_md_t         *md               = &(P->model_details);
   int               *rtype            = &(md->rtype[0]);
   int               *indx             = vc->jindx;
   char              *hard_constraints = vc->hc->matrix;

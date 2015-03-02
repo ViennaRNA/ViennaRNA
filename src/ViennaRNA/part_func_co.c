@@ -96,7 +96,7 @@ wrap_co_pf_fold(char *sequence,
   int                 length;
   char                *seq;
   vrna_fold_compound  *vc;
-  model_detailsT      md;
+  vrna_md_t           md;
 
   vc      = NULL;
   length  = strlen(sequence);
@@ -154,7 +154,7 @@ wrap_update_pf_params(int length,
 
   pf_paramT *p = NULL;
   if(parameters == NULL){
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
@@ -178,7 +178,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
   cofoldF         X;
   double          free_energy;
   char            *sequence;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   pf_paramT       *params;
   vrna_mx_pfT     *matrices;
 
@@ -288,7 +288,7 @@ pf_co(vrna_fold_compound *vc){
   short             *S1;
   int               *my_iindx, *jindx;
   char              *ptype, *sequence;
-  model_detailsT    *md;
+  vrna_md_t         *md;
   vrna_hcT          *hc;
   vrna_scT          *sc;
   FLT_OR_DBL        expMLclosing;
@@ -635,7 +635,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   FLT_OR_DBL        expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
   double            max_real;
   pf_paramT         *pf_params;
-  model_detailsT    *md;
+  vrna_md_t         *md;
   short             *S,*S1;
   char              *ptype;
   vrna_hcT          *hc;
@@ -1165,7 +1165,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase;
   short         *S1;
   char          *ptype;
-  model_detailsT  *md;
+  vrna_md_t     *md;
 
   pf_paramT     *pf_params;
   vrna_mx_pfT   *matrices;
@@ -1211,7 +1211,7 @@ backtrack(vrna_fold_compound *vc,
   short         *S1;
   char          *ptype, *sequence;
   int           noGUclosure;
-  model_detailsT  *md;
+  vrna_md_t     *md;
 
   sequence      = vc->sequence;
   pf_params     = vc->exp_params;

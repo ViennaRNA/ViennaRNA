@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
   int           tmp_number;
   FILE          *clust_file = stdin;
   pf_paramT     *pf_parameters;
-  model_detailsT  md;
+  vrna_md_t     md;
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;

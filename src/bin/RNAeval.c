@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
   int                       noconv=0;
   int                       verbose = 0;
   unsigned int              rec_type, read_opt;
-  model_detailsT md;
+  vrna_md_t                 md;
   paramT *P;
 
   string  = orig_sequence = ParamFile = NULL;

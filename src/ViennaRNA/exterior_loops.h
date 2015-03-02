@@ -140,7 +140,7 @@ E_ext_loop( int i,
   int     *idx      = vc->jindx;
   char    *ptype    = vc->ptype;
   paramT  *P        = vc->params;
-  model_detailsT  *md = &(P->model_details);
+  vrna_md_t     *md = &(P->model_details);
   char            *hard_constraints = vc->hc->matrix;
 
   e     = INF;

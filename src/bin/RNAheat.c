@@ -201,7 +201,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    pf_scale = exp(-(1.07*min_en)/kT/length );
    /* init_pf_fold(length); <- obsolete */
     pf_paramT       *pf_parameters = NULL;
-    model_detailsT  md;
+    vrna_md_t       md;
     set_model_details(&md);
 
    for (i=0; i<2*m+1; i++) {

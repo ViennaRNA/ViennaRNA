@@ -309,7 +309,7 @@ DEPRECATED(void update_pf_params_par(int length, pf_paramT *parameters));
  *  will be copied into `vc` and a recomputation of the partition function scaling
  *  factor is issued, if the `pf_scale` attribute of `params` is below `1.0`.
  *
- *  \see vrna_rescale_pf_params(), pf_paramT, model_detailsT, vrna_get_boltzmann_factors()
+ *  \see vrna_rescale_pf_params(), pf_paramT, vrna_md_t, vrna_get_boltzmann_factors()
  *
  *  \ingroup pf_fold
  *  \param  vc      The fold compound data structure
@@ -345,12 +345,12 @@ void vrna_update_pf_params( vrna_fold_compound *vc,
  *  mode of _automatic adjustment according to MFE_, a pointer to the MFE value needs to
  *  be passed as second argument. This value is then taken to compute the scaling factor
  *  as \f$ s = exp((sfact * MFE) / kT / length )\f$, where sfact is an additional
- *  scaling weight located in the model_detailsT datastructure of `exp_params` in `vc`.
+ *  scaling weight located in the vrna_md_t datastructure of `exp_params` in `vc`.
  *
  *  The computed scaling factor \f$s\f$ will be stored as `pf_scale` attribute of the
  *  `exp_params` datastructure in `vc`.
  *
- *  \see vrna_update_pf_params(), model_detailsT, pf_paramT, vrna_fold_compound
+ *  \see vrna_update_pf_params(), vrna_md_t, pf_paramT, vrna_fold_compound
  *  \ingroup pf_fold
  *
  *  \param  vc  The fold compound data structure

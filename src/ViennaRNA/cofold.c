@@ -129,7 +129,7 @@ wrap_cofold(const char *string,
   if(parameters)
     P = get_parameter_copy(parameters);
   else{
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -1414,7 +1414,7 @@ wrap_zukersubopt( const char *string,
   if(parameters)
     P = get_parameter_copy(parameters);
   else{
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -1689,7 +1689,7 @@ update_cofold_params(void){
   vrna_fold_compound *v;
   
   if(backward_compat_compound && backward_compat){
-    model_detailsT md;
+    vrna_md_t md;
     v = backward_compat_compound;
 
     if(v->params)
@@ -1714,7 +1714,7 @@ update_cofold_params_par(paramT *parameters){
     if(parameters){
       v->params = get_parameter_copy(parameters);
     } else {
-      model_detailsT md;
+      vrna_md_t md;
       set_model_details(&md);
       v->params = vrna_get_energy_contributions(md);
     }

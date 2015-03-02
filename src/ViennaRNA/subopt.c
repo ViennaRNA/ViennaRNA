@@ -324,7 +324,7 @@ best_attainable_energy( vrna_fold_compound *vc,
 
   register int sum;
   INTERVAL        *next;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   vrna_mx_mfeT    *matrices;
   int             *indx;
 
@@ -550,7 +550,7 @@ wrap_subopt(char *string,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -611,7 +611,7 @@ vrna_subopt(vrna_fold_compound *vc,
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
   paramT          *P;
-  model_detailsT  *md;
+  vrna_md_t     *md;
   int           minimal_energy;
   int           Fc, FcH, FcI, FcM, *fM2;
   int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
@@ -850,7 +850,7 @@ scan_interval(vrna_fold_compound *vc,
   STATE           *new_state, *temp_state;
   INTERVAL        *new_interval;
   paramT          *P;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   register int    k, fi, cij, ij;
   register int    type;
   register int    dangle_model;
@@ -1693,7 +1693,7 @@ repeat( vrna_fold_compound *vc,
   STATE           *new_state;
   INTERVAL        *new_interval;
   paramT          *P;
-  model_detailsT  *md;
+  vrna_md_t       *md;
 
   register int  ij, k, p, q, energy, new;
   register int  mm;

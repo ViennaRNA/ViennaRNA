@@ -135,7 +135,7 @@ wrap_fold( const char *string,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -1113,7 +1113,7 @@ vrna_update_fold_params(vrna_fold_compound *vc,
   if(parameters){
     v->params = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     v->params = get_scaled_parameters(temperature, md);
   }

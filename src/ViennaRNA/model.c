@@ -77,7 +77,7 @@ PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 */
 
 PUBLIC void
-vrna_md_set_default(model_detailsT *md){
+vrna_md_set_default(vrna_md_t *md){
 
   int i = 0;
 
@@ -119,7 +119,7 @@ vrna_md_set_default(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_nonstandards(model_detailsT *md, const char *ns){
+vrna_md_set_nonstandards(vrna_md_t *md, const char *ns){
 
   if(md)
     if(ns){
@@ -133,7 +133,7 @@ vrna_md_set_nonstandards(model_detailsT *md, const char *ns){
 }
 
 PUBLIC void
-vrna_md_set_dangles(model_detailsT *md, int d){
+vrna_md_set_dangles(vrna_md_t *md, int d){
 
   if(md)
     if((d >= 0) && (d <= 3))
@@ -141,7 +141,7 @@ vrna_md_set_dangles(model_detailsT *md, int d){
 }
 
 PUBLIC int
-vrna_md_get_dangles(model_detailsT *md){
+vrna_md_get_dangles(vrna_md_t *md){
 
   if(md)
     return md->dangles;
@@ -150,7 +150,7 @@ vrna_md_get_dangles(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_temperature(model_detailsT *md, double T){
+vrna_md_set_temperature(vrna_md_t *md, double T){
 
   if(md)
     if(T >= -K0)
@@ -158,7 +158,7 @@ vrna_md_set_temperature(model_detailsT *md, double T){
 }
 
 PUBLIC double
-vrna_md_get_temperature(model_detailsT *md){
+vrna_md_get_temperature(vrna_md_t *md){
 
   if(md)
     return md->temperature;
@@ -167,14 +167,14 @@ vrna_md_get_temperature(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_special_hp(model_detailsT *md, int shp){
+vrna_md_set_special_hp(vrna_md_t *md, int shp){
 
   if(md)
     md->special_hp = shp;
 }
 
 PUBLIC int
-vrna_md_get_special_hp(model_detailsT *md){
+vrna_md_get_special_hp(vrna_md_t *md){
 
   if(md)
     return md->special_hp;
@@ -183,14 +183,14 @@ vrna_md_get_special_hp(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_gquad(model_detailsT *md, int g){
+vrna_md_set_gquad(vrna_md_t *md, int g){
 
   if(md)
     md->gquad = g;
 }
 
 PUBLIC int
-vrna_md_get_gquad(model_detailsT *md){
+vrna_md_get_gquad(vrna_md_t *md){
 
   if(md)
     return md->gquad;
@@ -199,14 +199,14 @@ vrna_md_get_gquad(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_nolp(model_detailsT *md, int nolp){
+vrna_md_set_nolp(vrna_md_t *md, int nolp){
 
   if(md)
     md->noLP = (nolp) ? 1 : 0;
 }
 
 PUBLIC int
-vrna_md_get_nolp(model_detailsT *md){
+vrna_md_get_nolp(vrna_md_t *md){
 
   if(md)
     return md->noLP;
@@ -215,14 +215,14 @@ vrna_md_get_nolp(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_betascale(model_detailsT *md, double b){
+vrna_md_set_betascale(vrna_md_t *md, double b){
 
   if(md)
     md->betaScale = b;
 }
 
 PUBLIC double
-vrna_md_get_betascale(model_detailsT *md){
+vrna_md_get_betascale(vrna_md_t *md){
   
   if(md)
     return md->betaScale;
@@ -231,7 +231,7 @@ vrna_md_get_betascale(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_update(model_detailsT *md){
+vrna_md_update(vrna_md_t *md){
 
   if(md)
     fill_pair_matrices(md);
@@ -242,7 +242,7 @@ vrna_md_update(model_detailsT *md){
 /*###########################################*/
 
 PUBLIC void
-set_model_details(model_detailsT *md){
+vrna_md_set_globals(vrna_md_t *md){
 
   int i = 0;
 

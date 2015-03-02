@@ -96,7 +96,7 @@ wrap_pf_fold( const char *sequence,
               int is_circular){
 
   vrna_fold_compound  *vc;
-  model_detailsT      md;
+  vrna_md_t           md;
   vc                  = NULL;
 
   /* we need pf_paramT datastructure to correctly init default hard constraints */
@@ -149,7 +149,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
   FLT_OR_DBL      Q;
   double          free_energy;
   int             n;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   pf_paramT       *params;
   vrna_mx_pfT     *matrices;
 
@@ -240,7 +240,7 @@ pf_linear(vrna_fold_compound *vc){
   vrna_mx_pfT *matrices = vc->exp_matrices;
 
   pf_params             = vc->exp_params;
-  model_detailsT  *md = &(pf_params->model_details);
+  vrna_md_t       *md = &(pf_params->model_details);
   vrna_hcT        *hc = vc->hc;
   vrna_scT        *sc = vc->sc;
 
@@ -690,7 +690,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   int               circular;
   pf_paramT         *pf_params;
   vrna_mx_pfT       *matrices;
-  model_detailsT    *md;
+  vrna_md_t         *md;
 
 
   pf_params         = vc->exp_params;
@@ -1180,7 +1180,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if(parameters){
     pf_params = get_boltzmann_factor_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
@@ -1215,7 +1215,7 @@ wrap_update_pf_params(int length,
 
   pf_paramT *p = NULL;
   if(parameters == NULL){
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
@@ -1274,7 +1274,7 @@ vrna_rescale_pf_params( vrna_fold_compound *vc,
       if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
         kT /= vc->n_seq;
 
-      model_detailsT *md = &(pf->model_details);
+      vrna_md_t *md = &(pf->model_details);
       if(mfe){
         kT /= 1000.;
         pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);

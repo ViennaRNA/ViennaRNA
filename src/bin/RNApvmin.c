@@ -67,7 +67,7 @@ static void init_perturbation_vector(double *epsilon, int length, double max_ene
 
 int main(int argc, char *argv[]){
   struct RNApvmin_args_info args_info;
-  model_detailsT md;
+  vrna_md_t md;
   int istty = 0;
   unsigned int read_opt = 0;
   unsigned int rec_type;

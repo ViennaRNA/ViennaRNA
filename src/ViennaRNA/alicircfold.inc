@@ -24,7 +24,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
   char              *hard_constraints;
   unsigned short    **a2s;
   paramT            *P;
-  model_detailsT    *md;
+  vrna_md_t         *md;
   vrna_hcT          *hc;
   vrna_scT          **sc;
 

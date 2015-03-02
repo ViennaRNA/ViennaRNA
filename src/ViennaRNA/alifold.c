@@ -103,7 +103,7 @@ wrap_alifold( const char **strings,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -212,7 +212,7 @@ fill_arrays(vrna_fold_compound *vc){
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
   paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
+  vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
   int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
@@ -650,7 +650,7 @@ backtrack(vrna_fold_compound *vc,
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
   paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
+  vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
   int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
@@ -1175,7 +1175,7 @@ update_alifold_params(void){
     if(v->params)
       free(v->params);
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     v->params = vrna_get_energy_contributions(md);
   }
@@ -1195,7 +1195,7 @@ energy_of_ali_gquad_structure(const char **sequences,
     
     vrna_fold_compound  *vc;
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     md.gquad = 1;
 
@@ -1223,7 +1223,7 @@ energy_of_alistruct(const char **sequences,
   if(sequences[0] != NULL){
     vrna_fold_compound  *vc;
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
 
     vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);

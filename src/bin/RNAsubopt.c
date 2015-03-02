@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
   int             delta, n_back, noconv, circular, dos, zuker, gquad;
-  model_detailsT  md;
+  vrna_md_t       md;
 
   do_backtrack  = 1;
   dangles       = 2;

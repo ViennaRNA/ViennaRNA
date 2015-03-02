@@ -24,7 +24,7 @@ END_TEST
 
 START_TEST(test_sample_structure)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   char *sample;
@@ -51,7 +51,7 @@ END_TEST
 
 START_TEST(test_sc_sanity_check)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   double *sc_up;

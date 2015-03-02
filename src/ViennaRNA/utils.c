@@ -58,8 +58,8 @@ PRIVATE int BP_pair[NBASES][NBASES]=
  { 0, 6, 0, 0, 5, 0, 0, 0}};
 
 
-PRIVATE int   get_char_encoding(char c, model_detailsT *md);
-PRIVATE char  *wrap_get_ptypes(const short *S, model_detailsT *md);  /* provides backward compatibility for old ptypes array in pf computations */
+PRIVATE int   get_char_encoding(char c, vrna_md_t *md);
+PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides backward compatibility for old ptypes array in pf computations */
 
 /*-------------------------------------------------------------------------*/
 
@@ -413,7 +413,7 @@ PUBLIC int *get_indx(unsigned int length){
 
 
 
-PUBLIC  void  fill_pair_matrices(model_detailsT *md){
+PUBLIC  void  fill_pair_matrices(vrna_md_t *md){
 
   int i,j;
 
@@ -509,7 +509,7 @@ PUBLIC  void  fill_pair_matrices(model_detailsT *md){
 
 PUBLIC short *
 vrna_seq_encode(const char *sequence,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   unsigned int  i, l;
   short         *S = vrna_seq_encode_simple(sequence, md);
@@ -527,7 +527,7 @@ vrna_seq_encode(const char *sequence,
 
 PUBLIC short *
 vrna_seq_encode_simple( const char *sequence,
-                        model_detailsT *md){
+                        vrna_md_t *md){
 
   unsigned int i,l = (unsigned int)strlen(sequence);
   short         *S = (short *) space(sizeof(short)*(l+2));
@@ -541,7 +541,7 @@ vrna_seq_encode_simple( const char *sequence,
   return S;
 }
 
-PRIVATE int get_char_encoding(char c, model_detailsT *md){
+PRIVATE int get_char_encoding(char c, vrna_md_t *md){
   /* return numerical representation of base used e.g. in pair[][] */
   int code;
   if (md->energy_set>0) code = (int) (c-'A')+1;
@@ -556,7 +556,7 @@ PRIVATE int get_char_encoding(char c, model_detailsT *md){
   return code;
 }
 
-PUBLIC  char  get_encoded_char(int enc, model_detailsT *md){
+PUBLIC  char  get_encoded_char(int enc, vrna_md_t *md){
   if(md->energy_set > 0) return (char)enc + 'A' - 1;
   else return (char)Law_and_Order[enc];
 }
@@ -568,7 +568,7 @@ vrna_ali_encode(const char *sequence,
                     short **s3_p,
                     char **ss_p,
                     unsigned short **as_p,
-                    model_detailsT *md){
+                    vrna_md_t *md){
 
   unsigned  int   i,l;
   unsigned  short p;
@@ -651,7 +651,7 @@ vrna_ali_encode(const char *sequence,
 
 PUBLIC char *
 vrna_get_ptypes(const short *S,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   char *ptype;
   int n,i,j,k,l,*idx;
@@ -682,7 +682,7 @@ vrna_get_ptypes(const short *S,
 
 PRIVATE char *
 wrap_get_ptypes(const short *S,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   char *ptype;
   int n,i,j,k,l,*idx;
@@ -716,7 +716,7 @@ get_pscores(const short *const* S,
             const char **AS,
             int n_seq,
             float **distance_matrix,
-            model_detailsT *md){
+            vrna_md_t *md){
 
   int *pscore, *indx;
 
@@ -818,7 +818,7 @@ get_pscores(const short *const* S,
 
 PUBLIC char *
 get_ptypes( const short *S,
-            model_detailsT *md,
+            vrna_md_t *md,
             unsigned int idx_type){
 
   if(idx_type)

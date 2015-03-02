@@ -437,7 +437,7 @@ eval_int_loop(vrna_fold_compound *vc,
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
   paramT          *P;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   vrna_scT        *sc;
 
   cp      = vc->cutpoint;
@@ -481,7 +481,7 @@ eval_ext_int_loop(vrna_fold_compound *vc,
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
   paramT          *P;
-  model_detailsT  *md;
+  vrna_md_t       *md;
   vrna_scT        *sc;
 
   length  = vc->length;
@@ -517,7 +517,7 @@ get_updated_params(paramT *parameters, int compat){
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     if(compat)
       set_model_details(&md);
     else
@@ -758,7 +758,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   int               num_elem, num_g, elem_i, elem_j, up_mis;
   short             *s1;
   paramT            *P;
-  model_detailsT    *md;
+  vrna_md_t         *md;
 
   loop_idx  = vrna_get_loop_index(pt);
   s1        = vc->sequence_encoding;
@@ -1492,7 +1492,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
   char            **Ss          = vc->Ss;
   unsigned short  **a2s         = vc->a2s;
   paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1760,7 +1760,7 @@ stack_energy_pt_ali(vrna_fold_compound *vc,
   char            **Ss        = vc->Ss;
   unsigned short  **a2s       = vc->a2s;
   paramT          *P          = vc->params;
-  model_detailsT  *md         = &(P->model_details);
+  vrna_md_t       *md         = &(P->model_details);
   int             n_seq       = vc->n_seq;
 
   int energy = 0;
@@ -1881,7 +1881,7 @@ ML_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
   paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1947,7 +1947,7 @@ EL_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
   paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1987,7 +1987,7 @@ energy_of_struct( const char *string,
                   const char *structure){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2014,7 +2014,7 @@ energy_of_struct_pt(const char *string,
                     short *s1){
 
   int                 en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2041,7 +2041,7 @@ energy_of_circ_struct(const char *string,
                       const char *structure){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
@@ -2064,7 +2064,7 @@ energy_of_structure(const char *string,
                     int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2118,7 +2118,7 @@ energy_of_gquad_structure(const char *string,
                           int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2174,7 +2174,7 @@ energy_of_structure_pt( const char *string,
                         int verbosity_level){
 
   int                 en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2234,7 +2234,7 @@ energy_of_circ_structure( const char *string,
                           int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
@@ -2283,7 +2283,7 @@ loop_energy(short *pt,
 
   int                 en, u;
   char                *seq, *seq2;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
@@ -2315,7 +2315,7 @@ energy_of_move( const char *string,
                 int m2){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2339,7 +2339,7 @@ energy_of_move_pt(short *pt,
 
   int                 en, u;
   char                *seq, *seq2;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);

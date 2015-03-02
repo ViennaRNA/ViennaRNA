@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/energy_const.h>
 #include <ViennaRNA/model.h>
+#include <ViennaRNA/params.h>
 
 
 /**
@@ -16,6 +17,7 @@
 
 /* to use floats instead of doubles in pf_fold() comment next line */
 #define LARGE_PF
+
 #ifdef  LARGE_PF
 #define FLT_OR_DBL double
 #else
@@ -30,18 +32,6 @@
  *  \brief Maximum density of states discretization for subopt
  */
 #define MAXDOS                1000
-
-#define   VRNA_GQUAD_MAX_STACK_SIZE     7
-#define   VRNA_GQUAD_MIN_STACK_SIZE     2
-#define   VRNA_GQUAD_MAX_LINKER_LENGTH  15
-#define   VRNA_GQUAD_MIN_LINKER_LENGTH  1
-#define   VRNA_GQUAD_MIN_BOX_SIZE       ((4*VRNA_GQUAD_MIN_STACK_SIZE)+(3*VRNA_GQUAD_MIN_LINKER_LENGTH))
-#define   VRNA_GQUAD_MAX_BOX_SIZE       ((4*VRNA_GQUAD_MAX_STACK_SIZE)+(3*VRNA_GQUAD_MAX_LINKER_LENGTH))
-
-
-
-
-
 
 /*
 * ############################################################
@@ -370,139 +360,6 @@ typedef struct dupVar{
   int processed;
 } dupVar;
 
-/*
-* ############################################################
-* 2Dfold data structures
-* ############################################################
-*/
-
-
-/**
- *  \brief Solution element returned from TwoDpfoldList
- *
- *  This element contains the partition function for the appropriate
- *  kappa (k), lambda (l) neighborhood
- *  The datastructure contains two integer attributes 'k' and 'l'
- *  as well as an attribute 'q' of type #FLT_OR_DBL
- *
- *  A value of #INF in k denotes the end of a list
- *
- *  \see  TwoDpfoldList()
- */
-typedef struct{
-  int k;          /**<  \brief  Distance to first reference */
-  int l;          /**<  \brief  Distance to second reference */
-  FLT_OR_DBL  q;  /**<  \brief  partition function */
-} TwoDpfold_solution;
-
-/**
- *  \brief  Variables compound for 2Dfold partition function folding
- *
- *  \see    get_TwoDpfold_variables(), get_TwoDpfold_variables_from_MFE(),
- *          destroy_TwoDpfold_variables(), TwoDpfoldList()
- */
-typedef struct{
-
-  unsigned int    alloc;
-  char            *ptype;         /**<  \brief  Precomputed array of pair types */
-  char            *sequence;      /**<  \brief  The input sequence  */
-  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
-  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
-  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
-
-  double          temperature;    /* temperature in last call to scale_pf_params */
-  double          init_temp;      /* temperature in last call to scale_pf_params */
-  FLT_OR_DBL      *scale;
-  FLT_OR_DBL      pf_scale;
-  struct pf_paramT  *pf_params;     /* holds all [unscaled] pf parameters */
-
-  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
-  int             *jindx;         /**<  \brief  Index for moving in the triangular matrix qm1 */
-
-  short           *reference_pt1;
-  short           *reference_pt2;
-
-  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
-
-  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
-
-  int             circ;
-  int             dangles;
-  unsigned int    seq_length;
-
-  FLT_OR_DBL      ***Q;
-  FLT_OR_DBL      ***Q_B;
-  FLT_OR_DBL      ***Q_M;
-  FLT_OR_DBL      ***Q_M1;
-  FLT_OR_DBL      ***Q_M2;
-
-  FLT_OR_DBL      **Q_c;
-  FLT_OR_DBL      **Q_cH;
-  FLT_OR_DBL      **Q_cI;
-  FLT_OR_DBL      **Q_cM;
-
-  int             **l_min_values;
-  int             **l_max_values;
-  int             *k_min_values;
-  int             *k_max_values;
-
-  int             **l_min_values_b;
-  int             **l_max_values_b;
-  int             *k_min_values_b;
-  int             *k_max_values_b;
-
-  int             **l_min_values_m;
-  int             **l_max_values_m;
-  int             *k_min_values_m;
-  int             *k_max_values_m;
-
-  int             **l_min_values_m1;
-  int             **l_max_values_m1;
-  int             *k_min_values_m1;
-  int             *k_max_values_m1;
-
-  int             **l_min_values_m2;
-  int             **l_max_values_m2;
-  int             *k_min_values_m2;
-  int             *k_max_values_m2;
-
-  int             *l_min_values_qc;
-  int             *l_max_values_qc;
-  int             k_min_values_qc;
-  int             k_max_values_qc;
-
-  int             *l_min_values_qcH;
-  int             *l_max_values_qcH;
-  int             k_min_values_qcH;
-  int             k_max_values_qcH;
-
-  int             *l_min_values_qcI;
-  int             *l_max_values_qcI;
-  int             k_min_values_qcI;
-  int             k_max_values_qcI;
-
-  int             *l_min_values_qcM;
-  int             *l_max_values_qcM;
-  int             k_min_values_qcM;
-  int             k_max_values_qcM;
-
-  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-  FLT_OR_DBL      *Q_rem;
-  FLT_OR_DBL      *Q_B_rem;
-  FLT_OR_DBL      *Q_M_rem;
-  FLT_OR_DBL      *Q_M1_rem;
-  FLT_OR_DBL      *Q_M2_rem;
-
-  FLT_OR_DBL      Q_c_rem;
-  FLT_OR_DBL      Q_cH_rem;
-  FLT_OR_DBL      Q_cI_rem;
-  FLT_OR_DBL      Q_cM_rem;
-
-} TwoDpfold_vars;
-
 /**
  * @}
  */
@@ -515,7 +372,7 @@ typedef struct{
 */
 
 /**
- *  \addtogroup   vrna_fold_compound  Basic Data Structures for Structure Prediction and Evaluation
+ *  \addtogroup   basic_data_structures  Basic Data Structures for Structure Prediction and Evaluation
  *  @{
  *
  *  \brief  This module provides interfaces that deal with the most basic data structures used
@@ -684,7 +541,7 @@ typedef struct{
  *  \note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  \see  vrna_get_fold_compound_ali(), #model_detailsT, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY
+ *  \see  vrna_get_fold_compound_ali(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY
  *
  *  \param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  \param    md_p        An optional set of model details
@@ -692,7 +549,7 @@ typedef struct{
  *  \return               A prefilled vrna_fold_compound that can be readily used for computations
  */
 vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
-                                            model_detailsT *md_p,
+                                            vrna_md_t *md_p,
                                             unsigned int options);
 
 /**
@@ -714,7 +571,7 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
  *  \note The sequence strings must be uppercase, and should contain only RNA (resp. DNA) alphabet including
  *        gap characters depending on what energy parameter set is used.
  *
- *  \see  vrna_get_fold_compound(), #model_detailsT, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY,
+ *  \see  vrna_get_fold_compound(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY,
  *        read_clustal()
  *
  *  \param    sequences   A sequence alignment including 'gap' characters
@@ -723,7 +580,7 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
  *  \return               A prefilled vrna_fold_compound that can be readily used for computations
  */
 vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
-                                                model_detailsT *md_p,
+                                                vrna_md_t *md_p,
                                                 unsigned int options);
 
 /**

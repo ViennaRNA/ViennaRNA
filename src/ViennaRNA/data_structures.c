@@ -84,7 +84,7 @@
 */
 PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
-PRIVATE void            set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
+PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
 PRIVATE vrna_mx_mfeT    *get_mfe_matrices_alloc( unsigned int n, unsigned int alloc_vector);
 PRIVATE vrna_mx_pfT     *get_pf_matrices_alloc(unsigned int n, unsigned int alloc_vector);
@@ -182,7 +182,7 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
 
 PUBLIC vrna_fold_compound*
 vrna_get_fold_compound( const char *sequence,
-                        model_detailsT *md_p,
+                        vrna_md_t *md_p,
                         unsigned int options){
 
   int length;
@@ -206,7 +206,7 @@ vrna_get_fold_compound( const char *sequence,
 
 PUBLIC vrna_fold_compound*
 vrna_get_fold_compound_ali( const char **sequences,
-                            model_detailsT *md_p,
+                            vrna_md_t *md_p,
                             unsigned int options){
 
   int s, n_seq, length;
@@ -327,12 +327,12 @@ get_mfe_matrices_alloc( unsigned int n,
 
 PRIVATE void
 set_fold_compound(vrna_fold_compound *vc,
-                  model_detailsT *md_p,
+                  vrna_md_t *md_p,
                   unsigned int options){
 
 
   char *sequence, **sequences;
-  model_detailsT      md;
+  vrna_md_t           md;
   unsigned int        alloc_vector, length, s;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
@@ -604,7 +604,7 @@ make_pscores(vrna_fold_compound *vc){
   short           **S         = vc->S;
   char            **AS        = vc->sequences;
   int             n_seq       = vc->n_seq;
-  model_detailsT  *md         = (vc->params) ? &(vc->params->model_details) : &(vc->exp_params->model_details);
+  vrna_md_t       *md         = (vc->params) ? &(vc->params->model_details) : &(vc->exp_params->model_details);
   int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
   int             *indx       = vc->jindx;                                             
   int             n           = vc->length;                                            

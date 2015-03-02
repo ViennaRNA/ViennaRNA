@@ -811,7 +811,7 @@ assign_plist_from_pr( plist **pl,
 
   int *index;
   vrna_mx_pfT *matrices;
-  model_detailsT  md;
+  vrna_md_t  md;
   pf_paramT *pf_params;
 
   index     = get_iindx(length);

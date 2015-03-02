@@ -5,7 +5,7 @@
 
 START_TEST(test_get_char_encoding)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
 
   ck_assert_int_eq(get_char_encoding('\0', &details), 0);
   ck_assert_int_eq(get_char_encoding('_', &details), 0);
@@ -37,7 +37,7 @@ START_TEST(test_get_encoded_char)
 {
   const char *characters = "_ACGUTXKI";
   const char *p;
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
 
   ck_assert_int_eq(get_encoded_char(0, &details), '_');
   ck_assert_int_eq(get_encoded_char(1, &details), 'A');
@@ -66,7 +66,7 @@ END_TEST
 
 START_TEST(test_sequence_encoding)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   short *data;
 
   data = vrna_seq_encode_simple("_AUGC", &details);
@@ -95,7 +95,7 @@ END_TEST
 
 START_TEST(test_fill_pair_matrices)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   int i, j, count;
 
   fill_pair_matrices(&details);
@@ -146,7 +146,7 @@ END_TEST
 
 START_TEST(test_get_ptypes)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   const int len = 12;
   short sequence[] = {len, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1}; //ACGUACGUACGU
   int i, j, count;

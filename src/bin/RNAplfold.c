@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
   unsigned int  rec_type, read_opt;
   double        betaScale;
   pf_paramT     *pf_parameters;
-  model_detailsT  md;
+  vrna_md_t     md;
 
   dangles       = 2;
   cutoff        = 0.01;
