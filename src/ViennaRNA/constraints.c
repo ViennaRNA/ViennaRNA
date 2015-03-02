@@ -114,7 +114,7 @@ hc_intermolecular_only( unsigned int i,
 
 PRIVATE INLINE  void
 adjust_ptypes(char *ptype,
-              hard_constraintT *hc,
+              vrna_hcT *hc,
               unsigned int length,
               unsigned int indx_type);
 
@@ -526,7 +526,7 @@ hc_reset_to_default(vrna_fold_compound *vc){
   unsigned int      i, j, ij, min_loop_size, n;
   int               max_span, *idx;
   model_detailsT    *md;
-  hard_constraintT  *hc;
+  vrna_hcT          *hc;
   short             *S;
 
   n   = vc->length;
@@ -617,7 +617,7 @@ hc_update_up(vrna_fold_compound *vc){
 
   unsigned int      i, n;
   int               *idx;
-  hard_constraintT  *hc;
+  vrna_hcT          *hc;
 
   n   = vc->length;
   idx = vc->jindx;
@@ -688,7 +688,7 @@ vrna_hc_add(vrna_fold_compound *vc,
             unsigned int options){
 
   unsigned int      n, min_loop_size;
-  hard_constraintT  *hc;
+  vrna_hcT          *hc;
   model_detailsT    *md;
 
   if(vc->params)
@@ -703,7 +703,7 @@ vrna_hc_add(vrna_fold_compound *vc,
 
   /* allocate memory for the hard constraints data structure */
 
-  hc          = (hard_constraintT *)space(sizeof(hard_constraintT));
+  hc          = (vrna_hcT *)space(sizeof(vrna_hcT));
   hc->matrix  = (char *)space(sizeof(char)*((n*(n+1))/2+2));
   hc->up_ext  = (int *)space(sizeof(int)*(n+2));
   hc->up_hp   = (int *)space(sizeof(int)*(n+2));
@@ -853,7 +853,7 @@ vrna_hc_reset(vrna_fold_compound *vc){
 
 
 PUBLIC void
-vrna_hc_free(hard_constraintT *hc){
+vrna_hc_free(vrna_hcT *hc){
 
   if(hc){
     if(hc->matrix)  free(hc->matrix);
@@ -1090,11 +1090,11 @@ vrna_sc_add(vrna_fold_compound *vc,
           const double *constraints,
           unsigned int options){
 
-  unsigned int      n;
-  soft_constraintT  *sc;
+  unsigned int  n;
+  vrna_scT      *sc;
 
   if(vc){
-    sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
+    sc                    = (vrna_scT *)space(sizeof(vrna_scT));
     sc->constraints       = NULL;
     sc->free_energies     = NULL;
     sc->en_basepair       = NULL;
@@ -1133,14 +1133,14 @@ vrna_sc_add_ali(vrna_fold_compound *vc,
                 const double **constraints,
                 unsigned int options){
 
-  unsigned int      n, s;
-  soft_constraintT  *sc;
+  unsigned int  n, s;
+  vrna_scT      *sc;
 
   if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
     if(!vc->scs)
-      vc->scs  = (soft_constraintT **)space(sizeof(soft_constraintT*) * (vc->n_seq + 1));
+      vc->scs  = (vrna_scT **)space(sizeof(vrna_scT*) * (vc->n_seq + 1));
     for(s = 0; s < vc->n_seq; s++){
-      sc                    = (soft_constraintT *)space(sizeof(soft_constraintT));
+      sc                    = (vrna_scT *)space(sizeof(vrna_scT));
       sc->constraints       = NULL;
       sc->free_energies     = NULL;
       sc->en_basepair       = NULL;
@@ -1339,9 +1339,9 @@ vrna_sc_add_bp_mfe(vrna_fold_compound *vc,
                             const double **constraints,
                             unsigned int options){
 
-  unsigned int      i, j, n;
-  soft_constraintT  *sc;
-  int               *idx;
+  unsigned int  i, j, n;
+  vrna_scT      *sc;
+  int           *idx;
 
   if(vc && constraints){
     n   = vc->length;
@@ -1367,9 +1367,9 @@ vrna_sc_add_bp_pf( vrna_fold_compound *vc,
                             const double **constraints,
                             unsigned int options){
 
-  unsigned int      i, j, n;
-  soft_constraintT  *sc;
-  int               *idx;
+  unsigned int  i, j, n;
+  vrna_scT      *sc;
+  int           *idx;
 
   if(vc && constraints){
     n   = vc->length;
@@ -1415,8 +1415,8 @@ vrna_sc_add_up_mfe(vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
 
-  unsigned int i, j, n;
-  soft_constraintT  *sc;
+  unsigned int  i, j, n;
+  vrna_scT      *sc;
 
   if(vc){
     n   = vc->length;
@@ -1460,8 +1460,8 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
                             const double *constraints,
                             unsigned int options){
 
-  unsigned int i, j, n;
-  soft_constraintT  *sc;
+  unsigned int  i, j, n;
+  vrna_scT      *sc;
 
   if(vc && constraints){
     n   = vc->length;
@@ -1568,7 +1568,7 @@ vrna_sc_remove(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_sc_free(soft_constraintT *sc){
+vrna_sc_free(vrna_scT *sc){
 
   int i;
   if(sc){
@@ -1600,7 +1600,7 @@ vrna_sc_free(soft_constraintT *sc){
 
 PRIVATE INLINE  void
 adjust_ptypes(char *ptype,
-              hard_constraintT *hc,
+              vrna_hcT *hc,
               unsigned int length,
               unsigned int idx_type){
 

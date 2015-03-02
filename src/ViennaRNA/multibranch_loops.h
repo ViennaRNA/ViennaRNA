@@ -91,7 +91,7 @@ E_mb_loop_fast( int i,
   int               *indx   = vc->jindx;
   char              *hc     = vc->hc->matrix;
   int               *hc_up  = vc->hc->up_ml;
-  soft_constraintT  *sc     = vc->sc;
+  vrna_scT          *sc     = vc->sc;
   int               *fc     = vc->matrices->fc;
   paramT            *P      = vc->params;
 
@@ -223,7 +223,7 @@ E_mb_loop_stack(int i,
   int               turn    = md->min_loop_size;
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);
-  soft_constraintT  *sc     = vc->sc;
+  vrna_scT          *sc     = vc->sc;
 
   e     = INF;
   ij    = indx[j] + i;
@@ -269,7 +269,7 @@ E_ml_rightmost_stem(int i,
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_ml;
-  soft_constraintT  *sc           = vc->sc;
+  vrna_scT          *sc           = vc->sc;
   int               *c            = vc->matrices->c;
   int               *fm           = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
   int               *ggg          = vc->matrices->ggg;
@@ -329,7 +329,7 @@ E_ml_stems_fast(int i,
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_ml;
-  soft_constraintT  *sc           = vc->sc;
+  vrna_scT          *sc           = vc->sc;
   int               *c            = vc->matrices->c;
   int               *fm           = vc->matrices->fML;
   paramT            *P            = vc->params;

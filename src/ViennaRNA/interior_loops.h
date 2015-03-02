@@ -160,7 +160,7 @@ ubf_eval_int_loop(  int i,
                     int ij,
                     int cp,
                     paramT *P,
-                    soft_constraintT *sc){
+                    vrna_scT *sc){
 
   int energy;
 
@@ -228,7 +228,7 @@ ubf_eval_ext_int_loop(int i,
                       unsigned char type_2,
                       int length,
                       paramT *P,
-                      soft_constraintT *sc){
+                      vrna_scT *sc){
 
   int energy;
 
@@ -274,7 +274,7 @@ E_int_loop( int i,
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_int;
-  soft_constraintT  *sc           = vc->sc; 
+  vrna_scT          *sc           = vc->sc; 
   paramT            *P            = vc->params;
   int               ij            = indx[j] + i;
   int               hc_decompose  = hc[ij];
@@ -370,7 +370,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   char              *ptype, *hc;
   paramT            *P;
   short             *S;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
 
   length  = vc->length;
   indx    = vc->jindx;
@@ -447,7 +447,7 @@ E_stack(int i,
   int               *rtype            = &(md->rtype[0]);
   int               *indx             = vc->jindx;
   char              *hard_constraints = vc->hc->matrix;
-  soft_constraintT  *sc               = vc->sc;
+  vrna_scT          *sc               = vc->sc;
 
   e       = INF;
   p       = i + 1;

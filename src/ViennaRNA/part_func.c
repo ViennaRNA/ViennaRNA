@@ -241,9 +241,9 @@ pf_linear(vrna_fold_compound *vc){
   vrna_mx_pfT *matrices = vc->exp_matrices;
 
   pf_params             = vc->exp_params;
-  model_detailsT    *md = &(pf_params->model_details);
-  hard_constraintT  *hc = vc->hc;
-  soft_constraintT  *sc = vc->sc;
+  model_detailsT  *md = &(pf_params->model_details);
+  vrna_hcT        *hc = vc->hc;
+  vrna_scT        *sc = vc->sc;
 
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
@@ -685,8 +685,8 @@ pf_create_bppm( vrna_fold_compound *vc,
   int               *rtype, with_gquad;
   char              *sequence;
   short             *S, *S1;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_hcT          *hc;
+  vrna_scT          *sc;
   int               *my_iindx, *jindx;
   int               circular;
   pf_paramT         *pf_params;
@@ -1319,8 +1319,8 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   char              *ptype, *hard_constraints;
   short             *S1;
   vrna_mx_pfT       *matrices;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_hcT          *hc;
+  vrna_scT          *sc;
   pf_paramT         *pf_params;
 
   n         = vc->length;
@@ -1555,7 +1555,7 @@ backtrack_qm( int i,
   int               k, n;
   FLT_OR_DBL        *qm, *qm1, *expMLbase;
   int               *my_iindx, *jindx;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
 
   n = j;
   vrna_mx_pfT  *matrices = vc->exp_matrices;
@@ -1634,9 +1634,9 @@ backtrack_qm1(int i,
   vrna_mx_pfT   *matrices;
   int           *my_iindx, *jindx;
   char          *ptype;
-  short             *S1;
-  soft_constraintT  *sc;
-  pf_paramT         *pf_params;
+  short         *S1;
+  vrna_scT      *sc;
+  pf_paramT     *pf_params;
 
 
   pf_params = vc->exp_params;
@@ -1717,7 +1717,7 @@ backtrack(int i,
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   vrna_mx_pfT       *matrices;
   int               *my_iindx, *jindx;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
   short             *S1;
 
   sequence    = vc->sequence;

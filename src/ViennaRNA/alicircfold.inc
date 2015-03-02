@@ -25,8 +25,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
   unsigned short    **a2s;
   paramT            *P;
   model_detailsT    *md;
-  hard_constraintT  *hc;
-  soft_constraintT  **sc;
+  vrna_hcT          *hc;
+  vrna_scT          **sc;
 
   S                 = vc->S;
   S5                = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/

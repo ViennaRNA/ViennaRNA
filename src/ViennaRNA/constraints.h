@@ -421,16 +421,16 @@ void vrna_hc_reset(vrna_fold_compound *vc);
 
 
 /**
- *  \brief  Free the memory allocated by a #hard_constraintT data structure
+ *  \brief  Free the memory allocated by a #vrna_hcT data structure
  *
  *  Use this function to free all memory that was allocated for a data structure
- *  of type #hard_constraintT .
+ *  of type #vrna_hcT .
  *
- *  \see get_hard_constraints(), #hard_constraintT
+ *  \see get_hard_constraints(), #vrna_hcT
  *  \ingroup  hard_constraints
  *
  */
-void vrna_hc_free(hard_constraintT *hc);
+void vrna_hc_free(vrna_hcT *hc);
 
 
 /**
@@ -539,7 +539,7 @@ void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
 
 void vrna_sc_remove(vrna_fold_compound *vc);
 
-void vrna_sc_free(soft_constraintT *sc);
+void vrna_sc_free(vrna_scT *sc);
 
 int parse_soft_constraints_shape_method(const char *method_string,
                                         char *method,

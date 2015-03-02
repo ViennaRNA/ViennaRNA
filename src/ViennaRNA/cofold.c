@@ -235,7 +235,7 @@ fill_arrays(vrna_fold_compound  *vc,
   char              *ptype, *hard_constraints;
   paramT            *P;
   vrna_mx_mfeT      *matrices;
-  hard_constraintT  *hc;
+  vrna_hcT          *hc;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -405,9 +405,9 @@ backtrack_co( sect bt_stack[],
   int   *rtype          = &(P->model_details.rtype[0]);
   char  backtrack_type  = P->model_details.backtrack_type;
   int   cp              = vc->cutpoint;
-  hard_constraintT  *hc = vc->hc;
-  soft_constraintT  *sc = vc->sc;
-  char              *hard_constraints = hc->matrix;
+  vrna_hcT  *hc                = vc->hc;
+  vrna_scT  *sc                = vc->sc;
+  char      *hard_constraints  = hc->matrix;
 
   /* the folding matrices */
   int   *my_f5, *my_c, *my_fML, *my_fc, *my_ggg;
@@ -1242,8 +1242,8 @@ free_end( int *array,
   short         *S1;
   char          *ptype, *hard_constraints;
   vrna_mx_mfeT  *matrices;
-  hard_constraintT *hc;
-  soft_constraintT *sc;
+  vrna_hcT      *hc;
+  vrna_scT      *sc;
 
   cp            = vc->cutpoint;
   P             = vc->params;

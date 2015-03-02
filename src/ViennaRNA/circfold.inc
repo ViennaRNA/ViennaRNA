@@ -24,8 +24,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
   paramT            *P;
   char              *ptype, *hard_constraints;
   short             *S1;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_hcT          *hc;
+  vrna_scT          *sc;
 
   P                 = vc->params;
   ptype             = vc->ptype;

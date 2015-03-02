@@ -237,7 +237,7 @@ typedef struct {
   int     *up_ml;   /**<  \brief  A linear array that holds the number of allowed
                                   unpaired nucleotides in a multi branched loop
                     */
-} hard_constraintT;
+} vrna_hcT;
 
 /**
  *  \brief  The soft constraints data structure
@@ -277,7 +277,7 @@ typedef struct {
   void *data;                   /**<  \brief  A pointer to the data object necessary for
                                               for pseudo energy contribution functions
                                 */
-} soft_constraintT;
+} vrna_scT;
 
 
 
@@ -648,7 +648,7 @@ typedef struct{
                                           \deprecated  This attribute will vanish in the future!
                                           It's meant for backward compatibility only!
                                     */
-      soft_constraintT  *sc;
+      vrna_scT *sc;
     };
     struct {
       char  **sequences;
@@ -660,13 +660,13 @@ typedef struct{
       short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
       char            **Ss;
       unsigned short  **a2s;
-      int               *pscore;     /* precomputed array of pair types */
-      soft_constraintT  **scs;
-      int               oldAliEn;
+      int             *pscore;     /* precomputed array of pair types */
+      vrna_scT        **scs;
+      int             oldAliEn;
     };
   };
 
-  hard_constraintT  *hc;
+  vrna_hcT          *hc;
 
   vrna_mx_mfeT      *matrices;
   vrna_mx_pfT       *exp_matrices;

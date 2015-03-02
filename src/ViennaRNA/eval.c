@@ -438,7 +438,7 @@ eval_int_loop(vrna_fold_compound *vc,
   short           *S, si, sj, sp, sq;
   paramT          *P;
   model_detailsT  *md;
-  soft_constraintT  *sc;
+  vrna_scT        *sc;
 
   cp      = vc->cutpoint;
   indx    = vc->jindx;
@@ -482,7 +482,7 @@ eval_ext_int_loop(vrna_fold_compound *vc,
   short           *S, si, sj, sp, sq;
   paramT          *P;
   model_detailsT  *md;
-  soft_constraintT  *sc;
+  vrna_scT        *sc;
 
   length  = vc->length;
   P       = vc->params;
@@ -672,7 +672,7 @@ eval_circ_pt( vrna_fold_compound *vc,
 
   int               i, j, length, energy, en0, degree;
   paramT            *P;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
   FILE              *out;
 
   energy        = 0;
@@ -988,7 +988,7 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
   int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, cp;
   short             *s, *s1;
   paramT            *P;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
 
   /* helper variables for dangles == 1 case */
   int E3_available;  /* energy of 5' part where 5' mismatch is available for current stem */
@@ -1107,7 +1107,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   int               mlintern[NBPAIRS+1];
   short             *s, *s1;
   paramT            *P;
-  soft_constraintT  *sc;
+  vrna_scT          *sc;
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */

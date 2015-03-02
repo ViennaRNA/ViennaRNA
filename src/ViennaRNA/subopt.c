@@ -617,7 +617,7 @@ vrna_subopt(vrna_fold_compound *vc,
   int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
   char          *ptype;
   short         *S, *S1;
-  soft_constraintT *sc;
+  vrna_scT      *sc;
 
   max_sol             = 128;
   n_sol               = 0;
@@ -862,8 +862,8 @@ scan_interval(vrna_fold_compound *vc,
   char            *ptype, *sequence;
   short           *S, *S1;
   char            *hard_constraints, hc_decompose;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_hcT        *hc;
+  vrna_scT        *sc;
 
   sequence  = vc->sequence;
   length    = vc->length;
@@ -1617,11 +1617,11 @@ repeat_gquad( vrna_fold_compound *vc,
               int threshold,
               subopt_env *env){
 
-  int *ggg, *indx, element_energy, cp;
-  short *S, *S1;
-  paramT *P;
-  hard_constraintT *hc;
-  soft_constraintT *sc;
+  int       *ggg, *indx, element_energy, cp;
+  short     *S, *S1;
+  paramT    *P;
+  vrna_hcT  *hc;
+  vrna_scT  *sc;
 
   indx  = vc->jindx;
   cp    = vc->cutpoint;
@@ -1704,8 +1704,8 @@ repeat( vrna_fold_compound *vc,
   int             Fc, FcH, FcI, FcM, *fM2;
   int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
   short         *S, *S1;
-  hard_constraintT *hc;
-  soft_constraintT *sc;
+  vrna_hcT      *hc;
+  vrna_scT      *sc;
 
   sequence  = vc->sequence;
   length    = vc->length;
