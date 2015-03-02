@@ -4,16 +4,8 @@
       basepair distance d to reference structure prediction
 
 */
-#ifndef __VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H__
-#define __VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H__
-
-#include <ViennaRNA/data_structures.h>
-
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#else
-#define DEPRECATED(func) func
-#endif
+#ifndef VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
+#define VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 
 /**
  *  \addtogroup kl_neighborhood_pf
@@ -22,8 +14,17 @@
  *  @{
  *
  *  \file 2Dpfold.h
+ *
  */
 
+#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/2Dfold.h>
+
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
 
 
 /**

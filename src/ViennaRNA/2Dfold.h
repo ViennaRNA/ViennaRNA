@@ -4,8 +4,8 @@
       basepair distance d to reference structure prediction
 
 */
-#ifndef __VIENNA_RNA_PACKAGE_TWO_D_FOLD_H__
-#define __VIENNA_RNA_PACKAGE_TWO_D_FOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_TWO_D_FOLD_H
+#define VIENNA_RNA_PACKAGE_TWO_D_FOLD_H
 
 /**
  *  \addtogroup kl_neighborhood
@@ -37,6 +37,141 @@
 #define DEPRECATED(func) func
 #endif
 
+/**
+ *  \brief Solution element returned from TwoDfoldList
+ *
+ *  This element contains free energy and structure for the appropriate
+ *  kappa (k), lambda (l) neighborhood
+ *  The datastructure contains two integer attributes 'k' and 'l'
+ *  as well as an attribute 'en' of type float representing the free energy
+ *  in kcal/mol and an attribute 's' of type char* containg the secondary
+ *  structure representative,
+ *
+ *  A value of #INF in k denotes the end of a list
+ *
+ *  \see  vrna_TwoDfold()
+ */
+typedef struct TwoDfold_solution{
+  int k;          /**<  \brief  Distance to first reference */
+  int l;          /**<  \brief  Distance to second reference */
+  float en;       /**<  \brief  Free energy in kcal/mol */
+  char *s;        /**<  \brief  MFE representative structure in dot-bracket notation */
+} TwoDfold_solution;
+
+/**
+ *  \brief Variables compound for 2Dfold MFE folding
+ *
+ *  \see vrna_TwoDfold_get_vars(), vrna_TwoDfold(), vrna_TwoDfold_destroy_vars
+ */
+typedef struct TwoDfold_vars{
+  paramT          *P;             /**<  \brief  Precomputed energy parameters and model details */
+  int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
+  char            *ptype;         /**<  \brief  Precomputed array of pair types */
+  char            *sequence;      /**<  \brief  The input sequence  */
+  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
+  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
+  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
+
+
+  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
+
+  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
+
+  double          temperature;
+
+  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+
+  short           *reference_pt1;
+  short           *reference_pt2;
+  int             circ;
+  int             dangles;
+  unsigned int    seq_length;
+
+  int             ***E_F5;
+  int             ***E_F3;
+  int             ***E_C;
+  int             ***E_M;
+  int             ***E_M1;
+  int             ***E_M2;
+
+  int             **E_Fc;
+  int             **E_FcH;
+  int             **E_FcI;
+  int             **E_FcM;
+
+  int             **l_min_values;
+  int             **l_max_values;
+  int             *k_min_values;
+  int             *k_max_values;
+
+  int             **l_min_values_m;
+  int             **l_max_values_m;
+  int             *k_min_values_m;
+  int             *k_max_values_m;
+
+  int             **l_min_values_m1;
+  int             **l_max_values_m1;
+  int             *k_min_values_m1;
+  int             *k_max_values_m1;
+
+  int             **l_min_values_f;
+  int             **l_max_values_f;
+  int             *k_min_values_f;
+  int             *k_max_values_f;
+
+  int             **l_min_values_f3;
+  int             **l_max_values_f3;
+  int             *k_min_values_f3;
+  int             *k_max_values_f3;
+
+  int             **l_min_values_m2;
+  int             **l_max_values_m2;
+  int             *k_min_values_m2;
+  int             *k_max_values_m2;
+
+  int             *l_min_values_fc;
+  int             *l_max_values_fc;
+  int             k_min_values_fc;
+  int             k_max_values_fc;
+
+  int             *l_min_values_fcH;
+  int             *l_max_values_fcH;
+  int             k_min_values_fcH;
+  int             k_max_values_fcH;
+
+  int             *l_min_values_fcI;
+  int             *l_max_values_fcI;
+  int             k_min_values_fcI;
+  int             k_max_values_fcI;
+
+  int             *l_min_values_fcM;
+  int             *l_max_values_fcM;
+  int             k_min_values_fcM;
+  int             k_max_values_fcM;
+
+  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
+  int             *E_F5_rem;
+  int             *E_F3_rem;
+  int             *E_C_rem;
+  int             *E_M_rem;
+  int             *E_M1_rem;
+  int             *E_M2_rem;
+
+  int             E_Fc_rem;
+  int             E_FcH_rem;
+  int             E_FcI_rem;
+  int             E_FcM_rem;
+
+#ifdef COUNT_STATES
+  unsigned long             ***N_F5;
+  unsigned long             ***N_C;
+  unsigned long             ***N_M;
+  unsigned long             ***N_M1;
+#endif
+} TwoDfold_vars;
 
 
 
