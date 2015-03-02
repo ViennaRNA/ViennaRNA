@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   /* get energy parameters */
-  P = vrna_get_energy_contributions(md);
+  P = vrna_params_get(&md);
 
   /* print user help if we get input from tty */
   if(istty){

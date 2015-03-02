@@ -14,11 +14,11 @@ typedef struct {} vrna_exp_param_t;
   vrna_param_t(){
     vrna_md_t md;
     vrna_md_set_default(&md);
-    vrna_param_t *P = vrna_get_energy_contributions(md);
+    vrna_param_t *P = vrna_get_energy_contributions(&md);
     return P;
   }
   vrna_param_t(vrna_md_t *md){
-    vrna_param_t *P = vrna_get_energy_contributions(*md);
+    vrna_param_t *P = vrna_get_energy_contributions(md);
     return P;
   }
 }
@@ -28,11 +28,11 @@ typedef struct {} vrna_exp_param_t;
   vrna_exp_param_t(){
     vrna_md_t md;
     vrna_md_set_default(&md);
-    vrna_exp_param_t *P = vrna_get_boltzmann_factors(md);
+    vrna_exp_param_t *P = vrna_get_boltzmann_factors(&md);
     return P;
   }
   vrna_exp_param_t(vrna_md_t *md){
-    vrna_exp_param_t *P = vrna_get_boltzmann_factors(*md);
+    vrna_exp_param_t *P = vrna_get_boltzmann_factors(md);
     return P;
   }
 }

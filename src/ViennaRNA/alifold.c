@@ -1177,7 +1177,7 @@ update_alifold_params(void){
 
     vrna_md_t md;
     set_model_details(&md);
-    v->params = vrna_get_energy_contributions(md);
+    v->params = vrna_params_get(&md);
   }
 }
 

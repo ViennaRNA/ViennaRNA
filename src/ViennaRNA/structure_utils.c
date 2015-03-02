@@ -819,7 +819,7 @@ assign_plist_from_pr( plist **pl,
 
   set_model_details(&md);
   md.gquad        = 0;
-  pf_params       = vrna_get_boltzmann_factors(md);
+  pf_params       = vrna_exp_params_get(&md);
   matrices->probs = probs;
 
   *pl = wrap_get_plist( matrices,

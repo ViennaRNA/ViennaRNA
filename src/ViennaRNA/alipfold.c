@@ -112,7 +112,7 @@ wrap_alipf_fold(const char **sequences,
   else{
     vrna_md_t md;
     set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_get_boltzmann_factors_ali(n_seq, md);
+    exp_params = vrna_exp_params_ali_get(n_seq, &md);
   }
   exp_params->model_details.circ        = is_circular;
   exp_params->model_details.compute_bpp = calculate_bppm;

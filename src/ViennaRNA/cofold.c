@@ -1696,7 +1696,7 @@ update_cofold_params(void){
       free(v->params);
 
     set_model_details(&md);
-    v->params = vrna_get_energy_contributions(md);
+    v->params = vrna_params_get(&md);
   }
 }
 
@@ -1716,7 +1716,7 @@ update_cofold_params_par(vrna_param_t *parameters){
     } else {
       vrna_md_t md;
       set_model_details(&md);
-      v->params = vrna_get_energy_contributions(md);
+      v->params = vrna_params_get(&md);
     }
   }
 }

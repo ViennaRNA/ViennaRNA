@@ -429,12 +429,12 @@ set_fold_compound(vrna_fold_compound *vc,
 
   /* now come the energy parameters */
   if(options & VRNA_OPTION_MFE)
-    vc->params      = vrna_get_energy_contributions(md);
+    vc->params      = vrna_params_get(&md);
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
-                        vrna_get_boltzmann_factors(md) : \
-                        vrna_get_boltzmann_factors_ali(vc->n_seq, md);
+                        vrna_exp_params_get(&md) : \
+                        vrna_exp_params_ali_get(vc->n_seq, &md);
   }
 
   /* prepare the allocation vector for the DP matrices */
