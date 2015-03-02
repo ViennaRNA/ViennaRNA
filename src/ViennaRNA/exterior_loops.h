@@ -187,7 +187,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_ext;
-  vrna_scT          *sc           = vc->sc;
+  vrna_sc_t         *sc           = vc->sc;
   int               *f5           = vc->matrices->f5;
   int               *c            = vc->matrices->c;
   paramT            *P            = vc->params;

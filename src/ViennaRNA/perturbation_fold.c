@@ -50,11 +50,11 @@ static double calculate_norm(double *vector, int length)
 
 static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int length)
 {
-  vrna_scT *sc;
+  vrna_sc_t *sc;
   int i, j;
   double kT = vc->exp_params->kT / 1000;
 
-  sc = space(sizeof(vrna_scT));
+  sc = space(sizeof(vrna_sc_t));
 
   sc->boltzmann_factors = space(sizeof(double*) * (length + 2));
   sc->boltzmann_factors[0] = space(1);

@@ -223,8 +223,8 @@ fill_arrays(vrna_fold_compound *vc){
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
 
-  vrna_hcT        *hc           = vc->hc;
-  vrna_scT        **sc          = vc->scs;
+  vrna_hc_t       *hc           = vc->hc;
+  vrna_sc_t       **sc          = vc->scs;
 
   char              *hard_constraints = hc->matrix;
 
@@ -662,8 +662,8 @@ backtrack(vrna_fold_compound *vc,
   int             dangle_model  = md->dangles;
   int             with_gquad    = md->gquad;
 
-  vrna_hcT        *hc           = vc->hc;
-  vrna_scT        **sc          = vc->scs;
+  vrna_hc_t       *hc           = vc->hc;
+  vrna_sc_t       **sc          = vc->scs;
 
   type = (int *) space(n_seq*sizeof(int));
 

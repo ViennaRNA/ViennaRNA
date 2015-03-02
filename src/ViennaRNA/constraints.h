@@ -320,7 +320,7 @@
  *        
  *  \ingroup hard_constraints
  */
-typedef struct vrna_hcT {
+typedef struct vrna_hc_t {
   char    *matrix;  /**<  \brief  Upper triangular matrix encoding where a
                                   base pair or unpaired nucleotide is allowed
                     */
@@ -336,14 +336,14 @@ typedef struct vrna_hcT {
   int     *up_ml;   /**<  \brief  A linear array that holds the number of allowed
                                   unpaired nucleotides in a multi branched loop
                     */
-} vrna_hcT;
+} vrna_hc_t;
 
 /**
  *  \brief  The soft constraints data structure
  *
  *  \ingroup soft_constraints
  */
-typedef struct vrna_scT {
+typedef struct vrna_sc_t {
   double      *constraints;         /**<  \brief Backup storage for energy contributions of single nucleotides */
   int         **free_energies;      /**<  \brief Energy contribution for unpaired sequence stretches */
   int         *en_basepair;         /**<  \brief Energy contribution for base pairs */
@@ -376,7 +376,7 @@ typedef struct vrna_scT {
   void *data;                   /**<  \brief  A pointer to the data object necessary for
                                               for pseudo energy contribution functions
                                 */
-} vrna_scT;
+} vrna_sc_t;
 
 /**
  *  \brief Print structure constraint characters to stdout.
@@ -455,7 +455,7 @@ void getConstraint( char **cstruc,
 /**
  *  \brief  Add hard constraints to a #vrna_fold_compound data structure
  *
- *  Use this function to add/update a data structure of type #vrna_hcT that
+ *  Use this function to add/update a data structure of type #vrna_hc_t that
  *  specifies which decomposition steps are allowed/enforced during the recursions.
  *  The function allows for passing a string 'constraint' that can either be a
  *  filename that points to a hard constraints definition file or it may be a
@@ -502,16 +502,16 @@ void vrna_hc_reset(vrna_fold_compound *vc);
 
 
 /**
- *  \brief  Free the memory allocated by a #vrna_hcT data structure
+ *  \brief  Free the memory allocated by a #vrna_hc_t data structure
  *
  *  Use this function to free all memory that was allocated for a data structure
- *  of type #vrna_hcT .
+ *  of type #vrna_hc_t .
  *
- *  \see get_hard_constraints(), #vrna_hcT
+ *  \see get_hard_constraints(), #vrna_hc_t
  *  \ingroup  hard_constraints
  *
  */
-void vrna_hc_free(vrna_hcT *hc);
+void vrna_hc_free(vrna_hc_t *hc);
 
 
 /**
@@ -620,7 +620,7 @@ void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
 
 void vrna_sc_remove(vrna_fold_compound *vc);
 
-void vrna_sc_free(vrna_scT *sc);
+void vrna_sc_free(vrna_sc_t *sc);
 
 int parse_soft_constraints_shape_method(const char *method_string,
                                         char *method,

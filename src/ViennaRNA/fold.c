@@ -235,8 +235,8 @@ fill_arrays(vrna_fold_compound *vc){
   short             *S1;
   paramT            *P;
   vrna_mx_mfe_t     *matrices;
-  vrna_hcT          *hc;
-  vrna_scT          *sc;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -428,8 +428,8 @@ backtrack(vrna_fold_compound *vc,
   my_fML  = vc->matrices->fML;
   my_ggg  = vc->matrices->ggg;
 
-  vrna_hcT  *hc               = vc->hc;
-  vrna_scT  *sc               = vc->sc;
+  vrna_hc_t *hc               = vc->hc;
+  vrna_sc_t *sc               = vc->sc;
   char      *hard_constraints = hc->matrix;
 
   if (s==0) {

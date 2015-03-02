@@ -289,8 +289,8 @@ pf_co(vrna_fold_compound *vc){
   int               *my_iindx, *jindx;
   char              *ptype, *sequence;
   vrna_md_t         *md;
-  vrna_hcT          *hc;
-  vrna_scT          *sc;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
   FLT_OR_DBL        expMLclosing;
   int               noGUclosure;
   double            max_real;
@@ -638,8 +638,8 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   vrna_md_t         *md;
   short             *S,*S1;
   char              *ptype;
-  vrna_hcT          *hc;
-  vrna_scT          *sc;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;
   char              *sequence;
   char              *hard_constraints;

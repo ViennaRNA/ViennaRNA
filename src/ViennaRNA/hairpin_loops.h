@@ -216,7 +216,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
   char              loopseq[10];
   short             *S;
   paramT            *P;
-  vrna_scT          *sc;
+  vrna_sc_t         *sc;
   vrna_md_t         *md;
 
   S     = vc->sequence_encoding;
@@ -265,7 +265,7 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
   short     *S        = vc->sequence_encoding;
   int       *idx      = vc->jindx;
   paramT    *P        = vc->params;
-  vrna_scT  *sc       = vc->sc;
+  vrna_sc_t *sc       = vc->sc;
   vrna_md_t       *md = &(P->model_details);
 
 
@@ -320,7 +320,7 @@ E_hp_loop_ali(int i,
   unsigned short    **a2s   = vc->a2s;                                                                 
   char              hc      = vc->hc->matrix[idx[j]+i];
   int               *hc_up  = vc->hc->up_hp;
-  vrna_scT          **sc    = vc->scs;
+  vrna_sc_t         **sc    = vc->scs;
 
   type = (int *)space(sizeof(int) * n_seq);
 
@@ -440,7 +440,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
   int               *idx    = vc->jindx;
   pf_paramT         *P      = vc->exp_params;
   int               *hc_up  = vc->hc->up_hp;
-  vrna_scT          *sc     = vc->sc;
+  vrna_sc_t         *sc     = vc->sc;
   FLT_OR_DBL        *scale  = vc->exp_matrices->scale;
 
   q     = 0.;

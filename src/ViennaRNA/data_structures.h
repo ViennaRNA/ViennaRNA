@@ -447,7 +447,7 @@ typedef struct{
                                           \deprecated  This attribute will vanish in the future!
                                           It's meant for backward compatibility only!
                                     */
-      struct vrna_scT *sc;
+      struct vrna_sc_t *sc;
     };
     struct {
       char  **sequences;
@@ -460,12 +460,12 @@ typedef struct{
       char            **Ss;
       unsigned short  **a2s;
       int             *pscore;     /* precomputed array of pair types */
-      struct vrna_scT **scs;
+      struct vrna_sc_t **scs;
       int             oldAliEn;
     };
   };
 
-  struct vrna_hcT   *hc;
+  struct vrna_hc_t  *hc;
 
   vrna_mx_mfe_t     *matrices;
   vrna_mx_pf_t      *exp_matrices;

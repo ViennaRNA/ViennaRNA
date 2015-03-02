@@ -215,8 +215,8 @@ alipf_linear( vrna_fold_compound *vc,
   pf_paramT         *pf_params        = vc->exp_params;
   vrna_mx_pf_t      *matrices         = vc->exp_matrices;
   vrna_md_t         *md               = &(pf_params->model_details);
-  vrna_hcT          *hc               = vc->hc;
-  vrna_scT          **sc              = vc->scs;
+  vrna_hc_t         *hc               = vc->hc;
+  vrna_sc_t         **sc              = vc->scs;
   int               *my_iindx         = vc->iindx;
   int               *jindx            = vc->jindx;
   FLT_OR_DBL        *q                = matrices->q;
@@ -534,8 +534,8 @@ alipf_create_bppm(vrna_fold_compound *vc,
   pf_paramT         *pf_params    = vc->exp_params;
   vrna_mx_pf_t      *matrices     = vc->exp_matrices;
   vrna_md_t         *md           = &(pf_params->model_details);
-  vrna_hcT          *hc           = vc->hc;
-  vrna_scT          **sc          = vc->scs;
+  vrna_hc_t         *hc           = vc->hc;
+  vrna_sc_t         **sc          = vc->scs;
   int               *my_iindx     = vc->iindx;
   int               *jindx        = vc->jindx;
   FLT_OR_DBL        *q            = matrices->q;
@@ -1146,8 +1146,8 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  vrna_hcT          *hc         = vc->hc;
-  vrna_scT          **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
@@ -1310,8 +1310,8 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
-  vrna_hcT          *hc         = vc->hc;
-  vrna_scT          **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *q          = matrices->q;
   FLT_OR_DBL        *qb         = matrices->qb;
 
@@ -1403,8 +1403,8 @@ backtrack(vrna_fold_compound *vc,
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  vrna_hcT          *hc         = vc->hc;
-  vrna_scT          **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
@@ -1585,8 +1585,8 @@ backtrack_qm1(vrna_fold_compound *vc,
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  vrna_hcT          *hc         = vc->hc;
-  vrna_scT          **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm1        = matrices->qm1;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
