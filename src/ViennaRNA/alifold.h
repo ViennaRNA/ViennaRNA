@@ -210,7 +210,7 @@ float vrna_ali_pf_fold(vrna_fold_compound *vc,
  *
  *  \see #pair_info, and vrna_ali_pf_fold()
  *
- *  \param  vc          The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  vc          The #vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
  *  \param  threshold   Do not include results with pair probabilities below threshold
  *  \return             The #pair_info array
@@ -326,7 +326,7 @@ DEPRECATED(void  free_alipf_arrays(void));
  *
  *  \see vrna_ali_pf_fold() for precomputing the partition function matrices, and
  *
- *  \param  vc    The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  vc    The #vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  prob  to be described (berni)
  *  \return       A sampled consensus secondary structure in dot-bracket notation
  */

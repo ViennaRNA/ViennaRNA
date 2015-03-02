@@ -298,6 +298,87 @@
 #define VRNA_DECOMP_EXT_STEM_UP 12
 
 /**
+ *  \brief  The hard constraints data structure
+ *
+ *  The content of this data structure determines the decomposition pattern
+ *  used in the folding recursions. Attribute 'matrix' is used as source for
+ *  the branching pattern of the decompositions during all folding recursions.
+ *  Any entry in matrix[i,j] consists of the 6 LSB that allows to distinguish the
+ *  following types of base pairs:
+ *  - in the exterior loop (#VRNA_HC_CONTEXT_EXT_LOOP)
+ *  - enclosing a hairpin (#VRNA_HC_CONTEXT_HP_LOOP)
+ *  - enclosing an interior loop (#VRNA_HC_CONTEXT_INT_LOOP)
+ *  - enclosed by an exterior loop (#VRNA_HC_CONTEXT_INT_LOOP_ENC)
+ *  - enclosing a multi branch loop (#VRNA_HC_CONTEXT_MB_LOOP)
+ *  - enclosed by a multi branch loop (#VRNA_HC_CONTEXT_MB_LOOP_ENC)
+ *
+ *  The four linear arrays 'up_xxx' provide the number of available unpaired
+ *  nucleotides (including position i) 3' of each position in the sequence.
+ *
+ *  \see  get_hard_constraints(), vrna_hc_free(), #VRNA_HC_CONTEXT_EXT_LOOP,
+ *        #VRNA_HC_CONTEXT_HP_LOOP, #VRNA_HC_CONTEXT_INT_LOOP, #VRNA_HC_CONTEXT_EXT_LOOP_ENC, #VRNA_HC_CONTEXT_MB_LOOP, #VRNA_HC_CONTEXT_MB_LOOP_ENC
+ *        
+ *  \ingroup hard_constraints
+ */
+typedef struct vrna_hcT {
+  char    *matrix;  /**<  \brief  Upper triangular matrix encoding where a
+                                  base pair or unpaired nucleotide is allowed
+                    */
+  int     *up_ext;  /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in an exterior loop
+                    */
+  int     *up_hp;   /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in a hairpin loop
+                    */
+  int     *up_int;  /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in an interior loop
+                    */
+  int     *up_ml;   /**<  \brief  A linear array that holds the number of allowed
+                                  unpaired nucleotides in a multi branched loop
+                    */
+} vrna_hcT;
+
+/**
+ *  \brief  The soft constraints data structure
+ *
+ *  \ingroup soft_constraints
+ */
+typedef struct vrna_scT {
+  double      *constraints;         /**<  \brief Backup storage for energy contributions of single nucleotides */
+  int         **free_energies;      /**<  \brief Energy contribution for unpaired sequence stretches */
+  int         *en_basepair;         /**<  \brief Energy contribution for base pairs */
+  FLT_OR_DBL  **boltzmann_factors;  /**<  \brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  FLT_OR_DBL  *exp_en_basepair;     /**<  \brief Boltzmann Factors of the energy contribution for base pairs */
+
+  int         *en_stack;            /**<  \brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_en_stack;        /**<  \brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+
+  /* generalized soft contraints */
+  int (*f)( int,
+            int,
+            int,
+            int,
+            char,
+            void *);            /**<  \brief  A function pointer used for pseudo
+                                              energy contribution in MFE calculations
+                                */
+
+  FLT_OR_DBL (*exp_f)(int,
+                      int,
+                      int,
+                      int,
+                      char,
+                      void *);  /**<  \brief  A function pointer used for pseudo energy
+                                              contribution boltzmann factors in PF
+                                              calculations
+                                */
+
+  void *data;                   /**<  \brief  A pointer to the data object necessary for
+                                              for pseudo energy contribution functions
+                                */
+} vrna_scT;
+
+/**
  *  \brief Print structure constraint characters to stdout.
  *  (constraint support is specified by option parameter)
  *
@@ -374,7 +455,7 @@ void getConstraint( char **cstruc,
 /**
  *  \brief  Add hard constraints to a #vrna_fold_compound data structure
  *
- *  Use this function to add a data structure of type #hard_constraintsT that
+ *  Use this function to add/update a data structure of type #vrna_hcT that
  *  specifies which decomposition steps are allowed/enforced during the recursions.
  *  The function allows for passing a string 'constraint' that can either be a
  *  filename that points to a hard constraints definition file or it may be a
@@ -384,7 +465,7 @@ void getConstraint( char **cstruc,
  *  to options are passed, no further hard constraints then the ones induced by
  *  canonical base pairing (as supplied with the ptype argument) are applied.
  *
- *  \see      vrna_hc_free(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
+ *  \see      vrna_hc_reset(), vrna_hc_free(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
  *
  *  \ingroup  hard_constraints
  *

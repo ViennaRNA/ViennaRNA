@@ -38,7 +38,7 @@
  */
 
 /**
- *  \defgroup mfe_fold Calculating Minimum Free Energy Structures
+ *  \addtogroup mfe_fold
  *  @{
  *    \brief This module contains all functions and variables related to the calculation
  *    of global minimum free energy structures for single sequences.

@@ -19,7 +19,7 @@
 #endif
 
 /**
- *  \file multibranch_energies.h
+ *  \file multibranch_loops.h
  *  \brief Energy evaluation of multibranch loops for MFE and partition function calculations
  */
 
