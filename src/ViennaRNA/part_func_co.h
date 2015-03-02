@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_CO_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))

@@ -3,6 +3,7 @@
 #define __VIENNA_RNA_PACKAGE_SUBOPT_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #define MAXDOS 1000
 

@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_PART_FUNC_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/centroid.h>
 
 #ifdef __GNUC__

@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_FOLD_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/eval.h>
 
 #ifdef __GNUC__

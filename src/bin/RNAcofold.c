@@ -10,16 +10,16 @@
 #include <unistd.h>
 #include <string.h>
 #include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
+#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func_co.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/file_formats.h"
 #include "RNAcofold_cmdl.h"
 
 /*@unused@*/

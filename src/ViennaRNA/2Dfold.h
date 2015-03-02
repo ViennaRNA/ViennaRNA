@@ -30,6 +30,7 @@
  */
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -64,7 +65,7 @@ typedef struct TwoDfold_solution{
  *  \see vrna_TwoDfold_get_vars(), vrna_TwoDfold(), vrna_TwoDfold_destroy_vars
  */
 typedef struct TwoDfold_vars{
-  paramT          *P;             /**<  \brief  Precomputed energy parameters and model details */
+  struct paramT   *P;             /**<  \brief  Precomputed energy parameters and model details */
   int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
   char            *ptype;         /**<  \brief  Precomputed array of pair types */
   char            *sequence;      /**<  \brief  The input sequence  */

@@ -13,12 +13,12 @@
 #include <string.h>
 #include <math.h>
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_const.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/params.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/PKplex.h"

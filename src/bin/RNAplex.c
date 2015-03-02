@@ -17,14 +17,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/params.h"
 #include "ViennaRNA/plex.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/read_epars.h"

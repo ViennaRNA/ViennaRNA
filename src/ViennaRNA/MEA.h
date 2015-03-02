@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_MEA_H__
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 /**
  *  \file MEA.h
