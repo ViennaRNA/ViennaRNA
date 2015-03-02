@@ -12,12 +12,12 @@ typedef struct {} pf_paramT;
 /* make a nice object oriented interface to paramT */
 %extend paramT {
   paramT(){
-    model_detailsT md;
+    vrna_md_t md;
     vrna_md_set_default(&md);
     paramT *P = vrna_get_energy_contributions(md);
     return P;
   }
-  paramT(model_detailsT *md){
+  paramT(vrna_md_t *md){
     paramT *P = vrna_get_energy_contributions(*md);
     return P;
   }
@@ -26,12 +26,12 @@ typedef struct {} pf_paramT;
 /* make a nice object oriented interface to pf_paramT */
 %extend pf_paramT {
   pf_paramT(){
-    model_detailsT md;
+    vrna_md_t md;
     vrna_md_set_default(&md);
     pf_paramT *P = vrna_get_boltzmann_factors(md);
     return P;
   }
-  pf_paramT(model_detailsT *md){
+  pf_paramT(vrna_md_t *md){
     pf_paramT *P = vrna_get_boltzmann_factors(*md);
     return P;
   }
@@ -69,24 +69,24 @@ typedef struct {} pf_paramT;
 /* BEGIN interface for model details          */
 /**********************************************/
 
-/* hide data fields of model_detailsT from SWIG */
-%nodefaultctor model_detailsT;
-// typedef struct {} model_detailsT;
+/* hide data fields of vrna_md_t from SWIG */
+%nodefaultctor vrna_md_t;
+// typedef struct {} vrna_md_t;
 
-/* make a nice object oriented interface to model_detailsT */
-%extend model_detailsT {
+/* make a nice object oriented interface to vrna_md_t */
+%extend vrna_md_t {
 
   /* the default constructor */
-  model_detailsT(){
-    model_detailsT *md = (model_detailsT *)space(sizeof(model_detailsT));
+  vrna_md_t(){
+    vrna_md_t *md = (vrna_md_t *)space(sizeof(vrna_md_t));
     vrna_md_set_default(md);
     return md;
   }
   /* a constructor that provides backward compatibility (for now) */
-  model_detailsT(char *type){
-    model_detailsT *md = (model_detailsT *)space(sizeof(model_detailsT));
+  vrna_md_t(char *type){
+    vrna_md_t *md = (vrna_md_t *)space(sizeof(vrna_md_t));
     if(!strcmp(type, "global"))
-      set_model_details(md);
+      vrna_md_set_globals(md);
     else
       vrna_md_set_default(md);
     return md;
@@ -102,7 +102,7 @@ typedef struct {} pf_paramT;
     vrna_md_set_default($self);
   }
   void set_from_globals(){
-    set_model_details($self);
+    vrna_md_set_globals($self);
   }
   void print(){
     printf( "temperature:     %g\n"
@@ -153,7 +153,7 @@ typedef struct {} pf_paramT;
 }
 
 %ignore vrna_md_set_default;
-%ignore set_model_details;
+%ignore vrna_md_set_globals;
 %ignore vrna_md_set_nonstandards;
 %ignore vrna_md_set_dangles;
 %ignore vrna_md_get_dangles;

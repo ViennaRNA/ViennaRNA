@@ -11,6 +11,15 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
+/**
+ *  \addtogroup   basic_data_structures
+ *
+ *  @{
+ *
+ *  \file model.h
+ *  \brief The model details data structure and its corresponding modifiers
+ */
+
 
 #define VRNA_MODEL_DEFAULT_TEMPERATURE    37.0
 #define VRNA_MODEL_DEFAULT_PF_SCALE       -1
@@ -34,17 +43,6 @@
 #define VRNA_MODEL_DEFAULT_ALI_RIBO       0
 #define VRNA_MODEL_DEFAULT_ALI_CV_FACT    1.
 #define VRNA_MODEL_DEFAULT_ALI_NC_FACT    1.
-
-
-/**
- *  \addtogroup   basic_data_structures
- *
- *  @{
- *
- *  \file model.h
- *  \brief The model details data structure and its corresponding modifiers
- */
-
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
