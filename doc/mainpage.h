@@ -5,8 +5,11 @@
 */
 
 /**
- *  \defgroup   folding_routines          RNA Secondary Structure Folding
+ *  \defgroup   folding_routines          RNA Secondary Structure Prediction and Evaluation
  *  \brief This module contains all functions related to thermodynamic folding of RNAs
+ *
+ *  \defgroup   vrna_fold_compound        Basic Data Structures for Structure Prediction and Evaluation
+ *  \ingroup    folding_routines
  *
  *  \defgroup   mfe_fold                  Calculating Minimum Free Energy (MFE) Structures
  *  \ingroup    folding_routines
