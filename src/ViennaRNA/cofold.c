@@ -234,7 +234,7 @@ fill_arrays(vrna_fold_compound  *vc,
   int   dangle_model, noGUclosure, noLP, hc_decompose, turn;
   char              *ptype, *hard_constraints;
   paramT            *P;
-  mfe_matricesT     *matrices;
+  vrna_mx_mfeT      *matrices;
   hard_constraintT  *hc;
 
   length            = (int)vc->length;
@@ -1241,7 +1241,7 @@ free_end( int *array,
   paramT        *P;
   short         *S1;
   char          *ptype, *hard_constraints;
-  mfe_matricesT *matrices;
+  vrna_mx_mfeT  *matrices;
   hard_constraintT *hc;
   soft_constraintT *sc;
 
@@ -1461,7 +1461,7 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   SOLUTION      *zukresults;
   bondT         *pairlist, *bp_list;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  mfe_matricesT *matrices;
+  vrna_mx_mfeT  *matrices;
 
   doublelength    = vc->length;
   length          = doublelength/2;

@@ -86,8 +86,8 @@ PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, unsigned int al
 PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
 PRIVATE void            set_fold_compound(vrna_fold_compound *vc, model_detailsT *md_p, unsigned int options);
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
-PRIVATE mfe_matricesT   *get_mfe_matrices_alloc( unsigned int n, unsigned int alloc_vector);
-PRIVATE pf_matricesT    *get_pf_matrices_alloc(unsigned int n, unsigned int alloc_vector);
+PRIVATE vrna_mx_mfeT    *get_mfe_matrices_alloc( unsigned int n, unsigned int alloc_vector);
+PRIVATE vrna_mx_pfT     *get_pf_matrices_alloc(unsigned int n, unsigned int alloc_vector);
 
 
 /*
@@ -100,7 +100,7 @@ PUBLIC void
 vrna_free_mfe_matrices(vrna_fold_compound *vc){
 
   if(vc){
-    mfe_matricesT *self = vc->matrices;
+    vrna_mx_mfeT *self = vc->matrices;
     if(self){
       if(self->allocated){
         if(self->allocated & ALLOC_F5)
@@ -245,7 +245,7 @@ vrna_free_pf_matrices(vrna_fold_compound *vc){
 
   if(vc){
     if(vc->exp_matrices){
-      pf_matricesT  *self = vc->exp_matrices;
+      vrna_mx_pfT  *self = vc->exp_matrices;
       free(self->q);
       free(self->qb);
       free(self->qm);
@@ -269,14 +269,14 @@ vrna_free_pf_matrices(vrna_fold_compound *vc){
 #####################################
 */
 
-PRIVATE mfe_matricesT  *
+PRIVATE vrna_mx_mfeT  *
 get_mfe_matrices_alloc( unsigned int n,
                         unsigned int alloc_vector){
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  mfe_matricesT *vars   = (mfe_matricesT *)space(sizeof(mfe_matricesT));
+  vrna_mx_mfeT *vars    = (vrna_mx_mfeT *)space(sizeof(vrna_mx_mfeT));
 
   vars->allocated       = 0;
   vars->length          = 0;
@@ -515,14 +515,14 @@ add_mfe_matrices( vrna_fold_compound *vc,
 
 
 
-PRIVATE pf_matricesT  *
+PRIVATE vrna_mx_pfT  *
 get_pf_matrices_alloc(unsigned int n,
                       unsigned int alloc_vector){
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  pf_matricesT  *vars   = (pf_matricesT *)space(sizeof(pf_matricesT));
+  vrna_mx_pfT  *vars    = (vrna_mx_pfT *)space(sizeof(vrna_mx_pfT));
 
   vars->allocated       = 0;
   vars->length          = 0;

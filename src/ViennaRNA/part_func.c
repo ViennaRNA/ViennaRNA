@@ -152,7 +152,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
   int             n;
   model_detailsT  *md;
   pf_paramT       *params;
-  pf_matricesT    *matrices;
+  vrna_mx_pfT     *matrices;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -238,7 +238,7 @@ pf_linear(vrna_fold_compound *vc){
   char        *ptype, *sequence;
 
   pf_paramT   *pf_params;
-  pf_matricesT *matrices  = vc->exp_matrices;
+  vrna_mx_pfT *matrices = vc->exp_matrices;
 
   pf_params             = vc->exp_params;
   model_detailsT    *md = &(pf_params->model_details);
@@ -573,7 +573,7 @@ pf_circ(vrna_fold_compound *vc){
 
   pf_paramT     *pf_params = vc->exp_params;
   FLT_OR_DBL    *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo;
-  pf_matricesT  *matrices;
+  vrna_mx_pfT   *matrices;
 
   sequence  = vc->sequence;
   n         = vc->length;
@@ -690,7 +690,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   int               *my_iindx, *jindx;
   int               circular;
   pf_paramT         *pf_params;
-  pf_matricesT      *matrices;
+  vrna_mx_pfT       *matrices;
   model_detailsT    *md;
 
 
@@ -1251,7 +1251,7 @@ rescale_params( vrna_fold_compound *vc){
 
   int           i;
   pf_paramT     *pf = vc->exp_params;
-  pf_matricesT  *m  = vc->exp_matrices;
+  vrna_mx_pfT   *m  = vc->exp_matrices;
 
   m->scale[0] = 1.;
   m->scale[1] = 1./pf->pf_scale;
@@ -1318,7 +1318,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   FLT_OR_DBL        *q, *qb, *scale;
   char              *ptype, *hard_constraints;
   short             *S1;
-  pf_matricesT      *matrices;
+  vrna_mx_pfT       *matrices;
   hard_constraintT  *hc;
   soft_constraintT  *sc;
   pf_paramT         *pf_params;
@@ -1442,7 +1442,7 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
   int         *my_iindx, *jindx;
   short       *S1;
 
-  pf_matricesT  *matrices;
+  vrna_mx_pfT *matrices;
 
   pf_params     = vc->exp_params;
   matrices      = vc->exp_matrices;
@@ -1558,7 +1558,7 @@ backtrack_qm( int i,
   soft_constraintT  *sc;
 
   n = j;
-  pf_matricesT  *matrices = vc->exp_matrices;
+  vrna_mx_pfT  *matrices = vc->exp_matrices;
 
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
@@ -1628,10 +1628,10 @@ backtrack_qm1(int i,
               vrna_fold_compound *vc){
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  int ii, l, type, n;
-  double qt, r, q_temp;
-  FLT_OR_DBL  *qm1, *qb, *expMLbase;
-  pf_matricesT  *matrices;
+  int           ii, l, type, n;
+  double        qt, r, q_temp;
+  FLT_OR_DBL    *qm1, *qb, *expMLbase;
+  vrna_mx_pfT   *matrices;
   int           *my_iindx, *jindx;
   char          *ptype;
   short             *S1;
@@ -1715,7 +1715,7 @@ backtrack(int i,
   char              *ptype, *sequence;
   pf_paramT         *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
-  pf_matricesT      *matrices;
+  vrna_mx_pfT       *matrices;
   int               *my_iindx, *jindx;
   soft_constraintT  *sc;
   short             *S1;
@@ -1863,7 +1863,7 @@ stackProb(double cutoff){
   int num = 0;
   pf_paramT *pf_params;
   FLT_OR_DBL    *qb, *probs, *scale;
-  pf_matricesT  *matrices;
+  vrna_mx_pfT   *matrices;
   char          *ptype;
 
   if(!backward_compat_compound){

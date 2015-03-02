@@ -118,7 +118,7 @@ vrna_get_centroid_struct( vrna_fold_compound *vc,
   double p;
   char  *centroid;
   short *S;
-  pf_matricesT  *matrices;
+  vrna_mx_pfT   *matrices;
   FLT_OR_DBL    *probs;
   int           *my_iindx;
   pf_paramT     *pf_params;

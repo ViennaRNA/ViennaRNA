@@ -7,6 +7,10 @@
 
 /**
  *  \file data_structures.h
+ *
+ *  \addtogroup   data_structures   Common Data Structures and Preprocessor Macros
+ *  @{
+ *
  *  \brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
  */
 
@@ -92,44 +96,6 @@ typedef struct bondTEn {
 } bondTEn;
 
 
-typedef struct{
-  unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
-  unsigned int length;
-  int     *c;   /* energy array, given that i-j pair */
-  int     *f5;  /* energy of 5' end */
-  int     *f3;  /* energy of 3' end */
-  int     *fc;  /* energy from i to cutpoint (and vice versa if i>cut) */
-  int     *fML; /* multi-loop auxiliary energy array */
-  int     *fM1; /* second ML array, only for subopt */
-  int     *fM2; /* fM2 = multiloop region with exactly two stems, extending to 3' end */
-  int     *ggg; /* energies of g-quadruplexes */
-  int     Fc;   /* parts of the exterior loop energies for circfolding */
-  int     FcH;
-  int     FcI;
-  int     FcM;
-} mfe_matricesT;
-
-typedef struct{
-  unsigned int allocated;
-  unsigned int length;
-  FLT_OR_DBL  *q;
-  FLT_OR_DBL  *qb;
-  FLT_OR_DBL  *qm;
-  FLT_OR_DBL  *qm1;
-  FLT_OR_DBL  *probs;
-  FLT_OR_DBL  *q1k;
-  FLT_OR_DBL  *qln;
-  FLT_OR_DBL  *G;
-
-  FLT_OR_DBL  qo;
-  FLT_OR_DBL  *qm2;
-  FLT_OR_DBL  qho;
-  FLT_OR_DBL  qio;
-  FLT_OR_DBL  qmo;
-
-  FLT_OR_DBL  *scale;
-  FLT_OR_DBL  *expMLbase;
-} pf_matricesT;
 
 
 /**
@@ -313,61 +279,6 @@ typedef struct {
                                 */
 } soft_constraintT;
 
-
-typedef struct{
-
-  unsigned int  type;            /**<  \brief The type of the fold_compound */
-  unsigned int  length;
-  int           cutpoint;               /**<  \brief  The position of the (cofold) cutpoint within the provided sequence.
-                                      If there is no cutpoint, this field will be set to -1
-                                */
-  union {
-    struct {
-      char  *sequence;
-      short *sequence_encoding;
-      short *sequence_encoding2;
-      char  *ptype;                 /**<  \brief Pair type array
-                                     
-                                          Contains the numerical encoding of the pair type for each pair (i,j) used
-                                          in MFE, Partition function and Evaluation computations.
-                                          \note This array is always indexed via jindx, in contrast to previously
-                                          different indexing between mfe and pf variants!
-                                          \see  get_indx(), vrna_get_ptypes()
-                                    */
-      char  *ptype_pf_compat;       /**<  \brief  ptype array indexed via iindx
-                                          \deprecated  This attribute will vanish in the future!
-                                          It's meant for backward compatibility only!
-                                    */
-      soft_constraintT  *sc;
-    };
-    struct {
-      char  **sequences;
-      unsigned int    n_seq;
-      char            *cons_seq;
-      short           *S_cons;
-      short           **S;
-      short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-      short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-      char            **Ss;
-      unsigned short  **a2s;
-      int               *pscore;     /* precomputed array of pair types */
-      soft_constraintT  **scs;
-      int               oldAliEn;
-    };
-  };
-
-  hard_constraintT  *hc;
-
-  mfe_matricesT     *matrices;
-  pf_matricesT      *exp_matrices;
-
-  paramT            *params;
-  pf_paramT         *exp_params;
-
-  int               *iindx;
-  int               *jindx;
-
-} vrna_fold_compound;
 
 
 /*
@@ -651,281 +562,122 @@ typedef struct dupVar{
 } dupVar;
 
 
-
-/*
-* ############################################################
-* 2Dfold data structures
-* ############################################################
-*/
-
 /**
- *  \brief Solution element returned from TwoDfoldList
- *
- *  This element contains free energy and structure for the appropriate
- *  kappa (k), lambda (l) neighborhood
- *  The datastructure contains two integer attributes 'k' and 'l'
- *  as well as an attribute 'en' of type float representing the free energy
- *  in kcal/mol and an attribute 's' of type char* containg the secondary
- *  structure representative,
- *
- *  A value of #INF in k denotes the end of a list
- *
- *  \see  TwoDfoldList()
+ * @}
  */
-typedef struct{
-  int k;          /**<  \brief  Distance to first reference */
-  int l;          /**<  \brief  Distance to second reference */
-  float en;       /**<  \brief  Free energy in kcal/mol */
-  char *s;        /**<  \brief  MFE representative structure in dot-bracket notation */
-} TwoDfold_solution;
-
-/**
- *  \brief Variables compound for 2Dfold MFE folding
- *
- *  \see get_TwoDfold_variables(), destroy_TwoDfold_variables(), TwoDfoldList()
- */
-typedef struct{
-  paramT          *P;             /**<  \brief  Precomputed energy parameters and model details */
-  int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
-  char            *ptype;         /**<  \brief  Precomputed array of pair types */
-  char            *sequence;      /**<  \brief  The input sequence  */
-  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
-  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
-  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
-
-
-  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
-
-  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
-
-  double          temperature;
-
-  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
-
-  short           *reference_pt1;
-  short           *reference_pt2;
-  int             circ;
-  int             dangles;
-  unsigned int    seq_length;
-
-  int             ***E_F5;
-  int             ***E_F3;
-  int             ***E_C;
-  int             ***E_M;
-  int             ***E_M1;
-  int             ***E_M2;
-
-  int             **E_Fc;
-  int             **E_FcH;
-  int             **E_FcI;
-  int             **E_FcM;
-
-  int             **l_min_values;
-  int             **l_max_values;
-  int             *k_min_values;
-  int             *k_max_values;
-
-  int             **l_min_values_m;
-  int             **l_max_values_m;
-  int             *k_min_values_m;
-  int             *k_max_values_m;
-
-  int             **l_min_values_m1;
-  int             **l_max_values_m1;
-  int             *k_min_values_m1;
-  int             *k_max_values_m1;
-
-  int             **l_min_values_f;
-  int             **l_max_values_f;
-  int             *k_min_values_f;
-  int             *k_max_values_f;
-
-  int             **l_min_values_f3;
-  int             **l_max_values_f3;
-  int             *k_min_values_f3;
-  int             *k_max_values_f3;
-
-  int             **l_min_values_m2;
-  int             **l_max_values_m2;
-  int             *k_min_values_m2;
-  int             *k_max_values_m2;
-
-  int             *l_min_values_fc;
-  int             *l_max_values_fc;
-  int             k_min_values_fc;
-  int             k_max_values_fc;
-
-  int             *l_min_values_fcH;
-  int             *l_max_values_fcH;
-  int             k_min_values_fcH;
-  int             k_max_values_fcH;
-
-  int             *l_min_values_fcI;
-  int             *l_max_values_fcI;
-  int             k_min_values_fcI;
-  int             k_max_values_fcI;
-
-  int             *l_min_values_fcM;
-  int             *l_max_values_fcM;
-  int             k_min_values_fcM;
-  int             k_max_values_fcM;
-
-  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-  int             *E_F5_rem;
-  int             *E_F3_rem;
-  int             *E_C_rem;
-  int             *E_M_rem;
-  int             *E_M1_rem;
-  int             *E_M2_rem;
-
-  int             E_Fc_rem;
-  int             E_FcH_rem;
-  int             E_FcI_rem;
-  int             E_FcM_rem;
-
-#ifdef COUNT_STATES
-  unsigned long             ***N_F5;
-  unsigned long             ***N_C;
-  unsigned long             ***N_M;
-  unsigned long             ***N_M1;
-#endif
-} TwoDfold_vars;
-
-/**
- *  \brief Solution element returned from TwoDpfoldList
- *
- *  This element contains the partition function for the appropriate
- *  kappa (k), lambda (l) neighborhood
- *  The datastructure contains two integer attributes 'k' and 'l'
- *  as well as an attribute 'q' of type #FLT_OR_DBL
- *
- *  A value of #INF in k denotes the end of a list
- *
- *  \see  TwoDpfoldList()
- */
-typedef struct{
-  int k;          /**<  \brief  Distance to first reference */
-  int l;          /**<  \brief  Distance to second reference */
-  FLT_OR_DBL  q;  /**<  \brief  partition function */
-} TwoDpfold_solution;
-
-/**
- *  \brief  Variables compound for 2Dfold partition function folding
- *
- *  \see    get_TwoDpfold_variables(), get_TwoDpfold_variables_from_MFE(),
- *          destroy_TwoDpfold_variables(), TwoDpfoldList()
- */
-typedef struct{
-
-  unsigned int    alloc;
-  char            *ptype;         /**<  \brief  Precomputed array of pair types */
-  char            *sequence;      /**<  \brief  The input sequence  */
-  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
-  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
-  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
-
-  double          temperature;    /* temperature in last call to scale_pf_params */
-  double          init_temp;      /* temperature in last call to scale_pf_params */
-  FLT_OR_DBL      *scale;
-  FLT_OR_DBL      pf_scale;
-  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
-
-  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
-  int             *jindx;         /**<  \brief  Index for moving in the triangular matrix qm1 */
-
-  short           *reference_pt1;
-  short           *reference_pt2;
-
-  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
-
-  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
-
-  int             circ;
-  int             dangles;
-  unsigned int    seq_length;
-
-  FLT_OR_DBL      ***Q;
-  FLT_OR_DBL      ***Q_B;
-  FLT_OR_DBL      ***Q_M;
-  FLT_OR_DBL      ***Q_M1;
-  FLT_OR_DBL      ***Q_M2;
-
-  FLT_OR_DBL      **Q_c;
-  FLT_OR_DBL      **Q_cH;
-  FLT_OR_DBL      **Q_cI;
-  FLT_OR_DBL      **Q_cM;
-
-  int             **l_min_values;
-  int             **l_max_values;
-  int             *k_min_values;
-  int             *k_max_values;
-
-  int             **l_min_values_b;
-  int             **l_max_values_b;
-  int             *k_min_values_b;
-  int             *k_max_values_b;
-
-  int             **l_min_values_m;
-  int             **l_max_values_m;
-  int             *k_min_values_m;
-  int             *k_max_values_m;
-
-  int             **l_min_values_m1;
-  int             **l_max_values_m1;
-  int             *k_min_values_m1;
-  int             *k_max_values_m1;
-
-  int             **l_min_values_m2;
-  int             **l_max_values_m2;
-  int             *k_min_values_m2;
-  int             *k_max_values_m2;
-
-  int             *l_min_values_qc;
-  int             *l_max_values_qc;
-  int             k_min_values_qc;
-  int             k_max_values_qc;
-
-  int             *l_min_values_qcH;
-  int             *l_max_values_qcH;
-  int             k_min_values_qcH;
-  int             k_max_values_qcH;
-
-  int             *l_min_values_qcI;
-  int             *l_max_values_qcI;
-  int             k_min_values_qcI;
-  int             k_max_values_qcI;
-
-  int             *l_min_values_qcM;
-  int             *l_max_values_qcM;
-  int             k_min_values_qcM;
-  int             k_max_values_qcM;
-
-  /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-  FLT_OR_DBL      *Q_rem;
-  FLT_OR_DBL      *Q_B_rem;
-  FLT_OR_DBL      *Q_M_rem;
-  FLT_OR_DBL      *Q_M1_rem;
-  FLT_OR_DBL      *Q_M2_rem;
-
-  FLT_OR_DBL      Q_c_rem;
-  FLT_OR_DBL      Q_cH_rem;
-  FLT_OR_DBL      Q_cI_rem;
-  FLT_OR_DBL      Q_cM_rem;
-
-} TwoDpfold_vars;
-
 
 /*
 * ############################################################
 * VRNA fold compound related functions
 * ############################################################
 */
+
+/**
+ *  \addtogroup   vrna_fold_compound  Basic Data Structures for Structure Prediction and Evaluation
+ *  @{
+ *
+ *  \brief  This module provides interfaces that deal with the most basic data structures used
+ *          in structure predicting and energy evaluating function of the RNAlib.
+ *
+ *          Throughout the RNAlib, a data structure, the #vrna_fold_compound, is used to group
+ *          information and data that is required for structure prediction and energy evaluation.
+ *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound
+ *          data structures.
+ */
+
+typedef struct{
+  unsigned int allocated; /* flag keeper for fast evaluation which matrices have been allocated */
+  unsigned int length;
+  int     *c;   /* energy array, given that i-j pair */
+  int     *f5;  /* energy of 5' end */
+  int     *f3;  /* energy of 3' end */
+  int     *fc;  /* energy from i to cutpoint (and vice versa if i>cut) */
+  int     *fML; /* multi-loop auxiliary energy array */
+  int     *fM1; /* second ML array, only for subopt */
+  int     *fM2; /* fM2 = multiloop region with exactly two stems, extending to 3' end */
+  int     *ggg; /* energies of g-quadruplexes */
+  int     Fc;   /* parts of the exterior loop energies for circfolding */
+  int     FcH;
+  int     FcI;
+  int     FcM;
+} vrna_mx_mfeT;
+
+typedef struct{
+  unsigned int allocated;
+  unsigned int length;
+  FLT_OR_DBL  *q;
+  FLT_OR_DBL  *qb;
+  FLT_OR_DBL  *qm;
+  FLT_OR_DBL  *qm1;
+  FLT_OR_DBL  *probs;
+  FLT_OR_DBL  *q1k;
+  FLT_OR_DBL  *qln;
+  FLT_OR_DBL  *G;
+
+  FLT_OR_DBL  qo;
+  FLT_OR_DBL  *qm2;
+  FLT_OR_DBL  qho;
+  FLT_OR_DBL  qio;
+  FLT_OR_DBL  qmo;
+
+  FLT_OR_DBL  *scale;
+  FLT_OR_DBL  *expMLbase;
+} vrna_mx_pfT;
+
+typedef struct{
+
+  unsigned int  type;            /**<  \brief The type of the fold_compound */
+  unsigned int  length;
+  int           cutpoint;               /**<  \brief  The position of the (cofold) cutpoint within the provided sequence.
+                                      If there is no cutpoint, this field will be set to -1
+                                */
+  union {
+    struct {
+      char  *sequence;
+      short *sequence_encoding;
+      short *sequence_encoding2;
+      char  *ptype;                 /**<  \brief Pair type array
+                                     
+                                          Contains the numerical encoding of the pair type for each pair (i,j) used
+                                          in MFE, Partition function and Evaluation computations.
+                                          \note This array is always indexed via jindx, in contrast to previously
+                                          different indexing between mfe and pf variants!
+                                          \see  get_indx(), vrna_get_ptypes()
+                                    */
+      char  *ptype_pf_compat;       /**<  \brief  ptype array indexed via iindx
+                                          \deprecated  This attribute will vanish in the future!
+                                          It's meant for backward compatibility only!
+                                    */
+      soft_constraintT  *sc;
+    };
+    struct {
+      char  **sequences;
+      unsigned int    n_seq;
+      char            *cons_seq;
+      short           *S_cons;
+      short           **S;
+      short           **S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+      short           **S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+      char            **Ss;
+      unsigned short  **a2s;
+      int               *pscore;     /* precomputed array of pair types */
+      soft_constraintT  **scs;
+      int               oldAliEn;
+    };
+  };
+
+  hard_constraintT  *hc;
+
+  vrna_mx_mfeT      *matrices;
+  vrna_mx_pfT       *exp_matrices;
+
+  paramT            *params;
+  pf_paramT         *exp_params;
+
+  int               *iindx;
+  int               *jindx;
+
+} vrna_fold_compound;
 
 /**
  *  \brief fold_compound_type Single Sequence
@@ -1058,5 +810,9 @@ void vrna_free_mfe_matrices(vrna_fold_compound *vc);
  *  \param  vc  The #vrna_fold_compound storing the PF DP matrices that are to be erased from memory
  */
 void vrna_free_pf_matrices(vrna_fold_compound *vc);
+
+/**
+ *  @}
+ */
 
 #endif

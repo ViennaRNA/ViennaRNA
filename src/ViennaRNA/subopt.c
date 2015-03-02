@@ -325,7 +325,7 @@ best_attainable_energy( vrna_fold_compound *vc,
   register int sum;
   INTERVAL        *next;
   model_detailsT  *md;
-  mfe_matricesT   *matrices;
+  vrna_mx_mfeT    *matrices;
   int             *indx;
 
   md        = &(vc->params->model_details);
