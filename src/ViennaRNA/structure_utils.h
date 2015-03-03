@@ -143,7 +143,57 @@ unsigned int  *vrna_refBPdist_matrix( const short *pt1,
                                       unsigned int turn);
 
 /**
- *  @brief Create a plist from base pair probability matrix
+ *  @brief Create a dot-bracket like structure string from base pair probability matrix
+ */
+char *vrna_db_get_from_pr(const FLT_OR_DBL *pr,
+                          unsigned int length);
+
+/**
+ *  @brief Get a pseudo dot bracket notation for a given probability information
+ */
+char vrna_bpp_symbol(const float *x);
+
+/**
+ *  @brief Create a dot-backet/parenthesis structure from backtracking stack
+ * 
+ */
+void vrna_parenthesis_structure(  char *structure,
+                                  bondT *bp,
+                                  unsigned int length);
+
+/**
+ *  @brief Create a dot-backet/parenthesis structure from backtracking stack
+ *  obtained by zuker suboptimal calculation in cofold.c
+ * 
+ *  @note This function is threadsafe
+ */
+void vrna_parenthesis_zuker(char *structure,
+                            bondT *bp,
+                            unsigned int length);
+
+void vrna_letter_structure( char *structure,
+                            bondT *bp,
+                            unsigned int length);
+
+/**
+ *  @brief Create a #plist from a dot-bracket string
+ * 
+ *  The dot-bracket string is parsed and for each base pair an
+ *  entry in the plist is created. The probability of each pair in
+ *  the list is set by a function parameter.
+ * 
+ *  The end of the plist is marked by sequence positions i as well as j
+ *  equal to 0. This condition should be used to stop looping over its
+ *  entries
+ * 
+ *  @param struc  The secondary structure in dot-bracket notation
+ *  @param pr     The probability for each base pair used in the plist
+ *  @return       The plist array
+ */
+plist *vrna_pl_get(const char *struc, float pr);
+
+/**
+ *  @brief Create a #plist from base pair probability matrix
  * 
  *  The probability matrix provided via the #vrna_fold_compound is parsed
  *  and all pair probabilities above the given threshold are used to create
@@ -158,59 +208,18 @@ unsigned int  *vrna_refBPdist_matrix( const short *pt1,
  *  @param[in]  cutoff  The cutoff value
  *  @return             A pointer to the plist that is to be created
  */
-plist *vrna_get_plist_from_pr(vrna_fold_compound *vc, double cut_off);
+plist *vrna_pl_get_from_pr(vrna_fold_compound *vc, double cut_off);
 
 /**
- *  @brief Create a dot-bracket like structure string from base pair probability matrix
+ *  @brief  Convert a list of base pairs into dot-bracket notation
+ *
+ *  @see vrna_pl_get()
+ *  @param  pairs   A #plist containing the pairs to be included in
+ *                  the dot-bracket string
+ *  @param  n       The length of the structure (number of nucleotides)
+ *  @return         The dot-bracket string containing the provided base pairs
  */
-void  bppm_to_structure(char *structure,
-                        FLT_OR_DBL *pr,
-                        unsigned int length);
-
-/**
- *  @brief Get a pseudo dot bracket notation for a given probability information
- */
-char    bppm_symbol(const float *x);
-
-/**
- *  @brief Create a dot-backet/parenthesis structure from backtracking stack
- * 
- */
-void vrna_parenthesis_structure(  char *structure,
-                                  bondT *bp,
-                                  int length);
-
-/**
- *  @brief Create a dot-backet/parenthesis structure from backtracking stack
- *  obtained by zuker suboptimal calculation in cofold.c
- * 
- *  @note This function is threadsafe
- */
-void vrna_parenthesis_zuker(char *structure,
-                            bondT *bp,
-                            int length);
-
-void vrna_letter_structure( char *structure,
-                            bondT *bp,
-                            int length);
-
-/**
- *  @brief Create a plist from a dot-bracket string
- * 
- *  The dot-bracket string is parsed and for each base pair an
- *  entry in the plist is created. The probability of each pair in
- *  the list is set by a function parameter.
- * 
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- * 
- *  @param struc  The secondary structure in dot-bracket notation
- *  @param pr     The probability for each base pair used in the plist
- *  @return       The plist array
- */
-plist *vrna_get_plist_from_db(const char *struc, float pr);
-
+char *vrna_pl_to_db(plist *pairs, unsigned int n);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
@@ -220,7 +229,7 @@ plist *vrna_get_plist_from_db(const char *struc, float pr);
 /*###########################################*/
 
 /**
- *  @brief Create a plist from a dot-bracket string
+ *  @brief Create a #plist from a dot-bracket string
  * 
  *  The dot-bracket string is parsed and for each base pair an
  *  entry in the plist is created. The probability of each pair in
@@ -230,7 +239,7 @@ plist *vrna_get_plist_from_db(const char *struc, float pr);
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
  * 
- *  @deprecated   Use vrna_get_plist_from_db() instead
+ *  @deprecated   Use vrna_pl_get() instead
  * 
  *  @param pl     A pointer to the plist that is to be created
  *  @param struc  The secondary structure in dot-bracket notation
@@ -353,7 +362,7 @@ DEPRECATED(unsigned int  *compute_BPdifferences( short *pt1,
  *  entries
  * 
  *  @note This function is threadsafe
- *  @deprecated Use vrna_get_plist_from_pr() instead!
+ *  @deprecated Use vrna_pl_get_from_pr() instead!
  *
  *  @ingroup            pf_fold
  *  @param[out] pl      A pointer to the plist that is to be created
@@ -392,6 +401,18 @@ DEPRECATED(void parenthesis_zuker(char *structure,
 DEPRECATED(void letter_structure( char *structure,
                                   bondT *bp,
                                   int length));
+
+/**
+ *  @brief Create a dot-bracket like structure string from base pair probability matrix
+ *  @deprecated Use vrna_db_get_from_pr() instead!
+ */
+DEPRECATED(void  bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length));
+
+/**
+ *  @brief Get a pseudo dot bracket notation for a given probability information
+ *  @deprecated Use vrna_bpp_symbol() instead!
+ */
+DEPRECATED(char    bppm_symbol(const float *x));
 
 #endif
 

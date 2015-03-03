@@ -1026,10 +1026,14 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    *pl = vrna_get_plist_from_pr(vc, /*cut_off:*/ 1e-6);
+    *pl = vrna_pl_get_from_pr(vc, /*cut_off:*/ 1e-6);
 
-  if (structure!=NULL)
-    bppm_to_structure(structure, probs, n);
+  if (structure!=NULL){
+    char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+    memcpy(structure, s, n);
+    structure[n] = '\0';
+    free(s);
+  }
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",

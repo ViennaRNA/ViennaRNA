@@ -490,7 +490,7 @@ vrna_refBPdist_matrix(const short *pt1,
 }
 
 PUBLIC char
-bppm_symbol(const float *x){
+vrna_bpp_symbol(const float *x){
 
 /*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
   if( x[0] > 0.667 )  return '.';
@@ -505,14 +505,16 @@ bppm_symbol(const float *x){
   return ':';
 }
 
-PUBLIC void
-bppm_to_structure(char *structure,
-                  FLT_OR_DBL *p,
-                  unsigned int length){
+PUBLIC char *
+vrna_db_get_from_pr(const FLT_OR_DBL *p,
+                    unsigned int length){
 
-  int    i, j;
-  int   *index = vrna_get_iindx(length);
+  int    i, j, *index;
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
+  char  *s;
+
+  index = vrna_get_iindx(length);
+  s     = (char *)space(sizeof(char) * (length + 1));
 
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
@@ -525,20 +527,150 @@ bppm_to_structure(char *structure,
       P[1] += p[index[j]-i];    /* j is paired upstream */
       P[0] -= p[index[j]-i];    /* j is unpaired */
     }
-    structure[j-1] = bppm_symbol(P);
+    s[j-1] = vrna_bpp_symbol(P);
   }
-  structure[length] = '\0';
+  s[length] = '\0';
   free(index);
+
+  return s;
+}
+
+PUBLIC void
+vrna_letter_structure(char *structure,
+                      bondT *bp,
+                      unsigned int length){
+
+  int   n, k, x, y;
+  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (n = 0, k = 1; k <= bp[0].i; k++) {
+    y = bp[k].j;
+    x = bp[k].i;
+    if (x-1 > 0 && y+1 <= length) {
+      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
+        structure[x-1] = structure[x-2];
+        structure[y-1] = structure[x-1];
+        continue;
+      }
+    }
+    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
+      structure[x-1] = structure[x];
+      structure[y-1] = structure[x-1];
+      continue;
+    }
+    n++;
+    structure[x-1] = alpha[n-1];
+    structure[y-1] = alpha[n-1];
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+PUBLIC void
+vrna_parenthesis_structure( char *structure,
+                            bondT *bp,
+                            unsigned int length){
+
+  int n, k;
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++){
+
+    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[bp[k].i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[bp[k].i-1] = '(';
+      structure[bp[k].j-1] = ')';
+    }
+  }
+}
+
+PUBLIC void
+vrna_parenthesis_zuker( char *structure,
+                        bondT *bp,
+                        unsigned int length){
+
+  int k, i, j, temp;
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++) {
+    i=bp[k].i;
+    j=bp[k].j;
+    if (i>length) i-=length;
+    if (j>length) j-=length;
+    if (i>j) {
+      temp=i; i=j; j=temp;
+    }
+    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[i-1] = '(';
+      structure[j-1] = ')';
+    }
+  }
 }
 
 PUBLIC plist *
-vrna_get_plist_from_pr( vrna_fold_compound *vc,
-                        double cut_off){
+vrna_pl_get( const char *struc,
+                        float pr){
+
+  /* convert bracket string to plist */
+  short *pt;
+  int i, k = 0, size, n;
+  plist *gpl, *ptr, *pl;
+
+  size  = strlen(struc);
+  n     = 2;
+
+  pt  = vrna_pt_get(struc);
+  pl = (plist *)space(n*size*sizeof(plist));
+  for(i = 1; i < size; i++){
+    if(pt[i]>i){
+      (pl)[k].i      = i;
+      (pl)[k].j      = pt[i];
+      (pl)[k].p      = pr;
+      (pl)[k++].type = 0;
+    }
+  }
+
+  gpl = get_plist_gquad_from_db(struc, pr);
+  for(ptr = gpl; ptr->i != 0; ptr++){
+    if (k == n * size - 1){
+      n *= 2;
+      pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
+    }
+    (pl)[k].i      = ptr->i;
+    (pl)[k].j      = ptr->j;
+    (pl)[k].p       = ptr->p;
+    (pl)[k++].type = ptr->type;
+  }
+  free(gpl);
+
+  (pl)[k].i      = 0;
+  (pl)[k].j      = 0;
+  (pl)[k].p      = 0.;
+  (pl)[k++].type = 0.;
+  free(pt);
+  pl = (plist *)xrealloc(pl, k * sizeof(plist));
+
+  return pl;
+}
+
+PUBLIC plist *
+vrna_pl_get_from_pr(vrna_fold_compound *vc,
+                    double cut_off){
 
   if(!vc){
-    nrerror("vrna_get_plist_from_pr: run vrna_pf_fold first!");
+    nrerror("vrna_pl_get_from_pr: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
-    nrerror("vrna_get_plist_from_pr: probs==NULL!");
+    nrerror("vrna_pl_get_from_pr: probs==NULL!");
   }
 
   return wrap_get_plist(vc->exp_matrices,
@@ -547,6 +679,29 @@ vrna_get_plist_from_pr( vrna_fold_compound *vc,
                         vc->sequence_encoding2,
                         vc->exp_params,
                         cut_off);
+}
+
+PUBLIC  char *
+vrna_pl_to_db(plist *pairs,
+              unsigned int n){
+
+  plist *ptr;
+  char  *structure = NULL;
+  int   i;
+
+  if(n > 0){
+    structure = (char *)space(sizeof(char) * (n+1));
+    memset(structure, '.', n);
+    structure[n] = '\0';
+
+    for(ptr = pairs; (*ptr).i; ptr++){
+      if(((*ptr).i < n) && ((*ptr).j <= n)){
+        structure[(*ptr).i - 1] = '(';
+        structure[(*ptr).j - 1] = ')';
+      }
+    }
+  }
+  return structure;
 }
 
 PRIVATE plist *
@@ -634,134 +789,6 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   return pl;
 }
 
-PUBLIC void
-vrna_letter_structure(char *structure,
-                      bondT *bp,
-                      int length){
-
-  int   n, k, x, y;
-  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-  for (n = 0; n < length; structure[n++] = ' ');
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= bp[0].i; k++) {
-    y = bp[k].j;
-    x = bp[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PUBLIC void
-vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
-                            int length){
-
-  int n, k;
-
-  for (n = 0; n < length; structure[n++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++){
-
-    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp[k].i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[bp[k].i-1] = '(';
-      structure[bp[k].j-1] = ')';
-    }
-  }
-}
-
-PUBLIC void
-vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length){
-
-  int k, i, j, temp;
-
-  for (k = 0; k < length; structure[k++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++) {
-    i=bp[k].i;
-    j=bp[k].j;
-    if (i>length) i-=length;
-    if (j>length) j-=length;
-    if (i>j) {
-      temp=i; i=j; j=temp;
-    }
-    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[i-1] = '(';
-      structure[j-1] = ')';
-    }
-  }
-}
-
-PUBLIC plist *
-vrna_get_plist_from_db( const char *struc,
-                        float pr){
-
-  /* convert bracket string to plist */
-  short *pt;
-  int i, k = 0, size, n;
-  plist *gpl, *ptr, *pl;
-
-  size  = strlen(struc);
-  n     = 2;
-
-  pt  = vrna_pt_get(struc);
-  pl = (plist *)space(n*size*sizeof(plist));
-  for(i = 1; i < size; i++){
-    if(pt[i]>i){
-      (pl)[k].i      = i;
-      (pl)[k].j      = pt[i];
-      (pl)[k].p      = pr;
-      (pl)[k++].type = 0;
-    }
-  }
-
-  gpl = get_plist_gquad_from_db(struc, pr);
-  for(ptr = gpl; ptr->i != 0; ptr++){
-    if (k == n * size - 1){
-      n *= 2;
-      pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
-    }
-    (pl)[k].i      = ptr->i;
-    (pl)[k].j      = ptr->j;
-    (pl)[k].p       = ptr->p;
-    (pl)[k++].type = ptr->type;
-  }
-  free(gpl);
-
-  (pl)[k].i      = 0;
-  (pl)[k].j      = 0;
-  (pl)[k].p      = 0.;
-  (pl)[k++].type = 0.;
-  free(pt);
-  pl = (plist *)xrealloc(pl, k * sizeof(plist));
-
-  return pl;
-}
-
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
@@ -841,7 +868,7 @@ assign_plist_from_db( plist **pl,
                       const char *struc,
                       float pr){
 
-  *pl = vrna_get_plist_from_db(struc, pr);
+  *pl = vrna_pl_get(struc, pr);
 }
 
 PUBLIC short *
@@ -899,6 +926,23 @@ compute_BPdifferences(short *pt1,
                       unsigned int turn){
 
   return vrna_refBPdist_matrix((const short *)pt1, (const short *)pt2, turn);
+}
+
+PUBLIC char
+bppm_symbol(const float *x){
+
+  return vrna_bpp_symbol(x);
+}
+
+PUBLIC void
+bppm_to_structure(char *structure,
+                  FLT_OR_DBL *p,
+                  unsigned int length){
+
+  char *s = vrna_db_get_from_pr((const FLT_OR_DBL *)p, length);
+  memcpy(structure, s, length);
+  structure[length] = '\0';
+  free(s);
 }
 
 #endif

@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 
     /* compute mfe of AB dimer */
     min_en  = vrna_cofold(vc, structure);
-    mfAB    = vrna_get_plist_from_db(structure, 0.95);
+    mfAB    = vrna_pl_get(structure, 0.95);
 
     {
       char *pstring, *pstruct;
@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
 
-      prAB = vrna_get_plist_from_pr(vc, bppmThreshold);
+      prAB = vrna_pl_get_from_pr(vc, bppmThreshold);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
@@ -601,14 +601,14 @@ do_partfunc(char *string,
               //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
               vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
               min_en = vrna_fold(vc, tempstruc);
-              *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
+              *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_free_mfe_matrices(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
               vrna_update_pf_params(vc,par);
               X = vrna_co_pf_fold(vc, tempstruc);
-              *tpr = vrna_get_plist_from_pr(vc, bppmThreshold);
+              *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               vrna_free_fold_compound(vc);
               free(tempstruc);
               free(par);
@@ -622,14 +622,14 @@ do_partfunc(char *string,
               parameters->model_details.min_loop_size = 0;
               vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
               min_en = vrna_cofold(vc, tempstruc);
-              *mfpl = vrna_get_plist_from_db(tempstruc, 0.95);
+              *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_free_mfe_matrices(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
               vrna_update_pf_params(vc,par);
               X = vrna_co_pf_fold(vc, tempstruc);
-              *tpr = vrna_get_plist_from_pr(vc, bppmThreshold);
+              *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               vrna_free_fold_compound(vc);
 
               free(Newstring);

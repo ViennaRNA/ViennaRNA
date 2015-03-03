@@ -988,8 +988,12 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
         probs[ij] *=  qb[ij];
       }
 
-    if (structure!=NULL)
-      bppm_to_structure(structure, probs, n);
+    if (structure!=NULL){
+      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      memcpy(structure, s, n);
+      structure[n] = '\0';
+      free(s);
+    }
 
     /* clean up */
     free(prm_l);

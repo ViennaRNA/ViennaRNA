@@ -1151,8 +1151,12 @@ pf_create_bppm( vrna_fold_compound *vc,
         }
       }
 
-    if (structure!=NULL)
-      bppm_to_structure(structure, probs, n);
+    if (structure!=NULL){
+      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      memcpy(structure, s, n);
+      structure[n] = '\0';
+      free(s);
+    }
     if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
         ov, pf_params->pf_scale);
@@ -2266,7 +2270,7 @@ assign_plist_gquad_from_pr( plist **pl,
   } else if( !backward_compat_compound->exp_matrices->probs){
     *pl = NULL;
   } else {
-    *pl = vrna_get_plist_from_pr(backward_compat_compound, cut_off);
+    *pl = vrna_pl_get_from_pr(backward_compat_compound, cut_off);
   }
 }
 

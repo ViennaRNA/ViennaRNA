@@ -238,13 +238,13 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
       if (alignment[0][i]==0)
 	aligned_line[0][i-1] = aligned_line[2][i-1] = '_';
       else {
-	aligned_line[0][i-1] = bppm_symbol(T1+alignment[0][i]*3);
+	aligned_line[0][i-1] = vrna_bpp_symbol(T1+alignment[0][i]*3);
 	aligned_line[2][i-1] = seq1[alignment[0][i]-1];
       }
       if (alignment[1][i]==0)
 	aligned_line[1][i-1] = aligned_line[3][i-1] = '_';
       else {
-	aligned_line[1][i-1] = bppm_symbol(T2+alignment[1][i]*3);
+	aligned_line[1][i-1] = vrna_bpp_symbol(T2+alignment[1][i]*3);
 	aligned_line[3][i-1] = seq2[alignment[1][i]-1];
       }
    }

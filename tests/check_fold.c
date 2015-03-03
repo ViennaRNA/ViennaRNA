@@ -81,7 +81,7 @@ START_TEST(test_sc_sanity_check)
 
   mfe_energy_unconstrained = vrna_fold(vc, mfe_structure_unconstrained);
   pf_energy_unconstrained = vrna_pf_fold(vc, pf_structure_unconstrained);
-  plist_unconstrained = vrna_get_plist_from_pr(vc, 0);
+  plist_unconstrained = vrna_pl_get_from_pr(vc, 0);
 
   sc_up = (double *)space(sizeof(double) * (length + 1));
   sc_bp = (double **)space(sizeof(double *) * (length + 1));
@@ -99,7 +99,7 @@ START_TEST(test_sc_sanity_check)
 
   mfe_energy_constrained = vrna_fold(vc, mfe_structure_constrained);
   pf_energy_constrained = vrna_pf_fold(vc, pf_structure_constrained);
-  plist_constrained = vrna_get_plist_from_pr(vc, 0);
+  plist_constrained = vrna_pl_get_from_pr(vc, 0);
 
   ck_assert_int_eq(strlen(mfe_structure_constrained), sizeof(sequence) - 1);
   ck_assert_int_eq(strlen(mfe_structure_unconstrained), sizeof(sequence) - 1);

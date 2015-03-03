@@ -502,8 +502,8 @@ int main(int argc, char *argv[]){
       double dist;
       plist *pl, *mfel;
 
-      pl    = vrna_get_plist_from_pr(vc, bppmThreshold);
-      mfel  = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
+      pl    = vrna_pl_get_from_pr(vc, bppmThreshold);
+      mfel  = vrna_pl_get(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
@@ -519,7 +519,7 @@ int main(int argc, char *argv[]){
       if(doMEA){
         float mea, *ens;
         plist *pl2;
-        pl2 = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
+        pl2 = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, structure);

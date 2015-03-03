@@ -575,8 +575,8 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
 
-          pl1     = vrna_get_plist_from_pr(vc, bppmThreshold);
-          pl2     = vrna_get_plist_from_db(structure, 0.95*0.95);
+          pl1     = vrna_pl_get_from_pr(vc, bppmThreshold);
+          pl2     = vrna_pl_get(structure, 0.95*0.95);
           cent    = vrna_get_centroid_struct(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
@@ -601,7 +601,7 @@ int main(int argc, char *argv[]){
           free(pf_struc);
           if(doMEA){
             float mea, mea_en;
-            plist *pl = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
+            plist *pl = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);

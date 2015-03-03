@@ -72,7 +72,7 @@ extern  int st_back;
  *  \note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
  *                  export_bppm()
- *  \see            vnra_get_fold_compound(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  \see            vnra_get_fold_compound(), vrna_db_get_from_pr(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
  *  \param[in,out]  vc              The fold compound data structure
  *  \param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)

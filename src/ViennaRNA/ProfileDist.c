@@ -213,9 +213,9 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const float *T2)
    aligned_line[1] = (char *) space((length+1)*sizeof(char));
    for(i=1; i<=length; i++){
       if(alignment[0][i] ==0) aligned_line[0][i-1] = '_';
-      else { aligned_line[0][i-1] = bppm_symbol(T1+alignment[0][i]*3); }
+      else { aligned_line[0][i-1] = vrna_bpp_symbol(T1+alignment[0][i]*3); }
       if(alignment[1][i] ==0) aligned_line[1][i-1] = '_';
-      else { aligned_line[1][i-1] = bppm_symbol(T2+alignment[1][i]*3); }
+      else { aligned_line[1][i-1] = vrna_bpp_symbol(T2+alignment[1][i]*3); }
    }
 }
 
@@ -225,7 +225,7 @@ PUBLIC void print_bppm(const float *T)
 {
    int i;
    for(i=1; i<=( (int)T[0]); i++)
-      printf("%c",bppm_symbol(T+i*3));
+      printf("%c",vrna_bpp_symbol(T+i*3));
    printf("\n");
 }
 
