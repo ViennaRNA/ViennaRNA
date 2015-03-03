@@ -96,48 +96,6 @@ the library or stays hidden */
  */
 #define VRNA_INPUT_COMMENT                8192U
 
-
-
-
-/**
- *  @brief pipe sign '|' switch for structure constraints (paired with another base)
- */
-#define VRNA_CONSTRAINT_PIPE              1U
-/**
- *  @brief dot '.' switch for structure constraints (no constraint at all)
- */
-#define VRNA_CONSTRAINT_DOT               2U
-/**
- *  @brief 'x' switch for structure constraint (base must not pair)
- */
-#define VRNA_CONSTRAINT_X                 4U
-/**
- *  @brief angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)
- */
-#define VRNA_CONSTRAINT_ANG_BRACK         8U
-/**
- *  @brief round brackets '(',')' switch for structure constraint (base i pairs base j)
- */
-#define VRNA_CONSTRAINT_RND_BRACK         16U
-/**
- *  @brief constraint may span over several lines
- */
-#define VRNA_CONSTRAINT_MULTILINE         32U
-/**
- *  @brief do not print the header information line
- */
-#define VRNA_CONSTRAINT_NO_HEADER         64U
-/**
- *  @brief placeholder for all constraining characters
- */
-#define VRNA_CONSTRAINT_ALL              128U
-/**
- *  @brief '+' switch for structure constraint (base is involved in a gquad)
- */
-#define VRNA_CONSTRAINT_G                256U
-
-
-
 /**
  *  @brief  Tell a function that an input is assumed to span several lines
  *

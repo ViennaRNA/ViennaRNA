@@ -83,6 +83,11 @@
 #define VRNA_CONSTRAINT_INTERMOLECULAR    4096U
 
 /**
+ *  @brief '+' switch for structure constraint (base is involved in a gquad)
+ */
+#define VRNA_CONSTRAINT_G                8192U
+
+/**
  *  \brief  constraint may span over several lines
  *  
  *  \ingroup  hard_constraints
