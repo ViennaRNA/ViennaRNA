@@ -186,7 +186,7 @@ int main(int argc, char *argv[]){
   shape_sequence = space(sizeof(char) * (length + 1));
   shape_data = space(sizeof(double) * (length + 1));
 
-  if(parse_soft_constraints_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
+  if(vrna_read_SHAPE_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
   {
     double *epsilon;
     vrna_fold_compound *vc;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]){
       tau *= 10;
     double sigma = tau / args_info.tauSigmaRatio_arg;
 
-    convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
+    vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
     mfe = (double)vrna_fold(vc, NULL);

@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_STRUCT_UTILS_H__
-#define __VIENNA_RNA_PACKAGE_STRUCT_UTILS_H__
+#ifndef VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
+#define VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT

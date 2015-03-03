@@ -2,12 +2,13 @@
 #include <stdlib.h>     /* malloc, free, rand */
 
 #include <check.h>
+
+#include <ViennaRNA/fold_vars.h>
+#include <ViennaRNA/utils.h>
+#include <ViennaRNA/structure_utils.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/fold.h>
-#include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/part_func.h>
-#include <ViennaRNA/structure_utils.h>
-#include <ViennaRNA/utils.h>
 
 
 START_TEST(test_fold)

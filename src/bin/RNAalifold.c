@@ -48,7 +48,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   float p1, p2;
   char method;
 
-  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     warn_user("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
@@ -65,7 +65,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   }
 
   if(method == 'D'){
-    vrna_sc_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    vrna_sc_SHAPE_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
 }
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]){
   */
   if(fold_constrained){
     if(istty){
-      print_tty_constraint_full();
+      vrna_message_constraint_options_all();
       print_tty_input_seq_str("");
     }
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);

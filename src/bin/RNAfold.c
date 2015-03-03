@@ -54,7 +54,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   double *values;
   int length = vc->length;
 
-  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     warn_user("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
@@ -72,7 +72,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = space(sizeof(char) * (length + 1));
   values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
     int i;
@@ -86,7 +86,7 @@ add_shape_constraints(vrna_fold_compound *vc,
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
 
-    convert_shape_reactivities_to_probabilities(shape_conversion, values, length, 0.5);
+    vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
 
     for(i = 1; i <= length; ++i){
       int j;
@@ -316,7 +316,7 @@ int main(int argc, char *argv[]){
   /* print user help if we get input from tty */
   if(istty){
     if(fold_constrained){
-      print_tty_constraint_full();
+      vrna_message_constraint_options_all();
       print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
     }
     else print_tty_input_seq();
@@ -367,7 +367,7 @@ int main(int argc, char *argv[]){
       cstruc = NULL;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_ALL;
-      getConstraint(&cstruc, (const char **)rec_rest, coptions);
+      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
       if(cl == 0)           warn_user("structure constraint is missing");
@@ -645,7 +645,7 @@ int main(int argc, char *argv[]){
     /* print user help for the next round if we get input from tty */
     if(istty){
       if(fold_constrained){
-        print_tty_constraint_full();
+        vrna_message_constraint_options_all();
         print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
       }
       else print_tty_input_seq();

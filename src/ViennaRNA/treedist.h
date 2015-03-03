@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_TREE_DIST_H__
-#define __VIENNA_RNA_PACKAGE_TREE_DIST_H__
+#ifndef VIENNA_RNA_PACKAGE_TREE_DIST_H
+#define VIENNA_RNA_PACKAGE_TREE_DIST_H
 
 /**
  *  \file treedist.h

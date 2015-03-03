@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_COFOLD_H__
-#define __VIENNA_RNA_PACKAGE_COFOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_COFOLD_H
+#define VIENNA_RNA_PACKAGE_COFOLD_H
 
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>

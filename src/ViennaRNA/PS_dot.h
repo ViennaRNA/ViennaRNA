@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_PS_DOT_H__
-#define __VIENNA_RNA_PACKAGE_PS_DOT_H__
+#ifndef VIENNA_RNA_PACKAGE_PS_DOT_H
+#define VIENNA_RNA_PACKAGE_PS_DOT_H
 
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/plot_layouts.h>

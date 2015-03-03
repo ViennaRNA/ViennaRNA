@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_EVAL_H__
-#define __VIENNA_RNA_PACKAGE_EVAL_H__
+#ifndef VIENNA_RNA_PACKAGE_EVAL_H
+#define VIENNA_RNA_PACKAGE_EVAL_H
 
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>

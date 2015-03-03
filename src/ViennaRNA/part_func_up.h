@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
-#define __VIENNA_RNA_PACKAGE_PART_FUNC_UP_H__
+#ifndef VIENNA_RNA_PACKAGE_PART_FUNC_UP_H
+#define VIENNA_RNA_PACKAGE_PART_FUNC_UP_H
 
 #include <ViennaRNA/data_structures.h>
 

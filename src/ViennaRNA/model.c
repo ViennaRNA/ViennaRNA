@@ -254,57 +254,6 @@ vrna_md_update(vrna_md_t *md){
     fill_pair_matrices(md);
 }
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-PUBLIC void
-vrna_md_set_globals(vrna_md_t *md){
-
-  int i = 0;
-
-  if(md){
-    md->dangles           = dangles;
-    md->special_hp        = tetra_loop;
-    md->noLP              = noLonelyPairs;
-    md->noGU              = noGU;
-    md->noGUclosure       = no_closingGU;
-    md->logML             = logML;
-    md->gquad             = gquad;
-    md->canonicalBPonly   = canonicalBPonly;
-    md->circ              = circ;
-    md->uniq_ML           = uniq_ML;
-    md->compute_bpp       = do_backtrack;
-    md->backtrack         = VRNA_MODEL_DEFAULT_BACKTRACK;
-    md->backtrack_type    = backtrack_type;
-    md->energy_set        = energy_set;
-    md->max_bp_span       = max_bp_span;
-    md->min_loop_size     = TURN;
-    md->oldAliEn          = oldAliEn;
-    md->ribo              = ribo;
-    md->cv_fact           = cv_fact;
-    md->nc_fact           = nc_fact;
-    md->temperature       = temperature;
-    md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
-    md->sfact             = 1.07;
-
-    if(nonstandards){
-      memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
-    } else {
-      md->nonstandards[0] = (char)0;
-    }
-    /* set default values for the pair/rtype[pair] stuff */
-    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
-    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
-    for(i = 0;i <= MAXALPHA; i++)
-      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
-    vrna_md_update(md);
-
-  }
-}
-
-
 PRIVATE void
 fill_pair_matrices(vrna_md_t *md){
 
@@ -399,3 +348,59 @@ fill_pair_matrices(vrna_md_t *md){
        md->rtype[md->pair[i][j]] = md->pair[j][i];
   */
 }
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC void
+vrna_md_set_globals(vrna_md_t *md){
+
+  int i = 0;
+
+  if(md){
+    md->dangles           = dangles;
+    md->special_hp        = tetra_loop;
+    md->noLP              = noLonelyPairs;
+    md->noGU              = noGU;
+    md->noGUclosure       = no_closingGU;
+    md->logML             = logML;
+    md->gquad             = gquad;
+    md->canonicalBPonly   = canonicalBPonly;
+    md->circ              = circ;
+    md->uniq_ML           = uniq_ML;
+    md->compute_bpp       = do_backtrack;
+    md->backtrack         = VRNA_MODEL_DEFAULT_BACKTRACK;
+    md->backtrack_type    = backtrack_type;
+    md->energy_set        = energy_set;
+    md->max_bp_span       = max_bp_span;
+    md->min_loop_size     = TURN;
+    md->oldAliEn          = oldAliEn;
+    md->ribo              = ribo;
+    md->cv_fact           = cv_fact;
+    md->nc_fact           = nc_fact;
+    md->temperature       = temperature;
+    md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
+    md->sfact             = 1.07;
+
+    if(nonstandards){
+      memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
+    } else {
+      md->nonstandards[0] = (char)0;
+    }
+    /* set default values for the pair/rtype[pair] stuff */
+    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
+    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+    for(i = 0;i <= MAXALPHA; i++)
+      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+    vrna_md_update(md);
+
+  }
+}
+
+#endif
+
+

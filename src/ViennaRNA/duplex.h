@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_DUPLEX_H__
-#define __VIENNA_RNA_PACKAGE_DUPLEX_H__
+#ifndef VIENNA_RNA_PACKAGE_DUPLEX_H
+#define VIENNA_RNA_PACKAGE_DUPLEX_H
 
 #include <ViennaRNA/data_structures.h>
 

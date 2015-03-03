@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_CONVERT_EPARS_H__
-#define __VIENNA_RNA_PACKAGE_CONVERT_EPARS_H__
+#ifndef VIENNA_RNA_PACKAGE_CONVERT_EPARS_H
+#define VIENNA_RNA_PACKAGE_CONVERT_EPARS_H
 
 /**
  *  \addtogroup energy_parameters_convert

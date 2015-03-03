@@ -45,7 +45,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   double *values;
   int length = vc->length;
 
-  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     warn_user("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
@@ -63,7 +63,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = space(sizeof(char) * (length + 1));
   values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
     int i;
@@ -77,7 +77,7 @@ add_shape_constraints(vrna_fold_compound *vc,
     double **sc_bp = space(sizeof(double *) * (length + 1));
     int i;
 
-    convert_shape_reactivities_to_probabilities(shape_conversion, values, length, 0.5);
+    vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
 
     for(i = 1; i <= length; ++i){
       int j;

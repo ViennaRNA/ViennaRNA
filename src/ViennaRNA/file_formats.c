@@ -16,6 +16,7 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/constraints.h"
 #if WITH_JSON_SUPPORT
 # include <json/json.h>
 #endif
@@ -469,6 +470,175 @@ vrna_extract_record_rest_structure( const char **lines,
   return structure;
 }
 
+PUBLIC void
+vrna_extract_record_rest_constraint(char **cstruc,
+                                    const char **lines,
+                                    unsigned int option){
+
+  int r, i, l, cl, stop;
+  char *c, *ptr;
+  if(lines){
+    if(option & VRNA_CONSTRAINT_ALL)
+      option |=   VRNA_CONSTRAINT_PIPE
+                | VRNA_CONSTRAINT_ANG_BRACK
+                | VRNA_CONSTRAINT_RND_BRACK
+                | VRNA_CONSTRAINT_X
+                | VRNA_CONSTRAINT_INTRAMOLECULAR
+                | VRNA_CONSTRAINT_INTERMOLECULAR;
+
+    for(r=i=stop=0;lines[i];i++){
+      l   = (int)strlen(lines[i]);
+      c   = (char *) space(sizeof(char) * (l+1));
+      (void) sscanf(lines[i], "%s", c);
+      cl  = (int)strlen(c);
+      /* line commented out ? */
+      if((*c == '#') || (*c == '%') || (*c == ';') || (*c == '/') || (*c == '*' || (*c == '\0'))){
+        /* skip leading comments only, i.e. do not allow comments inside the constraint */
+        if(!r)  continue;
+        else    break;
+      }
+
+      /* check current line for actual constraining structure */
+      for(ptr = c;*c;c++){
+        switch(*c){
+          case '|':   if(!(option & VRNA_CONSTRAINT_PIPE)){
+                        warn_user("constraints of type '|' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case '<':   
+          case '>':   if(!(option & VRNA_CONSTRAINT_ANG_BRACK)){
+                        warn_user("constraints of type '<' or '>' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case '(':
+          case ')':   if(!(option & VRNA_CONSTRAINT_RND_BRACK)){
+                        warn_user("constraints of type '(' or ')' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case 'x':   if(!(option & VRNA_CONSTRAINT_X)){
+                        warn_user("constraints of type 'x' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case 'e':   if(!(option & VRNA_CONSTRAINT_INTERMOLECULAR)){
+                        warn_user("constraints of type 'e' not allowed");
+                        *c = '.';
+                      }
+                      break;
+          case 'l':   if(!(option & VRNA_CONSTRAINT_INTRAMOLECULAR)){
+                        warn_user("constraints of type 'l' not allowed");
+                        *c = '.';
+                      }
+                      break;  /*only intramolecular basepairing */
+          case '.':   break;
+          case '&':   break; /* ignore concatenation char */
+          default:    warn_user("unrecognized character in constraint structure");
+                      break;
+        }
+      }
+
+      r += cl+1;
+      *cstruc = (char *)xrealloc(*cstruc, r*sizeof(char));
+      strcat(*cstruc, ptr);
+      free(ptr);
+      /* stop if not in fasta mode or multiple words on line */
+      if(!(option & VRNA_CONSTRAINT_MULTILINE) || (cl != l)) break;
+    }
+  }
+}
+
+
+PUBLIC int
+vrna_read_SHAPE_file( const char *file_name,
+                      int length,
+                      double default_value,
+                      char *sequence,
+                      double *values){
+
+  FILE *fp;
+  char *line;
+  int i;
+  int count = 0;
+
+  if(!(fp = fopen(file_name, "r"))){
+    warn_user("SHAPE data file could not be opened");
+    return 0;
+  }
+
+  for (i = 0; i < length; ++i)
+  {
+    sequence[i] = 'N';
+    values[i + 1] = default_value;
+  }
+
+  sequence[length] = '\0';
+
+  while((line=get_line(fp))){
+    int position;
+    unsigned char nucleotide = 'N';
+    double reactivity = default_value;
+    char *second_entry = 0;
+    char *third_entry = 0;
+    char *c;
+
+    if(sscanf(line, "%d", &position) != 1)
+    {
+      free(line);
+      continue;
+    }
+
+    if(position <= 0 || position > length)
+    {
+      warn_user("Provided SHAPE data outside of sequence scope");
+      fclose(fp);
+      free(line);
+      return 0;
+    }
+
+    for(c = line + 1; *c; ++c){
+      if(isspace(*(c-1)) && !isspace(*c)) {
+        if(!second_entry){
+          second_entry = c;
+        }else{
+          third_entry = c;
+          break;
+        }
+      }
+    }
+
+    if(second_entry){
+      if(third_entry){
+        sscanf(second_entry, "%c", &nucleotide);
+        sscanf(third_entry, "%lf", &reactivity);
+      }else if(sscanf(second_entry, "%lf", &reactivity) != 1)
+        sscanf(second_entry, "%c", &nucleotide);
+    }
+
+    sequence[position-1] = nucleotide;
+    values[position] = reactivity;
+    ++count;
+
+    free(line);
+  }
+
+  fclose(fp);
+
+  if(!count)
+  {
+      warn_user("SHAPE data file is empty");
+      return 0;
+  }
+
+  return 1;
+}
+
+
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -496,3 +666,6 @@ extract_record_rest_structure(const char **lines,
 
   return vrna_extract_record_rest_structure(lines, length, options);
 }
+
+
+#endif

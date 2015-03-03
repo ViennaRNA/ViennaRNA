@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_FOLD_VARS_H__
-#define __VIENNA_RNA_PACKAGE_FOLD_VARS_H__
+#ifndef VIENNA_RNA_PACKAGE_FOLD_VARS_H
+#define VIENNA_RNA_PACKAGE_FOLD_VARS_H
 
 #include <ViennaRNA/data_structures.h>
 /*  For now, we include model.h by default to provide backwards compatibility

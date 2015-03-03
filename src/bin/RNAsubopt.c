@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
     if(!zuker)
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
     if(fold_constrained){
-      print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
       print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
     }
     else print_tty_input_seq();
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]){
       int cp = -1;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
-      getConstraint(&cstruc, (const char **)rec_rest, coptions);
+      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
       cstruc = vrna_cut_point_remove(cstruc, &cp);
       if(vc->cutpoint != cp){
         fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]){
       if(!zuker)
         printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if(fold_constrained){
-        print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
         print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
       }
       else print_tty_input_seq();
