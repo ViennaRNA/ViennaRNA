@@ -524,7 +524,7 @@ get_updated_params(vrna_param_t *parameters, int compat){
       vrna_md_set_default(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  fill_pair_matrices(&(P->model_details));
+  vrna_md_update(&(P->model_details));
   return P;
 }
 
@@ -554,7 +554,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
     type=7;
     if (verbosity>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
+              vrna_nucleotide_decode(s[i], &(P->model_details)), vrna_nucleotide_decode(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
@@ -576,7 +576,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
       type_2=7;
       if (verbosity>=0)
         fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
+              vrna_nucleotide_decode(s[p], &(P->model_details)), vrna_nucleotide_decode(s[q], &(P->model_details)));
     }
 
     energy = eval_int_loop(vc, i, j, p, q);
@@ -2291,7 +2291,7 @@ loop_energy(short *pt,
   /* convert encoded sequence back to actual string */
   seq = (char *)space(sizeof(char) * (s[0]+1));
   for(u = 1; u < s[0]; u++){
-    seq[u-1] = get_encoded_char(s[u], &md);
+    seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
   seq[u] = '\0';
 
@@ -2347,7 +2347,7 @@ energy_of_move_pt(short *pt,
   /* convert encoded sequence back to actual string */
   seq = (char *)space(sizeof(char) * (s[0]+1));
   for(u = 1; u < s[0]; u++){
-    seq[u-1] = get_encoded_char(s[u], &md);
+    seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
   seq[u] = '\0';
 

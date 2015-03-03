@@ -202,11 +202,11 @@ int main(int argc, char *argv[]){
     strncpy(structure2, reference_struc2, length);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(string);
+    if(!noconv) vrna_seq_toRNA(string);
     /* store case-unmodified sequence */
     orig_sequence = strdup(string);
     /* convert sequence to uppercase letters only */
-    str_uppercase(string);
+    vrna_seq_toupper(string);
 
     if (istty)  printf("length = %d\n", length);
 

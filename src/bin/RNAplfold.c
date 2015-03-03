@@ -197,11 +197,11 @@ int main(int argc, char *argv[]){
     structure = (char *) space((unsigned) length+1);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
+    if(!noconv) vrna_seq_toRNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    vrna_seq_toupper(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 

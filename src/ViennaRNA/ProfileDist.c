@@ -183,7 +183,7 @@ PUBLIC float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length){
    int i,j;
    int L=3;
    float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
-   int *index = get_iindx((unsigned) length);
+   int *index = vrna_get_iindx((unsigned) length);
 
    P =  (float *) space((length+1)*3*sizeof(float));
    /* indices start at 1 use first entries to store length and dimension */

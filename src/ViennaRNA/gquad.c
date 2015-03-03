@@ -334,7 +334,7 @@ PUBLIC int *get_gquad_matrix(short *S, vrna_param_t *P){
   int n, size, i, j, *gg, *my_index, *data;
 
   n         = S[0];
-  my_index  = get_indx(n);
+  my_index  = vrna_get_indx(n);
   gg        = get_g_islands(S);
   size      = (n * (n+1))/2 + 2;
   data      = (int *)space(sizeof(int) * size);
@@ -368,7 +368,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
   size      = (n * (n+1))/2 + 2;
   data      = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
   gg        = get_g_islands(S);
-  my_index  = get_iindx(n);
+  my_index  = vrna_get_iindx(n);
 
   FOR_EACH_GQUAD(i, j, 1, n){
     process_gquad_enumeration(gg, i, j,
@@ -398,7 +398,7 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
   size      = (n * (n+1))/2 + 2;
   data      = (int *)space(sizeof(int) * size);
   gg        = get_g_islands(S_cons);
-  my_index  = get_indx(n);
+  my_index  = vrna_get_indx(n);
 
   /* prefill the upper triangular matrix with INF */
   for(i=0;i<size;i++) data[i] = INF;
@@ -622,7 +622,7 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   pl        = (plist *)space((S[0]*S[0])*sizeof(plist));
   gg        = get_g_islands_sub(S, gi, gj);
   counter   = 0;
-  my_index  = get_iindx(n);
+  my_index  = vrna_get_iindx(n);
 
   process_gquad_enumeration(gg, gi, gj,
                             &gquad_interact,

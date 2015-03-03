@@ -65,7 +65,17 @@ int     logML           = VRNA_MODEL_DEFAULT_LOG_ML;
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+PRIVATE int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+PRIVATE int BP_pair[NBASES][NBASES]=
+/* _  A  C  G  U  X  K  I */
+{{ 0, 0, 0, 0, 0, 0, 0, 0},
+ { 0, 0, 0, 0, 5, 0, 0, 5},
+ { 0, 0, 0, 1, 0, 0, 0, 0},
+ { 0, 0, 2, 0, 3, 0, 0, 0},
+ { 0, 6, 0, 4, 0, 0, 0, 6},
+ { 0, 0, 0, 0, 0, 0, 2, 0},
+ { 0, 0, 0, 0, 0, 1, 0, 0},
+ { 0, 6, 0, 0, 5, 0, 0, 0}};
 
 
 /*
@@ -73,6 +83,9 @@ PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+
+/* Fill the base pair type encodings according to the model details */
+PRIVATE void fill_pair_matrices(vrna_md_t *md);
 
 /*
 #################################
@@ -291,3 +304,98 @@ vrna_md_set_globals(vrna_md_t *md){
   }
 }
 
+
+PRIVATE void
+fill_pair_matrices(vrna_md_t *md){
+
+  int i,j;
+
+  /* nullify everything */
+  for(i = 0;i <= MAXALPHA; i++)
+    memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+  memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+
+  /* start setting actual base pair type encodings */
+  switch(md->energy_set){
+    case  0:    for(i = 0; i < 5; i++)
+                  md->alias[i] = (short) i;
+
+                md->alias[5] = 3; /* X <-> G */
+                md->alias[6] = 2; /* K <-> C */
+                md->alias[7] = 0; /* I <-> default base '@' */
+
+                for(i = 0; i < NBASES; i++)
+                    for(j = 0; j < NBASES; j++)
+                      md->pair[i][j] = BP_pair[i][j];
+
+                if(md->noGU)
+                  md->pair[3][4] = md->pair[4][3] = 0;
+
+                if(md->nonstandards != NULL) {  /* allow nonstandard bp's (encoded by type=7) */
+                   for(i = 0; i < (int)strlen(md->nonstandards); i += 2)
+                      md->pair[vrna_nucleotide_encode(md->nonstandards[i], md)]
+                        [vrna_nucleotide_encode(md->nonstandards[i+1], md)] = 7;
+                }
+
+                break;
+
+    case 1:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                }
+
+                break;
+
+    case 2:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 1;  /* A <-> A*/
+                  md->alias[i++] = 4;  /* B <-> U */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 5;    /* AB <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* BA <-> UA */
+                }
+
+                break;
+
+    case 3:     for(i = 1; i < MAXALPHA - 2; ){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                  md->alias[i++] = 1;  /* C <-> A */
+                  md->alias[i++] = 4;  /* D <-> U */
+                }
+                for(i = 1; i < MAXALPHA - 2; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                  i++;
+                  md->pair[i][i+1] = 5;    /* CD <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* DC <-> UA */
+                }
+
+                break;
+
+    default:    nrerror("Which energy_set are YOU using??");
+                break;
+  }
+
+  /* set the reverse base pair types */
+  for(i = 0; i <= MAXALPHA; i++){
+    for(j = 0; j <= MAXALPHA; j++){
+      md->rtype[md->pair[i][j]] = md->pair[j][i];
+    }
+  }
+
+  /* was used for energy_set == 0
+  for(i = 0; i < NBASES; i++)
+      for(j = 0; j < NBASES; j++)
+       md->rtype[md->pair[i][j]] = md->pair[j][i];
+  */
+}

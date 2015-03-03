@@ -154,9 +154,9 @@ PRIVATE void get_arrays_L(unsigned int length){
     qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
     q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   }
-  my_iindx  = get_iindx(length);
-  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = get_indx(length);
+  my_iindx  = vrna_get_iindx(length);
+  iindx     = vrna_get_iindx(length); /* for backward compatibility and Perl wrapper */
+  jindx     = vrna_get_indx(length);
 }
 
 PRIVATE void free_pf_arrays_L(void){

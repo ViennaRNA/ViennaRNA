@@ -83,7 +83,7 @@ vrna_get_centroid_struct_pr(int length,
   int i,j;
   double p;
   char  *centroid;
-  int   *index = get_iindx(length);
+  int   *index = vrna_get_iindx(length);
 
   if (probs == NULL)
     nrerror("get_centroid_struct_pr: probs==NULL!");

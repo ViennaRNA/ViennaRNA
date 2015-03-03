@@ -418,8 +418,8 @@ set_fold_compound(vrna_fold_compound *vc,
   }
 
   /* some default init values */
-  vc->iindx         = (options & VRNA_OPTION_PF) ? get_iindx(vc->length) : NULL;
-  vc->jindx         = get_indx(vc->length);
+  vc->iindx         = (options & VRNA_OPTION_PF) ? vrna_get_iindx(vc->length) : NULL;
+  vc->jindx         = vrna_get_indx(vc->length);
 
   vc->params        = NULL;
   vc->exp_params    = NULL;

@@ -243,7 +243,7 @@ DEPRECATED(void   init_co_pf_fold(int length));
  *  Accessing the base pair probabilities for a pair (i,j) is achieved by
  *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
  * 
- *  \see get_iindx()
+ *  \see vrna_get_iindx()
  *  \return A pointer to the base pair probability array
  */
 DEPRECATED(FLT_OR_DBL *export_co_bppm(void));

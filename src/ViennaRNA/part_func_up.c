@@ -1013,7 +1013,7 @@ PRIVATE void  get_up_arrays(unsigned int length){
   qq_1m2    = (double *)    space(sizeof(double)      * l2);
   qqm       = (double *)    space(sizeof(double)      * l2);
   qqm1      = (double *)    space(sizeof(double)      * l2);
-  my_iindx  = get_iindx(length);
+  my_iindx  = vrna_get_iindx(length);
 }
 
 PRIVATE void  free_up_arrays(void){

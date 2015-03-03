@@ -371,7 +371,7 @@ void vrna_rescale_pf_params(vrna_fold_compound *vc,
  *
  *  \pre      Call pf_fold_par(), pf_fold() or pf_circ_fold() first to fill the base pair probability array
  *
- *  \see pf_fold(), pf_circ_fold(), get_iindx()
+ *  \see pf_fold(), pf_circ_fold(), vrna_get_iindx()
  *
  *  \return A pointer to the base pair probability array
  */

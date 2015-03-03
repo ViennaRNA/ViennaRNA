@@ -412,7 +412,7 @@ void print_tty_constraint_full(void);
 /**
  *  \brief Insert constraining pair types according to constraint structure string
  *
- *  \see get_indx(), get_iindx()
+ *  \see vrna_get_indx(), vrna_get_iindx()
  *
  *  \ingroup  hard_constraints
  *

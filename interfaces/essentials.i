@@ -12,13 +12,11 @@ typedef struct {} vrna_exp_param_t;
 /* make a nice object oriented interface to vrna_param_t */
 %extend vrna_param_t {
   vrna_param_t(){
-    vrna_md_t md;
-    vrna_md_set_default(&md);
-    vrna_param_t *P = vrna_get_energy_contributions(&md);
+    vrna_param_t *P = vrna_params_get(NULL);
     return P;
   }
   vrna_param_t(vrna_md_t *md){
-    vrna_param_t *P = vrna_get_energy_contributions(md);
+    vrna_param_t *P = vrna_params_get(md);
     return P;
   }
 }
@@ -26,17 +24,17 @@ typedef struct {} vrna_exp_param_t;
 /* make a nice object oriented interface to vrna_exp_param_t */
 %extend vrna_exp_param_t {
   vrna_exp_param_t(){
-    vrna_md_t md;
-    vrna_md_set_default(&md);
-    vrna_exp_param_t *P = vrna_get_boltzmann_factors(&md);
+    vrna_exp_param_t *P = vrna_exp_params_get(NULL);
     return P;
   }
   vrna_exp_param_t(vrna_md_t *md){
-    vrna_exp_param_t *P = vrna_get_boltzmann_factors(md);
+    vrna_exp_param_t *P = vrna_exp_params_get(md);
     return P;
   }
 }
 
+%ignore vrna_params_get;
+%ignore vrna_exp_params_get;
 %ignore scale_parameters;
 %ignore vrna_get_energy_contributions;
 %ignore get_scaled_parameters;

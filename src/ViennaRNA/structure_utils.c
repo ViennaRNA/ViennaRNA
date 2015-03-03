@@ -38,7 +38,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
 */
 
 PUBLIC char *
-vrna_pack_structure(const char *struc){
+vrna_db_pack(const char *struc){
 
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
@@ -74,7 +74,7 @@ vrna_pack_structure(const char *struc){
 }
 
 PUBLIC char *
-vrna_unpack_structure(const char *packed){
+vrna_db_unpack(const char *packed){
 
   /* 5:1 compression using base 3 encoding */
   int i,j,l;
@@ -432,7 +432,7 @@ vrna_refBPcnt_matrix( const short *reference_pt,
   unsigned int size;
   length = (unsigned int)reference_pt[0];
   size  = ((length+1)*(length+2))/2;
-  iindx = get_iindx(length);
+  iindx = vrna_get_iindx(length);
   array = (unsigned int *) space(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
   for (k=0; k<=turn; k++)
     for (i=1; i<=length-k; i++) {
@@ -465,7 +465,7 @@ vrna_refBPdist_matrix(const short *pt1,
   n = (unsigned int)pt1[0];
   size = ((n+1)*(n+2))/2;
   array = (unsigned int *)space(sizeof(unsigned int) * size);
-  int *iindx = get_iindx(n);
+  int *iindx = vrna_get_iindx(n);
   for(i = n - turn - 1; i>=1; i--){
     d = 0;
     for(j = i+turn+1; j <= n; j++){
@@ -511,7 +511,7 @@ bppm_to_structure(char *structure,
                   unsigned int length){
 
   int    i, j;
-  int   *index = get_iindx(length);
+  int   *index = vrna_get_iindx(length);
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
 
   for( j=1; j<=length; j++ ) {
@@ -762,6 +762,8 @@ vrna_get_plist_from_db( const char *struc,
   return pl;
 }
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -770,13 +772,13 @@ vrna_get_plist_from_db( const char *struc,
 PUBLIC char *
 pack_structure(const char *struc){
 
-  return vrna_pack_structure(struc);
+  return vrna_db_pack(struc);
 }
 
 PUBLIC char *
 unpack_structure(const char *packed){
 
-  return vrna_unpack_structure(packed);
+  return vrna_db_unpack(packed);
 }
 
 PUBLIC void
@@ -814,7 +816,7 @@ assign_plist_from_pr( plist **pl,
   vrna_md_t        md;
   vrna_exp_param_t *pf_params;
 
-  index     = get_iindx(length);
+  index     = vrna_get_iindx(length);
   matrices  = (vrna_mx_pf_t *)space(sizeof(vrna_mx_pf_t));
 
   set_model_details(&md);
@@ -899,3 +901,4 @@ compute_BPdifferences(short *pt1,
   return vrna_refBPdist_matrix((const short *)pt1, (const short *)pt2, turn);
 }
 
+#endif

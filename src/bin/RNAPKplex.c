@@ -152,11 +152,11 @@ int main(int argc, char *argv[]) {
     unpaired=MIN2(30, length-3);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(s1);
+    if(!noconv) vrna_seq_toRNA(s1);
     /* store case-unmodified sequence */
     orig_s1 = strdup(s1);
     /* convert sequence to uppercase letters only */
-    str_uppercase(s1);
+    vrna_seq_toupper(s1);
 
     printf("%s\n", orig_s1);
     if (verbose) printf("length = %d\n", length);

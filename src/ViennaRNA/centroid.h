@@ -57,7 +57,7 @@ DEPRECATED(char  *get_centroid_struct_pl(int length,
  *  \ingroup              centroid_fold
  *  \param[in]    length  The length of the sequence
  *  \param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
- *  \param[in]    pr      A upper triangular matrix containing base pair probabilities (access via iindx \ref get_iindx() )
+ *  \param[in]    pr      A upper triangular matrix containing base pair probabilities (access via iindx \ref vrna_get_iindx() )
  *  \return               The centroid structure of the ensemble in dot-bracket notation
  */
 char  *vrna_get_centroid_struct_pr( int length,

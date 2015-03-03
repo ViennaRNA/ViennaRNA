@@ -154,8 +154,8 @@ vrna_TwoDpfold_get_vars(const char *seq,
   vars->S             = NULL;
   vars->S1            = NULL;
 
-  vars->jindx         = get_indx(length);
-  vars->my_iindx      = get_iindx(length);
+  vars->jindx         = vrna_get_indx(length);
+  vars->my_iindx      = vrna_get_iindx(length);
   index               = vars->my_iindx;
 /*
   vars->maxD1         = 0;
@@ -263,8 +263,8 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
   vars->maxD1        = mfe_vars->maxD1;
   vars->maxD2        = mfe_vars->maxD2;
 
-  vars->jindx      = get_indx(vars->seq_length);
-  vars->my_iindx   = get_iindx(vars->seq_length);
+  vars->jindx      = vrna_get_indx(vars->seq_length);
+  vars->my_iindx   = vrna_get_iindx(vars->seq_length);
 
   /* allocate memory for the pf matrices and min-/max-index helper arrays */
   vars->Q                = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);

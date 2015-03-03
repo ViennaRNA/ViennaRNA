@@ -251,11 +251,11 @@ int main(int argc, char *argv[])
     else fname[0] = '\0';
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
+    if(!noconv) vrna_seq_toRNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    vrna_seq_toupper(rec_sequence);
 
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;

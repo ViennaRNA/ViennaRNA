@@ -258,7 +258,7 @@ PUBLIC  dupVar  **PKLduplexfold_XS( const char *s1,
   S1 = encode_sequence(s1, 0);
   SS1 = encode_sequence(s1, 1);
 
-  indx  = get_indx(n1);
+  indx  = vrna_get_indx(n1);
   ptype = (char *) space(sizeof(char)*((n1*(n1+1))/2+2));
   make_ptypes(s1);
 

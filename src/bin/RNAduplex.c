@@ -148,15 +148,15 @@ int main(int argc, char *argv[]){
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv){
-      str_DNA2RNA(s1);
-      str_DNA2RNA(s2);
+      vrna_seq_toRNA(s1);
+      vrna_seq_toRNA(s2);
     }
     /* store case-unmodified sequence */
     orig_s1 = strdup(s1);
     orig_s2 = strdup(s2);
     /* convert sequence to uppercase letters only */
-    str_uppercase(s1);
-    str_uppercase(s2);
+    vrna_seq_toupper(s1);
+    vrna_seq_toupper(s2);
 
     if (istty) printf("lengths = %d,%d\n", strlen(s1), strlen(s2));
 

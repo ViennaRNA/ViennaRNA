@@ -469,7 +469,7 @@ typedef struct{
                                           @note This array is always indexed via jindx, in contrast to previously
                                           different indexing between mfe and pf variants!
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
-                                          @see    get_indx(), vrna_get_ptypes()
+                                          @see    vrna_get_indx(), vrna_get_ptypes()
                                     */
       char  *ptype_pf_compat;       /**<  @brief  ptype array indexed via iindx
                                           @deprecated  This attribute will vanish in the future!

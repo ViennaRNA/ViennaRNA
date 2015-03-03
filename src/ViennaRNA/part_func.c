@@ -1185,7 +1185,7 @@ PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
     pf_params = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
 
-  fill_pair_matrices(&(pf_params->model_details));
+  vrna_md_update(&(pf_params->model_details));
 
   scaling_factor = pf_params->pf_scale;
 
@@ -1954,7 +1954,7 @@ PUBLIC double
 vrna_mean_bp_distance_pr( int length,
                           FLT_OR_DBL *p){
 
-  int *index = get_iindx((unsigned int) length);
+  int *index = vrna_get_iindx((unsigned int) length);
   double d;
 
   if (p==NULL)
@@ -2014,7 +2014,7 @@ mean_bp_dist(int length) {
   if (pr==NULL)
     nrerror("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
 
-  int *my_iindx = get_iindx(length);
+  int *my_iindx = vrna_get_iindx(length);
 
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++)
@@ -2287,7 +2287,7 @@ mean_bp_distance_pr(int length,
                     FLT_OR_DBL *p){
 
   double d=0;
-  int *index = get_iindx((unsigned int) length);
+  int *index = vrna_get_iindx((unsigned int) length);
 
   if (p==NULL)
     nrerror("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");

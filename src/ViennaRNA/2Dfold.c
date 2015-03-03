@@ -100,7 +100,7 @@ vrna_TwoDfold_get_vars( const char *seq,
   vars->P               = NULL;
   vars->S               = NULL;
   vars->S1              = NULL;
-  vars->my_iindx        = get_iindx(length);
+  vars->my_iindx        = vrna_get_iindx(length);
   index                 = vars->my_iindx;
   /* compute maximum matching with reference structure 1 disallowed */
   vars->mm1          = maximumMatchingConstraint(vars->sequence, vars->reference_pt1);
