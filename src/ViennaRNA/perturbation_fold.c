@@ -50,16 +50,16 @@ static double calculate_norm(double *vector, int length)
 
 static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int length)
 {
-  soft_constraintT *sc;
+  vrna_sc_t *sc;
   int i, j;
   double kT = vc->exp_params->kT / 1000;
 
-  sc = space(sizeof(soft_constraintT));
+  sc = vrna_alloc(sizeof(vrna_sc_t));
 
-  sc->boltzmann_factors = space(sizeof(double*) * (length + 2));
-  sc->boltzmann_factors[0] = space(1);
+  sc->boltzmann_factors = vrna_alloc(sizeof(double*) * (length + 2));
+  sc->boltzmann_factors[0] = vrna_alloc(1);
   for (i = 1; i <= length; ++i)
-    sc->boltzmann_factors[i] = space(sizeof(double) * (length - i + 2));
+    sc->boltzmann_factors[i] = vrna_alloc(sizeof(double) * (length - i + 2));
 
   for (i = 1; i <= length; ++i)
   {
@@ -69,10 +69,10 @@ static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int
   }
 
   /* also add sc for MFE computation */
-  sc->free_energies = space(sizeof(int*) * (length + 2));
-  sc->free_energies[0] = space(sizeof(int));
+  sc->free_energies = vrna_alloc(sizeof(int*) * (length + 2));
+  sc->free_energies[0] = vrna_alloc(sizeof(int));
   for (i = 1; i <= length; ++i)
-    sc->free_energies[i] = space(sizeof(int) * (length - i + 2));
+    sc->free_energies[i] = vrna_alloc(sizeof(int) * (length - i + 2));
 
   for (i = 1; i <= length; ++i){
     sc->free_energies[i][0] = 0;
@@ -103,7 +103,7 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
   int length = vc->length;
 
   /* calculate pairing probabilty in the pertubated energy model */
-  p_prob_unpaired = space(sizeof(double) * (length + 1));
+  p_prob_unpaired = vrna_alloc(sizeof(double) * (length + 1));
 
   addSoftConstraint(vc, epsilon, length);
 
@@ -164,7 +164,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
                                       | VRNA_CONSTRAINT_ANG_BRACK
                                       | VRNA_CONSTRAINT_RND_BRACK;
 
-    hc_string = space(sizeof(char) * (length + 1));
+    hc_string = vrna_alloc(sizeof(char) * (length + 1));
     memset(hc_string, '.', length);
     hc_string[i - 1] = 'x';
 
@@ -243,11 +243,11 @@ static void allocateProbabilityArrays(double **unpaired, double ***conditional_u
 {
   int i;
 
-  *unpaired = space(sizeof(double) * (length + 1));
-  *conditional_unpaired = space(sizeof(double*) * (length + 1));
+  *unpaired = vrna_alloc(sizeof(double) * (length + 1));
+  *conditional_unpaired = vrna_alloc(sizeof(double*) * (length + 1));
 
   for (i = 1; i <= length; ++i)
-    (*conditional_unpaired)[i] = space(sizeof(double) * (length + 1));
+    (*conditional_unpaired)[i] = vrna_alloc(sizeof(double) * (length + 1));
 }
 
 static void freeProbabilityArrays(double *unpaired, double **conditional_unpaired, int length)
@@ -437,8 +437,8 @@ vrna_find_perturbation_vector(vrna_fold_compound *vc,
   double improvement;
   const double min_improvement = minImprovement;
 
-  double *new_epsilon = space(sizeof(double) * (length + 1));
-  double *gradient = space(sizeof(double) * (length + 1));
+  double *new_epsilon = vrna_alloc(sizeof(double) * (length + 1));
+  double *gradient = vrna_alloc(sizeof(double) * (length + 1));
 
   double score = evaluate_perturbation_vector_score(vc, epsilon, q_prob_unpaired, sigma_squared, tau_squared, objective_function);
 

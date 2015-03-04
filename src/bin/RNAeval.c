@@ -45,8 +45,8 @@ add_shape_constraints(vrna_fold_compound *vc,
   double *values;
   int length = vc->length;
 
-  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
-    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
@@ -61,9 +61,9 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  sequence = space(sizeof(char) * (length + 1));
-  values = space(sizeof(double) * (length + 1));
-  parse_soft_constraints_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
+  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
     int i;
@@ -73,11 +73,11 @@ add_shape_constraints(vrna_fold_compound *vc,
     vrna_sc_add_sp(vc, values, constraint_type);
   }
   else if(method == 'Z'){
-    double *sc_up = space(sizeof(double) * (length + 1));
-    double **sc_bp = space(sizeof(double *) * (length + 1));
+    double *sc_up = vrna_alloc(sizeof(double) * (length + 1));
+    double **sc_bp = vrna_alloc(sizeof(double *) * (length + 1));
     int i;
 
-    convert_shape_reactivities_to_probabilities(shape_conversion, values, length, 0.5);
+    vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
 
     for(i = 1; i <= length; ++i){
       int j;
@@ -85,7 +85,7 @@ add_shape_constraints(vrna_fold_compound *vc,
       assert(values[i] >= 0 && values[i] <= 1);
 
       sc_up[i] = p1 * fabs(values[i] - 1);
-      sc_bp[i] = space(sizeof(double) * (length + 1));
+      sc_bp[i] = vrna_alloc(sizeof(double) * (length + 1));
       for(j = i + TURN + 1; j <= length; ++j)
         sc_bp[i][j] = p1 * (values[i] + values[j]);
     }
@@ -120,8 +120,8 @@ int main(int argc, char *argv[]){
   int                       noconv=0;
   int                       verbose = 0;
   unsigned int              rec_type, read_opt;
-  model_detailsT md;
-  paramT *P;
+  vrna_md_t                 md;
+  vrna_param_t              *P;
 
   string  = orig_sequence = ParamFile = NULL;
   gquad   = 0;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -200,16 +200,16 @@ int main(int argc, char *argv[]){
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   if(circular && gquad){
-    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  P = vrna_get_energy_contributions(md);
+  P = vrna_params_get(&md);
 
   /* set options we wanna pass to vrna_read_fasta_record() */
 
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-    print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+    vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                             "Input sequence (upper or lower case) followed by structure");
   }
 
@@ -233,29 +233,29 @@ int main(int argc, char *argv[]){
     else fname[0] = '\0';
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
+    if(!noconv) vrna_seq_toRNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    vrna_seq_toupper(rec_sequence);
 
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
     tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if(!tmp)
-      nrerror("structure missing");
+      vrna_message_error("structure missing");
 
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if(cp != vc->cutpoint){
       fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-      nrerror("Sequence and Structure have different cut points.");
+      vrna_message_error("Sequence and Structure have different cut points.");
     }
 
     length1   = (int) strlen(structure);
     if(length1 != vc->length)
-      nrerror("structure and sequence differ in length!");
+      vrna_message_error("structure and sequence differ in length!");
 
     free(tmp);
 
@@ -316,7 +316,7 @@ int main(int argc, char *argv[]){
 
     /* print user help for the next round if we get input from tty */
     if(istty){
-      print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+      vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                               "Input sequence (upper or lower case) followed by structure");
     }
   }

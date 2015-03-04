@@ -29,6 +29,8 @@
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /*  below are the evil global variables that will vanish
     as soon as we drop backward compatibility in ViennaRNA
     Package v3
@@ -56,12 +58,24 @@ double  cv_fact         = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
 double  nc_fact         = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
 int     logML           = VRNA_MODEL_DEFAULT_LOG_ML;
 
+#endif
+
 /*
 #################################
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+PRIVATE int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
+PRIVATE int BP_pair[NBASES][NBASES]=
+/* _  A  C  G  U  X  K  I */
+{{ 0, 0, 0, 0, 0, 0, 0, 0},
+ { 0, 0, 0, 0, 5, 0, 0, 5},
+ { 0, 0, 0, 1, 0, 0, 0, 0},
+ { 0, 0, 2, 0, 3, 0, 0, 0},
+ { 0, 6, 0, 4, 0, 0, 0, 6},
+ { 0, 0, 0, 0, 0, 0, 2, 0},
+ { 0, 0, 0, 0, 0, 1, 0, 0},
+ { 0, 6, 0, 0, 5, 0, 0, 0}};
 
 
 /*
@@ -70,6 +84,9 @@ PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 #################################
 */
 
+/* Fill the base pair type encodings according to the model details */
+PRIVATE void fill_pair_matrices(vrna_md_t *md);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -77,7 +94,7 @@ PRIVATE     int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
 */
 
 PUBLIC void
-vrna_md_set_default(model_detailsT *md){
+vrna_md_set_default(vrna_md_t *md){
 
   int i = 0;
 
@@ -119,7 +136,7 @@ vrna_md_set_default(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_nonstandards(model_detailsT *md, const char *ns){
+vrna_md_set_nonstandards(vrna_md_t *md, const char *ns){
 
   if(md)
     if(ns){
@@ -128,12 +145,12 @@ vrna_md_set_nonstandards(model_detailsT *md, const char *ns){
         memcpy(md->nonstandards, ns, strlen(ns)*sizeof(char));
         md->nonstandards[n] = '\0';
       } else
-        warn_user("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
+        vrna_message_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
     }
 }
 
 PUBLIC void
-vrna_md_set_dangles(model_detailsT *md, int d){
+vrna_md_set_dangles(vrna_md_t *md, int d){
 
   if(md)
     if((d >= 0) && (d <= 3))
@@ -141,7 +158,7 @@ vrna_md_set_dangles(model_detailsT *md, int d){
 }
 
 PUBLIC int
-vrna_md_get_dangles(model_detailsT *md){
+vrna_md_get_dangles(vrna_md_t *md){
 
   if(md)
     return md->dangles;
@@ -150,7 +167,7 @@ vrna_md_get_dangles(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_temperature(model_detailsT *md, double T){
+vrna_md_set_temperature(vrna_md_t *md, double T){
 
   if(md)
     if(T >= -K0)
@@ -158,7 +175,7 @@ vrna_md_set_temperature(model_detailsT *md, double T){
 }
 
 PUBLIC double
-vrna_md_get_temperature(model_detailsT *md){
+vrna_md_get_temperature(vrna_md_t *md){
 
   if(md)
     return md->temperature;
@@ -167,14 +184,14 @@ vrna_md_get_temperature(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_special_hp(model_detailsT *md, int shp){
+vrna_md_set_special_hp(vrna_md_t *md, int shp){
 
   if(md)
     md->special_hp = shp;
 }
 
 PUBLIC int
-vrna_md_get_special_hp(model_detailsT *md){
+vrna_md_get_special_hp(vrna_md_t *md){
 
   if(md)
     return md->special_hp;
@@ -183,14 +200,14 @@ vrna_md_get_special_hp(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_gquad(model_detailsT *md, int g){
+vrna_md_set_gquad(vrna_md_t *md, int g){
 
   if(md)
     md->gquad = g;
 }
 
 PUBLIC int
-vrna_md_get_gquad(model_detailsT *md){
+vrna_md_get_gquad(vrna_md_t *md){
 
   if(md)
     return md->gquad;
@@ -199,14 +216,14 @@ vrna_md_get_gquad(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_nolp(model_detailsT *md, int nolp){
+vrna_md_set_nolp(vrna_md_t *md, int nolp){
 
   if(md)
     md->noLP = (nolp) ? 1 : 0;
 }
 
 PUBLIC int
-vrna_md_get_nolp(model_detailsT *md){
+vrna_md_get_nolp(vrna_md_t *md){
 
   if(md)
     return md->noLP;
@@ -215,14 +232,14 @@ vrna_md_get_nolp(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_set_betascale(model_detailsT *md, double b){
+vrna_md_set_betascale(vrna_md_t *md, double b){
 
   if(md)
     md->betaScale = b;
 }
 
 PUBLIC double
-vrna_md_get_betascale(model_detailsT *md){
+vrna_md_get_betascale(vrna_md_t *md){
   
   if(md)
     return md->betaScale;
@@ -231,18 +248,115 @@ vrna_md_get_betascale(model_detailsT *md){
 }
 
 PUBLIC void
-vrna_md_update(model_detailsT *md){
+vrna_md_update(vrna_md_t *md){
 
   if(md)
     fill_pair_matrices(md);
 }
+
+PRIVATE void
+fill_pair_matrices(vrna_md_t *md){
+
+  int i,j;
+
+  /* nullify everything */
+  for(i = 0;i <= MAXALPHA; i++)
+    memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
+
+  memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
+
+  /* start setting actual base pair type encodings */
+  switch(md->energy_set){
+    case  0:    for(i = 0; i < 5; i++)
+                  md->alias[i] = (short) i;
+
+                md->alias[5] = 3; /* X <-> G */
+                md->alias[6] = 2; /* K <-> C */
+                md->alias[7] = 0; /* I <-> default base '@' */
+
+                for(i = 0; i < NBASES; i++)
+                    for(j = 0; j < NBASES; j++)
+                      md->pair[i][j] = BP_pair[i][j];
+
+                if(md->noGU)
+                  md->pair[3][4] = md->pair[4][3] = 0;
+
+                if(md->nonstandards != NULL) {  /* allow nonstandard bp's (encoded by type=7) */
+                   for(i = 0; i < (int)strlen(md->nonstandards); i += 2)
+                      md->pair[vrna_nucleotide_encode(md->nonstandards[i], md)]
+                        [vrna_nucleotide_encode(md->nonstandards[i+1], md)] = 7;
+                }
+
+                break;
+
+    case 1:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                }
+
+                break;
+
+    case 2:     for(i = 1; i < MAXALPHA;){
+                  md->alias[i++] = 1;  /* A <-> A*/
+                  md->alias[i++] = 4;  /* B <-> U */
+                }
+                for(i = 1; i < MAXALPHA; i++){
+                  md->pair[i][i+1] = 5;    /* AB <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* BA <-> UA */
+                }
+
+                break;
+
+    case 3:     for(i = 1; i < MAXALPHA - 2; ){
+                  md->alias[i++] = 3;  /* A <-> G */
+                  md->alias[i++] = 2;  /* B <-> C */
+                  md->alias[i++] = 1;  /* C <-> A */
+                  md->alias[i++] = 4;  /* D <-> U */
+                }
+                for(i = 1; i < MAXALPHA - 2; i++){
+                  md->pair[i][i+1] = 2;    /* AB <-> GC */
+                  i++;
+                  md->pair[i][i-1] = 1;    /* BA <-> CG */
+                  i++;
+                  md->pair[i][i+1] = 5;    /* CD <-> AU */
+                  i++;
+                  md->pair[i][i-1] = 6;    /* DC <-> UA */
+                }
+
+                break;
+
+    default:    vrna_message_error("Which energy_set are YOU using??");
+                break;
+  }
+
+  /* set the reverse base pair types */
+  for(i = 0; i <= MAXALPHA; i++){
+    for(j = 0; j <= MAXALPHA; j++){
+      md->rtype[md->pair[i][j]] = md->pair[j][i];
+    }
+  }
+
+  /* was used for energy_set == 0
+  for(i = 0; i < NBASES; i++)
+      for(j = 0; j < NBASES; j++)
+       md->rtype[md->pair[i][j]] = md->pair[j][i];
+  */
+}
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
 PUBLIC void
-set_model_details(model_detailsT *md){
+vrna_md_set_globals(vrna_md_t *md){
 
   int i = 0;
 
@@ -286,4 +400,7 @@ set_model_details(model_detailsT *md){
 
   }
 }
+
+#endif
+
 

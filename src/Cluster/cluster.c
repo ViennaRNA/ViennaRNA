@@ -49,13 +49,13 @@ PUBLIC Union *wards_cluster(float **clmat)
 
    n= (int)(clmat[0][0]);
 
-   size  = (int *)     space((n+1)*sizeof(int));
-   d     = (float **)  space((n+1)*sizeof(float *));
+   size  = (int *)     vrna_alloc((n+1)*sizeof(int));
+   d     = (float **)  vrna_alloc((n+1)*sizeof(float *));
    for(i=0;i<=n;i++)
-      d[i] = (float *) space((n+1)*sizeof(float));
-   indic = (int *)     space((n+1)*sizeof(int));
-   help  = (float *)   space((n+1)*sizeof(float));
-   tree  = (Union *)   space((n+1)*sizeof(Union));
+      d[i] = (float *) vrna_alloc((n+1)*sizeof(float));
+   indic = (int *)     vrna_alloc((n+1)*sizeof(int));
+   help  = (float *)   vrna_alloc((n+1)*sizeof(float));
+   tree  = (Union *)   vrna_alloc((n+1)*sizeof(Union));
 
    tree[0].set1      = n;
    tree[0].set2      = 0;
@@ -136,12 +136,12 @@ PUBLIC Union *neighbour_joining(float **clmat)
 
   n = (int) (clmat[0][0]);
 
-  tree = (Union *) space((n+1)*sizeof(Union));
-  indic = (int   *) space((n+1)*sizeof(int)   );
-  av   = (float *) space((n+1)*sizeof(float) );
-  temp = (float *) space((n+1)*sizeof(float) );
-  d    = (float**) space((n+1)*sizeof(float*));
-  for(i=0;i<=n;i++) d[i] = (float*) space((n+1)*sizeof(float));
+  tree = (Union *) vrna_alloc((n+1)*sizeof(Union));
+  indic = (int   *) vrna_alloc((n+1)*sizeof(int)   );
+  av   = (float *) vrna_alloc((n+1)*sizeof(float) );
+  temp = (float *) vrna_alloc((n+1)*sizeof(float) );
+  d    = (float**) vrna_alloc((n+1)*sizeof(float*));
+  for(i=0;i<=n;i++) d[i] = (float*) vrna_alloc((n+1)*sizeof(float));
 
 
   for (i=1; i<=n; i++){

@@ -1,7 +1,7 @@
 /*
   $Log: list.c,v $
   Revision 1.5  2003/07/14 13:36:58  ivo
-  use space() instead of malloc
+  use vrna_alloc() instead of malloc
 
   Revision 1.4  2000/10/10 08:53:52  ivo
   include dmalloc.h header if DMALLOC defined
@@ -49,7 +49,7 @@ lst_newnode (int size)
 {
   LST_BUCKET *node;
 
-  node = (LST_BUCKET *) space (size + sizeof (LST_BUCKET));
+  node = (LST_BUCKET *) vrna_alloc(size + sizeof (LST_BUCKET));
 
   return LST_USERSPACE (node);	/* Return pointer to user space */
 }
@@ -81,7 +81,7 @@ lst_init (void)
 {
   LIST *l;
 
-  if ((l = (LIST *) space (sizeof (LIST))) != NULL)
+  if ((l = (LIST *) vrna_alloc(sizeof (LIST))) != NULL)
     {
       l->count = 0;
       l->head = &(l->hz[0]);

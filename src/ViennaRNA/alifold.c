@@ -74,7 +74,7 @@ PRIVATE void    backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack
 
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
-                              paramT *parameters,
+                              vrna_param_t *parameters,
                               int is_constrained,
                               int is_circular);
 
@@ -87,12 +87,12 @@ PRIVATE float   wrap_alifold( const char **strings,
 PRIVATE float
 wrap_alifold( const char **strings,
               char *structure,
-              paramT *parameters,
+              vrna_param_t *parameters,
               int is_constrained,
               int is_circular){
 
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -103,7 +103,7 @@ wrap_alifold( const char **strings,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -161,7 +161,7 @@ vrna_ali_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -211,8 +211,8 @@ fill_arrays(vrna_fold_compound *vc){
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
+  vrna_param_t    *P            = vc->params;                                                                
+  vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
   int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
@@ -223,18 +223,18 @@ fill_arrays(vrna_fold_compound *vc){
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
 
-  hard_constraintT  *hc               = vc->hc;
-  soft_constraintT  **sc              = vc->scs;
+  vrna_hc_t       *hc           = vc->hc;
+  vrna_sc_t       **sc          = vc->scs;
 
   char              *hard_constraints = hc->matrix;
 
-  type  = (int *) space(n_seq*sizeof(int));
-  cc    = (int *) space(sizeof(int)*(length+2));
-  cc1   = (int *) space(sizeof(int)*(length+2));
-  Fmi   = (int *) space(sizeof(int)*(length+1));
-  DMLi  = (int *) space(sizeof(int)*(length+1));
-  DMLi1 = (int *) space(sizeof(int)*(length+1));
-  DMLi2 = (int *) space(sizeof(int)*(length+1));
+  type  = (int *) vrna_alloc(n_seq*sizeof(int));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length+2));
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length+2));
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1));
   
   /* init energies */
 
@@ -649,8 +649,8 @@ backtrack(vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char            **Ss          = vc->Ss;                                                                   
   unsigned short  **a2s         = vc->a2s;                                                                   
-  paramT          *P            = vc->params;                                                                
-  model_detailsT  *md           = &(P->model_details);
+  vrna_param_t    *P            = vc->params;                                                                
+  vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
   int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
@@ -662,10 +662,10 @@ backtrack(vrna_fold_compound *vc,
   int             dangle_model  = md->dangles;
   int             with_gquad    = md->gquad;
 
-  hard_constraintT *hc          = vc->hc;
-  soft_constraintT **sc         = vc->scs;
+  vrna_hc_t       *hc           = vc->hc;
+  vrna_sc_t       **sc          = vc->scs;
 
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -765,7 +765,7 @@ backtrack(vrna_fold_compound *vc,
                   break;
       }
 
-      if (!traced) nrerror("backtrack failed in f5");
+      if (!traced) vrna_message_error("backtrack failed in f5");
       /* push back the remaining f5 portion */
       bt_stack[++s].i = 1;
       bt_stack[s].j   = jj;
@@ -847,7 +847,7 @@ backtrack(vrna_fold_compound *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1056,10 +1056,10 @@ backtrack(vrna_fold_compound *vc,
         bt_stack[++s].i = k+1;
         bt_stack[s].j   = j1;
       } else {
-          nrerror("backtracking failed in repeat");
+          vrna_message_error("backtracking failed in repeat");
       }
     } else
-      nrerror("backtracking failed in repeat");
+      vrna_message_error("backtracking failed in repeat");
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
@@ -1124,7 +1124,7 @@ backtrack(vrna_fold_compound *vc,
           }
         }
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");
@@ -1175,9 +1175,9 @@ update_alifold_params(void){
     if(v->params)
       free(v->params);
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
-    v->params = vrna_get_energy_contributions(md);
+    v->params = vrna_params_get(&md);
   }
 }
 
@@ -1195,7 +1195,7 @@ energy_of_ali_gquad_structure(const char **sequences,
     
     vrna_fold_compound  *vc;
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     md.gquad = 1;
 
@@ -1206,7 +1206,7 @@ energy_of_ali_gquad_structure(const char **sequences,
 
     vrna_free_fold_compound(vc);
   }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 
@@ -1223,7 +1223,7 @@ energy_of_alistruct(const char **sequences,
   if(sequences[0] != NULL){
     vrna_fold_compound  *vc;
 
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
 
     vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
@@ -1233,7 +1233,7 @@ energy_of_alistruct(const char **sequences,
 
     vrna_free_fold_compound(vc);
   }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 }

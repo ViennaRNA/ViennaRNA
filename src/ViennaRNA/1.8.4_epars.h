@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_OLD_EPARS__
-#define __VIENNA_RNA_PACKAGE_OLD_EPARS__
+#ifndef VIENNA_RNA_PACKAGE_OLD_EPARS__
+#define VIENNA_RNA_PACKAGE_OLD_EPARS__
 /**
     \file 1.8.4_epars.h
     \brief Free energy parameters for parameter file conversion

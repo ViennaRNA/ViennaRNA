@@ -70,7 +70,7 @@ PRIVATE void      backtrack_qm1(vrna_fold_compound *vc, char *pstruc, int i,int 
 PRIVATE float     wrap_alipf_fold(const char **sequences,
                                   char *structure,
                                   plist **pl,
-                                  pf_paramT *parameters,
+                                  vrna_exp_param_t *parameters,
                                   int calculate_bppm,
                                   int is_constrained,
                                   int is_circular);
@@ -91,14 +91,14 @@ PRIVATE float
 wrap_alipf_fold(const char **sequences,
                 char *structure,
                 plist **pl,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained,
                 int is_circular){
 
   int                 n_seq;
   vrna_fold_compound  *vc;
-  pf_paramT           *exp_params;
+  vrna_exp_param_t    *exp_params;
 
   if(sequences == NULL) return 0.;
 
@@ -106,13 +106,13 @@ wrap_alipf_fold(const char **sequences,
   
   vc                  = NULL;
 
-  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
     exp_params = get_boltzmann_factor_copy(parameters);
   else{
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_get_boltzmann_factors_ali(n_seq, md);
+    exp_params = vrna_exp_params_ali_get(n_seq, &md);
   }
   exp_params->model_details.circ        = is_circular;
   exp_params->model_details.compute_bpp = calculate_bppm;
@@ -156,11 +156,11 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
   FLT_OR_DBL  Q;
   float       free_energy;
 
-  int             n         = vc->length;
-  int             n_seq     = vc->n_seq;
-  pf_paramT       *params   = vc->exp_params;
-  model_detailsT  *md       = &(params->model_details);
-  pf_matricesT    *matrices = vc->exp_matrices;
+  int               n         = vc->length;
+  int               n_seq     = vc->n_seq;
+  vrna_exp_param_t  *params   = vc->exp_params;
+  vrna_md_t         *md       = &(params->model_details);
+  vrna_mx_pf_t      *matrices = vc->exp_matrices;
 
   alipf_linear(vc, structure);
 
@@ -212,11 +212,11 @@ alipf_linear( vrna_fold_compound *vc,
   short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/        
   char              **Ss              = vc->Ss;                                                               
   unsigned short    **a2s             = vc->a2s;                                                               
-  pf_paramT         *pf_params        = vc->exp_params;
-  pf_matricesT      *matrices         = vc->exp_matrices;
-  model_detailsT    *md               = &(pf_params->model_details);
-  hard_constraintT  *hc               = vc->hc;
-  soft_constraintT  **sc              = vc->scs;
+  vrna_exp_param_t  *pf_params        = vc->exp_params;
+  vrna_mx_pf_t      *matrices         = vc->exp_matrices;
+  vrna_md_t         *md               = &(pf_params->model_details);
+  vrna_hc_t         *hc               = vc->hc;
+  vrna_sc_t         **sc              = vc->scs;
   int               *my_iindx         = vc->iindx;
   int               *jindx            = vc->jindx;
   FLT_OR_DBL        *q                = matrices->q;
@@ -232,15 +232,15 @@ alipf_linear( vrna_fold_compound *vc,
   char              *hard_constraints = hc->matrix;
 
   kTn   = pf_params->kT/10.;   /* kT in cal/mol  */
-  type  = (int *)space(sizeof(int) * n_seq);
+  type  = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : n;
 
   /* allocate memory for helper arrays */
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
 
   /* array initialization ; qb,qm,q
@@ -494,7 +494,7 @@ alipf_linear( vrna_fold_compound *vc,
         PRIVATE char msg[128];
         sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
           "use larger pf_scale", i,j);
-        nrerror(msg);
+        vrna_message_error(msg);
       }
 #endif
     }
@@ -531,11 +531,11 @@ alipf_create_bppm(vrna_fold_compound *vc,
   short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss          = vc->Ss;
   unsigned short    **a2s         = vc->a2s;                                                                   
-  pf_paramT         *pf_params    = vc->exp_params;
-  pf_matricesT      *matrices     = vc->exp_matrices;
-  model_detailsT    *md           = &(pf_params->model_details);
-  hard_constraintT  *hc           = vc->hc;
-  soft_constraintT  **sc          = vc->scs;
+  vrna_exp_param_t  *pf_params    = vc->exp_params;
+  vrna_mx_pf_t      *matrices     = vc->exp_matrices;
+  vrna_md_t         *md           = &(pf_params->model_details);
+  vrna_hc_t         *hc           = vc->hc;
+  vrna_sc_t         **sc          = vc->scs;
   int               *my_iindx     = vc->iindx;
   int               *jindx        = vc->jindx;
   FLT_OR_DBL        *q            = matrices->q;
@@ -554,16 +554,16 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
   double kTn, pp;
 
-  FLT_OR_DBL *prm_l   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  FLT_OR_DBL *prm_l1  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  FLT_OR_DBL *prml    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  type                = (int *)space(sizeof(int) * n_seq);
+  FLT_OR_DBL *prm_l   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prm_l1  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *prml    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  type                = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   if((matrices->q1k == NULL) || (matrices->qln == NULL)){
     free(matrices->q1k);
-    matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+    matrices->q1k = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
     free(matrices->qln);
-    matrices->qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    matrices->qln = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
   }
 
   FLT_OR_DBL *q1k    = matrices->q1k;
@@ -1026,10 +1026,14 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    *pl = vrna_get_plist_from_pr(vc, /*cut_off:*/ 1e-6);
+    *pl = vrna_pl_get_from_pr(vc, /*cut_off:*/ 1e-6);
 
-  if (structure!=NULL)
-    bppm_to_structure(structure, probs, n);
+  if (structure!=NULL){
+    char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+    memcpy(structure, s, n);
+    structure[n] = '\0';
+    free(s);
+  }
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
         "you might try a smaller pf_scale than %g\n",
@@ -1075,10 +1079,10 @@ vrna_ali_get_pair_info( vrna_fold_compound *vc,
   int n     = vc->length;
   int         *my_iindx = vc->iindx;
   FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
-  model_detailsT  *md = &(vc->exp_params->model_details);
+  vrna_md_t   *md = &(vc->exp_params->model_details);
 
-  max_p = 64; pi = space(max_p*sizeof(pair_info));
-  duck =  (double *) space((n+1)*sizeof(double));
+  max_p = 64; pi = vrna_alloc(max_p*sizeof(pair_info));
+  duck =  (double *) vrna_alloc((n+1)*sizeof(double));
   if(structure)
     ptable = vrna_pt_get(structure);
 
@@ -1108,12 +1112,12 @@ vrna_ali_get_pair_info( vrna_fold_compound *vc,
         num_p++;
         if (num_p>=max_p) {
           max_p *= 2;
-          pi = xrealloc(pi, max_p * sizeof(pair_info));
+          pi = vrna_realloc(pi, max_p * sizeof(pair_info));
         }
       }
     }
   free(duck);
-  pi = xrealloc(pi, (num_p+1)*sizeof(pair_info));
+  pi = vrna_realloc(pi, (num_p+1)*sizeof(pair_info));
   pi[num_p].i=0;
   qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
 
@@ -1141,13 +1145,13 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
-  pf_paramT         *pf_params  = vc->exp_params;
-  pf_matricesT      *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  hard_constraintT  *hc         = vc->hc;
-  soft_constraintT  **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
@@ -1158,7 +1162,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
   char              *hard_constraints = hc->matrix;
   int               *rtype            = &(md->rtype[0]);
 
-  type  = (int *)space(sizeof(int) * n_seq);
+  type  = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   qo = qho = qio = qmo = 0.;
   /* calculate the qm2 matrix  */
@@ -1306,20 +1310,20 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  pf_paramT         *pf_params  = vc->exp_params;
-  pf_matricesT      *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
-  hard_constraintT  *hc         = vc->hc;
-  soft_constraintT  **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *q          = matrices->q;
   FLT_OR_DBL        *qb         = matrices->qb;
 
   if((matrices->q1k == NULL) || (matrices->qln == NULL)){
     free(matrices->q1k);
-    matrices->q1k = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
+    matrices->q1k = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
     free(matrices->qln);
-    matrices->qln = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    matrices->qln = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
   }
 
   FLT_OR_DBL *q1k   = matrices->q1k;
@@ -1333,7 +1337,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   q1k[0] = 1.0;
   qln[n+1] = 1.0;
 
-  pstruc = space((n+1)*sizeof(char));
+  pstruc = vrna_alloc((n+1)*sizeof(char));
 
   for (i=0; i<n; i++)
     pstruc[i] = '.';
@@ -1344,7 +1348,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
   /* find i position of first pair */
     probs=1.;
     for (i=start; i<n; i++) {
-      gr = urn() * qln[i];
+      gr = vrna_urn() * qln[i];
       if (gr > qln[i+1]*scale[1]) {
         *prob=*prob*probs*(1-qln[i+1]*scale[1]/qln[i]);
         break; /* i is paired */
@@ -1356,7 +1360,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
       break; /* no more pairs */
     }
     /* now find the pairing partner j */
-    r = urn() * (qln[i] - qln[i+1]*scale[1]);
+    r = vrna_urn() * (qln[i] - qln[i+1]*scale[1]);
     for (qt=0, j=i+1; j<=n; j++) {
       int xtype;
       /*  type = ptype[my_iindx[i]-j];
@@ -1376,7 +1380,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
         }
       }
     }
-    if (j==n+1) nrerror("backtracking failed in ext loop");
+    if (j==n+1) vrna_message_error("backtracking failed in ext loop");
     start = j+1;
     backtrack(vc, pstruc, i, j, prob); /*?*/
   }
@@ -1398,13 +1402,13 @@ backtrack(vrna_fold_compound *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss        = vc->Ss;                                                                   
   unsigned short    **a2s       = vc->a2s;                                                                   
-  pf_paramT         *pf_params  = vc->exp_params;
-  pf_matricesT      *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  hard_constraintT  *hc         = vc->hc;
-  soft_constraintT  **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
@@ -1415,7 +1419,7 @@ backtrack(vrna_fold_compound *vc,
 
   /*backtrack given i,j basepair!*/
   double kTn = pf_params->kT/10.;
-  int *type = (int *)space(sizeof(int) * n_seq);
+  int *type = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   do {
     double r, qbt1, max_k, min_l;
@@ -1425,7 +1429,7 @@ backtrack(vrna_fold_compound *vc,
       type[s] = md->pair[S[s][i]][S[s][j]];
       if (type[s]==0) type[s]=7;
     }
-    r = urn() * (qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)); /*?*exp(pscore[jindx[j]+i]/kTn)*/
+    r = vrna_urn() * (qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)); /*?*exp(pscore[jindx[j]+i]/kTn)*/
 
     qbt1=1.;
     for (s=0; s<n_seq; s++){
@@ -1514,7 +1518,7 @@ backtrack(vrna_fold_compound *vc,
     ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
     for (qt=0., k=i+1; k<j; k++) qttemp += qm[ii-(k-1)]*qm1[jj+k];
-    r = urn() * qttemp;
+    r = vrna_urn() * qttemp;
     for (qt=0., k=i+1; k<j; k++) {
       qt += qm[ii-(k-1)]*qm1[jj+k];
       if (qt>=r){
@@ -1526,7 +1530,7 @@ backtrack(vrna_fold_compound *vc,
         break;
       }
     }
-    if (k>=j) nrerror("backtrack failed, can't find split index ");
+    if (k>=j) vrna_message_error("backtrack failed, can't find split index ");
 
     backtrack_qm1(vc, pstruc, k, j, prob);
 
@@ -1535,7 +1539,7 @@ backtrack(vrna_fold_compound *vc,
       /* now backtrack  [i ... j] in qm[] */
       jj = jindx[j];/*habides??*/
       ii = my_iindx[i];
-      r = urn() * qm[ii - j];
+      r = vrna_urn() * qm[ii - j];
       qt = qm1[jj+i]; k=i;
       if (qt<r)
         for (k=i+1; k<=j; k++) {
@@ -1552,12 +1556,12 @@ backtrack(vrna_fold_compound *vc,
       else {
         *prob = *prob * qt / qm[ii - j];/*??*/
       }
-      if (k>j) nrerror("backtrack failed in qm");
+      if (k>j) vrna_message_error("backtrack failed in qm");
 
       backtrack_qm1(vc, pstruc, k, j, prob);
 
       if (k<i+TURN) break; /* no more pairs */
-      r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
+      r = vrna_urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) {
         break; /* no more pairs */
         *prob = *prob * expMLbase[k-i] / (qm[ii-(k-1)] + expMLbase[k-i]);
@@ -1580,13 +1584,13 @@ backtrack_qm1(vrna_fold_compound *vc,
   short             **S         = vc->S;                                                                   
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  pf_paramT         *pf_params  = vc->exp_params;
-  pf_matricesT      *matrices   = vc->exp_matrices;
-  model_detailsT    *md         = &(pf_params->model_details);
+  vrna_exp_param_t  *pf_params  = vc->exp_params;
+  vrna_mx_pf_t      *matrices   = vc->exp_matrices;
+  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  hard_constraintT  *hc         = vc->hc;
-  soft_constraintT  **sc        = vc->scs;
+  vrna_hc_t         *hc         = vc->hc;
+  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm1        = matrices->qm1;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
@@ -1594,7 +1598,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, xtype,s;
   double qt, r, tempz;
-  r = urn() * qm1[jindx[j]+i];
+  r = vrna_urn() * qm1[jindx[j]+i];
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     if (qb[ii-l]==0) continue;
@@ -1615,7 +1619,7 @@ backtrack_qm1(vrna_fold_compound *vc,
       break;
     }
   }
-  if (l>j) nrerror("backtrack failed in qm1");
+  if (l>j) vrna_message_error("backtrack failed in qm1");
 
   backtrack(vc, pstruc, i, l, prob);
 }
@@ -1646,7 +1650,7 @@ PUBLIC float
 alipf_fold_par( const char **sequences,
                 char *structure,
                 plist **pl,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained,
                 int is_circular){

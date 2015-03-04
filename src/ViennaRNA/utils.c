@@ -42,75 +42,75 @@ PRIVATE char  *inbuf = NULL;
 PRIVATE char  *inbuf2 = NULL;
 PRIVATE unsigned int typebuf2 = 0;
 
-/* default values for the type/rtype stuff */
 PRIVATE const char Law_and_Order[] = "_ACGUTXKI";
 
-PRIVATE int rtype[8] = {0, 2, 1, 4, 3, 6, 5, 7};
-PRIVATE int BP_pair[NBASES][NBASES]=
-/* _  A  C  G  U  X  K  I */
-{{ 0, 0, 0, 0, 0, 0, 0, 0},
- { 0, 0, 0, 0, 5, 0, 0, 5},
- { 0, 0, 0, 1, 0, 0, 0, 0},
- { 0, 0, 2, 0, 3, 0, 0, 0},
- { 0, 6, 0, 4, 0, 0, 0, 6},
- { 0, 0, 0, 0, 0, 0, 2, 0},
- { 0, 0, 0, 0, 0, 1, 0, 0},
- { 0, 6, 0, 0, 5, 0, 0, 0}};
-
-
-PRIVATE int   get_char_encoding(char c, model_detailsT *md);
-PRIVATE char  *wrap_get_ptypes(const short *S, model_detailsT *md);  /* provides backward compatibility for old ptypes array in pf computations */
+PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides backward compatibility for old ptypes array in pf computations */
 
 /*-------------------------------------------------------------------------*/
 
-PUBLIC void *space(unsigned size) {
+#ifndef WITH_DMALLOC
+/* include the following two functions only if not including <dmalloc.h> */
+
+PUBLIC void *
+vrna_alloc(unsigned size){
+
   void *pointer;
 
   if ( (pointer = (void *) calloc(1, (size_t) size)) == NULL) {
 #ifdef EINVAL
     if (errno==EINVAL) {
-      fprintf(stderr,"SPACE: requested size: %d\n", size);
-      nrerror("SPACE allocation failure -> EINVAL");
+      fprintf(stderr,"vrna_alloc: requested size: %d\n", size);
+      vrna_message_error("Memory allocation failure -> EINVAL");
     }
     if (errno==ENOMEM)
 #endif
-      nrerror("SPACE allocation failure -> no memory");
+      vrna_message_error("Memory allocation failure -> no memory");
   }
   return  pointer;
 }
 
-#ifdef WITH_DMALLOC
-#define space(S) calloc(1,(S))
-#endif
+PUBLIC void *
+vrna_realloc(void *p, unsigned size){
 
-#undef xrealloc
-/* dmalloc.h #define's xrealloc */
-void *xrealloc (void *p, unsigned size) {
-  if (p == 0)
-    return space(size);
+  if (p == NULL)
+    return vrna_alloc(size);
   p = (void *) realloc(p, size);
   if (p == NULL) {
 #ifdef EINVAL
     if (errno==EINVAL) {
-      fprintf(stderr,"xrealloc: requested size: %d\n", size);
-      nrerror("xrealloc allocation failure -> EINVAL");
+      fprintf(stderr,"vrna_realloc: requested size: %d\n", size);
+      vrna_message_error("vrna_realloc allocation failure -> EINVAL");
     }
     if (errno==ENOMEM)
 #endif
-      nrerror("xrealloc allocation failure -> no memory");
+      vrna_message_error("vrna_realloc allocation failure -> no memory");
   }
   return p;
 }
 
+#endif
+
+#ifndef HAVE_STRDUP
+char *strdup(const char *s) {
+  char *dup;
+
+  dup = vrna_alloc(strlen(s)+1);
+  strcpy(dup, s);
+  return(dup);
+}
+#endif
+
 /*------------------------------------------------------------------------*/
 
-PUBLIC void nrerror(const char message[])       /* output message upon error */
-{
+PUBLIC void
+vrna_message_error(const char message[]){       /* output message upon error */
+
   fprintf(stderr, "ERROR: %s\n", message);
   exit(EXIT_FAILURE);
 }
 
-PUBLIC void warn_user(const char message[]){
+PUBLIC void
+vrna_message_warning(const char message[]){
   fprintf(stderr, "WARNING: %s\n", message);
 }
 
@@ -171,8 +171,8 @@ mix() was built out of 36 single-cycle latency instructions in a
 }
 
 /*------------------------------------------------------------------------*/
-PUBLIC void init_rand(void)
-{
+PUBLIC void
+vrna_init_rand(void){
 
   uint32_t seed = rj_mix(clock(), time(NULL), getpid());
 
@@ -186,11 +186,12 @@ PUBLIC void init_rand(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC double urn(void)
-     /* uniform random number generator; urn() is in [0,1] */
-     /* uses a linear congruential library routine */
-     /* 48 bit arithmetic */
-{
+/* uniform random number generator; vrna_urn() is in [0,1] */
+/* uses a linear congruential library routine */
+/* 48 bit arithmetic */
+PUBLIC double
+vrna_urn(void){
+
 #ifdef HAVE_ERAND48
   extern double erand48(unsigned short[]);
   return erand48(xsubi);
@@ -201,15 +202,17 @@ PUBLIC double urn(void)
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC int int_urn(int from, int to)
-{
-  return ( ( (int) (urn()*(to-from+1)) ) + from );
+PUBLIC int
+vrna_int_urn(int from, int to){
+
+  return ( ( (int) (vrna_urn()*(to-from+1)) ) + from );
 }
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC void filecopy(FILE *from, FILE *to)
-{
+PUBLIC void
+vrna_file_copy(FILE *from, FILE *to){
+
   int c;
 
   while ((c = getc(from)) != EOF) (void)putc(c, to);
@@ -217,8 +220,9 @@ PUBLIC void filecopy(FILE *from, FILE *to)
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *time_stamp(void)
-{
+PUBLIC char *
+vrna_time_stamp(void){
+
   time_t  cal_time;
 
   cal_time = time(NULL);
@@ -227,16 +231,17 @@ PUBLIC char *time_stamp(void)
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *random_string(int l, const char symbols[])
-{
+PUBLIC char *
+vrna_random_string(int l, const char symbols[]){
+
   char *r;
   int   i, rn, base;
 
   base = (int) strlen(symbols);
-  r = (char *) space(sizeof(char)*(l+1));
+  r = (char *) vrna_alloc(sizeof(char)*(l+1));
 
   for (i = 0; i < l; i++) {
-    rn = (int) (urn()*base);  /* [0, base-1] */
+    rn = (int) (vrna_urn()*base);  /* [0, base-1] */
     r[i] = symbols[rn];
   }
   r[l] = '\0';
@@ -245,8 +250,10 @@ PUBLIC char *random_string(int l, const char symbols[])
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC int   hamming(const char *s1, const char *s2)
-{
+PUBLIC int
+vrna_hamming_distance(const char *s1,
+                      const char *s2){
+
   int h=0;
 
   for (; *s1 && *s2; s1++, s2++)
@@ -254,14 +261,18 @@ PUBLIC int   hamming(const char *s1, const char *s2)
   return h;
 }
 
-PUBLIC int   hamming_bound(const char *s1, const char *s2, int boundary)
-{
+PUBLIC int
+vrna_hamming_distance_bound(const char *s1,
+                            const char *s2,
+                            int boundary){
+
   int h=0;
 
   for (; *s1 && *s2 && boundary; s1++, s2++, boundary--)
     if (*s1 != *s2) h++;
   return h;
 }
+
 /*-----------------------------------------------------------------*/
 
 PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
@@ -276,7 +287,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
     l = len + (int)strlen(s);
     if (l+1>size) {
       size = (int)((l+1)*1.2);
-      line = (char *) xrealloc(line, size*sizeof(char));
+      line = (char *) vrna_realloc(line, size*sizeof(char));
     }
     strcat(line+len, s);
     len=l;
@@ -324,12 +335,12 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   if(*line == '>'){
     /* fasta header */
     /* alloc memory for the string */
-    *string = (char *) space(sizeof(char) * (strlen(line) + 1));
+    *string = (char *) vrna_alloc(sizeof(char) * (strlen(line) + 1));
     r = VRNA_INPUT_FASTA_HEADER;
     i = sscanf(line, ">%s", *string);
     if(i > 0){
       i       = (int)     strlen(*string);
-      *string = (char *)  xrealloc(*string, (i+1)*sizeof(char));
+      *string = (char *)  vrna_realloc(*string, (i+1)*sizeof(char));
       free(line);
       return r;
     }
@@ -352,164 +363,64 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
 /*--------------------------------------------------------------------------*/
 
 
-#ifndef HAVE_STRDUP
-char *strdup(const char *s) {
-  char *dup;
+PUBLIC void
+vrna_message_input_seq_simple(void){
 
-  dup = space(strlen(s)+1);
-  strcpy(dup, s);
-  return(dup);
-}
-#endif
-
-PUBLIC  void  print_tty_input_seq(void){
-  print_tty_input_seq_str("Input string (upper or lower case)");
+  vrna_message_input_seq("Input string (upper or lower case)");
 }
 
-PUBLIC  void  print_tty_input_seq_str(const char *s){
+PUBLIC  void
+vrna_message_input_seq(const char *s){
   printf("\n%s; @ to quit\n", s);
   printf("%s%s\n", scale1, scale2);
   (void) fflush(stdout);
 }
 
-PUBLIC  void  str_DNA2RNA(char *sequence){
-  unsigned int l, i;
-  if(sequence != NULL){
-    l = strlen(sequence);
-    for(i = 0; i < l; i++){
+PUBLIC  void
+vrna_seq_toRNA(char *sequence){
+
+  unsigned int i;
+  if(sequence){
+    for(i = 0; sequence[i]; i++){
       if(sequence[i] == 'T') sequence[i] = 'U';
       if(sequence[i] == 't') sequence[i] = 'u';
     }
   }
 }
 
-PUBLIC void str_uppercase(char *sequence){
-  unsigned int l, i;
+PUBLIC void
+vrna_seq_toupper(char *sequence){
+
+  unsigned int i;
   if(sequence){
-    l = strlen(sequence);
-    for(i=0;i<l;i++)
+    for(i=0;sequence[i];i++)
       sequence[i] = toupper(sequence[i]);
   }
 }
 
-PUBLIC int *get_iindx(unsigned int length){
+PUBLIC int *
+vrna_get_iindx(unsigned int length){
+
   int i;
-  int *idx = (int *)space(sizeof(int) * (length+1));
+  int *idx = (int *)vrna_alloc(sizeof(int) * (length+1));
   for (i=1; i <= length; i++)
-    idx[i] = (((length + 1 - i) * (length - i))>>1) + length + 1;
+    idx[i] = (((length + 1 - i) * (length - i)) / 2) + length + 1;
   return idx;
 }
 
-PUBLIC int *get_indx(unsigned int length){
+PUBLIC int *
+vrna_get_indx(unsigned int length){
+
   unsigned int i;
-  int *idx = (int *)space(sizeof(int) * (length+1));
+  int *idx = (int *)vrna_alloc(sizeof(int) * (length+1));
   for (i = 1; i <= length; i++)
-    idx[i] = (i*(i-1)) >> 1;        /* i(i-1)/2 */
+    idx[i] = (i*(i-1)) / 2; 
   return idx;
-}
-
-
-
-
-
-
-PUBLIC  void  fill_pair_matrices(model_detailsT *md){
-
-  int i,j;
-
-  /* nullify everything */
-  for(i = 0;i <= MAXALPHA; i++)
-    memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
-  memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
-
-  /* start setting actual base pair type encodings */
-  switch(md->energy_set){
-    case  0:    for(i = 0; i < 5; i++)
-                  md->alias[i] = (short) i;
-
-                md->alias[5] = 3; /* X <-> G */
-                md->alias[6] = 2; /* K <-> C */
-                md->alias[7] = 0; /* I <-> default base '@' */
-
-                for(i = 0; i < NBASES; i++)
-                    for(j = 0; j < NBASES; j++)
-                      md->pair[i][j] = BP_pair[i][j];
-
-                if(md->noGU)
-                  md->pair[3][4] = md->pair[4][3] = 0;
-
-                if(md->nonstandards != NULL) {  /* allow nonstandard bp's (encoded by type=7) */
-                   for(i = 0; i < (int)strlen(md->nonstandards); i += 2)
-                      md->pair[get_char_encoding(md->nonstandards[i], md)]
-                        [get_char_encoding(md->nonstandards[i+1], md)] = 7;
-                }
-
-                break;
-
-    case 1:     for(i = 1; i < MAXALPHA;){
-                  md->alias[i++] = 3;  /* A <-> G */
-                  md->alias[i++] = 2;  /* B <-> C */
-                }
-                for(i = 1; i < MAXALPHA; i++){
-                  md->pair[i][i+1] = 2;    /* AB <-> GC */
-                  i++;
-                  md->pair[i][i-1] = 1;    /* BA <-> CG */
-                }
-
-                break;
-
-    case 2:     for(i = 1; i < MAXALPHA;){
-                  md->alias[i++] = 1;  /* A <-> A*/
-                  md->alias[i++] = 4;  /* B <-> U */
-                }
-                for(i = 1; i < MAXALPHA; i++){
-                  md->pair[i][i+1] = 5;    /* AB <-> AU */
-                  i++;
-                  md->pair[i][i-1] = 6;    /* BA <-> UA */
-                }
-
-                break;
-
-    case 3:     for(i = 1; i < MAXALPHA - 2; ){
-                  md->alias[i++] = 3;  /* A <-> G */
-                  md->alias[i++] = 2;  /* B <-> C */
-                  md->alias[i++] = 1;  /* C <-> A */
-                  md->alias[i++] = 4;  /* D <-> U */
-                }
-                for(i = 1; i < MAXALPHA - 2; i++){
-                  md->pair[i][i+1] = 2;    /* AB <-> GC */
-                  i++;
-                  md->pair[i][i-1] = 1;    /* BA <-> CG */
-                  i++;
-                  md->pair[i][i+1] = 5;    /* CD <-> AU */
-                  i++;
-                  md->pair[i][i-1] = 6;    /* DC <-> UA */
-                }
-
-                break;
-
-    default:    nrerror("Which energy_set are YOU using??");
-                break;
-  }
-
-  /* set the reverse base pair types */
-  for(i = 0; i <= MAXALPHA; i++){
-    for(j = 0; j <= MAXALPHA; j++){
-      md->rtype[md->pair[i][j]] = md->pair[j][i];
-    }
-  }
-
-  /* was used for energy_set == 0
-  for(i = 0; i < NBASES; i++)
-      for(j = 0; j < NBASES; j++)
-       md->rtype[md->pair[i][j]] = md->pair[j][i];
-  */
 }
 
 PUBLIC short *
 vrna_seq_encode(const char *sequence,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   unsigned int  i, l;
   short         *S = vrna_seq_encode_simple(sequence, md);
@@ -527,13 +438,13 @@ vrna_seq_encode(const char *sequence,
 
 PUBLIC short *
 vrna_seq_encode_simple( const char *sequence,
-                        model_detailsT *md){
+                        vrna_md_t *md){
 
   unsigned int i,l = (unsigned int)strlen(sequence);
-  short         *S = (short *) space(sizeof(short)*(l+2));
+  short         *S = (short *) vrna_alloc(sizeof(short)*(l+2));
 
   for(i=1; i<=l; i++) /* make numerical encoding of sequence */
-    S[i]= (short) get_char_encoding(toupper(sequence[i-1]), md);
+    S[i]= (short) vrna_nucleotide_encode(toupper(sequence[i-1]), md);
 
   S[l+1] = S[1];
   S[0] = (short) l;
@@ -541,8 +452,11 @@ vrna_seq_encode_simple( const char *sequence,
   return S;
 }
 
-PRIVATE int get_char_encoding(char c, model_detailsT *md){
-  /* return numerical representation of base used e.g. in pair[][] */
+PUBLIC  int
+vrna_nucleotide_encode( char c,
+                        vrna_md_t *md){
+
+  /* return numerical representation of nucleotide used e.g. in vrna_md_t.pair[][] */
   int code;
   if (md->energy_set>0) code = (int) (c-'A')+1;
   else {
@@ -556,9 +470,14 @@ PRIVATE int get_char_encoding(char c, model_detailsT *md){
   return code;
 }
 
-PUBLIC  char  get_encoded_char(int enc, model_detailsT *md){
-  if(md->energy_set > 0) return (char)enc + 'A' - 1;
-  else return (char)Law_and_Order[enc];
+PUBLIC  char
+vrna_nucleotide_decode( int enc,
+                        vrna_md_t *md){
+
+  if(md->energy_set > 0)
+    return (char)enc + 'A' - 1;
+  else
+    return (char)Law_and_Order[enc];
 }
 
 PUBLIC void
@@ -568,17 +487,17 @@ vrna_ali_encode(const char *sequence,
                     short **s3_p,
                     char **ss_p,
                     unsigned short **as_p,
-                    model_detailsT *md){
+                    vrna_md_t *md){
 
   unsigned  int   i,l;
   unsigned  short p;
 
   l     = strlen(sequence);
 
-  (*s5_p)   = (short *)         space((l + 2) * sizeof(short));
-  (*s3_p)   = (short *)         space((l + 2) * sizeof(short));
-  (*as_p)  = (unsigned short *)space((l + 2) * sizeof(unsigned short));
-  (*ss_p)   = (char *)          space((l + 2) * sizeof(char));
+  (*s5_p)   = (short *)         vrna_alloc((l + 2) * sizeof(short));
+  (*s3_p)   = (short *)         vrna_alloc((l + 2) * sizeof(short));
+  (*as_p)  = (unsigned short *)vrna_alloc((l + 2) * sizeof(unsigned short));
+  (*ss_p)   = (char *)          vrna_alloc((l + 2) * sizeof(char));
 
   /* make numerical encoding of sequence */
   (*S_p)    = vrna_seq_encode_simple(sequence, md);
@@ -651,15 +570,15 @@ vrna_ali_encode(const char *sequence,
 
 PUBLIC char *
 vrna_get_ptypes(const short *S,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   char *ptype;
   int n,i,j,k,l,*idx;
   int min_loop_size = md->min_loop_size;
 
   n     = S[0];
-  ptype = (char *)space(sizeof(char)*((n*(n+1))/2+2));
-  idx   = get_indx(n);
+  ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
+  idx   = vrna_get_indx(n);
 
   for (k=1; k<n-min_loop_size; k++)
     for (l=1; l<=2; l++) {
@@ -682,14 +601,14 @@ vrna_get_ptypes(const short *S,
 
 PRIVATE char *
 wrap_get_ptypes(const short *S,
-                model_detailsT *md){
+                vrna_md_t *md){
 
   char *ptype;
   int n,i,j,k,l,*idx;
 
   n     = S[0];
-  ptype = (char *)space(sizeof(char)*((n*(n+1))/2+2));
-  idx   = get_iindx(n);
+  ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
+  idx   = vrna_get_iindx(n);
 
   for (k=1; k<n-TURN; k++)
     for (l=1; l<=2; l++) {
@@ -711,106 +630,7 @@ wrap_get_ptypes(const short *S,
 }
 
 
-PUBLIC int *
-get_pscores(const short *const* S,
-            const char **AS,
-            int n_seq,
-            float **distance_matrix,
-            model_detailsT *md){
-
-  int *pscore, *indx;
-
-
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
-#define NONE -10000 /* score for forbidden pairs */
-#define UNIT 100
-#define MINPSCORE -2 * UNIT
-  int n,i,j,k,l,s, max_span;
-
-  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
-                  {0,0,2,2,1,2,2} /* CG */,
-                  {0,2,0,1,2,2,2} /* GC */,
-                  {0,2,1,0,2,1,2} /* GU */,
-                  {0,1,2,2,0,2,1} /* UG */,
-                  {0,2,2,1,2,0,2} /* AU */,
-                  {0,2,2,2,1,2,0} /* UA */};
-
-  float **dm;
-  n       = S[0][0];  /* length of seqs */
-  pscore  = (int *) space(sizeof(int)*((n*(n+1))/2+2));
-  indx    = get_indx(n);
-
-  if(distance_matrix){
-    dm = distance_matrix;
-  }
-  else { /*use usual matrix*/
-    dm=(float **)space(7*sizeof(float*));
-    for (i=0; i<7;i++) {
-      dm[i]=(float *)space(7*sizeof(float));
-      for (j=0; j<7; j++)
-        dm[i][j] = (float) olddm[i][j];
-    }
-  }
-
-  max_span = md->max_bp_span;
-  if((max_span < TURN+2) || (max_span > n))
-    max_span = n;
-  for (i=1; i<n; i++) {
-    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
-      pscore[indx[j]+i] = NONE;
-    for (j=i+TURN+1; j<=n; j++) {
-      int pfreq[8]={0,0,0,0,0,0,0,0};
-      double score;
-      for (s=0; s<n_seq; s++) {
-        int type;
-        if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
-        else {
-          if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-          else type = md->pair[S[s][i]][S[s][j]];
-        }
-        pfreq[type]++;
-      }
-      if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
-      for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
-        for (l=k; l<=6; l++)
-          score += pfreq[k]*pfreq[l]*dm[k][l];
-      /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j]+i] = md->cv_fact *
-        ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
-
-      if((j - i + 1) > max_span){
-        pscore[indx[j]+i] = NONE;
-      }
-    }
-  }
-
-  if (md->noLP) /* remove unwanted pairs */
-    for (k=1; k<n-TURN-1; k++)
-      for (l=1; l<=2; l++) {
-        int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l;
-        type = pscore[indx[j]+i];
-        while ((i>=1)&&(j<=n)) {
-          if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
-          if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
-            pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
-          otype =  type;
-          type  = ntype;
-          i--; j++;
-        }
-      }
-
-
-  /*free dm */
-  for (i=0; i<7;i++) {
-    free(dm[i]);
-  }
-  free(dm);
-  free(indx);
-  return pscore;
-}
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -818,7 +638,7 @@ get_pscores(const short *const* S,
 
 PUBLIC char *
 get_ptypes( const short *S,
-            model_detailsT *md,
+            vrna_md_t *md,
             unsigned int idx_type){
 
   if(idx_type)
@@ -827,3 +647,114 @@ get_ptypes( const short *S,
     return vrna_get_ptypes(S, md);
 }
 
+PUBLIC int *
+get_iindx(unsigned int length){
+
+  return vrna_get_iindx(length);
+}
+
+PUBLIC int *
+get_indx(unsigned int length){
+
+  return vrna_get_indx(length);
+}
+
+PUBLIC void
+str_uppercase(char *sequence){
+
+  vrna_seq_toupper(sequence);
+}
+
+PUBLIC void
+str_DNA2RNA(char *sequence){
+
+  vrna_seq_toRNA(sequence);
+}
+
+PUBLIC void
+print_tty_input_seq(void){
+
+  vrna_message_input_seq_simple();
+}
+
+PUBLIC void
+print_tty_input_seq_str(const char *s){
+
+  vrna_message_input_seq(s);
+}
+
+PUBLIC void
+warn_user(const char message[]){
+
+  vrna_message_warning(message);
+}
+
+PUBLIC void
+nrerror(const char message[]){
+
+  vrna_message_error(message);
+}
+
+PUBLIC void *space(unsigned size) {
+
+  return vrna_alloc(size);
+}
+
+#undef  xrealloc
+/* dmalloc.h #define's vrna_realloc */
+PUBLIC void *xrealloc(void *p, unsigned size){
+
+  return vrna_realloc(p, size);
+}
+
+PUBLIC void
+init_rand(void){
+
+  vrna_init_rand();
+}
+
+PUBLIC double urn(void){
+
+  return vrna_urn();
+}
+
+PUBLIC int
+int_urn(int from, int to){
+
+  return vrna_int_urn(from, to);
+}
+
+PUBLIC char *
+random_string(int l, const char symbols[]){
+
+  return vrna_random_string(l, symbols);
+}
+
+PUBLIC void
+filecopy(FILE *from, FILE *to){
+
+  vrna_file_copy(from, to);
+}
+
+PUBLIC char *
+time_stamp(void){
+
+  return vrna_time_stamp();
+}
+
+PUBLIC int
+hamming(const char *s1,
+        const char *s2){
+
+  return vrna_hamming_distance(s1, s2);
+}
+
+PUBLIC int
+hamming_bound(const char *s1,
+              const char *s2,
+              int boundary){
+
+  return vrna_hamming_distance_bound(s1, s2, boundary);
+}
+
+#endif

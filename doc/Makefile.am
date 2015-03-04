@@ -84,3 +84,6 @@ endif WITH_REFERENCE_MANUAL
 
 EXTRA_DIST = $(pkgdata_DATA) mainpage.h
 
+# remove all generated content
+maintainer-clean-local:
+	-rm -f *.tag *.pdf html/ latex/

@@ -70,7 +70,7 @@ PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt)
 PRIVATE plist *backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
 
 /* wrappers for old API compatibility */
-PRIVATE float wrap_fold( const char *string, char *structure, paramT *parameters, int is_constrained, int is_circular);
+PRIVATE float wrap_fold( const char *string, char *structure, vrna_param_t *parameters, int is_constrained, int is_circular);
 PRIVATE void  wrap_array_export(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
 PRIVATE void  wrap_array_export_circ( int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p);
 
@@ -119,12 +119,12 @@ wrap_array_export_circ( int *Fc_p,
 PRIVATE float
 wrap_fold( const char *string,
           char *structure,
-          paramT *parameters,
+          vrna_param_t *parameters,
           int is_constrained,
           int is_circular){
 
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -135,7 +135,7 @@ wrap_fold( const char *string,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -191,7 +191,7 @@ vrna_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -233,10 +233,10 @@ fill_arrays(vrna_fold_compound *vc){
   unsigned char     type;
   char              *ptype, *hard_constraints;
   short             *S1;
-  paramT            *P;
-  mfe_matricesT     *matrices;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_param_t      *P;
+  vrna_mx_mfe_t     *matrices;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -262,12 +262,12 @@ fill_arrays(vrna_fold_compound *vc){
 
 
   /* allocate memory for all helper arrays */
-  cc    = (int *) space(sizeof(int)*(length + 2));
-  cc1   = (int *) space(sizeof(int)*(length + 2));
-  Fmi   = (int *) space(sizeof(int)*(length + 1));
-  DMLi  = (int *) space(sizeof(int)*(length + 1));
-  DMLi1 = (int *) space(sizeof(int)*(length + 1));
-  DMLi2 = (int *) space(sizeof(int)*(length + 1));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
 
 
   /* prefill helper arrays */
@@ -406,7 +406,7 @@ backtrack(vrna_fold_compound *vc,
   int   b=0;
   unsigned char type, tt, type_2;
   char  *string         = vc->sequence;
-  paramT  *P            = vc->params;
+  vrna_param_t  *P      = vc->params;
   int     *indx         = vc->jindx;
   char    *ptype        = vc->ptype;
 
@@ -428,9 +428,9 @@ backtrack(vrna_fold_compound *vc,
   my_fML  = vc->matrices->fML;
   my_ggg  = vc->matrices->ggg;
 
-  hard_constraintT *hc    = vc->hc;
-  soft_constraintT  *sc   = vc->sc;
-  char              *hard_constraints = hc->matrix;
+  vrna_hc_t *hc               = vc->hc;
+  vrna_sc_t *sc               = vc->sc;
+  char      *hard_constraints = hc->matrix;
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -615,7 +615,7 @@ backtrack(vrna_fold_compound *vc,
 
       if (!traced){
         fprintf(stderr, "%s\n", string);
-        nrerror("backtrack failed in f5");
+        vrna_message_error("backtrack failed in f5");
       }
       bt_stack[++s].i = 1;
       bt_stack[s].j   = jj;
@@ -759,7 +759,7 @@ backtrack(vrna_fold_compound *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1011,7 +1011,7 @@ backtrack(vrna_fold_compound *vc,
       }
       else
 #endif
-        nrerror("backtracking failed in repeat");
+        vrna_message_error("backtracking failed in repeat");
     }
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
@@ -1040,7 +1040,7 @@ backtrack(vrna_fold_compound *vc,
         }
         goto repeat_gquad_exit;
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");
@@ -1062,10 +1062,10 @@ backtrack_fold_from_pair( char *sequence,
 
   if(sequence){
     length = strlen(sequence);
-    structure = (char *) space((length + 1)*sizeof(char));
-    bp = (bondT *)space(sizeof(bondT) * (1+length/2));
+    structure = (char *) vrna_alloc((length + 1)*sizeof(char));
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
   } else {
-    nrerror("backtrack_fold_from_pair@fold.c: no sequence given");
+    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
   }
 
   bt_stack[1].i  = i;
@@ -1091,7 +1091,7 @@ backtrack_fold_from_pair( char *sequence,
 
 PUBLIC  void
 vrna_update_fold_params(vrna_fold_compound *vc,
-                        paramT *parameters){
+                        vrna_param_t *parameters){
 
   vrna_fold_compound *v;
   if(vc){
@@ -1113,7 +1113,7 @@ vrna_update_fold_params(vrna_fold_compound *vc,
   if(parameters){
     v->params = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     v->params = get_scaled_parameters(temperature, md);
   }
@@ -1138,7 +1138,7 @@ free_arrays(void){
 PUBLIC float
 fold_par( const char *string,
           char *structure,
-          paramT *parameters,
+          vrna_param_t *parameters,
           int is_constrained,
           int is_circular){
 
@@ -1173,7 +1173,7 @@ update_fold_params(void){
 }
 
 PUBLIC void
-update_fold_params_par(paramT *parameters){
+update_fold_params_par(vrna_param_t *parameters){
 
   vrna_update_fold_params(NULL, parameters);
 }
@@ -1196,7 +1196,7 @@ export_fold_arrays_par( int **f5_p,
                         int **fM1_p,
                         int **indx_p,
                         char **ptype_p,
-                        paramT **P_p){
+                        vrna_param_t **P_p){
 
   wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
   if(backward_compat_compound) *P_p  = backward_compat_compound->params;
@@ -1231,7 +1231,7 @@ export_circfold_arrays_par( int *Fc_p,
                             int **fM1_p,
                             int **indx_p,
                             char **ptype_p,
-                            paramT **P_p){
+                            vrna_param_t **P_p){
 
   wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
   wrap_array_export_circ(Fc_p,FcH_p,FcI_p,FcM_p,fM2_p);
@@ -1242,7 +1242,7 @@ export_circfold_arrays_par( int *Fc_p,
 #define NEW_NINIO         1       /* new asymetry penalty */
 
 PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
-  paramT  *P  = backward_compat_compound->params;
+  vrna_param_t  *P  = backward_compat_compound->params;
   int energy;
 
   energy = (size <= 30) ? P->hairpin[size] :
@@ -1282,7 +1282,7 @@ PUBLIC int HairpinE(int size, int type, int si1, int sj1, const char *string) {
 
 PUBLIC int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
 
-  paramT  *P  = backward_compat_compound->params;
+  vrna_param_t  *P  = backward_compat_compound->params;
   short   *S1 = backward_compat_compound->sequence_encoding;
 
   /* compute energy of degree 2 loop (stack bulge or interior) */
@@ -1329,7 +1329,7 @@ PUBLIC int oldLoopEnergy(int i, int j, int p, int q, int type, int type_2) {
 PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
                       int si1, int sj1, int sp1, int sq1) {
 
-  paramT  *P  = backward_compat_compound->params;
+  vrna_param_t  *P  = backward_compat_compound->params;
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
 

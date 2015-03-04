@@ -1,7 +1,8 @@
-#ifndef __VIENNA_RNA_PACKAGE_FOLD_H__
-#define __VIENNA_RNA_PACKAGE_FOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_FOLD_H
+#define VIENNA_RNA_PACKAGE_FOLD_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/eval.h>
 
 #ifdef __GNUC__
@@ -38,7 +39,7 @@
  */
 
 /**
- *  \defgroup mfe_fold Calculating Minimum Free Energy Structures
+ *  \addtogroup mfe_fold
  *  @{
  *    \brief This module contains all functions and variables related to the calculation
  *    of global minimum free energy structures for single sequences.
@@ -81,7 +82,7 @@
  *
  *  \deprecated use vrna_fold() instead
  *
- *  \see vrna_fold(), fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \see vrna_fold(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
  *  \param structure      A pointer to the character array where the
@@ -96,7 +97,7 @@
 DEPRECATED(float 
 fold_par( const char *sequence,
           char *structure,
-          paramT *parameters,
+          vrna_param_t *parameters,
           int is_constrained,
           int is_circular));
 
@@ -131,7 +132,7 @@ fold_par( const char *sequence,
  *
  *  \ingroup mfe_fold
  *
- *  \see fold(), circfold(), #model_detailsT, set_energy_model(), get_scaled_parameters()
+ *  \see fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
  *  \param vc             fold compound
  *  \param structure      A pointer to the character array where the
@@ -213,7 +214,7 @@ DEPRECATED(void update_fold_params(void));
  *  \ingroup mfe_fold
  * 
  */
-DEPRECATED(void update_fold_params_par(paramT *parameters));
+DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
 
 /**
  *
@@ -222,7 +223,7 @@ DEPRECATED(void update_fold_params_par(paramT *parameters));
  */
 void
 vrna_update_fold_params(vrna_fold_compound *vc,
-                        paramT *parameters);
+                        vrna_param_t *parameters);
 
 /**
  *
@@ -264,7 +265,7 @@ export_fold_arrays_par( int **f5_p,
                         int **fM1_p,
                         int **indx_p,
                         char **ptype_p,
-                        paramT **P_p));
+                        vrna_param_t **P_p));
 
 /**
  *
@@ -301,7 +302,7 @@ export_circfold_arrays_par( int *Fc_p,
                             int **fM1_p,
                             int **indx_p,
                             char **ptype_p,
-                            paramT **P_p));
+                            vrna_param_t **P_p));
 
 
 

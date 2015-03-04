@@ -77,7 +77,7 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 PRIVATE SOLUTION *
 wrap_subopt(char *seq,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int delta,
             int is_constrained,
             int is_circular,
@@ -194,7 +194,7 @@ make_state(LIST * Intervals,
     state->structure = structure;
   else {
     int i;
-    state->structure = (char *) space(length+1);
+    state->structure = (char *) vrna_alloc(length+1);
     for (i=0; i<length; i++)
       state->structure[i] = '.';
   }
@@ -229,7 +229,7 @@ copy_state(STATE * state)
       }
   }
   new_state->structure = strdup(state->structure);
-  if (!new_state->structure) nrerror("out of memory");
+  if (!new_state->structure) vrna_message_error("out of memory");
   return new_state;
 }
 
@@ -324,8 +324,8 @@ best_attainable_energy( vrna_fold_compound *vc,
 
   register int sum;
   INTERVAL        *next;
-  model_detailsT  *md;
-  mfe_matricesT   *matrices;
+  vrna_md_t       *md;
+  vrna_mx_mfe_t   *matrices;
   int             *indx;
 
   md        = &(vc->params->model_details);
@@ -531,14 +531,14 @@ fork_two_states(int i,
 PRIVATE SOLUTION *
 wrap_subopt(char *string,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int delta,
             int is_constrained,
             int is_circular,
             FILE *fp){
 
   vrna_fold_compound  *vc;
-  paramT              *P;
+  vrna_param_t        *P;
   char                *seq;
 
 #ifdef _OPENMP
@@ -550,7 +550,7 @@ wrap_subopt(char *string,
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     P = get_scaled_parameters(temperature, md);
   }
@@ -610,14 +610,14 @@ vrna_subopt(vrna_fold_compound *vc,
   int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad, threshold, cp;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
-  paramT          *P;
-  model_detailsT  *md;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
   int           minimal_energy;
   int           Fc, FcH, FcI, FcM, *fM2;
   int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
   char          *ptype;
   short         *S, *S1;
-  soft_constraintT *sc;
+  vrna_sc_t     *sc;
 
   max_sol             = 128;
   n_sol               = 0;
@@ -642,7 +642,7 @@ vrna_subopt(vrna_fold_compound *vc,
   if((md->dangles != 0) && (md->dangles != 2))
     md->dangles = 2;
 
-  struc = (char *)space(sizeof(char) * (length + 1));
+  struc = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
   if(circular){
     min_en = vrna_fold(vc, struc);
@@ -701,12 +701,12 @@ vrna_subopt(vrna_fold_compound *vc,
   minimal_energy = (circular) ? Fc : f5[length];
   threshold = minimal_energy + delta;
   if(threshold > INF){
-    warn_user("energy range too high, limiting to reasonable value");
+    vrna_message_warning("energy range too high, limiting to reasonable value");
     threshold = INF-EMAX;
   }
 
   /* init env data structure */
-  env = (subopt_env *)space(sizeof(subopt_env));
+  env = (subopt_env *)vrna_alloc(sizeof(subopt_env));
   env->Stack      = NULL;
   env->nopush     = true;
   env->Stack      = make_list();                                                   /* anchor */
@@ -721,7 +721,7 @@ vrna_subopt(vrna_fold_compound *vc,
 
   /* SolutionList stores the suboptimal structures found */
 
-  SolutionList = (SOLUTION *) space(max_sol*sizeof(SOLUTION));
+  SolutionList = (SOLUTION *) vrna_alloc(max_sol*sizeof(SOLUTION));
 
   /* end initialize ------------------------------------------------------- */
 
@@ -799,7 +799,7 @@ vrna_subopt(vrna_fold_compound *vc,
             if (n_sol+1 == max_sol) {
               max_sol *= 2;
               SolutionList = (SOLUTION *)
-                xrealloc(SolutionList, max_sol*sizeof(SOLUTION));
+                vrna_realloc(SolutionList, max_sol*sizeof(SOLUTION));
             }
             SolutionList[n_sol].energy =  structure_energy;
             SolutionList[n_sol++].structure = structure;
@@ -849,8 +849,8 @@ scan_interval(vrna_fold_compound *vc,
 
   STATE           *new_state, *temp_state;
   INTERVAL        *new_interval;
-  paramT          *P;
-  model_detailsT  *md;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
   register int    k, fi, cij, ij;
   register int    type;
   register int    dangle_model;
@@ -862,8 +862,8 @@ scan_interval(vrna_fold_compound *vc,
   char            *ptype, *sequence;
   short           *S, *S1;
   char            *hard_constraints, hc_decompose;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_hc_t       *hc;
+  vrna_sc_t       *sc;
 
   sequence  = vc->sequence;
   length    = vc->length;
@@ -904,7 +904,7 @@ scan_interval(vrna_fold_compound *vc,
   env->nopush = true;
 
   if ((i > 1) && (!array_flag))
-    nrerror ("Error while backtracking!");
+    vrna_message_error ("Error while backtracking!");
 
   if (j < i + turn + 1 && ON_SAME_STRAND(i,j,cp)) { /* minimal structure element */
     if (env->nopush){
@@ -1617,11 +1617,11 @@ repeat_gquad( vrna_fold_compound *vc,
               int threshold,
               subopt_env *env){
 
-  int *ggg, *indx, element_energy, cp;
-  short *S, *S1;
-  paramT *P;
-  hard_constraintT *hc;
-  soft_constraintT *sc;
+  int           *ggg, *indx, element_energy, cp;
+  short         *S, *S1;
+  vrna_param_t  *P;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   indx  = vc->jindx;
   cp    = vc->cutpoint;
@@ -1647,8 +1647,8 @@ repeat_gquad( vrna_fold_compound *vc,
       /* find out how many gquads we might expect in the interval [i,j] */
       int num_gquads = get_gquad_count(S1, i, j);
       num_gquads++;
-      L = (int *)space(sizeof(int) * num_gquads);
-      l = (int *)space(sizeof(int) * num_gquads * 3);
+      L = (int *)vrna_alloc(sizeof(int) * num_gquads);
+      l = (int *)vrna_alloc(sizeof(int) * num_gquads * 3);
       L[0] = -1;
 
       get_gquad_pattern_exhaustive(S1, i, j, P, L, l, threshold - best_energy);
@@ -1692,8 +1692,8 @@ repeat( vrna_fold_compound *vc,
 
   STATE           *new_state;
   INTERVAL        *new_interval;
-  paramT          *P;
-  model_detailsT  *md;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
 
   register int  ij, k, p, q, energy, new;
   register int  mm;
@@ -1704,8 +1704,8 @@ repeat( vrna_fold_compound *vc,
   int             Fc, FcH, FcI, FcM, *fM2;
   int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
   short         *S, *S1;
-  hard_constraintT *hc;
-  soft_constraintT *sc;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   sequence  = vc->sequence;
   length    = vc->length;
@@ -1968,7 +1968,7 @@ subopt_circ(char *seq,
 
 PUBLIC SOLUTION *subopt_par(char *seq,
                             char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int delta,
                             int is_constrained,
                             int is_circular,

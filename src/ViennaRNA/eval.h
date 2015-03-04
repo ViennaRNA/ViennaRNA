@@ -1,8 +1,9 @@
-#ifndef __VIENNA_RNA_PACKAGE_EVAL_H__
-#define __VIENNA_RNA_PACKAGE_EVAL_H__
+#ifndef VIENNA_RNA_PACKAGE_EVAL_H
+#define VIENNA_RNA_PACKAGE_EVAL_H
 
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>   /* for deprecated functions */
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -368,7 +369,7 @@ DEPRECATED(float energy_of_structure(const char *string,
  */
 DEPRECATED(float energy_of_struct_par( const char *string,
                             const char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level));
 
 /**
@@ -414,7 +415,7 @@ DEPRECATED(float energy_of_circ_structure( const char *string,
  */
 DEPRECATED(float energy_of_circ_struct_par(const char *string,
                                 const char *structure,
-                                paramT *parameters,
+                                vrna_param_t *parameters,
                                 int verbosity_level));
 
 
@@ -424,7 +425,7 @@ DEPRECATED(float energy_of_gquad_structure(const char *string,
 
 DEPRECATED(float energy_of_gquad_struct_par( const char *string,
                                   const char *structure,
-                                  paramT *parameters,
+                                  vrna_param_t *parameters,
                                   int verbosity_level));
 
 
@@ -479,7 +480,7 @@ DEPRECATED(int energy_of_struct_pt_par(const char *string,
                             short *ptable,
                             short *s,
                             short *s1,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level));
 
 

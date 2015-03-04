@@ -69,7 +69,7 @@ PRIVATE void    pf_co_bppm(vrna_fold_compound *vc, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
                                 char *structure,
-                                pf_paramT *parameters,
+                                vrna_exp_param_t *parameters,
                                 int calculate_bppm,
                                 int is_constrained);
 
@@ -89,19 +89,19 @@ PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
 PRIVATE cofoldF
 wrap_co_pf_fold(char *sequence,
                 char *structure,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained){
 
   int                 length;
   char                *seq;
   vrna_fold_compound  *vc;
-  model_detailsT      md;
+  vrna_md_t           md;
 
   vc      = NULL;
   length  = strlen(sequence);
 
-  /* we need pf_paramT datastructure to correctly init default hard constraints */
+  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
     md = parameters->model_details;
   else{
@@ -110,7 +110,7 @@ wrap_co_pf_fold(char *sequence,
   md.compute_bpp    = calculate_bppm;
   md.min_loop_size  = 0;
 
-  seq = (char *)space(sizeof(char) * (length + 2));
+  seq = (char *)vrna_alloc(sizeof(char) * (length + 2));
   if(cut_point > -1){
     int i;
     for(i = 0; i < cut_point-1; i++)
@@ -150,11 +150,11 @@ wrap_co_pf_fold(char *sequence,
 
 PRIVATE void
 wrap_update_pf_params(int length,
-                      pf_paramT *parameters){
+                      vrna_exp_param_t *parameters){
 
-  pf_paramT *p = NULL;
+  vrna_exp_param_t *p = NULL;
   if(parameters == NULL){
-    model_detailsT md;
+    vrna_md_t md;
     set_model_details(&md);
     p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
   }
@@ -178,9 +178,9 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
   cofoldF         X;
   double          free_energy;
   char            *sequence;
-  model_detailsT  *md;
-  pf_paramT       *params;
-  pf_matricesT    *matrices;
+  vrna_md_t       *md;
+  vrna_exp_param_t  *params;
+  vrna_mx_pf_t      *matrices;
 
   params    = vc->exp_params;
   n         = vc->length;
@@ -257,7 +257,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
     /*
     {
       if(pr) free(pr);
-      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      pr = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
     */
@@ -288,15 +288,15 @@ pf_co(vrna_fold_compound *vc){
   short             *S1;
   int               *my_iindx, *jindx;
   char              *ptype, *sequence;
-  model_detailsT    *md;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
   FLT_OR_DBL        expMLclosing;
   int               noGUclosure;
   double            max_real;
   int               *rtype;
-  pf_paramT         *pf_params;
-  pf_matricesT      *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices;
   int               hc_decompose;
   char              *hard_constraints;
   int               *hc_up_ext;
@@ -337,10 +337,10 @@ pf_co(vrna_fold_compound *vc){
   max_real          = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* allocate memory for helper arrays */
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
   turn = 0;
@@ -609,7 +609,7 @@ pf_co(vrna_fold_compound *vc){
         PRIVATE char msg[128];
         snprintf(msg, 127, "overflow in co_pf_fold while calculating q[%d,%d]\n"
                 "use larger pf_scale", i,j);
-        nrerror(msg);
+        vrna_message_error(msg);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -634,13 +634,13 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   FLT_OR_DBL        *tmp;
   FLT_OR_DBL        expMLclosing, *probs, *q1k, *qln, *q, *qb, *qm, *scale;
   double            max_real;
-  pf_paramT         *pf_params;
-  model_detailsT    *md;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
   short             *S,*S1;
   char              *ptype;
-  hard_constraintT  *hc;
-  soft_constraintT  *sc;
-  pf_matricesT      *matrices;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
+  vrna_mx_pf_t      *matrices;
   char              *sequence;
   char              *hard_constraints;
   int               *hc_up_ext;
@@ -690,13 +690,13 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   /* backtracking to construct binding probabilities of pairs*/
   if ((S != NULL) && (S1 != NULL)) {
     FLT_OR_DBL   *Qlout, *Qrout;
-    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
     Qmax  = 0;
-    Qrout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
-    Qlout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cp+2));
+    Qrout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n+2));
+    Qlout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (cp+2));
 
     for (k=1; k<=n; k++) {
       q1k[k] = q[my_iindx[1] - k];
@@ -988,8 +988,12 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
         probs[ij] *=  qb[ij];
       }
 
-    if (structure!=NULL)
-      bppm_to_structure(structure, probs, n);
+    if (structure!=NULL){
+      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      memcpy(structure, s, n);
+      structure[n] = '\0';
+      free(s);
+    }
 
     /* clean up */
     free(prm_l);
@@ -1011,7 +1015,7 @@ vrna_co_pf_dimer_probs( double FAB,
                         const plist *prA,
                         const plist *prB,
                         int Alength,
-                        const pf_paramT *exp_params) {
+                        const vrna_exp_param_t *exp_params) {
 
   /*computes binding probabilities and dimer free energies*/
   int         i, j;
@@ -1048,7 +1052,7 @@ vrna_co_pf_dimer_probs( double FAB,
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
       if(lp1->p < 0.){
-        warn_user("vrna_co_pf_probs: numeric instability detected, probability below zero!");
+        vrna_message_warning("vrna_co_pf_probs: numeric instability detected, probability below zero!");
         lp1->p = 0.;
       }
     }
@@ -1072,7 +1076,7 @@ Newton_Conc(double KAB,
   cA      = concA;
   cB      = concB;
   TOL     = 1e-6; /*Tolerance for convergence*/
-  ConcVec = (double*)space(5*sizeof(double)); /* holds concentrations */
+  ConcVec = (double*)vrna_alloc(5*sizeof(double)); /* holds concentrations */
   do {
     /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
     det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
@@ -1110,7 +1114,7 @@ vrna_co_pf_get_concentrations(double FcAB,
                               double FEA,
                               double FEB,
                               const double *startconc,
-                              const pf_paramT *exp_params){
+                              const vrna_exp_param_t *exp_params){
 
   /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
   double          *ConcVec;
@@ -1119,7 +1123,7 @@ vrna_co_pf_get_concentrations(double FcAB,
   double          KAA, KAB, KBB, kT;
 
   kT            = exp_params->kT/1000.;
-  Concentration = (struct ConcEnt *)space(20*sizeof(struct ConcEnt));
+  Concentration = (struct ConcEnt *)vrna_alloc(20*sizeof(struct ConcEnt));
  /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */
 
@@ -1138,7 +1142,7 @@ vrna_co_pf_get_concentrations(double FcAB,
     Concentration[i/2].Bc   = ConcVec[4];
 
     if (!(((i+2)/2)%20))  {
-      Concentration = (struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+      Concentration = (struct ConcEnt *)vrna_realloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
     }
     free(ConcVec);
   }
@@ -1165,10 +1169,10 @@ backtrack_qm1(vrna_fold_compound *vc,
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase;
   short         *S1;
   char          *ptype;
-  model_detailsT  *md;
+  vrna_md_t     *md;
 
-  pf_paramT     *pf_params;
-  pf_matricesT  *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices;
 
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
@@ -1186,7 +1190,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   jindx         = vc->jindx;
   my_iindx      = vc->iindx;
 
-  r   = urn() * qm1[jindx[j]+i];
+  r   = vrna_urn() * qm1[jindx[j]+i];
   ii  = my_iindx[i];
   for (qt=0., l=i+turn+1; l<=j; l++) {
     type = ptype[jindx[l] + i];
@@ -1194,7 +1198,7 @@ backtrack_qm1(vrna_fold_compound *vc,
       qt +=  qb[ii-l]*exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * expMLbase[j-l];
     if (qt>=r) break;
   }
-  if (l>j) nrerror("backtrack failed in qm1");
+  if (l>j) vrna_message_error("backtrack failed in qm1");
   backtrack(vc, i,l, pstruc);
 }
 
@@ -1206,12 +1210,12 @@ backtrack(vrna_fold_compound *vc,
 
   int           *jindx, *my_iindx, *rtype, turn;
   FLT_OR_DBL    *qm, *qm1, *qb, *expMLbase, *scale;
-  pf_paramT     *pf_params;
-  pf_matricesT  *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_mx_pf_t      *matrices;
   short         *S1;
   char          *ptype, *sequence;
   int           noGUclosure;
-  model_detailsT  *md;
+  vrna_md_t     *md;
 
   sequence      = vc->sequence;
   pf_params     = vc->exp_params;
@@ -1237,7 +1241,7 @@ backtrack(vrna_fold_compound *vc,
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
-    r     = urn() * qb[my_iindx[i]-j];
+    r     = vrna_urn() * qb[my_iindx[i]-j];
     type  = ptype[jindx[j] + i];
     u     = j - i - 1;
     /*hairpin contribution*/
@@ -1278,12 +1282,12 @@ backtrack(vrna_fold_compound *vc,
     ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
     for (qt=0., k=i+1; k<j; k++) qt += qm[ii-(k-1)]*qm1[jj+k];
-    r = urn() * qt;
+    r = vrna_urn() * qt;
     for (qt=0., k=i+1; k<j; k++) {
       qt += qm[ii-(k-1)]*qm1[jj+k];
       if (qt>=r) break;
     }
-    if (k>=j) nrerror("backtrack failed, can't find split index ");
+    if (k>=j) vrna_message_error("backtrack failed, can't find split index ");
 
     backtrack_qm1(vc, k, j, pstruc);
 
@@ -1292,19 +1296,19 @@ backtrack(vrna_fold_compound *vc,
       /* now backtrack  [i ... j] in qm[] */
       jj  = jindx[j];
       ii  = my_iindx[i];
-      r   = urn() * qm[ii - j];
+      r   = vrna_urn() * qm[ii - j];
       qt  = qm1[jj+i]; k=i;
       if (qt<r)
         for (k=i+1; k<=j; k++) {
           qt += (qm[ii-(k-1)]+expMLbase[k-i])*qm1[jj+k];
           if (qt >= r) break;
         }
-      if (k>j) nrerror("backtrack failed in qm");
+      if (k>j) vrna_message_error("backtrack failed in qm");
 
       backtrack_qm1(vc, k,j, pstruc);
 
       if (k<i+turn) break; /* no more pairs */
-      r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
+      r = vrna_urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) break; /* no more pairs */
       j = k-1;
     }
@@ -1326,7 +1330,7 @@ co_pf_fold(char *sequence, char *structure){
 PUBLIC cofoldF
 co_pf_fold_par( char *sequence,
                 char *structure,
-                pf_paramT *parameters,
+                vrna_exp_param_t *parameters,
                 int calculate_bppm,
                 int is_constrained){
 
@@ -1350,7 +1354,7 @@ get_plist(struct plist *pl,
       if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
-        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
+        pl=(struct plist *)vrna_realloc(pl,n*length*sizeof(struct plist));
       }
       pl[count].i=i;
       pl[count].j=j;
@@ -1361,7 +1365,7 @@ get_plist(struct plist *pl,
   pl[count].i=0;
   pl[count].j=0; /*->??*/
   pl[count++].p=0.;
-  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
+  pl=(struct plist *)vrna_realloc(pl,(count)*sizeof(struct plist));
   return pl;
 }
 
@@ -1375,7 +1379,7 @@ compute_probabilities(double FAB,
                       int Alength) {
 
   if(backward_compat_compound && backward_compat){
-    vrna_co_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const pf_paramT *)backward_compat_compound->exp_params);
+    vrna_co_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
   }
 }
 
@@ -1387,7 +1391,7 @@ get_concentrations( double FcAB,
                     double FEB,
                     double *startconc){
 
-  return vrna_co_pf_get_concentrations(FcAB, FcAA, FcBB, FEA, FEB, (const double *)startconc, (const pf_paramT *)backward_compat_compound->exp_params);
+  return vrna_co_pf_get_concentrations(FcAB, FcAA, FcBB, FEA, FEB, (const double *)startconc, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
 }
 
 PUBLIC void
@@ -1428,7 +1432,7 @@ update_co_pf_params(int length){
 
 PUBLIC void
 update_co_pf_params_par(int length,
-                        pf_paramT *parameters){
+                        vrna_exp_param_t *parameters){
 
 /*---------------------------------------------------------------------------*/
   wrap_update_pf_params(length, parameters);

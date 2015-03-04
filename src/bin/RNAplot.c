@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
   /* set options we wanna pass to vrna_read_fasta_record() */
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-    print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
+    vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
   }
 
   /*
@@ -80,8 +80,8 @@ int main(int argc, char *argv[]){
 
     structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
-    if(!structure) nrerror("structure missing");
-    if((int)strlen(structure) != length) nrerror("structure and sequence differ in length!");
+    if(!structure) vrna_message_error("structure missing");
+    if((int)strlen(structure) != length) vrna_message_error("structure and sequence differ in length!");
 
     if (fname[0]!='\0'){
       strcpy(ffname, fname);
@@ -92,10 +92,10 @@ int main(int argc, char *argv[]){
     structure = NULL;
     unsigned int struct_options = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
     struct_options |= VRNA_CONSTRAINT_ALL;
-    getConstraint(&structure, (const char **)rec_rest, struct_options);
+    vrna_extract_record_rest_constraint(&structure, (const char **)rec_rest, struct_options);
 
     if(strlen(rec_sequence) != strlen(structure))
-      nrerror("sequence and structure have unequal length");
+      vrna_message_error("sequence and structure have unequal length");
 
     switch (format[0]) {
       case 'p':
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
 
     /* print user help for the next round if we get input from tty */
     if(istty){
-      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
+      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
     }
   }
 

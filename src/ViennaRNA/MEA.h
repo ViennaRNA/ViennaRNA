@@ -1,7 +1,8 @@
-#ifndef __VIENNA_RNA_PACKAGE_MEA_H__
-#define __VIENNA_RNA_PACKAGE_MEA_H__
+#ifndef VIENNA_RNA_PACKAGE_MEA_H
+#define VIENNA_RNA_PACKAGE_MEA_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 /**
  *  \file MEA.h
@@ -27,6 +28,6 @@ float MEA_seq(plist *p,
               const char *sequence,
               char *structure,
               double gamma,
-              pf_paramT *pf);
+              vrna_exp_param_t *pf);
 
 #endif

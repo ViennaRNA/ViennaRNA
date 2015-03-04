@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_RIBOSUM_H__
-#define __VIENNA_RNA_PACKAGE_RIBOSUM_H__
+#ifndef VIENNA_RNA_PACKAGE_RIBOSUM_H
+#define VIENNA_RNA_PACKAGE_RIBOSUM_H
 
 float **get_ribosum(const char **Alseq,
                     int n_seq,

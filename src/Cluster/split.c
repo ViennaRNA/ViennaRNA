@@ -48,20 +48,20 @@ PUBLIC Split *split_decomposition(float **dist)
    elm = 2;
    n_of_splits = 1;
    maxlen = (number_of_points+1)*(number_of_points+1);
-   full_slots = (short *) space(2*(maxlen+1)*sizeof(short));
+   full_slots = (short *) vrna_alloc(2*(maxlen+1)*sizeof(short));
    full_slots[1]=1;
    
-   SD = space((maxlen+1)*sizeof(Split));
+   SD = vrna_alloc((maxlen+1)*sizeof(Split));
    
    SD[0].splitlist[0]    = NULL;
    SD[0].splitlist[1]    = NULL; 
    SD[0].splitsize       = 1;
    SD[0].isolation_index = 0.0;
    /**/ 
-   SD[1].splitlist[0]    = (short *) space((number_of_points+1)*sizeof(short));
+   SD[1].splitlist[0]    = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
    SD[1].splitlist[0][0] = number_of_points;
    SD[1].splitlist[0][1] = 1;
-   SD[1].splitlist[1]    = (short *) space((number_of_points+1)*sizeof(short));
+   SD[1].splitlist[1]    = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
    SD[1].splitlist[1][1] = 2;
    SD[1].splitsize       = 1;
    SD[1].isolation_index = dist[1][2];
@@ -111,9 +111,9 @@ PUBLIC Split *split_decomposition(float **dist)
 	    full_slots[spp] =1;
 	    SD[spp].splitsize       = SD[sp].splitsize;
 	    SD[spp].isolation_index = alpha;
-	    SD[spp].splitlist[0]    = (short *) space((number_of_points+1)*sizeof(short));
+	    SD[spp].splitlist[0]    = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	    SD[spp].splitlist[0][0] = elm;
-	    SD[spp].splitlist[1]    = (short *) space((number_of_points+1)*sizeof(short));
+	    SD[spp].splitlist[1]    = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	    for(i=1; i<=SD[spp].splitsize; i++)
 	       SD[spp].splitlist[0][i] = SD[sp].splitlist[0][i];
 	    for(i=1; i<=(elm-1-SD[spp].splitsize); i++)
@@ -185,9 +185,9 @@ PUBLIC Split *split_decomposition(float **dist)
 	 full_slots[spp] = 1;
 	 SD[spp].splitsize         = 1;
 	 SD[spp].isolation_index   = alpha;
-	 SD[spp].splitlist[0]      = (short *) space((number_of_points+1)*sizeof(short));
+	 SD[spp].splitlist[0]      = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	 SD[spp].splitlist[0][0]   = elm;
-	 SD[spp].splitlist[1]      = (short *) space((number_of_points+1)*sizeof(short));
+	 SD[spp].splitlist[1]      = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	 SD[spp].splitlist[0][1]   = elm;
 	 for (i=1; i<= elm-1; i++)
 	    SD[spp].splitlist[1][i] = i;
@@ -205,9 +205,9 @@ PUBLIC Split *split_decomposition(float **dist)
 	       SD[new_sp].splitsize        = SD[sp].splitsize;
 	       SD[new_sp].isolation_index  = SD[sp].isolation_index;
 	       if(SD[new_sp].splitlist[0]==NULL) 
-		  SD[new_sp].splitlist[0] = (short *) space((number_of_points+1)*sizeof(short));
+		  SD[new_sp].splitlist[0] = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	       if(SD[new_sp].splitlist[1]==NULL) 
-		  SD[new_sp].splitlist[1] = (short *) space((number_of_points+1)*sizeof(short));
+		  SD[new_sp].splitlist[1] = (short *) vrna_alloc((number_of_points+1)*sizeof(short));
 	       for(i=0;i<=elm;i++){
 		  SD[new_sp].splitlist[0][i]  = SD[sp].splitlist[0][i];
 		  SD[new_sp].splitlist[1][i]  = SD[sp].splitlist[1][i];
@@ -248,7 +248,7 @@ PUBLIC Split *split_decomposition(float **dist)
 #endif
    /* free superfluous space */ 
 
-   S = space((n_of_splits+1)*sizeof(Split));
+   S = vrna_alloc((n_of_splits+1)*sizeof(Split));
    for (i=0; i<= n_of_splits; i++) S[i] = SD[i];
    free(SD);
 

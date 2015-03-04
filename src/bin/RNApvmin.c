@@ -62,12 +62,12 @@ static void init_perturbation_vector(double *epsilon, int length, double max_ene
     return;
 
   for (i = 1; i <= length; ++i)
-    epsilon[i] = max_energy * (urn() * 2 - 1);
+    epsilon[i] = max_energy * (vrna_urn() * 2 - 1);
 }
 
 int main(int argc, char *argv[]){
   struct RNApvmin_args_info args_info;
-  model_detailsT md;
+  vrna_md_t md;
   int istty = 0;
   unsigned int read_opt = 0;
   unsigned int rec_type;
@@ -94,11 +94,11 @@ int main(int argc, char *argv[]){
 
   if(args_info.tauSigmaRatio_arg <= 0)
   {
-    warn_user("invalid value for tauSigmaRatio");
+    vrna_message_warning("invalid value for tauSigmaRatio");
     return 1;
   }
 
-  init_rand();
+  vrna_init_rand();
   set_model_details(&md);
 
   /* set number of threads for parallel computation */
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
 #ifdef _OPENMP
   omp_set_num_threads(args_info.numThreads_arg);
 #else
-  nrerror("\'j\' option is available only if compiled with OpenMP support!");
+  vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
   if(args_info.paramFile_given)
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
     md.special_hp = 0;
   if(args_info.dangles_given){
     if(args_info.dangles_given > 3)
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = args_info.dangles_arg;
   }
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
     g_statpath = args_info.intermediatePath_arg;
   if(args_info.objectiveFunction_arg < 0 || args_info.objectiveFunction_arg > 1)
   {
-    warn_user("required objective function mode not implemented, falling back to default");
+    vrna_message_warning("required objective function mode not implemented, falling back to default");
     args_info.objectiveFunction_arg = 0;
   }
   if(args_info.minimizer_given)
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]){
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if(istty)
   {
-    print_tty_input_seq();
+    vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
 
@@ -183,10 +183,10 @@ int main(int argc, char *argv[]){
   g_sequence = rec_sequence;
   g_length = length  = strlen(rec_sequence);
 
-  shape_sequence = space(sizeof(char) * (length + 1));
-  shape_data = space(sizeof(double) * (length + 1));
+  shape_sequence = vrna_alloc(sizeof(char) * (length + 1));
+  shape_data = vrna_alloc(sizeof(double) * (length + 1));
 
-  if(parse_soft_constraints_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
+  if(vrna_read_SHAPE_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
   {
     double *epsilon;
     vrna_fold_compound *vc;
@@ -201,13 +201,13 @@ int main(int argc, char *argv[]){
       tau *= 10;
     double sigma = tau / args_info.tauSigmaRatio_arg;
 
-    convert_shape_reactivities_to_probabilities(args_info.shapeConversion_arg, shape_data, length, -1);
+    vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
     mfe = (double)vrna_fold(vc, NULL);
     vrna_rescale_pf_params(vc, &mfe);
 
-    epsilon = space(sizeof(double) * (length + 1));
+    epsilon = vrna_alloc(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
     vrna_find_perturbation_vector(vc,
                                   shape_data,

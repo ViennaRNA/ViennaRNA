@@ -48,8 +48,8 @@ add_shape_constraints(vrna_fold_compound *vc,
   float p1, p2;
   char method;
 
-  if(!parse_soft_constraints_shape_method(shape_method, &method, &p1, &p2)){
-    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
@@ -65,7 +65,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   }
 
   if(method == 'D'){
-    vrna_sc_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    vrna_sc_SHAPE_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
 }
@@ -86,8 +86,8 @@ int main(int argc, char *argv[]){
   char          *tmp_string;
   int           tmp_number;
   FILE          *clust_file = stdin;
-  pf_paramT     *pf_parameters;
-  model_detailsT  md;
+  vrna_exp_param_t  *pf_parameters;
+  vrna_md_t     md;
 
   fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -199,14 +199,14 @@ int main(int argc, char *argv[]){
     n_back = args_info.stochBT_arg;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
-    init_rand();
+    vrna_init_rand();
   }
   if(args_info.stochBT_en_given){
     n_back = args_info.stochBT_en_arg;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
     eval_energy = 1;
-    init_rand();
+    vrna_init_rand();
   }
   if(args_info.ribosum_file_given){
     RibosumFile = strdup(args_info.ribosum_file_arg);
@@ -233,8 +233,8 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "SHAPE reactivity data correction activated\n");
 
     with_shapes             = 1;
-    shape_files             = (char **)space(sizeof(char*) * (args_info.shape_given + 1));
-    shape_file_association  = (int *)space(sizeof(int*) * (args_info.shape_given + 1));
+    shape_files             = (char **)vrna_alloc(sizeof(char*) * (args_info.shape_given + 1));
+    shape_file_association  = (int *)vrna_alloc(sizeof(int*) * (args_info.shape_given + 1));
 
     /* find longest string in argument list */
     longest_string = 0;
@@ -242,7 +242,7 @@ int main(int argc, char *argv[]){
       if(strlen(args_info.shape_arg[s]) > longest_string)
         longest_string = strlen(args_info.shape_arg[s]);
 
-    tmp_string  = (char *)space(sizeof(char) * (longest_string + 1));
+    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
     tmp_number  = 0;
 
     for(s = 0; s < args_info.shape_given; s++){
@@ -284,20 +284,20 @@ int main(int argc, char *argv[]){
   #############################################
   */
   if(circular && gquad){
-    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
   make_pair_matrix(); /* for make_color_pinfo */
 
   if (circular && noLonelyPairs)
-    warn_user("depending on the origin of the circular sequence, "
+    vrna_message_warning("depending on the origin of the circular sequence, "
               "some structures may be missed when using --noLP\n"
               "Try rotating your sequence a few times\n");
 
   if (ParamFile != NULL) read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -325,8 +325,8 @@ int main(int argc, char *argv[]){
   */
   if(fold_constrained){
     if(istty){
-      print_tty_constraint_full();
-      print_tty_input_seq_str("");
+      vrna_message_constraint_options_all();
+      vrna_message_input_seq("");
     }
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if(input_type & VRNA_INPUT_QUIT){ return 0;}
@@ -334,22 +334,22 @@ int main(int argc, char *argv[]){
       cstruc = strdup(input_string);
       free(input_string);
     }
-    else warn_user("constraints missing");
+    else vrna_message_warning("constraints missing");
   }
 
   if (istty && (clust_file == stdin))
-    print_tty_input_seq_str("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
+    vrna_message_input_seq("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
 
   n_seq = read_clustal(clust_file, AS, names);
-  if (n_seq==0) nrerror("no sequences found");
+  if (n_seq==0) vrna_message_error("no sequences found");
 
   if(with_shapes){
     
     if(s != n_seq)
-      warn_user("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+      vrna_message_warning("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
 
-    shape_files             = (char **)xrealloc(shape_files, (n_seq + 1) * sizeof(char *));
-    shape_file_association  = (int *)xrealloc(shape_file_association, (n_seq + 1) * sizeof(int));
+    shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
+    shape_file_association  = (int *)vrna_realloc(shape_file_association, (n_seq + 1) * sizeof(int));
 
   }
 
@@ -361,7 +361,7 @@ int main(int argc, char *argv[]){
   */
 
   length    = (int)   strlen(AS[0]);
-  structure = (char *)space((unsigned)length + 1);
+  structure = (char *)vrna_alloc((unsigned)length + 1);
 
   if(fold_constrained && cstruc != NULL)
     strncpy(structure, cstruc, length);
@@ -502,13 +502,13 @@ int main(int argc, char *argv[]){
       double dist;
       plist *pl, *mfel;
 
-      pl    = vrna_get_plist_from_pr(vc, bppmThreshold);
-      mfel  = vrna_get_plist_from_db(mfe_struc, 0.95*0.95);
+      pl    = vrna_pl_get_from_pr(vc, bppmThreshold);
+      mfel  = vrna_pl_get(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
         cent = vrna_get_centroid_struct(vc, &dist);
-        ens=(float *)space(2*sizeof(float));
+        ens=(float *)vrna_alloc(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, cent);
         ens[1] = vrna_eval_covar_structure(vc, cent);
 
@@ -519,9 +519,9 @@ int main(int argc, char *argv[]){
       if(doMEA){
         float mea, *ens;
         plist *pl2;
-        pl2 = vrna_get_plist_from_pr(vc, 1e-4/(1+MEAgamma));
+        pl2 = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
-        ens = (float *)space(2*sizeof(float));
+        ens = (float *)vrna_alloc(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, structure);
         ens[1] = vrna_eval_covar_structure(vc, structure);
 
@@ -610,9 +610,9 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   n = strlen(AS[0]);
   maxl = 1024;
 
-  A = (char **) space(sizeof(char *)*2);
-  ps = (char *) space(maxl);
-  colorps = (char *) space(maxl);
+  A = (char **) vrna_alloc(sizeof(char *)*2);
+  ps = (char *) vrna_alloc(maxl);
+  colorps = (char *) vrna_alloc(maxl);
   ptable = vrna_pt_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
@@ -635,7 +635,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       ps = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
       if ((ps==NULL) || (colorps == NULL))
-          nrerror("out of memory in realloc");
+          vrna_message_error("out of memory in realloc");
     }
 
     if (pfreq[0]<=2 && pairings>0) {
@@ -699,7 +699,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, i
   int pfreq[7];
   for (n=0; pl[n].i>0; n++);
   c=0;
-  cp = (cpair *) space(sizeof(cpair)*(n+1));
+  cp = (cpair *) vrna_alloc(sizeof(cpair)*(n+1));
   for (i=0; i<n; i++) {
     int ncomp=0;
     if(pl[i].p>threshold) {

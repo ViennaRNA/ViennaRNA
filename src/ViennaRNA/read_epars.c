@@ -291,14 +291,14 @@ PRIVATE char *get_array1(int *arr, int size)
   i = last = 0;
   while( i<size ) {
     line = get_line(fp);
-    if (!line) nrerror("unexpected end of file in get_array1");
+    if (!line) vrna_message_error("unexpected end of file in get_array1");
     ignore_comment(line);
     pos=0;
     while ((i<size)&&(sscanf(line+pos,"%15s%n", buf, &pp)==1)) {
       pos += pp;
       if (buf[0]=='*') {i++; continue;}
       else if (buf[0]=='x') { /* should only be used for loop parameters */
-        if (i==0) nrerror("can't extrapolate first value");
+        if (i==0) vrna_message_error("can't extrapolate first value");
         p = arr[last] + (int) (0.5+ lxc37*log(((double) i)/(double)(last)));
       }
       else if (strcmp(buf,"DEF") == 0) p = DEF;
@@ -556,7 +556,7 @@ PRIVATE void ignore_comment(char * line)
   if ((cp1=strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
     if (cp2==NULL)
-      nrerror("unclosed comment in parameter file");
+      vrna_message_error("unclosed comment in parameter file");
     /* can't use strcpy for overlapping strings */
     for (cp2+=2; *cp2!='\0'; cp2++, cp1++)
       *cp1 = *cp2;
@@ -606,7 +606,7 @@ PUBLIC char *settype(enum parset s){
     case      HEX:  return "Hexaloops";
     case     QUIT:  return "END";
     case     MISC:  return "Misc";
-    default: nrerror("\nThe answer is: 42\n");
+    default: vrna_message_error("\nThe answer is: 42\n");
   }
   return "";
 }

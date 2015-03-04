@@ -36,7 +36,7 @@ PRIVATE void  duplexfold_XS(const char *s1, int **access_s1, const int threshold
 PRIVATE char  *backtrack_XS(int kk, int ll, const int ii, const int jj, const int max_interaction_length);
 PRIVATE void  make_ptypes(const char *structure);
 
-PRIVATE paramT  *P = NULL;
+PRIVATE vrna_param_t  *P = NULL;
 PRIVATE int     ***c3 = NULL;      /* energy array used in duplexfold */
 PRIVATE short   *S1 = NULL, *SS1 = NULL;
 PRIVATE int     n1;
@@ -61,11 +61,11 @@ PRIVATE void  duplexfold_XS(const char *s1,
   int length = (int) strlen(s1);
   struc=NULL;
 
-  c3 = (int ***) space(sizeof(int **) * (length));
+  c3 = (int ***) vrna_alloc(sizeof(int **) * (length));
   for (i=0; i<length; i++){
-    c3[i] = (int **) space(sizeof(int *) * max_interaction_length);
+    c3[i] = (int **) vrna_alloc(sizeof(int *) * max_interaction_length);
     for (j=0; j<max_interaction_length; j++) {
-      c3[i][j]=(int *) space(sizeof(int) * max_interaction_length);
+      c3[i][j]=(int *) vrna_alloc(sizeof(int) * max_interaction_length);
     }
   }
 
@@ -169,7 +169,7 @@ PRIVATE void  duplexfold_XS(const char *s1,
         NumberOfHits++;
         if(NumberOfHits==PlexHitsArrayLength-1){
           PlexHitsArrayLength*=2;
-          PlexHits = (dupVar *) xrealloc(PlexHits,sizeof(dupVar)*PlexHitsArrayLength);
+          PlexHits = (dupVar *) vrna_realloc(PlexHits,sizeof(dupVar)*PlexHitsArrayLength);
         }
       }
     }
@@ -190,9 +190,9 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int max
      return structure in bracket notation with & as separator */
   int p, q, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
-  st1 = (char *) space(sizeof(char)*(i-k+2));
+  st1 = (char *) vrna_alloc(sizeof(char)*(i-k+2));
   st1[i-k+1]='\0';
-  st2 = (char *) space(sizeof(char)*(l-j+2));
+  st2 = (char *) vrna_alloc(sizeof(char)*(l-j+2));
   st2[l-j+1]='\0';
 
   i0=k; j0=l;
@@ -202,7 +202,7 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int max
     st2[l-j] = ')';
 
     type=ptype[indx[l]+k];
-    if (!type) nrerror("backtrack failed in fold duplex bli");
+    if (!type) vrna_message_error("backtrack failed in fold duplex bli");
     for (p=k+1; p<=i; p++) {
       for (q=l-1; q>=j; q--) {
         int LE;
@@ -222,11 +222,11 @@ PRIVATE char *backtrack_XS(int k, int l, const int i, const int j, const int max
       E-=E_ExtLoop(type2, ((k<i)?SS1[k+1]:-1), ((l>j-1)? SS1[l-1]:-1), P);
       break;
       if (E != P->DuplexInit) {
-        nrerror("backtrack failed in fold duplex bal");
+        vrna_message_error("backtrack failed in fold duplex bal");
       } else break;
     }
   }
-  struc = (char *) space(k-i0+1+j0-l+1+2);
+  struc = (char *) vrna_alloc(k-i0+1+j0-l+1+2);
 
   for (p=0; p<=i-i0; p++){
     if (!st1[p]) st1[p] = '.';
@@ -258,8 +258,8 @@ PUBLIC  dupVar  **PKLduplexfold_XS( const char *s1,
   S1 = encode_sequence(s1, 0);
   SS1 = encode_sequence(s1, 1);
 
-  indx  = get_indx(n1);
-  ptype = (char *) space(sizeof(char)*((n1*(n1+1))/2+2));
+  indx  = vrna_get_indx(n1);
+  ptype = (char *) vrna_alloc(sizeof(char)*((n1*(n1+1))/2+2));
   make_ptypes(s1);
 
   P->DuplexInit=0;

@@ -53,7 +53,7 @@ static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $"
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE paramT  *P  = NULL;
+PRIVATE vrna_param_t  *P  = NULL;
 PRIVATE int     **c = NULL;                  /* energy array, given that i-j pair */
 PRIVATE short   *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
 PRIVATE int     n1,n2;                /* sequence lengths */
@@ -101,8 +101,8 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
     make_pair_matrix();
   }
 
-  c = (int **) space(sizeof(int *) * (n1+1));
-  for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
+  c = (int **) vrna_alloc(sizeof(int *) * (n1+1));
+  for (i=1; i<=n1; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n2+1));
 
   S1  = encode_sequence(s1, 0);
   S2  = encode_sequence(s2, 0);
@@ -160,7 +160,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
   duplexT *subopt;
 
   n_max=16;
-  subopt = (duplexT *) space(n_max*sizeof(duplexT));
+  subopt = (duplexT *) vrna_alloc(n_max*sizeof(duplexT));
   mfe = duplexfold_cu(s1, s2, 0);
   free(mfe.structure);
 
@@ -188,7 +188,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       fprintf(stderr, "%d %d %d\n", i,j,E);
       if (n_subopt+1>=n_max) {
         n_max *= 2;
-        subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+        subopt = (duplexT *) vrna_realloc(subopt, n_max*sizeof(duplexT));
       }
       subopt[n_subopt].i = MIN2(i+1,n1);
       subopt[n_subopt].j = MAX2(j-1,1);
@@ -214,8 +214,8 @@ PRIVATE char *backtrack(int i, int j) {
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
 
-  st1 = (char *) space(sizeof(char)*(n1+1));
-  st2 = (char *) space(sizeof(char)*(n2+1));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n1+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n2+1));
 
   i0=MIN2(i+1,n1); j0=MAX2(j-1,1);
 
@@ -224,7 +224,7 @@ PRIVATE char *backtrack(int i, int j) {
     st1[i-1] = '(';
     st2[j-1] = ')';
     type = pair[S1[i]][S2[j]];
-    if (!type) nrerror("backtrack failed in fold duplex");
+    if (!type) vrna_message_error("backtrack failed in fold duplex");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
       for (l=j+1; l<=n2; l++) {
         int LE;
@@ -244,14 +244,14 @@ PRIVATE char *backtrack(int i, int j) {
     if (!traced) {
       E -= E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, P);
       if (E != P->DuplexInit) {
-        nrerror("backtrack failed in fold duplex");
+        vrna_message_error("backtrack failed in fold duplex");
       } else break;
     }
   }
   if (i>1)  i--;
   if (j<n2) j++;
 
-  struc = (char *) space(i0-i+1+j-j0+1+2);
+  struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&");
@@ -294,25 +294,25 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   for (s=0; s1[s]!=NULL; s++);
   n_seq = s;
   for (s=0; s2[s]!=NULL; s++);
-  if (n_seq != s) nrerror("unequal number of sequences in aliduplexfold()\n");
+  if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
 
-  c = (int **) space(sizeof(int *) * (n1+1));
-  for (i=1; i<=n1; i++) c[i] = (int *) space(sizeof(int) * (n2+1));
+  c = (int **) vrna_alloc(sizeof(int *) * (n1+1));
+  for (i=1; i<=n1; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n2+1));
 
-  S1 = (short **) space((n_seq+1)*sizeof(short *));
-  S2 = (short **) space((n_seq+1)*sizeof(short *));
+  S1 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
+  S2 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   for (s=0; s<n_seq; s++) {
-    if (strlen(s1[s]) != n1) nrerror("uneqal seqence lengths");
-    if (strlen(s2[s]) != n2) nrerror("uneqal seqence lengths");
+    if (strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
+    if (strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
     S1[s] = encode_sequence(s1[s], 0);
     S2[s] = encode_sequence(s2[s], 0);
   }
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   for (i=1; i<=n1; i++) {
     for (j=n2; j>0; j--) {
@@ -381,7 +381,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
   short **S1, **S2;
 
   n_max=16;
-  subopt = (duplexT *) space(n_max*sizeof(duplexT));
+  subopt = (duplexT *) vrna_alloc(n_max*sizeof(duplexT));
   mfe = aliduplexfold_cu(s1, s2, 0);
   free(mfe.structure);
 
@@ -390,15 +390,15 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
 
   thresh =  (int) ((mfe.energy*100. + delta)*n_seq +0.1);
   n1 = strlen(s1[0]); n2=strlen(s2[0]);
-  S1 = (short **) space((n_seq+1)*sizeof(short *));
-  S2 = (short **) space((n_seq+1)*sizeof(short *));
+  S1 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
+  S2 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   for (s=0; s<n_seq; s++) {
-    if (strlen(s1[s]) != n1) nrerror("uneqal seqence lengths");
-    if (strlen(s2[s]) != n2) nrerror("uneqal seqence lengths");
+    if (strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
+    if (strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
     S1[s] = encode_sequence(s1[s], 0);
     S2[s] = encode_sequence(s2[s], 0);
   }
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   for (i=n1; i>0; i--) {
     for (j=1; j<=n2; j++) {
@@ -428,7 +428,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       fprintf(stderr, "%d %d %d\n", i,j,E);
       if (n_subopt+1>=n_max) {
         n_max *= 2;
-        subopt = (duplexT *) xrealloc(subopt, n_max*sizeof(duplexT));
+        subopt = (duplexT *) vrna_realloc(subopt, n_max*sizeof(duplexT));
       }
       subopt[n_subopt].i = MIN2(i+1,n1);
       subopt[n_subopt].j = MAX2(j-1,1);
@@ -463,11 +463,11 @@ PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
   for (s=0; S1[s]!=NULL; s++);
   n_seq = s;
   for (s=0; S2[s]!=NULL; s++);
-  if (n_seq != s) nrerror("unequal number of sequences in alibacktrack()\n");
+  if (n_seq != s) vrna_message_error("unequal number of sequences in alibacktrack()\n");
 
-  st1 = (char *) space(sizeof(char)*(n1+1));
-  st2 = (char *) space(sizeof(char)*(n2+1));
-  type = (int *) space(n_seq*sizeof(int));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n1+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n2+1));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   i0=MIN2(i+1,n1); j0=MAX2(j-1,1);
 
@@ -506,14 +506,14 @@ PRIVATE char *alibacktrack(int i, int j, const short **S1, const short **S2) {
         E -= E_ExtLoop(type[s], (i>1) ? S1[s][i-1] : -1, (j<n2) ? S2[s][j+1] : -1, P);
       }
       if (E != n_seq*P->DuplexInit) {
-        nrerror("backtrack failed in aliduplex");
+        vrna_message_error("backtrack failed in aliduplex");
       } else break;
     }
   }
   if (i>1)  i--;
   if (j<n2) j++;
 
-  struc = (char *) space(i0-i+1+j-j0+1+2);
+  struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&");

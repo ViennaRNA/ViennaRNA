@@ -1,6 +1,6 @@
 /* function from fold.c */
-#ifndef __VIENNA_RNA_PACKAGE_SNOFOLD_H__
-#define __VIENNA_RNA_PACKAGE_SNOFOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_SNOFOLD_H
+#define VIENNA_RNA_PACKAGE_SNOFOLD_H
 
 #include <ViennaRNA/data_structures.h>
 

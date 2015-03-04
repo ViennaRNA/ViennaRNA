@@ -14,7 +14,7 @@ PUBLIC void ps3d_Preambel(FILE *fp, float view[3], float axis[3], char *projtype
    fprintf(fp,"%%!PS\n");
    fprintf(fp,"%%%%Title: RNA DotPlot\n");
    fprintf(fp,"%%%%Creator: RNAfold V.01.002c  - by Oymolon\n");
-   fprintf(fp,"%%%%CreationDate: %s", time_stamp());
+   fprintf(fp,"%%%%CreationDate: %s", vrna_time_stamp());
 /*   fprintf(fp,"%%%%BoundingBox: 66 211 518 662\n"); */
    fprintf(fp,"%%%%Pages: 1\n");
    fprintf(fp,"%%%%EndComments: Geil eyh !?\n");

@@ -125,10 +125,10 @@ vrna_TwoDpfold_get_vars(const char *seq,
 
   vars = (TwoDpfold_vars *)malloc(sizeof(TwoDpfold_vars));
   length              = (unsigned int) strlen(seq);
-  vars->sequence      = (char *)space(length + 1);
+  vars->sequence      = (char *)vrna_alloc(length + 1);
   strcpy(vars->sequence, seq);
   vars->seq_length    = length;
-  if(vars->seq_length < 1) nrerror("get_TwoDfold_variables: sequence must be longer than 0");
+  if(vars->seq_length < 1) vrna_message_error("get_TwoDfold_variables: sequence must be longer than 0");
   size                = ((length + 1) * (length + 2)/2);
 
   vars->reference_pt1 = vrna_pt_get(structure1);
@@ -149,13 +149,13 @@ vrna_TwoDpfold_get_vars(const char *seq,
   vars->pf_scale      = pf_scale;
   vars->pf_params     = NULL;
 
-  vars->scale         = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  vars->ptype         = space(sizeof(char) * size);
+  vars->scale         = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(length+1));
+  vars->ptype         = vrna_alloc(sizeof(char) * size);
   vars->S             = NULL;
   vars->S1            = NULL;
 
-  vars->jindx         = get_indx(length);
-  vars->my_iindx      = get_iindx(length);
+  vars->jindx         = vrna_get_indx(length);
+  vars->my_iindx      = vrna_get_iindx(length);
   index               = vars->my_iindx;
 /*
   vars->maxD1         = 0;
@@ -165,38 +165,38 @@ vrna_TwoDpfold_get_vars(const char *seq,
   vars->maxD2        = vars->mm2[index[1]-length] + vars->referenceBPs2[index[1]-length];
 
   /* allocate memory for the pf matrices and min-/max-index helper arrays */
-  vars->Q                = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values     = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values     = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values     = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values     = (int *)   space(sizeof(int)     * size);
+  vars->Q                = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values     = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values     = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_B              = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_b   = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_b   = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_b   = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_b   = (int *)   space(sizeof(int)     * size);
+  vars->Q_B              = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_b   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_b   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_b   = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_b   = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_M              = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m   = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m   = (int *)   space(sizeof(int)     * size);
+  vars->Q_M              = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_M1             = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m1  = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m1  = (int *)   space(sizeof(int)     * size);
+  vars->Q_M1             = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
 
 
   if(vars->circ){
-    vars->Q_M2_rem         = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * (length + 1));
-    vars->Q_M2             = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * (length + 1));
-    vars->l_min_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->l_max_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->k_min_values_m2  = (int *)   space(sizeof(int)     * (length + 1));
-    vars->k_max_values_m2  = (int *)   space(sizeof(int)     * (length + 1));
+    vars->Q_M2_rem         = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)  * (length + 1));
+    vars->Q_M2             = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * (length + 1));
+    vars->l_min_values_m2  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->l_max_values_m2  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->k_min_values_m2  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+    vars->k_max_values_m2  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
   }
   else{
     vars->Q_M2_rem         = NULL;
@@ -215,10 +215,10 @@ vrna_TwoDpfold_get_vars(const char *seq,
   vars->Q_cI_rem          = 0;
   vars->Q_cM_rem          = 0;
 
-  vars->Q_rem             = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
-  vars->Q_B_rem           = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
-  vars->Q_M_rem           = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
-  vars->Q_M1_rem          = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_rem             = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_B_rem           = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_M_rem           = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)  * size);
+  vars->Q_M1_rem          = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)  * size);
   
 
 
@@ -255,49 +255,49 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
   vars->init_temp    = mfe_vars->temperature;
   vars->pf_scale     = pf_scale;
 
-  vars->scale        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
-  vars->ptype        = space(sizeof(char) * size);
+  vars->scale        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(length+1));
+  vars->ptype        = vrna_alloc(sizeof(char) * size);
   vars->S            = NULL;
   vars->S1           = NULL;
   vars->pf_params    = NULL;
   vars->maxD1        = mfe_vars->maxD1;
   vars->maxD2        = mfe_vars->maxD2;
 
-  vars->jindx      = get_indx(vars->seq_length);
-  vars->my_iindx   = get_iindx(vars->seq_length);
+  vars->jindx      = vrna_get_indx(vars->seq_length);
+  vars->my_iindx   = vrna_get_iindx(vars->seq_length);
 
   /* allocate memory for the pf matrices and min-/max-index helper arrays */
-  vars->Q                = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values     = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values     = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values     = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values     = (int *)   space(sizeof(int)     * size);
+  vars->Q                = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values     = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values     = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_B              = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_b   = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_b   = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_b   = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_b   = (int *)   space(sizeof(int)     * size);
+  vars->Q_B              = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_b   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_b   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_b   = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_b   = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_M              = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m   = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m   = (int *)   space(sizeof(int)     * size);
+  vars->Q_M              = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->Q_M1             = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * size);
-  vars->l_min_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m1  = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m1  = (int *)   space(sizeof(int)     * size);
+  vars->Q_M1             = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+  vars->l_min_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
 
 
   if(vars->circ){
-    vars->Q_M2             = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **)  * (length + 1));
-    vars->l_min_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->l_max_values_m2  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->k_min_values_m2  = (int *)   space(sizeof(int)     * (length + 1));
-    vars->k_max_values_m2  = (int *)   space(sizeof(int)     * (length + 1));
+    vars->Q_M2             = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **)  * (length + 1));
+    vars->l_min_values_m2  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->l_max_values_m2  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->k_min_values_m2  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+    vars->k_max_values_m2  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
   }
   else{
     vars->Q_M2             = NULL;
@@ -322,9 +322,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         mem                       = mfe_vars->k_max_values[ij] - mfe_vars->k_min_values[ij] + 1;
         vars->k_min_values_b[ij]  = mfe_vars->k_min_values[ij];
         vars->k_max_values_b[ij]  = mfe_vars->k_max_values[ij];
-        vars->Q_B[ij]             = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-        vars->l_min_values_b[ij]  = (int *)space(sizeof(int) * mem);
-        vars->l_max_values_b[ij]  = (int *)space(sizeof(int) * mem);
+        vars->Q_B[ij]             = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+        vars->l_min_values_b[ij]  = (int *)vrna_alloc(sizeof(int) * mem);
+        vars->l_max_values_b[ij]  = (int *)vrna_alloc(sizeof(int) * mem);
         vars->Q_B[ij]             -= vars->k_min_values_b[ij];
         vars->l_min_values_b[ij]  -= vars->k_min_values_b[ij];
         vars->l_max_values_b[ij]  -= vars->k_min_values_b[ij];
@@ -332,7 +332,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
           vars->l_min_values_b[ij][cnt1] = mfe_vars->l_min_values[ij][cnt1];
           vars->l_max_values_b[ij][cnt1] = mfe_vars->l_max_values[ij][cnt1];
           if(vars->l_min_values_b[ij][cnt1] < INF){
-            vars->Q_B[ij][cnt1] = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * ((vars->l_max_values_b[ij][cnt1] - vars->l_min_values_b[ij][cnt1] + 1)/2 + 1));
+            vars->Q_B[ij][cnt1] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * ((vars->l_max_values_b[ij][cnt1] - vars->l_min_values_b[ij][cnt1] + 1)/2 + 1));
             vars->Q_B[ij][cnt1] -= vars->l_min_values_b[ij][cnt1]/2;
           }
         }
@@ -342,9 +342,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         mem                       = mfe_vars->k_max_values_m[ij] - mfe_vars->k_min_values_m[ij] + 1;
         vars->k_min_values_m[ij]  = mfe_vars->k_min_values_m[ij];
         vars->k_max_values_m[ij]  = mfe_vars->k_max_values_m[ij];
-        vars->Q_M[ij]             = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-        vars->l_min_values_m[ij]  = (int *)space(sizeof(int) * mem);
-        vars->l_max_values_m[ij]  = (int *)space(sizeof(int) * mem);
+        vars->Q_M[ij]             = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+        vars->l_min_values_m[ij]  = (int *)vrna_alloc(sizeof(int) * mem);
+        vars->l_max_values_m[ij]  = (int *)vrna_alloc(sizeof(int) * mem);
         vars->Q_M[ij]             -= vars->k_min_values_m[ij];
         vars->l_min_values_m[ij]  -= vars->k_min_values_m[ij];
         vars->l_max_values_m[ij]  -= vars->k_min_values_m[ij];
@@ -352,7 +352,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
           vars->l_min_values_m[ij][cnt1] = mfe_vars->l_min_values_m[ij][cnt1];
           vars->l_max_values_m[ij][cnt1] = mfe_vars->l_max_values_m[ij][cnt1];
           if(vars->l_min_values_m[ij][cnt1] < INF){
-            vars->Q_M[ij][cnt1] = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * ((vars->l_max_values_m[ij][cnt1] - vars->l_min_values_m[ij][cnt1] + 1)/2 + 1));
+            vars->Q_M[ij][cnt1] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * ((vars->l_max_values_m[ij][cnt1] - vars->l_min_values_m[ij][cnt1] + 1)/2 + 1));
             vars->Q_M[ij][cnt1] -= vars->l_min_values_m[ij][cnt1]/2;
           }
         }
@@ -362,9 +362,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         mem                       = mfe_vars->k_max_values_m1[ij] - mfe_vars->k_min_values_m1[ij] + 1;
         vars->k_min_values_m1[jij] = mfe_vars->k_min_values_m1[ij];
         vars->k_max_values_m1[jij] = mfe_vars->k_max_values_m1[ij];
-        vars->Q_M1[jij]            = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-        vars->l_min_values_m1[jij] = (int *)space(sizeof(int) * mem);
-        vars->l_max_values_m1[jij] = (int *)space(sizeof(int) * mem);
+        vars->Q_M1[jij]            = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+        vars->l_min_values_m1[jij] = (int *)vrna_alloc(sizeof(int) * mem);
+        vars->l_max_values_m1[jij] = (int *)vrna_alloc(sizeof(int) * mem);
         vars->Q_M1[jij]            -= vars->k_min_values_m1[jij];
         vars->l_min_values_m1[jij] -= vars->k_min_values_m1[jij];
         vars->l_max_values_m1[jij] -= vars->k_min_values_m1[jij];
@@ -372,7 +372,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
           vars->l_min_values_m1[jij][cnt1] = mfe_vars->l_min_values_m1[ij][cnt1];
           vars->l_max_values_m1[jij][cnt1] = mfe_vars->l_max_values_m1[ij][cnt1];
           if(vars->l_min_values_m1[jij][cnt1] < INF){
-            vars->Q_M1[jij][cnt1]            = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * ((vars->l_max_values_m1[jij][cnt1] - vars->l_min_values_m1[jij][cnt1] + 1)/2 + 1));
+            vars->Q_M1[jij][cnt1]            = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * ((vars->l_max_values_m1[jij][cnt1] - vars->l_min_values_m1[jij][cnt1] + 1)/2 + 1));
             vars->Q_M1[jij][cnt1]            -= vars->l_min_values_m1[jij][cnt1]/2;
           }
         }
@@ -383,9 +383,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
     int mem;
     if(mfe_vars->E_Fc){
       mem = mfe_vars->k_max_values_fc - mfe_vars->k_min_values_fc + 1;
-      vars->Q_c             = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-      vars->l_min_values_qc = (int *)space(sizeof(int) * mem);
-      vars->l_max_values_qc = (int *)space(sizeof(int) * mem);
+      vars->Q_c             = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+      vars->l_min_values_qc = (int *)vrna_alloc(sizeof(int) * mem);
+      vars->l_max_values_qc = (int *)vrna_alloc(sizeof(int) * mem);
       vars->k_min_values_qc = mfe_vars->k_min_values_fc;
       vars->k_max_values_qc = mfe_vars->k_max_values_fc;
       vars->Q_c             -= vars->k_min_values_qc;
@@ -396,7 +396,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         vars->l_min_values_qc[cnt1] = mfe_vars->l_min_values_fc[cnt1];
         vars->l_max_values_qc[cnt1] = mfe_vars->l_max_values_fc[cnt1];
         if(vars->l_min_values_qc[cnt1] < INF){
-          vars->Q_c[cnt1]             = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+          vars->Q_c[cnt1]             = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
           vars->Q_c[cnt1]             -= vars->l_min_values_qc[cnt1]/2;
         }
       }
@@ -404,9 +404,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
 
     if(mfe_vars->E_FcH){
       mem = mfe_vars->k_max_values_fcH - mfe_vars->k_min_values_fcH + 1;
-      vars->Q_cH              = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-      vars->l_min_values_qcH  = (int *)space(sizeof(int) * mem);
-      vars->l_max_values_qcH  = (int *)space(sizeof(int) * mem);
+      vars->Q_cH              = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+      vars->l_min_values_qcH  = (int *)vrna_alloc(sizeof(int) * mem);
+      vars->l_max_values_qcH  = (int *)vrna_alloc(sizeof(int) * mem);
       vars->k_min_values_qcH  = mfe_vars->k_min_values_fcH;
       vars->k_max_values_qcH  = mfe_vars->k_max_values_fcH;
       vars->Q_cH              -= vars->k_min_values_qcH;
@@ -417,7 +417,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         vars->l_min_values_qcH[cnt1]  = mfe_vars->l_min_values_fcH[cnt1];
         vars->l_max_values_qcH[cnt1]  = mfe_vars->l_max_values_fcH[cnt1];
         if(vars->l_min_values_qcH[cnt1] < INF){
-          vars->Q_cH[cnt1]              = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+          vars->Q_cH[cnt1]              = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
           vars->Q_cH[cnt1]              -= vars->l_min_values_qcH[cnt1]/2;
         }
       }
@@ -425,9 +425,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
 
     if(mfe_vars->E_FcI){
       mem = mfe_vars->k_max_values_fcI - mfe_vars->k_min_values_fcI + 1;
-      vars->Q_cI              = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-      vars->l_min_values_qcI  = (int *)space(sizeof(int) * mem);
-      vars->l_max_values_qcI  = (int *)space(sizeof(int) * mem);
+      vars->Q_cI              = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+      vars->l_min_values_qcI  = (int *)vrna_alloc(sizeof(int) * mem);
+      vars->l_max_values_qcI  = (int *)vrna_alloc(sizeof(int) * mem);
       vars->k_min_values_qcI  = mfe_vars->k_min_values_fcI;
       vars->k_max_values_qcI  = mfe_vars->k_max_values_fcI;
       vars->Q_cI              -= vars->k_min_values_qcI;
@@ -438,7 +438,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         vars->l_min_values_qcI[cnt1]  = mfe_vars->l_min_values_fcI[cnt1];
         vars->l_max_values_qcI[cnt1]  = mfe_vars->l_max_values_fcI[cnt1];
         if(vars->l_min_values_qcI[cnt1] < INF){
-          vars->Q_cI[cnt1]              = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+          vars->Q_cI[cnt1]              = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
           vars->Q_cI[cnt1]              -= vars->l_min_values_qcI[cnt1]/2;
         }
       }
@@ -446,9 +446,9 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
 
     if(mfe_vars->E_FcM){
       mem = mfe_vars->k_max_values_fcM - mfe_vars->k_min_values_fcM + 1;
-      vars->Q_cM              = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-      vars->l_min_values_qcM  = (int *)space(sizeof(int) * mem);
-      vars->l_max_values_qcM  = (int *)space(sizeof(int) * mem);
+      vars->Q_cM              = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+      vars->l_min_values_qcM  = (int *)vrna_alloc(sizeof(int) * mem);
+      vars->l_max_values_qcM  = (int *)vrna_alloc(sizeof(int) * mem);
       vars->k_min_values_qcM  = mfe_vars->k_min_values_fcM;
       vars->k_max_values_qcM  = mfe_vars->k_max_values_fcM;
       vars->Q_cM              -= vars->k_min_values_qcM;
@@ -459,26 +459,26 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
         vars->l_min_values_qcM[cnt1]  = mfe_vars->l_min_values_fcM[cnt1];
         vars->l_max_values_qcM[cnt1]  = mfe_vars->l_max_values_fcM[cnt1];
         if(vars->l_min_values_qcM[cnt1] < INF){
-          vars->Q_cM[cnt1]              = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+          vars->Q_cM[cnt1]              = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
           vars->Q_cM[cnt1]              -= vars->l_min_values_qcM[cnt1]/2;
         }
       }
     }
 
     if(mfe_vars->E_M2){
-      vars->Q_M2 = (FLT_OR_DBL ***)space(sizeof(FLT_OR_DBL **) * (length + 1));
-      vars->k_min_values_m2 = (int *)space(sizeof(int) * (length + 1));
-      vars->k_max_values_m2 = (int *)space(sizeof(int) * (length + 1));
-      vars->l_min_values_m2 = (int **)space(sizeof(int *) * (length + 1));
-      vars->l_max_values_m2 = (int **)space(sizeof(int *) * (length + 1));
+      vars->Q_M2 = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * (length + 1));
+      vars->k_min_values_m2 = (int *)vrna_alloc(sizeof(int) * (length + 1));
+      vars->k_max_values_m2 = (int *)vrna_alloc(sizeof(int) * (length + 1));
+      vars->l_min_values_m2 = (int **)vrna_alloc(sizeof(int *) * (length + 1));
+      vars->l_max_values_m2 = (int **)vrna_alloc(sizeof(int *) * (length + 1));
       for(i=1; i < length - TURN - 1; i++){
         if(!mfe_vars->E_M2[i]) continue;
         mem = mfe_vars->k_max_values_m2[i] - mfe_vars->k_min_values_m2[i] + 1;
         vars->k_min_values_m2[i]  = mfe_vars->k_min_values_m2[i];
         vars->k_max_values_m2[i]  = mfe_vars->k_max_values_m2[i];
-        vars->Q_M2[i]             = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * mem);
-        vars->l_min_values_m2[i]  = (int *)space(sizeof(int) * mem);
-        vars->l_max_values_m2[i]  = (int *)space(sizeof(int) * mem);
+        vars->Q_M2[i]             = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * mem);
+        vars->l_min_values_m2[i]  = (int *)vrna_alloc(sizeof(int) * mem);
+        vars->l_max_values_m2[i]  = (int *)vrna_alloc(sizeof(int) * mem);
         vars->Q_M2[i]             -= vars->k_min_values_m2[i];
         vars->l_min_values_m2[i]  -= vars->k_min_values_m2[i];
         vars->l_max_values_m2[i]  -= vars->k_min_values_m2[i];
@@ -487,7 +487,7 @@ vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars){
           vars->l_min_values_m2[i][cnt1]  = mfe_vars->l_min_values_m2[i][cnt1];
           vars->l_max_values_m2[i][cnt1]  = mfe_vars->l_max_values_m2[i][cnt1];
           if(vars->l_min_values_m2[i][cnt1] < INF){
-            vars->Q_M2[i][cnt1]                  = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+            vars->Q_M2[i][cnt1]                  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
             vars->Q_M2[i][cnt1]                  -= vars->l_min_values_m2[i][cnt1]/2;
           }
         }
@@ -833,7 +833,7 @@ vrna_TwoDpfold(TwoDpfold_vars *vars,
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
 
-  output = (TwoDpfold_solution *)space((((maxD1+1)*(maxD2+2))/2 + 2) * sizeof(TwoDpfold_solution));
+  output = (TwoDpfold_solution *)vrna_alloc((((maxD1+1)*(maxD2+2))/2 + 2) * sizeof(TwoDpfold_solution));
 
   pf2D_linear(vars);
   if(vars->circ) pf2D_circ(vars);
@@ -873,7 +873,7 @@ vrna_TwoDpfold(TwoDpfold_vars *vars,
   counter++;
 
   /* resize to actual dataset amount */
-  output = (TwoDpfold_solution*)xrealloc(output, sizeof(TwoDpfold_solution) * counter);
+  output = (TwoDpfold_solution*)vrna_realloc(output, sizeof(TwoDpfold_solution) * counter);
   return output;
 }
 
@@ -915,11 +915,11 @@ PUBLIC FLT_OR_DBL **TwoDpfold(TwoDpfold_vars *vars, int distance1, int distance2
   vars->maxD2 = maxD2;
 
 
-  output = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL*) * (maxD1+1));
+  output = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL*) * (maxD1+1));
   pf2D_linear(vars);
   int ndx = vars->my_iindx[1] - vars->seq_length;
   for(cnt1 = vars->k_min_values[ndx]; cnt1 <= MIN2(vars->k_max_values[ndx], vars->maxD1); cnt1++){
-    output[cnt1] = (FLT_OR_DBL *)space((vars->maxD2+1)*sizeof(FLT_OR_DBL));
+    output[cnt1] = (FLT_OR_DBL *)vrna_alloc((vars->maxD2+1)*sizeof(FLT_OR_DBL));
     for(cnt2 = vars->l_min_values[ndx][cnt1]; cnt2 <= MIN2(vars->l_max_values[ndx][cnt1], vars->maxD2); cnt2+=2){
       output[cnt1][cnt2] = vars->Q[ndx][cnt1][cnt2/2];
     }
@@ -963,12 +963,12 @@ PUBLIC FLT_OR_DBL **TwoDpfold_circ(TwoDpfold_vars *vars, int distance1, int dist
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
 
-  output = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL*) * (maxD1+1));
+  output = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL*) * (maxD1+1));
   pf2D_linear(vars);
   pf2D_circ(vars);
 
   for(cnt1 = vars->k_min_values_qc; cnt1 <= MIN2(vars->k_max_values_qc, vars->maxD1); cnt1++){
-    output[cnt1] = (FLT_OR_DBL *)space((vars->maxD2+1)*sizeof(FLT_OR_DBL));
+    output[cnt1] = (FLT_OR_DBL *)vrna_alloc((vars->maxD2+1)*sizeof(FLT_OR_DBL));
     for(cnt2 = vars->l_min_values_qc[cnt1]; cnt2 <= MIN2(vars->l_max_values_qc[cnt1], vars->maxD2); cnt2+=2){
       output[cnt1][cnt2] = vars->Q_c[cnt1][cnt2/2];
     }
@@ -986,7 +986,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
   int           *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4;
   double        max_real;
   FLT_OR_DBL    *scale, Qmax;
-  pf_paramT     *pf_params;
+  vrna_exp_param_t     *pf_params;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -1019,12 +1019,12 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
       ij                        = my_iindx[i]-j;
       vars->k_min_values[ij]    = 0;
       vars->k_max_values[ij]    = 0;
-      vars->l_min_values[ij]    = (int *)space(sizeof(int));
-      vars->l_max_values[ij]    = (int *)space(sizeof(int));
+      vars->l_min_values[ij]    = (int *)vrna_alloc(sizeof(int));
+      vars->l_max_values[ij]    = (int *)vrna_alloc(sizeof(int));
       vars->l_min_values[ij][0] = 0;
       vars->l_max_values[ij][0] = 0;
-      vars->Q[ij]               = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *));
-      vars->Q[ij][0]            = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL));
+      vars->Q[ij]               = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *));
+      vars->Q[ij][0]            = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL));
       vars->Q[ij][0][0]         = 1.0 * scale[j-i+1];
     }
 
@@ -1743,7 +1743,7 @@ PRIVATE void pf2D_linear(TwoDpfold_vars *vars){
             PRIVATE char msg[128];
             sprintf(msg, "overflow in pf_fold while calculating q[%u,%u]\n"
                          "use larger pf_scale", i,j);
-            nrerror(msg);
+            vrna_message_error(msg);
           }
         }
 
@@ -1766,7 +1766,7 @@ PRIVATE void pf2D_circ(TwoDpfold_vars *vars){
   unsigned int  *referenceBPs1, *referenceBPs2;
   char        *sequence, *ptype;
   FLT_OR_DBL  *scale;
-  pf_paramT   *pf_params;     /* holds all [unscaled] pf parameters */
+  vrna_exp_param_t   *pf_params;     /* holds all [unscaled] pf parameters */
 
   pf_params       = vars->pf_params;
   sequence        = vars->sequence;
@@ -2490,13 +2490,13 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
                   *k_min_values, *k_max_values,
                   *k_min_values_b, *k_max_values_b;
   FLT_OR_DBL      r, qt, *scale, ***Q, ***Q_B, *Q_rem, *Q_B_rem;
-  pf_paramT       *pf_params;
+  vrna_exp_param_t       *pf_params;
 
   n               = vars->seq_length;
 
   if(vars->circ){
     if(n != length)
-      nrerror("pbacktrack@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
+      vrna_message_error("pbacktrack@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
     return TwoDpfold_pbacktrack_circ(vars, d1, d2);
   }
 
@@ -2526,13 +2526,13 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
   Q_B_rem         = vars->Q_B_rem;
 
   if(length > n)
-    nrerror("pbacktrack@2Dpfold.c: requested transcript length exceeds sequence length!");
+    vrna_message_error("pbacktrack@2Dpfold.c: requested transcript length exceeds sequence length!");
 
 #if 0
   if(d1 > maxD1)
-    nrerror("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
+    vrna_message_error("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
   if(d2 > maxD2)
-    nrerror("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
+    vrna_message_error("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
 #endif
 
   /* check whether the chosen neighborhood exists at all */
@@ -2549,10 +2549,10 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
   }
   if(dumb){
     fprintf(stderr, "neighborhood %d:%d is not in scope of calculated partition function!\n", d1, d2);
-    nrerror("pbacktrack@2Dpfold.c: exiting cheerless...");
+    vrna_message_error("pbacktrack@2Dpfold.c: exiting cheerless...");
   }
 
-  pstruc = space((length+1)*sizeof(char));
+  pstruc = vrna_alloc((length+1)*sizeof(char));
 
   for (i=0; i<length; i++) pstruc[i] = '.';
   pstruc[i] = '\0';
@@ -2569,14 +2569,14 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
       /* open chain ? */
       if(   (maxD1 > referenceBPs1[sn])
         &&  (maxD2 > referenceBPs2[sn])){
-        r = urn() * qln_i;
+        r = vrna_urn() * qln_i;
         if(scale[length-start+1] > r)
           return pstruc;
       }
 
       /* lets see if we find a base pair with i involved */
       for (i=start; i<length; i++) {
-        r = urn() * qln_i;
+        r = vrna_urn() * qln_i;
 
         qln_i1 = Q_rem[my_iindx[i+1] - length];
 
@@ -2600,7 +2600,7 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
       if (i>=length) break; /* no more pairs */
 
       /* i is paired, find pairing partner j */
-      r = urn() * (qln_i - qln_i1*scale[1]);
+      r = vrna_urn() * (qln_i - qln_i1*scale[1]);
       for (qt=0, j=i+TURN+1; j<length; j++) {
         ij = my_iindx[i]-j;
         type = ptype[ij];
@@ -2699,7 +2699,7 @@ vrna_TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
 pbacktrack_ext_loop_early_escape_rem:
 
       if (j==length+1){
-        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop (rem)");
+        vrna_message_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop (rem)");
       }
 
       /* finally start backtracking the first exterior stem */
@@ -2716,13 +2716,13 @@ pbacktrack_ext_loop_early_escape_rem:
       /* open chain ? */
       if(   (d1 == referenceBPs1[sn])
         &&  (d2 == referenceBPs2[sn])){
-        r = urn() * qln_i;
+        r = vrna_urn() * qln_i;
         if(scale[length-start+1] > r)
           return pstruc;
       }
 
       for (i=start; i<length; i++) {
-        r = urn() * qln_i;
+        r = vrna_urn() * qln_i;
         da = referenceBPs1[sn] - referenceBPs1[my_iindx[i+1] - length];
         db = referenceBPs2[sn] - referenceBPs2[my_iindx[i+1] - length];
         qln_i1 = 0;
@@ -2741,7 +2741,7 @@ pbacktrack_ext_loop_early_escape_rem:
       if (i>=length) break; /* no more pairs */
 
       /* now find the pairing partner j */
-      r = urn() * (qln_i - qln_i1*scale[1]);
+      r = vrna_urn() * (qln_i - qln_i1*scale[1]);
 
       for (qt=0, j=i+1; j<length; j++) {
         int type;
@@ -2801,7 +2801,7 @@ pbacktrack_ext_loop_early_escape_rem:
 pbacktrack_ext_loop_early_escape:
 
       if (j==length+1){
-        nrerror("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
+        vrna_message_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
       }
 
       backtrack(vars, pstruc, cnt1, cnt2, i,j);
@@ -2883,10 +2883,10 @@ PRIVATE char *TwoDpfold_pbacktrack_circ(TwoDpfold_vars *vars, int d1, int d2){
   }
   if(dumb){
     fprintf(stderr, "neighborhood %d:%d is not in scope of calculated partition function!\n", d1, d2);
-    nrerror("pbacktrack_circ@2Dpfold.c: exiting cheerless...");
+    vrna_message_error("pbacktrack_circ@2Dpfold.c: exiting cheerless...");
   }
 
-  pstruc = space((n+1)*sizeof(char));
+  pstruc = vrna_alloc((n+1)*sizeof(char));
 
   for (i=0; i<n; i++) pstruc[i] = '.';
   pstruc[i] = '\0';
@@ -2896,7 +2896,7 @@ PRIVATE char *TwoDpfold_pbacktrack_circ(TwoDpfold_vars *vars, int d1, int d2){
   qot = 0.;
   /* backtrack in rest-partition */
   if(d1 == -1){
-    r = urn() * Q_c_rem;
+    r = vrna_urn() * Q_c_rem;
     /* open chain ? */
     if((referenceBPs1[my_iindx[1]-n] > maxD1) || (referenceBPs2[my_iindx[1]-n] > maxD2)){
       qot = 1.0 * scale[n];
@@ -2918,11 +2918,11 @@ PRIVATE char *TwoDpfold_pbacktrack_circ(TwoDpfold_vars *vars, int d1, int d2){
       backtrack_qcM(vars, pstruc, d1, d2);
       goto pbacktrack_circ_escape;
     }
-    nrerror("pbacktrack_circ@2Dpfold.c: backtracking failed in exterior loop! Exiting cheerless...");
+    vrna_message_error("pbacktrack_circ@2Dpfold.c: backtracking failed in exterior loop! Exiting cheerless...");
   }
   /* normal backtracking */
   else{
-    r = urn() * Q_c[d1][d2/2];
+    r = vrna_urn() * Q_c[d1][d2/2];
 
     /* open chain ? */
     if((referenceBPs1[my_iindx[1]-n] == d1) && (referenceBPs2[my_iindx[1]-n] == d2)){
@@ -2989,7 +2989,7 @@ PRIVATE void backtrack_qcH(TwoDpfold_vars *vars, char *pstruc, int d1, int d2){
   FLT_OR_DBL      r, qt, *scale, qot,
                   ***Q_B, **Q_cH, *Q_B_rem,
                   Q_cH_rem;
-  pf_paramT       *pf_params;
+  vrna_exp_param_t       *pf_params;
 
 
   pf_params         = vars->pf_params;
@@ -3020,7 +3020,7 @@ PRIVATE void backtrack_qcH(TwoDpfold_vars *vars, char *pstruc, int d1, int d2){
   base_d2 = referenceBPs2[my_iindx[1]-n];
 
   if(d1 == -1){
-    r = urn() * Q_cH_rem;
+    r = vrna_urn() * Q_cH_rem;
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         char loopseq[10];
@@ -3071,7 +3071,7 @@ PRIVATE void backtrack_qcH(TwoDpfold_vars *vars, char *pstruc, int d1, int d2){
     }
   }
   else{
-    r = urn() * Q_cH[d1][d2/2];
+    r = vrna_urn() * Q_cH[d1][d2/2];
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         char loopseq[10];
@@ -3111,7 +3111,7 @@ PRIVATE void backtrack_qcH(TwoDpfold_vars *vars, char *pstruc, int d1, int d2){
           }
       }
   }
-  nrerror("backtrack_qcH@2Dpfold.c: failed to find closing pair!");
+  vrna_message_error("backtrack_qcH@2Dpfold.c: failed to find closing pair!");
 }
 
 PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
@@ -3129,7 +3129,7 @@ PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
   FLT_OR_DBL      r, qt, *scale, qot,
                   ***Q_B, *Q_B_rem,
                   **Q_cI, Q_cI_rem;
-  pf_paramT       *pf_params;
+  vrna_exp_param_t       *pf_params;
 
 
   pf_params         = vars->pf_params;
@@ -3159,7 +3159,7 @@ PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
   base_d2 = referenceBPs2[my_iindx[1]-n];
 
   if(d1 == -1){
-    r = urn() * Q_cI_rem;
+    r = vrna_urn() * Q_cI_rem;
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         ij = my_iindx[i]-j;
@@ -3290,7 +3290,7 @@ PRIVATE void  backtrack_qcI(TwoDpfold_vars *vars,
       }
   }
   else{
-    r = urn() * Q_cI[d1][d2/2];
+    r = vrna_urn() * Q_cI[d1][d2/2];
     for(i=1;i<n;i++)
       for(j=i+TURN+1;j<=n;j++){
         ij = my_iindx[i]-j;
@@ -3370,7 +3370,7 @@ PRIVATE void  backtrack_qcM(TwoDpfold_vars *vars,
   FLT_OR_DBL    r, qt, qot,
                 ***Q_M, ***Q_M2, **Q_cM,
                 *Q_M_rem, *Q_M2_rem, Q_cM_rem;
-  pf_paramT     *pf_params;
+  vrna_exp_param_t     *pf_params;
 
 
   pf_params         = vars->pf_params;
@@ -3404,7 +3404,7 @@ PRIVATE void  backtrack_qcM(TwoDpfold_vars *vars,
   qot     = qt = 0.;
 
   if(d1 == -1){
-    r = urn() * Q_cM_rem;
+    r = vrna_urn() * Q_cM_rem;
     for(k = TURN + 2;
         k < n - 2 * TURN - 3;
         k++){
@@ -3499,7 +3499,7 @@ PRIVATE void  backtrack_qcM(TwoDpfold_vars *vars,
     }
   }
   else{
-    r = urn() * Q_cM[d1][d2/2];
+    r = vrna_urn() * Q_cM[d1][d2/2];
     for(k = TURN + 2;
         k < n - 2 * TURN - 3;
         k++){
@@ -3536,7 +3536,7 @@ PRIVATE void  backtrack_qcM(TwoDpfold_vars *vars,
                   }
     }
   }
-  nrerror("backtrack_qcM@2Dpfold.c: backtracking failed");
+  vrna_message_error("backtrack_qcM@2Dpfold.c: backtracking failed");
 }
 
 PRIVATE void backtrack_qm2( TwoDpfold_vars *vars,
@@ -3574,7 +3574,7 @@ PRIVATE void backtrack_qm2( TwoDpfold_vars *vars,
   qot = qt = 0.;
 
   if(d1 == -1){
-    r = urn() * Q_M2_rem[k];
+    r = vrna_urn() * Q_M2_rem[k];
     for (l=k+TURN+1; l<n-TURN-1; l++){
       if(Q_M1_rem[jindx[l]+k]){
         if(Q_M1[jindx[n]+l+1]){
@@ -3657,7 +3657,7 @@ PRIVATE void backtrack_qm2( TwoDpfold_vars *vars,
 
   }
   else{
-    r = urn() * Q_M2[k][d1][d2/2];
+    r = vrna_urn() * Q_M2[k][d1][d2/2];
     for (l=k+TURN+1; l<n-TURN-1; l++){
       if(!Q_M1[jindx[l]+k]) continue;
       if(!Q_M1[jindx[n] + l + 1]) continue;
@@ -3694,7 +3694,7 @@ PRIVATE void backtrack_qm2( TwoDpfold_vars *vars,
         }
     }
   }
-  nrerror("backtrack_qm2@2Dpfold.c: backtracking failed");
+  vrna_message_error("backtrack_qm2@2Dpfold.c: backtracking failed");
 }
 
 
@@ -3702,7 +3702,7 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsig
   FLT_OR_DBL      *scale;
   unsigned int    maxD1, maxD2, base_d1, base_d2, da, db;
   unsigned int    *referenceBPs1, *referenceBPs2;
-  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
+  vrna_exp_param_t       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
   int             *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4;
@@ -3758,8 +3758,8 @@ PRIVATE void backtrack(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, unsig
     ij = my_iindx[i]-j;
 
     if(d1 == -1){
-      r= urn() * Q_B_rem[ij];
-      if(r == 0.) nrerror("backtrack@2Dpfold.c: backtracking failed\n");
+      r= vrna_urn() * Q_B_rem[ij];
+      if(r == 0.) vrna_message_error("backtrack@2Dpfold.c: backtracking failed\n");
       
       type = ptype[ij];
       u = j-i-1;
@@ -3825,9 +3825,9 @@ backtrack_int_early_escape_rem:
 
       if((d1 >= k_min_values_b[ij]) && (d1 <= k_max_values_b[ij]))
         if((d2 >= l_min_values_b[ij][d1]) && (d2 <= l_max_values_b[ij][d1]))
-          r = urn() * Q_B[ij][d1][d2/2];
+          r = vrna_urn() * Q_B[ij][d1][d2/2];
 
-      if(r == 0.) nrerror("backtrack@2Dpfold.c: backtracking failed\n");
+      if(r == 0.) vrna_message_error("backtrack@2Dpfold.c: backtracking failed\n");
 
       type = ptype[ij];
       u = j-i-1;
@@ -3943,7 +3943,7 @@ backtrack_int_early_escape:
                   qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][cnt3][cnt4/2];
       }
       /* throw the dice */
-      r = urn() * qt;
+      r = vrna_urn() * qt;
       for (qt=0., k=i+1; k<j; k++) {
         cnt1 = cnt2 = cnt3 = cnt4 = -1;
         if(Q_M_rem[ii-k+1] != 0.){
@@ -4013,7 +4013,7 @@ backtrack_int_early_escape:
                 if((d2 - cnt2 - db >= l_min_values_m1[jj+k][d1-da-cnt1]) && (d2 - cnt2 - db <= l_max_values_m1[jj+k][d1-cnt1-da]))
                   qt += Q_M[ii-k+1][cnt1][cnt2/2] * Q_M1[jj+k][d1-da-cnt1][(d2-db-cnt2)/2];
       }
-      r = urn() * qt;
+      r = vrna_urn() * qt;
       for (qt=0., k=i+1; k<j; k++) {
         /* calculate introduced distance to reference structures */
         da = base_d1 - referenceBPs1[my_iindx[i]-k+1] - referenceBPs1[my_iindx[k]-j];
@@ -4031,7 +4031,7 @@ backtrack_int_early_escape:
                 }
       }
     }
-    if (k>=j) nrerror("backtrack failed, can't find split index ");
+    if (k>=j) vrna_message_error("backtrack failed, can't find split index ");
 
 backtrack_ml_early_escape:
 
@@ -4047,7 +4047,7 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, u
   FLT_OR_DBL      r, qt, *scale;
   unsigned int    maxD1, maxD2, da, db;
   unsigned int    *referenceBPs1, *referenceBPs2;
-  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
+  vrna_exp_param_t       *pf_params;     /* holds all [unscaled] pf parameters */
   char            *ptype;
   short           *S1;
   int             *my_iindx, *jindx, cnt1, cnt2;
@@ -4086,13 +4086,13 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, u
 
   /* find qm1 contribution */
   if(d1 == -1)
-    r = urn() * Q_M1_rem[jindx[j]+i];
+    r = vrna_urn() * Q_M1_rem[jindx[j]+i];
   else{
     if((d1 >= k_min_values_m1[jindx[j]+i]) && (d1 <= k_max_values_m1[jindx[j]+i]))
       if((d2 >= l_min_values_m1[jindx[j]+i][d1]) && (d2 <= l_max_values_m1[jindx[j]+i][d1]))
-        r = urn() * Q_M1[jindx[j]+i][d1][d2/2];
+        r = vrna_urn() * Q_M1[jindx[j]+i][d1][d2/2];
   }
-  if(r == 0.) nrerror("backtrack_qm1@2Dpfold.c: backtracking failed\n");
+  if(r == 0.) vrna_message_error("backtrack_qm1@2Dpfold.c: backtracking failed\n");
 
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
@@ -4133,7 +4133,7 @@ PRIVATE void backtrack_qm1(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, u
       }
     }
   }
-  if (l>j) nrerror("backtrack failed in qm1");
+  if (l>j) vrna_message_error("backtrack failed in qm1");
 backtrack_qm1_early_escape:
 
   backtrack(vars, pstruc, cnt1, cnt2, i,l);
@@ -4144,7 +4144,7 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, un
   FLT_OR_DBL      r, *scale;
   unsigned int    maxD1, maxD2, da, db, da2, db2;
   unsigned int    *referenceBPs1, *referenceBPs2;
-  pf_paramT       *pf_params;     /* holds all [unscaled] pf parameters */
+  vrna_exp_param_t       *pf_params;     /* holds all [unscaled] pf parameters */
   int             *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4;
 
   pf_params   = vars->pf_params;
@@ -4181,14 +4181,14 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, un
 
     /* find qm contribution */
     if(d1 == -1)
-      r = urn() * Q_M_rem[my_iindx[i]-j];
+      r = vrna_urn() * Q_M_rem[my_iindx[i]-j];
     else{
       if(Q_M[my_iindx[i]-j])
         if((d1 >= k_min_values_m[my_iindx[i]-j]) && (d1 <= k_max_values_m[my_iindx[i]-j]))
           if((d2 >= l_min_values_m[my_iindx[i]-j][d1]) && (d2 <= l_max_values_m[my_iindx[i]-j][d1]))
-            r = urn() * Q_M[my_iindx[i]-j][d1][d2/2];
+            r = vrna_urn() * Q_M[my_iindx[i]-j][d1][d2/2];
     }
-    if(r == 0.) nrerror("backtrack_qm@2Dpfold.c: backtracking failed in finding qm contribution\n");
+    if(r == 0.) vrna_message_error("backtrack_qm@2Dpfold.c: backtracking failed in finding qm contribution\n");
 
     qmt = 0.;
     if(d1 == -1){
@@ -4333,7 +4333,7 @@ PRIVATE void backtrack_qm(TwoDpfold_vars *vars, char *pstruc, int d1, int d2, un
       }
     }
 
-    if(k>j) nrerror("backtrack_qm@2Dpfold.c: backtrack failed in qm");
+    if(k>j) vrna_message_error("backtrack_qm@2Dpfold.c: backtrack failed in qm");
 
 backtrack_qm_early_escape:
 
@@ -4348,7 +4348,7 @@ backtrack_qm_early_escape:
     if(d1 == referenceBPs1[my_iindx[i]-k+1] && d2 == referenceBPs2[my_iindx[i]-k+1]){
       /* is interval [i,k] totally unpaired? */
       FLT_OR_DBL tmp = pow(pf_params->expMLbase, k-i) * scale[k-i];
-      r = urn() * (Q_M[my_iindx[i]-k+1][d1][d2/2] + tmp);
+      r = vrna_urn() * (Q_M[my_iindx[i]-k+1][d1][d2/2] + tmp);
       if(tmp >= r) return; /* no more pairs */
     }
     j = k-1;
@@ -4457,8 +4457,8 @@ INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, 
   *min_k  = INF;
   *max_k  = 0;
 
-  *min_l  = (int *)space(sizeof(int) * size);
-  *max_l  = (int *)space(sizeof(int) * size);
+  *min_l  = (int *)vrna_alloc(sizeof(int) * size);
+  *max_l  = (int *)vrna_alloc(sizeof(int) * size);
 
   for(i = 0; i < size; i++){
     (*min_l)[i] = INF;
@@ -4482,8 +4482,8 @@ INLINE PRIVATE  void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_
 
   *min_k  = min_k_pre;
   *max_k  = max_k_pre;
-  *min_l  = (int *) space(sizeof(int) * mem);
-  *max_l  = (int *) space(sizeof(int) * mem);
+  *min_l  = (int *) vrna_alloc(sizeof(int) * mem);
+  *max_l  = (int *) vrna_alloc(sizeof(int) * mem);
 
   *min_l  -= min_k_pre;
   *max_l  -= min_k_pre;
@@ -4499,12 +4499,12 @@ INLINE PRIVATE  void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_
 
 INLINE PRIVATE  void  prepareArray(FLT_OR_DBL ***array, int min_k, int max_k, int *min_l, int *max_l){
   int i, mem;
-  *array  = (FLT_OR_DBL **)space(sizeof(FLT_OR_DBL *) * (max_k - min_k + 1));
+  *array  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (max_k - min_k + 1));
   *array  -= min_k;
 
   for(i = min_k; i <= max_k; i++){
     mem         = (max_l[i] - min_l[i] + 1)/2 + 1;
-    (*array)[i] = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * mem);
+    (*array)[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * mem);
     (*array)[i] -= min_l[i]/2;
   }
 }

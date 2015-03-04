@@ -2,12 +2,13 @@
 #include <stdlib.h>     /* malloc, free, rand */
 
 #include <check.h>
+
+#include <ViennaRNA/fold_vars.h>
+#include <ViennaRNA/utils.h>
+#include <ViennaRNA/structure_utils.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/fold.h>
-#include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/part_func.h>
-#include <ViennaRNA/structure_utils.h>
-#include <ViennaRNA/utils.h>
 
 
 START_TEST(test_fold)
@@ -24,7 +25,7 @@ END_TEST
 
 START_TEST(test_sample_structure)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   char *sample;
@@ -51,7 +52,7 @@ END_TEST
 
 START_TEST(test_sc_sanity_check)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   double *sc_up;
@@ -80,15 +81,15 @@ START_TEST(test_sc_sanity_check)
 
   mfe_energy_unconstrained = vrna_fold(vc, mfe_structure_unconstrained);
   pf_energy_unconstrained = vrna_pf_fold(vc, pf_structure_unconstrained);
-  plist_unconstrained = vrna_get_plist_from_pr(vc, 0);
+  plist_unconstrained = vrna_pl_get_from_pr(vc, 0);
 
-  sc_up = (double *)space(sizeof(double) * (length + 1));
-  sc_bp = (double **)space(sizeof(double *) * (length + 1));
+  sc_up = (double *)vrna_alloc(sizeof(double) * (length + 1));
+  sc_bp = (double **)vrna_alloc(sizeof(double *) * (length + 1));
 
   for(i = 1; i <= length; ++i)
   {
     sc_up[i] = -1.;
-    sc_bp[i] = (double *)space(sizeof(double) * (length + 1));
+    sc_bp[i] = (double *)vrna_alloc(sizeof(double) * (length + 1));
     for(j = i + 1; j <= length; ++j)
       sc_bp[i][j] = -2.;
   }
@@ -98,7 +99,7 @@ START_TEST(test_sc_sanity_check)
 
   mfe_energy_constrained = vrna_fold(vc, mfe_structure_constrained);
   pf_energy_constrained = vrna_pf_fold(vc, pf_structure_constrained);
-  plist_constrained = vrna_get_plist_from_pr(vc, 0);
+  plist_constrained = vrna_pl_get_from_pr(vc, 0);
 
   ck_assert_int_eq(strlen(mfe_structure_constrained), sizeof(sequence) - 1);
   ck_assert_int_eq(strlen(mfe_structure_unconstrained), sizeof(sequence) - 1);

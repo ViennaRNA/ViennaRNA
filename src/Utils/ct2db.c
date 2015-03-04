@@ -10,12 +10,9 @@
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/params.h"
 #include "ct2db_cmdl.h"
-
-static  char *
-plist2db( plist *pairs,
-          unsigned int n);
 
 int main(int argc, char *argv[]){
   struct  ct2db_args_info args_info;
@@ -63,8 +60,8 @@ int main(int argc, char *argv[]){
         /*
         printf("sequence length: %u\n", length);
         */
-        seq   = (char *)space(sizeof(char) * (length + 1));
-        pairs = (plist *)space(sizeof(plist) * (2*length));
+        seq   = (char *)vrna_alloc(sizeof(char) * (length + 1));
+        pairs = (plist *)vrna_alloc(sizeof(plist) * (2*length));
       }
     }
 
@@ -132,7 +129,7 @@ int main(int argc, char *argv[]){
   } while(1);
 
   if(seq){
-    pairs = xrealloc(pairs, sizeof(plist) * (num_pairs+1));
+    pairs = vrna_realloc(pairs, sizeof(plist) * (num_pairs+1));
     pairs[num_pairs].i    = 0;
     pairs[num_pairs].j    = 0;
     pairs[num_pairs].p    = 0.;
@@ -148,22 +145,22 @@ int main(int argc, char *argv[]){
     if(pkfree){
       float mea, MEAgamma;
       MEAgamma = 2.0;
-      pf_paramT *params = get_scaled_pf_parameters();
+      vrna_exp_param_t *params = vrna_exp_params_get(NULL);
 
-      structure = (char *)space(sizeof(char) * (length + 1));
+      structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
       strcpy(structure, seq);
 
       mea = MEA_seq(pairs, seq, structure, MEAgamma, params);
 
-      char *structure_tmp = plist2db(pairs, length);
-      int d =  bp_distance((const char *)structure, (const char *)structure_tmp);
+      char *structure_tmp = vrna_pl_to_db(pairs, length);
+      int d =  vrna_bp_distance((const char *)structure, (const char *)structure_tmp);
       if(verbose && (d > 0))
         fprintf(stderr, "removed %d pairs from pseudoknotted structure\n", d);
 
       free(structure_tmp);
       free(params);
     } else {
-      structure = plist2db(pairs, length);
+      structure = vrna_pl_to_db(pairs, length);
     }
 
     printf("%s\n%s\n", seq, structure);
@@ -172,27 +169,4 @@ int main(int argc, char *argv[]){
   }
 
   return(EXIT_SUCCESS);
-}
-
-
-static char *
-plist2db( plist *pairs,
-          unsigned int n){
-
-  plist *ptr;
-  char  *structure = NULL;
-  int   i;
-
-  if(n > 0){
-    structure = (char *)space(sizeof(char) * (n+1));
-    for(i=0; i < n; i++)
-      structure[i] = '.';
-    structure[i] = '\0';
-
-    for(ptr = pairs; (*ptr).i; ptr++){
-      structure[(*ptr).i - 1] = '(';
-      structure[(*ptr).j - 1] = ')';
-    }
-  }
-  return structure;
 }

@@ -1,8 +1,9 @@
 /* subopt.h */
-#ifndef __VIENNA_RNA_PACKAGE_SUBOPT_H__
-#define __VIENNA_RNA_PACKAGE_SUBOPT_H__
+#ifndef VIENNA_RNA_PACKAGE_SUBOPT_H
+#define VIENNA_RNA_PACKAGE_SUBOPT_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #define MAXDOS 1000
 
@@ -52,7 +53,7 @@ SOLUTION *subopt (char *seq,
  */
 SOLUTION *subopt_par( char *seq,
                       char *structure,
-                      paramT *parameters,
+                      vrna_param_t *parameters,
                       int delta,
                       int is_constrained,
                       int is_circular,

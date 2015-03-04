@@ -57,7 +57,7 @@ PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE char        **ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         *jindx=NULL;
 PRIVATE int         *my_iindx=NULL;
-PRIVATE pf_paramT   *pf_params=NULL;
+PRIVATE vrna_exp_param_t   *pf_params=NULL;
 PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
@@ -80,10 +80,10 @@ PRIVATE double      alpha = 1.0;
 #################################
 */
 
-PRIVATE void  init_partfunc_L(int length, pf_paramT *parameters);
+PRIVATE void  init_partfunc_L(int length, vrna_exp_param_t *parameters);
 PRIVATE void  get_arrays_L(unsigned int length);
 PRIVATE void  free_pf_arrays_L(void);
-PRIVATE void  scale_pf_params(unsigned int length, pf_paramT *parameters);
+PRIVATE void  scale_pf_params(unsigned int length, vrna_exp_param_t *parameters);
 PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);
 PRIVATE void  FreeOldArrays(int i);
 PRIVATE void  GetNewArrays(int j, int winSize);
@@ -104,8 +104,8 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
 #################################
 */
 
-PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
-  if (length<1) nrerror("init_partfunc_L: length must be greater 0");
+PRIVATE void init_partfunc_L(int length, vrna_exp_param_t *parameters){
+  if (length<1) vrna_message_error("init_partfunc_L: length must be greater 0");
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
@@ -130,33 +130,33 @@ PRIVATE void init_partfunc_L(int length, pf_paramT *parameters){
 PRIVATE void get_arrays_L(unsigned int length){
   /*arrays in 2 dimensions*/
 
-  q         = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  qb        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  qm        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  pR        = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *)*(length+1));
-  q1k       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  qln       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qq        = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qq1       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qqm       = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  qqm1      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prm_l     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prm_l1    = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  prml      = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+2));
-  expMLbase = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  scale     = (FLT_OR_DBL *)  space(sizeof(FLT_OR_DBL)  *(length+1));
-  ptype     = (char **)       space(sizeof(char *)      *(length+2));
+  q         = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *)*(length+1));
+  qb        = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *)*(length+1));
+  qm        = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *)*(length+1));
+  pR        = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *)*(length+1));
+  q1k       = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+1));
+  qln       = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  qq        = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  qq1       = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm       = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  qqm1      = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l     = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  prm_l1    = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  prml      = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+2));
+  expMLbase = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+1));
+  scale     = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)  *(length+1));
+  ptype     = (char **)       vrna_alloc(sizeof(char *)      *(length+2));
 
   if (ulength>0) {
-    /* QI3 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));*/
-    QI5 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    qmb = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    qm2 = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
-    q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
+    /* QI3 = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));*/
+    QI5 = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
+    qmb = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
+    qm2 = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
+    q2l = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
   }
-  my_iindx  = get_iindx(length);
-  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = get_indx(length);
+  my_iindx  = vrna_get_iindx(length);
+  iindx     = vrna_get_iindx(length); /* for backward compatibility and Perl wrapper */
+  jindx     = vrna_get_indx(length);
 }
 
 PRIVATE void free_pf_arrays_L(void){
@@ -206,7 +206,7 @@ PUBLIC void update_pf_paramsLP(int length){
   update_pf_paramsLP_par(length, NULL);
 }
 
-PUBLIC void update_pf_paramsLP_par(int length, pf_paramT *parameters){
+PUBLIC void update_pf_paramsLP_par(int length, vrna_exp_param_t *parameters){
   init_partfunc_L(length, parameters);
 }
 
@@ -229,7 +229,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
                             struct plist **dpp2,
                             FILE *pUfp,
                             FILE *spup,
-                            pf_paramT *parameters){
+                            vrna_exp_param_t *parameters){
 
   int         n, m, i, j, k, l, u, u1, type, type_2, tt, ov, do_dpp, simply_putout, noGUclosure;
   double      max_real;
@@ -279,17 +279,17 @@ PUBLIC plist *pfl_fold_par( char *sequence,
 
   if (ulength>0){
     if (pUoutput) {
-      for (i=1; i<=ulength; i++) pU[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+      for (i=1; i<=ulength; i++) pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
     }
     else {
-      for (i=1; i<=n; i++) pU[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+      for (i=1; i<=n; i++) pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
      }
   }
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
   num_p = 0;
-  pl    = (struct plist *)space(1000*sizeof(struct plist));
+  pl    = (struct plist *)vrna_alloc(1000*sizeof(struct plist));
 
 
   /*ALWAYS q[i][j] => i>j!!*/
@@ -378,7 +378,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
           PRIVATE char msg[128];
           snprintf(msg, 128, "overflow in pf_fold while calculating q[%d,%d]\n"
                   "use larger pf_scale", i,j);
-          nrerror(msg);
+          vrna_message_error(msg);
         }
       } /*end for i*/
       tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -512,27 +512,27 @@ PUBLIC plist *pfl_fold_par( char *sequence,
 
       /* end for (l=..)   */
       if ((ulength)&&(k-MAXLOOP-1>0)){
-        /* if (pUoutput) pU[k-MAXLOOP-1]=(double *)space((ulength+2)*sizeof(double)); */
+        /* if (pUoutput) pU[k-MAXLOOP-1]=(double *)vrna_alloc((ulength+2)*sizeof(double)); */
         if(split){ /*generate the new arrays, if you want them somewhere else, you have to generate them and overgive them ;)*/
           double **pUO;
           double **pUI;
           double **pUM;
           double **pUH;
-          pUO= (double **)  space((n+1)*sizeof(double *));
-          pUI= (double **)  space((n+1)*sizeof(double *));
-          pUM= (double **)  space((n+1)*sizeof(double *));
-          pUH= (double **)  space((n+1)*sizeof(double *));
+          pUO= (double **)  vrna_alloc((n+1)*sizeof(double *));
+          pUI= (double **)  vrna_alloc((n+1)*sizeof(double *));
+          pUM= (double **)  vrna_alloc((n+1)*sizeof(double *));
+          pUH= (double **)  vrna_alloc((n+1)*sizeof(double *));
           if (pUoutput) {
             for (i=1; i<=ulength; i++) {
-              pUH[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-              pUI[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-              pUO[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-              pUM[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUH[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUI[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUO[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+              pUM[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
             }
           }
           //dont want to have that yet?
           /*  else {
-            for (i=1; i<=n; i++) pU[i]=(double *)space((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+            for (i=1; i<=n; i++) pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
             }*/
           compute_pU_splitup(k-MAXLOOP-1,ulength,pU,pUO,pUH, pUI, pUM, winSize, n, sequence);
           if (pUoutput) {
@@ -568,7 +568,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
 
   /* finish output and free */
   for (j=MAX2(1,n-MAXLOOP); j<=n;j++) {
-    /* if (pUoutput) pU[j]=(double *)space((ulength+2)*sizeof(double)); */
+    /* if (pUoutput) pU[j]=(double *)vrna_alloc((ulength+2)*sizeof(double)); */
     if (ulength) compute_pU(j,ulength,pU, winSize, n, sequence);
     /*here, we put out and free pUs not in use any more (hopefully)*/
     if (pUoutput) putoutpU(pU,j, ulength, pUfp);
@@ -596,7 +596,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   return pl;
 }
 
-PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
+PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
   unsigned int i;
   double  kT, scaling_factor;
 
@@ -605,7 +605,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if(parameters){
     pf_params = get_boltzmann_factor_copy(parameters);
   } else {
-    model_detailsT  md;
+    vrna_md_t  md;
     set_model_details(&md);
     pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
   }
@@ -663,22 +663,22 @@ PRIVATE void FreeOldArrays(int i) {
 
 PRIVATE void GetNewArrays(int j, int winSize) {
   /*allocate new part of arrays*/
-  pR[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+  pR[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
   pR[j]-=j;
-  q[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+  q[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
   q[j]-=j;
-  qb[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+  qb[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
   qb[j]-=j;
-  qm[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+  qm[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
   qm[j]-=j;
   if (ulength!=0) {
-    qm2[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+    qm2[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
     qm2[j]-=j;
-    QI5[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
-    qmb[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
-    q2l[j]=(FLT_OR_DBL *)space((winSize+1)*sizeof(FLT_OR_DBL));
+    QI5[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
+    qmb[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
+    q2l[j]=(FLT_OR_DBL *)vrna_alloc((winSize+1)*sizeof(FLT_OR_DBL));
   }
-  ptype[j]=(char *)space((winSize+1)*sizeof(char));
+  ptype[j]=(char *)vrna_alloc((winSize+1)*sizeof(char));
   ptype[j]-=j;
   return;
 }
@@ -708,7 +708,7 @@ PRIVATE plist *get_plistW(plist *pl, int length,
     if (Tpr[start][j]<cutoff) continue;
     if (num_p==max_p-1) {
       max_p*=2;
-      pl=(plist *)xrealloc(pl,max_p*sizeof(plist));
+      pl=(plist *)vrna_realloc(pl,max_p*sizeof(plist));
     }
     pl[num_p].i=start;
     pl[num_p].j=j;
@@ -719,7 +719,7 @@ PRIVATE plist *get_plistW(plist *pl, int length,
   pl[num_p].i=0;
   pl[num_p].j=0;
   pl[num_p].p=0.;
-  /* pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist)); */
+  /* pl=(struct plist *)vrna_realloc(pl,(count)*sizeof(struct plist)); */
   return pl;
 }
 
@@ -729,7 +729,7 @@ PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
   int i, j, count=0;
   double tmp;
   plist *temp;
-  temp=(plist *)space(pairsize*sizeof(plist)); /* holds temporary deppp */
+  temp=(plist *)vrna_alloc(pairsize*sizeof(plist)); /* holds temporary deppp */
   for (j=start+TURN; j<MIN2(start+pairsize,length); j++) {
 
     if ((qb[start][j]*qb[start-1][(j+1)])>10e-200) {
@@ -744,7 +744,7 @@ PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length) {
   }
   /* write it to list of deppps */
   for (i=0; pl[i].i!=0; i++);
-  pl=(plist *)xrealloc(pl,(i+count+1)*sizeof(plist));
+  pl=(plist *)vrna_realloc(pl,(i+count+1)*sizeof(plist));
   for (j=0; j<count; j++) {
     pl[i+j].i=temp[j].i;
     pl[i+j].j=temp[j].j;
@@ -785,11 +785,11 @@ PRIVATE void compute_pU(int k, int ulength, double **pU, int winSize,int n, char
   double *QBE;
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
 
-  QBE=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
+  QBE=(double *) vrna_alloc((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
 
   /* first, we will */
   /* for k<=ulength, pU[k][k]=0, because no bp can enclose it */
-  if (pUoutput&&k+ulength<=n)  pU[k+ulength]=(double *)space((ulength+2)*sizeof(double));
+  if (pUoutput&&k+ulength<=n)  pU[k+ulength]=(double *)vrna_alloc((ulength+2)*sizeof(double));
   /*compute pu[k+ulength][ulength] */
    for (i5=MAX2(k+ulength-winSize+1,1);i5<=k;i5++) {
     for (j3=k+ulength+1; j3<=MIN2(n,i5+winSize-1); j3++) {
@@ -994,7 +994,7 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
 }
 
 
-PUBLIC void putoutpU_prob_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters){
+PUBLIC void putoutpU_prob_par(double **pU,int length, int ulength, FILE *fp, int energies, vrna_exp_param_t *parameters){
   /*put out unpaireds */
   int i,k;
   double kT = parameters->kT/1000.0;
@@ -1027,13 +1027,13 @@ PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int
   putoutpU_prob_bin_par(pU, length, ulength, fp, energies, pf_params);
 }
 
-PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp, int energies, pf_paramT *parameters) {
+PUBLIC void putoutpU_prob_bin_par(double **pU,int length, int ulength, FILE *fp, int energies, vrna_exp_param_t *parameters) {
 
   /*put out unpaireds */
   int i,k;
   double kT= parameters->kT/1000.0;
   int *p;
-  p = (int*) space(sizeof(int)*1);
+  p = (int*) vrna_alloc(sizeof(int)*1);
   /* write first line */
   p[0]=ulength; /* u length */
   fwrite(p,sizeof(int),1,fp);
@@ -1093,14 +1093,14 @@ PRIVATE void compute_pU_splitup(int k, int ulength, double **pU,  double **pUO, 
   
   FLT_OR_DBL  expMLclosing      = pf_params->expMLclosing;
 
-  QBE=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
-  QBM=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
-  QBI=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
-  QBH=(double *) space((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
+  QBE=(double *) vrna_alloc((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
+  QBM=(double *) vrna_alloc((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
+  QBI=(double *) vrna_alloc((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
+  QBH=(double *) vrna_alloc((MAX2(ulength,MAXLOOP)+2)*sizeof(double));
 
   /* first, we will */
   /* for k<=ulength, pU[k][k]=0, because no bp can enclose it */
-  if (pUoutput&&k+ulength<=n)  pU[k+ulength]=(double *)space((ulength+2)*sizeof(double));
+  if (pUoutput&&k+ulength<=n)  pU[k+ulength]=(double *)vrna_alloc((ulength+2)*sizeof(double));
   /*compute pu[k+ulength][ulength] */
    for (i5=MAX2(k+ulength-winSize+1,1);i5<=k;i5++) {
     for (j3=k+ulength+1; j3<=MIN2(n,i5+winSize-1); j3++) {

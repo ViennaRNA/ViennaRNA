@@ -53,10 +53,10 @@ vrna_get_centroid_struct_pl( int length,
   char *centroid;
 
   if (pl==NULL)
-    nrerror("get_centroid_struct: pl==NULL!");
+    vrna_message_error("get_centroid_struct: pl==NULL!");
 
   *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
+  centroid = (char *) vrna_alloc((length+1)*sizeof(char));
   for (i=0; i<length; i++) centroid[i]='.';
   for (i=0; pl[i].i>0; i++){
     if ((pl[i].p)>0.5) {
@@ -83,13 +83,13 @@ vrna_get_centroid_struct_pr(int length,
   int i,j;
   double p;
   char  *centroid;
-  int   *index = get_iindx(length);
+  int   *index = vrna_get_iindx(length);
 
   if (probs == NULL)
-    nrerror("get_centroid_struct_pr: probs==NULL!");
+    vrna_message_error("get_centroid_struct_pr: probs==NULL!");
 
   *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
+  centroid = (char *) vrna_alloc((length+1)*sizeof(char));
   for (i=0; i<length; i++) centroid[i]='.';
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++) {
@@ -118,16 +118,16 @@ vrna_get_centroid_struct( vrna_fold_compound *vc,
   double p;
   char  *centroid;
   short *S;
-  pf_matricesT  *matrices;
-  FLT_OR_DBL    *probs;
-  int           *my_iindx;
-  pf_paramT     *pf_params;
+  vrna_mx_pf_t      *matrices;
+  FLT_OR_DBL        *probs;
+  int               *my_iindx;
+  vrna_exp_param_t  *pf_params;
 
 
   if(!vc){
-    nrerror("vrna_get_centroid_struct: run vrna_pf_fold first!");
+    vrna_message_error("vrna_get_centroid_struct: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
-    nrerror("vrna_get_centroid_struct: probs==NULL!");
+    vrna_message_error("vrna_get_centroid_struct: probs==NULL!");
   }
 
   length      = vc->length;
@@ -139,7 +139,7 @@ vrna_get_centroid_struct( vrna_fold_compound *vc,
   probs       = matrices->probs;
 
   *dist = 0.;
-  centroid = (char *) space((length+1)*sizeof(char));
+  centroid = (char *) vrna_alloc((length+1)*sizeof(char));
   for (i=0; i<length; i++) centroid[i]='.';
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++) {

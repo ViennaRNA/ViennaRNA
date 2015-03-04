@@ -49,7 +49,6 @@ static int encode_char(char c) {
 /*@+boolint +charint@*/
 /*@null@*/
 extern char *nonstandards;
-extern void   nrerror(const char message[]);
 
 static void make_pair_matrix(void)
 {
@@ -118,7 +117,7 @@ static void make_pair_matrix(void)
           pair[i][i-1] = 6;    /* DC <-> UA */
         }
       }
-      else nrerror("What energy_set are YOU using??");
+      else vrna_message_error("What energy_set are YOU using??");
       for (i=0; i<=MAXALPHA; i++) {
         for (j=0; j<=MAXALPHA; j++)
           rtype[pair[i][j]] = pair[j][i];
@@ -128,7 +127,7 @@ static void make_pair_matrix(void)
 
 static short *encode_sequence(const char *sequence, short how){
   unsigned int i,l = (unsigned int)strlen(sequence);
-  short         *S = (short *) space(sizeof(short)*(l+2));
+  short         *S = (short *) vrna_alloc(sizeof(short)*(l+2));
 
   switch(how){
     /* standard encoding as always used for S */

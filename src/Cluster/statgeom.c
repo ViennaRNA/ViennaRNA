@@ -46,7 +46,7 @@ PUBLIC float *statgeom(char **seqs, int n_of_seqs)
       return NULL;
    }
 
-   B = (float *) space(16*sizeof(float));
+   B = (float *) vrna_alloc(16*sizeof(float));
 
    for(i=3; i<n_of_seqs; i++) {
     for(j=2; j<i; j++) {
@@ -78,7 +78,7 @@ PUBLIC float *statgeom4(char **ss[4], int  nn[4])
    float *B;
    float  temp;
    
-   B = (float *) space(16*sizeof(float));
+   B = (float *) vrna_alloc(16*sizeof(float));
 
    for(i=0; i<nn[0]; i++) {
     for(j=0; j<nn[1]; j++) {
@@ -180,9 +180,9 @@ PRIVATE void SingleBox(char *x1, char *x2, char *x3, char *x4)
    char  t[4];
 
    len=strlen(x1);
-   if(strlen(x2)!=len) nrerror("Sequences of unequal length in 'SingleBox'");
-   if(strlen(x3)!=len) nrerror("Sequences of unequal length in 'SingleBox'");
-   if(strlen(x4)!=len) nrerror("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x2)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x3)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x4)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
 
    IBox[0] = len;
    for(i=1; i<=15; i++) IBox[i] = 0;
@@ -231,7 +231,7 @@ PRIVATE void SingleBox(char *x1, char *x2, char *x3, char *x4)
          IBox[15]++;                           /*  A B C D */
          break;
        default:
-         nrerror("This can't happen.");
+         vrna_message_error("This can't happen.");
       } 
    }
 }

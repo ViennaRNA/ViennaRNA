@@ -1,14 +1,14 @@
-#ifndef __VIENNA_RNA_PACKAGE_MULTIBRANCH_LOOPS_H__
-#define __VIENNA_RNA_PACKAGE_MULTIBRANCH_LOOPS_H__
+#ifndef VIENNA_RNA_PACKAGE_MULTIBRANCH_LOOPS_H
+#define VIENNA_RNA_PACKAGE_MULTIBRANCH_LOOPS_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include <ViennaRNA/params.h>
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/energy_par.h>
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/gquad.h>
 
@@ -19,7 +19,7 @@
 #endif
 
 /**
- *  \file multibranch_energies.h
+ *  \file multibranch_loops.h
  *  \brief Energy evaluation of multibranch loops for MFE and partition function calculations
  */
 
@@ -45,7 +45,7 @@
 INLINE  PRIVATE int E_MLstem( int type,
                               int si1,
                               int sj1,
-                              paramT *P);
+                              vrna_param_t *P);
 
 /**
  *  \def exp_E_MLstem(A,B,C,D)
@@ -56,7 +56,7 @@ INLINE  PRIVATE int E_MLstem( int type,
 INLINE  PRIVATE double exp_E_MLstem(int type,
                                     int si1,
                                     int sj1,
-                                    pf_paramT *P);
+                                    vrna_exp_param_t *P);
 
 
 
@@ -91,9 +91,9 @@ E_mb_loop_fast( int i,
   int               *indx   = vc->jindx;
   char              *hc     = vc->hc->matrix;
   int               *hc_up  = vc->hc->up_ml;
-  soft_constraintT  *sc     = vc->sc;
+  vrna_sc_t         *sc     = vc->sc;
   int               *fc     = vc->matrices->fc;
-  paramT            *P      = vc->params;
+  vrna_param_t      *P      = vc->params;
 
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
@@ -218,12 +218,12 @@ E_mb_loop_stack(int i,
   char              *hc     = vc->hc->matrix;
   int               *c      = vc->matrices->c;
   int               *fML    = vc->matrices->fML;
-  paramT            *P      = vc->params;
-  model_detailsT    *md     = &(P->model_details);
+  vrna_param_t      *P      = vc->params;
+  vrna_md_t         *md     = &(P->model_details);
   int               turn    = md->min_loop_size;
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);
-  soft_constraintT  *sc     = vc->sc;
+  vrna_sc_t         *sc     = vc->sc;
 
   e     = INF;
   ij    = indx[j] + i;
@@ -263,13 +263,13 @@ E_ml_rightmost_stem(int i,
                     vrna_fold_compound *vc){
 
   int               en;
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               length        = vc->length;
   short             *S            = vc->sequence_encoding;
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_ml;
-  soft_constraintT  *sc           = vc->sc;
+  vrna_sc_t         *sc           = vc->sc;
   int               *c            = vc->matrices->c;
   int               *fm           = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
   int               *ggg          = vc->matrices->ggg;
@@ -329,10 +329,10 @@ E_ml_stems_fast(int i,
   int               *indx         = vc->jindx;
   char              *hc           = vc->hc->matrix;
   int               *hc_up        = vc->hc->up_ml;
-  soft_constraintT  *sc           = vc->sc;
+  vrna_sc_t         *sc           = vc->sc;
   int               *c            = vc->matrices->c;
   int               *fm           = vc->matrices->fML;
-  paramT            *P            = vc->params;
+  vrna_param_t      *P            = vc->params;
   int               ij            = indx[j] + i;
   int               dangle_model  = P->model_details.dangles;
   int               turn          = P->model_details.min_loop_size;
@@ -476,7 +476,7 @@ E_ml_stems_fast(int i,
 
 
 
-INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P){
+INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
   int energy = 0;
   if(si1 >= 0 && sj1 >= 0){
     energy += P->mismatchM[type][si1][sj1];
@@ -502,7 +502,7 @@ INLINE PRIVATE double
 exp_E_MLstem( int type,
               int si1,
               int sj1,
-              pf_paramT *P){
+              vrna_exp_param_t *P){
 
   double energy = 1.0;
   if(si1 >= 0 && sj1 >= 0){

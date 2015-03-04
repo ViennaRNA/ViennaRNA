@@ -81,5 +81,5 @@ main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: AnalyseDist [-X[swn]]");
+   vrna_message_error("usage: AnalyseDist [-X[swn]]");
 }

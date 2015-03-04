@@ -57,7 +57,7 @@
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE paramT        *P = NULL;
+PRIVATE vrna_param_t  *P = NULL;
 PRIVATE int           **c = NULL;        /* energy array, given that i-j pair */
 PRIVATE int           *cc = NULL;        /* linear array for calculating canonical structures */
 PRIVATE int           *cc1 = NULL;       /*   "     "        */
@@ -111,7 +111,7 @@ PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min
 /*--------------------------------------------------------------------------*/
 PRIVATE void initialize_Lfold(int length, int maxdist){
 
-  if (length<1) nrerror("initialize_Lfold: argument must be greater 0");
+  if (length<1) vrna_message_error("initialize_Lfold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   update_fold_params();
 }
@@ -119,25 +119,25 @@ PRIVATE void initialize_Lfold(int length, int maxdist){
 /*--------------------------------------------------------------------------*/
 PRIVATE void get_arrays(unsigned int size, int maxdist){
   int i;
-  c     = (int **)  space(sizeof(int *) *(size+1));
-  fML   = (int **)  space(sizeof(int *) *(size+1));
-  ptype = (char **) space(sizeof(char *)*(size+1));
-  f3    = (int *)   space(sizeof(int)   *(size+2));  /* has to be one longer */
-  cc    = (int *)   space(sizeof(int)   *(maxdist+5));
-  cc1   = (int *)   space(sizeof(int)   *(maxdist+5));
-  Fmi   = (int *)   space(sizeof(int)   *(maxdist+5));
-  DMLi  = (int *)   space(sizeof(int)   *(maxdist+5));
-  DMLi1 = (int *)   space(sizeof(int)   *(maxdist+5));
-  DMLi2 = (int *)   space(sizeof(int)   *(maxdist+5));
+  c     = (int **)  vrna_alloc(sizeof(int *) *(size+1));
+  fML   = (int **)  vrna_alloc(sizeof(int *) *(size+1));
+  ptype = (char **) vrna_alloc(sizeof(char *)*(size+1));
+  f3    = (int *)   vrna_alloc(sizeof(int)   *(size+2));  /* has to be one longer */
+  cc    = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  cc1   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  Fmi   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi  = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi1 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi2 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
 
   for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    c[i] = (int *) space(sizeof(int)*(maxdist+5));
+    c[i] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
   }
   for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    fML[i] = (int *) space(sizeof(int)*(maxdist+5));
+    fML[i] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
   }
   for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    ptype[i] = (char *) space(sizeof(char)*(maxdist+5));
+    ptype[i] = (char *) vrna_alloc(sizeof(char)*(maxdist+5));
   }
 }
 
@@ -598,7 +598,7 @@ fill_arrays(const char *string,
           }
           if(traced2) break;
         }
-        if (!traced2) nrerror("backtrack failed in short backtrack 1");
+        if (!traced2) vrna_message_error("backtrack failed in short backtrack 1");
         if (zsc){
 #ifdef USE_SVM
           int info_avg;
@@ -748,7 +748,7 @@ fill_arrays(const char *string,
             }
             if(traced2) break;
           }
-          if (!traced2) nrerror("backtrack failed in short backtrack 2");
+          if (!traced2) vrna_message_error("backtrack failed in short backtrack 2");
 
           if(zsc){
 #ifdef USE_SVM
@@ -841,7 +841,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   sector[s].j   = MIN2(length, maxdist+1);
   sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
 
-  structure = (char *) space((MIN2(length-start, maxdist)+3)*sizeof(char));
+  structure = (char *) vrna_alloc((MIN2(length-start, maxdist)+3)*sizeof(char));
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '-';
 
   while (s>0) {
@@ -949,7 +949,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                   break;
       } /* switch(dangles)...*/
 
-      if (!traced) nrerror("backtrack failed in f3");
+      if (!traced) vrna_message_error("backtrack failed in f3");
       if (j==length) { /* backtrack only one component, unless j==length */
         sector[++s].i = jj;
         sector[s].j   = j;
@@ -1053,7 +1053,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       sector[s].j   = j;
       sector[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1219,7 +1219,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       }
       else
 #endif
-        nrerror("backtracking failed in repeat");
+        vrna_message_error("backtracking failed in repeat");
     }
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
@@ -1244,7 +1244,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         }
         goto repeat_gquad_exit;
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");

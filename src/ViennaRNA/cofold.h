@@ -1,7 +1,8 @@
-#ifndef __VIENNA_RNA_PACKAGE_COFOLD_H__
-#define __VIENNA_RNA_PACKAGE_COFOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_COFOLD_H
+#define VIENNA_RNA_PACKAGE_COFOLD_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -77,7 +78,7 @@ cofold( const char *sequence,
 DEPRECATED(float 
 cofold_par( const char *string,
             char *structure,
-            paramT *parameters,
+            vrna_param_t *parameters,
             int is_constrained));
 
 /**
@@ -142,7 +143,7 @@ DEPRECATED(void update_cofold_params(void));
 /**
  *  \brief Recalculate parameters
  */
-DEPRECATED(void update_cofold_params_par(paramT *parameters));
+DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters));
 
 
 /**
@@ -230,7 +231,7 @@ DEPRECATED(SOLUTION  *zukersubopt(const char *string));
  *  \deprecated use vrna_zukersubopt() instead
  *
  */
-DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, paramT *parameters));
+DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *parameters));
 
 /**
  *  \brief Compute Zuker type suboptimal structures

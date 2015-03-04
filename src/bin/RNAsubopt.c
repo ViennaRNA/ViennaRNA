@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
   int             delta, n_back, noconv, circular, dos, zuker, gquad;
-  model_detailsT  md;
+  vrna_md_t       md;
 
   do_backtrack  = 1;
   dangles       = 2;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]){
   /* stochastic backtracking */
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
-    init_rand();
+    vrna_init_rand();
   }
   if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
   /* density of states */
@@ -117,24 +117,24 @@ int main(int argc, char *argv[]){
 
   if(zuker){
     if(circular){
-      warn_user("Sorry, zuker subopts not yet implemented for circfold");
+      vrna_message_warning("Sorry, zuker subopts not yet implemented for circfold");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
     else if(n_back>0){
-      warn_user("Can't do zuker subopts and stochastic subopts at the same time");
+      vrna_message_warning("Can't do zuker subopts and stochastic subopts at the same time");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
     else if(gquad){
-      warn_user("G-quadruplex support for Zuker subopts not implemented yet");
+      vrna_message_warning("G-quadruplex support for Zuker subopts not implemented yet");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
   }
 
   if(gquad && (n_back > 0)){
-    warn_user("G-quadruplex support for stochastic backtracking not implemented yet");
+    vrna_message_warning("G-quadruplex support for stochastic backtracking not implemented yet");
     RNAsubopt_cmdline_parser_print_help();
     exit(1);
   }
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]){
   if (ParamFile != NULL) read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -177,10 +177,10 @@ int main(int argc, char *argv[]){
     if(!zuker)
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
     if(fold_constrained){
-      print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
-      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+      vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
     }
-    else print_tty_input_seq();
+    else vrna_message_input_seq_simple();
   }
 
   /* set options we wanna pass to vrna_read_fasta_record() */
@@ -208,16 +208,16 @@ int main(int argc, char *argv[]){
     else fname[0] = '\0';
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
+    if(!noconv) vrna_seq_toRNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    vrna_seq_toupper(rec_sequence);
 
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
 
-    structure = (char *) space((char) length+1);
+    structure = (char *) vrna_alloc((char) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
@@ -225,17 +225,17 @@ int main(int argc, char *argv[]){
       int cp = -1;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
       coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
-      getConstraint(&cstruc, (const char **)rec_rest, coptions);
+      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
       cstruc = vrna_cut_point_remove(cstruc, &cp);
       if(vc->cutpoint != cp){
         fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-        nrerror("Sequence and Structure have different cut points.");
+        vrna_message_error("Sequence and Structure have different cut points.");
       }
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           warn_user("structure constraint is missing");
-      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
-      else if(cl > length)  nrerror("structure constraint is too long");
+      if(cl == 0)           vrna_message_warning("structure constraint is missing");
+      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+      else if(cl > length)  vrna_message_error("structure constraint is too long");
 
       if(cstruc){
         strncpy(structure, cstruc, sizeof(char)*(cl+1));
@@ -277,7 +277,7 @@ int main(int argc, char *argv[]){
       char *ss;
       if (fname[0] != '\0') printf(">%s\n", fname);
 
-      ss = (char *) space(strlen(rec_sequence)+1);
+      ss = (char *) vrna_alloc(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
       mfe = vrna_fold(vc, ss);
       /* rescale Boltzmann factors according to predicted MFE */
@@ -315,7 +315,7 @@ int main(int argc, char *argv[]){
       if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
       if (vc->cutpoint != -1) {
-        nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
+        vrna_message_error("Sorry, zuker subopts not yet implemented for cofold\n");
       }
       zr = vrna_zukersubopt(vc);
 
@@ -351,10 +351,10 @@ int main(int argc, char *argv[]){
       if(!zuker)
         printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if(fold_constrained){
-        print_tty_constraint(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
-        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+        vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
       }
-      else print_tty_input_seq();
+      else vrna_message_input_seq_simple();
     }
   }
   return EXIT_SUCCESS;

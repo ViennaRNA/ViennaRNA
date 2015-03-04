@@ -81,11 +81,11 @@ vrna_TwoDfold_get_vars( const char *seq,
   TwoDfold_vars *vars;
   length = strlen(seq);
   vars = (TwoDfold_vars *)malloc(sizeof(TwoDfold_vars));
-  vars->sequence     = (char *)space(length + 1);
+  vars->sequence        = (char *)vrna_alloc(length + 1);
   strcpy(vars->sequence, seq);
-  vars->seq_length   = length;
-  if(vars->seq_length < 1) nrerror("vrna_TwoDfold_get_vars: sequence must be longer than 0");
-  size                        = ((length + 1) * (length + 2)/2);
+  vars->seq_length      = length;
+  if(vars->seq_length < 1) vrna_message_error("vrna_TwoDfold_get_vars: sequence must be longer than 0");
+  size                  = ((length + 1) * (length + 2)/2);
 
   vars->reference_pt1   = vrna_pt_get(structure1);
   vars->reference_pt2   = vrna_pt_get(structure2);
@@ -96,11 +96,11 @@ vrna_TwoDfold_get_vars( const char *seq,
   vars->dangles         = dangles;
   vars->circ            = circ;
   vars->temperature     = temperature;
-  vars->ptype           = space(sizeof(char) * size);
+  vars->ptype           = vrna_alloc(sizeof(char) * size);
   vars->P               = NULL;
   vars->S               = NULL;
   vars->S1              = NULL;
-  vars->my_iindx        = get_iindx(length);
+  vars->my_iindx        = vrna_get_iindx(length);
   index                 = vars->my_iindx;
   /* compute maximum matching with reference structure 1 disallowed */
   vars->mm1          = maximumMatchingConstraint(vars->sequence, vars->reference_pt1);
@@ -111,54 +111,54 @@ vrna_TwoDfold_get_vars( const char *seq,
   vars->maxD2        = vars->mm2[index[1]-length] + vars->referenceBPs2[index[1]-length];
 
   /* allocate memory for the energy matrices and min-/max-index helper arrays */
-  vars->E_C              = (int ***) space(sizeof(int **)  * size);
-  vars->l_min_values     = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values     = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values     = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values     = (int *)   space(sizeof(int)     * size);
+  vars->E_C              = (int ***) vrna_alloc(sizeof(int **)  * size);
+  vars->l_min_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values     = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values     = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values     = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->E_F5             = (int ***) space(sizeof(int **)  * (length + 1));
-  vars->l_min_values_f   = (int **)  space(sizeof(int *)   * (length + 1));
-  vars->l_max_values_f   = (int **)  space(sizeof(int *)   * (length + 1));
-  vars->k_min_values_f   = (int *)   space(sizeof(int)     * (length + 1));
-  vars->k_max_values_f   = (int *)   space(sizeof(int)     * (length + 1));
+  vars->E_F5             = (int ***) vrna_alloc(sizeof(int **)  * (length + 1));
+  vars->l_min_values_f   = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+  vars->l_max_values_f   = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+  vars->k_min_values_f   = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+  vars->k_max_values_f   = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
 
   if(compute_2Dfold_F3){
-    vars->E_F3             = (int ***) space(sizeof(int **)  * (length + 1));
-    vars->l_min_values_f3  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->l_max_values_f3  = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->k_min_values_f3  = (int *)   space(sizeof(int)     * (length + 1));
-    vars->k_max_values_f3  = (int *)   space(sizeof(int)     * (length + 1));
+    vars->E_F3             = (int ***) vrna_alloc(sizeof(int **)  * (length + 1));
+    vars->l_min_values_f3  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->l_max_values_f3  = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->k_min_values_f3  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+    vars->k_max_values_f3  = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
   }
   else vars->E_F3 = NULL;
 
-  vars->E_M              = (int ***) space(sizeof(int **)  * size);
-  vars->l_min_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m   = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m   = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m   = (int *)   space(sizeof(int)     * size);
+  vars->E_M              = (int ***) vrna_alloc(sizeof(int **)  * size);
+  vars->l_min_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m   = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m   = (int *)   vrna_alloc(sizeof(int)     * size);
 
-  vars->E_M1             = (int ***) space(sizeof(int **)  * size);
-  vars->l_min_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->l_max_values_m1  = (int **)  space(sizeof(int *)   * size);
-  vars->k_min_values_m1  = (int *)   space(sizeof(int)     * size);
-  vars->k_max_values_m1  = (int *)   space(sizeof(int)     * size);
+  vars->E_M1             = (int ***) vrna_alloc(sizeof(int **)  * size);
+  vars->l_min_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->l_max_values_m1  = (int **)  vrna_alloc(sizeof(int *)   * size);
+  vars->k_min_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
+  vars->k_max_values_m1  = (int *)   vrna_alloc(sizeof(int)     * size);
 
 #ifdef COUNT_STATES
-  vars->N_C              = (unsigned long ***) space(sizeof(unsigned long **)  * size);
-  vars->N_F5             = (unsigned long ***) space(sizeof(unsigned long **)  * (length + 1));
-  vars->N_M              = (unsigned long ***) space(sizeof(unsigned long **)  * size);
-  vars->N_M1             = (unsigned long ***) space(sizeof(unsigned long **)  * size);
+  vars->N_C              = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
+  vars->N_F5             = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * (length + 1));
+  vars->N_M              = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
+  vars->N_M1             = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
 #endif
 
 
   if(circ){
-    vars->E_M2_rem       = (int *)   space(sizeof(int)     * (length + 1));
-    vars->E_M2            = (int ***) space(sizeof(int **)  * (length + 1));
-    vars->l_min_values_m2 = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->l_max_values_m2 = (int **)  space(sizeof(int *)   * (length + 1));
-    vars->k_min_values_m2 = (int *)   space(sizeof(int)     * (length + 1));
-    vars->k_max_values_m2 = (int *)   space(sizeof(int)     * (length + 1));
+    vars->E_M2_rem       = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+    vars->E_M2            = (int ***) vrna_alloc(sizeof(int **)  * (length + 1));
+    vars->l_min_values_m2 = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->l_max_values_m2 = (int **)  vrna_alloc(sizeof(int *)   * (length + 1));
+    vars->k_min_values_m2 = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
+    vars->k_max_values_m2 = (int *)   vrna_alloc(sizeof(int)     * (length + 1));
   }
   else{
     vars->E_M2_rem       = NULL;
@@ -179,10 +179,10 @@ vrna_TwoDfold_get_vars( const char *seq,
   vars->E_FcI_rem        = INF;
   vars->E_FcM_rem        = INF;
 
-  vars->E_C_rem          = (int *) space(sizeof(int) * size);
-  vars->E_M_rem          = (int *) space(sizeof(int) * size);
-  vars->E_M1_rem         = (int *) space(sizeof(int) * size);
-  vars->E_F5_rem         = (int *) space(sizeof(int) * (length+1));
+  vars->E_C_rem          = (int *) vrna_alloc(sizeof(int) * size);
+  vars->E_M_rem          = (int *) vrna_alloc(sizeof(int) * size);
+  vars->E_M1_rem         = (int *) vrna_alloc(sizeof(int) * size);
+  vars->E_F5_rem         = (int *) vrna_alloc(sizeof(int) * (length+1));
   /* init rest arrays */
   for(i=0;i<size;i++){
     vars->E_C_rem[i] = vars->E_M_rem[i] = vars->E_M1_rem[i] = INF;
@@ -626,7 +626,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
-  output = (TwoDfold_solution **)space((vars->maxD1+1) * sizeof(TwoDfold_solution *));
+  output = (TwoDfold_solution **)vrna_alloc((vars->maxD1+1) * sizeof(TwoDfold_solution *));
 
   mfe_linear(vars);
   if(vars->circ) mfe_circ(vars);
@@ -634,7 +634,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
   length = vars->seq_length;
 
   for(d1=0; d1<=maxD1;d1++){
-    output[d1] = (TwoDfold_solution *)space((vars->maxD2+1)*sizeof(TwoDfold_solution));
+    output[d1] = (TwoDfold_solution *)vrna_alloc((vars->maxD2+1)*sizeof(TwoDfold_solution));
 #ifdef _OPENMP
   #pragma omp parallel for private(d2)
 #endif
@@ -652,7 +652,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
             d2 += 2){
         output[d1][d2].en = (float)((vars->circ) ? vars->E_Fc[d1][d2/2] : vars->E_F5[length][d1][d2/2])/(float)100.;
         if(vars->do_backtrack && (output[d1][d2].en != (float)INF/(float)100.)){
-          char *mfe_structure = (char *)space(length+1);
+          char *mfe_structure = (char *)vrna_alloc(length+1);
           for(i=0;i<length;i++) mfe_structure[i] = '.';
           mfe_structure[i] = '\0';
           (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length, d1, d2, mfe_structure, vars);
@@ -717,7 +717,7 @@ vrna_TwoDfold(TwoDfold_vars *vars,
 
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
-  output = (TwoDfold_solution *)space((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
+  output = (TwoDfold_solution *)vrna_alloc((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
 
   mfe_linear(vars);
   if(vars->circ) mfe_circ(vars);
@@ -736,7 +736,7 @@ vrna_TwoDfold(TwoDfold_vars *vars,
         output[counter].l   = d2;
         output[counter].en  = (float)en/(float)100.;
         if(vars->do_backtrack){
-          char *mfe_structure = (char *)space(length+1);
+          char *mfe_structure = (char *)vrna_alloc(length+1);
           for(i=0;i<length;i++) mfe_structure[i] = '.';
           mfe_structure[i] = '\0';
           (vars->circ) ? backtrack_fc((int)d1, (int)d2, mfe_structure, vars) : backtrack_f5(length, (int)d1, (int)d2, mfe_structure, vars);
@@ -755,7 +755,7 @@ vrna_TwoDfold(TwoDfold_vars *vars,
     output[counter].l   = -1;
     output[counter].en  =  (float)en/(float)100.;
     if(vars->do_backtrack){
-      char *mfe_structure = (char *)space(length+1);
+      char *mfe_structure = (char *)vrna_alloc(length+1);
       for(i=0;i<length;i++) mfe_structure[i] = '.';
       mfe_structure[i] = '\0';
       (vars->circ) ? backtrack_fc(-1, -1, mfe_structure, vars) : backtrack_f5(length, -1, -1, mfe_structure, vars);
@@ -770,7 +770,7 @@ vrna_TwoDfold(TwoDfold_vars *vars,
   counter++;
 
   /* resize to actual dataset amount */
-  output = (TwoDfold_solution*)xrealloc(output, sizeof(TwoDfold_solution) * counter);
+  output = (TwoDfold_solution*)vrna_realloc(output, sizeof(TwoDfold_solution) * counter);
   return output;
 }
 
@@ -782,7 +782,7 @@ vrna_TwoDfold_backtrack_f5( unsigned int j,
                             TwoDfold_vars *vars){
 
   unsigned int i;
-  char *mfe_structure = (char *)space(j+1);
+  char *mfe_structure = (char *)vrna_alloc(j+1);
   if(j < TURN + 2) return NULL;
 
   for(i=0; i < j; i++) mfe_structure[i] = '.';
@@ -798,7 +798,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
   int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
-  paramT        *P;
+  vrna_param_t  *P;
 
   /* dereferenciate things we often need */
   P               = vars->P;
@@ -1452,17 +1452,17 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
   /* prepare first entries in E_F5 */
   for(cnt1 = 1; cnt1 <= TURN+1; cnt1++){
-    vars->E_F5[cnt1] = (int **)space(sizeof(int *));
-    vars->E_F5[cnt1][0] = (int *)space(sizeof(int));
+    vars->E_F5[cnt1] = (int **)vrna_alloc(sizeof(int *));
+    vars->E_F5[cnt1][0] = (int *)vrna_alloc(sizeof(int));
     vars->E_F5[cnt1][0][0] = 0;
     vars->E_F5_rem[cnt1] = INF;
     vars->k_min_values_f[cnt1] = vars->k_max_values_f[cnt1] = 0;
-    vars->l_min_values_f[cnt1] = (int *)space(sizeof(int));
-    vars->l_max_values_f[cnt1] = (int *)space(sizeof(int));
+    vars->l_min_values_f[cnt1] = (int *)vrna_alloc(sizeof(int));
+    vars->l_max_values_f[cnt1] = (int *)vrna_alloc(sizeof(int));
     vars->l_min_values_f[cnt1][0] = vars->l_max_values_f[cnt1][0] = 0;
 #ifdef COUNT_STATES
-    vars->N_F5[cnt1] = (unsigned long **)space(sizeof(unsigned long *));
-    vars->N_F5[cnt1][0] = (unsigned long *)space(sizeof(unsigned long));
+    vars->N_F5[cnt1] = (unsigned long **)vrna_alloc(sizeof(unsigned long *));
+    vars->N_F5[cnt1][0] = (unsigned long *)vrna_alloc(sizeof(unsigned long));
     vars->N_F5[cnt1][0][0] = 1;
 #endif
 
@@ -1666,12 +1666,12 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 
     /* prepare first entries in E_F3 */
     for(cnt1 = seq_length; cnt1 >= seq_length-TURN-1; cnt1--){
-      vars->E_F3[cnt1]        = (int **)space(sizeof(int *));
-      vars->E_F3[cnt1][0]     = (int *) space(sizeof(int));
+      vars->E_F3[cnt1]        = (int **)vrna_alloc(sizeof(int *));
+      vars->E_F3[cnt1][0]     = (int *) vrna_alloc(sizeof(int));
       vars->E_F3[cnt1][0][0]  = 0;
       vars->k_min_values_f3[cnt1]     = vars->k_max_values_f3[cnt1] = 0;
-      vars->l_min_values_f3[cnt1]     = (int *)space(sizeof(int));
-      vars->l_max_values_f3[cnt1]     = (int *)space(sizeof(int));
+      vars->l_min_values_f3[cnt1]     = (int *)vrna_alloc(sizeof(int));
+      vars->l_max_values_f3[cnt1]     = (int *)vrna_alloc(sizeof(int));
       vars->l_min_values_f3[cnt1][0]  = vars->l_max_values_f3[cnt1][0] = 0;
     }
     /* begin calculations */
@@ -1855,8 +1855,8 @@ PRIVATE void backtrack_f5(unsigned int j, int k, int l, char *structure, TwoDfol
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype;
-  paramT   *P;
-  unsigned int da, db;
+  vrna_param_t   *P;
+  unsigned int   da, db;
 
   P               = vars->P;
   seq_length      = vars->seq_length;
@@ -2040,7 +2040,7 @@ PRIVATE void backtrack_f5(unsigned int j, int k, int l, char *structure, TwoDfol
       }
     }
   }
-  nrerror("backtracking failed in f5");
+  vrna_message_error("backtracking failed in f5");
 }
 
 PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *structure, TwoDfold_vars *vars){
@@ -2051,8 +2051,8 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
-  char  *ptype, *sequence;
-  paramT   *P;
+  char  *ptype,  *sequence;
+  vrna_param_t   *P;
 
   P               = vars->P;
   sequence        = vars->sequence;
@@ -2293,7 +2293,7 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
       }
     }
   }
-  nrerror("backtracking failed in c");
+  vrna_message_error("backtracking failed in c");
 }
 
 PRIVATE void backtrack_m(unsigned int i, unsigned int j, int k, int l, char *structure, TwoDfold_vars *vars){
@@ -2305,7 +2305,7 @@ PRIVATE void backtrack_m(unsigned int i, unsigned int j, int k, int l, char *str
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *ptype;
-  paramT   *P;
+  vrna_param_t   *P;
 
   P           = vars->P;
   seq_length  = vars->seq_length;
@@ -2547,7 +2547,7 @@ PRIVATE void backtrack_m(unsigned int i, unsigned int j, int k, int l, char *str
                 }
     }
   }
-  nrerror("backtracking failed in fML\n");
+  vrna_message_error("backtracking failed in fML\n");
 }
 
 PRIVATE void backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *structure, TwoDfold_vars *vars){
@@ -2558,7 +2558,7 @@ PRIVATE void backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *st
 
   short         *S1;
   char          *ptype;
-  paramT        *P;
+  vrna_param_t  *P;
 
   P               = vars->P;
   seq_length      = vars->seq_length;
@@ -2642,7 +2642,7 @@ PRIVATE void backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *st
             return;
           }
   }
-  nrerror("backtack failed in m1\n");
+  vrna_message_error("backtack failed in m1\n");
 }
 
 PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
@@ -2659,7 +2659,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
   int *l_min_values_fcH, *l_max_values_fcH, k_min_values_fcH, k_max_values_fcH;
   int *l_min_values_fcI, *l_max_values_fcI, k_min_values_fcI, k_max_values_fcI;
   int *l_min_values_fcM, *l_max_values_fcM, k_min_values_fcM, k_max_values_fcM;
-  paramT   *P;
+  vrna_param_t   *P;
   P                 = vars->P;
   sequence          = vars->sequence;
   seq_length        = vars->seq_length;
@@ -3074,7 +3074,7 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
         }
     }
   }
-  nrerror("backtack failed in fc\n");
+  vrna_message_error("backtack failed in fc\n");
 }
 
 
@@ -3191,7 +3191,7 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
               }
     }
   }
-  nrerror("backtack failed in m2\n");
+  vrna_message_error("backtack failed in m2\n");
 }
 
 PRIVATE void mfe_circ(TwoDfold_vars *vars){
@@ -3204,7 +3204,7 @@ PRIVATE void mfe_circ(TwoDfold_vars *vars){
   int           **l_min_values, **l_max_values, **l_min_values_m, **l_max_values_m, **l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
 
-  paramT        *P;
+  vrna_param_t  *P;
 
   P               = vars->P;
   sequence        = vars->sequence;
@@ -3981,8 +3981,8 @@ INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, 
   *min_k  = INF;
   *max_k  = 0;
 
-  *min_l  = (int *)space(sizeof(int) * size);
-  *max_l  = (int *)space(sizeof(int) * size);
+  *min_l  = (int *)vrna_alloc(sizeof(int) * size);
+  *max_l  = (int *)vrna_alloc(sizeof(int) * size);
 
   for(i = 0; i < size; i++){
     (*min_l)[i] = INF;
@@ -4006,8 +4006,8 @@ INLINE  PRIVATE void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_
 
   *min_k  = min_k_pre;
   *max_k  = max_k_pre;
-  *min_l  = (int *) space(sizeof(int) * mem);
-  *max_l  = (int *) space(sizeof(int) * mem);
+  *min_l  = (int *) vrna_alloc(sizeof(int) * mem);
+  *max_l  = (int *) vrna_alloc(sizeof(int) * mem);
 
   *min_l  -= min_k_pre;
   *max_l  -= min_k_pre;
@@ -4023,12 +4023,12 @@ INLINE  PRIVATE void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_
 
 INLINE  PRIVATE void  prepareArray(int ***array, int min_k, int max_k, int *min_l, int *max_l){
   int i, j, mem;
-  *array  = (int **)space(sizeof(int *) * (max_k - min_k + 1));
+  *array  = (int **)vrna_alloc(sizeof(int *) * (max_k - min_k + 1));
   *array  -= min_k;
 
   for(i = min_k; i <= max_k; i++){
     mem = (max_l[i] - min_l[i] + 1)/2 + 1;
-    (*array)[i] = (int *)space(sizeof(int) * mem);
+    (*array)[i] = (int *)vrna_alloc(sizeof(int) * mem);
     for(j = 0; j < mem; j++)
       (*array)[i][j] = INF;
     (*array)[i]  -= min_l[i]/2;
@@ -4037,12 +4037,12 @@ INLINE  PRIVATE void  prepareArray(int ***array, int min_k, int max_k, int *min_
 
 INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k, int *min_l, int *max_l){
   int i, mem;
-  *array  = (unsigned long **)space(sizeof(unsigned long *) * (max_k - min_k + 1));
+  *array  = (unsigned long **)vrna_alloc(sizeof(unsigned long *) * (max_k - min_k + 1));
   *array  -= min_k;
 
   for(i = min_k; i <= max_k; i++){
     mem = (max_l[i] - min_l[i] + 1)/2 + 1;
-    (*array)[i] = (unsigned long *)space(sizeof(unsigned long) * mem);
+    (*array)[i] = (unsigned long *)vrna_alloc(sizeof(unsigned long) * mem);
     (*array)[i] -= min_l[i]/2;
   }
 }

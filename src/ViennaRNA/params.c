@@ -21,43 +21,119 @@
 *** </P>
 ***/
 
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: params.c,v 1.9 2008/07/04 14:29:14 ivo Exp $";
+/*------------------------------------------------------------------------*/
+#define SCALE 10
+/**
+*** dangling ends should never be destabilizing, i.e. expdangle>=1<BR>
+*** specific heat needs smooth function (2nd derivative)<BR>
+*** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
+*** in the interval b<x<sqrt(3)/2
+*/
+#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
+          SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
 
-PRIVATE paramT p;
+/* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
+
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE vrna_param_t p;
 PRIVATE int id=-1;
 /* variables for partition function */
-PRIVATE pf_paramT pf;
+PRIVATE vrna_exp_param_t pf;
 PRIVATE int pf_id=-1;
 
 #ifdef _OPENMP
 #pragma omp threadprivate(id, pf_id)
 #endif
 
-PUBLIC paramT *scale_parameters(void){
-  model_detailsT  md;
-  set_model_details(&md);
-  return get_scaled_parameters(temperature, md);
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+
+PRIVATE vrna_param_t      *get_scaled_params(vrna_md_t *md);
+PRIVATE vrna_exp_param_t  *get_scaled_exp_params(vrna_md_t *md, double pfs);
+PRIVATE vrna_exp_param_t  *get_exp_params_ali(vrna_md_t *md, unsigned int n_seq, double pfs);
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+
+PUBLIC vrna_param_t *
+vrna_params_get(vrna_md_t *md){
+
+  if(md){
+    return get_scaled_params(md);
+  } else {
+    vrna_md_t md;
+    vrna_md_set_default(&md);
+    return get_scaled_params(&md);
+  }
 }
 
-PUBLIC paramT *
-vrna_get_energy_contributions(model_detailsT md){
+PUBLIC vrna_exp_param_t *
+vrna_exp_params_get(vrna_md_t *md){
 
-  return get_scaled_parameters(md.temperature, md);
+  if(md){
+    return  get_scaled_exp_params(md, -1.);
+  } else {
+    vrna_md_t md;
+    vrna_md_set_default(&md);
+    return get_scaled_exp_params(&md, -1.);
+  }
 }
 
-PUBLIC paramT *get_scaled_parameters( double temp,
-                                      model_detailsT md){
+PUBLIC vrna_exp_param_t *
+vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md){
+
+  if(md){
+    return  get_exp_params_ali(md, n_seq, -1.);
+  } else {
+    vrna_md_t md;
+    vrna_md_set_default(&md);
+    return get_exp_params_ali(&md, n_seq, -1.);
+  }
+}
+
+PUBLIC vrna_param_t *
+vrna_params_copy(vrna_param_t *par){
+
+  vrna_param_t *copy = NULL;
+  if(par){
+    copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
+    memcpy(copy, par, sizeof(vrna_param_t));
+  }
+  return copy;
+}
+
+PUBLIC vrna_exp_param_t *
+vrna_exp_params_copy(vrna_exp_param_t *par){
+
+  vrna_exp_param_t *copy = NULL;
+  if(par){
+    copy = (vrna_exp_param_t *) vrna_alloc(sizeof(vrna_exp_param_t));
+    memcpy(copy, par, sizeof(vrna_exp_param_t));
+  }
+  return copy;
+}
+
+PRIVATE vrna_param_t *
+get_scaled_params(vrna_md_t *md){
 
   unsigned int i,j,k,l;
   double tempf;
-  paramT *params;
+  vrna_param_t *params;
 
-  params  = (paramT *)space(sizeof(paramT));
+  params  = (vrna_param_t *)vrna_alloc(sizeof(vrna_param_t));
 
-  /* store the model details */
-  params->model_details = md;
-  params->temperature   = temp;
+  params->model_details = *md;  /* copy over the model details */
+  params->temperature   = md->temperature;
   tempf                 = ((params->temperature+K0)/Tmeasure);
 
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
@@ -118,7 +194,7 @@ PUBLIC paramT *get_scaled_parameters( double temp,
         params->mismatchH[i][j][k]    = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*tempf;
         params->mismatch1nI[i][j][k]  = mismatch1nIdH[i][j][k]-(mismatch1nIdH[i][j][k]-mismatch1nI37[i][j][k])*tempf;/* interior nx1 loops */
         params->mismatch23I[i][j][k]  = mismatch23IdH[i][j][k]-(mismatch23IdH[i][j][k]-mismatch23I37[i][j][k])*tempf;/* interior 2x3 loops */
-        if(md.dangles){
+        if(md->dangles){
           mm                      = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*tempf;
           params->mismatchM[i][j][k]    = (mm > 0) ? 0 : mm;
           mm                      = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*tempf;
@@ -173,54 +249,22 @@ PUBLIC paramT *get_scaled_parameters( double temp,
   return params;
 }
 
-
-/*------------------------------------------------------------------------*/
-#define SCALE 10
-/**
-*** dangling ends should never be destabilizing, i.e. expdangle>=1<BR>
-*** specific heat needs smooth function (2nd derivative)<BR>
-*** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
-*** in the interval b<x<sqrt(3)/2
-*/
-#define SMOOTH(X) ((X)/SCALE<-1.2283697)?0:(((X)/SCALE>0.8660254)?(X):\
-          SCALE*0.38490018*(sin((X)/SCALE-0.34242663)+1)*(sin((X)/SCALE-0.34242663)+1))
-
-/* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
-
-
-PUBLIC pf_paramT *get_scaled_pf_parameters(void){
-  model_detailsT  md;
-  set_model_details(&md);
-  return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-}
-
-
-PUBLIC pf_paramT *
-vrna_get_boltzmann_factors(model_detailsT md){
-
-  return  get_boltzmann_factors(md.temperature, md.betaScale, md, -1.);
-}
-
-PUBLIC pf_paramT *get_boltzmann_factors(double temp,
-                                        double betaScale,
-                                        model_detailsT md,
-                                        double pfs){
+PRIVATE vrna_exp_param_t *
+get_scaled_exp_params(vrna_md_t *md,
+                      double pfs){
 
   unsigned  int i, j, k, l;
   double        kT, TT;
   double        GT;
-  pf_paramT     *pf;
+  vrna_exp_param_t     *pf;
 
-  md.temperature  = temp;
-  md.betaScale    = betaScale;
-
-  pf                = (pf_paramT *)space(sizeof(pf_paramT));
-  pf->model_details = md;
-  pf->temperature   = temp;
-  pf->alpha         = betaScale;
-  pf->kT = kT       = betaScale*(temp+K0)*GASCONST;   /* kT in cal/mol  */
-  pf->pf_scale      = pf_scale = pfs;
-  TT                = (temp+K0)/(Tmeasure);
+  pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
+  pf->model_details = *md;
+  pf->temperature   = md->temperature;
+  pf->alpha         = md->betaScale;
+  pf->kT = kT       = md->betaScale * (md->temperature + K0) * GASCONST;   /* kT in cal/mol  */
+  pf->pf_scale      = pfs;
+  TT                = (md->temperature + K0) / (Tmeasure);
 
   for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
     for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
@@ -294,7 +338,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
      but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
-      if (md.dangles) {
+      if (md->dangles) {
         GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
         pf->expdangle5[i][j] = exp(SMOOTH(-GT)*10./kT);
         GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
@@ -320,7 +364,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kT);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kT);
-        if (md.dangles) {
+        if (md->dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kT);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
@@ -376,37 +420,24 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temp,
   return pf;
 }
 
-PUBLIC pf_paramT *get_scaled_alipf_parameters(unsigned int n_seq){
-  model_detailsT  md;
-  set_model_details(&md);
-  return get_boltzmann_factors_ali(n_seq, temperature, 1.0, md, pf_scale);
-}
-
-PUBLIC pf_paramT *
-vrna_get_boltzmann_factors_ali(unsigned int n_seq, model_detailsT md){
-
-  return  get_boltzmann_factors_ali(n_seq, md.temperature, md.betaScale, md, -1.);
-}
-
-PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
-                                            double temperature,
-                                            double betaScale,
-                                            model_detailsT md,
-                                            double pfs){
+PRIVATE vrna_exp_param_t *
+get_exp_params_ali( vrna_md_t *md,
+                    unsigned int n_seq,
+                    double pfs){
 
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int  i, j, k, l;
   double        kTn, TT;
   double        GT;
-  pf_paramT     *pf;
+  vrna_exp_param_t     *pf;
 
-  pf                = (pf_paramT *)space(sizeof(pf_paramT));
-  pf->model_details = md;
-  pf->alpha         = betaScale;
-  pf->temperature   = temperature;
-  pf->pf_scale      = pf_scale = pfs;
-  pf->kT = kTn      = ((double)n_seq)*betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
-  TT                = (temperature+K0)/(Tmeasure);
+  pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
+  pf->model_details = *md;
+  pf->alpha         = md->betaScale;
+  pf->temperature   = md->temperature;
+  pf->pf_scale      = pfs;
+  pf->kT = kTn      = ((double)n_seq)*md->betaScale*(md->temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  TT                = (md->temperature+K0)/(Tmeasure);
 
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
@@ -477,7 +508,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
      but make sure go smoothly to 0                        */
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=4; j++) {
-      if (md.dangles) {
+      if (md->dangles) {
         GT = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j])*TT;
         pf->expdangle5[i][j] = exp(SMOOTH(-GT)*10./kTn);
         GT = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j])*TT;
@@ -503,7 +534,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
         pf->expmismatch1nI[i][j][k] = exp(-GT*10.0/kTn);
         GT = mismatchHdH[i][j][k] - (mismatchHdH[i][j][k] - mismatchH37[i][j][k])*TT;
         pf->expmismatchH[i][j][k] = exp(-GT*10.0/kTn);
-        if (md.dangles) {
+        if (md->dangles) {
           GT = mismatchMdH[i][j][k] - (mismatchMdH[i][j][k] - mismatchM37[i][j][k])*TT;
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT)*10.0/kTn);
           GT = mismatchExtdH[i][j][k] - (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k])*TT;
@@ -560,58 +591,121 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   return pf;
 }
 
-PUBLIC pf_paramT *get_boltzmann_factor_copy(pf_paramT *par){
-  pf_paramT *copy = NULL;
-  if(par){
-    copy = (pf_paramT *) space(sizeof(pf_paramT));
-    memcpy(copy, par, sizeof(pf_paramT));
-  }
-  return copy;
-}
-
-PUBLIC paramT *get_parameter_copy(paramT *par){
-  paramT *copy = NULL;
-  if(par){
-    copy = (paramT *) space(sizeof(paramT));
-    memcpy(copy, par, sizeof(paramT));
-  }
-  return copy;
-}
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PUBLIC paramT *copy_parameters(void){
-  paramT *copy;
+PUBLIC vrna_param_t *
+scale_parameters(void){
+
+  vrna_md_t md;
+  vrna_md_set_globals(&md);
+  return get_scaled_params(&md);
+}
+
+PUBLIC vrna_param_t *
+get_scaled_parameters(double temp,
+                      vrna_md_t md){
+
+  md.temperature = temp;
+  return get_scaled_params(&md);
+}
+
+PUBLIC vrna_exp_param_t *
+get_boltzmann_factors(double temp,
+                      double betaScale,
+                      vrna_md_t md,
+                      double pfs){
+
+  md.temperature  = temp;
+  md.betaScale    = betaScale;
+  pf_scale        = pfs;
+
+  return get_scaled_exp_params(&md, pfs);
+}
+
+PUBLIC vrna_exp_param_t *
+get_scaled_pf_parameters(void){
+
+  vrna_md_t  md;
+
+  vrna_md_set_globals(&md);
+
+  return get_scaled_exp_params(&md, pf_scale);
+
+}
+
+PUBLIC vrna_exp_param_t *
+get_boltzmann_factors_ali(unsigned int n_seq,
+                         double temp,
+                         double betaScale,
+                         vrna_md_t md,
+                         double pfs){
+
+  md.temperature  = temp;
+  md.betaScale    = betaScale;
+  pf_scale        = pfs;
+
+  return get_exp_params_ali(&md, n_seq, pfs);
+  
+}
+
+PUBLIC vrna_exp_param_t *
+get_scaled_alipf_parameters(unsigned int n_seq){
+
+  vrna_md_t  md;
+
+  vrna_md_set_globals(&md);
+
+  return get_exp_params_ali(&md, n_seq, pf_scale);
+}
+
+PUBLIC vrna_exp_param_t *
+get_boltzmann_factor_copy(vrna_exp_param_t *par){
+
+  return vrna_exp_params_copy(par);
+}
+
+PUBLIC vrna_param_t *get_parameter_copy(vrna_param_t *par){
+
+  return vrna_params_copy(par);
+}
+
+PUBLIC vrna_param_t *copy_parameters(void){
+  vrna_param_t *copy;
   if (p.id != id) return scale_parameters();
   else{
-    copy = (paramT *) space(sizeof(paramT));
-    memcpy(copy, &p, sizeof(paramT));
+    copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
+    memcpy(copy, &p, sizeof(vrna_param_t));
   }
   return copy;
 }
 
-PUBLIC paramT *set_parameters(paramT *dest){
-  memcpy(&p, dest, sizeof(paramT));
+PUBLIC vrna_param_t *set_parameters(vrna_param_t *dest){
+  memcpy(&p, dest, sizeof(vrna_param_t));
   return &p;
 }
 
-PUBLIC pf_paramT *copy_pf_param(void){
-  pf_paramT *copy;
+PUBLIC vrna_exp_param_t *copy_pf_param(void){
+  vrna_exp_param_t *copy;
   if (pf.id != pf_id) return get_scaled_pf_parameters();
   else{
-    copy = (pf_paramT *) space(sizeof(pf_paramT));
-    memcpy(copy, &pf, sizeof(pf_paramT));
+    copy = (vrna_exp_param_t *) vrna_alloc(sizeof(vrna_exp_param_t));
+    memcpy(copy, &pf, sizeof(vrna_exp_param_t));
   }
   return copy;
 }
 
-PUBLIC pf_paramT *set_pf_param(paramT *dest){
-  memcpy(&pf, dest, sizeof(pf_paramT));
+PUBLIC vrna_exp_param_t *set_pf_param(vrna_param_t *dest){
+  memcpy(&pf, dest, sizeof(vrna_exp_param_t));
   return &pf;
 }
 
-PUBLIC pf_paramT *scale_pf_parameters(void){
+PUBLIC vrna_exp_param_t *scale_pf_parameters(void){
   return get_scaled_pf_parameters();
 }
+
+#endif
+

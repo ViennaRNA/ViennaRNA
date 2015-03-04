@@ -164,7 +164,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
 
   E = find_saddle(seq, s1, s2, maxkeep);
 
-  route = (path_t *)space((BP_dist+2)*sizeof(path_t));
+  route = (path_t *)vrna_alloc((BP_dist+2)*sizeof(path_t));
 
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
 
@@ -233,7 +233,7 @@ try_moves(intermediate_t c,
     int i,j;
     if (mv->when>0) continue;
     i = mv->i; j = mv->j;
-    pt = (short *) space(sizeof(short)*(len+1));
+    pt = (short *) vrna_alloc(sizeof(short)*(len+1));
     memcpy(pt, c.pt,(len+1)*sizeof(short));
     if (j<0) { /*it's a delete move */
       pt[-i]=0;
@@ -279,7 +279,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   pt2 = vrna_pt_get(struc2);
   len = (int) strlen(struc1);
 
-  mlist = (move_t *) space(sizeof(move_t)*len); /* bp_dist < n */
+  mlist = (move_t *) vrna_alloc(sizeof(move_t)*len); /* bp_dist < n */
 
   for (i=1; i<=len; i++) {
     if (pt1[i] != pt2[i]) {
@@ -297,11 +297,11 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   }
   free(pt2);
   BP_dist = dist;
-  current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
+  current = (intermediate_t *) vrna_alloc(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
   current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_simple(seq, pt1);
   current[0].moves = mlist;
-  next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
+  next = (intermediate_t *) vrna_alloc(sizeof(intermediate_t)*(dist*maxl+1));
 
   for (d=1; d<=dist; d++) { /* go through the distance classes */
     int c, u, num_next=0;
@@ -353,8 +353,8 @@ PRIVATE int *pair_table_to_loop_index (short *pt){
   int *loop = NULL;
 
   length = pt[0];
-  stack  = (int *) space(sizeof(int)*(length+1));
-  loop   = (int *) space(sizeof(int)*(length+2));
+  stack  = (int *) vrna_alloc(sizeof(int)*(length+1));
+  loop   = (int *) vrna_alloc(sizeof(int)*(length+2));
   hx=l=nl=0;
 
   for (i=1; i<=length; i++) {
@@ -370,7 +370,7 @@ PRIVATE int *pair_table_to_loop_index (short *pt){
         l = loop[stack[hx-1]];  /* index of enclosing loop   */
       else l=0;                 /* external loop has index 0 */
       if (hx<0) {
-        nrerror("unbalanced brackets in make_pair_table");
+        vrna_message_error("unbalanced brackets in make_pair_table");
       }
     }
   }
@@ -432,7 +432,7 @@ PRIVATE int compare_moves_when(const void *A, const void *B) {
 
 PRIVATE move_t* copy_moves(move_t *mvs) {
   move_t *new;
-  new = (move_t *) space(sizeof(move_t)*(BP_dist+1));
+  new = (move_t *) vrna_alloc(sizeof(move_t)*(BP_dist+1));
   memcpy(new,mvs,sizeof(move_t)*(BP_dist+1));
   return new;
 }
@@ -502,7 +502,7 @@ int main(int argc, char *argv[]) {
 }
 
 static void usage(void){
-  nrerror("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
+  vrna_message_error("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
 }
 
 #endif

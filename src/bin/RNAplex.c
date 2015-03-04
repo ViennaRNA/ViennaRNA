@@ -17,14 +17,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/params.h"
 #include "ViennaRNA/plex.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/read_epars.h"
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
   **/
   if(probe_mode){
     if(qname || tname){
-      nrerror("No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
+      vrna_message_error("No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
       /* get sequence */
     }
     else{
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
       printf("Probe mode\n");
       char *id_s1=NULL;
       char *s1=NULL;
-      paramT *P = NULL;
+      vrna_param_t *P = NULL;
       if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
 	update_fold_params();
 	P = scale_parameters();
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 	while ((*line=='*')||(*line=='\0')||(*line=='>')) {
 	  printf("%s\n", line); 
 	  if(*line=='>'){
-	    id_s1 = (char*) space (strlen(line)+2);
+	    id_s1 = (char*) vrna_alloc(strlen(line)+2);
 	    (void) sscanf(line,"%s",id_s1); 
 	    memmove(id_s1, id_s1+1, strlen(id_s1));
 	  }
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 	  }
 	} 
 	if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
-	s1 = (char *) space(strlen(line)+1);
+	s1 = (char *) vrna_alloc(strlen(line)+1);
 	strcpy(s1,line);
 	/*compute duplex/entropy energy for the reverse complement*/;
 	double Tm;
@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
       if(mRNA==NULL){printf("%s: Wrong target file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
       sRNA=fopen(qname, "r");
       if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
-      nrerror("Sorry not implemented yet");
+      vrna_message_error("Sorry not implemented yet");
     }/**
      *** We have no single sequence case. Check if we have alignments.
      **/
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
                 free(id_s1);
                 id_s1=NULL;
               }
-              id_s1 = (char*) space (strlen(line_t)+2);
+              id_s1 = (char*) vrna_alloc(strlen(line_t)+2);
               (void) sscanf(line_t,"%s",id_s1); 
               memmove(id_s1, id_s1+1, strlen(id_s1));
               free(line_t);
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
             }
             break;
           }
-          s1 = (char *) space(strlen(line_t)+1+20);
+          s1 = (char *) vrna_alloc(strlen(line_t)+1+20);
           strcpy(s1,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
           strcat(s1,line_t);
           free(line_t);
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
           /*read accessibility*/
           int **access_s1;
           char *file_s1;
-          file_s1 = (char *) space(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
+          file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
           strcpy(file_s1, access); 
           strcat(file_s1, "/");
           strcat(file_s1, id_s1);
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
                   free(id_s2);
                   id_s2=NULL;
                 }
-                id_s2 = (char*) space (strlen(line_q)+2);
+                id_s2 = (char*) vrna_alloc(strlen(line_q)+2);
                 (void) sscanf(line_q,"%s",id_s2); 
                 memmove(id_s2, id_s2+1, strlen(id_s2));
                 free(line_q);                
@@ -499,7 +499,7 @@ int main(int argc, char *argv[])
               free(line_q);
               continue;
             }
-            s2 = (char *) space(strlen(line_q)+1+20);
+            s2 = (char *) vrna_alloc(strlen(line_q)+1+20);
             strcpy(s2,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
             strcat(s2,line_q);
             free(line_q);
@@ -512,7 +512,7 @@ int main(int argc, char *argv[])
             }          
             int **access_s2;
             char *file_s2;
-            file_s2 = (char *) space(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
+            file_s2 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
             strcpy(file_s2, access); 
             strcat(file_s2, "/");
             strcat(file_s2, id_s2);
@@ -581,7 +581,7 @@ int main(int argc, char *argv[])
                 free(id_s1);     /* free the old header, a put the new one instead */
                 id_s1=NULL;
               }
-              id_s1 = (char*) space (strlen(line_t)+2);
+              id_s1 = (char*) vrna_alloc(strlen(line_t)+2);
               (void) sscanf(line_t,"%s",id_s1); 
               memmove(id_s1, id_s1+1, strlen(id_s1));
               free(line_t);                
@@ -602,7 +602,7 @@ int main(int argc, char *argv[])
             }
             break;
           }
-          s1 = (char *) space(strlen(line_t)+1+20);
+          s1 = (char *) vrna_alloc(strlen(line_t)+1+20);
           strcpy(s1,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
           strcat(s1,line_t);
           free(line_t);
@@ -625,7 +625,7 @@ int main(int argc, char *argv[])
                   free(id_s2);
                   id_s2=NULL;
                 }
-                id_s2 = (char*) space (strlen(line_q)+2);
+                id_s2 = (char*) vrna_alloc(strlen(line_q)+2);
                 (void) sscanf(line_q,"%s",id_s2); 
                 memmove(id_s2, id_s2+1, strlen(id_s2));
                 free(line_q);                
@@ -646,7 +646,7 @@ int main(int argc, char *argv[])
               free(line_q);
               continue;
             }
-            s2 = (char *) space(strlen(line_q)+1+20);
+            s2 = (char *) vrna_alloc(strlen(line_q)+1+20);
             strcpy(s2,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
             strcat(s2,line_q);
             free(line_q);
@@ -697,7 +697,7 @@ int main(int argc, char *argv[])
                 free(id_s1);     /* free the old header, a put the new one instead */
                 id_s1=NULL;
               }
-              id_s1 = (char*) space (strlen(line_t)+2);
+              id_s1 = (char*) vrna_alloc(strlen(line_t)+2);
               (void) sscanf(line_t,"%s",id_s1); 
               memmove(id_s1, id_s1+1, strlen(id_s1));
               free(line_t);                
@@ -718,7 +718,7 @@ int main(int argc, char *argv[])
             }
             break;
           }
-          s1 = (char *) space(strlen(line_t)+1+20);
+          s1 = (char *) vrna_alloc(strlen(line_t)+1+20);
           strcpy(s1,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
           strcat(s1,line_t);
           free(line_t);
@@ -733,7 +733,7 @@ int main(int argc, char *argv[])
           /*read accessibility*/
           int **access_s1;
           char *file_s1;
-          file_s1 = (char *) space(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
+          file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
           strcpy(file_s1, access); 
           strcat(file_s1, "/");
           strcat(file_s1, id_s1);
@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
                   free(id_s2);
                   id_s2=NULL;
                 }
-                id_s2 = (char*) space (strlen(line_q)+2);
+                id_s2 = (char*) vrna_alloc(strlen(line_q)+2);
                 (void) sscanf(line_q,"%s",id_s2); 
                 memmove(id_s2, id_s2+1, strlen(id_s2));
                 free(line_q);                
@@ -783,7 +783,7 @@ int main(int argc, char *argv[])
               break;
             }
             /* if ((line_t ==NULL) || (strcmp(line_t, "@") == 0)) break; */
-            s2 = (char *) space(strlen(line_q)+1+20);
+            s2 = (char *) vrna_alloc(strlen(line_q)+1+20);
             strcpy(s2,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
             strcat(s2,line_q);
             free(line_q);
@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
               s2[l] = toupper(s2[l]);
               if (!noconv && s2[l] == 'T') s2[l] = 'U';
             }
-            structure = (char *) space((unsigned) s2_len+1);
+            structure = (char *) vrna_alloc((unsigned) s2_len+1);
             cstruc = get_line(sRNA);
             if (cstruc!=NULL) {
               int dn3=strlen(cstruc)-(s2_len-20);
@@ -817,11 +817,11 @@ int main(int argc, char *argv[])
             int a = strchr(structure,'|') - structure;
             int b = strrchr(structure,'|') - structure;
             if(alignment_length < b-a+1){
-              nrerror("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
             }
             int **access_s2;
             char *file_s2;
-            file_s2 = (char *) space(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
+            file_s2 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
             strcpy(file_s2, access); 
             strcat(file_s2, "/");
             strcat(file_s2, id_s2);
@@ -880,7 +880,7 @@ int main(int argc, char *argv[])
                 free(id_s1);     /* free the old header, a put the new one instead */
                 id_s1=NULL;
               }
-              id_s1 = (char*) space (strlen(line_t)+2);
+              id_s1 = (char*) vrna_alloc(strlen(line_t)+2);
               (void) sscanf(line_t,"%s",id_s1); 
               memmove(id_s1, id_s1+1, strlen(id_s1));
               free(line_t);                
@@ -902,7 +902,7 @@ int main(int argc, char *argv[])
             }
             break;
           }
-          s1 = (char *) space(strlen(line_t)+1+20);
+          s1 = (char *) vrna_alloc(strlen(line_t)+1+20);
           strcpy(s1,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
           strcat(s1,line_t);
           free(line_t);
@@ -925,7 +925,7 @@ int main(int argc, char *argv[])
                   free(id_s2);
                   id_s2=NULL;
                 }
-                id_s2 = (char*) space (strlen(line_q)+2);
+                id_s2 = (char*) vrna_alloc(strlen(line_q)+2);
                 (void) sscanf(line_q,"%s",id_s2); 
                 memmove(id_s2, id_s2+1, strlen(id_s2));
                 free(line_q);                
@@ -943,7 +943,7 @@ int main(int argc, char *argv[])
               if(id_s2){free(id_s2);}
               break;
             }
-            s2 = (char *) space(strlen(line_q)+1+20);
+            s2 = (char *) vrna_alloc(strlen(line_q)+1+20);
             strcpy(s2,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
             strcat(s2,line_q);
             free(line_q);
@@ -954,7 +954,7 @@ int main(int argc, char *argv[])
               s2[l] = toupper(s2[l]);
               if (!noconv && s2[l] == 'T') s2[l] = 'U';
             }
-            structure = (char *) space((unsigned) s2_len+1);
+            structure = (char *) vrna_alloc((unsigned) s2_len+1);
             cstruc = get_line(sRNA);
             if (cstruc!=NULL) {
               int dn3=strlen(cstruc)-(s2_len-20);
@@ -977,7 +977,7 @@ int main(int argc, char *argv[])
             int a = strchr(structure,'|') - structure;
             int b = strrchr(structure,'|') - structure;
             if(alignment_length < b-a+1){
-              nrerror("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
             }
             printf(">%s\n>%s\n", id_s1, id_s2);
             double begin = BeginTimer();
@@ -1022,7 +1022,7 @@ int main(int argc, char *argv[])
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
         printf("%s\n", line); 
         if(*line=='>'){
-          id_s1 = (char*) space (strlen(line)+2);
+          id_s1 = (char*) vrna_alloc(strlen(line)+2);
           (void) sscanf(line,"%s",id_s1); 
           memmove(id_s1, id_s1+1, strlen(id_s1));
         }
@@ -1034,7 +1034,7 @@ int main(int argc, char *argv[])
       } 
       if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
       
-      s1 = (char *) space(strlen(line)+1+20);
+      s1 = (char *) vrna_alloc(strlen(line)+1+20);
       strcpy(s1,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
       strcat(s1,line);
       free(line);
@@ -1045,7 +1045,7 @@ int main(int argc, char *argv[])
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
         printf("%s\n", line); 
         if(*line=='>'){
-          id_s2 = (char*) space (strlen(line)+2);
+          id_s2 = (char*) vrna_alloc(strlen(line)+2);
           (void) sscanf(line,"%s",id_s2); 
           memmove(id_s2, id_s2+1, strlen(id_s2));
         }
@@ -1056,7 +1056,7 @@ int main(int argc, char *argv[])
       } 
       if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
       
-      s2 = (char *) space(strlen(line)+1+20);
+      s2 = (char *) vrna_alloc(strlen(line)+1+20);
       strcpy(s2,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
       strcat(s2,line);
       free(line);
@@ -1066,7 +1066,7 @@ int main(int argc, char *argv[])
       int n2=strlen(s2);
 
       
-      structure = (char *) space((unsigned) n2+1);
+      structure = (char *) vrna_alloc((unsigned) n2+1);
       if (fold_constrained) {
         cstruc = get_line(stdin);
         if (cstruc!=NULL && (cstruc[0]=='>')){
@@ -1109,7 +1109,7 @@ int main(int argc, char *argv[])
           int a = strchr(structure,'|') - structure;
           int b = strrchr(structure,'|') - structure;
           if(alignment_length < b-a+1){
-            nrerror("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+            vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
           }
           Lduplexfold_C(s1,s2,delta,extension_cost,alignment_length, deltaz,fast,structure,il_a,il_b,b_a,b_b);
         }
@@ -1120,9 +1120,9 @@ int main(int argc, char *argv[])
         int s1_len, s2_len;
         s1_len = strlen(s1);
         s2_len = strlen(s2);
-        if(!(id_s1 && id_s2)){nrerror("The fasta files has no header information..., cant fetch accessibility file\n");}
-        file_s1 = (char *) space(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
-        file_s2 = (char *) space(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
+        if(!(id_s1 && id_s2)){vrna_message_error("The fasta files has no header information..., cant fetch accessibility file\n");}
+        file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s1)+strlen(access)+20));
+        file_s2 = (char *) vrna_alloc(sizeof(char) * (strlen(id_s2)+strlen(access)+20));
         strcpy(file_s1, access); strcpy(file_s2, access); 
         strcat(file_s1, "/"); strcat(file_s2, "/"); 
         strcat(file_s1, id_s1);strcat(file_s2, id_s2);
@@ -1168,7 +1168,7 @@ int main(int argc, char *argv[])
           int a = strchr(structure,'|') - structure;
           int b = strrchr(structure,'|') - structure;
           if(alignment_length < b-a+1){
-            nrerror("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+            vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
           }
           Lduplexfold_CXS(s1,s2, (const int **) access_s1, (const int **) access_s2, delta,alignment_length, deltaz, fast,structure,il_a,il_b,b_a,b_b);/* , target_dead, query_dead); */
         }
@@ -1214,11 +1214,11 @@ int main(int argc, char *argv[])
         free(temp1[i]); 
         free(temp2[i]); 
       }  
-      nrerror("unequal number of seqs in alignments");
+      vrna_message_error("unequal number of seqs in alignments");
     }
     for(i=0;temp1[i];i++){
-      AS1[i] = (char*) space((strlen(temp1[i])+21)*sizeof(char));
-      AS2[i] = (char*) space((strlen(temp2[i])+21)*sizeof(char));
+      AS1[i] = (char*) vrna_alloc((strlen(temp1[i])+21)*sizeof(char));
+      AS2[i] = (char*) vrna_alloc((strlen(temp2[i])+21)*sizeof(char));
       strcpy(AS1[i],"NNNNNNNNNN");
       strcpy(AS2[i],"NNNNNNNNNN");
       strcat(AS1[i],temp1[i]);
@@ -1329,9 +1329,9 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
     printf("Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
     return NULL;
   }
-  access = (int**) space(sizeof(int *) * (dim_x+2));
+  access = (int**) vrna_alloc(sizeof(int *) * (dim_x+2));
   for(i=0; i< dim_x+2; i++){
-    access[i] =(int *) space(sizeof(int) * (end_r-beg_r+1)); /* normally +1 */
+    access[i] =(int *) vrna_alloc(sizeof(int) * (end_r-beg_r+1)); /* normally +1 */
   }
   for(i=0;i<end_r -  beg_r +1;i++){
     for(j=0;j<dim_x+2;j++){
@@ -1408,7 +1408,7 @@ static int convert_plfold_i(char *fname)
   fclose(in);
   int **access = read_plfold_i(fname,1,length+20,1,u_length);
   char *outname;
-  outname = (char*) space((strlen(fname)+5)*sizeof(char));
+  outname = (char*) vrna_alloc((strlen(fname)+5)*sizeof(char));
   strcpy(outname,fname);
   strcat(outname,"_bin");
   FILE *fp=fopen(outname,"wb");
@@ -1438,7 +1438,7 @@ static int ** read_plfold_i_bin(char *fname, const int beg, const int end, doubl
     return NULL;
   }
   int *first_line;
-  first_line =(int *) space(sizeof(int) * (end - beg+1)); /* check length of the line LOOK at read_plfold_i */
+  first_line =(int *) vrna_alloc(sizeof(int) * (end - beg+1)); /* check length of the line LOOK at read_plfold_i */
   if(!fread(first_line,sizeof(int),(end-beg)+1,fp)){
     fprintf(stderr, "Problem reading size of profile from '%s'/n", fname);/* get the value of the u option */
     return NULL;
@@ -1453,11 +1453,11 @@ static int ** read_plfold_i_bin(char *fname, const int beg, const int end, doubl
   }        
   fseek(fp,0,SEEK_SET);                                     /* set pointer to the begining of the file */
   int **access;                                             /* here we store the access  values */
-  access = (int**) space(sizeof(int *) * (lim_x+1));          /* !!!! lim_x+1 -> lim_x+2 */
+  access = (int**) vrna_alloc(sizeof(int *) * (lim_x+1));          /* !!!! lim_x+1 -> lim_x+2 */
   int count;
   long int position;
   for(count=0; count < lim_x+1; count++){                     /* read file */
-    access[count] = (int*) space(sizeof(int) * (end - beg+1)); /* declare array length */
+    access[count] = (int*) vrna_alloc(sizeof(int) * (end - beg+1)); /* declare array length */
     /* now we should be sure to read the right position */
     /* we first need a seek to the right position */
     /* 0->9 line begin, + begin  */
@@ -1513,11 +1513,11 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
   int aln_size=strlen(ALN[0]); /* aln size -> define size of the averaged accessibility array */
   int * index; /* contains the index used for navigating inside the alignments */
   long long int begin, end; /* contains the begin and end region to read the accessibility */
-  index = (int*) space(sizeof(int) * number);
+  index = (int*) vrna_alloc(sizeof(int) * number);
   for(i=0; i<number; i++){
     index[i]=1;
   }
-  master_access = (int ***) space(sizeof(int**) * number); 
+  master_access = (int ***) vrna_alloc(sizeof(int**) * number); 
   int dim_x; /* contains the minimal of the maximum u length for all sequences of the alignment */
   dim_x=INF;
   int u;
@@ -1536,7 +1536,7 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
   char *file_s1=NULL;
   for(i=0; i< number; i++) {    /*  be careful!!!! Name should contain all characters from begin till the "/" character */
     /* char *s1; */
-    file_s1 = (char *) space(sizeof(char) * (strlen(names[i])+strlen(access)+20));
+    file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(names[i])+strlen(access)+20));
     begin=1;
     int sequence_length = get_sequence_length_from_alignment(ALN[i]);
     end=sequence_length;
@@ -1596,9 +1596,9 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
     file_s1=NULL;
     dim_x=MIN2(dim_x, master_access[i][0][0]);
   }
-  average_access = (int **) space(sizeof(int*) * (dim_x));
+  average_access = (int **) vrna_alloc(sizeof(int*) * (dim_x));
   for(i=0;i<dim_x;i++){
-    average_access[i] = (int *) space(sizeof(int) * (aln_size+9));  /* average_access is of the length of the alignment */
+    average_access[i] = (int *) vrna_alloc(sizeof(int) * (aln_size+9));  /* average_access is of the length of the alignment */
     /* while master_access is of the length of the sequences. */
   }
   average_access[0][0]=dim_x;
@@ -1666,7 +1666,7 @@ static void aliprint_struct(FILE *Result, /* result file */
       free(AS1[i]); 
       free(AS2[i]); 
     }  
-    nrerror("unequal number of seqs in alignments");
+    vrna_message_error("unequal number of seqs in alignments");
   }
   /**
   *** Here we get the length of the target and query alignments. Important for initiliazing the necessary arrays
@@ -1714,7 +1714,7 @@ static void aliprint_struct(FILE *Result, /* result file */
       /**
       *** Copy the structure in the line into variable structure
       **/
-      structure = (char *) space((length+1) * sizeof(char));
+      structure = (char *) vrna_alloc((length+1) * sizeof(char));
       sscanf(result,"%s",structure);
       /**
       *** Save the coordinates on the target 
@@ -1742,17 +1742,17 @@ static void aliprint_struct(FILE *Result, /* result file */
       char **target;
       char **query;
       char **join;
-      target = (char**) space((n_seq+1)*sizeof(char*));
-      query = (char**) space((n_seq+1)*sizeof(char*));
-      join = (char**) space((n_seq+1)*sizeof(char*));
+      target = (char**) vrna_alloc((n_seq+1)*sizeof(char*));
+      query = (char**) vrna_alloc((n_seq+1)*sizeof(char*));
+      join = (char**) vrna_alloc((n_seq+1)*sizeof(char*));
       for(s=0;s<n_seq;s++){
-        target[s] = (char *) space((send-sbegin+2)*sizeof(char));
+        target[s] = (char *) vrna_alloc((send-sbegin+2)*sizeof(char));
         strncpy(target[s], (AS1[s]+sbegin-1), (send-sbegin+1));
         target[s][send-sbegin+1]='\0';
-        query[s] = (char *) space((query_alignment_length+1)*sizeof(char));
+        query[s] = (char *) vrna_alloc((query_alignment_length+1)*sizeof(char));
         strcpy(query[s],   AS2[s]);
         query[s][query_alignment_length]='\0';
-        join[s] = (char *) space((query_alignment_length+(send-sbegin)+3)*sizeof(char));
+        join[s] = (char *) vrna_alloc((query_alignment_length+(send-sbegin)+3)*sizeof(char));
         strncpy(join[s],(AS1[s]+sbegin-1), (send-sbegin+1));
         strcat(join[s],"&");
         strcat(join[s],AS2[s]);
@@ -1764,9 +1764,9 @@ static void aliprint_struct(FILE *Result, /* result file */
       *** We define and set the query and target constraint
       **/
       char * target_constraint; char * query_constraint; char * joint_structure;
-      target_constraint = (char *) space((unsigned) (send-sbegin+2));
-      query_constraint = (char *) space((unsigned) (query_alignment_length+1));
-      joint_structure = (char *) space((unsigned) (send-sbegin+3+query_alignment_length));
+      target_constraint = (char *) vrna_alloc((unsigned) (send-sbegin+2));
+      query_constraint = (char *) vrna_alloc((unsigned) (query_alignment_length+1));
+      joint_structure = (char *) vrna_alloc((unsigned) (send-sbegin+3+query_alignment_length));
       for(i=0; i<strlen(target[0]);i++){
         if(i>tbegin-sbegin-1 && i<tend-sbegin+1){
           target_constraint[i]='x';
@@ -1829,14 +1829,14 @@ static void aliprint_struct(FILE *Result, /* result file */
       char *string;
       temp_target  = consensus((const char **) target);
       temp_query   = consensus((const char **) query);
-      string       = (char *) space((strlen(temp_target)+strlen(temp_query)+1)*sizeof(char));
+      string       = (char *) vrna_alloc((strlen(temp_target)+strlen(temp_query)+1)*sizeof(char));
       strcpy(string,temp_target);free(temp_target);
       strcat(string,temp_query);free(temp_query);
       /**
       *** now produce output name, based on the first two names of the alignment
       **/
       int length_name = strlen(names1[0]) + strlen(names2[0])+1; 
-      char *psoutput = (char*) space((length_name + 100)*sizeof(char));
+      char *psoutput = (char*) vrna_alloc((length_name + 100)*sizeof(char));
       char str[16];
       strcpy(psoutput,"annaln_");
       strcat(psoutput,names1[0]);
@@ -1883,7 +1883,7 @@ static void aliprint_struct(FILE *Result, /* result file */
       **/
       
       char *joint_structure_parenthesis;
-      joint_structure_parenthesis=(char *) space((strlen(joint_structure)+1)*sizeof(char));
+      joint_structure_parenthesis=(char *) vrna_alloc((strlen(joint_structure)+1)*sizeof(char));
       strcpy(joint_structure_parenthesis,joint_structure);
       for(i=0; i<strlen(joint_structure);i++){
         if((joint_structure[i]=='[') || (joint_structure[i]=='<')){
@@ -1953,7 +1953,7 @@ static int get_sequence_length_from_alignment(char *sequence){
 }
 
 static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit parameters*/
-  paramT *P = NULL;
+  vrna_param_t *P = NULL;
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     P = scale_parameters();
@@ -1980,7 +1980,7 @@ static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit para
   if((sumxx - (sumx*sumx)/n) < 1e-6){
     free(P);
     printf("divisor for internal loop is too small %d\n",(sumxx - (sumx*sumx)/n));
-    nrerror("Problem in fitting");
+    vrna_message_error("Problem in fitting");
   }
   til_a = (sumxy - (sumx * sumy)/n)/(sumxx - (sumx*sumx)/n);
   til_b = sumy/n - (til_a * sumx/n);
@@ -2010,7 +2010,7 @@ static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit para
   free(P);
   if((sumxx - (sumx*sumx)/n) < 1e-6){
     printf("divisor for bulge loop is too small %d\n",(sumxx - (sumx*sumx)/n));
-    nrerror("Problem in fitting");
+    vrna_message_error("Problem in fitting");
   }
 }
 
@@ -2260,7 +2260,7 @@ double probcompute_newparameters(char *s1, double k_concentration, double tris_c
   /* ////////////////////////////////////////// */
   /* Folding Init */
   /* //////////////////////////////////////////   */
-  paramT *P = NULL;
+  vrna_param_t *P = NULL;
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     P = scale_parameters();

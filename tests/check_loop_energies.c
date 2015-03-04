@@ -6,7 +6,7 @@
 
 START_TEST(test_E_Hairpin)
 {
-  paramT param = {0};
+  vrna_param_t param = {0};
   int i, j, k, l;
 
   for (i = 0; i <= 30; ++i)
@@ -60,7 +60,7 @@ END_TEST
 
 START_TEST(test_E_stem)
 {
-  paramT param = {0};
+  vrna_param_t param = {0};
 
   param.dangle3[1][1] = 3;
   param.dangle3[3][1] = 2;
@@ -88,7 +88,7 @@ END_TEST
 
 START_TEST(test_E_MLstem)
 {
-  paramT param = {0};
+  vrna_param_t param = {0};
   param.MLintern[1] = 1;
   param.dangle3[1][0] = 3;
   param.dangle5[1][0] = 5;
@@ -114,7 +114,7 @@ END_TEST
 
 START_TEST(test_E_ExtLoop)
 {
-  paramT param = {0};
+  vrna_param_t param = {0};
   param.dangle3[1][0] = 3;
   param.dangle5[1][0] = 5;
   param.mismatchExt[1][0][0] = 100;
@@ -139,7 +139,7 @@ END_TEST
 
 START_TEST(test_E_IntLoop)
 {
-  paramT param = {0};
+  vrna_param_t param = {0};
 
   param.stack[1][2] = 1;
   ck_assert_int_eq(E_IntLoop(0, 0, 1, 2, -1, -1, -1, -1, &param), 1);

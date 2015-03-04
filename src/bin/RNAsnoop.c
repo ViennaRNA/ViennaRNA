@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
       /* skip comment lines and get filenames */
       while ((*line_s=='*')||(*line_s=='\0')||(*line_s=='>')) {
         if (*line_s=='>')
-          name_s = (char *) space(strlen(line_s)+1);
+          name_s = (char *) vrna_alloc(strlen(line_s)+1);
         (void) sscanf(line_s,"%s",name_s);
         free(line_s);
         if ((line_s = get_line(sno))==NULL) {
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
       }
       if(name_s == NULL) {printf("Your snoRNA sequence: \n%s\nhas no header. Please update your fasta file\n", line_s); exit(0);}
       /*   if ((line ==NULL) || (strcmp(line, "@") == 0)) break; */
-      temp_s = (char *) space(strlen(line_s)+1);
+      temp_s = (char *) vrna_alloc(strlen(line_s)+1);
       (void) sscanf(line_s,"%s",temp_s);
       free(line_s);
       length_s = (int) strlen(temp_s);
@@ -234,13 +234,13 @@ int main(int argc, char *argv[])
         temp_s[l] = toupper(temp_s[l]);
         if (!noconv && temp_s[l] == 'T') temp_s[l] = 'U';
       }
-      string_s = (char*) space(length_s + 11);
+      string_s = (char*) vrna_alloc(length_s + 11);
       strcpy(string_s, "NNNNN");
       strcat(string_s+5, temp_s);
       strcat(string_s+5+length_s, "NNNNN\0");
       free(temp_s); 
       /* We declare the structure variable here as it will also contains the final stem structure */
-      structure=(char *)space((unsigned) length_s+11);
+      structure=(char *)vrna_alloc((unsigned) length_s+11);
       if(fold_constrained){
 	cstruc = get_line(sno);
 	if(cstruc!=NULL){
@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
         while ((*line_t=='*')||(*line_t=='\0')||(*line_t=='>')) {
           if (*line_t=='>'){
             printf("%s\n", name_s);
-            name_t = (char*) space(strlen(line_t)+1);
+            name_t = (char*) vrna_alloc(strlen(line_t)+1);
             (void) sscanf(line_t,"%s",name_t);
             
             printf("%s\n", name_t);
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
         }
         if(name_t == NULL) {printf("Your target sequence: \n%s\nhas no header. Please update your fasta file\n", line_t); exit(0);}
         /*   if ((line ==NULL) || (strcmp(line, "@") == 0)) break; */
-        temp_t = (char *) space(strlen(line_t)+1);
+        temp_t = (char *) vrna_alloc(strlen(line_t)+1);
         (void) sscanf(line_t,"%s",temp_t);
         int length_t;
         length_t = (int) strlen(temp_t);
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
           temp_t[l] = toupper(temp_t[l]);
           if (!noconv && temp_t[l] == 'T') temp_t[l] = 'U';
         }
-        string_t =(char *) space(length_t +11);
+        string_t =(char *) vrna_alloc(length_t +11);
         strcpy(string_t, "NNNNN");
         strcat(string_t+5, temp_t);
         strcat(string_t+5+length_t, "NNNNN");
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
         char *name_output;
         name_output=NULL;
         if(nice){
-          name_output = (char*) space(sizeof(char)*(length_t+length_s+2));
+          name_output = (char*) vrna_alloc(sizeof(char)*(length_t+length_s+2));
           strcpy(name_output, name_t+1);
           strcat(name_output, "_");
           strcat(name_output, name_s+1);
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
               char *file_s1;
               int s1_len;/* k;*/ /*,j; */
               s1_len=strlen(string_t); 
-              file_s1 = (char *) space(sizeof(char) * (strlen(name_t+1)+strlen(access)+9));
+              file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(name_t+1)+strlen(access)+9));
               strcpy(file_s1, access);
               strcat(file_s1, "/");
               strcat(file_s1, name_t+1);
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
               char *file_s1;
               int s1_len,k;/* ,j; */
               s1_len=strlen(string_t); 
-              file_s1 = (char *) space(sizeof(char) * (strlen(name_t+1)+strlen(suffix) + strlen(access)+3));
+              file_s1 = (char *) vrna_alloc(sizeof(char) * (strlen(name_t+1)+strlen(suffix) + strlen(access)+3));
               strcpy(file_s1, access);
               strcat(file_s1, "/");
               strcat(file_s1, name_t+1);
@@ -443,11 +443,11 @@ int main(int argc, char *argv[])
         free(temp1[i]); 
         free(temp2[i]); 
       }  
-      nrerror("unequal number of seqs in alignments");
+      vrna_message_error("unequal number of seqs in alignments");
     }
     for(i=0;temp1[i];i++){
-      AS1[i] = (char*) space((strlen(temp1[i])+11)*sizeof(char));
-      AS2[i] = (char*) space((strlen(temp2[i])+11)*sizeof(char));
+      AS1[i] = (char*) vrna_alloc((strlen(temp1[i])+11)*sizeof(char));
+      AS2[i] = (char*) vrna_alloc((strlen(temp2[i])+11)*sizeof(char));
       strcpy(AS1[i],"NNNNN");
       strcpy(AS2[i],"NNNNN");
       strcat(AS1[i],temp1[i]);
@@ -517,7 +517,7 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
   char *target_struct;
   int shift=0, n2;
   char* psoutput;
-  psoutput = (char*) space(100*sizeof(char));
+  psoutput = (char*) vrna_alloc(100*sizeof(char));
 /*   if(dup->i > strlen(s1)-10){ */
 /*         dup->i--; */
 /*         l1--; */
@@ -526,17 +526,17 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
 /*         l1--; */
 /*         shift++; */
 /*   } */
-  target_struct = (char*) space(sizeof(char) * (strlen(dup->structure)+1));
+  target_struct = (char*) vrna_alloc(sizeof(char) * (strlen(dup->structure)+1));
   strncpy(target_struct, dup->structure+shift, l1);
   strncat(target_struct, dup->structure + (strchr(dup->structure, '&')-dup->structure), strlen(dup->structure) - (strchr(dup->structure, '&')-dup->structure));
   strcat(target_struct,"\0");
   char *target;
-  target = (char *) space(l1+1);
+  target = (char *) vrna_alloc(l1+1);
   strncpy(target, (s1+dup->i-l1+5), l1);
   target[l1]='\0';
   char *s4;
   n2 = strlen(s2);
-  s4 = (char*) space(sizeof(char) *(n2-9));
+  s4 = (char*) vrna_alloc(sizeof(char) *(n2-9));
   strncpy(s4, s2+5, n2-10);
   s4[n2-10]='\0';
   printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
@@ -547,8 +547,8 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
   if(nice){
     char *temp_seq;
     char *temp_struc;
-    temp_seq = (char*) space(sizeof(char)*(l1+n2-9));
-    temp_struc = (char*) space(sizeof(char)*(l1+n2-9));
+    temp_seq = (char*) vrna_alloc(sizeof(char)*(l1+n2-9));
+    temp_struc = (char*) vrna_alloc(sizeof(char)*(l1+n2-9));
     strcpy(temp_seq, target);
     strcat(temp_seq, s4);
     strncpy(temp_struc, target_struct, l1);
@@ -559,7 +559,7 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
     char str[16];char upos[16];
     char *temp; 
     int length_name = strlen(name_t)+strlen(name_s);
-    temp = (char *) space(sizeof(char)*(length_name+1));
+    temp = (char *) vrna_alloc(sizeof(char)*(length_name+1));
     strcpy(temp,name_t+1);
     strcat(temp,"_");
     strcat(temp,name_s + 1);
@@ -597,7 +597,7 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
 /*     shift++; */
 /*   } */
   int length_struct = strlen(dup->structure);
-  target_struct = (char*) space(sizeof(char) * (length_struct+1));
+  target_struct = (char*) vrna_alloc(sizeof(char) * (length_struct+1));
   strncpy(target_struct, dup->structure+shift, l1);
   strncat(target_struct, dup->structure + (strchr(dup->structure, '&')-dup->structure), length_struct - (strchr(dup->structure, '&')-dup->structure));
   strcat(target_struct,"\0");
@@ -608,9 +608,9 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
   int n1,n2;
   n1=strlen(s1[0]);n2=strlen(s2[0]);  
   char **target;
-  target = (char**) space((n_seq+1)*sizeof(char*));
+  target = (char**) vrna_alloc((n_seq+1)*sizeof(char*));
   for(s=0;s<n_seq;s++){
-    target[s] = (char *) space((l1 + n2-8)*sizeof(char));
+    target[s] = (char *) vrna_alloc((l1 + n2-8)*sizeof(char));
     strncpy(target[s], (s1[s]+dup->i-l1+5), l1);
     strcat(target[s],"&");
     strncat(target[s], (s2[s]+5), n2-10);
@@ -627,14 +627,14 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
           dup->Duplex_El/n_seq, dup->Duplex_Er/n_seq, dup->Loop_E/n_seq, dup->Loop_D/n_seq,dup->pscd/n_seq, dup->psct/n_seq,consens ); 
   if(nice){
     char* psoutput;
-    psoutput = (char*) space(100*sizeof(char));
+    psoutput = (char*) vrna_alloc(100*sizeof(char));
     
     char *temp_seq, *temp_struct, **temp_target;  
-    temp_seq    = (char*) space((l1 + n2 -9)*sizeof(char));
-    temp_struct = (char*) space((l1 + n2 -9)*sizeof(char));
-    temp_target = (char**) space((n_seq+1)*sizeof(char*));
+    temp_seq    = (char*) vrna_alloc((l1 + n2 -9)*sizeof(char));
+    temp_struct = (char*) vrna_alloc((l1 + n2 -9)*sizeof(char));
+    temp_target = (char**) vrna_alloc((n_seq+1)*sizeof(char*));
     for(s=0;s<n_seq;s++){
-      temp_target[s] = (char *) space((l1 + n2-9)*sizeof(char));
+      temp_target[s] = (char *) vrna_alloc((l1 + n2-9)*sizeof(char));
       strncpy(temp_target[s], (s1[s]+dup->i-l1+5), l1);
       strncat(temp_target[s], (s2[s]+5), n2-10);
       temp_target[s][l1+n2-10]='\0';
@@ -649,7 +649,7 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
     char upos[16];
     char *temp; 
     int length_name = strlen(name_t[0]) + strlen(name_s[0])+1;
-    temp = (char *) space(sizeof(char)*(length_name+1));
+    temp = (char *) vrna_alloc(sizeof(char)*(length_name+1));
     strcpy(temp,name_t[0]);
     strcat(temp,"_");
     strcat(temp, name_s[0]);
@@ -745,9 +745,9 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
 
   int dim_x;
   dim_x = get_max_u(tmp,'S'); /*  get unpaired regions by conting tabs in second line */
-  access = (int**) space(sizeof(int *) * (dim_x+2));
+  access = (int**) vrna_alloc(sizeof(int *) * (dim_x+2));
   for(i=0; i< dim_x+2; i++){
-    access[i] =(int *) space(sizeof(int) * (end_r-beg_r+7));
+    access[i] =(int *) vrna_alloc(sizeof(int) * (end_r-beg_r+7));
   }
   for(i=0;i<end_r -  beg_r +6;i++){
     for(j=0;j<dim_x+2;j++){
@@ -817,9 +817,9 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
   }
   int dim_x;
   dim_x=get_max_u(tmp,'\t');
-  access = (int**) space(sizeof(int *) * (dim_x+2));
+  access = (int**) vrna_alloc(sizeof(int *) * (dim_x+2));
   for(i=0; i< dim_x+2; i++){
-    access[i] =(int *) space(sizeof(int) * (end_r-beg_r+1));
+    access[i] =(int *) vrna_alloc(sizeof(int) * (end_r-beg_r+1));
   }
   
   for(i=0;i<end_r -  beg_r +1;i++){
@@ -870,7 +870,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
   int posi;
   int begin=0, end=0, u=0;
   if(output==NULL){
-    output = (char*) space(sizeof(char)*2);
+    output = (char*) vrna_alloc(sizeof(char)*2);
     strcpy(output,".\0");
   }
   count=0;
@@ -878,7 +878,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
     while((line=get_line(stdin))!=NULL) {
       count++;
       if(two_seq==0 && *line =='>'){
-        query=(char*) space(strlen(line)+1);
+        query=(char*) vrna_alloc(strlen(line)+1);
         (void) sscanf(line,"%s",query);
         free(line);
         line=NULL;
@@ -886,7 +886,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
         two_seq++;
       }
       else if(two_seq==1 && *line =='>'){
-        target=(char*) space(strlen(line)+1);
+        target=(char*) vrna_alloc(strlen(line)+1);
         (void) sscanf(line,"%s",target);
         free(line);
         line=NULL;
@@ -903,11 +903,11 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           pos = strchr(results, ' ');
           posi = (int)  (pos - results);
           length = posi;
-          structure = (char *) space((length+1) * sizeof(char));
+          structure = (char *) vrna_alloc((length+1) * sizeof(char));
           sscanf(results,"%s",structure); /* parse structure */
           char *line2;
           if((line2=get_line(stdin))!=NULL){
-            sequence=(char *) space((length+1)* sizeof(char));
+            sequence=(char *) vrna_alloc((length+1)* sizeof(char));
             sscanf(line2,"%s",sequence);
             if(line2!=NULL){
               free(line2);
@@ -922,7 +922,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
             int **access_s1;
             char *file_s1;
             /* read_rnaup_file */
-            file_s1 = (char*) space(sizeof(char) * (strlen(target)+strlen(suffix)+strlen(access)+3));
+            file_s1 = (char*) vrna_alloc(sizeof(char) * (strlen(target)+strlen(suffix)+strlen(access)+3));
             strcpy(file_s1, access);
             strcat(file_s1, "/");
             strcat(file_s1, target);
@@ -930,7 +930,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
             strcat(file_s1, suffix);
             access_s1 = read_rnaup(file_s1, begin, end);
             free(file_s1);
-            relative_access = (int*) space(sizeof(int)*(end-begin+2));
+            relative_access = (int*) vrna_alloc(sizeof(int)*(end-begin+2));
             relative_access[0]=access_s1[1][1+5];
             int i;
             for(i=2;i<(end-begin+2);i++){
@@ -943,8 +943,8 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
             free(access_s1);
           }
           char *catseq, *catstruct,*output_file;
-          catseq = (char*) space(strlen(sequence)  *sizeof(char));
-          catstruct = (char*) space(strlen(structure)  *sizeof(char));
+          catseq = (char*) vrna_alloc(strlen(sequence)  *sizeof(char));
+          catstruct = (char*) vrna_alloc(strlen(structure)  *sizeof(char));
           int l1 = strchr(structure, '&')-structure;
           strncpy(catseq, sequence, l1);
           strcat(catseq, sequence+l1+1);
@@ -955,7 +955,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           
           /* printf("%s\n%s\n%s\n%s", catseq,sequence,catstruct,structure); */
           cut_point=l1+1;
-          output_file = (char*) space((strlen(output) + strlen(query)+strlen(target)+50)*sizeof(char));
+          output_file = (char*) vrna_alloc((strlen(output) + strlen(query)+strlen(target)+50)*sizeof(char));
           strcpy(output_file,output);
           strcat(output_file, "/");
           strcat(output_file,"sno_");
@@ -985,7 +985,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
         else if(*line=='>'){
           free(query);free(target);
           two_seq=1;
-          query = (char*) space(sizeof(char)*(strlen(line)+1));
+          query = (char*) vrna_alloc(sizeof(char)*(strlen(line)+1));
           (void) sscanf(line,"%s",query); 
           free(line);
           memmove(query, query+1, strlen(query));
@@ -1011,11 +1011,11 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
         free(temp1[i]); 
         free(temp2[i]); 
       }  
-      nrerror("unequal number of seqs in alignments");
+      vrna_message_error("unequal number of seqs in alignments");
     }
     for(i=0;temp1[i];i++){
-      AS1[i] = (char*) space((strlen(temp1[i])+11)*sizeof(char));
-      AS2[i] = (char*) space((strlen(temp2[i])+11)*sizeof(char));
+      AS1[i] = (char*) vrna_alloc((strlen(temp1[i])+11)*sizeof(char));
+      AS2[i] = (char*) vrna_alloc((strlen(temp2[i])+11)*sizeof(char));
       strcpy(AS1[i],"NNNNN");
       strcpy(AS2[i],"NNNNN");
       strcat(AS1[i],temp1[i]);
@@ -1041,7 +1041,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
         pos = strchr(results, ' ');
         posi = (int)  (pos - results);
         length = posi;
-        dup.structure = (char *) space((length+1) * sizeof(char));
+        dup.structure = (char *) vrna_alloc((length+1) * sizeof(char));
         sscanf(results,"%s %10d,%10d;%10d : %10d,%10d (%10f = %10f + %10f + %10f + %10f + 4.1; duplex cov = %10f; stem cov = %10f",
                dup.structure,
                &begin,

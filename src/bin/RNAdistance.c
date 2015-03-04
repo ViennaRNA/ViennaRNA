@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
       switch(ttype[tt]){
       case 'f' :
       case 'F' :
-        if (type!=1) nrerror("Can't convert back to full structure");
+        if (type!=1) vrna_message_error("Can't convert back to full structure");
         xstruc = expand_Full(line);
         if(islower(ttype[tt])) {  /* tree_edit */
           T[tree_types++][n] = make_tree(xstruc);
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
         free(xstruc);
         break;
       case 'P':
-        if (type!=1) nrerror("Can't convert back to full structure");
+        if (type!=1) vrna_message_error("Can't convert back to full structure");
         P[n] = strdup(line);
         break;
       case 'h' :
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
           free(xstruc);
           break;
         default:
-          nrerror("Can't convert to HIT structure");
+          vrna_message_error("Can't convert to HIT structure");
         }
         break;
       case 'c' :
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
           xstruc = unweight(line);
           break;
         default:
-          nrerror("Unknown structure representation");
+          vrna_message_error("Unknown structure representation");
           exit(0);
         }
         if(islower(ttype[tt])) {
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        nrerror("Unknown distance type");
+        vrna_message_error("Unknown distance type");
       }
     }
     n++;

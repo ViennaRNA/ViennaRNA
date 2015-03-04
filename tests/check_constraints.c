@@ -1,10 +1,11 @@
-#include <check.h>
-
-#include <ViennaRNA/constraints.h>
 
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <check.h>
+
+#include <ViennaRNA/file_formats.h>
+#include <ViennaRNA/constraints.h>
 
 static int deltaCompare(double a, double b)
 {
@@ -15,7 +16,7 @@ static int deltaCompare(double a, double b)
   return 0;
 }
 
-START_TEST(test_convert_shape_reactivities_to_probabilities)
+START_TEST(test_vrna_sc_SHAPE_to_pr)
 {
   int ret;
   double negative_values[] = {0, -100, -1, -1e-10};
@@ -30,25 +31,25 @@ START_TEST(test_convert_shape_reactivities_to_probabilities)
   double log_values[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
   double log_values_custom[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
 
-  ret = convert_shape_reactivities_to_probabilities(NULL, NULL, 0, 0);
+  ret = vrna_sc_SHAPE_to_pr(NULL, NULL, 0, 0);
   ck_assert_int_eq(ret, 0);
 
-  ret = convert_shape_reactivities_to_probabilities("", NULL, 0, 0);
+  ret = vrna_sc_SHAPE_to_pr("", NULL, 0, 0);
   ck_assert_int_eq(ret, 0);
 
-  ret = convert_shape_reactivities_to_probabilities("X", NULL, 0, 0);
+  ret = vrna_sc_SHAPE_to_pr("X", NULL, 0, 0);
   ck_assert_int_eq(ret, 0);
 
-  ret = convert_shape_reactivities_to_probabilities("M", NULL, 0, 0);
+  ret = vrna_sc_SHAPE_to_pr("M", NULL, 0, 0);
   ck_assert_int_eq(ret, 0);
 
-  ret = convert_shape_reactivities_to_probabilities("M", negative_values, 3, 0.123);
+  ret = vrna_sc_SHAPE_to_pr("M", negative_values, 3, 0.123);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(negative_values[1], 0.123));
   ck_assert(deltaCompare(negative_values[2], 0.123));
   ck_assert(deltaCompare(negative_values[3], 0.123));
 
-  ret = convert_shape_reactivities_to_probabilities("M", hardcoded_range_values, 7, 0);
+  ret = vrna_sc_SHAPE_to_pr("M", hardcoded_range_values, 7, 0);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(hardcoded_range_values[1], 0.175));
   ck_assert(deltaCompare(hardcoded_range_values[2], 0.35));
@@ -57,38 +58,38 @@ START_TEST(test_convert_shape_reactivities_to_probabilities)
   ck_assert(deltaCompare(hardcoded_range_values[5], 0.7));
   ck_assert(deltaCompare(hardcoded_range_values[6], 0.85));
 
-  ret = convert_shape_reactivities_to_probabilities("M", upper_range_values, 3, 0);
+  ret = vrna_sc_SHAPE_to_pr("M", upper_range_values, 3, 0);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(upper_range_values[1], 0.9));
   ck_assert(deltaCompare(upper_range_values[2], 0.95));
   ck_assert(deltaCompare(upper_range_values[3], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("M", upper_range_values2, 2, 0);
+  ret = vrna_sc_SHAPE_to_pr("M", upper_range_values2, 2, 0);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(upper_range_values2[1], 0.925));
   ck_assert(deltaCompare(upper_range_values2[2], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("C", cutoff_values_default, 4, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("C", cutoff_values_default, 4, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(cutoff_values_default[1], 0.5));
   ck_assert(deltaCompare(cutoff_values_default[2], 0));
   ck_assert(deltaCompare(cutoff_values_default[3], 1));
   ck_assert(deltaCompare(cutoff_values_default[4], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("C0.5", cutoff_values, 4, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("C0.5", cutoff_values, 4, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(cutoff_values[1], 0.5));
   ck_assert(deltaCompare(cutoff_values[2], 0));
   ck_assert(deltaCompare(cutoff_values[3], 1));
   ck_assert(deltaCompare(cutoff_values[4], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("S", skip_values, 3, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("S", skip_values, 3, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(skip_values[1], -1));
   ck_assert(deltaCompare(skip_values[2], 0.5));
   ck_assert(deltaCompare(skip_values[3], 2));
 
-  ret = convert_shape_reactivities_to_probabilities("L", linear_values, 7, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("L", linear_values, 7, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(linear_values[1], 0.5));
   ck_assert(deltaCompare(linear_values[2], 0));
@@ -98,7 +99,7 @@ START_TEST(test_convert_shape_reactivities_to_probabilities)
   ck_assert(deltaCompare(linear_values[6], 1));
   ck_assert(deltaCompare(linear_values[7], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("Ls0.5i0.1", linear_custom_values, 7, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("Ls0.5i0.1", linear_custom_values, 7, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(linear_custom_values[1], 0.5));
   ck_assert(deltaCompare(linear_custom_values[2], 0));
@@ -108,7 +109,7 @@ START_TEST(test_convert_shape_reactivities_to_probabilities)
   ck_assert(deltaCompare(linear_custom_values[6], 1));
   ck_assert(deltaCompare(linear_custom_values[7], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("O", log_values, 7, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("O", log_values, 7, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(log_values[1], 0.5));
   ck_assert(deltaCompare(log_values[2], 0));
@@ -118,7 +119,7 @@ START_TEST(test_convert_shape_reactivities_to_probabilities)
   ck_assert(deltaCompare(log_values[6], 1));
   ck_assert(deltaCompare(log_values[7], 1));
 
-  ret = convert_shape_reactivities_to_probabilities("Os1.5i-2", log_values_custom, 7, 0.5);
+  ret = vrna_sc_SHAPE_to_pr("Os1.5i-2", log_values_custom, 7, 0.5);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(log_values_custom[1], 0.5));
   ck_assert(deltaCompare(log_values_custom[2], 0));
@@ -141,7 +142,7 @@ static void writeTempFile(char *tempfile, const char *data)
   fclose(f);
 }
 
-START_TEST(test_parse_soft_constraints_file)
+START_TEST(test_vrna_read_SHAPE_file)
 {
   char tempfile[L_tmpnam + 1];
   const size_t len = 5;
@@ -151,7 +152,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //1 entry
   writeTempFile(tempfile, "1 A 0.5\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -159,7 +160,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //1 entry 2 columns
   writeTempFile(tempfile, "1 0.5\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "N");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -167,7 +168,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //multiple entries
   writeTempFile(tempfile, "1 A 0.1\n2 T 0.2\n3 G 0.3\n4 C 0.4\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -178,7 +179,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //value formats
   writeTempFile(tempfile, "1 A 1\n2 T 2.\n3 G .3\n4 C 1e-1\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 1));
@@ -189,7 +190,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //whitespaces
   writeTempFile(tempfile, "1 \t 0.5\n2    A\t1\n");
-  ret = parse_soft_constraints_file(tempfile, 2, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 2, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "NA");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -198,7 +199,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //missing value
   writeTempFile(tempfile, "1 A\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 123, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 123));
@@ -206,7 +207,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //missing nucleotide & value
   writeTempFile(tempfile, "1\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 123, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "N");
   ck_assert(deltaCompare(values[1], 123));
@@ -214,19 +215,19 @@ START_TEST(test_parse_soft_constraints_file)
 
   //upper limit
   writeTempFile(tempfile, "1 A 0.1\n2 T 0.2\n3 G 0.3\n4 C 0.4\n");
-  ret = parse_soft_constraints_file(tempfile, 3, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 3, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //lower limit
   writeTempFile(tempfile, "0 A 0.1\n1 T 0.2\n2 G 0.3\n3 C 0.4\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //unordered
   writeTempFile(tempfile, "3 G 0.3\n2 T 0.2\n4 C 0.4\n1 A 0.1\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -237,7 +238,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //missing indices middle
   writeTempFile(tempfile, "1 A 0.1\n4 C 0.4\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 123, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ANNC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -248,7 +249,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //missing indices start end
   writeTempFile(tempfile, "2 T 0.2\n3 G 0.3\n");
-  ret = parse_soft_constraints_file(tempfile, 4, 123, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 4, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "NTGN");
   ck_assert(deltaCompare(values[1], 123));
@@ -258,12 +259,12 @@ START_TEST(test_parse_soft_constraints_file)
   unlink(tempfile);
 
   //invalid file
-  ret = parse_soft_constraints_file(NULL, 0, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(NULL, 0, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
 
   //missing linebreak
   writeTempFile(tempfile, "1 A 0.5");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -271,7 +272,7 @@ START_TEST(test_parse_soft_constraints_file)
 
   //garbage + entry
   writeTempFile(tempfile, "\nblablabla\n#evil_comment 123\n1 A 0.5\n\ngarbage\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -279,138 +280,138 @@ START_TEST(test_parse_soft_constraints_file)
 
   //garbage only
   writeTempFile(tempfile, "\nblablabla\n\ngarbage\n");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //empty file
   writeTempFile(tempfile, "");
-  ret = parse_soft_constraints_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 }
 END_TEST
 
-START_TEST(test_parse_soft_constraints_shape_method)
+START_TEST(test_vrna_sc_SHAPE_parse_method)
 {
   float p1, p2;
   char method;
   int ret;
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method(NULL, &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method(NULL, &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("", &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("X", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("X", &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("D", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("D", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Dm", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Dm", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Db", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Db", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Dmb", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Dmb", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Dm3b4", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Dm3b4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3));
   ck_assert(deltaCompare(p2, 4));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Dm3.4b4.5", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Dm3.4b4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, 4.5));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Dm3.4", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Dm3.4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, -0.6));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Db4.5", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Db4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, 4.5));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Z", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Z", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Zb4.5", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Zb4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 4.5));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Zx", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Zx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("W", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("W", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Wb4.5", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Wb4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
   p1 = p2 = method = 0;
-  ret = parse_soft_constraints_shape_method("Wx", &method, &p1, &p2);
+  ret = vrna_sc_SHAPE_parse_method("Wx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
@@ -420,7 +421,7 @@ END_TEST
 
 START_TEST(test_vrna_sc_add_sp)
 {
-  model_detailsT md;
+  vrna_md_t md;
   vrna_fold_compound *vc;
   double values[] = { 0, 0, 1, -0.5 };
 
@@ -462,9 +463,9 @@ END_TEST
 TCase* constraints_testcase()
 {
   TCase *tc = tcase_create("constraints");
-  tcase_add_test(tc, test_convert_shape_reactivities_to_probabilities);
-  tcase_add_test(tc, test_parse_soft_constraints_file);
-  tcase_add_test(tc, test_parse_soft_constraints_shape_method);
+  tcase_add_test(tc, test_vrna_sc_SHAPE_to_pr);
+  tcase_add_test(tc, test_vrna_read_SHAPE_file);
+  tcase_add_test(tc, test_vrna_sc_SHAPE_parse_method);
   tcase_add_test(tc, test_vrna_sc_add_sp);
 
   return tc;

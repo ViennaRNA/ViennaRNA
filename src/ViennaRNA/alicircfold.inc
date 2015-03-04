@@ -23,10 +23,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
   char              **Ss;
   char              *hard_constraints;
   unsigned short    **a2s;
-  paramT            *P;
-  model_detailsT    *md;
-  hard_constraintT  *hc;
-  soft_constraintT  **sc;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  vrna_sc_t         **sc;
 
   S                 = vc->S;
   S5                = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
@@ -45,10 +45,10 @@ fill_arrays_circ( vrna_fold_compound *vc,
   n_seq             = vc->n_seq;
   length            = vc->length;
   rtype             = &(md->rtype[0]);
-  type              = (int *) space(n_seq*sizeof(int));
+  type              = (int *) vrna_alloc(n_seq*sizeof(int));
 
   /* extra arrays for circfold() */
-  fM2 = (int *) space(sizeof(int)*(length+2));
+  fM2 = (int *) vrna_alloc(sizeof(int)*(length+2));
   FcH = FcI= FcM = FcMd3= FcMd5= INF;
 
   if(hc->up_ext[1] >= length){

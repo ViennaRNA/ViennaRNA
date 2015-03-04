@@ -24,11 +24,11 @@
 #################################
 */
 PRIVATE plist *
-wrap_get_plist( pf_matricesT *matrices,
+wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
-                pf_paramT *pf_params,
+                vrna_exp_param_t *pf_params,
                 double cut_off);
 
 /*
@@ -38,14 +38,14 @@ wrap_get_plist( pf_matricesT *matrices,
 */
 
 PUBLIC char *
-vrna_pack_structure(const char *struc){
+vrna_db_pack(const char *struc){
 
   /* 5:1 compression using base 3 encoding */
   int i,j,l,pi;
   unsigned char *packed;
 
   l = (int) strlen(struc);
-  packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
+  packed = (unsigned char *) vrna_alloc(((l+4)/5+1)*sizeof(unsigned char));
 
   j=i=pi=0;
   while (i<l) {
@@ -62,7 +62,7 @@ vrna_pack_structure(const char *struc){
       case ')':
         p += 2;
         break;
-      default: nrerror("pack_structure: illegal charcter in structure");
+      default: vrna_message_error("pack_structure: illegal charcter in structure");
       }
       if (i<l) i++;
     }
@@ -74,7 +74,7 @@ vrna_pack_structure(const char *struc){
 }
 
 PUBLIC char *
-vrna_unpack_structure(const char *packed){
+vrna_db_unpack(const char *packed){
 
   /* 5:1 compression using base 3 encoding */
   int i,j,l;
@@ -84,7 +84,7 @@ vrna_unpack_structure(const char *packed){
 
   l = (int) strlen(packed);
   pp = (const unsigned char *) packed;
-  struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
+  struc = (char *) vrna_alloc((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
   for (i=j=0; i<l; i++) {
     register int p, c, k;
@@ -115,8 +115,8 @@ vrna_pt_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -128,7 +128,7 @@ vrna_pt_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -140,7 +140,7 @@ vrna_pt_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
+      vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return(table);
@@ -156,9 +156,9 @@ vrna_pt_pk_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack  = (short *) space(sizeof(short)*(length+1));
-   stack2 = (short *) space(sizeof(short)*(length+1));
-   table  = (short *) space(sizeof(short)*(length+2));
+   stack  = (short *) vrna_alloc(sizeof(short)*(length+1));
+   stack2 = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table  = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, hx2=0, i=1; i<=length; i++) {
@@ -170,7 +170,7 @@ vrna_pt_pk_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced '()' brackets in make_pair_table_pk");
+            vrna_message_error("unbalanced '()' brackets in make_pair_table_pk");
          }
          table[i]=j;
          table[j]=i;
@@ -182,7 +182,7 @@ vrna_pt_pk_get(const char *structure){
          j = stack2[--hx2];
          if (hx2<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+            vrna_message_error("unbalanced '[]' brackets in make_pair_table_pk");
          }
          table[i]=j;
          table[j]=i;
@@ -194,10 +194,10 @@ vrna_pt_pk_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced '()' brackets in make_pair_table_pk");
+      vrna_message_error("unbalanced '()' brackets in make_pair_table_pk");
    } else if (hx2!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+      vrna_message_error("unbalanced '[]' brackets in make_pair_table_pk");
    }
    free(stack);
    free(stack2);
@@ -216,8 +216,8 @@ vrna_pt_snoop_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -229,7 +229,7 @@ vrna_pt_snoop_get(const char *structure){
        j = stack[--hx];
        if (hx<0) {
          fprintf(stderr, "%s\n", structure);
-         nrerror("unbalanced brackets in make_pair_table");
+         vrna_message_error("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -241,7 +241,7 @@ vrna_pt_snoop_get(const char *structure){
    }
    if (hx!=0) {
      fprintf(stderr, "%s\n", structure);
-     nrerror("unbalanced brackets in make_pair_table");
+     vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return table ;
@@ -260,8 +260,8 @@ vrna_pt_ali_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -273,7 +273,7 @@ vrna_pt_ali_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -292,7 +292,7 @@ vrna_pt_ali_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -311,7 +311,7 @@ vrna_pt_ali_get(const char *structure){
        j = stack[--hx];
        if (hx<0) {
          fprintf(stderr, "%s\n", structure);
-         nrerror("unbalanced brackets in make_pair_table");
+         vrna_message_error("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -322,7 +322,7 @@ vrna_pt_ali_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
+      vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return(table);
@@ -330,7 +330,7 @@ vrna_pt_ali_get(const char *structure){
 
 PUBLIC short *
 vrna_pt_copy(const short *pt){
-  short *table = (short *)space(sizeof(short) * (pt[0]+2));
+  short *table = (short *)vrna_alloc(sizeof(short) * (pt[0]+2));
   memcpy(table, pt, sizeof(short)*(pt[0]+2));
   return table;
 }
@@ -347,8 +347,8 @@ vrna_get_loop_index(const short *pt){
   int *loop = NULL;
 
   length = pt[0];
-  stack  = (int *) space(sizeof(int)*(length+1));
-  loop   = (int *) space(sizeof(int)*(length+2));
+  stack  = (int *) vrna_alloc(sizeof(int)*(length+1));
+  loop   = (int *) vrna_alloc(sizeof(int)*(length+2));
   hx=l=nl=0;
 
   for (i=1; i<=length; i++) {
@@ -364,7 +364,7 @@ vrna_get_loop_index(const short *pt){
         l = loop[stack[hx-1]];  /* index of enclosing loop   */
       else l=0;                 /* external loop has index 0 */
       if (hx<0) {
-        nrerror("unbalanced brackets in make_pair_table");
+        vrna_message_error("unbalanced brackets in make_pair_table");
       }
     }
   }
@@ -379,7 +379,7 @@ vrna_pt_to_db(short *pt){
   int i;
   char *dotbracket = NULL;
   if(pt){
-    dotbracket = (char *)space((pt[0]+1)*sizeof(char));
+    dotbracket = (char *)vrna_alloc((pt[0]+1)*sizeof(char));
     memset(dotbracket, '.', pt[0]);
 
     for(i=1; i<=pt[0]; i++){
@@ -432,8 +432,8 @@ vrna_refBPcnt_matrix( const short *reference_pt,
   unsigned int size;
   length = (unsigned int)reference_pt[0];
   size  = ((length+1)*(length+2))/2;
-  iindx = get_iindx(length);
-  array = (unsigned int *) space(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
+  iindx = vrna_get_iindx(length);
+  array = (unsigned int *) vrna_alloc(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
   for (k=0; k<=turn; k++)
     for (i=1; i<=length-k; i++) {
       j=i+k;
@@ -464,8 +464,8 @@ vrna_refBPdist_matrix(const short *pt1,
   unsigned int n, size, i, j, ij, d;
   n = (unsigned int)pt1[0];
   size = ((n+1)*(n+2))/2;
-  array = (unsigned int *)space(sizeof(unsigned int) * size);
-  int *iindx = get_iindx(n);
+  array = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
+  int *iindx = vrna_get_iindx(n);
   for(i = n - turn - 1; i>=1; i--){
     d = 0;
     for(j = i+turn+1; j <= n; j++){
@@ -490,7 +490,7 @@ vrna_refBPdist_matrix(const short *pt1,
 }
 
 PUBLIC char
-bppm_symbol(const float *x){
+vrna_bpp_symbol(const float *x){
 
 /*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
   if( x[0] > 0.667 )  return '.';
@@ -505,14 +505,16 @@ bppm_symbol(const float *x){
   return ':';
 }
 
-PUBLIC void
-bppm_to_structure(char *structure,
-                  FLT_OR_DBL *p,
-                  unsigned int length){
+PUBLIC char *
+vrna_db_get_from_pr(const FLT_OR_DBL *p,
+                    unsigned int length){
 
-  int    i, j;
-  int   *index = get_iindx(length);
+  int    i, j, *index;
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
+  char  *s;
+
+  index = vrna_get_iindx(length);
+  s     = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
@@ -525,20 +527,150 @@ bppm_to_structure(char *structure,
       P[1] += p[index[j]-i];    /* j is paired upstream */
       P[0] -= p[index[j]-i];    /* j is unpaired */
     }
-    structure[j-1] = bppm_symbol(P);
+    s[j-1] = vrna_bpp_symbol(P);
   }
-  structure[length] = '\0';
+  s[length] = '\0';
   free(index);
+
+  return s;
+}
+
+PUBLIC void
+vrna_letter_structure(char *structure,
+                      bondT *bp,
+                      unsigned int length){
+
+  int   n, k, x, y;
+  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (n = 0, k = 1; k <= bp[0].i; k++) {
+    y = bp[k].j;
+    x = bp[k].i;
+    if (x-1 > 0 && y+1 <= length) {
+      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
+        structure[x-1] = structure[x-2];
+        structure[y-1] = structure[x-1];
+        continue;
+      }
+    }
+    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
+      structure[x-1] = structure[x];
+      structure[y-1] = structure[x-1];
+      continue;
+    }
+    n++;
+    structure[x-1] = alpha[n-1];
+    structure[y-1] = alpha[n-1];
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+PUBLIC void
+vrna_parenthesis_structure( char *structure,
+                            bondT *bp,
+                            unsigned int length){
+
+  int n, k;
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++){
+
+    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[bp[k].i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[bp[k].i-1] = '(';
+      structure[bp[k].j-1] = ')';
+    }
+  }
+}
+
+PUBLIC void
+vrna_parenthesis_zuker( char *structure,
+                        bondT *bp,
+                        unsigned int length){
+
+  int k, i, j, temp;
+
+  memset(structure, '.', length);
+  structure[length] = '\0';
+
+  for (k = 1; k <= bp[0].i; k++) {
+    i=bp[k].i;
+    j=bp[k].j;
+    if (i>length) i-=length;
+    if (j>length) j-=length;
+    if (i>j) {
+      temp=i; i=j; j=temp;
+    }
+    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[i-1] = '+';
+    } else { /* the following ones are regular base pairs */
+      structure[i-1] = '(';
+      structure[j-1] = ')';
+    }
+  }
 }
 
 PUBLIC plist *
-vrna_get_plist_from_pr( vrna_fold_compound *vc,
-                        double cut_off){
+vrna_pl_get( const char *struc,
+                        float pr){
+
+  /* convert bracket string to plist */
+  short *pt;
+  int i, k = 0, size, n;
+  plist *gpl, *ptr, *pl;
+
+  size  = strlen(struc);
+  n     = 2;
+
+  pt  = vrna_pt_get(struc);
+  pl = (plist *)vrna_alloc(n*size*sizeof(plist));
+  for(i = 1; i < size; i++){
+    if(pt[i]>i){
+      (pl)[k].i      = i;
+      (pl)[k].j      = pt[i];
+      (pl)[k].p      = pr;
+      (pl)[k++].type = 0;
+    }
+  }
+
+  gpl = get_plist_gquad_from_db(struc, pr);
+  for(ptr = gpl; ptr->i != 0; ptr++){
+    if (k == n * size - 1){
+      n *= 2;
+      pl = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
+    }
+    (pl)[k].i      = ptr->i;
+    (pl)[k].j      = ptr->j;
+    (pl)[k].p       = ptr->p;
+    (pl)[k++].type = ptr->type;
+  }
+  free(gpl);
+
+  (pl)[k].i      = 0;
+  (pl)[k].j      = 0;
+  (pl)[k].p      = 0.;
+  (pl)[k++].type = 0.;
+  free(pt);
+  pl = (plist *)vrna_realloc(pl, k * sizeof(plist));
+
+  return pl;
+}
+
+PUBLIC plist *
+vrna_pl_get_from_pr(vrna_fold_compound *vc,
+                    double cut_off){
 
   if(!vc){
-    nrerror("vrna_get_plist_from_pr: run vrna_pf_fold first!");
+    vrna_message_error("vrna_pl_get_from_pr: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
-    nrerror("vrna_get_plist_from_pr: probs==NULL!");
+    vrna_message_error("vrna_pl_get_from_pr: probs==NULL!");
   }
 
   return wrap_get_plist(vc->exp_matrices,
@@ -549,12 +681,35 @@ vrna_get_plist_from_pr( vrna_fold_compound *vc,
                         cut_off);
 }
 
+PUBLIC  char *
+vrna_pl_to_db(plist *pairs,
+              unsigned int n){
+
+  plist *ptr;
+  char  *structure = NULL;
+  int   i;
+
+  if(n > 0){
+    structure = (char *)vrna_alloc(sizeof(char) * (n+1));
+    memset(structure, '.', n);
+    structure[n] = '\0';
+
+    for(ptr = pairs; (*ptr).i; ptr++){
+      if(((*ptr).i < n) && ((*ptr).j <= n)){
+        structure[(*ptr).i - 1] = '(';
+        structure[(*ptr).j - 1] = ')';
+      }
+    }
+  }
+  return structure;
+}
+
 PRIVATE plist *
-wrap_get_plist( pf_matricesT *matrices,
+wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
                 short *S,
-                pf_paramT *pf_params,
+                vrna_exp_param_t *pf_params,
                 double cut_off){
 
   int i, j, k, n, count, gquad;
@@ -570,7 +725,7 @@ wrap_get_plist( pf_matricesT *matrices,
   n     = 2;
 
   /* first guess of the size needed for pl */
-  pl = (plist *)space(n*length*sizeof(plist));
+  pl = (plist *)vrna_alloc(n*length*sizeof(plist));
 
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
@@ -580,7 +735,7 @@ wrap_get_plist( pf_matricesT *matrices,
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
         n *= 2;
-        pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+        pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
       }
 
       /* check for presence of gquadruplex */
@@ -599,7 +754,7 @@ wrap_get_plist( pf_matricesT *matrices,
           for(ptr=inner; ptr->i != 0; ptr++){
               if (count == n * length - 1){
                 n *= 2;
-                pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+                pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
               }
               /* check if we've already seen this pair */
               for(k = 0; k < count; k++)
@@ -629,138 +784,12 @@ wrap_get_plist( pf_matricesT *matrices,
   (pl)[count].type = 0;
   (pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
-  pl = (plist *)xrealloc(pl, count * sizeof(plist));
+  pl = (plist *)vrna_realloc(pl, count * sizeof(plist));
 
   return pl;
 }
 
-PUBLIC void
-vrna_letter_structure(char *structure,
-                      bondT *bp,
-                      int length){
-
-  int   n, k, x, y;
-  char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-  for (n = 0; n < length; structure[n++] = ' ');
-  structure[length] = '\0';
-
-  for (n = 0, k = 1; k <= bp[0].i; k++) {
-    y = bp[k].j;
-    x = bp[k].i;
-    if (x-1 > 0 && y+1 <= length) {
-      if (structure[x-2] != ' ' && structure[y] == structure[x-2]) {
-        structure[x-1] = structure[x-2];
-        structure[y-1] = structure[x-1];
-        continue;
-      }
-    }
-    if (structure[x] != ' ' && structure[y-2] == structure[x]) {
-      structure[x-1] = structure[x];
-      structure[y-1] = structure[x-1];
-      continue;
-    }
-    n++;
-    structure[x-1] = alpha[n-1];
-    structure[y-1] = alpha[n-1];
-  }
-}
-
-/*---------------------------------------------------------------------------*/
-
-PUBLIC void
-vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
-                            int length){
-
-  int n, k;
-
-  for (n = 0; n < length; structure[n++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++){
-
-    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp[k].i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[bp[k].i-1] = '(';
-      structure[bp[k].j-1] = ')';
-    }
-  }
-}
-
-PUBLIC void
-vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
-                        int length){
-
-  int k, i, j, temp;
-
-  for (k = 0; k < length; structure[k++] = '.');
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++) {
-    i=bp[k].i;
-    j=bp[k].j;
-    if (i>length) i-=length;
-    if (j>length) j-=length;
-    if (i>j) {
-      temp=i; i=j; j=temp;
-    }
-    if(i == j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[i-1] = '(';
-      structure[j-1] = ')';
-    }
-  }
-}
-
-PUBLIC plist *
-vrna_get_plist_from_db( const char *struc,
-                        float pr){
-
-  /* convert bracket string to plist */
-  short *pt;
-  int i, k = 0, size, n;
-  plist *gpl, *ptr, *pl;
-
-  size  = strlen(struc);
-  n     = 2;
-
-  pt  = vrna_pt_get(struc);
-  pl = (plist *)space(n*size*sizeof(plist));
-  for(i = 1; i < size; i++){
-    if(pt[i]>i){
-      (pl)[k].i      = i;
-      (pl)[k].j      = pt[i];
-      (pl)[k].p      = pr;
-      (pl)[k++].type = 0;
-    }
-  }
-
-  gpl = get_plist_gquad_from_db(struc, pr);
-  for(ptr = gpl; ptr->i != 0; ptr++){
-    if (k == n * size - 1){
-      n *= 2;
-      pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
-    }
-    (pl)[k].i      = ptr->i;
-    (pl)[k].j      = ptr->j;
-    (pl)[k].p       = ptr->p;
-    (pl)[k++].type = ptr->type;
-  }
-  free(gpl);
-
-  (pl)[k].i      = 0;
-  (pl)[k].j      = 0;
-  (pl)[k].p      = 0.;
-  (pl)[k++].type = 0.;
-  free(pt);
-  pl = (plist *)xrealloc(pl, k * sizeof(plist));
-
-  return pl;
-}
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -770,13 +799,13 @@ vrna_get_plist_from_db( const char *struc,
 PUBLIC char *
 pack_structure(const char *struc){
 
-  return vrna_pack_structure(struc);
+  return vrna_db_pack(struc);
 }
 
 PUBLIC char *
 unpack_structure(const char *packed){
 
-  return vrna_unpack_structure(packed);
+  return vrna_db_unpack(packed);
 }
 
 PUBLIC void
@@ -809,17 +838,17 @@ assign_plist_from_pr( plist **pl,
                       int length,
                       double cut_off){
 
-  int *index;
-  pf_matricesT *matrices;
-  model_detailsT  md;
-  pf_paramT *pf_params;
+  int              *index;
+  vrna_mx_pf_t     *matrices;
+  vrna_md_t        md;
+  vrna_exp_param_t *pf_params;
 
-  index     = get_iindx(length);
-  matrices  = (pf_matricesT *)space(sizeof(pf_matricesT));
+  index     = vrna_get_iindx(length);
+  matrices  = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
 
   set_model_details(&md);
   md.gquad        = 0;
-  pf_params       = vrna_get_boltzmann_factors(md);
+  pf_params       = vrna_exp_params_get(&md);
   matrices->probs = probs;
 
   *pl = wrap_get_plist( matrices,
@@ -839,7 +868,7 @@ assign_plist_from_db( plist **pl,
                       const char *struc,
                       float pr){
 
-  *pl = vrna_get_plist_from_db(struc, pr);
+  *pl = vrna_pl_get(struc, pr);
 }
 
 PUBLIC short *
@@ -899,3 +928,21 @@ compute_BPdifferences(short *pt1,
   return vrna_refBPdist_matrix((const short *)pt1, (const short *)pt2, turn);
 }
 
+PUBLIC char
+bppm_symbol(const float *x){
+
+  return vrna_bpp_symbol(x);
+}
+
+PUBLIC void
+bppm_to_structure(char *structure,
+                  FLT_OR_DBL *p,
+                  unsigned int length){
+
+  char *s = vrna_db_get_from_pr((const FLT_OR_DBL *)p, length);
+  memcpy(structure, s, length);
+  structure[length] = '\0';
+  free(s);
+}
+
+#endif

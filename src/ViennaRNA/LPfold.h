@@ -1,7 +1,8 @@
-#ifndef __VIENNA_RNA_PACKAGE_LPFOLD_H__
-#define __VIENNA_RNA_PACKAGE_LPFOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_LPFOLD_H
+#define VIENNA_RNA_PACKAGE_LPFOLD_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -34,7 +35,7 @@ void update_pf_paramsLP(int length);
  *  \ingroup local_pf_fold
  * 
  */
-void update_pf_paramsLP_par(int length, pf_paramT *parameters);
+void update_pf_paramsLP_par(int length, vrna_exp_param_t *parameters);
 
 /**
  *  \brief Compute partition functions for locally stable secondary structures
@@ -96,7 +97,7 @@ plist *pfl_fold_par(char *sequence,
                     struct plist **dpp2,
                     FILE *pUfp,
                     FILE *spup,
-                    pf_paramT *parameters);
+                    vrna_exp_param_t *parameters);
 
 
 void putoutpU_prob_par( double **pU,
@@ -104,7 +105,7 @@ void putoutpU_prob_par( double **pU,
                         int ulength,
                         FILE *fp,
                         int energies,
-                        pf_paramT *parameters);
+                        vrna_exp_param_t *parameters);
 
 
 /**
@@ -132,7 +133,7 @@ void putoutpU_prob_bin_par( double **pU,
                             int ulength,
                             FILE *fp,
                             int energies,
-                            pf_paramT *parameters);
+                            vrna_exp_param_t *parameters);
 
 /**
  *  \brief Writes the unpaired probabilities (pU) or opening energies into a binary file 

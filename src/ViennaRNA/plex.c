@@ -113,7 +113,7 @@ PRIVATE char * fbacktrack_XS(int i, int j, const int **access_s1, const int **ac
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
 
-PRIVATE paramT *P = NULL;
+PRIVATE vrna_param_t *P = NULL;
 
 /**
 *** energy array used in fduplexfold and fduplexfold_XS
@@ -158,8 +158,8 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
     make_pair_matrix();
   }
   
-  c = (int **) space(sizeof(int *) * (n3+1));
-  for (i=0; i<=n3; i++) c[i] = (int *) space(sizeof(int) * (n4+1));
+  c = (int **) vrna_alloc(sizeof(int *) * (n3+1));
+  for (i=0; i<=n3; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
   for (i=0; i<=n3; i++){
     for(j=0;j<=n4;j++){
       c[i][j]=INF;
@@ -280,15 +280,15 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
-  st1 = (char *) space(sizeof(char)*(n3+1));
-  st2 = (char *) space(sizeof(char)*(n4+1));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n3+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n4+1));
   i0=i;/*MAX2(i-1,1);*/j0=j;/*MIN2(j+1,n4);*/
   while (i<=n3-i_flag && j>=1+j_flag) {
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
     st2[j-1] = ')'; 
     type = pair[S1[i]][S2[j]];
-    if (!type) nrerror("backtrack failed in fold duplex bli");
+    if (!type) vrna_message_error("backtrack failed in fold duplex bli");
     for (k=i+1; k<=n3 && k>i-MAXLOOP-2; k++) {
       for (l=j-1; l>=1; l--) {
         int LE;
@@ -316,13 +316,13 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
       E -= E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1], P);
       break;
       if (E != P->DuplexInit) {
-        nrerror("backtrack failed in fold duplex bal");
+        vrna_message_error("backtrack failed in fold duplex bal");
       } else break;
     }
   }
   /* if (i<n3)  i++; */
   /* if (j>1)   j--; */
-  struc = (char *) space(i-i0+1+j0-j+1+2);
+  struc = (char *) vrna_alloc(i-i0+1+j0-j+1+2);
   for (k=MAX2(i0,1); k<=i; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j; k<=j0; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i0-1,0)); strcat(struc, "&"); 
@@ -389,19 +389,19 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   /**
   *** array initialization
   **/
-  c  = (int**) space(sizeof(int *)  * (n3+1));
-  in = (int**) space (sizeof(int *) * (n3+1));
-  bx = (int**) space (sizeof(int *) * (n3+1));
-  by = (int**) space (sizeof(int *) * (n3+1));
-  inx= (int**) space (sizeof(int *) * (n3+1));
-  iny= (int**) space (sizeof(int *) * (n3+1));
+  c  = (int**) vrna_alloc(sizeof(int *)  * (n3+1));
+  in = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  bx = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  by = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  inx= (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  iny= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   for (i=0; i<=n3; i++){
-    c[i]  = (int *) space(sizeof(int) * (n4+1));  
-    in[i] = (int *) space(sizeof(int) * (n4+1));  
-    bx[i] = (int *) space(sizeof(int) * (n4+1));  
-    by[i] = (int *) space(sizeof(int) * (n4+1));  
-    inx[i]= (int *) space(sizeof(int) * (n4+1));  
-    iny[i]= (int *) space(sizeof(int) * (n4+1));  
+    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    inx[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    iny[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));  
   }
   for(i=0; i<n3; i++){
     for(j=0; j<n4; j++){
@@ -426,11 +426,11 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   maxPenalty[3]=(int) -2*P->stack[2][2];
    
 
-  DJ=(int **)   space(4*sizeof(int*));
-  DJ[0]=(int *) space((1+n4)*sizeof(int));
-  DJ[1]=(int *) space((1+n4)*sizeof(int));
-  DJ[2]=(int *) space((1+n4)*sizeof(int));
-  DJ[3]=(int *) space((1+n4)*sizeof(int));
+  DJ=(int **)   vrna_alloc(4*sizeof(int*));
+  DJ[0]=(int *) vrna_alloc((1+n4)*sizeof(int));
+  DJ[1]=(int *) vrna_alloc((1+n4)*sizeof(int));
+  DJ[2]=(int *) vrna_alloc((1+n4)*sizeof(int));
+  DJ[3]=(int *) vrna_alloc((1+n4)*sizeof(int));
   
   j=n4-9;
   while(--j>9){
@@ -684,8 +684,8 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   int iopen=il_b;
   int iext_s=2*il_a;/* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
   int iext_ass=50+il_a;/* iext_ass assymetric extension of interior loop, either on i or on j side. */
-  st1 = (char *) space(sizeof(char)*(n3+1));
-  st2 = (char *) space(sizeof(char)*(n4+1));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n3+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n4+1));
   i0=MIN2(i+1,n3-10); j0=MAX2(j-1,11);
   int state;
   state=1; /* we start backtracking from a a pair , i.e. c-matrix */
@@ -743,7 +743,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
       type = pair[S1[i]][S2[j]];
       int bAU;
       bAU=(type>2?P->TerminalAU:0);
-      if(!type) nrerror("backtrack failed in fold duplex");
+      if(!type) vrna_message_error("backtrack failed in fold duplex");
       type2=pair[S1[i-1]][S2[j+1]];
       if(type2 && c[i][j]== (c[i - 1][j+1]+P->stack[rtype[type]][type2]+di1+dj1)){
         k=i-1;
@@ -1142,7 +1142,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
     E-=correction;
 
     if (E != P->DuplexInit+access_s1[1][idiff]+access_s2[1][jdiff]) {
-      nrerror("backtrack failed in second fold duplex");
+      vrna_message_error("backtrack failed in second fold duplex");
     }
     else{
       *dG+=P->DuplexInit;
@@ -1155,7 +1155,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   }
   if (i>11)  i--;
   if (j<n4-10) j++;
-  struc = (char *) space(i0-i+1+j-j0+1+2);
+  struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); 
@@ -1210,8 +1210,8 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   /**
   *** Position of the high score on the target and query sequence
   **/
-  position = (int *) space ((delta+n1+3+delta) * sizeof(int));
-  position_j= (int *) space ((delta+n1+3+delta) * sizeof(int));
+  position = (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
+  position_j= (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
   /**
   *** extension penalty, computed only once, further reduce the computation time
   **/
@@ -1220,11 +1220,11 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   maxPenalty[2]=(int) -3*P->stack[2][2]/2;
   maxPenalty[3]=(int) -2*P->stack[2][2];
   
-  DJ=(int **) space(4*sizeof(int*));
-  DJ[0]=(int *) space(n2*sizeof(int));
-  DJ[1]=(int *) space(n2*sizeof(int));
-  DJ[2]=(int *) space(n2*sizeof(int));
-  DJ[3]=(int *) space(n2*sizeof(int));
+  DJ=(int **) vrna_alloc(4*sizeof(int*));
+  DJ[0]=(int *) vrna_alloc(n2*sizeof(int));
+  DJ[1]=(int *) vrna_alloc(n2*sizeof(int));
+  DJ[2]=(int *) vrna_alloc(n2*sizeof(int));
+  DJ[3]=(int *) vrna_alloc(n2*sizeof(int));
   j=n2-9;
   while(--j>10){
     DJ[0][j] = access_s2[5][j+4] - access_s2[4][j+4]           ;        
@@ -1251,7 +1251,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   ***                  * length of the sequence
   **/ 
 
-  SA=(int *) space(sizeof(int)*5*6*(n2+5));
+  SA=(int *) vrna_alloc(sizeof(int)*5*6*(n2+5));
   for(j=n2+4;j>=0;j--) {
     SA[(j*30)   ]=SA[(j*30)+1   ]=SA[(j*30)+2   ]=SA[(j*30)+3   ]=SA[(j*30)+4   ]=INF;
     SA[(j*30)+5 ]=SA[(j*30)+1+5 ]=SA[(j*30)+2+5 ]=SA[(j*30)+3+5 ]=SA[(j*30)+4+5 ]=INF;
@@ -1496,8 +1496,8 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
         int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2 + 20));
-        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2 + 20));
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
         strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
         strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
         strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
@@ -1549,8 +1549,8 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         int j_flag;
         i_flag = (end_t   ==  pos+1?1:0);
         j_flag = (begin_q == max_pos_j-1?1:0);
-        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
-        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
         
         strncpy(s3, (s1+begin_t),  end_t - begin_t+1);
         strncpy(s4, (s2+begin_q) , end_q - begin_q+1);
@@ -1593,8 +1593,8 @@ PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, 
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1); /* 10 */
     int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-    char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2 + 20));
-    char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2 + 20));
+    char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+    char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
     strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
     strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
     strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
@@ -1623,8 +1623,8 @@ PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, 
     int j_flag;
     i_flag = (end_t   == max_pos+1?1:0);
     j_flag = (begin_q == max_pos_j-1?1:0);
-    char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2)); /* +1 for \0 +1 for distance */
-    char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+    char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2)); /* +1 for \0 +1 for distance */
+    char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
     
     strncpy(s3, (s1+begin_t-1),  end_t - begin_t+1);/* -1 to go from  */
     strncpy(s4, (s2+begin_q-1) , end_q - begin_q+1);/* -1 to go from  */
@@ -1655,8 +1655,8 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
     make_pair_matrix();
   }
   
-  c = (int **) space(sizeof(int *) * (n3+1));
-  for (i=0; i<=n3; i++) c[i] = (int *) space(sizeof(int) * (n4+1));  
+  c = (int **) vrna_alloc(sizeof(int *) * (n3+1));
+  for (i=0; i<=n3; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
   encode_seqs(s1, s2);
   for (i=1; i<=n3; i++) {
     for (j=n4; j>0; j--) {
@@ -1716,8 +1716,8 @@ PRIVATE char *backtrack(int i, int j, const int extension_cost) {
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
   
-  st1 = (char *) space(sizeof(char)*(n3+1));
-  st2 = (char *) space(sizeof(char)*(n4+1));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n3+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n4+1));
   
   i0=MIN2(i+1,n3); j0=MAX2(j-1,1);
 
@@ -1726,7 +1726,7 @@ PRIVATE char *backtrack(int i, int j, const int extension_cost) {
     st1[i-1] = '(';
     st2[j-1] = ')'; 
     type = pair[S1[i]][S2[j]];
-    if (!type) nrerror("backtrack failed in fold duplex");
+    if (!type) vrna_message_error("backtrack failed in fold duplex");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
       for (l=j+1; l<=n4; l++) {
         int LE;
@@ -1752,14 +1752,14 @@ PRIVATE char *backtrack(int i, int j, const int extension_cost) {
       ***      if (type>2) E -= P->TerminalAU;
       **/
       if (E != P->DuplexInit+2*extension_cost) {
-        nrerror("backtrack failed in fold duplex");
+        vrna_message_error("backtrack failed in fold duplex");
       } else break;
     }
   }
   if (i>1)  i--;
   if (j<n4) j++;
   
-  struc = (char *) space(i0-i+1+j-j0+1+2);
+  struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); 
@@ -1801,19 +1801,19 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
     make_pair_matrix();
   }
   /*local c array initialization---------------------------------------------*/
-  c  = (int**)  space(sizeof(int *) * (n3+1));
-  in = (int**) space (sizeof(int *) * (n3+1));
-  bx = (int**) space (sizeof(int *) * (n3+1));
-  by = (int**) space (sizeof(int *) * (n3+1));
-  inx= (int**) space (sizeof(int *) * (n3+1));
-  iny= (int**) space (sizeof(int *) * (n3+1));
+  c  = (int**)  vrna_alloc(sizeof(int *) * (n3+1));
+  in = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  bx = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  by = (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  inx= (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  iny= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   for (i=0; i<=n3; i++){
-    c[i]  = (int *) space(sizeof(int) * (n4+1));  
-    in[i] = (int *) space(sizeof(int) * (n4+1));  
-    bx[i] = (int *) space(sizeof(int) * (n4+1));  
-    by[i] = (int *) space(sizeof(int) * (n4+1));  
-    inx[i] = (int *) space(sizeof(int) * (n4+1));  
-    iny[i] = (int *) space(sizeof(int) * (n4+1));  
+    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    inx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    iny[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
   }
   /*-------------------------------------------------------------------------*/
   /*end of array initialisation----------------------------------*/
@@ -2014,8 +2014,8 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
   int iopen=il_b;
   int iext_s=2*(il_a+extension_cost);/* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
   int iext_ass=50+il_a+extension_cost;/* iext_ass assymetric extension of interior loop, either on i or on j side. */
-  st1 = (char *) space(sizeof(char)*(n3+1));
-  st2 = (char *) space(sizeof(char)*(n4+1));
+  st1 = (char *) vrna_alloc(sizeof(char)*(n3+1));
+  st2 = (char *) vrna_alloc(sizeof(char)*(n4+1));
   i0=MIN2(i+1,n3-10); j0=MAX2(j-1,11);
   int state;
   state=1; /* we start backtracking from a a pair , i.e. c-matrix */
@@ -2036,7 +2036,7 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
       type = pair[S1[i]][S2[j]];
       int bAU;
       bAU=(type>2?P->TerminalAU:0);
-      if(!type) nrerror("backtrack failed in fold duplex");
+      if(!type) vrna_message_error("backtrack failed in fold duplex");
       type2=pair[S1[i-1]][S2[j+1]];
       if(type2 && c[i][j]== (c[i - 1][j+1]+P->stack[rtype[type]][type2]+2*extension_cost)){
         k=i-1;
@@ -2357,7 +2357,7 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
     *dG+=correction;
     E-=correction+2*extension_cost;
     if (E != P->DuplexInit+2*extension_cost) {
-      nrerror("backtrack failed in second fold duplex");
+      vrna_message_error("backtrack failed in second fold duplex");
     }
     else{
       *dG+=P->DuplexInit;
@@ -2367,7 +2367,7 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
   }
   if (i>11)  i--;
   if (j<n4-10) j++;
-  struc = (char *) space(i0-i+1+j-j0+1+2);
+  struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
   strcpy(struc, st1+MAX2(i-1,0)); 
@@ -2420,8 +2420,8 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   /**
   *** Position of the high score on the target and query sequence
   **/
-  position = (int *) space ((delta+n1+3+delta) * sizeof(int));
-  position_j= (int *) space ((delta+n1+3+delta) * sizeof(int));
+  position = (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
+  position_j= (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
   /**
   *** instead of having 4 2-dim arrays we use a unique 1-dim array
   *** The mapping 2d -> 1D is done based ont the macro 
@@ -2436,7 +2436,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   ***                  * 6 (number of structures we look at) *
   ***                  * length of the sequence
   **/ 
-  SA=(int *) space(sizeof(int)*5*6*(n2+5));
+  SA=(int *) vrna_alloc(sizeof(int)*5*6*(n2+5));
   for(j=n2+4;j>=0;j--) {
     SA[(j*30)   ]=SA[(j*30)+1   ]=SA[(j*30)+2   ]=SA[(j*30)+3   ]=SA[(j*30)+4   ]=INF;
     SA[(j*30)+5 ]=SA[(j*30)+1+5 ]=SA[(j*30)+2+5 ]=SA[(j*30)+3+5 ]=SA[(j*30)+4+5 ]=INF;
@@ -2656,8 +2656,8 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
         int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2 + 20));
-        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2 + 20));
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
         strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
         strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
         strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
@@ -2705,8 +2705,8 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
         int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-        char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
-        char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
         strncpy(s3, (s1+begin_t-1),  end_t - begin_t +1);
         strncpy(s4, (s2+begin_q-1) , end_q - begin_q +1);
         s3[end_t -begin_t +1 ]='\0';
@@ -2739,8 +2739,8 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1); /* 10 */
     int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-    char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2 + 20));
-    char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2 + 20));
+    char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+    char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
     strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
     strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
     strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
@@ -2764,8 +2764,8 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1);
     int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
-    char *s3 = (char*) space(sizeof(char)*(end_t - begin_t +2));
-    char *s4 = (char*) space(sizeof(char)*(end_q - begin_q +2));
+    char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
+    char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
     strncpy(s3, (s1+begin_t-1),  end_t - begin_t + 1);
     strncpy(s4, (s2+begin_q-1) , end_q - begin_q +1 );
     s3[end_t -begin_t +1 ]='\0';
@@ -2795,7 +2795,7 @@ PRIVATE void encode_seqs(const char *s1, const char *s2) {
 
   l = strlen(s1);
   S1 = encode_seq(s1);
-  SS1= (short *) space(sizeof(short)*(l+1));
+  SS1= (short *) vrna_alloc(sizeof(short)*(l+1));
   /* SS1 exists only for the special X K and I bases and energy_set!=0 */
   
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
@@ -2804,7 +2804,7 @@ PRIVATE void encode_seqs(const char *s1, const char *s2) {
 
   l = strlen(s2);
   S2 = encode_seq(s2);
-  SS2= (short *) space(sizeof(short)*(l+1));
+  SS2= (short *) vrna_alloc(sizeof(short)*(l+1));
   /* SS2 exists only for the special X K and I bases and energy_set!=0 */
   
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
@@ -2816,7 +2816,7 @@ PRIVATE short * encode_seq(const char *sequence) {
   unsigned int i,l;
   short *S;
   l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
+  S = (short *) vrna_alloc(sizeof(short)*(l+2));
   S[0] = (short) l;
 
   /* make numerical encoding of sequence */

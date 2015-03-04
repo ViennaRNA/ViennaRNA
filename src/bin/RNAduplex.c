@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
     # handle user input from 'stdin'
     ########################################################
     */
-    if(istty) print_tty_input_seq_str("Input two sequences (one line each)");
+    if(istty) vrna_message_input_seq("Input two sequences (one line each)");
 
     /* extract filename from fasta header if available */
     fname[0] = '\0';
@@ -148,15 +148,15 @@ int main(int argc, char *argv[]){
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv){
-      str_DNA2RNA(s1);
-      str_DNA2RNA(s2);
+      vrna_seq_toRNA(s1);
+      vrna_seq_toRNA(s2);
     }
     /* store case-unmodified sequence */
     orig_s1 = strdup(s1);
     orig_s2 = strdup(s2);
     /* convert sequence to uppercase letters only */
-    str_uppercase(s1);
-    str_uppercase(s2);
+    vrna_seq_toupper(s1);
+    vrna_seq_toupper(s2);
 
     if (istty) printf("lengths = %d,%d\n", strlen(s1), strlen(s2));
 

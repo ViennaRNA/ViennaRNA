@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_PROFILEALN_H__
-#define __VIENNA_RNA_PACKAGE_PROFILEALN_H__
+#ifndef VIENNA_RNA_PACKAGE_PROFILEALN_H
+#define VIENNA_RNA_PACKAGE_PROFILEALN_H
 
 float profile_aln(const float *T1,
                   const char *seq1,

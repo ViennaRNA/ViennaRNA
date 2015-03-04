@@ -1,7 +1,8 @@
-#ifndef __VIENNA_RNA_PACKAGE_ALIFOLD_H__
-#define __VIENNA_RNA_PACKAGE_ALIFOLD_H__
+#ifndef VIENNA_RNA_PACKAGE_ALIFOLD_H
+#define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
 
 #ifdef __GNUC__
@@ -45,7 +46,7 @@
  * 
  *  \ingroup consensus_fold
  *
- *  \deprecated See #model_detailsT.cv_fact, and vrna_ali_fold() to avoid using global variables
+ *  \deprecated See #vrna_md_t.cv_fact, and vrna_ali_fold() to avoid using global variables
  *
  *  Default is 1.
  */
@@ -56,7 +57,7 @@ DEPRECATED(extern  double  cv_fact);
  * 
  *  \ingroup consensus_fold
  * 
- *  \deprecated See #model_detailsT.nc_fact, and vrna_ali_fold() to avoid using global variables
+ *  \deprecated See #vrna_md_t.nc_fact, and vrna_ali_fold() to avoid using global variables
  *
  *  Default is 1.
  */
@@ -77,7 +78,7 @@ DEPRECATED(extern  double  nc_fact);
  *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
  * 
  *  \note Sufficient space must be allocated for 'structure' before calling
- *  vrna_ali_fold(). Passing NULL to the 'structure' or setting #model_detailsT.backtrack to
+ *  vrna_ali_fold(). Passing NULL to the 'structure' or setting #vrna_md_t.backtrack to
  *  0 turns of backtracing an no structure will be returned.
  * 
  *  \ingroup consensus_mfe_fold
@@ -210,7 +211,7 @@ float vrna_ali_pf_fold(vrna_fold_compound *vc,
  *
  *  \see #pair_info, and vrna_ali_pf_fold()
  *
- *  \param  vc          The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  vc          The #vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
  *  \param  threshold   Do not include results with pair probabilities below threshold
  *  \return             The #pair_info array
@@ -238,7 +239,7 @@ pair_info *vrna_ali_get_pair_info(vrna_fold_compound *vc,
 DEPRECATED(float alipf_fold_par( const char **sequences,
                       char *structure,
                       plist **pl,
-                      pf_paramT *parameters,
+                      vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
                       int is_circular));
@@ -326,7 +327,7 @@ DEPRECATED(void  free_alipf_arrays(void));
  *
  *  \see vrna_ali_pf_fold() for precomputing the partition function matrices, and
  *
- *  \param  vc    The #vrna_old_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  vc    The #vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  prob  to be described (berni)
  *  \return       A sampled consensus secondary structure in dot-bracket notation
  */

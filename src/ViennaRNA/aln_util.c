@@ -51,7 +51,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
       continue;
     }
 
-     seq = (char *) space( (n+1)*sizeof(char) );
+     seq = (char *) vrna_alloc( (n+1)*sizeof(char) );
      sscanf(line,"%99s %s", name, seq);
 
     for(i=0;i<strlen(seq);i++){
@@ -74,7 +74,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
 	 return 0;
        }
        AlignedSeqs[nn] = (char *)
-	 xrealloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
+	 vrna_realloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
        strcat(AlignedSeqs[nn], seq);
      }
      nn++;
@@ -113,7 +113,7 @@ char *consensus(const char *AS[]) {
   char *string;
   int i,n;
   n = strlen(AS[0]);
-  string = (char *) space((n+1)*sizeof(char));
+  string = (char *) vrna_alloc((n+1)*sizeof(char));
   for (i=0; i<n; i++) {
     int s,c,fm, freq[8] = {0,0,0,0,0,0,0,0};
     for (s=0; AS[s]!=NULL; s++)
@@ -141,7 +141,7 @@ char *consens_mis(const char*AS[]) {
 
   n = strlen(AS[0]);
   for (N=0; AS[N]!=NULL; N++);
-  cons = (char *) space((n+1)*sizeof(char));
+  cons = (char *) vrna_alloc((n+1)*sizeof(char));
 
   for (i=0; i<n; i++)
     for (s=0; s<N; s++) {
@@ -185,7 +185,7 @@ get_ungapped_sequence(const char *seq){
     i++;
   }while(*(++b));
 
-  tmp_sequence = (char *)xrealloc(tmp_sequence, (i+1)*sizeof(char));
+  tmp_sequence = (char *)vrna_realloc(tmp_sequence, (i+1)*sizeof(char));
   tmp_sequence[i] = '\0';
 
   return tmp_sequence;
@@ -243,18 +243,18 @@ alloc_sequence_arrays(const char **sequences,
     length = strlen(sequences[0]);
     for (s=0; sequences[s] != NULL; s++);
     n_seq = s;
-    *S    = (short **)          space((n_seq+1) * sizeof(short *));
-    *S5   = (short **)          space((n_seq+1) * sizeof(short *));
-    *S3   = (short **)          space((n_seq+1) * sizeof(short *));
-    *a2s  = (unsigned short **) space((n_seq+1) * sizeof(unsigned short *));
-    *Ss   = (char **)           space((n_seq+1) * sizeof(char *));
+    *S    = (short **)          vrna_alloc((n_seq+1) * sizeof(short *));
+    *S5   = (short **)          vrna_alloc((n_seq+1) * sizeof(short *));
+    *S3   = (short **)          vrna_alloc((n_seq+1) * sizeof(short *));
+    *a2s  = (unsigned short **) vrna_alloc((n_seq+1) * sizeof(unsigned short *));
+    *Ss   = (char **)           vrna_alloc((n_seq+1) * sizeof(char *));
     for (s=0; s<n_seq; s++) {
-      if(strlen(sequences[s]) != length) nrerror("uneqal seqence lengths");
-      (*S5)[s]  = (short *)         space((length + 2) * sizeof(short));
-      (*S3)[s]  = (short *)         space((length + 2) * sizeof(short));
-      (*a2s)[s] = (unsigned short *)space((length + 2) * sizeof(unsigned short));
-      (*Ss)[s]  = (char *)          space((length + 2) * sizeof(char));
-      (*S)[s]   = (short *)         space((length + 2) * sizeof(short));
+      if(strlen(sequences[s]) != length) vrna_message_error("uneqal seqence lengths");
+      (*S5)[s]  = (short *)         vrna_alloc((length + 2) * sizeof(short));
+      (*S3)[s]  = (short *)         vrna_alloc((length + 2) * sizeof(short));
+      (*a2s)[s] = (unsigned short *)vrna_alloc((length + 2) * sizeof(unsigned short));
+      (*Ss)[s]  = (char *)          vrna_alloc((length + 2) * sizeof(char));
+      (*S)[s]   = (short *)         vrna_alloc((length + 2) * sizeof(short));
       encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
     }
     (*S5)[n_seq]  = NULL;
@@ -263,7 +263,7 @@ alloc_sequence_arrays(const char **sequences,
     (*Ss)[n_seq]  = NULL;
     (*S)[n_seq]   = NULL;
   }
-  else nrerror("alloc_sequence_arrays: no sequences in the alignment!");
+  else vrna_message_error("alloc_sequence_arrays: no sequences in the alignment!");
 }
 
 PUBLIC void

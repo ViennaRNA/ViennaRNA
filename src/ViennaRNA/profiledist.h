@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_PROFILEDIST_H__
-#define __VIENNA_RNA_PACKAGE_PROFILEDIST_H__
+#ifndef VIENNA_RNA_PACKAGE_PROFILEDIST_H
+#define VIENNA_RNA_PACKAGE_PROFILEDIST_H
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))

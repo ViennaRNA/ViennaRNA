@@ -95,8 +95,8 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
                       const char *structure,
                       const short *pt);
 
-PRIVATE paramT *
-get_updated_params( paramT *parameters,
+PRIVATE vrna_param_t *
+get_updated_params( vrna_param_t *parameters,
                     int compat);
 
 PRIVATE float
@@ -325,7 +325,7 @@ vrna_eval_structure_pt( vrna_fold_compound *vc,
 
   if(pt && vc){
     if(pt[0] != (short)vc->length)
-      nrerror("energy_of_struct: string and structure have unequal length");
+      vrna_message_error("energy_of_struct: string and structure have unequal length");
 
     return eval_pt(vc, pt, NULL, -1);
   } else
@@ -339,7 +339,7 @@ vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
 
   if(pt && vc){
     if(pt[0] != (short)vc->length)
-      nrerror("energy_of_struct: string and structure have unequal length");
+      vrna_message_error("energy_of_struct: string and structure have unequal length");
 
     return eval_pt(vc, pt, file, 1);
   } else
@@ -364,7 +364,7 @@ vrna_eval_move( vrna_fold_compound *vc,
   int     en;
 
   if (strlen(structure) != vc->length)
-    nrerror("vrna_eval_move: sequence and structure have unequal length");
+    vrna_message_error("vrna_eval_move: sequence and structure have unequal length");
 
   pt = vrna_pt_get(structure);
   en = vrna_eval_move_pt(vc, pt, m1, m2);
@@ -393,7 +393,7 @@ vrna_eval_move_pt(vrna_fold_compound *vc,
     if (pt[j]>j) j=pt[j]; /* skip substructure */
     else {
       fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
-      nrerror("illegal move or broken pair table in vrna_eval_move_pt()");
+      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()");
     }
   }
   i = (j<=len) ? pt[j] : 0;
@@ -436,9 +436,9 @@ eval_int_loop(vrna_fold_compound *vc,
   int             ij, u1, u2, cp, *rtype, *indx;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
-  paramT          *P;
-  model_detailsT  *md;
-  soft_constraintT  *sc;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_sc_t       *sc;
 
   cp      = vc->cutpoint;
   indx    = vc->jindx;
@@ -480,9 +480,9 @@ eval_ext_int_loop(vrna_fold_compound *vc,
   int             u1, u2, length;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
-  paramT          *P;
-  model_detailsT  *md;
-  soft_constraintT  *sc;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_sc_t       *sc;
 
   length  = vc->length;
   P       = vc->params;
@@ -511,20 +511,20 @@ eval_ext_int_loop(vrna_fold_compound *vc,
                                 P, sc);
 }
 
-PRIVATE  paramT *
-get_updated_params(paramT *parameters, int compat){
-  paramT *P = NULL;
+PRIVATE  vrna_param_t *
+get_updated_params(vrna_param_t *parameters, int compat){
+  vrna_param_t *P = NULL;
   if(parameters){
     P = get_parameter_copy(parameters);
   } else {
-    model_detailsT md;
+    vrna_md_t md;
     if(compat)
       set_model_details(&md);
     else
       vrna_md_set_default(&md);
     P = get_scaled_parameters(temperature, md);
   }
-  fill_pair_matrices(&(P->model_details));
+  vrna_md_update(&(P->model_details));
   return P;
 }
 
@@ -537,7 +537,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
   /* compute energy of a single loop closed by base pair (i,j) */
   int               j, type, p,q, energy, cp;
   short             *s;
-  paramT            *P;
+  vrna_param_t      *P;
 
   P   = vc->params;
   cp  = vc->cutpoint;
@@ -548,13 +548,13 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
     return energy;
   }
   j = pt[i];
-  if (j<i) nrerror("i is unpaired in loop_energy()");
+  if (j<i) vrna_message_error("i is unpaired in loop_energy()");
   type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
     if (verbosity>=0)
       fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              get_encoded_char(s[i], &(P->model_details)), get_encoded_char(s[j], &(P->model_details)));
+              vrna_nucleotide_decode(s[i], &(P->model_details)), vrna_nucleotide_decode(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
@@ -576,7 +576,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
       type_2=7;
       if (verbosity>=0)
         fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              get_encoded_char(s[p], &(P->model_details)), get_encoded_char(s[q], &(P->model_details)));
+              vrna_nucleotide_decode(s[p], &(P->model_details)), vrna_nucleotide_decode(s[q], &(P->model_details)));
     }
 
     energy = eval_int_loop(vc, i, j, p, q);
@@ -644,7 +644,7 @@ eval_pt(vrna_fold_compound *vc,
   cp      = vc->cutpoint;
 
   if(vc->params->model_details.gquad)
-    warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
 
   energy =  backtrack_type=='M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
   if (verbosity_level>0)
@@ -671,8 +671,8 @@ eval_circ_pt( vrna_fold_compound *vc,
               int verbosity_level){
 
   int               i, j, length, energy, en0, degree;
-  paramT            *P;
-  soft_constraintT  *sc;
+  vrna_param_t      *P;
+  vrna_sc_t         *sc;
   FILE              *out;
 
   energy        = 0;
@@ -684,7 +684,7 @@ eval_circ_pt( vrna_fold_compound *vc,
   out           = (file) ? file : stdout;
 
   if(P->model_details.gquad)
-    warn_user("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
 
   /* evaluate all stems in exterior loop */
   for (i=1; i<=length; i++) {
@@ -757,8 +757,8 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
   int               pos, energy, p, q, r, s, u, type, type2, L, l[3], *rtype, *loop_idx;
   int               num_elem, num_g, elem_i, elem_j, up_mis;
   short             *s1;
-  paramT            *P;
-  model_detailsT    *md;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
 
   loop_idx  = vrna_get_loop_index(pt);
   s1        = vc->sequence_encoding;
@@ -790,7 +790,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) nrerror("this should not happen");
+      if(r < i) vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -801,7 +801,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) nrerror("so nich");
+        if(r < i) vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -810,7 +810,7 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) nrerror("so nich");
+          if(r < i) vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -829,19 +829,19 @@ en_corr_of_loop_gquad(vrna_fold_compound *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) nrerror("wtf!");
+          if(!(u < pt[u])) vrna_message_error("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
           energy += en_corr_of_loop_gquad(vc, u, pt[u], structure, pt);
           u = pt[u] + 1;
         }
       }
-      if(u!=s) nrerror("what the hell");
+      if(u!=s) vrna_message_error("what the hell");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
           case 0:   /* if(num_g == 1)
                       if((p-r-1 == 0) || (s-q-1 == 0))
-                        nrerror("too few unpaired bases");
+                        vrna_message_error("too few unpaired bases");
                     */
                     type = md->pair[s1[r]][s1[s]];
                     if(dangles == 2)
@@ -891,7 +891,7 @@ stack_energy( vrna_fold_compound *vc,
   char              *string;
   short             *s;
   FILE              *out;
-  paramT            *P;
+  vrna_param_t      *P;
 
 
   string  = vc->sequence;
@@ -987,8 +987,8 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
 
   int               energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, cp;
   short             *s, *s1;
-  paramT            *P;
-  soft_constraintT  *sc;
+  vrna_param_t      *P;
+  vrna_sc_t         *sc;
 
   /* helper variables for dangles == 1 case */
   int E3_available;  /* energy of 5' part where 5' mismatch is available for current stem */
@@ -1106,8 +1106,8 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   int               e_stem, e_stem5, e_stem3, e_stem53;
   int               mlintern[NBPAIRS+1];
   short             *s, *s1;
-  paramT            *P;
-  soft_constraintT  *sc;
+  vrna_param_t      *P;
+  vrna_sc_t         *sc;
 
   /* helper variables for dangles == 1|5 case */
   int E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
@@ -1129,7 +1129,7 @@ energy_of_ml_pt(vrna_fold_compound *vc,
   bonus = 0;
 
   if(i >= pt[i])
-    nrerror("energy_of_ml_pt: i is not 5' base of a closing pair!");
+    vrna_message_error("energy_of_ml_pt: i is not 5' base of a closing pair!");
 
   if(i == 0){
     j = (int)pt[0] + 1;
@@ -1491,8 +1491,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   char            **Ss          = vc->Ss;
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_param_t    *P            = vc->params;
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1517,7 +1517,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) nrerror("this should not happen");
+      if(r < i) vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -1528,7 +1528,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) nrerror("so nich");
+        if(r < i) vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -1537,7 +1537,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) nrerror("so nich");
+          if(r < i) vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -1557,7 +1557,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) nrerror("wtf!");
+          if(!(u < pt[u])) vrna_message_error("wtf!");
           num_elem++;
           elem_i = u;
           elem_j = pt[u];
@@ -1570,13 +1570,13 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) nrerror("what the ...");
+      if(u!=s) vrna_message_error("what the ...");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
           case 0:   /*if(num_g == 1)
                       if((p-r-1 == 0) || (s-q-1 == 0))
-                        nrerror("too few unpaired bases");
+                        vrna_message_error("too few unpaired bases");
                     */
                     {
                       int ee = 0;
@@ -1665,7 +1665,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
   int L, l[3];
 
   short           **S           = vc->S;
-  paramT          *P            = vc->params;
+  vrna_param_t    *P            = vc->params;
   int             n_seq         = vc->n_seq;
 
   en_covar = 0;
@@ -1688,7 +1688,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) nrerror("this should not happen");
+      if(r < i) vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -1697,7 +1697,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) nrerror("so nich");
+        if(r < i) vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -1706,7 +1706,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) nrerror("so nich");
+          if(r < i) vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -1726,7 +1726,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) nrerror("wtf!");
+          if(!(u < pt[u])) vrna_message_error("wtf!");
           num_elem++;
           en_covar += covar_en_corr_of_loop_gquad_ali(vc,
                                 u,
@@ -1737,7 +1737,7 @@ covar_en_corr_of_loop_gquad_ali(vrna_fold_compound *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) nrerror("what the ...");
+      if(u!=s) vrna_message_error("what the ...");
       else{
         /* we are done since we've found no other 3' structure element */
       }
@@ -1759,14 +1759,14 @@ stack_energy_pt_ali(vrna_fold_compound *vc,
   short           **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   char            **Ss        = vc->Ss;
   unsigned short  **a2s       = vc->a2s;
-  paramT          *P          = vc->params;
-  model_detailsT  *md         = &(P->model_details);
+  vrna_param_t    *P          = vc->params;
+  vrna_md_t       *md         = &(P->model_details);
   int             n_seq       = vc->n_seq;
 
   int energy = 0;
   int ee= 0;
   int j, p, q, s;
-  int *type = (int *) space(n_seq*sizeof(int));
+  int *type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   j = pt[i];
   for (s=0; s<n_seq; s++) {
@@ -1880,8 +1880,8 @@ ML_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_param_t    *P            = vc->params;
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1946,8 +1946,8 @@ EL_Energy_pt_ali( vrna_fold_compound *vc,
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   unsigned short  **a2s         = vc->a2s;
-  paramT          *P            = vc->params;
-  model_detailsT  *md           = &(P->model_details);
+  vrna_param_t    *P            = vc->params;
+  vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;
   int             dangle_model  = md->dangles;
 
@@ -1987,7 +1987,7 @@ energy_of_struct( const char *string,
                   const char *structure){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2014,13 +2014,13 @@ energy_of_struct_pt(const char *string,
                     short *s1){
 
   int                 en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
-      nrerror("energy_of_structure_pt: string and structure have unequal length");
+      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
     set_model_details(&md);
     seq = vrna_cut_point_insert(string, cut_point);
@@ -2041,7 +2041,7 @@ energy_of_circ_struct(const char *string,
                       const char *structure){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
@@ -2064,7 +2064,7 @@ energy_of_structure(const char *string,
                     int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2087,7 +2087,7 @@ energy_of_structure(const char *string,
 PUBLIC float
 energy_of_struct_par( const char *string,
                       const char *structure,
-                      paramT *parameters,
+                      vrna_param_t *parameters,
                       int verbosity_level){
 
   float               en;
@@ -2118,7 +2118,7 @@ energy_of_gquad_structure(const char *string,
                           int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2141,7 +2141,7 @@ energy_of_gquad_structure(const char *string,
 PUBLIC float
 energy_of_gquad_struct_par( const char *string,
                             const char *structure,
-                            paramT *parameters,
+                            vrna_param_t *parameters,
                             int verbosity_level){
 
 
@@ -2174,14 +2174,14 @@ energy_of_structure_pt( const char *string,
                         int verbosity_level){
 
   int                 en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
-      nrerror("energy_of_structure_pt: string and structure have unequal length");
+      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
     set_model_details(&md);
     seq = vrna_cut_point_insert(string, cut_point);
@@ -2202,7 +2202,7 @@ energy_of_struct_pt_par(const char *string,
                         short *pt,
                         short *s,
                         short *s1,
-                        paramT *parameters,
+                        vrna_param_t *parameters,
                         int verbosity_level){
 
   int en;
@@ -2211,7 +2211,7 @@ energy_of_struct_pt_par(const char *string,
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
-      nrerror("energy_of_structure_pt: string and structure have unequal length");
+      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
     seq = vrna_cut_point_insert(string, cut_point);
     vc  = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
@@ -2234,7 +2234,7 @@ energy_of_circ_structure( const char *string,
                           int verbosity_level){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
@@ -2254,7 +2254,7 @@ energy_of_circ_structure( const char *string,
 PUBLIC float
 energy_of_circ_struct_par(const char *string,
                           const char *structure,
-                          paramT *parameters,
+                          vrna_param_t *parameters,
                           int verbosity_level){
 
   float               en;
@@ -2283,15 +2283,15 @@ loop_energy(short *pt,
 
   int                 en, u;
   char                *seq, *seq2;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
 
   /* convert encoded sequence back to actual string */
-  seq = (char *)space(sizeof(char) * (s[0]+1));
+  seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
   for(u = 1; u < s[0]; u++){
-    seq[u-1] = get_encoded_char(s[u], &md);
+    seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
   seq[u] = '\0';
 
@@ -2315,7 +2315,7 @@ energy_of_move( const char *string,
                 int m2){
 
   float               en;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
   char                *seq;
 
@@ -2339,15 +2339,15 @@ energy_of_move_pt(short *pt,
 
   int                 en, u;
   char                *seq, *seq2;
-  model_detailsT      md;
+  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
   set_model_details(&md);
 
   /* convert encoded sequence back to actual string */
-  seq = (char *)space(sizeof(char) * (s[0]+1));
+  seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
   for(u = 1; u < s[0]; u++){
-    seq[u-1] = get_encoded_char(s[u], &md);
+    seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
   seq[u] = '\0';
 

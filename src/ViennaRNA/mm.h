@@ -1,5 +1,5 @@
-#ifndef __VIENNA_RNA_PACKAGE_MM_H__
-#define __VIENNA_RNA_PACKAGE_MM_H__
+#ifndef VIENNA_RNA_PACKAGE_MM_H
+#define VIENNA_RNA_PACKAGE_MM_H
 
 /**
  *  \file mm.h

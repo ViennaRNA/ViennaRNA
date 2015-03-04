@@ -1,72 +1,73 @@
 #include <check.h>
+#include <stdlib.h>
 
+#include <ViennaRNA/model.h>
 #include <ViennaRNA/utils.h>
-#include <ViennaRNA/utils.c>
 
-START_TEST(test_get_char_encoding)
+START_TEST(test_vrna_nucleotide_encode)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
 
-  ck_assert_int_eq(get_char_encoding('\0', &details), 0);
-  ck_assert_int_eq(get_char_encoding('_', &details), 0);
-  ck_assert_int_eq(get_char_encoding('A', &details), 1);
-  ck_assert_int_eq(get_char_encoding('C', &details), 2);
-  ck_assert_int_eq(get_char_encoding('G', &details), 3);
-  ck_assert_int_eq(get_char_encoding('U', &details), 4);
-  ck_assert_int_eq(get_char_encoding('T', &details), 4);
-  ck_assert_int_eq(get_char_encoding('X', &details), 0);
-  ck_assert_int_eq(get_char_encoding('K', &details), 0);
-  ck_assert_int_eq(get_char_encoding('I', &details), 0);
+  ck_assert_int_eq(vrna_nucleotide_encode('\0', &details), 0);
+  ck_assert_int_eq(vrna_nucleotide_encode('_', &details), 0);
+  ck_assert_int_eq(vrna_nucleotide_encode('A', &details), 1);
+  ck_assert_int_eq(vrna_nucleotide_encode('C', &details), 2);
+  ck_assert_int_eq(vrna_nucleotide_encode('G', &details), 3);
+  ck_assert_int_eq(vrna_nucleotide_encode('U', &details), 4);
+  ck_assert_int_eq(vrna_nucleotide_encode('T', &details), 4);
+  ck_assert_int_eq(vrna_nucleotide_encode('X', &details), 0);
+  ck_assert_int_eq(vrna_nucleotide_encode('K', &details), 0);
+  ck_assert_int_eq(vrna_nucleotide_encode('I', &details), 0);
 
   details.energy_set = 1;
 
-  ck_assert_int_eq(get_char_encoding('\0', &details), -64);
-  ck_assert_int_eq(get_char_encoding('_', &details), 31);
-  ck_assert_int_eq(get_char_encoding('A', &details), 1);
-  ck_assert_int_eq(get_char_encoding('C', &details), 3);
-  ck_assert_int_eq(get_char_encoding('G', &details), 7);
-  ck_assert_int_eq(get_char_encoding('U', &details), 21);
-  ck_assert_int_eq(get_char_encoding('T', &details), 20);
-  ck_assert_int_eq(get_char_encoding('X', &details), 24);
-  ck_assert_int_eq(get_char_encoding('K', &details), 11);
-  ck_assert_int_eq(get_char_encoding('I', &details), 9);
+  ck_assert_int_eq(vrna_nucleotide_encode('\0', &details), -64);
+  ck_assert_int_eq(vrna_nucleotide_encode('_', &details), 31);
+  ck_assert_int_eq(vrna_nucleotide_encode('A', &details), 1);
+  ck_assert_int_eq(vrna_nucleotide_encode('C', &details), 3);
+  ck_assert_int_eq(vrna_nucleotide_encode('G', &details), 7);
+  ck_assert_int_eq(vrna_nucleotide_encode('U', &details), 21);
+  ck_assert_int_eq(vrna_nucleotide_encode('T', &details), 20);
+  ck_assert_int_eq(vrna_nucleotide_encode('X', &details), 24);
+  ck_assert_int_eq(vrna_nucleotide_encode('K', &details), 11);
+  ck_assert_int_eq(vrna_nucleotide_encode('I', &details), 9);
 }
 END_TEST
 
-START_TEST(test_get_encoded_char)
+START_TEST(test_vrna_nucleotide_decode)
 {
   const char *characters = "_ACGUTXKI";
   const char *p;
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
 
-  ck_assert_int_eq(get_encoded_char(0, &details), '_');
-  ck_assert_int_eq(get_encoded_char(1, &details), 'A');
-  ck_assert_int_eq(get_encoded_char(2, &details), 'C');
-  ck_assert_int_eq(get_encoded_char(3, &details), 'G');
-  ck_assert_int_eq(get_encoded_char(4, &details), 'U');
-  ck_assert_int_eq(get_encoded_char(5, &details), 'T');
-  ck_assert_int_eq(get_encoded_char(6, &details), 'X');
-  ck_assert_int_eq(get_encoded_char(7, &details), 'K');
-  ck_assert_int_eq(get_encoded_char(8, &details), 'I');
+  ck_assert_int_eq(vrna_nucleotide_decode(0, &details), '_');
+  ck_assert_int_eq(vrna_nucleotide_decode(1, &details), 'A');
+  ck_assert_int_eq(vrna_nucleotide_decode(2, &details), 'C');
+  ck_assert_int_eq(vrna_nucleotide_decode(3, &details), 'G');
+  ck_assert_int_eq(vrna_nucleotide_decode(4, &details), 'U');
+  ck_assert_int_eq(vrna_nucleotide_decode(5, &details), 'T');
+  ck_assert_int_eq(vrna_nucleotide_decode(6, &details), 'X');
+  ck_assert_int_eq(vrna_nucleotide_decode(7, &details), 'K');
+  ck_assert_int_eq(vrna_nucleotide_decode(8, &details), 'I');
 
   details.energy_set = 1;
 
-  ck_assert_int_eq(get_encoded_char(-64, &details), '\0');
-  ck_assert_int_eq(get_encoded_char(31, &details), '_');
-  ck_assert_int_eq(get_encoded_char(1, &details), 'A');
-  ck_assert_int_eq(get_encoded_char(3, &details), 'C');
-  ck_assert_int_eq(get_encoded_char(7, &details), 'G');
-  ck_assert_int_eq(get_encoded_char(21, &details), 'U');
-  ck_assert_int_eq(get_encoded_char(20, &details), 'T');
-  ck_assert_int_eq(get_encoded_char(24, &details), 'X');
-  ck_assert_int_eq(get_encoded_char(11, &details), 'K');
-  ck_assert_int_eq(get_encoded_char(9, &details), 'I');
+  ck_assert_int_eq(vrna_nucleotide_decode(-64, &details), '\0');
+  ck_assert_int_eq(vrna_nucleotide_decode(31, &details), '_');
+  ck_assert_int_eq(vrna_nucleotide_decode(1, &details), 'A');
+  ck_assert_int_eq(vrna_nucleotide_decode(3, &details), 'C');
+  ck_assert_int_eq(vrna_nucleotide_decode(7, &details), 'G');
+  ck_assert_int_eq(vrna_nucleotide_decode(21, &details), 'U');
+  ck_assert_int_eq(vrna_nucleotide_decode(20, &details), 'T');
+  ck_assert_int_eq(vrna_nucleotide_decode(24, &details), 'X');
+  ck_assert_int_eq(vrna_nucleotide_decode(11, &details), 'K');
+  ck_assert_int_eq(vrna_nucleotide_decode(9, &details), 'I');
 }
 END_TEST
 
 START_TEST(test_sequence_encoding)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   short *data;
 
   data = vrna_seq_encode_simple("_AUGC", &details);
@@ -93,12 +94,12 @@ START_TEST(test_sequence_encoding)
 }
 END_TEST
 
-START_TEST(test_fill_pair_matrices)
+START_TEST(test_vrna_md_update)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   int i, j, count;
 
-  fill_pair_matrices(&details);
+  vrna_md_update(&details);
 
   for (i = 0; i <= 4; ++i)
     ck_assert_int_eq(details.alias[i], i);
@@ -146,7 +147,7 @@ END_TEST
 
 START_TEST(test_get_ptypes)
 {
-  model_detailsT details = {0};
+  vrna_md_t details = {0};
   const int len = 12;
   short sequence[] = {len, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1}; //ACGUACGUACGU
   int i, j, count;
@@ -168,10 +169,10 @@ START_TEST(test_get_ptypes)
                       {12, 7, 3},
                       {0, 0, 0}};
 
-  fill_pair_matrices(&details);
+  vrna_md_update(&details);
 
   ptype = get_ptypes(sequence, &details, 0);
-  idx = get_indx(len);
+  idx = vrna_get_indx(len);
 
   for (i = 0; results[i][0]; ++i)
     ck_assert_int_eq(ptype[idx[results[i][0]] + results[i][1]], results[i][2]);
@@ -195,10 +196,10 @@ END_TEST
 TCase* utils_testcase()
 {
   TCase *tc = tcase_create("utils");
-  tcase_add_test(tc, test_get_char_encoding);
-  tcase_add_test(tc, test_get_encoded_char);
+  tcase_add_test(tc, test_vrna_nucleotide_encode);
+  tcase_add_test(tc, test_vrna_nucleotide_decode);
   tcase_add_test(tc, test_sequence_encoding);
-  tcase_add_test(tc, test_fill_pair_matrices);
+  tcase_add_test(tc, test_vrna_md_update);
   tcase_add_test(tc, test_get_ptypes);
 
   return tc;

@@ -45,17 +45,17 @@ int main (int argc, char *argv[])
   }
 
   /* read the sequence */
-  sequence = (char *) space (sizeof (char) * (strlen(line)+1));
+  sequence = (char *) vrna_alloc (sizeof (char) * (strlen(line)+1));
   (void) sscanf(line, "%s", sequence);
   free (line);
   length = (int) strlen(sequence);
 
-  iindx = (int *) space(sizeof(int)*(length+1));
+  iindx = (int *) vrna_alloc(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) 
     iindx[i] = ((length+1-i)*(length-i))/2 +length+1;
-  pair_seen = (char *) space(((length+1)*(length+2))/2 * sizeof(char));
+  pair_seen = (char *) vrna_alloc(((length+1)*(length+2))/2 * sizeof(char));
 
-  structure = (char *) space (sizeof (char) * (length+1));
+  structure = (char *) vrna_alloc (sizeof (char) * (length+1));
   
   /* get of suboptimal structures */
 
@@ -65,7 +65,7 @@ int main (int argc, char *argv[])
     r = sscanf(line, "%s %f", structure, &energy);
     free(line);
     if (r==0) continue;
-    ptable = make_pair_table(structure);
+    ptable = vrna_pt_get(structure);
 
     popt = 0;
     for (i = 0; i < length; i++) {

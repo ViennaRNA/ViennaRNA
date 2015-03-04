@@ -47,8 +47,8 @@ int main(int argc, char *argv[]){
   plist         *pl, *dpp = NULL;
   unsigned int  rec_type, read_opt;
   double        betaScale;
-  pf_paramT     *pf_parameters;
-  model_detailsT  md;
+  vrna_exp_param_t  *pf_parameters;
+  vrna_md_t         md;
 
   dangles       = 2;
   cutoff        = 0.01;
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -162,14 +162,14 @@ int main(int argc, char *argv[]){
     pairdist = winsize;
   }
   if(dangles % 2){
-    warn_user("using default dangles = 2");
+    vrna_message_warning("using default dangles = 2");
     dangles = 2;
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   read_opt |= VRNA_INPUT_NO_REST;
   if(istty){
-    print_tty_input_seq();
+    vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
 
@@ -194,14 +194,14 @@ int main(int argc, char *argv[]){
     else fname[0] = '\0';
 
     length    = (int)strlen(rec_sequence);
-    structure = (char *) space((unsigned) length+1);
+    structure = (char *) vrna_alloc((unsigned) length+1);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(rec_sequence);
+    if(!noconv) vrna_seq_toRNA(rec_sequence);
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
-    str_uppercase(rec_sequence);
+    vrna_seq_toupper(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
@@ -285,8 +285,8 @@ int main(int argc, char *argv[]){
       pf_parameters = get_boltzmann_factors(temperature, betaScale, md, -1);
 
       if(unpaired > 0){
-        pup       =(double **)  space((length+1)*sizeof(double *));
-        pup[0]    =(double *)   space(sizeof(double)); /*I only need entry 0*/
+        pup       =(double **)  vrna_alloc((length+1)*sizeof(double *));
+        pup[0]    =(double *)   vrna_alloc(sizeof(double)); /*I only need entry 0*/
         pup[0][0] = unpaired;
       }
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[]){
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 
-    if(istty) print_tty_input_seq();
+    if(istty) vrna_message_input_seq_simple();
   }
   return EXIT_SUCCESS;
 }

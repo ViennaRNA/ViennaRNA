@@ -55,13 +55,13 @@ struct MEAdat{
   char * structure;
 };
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired, short *S, pf_paramT *pf);
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int paired, short *S, vrna_exp_param_t *pf);
 
 PUBLIC float MEA(plist *p, char *structure, double gamma) {
   return MEA_seq(p, NULL, structure, gamma, NULL);
 }
 
-PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gamma, pf_paramT *pf){
+PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gamma, vrna_exp_param_t *pf){
 
   int i,j,n;
   Litem *li;
@@ -80,7 +80,7 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
     if(pf){
       S = vrna_seq_encode(sequence, &(pf->model_details));
     } else {
-      pf_paramT *pf_params;
+      vrna_exp_param_t *pf_params;
       pf_params = get_scaled_pf_parameters();
       S = vrna_seq_encode(sequence, &(pf_params->model_details));
       with_gquad = pf_params->model_details.gquad;
@@ -90,13 +90,13 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
   if(pf)
     with_gquad = pf->model_details.gquad;
 
-  pu = space(sizeof(double)*(n+1));
+  pu = vrna_alloc(sizeof(double)*(n+1));
   pp = pl = prune_sort(p, pu, n, gamma, S, with_gquad);
 
-  C = (List*) space((n+1)*(sizeof(List)));
+  C = (List*) vrna_alloc((n+1)*(sizeof(List)));
 
-  Mi = (double *) space((n+1)*sizeof(double));
-  Mi1 = (double *) space((n+1)*sizeof(double));
+  Mi = (double *) vrna_alloc((n+1)*sizeof(double));
+  Mi1 = (double *) vrna_alloc((n+1)*sizeof(double));
 
   for (i=n; i>0; i--) {
     Mi[i] = pu[i];
@@ -157,7 +157,7 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, i
 
   for (pc=p; pc->i >0; pc++) {
     if(gq){
-      if(!S) nrerror("no sequence information available in MEA gquad!");
+      if(!S) vrna_message_error("no sequence information available in MEA gquad!");
       pu[pc->i] -= pc->p;
       pu[pc->j] -= pc->p;
       /* now remove all cases where i/j are within a gquad */
@@ -179,13 +179,13 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, i
     }
   }
   size = n+1;
-  pp = space(sizeof(plist)*(n+1));
+  pp = vrna_alloc(sizeof(plist)*(n+1));
   for (pc=p; pc->i >0; pc++) {
-    if (pc->i > n) nrerror("mismatch between plist and structure in MEA()");
+    if (pc->i > n) vrna_message_error("mismatch between plist and structure in MEA()");
     if (pc->p*2*gamma > pu[pc->i] + pu[pc->j]) {
       if (nump+1 >= size) {
         size += size/2 + 1;
-        pp = xrealloc(pp, size*sizeof(plist));
+        pp = vrna_realloc(pp, size*sizeof(plist));
       }
       pp[nump++] = *pc;
     }
@@ -198,14 +198,14 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, i
 PRIVATE void pushC(List *c, int i, double a) {
   if (c->nelem+1>=c->size) {
     c->size = MAX2(8,c->size*sqrt(2));
-    c->list = xrealloc(c->list, sizeof(Litem)*c->size);
+    c->list = vrna_realloc(c->list, sizeof(Litem)*c->size);
   }
   c->list[c->nelem].i = i;
   c->list[c->nelem].A = a;
   c->nelem++;
 }
 
-PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, short *S, pf_paramT *pf){
+PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, short *S, vrna_exp_param_t *pf){
   /* backtrack structure for the interval [i..j] */
   /* recursively calls itself, recomputes the necessary parts of the M matrix */
   List *C; Litem *li;
@@ -282,5 +282,5 @@ PRIVATE void mea_backtrack(const struct MEAdat *bdat, int i, int j, int pair, sh
       fail = 0;
     }
   }
-  if (fail && j>i) nrerror("backtrack failed for MEA()");
+  if (fail && j>i) vrna_message_error("backtrack failed for MEA()");
 }

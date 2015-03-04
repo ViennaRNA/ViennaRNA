@@ -75,18 +75,18 @@ PRIVATE double adaptive_walk(char *start, const char *target)
    len = strlen(start);
    if (strlen(target)!=len) {
       fprintf(stderr, "%s\n%s\n", start, target);
-      nrerror("adaptive_walk: start and target have unequal length");
+      vrna_message_error("adaptive_walk: start and target have unequal length");
    }
-   string    = (char *) space(sizeof(char)*(len+1));
-   cstring   = (char *) space(sizeof(char)*(len+1));
-   string2   = (char *) space(sizeof(char)*(len+1));
-   structure = (char *) space(sizeof(char)*(len+1));
-   struct2   = (char *) space(sizeof(char)*(len+1));
-   mut_pos_list = (int *) space(sizeof(int)*len);
-   w1_list = (int *) space(sizeof(int)*len);
-   w2_list = (int *) space(sizeof(int)*len);
-   target_table = (int *) space(sizeof(int)*len);
-   test_table = (int *) space(sizeof(int)*len);
+   string    = (char *) vrna_alloc(sizeof(char)*(len+1));
+   cstring   = (char *) vrna_alloc(sizeof(char)*(len+1));
+   string2   = (char *) vrna_alloc(sizeof(char)*(len+1));
+   structure = (char *) vrna_alloc(sizeof(char)*(len+1));
+   struct2   = (char *) vrna_alloc(sizeof(char)*(len+1));
+   mut_pos_list = (int *) vrna_alloc(sizeof(int)*len);
+   w1_list = (int *) vrna_alloc(sizeof(int)*len);
+   w2_list = (int *) vrna_alloc(sizeof(int)*len);
+   target_table = (int *) vrna_alloc(sizeof(int)*len);
+   test_table = (int *) vrna_alloc(sizeof(int)*len);
 
    make_ptable(target, target_table);
 
@@ -230,7 +230,7 @@ PRIVATE void shuffle(int *list, int len)
 
    for (i=0;i<len;i++) {
      int temp;
-     rn = i + (int) (urn()*(len-i));   /* [i..len-1] */
+     rn = i + (int) (vrna_urn()*(len-i));   /* [i..len-1] */
      /* swap element i and rn */
      temp = list[i];
      list[i] = list[rn];
@@ -246,7 +246,7 @@ PRIVATE void make_ptable(const char *structure, int *table)
    int *stack;
 
    hx=0;
-   stack = (int *) space(sizeof(int)*(strlen(structure)+1));
+   stack = (int *) vrna_alloc(sizeof(int)*(strlen(structure)+1));
 
    for (i=0; i<strlen(structure); i++) {
       switch (structure[i]) {
@@ -260,7 +260,7 @@ PRIVATE void make_ptable(const char *structure, int *table)
 	 j = stack[--hx];
 	 if (hx<0) {
 	    fprintf(stderr, "%s\n", structure);
-	    nrerror("unbalanced brackets in make_ptable");
+	    vrna_message_error("unbalanced brackets in make_ptable");
 	 }
 	 table[i]=j;
 	 table[j]=i;
@@ -269,7 +269,7 @@ PRIVATE void make_ptable(const char *structure, int *table)
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_ptable");
+      vrna_message_error("unbalanced brackets in make_ptable");
    }
    free(stack);
 }
@@ -297,12 +297,12 @@ PUBLIC float inverse_fold(char *start, char *structure)
    len = strlen(structure);
    if (strlen(start)!=len) {
       fprintf(stderr, "%s\n%s\n", start, structure);
-      nrerror("inverse_fold: start and structure have unequal length");
+      vrna_message_error("inverse_fold: start and structure have unequal length");
    }
-   string = (char *) space(len+1);
-   wstring = (char *) space(len+1);
-   wstruct = (char *) space(len+1);
-   pt = (int *) space(sizeof(int)*(len+2));
+   string = (char *) vrna_alloc(len+1);
+   wstring = (char *) vrna_alloc(len+1);
+   wstruct = (char *) vrna_alloc(len+1);
+   pt = (int *) vrna_alloc(sizeof(int)*(len+2));
    pt[len] = len+1;
 
    aux = aux_struct(structure);
@@ -388,8 +388,8 @@ PRIVATE void make_start(char* start, const char *structure)
    int *table, *S, sym[MAXALPHA], ss;
 
    length=strlen(start);
-   table = (int *) space(sizeof(int)*length);
-   S = (int *) space(sizeof(int)*length);
+   table = (int *) vrna_alloc(sizeof(int)*length);
+   S = (int *) vrna_alloc(sizeof(int)*length);
 
    make_ptable(structure, table);
    for (i=0; i<strlen(start); i++) S[i] = encode_char(toupper(start[i]));
@@ -397,7 +397,7 @@ PRIVATE void make_start(char* start, const char *structure)
 
    for (k=0; k<length; k++) {
       if (table[k]<k) continue;
-      if (((urn()<0.5) && isupper(start[k])) ||
+      if (((vrna_urn()<0.5) && isupper(start[k])) ||
 	  islower(start[table[k]])) {
 	i = table[k]; j = k;
       } else {
@@ -411,7 +411,7 @@ PRIVATE void make_start(char* start, const char *structure)
 	  if (pair[S[i]][ss]) break;
 	}
 	if (l==base) { /* nothing pairs start[i] */
-	  r = 2*int_urn(0, npairs-1);
+	  r = 2*vrna_int_urn(0, npairs-1);
 	  start[i] = pairset[r];
 	  start[j] = pairset[r+1];
 	} else start[j] = symbolset[sym[l]];
@@ -440,7 +440,7 @@ PRIVATE void make_pairset(void)
 	    pairset[npairs++] = symbolset[j];
 	 }
    npairs /= 2;
-   if (npairs==0) nrerror("No pairs in this alphabet!");
+   if (npairs==0) vrna_message_error("No pairs in this alphabet!");
 }
 /*---------------------------------------------------------------------------*/
 
@@ -454,7 +454,7 @@ PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
 
    if (strlen(string)!=strlen(target)) {
       fprintf(stderr, "%s\n%s\n", string, target);
-      nrerror("unequal length in mfe_cost");
+      vrna_message_error("unequal length in mfe_cost");
    }
    energy = fold(string, structure);
 #if TDIST
@@ -486,7 +486,7 @@ PRIVATE double pf_cost(const char *string, char *structure, const char *target)
    e = energy_of_structure(string, target, 0);
    return (double) (e-f-final_cost);
 #else
-   nrerror("this version not linked with pf_fold");
+   vrna_message_error("this version not linked with pf_fold");
    return 0;
 #endif
 }
@@ -499,8 +499,8 @@ PRIVATE char *aux_struct(const char* structure )
    int          i, o, p;
    char        *string;
 
-   string = (char *) space(sizeof(char)*(strlen(structure)+1));
-   match_paren = (int *) space(sizeof(int)*(strlen(structure)/2+1));
+   string = (char *) vrna_alloc(sizeof(char)*(strlen(structure)+1));
+   match_paren = (int *) vrna_alloc(sizeof(int)*(strlen(structure)/2+1));
    strcpy(string, structure);
 
    i = o = 0;
@@ -521,7 +521,7 @@ PRIVATE char *aux_struct(const char* structure )
 	 o--;
 	 break;
        default:
-	 nrerror("Junk in structure at aux_structure\n");
+	 vrna_message_error("Junk in structure at aux_structure\n");
       }
       i++;
    }

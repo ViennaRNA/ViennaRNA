@@ -13,12 +13,12 @@
 #include <string.h>
 #include <math.h>
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/params.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_const.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/params.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/PKplex.h"
@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
   double        subopts;
   double        pk_penalty;
   unsigned int  options=0;
-  model_detailsT  md;
-  paramT          *par;
+  vrna_md_t     md;
+  vrna_param_t  *par;
 
   subopts       = 0.0;
   dangles       = 2;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if(istty) options |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   options |= VRNA_INPUT_NO_REST;
-  if(istty) print_tty_input_seq();
+  if(istty) vrna_message_input_seq_simple();
 
   /*
   #############################################
@@ -152,11 +152,11 @@ int main(int argc, char *argv[]) {
     unpaired=MIN2(30, length-3);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if(!noconv) str_DNA2RNA(s1);
+    if(!noconv) vrna_seq_toRNA(s1);
     /* store case-unmodified sequence */
     orig_s1 = strdup(s1);
     /* convert sequence to uppercase letters only */
-    str_uppercase(s1);
+    vrna_seq_toupper(s1);
 
     printf("%s\n", orig_s1);
     if (verbose) printf("length = %d\n", length);
@@ -170,8 +170,8 @@ int main(int argc, char *argv[]) {
 
       pf_scale  = -1;
 
-      pup       =(double **)  space((length+1)*sizeof(double *));
-      pup[0]    =(double *)   space(sizeof(double)); /*I only need entry 0*/
+      pup       =(double **)  vrna_alloc((length+1)*sizeof(double *));
+      pup[0]    =(double *)   vrna_alloc(sizeof(double)); /*I only need entry 0*/
       pup[0][0] = unpaired;
 
       pUfp = spup = NULL;
@@ -188,13 +188,13 @@ int main(int argc, char *argv[]) {
     ########################################################
     */
       NumberOfHits=0;
-      PlexHits = (dupVar *)space(sizeof(dupVar) * PlexHitsArrayLength);
+      PlexHits = (dupVar *)vrna_alloc(sizeof(dupVar) * PlexHitsArrayLength);
       double kT= (temperature+K0)*GASCONST/1000.0;
       int **access;
       /* prepare the accesibility array */
-      access = (int**) space(sizeof(int *) * (unpaired+2));
+      access = (int**) vrna_alloc(sizeof(int *) * (unpaired+2));
       for(i=0; i< unpaired+2; i++){
-        access[i] =(int *) space(sizeof(int) * (length+20));
+        access[i] =(int *) vrna_alloc(sizeof(int) * (length+20));
       }
 
       for(i=0;i<length+20;i++){
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
 
       access[0][0]=unpaired+2;
 
-      plexstring = (char *) space(length+1+20);
+      plexstring = (char *) vrna_alloc(length+1+20);
       strcpy(plexstring,"NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
       strcat(plexstring, s1);
       strcat(plexstring,"NNNNNNNNNN\0");
@@ -250,8 +250,8 @@ int main(int argc, char *argv[]) {
       char *mfe_struct = NULL;
 
       par = get_scaled_parameters(temperature, md);
-      constraint = (char *) space(length+1);
-      mfe_struct = (char *) space(length+1);
+      constraint = (char *) vrna_alloc(length+1);
+      mfe_struct = (char *) vrna_alloc(length+1);
 
       mfe = mfe_pk = fold_par(s1, mfe_struct, par, 0, 0);
 /*      if(verbose)
@@ -339,15 +339,15 @@ int main(int argc, char *argv[]) {
       ########################################################
       */
       
-      annotation  = (char *) space(sizeof(char)*300);
-      temp        = (char *) space(sizeof(char)*300);
+      annotation  = (char *) vrna_alloc(sizeof(char)*300);
+      temp        = (char *) vrna_alloc(sizeof(char)*300);
 
       /* and print the results to stdout */
       for(i = 0; i < NumberOfHits; i++){
         if(!PlexHits[i].inactive){
           if (PlexHits[i].structure){
-            annotation  = (char *) space(sizeof(char)*300);
-            temp        = (char *) space(sizeof(char)*300);
+            annotation  = (char *) vrna_alloc(sizeof(char)*300);
+            temp        = (char *) vrna_alloc(sizeof(char)*300);
             sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[i].tb, PlexHits[i].te);
             strcat(annotation, temp);
             sprintf(temp, "%d %d 13 1 0 0 omark\n", (int) PlexHits[i].qb, PlexHits[i].qe);
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
         # Constrained RNAfold to reevaluate the actual energy
         ########################################################
         */
-        constraint = (char *) space(length+1);
+        constraint = (char *) vrna_alloc(length+1);
         for(i=0; i<length; i++) {
           if((PlexHits[current].tb-1<=i) && (PlexHits[current].te-1>=i)) {
             constraint[i]='x';
@@ -430,8 +430,8 @@ int main(int argc, char *argv[]) {
         ########################################################
         */
 
-          annotation = (char *) space(sizeof(char)*300);
-          temp = (char *) space(sizeof(char)*300);
+          annotation = (char *) vrna_alloc(sizeof(char)*300);
+          temp = (char *) vrna_alloc(sizeof(char)*300);
 
           if (PlexHits[current].te) {
             int start=0;
@@ -501,7 +501,7 @@ int main(int argc, char *argv[]) {
     s1 = id_s1 = orig_s1 = NULL;
 
 /* print user help for the next round if we get input from tty */
-    if(istty) print_tty_input_seq();
+    if(istty) vrna_message_input_seq_simple();
   }
   return 0;
 }

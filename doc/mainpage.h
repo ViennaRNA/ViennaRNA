@@ -5,8 +5,11 @@
 */
 
 /**
- *  \defgroup   folding_routines          RNA Secondary Structure Folding
+ *  \defgroup   folding_routines          RNA Secondary Structure Prediction and Evaluation
  *  \brief This module contains all functions related to thermodynamic folding of RNAs
+ *
+ *  \defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
+ *  \ingroup    folding_routines
  *
  *  \defgroup   mfe_fold                  Calculating Minimum Free Energy (MFE) Structures
  *  \ingroup    folding_routines
@@ -109,6 +112,8 @@
  *
  *  \defgroup   soft_constraints          Soft Constraints
  *  \ingroup    constraints
+ *
+ *  \defgroup   data_structures           Common Data Structures and Preprocessor Macros
  *
  *  \defgroup   parse                     Parsing and Comparing - Functions to Manipulate Structures
  */

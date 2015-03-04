@@ -136,10 +136,10 @@ int main(int argc, char *argv[])
     {
       double mfe, kT;
       kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
-      structure = (char *) space((length+1)*sizeof(char));
+      structure = (char *) vrna_alloc((length+1)*sizeof(char));
       mfe = fold(line, structure);
       /* get pairlist from dot-bracket string */
-      mfe_pl = vrna_get_plist_from_db(structure, 0.95*0.95);
+      mfe_pl = vrna_pl_get(structure, 0.95*0.95);
       pf_scale = exp(-(1.07*mfe)/kT/length);
       /* init_pf_fold(length); <- obsolete */
       (void) pf_fold(line,structure);
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
       break;
 
     default :
-      nrerror("This can't happen.");
+      vrna_message_error("This can't happen.");
     }    /* END switch task */
     (void) fflush(stdout);
   }    /* END while */
@@ -281,7 +281,7 @@ PRIVATE void command_line(int argc, char *argv[])
     read_parameter_file(ParamFile);
 
   if (ns_bases!=NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {

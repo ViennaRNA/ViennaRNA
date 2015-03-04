@@ -1,5 +1,14 @@
-#ifndef __VIENNA_RNA_PACKAGE_FILE_FORMATS_H__
-#define __VIENNA_RNA_PACKAGE_FILE_FORMATS_H__
+#ifndef VIENNA_RNA_PACKAGE_FILE_FORMATS_H
+#define VIENNA_RNA_PACKAGE_FILE_FORMATS_H
+
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
 
 /**
  *  \file file_formats.h
@@ -9,12 +18,6 @@
 #include <stdio.h>
 
 #include <ViennaRNA/data_structures.h>
-
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#else
-#define DEPRECATED(func) func
-#endif
 
 /**
  *  \brief Print a secondary structure as helix list
@@ -147,6 +150,45 @@ char *vrna_extract_record_rest_structure( const char **lines,
                                           unsigned int length,
                                           unsigned int option);
 
+/**
+ *  \brief  Extract a hard constraint encoded as pseudo dot-bracket string
+ *
+ *  \pre      The argument 'lines' has to be a 2-dimensional character array as obtained
+ *            by vrna_read_fasta_record()
+ *  \see      vrna_read_fasta_record(), #VRNA_CONSTRAINT_PIPE, #VRNA_CONSTRAINT_DOT, #VRNA_CONSTRAINT_X
+ *            #VRNA_CONSTRAINT_ANG_BRACK, #VRNA_CONSTRAINT_RND_BRACK
+ *
+ *  \param  cstruc  A pointer to a character array that is used as pseudo dot-bracket
+ *                  output
+ *  \param  lines   A 2-dimensional character array with the extension lines from the FASTA
+ *                  input
+ *  \param  option  The option flags that define the behavior and recognition pattern of
+ *                  this function
+ */
+void vrna_extract_record_rest_constraint( char **cstruc,
+                                          const char **lines,
+                                          unsigned int option);
+
+/**
+  * @brief Read data from a given SHAPE reactivity input file
+  *
+  * This function parses the informations from a given file and stores the result
+  * in the preallocated string sequence and the double array values.
+  *
+  * @param file_name     Path to the constraints file
+  * @param length        Length of the sequence (file entries exceeding this limit will cause an error)
+  * @param default_value Value for missing indices
+  * @param sequence      Pointer to an array used for storing the sequence obtained from the SHAPE reactivity file
+  * @param values        Pointer to an array used for storing the values obtained from the SHAPE reactivity file
+  */
+int vrna_read_SHAPE_file( const char *file_name,
+                          int length,
+                          double default_value,
+                          char *sequence,
+                          double *values);
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /* \brief Extract a dot-bracket structure string from (multiline)character array
  *
  * \deprecated This function is deprecated! Use vrna_extract_record_rest_structure() as a replacment.
@@ -168,5 +210,7 @@ DEPRECATED(unsigned int read_record(char **header,
 
 
 DEPRECATED(unsigned int get_multi_input_line(char **string, unsigned int options));
+
+#endif
 
 #endif

@@ -2,8 +2,8 @@
    prototypes for energy_par.c
 */
 
-#ifndef __VIENNA_RNA_PACKAGE_ENERGY_PAR_H__
-#define __VIENNA_RNA_PACKAGE_ENERGY_PAR_H__
+#ifndef VIENNA_RNA_PACKAGE_ENERGY_PAR_H
+#define VIENNA_RNA_PACKAGE_ENERGY_PAR_H
 
 #include <ViennaRNA/energy_const.h>
 
