@@ -89,7 +89,7 @@ int main(int argc, char *argv[]){
   /* dangle options */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]){
 #ifdef _OPENMP
   omp_set_num_threads(args_info.numThreads_arg);
 #else
-  nrerror("\'j\' option is available only if compiled with OpenMP support!");
+  vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
   /* get energy parameter file name */
@@ -127,11 +127,11 @@ int main(int argc, char *argv[]){
     if(sscanf(args_info.neighborhood_arg[i], "%d:%d", &kappa, &lambda) == 2);
     if ((kappa>-2) && (lambda>-2)){
       if(neighborhoods_cur != NULL){
-        neighborhoods_cur->next = (nbhoods *)space(sizeof(nbhoods));
+        neighborhoods_cur->next = (nbhoods *)vrna_alloc(sizeof(nbhoods));
         neighborhoods_cur = neighborhoods_cur->next;
       }
       else{
-        neighborhoods = (nbhoods *)space(sizeof(nbhoods));
+        neighborhoods = (nbhoods *)vrna_alloc(sizeof(nbhoods));
         neighborhoods_cur = neighborhoods;
       }
       neighborhoods_cur->k = kappa;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]){
   */
   do {
     if (istty)
-      print_tty_input_seq_str("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
+      vrna_message_input_seq("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
 
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string); /* print fasta header if available */
@@ -175,9 +175,9 @@ int main(int argc, char *argv[]){
       free(input_string);
     }
 
-    mfe_structure = (char *) space((unsigned) length+1);
-    structure1 = (char *) space((unsigned) length+1);
-    structure2 = (char *) space((unsigned) length+1);
+    mfe_structure = (char *) vrna_alloc((unsigned) length+1);
+    structure1 = (char *) vrna_alloc((unsigned) length+1);
+    structure2 = (char *) vrna_alloc((unsigned) length+1);
 
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if(input_type & VRNA_INPUT_QUIT){ break;}
@@ -185,9 +185,9 @@ int main(int argc, char *argv[]){
       reference_struc1 = strdup(input_string);
       free(input_string);
       if(strlen(reference_struc1) != length)
-        nrerror("sequence and 1st reference structure have unequal length");
+        vrna_message_error("sequence and 1st reference structure have unequal length");
     }
-    else nrerror("1st reference structure missing\n");
+    else vrna_message_error("1st reference structure missing\n");
     strncpy(structure1, reference_struc1, length);
 
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
@@ -196,9 +196,9 @@ int main(int argc, char *argv[]){
       reference_struc2 = strdup(input_string);
       free(input_string);
       if(strlen(reference_struc2) != length)
-        nrerror("sequence and 2nd reference structure have unequal length");
+        vrna_message_error("sequence and 2nd reference structure have unequal length");
     }
-    else nrerror("2nd reference structure missing\n");
+    else vrna_message_error("2nd reference structure missing\n");
     strncpy(structure2, reference_struc2, length);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -280,7 +280,7 @@ int main(int argc, char *argv[]){
         for(i=0; pf_s[i].k != INF;i++){
           float free_energy = (-log((float)pf_s[i].q)-length*log(pf_scale))*kT;
           if((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
-            nrerror("This should never happen!");
+            vrna_message_error("This should never happen!");
           fprintf(stdout,
                   "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n",
                   pf_s[i].k,
@@ -294,7 +294,7 @@ int main(int argc, char *argv[]){
         }
       }
       else{
-        init_rand();
+        vrna_init_rand();
         printf("k\tl\ten\tstructure\n");
         if(neighborhoods != NULL){
           nbhoods *tmp, *tmp2;

@@ -83,13 +83,13 @@ START_TEST(test_sc_sanity_check)
   pf_energy_unconstrained = vrna_pf_fold(vc, pf_structure_unconstrained);
   plist_unconstrained = vrna_pl_get_from_pr(vc, 0);
 
-  sc_up = (double *)space(sizeof(double) * (length + 1));
-  sc_bp = (double **)space(sizeof(double *) * (length + 1));
+  sc_up = (double *)vrna_alloc(sizeof(double) * (length + 1));
+  sc_bp = (double **)vrna_alloc(sizeof(double *) * (length + 1));
 
   for(i = 1; i <= length; ++i)
   {
     sc_up[i] = -1.;
-    sc_bp[i] = (double *)space(sizeof(double) * (length + 1));
+    sc_bp[i] = (double *)vrna_alloc(sizeof(double) * (length + 1));
     for(j = i + 1; j <= length; ++j)
       sc_bp[i][j] = -2.;
   }

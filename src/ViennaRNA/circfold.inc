@@ -110,8 +110,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
   Fc = MIN2(Fc, FcM);
 
   if (dangle_model==1) {
-    fM_d3 =  (int *) space(sizeof(int)*(length+2));
-    fM_d5 =  (int *) space(sizeof(int)*(length+2));
+    fM_d3 =  (int *) vrna_alloc(sizeof(int)*(length+2));
+    fM_d5 =  (int *) vrna_alloc(sizeof(int)*(length+2));
 
     for (i=TURN+1; i<length-TURN; i++) {
       fM_d3[i] = INF;

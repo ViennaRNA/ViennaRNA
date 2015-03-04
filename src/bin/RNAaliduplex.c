@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
      dangles = args_info.dangles_arg;
   }
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
     n_seq2  = read_clustal(file2, AS2, names2);
     fclose(file1);
     fclose(file2);
-    if(n_seq != n_seq2) nrerror("unequal number of seqs in alignments");
+    if(n_seq != n_seq2) vrna_message_error("unequal number of seqs in alignments");
   }
 
   /* free allocated memory of command line data structure */
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {

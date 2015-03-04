@@ -60,8 +60,8 @@ int main(int argc, char *argv[]){
         /*
         printf("sequence length: %u\n", length);
         */
-        seq   = (char *)space(sizeof(char) * (length + 1));
-        pairs = (plist *)space(sizeof(plist) * (2*length));
+        seq   = (char *)vrna_alloc(sizeof(char) * (length + 1));
+        pairs = (plist *)vrna_alloc(sizeof(plist) * (2*length));
       }
     }
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
   } while(1);
 
   if(seq){
-    pairs = xrealloc(pairs, sizeof(plist) * (num_pairs+1));
+    pairs = vrna_realloc(pairs, sizeof(plist) * (num_pairs+1));
     pairs[num_pairs].i    = 0;
     pairs[num_pairs].j    = 0;
     pairs[num_pairs].p    = 0.;
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]){
       MEAgamma = 2.0;
       vrna_exp_param_t *params = vrna_exp_params_get(NULL);
 
-      structure = (char *)space(sizeof(char) * (length + 1));
+      structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
       strcpy(structure, seq);
 
       mea = MEA_seq(pairs, seq, structure, MEAgamma, params);

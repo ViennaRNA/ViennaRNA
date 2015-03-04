@@ -157,7 +157,7 @@ PRIVATE void        get_interact_arrays(unsigned int n1,
 
 PUBLIC pu_contrib *get_pu_contrib_struct(unsigned int n, unsigned int w){
   unsigned int i;
-  pu_contrib  *pu = (pu_contrib *)space(sizeof(pu_contrib));
+  pu_contrib  *pu = (pu_contrib *)vrna_alloc(sizeof(pu_contrib));
   pu->length      = n;
   pu->w           = w;
   /* contributions to probability of being unpaired witihin a(n)
@@ -166,15 +166,15 @@ PUBLIC pu_contrib *get_pu_contrib_struct(unsigned int n, unsigned int w){
    M muliloop,
    E exterior loop*/
   /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */
-  pu->H           = (double **)space(sizeof(double *) * (n + 1));
-  pu->I           = (double **)space(sizeof(double *) * (n + 1));
-  pu->M           = (double **)space(sizeof(double *) * (n + 1));
-  pu->E           = (double **)space(sizeof(double *) * (n + 1));
+  pu->H           = (double **)vrna_alloc(sizeof(double *) * (n + 1));
+  pu->I           = (double **)vrna_alloc(sizeof(double *) * (n + 1));
+  pu->M           = (double **)vrna_alloc(sizeof(double *) * (n + 1));
+  pu->E           = (double **)vrna_alloc(sizeof(double *) * (n + 1));
   for(i=0;i<=n;i++){
-    pu->H[i]  = (double *)space(sizeof(double) * (w + 1));
-    pu->I[i]  = (double *)space(sizeof(double) * (w + 1));
-    pu->M[i]  = (double *)space(sizeof(double) * (w + 1));
-    pu->E[i]  = (double *)space(sizeof(double) * (w + 1));
+    pu->H[i]  = (double *)vrna_alloc(sizeof(double) * (w + 1));
+    pu->I[i]  = (double *)vrna_alloc(sizeof(double) * (w + 1));
+    pu->M[i]  = (double *)vrna_alloc(sizeof(double) * (w + 1));
+    pu->E[i]  = (double *)vrna_alloc(sizeof(double) * (w + 1));
   }
   return pu;
 }
@@ -217,7 +217,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   sum_l           = 0.0;
   temp            = 0;
   n               = (int) strlen(sequence);
-  sum_M           = (double *)  space((n+1) * sizeof(double));
+  sum_M           = (double *)  vrna_alloc((n+1) * sizeof(double));
   pu_test         = get_pu_contrib_struct((unsigned)n, (unsigned)w);
   size            = ((n+1)*(n+2))>>1;
 
@@ -250,22 +250,22 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   }
 
   /* alloc even more memory */
-  store_I2o = (double **)space(sizeof(double *) * (n + 1)); /* for p,k */
+  store_I2o = (double **)vrna_alloc(sizeof(double *) * (n + 1)); /* for p,k */
   for(i=0;i<=n;i++)
-    store_I2o[i] = (double *)space(sizeof(double) * (MAXLOOP + 2));
+    store_I2o[i] = (double *)vrna_alloc(sizeof(double) * (MAXLOOP + 2));
 
   /* expMLbase[i-p]*dangles_po */
-  store_M_mlbase = (double *)space(sizeof(double) * (size + 1));
+  store_M_mlbase = (double *)vrna_alloc(sizeof(double) * (size + 1));
 
   /* 2. exterior bp (p,o) encloses unpaired region [i,i+w[*/
   for (o=TURN+2;o<=n; o++) {
     double sum_h;
     /*allocate space for arrays to store different contributions to H, I & M */
-    store_H       = (double *)space(sizeof(double) * (o+2));
+    store_H       = (double *)vrna_alloc(sizeof(double) * (o+2));
     /* unpaired between ]l,o[ */
-    store_Io      = (double *)space(sizeof(double) * (o+2));
+    store_Io      = (double *)vrna_alloc(sizeof(double) * (o+2));
     /* qm[p+1,i-1]*dangles_po */
-    store_M_qm_o  = (double *)space(sizeof(double) * (n+1));
+    store_M_qm_o  = (double *)vrna_alloc(sizeof(double) * (n+1));
 
     for (p=o-TURN-1; p>=1; p--) {
       /* construction of partition function of segment [p,o], given that
@@ -424,7 +424,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
 /* is free'ing plus allocating faster than looping over all entries an setting them to 0? */
 #if 0
   free(store_M_mlbase);
-  store_M_mlbase = (double *) space(sizeof(double) * (size + 1));
+  store_M_mlbase = (double *) vrna_alloc(sizeof(double) * (size + 1));
 #else
   /* this should be the fastest way to set everything to 0 */
   memset(store_M_mlbase, 0, sizeof(double) * (size + 1));
@@ -503,20 +503,20 @@ PRIVATE void  get_interact_arrays(unsigned int n1,
 
   unsigned int i;
   int pc_size, j;
-  *p_c_S = (double **)space(sizeof(double *)*(n1+1));
+  *p_c_S = (double **)vrna_alloc(sizeof(double *)*(n1+1));
 
   for (i=1; i<=n1; i++){
     pc_size = MIN2((w + incr5 + incr3), (int)n1);
-    (*p_c_S)[i] = (double *)space(sizeof(double) * (pc_size + 1));
+    (*p_c_S)[i] = (double *)vrna_alloc(sizeof(double) * (pc_size + 1));
     for (j=0; j < pc_size; j++)
       (*p_c_S)[i][j] = p_c->H[i][j] + p_c->I[i][j] + p_c->M[i][j] + p_c->E[i][j];
   }
 
   if(p_c2 != NULL){
-    (*p_c2_S) = (double **)space(sizeof(double *) * (n2 + 1));
+    (*p_c2_S) = (double **)vrna_alloc(sizeof(double *) * (n2 + 1));
     for (i=1; i<=n2; i++){
       pc_size = MIN2(w, (int)n2);
-      (*p_c2_S)[i]  = (double *)space(sizeof(double) * (pc_size + 2));
+      (*p_c2_S)[i]  = (double *)vrna_alloc(sizeof(double) * (pc_size + 2));
       for (j=0; j < pc_size; j++)
         (*p_c2_S)[i][j] = p_c2->H[i][j] + p_c2->I[i][j] + p_c2->M[i][j] + p_c2->E[i][j];
     }
@@ -556,9 +556,9 @@ PUBLIC interact *pf_interact( const char *s1,
   prev_k  = 1;
   prev_l  = n2;
 
-  i_long  = (char *) space (sizeof(char)*(n1+1));
-  i_short = (char *) space (sizeof(char)*(n2+1));
-  Seq     = (char *) space (sizeof(char)*(n1+n2+2));
+  i_long  = (char *) vrna_alloc(sizeof(char)*(n1+1));
+  i_short = (char *) vrna_alloc(sizeof(char)*(n2+1));
+  Seq     = (char *) vrna_alloc(sizeof(char)*(n1+n2+2));
 
   strcpy(Seq,s1);
   strcat(Seq,s2);
@@ -571,9 +571,9 @@ PUBLIC interact *pf_interact( const char *s1,
   get_interact_arrays(n1, n2, p_c, p_c2, w, incr5, incr3, &p_c_S, &p_c2_S);
 
   /*array for pf_up() output */
-  Int = (interact *) space(sizeof(interact)*1);
-  Int->Pi = (double *) space(sizeof(double)*(n1+2));
-  Int->Gi = (double *) space(sizeof(double)*(n1+2));
+  Int = (interact *) vrna_alloc(sizeof(interact)*1);
+  Int->Pi = (double *) vrna_alloc(sizeof(double)*(n1+2));
+  Int->Gi = (double *) vrna_alloc(sizeof(double)*(n1+2));
 
   /* use a different scaling for pf_interact*/
   scale_int(s2, s1, &int_scale);
@@ -586,14 +586,14 @@ PUBLIC interact *pf_interact( const char *s1,
   /* in order to scale expLoopEnergy correctly call*/
   scale_stru_pf_params((unsigned) n1);
 
-  qint_ik = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *) * (n1+1));
+  qint_ik = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (n1+1));
   for (i=1; i<=n1; i++) {
-    qint_ik[i] = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * (n1+1));
+    qint_ik[i] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n1+1));
   }
 /* int_ik */
-  int_ik = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL *) * (n1+1));
+  int_ik = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (n1+1));
   for (i=1; i<=n1; i++) {
-    int_ik[i] = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * (n1+1));
+    int_ik[i] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n1+1));
   }
   Z_int=0.;
   /*  Gint = ( -log(int_ik[gk][gi])-( ((int) w/2)*log(pf_scale)) )*((Pf->temperature+K0)*GASCONST/1000.0); */
@@ -629,23 +629,23 @@ PUBLIC interact *pf_interact( const char *s1,
 
       if(ck > 0 && ci > 0 && ci-ck+1 > w) {
         fprintf(stderr, "distance between constrains in longer seq, %d, larger than -w = %d",ci-ck+1,w);
-        nrerror("pf_interact: could not satisfy all constraints");
+        vrna_message_error("pf_interact: could not satisfy all constraints");
       }
       if(cj > 0 && cl > 0 && cl-cj+1 > w) {
         fprintf(stderr, "distance between constrains in shorter seq, %d, larger than -w = %d",cl-cj+1,w);
-        nrerror("pf_interact: could not satisfy all constraints");
+        vrna_message_error("pf_interact: could not satisfy all constraints");
       }
     }
 
   } else if ( fold_constrained && cstruc == NULL) {
-    nrerror("option -C selected, but no constrained structure given\n");
+    vrna_message_error("option -C selected, but no constrained structure given\n");
   }
   if(fold_constrained) pos = strchr(cstruc,'|');
 
   /*  qint_4[i][j][k][l] contribution that region (k-i) in seq1 (l=n1)
       is paired to region (l-j) in seq 2(l=n2) that is
       a region closed by bp k-l  and bp i-j */
-  qint_4 = (FLT_OR_DBL ****) space(sizeof(FLT_OR_DBL ***) * (n1+1));
+  qint_4 = (FLT_OR_DBL ****) vrna_alloc(sizeof(FLT_OR_DBL ***) * (n1+1));
 
   /* qint_4[i][j][k][l] */
   for (i=1; i<=n1; i++) {
@@ -660,11 +660,11 @@ PUBLIC interact *pf_interact( const char *s1,
     if(fold_constrained && pos && ck && i > ck+w-1) break;
 
     /* note: qint_4[i] will be freed before we allocate qint_4[i+1] */
-    qint_4[i] = (FLT_OR_DBL ***) space(sizeof(FLT_OR_DBL **) * (n2+1));
+    qint_4[i] = (FLT_OR_DBL ***) vrna_alloc(sizeof(FLT_OR_DBL **) * (n2+1));
     for (j=n2; j>0; j--) {
-      qint_4[i][j] = (FLT_OR_DBL **) space(sizeof(FLT_OR_DBL*) * (w+1));
+      qint_4[i][j] = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL*) * (w+1));
       for (k=0; k<=w; k++) {
-        qint_4[i][j][k] = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * (w+1));
+        qint_4[i][j][k] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (w+1));
       }
     }
 
@@ -898,7 +898,7 @@ PUBLIC interact *pf_interact( const char *s1,
     free(qint_4);
   }
   if(fold_constrained && (gi==0 || gk==0 ||  gl==0 || gj==0)) {
-    nrerror("pf_interact: could not satisfy all constraints");
+    vrna_message_error("pf_interact: could not satisfy all constraints");
   }
   /* fill structure interact */
   Int->length = n1;
@@ -960,8 +960,8 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
   n         = strlen(s);
   nl        = strlen(sl);
 
-  expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(nl+1));
-  scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*((nl+1)*2));
+  expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(nl+1));
+  scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*((nl+1)*2));
 
   /* use RNA duplex to get a realistic estimate for the best possible
      interaction energy between the short RNA s and its target sl */
@@ -992,7 +992,7 @@ PRIVATE void init_pf_two(int length){
 
   /* gets the arrays, that we need, from part_func.c */
   if(!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln))
-    nrerror("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
+    vrna_message_error("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
   /* get a pointer to the base pair probs */
   probs = export_bppm();
 
@@ -1000,19 +1000,19 @@ PRIVATE void init_pf_two(int length){
 
   init_length=length;
   if(init_temp != Pf->temperature)
-    nrerror("init_pf_two: inconsistency with temperature");
+    vrna_message_error("init_pf_two: inconsistency with temperature");
 }
 
 PRIVATE void  get_up_arrays(unsigned int length){
   unsigned int l1 = length + 1;
   unsigned int l2 = length + 2;
-  prpr      = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * ((l1*l2)>>1));
-  expMLbase = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * l1);
-  scale     = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL)  * l1);
-  qqm2      = (double *)    space(sizeof(double)      * l2);
-  qq_1m2    = (double *)    space(sizeof(double)      * l2);
-  qqm       = (double *)    space(sizeof(double)      * l2);
-  qqm1      = (double *)    space(sizeof(double)      * l2);
+  prpr      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * ((l1*l2)>>1));
+  expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l1);
+  scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l1);
+  qqm2      = (double *)    vrna_alloc(sizeof(double)      * l2);
+  qq_1m2    = (double *)    vrna_alloc(sizeof(double)      * l2);
+  qqm       = (double *)    vrna_alloc(sizeof(double)      * l2);
+  qqm1      = (double *)    vrna_alloc(sizeof(double)      * l2);
   my_iindx  = vrna_get_iindx(length);
 }
 
@@ -1050,8 +1050,8 @@ PRIVATE void encode_seq(const char *s1, const char *s2) {
 
   l = strlen(s1);
   /* S and S1 are freed by free_pf_arrays(); ! */
-  S = (short *) space(sizeof(short)*(l+1));
-  S1= (short *) space(sizeof(short)*(l+1));
+  S = (short *) vrna_alloc(sizeof(short)*(l+1));
+  S1= (short *) vrna_alloc(sizeof(short)*(l+1));
   /* S1 exists only for the special X K and I bases and energy_set!=0 */
   S[0] = l;
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
@@ -1152,10 +1152,10 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
   }
 
   if(contribs > 5) {
-    nrerror("get_u_vals: error with contribs!");
+    vrna_message_error("get_u_vals: error with contribs!");
   }
   /* allocate the results structure */
-  u_results = (pu_out *) space(1*sizeof(pu_out));
+  u_results = (pu_out *) vrna_alloc(1*sizeof(pu_out));
   u_results->len = len; /* sequence length */
   /*num_u_vals differnet -u values, contribs [-c "SHIME"] */
   u_results->u_vals = num_u_vals;
@@ -1164,15 +1164,15 @@ PUBLIC pu_out *get_u_vals(pu_contrib *p_c, int **unpaired_values, char *select_c
      add 1 column for the free energy of interaction values */
   /* header e.g. u3I (contribution for u3 interior loops */
   size = 1 + (num_u_vals*contribs) + 1;
-  u_results->header = (char **) space((size+1)*sizeof(char*));
+  u_results->header = (char **) vrna_alloc((size+1)*sizeof(char*));
   for(i=0;i<(size+1);i++){
-    u_results->header[i] = (char *) space(10*sizeof(char));
+    u_results->header[i] = (char *) vrna_alloc(10*sizeof(char));
   }
   /* different free energies for all  -u and -c combinations */
-  u_results->u_values = (double**) space((size+1) *sizeof(double*));
+  u_results->u_values = (double**) vrna_alloc((size+1) *sizeof(double*));
   for(i=0;i<(size+1);i++){
     /* position within the sequence  */
-    u_results->u_values[i] = (double*) space((len+3)*sizeof(double));
+    u_results->u_values[i] = (double*) vrna_alloc((len+3)*sizeof(double));
   }
   /* write the position within the sequence in the u_results array
      at column zerro */
@@ -1274,7 +1274,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
 
   /* print header, if nh is zerro */
   if(head){
-    time = time_stamp();
+    time = vrna_time_stamp();
     fprintf(wastl,"# %s\n", time);
     fprintf(wastl,"%s\n",head);
   }
@@ -1369,12 +1369,12 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
 
   length = strlen(Seq);
   make_pair_matrix();
-  con = (constrain *) space(sizeof(constrain));
-  con->indx = (int *) space(sizeof(int)*(length+1));
+  con = (constrain *) vrna_alloc(sizeof(constrain));
+  con->indx = (int *) vrna_alloc(sizeof(int)*(length+1));
   for (i=1; i<=length; i++) {
     con->indx[i] = ((length+1-i)*(length-i))/2 +length+1;
   }
-  con->ptype = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
+  con->ptype = (char *) vrna_alloc(sizeof(char)*((length+1)*(length+2)/2));
 
   set_encoded_seq((const char *)Seq, &s, &s1);
 
@@ -1398,7 +1398,7 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
   if (fold_constrained&&(structure!=NULL)) {
     int hx, *stack;
     char type;
-    stack = (int *) space(sizeof(int)*(n+1));
+    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
     for(hx=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
       case 'x': /* can't pair */
@@ -1413,7 +1413,7 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
       case ')':
         if (hx<=0) {
           fprintf(stderr, "%s\n", structure);
-          nrerror("1. unbalanced brackets in constraints");
+          vrna_message_error("1. unbalanced brackets in constraints");
         }
         i = stack[--hx];
         type = con->ptype[con->indx[i]-j];
@@ -1430,7 +1430,7 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
     }
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("2. unbalanced brackets in constraint string");
+      vrna_message_error("2. unbalanced brackets in constraint string");
     }
     free(stack);
   }
@@ -1442,7 +1442,7 @@ PRIVATE  void  set_encoded_seq(const char *sequence, short **S, short **S1){
   unsigned int i,l;
   l = strlen(sequence);
   if(S!= NULL){
-    *S  = (short *)space(sizeof(short) * (l + 2));
+    *S  = (short *)vrna_alloc(sizeof(short) * (l + 2));
     for(i=1; i<=l; i++) /* make numerical encoding of sequence */
       (*S)[i]= (short) encode_char(toupper(sequence[i-1]));
     (*S)[l+1] = (*S)[1];
@@ -1450,7 +1450,7 @@ PRIVATE  void  set_encoded_seq(const char *sequence, short **S, short **S1){
   }
   /* S1 exists only for the special X K and I bases and energy_set!=0 */
   if(S1 != NULL){
-    *S1 = (short *)space(sizeof(short) * (l + 2));
+    *S1 = (short *)vrna_alloc(sizeof(short) * (l + 2));
     for(i=1; i<=l; i++) /* make numerical encoding of sequence */
       (*S1)[i]  = alias[(short) encode_char(toupper(sequence[i-1]))]; /* for mismatches of nostandard bases */
     /* for circular folding add first base at position n+1 and last base at position 0 in S1 */

@@ -35,7 +35,7 @@ main(int argc, char *argv[])
    short    Do_Split=0, Do_Wards=0, Do_Stg=1, Do_4_Stg=0, Do_Nj=0, Do_Mat=0;
    float    per_digit, per_gap;
    
-   mask   = space(sizeof(char)*54);
+   mask   = vrna_alloc(sizeof(char)*54);
    strcpy (mask,"%ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
    for (i=1; i<argc; i++) {
       if (argv[i][0]=='-') {
@@ -73,64 +73,64 @@ main(int argc, char *argv[])
                 usage();
                 break;
               case 'a' : 
-                mask   = space(sizeof(char)*54);
+                mask   = vrna_alloc(sizeof(char)*54);
                 strcpy(mask,
 		"%ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz");
                 if(argv[i][3]=='+') mask[0] = '~';  /* make case sensitive */
                 break;
               case 'u' :
-                mask   = space(sizeof(char)*28);
+                mask   = vrna_alloc(sizeof(char)*28);
                 strcpy(mask,"~ABCDEFGHIJKLMNOPQRSTUVW");
                 break;
               case 'l' :
-                mask   = space(sizeof(char)*28);
+                mask   = vrna_alloc(sizeof(char)*28);
                 strcpy(mask,"~abcdefghijklmnopqrstuvwxyz");
                 break;
               case 'c' :
-                mask   = space(sizeof(char)*12);
+                mask   = vrna_alloc(sizeof(char)*12);
                 strcpy(mask,"~1234567890");
                 break;
               case 'n' :
-                mask   = space(sizeof(char)*64);
+                mask   = vrna_alloc(sizeof(char)*64);
                 strcpy (mask,
                 "%ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz1234567890");
                 if(argv[i][3]=='+') mask[0] = '~';  /* make case sensitive */
                 break;
               case 'R' :     /* RNA */
-                mask   = space(sizeof(char)*10);
+                mask   = vrna_alloc(sizeof(char)*10);
                 strcpy(mask,"%GCAUgcau");
                 if(argv[i][3]=='+') mask[0] = '~';  /* make case sensitive */
                 break;
               case 'D' :     /* DNA */
-                mask   = space(sizeof(char)*10);
+                mask   = vrna_alloc(sizeof(char)*10);
                 strcpy (mask,"%GCATgcat");
                 if(argv[i][3]=='+') mask[0] = '~';  /* make case sensitive */
                 break;
               case 'A' :    /*  AMINOACIDS */
-                mask   = space(sizeof(char)*42);
+                mask   = vrna_alloc(sizeof(char)*42);
                 strcpy(mask,"%ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy");
                 if(argv[i][3]=='+') mask[0] = '~';  /* make case sensitive */
                 break;
               case 'S' :    /* SECONDARY STRUCTURES */
-                mask   = space(sizeof(char)*6);
+                mask   = vrna_alloc(sizeof(char)*6);
                 strcpy(mask,"~().^");
                 break;
               case '%' :    /* ARBITRARY ALPHABETS */
                 l = strlen(argv[i]);
                 if(argv[i][l] == '+'){
-                   mask =   space(sizeof(char)*(l-2));
+                   mask =   vrna_alloc(sizeof(char)*(l-2));
                    mask[0] = '~';
                    for(j=1;j<=l-4;j++) mask[j] = argv[i][j+2];
 		   mask[l-3]='\0';
                 }                
                 if(argv[i][l] == '!'){
-                   mask =   space(sizeof(char)*(l-2));
+                   mask =   vrna_alloc(sizeof(char)*(l-2));
                    mask[0] = '!';
                    for(j=1;j<=l-4;j++) mask[j] = argv[i][j+2];
 		   mask[l-3]='\0';
                 }
                 else { 
-                   mask =   space(sizeof(char)*(l-1));
+                   mask =   vrna_alloc(sizeof(char)*(l-1));
                    mask[0] = '%';
                    for(j=1;j<=l-3;j++) mask[j] = argv[i][j+2];
 		   mask[l-2]='\0';
@@ -214,7 +214,7 @@ main(int argc, char *argv[])
          nn[0] = n;
          for(i=1;i<4;i++) {
             ss[i] = read_sequence_list(&n,mask);
-            if(ss[i]==NULL) nrerror("read_sequences: wrong or insufficient data.");
+            if(ss[i]==NULL) vrna_message_error("read_sequences: wrong or insufficient data.");
             nn[i] = n;
          }
          printf_taxa_list();
@@ -254,7 +254,7 @@ main(int argc, char *argv[])
 		printf("> %s\n","G (Gotoh Distance)");
 		break;
 	      default:
-		nrerror("This can't happen.");
+		vrna_message_error("This can't happen.");
 	     }
          }
          if(Do_Split) {
@@ -289,6 +289,6 @@ main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   nrerror("usage: AnalyseSeqs [-X[bswnm]] [-Q] [-M{mask}] \n"
+   vrna_message_error("usage: AnalyseSeqs [-X[bswnm]] [-Q] [-M{mask}] \n"
    "                   [-D{H|A[,cost]|G[,cost1,cost2]}] [-d{D|B|H|S}]");
 }

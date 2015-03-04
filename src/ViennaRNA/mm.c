@@ -22,7 +22,7 @@ PUBLIC unsigned int maximumMatching(const char *string){
   int *iindx = vrna_get_iindx((unsigned) encodedString[0]);
   make_pair_matrix();
   length = (unsigned int)encodedString[0];
-  mm = (unsigned int *) space(sizeof(unsigned int)*((length*(length+1))/2+2));
+  mm = (unsigned int *) vrna_alloc(sizeof(unsigned int)*((length*(length+1))/2+2));
   for(j = 1; j<=length; j++)
     for(i=(j>TURN?(j-TURN):1); i<j; i++)
       mm[iindx[i]-j] = 0;
@@ -49,7 +49,7 @@ PUBLIC unsigned int *maximumMatchingConstraint(const char *string, short *ptable
   int *iindx = vrna_get_iindx((unsigned) encodedString[0]);
   make_pair_matrix();
   length = (unsigned int)encodedString[0];
-  mm = (unsigned int *) space(sizeof(unsigned int)*((length*(length+1))/2+2));
+  mm = (unsigned int *) vrna_alloc(sizeof(unsigned int)*((length*(length+1))/2+2));
   for(j = 1; j<=length; j++)
     for(i=(j>TURN?(j-TURN):1); i<j; i++)
       mm[iindx[i]-j] = 0;
@@ -77,7 +77,7 @@ PUBLIC unsigned int *maximumMatching2Constraint(const char *string, short *ptabl
   int *iindx = vrna_get_iindx((unsigned) encodedString[0]);
   make_pair_matrix();
   length = (unsigned int)encodedString[0];
-  mm = (unsigned int *) space(sizeof(unsigned int)*((length*(length+1))/2+2));
+  mm = (unsigned int *) vrna_alloc(sizeof(unsigned int)*((length*(length+1))/2+2));
   for(j = 1; j<=length; j++)
     for(i=(j>TURN?(j-TURN):1); i<j; i++)
       mm[iindx[i]-j] = 0;

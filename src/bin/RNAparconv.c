@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
     else if(ofileName == NULL)  ofileName = strdup(args_info.inputs[i]);
     else{
       RNAparconv_cmdline_parser_print_help();
-      nrerror("unrecognized or too many parameter options given!");
+      vrna_message_error("unrecognized or too many parameter options given!");
     }
   }
 

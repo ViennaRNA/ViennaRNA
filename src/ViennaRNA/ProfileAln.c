@@ -52,8 +52,8 @@ PRIVATE int     free_ends=1;            /* whether to use free end gaps */
 PRIVATE float **newmat(int l1, int l2) {
   float **a;
   int i;
-  a = (float **) space((l1+1)*sizeof(float *));
-  for (i=0; i<=l1; i++) a[i] = (float *) space((l2+1)*sizeof(float));
+  a = (float **) vrna_alloc((l1+1)*sizeof(float *));
+  for (i=0; i<=l1; i++) a[i] = (float *) vrna_alloc((l2+1)*sizeof(float));
   return a;
 }
 
@@ -96,8 +96,8 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
     double score=0;
     char state = 'S';
     int pos, i,j;
-    alignment[0] = (int *) space((length1+length2+1)*sizeof(int));
-    alignment[1] = (int *) space((length1+length2+1)*sizeof(int));
+    alignment[0] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
+    alignment[1] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
 
     pos = length1+length2;
     i   = length1;
@@ -163,7 +163,7 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
 	  alignment[1][pos--] = j;
 	  i--; j--;
 	}
-	else nrerror("backtrack of alignment failed");
+	else vrna_message_error("backtrack of alignment failed");
 	break;
       }
     }
@@ -232,7 +232,7 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const char *seq1,
    length = alignment[0][0];
    for (i=0; i<4; i++) {
      if (aligned_line[i] != NULL) free(aligned_line[i]);
-     aligned_line[i] = (char *) space((length+1)*sizeof(char));
+     aligned_line[i] = (char *) vrna_alloc((length+1)*sizeof(char));
    }
    for(i=1; i<=length; i++){
       if (alignment[0][i]==0)

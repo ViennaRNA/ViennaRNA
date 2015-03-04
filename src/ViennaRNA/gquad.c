@@ -337,7 +337,7 @@ PUBLIC int *get_gquad_matrix(short *S, vrna_param_t *P){
   my_index  = vrna_get_indx(n);
   gg        = get_g_islands(S);
   size      = (n * (n+1))/2 + 2;
-  data      = (int *)space(sizeof(int) * size);
+  data      = (int *)vrna_alloc(sizeof(int) * size);
 
   /* prefill the upper triangular matrix with INF */
   for(i = 0; i < size; i++) data[i] = INF;
@@ -366,7 +366,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
 
   n         = S[0];
   size      = (n * (n+1))/2 + 2;
-  data      = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
+  data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
   gg        = get_g_islands(S);
   my_index  = vrna_get_iindx(n);
 
@@ -396,7 +396,7 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
 
   n         = S[0][0];
   size      = (n * (n+1))/2 + 2;
-  data      = (int *)space(sizeof(int) * size);
+  data      = (int *)vrna_alloc(sizeof(int) * size);
   gg        = get_g_islands(S_cons);
   my_index  = vrna_get_indx(n);
 
@@ -456,9 +456,9 @@ PUBLIC int **get_gquad_L_matrix(short *S,
               call to this function */
 
     /* allocate memory and prefill with INF */
-    data = (int **) space(sizeof(int *) * (n+1));
+    data = (int **) vrna_alloc(sizeof(int *) * (n+1));
     for(k = n; (k>n-maxdist-5) && (k>=0); k--){
-      data[k] = (int *) space(sizeof(int)*(maxdist+5));
+      data[k] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
       for(i = 0; i < maxdist+5; i++) data[k][i] = INF;
     }
     
@@ -486,7 +486,7 @@ PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
   ge          = 0;
   n           = 2;
   size        = strlen(structure);
-  pl          = (plist *)space(n*size*sizeof(plist));
+  pl          = (plist *)vrna_alloc(n*size*sizeof(plist));
 
   while((ee = parse_gquad(structure + ge, &L, l)) > 0){
     ge += ee;
@@ -495,7 +495,7 @@ PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
     for(x = 0; x < L; x++){
       if (actual_size >= n * size - 5){
         n *= 2;
-        pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
+        pl = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
       }
       pl[actual_size].i = gb + x;
       pl[actual_size].j = ge + x - L + 1;
@@ -521,7 +521,7 @@ PUBLIC plist *get_plist_gquad_from_db(const char *structure, float pr){
 
   pl[actual_size].i = pl[actual_size].j = 0;
   pl[actual_size++].p = 0;
-  pl = (plist *)xrealloc(pl, actual_size * sizeof(plist));
+  pl = (plist *)vrna_realloc(pl, actual_size * sizeof(plist));
   return pl;
 }
 
@@ -618,8 +618,8 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   
   n         = S[0];
   size      = (n * (n + 1))/2 + 2;
-  tempprobs = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * size);
-  pl        = (plist *)space((S[0]*S[0])*sizeof(plist));
+  tempprobs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+  pl        = (plist *)vrna_alloc((S[0]*S[0])*sizeof(plist));
   gg        = get_g_islands_sub(S, gi, gj);
   counter   = 0;
   my_index  = vrna_get_iindx(n);
@@ -652,7 +652,7 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   pl[counter].i = pl[counter].j = 0;
   pl[counter++].p = 0.;
   /* shrink memory to actual size needed */
-  pl = (plist *) xrealloc(pl, counter * sizeof(plist));
+  pl = (plist *) vrna_realloc(pl, counter * sizeof(plist));
 
   gg += gi - 1; free(gg);
   free(my_index);
@@ -716,12 +716,12 @@ PUBLIC int parse_gquad(const char *struc, int *L, int l[3]) {
       end=i; len=end-start; 
       if (il==0) *L=len;
       else if (len!=*L)
-        nrerror("unequal stack lengths in gquad");
+        vrna_message_error("unequal stack lengths in gquad");
       if (il==3) break;
       while (struc[++i] == '.'); /* linker */
       l[il] = i-end;
       if (struc[i] != '+')
-        nrerror("illegal character in gquad linker region");
+        vrna_message_error("illegal character in gquad linker region");
     }
   }
   else return 0;
@@ -978,7 +978,7 @@ PRIVATE INLINE int *get_g_islands(short *S){
 PRIVATE INLINE int *get_g_islands_sub(short *S, int i, int j){
   int x, *gg;
 
-  gg = (int *)space(sizeof(int)*(j-i+2));
+  gg = (int *)vrna_alloc(sizeof(int)*(j-i+2));
   gg -= i - 1;
 
   if(S[j]==3) gg[j] = 1;

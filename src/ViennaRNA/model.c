@@ -145,7 +145,7 @@ vrna_md_set_nonstandards(vrna_md_t *md, const char *ns){
         memcpy(md->nonstandards, ns, strlen(ns)*sizeof(char));
         md->nonstandards[n] = '\0';
       } else
-        warn_user("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
+        vrna_message_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
     }
 }
 
@@ -331,7 +331,7 @@ fill_pair_matrices(vrna_md_t *md){
 
                 break;
 
-    default:    nrerror("Which energy_set are YOU using??");
+    default:    vrna_message_error("Which energy_set are YOU using??");
                 break;
   }
 

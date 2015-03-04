@@ -55,7 +55,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   int length = vc->length;
 
   if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
@@ -70,8 +70,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  sequence = space(sizeof(char) * (length + 1));
-  values = space(sizeof(double) * (length + 1));
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
   vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
@@ -82,8 +82,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     vrna_sc_add_sp(vc, values, constraint_type);
   }
   else if(method == 'Z'){
-    double *sc_up = space(sizeof(double) * (length + 1));
-    double **sc_bp = space(sizeof(double *) * (length + 1));
+    double *sc_up = vrna_alloc(sizeof(double) * (length + 1));
+    double **sc_bp = vrna_alloc(sizeof(double *) * (length + 1));
     int i;
 
     vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
@@ -94,7 +94,7 @@ add_shape_constraints(vrna_fold_compound *vc,
       assert(values[i] >= 0 && values[i] <= 1);
 
       sc_up[i] = p1 * fabs(values[i] - 1);
-      sc_bp[i] = space(sizeof(double) * (length + 1));
+      sc_bp[i] = vrna_alloc(sizeof(double) * (length + 1));
       for(j = i + TURN + 1; j <= length; ++j)
         sc_bp[i][j] = p1 * (values[i] + values[j]);
     }
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -282,17 +282,17 @@ int main(int argc, char *argv[]){
   #############################################
   */
   if(circular && gquad){
-    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
   if (circular && noLonelyPairs)
-    warn_user("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
+    vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
 
   if (ns_bases != NULL) {
-    /* nonstandards = space(33); */
+    /* nonstandards = vrna_alloc(33); */
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -317,9 +317,9 @@ int main(int argc, char *argv[]){
   if(istty){
     if(fold_constrained){
       vrna_message_constraint_options_all();
-      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
+      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
     }
-    else print_tty_input_seq();
+    else vrna_message_input_seq_simple();
   }
 
   mfe_parameters = get_scaled_parameters(temperature, md);
@@ -359,7 +359,7 @@ int main(int argc, char *argv[]){
 
     length    = vc->length;
 
-    structure = (char *) space(sizeof(char) * (length+1));
+    structure = (char *) vrna_alloc(sizeof(char) * (length+1));
     
 
     /* parse the rest of the current dataset to obtain a structure constraint */
@@ -370,9 +370,9 @@ int main(int argc, char *argv[]){
       vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           warn_user("structure constraint is missing");
-      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
-      else if(cl > length)  nrerror("structure constraint is too long");
+      if(cl == 0)           vrna_message_warning("structure constraint is missing");
+      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+      else if(cl > length)  vrna_message_error("structure constraint is too long");
       if(cstruc){
         strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
@@ -414,12 +414,12 @@ int main(int argc, char *argv[]){
 
       /* prepare the file prefix */
       if(fname[0] != '\0'){
-        prefix = (char *)space(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
         strcpy(prefix, outfile);
         strcat(prefix, "_");
         strcat(prefix, fname);
       } else {
-        prefix = (char *)space(sizeof(char) * (strlen(outfile) + 1));
+        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(outfile) + 1));
         strcpy(prefix, outfile);
       }
     }
@@ -428,13 +428,13 @@ int main(int argc, char *argv[]){
       if(outfile){
 
         if(out_th){
-          th_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
+          th_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
           strcpy(th_file_name, prefix);
           strcat(th_file_name, ".th");
 
           FILE *fp = fopen((const char *)th_file_name, "a"); 
           if(!fp)
-            nrerror("Failed to open file for writing");
+            vrna_message_error("Failed to open file for writing");
 
           fprintf(fp, "sequence = %s\nmfe = %6.2f kcal/mol\n", orig_sequence, min_en);
           fclose(fp);
@@ -445,13 +445,13 @@ int main(int argc, char *argv[]){
         }
 
         if(out_hx){
-          hx_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
+          hx_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
           strcpy(hx_file_name, prefix);
           strcat(hx_file_name, ".hx");
 
           FILE *fp = fopen((const char *)hx_file_name, "a");
           if(!fp)
-            nrerror("Failed to open file for writing");
+            vrna_message_error("Failed to open file for writing");
 
           vrna_structure_print_helix_list((const char *)structure, fp);
 
@@ -459,13 +459,13 @@ int main(int argc, char *argv[]){
         }
         
         if(out_ct){
-          ct_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 8));
+          ct_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
           strcpy(ct_file_name, prefix);
           strcat(ct_file_name, ".ct");
 
           FILE *fp = fopen((const char *)ct_file_name, "a");
           if(!fp)
-            nrerror("Failed to open file for writing");
+            vrna_message_error("Failed to open file for writing");
 
           vrna_structure_print_ct((const char *)orig_sequence,
                                   (const char *)structure,
@@ -477,13 +477,13 @@ int main(int argc, char *argv[]){
         }
 
         if(out_bps){
-          bps_file_name = (char *)space(sizeof(char) * (strlen(prefix) + 11));
+          bps_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 11));
           strcpy(bps_file_name, prefix);
           strcat(bps_file_name, ".bpseq");
 
           FILE *fp = fopen((const char *)bps_file_name, "a");
           if(!fp)
-            nrerror("Failed to open file for writing");
+            vrna_message_error("Failed to open file for writing");
 
           vrna_structure_print_bpseq( (const char *)orig_sequence,
                                       (const char *)structure,
@@ -517,7 +517,7 @@ int main(int argc, char *argv[]){
       vrna_free_mfe_matrices(vc);
 
     if (pf) {
-      char *pf_struc = (char *) space((unsigned) length+1);
+      char *pf_struc = (char *) vrna_alloc((unsigned) length+1);
       if (vc->params->model_details.dangles==1) {
           vc->params->model_details.dangles=2;   /* recompute with dangles as in pf_fold() */
           min_en = vrna_eval_structure(vc, structure);
@@ -542,7 +542,7 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "free energy = %8.2f\n", energy);
 
       if(lucky){
-        init_rand();
+        vrna_init_rand();
         char *s = vrna_pbacktrack(vc);
         min_en = vrna_eval_structure(vc, (const char *)s);
         printf("%s\n%s", orig_sequence, s);
@@ -646,9 +646,9 @@ int main(int argc, char *argv[]){
     if(istty){
       if(fold_constrained){
         vrna_message_constraint_options_all();
-        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint");
+        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
       }
-      else print_tty_input_seq();
+      else vrna_message_input_seq_simple();
     }
   }
   

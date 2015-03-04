@@ -322,7 +322,7 @@ E_hp_loop_ali(int i,
   int               *hc_up  = vc->hc->up_hp;
   vrna_sc_t         **sc    = vc->scs;
 
-  type = (int *)space(sizeof(int) * n_seq);
+  type = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   for (s=0; s<n_seq; s++) {
     type[s] = md->pair[S[s][i]][S[s][j]];

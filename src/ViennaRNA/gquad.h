@@ -500,9 +500,9 @@ E_GQuad_IntLoop_exhaustive( int i,
     energy += P->TerminalAU;
 
   /* guess how many gquads are possible in interval [i+1,j-1] */
-  *p_p  = (int *)space(sizeof(int) * 256);
-  *q_p  = (int *)space(sizeof(int) * 256);
-  ge    = (int *)space(sizeof(int) * 256);
+  *p_p  = (int *)vrna_alloc(sizeof(int) * 256);
+  *q_p  = (int *)vrna_alloc(sizeof(int) * 256);
+  ge    = (int *)vrna_alloc(sizeof(int) * 256);
 
   p = i + 1;
   if(S[p] == 3){

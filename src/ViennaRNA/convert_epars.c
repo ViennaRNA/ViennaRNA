@@ -95,12 +95,12 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
   unsigned  int         read_successfully = 0;
 
   if (!(line = get_line(ifile))) {
-    warn_user("convert_epars: can't read input parameter file");
+    vrna_message_warning("convert_epars: can't read input parameter file");
     return 0;
   }
   if(!skip_header){
     if (strncmp(line,"## RNAfold parameter file",25)!=0){
-      warn_user("convert_epars: Missing header line in input parameter file.\n"
+      vrna_message_warning("convert_epars: Missing header line in input parameter file.\n"
                 "May be this file has incorrect format?");
       free(line);
       return 0;
@@ -237,14 +237,14 @@ PRIVATE char *get_array1(int *arr, int size, FILE *fp){
   i = last = 0;
   while( i<size ) {
     line = get_line(fp);
-    if (!line) nrerror("convert_epars: unexpected end of file in get_array1");
+    if (!line) vrna_message_error("convert_epars: unexpected end of file in get_array1");
     ignore_comment(line);
     pos=0;
     while ((i<size)&&(sscanf(line+pos,"%15s%n", buf, &pp)==1)) {
       pos += pp;
       if (buf[0]=='*') {i++; continue;}
       else if (buf[0]=='x') { /* should only be used for loop parameters */
-        if (i==0) nrerror("convert_epars: can't extrapolate first value");
+        if (i==0) vrna_message_error("convert_epars: can't extrapolate first value");
         p = arr[last] + (int) (0.5+ lxc37_184*log(((double) i)/(double)(last)));
       }
       else if (strcmp(buf,"DEF") == 0) p = DEF;
@@ -498,7 +498,7 @@ PRIVATE void ignore_comment(char * line)
   if ((cp1=strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
     if (cp2==NULL)
-      nrerror("convert_epars: unclosed comment in parameter file");
+      vrna_message_error("convert_epars: unclosed comment in parameter file");
     /* can't use strcpy for overlapping strings */
     for (cp2+=2; *cp2!='\0'; cp2++, cp1++)
       *cp1 = *cp2;

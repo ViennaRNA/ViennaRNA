@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
   if (ParamFile!=NULL) read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
 
   read_opt |= VRNA_INPUT_NO_REST;
   if(istty){
-    print_tty_input_seq();
+    vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
 
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 
-    if(istty) print_tty_input_seq();
+    if(istty) vrna_message_input_seq_simple();
   }
   return EXIT_SUCCESS;
 }
@@ -194,7 +194,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
 
    temperature = T_min -m*h;
    /* initialize_fold(length); <- obsolete */
-   structure = (char *) space((unsigned) length+1);
+   structure = (char *) vrna_alloc((unsigned) length+1);
    min_en = fold(string, structure);
    free(structure); free_arrays();
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */

@@ -45,9 +45,9 @@ PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
   float  alpha;
 
   length = pair_table[0];
-  angle =      (float*) space( (length+5)*sizeof(float) );
-  loop_size  =   (int*) space( 16+(length/5)*sizeof(int) );
-  stack_size =   (int*) space( 16+(length/5)*sizeof(int) );
+  angle =      (float*) vrna_alloc( (length+5)*sizeof(float) );
+  loop_size  =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
+  stack_size =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
   lp = stk = 0;
   loop(0, length+1, pair_table);
   loop_size[lp] -= 2;     /* correct for cheating with function loop */
@@ -88,7 +88,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
 
   short *remember;
 
-  remember = (short *) space((1+(j-i)/5)*2*sizeof(short));
+  remember = (short *) vrna_alloc((1+(j-i)/5)*2*sizeof(short));
 
   i_old = i-1, j++;         /* j has now been set to the partner of the
                                previous pair for correct while-loop

@@ -67,8 +67,8 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   case 'X' :
   case 'x' :
     /* Simple XY Plot */
-    X = (float *) space((length+1)*sizeof(float));
-    Y = (float *) space((length+1)*sizeof(float));
+    X = (float *) vrna_alloc((length+1)*sizeof(float));
+    Y = (float *) vrna_alloc((length+1)*sizeof(float));
     if (rna_plot_type == 0)
       i = simple_xy_coordinates(pair_table, X, Y);
     else
@@ -87,7 +87,7 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
           "# GML Output\n"
           "# CreationDate: %s\n"
           "# Name: %s\n"
-          "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
+          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
   fprintf(gmlfile,
           "graph [\n"
           " directed 0\n");
@@ -369,8 +369,8 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 
   pair_table = vrna_pt_get(structure);
 
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
   switch(rna_plot_type){
     case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
                                   break;
@@ -408,7 +408,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
           "%%%%DocumentFonts: Helvetica\n"
           "%%%%Pages: 1\n"
           "%%%%EndComments\n\n"
-          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+          "%%Options: %s\n", rcsid+5, VERSION, vrna_time_stamp(), option_string());
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
           "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
@@ -516,8 +516,8 @@ int PS_rna_plot_a_gquad(char *string,
     }
   } 
       
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
   switch(rna_plot_type){
     case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table_g, X, Y);
                                   break;
@@ -555,7 +555,7 @@ int PS_rna_plot_a_gquad(char *string,
           "%%%%DocumentFonts: Helvetica\n"
           "%%%%Pages: 1\n"
           "%%%%EndComments\n\n"
-          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+          "%%Options: %s\n", rcsid+5, VERSION, vrna_time_stamp(), option_string());
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
           "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
@@ -668,8 +668,8 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
   pair_table = vrna_pt_get(structure);
   pair_table_snoop = vrna_pt_snoop_get(structure);
 
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
   if (rna_plot_type == 0)
     i = simple_xy_coordinates(pair_table, X, Y);
   else
@@ -846,7 +846,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
           "%%%%DocumentFonts: Helvetica\n"
           "%%%%Pages: 1\n"
           "%%%%EndComments\n\n"
-          "%%Options: %s\n", rcsid+5, VERSION, time_stamp(), option_string());
+          "%%Options: %s\n", rcsid+5, VERSION, vrna_time_stamp(), option_string());
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
           "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
@@ -964,9 +964,9 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   n = strlen(AS[0]);
   maxl = 1024;
 
-  A = (char **) space(sizeof(char *)*2);
-  ps = (char *) space(maxl);
-  colorps = (char *) space(maxl);
+  A = (char **) vrna_alloc(sizeof(char *)*2);
+  ps = (char *) vrna_alloc(maxl);
+  colorps = (char *) vrna_alloc(maxl);
   ptable = vrna_pt_ali_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
@@ -989,7 +989,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       ps = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
       if ((ps==NULL) || (colorps == NULL))
-          nrerror("out of memory in realloc");
+          vrna_message_error("out of memory in realloc");
     }
 
     if (pfreq[0]<=2) {
@@ -1038,8 +1038,8 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   pair_table = vrna_pt_get(structure);
 
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
 
   switch(rna_plot_type){
     case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
@@ -1047,9 +1047,9 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
     case VRNA_PLOT_TYPE_CIRCULAR: {
                                     int radius = 3*length;
                                     int dr = 0;
-                                    R = (float *) space((length+1)*sizeof(float));
-                                    CX = (float *) space((length+1)*sizeof(float));
-                                    CY = (float *) space((length+1)*sizeof(float));
+                                    R = (float *) vrna_alloc((length+1)*sizeof(float));
+                                    CX = (float *) vrna_alloc((length+1)*sizeof(float));
+                                    CY = (float *) vrna_alloc((length+1)*sizeof(float));
                                     i = simple_circplot_coordinates(pair_table, X, Y);
                                     for (i = 0; i < length; i++) {
                                       if(i+1 < pair_table[i+1]){
@@ -1179,8 +1179,8 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   pair_table = vrna_pt_get(structure);
 
   /* make coordinates */
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
 
   if (rna_plot_type == 0)
     i = simple_xy_coordinates(pair_table, X, Y);
@@ -1229,7 +1229,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
           "# SStructView Output\n"
           "# CreationDate: %s\n"
           "# Name: %s\n"
-          "# Options: %s\n", VERSION, time_stamp(), ssfile, option_string());
+          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
   for (i=1; i<=length; i++)
     fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
             i, string[i-1], (int) (X[i-1]+0.5), (int) (Y[i-1]+0.5));
@@ -1262,8 +1262,8 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   pair_table = vrna_pt_get(structure);
 
   /* make coordinates */
-  X = (float *) space((length+1)*sizeof(float));
-  Y = (float *) space((length+1)*sizeof(float));
+  X = (float *) vrna_alloc((length+1)*sizeof(float));
+  Y = (float *) vrna_alloc((length+1)*sizeof(float));
 
   if (rna_plot_type == 0)
     i = simple_xy_coordinates(pair_table, X, Y);
@@ -1275,7 +1275,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   fprintf(ss_file,
           "# Vienna RNA Package %s, XRNA output\n"
           "# CreationDate: %s\n"
-          "# Options: %s\n", VERSION, time_stamp(), option_string());
+          "# Options: %s\n", VERSION, vrna_time_stamp(), option_string());
   for (i=1; i<=length; i++)
     /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
     fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i-1],
@@ -1640,7 +1640,7 @@ PS_dot_common(char *seq,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
           "%%%%Title: RNA Dot Plot\n"
           "%%%%Creator: %s, ViennaRNA-%s\n"
-          "%%%%CreationDate: %s", rcsid+5, VERSION, time_stamp());
+          "%%%%CreationDate: %s", rcsid+5, VERSION, vrna_time_stamp());
   if (winsize>0)
     fprintf(wastl, "%%%%BoundingBox: 66 530 520 650\n");
   else
@@ -1770,9 +1770,9 @@ int PS_color_aln(const char *structure, const char *filename,
 
   /* Allocate memory for various strings, length*2 is (more than)
          enough for all of them */
-  tmpBuffer = (char *) space((unsigned) MAX2(length*2,columnWidth)+1);
-  ssEscaped=(char *) space((unsigned) length*2);
-  ruler=(char *) space((unsigned) length*2);
+  tmpBuffer = (char *) vrna_alloc((unsigned) MAX2(length*2,columnWidth)+1);
+  ssEscaped=(char *) vrna_alloc((unsigned) length*2);
+  ruler=(char *) vrna_alloc((unsigned) length*2);
 
   pair_table=vrna_pt_get(structure);
   /* Get length of longest name and count sequences in alignment*/
@@ -2034,11 +2034,11 @@ int aliPS_color_aln(const char *structure, const char *filename,
 
   /* Allocate memory for various strings, length*2 is (more than)
          enough for all of them */
-  tmpBuffer = (char *) space((unsigned) columnWidth + length*2 );
-  ssEscaped=(char *) space((unsigned) length*2 );
-  ruler=(char *) space((unsigned) length*2  );
+  tmpBuffer = (char *) vrna_alloc((unsigned) columnWidth + length*2 );
+  ssEscaped=(char *) vrna_alloc((unsigned) length*2 );
+  ruler=(char *) vrna_alloc((unsigned) length*2  );
 /*   char * structur; */
-/*   structur = (char*) space((length+1)*sizeof(char)); */
+/*   structur = (char*) vrna_alloc((length+1)*sizeof(char)); */
 /*   structur = strdup(structure); */
 /*   for(i=0; i<length;i++){ */
 /*     if(structur[i] == '<') structur[i]='('; */
@@ -2240,7 +2240,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
 
   length = strlen(string);
   maxl = 2*length;
-  pl = (struct plist *)space(maxl*sizeof(struct plist));
+  pl = (struct plist *)vrna_alloc(maxl*sizeof(struct plist));
   k=0;
   /*make plist out of pr array*/
   for (i=1; i<length; i++)
@@ -2248,7 +2248,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
       if (pr[iindx[i]-j]<PMIN) continue;
       if (k>=maxl-1) {
         maxl *= 2;
-        pl = (struct plist *)xrealloc(pl,maxl*sizeof(struct plist));
+        pl = (struct plist *)vrna_realloc(pl,maxl*sizeof(struct plist));
       }
       pl[k].i = i;
       pl[k].j = j;
@@ -2259,7 +2259,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
   pl[k++].p=0.;
   /*make plist out of base_pair array*/
   mf_num = base_pair ? base_pair[0].i : 0;
-  mf = (struct plist *)space((mf_num+1)*sizeof(struct plist));
+  mf = (struct plist *)vrna_alloc((mf_num+1)*sizeof(struct plist));
   for (k=0; k<mf_num; k++) {
     mf[k].i = base_pair[k+1].i;
     mf[k].j = base_pair[k+1].j;

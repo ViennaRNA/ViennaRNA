@@ -161,7 +161,7 @@ copy_arr(short *dest, short *src){
 
 PUBLIC short *
 allocopy(short *src){
-  short *res = (short*) space(sizeof(short)*(src[0]+1));
+  short *res = (short*) vrna_alloc(sizeof(short)*(src[0]+1));
   copy_arr(res, src);
   return res;
 }
@@ -968,8 +968,8 @@ move_adaptive(char *string,
   enc.funct=NULL;
 
   /*  allocate memory for moves */
-  enc.moves_from = (int*) space(ptable[0]*ptable[0]*sizeof(int));
-  enc.moves_to = (int*) space(ptable[0]*ptable[0]*sizeof(int));
+  enc.moves_from = (int*) vrna_alloc(ptable[0]*ptable[0]*sizeof(int));
+  enc.moves_to = (int*) vrna_alloc(ptable[0]*ptable[0]*sizeof(int));
 
   int i;
   for (i=0; i<MAX_DEGEN; i++) enc.processed[i]=enc.unprocessed[i]=NULL;

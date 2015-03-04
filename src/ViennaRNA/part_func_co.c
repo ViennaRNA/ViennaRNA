@@ -110,7 +110,7 @@ wrap_co_pf_fold(char *sequence,
   md.compute_bpp    = calculate_bppm;
   md.min_loop_size  = 0;
 
-  seq = (char *)space(sizeof(char) * (length + 2));
+  seq = (char *)vrna_alloc(sizeof(char) * (length + 2));
   if(cut_point > -1){
     int i;
     for(i = 0; i < cut_point-1; i++)
@@ -257,7 +257,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
     /*
     {
       if(pr) free(pr);
-      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      pr = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
     */
@@ -337,10 +337,10 @@ pf_co(vrna_fold_compound *vc){
   max_real          = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* allocate memory for helper arrays */
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
   turn = 0;
@@ -609,7 +609,7 @@ pf_co(vrna_fold_compound *vc){
         PRIVATE char msg[128];
         snprintf(msg, 127, "overflow in co_pf_fold while calculating q[%d,%d]\n"
                 "use larger pf_scale", i,j);
-        nrerror(msg);
+        vrna_message_error(msg);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -690,13 +690,13 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
   /* backtracking to construct binding probabilities of pairs*/
   if ((S != NULL) && (S1 != NULL)) {
     FLT_OR_DBL   *Qlout, *Qrout;
-    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
     Qmax  = 0;
-    Qrout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (n+2));
-    Qlout = (FLT_OR_DBL *)space(sizeof(FLT_OR_DBL) * (cp+2));
+    Qrout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n+2));
+    Qlout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (cp+2));
 
     for (k=1; k<=n; k++) {
       q1k[k] = q[my_iindx[1] - k];
@@ -1052,7 +1052,7 @@ vrna_co_pf_dimer_probs( double FAB,
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
       if(lp1->p < 0.){
-        warn_user("vrna_co_pf_probs: numeric instability detected, probability below zero!");
+        vrna_message_warning("vrna_co_pf_probs: numeric instability detected, probability below zero!");
         lp1->p = 0.;
       }
     }
@@ -1076,7 +1076,7 @@ Newton_Conc(double KAB,
   cA      = concA;
   cB      = concB;
   TOL     = 1e-6; /*Tolerance for convergence*/
-  ConcVec = (double*)space(5*sizeof(double)); /* holds concentrations */
+  ConcVec = (double*)vrna_alloc(5*sizeof(double)); /* holds concentrations */
   do {
     /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
     det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
@@ -1123,7 +1123,7 @@ vrna_co_pf_get_concentrations(double FcAB,
   double          KAA, KAB, KBB, kT;
 
   kT            = exp_params->kT/1000.;
-  Concentration = (struct ConcEnt *)space(20*sizeof(struct ConcEnt));
+  Concentration = (struct ConcEnt *)vrna_alloc(20*sizeof(struct ConcEnt));
  /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */
 
@@ -1142,7 +1142,7 @@ vrna_co_pf_get_concentrations(double FcAB,
     Concentration[i/2].Bc   = ConcVec[4];
 
     if (!(((i+2)/2)%20))  {
-      Concentration = (struct ConcEnt *)xrealloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+      Concentration = (struct ConcEnt *)vrna_realloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
     }
     free(ConcVec);
   }
@@ -1190,7 +1190,7 @@ backtrack_qm1(vrna_fold_compound *vc,
   jindx         = vc->jindx;
   my_iindx      = vc->iindx;
 
-  r   = urn() * qm1[jindx[j]+i];
+  r   = vrna_urn() * qm1[jindx[j]+i];
   ii  = my_iindx[i];
   for (qt=0., l=i+turn+1; l<=j; l++) {
     type = ptype[jindx[l] + i];
@@ -1198,7 +1198,7 @@ backtrack_qm1(vrna_fold_compound *vc,
       qt +=  qb[ii-l]*exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params) * expMLbase[j-l];
     if (qt>=r) break;
   }
-  if (l>j) nrerror("backtrack failed in qm1");
+  if (l>j) vrna_message_error("backtrack failed in qm1");
   backtrack(vc, i,l, pstruc);
 }
 
@@ -1241,7 +1241,7 @@ backtrack(vrna_fold_compound *vc,
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
-    r     = urn() * qb[my_iindx[i]-j];
+    r     = vrna_urn() * qb[my_iindx[i]-j];
     type  = ptype[jindx[j] + i];
     u     = j - i - 1;
     /*hairpin contribution*/
@@ -1282,12 +1282,12 @@ backtrack(vrna_fold_compound *vc,
     ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
     for (qt=0., k=i+1; k<j; k++) qt += qm[ii-(k-1)]*qm1[jj+k];
-    r = urn() * qt;
+    r = vrna_urn() * qt;
     for (qt=0., k=i+1; k<j; k++) {
       qt += qm[ii-(k-1)]*qm1[jj+k];
       if (qt>=r) break;
     }
-    if (k>=j) nrerror("backtrack failed, can't find split index ");
+    if (k>=j) vrna_message_error("backtrack failed, can't find split index ");
 
     backtrack_qm1(vc, k, j, pstruc);
 
@@ -1296,19 +1296,19 @@ backtrack(vrna_fold_compound *vc,
       /* now backtrack  [i ... j] in qm[] */
       jj  = jindx[j];
       ii  = my_iindx[i];
-      r   = urn() * qm[ii - j];
+      r   = vrna_urn() * qm[ii - j];
       qt  = qm1[jj+i]; k=i;
       if (qt<r)
         for (k=i+1; k<=j; k++) {
           qt += (qm[ii-(k-1)]+expMLbase[k-i])*qm1[jj+k];
           if (qt >= r) break;
         }
-      if (k>j) nrerror("backtrack failed in qm");
+      if (k>j) vrna_message_error("backtrack failed in qm");
 
       backtrack_qm1(vc, k,j, pstruc);
 
       if (k<i+turn) break; /* no more pairs */
-      r = urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
+      r = vrna_urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) break; /* no more pairs */
       j = k-1;
     }
@@ -1354,7 +1354,7 @@ get_plist(struct plist *pl,
       if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
-        pl=(struct plist *)xrealloc(pl,n*length*sizeof(struct plist));
+        pl=(struct plist *)vrna_realloc(pl,n*length*sizeof(struct plist));
       }
       pl[count].i=i;
       pl[count].j=j;
@@ -1365,7 +1365,7 @@ get_plist(struct plist *pl,
   pl[count].i=0;
   pl[count].j=0; /*->??*/
   pl[count++].p=0.;
-  pl=(struct plist *)xrealloc(pl,(count)*sizeof(struct plist));
+  pl=(struct plist *)vrna_realloc(pl,(count)*sizeof(struct plist));
   return pl;
 }
 

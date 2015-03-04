@@ -166,10 +166,12 @@ the library or stays hidden */
 char *strdup(const char *s);
 #endif
 #endif
+
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #include "dmalloc.h"
-#define space(S) calloc(1,(S))
+#define vrna_alloc(S)       calloc(1,(S))
+#define vrna_realloc(p, S)  xrealloc(p, S)
 #else
 
 /**
@@ -178,8 +180,7 @@ char *strdup(const char *s);
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the allocated memory
  */
-/*@only@*/ /*@notnull@*/
-void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
+void  *vrna_alloc(unsigned size);
 
 /**
  *  @brief Reallocate space safely
@@ -188,19 +189,17 @@ void  *space(unsigned size) /*@ensures MaxSet(result) == (size-1);@*/;
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the newly allocated memory
  */
-/*@only@*/ /*@notnull@*/
-void  *xrealloc(/*@null@*/ /*@only@*/ /*@out@*/ /*@returned@*/ void *p,
-                unsigned size) /*@modifies *p @*/ /*@ensures MaxSet(result) == (size-1) @*/;
+void  *vrna_realloc(void *p, unsigned size);
+
 #endif
 
 /**
  *  @brief Die with an error message
  *
- *  @see warn_user()
+ *  @see vrna_message_warning()
  *  @param message The error message to be printed before exiting with 'FAILURE'
  */
-/*@exits@*/
-void nrerror(const char message[]);
+void vrna_message_error(const char message[]);
 
 /**
  *  @brief Print a warning message
@@ -209,41 +208,46 @@ void nrerror(const char message[]);
  *
  *  @param  message   The warning message
  */
-void warn_user(const char message[]);
+void vrna_message_warning(const char message[]);
 
 /**
- *  @brief  Make random number seeds
+ *  @brief  Initialize seed for random number generator
  */
-void   init_rand(void);
+void vrna_init_rand(void);
 
 /**
  * @brief Current 48 bit random number
  *
- *  This variable is used by urn(). These should be set to some
- *  random number seeds before the first call to urn().
+ *  This variable is used by vrna_urn(). These should be set to some
+ *  random number seeds before the first call to vrna_urn().
  *
- *  @see urn()
+ *  @see vrna_urn()
  */
 extern unsigned short xsubi[3];
 
 /**
  *  @brief get a random number from [0..1]
  *
+ *  @see  vrna_int_urn(), vrna_init_rand()
  *  @note Usually implemented by calling @e erand48().
  *  @return   A random number in range [0..1]
  */
-double urn(void);
+double vrna_urn(void);
 
 /**
  *  @brief Generates a pseudo random integer in a specified range
  *
+ *  @see  vrna_urn(), vrna_init_rand()
  *  @param from   The first number in range
  *  @param to     The last number in range
  *  @return       A pseudo random number in range [from, to]
  */
-int    int_urn(int from, int to);
+int vrna_int_urn(int from, int to);
 
-void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
+/**
+ *  @brief Inefficient `cp'
+ */
+void vrna_file_copy(FILE *from, FILE *to);
 
 /**
  *  @brief Get a timestamp
@@ -253,7 +257,7 @@ void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
  *
  *  @return A string containing the timestamp
  */
-char  *time_stamp(void);
+char  *vrna_time_stamp(void);
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
@@ -262,29 +266,27 @@ char  *time_stamp(void);
  *  @param symbols  The symbol set
  *  @return         A random string of length 'l' containing characters from the symbolset
  */
-/*@only@*/ /*@notnull@*/
-char  *random_string(int l, const char symbols[]);
+char  *vrna_random_string(int l, const char symbols[]);
 
 /**
  *  @brief Calculate hamming distance between two sequences
  *
- *  Calculate the number of positions in which 
  *  @param s1   The first sequence
  *  @param s2   The second sequence
  *  @return     The hamming distance between s1 and s2
  */
-int   hamming(const char *s1, const char *s2);
+int vrna_hamming_distance(const char *s1, const char *s2);
 
 /**
  *  @brief Calculate hamming distance between two sequences up to a specified length
  *
- *  This function is similar to hamming() but instead of comparing both sequences
+ *  This function is similar to vrna_hamming_distance() but instead of comparing both sequences
  *  up to their actual length only the first 'n' characters are taken into account
  *  @param s1   The first sequence
  *  @param s2   The second sequence
  *  @return     The hamming distance between s1 and s2
  */
-int   hamming_bound(const char *s1, const char *s2, int n);
+int vrna_hamming_distance_bound(const char *s1, const char *s2, int n);
 
 /**
  *  @brief Read a line of arbitrary length from a stream
@@ -323,13 +325,13 @@ unsigned int get_input_line(char **string,
                             unsigned int options);
 
 
-
 /**
  *  @brief Print a line to @e stdout that asks for an input sequence
  *
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
  */
-void print_tty_input_seq(void);
+void vrna_message_input_seq_simple(void);
+
 
 /**
  *  @brief Print a line with a user defined string and a ruler to stdout.
@@ -339,7 +341,9 @@ void print_tty_input_seq(void);
  * 
  *  @param s A user defined string that will be printed to stdout
  */
-void print_tty_input_seq_str(const char *s);
+void vrna_message_input_seq(const char *s);
+
+
 
 /**
  *  @brief Convert an input sequence (possibly containing DNA alphabet characters) to RNA alphabet
@@ -371,7 +375,7 @@ void vrna_seq_toupper(char *sequence);
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  */
-int   *vrna_get_iindx(unsigned int length);
+int *vrna_get_iindx(unsigned int length);
 
 /**
  *  @brief Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.
@@ -387,19 +391,21 @@ int   *vrna_get_iindx(unsigned int length);
  *  @return       The mapper array
  * 
  */
-int   *vrna_get_indx(unsigned int length);
+int *vrna_get_indx(unsigned int length);
 
 /**
  *  @brief Get a numerical representation of the nucleotide sequence
  *
  */
-short *vrna_seq_encode(const char *sequence, vrna_md_t *md);
+short *vrna_seq_encode( const char *sequence,
+                        vrna_md_t *md);
 
 /**
  *  @brief Get a numerical representation of the nucleotide sequence (simple version)
  *
  */
-short *vrna_seq_encode_simple(const char *sequence, vrna_md_t *md);
+short *vrna_seq_encode_simple(const char *sequence,
+                              vrna_md_t *md);
 
 
 /**
@@ -413,7 +419,8 @@ short *vrna_seq_encode_simple(const char *sequence, vrna_md_t *md);
  *  @param  md  The model details that determine the kind of encoding
  *  @return     The encoded nucleotide
  */
-int   vrna_nucleotide_encode(char c, vrna_md_t *md);
+int vrna_nucleotide_encode( char c,
+                            vrna_md_t *md);
 
 /**
  *  @brief  Decode a numerical representation of a nucleotide back into nucleotide alphabet
@@ -426,9 +433,10 @@ int   vrna_nucleotide_encode(char c, vrna_md_t *md);
  *  @param  md  The model details that determine the kind of decoding
  *  @return     The decoded nucleotide character
  */
-char  vrna_nucleotide_decode(int enc, vrna_md_t *md);
+char vrna_nucleotide_decode(int enc,
+                            vrna_md_t *md);
 
-void  vrna_ali_encode(const char *sequence,
+void vrna_ali_encode( const char *sequence,
                       short **S_p,
                       short **s5_p,
                       short **s3_p,
@@ -449,9 +457,7 @@ char  *vrna_get_ptypes( const short *S,
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
-DEPRECATED(char  *get_ptypes(const short *S,
-                  vrna_md_t *md,
-                  unsigned int idx_type));
+DEPRECATED(char  *get_ptypes(const short *S, vrna_md_t *md, unsigned int idx_type));
 
 DEPRECATED(int   *get_indx(unsigned int length));
 
@@ -460,7 +466,6 @@ DEPRECATED(int   *get_iindx(unsigned int length));
 /**
  *  @brief Convert an input sequence to uppercase
  *  @deprecated   Use vrna_seq_toupper() instead!
- *  @param sequence The sequence to be converted
  */
 DEPRECATED(void  str_uppercase(char *sequence));
 
@@ -468,10 +473,111 @@ DEPRECATED(void  str_uppercase(char *sequence));
  *  @brief Convert a DNA input sequence to RNA alphabet
  *
  *  @deprecated Use vrna_seq_toRNA() instead!
- * 
- *  @param sequence The sequence to be converted
  */
 DEPRECATED(void str_DNA2RNA(char *sequence));
+
+/**
+ *  @brief Print a line to @e stdout that asks for an input sequence
+ *
+ *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
+ *  @deprecated Use vrna_message_input_seq_simple() instead!
+ */
+DEPRECATED(void print_tty_input_seq(void));
+
+/**
+ *  @brief Print a line with a user defined string and a ruler to stdout.
+ *
+ *  (usually this is used to ask for user input)
+ *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
+ * 
+ *  @deprecated Use vrna_message_input_seq() instead!
+ */
+DEPRECATED(void print_tty_input_seq_str(const char *s));
+
+/**
+ *  @brief Print a warning message
+ *
+ *  Print a warning message to @e stderr
+ *
+ *  @deprecated Use vrna_message_warning() instead!
+ */
+DEPRECATED(void warn_user(const char message[]));
+
+/**
+ *  @brief Die with an error message
+ *
+ *  @deprecated Use vrna_message_error() instead!
+ */
+DEPRECATED(void nrerror(const char message[]));
+
+/**
+ *  @brief Allocate space safely
+ *
+ *  @deprecated Use vrna_alloc() instead!
+ */
+DEPRECATED(void *space(unsigned size));
+
+/**
+ *  @brief Reallocate space safely
+ *
+ *  @deprecated Use vrna_realloc() instead!
+ */
+DEPRECATED(void *xrealloc(void *p, unsigned size));
+
+/**
+ *  @brief  Make random number seeds
+ *  @deprecated Use vrna_init_rand() instead!
+ */
+DEPRECATED(void init_rand(void));
+
+/**
+ *  @brief get a random number from [0..1]
+ *
+ *  @deprecated Use vrna_urn() instead!
+ */
+DEPRECATED(double urn(void));
+
+/**
+ *  @brief Generates a pseudo random integer in a specified range
+ *
+ *  @deprecated Use vrna_int_urn() instead!
+ */
+DEPRECATED(int int_urn(int from, int to));
+
+/**
+ *  @brief Create a random string using characters from a specified symbol set
+ *
+ *  @deprecated Use vrna_random_string() instead!
+ */
+DEPRECATED(char *random_string(int l, const char symbols[]));
+
+/**
+ *  @brief  Inefficient `cp`
+ *
+ *  @deprecated Use vrna_file_copy() instead!
+ */
+DEPRECATED(void filecopy(FILE *from, FILE *to));
+
+/**
+ *  @brief Get a timestamp
+ *
+ *  @deprecated Use vrna_time_stamp() instead!
+ */
+DEPRECATED(char *time_stamp(void));
+
+/**
+ *  @brief Calculate hamming distance between two sequences
+ *
+ *  @deprecated Use vrna_hamming_distance() instead!
+ */
+DEPRECATED(int hamming(const char *s1, const char *s2));
+
+/**
+ *  @brief Calculate hamming distance between two sequences up to a specified length
+ *
+ *  @deprecated Use vrna_hamming_distance_bound() instead!
+ */
+DEPRECATED(int hamming_bound(const char *s1, const char *s2, int n));
 
 #endif
 

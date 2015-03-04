@@ -114,7 +114,7 @@ vrna_structure_print_ct(const char *seq,
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    nrerror("vrna_structure_print_ct: sequence and structure have unequal length!");
+    vrna_message_error("vrna_structure_print_ct: sequence and structure have unequal length!");
 
   short *pt = vrna_pt_get(db);
 
@@ -175,7 +175,7 @@ vrna_structure_print_bpseq( const char *seq,
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    nrerror("vrna_structure_print_bpseq: sequence and structure have unequal length!");
+    vrna_message_error("vrna_structure_print_bpseq: sequence and structure have unequal length!");
 
   short *pt = vrna_pt_get(db);
 
@@ -296,7 +296,7 @@ read_multiple_input_lines(char **string,
                         /* are we in structure mode? Then we remember this line for the next round */
                         if(state == 2){ inbuf2 = line; return VRNA_INPUT_CONSTRAINT;}
                         else{
-                          *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                          *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
                           strcpy(*string + str_length, line);
                           state = 1;
                         }
@@ -316,7 +316,7 @@ read_multiple_input_lines(char **string,
                         return VRNA_INPUT_SEQUENCE;
                       }
                       else{
-                        *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                        *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
                         strcpy(*string + str_length, line);
                         state = 2;
                       }
@@ -334,7 +334,7 @@ read_multiple_input_lines(char **string,
                         return VRNA_INPUT_CONSTRAINT;
                       }
                       else{
-                        *string = (char *)xrealloc(*string, sizeof(char) * (str_length + l + 1));
+                        *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
                         strcpy(*string + str_length, line);
                         state = 1;
                       }
@@ -366,7 +366,7 @@ vrna_read_fasta_record( char **header,
   rest_count    = 0;
   return_type   = tmp_type = 0;
   input_string  = *header = *sequence = NULL;
-  *rest         = (char **)space(sizeof(char *));
+  *rest         = (char **)vrna_alloc(sizeof(char *));
 
   /* remove unnecessary option flags from options variable... */
   options &= ~VRNA_INPUT_FASTA_HEADER;
@@ -406,7 +406,7 @@ vrna_read_fasta_record( char **header,
     return_type  |= VRNA_INPUT_SEQUENCE; /* remember that we've read a sequence */
     *sequence     = input_string;
     input_string  = NULL;
-  } else nrerror("sequence input missing");
+  } else vrna_message_error("sequence input missing");
 
   /* read the rest until we find user abort, EOF, new sequence or new fasta header */
   if(!(options & VRNA_INPUT_NO_REST)){
@@ -414,7 +414,7 @@ vrna_read_fasta_record( char **header,
     tmp_type = VRNA_INPUT_QUIT | VRNA_INPUT_ERROR | VRNA_INPUT_SEQUENCE | VRNA_INPUT_FASTA_HEADER;
     if(options & VRNA_INPUT_NOSKIP_BLANK_LINES) tmp_type |= VRNA_INPUT_BLANK_LINE;
     while(!((input_type = read_multiple_input_lines(&input_string, file, options)) & tmp_type)){
-      *rest = xrealloc(*rest, sizeof(char **)*(++rest_count + 1));
+      *rest = vrna_realloc(*rest, sizeof(char **)*(++rest_count + 1));
       (*rest)[rest_count-1] = input_string;
       input_string = NULL;
     }
@@ -445,7 +445,7 @@ vrna_extract_record_rest_structure( const char **lines,
   if(lines){
     for(r = i = stop = 0; lines[i]; i++){
       l   = (int)strlen(lines[i]);
-      c   = (char *) space(sizeof(char) * (l+1));
+      c   = (char *) vrna_alloc(sizeof(char) * (l+1));
       (void) sscanf(lines[i], "%s", c);
       cl  = (int)strlen(c);
 
@@ -458,7 +458,7 @@ vrna_extract_record_rest_structure( const char **lines,
 
       /* append the structure part to the output */
       r += cl+1;
-      structure = (char *)xrealloc(structure, r*sizeof(char));
+      structure = (char *)vrna_realloc(structure, r*sizeof(char));
       strcat(structure, c);
       free(c);
       /* stop if the assumed structure length has been reached */
@@ -488,7 +488,7 @@ vrna_extract_record_rest_constraint(char **cstruc,
 
     for(r=i=stop=0;lines[i];i++){
       l   = (int)strlen(lines[i]);
-      c   = (char *) space(sizeof(char) * (l+1));
+      c   = (char *) vrna_alloc(sizeof(char) * (l+1));
       (void) sscanf(lines[i], "%s", c);
       cl  = (int)strlen(c);
       /* line commented out ? */
@@ -502,46 +502,46 @@ vrna_extract_record_rest_constraint(char **cstruc,
       for(ptr = c;*c;c++){
         switch(*c){
           case '|':   if(!(option & VRNA_CONSTRAINT_PIPE)){
-                        warn_user("constraints of type '|' not allowed");
+                        vrna_message_warning("constraints of type '|' not allowed");
                         *c = '.';
                       }
                       break;
           case '<':   
           case '>':   if(!(option & VRNA_CONSTRAINT_ANG_BRACK)){
-                        warn_user("constraints of type '<' or '>' not allowed");
+                        vrna_message_warning("constraints of type '<' or '>' not allowed");
                         *c = '.';
                       }
                       break;
           case '(':
           case ')':   if(!(option & VRNA_CONSTRAINT_RND_BRACK)){
-                        warn_user("constraints of type '(' or ')' not allowed");
+                        vrna_message_warning("constraints of type '(' or ')' not allowed");
                         *c = '.';
                       }
                       break;
           case 'x':   if(!(option & VRNA_CONSTRAINT_X)){
-                        warn_user("constraints of type 'x' not allowed");
+                        vrna_message_warning("constraints of type 'x' not allowed");
                         *c = '.';
                       }
                       break;
           case 'e':   if(!(option & VRNA_CONSTRAINT_INTERMOLECULAR)){
-                        warn_user("constraints of type 'e' not allowed");
+                        vrna_message_warning("constraints of type 'e' not allowed");
                         *c = '.';
                       }
                       break;
           case 'l':   if(!(option & VRNA_CONSTRAINT_INTRAMOLECULAR)){
-                        warn_user("constraints of type 'l' not allowed");
+                        vrna_message_warning("constraints of type 'l' not allowed");
                         *c = '.';
                       }
                       break;  /*only intramolecular basepairing */
           case '.':   break;
           case '&':   break; /* ignore concatenation char */
-          default:    warn_user("unrecognized character in constraint structure");
+          default:    vrna_message_warning("unrecognized character in constraint structure");
                       break;
         }
       }
 
       r += cl+1;
-      *cstruc = (char *)xrealloc(*cstruc, r*sizeof(char));
+      *cstruc = (char *)vrna_realloc(*cstruc, r*sizeof(char));
       strcat(*cstruc, ptr);
       free(ptr);
       /* stop if not in fasta mode or multiple words on line */
@@ -564,7 +564,7 @@ vrna_read_SHAPE_file( const char *file_name,
   int count = 0;
 
   if(!(fp = fopen(file_name, "r"))){
-    warn_user("SHAPE data file could not be opened");
+    vrna_message_warning("SHAPE data file could not be opened");
     return 0;
   }
 
@@ -592,7 +592,7 @@ vrna_read_SHAPE_file( const char *file_name,
 
     if(position <= 0 || position > length)
     {
-      warn_user("Provided SHAPE data outside of sequence scope");
+      vrna_message_warning("Provided SHAPE data outside of sequence scope");
       fclose(fp);
       free(line);
       return 0;
@@ -628,7 +628,7 @@ vrna_read_SHAPE_file( const char *file_name,
 
   if(!count)
   {
-      warn_user("SHAPE data file is empty");
+      vrna_message_warning("SHAPE data file is empty");
       return 0;
   }
 

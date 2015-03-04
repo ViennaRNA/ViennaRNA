@@ -51,16 +51,16 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
     length1 = T1[0].sign;
     length2 = T2[0].sign;
 
-    distance = (float **)  space((length1 +1)*sizeof(float *));
+    distance = (float **)  vrna_alloc((length1 +1)*sizeof(float *));
     if(edit_backtrack){
-       i_point  = (short **)  space((length1 +1)*sizeof(short *));
-       j_point  = (short **)  space((length1 +1)*sizeof(short *));
+       i_point  = (short **)  vrna_alloc((length1 +1)*sizeof(short *));
+       j_point  = (short **)  vrna_alloc((length1 +1)*sizeof(short *));
     }
     for(i=0; i<= length1; i++){
-       distance[i] = (float *) space( (length2+1)*sizeof(float));
+       distance[i] = (float *) vrna_alloc( (length2+1)*sizeof(float));
        if(edit_backtrack){
-	  i_point[i]  = (short *) space( (length2+1)*sizeof(short));
-	  j_point[i]  = (short *) space( (length2+1)*sizeof(short));
+	  i_point[i]  = (short *) vrna_alloc( (length2+1)*sizeof(short));
+	  j_point[i]  = (short *) vrna_alloc( (length2+1)*sizeof(short));
        }
     }
 
@@ -108,8 +108,8 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
     if(edit_backtrack){
        if(alignment[0]!= NULL) free(alignment[0]);
        if(alignment[1]!= NULL) free(alignment[1]);
-       alignment[0] = (int *) space((length1+length2+1)*sizeof(int));
-       alignment[1] = (int *) space((length1+length2+1)*sizeof(int));
+       alignment[0] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
+       alignment[1] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
 
        pos = length1+length2;
        i   = length1;
@@ -199,7 +199,7 @@ PUBLIC swString *Make_swString(char *string)
 
    len = j;
 
-   S= (swString *) space(sizeof(swString)*(len+1));
+   S= (swString *) vrna_alloc(sizeof(swString)*(len+1));
    S[0].sign = j; /* number of entries */
    S[0].weight= 0.0;
    S[0].type=     0;
@@ -356,8 +356,8 @@ PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
    for (i=1; i<=T1[0].sign; i++) weights = (weights||(T1[i].weight!=0.5));
    for (i=1; i<=T2[0].sign; i++) weights = (weights||(T2[i].weight!=0.5));
 
-   a0 = (char *) space(alignment[0][0]*4+2);
-   a1 = (char *) space(alignment[0][0]*4+2);
+   a0 = (char *) vrna_alloc(alignment[0][0]*4+2);
+   a1 = (char *) vrna_alloc(alignment[0][0]*4+2);
    for(i=1; i<= alignment[0][0]; i++){
       tmp0[0] = '\0'; l0=0;
       if(alignment[0][i] > 0) {

@@ -708,13 +708,13 @@ float **get_ribosum(const char **Alseq, int n_seq, int length){
   int max;
   float **ribo;
 
-  ribo=(float **)space(7*sizeof(float *));
+  ribo=(float **)vrna_alloc(7*sizeof(float *));
   for (i=0; i<7; i++) {
-    ribo[i]=(float *)space(7*sizeof(float));
+    ribo[i]=(float *)vrna_alloc(7*sizeof(float));
   }
   for(j=0; j<n_seq-1; j++)
     for(k=j+1; k<n_seq; k++) {
-      ident=length-hamming(Alseq[k],Alseq[j]);
+      ident=length-vrna_hamming_distance(Alseq[k],Alseq[j]);
       if ((ident/(length))<minimum) minimum=ident/(float)(length);
       if ((ident/(length))>maximum) maximum=ident/(float)(length);
     }
@@ -1114,9 +1114,9 @@ PUBLIC float **readribosum(char *name){
   int translator[7]={0,5,1,2,3,6,4};
 
   fp=fopen(name,"r");
-  dm=(float **)space(7*sizeof(float*));
+  dm=(float **)vrna_alloc(7*sizeof(float*));
   for (i=0; i<7;i++) {
-    dm[i]=(float *)space(7*sizeof(float));
+    dm[i]=(float *)vrna_alloc(7*sizeof(float));
   }
   while(1) { /*bisma hoit fertisch san*/
     line=get_line(fp);

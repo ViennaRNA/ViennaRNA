@@ -38,8 +38,8 @@ PRIVATE char *aux_struct(const char* structure )
    int          i, o, p;
    char        *string;
 
-   string = (char *) space(sizeof(char)*(strlen(structure)+1));
-   match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
+   string = (char *) vrna_alloc(sizeof(char)*(strlen(structure)+1));
+   match_paren = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/2+1));
    strcpy(string, structure);
 
    i = o = 0;
@@ -60,7 +60,7 @@ PRIVATE char *aux_struct(const char* structure )
 	 o--;
 	 break;
        default:
-	 nrerror("Junk in structure at aux_structure\n");
+	 vrna_message_error("Junk in structure at aux_structure\n");
       }
       i++;
    }
@@ -76,7 +76,7 @@ PUBLIC char *b2HIT(const char *structure)
    int            i, u, p, l;
    char          *string, *temp, *HIT, tt[10];
 
-   temp = (char *) space(strlen(structure)*4+4);
+   temp = (char *) vrna_alloc(strlen(structure)*4+4);
    string = aux_struct( structure );
 
    strcpy(temp,"(");
@@ -127,7 +127,7 @@ PUBLIC char *b2HIT(const char *structure)
 
    free( string );
 
-   HIT = (char *) space(sizeof(char)*(strlen(temp)+2));
+   HIT = (char *) vrna_alloc(sizeof(char)*(strlen(temp)+2));
    strcpy(HIT, temp);
    free(temp);
    return(HIT);
@@ -142,9 +142,9 @@ PUBLIC char *b2C(const char *structure )
    int    i, lp, p, l;
    char  *string, *Coarse, *temp;
 
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   temp = (char *) space(4*strlen(structure)+2);
+   bulge = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
+   temp = (char *) vrna_alloc(4*strlen(structure)+2);
 
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -198,7 +198,7 @@ PUBLIC char *b2C(const char *structure )
    temp[l++] = ')';
    temp[l]='\0';
    free(string);
-   Coarse = (char *) space(sizeof(char)*(strlen(temp)+2));
+   Coarse = (char *) vrna_alloc(sizeof(char)*(strlen(temp)+2));
    strcpy(Coarse, temp);
    free(temp);
    free(bulge); free(loop);
@@ -215,9 +215,9 @@ PUBLIC char *b2Shapiro(const char *structure )
    int            i, lp, p, l, k;
    char          *string, *Shapiro, *temp, tt[10];
 
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   temp = (char *) space(4*strlen(structure)+3);
+   bulge = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
+   temp = (char *) vrna_alloc(4*strlen(structure)+3);
 
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -282,7 +282,7 @@ PUBLIC char *b2Shapiro(const char *structure )
    strcat(tt,"R)");
    temp[l]='\0';
    strcat(temp, tt);
-   Shapiro = (char *) space(sizeof(char)*(strlen(temp)+2));
+   Shapiro = (char *) vrna_alloc(sizeof(char)*(strlen(temp)+2));
    if (loop_size[0]) {
       Shapiro[0]='(';
       strcpy(Shapiro+1, temp);
@@ -321,9 +321,9 @@ PUBLIC void parse_structure(const char *structure)
    int            i, lp, p;
    char          *string, *temp;
 
-   temp = (char *)  space(strlen(structure)*4+2);
-   bulge = (short *) space(sizeof(short)*(strlen(structure)/3+1));
-   loop = (short *) space(sizeof(short)*(strlen(structure)/3+1));
+   temp = (char *)  vrna_alloc(strlen(structure)*4+2);
+   bulge = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
+   loop = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/3+1));
 
    for (i = 0; i < STRUC; i++) {
       loop_size[i] = helix_size[i] = 0;
@@ -372,7 +372,7 @@ PUBLIC void parse_structure(const char *structure)
 PUBLIC char *add_root(const char *structure)
 {
     char *xS;
-    xS = (char *) space(sizeof(char)*(strlen(structure)+4));
+    xS = (char *) vrna_alloc(sizeof(char)*(strlen(structure)+4));
     xS[0] = '(';
     strcat(xS,structure);
     strcat(xS,"R)");
@@ -387,7 +387,7 @@ PUBLIC char *expand_Shapiro(const char *structure)
    char  *xS, *temp;
    int  i, l;
 
-   temp = (char *) space(4*strlen(structure)+2);
+   temp = (char *) vrna_alloc(4*strlen(structure)+2);
 
    i = 1;
    l = 1;
@@ -404,7 +404,7 @@ PUBLIC char *expand_Shapiro(const char *structure)
    temp[l++] = ')';
    temp[l] = '\0';
 
-   xS = (char *) space(sizeof(char)*(strlen(temp)+1));
+   xS = (char *) vrna_alloc(sizeof(char)*(strlen(temp)+1));
    strcpy(xS, temp);
    free(temp);
    return (xS);
@@ -417,7 +417,7 @@ PUBLIC char *expand_Full(const char *structure)
     char *xF, *temp;
     int  i, l;
 
-    temp = (char *) space(4*strlen(structure)+2);
+    temp = (char *) vrna_alloc(4*strlen(structure)+2);
 
     i = 0;
     l = 0;
@@ -436,7 +436,7 @@ PUBLIC char *expand_Full(const char *structure)
      }
      temp[l] = '\0';
 
-     xF = (char *) space(sizeof(char)*(l+5));
+     xF = (char *) vrna_alloc(sizeof(char)*(l+5));
      strcpy(xF, "(");
      strcat(xF, temp);
      strcat(xF, "R)");
@@ -452,8 +452,8 @@ PUBLIC char *unexpand_Full(const char *structure)
    char id[10], *full, *temp;
    int    i, j, k, l, o, w;
 
-   temp = (char *) space(4*strlen(structure)+2);
-   match_paren = (short *) space(sizeof(short)*(strlen(structure)/2+1));
+   temp = (char *) vrna_alloc(4*strlen(structure)+2);
+   match_paren = (short *) vrna_alloc(sizeof(short)*(strlen(structure)/2+1));
 
    i = strlen(structure)-1;
    l = o = 0; k=9;
@@ -489,7 +489,7 @@ PUBLIC char *unexpand_Full(const char *structure)
    }
 
    temp[l] = '\0';
-   full = (char *) space(sizeof(char)*(l+1));
+   full = (char *) vrna_alloc(sizeof(char)*(l+1));
    for (i=0; i<l; i++) full[i]=temp[l-i-1];
    full[l]='\0';
    free(temp);
@@ -505,7 +505,7 @@ PUBLIC char *unweight(const char *structure)
    int i,l;
    char *full, *temp;
 
-   temp = (char *) space(4*strlen(structure)+1);
+   temp = (char *) vrna_alloc(4*strlen(structure)+1);
 
    i=l=0;
    while (structure[i]) {
@@ -513,7 +513,7 @@ PUBLIC char *unweight(const char *structure)
       i++;
    }
    temp[l]='\0';
-   full = (char *) space(sizeof(char)*(l+1));
+   full = (char *) vrna_alloc(sizeof(char)*(l+1));
    strcpy(full, temp);
    free(temp);
    return full;
@@ -526,8 +526,8 @@ PUBLIC void unexpand_aligned_F(char *align[2])
    char *t0, *t1;
    int i,l;
 
-   t0 = (char *) space(strlen(align[0])+1);
-   t1 = (char *) space(strlen(align[0])+1);
+   t0 = (char *) vrna_alloc(strlen(align[0])+1);
+   t1 = (char *) vrna_alloc(strlen(align[0])+1);
 
    for (i=0, l=0; i<strlen(align[0]); i++) {
       switch (align[0][i]) {

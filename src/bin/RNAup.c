@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
   fname_target[0] = '\0';
   /* allocate init length for commandline parameter string */
   cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
-  cmdl_parameters = (char *)space(sizeof(char) * cmdl_parameters_length);
+  cmdl_parameters = (char *)vrna_alloc(sizeof(char) * cmdl_parameters_length);
   sprintf(cmdl_parameters, "RNAup ");
 
   /*
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
 
@@ -285,13 +285,13 @@ int main(int argc, char *argv[]){
   i = (args_info.ulength_given == 0) ? 1 : args_info.ulength_given;
 
   /* here's the very new way of treating multiple ulength values/ranges */
-  unpaired_values = (int **)space(sizeof(int *) * (i + 1));
+  unpaired_values = (int **)vrna_alloc(sizeof(int *) * (i + 1));
 
   if(header && args_info.ulength_given)
     appendCmdlParameter(&cmdl_parameters, "-u ", &cmdl_parameters_length);
 
   for(i = 0; i < args_info.ulength_given; i++){
-    unpaired_values[++ulength_num] = (int *)space(2 * sizeof(int));
+    unpaired_values[++ulength_num] = (int *)vrna_alloc(2 * sizeof(int));
     /* we got a ulength range... */
     if(sscanf(args_info.ulength_arg[i], "%d-%d", &min, &max) == 2){
       if(min > max){ tmp = min; min = max; max = tmp;}
@@ -320,13 +320,13 @@ int main(int argc, char *argv[]){
   }
   if(i == 0){
     /* use default settings */
-    unpaired_values[++ulength_num] = (int *)space(2 * sizeof(int));
+    unpaired_values[++ulength_num] = (int *)vrna_alloc(2 * sizeof(int));
     unpaired_values[ulength_num][0] = 4;
     unpaired_values[ulength_num][1] = -1;
     max_u = 4;
   }
   /* store number of entries at position [0][0] */
-  unpaired_values[0]    = (int *)space(2 * sizeof(int));
+  unpaired_values[0]    = (int *)vrna_alloc(2 * sizeof(int));
   unpaired_values[0][0] = ulength_num;
   unpaired_values[0][1] = -1;
 
@@ -347,7 +347,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -394,21 +394,21 @@ int main(int argc, char *argv[]){
     if (istty){
       switch(up_mode){
         case RNA_UP_MODE_1:   /* just calculate the probability of beeing unpaired for the given interval(s) */
-                              print_tty_input_seq();
+                              vrna_message_input_seq_simple();
                               break;
         case RNA_UP_MODE_2:   /* pairwise interaction mode, former -Xp mode */
-                              print_tty_input_seq_str("Use either '&' to connect the 2 sequences or give each sequence on an extra line.");
+                              vrna_message_input_seq("Use either '&' to connect the 2 sequences or give each sequence on an extra line.");
                               break;
         case RNA_UP_MODE_3:   /* consecutive multi interaction mode ;) first sequence pairs with all following, former -Xf mode */
                               /* either we wait for the first two sequences */
                               if(s_target == NULL)
-                                print_tty_input_seq_str("Give each sequence on an extra line. "
+                                vrna_message_input_seq("Give each sequence on an extra line. "
                                                         "The first seq. is stored, every other seq. is compared to the first one.");
                               /* or we already have them and wait for the next sequence */
                               else
-                                print_tty_input_seq_str("Enter another sequence.");
+                                vrna_message_input_seq("Enter another sequence.");
                               break;
-        default:              nrerror("This should never happen (again)");
+        default:              vrna_message_error("This should never happen (again)");
                               break;
       }
     }
@@ -433,7 +433,7 @@ int main(int argc, char *argv[]){
 
     /* check if we have to change the mode we are operating in */
     if((cut_point != -1) && (up_mode & RNA_UP_MODE_1)){
-      warn_user("Two concatenated sequences given, switching to pairwise interaction mode!");
+      vrna_message_warning("Two concatenated sequences given, switching to pairwise interaction mode!");
       up_mode = RNA_UP_MODE_2;
     }
 
@@ -447,7 +447,7 @@ int main(int argc, char *argv[]){
                               if(s_target == NULL) read_again = 1;
                             }
                             else if(s_target != NULL)
-                              nrerror(
+                              vrna_message_error(
                                 "After the first sequence (pair): Input a single sequence (no &)!\n"
                                 "Each input seq. is compared to the very first seq. given.\n"
                               );
@@ -471,7 +471,7 @@ int main(int argc, char *argv[]){
         tokenize(input_string, &s2, &s3); /* this also frees the input_string */
 
       if(cut_point != -1)
-        nrerror("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
+        vrna_message_error("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
       length2 = (int)strlen(s2);
     }
 
@@ -499,11 +499,11 @@ int main(int argc, char *argv[]){
         cut_point   = -1;
         tokenize(input_string, &cstruc1, &cstruc2);
       }
-      else nrerror("constraints missing");
+      else vrna_message_error("constraints missing");
 
       /* now that we've got the constraining structure(s) check if the input was valid */
       if(old_cut != cut_point){
-        nrerror("RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
+        vrna_message_error("RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
       }
 
       read_again = 0;
@@ -519,21 +519,21 @@ int main(int argc, char *argv[]){
         else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
           tokenize(input_string, &cstruc2, &cstruc_tmp);
         }
-        else nrerror("constraints missing");
+        else vrna_message_error("constraints missing");
 
         if(cut_point != -1)
-          nrerror("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
+          vrna_message_error("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
       }
 
       /* check length(s) of input sequence(s) and constraint(s) */
       if(strlen(cstruc1) != length1){
         fprintf(stderr, "%s\n%s\n", s1, cstruc1);
-        nrerror("RNAup -C: constraint string and structure have unequal length");
+        vrna_message_error("RNAup -C: constraint string and structure have unequal length");
       }
       if(s2 != NULL){
         if(strlen(cstruc2) != length2){
           fprintf(stderr, "%s\n%s\n", s2, cstruc2);
-          nrerror("RNAup -C: constraint string and structure have unequal length");
+          vrna_message_error("RNAup -C: constraint string and structure have unequal length");
         }
       }
     } /* thats all for constraint folding */
@@ -560,7 +560,7 @@ int main(int argc, char *argv[]){
 
     /* check ulength values against sequences given */
     if(max_u > length1)
-      nrerror("maximum unpaired region exceeds sequence length");
+      vrna_message_error("maximum unpaired region exceeds sequence length");
 
     if(up_mode & RNA_UP_MODE_3){
       /* if we haven't seen the target yet, store it now */
@@ -629,7 +629,7 @@ int main(int argc, char *argv[]){
       strncat(up_out, temp_name, 10);
     }
 
-    structure = (char *) space(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
+    structure = (char *) vrna_alloc(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
     /* begin actual computations */
     update_fold_params();
@@ -664,7 +664,7 @@ int main(int argc, char *argv[]){
     free_pf_arrays();
 
     if(fold_constrained && !(up_mode & RNA_UP_MODE_1)){
-      cstruc_combined = (char *)space(sizeof(char) * (length1 + length2 + 1));
+      cstruc_combined = (char *)vrna_alloc(sizeof(char) * (length1 + length2 + 1));
       strncpy(cstruc_combined, cstruc1, length1+1);
       strcat(cstruc_combined, cstruc2);
     }
@@ -678,7 +678,7 @@ int main(int argc, char *argv[]){
                               do print_unstru(unstr_out, j); while(++j <= unpaired_values[i][1]);
                             }
                             if(output && header){
-                              head = (char *)space(sizeof(char)*(length1 + strlen(cmdl_parameters) + 512));
+                              head = (char *)vrna_alloc(sizeof(char)*(length1 + strlen(cmdl_parameters) + 512));
                               sprintf(head, "# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
                             }
                             contrib1 = unstr_out;
@@ -686,7 +686,7 @@ int main(int argc, char *argv[]){
       case RNA_UP_MODE_2:   inter_out = pf_interact(s1, s2, unstr_out, NULL, w, cstruc_combined, incr3, incr5);
                             print_interaction(inter_out, orig_s1, orig_s2, unstr_out, NULL, w, incr3, incr5);
                             if(output && header){
-                              head = (char *)space(sizeof(char)*(length1 + length2 + strlen(cmdl_parameters) + 1024));
+                              head = (char *)vrna_alloc(sizeof(char)*(length1 + length2 + strlen(cmdl_parameters) + 1024));
                               sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1, length2, fname2, orig_s2);
                             }
                             contrib1 = unstr_out;
@@ -721,7 +721,7 @@ int main(int argc, char *argv[]){
                               contrib2 = unstr_out;
                             }
                             if(output && header){
-                              head = (char *)space(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
+                              head = (char *)vrna_alloc(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
                               sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, orig_target, length1, fname1, orig_s1);
                             }
                             break;
@@ -858,7 +858,7 @@ PRIVATE void appendCmdlParameter(char **param_dest, const char *parameter, int *
   if(l + 1 > *param_dest_length){
     /* alloc more space */
     *param_dest_length = (int)(1.2 * l);
-    *param_dest = xrealloc(*param_dest, *param_dest_length * sizeof(char));
+    *param_dest = vrna_realloc(*param_dest, *param_dest_length * sizeof(char));
   }
   strcat(*param_dest, parameter);
 }
@@ -874,15 +874,15 @@ void tokenize(char *line, char **seq1, char **seq2) {
   pos = strchr(line, '&');
   if (pos) {
     cut = (int) (pos-line)+1;
-    (*seq1) = (char *) space((cut+1)*sizeof(char));
-    (*seq2) = (char *) space(((strlen(line)-cut)+2)*sizeof(char));
+    (*seq1) = (char *) vrna_alloc((cut+1)*sizeof(char));
+    (*seq2) = (char *) vrna_alloc(((strlen(line)-cut)+2)*sizeof(char));
 
-    if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+    if (strchr(pos+1, '&')) vrna_message_error("more than one cut-point in input");
     *pos = '\0';
     (void) sscanf(line, "%s", *seq1);
     (void) sscanf(pos+1, "%s", *seq2);
   } else {
-    (*seq1) = (char *) space((strlen(line)+1)*sizeof(char));
+    (*seq1) = (char *) vrna_alloc((strlen(line)+1)*sizeof(char));
     (*seq2) = NULL;
     sscanf(line, "%s", *seq1);
   }
@@ -891,7 +891,7 @@ void tokenize(char *line, char **seq1, char **seq2) {
     if (cut_point==-1) cut_point = cut;
     else if (cut_point != cut) {
       fprintf(stderr,"cut_point = %d cut = %d\n", cut_point, cut);
-      nrerror("Sequence and Structure have different cut points.");
+      vrna_message_error("Sequence and Structure have different cut points.");
     }
   }
   free(line);
@@ -909,9 +909,9 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   len=strlen((*inter));
   /* printf("inter\n%s\n",(*inter)); */
   i = len+1;
-  temp_inter=(char*)space(sizeof(char)*i);
+  temp_inter=(char*)vrna_alloc(sizeof(char)*i);
   /* to make a pair_table convert <|> to (|) */
-  pt_inter=(char*)space(sizeof(char)*i);
+  pt_inter=(char*)vrna_alloc(sizeof(char)*i);
   /* if shorter seq is first seq in constrained string, write the
      longer one as the first one */
   temp_inter[strlen((*inter))] = '\0';
@@ -969,8 +969,8 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
   pt = vrna_pt_get(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
-  (*intra_l)=(char*)space(sizeof(char)*(len1+1));
-  (*intra_s)=(char*)space(sizeof(char)*(strlen((*inter))-len1+2));
+  (*intra_l)=(char*)vrna_alloc(sizeof(char)*(len1+1));
+  (*intra_s)=(char*)vrna_alloc(sizeof(char)*(strlen((*inter))-len1+2));
   (*intra_l)[len1] = '\0';
   (*intra_s)[strlen((*inter))-len1+1] = '\0';
   /* now seperate intermolecular from intramolecular bp */
@@ -1032,9 +1032,9 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
 
   /* use duplexfold() to fold the interaction site */
   l_l = (Int->i-Int->k+1);
-  i_long = (char*)space(sizeof(char)*(l_l+1));
+  i_long = (char*)vrna_alloc(sizeof(char)*(l_l+1));
   l_s = (Int->l-Int->j+1);
-  i_short = (char*)space(sizeof(char)*(l_s+1));
+  i_short = (char*)vrna_alloc(sizeof(char)*(l_s+1));
 
   strncpy(i_long,&s1[Int->k-1],l_l);
   i_long[l_l] = '\0';
@@ -1065,7 +1065,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     nix_up = 1;
     if(add_a && add_b == 0) add_b = Int->l - Int->j + 2;
     if(add_a == 0 && add_b) add_a = Int->i - Int->k + 2;
-    struc = (char*)space(sizeof(char)*(add_a+add_b+3));
+    struc = (char*)vrna_alloc(sizeof(char)*(add_a+add_b+3));
     for(i=0;i<(add_a+add_b-1);i++) {
       if(i != l_l) struc[i] = '.';
       if(i == l_l) struc[i] = '&';
@@ -1073,7 +1073,7 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     struc[i] = '\0';
   } else {
     l1=strlen(mfe.structure);
-    struc = (char*)space(sizeof(char)*(l1+1));
+    struc = (char*)vrna_alloc(sizeof(char)*(l1+1));
     strcpy(struc,mfe.structure);
   }
 
@@ -1138,6 +1138,6 @@ PRIVATE void print_unstru(pu_contrib *p_c, int w) {
     }
     printf("%4d,%4d \t (%.3f) \t for u=%3d\n",min_i,min_j,min_gu,w);
   } else {
-    nrerror("error with prob unpaired");
+    vrna_message_error("error with prob unpaired");
   }
 }

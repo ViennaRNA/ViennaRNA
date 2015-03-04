@@ -41,16 +41,16 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
 
   length1 = (int) T1[0];
   length2 = (int) T2[0];
-  distance = (float **)     space((length1 +1)*sizeof(float *));
+  distance = (float **)     vrna_alloc((length1 +1)*sizeof(float *));
   if(edit_backtrack){
-    i_point  = (short **)  space((length1 +1)*sizeof(short *));
-    j_point  = (short **)  space((length1 +1)*sizeof(short *));
+    i_point  = (short **)  vrna_alloc((length1 +1)*sizeof(short *));
+    j_point  = (short **)  vrna_alloc((length1 +1)*sizeof(short *));
   }
   for(i=0; i<= length1; i++){
-    distance[i] = (float *) space( (length2+1)*sizeof(float));
+    distance[i] = (float *) vrna_alloc( (length2+1)*sizeof(float));
     if(edit_backtrack){
-      i_point[i]  = (short *) space( (length2+1)*sizeof(short));
-      j_point[i]  = (short *) space( (length2+1)*sizeof(short));
+      i_point[i]  = (short *) vrna_alloc( (length2+1)*sizeof(short));
+      j_point[i]  = (short *) vrna_alloc( (length2+1)*sizeof(short));
     }
   }
 
@@ -89,8 +89,8 @@ PUBLIC float profile_edit_distance(const float *T1, const float *T2)
   free(distance);
 
   if(edit_backtrack){
-    alignment[0] = (int *) space((length1+length2+1)*sizeof(int));
-    alignment[1] = (int *) space((length1+length2+1)*sizeof(int));
+    alignment[0] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
+    alignment[1] = (int *) vrna_alloc((length1+length2+1)*sizeof(int));
 
     pos = length1+length2;
     i   = length1;
@@ -141,7 +141,7 @@ PRIVATE double PrfEditCost(int i, int j, const float *T1, const float *T2)
   int    k, kmax;
 
   kmax = (int) T1[1];
-  if ((int) T2[1] != kmax) nrerror("inconsistent Profiles in PrfEditCost");
+  if ((int) T2[1] != kmax) vrna_message_error("inconsistent Profiles in PrfEditCost");
 
   if(i==0) {
     for(dist = 0. ,k=0 ; k<kmax ; k++)
@@ -185,7 +185,7 @@ PUBLIC float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length){
    float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
    int *index = vrna_get_iindx((unsigned) length);
 
-   P =  (float *) space((length+1)*3*sizeof(float));
+   P =  (float *) vrna_alloc((length+1)*3*sizeof(float));
    /* indices start at 1 use first entries to store length and dimension */
    P[0] = (float) length;
    P[1] = (float) L;
@@ -209,8 +209,8 @@ PRIVATE void sprint_aligned_bppm(const float *T1, const float *T2)
 {
    int     i, length;
    length = alignment[0][0];
-   aligned_line[0] = (char *) space((length+1)*sizeof(char));
-   aligned_line[1] = (char *) space((length+1)*sizeof(char));
+   aligned_line[0] = (char *) vrna_alloc((length+1)*sizeof(char));
+   aligned_line[1] = (char *) vrna_alloc((length+1)*sizeof(char));
    for(i=1; i<=length; i++){
       if(alignment[0][i] ==0) aligned_line[0][i-1] = '_';
       else { aligned_line[0][i-1] = vrna_bpp_symbol(T1+alignment[0][i]*3); }

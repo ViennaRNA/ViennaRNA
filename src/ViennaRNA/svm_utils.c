@@ -55,7 +55,7 @@ PUBLIC float get_z(char *sequence, double energy) {
 
 PUBLIC int *get_seq_composition(short *S, unsigned int start, unsigned int stop){
   unsigned int i;
-  int *ret = (int *)space(sizeof(int) * 6);
+  int *ret = (int *)vrna_alloc(sizeof(int) * 6);
 
   for (i=MAX2(start, 1); i <= MIN2(stop, S[0]); i++){
     if(S[i] > 4)  ret[0]++;
@@ -168,7 +168,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
   int isColon;
   struct svm_node *x_space=NULL;
 
-  model = (struct svm_model*)space(sizeof(struct svm_model));
+  model = (struct svm_model*)vrna_alloc(sizeof(struct svm_model));
 
   model->rho = NULL;
   model->probA = NULL;
@@ -246,7 +246,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
 
         if (strcmp(key,"rho")==0){
           int n = model->nr_class * (model->nr_class-1)/2;
-          model->rho = (double*)space(sizeof(double)*n);
+          model->rho = (double*)vrna_alloc(sizeof(double)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%lf",&model->rho[j]);
           }
@@ -254,7 +254,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
 
         if (strcmp(key,"nr_sv")==0){
           int n = model->nr_class;
-          model->nSV = (int*)space(sizeof(int)*n);
+          model->nSV = (int*)vrna_alloc(sizeof(int)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%d",&model->nSV[j]);
           }
@@ -262,7 +262,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
 
         if (strcmp(key,"label")==0){
           int n = model->nr_class;
-          model->label = (int*)space(sizeof(int)*n);
+          model->label = (int*)vrna_alloc(sizeof(int)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%d",&model->label[j]);
           }
@@ -270,7 +270,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
 
         if (strcmp(key,"probA")==0){
           int n = model->nr_class * (model->nr_class-1)/2;
-          model->probA = (double*)space(sizeof(double)*n);
+          model->probA = (double*)vrna_alloc(sizeof(double)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%lf",&model->probA[j]);
           }
@@ -278,7 +278,7 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
 
         if (strcmp(key,"probB")==0){
           int n = model->nr_class * (model->nr_class-1)/2;
-          model->probB = (double*)space(sizeof(double)*n);
+          model->probB = (double*)vrna_alloc(sizeof(double)*n);
           for(j=0;j<n;j++){
                 sscanf(fields[j+1],"%lf",&model->probB[j]);
           }
@@ -307,14 +307,14 @@ PUBLIC svm_model  *svm_load_model_string(char *modelString){
   /* allocate memory for SVs and coefficients */
   m = model->nr_class - 1;
   l = model->l;
-  model->sv_coef = (double**)space(sizeof(double*)*m);
+  model->sv_coef = (double**)vrna_alloc(sizeof(double*)*m);
   for(i=0;i<m;i++){
-        model->sv_coef[i] = (double*)space(sizeof(double)*l);
+        model->sv_coef[i] = (double*)vrna_alloc(sizeof(double)*l);
   }
-  model->SV = (struct svm_node**)space(sizeof(struct svm_node*)*l);
+  model->SV = (struct svm_node**)vrna_alloc(sizeof(struct svm_node*)*l);
 
   if(l>0){
-    x_space = (struct svm_node*)space(sizeof(struct svm_node)*(elements));
+    x_space = (struct svm_node*)vrna_alloc(sizeof(struct svm_node)*(elements));
   }
 
 
@@ -360,19 +360,19 @@ PRIVATE char **splitFields(char* string){
   /* First find all characters which are whitespaces and store the
          positions in the array seps */
 
-  seps=(int *)space(sizeof(int));
+  seps=(int *)vrna_alloc(sizeof(int));
   seps[0]=-1;
   nSep=1;
 
   while ((c=string[i])!='\0' && (c!='\n')){
         if (isspace(c)){
-          seps=(int*)xrealloc(seps,sizeof(int)*(nSep+1));
+          seps=(int*)vrna_realloc(seps,sizeof(int)*(nSep+1));
           seps[nSep++]=i;
         }
         i++;
   }
 
-  seps=(int*)xrealloc(seps,sizeof(int)*(nSep+1));
+  seps=(int*)vrna_realloc(seps,sizeof(int)*(nSep+1));
   seps[nSep]=strlen(string);
 
 
@@ -389,7 +389,7 @@ PRIVATE char **splitFields(char* string){
         int notSpace,j;
 
 
-        currField=(char *)space(sizeof(char)*(length+1));
+        currField=(char *)vrna_alloc(sizeof(char)*(length+1));
         strncpy(currField,string+start+1,length-1);
         currField[length]='\0';
 
@@ -404,7 +404,7 @@ PRIVATE char **splitFields(char* string){
         }
 
         if (notSpace){
-          output=(char**)xrealloc(output,sizeof(char**)*(nField+1));
+          output=(char**)vrna_realloc(output,sizeof(char**)*(nField+1));
           output[nField++]=currField;
           currField=NULL;
         } else {
@@ -420,7 +420,7 @@ PRIVATE char **splitFields(char* string){
   }
 
 
-  output=(char**)xrealloc(output,sizeof(char**)*(nField+1));
+  output=(char**)vrna_realloc(output,sizeof(char**)*(nField+1));
   output[nField]=NULL;
 
   free(seps);
@@ -440,8 +440,8 @@ PRIVATE char **splitLines(char* string){
   while ((c=string[i])!='\0'){
 
         if (c=='\n'){
-          output=(char**)xrealloc(output,sizeof(char**)*(lineN+1));
-          currLine=(char*)xrealloc(currLine,sizeof(char)*(currLength+1));
+          output=(char**)vrna_realloc(output,sizeof(char**)*(lineN+1));
+          currLine=(char*)vrna_realloc(currLine,sizeof(char)*(currLength+1));
           currLine[currLength]='\0';
           output[lineN]=currLine;
           currLength=0;
@@ -449,14 +449,14 @@ PRIVATE char **splitLines(char* string){
           lineN++;
         } else {
 
-          currLine=(char*)xrealloc(currLine,sizeof(char)*(currLength+1));
+          currLine=(char*)vrna_realloc(currLine,sizeof(char)*(currLength+1));
           currLine[currLength]=c;
           currLength++;
         }
         i++;
   }
 
-  output=(char**)xrealloc(output,sizeof(char**)*(lineN+1));
+  output=(char**)vrna_realloc(output,sizeof(char**)*(lineN+1));
   output[lineN]=NULL;
 
   return output;

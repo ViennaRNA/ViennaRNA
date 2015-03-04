@@ -190,7 +190,7 @@ vrna_cofold(vrna_fold_compound  *vc,
   energy = fill_arrays(vc, 0);
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(bt_stack, bp, vc);
 
@@ -257,12 +257,12 @@ fill_arrays(vrna_fold_compound  *vc,
   turn              = P->model_details.min_loop_size;
 
   /* allocate memory for all helper arrays */
-  cc    = (int *) space(sizeof(int)*(length + 2));
-  cc1   = (int *) space(sizeof(int)*(length + 2));
-  Fmi   = (int *) space(sizeof(int)*(length + 1));
-  DMLi  = (int *) space(sizeof(int)*(length + 1));
-  DMLi1 = (int *) space(sizeof(int)*(length + 1));
-  DMLi2 = (int *) space(sizeof(int)*(length + 1));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
 
 
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
@@ -589,7 +589,7 @@ backtrack_co( sect bt_stack[],
                   }
                   break;
       }
-      if (!traced) nrerror("backtrack failed in f5 (or fc)");
+      if (!traced) vrna_message_error("backtrack failed in f5 (or fc)");
       bt_stack[++s].i = i;
       bt_stack[s].j   = jj;
       bt_stack[s].ml  = ml;
@@ -718,7 +718,7 @@ backtrack_co( sect bt_stack[],
                   break;
       }
 
-      if (!traced) nrerror("backtrack failed in fc[] 5' of cut");
+      if (!traced) vrna_message_error("backtrack failed in fc[] 5' of cut");
 
       bt_stack[++s].i = jj;
       bt_stack[s].j   = j;
@@ -859,7 +859,7 @@ backtrack_co( sect bt_stack[],
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-turn) nrerror("backtrack failed in fML");
+      if (k>j-2-turn) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1192,7 +1192,7 @@ backtrack_co( sect bt_stack[],
         }
         else
 #endif
-          nrerror("backtracking failed in repeat");
+          vrna_message_error("backtracking failed in repeat");
       }
     }
     continue; /* this is a workarround to not accidentally proceed in the following block */
@@ -1221,7 +1221,7 @@ backtrack_co( sect bt_stack[],
         }
         goto repeat_gquad_exit;
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");
@@ -1420,7 +1420,7 @@ wrap_zukersubopt( const char *string,
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
-  doubleseq = (char *)space((2*length+2)*sizeof(char));
+  doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
   strcpy(doubleseq,string);
   doubleseq[length] = '&';
   strcat(doubleseq, string);
@@ -1470,9 +1470,9 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   matrices        = vc->matrices;
   c               = matrices->c;
   num_pairs       = counter = 0;
-  mfestructure    = (char *) space((unsigned) doublelength+1);
-  structure       = (char *) space((unsigned) doublelength+1);
-  zukresults      = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
+  mfestructure    = (char *) vrna_alloc((unsigned) doublelength+1);
+  structure       = (char *) vrna_alloc((unsigned) doublelength+1);
+  zukresults      = (SOLUTION *)vrna_alloc(((length*(length-1))/2)*sizeof(SOLUTION));
   mfestructure[0] = '\0';
 
   /* store length at pos. 0 */
@@ -1482,11 +1482,11 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   (void)fill_arrays(vc, 1);
 
   psize     = length;
-  pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));
-  bp_list   = (bondT *) space(sizeof(bondT) * (1 + length/2));
-  todo      = (char **) space(sizeof(char *)*(length+1));
+  pairlist  = (bondT *) vrna_alloc(sizeof(bondT)*(psize+1));
+  bp_list   = (bondT *) vrna_alloc(sizeof(bondT) * (1 + length/2));
+  todo      = (char **) vrna_alloc(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
-    todo[i] = (char *) space(sizeof(char)*(length+1));
+    todo[i] = (char *) vrna_alloc(sizeof(char)*(length+1));
   }
 
   /* Make a list of all base pairs */
@@ -1495,7 +1495,7 @@ vrna_zukersubopt(vrna_fold_compound *vc){
       if (ptype[indx[j]+i]==0) continue;
       if (num_pairs>=psize) {
         psize = 1.2*psize + 32;
-        pairlist = xrealloc(pairlist, sizeof(bondT)*(psize+1));
+        pairlist = vrna_realloc(pairlist, sizeof(bondT)*(psize+1));
       }
       pairlist[num_pairs].i   = i;
       pairlist[num_pairs++].j = j;
@@ -1569,7 +1569,7 @@ vrna_cut_point_insert(const char *string,
 
   if(cp > 0){
     len = strlen(string);
-    ctmp = (char *)space((len+2) * sizeof(char));
+    ctmp = (char *)vrna_alloc((len+2) * sizeof(char));
     /* first sequence */
     (void) strncpy(ctmp, string, cp-1);
     /* spacer */
@@ -1591,13 +1591,13 @@ vrna_cut_point_remove(const char *string,
   *cp = -1;
 
   if(string){
-    copy = (char *) space(strlen(string)+1);
+    copy = (char *) vrna_alloc(strlen(string)+1);
     (void) sscanf(string, "%s", copy);
     pos = strchr(copy, '&');
     if (pos) {
       *cp = (int)(pos - copy) + 1;
       if (*cp >= strlen(copy)) *cp = -1;
-      if (strchr(pos+1, '&')) nrerror("more than one cut-point in input");
+      if (strchr(pos+1, '&')) vrna_message_error("more than one cut-point in input");
       for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
     }
   }

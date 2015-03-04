@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     }
 
     /* init_pf_fold(length); <- obsolete */
-    structure = (char *) space((length+1)*sizeof(char));
+    structure = (char *) vrna_alloc((length+1)*sizeof(char));
     (void) pf_fold(line,structure);
 
     if (*fname=='\0')
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     /* get pairlist of probability matrix */
     assign_plist_from_pr(&pr_pl, pr, length, 1e-5);
     /* no previous mfe call thus no mfe structure information known */
-    mfe_pl = (plist *)space(sizeof(plist));
+    mfe_pl = (plist *)vrna_alloc(sizeof(plist));
     mfe_pl[0].i = mfe_pl[0].j = 0;
 
     /* call threadsafe dot plot printing function */
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
       break;
 
     default :
-      nrerror("This can't happen.");
+      vrna_message_error("This can't happen.");
     }    /* END switch task */
     (void) fflush(stdout);
   }    /* END while */
@@ -286,7 +286,7 @@ PRIVATE void command_line(int argc, char *argv[])
     read_parameter_file(ParamFile);
 
   if (ns_bases!=NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -311,7 +311,7 @@ PRIVATE void command_line(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-  nrerror("usage: RNApdist [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
+  vrna_message_error("usage: RNApdist [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
           "                [-noCloseGU] [-noLP] [-e e_set] [-P paramfile] [-nsp pairs]");
 }
 

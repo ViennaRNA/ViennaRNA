@@ -161,7 +161,7 @@ vrna_ali_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -228,13 +228,13 @@ fill_arrays(vrna_fold_compound *vc){
 
   char              *hard_constraints = hc->matrix;
 
-  type  = (int *) space(n_seq*sizeof(int));
-  cc    = (int *) space(sizeof(int)*(length+2));
-  cc1   = (int *) space(sizeof(int)*(length+2));
-  Fmi   = (int *) space(sizeof(int)*(length+1));
-  DMLi  = (int *) space(sizeof(int)*(length+1));
-  DMLi1 = (int *) space(sizeof(int)*(length+1));
-  DMLi2 = (int *) space(sizeof(int)*(length+1));
+  type  = (int *) vrna_alloc(n_seq*sizeof(int));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length+2));
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length+2));
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1));
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1));
   
   /* init energies */
 
@@ -665,7 +665,7 @@ backtrack(vrna_fold_compound *vc,
   vrna_hc_t       *hc           = vc->hc;
   vrna_sc_t       **sc          = vc->scs;
 
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -765,7 +765,7 @@ backtrack(vrna_fold_compound *vc,
                   break;
       }
 
-      if (!traced) nrerror("backtrack failed in f5");
+      if (!traced) vrna_message_error("backtrack failed in f5");
       /* push back the remaining f5 portion */
       bt_stack[++s].i = 1;
       bt_stack[s].j   = jj;
@@ -847,7 +847,7 @@ backtrack(vrna_fold_compound *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1056,10 +1056,10 @@ backtrack(vrna_fold_compound *vc,
         bt_stack[++s].i = k+1;
         bt_stack[s].j   = j1;
       } else {
-          nrerror("backtracking failed in repeat");
+          vrna_message_error("backtracking failed in repeat");
       }
     } else
-      nrerror("backtracking failed in repeat");
+      vrna_message_error("backtracking failed in repeat");
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
@@ -1124,7 +1124,7 @@ backtrack(vrna_fold_compound *vc,
           }
         }
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");
@@ -1206,7 +1206,7 @@ energy_of_ali_gquad_structure(const char **sequences,
 
     vrna_free_fold_compound(vc);
   }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 
@@ -1233,7 +1233,7 @@ energy_of_alistruct(const char **sequences,
 
     vrna_free_fold_compound(vc);
   }
-  else nrerror("energy_of_alistruct(): no sequences in alignment!");
+  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 }

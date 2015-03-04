@@ -93,7 +93,7 @@ PUBLIC void  PSplot_phylogeny(Union *cluster, char *filename, char *type)
    fprintf(fp,"%%!PS-Adobe-2.0 EPSF-1.2\n");
    fprintf(fp,"%%%%Title: TreePlot (%s)\n",type);
    fprintf(fp,"%%%%Creator: AnalyseDists\n");
-   fprintf(fp,"%%%%CreationDate: %s", time_stamp());
+   fprintf(fp,"%%%%CreationDate: %s", vrna_time_stamp());
    /* BoundingBox is only approximate */
    fprintf(fp,"%%%%BoundingBox: 35 45 535 640\n");
    fprintf(fp,"%%%%Pages: 1\n");
@@ -131,18 +131,18 @@ PRIVATE Node *W2Phylo(Union *cluster)
    Node  *father;
    
    n=cluster[0].set1;
-   taxa = (Node **) space(sizeof(Node*)*(n+1));
+   taxa = (Node **) vrna_alloc(sizeof(Node*)*(n+1));
    
    b = sqrt(MAX2(cluster[n-1].distance,0.));
    for(i=1;i<=n;i++){
-      taxa[i] = (Node *) space(sizeof(Node));
+      taxa[i] = (Node *) vrna_alloc(sizeof(Node));
       taxa[i]->whoami = i;
       taxa[i]->size   = 1;
       taxa[i]->height = b;
    }
    
    for(i=1;i<n;i++) {
-      father = (Node *) space(sizeof(Node));
+      father = (Node *) vrna_alloc(sizeof(Node));
       father->whoami = 0;
       father->left  = taxa[cluster[i].set1];
       father->right = taxa[cluster[i].set2];
@@ -196,16 +196,16 @@ PRIVATE Node *Nj2Phylo(Union *cluster)
 
    maxdist = 0.;
    n=cluster[0].set1;
-   taxa = (Node **) space(sizeof(Node*)*(n+1));
+   taxa = (Node **) vrna_alloc(sizeof(Node*)*(n+1));
    
    for(i=1;i<=n;i++){
-      taxa[i] = (Node *) space(sizeof(Node));
+      taxa[i] = (Node *) vrna_alloc(sizeof(Node));
       taxa[i]->whoami = i;
       taxa[i]->size   = 1;
    }
  
    for(i=1;i<n;i++) {
-      father = (Node *) space(sizeof(Node));
+      father = (Node *) vrna_alloc(sizeof(Node));
       father->whoami = 0;
       h1 = cluster[i].distance +taxa[cluster[i].set1]->height;
       h2 = cluster[i].distance2+taxa[cluster[i].set2]->height;  
@@ -244,7 +244,7 @@ PRIVATE Node *Nj2Phylo(Union *cluster)
    h1 = dist - tempnode->height;
    h2 = topnode->height - dist ;
 
-   root = (Node *) space(sizeof(Node));
+   root = (Node *) vrna_alloc(sizeof(Node));
    root->father = NULL;
    root->whoami = -1;
    root->right  = tempnode;

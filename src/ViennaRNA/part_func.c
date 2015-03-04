@@ -190,7 +190,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
     /*
      {
       if(pr) free(pr);
-      pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
+      pr = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
     */
@@ -278,10 +278,10 @@ pf_linear(vrna_fold_compound *vc){
   rtype       = &(md->rtype[0]);
 
   /* allocate memory for helper arrays */
-  qq        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qq1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-  qqm1      = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qq1       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqm1      = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
 
   /*array initialization ; qb,qm,q
@@ -537,7 +537,7 @@ pf_linear(vrna_fold_compound *vc){
         PRIVATE char msg[128];
         sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
                      "use larger pf_scale", i,j);
-        nrerror(msg);
+        vrna_message_error(msg);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -737,11 +737,11 @@ pf_create_bppm( vrna_fold_compound *vc,
     rtype         = &(pf_params->model_details.rtype[0]);
     n             = S[0];
 
-    FLT_OR_DBL *q1k    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-    FLT_OR_DBL *qln    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
-    FLT_OR_DBL *prml   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *q1k    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
+    FLT_OR_DBL *qln    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+    FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
     Qmax=0;
 
@@ -1170,7 +1170,7 @@ pf_create_bppm( vrna_fold_compound *vc,
 
   } /* end if((S != NULL) && (S1 != NULL))  */
   else
-    nrerror("bppm calculations have to be done after calling forward recursion\n");
+    vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
   return;
 }
 
@@ -1344,21 +1344,21 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
 
   hard_constraints  = hc->matrix;
 
-  FLT_OR_DBL *q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+1));
-  FLT_OR_DBL *qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(n+2));
+  FLT_OR_DBL *q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
+  FLT_OR_DBL *qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
 
   if(length > n)
-    nrerror("part_func.c@pbacktrack5: 3'-end exceeds sequence length");
+    vrna_message_error("part_func.c@pbacktrack5: 3'-end exceeds sequence length");
   else if(length < 1)
-    nrerror("part_func.c@pbacktrack5: 3'-end too small");
+    vrna_message_error("part_func.c@pbacktrack5: 3'-end too small");
 
 /*
   if (init_length<1)
-    nrerror("can't backtrack without pf arrays.\n"
+    vrna_message_error("can't backtrack without pf arrays.\n"
             "Call pf_fold() before pbacktrack()");
 */
 
-  pstruc = space((length+1)*sizeof(char));
+  pstruc = vrna_alloc((length+1)*sizeof(char));
 
   for (i=0; i<length; i++)
     pstruc[i] = '.';
@@ -1374,7 +1374,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   while (start<length) {
   /* find i position of first pair */
     for (i=start; i<length; i++) {
-      r = urn() * qln[i];
+      r = vrna_urn() * qln[i];
       q_temp = qln[i+1]*scale[1];
 
       if(sc){
@@ -1389,7 +1389,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
     }
     if (i>=length) break; /* no more pairs */
     /* now find the pairing partner j */
-    r = urn() * (qln[i] - q_temp);
+    r = vrna_urn() * (qln[i] - q_temp);
     for (qt=0, j=i+1; j<=length; j++) {
       ij            = my_iindx[i]-j;
       type          = ptype[jindx[j] + i];
@@ -1414,7 +1414,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
         if (qt > r) break; /* j is paired */
       }
     }
-    if (j==length+1) nrerror("backtracking failed in ext loop");
+    if (j==length+1) vrna_message_error("backtracking failed in ext loop");
     start = j+1;
     backtrack(i,j, pstruc, vc);
   }
@@ -1469,17 +1469,17 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
 
 /*
   if (init_length<1)
-    nrerror("can't backtrack without pf arrays.\n"
+    vrna_message_error("can't backtrack without pf arrays.\n"
       "Call pf_circ_fold() before pbacktrack_circ()");
 */
 
-  pstruc = space((n+1)*sizeof(char));
+  pstruc = vrna_alloc((n+1)*sizeof(char));
 
   /* initialize pstruct with single bases  */
   for (i=0; i<n; i++) pstruc[i] = '.';
 
   qt = 1.0*scale[n];
-  r = urn() * qo;
+  r = vrna_urn() * qo;
 
   /* open chain? */
   if(qt > r) return pstruc;
@@ -1534,7 +1534,7 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
   {
     /* as we reach this part, we have to search for our barrier between qm and qm2  */
     qt = 0.;
-    r = urn()*qmo;
+    r = vrna_urn()*qmo;
     for(k=TURN+2; k<n-2*TURN-3; k++){
       qt += qm[my_iindx[1]-k] * qm2[k+1] * expMLclosing;
       /* backtrack in qm and qm2 if we've found a valid barrier k  */
@@ -1543,7 +1543,7 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
   }
   /* if we reach the actual end of this function, an error has occured  */
   /* cause we HAVE TO find an exterior loop or an open chain!!!         */
-  nrerror("backtracking failed in exterior loop");
+  vrna_message_error("backtracking failed in exterior loop");
   return pstruc;
 }
 
@@ -1574,7 +1574,7 @@ backtrack_qm( int i,
 
   while(j>i){
     /* now backtrack  [i ... j] in qm[] */
-    r = urn() * qm[my_iindx[i] - j];
+    r = vrna_urn() * qm[my_iindx[i] - j];
     qmt = qm1[jindx[j]+i]; k=i;
     if(qmt<r)
       for(k=i+1; k<=j; k++){
@@ -1601,7 +1601,7 @@ backtrack_qm( int i,
 
         if(qmt >= r){ break;}
       }
-    if(k>j) nrerror("backtrack failed in qm");
+    if(k>j) vrna_message_error("backtrack failed in qm");
 
     backtrack_qm1(k, j, pstruc, vc);
 
@@ -1617,7 +1617,7 @@ backtrack_qm( int i,
         q_temp *= sc->exp_f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
     }
 
-    r = urn() * (qm[my_iindx[i]-(k-1)] + q_temp);
+    r = vrna_urn() * (qm[my_iindx[i]-(k-1)] + q_temp);
     if(q_temp >= r) break;
 
     j = k-1;
@@ -1658,7 +1658,7 @@ backtrack_qm1(int i,
 
 
   n = j;
-  r = urn() * qm1[jindx[j]+i];
+  r = vrna_urn() * qm1[jindx[j]+i];
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
     type = ptype[jindx[l] + i];
@@ -1679,7 +1679,7 @@ backtrack_qm1(int i,
     }
     if (qt>=r) break;
   }
-  if (l>j) nrerror("backtrack failed in qm1");
+  if (l>j) vrna_message_error("backtrack failed in qm1");
   backtrack(i, l, pstruc, vc);
 }
 
@@ -1698,13 +1698,13 @@ backtrack_qm2(int k,
   qm1       = vc->exp_matrices->qm1;
   qm2       = vc->exp_matrices->qm2;
 
-  r= urn()*qm2[k];
+  r= vrna_urn()*qm2[k];
   /* we have to search for our barrier u between qm1 and qm1  */
   for (qom2t = 0.,u=k+TURN+1; u<n-TURN-1; u++){
     qom2t += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
     if(qom2t > r) break;
   }
-  if(u==n-TURN) nrerror("backtrack failed in qm2");
+  if(u==n-TURN) vrna_message_error("backtrack failed in qm2");
   backtrack_qm1(k, u, pstruc, vc);
   backtrack_qm1(u+1, n, pstruc, vc);
 }
@@ -1751,7 +1751,7 @@ backtrack(int i,
 
     pstruc[i-1] = '('; pstruc[j-1] = ')';
 
-    r = urn() * qb[my_iindx[i]-j];
+    r = vrna_urn() * qb[my_iindx[i]-j];
     type = (unsigned char)ptype[jindx[j] + i];
     u = j-i-1;
     /*hairpin contribution*/
@@ -1833,7 +1833,7 @@ backtrack(int i,
 
       qt += q_temp;
     }
-    r = urn() * qt;
+    r = vrna_urn() * qt;
     for (qt=0., k=i+1; k<j; k++) {
       q_temp = qm[ii-(k-1)] * qm1[jj+k];
 
@@ -1846,7 +1846,7 @@ backtrack(int i,
 
       if (qt>=r) break;
     }
-    if (k>=j) nrerror("backtrack failed, can't find split index ");
+    if (k>=j) vrna_message_error("backtrack failed, can't find split index ");
 
     backtrack_qm1(k, j, pstruc, vc);
 
@@ -1870,9 +1870,9 @@ stackProb(double cutoff){
   char          *ptype;
 
   if(!backward_compat_compound){
-    nrerror("stackProb: run vrna_pf_fold() first!");
+    vrna_message_error("stackProb: run vrna_pf_fold() first!");
   } else if( !backward_compat_compound->exp_matrices->probs){
-    nrerror("stackProb: probs==NULL!");
+    vrna_message_error("stackProb: probs==NULL!");
   }
 
   pf_params   = backward_compat_compound->exp_params;
@@ -1887,7 +1887,7 @@ stackProb(double cutoff){
   probs       = matrices->probs;
   scale       = matrices->scale;
 
-  pl = (plist *) space(plsize*sizeof(plist));
+  pl = (plist *) vrna_alloc(plsize*sizeof(plist));
 
   for (i=1; i<length; i++)
     for (j=i+TURN+3; j<=length; j++) {
@@ -1904,7 +1904,7 @@ stackProb(double cutoff){
         pl[num++].p   = p;
         if (num>=plsize) {
           plsize *= 2;
-          pl = xrealloc(pl, plsize*sizeof(plist));
+          pl = vrna_realloc(pl, plsize*sizeof(plist));
         }
       }
     }
@@ -1927,7 +1927,7 @@ get_subseq_F( int i,
         return ((-log(q[my_iindx[i]-j])-(j-i+1)*log(pf_params->pf_scale))*pf_params->kT/1000.0);
       }
 
-  nrerror("call pf_fold() to fill q[] array before calling get_subseq_F()");
+  vrna_message_error("call pf_fold() to fill q[] array before calling get_subseq_F()");
   return 0.; /* we will never get to this point */
 }
 
@@ -1962,7 +1962,7 @@ vrna_mean_bp_distance_pr( int length,
   double d;
 
   if (p==NULL)
-    nrerror("vrna_mean_bp_distance_pr: p==NULL. You need to supply a valid probability matrix");
+    vrna_message_error("vrna_mean_bp_distance_pr: p==NULL. You need to supply a valid probability matrix");
 
   d = wrap_mean_bp_distance(p, length, index, TURN);
 
@@ -1974,11 +1974,11 @@ PUBLIC double
 vrna_mean_bp_distance(vrna_fold_compound *vc){
 
   if(!vc){
-    nrerror("vrna_mean_bp_distance: run vrna_pf_fold first!");
+    vrna_message_error("vrna_mean_bp_distance: run vrna_pf_fold first!");
   } else if(!vc->exp_matrices){
-    nrerror("vrna_mean_bp_distance: exp_matrices==NULL!");
+    vrna_message_error("vrna_mean_bp_distance: exp_matrices==NULL!");
   } else if( !vc->exp_matrices->probs){
-    nrerror("vrna_mean_bp_distance: probs==NULL!");
+    vrna_message_error("vrna_mean_bp_distance: probs==NULL!");
   }
 
   return wrap_mean_bp_distance( vc->exp_matrices->probs,
@@ -1998,7 +1998,7 @@ centroid( int length,
           double *dist) {
 
   if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before centroid()");
+    vrna_message_error("pr==NULL. You need to call pf_fold() before centroid()");
 
   return vrna_get_centroid_struct_pr(length, dist, pr);
 }
@@ -2016,7 +2016,7 @@ mean_bp_dist(int length) {
   double d=0;
 
   if (pr==NULL)
-    nrerror("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
+    vrna_message_error("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
 
   int *my_iindx = vrna_get_iindx(length);
 
@@ -2282,7 +2282,7 @@ mean_bp_distance(int length){
       if(backward_compat_compound->exp_matrices->probs)
         return vrna_mean_bp_distance(backward_compat_compound);
 
-  nrerror("mean_bp_distance: you need to call vrna_pf_fold first");
+  vrna_message_error("mean_bp_distance: you need to call vrna_pf_fold first");
   return 0.; /* we will never get to this point */
 }
 
@@ -2294,7 +2294,7 @@ mean_bp_distance_pr(int length,
   int *index = vrna_get_iindx((unsigned int) length);
 
   if (p==NULL)
-    nrerror("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+    vrna_message_error("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
 
   d = wrap_mean_bp_distance(p, length, index, TURN);
 

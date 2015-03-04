@@ -191,7 +191,7 @@ vrna_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)space(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -262,12 +262,12 @@ fill_arrays(vrna_fold_compound *vc){
 
 
   /* allocate memory for all helper arrays */
-  cc    = (int *) space(sizeof(int)*(length + 2));
-  cc1   = (int *) space(sizeof(int)*(length + 2));
-  Fmi   = (int *) space(sizeof(int)*(length + 1));
-  DMLi  = (int *) space(sizeof(int)*(length + 1));
-  DMLi1 = (int *) space(sizeof(int)*(length + 1));
-  DMLi2 = (int *) space(sizeof(int)*(length + 1));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length + 2));
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
 
 
   /* prefill helper arrays */
@@ -615,7 +615,7 @@ backtrack(vrna_fold_compound *vc,
 
       if (!traced){
         fprintf(stderr, "%s\n", string);
-        nrerror("backtrack failed in f5");
+        vrna_message_error("backtrack failed in f5");
       }
       bt_stack[++s].i = 1;
       bt_stack[s].j   = jj;
@@ -759,7 +759,7 @@ backtrack(vrna_fold_compound *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1011,7 +1011,7 @@ backtrack(vrna_fold_compound *vc,
       }
       else
 #endif
-        nrerror("backtracking failed in repeat");
+        vrna_message_error("backtracking failed in repeat");
     }
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
@@ -1040,7 +1040,7 @@ backtrack(vrna_fold_compound *vc,
         }
         goto repeat_gquad_exit;
       }
-      nrerror("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
     asm("nop");
@@ -1062,10 +1062,10 @@ backtrack_fold_from_pair( char *sequence,
 
   if(sequence){
     length = strlen(sequence);
-    structure = (char *) space((length + 1)*sizeof(char));
-    bp = (bondT *)space(sizeof(bondT) * (1+length/2));
+    structure = (char *) vrna_alloc((length + 1)*sizeof(char));
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
   } else {
-    nrerror("backtrack_fold_from_pair@fold.c: no sequence given");
+    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
   }
 
   bt_stack[1].i  = i;

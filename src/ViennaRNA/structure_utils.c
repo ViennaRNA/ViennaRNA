@@ -45,7 +45,7 @@ vrna_db_pack(const char *struc){
   unsigned char *packed;
 
   l = (int) strlen(struc);
-  packed = (unsigned char *) space(((l+4)/5+1)*sizeof(unsigned char));
+  packed = (unsigned char *) vrna_alloc(((l+4)/5+1)*sizeof(unsigned char));
 
   j=i=pi=0;
   while (i<l) {
@@ -62,7 +62,7 @@ vrna_db_pack(const char *struc){
       case ')':
         p += 2;
         break;
-      default: nrerror("pack_structure: illegal charcter in structure");
+      default: vrna_message_error("pack_structure: illegal charcter in structure");
       }
       if (i<l) i++;
     }
@@ -84,7 +84,7 @@ vrna_db_unpack(const char *packed){
 
   l = (int) strlen(packed);
   pp = (const unsigned char *) packed;
-  struc = (char *) space((l*5+1)*sizeof(char));   /* up to 4 byte extra */
+  struc = (char *) vrna_alloc((l*5+1)*sizeof(char));   /* up to 4 byte extra */
 
   for (i=j=0; i<l; i++) {
     register int p, c, k;
@@ -115,8 +115,8 @@ vrna_pt_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -128,7 +128,7 @@ vrna_pt_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -140,7 +140,7 @@ vrna_pt_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
+      vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return(table);
@@ -156,9 +156,9 @@ vrna_pt_pk_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack  = (short *) space(sizeof(short)*(length+1));
-   stack2 = (short *) space(sizeof(short)*(length+1));
-   table  = (short *) space(sizeof(short)*(length+2));
+   stack  = (short *) vrna_alloc(sizeof(short)*(length+1));
+   stack2 = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table  = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, hx2=0, i=1; i<=length; i++) {
@@ -170,7 +170,7 @@ vrna_pt_pk_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced '()' brackets in make_pair_table_pk");
+            vrna_message_error("unbalanced '()' brackets in make_pair_table_pk");
          }
          table[i]=j;
          table[j]=i;
@@ -182,7 +182,7 @@ vrna_pt_pk_get(const char *structure){
          j = stack2[--hx2];
          if (hx2<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+            vrna_message_error("unbalanced '[]' brackets in make_pair_table_pk");
          }
          table[i]=j;
          table[j]=i;
@@ -194,10 +194,10 @@ vrna_pt_pk_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced '()' brackets in make_pair_table_pk");
+      vrna_message_error("unbalanced '()' brackets in make_pair_table_pk");
    } else if (hx2!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+      vrna_message_error("unbalanced '[]' brackets in make_pair_table_pk");
    }
    free(stack);
    free(stack2);
@@ -216,8 +216,8 @@ vrna_pt_snoop_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -229,7 +229,7 @@ vrna_pt_snoop_get(const char *structure){
        j = stack[--hx];
        if (hx<0) {
          fprintf(stderr, "%s\n", structure);
-         nrerror("unbalanced brackets in make_pair_table");
+         vrna_message_error("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -241,7 +241,7 @@ vrna_pt_snoop_get(const char *structure){
    }
    if (hx!=0) {
      fprintf(stderr, "%s\n", structure);
-     nrerror("unbalanced brackets in make_pair_table");
+     vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return table ;
@@ -260,8 +260,8 @@ vrna_pt_ali_get(const char *structure){
    short *table;
 
    length = (short) strlen(structure);
-   stack = (short *) space(sizeof(short)*(length+1));
-   table = (short *) space(sizeof(short)*(length+2));
+   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+   table = (short *) vrna_alloc(sizeof(short)*(length+2));
    table[0] = length;
 
    for (hx=0, i=1; i<=length; i++) {
@@ -273,7 +273,7 @@ vrna_pt_ali_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -292,7 +292,7 @@ vrna_pt_ali_get(const char *structure){
          j = stack[--hx];
          if (hx<0) {
             fprintf(stderr, "%s\n", structure);
-            nrerror("unbalanced brackets in make_pair_table");
+            vrna_message_error("unbalanced brackets in make_pair_table");
          }
          table[i]=j;
          table[j]=i;
@@ -311,7 +311,7 @@ vrna_pt_ali_get(const char *structure){
        j = stack[--hx];
        if (hx<0) {
          fprintf(stderr, "%s\n", structure);
-         nrerror("unbalanced brackets in make_pair_table");
+         vrna_message_error("unbalanced brackets in make_pair_table");
        }
        table[i]=j;
        table[j]=i;
@@ -322,7 +322,7 @@ vrna_pt_ali_get(const char *structure){
    }
    if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in make_pair_table");
+      vrna_message_error("unbalanced brackets in make_pair_table");
    }
    free(stack);
    return(table);
@@ -330,7 +330,7 @@ vrna_pt_ali_get(const char *structure){
 
 PUBLIC short *
 vrna_pt_copy(const short *pt){
-  short *table = (short *)space(sizeof(short) * (pt[0]+2));
+  short *table = (short *)vrna_alloc(sizeof(short) * (pt[0]+2));
   memcpy(table, pt, sizeof(short)*(pt[0]+2));
   return table;
 }
@@ -347,8 +347,8 @@ vrna_get_loop_index(const short *pt){
   int *loop = NULL;
 
   length = pt[0];
-  stack  = (int *) space(sizeof(int)*(length+1));
-  loop   = (int *) space(sizeof(int)*(length+2));
+  stack  = (int *) vrna_alloc(sizeof(int)*(length+1));
+  loop   = (int *) vrna_alloc(sizeof(int)*(length+2));
   hx=l=nl=0;
 
   for (i=1; i<=length; i++) {
@@ -364,7 +364,7 @@ vrna_get_loop_index(const short *pt){
         l = loop[stack[hx-1]];  /* index of enclosing loop   */
       else l=0;                 /* external loop has index 0 */
       if (hx<0) {
-        nrerror("unbalanced brackets in make_pair_table");
+        vrna_message_error("unbalanced brackets in make_pair_table");
       }
     }
   }
@@ -379,7 +379,7 @@ vrna_pt_to_db(short *pt){
   int i;
   char *dotbracket = NULL;
   if(pt){
-    dotbracket = (char *)space((pt[0]+1)*sizeof(char));
+    dotbracket = (char *)vrna_alloc((pt[0]+1)*sizeof(char));
     memset(dotbracket, '.', pt[0]);
 
     for(i=1; i<=pt[0]; i++){
@@ -433,7 +433,7 @@ vrna_refBPcnt_matrix( const short *reference_pt,
   length = (unsigned int)reference_pt[0];
   size  = ((length+1)*(length+2))/2;
   iindx = vrna_get_iindx(length);
-  array = (unsigned int *) space(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
+  array = (unsigned int *) vrna_alloc(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
   for (k=0; k<=turn; k++)
     for (i=1; i<=length-k; i++) {
       j=i+k;
@@ -464,7 +464,7 @@ vrna_refBPdist_matrix(const short *pt1,
   unsigned int n, size, i, j, ij, d;
   n = (unsigned int)pt1[0];
   size = ((n+1)*(n+2))/2;
-  array = (unsigned int *)space(sizeof(unsigned int) * size);
+  array = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
   int *iindx = vrna_get_iindx(n);
   for(i = n - turn - 1; i>=1; i--){
     d = 0;
@@ -514,7 +514,7 @@ vrna_db_get_from_pr(const FLT_OR_DBL *p,
   char  *s;
 
   index = vrna_get_iindx(length);
-  s     = (char *)space(sizeof(char) * (length + 1));
+  s     = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
   for( j=1; j<=length; j++ ) {
     P[0] = 1.0;
@@ -630,7 +630,7 @@ vrna_pl_get( const char *struc,
   n     = 2;
 
   pt  = vrna_pt_get(struc);
-  pl = (plist *)space(n*size*sizeof(plist));
+  pl = (plist *)vrna_alloc(n*size*sizeof(plist));
   for(i = 1; i < size; i++){
     if(pt[i]>i){
       (pl)[k].i      = i;
@@ -644,7 +644,7 @@ vrna_pl_get( const char *struc,
   for(ptr = gpl; ptr->i != 0; ptr++){
     if (k == n * size - 1){
       n *= 2;
-      pl = (plist *)xrealloc(pl, n * size * sizeof(plist));
+      pl = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
     }
     (pl)[k].i      = ptr->i;
     (pl)[k].j      = ptr->j;
@@ -658,7 +658,7 @@ vrna_pl_get( const char *struc,
   (pl)[k].p      = 0.;
   (pl)[k++].type = 0.;
   free(pt);
-  pl = (plist *)xrealloc(pl, k * sizeof(plist));
+  pl = (plist *)vrna_realloc(pl, k * sizeof(plist));
 
   return pl;
 }
@@ -668,9 +668,9 @@ vrna_pl_get_from_pr(vrna_fold_compound *vc,
                     double cut_off){
 
   if(!vc){
-    nrerror("vrna_pl_get_from_pr: run vrna_pf_fold first!");
+    vrna_message_error("vrna_pl_get_from_pr: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
-    nrerror("vrna_pl_get_from_pr: probs==NULL!");
+    vrna_message_error("vrna_pl_get_from_pr: probs==NULL!");
   }
 
   return wrap_get_plist(vc->exp_matrices,
@@ -690,7 +690,7 @@ vrna_pl_to_db(plist *pairs,
   int   i;
 
   if(n > 0){
-    structure = (char *)space(sizeof(char) * (n+1));
+    structure = (char *)vrna_alloc(sizeof(char) * (n+1));
     memset(structure, '.', n);
     structure[n] = '\0';
 
@@ -725,7 +725,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   n     = 2;
 
   /* first guess of the size needed for pl */
-  pl = (plist *)space(n*length*sizeof(plist));
+  pl = (plist *)vrna_alloc(n*length*sizeof(plist));
 
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
@@ -735,7 +735,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
         n *= 2;
-        pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+        pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
       }
 
       /* check for presence of gquadruplex */
@@ -754,7 +754,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
           for(ptr=inner; ptr->i != 0; ptr++){
               if (count == n * length - 1){
                 n *= 2;
-                pl = (plist *)xrealloc(pl, n * length * sizeof(plist));
+                pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
               }
               /* check if we've already seen this pair */
               for(k = 0; k < count; k++)
@@ -784,7 +784,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   (pl)[count].type = 0;
   (pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
-  pl = (plist *)xrealloc(pl, count * sizeof(plist));
+  pl = (plist *)vrna_realloc(pl, count * sizeof(plist));
 
   return pl;
 }
@@ -844,7 +844,7 @@ assign_plist_from_pr( plist **pl,
   vrna_exp_param_t *pf_params;
 
   index     = vrna_get_iindx(length);
-  matrices  = (vrna_mx_pf_t *)space(sizeof(vrna_mx_pf_t));
+  matrices  = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
 
   set_model_details(&md);
   md.gquad        = 0;

@@ -283,7 +283,7 @@ extern char *pbacktrack(char *sequence);
     char *seq;
     int n;
     n = strlen(target);
-    seq = random_string(n, symbolset);
+    seq = vrna_random_string(n, symbolset);
     if (start)
       strncpy(seq, start, strlen(start));
     *cost = inverse_fold(seq, target);
@@ -303,7 +303,7 @@ char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
     char *seq;
     int n;
     n = strlen(target);
-    seq = random_string(n, symbolset);
+    seq = vrna_random_string(n, symbolset);
     if (start) strncpy(seq, start, n);
     *cost = inverse_pf_fold(seq, target);
     if (start)
@@ -467,8 +467,8 @@ char *get_aligned_line(int);
     short *stack;
     short *loop;
     length = strlen(structure);
-    stack = (short *) space(sizeof(short)*(length+1));
-    loop = (short *) space(sizeof(short)*(length+2));
+    stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+    loop = (short *) vrna_alloc(sizeof(short)*(length+2));
     hx=l=nl=0;
     for (i=0; i<length; i++) {
       if (structure[i] == '(') {
@@ -483,7 +483,7 @@ char *get_aligned_line(int);
 	else l=0;                 /* external loop has index 0 */
 	if (hx<0) {
 	  fprintf(stderr, "%s\n", structure);
-	  nrerror("unbalanced brackets in make_pair_table");
+	  nrerror("unbalanced brackets in make_loop_index");
 	}
       }
     }
@@ -496,7 +496,7 @@ char *get_aligned_line(int);
 %init %{
 /* work around segfault when script tries to free symbolset */
 
-symbolset = (char *) space(21);
+symbolset = (char *) vrna_alloc(21);
 strcpy(symbolset, "AUGC");
 
 %}
@@ -519,7 +519,7 @@ short *encode_seq(char *sequence) {
   unsigned int i,l;
   short *S;
   l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
+  S = (short *) vrna_alloc(sizeof(short)*(l+2));
   S[0] = (short) l;
 
   /* make numerical encoding of sequence */

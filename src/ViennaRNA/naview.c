@@ -49,7 +49,7 @@ typedef int LOGICAL;
 #define FATAL_ERROR 1
 #define SUCCESS 0
 
-#define type_alloc(type) (type *) space(sizeof(type))
+#define type_alloc(type) (type *) vrna_alloc(sizeof(type))
 
 #define struct_alloc(structure_name) type_alloc(struct structure_name)
 
@@ -146,14 +146,14 @@ int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
   int i;
 
   nbase = pair_table[0]; /* length */
-  bases = (struct base *) space(sizeof(struct base)*(nbase+1));
-  regions = (struct region *) space(sizeof(struct region)*(nbase+1));
+  bases = (struct base *) vrna_alloc(sizeof(struct base)*(nbase+1));
+  regions = (struct region *) vrna_alloc(sizeof(struct region)*(nbase+1));
   read_in_bases(pair_table);
   lencut = 0.5;
   rlphead = NULL;
   find_regions();
   loop_count = 0;
-  loops = (struct loop *) space(sizeof(struct loop)*(nbase+1));
+  loops = (struct loop *) vrna_alloc(sizeof(struct loop)*(nbase+1));
   construct_loop(0);
   find_central_loop();
   if (debug) dump_loops();
@@ -204,7 +204,7 @@ static void find_regions(void)
   logical *mark;
 
   nb1 = nbase + 1;
-  mark = (int *) space(sizeof(int)*nb1);
+  mark = (int *) vrna_alloc(sizeof(int)*nb1);
   for (i = 0; i < nb1; i++) mark[i] = false;
   nregion = 0;
   for (i=0; i<=nbase; i++) {
@@ -251,7 +251,7 @@ static struct loop *construct_loop(int ibase)
 
   retloop = &loops[loop_count++];
   retloop->nconnection = 0;
-  retloop->connections = (struct connection **) space(sizeof(struct connection *));
+  retloop->connections = (struct connection **) vrna_alloc(sizeof(struct connection *));
   retloop->depth = 0;
   retloop->number = loop_count;
   retloop->radius = 0.0;

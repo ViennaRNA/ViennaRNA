@@ -59,11 +59,11 @@ PUBLIC float tree_edit_distance(Tree *T1, Tree *T2)
    n1 = T1->postorder_list[0].sons;
    n2 = T2->postorder_list[0].sons;
 
-   tdist = (int **) space(sizeof(int *) * (n1+1));
-   fdist = (int **) space(sizeof(int *) * (n1+1));
+   tdist = (int **) vrna_alloc(sizeof(int *) * (n1+1));
+   fdist = (int **) vrna_alloc(sizeof(int *) * (n1+1));
    for (i=0; i<=n1; i++) {
-      tdist[i] = (int *) space(sizeof(int) * (n2+1));
-      fdist[i] = (int *) space(sizeof(int) * (n2+1));
+      tdist[i] = (int *) vrna_alloc(sizeof(int) * (n2+1));
+      fdist[i] = (int *) vrna_alloc(sizeof(int) * (n2+1));
    }
 
    tree1 = T1;  tree2 = T2;
@@ -79,10 +79,10 @@ PUBLIC float tree_edit_distance(Tree *T1, Tree *T2)
 
    if (edit_backtrack) {
 
-      if ((n1>MNODES)||(n2>MNODES)) nrerror("tree too large for alignment");
+      if ((n1>MNODES)||(n2>MNODES)) vrna_message_error("tree too large for alignment");
 
-      alignment[0] = (int *) space((n1+1)*sizeof(int));
-      alignment[1] = (int *) space((n2+1)*sizeof(int));
+      alignment[0] = (int *) vrna_alloc((n1+1)*sizeof(int));
+      alignment[1] = (int *) vrna_alloc((n2+1)*sizeof(int));
 
       backtracking();
       sprint_aligned_trees();
@@ -182,7 +182,7 @@ PUBLIC Tree *make_tree(char *struc)
 {
    Tree *tree;
 
-   tree = (Tree *) space(sizeof(Tree));
+   tree = (Tree *) vrna_alloc(sizeof(Tree));
 
    tree->postorder_list = make_postorder_list(struc);
    tree->keyroots       = make_keyroots(tree->postorder_list);
@@ -198,7 +198,7 @@ PRIVATE int  *make_keyroots(Postorder_list *pl)
    int   i, k, keys;
    int  *keyroots;
 
-   keyroots = (int *) space(sizeof(int)*(pl[0].sons+1));
+   keyroots = (int *) vrna_alloc(sizeof(int)*(pl[0].sons+1));
    keys      = 0;
 
    for (i = 1; i <= pl[0].sons; i++) {
@@ -295,8 +295,8 @@ PRIVATE Postorder_list *make_postorder_list(char *struc)
 
 
    n_nodes = number_of_nodes(struc);
-   if (n_nodes>MNODES) nrerror("structure too long in make_postorder_list");
-   pl = (Postorder_list *) space(sizeof(Postorder_list)*(n_nodes+1));
+   if (n_nodes>MNODES) vrna_message_error("structure too long in make_postorder_list");
+   pl = (Postorder_list *) vrna_alloc(sizeof(Postorder_list)*(n_nodes+1));
    pl[0].sons = n_nodes;
 
    paren = 1;
@@ -644,11 +644,11 @@ PRIVATE void sprint_aligned_trees(void)
       }
    }
    a1[l]=a2[l]='\0';
-   if (l>8*MNODES) nrerror("structure too long in sprint_aligned_trees");
+   if (l>8*MNODES) vrna_message_error("structure too long in sprint_aligned_trees");
    if (aligned_line[0]!= NULL)  free(aligned_line[0]);
    if (aligned_line[1]!= NULL)  free(aligned_line[1]);
-   aligned_line[0] = (char *) space((l+1)*sizeof(char));
-   aligned_line[1] = (char *) space((l+1)*sizeof(char));
+   aligned_line[0] = (char *) vrna_alloc((l+1)*sizeof(char));
+   aligned_line[1] = (char *) vrna_alloc((l+1)*sizeof(char));
    strcpy(aligned_line[0], a1);
    strcpy(aligned_line[1], a2);
 }

@@ -193,9 +193,9 @@ vrna_get_fold_compound( const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    nrerror("vrna_get_fold_compound: sequence length must be greater 0");
+    vrna_message_error("vrna_get_fold_compound: sequence length must be greater 0");
 
-  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
   vc->type      = VRNA_VC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
@@ -221,17 +221,17 @@ vrna_get_fold_compound_ali( const char **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if(length == 0)
-    nrerror("vrna_get_fold_compound_ali: sequence length must be greater 0");
+    vrna_message_error("vrna_get_fold_compound_ali: sequence length must be greater 0");
   for(s = 0; s < n_seq; s++)
     if(strlen(sequences[s]) != length)
-      nrerror("vrna_get_fold_compound_ali: uneqal sequence lengths in alignment");
+      vrna_message_error("vrna_get_fold_compound_ali: uneqal sequence lengths in alignment");
 
-  vc            = (vrna_fold_compound *)space(sizeof(vrna_fold_compound));
+  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
   vc->type      = VRNA_VC_TYPE_ALIGNMENT;
 
   vc->n_seq     = n_seq;
   vc->length    = length;
-  vc->sequences = (char **)space(sizeof(char *) * (vc->n_seq + 1));
+  vc->sequences = (char **)vrna_alloc(sizeof(char *) * (vc->n_seq + 1));
   for(s = 0; sequences[s]; s++)
     vc->sequences[s] = strdup(sequences[s]);
 
@@ -274,9 +274,9 @@ get_mfe_matrices_alloc( unsigned int n,
                         unsigned int alloc_vector){
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+    vrna_message_error("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  vrna_mx_mfe_t *vars   = (vrna_mx_mfe_t *)space(sizeof(vrna_mx_mfe_t));
+  vrna_mx_mfe_t *vars   = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
 
   vars->allocated       = 0;
   vars->length          = 0;
@@ -300,25 +300,25 @@ get_mfe_matrices_alloc( unsigned int n,
     unsigned int lin_size = n + 2;
 
     if(alloc_vector & ALLOC_F5)
-      vars->f5  = (int *) space(sizeof(int) * lin_size);
+      vars->f5  = (int *) vrna_alloc(sizeof(int) * lin_size);
 
     if(alloc_vector & ALLOC_F3)
-      vars->f3  = (int *) space(sizeof(int) * lin_size);
+      vars->f3  = (int *) vrna_alloc(sizeof(int) * lin_size);
 
     if(alloc_vector & ALLOC_HYBRID)
-      vars->fc  = (int *) space(sizeof(int) * lin_size);
+      vars->fc  = (int *) vrna_alloc(sizeof(int) * lin_size);
 
     if(alloc_vector & ALLOC_C)
-      vars->c      = (int *) space(sizeof(int) * size);
+      vars->c      = (int *) vrna_alloc(sizeof(int) * size);
 
     if(alloc_vector & ALLOC_FML)
-      vars->fML    = (int *) space(sizeof(int) * size);
+      vars->fML    = (int *) vrna_alloc(sizeof(int) * size);
 
     if(alloc_vector & ALLOC_UNIQ)
-      vars->fM1    = (int *) space(sizeof(int) * size);
+      vars->fM1    = (int *) vrna_alloc(sizeof(int) * size);
 
     if(alloc_vector & ALLOC_CIRC)
-      vars->fM2    = (int *) space(sizeof(int) * lin_size);
+      vars->fM2    = (int *) vrna_alloc(sizeof(int) * lin_size);
 
   }
 
@@ -385,15 +385,15 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->cons_seq  = consensus((const char **)sequences);
                                   vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, &md);
 
-                                  vc->pscore    = (int *) space(sizeof(int)*((length*(length+1))/2+2));
+                                  vc->pscore    = (int *) vrna_alloc(sizeof(int)*((length*(length+1))/2+2));
 
                                   oldAliEn = vc->oldAliEn  = md.oldAliEn;
 
-                                  vc->S   = (short **)          space((vc->n_seq+1) * sizeof(short *));
-                                  vc->S5  = (short **)          space((vc->n_seq+1) * sizeof(short *));
-                                  vc->S3  = (short **)          space((vc->n_seq+1) * sizeof(short *));
-                                  vc->a2s = (unsigned short **) space((vc->n_seq+1) * sizeof(unsigned short *));
-                                  vc->Ss  = (char **)           space((vc->n_seq+1) * sizeof(char *));
+                                  vc->S   = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->S5  = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->S3  = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->a2s = (unsigned short **) vrna_alloc((vc->n_seq+1) * sizeof(unsigned short *));
+                                  vc->Ss  = (char **)           vrna_alloc((vc->n_seq+1) * sizeof(char *));
 
                                   for (s = 0; s < vc->n_seq; s++) {
                                     vrna_ali_encode(vc->sequences[s],
@@ -444,7 +444,7 @@ set_fold_compound(vrna_fold_compound *vc,
     if(options & VRNA_OPTION_HYBRID){
       alloc_vector |= ALLOC_HYBRID;
       if(cp < 0) /* we could also omit this message */
-        warn_user("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
+        vrna_message_warning("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
     }
 
     /* default MFE matrices ? */
@@ -520,9 +520,9 @@ get_pf_matrices_alloc(unsigned int n,
                       unsigned int alloc_vector){
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
-    nrerror("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+    vrna_message_error("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  vrna_mx_pf_t  *vars   = (vrna_mx_pf_t *)space(sizeof(vrna_mx_pf_t));
+  vrna_mx_pf_t  *vars   = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
 
   vars->allocated       = 0;
   vars->length          = 0;
@@ -549,33 +549,33 @@ get_pf_matrices_alloc(unsigned int n,
     unsigned int lin_size = n + 2;
 
     if(alloc_vector & ALLOC_F)
-      vars->q     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+      vars->q     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_C)
-      vars->qb    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+      vars->qb    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_FML)
-      vars->qm    = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+      vars->qm    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_UNIQ)
-      vars->qm1   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+      vars->qm1   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_CIRC)
-      vars->qm2   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+      vars->qm2   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
 
     if(alloc_vector & ALLOC_PROBS)
-      vars->probs = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * size);
+      vars->probs = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if(alloc_vector & ALLOC_AUX){
-      vars->q1k   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
-      vars->qln   = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+      vars->q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+      vars->qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
     }
 
     /*  always alloc the helper arrays for unpaired nucleotides in multi-
         branch loops and scaling
     */
-    vars->scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
-    vars->expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * lin_size);
+    vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
   }
 
   return vars;
@@ -614,9 +614,9 @@ make_pscores(vrna_fold_compound *vc){
     else dm=get_ribosum((const char **)AS, n_seq, n);
   }
   else { /*use usual matrix*/
-    dm=(float **)space(7*sizeof(float*));
+    dm=(float **)vrna_alloc(7*sizeof(float*));
     for (i=0; i<7;i++) {
-      dm[i]=(float *)space(7*sizeof(float));
+      dm[i]=(float *)vrna_alloc(7*sizeof(float));
       for (j=0; j<7; j++)
         dm[i][j] = (float) olddm[i][j];
     }
@@ -673,8 +673,8 @@ make_pscores(vrna_fold_compound *vc){
 
   if (fold_constrained&&(structure!=NULL)) {
     int psij, hx, hx2, *stack, *stack2;
-    stack = (int *) space(sizeof(int)*(n+1));
-    stack2 = (int *) space(sizeof(int)*(n+1));
+    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
+    stack2 = (int *) vrna_alloc(sizeof(int)*(n+1));
 
     for(hx=hx2=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
@@ -694,7 +694,7 @@ make_pscores(vrna_fold_compound *vc){
       case ']':
         if (hx2<=0) {
           fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
+          vrna_message_error("unbalanced brackets in constraints");
         }
         i = stack2[--hx2];
         pscore[indx[j]+i]=NONE;
@@ -702,7 +702,7 @@ make_pscores(vrna_fold_compound *vc){
       case ')':
         if (hx<=0) {
           fprintf(stderr, "%s\n", structure);
-          nrerror("unbalanced brackets in constraints");
+          vrna_message_error("unbalanced brackets in constraints");
         }
         i = stack[--hx];
         psij = pscore[indx[j]+i]; /* store for later */
@@ -723,7 +723,7 @@ make_pscores(vrna_fold_compound *vc){
     }
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
+      vrna_message_error("unbalanced brackets in constraint string");
     }
     free(stack); free(stack2);
   }

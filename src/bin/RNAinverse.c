@@ -21,7 +21,7 @@
 
 #ifdef dmalloc
 #include  "/usr/local/include/dmalloc.h"
-#define space(X) calloc(1,(X))
+#define vrna_alloc(X) calloc(1,(X))
 #endif
 
 /*@unused@*/
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
   repeat = 0;
   input_type = 0;
   input_string = ns_bases = NULL;
-  init_rand();
+  vrna_init_rand();
 
   /*
   #############################################
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     if(istty)
-      print_tty_input_seq_str("Input structure & start string\n"
+      vrna_message_input_seq("Input structure & start string\n"
                               "(lower case letters for const positions) and 0 or empty line for random start string\n");
 
     input_type = get_multi_input_line(&input_string, 0);
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
     if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
 
     if(input_type & (VRNA_INPUT_CONSTRAINT)){
-      structure = (char *)space(sizeof(char) * (strlen(input_string) + 1));
+      structure = (char *)vrna_alloc(sizeof(char) * (strlen(input_string) + 1));
       (void)sscanf(input_string, "%s", structure); /* scanf gets rid of trailing junk */
       length = (int)strlen(structure);
       free(input_string); input_string = NULL;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]){
     }
     if(input_type & VRNA_INPUT_QUIT) break;
 
-    start = (char *)space(sizeof(char) * (length+1));
+    start = (char *)vrna_alloc(sizeof(char) * (length+1));
     /* now we assume to get a sequence (input_string may be empty as well) */
     if(input_type & VRNA_INPUT_SEQUENCE){
       (void)strncpy(start, input_string, length);
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]){
     */
 
     if (ns_bases != NULL) {
-      nonstandards = space(33);
+      nonstandards = vrna_alloc(33);
       c=ns_bases;
       i=sym=0;
       if (*c=='-') {
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
       }
     }
 
-    str2 = (char *) space((unsigned)length+1);
+    str2 = (char *) vrna_alloc((unsigned)length+1);
     if (istty) printf("length = %d\n", length);
 
     if (repeat!=0) found = (repeat>0)? repeat : (-repeat);
@@ -187,10 +187,10 @@ int main(int argc, char *argv[]){
 
     /* initialize_fold(length); <- obsolete (hopefully commenting this out does not affect anything crucial ;) */
 
-    rstart = (char *) space((unsigned)length+1);
+    rstart = (char *) vrna_alloc((unsigned)length+1);
     while(found>0) {
       char *string;
-      string = (char *) space((unsigned)length+1);
+      string = (char *) vrna_alloc((unsigned)length+1);
       strcpy(string, start);
       for (i=0; i<length; i++) {
         /* lower case characters are kept fixed, any other character
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]){
         if (islower(string[i])) continue;
 
         if (string[i]=='\0' || (strchr(symbolset,string[i])==NULL))
-          string[i]=symbolset[int_urn(0,strlen(symbolset)-1)];
+          string[i]=symbolset[vrna_int_urn(0,strlen(symbolset)-1)];
       }
       strcpy(rstart, string); /* remember start string */
 
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]){
         energy = inverse_fold(string, structure);
         if( (repeat>=0) || (energy<=0.0) ) {
           found--;
-          hd = hamming(rstart, string);
+          hd = vrna_hamming_distance(rstart, string);
           printf("%s  %3d", string, hd);
           if (energy>0) { /* no solution found */
             printf("   d= %g\n", energy);
@@ -229,7 +229,7 @@ int main(int argc, char *argv[]){
 
           energy = inverse_pf_fold(string, structure);
           prob = exp(-energy/kT);
-          hd = hamming(rstart, string);
+          hd = vrna_hamming_distance(rstart, string);
           printf("%s  %3d  (%g)\n", string, hd, prob);
           free_pf_arrays();
         }

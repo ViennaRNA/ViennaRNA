@@ -46,7 +46,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   int length = vc->length;
 
   if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    warn_user("Method for SHAPE reactivity data conversion not recognized!");
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
@@ -61,8 +61,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     fputc('\n', stderr);
   }
 
-  sequence = space(sizeof(char) * (length + 1));
-  values = space(sizeof(double) * (length + 1));
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
   vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
@@ -73,8 +73,8 @@ add_shape_constraints(vrna_fold_compound *vc,
     vrna_sc_add_sp(vc, values, constraint_type);
   }
   else if(method == 'Z'){
-    double *sc_up = space(sizeof(double) * (length + 1));
-    double **sc_bp = space(sizeof(double *) * (length + 1));
+    double *sc_up = vrna_alloc(sizeof(double) * (length + 1));
+    double **sc_bp = vrna_alloc(sizeof(double *) * (length + 1));
     int i;
 
     vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
@@ -85,7 +85,7 @@ add_shape_constraints(vrna_fold_compound *vc,
       assert(values[i] >= 0 && values[i] <= 1);
 
       sc_up[i] = p1 * fabs(values[i] - 1);
-      sc_bp[i] = space(sizeof(double) * (length + 1));
+      sc_bp[i] = vrna_alloc(sizeof(double) * (length + 1));
       for(j = i + TURN + 1; j <= length; ++j)
         sc_bp[i][j] = p1 * (values[i] + values[j]);
     }
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]){
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   if(circular && gquad){
-    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
   P = vrna_params_get(&md);
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]){
 
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-    print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+    vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                             "Input sequence (upper or lower case) followed by structure");
   }
 
@@ -244,18 +244,18 @@ int main(int argc, char *argv[]){
     tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if(!tmp)
-      nrerror("structure missing");
+      vrna_message_error("structure missing");
 
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if(cp != vc->cutpoint){
       fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-      nrerror("Sequence and Structure have different cut points.");
+      vrna_message_error("Sequence and Structure have different cut points.");
     }
 
     length1   = (int) strlen(structure);
     if(length1 != vc->length)
-      nrerror("structure and sequence differ in length!");
+      vrna_message_error("structure and sequence differ in length!");
 
     free(tmp);
 
@@ -316,7 +316,7 @@ int main(int argc, char *argv[]){
 
     /* print user help for the next round if we get input from tty */
     if(istty){
-      print_tty_input_seq_str("Use '&' to connect 2 sequences that shall form a complex.\n"
+      vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                               "Input sequence (upper or lower case) followed by structure");
     }
   }

@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
      md.dangles = dangles = args_info.dangles_arg;
   }
@@ -186,14 +186,14 @@ int main(int argc, char *argv[])
   #############################################
   */
   if(pf && gquad){
-    nrerror("G-Quadruplex support is currently not available for partition function computations");
+    vrna_message_error("G-Quadruplex support is currently not available for partition function computations");
   }
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
     printf("Use '&' to connect 2 sequences that shall form a complex.\n");
     if(fold_constrained){
       vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
-      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
     }
-    else print_tty_input_seq();
+    else vrna_message_input_seq_simple();
   }
 
   /* set options we wanna pass to vrna_read_fasta_record() */
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 
     vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
-    structure = (char *) space((unsigned) length+1);
+    structure = (char *) vrna_alloc((unsigned) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
@@ -271,14 +271,14 @@ int main(int argc, char *argv[])
       cstruc = vrna_cut_point_remove(cstruc, &cp);
       if(vc->cutpoint != cp){
         fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-        nrerror("Sequence and Structure have different cut points.");
+        vrna_message_error("Sequence and Structure have different cut points.");
       }
 
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           warn_user("structure constraint is missing");
-      else if(cl < length)  warn_user("structure constraint is shorter than sequence");
-      else if(cl > length)  nrerror("structure constraint is too long");
+      if(cl == 0)           vrna_message_warning("structure constraint is missing");
+      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+      else if(cl > length)  vrna_message_error("structure constraint is too long");
 
       if(cstruc){
         strncpy(structure, cstruc, sizeof(char)*(cl+1));
@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
         fp = fopen(Concfile, "r");
         if (fp==NULL) {
           fprintf(stderr, "could not open concentration file %s", Concfile);
-          nrerror("\n");
+          vrna_message_error("\n");
         }
         ConcAandB = read_concentrations(fp);
         fclose(fp);
@@ -422,13 +422,13 @@ int main(int argc, char *argv[])
         Alength = vc->cutpoint - 1;           /* length of first molecule */
         Blength = length - vc->cutpoint + 1;  /* length of 2nd molecule   */
 
-        Astring = (char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
-        Bstring = (char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
+        Astring = (char *)vrna_alloc(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
+        Bstring = (char *)vrna_alloc(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
         strncat(Astring,rec_sequence,Alength);
         strncat(Bstring,rec_sequence+Alength+1,Blength);
 
-        orig_Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
-        orig_Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
+        orig_Astring=(char *)vrna_alloc(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
+        orig_Bstring=(char *)vrna_alloc(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
         strncat(orig_Astring,orig_sequence,Alength);
         strncat(orig_Bstring,orig_sequence+Alength+1,Blength);
 
@@ -480,7 +480,7 @@ int main(int argc, char *argv[])
         strcpy(Newname,"AA");
         strcat(Newname,ffname);
         /*write AA sequence*/
-        Newstring=(char*)space((2*Alength+1)*sizeof(char));
+        Newstring=(char*)vrna_alloc((2*Alength+1)*sizeof(char));
         strcpy(Newstring,orig_Astring);
         strcat(Newstring,orig_Astring);
         (void)PS_dot_plot_list(Newstring, Newname, prAA, mfAA, comment);
@@ -492,7 +492,7 @@ int main(int argc, char *argv[])
         strcpy(Newname,"BB");
         strcat(Newname,ffname);
         /*write BB sequence*/
-        Newstring=(char*)space((2*Blength+1)*sizeof(char));
+        Newstring=(char*)vrna_alloc((2*Blength+1)*sizeof(char));
         strcpy(Newstring,orig_Bstring);
         strcat(Newstring,orig_Bstring);
         /*reset cut_point*/
@@ -568,9 +568,9 @@ int main(int argc, char *argv[])
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if(fold_constrained){
         vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
-        print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure constraint\n");
+        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
       }
-      else print_tty_input_seq();
+      else vrna_message_input_seq_simple();
     }
   }
   return EXIT_SUCCESS;
@@ -597,7 +597,7 @@ do_partfunc(char *string,
   kT = parameters->kT/1000.;
   switch (Switch){
     case 1:   /* monomer */
-              tempstruc = (char *) space((unsigned)length+1);
+              tempstruc = (char *) vrna_alloc((unsigned)length+1);
               //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
               vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
               min_en = vrna_fold(vc, tempstruc);
@@ -616,8 +616,8 @@ do_partfunc(char *string,
               break;
 
     case 2:   /* dimer */
-              tempstruc = (char *) space((unsigned)length*2+2);
-              Newstring = (char *)space(sizeof(char)*(length*2+2));
+              tempstruc = (char *) vrna_alloc((unsigned)length*2+2);
+              Newstring = (char *)vrna_alloc(sizeof(char)*(length*2+2));
               strcat(Newstring, string); strcat(Newstring, "&"); strcat(Newstring, string);
               parameters->model_details.min_loop_size = 0;
               vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
@@ -678,13 +678,13 @@ PRIVATE double *read_concentrations(FILE *fp) {
   double *startc;
   int i=0, n=2;
 
-  startc = (double *) space((2*n+1)*sizeof(double));
+  startc = (double *) vrna_alloc((2*n+1)*sizeof(double));
 
   while ((line=get_line(fp))!=NULL) {
     int c;
     if (i+4>=2*n) {
       n*=2;
-      startc=(double *)xrealloc(startc,(2*n+1)*sizeof(double));
+      startc=(double *)vrna_realloc(startc,(2*n+1)*sizeof(double));
     }
     c = sscanf(line,"%lf %lf", &startc[i], &startc[i+1]);
     free(line);

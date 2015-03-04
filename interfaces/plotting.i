@@ -5,12 +5,12 @@
 %{
   COORDINATE *get_xy_coordinates(const char *structure){
     int i;
-    short *table = make_pair_table(structure);
+    short *table = vrna_pt_get(structure);
     short length = (short) strlen(structure);
 
-    COORDINATE *coords = (COORDINATE *) space((length+1)*sizeof(COORDINATE));
-    float *X = (float *) space((length+1)*sizeof(float));
-    float *Y = (float *) space((length+1)*sizeof(float));
+    COORDINATE *coords = (COORDINATE *) vrna_alloc((length+1)*sizeof(COORDINATE));
+    float *X = (float *) vrna_alloc((length+1)*sizeof(float));
+    float *Y = (float *) vrna_alloc((length+1)*sizeof(float));
 
     switch(rna_plot_type){
       case VRNA_PLOT_TYPE_SIMPLE:   simple_xy_coordinates(table, X, Y);

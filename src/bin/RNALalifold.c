@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -146,7 +146,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -168,13 +168,13 @@ int main(int argc, char *argv[]){
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   if (istty && (clust_file == stdin)) {
-    print_tty_input_seq_str("Input aligned sequences in clustalw format");
+    vrna_message_input_seq("Input aligned sequences in clustalw format");
   }
 
   n_seq = read_clustal(clust_file, AS, names);
   if (clust_file != stdin) fclose(clust_file);
   if (n_seq==0)
-    nrerror("no sequences found");
+    vrna_message_error("no sequences found");
 
   length = (int) strlen(AS[0]);
   if (length<maxdist) {
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]){
     maxdist=length;
   }
 
-  structure = (char *) space((unsigned) length+1);
+  structure = (char *) vrna_alloc((unsigned) length+1);
 
   /*
   #############################################
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]){
   */
   /* {*/ /* free mfe arrays but preserve base_pair for PS_dot_plot */
   /*  struct bond  *bp;
-    bp = base_pair; base_pair = space(16);
+    bp = base_pair; base_pair = vrna_alloc(16);
     free_alifold_arrays();  / * frees base_pair *  /
     base_pair = bp;
   }*/
@@ -301,7 +301,7 @@ PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
   cpair *cp;
   int i, n;
   for (n=0; pi[n].i>0; n++);
-  cp = (cpair *) space(sizeof(cpair)*(n+1));
+  cp = (cpair *) vrna_alloc(sizeof(cpair)*(n+1));
   for (i=0; i<n; i++) {
     int j, ncomp;
     cp[i].i = pi[i].i;
@@ -324,7 +324,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
   make_pair_matrix();
   n = strlen(AS[0]);
   maxl = 1024;
-  ps = (char *) space(maxl);
+  ps = (char *) vrna_alloc(maxl);
   ptable = vrna_pt_get(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
@@ -341,7 +341,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
     if (maxl - strlen(ps) < 128) {
       maxl *= 2;
       ps = realloc(ps, maxl);
-      if (ps==NULL) nrerror("out of memory in realloc");
+      if (ps==NULL) vrna_message_error("out of memory in realloc");
     }
     if (pfreq[0]>0) {
       snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
@@ -367,7 +367,7 @@ PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq) {
   int i, n,s, a, b,z;
   int franz[7];
   for (n=0; pl[n].i>0; n++);
-  cp = (cpair *) space(sizeof(cpair)*(n+1));
+  cp = (cpair *) vrna_alloc(sizeof(cpair)*(n+1));
   for (i=0; i<n; i++) {
     int ncomp=0;
     cp[i].i = pl[i].i;

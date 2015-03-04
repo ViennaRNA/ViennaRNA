@@ -111,7 +111,7 @@ PRIVATE char  *backtrack(const char **strings, int start, int maxdist);
 */
 
 PRIVATE void initialize_aliLfold(int length, int maxdist){
-  if (length<1) nrerror("initialize_fold: argument must be greater 0");
+  if (length<1) vrna_message_error("initialize_fold: argument must be greater 0");
   get_arrays((unsigned) length, maxdist);
   make_pair_matrix();
   if(P) free(P);
@@ -123,20 +123,20 @@ PRIVATE void initialize_aliLfold(int length, int maxdist){
 PRIVATE void get_arrays(unsigned int size, int maxdist)
 {
   int i;
-  c       = (int **)space(sizeof(int *)*(size+1));
-  fML     = (int **)space(sizeof(int *)*(size+1));
-  pscore  = (int **)space(sizeof(int *)*(size+1));
-  f3      = (int *) space(sizeof(int)*(size+2));  /* has to be one longer */
-  cc      = (int *) space(sizeof(int)*(maxdist+5));
-  cc1     = (int *) space(sizeof(int)*(maxdist+5));
-  Fmi     = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi    = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi1   = (int *) space(sizeof(int)*(maxdist+5));
-  DMLi2   = (int *) space(sizeof(int)*(maxdist+5));
+  c       = (int **)vrna_alloc(sizeof(int *)*(size+1));
+  fML     = (int **)vrna_alloc(sizeof(int *)*(size+1));
+  pscore  = (int **)vrna_alloc(sizeof(int *)*(size+1));
+  f3      = (int *) vrna_alloc(sizeof(int)*(size+2));  /* has to be one longer */
+  cc      = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+  cc1     = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+  Fmi     = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+  DMLi    = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+  DMLi1   = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+  DMLi2   = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
   for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
-    c[i]      = (int *) space(sizeof(int) *(maxdist+5));
-    fML[i]    = (int *) space(sizeof(int) *(maxdist+5));
-    pscore[i] = (int *) space(sizeof(int )*(maxdist+5));
+    c[i]      = (int *) vrna_alloc(sizeof(int) *(maxdist+5));
+    fML[i]    = (int *) vrna_alloc(sizeof(int) *(maxdist+5));
+    pscore[i] = (int *) vrna_alloc(sizeof(int )*(maxdist+5));
   }
 
 }
@@ -171,18 +171,18 @@ PUBLIC float aliLfold(const char **strings, char *structure, int maxdist) {
 
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
-  S   = (short **)          space(n_seq*sizeof(short *));
-  S5  = (short **)          space(n_seq*sizeof(short *));
-  S3  = (short **)          space(n_seq*sizeof(short *));
-  a2s = (unsigned short **) space(n_seq*sizeof(unsigned short *));
-  Ss  = (char **)           space(n_seq*sizeof(char *));
+  S   = (short **)          vrna_alloc(n_seq*sizeof(short *));
+  S5  = (short **)          vrna_alloc(n_seq*sizeof(short *));
+  S3  = (short **)          vrna_alloc(n_seq*sizeof(short *));
+  a2s = (unsigned short **) vrna_alloc(n_seq*sizeof(unsigned short *));
+  Ss  = (char **)           vrna_alloc(n_seq*sizeof(char *));
 
   for (s=0; s<n_seq; s++) {
-    if (strlen(strings[s]) != length) nrerror("uneqal seqence lengths");
-    S5[s]   = (short *)           space((length+2)*sizeof(short));
-    S3[s]   = (short *)           space((length+2)*sizeof(short));
-    a2s[s]  = (unsigned short *)  space((length+2)*sizeof(unsigned short));
-    Ss[s]   = (char *)            space((length+2)*sizeof(char));
+    if (strlen(strings[s]) != length) vrna_message_error("uneqal seqence lengths");
+    S5[s]   = (short *)           vrna_alloc((length+2)*sizeof(short));
+    S3[s]   = (short *)           vrna_alloc((length+2)*sizeof(short));
+    a2s[s]  = (unsigned short *)  vrna_alloc((length+2)*sizeof(unsigned short));
+    Ss[s]   = (char *)            vrna_alloc((length+2)*sizeof(char));
     S[s]    = encode_seq(strings[s], S5[s],S3[s],Ss[s],a2s[s]);
   }
 
@@ -191,9 +191,9 @@ PUBLIC float aliLfold(const char **strings, char *structure, int maxdist) {
     else dm=get_ribosum(strings, n_seq, S[0][0]);
   }
   else { /*use usual matrix*/
-    dm=(float **)space(7*sizeof(float*));
+    dm=(float **)vrna_alloc(7*sizeof(float*));
     for (i=0; i<7;i++) {
-      dm[i]=(float *)space(7*sizeof(float));
+      dm[i]=(float *)vrna_alloc(7*sizeof(float));
       for (j=0; j<7; j++)
         dm[i][j] = (float) olddm[i][j];
     }
@@ -222,7 +222,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
   length = (int) strlen(strings[0]);
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
   for (j=0; j<maxdist+5; j++)
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
   for (j=length; j>length-maxdist-3; j--) {
@@ -446,7 +446,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           }
 
           if((prev_i + strlen(prev) > i+1+strlen(ss)) || (do_backtrack==2)){
-            char *outstr = (char *)space(sizeof(char) * (strlen(prev)+1));
+            char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev)+1));
             strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
             outstr[strlen(prev)] = '\0';
             if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
@@ -472,7 +472,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
       if (i==1) {
         char *outstr = NULL;
         if (prev) {
-          outstr = (char *)space(sizeof(char) *(strlen(prev) + 1));
+          outstr = (char *)vrna_alloc(sizeof(char) *(strlen(prev) + 1));
           strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
           outstr[strlen(prev)] = '\0';
           if(csv==1)
@@ -484,7 +484,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
         if ((f3[prev_i] != f3[1]) || !prev){
           ss      =  backtrack(strings, i , maxdist);
           if(outstr) free(outstr);
-          outstr  = (char *)space(sizeof(char) * (strlen(ss) + 1));
+          outstr  = (char *)vrna_alloc(sizeof(char) * (strlen(ss) + 1));
           strncpy(outstr, strings[0], strlen(ss));
           outstr[strlen(ss)] = '\0';
           printf("%s \n", outstr);
@@ -535,14 +535,14 @@ PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
   char *structure;
   for (s=0; strings[s]!=NULL; s++);
   n_seq = s;
-  type = (int *) space(n_seq*sizeof(int));
+  type = (int *) vrna_alloc(n_seq*sizeof(int));
   s=0;
   length = strlen(strings[0]);
   sector[++s].i = start;
   sector[s].j = MIN2(length, start+maxdist+1);
   sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
 
-  structure = (char *) space((MIN2(length-start, maxdist)+3)*sizeof(char));
+  structure = (char *) vrna_alloc((MIN2(length-start, maxdist)+3)*sizeof(char));
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '.';
 
   while (s>0) {
@@ -595,7 +595,7 @@ PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
         if (traced) break;
       }
 
-      if (!traced) nrerror("backtrack failed in f3");
+      if (!traced) vrna_message_error("backtrack failed in f3");
       if (j==length) { /* backtrack only one component, unless j==length */
         sector[++s].i = jj;
         sector[s].j   = j;
@@ -652,7 +652,7 @@ PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
       sector[s].j   = j;
       sector[s].ml  = ml;
 
-      if (k>j-2-TURN) nrerror("backtrack failed in fML");
+      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -753,7 +753,7 @@ PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
       sector[++s].i = k+1;
       sector[s].j   = j1;
     } else {
-        nrerror("backtracking failed in repeat");
+        vrna_message_error("backtracking failed in repeat");
     }
 
   }
@@ -771,7 +771,7 @@ PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, 
   unsigned short  p;
 
   l     = strlen(sequence);
-  S     = (short *) space(sizeof(short)*(l+2));
+  S     = (short *) vrna_alloc(sizeof(short)*(l+2));
   S[0]  = (short) l;
 
   s5[0]=s5[1]=0;
@@ -882,7 +882,7 @@ PRIVATE void make_pscores(const char ** AS,
   n=S[0][0];  /* length of seqs */
 
   /*first allocate space:*/
-  pscore[i]=(int *)space((maxd+5)*sizeof(int));
+  pscore[i]=(int *)vrna_alloc((maxd+5)*sizeof(int));
   /*  pscore[start]-=start;*/
   /*fill pscore[start], too close*/
   for (j=i+1; (j<i+TURN+1) && (j<=n); j++) {
@@ -906,7 +906,7 @@ PRIVATE void make_pscores(const char ** AS,
 
   if (fold_constrained&&(structure!=NULL)) {
     int psij, hx, *stack;
-    stack = (int *) space(sizeof(int)*(n+1));
+    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
     hx=psij=0;
     /* for(hx=0, j=i+TURN; ((j<=i+maxd)&&(j<=n)); j++) {*/
     switch (structure[i-1]) {
@@ -957,7 +957,7 @@ PRIVATE void make_pscores(const char ** AS,
     }
     if (hx!=0) {
       fprintf(stderr, "%s\n", structure);
-      nrerror("unbalanced brackets in constraint string");
+      vrna_message_error("unbalanced brackets in constraint string");
     }
     free(stack);
   }

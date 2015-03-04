@@ -106,7 +106,7 @@ vrna_params_copy(vrna_param_t *par){
 
   vrna_param_t *copy = NULL;
   if(par){
-    copy = (vrna_param_t *) space(sizeof(vrna_param_t));
+    copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
     memcpy(copy, par, sizeof(vrna_param_t));
   }
   return copy;
@@ -117,7 +117,7 @@ vrna_exp_params_copy(vrna_exp_param_t *par){
 
   vrna_exp_param_t *copy = NULL;
   if(par){
-    copy = (vrna_exp_param_t *) space(sizeof(vrna_exp_param_t));
+    copy = (vrna_exp_param_t *) vrna_alloc(sizeof(vrna_exp_param_t));
     memcpy(copy, par, sizeof(vrna_exp_param_t));
   }
   return copy;
@@ -130,7 +130,7 @@ get_scaled_params(vrna_md_t *md){
   double tempf;
   vrna_param_t *params;
 
-  params  = (vrna_param_t *)space(sizeof(vrna_param_t));
+  params  = (vrna_param_t *)vrna_alloc(sizeof(vrna_param_t));
 
   params->model_details = *md;  /* copy over the model details */
   params->temperature   = md->temperature;
@@ -258,7 +258,7 @@ get_scaled_exp_params(vrna_md_t *md,
   double        GT;
   vrna_exp_param_t     *pf;
 
-  pf                = (vrna_exp_param_t *)space(sizeof(vrna_exp_param_t));
+  pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
   pf->model_details = *md;
   pf->temperature   = md->temperature;
   pf->alpha         = md->betaScale;
@@ -431,7 +431,7 @@ get_exp_params_ali( vrna_md_t *md,
   double        GT;
   vrna_exp_param_t     *pf;
 
-  pf                = (vrna_exp_param_t *)space(sizeof(vrna_exp_param_t));
+  pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
   pf->model_details = *md;
   pf->alpha         = md->betaScale;
   pf->temperature   = md->temperature;
@@ -677,7 +677,7 @@ PUBLIC vrna_param_t *copy_parameters(void){
   vrna_param_t *copy;
   if (p.id != id) return scale_parameters();
   else{
-    copy = (vrna_param_t *) space(sizeof(vrna_param_t));
+    copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
     memcpy(copy, &p, sizeof(vrna_param_t));
   }
   return copy;
@@ -692,7 +692,7 @@ PUBLIC vrna_exp_param_t *copy_pf_param(void){
   vrna_exp_param_t *copy;
   if (pf.id != pf_id) return get_scaled_pf_parameters();
   else{
-    copy = (vrna_exp_param_t *) space(sizeof(vrna_exp_param_t));
+    copy = (vrna_exp_param_t *) vrna_alloc(sizeof(vrna_exp_param_t));
     memcpy(copy, &pf, sizeof(vrna_exp_param_t));
   }
   return copy;

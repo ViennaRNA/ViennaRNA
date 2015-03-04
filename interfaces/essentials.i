@@ -76,13 +76,13 @@ typedef struct {} vrna_exp_param_t;
 
   /* the default constructor */
   vrna_md_t(){
-    vrna_md_t *md = (vrna_md_t *)space(sizeof(vrna_md_t));
+    vrna_md_t *md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     vrna_md_set_default(md);
     return md;
   }
   /* a constructor that provides backward compatibility (for now) */
   vrna_md_t(char *type){
-    vrna_md_t *md = (vrna_md_t *)space(sizeof(vrna_md_t));
+    vrna_md_t *md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     if(!strcmp(type, "global"))
       vrna_md_set_globals(md);
     else

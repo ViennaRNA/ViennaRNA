@@ -61,10 +61,10 @@ PUBLIC float **read_distance_matrix(char type[])
        if(file_name) free(file_name);
        
        if(strlen(line)>1) {
-	 file_name = (char *) space(sizeof(char)*strlen(line));
+	 file_name = (char *) vrna_alloc(sizeof(char)*strlen(line));
 	 sscanf(line,"*%s",file_name);
        } else {
-	 file_name = (char *) space(10);
+	 file_name = (char *) vrna_alloc(10);
 	 sprintf(file_name,"%d",N_of_infiles);
        }
        read_taxa_list();
@@ -76,9 +76,9 @@ PUBLIC float **read_distance_matrix(char type[])
        fprintf(stderr, "%d ", r);
        if (r==EOF) return NULL;
        if((r==2)&&(size>1)) {
-	 D=(float **)space((size+1)*sizeof(float *));
+	 D=(float **)vrna_alloc((size+1)*sizeof(float *));
 	 for(i=0; i<=size; i++)
-	   D[i] = (float *)space((size+1)*sizeof(float));
+	   D[i] = (float *)vrna_alloc((size+1)*sizeof(float));
 	 D[0][0] = (float)size;
 	 D[1][1] = 0.0;
 	 for(i=2; i<= size; i++) {
@@ -124,10 +124,10 @@ PUBLIC char **read_sequence_list(int *n_of_seqs, char *mask)
          N_of_infiles++;
          if(file_name) free(file_name);
          if(strlen(line)>1) {
-	    file_name = (char *) space(sizeof(char)*strlen(line));
+	    file_name = (char *) vrna_alloc(sizeof(char)*strlen(line));
             sscanf(line,"*%s",file_name);
 	 } else {
-	    file_name = (char *) space(10);
+	    file_name = (char *) vrna_alloc(10);
             sprintf(file_name,"%d",N_of_infiles);
 	 }
          read_taxa_list();
@@ -153,7 +153,7 @@ PUBLIC char **read_sequence_list(int *n_of_seqs, char *mask)
 		   }
 	       }
 	    }
-	    tt[*n_of_seqs] = (char *)space((len+1)*sizeof(char));
+	    tt[*n_of_seqs] = (char *)vrna_alloc((len+1)*sizeof(char));
 	    sscanf(line,"%s",tt[*n_of_seqs]);
 	    (*n_of_seqs)++;
 	 }
@@ -162,7 +162,7 @@ PUBLIC char **read_sequence_list(int *n_of_seqs, char *mask)
    }
    if(*n_of_seqs == 0) return NULL;
    else {
-     sl = (char **) space((*n_of_seqs)*sizeof(char *));
+     sl = (char **) vrna_alloc((*n_of_seqs)*sizeof(char *));
      for(i=0;i<*n_of_seqs; i++) sl[i] = tt[i]; 
      return sl;
    }
@@ -215,16 +215,16 @@ PUBLIC float **Hamming_Distance_Matrix(char **seqs, int n_of_seqs)
 {
    int i,j,k;
    float **D;
-   D = (float **) space((n_of_seqs+1)*sizeof(float *));
+   D = (float **) vrna_alloc((n_of_seqs+1)*sizeof(float *));
    for(i=0;i<=n_of_seqs;i++)
-      D[i] = (float *) space((n_of_seqs+1)*sizeof(float));
+      D[i] = (float *) vrna_alloc((n_of_seqs+1)*sizeof(float));
    D[0][0] = (float) n_of_seqs;
    
    for(i=1; i<n_of_seqs; i++) {
       D[i][i] = 0.;
       for(j=0;j<i;j++){
          if(strlen(seqs[i])!=strlen(seqs[j])) 
-            nrerror("Unequal Seqence Length for Hamming Distance.");
+            vrna_message_error("Unequal Seqence Length for Hamming Distance.");
          D[i+1][j+1] = 0.0;
          for(k=0;k<strlen(seqs[i]);k++)
             D[i+1][j+1] += StrEditCost(k+1,k+1,seqs[i],seqs[j]);
@@ -242,9 +242,9 @@ PUBLIC float **StrEdit_SimpleDistMatrix(char **seqs, int n_of_seqs)
 {
    int i,j;
    float **D;
-   D = (float **) space((n_of_seqs+1)*sizeof(float *));
+   D = (float **) vrna_alloc((n_of_seqs+1)*sizeof(float *));
    for(i=0;i<=n_of_seqs;i++)
-      D[i] = (float *) space((n_of_seqs+1)*sizeof(float));
+      D[i] = (float *) vrna_alloc((n_of_seqs+1)*sizeof(float));
    D[0][0] = (float) n_of_seqs;
    
    for(i=1; i<n_of_seqs; i++) {
@@ -264,9 +264,9 @@ PUBLIC float **StrEdit_GotohDistMatrix(char **seqs, int n_of_seqs)
 {
    int i,j;
    float **D;
-   D = (float **) space((n_of_seqs+1)*sizeof(float *));
+   D = (float **) vrna_alloc((n_of_seqs+1)*sizeof(float *));
    for(i=0;i<=n_of_seqs;i++)
-      D[i] = (float *) space((n_of_seqs+1)*sizeof(float));
+      D[i] = (float *) vrna_alloc((n_of_seqs+1)*sizeof(float));
    D[0][0] = (float) n_of_seqs;
    
    for(i=1; i<n_of_seqs; i++) {
@@ -339,20 +339,20 @@ PUBLIC char *get_taxon_label(int whoami)
 
    if(whoami<0) {    /* negative arguments return the identifier of the data set */
       if(!file_name) return NULL;
-      label = (char *) space(sizeof(char)*(strlen(file_name)+1));
+      label = (char *) vrna_alloc(sizeof(char)*(strlen(file_name)+1));
       strcpy(label,file_name);
       return label;
    }
    for(i=0;i<N_of_named_taxa;i++) {
       if(whoami==Taxa_Numbers[i]) {
-         label = (char *) space(sizeof(char)*(strlen(Taxa_List[i])+1));
+         label = (char *) vrna_alloc(sizeof(char)*(strlen(Taxa_List[i])+1));
          strcpy(label,Taxa_List[i]);
          return label;
       }    
    }
    sprintf(tmp,"%d",whoami);
    
-   label = (char *) space(sizeof(char)*(strlen(tmp)+1));
+   label = (char *) vrna_alloc(sizeof(char)*(strlen(tmp)+1));
    strcpy(label,tmp);
    return label;
 }
@@ -370,9 +370,9 @@ PUBLIC float StrEdit_SimpleDist(char *str1, char *str2 )
    length1 = strlen(str1);
    length2 = strlen(str2);
 
-   distance = (float **)  space((length1 +1)*sizeof(float *));
+   distance = (float **)  vrna_alloc((length1 +1)*sizeof(float *));
    for(i=0; i<= length1; i++)
-      distance[i] = (float *) space( (length2+1)*sizeof(float));
+      distance[i] = (float *) vrna_alloc( (length2+1)*sizeof(float));
 
    for(i = 1; i <= length1; i++) 
       distance[i][0] = distance[i-1][0]+StrEditCost(i,0,str1,str2);
@@ -408,12 +408,12 @@ PUBLIC float StrEdit_GotohDist(char *str1, char *str2 )
    length1 = strlen(str1);
    length2 = strlen(str2);
   
-   D = space((length1+1)*sizeof(float *));
-   for(i=0;i<=length1;i++) D[i] = space((length2+1)*sizeof(float));
-   E = space((length1+1)*sizeof(float *));
-   for(i=0;i<=length1;i++) E[i] = space((length2+1)*sizeof(float));
-   F = space((length1+1)*sizeof(float *));
-   for(i=0;i<=length1;i++) F[i] = space((length2+1)*sizeof(float));
+   D = vrna_alloc((length1+1)*sizeof(float *));
+   for(i=0;i<=length1;i++) D[i] = vrna_alloc((length2+1)*sizeof(float));
+   E = vrna_alloc((length1+1)*sizeof(float *));
+   for(i=0;i<=length1;i++) E[i] = vrna_alloc((length2+1)*sizeof(float));
+   F = vrna_alloc((length1+1)*sizeof(float *));
+   for(i=0;i<=length1;i++) F[i] = vrna_alloc((length2+1)*sizeof(float));
 
    D[0][0] = 0.; E[0][0] = 0.; F[0][0] = 0.;
    
@@ -452,7 +452,7 @@ PRIVATE float StrEditCost(int i, int j, char *T1, char *T2)
 {
    /* positions i,j from [1..length]; i,j=0 implies Gap */
    int i1,j1;
-   if((i==0)&&(j==0)) nrerror("Edit Cost: Aligned gap characters !!!");
+   if((i==0)&&(j==0)) vrna_message_error("Edit Cost: Aligned gap characters !!!");
    if(i>0) i1 = decode(T1[i-1]); else i1 = 0;
    if(j>0) j1 = decode(T2[j-1]); else j1 = 0;
    if(StrEdit_CostMatrix==NULL) {
@@ -494,11 +494,11 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
    }
    switch(type){
       case 'D' :
-        StrEdit_ValidAlphabet = (char*) space((20+2)*sizeof(char));
+        StrEdit_ValidAlphabet = (char*) vrna_alloc((20+2)*sizeof(char));
         strcpy(StrEdit_ValidAlphabet,StrEdit_DayhoffA);
-        StrEdit_CostMatrix    = (float**) space((20+1)*sizeof(float*));
+        StrEdit_CostMatrix    = (float**) vrna_alloc((20+1)*sizeof(float*));
         for(i=0;i<=20;i++) 
-           StrEdit_CostMatrix[i] = (float*)space((20+1)*sizeof(float));
+           StrEdit_CostMatrix[i] = (float*)vrna_alloc((20+1)*sizeof(float));
         for(i=1;i<=20;i++) { 
            for(j=1;j<=20;j++) {
               StrEdit_CostMatrix[i][j] = 
@@ -511,11 +511,11 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
         StrEdit_CostMatrix[0][0] = StrEdit_DayhoffM[0][0];
         break;
       case 'A' :
-	StrEdit_ValidAlphabet = (char*) space((20+2)*sizeof(char));
+	StrEdit_ValidAlphabet = (char*) vrna_alloc((20+2)*sizeof(char));
         strcpy(StrEdit_ValidAlphabet,StrEdit_GLHA);
-	StrEdit_CostMatrix    = (float**) space((20+1)*sizeof(float*));
+	StrEdit_CostMatrix    = (float**) vrna_alloc((20+1)*sizeof(float*));
         for(i=0;i<=20;i++) 
-           StrEdit_CostMatrix[i] = (float*)space((20+1)*sizeof(float));
+           StrEdit_CostMatrix[i] = (float*)vrna_alloc((20+1)*sizeof(float));
         for(i=1;i<=20;i++) { 
            for(j=1;j<=20;j++) 
               StrEdit_CostMatrix[i][j] = StrEdit_GLHM[i][j];
@@ -525,21 +525,21 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
         StrEdit_CostMatrix[0][0] = StrEdit_GLHM[0][0];
         break;
       case 'B' :
-        StrEdit_ValidAlphabet = space((4+2)*sizeof(char));
+        StrEdit_ValidAlphabet = vrna_alloc((4+2)*sizeof(char));
         strcpy(StrEdit_ValidAlphabet,StrEdit_BinCodeA);
-        StrEdit_CostMatrix    = (float**) space((4+1)*sizeof(float*));
+        StrEdit_CostMatrix    = (float**) vrna_alloc((4+1)*sizeof(float*));
         for(i=0;i<=4;i++) 
-           StrEdit_CostMatrix[i] = (float*)space((4+1)*sizeof(float));
+           StrEdit_CostMatrix[i] = (float*)vrna_alloc((4+1)*sizeof(float));
         for(i=0;i<=4;i++) 
            for(j=0;j<=4;j++) 
               StrEdit_CostMatrix[i][j] = StrEdit_BinCodeM[i][j];
         break;
       case 'H' :
-        StrEdit_ValidAlphabet = space((4+2)*sizeof(char));
+        StrEdit_ValidAlphabet = vrna_alloc((4+2)*sizeof(char));
         strcpy(StrEdit_ValidAlphabet,StrEdit_HogewegA);
-        StrEdit_CostMatrix    = (float**) space((4+1)*sizeof(float*));
+        StrEdit_CostMatrix    = (float**) vrna_alloc((4+1)*sizeof(float*));
         for(i=0;i<=4;i++) 
-           StrEdit_CostMatrix[i] = (float*)space((4+1)*sizeof(float));
+           StrEdit_CostMatrix[i] = (float*)vrna_alloc((4+1)*sizeof(float));
         for(i=0;i<=4;i++) 
            for(j=0;j<=4;j++) 
               StrEdit_CostMatrix[i][j] = StrEdit_HogewegM[i][j];
@@ -556,8 +556,8 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
 PUBLIC   void    Set_StrEdit_GapCosts(float per_digit, float per_gap)
 {
    if(per_gap==0.) per_gap = per_digit;
-   if(per_digit<0) nrerror("Gap Costs invalid.");
-   if(per_digit>per_gap) nrerror("Gap Costs invalid.");
+   if(per_digit<0) vrna_message_error("Gap Costs invalid.");
+   if(per_digit>per_gap) vrna_message_error("Gap Costs invalid.");
 
    StrEdit_GapCost     = per_digit;
    StrEdit_GotohAlpha  = per_digit;   /* Gotoh gap function g(k) = a + b(k-1) */

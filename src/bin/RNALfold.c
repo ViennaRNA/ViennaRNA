@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      warn_user("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
     if(args_info.zscore_arg != -2)
       min_z = args_info.zscore_arg;
 #else
-  nrerror("\'z\' option is available only if compiled with SVM support!");
+  vrna_message_error("\'z\' option is available only if compiled with SVM support!");
 #endif
   }
   /* gquadruplex support */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = space(33);
+    nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
     if (*c=='-') {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]){
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   read_opt |= VRNA_INPUT_NO_REST;
   if(istty){
-    print_tty_input_seq();
+    vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
   /*
@@ -180,7 +180,7 @@ int main(int argc, char *argv[]){
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 
-    if(istty) print_tty_input_seq();
+    if(istty) vrna_message_input_seq_simple();
   }
   return EXIT_SUCCESS;
 }
