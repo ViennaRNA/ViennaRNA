@@ -582,6 +582,42 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
                         int length,
                         double default_value);
 
+/**
+ *  @brief  Bind a function pointer for generalized soft constraint feature (MFE version)
+ *
+ *  This function allows to easily bind a function pointer and corresponding data structure
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  The function for evaluating the generalized soft constraint feature has to return
+ *  a pseudo free energy @f$ \hat{E} @f$ in @f$ dacal/mol @f$, where @f$ 1 dacal/mol = 10 cal/mol @f$.
+ *
+ *  @ingroup soft_constraints
+ *  @param  vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param  f     A pointer to the function that evaluates the generalized soft constraint feature
+ *  @param  data  A pointer to the data structure that holds required data for function 'f'
+ */
+void vrna_sc_add_f( vrna_fold_compound *vc,
+                    int (*f)( int, int, int, int, char, void *),
+                    void *data);
+
+/**
+ *  @brief  Bind a function pointer for generalized soft constraint feature (PF version)
+ *
+ *  This function allows to easily bind a function pointer and corresponding data structure
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  The function for evaluating the generalized soft constraint feature has to return
+ *  a pseudo free energy @f$ \hat{E} @f$ as Boltzmann factor, i.e. @f$ exp(- \hat{E} / kT) @f$.
+ *  The required unit for @f$ E @f$ is @f$ cal/mol @f$.
+ *
+ *  @ingroup soft_constraints
+ *  @param  vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param  exp_f A pointer to the function that evaluates the generalized soft constraint feature
+ *  @param  data  A pointer to the data structure that holds required data for function 'f'
+ */
+void vrna_sc_add_exp_f( vrna_fold_compound *vc,
+                        FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
+                        void *data);
+
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /**

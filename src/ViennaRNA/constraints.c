@@ -1382,6 +1382,37 @@ vrna_sc_add_sp_pf( vrna_fold_compound *vc,
 }
 
 PUBLIC void
+vrna_sc_add_f(vrna_fold_compound *vc,
+              int (*f)( int, int, int, int, char, void *),
+              void *data){
+
+  if(vc && f){
+    if(!vc->sc)
+      vrna_sc_add(vc, NULL, (char)0);
+
+    vc->sc->f       = f;
+    if(data)
+      vc->sc->data  = data;
+  }
+}
+
+PUBLIC void
+vrna_sc_add_exp_f(vrna_fold_compound *vc,
+                  FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
+                  void *data){
+
+  if(vc && exp_f){
+    if(!vc->sc)
+      vrna_sc_add(vc, NULL, (char)0);
+
+    vc->sc->exp_f   = exp_f;
+    if(data)
+      vc->sc->data  = data;
+  }
+}
+
+
+PUBLIC void
 vrna_sc_remove(vrna_fold_compound *vc){
 
   if(vc){
