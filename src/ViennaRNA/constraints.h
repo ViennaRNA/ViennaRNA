@@ -500,6 +500,8 @@ void vrna_hc_add( vrna_fold_compound *vc,
 /**
  *  @brief  Make a certain nucleotide unpaired
  *
+ *  @ingroup  hard_constraints
+ *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
@@ -510,6 +512,8 @@ void vrna_hc_add_up(vrna_fold_compound *vc,
 
 /**
  *  @brief  Favorize/Enforce  a certain base pair (i,j)
+ *
+ *  @ingroup  hard_constraints
  *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The 5' located nucleotide position of the base pair (1-based)
@@ -542,6 +546,7 @@ void vrna_hc_reset(vrna_fold_compound *vc);
  *  of type #vrna_hc_t .
  *
  *  @see get_hard_constraints(), #vrna_hc_t
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -577,6 +582,8 @@ void vrna_sc_add_ali( vrna_fold_compound *vc,
 /**
  *  @brief  Add soft constraints for paired nucleotides
  *
+ *  @ingroup  soft_constraints
+ *
  *  @param  The #vrna_fold_compound the soft constraints are associated with
  *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
@@ -587,6 +594,8 @@ void vrna_sc_add_bp(vrna_fold_compound *vc,
 
 /**
  *  @brief  Add soft constraints for unpaired nucleotides
+ *
+ *  @ingroup  soft_constraints
  *
  *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
  *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
@@ -599,12 +608,16 @@ void vrna_sc_add_up(vrna_fold_compound *vc,
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound
  *
+ *  @ingroup  soft_constraints
+ *
  *  @param  The #vrna_fold_compound possibly containing soft constraints
  */
 void vrna_sc_remove(vrna_fold_compound *vc);
 
 /**
  *  @brief  Free memory occupied by a #vrna_sc_t data structure
+ *
+ *  @ingroup  soft_constraints
  *
  *  @param  sc  The data structure to free from memory
  */
@@ -663,6 +676,7 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
  *  a pseudo free energy @f$ \hat{E} @f$ in @f$ dacal/mol @f$, where @f$ 1 dacal/mol = 10 cal/mol @f$.
  *
  *  @ingroup soft_constraints
+ *
  *  @param  vc    The fold compound the generalized soft constraint function should be bound to
  *  @param  f     A pointer to the function that evaluates the generalized soft constraint feature
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
@@ -681,6 +695,7 @@ void vrna_sc_add_f( vrna_fold_compound *vc,
  *  The required unit for @f$ E @f$ is @f$ cal/mol @f$.
  *
  *  @ingroup soft_constraints
+ *
  *  @param  vc    The fold compound the generalized soft constraint function should be bound to
  *  @param  exp_f A pointer to the function that evaluates the generalized soft constraint feature
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
@@ -698,7 +713,9 @@ void vrna_sc_add_exp_f( vrna_fold_compound *vc,
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) will take place next.
  *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *
  *  @ingroup  soft_constraints
+ *
  *  @param    vc    The fold compound the generalized soft constraint function should be bound to
  *  @param    post  A pointer to the pre-processing function
  */
@@ -713,7 +730,9 @@ void vrna_sc_add_pre(vrna_fold_compound *vc, void (*pre)( vrna_fold_compound *, 
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) has taken place before.
  *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *
  *  @ingroup  soft_constraints
+ *
  *  @param    vc    The fold compound the generalized soft constraint function should be bound to
  *  @param    post  A pointer to the post-processing function
  */
