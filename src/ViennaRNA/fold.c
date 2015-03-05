@@ -184,7 +184,12 @@ vrna_fold(vrna_fold_compound *vc,
   s       = 0;
   length  = (int) vc->length;
 
+  if(vc->sc)
+    if(vc->sc->pre)
+      vc->sc->pre(vc, VRNA_SC_GEN_MFE);
+
   energy = fill_arrays(vc);
+
   if(vc->params->model_details.circ){
     fill_arrays_circ(vc, bt_stack, &s);
     energy = vc->matrices->Fc;
@@ -207,6 +212,10 @@ vrna_fold(vrna_fold_compound *vc,
       base_pair = bp;
     }
   }
+
+  if(vc->sc)
+    if(vc->sc->post)
+      vc->sc->post(vc, VRNA_SC_GEN_MFE);
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;

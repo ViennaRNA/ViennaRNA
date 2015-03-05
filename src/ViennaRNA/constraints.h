@@ -311,6 +311,37 @@
  */
 #define VRNA_DECOMP_EXT_STEM_UP 12
 
+
+/**
+ *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
+ *            indicate Minimum Free Energy (MFE) processing
+ *  @details  This flag is passed as second argument to the pre-, and post- processing
+ *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
+ *            vrna_sc_add_post(), respectively.
+ *            Use it in your implementation of the pre-, and post-processing functions to
+ *            determine the mode of action required for corresponding pre-, and post-
+ *            processing of data available to the function.
+ *  @note     This flag will be passed by calls of vrna_fold(), vrna_ali_fold(), vrna_cofold(),
+ *            and vrna_subopt()
+ *  @ingroup  soft_constraints
+ */
+#define VRNA_SC_GEN_MFE         (char)1
+
+/**
+ *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
+ *            indicate Partition function (PF) processing
+ *  @details  This flag is passed as second argument to the pre-, and post- processing
+ *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
+ *            vrna_sc_add_post(), respectively.
+ *            Use it in your implementation of the pre-, and post-processing functions to
+ *            determine the mode of action required for corresponding pre-, and post-
+ *            processing of data available to the function.
+ *  @note     This flag will be passed by calls of vrna_pf_fold(), vrna_ali_pf_fold(), and
+ *            vrna_co_pf_fold().
+ *  @ingroup  soft_constraints
+ */
+#define VRNA_SC_GEN_PF          (char)2
+
 /**
  *  @brief  The hard constraints data structure
  *
@@ -358,38 +389,56 @@ typedef struct vrna_hc_t {
  *  @ingroup soft_constraints
  */
 typedef struct vrna_sc_t {
-  double      *constraints;         /**<  @brief Backup storage for energy contributions of single nucleotides */
-  int         **free_energies;      /**<  @brief Energy contribution for unpaired sequence stretches */
-  int         *en_basepair;         /**<  @brief Energy contribution for base pairs */
-  FLT_OR_DBL  **boltzmann_factors;  /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
-  FLT_OR_DBL  *exp_en_basepair;     /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+  double      *constraints;           /**<  @brief Backup storage for energy contributions of single nucleotides */
+  int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
+  int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
+  FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  FLT_OR_DBL  *exp_en_basepair;       /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
 
-  int         *en_stack;            /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL  *exp_en_stack;        /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int         *en_stack;              /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_en_stack;          /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
 
-  /* generalized soft contraints */
+  /* generalized soft contraints below */
   int (*f)( int,
             int,
             int,
             int,
             char,
-            void *);            /**<  @brief  A function pointer used for pseudo
-                                              energy contribution in MFE calculations
-                                */
+            void *);                  /**<  @brief  A function pointer used for pseudo
+                                                    energy contribution in MFE calculations
+                                            @see    vrna_sc_add_f()
+                                      */
 
   FLT_OR_DBL (*exp_f)(int,
                       int,
                       int,
                       int,
                       char,
-                      void *);  /**<  @brief  A function pointer used for pseudo energy
-                                              contribution boltzmann factors in PF
-                                              calculations
-                                */
+                      void *);        /**<  @brief  A function pointer used for pseudo energy
+                                                    contribution boltzmann factors in PF
+                                                    calculations
+                                            @see    vrna_sc_add_exp_f()
+                                      */
 
-  void *data;                   /**<  @brief  A pointer to the data object necessary for
-                                              for pseudo energy contribution functions
-                                */
+  void (*pre)(vrna_fold_compound *,
+              char);                  /**<  @brief    A function pointer to some generalized soft
+                                                      constraints preprocessing function.
+                                            @details  This function will be called just before
+                                                      the forward recursions start
+                                      */
+
+  void (*post)( vrna_fold_compound *,
+                char);                /**<  @brief    A function pointer to some generalized soft
+                                                      constraints postprocessing function.
+                                            @details  This function will be called right after the
+                                                      forward recursions or backtracking, whatever
+                                                      is last.
+                                      */
+
+  void *data;                         /**<  @brief  A pointer to the data object provided for
+                                                    for pseudo energy contribution functions of the
+                                                    generalized soft constraints feature
+                                      */
 } vrna_sc_t;
 
 /**
@@ -617,6 +666,35 @@ void vrna_sc_add_exp_f( vrna_fold_compound *vc,
                         FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
                         void *data);
 
+/**
+ *  @brief  Add a pre-processing function for the generalized soft constraints feature
+ *
+ *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
+ *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
+ *            partition function computations (#VRNA_SC_GEN_PF) will take place next.
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *  @ingroup  soft_constraints
+ *  @param    vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param    post  A pointer to the pre-processing function
+ */
+void vrna_sc_add_pre(vrna_fold_compound *vc, void (*pre)( vrna_fold_compound *, char));
+
+/**
+ *  @brief  Add a post-processing function for the generalized soft constraints feature
+ *
+ *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
+ *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
+ *            partition function computations (#VRNA_SC_GEN_PF) has taken place before.
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *  @ingroup  soft_constraints
+ *  @param    vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param    post  A pointer to the post-processing function
+ */
+void vrna_sc_add_post( vrna_fold_compound *vc, void (*post)( vrna_fold_compound *, char));
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

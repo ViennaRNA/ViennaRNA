@@ -187,6 +187,10 @@ vrna_cofold(vrna_fold_compound  *vc,
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
+  if(vc->sc)
+    if(vc->sc->pre)
+      vc->sc->pre(vc, VRNA_SC_GEN_MFE);
+
   energy = fill_arrays(vc, 0);
 
   if(structure && vc->params->model_details.backtrack){
@@ -206,6 +210,10 @@ vrna_cofold(vrna_fold_compound  *vc,
       base_pair = bp;
     }
   }
+
+  if(vc->sc)
+    if(vc->sc->post)
+      vc->sc->post(vc, VRNA_SC_GEN_MFE);
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;

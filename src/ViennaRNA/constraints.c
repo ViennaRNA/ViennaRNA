@@ -1387,12 +1387,14 @@ vrna_sc_add_f(vrna_fold_compound *vc,
               void *data){
 
   if(vc && f){
-    if(!vc->sc)
-      vrna_sc_add(vc, NULL, (char)0);
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_add(vc, NULL, (char)0);
 
-    vc->sc->f       = f;
-    if(data)
-      vc->sc->data  = data;
+      vc->sc->f       = f;
+      if(data)
+        vc->sc->data  = data;
+    }
   }
 }
 
@@ -1402,22 +1404,53 @@ vrna_sc_add_exp_f(vrna_fold_compound *vc,
                   void *data){
 
   if(vc && exp_f){
-    if(!vc->sc)
-      vrna_sc_add(vc, NULL, (char)0);
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_add(vc, NULL, (char)0);
 
-    vc->sc->exp_f   = exp_f;
-    if(data)
-      vc->sc->data  = data;
+      vc->sc->exp_f   = exp_f;
+      if(data)
+        vc->sc->data  = data;
+    }
   }
 }
 
+PUBLIC void
+vrna_sc_add_post( vrna_fold_compound *vc,
+                  void (*post)( vrna_fold_compound *, char)){
+
+  if(vc && post){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_add(vc, NULL, (char)0);
+
+      vc->sc->post       = post;
+    }
+  }
+}
+
+PUBLIC void
+vrna_sc_add_pre(vrna_fold_compound *vc,
+                void (*pre)( vrna_fold_compound *, char)){
+
+  if(vc && pre){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_add(vc, NULL, (char)0);
+
+      vc->sc->pre = pre;
+    }
+  }
+}
 
 PUBLIC void
 vrna_sc_remove(vrna_fold_compound *vc){
 
   if(vc){
-    vrna_sc_free(vc->sc);
-    vc->sc = NULL;
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      vrna_sc_free(vc->sc);
+      vc->sc = NULL;
+    }
   }
 }
 

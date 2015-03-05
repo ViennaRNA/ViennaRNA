@@ -201,6 +201,10 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
 #endif
 #endif
 
+  if(vc->sc)
+    if(vc->sc->pre)
+      vc->sc->pre(vc, VRNA_SC_GEN_PF);
+
   pf_co(vc);
 
   if (md->backtrack_type=='C')
@@ -262,6 +266,10 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
     }
     */
   }
+
+  if(vc->sc)
+    if(vc->sc->post)
+      vc->sc->post(vc, VRNA_SC_GEN_PF);
 
 #ifdef SUN4
   standard_arithmetic();

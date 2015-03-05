@@ -644,6 +644,10 @@ vrna_subopt(vrna_fold_compound *vc,
 
   struc = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
+  if(vc->sc)
+    if(vc->sc->pre)
+      vc->sc->pre(vc, VRNA_SC_GEN_MFE);
+
   if(circular){
     min_en = vrna_fold(vc, struc);
     Fc  = vc->matrices->Fc;
@@ -826,6 +830,10 @@ vrna_subopt(vrna_fold_compound *vc,
     free(SolutionList);
     SolutionList = NULL;
   }
+
+  if(vc->sc)
+    if(vc->sc->post)
+      vc->sc->post(vc, VRNA_SC_GEN_MFE);
 
   return SolutionList;
 }
