@@ -113,6 +113,9 @@
  *  \defgroup   soft_constraints          Soft Constraints
  *  \ingroup    constraints
  *
+ *  \defgroup   generalized_sc            Generalized Soft Constraints
+ *  \ingroup    soft_constraints
+ *
  *  \defgroup   data_structures           Common Data Structures and Preprocessor Macros
  *
  *  \defgroup   parse                     Parsing and Comparing - Functions to Manipulate Structures
