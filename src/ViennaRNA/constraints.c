@@ -133,6 +133,17 @@ hc_reset_to_default(vrna_fold_compound *vc);
 PRIVATE void
 hc_update_up(vrna_fold_compound *vc);
 
+PRIVATE void
+sc_add_stack_en_mfe(vrna_fold_compound *vc,
+                    const double *constraints,
+                    unsigned int options);
+
+PRIVATE void
+sc_add_stack_en_pf( vrna_fold_compound *vc,
+                    const double *constraints,
+                    unsigned int options);
+
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -1013,6 +1024,97 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
     vrna_sc_add_bp_pf(vc, constraints, options);
 }
 
+
+PUBLIC  int
+vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+                                const double *reactivities,
+                                double b,
+                                double default_value,
+                                const char *shape_conversion,
+                                unsigned int options){
+
+  int       i, j, n, ret;
+  double    *pr, *up, **bp;
+  vrna_md_t *md;
+
+  ret = 0; /* error */
+
+  if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
+    n   = vc->length;
+    md  = (options & VRNA_CONSTRAINT_SOFT_PF) ? &(vc->exp_params->model_details) : &(vc->params->model_details);
+
+    /* first we copy over the reactivities to convert them into probabilities later on */
+    pr = (double *)vrna_alloc(sizeof(double) * (n + 1));
+    for(i=0; i<=n; i++)
+      pr[i] = reactivities[i];
+
+    if(vrna_sc_SHAPE_to_pr(shape_conversion, pr, n, default_value)){
+
+      /*  now, convert them into pseudo free energies for unpaired, and
+          paired nucleotides
+      */
+      up = (double *)vrna_alloc(sizeof(double) * (n + 1));
+      bp = (double **)vrna_alloc(sizeof(double *) * (n + 1));
+      for(i = 1; i <= n; ++i){
+        up[i] = b * fabs(pr[i] - 1);
+        bp[i] = (double *)vrna_alloc(sizeof(double) * (n + 1));
+        for(j = i + md->min_loop_size + 1; j <= n; ++j)
+          bp[i][j] = b * (pr[i] + pr[j]);
+      }
+
+      /* add the pseudo energies as soft constraints */
+      vrna_sc_add_up(vc, (const double *)up, options);
+      vrna_sc_add_bp(vc, (const double **)bp, options);
+
+      /* clean up memory */
+      for(i = 1; i <= n; ++i)
+        free(bp[i]);
+      free(bp);
+      free(up);
+
+      ret = 1; /* success */
+    }
+
+    free(pr);
+
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+                          const double *reactivities,
+                          double m,
+                          double b,
+                          unsigned int options){
+
+  int     i;
+  double  *values;
+
+  if(vc && values && (vc->type == VRNA_VC_TYPE_SINGLE)){
+
+    values = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+
+    /* first convert the values according to provided slope and intercept values */
+    for (i = 1; i <= vc->length; ++i){
+      values[i] = reactivities[i] < 0 ? 0 : m * log(reactivities[i] + 1) + b;
+    }
+
+    if(options & VRNA_CONSTRAINT_SOFT_MFE)
+      sc_add_stack_en_mfe(vc, (const double *)values, options);
+
+    if(options & VRNA_CONSTRAINT_SOFT_PF)
+      sc_add_stack_en_pf(vc, (const double *)values, options);
+
+    free(values);
+    return 1; /* success */
+  } else {
+    return 0; /* error */
+  }
+}
+
 PUBLIC int
 vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
                               const char **shape_files,
@@ -1025,97 +1127,102 @@ vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
   char    *line, nucleotide, *sequence;
   int     s, i, p, r, position, *pseudo_energies, n_seq;
 
-  n_seq = vc->n_seq;
+  if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+    n_seq = vc->n_seq;
 
-  if(!vc->scs)
-    vrna_sc_add_ali(vc, NULL, options);
+    if(!vc->scs)
+      vrna_sc_add_ali(vc, NULL, options);
 
-  for(s = 0; shape_file_association[s] != -1; s++){
-    if(shape_file_association[s] > n_seq)
-      vrna_message_warning("SHAPE file association exceeds sequence number in alignment");
+    for(s = 0; shape_file_association[s] != -1; s++){
+      if(shape_file_association[s] > n_seq)
+        vrna_message_warning("SHAPE file association exceeds sequence number in alignment");
 
-    /* read the shape file */
-    FILE *fp;
-    if(!(fp = fopen(shape_files[s], "r"))){
-      fprintf(stderr, "WARNING: SHAPE data file %d could not be opened. No shape data will be used.\n", s);
-    } else {
+      /* read the shape file */
+      FILE *fp;
+      if(!(fp = fopen(shape_files[s], "r"))){
+        fprintf(stderr, "WARNING: SHAPE data file %d could not be opened. No shape data will be used.\n", s);
+      } else {
 
-      reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
-      sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
+        reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
+        sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
 
-      for(i = 1; i <= vc->length; i++)
-        reactivities[i] = -1.;
+        for(i = 1; i <= vc->length; i++)
+          reactivities[i] = -1.;
 
-      while((line=get_line(fp))){
-        r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
-        if(r){
-          if((position <= 0) || (position > vc->length))
-            vrna_message_error("provided shape data outside of sequence scope");
+        while((line=get_line(fp))){
+          r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
+          if(r){
+            if((position <= 0) || (position > vc->length))
+              vrna_message_error("provided shape data outside of sequence scope");
 
-          switch(r){
-            case 1:   nucleotide = 'N';
-                      /* fall through */
-            case 2:   reactivity = -1.;
-                      /* fall through */
-            default:  sequence[position-1]    = nucleotide;
-                      reactivities[position]  = reactivity;
-                      break;
+            switch(r){
+              case 1:   nucleotide = 'N';
+                        /* fall through */
+              case 2:   reactivity = -1.;
+                        /* fall through */
+              default:  sequence[position-1]    = nucleotide;
+                        reactivities[position]  = reactivity;
+                        break;
+            }
           }
+          free(line);
         }
-        free(line);
-      }
-      fclose(fp);
+        fclose(fp);
 
-      sequence[vc->length] = '\0';
+        sequence[vc->length] = '\0';
 
-      /* double check information by comparing the sequence read from */
-      char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
-      if(strcmp(tmp_seq, sequence)){
-        fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
-      }
-      free(tmp_seq);
+        /* double check information by comparing the sequence read from */
+        char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
+        if(strcmp(tmp_seq, sequence)){
+          fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
+        }
+        free(tmp_seq);
 
-      /* convert reactivities to pseudo energies */
-      for(i = 1; i <= vc->length; i++){
-        if(reactivities[i] < 0)
-          reactivities[i] = 0.;
-        else
-          reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
-      }
+        /* convert reactivities to pseudo energies */
+        for(i = 1; i <= vc->length; i++){
+          if(reactivities[i] < 0)
+            reactivities[i] = 0.;
+          else
+            reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
+        }
 
-      /* begin actual storage of the pseudo energies */
+        /* begin actual storage of the pseudo energies */
 
-      if(options & VRNA_CONSTRAINT_SOFT_MFE){
-        pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-        for(p = 0, i = 1; i<=vc->length; i++){
-          e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-          if(vc->sequences[shape_file_association[s]][i-1] == '-'){
-            p++; e1 = 0.;
+        if(options & VRNA_CONSTRAINT_SOFT_MFE){
+          pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+          for(p = 0, i = 1; i<=vc->length; i++){
+            e1 = (i - p > 0) ? reactivities[i - p] : 0.;
+            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+              p++; e1 = 0.;
+            }
+            pseudo_energies[i] = (int)(e1 * 100.);
           }
-          pseudo_energies[i] = (int)(e1 * 100.);
+          vc->scs[shape_file_association[s]]->en_stack = pseudo_energies;
         }
-        vc->scs[shape_file_association[s]]->en_stack = pseudo_energies;
-      }
 
-      if(options & VRNA_CONSTRAINT_SOFT_PF){
-        FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-        for(i=0;i<=vc->length;i++)
-          exp_pe[i] = 1.;
+        if(options & VRNA_CONSTRAINT_SOFT_PF){
+          FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+          for(i=0;i<=vc->length;i++)
+            exp_pe[i] = 1.;
 
-        for(p = 0, i = 1; i<=vc->length; i++){
-          e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-          if(vc->sequences[shape_file_association[s]][i-1] == '-'){
-            p++; e1 = 0.;
+          for(p = 0, i = 1; i<=vc->length; i++){
+            e1 = (i - p > 0) ? reactivities[i - p] : 0.;
+            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+              p++; e1 = 0.;
+            }
+            exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
           }
-          exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
+          vc->scs[shape_file_association[s]]->exp_en_stack = exp_pe;
         }
-        vc->scs[shape_file_association[s]]->exp_en_stack = exp_pe;
+        
+        free(reactivities);
       }
-      
-      free(reactivities);
     }
+
+    return 1; /* success */
+  } else {
+    return 0; /* error */
   }
-  return 1; /* success */
 }
 
 PUBLIC  int
@@ -1124,9 +1231,6 @@ vrna_sc_SHAPE_parse_method( const char *method_string,
                             float *param_1,
                             float *param_2){
 
-  int r;
-
-  char m;
   const char *params = method_string + 1;
 
   *param_1 = 0;
@@ -1135,23 +1239,22 @@ vrna_sc_SHAPE_parse_method( const char *method_string,
   if (!method_string || !method_string[0])
     return 0;
 
-  *method = m = method_string[0];
+  *method = method_string[0];
 
-  if (m == 'Z')
-  {
-    *param_1 = 0.89;
-    parse_parameter_string(params, 'b', '\0', param_1, NULL);
-  }
-  else if (m == 'D')
-  {
-    *param_1 = 1.8;
-    *param_2 = -0.6;
-    parse_parameter_string(params, 'm', 'b', param_1, param_2);
-  }
-  else if (m != 'W')
-  {
-    *method = 0;
-    return 0;
+  switch(method_string[0]){
+    case 'Z':   *param_1 = 0.89;
+                parse_parameter_string(params, 'b', '\0', param_1, NULL);
+                break;
+
+    case 'D':   *param_1 = 1.8;
+                *param_2 = -0.6;
+                parse_parameter_string(params, 'm', 'b', param_1, param_2);
+                break;
+
+    case 'W':   break;
+
+    default:    *method = 0;
+                return 0;
   }
 
   return 1;
@@ -1334,22 +1437,10 @@ vrna_sc_add_up_pf( vrna_fold_compound *vc,
   }
 }
 
-PUBLIC void
-vrna_sc_add_sp(vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options){
-
-  if(options & VRNA_CONSTRAINT_SOFT_MFE)
-    vrna_sc_add_sp_mfe(vc, constraints, options);
-
-  if(options & VRNA_CONSTRAINT_SOFT_PF)
-    vrna_sc_add_sp_pf(vc, constraints, options);
-}
-
-PUBLIC void
-vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
-                            const double *constraints,
-                            unsigned int options){
+PRIVATE void
+sc_add_stack_en_mfe(vrna_fold_compound *vc,
+                   const double *constraints,
+                   unsigned int options){
   int i;
 
   if(!vc->sc)
@@ -1362,10 +1453,10 @@ vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
     vc->sc->en_stack[i] += (int)(constraints[i] * 100.);
 }
 
-PUBLIC void
-vrna_sc_add_sp_pf( vrna_fold_compound *vc,
-                            const double *constraints,
-                            unsigned int options){
+PRIVATE void
+sc_add_stack_en_pf( vrna_fold_compound *vc,
+                    const double *constraints,
+                    unsigned int options){
   int i;
 
   if(!vc->sc)

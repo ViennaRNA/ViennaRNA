@@ -419,6 +419,7 @@ START_TEST(test_vrna_sc_SHAPE_parse_method)
 }
 END_TEST
 
+#if 0
 START_TEST(test_vrna_sc_add_sp)
 {
   vrna_md_t md;
@@ -459,6 +460,7 @@ START_TEST(test_vrna_sc_add_sp)
   vrna_free_fold_compound(vc);
 }
 END_TEST
+#endif
 
 TCase* constraints_testcase()
 {
@@ -466,7 +468,8 @@ TCase* constraints_testcase()
   tcase_add_test(tc, test_vrna_sc_SHAPE_to_pr);
   tcase_add_test(tc, test_vrna_read_SHAPE_file);
   tcase_add_test(tc, test_vrna_sc_SHAPE_parse_method);
+#if 0
   tcase_add_test(tc, test_vrna_sc_add_sp);
-
+#endif
   return tc;
 }

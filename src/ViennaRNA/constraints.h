@@ -583,19 +583,6 @@ void vrna_sc_add_up_pf( vrna_fold_compound *vc,
                         const double *constraints,
                         unsigned int options);
 
-void vrna_sc_add_sp(vrna_fold_compound *vc,
-                    const double *constraints,
-                    unsigned int options);
-
-void vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-
 void vrna_sc_remove(vrna_fold_compound *vc);
 
 void vrna_sc_free(vrna_sc_t *sc);
@@ -605,12 +592,25 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
                                 float *param_1,
                                 float *param_2);
 
-int vrna_sc_SHAPE_add_deigan_ali(vrna_fold_compound *vc,
-                            const char **shape_files,
-                            const int *shape_file_association,
-                            double m,
-                            double b,
-                            unsigned int options);
+int vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+                              const double *reactivities,
+                              double m,
+                              double b,
+                              unsigned int options);
+
+int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
+                                  const char **shape_files,
+                                  const int *shape_file_association,
+                                  double m,
+                                  double b,
+                                  unsigned int options);
+
+int vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+                                    const double *reactivities,
+                                    double b,
+                                    double default_value,
+                                    const char *shape_conversion,
+                                    unsigned int options);
 
 /**
  *  @brief Convert SHAPE reactivity values to probabilities for being unpaired
