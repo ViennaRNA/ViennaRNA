@@ -497,10 +497,25 @@ void vrna_hc_add( vrna_fold_compound *vc,
                   const char *constraint,
                   unsigned int options);
 
+/**
+ *  @brief  Make a certain nucleotide unpaired
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The position that needs to stay unpaired (1-based)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 void vrna_hc_add_up(vrna_fold_compound *vc,
                     int i,
                     char option);
 
+/**
+ *  @brief  Favorize/Enforce  a certain base pair (i,j)
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The 5' located nucleotide position of the base pair (1-based)
+ *  @param  j       The 3' located nucleotide position of the base pair (1-based)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 void vrna_hc_add_bp(vrna_fold_compound *vc,
                     int i,
                     int j,
@@ -559,32 +574,40 @@ void vrna_sc_add_ali( vrna_fold_compound *vc,
                       const double **constraints,
                       unsigned int options);
 
+/**
+ *  @brief  Add soft constraints for paired nucleotides
+ *
+ *  @param  The #vrna_fold_compound the soft constraints are associated with
+ *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
 void vrna_sc_add_bp(vrna_fold_compound *vc,
                     const double **constraints,
                     unsigned int options);
 
-void vrna_sc_add_bp_mfe(vrna_fold_compound *vc,
-                        const double **constraints,
-                        unsigned int options);
-
-void vrna_sc_add_bp_pf( vrna_fold_compound *vc,
-                        const double **constraints,
-                        unsigned int options);
-
+/**
+ *  @brief  Add soft constraints for unpaired nucleotides
+ *
+ *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
+ *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
 void vrna_sc_add_up(vrna_fold_compound *vc,
                     const double *constraints,
                     unsigned int options);
 
-void vrna_sc_add_up_mfe(vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-void vrna_sc_add_up_pf( vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
+/**
+ *  @brief  Remove soft constraints from #vrna_fold_compound
+ *
+ *  @param  The #vrna_fold_compound possibly containing soft constraints
+ */
 void vrna_sc_remove(vrna_fold_compound *vc);
 
+/**
+ *  @brief  Free memory occupied by a #vrna_sc_t data structure
+ *
+ *  @param  sc  The data structure to free from memory
+ */
 void vrna_sc_free(vrna_sc_t *sc);
 
 int vrna_sc_SHAPE_parse_method( const char *method_string,
