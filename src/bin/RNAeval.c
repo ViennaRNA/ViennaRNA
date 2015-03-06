@@ -66,37 +66,10 @@ add_shape_constraints(vrna_fold_compound *vc,
   vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
-    int i;
-    for (i = 1; i <= length; ++i)
-      values[i] = values[i] < 0 ? 0 : p1 * log(values[i] + 1) + p2;
-
-    vrna_sc_add_sp(vc, values, constraint_type);
+    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
   }
   else if(method == 'Z'){
-    double *sc_up = vrna_alloc(sizeof(double) * (length + 1));
-    double **sc_bp = vrna_alloc(sizeof(double *) * (length + 1));
-    int i;
-
-    vrna_sc_SHAPE_to_pr(shape_conversion, values, length, 0.5);
-
-    for(i = 1; i <= length; ++i){
-      int j;
-
-      assert(values[i] >= 0 && values[i] <= 1);
-
-      sc_up[i] = p1 * fabs(values[i] - 1);
-      sc_bp[i] = vrna_alloc(sizeof(double) * (length + 1));
-      for(j = i + TURN + 1; j <= length; ++j)
-        sc_bp[i][j] = p1 * (values[i] + values[j]);
-    }
-
-    vrna_sc_add_up(vc, sc_up, constraint_type);
-    vrna_sc_add_bp(vc, (const double**)sc_bp, constraint_type);
-
-    for(i = 1; i <= length; ++i)
-      free(sc_bp[i]);
-    free(sc_bp);
-    free(sc_up);
+    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
     vrna_sc_add_up(vc, values, constraint_type);

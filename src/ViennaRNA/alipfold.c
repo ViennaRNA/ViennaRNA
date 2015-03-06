@@ -153,6 +153,7 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
                   char *structure,
                   plist **pl){
 
+  int         i;
   FLT_OR_DBL  Q;
   float       free_energy;
 
@@ -161,6 +162,12 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
   vrna_exp_param_t  *params   = vc->exp_params;
   vrna_md_t         *md       = &(params->model_details);
   vrna_mx_pf_t      *matrices = vc->exp_matrices;
+
+  if(vc->scs)
+    for(i = 0; i < n_seq; i++){
+      if(vc->scs[i]->pre)
+        vc->scs[i]->pre(vc, VRNA_SC_GEN_PF);
+    }
 
   alipf_linear(vc, structure);
 
@@ -189,6 +196,12 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
     */
     pr = matrices->probs;
   }
+
+  if(vc->scs)
+    for(i = 0; i < n_seq; i++){
+      if(vc->scs[i]->post)
+        vc->scs[i]->post(vc, VRNA_SC_GEN_PF);
+    }
 
   return free_energy;
 }

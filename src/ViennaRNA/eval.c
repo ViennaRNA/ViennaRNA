@@ -2290,10 +2290,10 @@ loop_energy(short *pt,
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
-  for(u = 1; u < s[0]; u++){
+  for(u = 1; u <= s[0]; u++){
     seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
-  seq[u] = '\0';
+  seq[u-1] = '\0';
 
   seq2  = vrna_cut_point_insert(seq, cut_point);
   vc    = vrna_get_fold_compound(seq2, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
@@ -2346,10 +2346,10 @@ energy_of_move_pt(short *pt,
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
-  for(u = 1; u < s[0]; u++){
+  for(u = 1; u <= s[0]; u++){
     seq[u-1] = vrna_nucleotide_decode(s[u], &md);
   }
-  seq[u] = '\0';
+  seq[u-1] = '\0';
 
   seq2  = vrna_cut_point_insert(seq, cut_point);
   vc    = vrna_get_fold_compound(seq2, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);

@@ -146,7 +146,7 @@ PUBLIC float
 vrna_ali_fold(vrna_fold_compound *vc,
               char *structure){
 
-  int  length, s, n_seq, energy;
+  int  length, i, s, n_seq, energy;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   bondT *bp;
 
@@ -154,7 +154,14 @@ vrna_ali_fold(vrna_fold_compound *vc,
   n_seq       = vc->n_seq;
   s           = 0;
 
+  if(vc->scs)
+    for(i = 0; i < n_seq; i++){
+      if(vc->scs[i]->pre)
+        vc->scs[i]->pre(vc, VRNA_SC_GEN_MFE);
+    }
+
   energy = fill_arrays(vc);
+
   if(vc->params->model_details.circ){
     fill_arrays_circ(vc, bt_stack, &s);
     energy = vc->matrices->Fc;
@@ -177,6 +184,12 @@ vrna_ali_fold(vrna_fold_compound *vc,
       base_pair = bp;
     }
   }
+
+  if(vc->scs)
+    for(i = 0; i < n_seq; i++){
+      if(vc->scs[i]->post)
+        vc->scs[i]->post(vc, VRNA_SC_GEN_MFE);
+    }
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/(n_seq*100.);

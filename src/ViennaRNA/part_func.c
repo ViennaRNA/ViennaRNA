@@ -172,6 +172,10 @@ vrna_pf_fold( vrna_fold_compound *vc,
 #endif
 #endif
 
+  if(vc->sc)
+    if(vc->sc->pre)
+      vc->sc->pre(vc, VRNA_SC_GEN_PF);
+
   /* do the linear pf fold and fill all matrices  */
   pf_linear(vc);
 
@@ -195,6 +199,10 @@ vrna_pf_fold( vrna_fold_compound *vc,
     }
     */
   }
+
+  if(vc->sc)
+    if(vc->sc->post)
+      vc->sc->post(vc, VRNA_SC_GEN_PF);
 
   if (md->backtrack_type=='C')
     Q = matrices->qb[vc->iindx[1]-n];

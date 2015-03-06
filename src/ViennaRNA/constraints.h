@@ -238,7 +238,7 @@
 /**
  *  @brief  Generalized constraint folding flag indicating hairpin loop decomposition step
  *
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_PAIR_HP     1
@@ -246,70 +246,101 @@
 /**
  *  @brief  Generalized constraint folding flag indicating interior loop decomposition step
  *
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_PAIR_IL     2
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_PAIR_ML     3
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_ML_ML    5
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_UP_3     4
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_UP_5     6
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_UP       11
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_EXT     9
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_UP_3    7
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_UP_5    10
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_UP      8
 
 /**
- *  @ingroup  constraints
+ *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_STEM_UP 12
+
+
+/**
+ *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
+ *            indicate Minimum Free Energy (MFE) processing
+ *  @details  This flag is passed as second argument to the pre-, and post- processing
+ *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
+ *            vrna_sc_add_post(), respectively.
+ *            Use it in your implementation of the pre-, and post-processing functions to
+ *            determine the mode of action required for corresponding pre-, and post-
+ *            processing of data available to the function.
+ *  @note     This flag will be passed by calls of vrna_fold(), vrna_ali_fold(), vrna_cofold(),
+ *            and vrna_subopt()
+ *  @ingroup  generalized_sc
+ */
+#define VRNA_SC_GEN_MFE         (char)1
+
+/**
+ *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
+ *            indicate Partition function (PF) processing
+ *  @details  This flag is passed as second argument to the pre-, and post- processing
+ *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
+ *            vrna_sc_add_post(), respectively.
+ *            Use it in your implementation of the pre-, and post-processing functions to
+ *            determine the mode of action required for corresponding pre-, and post-
+ *            processing of data available to the function.
+ *  @note     This flag will be passed by calls of vrna_pf_fold(), vrna_ali_pf_fold(), and
+ *            vrna_co_pf_fold().
+ *  @ingroup  generalized_sc
+ */
+#define VRNA_SC_GEN_PF          (char)2
 
 /**
  *  @brief  The hard constraints data structure
@@ -358,38 +389,56 @@ typedef struct vrna_hc_t {
  *  @ingroup soft_constraints
  */
 typedef struct vrna_sc_t {
-  double      *constraints;         /**<  @brief Backup storage for energy contributions of single nucleotides */
-  int         **free_energies;      /**<  @brief Energy contribution for unpaired sequence stretches */
-  int         *en_basepair;         /**<  @brief Energy contribution for base pairs */
-  FLT_OR_DBL  **boltzmann_factors;  /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
-  FLT_OR_DBL  *exp_en_basepair;     /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+  double      *constraints;           /**<  @brief Backup storage for energy contributions of single nucleotides */
+  int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
+  int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
+  FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  FLT_OR_DBL  *exp_en_basepair;       /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
 
-  int         *en_stack;            /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL  *exp_en_stack;        /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int         *en_stack;              /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_en_stack;          /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
 
-  /* generalized soft contraints */
+  /* generalized soft contraints below */
   int (*f)( int,
             int,
             int,
             int,
             char,
-            void *);            /**<  @brief  A function pointer used for pseudo
-                                              energy contribution in MFE calculations
-                                */
+            void *);                  /**<  @brief  A function pointer used for pseudo
+                                                    energy contribution in MFE calculations
+                                            @see    vrna_sc_add_f()
+                                      */
 
   FLT_OR_DBL (*exp_f)(int,
                       int,
                       int,
                       int,
                       char,
-                      void *);  /**<  @brief  A function pointer used for pseudo energy
-                                              contribution boltzmann factors in PF
-                                              calculations
-                                */
+                      void *);        /**<  @brief  A function pointer used for pseudo energy
+                                                    contribution boltzmann factors in PF
+                                                    calculations
+                                            @see    vrna_sc_add_exp_f()
+                                      */
 
-  void *data;                   /**<  @brief  A pointer to the data object necessary for
-                                              for pseudo energy contribution functions
-                                */
+  void (*pre)(vrna_fold_compound *,
+              char);                  /**<  @brief    A function pointer to some generalized soft
+                                                      constraints preprocessing function.
+                                            @details  This function will be called just before
+                                                      the forward recursions start
+                                      */
+
+  void (*post)( vrna_fold_compound *,
+                char);                /**<  @brief    A function pointer to some generalized soft
+                                                      constraints postprocessing function.
+                                            @details  This function will be called right after the
+                                                      forward recursions or backtracking, whatever
+                                                      is last.
+                                      */
+
+  void *data;                         /**<  @brief  A pointer to the data object provided for
+                                                    for pseudo energy contribution functions of the
+                                                    generalized soft constraints feature
+                                      */
 } vrna_sc_t;
 
 /**
@@ -448,10 +497,29 @@ void vrna_hc_add( vrna_fold_compound *vc,
                   const char *constraint,
                   unsigned int options);
 
+/**
+ *  @brief  Make a certain nucleotide unpaired
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The position that needs to stay unpaired (1-based)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 void vrna_hc_add_up(vrna_fold_compound *vc,
                     int i,
                     char option);
 
+/**
+ *  @brief  Favorize/Enforce  a certain base pair (i,j)
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The 5' located nucleotide position of the base pair (1-based)
+ *  @param  j       The 3' located nucleotide position of the base pair (1-based)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 void vrna_hc_add_bp(vrna_fold_compound *vc,
                     int i,
                     int j,
@@ -478,6 +546,7 @@ void vrna_hc_reset(vrna_fold_compound *vc);
  *  of type #vrna_hc_t .
  *
  *  @see get_hard_constraints(), #vrna_hc_t
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -510,58 +579,143 @@ void vrna_sc_add_ali( vrna_fold_compound *vc,
                       const double **constraints,
                       unsigned int options);
 
+/**
+ *  @brief  Add soft constraints for paired nucleotides
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
+ *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
 void vrna_sc_add_bp(vrna_fold_compound *vc,
                     const double **constraints,
                     unsigned int options);
 
-void vrna_sc_add_bp_mfe(vrna_fold_compound *vc,
-                        const double **constraints,
-                        unsigned int options);
-
-void vrna_sc_add_bp_pf( vrna_fold_compound *vc,
-                        const double **constraints,
-                        unsigned int options);
-
+/**
+ *  @brief  Add soft constraints for unpaired nucleotides
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
+ *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
 void vrna_sc_add_up(vrna_fold_compound *vc,
                     const double *constraints,
                     unsigned int options);
 
-void vrna_sc_add_up_mfe(vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-void vrna_sc_add_up_pf( vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-void vrna_sc_add_sp(vrna_fold_compound *vc,
-                    const double *constraints,
-                    unsigned int options);
-
-void vrna_sc_add_sp_mfe(vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-void vrna_sc_add_sp_pf( vrna_fold_compound *vc,
-                        const double *constraints,
-                        unsigned int options);
-
-
+/**
+ *  @brief  Remove soft constraints from #vrna_fold_compound
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @param  vc  The #vrna_fold_compound possibly containing soft constraints
+ */
 void vrna_sc_remove(vrna_fold_compound *vc);
 
+/**
+ *  @brief  Free memory occupied by a #vrna_sc_t data structure
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @param  sc  The data structure to free from memory
+ */
 void vrna_sc_free(vrna_sc_t *sc);
 
+/**
+ *  @brief  Parse a character string and extract the encoded SHAPE reactivity conversion
+ *          method and possibly the parameters for conversion into pseudo free energies
+ *
+ *  @ingroup soft_cosntraints
+ *
+ *  @param  method_string   The string that contains the encoded SHAPE reactivity conversion method
+ *  @param  method          A pointer to the memory location where the method character will be stored
+ *  @param  param_1         A pointer to the memory location where the first parameter of the corresponding method will be stored
+ *  @param  param_2         A pointer to the memory location where the second parameter of the corresponding method will be stored
+ *  @return                 1 on successful extraction of the method, 0 on errors
+ */
 int vrna_sc_SHAPE_parse_method( const char *method_string,
                                 char *method,
                                 float *param_1,
                                 float *param_2);
 
-int vrna_sc_SHAPE_add_deigan_ali(vrna_fold_compound *vc,
-                            const char **shape_files,
-                            const int *shape_file_association,
-                            double m,
-                            double b,
-                            unsigned int options);
+/**
+ *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
+ *
+ *  This approach of SHAPE directed RNA folding uses the simple linear ansatz
+ *  @f[ \Delta\ G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
+ *  to convert SHAPE reactivity values to pseudo energies whenever a
+ *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
+ *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
+ *  results in a confirmatory ``bonus'' free energy for correctly predicted base pairs.
+ *  Since the energy evaluation of a base pair stack involves two pairs, the pseudo
+ *  energies are added for all four contributing nucleotides. Consequently, the
+ *  energy term is applied twice for pairs inside a helix and only once for pairs
+ *  adjacent to other structures. For all other loop types the energy model remains
+ *  unchanged even when the experimental data highly disagrees with a certain motif.
+ *
+ *  @see  For further details, we refer to @cite deigan:2009.
+ *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_minimize_pertubation()
+ *  @ingroup  soft_constraints
+ *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  reactivities  A vector of normalized SHAPE reactivities
+ *  @param  m             The slope of the conversion function
+ *  @param  b             The intercept of the conversion function
+ *  @param  options       The options flag indicating how/where to store the soft constraints
+ *  @return               1 on successful extraction of the method, 0 on errors
+ */
+int vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+                              const double *reactivities,
+                              double m,
+                              double b,
+                              unsigned int options);
+
+/**
+ *  @brief  Add SHAPE reactivity data from files as soft constraints for consensus structure prediction (Deigan et al. method)
+ *
+ *  @ingroup  soft_constraints
+ *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  shape_files   A set of filenames that contain normalized SHAPE reactivity data
+ *  @param  shape_file_association  An array of integers that associate the files with sequences in the alignment
+ *  @param  m             The slope of the conversion function
+ *  @param  b             The intercept of the conversion function
+ *  @param  options       The options flag indicating how/where to store the soft constraints
+ *  @return               1 on successful extraction of the method, 0 on errors
+ */
+int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
+                                  const char **shape_files,
+                                  const int *shape_file_association,
+                                  double m,
+                                  double b,
+                                  unsigned int options);
+
+/**
+ *  @brief  Add SHAPE reactivity data as soft constraints (Zarringhalam et al. method)
+ *
+ *  This method first converts the observed SHAPE reactivity of nucleotide @f$ i @f$ into a
+ *  probability @f$ q_i @f$ that position @f$ i @f$ is unpaired by means of a non-linear map.
+ *  Then pseudo-energies of the form @f[ \Delta\ G_{\text{SHAPE}}(x,i) = \beta\ |x_i - q_i| @f]
+ *  are computed, where @f$ x_i=0 @f$ if position @f$ i @f$ is unpaired and @f$ x_i=1 @f$
+ *  if @f$ i @f$ is paired in a given secondary structure. The parameter @f$ \beta @f$ serves as
+ *  scaling factor. The magnitude of discrepancy between prediction and experimental observation
+ *  is represented by @f$ |x_i - q_i| @f$.
+ *
+ *  @see For further details, we refer to @cite zarringhalam:2012
+ *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_deigan(), vrna_sc_minimize_pertubation()
+ *  @ingroup  soft_constraints
+ *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  reactivities  A vector of normalized SHAPE reactivities
+ *  @param  b             The scaling factor @f$ \beta @f$ of the conversion function
+ *  @param  options       The options flag indicating how/where to store the soft constraints
+ *  @return               1 on successful extraction of the method, 0 on errors
+ */
+int vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+                                    const double *reactivities,
+                                    double b,
+                                    double default_value,
+                                    const char *shape_conversion,
+                                    unsigned int options);
 
 /**
  *  @brief Convert SHAPE reactivity values to probabilities for being unpaired
@@ -581,6 +735,77 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
                         double *values,
                         int length,
                         double default_value);
+
+/**
+ *  @brief  Bind a function pointer for generalized soft constraint feature (MFE version)
+ *
+ *  This function allows to easily bind a function pointer and corresponding data structure
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  The function for evaluating the generalized soft constraint feature has to return
+ *  a pseudo free energy @f$ \hat{E} @f$ in @f$ dacal/mol @f$, where @f$ 1 dacal/mol = 10 cal/mol @f$.
+ *
+ *  @ingroup generalized_sc
+ *
+ *  @param  vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param  f     A pointer to the function that evaluates the generalized soft constraint feature
+ *  @param  data  A pointer to the data structure that holds required data for function 'f'
+ */
+void vrna_sc_add_f( vrna_fold_compound *vc,
+                    int (*f)( int, int, int, int, char, void *),
+                    void *data);
+
+/**
+ *  @brief  Bind a function pointer for generalized soft constraint feature (PF version)
+ *
+ *  This function allows to easily bind a function pointer and corresponding data structure
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  The function for evaluating the generalized soft constraint feature has to return
+ *  a pseudo free energy @f$ \hat{E} @f$ as Boltzmann factor, i.e. @f$ exp(- \hat{E} / kT) @f$.
+ *  The required unit for @f$ E @f$ is @f$ cal/mol @f$.
+ *
+ *  @ingroup generalized_sc
+ *
+ *  @param  vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param  exp_f A pointer to the function that evaluates the generalized soft constraint feature
+ *  @param  data  A pointer to the data structure that holds required data for function 'f'
+ */
+void vrna_sc_add_exp_f( vrna_fold_compound *vc,
+                        FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
+                        void *data);
+
+/**
+ *  @brief  Add a pre-processing function for the generalized soft constraints feature
+ *
+ *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
+ *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
+ *            partition function computations (#VRNA_SC_GEN_PF) will take place next.
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *
+ *  @ingroup  generalized_sc
+ *
+ *  @param    vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param    pre   A pointer to the pre-processing function
+ */
+void vrna_sc_add_pre(vrna_fold_compound *vc, void (*pre)( vrna_fold_compound *, char));
+
+/**
+ *  @brief  Add a post-processing function for the generalized soft constraints feature
+ *
+ *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
+ *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
+ *            partition function computations (#VRNA_SC_GEN_PF) has taken place before.
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *
+ *  @ingroup  generalized_sc
+ *
+ *  @param    vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param    post  A pointer to the post-processing function
+ */
+void vrna_sc_add_post( vrna_fold_compound *vc, void (*post)( vrna_fold_compound *, char));
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

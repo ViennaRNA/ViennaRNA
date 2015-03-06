@@ -344,7 +344,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
 #endif /* WITH_GSL */
 
 PUBLIC void
-vrna_find_perturbation_vector(vrna_fold_compound *vc,
+vrna_sc_minimize_pertubation(vrna_fold_compound *vc,
                               const double *q_prob_unpaired,
                               int objective_function,
                               double sigma_squared,
