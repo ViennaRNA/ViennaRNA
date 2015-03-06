@@ -14,6 +14,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 
@@ -255,6 +256,7 @@ vrna_hc_add(vrna_fold_compound *vc,
 /*
     printf("reading constraints from file\n");
 */
+    (void) vrna_read_constraints_file(constraint, n, options);
   }
 
   hc_update_up(vc);

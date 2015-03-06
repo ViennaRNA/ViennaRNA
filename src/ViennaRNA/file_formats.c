@@ -635,7 +635,213 @@ vrna_read_SHAPE_file( const char *file_name,
   return 1;
 }
 
+PRIVATE int
+parse_constraints_line( const char *line,
+                        char command,
+                        int *i,
+                        int *j,
+                        int *k,
+                        int *l,
+                        char *loop,
+                        char *orientation,
+                        float *e){
 
+  int ret = 0;
+  int range_mode = 0;
+  int pos = 0;
+  int max_entries = 5;
+  int entries_seen = 0;
+  int pp;
+  char buf[256], c;
+
+  switch(command){
+    case 'F':   /* fall through */
+    case 'P':   max_entries = 5;
+                break;
+    case 'W':   /* fall through */
+    case 'U':   max_entries = 3;
+                break;
+    case 'B':   max_entries = 4;
+                break;
+    case '#': case ';': case '%': case '/': case ' ':
+                ret = 2;  /* comment */
+                break;
+    default:    ret = 1;  /* error */
+                break;
+  }
+
+  /* now lets scan the entire line for content */
+  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", buf, &pp) == 1)){
+    pos += pp;
+    switch(entries_seen){
+      case 0: /* must be i, or range */
+              if(sscanf(buf, "%d-%d%n", i, j, &pp) == 2){
+                if(pp == strlen(buf)){
+                  range_mode = 1;
+                  --max_entries; /* no orientation allowed now */
+                  break;
+                }
+              } else if(sscanf(buf, "%d%n", i, &pp) == 1){
+                if(pp == strlen(buf)){
+                  break;
+                }
+              }
+              ret = 1;
+              break;
+      case 1: /* must be j, or range */
+              if(sscanf(buf, "%d-%d%n", k, l, &pp) == 2){
+                if(pp == strlen(buf)){
+                  if(!range_mode)
+                    --max_entries; /* no orientation allowed now */
+                  range_mode = 1;
+                  break;
+                }
+              } else if(range_mode){
+                if(sscanf(buf, "%d%n", l, &pp) == 1){
+                  if(pp == strlen(buf))
+                    break;
+                }
+              } else if(sscanf(buf, "%d%n", j, &pp) == 1){
+                if(pp == strlen(buf))
+                  break;
+              }
+              ret = 1;
+              break;
+      case 2: /* skip if in range_mode */
+              if(range_mode)
+                break;
+
+              /* must be k */
+              if(sscanf(buf, "%d%n", k, &pp) == 1){
+                if(pp == strlen(buf))
+                  break;
+              }
+              ret = 1;
+              break;
+      case 3: /*  must be loop type, or orientation */
+              if(sscanf(buf, "%c%n", &c, &pp) == 1){
+                if(pp == strlen(buf)){
+                  if((!range_mode) && ((c == 'U') || (c == 'D'))){
+                    *orientation = c;
+                    ++entries_seen;
+                  } else {
+                   *loop = c;
+                  }
+                  break;
+                }
+              }
+              ret = 1;
+              break;
+      case 4: /* must be orientation */
+              if(!(sscanf(buf, "%c", orientation) == 1)){
+                ret = 1;
+              }
+              break;
+    }
+    ++entries_seen;
+  }
+
+  return ret;
+}
+
+PUBLIC  plist *
+vrna_read_constraints_file( const char *filename,
+                            unsigned int length,
+                            unsigned int options){
+
+  FILE  *fp;
+  int   line_number, constraint_number, constraint_number_guess;
+  char  *line;
+  plist *constraints;
+
+  if(!(fp = fopen(filename, "r"))){
+    vrna_message_warning("Hard Constraints File could not be opened!");
+    return NULL;
+  }
+
+  line_number             = 0;
+  constraint_number       = 0;
+  constraint_number_guess = 10;
+  constraints             = (plist *)vrna_alloc(sizeof(plist) * constraint_number_guess);
+
+  while((line=get_line(fp))){
+
+    int i, j, k, l, error;
+    float e;
+    char command, looptype, orientation;
+
+    line_number++; /* increase line number */
+
+    if(sscanf(line, "%c", &command) != 1){
+      free(line);
+      continue;
+    }
+
+    i = j = k = l = -1;
+    looptype    = 'A';  /* default to all loop types */
+    orientation = '\0'; /* no orientation */
+    e = (float)INF;
+
+    error = parse_constraints_line(line + 1, command, &i, &j, &k, &l, &looptype, &orientation, &e);
+
+    if(error == 1){
+      fprintf(stderr, "WARNING: Unrecognized constraint command line in input file %s, line %d\n", filename, line_number);
+    } else if(error == 0){
+      /* do something with the constraint we've just read */
+      if(l != -1){  /* we must have read a range */
+        if(k != -1){ /* was k-l range */
+          if(j != -1){  /* got i-j range too?! */
+            if(i != -1){
+              /* ok, range i-j is probibited to pair with range k-l */
+            } else {
+              /* this is an input error */
+            }
+          } else if(i != -1){
+            /* i must not pair with k-l range */
+          } else {
+            /* this is an input error */
+          }
+        } else { /* must have been i-j range with single target l */
+          if(j != -1){  /* should be range i-j */
+            if(i != -1){
+              /* range i-j must not pair with l */
+            } else {
+              /* this is an input error */
+            }
+          } else {
+            /* this is an input error */
+          }
+        }
+      } else { /* no range k-l, so i, j, and k must not be -1 */
+        if((i != -1) && (j != -1) && (k != -1)){
+          /* do something here */
+        } else {
+          /* this is an input error */
+        }
+      }
+
+      printf("Constraint: %c %d %d %d %d %c %c\n", command, i, j, k, l, looptype, orientation);
+    }
+
+    free(line);
+  }
+
+  fclose(fp);
+
+  /* resize plist to actual size */
+  constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * (constraint_number + 1));
+
+  constraints[constraint_number].i    = 0;
+  constraints[constraint_number].j    = 0;
+  constraints[constraint_number].p    = 0.;
+  constraints[constraint_number].type = 0;
+
+  if(constraint_number == 0){
+    vrna_message_warning("Constraints file does not contain any constraints");
+  }
+
+  return constraints;
+}
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

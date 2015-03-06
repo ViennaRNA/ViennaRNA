@@ -360,6 +360,7 @@ int main(int argc, char *argv[]){
         vrna_hc_add(vc, (const char *)structure, constraint_options);
       }
     }
+    vrna_hc_add(vc, "bla.const", VRNA_CONSTRAINT_FILE);
 
     if(with_shapes)
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));

@@ -187,6 +187,10 @@ int vrna_read_SHAPE_file( const char *file_name,
                           char *sequence,
                           double *values);
 
+plist *vrna_read_constraints_file(const char *filename,
+                                  unsigned int length,
+                                  unsigned int options);
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /* \brief Extract a dot-bracket structure string from (multiline)character array
