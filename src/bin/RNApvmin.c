@@ -209,7 +209,7 @@ int main(int argc, char *argv[]){
 
     epsilon = vrna_alloc(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
-    vrna_find_perturbation_vector(vc,
+    vrna_sc_minimize_pertubation(vc,
                                   shape_data,
                                   args_info.objectiveFunction_arg,
                                   sigma, tau,

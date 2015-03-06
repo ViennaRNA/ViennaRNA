@@ -643,6 +643,20 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
+ *  This approach of SHAPE directed RNA folding uses the simple linear ansatz
+ *  @f[ \Delta\ G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
+ *  to convert SHAPE reactivity values to pseudo energies whenever a
+ *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
+ *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
+ *  results in a confirmatory ``bonus'' free energy for correctly predicted base pairs.
+ *  Since the energy evaluation of a base pair stack involves two pairs, the pseudo
+ *  energies are added for all four contributing nucleotides. Consequently, the
+ *  energy term is applied twice for pairs inside a helix and only once for pairs
+ *  adjacent to other structures. For all other loop types the energy model remains
+ *  unchanged even when the experimental data highly disagrees with a certain motif.
+ *
+ *  @see  For further details, we refer to @cite deigan:2009.
+ *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
  *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
@@ -679,10 +693,20 @@ int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Zarringhalam et al. method)
  *
+ *  This method first converts the observed SHAPE reactivity of nucleotide @f$ i @f$ into a
+ *  probability @f$ q_i @f$ that position @f$ i @f$ is unpaired by means of a non-linear map.
+ *  Then pseudo-energies of the form @f[ \Delta\ G_{\text{SHAPE}}(x,i) = \beta\ |x_i - q_i| @f]
+ *  are computed, where @f$ x_i=0 @f$ if position @f$ i @f$ is unpaired and @f$ x_i=1 @f$
+ *  if @f$ i @f$ is paired in a given secondary structure. The parameter @f$ \beta @f$ serves as
+ *  scaling factor. The magnitude of discrepancy between prediction and experimental observation
+ *  is represented by @f$ |x_i - q_i| @f$.
+ *
+ *  @see For further details, we refer to @cite zarringhalam:2012
+ *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_deigan(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
  *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
- *  @param  b             The weighting factor of the conversion function
+ *  @param  b             The scaling factor @f$ \beta @f$ of the conversion function
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
