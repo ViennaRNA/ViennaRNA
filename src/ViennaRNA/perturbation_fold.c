@@ -169,7 +169,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
     hc_string[i - 1] = 'x';
 
     restricted_vc = vrna_get_fold_compound(vc->sequence, &(vc->exp_params->model_details), VRNA_OPTION_PF);
-    vrna_hc_add(restricted_vc, hc_string, constraint_options);
+    vrna_add_constraints(restricted_vc, hc_string, constraint_options);
     free(hc_string);
 
     vrna_update_pf_params(restricted_vc, vc->exp_params);

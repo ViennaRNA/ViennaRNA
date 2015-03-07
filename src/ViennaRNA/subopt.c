@@ -582,7 +582,7 @@ wrap_subopt(char *string,
                           | VRNA_CONSTRAINT_INTRAMOLECULAR
                           | VRNA_CONSTRAINT_INTERMOLECULAR;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)

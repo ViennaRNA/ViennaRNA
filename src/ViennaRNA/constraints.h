@@ -135,14 +135,6 @@
 #define VRNA_CONSTRAINT_FILE              512U
 
 /**
- *  @brief  
- *  
- *  @ingroup  hard_constraints
- *
- */
-#define VRNA_CONSTRAINT_IINDX             1024U
-
-/**
  *  @brief  Soft constraints flag, apply constraints for MFE calculations
  *  
  *  @ingroup  soft_constraints
@@ -389,7 +381,6 @@ typedef struct vrna_hc_t {
  *  @ingroup soft_constraints
  */
 typedef struct vrna_sc_t {
-  double      *constraints;           /**<  @brief Backup storage for energy contributions of single nucleotides */
   int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
   int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
   FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
@@ -472,30 +463,54 @@ void vrna_message_constraint_options(unsigned int option);
 void vrna_message_constraints_all(void);
 
 /**
- *  @brief  Add hard constraints to a #vrna_fold_compound data structure
+ *  @brief  Add constraints to a #vrna_fold_compound data structure
  *
- *  Use this function to add/update a data structure of type #vrna_hc_t that
- *  specifies which decomposition steps are allowed/enforced during the recursions.
+ *  Use this function to add/update the hard/soft constraints
  *  The function allows for passing a string 'constraint' that can either be a
- *  filename that points to a hard constraints definition file or it may be a
- *  pseudo dot-bracket notation indicating the hard constraint. Depending on
+ *  filename that points to a constraints definition file or it may be a
+ *  pseudo dot-bracket notation indicating hard constraints. Depending on
  *  the type of the string the user has to pass #VRNA_CONSTRAINT_FILE or
  *  #VRNA_CONSTRAINT_DB in the option parameter, respectively. If none of these
- *  to options are passed, no further hard constraints then the ones induced by
- *  canonical base pairing (as supplied with the ptype argument) are applied.
+ *  to options are passed, no action is performed, other than to guarantee that
+ *  at least a hard constraints data structure of type #vrna_hc_t with default
+ *  values is present in 'vc'. Already existing hard constraints are not touched.
  *
- *  @see      vrna_hc_reset(), vrna_hc_free(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
+ *  In case, a psuedo dot-bracket string is passed as the second argument, the
+ *  user has to specify, which characters are allowed to be interpreted as
+ *  constraints by passing the corresponding options via the third parameter.
  *
- *  @ingroup  hard_constraints
+ *  @see      vrna_hc_init(), vrna_sc_init(), vrna_hc_add_up(), vrna_hc_add_bp(),
+ *            vrna_sc_add_up(), vrna_sc_add_bp(), vrna_sc_SHAPE_add_deigan(),
+ *            vrna_sc_SHAPE_add_zarringhalam(), vrna_hc_free(), vrna_sc_free(),
+ *            #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_PIPE,
+ *            #VRNA_CONSTRAINT_DOT, #VRNA_CONSTRAINT_X, #VRNA_CONSTRAINT_ANG_BRACK,
+ *            #VRNA_CONSTRAINT_RND_BRACK, #VRNA_CONSTRAINT_INTRAMOLECULAR,
+ *            #VRNA_CONSTRAINT_INTERMOLECULAR, #VRNA_CONSTRAINT_G
+ *
+ *  @ingroup  constraints
  *
  *  @param  vc            The fold compound
- *  @param  constraint    A string with either the filename of the hard constraint definitions
+ *  @param  constraint    A string with either the filename of the constraint definitions
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
-void vrna_hc_add( vrna_fold_compound *vc,
-                  const char *constraint,
-                  unsigned int options);
+void vrna_add_constraints(vrna_fold_compound *vc,
+                          const char *constraint,
+                          unsigned int options);
+
+/**
+ *  @brief  Initialize/Reset hard constraints to default values
+ *
+ *  This function resets the hard constraints to their default values, i.e.
+ *  all positions may be unpaired in all contexts, and base pairs are
+ *  allowed in all contexts, if they resemble canonical pairs.
+ *  Previously set hard constraints will be removed vefore initialization.
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @param  vc  The fold compound
+ */
+void vrna_hc_init(vrna_fold_compound *vc);
 
 /**
  *  @brief  Make a certain nucleotide unpaired
@@ -526,20 +541,6 @@ void vrna_hc_add_bp(vrna_fold_compound *vc,
                     char option);
 
 /**
- *  @brief  Reset hard constraints to default values
- *
- *  This function resets the hard constraints to its default values, i.e.
- *  all positions may be unpaired in all contexts, and base pairs are
- *  allowed in all contexts, if they resemble canonical pairs
- *
- *  @ingroup  hard_constraints
- *
- *  @param  vc            The fold compound
- */
-void vrna_hc_reset(vrna_fold_compound *vc);
-
-
-/**
  *  @brief  Free the memory allocated by a #vrna_hc_t data structure
  *
  *  Use this function to free all memory that was allocated for a data structure
@@ -553,31 +554,22 @@ void vrna_hc_reset(vrna_fold_compound *vc);
 void vrna_hc_free(vrna_hc_t *hc);
 
 /**
- *  @brief Add soft constraints to a fold_compound
+ *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound
  *
  *  This function adds a proper soft constraints data structure
- *  to the fold_compound data structure.
- *  Current behavior upon already existing soft constraints is
- *  to remove them first before adding the new ones.
- *  This behavior will probably change in the near future in favor
- *  of adding additional soft constraints on top of others.
+ *  to the #vrna_fold_compound data structure.
+ *  If soft constraints already exist within the fold compound, they are removed.
  *
- *  If no constraints are passed an empty soft constraints data
- *  structure is created.
- *  Otherwise, the provided constraint values are assumed to
- *  specify energy contributions in units of kcal/mol for unpaired
- *  positions.
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *
+ *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_SHAPE_add_deigan(),
+ *        vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
+ *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
+ *  @param  vc  The #vrna_fold_compound where an empty soft constraint feature is to be added to
  */
-void vrna_sc_add( vrna_fold_compound *vc,
-                  const double *constraints,
-                  unsigned int options);
-
-void vrna_sc_add_ali( vrna_fold_compound *vc,
-                      const double **constraints,
-                      unsigned int options);
+void vrna_sc_init(vrna_fold_compound *vc);
 
 /**
  *  @brief  Add soft constraints for paired nucleotides
@@ -607,6 +599,8 @@ void vrna_sc_add_up(vrna_fold_compound *vc,
 
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound
+ *
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *

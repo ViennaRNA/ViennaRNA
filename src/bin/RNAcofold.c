@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
                               | VRNA_CONSTRAINT_ANG_BRACK
                               | VRNA_CONSTRAINT_RND_BRACK;
 
-        vrna_hc_add(vc, (const char *)structure, constraint_options);
+        vrna_add_constraints(vc, (const char *)structure, constraint_options);
       }
     }
 

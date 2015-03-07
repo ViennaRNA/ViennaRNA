@@ -129,7 +129,7 @@ wrap_pf_fold( const char *sequence,
                           | VRNA_CONSTRAINT_ANG_BRACK
                           | VRNA_CONSTRAINT_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)

@@ -30,7 +30,7 @@ START_TEST(test_sample_structure)
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   char *sample;
 
-  set_model_details(&md);
+  vrna_md_set_default(&md);
   md.uniq_ML = 1;
   md.compute_bpp = 0;
 
@@ -74,7 +74,7 @@ START_TEST(test_sc_sanity_check)
   plist *plist_constrained;
 
 
-  set_model_details(&md);
+  vrna_md_set_default(&md);
   md.compute_bpp = 1;
 
   vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);

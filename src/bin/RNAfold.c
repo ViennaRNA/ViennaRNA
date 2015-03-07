@@ -357,10 +357,10 @@ int main(int argc, char *argv[]){
                               | VRNA_CONSTRAINT_ANG_BRACK
                               | VRNA_CONSTRAINT_RND_BRACK;
 
-        vrna_hc_add(vc, (const char *)structure, constraint_options);
+        vrna_add_constraints(vc, (const char *)structure, constraint_options);
       }
     }
-    vrna_hc_add(vc, "bla.const", VRNA_CONSTRAINT_FILE);
+    vrna_add_constraints(vc, "bla.const", VRNA_CONSTRAINT_FILE);
 
     if(with_shapes)
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));

@@ -563,6 +563,9 @@ vrna_read_SHAPE_file( const char *file_name,
   int i;
   int count = 0;
 
+  if(!file_name)
+    return 0;
+
   if(!(fp = fopen(file_name, "r"))){
     vrna_message_warning("SHAPE data file could not be opened");
     return 0;
