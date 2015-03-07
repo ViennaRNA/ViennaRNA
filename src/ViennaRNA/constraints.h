@@ -218,12 +218,15 @@
  */
 #define VRNA_HC_CONTEXT_MB_LOOP_ENC   (char)0x20
 
-#define VRNA_HC_CONTEXT_ALL_LOOPS     VRNA_HC_CONTEXT_EXT_LOOP \
+#define VRNA_HC_CONTEXT_ALL_LOOPS     (char)0x3F
+/*
+VRNA_HC_CONTEXT_EXT_LOOP \
                                       | VRNA_HC_CONTEXT_HP_LOOP \
                                       | VRNA_HC_CONTEXT_INT_LOOP \
                                       | VRNA_HC_CONTEXT_INT_LOOP_ENC \
                                       | VRNA_HC_CONTEXT_MB_LOOP \
                                       | VRNA_HC_CONTEXT_MB_LOOP_ENC
+*/
 
 #define VRNA_HC_CONTEXT_ENFORCE       (char)0x40
 

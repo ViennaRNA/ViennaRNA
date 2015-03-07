@@ -711,16 +711,18 @@ parse_constraints_line( const char *line,
               ret = 1;
               break;
       case 2: /* skip if in range_mode */
-              if(range_mode)
+              if(!range_mode){
+                /* must be k */
+                if(sscanf(buf, "%d%n", k, &pp) == 1){
+                  if(pp == strlen(buf))
+                    break;
+                }
+                ret = 1;
                 break;
-
-              /* must be k */
-              if(sscanf(buf, "%d%n", k, &pp) == 1){
-                if(pp == strlen(buf))
-                  break;
+              } else {
+                --max_entries;
+                /* fall through */
               }
-              ret = 1;
-              break;
       case 3: /*  must be loop type, or orientation */
               if(sscanf(buf, "%c%n", &c, &pp) == 1){
                 if(pp == strlen(buf)){
@@ -769,7 +771,7 @@ vrna_read_constraints_file( const char *filename,
 
   while((line=get_line(fp))){
 
-    int i, j, k, l, error;
+    int i, j, k, l, cnt1, cnt2, cnt3, cnt4, error;
     float e;
     char command, looptype, orientation;
 
@@ -791,11 +793,55 @@ vrna_read_constraints_file( const char *filename,
       fprintf(stderr, "WARNING: Unrecognized constraint command line in input file %s, line %d\n", filename, line_number);
     } else if(error == 0){
       /* do something with the constraint we've just read */
+      int type;
+
+      switch(looptype){
+        case 'E':   type = (int)VRNA_HC_CONTEXT_EXT_LOOP;
+                    break;
+        case 'H':   type = (int)VRNA_HC_CONTEXT_HP_LOOP;
+                    break;
+        case 'I':   type = (int)VRNA_HC_CONTEXT_INT_LOOP;
+                    break;
+        case 'i':   type = (int)VRNA_HC_CONTEXT_INT_LOOP_ENC;
+                    break;
+        case 'M':   type = (int)VRNA_HC_CONTEXT_MB_LOOP;
+                    break;
+        case 'm':   type = (int)VRNA_HC_CONTEXT_MB_LOOP_ENC;
+                    break;
+        default:    type = (int)VRNA_HC_CONTEXT_ALL_LOOPS;
+                    break;
+      }
+      if(command == 'P'){ /* prohibit */
+        type = ~type;
+        type &= (int)VRNA_HC_CONTEXT_ALL_LOOPS;
+      } else if(command = 'F'){ /* enforce */
+        type |= VRNA_HC_CONTEXT_ENFORCE;
+      } else if((command == 'U') || (command == 'B')){ /* soft constraints are always applied for all loops */
+        type = (int)VRNA_HC_CONTEXT_ALL_LOOPS;
+      } else { /* remove conflicts only */
+        /*do nothing */
+      }
+
       if(l != -1){  /* we must have read a range */
         if(k != -1){ /* was k-l range */
           if(j != -1){  /* got i-j range too?! */
             if(i != -1){
               /* ok, range i-j is probibited to pair with range k-l */
+              if((i < j) && (i < k) && (k < l)){
+                for(cnt1 = i; cnt1 <= j; cnt1++)
+                  for(cnt2 = k; cnt2 <= l; cnt2++){
+                    constraints[constraint_number].i = cnt1;
+                    constraints[constraint_number].j = cnt2;
+                    constraints[constraint_number].p = 0.;
+                    constraints[constraint_number++].type = type;
+                    if(constraint_number == constraint_number_guess){
+                      constraint_number_guess *= 2;
+                      constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
+                    }
+                  }
+              } else {
+                fprintf(stderr, "WARNING: Constraint command has wrong intervals in input file %s, line %d\n", filename, line_number);
+              }
             } else {
               /* this is an input error */
             }
@@ -822,8 +868,9 @@ vrna_read_constraints_file( const char *filename,
           /* this is an input error */
         }
       }
-
+#if DEBUG
       printf("Constraint: %c %d %d %d %d %c %c\n", command, i, j, k, l, looptype, orientation);
+#endif
     }
 
     free(line);

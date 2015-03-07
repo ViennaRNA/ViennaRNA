@@ -225,14 +225,23 @@ vrna_add_constraints( vrna_fold_compound *vc,
                           options);
       hc_update_up(vc);
     } else if(options & VRNA_CONSTRAINT_FILE){ /* constraints from file */
-      (void) vrna_read_constraints_file(constraint, vc->length, options);
+      plist *p, *c = vrna_read_constraints_file(constraint, vc->length, options);
 
       /* now do something with the constraints we've just read */
-
+      for(p = c; p->i; p++){
+        if(p->i != p->j){
+          vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+        } else {
+          vrna_hc_add_up(vc, p->i, (char)p->type);
+        }
+        
+      }
       /* ############################### */
       /* init empty soft constraints     */
       /* ############################### */
       vrna_sc_init(vc);
+
+      free(c);
     }
   }
 }
@@ -325,10 +334,12 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
         q = i;
       }
 
+      if(option & VRNA_HC_CONTEXT_ALL_LOOPS){
+        if(vc->hc->matrix[vc->jindx[q] + p])
+          if(vc->ptype[vc->jindx[q] + p] == 0)
+            vc->ptype[vc->jindx[q] + p] = 7;
+      }
       vc->hc->matrix[vc->jindx[q] + p] = option & VRNA_HC_CONTEXT_ALL_LOOPS;
-      if(vc->hc->matrix[vc->jindx[q] + p])
-        if(vc->ptype[vc->jindx[q] + p] == 0)
-          vc->ptype[vc->jindx[q] + p] = 7;
 
       if(option & VRNA_HC_CONTEXT_ENFORCE){
 
