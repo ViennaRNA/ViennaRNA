@@ -845,10 +845,14 @@ vrna_read_constraints_file( const char *filename,
           j = i;
         }
       }
-
       if(valid){
         if((k == 0) && (l == 0) && (i == j) && (i > 0) && (h > 0)){ /* we deal with nucleotides rather than base pairs */
-          /* do nothing */
+          if(command != 'W'){
+            type = ~type;
+            type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          } else if(command == 'P'){
+            type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+          }
         } else if((i <= 0) || (j < i) || (k < i) || (l < k)){ /* check for 0 < i <= j <= k <= l */
           valid = 0;
         } else if((i != j) && ((j - i + 1) < h)){

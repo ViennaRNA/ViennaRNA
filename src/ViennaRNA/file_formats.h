@@ -13,6 +13,82 @@
 /**
  *  \file file_formats.h
  *  \brief Various functions dealing with file formats for RNA sequences, structures, and alignments
+ *
+ *  @section  file-formats  Input/Output file formats used in RNAlib
+ *
+ *  @subsection     constraint-formats  File formats for secondary structure constraints
+ *  @subsubsection  constraint-formats-file Constraints Definition File
+ *
+ *  The syntax we use in constraint definition files extends the one used in mfold/UNAfold where
+ *  each line begins with a command character followed by a set of positions, and an optional
+ *  loop type context specifier. All data must be white space seperated, each constraint spans exactly
+ *  one line.\n
+ *
+ *  The following set of commands is recognized:
+ *  -#  @f$ F \ldots @f$ Force
+ *  -#  @f$ P \ldots @f$ Prohibit
+ *  -#  @f$ W \ldots @f$ Weakly enforce, i.e. remove conflicts only
+ *  -#  @f$ U \ldots @f$ Soft constraint for unpaired position(s)
+ *  -#  @f$ B \ldots @f$ Soft constraint for base pair(s)
+ *
+ *  The optional loop type context specifier @f$ [WHERE] @f$ may be @em one of the following:
+ *  -#  @f$ E \ldots @f$ Exterior loop
+ *  -#  @f$ H \ldots @f$ Hairpin loop
+ *  -#  @f$ I \ldots @f$ Interior loop (enclosing pair)
+ *  -#  @f$ i \ldots @f$ Interior loop (enclosed pair)
+ *  -#  @f$ M \ldots @f$ Multibranch loop (enclosing pair)
+ *  -#  @f$ m \ldots @f$ Multibranch loop (enclosed pair)
+ *
+ *  Sequence positions of nucleotides/base pairs are @f$ 1- @f$ based and consist of three
+ *  positions @f$ i @f$, @f$ j @f$, and @f$ k @f$. Alternativly, four positions may be provided
+ *  as a pair of two position ranges @f$ [i:j] @f$, and @f$ [k:l] @f$ using the '-' sign as
+ *  delimiter within each range, i.e. @f$ i-j @f$, and @f$ k-l @f$.
+ *
+ *  Below are resulting general cases that are considered @em valid constraints:
+ *
+ *  -#  @b "Forcing a range of nucleotide positions to be paired":\n
+ *      Syntax: @verbatim F i 0 k [WHERE] @endverbatim\n
+ *      Description:\n
+ *      Enforces the set of @f$ k @f$ consecutive nucleotides starting at
+ *      position @f$ i @f$ to be paired. The optional loop type specifier @f$ [WHERE] @f$
+ *      allows to forbid @em unpairedness of the nucleotides within certain loops.
+ *  -#  @b "Forcing a set of consecutive base pairs to form":\n
+ *      Syntax: @verbatim F i j k [WHERE] @endverbatim\n
+ *      Description:\n
+ *      Enforces the base pairs @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$ to form.
+ *      The optional loop type specifier @f$ [WHERE] @f$ allows to specify in which loop
+ *      context the base pair must appear.
+ *  -#  @b "Prohibiting a range of nucleotide positions to be paired":\n
+ *      Syntax: @verbatim P i 0 k [WHERE] @endverbatim\n
+ *      Description:\n
+ *      Prohibit a set of @f$ k @f$ consecutive nucleotides to participate
+ *      in base pairing, i.e. make these positions unpaired. The optional loop type specifier
+ *      @f$ [WHERE] @f$ allows to enforce them to appear within a certain type of loop.
+ *  -#  @b "Probibiting a set of consecutive base pairs to form":\n
+ *      Syntax: @verbatim P i j k [WHERE] @endverbatim\n
+ *      Description:\n
+ *      Probibit the base pairs @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$ to form.
+ *      The optional loop type specifier @f$ [WHERE] @f$ allows to specify the type of
+ *      loop they are disallowed to be the closing or an enclosed pair of.
+ *  -#  @b "Prohibiting two ranges of nucleotides to pair with each other":\n
+ *      Syntax: @verbatim P i-j k-l [WHERE] @endverbatim
+ *      Description:\n
+ *      Prohibit any nucleotide @f$ p \in [i:j] @f$ to pair with any other nucleotide
+ *      @f$ q \in [k:l] @f$. The optional loop type specifier @f$ [WHERE] @f$ allows to
+ *      specify the type of loop they are disallowed to be the closing or an enclosed pair of.
+ *  -#  @b "Weakly enforce a range of nucleotide positions to be unpaired":\n
+ *      Syntax: @verbatim W i 0 k [WHERE] @endverbatim
+ *      Description:\n
+ *      This command is meant as a complement to @em prohibiting nucleotides to be paired,
+ *      as described above. It also marks the corresponding nucleotides to be unpaired, however,
+ *      they are not required to appear in the optional loop type context, if an energetically
+ *      better structure includes them as unpaired nucleotides within another loop.
+ *  -#  @b "Weakly enforce a set of consecutive base pairs":\n
+ *      Syntax: @verbatim W i j k @endverbatim\n
+ *      Description:\n
+ *      Remove all base pairs that conflict with a set of consecutive base pairs
+ *      @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$. Two base pairs @f$ (i,j) @f$ and @f$ (p,q) @f$
+ *      conflict with each other if @f$ i < p < j < q @f$, or @f$ p < i < q < j @f$.
  */
 
 #include <stdio.h>
@@ -187,6 +263,17 @@ int vrna_read_SHAPE_file( const char *file_name,
                           char *sequence,
                           double *values);
 
+/**
+ *  @brief  Read constraints from an input file
+ *
+ *  This function reads constraint definitions from a file and converts them
+ *  into an array of #plist data structures. The data fields of each individual
+ *  returned plist entry may adopt the following configurations:
+ *  - plist.i == plist.j @f$ \rightarrow @f$ single nucleotide constraint
+ *  - plist.i != plist.j @f$ \rightarrow @f$ base pair constraint
+ *  - plist.i == 0 @f$ \rightarrow @f$ End of list
+ *
+ */
 plist *vrna_read_constraints_file(const char *filename,
                                   unsigned int length,
                                   unsigned int options);
