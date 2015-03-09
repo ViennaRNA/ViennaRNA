@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   struct        RNAcofold_args_info args_info;
   unsigned int  input_type;
   char          *string, *input_string;
-  char    *structure, *cstruc, *rec_sequence, *orig_sequence, *rec_id, **rec_rest;
+  char    *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence, *rec_id, **rec_rest;
   char    fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
   char    *ParamFile;
   char    *ns_bases, *c;
@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
+  constraints_file = NULL;
 
   set_model_details(&md);
   /*
@@ -109,8 +110,11 @@ int main(int argc, char *argv[])
   if(args_info.temp_given)
     md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)
+  if(args_info.constraint_given){
     fold_constrained=1;
+    if(args_info.constraint_arg[0] != '\0')
+      constraints_file = strdup(args_info.constraint_arg);
+  }
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)
     md.special_hp = tetra_loop = 0;
@@ -263,35 +267,40 @@ int main(int argc, char *argv[])
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
-      cstruc = NULL;
-      int cp = -1;
-      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-      coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
-      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
-      cstruc = vrna_cut_point_remove(cstruc, &cp);
-      if(vc->cutpoint != cp){
-        fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-        vrna_message_error("Sequence and Structure have different cut points.");
-      }
+      if(constraints_file){
+        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+      } else {
+        cstruc = NULL;
+        cstruc = NULL;
+        int cp = -1;
+        unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
+        vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
+        cstruc = vrna_cut_point_remove(cstruc, &cp);
+        if(vc->cutpoint != cp){
+          fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+          vrna_message_error("Sequence and Structure have different cut points.");
+        }
 
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+        cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           vrna_message_warning("structure constraint is missing");
-      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
-      else if(cl > length)  vrna_message_error("structure constraint is too long");
+        if(cl == 0)           vrna_message_warning("structure constraint is missing");
+        else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+        else if(cl > length)  vrna_message_error("structure constraint is too long");
 
-      if(cstruc){
-        strncpy(structure, cstruc, sizeof(char)*(cl+1));
+        if(cstruc){
+          strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
-        unsigned int constraint_options = 0;
-        constraint_options |= VRNA_CONSTRAINT_DB
-                              | VRNA_CONSTRAINT_DB_PIPE
-                              | VRNA_CONSTRAINT_DB_DOT
-                              | VRNA_CONSTRAINT_DB_X
-                              | VRNA_CONSTRAINT_DB_ANG_BRACK
-                              | VRNA_CONSTRAINT_DB_RND_BRACK;
+          unsigned int constraint_options = 0;
+          constraint_options |= VRNA_CONSTRAINT_DB
+                                | VRNA_CONSTRAINT_DB_PIPE
+                                | VRNA_CONSTRAINT_DB_DOT
+                                | VRNA_CONSTRAINT_DB_X
+                                | VRNA_CONSTRAINT_DB_ANG_BRACK
+                                | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-        vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+        }
       }
     }
 
@@ -550,8 +559,8 @@ int main(int argc, char *argv[])
     (void) fflush(stdout);
     
     /* clean up */
-    if(cstruc) free(cstruc);
-    if(rec_id) free(rec_id);
+    free(cstruc);
+    free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
     free(structure);

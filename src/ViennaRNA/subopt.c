@@ -610,6 +610,7 @@ vrna_subopt(vrna_fold_compound *vc,
   int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad, threshold, cp;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
+  float         correction;
   vrna_param_t  *P;
   vrna_md_t     *md;
   int           minimal_energy;
@@ -687,10 +688,12 @@ vrna_subopt(vrna_fold_compound *vc,
 
   free(struc);
   eprint = print_energy + min_en;
+
+  correction = (min_en < 0) ? -0.1 : 0.1;
   if (fp) {
     char *SeQ;
     SeQ = vrna_cut_point_insert(sequence, cp);
-    fprintf(fp, "%s %6d %6d\n", SeQ, (int) (-0.1+100*min_en), delta);
+    fprintf(fp, "%s %6d %6d\n", SeQ, (int) (correction+100*min_en), delta);
     free(SeQ);
   }
 
@@ -779,7 +782,7 @@ vrna_subopt(vrna_fold_compound *vc,
           structure_energy = vrna_eval_structure(vc, structure);
         }
 
-        e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
+        e = (int) ((structure_energy-min_en)*10. - correction); /* avoid rounding errors */
         if (e>MAXDOS) e=MAXDOS;
         density_of_states[e]++;
         if (structure_energy>eprint) {

@@ -827,11 +827,9 @@ vrna_read_constraints_file( const char *filename,
       int valid = 1;
       h = 1; /* helix length for pairs */
       if(i == -1){  /* this may never happen */
-        fprintf(stderr, "WARNING: Constraint command incomplete in input file %s, line %d\n", filename, line_number);
         valid = 0;
       } else if(j == -1){ /* i and range [k:l] */
         if((k == -1) || (l == -1)){
-          fprintf(stderr, "WARNING: Constraint command incomplete in input file %s, line %d\n", filename, line_number);
           valid = 0;
         } else {
           j = i;
@@ -839,25 +837,25 @@ vrna_read_constraints_file( const char *filename,
       } else if(k == -1){ /* range [i:j] and l */
         k = l;
       } else if(l == -1){ /* helix of size k starting with pair (i,j) */
-        h = k;
-        k = l = j;
-        j = i;
+        if(i == j){
+          valid = 0;
+        } else {
+          h = k;
+          k = l = j;
+          j = i;
+        }
       }
 
       if(valid){
-        if((k == 0) && (l == 0) && (i == j) && (i > 0)){ /* we deal with nucleotides rather than base pairs */
+        if((k == 0) && (l == 0) && (i == j) && (i > 0) && (h > 0)){ /* we deal with nucleotides rather than base pairs */
           /* do nothing */
         } else if((i <= 0) || (j < i) || (k < i) || (l < k)){ /* check for 0 < i <= j <= k <= l */
-          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
           valid = 0;
         } else if((i != j) && ((j - i + 1) < h)){
-          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
           valid = 0;
         } else if((k != l) && ((l - k + 1) < h)){
-          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
           valid = 0;
         } else if(h < 1){
-          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
           valid = 0;
         }
       }
@@ -876,6 +874,8 @@ vrna_read_constraints_file( const char *filename,
                 constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
               }
             }
+      } else {
+        fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
       }
     }
 

@@ -332,7 +332,6 @@ E_int_loop( int i,
                                       ij, cp,
                                       P, sc);
           energy += *c_pq;
-
           e = MIN2(e, energy);
 
         }

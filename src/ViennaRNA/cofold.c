@@ -1295,43 +1295,56 @@ free_end( int *array,
       si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-      switch(dangle_model){
-        case 0:   en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
-                  array[i] = MIN2(array[i], en);
-                  break;
-        case 2:   en = array[j-inc] + energy + E_ExtLoop(type, si, sj, P);
-                  array[i] = MIN2(array[i], en);
-                  break;
-        default:  en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
-                  array[i] = MIN2(array[i], en);
-                  if(inc > 0){
-                    if(j > left){
-                      if(hc->up_ext[ii-1]){
-                        en = array[j-2] + energy + E_ExtLoop(type, si, -1, P);
-                        if(sc)
-                          if(sc->free_energies)
-                            en += sc->free_energies[ii-1][1];
-
-                        array[i] = MIN2(array[i], en);
-                      }
-                    }
-                  } else if(j < right){
-                    if(hc->up_ext[jj+1]){
-                      en = array[j+2] + energy + E_ExtLoop(type, -1, sj, P);
-                      if(sc)
-                        if(sc->free_energies)
-                          en += sc->free_energies[jj+1][1];
-
+      if(energy != INF){
+        switch(dangle_model){
+          case 0:   if(array[j-inc] != INF){
+                      en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
                       array[i] = MIN2(array[i], en);
                     }
-                  }
-                  break;
+                    break;
+          case 2:   if(array[j-inc] != INF){
+                      en = array[j-inc] + energy + E_ExtLoop(type, si, sj, P);
+                      array[i] = MIN2(array[i], en);
+                    }
+                    break;
+          default:  if(array[j-inc] != INF){
+                      en = array[j-inc] + energy + E_ExtLoop(type, -1, -1, P);
+                      array[i] = MIN2(array[i], en);
+                    }
+                    if(inc > 0){
+                      if(j > left){
+                        if(hc->up_ext[ii-1]){
+                          if(array[j-2] != INF){
+                            en = array[j-2] + energy + E_ExtLoop(type, si, -1, P);
+                            if(sc)
+                              if(sc->free_energies)
+                                en += sc->free_energies[ii-1][1];
+
+                            array[i] = MIN2(array[i], en);
+                          }
+                        }
+                      }
+                    } else if(j < right){
+                      if(hc->up_ext[jj+1]){
+                        if(array[j+2] != INF){
+                          en = array[j+2] + energy + E_ExtLoop(type, -1, sj, P);
+                          if(sc)
+                            if(sc->free_energies)
+                              en += sc->free_energies[jj+1][1];
+
+                          array[i] = MIN2(array[i], en);
+                        }
+                      }
+                    }
+                    break;
+        }
       }
     }
 
     if(with_gquad){
       if(ON_SAME_STRAND(ii, jj,cp))
-        array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
+        if(array[j-inc] != INF)
+          array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
     }
 
     if (dangle_model%2==1) {
@@ -1339,39 +1352,48 @@ free_end( int *array,
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
       else     { ii = i+1; jj = j;} /* inc<0 */
 
-      if (!(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
+      if (!(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP))
+        continue;
 
       type = ptype[indx[jj]+ii];
       si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
-      if(inc>0){
-        if(hc->up_ext[jj-1]){
-          en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
-          if(sc)
-            if(sc->free_energies)
-              en += sc->free_energies[jj+1][1];
+      if(energy != INF){
+        if(inc>0){
+          if(hc->up_ext[jj-1]){
+            if(array[j-inc] != INF){
+              en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
+              if(sc)
+                if(sc->free_energies)
+                  en += sc->free_energies[jj+1][1];
 
-          array[i] = MIN2(array[i], en);
+              array[i] = MIN2(array[i], en);
+            }
+          }
+        } else {
+          if(hc->up_ext[ii-1]){
+            if(array[j - inc] != INF){
+              en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
+              if(sc)
+                if(sc->free_energies)
+                  en += sc->free_energies[ii-1][1];
+
+              array[i] = MIN2(array[i], en);
+            }
+          }
         }
-      } else {
-        if(hc->up_ext[ii-1]){
-          en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
-          if(sc)
-            if(sc->free_energies)
-              en += sc->free_energies[ii-1][1];
+        if(j!= start){ /* dangle_model on both sides */
+          if(hc->up_ext[jj-1] && hc->up_ext[ii-1]){
+            if(array[j-2*inc] != INF){
+              en = array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P);
+              if(sc)
+                if(sc->free_energies)
+                  en += sc->free_energies[ii-1][1] + sc->free_energies[jj+1][1];
 
-          array[i] = MIN2(array[i], en);
-        }
-      }
-      if(j!= start){ /* dangle_model on both sides */
-        if(hc->up_ext[jj-1] && hc->up_ext[ii-1]){
-          en = array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P);
-          if(sc)
-            if(sc->free_energies)
-              en += sc->free_energies[ii-1][1] + sc->free_energies[jj+1][1];
-
-          array[i] = MIN2(array[i], en);
+              array[i] = MIN2(array[i], en);
+            }
+          }
         }
       }
     }
