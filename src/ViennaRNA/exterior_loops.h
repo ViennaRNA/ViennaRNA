@@ -149,22 +149,22 @@ E_ext_loop( int i,
 
   if((cp < 0) || (((i)>=cp)||((j)<cp))){ /* regular exterior loop */
     switch(md->dangles){
-      case 0:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+      case 0:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
                   e = E_ExtLoop(type, -1, -1, P);
                 break;
-      case 2:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+      case 2:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
                   e = E_ExtLoop(type, S[i-1], S[j+1], P);
                 break;
-      default:  if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP)
+      default:  if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
                   e = E_ExtLoop(type, -1, -1, P);
                 ij = idx[j - 1] + i;
-                if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   type = vc->ptype[ij];
                   en = E_ExtLoop(type, -1, S[j], P);
                   e = MIN2(e, en);
                 }
                 ij = idx[j] + i + 1;
-                if(hard_constraints[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   type = vc->ptype[ij];
                   en = E_ExtLoop(type, S[i], -1, P);
                   e = MIN2(e, en);
@@ -221,7 +221,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                 }
                 for (i=j-turn-1; i>1; i--){
                   ij = indx[j]+i;
-                  if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+                  if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
                   if(with_gquad){
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
@@ -231,7 +231,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j] + 1;
-                if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+                if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
@@ -253,7 +253,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                 }
                 for (i=j-turn-1; i>1; i--){
                   ij = indx[j] + i;
-                  if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+                  if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
                   if(with_gquad){
                     f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
@@ -263,7 +263,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j] + 1;
-                if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+                if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
@@ -280,7 +280,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
               }
               for (i=length-turn-1; i>1; i--){
                 ij = indx[length] + i;
-                if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+                if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
                 if(with_gquad){
                   f5[length] = MIN2(f5[length], f5[i-1] + ggg[indx[length]+i]);
@@ -290,7 +290,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                 f5[length]  = MIN2(f5[length], en);
               }
               ij = indx[length] + 1;
-              if(!(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP)) break;
+              if(!(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) break;
 
               if(with_gquad){
                 f5[length] = MIN2(f5[length], ggg[indx[length]+1]);
@@ -311,7 +311,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                 }
                 for (i=j-turn-1; i>1; i--){
                   ij = indx[j] + i;
-                  if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
 
                     if(with_gquad){
                       f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
@@ -331,7 +331,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                     }
                   }
                   ij = indx[j-1] + i;
-                  if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     if(hc_up[j]){
                       type  = ptype[ij];
                       en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S[j], P);
@@ -355,7 +355,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   }
                 }
                 ij = indx[j] + 1;
-                if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
 
                   if(with_gquad){
                     f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
@@ -366,7 +366,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
                   f5[j] = MIN2(f5[j], en);
                 }
                 ij = indx[j-1] + 1;
-                if(hc[ij] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   if(hc_up[j]){
                     type  = ptype[ij];
                     en    = c[ij] + E_ExtLoop(type, -1, S[j], P);

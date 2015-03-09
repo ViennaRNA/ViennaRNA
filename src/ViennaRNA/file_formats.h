@@ -155,8 +155,8 @@ char *vrna_extract_record_rest_structure( const char **lines,
  *
  *  \pre      The argument 'lines' has to be a 2-dimensional character array as obtained
  *            by vrna_read_fasta_record()
- *  \see      vrna_read_fasta_record(), #VRNA_CONSTRAINT_PIPE, #VRNA_CONSTRAINT_DOT, #VRNA_CONSTRAINT_X
- *            #VRNA_CONSTRAINT_ANG_BRACK, #VRNA_CONSTRAINT_RND_BRACK
+ *  \see      vrna_read_fasta_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
+ *            #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK
  *
  *  \param  cstruc  A pointer to a character array that is used as pseudo dot-bracket
  *                  output

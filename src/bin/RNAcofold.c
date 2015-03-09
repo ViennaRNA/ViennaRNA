@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
   if(istty){
     printf("Use '&' to connect 2 sequences that shall form a complex.\n");
     if(fold_constrained){
-      vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
     }
     else vrna_message_input_seq_simple();
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
       cstruc = NULL;
       int cp = -1;
       unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-      coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
+      coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
       vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
       cstruc = vrna_cut_point_remove(cstruc, &cp);
       if(vc->cutpoint != cp){
@@ -285,11 +285,11 @@ int main(int argc, char *argv[])
 
         unsigned int constraint_options = 0;
         constraint_options |= VRNA_CONSTRAINT_DB
-                              | VRNA_CONSTRAINT_PIPE
-                              | VRNA_CONSTRAINT_DOT
-                              | VRNA_CONSTRAINT_X
-                              | VRNA_CONSTRAINT_ANG_BRACK
-                              | VRNA_CONSTRAINT_RND_BRACK;
+                              | VRNA_CONSTRAINT_DB_PIPE
+                              | VRNA_CONSTRAINT_DB_DOT
+                              | VRNA_CONSTRAINT_DB_X
+                              | VRNA_CONSTRAINT_DB_ANG_BRACK
+                              | VRNA_CONSTRAINT_DB_RND_BRACK;
 
         vrna_add_constraints(vc, (const char *)structure, constraint_options);
       }
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
     if(istty){
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if(fold_constrained){
-        vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
         vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
       }
       else vrna_message_input_seq_simple();

@@ -22,6 +22,7 @@
 #endif
 #include "ViennaRNA/file_formats.h"
 
+#define DEBUG
 /*
 #################################
 # PRIVATE VARIABLES             #
@@ -479,12 +480,12 @@ vrna_extract_record_rest_constraint(char **cstruc,
   char *c, *ptr;
   if(lines){
     if(option & VRNA_CONSTRAINT_ALL)
-      option |=   VRNA_CONSTRAINT_PIPE
-                | VRNA_CONSTRAINT_ANG_BRACK
-                | VRNA_CONSTRAINT_RND_BRACK
-                | VRNA_CONSTRAINT_X
-                | VRNA_CONSTRAINT_INTRAMOLECULAR
-                | VRNA_CONSTRAINT_INTERMOLECULAR;
+      option |=   VRNA_CONSTRAINT_DB_PIPE
+                | VRNA_CONSTRAINT_DB_ANG_BRACK
+                | VRNA_CONSTRAINT_DB_RND_BRACK
+                | VRNA_CONSTRAINT_DB_X
+                | VRNA_CONSTRAINT_DB_INTRAMOL
+                | VRNA_CONSTRAINT_DB_INTERMOL;
 
     for(r=i=stop=0;lines[i];i++){
       l   = (int)strlen(lines[i]);
@@ -501,34 +502,34 @@ vrna_extract_record_rest_constraint(char **cstruc,
       /* check current line for actual constraining structure */
       for(ptr = c;*c;c++){
         switch(*c){
-          case '|':   if(!(option & VRNA_CONSTRAINT_PIPE)){
+          case '|':   if(!(option & VRNA_CONSTRAINT_DB_PIPE)){
                         vrna_message_warning("constraints of type '|' not allowed");
                         *c = '.';
                       }
                       break;
           case '<':   
-          case '>':   if(!(option & VRNA_CONSTRAINT_ANG_BRACK)){
+          case '>':   if(!(option & VRNA_CONSTRAINT_DB_ANG_BRACK)){
                         vrna_message_warning("constraints of type '<' or '>' not allowed");
                         *c = '.';
                       }
                       break;
           case '(':
-          case ')':   if(!(option & VRNA_CONSTRAINT_RND_BRACK)){
+          case ')':   if(!(option & VRNA_CONSTRAINT_DB_RND_BRACK)){
                         vrna_message_warning("constraints of type '(' or ')' not allowed");
                         *c = '.';
                       }
                       break;
-          case 'x':   if(!(option & VRNA_CONSTRAINT_X)){
+          case 'x':   if(!(option & VRNA_CONSTRAINT_DB_X)){
                         vrna_message_warning("constraints of type 'x' not allowed");
                         *c = '.';
                       }
                       break;
-          case 'e':   if(!(option & VRNA_CONSTRAINT_INTERMOLECULAR)){
+          case 'e':   if(!(option & VRNA_CONSTRAINT_DB_INTERMOL)){
                         vrna_message_warning("constraints of type 'e' not allowed");
                         *c = '.';
                       }
                       break;
-          case 'l':   if(!(option & VRNA_CONSTRAINT_INTRAMOLECULAR)){
+          case 'l':   if(!(option & VRNA_CONSTRAINT_DB_INTRAMOL)){
                         vrna_message_warning("constraints of type 'l' not allowed");
                         *c = '.';
                       }
@@ -771,7 +772,7 @@ vrna_read_constraints_file( const char *filename,
 
   while((line=get_line(fp))){
 
-    int i, j, k, l, cnt1, cnt2, cnt3, cnt4, error;
+    int i, j, k, l, h, cnt1, cnt2, cnt3, error;
     float e;
     char command, looptype, orientation;
 
@@ -796,81 +797,86 @@ vrna_read_constraints_file( const char *filename,
       int type;
 
       switch(looptype){
-        case 'E':   type = (int)VRNA_HC_CONTEXT_EXT_LOOP;
+        case 'E':   type = (int)VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
                     break;
-        case 'H':   type = (int)VRNA_HC_CONTEXT_HP_LOOP;
+        case 'H':   type = (int)VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
                     break;
-        case 'I':   type = (int)VRNA_HC_CONTEXT_INT_LOOP;
+        case 'I':   type = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
                     break;
-        case 'i':   type = (int)VRNA_HC_CONTEXT_INT_LOOP_ENC;
+        case 'i':   type = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
                     break;
-        case 'M':   type = (int)VRNA_HC_CONTEXT_MB_LOOP;
+        case 'M':   type = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
                     break;
-        case 'm':   type = (int)VRNA_HC_CONTEXT_MB_LOOP_ENC;
+        case 'm':   type = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
                     break;
-        default:    type = (int)VRNA_HC_CONTEXT_ALL_LOOPS;
+        default:    type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
                     break;
       }
       if(command == 'P'){ /* prohibit */
         type = ~type;
-        type &= (int)VRNA_HC_CONTEXT_ALL_LOOPS;
+        type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
       } else if(command = 'F'){ /* enforce */
-        type |= VRNA_HC_CONTEXT_ENFORCE;
+        type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;
       } else if((command == 'U') || (command == 'B')){ /* soft constraints are always applied for all loops */
-        type = (int)VRNA_HC_CONTEXT_ALL_LOOPS;
-      } else { /* remove conflicts only */
+        type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+      } else { /* weak enforce, i.e. remove conflicts only */
         /*do nothing */
       }
 
-      if(l != -1){  /* we must have read a range */
-        if(k != -1){ /* was k-l range */
-          if(j != -1){  /* got i-j range too?! */
-            if(i != -1){
-              /* ok, range i-j is probibited to pair with range k-l */
-              if((i < j) && (i < k) && (k < l)){
-                for(cnt1 = i; cnt1 <= j; cnt1++)
-                  for(cnt2 = k; cnt2 <= l; cnt2++){
-                    constraints[constraint_number].i = cnt1;
-                    constraints[constraint_number].j = cnt2;
-                    constraints[constraint_number].p = 0.;
-                    constraints[constraint_number++].type = type;
-                    if(constraint_number == constraint_number_guess){
-                      constraint_number_guess *= 2;
-                      constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
-                    }
-                  }
-              } else {
-                fprintf(stderr, "WARNING: Constraint command has wrong intervals in input file %s, line %d\n", filename, line_number);
-              }
-            } else {
-              /* this is an input error */
-            }
-          } else if(i != -1){
-            /* i must not pair with k-l range */
-          } else {
-            /* this is an input error */
-          }
-        } else { /* must have been i-j range with single target l */
-          if(j != -1){  /* should be range i-j */
-            if(i != -1){
-              /* range i-j must not pair with l */
-            } else {
-              /* this is an input error */
-            }
-          } else {
-            /* this is an input error */
-          }
-        }
-      } else { /* no range k-l, so i, j, and k must not be -1 */
-        if((i != -1) && (j != -1) && (k != -1)){
-          /* do something here */
+      /* sanity check */
+      int valid = 1;
+      h = 1; /* helix length for pairs */
+      if(i == -1){  /* this may never happen */
+        fprintf(stderr, "WARNING: Constraint command incomplete in input file %s, line %d\n", filename, line_number);
+        valid = 0;
+      } else if(j == -1){ /* i and range [k:l] */
+        if((k == -1) || (l == -1)){
+          fprintf(stderr, "WARNING: Constraint command incomplete in input file %s, line %d\n", filename, line_number);
+          valid = 0;
         } else {
-          /* this is an input error */
+          j = i;
+        }
+      } else if(k == -1){ /* range [i:j] and l */
+        k = l;
+      } else if(l == -1){ /* helix of size k starting with pair (i,j) */
+        h = k;
+        k = l = j;
+        j = i;
+      }
+
+      if(valid){
+        if((k == 0) && (l == 0) && (i == j) && (i > 0)){ /* we deal with nucleotides rather than base pairs */
+          /* do nothing */
+        } else if((i <= 0) || (j < i) || (k < i) || (l < k)){ /* check for 0 < i <= j <= k <= l */
+          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
+          valid = 0;
+        } else if((i != j) && ((j - i + 1) < h)){
+          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
+          valid = 0;
+        } else if((k != l) && ((l - k + 1) < h)){
+          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
+          valid = 0;
+        } else if(h < 1){
+          fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
+          valid = 0;
         }
       }
-#if DEBUG
-      printf("Constraint: %c %d %d %d %d %c %c\n", command, i, j, k, l, looptype, orientation);
-#endif
+
+      if(valid){
+        for(cnt1 = i; cnt1 <= j; cnt1++)
+          for(cnt2 = k; cnt2 <= l; cnt2++)
+            for(cnt3 = h; cnt3 != 0; cnt3--){
+              constraints[constraint_number].i = cnt1 + (cnt3 - 1);
+              constraints[constraint_number].j = (cnt2 == 0) ? cnt1 + (cnt3 - 1) : cnt2 - (cnt3 - 1);
+              constraints[constraint_number].p = 0.;
+              constraints[constraint_number++].type = type;
+
+              if(constraint_number == constraint_number_guess){
+                constraint_number_guess *= 2;
+                constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
+              }
+            }
+      }
     }
 
     free(line);

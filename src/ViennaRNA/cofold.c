@@ -152,13 +152,13 @@ wrap_cofold(const char *string,
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK
-                          | VRNA_CONSTRAINT_INTRAMOLECULAR
-                          | VRNA_CONSTRAINT_INTERMOLECULAR;
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK
+                          | VRNA_CONSTRAINT_DB_INTRAMOL
+                          | VRNA_CONSTRAINT_DB_INTERMOL;
 
     vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
@@ -496,7 +496,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(hard_constraints[indx[j]+k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[j]+k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
@@ -521,7 +521,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(hard_constraints[indx[j]+k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[j]+k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
@@ -544,7 +544,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(hard_constraints[indx[j]+k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[j]+k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
                       if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
@@ -565,7 +565,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(hard_constraints[indx[j-1]+k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[j-1]+k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[j-1]+k];
                       if(hc->up_ext[j]){
                         if(ON_SAME_STRAND(j-1,j,cp)){
@@ -633,7 +633,7 @@ backtrack_co( sect bt_stack[],
       switch(dangle_model){
         case 0:   for (k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
-                    if(hard_constraints[indx[k]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[k]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[k]+i];
                       if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
                         traced = i;
@@ -652,7 +652,7 @@ backtrack_co( sect bt_stack[],
                   break;
         case 2:   for (k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
-                    if(hard_constraints[indx[k]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[k]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[k]+i];
                       if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type,(i>1 && ON_SAME_STRAND(i-1,i,cp)) ? S1[i-1] : -1,  ON_SAME_STRAND(k,k+1,cp) ? S1[k+1] : -1, P)){
                         traced = i;
@@ -671,7 +671,7 @@ backtrack_co( sect bt_stack[],
                   break;
         default:  for(k=i+turn+1, traced=0; k<=j; k++){
                     jj=k+1;
-                    if(hard_constraints[indx[k]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[k]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[k]+i];
                       if(my_fc[i] == my_fc[k+1] + my_c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
                         traced = i; break;
@@ -695,7 +695,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
 
-                    if(hard_constraints[indx[k]+i+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if(hard_constraints[indx[k]+i+1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       int s5 = ON_SAME_STRAND(i, i+1,cp) ? S1[i] : -1;
                       int s3 = ON_SAME_STRAND(k, k+1,cp) ? S1[k+1] : -1;
                       if(hc->up_ext[i]){
@@ -769,27 +769,27 @@ backtrack_co( sect bt_stack[],
       tt  = ptype[indx[j]+i];
       cij = my_c[indx[j]+i];
       switch(dangle_model){
-        case 0:   if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC)
+        case 0:   if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
                     if(fij == cij + E_MLstem(tt, -1, -1, P)){
                       bp_list[++b].i  = i;
                       bp_list[b].j    = j;
                       goto repeat1;
                     }
                   break;
-        case 2:   if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC)
+        case 2:   if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
                     if(fij == cij + E_MLstem(tt, (i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P)){
                       bp_list[++b].i  = i;
                       bp_list[b].j    = j;
                       goto repeat1;
                     }
                   break;
-        default:  if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC)
+        default:  if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
                     if(fij == cij + E_MLstem(tt, -1, -1, P)){
                       bp_list[++b].i  = i;
                       bp_list[b].j    = j;
                       goto repeat1;
                     }
-                  if(hard_constraints[indx[j]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hard_constraints[indx[j]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[i]){
                       tt = ptype[indx[j]+i+1];
                       en = my_c[indx[j]+i+1] + P->MLbase;
@@ -805,7 +805,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
                   }
-                  if(hard_constraints[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hard_constraints[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[j]){
                       tt = ptype[indx[j-1]+i];
                       en = my_c[indx[j-1]+i] + P->MLbase;
@@ -821,7 +821,7 @@ backtrack_co( sect bt_stack[],
                       }
                     }
                   }
-                  if(hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[i] && hc->up_ml[j]){
                       tt = ptype[indx[j-1]+i+1];
                       en = my_c[indx[j-1]+i+1] + 2*P->MLbase;
@@ -848,7 +848,7 @@ backtrack_co( sect bt_stack[],
       if ((dangle_model==3)&&(k>j-2-turn)) { /* must be coax stack */
         ml = 2;
         for (k = i+1+turn; k <= j-2-turn; k++) {
-          if((hard_constraints[indx[k]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hard_constraints[indx[j]+k+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+          if((hard_constraints[indx[k]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hard_constraints[indx[j]+k+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
             type    = ptype[indx[k]+i];
             type    = rtype[type];
             type_2  = ptype[indx[j]+k+1];
@@ -882,7 +882,7 @@ backtrack_co( sect bt_stack[],
       if (cij == my_c[ij]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        if((hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_INT_LOOP_ENC)){
+        if((hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
           type_2 = ptype[indx[j-1]+i+1];
           type_2 = rtype[type_2];
           cij -= P->stack[type][type_2];
@@ -913,7 +913,7 @@ backtrack_co( sect bt_stack[],
       if (cij == energy) continue;
     }
 
-    if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+    if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
       for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1); p++) {
         int minq;
 
@@ -924,7 +924,7 @@ backtrack_co( sect bt_stack[],
         if (minq<p+1+turn) minq = p+1+turn;
         for (q = j-1; q >= minq; q--) {
 
-          if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+          if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
             continue;
 
           if(hc->up_int[q+1] < (j - q - 1))
@@ -1007,17 +1007,17 @@ backtrack_co( sect bt_stack[],
           decomp += sc->en_basepair[ij];
 
       switch(dangle_model){
-        case 0:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP)
+        case 0:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
                     if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
                       ii=i1, jj=j1;
                     }
                   break;
-        case 2:   if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP)
+        case 2:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
                     if(cij == decomp + E_ExtLoop(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, P)){
                       ii=i1, jj=j1;
                     }
                   break;
-        default:  if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+        default:  if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
                     int s5,s3;
                     if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
                       ii=i1, jj=j1;
@@ -1079,7 +1079,7 @@ backtrack_co( sect bt_stack[],
       }
     }
 
-    if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+    if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
       /* true multi-loop */
       mm = P->MLclosing;
       if(sc)
@@ -1146,7 +1146,7 @@ backtrack_co( sect bt_stack[],
         /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
         if(dangle_model==3){
           int en;
-          if(hard_constraints[indx[k]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+          if(hard_constraints[indx[k]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
             type_2 = ptype[indx[k]+i+1]; type_2 = rtype[type_2];
             en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
             if(sc)
@@ -1159,7 +1159,7 @@ backtrack_co( sect bt_stack[],
               break;
             }
           }
-          if(hard_constraints[indx[j-1]+k+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+          if(hard_constraints[indx[j-1]+k+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
             type_2 = ptype[indx[j-1]+k+1]; type_2 = rtype[type_2];
             en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
             if(sc)
@@ -1291,7 +1291,7 @@ free_end( int *array,
     if (i>j) { ii = j; jj = i;} /* inc>0 */
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
-    if(hard_constraints[indx[jj]+ii] & VRNA_HC_CONTEXT_EXT_LOOP){
+    if(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
       si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
@@ -1339,7 +1339,7 @@ free_end( int *array,
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
       else     { ii = i+1; jj = j;} /* inc<0 */
 
-      if (!(hard_constraints[indx[jj]+ii] & VRNA_HC_CONTEXT_EXT_LOOP)) continue;
+      if (!(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) continue;
 
       type = ptype[indx[jj]+ii];
       si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;

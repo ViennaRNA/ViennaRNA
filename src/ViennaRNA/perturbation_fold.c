@@ -158,11 +158,11 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
     vrna_fold_compound *restricted_vc;
     char *hc_string;
     unsigned int constraint_options = VRNA_CONSTRAINT_DB
-                                      | VRNA_CONSTRAINT_PIPE
-                                      | VRNA_CONSTRAINT_DOT
-                                      | VRNA_CONSTRAINT_X
-                                      | VRNA_CONSTRAINT_ANG_BRACK
-                                      | VRNA_CONSTRAINT_RND_BRACK;
+                                      | VRNA_CONSTRAINT_DB_PIPE
+                                      | VRNA_CONSTRAINT_DB_DOT
+                                      | VRNA_CONSTRAINT_DB_X
+                                      | VRNA_CONSTRAINT_DB_ANG_BRACK
+                                      | VRNA_CONSTRAINT_DB_RND_BRACK;
 
     hc_string = vrna_alloc(sizeof(char) * (length + 1));
     memset(hc_string, '.', length);

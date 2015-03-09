@@ -111,7 +111,7 @@ E_mb_loop_fast( int i,
     S_j1  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
   }
 
-  if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP){
+  if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
     if((S_i1 >= 0) && (S_j1 >= 0)){ /* regular multi branch loop */
       decomp = dmli1[j-1];
       tt = rtype[type];
@@ -229,17 +229,17 @@ E_mb_loop_stack(int i,
   ij    = indx[j] + i;
   type  = ptype[ij];
 
-  if(hc[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
     decomp = INF;
     k1j1  = indx[j-1] + i + 2 + turn + 1;
     for (k = i+2+turn; k < j-2-turn; k++, k1j1++){
       i1k   = indx[k] + i + 1;
-      if(hc[i1k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hc[i1k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         type_2  = rtype[(unsigned char)ptype[i1k]];
         en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
         decomp  = MIN2(decomp, en);
       }
-      if(hc[k1j1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hc[k1j1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         type_2  = rtype[(unsigned char)ptype[k1j1]];
         en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
         decomp  = MIN2(decomp, en);
@@ -283,7 +283,7 @@ E_ml_rightmost_stem(int i,
 
   if((cp < 0) || (((i - 1) >= cp) || (i < cp))){
     if((cp < 0) || ((j >= cp) || ((j + 1) < cp))){
-      if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         e = c[ij];
         switch(dangle_model){
           case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
@@ -377,7 +377,7 @@ E_ml_stems_fast(int i,
                       if(sc->free_energies)
                         en += sc->free_energies[i][1];
                     e = MIN2(e, en);
-                    if(hc[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                    if(hc[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type = ptype[ij+1];
                       en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
                       if(sc)
@@ -389,7 +389,7 @@ E_ml_stems_fast(int i,
 
                 if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
                   if(hc_up[j]){
-                    if(hc[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                    if(hc[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type = ptype[indx[j-1]+i];
                       en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
                       if(sc)
@@ -402,7 +402,7 @@ E_ml_stems_fast(int i,
                 if(   (cp < 0)
                     || (      (((j - 1) >= cp) || (j < cp))
                           &&  ((i >= cp) || ((i + 1) < cp))))
-                  if(hc[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hc[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc_up[i] && hc_up[j]){
                       type = ptype[indx[j-1]+i+1];
                       en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
@@ -439,7 +439,7 @@ E_ml_stems_fast(int i,
     k1j = indx[j]+i+turn+2;
     for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++){
       ik = indx[k]+i;
-      if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+      if((hc[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
         type_2  = rtype[(unsigned char)ptype[k1j]];
         en      = c[ik] + c[k1j] + P->stack[type][type_2];
@@ -449,7 +449,7 @@ E_ml_stems_fast(int i,
     k++; k1j++;
     for (; k <= j-2-turn; k++, k1j++){
       ik = indx[k]+i;
-      if((hc[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+      if((hc[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
         type_2  = rtype[(unsigned char)ptype[k1j]];
         en      = c[ik] + c[k1j] + P->stack[type][type_2];

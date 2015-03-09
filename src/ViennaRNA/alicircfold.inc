@@ -79,7 +79,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
       }
 
       new_c = 0;
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_HP_LOOP){
+      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
         if(hc->up_hp[j+1] >= u){
           for (s=0; s<n_seq; s++) {
             char loopseq[10];
@@ -111,7 +111,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
         }
       }
 
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
         for (p = j+1; p < length ; p++) {
           int u1, qmin;
           u1 = p-j-1;
@@ -126,7 +126,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
             int u2, sq1, type_2;
             u2 = i-1 + length-q;
 
-            if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP))
+            if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
               continue;
             if(u1+u2>MAXLOOP)
               continue;
