@@ -319,20 +319,22 @@ E_int_loop( int i,
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if(*hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
 
-          type_2 = rtype[(unsigned char)*ptype_pq];
+          if(*c_pq != INF){
+            type_2 = rtype[(unsigned char)*ptype_pq];
 
-          if (noGUclosure)
-            if (no_close||(type_2==3)||(type_2==4))
-              if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+            if (noGUclosure)
+              if (no_close||(type_2==3)||(type_2==4))
+                if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          energy = ubf_eval_int_loop( i, j, p, q,
-                                      p_i, j_q,
-                                      S_i1, S_j1, *S_p1, *S_q1,
-                                      type, type_2, rtype,
-                                      ij, cp,
-                                      P, sc);
-          energy += *c_pq;
-          e = MIN2(e, energy);
+            energy = ubf_eval_int_loop( i, j, p, q,
+                                        p_i, j_q,
+                                        S_i1, S_j1, *S_p1, *S_q1,
+                                        type, type_2, rtype,
+                                        ij, cp,
+                                        P, sc);
+            energy += *c_pq;
+            e = MIN2(e, energy);
+          }
 
         }
         hc_pq++;    /* get hc[pq + 1] */

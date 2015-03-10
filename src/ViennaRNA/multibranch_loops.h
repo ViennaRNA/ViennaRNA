@@ -117,10 +117,12 @@ E_mb_loop_fast( int i,
       tt = rtype[type];
       switch(dangle_model){
         /* no dangles */
-        case 0:   decomp += E_MLstem(tt, -1, -1, P);
-                  if(sc){
-                    if(sc->en_basepair)
-                      decomp += sc->en_basepair[ij];
+        case 0:   if(decomp != INF){
+                    decomp += E_MLstem(tt, -1, -1, P);
+                    if(sc){
+                      if(sc->en_basepair)
+                        decomp += sc->en_basepair[ij];
+                    }
                   }
                   break;
 
@@ -133,48 +135,57 @@ E_mb_loop_fast( int i,
                   break;
 
         /* normal dangles, aka dangles = 1 || 3 */
-        default:  decomp += E_MLstem(tt, -1, -1, P);
-                  if(sc){
-                    if(sc->en_basepair)
-                      decomp += sc->en_basepair[ij];
+        default:  if(decomp != INF){
+                    decomp += E_MLstem(tt, -1, -1, P);
+                    if(sc){
+                      if(sc->en_basepair)
+                        decomp += sc->en_basepair[ij];
+                    }
                   }
                   if(hc_up[i+1]){
-                    en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
-                    if(sc){
-                      if(sc->free_energies)
-                        en += sc->free_energies[i+1][1];
+                    if(dmli2[j-1] != INF){
+                      en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1];
 
-                      if(sc->en_basepair)
-                        en += sc->en_basepair[ij];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      decomp = MIN2(decomp, en);
                     }
-                    decomp = MIN2(decomp, en);
                   }
                   if(hc_up[j-1] && hc_up[i+1]){
-                    en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
-                    if(sc){
-                      if(sc->free_energies)
-                        en += sc->free_energies[i+1][1]
-                              + sc->free_energies[j-1][1];
+                    if(dmli2[j-2] != INF){
+                      en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[i+1][1]
+                                + sc->free_energies[j-1][1];
 
-                      if(sc->en_basepair)
-                        en += sc->en_basepair[ij];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      decomp = MIN2(decomp, en);
                     }
-                    decomp = MIN2(decomp, en);
                   }
                   if(hc_up[j-1]){
-                    en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
-                    if(sc){
-                      if(sc->free_energies)
-                        en += sc->free_energies[j-1][1];
+                    if(dmli1[j-2] != INF){
+                      en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
+                      if(sc){
+                        if(sc->free_energies)
+                          en += sc->free_energies[j-1][1];
 
-                      if(sc->en_basepair)
-                        en += sc->en_basepair[ij];
+                        if(sc->en_basepair)
+                          en += sc->en_basepair[ij];
+                      }
+                      decomp = MIN2(decomp, en);
                     }
-                    decomp = MIN2(decomp, en);
                   }
                   break;
       }
-      e = decomp + P->MLclosing;
+      if(decomp != INF)
+        e = decomp + P->MLclosing;
     }
 
     if(!((i >= cp) || (j < cp))){ /* multibrach like cofold structure with cut somewhere between i and j */
@@ -285,11 +296,13 @@ E_ml_rightmost_stem(int i,
     if((cp < 0) || ((j >= cp) || ((j + 1) < cp))){
       if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         e = c[ij];
-        switch(dangle_model){
-          case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
-                    break;
-          default:  e += E_MLstem(type, -1, -1, P);
-                    break;
+        if(e != INF){
+          switch(dangle_model){
+            case 2:   e += E_MLstem(type, (i==1) ? S[length] : S[i-1], S[j+1], P);
+                      break;
+            default:  e += E_MLstem(type, -1, -1, P);
+                      break;
+          }
         }
       }
 
@@ -303,12 +316,14 @@ E_ml_rightmost_stem(int i,
 
     if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
       if(hc_up[j]){
-        en = fm[indx[j - 1] + i] + P->MLbase;
-        if(sc)
-          if(sc->free_energies)
-            en += sc->free_energies[j][1];
+        if(fm[indx[j - 1] + i] != INF){
+          en = fm[indx[j - 1] + i] + P->MLbase;
+          if(sc)
+            if(sc->free_energies)
+              en += sc->free_energies[j][1];
 
-        e = MIN2(e, en);
+          e = MIN2(e, en);
+        }
       }
   }
   return e;
@@ -359,11 +374,13 @@ E_ml_stems_fast(int i,
       /* double dangles */
       case 2:   if((cp < 0) || ((i >= cp) || ((i + 1) < cp)))
                   if(hc_up[i]){
-                    en = fm[ij + 1] + P->MLbase;
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[i][1];
-                    e = MIN2(e, en);
+                    if(fm[ij + 1] != INF){
+                      en = fm[ij + 1] + P->MLbase;
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[i][1];
+                      e = MIN2(e, en);
+                    }
                   }
                 break;
 
@@ -372,30 +389,36 @@ E_ml_stems_fast(int i,
                 mm3 = ((j<length) || circular) ? S[j] : -1;
                 if((cp < 0) || ((i >= cp) || ((i + 1) < cp)))
                   if(hc_up[i]){
-                    en = fm[ij+1] + P->MLbase;
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[i][1];
-                    e = MIN2(e, en);
-                    if(hc[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                      type = ptype[ij+1];
-                      en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
+                    if(fm[ij+1] != INF){
+                      en = fm[ij+1] + P->MLbase;
                       if(sc)
                         if(sc->free_energies)
                           en += sc->free_energies[i][1];
                       e = MIN2(e, en);
+                    }
+                    if(hc[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                      if(c[ij+1] != INF){
+                        type = ptype[ij+1];
+                        en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[i][1];
+                        e = MIN2(e, en);
+                      }
                     }
                   }
 
                 if((cp < 0) || (((j - 1) >= cp) || (j < cp)))
                   if(hc_up[j]){
                     if(hc[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                      type = ptype[indx[j-1]+i];
-                      en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
-                      if(sc)
-                        if(sc->free_energies)
-                          en += sc->free_energies[j][1];
-                      e = MIN2(e, en);
+                      if(c[indx[j-1]+i] != INF){
+                        type = ptype[indx[j-1]+i];
+                        en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[j][1];
+                        e = MIN2(e, en);
+                      }
                     }
                   }
 
@@ -404,12 +427,14 @@ E_ml_stems_fast(int i,
                           &&  ((i >= cp) || ((i + 1) < cp))))
                   if(hc[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc_up[i] && hc_up[j]){
-                      type = ptype[indx[j-1]+i+1];
-                      en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
-                      if(sc)
-                        if(sc->free_energies)
-                          en += sc->free_energies[j][1] + sc->free_energies[i][1];
-                      e = MIN2(e, en);
+                      if(c[indx[j-1]+i+1] != INF){
+                        type = ptype[indx[j-1]+i+1];
+                        en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[j][1] + sc->free_energies[i][1];
+                        e = MIN2(e, en);
+                      }
                     }
                   }
                 break;
@@ -420,13 +445,17 @@ E_ml_stems_fast(int i,
   k1j   = indx[j] + i + turn + 2;
   stop  = (cp > 0) ? (cp - 1) : (j - 2 - turn);
   for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++){
-    en = fmi[k] + fm[k1j];
-    decomp = MIN2(decomp, en);
+    if((fmi[k] != INF ) && (fm[k1j] != INF)){
+      en = fmi[k] + fm[k1j];
+      decomp = MIN2(decomp, en);
+    }
   }
   k++; k1j++;
   for (;k <= j - 2 - turn; k++, k1j++){
-    en = fmi[k] + fm[k1j];
-    decomp = MIN2(decomp, en);
+    if((fmi[k] != INF) && (fm[k1j] != INF)){
+      en = fmi[k] + fm[k1j];
+      decomp = MIN2(decomp, en);
+    }
   }
 
   dmli[j] = decomp;               /* store for use in fast ML decompositon */

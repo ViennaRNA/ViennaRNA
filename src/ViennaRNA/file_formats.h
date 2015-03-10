@@ -31,7 +31,7 @@
  *  -#  @f$ U \ldots @f$ Soft constraint for unpaired position(s)
  *  -#  @f$ B \ldots @f$ Soft constraint for base pair(s)
  *
- *  The optional loop type context specifier @f$ [WHERE] @f$ may be @em one of the following:
+ *  The optional loop type context specifier @f$ [WHERE] @f$ may be a combination of the following:
  *  -#  @f$ E \ldots @f$ Exterior loop
  *  -#  @f$ H \ldots @f$ Hairpin loop
  *  -#  @f$ I \ldots @f$ Interior loop (enclosing pair)
@@ -51,7 +51,7 @@
  *      Description:\n
  *      Enforces the set of @f$ k @f$ consecutive nucleotides starting at
  *      position @f$ i @f$ to be paired. The optional loop type specifier @f$ [WHERE] @f$
- *      allows to forbid @em unpairedness of the nucleotides within certain loops.
+ *      allows to force them to appear as closing/enclosed pairs of certain types of loops.
  *  -#  @b "Forcing a set of consecutive base pairs to form":\n
  *      Syntax: @verbatim F i j k [WHERE] @endverbatim\n
  *      Description:\n
@@ -63,7 +63,7 @@
  *      Description:\n
  *      Prohibit a set of @f$ k @f$ consecutive nucleotides to participate
  *      in base pairing, i.e. make these positions unpaired. The optional loop type specifier
- *      @f$ [WHERE] @f$ allows to enforce them to appear within a certain type of loop.
+ *      @f$ [WHERE] @f$ allows to specify in which loop type context they must not appear paired.
  *  -#  @b "Probibiting a set of consecutive base pairs to form":\n
  *      Syntax: @verbatim P i j k [WHERE] @endverbatim\n
  *      Description:\n

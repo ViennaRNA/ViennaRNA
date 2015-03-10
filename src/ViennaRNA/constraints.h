@@ -187,6 +187,7 @@
  *
  */
 #define VRNA_CONSTRAINT_CONTEXT_EXT_LOOP      (char)0x01
+
 /**
  *  @brief  Hard constraints flag, base pair encloses hairpin loop
  *  
@@ -194,6 +195,7 @@
  *
  */
 #define VRNA_CONSTRAINT_CONTEXT_HP_LOOP       (char)0x02
+
 /**
  *  @brief  Hard constraints flag, base pair encloses an interior loop
  *  
@@ -201,20 +203,23 @@
  *
  */
 #define VRNA_CONSTRAINT_CONTEXT_INT_LOOP      (char)0x04
-/**
- *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
- *  
- *  @ingroup  hard_constraints
- *
- */
-#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP       (char)0x08
+
 /**
  *  @brief  Hard constraints flag, base pair encloses a multi branch loop
  *
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (char)0x10
+#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (char)0x08
+
+/**
+ *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
+ *  
+ *  @ingroup  hard_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP       (char)0x10
+
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in a multi branch loop
  *  

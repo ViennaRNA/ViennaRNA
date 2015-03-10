@@ -42,6 +42,11 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+PRIVATE void
+hc_add_up(vrna_fold_compound *vc,
+          int i,
+          char option);
+
 PRIVATE INLINE  void
 hc_cant_pair( unsigned int i,
               char c_option,
@@ -230,12 +235,14 @@ vrna_add_constraints( vrna_fold_compound *vc,
       /* now do something with the constraints we've just read */
       if(c){
         for(p = c; p->i; p++){
-          if(p->i != p->j){
+          if(p->j == 0){
+            hc_add_up(vc, p->i, (char)p->type);
+          } else { 
             vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
-          } else {
-            vrna_hc_add_up(vc, p->i, (char)p->type);
           }
         }
+
+        hc_update_up(vc);
 
         /* ############################### */
         /* init empty soft constraints     */
@@ -291,21 +298,47 @@ vrna_hc_add_up( vrna_fold_compound *vc,
         return;
       }
 
-      vc->hc->matrix[vc->jindx[i] + i] = option & (char)(   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                                                          | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                                                          | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                                                          | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
-
-      if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
-        /* do not allow i to be paired with any other nucleotide */
-        for(j = 1; j < i; j++)
-          vc->hc->matrix[vc->jindx[i] + j] = (char)0;
-        for(j = i+1; j <= vc->length; j++)
-          vc->hc->matrix[vc->jindx[j] + i] = (char)0;
-      }
+      hc_add_up(vc, i, option);
 
       hc_update_up(vc);
     }
+}
+
+PRIVATE void
+hc_add_up(vrna_fold_compound *vc,
+          int i,
+          char option){
+
+  int   j;
+  char  type = (char)0;
+
+  if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){ /* force nucleotide to appear unpaired within a certain type of loop */
+    /* do not allow i to be paired with any other nucleotide */
+    for(j = 1; j < i; j++)
+      vc->hc->matrix[vc->jindx[i] + j] = (char)0;
+    for(j = i+1; j <= vc->length; j++)
+      vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+
+    type = option & (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+
+    vc->hc->matrix[vc->jindx[i] + i] = type;
+  } else {
+    type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+    /* do not allow i to be paired with any other nucleotide (in context type) */
+    for(j = 1; j < i; j++)
+      vc->hc->matrix[vc->jindx[i] + j] = ~type;
+    for(j = i+1; j <= vc->length; j++)
+      vc->hc->matrix[vc->jindx[j] + i] = ~type;
+
+    vc->hc->matrix[vc->jindx[i] + i] = (char)(  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+  }
 }
 
 PUBLIC void
@@ -314,7 +347,8 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
                 int j,
                 char option){
 
-  int p,q, k, l;
+  int   p,q, k, l;
+  char  type;
 
   if(vc)
     if(vc->hc){
@@ -324,11 +358,19 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
       }
 
       if(i == j){
-        vrna_message_warning("vrna_hc_add_bp: positions do not differ, not doing anything");
-        return;
-      }
+        /* force position i to pair with some other nucleotide */
+        type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-      if(i < j){
+        for(p = 1; p < i; p++)
+          vc->hc->matrix[vc->jindx[i] + p] = type;
+        for(p = i+1; p <= vc->length; p++)
+          vc->hc->matrix[vc->jindx[p] + i] = type;
+
+        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+
+        hc_update_up(vc);
+        return;
+      } else if(i < j){
         p = i;
         q = j;
       } else {

@@ -650,20 +650,21 @@ parse_constraints_line( const char *line,
                         char *orientation,
                         float *e){
 
+  int v1, v2;
   int ret = 0;
   int range_mode = 0;
   int pos = 0;
   int max_entries = 5;
   int entries_seen = 0;
   int pp;
-  char buf[256], c;
+  char buf[256], buf2[10], *c, tmp_loop;
 
   switch(command){
     case 'F':   /* fall through */
     case 'P':   max_entries = 5;
                 break;
     case 'W':   /* fall through */
-    case 'U':   max_entries = 3;
+    case 'U':   max_entries = 4;
                 break;
     case 'B':   max_entries = 4;
                 break;
@@ -674,49 +675,64 @@ parse_constraints_line( const char *line,
                 break;
   }
 
+  /* default to all loop types */
+  *loop     = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+  tmp_loop  = (char)0;
+
   /* now lets scan the entire line for content */
   while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", buf, &pp) == 1)){
     pos += pp;
     switch(entries_seen){
       case 0: /* must be i, or range */
-              if(sscanf(buf, "%d-%d%n", i, j, &pp) == 2){
+              if(sscanf(buf, "%d-%d%n", &v1, &v2, &pp) == 2){
                 if(pp == strlen(buf)){
+                  *i = v1;
+                  *j = v2;
                   range_mode = 1;
                   --max_entries; /* no orientation allowed now */
                   break;
                 }
-              } else if(sscanf(buf, "%d%n", i, &pp) == 1){
+              } else if(sscanf(buf, "%d%n", &v1, &pp) == 1){
                 if(pp == strlen(buf)){
+                  *i = v1;
                   break;
                 }
               }
               ret = 1;
               break;
       case 1: /* must be j, or range */
-              if(sscanf(buf, "%d-%d%n", k, l, &pp) == 2){
+              if(sscanf(buf, "%d-%d%n", &v1, &v2, &pp) == 2){
                 if(pp == strlen(buf)){
+                  *k = v1;
+                  *l = v2;
                   if(!range_mode)
                     --max_entries; /* no orientation allowed now */
                   range_mode = 1;
                   break;
                 }
               } else if(range_mode){
-                if(sscanf(buf, "%d%n", l, &pp) == 1){
-                  if(pp == strlen(buf))
+                if(sscanf(buf, "%d%n", &v1, &pp) == 1){
+                  if(pp == strlen(buf)){
+                    *l = v1;
                     break;
+                  }
                 }
-              } else if(sscanf(buf, "%d%n", j, &pp) == 1){
-                if(pp == strlen(buf))
+              } else if(sscanf(buf, "%d%n", &v1, &pp) == 1){
+                if(pp == strlen(buf)){
+                  *j = v1;
                   break;
+                }
               }
               ret = 1;
               break;
       case 2: /* skip if in range_mode */
               if(!range_mode){
                 /* must be k */
-                if(sscanf(buf, "%d%n", k, &pp) == 1){
-                  if(pp == strlen(buf))
+                if(sscanf(buf, "%d%n", &v1, &pp) == 1){
+                  if(pp == strlen(buf)){
+                    *k = v1;
                     break;
+                  }
                 }
                 ret = 1;
                 break;
@@ -725,14 +741,32 @@ parse_constraints_line( const char *line,
                 /* fall through */
               }
       case 3: /*  must be loop type, or orientation */
-              if(sscanf(buf, "%c%n", &c, &pp) == 1){
+              if(sscanf(buf, "%8s%n", &buf2, &pp) == 1){
+                buf2[8] = '\0';
                 if(pp == strlen(buf)){
-                  if((!range_mode) && ((c == 'U') || (c == 'D'))){
-                    *orientation = c;
-                    ++entries_seen;
-                  } else {
-                   *loop = c;
+                  for(c = &(buf2[0]); (*c != '\0') && (!ret); c++){
+                    switch(*c){
+                      case 'E': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
+                                break;
+                      case 'H': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
+                                break;
+                      case 'I': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+                                break;
+                      case 'i': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+                                break;
+                      case 'M': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+                                break;
+                      case 'm': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+                                break;
+                      case 'U': case 'D':
+                                *orientation = *c;
+                                break;
+                      default:  ret = 1;
+                    }
                   }
+                  if(tmp_loop)
+                    *loop = tmp_loop;
+
                   break;
                 }
               }
@@ -772,7 +806,7 @@ vrna_read_constraints_file( const char *filename,
 
   while((line=get_line(fp))){
 
-    int i, j, k, l, h, cnt1, cnt2, cnt3, error;
+    int i, j, k, l, h, cnt1, cnt2, cnt3, error, type, valid;
     float e;
     char command, looptype, orientation;
 
@@ -784,94 +818,93 @@ vrna_read_constraints_file( const char *filename,
     }
 
     i = j = k = l = -1;
-    looptype    = 'A';  /* default to all loop types */
     orientation = '\0'; /* no orientation */
     e = (float)INF;
 
     error = parse_constraints_line(line + 1, command, &i, &j, &k, &l, &looptype, &orientation, &e);
-
     if(error == 1){
       fprintf(stderr, "WARNING: Unrecognized constraint command line in input file %s, line %d\n", filename, line_number);
     } else if(error == 0){
       /* do something with the constraint we've just read */
-      int type;
+      type  = (int)looptype;
+      h     = 1; /* helix length for pairs, or number of unpaired nucleotides */
 
-      switch(looptype){
-        case 'E':   type = (int)VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
-                    break;
-        case 'H':   type = (int)VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
-                    break;
-        case 'I':   type = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
-                    break;
-        case 'i':   type = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-                    break;
-        case 'M':   type = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
-                    break;
-        case 'm':   type = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
-                    break;
-        default:    type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-                    break;
-      }
-      if(command == 'P'){ /* prohibit */
-        type = ~type;
-        type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-      } else if(command = 'F'){ /* enforce */
-        type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;
-      } else if((command == 'U') || (command == 'B')){ /* soft constraints are always applied for all loops */
-        type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-      } else { /* weak enforce, i.e. remove conflicts only */
-        /*do nothing */
-      }
-
-      /* sanity check */
-      int valid = 1;
-      h = 1; /* helix length for pairs */
-      if(i == -1){  /* this may never happen */
-        valid = 0;
-      } else if(j == -1){ /* i and range [k:l] */
-        if((k == -1) || (l == -1)){
-          valid = 0;
-        } else {
-          j = i;
-        }
-      } else if(k == -1){ /* range [i:j] and l */
-        k = l;
-      } else if(l == -1){ /* helix of size k starting with pair (i,j) */
-        if(i == j){
-          valid = 0;
-        } else {
-          h = k;
-          k = l = j;
-          j = i;
-        }
-      }
-      if(valid){
-        if((k == 0) && (l == 0) && (i == j) && (i > 0) && (h > 0)){ /* we deal with nucleotides rather than base pairs */
-          if(command != 'W'){
-            type = ~type;
-            type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-          } else if(command == 'P'){
-            type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+      /* check indices */
+      valid = 0;
+      if(i > 0){
+        if(j == -1){ /* i and range [k:l] */
+          if((k > 0) && (l > 0)){
+            if((k < l) && (i < k)){
+              j     = i;
+              valid = 1;
+            }
           }
-        } else if((i <= 0) || (j < i) || (k < i) || (l < k)){ /* check for 0 < i <= j <= k <= l */
-          valid = 0;
-        } else if((i != j) && ((j - i + 1) < h)){
-          valid = 0;
-        } else if((k != l) && ((l - k + 1) < h)){
-          valid = 0;
-        } else if(h < 1){
-          valid = 0;
+        } else if(k <= 0){ /* range [i:j] and l */
+          if((i < j) && (j < l)){
+            k     = l;
+            valid = 1;
+          }
+        } else if(l <= 0){ /* helix of size k starting with pair (i,j), or segment [i:i+k-1] */
+          if(i != j){
+            if((j == 0) || ((j - i + 1) > 2*k)){
+              h     = k;
+              k = l = j;
+              j     = i;
+              valid = 1;
+            }
+          }
         }
       }
 
-      if(valid){
+
+      if(valid){  /* still valid constraint? */
+
+        /* nucleotide constraint? */
+        if((k == 0) && (l == 0) && (i == j) && (h > 0)){
+          /* set correct loop type context */
+          switch(command){
+            case 'P': /* do nothing */
+                      break;
+            case 'F': /* set i == j == k == l */
+                      k = l = i;
+                      break;
+            case 'U': /* fallthrough */
+            case 'D': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+                      break;
+            case 'W': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+            default:  break;
+          }
+        } else { /* base pair constraint */
+          /* set correct loop type context */
+          switch(command){
+            case 'P': type = ~type; /* prohibit */
+                      type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                      break;
+            case 'F': type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;  /* enforce */
+                      break;
+            case 'U': /* fallthrough */
+            case 'D': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+                      break;
+            case 'W': break;
+            default:  break;
+          }
+        }
+
+        /* construct list of constraints */
         for(cnt1 = i; cnt1 <= j; cnt1++)
           for(cnt2 = k; cnt2 <= l; cnt2++)
             for(cnt3 = h; cnt3 != 0; cnt3--){
-              constraints[constraint_number].i = cnt1 + (cnt3 - 1);
-              constraints[constraint_number].j = (cnt2 == 0) ? cnt1 + (cnt3 - 1) : cnt2 - (cnt3 - 1);
-              constraints[constraint_number].p = 0.;
-              constraints[constraint_number++].type = type;
+              constraints[constraint_number].i    = cnt1 + (cnt3 - 1);
+              constraints[constraint_number].p    = 0.;
+              constraints[constraint_number].type = type;
+              if(cnt2 == 0){  /* enforce unpairedness of nucleotide */
+                constraints[constraint_number].j  = 0;
+              } else if((i == j) && (j == k) && (k == l)){  /* enforce pairedness of nucleotide */
+                constraints[constraint_number].j  = cnt1 + (cnt3 - 1);
+              } else {  /* enforce / prohibit base pair */
+                constraints[constraint_number].j  = cnt2 - (cnt3 - 1);
+              }
+              constraint_number++;
 
               if(constraint_number == constraint_number_guess){
                 constraint_number_guess *= 2;
@@ -879,7 +912,7 @@ vrna_read_constraints_file( const char *filename,
               }
             }
       } else {
-        fprintf(stderr, "WARNING: Malformed constraint command in input file %s, line %d\n", filename, line_number);
+        fprintf(stderr, "WARNING: Incorrect constraint command in input file %s, line %d\n", filename, line_number);
       }
     }
 
