@@ -228,6 +228,16 @@
  */
 #define VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC   (char)0x20
 
+#define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
+
+#define VRNA_CONSTRAINT_CONTEXT_SOFT          (char)0x80
+
+/**
+ * @brief  Hard constraints flag, shortcut for all base pairs
+ *  
+ *  @ingroup  hard_constraints
+ *
+ */
 #define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (char)(   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP \
                                                       | VRNA_CONSTRAINT_CONTEXT_HP_LOOP \
                                                       | VRNA_CONSTRAINT_CONTEXT_INT_LOOP \
@@ -235,9 +245,6 @@
                                                       | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
                                                       | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
 
-#define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
-
-#define VRNA_CONSTRAINT_CONTEXT_SOFT          (char)0x80
 /**
  *  @brief  Generalized constraint folding flag indicating hairpin loop decomposition step
  *
@@ -525,6 +532,8 @@ void vrna_add_constraints(vrna_fold_compound *vc,
  *
  *  @ingroup  hard_constraints
  *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_add_up()
+ *
  *  @param  vc  The fold compound
  */
 void vrna_hc_init(vrna_fold_compound *vc);
@@ -533,6 +542,11 @@ void vrna_hc_init(vrna_fold_compound *vc);
  *  @brief  Make a certain nucleotide unpaired
  *
  *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
@@ -547,6 +561,12 @@ void vrna_hc_add_up(vrna_fold_compound *vc,
  *
  *  @ingroup  hard_constraints
  *
+ *  @see  vrna_hc_add_bp_nonspecific(), vrna_hc_add_up(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The 5' located nucleotide position of the base pair (1-based)
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
@@ -556,6 +576,28 @@ void vrna_hc_add_bp(vrna_fold_compound *vc,
                     int i,
                     int j,
                     char option);
+
+/**
+ *  @brief  Enforce a nucleotide to be paired (upstream/downstream)
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_up(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The position that needs to stay unpaired (1-based)
+ *  @param  d       The direction of base pairing (@f$ d < 0 @f$: pairs upstream,
+ *                  @f$ d > 0 @f$: pairs downstream, @f$ d == 0 @f$: no direction)
+ *  @param  option  The options flag indicating in which loop type context the pairs may appear
+ */
+void vrna_hc_add_bp_nonspecific(vrna_fold_compound *vc,
+                                int i,
+                                int d,
+                                char option);
 
 /**
  *  @brief  Free the memory allocated by a #vrna_hc_t data structure

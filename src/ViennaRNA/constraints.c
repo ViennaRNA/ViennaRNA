@@ -208,7 +208,8 @@ vrna_add_constraints( vrna_fold_compound *vc,
                       const char *constraint,
                       unsigned int options){
 
-  vrna_md_t         *md;
+  int         d;
+  vrna_md_t   *md;
 
   if(vc){
     if(vc->params)
@@ -237,7 +238,14 @@ vrna_add_constraints( vrna_fold_compound *vc,
         for(p = c; p->i; p++){
           if(p->j == 0){
             hc_add_up(vc, p->i, (char)p->type);
-          } else { 
+          } else if(p->i == p->j){ 
+            d = 0;
+            if(1024 & p->type)
+              d = -1;
+            else if(2048 & p->type)
+              d = 1;
+            vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
+          } else {
             vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
           }
         }
@@ -342,72 +350,84 @@ hc_add_up(vrna_fold_compound *vc,
 }
 
 PUBLIC void
+vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
+                            int i,
+                            int d,
+                            char option){
+  int   p;
+  char  type, t1, t2;
+
+  if(vc)
+    if(vc->hc){
+      if((i <= 0) || (i > vc->length)){
+        vrna_message_warning("vrna_hc_add_bp_nonspecific: position out of range, not doing anything");
+        return;
+      }
+
+      /* force position i to pair with some other nucleotide */
+      type  = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+      /* force direction */
+      t1    = (d <= 0) ? type : (char)0;
+      t2    = (d >= 0) ? type : (char)0;
+      for(p = 1; p < i; p++)
+        vc->hc->matrix[vc->jindx[i] + p] = t1;
+      for(p = i+1; p <= vc->length; p++)
+        vc->hc->matrix[vc->jindx[p] + i] = t2;
+
+      vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+
+      hc_update_up(vc);
+    }
+
+}
+
+PUBLIC void
 vrna_hc_add_bp( vrna_fold_compound *vc,
                 int i,
                 int j,
                 char option){
 
-  int   p,q, k, l;
+  int   k, l;
   char  type;
 
   if(vc)
     if(vc->hc){
-      if((i <= 0) || (i > vc->length) || (j <= 0) || (j > vc->length)){
+      if((i <= 0) || (j <= i) || (j > vc->length)){
         vrna_message_warning("vrna_hc_add_bp: position out of range, not doing anything");
         return;
       }
 
-      if(i == j){
-        /* force position i to pair with some other nucleotide */
-        type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-        for(p = 1; p < i; p++)
-          vc->hc->matrix[vc->jindx[i] + p] = type;
-        for(p = i+1; p <= vc->length; p++)
-          vc->hc->matrix[vc->jindx[p] + i] = type;
-
-        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
-
-        hc_update_up(vc);
-        return;
-      } else if(i < j){
-        p = i;
-        q = j;
-      } else {
-        p = j;
-        q = i;
-      }
-
       if(option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
-        if(vc->hc->matrix[vc->jindx[q] + p])
-          if(vc->ptype[vc->jindx[q] + p] == 0)
-            vc->ptype[vc->jindx[q] + p] = 7;
+        if(vc->hc->matrix[vc->jindx[j] + i])
+          if(vc->ptype[vc->jindx[j] + i] == 0)
+            vc->ptype[vc->jindx[j] + i] = 7;
       }
-      vc->hc->matrix[vc->jindx[q] + p] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+      vc->hc->matrix[vc->jindx[j] + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
       if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
 
         /* do not allow i,j to pair with any other nucleotide k */
-        for(k = 1; k < p; k++){
-          vc->hc->matrix[vc->jindx[p] + k] = (char)0;
-          vc->hc->matrix[vc->jindx[q] + k] = (char)0;
-          for(l = p+1; l < q; l++)
+        for(k = 1; k < i; k++){
+          vc->hc->matrix[vc->jindx[i] + k] = (char)0;
+          vc->hc->matrix[vc->jindx[j] + k] = (char)0;
+          for(l = i+1; l < j; l++)
             vc->hc->matrix[vc->jindx[l] + k] = (char)0;
         }
-        for(k = p+1; k < q; k++){
-          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
-          vc->hc->matrix[vc->jindx[q] + k] = (char)0;
-          for(l = q + 1; l <= vc->length; l++)
+        for(k = i+1; k < j; k++){
+          vc->hc->matrix[vc->jindx[k] + i] = (char)0;
+          vc->hc->matrix[vc->jindx[j] + k] = (char)0;
+          for(l = j + 1; l <= vc->length; l++)
             vc->hc->matrix[vc->jindx[l] + k] = (char)0;
         }
-        for(k = q+1; k <= vc->length; k++){
-          vc->hc->matrix[vc->jindx[k] + p] = (char)0;
-          vc->hc->matrix[vc->jindx[k] + q] = (char)0;
+        for(k = j+1; k <= vc->length; k++){
+          vc->hc->matrix[vc->jindx[k] + i] = (char)0;
+          vc->hc->matrix[vc->jindx[k] + j] = (char)0;
         }
 
         /* do not allow i,j to be unpaired */
-        vc->hc->matrix[vc->jindx[p] + p] = (char)0;
-        vc->hc->matrix[vc->jindx[q] + q] = (char)0;
+        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+        vc->hc->matrix[vc->jindx[j] + j] = (char)0;
 
         hc_update_up(vc);
       }

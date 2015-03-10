@@ -834,19 +834,19 @@ vrna_read_constraints_file( const char *filename,
       if(i > 0){
         if(j == -1){ /* i and range [k:l] */
           if((k > 0) && (l > 0)){
-            if((k < l) && (i < k)){
+            if((k < l) && (i < k) && (orientation == '\0')){
               j     = i;
               valid = 1;
             }
           }
-        } else if(k <= 0){ /* range [i:j] and l */
+        } else if((k <= 0) && (orientation == '\0')){ /* range [i:j] and l */
           if((i < j) && (j < l)){
             k     = l;
             valid = 1;
           }
         } else if(l <= 0){ /* helix of size k starting with pair (i,j), or segment [i:i+k-1] */
           if(i != j){
-            if((j == 0) || ((j - i + 1) > 2*k)){
+            if((j == 0) || (((j - i + 1) > 2*k) && (orientation == '\0'))){
               h     = k;
               k = l = j;
               j     = i;
@@ -855,7 +855,6 @@ vrna_read_constraints_file( const char *filename,
           }
         }
       }
-
 
       if(valid){  /* still valid constraint? */
 
@@ -867,6 +866,8 @@ vrna_read_constraints_file( const char *filename,
                       break;
             case 'F': /* set i == j == k == l */
                       k = l = i;
+                      if(orientation != '\0')
+                        type |= (orientation == 'U') ? 1024 : 2048;
                       break;
             case 'U': /* fallthrough */
             case 'D': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
