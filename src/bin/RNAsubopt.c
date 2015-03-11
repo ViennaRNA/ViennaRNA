@@ -227,7 +227,7 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((n_back > 0) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         int cp = -1;

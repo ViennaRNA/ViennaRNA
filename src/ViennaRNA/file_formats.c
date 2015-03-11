@@ -657,6 +657,7 @@ parse_constraints_line( const char *line,
   int max_entries = 5;
   int entries_seen = 0;
   int pp;
+  float energy;
   char buf[256], buf2[10], *c, tmp_loop;
 
   switch(command){
@@ -664,9 +665,7 @@ parse_constraints_line( const char *line,
     case 'P':   max_entries = 5;
                 break;
     case 'W':   /* fall through */
-    case 'U':   max_entries = 4;
-                break;
-    case 'B':   max_entries = 4;
+    case 'E':   max_entries = 4;
                 break;
     case '#': case ';': case '%': case '/': case ' ':
                 ret = 2;  /* comment */
@@ -740,34 +739,43 @@ parse_constraints_line( const char *line,
                 --max_entries;
                 /* fall through */
               }
-      case 3: /*  must be loop type, or orientation */
-              if(sscanf(buf, "%8s%n", &buf2, &pp) == 1){
-                buf2[8] = '\0';
-                if(pp == strlen(buf)){
-                  for(c = &(buf2[0]); (*c != '\0') && (!ret); c++){
-                    switch(*c){
-                      case 'E': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
-                                break;
-                      case 'H': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
-                                break;
-                      case 'I': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
-                                break;
-                      case 'i': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-                                break;
-                      case 'M': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
-                                break;
-                      case 'm': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
-                                break;
-                      case 'U': case 'D':
-                                *orientation = *c;
-                                break;
-                      default:  ret = 1;
-                    }
+      case 3: 
+              if(command == 'E'){ /* must be pseudo energy */
+                if(sscanf(buf, "%g%n", &energy, &pp) == 1){
+                  if(pp == strlen(buf)){
+                    *e = energy;
+                    break;
                   }
-                  if(tmp_loop)
-                    *loop = tmp_loop;
+                }
+              } else { /*  must be loop type, or orientation */
+                if(sscanf(buf, "%8s%n", &buf2, &pp) == 1){
+                  buf2[8] = '\0';
+                  if(pp == strlen(buf)){
+                    for(c = &(buf2[0]); (*c != '\0') && (!ret); c++){
+                      switch(*c){
+                        case 'E': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
+                                  break;
+                        case 'H': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
+                                  break;
+                        case 'I': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+                                  break;
+                        case 'i': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+                                  break;
+                        case 'M': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+                                  break;
+                        case 'm': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+                                  break;
+                        case 'U': case 'D':
+                                  *orientation = *c;
+                                  break;
+                        default:  ret = 1;
+                      }
+                    }
+                    if(tmp_loop)
+                      *loop = tmp_loop;
 
-                  break;
+                    break;
+                  }
                 }
               }
               ret = 1;
@@ -819,7 +827,7 @@ vrna_read_constraints_file( const char *filename,
 
     i = j = k = l = -1;
     orientation = '\0'; /* no orientation */
-    e = (float)INF;
+    e = 0.;
 
     error = parse_constraints_line(line + 1, command, &i, &j, &k, &l, &looptype, &orientation, &e);
     if(error == 1){
@@ -867,10 +875,10 @@ vrna_read_constraints_file( const char *filename,
             case 'F': /* set i == j == k == l */
                       k = l = i;
                       if(orientation != '\0')
-                        type |= (orientation == 'U') ? 1024 : 2048;
+                        type |= (orientation == 'U') ? 1024 : 2048; /* add hidden flags for pairing orientation */
                       break;
-            case 'U': /* fallthrough */
-            case 'D': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+                      type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
             default:  break;
@@ -883,8 +891,8 @@ vrna_read_constraints_file( const char *filename,
                       break;
             case 'F': type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;  /* enforce */
                       break;
-            case 'U': /* fallthrough */
-            case 'D': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+                      type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': break;
             default:  break;
@@ -896,7 +904,7 @@ vrna_read_constraints_file( const char *filename,
           for(cnt2 = k; cnt2 <= l; cnt2++)
             for(cnt3 = h; cnt3 != 0; cnt3--){
               constraints[constraint_number].i    = cnt1 + (cnt3 - 1);
-              constraints[constraint_number].p    = 0.;
+              constraints[constraint_number].p    = e;
               constraints[constraint_number].type = type;
               if(cnt2 == 0){  /* enforce unpairedness of nucleotide */
                 constraints[constraint_number].j  = 0;

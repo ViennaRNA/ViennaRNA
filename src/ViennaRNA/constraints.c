@@ -208,7 +208,7 @@ vrna_add_constraints( vrna_fold_compound *vc,
                       const char *constraint,
                       unsigned int options){
 
-  int         d;
+  int         i, d;
   vrna_md_t   *md;
 
   if(vc){
@@ -235,18 +235,36 @@ vrna_add_constraints( vrna_fold_compound *vc,
 
       /* now do something with the constraints we've just read */
       if(c){
+        double  **sc_bp       = (double **)vrna_alloc(sizeof(double *) * (vc->length + 1));
+        double  *sc_up        = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+        int     sc_up_present = 0;
+        int     sc_bp_present = 0;
+
+        for(i = 0; i <= vc->length; i++)
+          sc_bp[i] = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+
         for(p = c; p->i; p++){
-          if(p->j == 0){
-            hc_add_up(vc, p->i, (char)p->type);
-          } else if(p->i == p->j){ 
-            d = 0;
-            if(1024 & p->type)
-              d = -1;
-            else if(2048 & p->type)
-              d = 1;
-            vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
-          } else {
-            vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+          if(p->type & 4096){ /* soft constraint */
+            if(p->j == 0){  /* pseudo energy for unpairedness */
+              sc_up_present = 1;
+              sc_up[p->i] += (double)p->p;
+            } else { /* pseudo energy for base pair */
+              sc_bp_present = 1;
+              sc_bp[p->i][p->j] += (double)p->p;
+            }
+          } else {  /* hard constraint */
+            if(p->j == 0){
+              hc_add_up(vc, p->i, (char)p->type);
+            } else if(p->i == p->j){ 
+              d = 0;
+              if(1024 & p->type)
+                d = -1;
+              else if(2048 & p->type)
+                d = 1;
+              vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
+            } else {
+              vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+            }
           }
         }
 
@@ -255,7 +273,18 @@ vrna_add_constraints( vrna_fold_compound *vc,
         /* ############################### */
         /* init empty soft constraints     */
         /* ############################### */
-        vrna_sc_init(vc);
+        if(sc_up_present || sc_bp_present){
+          vrna_sc_init(vc);
+          if(sc_bp_present)
+            vrna_sc_add_bp(vc, (const double **)sc_bp, options);
+          if(sc_up_present)
+            vrna_sc_add_up(vc, (const double *)sc_up, options);
+        }
+        /* clean up */
+        for(i = 0; i <= vc->length; i++)
+          free(sc_bp[i]);
+        free(sc_bp);
+        free(sc_up);
       }
 
       free(c);
@@ -1510,7 +1539,6 @@ sc_add_up_mfe(vrna_fold_compound *vc,
       vrna_sc_init(vc);
 
     sc  = vc->sc;
-
     /*  allocate memory such that we can access the soft constraint
         energies of a subsequence of length j starting at position i
         via sc->free_energies[i][j]
