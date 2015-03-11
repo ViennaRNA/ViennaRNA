@@ -453,7 +453,10 @@ int main(int argc, char *argv[]){
           if(!fp)
             vrna_message_error("Failed to open file for writing");
 
-          vrna_structure_print_helix_list((const char *)structure, fp);
+          vrna_structure_print_hx((const char *)orig_sequence,
+                                  (const char *)structure,
+                                  min_en,
+                                  fp);
 
           fclose(fp);
         }
