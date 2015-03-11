@@ -974,12 +974,14 @@ scan_interval(vrna_fold_compound *vc,
         default:  element_energy = E_MLstem(type, -1, -1, P);
                   break;
       }
-      cij += element_energy;
 
+/* should be unnecessary
       if(sc){
         if(sc->en_basepair)
-          cij += sc->en_basepair[ij];
+          element_energy += sc->en_basepair[ij];
       }
+*/
+      cij += element_energy;
 
       if (cij + best_energy <= threshold)
         repeat(vc, i, j, state, element_energy, 0, best_energy, threshold, env);
@@ -1032,10 +1034,12 @@ scan_interval(vrna_fold_compound *vc,
 
           element_energy = E_MLstem(type, s5, s3, P);
 
+/* should be unnecessary
           if(sc){
             if(sc->en_basepair)
               element_energy += sc->en_basepair[k1j];
           }
+*/
 
           if(ON_SAME_STRAND(k, k+1, cp)){
             if(fML[indx[k]+i] + c[k1j] + element_energy + best_energy <= threshold){
@@ -1093,8 +1097,10 @@ scan_interval(vrna_fold_compound *vc,
             if(sc->free_energies)
               element_energy += sc->free_energies[i][up];
 
+/* should be unnecessary
             if(sc->en_basepair)
               element_energy += sc->en_basepair[k1j];
+*/
           }
 
           if (c[k1j] + element_energy + best_energy <= threshold)
@@ -1460,10 +1466,12 @@ scan_interval(vrna_fold_compound *vc,
 
         element_energy = E_ExtLoop(type, s5, s3, P);
 
+/* should be unnecessary
         if(sc){
           if(sc->en_basepair)
             element_energy += sc->en_basepair[ik];
         }
+*/
 
         if (fc[k+1] + c[ik] + element_energy + best_energy <= threshold){
           temp_state = derive_new_state(k+1, j, state, 0, 4);
@@ -1494,10 +1502,12 @@ scan_interval(vrna_fold_compound *vc,
 
       element_energy = E_ExtLoop(type, s5, s3, P);
 
+/* should be unnecessary
       if(sc){
         if(sc->en_basepair)
           element_energy += sc->en_basepair[ik];
       }
+*/
 
       if(c[ik] + element_energy + best_energy <= threshold)
         repeat(vc, i, cp-1, state, element_energy, 0, best_energy, threshold, env);
@@ -1555,10 +1565,12 @@ scan_interval(vrna_fold_compound *vc,
 
         element_energy = E_ExtLoop(type, s5, s3, P);
 
+/*  should be unnecessary
         if(sc){
           if(sc->en_basepair)
             element_energy += sc->en_basepair[kj];
         }
+*/
 
         if (fc[k-1] + c[kj] + element_energy + best_energy <= threshold) {
           temp_state = derive_new_state(i, k-1, state, 0, 5);
@@ -1825,22 +1837,25 @@ repeat( vrna_fold_compound *vc,
 
           if(sc){
             if(sc->free_energies)
-              new +=  sc->free_energies[i+1][p-i-1]
-                      + sc->free_energies[q+1][j-q-1];
+              energy  +=  sc->free_energies[i+1][p-i-1]
+                          + sc->free_energies[q+1][j-q-1];
 
             if(sc->en_basepair)
-              new += sc->en_basepair[ij];
+              energy  += sc->en_basepair[ij];
 
             if(sc->en_stack)
               if((p == i+1) && (q == j-1))
-                new +=  sc->en_stack[i]
-                        + sc->en_stack[p]
-                        + sc->en_stack[q]
-                        + sc->en_stack[j];
+                energy  +=  sc->en_stack[i]
+                            + sc->en_stack[p]
+                            + sc->en_stack[q]
+                            + sc->en_stack[j];
 
             if(sc->f)
-              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+              energy  += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
           }
+
+          new = energy + c[indx[q]+p];
+
 
           if (new + best_energy <= threshold) {
             /* stack, bulge, or interior loop */
