@@ -1273,6 +1273,10 @@ free_end( int *array,
   if(hc->up_ext[i]){
     if (i==start) array[i]=0;
     else array[i] = array[i-inc];
+    if(sc){
+      if(sc->free_energies)
+        array[i] += sc->free_energies[i][1];
+    }
   } else
     array[i] = INF;
 

@@ -918,6 +918,10 @@ scan_interval(vrna_fold_compound *vc,
     vrna_message_error ("Error while backtracking!");
 
   if (j < i + turn + 1 && ON_SAME_STRAND(i,j,cp)) { /* minimal structure element */
+    if(array_flag == 0){
+      /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
+      state->partial_energy += f5[j];
+    }
     if (env->nopush){
       push_back(env->Stack, state);
       env->nopush = false;
@@ -1126,12 +1130,17 @@ scan_interval(vrna_fold_compound *vc,
   /*                                                    */
   /* 00000000000000000000000000000000000000000000000000 */
   if((array_flag == 0) && !circular){
-    int s5, s3, kj;
+    int s5, s3, kj, tmp_en;
 
     if(hc->up_ext[j]){
-      if (f5[j-1] + best_energy <= threshold) {
+      tmp_en = 0;
+      if(sc){
+        if(sc->free_energies)
+          tmp_en += sc->free_energies[j][1];
+      }
+      if (f5[j-1] + tmp_en + best_energy <= threshold) {
         /* no basepair, nibbling of 3'-end */
-        fork_state(i, j-1, state, 0, 0, env);
+        fork_state(i, j-1, state, tmp_en, 0, env);
       }
     }
 
@@ -1164,11 +1173,6 @@ scan_interval(vrna_fold_compound *vc,
         }
         
         element_energy = E_ExtLoop(type, s5, s3, P);
-
-        if(sc){
-          if(sc->en_basepair)
-            element_energy += sc->en_basepair[kj];
-        }
 
         if (!(ON_SAME_STRAND(k,j,cp)))/*&&(state->is_duplex==0))*/ {
           element_energy+=P->DuplexInit;
@@ -1208,11 +1212,6 @@ scan_interval(vrna_fold_compound *vc,
       }
 
       element_energy = E_ExtLoop(type, s5, s3, P);
-
-      if(sc){
-        if(sc->en_basepair)
-          element_energy += sc->en_basepair[kj];
-      }
 
       if(!(ON_SAME_STRAND(1,j,cp)))
         element_energy += P->DuplexInit;
@@ -1422,16 +1421,16 @@ scan_interval(vrna_fold_compound *vc,
     int ik, s5, s3, tmp_en;
 
     if(hc->up_ext[i]){
-      tmp_en = fc[i+1];
+      tmp_en = 0;
 
       if(sc){
         if(sc->free_energies)
           tmp_en += sc->free_energies[i][1];
       }
 
-      if (tmp_en + best_energy <= threshold) {
+      if (fc[i+1] + tmp_en + best_energy <= threshold) {
         /* no basepair, nibbling of 5'-end */
-        fork_state(i+1, j, state, 0, 4, env);
+        fork_state(i+1, j, state, tmp_en, 4, env);
       }
     }
 
@@ -1516,16 +1515,16 @@ scan_interval(vrna_fold_compound *vc,
     int kj, s5, s3, tmp_en;
 
     if(hc->up_ext[j]){
-      tmp_en = fc[j-1];
+      tmp_en = 0;
 
       if(sc){
         if(sc->free_energies)
           tmp_en += sc->free_energies[j][1];
       }
 
-      if (tmp_en + best_energy <= threshold) {
+      if (fc[j-1] + tmp_en + best_energy <= threshold) {
         /* no basepair, nibbling of 3'-end */
-        fork_state(i, j-1, state, 0, 5, env);
+        fork_state(i, j-1, state, tmp_en, 5, env);
       }
     }
 
@@ -1589,11 +1588,6 @@ scan_interval(vrna_fold_compound *vc,
       }
 
       element_energy = E_ExtLoop(type, s5, s3, P);
-
-      if(sc){
-        if(sc->en_basepair)
-          element_energy += sc->en_basepair[kj];
-      }
 
       if (c[kj] + element_energy + best_energy <= threshold)
         repeat(vc, cp, j, state, element_energy, 0, best_energy, threshold, env);
