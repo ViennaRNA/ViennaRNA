@@ -477,7 +477,7 @@ set_fold_compound(vrna_fold_compound *vc,
     make_pscores(vc);
 
   if(!(options & VRNA_OPTION_EVAL_ONLY))
-    vrna_hc_add(vc, NULL, (unsigned int)0); /* add hard constraints according to canonical base pairs */
+    vrna_hc_init(vc); /* add default hard constraints */
 
 }
 

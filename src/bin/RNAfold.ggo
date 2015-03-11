@@ -47,8 +47,10 @@ details="The program reads first the\
  exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
  folding ignores constraints of type \"|\".\n\n"
-flag
-off
+string
+typestr="filename"
+default = ""
+argoptional
 
 option  "canonicalBPonly" -
 "Remove non-canonical base pairs from the structure constraint\n\n"

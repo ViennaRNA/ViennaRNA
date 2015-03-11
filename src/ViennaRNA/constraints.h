@@ -14,16 +14,22 @@
 /**
  *  @addtogroup constraints
  *  @ingroup folding_routines
- *  @brief This section covers all functions and variables related to the
+ *  @brief This module covers all functions and variables related to the
  *  problem of incorporating secondary structure constraints into the folding
  *  recursions.
  *
- *  Secondary Structure constraints can further be subdivided into so called
- *  Hard-Constraints and Soft-Constraints. Hard-Constraints directly influence
- *  the production rules used in the folding recursions by allowing, disallowing
- *  or enforcing certain decomposition steps. Soft-constraints on the other hand
- *  are used to change position specific contributions in the recursions by
- *  adding a bonus/penalty to certain loop configurations.
+ *  This module provides general functions that allow for an easy control of
+ *  constrained secondary structure prediction and evaluation.
+ *  Secondary Structure constraints can be subdivided into two groups:
+ *
+ *  - @ref hard_constraints, and
+ *  - @ref soft_constraints.
+ *
+ *  While Hard-Constraints directly influence the production rules used in the folding
+ *  recursions by allowing, disallowing, or enforcing certain decomposition steps,
+ *  Soft-constraints on the other hand are used to change position specific contributions
+ *  in the recursions by adding bonuses/penalties in form of pseudo free energies
+ *  to certain loop configurations.
  *
  */
 
@@ -34,40 +40,50 @@
  *  notation of hard constraints.
  *
  *  Use this definition to indicate the pipe sign '|' (paired with another base)
+ *
+ *  @ingroup  constraints
  *  
- *  @ingroup  hard_constraints
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_PIPE              1U
+#define VRNA_CONSTRAINT_DB_PIPE              1U
 
 /**
  *  @brief  dot '.' switch for structure constraints (no constraint at all)
  *  
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_DOT               2U
+#define VRNA_CONSTRAINT_DB_DOT               2U
 /**
  *  @brief  'x' switch for structure constraint (base must not pair)
  *  
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_X                 4U
+#define VRNA_CONSTRAINT_DB_X                 4U
 /**
  *  @brief  angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)
  *  
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_ANG_BRACK         8U
+#define VRNA_CONSTRAINT_DB_ANG_BRACK         8U
 /**
  *  @brief  round brackets '(',')' switch for structure constraint (base i pairs base j)
  *  
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_RND_BRACK         16U
+#define VRNA_CONSTRAINT_DB_RND_BRACK         16U
 
 /**
  *  @brief  Flag that is used to indicate the character 'l' in pseudo dot-bracket
@@ -75,10 +91,12 @@
  *
  *  Use this definition to indicate the usage of 'l' character (intramolecular pairs only)
  *
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_INTRAMOLECULAR    2048U
+#define VRNA_CONSTRAINT_DB_INTRAMOL    2048U
 
 /**
  *  @brief  Flag that is used to indicate the character 'e' in pseudo dot-bracket
@@ -86,15 +104,22 @@
  *
  *  Use this definition to indicate the usage of 'e' character (intermolecular pairs only)
  *
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
-#define VRNA_CONSTRAINT_INTERMOLECULAR    4096U
+#define VRNA_CONSTRAINT_DB_INTERMOL    4096U
 
 /**
  *  @brief '+' switch for structure constraint (base is involved in a gquad)
+ *  
+ *  @ingroup  constraints
+ *  
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @warning  This flag is for future purposes only! No implementation recognizes it yet.
  */
-#define VRNA_CONSTRAINT_G                8192U
+#define VRNA_CONSTRAINT_DB_GQUAD                8192U
 
 /**
  *  @brief  constraint may span over several lines
@@ -113,34 +138,30 @@
 /**
  *  @brief  placeholder for all constraining characters
  *  
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
  *
  */
 #define VRNA_CONSTRAINT_ALL               128U
 
 /**
- *  @brief  
+ *  @brief  Flag for vrna_add_constraints() to indicate that constraint is passed in pseudo dot-bracket notation
  *  
- *  @ingroup  hard_constraints
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *
+ *  @ingroup  constraints
  *
  */
 #define VRNA_CONSTRAINT_DB                256U
 
 /**
- *  @brief  
- *  
- *  @ingroup  hard_constraints
+ *  @brief  Flag for vrna_add_constraints() to indicate that constraints are present in a text file
+ *
+ *  @see vrna_add_constraints()
+ *
+ *  @ingroup  constraints
  *
  */
 #define VRNA_CONSTRAINT_FILE              512U
-
-/**
- *  @brief  
- *  
- *  @ingroup  hard_constraints
- *
- */
-#define VRNA_CONSTRAINT_IINDX             1024U
 
 /**
  *  @brief  Soft constraints flag, apply constraints for MFE calculations
@@ -160,80 +181,69 @@
 
 
 /**
- *  @brief  Soft constraints flag, apply constraints for unpaired nucleotides
- *  
- *  @ingroup  soft_constraints
- *
- */
-#define VRNA_CONSTRAINT_SOFT_UP           32768U
-
-/**
- *  @brief  Soft constraints flag, apply constraints for base pairs
- *  
- *  @ingroup  soft_constraints
- *
- */
-#define VRNA_CONSTRAINT_SOFT_BP           65536U
-
-/**
- *  @brief  Soft constraints flag, remove gaps from aligned sequence
- *  
- *  @ingroup  soft_constraints
- *
- */
-#define VRNA_CONSTRAINT_UNGAP             131072U
-
-/**
  *  @brief  Hard constraints flag, base pair in the exterior loop
  *  
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_HC_CONTEXT_EXT_LOOP       (char)0x01
+#define VRNA_CONSTRAINT_CONTEXT_EXT_LOOP      (char)0x01
+
 /**
  *  @brief  Hard constraints flag, base pair encloses hairpin loop
  *  
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_HC_CONTEXT_HP_LOOP        (char)0x02
+#define VRNA_CONSTRAINT_CONTEXT_HP_LOOP       (char)0x02
+
 /**
  *  @brief  Hard constraints flag, base pair encloses an interior loop
  *  
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_HC_CONTEXT_INT_LOOP       (char)0x04
-/**
- *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
- *  
- *  @ingroup  hard_constraints
- *
- */
-#define VRNA_HC_CONTEXT_MB_LOOP        (char)0x08
+#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP      (char)0x04
+
 /**
  *  @brief  Hard constraints flag, base pair encloses a multi branch loop
  *
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_HC_CONTEXT_INT_LOOP_ENC  (char)0x10
+#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (char)0x08
+
+/**
+ *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
+ *  
+ *  @ingroup  hard_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP       (char)0x10
+
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in a multi branch loop
  *  
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_HC_CONTEXT_MB_LOOP_ENC   (char)0x20
+#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC   (char)0x20
 
-#define VRNA_HC_CONTEXT_ALL_LOOPS     VRNA_HC_CONTEXT_EXT_LOOP \
-                                      | VRNA_HC_CONTEXT_HP_LOOP \
-                                      | VRNA_HC_CONTEXT_INT_LOOP \
-                                      | VRNA_HC_CONTEXT_INT_LOOP_ENC \
-                                      | VRNA_HC_CONTEXT_MB_LOOP \
-                                      | VRNA_HC_CONTEXT_MB_LOOP_ENC
+#define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
 
-#define VRNA_HC_CONTEXT_ENFORCE       (char)0x40
+#define VRNA_CONSTRAINT_CONTEXT_SOFT          (char)0x80
+
+/**
+ * @brief  Hard constraints flag, shortcut for all base pairs
+ *  
+ *  @ingroup  hard_constraints
+ *
+ */
+#define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (char)(   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP \
+                                                      | VRNA_CONSTRAINT_CONTEXT_HP_LOOP \
+                                                      | VRNA_CONSTRAINT_CONTEXT_INT_LOOP \
+                                                      | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC \
+                                                      | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
+                                                      | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
 
 /**
  *  @brief  Generalized constraint folding flag indicating hairpin loop decomposition step
@@ -350,18 +360,18 @@
  *  the branching pattern of the decompositions during all folding recursions.
  *  Any entry in matrix[i,j] consists of the 6 LSB that allows to distinguish the
  *  following types of base pairs:
- *  - in the exterior loop (#VRNA_HC_CONTEXT_EXT_LOOP)
- *  - enclosing a hairpin (#VRNA_HC_CONTEXT_HP_LOOP)
- *  - enclosing an interior loop (#VRNA_HC_CONTEXT_INT_LOOP)
- *  - enclosed by an exterior loop (#VRNA_HC_CONTEXT_INT_LOOP_ENC)
- *  - enclosing a multi branch loop (#VRNA_HC_CONTEXT_MB_LOOP)
- *  - enclosed by a multi branch loop (#VRNA_HC_CONTEXT_MB_LOOP_ENC)
+ *  - in the exterior loop (#VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
+ *  - enclosing a hairpin (#VRNA_CONSTRAINT_CONTEXT_HP_LOOP)
+ *  - enclosing an interior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+ *  - enclosed by an exterior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)
+ *  - enclosing a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
+ *  - enclosed by a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
  *
  *  The four linear arrays 'up_xxx' provide the number of available unpaired
  *  nucleotides (including position i) 3' of each position in the sequence.
  *
- *  @see  get_hard_constraints(), vrna_hc_free(), #VRNA_HC_CONTEXT_EXT_LOOP,
- *        #VRNA_HC_CONTEXT_HP_LOOP, #VRNA_HC_CONTEXT_INT_LOOP, #VRNA_HC_CONTEXT_EXT_LOOP_ENC, #VRNA_HC_CONTEXT_MB_LOOP, #VRNA_HC_CONTEXT_MB_LOOP_ENC
+ *  @see  get_hard_constraints(), vrna_hc_free(), #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_HP_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP_ENC, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
  *        
  *  @ingroup hard_constraints
  */
@@ -389,7 +399,6 @@ typedef struct vrna_hc_t {
  *  @ingroup soft_constraints
  */
 typedef struct vrna_sc_t {
-  double      *constraints;           /**<  @brief Backup storage for energy contributions of single nucleotides */
   int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
   int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
   FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
@@ -446,16 +455,20 @@ typedef struct vrna_sc_t {
  *  (constraint support is specified by option parameter)
  *
  *  Currently available options are:\n
- *  #VRNA_CONSTRAINT_PIPE (paired with another base)\n
- *  #VRNA_CONSTRAINT_DOT (no constraint at all)\n
- *  #VRNA_CONSTRAINT_X (base must not pair)\n
- *  #VRNA_CONSTRAINT_ANG_BRACK (paired downstream/upstream)\n
- *  #VRNA_CONSTRAINT_RND_BRACK (base i pairs base j)\n
+ *  #VRNA_CONSTRAINT_DB_PIPE (paired with another base)\n
+ *  #VRNA_CONSTRAINT_DB_DOT (no constraint at all)\n
+ *  #VRNA_CONSTRAINT_DB_X (base must not pair)\n
+ *  #VRNA_CONSTRAINT_DB_ANG_BRACK (paired downstream/upstream)\n
+ *  #VRNA_CONSTRAINT_DB_RND_BRACK (base i pairs base j)\n
  * 
  *  pass a collection of options as one value like this:
  *  @verbatim vrna_message_constraints(option_1 | option_2 | option_n) @endverbatim
  *
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
+ *
+ *  @see  vrna_message_constraints_all(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
+ *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
+ *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  *
  *  @param option Option switch that tells which constraint help will be printed
  */
@@ -465,42 +478,75 @@ void vrna_message_constraint_options(unsigned int option);
  *  @brief Print structure constraint characters to stdout
  *  (full constraint support)
  *
- *  @ingroup  hard_constraints
+ *  @ingroup  constraints
  *
- *  @see  vrna_message_constraint_options()
+ *  @see  vrna_message_constraint_options(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
+ *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
+ *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  */
 void vrna_message_constraints_all(void);
 
 /**
- *  @brief  Add hard constraints to a #vrna_fold_compound data structure
+ *  @brief  Add constraints to a #vrna_fold_compound data structure
  *
- *  Use this function to add/update a data structure of type #vrna_hc_t that
- *  specifies which decomposition steps are allowed/enforced during the recursions.
+ *  Use this function to add/update the hard/soft constraints
  *  The function allows for passing a string 'constraint' that can either be a
- *  filename that points to a hard constraints definition file or it may be a
- *  pseudo dot-bracket notation indicating the hard constraint. Depending on
+ *  filename that points to a constraints definition file or it may be a
+ *  pseudo dot-bracket notation indicating hard constraints. Depending on
  *  the type of the string the user has to pass #VRNA_CONSTRAINT_FILE or
  *  #VRNA_CONSTRAINT_DB in the option parameter, respectively. If none of these
- *  to options are passed, no further hard constraints then the ones induced by
- *  canonical base pairing (as supplied with the ptype argument) are applied.
+ *  to options are passed, no action is performed, other than to guarantee that
+ *  at least a hard constraints data structure of type #vrna_hc_t with default
+ *  values is present in 'vc'. Already existing hard constraints are not touched.
  *
- *  @see      vrna_hc_reset(), vrna_hc_free(), #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB
+ *  In case, a psuedo dot-bracket string is passed as the second argument, the
+ *  user has to specify, which characters are allowed to be interpreted as
+ *  constraints by passing the corresponding options via the third parameter.
  *
- *  @ingroup  hard_constraints
+ *  @see      vrna_hc_init(), vrna_sc_init(), vrna_hc_add_up(), vrna_hc_add_bp(),
+ *            vrna_sc_add_up(), vrna_sc_add_bp(), vrna_sc_SHAPE_add_deigan(),
+ *            vrna_sc_SHAPE_add_zarringhalam(), vrna_hc_free(), vrna_sc_free(),
+ *            #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_PIPE,
+ *            #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
+ *            #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTRAMOL,
+ *            #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_GQUAD
+ *
+ *  @ingroup  constraints
  *
  *  @param  vc            The fold compound
- *  @param  constraint    A string with either the filename of the hard constraint definitions
+ *  @param  constraint    A string with either the filename of the constraint definitions
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
-void vrna_hc_add( vrna_fold_compound *vc,
-                  const char *constraint,
-                  unsigned int options);
+void vrna_add_constraints(vrna_fold_compound *vc,
+                          const char *constraint,
+                          unsigned int options);
+
+/**
+ *  @brief  Initialize/Reset hard constraints to default values
+ *
+ *  This function resets the hard constraints to their default values, i.e.
+ *  all positions may be unpaired in all contexts, and base pairs are
+ *  allowed in all contexts, if they resemble canonical pairs.
+ *  Previously set hard constraints will be removed vefore initialization.
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_add_up()
+ *
+ *  @param  vc  The fold compound
+ */
+void vrna_hc_init(vrna_fold_compound *vc);
 
 /**
  *  @brief  Make a certain nucleotide unpaired
  *
  *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
@@ -515,6 +561,12 @@ void vrna_hc_add_up(vrna_fold_compound *vc,
  *
  *  @ingroup  hard_constraints
  *
+ *  @see  vrna_hc_add_bp_nonspecific(), vrna_hc_add_up(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
  *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
  *  @param  i       The 5' located nucleotide position of the base pair (1-based)
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
@@ -526,18 +578,26 @@ void vrna_hc_add_bp(vrna_fold_compound *vc,
                     char option);
 
 /**
- *  @brief  Reset hard constraints to default values
- *
- *  This function resets the hard constraints to its default values, i.e.
- *  all positions may be unpaired in all contexts, and base pairs are
- *  allowed in all contexts, if they resemble canonical pairs
+ *  @brief  Enforce a nucleotide to be paired (upstream/downstream)
  *
  *  @ingroup  hard_constraints
  *
- *  @param  vc            The fold compound
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_up(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
+ *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  i       The position that needs to stay unpaired (1-based)
+ *  @param  d       The direction of base pairing (@f$ d < 0 @f$: pairs upstream,
+ *                  @f$ d > 0 @f$: pairs downstream, @f$ d == 0 @f$: no direction)
+ *  @param  option  The options flag indicating in which loop type context the pairs may appear
  */
-void vrna_hc_reset(vrna_fold_compound *vc);
-
+void vrna_hc_add_bp_nonspecific(vrna_fold_compound *vc,
+                                int i,
+                                int d,
+                                char option);
 
 /**
  *  @brief  Free the memory allocated by a #vrna_hc_t data structure
@@ -553,31 +613,22 @@ void vrna_hc_reset(vrna_fold_compound *vc);
 void vrna_hc_free(vrna_hc_t *hc);
 
 /**
- *  @brief Add soft constraints to a fold_compound
+ *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound
  *
  *  This function adds a proper soft constraints data structure
- *  to the fold_compound data structure.
- *  Current behavior upon already existing soft constraints is
- *  to remove them first before adding the new ones.
- *  This behavior will probably change in the near future in favor
- *  of adding additional soft constraints on top of others.
+ *  to the #vrna_fold_compound data structure.
+ *  If soft constraints already exist within the fold compound, they are removed.
  *
- *  If no constraints are passed an empty soft constraints data
- *  structure is created.
- *  Otherwise, the provided constraint values are assumed to
- *  specify energy contributions in units of kcal/mol for unpaired
- *  positions.
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *
+ *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_SHAPE_add_deigan(),
+ *        vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
+ *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
+ *  @param  vc  The #vrna_fold_compound where an empty soft constraint feature is to be added to
  */
-void vrna_sc_add( vrna_fold_compound *vc,
-                  const double *constraints,
-                  unsigned int options);
-
-void vrna_sc_add_ali( vrna_fold_compound *vc,
-                      const double **constraints,
-                      unsigned int options);
+void vrna_sc_init(vrna_fold_compound *vc);
 
 /**
  *  @brief  Add soft constraints for paired nucleotides
@@ -607,6 +658,8 @@ void vrna_sc_add_up(vrna_fold_compound *vc,
 
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound
+ *
+ *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *

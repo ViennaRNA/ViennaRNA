@@ -368,11 +368,11 @@ int main(int argc, char *argv[]){
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
   if ((fold_constrained)&&(istty)) {
-    vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_RND_BRACK);
+    vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_RND_BRACK);
     printf("constraints for intramolecular folding only:\n");
-    vrna_message_constraint_options(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_ANG_BRACK);
+    vrna_message_constraint_options(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_DB_ANG_BRACK);
     printf("constraints for cofolding (intermolecular folding) only:\n");
-    vrna_message_constraint_options(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_PIPE);
+    vrna_message_constraint_options(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_DB_PIPE);
   }
 
   RT = ((temperature+K0)*GASCONST/1000.0);

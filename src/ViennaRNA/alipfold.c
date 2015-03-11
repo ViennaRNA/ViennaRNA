@@ -129,13 +129,13 @@ wrap_alipf_fold(const char **sequences,
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat_compound)
@@ -297,7 +297,7 @@ alipf_linear( vrna_fold_compound *vc,
       if(hard_constraints[jij]){
 
         /* hairpin contribution */
-        if(hard_constraints[jij] & VRNA_HC_CONTEXT_HP_LOOP){
+        if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
           if(hc->up_hp[i+1] >= j - i - 1){
             for (qbt1=1,s=0; s<n_seq; s++) {
               u = a2s[s][j-1] - a2s[s][i];
@@ -325,7 +325,7 @@ alipf_linear( vrna_fold_compound *vc,
         }
 
         /* interior loops with interior pair k,l */
-        if(hard_constraints[jij] & VRNA_HC_CONTEXT_INT_LOOP){
+        if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
           for (k=i+1; k<=MIN2(i+MAXLOOP+1,j-TURN-2); k++){
             if(hc->up_int[i+1] < k - i - 1)
               break;
@@ -333,7 +333,7 @@ alipf_linear( vrna_fold_compound *vc,
             for (l=MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1); l<=j-1; l++){
               double qloop=1.;
 
-              if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+              if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
                 continue;
               if(hc->up_int[l+1] < j - l - 1)
                 continue;
@@ -385,7 +385,7 @@ alipf_linear( vrna_fold_compound *vc,
           }
         }
 
-        if(hard_constraints[jij] & VRNA_HC_CONTEXT_MB_LOOP){
+        if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
           /* multi-loop loop contribution */
           ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
           temp = 0.0;
@@ -425,7 +425,7 @@ alipf_linear( vrna_fold_compound *vc,
           }
         qqm[i] += temp;
       }
-      if(hard_constraints[jij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         for (qbt1=1, s=0; s<n_seq; s++) {
           qbt1 *= exp_E_MLstem(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
         }
@@ -459,7 +459,7 @@ alipf_linear( vrna_fold_compound *vc,
 
       /* auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
-      if((qb[ij] > 0) && (hard_constraints[jij] & VRNA_HC_CONTEXT_EXT_LOOP)){
+      if((qb[ij] > 0) && (hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)){
         qbt1 = qb[ij];
         for (s=0; s<n_seq; s++) {
           qbt1 *= exp_E_ExtLoop(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
@@ -613,7 +613,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
           tmp2 = 0.;
 
           /* 1.1. Exterior Hairpin Contribution */
-          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_HP_LOOP){
+          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
             int u = i + n - j -1;
             if(hc->up_hp[j + 1] >= u){
               for (qbt1=1.,s=0; s<n_seq; s++) {
@@ -640,7 +640,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
           /* 1.2. Exterior Interior Loop Contribution */
           /* recycling of k and l... */
-          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP){
+          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
 
             /* 1.2.1. first we calc exterior loop energy with constraint, that i,j  */
             /* delimtis the "right" part of the interior loop                       */
@@ -663,7 +663,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
                   continue;
                 if(hc->up_int[l+1] < ln2)
                   continue;
-                if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP))
+                if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
                   continue;
                 
                 double qloop=1.;
@@ -730,7 +730,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
                   continue;
                 if(hc->up_int[l+1] < ln2)
                   continue;
-                if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP))
+                if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
                   continue;
 
                 double qloop=1.;
@@ -773,7 +773,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
             }
           }
           /* 1.3 Exterior multiloop decomposition */
-          if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             /* 1.3.1 Middle part                    */
             if((i>TURN+2) && (j<n-TURN-1)){
 
@@ -840,7 +840,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
 
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
-        if ((qb[ij] > 0.) && (hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP)){
+        if ((qb[ij] > 0.) && (hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)){
           probs[ij] = q1k[i-1] * qln[j+1]/q1k[n] * exp(pscore[jindx[j]+i]/kTn);
           for (s=0; s<n_seq; s++) {
             int typ;
@@ -859,7 +859,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
       pp = 0.;
       kl = my_iindx[k]-l;
       if (qb[kl] == 0.) continue;
-      if(!(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC)) continue;
+      if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) continue;
 
       for (s=0; s<n_seq; s++) {
         type[s] = md->pair[S[s][l]][S[s][k]];
@@ -875,7 +875,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
           ij = my_iindx[i] - j;
 
           if(probs[ij] == 0.) continue;
-          if(!(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP)) continue;
+          if(!(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)) continue;
           if(hc->up_int[l+1] < j - l - 1) break;
 
           for (s=0; s<n_seq; s++) {
@@ -925,10 +925,10 @@ alipf_create_bppm(vrna_fold_compound *vc,
       i = k-1;
       prmt = prmt1 = 0.;
 
-      if(1 /* hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_MB_LOOP_ENC */){
+      if(1 /* hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC */){
         ii = my_iindx[i];     /* ii-j=[i,j]     */
         ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
-        if(hard_constraints[jindx[l+1] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+        if(hard_constraints[jindx[l+1] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
           prmt1 = probs[ii-(l+1)];
           for (s=0; s<n_seq; s++) {
             tt = md->pair[S[s][l+1]][S[s][i]]; if (tt==0) tt=7;
@@ -947,7 +947,7 @@ alipf_create_bppm(vrna_fold_compound *vc,
         for (j=l+2; j<=n; j++){
           pp = 1.;
           if(probs[ii-j]==0) continue;
-          if(!(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP)) continue;
+          if(!(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)) continue;
 
           for (s=0; s<n_seq; s++) {
             tt = md->pair[S[s][j]][S[s][i]]; if (tt==0) tt=7;
@@ -1204,7 +1204,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
       /* 1. exterior hairpin contribution  */
       /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */
       /* for the closing pair was already done in the forward recursion              */
-      if(hard_constraints[pq] & VRNA_HC_CONTEXT_HP_LOOP){
+      if(hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
         if(hc->up_hp[q+1] > u){
           for (qbt1=1,s=0; s<n_seq; s++) {
             int rt;
@@ -1232,7 +1232,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
       }
       /* 2. exterior interior loop contribution*/
 
-      if(hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP){
+      if(hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
         for(k=q+1; k < n; k++){
           int ln1, lstart;
           ln1 = k - q - 1;
@@ -1248,7 +1248,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
 
             ln2 = (p - 1) + (n - l);
 
-            if(!(hard_constraints[jindx[l]+k] & VRNA_HC_CONTEXT_INT_LOOP))
+            if(!(hard_constraints[jindx[l]+k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
               continue;
             if((ln1+ln2) > MAXLOOP)
               continue;

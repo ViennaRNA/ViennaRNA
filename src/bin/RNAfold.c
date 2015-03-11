@@ -91,7 +91,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 int main(int argc, char *argv[]){
   struct          RNAfold_args_info args_info;
   char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char            *shape_file, *shape_method, *shape_conversion;
+  char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
   int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp;
@@ -130,6 +130,7 @@ int main(int argc, char *argv[]){
   with_shapes   = 0;
   verbose       = 0;
   max_bp_span   = -1;
+  constraints_file = NULL;
 
   outfile       = NULL;
   out_th = out_db = 1;  /* default to thermodynamic properties and dot bracket string */
@@ -148,7 +149,12 @@ int main(int argc, char *argv[]){
   /* temperature */
   if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)  fold_constrained=1;
+  if(args_info.constraint_given){
+    fold_constrained=1;
+    if(args_info.constraint_arg[0] != '\0')
+      constraints_file = strdup(args_info.constraint_arg);
+  }
+
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
@@ -337,27 +343,31 @@ int main(int argc, char *argv[]){
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
-      cstruc = NULL;
-      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-      coptions |= VRNA_CONSTRAINT_ALL;
-      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+      if(constraints_file){
+        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+      } else {
+        cstruc = NULL;
+        unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+        coptions |= VRNA_CONSTRAINT_ALL;
+        vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
+        cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           vrna_message_warning("structure constraint is missing");
-      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
-      else if(cl > length)  vrna_message_error("structure constraint is too long");
-      if(cstruc){
-        strncpy(structure, cstruc, sizeof(char)*(cl+1));
+        if(cl == 0)           vrna_message_warning("structure constraint is missing");
+        else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+        else if(cl > length)  vrna_message_error("structure constraint is too long");
+        if(cstruc){
+          strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
-        unsigned int constraint_options = 0;
-        constraint_options |= VRNA_CONSTRAINT_DB
-                              | VRNA_CONSTRAINT_PIPE
-                              | VRNA_CONSTRAINT_DOT
-                              | VRNA_CONSTRAINT_X
-                              | VRNA_CONSTRAINT_ANG_BRACK
-                              | VRNA_CONSTRAINT_RND_BRACK;
+          unsigned int constraint_options = 0;
+          constraint_options |= VRNA_CONSTRAINT_DB
+                                | VRNA_CONSTRAINT_DB_PIPE
+                                | VRNA_CONSTRAINT_DB_DOT
+                                | VRNA_CONSTRAINT_DB_X
+                                | VRNA_CONSTRAINT_DB_ANG_BRACK
+                                | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-        vrna_hc_add(vc, (const char *)structure, constraint_options);
+          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+        }
       }
     }
 
@@ -589,18 +599,18 @@ int main(int argc, char *argv[]){
           printf("ensemble diversity %-6.2f", vrna_mean_bp_distance(vc));
         printf("\n");
       }
-//      free_pf_arrays();
       free(pf_parameters);
     }
     (void) fflush(stdout);
 
     /* clean up */
     vrna_free_fold_compound(vc);
-    if(cstruc) free(cstruc);
-    if(rec_id) free(rec_id);
+    free(cstruc);
+    free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
     free(structure);
+
     /* free the rest of current dataset */
     if(rec_rest){
       for(i=0;rec_rest[i];i++) free(rec_rest[i]);
@@ -622,6 +632,7 @@ int main(int argc, char *argv[]){
     }
   }
   
+  free(constraints_file);
   free(mfe_parameters);
   return EXIT_SUCCESS;
 }

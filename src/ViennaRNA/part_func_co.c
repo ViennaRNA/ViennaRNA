@@ -128,13 +128,13 @@ wrap_co_pf_fold(char *sequence,
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound)
@@ -393,7 +393,7 @@ pf_co(vrna_fold_compound *vc){
         qbt1    +=  q_temp;
 
         /* interior loops with interior pair k,l */
-        if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
+        if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
           maxk = i + MAXLOOP + 1;
           maxk = MIN2(maxk, j - turn - 2);
           maxk = MIN2(maxk, i + 1 + hc_up_int[i+1]);
@@ -404,7 +404,7 @@ pf_co(vrna_fold_compound *vc){
             kl    = my_iindx[k] - j + 1;
             for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
               if(hc_up_int[l+1] < u2) break;
-              if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+              if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
 
                 if ((ON_SAME_STRAND(i,k,cp))&&(ON_SAME_STRAND(l,j,cp))){
                   type_2  = ptype[jindx[l] + k];
@@ -440,7 +440,7 @@ pf_co(vrna_fold_compound *vc){
         }
 
         /*multiple stem loop contribution*/
-        if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP){
+        if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
           ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
           temp = 0.0;
           kl = my_iindx[i+1]-(i+1);
@@ -506,7 +506,7 @@ pf_co(vrna_fold_compound *vc){
         }
       }
 
-      if(hc_decompose & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         if(ON_SAME_STRAND(i-1,i,cp) && ON_SAME_STRAND(j,j+1,cp)){
           qbt1    =   qb[ij];
           qbt1    *=  exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
@@ -557,7 +557,7 @@ pf_co(vrna_fold_compound *vc){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
 
-      if(hc_decompose & VRNA_HC_CONTEXT_EXT_LOOP){
+      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
         qbt1 =  qb[ij]
                 * exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
       }
@@ -720,7 +720,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
       for (j = i + turn + 1; j <= n; j++){
         ij = my_iindx[i]-j;
-        if((hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
+        if((hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
           type  = ptype[jindx[j] + i];
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
           probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
@@ -739,7 +739,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
         if(qb[kl]==0.) continue;
 
-        if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+        if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
           for(i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++){
             u1 = k - i - 1;
             if(hc_up_int[i+1] < u1) continue;
@@ -749,7 +749,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
               if(hc_up_int[l+1] < u2) break;
 
               ij = my_iindx[i] - j;
-              if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_INT_LOOP){
+              if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
 
                 if ((ON_SAME_STRAND(i,k,cp)) && (ON_SAME_STRAND(l,j,cp))){
                   type  = ptype[jindx[j] + i];
@@ -801,7 +801,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
           tt    = ptype[jindx[l+1] + i];
           tt    = rtype[tt];
           if (ON_SAME_STRAND(i,k,cp)){
-            if(hard_constraints[jindx[l+1] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+            if(hard_constraints[jindx[l+1] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
               prmt1 = probs[ii-(l+1)]
                       * expMLclosing
                       * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
@@ -821,7 +821,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
             lj = my_iindx[l+1]-(l+1);
 
             for(j = l + 2; j <= n; j++, ij--, lj--){
-              if(hard_constraints[jindx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+              if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
                 if (ON_SAME_STRAND(j-1,j,cp)){ /*??*/
                   tt    =   ptype[jindx[j] + i];
                   tt    =   rtype[tt];
@@ -886,7 +886,7 @@ pf_co_bppm(vrna_fold_compound *vc, char *structure){
 
           if (qb[kl] == 0.) continue;
 
-          if(hard_constraints[jindx[l] + k] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+          if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
             temp = prm_MLb;
 
             for (i=1;i<=k-2; i++) {

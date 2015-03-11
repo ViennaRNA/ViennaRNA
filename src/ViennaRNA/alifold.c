@@ -122,13 +122,13 @@ wrap_alifold( const char **strings,
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
@@ -282,7 +282,7 @@ fill_arrays(vrna_fold_compound *vc){
           closing pair.
           --------------------------------------------------------*/
 
-        if(hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+        if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
           for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
             if(hc->up_int[i+1] < p - i - 1)
               break;
@@ -290,7 +290,7 @@ fill_arrays(vrna_fold_compound *vc){
             minq = j-i+p-MAXLOOP-2;
             if (minq<p+1+TURN) minq = p+1+TURN;
             for (q = minq; q < j; q++) {
-              if(!(hard_constraints[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC))
+              if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
                 continue;
               if(hc->up_int[q+1] < j - q - 1)
                 continue;
@@ -394,7 +394,7 @@ fill_arrays(vrna_fold_compound *vc){
         } /* end if interior loop */
 
         /* multi-loop decomposition ------------------------*/
-        if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+        if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
           decomp = DMLi1[j-1];
           if(dangle_model){
             for(s=0; s<n_seq; s++){
@@ -459,7 +459,7 @@ fill_arrays(vrna_fold_compound *vc){
         new_fML = MIN2(new_fML, energy);
       }
 
-      if(hard_constraints[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         energy = c[ij];
         if(dangle_model){
           for (s=0; s<n_seq; s++) {
@@ -533,7 +533,7 @@ fill_arrays(vrna_fold_compound *vc){
                   f5[j] = MIN2(f5[j], energy);
                 }
 
-                if (hard_constraints[indx[j]+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if (hard_constraints[indx[j]+1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   if(c[indx[j]+1] < INF){
                     energy = c[indx[j]+1];
                     for(s = 0; s < n_seq; s++){
@@ -551,7 +551,7 @@ fill_arrays(vrna_fold_compound *vc){
                 }
 
                 for(i = j - TURN - 1; i > 1; i--){
-                  if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     if(c[indx[j]+i]<INF){
                       energy = f5[i-1] + c[indx[j]+i];
                       for(s = 0; s < n_seq; s++){
@@ -586,7 +586,7 @@ fill_arrays(vrna_fold_compound *vc){
                   f5[j] = MIN2(f5[j], energy);
                 }
 
-                if(hard_constraints[indx[j]+1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                if(hard_constraints[indx[j]+1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   if (c[indx[j]+1]<INF) {
                     energy = c[indx[j]+1];
                     for(s = 0; s < n_seq; s++){
@@ -604,7 +604,7 @@ fill_arrays(vrna_fold_compound *vc){
                 }
 
                 for(i = j - TURN - 1; i > 1; i--){
-                  if(hard_constraints[indx[j]+i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                  if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     if (c[indx[j]+i]<INF) {
                       energy = f5[i-1] + c[indx[j]+i];
                       for(s = 0; s < n_seq; s++){
@@ -730,7 +730,7 @@ backtrack(vrna_fold_compound *vc,
                     int en;
                     jj = i-1;
 
-                    if (hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
                         type[ss] = md->pair[S[ss][i]][S[ss][j]];
@@ -755,7 +755,7 @@ backtrack(vrna_fold_compound *vc,
                   for (i=j-TURN-1,traced=0; i>=1; i--) {
                     int en;
                     jj = i-1;
-                    if (hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       en = c[indx[j]+i] + f5[i-1];
                       for(ss = 0; ss < n_seq; ss++){
                         type[ss] = md->pair[S[ss][i]][S[ss][j]];
@@ -823,7 +823,7 @@ backtrack(vrna_fold_compound *vc,
         }
       }
 
-      if(hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+      if(hc->matrix[indx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         cij = c[indx[j]+i];
         if(dangle_model){
           for(ss = 0; ss < n_seq; ss++){
@@ -1035,7 +1035,7 @@ backtrack(vrna_fold_compound *vc,
         }
     }
 
-    if(hc->matrix[indx[j] + i] & VRNA_HC_CONTEXT_MB_LOOP){
+    if(hc->matrix[indx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
       mm = n_seq*P->MLclosing;
       switch(dangle_model){
         case 0:   for(ss = 0; ss < n_seq; ss++){

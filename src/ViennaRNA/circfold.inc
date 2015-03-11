@@ -121,7 +121,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
 
     for (i=2*TURN+1; i<length-TURN; i++) {
       type = ptype[indx[length]+i+1];
-      if(hard_constraints[indx[length] + i + 1] & VRNA_HC_CONTEXT_MB_LOOP){
+      if(hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
         if(hc->up_ml[1]){
           fm = fM_d3[i]+my_c[indx[length]+i+1]+E_MLstem(type, -1, S1[1], P) + P->MLclosing;
           if (fm<FcMd3) {
@@ -145,7 +145,7 @@ fill_arrays_circ( vrna_fold_compound *vc,
     }
 
     for (i=TURN+1; i<length-2*TURN; i++) {
-      if(hard_constraints[indx[i]+1] & VRNA_HC_CONTEXT_MB_LOOP){
+      if(hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
         type = ptype[indx[i]+1];
         if(hc->up_ml[length]){
           fm = E_MLstem(type, S1[length], -1, P) + my_c[indx[i]+1] + fM_d5[i+1] + P->MLclosing;

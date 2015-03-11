@@ -154,13 +154,13 @@ wrap_fold( const char *string,
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
     constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
@@ -494,7 +494,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    if (hc->matrix[indx[j] + k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = (unsigned char)ptype[indx[j]+k];
                       if(fij == E_ExtLoop(type, -1, -1, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
@@ -515,7 +515,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    if (hc->matrix[indx[j] + k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = (unsigned char)ptype[indx[j]+k];
                       if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + my_c[indx[j]+k] + my_f5[k-1]){
                         traced=j; jj = k-1;
@@ -535,7 +535,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    if (hc->matrix[indx[j] + k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = (unsigned char)ptype[indx[j] + k];
                       en = my_c[indx[j] + k];
                       if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
@@ -556,7 +556,7 @@ backtrack(vrna_fold_compound *vc,
                         }
                       }
                     }
-                    if (hc->matrix[indx[j-1] + k] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j-1] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = (unsigned char)ptype[indx[j-1] + k];
                       en = my_c[indx[j-1] + k];
                       if(hc->up_ext[j]){
@@ -595,7 +595,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
 
-                    if (hc->matrix[indx[j] + 1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j] + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = (unsigned char)ptype[indx[j]+1];
                       if(fij == my_c[indx[j]+1] + E_ExtLoop(type, -1, -1, P)){
                         traced = j;
@@ -603,7 +603,7 @@ backtrack(vrna_fold_compound *vc,
                         break;
                       }
                     }
-                    if (hc->matrix[indx[j-1] + 1] & VRNA_HC_CONTEXT_EXT_LOOP){
+                    if (hc->matrix[indx[j-1] + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       if(hc->up_ext[j]){
                         int tmp_en = fij;
                         if(sc)
@@ -670,7 +670,7 @@ backtrack(vrna_fold_compound *vc,
       tt  = (unsigned char)ptype[ij];
       en  = my_c[ij];
       switch(dangle_model){
-        case 0:   if(hc->matrix[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(fij == en + E_MLstem(tt, -1, -1, P)){
                       bp_stack[++b].i = i;
                       bp_stack[b].j   = j;
@@ -679,7 +679,7 @@ backtrack(vrna_fold_compound *vc,
                   }
                   break;
 
-        case 2:   if(hc->matrix[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(fij == en + E_MLstem(tt, S1[i-1], S1[j+1], P)){
                       bp_stack[++b].i = i;
                       bp_stack[b].j   = j;
@@ -688,14 +688,14 @@ backtrack(vrna_fold_compound *vc,
                   }
                   break;
 
-        default:  if(hc->matrix[ij] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+        default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(fij == en + E_MLstem(tt, -1, -1, P)){
                       bp_stack[++b].i = i;
                       bp_stack[b].j   = j;
                       goto repeat1;
                     }
                   }
-                  if(hc->matrix[ij+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hc->matrix[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[i]){
                       int tmp_en = fij;
                       if(sc)
@@ -710,7 +710,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
                   }
-                  if(hc->matrix[indx[j-1]+i] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hc->matrix[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[j]){
                       int tmp_en = fij;
                       if(sc)
@@ -725,7 +725,7 @@ backtrack(vrna_fold_compound *vc,
                       }
                     }
                   }
-                  if(hc->matrix[indx[j-1]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                  if(hc->matrix[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                     if(hc->up_ml[i] && hc->up_ml[j]){
                       int tmp_en = fij;
                       if(sc)
@@ -752,7 +752,7 @@ backtrack(vrna_fold_compound *vc,
         ml = 2;
         for (k1j = indx[j]+i+TURN+2, k = i+1+TURN; k <= j - 2 - TURN; k++, k1j++) {
           ik = indx[k]+i;
-          if((hc->matrix[ik] & VRNA_HC_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_HC_CONTEXT_MB_LOOP_ENC)){
+          if((hc->matrix[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
             type    = rtype[(unsigned char)ptype[ik]];
             type_2  = rtype[(unsigned char)ptype[k1j]];
             tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
@@ -784,7 +784,7 @@ backtrack(vrna_fold_compound *vc,
       if (cij == my_c[ij]){
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        if((hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_HC_CONTEXT_INT_LOOP_ENC)){
+        if((hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
           type_2 = (unsigned char)ptype[indx[j-1]+i+1];
           type_2 = rtype[type_2];
           cij -= P->stack[type][type_2];
@@ -817,7 +817,7 @@ backtrack(vrna_fold_compound *vc,
         continue;
     }
 
-    if(hc->matrix[ij] & VRNA_HC_CONTEXT_INT_LOOP)
+    if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
       for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
         minq = j-i+p-MAXLOOP-2;
         if (minq<p+1+TURN) minq = p+1+TURN;
@@ -828,7 +828,7 @@ backtrack(vrna_fold_compound *vc,
 
           type_2 = (unsigned char)ptype[indx[q]+p];
 
-          if (!(hc->matrix[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP_ENC)) continue;
+          if (!(hc->matrix[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) continue;
 
           type_2 = rtype[type_2];
           if (noGUclosure)
@@ -886,7 +886,7 @@ backtrack(vrna_fold_compound *vc,
     }
     k = j - 2 - TURN; /* end of loop */
 
-    if(hc->matrix[ij] & VRNA_HC_CONTEXT_MB_LOOP){
+    if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
       bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
 
       switch(dangle_model){
@@ -959,7 +959,7 @@ backtrack(vrna_fold_compound *vc,
                     /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                     if(dangle_model == 3){
                       int tmp_en = en;
-                      if(hc->matrix[indx[k]+i+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                      if(hc->matrix[indx[k]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                         type_2 = rtype[(unsigned char)ptype[indx[k]+i+1]];
                         tmp_en = my_c[indx[k]+i+1]+P->stack[type][type_2]+my_fML[indx[j-1]+k+1];
                         if(sc){
@@ -973,7 +973,7 @@ backtrack(vrna_fold_compound *vc,
                           break;
                         }
                       }
-                      if(hc->matrix[indx[j-1]+k+1] & VRNA_HC_CONTEXT_MB_LOOP_ENC){
+                      if(hc->matrix[indx[j-1]+k+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                         type_2 = rtype[(unsigned char)ptype[indx[j-1]+k+1]];
                         tmp_en = my_c[indx[j-1]+k+1]+P->stack[type][type_2]+my_fML[indx[k]+i+1];
                         if(sc){

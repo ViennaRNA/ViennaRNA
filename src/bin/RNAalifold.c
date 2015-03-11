@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
-  char          **shape_files, *shape_method;
+  char          *constraints_file, **shape_files, *shape_method;
   int           *shape_file_association;
   char          *tmp_string;
   int           tmp_number;
@@ -106,6 +106,7 @@ int main(int argc, char *argv[]){
   with_shapes   = 0;
   max_bp_span   = -1;
   verbose       = 0;
+  constraints_file = NULL;
 
   set_model_details(&md);
 
@@ -119,8 +120,11 @@ int main(int argc, char *argv[]){
   if(args_info.temp_given)
     md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)
-    fold_constrained = 1;
+  if(args_info.constraint_given){
+    fold_constrained=1;
+    if(args_info.constraint_arg[0] != '\0')
+      constraints_file = strdup(args_info.constraint_arg);
+  }
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)
     md.special_hp = tetra_loop = 0;
@@ -323,7 +327,7 @@ int main(int argc, char *argv[]){
   # handle user input from 'stdin' if necessary
   ########################################################
   */
-  if(fold_constrained){
+  if(fold_constrained && !constraints_file){
     if(istty){
       vrna_message_constraint_options_all();
       vrna_message_input_seq("");
@@ -382,15 +386,19 @@ int main(int argc, char *argv[]){
   vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   if(fold_constrained){
-    constraint_options = 0;
-    constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_PIPE
-                          | VRNA_CONSTRAINT_DOT
-                          | VRNA_CONSTRAINT_X
-                          | VRNA_CONSTRAINT_ANG_BRACK
-                          | VRNA_CONSTRAINT_RND_BRACK;
+    if(constraints_file){
+      vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+    } else {
+      constraint_options = 0;
+      constraint_options |= VRNA_CONSTRAINT_DB
+                            | VRNA_CONSTRAINT_DB_PIPE
+                            | VRNA_CONSTRAINT_DB_DOT
+                            | VRNA_CONSTRAINT_DB_X
+                            | VRNA_CONSTRAINT_DB_ANG_BRACK
+                            | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_hc_add(vc, (const char *)structure, constraint_options);
+      vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    }
   }
 
   if(with_shapes)

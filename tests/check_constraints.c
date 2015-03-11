@@ -49,7 +49,7 @@ START_TEST(test_vrna_sc_SHAPE_to_pr)
   ck_assert(deltaCompare(negative_values[2], 0.123));
   ck_assert(deltaCompare(negative_values[3], 0.123));
 
-  ret = vrna_sc_SHAPE_to_pr("M", hardcoded_range_values, 7, 0);
+  ret = vrna_sc_SHAPE_to_pr("M", hardcoded_range_values, 6, 0);
   ck_assert_int_eq(ret, 1);
   ck_assert(deltaCompare(hardcoded_range_values[1], 0.175));
   ck_assert(deltaCompare(hardcoded_range_values[2], 0.35));

@@ -286,7 +286,7 @@ E_int_loop( int i,
   int               turn          = md->min_loop_size;
 
   /* CONSTRAINED INTERIOR LOOP start */
-  if(hc_decompose & VRNA_HC_CONTEXT_INT_LOOP){
+  if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
 
     type        = (unsigned char)ptype[ij];
     rtype       = &(md->rtype[0]);
@@ -317,23 +317,24 @@ E_int_loop( int i,
       for(p = i+1; p <= max_p; p++){
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if(*hc_pq & VRNA_HC_CONTEXT_INT_LOOP_ENC){
+        if(*hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
 
-          type_2 = rtype[(unsigned char)*ptype_pq];
+          if(*c_pq != INF){
+            type_2 = rtype[(unsigned char)*ptype_pq];
 
-          if (noGUclosure)
-            if (no_close||(type_2==3)||(type_2==4))
-              if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+            if (noGUclosure)
+              if (no_close||(type_2==3)||(type_2==4))
+                if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          energy = ubf_eval_int_loop( i, j, p, q,
-                                      p_i, j_q,
-                                      S_i1, S_j1, *S_p1, *S_q1,
-                                      type, type_2, rtype,
-                                      ij, cp,
-                                      P, sc);
-          energy += *c_pq;
-
-          e = MIN2(e, energy);
+            energy = ubf_eval_int_loop( i, j, p, q,
+                                        p_i, j_q,
+                                        S_i1, S_j1, *S_p1, *S_q1,
+                                        type, type_2, rtype,
+                                        ij, cp,
+                                        P, sc);
+            energy += *c_pq;
+            e = MIN2(e, energy);
+          }
 
         }
         hc_pq++;    /* get hc[pq + 1] */
@@ -390,7 +391,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   e       = INF;
 
   /* CONSTRAINED INTERIOR LOOP start */
-  if(hc[ij] & VRNA_HC_CONTEXT_INT_LOOP){
+  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
 
     for (p = j+1; p < length ; p++) {
       u1 = p-j-1;
@@ -403,7 +404,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
       for (q = length; q >= qmin; q--) {
         u2 = i-1 + length-q;
         if(hc_up[q+1] < u2) break;
-        if(hc[indx[q]+p] & VRNA_HC_CONTEXT_INT_LOOP){
+        if(hc[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
           type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
           if (u1+u2>MAXLOOP) continue;
 
@@ -457,7 +458,7 @@ E_stack(int i,
   type    = (unsigned char)ptype[ij];
   type_2  = rtype[(unsigned char)ptype[pq]];
 
-  if((hard_constraints[pq] & VRNA_HC_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_HC_CONTEXT_INT_LOOP)){
+  if((hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)){
     if ((cp < 0) || (((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular stack */
       e = P->stack[type][type_2];
     } else {  /* stack like cofold structure */

@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
   unsigned int    input_type;
   unsigned int    rec_type, read_opt;
   char            fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  char            *cstruc, *structure, *ParamFile, *ns_bases;
+  char            *constraints_file, *cstruc, *structure, *ParamFile, *ns_bases;
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
   int             delta, n_back, noconv, circular, dos, zuker, gquad;
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]){
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
+  constraints_file = NULL;
 
   set_model_details(&md);
 
@@ -65,7 +66,11 @@ int main(int argc, char *argv[]){
   /* temperature */
   if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.constraint_given)  fold_constrained=1;
+  if(args_info.constraint_given){
+    fold_constrained=1;
+    if(args_info.constraint_arg[0] != '\0')
+      constraints_file = strdup(args_info.constraint_arg);
+  }
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop = 0;
   /* set dangle model */
@@ -177,7 +182,7 @@ int main(int argc, char *argv[]){
     if(!zuker)
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
     if(fold_constrained){
-      vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+      vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
     }
     else vrna_message_input_seq_simple();
@@ -221,35 +226,39 @@ int main(int argc, char *argv[]){
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
-      cstruc = NULL;
-      int cp = -1;
-      unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-      coptions |= VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK;
-      vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
-      cstruc = vrna_cut_point_remove(cstruc, &cp);
-      if(vc->cutpoint != cp){
-        fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-        vrna_message_error("Sequence and Structure have different cut points.");
-      }
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+      if(constraints_file){
+        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((n_back > 0) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+      } else {
+        cstruc = NULL;
+        int cp = -1;
+        unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
+        vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
+        cstruc = vrna_cut_point_remove(cstruc, &cp);
+        if(vc->cutpoint != cp){
+          fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+          vrna_message_error("Sequence and Structure have different cut points.");
+        }
+        cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if(cl == 0)           vrna_message_warning("structure constraint is missing");
-      else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
-      else if(cl > length)  vrna_message_error("structure constraint is too long");
+        if(cl == 0)           vrna_message_warning("structure constraint is missing");
+        else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
+        else if(cl > length)  vrna_message_error("structure constraint is too long");
 
-      if(cstruc){
-        strncpy(structure, cstruc, sizeof(char)*(cl+1));
+        if(cstruc){
+          strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
-        /* convert pseudo-dot-bracket to actual hard constraints */
-        unsigned int constraint_options = 0;
-        constraint_options |= VRNA_CONSTRAINT_DB
-                              | VRNA_CONSTRAINT_PIPE
-                              | VRNA_CONSTRAINT_DOT
-                              | VRNA_CONSTRAINT_X
-                              | VRNA_CONSTRAINT_ANG_BRACK
-                              | VRNA_CONSTRAINT_RND_BRACK;
+          /* convert pseudo-dot-bracket to actual hard constraints */
+          unsigned int constraint_options = 0;
+          constraint_options |= VRNA_CONSTRAINT_DB
+                                | VRNA_CONSTRAINT_DB_PIPE
+                                | VRNA_CONSTRAINT_DB_DOT
+                                | VRNA_CONSTRAINT_DB_X
+                                | VRNA_CONSTRAINT_DB_ANG_BRACK
+                                | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-        vrna_hc_add(vc, (const char *)structure, constraint_options);
+          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+        }
       }
     }
 
@@ -351,7 +360,7 @@ int main(int argc, char *argv[]){
       if(!zuker)
         printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if(fold_constrained){
-        vrna_message_constraint_options(VRNA_CONSTRAINT_DOT | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK);
+        vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
         vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
       }
       else vrna_message_input_seq_simple();

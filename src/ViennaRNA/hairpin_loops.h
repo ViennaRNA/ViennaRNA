@@ -166,7 +166,7 @@ vrna_E_hp_loop( vrna_fold_compound *vc,
   hc    = vc->hc->matrix[vc->jindx[j] + i];
 
   /* is this base pair allowed to close a hairpin (like) loop ? */
-  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+  if(hc & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
       return vrna_eval_hp_loop(vc, i, j);
@@ -192,7 +192,7 @@ vrna_E_ext_hp_loop( vrna_fold_compound *vc,
   hc    = vc->hc->matrix[vc->jindx[j] + i];
 
   /* is this base pair allowed to close a hairpin (like) loop ? */
-  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+  if(hc & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[j+1] >= u){
       return vrna_eval_ext_hp_loop(vc, i, j);
@@ -330,7 +330,7 @@ E_hp_loop_ali(int i,
   }
 
   /* is this base pair allowed to close a hairpin loop ? */
-  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+  if(hc & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
     if(hc_up[i+1] >= j - i - 1){
       for (e=s=0; s<n_seq; s++) {
         u = a2s[s][j-1] - a2s[s][i];
@@ -450,7 +450,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
   hc    = vc->hc->matrix[ij];
 
   /* is this base pair allowed to close a hairpin (like) loop ? */
-  if(hc & VRNA_HC_CONTEXT_HP_LOOP){
+  if(hc & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
 
