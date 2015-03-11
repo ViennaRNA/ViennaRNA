@@ -89,6 +89,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 }
 
 int main(int argc, char *argv[]){
+  FILE            *input, *output;
   struct          RNAfold_args_info args_info;
   char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
   char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
@@ -99,8 +100,9 @@ int main(int argc, char *argv[]){
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
-  char            *outfile;
-  int               out_th, out_db, out_hx, out_ct, out_bps;
+  char            *infile, *outfile;
+;
+  int               out_v, out_hx, out_ct, out_bps;
   vrna_param_t      *mfe_parameters;
   vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;
@@ -133,7 +135,10 @@ int main(int argc, char *argv[]){
   constraints_file = NULL;
 
   outfile       = NULL;
-  out_th = out_db = 1;  /* default to thermodynamic properties and dot bracket string */
+  infile        = NULL;
+  input         = NULL;
+  output        = NULL;
+  out_v         = 1;  /* default to thermodynamic properties and dot bracket string */
   out_hx = out_ct = out_bps = 0;
 
   /* apply default model details */
@@ -227,16 +232,12 @@ int main(int argc, char *argv[]){
   }
   if(args_info.format_given){
     char *o,*s;
-    out_th = out_db = out_hx = out_ct = 0; /* reset defaults */
+    out_v = out_hx = out_ct = 0; /* reset defaults */
     o = strdup(args_info.format_arg);
-    /* print thermodynamic properties? */
-    s = strchr(o, 'T');
+    /* simply print to file */
+    s = strchr(o, 'V');
     if(s != NULL)
-      out_th = 1;
-    /* print dot-parenthesis string? */
-    s = strchr(o, 'P');
-    if(s != NULL)
-      out_db = 1;
+      out_v = 1;
     /* print helix list? */
     s = strchr(o, 'H');
     if(s != NULL)
@@ -250,6 +251,10 @@ int main(int argc, char *argv[]){
     if(s != NULL)
       out_bps = 1;
   }
+  if(args_info.infile_given){
+    infile = strdup(args_info.infile_arg);
+  }
+  
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -260,6 +265,12 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  if(infile){
+    input = fopen((const char *)infile, "r");
+    if(!input)
+      vrna_message_error("Could not read input file");
+  }
+
   if(circular && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
@@ -290,7 +301,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  istty = isatty(fileno(stdout))&&isatty(fileno(stdin))&&(!infile);
 
   /* print user help if we get input from tty */
   if(istty){
@@ -313,9 +324,11 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
+    char *prefix      = NULL;
+    char *v_file_name = NULL;
     /*
     ########################################################
     # init everything according to the data we've read
@@ -326,6 +339,19 @@ int main(int argc, char *argv[]){
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
+
+    if(outfile){
+      /* prepare the file prefix */
+      if(fname[0] != '\0'){
+        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+        strcpy(prefix, outfile);
+        strcat(prefix, "_");
+        strcat(prefix, fname);
+      } else {
+        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(outfile) + 1));
+        strcpy(prefix, outfile);
+      }
+    }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) vrna_seq_toRNA(rec_sequence);
@@ -376,6 +402,20 @@ int main(int argc, char *argv[]){
 
     if(istty) printf("length = %d\n", length);
 
+    if(out_v){
+      if(outfile){
+        v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
+        strcpy(v_file_name, prefix);
+        strcat(v_file_name, ".fold");
+
+        output = fopen((const char *)v_file_name, "a");
+        if(!output)
+          vrna_message_error("Failed to open file for writing");
+      } else {
+        output = stdout;
+      }
+    }
+
     /*
     ########################################################
     # begin actual computations
@@ -386,46 +426,23 @@ int main(int argc, char *argv[]){
 
     min_en = (double)vrna_fold(vc, structure);
 
-    char *th_file_name  = NULL;
-    char *db_file_name  = NULL;
     char *hx_file_name  = NULL;
     char *ct_file_name  = NULL;
     char *bps_file_name = NULL;
-    char *prefix        = NULL;
-
-    if(outfile){
-
-      /* prepare the file prefix */
-      if(fname[0] != '\0'){
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
-        strcpy(prefix, outfile);
-        strcat(prefix, "_");
-        strcat(prefix, fname);
-      } else {
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(outfile) + 1));
-        strcpy(prefix, outfile);
-      }
-    }
 
     if(!lucky){
+      if(output){
+        fprintf(output, "%s\n%s", orig_sequence, structure);
+        if(istty)
+          fprintf(output, "\n minimum free energy = %6.2f kcal/mol\n", min_en);
+        else
+          fprintf(output, " (%6.2f)\n", min_en);
+
+        (void) fflush(output);
+
+      }
+
       if(outfile){
-
-        if(out_th){
-          th_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-          strcpy(th_file_name, prefix);
-          strcat(th_file_name, ".th");
-
-          FILE *fp = fopen((const char *)th_file_name, "a"); 
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          fprintf(fp, "sequence = %s\nmfe = %6.2f kcal/mol\n", orig_sequence, min_en);
-          fclose(fp);
-        }
-        
-        if(out_db){
-          
-        }
 
         if(out_hx){
           hx_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
@@ -474,15 +491,7 @@ int main(int argc, char *argv[]){
 
           fclose(fp);
         }
-      } else {
-        printf("%s\n%s", orig_sequence, structure);
-        if (istty){
-          printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
-        } else {
-          printf(" (%6.2f)\n", min_en);
-        }
       }
-      (void) fflush(stdout);
 
       if(fname[0] != '\0'){
         strcpy(ffname, fname);
@@ -525,12 +534,15 @@ int main(int argc, char *argv[]){
         vrna_init_rand();
         char *s = vrna_pbacktrack(vc);
         min_en = vrna_eval_structure(vc, (const char *)s);
-        printf("%s\n%s", orig_sequence, s);
-        if (istty)
-          printf("\n free energy = %6.2f kcal/mol\n", min_en);
-        else
-          printf(" (%6.2f)\n", min_en);
-        (void) fflush(stdout);
+        if(output){
+          fprintf(output, "%s\n%s", orig_sequence, s);
+          if (istty)
+            fprintf(output, "\n free energy = %6.2f kcal/mol\n", min_en);
+          else
+            fprintf(output, " (%6.2f)\n", min_en);
+
+          (void) fflush(output);
+        }
         if(fname[0] != '\0'){
           strcpy(ffname, fname);
           strcat(ffname, "_ss.ps");
@@ -542,12 +554,16 @@ int main(int argc, char *argv[]){
       else{
       
         if (do_bpp) {
-          printf("%s", pf_struc);
-          if (!istty) printf(" [%6.2f]\n", energy);
-          else printf("\n");
+          if(output){
+            fprintf(output, "%s", pf_struc);
+            if(!istty)
+              fprintf(output, " [%6.2f]\n", energy);
+            else
+              fprintf(output, "\n");
+            }
         }
-        if ((istty)||(!do_bpp))
-          printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
+        if(((istty)||(!do_bpp)) && output)
+          fprintf(output, " free energy of ensemble = %6.2f kcal/mol\n", energy);
 
 
         if (do_bpp) {
@@ -559,7 +575,8 @@ int main(int argc, char *argv[]){
           pl2     = vrna_pl_get(structure, 0.95*0.95);
           cent    = vrna_get_centroid_struct(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
-          printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
+          if(output)
+            fprintf(output, "%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
             strcpy(ffname, fname);
@@ -589,19 +606,27 @@ int main(int argc, char *argv[]){
               mea = MEA(pl, structure, MEAgamma);
             }
             mea_en = vrna_eval_structure(vc, (const char *)structure);
-            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            if(output)
+              fprintf(output, "%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
 
             free(pl);
           }
         }
-        printf(" frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
-        if (do_bpp)
-          printf("ensemble diversity %-6.2f", vrna_mean_bp_distance(vc));
-        printf("\n");
+        if(output){
+          fprintf(output, " frequency of mfe structure in ensemble %g; ", exp((energy-min_en)/kT));
+          if (do_bpp)
+            fprintf(output, "ensemble diversity %-6.2f", vrna_mean_bp_distance(vc));
+          fprintf(output, "\n");
+        }
       }
       free(pf_parameters);
     }
-    (void) fflush(stdout);
+    if(output)
+      (void) fflush(output);
+    if(outfile && output){
+      fclose(output);
+      output = NULL;
+    }
 
     /* clean up */
     vrna_free_fold_compound(vc);
@@ -632,6 +657,9 @@ int main(int argc, char *argv[]){
     }
   }
   
+  if(input)
+    fclose(input);
+
   free(constraints_file);
   free(mfe_parameters);
   return EXIT_SUCCESS;

@@ -76,11 +76,9 @@ optional
 hidden
 
 option  "format"  -
-"Select structure output format\n"
+"Select output format\n"
 details="The following output formats are recognized:\n\n\
- T ... Thermodynamic properties, i.e. all free energies, scores, etc.\n\
-       (file extension: .th)\n\n\
- P ... Parenthesis-Dot, a.k.a. dot-bracket annotation\n\
+ V ... ViennaRNA format (simply write output to file)\n\
        (file extension: .db)\n\n\
  H ... Helix List, i.e. 3 columns listing start, end, and length of helices\n\
        (file extension: .hx)\n\n\
@@ -90,8 +88,8 @@ details="The following output formats are recognized:\n\n\
        (file extension: .bpseq)\n\nNote: Some output formats do not allow for more data than the structure. Thus,\
  leaving out thermodynamic properties (format \"T\") may result in loss of prediction data.\n\n"
 string
-typestr="TPHC"
-default="TP"
+typestr="VHCB"
+default="V"
 optional
 
 option  "outfile" o
@@ -111,6 +109,13 @@ string
 typestr="<filename>"
 optional
 
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
+ the user can specify an input file name where data is read from\n\n"
+string
+typestr="<filename>"
+optional
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
