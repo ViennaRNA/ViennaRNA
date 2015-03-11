@@ -23,36 +23,38 @@
  *  is given as a line of whitespace delimited commands. The syntax we use extends the one used in
  *  <a href="http://mfold.rna.albany.edu/?q=mfold">mfold</a> /
  *  <a href="http://mfold.rna.albany.edu/?q=DINAMelt/software">UNAfold</a> where
- *  each line begins with a command character followed by a set of positions. Additionally, we allow
- *  an optional loop type context specifier in form of a sequence of characters, and an orientation
- *  flag enables to force a nucleotide to pair upstream, or downstream
+ *  each line begins with a command character followed by a set of positions.\n
+ *  Additionally, we introduce several new commands, and allow for an optional loop type context
+ *  specifier in form of a sequence of characters, and an orientation flag that enables one to force
+ *  a nucleotide to pair upstream, or downstream.
  *
  *  @paragraph  const_file_commands Constraint commands
  *  The following set of commands is recognized:
- *  -#  @f$ F \ldots @f$ Force
- *  -#  @f$ P \ldots @f$ Prohibit
- *  -#  @f$ W \ldots @f$ Weakly enforce, i.e. remove conflicts only
- *  -#  @f$ U \ldots @f$ Soft constraint for unpaired position(s)
- *  -#  @f$ B \ldots @f$ Soft constraint for base pair(s)
+ *  -  @p F @f$ \ldots @f$ Force
+ *  -  @p P @f$ \ldots @f$ Prohibit
+ *  -  @p W @f$ \ldots @f$ Weakly enforce, i.e. remove conflicts only
+ *  -  @p A @f$ \ldots @f$ Allow (for non-canonical pairs)
+ *  -  @p E @f$ \ldots @f$ Soft constraints for unpaired position(s), or base pair(s)
  *
  *  @paragraph  const_file_loop_types Specification of the loop type context
- *  The optional loop type context specifier @f$ [WHERE] @f$ may be a combination of the following:
- *  -#  @f$ E \ldots @f$ Exterior loop
- *  -#  @f$ H \ldots @f$ Hairpin loop
- *  -#  @f$ I \ldots @f$ Interior loop (enclosing pair)
- *  -#  @f$ i \ldots @f$ Interior loop (enclosed pair)
- *  -#  @f$ M \ldots @f$ Multibranch loop (enclosing pair)
- *  -#  @f$ m \ldots @f$ Multibranch loop (enclosed pair)
+ *  The optional loop type context specifier @p [WHERE] may be a combination of the following:
+ *  -  @p E @f$ \ldots @f$ Exterior loop
+ *  -  @p H @f$ \ldots @f$ Hairpin loop
+ *  -  @p I @f$ \ldots @f$ Interior loop (enclosing pair)
+ *  -  @p i @f$ \ldots @f$ Interior loop (enclosed pair)
+ *  -  @p M @f$ \ldots @f$ Multibranch loop (enclosing pair)
+ *  -  @p m @f$ \ldots @f$ Multibranch loop (enclosed pair)
+ *  -  @p A @f$ \ldots @f$ All loops
  *
- *  If no @f$ [WHERE] @f$ flags are set, all contexts are considered
+ *  If no @p [WHERE] flags are set, all contexts are considered (equivalent to @p A )
  *
  *  @paragraph const_file_orientation Controlling the orientation of base pairing
- *  For particular nucleotides that are forced to pair, the following @f$ [ORIENTATION] @f$ flags
+ *  For particular nucleotides that are forced to pair, the following @p [ORIENTATION] flags
  *  may be used:
- *  -#  @f$ U \ldots @f$ Upstream
- *  -#  @f$ D \ldots @f$ Downstream
+ *  -  @p U @f$ \ldots @f$ Upstream
+ *  -  @p D @f$ \ldots @f$ Downstream
  *
- *  If no @f$ [ORIENTATION] @f$ flag is set, both directions are considered.
+ *  If no @p [ORIENTATION] flag is set, both directions are considered.
  *
  *  @paragraph const_file_seq_coords Sequence coordinates
  *  Sequence positions of nucleotides/base pairs are @f$ 1- @f$ based and consist of three
@@ -67,45 +69,74 @@
  *      Syntax: @code F i 0 k [WHERE] [ORIENTATION] @endcode\n
  *      Description:\n
  *      Enforces the set of @f$ k @f$ consecutive nucleotides starting at
- *      position @f$ i @f$ to be paired. The optional loop type specifier @f$ [WHERE] @f$
+ *      position @f$ i @f$ to be paired. The optional loop type specifier @p [WHERE]
  *      allows to force them to appear as closing/enclosed pairs of certain types of loops.
  *  -#  @b "Forcing a set of consecutive base pairs to form":\n
  *      Syntax: @verbatim F i j k [WHERE] @endverbatim\n
  *      Description:\n
  *      Enforces the base pairs @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$ to form.
- *      The optional loop type specifier @f$ [WHERE] @f$ allows to specify in which loop
+ *      The optional loop type specifier @p [WHERE] allows to specify in which loop
  *      context the base pair must appear.
  *  -#  @b "Prohibiting a range of nucleotide positions to be paired":\n
  *      Syntax: @verbatim P i 0 k [WHERE] @endverbatim\n
  *      Description:\n
  *      Prohibit a set of @f$ k @f$ consecutive nucleotides to participate
  *      in base pairing, i.e. make these positions unpaired. The optional loop type specifier
- *      @f$ [WHERE] @f$ allows to specify in which loop type context they must not appear paired.
+ *      @p [WHERE] allows to force the nucleotides to appear within the loop of
+ *      specific types.
  *  -#  @b "Probibiting a set of consecutive base pairs to form":\n
  *      Syntax: @verbatim P i j k [WHERE] @endverbatim\n
  *      Description:\n
  *      Probibit the base pairs @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$ to form.
- *      The optional loop type specifier @f$ [WHERE] @f$ allows to specify the type of
+ *      The optional loop type specifier @p [WHERE] allows to specify the type of
  *      loop they are disallowed to be the closing or an enclosed pair of.
  *  -#  @b "Prohibiting two ranges of nucleotides to pair with each other":\n
  *      Syntax: @verbatim P i-j k-l [WHERE] @endverbatim
  *      Description:\n
  *      Prohibit any nucleotide @f$ p \in [i:j] @f$ to pair with any other nucleotide
- *      @f$ q \in [k:l] @f$. The optional loop type specifier @f$ [WHERE] @f$ allows to
+ *      @f$ q \in [k:l] @f$. The optional loop type specifier @p [WHERE] allows to
  *      specify the type of loop they are disallowed to be the closing or an enclosed pair of.
- *  -#  @b "Weakly enforce a range of nucleotide positions to be unpaired":\n
+ *  -#  @b "Weakly prohibit a range of nucleotide positions to be paired":\n
  *      Syntax: @verbatim W i 0 k [WHERE] @endverbatim
  *      Description:\n
  *      This command is meant as a complement to @em prohibiting nucleotides to be paired,
- *      as described above. It also marks the corresponding nucleotides to be unpaired, however,
- *      they are not required to appear in the optional loop type context, if an energetically
- *      better structure includes them as unpaired nucleotides within another loop.
+ *      as described above. It too marks the corresponding nucleotides to be unpaired, however,
+ *      they are not required to appear in the optional loop type context. They are rather
+ *      prohibited from forming base pairs only. The optional loop type context specifier
+ *      @p [WHERE] may be used to prohibit pairing in specific contexts.
  *  -#  @b "Weakly enforce a set of consecutive base pairs":\n
  *      Syntax: @verbatim W i j k @endverbatim\n
  *      Description:\n
  *      Remove all base pairs that conflict with a set of consecutive base pairs
  *      @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$. Two base pairs @f$ (i,j) @f$ and @f$ (p,q) @f$
  *      conflict with each other if @f$ i < p < j < q @f$, or @f$ p < i < q < j @f$.
+ *  -#  @b "Allow a set of consecutive (non-canonical) base pairs to form":\n
+ *      Syntax: @code A i j k [WHERE] @endcode\n
+ *      Description:\n
+ *      This command enables the formation of the consecutive base pairs
+ *      @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$, no matter if they are @em canonical, or
+ *      @em non-canonical. In contrast to the above @p F and @p W commands, which remove
+ *      conflicting base pairs, the @p A command does not. Therefore, it may be used to
+ *      allow @em non-canoncial base pair interactions. Since the RNAlib does not contain
+ *      free energy contributions @f$ E_{ij} @f$ for non-canonical base pairs @f$ (i,j) @f$,
+ *      they are scored as the @em maximum of similar, known contributions. In terms of a
+ *      @em Nussinov like scoring function the free energy of non-canonical base pairs is therefore
+ *      estimated as
+ *      @f[ E_{ij} = \min \left[  \max_{(i,k) \in \{GC, CG, AU, UA, GU, UG\}} E_{ik}, \max_{(k,j) \in \{GC, CG, AU, UA, GU, UG\}} E_{kj} \right]. @f]
+ *      The optional loop type specifier @p [WHERE] allows to specify in which loop
+ *      context the base pair may appear.
+ *  -#  @b "Apply pseudo free energy to a range of unpaired nucleotide positions":\n
+ *      Syntax: @code E i 0 k e @endcode\n
+ *      Description:\n
+ *      Use this command to apply a pseudo free energy of @f$ e @f$ to the set of @f$ k @f$
+ *      consecutive nucleotides, starting at position @f$ i @f$. The pseudo free energy is
+ *      applied only if these nucleotides are considered unpaired in the recursions, or evaluations,
+ *      and is expected to be given in @f$ kcal / mol @f$.
+ *  -#  @b "Apply pseudo free energy to a set of consecutive base pairs":\n
+ *      Syntax @code E i j k e @endcode\n
+ *      Use this command to apply a pseudo free energy of @f$ e @f$ to the set of base pairs
+ *      @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$. Energies are expected to be given in
+ *      @f$ kcal / mol @f$.
  */
 
 #include <stdio.h>

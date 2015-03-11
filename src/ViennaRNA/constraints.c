@@ -351,10 +351,12 @@ hc_add_up(vrna_fold_compound *vc,
 
   if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){ /* force nucleotide to appear unpaired within a certain type of loop */
     /* do not allow i to be paired with any other nucleotide */
-    for(j = 1; j < i; j++)
-      vc->hc->matrix[vc->jindx[i] + j] = (char)0;
-    for(j = i+1; j <= vc->length; j++)
-      vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+    if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+      for(j = 1; j < i; j++)
+        vc->hc->matrix[vc->jindx[i] + j] = (char)0;
+      for(j = i+1; j <= vc->length; j++)
+        vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+    }
 
     type = option & (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
                             | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
@@ -366,10 +368,12 @@ hc_add_up(vrna_fold_compound *vc,
     type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
     /* do not allow i to be paired with any other nucleotide (in context type) */
-    for(j = 1; j < i; j++)
-      vc->hc->matrix[vc->jindx[i] + j] = ~type;
-    for(j = i+1; j <= vc->length; j++)
-      vc->hc->matrix[vc->jindx[j] + i] = ~type;
+    if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+      for(j = 1; j < i; j++)
+        vc->hc->matrix[vc->jindx[i] + j] = ~type;
+      for(j = i+1; j <= vc->length; j++)
+        vc->hc->matrix[vc->jindx[j] + i] = ~type;
+    }
 
     vc->hc->matrix[vc->jindx[i] + i] = (char)(  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
                                               | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
@@ -434,9 +438,11 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
 
       vc->hc->matrix[vc->jindx[j] + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-      if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
-
-        /* do not allow i,j to pair with any other nucleotide k */
+      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+        /*
+          remove all conflicting base pairs, i.e. do not allow i,j to pair
+          with any other nucleotide k
+        */
         for(k = 1; k < i; k++){
           vc->hc->matrix[vc->jindx[i] + k] = (char)0;
           vc->hc->matrix[vc->jindx[j] + k] = (char)0;
@@ -453,6 +459,9 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
           vc->hc->matrix[vc->jindx[k] + i] = (char)0;
           vc->hc->matrix[vc->jindx[k] + j] = (char)0;
         }
+      }
+
+      if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
 
         /* do not allow i,j to be unpaired */
         vc->hc->matrix[vc->jindx[i] + i] = (char)0;

@@ -230,7 +230,7 @@
 
 #define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
 
-#define VRNA_CONSTRAINT_CONTEXT_SOFT          (char)0x80
+#define VRNA_CONSTRAINT_CONTEXT_NO_REMOVE     (char)0x80
 
 /**
  * @brief  Hard constraints flag, shortcut for all base pairs

@@ -765,6 +765,8 @@ parse_constraints_line( const char *line,
                                   break;
                         case 'm': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
                                   break;
+                        case 'A': tmp_loop |= VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                                  break;
                         case 'U': case 'D':
                                   *orientation = *c;
                                   break;
@@ -870,7 +872,7 @@ vrna_read_constraints_file( const char *filename,
         if((k == 0) && (l == 0) && (i == j) && (h > 0)){
           /* set correct loop type context */
           switch(command){
-            case 'P': /* do nothing */
+            case 'P': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
                       break;
             case 'F': /* set i == j == k == l */
                       k = l = i;
@@ -880,7 +882,7 @@ vrna_read_constraints_file( const char *filename,
             case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
-            case 'W': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+            case 'W': /* do nothing */
             default:  break;
           }
         } else { /* base pair constraint */
