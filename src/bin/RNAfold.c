@@ -88,15 +88,84 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   free(sequence);
 }
 
+typedef struct{
+  int i;
+  int j;
+  int k;
+  int l;
+  int e;
+} vrna_quadruple_position;
+
+static void scanForIntMotif(char *seq, char *motif1, char *motif2, vrna_quadruple_position **pos){
+
+  int   i, j, k, l, l1, l2, n, cnt, cnt2;
+  char  *ptr;
+  
+  n     = (int) strlen(seq);
+  l1    = (int) strlen(motif1);
+  l2    = (int) strlen(motif2);
+  cnt   = 0;
+  cnt2  = 5; /* initial guess how many matching motifs we might encounter */
+
+  *pos = (vrna_quadruple_position *)vrna_alloc(sizeof(vrna_quadruple_position) * cnt2);
+
+  for(i = 0; i <= n - l1 - l2; i++){
+    if(seq[i] == motif1[0]){
+      for(j = i+1; j < i + l1; j++){
+        if(seq[j] == motif1[j-i]){
+          continue;
+        }
+        else goto next_i;
+      }
+      for(k = j + 1; k <= n - l2; k++){
+        if(seq[k] == motif2[0]){
+          for(l = k + 1; l < k + l2; l++){
+            if(seq[l] == motif2[l-k]){
+              continue;
+            }
+            else goto next_k;
+          }
+          /* we found a quadruple, so store it */
+          (*pos)[cnt].i   = i + 1;
+          (*pos)[cnt].j   = l;
+          (*pos)[cnt].k   = j;
+          (*pos)[cnt++].l = k + 1;
+
+          /* allocate more memory if necessary */
+          if(cnt == cnt2){
+            cnt2 *= 2;
+            *pos = (vrna_quadruple_position *)vrna_realloc(*pos, sizeof(vrna_quadruple_position) * cnt2);
+          }
+        }
+/* early exit from l loop */
+next_k: continue;
+      }
+    }
+/* early exit from j loop */
+next_i: continue;
+  }
+
+  /* reallocate to actual size */
+  *pos = (vrna_quadruple_position *)vrna_realloc(*pos, sizeof(vrna_quadruple_position) * (cnt + 1));
+
+  /* set end marker */
+  (*pos)[cnt].i = (*pos)[cnt].j = (*pos)[cnt].k = (*pos)[cnt++].l = 0;
+}
+
 static int
 AptamerContrib(int i, int j, int k, int l, char d, void *data){
 
-  int e = -892; /* deltaG of theophylline aptamer according to gouda et al. 2002 */
+  vrna_quadruple_position *pos;
 
-  if((d & VRNA_DECOMP_PAIR_IL) && (i == 4) && (j == 36) && (k == 8) && (l == 32)){
-    return e;
-  } else
-    return 0;
+  if(d & VRNA_DECOMP_PAIR_IL){
+    for(pos = data; pos->i; pos++){
+      if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
+        return pos->e;
+      }
+    }
+  }
+
+  return 0;
 }
 
 static FLT_OR_DBL
@@ -105,6 +174,26 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
   double kT = (37. + K0) * GASCONST;
   int e = AptamerContrib(i, j, k, l, d, data);
   return exp(-e*10./kT);
+}
+
+static void
+AptamerInit(vrna_fold_compound *vc,
+            char *motif1,
+            char *motif2,
+            int  e){
+
+  vrna_quadruple_position *pos, *next;
+  
+  scanForIntMotif(vc->sequence, motif1, motif2, &pos);
+
+
+  for(next = pos; next->i; next++)
+    next->e = e;
+
+  vrna_sc_init(vc);
+  vc->sc->f = &AptamerContrib;
+  vc->sc->exp_f = &expAptamerContrib;
+  vc->sc->data  = (void *)pos;
 }
 
 
@@ -425,10 +514,7 @@ int main(int argc, char *argv[]){
     */
 
     /* the hack for theophylline binding aptamer */
-    vrna_sc_init(vc);
-    vc->sc->f = &AptamerContrib;
-    vc->sc->exp_f = &expAptamerContrib;
-
+    AptamerInit(vc, "GAUAC", "GCAGC", -892); /* deltaG of theophylline aptamer according to gouda et al. 2002 */
 
 
     min_en = (double)vrna_mfe(vc, structure);
