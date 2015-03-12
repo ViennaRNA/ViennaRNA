@@ -88,6 +88,26 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   free(sequence);
 }
 
+static int
+AptamerContrib(int i, int j, int k, int l, char d, void *data){
+
+  int e = -892; /* deltaG of theophylline aptamer according to gouda et al. 2002 */
+
+  if((d & VRNA_DECOMP_PAIR_IL) && (i == 4) && (j == 36) && (k == 8) && (l == 32)){
+    return e;
+  } else
+    return 0;
+}
+
+static FLT_OR_DBL
+expAptamerContrib(int i, int j, int k, int l, char d, void *data){
+
+  double kT = (37. + K0) * GASCONST;
+  int e = AptamerContrib(i, j, k, l, d, data);
+  return exp(-e*10./kT);
+}
+
+
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
@@ -403,6 +423,11 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
+
+    /* the hack for theophylline binding aptamer */
+    vrna_sc_init(vc);
+    vc->sc->f = &AptamerContrib;
+    vc->sc->exp_f = &expAptamerContrib;
 
 
 
