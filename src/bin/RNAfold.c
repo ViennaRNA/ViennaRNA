@@ -176,24 +176,48 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
   return exp(-e*10./kT);
 }
 
-static void
-AptamerInit(vrna_fold_compound *vc,
+static vrna_quadruple_position *
+AptamerInit(char *sequence,
             char *motif1,
             char *motif2,
             int  e){
 
   vrna_quadruple_position *pos, *next;
   
-  scanForIntMotif(vc->sequence, motif1, motif2, &pos);
-
+  scanForIntMotif(sequence, motif1, motif2, &pos);
 
   for(next = pos; next->i; next++)
     next->e = e;
 
-  vrna_sc_init(vc);
-  vc->sc->f = &AptamerContrib;
-  vc->sc->exp_f = &expAptamerContrib;
-  vc->sc->data  = (void *)pos;
+  return pos;
+}
+
+static void
+InitAptamerContribs(vrna_fold_compound *vc, char where){
+
+  if(where == VRNA_SC_GEN_MFE){
+    if(vc){
+      if(vc->sc){
+        vrna_quadruple_position *positions = AptamerInit(vc->sequence, "GAUAC", "GCAGC", -892); /* deltaG of theophylline aptamer according to gouda et al. 2002 */
+
+        vc->sc->data = (void *)positions;
+      }
+    }
+  }
+}
+
+static void
+RemoveAptamerContribs(vrna_fold_compound *vc, char where){
+
+  if(where == VRNA_SC_GEN_PF){
+    if(vc){
+      if(vc->sc){
+        vrna_quadruple_position *positions = (vrna_quadruple_position *)vc->sc->data;
+        free(positions);
+        vc->sc->data = NULL;
+      }
+    }
+  }
 }
 
 
@@ -513,9 +537,11 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    /* the hack for theophylline binding aptamer */
-    AptamerInit(vc, "GAUAC", "GCAGC", -892); /* deltaG of theophylline aptamer according to gouda et al. 2002 */
-
+    /* add generalized soft-constraints to predict aptamer-ligand complexes */
+    vrna_sc_add_f(vc, &AptamerContrib, NULL);
+    vrna_sc_add_exp_f(vc, &expAptamerContrib, NULL);
+    vrna_sc_add_pre(vc, &InitAptamerContribs);
+    vrna_sc_add_post(vc, &RemoveAptamerContribs);
 
     min_en = (double)vrna_mfe(vc, structure);
 
