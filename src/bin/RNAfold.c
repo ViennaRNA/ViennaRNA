@@ -94,6 +94,7 @@ typedef struct{
   int k;
   int l;
   int e;
+  int alt;
 } vrna_quadruple_position;
 
 static void scanForIntMotif(char *seq, char *motif1, char *motif2, vrna_quadruple_position **pos){
@@ -171,23 +172,37 @@ AptamerContrib(int i, int j, int k, int l, char d, void *data){
 static FLT_OR_DBL
 expAptamerContrib(int i, int j, int k, int l, char d, void *data){
 
+  vrna_quadruple_position *pos;
+  FLT_OR_DBL exp_e = 1.;
   double kT = (37. + K0) * GASCONST;
-  int e = AptamerContrib(i, j, k, l, d, data);
-  return exp(-e*10./kT);
+
+  if(d & VRNA_DECOMP_PAIR_IL){
+    for(pos = data; pos->i; pos++){
+      if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
+        exp_e =   exp(-pos->e*10./kT);
+        exp_e +=  exp(-pos->alt*10./kT); /* add alternative, i.e. unbound ligand */
+      }
+    }
+  }
+
+  return exp_e;
 }
 
 static vrna_quadruple_position *
 AptamerInit(char *sequence,
             char *motif1,
             char *motif2,
-            int  e){
+            int  e,
+            int  alt){
 
   vrna_quadruple_position *pos, *next;
   
   scanForIntMotif(sequence, motif1, motif2, &pos);
 
-  for(next = pos; next->i; next++)
-    next->e = e;
+  for(next = pos; next->i; next++){
+    next->e   = e;
+    next->alt = alt;
+  }
 
   return pos;
 }
@@ -195,15 +210,37 @@ AptamerInit(char *sequence,
 static void
 InitAptamerContribs(vrna_fold_compound *vc, char where){
 
+  char  *seq5   = "GAUACCAG";
+  char  *seq3   = "CCCUUGGCAGC";
+  int   e       = -922; /* deltaG according to K_d = 0.32 umol/L taken from jenison et al. 1994 */
+
+  /* compute the actual pseudo energy of the ligand */
+  char *motif   = "(...((.()....))...)";  /* aptamer conformation */
+  char *motif2  = "(......().........)";  /* according interior loop conformation */
+  char *seq     = (char*)vrna_alloc(sizeof(char) * (strlen(seq5) + strlen(seq3) + 2));
+  seq = strcat(seq, seq5);
+  seq = strcat(seq, "&");
+  seq = strcat(seq, seq3);
+  vrna_md_t md;
+  vrna_md_set_globals(&md);
+  /* create temporary vrna_fold_compound for energy evaluation */
+  vrna_fold_compound *tmp_vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  int alt     = (int)(vrna_eval_structure(tmp_vc, motif2) * 100.);
+  int corr    = (int)(vrna_eval_structure(tmp_vc, motif) * 100.);
+  e           += corr - alt;
+
   if(where == VRNA_SC_GEN_MFE){
     if(vc){
       if(vc->sc){
-        vrna_quadruple_position *positions = AptamerInit(vc->sequence, "GAUAC", "GCAGC", -892); /* deltaG of theophylline aptamer according to gouda et al. 2002 */
+        vrna_quadruple_position *positions = AptamerInit(vc->sequence, seq5, seq3, e, alt);
 
         vc->sc->data = (void *)positions;
       }
     }
   }
+
+  vrna_free_fold_compound(tmp_vc);
+  free(seq);
 }
 
 static void
