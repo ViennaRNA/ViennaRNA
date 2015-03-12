@@ -13,8 +13,12 @@
 #endif
 
 /**
- *  \file gquad.h
- *  \brief Various functions related to G-quadruplex computations
+ *  @addtogroup   loops
+ *
+ *  @{
+ *
+ *  @file gquad.h
+ *  @brief Various functions related to G-quadruplex computations
  */
 
 
@@ -43,7 +47,7 @@ void        E_gquad_ali_en( int i,
                             vrna_param_t *P);
 
 /**
- *  \brief Get a triangular matrix prefilled with minimum free energy
+ *  @brief Get a triangular matrix prefilled with minimum free energy
  *  contributions of G-quadruplexes.
  *
  *  At each position ij in the matrix, the minimum free energy of any
@@ -52,11 +56,11 @@ void        E_gquad_ali_en( int i,
  *  Access the elements in the matrix via matrix[indx[j]+i]. To get
  *  the integer array indx see get_jindx().
  *
- *  \see get_jindx(), encode_sequence()
+ *  @see get_jindx(), encode_sequence()
  *
- *  \param S  The encoded sequence
- *  \param P  A pointer to the data structure containing the precomputed energy contributions
- *  \return   A pointer to the G-quadruplex contribution matrix
+ *  @param S  The encoded sequence
+ *  @param P  A pointer to the data structure containing the precomputed energy contributions
+ *  @return   A pointer to the G-quadruplex contribution matrix
 */
 int         *get_gquad_matrix(short *S, vrna_param_t *P);
 
@@ -145,18 +149,18 @@ int         parse_gquad(const char *struc, int *L, int l[3]);
  *  backtrack an interior loop like enclosed g-quadruplex
  *  with closing pair (i,j)
  *
- *  \param c      The total contribution the loop should resemble
- *  \param i      position i of enclosing pair
- *  \param j      position j of enclosing pair
- *  \param type   base pair type of enclosing pair (must be reverse type)
- *  \param S      integer encoded sequence
- *  \param ggg    triangular matrix containing g-quadruplex contributions
- *  \param index  the index for accessing the triangular matrix
- *  \param p      here the 5' position of the gquad is stored
- *  \param q      here the 3' position of the gquad is stored
- *  \param P      the datastructure containing the precalculated contibutions
+ *  @param c      The total contribution the loop should resemble
+ *  @param i      position i of enclosing pair
+ *  @param j      position j of enclosing pair
+ *  @param type   base pair type of enclosing pair (must be reverse type)
+ *  @param S      integer encoded sequence
+ *  @param ggg    triangular matrix containing g-quadruplex contributions
+ *  @param index  the index for accessing the triangular matrix
+ *  @param p      here the 5' position of the gquad is stored
+ *  @param q      here the 3' position of the gquad is stored
+ *  @param P      the datastructure containing the precalculated contibutions
  *
- *  \return       1 on success, 0 if no gquad found
+ *  @return       1 on success, 0 if no gquad found
  */
 INLINE  PRIVATE int backtrack_GQuad_IntLoop(int c,
                                             int i,
@@ -244,17 +248,17 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop(int c,
  *  backtrack an interior loop like enclosed g-quadruplex
  *  with closing pair (i,j) with underlying Lfold matrix
  *
- *  \param c      The total contribution the loop should resemble
- *  \param i      position i of enclosing pair
- *  \param j      position j of enclosing pair
- *  \param type   base pair type of enclosing pair (must be reverse type)
- *  \param S      integer encoded sequence
- *  \param ggg    triangular matrix containing g-quadruplex contributions
- *  \param p      here the 5' position of the gquad is stored
- *  \param q      here the 3' position of the gquad is stored
- *  \param P      the datastructure containing the precalculated contibutions
+ *  @param c      The total contribution the loop should resemble
+ *  @param i      position i of enclosing pair
+ *  @param j      position j of enclosing pair
+ *  @param type   base pair type of enclosing pair (must be reverse type)
+ *  @param S      integer encoded sequence
+ *  @param ggg    triangular matrix containing g-quadruplex contributions
+ *  @param p      here the 5' position of the gquad is stored
+ *  @param q      here the 3' position of the gquad is stored
+ *  @param P      the datastructure containing the precalculated contibutions
  *
- *  \return       1 on success, 0 if no gquad found
+ *  @return       1 on success, 0 if no gquad found
  */
 INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               int i,
@@ -719,5 +723,10 @@ exp_E_GQuad_IntLoop(int i,
 
   return q;
 }
+
+/**
+ * @}
+ */
+
 
 #endif

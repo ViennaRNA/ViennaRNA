@@ -19,12 +19,16 @@
 #endif
 
 /**
- *  \file multibranch_loops.h
- *  \brief Energy evaluation of multibranch loops for MFE and partition function calculations
+ *  @addtogroup   loops
+ *
+ *  @{
+ *
+ *  @file multibranch_loops.h
+ *  @brief Energy evaluation of multibranch loops for MFE and partition function calculations
  */
 
 /**
- *  \def E_MLstem(A,B,C,D)
+ *  @def E_MLstem(A,B,C,D)
  *  <H2>Compute the Energy contribution of a Multiloop stem</H2>
  *  This definition is a wrapper for the E_Stem() funtion.
  *  It is substituted by an E_Stem() funtion call with argument
@@ -35,12 +39,12 @@
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
  * 
- *  \see    E_Stem()
- *  \param  A The pair type of the stem-closing pair
- *  \param  B The 5'-mismatching nucleotide
- *  \param  C The 3'-mismatching nucleotide
- *  \param  D The datastructure containing scaled energy parameters
- *  \return   The energy contribution of the introduced multiloop stem
+ *  @see    E_Stem()
+ *  @param  A The pair type of the stem-closing pair
+ *  @param  B The 5'-mismatching nucleotide
+ *  @param  C The 3'-mismatching nucleotide
+ *  @param  D The datastructure containing scaled energy parameters
+ *  @return   The energy contribution of the introduced multiloop stem
  */
 INLINE  PRIVATE int E_MLstem( int type,
                               int si1,
@@ -48,10 +52,10 @@ INLINE  PRIVATE int E_MLstem( int type,
                               vrna_param_t *P);
 
 /**
- *  \def exp_E_MLstem(A,B,C,D)
- *  This is the partition function variant of \ref E_MLstem()
- *  \see E_MLstem()
- *  \return The Boltzmann weighted energy contribution of the introduced multiloop stem
+ *  @def exp_E_MLstem(A,B,C,D)
+ *  This is the partition function variant of @ref E_MLstem()
+ *  @see E_MLstem()
+ *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
 INLINE  PRIVATE double exp_E_MLstem(int type,
                                     int si1,
@@ -61,7 +65,7 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
 
 
 /**
- *  \brief Evaluate energy of a multi branch helices stacking onto closing pair (i,j)
+ *  @brief Evaluate energy of a multi branch helices stacking onto closing pair (i,j)
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
@@ -551,5 +555,8 @@ exp_E_MLstem( int type,
   return energy;
 }
 
+/**
+ * @}
+ */
 
 #endif

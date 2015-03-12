@@ -2,16 +2,16 @@
 #define VIENNA_RNA_PACKAGE_CONVERT_EPARS_H
 
 /**
- *  \addtogroup energy_parameters_convert
- *  \brief  Convert energy parameter files into the latest format
+ *  @addtogroup energy_parameters_convert
+ *  @brief  Convert energy parameter files into the latest format
  *
  *  To preserve some backward compatibility the RNAlib also provides
  *  functions to convert energy parameter files from the format used
  *  in version 1.4-1.8 into the new format used since version 2.0
  *
  *  @{
- *  \file convert_epars.h
- *  \brief Functions and definitions for energy parameter file format conversion
+ *  @file convert_epars.h
+ *  @brief Functions and definitions for energy parameter file format conversion
  */
 
 /** Flag to indicate printing of a complete parameter set */
@@ -75,11 +75,11 @@
  * 
  *  The defined options are fine for bitwise compare- and assignment-operations,
  *  e. g.: pass a collection of options as a single value like this:
- *  \verbatim convert_parameter_file(ifile, ofile, option_1 | option_2 | option_n) \endverbatim
+ *  @verbatim convert_parameter_file(ifile, ofile, option_1 | option_2 | option_n) @endverbatim
  * 
- *  \param iname    The input file name (If NULL input is read from stdin)
- *  \param oname    The output file name (If NULL output is written to stdout)
- *  \param options  The options (as described above)
+ *  @param iname    The input file name (If NULL input is read from stdin)
+ *  @param oname    The output file name (If NULL output is written to stdout)
+ *  @param options  The options (as described above)
  */
 void convert_parameter_file(const char *iname,
                             const char *oname,

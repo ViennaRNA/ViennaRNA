@@ -5,126 +5,128 @@
 */
 
 /**
- *  \defgroup   folding_routines          RNA Secondary Structure Prediction and Evaluation
- *  \brief This module contains all functions related to thermodynamic folding of RNAs
+ *  @defgroup   folding_routines          RNA Secondary Structure Prediction
+ *  @brief This module contains all functions related to thermodynamic folding of RNAs
  *
- *  \defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
- *  \ingroup    folding_routines
+ *  @defgroup   inverse_fold              Inverse Secondary Structure Prediction
  *
- *  \defgroup   mfe_fold                  Calculating Minimum Free Energy (MFE) Structures
- *  \ingroup    folding_routines
+ *  @defgroup   eval                      Free Energy Evaluation for given Sequence / Structure Pairs
  *
- *  \defgroup   pf_fold                   Calculating Partition Functions and Pair Probabilities
- *  \ingroup    folding_routines
+ *  @defgroup   loops                     Processing and Evaluating Decomposed Loops
  *
- *  \defgroup   mea_fold                  Compute the structure with maximum expected accuracy (MEA)
- *  \ingroup    pf_fold
+ *  @defgroup   energy_parameters         Energy Parameter Sets and Boltzmann Factors
  *
- *  \defgroup   centroid_fold             Compute the centroid structure
- *  \ingroup    pf_fold
+ *  @defgroup   data_structures           Data Structures and Preprocessor Macros
  *
- *  \defgroup   subopt_fold               Enumerating Suboptimal Structures
- *  \ingroup    folding_routines
+ *  @defgroup   utils                     Utilities
  *
- *  \defgroup   subopt_zuker              Suboptimal structures according to Zuker et al. 1989
- *  \ingroup    subopt_fold
+ *  @defgroup   mfe_fold                  Computing Minimum Free Energy (MFE) Structures
+ *  @ingroup    folding_routines
  *
- *  \defgroup   subopt_wuchty             Suboptimal structures within an energy band arround the MFE
- *  \ingroup    subopt_fold
+ *  @defgroup   pf_fold                   Computing Partition Functions and Pair Probabilities
+ *  @ingroup    folding_routines
  *
- *  \defgroup   subopt_stochbt            Stochastic backtracking in the Ensemble
- *  \ingroup    subopt_fold
+ *  @defgroup   mea_fold                  Compute the structure with maximum expected accuracy (MEA)
+ *  @ingroup    pf_fold
  *
- *  \defgroup   cofold                    Calculate Secondary Structures of two RNAs upon Dimerization
- *  \ingroup    folding_routines
+ *  @defgroup   centroid_fold             Compute the centroid structure
+ *  @ingroup    pf_fold
  *
- *  \defgroup   mfe_cofold                MFE Structures of two hybridized Sequences
- *  \ingroup    cofold mfe_fold
+ *  @defgroup   subopt_fold               Enumerating Suboptimal Structures
+ *  @ingroup    folding_routines
  *
- *  \defgroup   pf_cofold                 Partition Function for two hybridized Sequences
- *  \ingroup    cofold pf_fold
+ *  @defgroup   subopt_zuker              Suboptimal structures according to Zuker et al. 1989
+ *  @ingroup    subopt_fold
  *
- *  \defgroup   up_cofold                 Partition Function for two hybridized Sequences as a stepwise Process
- *  \ingroup    cofold pf_fold
+ *  @defgroup   subopt_wuchty             Suboptimal structures within an energy band arround the MFE
+ *  @ingroup    subopt_fold
  *
- *  \defgroup   consensus_fold            Predicting Consensus Structures from Alignment(s)
- *  \ingroup    folding_routines
+ *  @defgroup   subopt_stochbt            Stochastic backtracking in the Ensemble
+ *  @ingroup    subopt_fold
  *
- *  \defgroup   consensus_mfe_fold        MFE Consensus Structures for Sequence Alignment(s)
- *  \ingroup    consensus_fold mfe_fold
+ *  @defgroup   cofold                    Calculate Secondary Structures of two RNAs upon Dimerization
+ *  @ingroup    folding_routines
  *
- *  \defgroup   consensus_pf_fold         Partition Function and Base Pair Probabilities for Sequence Alignment(s)
- *  \ingroup    consensus_fold pf_fold
+ *  @defgroup   mfe_cofold                MFE Structures of two hybridized Sequences
+ *  @ingroup    cofold mfe_fold
  *
- *  \defgroup   consensus_stochbt         Stochastic Backtracking of Consensus Structures from Sequence Alignment(s)
- *  \ingroup    consensus_fold subopt_stochbt
+ *  @defgroup   pf_cofold                 Partition Function for two hybridized Sequences
+ *  @ingroup    cofold pf_fold
  *
- *  \defgroup   local_fold                Predicting Locally stable structures of large sequences
- *  \ingroup    folding_routines
+ *  @defgroup   up_cofold                 Partition Function for two hybridized Sequences as a stepwise Process
+ *  @ingroup    cofold pf_fold
  *
- *  \defgroup   local_mfe_fold            Local MFE structure Prediction and Z-scores
- *  \ingroup    local_fold mfe_fold
+ *  @defgroup   consensus_fold            Predicting Consensus Structures from Alignment(s)
+ *  @ingroup    folding_routines
  *
- *  \defgroup   local_pf_fold             Partition functions for locally stable secondary structures
- *  \ingroup    local_fold pf_fold
+ *  @defgroup   consensus_mfe_fold        MFE Consensus Structures for Sequence Alignment(s)
+ *  @ingroup    consensus_fold mfe_fold
  *
- *  \defgroup   local_consensus_fold      Local MFE consensus structures for Sequence Alignments
- *  \ingroup    local_fold consensus_fold
+ *  @defgroup   consensus_pf_fold         Partition Function and Base Pair Probabilities for Sequence Alignment(s)
+ *  @ingroup    consensus_fold pf_fold
  *
- *  \defgroup   energy_parameters         Change and Precalculate Energy Parameter Sets and Boltzmann Factors
- *  \ingroup    folding_routines
+ *  @defgroup   consensus_stochbt         Stochastic Backtracking of Consensus Structures from Sequence Alignment(s)
+ *  @ingroup    consensus_fold subopt_stochbt
  *
- *  \defgroup   energy_parameters_rw      Reading/Writing energy parameter sets from/to File
- *  \ingroup    energy_parameters
+ *  @defgroup   local_fold                Predicting Locally stable structures of large sequences
+ *  @ingroup    folding_routines
  *
- *  \defgroup   energy_parameters_convert Converting energy parameter files
- *  \ingroup    energy_parameters_rw
+ *  @defgroup   local_mfe_fold            Local MFE structure Prediction and Z-scores
+ *  @ingroup    local_fold mfe_fold
  *
- *  \defgroup   eval                      Energy evaluation
- *  \ingroup    folding_routines
+ *  @defgroup   local_pf_fold             Partition functions for locally stable secondary structures
+ *  @ingroup    local_fold pf_fold
  *
- *  \defgroup   inverse_fold              Searching Sequences for Predefined Structures
- *  \ingroup    folding_routines
+ *  @defgroup   local_consensus_fold      Local MFE consensus structures for Sequence Alignments
+ *  @ingroup    local_fold consensus_fold
  *
- *  \defgroup   class_fold                Classified Dynamic Programming
- *  \ingroup    folding_routines
+ *  @defgroup   energy_parameters_rw      Reading/Writing Energy Parameter Sets from/to File
+ *  @ingroup    energy_parameters
  *
- *  \defgroup   kl_neighborhood           Distance based partitioning of the Secondary Structure Space
- *  \ingroup    class_fold
+ *  @defgroup   energy_parameters_convert Converting Energy Parameter Files
+ *  @ingroup    energy_parameters_rw
  *
- *  \defgroup   kl_neighborhood_mfe       Calculating MFE representatives of a Distance Based Partitioning
- *  \ingroup    kl_neighborhood mfe_fold
+ *  @defgroup   class_fold                Classified Dynamic Programming
+ *  @ingroup    folding_routines
  *
- *  \defgroup   kl_neighborhood_pf        Calculate Partition Functions of a Distance Based Partitioning
- *  \ingroup    kl_neighborhood pf_fold
+ *  @defgroup   kl_neighborhood           Distance based partitioning of the Secondary Structure Space
+ *  @ingroup    class_fold
  *
- *  \defgroup   kl_neighborhood_stochbt   Stochastic Backtracking of Structures from Distance Based Partitioning
- *  \ingroup    kl_neighborhood subopt_stochbt
+ *  @defgroup   kl_neighborhood_mfe       Calculating MFE representatives of a Distance Based Partitioning
+ *  @ingroup    kl_neighborhood mfe_fold
  *
- *  \defgroup   dos                       Compute the Density of States
- *  \ingroup    class_fold
+ *  @defgroup   kl_neighborhood_pf        Calculate Partition Functions of a Distance Based Partitioning
+ *  @ingroup    kl_neighborhood pf_fold
  *
- *  \defgroup   constraints               Constraining the Secondary Structure Recursions
- *  \ingroup    folding_routines
+ *  @defgroup   kl_neighborhood_stochbt   Stochastic Backtracking of Structures from Distance Based Partitioning
+ *  @ingroup    kl_neighborhood subopt_stochbt
  *
- *  \defgroup   hard_constraints          Hard Constraints
- *  \ingroup    constraints
+ *  @defgroup   dos                       Compute the Density of States
+ *  @ingroup    class_fold
  *
- *  \defgroup   soft_constraints          Soft Constraints
- *  \ingroup    constraints
+ *  @defgroup   constraints               Constraining the Secondary Structure Recursions
+ *  @ingroup    folding_routines
  *
- *  \defgroup   generalized_sc            Generalized Soft Constraints
- *  \ingroup    soft_constraints
+ *  @defgroup   hard_constraints          Hard Constraints
+ *  @ingroup    constraints
  *
- *  \defgroup   data_structures           Common Data Structures and Preprocessor Macros
+ *  @defgroup   soft_constraints          Soft Constraints
+ *  @ingroup    constraints
  *
- *  \defgroup   utils                     Utility functions used throughout the library and the programs of the ViennaRNA Package
+ *  @defgroup   generalized_sc            Generalized Soft Constraints
+ *  @ingroup    soft_constraints
  *
- *  \defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
- *  \ingroup    utils
+ *  @defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
+ *  @ingroup    data_structures
  *
- *  \defgroup   file_utils                Functions dealing with file formats for RNA sequences, structures, and alignments
- *  \ingroup    utils
+ *  @defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
+ *  @ingroup    utils
+ *
+ *  @defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
+ *  @ingroup    utils
+ *
+ *  @defgroup   plotting_utils            Functions for Creating RNA Secondary Structures Plots, Dot-Plots, and More
+ *  @ingroup    utils
  */
 
 
@@ -135,19 +137,19 @@
 */
 
 /**
-  \mainpage ViennaRNA Package core - RNAlib
+  @mainpage ViennaRNA Package core - RNAlib
 \n
 
-\htmlonly <center> \endhtmlonly
+@htmlonly <center> @endhtmlonly
 
 <h2>A Library for folding and comparing RNA secondary structures</h2>
 
-\htmlonly </center> \endhtmlonly
+@htmlonly </center> @endhtmlonly
 
 \n
 
-\date     1994-2012
-\authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
+@date     1994-2012
+@authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
 
 <h3>Table of Contents</h3>
 <hr>
@@ -161,9 +163,9 @@
 
 <hr>
 
-\section  mp_intro     Introduction
+@section  mp_intro     Introduction
 
-The core of the Vienna RNA Package (\cite lorenz:2011, \cite hofacker:1994)
+The core of the Vienna RNA Package (@cite lorenz:2011, @cite hofacker:1994)
 is formed by a collection of routines
 for the prediction and comparison of RNA secondary structures. These
 routines can be accessed through stand-alone programs, such as RNAfold,
@@ -182,7 +184,7 @@ http://www.tbi.univie.ac.at/~ivo/RNA/
 
 
 
-\page  mp_parse     Parsing and Comparing - Functions to Manipulate Structures
+@page  mp_parse     Parsing and Comparing - Functions to Manipulate Structures
 
 <h2>Representations of Secondary Structures</h2>
 
@@ -191,7 +193,7 @@ notation</i>, where matching brackets symbolize base pairs and unpaired
 bases are shown as dots. Alternatively, one may use two types of node
 labels, 'P' for paired and 'U' for unpaired; a dot is then replaced by
 '(U)', and each closed bracket is assigned an additional identifier 'P'.
-We call this the expanded notation. In \cite fontana:1993b a condensed
+We call this the expanded notation. In @cite fontana:1993b a condensed
 representation of the secondary structure is proposed, the so-called
 homeomorphically irreducible tree (HIT) representation. Here a stack is
 represented as a single pair of matching brackets labeled 'P' and
@@ -201,7 +203,7 @@ labeled 'U' and weighted by its length.  Generally any string consisting
 of matching brackets and identifiers is equivalent to a plane tree with
 as many different types of nodes as there are identifiers.
 
-Bruce Shapiro proposed a coarse grained representation \cite shapiro:1988,
+Bruce Shapiro proposed a coarse grained representation @cite shapiro:1988,
 which, does not retain the full information of the secondary structure. He
 represents the different structure elements by single matching brackets
 and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
@@ -215,7 +217,7 @@ for the dot-bracket form) can be encapsulated into a virtual root
 The following example illustrates the different linear tree representations
 used by the package. All lines show the same secondary structure.
 
-\verbatim
+@verbatim
 a) .((((..(((...)))..((..)))).)).
    (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
 b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
@@ -223,7 +225,7 @@ c) (((H)(H)M)B)
    ((((((H)S)((H)S)M)S)B)S)
    (((((((H)S)((H)S)M)S)B)S)E)
 d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
-\endverbatim
+@endverbatim
 
 Above: Tree representations of secondary structures.  a) Full structure:
 the first line shows the more convenient condensed notation which is
@@ -240,14 +242,14 @@ For the output of aligned structures from string editing, different
 representations are needed, where we put the label on both sides.
 The above examples for tree representations would then look like:
 
-\verbatim
+@verbatim
 a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
 b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
 c) (B(M(HH)(HH)M)B)
    (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
    (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
 d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
-\endverbatim
+@endverbatim
 
 Aligned structures additionally contain the gap character '_'.
 
@@ -256,57 +258,57 @@ Aligned structures additionally contain the gap character '_'.
 Several functions are provided for parsing structures and converting to
 different representations.
 
-\verbatim
+@verbatim
 char  *expand_Full(const char *structure)
-\endverbatim
-\copybrief expand_Full()
+@endverbatim
+@copybrief expand_Full()
 
-\verbatim
+@verbatim
 char *b2HIT (const char *structure)
-\endverbatim
-\copybrief b2HIT()
+@endverbatim
+@copybrief b2HIT()
 
-\verbatim
+@verbatim
 char *b2C (const char *structure)
-\endverbatim
-\copybrief b2C()
+@endverbatim
+@copybrief b2C()
 
-\verbatim
+@verbatim
 char *b2Shapiro (const char *structure)
-\endverbatim
-\copybrief b2Shapiro()
+@endverbatim
+@copybrief b2Shapiro()
 
-\verbatim
+@verbatim
 char  *expand_Shapiro (const char *coarse);
-\endverbatim
-\copybrief expand_Shapiro()
+@endverbatim
+@copybrief expand_Shapiro()
 
-\verbatim
+@verbatim
 char *add_root (const char *structure)
-\endverbatim
-\copybrief add_root()
+@endverbatim
+@copybrief add_root()
 
-\verbatim
+@verbatim
 char  *unexpand_Full (const char *ffull)
-\endverbatim
-\copybrief unexpand_Full()
+@endverbatim
+@copybrief unexpand_Full()
 
-\verbatim
+@verbatim
 char  *unweight (const char *wcoarse)
-\endverbatim
-\copybrief unweight()
+@endverbatim
+@copybrief unweight()
 
-\verbatim
+@verbatim
 void   unexpand_aligned_F (char *align[2])
-\endverbatim
-\copybrief unexpand_aligned_F()
+@endverbatim
+@copybrief unexpand_aligned_F()
 
-\verbatim
+@verbatim
 void   parse_structure (const char *structure)
-\endverbatim
-\copybrief parse_structure()
+@endverbatim
+@copybrief parse_structure()
 
-\see RNAstruct.h for prototypes and more detailed description
+@see RNAstruct.h for prototypes and more detailed description
 
 <h2>Distance Measures</h2>
 
@@ -317,11 +319,11 @@ pairs that have to be opened or closed to transform one structure into the
 other. It is therefore particularly useful for comparing structures on the
 same sequence. It is implemented by
 
-\verbatim
+@verbatim
 int bp_distance(const char *str1,
                 const char *str2)
-\endverbatim
-\copybrief bp_distance()
+@endverbatim
+@copybrief bp_distance()
 
 For other cases a distance measure that allows for gaps is preferable.
 We can define distances between structures as edit distances between
@@ -345,7 +347,7 @@ a cost of 1.
 
 Two cost matrices are provided for coarse grained structures:
 
-\verbatim
+@verbatim
 /*  Null,   H,   B,   I,   M,   S,   E    */
    {   0,   2,   2,   2,   2,   1,   1},   /* Null replaced */
    {   2,   0,   2,   2,   2, INF, INF},   /* H    replaced */
@@ -364,87 +366,87 @@ Two cost matrices are provided for coarse grained structures:
    {  75,   8,   8,   8,   0, INF, INF},   /* M    replaced */
    {   5, INF, INF, INF, INF,   0, INF},   /* S    replaced */
    {   5, INF, INF, INF, INF, INF,   0},   /* E    replaced */
-\endverbatim
+@endverbatim
 
-The lower matrix uses the costs given in \cite shapiro:1990.
+The lower matrix uses the costs given in @cite shapiro:1990.
 All distance functions use the following global variables:
 
-\verbatim
+@verbatim
 int  cost_matrix;
-\endverbatim
-\copybrief cost_matrix
+@endverbatim
+@copybrief cost_matrix
 
-\verbatim
+@verbatim
 int   edit_backtrack;
-\endverbatim
-\copybrief edit_backtrack
+@endverbatim
+@copybrief edit_backtrack
 
-\verbatim
+@verbatim
 char *aligned_line[4];
-\endverbatim
-\copybrief aligned_line
+@endverbatim
+@copybrief aligned_line
 
-\see utils.h, dist_vars.h and stringdist.h for more details
+@see utils.h, dist_vars.h and stringdist.h for more details
 
 <h3>Functions for Tree Edit Distances</h3>
 
-\verbatim
+@verbatim
 Tree   *make_tree (char *struc)
-\endverbatim
-\copybrief make_tree()
+@endverbatim
+@copybrief make_tree()
 
-\verbatim
+@verbatim
 float   tree_edit_distance (Tree *T1,
                             Tree *T2) 
-\endverbatim
-\copybrief tree_edit_distance()
+@endverbatim
+@copybrief tree_edit_distance()
 
-\verbatim
+@verbatim
 void    free_tree(Tree *t)
-\endverbatim
-\copybrief free_tree()
+@endverbatim
+@copybrief free_tree()
 
-\see dist_vars.h and treedist.h for prototypes and more detailed descriptions
+@see dist_vars.h and treedist.h for prototypes and more detailed descriptions
 
 <h3>Functions for String Alignment</h3>
 
-\verbatim
+@verbatim
 swString *Make_swString (char *string)
-\endverbatim
-\copybrief Make_swString()
+@endverbatim
+@copybrief Make_swString()
 
-\verbatim
+@verbatim
 float     string_edit_distance (swString *T1,
                                 swString *T2)
-\endverbatim
-\copybrief string_edit_distance()
+@endverbatim
+@copybrief string_edit_distance()
 
-\see dist_vars.h and stringdist.h for prototypes and more detailed descriptions
+@see dist_vars.h and stringdist.h for prototypes and more detailed descriptions
 
 <h3>Functions for Comparison of Base Pair Probabilities</h3>
 
 For comparison of base pair probability matrices, the matrices are first
 condensed into probability profiles which are the compared by alignment.
 
-\verbatim
+@verbatim
 float *Make_bp_profile_bppm ( double *bppm,
                               int length)
-\endverbatim
-\copybrief Make_bp_profile_bppm()
+@endverbatim
+@copybrief Make_bp_profile_bppm()
 
-\verbatim
+@verbatim
 float profile_edit_distance ( const float *T1,
                               const float *T2)
-\endverbatim
-\copybrief profile_edit_distance()
+@endverbatim
+@copybrief profile_edit_distance()
 
-\see ProfileDist.h for prototypes and more details of the above functions
+@see ProfileDist.h for prototypes and more details of the above functions
 
-\ref mp_utils "Next Page: Utilities"
+@ref mp_utils "Next Page: Utilities"
 
-\page  mp_utils     Utilities - Odds and Ends
+@page  mp_utils     Utilities - Odds and Ends
 
-\anchor toc
+@anchor toc
 
 <h3>Table of Contents</h3>
 <hr>
@@ -458,225 +460,225 @@ float profile_edit_distance ( const float *T1,
 
 <hr>
 
-\section utils_ss Producing secondary structure graphs
+@section utils_ss Producing secondary structure graphs
 
-\verbatim
+@verbatim
 int PS_rna_plot ( char *string,
                   char *structure,
                   char *file)
-\endverbatim
-\copybrief PS_rna_plot()
+@endverbatim
+@copybrief PS_rna_plot()
 
-\verbatim
+@verbatim
 int PS_rna_plot_a (
             char *string,
             char *structure,
             char *file,
             char *pre,
             char *post)
-\endverbatim
-\copybrief PS_rna_plot_a()
+@endverbatim
+@copybrief PS_rna_plot_a()
 
-\verbatim
+@verbatim
 int gmlRNA (char *string,
             char *structure,
             char *ssfile,
             char option)
-\endverbatim
-\copybrief gmlRNA()
+@endverbatim
+@copybrief gmlRNA()
 
-\verbatim
+@verbatim
 int ssv_rna_plot (char *string,
                   char *structure,
                   char *ssfile)
-\endverbatim
-\copybrief ssv_rna_plot()
+@endverbatim
+@copybrief ssv_rna_plot()
 
-\verbatim
+@verbatim
 int svg_rna_plot (char *string,
                   char *structure,
                   char *ssfile)
-\endverbatim
-\copybrief svg_rna_plot()
+@endverbatim
+@copybrief svg_rna_plot()
 
-\verbatim
+@verbatim
 int xrna_plot ( char *string,
                 char *structure,
                 char *ssfile)
-\endverbatim
-\copybrief xrna_plot()
+@endverbatim
+@copybrief xrna_plot()
 
-\verbatim
+@verbatim
 int rna_plot_type
-\endverbatim
-\copybrief rna_plot_type
+@endverbatim
+@copybrief rna_plot_type
 
 Two low-level functions provide direct access to the graph lauyouting
 algorithms:
 
-\verbatim
+@verbatim
 int simple_xy_coordinates ( short *pair_table,
                             float *X,
                             float *Y)
-\endverbatim
-\copybrief simple_xy_coordinates()
+@endverbatim
+@copybrief simple_xy_coordinates()
 
-\verbatim
+@verbatim
 int naview_xy_coordinates ( short *pair_table,
                             float *X,
                             float *Y)
-\endverbatim
-\copybrief naview_xy_coordinates()
+@endverbatim
+@copybrief naview_xy_coordinates()
 
-\see PS_dot.h and naview.h for more detailed descriptions.
+@see PS_dot.h and naview.h for more detailed descriptions.
 
-\htmlonly
+@htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
 <hr>
-\endhtmlonly
+@endhtmlonly
 
-\section utils_dot Producing (colored) dot plots for base pair probabilities
+@section utils_dot Producing (colored) dot plots for base pair probabilities
 
-\verbatim
+@verbatim
 int PS_color_dot_plot ( char *string,
                         cpair *pi,
                         char *filename)
-\endverbatim
-\copybrief PS_color_dot_plot()
+@endverbatim
+@copybrief PS_color_dot_plot()
 
-\verbatim
+@verbatim
 int PS_color_dot_plot_turn (char *seq,
                             cpair *pi,
                             char *filename,
                             int winSize)
-\endverbatim
-\copybrief PS_color_dot_plot_turn()
+@endverbatim
+@copybrief PS_color_dot_plot_turn()
 
-\verbatim
+@verbatim
 int PS_dot_plot_list (char *seq,
                       char *filename,
                       plist *pl,
                       plist *mf,
                       char *comment)
-\endverbatim
-\copybrief PS_dot_plot_list()
+@endverbatim
+@copybrief PS_dot_plot_list()
 
-\verbatim
+@verbatim
 int PS_dot_plot_turn (char *seq,
                       struct plist *pl,
                       char *filename,
                       int winSize)
-\endverbatim
-\copybrief PS_dot_plot_turn()
+@endverbatim
+@copybrief PS_dot_plot_turn()
 
-\see PS_dot.h for more detailed descriptions.
+@see PS_dot.h for more detailed descriptions.
 
-\section utils_aln Producing (colored) alignments
+@section utils_aln Producing (colored) alignments
 
-\verbatim
+@verbatim
 int PS_color_aln (
             const char *structure,
             const char *filename,
             const char *seqs[],
             const char *names[])
-\endverbatim
-\copybrief PS_color_aln()
+@endverbatim
+@copybrief PS_color_aln()
 
-\htmlonly
+@htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
 <hr>
-\endhtmlonly
+@endhtmlonly
 
-\section  utils_seq   RNA sequence related utilities
+@section  utils_seq   RNA sequence related utilities
 
 Several functions provide useful applications to RNA sequences
 
-\verbatim
+@verbatim
 char  *random_string (int l,
                       const char symbols[])
-\endverbatim
-\copybrief random_string()
+@endverbatim
+@copybrief random_string()
 
-\verbatim
+@verbatim
 int   hamming ( const char *s1,
                 const char *s2)
-\endverbatim
-\copybrief hamming()
+@endverbatim
+@copybrief hamming()
 
-\verbatim
+@verbatim
 void str_DNA2RNA(char *sequence);
-\endverbatim
-\copybrief str_DNA2RNA()
+@endverbatim
+@copybrief str_DNA2RNA()
 
-\verbatim
+@verbatim
 void str_uppercase(char *sequence);
-\endverbatim
-\copybrief str_uppercase()
+@endverbatim
+@copybrief str_uppercase()
 
-\htmlonly
+@htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
 <hr>
-\endhtmlonly
+@endhtmlonly
 
-\section utils_struc  RNA secondary structure related utilities
+@section utils_struc  RNA secondary structure related utilities
 
-\verbatim
+@verbatim
 char *pack_structure (const char *struc)
-\endverbatim
-\copybrief pack_structure()
+@endverbatim
+@copybrief pack_structure()
 
-\verbatim
+@verbatim
 char *unpack_structure (const char *packed)
-\endverbatim
-\copybrief unpack_structure()
+@endverbatim
+@copybrief unpack_structure()
 
-\verbatim
+@verbatim
 short *make_pair_table (const char *structure)
-\endverbatim
-\copybrief make_pair_table()
+@endverbatim
+@copybrief make_pair_table()
 
-\verbatim
+@verbatim
 short *copy_pair_table (const short *pt)
-\endverbatim
-\copybrief copy_pair_table()
+@endverbatim
+@copybrief copy_pair_table()
 
-\htmlonly
+@htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
 <hr>
-\endhtmlonly
+@endhtmlonly
 
-\section  utils_misc  Miscellaneous Utilities
+@section  utils_misc  Miscellaneous Utilities
 
-\verbatim
+@verbatim
 void print_tty_input_seq (void)
-\endverbatim
-\copybrief print_tty_input_seq()
+@endverbatim
+@copybrief print_tty_input_seq()
 
-\verbatim
+@verbatim
 void print_tty_constraint_full (void)
-\endverbatim
-\copybrief print_tty_constraint_full()
+@endverbatim
+@copybrief print_tty_constraint_full()
 
-\verbatim
+@verbatim
 void print_tty_constraint (unsigned int option)
-\endverbatim
-\copybrief print_tty_constraint()
+@endverbatim
+@copybrief print_tty_constraint()
 
-\verbatim
+@verbatim
 int   *get_iindx (unsigned int length)
-\endverbatim
-\copybrief get_iindx()
+@endverbatim
+@copybrief get_iindx()
 
-\verbatim
+@verbatim
 int   *get_indx (unsigned int length)
-\endverbatim
-\copybrief get_indx()
+@endverbatim
+@copybrief get_indx()
 
-\verbatim
+@verbatim
 void constrain_ptypes (
                 const char *constraint,
                 unsigned int length,
@@ -684,87 +686,87 @@ void constrain_ptypes (
                 int *BP,
                 int min_loop_size,
                 unsigned int idx_type)
-\endverbatim
-\copybrief constrain_ptypes()
+@endverbatim
+@copybrief constrain_ptypes()
 
-\verbatim
+@verbatim
 char  *get_line(FILE *fp);
-\endverbatim
-\copybrief get_line()
+@endverbatim
+@copybrief get_line()
 
-\verbatim
+@verbatim
 unsigned int read_record(
                 char **header,
                 char **sequence,
                 char ***rest,
                 unsigned int options);
-\endverbatim
-\copybrief read_record()
+@endverbatim
+@copybrief read_record()
 
-\verbatim
+@verbatim
 char  *time_stamp (void)
-\endverbatim
-\copybrief time_stamp()
+@endverbatim
+@copybrief time_stamp()
 
-\verbatim
+@verbatim
 void warn_user (const char message[])
-\endverbatim
-\copybrief warn_user()
+@endverbatim
+@copybrief warn_user()
 
-\verbatim
+@verbatim
 void nrerror (const char message[])
-\endverbatim
-\copybrief nrerror()
+@endverbatim
+@copybrief nrerror()
 
-\verbatim
+@verbatim
 void   init_rand (void)
-\endverbatim
-\copybrief init_rand()
+@endverbatim
+@copybrief init_rand()
 
-\verbatim
+@verbatim
 unsigned short xsubi[3];
-\endverbatim
-\copybrief xsubi
+@endverbatim
+@copybrief xsubi
 
-\verbatim
+@verbatim
 double urn (void)
-\endverbatim
-\copybrief urn()
+@endverbatim
+@copybrief urn()
 
-\verbatim
+@verbatim
 int    int_urn (int from, int to)
-\endverbatim
-\copybrief int_urn()
+@endverbatim
+@copybrief int_urn()
 
-\verbatim
+@verbatim
 void  *space (unsigned size)
-\endverbatim
-\copybrief space()
+@endverbatim
+@copybrief space()
 
-\verbatim
+@verbatim
 void  *xrealloc ( void *p,
                   unsigned size)
-\endverbatim
-\copybrief xrealloc()
+@endverbatim
+@copybrief xrealloc()
 
-\see  utils.h for a complete overview and detailed description of the utility functions
+@see  utils.h for a complete overview and detailed description of the utility functions
 
-\htmlonly
+@htmlonly
 <hr>
 <a href="#toc">Table of Contents</a>
 <hr>
-\endhtmlonly
+@endhtmlonly
 
-\ref mp_example "Next Page: Examples"
+@ref mp_example "Next Page: Examples"
 
-\page  mp_example   Example - A Small Example Program
+@page  mp_example   Example - A Small Example Program
 
 The following program exercises most commonly used functions of the library.
 The program folds two sequences using both the mfe and partition function
 algorithms and calculates the tree edit and profile distance of the
 resulting structures and base pairing probabilities.
 
-\code{.c}
+@code{.c}
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <math.h>
@@ -848,22 +850,22 @@ void main()
 
    free_profile(pf1); free_profile(pf2);
 }
-\endcode
+@endcode
 
 In a typical Unix environment you would compile this program using:
-\verbatim
+@verbatim
 cc ${OPENMP_CFLAGS} -c example.c -I${hpath}
-\endverbatim
+@endverbatim
 and link using
-\verbatim
+@verbatim
 cc ${OPENMP_CFLAGS} -o example -L${lpath} -lRNA -lm
-\endverbatim
-where \e ${hpath} and \e ${lpath} point to the location of the header
+@endverbatim
+where @e ${hpath} and @e ${lpath} point to the location of the header
 files and library, respectively.
-\note As default, the RNAlib is compiled with build-in \e OpenMP multithreading
+@note As default, the RNAlib is compiled with build-in @e OpenMP multithreading
 support. Thus, when linking your own object files to the library you have to pass
-the compiler specific \e ${OPENMP_CFLAGS} (e.g. '-fopenmp' for \b gcc) even if your code does not
-use openmp specific code. However, in that case the \e OpenMP flags may be ommited when compiling
+the compiler specific @e ${OPENMP_CFLAGS} (e.g. '-fopenmp' for @b gcc) even if your code does not
+use openmp specific code. However, in that case the @e OpenMP flags may be ommited when compiling
 example.c
 
 

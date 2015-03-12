@@ -19,8 +19,12 @@
 #endif
 
 /**
- *  \file exterior_loops.h
- *  \brief Energy evaluation of exterior loops for MFE and partition function calculations
+ *  @addtogroup   loops
+ *
+ *  @{
+ *
+ *  @file exterior_loops.h
+ *  @brief Energy evaluation of exterior loops for MFE and partition function calculations
  */
 
 /**
@@ -34,12 +38,12 @@
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
  * 
- *  \see    E_Stem()
- *  \param  type  The pair type of the stem-closing pair
- *  \param  si1   The 5'-mismatching nucleotide
- *  \param  sj1   The 3'-mismatching nucleotide
- *  \param  P     The datastructure containing scaled energy parameters
- *  \return       The energy contribution of the introduced exterior-loop stem
+ *  @see    E_Stem()
+ *  @param  type  The pair type of the stem-closing pair
+ *  @param  si1   The 5'-mismatching nucleotide
+ *  @param  sj1   The 3'-mismatching nucleotide
+ *  @param  P     The datastructure containing scaled energy parameters
+ *  @return       The energy contribution of the introduced exterior-loop stem
  */
 INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
@@ -47,9 +51,9 @@ INLINE  PRIVATE int E_ExtLoop(int type,
                               vrna_param_t *P);
 
 /**
- *  This is the partition function variant of \ref E_ExtLoop()
- *  \see E_ExtLoop()
- *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
+ *  This is the partition function variant of @ref E_ExtLoop()
+ *  @see E_ExtLoop()
+ *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
 INLINE  PRIVATE double exp_E_ExtLoop( int type,
                                       int si1,
@@ -89,16 +93,16 @@ INLINE  PRIVATE double exp_E_ExtLoop( int type,
  *  In case the argument extLoop is 0, the returned energy contribution also includes
  *  the <I>internal-loop-penalty</I> of a multiloop stem with closing pair type.
  * 
- *  \see    E_MLstem()
- *  \see    E_ExtLoop()
- *  \note   This function is threadsafe
+ *  @see    E_MLstem()
+ *  @see    E_ExtLoop()
+ *  @note   This function is threadsafe
  * 
- *  \param  type    The pair type of the first base pair un the stem
- *  \param  si1     The 5'-mismatching nucleotide
- *  \param  sj1     The 3'-mismatching nucleotide
- *  \param  extLoop A flag that indicates whether the contribution reflects the one of an exterior loop or not
- *  \param  P       The datastructure containing scaled energy parameters
- *  \return         The Free energy of the branch off the loop in dcal/mol
+ *  @param  type    The pair type of the first base pair un the stem
+ *  @param  si1     The 5'-mismatching nucleotide
+ *  @param  sj1     The 3'-mismatching nucleotide
+ *  @param  extLoop A flag that indicates whether the contribution reflects the one of an exterior loop or not
+ *  @param  P       The datastructure containing scaled energy parameters
+ *  @return         The Free energy of the branch off the loop in dcal/mol
  * 
  */
 INLINE  PRIVATE int E_Stem( int type,
@@ -109,11 +113,11 @@ INLINE  PRIVATE int E_Stem( int type,
 
 /**
  *  <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
- *  This is the partition function variant of \ref E_Stem()
- *  \see E_Stem()
- *  \note This function is threadsafe
+ *  This is the partition function variant of @ref E_Stem()
+ *  @see E_Stem()
+ *  @note This function is threadsafe
  * 
- *  \return The Boltzmann weighted energy contribution of the branch off the loop
+ *  @return The Boltzmann weighted energy contribution of the branch off the loop
  */
 INLINE  PRIVATE double exp_E_Stem(int type,
                                   int si1,
@@ -514,6 +518,10 @@ exp_E_ExtLoop(int type,
 
   return energy;
 }
+
+/**
+ * @}
+ */
 
 
 #endif
