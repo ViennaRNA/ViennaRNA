@@ -146,10 +146,14 @@
 /**
  *  @brief Print a secondary structure as helix list
  *
+ *  \param  seq         The RNA sequence
  *  @param  db    The structure in dot-bracket format
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_helix_list(const char *db, FILE *file);
+void vrna_structure_print_hx( const char *seq,
+                              const char *db,
+                              float energy,
+                              FILE *file);
 
 /**
  *  @brief Print a secondary structure as connect table

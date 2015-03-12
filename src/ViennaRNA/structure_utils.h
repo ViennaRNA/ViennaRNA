@@ -19,6 +19,14 @@
 
 #include <ViennaRNA/data_structures.h>
 
+typedef struct{
+  unsigned int start;
+  unsigned int end;
+  unsigned int length;
+  unsigned int up5;
+  unsigned int up3;
+} vrna_helix;
+
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
  *
@@ -220,6 +228,10 @@ plist *vrna_pl_get_from_pr(vrna_fold_compound *vc, double cut_off);
  *  @return         The dot-bracket string containing the provided base pairs
  */
 char *vrna_pl_to_db(plist *pairs, unsigned int n);
+
+
+vrna_helix *vrna_pt_to_hx(short *pt);
+vrna_helix *vrna_hx_merge(const vrna_helix *list, int maxdist);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT

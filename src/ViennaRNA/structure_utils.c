@@ -789,6 +789,103 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   return pl;
 }
 
+PUBLIC vrna_helix *
+vrna_pt_to_hx(short *pt){
+
+  int i, k, n, l, s, *stack;
+  vrna_helix *list;
+
+  n = pt[0];
+  l = 0;
+  s = 1;
+  list  = (vrna_helix *)vrna_alloc(sizeof(vrna_helix) * n/2);
+  stack = (int *)vrna_alloc(sizeof(int) * n/2);
+
+  stack[s] = 1;
+
+  do{
+    for(i = stack[s--]; i <= n; i++){
+      if(pt[i] > (short)i){  /* found a base pair */
+        k = i;
+        /* go through stack */
+        for(;pt[k+1] == pt[k] - 1; k++);
+        list[l].start  = i;
+        list[l].end    = pt[i];
+        list[l].length = k - i + 1;
+        list[l].up5 = list[l].up3 = 0;
+        l++;
+        stack[++s] = pt[i] + 1;
+        stack[++s] = k + 1;
+        break;
+      } else if(pt[i]) { /* end of region */
+        break;
+      }
+    }
+  } while (s > 0);
+
+  list = vrna_realloc(list, (l+1)*sizeof(vrna_helix));
+  list[l].start = list[l].end = list[l].length = list[l].up5 = list[l].up3 = 0;
+
+  free(stack);
+  return list;
+}
+
+PUBLIC vrna_helix *
+vrna_hx_merge(const vrna_helix *list, int maxdist){
+  int merged, i, j, s, neighbors, n;
+  vrna_helix *merged_list;
+
+  for(n=0; list[n].length > 0; n++); /* check size of list */
+
+  merged_list = (vrna_helix *)vrna_alloc(sizeof(vrna_helix) * (n+1));
+  memcpy(merged_list, list, sizeof(vrna_helix) * (n+1));
+
+  s = n+1;
+
+  do{
+    merged = 0;
+    for(i = 1; merged_list[i].length > 0; i++){
+      /*
+        GOAL: merge two consecutive helices i and i-1, if i-1
+        subsumes i, and not more than i
+      */
+
+      /* 1st, check for neighbors */
+      neighbors = 0;
+      for(j = i + 1; merged_list[j].length > 0; j++){
+        if(merged_list[j].start > merged_list[i-1].end) break;
+        if(merged_list[j].start < merged_list[i].end) continue;
+        neighbors = 1;
+      }
+      if(neighbors) continue;
+
+      /* check if we may merge i with i-1 */
+      if(merged_list[i].end < merged_list[i-1].end){
+        merged_list[i-1].up5 += merged_list[i].start
+                                - merged_list[i-1].start
+                                - merged_list[i-1].length
+                                - merged_list[i-1].up5
+                                + merged_list[i].up5;
+        merged_list[i-1].up3 += merged_list[i-1].end
+                                - merged_list[i-1].length
+                                - merged_list[i-1].up3
+                                - merged_list[i].end
+                                + merged_list[i].up3;
+        merged_list[i-1].length += merged_list[i].length;
+        /* splice out helix i */
+        memmove(merged_list+i, merged_list+i+1, sizeof(vrna_helix)*(n-i));
+        s--;
+        merged = 1;
+        break;
+      }
+    }
+  } while(merged);
+
+  merged_list = vrna_realloc(merged_list, sizeof(vrna_helix) * s);
+
+  return merged_list;
+}
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/

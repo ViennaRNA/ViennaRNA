@@ -39,9 +39,6 @@ PRIVATE unsigned int  typebuf = 0;
 #################################
 */
 
-PRIVATE void
-find_helices(short *pt, int i, int j, FILE *file);
-
 PRIVATE unsigned int
 read_multiple_input_lines(char **string, FILE *file, unsigned int option);
 
@@ -67,41 +64,31 @@ elim_trailing_ws(char *string){    /* eliminate whitespaces at the end of a char
   string[(i >= 0) ? (i+1) : 0] = '\0';
 }
 
-PRIVATE void
-find_helices(short *pt, int i, int j, FILE *file){
-
-  FILE *out = (file) ? file : stdout;
-  int h_start, h_length, h_end;
-
-  h_start = h_length = h_end = 0;
-
-  for(;i < j; i++){
-    if(i > pt[i]) continue;
-    h_start = i;
-    h_end   = pt[i];
-    h_length = 1;
-    while(pt[i+1] == (pt[i]-1)){
-      h_length++;
-      i++;
-    }
-    if(i < h_end){
-      find_helices(pt, i+1, h_end, file);
-    }
-    if(h_length > 1){
-      fprintf(out, "%d %d %d\n", h_start, h_end, h_length);
-    }
-    i = pt[h_start] - 1;
-  }
-}
-
 PUBLIC void
-vrna_structure_print_helix_list(const char *db,
-                                FILE *file){
+vrna_structure_print_hx(const char *seq,
+                        const char *db,
+                        float energy,
+                        FILE *file){
 
-  short *pt = vrna_pt_get(db);
+  int         s;
+  short       *pt;
+  vrna_helix  *list;
+  FILE *out;
 
-  find_helices(pt, 1, pt[0], file);
+  if(strlen(seq) != strlen(db))
+    vrna_message_error("vrna_structure_print_hx: sequence and structure have unequal length!");
+
+  out   = (file) ? file : stdout;
+  pt    = vrna_pt_get(db);
+  list  = vrna_pt_to_hx(pt);
+
+  fprintf(out, "%s\t%6.2f\n", seq, energy);
+  for(s = 0; list[s].length > 0; s++){
+    fprintf(out, "%d\t%d\t%d\n", list[s].start, list[s].end, list[s].length);
+  }
+
   free(pt);
+  free(list);
 }
 
 PUBLIC void
