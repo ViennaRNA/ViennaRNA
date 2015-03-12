@@ -19,13 +19,17 @@
 #endif
 
 /**
- *  \file interior_loops.h
- *  \brief Energy evaluation of interior loops for MFE and partition function calculations
+ *  @addtogroup   loops
+ *
+ *  @{
+ *
+ *  @file interior_loops.h
+ *  @brief Energy evaluation of interior loops for MFE and partition function calculations
  */
 
 /**
  *  <H2>Compute the Energy of an interior-loop</H2>
- *  This function computes the free energy \f$\Delta G\f$ of an interior-loop with the
+ *  This function computes the free energy @f$\Delta G@f$ of an interior-loop with the
  *  following structure: <BR>
  *  <PRE>
  *        3'  5'
@@ -42,7 +46,7 @@
  *  </PRE>
  *  This general structure depicts an interior-loop that is closed by the base pair (X,Y).
  *  The enclosed base pair is (V,U) which leaves the unpaired bases a_1-a_n and b_1-b_n
- *  that constitute the loop. In this example, the length of the interior-loop is \f$(n+m)\f$
+ *  that constitute the loop. In this example, the length of the interior-loop is @f$(n+m)@f$
  *  where n or m may be 0 resulting in a bulge-loop or base pair stack.
  *  The mismatching nucleotides for the closing pair (X,Y) are:<BR>
  *  5'-mismatch: a_1<BR>
@@ -50,22 +54,22 @@
  *  and for the enclosed base pair (V,U):<BR>
  *  5'-mismatch: b_1<BR>
  *  3'-mismatch: a_n<BR>
- *  \note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
+ *  @note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
  *  must be 'turned arround' when evaluating the free energy of the interior-loop
- *  \see scale_parameters()
- *  \see vrna_param_t
- *  \note This function is threadsafe
+ *  @see scale_parameters()
+ *  @see vrna_param_t
+ *  @note This function is threadsafe
  * 
- *  \param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
- *  \param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  \param  type    The pair type of the base pair closing the interior loop
- *  \param  type_2  The pair type of the enclosed base pair
- *  \param  si1     The 5'-mismatching nucleotide of the closing pair
- *  \param  sj1     The 3'-mismatching nucleotide of the closing pair
- *  \param  sp1     The 3'-mismatching nucleotide of the enclosed pair
- *  \param  sq1     The 5'-mismatching nucleotide of the enclosed pair
- *  \param  P       The datastructure containing scaled energy parameters
- *  \return The Free energy of the Interior-loop in dcal/mol
+ *  @param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
+ *  @param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
+ *  @param  type    The pair type of the base pair closing the interior loop
+ *  @param  type_2  The pair type of the enclosed base pair
+ *  @param  si1     The 5'-mismatching nucleotide of the closing pair
+ *  @param  sj1     The 3'-mismatching nucleotide of the closing pair
+ *  @param  sp1     The 3'-mismatching nucleotide of the enclosed pair
+ *  @param  sq1     The 5'-mismatching nucleotide of the enclosed pair
+ *  @param  P       The datastructure containing scaled energy parameters
+ *  @return The Free energy of the Interior-loop in dcal/mol
  */
 INLINE  PRIVATE int E_IntLoop(int n1,
                               int n2,
@@ -78,23 +82,23 @@ INLINE  PRIVATE int E_IntLoop(int n1,
                               vrna_param_t *P);
 
 /**
- *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
+ *  <H2>Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of interior loop</H2>
  *  multiply by scale[u1+u2+2] for scaling
  *  @see get_scaled_pf_parameters()
  *  @see vrna_exp_param_t
  *  @see E_IntLoop()
- *  \note This function is threadsafe
+ *  @note This function is threadsafe
  * 
- *  \param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
- *  \param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  \param  type    The pair type of the base pair closing the interior loop
- *  \param  type2   The pair type of the enclosed base pair
- *  \param  si1     The 5'-mismatching nucleotide of the closing pair
- *  \param  sj1     The 3'-mismatching nucleotide of the closing pair
- *  \param  sp1     The 3'-mismatching nucleotide of the enclosed pair
- *  \param  sq1     The 5'-mismatching nucleotide of the enclosed pair
- *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  \return The Boltzmann weight of the Interior-loop
+ *  @param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
+ *  @param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
+ *  @param  type    The pair type of the base pair closing the interior loop
+ *  @param  type2   The pair type of the enclosed base pair
+ *  @param  si1     The 5'-mismatching nucleotide of the closing pair
+ *  @param  sj1     The 3'-mismatching nucleotide of the closing pair
+ *  @param  sp1     The 3'-mismatching nucleotide of the enclosed pair
+ *  @param  sq1     The 5'-mismatching nucleotide of the enclosed pair
+ *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
+ *  @return The Boltzmann weight of the Interior-loop
  */
 INLINE  PRIVATE double  exp_E_IntLoop(int u1,
                                       int u2,
@@ -123,7 +127,7 @@ INLINE PRIVATE int E_IntLoop_Co(int type,
 
 
 /**
- *  \brief Evaluate energy of a base pair stack closed by (i,j)
+ *  @brief Evaluate energy of a base pair stack closed by (i,j)
  */
 INLINE PRIVATE int E_stack(int i, int j, vrna_fold_compound *vc);
 
@@ -675,6 +679,10 @@ E_IntLoop_Co( int type,
   }
   return energy;
 }
+
+/**
+ * @}
+ */
 
 
 #endif

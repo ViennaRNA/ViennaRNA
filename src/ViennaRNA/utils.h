@@ -11,8 +11,12 @@
 #endif
 
 /**
+ *  @addtogroup   utils
+ *
+ *  @{
+ *
  *  @file utils.h
- *  @brief Various utility- and helper-functions used throughout the Vienna RNA package
+ *  @brief General utility- and helper-functions used throughout the @em ViennaRNA @em Package
  */
 
 #include <stdio.h>

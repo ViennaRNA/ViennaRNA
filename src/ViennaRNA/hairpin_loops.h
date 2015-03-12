@@ -19,13 +19,17 @@
 #endif
 
 /**
- *  \file hairpin_loops.h
- *  \brief Energy evaluation of hairpin loops for MFE and partition function calculations
+ *  @addtogroup   loops
+ *
+ *  @{
+ *
+ *  @file hairpin_loops.h
+ *  @brief Energy evaluation of hairpin loops for MFE and partition function calculations
  */
 
 
 /**
- *  \brief Compute the Energy of a hairpin-loop
+ *  @brief Compute the Energy of a hairpin-loop
  *
  *  To evaluate the free energy of a hairpin-loop, several parameters have to be known.
  *  A general hairpin-loop has this structure:<BR>
@@ -40,21 +44,21 @@
  *  where X-Y marks the closing pair [e.g. a <B>(G,C)</B> pair]. The length of this loop is 6 as there are
  *  six unpaired nucleotides (a1-a6) enclosed by (X,Y). The 5' mismatching nucleotide is
  *  a1 while the 3' mismatch is a6. The nucleotide sequence of this loop is &quot;a1.a2.a3.a4.a5.a6&quot; <BR>
- *  \note The parameter sequence should contain the sequence of the loop in capital letters of the nucleic acid
+ *  @note The parameter sequence should contain the sequence of the loop in capital letters of the nucleic acid
  *  alphabet if the loop size is below 7. This is useful for unusually stable tri-, tetra- and hexa-loops
  *  which are treated differently (based on experimental data) if they are tabulated.
  *  @see scale_parameters()
  *  @see vrna_param_t
- *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
  * 
- *  \param  size  The size of the loop (number of unpaired nucleotides)
- *  \param  type  The pair type of the base pair closing the hairpin
- *  \param  si1   The 5'-mismatching nucleotide
- *  \param  sj1   The 3'-mismatching nucleotide
- *  \param  string  The sequence of the loop
- *  \param  P     The datastructure containing scaled energy parameters
- *  \return The Free energy of the Hairpin-loop in dcal/mol
+ *  @param  size  The size of the loop (number of unpaired nucleotides)
+ *  @param  type  The pair type of the base pair closing the hairpin
+ *  @param  si1   The 5'-mismatching nucleotide
+ *  @param  sj1   The 3'-mismatching nucleotide
+ *  @param  string  The sequence of the loop
+ *  @param  P     The datastructure containing scaled energy parameters
+ *  @return The Free energy of the Hairpin-loop in dcal/mol
  */
 INLINE  PRIVATE int E_Hairpin(int size,
                               int type,
@@ -64,22 +68,22 @@ INLINE  PRIVATE int E_Hairpin(int size,
                               vrna_param_t *P);
 
 /**
- *  \brief Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop
+ *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
  *
  *  multiply by scale[u+2]
  *  @see get_scaled_pf_parameters()
  *  @see vrna_exp_param_t
  *  @see E_Hairpin()
- *  \warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
  *  Energy evaluation may change due to updates in global variable "tetra_loop"
  * 
- *  \param  u       The size of the loop (number of unpaired nucleotides)
- *  \param  type    The pair type of the base pair closing the hairpin
- *  \param  si1     The 5'-mismatching nucleotide
- *  \param  sj1     The 3'-mismatching nucleotide
- *  \param  string  The sequence of the loop
- *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  \return The Boltzmann weight of the Hairpin-loop
+ *  @param  u       The size of the loop (number of unpaired nucleotides)
+ *  @param  type    The pair type of the base pair closing the hairpin
+ *  @param  si1     The 5'-mismatching nucleotide
+ *  @param  sj1     The 3'-mismatching nucleotide
+ *  @param  string  The sequence of the loop
+ *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
+ *  @return The Boltzmann weight of the Hairpin-loop
  */
 INLINE  PRIVATE double exp_E_Hairpin( int u,
                                       int type,
@@ -150,7 +154,7 @@ E_Hairpin(int size,
 }
 
 /**
- *  \brief  Evaluate the free energy of a hairpin loop
+ *  @brief  Evaluate the free energy of a hairpin loop
  *          and consider possible hard constraints
  */
 INLINE PRIVATE int
@@ -176,7 +180,7 @@ vrna_E_hp_loop( vrna_fold_compound *vc,
 }
 
 /**
- *  \brief  Evaluate the free energy of an exterior hairpin loop
+ *  @brief  Evaluate the free energy of an exterior hairpin loop
  *          and consider possible hard constraints
  */
 INLINE PRIVATE int
@@ -202,9 +206,9 @@ vrna_E_ext_hp_loop( vrna_fold_compound *vc,
 }
 
 /**
- *  \brief Evaluate free energy of an exterior hairpin loop
+ *  @brief Evaluate free energy of an exterior hairpin loop
  *
- *  \ingroup eval
+ *  @ingroup eval
  *
  */
 INLINE PRIVATE int
@@ -249,9 +253,9 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
 }
 
 /**
- *  \brief Evaluate free energy of a hairpin loop
+ *  @brief Evaluate free energy of a hairpin loop
  *
- *  \ingroup eval
+ *  @ingroup eval
  *
  */
 INLINE PRIVATE int
@@ -422,9 +426,9 @@ exp_E_Hairpin(int u,
 }
 
 /**
- *  \brief High-Level function for hairpin loop energy evaluation (partition function variant)
+ *  @brief High-Level function for hairpin loop energy evaluation (partition function variant)
  *
- *  \see E_hp_loop() for it's free energy counterpart
+ *  @see E_hp_loop() for it's free energy counterpart
 */
 INLINE PRIVATE double
 vrna_exp_E_hp_loop( vrna_fold_compound *vc,
@@ -476,6 +480,10 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
   }
   return q;
 }
+
+/**
+ * @}
+ */
 
 
 #endif

@@ -11,6 +11,10 @@
 #endif
 
 /**
+ *  @addtogroup   struct_utils
+ *
+ *  @{
+ *
  *  @file structure_utils.h
  *  @brief Various utility- and helper-functions for secondary structure parsing, converting, etc.
  */
@@ -427,5 +431,9 @@ DEPRECATED(void  bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int
 DEPRECATED(char    bppm_symbol(const float *x));
 
 #endif
+
+/**
+ * @}
+ */
 
 #endif
