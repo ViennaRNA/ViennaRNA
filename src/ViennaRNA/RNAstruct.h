@@ -2,6 +2,10 @@
 #define VIENNA_RNA_PACKAGE_RNASTRUCT_H
 
 /**
+ *  @addtogroup   struct_utils
+ *
+ *  @{
+ *
  *  \file RNAstruct.h
  *  \brief Parsing and Coarse Graining of Structures
  * 
@@ -148,5 +152,9 @@ extern int    unpaired;
  *  \brief contains the number of base pairs in the last parsed structure.
  */
 extern int    pairs;        /* n of unpaired digits and pairs */
+
+/**
+ * @}
+ */
 
 #endif

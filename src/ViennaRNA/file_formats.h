@@ -11,8 +11,12 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
+ *  @addtogroup   file_utils
+ *
+ *  @{
+ *
  *  @file file_formats.h
- *  @brief Various functions dealing with file formats for RNA sequences, structures, and alignments
+ *  @brief Functions dealing with file formats for RNA sequences, structures, and alignments
  *
  *  @section  file-formats  Input/Output file formats used in RNAlib
  *
@@ -356,5 +360,9 @@ DEPRECATED(unsigned int read_record(char **header,
 DEPRECATED(unsigned int get_multi_input_line(char **string, unsigned int options));
 
 #endif
+
+/**
+ * @}
+ */
 
 #endif

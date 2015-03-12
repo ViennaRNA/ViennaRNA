@@ -118,7 +118,13 @@
  *
  *  \defgroup   data_structures           Common Data Structures and Preprocessor Macros
  *
- *  \defgroup   parse                     Parsing and Comparing - Functions to Manipulate Structures
+ *  \defgroup   utils                     Utility functions used throughout the library and the programs of the ViennaRNA Package
+ *
+ *  \defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
+ *  \ingroup    utils
+ *
+ *  \defgroup   file_utils                Functions dealing with file formats for RNA sequences, structures, and alignments
+ *  \ingroup    utils
  */
 
 
