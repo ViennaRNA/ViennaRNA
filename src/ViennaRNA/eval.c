@@ -1070,9 +1070,10 @@ energy_of_extLoop_pt( vrna_fold_compound *vc,
     while (p <= length && !pt[p]) p++;
 
     /* add soft constraints for unpaired region */
-    if(sc){
-      if(sc->free_energies)
+    if(sc && (q_prev + 1 <= length)){
+      if(sc->free_energies){
         bonus += sc->free_energies[q_prev + 1][p - q_prev - 1];
+      }
       /* how do we handle generalized soft constraints here ? */
     }
 
