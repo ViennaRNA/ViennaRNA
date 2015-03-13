@@ -148,7 +148,7 @@
 
 \n
 
-@date     1994-2012
+@date     1994-2015
 @authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
 
 <h3>Table of Contents</h3>
@@ -158,6 +158,7 @@
 \li \ref folding_routines
 \li \ref mp_parse
 \li \ref mp_utils
+\li \ref file_formats
 \li \ref mp_example
 \li \ref mp_ref
 
