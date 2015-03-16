@@ -48,7 +48,7 @@ option  "tauSigmaRatio"  -
 "Ratio of the weighting factors tau and sigma. A high ratio will lead to a solution as close as possible to the experimental data, \
 while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies."
 double
-default="2.0"
+default="1.0"
 optional
 
 option "objectiveFunction"  -

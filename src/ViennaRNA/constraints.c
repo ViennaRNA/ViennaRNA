@@ -1187,7 +1187,7 @@ vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
   int     i;
   double  *values;
 
-  if(vc && values && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
 
     values = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
 
