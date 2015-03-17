@@ -12,7 +12,7 @@
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/pair_mat.h"
+#include "ViennaRNA/structure_utils.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -33,8 +33,6 @@ static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE const char  *seq=NULL;
-PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         BP_dist;
 PRIVATE move_t      *path=NULL;
 PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
@@ -43,7 +41,7 @@ PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
-#pragma omp threadprivate(seq, S, S1, BP_dist, path, path_fwd)
+#pragma omp threadprivate(BP_dist, path, path_fwd)
 
 #endif
 
@@ -52,7 +50,6 @@ PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE int     *pair_table_to_loop_index (short *pt);
 PRIVATE move_t  *copy_moves(move_t *mvs);
 PRIVATE int     compare_ptable(const void *A, const void *B);
 PRIVATE int     compare_energy(const void *A, const void *B);
@@ -66,8 +63,8 @@ PRIVATE void  usage(void);
 
 #endif
 
-PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
-PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist);
+PRIVATE int     find_path_once(vrna_fold_compound *vc, const char *struc1, const char *struc2, int maxE, int maxl);
+PRIVATE int     try_moves(vrna_fold_compound *vc, intermediate_t c, int maxE, intermediate_t *next, int dist);
 
 /*
 #################################
@@ -83,6 +80,21 @@ PUBLIC void free_path(path_t *path){
 }
 
 PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *struc2, int max) {
+  int maxE;
+
+  vrna_fold_compound *vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  maxE = vrna_find_saddle(vc, struc1, struc2, max);
+  vrna_free_fold_compound(vc);
+
+  return maxE;
+}
+
+PUBLIC int
+vrna_find_saddle( vrna_fold_compound *vc,
+                  const char *struc1,
+                  const char *struc2,
+                  int max) {
+
   int maxl, maxE;
   const char *tmp;
   move_t *bestpath=NULL;
@@ -90,14 +102,6 @@ PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *str
 
   path_fwd = 0;
   maxE = INT_MAX - 1;
-  seq = sequence;
-
-  update_fold_params();
-  make_pair_matrix();
-
-  /* nummerically encode sequence */
-  S   = encode_sequence(seq, 0);
-  S1  = encode_sequence(seq, 1);
 
   maxl=1;
   do {
@@ -105,7 +109,7 @@ PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *str
     path_fwd = !path_fwd;
     if (maxl>max) maxl=max;
     if(path) free(path);
-    saddleE  = find_path_once(struc1, struc2, maxE, maxl);
+    saddleE  = find_path_once(vc, struc1, struc2, maxE, maxl);
     if (saddleE<maxE) {
       maxE = saddleE;
       if (bestpath) free(bestpath);
@@ -121,10 +125,10 @@ PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *str
     maxl *=2;
   } while (maxl<2*max);
 
-  free(S); free(S1);
   /* (re)set some globals */
   path=bestpath;
   path_fwd = dir;
+
   return maxE;
 }
 
@@ -158,11 +162,31 @@ PUBLIC void print_path(const char *seq, const char *struc) {
   free(s);
 }
 
-PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int maxkeep) {
+PUBLIC path_t *
+get_path( const char *seq,
+          const char *s1,
+          const char* s2,
+          int maxkeep){
+
+  path_t *route=NULL;
+
+  vrna_fold_compound *vc = vrna_get_fold_compound(seq, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  route = vrna_get_path(vc, s1, s2, maxkeep);
+  vrna_free_fold_compound(vc);
+
+  return (route);
+}
+
+PUBLIC path_t *
+vrna_get_path(vrna_fold_compound *vc,
+              const char *s1,
+              const char* s2,
+              int maxkeep){
+
   int E, d;
   path_t *route=NULL;
 
-  E = find_saddle(seq, s1, s2, maxkeep);
+  E = vrna_find_saddle(vc, s1, s2, maxkeep);
 
   route = (path_t *)vrna_alloc((BP_dist+2)*sizeof(path_t));
 
@@ -171,7 +195,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = vrna_eval_structure_simple(seq, s1);
+    route[0].en = vrna_eval_structure(vc, s1);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -189,7 +213,7 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = vrna_eval_structure_simple(seq, s2);
+    route[BP_dist].en = vrna_eval_structure(vc, s2);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -217,7 +241,8 @@ PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int max
 }
 
 PRIVATE int
-try_moves(intermediate_t c,
+try_moves(vrna_fold_compound *vc,
+          intermediate_t c,
           int maxE,
           intermediate_t *next,
           int dist){
@@ -227,7 +252,7 @@ try_moves(intermediate_t c,
   short *pt;
 
   len = c.pt[0];
-  loopidx = pair_table_to_loop_index(c.pt);
+  loopidx = vrna_get_loop_index(c.pt);
   oldE = c.Sen;
   for (mv=c.moves; mv->i!=0; mv++) {
     int i,j;
@@ -250,9 +275,9 @@ try_moves(intermediate_t c,
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + vrna_eval_move_pt_simple(seq, c.pt, i, j);
+    en = c.curr_en + vrna_eval_move_pt(vc, c.pt, i, j);
 #else
-    en = vrna_eval_structure_pt_simple(seq, pt);
+    en = vrna_eval_structure_pt(vc, pt);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -269,7 +294,7 @@ try_moves(intermediate_t c,
   return num_next;
 }
 
-PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int maxl) {
+PRIVATE int find_path_once(vrna_fold_compound *vc, const char *struc1, const char *struc2, int maxE, int maxl) {
   short *pt1, *pt2;
   move_t *mlist;
   int i, len, d, dist=0, result;
@@ -299,7 +324,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   BP_dist = dist;
   current = (intermediate_t *) vrna_alloc(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt_simple(seq, pt1);
+  current[0].Sen = current[0].curr_en = vrna_eval_structure_pt(vc, pt1);
   current[0].moves = mlist;
   next = (intermediate_t *) vrna_alloc(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -308,7 +333,7 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
     intermediate_t *cc;
 
     for (c=0; current[c].pt != NULL; c++) {
-      num_next += try_moves(current[c], maxE, next+num_next, d);
+      num_next += try_moves(vc, current[c], maxE, next+num_next, d);
     }
     if (num_next==0) {
       for (cc=current; cc->pt != NULL; cc++) free_intermediate(cc);
@@ -341,56 +366,6 @@ PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int
   result = current[0].Sen;
   free(current[0].pt); free(current);
   return(result);
-}
-
-
-PRIVATE int *pair_table_to_loop_index (short *pt){
-  /* number each position by which loop it belongs to (positions start
-     at 1) */
-  int i,hx,l,nl;
-  int length;
-  int *stack = NULL;
-  int *loop = NULL;
-
-  length = pt[0];
-  stack  = (int *) vrna_alloc(sizeof(int)*(length+1));
-  loop   = (int *) vrna_alloc(sizeof(int)*(length+2));
-  hx=l=nl=0;
-
-  for (i=1; i<=length; i++) {
-    if ((pt[i] != 0) && (i < pt[i])) { /* ( */
-      nl++; l=nl;
-      stack[hx++]=i;
-    }
-    loop[i]=l;
-
-    if ((pt[i] != 0) && (i > pt[i])) { /* ) */
-      --hx;
-      if (hx>0)
-        l = loop[stack[hx-1]];  /* index of enclosing loop   */
-      else l=0;                 /* external loop has index 0 */
-      if (hx<0) {
-        vrna_message_error("unbalanced brackets in make_pair_table");
-      }
-    }
-  }
-  loop[0] = nl;
-  free(stack);
-
-#ifdef _DEBUG_LOOPIDX
-  fprintf(stderr,"begin loop index\n");
-  fprintf(stderr,
-          "....,....1....,....2....,....3....,....4"
-          "....,....5....,....6....,....7....,....8\n");
-  print_structure(pt, loop[0]);
-  for (i=1; i<=length; i++)
-    fprintf(stderr,"%2d ", loop[i]);
-  fprintf(stderr,"\n");
-  fprintf(stderr, "end loop index\n");
-  fflush(stderr);
-#endif
-
-  return (loop);
 }
 
 PRIVATE void free_intermediate(intermediate_t *i) {

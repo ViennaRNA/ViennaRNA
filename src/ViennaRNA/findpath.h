@@ -10,7 +10,7 @@
 
 /**
  *  \brief Find energy of a saddle point between 2 structures
- *  (serch only direct path)
+ *  (search only direct path)
  *
  *  \param seq RNA sequence
  *  \param struc1 A pointer to the character array where the first
@@ -25,10 +25,14 @@ int     find_saddle(const char *seq,
                     const char *struc2,
                     int max);
 
+int     vrna_find_saddle( vrna_fold_compound *vc,
+                          const char *struc1,
+                          const char *struc2,
+                          int max);
 
 /**
  *  \brief Find refolding path between 2 structures
- *  (serch only direct path)
+ *  (search only direct path)
  *
  *  \param seq RNA sequence
  *  \param s1 A pointer to the character array where the first
@@ -42,6 +46,11 @@ path_t* get_path( const char *seq,
                   const char *s1,
                   const char* s2,
                   int maxkeep);
+
+path_t *vrna_get_path(vrna_fold_compound *vc,
+                      const char *s1,
+                      const char* s2,
+                      int maxkeep);
 
 /**
  *  \brief Free memory allocated by get_path() function
