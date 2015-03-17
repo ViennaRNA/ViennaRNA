@@ -20,8 +20,6 @@
 
 #define LOOP_EN
 
-static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
-
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -37,11 +35,13 @@ PRIVATE int         BP_dist;
 PRIVATE move_t      *path=NULL;
 PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
 */
-#pragma omp threadprivate(BP_dist, path, path_fwd)
+#pragma omp threadprivate(BP_dist, path, path_fwd, backward_compat_compound)
 
 #endif
 
@@ -79,12 +79,39 @@ PUBLIC void free_path(path_t *path){
   }
 }
 
-PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *struc2, int max) {
-  int maxE;
+PUBLIC int
+find_saddle(const char *seq,
+            const char *struc1,
+            const char *struc2,
+            int max){
 
-  vrna_fold_compound *vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  int                 maxE;
+  char                *sequence;
+  vrna_fold_compound  *vc;
+  vrna_md_t           md;
+
+  vc = NULL;
+  vrna_md_set_globals(&md);
+
+  if(backward_compat_compound){
+    if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
+      if(!memcpy(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
+        vc = backward_compat_compound; /* re-use previous vrna_fold_compound */
+      }
+    }
+  }
+
+  if(!vc){
+    vrna_free_fold_compound(backward_compat_compound);
+
+    sequence = vrna_cut_point_insert(seq, cut_point);
+
+    backward_compat_compound = vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+
+    free(sequence);
+  }
+
   maxE = vrna_find_saddle(vc, struc1, struc2, max);
-  vrna_free_fold_compound(vc);
 
   return maxE;
 }
@@ -95,15 +122,15 @@ vrna_find_saddle( vrna_fold_compound *vc,
                   const char *struc2,
                   int max) {
 
-  int maxl, maxE;
-  const char *tmp;
-  move_t *bestpath=NULL;
-  int dir;
+  int         maxl, maxE;
+  const char  *tmp;
+  move_t      *bestpath=NULL;
+  int         dir;
 
-  path_fwd = 0;
-  maxE = INT_MAX - 1;
+  path_fwd  = 0;
+  maxE      = INT_MAX - 1;
 
-  maxl=1;
+  maxl = 1;
   do {
     int saddleE;
     path_fwd = !path_fwd;
@@ -132,47 +159,38 @@ vrna_find_saddle( vrna_fold_compound *vc,
   return maxE;
 }
 
-PUBLIC void print_path(const char *seq, const char *struc) {
-  int d;
-  char *s;
-  s = strdup(struc);
-  if (cut_point == -1)
-    printf("%s\n%s\n", seq, s);
-    /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure_simple(seq,s)); */
-  else {
-    char *pstruct, *pseq;
-    pstruct = vrna_cut_point_insert(s, cut_point);
-    pseq = vrna_cut_point_insert(seq, cut_point);
-    printf("%s\n%s\n", pseq, pstruct);
-    /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure_simple(seq,s)); */
-    free(pstruct);
-    free(pseq);
-  }
-  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
-  for (d=0; d<BP_dist; d++) {
-    int i,j;
-    i = path[d].i; j=path[d].j;
-    if (i<0) { /* delete */
-      s[(-i)-1] = s[(-j)-1] = '.';
-    } else {
-      s[i-1] = '('; s[j-1] = ')';
-    }
-    /* printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure_simple(seq,s), path[d].E/100.0); */
-  }
-  free(s);
-}
-
 PUBLIC path_t *
 get_path( const char *seq,
           const char *s1,
           const char* s2,
           int maxkeep){
 
-  path_t *route=NULL;
+  path_t              *route    = NULL;
+  char                *sequence = NULL;
+  vrna_fold_compound  *vc       = NULL;
+  vrna_md_t           md;
 
-  vrna_fold_compound *vc = vrna_get_fold_compound(seq, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_md_set_globals(&md);
+
+  if(backward_compat_compound){
+    if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
+      if(!memcpy(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
+        vc = backward_compat_compound; /* re-use previous vrna_fold_compound */
+      }
+    }
+  }
+
+  if(!vc){
+    vrna_free_fold_compound(backward_compat_compound);
+
+    sequence = vrna_cut_point_insert(seq, cut_point);
+
+    backward_compat_compound = vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+
+    free(sequence);
+  }
+
   route = vrna_get_path(vc, s1, s2, maxkeep);
-  vrna_free_fold_compound(vc);
 
   return (route);
 }
@@ -413,6 +431,36 @@ PRIVATE move_t* copy_moves(move_t *mvs) {
 }
 
 #ifdef TEST_FINDPATH
+
+PUBLIC void print_path(const char *seq, const char *struc) {
+  int d;
+  char *s;
+  s = strdup(struc);
+  if (cut_point == -1)
+    printf("%s\n%s\n", seq, s);
+    /* printf("%s\n%s %6.2f\n", seq, s, vrna_eval_structure_simple(seq,s)); */
+  else {
+    char *pstruct, *pseq;
+    pstruct = vrna_cut_point_insert(s, cut_point);
+    pseq = vrna_cut_point_insert(seq, cut_point);
+    printf("%s\n%s\n", pseq, pstruct);
+    /* printf("%s\n%s %6.2f\n", pseq, pstruct, vrna_eval_structure_simple(seq,s)); */
+    free(pstruct);
+    free(pseq);
+  }
+  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
+  for (d=0; d<BP_dist; d++) {
+    int i,j;
+    i = path[d].i; j=path[d].j;
+    if (i<0) { /* delete */
+      s[(-i)-1] = s[(-j)-1] = '.';
+    } else {
+      s[i-1] = '('; s[j-1] = ')';
+    }
+    /* printf("%s %6.2f - %6.2f\n", s, vrna_eval_structure_simple(seq,s), path[d].E/100.0); */
+  }
+  free(s);
+}
 
 int main(int argc, char *argv[]) {
   char *line, *seq, *s1, *s2;
