@@ -383,22 +383,43 @@ typedef struct dupVar{
  *          data structures.
  */
 
-typedef enum { VRNA_MX_DEFAULT, VRNA_MX_LFOLD, VRNA_MX_2DFOLD } vrna_mx_t;
+/**
+ *  @brief  An enumerator that is used to specify the type of a Dynamic Programming (DP) matrix data structure
+ *  @see #vrna_mx_mfe_t, #vrna_mx_pf_t
+ */
+typedef enum {
+  VRNA_MX_DEFAULT,  /**<  @brief  Default DP matrices */
+  VRNA_MX_LFOLD,    /**<  @brief  DP matrices suitable for local structure prediction
+                          @see    Lfold(), pfl_fold()
+                    */
+  VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
+                          @see  vrna_TwoDfold(), vrna_TwoDpfold()
+                    */
+} vrna_mx_t;
 
 
 /**
  *  @brief  Minimum Free Energy (MFE) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
  */
 typedef struct{
+  /** @name Common fields for MFE matrices
+      @{
+   */
   vrna_mx_t     type;
   unsigned int  allocated; /**<  @brief  Flag keeper for fast evaluation which matrices have been allocated */
   unsigned int  length;    /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
+  /**
+      @}
+   */
 
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
   union {
     struct {  /* Default matrices */
 #endif
+      /** @name Default DP matrices
+        @{
+       */
       int     *c;   /**<  @brief  Energy array, given that i-j pair */
       int     *f5;  /**<  @brief  Energy of 5' end */
       int     *f3;  /**<  @brief  Energy of 3' end */
@@ -411,9 +432,115 @@ typedef struct{
       int     FcH;
       int     FcI;
       int     FcM;
+      /**
+        @}
+       */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
     };
+    struct {  /* 2Dfold matrices */
+#endif
+
+      /** @name Distance Class DP matrices
+        @{
+      */
+      unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
+      unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
+      unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+      unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+      unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+
+      int             ***E_F5;
+      int             ***E_F3;
+      int             ***E_C;
+      int             ***E_M;
+      int             ***E_M1;
+      int             ***E_M2;
+
+      int             **E_Fc;
+      int             **E_FcH;
+      int             **E_FcI;
+      int             **E_FcM;
+
+      /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
+      int             *E_F5_rem;
+      int             *E_F3_rem;
+      int             *E_C_rem;
+      int             *E_M_rem;
+      int             *E_M1_rem;
+      int             *E_M2_rem;
+
+      int             E_Fc_rem;
+      int             E_FcH_rem;
+      int             E_FcI_rem;
+      int             E_FcM_rem;
+
+      int             **l_min_values;
+      int             **l_max_values;
+      int             *k_min_values;
+      int             *k_max_values;
+
+      int             **l_min_values_m;
+      int             **l_max_values_m;
+      int             *k_min_values_m;
+      int             *k_max_values_m;
+
+      int             **l_min_values_m1;
+      int             **l_max_values_m1;
+      int             *k_min_values_m1;
+      int             *k_max_values_m1;
+
+      int             **l_min_values_f;
+      int             **l_max_values_f;
+      int             *k_min_values_f;
+      int             *k_max_values_f;
+
+      int             **l_min_values_f3;
+      int             **l_max_values_f3;
+      int             *k_min_values_f3;
+      int             *k_max_values_f3;
+
+      int             **l_min_values_m2;
+      int             **l_max_values_m2;
+      int             *k_min_values_m2;
+      int             *k_max_values_m2;
+
+      int             *l_min_values_fc;
+      int             *l_max_values_fc;
+      int             k_min_values_fc;
+      int             k_max_values_fc;
+
+      int             *l_min_values_fcH;
+      int             *l_max_values_fcH;
+      int             k_min_values_fcH;
+      int             k_max_values_fcH;
+
+      int             *l_min_values_fcI;
+      int             *l_max_values_fcI;
+      int             k_min_values_fcI;
+      int             k_max_values_fcI;
+
+      int             *l_min_values_fcM;
+      int             *l_max_values_fcM;
+      int             k_min_values_fcM;
+      int             k_max_values_fcM;
+
+#ifdef COUNT_STATES
+      unsigned long             ***N_F5;
+      unsigned long             ***N_C;
+      unsigned long             ***N_M;
+      unsigned long             ***N_M1;
+#endif
+
+      /**
+        @}
+       */
+
+
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+    }
   };
 #endif
 } vrna_mx_mfe_t;
@@ -455,6 +582,15 @@ typedef struct{
 } vrna_mx_pf_t;
 
 /**
+ *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound
+ */
+typedef enum {
+  VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
+  VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction */
+} vrna_vc_t;
+
+
+/**
  *  @brief  The most basic data structure required by many functions throughout the RNAlib
  *
  *  @note   Please read the documentation of this data structure carefully! Some attributes are only available for
@@ -467,7 +603,7 @@ typedef struct{
  */
 typedef struct{
 
-  unsigned int  type;           /**<  @brief  The type of the #vrna_fold_compound.
+  vrna_vc_t     type;           /**<  @brief  The type of the #vrna_fold_compound.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
                                             the corresponding get() methods for the #vrna_fold_compound.
@@ -478,11 +614,13 @@ typedef struct{
   int           cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
                                       If there is no cutpoint, this field will be set to -1
                                 */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
   union {
     struct {
 #endif
+
       char  *sequence;              /**<  @brief  The input sequence string
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
                                     */
@@ -508,11 +646,13 @@ typedef struct{
       struct vrna_sc_t *sc;         /**<  @brief  The soft constraints for usage in structure prediction and evaluation
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
                                     */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
     };
     struct {
 #endif
+
       char  **sequences;            /**<  @brief  The aligned sequences
                                           @note   The end of the alignment is indicated by a NULL pointer in the second dimension
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
@@ -544,6 +684,7 @@ typedef struct{
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
                                     */
       int             oldAliEn;
+
 #if __STDC_VERSION__ >= 201112L
     };
   };
@@ -562,15 +703,6 @@ typedef struct{
 
 } vrna_fold_compound;
 
-/**
- *  @brief fold_compound_type Single Sequence
- */
-#define   VRNA_VC_TYPE_SINGLE     1
-
-/**
- *  @brief fold_compound_type Sequence Alignment
- */
-#define   VRNA_VC_TYPE_ALIGNMENT  2
 
 /* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
 
