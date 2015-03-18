@@ -280,6 +280,7 @@ get_mfe_matrices_alloc( unsigned int n,
 
   vars->allocated       = 0;
   vars->length          = 0;
+  vars->type            = VRNA_MX_DEFAULT;
   vars->f5              = NULL;
   vars->f3              = NULL;
   vars->fc              = NULL;
@@ -526,6 +527,7 @@ get_pf_matrices_alloc(unsigned int n,
 
   vars->allocated       = 0;
   vars->length          = 0;
+  vars->type            = VRNA_MX_DEFAULT;
   vars->q               = NULL;
   vars->qb              = NULL;
   vars->qm              = NULL;

@@ -383,49 +383,75 @@ typedef struct dupVar{
  *          data structures.
  */
 
+typedef enum { VRNA_MX_DEFAULT, VRNA_MX_LFOLD, VRNA_MX_2DFOLD } vrna_mx_t;
+
+
 /**
  *  @brief  Minimum Free Energy (MFE) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
  */
 typedef struct{
-  unsigned int allocated; /**<  @brief  Flag keeper for fast evaluation which matrices have been allocated */
-  unsigned int length;    /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
-  int     *c;   /**<  @brief  Energy array, given that i-j pair */
-  int     *f5;  /**<  @brief  Energy of 5' end */
-  int     *f3;  /**<  @brief  Energy of 3' end */
-  int     *fc;  /**<  @brief  Energy from i to cutpoint (and vice versa if i>cut) */
-  int     *fML; /**<  @brief  Multi-loop auxiliary energy array */
-  int     *fM1; /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
-  int     *fM2; /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
-  int     *ggg; /**<  @brief  Energies of g-quadruplexes */
-  int     Fc;   /**<  @brief  Minimum Free Energy of entire circular RNA */
-  int     FcH;
-  int     FcI;
-  int     FcM;
+  vrna_mx_t     type;
+  unsigned int  allocated; /**<  @brief  Flag keeper for fast evaluation which matrices have been allocated */
+  unsigned int  length;    /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
+
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+  union {
+    struct {  /* Default matrices */
+#endif
+      int     *c;   /**<  @brief  Energy array, given that i-j pair */
+      int     *f5;  /**<  @brief  Energy of 5' end */
+      int     *f3;  /**<  @brief  Energy of 3' end */
+      int     *fc;  /**<  @brief  Energy from i to cutpoint (and vice versa if i>cut) */
+      int     *fML; /**<  @brief  Multi-loop auxiliary energy array */
+      int     *fM1; /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
+      int     *fM2; /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
+      int     *ggg; /**<  @brief  Energies of g-quadruplexes */
+      int     Fc;   /**<  @brief  Minimum Free Energy of entire circular RNA */
+      int     FcH;
+      int     FcI;
+      int     FcM;
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+    };
+  };
+#endif
 } vrna_mx_mfe_t;
 
 /**
  *  @brief  Partition function (PF) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
  */
 typedef struct{
-  unsigned int allocated;
-  unsigned int length;
-  FLT_OR_DBL  *q;
-  FLT_OR_DBL  *qb;
-  FLT_OR_DBL  *qm;
-  FLT_OR_DBL  *qm1;
-  FLT_OR_DBL  *probs;
-  FLT_OR_DBL  *q1k;
-  FLT_OR_DBL  *qln;
-  FLT_OR_DBL  *G;
+  vrna_mx_t     type;
+  unsigned int  allocated;
+  unsigned int  length;
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+  union {
+    struct {  /* Default matrices */
+#endif
+      FLT_OR_DBL  *q;
+      FLT_OR_DBL  *qb;
+      FLT_OR_DBL  *qm;
+      FLT_OR_DBL  *qm1;
+      FLT_OR_DBL  *probs;
+      FLT_OR_DBL  *q1k;
+      FLT_OR_DBL  *qln;
+      FLT_OR_DBL  *G;
 
-  FLT_OR_DBL  qo;
-  FLT_OR_DBL  *qm2;
-  FLT_OR_DBL  qho;
-  FLT_OR_DBL  qio;
-  FLT_OR_DBL  qmo;
+      FLT_OR_DBL  qo;
+      FLT_OR_DBL  *qm2;
+      FLT_OR_DBL  qho;
+      FLT_OR_DBL  qio;
+      FLT_OR_DBL  qmo;
 
-  FLT_OR_DBL  *scale;
-  FLT_OR_DBL  *expMLbase;
+      FLT_OR_DBL  *scale;
+      FLT_OR_DBL  *expMLbase;
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+    };
+  };
+#endif
 } vrna_mx_pf_t;
 
 /**
@@ -452,8 +478,11 @@ typedef struct{
   int           cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
                                       If there is no cutpoint, this field will be set to -1
                                 */
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
   union {
     struct {
+#endif
       char  *sequence;              /**<  @brief  The input sequence string
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
                                     */
@@ -479,8 +508,11 @@ typedef struct{
       struct vrna_sc_t *sc;         /**<  @brief  The soft constraints for usage in structure prediction and evaluation
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
                                     */
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
     };
     struct {
+#endif
       char  **sequences;            /**<  @brief  The aligned sequences
                                           @note   The end of the alignment is indicated by a NULL pointer in the second dimension
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
@@ -512,8 +544,10 @@ typedef struct{
                                           @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
                                     */
       int             oldAliEn;
+#if __STDC_VERSION__ >= 201112L
     };
   };
+#endif
 
   struct vrna_hc_t  *hc;                  /**<  @brief  The hard constraints data structure used for structure prediction */
 
