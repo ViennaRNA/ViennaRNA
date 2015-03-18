@@ -406,7 +406,6 @@ typedef struct{
       @{
    */
   vrna_mx_t     type;
-  unsigned int  allocated; /**<  @brief  Flag keeper for fast evaluation which matrices have been allocated */
   unsigned int  length;    /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
   /**
       @}
@@ -544,7 +543,6 @@ typedef struct{
       @{
    */
   vrna_mx_t     type;
-  unsigned int  allocated;
   unsigned int  length;
 
   /**
