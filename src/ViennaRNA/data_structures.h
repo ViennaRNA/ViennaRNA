@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H
 
 /**
- *  \file data_structures.h
+ *  @file data_structures.h
  *
  *  @addtogroup   data_structures   Common Data Structures and Preprocessor Macros
  *  @{
@@ -172,7 +172,7 @@ typedef struct {
    unsigned i;    /**<  @brief  nucleotide position i */
    unsigned j;    /**<  @brief  nucleotide position j */
    float p;       /**< @brief  Probability */
-   float ent;     /**< @brief  Pseudo entropy for \f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) \f$ */
+   float ent;     /**< @brief  Pseudo entropy for @f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) @f$ */
    short bp[8];   /**< @brief  Frequencies of pair_types */
    char comp;     /**< @brief  1 iff pair is in mfe structure */
 } pair_info;
@@ -415,7 +415,7 @@ typedef struct{
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
   union {
-    struct {  /* Default matrices */
+    struct {
 #endif
       /** @name Default DP matrices
         @{
@@ -439,29 +439,71 @@ typedef struct{
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
     };
-    struct {  /* 2Dfold matrices */
+    struct {
 #endif
 
       /** @name Distance Class DP matrices
         @{
       */
-      unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
-      unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
-      unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-      unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-      unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
-
       int             ***E_F5;
+      int             **l_min_F5;
+      int             **l_max_F5;
+      int             *k_min_F5;
+      int             *k_max_F5;
+
       int             ***E_F3;
+      int             **l_min_F3;
+      int             **l_max_F3;
+      int             *k_min_F3;
+      int             *k_max_F3;
+
       int             ***E_C;
+      int             **l_min_C;
+      int             **l_max_C;
+      int             *k_min_C;
+      int             *k_max_C;
+
       int             ***E_M;
+      int             **l_min_M;
+      int             **l_max_M;
+      int             *k_min_M;
+      int             *k_max_M;
+
       int             ***E_M1;
+      int             **l_min_M1;
+      int             **l_max_M1;
+      int             *k_min_M1;
+      int             *k_max_M1;
+
       int             ***E_M2;
+      int             **l_min_M2;
+      int             **l_max_M2;
+      int             *k_min_M2;
+      int             *k_max_M2;
 
       int             **E_Fc;
+      int             *l_min_Fc;
+      int             *l_max_Fc;
+      int             k_min_Fc;
+      int             k_max_Fc;
+
       int             **E_FcH;
+      int             *l_min_FcH;
+      int             *l_max_FcH;
+      int             k_min_FcH;
+      int             k_max_FcH;
+
       int             **E_FcI;
+      int             *l_min_FcI;
+      int             *l_max_FcI;
+      int             k_min_FcI;
+      int             k_max_FcI;
+
       int             **E_FcM;
+      int             *l_min_FcM;
+      int             *l_max_FcM;
+      int             k_min_FcM;
+      int             k_max_FcM;
 
       /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
       int             *E_F5_rem;
@@ -476,67 +518,16 @@ typedef struct{
       int             E_FcI_rem;
       int             E_FcM_rem;
 
-      int             **l_min_values;
-      int             **l_max_values;
-      int             *k_min_values;
-      int             *k_max_values;
-
-      int             **l_min_values_m;
-      int             **l_max_values_m;
-      int             *k_min_values_m;
-      int             *k_max_values_m;
-
-      int             **l_min_values_m1;
-      int             **l_max_values_m1;
-      int             *k_min_values_m1;
-      int             *k_max_values_m1;
-
-      int             **l_min_values_f;
-      int             **l_max_values_f;
-      int             *k_min_values_f;
-      int             *k_max_values_f;
-
-      int             **l_min_values_f3;
-      int             **l_max_values_f3;
-      int             *k_min_values_f3;
-      int             *k_max_values_f3;
-
-      int             **l_min_values_m2;
-      int             **l_max_values_m2;
-      int             *k_min_values_m2;
-      int             *k_max_values_m2;
-
-      int             *l_min_values_fc;
-      int             *l_max_values_fc;
-      int             k_min_values_fc;
-      int             k_max_values_fc;
-
-      int             *l_min_values_fcH;
-      int             *l_max_values_fcH;
-      int             k_min_values_fcH;
-      int             k_max_values_fcH;
-
-      int             *l_min_values_fcI;
-      int             *l_max_values_fcI;
-      int             k_min_values_fcI;
-      int             k_max_values_fcI;
-
-      int             *l_min_values_fcM;
-      int             *l_max_values_fcM;
-      int             k_min_values_fcM;
-      int             k_max_values_fcM;
-
 #ifdef COUNT_STATES
-      unsigned long             ***N_F5;
-      unsigned long             ***N_C;
-      unsigned long             ***N_M;
-      unsigned long             ***N_M1;
+      unsigned long   ***N_F5;
+      unsigned long   ***N_C;
+      unsigned long   ***N_M;
+      unsigned long   ***N_M1;
 #endif
 
       /**
         @}
        */
-
 
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
@@ -549,14 +540,26 @@ typedef struct{
  *  @brief  Partition function (PF) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
  */
 typedef struct{
+  /** @name Common fields for DP matrices
+      @{
+   */
   vrna_mx_t     type;
   unsigned int  allocated;
   unsigned int  length;
+
+  /**
+      @}
+   */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
   union {
-    struct {  /* Default matrices */
+    struct {
 #endif
+
+  /** @name Default PF matrices
+      @{
+   */
       FLT_OR_DBL  *q;
       FLT_OR_DBL  *qb;
       FLT_OR_DBL  *qm;
@@ -574,6 +577,89 @@ typedef struct{
 
       FLT_OR_DBL  *scale;
       FLT_OR_DBL  *expMLbase;
+  /**
+      @}
+   */
+
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+    };
+    struct {
+#endif
+
+  /** @name Distance Class DP matrices
+      @{
+   */
+      FLT_OR_DBL      ***Q;
+      int             **l_min_Q;
+      int             **l_max_Q;
+      int             *k_min_Q;
+      int             *k_max_Q;
+
+
+      FLT_OR_DBL      ***Q_B;
+      int             **l_min_Q_B;
+      int             **l_max_Q_B;
+      int             *k_min_Q_B;
+      int             *k_max_Q_B;
+
+      FLT_OR_DBL      ***Q_M;
+      int             **l_min_Q_M;
+      int             **l_max_Q_M;
+      int             *k_min_Q_M;
+      int             *k_max_Q_M;
+
+      FLT_OR_DBL      ***Q_M1;
+      int             **l_min_Q_M1;
+      int             **l_max_Q_M1;
+      int             *k_min_Q_M1;
+      int             *k_max_Q_M1;
+
+      FLT_OR_DBL      ***Q_M2;
+      int             **l_min_Q_M2;
+      int             **l_max_Q_M2;
+      int             *k_min_Q_M2;
+      int             *k_max_Q_M2;
+
+      FLT_OR_DBL      **Q_c;
+      int             *l_min_Q_c;
+      int             *l_max_Q_c;
+      int             k_min_Q_c;
+      int             k_max_Q_c;
+
+      FLT_OR_DBL      **Q_cH;
+      int             *l_min_Q_cH;
+      int             *l_max_Q_cH;
+      int             k_min_Q_cH;
+      int             k_max_Q_cH;
+
+      FLT_OR_DBL      **Q_cI;
+      int             *l_min_Q_cI;
+      int             *l_max_Q_cI;
+      int             k_min_Q_cI;
+      int             k_max_Q_cI;
+
+      FLT_OR_DBL      **Q_cM;
+      int             *l_min_Q_cM;
+      int             *l_max_Q_cM;
+      int             k_min_Q_cM;
+      int             k_max_Q_cM;
+
+      /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
+      FLT_OR_DBL      *Q_rem;
+      FLT_OR_DBL      *Q_B_rem;
+      FLT_OR_DBL      *Q_M_rem;
+      FLT_OR_DBL      *Q_M1_rem;
+      FLT_OR_DBL      *Q_M2_rem;
+
+      FLT_OR_DBL      Q_c_rem;
+      FLT_OR_DBL      Q_cH_rem;
+      FLT_OR_DBL      Q_cI_rem;
+      FLT_OR_DBL      Q_cM_rem;
+  /**
+      @}
+   */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
     };
@@ -586,7 +672,7 @@ typedef struct{
  */
 typedef enum {
   VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
-  VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction */
+  VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction) */
 } vrna_vc_t;
 
 
@@ -596,13 +682,18 @@ typedef enum {
  *  @note   Please read the documentation of this data structure carefully! Some attributes are only available for
  *  specific types this data structure can adopt.
  *
- *  @warning  Reading/Writing from/to attributes that are not within the scope of the current type result in undefined behavior!
+ *  @warning  Reading/Writing from/to attributes that are not within the scope of the current type usually result
+ *  in undefined behavior!
  *
  *  @see  #vrna_fold_compound.type, vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(),
  *        #VRNA_VC_TYPE_SINGLE, #VRNA_VC_TYPE_ALIGNMENT
  */
 typedef struct{
 
+  /**
+      @name Common data fields
+      @{
+   */
   vrna_vc_t     type;           /**<  @brief  The type of the #vrna_fold_compound.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
@@ -615,18 +706,37 @@ typedef struct{
                                       If there is no cutpoint, this field will be set to -1
                                 */
 
+  struct vrna_hc_t        *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
+
+  vrna_mx_mfe_t           *matrices;      /**<  @brief  The MFE DP matrices */
+  vrna_mx_pf_t            *exp_matrices;  /**<  @brief  The PF DP matrices  */
+
+  struct vrna_param_t     *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
+  struct vrna_exp_param_t *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
+
+  int                     *iindx;         /**<  @brief  DP matrix accessor  */
+  int                     *jindx;         /**<  @brief  DP matrix accessor  */
+
+  /**
+      @}
+   */
+
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
   union {
     struct {
 #endif
 
+  /**
+      @name Data fields available for single/hybrid structure prediction
+      @{
+   */
       char  *sequence;              /**<  @brief  The input sequence string
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
       short *sequence_encoding;     /**<  @brief  Numerical encoding of the input sequence
                                           @see    vrna_sequence_encode()
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
       short *sequence_encoding2;
       char  *ptype;                 /**<  @brief  Pair type array
@@ -635,17 +745,21 @@ typedef struct{
                                           in MFE, Partition function and Evaluation computations.
                                           @note This array is always indexed via jindx, in contrast to previously
                                           different indexing between mfe and pf variants!
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                           @see    vrna_get_indx(), vrna_get_ptypes()
                                     */
       char  *ptype_pf_compat;       /**<  @brief  ptype array indexed via iindx
                                           @deprecated  This attribute will vanish in the future!
                                           It's meant for backward compatibility only!
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
       struct vrna_sc_t *sc;         /**<  @brief  The soft constraints for usage in structure prediction and evaluation
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_SINGLE \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
+
+  /**
+      @}
+   */
 
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
@@ -653,53 +767,71 @@ typedef struct{
     struct {
 #endif
 
+  /**
+      @name Data fields for consensus structure prediction
+      @{
+   */
       char  **sequences;            /**<  @brief  The aligned sequences
                                           @note   The end of the alignment is indicated by a NULL pointer in the second dimension
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       unsigned int    n_seq;        /**<  @brief  The number of sequences in the alignment
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       char            *cons_seq;    /**<  @brief  The consensus sequence of the aligned sequences
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       short           *S_cons;      /**<  @brief  Numerical encoding of the consensus sequence
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       short           **S;          /**<  @brief  Numerical encoding of the sequences in the alignment
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       short           **S5;         /**<  @brief    S5[s][i] holds next base 5' of i in sequence s
-                                          @warning  Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning  Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       short           **S3;         /**<  @brief    Sl[s][i] holds next base 3' of i in sequence s
-                                          @warning  Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning  Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       char            **Ss;
       unsigned short  **a2s;
       int             *pscore;      /**<  @brief  Precomputed array of pair types expressed as pairing scores
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       struct vrna_sc_t **scs;       /**<  @brief  A set of soft constraints (for each sequence in the alignment)
-                                          @warning   Only available if \verbatim type==VRNA_VC_TYPE_ALIGNMENT \endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       int             oldAliEn;
 
+  /**
+      @}
+   */
 #if __STDC_VERSION__ >= 201112L
     };
   };
 #endif
 
-  struct vrna_hc_t  *hc;                  /**<  @brief  The hard constraints data structure used for structure prediction */
+  /**
+   *  @name Additional data fields for Distance Class Partitioning
+   *
+   *  These data fields are typically populated with meaningful data only if used in the context of Distance Class Partitioning
+   *  @{
+   */
+  unsigned int    maxD1;          /**<  @brief  Maximum allowed base pair distance to first reference */
+  unsigned int    maxD2;          /**<  @brief  Maximum allowed base pair distance to second reference */
+  short           *reference_pt1; /**<  @brief  A pairtable of the first reference structure */
+  short           *reference_pt2; /**<  @brief  A pairtable of the second reference structure */
 
-  vrna_mx_mfe_t           *matrices;      /**<  @brief  The MFE DP matrices */
-  vrna_mx_pf_t            *exp_matrices;  /**<  @brief  The PF DP matrices  */
+  unsigned int    *referenceBPs1; /**<  @brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /**<  @brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /**<  @brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
 
-  struct vrna_param_t     *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
-  struct vrna_exp_param_t *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
-
-  int               *iindx;               /**<  @brief  DP matrix accessor  */
-  int               *jindx;               /**<  @brief  DP matrix accessor  */
+  unsigned int    *mm1;           /**<  @brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;           /**<  @brief  Maximum matching matrix, reference struct 2 disallowed */
+  
+  /**
+      @}
+   */
 
 } vrna_fold_compound;
 
@@ -724,6 +856,10 @@ typedef struct{
 
 #define VRNA_OPTION_HYBRID          4
 
+#define VRNA_OPTION_DIST_CLASS      16
+
+#define VRNA_OPTION_LFOLD           32
+
 /**
  *  @brief  Option flag to specify that neither MFE, nor PF DP matrices are required
  *
@@ -742,7 +878,7 @@ typedef struct{
  *
  *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing a single
  *  sequence, or two contatenated sequences as input. For the latter, sequences need to be seperated by
- *  an '&' character like this: \verbatim char *sequence = "GGGG&CCCC"; \endverbatim
+ *  an '&' character like this: @verbatim char *sequence = "GGGG&CCCC"; @endverbatim
  *
  *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
  *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
