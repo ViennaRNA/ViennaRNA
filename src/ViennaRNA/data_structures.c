@@ -511,20 +511,18 @@ get_mfe_matrices_alloc( unsigned int n,
                         vrna_mx_t type,
                         unsigned int alloc_vector){
 
+  unsigned int  i, size, lin_size;
+  vrna_mx_mfe_t *vars;
+
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     vrna_message_error("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  vrna_mx_mfe_t *vars   = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
+  size          = ((n + 1) * (n + 2)) / 2;
+  lin_size      = n + 2;
+  vars          = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
+  vars->length  = n;
+  vars->type    = type;
 
-  /* set everything to zero (although this should be done already by vrna_alloc() )*/
-
-  vars->length          = n;
-  vars->type            = type;
-
-  unsigned int i, size, lin_size;
-
-  size     = ((n + 1) * (n + 2)) / 2;
-  lin_size = n + 2;
 
   switch(type){
     case VRNA_MX_DEFAULT:   if(alloc_vector & ALLOC_F5)
@@ -593,12 +591,16 @@ get_mfe_matrices_alloc( unsigned int n,
                               vars->l_max_F3  = (int **)  vrna_alloc(sizeof(int *)   * lin_size);
                               vars->k_min_F3  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
                               vars->k_max_F3  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              vars->E_F3_rem  = (int *)   vrna_alloc(sizeof(int)    * lin_size);
+                              for(i = 0; i <= n; i++)
+                                vars->E_F3_rem[i] = INF;
                             } else {
                               vars->E_F3      = NULL;
                               vars->l_min_F3  = NULL;
                               vars->l_max_F3  = NULL;
                               vars->k_min_F3  = NULL;
                               vars->k_max_F3  = NULL;
+                              vars->E_F3_rem  = NULL;
                             }
 
                             if(alloc_vector & ALLOC_C){
@@ -705,66 +707,160 @@ get_pf_matrices_alloc(unsigned int n,
                       vrna_mx_t type,
                       unsigned int alloc_vector){
 
+  unsigned int  i, size, lin_size;
+  vrna_mx_pf_t  *vars;
+
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     vrna_message_error("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  vrna_mx_pf_t  *vars   = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
+  size          = ((n + 1) * (n + 2)) / 2;
+  lin_size      = n + 2;
+  vars          = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
+  vars->length  = n;
+  vars->type    = type;
 
-  vars->length          = n;
-  vars->type            = type;
-  vars->q               = NULL;
-  vars->qb              = NULL;
-  vars->qm              = NULL;
-  vars->qm1             = NULL;
-  vars->qm2             = NULL;
-  vars->qho             = 0.;
-  vars->qio             = 0.;
-  vars->qmo             = 0.;
-  vars->qo              = 0.;
-  vars->G               = NULL;
-  vars->q1k             = NULL;
-  vars->qln             = NULL;
 
-  vars->scale           = NULL;
-  vars->expMLbase       = NULL;
+  switch(type){
+    case VRNA_MX_DEFAULT:   if(alloc_vector & ALLOC_F)
+                              vars->q = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->q = NULL;
 
-  if(alloc_vector){
-    unsigned int size     = ((n + 1) * (n + 2)) / 2;
-    unsigned int lin_size = n + 2;
+                            if(alloc_vector & ALLOC_C)
+                              vars->qb  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qb = NULL;
 
-    switch(type){
-      case VRNA_MX_DEFAULT:   if(alloc_vector & ALLOC_F)
-                                vars->q     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_FML)
+                              vars->qm    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qm = NULL;
 
-                              if(alloc_vector & ALLOC_C)
-                                vars->qb    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_UNIQ)
+                              vars->qm1   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qm1 = NULL;
 
-                              if(alloc_vector & ALLOC_FML)
-                                vars->qm    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_CIRC)
+                              vars->qm2   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            else
+                              vars->qm2 = NULL;
 
-                              if(alloc_vector & ALLOC_UNIQ)
-                                vars->qm1   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_PROBS)
+                              vars->probs = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->probs = NULL;
 
-                              if(alloc_vector & ALLOC_CIRC)
-                                vars->qm2   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            if(alloc_vector & ALLOC_AUX){
+                              vars->q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                              vars->qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            } else {
+                              vars->q1k = NULL;
+                              vars->qln = NULL;
+                            }
 
-                              if(alloc_vector & ALLOC_PROBS)
-                                vars->probs = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            /*
+                                always alloc the helper arrays for unpaired nucleotides in multi-
+                                branch loops and scaling
+                            */
+                            vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            break;
 
-                              if(alloc_vector & ALLOC_AUX){
-                                vars->q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-                                vars->qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-                              }
+    case VRNA_MX_2DFOLD:    if(alloc_vector & ALLOC_F){
+                              vars->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_rem   = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q       = NULL;
+                              vars->l_min_Q = NULL;
+                              vars->l_max_Q = NULL;
+                              vars->k_min_Q = NULL;
+                              vars->k_max_Q = NULL;
+                              vars->Q_rem   = NULL;
+                            }
 
-                              /*  always alloc the helper arrays for unpaired nucleotides in multi-
-                                  branch loops and scaling
-                              */
-                              vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-                              vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-                              break;
-      default:                /* do nothing */
-                              break;
-    }
+                            if(alloc_vector & ALLOC_C){
+                              vars->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_B = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_B = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_B = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_B = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_B_rem   = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q_B       = NULL;
+                              vars->l_min_Q_B = NULL;
+                              vars->l_max_Q_B = NULL;
+                              vars->k_min_Q_B = NULL;
+                              vars->k_max_Q_B = NULL;
+                              vars->Q_B_rem   = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_FML){
+                              vars->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_M = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_M = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_M = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_M = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_M_rem   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)      * size);
+                            } else {
+                              vars->Q_M       = NULL;
+                              vars->l_min_Q_M = NULL;
+                              vars->l_max_Q_M = NULL;
+                              vars->k_min_Q_M = NULL;
+                              vars->k_max_Q_M = NULL;
+                              vars->Q_M_rem   = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_UNIQ){
+                              vars->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_M1  = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_M1  = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_M1  = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_M1  = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_M1_rem    = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q_M1        = NULL;
+                              vars->l_min_Q_M1  = NULL;
+                              vars->l_max_Q_M1  = NULL;
+                              vars->k_min_Q_M1  = NULL;
+                              vars->k_max_Q_M1  = NULL;
+                              vars->Q_M1_rem    = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_CIRC){
+                              vars->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * lin_size);
+                              vars->l_min_Q_M2  = (int **)        vrna_alloc(sizeof(int *)          * lin_size);
+                              vars->l_max_Q_M2  = (int **)        vrna_alloc(sizeof(int *)          * lin_size);
+                              vars->k_min_Q_M2  = (int *)         vrna_alloc(sizeof(int)            * lin_size);
+                              vars->k_max_Q_M2  = (int *)         vrna_alloc(sizeof(int)            * lin_size);
+                              vars->Q_M2_rem    = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * lin_size);
+                            }
+                            else{
+                              vars->Q_M2_rem    = NULL;
+                              vars->Q_M2        = NULL;
+                              vars->l_min_Q_M2  = NULL;
+                              vars->l_max_Q_M2  = NULL;
+                              vars->k_min_Q_M2  = NULL;
+                              vars->k_max_Q_M2  = NULL;
+                            }
+
+                            vars->Q_c       = NULL;
+                            vars->Q_cH      = NULL;
+                            vars->Q_cI      = NULL;
+                            vars->Q_cM      = NULL;
+                            vars->Q_c_rem   = 0.;
+                            vars->Q_cH_rem  = 0.;
+                            vars->Q_cI_rem  = 0.;
+                            vars->Q_cM_rem  = 0.;
+
+                            break;
+
+    default:                /* do nothing */
+                            break;
   }
 
   return vars;
