@@ -101,6 +101,9 @@ PRIVATE void            init_dist_class_feature(vrna_fold_compound *vc, const ch
 PUBLIC void
 vrna_free_mfe_matrices(vrna_fold_compound *vc){
 
+  unsigned int  i, j, ij;
+  int           cnt1;
+
   if(vc){
     vrna_mx_mfe_t *self = vc->matrices;
     if(self){
@@ -114,8 +117,315 @@ vrna_free_mfe_matrices(vrna_fold_compound *vc){
                                 free(self->fM2);
                                 free(self->ggg);
                                 break;
-        case VRNA_MX_2DFOLD:    
+
+        case VRNA_MX_2DFOLD:    /* This will be some fun... */
+#ifdef COUNT_STATES
+                                if(self->N_F5 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->N_F5[i]) continue;
+                                    for(cnt1 = self->k_min_F5[i]; cnt1 <= vars->k_max_F5[i]; cnt1++)
+                                      if(vars->l_min_F5[i][cnt1] < INF){
+                                        vars->N_F5[i][cnt1] += vars->l_min_F5[i][cnt1]/2;
+                                        free(vars->N_F5[i][cnt1]);
+                                      }
+                                    if(vars->k_min_F5[i] < INF){
+                                      vars->N_F5[i] += vars->k_min_F5[i];
+                                      free(vars->N_F5[i]);
+                                    }
+                                  }
+                                  free(vars->N_F5);
+                                }
+#endif
+
+                                if(self->E_F5 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->E_F5[i]) continue;
+                                    for(cnt1 = self->k_min_F5[i]; cnt1 <= self->k_max_F5[i]; cnt1++)
+                                      if(self->l_min_F5[i][cnt1] < INF){
+                                        self->E_F5[i][cnt1] += self->l_min_F5[i][cnt1]/2;
+                                        free(self->E_F5[i][cnt1]);
+                                      }
+                                    if(self->k_min_F5[i] < INF){
+                                      self->E_F5[i] += self->k_min_F5[i];
+                                      free(self->E_F5[i]);
+                                      self->l_min_F5[i] += self->k_min_F5[i];
+                                      self->l_max_F5[i] += self->k_min_F5[i];
+                                      free(self->l_min_F5[i]);
+                                      free(self->l_max_F5[i]);
+                                    }
+                                  }
+                                  free(self->E_F5);
+                                  free(self->l_min_F5);
+                                  free(self->l_max_F5);
+                                  free(self->k_min_F5);
+                                  free(self->k_max_F5);
+                                }
+
+                                if(self->E_F3 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->E_F3[i]) continue;
+                                    for(cnt1 = self->k_min_F3[i]; cnt1 <= self->k_max_F3[i]; cnt1++)
+                                      if(self->l_min_F3[i][cnt1] < INF){
+                                        self->E_F3[i][cnt1] += self->l_min_F3[i][cnt1]/2;
+                                        free(self->E_F3[i][cnt1]);
+                                      }
+                                    if(self->k_min_F3[i] < INF){
+                                      self->E_F3[i] += self->k_min_F3[i];
+                                      free(self->E_F3[i]);
+                                      self->l_min_F3[i] += self->k_min_F3[i];
+                                      self->l_max_F3[i] += self->k_min_F3[i];
+                                      free(self->l_min_F3[i]);
+                                      free(self->l_max_F3[i]);
+                                    }
+                                  }
+                                  free(self->E_F3);
+                                  free(self->l_min_F3);
+                                  free(self->l_max_F3);
+                                  free(self->k_min_F3);
+                                  free(self->k_max_F3);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_C != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_C[ij]) continue;
+                                      for(cnt1 = self->k_min_C[ij]; cnt1 <= self->k_max_C[ij]; cnt1++)
+                                        if(self->l_min_C[ij][cnt1] < INF){
+                                          self->N_C[ij][cnt1] += self->l_min_C[ij][cnt1]/2;
+                                          free(self->N_C[ij][cnt1]);
+                                        }
+                                      if(self->k_min_C[ij] < INF){
+                                        self->N_C[ij] += self->k_min_C[ij];
+                                        free(self->N_C[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_C);
+                                }
+#endif
+
+                                if(self->E_C != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_C[ij]) continue;
+                                      for(cnt1 = self->k_min_C[ij]; cnt1 <= self->k_max_C[ij]; cnt1++)
+                                        if(self->l_min_C[ij][cnt1] < INF){
+                                          self->E_C[ij][cnt1] += self->l_min_C[ij][cnt1]/2;
+                                          free(self->E_C[ij][cnt1]);
+                                        }
+                                      if(self->k_min_C[ij] < INF){
+                                        self->E_C[ij] += self->k_min_C[ij];
+                                        free(self->E_C[ij]);
+                                        self->l_min_C[ij] += self->k_min_C[ij];
+                                        self->l_max_C[ij] += self->k_min_C[ij];
+                                        free(self->l_min_C[ij]);
+                                        free(self->l_max_C[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_C);
+                                  free(self->l_min_C);
+                                  free(self->l_max_C);
+                                  free(self->k_min_C);
+                                  free(self->k_max_C);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_M[ij]) continue;
+                                      for(cnt1 = self->k_min_M[ij]; cnt1 <= self->k_max_M[ij]; cnt1++)
+                                        if(self->l_min_M[ij][cnt1] < INF){
+                                          self->N_M[ij][cnt1] += self->l_min_M[ij][cnt1]/2;
+                                          free(self->N_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M[ij] < INF){
+                                        self->N_M[ij] += self->k_min_M[ij];
+                                        free(self->N_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_M);
+                                }
+#endif
+
+                                if(self->E_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_M[ij]) continue;
+                                      for(cnt1 = self->k_min_M[ij]; cnt1 <= self->k_max_M[ij]; cnt1++)
+                                        if(self->l_min_M[ij][cnt1] < INF){
+                                          self->E_M[ij][cnt1] += self->l_min_M[ij][cnt1]/2;
+                                          free(self->E_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M[ij] < INF){
+                                        self->E_M[ij] += self->k_min_M[ij];
+                                        free(self->E_M[ij]);
+                                        self->l_min_M[ij] += self->k_min_M[ij];
+                                        self->l_max_M[ij] += self->k_min_M[ij];
+                                        free(self->l_min_M[ij]);
+                                        free(self->l_max_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_M);
+                                  free(self->l_min_M);
+                                  free(self->l_max_M);
+                                  free(self->k_min_M);
+                                  free(self->k_max_M);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_M1[ij]; cnt1 <= self->k_max_M1[ij]; cnt1++)
+                                        if(self->l_min_M1[ij][cnt1] < INF){
+                                          self->N_M1[ij][cnt1] += self->l_min_M1[ij][cnt1]/2;
+                                          free(self->N_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M1[ij] < INF){
+                                        self->N_M1[ij] += self->k_min_M1[ij];
+                                        free(self->N_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_M1);
+                                }
+#endif
+
+                                if(self->E_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_M1[ij]; cnt1 <= self->k_max_M1[ij]; cnt1++)
+                                        if(self->l_min_M1[ij][cnt1] < INF){
+                                          self->E_M1[ij][cnt1] += self->l_min_M1[ij][cnt1]/2;
+                                          free(self->E_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M1[ij] < INF){
+                                        self->E_M1[ij] += self->k_min_M1[ij];
+                                        free(self->E_M1[ij]);
+                                        self->l_min_M1[ij] += self->k_min_M1[ij];
+                                        self->l_max_M1[ij] += self->k_min_M1[ij];
+                                        free(self->l_min_M1[ij]);
+                                        free(self->l_max_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_M1);
+                                  free(self->l_min_M1);
+                                  free(self->l_max_M1);
+                                  free(self->k_min_M1);
+                                  free(self->k_max_M1);
+                                }
+
+                                if(self->E_M2 != NULL){
+                                  for(i = 1; i < vc->length-TURN-1; i++){
+                                    if(!self->E_M2[i]) continue;
+                                    for(cnt1 = self->k_min_M2[i]; cnt1 <= self->k_max_M2[i]; cnt1++)
+                                      if(self->l_min_M2[i][cnt1] < INF){
+                                        self->E_M2[i][cnt1] += self->l_min_M2[i][cnt1]/2;
+                                        free(self->E_M2[i][cnt1]);
+                                      }
+                                    if(self->k_min_M2[i] < INF){
+                                      self->E_M2[i] += self->k_min_M2[i];
+                                      free(self->E_M2[i]);
+                                      self->l_min_M2[i] += self->k_min_M2[i];
+                                      self->l_max_M2[i] += self->k_min_M2[i];
+                                      free(self->l_min_M2[i]);
+                                      free(self->l_max_M2[i]);
+                                    }
+                                  }
+                                  free(self->E_M2);
+                                  free(self->l_min_M2);
+                                  free(self->l_max_M2);
+                                  free(self->k_min_M2);
+                                  free(self->k_max_M2);
+                                }
+
+                                if(self->E_Fc != NULL){
+                                  for(cnt1 = self->k_min_Fc; cnt1 <= self->k_max_Fc; cnt1++)
+                                    if(self->l_min_Fc[cnt1] < INF){
+                                      self->E_Fc[cnt1] += self->l_min_Fc[cnt1]/2;
+                                      free(self->E_Fc[cnt1]);
+                                    }
+                                  if(self->k_min_Fc < INF){
+                                    self->E_Fc += self->k_min_Fc;
+                                    free(self->E_Fc);
+                                    self->l_min_Fc += self->k_min_Fc;
+                                    self->l_max_Fc += self->k_min_Fc;
+                                    free(self->l_min_Fc);
+                                    free(self->l_max_Fc);
+                                  }
+                                }
+
+                                if(self->E_FcI != NULL){
+                                  for(cnt1 = self->k_min_FcI; cnt1 <= self->k_max_FcI; cnt1++)
+                                    if(self->l_min_FcI[cnt1] < INF){
+                                      self->E_FcI[cnt1] += self->l_min_FcI[cnt1]/2;
+                                      free(self->E_FcI[cnt1]);
+                                    }
+                                  if(self->k_min_FcI < INF){
+                                    self->E_FcI += self->k_min_FcI;
+                                    free(self->E_FcI);
+                                    self->l_min_FcI += self->k_min_FcI;
+                                    self->l_max_FcI += self->k_min_FcI;
+                                    free(self->l_min_FcI);
+                                    free(self->l_max_FcI);
+                                  }
+                                }
+
+                                if(self->E_FcH != NULL){
+                                  for(cnt1 = self->k_min_FcH; cnt1 <= self->k_max_FcH; cnt1++)
+                                    if(self->l_min_FcH[cnt1] < INF){
+                                      self->E_FcH[cnt1] += self->l_min_FcH[cnt1]/2;
+                                      free(self->E_FcH[cnt1]);
+                                    }
+                                  if(self->k_min_FcH < INF){
+                                    self->E_FcH += self->k_min_FcH;
+                                    free(self->E_FcH);
+                                    self->l_min_FcH += self->k_min_FcH;
+                                    self->l_max_FcH += self->k_min_FcH;
+                                    free(self->l_min_FcH);
+                                    free(self->l_max_FcH);
+                                  }
+                                }
+
+                                if(self->E_FcM != NULL){
+                                  for(cnt1 = self->k_min_FcM; cnt1 <= self->k_max_FcM; cnt1++)
+                                    if(self->l_min_FcM[cnt1] < INF){
+                                      self->E_FcM[cnt1] += self->l_min_FcM[cnt1]/2;
+                                      free(self->E_FcM[cnt1]);
+                                    }
+                                  if(self->k_min_FcM < INF){
+                                    self->E_FcM += self->k_min_FcM;
+                                    free(self->E_FcM);
+                                    self->l_min_FcM += self->k_min_FcM;
+                                    self->l_max_FcM += self->k_min_FcM;
+                                    free(self->l_min_FcM);
+                                    free(self->l_max_FcM);
+                                  }
+                                }
+
+                                free(self->E_F5_rem);
+                                free(self->E_F3_rem);
+                                free(self->E_C_rem);
+                                free(self->E_M_rem);
+                                free(self->E_M1_rem);
+                                free(self->E_M2_rem);
+
                                 break;
+
         default:                /* do nothing */
                                 break;
       }
@@ -127,6 +437,9 @@ vrna_free_mfe_matrices(vrna_fold_compound *vc){
 
 PUBLIC void
 vrna_free_pf_matrices(vrna_fold_compound *vc){
+
+  unsigned int  i, j, ij;
+  int           cnt1;
 
   if(vc){
     vrna_mx_pf_t  *self = vc->exp_matrices;
@@ -141,14 +454,220 @@ vrna_free_pf_matrices(vrna_fold_compound *vc){
                                 free(self->G);
                                 free(self->q1k);
                                 free(self->qln);
-                                free(self->scale);
-                                free(self->expMLbase);
                                 break;
-        case VRNA_MX_2DFOLD:    
+
+        case VRNA_MX_2DFOLD:    /* This will be some fun... */
+                                if(self->Q != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q[ij]) continue;
+                                      for(cnt1 = self->k_min_Q[ij]; cnt1 <= self->k_max_Q[ij]; cnt1++)
+                                        if(self->l_min_Q[ij][cnt1] < INF){
+                                          self->Q[ij][cnt1] += self->l_min_Q[ij][cnt1]/2;
+                                          free(self->Q[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q[ij] < INF){
+                                        self->Q[ij] += self->k_min_Q[ij];
+                                        free(self->Q[ij]);
+                                        self->l_min_Q[ij] += self->k_min_Q[ij];
+                                        self->l_max_Q[ij] += self->k_min_Q[ij];
+                                        free(self->l_min_Q[ij]);
+                                        free(self->l_max_Q[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q);
+                                  free(self->l_min_Q);
+                                  free(self->l_max_Q);
+                                  free(self->k_min_Q);
+                                  free(self->k_max_Q);
+                                }
+
+                                if(self->Q_B != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q_B[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_B[ij]; cnt1 <= self->k_max_Q_B[ij]; cnt1++)
+                                        if(self->l_min_Q_B[ij][cnt1] < INF){
+                                          self->Q_B[ij][cnt1] += self->l_min_Q_B[ij][cnt1]/2;
+                                          free(self->Q_B[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_B[ij] < INF){
+                                        self->Q_B[ij] += self->k_min_Q_B[ij];
+                                        free(self->Q_B[ij]);
+                                        self->l_min_Q_B[ij] += self->k_min_Q_B[ij];
+                                        self->l_max_Q_B[ij] += self->k_min_Q_B[ij];
+                                        free(self->l_min_Q_B[ij]);
+                                        free(self->l_max_Q_B[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_B);
+                                  free(self->l_min_Q_B);
+                                  free(self->l_max_Q_B);
+                                  free(self->k_min_Q_B);
+                                  free(self->k_max_Q_B);
+                                }
+
+                                if(self->Q_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q_M[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_M[ij]; cnt1 <= self->k_max_Q_M[ij]; cnt1++)
+                                        if(self->l_min_Q_M[ij][cnt1] < INF){
+                                          self->Q_M[ij][cnt1] += self->l_min_Q_M[ij][cnt1]/2;
+                                          free(self->Q_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_M[ij] < INF){
+                                        self->Q_M[ij] += self->k_min_Q_M[ij];
+                                        free(self->Q_M[ij]);
+                                        self->l_min_Q_M[ij] += self->k_min_Q_M[ij];
+                                        self->l_max_Q_M[ij] += self->k_min_Q_M[ij];
+                                        free(self->l_min_Q_M[ij]);
+                                        free(self->l_max_Q_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_M);
+                                  free(self->l_min_Q_M);
+                                  free(self->l_max_Q_M);
+                                  free(self->k_min_Q_M);
+                                  free(self->k_max_Q_M);
+                                }
+
+                                if(self->Q_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->jindx[j] + i;
+                                      if(!self->Q_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_M1[ij]; cnt1 <= self->k_max_Q_M1[ij]; cnt1++)
+                                        if(self->l_min_Q_M1[ij][cnt1] < INF){
+                                          self->Q_M1[ij][cnt1] += self->l_min_Q_M1[ij][cnt1]/2;
+                                          free(self->Q_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_M1[ij] < INF){
+                                        self->Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        free(self->Q_M1[ij]);
+                                        self->l_min_Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        self->l_max_Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        free(self->l_min_Q_M1[ij]);
+                                        free(self->l_max_Q_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_M1);
+                                  free(self->l_min_Q_M1);
+                                  free(self->l_max_Q_M1);
+                                  free(self->k_min_Q_M1);
+                                  free(self->k_max_Q_M1);
+                                }
+
+                                if(self->Q_M2 != NULL){
+                                  for(i = 1; i < vc->length-TURN-1; i++){
+                                    if(!self->Q_M2[i]) continue;
+                                    for(cnt1 = self->k_min_Q_M2[i]; cnt1 <= self->k_max_Q_M2[i]; cnt1++)
+                                      if(self->l_min_Q_M2[i][cnt1] < INF){
+                                        self->Q_M2[i][cnt1] += self->l_min_Q_M2[i][cnt1]/2;
+                                        free(self->Q_M2[i][cnt1]);
+                                      }
+                                    if(self->k_min_Q_M2[i] < INF){
+                                      self->Q_M2[i] += self->k_min_Q_M2[i];
+                                      free(self->Q_M2[i]);
+                                      self->l_min_Q_M2[i] += self->k_min_Q_M2[i];
+                                      self->l_max_Q_M2[i] += self->k_min_Q_M2[i];
+                                      free(self->l_min_Q_M2[i]);
+                                      free(self->l_max_Q_M2[i]);
+                                    }
+                                  }
+                                  free(self->Q_M2);
+                                  free(self->l_min_Q_M2);
+                                  free(self->l_max_Q_M2);
+                                  free(self->k_min_Q_M2);
+                                  free(self->k_max_Q_M2);
+                                }
+
+                                if(self->Q_c != NULL){
+                                  for(cnt1 = self->k_min_Q_c; cnt1 <= self->k_max_Q_c; cnt1++)
+                                    if(self->l_min_Q_c[cnt1] < INF){
+                                      self->Q_c[cnt1] += self->l_min_Q_c[cnt1]/2;
+                                      free(self->Q_c[cnt1]);
+                                    }
+                                  if(self->k_min_Q_c < INF){
+                                    self->Q_c += self->k_min_Q_c;
+                                    free(self->Q_c);
+                                    self->l_min_Q_c += self->k_min_Q_c;
+                                    self->l_max_Q_c += self->k_min_Q_c;
+                                    free(self->l_min_Q_c);
+                                    free(self->l_max_Q_c);
+                                  }
+                                }
+
+                                if(self->Q_cI != NULL){
+                                  for(cnt1 = self->k_min_Q_cI; cnt1 <= self->k_max_Q_cI; cnt1++)
+                                    if(self->l_min_Q_cI[cnt1] < INF){
+                                      self->Q_cI[cnt1] += self->l_min_Q_cI[cnt1]/2;
+                                      free(self->Q_cI[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cI < INF){
+                                    self->Q_cI += self->k_min_Q_cI;
+                                    free(self->Q_cI);
+                                    self->l_min_Q_cI += self->k_min_Q_cI;
+                                    self->l_max_Q_cI += self->k_min_Q_cI;
+                                    free(self->l_min_Q_cI);
+                                    free(self->l_max_Q_cI);
+                                  }
+                                }
+
+                                if(self->Q_cH != NULL){
+                                  for(cnt1 = self->k_min_Q_cH; cnt1 <= self->k_max_Q_cH; cnt1++)
+                                    if(self->l_min_Q_cH[cnt1] < INF){
+                                      self->Q_cH[cnt1] += self->l_min_Q_cH[cnt1]/2;
+                                      free(self->Q_cH[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cH < INF){
+                                    self->Q_cH += self->k_min_Q_cH;
+                                    free(self->Q_cH);
+                                    self->l_min_Q_cH += self->k_min_Q_cH;
+                                    self->l_max_Q_cH += self->k_min_Q_cH;
+                                    free(self->l_min_Q_cH);
+                                    free(self->l_max_Q_cH);
+                                  }
+                                }
+
+                                if(self->Q_cM != NULL){
+                                  for(cnt1 = self->k_min_Q_cM; cnt1 <= self->k_max_Q_cM; cnt1++)
+                                    if(self->l_min_Q_cM[cnt1] < INF){
+                                      self->Q_cM[cnt1] += self->l_min_Q_cM[cnt1]/2;
+                                      free(self->Q_cM[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cM < INF){
+                                    self->Q_cM += self->k_min_Q_cM;
+                                    free(self->Q_cM);
+                                    self->l_min_Q_cM += self->k_min_Q_cM;
+                                    self->l_max_Q_cM += self->k_min_Q_cM;
+                                    free(self->l_min_Q_cM);
+                                    free(self->l_max_Q_cM);
+                                  }
+                                }
+
+                                free(self->Q_rem);
+                                free(self->Q_B_rem);
+                                free(self->Q_M_rem);
+                                free(self->Q_M1_rem);
+                                free(self->Q_M2_rem);
+
                                 break;
+
         default:                /* do nothing */
                                 break;
       }
+
+      free(self->expMLbase);
+      free(self->scale);
+
       free(self);
       vc->exp_matrices = NULL;
     }
@@ -759,12 +1278,6 @@ get_pf_matrices_alloc(unsigned int n,
                               vars->qln = NULL;
                             }
 
-                            /*
-                                always alloc the helper arrays for unpaired nucleotides in multi-
-                                branch loops and scaling
-                            */
-                            vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-                            vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
                             break;
 
     case VRNA_MX_2DFOLD:    if(alloc_vector & ALLOC_F){
@@ -862,6 +1375,13 @@ get_pf_matrices_alloc(unsigned int n,
     default:                /* do nothing */
                             break;
   }
+
+  /*
+      always alloc the helper arrays for unpaired nucleotides in multi-
+      branch loops and scaling
+  */
+  vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+  vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
 
   return vars;
 }
