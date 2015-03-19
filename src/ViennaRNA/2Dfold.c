@@ -14,7 +14,6 @@
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/params.h"
 #ifdef _OPENMP
@@ -274,7 +273,7 @@ PRIVATE void
 mfe_linear(vrna_fold_compound *vc){
 
   unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ;
+  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ, *rtype;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   vrna_param_t  *P;
@@ -291,6 +290,7 @@ mfe_linear(vrna_fold_compound *vc){
   maxD2           = vc->maxD2;
   S1              = vc->sequence_encoding;
   ptype           = vc->ptype;
+  rtype           = &(md->rtype[0]);
   reference_pt1   = vc->reference_pt1;
   reference_pt2   = vc->reference_pt2;
   my_iindx        = vc->iindx;
@@ -1300,12 +1300,6 @@ mfe_linear(vrna_fold_compound *vc){
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void update_TwoDfold_params(TwoDfold_vars *vars){
-  if(vars->P) free(vars->P);
-  vars->P = scale_parameters();
-  make_pair_matrix();
-}
-
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void
@@ -1525,7 +1519,7 @@ backtrack_c(unsigned int i,
             vrna_fold_compound *vc){
 
   unsigned int p, q, pq, ij, maxp, maxD1, maxD2;
-  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4;
+  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype;
   int           **l_min_C, **l_max_C,**l_min_M, **l_max_M,**l_min_M1, **l_max_M1;
   int           *k_min_C, *k_max_C,*k_min_M, *k_max_M,*k_min_M1, *k_max_M1;
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
@@ -1542,6 +1536,7 @@ backtrack_c(unsigned int i,
   sequence        = vc->sequence;
   S1              = vc->sequence_encoding;
   ptype           = vc->ptype;
+  rtype           = &(md->rtype[0]);
   my_iindx        = vc->iindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
@@ -2158,7 +2153,7 @@ backtrack_fc( int k,
               vrna_fold_compound *vc){
 
   unsigned int   d, i, j, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
-  int   *my_iindx, energy, cnt1, cnt2, cnt3, cnt4;
+  int   *my_iindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *sequence, *ptype;
@@ -2181,6 +2176,7 @@ backtrack_fc( int k,
   seq_length        = vc->length;
   S1                = vc->sequence_encoding;
   ptype             = vc->ptype;
+  rtype             = &(md->rtype[0]);
   my_iindx          = vc->iindx;
   referenceBPs1     = vc->referenceBPs1;
   referenceBPs2     = vc->referenceBPs2;
@@ -2722,7 +2718,7 @@ PRIVATE void
 mfe_circ(vrna_fold_compound *vc){
 
   unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, energy, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
   short         *S1;
   char          *sequence, *ptype;
   int           ***E_C, ***E_M, ***E_M1;
@@ -2743,6 +2739,7 @@ mfe_circ(vrna_fold_compound *vc){
   maxD2           = vc->maxD2;
   S1              = vc->sequence_encoding;
   ptype           = vc->ptype;
+  rtype           = &(md->rtype[0]);
   my_iindx        = vc->iindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
@@ -3727,5 +3724,18 @@ TwoDfoldList( TwoDfold_vars *vars,
   crosslink(vars);
 
   return sol;
+}
+
+PUBLIC void
+update_TwoDfold_params(TwoDfold_vars *vars){
+
+  vrna_md_t md;
+
+  vrna_md_set_globals(&md);
+
+  free(vars->compatibility->params);
+  vars->compatibility->params = vrna_params_get(&md);
+
+  crosslink(vars);
 }
 

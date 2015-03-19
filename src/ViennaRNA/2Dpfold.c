@@ -16,7 +16,6 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/loop_energies.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/2Dpfold.h"
 
 /*
@@ -305,7 +304,7 @@ pf2D_linear(vrna_fold_compound *vc){
   unsigned int  *referenceBPs1, *referenceBPs2,
                 d, i, j, ij, seq_length, maxD1,
                 maxD2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4, *rtype;
   double        max_real;
   FLT_OR_DBL    *scale, Qmax;
   vrna_exp_param_t  *pf_params;
@@ -323,6 +322,7 @@ pf2D_linear(vrna_fold_compound *vc){
   maxD2         = vc->maxD2;
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
+  rtype         = &(md->rtype[0]);
   scale         = matrices->scale;
   reference_pt1 = vc->reference_pt1;
   reference_pt2 = vc->reference_pt2;
@@ -1088,7 +1088,7 @@ PRIVATE void
 pf2D_circ(vrna_fold_compound *vc){
 
   unsigned int  d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int         *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4;
+  int         *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4, *rtype;
   short       *S1;
   unsigned int  *referenceBPs1, *referenceBPs2;
   char        *sequence, *ptype;
@@ -1106,6 +1106,7 @@ pf2D_circ(vrna_fold_compound *vc){
   maxD2           = vc->maxD2;
   S1              = vc->sequence_encoding;
   ptype           = vc->ptype;
+  rtype           = &(md->rtype[0]);
   scale           = matrices->scale;
   my_iindx        = vc->iindx;
   jindx           = vc->jindx;
@@ -2288,7 +2289,7 @@ backtrack_qcH(vrna_fold_compound *vc,
                   *referenceBPs1, *referenceBPs2;
   int             u, *my_iindx, ij, cnt1, cnt2,type,
                   **l_min_Q_B, **l_max_Q_B,
-                  *k_min_Q_B, *k_max_Q_B;
+                  *k_min_Q_B, *k_max_Q_B, *rtype;
   FLT_OR_DBL      r, qt, *scale, qot,
                   ***Q_B, **Q_cH, *Q_B_rem,
                   Q_cH_rem;
@@ -2305,6 +2306,7 @@ backtrack_qcH(vrna_fold_compound *vc,
   my_iindx          = vc->iindx;
   scale             = matrices->scale;
   ptype             = vc->ptype;
+  rtype           = &(md->rtype[0]);
   S1                = vc->sequence_encoding;
   referenceBPs1     = vc->referenceBPs1;
   referenceBPs2     = vc->referenceBPs2;
@@ -2432,7 +2434,7 @@ PRIVATE void  backtrack_qcI(vrna_fold_compound *vc,
                   *referenceBPs1, *referenceBPs2;
   int             *my_iindx, cnt1, cnt2, cnt3, cnt4, type,
                   **l_min_Q_B, **l_max_Q_B,
-                  *k_min_Q_B, *k_max_Q_B;
+                  *k_min_Q_B, *k_max_Q_B, *rtype;
   FLT_OR_DBL      r, qt, *scale, qot,
                   ***Q_B, *Q_B_rem,
                   **Q_cI, Q_cI_rem;
@@ -2447,6 +2449,7 @@ PRIVATE void  backtrack_qcI(vrna_fold_compound *vc,
   my_iindx          = vc->iindx;
   scale             = matrices->scale;
   ptype             = vc->ptype;
+  rtype           = &(md->rtype[0]);
   S1                = vc->sequence_encoding;
   referenceBPs1     = vc->referenceBPs1;
   referenceBPs2     = vc->referenceBPs2;
@@ -3034,7 +3037,7 @@ backtrack(vrna_fold_compound *vc,
   unsigned int    *referenceBPs1, *referenceBPs2;
   char            *ptype, *sequence;
   short           *S1, *reference_pt1, *reference_pt2;
-  int             *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4;
+  int             *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4, *rtype;
   vrna_exp_param_t  *pf_params;     /* holds all [unscaled] pf parameters */
   vrna_md_t         *md;
   vrna_mx_pf_t      *matrices;
@@ -3049,6 +3052,7 @@ backtrack(vrna_fold_compound *vc,
   jindx       = vc->jindx;
   scale       = matrices->scale;
   ptype       = vc->ptype;
+  rtype           = &(md->rtype[0]);
   S1              = vc->sequence_encoding;
   reference_pt1   = vc->reference_pt1;
   reference_pt2   = vc->reference_pt2;
