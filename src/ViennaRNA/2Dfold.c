@@ -273,7 +273,7 @@ PRIVATE void
 mfe_linear(vrna_fold_compound *vc){
 
   unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, circ, *rtype;
+  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, *jindx, circ, *rtype;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   vrna_param_t  *P;
@@ -294,6 +294,7 @@ mfe_linear(vrna_fold_compound *vc){
   reference_pt1   = vc->reference_pt1;
   reference_pt2   = vc->reference_pt2;
   my_iindx        = vc->iindx;
+  jindx           = vc->jindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
   mm1             = vc->mm1;
@@ -313,7 +314,7 @@ mfe_linear(vrna_fold_compound *vc){
       i = j-d+1;
       dij = j - i - 1;
       ij = my_iindx[i]-j;
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
 
       no_close = (((type==3)||(type==4))&&no_closingGU);
 
@@ -402,7 +403,7 @@ mfe_linear(vrna_fold_compound *vc){
           for(q = minq; q < j; q++){
             pq = my_iindx[p]-q;
             /* set distance to reference structure... */
-            type_2 = ptype[pq];
+            type_2 = ptype[jindx[q] + p];
 
             if (type_2==0) continue;
             type_2 = rtype[type_2];
@@ -958,7 +959,7 @@ mfe_linear(vrna_fold_compound *vc){
     unsigned int da = referenceBPs1[my_iindx[1]-j] - referenceBPs1[my_iindx[1]-j+1];
     unsigned int db = referenceBPs2[my_iindx[1]-j] - referenceBPs2[my_iindx[1]-j+1];
 
-    type=ptype[my_iindx[1]-j];
+    type=ptype[jindx[j] + 1];
     additional_en = 0;
     if(type){
       if(dangles == 2)
@@ -1063,7 +1064,7 @@ mfe_linear(vrna_fold_compound *vc){
     /* j pairs with some other nucleotide -> see below */
     for (i=j-TURN-1; i>1; i--) {
       ij = my_iindx[i]-j;
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
       if (type) {
         if(dangles == 2)
           additional_en = E_ExtLoop(type, S1[i-1], j < seq_length ? S1[j+1] : -1, P);
@@ -1163,7 +1164,7 @@ mfe_linear(vrna_fold_compound *vc){
       unsigned int da = referenceBPs1[my_iindx[j]-seq_length] - referenceBPs1[my_iindx[j+1]-seq_length];
       unsigned int db = referenceBPs2[my_iindx[j]-seq_length] - referenceBPs2[my_iindx[j+1]-seq_length];
 
-      type=ptype[my_iindx[j]-seq_length];
+      type=ptype[jindx[seq_length] + j];
       additional_en = 0;
       if(type){
         if(dangles == 2)
@@ -1244,7 +1245,7 @@ mfe_linear(vrna_fold_compound *vc){
       for (i=j-TURN-1; i>1; i--) {
         ij = my_iindx[i]-j;
         if(!matrices->E_C[ij]) continue;
-        type = ptype[ij];
+        type = ptype[jindx[j] + i];
         if (type) {
           unsigned int d1a = referenceBPs1[my_iindx[1]-j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1]-i+1];
           unsigned int d1b = referenceBPs2[my_iindx[1]-j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1]-i+1];
@@ -1309,7 +1310,7 @@ backtrack_f5( unsigned int j,
               char *structure,
               vrna_fold_compound *vc){
 
-  int           *my_iindx, energy, type, dangles, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, *jindx, energy, type, dangles, cnt1, cnt2, cnt3, cnt4;
   int           **l_min_C, **l_max_C,**l_min_F5, **l_max_F5;
   int           *k_min_C, *k_max_C,*k_min_F5, *k_max_F5;
   int           ***E_C, ***E_F5;
@@ -1330,6 +1331,7 @@ backtrack_f5( unsigned int j,
   S1              = vc->sequence_encoding;
   ptype           = vc->ptype;
   my_iindx        = vc->iindx;
+  jindx           = vc->jindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
   dangles         = md->dangles;
@@ -1392,7 +1394,7 @@ backtrack_f5( unsigned int j,
     }
   }
 
-  type = ptype[my_iindx[1]-j];
+  type = ptype[jindx[j] + 1];
   if(type){
     if(dangles == 2)
       energy = E_ExtLoop(type, -1, j < seq_length ? S1[j+1] : -1, P);
@@ -1417,7 +1419,7 @@ backtrack_f5( unsigned int j,
 
   for (i=j-TURN-1; i>1; i--) {
     ij = my_iindx[i]-j;
-    type = ptype[ij];
+    type = ptype[jindx[j] + i];
     if (type) {
       unsigned int d1a = referenceBPs1[my_iindx[1]-j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1]-i+1];
       unsigned int d1b = referenceBPs2[my_iindx[1]-j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1]-i+1];
@@ -1519,7 +1521,7 @@ backtrack_c(unsigned int i,
             vrna_fold_compound *vc){
 
   unsigned int p, q, pq, ij, maxp, maxD1, maxD2;
-  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype;
   int           **l_min_C, **l_max_C,**l_min_M, **l_max_M,**l_min_M1, **l_max_M1;
   int           *k_min_C, *k_max_C,*k_min_M, *k_max_M,*k_min_M1, *k_max_M1;
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
@@ -1538,6 +1540,7 @@ backtrack_c(unsigned int i,
   ptype           = vc->ptype;
   rtype           = &(md->rtype[0]);
   my_iindx        = vc->iindx;
+  jindx           = vc->jindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
   dangles         = md->dangles;
@@ -1571,7 +1574,7 @@ backtrack_c(unsigned int i,
 
   int e = (k==-1) ? E_C_rem[ij] : E_C[ij][k][l/2];
 
-  type = ptype[ij];
+  type = ptype[jindx[j] + i];
 
   no_close = (((type==3)||(type==4))&&no_closingGU);
   structure[i-1] = '(';
@@ -1601,7 +1604,7 @@ backtrack_c(unsigned int i,
     if(ln_pre > minq + MAXLOOP) minq = ln_pre - MAXLOOP - 1;
     for (q = minq; q < j; q++) {
       pq = my_iindx[p]-q;
-      type_2 = ptype[pq];
+      type_2 = ptype[jindx[q] + p];
       if (type_2==0) continue;
       type_2 = rtype[type_2];
 
@@ -1784,7 +1787,7 @@ backtrack_m(unsigned int i,
             vrna_fold_compound *vc){
 
   unsigned int u, ij, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
-  int *my_iindx, type, energy, dangles,circ, cnt1, cnt2, cnt3, cnt4;
+  int *my_iindx, *jindx, type, energy, dangles,circ, cnt1, cnt2, cnt3, cnt4;
   int           **l_min_C, **l_max_C,**l_min_M, **l_max_M;
   int           *k_min_C, *k_max_C,*k_min_M, *k_max_M;
   int           ***E_C, ***E_M, *E_C_rem, *E_M_rem;
@@ -1803,6 +1806,7 @@ backtrack_m(unsigned int i,
   circ        = md->circ;
   ptype       = vc->ptype;
   my_iindx    = vc->iindx;
+  jindx       = vc->jindx;
   referenceBPs1  = vc->referenceBPs1;
   referenceBPs2  = vc->referenceBPs2;
   dangles     = md->dangles;
@@ -1879,7 +1883,7 @@ backtrack_m(unsigned int i,
 
     /* new_fML = min(new_fML, C(i,j)+b) */
     if(E_C_rem[ij] != INF){
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
       if(dangles == 2)
         energy = E_MLstem(type, ((i > 1) || circ) ? S1[i-1] : -1, ((j < seq_length) || circ) ? S1[j+1] : -1, P);
       else
@@ -1895,7 +1899,7 @@ backtrack_m(unsigned int i,
       int iu, uj;
       iu = my_iindx[i]-u;
       uj = my_iindx[u+1]-j;
-      type = ptype[uj];
+      type = ptype[jindx[j] + u + 1];
 
       d1 = base_d1 - referenceBPs1[iu] - referenceBPs1[uj];
       d2 = base_d2 - referenceBPs2[iu] - referenceBPs2[uj];
@@ -1994,7 +1998,7 @@ backtrack_m(unsigned int i,
 
     /* new_fML = min(new_fML, C(i,j)+b) */
     if(E_C[ij]){
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
 
       if(dangles == 2)
         energy = E_MLstem(type, ((i > 1) || circ) ? S1[i-1] : -1, ((j < seq_length) || circ) ? S1[j+1] : -1, P);
@@ -2015,7 +2019,7 @@ backtrack_m(unsigned int i,
     for(u = i+1+TURN; u <= j-2-TURN; u++){
       if(!E_M[my_iindx[i]-u]) continue;
       if(!E_C[my_iindx[u+1]-j]) continue;
-      type = ptype[my_iindx[u+1]-j];
+      type = ptype[jindx[j] + u + 1];
 
       d1 = base_d1 - referenceBPs1[my_iindx[i]-u] - referenceBPs1[my_iindx[u+1]-j];
       d2 = base_d2 - referenceBPs2[my_iindx[i]-u] - referenceBPs2[my_iindx[u+1]-j];
@@ -2049,7 +2053,7 @@ backtrack_m1( unsigned int i,
               vrna_fold_compound *vc){
 
   unsigned int  ij, seq_length, d1, d2, *referenceBPs1, *referenceBPs2, maxD1, maxD2;
-  int           *my_iindx, **l_min_C, **l_max_C,**l_min_M1, **l_max_M1;
+  int           *my_iindx, *jindx, **l_min_C, **l_max_C,**l_min_M1, **l_max_M1;
   int           *k_min_C, *k_max_C,*k_min_M1, *k_max_M1, cnt1, cnt2;
   int           ***E_C, ***E_M1, *E_C_rem, *E_M1_rem, type, dangles, circ, energy, e_m1;
 
@@ -2067,6 +2071,7 @@ backtrack_m1( unsigned int i,
   ptype           = vc->ptype;
   circ            = md->circ;
   my_iindx        = vc->iindx;
+  jindx           = vc->jindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
   dangles         = md->dangles;
@@ -2091,7 +2096,7 @@ backtrack_m1( unsigned int i,
   ij    = my_iindx[i]-j;
   e_m1  = (k == -1) ? E_M1_rem[ij] : E_M1[ij][k][l/2];
 
-  type = ptype[ij];
+  type = ptype[jindx[j] + i];
   d1 = referenceBPs1[ij] - referenceBPs1[ij+1];
   d2 = referenceBPs2[ij] - referenceBPs2[ij+1];
 
@@ -2153,7 +2158,7 @@ backtrack_fc( int k,
               vrna_fold_compound *vc){
 
   unsigned int   d, i, j, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
-  int   *my_iindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int   *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
   short *S1;
   unsigned int   *referenceBPs1, *referenceBPs2;
   char  *sequence, *ptype;
@@ -2178,6 +2183,7 @@ backtrack_fc( int k,
   ptype             = vc->ptype;
   rtype             = &(md->rtype[0]);
   my_iindx          = vc->iindx;
+  jindx             = vc->jindx;
   referenceBPs1     = vc->referenceBPs1;
   referenceBPs2     = vc->referenceBPs2;
 
@@ -2250,7 +2256,7 @@ backtrack_fc( int k,
           ij = my_iindx[i]-j;
           u = seq_length-j + i-1;
           if (u<TURN) continue;
-          type = ptype[ij];
+          type = ptype[jindx[j] + i];
           no_close = (((type==3)||(type==4))&&no_closingGU);
           type=rtype[type];
           if (!type) continue;
@@ -2295,7 +2301,7 @@ backtrack_fc( int k,
           ij = my_iindx[i]-j;
           u = seq_length-j + i-1;
           if (u<TURN) continue;
-          type = rtype[(unsigned int)ptype[ij]];
+          type = rtype[(unsigned int)ptype[jindx[j] + i]];
           if (!type) continue;
 
           for(p = j+1; p < seq_length ; p++){
@@ -2308,7 +2314,7 @@ backtrack_fc( int k,
             for(q = qmin; q <= seq_length; q++){
               unsigned int u2;
               pq = my_iindx[p]-q;
-              type_2 = rtype[(unsigned int)ptype[pq]];
+              type_2 = rtype[(unsigned int)ptype[jindx[q] + p]];
               if (type_2==0) continue;
               u2 = i-1 + seq_length-q;
               if (u1+u2>MAXLOOP) continue;
@@ -2473,7 +2479,7 @@ backtrack_fc( int k,
               u = seq_length-j + i-1;
               if (u<TURN) continue;
 
-              type = ptype[ij];
+              type = ptype[jindx[j] + i];
 
               no_close = (((type==3)||(type==4))&&no_closingGU);
 
@@ -2514,7 +2520,7 @@ backtrack_fc( int k,
               u = seq_length-j + i-1;
               if (u<TURN) continue;
 
-              type = ptype[ij];
+              type = ptype[jindx[j] + i];
 
               type=rtype[type];
 
@@ -2531,7 +2537,7 @@ backtrack_fc( int k,
                   unsigned int u2;
                   pq = my_iindx[p]-q;
                   if(!E_C[pq]) continue;
-                  type_2 = rtype[(unsigned int)ptype[pq]];
+                  type_2 = rtype[(unsigned int)ptype[jindx[q] + p]];
                   if (type_2==0) continue;
                   u2 = i-1 + seq_length-q;
                   if (u1+u2>MAXLOOP) continue;
@@ -2718,7 +2724,7 @@ PRIVATE void
 mfe_circ(vrna_fold_compound *vc){
 
   unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
   short         *S1;
   char          *sequence, *ptype;
   int           ***E_C, ***E_M, ***E_M1;
@@ -2741,6 +2747,7 @@ mfe_circ(vrna_fold_compound *vc){
   ptype           = vc->ptype;
   rtype           = &(md->rtype[0]);
   my_iindx        = vc->iindx;
+  jindx           = vc->jindx;
   referenceBPs1   = vc->referenceBPs1;
   referenceBPs2   = vc->referenceBPs2;
   mm1             = vc->mm1;
@@ -3054,7 +3061,7 @@ mfe_circ(vrna_fold_compound *vc){
       u = seq_length-j + i-1;
       if (u<TURN) continue;
 
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
 
       no_close = (((type==3)||(type==4))&&no_closingGU);
 
@@ -3120,7 +3127,7 @@ mfe_circ(vrna_fold_compound *vc){
       u = seq_length-j + i-1;
       if (u<TURN) continue;
 
-      type = ptype[ij];
+      type = ptype[jindx[j] + i];
 
       no_close = (((type==3)||(type==4))&&no_closingGU);
 
@@ -3140,7 +3147,7 @@ mfe_circ(vrna_fold_compound *vc){
           for(q = qmin; q <= seq_length; q++){
             unsigned int u2;
             pq = my_iindx[p]-q;
-            type_2 = rtype[(unsigned int)ptype[pq]];
+            type_2 = rtype[(unsigned int)ptype[jindx[q] + p]];
             if (type_2==0) continue;
             u2 = i-1 + seq_length-q;
             if (u1+u2>MAXLOOP) continue;
@@ -3178,7 +3185,7 @@ mfe_circ(vrna_fold_compound *vc){
           for(q = qmin; q <= seq_length; q++){
             unsigned int u2;
             pq = my_iindx[p]-q;
-            type_2 = rtype[(unsigned int)ptype[pq]];
+            type_2 = rtype[(unsigned int)ptype[jindx[q] + p]];
             if (type_2==0) continue;
             u2 = i-1 + seq_length-q;
             if (u1+u2>MAXLOOP) continue;
