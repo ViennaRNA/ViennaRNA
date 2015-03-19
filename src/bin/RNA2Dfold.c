@@ -255,22 +255,20 @@ int main(int argc, char *argv[]){
     if(pf){
       int maxD1 = (int) mfe_vars->maxD1;
       int maxD2 = (int) mfe_vars->maxD2;
-      float mmfe = INF;
+      double mmfe = INF;
       double Q;
       for(i = 0; mfe_s[i].k != INF; i++){
-        if(mmfe > mfe_s[i].en) mmfe = mfe_s[i].en;
+        if(mmfe > mfe_s[i].en) mmfe = (double)mfe_s[i].en;
       }
-      kT = (temperature+K0)*GASCONST/1000.0; /* in Kcal */
-      pf_scale = exp(-(sfact*mmfe)/kT/length);
+      vrna_rescale_pf_params(mfe_vars, &mmfe);
+
       if (length>2000)
         fprintf(stdout, "scaling factor %f\n", pf_scale);
 
-      /* get all variables need for the folding process (some memory will be preallocated there too) */
-      /* TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars); */
-      /* we dont need the mfe vars and arrays anymore, so we can savely free their occupying memory */
+      /* we dont need the mfe DP arrays anymore, so we can savely free their occupying memory */
       vrna_free_mfe_matrices(mfe_vars);
 
-      TwoDpfold_solution *pf_s = TwoDpfoldList(mfe_vars, maxD1, maxD2);
+      TwoDpfold_solution *pf_s = vrna_TwoDpfold(mfe_vars, maxD1, maxD2);
 
       Q = 0.;
       
@@ -309,21 +307,20 @@ int main(int argc, char *argv[]){
             k = tmp->k;
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
-              char *s = TwoDpfold_pbacktrack(mfe_vars, k, l);
-              printf("%d\t%d\t%6.2f\t%s\n", k, l, md.circ ? energy_of_circ_structure(mfe_vars->sequence, s, 0) : energy_of_structure(mfe_vars->sequence, s, 0), s);
+              char *s = vrna_TwoDpfold_pbacktrack(mfe_vars, k, l);
+              printf("%d\t%d\t%6.2f\t%s\n", k, l, vrna_eval_structure(mfe_vars, s), s);
             }
           }
         }
         else{
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
-              char *s = TwoDpfold_pbacktrack(mfe_vars, pf_s[i].k, pf_s[i].l);
-              printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, md.circ ? energy_of_circ_structure(mfe_vars->sequence, s, 0) : energy_of_structure(mfe_vars->sequence, s, 0), s);
+              char *s = vrna_TwoDpfold_pbacktrack(mfe_vars, pf_s[i].k, pf_s[i].l);
+              printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, vrna_eval_structure(mfe_vars, s), s);
             }
           }
         }
       }
-      free_pf_arrays();
 
       for(i=0; mfe_s[i].k != INF;i++){
         if(mfe_s[i].s) free(mfe_s[i].s);
@@ -334,7 +331,6 @@ int main(int argc, char *argv[]){
 
     vrna_free_fold_compound(mfe_vars);
 
-    free_arrays();
     free(string);
     free(orig_sequence);
     free(mfe_structure);
