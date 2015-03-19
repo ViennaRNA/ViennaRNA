@@ -1175,7 +1175,6 @@ get_mfe_matrices_alloc( unsigned int n,
                             }
 
                             if(alloc_vector & ALLOC_C){
-                              printf("alloc C\n");
                               vars->E_C     = (int ***) vrna_alloc(sizeof(int **) * size);
                               vars->l_min_C = (int **)  vrna_alloc(sizeof(int *)  * size);
                               vars->l_max_C = (int **)  vrna_alloc(sizeof(int *)  * size);
