@@ -180,42 +180,6 @@ typedef struct TwoDfold_vars{
 
 
 
-
-/**
- *  @brief Get a structure of type TwoDfold_vars prefilled with current global settings
- * 
- *  This function returns a datastructure of type TwoDfold_vars.
- *  The data fields inside the TwoDfold_vars are prefilled by global settings and all memory
- *  allocations necessary to start a computation are already done for the convenience of the user
- * 
- *  @note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
- * 
- *  @see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
- * 
- *  @param seq          The RNA sequence
- *  @param structure1   The first reference structure in dot-bracket notation
- *  @param structure2   The second reference structure in dot-bracket notation
- *  @param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
- *  @returns            A datastructure prefilled with folding options and allocated memory
- */
-TwoDfold_vars *
-vrna_TwoDfold_get_vars( const char *seq,
-                        const char *structure1,
-                        const char *structure2,
-                        int circ);
-
-/**
- *  @brief Destroy a TwoDfold_vars datastructure without memory loss
- * 
- *  This function free's all allocated memory that depends on the datastructure given.
- * 
- *  @see vrna_TwoDfold_get_vars()
- * 
- *  @param our_variables  A pointer to the datastructure to be destroyed
- */
-void
-vrna_TwoDfold_destroy_vars(TwoDfold_vars *our_variables);
-
 /**
  * @brief Compute MFE's and representative for distance partitioning
  *

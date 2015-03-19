@@ -16,7 +16,6 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/loop_energies.h"
-#include "ViennaRNA/mm.h"
 #include "ViennaRNA/params.h"
 #ifdef _OPENMP
 #include <omp.h>

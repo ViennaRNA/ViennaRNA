@@ -18,7 +18,6 @@
  */
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/2Dfold.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -150,28 +149,8 @@ typedef struct{
   FLT_OR_DBL      Q_cI_rem;
   FLT_OR_DBL      Q_cM_rem;
 
+  vrna_fold_compound *compatibility;
 } TwoDpfold_vars;
-
-/**
- * \brief Get a datastructure containing all necessary attributes and global folding switches
- *
- * This function prepares all necessary attributes and matrices etc which are needed for a call
- * of vrna_TwoDpfold() .
- * A snapshot of all current global model switches (dangles, temperature and so on) is done and
- * stored in the returned datastructure. Additionally, all matrices that will hold the partition
- * function values are prepared.
- *
- * \param seq         the RNA sequence in uppercase format with letters from the alphabet {AUCG}
- * \param structure1  the first reference structure in dot-bracket notation
- * \param structure2  the second reference structure in dot-bracket notation
- * \param circ        a switch indicating if the sequence is linear (0) or circular (1)
- * \returns           the datastructure containing all necessary partition function attributes
- */
-TwoDpfold_vars  *
-vrna_TwoDpfold_get_vars(const char *seq,
-                        const char *structure1,
-                        char *structure2,
-                        int circ);
 
 /**
  * \brief Get a datastructure containing all necessary attributes and global folding switches
@@ -195,52 +174,6 @@ get_TwoDpfold_variables(const char *seq,
                         const char *structure1,
                         char *structure2,
                         int circ));
-
-/**
- * \brief Get the datastructure containing all necessary attributes and global folding switches from 
- * a pre-filled mfe-datastructure
- *
- * This function actually does the same as vrna_TwoDpfold_get_vars() but takes its switches and
- * settings from a pre-filled MFE equivalent datastructure
- *
- * \see vrna_TwoDfold_get_vars(), vrna_TwoDpfold_get_vars()
- *
- * \param mfe_vars    the pre-filled mfe datastructure
- * \returns           the datastructure containing all necessary partition function attributes
- */
-TwoDpfold_vars  *
-vrna_TwoDpfold_get_vars_from_MFE(TwoDfold_vars *mfe_vars);
-
-/**
- * \brief Get the datastructure containing all necessary attributes and global folding switches from 
- * a pre-filled mfe-datastructure
- *
- * This function actually does the same as vrna_TwoDpfold_get_vars() but takes its switches and
- * settings from a pre-filled MFE equivalent datastructure
- *
- * \deprecated        use vrna_TwoDpfold_get_vars_from_MFE() instead
- *
- * \see vrna_TwoDfold_get_vars(), vrna_TwoDpfold_get_vars()
- *
- * \param mfe_vars    the pre-filled mfe datastructure
- * \returns           the datastructure containing all necessary partition function attributes
- */
-DEPRECATED(TwoDpfold_vars  *
-get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars));
-
-
-/**
- * \brief Free all memory occupied by a TwoDpfold_vars datastructure
- *
- * This function free's all memory occupied by a datastructure obtained from from
- * vrna_TwoDpfold_get_vars() or vrna_TwoDpfold_get_vars_from_MFE()
- *
- * \see vrna_TwoDpfold_get_vars(), vrna_TwoDpfold_get_vars_from_MFE()
- *
- * \param vars   the datastructure to be free'd
- */
-void
-vrna_TwoDpfold_destroy_vars(TwoDpfold_vars *vars);
 
 /**
  * \brief Free all memory occupied by a TwoDpfold_vars datastructure
@@ -279,7 +212,7 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
  * \returns             a list of partition funtions for the appropriate distance classes
  */
 TwoDpfold_solution  *
-vrna_TwoDpfold( TwoDpfold_vars *vars,
+vrna_TwoDpfold( vrna_fold_compound *vc,
                 int maxDistance1,
                 int maxDistance2);
 
@@ -337,7 +270,7 @@ TwoDpfoldList(TwoDpfold_vars *vars,
  *  \returns    A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
+vrna_TwoDpfold_pbacktrack(vrna_fold_compound *vc,
                           int d1,
                           int d2);
 
@@ -385,7 +318,7 @@ TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
  *  \returns    A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_TwoDpfold_pbacktrack5( TwoDpfold_vars *vars,
+vrna_TwoDpfold_pbacktrack5( vrna_fold_compound *vc,
                             int d1,
                             int d2,
                             unsigned int length);
