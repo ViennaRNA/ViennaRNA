@@ -8,24 +8,24 @@
 #define VIENNA_RNA_PACKAGE_TWO_D_FOLD_H
 
 /**
- *  \addtogroup kl_neighborhood
- *  \brief Compute Thermodynamic properties for a Distance Class Partitioning of the Secondary Structure Space
+ *  @addtogroup kl_neighborhood
+ *  @brief Compute Thermodynamic properties for a Distance Class Partitioning of the Secondary Structure Space
  *
  *  All functions related to this group implement the basic recursions for MFE folding, partition function
- *  computation and stochastic backtracking with a \e classified \e dynamic \e programming approach.
+ *  computation and stochastic backtracking with a @e classified @e dynamic @e programming approach.
  *  The secondary structure space is divided into partitions according to the base pair distance to two
  *  given reference structures and all relevant properties are calculated for each of the resulting partitions
- *  \see  For further details have a look into \cite lorenz:2009
+ *  @see  For further details have a look into @cite lorenz:2009
  */
 
 /**
- *  \addtogroup kl_neighborhood_mfe
- *  \brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
+ *  @addtogroup kl_neighborhood_mfe
+ *  @brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *  basepair distance to two fixed reference structures
  *  @{
  *
- *  \file 2Dfold.h
+ *  @file 2Dfold.h
  *
  */
 
@@ -39,7 +39,7 @@
 #endif
 
 /**
- *  \brief Solution element returned from TwoDfoldList
+ *  @brief Solution element returned from TwoDfoldList
  *
  *  This element contains free energy and structure for the appropriate
  *  kappa (k), lambda (l) neighborhood
@@ -50,40 +50,42 @@
  *
  *  A value of #INF in k denotes the end of a list
  *
- *  \see  vrna_TwoDfold()
+ *  @see  vrna_TwoDfold()
  */
 typedef struct TwoDfold_solution{
-  int k;          /**<  \brief  Distance to first reference */
-  int l;          /**<  \brief  Distance to second reference */
-  float en;       /**<  \brief  Free energy in kcal/mol */
-  char *s;        /**<  \brief  MFE representative structure in dot-bracket notation */
+  int k;          /**<  @brief  Distance to first reference */
+  int l;          /**<  @brief  Distance to second reference */
+  float en;       /**<  @brief  Free energy in kcal/mol */
+  char *s;        /**<  @brief  MFE representative structure in dot-bracket notation */
 } TwoDfold_solution;
 
 /**
- *  \brief Variables compound for 2Dfold MFE folding
+ *  @brief Variables compound for 2Dfold MFE folding
  *
- *  \see vrna_TwoDfold_get_vars(), vrna_TwoDfold(), vrna_TwoDfold_destroy_vars
+ *  @deprecated This data structure will be removed from the library soon!
+ *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_copound_2D(),
+ *              vrna_TwoDfold(), and vrna_free_fold_compound() instead!
  */
 typedef struct TwoDfold_vars{
-  struct vrna_param_t   *P;             /**<  \brief  Precomputed energy parameters and model details */
-  int             do_backtrack;   /**<  \brief  Flag whether to do backtracing of the structure(s) or not */
-  char            *ptype;         /**<  \brief  Precomputed array of pair types */
-  char            *sequence;      /**<  \brief  The input sequence  */
-  short           *S, *S1;        /**<  \brief  The input sequences in numeric form */
-  unsigned int    maxD1;          /**<  \brief  Maximum allowed base pair distance to first reference */
-  unsigned int    maxD2;          /**<  \brief  Maximum allowed base pair distance to second reference */
+  struct vrna_param_t   *P;             /**<  @brief  Precomputed energy parameters and model details */
+  int             do_backtrack;   /**<  @brief  Flag whether to do backtracing of the structure(s) or not */
+  char            *ptype;         /**<  @brief  Precomputed array of pair types */
+  char            *sequence;      /**<  @brief  The input sequence  */
+  short           *S, *S1;        /**<  @brief  The input sequences in numeric form */
+  unsigned int    maxD1;          /**<  @brief  Maximum allowed base pair distance to first reference */
+  unsigned int    maxD2;          /**<  @brief  Maximum allowed base pair distance to second reference */
 
 
-  unsigned int    *mm1;           /**<  \brief  Maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;           /**<  \brief  Maximum matching matrix, reference struct 2 disallowed */
+  unsigned int    *mm1;           /**<  @brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int    *mm2;           /**<  @brief  Maximum matching matrix, reference struct 2 disallowed */
 
-  int             *my_iindx;      /**<  \brief  Index for moving in quadratic distancy dimensions */
+  int             *my_iindx;      /**<  @brief  Index for moving in quadratic distancy dimensions */
 
   double          temperature;
 
-  unsigned int    *referenceBPs1; /**<  \brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /**<  \brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /**<  \brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+  unsigned int    *referenceBPs1; /**<  @brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int    *referenceBPs2; /**<  @brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int    *bpdist;        /**<  @brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
 
   short           *reference_pt1;
   short           *reference_pt2;
@@ -172,27 +174,29 @@ typedef struct TwoDfold_vars{
   unsigned long             ***N_M;
   unsigned long             ***N_M1;
 #endif
+
+  vrna_fold_compound *compatibility;
 } TwoDfold_vars;
 
 
 
 
 /**
- *  \brief Get a structure of type TwoDfold_vars prefilled with current global settings
+ *  @brief Get a structure of type TwoDfold_vars prefilled with current global settings
  * 
  *  This function returns a datastructure of type TwoDfold_vars.
  *  The data fields inside the TwoDfold_vars are prefilled by global settings and all memory
  *  allocations necessary to start a computation are already done for the convenience of the user
  * 
- *  \note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
+ *  @note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
  * 
- *  \see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
+ *  @see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
  * 
- *  \param seq          The RNA sequence
- *  \param structure1   The first reference structure in dot-bracket notation
- *  \param structure2   The second reference structure in dot-bracket notation
- *  \param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
- *  \returns            A datastructure prefilled with folding options and allocated memory
+ *  @param seq          The RNA sequence
+ *  @param structure1   The first reference structure in dot-bracket notation
+ *  @param structure2   The second reference structure in dot-bracket notation
+ *  @param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
+ *  @returns            A datastructure prefilled with folding options and allocated memory
  */
 TwoDfold_vars *
 vrna_TwoDfold_get_vars( const char *seq,
@@ -201,19 +205,19 @@ vrna_TwoDfold_get_vars( const char *seq,
                         int circ);
 
 /**
- *  \brief Destroy a TwoDfold_vars datastructure without memory loss
+ *  @brief Destroy a TwoDfold_vars datastructure without memory loss
  * 
  *  This function free's all allocated memory that depends on the datastructure given.
  * 
- *  \see vrna_TwoDfold_get_vars()
+ *  @see vrna_TwoDfold_get_vars()
  * 
- *  \param our_variables  A pointer to the datastructure to be destroyed
+ *  @param our_variables  A pointer to the datastructure to be destroyed
  */
 void
 vrna_TwoDfold_destroy_vars(TwoDfold_vars *our_variables);
 
 /**
- * \brief Compute MFE's and representative for distance partitioning
+ * @brief Compute MFE's and representative for distance partitioning
  *
  * This function computes the minimum free energies and a representative
  * secondary structure for each distance class according to the two references
@@ -230,59 +234,59 @@ vrna_TwoDfold_destroy_vars(TwoDfold_vars *our_variables);
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- * \see vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars(), #TwoDfold_solution
+ * @see vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars(), #TwoDfold_solution
  *
- * \param vars      the datastructure containing all predefined folding attributes
- * \param distance1 maximum distance to reference1 (-1 means no restriction)
- * \param distance2 maximum distance to reference2 (-1 means no restriction)
+ * @param vars      the datastructure containing all precomputed folding attributes
+ * @param distance1 maximum distance to reference1 (-1 means no restriction)
+ * @param distance2 maximum distance to reference2 (-1 means no restriction)
  */
 TwoDfold_solution *
-vrna_TwoDfold(TwoDfold_vars *vars,
+vrna_TwoDfold(vrna_fold_compound *vars,
               int distance1,
               int distance2);
 
 /**
- * \brief Backtrack a minimum free energy structure from a 5' section of specified length
+ * @brief Backtrack a minimum free energy structure from a 5' section of specified length
  *
  * This function allows to backtrack a secondary structure beginning at the 5' end, a specified
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
  * specified in vrna_TwoDfold() belong to.
- * \note The argument 'vars' must contain precalculated energy values in the energy matrices,
+ * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
  * i.e. a call to vrna_TwoDfold() preceding this function is mandatory!
  *
- * \see vrna_TwoDfold(), vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars()
+ * @see vrna_TwoDfold(), vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars()
  *
- * \param j     The length in nucleotides beginning from the 5' end
- * \param k     distance to reference1 (may be -1)
- * \param l     distance to reference2
- * \param vars  the datastructure containing all predefined folding attributes
+ * @param vc    The datastructure containing all precomputed folding attributes
+ * @param j     The length in nucleotides beginning from the 5' end
+ * @param k     distance to reference1 (may be -1)
+ * @param l     distance to reference2
  */
 char *
-vrna_TwoDfold_backtrack_f5( unsigned int j,
+vrna_TwoDfold_backtrack_f5( vrna_fold_compound *vc,
+                            unsigned int j,
                             int k,
-                            int l,
-                            TwoDfold_vars *vars);
+                            int l);
 
 /**
- *  \brief Get a structure of type TwoDfold_vars prefilled with current global settings
+ *  @brief Get a structure of type TwoDfold_vars prefilled with current global settings
  * 
  *  This function returns a datastructure of type TwoDfold_vars.
  *  The data fields inside the TwoDfold_vars are prefilled by global settings and all memory
  *  allocations necessary to start a computation are already done for the convenience of the user
  * 
- *  \note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
+ *  @note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
  * 
- *  \deprecated use vrna_TwoDfold_get_vars() instead
+ *  @deprecated use vrna_TwoDfold_get_vars() instead
  *
- *  \see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
+ *  @see vrna_TwoDfold_destroy_vars(), TwoDfold(), TwoDfold_circ
  * 
- *  \param seq          The RNA sequence
- *  \param structure1   The first reference structure in dot-bracket notation
- *  \param structure2   The second reference structure in dot-bracket notation
- *  \param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
- *  \returns            A datastructure prefilled with folding options and allocated memory
+ *  @param seq          The RNA sequence
+ *  @param structure1   The first reference structure in dot-bracket notation
+ *  @param structure2   The second reference structure in dot-bracket notation
+ *  @param circ         A switch to indicate the assumption to fold a circular instead of linear RNA (0=OFF, 1=ON)
+ *  @returns            A datastructure prefilled with folding options and allocated memory
  */
 DEPRECATED(TwoDfold_vars *
 get_TwoDfold_variables( const char *seq,
@@ -291,21 +295,21 @@ get_TwoDfold_variables( const char *seq,
                         int circ));
 
 /**
- *  \brief Destroy a TwoDfold_vars datastructure without memory loss
+ *  @brief Destroy a TwoDfold_vars datastructure without memory loss
  * 
  *  This function free's all allocated memory that depends on the datastructure given.
  * 
- *  \deprecated use vrna_TwoDfold_destroy_vars() instead
+ *  @deprecated use vrna_TwoDfold_destroy_vars() instead
  *
- *  \see vrna_TwoDfold_get_vars()
+ *  @see vrna_TwoDfold_get_vars()
  * 
- *  \param our_variables  A pointer to the datastructure to be destroyed
+ *  @param our_variables  A pointer to the datastructure to be destroyed
  */
 DEPRECATED(void 
 destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
 
 /**
- * \brief Compute MFE's and representative for distance partitioning
+ * @brief Compute MFE's and representative for distance partitioning
  *
  * This function computes the minimum free energies and a representative
  * secondary structure for each distance class according to the two references
@@ -322,13 +326,13 @@ destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- * \deprecated use vrna_TwoDfold() instead
+ * @deprecated use vrna_TwoDfold() instead
  *
- * \see vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars(), #TwoDfold_solution
+ * @see vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars(), #TwoDfold_solution
  *
- * \param vars      the datastructure containing all predefined folding attributes
- * \param distance1 maximum distance to reference1 (-1 means no restriction)
- * \param distance2 maximum distance to reference2 (-1 means no restriction)
+ * @param vars      the datastructure containing all predefined folding attributes
+ * @param distance1 maximum distance to reference1 (-1 means no restriction)
+ * @param distance2 maximum distance to reference2 (-1 means no restriction)
  */
 DEPRECATED(TwoDfold_solution *
 TwoDfoldList( TwoDfold_vars *vars,
@@ -336,24 +340,24 @@ TwoDfoldList( TwoDfold_vars *vars,
               int distance2));
 
 /**
- * \brief Backtrack a minimum free energy structure from a 5' section of specified length
+ * @brief Backtrack a minimum free energy structure from a 5' section of specified length
  *
  * This function allows to backtrack a secondary structure beginning at the 5' end, a specified
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
  * specified in vrna_TwoDfold() belong to.
- * \note The argument 'vars' must contain precalculated energy values in the energy matrices,
+ * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
  * i.e. a call to vrna_TwoDfold() preceding this function is mandatory!
  *
- * \deprecated use vrna_TwoDfold_backtrack_f5() instead
+ * @deprecated use vrna_TwoDfold_backtrack_f5() instead
  *
- * \see vrna_TwoDfold(), vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars()
+ * @see vrna_TwoDfold(), vrna_TwoDfold_get_vars(), vrna_TwoDfold_destroy_vars()
  *
- * \param j     The length in nucleotides beginning from the 5' end
- * \param k     distance to reference1 (may be -1)
- * \param l     distance to reference2
- * \param vars  the datastructure containing all predefined folding attributes
+ * @param j     The length in nucleotides beginning from the 5' end
+ * @param k     distance to reference1 (may be -1)
+ * @param l     distance to reference2
+ * @param vars  the datastructure containing all predefined folding attributes
  */
 DEPRECATED(char *TwoDfold_backtrack_f5(unsigned int j,
                             int k,

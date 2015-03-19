@@ -89,8 +89,6 @@ PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
 PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
-PRIVATE void            init_dist_class_feature(vrna_fold_compound *vc, const char *s1, const char *s2);
-
 
 /*
 #################################
@@ -726,6 +724,15 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
                                     break;
     }
 
+    /* free Distance Class Partitioning stuff (should be NULL if not used */
+    free(vc->reference_pt1);
+    free(vc->reference_pt2);
+    free(vc->referenceBPs1);
+    free(vc->referenceBPs2);
+    free(vc->bpdist);
+    free(vc->mm1);
+    free(vc->mm2);
+    
     free(vc);
   }
 }
@@ -787,6 +794,55 @@ vrna_get_fold_compound_ali( const char **sequences,
     vc->sequences[s] = strdup(sequences[s]);
 
   set_fold_compound(vc, md_p, options);
+
+  return vc;
+}
+
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound_2D(const char *sequence,
+                          const char *s1,
+                          const char *s2,
+                          vrna_md_t *md_p,
+                          unsigned int options){
+
+  int length, l, turn;
+  vrna_fold_compound *vc;
+
+
+  if(sequence == NULL) return NULL;
+
+  /* sanity check */
+  length = strlen(sequence);
+  if(length == 0)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence length must be greater 0");
+
+  l = strlen(s1);
+  if(l != length)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence and s1 differ in length");
+
+  l = strlen(s2);
+  if(l != length)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence and s2 differ in length");
+
+  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
+  set_fold_compound(vc, md_p, options | VRNA_OPTION_DIST_CLASS);
+
+  turn  = vc->params->model_details.min_loop_size;
+  vc->reference_pt1 = vrna_pt_get(s1);
+  vc->reference_pt2 = vrna_pt_get(s2);
+  vc->referenceBPs1 = vrna_refBPcnt_matrix(vc->reference_pt1, turn);
+  vc->referenceBPs2 = vrna_refBPcnt_matrix(vc->reference_pt2, turn);
+  vc->bpdist        = vrna_refBPdist_matrix(vc->reference_pt1, vc->reference_pt2, turn);
+  /* compute maximum matching with reference structure 1 disallowed */
+  vc->mm1           = maximumMatchingConstraint(vc->sequence, vc->reference_pt1);
+  /* compute maximum matching with reference structure 2 disallowed */
+  vc->mm2           = maximumMatchingConstraint(vc->sequence, vc->reference_pt2);
+
+  vc->maxD1         = vc->mm1[vc->iindx[1]-length] + vc->referenceBPs1[vc->iindx[1]-length];
+  vc->maxD2         = vc->mm2[vc->iindx[1]-length] + vc->referenceBPs2[vc->iindx[1]-length];
 
   return vc;
 }
@@ -958,29 +1014,6 @@ set_fold_compound(vrna_fold_compound *vc,
   if(!(options & VRNA_OPTION_EVAL_ONLY))
     vrna_hc_init(vc); /* add default hard constraints */
 
-}
-
-
-PRIVATE void
-init_dist_class_feature(vrna_fold_compound *vc,
-                        const char *s1,
-                        const char *s2){
-
-  int n     = vc->length;
-  int turn  = vc->params->model_details.min_loop_size;
-
-  vc->reference_pt1 = vrna_pt_get(s1);
-  vc->reference_pt2 = vrna_pt_get(s2);
-  vc->referenceBPs1 = vrna_refBPcnt_matrix(vc->reference_pt1, turn);
-  vc->referenceBPs2 = vrna_refBPcnt_matrix(vc->reference_pt2, turn);
-  vc->bpdist        = vrna_refBPdist_matrix(vc->reference_pt1, vc->reference_pt2, turn);
-  /* compute maximum matching with reference structure 1 disallowed */
-  vc->mm1           = maximumMatchingConstraint(vc->sequence, vc->reference_pt1);
-  /* compute maximum matching with reference structure 2 disallowed */
-  vc->mm2           = maximumMatchingConstraint(vc->sequence, vc->reference_pt2);
-
-  vc->maxD1         = vc->mm1[vc->jindx[1]-n] + vc->referenceBPs1[vc->jindx[1]-n];
-  vc->maxD2         = vc->mm2[vc->iindx[1]-n] + vc->referenceBPs2[vc->iindx[1]-n];
 }
 
 PRIVATE void

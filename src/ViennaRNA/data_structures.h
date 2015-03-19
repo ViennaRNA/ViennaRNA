@@ -933,6 +933,13 @@ vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
                                                 vrna_md_t *md_p,
                                                 unsigned int options);
 
+
+vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
+                                              const char *s1,
+                                              const char *s2,
+                                              vrna_md_t *md_p,
+                                              unsigned int options);
+
 /**
  *  @brief  Free memory occupied by a #vrna_fold_compound
  *
