@@ -95,7 +95,7 @@ find_saddle(const char *seq,
 
   if(backward_compat_compound){
     if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
-      if(!memcpy(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
+      if(!memcmp(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
         vc = backward_compat_compound; /* re-use previous vrna_fold_compound */
       }
     }
@@ -174,7 +174,7 @@ get_path( const char *seq,
 
   if(backward_compat_compound){
     if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
-      if(!memcpy(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
+      if(!memcmp(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
         vc = backward_compat_compound; /* re-use previous vrna_fold_compound */
       }
     }
