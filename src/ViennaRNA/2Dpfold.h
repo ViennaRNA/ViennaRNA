@@ -7,6 +7,15 @@
 #ifndef VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 #define VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
 /**
  *  @addtogroup kl_neighborhood_pf
  *  @brief Compute the partition function and stochastically sample secondary structures for a partitioning of
@@ -19,14 +28,8 @@
 
 #include <ViennaRNA/data_structures.h>
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#else
-#define DEPRECATED(func) func
-#endif
-
 /**
- *  @brief Solution element returned from TwoDpfoldList
+ *  @brief Solution element returned from vrna_TwoD_pf_fold()
  *
  *  This element contains the partition function for the appropriate
  *  kappa (k), lambda (l) neighborhood
@@ -35,20 +38,111 @@
  *
  *  A value of #INF in k denotes the end of a list
  *
- *  @see  TwoDpfoldList()
+ *  @see  vrna_TwoD_pf_fold()
  */
-typedef struct TwoDpfold_solution{
+typedef struct vrna_sol_TwoD_pf_t{
   int k;          /**<  @brief  Distance to first reference */
   int l;          /**<  @brief  Distance to second reference */
   FLT_OR_DBL  q;  /**<  @brief  partition function */
-} TwoDpfold_solution;
+} vrna_sol_TwoD_pf_t;
+
+/**
+ * @brief Compute the partition function for all distance classes
+ *
+ * This function computes the partition functions for all distance classes
+ * according the two reference structures specified in the datastructure 'vars'.
+ * Similar to vrna_TwoD_fold() the arguments maxDistance1 and maxDistance2 specify
+ * the maximum distance to both reference structures. A value of '-1' in either of
+ * them makes the appropriate distance restrictionless, i.e. all basepair distancies
+ * to the reference are taken into account during computation.
+ * In case there is a restriction, the returned solution contains an entry where
+ * the attribute k=l=-1 contains the partition function for all structures exceeding
+ * the restriction.
+ * A value of #INF in the attribute 'k' of the returned list denotes the end of the list
+ *
+ * @see vrna_get_fold_compound_2D(), vrna_free_fold_compound(), #vrna_fold_compound
+ *      #vrna_sol_TwoD_pf_t
+ *
+ * @param vc            The datastructure containing all necessary folding attributes and matrices
+ * @param maxDistance1  The maximum basepair distance to reference1 (may be -1)
+ * @param maxDistance2  The maximum basepair distance to reference2 (may be -1)
+ * @returns             A list of partition funtions for the corresponding distance classes
+ */
+vrna_sol_TwoD_pf_t  *
+vrna_TwoD_pf_fold(vrna_fold_compound *vc,
+                  int maxDistance1,
+                  int maxDistance2);
+
+/** @} */ /* End of group kl_neighborhood_pf */
+
+/**
+ *  @addtogroup kl_neighborhood_stochbt
+ *  @brief Contains functions related to stochastic backtracking from a specified distance class
+ *  @{
+ */
+
+/**
+ *  @brief Sample secondary structure representatives from a set of distance classes according to their 
+ *  Boltzmann probability
+ *
+ *  If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
+ *  where all structures exceeding the maximum basepair distance to either of the references reside.
+ *
+ *  @pre      The argument 'vars' must contain precalculated partition function matrices,
+ *            i.e. a call to vrna_TwoD_pf_fold() preceding this function is mandatory!
+ *
+ *  @see      vrna_TwoD_pf_fold()
+ *
+ *  @param[in]  vars  the datastructure containing all necessary folding attributes and matrices
+ *  @param[in]  d1    the distance to reference1 (may be -1)
+ *  @param[in]  d2    the distance to reference2
+ *  @returns    A sampled secondary structure in dot-bracket notation
+ */
+char *
+vrna_TwoD_pbacktrack( vrna_fold_compound *vc,
+                      int d1,
+                      int d2);
+
+/**
+ * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their 
+ *  Boltzmann probability
+ *
+ * This function does essentially the same as vrna_TwoD_pf_fold_pbacktrack() with the only difference that partial structures,
+ * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
+ *
+ * @note      This function does not work (since it makes no sense) for circular RNA sequences!
+ * @pre       The argument 'vars' must contain precalculated partition function matrices,
+ *            i.e. a call to vrna_TwoD_pf_fold() preceding this function is mandatory!
+ *
+ * @see       vrna_TwoD_pbacktrack(), vrna_TwoD_pf_fold()
+ *
+ *  @param[in]  vars    the datastructure containing all necessary folding attributes and matrices
+ *  @param[in]  d1      the distance to reference1 (may be -1)
+ *  @param[in]  d2      the distance to reference2
+ *  @param[in]  length  the length of the structure beginning from the 5' end
+ *  @returns    A sampled secondary structure in dot-bracket notation
+ */
+char *
+vrna_TwoD_pbacktrack5(vrna_fold_compound *vc,
+                      int d1,
+                      int d2,
+                      unsigned int length);
+
+/**
+ *  @}
+ */ /* End of group kl_neighborhood_stochbt */
+
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
+#define TwoDpfold_solution       vrna_sol_TwoD_pf_t         /* restore compatibility of struct rename */
 
 /**
  *  @brief  Variables compound for 2Dfold partition function folding
  *
  *  @deprecated This data structure will be removed from the library soon!
  *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_copound_2D(),
- *              vrna_TwoDpfold(), and vrna_free_fold_compound() instead!
+ *              vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  */
 typedef struct{
 
@@ -157,12 +251,13 @@ typedef struct{
  * @brief Get a datastructure containing all necessary attributes and global folding switches
  *
  * This function prepares all necessary attributes and matrices etc which are needed for a call
- * of vrna_TwoDpfold() .
+ * of TwoDpfold() .
  * A snapshot of all current global model switches (dangles, temperature and so on) is done and
  * stored in the returned datastructure. Additionally, all matrices that will hold the partition
  * function values are prepared.
  *
- * @deprecated        use vrna_TwoDpfold_get_vars() instead
+ *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
+ *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @param seq         the RNA sequence in uppercase format with letters from the alphabet {AUCG}
  * @param structure1  the first reference structure in dot-bracket notation
@@ -182,7 +277,8 @@ get_TwoDpfold_variables(const char *seq,
  * This function free's all memory occupied by a datastructure obtained from from
  * vrna_TwoDpfold_get_vars() or vrna_TwoDpfold_get_vars_from_MFE()
  *
- * @deprecated see vrna_TwoDpfold_destroy_vars() as a substitute
+ *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
+ *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @see vrna_TwoDpfold_get_vars(), vrna_TwoDpfold_get_vars_from_MFE()
  *
@@ -205,33 +301,8 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
  * the restriction.
  * A values of #INF in the attribute 'k' of the returned list denotes the end of the list
  *
- * @see vrna_TwoDpfold_get_vars(), destroy_TwoDpfold_variables(), #TwoDpfold_solution
- *
- * @param vars          the datastructure containing all necessary folding attributes and matrices
- * @param maxDistance1  the maximum basepair distance to reference1 (may be -1)
- * @param maxDistance2  the maximum basepair distance to reference2 (may be -1)
- * @returns             a list of partition funtions for the appropriate distance classes
- */
-TwoDpfold_solution  *
-vrna_TwoDpfold( vrna_fold_compound *vc,
-                int maxDistance1,
-                int maxDistance2);
-
-/**
- * @brief Compute the partition function for all distance classes
- *
- * This function computes the partition functions for all distance classes
- * according the two reference structures specified in the datastructure 'vars'.
- * Similar to vrna_TwoDfold() the arguments maxDistance1 and maxDistance2 specify
- * the maximum distance to both reference structures. A value of '-1' in either of
- * them makes the appropriate distance restrictionless, i.e. all basepair distancies
- * to the reference are taken into account during computation.
- * In case there is a restriction, the returned solution contains an entry where
- * the attribute k=l=-1 contains the partition function for all structures exceeding
- * the restriction.
- * A values of #INF in the attribute 'k' of the returned list denotes the end of the list
- *
- * @deprecated use vrna_TwoDpfold() instead
+ *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
+ *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @see vrna_TwoDpfold_get_vars(), destroy_TwoDpfold_variables(), #TwoDpfold_solution
  *
@@ -245,14 +316,6 @@ TwoDpfoldList(TwoDpfold_vars *vars,
               int maxDistance1,
               int maxDistance2));
 
-/** @} */ /* End of group kl_neighborhood_pf */
-
-/**
- *  @addtogroup kl_neighborhood_stochbt
- *  @brief Contains functions related to stochastic backtracking from a specified distance class
- *  @{
- */
-
 /**
  *  @brief Sample secondary structure representatives from a set of distance classes according to their 
  *  Boltzmann probability
@@ -263,29 +326,9 @@ TwoDpfoldList(TwoDpfold_vars *vars,
  *  @pre      The argument 'vars' must contain precalculated partition function matrices,
  *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
  *
- *  @see      vrna_TwoDpfold()
- *
- *  @param[in]  vars  the datastructure containing all necessary folding attributes and matrices
- *  @param[in]  d1    the distance to reference1 (may be -1)
- *  @param[in]  d2    the distance to reference2
- *  @returns    A sampled secondary structure in dot-bracket notation
- */
-char *
-vrna_TwoDpfold_pbacktrack(vrna_fold_compound *vc,
-                          int d1,
-                          int d2);
-
-/**
- *  @brief Sample secondary structure representatives from a set of distance classes according to their 
- *  Boltzmann probability
- *
- *  If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
- *  where all structures exceeding the maximum basepair distance to either of the references reside.
- *
- *  @pre      The argument 'vars' must contain precalculated partition function matrices,
- *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
- *
- *  @deprecated use vrna_TwoDpfold_pbacktrack() instead
+ *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
+ *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack(), and
+ *              vrna_free_fold_compound() instead!
  *
  *  @see      vrna_TwoDpfold()
  *
@@ -310,32 +353,9 @@ TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
  * @pre       The argument 'vars' must contain precalculated partition function matrices,
  *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
  *
- * @see       TwoDpfold_pbacktrack(), vrna_TwoDpfold()
- *
- *  @param[in]  vars    the datastructure containing all necessary folding attributes and matrices
- *  @param[in]  d1      the distance to reference1 (may be -1)
- *  @param[in]  d2      the distance to reference2
- *  @param[in]  length  the length of the structure beginning from the 5' end
- *  @returns    A sampled secondary structure in dot-bracket notation
- */
-char *
-vrna_TwoDpfold_pbacktrack5( vrna_fold_compound *vc,
-                            int d1,
-                            int d2,
-                            unsigned int length);
-
-/**
- * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their 
- *  Boltzmann probability
- *
- * This function does essentially the same as vrna_TwoDpfold_pbacktrack() with the only difference that partial structures,
- * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
- *
- * @note      This function does not work (since it makes no sense) for circular RNA sequences!
- * @pre       The argument 'vars' must contain precalculated partition function matrices,
- *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
- *
- * @deprecated use vrna_TwoDpfold_pbacktrack5() instead
+ *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
+ *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack5(), and
+ *              vrna_free_fold_compound() instead!
  *
  * @see       TwoDpfold_pbacktrack(), vrna_TwoDpfold()
  *
@@ -350,8 +370,6 @@ TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
                       int d1,
                       int d2,
                       unsigned int length));
-
-/** @} */ /* End of group kl_neighborhood_stochbt */
 
 /**
  * @brief
@@ -371,5 +389,7 @@ DEPRECATED(FLT_OR_DBL          **TwoDpfold_circ(
                                 TwoDpfold_vars *our_variables,
                                 int maxDistance1,
                                 int maxDistance2));
+
+#endif
 
 #endif

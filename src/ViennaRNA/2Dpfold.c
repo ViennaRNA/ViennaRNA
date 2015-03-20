@@ -39,9 +39,9 @@ PRIVATE void  crosslink(TwoDpfold_vars *vars);
 
 PRIVATE         void  pf2D_linear(vrna_fold_compound *vc);
 PRIVATE         void  pf2D_circ(vrna_fold_compound *vc);
-PRIVATE         char  *TwoDpfold_pbacktrack_circ( vrna_fold_compound *vc,
-                                                  int d1,
-                                                  int d2);
+PRIVATE         char  *pbacktrack_circ( vrna_fold_compound *vc,
+                                        int d1,
+                                        int d2);
 
 PRIVATE         void  backtrack(vrna_fold_compound *vc,
                                 char *pstruc,
@@ -111,8 +111,8 @@ INLINE  PRIVATE void  prepareArray(
 #################################
 */
 
-PUBLIC TwoDpfold_solution *
-vrna_TwoDpfold( vrna_fold_compound *vc,
+PUBLIC vrna_sol_TwoD_pf_t *
+vrna_TwoD_pf_fold( vrna_fold_compound *vc,
                 int distance1,
                 int distance2){
 
@@ -120,7 +120,7 @@ vrna_TwoDpfold( vrna_fold_compound *vc,
   int           cnt1, cnt2, k_min, k_max, l_min, l_max, ndx;
   FLT_OR_DBL    q = 0.;
 
-  TwoDpfold_solution  *output;
+  vrna_sol_TwoD_pf_t  *output;
   vrna_md_t           *md;
   vrna_mx_pf_t        *matrices;
 
@@ -132,7 +132,7 @@ vrna_TwoDpfold( vrna_fold_compound *vc,
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "vrna_TwoDpfold@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
+              "vrna_TwoD_pf_fold@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -141,7 +141,7 @@ vrna_TwoDpfold( vrna_fold_compound *vc,
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "vrna_TwoDpfold@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
+              "vrna_TwoD_pf_fold@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -150,7 +150,7 @@ vrna_TwoDpfold( vrna_fold_compound *vc,
   vc->maxD1 = maxD1;
   vc->maxD2 = maxD2;
 
-  output = (TwoDpfold_solution *)vrna_alloc((((maxD1+1)*(maxD2+2))/2 + 2) * sizeof(TwoDpfold_solution));
+  output = (vrna_sol_TwoD_pf_t *)vrna_alloc((((maxD1+1)*(maxD2+2))/2 + 2) * sizeof(vrna_sol_TwoD_pf_t));
 
   pf2D_linear(vc);
   if(md->circ) pf2D_circ(vc);
@@ -190,7 +190,7 @@ vrna_TwoDpfold( vrna_fold_compound *vc,
   counter++;
 
   /* resize to actual dataset amount */
-  output = (TwoDpfold_solution*)vrna_realloc(output, sizeof(TwoDpfold_solution) * counter);
+  output = (vrna_sol_TwoD_pf_t *)vrna_realloc(output, sizeof(vrna_sol_TwoD_pf_t) * counter);
   return output;
 }
 
@@ -1753,15 +1753,15 @@ pf2D_circ(vrna_fold_compound *vc){
 */
 
 PUBLIC char *
-vrna_TwoDpfold_pbacktrack(vrna_fold_compound *vc,
-                          int d1,
-                          int d2){
+vrna_TwoD_pbacktrack( vrna_fold_compound *vc,
+                      int d1,
+                      int d2){
 
-  return vrna_TwoDpfold_pbacktrack5(vc, d1, d2, vc->length);
+  return vrna_TwoD_pbacktrack5(vc, d1, d2, vc->length);
 }
 
 PUBLIC char *
-vrna_TwoDpfold_pbacktrack5(vrna_fold_compound *vc,
+vrna_TwoD_pbacktrack5(vrna_fold_compound *vc,
                       int d1,
                       int d2,
                       unsigned int length){
@@ -1811,12 +1811,12 @@ vrna_TwoDpfold_pbacktrack5(vrna_fold_compound *vc,
 
   if(md->circ){
     if(n != length)
-      vrna_message_error("pbacktrack@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
-    return TwoDpfold_pbacktrack_circ(vc, d1, d2);
+      vrna_message_error("vrna_TwoD_pbacktrack@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
+    return pbacktrack_circ(vc, d1, d2);
   }
 
   if(length > n)
-    vrna_message_error("pbacktrack@2Dpfold.c: requested transcript length exceeds sequence length!");
+    vrna_message_error("vrna_TwoD_pbacktrack@2Dpfold.c: requested transcript length exceeds sequence length!");
 
 #if 0
   if(d1 > maxD1)
@@ -2107,9 +2107,9 @@ pbacktrack_ext_loop_early_escape:
 
 
 PRIVATE char *
-TwoDpfold_pbacktrack_circ(vrna_fold_compound *vc,
-                          int d1,
-                          int d2){
+pbacktrack_circ(vrna_fold_compound *vc,
+                int d1,
+                int d2){
 
   char            *pstruc;
   unsigned int    i, n, maxD1, maxD2,
@@ -3966,7 +3966,7 @@ TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
                       int d1,
                       int d2){
 
-  return vrna_TwoDpfold_pbacktrack(vars->compatibility, d1, d2);
+  return vrna_TwoD_pbacktrack(vars->compatibility, d1, d2);
 }
 
 PUBLIC char *
@@ -3975,7 +3975,7 @@ TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
                       int d2,
                       unsigned int length){
 
-  return vrna_TwoDpfold_pbacktrack5(vars->compatibility, d1, d2, length);
+  return vrna_TwoD_pbacktrack5(vars->compatibility, d1, d2, length);
 }
 
 PUBLIC TwoDpfold_vars *
@@ -4010,14 +4010,14 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars){
   free(vars);
 }
 
-TwoDpfold_solution *
+vrna_sol_TwoD_pf_t *
 TwoDpfoldList(TwoDpfold_vars *vars,
               int distance1,
               int distance2){
 
-  TwoDpfold_solution *sol;
+  vrna_sol_TwoD_pf_t *sol;
 
-  sol = vrna_TwoDpfold(vars->compatibility, distance1, distance2);
+  sol = vrna_TwoD_pf_fold(vars->compatibility, distance1, distance2);
 
   crosslink(vars);
 

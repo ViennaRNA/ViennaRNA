@@ -154,8 +154,8 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
 #endif
 
-PUBLIC TwoDfold_solution *
-vrna_TwoDfold(vrna_fold_compound *vars,
+PUBLIC vrna_sol_TwoD_t *
+vrna_TwoD_fold(vrna_fold_compound *vars,
               int distance1,
               int distance2){
 
@@ -165,7 +165,7 @@ vrna_TwoDfold(vrna_fold_compound *vars,
   unsigned int  length;
   unsigned int  counter = 0;
   int           en = 0;
-  TwoDfold_solution *output;
+  vrna_sol_TwoD_t *output;
   vrna_md_t     *md;
   vrna_mx_mfe_t *matrices;
 
@@ -177,7 +177,7 @@ vrna_TwoDfold(vrna_fold_compound *vars,
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "vrna_TwoDfold@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+              "vrna_TwoD_fold@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -186,7 +186,7 @@ vrna_TwoDfold(vrna_fold_compound *vars,
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "vrna_TwoDfold@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+              "vrna_TwoD_fold@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -194,7 +194,7 @@ vrna_TwoDfold(vrna_fold_compound *vars,
 
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
-  output = (TwoDfold_solution *)vrna_alloc((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
+  output = (vrna_sol_TwoD_t *)vrna_alloc((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(vrna_sol_TwoD_t));
 
   mfe_linear(vars);
   if(md->circ) mfe_circ(vars);
@@ -247,16 +247,16 @@ vrna_TwoDfold(vrna_fold_compound *vars,
   counter++;
 
   /* resize to actual dataset amount */
-  output = (TwoDfold_solution*)vrna_realloc(output, sizeof(TwoDfold_solution) * counter);
+  output = (vrna_sol_TwoD_t *)vrna_realloc(output, sizeof(vrna_sol_TwoD_t) * counter);
   return output;
 }
 
 
 PUBLIC char *
-vrna_TwoDfold_backtrack_f5( vrna_fold_compound *vc,
-                            unsigned int j,
-                            int k,
-                            int l){
+vrna_TwoD_backtrack5( vrna_fold_compound *vc,
+                      unsigned int j,
+                      int k,
+                      int l){
 
   unsigned int i;
   char *mfe_structure = (char *)vrna_alloc(j+1);
@@ -3706,7 +3706,7 @@ TwoDfold_backtrack_f5(unsigned int j,
                       int l,
                       TwoDfold_vars *vars){
 
-  return vrna_TwoDfold_backtrack_f5(vars->compatibility, j, k, l);
+  return vrna_TwoD_backtrack5(vars->compatibility, j, k, l);
 }
 
 PUBLIC void
@@ -3719,14 +3719,14 @@ destroy_TwoDfold_variables(TwoDfold_vars *vars){
   free(vars);
 }
 
-PUBLIC TwoDfold_solution *
+PUBLIC vrna_sol_TwoD_t *
 TwoDfoldList( TwoDfold_vars *vars,
               int distance1,
               int distance2){
 
-  TwoDfold_solution *sol;
+  vrna_sol_TwoD_t *sol;
 
-  sol = vrna_TwoDfold(vars->compatibility, distance1, distance2);
+  sol = vrna_TwoD_fold(vars->compatibility, distance1, distance2);
 
   crosslink(vars);
 

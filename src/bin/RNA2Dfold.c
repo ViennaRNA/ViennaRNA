@@ -231,7 +231,7 @@ int main(int argc, char *argv[]){
 
     /* get all variables need for the folding process (some memory will be preallocated here too) */
     vrna_fold_compound *vc  = vrna_get_fold_compound_2D(string, structure1, structure2, &md, VRNA_OPTION_MFE | (pf ? VRNA_OPTION_PF : 0));
-    TwoDfold_solution *mfe_s      = vrna_TwoDfold(vc, maxDistance1, maxDistance2);
+    vrna_sol_TwoD_t *mfe_s  = vrna_TwoD_fold(vc, maxDistance1, maxDistance2);
 
     if(!pf){
 #ifdef COUNT_STATES
@@ -264,7 +264,7 @@ int main(int argc, char *argv[]){
       /* we dont need the mfe DP arrays anymore, so we can savely free their occupying memory */
       vrna_free_mfe_matrices(vc);
 
-      TwoDpfold_solution *pf_s = vrna_TwoDpfold(vc, maxD1, maxD2);
+      vrna_sol_TwoD_pf_t *pf_s = vrna_TwoD_pf_fold(vc, maxD1, maxD2);
 
       Q = 0.;
       
@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
             k = tmp->k;
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
-              char *s = vrna_TwoDpfold_pbacktrack(vc, k, l);
+              char *s = vrna_TwoD_pbacktrack(vc, k, l);
               printf("%d\t%d\t%6.2f\t%s\n", k, l, vrna_eval_structure(vc, s), s);
             }
           }
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]){
         else{
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
-              char *s = vrna_TwoDpfold_pbacktrack(vc, pf_s[i].k, pf_s[i].l);
+              char *s = vrna_TwoD_pbacktrack(vc, pf_s[i].k, pf_s[i].l);
               printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, vrna_eval_structure(vc, s), s);
             }
           }
