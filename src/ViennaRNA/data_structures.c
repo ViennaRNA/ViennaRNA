@@ -918,7 +918,7 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
                                     vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, md_p);
-                                    vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
+                                    vc->ptype_pf_compat     = (options & (VRNA_OPTION_PF | VRNA_OPTION_DIST_CLASS)) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
                                   } else {
                                     vc->ptype           = NULL;
                                     vc->ptype_pf_compat = NULL;

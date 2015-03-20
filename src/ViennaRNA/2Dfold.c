@@ -3607,7 +3607,7 @@ crosslink(TwoDfold_vars *vars){
   vars->dangles         = c->params->model_details.dangles;
   vars->circ            = c->params->model_details.circ;
   vars->temperature     = c->params->model_details.temperature;
-  vars->ptype           = c->ptype;
+  vars->ptype           = c->ptype_pf_compat;
   vars->P               = c->params;
   vars->S               = c->sequence_encoding2;
   vars->S1              = c->sequence_encoding;

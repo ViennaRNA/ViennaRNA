@@ -3906,7 +3906,7 @@ crosslink(TwoDpfold_vars *vars){
   vars->pf_params     = c->exp_params;
 
   vars->scale         = m->scale;
-  vars->ptype         = c->ptype;
+  vars->ptype         = c->ptype_pf_compat;
   vars->S             = c->sequence_encoding2;
   vars->S1            = c->sequence_encoding;
 
