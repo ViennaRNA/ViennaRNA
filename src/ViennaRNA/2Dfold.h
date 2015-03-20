@@ -115,10 +115,10 @@ vrna_TwoD_fold(vrna_fold_compound *vc,
  * @param l     distance to reference2
  */
 char *
-vrna_TwoD_fold_backtrack5( vrna_fold_compound *vc,
-                          unsigned int j,
-                          int k,
-                          int l);
+vrna_TwoD_backtrack5( vrna_fold_compound *vc,
+                      unsigned int j,
+                      int k,
+                      int l);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

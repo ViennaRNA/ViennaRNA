@@ -107,7 +107,7 @@ vrna_TwoD_pbacktrack( vrna_fold_compound *vc,
  * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their 
  *  Boltzmann probability
  *
- * This function does essentially the same as vrna_TwoD_pf_fold_pbacktrack() with the only difference that partial structures,
+ * This function does essentially the same as vrna_TwoD_pbacktrack() with the only difference that partial structures,
  * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
  *
  * @note      This function does not work (since it makes no sense) for circular RNA sequences!
