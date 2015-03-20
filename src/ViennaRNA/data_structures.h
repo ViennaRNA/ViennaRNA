@@ -384,7 +384,8 @@ typedef struct dupVar{
  */
 
 /**
- *  @brief  An enumerator that is used to specify the type of a Dynamic Programming (DP) matrix data structure
+ *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)
+ *  matrix data structure
  *  @see #vrna_mx_mfe_t, #vrna_mx_pf_t
  */
 typedef enum {
@@ -393,7 +394,7 @@ typedef enum {
                           @see    Lfold(), pfl_fold()
                     */
   VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
-                          @see  vrna_TwoDfold(), vrna_TwoDpfold()
+                          @see  vrna_TwoD_fold(), vrna_TwoD_pf_fold()
                     */
 } vrna_mx_t;
 
@@ -417,6 +418,8 @@ typedef struct{
     struct {
 #endif
       /** @name Default DP matrices
+          @note These data fields are available if
+                @code vrna_mx_mfe_t.type == VRNA_MX_DEFAULT @endcode
         @{
        */
       int     *c;   /**<  @brief  Energy array, given that i-j pair */
@@ -442,6 +445,8 @@ typedef struct{
 #endif
 
       /** @name Distance Class DP matrices
+          @note These data fields are available if
+                @code vrna_mx_mfe_t.type == VRNA_MX_2DFOLD @endcode
         @{
       */
       int             ***E_F5;
@@ -556,6 +561,8 @@ typedef struct{
 #endif
 
   /** @name Default PF matrices
+      @note These data fields are available if
+            @code vrna_mx_pf_t.type == VRNA_MX_DEFAULT @endcode
       @{
    */
       FLT_OR_DBL  *q;
@@ -586,6 +593,8 @@ typedef struct{
 #endif
 
   /** @name Distance Class DP matrices
+      @note These data fields are available if
+            @code vrna_mx_pf_t.type == VRNA_MX_2DFOLD @endcode
       @{
    */
       FLT_OR_DBL      ***Q;

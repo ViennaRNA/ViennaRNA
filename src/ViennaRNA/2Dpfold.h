@@ -141,7 +141,7 @@ vrna_TwoD_pbacktrack5(vrna_fold_compound *vc,
  *  @brief  Variables compound for 2Dfold partition function folding
  *
  *  @deprecated This data structure will be removed from the library soon!
- *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_copound_2D(),
+ *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_compound_2D(),
  *              vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  */
 typedef struct{
@@ -257,7 +257,7 @@ typedef struct{
  * function values are prepared.
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @param seq         the RNA sequence in uppercase format with letters from the alphabet {AUCG}
  * @param structure1  the first reference structure in dot-bracket notation
@@ -278,7 +278,7 @@ get_TwoDpfold_variables(const char *seq,
  * vrna_TwoDpfold_get_vars() or vrna_TwoDpfold_get_vars_from_MFE()
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @see vrna_TwoDpfold_get_vars(), vrna_TwoDpfold_get_vars_from_MFE()
  *
@@ -302,7 +302,7 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
  * A values of #INF in the attribute 'k' of the returned list denotes the end of the list
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_pf_fold(), and vrna_free_fold_compound() instead!
  *
  * @see vrna_TwoDpfold_get_vars(), destroy_TwoDpfold_variables(), #TwoDpfold_solution
  *
@@ -327,7 +327,7 @@ TwoDpfoldList(TwoDpfold_vars *vars,
  *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack(), and
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack(), and
  *              vrna_free_fold_compound() instead!
  *
  *  @see      vrna_TwoDpfold()
@@ -354,7 +354,7 @@ TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
  *            i.e. a call to vrna_TwoDpfold() preceding this function is mandatory!
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack5(), and
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_pf_fold(), vrna_TwoD_pbacktrack5(), and
  *              vrna_free_fold_compound() instead!
  *
  * @see       TwoDpfold_pbacktrack(), vrna_TwoDpfold()

@@ -82,7 +82,7 @@ typedef struct vrna_sol_TwoD_t{
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- *  @see  vrna_get_fold_copound_2D(), vrna_free_fold_compound(), vrna_TwoD_pf_fold()
+ *  @see  vrna_get_fold_compound_2D(), vrna_free_fold_compound(), vrna_TwoD_pf_fold()
  *        vrna_TwoD_backtrack5(), #vrna_sol_TwoD_t, #vrna_fold_compound
  *
  *  @param vc         The datastructure containing all precomputed folding attributes
@@ -128,7 +128,7 @@ vrna_TwoD_backtrack5( vrna_fold_compound *vc,
  *  @brief Variables compound for 2Dfold MFE folding
  *
  *  @deprecated This data structure will be removed from the library soon!
- *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_copound_2D(),
+ *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_compound_2D(),
  *              vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
  */
 typedef struct TwoDfold_vars{
@@ -253,7 +253,7 @@ typedef struct TwoDfold_vars{
  *  @note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
  * 
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
  *
  *  @param seq          The RNA sequence
  *  @param structure1   The first reference structure in dot-bracket notation
@@ -273,7 +273,7 @@ get_TwoDfold_variables( const char *seq,
  *  This function free's all allocated memory that depends on the datastructure given.
  * 
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
  *
  *  @param our_variables  A pointer to the datastructure to be destroyed
  */
@@ -299,7 +299,7 @@ destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
  * the k-attribute of the list entry.
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
  *
  * @param vars      the datastructure containing all predefined folding attributes
  * @param distance1 maximum distance to reference1 (-1 means no restriction)
@@ -322,7 +322,7 @@ TwoDfoldList( TwoDfold_vars *vars,
  * i.e. a call to vrna_TwoDfold() preceding this function is mandatory!
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_copound_2D(), vrna_TwoD_fold(), vrna_TwoD_backtrack5(), and
+ *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), vrna_TwoD_backtrack5(), and
  *              vrna_free_fold_compound() instead!
  *
  * @param j     The length in nucleotides beginning from the 5' end
