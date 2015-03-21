@@ -91,7 +91,7 @@ the library or stays hidden */
 #define VRNA_INPUT_BLANK_LINE             4096U
 
 /**
- *  @briefInput switch for get_input_line():  @e "do not skip comment lines"
+ *  @brief Input switch for get_input_line():  @e "do not skip comment lines"
  */
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
 
@@ -458,6 +458,10 @@ void vrna_ali_encode( const char *sequence,
  */
 char  *vrna_get_ptypes( const short *S,
                         vrna_md_t *md);
+
+/**
+ *  @}
+ */
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
