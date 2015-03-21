@@ -325,7 +325,10 @@ AC_MSG_RESULT([$with_pf_float])
 AM_CONDITIONAL([WITH_LARGE_PF], [test "$with_pf_float" != "yes"])
 
 # check prerequisites for Perl interface
-AC_PATH_PROG(PerlCmd, perl)
+if test "x$PerlCmd" = "x";
+then
+  AC_PATH_PROG(PerlCmd, perl)
+fi
 ifelse([$PerlCmd], [],[
   AC_MSG_WARN([No suitable Perl found -- will not build Perl module])
   AC_MSG_WARN([You may set the PerlCmd environment variable to point to
@@ -349,7 +352,10 @@ AC_RNA_PACKAGE_IF_ENABLED([perl],[
 
 # check prerequisites for Python interface
 AC_RNA_PACKAGE_IF_ENABLED([python],[
-AC_PATH_PROG(PythonCmd, python)
+if test "x$PythonCmd" = "x";
+then
+  AC_PATH_PROG(PythonCmd, python)
+fi
 ifelse([$PythonCmd], [], [
   AC_MSG_WARN([No suitable Python found -- will not build Python extension])
   AC_MSG_WARN([You may set the PythonCmd environment variable to point to
