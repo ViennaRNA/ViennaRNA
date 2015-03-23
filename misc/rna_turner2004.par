@@ -8089,13 +8089,13 @@
    710
 
 # interior
-   INF   INF   INF   INF   110   200   200   210   230   240
+   INF   INF   100   100   110   200   200   210   230   240
    250   260   270   280   290   290   300   310   310   320
    330   330   340   340   350   350   350   360   360   370
    370
 
 # interior_enthalpies
-   INF   INF   INF   INF  -720  -680  -130  -130  -130  -130
+   INF   INF  -720  -720  -720  -680  -130  -130  -130  -130
   -130  -130  -130  -130  -130  -130  -130  -130  -130  -130
   -130  -130  -130  -130  -130  -130  -130  -130  -130  -130
   -130
@@ -8109,9 +8109,11 @@
 # Misc
      410     360      50     370
 
-# Triloops
-CAACG     680    2370
-GUUAC     690    1080
+# Hexaloops
+ACAGUACU     280   -1680
+ACAGUGAU     360   -1140
+ACAGUGCU     290   -1280
+ACAGUGUU     180   -1540
 
 # Tetraloops
 CAACGG     550     690
@@ -8131,11 +8133,10 @@ CUUAGG     350    -620
 CUUCGG     370   -1530
 CUUUGG     370    -680
 
-# Hexaloops
-ACAGUACU     280   -1680
-ACAGUGAU     360   -1140
-ACAGUGCU     290   -1280
-ACAGUGUU     180   -1540
+# Triloops
+CAACG     680    2370
+GUUAC     690    1080
+
 
 
 #END
