@@ -82,7 +82,7 @@ endif WITH_REFERENCE_MANUAL
 
 
 
-EXTRA_DIST = $(pkgdata_DATA) mainpage.dox file_formats.dox
+EXTRA_DIST = $(pkgdata_DATA) refman.include
 
 # remove all generated content
 maintainer-clean-local:
