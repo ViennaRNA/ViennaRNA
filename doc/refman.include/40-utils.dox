@@ -1,0 +1,318 @@
+/**
+
+@page  mp_utils     Utilities - Odds and Ends
+
+@anchor toc
+
+<h3>Table of Contents</h3>
+<hr>
+
+\li \ref  utils_ss
+\li \ref  utils_dot
+\li \ref  utils_aln
+\li \ref  utils_seq
+\li \ref  utils_struc
+\li \ref  utils_misc
+
+<hr>
+
+@section utils_ss Producing secondary structure graphs
+
+@verbatim
+int PS_rna_plot ( char *string,
+                  char *structure,
+                  char *file)
+@endverbatim
+@copybrief PS_rna_plot()
+
+@verbatim
+int PS_rna_plot_a (
+            char *string,
+            char *structure,
+            char *file,
+            char *pre,
+            char *post)
+@endverbatim
+@copybrief PS_rna_plot_a()
+
+@verbatim
+int gmlRNA (char *string,
+            char *structure,
+            char *ssfile,
+            char option)
+@endverbatim
+@copybrief gmlRNA()
+
+@verbatim
+int ssv_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
+@endverbatim
+@copybrief ssv_rna_plot()
+
+@verbatim
+int svg_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
+@endverbatim
+@copybrief svg_rna_plot()
+
+@verbatim
+int xrna_plot ( char *string,
+                char *structure,
+                char *ssfile)
+@endverbatim
+@copybrief xrna_plot()
+
+@verbatim
+int rna_plot_type
+@endverbatim
+@copybrief rna_plot_type
+
+Two low-level functions provide direct access to the graph lauyouting
+algorithms:
+
+@verbatim
+int simple_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
+@endverbatim
+@copybrief simple_xy_coordinates()
+
+@verbatim
+int naview_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
+@endverbatim
+@copybrief naview_xy_coordinates()
+
+@see PS_dot.h and naview.h for more detailed descriptions.
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@section utils_dot Producing (colored) dot plots for base pair probabilities
+
+@verbatim
+int PS_color_dot_plot ( char *string,
+                        cpair *pi,
+                        char *filename)
+@endverbatim
+@copybrief PS_color_dot_plot()
+
+@verbatim
+int PS_color_dot_plot_turn (char *seq,
+                            cpair *pi,
+                            char *filename,
+                            int winSize)
+@endverbatim
+@copybrief PS_color_dot_plot_turn()
+
+@verbatim
+int PS_dot_plot_list (char *seq,
+                      char *filename,
+                      plist *pl,
+                      plist *mf,
+                      char *comment)
+@endverbatim
+@copybrief PS_dot_plot_list()
+
+@verbatim
+int PS_dot_plot_turn (char *seq,
+                      struct plist *pl,
+                      char *filename,
+                      int winSize)
+@endverbatim
+@copybrief PS_dot_plot_turn()
+
+@see PS_dot.h for more detailed descriptions.
+
+@section utils_aln Producing (colored) alignments
+
+@verbatim
+int PS_color_aln (
+            const char *structure,
+            const char *filename,
+            const char *seqs[],
+            const char *names[])
+@endverbatim
+@copybrief PS_color_aln()
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@section  utils_seq   RNA sequence related utilities
+
+Several functions provide useful applications to RNA sequences
+
+@verbatim
+char  *random_string (int l,
+                      const char symbols[])
+@endverbatim
+@copybrief random_string()
+
+@verbatim
+int   hamming ( const char *s1,
+                const char *s2)
+@endverbatim
+@copybrief hamming()
+
+@verbatim
+void str_DNA2RNA(char *sequence);
+@endverbatim
+@copybrief str_DNA2RNA()
+
+@verbatim
+void str_uppercase(char *sequence);
+@endverbatim
+@copybrief str_uppercase()
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@section utils_struc  RNA secondary structure related utilities
+
+@verbatim
+char *pack_structure (const char *struc)
+@endverbatim
+@copybrief pack_structure()
+
+@verbatim
+char *unpack_structure (const char *packed)
+@endverbatim
+@copybrief unpack_structure()
+
+@verbatim
+short *make_pair_table (const char *structure)
+@endverbatim
+@copybrief make_pair_table()
+
+@verbatim
+short *copy_pair_table (const short *pt)
+@endverbatim
+@copybrief copy_pair_table()
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@section  utils_misc  Miscellaneous Utilities
+
+@verbatim
+void print_tty_input_seq (void)
+@endverbatim
+@copybrief print_tty_input_seq()
+
+@verbatim
+void print_tty_constraint_full (void)
+@endverbatim
+@copybrief print_tty_constraint_full()
+
+@verbatim
+void print_tty_constraint (unsigned int option)
+@endverbatim
+@copybrief print_tty_constraint()
+
+@verbatim
+int   *get_iindx (unsigned int length)
+@endverbatim
+@copybrief get_iindx()
+
+@verbatim
+int   *get_indx (unsigned int length)
+@endverbatim
+@copybrief get_indx()
+
+@verbatim
+void constrain_ptypes (
+                const char *constraint,
+                unsigned int length,
+                char *ptype,
+                int *BP,
+                int min_loop_size,
+                unsigned int idx_type)
+@endverbatim
+@copybrief constrain_ptypes()
+
+@verbatim
+char  *get_line(FILE *fp);
+@endverbatim
+@copybrief get_line()
+
+@verbatim
+unsigned int read_record(
+                char **header,
+                char **sequence,
+                char ***rest,
+                unsigned int options);
+@endverbatim
+@copybrief read_record()
+
+@verbatim
+char  *time_stamp (void)
+@endverbatim
+@copybrief time_stamp()
+
+@verbatim
+void warn_user (const char message[])
+@endverbatim
+@copybrief warn_user()
+
+@verbatim
+void nrerror (const char message[])
+@endverbatim
+@copybrief nrerror()
+
+@verbatim
+void   init_rand (void)
+@endverbatim
+@copybrief init_rand()
+
+@verbatim
+unsigned short xsubi[3];
+@endverbatim
+@copybrief xsubi
+
+@verbatim
+double urn (void)
+@endverbatim
+@copybrief urn()
+
+@verbatim
+int    int_urn (int from, int to)
+@endverbatim
+@copybrief int_urn()
+
+@verbatim
+void  *space (unsigned size)
+@endverbatim
+@copybrief space()
+
+@verbatim
+void  *xrealloc ( void *p,
+                  unsigned size)
+@endverbatim
+@copybrief xrealloc()
+
+@see  utils.h for a complete overview and detailed description of the utility functions
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@ref mp_example "Next Page: The new RNAlib API v3.0"
+
+ */

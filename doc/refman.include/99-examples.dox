@@ -1,0 +1,32 @@
+/**
+
+@page  mp_example   Example - A Small Example Program
+
+The following program exercises most commonly used functions of the library.
+The program folds two sequences using both the mfe and partition function
+algorithms and calculates the tree edit and profile distance of the
+resulting structures and base pairing probabilities.
+
+@note This program uses the old API of RNAlib, which is in part already marked
+deprecated. Please consult the @ref newAPI page for details of what changes are necessary
+to port your implementation to the new API.
+
+@include example_old.c
+
+In a typical Unix environment you would compile this program using:
+@verbatim
+cc ${OPENMP_CFLAGS} -c example.c -I${hpath}
+@endverbatim
+and link using
+@verbatim
+cc ${OPENMP_CFLAGS} -o example -L${lpath} -lRNA -lm
+@endverbatim
+where @e ${hpath} and @e ${lpath} point to the location of the header
+files and library, respectively.
+@note As default, the RNAlib is compiled with build-in @e OpenMP multithreading
+support. Thus, when linking your own object files to the library you have to pass
+the compiler specific @e ${OPENMP_CFLAGS} (e.g. '-fopenmp' for @b gcc) even if your code does not
+use openmp specific code. However, in that case the @e OpenMP flags may be ommited when compiling
+example.c
+
+ */

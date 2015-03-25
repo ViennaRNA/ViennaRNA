@@ -1,0 +1,263 @@
+/**
+
+@page  mp_parse     Parsing and Comparing - Functions to Manipulate Structures
+
+<h2>Representations of Secondary Structures</h2>
+
+The standard representation of a secondary structure is the <i>bracket
+notation</i>, where matching brackets symbolize base pairs and unpaired
+bases are shown as dots. Alternatively, one may use two types of node
+labels, 'P' for paired and 'U' for unpaired; a dot is then replaced by
+'(U)', and each closed bracket is assigned an additional identifier 'P'.
+We call this the expanded notation. In @cite fontana:1993b a condensed
+representation of the secondary structure is proposed, the so-called
+homeomorphically irreducible tree (HIT) representation. Here a stack is
+represented as a single pair of matching brackets labeled 'P' and
+weighted by the number of base pairs.  Correspondingly, a contiguous
+strain of unpaired bases is shown as one pair of matching brackets
+labeled 'U' and weighted by its length.  Generally any string consisting
+of matching brackets and identifiers is equivalent to a plane tree with
+as many different types of nodes as there are identifiers.
+
+Bruce Shapiro proposed a coarse grained representation @cite shapiro:1988,
+which, does not retain the full information of the secondary structure. He
+represents the different structure elements by single matching brackets
+and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
+(bulge), 'M' (multi-loop), and 'S' (stack). We extend his alphabet by an
+extra letter for external elements 'E'. Again these identifiers may be
+followed by a weight corresponding to the number of unpaired bases or
+base pairs in the structure element.  All tree representations (except
+for the dot-bracket form) can be encapsulated into a virtual root
+(labeled 'R'), see the example below.
+
+The following example illustrates the different linear tree representations
+used by the package. All lines show the same secondary structure.
+
+@verbatim
+a) .((((..(((...)))..((..)))).)).
+   (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
+b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
+c) (((H)(H)M)B)
+   ((((((H)S)((H)S)M)S)B)S)
+   (((((((H)S)((H)S)M)S)B)S)E)
+d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@endverbatim
+
+Above: Tree representations of secondary structures.  a) Full structure:
+the first line shows the more convenient condensed notation which is
+used by our programs; the second line shows the rather clumsy expanded
+notation for completeness, b) HIT structure, c) different versions of
+coarse grained structures: the second line is exactly Shapiro's
+representation, the first line is obtained by neglecting the stems.
+Since each loop is closed by a unique stem, these two lines are
+equivalent.  The third line is an extension taking into account also the
+external digits.  d) weighted coarse structure, this time including the
+virtual root.
+
+For the output of aligned structures from string editing, different
+representations are needed, where we put the label on both sides.
+The above examples for tree representations would then look like:
+
+@verbatim
+a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
+b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
+c) (B(M(HH)(HH)M)B)
+   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
+   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
+d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@endverbatim
+
+Aligned structures additionally contain the gap character '_'.
+
+<h2>Parsing and Coarse Graining of Structures</h2>
+
+Several functions are provided for parsing structures and converting to
+different representations.
+
+@verbatim
+char  *expand_Full(const char *structure)
+@endverbatim
+@copybrief expand_Full()
+
+@verbatim
+char *b2HIT (const char *structure)
+@endverbatim
+@copybrief b2HIT()
+
+@verbatim
+char *b2C (const char *structure)
+@endverbatim
+@copybrief b2C()
+
+@verbatim
+char *b2Shapiro (const char *structure)
+@endverbatim
+@copybrief b2Shapiro()
+
+@verbatim
+char  *expand_Shapiro (const char *coarse);
+@endverbatim
+@copybrief expand_Shapiro()
+
+@verbatim
+char *add_root (const char *structure)
+@endverbatim
+@copybrief add_root()
+
+@verbatim
+char  *unexpand_Full (const char *ffull)
+@endverbatim
+@copybrief unexpand_Full()
+
+@verbatim
+char  *unweight (const char *wcoarse)
+@endverbatim
+@copybrief unweight()
+
+@verbatim
+void   unexpand_aligned_F (char *align[2])
+@endverbatim
+@copybrief unexpand_aligned_F()
+
+@verbatim
+void   parse_structure (const char *structure)
+@endverbatim
+@copybrief parse_structure()
+
+@see RNAstruct.h for prototypes and more detailed description
+
+<h2>Distance Measures</h2>
+
+A simple measure of dissimilarity between secondary structures of equal
+length is the base pair distance, given by the number of pairs present in
+only one of the two structures being compared. I.e. the number of base
+pairs that have to be opened or closed to transform one structure into the
+other. It is therefore particularly useful for comparing structures on the
+same sequence. It is implemented by
+
+@verbatim
+int bp_distance(const char *str1,
+                const char *str2)
+@endverbatim
+@copybrief bp_distance()
+
+For other cases a distance measure that allows for gaps is preferable.
+We can define distances between structures as edit distances between
+trees or their string representations. In the case of string distances
+this is the same as "sequence alignment". Given a set of edit operations
+and edit costs, the edit distance is given by the minimum sum of the
+costs along an edit path converting one object into the other. Edit
+distances like these always define a metric. The edit operations used by us
+are insertion, deletion and replacement of nodes.
+String editing does not pay attention to the matching of brackets, while
+in tree editing matching brackets represent a single node of the tree.
+Tree editing is therefore usually preferable, although somewhat
+slower. String edit distances are always smaller or equal to tree edit
+distances.
+
+The different level of detail in the structure representations defined
+above naturally leads to different measures of distance. For full
+structures we use a cost of 1 for deletion or insertion of an unpaired
+base and 2 for a base pair. Replacing an unpaired base for a pair incurs
+a cost of 1.
+
+Two cost matrices are provided for coarse grained structures:
+
+@verbatim
+/*  Null,   H,   B,   I,   M,   S,   E    */
+   {   0,   2,   2,   2,   2,   1,   1},   /* Null replaced */
+   {   2,   0,   2,   2,   2, INF, INF},   /* H    replaced */
+   {   2,   2,   0,   1,   2, INF, INF},   /* B    replaced */
+   {   2,   2,   1,   0,   2, INF, INF},   /* I    replaced */
+   {   2,   2,   2,   2,   0, INF, INF},   /* M    replaced */
+   {   1, INF, INF, INF, INF,   0, INF},   /* S    replaced */
+   {   1, INF, INF, INF, INF, INF,   0},   /* E    replaced */
+
+
+/* Null,   H,   B,   I,   M,   S,   E   */
+   {   0, 100,   5,   5,  75,   5,   5},   /* Null replaced */
+   { 100,   0,   8,   8,   8, INF, INF},   /* H    replaced */
+   {   5,   8,   0,   3,   8, INF, INF},   /* B    replaced */
+   {   5,   8,   3,   0,   8, INF, INF},   /* I    replaced */
+   {  75,   8,   8,   8,   0, INF, INF},   /* M    replaced */
+   {   5, INF, INF, INF, INF,   0, INF},   /* S    replaced */
+   {   5, INF, INF, INF, INF, INF,   0},   /* E    replaced */
+@endverbatim
+
+The lower matrix uses the costs given in @cite shapiro:1990.
+All distance functions use the following global variables:
+
+@verbatim
+int  cost_matrix;
+@endverbatim
+@copybrief cost_matrix
+
+@verbatim
+int   edit_backtrack;
+@endverbatim
+@copybrief edit_backtrack
+
+@verbatim
+char *aligned_line[4];
+@endverbatim
+@copybrief aligned_line
+
+@see utils.h, dist_vars.h and stringdist.h for more details
+
+<h3>Functions for Tree Edit Distances</h3>
+
+@verbatim
+Tree   *make_tree (char *struc)
+@endverbatim
+@copybrief make_tree()
+
+@verbatim
+float   tree_edit_distance (Tree *T1,
+                            Tree *T2) 
+@endverbatim
+@copybrief tree_edit_distance()
+
+@verbatim
+void    free_tree(Tree *t)
+@endverbatim
+@copybrief free_tree()
+
+@see dist_vars.h and treedist.h for prototypes and more detailed descriptions
+
+<h3>Functions for String Alignment</h3>
+
+@verbatim
+swString *Make_swString (char *string)
+@endverbatim
+@copybrief Make_swString()
+
+@verbatim
+float     string_edit_distance (swString *T1,
+                                swString *T2)
+@endverbatim
+@copybrief string_edit_distance()
+
+@see dist_vars.h and stringdist.h for prototypes and more detailed descriptions
+
+<h3>Functions for Comparison of Base Pair Probabilities</h3>
+
+For comparison of base pair probability matrices, the matrices are first
+condensed into probability profiles which are the compared by alignment.
+
+@verbatim
+float *Make_bp_profile_bppm ( double *bppm,
+                              int length)
+@endverbatim
+@copybrief Make_bp_profile_bppm()
+
+@verbatim
+float profile_edit_distance ( const float *T1,
+                              const float *T2)
+@endverbatim
+@copybrief profile_edit_distance()
+
+@see ProfileDist.h for prototypes and more details of the above functions
+
+@ref mp_utils "Next Page: Utilities"
+
+ */

@@ -1,5 +1,5 @@
 /**
-  @page file_formats  Supported Input/Output file formats
+  @page file_formats  Input / Output File Formats
 
   @section     constraint-formats  File formats for Secondary Structure Constraints
   @subsection  constraint-formats-file Constraints Definition File
