@@ -41,6 +41,7 @@ double    minimal_sd     (int N,
 svm_model *svm_load_model_string(char *modelString);
 int       *get_seq_composition( short *S,
                                 unsigned int start,
-                                unsigned int stop);
+                                unsigned int stop,
+                                unsigned int length);
 
 #endif
