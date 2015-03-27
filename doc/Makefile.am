@@ -44,7 +44,7 @@ endif WITH_REFERENCE_MANUAL_HTML
 if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): dox
-	$(AM_V_GEN)cd latex; make; mv refman.pdf ../$(REFERENCE_MANUAL_FILES_PDF)
+	$(AM_V_GEN)cd latex; make; mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"
 
 endif WITH_REFERENCE_MANUAL_PDF
 
@@ -64,10 +64,12 @@ endif WITH_REFERENCE_MANUAL
 if WITH_REFERENCE_MANUAL_HTML
 
 vrna_htmlrefman_inst: installdirs html
-	cp -r html/* $(DESTDIR)$(htmldir)
+	@$(NORMAL_INSTALL)
+	cp -r html/* "$(DESTDIR)$(htmldir)"
 
 vrna_htmlrefman_uninst:
-	rm -rf $(DESTDIR)$(htmldir)
+	@$(NORMAL_UNINSTALL)
+	rm -rf "$(DESTDIR)$(htmldir)"
 
 else
 
@@ -83,5 +85,7 @@ EXTRA_DIST = $(pkgdata_DATA) refman.include html latex @REFERENCE_MANUAL_PDF_NAM
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -f *.tag *.pdf html/ latex/
+	-rm -rf *.tag *.pdf html/ latex/ doxygen.warnings
 
+distclean-local:
+	-rm -rf *.tag *.pdf html/ latex/ doxygen.warnings

@@ -685,7 +685,7 @@ LAYOUT_FILE            =
 # LATEX_BIB_STYLE. To use this feature you need bibtex and perl available in the
 # search path. See also \cite for info how to create references.
 
-CITE_BIB_FILES         = viennarna.bib
+CITE_BIB_FILES         = @top_srcdir@/doc/viennarna.bib
 
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
@@ -756,7 +756,7 @@ WARN_LOGFILE           = doxygen.warnings
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ./ ./refman.include/ ../src/ViennaRNA
+INPUT                  = @top_srcdir@/doc/refman.include/ @top_srcdir@/src/ViennaRNA
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -824,7 +824,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = ../examples
+EXAMPLE_PATH           = @top_srcdir@/examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -2021,7 +2021,7 @@ TAGFILES               =
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       = @DOXYGEN_PROJECT_NAME@.tag
+GENERATE_TAGFILE       =
 
 # If the ALLEXTERNALS tag is set to YES, all external class will be listed in
 # the class index. If set to NO, only the inherited external classes will be

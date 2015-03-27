@@ -264,49 +264,49 @@ AC_RNA_ADD_PACKAGE( [perl],
                     [yes],
                     [with_perl=no],
                     [with_perl=yes],
-                    [interfaces/Perl/Makefile.am])
+                    [${srcdir}/interfaces/Perl/Makefile.am])
 AC_RNA_ADD_PACKAGE( [python],
                     [Python interface],
                     [no],
                     [with_python=yes],
                     [with_python=no],
-                    [interfaces/Python/Makefile.am])
+                    [${srcdir}/interfaces/Python/Makefile.am])
 AC_RNA_ADD_PACKAGE( [ruby],
                     [Ruby interface],
                     [no],
                     [with_ruby=yes],
                     [with_ruby=no],
-                    [interfaces/Ruby/Makefile.am])
+                    [${srcdir}/interfaces/Ruby/Makefile.am])
 AC_RNA_ADD_PACKAGE( [kinfold],
                     [Kinfold program],
                     [yes],
                     [with_kinfold=no],
                     [with_kinfold=yes],
-                    [src/Kinfold/Makefile.am])
+                    [${srcdir}/src/Kinfold/Makefile.am])
 AC_RNA_ADD_PACKAGE( [forester],
                     [RNAforester program],
                     [yes],
                     [with_forester=no],
                     [with_forester=yes],
-                    [src/RNAforester/Makefile.am])
+                    [${srcdir}/src/RNAforester/Makefile.am])
 AC_RNA_ADD_PACKAGE( [cluster],
                     [AnalyseSeqs and AnalyseDists],
                     [no],
                     [with_cluster=yes],
                     [with_cluster=no],
-                    [src/Cluster/Makefile.am])
+                    [${srcdir}/src/Cluster/Makefile.am])
 AC_RNA_ADD_PACKAGE( [svm],
                     [svm classifiers],
                     [yes],
                     [with_svm=no],
                     [with_svm=yes],
-                    [src/libsvm-${SVM_VERSION}/svm.cpp src/libsvm-${SVM_VERSION}/svm.h])
+                    [${srcdir}/src/libsvm-${SVM_VERSION}/svm.cpp ${srcdir}/src/libsvm-${SVM_VERSION}/svm.h])
 AC_RNA_ADD_PACKAGE( [json],
                     [json in/out support],
                     [yes],
                     [with_json=no],
                     [with_json=yes],
-                    [src/json/json.c src/json/json.h])
+                    [${srcdir}/src/json/json.c ${srcdir}/src/json/json.h])
 AC_RNA_ADD_PACKAGE( [doc_pdf],
                     [PDF RNAlib reference manual],
                     [yes],
@@ -339,7 +339,7 @@ AC_RNA_ADD_PACKAGE( [gsl],
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-bla=`${GREP} "^#define LARGE_PF" src/ViennaRNA/data_structures.h`
+bla=`${GREP} "^#define LARGE_PF" ${srcdir}/src/ViennaRNA/data_structures.h`
 if test "x$bla" = "x";
 then
   with_pf_float=yes
@@ -386,7 +386,7 @@ ifelse([$PythonCmd], [], [
   with_python="no"
   enabled_but_failed_python="(No python executable found)"
 ],[
-  version_test=`$PythonCmd interfaces/Python/version_test.py`
+  version_test=`$PythonCmd ${srcdir}/interfaces/Python/version_test.py`
   if test "x$version_test" = "xok"; then :
   else
     AC_MSG_WARN([You need Python >= 2.5 and < 3.0 to build the Python extension])

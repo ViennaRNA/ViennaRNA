@@ -1,3 +1,5 @@
+AM_DISTCHECK_CONFIGURE_FLAGS = --with-cluster --with-python --with-check
+
 SUBDIRS = src man misc doc interfaces @subdirs@ @CHECK_DIR@
 
 pkgconfigdir = $(libdir)/pkgconfig
