@@ -218,6 +218,29 @@ AC_SUBST([REFERENCE_MANUAL_TAGFILE],  [ifelse([$doxygen],
 
 
 # setup variables used in Makefile.am
+
+# Define ${htmldir} if the configure script was created with a version of
+# autoconf older than 2.60
+# Alternatively, if ${htmldir} is exactly '${docdir}', append a /html to
+# separate html files from rest of doc.
+# Otherwise, just append the PACKAGE_NAME to the htmldir
+if test "x${htmldir}" = "x";
+then
+  AC_MSG_WARN([resetting htmldir])
+  htmldir="${docdir}/html"
+fi
+
+if test "x${htmldir}" = 'x${docdir}';
+then
+  htmldir="${docdir}/html"
+else
+  htmldir=${htmldir}/${PACKAGE_NAME}
+fi
+
+AC_SUBST(htmldir, [${htmldir}])
+
+#
+
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_BUILD, test "x$doxygen" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDF, test "x$with_doc_pdf" != xno)
@@ -512,7 +535,7 @@ Files will be installed in the following directories:
   Extra Data:     $_datadir
   Man pages:      $_mandir
   Documentation:  $_docdir
-    (HTML):       $(eval printf "%s" $_htmldir)/html
+    (HTML):       $(eval printf "%s" $_htmldir)
     (PDF):        $(eval printf "%s" $_pdfdir)
 ])
 
