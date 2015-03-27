@@ -12,16 +12,19 @@ GENGETOPT_FILES =  ct2db.ggo
 
 EXTRA_DIST = $(pscript) Fold ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
-LDADD = -L$(top_srcdir)/src/ViennaRNA -lRNA -lm
+LDADD = -L$(top_builddir)/src/ViennaRNA -lRNA -lm
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
-
-$(pscript) : Makefile
-	$(AM_V_GEN)if test -n "@PerlCmd@"; then \
-	  @PerlCmd@ -npi -e 's|^#!\S+|#!@PerlCmd@|' $@ ; \
-	fi
 
 ct2db_cmdl.h ct2db_cmdl.c:  ct2db.ggo
 	$(AM_V_GEN)gengetopt -i ct2db.ggo
 
 ct2db_SOURCES=ct2db_cmdl.c ct2db.c
+
+install-data-hook:
+	$(AM_V_GEN)if test -n "@PerlCmd@"; then \
+	  for i in $(pscript); \
+	  do \
+	    @PerlCmd@ -npi -e 's|^#!\S+|#!@PerlCmd@|' $(DESTDIR)$(pkgbindir)/$$i ; \
+	  done \
+	fi
