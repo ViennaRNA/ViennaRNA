@@ -1,9 +1,73 @@
 #!/usr/bin/env python
  
-from distutils.core import setup, Extension
 import os
 import sys
+from os.path import abspath, exists
+import shutil
+
+from distutils.sysconfig import get_python_lib
+from distutils.core import setup, Extension
+
+FILES_TO_BE_COPIED = ("__init__.py", "RNA_wrap.c")
  
+def split_args(s):
+    import re
+    return re.split("\s+", s.strip())
+
+def get_root():
+    try:
+        return sys.argv[sys.argv.index("--root") + 1]
+    except ValueError:
+        return ""
+
+def is_system_wide_install():
+    return os.access(get_python_lib(), os.W_OK)
+
+
+def builddir_is_srcdir():
+    return abspath("@top_srcdir@") == abspath("@top_builddir@")
+
+def pre_install():
+    if not is_system_wide_install():
+        sys.argv.extend(["--prefix", "@prefix@"])
+
+def pre_build():
+    if not builddir_is_srcdir():
+        for file in FILES_TO_BE_COPIED:
+            src = "@top_srcdir@/interfaces/Python/" + file
+            dst = "@top_builddir@/interfaces/Python/" + file
+            if not exists(dst):
+                shutil.copy(src, dst)
+
+def pre_clean():
+    if not builddir_is_srcdir():
+        for file in FILES_TO_BE_COPIED:
+            exists(file) and os.remove(file)
+
+
+def uninstall():
+    if is_system_wide_install():
+        prefix = None
+    else:
+        prefix = "@prefix@"
+
+    for file in "preludedb.py", "preludedb.pyc", "_preludedb.so":
+        file = get_root() + "/" + get_python_lib(prefix=prefix) + "/" + file
+        exists(file) and os.remove(file)
+
+    sys.exit(0)
+
+commands = {
+    "install": pre_install,
+    "build": pre_build,
+    "clean": pre_clean,
+    "uninstall": uninstall,
+    }
+
+if len(sys.argv) > 1 and commands.has_key(sys.argv[1]):
+    commands[sys.argv[1]]()
+
+
 old_filename = "RNA.py"
 new_filename = "__init__.py"
 if os.path.exists(old_filename):
@@ -17,9 +81,9 @@ if sys.platform != 'darwin':
  
 extension = Extension("_RNA",
                       ["RNA_wrap.c"],
-                      include_dirs=['../../src'],
+                      include_dirs=['@top_srcdir@/src'],
                       libraries=['RNA'],
-                      library_dirs=['../../src/ViennaRNA'],
+                      library_dirs=['@top_builddir@/src/ViennaRNA'],
                       extra_compile_args=extra_compile_args,
                       extra_link_args=extra_link_args
                       )
@@ -29,7 +93,7 @@ setup(name="RNA",
       description="@PACKAGE_NAME@",
       author="Ivo Hofacker, Institute for Theoretical Chemistry, University of Vienna",
       url="@PACKAGE_URL@",
-      package_dir = {'RNA':'.'},
+      package_dir = {'RNA':'@top_srcdir@/interfaces/Python'},
       packages = ['RNA'],
       ext_modules=[extension],
       )

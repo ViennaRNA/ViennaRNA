@@ -1,24 +1,50 @@
+include ../generic.mk
+
+PERL_MODULE = $(SWIG_module_name).pm
+
+SOURCES = Makefile.PL RNA.pod
+EXTRA_DIST = \
+  $(SWIG_wrapper) \
+  $(PERL_MODULE) \
+  RNAfold.pl \
+  test.pl \
+  RNAfold.cgi \
+  Makefile.PL
+
+AM_CPPFLAGS = -I$(top_srcdir)/src
+
 if WITH_LARGE_PF
   USE_LARGE_PF = -DLARGE_PF
 else
   USE_LARGE_PF =
 endif
 
-SOURCES = Makefile.PL RNA.pod
 
-EXTRA_DIST = RNA.pm RNA_wrap.c RNAfold.pl test.pl RNAfold.cgi Makefile.PL
-AM_CPPFLAGS = -I$(top_srcdir)/src
+##
+## SWIG interface wrapper code generation
+##
 
+$(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
+	$(AM_V_GEN)swig $(INCLUDES) $(USE_LARGE_PF) \
+                  -perl5 -proxy -const \
+                  -module RNA -o $(SWIG_wrapper) \
+                  $(SWIG_main_src)
+
+
+##
+## Perl interface building
+##
+
+Perl_interface: $(SWIG_wrapper) Makefile.perl
+	$(AM_V_GEN)$(MAKE) -f Makefile.perl
 
 Makefile.perl: Makefile.PL Makefile
 	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
 
-# the perl command repairs some errors in the SWIG CVS version
-RNA_wrap.c: ../RNA.i ../tmaps.i
-	$(AM_V_GEN)swig -perl5 -shadow $(USE_LARGE_PF) -I../ RNA.i
 
-Perl_interface: RNA_wrap.c Makefile.perl
-	$(AM_V_GEN)$(MAKE) -f Makefile.perl
+##
+## Misc make rules
+##
 
 all-local: Perl_interface
 	
@@ -34,5 +60,5 @@ mostlyclean-local: Makefile.perl
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -f RNA_wrap.c Makefile.perl.old RNA.pm
+	-rm -f $(SWIG_wrapper) Makefile.perl.old $(PERL_MODULE)
 
