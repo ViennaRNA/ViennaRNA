@@ -24,8 +24,9 @@ endif WITH_REFERENCE_MANUAL_PDF
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_BUILD
 
-dox:  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
+dox: $(pkginclude_HEADERS)
 	$(AM_V_GEN)@doxygen@ @DOXYGEN_CONF@
+	touch dox
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
@@ -85,7 +86,7 @@ EXTRA_DIST = $(pkgdata_DATA) refman.include html latex @REFERENCE_MANUAL_PDF_NAM
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -rf *.tag *.pdf html/ latex/ doxygen.warnings
+	-rm -rf *.pdf html/ latex/ doxygen.warnings dox
 
 distclean-local:
-	-rm -rf *.tag *.pdf html/ latex/ doxygen.warnings
+	-rm -rf *.pdf html/ latex/ doxygen.warnings dox
