@@ -52,6 +52,9 @@ all-local: Perl_interface
 install-exec-local: all-local
 	$(MAKE) -f Makefile.perl install
 
+##uninstall-local: all-local
+##	$(MAKE) -f Makefile.perl uninstall
+
 check-local: all-local
 	$(MAKE) -f Makefile.perl test
 

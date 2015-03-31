@@ -1,5 +1,4 @@
-INCLUDES = \
-  -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/src
 
 SUBDIRS = @PERL_INTERFACE@ @PYTHON_INTERFACE@ # @RUBY_INTERFACE@
 

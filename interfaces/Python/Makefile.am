@@ -41,16 +41,24 @@ Python_interface: $(SWIG_wrapper) setup.py
 all-local: Python_interface
 	
 
-install-exec-local: all-local
-	@PythonCmd@ setup.py install --prefix=$(prefix) --record install.record
+install-exec-hook:
+	@PythonCmd@ setup.py install \
+  `test -n "$(DESTDIR)" && echo --root $(DESTDIR)` \
+  --record install.record
 
-#check-local: all-local
-#	$(MAKE) -f Makefile.perl test
+uninstall-hook:
+	cat install.record \
+  | awk '{print "$(DESTDIR)"$$1}' \
+  | xargs -d\\n rm -vf --
 
+
+distclean-local:
+	-r -f install.record
+  
 mostlyclean-local: 
 	@PythonCmd@ setup.py clean --all
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -f __init__.py RNA_wrap.c
+	-rm -f __init__.py RNA_wrap.c install.record
 

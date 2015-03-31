@@ -51,8 +51,11 @@ def uninstall():
     else:
         prefix = "@prefix@"
 
-    for file in "preludedb.py", "preludedb.pyc", "_preludedb.so":
-        file = get_root() + "/" + get_python_lib(prefix=prefix) + "/" + file
+    for f in "RNA/__init__.py", "RNA/__init__.pyc", "_RNA.so":
+        file = get_root() + "/" + get_python_lib(prefix=prefix) + "/" + f
+        exists(file) and os.remove(file)
+
+        file = get_root() + "/" + get_python_lib(plat_specific=True, prefix=prefix) + "/" + f
         exists(file) and os.remove(file)
 
     sys.exit(0)
