@@ -7,12 +7,7 @@ if WITH_REFERENCE_MANUAL
 ## is going to be installed                         ##
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_HTML
-    REFERENCE_MANUAL_FILES_HTML = html/*
-    docdir_htmldir = $(docdir)/html
-    docdir_html_DATA = $(REFERENCE_MANUAL_FILES_HTML)
-    dist_docdir_htmldir = $(docdir)/html
-    dist_docdir_html_DATA = $(REFERENCE_MANUAL_FILES_HTML)
-
+    REFERENCE_MANUAL_FILES_HTML = html/* 
 endif WITH_REFERENCE_MANUAL_HTML
 
 ##--------------------------------------------------##
@@ -29,22 +24,9 @@ endif WITH_REFERENCE_MANUAL_PDF
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_BUILD
 
-##--------------------------------------------------##
-## the tagfile is used as indicator to decide       ##
-## whether the reference manual should be generated ##
-##--------------------------------------------------##
-  REFERENCE_MANUAL_FILES_TAG = @REFERENCE_MANUAL_TAGFILE@
-
-##--------------------------------------------------##
-## This is the rule how to generate the tagfile     ##
-## and the actual reference manual sources          ##
-##                                                  ##
-## here we need to chdir into the output directory  ##
-## and get the bibtex file since otherwise doxygen  ##
-## would not link the references correctly          ##
-##--------------------------------------------------##
-$(REFERENCE_MANUAL_FILES_TAG):  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
+dox: $(pkginclude_HEADERS)
 	$(AM_V_GEN)@doxygen@ @DOXYGEN_CONF@
+	touch dox
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
@@ -52,7 +34,7 @@ $(REFERENCE_MANUAL_FILES_TAG):  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_HTML
 
-$(REFERENCE_MANUAL_FILES_HTML):  $(REFERENCE_MANUAL_FILES_TAG)
+$(REFERENCE_MANUAL_FILES_HTML): dox
 
 endif WITH_REFERENCE_MANUAL_HTML
 
@@ -62,8 +44,8 @@ endif WITH_REFERENCE_MANUAL_HTML
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_PDF
 
-$(REFERENCE_MANUAL_FILES_PDF): $(REFERENCE_MANUAL_FILES_TAG)
-	$(AM_V_GEN)cd latex; make; mv refman.pdf ../$(REFERENCE_MANUAL_FILES_PDF)
+$(REFERENCE_MANUAL_FILES_PDF): dox
+	$(AM_V_GEN)cd latex; make; mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"
 
 endif WITH_REFERENCE_MANUAL_PDF
 
@@ -74,16 +56,37 @@ endif WITH_REFERENCE_MANUAL_BUILD
 ## files in the distribution archive as well as in  ##
 ## the installation routine                         ##
 ##--------------------------------------------------##
-  doc_DATA = $(REFERENCE_MANUAL_FILES_TAG) $(REFERENCE_MANUAL_FILES_PDF)
-  dist_doc_DATA = $(REFERENCE_MANUAL_FILES_TAG) $(REFERENCE_MANUAL_FILES_PDF)
+  html_DATA = $(REFERENCE_MANUAL_FILES_HTML)
+  pdf_DATA = $(REFERENCE_MANUAL_FILES_PDF)
 
 endif WITH_REFERENCE_MANUAL
 
 
+if WITH_REFERENCE_MANUAL_HTML
 
+vrna_htmlrefman_inst: installdirs html
+	@$(NORMAL_INSTALL)
+	cp -r html/* "$(DESTDIR)$(htmldir)"
 
-EXTRA_DIST = $(pkgdata_DATA) mainpage.h
+vrna_htmlrefman_uninst:
+	@$(NORMAL_UNINSTALL)
+	rm -rf "$(DESTDIR)$(htmldir)"
+
+else
+
+vrna_htmlrefman_inst:
+vrna_htmlrefman_uninst:
+
+endif
+
+install-htmlDATA: vrna_htmlrefman_inst
+uninstall-htmlDATA: vrna_htmlrefman_uninst
+
+EXTRA_DIST = $(pkgdata_DATA) refman.include html latex @REFERENCE_MANUAL_PDF_NAME@
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -f *.tag *.pdf html/ latex/
+	-rm -rf *.pdf html/ latex/ doxygen.warnings dox
+
+distclean-local:
+	-rm -rf *.pdf html/ latex/ doxygen.warnings dox

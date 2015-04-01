@@ -1,0 +1,130 @@
+/*
+#############################################################
+# Provide some order for the modules                        #
+#############################################################
+*/
+
+/**
+ *  @defgroup   folding_routines          RNA Secondary Structure Prediction
+ *  @brief This module contains all functions related to thermodynamic folding of RNAs
+ *
+ *  @defgroup   inverse_fold              Inverse Secondary Structure Prediction
+ *
+ *  @defgroup   eval                      Free Energy Evaluation for given Sequence / Structure Pairs
+ *
+ *  @defgroup   loops                     Processing and Evaluating Decomposed Loops
+ *
+ *  @defgroup   energy_parameters         Energy Parameter Sets and Boltzmann Factors
+ *
+ *  @defgroup   data_structures           Data Structures and Preprocessor Macros
+ *
+ *  @defgroup   utils                     Utilities
+ *
+ *  @defgroup   mfe_fold                  Computing Minimum Free Energy (MFE) Structures
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   pf_fold                   Computing Partition Functions and Pair Probabilities
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   mea_fold                  Compute the structure with maximum expected accuracy (MEA)
+ *  @ingroup    pf_fold
+ *
+ *  @defgroup   centroid_fold             Compute the centroid structure
+ *  @ingroup    pf_fold
+ *
+ *  @defgroup   subopt_fold               Enumerating Suboptimal Structures
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   subopt_zuker              Suboptimal structures according to Zuker et al. 1989
+ *  @ingroup    subopt_fold
+ *
+ *  @defgroup   subopt_wuchty             Suboptimal structures within an energy band arround the MFE
+ *  @ingroup    subopt_fold
+ *
+ *  @defgroup   subopt_stochbt            Stochastic backtracking in the Ensemble
+ *  @ingroup    subopt_fold
+ *
+ *  @defgroup   cofold                    Calculate Secondary Structures of two RNAs upon Dimerization
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   mfe_cofold                MFE Structures of two hybridized Sequences
+ *  @ingroup    cofold mfe_fold
+ *
+ *  @defgroup   pf_cofold                 Partition Function for two hybridized Sequences
+ *  @ingroup    cofold pf_fold
+ *
+ *  @defgroup   up_cofold                 Partition Function for two hybridized Sequences as a stepwise Process
+ *  @ingroup    cofold pf_fold
+ *
+ *  @defgroup   consensus_fold            Predicting Consensus Structures from Alignment(s)
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   consensus_mfe_fold        MFE Consensus Structures for Sequence Alignment(s)
+ *  @ingroup    consensus_fold mfe_fold
+ *
+ *  @defgroup   consensus_pf_fold         Partition Function and Base Pair Probabilities for Sequence Alignment(s)
+ *  @ingroup    consensus_fold pf_fold
+ *
+ *  @defgroup   consensus_stochbt         Stochastic Backtracking of Consensus Structures from Sequence Alignment(s)
+ *  @ingroup    consensus_fold subopt_stochbt
+ *
+ *  @defgroup   local_fold                Predicting Locally stable structures of large sequences
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   local_mfe_fold            Local MFE structure Prediction and Z-scores
+ *  @ingroup    local_fold mfe_fold
+ *
+ *  @defgroup   local_pf_fold             Partition functions for locally stable secondary structures
+ *  @ingroup    local_fold pf_fold
+ *
+ *  @defgroup   local_consensus_fold      Local MFE consensus structures for Sequence Alignments
+ *  @ingroup    local_fold consensus_fold
+ *
+ *  @defgroup   energy_parameters_rw      Reading/Writing Energy Parameter Sets from/to File
+ *  @ingroup    energy_parameters
+ *
+ *  @defgroup   energy_parameters_convert Converting Energy Parameter Files
+ *  @ingroup    energy_parameters_rw
+ *
+ *  @defgroup   class_fold                Classified Dynamic Programming
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   kl_neighborhood           Distance based partitioning of the Secondary Structure Space
+ *  @ingroup    class_fold
+ *
+ *  @defgroup   kl_neighborhood_mfe       Calculating MFE representatives of a Distance Based Partitioning
+ *  @ingroup    kl_neighborhood mfe_fold
+ *
+ *  @defgroup   kl_neighborhood_pf        Calculate Partition Functions of a Distance Based Partitioning
+ *  @ingroup    kl_neighborhood pf_fold
+ *
+ *  @defgroup   kl_neighborhood_stochbt   Stochastic Backtracking of Structures from Distance Based Partitioning
+ *  @ingroup    kl_neighborhood subopt_stochbt
+ *
+ *  @defgroup   dos                       Compute the Density of States
+ *  @ingroup    class_fold
+ *
+ *  @defgroup   constraints               Constraining the Secondary Structure Recursions
+ *  @ingroup    folding_routines
+ *
+ *  @defgroup   hard_constraints          Hard Constraints
+ *  @ingroup    constraints
+ *
+ *  @defgroup   soft_constraints          Soft Constraints
+ *  @ingroup    constraints
+ *
+ *  @defgroup   generalized_sc            Generalized Soft Constraints
+ *  @ingroup    soft_constraints
+ *
+ *  @defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
+ *  @ingroup    data_structures
+ *
+ *  @defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
+ *  @ingroup    utils
+ *
+ *  @defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
+ *  @ingroup    utils
+ *
+ *  @defgroup   plotting_utils            Functions for Creating RNA Secondary Structures Plots, Dot-Plots, and More
+ *  @ingroup    utils
+ */

@@ -1,5 +1,7 @@
 # File : Makefile.PL
 use ExtUtils::MakeMaker;
+use File::Copy;
+use Cwd "abs_path";
 use Config;
 
 # unfortunately MakeMaker thinks it is clever
@@ -24,9 +26,7 @@ $CCFLAGS .= ' ' . $var{CPPFLAGS} if exists $var{CPPFLAGS};
 $CCFLAGS .= ' ' . $var{CXXFLAGS} if exists $var{CXXFLAGS};
 
 # add CXXFLAGS and AM_CXXFLAGS as shell variables
-$CCFLAGS .= ' $(AM_CXXFLAGS) $(CXXFLAGS) -I../../H';
-
-$CCFLAGS .= ' -I../../src';
+$CCFLAGS .= ' $(AM_CXXFLAGS) $(CXXFLAGS) -I@top_srcdir@/src';
 
 # we also need to strip some compiler flags from 'optimize'
 # since architecture features of the host system may interfere
@@ -37,17 +37,28 @@ $OPTIMIZE =~ s/-mtune=[a-zA-Z0-9_\-]+//g;
 # print "CCFLAGS:\t", $CCFLAGS, "\n";
 # print "OPTIMIZE:\t", $OPTIMIZE, "\n";
 
+# copy over source files to builddir for out-of-tree build
+if ( abs_path("@top_srcdir@") ne abs_path("@top_builddir@") ) {
+  print "Out-of-Tree build detected... copying files\n";
+  foreach my $filename ( qw/RNA_wrap.c RNA.pm/ ) {
+    my $src = "@top_srcdir@/interfaces/Perl/$filename";
+    my $dst = "@top_builddir@/interfaces/Perl/$filename";
+    copy($src, $dst) if ( ! -e $dst );
+  }
+}
+
 WriteMakefile(
               MAKEFILE    =>  "Makefile.perl",
               NAME        =>  "RNA",
               LIBS        =>  ["-lm"],
               CCFLAGS     =>  $CCFLAGS,
               OPTIMIZE    =>  $OPTIMIZE,
-              MYEXTLIB    =>  "../../src/ViennaRNA/libRNA.a",
+              MYEXTLIB    =>  "@top_builddir@/src/ViennaRNA/libRNA.a",
               LD          =>  '${CXX}',
-              PM          =>  {"RNA.pm", '$(INST_LIBDIR)/RNA.pm'},
+              PM          =>  {"@srcdir@/RNA.pm" => '$(INST_LIBDIR)/RNA.pm'},
               OBJECT      =>  "RNA_wrap.o",
               dynamic_lib =>  {OTHERLDFLAGS => '$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) @OPENMP_CFLAGS@'},
               AUTHOR      =>  'Ivo Hofacker <ivo@tbi.univie.ac.at>',
               VERSION     =>  '@VERSION@'
 );
+

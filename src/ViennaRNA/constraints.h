@@ -697,7 +697,7 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
  *  This approach of SHAPE directed RNA folding uses the simple linear ansatz
- *  @f[ \Delta\ G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
+ *  @f[ \Delta G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
  *  to convert SHAPE reactivity values to pseudo energies whenever a
  *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
  *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
@@ -748,7 +748,7 @@ int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
  *
  *  This method first converts the observed SHAPE reactivity of nucleotide @f$ i @f$ into a
  *  probability @f$ q_i @f$ that position @f$ i @f$ is unpaired by means of a non-linear map.
- *  Then pseudo-energies of the form @f[ \Delta\ G_{\text{SHAPE}}(x,i) = \beta\ |x_i - q_i| @f]
+ *  Then pseudo-energies of the form @f[ \Delta G_{\text{SHAPE}}(x,i) = \beta\ |x_i - q_i| @f]
  *  are computed, where @f$ x_i=0 @f$ if position @f$ i @f$ is unpaired and @f$ x_i=1 @f$
  *  if @f$ i @f$ is paired in a given secondary structure. The parameter @f$ \beta @f$ serves as
  *  scaling factor. The magnitude of discrepancy between prediction and experimental observation
