@@ -38,9 +38,26 @@ $(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
 Perl_interface: $(SWIG_wrapper) Makefile.perl
 	$(AM_V_GEN)$(MAKE) -f Makefile.perl
 
+
+
+#
+# MAD HACK #1
+#
+# Create Makefile.perl via Perls MakeMaker and patch its uninstall
+# targets such that files in prefixed install targets are reported
+# by the uninstall target too
+#
 Makefile.perl: Makefile.PL Makefile
 	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
-
+	$(SED) -i \
+  's#$$(NOECHO) $$(UNINSTALL) $$(PERL_ARCHLIB)/auto/$$(FULLEXT)/.packlist#$$(NOECHO) $$(UNINSTALL) $$(DESTINSTALLARCHLIB)/auto/$$(FULLEXT)/.packlist#g' \
+  Makefile.perl
+	$(SED) -i \
+  's#$$(NOECHO) $$(UNINSTALL) $$(SITEARCHEXP)/auto/$$(FULLEXT)/.packlist#$$(NOECHO) $$(UNINSTALL) $$(DESTINSTALLSITEARCH)/auto/$$(FULLEXT)/.packlist#g' \
+  Makefile.perl
+	$(SED) -i \
+  's#$$(NOECHO) $$(UNINSTALL) $$(VENDORARCHEXP)/auto/$$(FULLEXT)/.packlist#$$(NOECHO) $$(UNINSTALL) $$(DESTINSTALLVENDORARCH)/auto/$$(FULLEXT)/.packlist#g' \
+  Makefile.perl
 
 ##
 ## Misc make rules
@@ -50,10 +67,15 @@ all-local: Perl_interface
 	
 
 install-exec-local: all-local
-	$(MAKE) -f Makefile.perl install
+	$(MAKE) -f Makefile.perl pure_install
 
-##uninstall-local: all-local
-##	$(MAKE) -f Makefile.perl uninstall
+#
+# MAD HACK #2
+# Perform actual uninstall for files that won't get uninstalled but
+# only reported by MakeMakers original uninstall target
+#
+uninstall-local:
+	`$(MAKE) -f Makefile.perl uninstall | $(GREP) unlink | $(SED) -e 's#unlink#rm -f#'`
 
 check-local: all-local
 	$(MAKE) -f Makefile.perl test
@@ -65,3 +87,5 @@ mostlyclean-local: Makefile.perl
 maintainer-clean-local:
 	-rm -f $(SWIG_wrapper) Makefile.perl.old $(PERL_MODULE)
 
+distclean-local:
+	-rm -f $(SWIG_wrapper) Makefile.perl.old $(PERL_MODULE)

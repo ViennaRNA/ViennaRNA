@@ -53,7 +53,7 @@ uninstall-hook:
 
 
 distclean-local:
-	-r -f install.record
+	-rm -f install.record
   
 mostlyclean-local: 
 	@PythonCmd@ setup.py clean --all
