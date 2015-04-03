@@ -684,6 +684,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing;
   FLT_OR_DBL  *q, *qb, *qm, *qm1, *G, *probs, *scale, *expMLbase;
+  FLT_OR_DBL  *q1k, *qln;
   FLT_OR_DBL  qo;
 
   char              *ptype;
@@ -723,6 +724,8 @@ pf_create_bppm( vrna_fold_compound *vc,
   qm1               = matrices->qm1;
   G                 = matrices->G;
   probs             = matrices->probs;
+  q1k               = matrices->q1k;
+  qln               = matrices->qln;
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
   qo                = matrices->qo;
@@ -745,8 +748,6 @@ pf_create_bppm( vrna_fold_compound *vc,
     rtype         = &(pf_params->model_details.rtype[0]);
     n             = S[0];
 
-    FLT_OR_DBL *q1k    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
-    FLT_OR_DBL *qln    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -1170,8 +1171,6 @@ pf_create_bppm( vrna_fold_compound *vc,
         ov, pf_params->pf_scale);
 
     /* clean up */
-    free(q1k);
-    free(qln);
     free(prm_l);
     free(prm_l1);
     free(prml);
