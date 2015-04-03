@@ -631,6 +631,7 @@ int main(int argc, char *argv[]){
 
     structure = (char *) vrna_alloc(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
+
     /* begin actual computations */
     update_fold_params();
 
