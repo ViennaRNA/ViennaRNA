@@ -370,9 +370,9 @@ hc_add_up(vrna_fold_compound *vc,
     /* do not allow i to be paired with any other nucleotide (in context type) */
     if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
       for(j = 1; j < i; j++)
-        vc->hc->matrix[vc->jindx[i] + j] = ~type;
+        vc->hc->matrix[vc->jindx[i] + j] &= ~type;
       for(j = i+1; j <= vc->length; j++)
-        vc->hc->matrix[vc->jindx[j] + i] = ~type;
+        vc->hc->matrix[vc->jindx[j] + i] &= ~type;
     }
 
     vc->hc->matrix[vc->jindx[i] + i] = (char)(  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
@@ -403,9 +403,9 @@ vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
       t1    = (d <= 0) ? type : (char)0;
       t2    = (d >= 0) ? type : (char)0;
       for(p = 1; p < i; p++)
-        vc->hc->matrix[vc->jindx[i] + p] = t1;
+        vc->hc->matrix[vc->jindx[i] + p] &= t1;
       for(p = i+1; p <= vc->length; p++)
-        vc->hc->matrix[vc->jindx[p] + i] = t2;
+        vc->hc->matrix[vc->jindx[p] + i] &= t2;
 
       vc->hc->matrix[vc->jindx[i] + i] = (char)0;
 
@@ -430,6 +430,7 @@ vrna_hc_add_bp( vrna_fold_compound *vc,
         return;
       }
 
+      /* reset ptype in case (i,j) is a non-canonical pair */
       if(option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
         if(vc->hc->matrix[vc->jindx[j] + i])
           if(vc->ptype[vc->jindx[j] + i] == 0)
