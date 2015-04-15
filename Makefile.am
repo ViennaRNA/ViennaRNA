@@ -1,4 +1,4 @@
-AM_DISTCHECK_CONFIGURE_FLAGS = --with-cluster --with-python --with-check
+AM_DISTCHECK_CONFIGURE_FLAGS = --with-cluster --with-check
 
 SUBDIRS = src man misc doc interfaces @subdirs@ @CHECK_DIR@
 

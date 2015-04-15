@@ -267,9 +267,9 @@ AC_RNA_ADD_PACKAGE( [perl],
                     [${srcdir}/interfaces/Perl/Makefile.am])
 AC_RNA_ADD_PACKAGE( [python],
                     [Python interface],
-                    [no],
-                    [with_python=yes],
+                    [yes],
                     [with_python=no],
+                    [with_python=yes],
                     [${srcdir}/interfaces/Python/Makefile.am])
 AC_RNA_ADD_PACKAGE( [ruby],
                     [Ruby interface],
