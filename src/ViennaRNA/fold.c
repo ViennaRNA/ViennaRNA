@@ -860,6 +860,16 @@ backtrack(vrna_fold_compound *vc,
           if (traced) {
             bp_stack[++b].i = p;
             bp_stack[b].j   = q;
+            if(sc)
+              if(sc->bt){
+                PAIR *ptr, *aux_bps;
+                aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+                for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+                  bp_stack[++b].i = ptr->i;
+                  bp_stack[b].j   = ptr->j;
+                }
+                free(aux_bps);
+              }
             i = p, j = q;
             goto repeat1;
           }
