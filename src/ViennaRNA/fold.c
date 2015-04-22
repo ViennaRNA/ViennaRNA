@@ -813,8 +813,19 @@ backtrack(vrna_fold_compound *vc,
     } else {
       en = vrna_E_hp_loop(vc, i, j);
 
-      if (cij == en)
+      if (cij == en){
+        if(sc)
+          if(sc->bt){
+            PAIR *ptr, *aux_bps;
+            aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_HP, sc->data);
+            for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+              bp_stack[++b].i = ptr->i;
+              bp_stack[b].j   = ptr->j;
+            }
+            free(aux_bps);
+          }
         continue;
+      }
     }
 
     if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
@@ -835,27 +846,17 @@ backtrack(vrna_fold_compound *vc,
             if (no_close||(type_2==3)||(type_2==4))
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                              S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-
+          energy = ubf_eval_int_loop( i, j, p, q,
+                                      p-i-1, j-q-1,
+                                      S1[i+1], S1[j-1], S1[p-1], S1[q+1],
+                                      type, type_2,
+                                      rtype,
+                                      ij,
+                                      -1,
+                                      P,
+                                      sc);
           new = energy+my_c[indx[q]+p];
-          if(sc){
-            if(sc->free_energies)
-              new +=  sc->free_energies[i+1][p-i-1]
-                      + sc->free_energies[q+1][j-q-1];
 
-            if(sc->en_basepair)
-              new += sc->en_basepair[ij];
-
-            if(sc->en_stack)
-              if((p == i+1) && (q == j-1))
-                new +=    sc->en_stack[i]
-                        + sc->en_stack[p]
-                        + sc->en_stack[q]
-                        + sc->en_stack[j];
-            if(sc->f)
-              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-          }
           traced = (cij == new);
           if (traced) {
             bp_stack[++b].i = p;
@@ -1069,40 +1070,6 @@ backtrack(vrna_fold_compound *vc,
   bp_stack[0].i = b;    /* save the total number of base pairs */
 }
 
-PUBLIC char *
-backtrack_fold_from_pair( char *sequence,
-                          int i,
-                          int j){
-
-  char          *structure  = NULL;
-  unsigned int  length      = 0;
-  bondT         *bp         = NULL;
-  sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-
-  if(sequence){
-    length = strlen(sequence);
-    structure = (char *) vrna_alloc((length + 1)*sizeof(char));
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
-  } else {
-    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
-  }
-
-  bt_stack[1].i  = i;
-  bt_stack[1].j  = j;
-  bt_stack[1].ml = 2;
-
-  bp[0].i = 0; /* ??? this is set by backtrack anyway... */
-
-  backtrack(backward_compat_compound, bp, bt_stack, 1);
-  vrna_parenthesis_structure(structure, bp, length);
-
-  /* backward compatibitlity stuff */
-  if(base_pair) free(base_pair);
-  base_pair = bp;
-
-  return structure;
-}
-
 /*---------------------------------------------------------------------------*/
 
 
@@ -1143,6 +1110,8 @@ vrna_update_fold_params(vrna_fold_compound *vc,
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 PUBLIC void
 free_arrays(void){
@@ -1255,6 +1224,40 @@ export_circfold_arrays_par( int *Fc_p,
   wrap_array_export(f5_p,c_p,fML_p,fM1_p,indx_p,ptype_p);
   wrap_array_export_circ(Fc_p,FcH_p,FcI_p,FcM_p,fM2_p);
   if(backward_compat_compound) *P_p  = backward_compat_compound->params;
+}
+
+PUBLIC char *
+backtrack_fold_from_pair( char *sequence,
+                          int i,
+                          int j){
+
+  char          *structure  = NULL;
+  unsigned int  length      = 0;
+  bondT         *bp         = NULL;
+  sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+
+  if(sequence){
+    length = strlen(sequence);
+    structure = (char *) vrna_alloc((length + 1)*sizeof(char));
+    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
+  } else {
+    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
+  }
+
+  bt_stack[1].i  = i;
+  bt_stack[1].j  = j;
+  bt_stack[1].ml = 2;
+
+  bp[0].i = 0; /* ??? this is set by backtrack anyway... */
+
+  backtrack(backward_compat_compound, bp, bt_stack, 1);
+  vrna_parenthesis_structure(structure, bp, length);
+
+  /* backward compatibitlity stuff */
+  if(base_pair) free(base_pair);
+  base_pair = bp;
+
+  return structure;
 }
 
 #define STACK_BULGE1      1       /* stacking energies for bulges of size 1 */
@@ -1412,3 +1415,4 @@ PUBLIC int LoopEnergy(int n1, int n2, int type, int type_2,
   return energy;
 }
 
+#endif

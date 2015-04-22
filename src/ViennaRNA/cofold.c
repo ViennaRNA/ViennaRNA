@@ -882,7 +882,8 @@ backtrack_co( sect bt_stack[],
       if (cij == my_c[ij]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
-        if((hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
+        if(     (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+            &&  (hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
           type_2 = ptype[indx[j-1]+i+1];
           type_2 = rtype[type_2];
           cij -= P->stack[type][type_2];
@@ -910,7 +911,19 @@ backtrack_co( sect bt_stack[],
       if (cij == FORBIDDEN) continue;
     } else {
       energy = vrna_E_hp_loop(vc, i, j);
-      if (cij == energy) continue;
+      if (cij == energy){
+        if(sc)
+          if(sc->bt){
+            PAIR *ptr, *aux_bps;
+            aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_HP, sc->data);
+            for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+              bp_list[++b].i = ptr->i;
+              bp_list[b].j   = ptr->j;
+            }
+            free(aux_bps);
+          }
+        continue;
+      }
     }
 
     if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -937,38 +950,31 @@ backtrack_co( sect bt_stack[],
             if (no_close||(type_2==3)||(type_2==4))
               if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-          /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-          if (ON_SAME_STRAND(i,p,cp) && ON_SAME_STRAND(q,j,cp))
-            energy = E_IntLoop(p-i-1, j-q-1, type, type_2,
-                                S1[i+1], S1[j-1], S1[p-1], S1[q+1], P);
-          else {
-            energy = E_IntLoop_Co(rtype[type], rtype[type_2], i, j, p, q, cp, S1[i+1], S1[j-1], S1[p-1], S1[q+1], dangle_model, P);
-          }
-
+          energy = ubf_eval_int_loop( i, j, p, q,
+                                      p-i-1, j-q-1,
+                                      S1[i+1], S1[j-1], S1[p-1], S1[q+1],
+                                      type, type_2,
+                                      rtype,
+                                      ij,
+                                      cp,
+                                      P,
+                                      sc);
           new = energy+my_c[indx[q]+p];
-          if(sc){
-            if(sc->free_energies)
-              new +=  sc->free_energies[i+1][p-i-1]
-                      + sc->free_energies[q+1][j-q-1];
-
-            if(sc->en_basepair)
-              new += sc->en_basepair[ij];
-
-            if(sc->en_stack)
-              if((p == i+1) && (q == j-1))
-                new +=    sc->en_stack[i]
-                        + sc->en_stack[p]
-                        + sc->en_stack[q]
-                        + sc->en_stack[j];
-
-            if(sc->f)
-              new += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-          }
 
           traced = (cij == new);
           if (traced) {
             bp_list[++b].i = p;
             bp_list[b].j   = q;
+            if(sc)
+              if(sc->bt){
+                PAIR *ptr, *aux_bps;
+                aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+                for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+                  bp_list[++b].i = ptr->i;
+                  bp_list[b].j   = ptr->j;
+                }
+                free(aux_bps);
+              }
             i = p, j = q;
             goto repeat1;
           }
@@ -1643,6 +1649,8 @@ vrna_cut_point_remove(const char *string,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 PUBLIC void
 initialize_cofold(int length){ /* DO NOTHING */ }
 
@@ -1761,3 +1769,4 @@ PUBLIC void get_monomere_mfes(float *e1, float *e2) {
   *e2 = mfe2;
 }
 
+#endif
