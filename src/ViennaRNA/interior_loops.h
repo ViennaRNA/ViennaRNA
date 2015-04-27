@@ -680,6 +680,163 @@ E_IntLoop_Co( int type,
   return energy;
 }
 
+
+/**
+ *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_stack(vrna_fold_compound *vc,
+              int *i,
+              int *j,
+              int *en,
+              bondT *bp_stack,
+              int *stack_count){
+
+  int           ij, *idx, *my_c, *rtype;
+  char          *ptype;
+  unsigned char type, type_2;
+
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  idx         = vc->jindx;
+  P           = vc->params;
+  md          = &(P->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  my_c        = vc->matrices->c;
+  ij          = idx[*j] + *i;
+  ptype       = vc->ptype;
+  type        = (unsigned char)ptype[ij];
+  rtype       = &(md->rtype[0]);
+
+  if(my_c[ij] == *en){ /*  always true, if (i.j) closes canonical structure,
+                          thus (i+1.j-1) must be a pair
+                      */
+    if(     (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+        &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
+      type_2 = ptype[idx[*j - 1] + *i + 1];
+      type_2 = rtype[type_2];
+      *en -= P->stack[type][type_2];
+      if(sc){
+        if(sc->en_basepair)
+          *en -= sc->en_basepair[ij];
+        if(sc->en_stack)
+          *en -=    sc->en_stack[*i]
+                  + sc->en_stack[*i + 1]
+                  + sc->en_stack[*j - 1]
+                  + sc->en_stack[*j];
+        if(sc->f)
+          *en -= sc->f(*i, *j, *i + 1, *j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
+      }
+      bp_stack[++(*stack_count)].i = *i + 1;
+      bp_stack[(*stack_count)].j   = *j - 1;
+      (*i)++;
+      (*j)--;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_int_loop( vrna_fold_compound *vc,
+                  int *i,
+                  int *j,
+                  int en,
+                  bondT *bp_stack,
+                  int *stack_count){
+
+  int           ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;
+  unsigned char type, type_2;
+  char          *ptype;
+  short         *S1;
+
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  idx         = vc->jindx;
+  P           = vc->params;
+  md          = &(P->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  my_c        = vc->matrices->c;
+  turn        = md->min_loop_size;
+  ij          = idx[*j] + *i;
+  ptype       = vc->ptype;
+  type        = (unsigned char)ptype[ij];
+  rtype       = &(md->rtype[0]);
+  S1          = vc->sequence_encoding;
+  noGUclosure = md->noGUclosure;
+  no_close    = (((type==3)||(type==4))&&noGUclosure);
+
+  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+    for (p = *i+1; p <= MIN2(*j-2-turn,*i+MAXLOOP+1); p++) {
+      minq = *j-*i+p-MAXLOOP-2;
+      if (minq<p+1+turn)
+        minq = p+1+turn;
+
+      if(hc->up_int[*i+1] < (p - *i - 1))
+        break;
+
+      for (q = *j-1; q >= minq; q--) {
+        if(hc->up_int[q+1] < (*j - q - 1))
+          break;
+
+        type_2 = (unsigned char)ptype[idx[q]+p];
+
+        if(!(hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
+          continue;
+
+        type_2 = rtype[type_2];
+
+        if(noGUclosure)
+          if(no_close||(type_2==3)||(type_2==4))
+            if((p>*i+1)||(q<*j-1))
+              continue;  /* continue unless stack */
+
+        energy = ubf_eval_int_loop( *i, *j, p, q,
+                                    p-*i-1, *j-q-1,
+                                    S1[*i+1], S1[*j-1], S1[p-1], S1[q+1],
+                                    type, type_2,
+                                    rtype,
+                                    ij,
+                                    -1,
+                                    P,
+                                    sc);
+        new = energy + my_c[idx[q]+p];
+
+        if(new == en){
+          bp_stack[++(*stack_count)].i = p;
+          bp_stack[(*stack_count)].j   = q;
+          if(sc)
+            if(sc->bt){
+              PAIR *ptr, *aux_bps;
+              aux_bps = sc->bt(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+              for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+                bp_stack[++(*stack_count)].i = ptr->i;
+                bp_stack[(*stack_count)].j   = ptr->j;
+              }
+              free(aux_bps);
+            }
+          *i = p, *j = q;
+          return 1; /* success */
+        }
+      }
+    }
+  return 0; /* unsuccessful */
+}
+
 /**
  * @}
  */

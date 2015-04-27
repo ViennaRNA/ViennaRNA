@@ -85,12 +85,13 @@ INLINE  PRIVATE int E_Hairpin(int size,
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Hairpin-loop
  */
-INLINE  PRIVATE double exp_E_Hairpin( int u,
-                                      int type,
-                                      short si1,
-                                      short sj1,
-                                      const char *string,
-                                      vrna_exp_param_t *P);
+INLINE  PRIVATE double
+exp_E_Hairpin(  int u,
+                int type,
+                short si1,
+                short sj1,
+                const char *string,
+                vrna_exp_param_t *P);
 
 
 INLINE PRIVATE int
@@ -479,6 +480,42 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
     }
   }
   return q;
+}
+
+/**
+ *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_hp_loop(vrna_fold_compound *vc,
+                int i,
+                int j,
+                int en,
+                bondT *bp_stack,
+                int   *stack_count){
+
+  int e, ret;
+  vrna_sc_t *sc;
+
+  ret = 0;
+  sc  = vc->sc;
+  e   = vrna_E_hp_loop(vc, i, j);
+
+  if(e == en){
+    if(sc)
+      if(sc->bt){
+        PAIR *ptr, *aux_bps;
+        aux_bps = sc->bt(i, j, -1, -1, VRNA_DECOMP_PAIR_HP, sc->data);
+        for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+          bp_stack[++(*stack_count)].i = ptr->i;
+          bp_stack[(*stack_count)].j   = ptr->j;
+        }
+        free(aux_bps);
+      }
+    ret = 1;
+  }
+
+  return ret;
 }
 
 /**

@@ -875,34 +875,18 @@ backtrack_co( sect bt_stack[],
 
     /*----- begin of "repeat:" -----*/
     ij = indx[j]+i;
-    if (canonical)  cij = my_c[ij];
+
+    if (canonical)
+      cij = my_c[ij];
+
     type = ptype[ij];
 
     if (noLP)
-      if (cij == my_c[ij]) {
-        /* (i.j) closes canonical structures, thus
-           (i+1.j-1) must be a pair                */
-        if(     (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
-            &&  (hard_constraints[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
-          type_2 = ptype[indx[j-1]+i+1];
-          type_2 = rtype[type_2];
-          cij -= P->stack[type][type_2];
-          if(sc){
-            if(sc->en_basepair)
-              cij -= sc->en_basepair[ij];
-            if(sc->en_stack)
-              cij -=    sc->en_stack[i]
-                      + sc->en_stack[i+1]
-                      + sc->en_stack[j-1]
-                      + sc->en_stack[j];
-          }
-          bp_list[++b].i = i+1;
-          bp_list[b].j   = j-1;
-          i++; j--;
-          canonical=0;
-          goto repeat1;
-        }
+      if(vrna_BT_stack(vc, &i, &j, &cij, bp_list, &b)){
+        canonical = 0;
+        goto repeat1;
       }
+
     canonical = 1;
 
 
@@ -910,77 +894,13 @@ backtrack_co( sect bt_stack[],
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else {
-      energy = vrna_E_hp_loop(vc, i, j);
-      if (cij == energy){
-        if(sc)
-          if(sc->bt){
-            PAIR *ptr, *aux_bps;
-            aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_HP, sc->data);
-            for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
-              bp_list[++b].i = ptr->i;
-              bp_list[b].j   = ptr->j;
-            }
-            free(aux_bps);
-          }
+      if(vrna_BT_hp_loop(vc, i, j, cij, bp_list, &b))
         continue;
-      }
     }
 
-    if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
-      for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1); p++) {
-        int minq;
+    if(vrna_BT_int_loop(vc, &i, &j, cij, bp_list, &b))
+      goto repeat1;
 
-        if(hc->up_int[i+1] < (p - i - 1))
-          continue;
-
-        minq = j-i+p-MAXLOOP-2;
-        if (minq<p+1+turn) minq = p+1+turn;
-        for (q = j-1; q >= minq; q--) {
-
-          if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
-            continue;
-
-          if(hc->up_int[q+1] < (j - q - 1))
-            continue;
-
-          type_2 = ptype[indx[q]+p];
-          type_2 = rtype[type_2];
-
-          if (noGUclosure)
-            if (no_close||(type_2==3)||(type_2==4))
-              if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
-
-          energy = ubf_eval_int_loop( i, j, p, q,
-                                      p-i-1, j-q-1,
-                                      S1[i+1], S1[j-1], S1[p-1], S1[q+1],
-                                      type, type_2,
-                                      rtype,
-                                      ij,
-                                      cp,
-                                      P,
-                                      sc);
-          new = energy+my_c[indx[q]+p];
-
-          traced = (cij == new);
-          if (traced) {
-            bp_list[++b].i = p;
-            bp_list[b].j   = q;
-            if(sc)
-              if(sc->bt){
-                PAIR *ptr, *aux_bps;
-                aux_bps = sc->bt(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-                for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
-                  bp_list[++b].i = ptr->i;
-                  bp_list[b].j   = ptr->j;
-                }
-                free(aux_bps);
-              }
-            i = p, j = q;
-            goto repeat1;
-          }
-        }
-      }
-    }
     /* end of repeat: --------------------------------------------------*/
 
     /* (i.j) must close a fake or true multi-loop */
