@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/energy_par.h>
+#include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/gquad.h>
@@ -261,9 +262,9 @@ ubf_eval_ext_int_loop(int i,
 }
 
 INLINE PRIVATE int
-E_int_loop( int i,
-            int j,
-            vrna_fold_compound *vc){
+vrna_E_int_loop(vrna_fold_compound *vc,
+                int i,
+                int j){
 
   int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, *rtype, noGUclosure, no_close, energy;
   short *S_p1, *S_q1;
@@ -437,9 +438,9 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
 
 
 INLINE PRIVATE int
-E_stack(int i,
-        int j,
-        vrna_fold_compound *vc){
+vrna_E_stack( vrna_fold_compound *vc,
+              int i,
+              int j){
 
   int e, ij, pq, p, q;
   unsigned char type, type_2;
@@ -755,16 +756,17 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
                   bondT *bp_stack,
                   int *stack_count){
 
-  int           ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;
+  int           cp, ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;
   unsigned char type, type_2;
   char          *ptype;
-  short         *S1;
+  short         *S1, *S;
 
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
+  cp          = vc->cutpoint;
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
@@ -777,6 +779,7 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
   type        = (unsigned char)ptype[ij];
   rtype       = &(md->rtype[0]);
   S1          = vc->sequence_encoding;
+  S           = vc->sequence_encoding2;
   noGUclosure = md->noGUclosure;
   no_close    = (((type==3)||(type==4))&&noGUclosure);
 
@@ -834,6 +837,22 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
         }
       }
     }
+
+  /* is it a g-quadruplex? */
+  if(md->gquad){
+    /*
+      The case that is handled here actually resembles something like
+      an interior loop where the enclosing base pair is of regular
+      kind and the enclosed pair is not a canonical one but a g-quadruplex
+      that should then be decomposed further...
+    */
+    if((*i > cp) || (*j < cp))
+      if(vrna_BT_gquad_int(vc, *i, *j, en, bp_stack, stack_count)){
+        *i = *j = -1; /* tell the calling block to continue backtracking with next block */
+        return 1;
+      }
+  }
+  
   return 0; /* unsuccessful */
 }
 

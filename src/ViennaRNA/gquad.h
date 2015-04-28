@@ -143,7 +143,172 @@ int         get_gquad_layer_count(short *S,
  */
 int         parse_gquad(const char *struc, int *L, int l[3]);
 
+INLINE  PRIVATE int backtrack_GQuad_IntLoop(int c,
+                                            int i,
+                                            int j,
+                                            int type,
+                                            short *S,
+                                            int *ggg,
+                                            int *index,
+                                            int *p,
+                                            int *q,
+                                            vrna_param_t *P);
 
+INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
+                                              int i,
+                                              int j,
+                                              int type,
+                                              short *S,
+                                              int **ggg,
+                                              int maxdist,
+                                              int *p,
+                                              int *q,
+                                              vrna_param_t *P);
+
+INLINE PRIVATE int
+vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+                  int i,
+                  int j,
+                  bondT *bp_stack,
+                  int *stack_count);
+
+INLINE PRIVATE int
+vrna_BT_gquad_int(vrna_fold_compound *vc,
+                  int i,
+                  int j,
+                  int en,
+                  bondT *bp_stack,
+                  int *stack_count);
+
+INLINE PRIVATE int
+vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+                  int i,
+                  int j,
+                  bondT *bp_stack,
+                  int *stack_count){
+
+  /*
+    here we do some fancy stuff to backtrace the stacksize and linker lengths
+    of the g-quadruplex that should reside within position i,j
+  */
+  short         *S;
+  int           l[3], L, a;
+  vrna_param_t  *P;
+
+  P = vc->params;
+  S = vc->sequence_encoding2;
+  L = -1;
+
+  get_gquad_pattern_mfe(S, i, j, P, &L, l);
+
+  if(L != -1){
+    /* fill the G's of the quadruplex into base_pair2 */
+    for(a=0;a<L;a++){
+      bp_stack[++(*stack_count)].i = i+a;
+      bp_stack[(*stack_count)].j   = i+a;
+      bp_stack[++(*stack_count)].i = i+L+l[0]+a;
+      bp_stack[(*stack_count)].j   = i+L+l[0]+a;
+      bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+a;
+      bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+a;
+      bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+      bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+    }
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+INLINE PRIVATE int
+vrna_BT_gquad_int(vrna_fold_compound *vc,
+                  int i,
+                  int j,
+                  int en,
+                  bondT *bp_stack,
+                  int *stack_count){
+
+  int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *rtype, *ggg;
+  unsigned char type;
+  char          *ptype;
+  short         si, sj, *S, *S1;
+
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  idx         = vc->jindx;
+  ij          = idx[j] + i;
+  P           = vc->params;
+  md          = &(P->model_details);
+  ptype       = vc->ptype;
+  rtype       = &(md->rtype[0]);
+  type        = rtype[(unsigned char)ptype[ij]];
+  S1          = vc->sequence_encoding;
+  S           = vc->sequence_encoding2;
+  dangles     = md->dangles;
+  si          = S1[i + 1];
+  sj          = S1[j - 1];
+  ggg         = vc->matrices->ggg;
+  energy      = 0;
+
+  if(dangles == 2)
+    energy += P->mismatchI[type][si][sj];
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  p = i + 1;
+  if(S1[p] == 3){
+    if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+      minl  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minl  = MAX2(c0, minl);
+      c0    = j - 3;
+      maxl  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxl  = MIN2(c0, maxl);
+      for(q = minl; q < maxl; q++){
+        if(S[q] != 3) continue;
+        if(en == energy + ggg[idx[q] + p] + P->internal_loop[j - q - 1]){
+          return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+        }
+      }
+    }
+  }
+
+  for(p = i + 2;
+      p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+      p++){
+    l1    = p - i - 1;
+    if(l1>MAXLOOP) break;
+    if(S1[p] != 3) continue;
+    minl  = j - i + p - MAXLOOP - 2;
+    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minl  = MAX2(c0, minl);
+    c0    = j - 1;
+    maxl  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxl  = MIN2(c0, maxl);
+    for(q = minl; q < maxl; q++){
+      if(S1[q] != 3) continue;
+      if(en == energy + ggg[idx[q] + p] + P->internal_loop[l1 + j - q - 1]){
+        return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+      }
+    }
+  }
+
+  q = j - 1;
+  if(S1[q] == 3)
+    for(p = i + 4;
+        p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+        p++){
+      l1    = p - i - 1;
+      if(l1>MAXLOOP) break;
+      if(S1[p] != 3) continue;
+      if(en == energy + ggg[idx[q] + p] + P->internal_loop[l1]){
+        return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+      }
+    }
+
+  return 0;
+}
 
 /**
  *  backtrack an interior loop like enclosed g-quadruplex

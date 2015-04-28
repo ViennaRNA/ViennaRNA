@@ -555,6 +555,189 @@ exp_E_MLstem( int type,
   return energy;
 }
 
+INLINE PRIVATE int
+vrna_BT_mb_loop(vrna_fold_compound *vc,
+                int *i,
+                int *j,
+                int *k,
+                int en,
+                int *component1,
+                int *component2){
+
+  int ij, p, q, r, e, cp, *idx, turn, dangle_model, *my_c, *my_fML, *rtype;
+  unsigned char type, type_2;
+  char          *ptype;
+  short         s5, s3, *S1;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  cp            = vc->cutpoint;
+  idx           = vc->jindx;
+  ij            = idx[*j] + *i;
+  S1            = vc->sequence_encoding;
+  P             = vc->params;
+  md            = &(P->model_details);
+  hc            = vc->hc;
+  sc            = vc->sc;
+  my_c          = vc->matrices->c;
+  my_fML        = vc->matrices->fML;
+  turn          = md->min_loop_size;
+  ptype         = vc->ptype;
+  rtype         = &(md->rtype[0]);
+  type          = (unsigned char)ptype[ij];
+  type          = rtype[type];
+  dangle_model  = md->dangles;
+
+  p = *i + 1;
+  q = *j - 1;
+
+  r = q - turn - 1;
+
+  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+
+    *component1 = *component2 = 1;  /* both components are MB loop parts by default */
+
+    s5 = ((*j - 1 > cp) || (*j < cp)) ? S1[q] : -1;
+    s3 = ((*i > cp) || (*i + 1 < cp)) ? S1[p] : -1;
+                
+    switch(dangle_model){
+      case 0:   e = en - E_MLstem(type, -1, -1, P) - P->MLclosing;
+                if(sc){
+                  if(sc->en_basepair)
+                    e -= sc->en_basepair[ij];
+                }
+                for(r = *i + 2 + turn; r < *j - 2 - turn; ++r){
+                  if(e == my_fML[idx[r] + p] + my_fML[idx[q] + r + 1])
+                    break;
+                }
+                break;
+
+      case 2:   e = en - E_MLstem(type, s5, s3, P) - P->MLclosing;
+                if(sc){
+                  if(sc->en_basepair)
+                    e -= sc->en_basepair[ij];
+                }
+                for(r = p + turn + 1; r < q - turn - 1; ++r){
+                    if(e == my_fML[idx[r] + p] + my_fML[idx[q] + r + 1])
+                      break;
+                }
+                break;
+
+      default:  e = en - P->MLclosing;
+                if(sc){
+                  if(sc->en_basepair)
+                    e -= sc->en_basepair[ij];
+                }
+                for(r = p + turn + 1; r < q - turn - 1; ++r){
+                  if(e == my_fML[idx[r] + p] + my_fML[idx[q] + r + 1] + E_MLstem(type, s5, s3, P)){
+                    break;
+                  }
+                  if(hc->up_ml[p]){
+                    int tmp_en = e;
+                    if(sc)
+                      if(sc->free_energies)
+                        tmp_en -= sc->free_energies[p][1];
+
+                    if(tmp_en == my_fML[idx[r] + p + 1] + my_fML[idx[q] + r + 1] + E_MLstem(type, -1, s3, P) + P->MLbase){
+                      p += 1;
+                      break;
+                    }
+                  }
+                  if(hc->up_ml[q]){
+                    int tmp_en = e;
+                    if(sc)
+                      if(sc->free_energies)
+                        tmp_en -= sc->free_energies[q][1];
+
+                    if(tmp_en == my_fML[idx[r] + p] + my_fML[idx[q - 1] + r + 1] + E_MLstem(type, s5, -1, P) + P->MLbase){
+                      q -= 1;
+                      break;
+                    }
+                  }
+                  if((hc->up_ml[p]) && (hc->up_ml[q])){
+                    int tmp_en = e;
+                    if(sc)
+                      if(sc->free_energies)
+                        tmp_en -= sc->free_energies[p][1] + sc->free_energies[q][1];
+
+                    if(tmp_en == my_fML[idx[r] + p + 1] + my_fML[idx[q - 1] + r + 1] + E_MLstem(type, s5, s3, P) + 2 * P->MLbase){
+                      p += 1;
+                      q -= 1;
+                      break;
+                    }
+                  }
+                  /* coaxial stacking of (i.j) with (i+1.r) or (r.j-1) */
+                  /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
+                  if(dangle_model == 3){
+                    int tmp_en = e;
+                    type = rtype[type];
+
+                    if(hc->matrix[idx[r] + p] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                      type_2 = rtype[(unsigned char)ptype[idx[r] + p]];
+                      tmp_en = my_c[idx[r] + p] + P->stack[type][type_2] + my_fML[idx[q] + r + 1];
+                      if(sc){
+                        if(sc->en_basepair)
+                          tmp_en += sc->en_basepair[ij];
+                      }
+                      if(en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                        *component1 = 2;
+                        break;
+                      }
+                    }
+
+                    if(hc->matrix[idx[q] + r + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                      type_2 = rtype[(unsigned char)ptype[idx[q] + r + 1]];
+                      tmp_en = my_c[idx[q] + r + 1] + P->stack[type][type_2] + my_fML[idx[r] + p];
+                      if(sc){
+                        if(sc->en_basepair)
+                          tmp_en += sc->en_basepair[ij];
+                      }
+                      if (en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                        *component2 = 2;
+                        break;
+                      }
+                    }
+                  }
+                }
+                break;
+    }
+  }
+
+  if(r <= *j - turn - 1){
+    *i = p;
+    *k = r;
+    *j = q;
+    return 1;
+  } else {
+#if 0
+    /* Y shaped ML loops fon't work yet */
+    if (dangle_model==3) {
+      d5 = P->dangle5[tt][S1[j-1]];
+      d3 = P->dangle3[tt][S1[i+1]];
+      /* (i,j) must close a Y shaped ML loop with coax stacking */
+      if (cij ==  fML[indx[j-2]+i+2] + mm + d3 + d5 + P->MLbase + P->MLbase) {
+        i1 = i+2;
+        j1 = j-2;
+      } else if (cij ==  fML[indx[j-2]+i+1] + mm + d5 + P->MLbase)
+        j1 = j-2;
+      else if (cij ==  fML[indx[j-1]+i+2] + mm + d3 + P->MLbase)
+        i1 = i+2;
+      else /* last chance */
+        if (cij != fML[indx[j-1]+i+1] + mm + P->MLbase)
+          fprintf(stderr,  "backtracking failed in repeat");
+      /* if we arrive here we can express cij via fML[i1,j1]+dangles */
+      bt_stack[++s].i = i1;
+      bt_stack[s].j   = j1;
+    }
+#endif
+  }
+
+  return 0;
+}
+
+
 /**
  * @}
  */
