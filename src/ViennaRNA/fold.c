@@ -449,327 +449,189 @@ backtrack(vrna_fold_compound *vc,
   while (s>0) {
     int ml, fij, fi, cij, traced, i1, j1, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
+
+    /* pop one element from stack */
     i  = bt_stack[s].i;
     j  = bt_stack[s].j;
-    ml = bt_stack[s--].ml;   /* ml is a flag indicating if backtracking is to
-                              occur in the fML- (1) or in the f-array (0) */
-    if (ml==2) {
-      bp_stack[++b].i = i;
-      bp_stack[b].j   = j;
-      goto repeat1;
-    }
+    ml = bt_stack[s--].ml;
 
-    if (j < i+TURN+1) continue; /* no more pairs in this interval */
-
-    if(ml == 1){
-      fij = my_fML[indx[j] + i];
-      fi  = (hc->up_ml[j]) ? my_fML[indx[j - 1] + i] + P->MLbase : INF;
-    } else {
-      fij = my_f5[j];
-      fi  = (hc->up_ext[j]) ? my_f5[j-1] : INF;
-    }
-
-    if(sc){
-      if(sc->free_energies)
-        fi += sc->free_energies[j][1];
-    }
-
-    if (fij == fi) {  /* 3' end is unpaired */
-      bt_stack[++s].i = i;
-      bt_stack[s].j   = j-1;
-      bt_stack[s].ml  = ml;
-      continue;
-    }
-
-    if (ml == 0) { /* backtrack in f5 */
-      switch(dangle_model){
-        case 0:   /* j is paired. Find pairing partner */
-                  for(k=j-TURN-1,traced=0; k>=1; k--){
-
-                    if(with_gquad){
-                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
-                        /* found the decomposition */
-                        traced = j; jj = k - 1; gq = 1;
-                        break;
-                      }
+    switch(ml){
+      /* backtrack in f5 */
+      case 0:   {
+                  int p, q;
+                  if(vrna_BT_ext_loop_f5(vc, &j, &p, &q, bp_stack, &b)){
+                    if(j > 0){
+                      bt_stack[++s].i = 1;
+                      bt_stack[s].j   = j;
+                      bt_stack[s].ml  = 0;
+                    }
+                    if(p > 0){
+                      i = p;
+                      j = q;
+                      goto repeat1;
                     }
 
-                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      type = (unsigned char)ptype[indx[j]+k];
-                      if(fij == E_ExtLoop(type, -1, -1, P) + my_c[indx[j]+k] + my_f5[k-1]){
-                        traced=j; jj = k-1;
-                        break;
-                      }
-                    }
+                    continue;
+                  } else {
+                    fprintf(stderr, "%s\n", string);
+                    vrna_message_error("backtrack failed in f5");
                   }
-                  break;
+                }
 
-        case 2:   mm3 = (j<length) ? S1[j+1] : -1;
-                  for(k=j-TURN-1,traced=0; k>=1; k--){
+      /* trace back in fML array */
+      case 1:   if (j < i+TURN+1)
+                  continue; /* no more pairs in this interval */
 
-                    if(with_gquad){
-                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
-                        /* found the decomposition */
-                        traced = j; jj = k - 1; gq = 1;
-                        break;
-                      }
-                    }
+                fij = my_fML[indx[j] + i];
+                fi  = (hc->up_ml[j]) ? my_fML[indx[j - 1] + i] + P->MLbase : INF;
 
-                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      type = (unsigned char)ptype[indx[j]+k];
-                      if(fij == E_ExtLoop(type, (k>1) ? S1[k-1] : -1, mm3, P) + my_c[indx[j]+k] + my_f5[k-1]){
-                        traced=j; jj = k-1;
-                        break;
-                      }
-                    }
+                if(sc){
+                  if(sc->free_energies)
+                    fi += sc->free_energies[j][1];
+                }
+
+                if (fij == fi) {  /* 3' end is unpaired */
+                  bt_stack[++s].i = i;
+                  bt_stack[s].j   = j-1;
+                  bt_stack[s].ml  = ml;
+                  continue;
+                }
+
+                if(hc->up_ml[i]){
+                  en = my_fML[indx[j]+i+1]+P->MLbase;
+
+                  if(sc)
+                    if(sc->free_energies)
+                      en += sc->free_energies[i][1];
+
+                  if (en == fij) { /* 5' end is unpaired */
+                    bt_stack[++s].i = i+1;
+                    bt_stack[s].j   = j;
+                    bt_stack[s].ml  = ml;
+                    continue;
                   }
-                  break;
+                }
 
-        default:  for(traced = 0, k=j-TURN-1; k>1; k--){
+                ij  = indx[j]+i;
 
-                    if(with_gquad){
-                      if(fij == my_f5[k-1] + my_ggg[indx[j]+k]){
-                        /* found the decomposition */
-                        traced = j; jj = k - 1; gq = 1;
-                        break;
-                      }
-                    }
+                if(with_gquad){
+                  if(fij == my_ggg[ij] + E_MLstem(0, -1, -1, P)){
+                    /* go to backtracing of quadruplex */
+                    goto repeat_gquad;
+                  }
+                }
 
-                    if (hc->matrix[indx[j] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      type = (unsigned char)ptype[indx[j] + k];
-                      en = my_c[indx[j] + k];
-                      if(fij == my_f5[k-1] + en + E_ExtLoop(type, -1, -1, P)){
-                        traced = j;
-                        jj = k-1;
-                        break;
-                      }
-                      if(hc->up_ext[k-1]){
-                        int tmp_en = fij;
-                        if(sc)
-                          if(sc->free_energies)
-                            tmp_en -= sc->free_energies[k-1][1];
-
-                        if(tmp_en == my_f5[k-2] + en + E_ExtLoop(type, S1[k-1], -1, P)){
-                          traced = j;
-                          jj = k-2;
-                          break;
-                        }
-                      }
-                    }
-                    if (hc->matrix[indx[j-1] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      type = (unsigned char)ptype[indx[j-1] + k];
-                      en = my_c[indx[j-1] + k];
-                      if(hc->up_ext[j]){
-                        int tmp_en = fij;
-                        if(sc)
-                          if(sc->free_energies)
-                            tmp_en -= sc->free_energies[j][1];
-
-                        if(tmp_en == my_f5[k-1] + en + E_ExtLoop(type, -1, S1[j], P)){
-                          traced = j-1;
-                          jj = k-1;
-                          break;
-                        }
-
-                        if(hc->up_ext[k-1]){
-                          if(sc)
-                            if(sc->free_energies)
-                              tmp_en -= sc->free_energies[k-1][1];
-
-                          if(tmp_en == my_f5[k-2] + en + E_ExtLoop(type, S1[k-1], S1[j], P)){
-                            traced = j-1;
-                            jj = k-2;
+                tt  = (unsigned char)ptype[ij];
+                en  = my_c[ij];
+                switch(dangle_model){
+                  case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(fij == en + E_MLstem(tt, -1, -1, P)){
+                                bp_stack[++b].i = i;
+                                bp_stack[b].j   = j;
+                                goto repeat1;
+                              }
+                            }
                             break;
-                          }
-                        }
-                      }
-                    }
-                  }
-                  if(!traced){
 
-                    if(with_gquad){
-                      if(fij == my_ggg[indx[j]+1]){
-                        /* found the decomposition */
-                        traced = j; jj = 0; gq = 1;
+                  case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(fij == en + E_MLstem(tt, S1[i-1], S1[j+1], P)){
+                                bp_stack[++b].i = i;
+                                bp_stack[b].j   = j;
+                                goto repeat1;
+                              }
+                            }
+                            break;
+
+                  default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(fij == en + E_MLstem(tt, -1, -1, P)){
+                                bp_stack[++b].i = i;
+                                bp_stack[b].j   = j;
+                                goto repeat1;
+                              }
+                            }
+                            if(hc->matrix[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(hc->up_ml[i]){
+                                int tmp_en = fij;
+                                if(sc)
+                                  if(sc->free_energies)
+                                    tmp_en -= sc->free_energies[i][1];
+
+                                tt = (unsigned char)ptype[ij+1];
+                                if(tmp_en == my_c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
+                                  bp_stack[++b].i = ++i;
+                                  bp_stack[b].j   = j;
+                                  goto repeat1;
+                                }
+                              }
+                            }
+                            if(hc->matrix[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(hc->up_ml[j]){
+                                int tmp_en = fij;
+                                if(sc)
+                                  if(sc->free_energies)
+                                    tmp_en -= sc->free_energies[j][1];
+
+                                tt = (unsigned char)ptype[indx[j-1]+i];
+                                if(tmp_en == my_c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
+                                  bp_stack[++b].i = i;
+                                  bp_stack[b].j   = --j;
+                                  goto repeat1;
+                                }
+                              }
+                            }
+                            if(hc->matrix[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                              if(hc->up_ml[i] && hc->up_ml[j]){
+                                int tmp_en = fij;
+                                if(sc)
+                                  if(sc->free_energies)
+                                    tmp_en -= sc->free_energies[i][1] + sc->free_energies[j][1];
+
+                                tt = (unsigned char)ptype[indx[j-1]+i+1];
+                                if(tmp_en == my_c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
+                                  bp_stack[++b].i = ++i;
+                                  bp_stack[b].j   = --j;
+                                  goto repeat1;
+                                }
+                              }
+                            }
+                            break;
+                }
+
+                for(k = i + 1 + TURN; k <= j - 2 - TURN; k++)
+                  if(fij == (my_fML[indx[k]+i]+my_fML[indx[j]+k+1]))
+                    break;
+
+                if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
+                  int ik, k1j, tmp_en;
+                  ml = 2;
+                  for (k1j = indx[j]+i+TURN+2, k = i+1+TURN; k <= j - 2 - TURN; k++, k1j++) {
+                    ik = indx[k]+i;
+                    if((hc->matrix[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
+                      type    = rtype[(unsigned char)ptype[ik]];
+                      type_2  = rtype[(unsigned char)ptype[k1j]];
+                      tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
+                      if (fij == tmp_en)
                         break;
-                      }
-                    }
-
-                    if (hc->matrix[indx[j] + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      type = (unsigned char)ptype[indx[j]+1];
-                      if(fij == my_c[indx[j]+1] + E_ExtLoop(type, -1, -1, P)){
-                        traced = j;
-                        jj = 0;
-                        break;
-                      }
-                    }
-                    if (hc->matrix[indx[j-1] + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-                      if(hc->up_ext[j]){
-                        int tmp_en = fij;
-                        if(sc)
-                          if(sc->free_energies)
-                            tmp_en -= sc->free_energies[j][1];
-
-                        type = (unsigned char)ptype[indx[j-1]+1];
-                        if(tmp_en == my_c[indx[j-1]+1] + E_ExtLoop(type, -1, S1[j], P)){
-                          traced = j-1;
-                          jj = 0;
-                          break;
-                        }
-                      }
                     }
                   }
-                  break;
-      }
+                }
+                bt_stack[++s].i = i;
+                bt_stack[s].j   = k;
+                bt_stack[s].ml  = ml;
+                bt_stack[++s].i = k+1;
+                bt_stack[s].j   = j;
+                bt_stack[s].ml  = ml;
 
-      if (!traced){
-        fprintf(stderr, "%s\n", string);
-        vrna_message_error("backtrack failed in f5");
-      }
-      bt_stack[++s].i = 1;
-      bt_stack[s].j   = jj;
-      bt_stack[s].ml  = ml;
+                if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
+                continue;
 
-      /* trace back the base pair found */
-      i=k; j=traced;
+      /* backtrack in c */
+      case 2:   bp_stack[++b].i = i;
+                bp_stack[b].j   = j;
+                goto repeat1;
 
-      if(with_gquad && gq){
-        /* goto backtrace of gquadruplex */
-        goto repeat_gquad;
-      }
-
-      bp_stack[++b].i = i;
-      bp_stack[b].j   = j;
-      goto repeat1;
-    }
-    else { /* trace back in fML array */
-      if(hc->up_ml[i]){
-        en = my_fML[indx[j]+i+1]+P->MLbase;
-
-        if(sc)
-          if(sc->free_energies)
-            en += sc->free_energies[i][1];
-
-        if (en == fij) { /* 5' end is unpaired */
-          bt_stack[++s].i = i+1;
-          bt_stack[s].j   = j;
-          bt_stack[s].ml  = ml;
-          continue;
-        }
-      }
-
-      ij  = indx[j]+i;
-
-      if(with_gquad){
-        if(fij == my_ggg[ij] + E_MLstem(0, -1, -1, P)){
-          /* go to backtracing of quadruplex */
-          goto repeat_gquad;
-        }
-      }
-
-      tt  = (unsigned char)ptype[ij];
-      en  = my_c[ij];
-      switch(dangle_model){
-        case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(fij == en + E_MLstem(tt, -1, -1, P)){
-                      bp_stack[++b].i = i;
-                      bp_stack[b].j   = j;
-                      goto repeat1;
-                    }
-                  }
-                  break;
-
-        case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(fij == en + E_MLstem(tt, S1[i-1], S1[j+1], P)){
-                      bp_stack[++b].i = i;
-                      bp_stack[b].j   = j;
-                      goto repeat1;
-                    }
-                  }
-                  break;
-
-        default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(fij == en + E_MLstem(tt, -1, -1, P)){
-                      bp_stack[++b].i = i;
-                      bp_stack[b].j   = j;
-                      goto repeat1;
-                    }
-                  }
-                  if(hc->matrix[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(hc->up_ml[i]){
-                      int tmp_en = fij;
-                      if(sc)
-                        if(sc->free_energies)
-                          tmp_en -= sc->free_energies[i][1];
-
-                      tt = (unsigned char)ptype[ij+1];
-                      if(tmp_en == my_c[ij+1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase){
-                        bp_stack[++b].i = ++i;
-                        bp_stack[b].j   = j;
-                        goto repeat1;
-                      }
-                    }
-                  }
-                  if(hc->matrix[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(hc->up_ml[j]){
-                      int tmp_en = fij;
-                      if(sc)
-                        if(sc->free_energies)
-                          tmp_en -= sc->free_energies[j][1];
-
-                      tt = (unsigned char)ptype[indx[j-1]+i];
-                      if(tmp_en == my_c[indx[j-1]+i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase){
-                        bp_stack[++b].i = i;
-                        bp_stack[b].j   = --j;
-                        goto repeat1;
-                      }
-                    }
-                  }
-                  if(hc->matrix[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(hc->up_ml[i] && hc->up_ml[j]){
-                      int tmp_en = fij;
-                      if(sc)
-                        if(sc->free_energies)
-                          tmp_en -= sc->free_energies[i][1] + sc->free_energies[j][1];
-
-                      tt = (unsigned char)ptype[indx[j-1]+i+1];
-                      if(tmp_en == my_c[indx[j-1]+i+1] + E_MLstem(tt, S1[i], S1[j], P) + 2*P->MLbase){
-                        bp_stack[++b].i = ++i;
-                        bp_stack[b].j   = --j;
-                        goto repeat1;
-                      }
-                    }
-                  }
-                  break;
-      }
-
-      for(k = i + 1 + TURN; k <= j - 2 - TURN; k++)
-        if(fij == (my_fML[indx[k]+i]+my_fML[indx[j]+k+1]))
-          break;
-
-      if ((dangle_model==3)&&(k > j - 2 - TURN)) { /* must be coax stack */
-        int ik, k1j, tmp_en;
-        ml = 2;
-        for (k1j = indx[j]+i+TURN+2, k = i+1+TURN; k <= j - 2 - TURN; k++, k1j++) {
-          ik = indx[k]+i;
-          if((hc->matrix[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
-            type    = rtype[(unsigned char)ptype[ik]];
-            type_2  = rtype[(unsigned char)ptype[k1j]];
-            tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
-            if (fij == tmp_en)
-              break;
-          }
-        }
-      }
-      bt_stack[++s].i = i;
-      bt_stack[s].j   = k;
-      bt_stack[s].ml  = ml;
-      bt_stack[++s].i = k+1;
-      bt_stack[s].j   = j;
-      bt_stack[s].ml  = ml;
-
-      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
-      continue;
+      default:  vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
+                break;
     }
 
   repeat1:

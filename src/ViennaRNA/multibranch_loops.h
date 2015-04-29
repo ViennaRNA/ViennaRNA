@@ -10,6 +10,7 @@
 #include <ViennaRNA/energy_par.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/exterior_loops.h>
 #include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
@@ -17,6 +18,12 @@
 #else
 # define INLINE
 #endif
+
+#ifdef ON_SAME_STRAND
+#undef ON_SAME_STRAND
+#endif
+
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
  *  @addtogroup   loops
@@ -70,6 +77,30 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
 INLINE PRIVATE int E_mb_loop_stack(int i, int j, vrna_fold_compound *vc);
+
+/**
+ *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
+ *
+ *  @param    vc          The #vrna_fold_compound filled with all relevant data for backtracking
+ *  @param    i           5' position of base pair closing the loop (will be set to 5' position
+ *                        of leftmost decomposed block upon successful backtracking)
+ *  @param    j           3' position of base pair closing the loop (will be set to 3' position
+ *                        of rightmost decomposed block upon successful backtracking)
+ *  @param    k           Split position that delimits leftmost from rightmost block, [i,k] and
+ *                        [k+1, j], respectively. (Will be set upon successful backtracking)
+ *  @param    en          The energy contribution of the substructure enclosed by @f$ (i,j) @f$
+ *  @param    component1  Type of leftmost block (1 = ML, 2 = C)
+ *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
+ *  @returns              1, if backtracking succeeded, 0 otherwise.
+ */
+INLINE PRIVATE int
+vrna_BT_mb_loop(vrna_fold_compound *vc,
+                int *i,
+                int *j,
+                int *k,
+                int en,
+                int *component1,
+                int *component2);
 
 /*
 #################################
@@ -555,6 +586,7 @@ exp_E_MLstem( int type,
   return energy;
 }
 
+
 INLINE PRIVATE int
 vrna_BT_mb_loop(vrna_fold_compound *vc,
                 int *i,
@@ -599,8 +631,8 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
     *component1 = *component2 = 1;  /* both components are MB loop parts by default */
 
-    s5 = ((*j - 1 > cp) || (*j < cp)) ? S1[q] : -1;
-    s3 = ((*i > cp) || (*i + 1 < cp)) ? S1[p] : -1;
+    s5 = ((*j - 1 >= cp) || (*j < cp)) ? S1[q] : -1;
+    s3 = ((*i >= cp) || (*i + 1 < cp)) ? S1[p] : -1;
                 
     switch(dangle_model){
       case 0:   e = en - E_MLstem(type, -1, -1, P) - P->MLclosing;

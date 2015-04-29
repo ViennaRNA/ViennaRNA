@@ -11,6 +11,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/exterior_loops.h>
 #include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
@@ -18,6 +19,12 @@
 #else
 # define INLINE
 #endif
+
+#ifdef ON_SAME_STRAND
+#undef ON_SAME_STRAND
+#endif
+
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
  *  @addtogroup   loops
@@ -301,12 +308,12 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
                                   if(type == 0)
                                     type = 7;
 
-                                  if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
+                                  if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
                                     e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
                                   } else { /* hairpin-like exterior loop (for cofolding) */
                                     short si, sj;
-                                    si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
-                                    sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+                                    si  = ON_SAME_STRAND(i, i + 1, cp) ? S[i+1] : -1;
+                                    sj  = ON_SAME_STRAND(j - 1, j, cp) ? S[j-1] : -1;
                                     if (md->dangles)
                                       e = E_ExtLoop(md->rtype[type], sj, si, P);
                                     else
@@ -464,7 +471,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
 
-      if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
+      if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
         q = exp_E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P)
             * scale[u+2];
       } else { /* hairpin-like exterior loop (for cofolding) */

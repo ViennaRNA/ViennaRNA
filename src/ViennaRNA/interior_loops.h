@@ -11,6 +11,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/exterior_loops.h>
 #include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
@@ -18,6 +19,12 @@
 #else
 # define INLINE
 #endif
+
+#ifdef ON_SAME_STRAND
+#undef ON_SAME_STRAND
+#endif
+
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
  *  @addtogroup   loops
@@ -169,12 +176,12 @@ ubf_eval_int_loop(  int i,
 
   int energy;
 
-  if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
+  if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else { /* interior loop like cofold structure */
     short Si, Sj;
-    Si  = ((i >= cp) || ((i + 1) < cp)) ? si : -1;
-    Sj  = (((j - 1) >= cp) || (j < cp)) ? sj : -1;
+    Si  = ON_SAME_STRAND(i, i + 1, cp) ? si : -1;
+    Sj  = ON_SAME_STRAND(j - 1, j, cp) ? sj : -1;
     energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                             i, j, p, q,
                             cp,
@@ -353,7 +360,7 @@ vrna_E_int_loop(vrna_fold_compound *vc,
 
     if(with_gquad){
       /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      if ((!no_close) && ((cp < 0) || ((i >= cp) || (j < cp)))) {
+      if ((!no_close) && ((cp < 0) || ON_SAME_STRAND(i, j, cp))) {
         energy = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
         e = MIN2(e, energy);
       }
@@ -464,12 +471,12 @@ vrna_E_stack( vrna_fold_compound *vc,
   type_2  = rtype[(unsigned char)ptype[pq]];
 
   if((hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)){
-    if ((cp < 0) || (((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular stack */
+    if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular stack */
       e = P->stack[type][type_2];
     } else {  /* stack like cofold structure */
       short si, sj;
-      si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
-      sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+      si  = ON_SAME_STRAND(i, i + 1, cp) ? S[i+1] : -1;
+      sj  = ON_SAME_STRAND(j - 1, j, cp) ? S[j-1] : -1;
       e   = E_IntLoop_Co(rtype[type], rtype[type_2],
                                     i, j, p, q,
                                     cp,
@@ -646,10 +653,10 @@ E_IntLoop_Co( int type,
 
   if(!dangles) return energy;
 
-  ci = (i>=cutpoint)||((i+1)<cutpoint);
-  cj = ((j-1)>=cutpoint)||(j<cutpoint);
-  cp = ((p-1)>=cutpoint)||(p<cutpoint);
-  cq = (q>=cutpoint)||((q+1)<cutpoint);
+  ci = ON_SAME_STRAND(i, i + 1, cutpoint);
+  cj = ON_SAME_STRAND(j - 1, j, cutpoint);
+  cp = ON_SAME_STRAND(p - 1, p, cutpoint);
+  cq = ON_SAME_STRAND(q, q + 1, cutpoint);
 
   d3    = ci  ? P->dangle3[type][si1]   : 0;
   d5    = cj  ? P->dangle5[type][sj1]   : 0;
@@ -846,7 +853,7 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
       kind and the enclosed pair is not a canonical one but a g-quadruplex
       that should then be decomposed further...
     */
-    if((*i > cp) || (*j < cp))
+    if(ON_SAME_STRAND(*i, *j, cp))
       if(vrna_BT_gquad_int(vc, *i, *j, en, bp_stack, stack_count)){
         *i = *j = -1; /* tell the calling block to continue backtracking with next block */
         return 1;

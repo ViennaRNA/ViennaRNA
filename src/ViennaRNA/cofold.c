@@ -453,34 +453,54 @@ backtrack_co( sect bt_stack[],
 
     if (j < i+turn+1) continue; /* no more pairs in this interval */
 
-
-    if (ml==0){
-      fij = my_f5[j];
-      fi  = (hc->up_ext[j]) ? my_f5[j-1] : INF;
-      if(sc)
-        if(sc->free_energies)
-          fi += sc->free_energies[j][1];
-    } 
-    else if (ml==1){
+  
+    if (ml==1){
       fij = my_fML[indx[j]+i];
       fi  = (hc->up_ml[j]) ? my_fML[indx[j-1]+i] + P->MLbase : INF;
       if(sc)
         if(sc->free_energies)
           fi += sc->free_energies[j][1];
+
+      if (fij == fi) {  /* 3' end is unpaired */
+        bt_stack[++s].i = i;
+        bt_stack[s].j   = j-1;
+        bt_stack[s].ml  = ml;
+        continue;
+      }
     }
-    else /* 3 or 4 */ {
+    else if(ml == 3 || ml == 4)/* 3 or 4 */ {
       fij = my_fc[j];
       fi = (ml==3) ? INF : ( (hc->up_ext[j]) ? my_fc[j-1] : INF);
+      if (fij == fi) {  /* 3' end is unpaired */
+        bt_stack[++s].i = i;
+        bt_stack[s].j   = j-1;
+        bt_stack[s].ml  = ml;
+        continue;
+      }
     }
 
-    if (fij == fi) {  /* 3' end is unpaired */
-      bt_stack[++s].i = i;
-      bt_stack[s].j   = j-1;
-      bt_stack[s].ml  = ml;
-      continue;
-    }
 
-    if (ml==0 || ml==4) { /* backtrack in f5 or fc[i=cut,j>cut] */
+    if(ml == 0){  /* backtrack in f5 */
+      int p, q;
+      if(vrna_BT_ext_loop_f5(vc, &j, &p, &q, bp_list, &b)){
+        if(j > 0){
+          bt_stack[++s].i = 1;
+          bt_stack[s].j   = j;
+          bt_stack[s].ml  = 0;
+        }
+        if(p > 0){
+          i = p;
+          j = q;
+          goto repeat1;
+        }
+
+        continue;
+      } else {
+        fprintf(stderr, "%s\n", string);
+        vrna_message_error("backtrack failed in f5");
+      }
+    }
+    else if (ml==4) { /* backtrack in fc[i=cut,j>cut] */
       int *ff;
       ff = (ml==4) ? my_fc : my_f5;
       switch(dangle_model){
@@ -524,8 +544,11 @@ backtrack_co( sect bt_stack[],
                     if(hard_constraints[indx[j]+k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                       type = ptype[indx[j]+k];
                       cc = my_c[indx[j]+k];
-                      if(!ON_SAME_STRAND(k,j,cp)) cc += P->DuplexInit;
-                      if(fij == ff[k-1] + cc + E_ExtLoop(type, (k>1) && ON_SAME_STRAND(k-1,k,cp) ? S1[k-1] : -1, (j<length) && ON_SAME_STRAND(j,j+1,cp) ? S1[j+1] : -1, P)){
+                      int mm3 = ((j < length) && ((j > cp) || (j + 1 < cp))) ? S1[j+1] : -1;
+                      int mm5 = ((k > 1) && ((k - 1 > cp) || (k < cp))) ? S1[k - 1] : -1;
+                      if(!ON_SAME_STRAND(k,j,cp))
+                        cc += P->DuplexInit;
+                      if(fij == ff[k-1] + cc + E_ExtLoop(type, mm5, mm3, P)){
                         traced = j; jj = k-1;
                       }
                     }
