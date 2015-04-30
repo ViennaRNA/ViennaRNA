@@ -912,7 +912,6 @@ backtrack_co( sect bt_stack[],
 
     canonical = 1;
 
-
     no_close = (((type==3)||(type==4))&&noGUclosure);
     if (no_close) {
       if (cij == FORBIDDEN) continue;
