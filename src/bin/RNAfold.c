@@ -95,7 +95,7 @@ int main(int argc, char *argv[]){
   char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
-  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp;
+  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints;
   unsigned int    rec_type, read_opt;
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]){
   verbose       = 0;
   max_bp_span   = -1;
   constraints_file = NULL;
+  enforceConstraints  = 0;
 
   outfile       = NULL;
   infile        = NULL;
@@ -159,6 +160,8 @@ int main(int argc, char *argv[]){
     if(args_info.constraint_arg[0] != '\0')
       constraints_file = strdup(args_info.constraint_arg);
   }
+  /* enforce base pairs given in constraint string rather than weak enforce */
+  if(args_info.enforceConstraint_given)   enforceConstraints = 1;
 
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
@@ -391,7 +394,8 @@ int main(int argc, char *argv[]){
                                 | VRNA_CONSTRAINT_DB_X
                                 | VRNA_CONSTRAINT_DB_ANG_BRACK
                                 | VRNA_CONSTRAINT_DB_RND_BRACK;
-
+          if(enforceConstraints)
+            constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_add_constraints(vc, (const char *)structure, constraint_options);
         }
       }

@@ -538,7 +538,10 @@ apply_DB_constraint(const char *constraint,
                       vrna_message_error("unbalanced brackets in constraints");
                     }
                     i = stack[--hx];
-                    hc_weak_enforce_pair(i, j, c_option, hc, length, min_loop_size, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_enforce_pair(i, j, c_option, hc, length, min_loop_size, index);
+                    else
+                      hc_weak_enforce_pair(i, j, c_option, hc, length, min_loop_size, index);
                   }
                   break;
 

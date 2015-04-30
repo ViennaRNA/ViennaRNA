@@ -42,7 +42,7 @@
  *  Use this definition to indicate the pipe sign '|' (paired with another base)
  *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
@@ -50,36 +50,36 @@
 
 /**
  *  @brief  dot '.' switch for structure constraints (no constraint at all)
- *  
+ *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_DOT               2U
 /**
  *  @brief  'x' switch for structure constraint (base must not pair)
- *  
+ *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_X                 4U
 /**
  *  @brief  angle brackets '<', '>' switch for structure constraint (paired downstream/upstream)
- *  
+ *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_ANG_BRACK         8U
 /**
  *  @brief  round brackets '(',')' switch for structure constraint (base i pairs base j)
- *  
+ *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
@@ -92,7 +92,7 @@
  *  Use this definition to indicate the usage of 'l' character (intramolecular pairs only)
  *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
@@ -105,7 +105,7 @@
  *  Use this definition to indicate the usage of 'e' character (intermolecular pairs only)
  *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  */
@@ -113,31 +113,43 @@
 
 /**
  *  @brief '+' switch for structure constraint (base is involved in a gquad)
- *  
+ *
  *  @ingroup  constraints
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *  @warning  This flag is for future purposes only! No implementation recognizes it yet.
  */
 #define VRNA_CONSTRAINT_DB_GQUAD                8192U
 
 /**
+ *  @brief Switch for dot-bracket structure constraint to enforce base pairs
+ *
+ *  This flag should be used to really enforce base pairs given in dot-bracket constraint rather than
+ *  just weakly-enforcing them.
+ *
+ *  @ingroup  constraints
+ *
+ *  @see vrna_add_constraints()
+ */
+#define VRNA_CONSTRAINT_DB_ENFORCE_BP           16384U
+
+/**
  *  @brief  constraint may span over several lines
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
 #define VRNA_CONSTRAINT_MULTILINE         32U
 /**
  *  @brief  do not print the header information line
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
 #define VRNA_CONSTRAINT_NO_HEADER         64U
 /**
  *  @brief  placeholder for all constraining characters
- *  
+ *
  *  @ingroup  constraints
  *
  */
@@ -145,7 +157,7 @@
 
 /**
  *  @brief  Flag for vrna_add_constraints() to indicate that constraint is passed in pseudo dot-bracket notation
- *  
+ *
  *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
  *
  *  @ingroup  constraints
@@ -165,7 +177,7 @@
 
 /**
  *  @brief  Soft constraints flag, apply constraints for MFE calculations
- *  
+ *
  *  @ingroup  soft_constraints
  *
  */
@@ -173,7 +185,7 @@
 
 /**
  *  @brief  Soft constraints flag, apply constraints for partition function calculations
- *  
+ *
  *  @ingroup  soft_constraints
  *
  */
@@ -182,7 +194,7 @@
 
 /**
  *  @brief  Hard constraints flag, base pair in the exterior loop
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -190,7 +202,7 @@
 
 /**
  *  @brief  Hard constraints flag, base pair encloses hairpin loop
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -198,7 +210,7 @@
 
 /**
  *  @brief  Hard constraints flag, base pair encloses an interior loop
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -214,7 +226,7 @@
 
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -222,7 +234,7 @@
 
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in a multi branch loop
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -234,7 +246,7 @@
 
 /**
  * @brief  Hard constraints flag, shortcut for all base pairs
- *  
+ *
  *  @ingroup  hard_constraints
  *
  */
@@ -372,7 +384,7 @@
  *
  *  @see  get_hard_constraints(), vrna_hc_free(), #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP,
  *        #VRNA_CONSTRAINT_CONTEXT_HP_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP_ENC, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
- *        
+ *
  *  @ingroup hard_constraints
  */
 typedef struct vrna_hc_t {
@@ -460,7 +472,7 @@ typedef struct vrna_sc_t {
  *  #VRNA_CONSTRAINT_DB_X (base must not pair)\n
  *  #VRNA_CONSTRAINT_DB_ANG_BRACK (paired downstream/upstream)\n
  *  #VRNA_CONSTRAINT_DB_RND_BRACK (base i pairs base j)\n
- * 
+ *
  *  pass a collection of options as one value like this:
  *  @verbatim vrna_message_constraints(option_1 | option_2 | option_n) @endverbatim
  *
