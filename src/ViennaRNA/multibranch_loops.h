@@ -596,7 +596,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
                 int *component1,
                 int *component2){
 
-  int ij, p, q, r, e, cp, *idx, turn, dangle_model, *my_c, *my_fML, *rtype;
+  int ij, p, q, r, e, cp, *idx, turn, dangle_model, *my_c, *my_fML, *my_fc, *rtype;
   unsigned char type, type_2;
   char          *ptype;
   short         s5, s3, *S1;
@@ -615,6 +615,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
   sc            = vc->sc;
   my_c          = vc->matrices->c;
   my_fML        = vc->matrices->fML;
+  my_fc         = vc->matrices->fc;
   turn          = md->min_loop_size;
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
@@ -629,10 +630,90 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
 
+    /* is it a fake multi-loop? */
+    if(!ON_SAME_STRAND(*i, *j, cp)){
+      int ii, jj;
+      ii = jj = 0;
+      e = my_fc[p] + my_fc[q];
+      if(sc)
+        if(sc->en_basepair)
+          e += sc->en_basepair[ij];
+
+      s5 = ON_SAME_STRAND(q, *j, cp) ? S1[q] : -1;
+      s3 = ON_SAME_STRAND(*i, p, cp) ? S1[p] : -1;
+
+      switch(dangle_model){
+        case 0:   if(en == e + E_ExtLoop(type, -1, -1, P)){
+                    ii=p, jj=q;
+                  }
+                  break;
+        case 2:   if(en == e + E_ExtLoop(type, s5, s3, P)){
+                    ii=p, jj=q;
+                  }
+                  break;
+        default:  {
+                    if(en == e + E_ExtLoop(type, -1, -1, P)){
+                      ii=p, jj=q;
+                      break;
+                    }
+                    if(hc->up_ext[p]){
+                      e = my_fc[p + 1] + my_fc[q];
+                      if(sc){
+                        if(sc->free_energies)
+                          e += sc->free_energies[p][1];
+                        if(sc->en_basepair)
+                          e += sc->en_basepair[ij];
+                      }
+                      if(en == e + E_ExtLoop(type, -1, s3, P)){
+                        ii = p + 1; jj = q;
+                        break;
+                      }
+                    }
+                    if(hc->up_ext[q]){
+                      e = my_fc[p] + my_fc[q - 1];
+                      if(sc){
+                        if(sc->free_energies)
+                          e += sc->free_energies[q][1];
+                        if(sc->en_basepair)
+                          e += sc->en_basepair[ij];
+                      }
+                      if(en == e + E_ExtLoop(type, s5, -1, P)){
+                        ii = p; jj = q - 1;
+                        break;
+                      }
+                    }
+                    if((hc->up_ext[q]) && (hc->up_ext[p])){
+                      e = my_fc[p + 1] + my_fc[q - 1];
+                      if(sc){
+                        if(sc->free_energies)
+                          e += sc->free_energies[p][1] + sc->free_energies[q][1];
+                        if(sc->en_basepair)
+                          e += sc->en_basepair[ij];
+                      }
+                      if(en == e + E_ExtLoop(type, s5, s3, P)){
+                        ii = p + 1; jj = q - 1;
+                        break;
+                      }
+                    }
+                  }
+                  break;
+      }
+
+      if(ii){ /* found a decomposition */
+        *component1 = 3;
+        *i          = ii;
+        *k          = cp - 1;
+        *j          = jj;
+        *component2 = 4;
+        return 1;
+      }
+    }
+
+    /* true multi loop? */
     *component1 = *component2 = 1;  /* both components are MB loop parts by default */
 
-    s5 = ((*j - 1 >= cp) || (*j < cp)) ? S1[q] : -1;
-    s3 = ((*i >= cp) || (*i + 1 < cp)) ? S1[p] : -1;
+    s5 = ON_SAME_STRAND(q, *j, cp) ? S1[q] : -1;
+    s3 = ON_SAME_STRAND(*i, p, cp) ? S1[p] : -1;
                 
     switch(dangle_model){
       case 0:   e = en - E_MLstem(type, -1, -1, P) - P->MLclosing;

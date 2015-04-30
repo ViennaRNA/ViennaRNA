@@ -669,8 +669,6 @@ backtrack(vrna_fold_compound *vc,
         goto repeat1;
     }
 
-    /* end of repeat: --------------------------------------------------*/
-
     /* (i.j) must close a multi-loop */
     int comp1, comp2;
 
@@ -684,6 +682,8 @@ backtrack(vrna_fold_compound *vc,
     } else {
       vrna_message_error("backtracking failed in repeat");
     }
+
+    /* end of repeat: --------------------------------------------------*/
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 

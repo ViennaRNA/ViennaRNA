@@ -928,96 +928,7 @@ backtrack_co( sect bt_stack[],
         goto repeat1;
     }
 
-    /* end of repeat: --------------------------------------------------*/
-
     /* (i.j) must close a fake or true multi-loop */
-    tt = rtype[type];
-    i1 = i+1;
-    j1 = j-1;
-
-    /* fake multi-loop */
-    if(!ON_SAME_STRAND(i,j,cp)){
-      int ii, jj, decomp;
-      ii = jj = 0;
-      decomp = my_fc[i1] + my_fc[j1];
-      if(sc)
-        if(sc->en_basepair)
-          decomp += sc->en_basepair[ij];
-
-      switch(dangle_model){
-        case 0:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
-                    if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
-                      ii=i1, jj=j1;
-                    }
-                  break;
-        case 2:   if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
-                    if(cij == decomp + E_ExtLoop(tt, ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1, ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1, P)){
-                      ii=i1, jj=j1;
-                    }
-                  break;
-        default:  if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-                    int s5,s3;
-                    if(cij == decomp + E_ExtLoop(tt, -1, -1, P)){
-                      ii=i1, jj=j1;
-                      break;
-                    }
-                    s5 = ON_SAME_STRAND(j-1,j,cp) ? S1[j-1] : -1;
-                    s3 = ON_SAME_STRAND(i,i+1,cp) ? S1[i+1] : -1;
-                    if(hc->up_ext[i+1]){
-                      en = my_fc[i+2] + my_fc[j-1];
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i+1][1];
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-                      }
-                      if(cij == en + E_ExtLoop(tt, -1, s3, P)){
-                        ii = i+2; jj = j1;
-                        break;
-                      }
-                    }
-                    if(hc->up_ext[j-1]){
-                      en = my_fc[i+1] + my_fc[j-2];
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[j-1][1];
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-                      }
-                      if(cij == en + E_ExtLoop(tt, s5, -1, P)){
-                        ii = i1; jj = j-2;
-                        break;
-                      }
-                    }
-                    if((hc->up_ext[j-1]) && (hc->up_ext[i+1])){
-                      en = my_fc[i+2] + my_fc[j-2];
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i+1][1] + sc->free_energies[j-1][1];
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-                      }
-                      if(cij == en + E_ExtLoop(tt, s5, s3, P)){
-                        ii = i+2; jj = j-2;
-                        break;
-                      }
-                    }
-                  }
-                  break;
-      }
-
-      if(ii){
-        bt_stack[++s].i = ii;
-        bt_stack[s].j   = cp-1;
-        bt_stack[s].ml  = 3;
-        bt_stack[++s].i = cp;
-        bt_stack[s].j   = jj;
-        bt_stack[s].ml  = 4;
-        continue;
-      }
-    }
-
-    /* (i.j) must close a true multi-loop */
     int comp1, comp2;
 
     if(vrna_BT_mb_loop(vc, &i, &j, &k, cij, &comp1, &comp2)){
@@ -1030,6 +941,8 @@ backtrack_co( sect bt_stack[],
     } else {
       vrna_message_error("backtracking failed in repeat");
     }
+
+    /* end of repeat: --------------------------------------------------*/
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
