@@ -584,6 +584,377 @@ exp_E_MLstem( int type,
   return energy;
 }
 
+/*
+#################################
+# Backtracking functions below  #
+#################################
+*/
+
+INLINE PRIVATE int
+vrna_BT_mb_loop_fake( vrna_fold_compound *vc,
+                      int *u,
+                      int *i,
+                      int *j,
+                      bondT *bp_stack,
+                      int *stack_count){
+
+  int length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg, *idx, with_gquad, dangle_model, turn;
+  unsigned char type;
+  char          *ptype;
+  short   mm5, mm3, *S1;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  cp            = vc->cutpoint;
+  length        = vc->length;
+  P             = vc->params;
+  md            = &(P->model_details);
+  hc            = vc->hc;
+  sc            = vc->sc;
+  S1            = vc->sequence_encoding;
+  ptype         = vc->ptype;
+  idx           = vc->jindx;
+  my_c          = vc->matrices->c;
+  my_fc         = vc->matrices->fc;
+  my_ggg        = vc->matrices->ggg;
+  turn          = md->min_loop_size;
+  with_gquad    = md->gquad;
+  dangle_model  = md->dangles;
+
+  ii = *i;
+  jj = *j;
+
+  if(ii < cp){ /* 'lower' part (fc[i<cut,j=cut-1]) */
+
+    /* nibble off unpaired 5' bases */
+    do{
+      fij = my_fc[ii];
+      fi  = (hc->up_ext[ii]) ? my_fc[ii + 1] : INF;
+
+      if(sc){
+        if(sc->free_energies)
+          fi += sc->free_energies[ii][1];
+      }
+
+      if(++ii == jj)
+        break;
+
+    } while (fij == fi);
+    ii--;
+
+    if (jj < ii + turn + 2){ /* no more pairs */
+      *u = *i = *j = -1;
+      return 1;
+    }
+
+    mm5 = (ii > 1 && ON_SAME_STRAND(ii - 1, ii, cp)) ? S1[ii - 1] : -1;
+
+    /* i or i+1 is paired. Find pairing partner */
+    switch(dangle_model){
+      case 0:   for(k = ii + turn + 1; k <= jj; k++){
+                  if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    type = (unsigned char)ptype[idx[k] + ii];
+                    if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)){
+                      bp_stack[++(*stack_count)].i = ii;
+                      bp_stack[(*stack_count)].j   = k;
+                      *u = k + 1;
+                      *i = ii;
+                      *j = k;
+                      return 1;
+                    }
+                  }
+
+                  if (with_gquad){
+                    if(fij == my_fc[k + 1] + my_ggg[idx[k] + ii]){
+                      *u = k + 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, ii, k, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+                }
+                break;
+
+      case 2:   for(k = ii + turn + 1; k <= jj; k++){
+                  if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    mm3 = ON_SAME_STRAND(k, k + 1, cp) ? S1[k + 1] : -1;
+                    type = (unsigned char)ptype[idx[k] + ii];
+                    if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, mm5,  mm3, P)){
+                      bp_stack[++(*stack_count)].i = ii;
+                      bp_stack[(*stack_count)].j   = k;
+                      *u = k + 1;
+                      *i = ii;
+                      *j = k;
+                      return 1;
+                    }
+                  }
+
+                  if (with_gquad){
+                    if(fij == my_fc[k + 1] + my_ggg[idx[k] + ii]){
+                      *u = k + 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, ii, k, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+                }
+                break;
+
+      default:  for(k = ii + turn + 1; k <= jj; k++){
+                  if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    type = (unsigned char)ptype[idx[k] + ii];
+                    if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)){
+                      bp_stack[++(*stack_count)].i = ii;
+                      bp_stack[(*stack_count)].j   = k;
+                      *u = k + 1;
+                      *i = ii;
+                      *j = k;
+                      return 1;
+                    }
+                    if(hc->up_ext[k + 1]){
+                      mm3 = ON_SAME_STRAND(k, k + 1, cp) ? S1[k + 1] : -1;
+                      en = my_c[idx[k] + ii];
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[k + 1][1];
+
+                      if(fij == my_fc[k + 2] + en + E_ExtLoop(type, -1, mm3, P)){
+                        bp_stack[++(*stack_count)].i = ii;
+                        bp_stack[(*stack_count)].j   = k;
+                        *u = k + 2;
+                        *i = ii;
+                        *j = k;
+                        return 1;
+                      }
+                    }
+                  }
+
+                  if (with_gquad){
+                    if(fij == my_fc[k + 1] + my_ggg[idx[k] + ii]){
+                      *u = k + 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, ii, k, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+
+                  if(hc->matrix[idx[k] + ii + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    if(hc->up_ext[ii]){
+                      mm5   = ON_SAME_STRAND(ii, ii + 1,cp) ? S1[ii] : -1;
+                      mm3   = ON_SAME_STRAND(k, k + 1,cp) ? S1[k + 1] : -1;
+                      type  = ptype[idx[k] + ii + 1];
+                      en    = my_c[idx[k] + ii + 1];
+                      if(sc)
+                        if(sc->free_energies)
+                          en += sc->free_energies[ii][1];
+
+                      if(fij == en + my_fc[k + 1] + E_ExtLoop(type, mm5, -1, P)){
+                        bp_stack[++(*stack_count)].i = ii + 1;
+                        bp_stack[(*stack_count)].j   = k;
+                        *u = k + 1;
+                        *i = ii + 1;
+                        *j = k;
+                        return 1;
+                      }
+
+                      if(k < jj){
+                        if(hc->up_ext[k + 1]){
+                          if(sc)
+                            if(sc->free_energies)
+                              en += sc->free_energies[k + 1][1];
+
+                          if(fij == en + my_fc[k + 2] + E_ExtLoop(type, mm5, mm3, P)){
+                            bp_stack[++(*stack_count)].i = ii + 1;
+                            bp_stack[(*stack_count)].j   = k;
+                            *u = k + 2;
+                            *i = ii + 1;
+                            *j = k;
+                            return 1;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                break;
+    }
+  } else { /* 'upper' part (fc[i=cut,j>cut]) */
+
+    /* nibble off unpaired 3' bases */
+    do{
+      fij = my_fc[jj];
+      fi  = (hc->up_ext[jj]) ? my_fc[jj - 1] : INF;
+
+      if(sc){
+        if(sc->free_energies)
+          fi += sc->free_energies[jj][1];
+      }
+
+      if(--jj == ii)
+        break;
+
+    } while (fij == fi);
+    jj++;
+
+    if (jj < ii + turn + 2){ /* no more pairs */
+      *u = *i = *j = -1;
+      return 1;
+    }
+
+    /* j or j-1 is paired. Find pairing partner */
+    mm3 = ((jj < length) && ON_SAME_STRAND(jj, jj + 1, cp)) ? S1[jj + 1] : -1;
+    switch(dangle_model){
+      case 0:   for (k = jj - turn - 1; k >= ii; k--){
+                  if(with_gquad){
+                    if(fij == my_fc[k - 1] + my_ggg[idx[jj] + k]){
+                      *u = k - 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, k, jj, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+
+                  if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    type  = (unsigned char)ptype[idx[jj] + k];
+                    en    = my_c[idx[jj] + k];
+                    if(!ON_SAME_STRAND(k, jj, cp))
+                      en += P->DuplexInit;
+
+                    if(fij == my_fc[k - 1] + en + E_ExtLoop(type, -1, -1, P)){
+                      bp_stack[++(*stack_count)].i = k;
+                      bp_stack[(*stack_count)].j   = jj;
+                      *u = k - 1;
+                      *i = k;
+                      *j = jj;
+                      return 1;
+                    }
+                  }
+                }
+                break;
+      case 2:   for(k = jj - turn - 1; k >= ii; k--){
+                  if(with_gquad){
+                    if(fij == my_fc[k - 1] + my_ggg[idx[jj] + k]){
+                      *u = k - 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, k, jj, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+
+                  if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    mm5   = ((k > 1) && ON_SAME_STRAND(k - 1, k, cp)) ? S1[k - 1] : -1;
+                    type  = (unsigned char)ptype[idx[jj] + k];
+                    en    = my_c[idx[jj] + k];
+                    if(!ON_SAME_STRAND(k, jj, cp))
+                      en += P->DuplexInit;
+
+                    if(fij == my_fc[k - 1] + en + E_ExtLoop(type, mm5, mm3, P)){
+                      bp_stack[++(*stack_count)].i = k;
+                      bp_stack[(*stack_count)].j   = jj;
+                      *u = k - 1;
+                      *i = k;
+                      *j = jj;
+                      return 1;
+                    }
+                  }
+                }
+                break;
+
+      default:  for(k = jj - turn - 1; k >= ii; k--){
+
+                  if(with_gquad){
+                    if(fij == my_fc[k - 1] + my_ggg[idx[jj] + k]){
+                      *u = k - 1;
+                      *i = *j = -1;
+                      vrna_BT_gquad_mfe(vc, k, jj, bp_stack, stack_count);
+                      return 1;
+                    }
+                  }
+
+                  if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    type  = (unsigned char)ptype[idx[jj] + k];
+                    en    = my_c[idx[jj] + k];
+                    if(!ON_SAME_STRAND(k, jj, cp))
+                      en += P->DuplexInit;
+
+                    if(fij == my_fc[k - 1] + en + E_ExtLoop(type, -1, -1, P)){
+                      bp_stack[++(*stack_count)].i = k;
+                      bp_stack[(*stack_count)].j   = jj;
+                      *u = k - 1;
+                      *i = k;
+                      *j = jj;
+                      return 1;
+                    }
+                    if(hc->up_ext[k - 1]){
+                      if((k > 1) && ON_SAME_STRAND(k - 1, k, cp)){
+                        mm5 = S1[k - 1];
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[k - 1][1];
+
+                        if(fij == my_fc[k - 2] + en + E_ExtLoop(type, mm5, -1, P)){
+                          bp_stack[++(*stack_count)].i = k;
+                          bp_stack[(*stack_count)].j   = jj;
+                          *u = k - 2;
+                          *i = k;
+                          *j = jj;
+                          return 1;
+                        }
+                      }
+                    }
+                  }
+
+                  if(hc->matrix[idx[jj - 1] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+                    type = (unsigned char)ptype[idx[jj - 1] + k];
+                    if(hc->up_ext[jj]){
+                      if(ON_SAME_STRAND(jj - 1, jj, cp)){
+                        mm3 = S1[jj];
+                        en = my_c[idx[jj - 1] + k];
+                        if (!ON_SAME_STRAND(k, jj - 1, cp))
+                          en += P->DuplexInit; /*???*/
+                        if(sc)
+                          if(sc->free_energies)
+                            en += sc->free_energies[jj][1];
+
+                        if (fij == en + my_fc[k - 1] + E_ExtLoop(type, -1, mm3, P)){
+                          bp_stack[++(*stack_count)].i = k;
+                          bp_stack[(*stack_count)].j   = jj - 1;
+                          *u = k - 1;
+                          *i = k;
+                          *j = jj - 1;
+                          return 1;
+                        }
+
+                        if(k > ii){
+                          if(hc->up_ext[k - 1]){
+                            mm5 = ON_SAME_STRAND(k - 1, k, cp) ? S1[k - 1] : -1;
+                            if(sc)
+                              if(sc->free_energies)
+                                en += sc->free_energies[k - 1][1];
+
+                            if (fij == my_fc[k - 2] + en + E_ExtLoop(type, mm5, mm3, P)){
+                              bp_stack[++(*stack_count)].i = k;
+                              bp_stack[(*stack_count)].j   = jj - 1;
+                              *u = k - 2;
+                              *i = k;
+                              *j = jj - 1;
+                              return 1;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                break;
+    }
+  }
+
+  return 0;
+}
+
 INLINE PRIVATE int
 vrna_BT_mb_loop_split(vrna_fold_compound *vc,
                       int *i,
