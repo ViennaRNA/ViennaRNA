@@ -584,7 +584,8 @@ PUBLIC interact *pf_interact( const char *s1,
   pf_scale = int_scale;
 
   /* in order to scale expLoopEnergy correctly call*/
-  scale_stru_pf_params((unsigned) n1);
+  /* we also pass twice the seq-length to avoid bogus access to scale[] array */
+  scale_stru_pf_params((unsigned) 2*n1);
 
   qint_ik = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (n1+1));
   for (i=1; i<=n1; i++) {
@@ -960,7 +961,10 @@ PRIVATE void scale_int(const char *s, const char *sl, double *sc_int){
   n         = strlen(s);
   nl        = strlen(sl);
 
-  expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(nl+1));
+  free(expMLbase);
+  free(scale);
+
+  expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*((nl+1)*2));
   scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*((nl+1)*2));
 
   /* use RNA duplex to get a realistic estimate for the best possible
@@ -1007,8 +1011,8 @@ PRIVATE void  get_up_arrays(unsigned int length){
   unsigned int l1 = length + 1;
   unsigned int l2 = length + 2;
   prpr      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * ((l1*l2)>>1));
-  expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l1);
-  scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l1);
+  expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l2);
+  scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL)  * l2);
   qqm2      = (double *)    vrna_alloc(sizeof(double)      * l2);
   qq_1m2    = (double *)    vrna_alloc(sizeof(double)      * l2);
   qqm       = (double *)    vrna_alloc(sizeof(double)      * l2);
@@ -1099,7 +1103,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   scale[1] = 1./pf_scale;
   expMLbase[0] = 1;
   expMLbase[1] = Pf->expMLbase/pf_scale;
-  for (i=2; i<=length; i++) {
+  for (i=2; i<=length+1; i++) {
     scale[i] = scale[i/2]*scale[i-(i/2)];
     expMLbase[i] = pow(Pf->expMLbase, (double)i) * scale[i];
   }

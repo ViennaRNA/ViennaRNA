@@ -218,6 +218,29 @@ AC_SUBST([REFERENCE_MANUAL_TAGFILE],  [ifelse([$doxygen],
 
 
 # setup variables used in Makefile.am
+
+# Define ${htmldir} if the configure script was created with a version of
+# autoconf older than 2.60
+# Alternatively, if ${htmldir} is exactly '${docdir}', append a /html to
+# separate html files from rest of doc.
+# Otherwise, just append the PACKAGE_NAME to the htmldir
+if test "x${htmldir}" = "x";
+then
+  AC_MSG_WARN([resetting htmldir])
+  htmldir="${docdir}/html"
+fi
+
+if test "x${htmldir}" = 'x${docdir}';
+then
+  htmldir="${docdir}/html"
+else
+  htmldir=${htmldir}/${PACKAGE_NAME}
+fi
+
+AC_SUBST(htmldir, [${htmldir}])
+
+#
+
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_BUILD, test "x$doxygen" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDF, test "x$with_doc_pdf" != xno)
@@ -241,49 +264,49 @@ AC_RNA_ADD_PACKAGE( [perl],
                     [yes],
                     [with_perl=no],
                     [with_perl=yes],
-                    [interfaces/Perl/Makefile.am])
+                    [${srcdir}/interfaces/Perl/Makefile.am])
 AC_RNA_ADD_PACKAGE( [python],
                     [Python interface],
-                    [no],
-                    [with_python=yes],
+                    [yes],
                     [with_python=no],
-                    [interfaces/Python/Makefile.am])
+                    [with_python=yes],
+                    [${srcdir}/interfaces/Python/Makefile.am])
 AC_RNA_ADD_PACKAGE( [ruby],
                     [Ruby interface],
                     [no],
                     [with_ruby=yes],
                     [with_ruby=no],
-                    [interfaces/Ruby/Makefile.am])
+                    [${srcdir}/interfaces/Ruby/Makefile.am])
 AC_RNA_ADD_PACKAGE( [kinfold],
                     [Kinfold program],
                     [yes],
                     [with_kinfold=no],
                     [with_kinfold=yes],
-                    [src/Kinfold/Makefile.am])
+                    [${srcdir}/src/Kinfold/Makefile.am])
 AC_RNA_ADD_PACKAGE( [forester],
                     [RNAforester program],
                     [yes],
                     [with_forester=no],
                     [with_forester=yes],
-                    [src/RNAforester/Makefile.am])
+                    [${srcdir}/src/RNAforester/Makefile.am])
 AC_RNA_ADD_PACKAGE( [cluster],
                     [AnalyseSeqs and AnalyseDists],
                     [no],
                     [with_cluster=yes],
                     [with_cluster=no],
-                    [src/Cluster/Makefile.am])
+                    [${srcdir}/src/Cluster/Makefile.am])
 AC_RNA_ADD_PACKAGE( [svm],
                     [svm classifiers],
                     [yes],
                     [with_svm=no],
                     [with_svm=yes],
-                    [src/libsvm-${SVM_VERSION}/svm.cpp src/libsvm-${SVM_VERSION}/svm.h])
+                    [${srcdir}/src/libsvm-${SVM_VERSION}/svm.cpp ${srcdir}/src/libsvm-${SVM_VERSION}/svm.h])
 AC_RNA_ADD_PACKAGE( [json],
                     [json in/out support],
                     [yes],
                     [with_json=no],
                     [with_json=yes],
-                    [src/json/json.c src/json/json.h])
+                    [${srcdir}/src/json/json.c ${srcdir}/src/json/json.h])
 AC_RNA_ADD_PACKAGE( [doc_pdf],
                     [PDF RNAlib reference manual],
                     [yes],
@@ -316,7 +339,7 @@ AC_RNA_ADD_PACKAGE( [gsl],
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-bla=`${GREP} "^#define LARGE_PF" src/ViennaRNA/data_structures.h`
+bla=`${GREP} "^#define LARGE_PF" ${srcdir}/src/ViennaRNA/data_structures.h`
 if test "x$bla" = "x";
 then
   with_pf_float=yes
@@ -325,7 +348,10 @@ AC_MSG_RESULT([$with_pf_float])
 AM_CONDITIONAL([WITH_LARGE_PF], [test "$with_pf_float" != "yes"])
 
 # check prerequisites for Perl interface
-AC_PATH_PROG(PerlCmd, perl)
+if test "x$PerlCmd" = "x";
+then
+  AC_PATH_PROG(PerlCmd, perl)
+fi
 ifelse([$PerlCmd], [],[
   AC_MSG_WARN([No suitable Perl found -- will not build Perl module])
   AC_MSG_WARN([You may set the PerlCmd environment variable to point to
@@ -349,7 +375,10 @@ AC_RNA_PACKAGE_IF_ENABLED([perl],[
 
 # check prerequisites for Python interface
 AC_RNA_PACKAGE_IF_ENABLED([python],[
-AC_PATH_PROG(PythonCmd, python)
+if test "x$PythonCmd" = "x";
+then
+  AC_PATH_PROG(PythonCmd, python)
+fi
 ifelse([$PythonCmd], [], [
   AC_MSG_WARN([No suitable Python found -- will not build Python extension])
   AC_MSG_WARN([You may set the PythonCmd environment variable to point to
@@ -357,7 +386,7 @@ ifelse([$PythonCmd], [], [
   with_python="no"
   enabled_but_failed_python="(No python executable found)"
 ],[
-  version_test=`$PythonCmd interfaces/Python/version_test.py`
+  version_test=`$PythonCmd ${srcdir}/interfaces/Python/version_test.py`
   if test "x$version_test" = "xok"; then :
   else
     AC_MSG_WARN([You need Python >= 2.5 and < 3.0 to build the Python extension])
@@ -506,7 +535,7 @@ Files will be installed in the following directories:
   Extra Data:     $_datadir
   Man pages:      $_mandir
   Documentation:  $_docdir
-    (HTML):       $(eval printf "%s" $_htmldir)/html
+    (HTML):       $(eval printf "%s" $_htmldir)
     (PDF):        $(eval printf "%s" $_pdfdir)
 ])
 

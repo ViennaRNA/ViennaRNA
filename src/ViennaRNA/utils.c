@@ -5,6 +5,7 @@
                           Vienna RNA package
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -22,7 +23,6 @@
 #include <unistd.h>
 #endif
 
-#include "../config.h"
 #include "ViennaRNA/utils.h"
 
 #ifdef WITH_DMALLOC

@@ -116,9 +116,9 @@ vrna_TwoD_fold(vrna_fold_compound *vc,
  */
 char *
 vrna_TwoD_backtrack5( vrna_fold_compound *vc,
-                      unsigned int j,
                       int k,
-                      int l);
+                      int l,
+                      unsigned int j);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

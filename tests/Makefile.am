@@ -1,3 +1,4 @@
+AM_CPPFLAGS = -I$(top_srcdir)/src
 
 TESTS = check_fold
 

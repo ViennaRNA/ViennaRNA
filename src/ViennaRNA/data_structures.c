@@ -998,8 +998,12 @@ set_fold_compound(vrna_fold_compound *vc,
     /* cofolding matrices ? */
     if(options & VRNA_OPTION_HYBRID){
       alloc_vector |= ALLOC_HYBRID;
+
+#if DEBUG
       if(cp < 0) /* we could also omit this message */
         vrna_message_warning("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
+#endif
+
     }
 
     /* default MFE matrices ? */

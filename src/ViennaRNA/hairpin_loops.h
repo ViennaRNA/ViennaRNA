@@ -8,8 +8,10 @@
 #include <string.h>
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/energy_par.h>
+#include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/exterior_loops.h>
 #include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
@@ -17,6 +19,12 @@
 #else
 # define INLINE
 #endif
+
+#ifdef ON_SAME_STRAND
+#undef ON_SAME_STRAND
+#endif
+
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
  *  @addtogroup   loops
@@ -85,12 +93,13 @@ INLINE  PRIVATE int E_Hairpin(int size,
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Hairpin-loop
  */
-INLINE  PRIVATE double exp_E_Hairpin( int u,
-                                      int type,
-                                      short si1,
-                                      short sj1,
-                                      const char *string,
-                                      vrna_exp_param_t *P);
+INLINE  PRIVATE double
+exp_E_Hairpin(  int u,
+                int type,
+                short si1,
+                short sj1,
+                const char *string,
+                vrna_exp_param_t *P);
 
 
 INLINE PRIVATE int
@@ -156,6 +165,10 @@ E_Hairpin(int size,
 /**
  *  @brief  Evaluate the free energy of a hairpin loop
  *          and consider possible hard constraints
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
  */
 INLINE PRIVATE int
 vrna_E_hp_loop( vrna_fold_compound *vc,
@@ -257,114 +270,114 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
  *
  *  @ingroup eval
  *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
+ *  @param  vc  The #vrna_fold_compound for the particular energy evaluation
+ *  @param  i   5'-position of the base pair
+ *  @param  j   3'-position of the base pair
+ *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
  */
 INLINE PRIVATE int
 vrna_eval_hp_loop(vrna_fold_compound *vc,
                   int i,
                   int j){
 
-  int   u, e, ij, type;
+  int             u, e, s, ij, cp, type, *types, *idx, n_seq;
+  short           *S, **SS, **S5, **S3;
+  char            **Ss;
+  unsigned short  **a2s;
+  vrna_param_t    *P;
+  vrna_sc_t       *sc, **scs;
+  vrna_md_t       *md;
 
-  int       cp        = vc->cutpoint;
-  short     *S        = vc->sequence_encoding;
-  int       *idx      = vc->jindx;
-  vrna_param_t    *P        = vc->params;
-  vrna_sc_t *sc       = vc->sc;
-  vrna_md_t       *md = &(P->model_details);
+  cp  = vc->cutpoint;
+  idx = vc->jindx;
+  P   = vc->params;
+  md  = &(P->model_details);
+  e   = INF;
 
+  switch(vc->type){
+    /* single sequences and cofolding hybrids */
+    case  VRNA_VC_TYPE_SINGLE:    S     = vc->sequence_encoding;
+                                  sc    = vc->sc;
+                                  u     = j - i - 1;
+                                  ij    = idx[j] + i;
+                                  type  = md->pair[S[i]][S[j]];
 
-  u     = j - i - 1;
-  ij    = idx[j] + i;
-  type  = md->pair[S[i]][S[j]];
+                                  if(type == 0)
+                                    type = 7;
 
-  if(type == 0)
-    type = 7;
+                                  if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
+                                    e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
+                                  } else { /* hairpin-like exterior loop (for cofolding) */
+                                    short si, sj;
+                                    si  = ON_SAME_STRAND(i, i + 1, cp) ? S[i+1] : -1;
+                                    sj  = ON_SAME_STRAND(j - 1, j, cp) ? S[j-1] : -1;
+                                    if (md->dangles)
+                                      e = E_ExtLoop(md->rtype[type], sj, si, P);
+                                    else
+                                      e = E_ExtLoop(md->rtype[type], -1, -1, P);
+                                  }
 
-  if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
-    e = E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
-  } else { /* hairpin-like exterior loop (for cofolding) */
-    short si, sj;
-    si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
-    sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
-    if (md->dangles)
-      e = E_ExtLoop(md->rtype[type], sj, si, P);
-    else
-      e = E_ExtLoop(md->rtype[type], -1, -1, P);
+                                  /* add soft constraints */
+                                  if(sc){
+                                    if(sc->free_energies)
+                                      e += sc->free_energies[i+1][u];
+
+                                    if(sc->en_basepair){
+                                      e += sc->en_basepair[ij];
+                                    }
+                                    if(sc->f)
+                                      e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+                                  }
+                                  break;
+    /* sequence alignments */
+    case  VRNA_VC_TYPE_ALIGNMENT: SS    = vc->S;                                                               
+                                  S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+                                  S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+                                  Ss    = vc->Ss;                                                       
+                                  a2s   = vc->a2s;                                                      
+                                  scs   = vc->scs;
+                                  n_seq = vc->n_seq;
+                                  types = (int *)vrna_alloc(sizeof(int) * n_seq);
+
+                                  for (s=0; s<n_seq; s++) {
+                                    types[s] = md->pair[SS[s][i]][SS[s][j]];
+                                    if (types[s]==0) types[s]=7;
+                                  }
+                                  
+                                  for(e = s = 0; s < n_seq; s++){
+                                    u = a2s[s][j-1] - a2s[s][i];
+                                    e += (u < 3) ? 600 : E_Hairpin(u, types[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);  /* ??? really 600 ??? */
+
+                                  }
+                                  
+                                  if(scs)
+                                    for(s = 0; s < n_seq; s++){
+                                      if(scs[s]){
+                                        u = a2s[s][j-1]-a2s[s][i];
+
+                                        if(scs[s]->free_energies)
+                                          e += scs[s]->free_energies[a2s[s][i]+1][u];
+
+                                        if(scs[s]->en_basepair)
+                                          e += scs[s]->en_basepair[idx[j] + i];
+
+                                        if(scs[s]->f)
+                                          e += scs[s]->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, scs[s]->data);
+                                      }
+                                    }
+
+                                  free(types);
+
+                                  break;
+    /* nothing */
+    default:                      break;
   }
 
-  /* add soft constraints */
-  if(sc){
-    if(sc->free_energies)
-      e += sc->free_energies[i+1][u];
-
-    if(sc->en_basepair){
-      e += sc->en_basepair[ij];
-    }
-    if(sc->f)
-      e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-  }
 
   return e;
-}
-
-INLINE PRIVATE int
-E_hp_loop_ali(int i,
-              int j,
-              vrna_fold_compound *vc){
-
-  int u, e, s, *type;
-  int               n_seq   = vc->n_seq;
-  int               *idx    = vc->jindx;
-  vrna_param_t      *P      = vc->params;
-  vrna_md_t         *md     = &(P->model_details);
-  short             **S     = vc->S;                                                                 
-  short             **S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/          
-  short             **S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/          
-  char              **Ss    = vc->Ss;                                                                 
-  unsigned short    **a2s   = vc->a2s;                                                                 
-  char              hc      = vc->hc->matrix[idx[j]+i];
-  int               *hc_up  = vc->hc->up_hp;
-  vrna_sc_t         **sc    = vc->scs;
-
-  type = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-  for (s=0; s<n_seq; s++) {
-    type[s] = md->pair[S[s][i]][S[s][j]];
-    if (type[s]==0) type[s]=7;
-  }
-
-  /* is this base pair allowed to close a hairpin loop ? */
-  if(hc & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-    if(hc_up[i+1] >= j - i - 1){
-      for (e=s=0; s<n_seq; s++) {
-        u = a2s[s][j-1] - a2s[s][i];
-        if (u < 3) e += 600;
-        else  e += E_Hairpin(u, type[s], S3[s][i], S5[s][j], Ss[s]+(a2s[s][i-1]), P);
-      }
-
-      if(sc)
-        for(s = 0; s < n_seq; s++){
-          if(sc[s]){
-            u = a2s[s][j-1]-a2s[s][i];
-
-            if(sc[s]->free_energies)
-              e += sc[s]->free_energies[a2s[s][i]+1][u];
-
-            if(sc[s]->en_basepair)
-              e += sc[s]->en_basepair[idx[j] + i];
-
-            if(sc[s]->f)
-              e += sc[s]->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc[s]->data);
-          }
-        }
-
-      free(type);
-      return e;
-    }
-  }
-
-  free(type);
-  return INF;
 }
 
 /*
@@ -458,7 +471,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
     /* are all nucleotides in the loop allowed to be unpaired ? */
     if(hc_up[i+1] >= u){
 
-      if((cp < 0) || ((i >= cp) || (j < cp))){ /* regular hairpin loop */
+      if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
         q = exp_E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P)
             * scale[u+2];
       } else { /* hairpin-like exterior loop (for cofolding) */
@@ -479,6 +492,54 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
     }
   }
   return q;
+}
+
+/**
+ *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_hp_loop(vrna_fold_compound *vc,
+                int i,
+                int j,
+                int en,
+                bondT *bp_stack,
+                int   *stack_count){
+
+  int       e;
+  vrna_sc_t *sc;
+
+  sc  = NULL;
+  e   = vrna_E_hp_loop(vc, i, j);
+
+  if(e == en){
+    switch(vc->type){
+      case  VRNA_VC_TYPE_SINGLE:    sc  = vc->sc;
+                                    break;
+      case  VRNA_VC_TYPE_ALIGNMENT: if(vc->scs)
+                                      sc = vc->scs[0];
+                                    break;
+      default:                      break;
+    }
+
+    if(sc)
+      if(sc->bt){
+        PAIR *ptr, *aux_bps;
+        aux_bps = sc->bt(i, j, -1, -1, VRNA_DECOMP_PAIR_HP, sc->data);
+        for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+          bp_stack[++(*stack_count)].i = ptr->i;
+          bp_stack[(*stack_count)].j   = ptr->j;
+        }
+        free(aux_bps);
+      }
+
+    return 1;
+  }
+
+  return 0;
 }
 
 /**

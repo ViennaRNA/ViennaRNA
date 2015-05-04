@@ -48,6 +48,13 @@ PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 # PRIVATE VARIABLES             #
 #################################
 */
+PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+
+#ifdef _OPENMP
+
+#pragma omp threadprivate(backward_compat_compound)
+
+#endif
 
 /*
 #################################
@@ -1983,27 +1990,67 @@ EL_Energy_pt_ali( vrna_fold_compound *vc,
 #################################
 */
 
+PRIVATE vrna_fold_compound *
+recycle_last_call(const char *string,
+                  vrna_param_t *P){
+
+  vrna_fold_compound  *vc;
+  vrna_md_t           *md;
+  int                 cleanup;
+  char                *seq;
+
+  vc      = NULL;
+  cleanup = 0;
+
+  if(P){
+    md = &(P->model_details);
+  } else {
+    md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
+    vrna_md_set_globals(md);
+  }
+
+  if(string){
+    if(backward_compat_compound){
+      if(!strcmp(string, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
+        if(!memcmp(md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))){ /* check if model_details are the same as before */
+          vc = backward_compat_compound; /* re-use previous vrna_fold_compound */
+        }
+      }
+    }
+  }
+
+  /* prepare a new global vrna_fold_compound with current settings */
+  if(!vc){
+    vrna_free_fold_compound(backward_compat_compound);
+    seq = vrna_cut_point_insert(string, cut_point);
+    backward_compat_compound = vc = vrna_get_fold_compound(seq, md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    if(P){
+      free(vc->params);
+      vc->params = get_updated_params(P, 1);
+    }
+    free(seq);
+  }
+
+  if(cleanup)
+    free(md);
+
+  return vc;
+}
+
+
 PUBLIC float
 energy_of_struct( const char *string,
                   const char *structure){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  set_model_details(&md);
-
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc = recycle_last_call(string, NULL);
 
   if(eos_debug > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2015,22 +2062,14 @@ energy_of_struct_pt(const char *string,
                     short *s1){
 
   int                 en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
-    set_model_details(&md);
-    seq = vrna_cut_point_insert(string, cut_point);
-    vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-
-    en = eval_pt(vc, pt, NULL, eos_debug);
-
-    free(seq);
-    vrna_free_fold_compound(vc);
+    vc  = recycle_last_call(string, NULL);
+    en  = eval_pt(vc, pt, NULL, eos_debug);
 
     return en;
   } else
@@ -2042,19 +2081,16 @@ energy_of_circ_struct(const char *string,
                       const char *structure){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
-  set_model_details(&md);
-  md.circ = 1;
-  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc = recycle_last_call(string, NULL);
+
+  vc->params->model_details.circ = 1;
 
   if(eos_debug > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2065,22 +2101,14 @@ energy_of_structure(const char *string,
                     int verbosity_level){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  set_model_details(&md);
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-
+  vc = recycle_last_call(string, NULL);
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2093,21 +2121,13 @@ energy_of_struct_par( const char *string,
 
   float               en;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-  free(vc->params);
-  vc->params = get_updated_params(parameters, 1);
-
+  vc = recycle_last_call(string, parameters);
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2119,22 +2139,16 @@ energy_of_gquad_structure(const char *string,
                           int verbosity_level){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  set_model_details(&md);
-  md.gquad = 1;
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc = recycle_last_call(string, NULL);
+
+  vc->params->model_details.gquad = 1;
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2148,21 +2162,15 @@ energy_of_gquad_struct_par( const char *string,
 
   float               en;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-  free(vc->params);
-  vc->params = get_updated_params(parameters, 1);
+  vc = recycle_last_call(string, parameters);
+
   vc->params->model_details.gquad = 1;
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2175,23 +2183,14 @@ energy_of_structure_pt( const char *string,
                         int verbosity_level){
 
   int                 en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
-
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
-    set_model_details(&md);
-    seq = vrna_cut_point_insert(string, cut_point);
-    vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-
-    en = eval_pt(vc, pt, NULL, verbosity_level);
-
-    free(seq);
-    vrna_free_fold_compound(vc);
+    vc  = recycle_last_call(string, NULL);
+    en  = eval_pt(vc, pt, NULL, verbosity_level);
 
     return en;
   } else
@@ -2208,21 +2207,13 @@ energy_of_struct_pt_par(const char *string,
 
   int en;
   vrna_fold_compound *vc;
-  char                *seq;
 
   if(pt && string){
     if(pt[0] != (short)strlen(string))
       vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
 
-    seq = vrna_cut_point_insert(string, cut_point);
-    vc  = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-    free(vc->params);
-    vc->params = get_updated_params(parameters, 1);
-
-    en = eval_pt(vc, pt, NULL, verbosity_level);
-
-    free(seq);
-    vrna_free_fold_compound(vc);
+    vc  = recycle_last_call(string, parameters);
+    en  = eval_pt(vc, pt, NULL, verbosity_level);
 
     return en;
   } else
@@ -2235,19 +2226,16 @@ energy_of_circ_structure( const char *string,
                           int verbosity_level){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
 
-  set_model_details(&md);
-  md.circ = 1;
-  vc = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc = recycle_last_call(string, NULL);
+
+  vc->params->model_details.circ = 1;
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2261,17 +2249,14 @@ energy_of_circ_struct_par(const char *string,
   float               en;
   vrna_fold_compound  *vc;
 
-  vc = vrna_get_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-  free(vc->params);
-  vc->params = get_updated_params(parameters, 1);
+  vc = recycle_last_call(string, parameters);
+
   vc->params->model_details.circ = 1;
 
   if(verbosity_level > 0)
     en = vrna_eval_structure_verbose(vc, structure, NULL);
   else
     en = vrna_eval_structure(vc, structure);
-
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2283,11 +2268,11 @@ loop_energy(short *pt,
             int i){
 
   int                 en, u;
-  char                *seq, *seq2;
+  char                *seq;
   vrna_md_t           md;
   vrna_fold_compound  *vc;
 
-  set_model_details(&md);
+  vrna_md_set_globals(&md);
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
@@ -2296,14 +2281,10 @@ loop_energy(short *pt,
   }
   seq[u-1] = '\0';
 
-  seq2  = vrna_cut_point_insert(seq, cut_point);
-  vc    = vrna_get_fold_compound(seq2, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc  = recycle_last_call(seq, NULL);
+  en  = wrap_eval_loop_pt(vc, i, pt, eos_debug);
 
-  en    = wrap_eval_loop_pt(vc, i, pt, eos_debug);
-
-  vrna_free_fold_compound(vc);
   free(seq);
-  free(seq2);
 
   return en;
 }
@@ -2316,17 +2297,10 @@ energy_of_move( const char *string,
                 int m2){
 
   float               en;
-  vrna_md_t           md;
   vrna_fold_compound  *vc;
-  char                *seq;
 
-  set_model_details(&md);
-  seq = vrna_cut_point_insert(string, cut_point);
-  vc  = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vc  = recycle_last_call(string, NULL);
   en  = vrna_eval_move(vc, structure, m1, m2);
-
-  free(seq);
-  vrna_free_fold_compound(vc);
 
   return en;
 }
@@ -2339,11 +2313,11 @@ energy_of_move_pt(short *pt,
                   int m2){
 
   int                 en, u;
-  char                *seq, *seq2;
+  char                *seq;
   vrna_md_t           md;
   vrna_fold_compound  *vc;
 
-  set_model_details(&md);
+  vrna_md_set_globals(&md);
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
@@ -2352,13 +2326,10 @@ energy_of_move_pt(short *pt,
   }
   seq[u-1] = '\0';
 
-  seq2  = vrna_cut_point_insert(seq, cut_point);
-  vc    = vrna_get_fold_compound(seq2, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-  en    = vrna_eval_move_pt(vc, pt, m1, m2);
+  vc  = recycle_last_call(seq, NULL);
+  en  = vrna_eval_move_pt(vc, pt, m1, m2);
 
-  vrna_free_fold_compound(vc);
   free(seq);
-  free(seq2);
 
   return en;
 }

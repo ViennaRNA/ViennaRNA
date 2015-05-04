@@ -6,12 +6,12 @@
   Vienna RNA package
 */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
-#include "../config.h"
 #include "fold_vars.h"
 #include "data_structures.h"
 #include "energy_const.h"

@@ -29,8 +29,8 @@ PUBLIC float get_z(char *sequence, double energy) {
   int info_avg;
   make_pair_matrix();
   short *S      = encode_sequence(sequence, 0);
-  int   length  = S[0];
-  int   *AUGC   = get_seq_composition(S, 1, length);
+  unsigned int   length  = strlen(sequence);
+  int   *AUGC   = get_seq_composition(S, 1, length, length);
   avg_model     = svm_load_model_string(avg_model_string);
   sd_model      = svm_load_model_string(sd_model_string);
   average_free_energy = avg_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4], avg_model, &info_avg);
@@ -53,11 +53,11 @@ PUBLIC float get_z(char *sequence, double energy) {
   return my_z;
 }
 
-PUBLIC int *get_seq_composition(short *S, unsigned int start, unsigned int stop){
+PUBLIC int *get_seq_composition(short *S, unsigned int start, unsigned int stop, unsigned int length){
   unsigned int i;
   int *ret = (int *)vrna_alloc(sizeof(int) * 6);
 
-  for (i=MAX2(start, 1); i <= MIN2(stop, S[0]); i++){
+  for (i=MAX2(start, 1); i <= MIN2(stop, length); i++){
     if(S[i] > 4)  ret[0]++;
     else          ret[S[i]]++;
   }

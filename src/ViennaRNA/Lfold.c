@@ -605,7 +605,7 @@ fill_arrays(const char *string,
           double average_free_energy;
           double sd_free_energy;
           double my_z;
-          int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length));
+          int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length), length);
           /*\svm*/
           average_free_energy = avg_regression(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4], avg_model, &info_avg);
           if (info_avg == 0)  {
@@ -752,7 +752,7 @@ fill_arrays(const char *string,
 
           if(zsc){
 #ifdef USE_SVM
-            int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length));
+            int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length), length);
             average_free_energy = avg_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],avg_model,&info_avg);
             if (info_avg == 0)  {
               double difference;

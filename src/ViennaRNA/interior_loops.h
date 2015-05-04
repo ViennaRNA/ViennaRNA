@@ -8,8 +8,10 @@
 #include <string.h>
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/energy_par.h>
+#include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/exterior_loops.h>
 #include <ViennaRNA/gquad.h>
 
 #ifdef __GNUC__
@@ -17,6 +19,12 @@
 #else
 # define INLINE
 #endif
+
+#ifdef ON_SAME_STRAND
+#undef ON_SAME_STRAND
+#endif
+
+#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
  *  @addtogroup   loops
@@ -168,12 +176,12 @@ ubf_eval_int_loop(  int i,
 
   int energy;
 
-  if((cp < 0) || ( ((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular interior loop */
+  if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else { /* interior loop like cofold structure */
     short Si, Sj;
-    Si  = ((i >= cp) || ((i + 1) < cp)) ? si : -1;
-    Sj  = (((j - 1) >= cp) || (j < cp)) ? sj : -1;
+    Si  = ON_SAME_STRAND(i, i + 1, cp) ? si : -1;
+    Sj  = ON_SAME_STRAND(j - 1, j, cp) ? sj : -1;
     energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                             i, j, p, q,
                             cp,
@@ -261,9 +269,9 @@ ubf_eval_ext_int_loop(int i,
 }
 
 INLINE PRIVATE int
-E_int_loop( int i,
-            int j,
-            vrna_fold_compound *vc){
+vrna_E_int_loop(vrna_fold_compound *vc,
+                int i,
+                int j){
 
   int q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp, *rtype, noGUclosure, no_close, energy;
   short *S_p1, *S_q1;
@@ -352,7 +360,7 @@ E_int_loop( int i,
 
     if(with_gquad){
       /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      if ((!no_close) && ((cp < 0) || ((i >= cp) || (j < cp)))) {
+      if ((!no_close) && ((cp < 0) || ON_SAME_STRAND(i, j, cp))) {
         energy = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
         e = MIN2(e, energy);
       }
@@ -437,9 +445,9 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
 
 
 INLINE PRIVATE int
-E_stack(int i,
-        int j,
-        vrna_fold_compound *vc){
+vrna_E_stack( vrna_fold_compound *vc,
+              int i,
+              int j){
 
   int e, ij, pq, p, q;
   unsigned char type, type_2;
@@ -463,12 +471,12 @@ E_stack(int i,
   type_2  = rtype[(unsigned char)ptype[pq]];
 
   if((hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)){
-    if ((cp < 0) || (((i >= cp) || (p < cp)) && ((q >= cp) || (j < cp)))){ /* regular stack */
+    if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular stack */
       e = P->stack[type][type_2];
     } else {  /* stack like cofold structure */
       short si, sj;
-      si  = ((i >= cp) || ((i + 1) < cp)) ? S[i+1] : -1;
-      sj  = (((j - 1) >= cp) || (j < cp)) ? S[j-1] : -1;
+      si  = ON_SAME_STRAND(i, i + 1, cp) ? S[i+1] : -1;
+      sj  = ON_SAME_STRAND(j - 1, j, cp) ? S[j-1] : -1;
       e   = E_IntLoop_Co(rtype[type], rtype[type_2],
                                     i, j, p, q,
                                     cp,
@@ -645,10 +653,10 @@ E_IntLoop_Co( int type,
 
   if(!dangles) return energy;
 
-  ci = (i>=cutpoint)||((i+1)<cutpoint);
-  cj = ((j-1)>=cutpoint)||(j<cutpoint);
-  cp = ((p-1)>=cutpoint)||(p<cutpoint);
-  cq = (q>=cutpoint)||((q+1)<cutpoint);
+  ci = ON_SAME_STRAND(i, i + 1, cutpoint);
+  cj = ON_SAME_STRAND(j - 1, j, cutpoint);
+  cp = ON_SAME_STRAND(p - 1, p, cutpoint);
+  cq = ON_SAME_STRAND(q, q + 1, cutpoint);
 
   d3    = ci  ? P->dangle3[type][si1]   : 0;
   d5    = cj  ? P->dangle5[type][sj1]   : 0;
@@ -678,6 +686,181 @@ E_IntLoop_Co( int type,
     else if(q+2 == j){ energy += MIN2(d5, d3_2);}
   }
   return energy;
+}
+
+
+/**
+ *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_stack(vrna_fold_compound *vc,
+              int *i,
+              int *j,
+              int *en,
+              bondT *bp_stack,
+              int *stack_count){
+
+  int           ij, *idx, *my_c, *rtype;
+  char          *ptype;
+  unsigned char type, type_2;
+
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  idx         = vc->jindx;
+  P           = vc->params;
+  md          = &(P->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  my_c        = vc->matrices->c;
+  ij          = idx[*j] + *i;
+  ptype       = vc->ptype;
+  type        = (unsigned char)ptype[ij];
+  rtype       = &(md->rtype[0]);
+
+  if(my_c[ij] == *en){ /*  always true, if (i.j) closes canonical structure,
+                          thus (i+1.j-1) must be a pair
+                      */
+    if(     (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+        &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
+      type_2 = ptype[idx[*j - 1] + *i + 1];
+      type_2 = rtype[type_2];
+      *en -= P->stack[type][type_2];
+      if(sc){
+        if(sc->en_basepair)
+          *en -= sc->en_basepair[ij];
+        if(sc->en_stack)
+          *en -=    sc->en_stack[*i]
+                  + sc->en_stack[*i + 1]
+                  + sc->en_stack[*j - 1]
+                  + sc->en_stack[*j];
+        if(sc->f)
+          *en -= sc->f(*i, *j, *i + 1, *j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
+      }
+      bp_stack[++(*stack_count)].i = *i + 1;
+      bp_stack[(*stack_count)].j   = *j - 1;
+      (*i)++;
+      (*j)--;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
+ *
+ */
+INLINE PRIVATE int
+vrna_BT_int_loop( vrna_fold_compound *vc,
+                  int *i,
+                  int *j,
+                  int en,
+                  bondT *bp_stack,
+                  int *stack_count){
+
+  int           cp, ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;
+  unsigned char type, type_2;
+  char          *ptype;
+  short         *S1, *S;
+
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
+
+  cp          = vc->cutpoint;
+  idx         = vc->jindx;
+  P           = vc->params;
+  md          = &(P->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  my_c        = vc->matrices->c;
+  turn        = md->min_loop_size;
+  ij          = idx[*j] + *i;
+  ptype       = vc->ptype;
+  type        = (unsigned char)ptype[ij];
+  rtype       = &(md->rtype[0]);
+  S1          = vc->sequence_encoding;
+  S           = vc->sequence_encoding2;
+  noGUclosure = md->noGUclosure;
+  no_close    = (((type==3)||(type==4))&&noGUclosure);
+
+  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+    for (p = *i+1; p <= MIN2(*j-2-turn,*i+MAXLOOP+1); p++) {
+      minq = *j-*i+p-MAXLOOP-2;
+      if (minq<p+1+turn)
+        minq = p+1+turn;
+
+      if(hc->up_int[*i+1] < (p - *i - 1))
+        break;
+
+      for (q = *j-1; q >= minq; q--) {
+        if(hc->up_int[q+1] < (*j - q - 1))
+          break;
+
+        type_2 = (unsigned char)ptype[idx[q]+p];
+
+        if(!(hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
+          continue;
+
+        type_2 = rtype[type_2];
+
+        if(noGUclosure)
+          if(no_close||(type_2==3)||(type_2==4))
+            if((p>*i+1)||(q<*j-1))
+              continue;  /* continue unless stack */
+
+        energy = ubf_eval_int_loop( *i, *j, p, q,
+                                    p-*i-1, *j-q-1,
+                                    S1[*i+1], S1[*j-1], S1[p-1], S1[q+1],
+                                    type, type_2,
+                                    rtype,
+                                    ij,
+                                    -1,
+                                    P,
+                                    sc);
+        new = energy + my_c[idx[q]+p];
+
+        if(new == en){
+          bp_stack[++(*stack_count)].i = p;
+          bp_stack[(*stack_count)].j   = q;
+          if(sc)
+            if(sc->bt){
+              PAIR *ptr, *aux_bps;
+              aux_bps = sc->bt(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+              for(ptr = aux_bps; ptr && ptr->i != -1; ptr++){
+                bp_stack[++(*stack_count)].i = ptr->i;
+                bp_stack[(*stack_count)].j   = ptr->j;
+              }
+              free(aux_bps);
+            }
+          *i = p, *j = q;
+          return 1; /* success */
+        }
+      }
+    }
+
+  /* is it a g-quadruplex? */
+  if(md->gquad){
+    /*
+      The case that is handled here actually resembles something like
+      an interior loop where the enclosing base pair is of regular
+      kind and the enclosed pair is not a canonical one but a g-quadruplex
+      that should then be decomposed further...
+    */
+    if(ON_SAME_STRAND(*i, *j, cp))
+      if(vrna_BT_gquad_int(vc, *i, *j, en, bp_stack, stack_count)){
+        *i = *j = -1; /* tell the calling block to continue backtracking with next block */
+        return 1;
+      }
+  }
+  
+  return 0; /* unsuccessful */
 }
 
 /**

@@ -1,0 +1,57 @@
+/*
+#############################################################
+# Now the mainpage text is following                        #
+#############################################################
+*/
+
+/**
+  @mainpage ViennaRNA Package core - RNAlib
+\n
+
+@htmlonly <center> @endhtmlonly
+
+<h2>A Library for folding and comparing RNA secondary structures</h2>
+
+@htmlonly </center> @endhtmlonly
+
+\n
+
+@date     1994-2015
+@authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
+
+<h3>Table of Contents</h3>
+<hr>
+
+\li @ref mp_intro
+\li @ref folding_routines
+\li @ref mp_parse
+\li @ref mp_utils
+\li @ref file_formats
+\li @ref newAPI
+\li @ref mp_example
+
+<hr>
+
+@section  mp_intro     Introduction
+
+The core of the Vienna RNA Package (@cite lorenz:2011, @cite hofacker:1994)
+is formed by a collection of routines
+for the prediction and comparison of RNA secondary structures. These
+routines can be accessed through stand-alone programs, such as RNAfold,
+RNAdistance etc., which should be sufficient for most users. For those who
+wish to develop their own programs we provide a library which can be
+linked to your own code.
+
+This document describes the library and will be primarily useful to
+programmers. However, it also contains details about the implementation
+that may be of interest to advanced users. The stand-alone programs are
+described in separate man pages. The latest version of the package
+including source code and html versions of the documentation can be found
+at
+\n\n
+http://www.tbi.univie.ac.at/~ivo/RNA/
+
+
+
+**/
+

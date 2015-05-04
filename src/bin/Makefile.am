@@ -16,7 +16,7 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
     RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
-LDADD = $(OPENMP_CFLAGS) $(top_srcdir)/src/ViennaRNA/libRNA.a
+LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA.a
 
 AM_CFLAGS = $(OPENMP_CFLAGS)
 

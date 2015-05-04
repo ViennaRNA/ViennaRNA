@@ -254,9 +254,9 @@ vrna_TwoD_fold(vrna_fold_compound *vars,
 
 PUBLIC char *
 vrna_TwoD_backtrack5( vrna_fold_compound *vc,
-                      unsigned int j,
                       int k,
-                      int l){
+                      int l,
+                      unsigned int j){
 
   unsigned int i;
   char *mfe_structure = (char *)vrna_alloc(j+1);
@@ -3706,7 +3706,7 @@ TwoDfold_backtrack_f5(unsigned int j,
                       int l,
                       TwoDfold_vars *vars){
 
-  return vrna_TwoD_backtrack5(vars->compatibility, j, k, l);
+  return vrna_TwoD_backtrack5(vars->compatibility, k, l, j);
 }
 
 PUBLIC void

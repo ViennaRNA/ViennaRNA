@@ -1,32 +1,64 @@
+include ../generic.mk
+
+SOURCES = setup.py
+EXTRA_DIST = \
+  $(SWIG_wrapper) \
+  setup.py \
+  version_test.py \
+  __init__.py
+
+AM_CPPFLAGS = -I$(top_srcdir)/src
+
 if WITH_LARGE_PF
   USE_LARGE_PF = -DLARGE_PF
 else
   USE_LARGE_PF =
 endif
 
-SOURCES = setup.py
 
-EXTRA_DIST = RNA_wrap.c setup.py version_test.py __init__.py
+##
+## SWIG interface wrapper code generation
+##
 
-RNA_wrap.c: ../RNA.i ../tmaps.i
-	$(AM_V_GEN)swig -python -shadow $(USE_LARGE_PF) -I../ RNA.i
+$(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
+	$(AM_V_GEN)swig $(INCLUDES) $(USE_LARGE_PF) \
+                  -python -shadow \
+                  -o $(SWIG_wrapper) \
+                  $(SWIG_main_src)
 
-Python_interface: RNA_wrap.c setup.py
+
+##
+## Python interface building
+##
+
+Python_interface: $(SWIG_wrapper) setup.py
 	$(AM_V_GEN)@PythonCmd@ setup.py build
+
+##
+## Misc make rules
+##
 
 all-local: Python_interface
 	
 
-install-exec-local: all-local
-	@PythonCmd@ setup.py install --prefix=$(prefix) --record install.record
+install-exec-hook:
+	@PythonCmd@ setup.py install \
+  `test -n "$(DESTDIR)" && echo --root $(DESTDIR)` \
+  --record install.record
 
-#check-local: all-local
-#	$(MAKE) -f Makefile.perl test
+uninstall-hook:
+	cat install.record \
+  | awk '{print "$(DESTDIR)"$$1}' \
+  | xargs -d\\n rm -vf --
 
+
+distclean-local:
+	-rm -f install.record
+  
 mostlyclean-local: 
 	@PythonCmd@ setup.py clean --all
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -f __init__.py RNA_wrap.c
+	-rm -f __init__.py RNA_wrap.c install.record
 
