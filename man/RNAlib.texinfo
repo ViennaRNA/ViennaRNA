@@ -1,5 +1,5 @@
 \input texinfo  @c -*- Mode: texinfo; fill-column: 74 -*-
-@c Last changed Time-stamp: <2010-03-11 21:47:46 ivo>
+@c Last changed Time-stamp: <2009-01-13 18:48:46 ivo>
 @set revision $Id: RNAlib.texinfo,v 1.25 2009/01/13 17:49:58 ivo Exp $
 @setfilename RNAlib.info
 @settitle Vienna RNA Package
@@ -123,9 +123,6 @@ to all structures that comply with the constraint.
 calculates the energy of @var{sequence} on the @var{structure}
 @end deftypefun
 
-The @code{circ_fold()} and @code{energy_of_circ_struct()} provide
-analogous functions for folding and evaluating cricular RNA molecules.
-
 @deftypefun void   initialize_fold (int @var{length})
 Obsolete function kept for backward compatibility.
 Allocates memory for mfe folding sequences not longer than @var{length},
@@ -192,12 +189,12 @@ after a change in folding parameters like temperature
 @deftypefun double mean_bp_dist (int @var{length})
 computes the mean base pair distance in the equilibrium ensemble as a
 measure of the structural diversity.  It is given by @math{<d> =
-\sum_{a,b} p_a * p_b * d(a,b)}, where the sum goes over all pairs of
+sum_{a,b} p_a * p_b * d(a,b)}, where the sum goes over all pairs of
 possible structure @math{a,b}, @math{p_a} is the Boltzmann weight of
 structure @math{a}, and @math{d(a,b)} is the base pair distance (see
 @code{bp_distance()} in @xref{Distances}.). The mean base pair distances
 can be computed efficiently from the pair probabilities @math{p_ij} as
-@math{<d> = \sum_{ij} p_{ij} * (1-p_{ij})}. Uses the global @code{pr} array
+@math{<d> = sum_{ij} p_ij * (1-p_ij)}. Uses the global @code{pr} array
 filled by a previous call to @code{pf_fold()}.
 @end deftypefun
 
@@ -210,18 +207,6 @@ the centroid to the ensemble is returned in @var{dist}.
 @end deftypefun
 
 Prototypes for these functions are declared in @file{part_func.h}.
-
-@deftypefun float *MEA (plist *@var{pl}, char *@var{structure}, double @var{gamma})
-Computes a MEA (maximum expected accuracy) structure, such that expected
-accuracy @math{ A(S) = \sum_{(i,j) \in S} 2 \gamma p_{ij} + \sum_{i \notin
-S} p^u_i} is maximised. Higher values of @math{\gamma}
-result in more base pairs of lower probability and thus higher
-sensitivity. Low values of gamm result in structures containing only
-highly likely pairs (high specificity).
-The code of the MEA function also demonstrates the use of sparse dynamic
-programming scheme to reduce the time and memory complexity of folding.
-@end deftypefun
-The corresponding protoype is declared in @file{MEA.h}.
 
 @node Inverse Fold, Suboptimal folding, PF Fold, Folding Routines
 @section  Inverse Folding
@@ -530,7 +515,7 @@ structure including only base pairs with a span smaller than
 
 @var{maxdist}.
 
-@deftypefun struct plist *pfl_fold (char *@var{sequence}, int @var{winSize},int @var{pairSize}, float @var{cutoffb}, double **@var{pU},struct plist **@var{dpp2}, FILE *@var{pUfp}, FILE *@var{spup}))
+@deftypefun struct plist *pfl_fold (char *@var{sequence}, int @var{winSize},int @var{pairSize}, float @var{cutoff}, float *@var{pup})
 pfl_fold computes partition functions for every window of size
 @var{winSize} possible in a RNA molecule, allowing only pairs with a span
 smaller than @var{pairSize}. It returns the mean pair probabilities averaged
@@ -539,25 +524,13 @@ always be >= @var{pairSize}. Note that in contrast to @code{Lfold()},
 bases outside of the window do not influence the structure at all. Only
 probabilities higher than @var{cutoff} are kept.
 
-The remaining arguments are optional in the sense that they can be set to
-NULL unless the corresponding functionality is wanted.
-If @var{pU} is supplied (i.e is not the NULL pointer), @code{pfl_fold()}
-will also compute local @emph{accessibilities}, as the mean probability that regions of length @code{u} or
-smaller are unpaired. The parameter @code{ulength} is supplied in @code{pU[0][0]}. On return
-the @var{pU} array will contain these probabilities, with the entry on
-@code{pU[x][y]} containing the mean probability that x and the y following
-bases are unpaired.
-If @var{dpp2} is supplied (i.e is not the NULL pointer), @code{pfl_fold()}
-will also compute the probability of stacked pairs, more precisely the
-conditional probabilities of base pairs (i,j) given that the enclosing
-pair (i-1,j+1) is formed.
-The file pointers @var{pUfp} and @var{spup} file pointer is provided, the unpaired probabilities
-will direcly be printed and not saved, which can be useful when memory is
-an issue).
-If the  file pointer is provided, the base pair probabilities
-will direcly be printed and not saved, which can be useful when memory is
-an issue).
-
+If @var{pup} is supplied (i.e is not the NULL pointer), @code{pfl_fold()}
+will also compute the mean probability that regions of length @code{u} are
+unpaired. The parameter @code{u} is supplied in @var{pup[0]}. On return
+the @var{pup} array will contain these probabilities, with the entry on
+@var{pup[x]} containing the mean probability that x and the @code{u-1}
+preceding bases are unpaired. The @var{pup} array needs to be large
+enough to hold @code{n+1} float entries, where @code{n} is the sequence length.
 @end deftypefun
 
 @deftypefun void  init_pf_foldLP (int @var{length})
@@ -1239,7 +1212,7 @@ frees the memory allocated for the profile @var{T}.
 Backward compatibility only. You can just use plain @code{free()}
 @end deftypefun
 
-Prototypes for the above functions can be found in @file{profiledist.h}.
+Prototypes for the above functions can be found in @file{ProfileDist.h}.
 
 
 @node Utilities, Example, Parsing and Comparing, Top
@@ -1376,7 +1349,7 @@ resulting structures and base pairing probabilities.
 #include  "RNAstruct.h"
 #include  "treedist.h"
 #include  "stringdist.h"
-#include  "profiledist.h"
+#include  "ProfileDist.h"
 
 void main()
 @{
@@ -1451,7 +1424,7 @@ void main()
 In a typical Unix environment you would compile this program using:
 @kbd{cc -c example.c -I@var{hpath}}
 and link using
-@kbd{cc -o example example.o -L@var{lpath} -lRNA -lm}
+@kbd{cc -o example -L@var{lpath} -lRNA -lm}
 where @var{hpath} and @var{lpath} point to the location of the header
 files and library, respectively.
 
@@ -1524,30 +1497,6 @@ files and library, respectively.
 @item I.L. Hofacker, M. Fekete, P.F. Stadler (2002).
    Secondary Structure Prediction for Aligned RNA Sequences.
    J. Mol. Biol. 319:1059-1066
-
-@item S.H. Bernhart, I.L. Hofacker, S. Will, A. Gruber, P.F. Stadler (2008).@*
-   RNAalifold: improved consensus structure prediction for RNA
-   alignments. BMC Bioinformatics, 9:474, 2008.  
-
-@item I.L. Hofacker and Peter F. Stadler (2006).@* 
-   Memory efficient folding algorithms for circular RNA secondary
-   structures. Bioinformatics, 22:1172–1176.
-
-@item S.H. Bernhart, H. Tafer, U. Mückstein, Ch. Flamm, P.F. Stadler, 
-   I.L. Hofacker (2006). Partition function and base pairing probabilities
-   of RNA heterodimers. Algorithms Mol. Biol., 1:3.
-
-@item S.H. Bernhart, I.L. Hofacker, P.F. Stadler (2006).@* 
-   Local RNA base pairing probabilities in large sequences.
-   Bioinformatics, 22:614–615.
-
-@item  U. Mückstein, H. Tafer, J. Hackermüller, S.H. Bernhart,
-   P.F. Stadler, I.L Hofacker (2006). 
-   Thermodynamics of RNA-RNA binding. Bioinformatics, 22:1177–1182.   
-
-@item I.L. Hofacker, B. Priwitzer, P.F. Stadler (2004).@* 
-   Prediction of locally stable RNA secondary structures for genome-wide
-   surveys. Bioinformatics, 20:186–190.
 
 @item D. Adams (1979) @*
    The hitchhiker's guide to the galaxy, Pan Books, London

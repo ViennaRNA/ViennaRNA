@@ -1,9 +1,9 @@
-/* Last changed Time-stamp: <2009-06-18 14:20:02 ivo> */
+/* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
 /*
-		  Access to alifold Routines
+                  Access to alifold Routines
 
-		  c Ivo L Hofacker
-		  Vienna RNA package
+                  c Ivo L Hofacker
+                  Vienna RNA package
 */
 
 #include <stdio.h>
@@ -20,183 +20,140 @@
 #include "pair_mat.h"
 #include "alifold.h"
 #include "aln_util.h"
+#include "read_epars.h"
 #include "MEA.h"
-extern void  read_parameter_file(const char fname[]);
-extern float energy_of_circ_struct(const char *seq, const char *structure);
+#include "RNAalifold_cmdl.h"
 
 /*@unused@*/
 static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
 
-#define PRIVATE static
+#define MAX_NUM_NAMES    500
 
-static const char scale[] = "....,....1....,....2....,....3....,....4"
-			    "....,....5....,....6....,....7....,....8";
-
-PRIVATE void /*@exits@*/ usage(void);
-PRIVATE char **annote(const char *structure, const char *AS[]);
-PRIVATE void print_pi(const pair_info pi, FILE *file);
-PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
-PRIVATE void mark_endgaps(char *seq, char egap);
+PRIVATE char  **annote(const char *structure, const char *AS[]);
+PRIVATE void  print_pi(const pair_info pi, FILE *file);
+PRIVATE void  print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
+PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe);
 
 /*--------------------------------------------------------------------------*/
-#define MAX_NUM_NAMES    500
-int main(int argc, char *argv[])
-{
-  char *string;
-  char *structure=NULL, *cstruc=NULL;
-  char  ffname[20], gfname[20], fname[13]="";
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   n_seq, i, length, sym, r;
-  int   endgaps=0, mis=0;
-  double min_en, real_en, sfact=1.07;
-  int   pf=0, noPS=0, istty;
-  char     *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char     *names[MAX_NUM_NAMES];       /* sequence names */
-  FILE     *clust_file = stdin;
-  int circ=0;
-  int doAlnPS=0;
-  int doColor=0;
-  int n_back=0;
-  int eval_energy = 0;
-  int doMEA=0;
-  double MEAgamma = 1.;
+int main(int argc, char *argv[]){
+  struct        RNAalifold_args_info args_info;
+  unsigned int  input_type;
+  char          ffname[80], gfname[80], fname[80];
+  char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
+  int           n_seq, i, length, sym, r, noPS;
+  int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
+  double        min_en, real_en, sfact, MEAgamma;
+  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
+  char          *names[MAX_NUM_NAMES];       /* sequence names */
+  FILE          *clust_file = stdin;
 
-
-  do_backtrack = 1;
-  string=NULL;
-  dangles=2;
-  oldAliEn=0;
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-') {
-      switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'p':  pf=1;
-	  if (argv[i][2]!='\0')
-	    (void) sscanf(argv[i]+2, "%d", &do_backtrack);
-	  break;
-	case 'n':
-	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-nc")==0) {
-	    r=sscanf(argv[++i], "%lf", &nc_fact);
-	    if (!r) usage();
-	  }
-	  break;
-	case 'o':
-	  if ( strcmp(argv[i], "-old")==0) oldAliEn=1;
-	  break;
-	case 'm':
-	  if ( strcmp(argv[i], "-mis")==0) mis=1;
-	  else usage();
-	  break;
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'E':
-	  endgaps=1;
-	  break;
-	case 'C':
-	  fold_constrained=1;
-	  break;
-	case 'S':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	  }
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	case 'M':
-	  if (strcmp(argv[i], "-MEA")==0) pf=doMEA=1;
-	  if (i<argc-1)
-	    if (isdigit(argv[i+1][0]) || argv[i+1][0]=='.') {
-	      r=sscanf(argv[++i], "%lf", &MEAgamma);
-	      if (r!=1) usage();
-	    }
-	  break;
-	case 'c':
-	  if ( strcmp(argv[i], "-cv")==0) {
-	    r=sscanf(argv[++i], "%lf", &cv_fact);
-	    if (!r) usage();
-	  } else {
-	    if (strcmp(argv[i], "-circ")==0)
-	      circ=1;
-	    else
-	      if (strcmp(argv[i], "-color")==0)
-		doColor=1;
-	  }
-	  break;
-	case 'a':
-	  if ( strcmp(argv[i], "-aln")==0) {
-	    doAlnPS=1;
-	  }
-	  break;
-	case 'R':
-	  if (i==argc-1) usage();
-	  RibosumFile = argv[++i];
-	  ribo=1;
-	  break;
-	 case 'r':
-	  RibosumFile = NULL;
-	  ribo=1;
-	  break;
-	case 's':
-	  if (argv[i][2]=='e') eval_energy = 1;
-	  else if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r= sscanf(argv[++i], "%d", &n_back);
-	  if (!r) usage();
-	  do_backtrack=0;
-	  pf=1;
-	  init_rand();
-	  break;
-	default: usage();
-	}
-    }
-    else { /* doesn't start with '-' should be filename */
-      if (i!=argc-1) usage();
-      clust_file = fopen(argv[i], "r");
-      if (clust_file == NULL) {
-	fprintf(stderr, "can't open %s\n", argv[i]);
-	usage();
-      }
-
+  fname[0] = ffname[0] = gfname[0] = '\0';
+  string = structure = cstruc = ParamFile = ns_bases = NULL;
+  endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
+  do_backtrack  = 1;
+  dangles       = 2;
+  sfact         = 1.07;
+  MEAgamma      = 1.0;
+  /*
+  #############################################
+  # check the command line prameters
+  #############################################
+  */
+  if(RNAalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* structure constraint */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)        noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)        noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given) no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+  /* set pf scaling factor */
+  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  /* assume RNA sequence to be circular */
+  if(args_info.circ_given)        circular=1;
+  /* do not produce postscript output */
+  if(args_info.noPS_given)        noPS = 1;
+  /* partition function settings */
+  if(args_info.partfunc_given){
+    pf = 1;
+    if(args_info.partfunc_arg != -1)
+      do_backtrack = args_info.partfunc_arg;
+  }
+  /* MEA (maximum expected accuracy) settings */
+  if(args_info.MEA_given){
+    pf = doMEA = 1;
+    if(args_info.MEA_arg != -1)
+      MEAgamma = args_info.MEA_arg;
+  }
+  /* set cfactor */
+  if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
+  /* set nfactor */
+  if(args_info.nfactor_given)     nc_fact = args_info.nfactor_arg;
+  if(args_info.endgaps_given)     endgaps = 1;
+  if(args_info.mis_given)         mis = 1;
+  if(args_info.color_given)       doColor=1;
+  if(args_info.aln_given)         doAlnPS=1;
+  if(args_info.old_given)         oldAliEn = 1;
+  if(args_info.stochBT_given){
+    n_back = args_info.stochBT_arg;
+    do_backtrack = 0;
+    pf = 1;
+    init_rand();
+  }
+  if(args_info.stochBT_en_given){
+    n_back = args_info.stochBT_en_arg;
+    do_backtrack = 0;
+    pf = 1;
+    eval_energy = 1;
+    init_rand();
+  }
+  if(args_info.ribosum_file_given){
+    RibosumFile = strdup(args_info.ribosum_file_arg);
+    ribo = 1;
+  }
+  if(args_info.ribosum_scoring_given){
+    RibosumFile = NULL;
+    ribo = 1;
+  }
+  /* alignment file name given as unnamed option? */
+  if(args_info.inputs_num == 1){
+    clust_file = fopen(args_info.inputs[0], "r");
+    if (clust_file == NULL) {
+      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
     }
   }
 
+  /* free allocated memory of command line data structure */
+  RNAalifold_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
   make_pair_matrix();
 
-  if (circ && noLonelyPairs)
-    fprintf(stderr,
-	    "warning, depending on the origin of the circular sequence, "
-	    "some structures may be missed when using -noLP\n"
-	    "Try rotating your sequence a few times\n");
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (circular && noLonelyPairs)
+    warn_user("depending on the origin of the circular sequence, "
+            "some structures may be missed when using -noLP\n"
+            "Try rotating your sequence a few times\n");
+
+  if (ParamFile != NULL) read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
     nonstandards = space(33);
@@ -207,88 +164,93 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
     }
   }
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-  if ((fold_constrained)&&(istty)) {
-    printf("Input constraints using the following notation:\n");
-    printf("| : paired with another base\n");
-    printf(". : no constraint at all\n");
-    printf("x : base must not pair\n");
-    printf("< : base i is paired with a base j<i\n");
-    printf("> : base i is paired with a base j>i\n");
-    printf("matching brackets ( ): base i pairs base j\n");
-  }
-  if (fold_constrained) {
-    if (istty) printf("%s\n", scale);
-    cstruc = get_line(stdin);
+
+  /*
+  ########################################################
+  # handle user input from 'stdin' if necessary
+  ########################################################
+  */
+  if(fold_constrained){
+    if(istty){
+      print_tty_constraint_full();
+      print_tty_input_seq_str("");
+    }
+    input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
+    if(input_type & VRNA_INPUT_QUIT){ return 0;}
+    else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
+      cstruc = strdup(input_string);
+      free(input_string);
+    }
+    else warn_user("constraints missing");
   }
 
-  if (istty && (clust_file == stdin)) {
-    printf("\nInput aligned sequences in clustalw format\n");
-    if (!fold_constrained) printf("%s\n", scale);
-  }
+  if (istty && (clust_file == stdin))
+    print_tty_input_seq_str("Input aligned sequences in clustalw format");
 
   n_seq = read_clustal(clust_file, AS, names);
+  if (n_seq==0) nrerror("no sequences found");
+
+  if (clust_file != stdin) fclose(clust_file);
+  /*
+  ########################################################
+  # done with 'stdin' handling, now init everything properly
+  ########################################################
+  */
+
+  length    = (int)   strlen(AS[0]);
+  structure = (char *)space((unsigned) length+1);
+
+  if(fold_constrained && cstruc != NULL)
+    strncpy(structure, cstruc, length);
 
   if (endgaps)
     for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
-  if (clust_file != stdin) fclose(clust_file);
-  if (n_seq==0)
-    nrerror("no sequences found");
 
-  length = (int) strlen(AS[0]);
-  structure = (char *) space((unsigned) length+1);
-  if (fold_constrained) {
-    if (cstruc!=NULL)
-      strncpy(structure, cstruc, length);
-    else
-      fprintf(stderr, "constraints missing\n");
-  }
+  /*
+  ########################################################
+  # begin actual calculations
+  ########################################################
+  */
 
-  if (circ)
-    min_en = circalifold((const char **)AS, structure);
-  else
-    min_en = alifold(AS, structure);
-
-  if (circ) {
-    int i; double s=0;
-    extern int eos_debug;
-    eos_debug=-1; /* shut off warnings about nonstandard pairs */
+  if (circular) {
+    int     i;
+    double  s = 0;
+    min_en    = circalifold((const char **)AS, structure);
     for (i=0; AS[i]!=NULL; i++)
-      s +=energy_of_circ_struct(AS[i], structure);
+      s += energy_of_circ_structure(AS[i], structure, -1);
     real_en = s/i;
   } else {
-    float CVen;
-    real_en = energy_of_alistruct(AS, structure, n_seq, &CVen);
+    float *ens  = (float *)space(2*sizeof(float));
+    min_en      = alifold((const char **)AS, structure);
+    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+    real_en     = ens[0];
+    free(ens);
   }
 
-  string = (mis) ?
-    consens_mis((const char **) AS) : consensus((const char **) AS);
+  string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
+
   if (istty)
     printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-	   min_en, real_en, min_en - real_en);
+           min_en, real_en, min_en - real_en);
   else
     printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
 
-  if (fname[0]!='\0') {
-    strcpy(ffname, fname);
-    strcat(ffname, "_ss.ps");
-    strcpy(gfname, fname);
-    strcat(gfname, "_ss.g");
-  } else {
-    strcpy(ffname, "alirna.ps");
-    strcpy(gfname, "alirna.g");
-  }
+  strcpy(ffname, "alirna.ps");
+  strcpy(gfname, "alirna.g");
+
   if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
@@ -302,7 +264,7 @@ int main(int argc, char *argv[])
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
   { /* free mfe arrays but preserve base_pair for PS_dot_plot */
-    struct bond  *bp;
+    bondT  *bp;
     bp = base_pair; base_pair = space(16);
     free_alifold_arrays();  /* free's base_pair */
     base_pair = bp;
@@ -319,23 +281,22 @@ int main(int argc, char *argv[])
     if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
     fflush(stdout);
 
-    /* init_alipf_fold(length); */
-
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
-    energy = (circ) ? alipf_circ_fold(AS, structure, &pl) : alipf_fold(AS, structure, &pl);
+    energy = (circular) ? alipf_circ_fold((const char **)AS, structure, &pl) : alipf_fold((const char **)AS, structure, &pl);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
-	char *s;
-	double prob=1.;
-	s =alipbacktrack(&prob);
-	printf("%s ", s);
-	if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
-	printf("\n");
-	free(s);
+        char *s;
+        double prob=1.;
+        s = alipbacktrack(&prob);
+        printf("%s ", s);
+        if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+        printf("\n");
+         free(s);
       }
+
     }
     if (do_backtrack) {
       printf("%s", structure);
@@ -345,42 +306,49 @@ int main(int argc, char *argv[])
     if ((istty)||(!do_backtrack))
       printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
     printf(" frequency of mfe structure in ensemble %g\n",
-	   exp((energy-min_en)/kT));
+           exp((energy-min_en)/kT));
 
     if (do_backtrack) {
       FILE *aliout;
       cpair *cp;
       char *cent;
       double dist;
-      float en, CVen;
-      cent = centroid_ali(length, &dist, pl);
-
-      en = energy_of_alistruct(AS, cent, n_seq, &CVen);
-      printf("%s %6.2f {%6.2f + %6.2f}\n",cent,en-CVen,en,-CVen);
-      free(cent);
-
-      if  (doMEA) {
-	float mea, mea_en, CVen;
-	mea = MEA(pl, structure, MEAgamma);
-	mea_en = (circ) ? energy_of_alistruct(AS, structure, n_seq, &CVen) :
-	  energy_of_struct(string, structure);
-	printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+      if (!circular){
+        float *ens;
+        cent = get_centroid_struct_pl(length, &dist, pl);
+        ens=(float *)space(2*sizeof(float));
+        energy_of_alistruct((const char **)AS, cent, n_seq, ens);
+        /*cent_en = energy_of_struct(string, cent);*//*ali*/
+        printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
+        free(cent);
+        free(ens);
+      }
+      if(doMEA){
+        float mea, *ens;
+        mea = MEA(pl, structure, MEAgamma);
+        ens = (float *)space(2*sizeof(float));
+        if(circular)
+		  energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+        else
+          ens[0] = energy_of_structure(string, structure, 0);
+        printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
+        free(ens);
       }
 
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_ali.out");
+        strcpy(ffname, fname);
+        strcat(ffname, "_ali.out");
       } else strcpy(ffname, "alifold.out");
       aliout = fopen(ffname, "w");
       if (!aliout) {
-	fprintf(stderr, "can't open %s    skipping output\n", ffname);
+        fprintf(stderr, "can't open %s    skipping output\n", ffname);
       } else {
-      print_aliout(AS, pl, n_seq, mfe_struc, aliout);
+        print_aliout(AS, pl, n_seq, mfe_struc, aliout);
       }
       fclose(aliout);
       if (fname[0]!='\0') {
-	strcpy(ffname, fname);
-	strcat(ffname, "_dp.ps");
+        strcpy(ffname, fname);
+        strcat(ffname, "_dp.ps");
       } else strcpy(ffname, "alidot.ps");
       cp = make_color_pinfo(AS,pl, n_seq,base_pair);
       (void) PS_color_dot_plot(string, cp, ffname);
@@ -418,14 +386,12 @@ PRIVATE void print_pi(const pair_info pi, FILE *file) {
 
   /* numbering starts with 1 in output */
   fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-	  pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
+          pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
   for (i=1; i<=7; i++)
     if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
   if (!pi.comp) fprintf(file, " +");
   fprintf(file, "\n");
 }
-
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 
 /*-------------------------------------------------------------------------*/
 
@@ -458,8 +424,8 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
       pfreq[type]++;
       if (type) {
-	if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-	if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
+        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
       }
     }
     for (pairings=0,s=1; s<=7; s++) {
@@ -471,12 +437,12 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
       ps = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
       if ((ps==NULL) || (colorps == NULL))
-	  nrerror("out of memory in realloc");
+          nrerror("out of memory in realloc");
     }
 
     if (pfreq[0]<=2 && pairings>0) {
       snprintf(pps, 64, "%d %d %s colorpair\n",
-	       i,j, colorMatrix[pairings-1][pfreq[0]]);
+               i,j, colorMatrix[pairings-1][pfreq[0]]);
       strcat(colorps, pps);
     }
 
@@ -513,7 +479,7 @@ PRIVATE int compare_pair_info(const void *pi1, const void *pi2) {
   /* sort mostly by probability, add
      epsilon * comp_mutations/(non-compatible+1) to break ties */
   return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
-	 (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
+         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
 PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout) {
@@ -562,7 +528,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
 
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",
-	  n_seq, (int) strlen(AS[0]));
+          n_seq, (int) strlen(AS[0]));
   fprintf(aliout, "alifold output\n");
 
   for (k=0; pi[k].i>0; k++) {
@@ -591,15 +557,15 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
       cp[c].p = pl[i].p;
       for (z=0; z<7; z++) pfreq[z]=0;
       for (s=0; s<n_seq; s++) {
-	a=encode_char(toupper(sequences[s][cp[c].i-1]));
-	b=encode_char(toupper(sequences[s][cp[c].j-1]));
-	if ((sequences[s][cp[c].j-1]=='~')||(sequences[s][cp[c].i-1] == '~')) continue;
-	pfreq[pair[a][b]]++;
+        a=encode_char(toupper(sequences[s][cp[c].i-1]));
+        b=encode_char(toupper(sequences[s][cp[c].j-1]));
+        if ((sequences[s][cp[c].j-1]=='~')||(sequences[s][cp[c].i-1] == '~')) continue;
+        pfreq[pair[a][b]]++;
       }
       for (z=1; z<7; z++) {
-	if (pfreq[z]>0) {
-	  ncomp++;
-	}}
+        if (pfreq[z]>0) {
+          ncomp++;
+        }}
       cp[c].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
       cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2./*pi[i].bp[0]*//(n_seq)));
       c++;
@@ -608,33 +574,21 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
   for (t=1; t<=mfe[0].i; t++) {
     int nofound=1;
       for (j=0; j<c; j++) {
-	if ((cp[j].i==mfe[t].i)&&(cp[j].j==mfe[t].j)) {
-	  cp[j].mfe=1;
-	  nofound=0;
-	  break;
-	}
+        if ((cp[j].i==mfe[t].i)&&(cp[j].j==mfe[t].j)) {
+          cp[j].mfe=1;
+          nofound=0;
+          break;
+        }
       }
       if(nofound) {
-	fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
-	cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
-	cp[c].i = mfe[t].i;
-	cp[c].j = mfe[t].j;
-	cp[c].p = 0.;
-	cp[c].mfe=1;
-	c++;
+        fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
+        cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
+        cp[c].i = mfe[t].i;
+        cp[c].j = mfe[t].j;
+        cp[c].p = 0.;
+        cp[c].mfe=1;
+        c++;
       }
     }
   return cp;
-}
-
-/*-------------------------------------------------------------------------*/
-
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-	  "RNAalifold [-cv float] [-nc float] [-E] [-old] [-r] [-R ribosum]\n"
-	  "        [-mis] [-aln] [-color] [-circ] [-s num] [-se num]\n"
-	  "        [-p[0]] [-C] [-T temp] [-4] [-d] [-noGU] [-noCloseGU]\n"
-	  "        [-noLP] [-e e_set] [-P paramfile] [-nsp pairs] [-S scale]"
-	  );
 }

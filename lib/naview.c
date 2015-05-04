@@ -1,22 +1,22 @@
 /*
 *   NAVIEW -- A program to make a modified radial drawing of an RNA
-*   secondary structure. 
-*   
+*   secondary structure.
+*
 *   Copyright (c) 1988 Robert E. Bruccoleri
 *   Copying of this software, in whole or in part, is permitted
 *   provided that the copies are not made for commercial purposes,
 *   appropriate credit for the use of the software is given, this
 *   copyright notice appears, and notice is given that the copying
 *   is by permission of Robert E. Bruccoleri. Any other copying
-*   requires specific permission. 
+*   requires specific permission.
 *
 *   See R. Bruccoleri and G. Heinrich, Computer Applications in the
 *   Biosciences, 4, 167-173 (1988) for a full description.
-*   
+*
 *   In November 1997, Michael Zuker made a number of changes to bring
 *   naview up to modern standards. All functions defined in naview are
 *   now declared before main() with arguments and argument types.
-*   When functions are defined, their argument types are declared 
+*   When functions are defined, their argument types are declared
 *   with the function and these definitions are removed after the '{'.
 *   The 'void' declaration was used as necessary for functions.
 *
@@ -39,6 +39,7 @@
 #include <math.h>
 
 #include "utils.h"
+#include "naview.h"
 
 typedef int LOGICAL;
 #define logical LOGICAL
@@ -65,7 +66,8 @@ typedef int LOGICAL;
 static double pi = 3.141592653589793;
 static double anum = 9999.0;
 
-
+
+
 /*
 *   Function data type definitions
 */
@@ -79,11 +81,11 @@ static struct base {
   logical extracted;
   struct region *region;
 } *bases;
-    
+
 struct region {
   int start1,end1,start2,end2;
 };
-	
+
 struct loop {
   int nconnection;
   struct connection **connections;
@@ -92,7 +94,7 @@ struct loop {
   logical mark;
   double x,y,radius;
 };
-    
+
 struct connection {
   struct loop *loop;
   struct region *region;
@@ -138,10 +140,11 @@ static int depth(struct loop *lp);
 static logical connected_connection(struct connection *cp, struct connection *cpnext);
 static int    find_ic_middle(int icstart, int icend, struct connection *anchor_connection, struct connection *acp, struct loop *lp);
 
-
+
+
 int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
   int i;
-  
+
   nbase = pair_table[0]; /* length */
   bases = (struct base *) space(sizeof(struct base)*(nbase+1));
   regions = (struct region *) space(sizeof(struct region)*(nbase+1));
@@ -165,7 +168,8 @@ int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
   free(loops);
   return nbase;
 }
-
+
+
 static void read_in_bases(short *pair_table)
 {
   int i,npairs;
@@ -175,7 +179,7 @@ static void read_in_bases(short *pair_table)
   bases[0].extracted = false;
   bases[0].x = anum;
   bases[0].y = anum;
-  
+
   for (npairs=0,i=1; i<=nbase; i++) {
     bases[i].extracted = false;
     bases[i].x = anum;
@@ -188,7 +192,8 @@ static void read_in_bases(short *pair_table)
     bases[nbase].mate=1;
   }
 }
-
+
+
 static void find_regions(void)
 /*
 *   Identifies the regions in the structure.
@@ -197,7 +202,7 @@ static void find_regions(void)
 {
   int i,mate,nb1;
   logical *mark;
-    
+
   nb1 = nbase + 1;
   mark = (int *) space(sizeof(int)*nb1);
   for (i = 0; i < nb1; i++) mark[i] = false;
@@ -209,8 +214,8 @@ static void find_regions(void)
       mark[i] = true;
       mark[mate] = true;
       bases[i].region = bases[mate].region = &regions[nregion];
-      for (i++,mate--; 
-	   i<mate && bases[i].mate == mate; 
+      for (i++,mate--;
+	   i<mate && bases[i].mate == mate;
 	   i++,mate--) {
 	mark[i] = mark[mate] = true;
 	bases[i].region = bases[mate].region = &regions[nregion];
@@ -229,11 +234,12 @@ static void find_regions(void)
   }
   free(mark);
 }
-
+
+
 static struct loop *construct_loop(int ibase)
 /*
 *   Starting at residue ibase, recursively constructs the loop containing
-*   said base and all deeper bases. 
+*   said base and all deeper bases.
 */
 
 {
@@ -242,7 +248,7 @@ static struct loop *construct_loop(int ibase)
   struct connection *cp;
   struct region *rp;
   struct radloop *rlp;
-    
+
   retloop = &loops[loop_count++];
   retloop->nconnection = 0;
   retloop->connections = (struct connection **) space(sizeof(struct connection *));
@@ -261,7 +267,7 @@ static struct loop *construct_loop(int ibase)
 	  bases[rp->end1].extracted = true;
 	  bases[rp->start2].extracted = true;
 	  bases[rp->end2].extracted = true;
-	  lp = construct_loop(rp->end1 < nbase ? rp->end1+1 : 0);	
+	  lp = construct_loop(rp->end1 < nbase ? rp->end1+1 : 0);
 	}
 	else if (i == rp->start2){
 	  bases[rp->start2].extracted = true;
@@ -274,11 +280,11 @@ static struct loop *construct_loop(int ibase)
 	  fprintf(stderr, "naview: Error detected in construct_loop. i = %d not found in region table.\n",i);
 	  exit(FATAL_ERROR);
 	}
-	retloop->connections = (struct connection **) 
+	retloop->connections = (struct connection **)
 	  realloc(retloop->connections,
-		  (++retloop->nconnection+1) * 
+		  (++retloop->nconnection+1) *
 		  sizeof(struct connection *));
-	retloop->connections[retloop->nconnection-1] = cp = 
+	retloop->connections[retloop->nconnection-1] = cp =
 	  struct_alloc(connection);
 	retloop->connections[retloop->nconnection] = NULL;
 	cp->loop = lp;
@@ -293,11 +299,11 @@ static struct loop *construct_loop(int ibase)
 	}
 	cp->extruded = false;
 	cp->broken = false;
-	lp->connections = (struct connection **) 
+	lp->connections = (struct connection **)
 	  realloc(lp->connections,
-		  (++lp->nconnection+1) * 
+		  (++lp->nconnection+1) *
 		  sizeof(struct connection *));
-	lp->connections[lp->nconnection-1] = cp = 
+	lp->connections[lp->nconnection-1] = cp =
 	  struct_alloc(connection);
 	lp->connections[lp->nconnection] = NULL;
 	cp->loop = retloop;
@@ -320,7 +326,8 @@ static struct loop *construct_loop(int ibase)
   while (i != ibase);
   return retloop;
 }
-
+
+
 static void dump_loops(void)
 /*
 *   Displays all the loops.
@@ -330,7 +337,7 @@ static void dump_loops(void)
   int il,ilp,irp;
   struct loop *lp;
   struct connection *cp,**cpp;
-    
+
   printf("\nRoot loop is #%d\n",(root-loops)+1);
   for (il=0; il < loop_count; il++) {
     lp = &loops[il];
@@ -343,7 +350,8 @@ static void dump_loops(void)
     }
   }
 }
-
+
+
 static void find_central_loop(void)
 /*
 *   Find node of greatest branching that is deepest.
@@ -356,7 +364,7 @@ static void find_central_loop(void)
   determine_depths();
   maxconn = 0;
   maxdepth = -1;
-    
+
   for (i=0; i<loop_count; i++) {
     lp = &loops[i];
     if (lp->nconnection > maxconn) {
@@ -370,7 +378,8 @@ static void find_central_loop(void)
     }
   }
 }
-
+
+
 static void determine_depths(void)
 /*
 *   Determine the depth of all loops.
@@ -379,14 +388,15 @@ static void determine_depths(void)
 {
   struct loop *lp;
   int i,j;
-    
+
   for (i=0; i<loop_count; i++) {
     lp = &loops[i];
     for (j=0; j<loop_count; j++) loops[j].mark = false;
     lp->depth = depth(lp);
   }
 }
-
+
+
 
 static int depth(struct loop *lp)
 /*
@@ -398,7 +408,7 @@ static int depth(struct loop *lp)
 {
   struct connection *cp,**cpp;
   int count,ret,d;
-    
+
   if (lp->nconnection <= 1) return 0;
   if (lp->mark) return -1;
   lp->mark = true;
@@ -414,7 +424,8 @@ static int depth(struct loop *lp)
   lp->mark = false;
   return ret+1;
 }
-
+
+
 static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
 /*
 *   This is the workhorse of the display program. The algorithm is
@@ -425,8 +436,8 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
 *   for lengths between sequential bases in the loops. The "correct"
 *   length for base links is 1. If the least squares fitting of the
 *   radius results in loops being less than 1/2 unit apart, then that
-*   segment is extruded. 
-*   
+*   segment is extruded.
+*
 *   The variable, anchor_connection, gives the connection to the loop
 *   processed in an previous level of recursion.
 */
@@ -445,7 +456,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
   double dan,dx,dy,rr;
   double cpx,cpy,cpnextx,cpnexty,cnx,cny,rcn,rc,lnx,lny,rl,ac,acn,sx,sy,dcp;
   int imaxloop;
-    
+
   angleinc = 2 * pi / (nbase+1);
   acp = NULL;
   icroot = -1;
@@ -471,7 +482,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
       icroot = ic;
     }
   }
-	
+
  set_radius:
   determine_radius(lp,lencut);
   radius = lp->radius;
@@ -482,7 +493,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
     xc = xo - radius * acp->xrad;
     yc = yo - radius * acp->yrad;
   }
-	
+
   /*
    *   The construction of the connectors will proceed in blocks of
    *   connected connectors, where a connected connector pairs means
@@ -494,7 +505,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
    *   First, find the start of a block of connected connectors
    */
 
-  if (icroot == -1) 
+  if (icroot == -1)
     icstart = 0;
   else icstart = icroot;
   cp = lp->connections[icstart];
@@ -515,7 +526,7 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
     if (++count > lp->nconnection) {
       /*
        *  Here everything is connected. Break on maximum angular separation
-       *  between connections. 
+       *  between connections.
        */
       maxang = -1.0;
       for (ic = 0;  ic < lp->nconnection;  ic++) {
@@ -814,7 +825,8 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
   free(lp->connections);
 }
 
-
+
+
 static void determine_radius(struct loop *lp,double lencut)
 /*
 *   For the loop pointed to by lp, determine the radius of
@@ -823,7 +835,7 @@ static void determine_radius(struct loop *lp,double lencut)
 *   If a segment joining two connectors will not support this separation,
 *   then the flag, extruded, will be set in the first of these
 *   two indicators. The radius is set in lp.
-*   
+*
 *   The radius is selected by a least squares procedure where the sum of the
 *   squares of the deviations of length from the ideal value of 1 is used
 *   as the error function.
@@ -849,7 +861,7 @@ static void determine_radius(struct loop *lp,double lencut)
       if (start < end) start += nbase + 1;
       dt = cpnext->angle - cp->angle;
       if (dt <= 0.0) dt += 2*pi;
-      if (!cp->extruded) 
+      if (!cp->extruded)
 	ci = start - end;
       else {
 	if (dt <= pi/2) ci = 2.0;
@@ -873,7 +885,8 @@ static void determine_radius(struct loop *lp,double lencut)
     radius = lp->radius;
   else lp->radius = radius;
 }
-
+
+
 static logical    connected_connection(struct connection *cp, struct connection *cpnext)
 /*
 *   Determines if the connections cp and cpnext are connected
@@ -891,7 +904,8 @@ static logical    connected_connection(struct connection *cp, struct connection 
     return false;
   }
 }
-
+
+
 static int    find_ic_middle(int icstart, int icend, struct connection *anchor_connection, struct connection *acp, struct loop *lp)
 /*
 *   Finds the middle of a set of connected connectors. This is normally
@@ -928,7 +942,8 @@ static int    find_ic_middle(int icstart, int icend, struct connection *anchor_c
   }
   return ret;
 }
-
+
+
 static void generate_region(struct connection *cp)
 /*
 *   Generates the coordinates for the base pairing region of a connection
@@ -963,7 +978,8 @@ static void generate_region(struct connection *cp)
     bases[mate].y = bases[cp->end].y + l*cp->yrad;
   }
 }
-
+
+
 static void construct_circle_segment(int start, int end)
 /*
 *   Draws the segment of residue between the bases numbered start
@@ -1013,7 +1029,8 @@ static void construct_circle_segment(int start, int end)
     }
   }
 }
-
+
+
 static void construct_extruded_segment(struct connection *cp, struct connection *cpnext)
 /*
 *   Constructs the segment between cp and cpnext as a circle if possible.
@@ -1093,7 +1110,8 @@ static void construct_extruded_segment(struct connection *cp, struct connection 
     } while    (collision && n > 1);
   }
 }
-
+
+
 static void find_center_for_arc(int n,double b,double *hp,double *thetap)
 /*
 *   Given n points to be placed equidistantly and equiangularly on a
@@ -1102,7 +1120,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
 *   mean the center is within the polygon and the chord, whereas
 *   negative values mean the center is outside the chord. Also, the
 *   radial angle for each polygon side is returned in theta.
-*    
+*
 *   The procedure uses a bisection algorithm to find the correct
 *   value for the center. Two equations are solved, the angles
 *   around the center must add to 2*pi, and the sides of the polygon
@@ -1113,7 +1131,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
   double h,hhi,hlow,r,disc,theta,e,phi;
   int iter;
 #define maxiter 500
-  
+
   hhi = (n+1) / pi;
   hlow = - hhi - b/(n+1.000001-b);  /* changed to prevent div by zero if (ih) */
   if (b<1) hlow = 0;  /* otherwise we might fail below (ih) */
@@ -1122,15 +1140,15 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
     h = (hhi + hlow) / 2.0;
     r = sqrt(h*h + b*b/4.0);
     /*  if (r<0.5) {r = 0.5; h = 0.5*sqrt(1-b*b);} */
-    disc = 1.0 - 0.5/(r*r); 
-    if (fabs(disc) > 1.0) { 
-      fprintf(stderr, "Unexpected large magnitude discriminant = %g %g\n", disc,r); 
-      exit(FATAL_ERROR); 
-    } 
-    theta = acos(disc); 
+    disc = 1.0 - 0.5/(r*r);
+    if (fabs(disc) > 1.0) {
+      fprintf(stderr, "Unexpected large magnitude discriminant = %g %g\n", disc,r);
+      exit(FATAL_ERROR);
+    }
+    theta = acos(disc);
     /*    theta = 2*acos(sqrt(1-1/(4*r*r))); */
     phi = acos(h/r);
-    e = theta * (n+1) + 2*phi - 2*pi; 
+    e = theta * (n+1) + 2*phi - 2*pi;
     if (e > 0.0) {
       hlow = h;
     }

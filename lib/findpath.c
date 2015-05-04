@@ -10,41 +10,60 @@
 #include "utils.h"
 #include "pair_mat.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
-extern int
-energy_of_struct_pt (char *string, short * ptable, short *s, short *s1);
-static int energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
-typedef struct move {
-  int i;  /* i,j>0 insert; i,j<0 delete */
-  int j;
-  int when;  /* 0 if still available, else resulting distance from start */
-  int E;
-} move_t;
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE char    *seq;
+PRIVATE short   *S, *S1;
+PRIVATE int     BP_dist;
+PRIVATE move_t  *path;
+PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
-typedef struct intermediate {
-  short *pt;     /* pair table */
-  int Sen;       /* saddle energy so far */
-  int curr_en;   /* current energy */
-  move_t *moves; /* remaining moves to target */
-} intermediate_t;
+#ifdef _OPENMP
 
-static int *pair_table_to_loop_index (short *pt);
-static move_t* copy_moves(move_t *mvs);
-static int compare_ptable(const void *A, const void *B);
-static int compare_energy(const void *A, const void *B);
-static int compare_moves_when(const void *A, const void *B);
-static void free_intermediate(intermediate_t *i);
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin in the PARALLEL directive!
+         e.g.:
+         #pragma omp parallel for copyin(pf_params)
+*/
+#pragma omp threadprivate(seq, S, S1, BP_dist, path, path_fwd)
 
+#endif
 
-static char *seq;
-static short *S, *S1;
-static int BP_dist;
-static move_t *path;
-static int path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE int     energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
+PRIVATE int     *pair_table_to_loop_index (short *pt);
+PRIVATE move_t  *copy_moves(move_t *mvs);
+PRIVATE int     compare_ptable(const void *A, const void *B);
+PRIVATE int     compare_energy(const void *A, const void *B);
+PRIVATE int     compare_moves_when(const void *A, const void *B);
+PRIVATE void    free_intermediate(intermediate_t *i);
 
-static int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
+PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
   short *pt;
@@ -75,7 +94,7 @@ static int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist)
 #ifdef LOOP_EN
     en = c.curr_en + energy_of_move(c.pt, S, S1, i, j);
 #else
-    en = energy_of_struct_pt(seq, pt, S, S1);
+    en = energy_of_structure_pt(seq, pt, S, S1, 0);
 #endif
     if (en<maxE) {
       next[num_next].Sen = (en>oldE)?en:oldE;
@@ -92,7 +111,7 @@ static int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist)
   return num_next;
 }
 
-static int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
+PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
   short *pt1, *pt2;
   move_t *mlist;
   int i, len, d, dist=0, result;
@@ -122,7 +141,7 @@ static int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
   BP_dist = dist;
   current = (intermediate_t *) space(sizeof(intermediate_t)*(maxl+1));
   current[0].pt = pt1;
-  current[0].Sen = current[0].curr_en = energy_of_struct_pt(seq, pt1, S, S1);
+  current[0].Sen = current[0].curr_en = energy_of_structure_pt(seq, pt1, S, S1, 0);
   current[0].moves = mlist;
   next = (intermediate_t *) space(sizeof(intermediate_t)*(dist*maxl+1));
 
@@ -167,7 +186,7 @@ static int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
 }
 
 
-int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
+PUBLIC int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   int maxl, maxE, i;
   char *tmp;
   move_t *bestpath=NULL;
@@ -181,13 +200,8 @@ int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   make_pair_matrix();
 
   /* nummerically encode sequence */
-  S = (short *) space(sizeof(short)*(strlen(seq)+1));
-  S1 = (short *) space(sizeof(short)*(strlen(seq)+1));
-  S[0] = S1[0] = (short) strlen(seq);
-  for (i=0; i< strlen(seq); i++) {
-    S[i+1] = encode_char(seq[i]);
-    S1[i+1] = alias[S[i+1]];
-  }
+  S   = encode_sequence(seq, 0);
+  S1  = encode_sequence(seq, 1);
 
   maxl=1;
   do {
@@ -212,11 +226,11 @@ int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
   return maxE;
 }
 
-void print_path(char *seq, char *struc) {
+PUBLIC void print_path(char *seq, char *struc) {
   int d;
   char *s;
   s = strdup(struc);
-  printf("%s\n%s %6.2f\n", seq, s, energy_of_struct(seq,s));
+  printf("%s\n%s %6.2f\n", seq, s, energy_of_structure(seq,s, 0));
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
   for (d=0; d<BP_dist; d++) {
     int i,j;
@@ -226,12 +240,12 @@ void print_path(char *seq, char *struc) {
     } else {
       s[i-1] = '('; s[j-1] = ')';
     }
-    printf("%s %6.2f - %6.2f\n", s, energy_of_struct(seq,s), path[d].E/100.0);
+    printf("%s %6.2f - %6.2f\n", s, energy_of_structure(seq,s, 0), path[d].E/100.0);
   }
   free(s);
 }
 
-path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
+PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   int E, d;
   path_t *route;
 
@@ -244,7 +258,7 @@ path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   if (path_fwd) {
     /* memorize start of path */
     route[0].s  = strdup(s1);
-    route[0].en = energy_of_struct(seq, s1);
+    route[0].en = energy_of_structure(seq, s1, 0);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -262,7 +276,7 @@ path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
     /* memorize start of path */
 
     route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = energy_of_struct(seq, s2);
+    route[BP_dist].en = energy_of_structure(seq, s2, 0);
 
     for (d=0; d<BP_dist; d++) {
       int i,j;
@@ -288,7 +302,7 @@ path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   return (route);
 }
 
-static int *pair_table_to_loop_index (short *pt)
+PRIVATE int *pair_table_to_loop_index (short *pt)
 {
   /* number each position by which loop it belongs to (positions start
      at 1) */
@@ -338,7 +352,7 @@ static int *pair_table_to_loop_index (short *pt)
   return (loop);
 }
 
-static void free_intermediate(intermediate_t *i) {
+PRIVATE void free_intermediate(intermediate_t *i) {
    free(i->pt);
    free(i->moves);
    i->pt = NULL;
@@ -346,7 +360,7 @@ static void free_intermediate(intermediate_t *i) {
    i->Sen = INT_MAX;
  }
 
-static int compare_ptable(const void *A, const void *B) {
+PRIVATE int compare_ptable(const void *A, const void *B) {
   intermediate_t *a, *b;
   int c;
   a = (intermediate_t *) A;
@@ -358,7 +372,7 @@ static int compare_ptable(const void *A, const void *B) {
   return (a->curr_en - b->curr_en);
 }
 
-static int compare_energy(const void *A, const void *B) {
+PRIVATE int compare_energy(const void *A, const void *B) {
   intermediate_t *a, *b;
   a = (intermediate_t *) A;
   b = (intermediate_t *) B;
@@ -367,7 +381,7 @@ static int compare_energy(const void *A, const void *B) {
   return (a->curr_en - b->curr_en);
 }
 
-static int compare_moves_when(const void *A, const void *B) {
+PRIVATE int compare_moves_when(const void *A, const void *B) {
   move_t *a, *b;
   a = (move_t *) A;
   b = (move_t *) B;
@@ -375,14 +389,14 @@ static int compare_moves_when(const void *A, const void *B) {
   return(a->when - b->when);
 }
 
-static move_t* copy_moves(move_t *mvs) {
+PRIVATE move_t* copy_moves(move_t *mvs) {
   move_t *new;
   new = (move_t *) space(sizeof(move_t)*(BP_dist+1));
   memcpy(new,mvs,sizeof(move_t)*(BP_dist+1));
   return new;
 }
 
-static int energy_of_move(short *pt, short *s, short *s1, int m1, int m2) {
+PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2) {
   int en_post, en_pre, i,j,k,l, len;
 
   len = pt[0];

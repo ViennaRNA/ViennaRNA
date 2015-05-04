@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2008-09-02 10:47:24 ivo> */
 /*
 
-	  Calculate Energy of given Sequences and Structures
-			   c Ivo L Hofacker
-			  Vienna RNA Pckage
+          Calculate Energy of given Sequences and Structures
+                           c Ivo L Hofacker
+                          Vienna RNA Pckage
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +15,9 @@
 #include "fold_vars.h"
 #include "fold.h"
 #include "utils.h"
+#include "read_epars.h"
+#include "RNAeval_cmdl.h"
+
 #ifdef __GNUC__
 #define UNUSED __attribute__ ((unused))
 #else
@@ -24,165 +27,142 @@
 /*@unused@*/
 static char UNUSED rcsid[]="$Id: RNAeval.c,v 1.10 2008/10/09 07:08:40 ivo Exp $";
 
-#define  PUBLIC
-#define  PRIVATE   static
-
-static char  scale[] = "....,....1....,....2....,....3....,....4"
-		       "....,....5....,....6....,....7....,....8";
-
 PRIVATE char *costring(char *string);
 PRIVATE char *tokenize(char *line);
-PRIVATE void usage(void);
-extern int logML;
-extern int cut_point;
-extern int eos_debug;
-extern void  read_parameter_file(const char fname[]);
-extern float energy_of_circ_struct(const char *seq, const char *str);
 
-int main(int argc, char *argv[])
-{
-   char *line, *string, *structure;
-   char  fname[12];
-   char  *ParamFile=NULL;
-   int   i, l, length1, length2;
-   float energy;
-   int   istty;
-   int circ=0;
-   int   noconv=0;
+int main(int argc, char *argv[]){
+  struct RNAeval_args_info  args_info;
+  unsigned int              input_type;
+  char                      *line, *string, *structure, *input_string;
+  char                      fname[80];
+  char                      *ParamFile;
+  int                       i, l, length1, length2;
+  float                     energy;
+  int                       istty;
+  int                       circular=0;
+  int                       noconv=0;
+  int                       verbose = 0;
 
-   string=NULL;
-   for (i=1; i<argc; i++) {
-     if (argv[i][0]=='-')
-       switch ( argv[i][1] )
-	 {
-	 case 'T':  if (argv[i][2]!='\0') usage();
-	   if (sscanf(argv[++i], "%lf", &temperature)==0)
-	     usage();
-	   break;
-	 case '4':
-	   tetra_loop=0;
-	   break;
-	 case 'e':
-	   if (sscanf(argv[++i],"%d", &energy_set)==0)
-	     usage();
-	   break;
-	 case 'd': dangles=0;
-	   if (argv[i][2]!='\0')
-	     if (sscanf(argv[i]+2, "%d", &dangles)==0)
-	       usage();
-	   break;
-	 case 'c':
-	   if ( strcmp(argv[i], "-circ")==0) circ=1;
-	   break;
-	 case 'P':
-	   if (++i <= argc)
-	     ParamFile = argv[i];
-	   else usage();
-	   break;
-	 case 'l':
-	   if (strcmp(argv[i],"-logML")==0)
-	     logML=1;
-	   else usage();
-	   break;
-	 case 'n':
-	   if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-	   else usage();
-	   break;
-	 case 'v':
-	   if ( strcmp(argv[i], "-v")==0) eos_debug=1;
-	   else usage();
-	   break;
-	 default: usage();
-	 }
-   }
+  string = ParamFile = NULL;
+
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAeval_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)     tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)      noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  /* assume RNA sequence to be circular */
+  if(args_info.circ_given)        circular=1;
+  /* logarithmic multiloop energies */
+  if(args_info.logML_given)       logML = 1;
+  /* be verbose */
+  if(args_info.verbose_given)     verbose = 1;
+
+  /* free allocated memory of command line data structure */
+  RNAeval_cmdline_parser_free (&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
+
+   if (ParamFile!=NULL) read_parameter_file(ParamFile);
+   update_fold_params();
 
    istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
-   if (ParamFile!=NULL)
-     read_parameter_file(ParamFile);
 
-   update_fold_params();
+  /*
+  #############################################
+  # main loop: continue until end of file
+  #############################################
+  */
+  do {
+    cut_point = -1;
+    /*
+    ########################################################
+    # handle user input from 'stdin'
+    ########################################################
+    */
+    if(istty){
+      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      print_tty_input_seq_str("Input sequence & structure;   @ to quit");
+    }
 
-   do {
-     cut_point = -1;
-      if (istty) {
-	 printf("\nInput sequence & structure;   @ to quit\n");
-       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
-	 printf("%s\n", scale);
-      }
+    /* extract filename from fasta header if available */
+    fname[0] = '\0';
+    while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
+      printf(">%s\n", input_string);
+      (void) sscanf(input_string, "%42s", fname);
+      free(input_string);
+    }
 
-      fname[0]='\0';
-      if ((line = get_line(stdin))==NULL) break;
+    /* break on any error, EOF or quit request */
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+    else{
+      string    = tokenize(input_string); /* frees input_string */
+      length2   = (int) strlen(string);
+      free(input_string);
+    }
 
-     /* skip comment lines and get filenames */
-      while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	 if (*line=='>')
-	    (void) sscanf(line, ">%s", fname);
-	 printf("%s\n", line);
-	 free(line);
-	 if ((line = get_line(stdin))==NULL) break;
-      }
+    /* get the structure */
+    input_type = get_input_line(&input_string, 0);
+    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)){ break;}
+    else{
+      structure = tokenize(input_string);
+      length1   = (int) strlen(structure);
+      free(input_string);
+    }
 
-      if (line==NULL) break;
-      if (strcmp(line, "@") == 0) {free(line); break;}
+    if(length1 != length2)
+      nrerror("Sequence and Structure have unequal length.");
 
-      string = tokenize(line);
-      free(line);
-      length2 = (int) strlen(string);
+    if(noconv)  str_RNA2RNA(string);
+    else        str_DNA2RNA(string);
 
-      if ((line = get_line(stdin))==NULL) break;
-      /* skip comment lines */
-      while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	 printf("%s\n", line);
-	 free(line);
-	 if ((line = get_line(stdin))==NULL) break;
-      }
-      if (line==NULL) break;
-      if (strcmp(line, "@") == 0) {free(line); break;}
-
-      structure = tokenize(line);
-      free(line);
-      length1 = (int) strlen(structure);
-
-      if(length1!=length2)
-	 nrerror("Sequence and Structure have unequal length.");
-
-      for (l = 0; l < length1; l++) {
-	string[l] = toupper((int)string[l]);
-	if (!noconv && string[l] == 'T') string[l] = 'U';
-      }
-
-      if (istty) {
-	if (cut_point == -1)
-	  printf("length = %d\n", length1);
-	else
-	  printf("length1 = %d\nlength2 = %d\n",
-		 cut_point-1, length1-cut_point+1);
-      }
-      if (circ)
-	energy = energy_of_circ_struct(string, structure);
-      else
-	energy = energy_of_struct(string, structure);
+    if(istty){
       if (cut_point == -1)
-      printf("%s\n%s", string, structure);
-      else {
-	char *pstring, *pstruct;
-	pstring = costring(string);
-	pstruct = costring(structure);
-	printf("%s\n%s", pstring,  pstruct);
-	free(pstring);
-	free(pstruct);
-      }
-      if (istty)
-	printf("\n energy = %6.2f\n", energy);
+        printf("length = %d\n", length1);
       else
-	printf(" (%6.2f)\n", energy);
+        printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
+    }
 
-      free(string);
-      free(structure);
-      (void) fflush(stdout);
-   } while (1);
-   return 0;
+    energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
+
+    if (cut_point == -1)
+      printf("%s\n%s", string, structure);
+    else {
+      char *pstring, *pstruct;
+      pstring = costring(string);
+      pstruct = costring(structure);
+      printf("%s\n%s", pstring,  pstruct);
+      free(pstring);
+      free(pstruct);
+    }
+    if (istty)
+      printf("\n energy = %6.2f\n", energy);
+    else
+      printf(" (%6.2f)\n", energy);
+
+    free(string);
+    free(structure);
+    (void) fflush(stdout);
+  } while (1);
+  return 0;
 }
 
 PRIVATE char *tokenize(char *line)
@@ -228,9 +208,4 @@ PRIVATE char *costring(char *string)
   (void) strcat(ctmp, string+cut_point-1);
 
   return ctmp;
-}
-
-PRIVATE void usage(void)
-{
-  nrerror("usage: RNAeval  [-T temp] [-4] [-d[0|1|2]] [-e e_set] [-logML] [-P paramfile] [-circ] [-v]");
 }

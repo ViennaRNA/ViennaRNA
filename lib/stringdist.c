@@ -18,11 +18,9 @@ static char rcsid[] = "$Id: stringdist.c,v 1.3 2005/07/24 08:37:15 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static
-#define MIN(x,y)       (((x)<(y)) ? (x) : (y))      
-#define MAX(x,y)       (((x)>(y)) ? (x) : (y))
-#define MIN3(x,y,z)    (MIN(  (MIN((x),(y))) ,(z)))
-#define INFINITY       10000
- 
+
+#define INFINITY_DIST  10000
+
 PUBLIC  float      string_edit_distance(swString *T1, swString *T2);
 PUBLIC  swString  *Make_swString(char *string);
 PUBLIC  void       print_swString(swString *x);
@@ -30,7 +28,7 @@ PUBLIC  void       print_alignment_list(void);
 
 PRIVATE void       sprint_aligned_swStrings(swString *T1, swString *T2);
 PRIVATE float      StrEditCost(int i, int j, swString *T1, swString *T2);
-PRIVATE void       DeCode(char *string, int k, int *tp, float *w);   
+PRIVATE void       DeCode(char *string, int k, int *tp, float *w);
 PRIVATE int        decode(char *id);
 PRIVATE void       encode(int type, char label[]);
 PRIVATE int       *alignment[2]; /* contains information from backtracking
@@ -51,7 +49,7 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
 
     if (cost_matrix==0) EditCost = &UsualCost;
     else EditCost = &ShapiroCost;
-    
+
     length1 = T1[0].sign;
     length2 = T2[0].sign;
 
@@ -82,16 +80,16 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
        }
        distance[0][j] = distance[0][j-1]+StrEditCost(0,j,T1,T2);
     }
-    
+
     for (i = 1; i <= length1; i++) {
        for (j = 1; j <= length2 ; j++) {
           minus  = distance[i-1][j]  + StrEditCost(i,0,T1,T2);
           plus   = distance[i][j-1]  + StrEditCost(0,j,T1,T2);
           change = distance[i-1][j-1]+ StrEditCost(i,j,T1,T2);
-            
+
           distance[i][j] = MIN3(minus, plus, change);
           /* printf("%g ", distance[i][j]); */
-      
+
           if(edit_backtrack){
              if(distance[i][j] == change) {
                 i_point[i][j]=i-1; j_point[i][j]=j-1;  }
@@ -100,12 +98,12 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
              else {
                 i_point[i][j]=i-1; j_point[i][j]=j  ;  }
           }
-       } 
+       }
        /* printf("\n"); */
     }
     /* printf("\n"); */
     temp = distance[length1][length2];
-    for(i=0;i<=length1;i++) 
+    for(i=0;i<=length1;i++)
        free(distance[i]);
     free(distance);
 
@@ -121,7 +119,7 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
        while( (i>0)||(j>0) ) {
           i1 = i_point[i][j];
           j1 = j_point[i][j];
-          if( ((i-i1)==1)&&((j-j1)==1) )  {  /* substitution    */ 
+          if( ((i-i1)==1)&&((j-j1)==1) )  {  /* substitution    */
               alignment[0][pos] = i;
               alignment[1][pos] = j;
           }
@@ -142,7 +140,7 @@ PUBLIC float string_edit_distance(swString *T1, swString *T2)
           alignment[1][i-pos] = alignment[1][i];
        }
        alignment[0][0] = length1+length2-pos;   /* length of alignment */
-       
+
        for(i=0; i<=length1; i++){
           free(i_point[i]); free(j_point[i]);
        }
@@ -162,11 +160,11 @@ PRIVATE float StrEditCost(int i, int j, swString *T1, swString *T2)
     float  c, diff, cd, min, a, b, dist;
 
     if(i==0) {
-       cd   =  (float) (*EditCost)[0][T2[j].type];  
+       cd   =  (float) (*EditCost)[0][T2[j].type];
        diff =  T2[j].weight;
        dist =  cd*diff;
-    } 
-    else 
+    }
+    else
     if(j==0) {
        cd   =  (float) (*EditCost)[T1[i].type][0];
        diff =  T1[i].weight;
@@ -176,19 +174,19 @@ PRIVATE float StrEditCost(int i, int j, swString *T1, swString *T2)
     if( ((T1[i].sign)*(T2[j].sign)) > 0) {
        c = (float) (*EditCost)[T1[i].type][T2[j].type];
        diff = (float) fabs((a=T1[i].weight) - (b=T2[j].weight));
-       min = MIN(a,b);
+       min = MIN2(a,b);
        if (min == a) cd = (float) (*EditCost)[0][T2[j].type];
        else          cd = (float) (*EditCost)[T1[i].type][0];
        dist = c * min + cd * diff;
     }
-    else dist = (float) INFINITY;
+    else dist = (float) INFINITY_DIST;
     return dist;
 }
 
 /*---------------------------------------------------------------------------*/
 
 PUBLIC swString *Make_swString(char *string)
-{  
+{
    int i=0, j=0, k=0;
    int tp, len, l, length;
    float w;
@@ -200,8 +198,8 @@ PUBLIC swString *Make_swString(char *string)
       if( (string[i]=='(') || (string[i]==')') ) j++;
       if(string[i]=='.') j+=2;
    }
-  
-   len = j;  
+
+   len = j;
 
    S= (swString *) space(sizeof(swString)*(len+1));
    S[0].sign = j; /* number of entries */
@@ -223,7 +221,7 @@ PUBLIC swString *Make_swString(char *string)
           }
           DeCode(string,k,&tp,&w);
           S[j].type   = tp;
-          S[j].weight = w/2.0; 
+          S[j].weight = w/2.0;
 	  j++;
           break;
        case ')' :
@@ -244,7 +242,7 @@ PUBLIC swString *Make_swString(char *string)
           S[j].weight = 0.5;
 	  j++;
           break;
-      }         
+      }
       i++;
    }
    return S;
@@ -252,18 +250,18 @@ PUBLIC swString *Make_swString(char *string)
 
 /*---------------------------------------------------------------------------*/
 
-PRIVATE void DeCode(char *string, int k, int *tp, float *w)   
+PRIVATE void DeCode(char *string, int k, int *tp, float *w)
    /* retrieves type and weigth for a node closed  by a bracket at position k */
 {
    int i,j,l,m;
-   char  label[20], id[20] ; 
+   char  label[20], id[20] ;
    i=k;
    label[0] = '\0';
    while(i>=0){
       i--;
       if( (string[i]=='(')||(string[i]==')')||(string[i]=='.') ) break;
       else {
-         label[k-i-1] = string[i]; label[k-i] = '\0'; 
+         label[k-i-1] = string[i]; label[k-i] = '\0';
       }
    }
    l=strlen(label);
@@ -353,51 +351,51 @@ PRIVATE void encode( int type, char label[])
 
 PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
 {
-   int i, j, l0, l1, ltmp=0, weights; 
+   int i, j, l0, l1, ltmp=0, weights;
    char label[10], *a0, *a1, tmp0[20], tmp1[20];
 
    weights = 0;
    for (i=1; i<=T1[0].sign; i++) weights = (weights||(T1[i].weight!=0.5));
    for (i=1; i<=T2[0].sign; i++) weights = (weights||(T2[i].weight!=0.5));
-   
+
    a0 = (char *) space(alignment[0][0]*4+2);
    a1 = (char *) space(alignment[0][0]*4+2);
    for(i=1; i<= alignment[0][0]; i++){
-      tmp0[0] = '\0'; l0=0; 
+      tmp0[0] = '\0'; l0=0;
       if(alignment[0][i] > 0) {
          encode(T1[alignment[0][i]].type, label);
-         if(T1[alignment[0][i]].sign > 0) { 
+         if(T1[alignment[0][i]].sign > 0) {
             tmp0[0] = '(';
             tmp0[1] = '\0';
          }
          strcat(tmp0,label);
-	 if (weights) 
+	 if (weights)
 	    sprintf(tmp0+strlen(tmp0), "%d",
 		    (int)(2*T1[alignment[0][i]].weight));
-      
+
          if(T1[alignment[0][i]].sign < 0) strcat(tmp0, ")");
 	 l0 = strlen(tmp0);
       }
       tmp1[0]= '\0'; l1=0;
       if(alignment[1][i] > 0) {
          encode(T2[alignment[1][i]].type, label);
-         if(T2[alignment[1][i]].sign > 0) { 
+         if(T2[alignment[1][i]].sign > 0) {
             tmp1[0] = '(';
             tmp1[1] = '\0';
          }
          strcat(tmp1,label);
-	 if (weights) 
+	 if (weights)
 	    sprintf(tmp1+strlen(tmp1), "%d",
 		    (int)(2*T2[alignment[1][i]].weight));
 
 	 if(T2[alignment[1][i]].sign < 0) strcat(tmp1, ")");
          l1 = strlen(tmp1);
       }
-      ltmp = MAX(l0,l1);
+      ltmp = MAX2(l0,l1);
       for (j=l0; j<ltmp; j++) tmp0[j] = '_';
       for (j=l1; j<ltmp; j++) tmp1[j] = '_';
       tmp0[ltmp] = '\0'; tmp1[ltmp] = '\0';
-      
+
       strcat(a0,tmp0); strcat(a1,tmp1);
       ltmp = strlen(a0);
    }
@@ -411,7 +409,7 @@ PRIVATE void sprint_aligned_swStrings(swString *T1, swString *T2)
 
 /*---------------------------------------------------------------------------*/
 
-    
+
 PUBLIC void print_swString(swString *x)
 {
    int i;
@@ -420,8 +418,8 @@ PUBLIC void print_swString(swString *x)
    printf("\n");
 }
 
-/*---------------------------------------------------------------------------*/   
-     
+/*---------------------------------------------------------------------------*/
+
 PUBLIC void print_alignment_list(void)
 {
    int i;

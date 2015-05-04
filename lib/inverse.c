@@ -314,7 +314,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
    make_start(string, structure);
 
    make_ptable(structure, pt);
-   
+
    while (j<len) {
       while ((j<len)&&(structure[j]!=')')) {
 	 if (aux[j]=='[') o++;
@@ -326,7 +326,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
       if (structure[i]=='.') { /* no pair found -> open chain */
 	WALK(0,len-1);
       }
-      
+
       if (aux[i]!='[') { i--; j++;}
       while (pt[j]==i) {
 	 backtrack_type='C';
@@ -475,7 +475,7 @@ PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
 #else
    distance = (double) bp_distance(target, structure);
 #endif
-   cost2 = energy_of_struct(string, target) - energy;
+   cost2 = energy_of_structure(string, target, 0) - energy;
    return (double) distance;
 }
 /*---------------------------------------------------------------------------*/
@@ -486,7 +486,7 @@ PRIVATE double pf_cost(const char *string, char *structure, const char *target)
    double  f, e;
 
    f = pf_fold(string, structure);
-   e = energy_of_struct(string, target);
+   e = energy_of_structure(string, target, 0);
    return (double) (e-f-final_cost);
 #else
    nrerror("this version not linked with pf_fold");

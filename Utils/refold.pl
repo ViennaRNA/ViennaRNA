@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2011-05-20 13:58:15 ivo>
+# Last changed Time-stamp: <2006-08-15 22:04:27 ivo>
 # after predicting a conensus structure using RNAalifold,
 # refold the indivual sequences, using the consensus structure as constraint
 
@@ -46,8 +46,7 @@ foreach my $a (@$aln) {
     my $seq = $a->{seq};
     my $cons = $constraint;
     my @pt = make_pair_table($cons);
-    my %pair = ("AU"=> 5, "AT" => 5, "GC"=>1, "CG"=> 2,
-		"UA"=> 6,  "TA"=> 6,
+    my %pair = ("AU"=> 5, "GC"=>1, "CG"=> 2, "UA"=> 6,
 		"GU"=> 3, "GT" => 3, "TG"=> 4, "UG"=> 4 );
 
 
@@ -233,13 +232,13 @@ sub getPairs{
 
 	for my $pair (@all){
 	  if (($pair eq 'AU') or
-	      ($pair eq 'UA') or
-	      ($pair eq 'GC') or
-	      ($pair eq 'CG') or
-	      ($pair eq 'UG') or
-	      ($pair eq 'GU')){
+		  ($pair eq 'UA') or
+		  ($pair eq 'GC') or
+		  ($pair eq 'CG') or
+		  ($pair eq 'UG') or
+		  ($pair eq 'GU')){
 
-	    push @pairing, $pair;
+		push @pairing, $pair;
 	  } elsif ($pair eq "--"){
 		# do nothing
 	  } else {

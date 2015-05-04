@@ -1,0 +1,149 @@
+# Name of your program
+package "RNAinverse" # don't use package if you're using automake
+
+purpose "Find RNA sequences with given secondary structure"
+
+#usage "RNAinverse [options]\n"
+
+# Version of your program
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAinverse_cmdl --include-getopt --default-optional --func-name=RNAinverse_cmdline_parser --arg-struct-name=RNAinverse_args_info"
+
+
+description "The program searches for sequences folding into a predefined structure, thereby\
+ inverting the folding algorithm. Target structures (in bracket notation) and starting sequences\
+ for the search are read alternately from stdin.\nCharacters in the start sequence other than \"AUGC\"\
+ (or the alphabet specified with -a) will be treated as wild cards and replaced by a random character.\
+ Any lower case characters in the start sequence will be kept fixed during the search. If necessary,\
+ the sequence will be elongated to the length of the structure. Thus a string of \"N\"s as well as a\
+ blank line specify a random start sequence.\nFor each search the best sequence found and its Hamming\
+ distance to the start sequence are printed to stdout. If the the search was unsuccessful, a structure\
+ distance to the target is appended.\nThe -Fp and -R options can modify the output format, see commandline\
+ options below.\nThe program will continue to read new structures and sequences until a line consisting\
+ of the single character \"@\" or an end of file condition is encountered.\n"
+
+# Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "repeat"   R
+"Search repeatedly for the same structure.\n"
+details="If repeats is negative search until -repeats exact solutions are found, no\
+ output is done for unsuccessful searches. Be aware, that the program will not terminate\
+ if the target structure can not be found.\nIf no value is supplied with this option, the\
+ default value is used.\n"
+int
+argoptional
+default="100"
+optional
+
+option  "alphabet"    a
+"Find sequences using only nucleotides from a given alphabet.\n"
+string
+typestr="ALPHABET"
+optional
+
+option  "verbose"   v
+"In conjunction with a negative value supplied to -R, print the last subsequence and\
+ substructure for each unsuccessful search.\n"
+flag
+off
+
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\n"
+
+option  "function"  F
+"Use minimum energy (-Fm), partition function folding (-Fp) or both (-Fmp).\n"
+details="In partition function mode, the probability of the target structure exp(-E(S)/kT)/Q is maximized.\
+ This probability is written in brackets after the found sequence and Hamming distance. In most cases\
+ you'll want to use the -f option in conjunction with -Fp, see below.\n"
+string
+typestr="mp"
+default="m"
+optional
+
+option  "final"   f
+"In combination with -Fp stop search when sequence is found with E(s)-F is smaller\
+ than final, where F=-kT*ln(Q).\n"
+float
+optional
+
+section "Model Details"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is unsupported\
+ for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
+ and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
+ treat dangling ends differently. Use -d2 in addition to -Fp to ensure that both algorithms use the same\
+ energy model.\n"
+int
+default="2"
+optional
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+optional
+hidden
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+int
+optional
+hidden
+
+text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
+ developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
+ If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
+ Chemie 125: 167-188\n\nOther useful references are\n\
+ M. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA sequences using thermodynamic\
+ and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The equilibrium partition function and base\
+ pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\n
+ D.H. Turner, N. Sugimoto, S.M. Freier (1988) \"RNA structure prediction\", Ann Rev Biophys Biophys Chem 17: 167-192\n\n
+ D. Adams (1979) \"The hitchhiker's guide to the galaxy\", Pan Books,\
+ London\n\n"
+
+text    "Written by:\n\nIvo L Hofacker.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

@@ -1,5 +1,8 @@
 /*
   $Log: subopt.c,v $
+  Revision 2.0  2010/12/06 20:04:20  ronny
+  repaired subopt for cofolding
+
   Revision 1.24  2008/11/01 21:10:20  ivo
   avoid rounding errors when computing DoS
 
@@ -71,7 +74,7 @@
 /*
    suboptimal folding - Stefan Wuchty, Walter Fontana & Ivo Hofacker
 
-		       Vienna RNA package
+                       Vienna RNA package
 */
 #include <config.h>
 #include <stdio.h>
@@ -85,130 +88,116 @@
 #include "fold_vars.h"
 #include "pair_mat.h"
 #include "list.h"
-#include "subopt.h"
 #include "params.h"
+#include "loop_energies.h"
+#include "cofold.h"
+#include "subopt.h"
 
-#define true	  1
-#define false	  0
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-#define PUBLIC
-#define PRIVATE	  static
-#define SAME_STRAND(I,J) (((I)>=cut_point)||((J)<cut_point))
+#define true              1
+#define false             0
+#define SAME_STRAND(I,J)  (((I)>=cut_point)||((J)<cut_point))
+#define NEW_NINIO         1         /* use new asymetry penalty */
+#define STACK_BULGE1      1         /* stacking energies for bulges of size 1 */
+#define MAXALPHA          20        /* maximal length of alphabet */
 
 /*@unused@*/
 PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
 
-/*Typedefinitions ---------------------------------------------------------- */
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     density_of_states[MAXDOS+1];
+PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
 
 typedef struct {
-  char *structure;
-  LIST *Intervals;
-  int partial_energy;
-  int is_duplex;
-  /* int best_energy;   */ /* best attainable energy */
+    char *structure;
+    LIST *Intervals;
+    int partial_energy;
+    int is_duplex;
+    /* int best_energy;   */ /* best attainable energy */
 } STATE;
 
-typedef struct {
-  int i;
-  int j;
-} PAIR;
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
+PRIVATE int     turn;
+PRIVATE LIST    *Stack;
+PRIVATE int     nopush;
+PRIVATE int     best_energy;          /* best_energy = remaining energy */
+PRIVATE int     *f5;                  /* energy of 5 end */
+PRIVATE int     *c;                   /* energy array, given that i-j pair */
+PRIVATE int     *fML;                 /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1;                 /* another multi-loop auxiliary energy array */
+PRIVATE int     *fc;                  /*energy array, from i (j)  to cut*/
+PRIVATE int     *indx;                /* index for moving in the triangle matrices c[] and f[] */
+PRIVATE short   *S, *S1;
+PRIVATE char    *ptype;
+PRIVATE paramT  *P;
+PRIVATE int     length;
+PRIVATE int     minimal_energy;       /* minimum free energy */
+PRIVATE int     element_energy;       /* internal energy of a structural element */
+PRIVATE int     threshold;            /* minimal_energy + delta */
+PRIVATE char    *sequence;
+PRIVATE int     circular;
+PRIVATE int     *fM2;                 /* energies of M2 */
+PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 
-typedef struct {
-  int i;
-  int j;
-  int array_flag;
-} INTERVAL;
+#ifdef _OPENMP
 
-#define MAXDOS 1000
-PUBLIC   int density_of_states[MAXDOS+1];
-PRIVATE  void make_pair(int i, int j, STATE *state);
-PRIVATE  INTERVAL *make_interval (int i, int j, int ml);
+/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
+         thus we have to initialize them before usage by a seperate function!
+         OR: use copyin() in the PARALLEL directive!
+*/
+#pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
+                          ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
+                          fM2, Fc, FcH, FcI, FcM, circular)
+
+#endif
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE void      make_pair(int i, int j, STATE *state);
+PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
-				    /*@only@*/ /*@null@*/ char *structure,
-				    int partial_energy, int is_duplex);
-PRIVATE  STATE *copy_state(STATE * state);
-PRIVATE  void print_state(STATE * state);
-PRIVATE  void UNUSED print_stack(LIST * list);
+                                    /*@only@*/ /*@null@*/ char *structure,
+                                    int partial_energy, int is_duplex);
+PRIVATE STATE     *copy_state(STATE * state);
+PRIVATE void      print_state(STATE * state);
+PRIVATE void      UNUSED print_stack(LIST * list);
 /*@only@*/ PRIVATE LIST *make_list(void);
-PRIVATE  void push(LIST * list, /*@only@*/ void *data);
-PRIVATE  void *pop(LIST * list);
-PUBLIC   SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
-PRIVATE  int  best_attainable_energy(STATE * state);
-PRIVATE  void scan_interval(int i, int j, int array_flag, STATE * state);
-PRIVATE  void free_interval_node(/*@only@*/ INTERVAL * node);
-PRIVATE  void free_state_node(/*@only@*/ STATE * node);
-PRIVATE  void push_back(STATE * state);
-PRIVATE  char* get_structure(STATE * state);
-PRIVATE  int compare(const void *solution1, const void *solution2);
-PRIVATE  void make_output(SOLUTION *SL, FILE *fp);
-PRIVATE  char *costring(char *string);
-PRIVATE  void repeat(int i, int j, STATE * state,
-		     int part_energy, int temp_energy);
+PRIVATE void      push(LIST * list, /*@only@*/ void *data);
+PRIVATE void      *pop(LIST * list);
+PRIVATE int       best_attainable_energy(STATE * state);
+PRIVATE void      scan_interval(int i, int j, int array_flag, STATE * state);
+PRIVATE void      free_interval_node(/*@only@*/ INTERVAL * node);
+PRIVATE void      free_state_node(/*@only@*/ STATE * node);
+PRIVATE void      push_back(STATE * state);
+PRIVATE char*     get_structure(STATE * state);
+PRIVATE int       compare(const void *solution1, const void *solution2);
+PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
+PRIVATE char      *costring(char *string);
+PRIVATE void      repeat(int i, int j, STATE * state,
+                  int part_energy, int temp_energy);
 
-/*Globals ------------------------------------------------------------------ */
-/* options that may be modified by RNAsubopt.c */
-int subopt_sorted=0;                           /* output sorted by energy */
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
-#define MAXALPHA 20	                /* maximal length of alphabet */
 
-PRIVATE int turn;
-PRIVATE LIST *Stack;
-PRIVATE int nopush;
-PRIVATE int best_energy;                /* best_energy = remaining energy */
-
-PRIVATE int *f5;                         /* energy of 5 end */
-PRIVATE int *c;		                /* energy array, given that i-j pair */
-PRIVATE int *fML;		        /* multi-loop auxiliary energy array */
-PRIVATE int *fM1;                /* another multi-loop auxiliary energy array */
-PRIVATE int *fc;                     /*energy array, from i (j)  to cut*/
-PRIVATE int *indx;   /* index for moving in the triangle matrices c[] and f[] */
-PRIVATE short *S, *S1;
-
-PRIVATE char *ptype;
-
-PRIVATE const paramT *P;
-/* extern float energy_of_struct(char *, char *); */
-extern int  LoopEnergy(int n1, int n2, int type, int type_2,
-		       int si1, int sj1, int sp1, int sq1);
-extern int  HairpinE(int size, int type, int si1, int sj1, const char *string);
-extern void export_fold_arrays(int **f5_p, int **c_p, int **fML_p,
-			       int **fM1_p, int **indx_p, char **ptype_p);
-extern void export_cofold_arrays(int **f5_p, int **c_p, int **fML_p,
-				 int **fM1_p, int **fc_p, int **indx_p,
-				 char **ptype_p);
-extern int  uniq_ML;
-extern  int cut_point;   /* set to first pos of second seq for cofolding */
-
-PRIVATE int length;
-PRIVATE int minimal_energy;                           /* minimum free energy */
-PRIVATE int element_energy;       /* internal energy of a structural element */
-PRIVATE int threshold;                             /* minimal_energy + delta */
-PRIVATE char *sequence;
-PUBLIC  double print_energy = 9999; /* printing threshold for use with logML */
-
-/* some needful things for subopt_circ */
-/* take int circ from fold.c	 */
-extern	int circ;
-PUBLIC	SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp);
-PRIVATE int *fM2;	 /* energies of M2 */
-PUBLIC	int	Fc, FcH, FcI, FcM;		/* parts of the exterior loop energies */
-
-PRIVATE void encode_seq(char *sequence) {
-  unsigned int i,l;
-
-  l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
-  S1= (short *) space(sizeof(short)*(l+2));
-  /* S1 exists only for the special X K and I bases and energy_set!=0 */
-  S[0] = (short) l;
-
-  for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
-    S[i]= (short) encode_char(toupper(sequence[i-1]));
-    S1[i] = alias[S[i]];   /* for mismatches of nostandard bases */
-  }
-  /* for circular folding add first base at position n+1 and last base at position 0 in S1*/
-  S[l+1] = S[1]; S1[l+1]=S1[1]; S1[0] = S1[l];
-}
 
 /*---------------------------------------------------------------------------*/
 /*List routines--------------------------------------------------------------*/
@@ -258,9 +247,9 @@ free_state_node(STATE * node)
 
 PRIVATE STATE *
 make_state(LIST * Intervals,
-	   char *structure,
-	   int partial_energy,
-	   int is_duplex)
+           char *structure,
+           int partial_energy,
+           int is_duplex)
 {
   STATE *state;
 
@@ -302,10 +291,10 @@ copy_state(STATE * state)
     after = LST_HEAD(new_state->Intervals);
     for ( next = lst_first(state->Intervals); next; next = lst_next(next))
       {
-	new_interval = lst_newnode(sizeof(INTERVAL));
-	*new_interval = *next;
-	lst_insertafter(new_state->Intervals, new_interval, after);
-	after = new_interval;
+        new_interval = lst_newnode(sizeof(INTERVAL));
+        *new_interval = *next;
+        lst_insertafter(new_state->Intervals, new_interval, after);
+        after = new_interval;
       }
   }
   new_state->structure = strdup(state->structure);
@@ -324,9 +313,9 @@ print_state(STATE * state)
     {
       printf("%d intervals:\n", state->Intervals->count);
       for (next = lst_first(state->Intervals); next; next = lst_next(next))
-	{
-	  printf("[%d,%d],%d ", next->i, next->j, next->array_flag);
-	}
+        {
+          printf("[%d,%d],%d ", next->i, next->j, next->array_flag);
+        }
       printf("\n");
     }
   printf("partial structure: %s\n", state->structure);
@@ -410,13 +399,17 @@ best_attainable_energy(STATE * state)
   for (next = lst_first(state->Intervals); next; next = lst_next(next))
     {
       if (next->array_flag == 0)
-	sum += (circ) ? Fc : f5[next->j];
+        sum += (circular) ? Fc : f5[next->j];
       else if (next->array_flag == 1)
-	sum += fML[indx[next->j] + next->i];
+        sum += fML[indx[next->j] + next->i];
       else if (next->array_flag == 2)
-	sum += c[indx[next->j] + next->i];
+        sum += c[indx[next->j] + next->i];
       else if (next->array_flag == 3)
-	sum += fM1[indx[next->j] + next->i];
+        sum += fM1[indx[next->j] + next->i];
+      else if (next->array_flag == 4)
+        sum += fc[next->i];
+      else if (next->array_flag == 5)
+        sum += fc[next->j];
     }
 
   return sum;
@@ -451,7 +444,7 @@ compare(const void *solution1, const void *solution2)
   if (((SOLUTION *) solution1)->energy < ((SOLUTION *) solution2)->energy)
     return -1;
   return strcmp(((SOLUTION *) solution1)->structure,
-		((SOLUTION *) solution2)->structure);
+                ((SOLUTION *) solution2)->structure);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -475,7 +468,7 @@ PRIVATE void make_output(SOLUTION *SL, FILE *fp)  /* prints stuff */
 /*---------------------------------------------------------------------------*/
 
 PUBLIC SOLUTION *subopt_circ(char *seq, char *structure, int delta, FILE *fp){
-  circ = 1;
+  circular = 1;
   return subopt(seq, structure, delta, fp);
 }
 
@@ -504,13 +497,12 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   turn = (cut_point<0) ? 3 : 0;
   uniq_ML = 1;
-  (circ)? initialize_fold(length) : initialize_cofold(length);
-  min_en = (circ) ? circfold(sequence, struc) : cofold(sequence, struc);
-  (circ) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+  min_en = (circular) ? circfold(sequence, struc) : cofold(sequence, struc);
+  (circular) ? export_circfold_arrays(&Fc, &FcH, &FcI, &FcM, &fM2, &f5, &c, &fML, &fM1, &indx, &ptype) : export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
 
   dangles = old_dangles;
   /* re-evaluate in case we're using logML etc */
-  min_en = (circ) ? energy_of_circ_struct(sequence, struc) : energy_of_struct(sequence, struc);
+  min_en = (circular) ? energy_of_circ_structure(sequence, struc, 0) : energy_of_structure(sequence, struc, 0);
   free(struc);
   eprint = print_energy + min_en;
   if (fp) {
@@ -520,8 +512,9 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
     free(SeQ);
   }
   make_pair_matrix();
-  encode_seq(sequence);
-  P = scale_parameters();
+  S   = encode_sequence(sequence, 0);
+  S1  = encode_sequence(sequence, 1);
+  P   = scale_parameters();
 
   /* Initialize ------------------------------------------------------------ */
 
@@ -531,11 +524,14 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
   /* Initialize the stack ------------------------------------------------- */
 
-  minimal_energy = (circ) ? Fc : f5[length];
+  minimal_energy = (circular) ? Fc : f5[length];
   threshold = minimal_energy + delta;
-
-  Stack = make_list();		                                   /* anchor */
-  Intervals = make_list();	                           /* initial state: */
+  if(threshold > INF){
+    warn_user("energy range too high, limiting to reasonable value");
+    threshold = INF-EMAX;
+  }
+  Stack = make_list();                                                   /* anchor */
+  Intervals = make_list();                                   /* initial state: */
   interval = make_interval(1, length, 0);          /* interval [1,length,0] */
   push(Intervals, interval);
   state = make_state(Intervals, NULL, partial_energy,0);
@@ -549,85 +545,85 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   /* end initialize ------------------------------------------------------- */
 
 
-  while (1) {		    /* forever, til nothing remains on stack */
+  while (1) {                    /* forever, til nothing remains on stack */
 
     maxlevel = (Stack->count > maxlevel ? Stack->count : maxlevel);
 
-    if (LST_EMPTY (Stack))	           /* we are done! clean up and quit */
+    if (LST_EMPTY (Stack))                   /* we are done! clean up and quit */
       {
-	/* fprintf(stderr, "maxlevel: %d\n", maxlevel); */
+        /* fprintf(stderr, "maxlevel: %d\n", maxlevel); */
 
-	lst_kill(Stack, free_state_node);
+        lst_kill(Stack, free_state_node);
 
-	SolutionList[n_sol].structure = NULL; /* NULL terminate list */
+        SolutionList[n_sol].structure = NULL; /* NULL terminate list */
 
-	if (subopt_sorted) {
-	  /* sort structures by energy */
-	  qsort(SolutionList, n_sol, sizeof(SOLUTION), compare);
+        if (subopt_sorted) {
+          /* sort structures by energy */
+          qsort(SolutionList, n_sol, sizeof(SOLUTION), compare);
 
-	  if (fp) make_output(SolutionList, fp);
-	}
+          if (fp) make_output(SolutionList, fp);
+        }
 
-	break;
+        break;
       }
 
     /* pop the last element ---------------------------------------------- */
 
-    state = pop(Stack);	               /* current state to work with */
+    state = pop(Stack);                       /* current state to work with */
 
     if (LST_EMPTY(state->Intervals))
       {
-	int e;
-	/* state has no intervals left: we got a solution */
+        int e;
+        /* state has no intervals left: we got a solution */
 
-	count++;
-	structure = get_structure(state);
-	structure_energy = state->partial_energy / 100.;
+        count++;
+        structure = get_structure(state);
+        structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-	structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
+        structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
 
-	if (!logML)
-	  if ((double) (state->partial_energy / 100.) != structure_energy) {
-	    fprintf(stderr, "%s %6.2f %6.2f\n", structure,
-		    state->partial_energy / 100., structure_energy );
-	    exit(1);
-	  }
+        if (!logML)
+          if ((double) (state->partial_energy / 100.) != structure_energy) {
+            fprintf(stderr, "%s %6.2f %6.2f\n", structure,
+                    state->partial_energy / 100., structure_energy );
+            exit(1);
+          }
 #endif
-	if (logML || (dangles==1) || (dangles==3)) { /* recalc energy */
-	  structure_energy = (circ) ? energy_of_circ_struct(sequence, structure) : energy_of_struct(sequence, structure);
-	}
+        if (logML || (dangles==1) || (dangles==3)) { /* recalc energy */
+          structure_energy = (circular) ? energy_of_circ_structure(sequence, structure, 0) : energy_of_structure(sequence, structure, 0);
+        }
 
-	e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
-	if (e>MAXDOS) e=MAXDOS;
-	density_of_states[e]++;
-	if (structure_energy>eprint) {
-	  free(structure);
-	} else {
-	  if (!subopt_sorted && fp) {
-	    /* print and forget */
-	    if (cut_point<0)
-	      fprintf(fp, "%s %6.2f\n", structure, structure_energy);
-	    else {
-	      char * outstruc;
-	      /*make ampersand seperated output if 2 sequences*/
-	      outstruc=costring(structure);
-	      fprintf(fp, "%s %6.2f\n", outstruc, structure_energy);
-	      free(outstruc);
-	    }
-	    free(structure);
-	  }
-	  else {
-	    /* store solution */
-	    if (n_sol+1 == max_sol) {
-	      max_sol *= 2;
-	      SolutionList = (SOLUTION *)
-		xrealloc(SolutionList, max_sol*sizeof(SOLUTION));
-	    }
-	    SolutionList[n_sol].energy =  structure_energy;
-	    SolutionList[n_sol++].structure = structure;
-	  }
-	}
+        e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
+        if (e>MAXDOS) e=MAXDOS;
+        density_of_states[e]++;
+        if (structure_energy>eprint) {
+          free(structure);
+        } else {
+          if (!subopt_sorted && fp) {
+            /* print and forget */
+            if (cut_point<0)
+              fprintf(fp, "%s %6.2f\n", structure, structure_energy);
+            else {
+              char * outstruc;
+              /*make ampersand seperated output if 2 sequences*/
+              outstruc=costring(structure);
+              fprintf(fp, "%s %6.2f\n", outstruc, structure_energy);
+              free(outstruc);
+            }
+            free(structure);
+          }
+          else {
+            /* store solution */
+            if (n_sol+1 == max_sol) {
+              max_sol *= 2;
+              SolutionList = (SOLUTION *)
+                xrealloc(SolutionList, max_sol*sizeof(SOLUTION));
+            }
+            SolutionList[n_sol].energy =  structure_energy;
+            SolutionList[n_sol++].structure = structure;
+          }
+        }
       }
     else {
       /* get (and remove) next interval of state to analyze */
@@ -636,15 +632,15 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
 
       scan_interval(interval->i, interval->j, interval->array_flag, state);
 
-      free_interval_node(interval);	/* free the current interval */
+      free_interval_node(interval);        /* free the current interval */
     }
 
-    free_state_node(state);	             /* free the current state */
+    free_state_node(state);                     /* free the current state */
   } /* end of while (1) */
 
   /* free arrays left over from cofold() */
   free(S); free(S1);
-  (circ) ? free_arrays():free_co_arrays();
+  (circular) ? free_arrays():free_co_arrays();
   if (fp) { /* we've printed everything -- free solutions */
     SOLUTION *sol;
     for (sol=SolutionList; sol->structure != NULL; sol++)
@@ -656,14 +652,6 @@ PUBLIC SOLUTION *subopt(char *seq, char *structure, int delta, FILE *fp)
   return SolutionList;
 }
 
-/*---------------------------------------------------------------------------*/
-/* Definitions---------------------------------------------------------------*/
-/* these have to identical to defines in fold.c */
-#define NEW_NINIO         1        /* use new asymetry penalty */
-#define STACK_BULGE1      1	   /* stacking energies for bulges of size 1 */
-#define MIN2(A, B)        ((A) < (B) ? (A) : (B))
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE void
 scan_interval(int i, int j, int array_flag, STATE * state)
@@ -693,7 +681,6 @@ scan_interval(int i, int j, int array_flag, STATE * state)
   }
 
   /* 13131313131313131313131313131313131313131313131313131313131313131313131 */
-
   if (array_flag == 3 || array_flag == 1) {
     /* array_flag = 3: interval i,j was generated during */
     /*                 a multiloop decomposition using array fM1 in repeat() */
@@ -723,18 +710,17 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
     if (type) { /* i,j may pair */
 
-      element_energy = P->MLintern[type];
-
-      if ( type && dangles ) {                        /* dangling ends */
-	if ((i > 1)&&(SAME_STRAND(i-1,i)) || circ)
-	  element_energy +=  P->dangle5[type][S1[i-1]];
-	if ((j < length)&&(SAME_STRAND(j,j+1)) || circ)
-	  element_energy += P->dangle3[type][S1[j+1]];
-      }
+      if(dangles)
+        element_energy = E_MLstem(type,
+                                  (((i > 1)&&(SAME_STRAND(i-1,i))) || circular)       ? S1[i-1] : -1,
+                                  (((j < length)&&(SAME_STRAND(j,j+1))) || circular)  ? S1[j+1] : -1,
+                                  P);
+      else
+        element_energy = E_MLstem(type, -1, -1, P);
 
       cij = c[indx[j] + i] + element_energy;
       if (cij + best_energy <= threshold)
-	repeat(i, j, state, element_energy, 0);
+        repeat(i, j, state, element_energy, 0);
     }
   }                                   /* array_flag == 3 || array_flag == 1 */
 
@@ -748,26 +734,29 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     int stopp;
     if ((SAME_STRAND(i-1,i))&&(SAME_STRAND(j,j+1))) { /*backtrack in FML only if multiloop is possible*/
       for ( k = i+turn+1 ; k <= j-1-turn ; k++) {
-	/* Multiloop decomposition if i,j contains more than 1 stack */
+        /* Multiloop decomposition if i,j contains more than 1 stack */
 
-	type = ptype[indx[j]+k+1];
-	if (type==0) continue;
+        type = ptype[indx[j]+k+1];
+        if (type==0) continue;
 
-	element_energy = P->MLintern[type];
-	if (dangles) {
-	  if (SAME_STRAND(j,j+1)) element_energy += P->dangle3[type][S1[j+1]];
-	  if (SAME_STRAND(i-1,i)) element_energy +=P->dangle5[type][S1[k]];
-	}
-	if (SAME_STRAND(k,k+1)) {
-	  if (fML[indx[k]+i] + c[indx[j] + k+1] +
-	      element_energy + best_energy <= threshold) {
-	    temp_state = copy_state (state);
-	    new_interval = make_interval (i, k, 1);
-	    push (temp_state->Intervals, new_interval);
-	    repeat(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
-	    free_state_node(temp_state);
-	  }
-	}
+        if(dangles)
+          element_energy = E_MLstem(type,
+                                    (SAME_STRAND(i-1,i)) ? S1[k] : -1,
+                                    (SAME_STRAND(j,j+1)) ? S1[j+1] : -1,
+                                    P);
+        else
+          element_energy = E_MLstem(type, -1, -1, P);
+
+        if (SAME_STRAND(k,k+1)) {
+          if (fML[indx[k]+i] + c[indx[j] + k+1] +
+              element_energy + best_energy <= threshold) {
+            temp_state = copy_state (state);
+            new_interval = make_interval (i, k, 1);
+            push (temp_state->Intervals, new_interval);
+            repeat(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+            free_state_node(temp_state);
+          }
+        }
       }
     }
 
@@ -780,14 +769,18 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
 
-      element_energy = P->MLintern[type] + P->MLbase*(k-i+1);
-      if (dangles) {
-	if (SAME_STRAND(j,j+1)) element_energy += P->dangle3[type][S1[j+1]];
-	if (SAME_STRAND(k-1,k)) element_energy += P->dangle5[type][S1[k]];
-      }
+      if(dangles)
+        element_energy = E_MLstem(type,
+                                  (SAME_STRAND(k-1,k)) ? S1[k] : -1,
+                                  (SAME_STRAND(j,j+1)) ? S1[j+1] : -1,
+                                  P);
+      else
+        element_energy = E_MLstem(type, -1, -1, P);
+
+      element_energy += P->MLbase*(k-i+1);
 
       if (c[indx[j]+k+1] + element_energy + best_energy <= threshold)
-	repeat(k+1, j, state, element_energy, 0);
+        repeat(k+1, j, state, element_energy, 0);
     }
   }                                                    /* array_flag == 1 */
 
@@ -800,83 +793,79 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       repeat(i, j, state, 0, 0);
 
-      if (nopush)
-	if (!noLonelyPairs)
-	  fprintf(stderr, "Oops, no solution in repeat!\n");
+      if (nopush){
+        if (!noLonelyPairs){
+          fprintf(stderr, "%d,%d", i, j);
+          fprintf(stderr, "Oops, no solution in repeat!\n");
+        }
+      }
       return;
     }
 
   /* 0000000000000000000000000000000000000000000000000000000000000000000000 */
 
-  if ((array_flag == 0) && !circ)
+  if ((array_flag == 0) && !circular)
     {
       /* array_flag = 0:                        interval i,j was found while */
       /* tracing back through f5-array and c-array */
       /* or within this block */
 
       if (f5[j-1] + best_energy <= threshold) {
-	/* no basepair, nibbling of 3'-end */
+        /* no basepair, nibbling of 3'-end */
 
-	new_state = copy_state(state);
-	new_interval = make_interval(i, j-1 , 0);
-	push(new_state->Intervals, new_interval);
-	/* new_state->best_energy = f5[j-1] + best_energy; */
-	push(Stack, new_state);
+        new_state = copy_state(state);
+        new_interval = make_interval(i, j-1 , 0);
+        push(new_state->Intervals, new_interval);
+        /* new_state->best_energy = f5[j-1] + best_energy; */
+        push(Stack, new_state);
       }
 
       for (k = j-turn-1; k > 1; k--) {
 
-	type = ptype[indx[j]+k];
-	if (type==0)   continue;
+        type = ptype[indx[j]+k];
+        if (type==0)   continue;
 
-	/* k and j pair */
-	if (dangles) {
-	  element_energy =(SAME_STRAND(k-1,k))? P->dangle5[type][S1[k - 1]]:0;
-	  if ((j < length)&&(SAME_STRAND(j,j+1)))
-	    element_energy += P->dangle3[type][S1[j+1]];
-	}
-	else                                                 /* no dangles */
-	  element_energy = 0;
+        /* k and j pair */
+        if(dangles)
+          element_energy = E_ExtLoop(type,
+                                    (SAME_STRAND(k-1,k)) ? S1[k-1] : -1,
+                                    ((j < length)&&(SAME_STRAND(j,j+1))) ? S1[j+1] : -1,
+                                    P);
+        else
+          element_energy = E_ExtLoop(type, -1, -1, P);
 
-	if (type>2)
-	  element_energy += P->TerminalAU;
+        if (!(SAME_STRAND(k,j)))/*&&(state->is_duplex==0))*/ {
+          element_energy+=P->DuplexInit;
+          /*state->is_duplex=1;*/
+        }
 
-
-	if (!(SAME_STRAND(k,j)))/*&&(state->is_duplex==0))*/ {
-	  element_energy+=DuplexInit;
-	  /*state->is_duplex=1;*/
-	}
-
-	if (f5[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold)
-	  {
-	    temp_state = copy_state(state);
-	    new_interval = make_interval(1, k-1, 0);
-	    push(temp_state->Intervals, new_interval);
-	    repeat(k, j, temp_state, element_energy, f5[k-1]);
-	    free_state_node(temp_state);
-	  }
+        if (f5[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold)
+          {
+            temp_state = copy_state(state);
+            new_interval = make_interval(1, k-1, 0);
+            push(temp_state->Intervals, new_interval);
+            repeat(k, j, temp_state, element_energy, f5[k-1]);
+            free_state_node(temp_state);
+          }
       }
       type = ptype[indx[j]+1];
       if (type) {
-	if (dangles && (j < length)&&(SAME_STRAND(j,j+1))) {
-	  element_energy = P->dangle3[type][S1[j+1]];
-	}
-	else
-	  element_energy = 0;
+        if (dangles && (j < length)&&(SAME_STRAND(j,j+1)))
+          element_energy = E_ExtLoop(type, -1, S1[j+1], P);
+        else
+          element_energy = E_ExtLoop(type, -1, -1, P);
 
-	if (!(SAME_STRAND(1,j))) element_energy+=DuplexInit;
-	if (type>2)
-	  element_energy += P->TerminalAU;
+        if (!(SAME_STRAND(1,j))) element_energy+=P->DuplexInit;
 
-	if (c[indx[j]+1] + element_energy + best_energy <= threshold)
-	  repeat(1, j, state, element_energy, 0);
+        if (c[indx[j]+1] + element_energy + best_energy <= threshold)
+          repeat(1, j, state, element_energy, 0);
       }
-    }/* end array_flag == 0 && !circ*/
-  /* or do we subopt circ? */
+    }/* end array_flag == 0 && !circular*/
+  /* or do we subopt circular? */
   else if(array_flag == 0){
     int k, l, p, q;
-    /* if we've done everything right, we will never reach this case more than once	 */
-    /* right after the initilization of the stack with ([1,n], empty, 0)						 */
+    /* if we've done everything right, we will never reach this case more than once         */
+    /* right after the initilization of the stack with ([1,n], empty, 0)                                                 */
     /* lets check, if we can have an open chain without breaking the threshold        */
     /* this is an ugly work-arround cause in case of an open chain we do not have to  */
     /* backtrack anything further...                                                  */
@@ -888,136 +877,224 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       push(Stack, new_state);
     }
     /* ok, lets check if we can do an exterior hairpin without breaking the threshold */
-    /* best energy should be 0 if we are here																				 */
+    /* best energy should be 0 if we are here                                                                                                                                                                 */
     if(FcH + best_energy <= threshold){
       /* lets search for all exterior hairpin cases, that fit into our threshold barrier */
-      /* we use index k,l to avoid confusion with i,j index of our state...							 */
-      /* if we reach here, i should be 1 and j should be n respectively									 */
+      /* we use index k,l to avoid confusion with i,j index of our state...                                                         */
+      /* if we reach here, i should be 1 and j should be n respectively                                                                         */
       for(k=i; k<j; k++)
-	for (l=k+turn+1; l <= j; l++){
-	  int kl, type, u, new_c, tmpE, no_close;
-	  u = j-l + k-1;	/* get the hairpin loop length */
-	  if(u<turn) continue;
+        for (l=k+turn+1; l <= j; l++){
+          int kl, type, u, new_c, tmpE, no_close;
+          u = j-l + k-1;        /* get the hairpin loop length */
+          if(u<turn) continue;
 
-	  kl = indx[l]+k;	/* just confusing these indices ;-) */
-	  type = ptype[kl];
-	  no_close = ((type==3)||(type==4))&&no_closingGU;
-	  type=rtype[type];
-	  if (!type) continue;
-	  if (no_close) new_c = FORBIDDEN;
-	  else{
-	    /* now lets have a look at the hairpin energy */
-	    char loopseq[10];
-	    if (u<7){
-	      strcpy(loopseq , sequence+l-1);
-	      strncat(loopseq, sequence, k);
-	    }
-	    tmpE = HairpinE(u, type, S1[l+1], S1[k-1], loopseq);
-	  }
-	  if(c[kl] + tmpE + best_energy <= threshold){
-	    /* what we really have to do is something like this, isn't it? */
-	    /* we have to create a new state, with interval [k,l], then we */
-	    /* add our loop energy as initial energy of this state and put */
-	    /* the state onto the stack R... for further refinement...	 */
-	    /* we also denote this new interval to be scanned in C	 */
-	    new_state = copy_state(state);
-	    new_interval = make_interval(k,l,2);
-	    push(new_state->Intervals, new_interval);
-	    /* hopefully we add this energy in the right way... */
-	    new_state->partial_energy += tmpE;
-	    push(Stack, new_state);
-	  }
-	}
+          kl = indx[l]+k;        /* just confusing these indices ;-) */
+          type = ptype[kl];
+          no_close = ((type==3)||(type==4))&&no_closingGU;
+          type=rtype[type];
+          if (!type) continue;
+          if (no_close) new_c = FORBIDDEN;
+          else{
+            /* now lets have a look at the hairpin energy */
+            char loopseq[10];
+            if (u<7){
+              strcpy(loopseq , sequence+l-1);
+              strncat(loopseq, sequence, k);
+            }
+            tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
+          }
+          if(c[kl] + tmpE + best_energy <= threshold){
+            /* what we really have to do is something like this, isn't it? */
+            /* we have to create a new state, with interval [k,l], then we */
+            /* add our loop energy as initial energy of this state and put */
+            /* the state onto the stack R... for further refinement...         */
+            /* we also denote this new interval to be scanned in C         */
+            new_state = copy_state(state);
+            new_interval = make_interval(k,l,2);
+            push(new_state->Intervals, new_interval);
+            /* hopefully we add this energy in the right way... */
+            new_state->partial_energy += tmpE;
+            push(Stack, new_state);
+          }
+        }
     }
 
     /* now lets see, if we can do an exterior interior loop without breaking the threshold */
     if(FcI + best_energy <= threshold){
       /* now we search for our exterior interior loop possibilities */
       for(k=i; k<j; k++)
-	for (l=k+turn+1; l <= j; l++){
-	  int kl, type, u, new_c, tmpE, no_close;
+        for (l=k+turn+1; l <= j; l++){
+          int kl, type, tmpE, no_close;
 
-	  kl = indx[l]+k;	/* just confusing these indices ;-) */
-	  type = ptype[kl];
-	  no_close = ((type==3)||(type==4))&&no_closingGU;
-	  type=rtype[type];
-	  if (!type) continue;
+          kl = indx[l]+k;        /* just confusing these indices ;-) */
+          type = ptype[kl];
+          no_close = ((type==3)||(type==4))&&no_closingGU;
+          type=rtype[type];
+          if (!type) continue;
 
-	  for (p = l+1; p < j ; p++){
-	    int u1, qmin;
-	    u1 = p-l-1;
-	    if (u1+k-1>MAXLOOP) break;
-	    qmin = u1+k-1+j-MAXLOOP;
-	    if(qmin<p+turn+1) qmin = p+turn+1;
-	    for(q = qmin; q <=j; q++){
-	      int u2, type_2;
-	      type_2 = rtype[ptype[indx[q]+p]];
-	      if(!type_2) continue;
-	      u2 = k-1 + j-q;
-	      if(u1+u2>MAXLOOP) continue;
-	      tmpE = LoopEnergy(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1]);
-	      if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
-		/* ok, similar to the hairpin stuff, we add new states onto the stack R */
-		/* but in contrast to the hairpin decomposition, we have to add two new */
-		/* intervals, enclosed by k,l and p,q respectively and we also have to */
-		/* add the partial energy, that comes from the exterior interior loop   */
-		new_state = copy_state(state);
-		new_interval = make_interval(k, l, 2);
-		push(new_state->Intervals, new_interval);
-		new_interval = make_interval(p,q,2);
-		push(new_state->Intervals, new_interval);
-		new_state->partial_energy += tmpE;
-		push(Stack, new_state);
-	      }
-	    }
-	  }
-	}
+          for (p = l+1; p < j ; p++){
+            int u1, qmin;
+            u1 = p-l-1;
+            if (u1+k-1>MAXLOOP) break;
+            qmin = u1+k-1+j-MAXLOOP;
+            if(qmin<p+turn+1) qmin = p+turn+1;
+            for(q = qmin; q <=j; q++){
+              int u2, type_2;
+              type_2 = rtype[ptype[indx[q]+p]];
+              if(!type_2) continue;
+              u2 = k-1 + j-q;
+              if(u1+u2>MAXLOOP) continue;
+              tmpE = E_IntLoop(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1], P);
+              if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
+                /* ok, similar to the hairpin stuff, we add new states onto the stack R */
+                /* but in contrast to the hairpin decomposition, we have to add two new */
+                /* intervals, enclosed by k,l and p,q respectively and we also have to */
+                /* add the partial energy, that comes from the exterior interior loop   */
+                new_state = copy_state(state);
+                new_interval = make_interval(k, l, 2);
+                push(new_state->Intervals, new_interval);
+                new_interval = make_interval(p,q,2);
+                push(new_state->Intervals, new_interval);
+                new_state->partial_energy += tmpE;
+                push(Stack, new_state);
+              }
+            }
+          }
+        }
     }
 
     /* and last but not least, we have a look, if we can do an exterior multiloop within the energy threshold */
     if(FcM <= threshold){
-      /* this decomposition will be somehow more complicated...so lets see what we do here...	   */
+      /* this decomposition will be somehow more complicated...so lets see what we do here...           */
       /* first we want to find out which split inidices we can use without exceeding the threshold */
       int tmpE2;
       for (k=turn+1; k<j-2*turn; k++){
-	tmpE2 = fML[indx[k]+1]+fM2[k+1]+P->MLclosing;
-	if(tmpE2 + best_energy <= threshold){
-	  /* grmpfh, we have found a possible split index k so we have to split fM2 and fML now */
-	  /* lets do it first in fM2 anyway */
-	  for(l=k+turn+2; l<j-turn-1; l++){
-	    tmpE2 = fM1[indx[l]+k+1] + fM1[indx[j]+l+1];
-	    if(tmpE2 + fML[indx[k]+1] + P->MLclosing <= threshold){
-	      /* we've (hopefully) found a valid decomposition of fM2 and therefor we have all */
-	      /* three intervals for our new state to be pushed on stack R */
-	      new_state = copy_state(state);
+        tmpE2 = fML[indx[k]+1]+fM2[k+1]+P->MLclosing;
+        if(tmpE2 + best_energy <= threshold){
+          /* grmpfh, we have found a possible split index k so we have to split fM2 and fML now */
+          /* lets do it first in fM2 anyway */
+          for(l=k+turn+2; l<j-turn-1; l++){
+            tmpE2 = fM1[indx[l]+k+1] + fM1[indx[j]+l+1];
+            if(tmpE2 + fML[indx[k]+1] + P->MLclosing <= threshold){
+              /* we've (hopefully) found a valid decomposition of fM2 and therefor we have all */
+              /* three intervals for our new state to be pushed on stack R */
+              new_state = copy_state(state);
 
-	      /* first interval leads for search in fML array */
-	      new_interval = make_interval(1, k, 1);
-	      push(new_state->Intervals, new_interval);
+              /* first interval leads for search in fML array */
+              new_interval = make_interval(1, k, 1);
+              push(new_state->Intervals, new_interval);
 
-	      /* next, we have the first interval that has to be traced in fM1 */
-	      new_interval = make_interval(k+1, l, 3);
-	      push(new_state->Intervals, new_interval);
+              /* next, we have the first interval that has to be traced in fM1 */
+              new_interval = make_interval(k+1, l, 3);
+              push(new_state->Intervals, new_interval);
 
-	      /* and the last of our three intervals is also one to be traced within fM1 array... */
-	      new_interval = make_interval(l+1, j, 3);
-	      push(new_state->Intervals, new_interval);
+              /* and the last of our three intervals is also one to be traced within fM1 array... */
+              new_interval = make_interval(l+1, j, 3);
+              push(new_state->Intervals, new_interval);
 
-	      /* mmh, we add the energy for closing the multiloop now... */
-	      new_state->partial_energy += P->MLclosing;
-	      /* next we push our state onto the R stack */
-	      push(Stack, new_state);
+              /* mmh, we add the energy for closing the multiloop now... */
+              new_state->partial_energy += P->MLclosing;
+              /* next we push our state onto the R stack */
+              push(Stack, new_state);
 
-	    }
-	    /* else we search further... */
-	  }
+            }
+            /* else we search further... */
+          }
 
-	  /* ok, we have to decompose fML now... */
-	}
+          /* ok, we have to decompose fML now... */
+        }
       }
     }
-  }	/* thats all folks for the circular case... */
+  }        /* thats all folks for the circular case... */
 
+  /* 44444444444444444444444444444444444444444444444444444444444444 */
+  if (array_flag == 4) {
+    /* array_flag = 4:                        interval i,j was found while */
+    /* tracing back through fc-array smaller than than cut_point*/
+    /* or within this block */
+
+    if (fc[i+1] + best_energy <= threshold) {
+      /* no basepair, nibbling of 5'-end */
+      new_state = copy_state(state);
+      new_interval = make_interval(i+1, j , 4);
+      push(new_state->Intervals, new_interval);
+      push(Stack, new_state);
+    }
+
+    for (k = i+TURN+1; k < j; k++) {
+
+      type = ptype[indx[k]+i];
+      if (type==0)   continue;
+
+      /* k and j pair */
+      if (dangles)
+        element_energy = E_ExtLoop(type, (i > 1) ? S1[i-1]: -1, S1[k+1], P);
+      else  /* no dangles */
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (fc[k+1] + c[indx[k]+i] + element_energy + best_energy <= threshold) {
+        temp_state = copy_state(state);
+        new_interval = make_interval(k+1,j, 4);
+        push(temp_state->Intervals, new_interval);
+        repeat(i, k, temp_state, element_energy, fc[k+1]);
+        free_state_node(temp_state);
+      }
+    }
+    type = ptype[indx[j]+i];
+    if (type) {
+      if (dangles)
+        element_energy = E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P);
+      else
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
+        repeat(i, cut_point-1, state, element_energy, 0);
+    }
+  } /* array_flag == 4 */
+
+  /*55555555555555555555555555555555555555555555555555555555555555555555555*/
+  if (array_flag == 5) {
+    /* array_flag = 5:  interval cut_point=i,j was found while  */
+    /* tracing back through fc-array greater than cut_point     */
+    /* or within this block                                     */
+
+    if (fc[j-1] + best_energy <= threshold) {
+      /* no basepair, nibbling of 3'-end */
+      new_state = copy_state(state);
+      new_interval = make_interval(i, j-1 , 5);
+      push(new_state->Intervals, new_interval);
+      push(Stack, new_state);
+    }
+
+    for (k = j-TURN-1; k > i; k--) {
+
+      type = ptype[indx[j]+k];
+      if (type==0)   continue;
+      element_energy = 0;
+
+      /* k and j pair */
+      if (dangles)
+        element_energy = E_ExtLoop(type, S1[k-1], (j < length) ? S1[j+1] : -1, P);
+      else
+        element_energy = E_ExtLoop(type, -1, -1, P);
+
+      if (fc[k-1] + c[indx[j]+k] + element_energy + best_energy <= threshold) {
+        temp_state = copy_state(state);
+        new_interval = make_interval(i, k-1, 5);
+        push(temp_state->Intervals, new_interval);
+        repeat(k, j, temp_state, element_energy, fc[k-1]);
+        free_state_node(temp_state);
+      }
+    }
+    type = ptype[indx[j]+i];
+    if (type) {
+      if(dangles)
+        element_energy = E_ExtLoop(type, -1, (j<length) ? S1[j+1] : -1, P);
+
+      if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
+        repeat(cut_point, j, state, element_energy, 0);
+    }
+  } /* array_flag == 5 */
   if (nopush)
     push_back(state);
   return;
@@ -1053,19 +1130,20 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       make_pair(i+1, j-1, new_state);
       new_interval = make_interval(i+1, j-1, 2);
       push(new_state->Intervals, new_interval);
-      if (SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j)) energy = LoopEnergy(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1]);
+      if(SAME_STRAND(i,i+1) && SAME_STRAND(j-1,j))
+        energy = E_IntLoop(0, 0, type, rtype[type_2],S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
       new_state->partial_energy += part_energy;
       new_state->partial_energy += energy;
       /* new_state->best_energy = new + best_energy; */
       push(Stack, new_state);
       if (i==1 || state->structure[i-2]!='('  || state->structure[j]!=')')
-	/* adding a stack is the only possible structure */
-	return;
+        /* adding a stack is the only possible structure */
+        return;
     }
 
-  best_energy += part_energy;        /* energy of current structural element */
-  best_energy += temp_energy;               /* energy from unpushed interval */
+  best_energy += part_energy; /* energy of current structural element */
+  best_energy += temp_energy; /* energy from unpushed interval */
 
   for (p = i + 1; p <= MIN2 (j-2-turn,  i+MAXLOOP+1); p++) {
     int minq = j-i+p-MAXLOOP-2;
@@ -1077,66 +1155,63 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       if (type_2==0) continue;
 
       if (no_closingGU)
-	if (no_close||(type_2==3)||(type_2==4))
-	  if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
+        if (no_close||(type_2==3)||(type_2==4))
+          if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
       if (SAME_STRAND(i,p) && SAME_STRAND(q,j)) {
-	energy = LoopEnergy(p-i-1, j-q-1, type, rtype[type_2],
-			    S1[i+1],S1[j-1],S1[p-1],S1[q+1]);
+        energy = E_IntLoop(p-i-1, j-q-1, type, rtype[type_2],
+                            S1[i+1],S1[j-1],S1[p-1],S1[q+1], P);
 
-	new = energy + c[indx[q]+p];
+        new = energy + c[indx[q]+p];
 
-	if (new + best_energy <= threshold) {
-	  /* stack, bulge, or interior loop */
+        if (new + best_energy <= threshold) {
+          /* stack, bulge, or interior loop */
 
-	  new_state = copy_state(state);
-	  make_pair(i, j, new_state);
-	  make_pair(p, q, new_state);
+          new_state = copy_state(state);
+          make_pair(i, j, new_state);
+          make_pair(p, q, new_state);
 
-	  new_interval = make_interval(p, q, 2);
-	  push(new_state->Intervals, new_interval);
-	  new_state->partial_energy += part_energy;
-	  new_state->partial_energy += energy;
-	  /* new_state->best_energy = new + best_energy; */
-	  push(Stack, new_state);
-	}
+          new_interval = make_interval(p, q, 2);
+          push(new_state->Intervals, new_interval);
+          new_state->partial_energy += part_energy;
+          new_state->partial_energy += energy;
+          /* new_state->best_energy = new + best_energy; */
+          push(Stack, new_state);
+        }
       }/*end of if block */
-    }                                                  /* end of q-loop */
-  }                                                    /* end of p-loop */
+    } /* end of q-loop */
+  } /* end of p-loop */
 
   if (!SAME_STRAND(i,j)) { /*look in fc*/
-    int fci, fcj;
     rt = rtype[type];
     element_energy=0;
-    if (dangles) {
-      if (SAME_STRAND(i,i+1))
-	element_energy += P->dangle3[rt][S1[i+1]];
-      if (SAME_STRAND(j-1,j))
-	element_energy+=P->dangle5[rt][S1[j-1]];
-    }
-    if (type>2) element_energy += P->TerminalAU;
+    if (dangles)
+      element_energy = E_ExtLoop(rt, (SAME_STRAND(j-1,j)) ? S1[j-1] : -1, (SAME_STRAND(i,i+1)) ? S1[i+1] : -1, P);
+    else
+      element_energy = E_ExtLoop(rt, -1, -1, P);
+
     if (fc[i+1] + fc[j-1] +element_energy + best_energy  <= threshold)
       {
-	INTERVAL *interval1, *interval2;
+        INTERVAL *interval1, *interval2;
 
-	new_state = copy_state(state);
-	interval1 = make_interval(i+1, cut_point-1, 4);
-	interval2 = make_interval(cut_point, j-1, 5);
-	if (cut_point-i < j-cut_point) { /* push larger interval first */
-	  push(new_state->Intervals, interval1);
-	  push(new_state->Intervals, interval2);
-	} else {
-	  push(new_state->Intervals, interval2);
-	  push(new_state->Intervals, interval1);
-	}
-	make_pair(i, j, new_state);
-	new_state->partial_energy += part_energy;
-	new_state->partial_energy += element_energy;
-	push(Stack, new_state);
+        new_state = copy_state(state);
+        interval1 = make_interval(i+1, cut_point-1, 4);
+        interval2 = make_interval(cut_point, j-1, 5);
+        if (cut_point-i < j-cut_point) { /* push larger interval first */
+          push(new_state->Intervals, interval1);
+          push(new_state->Intervals, interval2);
+        } else {
+          push(new_state->Intervals, interval2);
+          push(new_state->Intervals, interval1);
+        }
+        make_pair(i, j, new_state);
+        new_state->partial_energy += part_energy;
+        new_state->partial_energy += element_energy;
+        push(Stack, new_state);
       }
   }
 
-  mm = P->MLclosing + P->MLintern[type];
+  mm = P->MLclosing;
   rt = rtype[type];
 
   for (k = i + 1 + turn; k <= j - 2 - turn; k++)  {
@@ -1144,47 +1219,48 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
 
     element_energy = mm;
     if (dangles)
-      element_energy += P->dangle3[rt][S1[i+1]] + P->dangle5[rt][S1[j-1]];
+      element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
+    else
+      element_energy = E_MLstem(rt, -1, -1, P) + mm;
 
-    if (fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
-	element_energy + best_energy  <= threshold)
+    if ((fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
+        element_energy + best_energy)  <= threshold)
       {
-	INTERVAL *interval1, *interval2;
+        INTERVAL *interval1, *interval2;
 
-	new_state = copy_state(state);
-	interval1 = make_interval(i+1, k, 1);
-	interval2 = make_interval(k+1, j-1, 3);
-	if (k-i+1 < j-k-2) { /* push larger interval first */
-	  push(new_state->Intervals, interval1);
-	  push(new_state->Intervals, interval2);
-	} else {
-	  push(new_state->Intervals, interval2);
-	  push(new_state->Intervals, interval1);
-	}
-	make_pair(i, j, new_state);
-	new_state->partial_energy += part_energy;
-	new_state->partial_energy += element_energy;
-	/* new_state->best_energy = fML[indx[k] + i+1] + fM1[indx[j-1] + k+1]
-	   + element_energy + best_energy; */
-	push(Stack, new_state);
+        new_state = copy_state(state);
+        interval1 = make_interval(i+1, k, 1);
+        interval2 = make_interval(k+1, j-1, 3);
+        if (k-i+1 < j-k-2) { /* push larger interval first */
+          push(new_state->Intervals, interval1);
+          push(new_state->Intervals, interval2);
+        } else {
+          push(new_state->Intervals, interval2);
+          push(new_state->Intervals, interval1);
+        }
+        make_pair(i, j, new_state);
+        new_state->partial_energy += part_energy;
+        new_state->partial_energy += element_energy;
+        /* new_state->best_energy = fML[indx[k] + i+1] + fM1[indx[j-1] + k+1]
+           + element_energy + best_energy; */
+        push(Stack, new_state);
       }
-  }                                                     /* end of k-loop */
+  } /* end of k-loop */
 
 
   if (SAME_STRAND(i,j)) {
-    if (no_close) energy = FORBIDDEN;
+    if (no_close) element_energy = FORBIDDEN;
     else
-      energy = HairpinE(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1);
-
-    if (energy + best_energy <= threshold) {
+      element_energy = E_Hairpin(j-i-1, type, S1[i+1], S1[j-1], sequence+i-1, P);
+    if (element_energy + best_energy <= threshold) {
       /* hairpin structure */
 
       new_state = copy_state(state);
       make_pair(i, j, new_state);
       new_state->partial_energy += part_energy;
-      new_state->partial_energy += energy;
+      new_state->partial_energy += element_energy;
       /* new_state->best_energy =
-	 hairpin[unpaired] + element_energy + best_energy; */
+         hairpin[unpaired] + element_energy + best_energy; */
       push(Stack, new_state);
     }
   }

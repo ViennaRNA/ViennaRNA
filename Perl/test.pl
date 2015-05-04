@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Iblib/arch -Iblib/lib
 
-# Last changed Time-stamp: <2009-04-28 19:00:36 berni>
+# Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
 
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
@@ -21,7 +21,7 @@ use warnings;
 
 
 my $seq1  ="CGCAGGGAUACCCGCG";
-my $struc1="(((.((....)).)))";
+my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
 my $struc2="((((((...))).)))";
 # calculate a hamming distance (from util.c)
@@ -53,7 +53,7 @@ $RNA::fold_constrained = 0;
 # test cofold
 $RNA::cut_point = length($seq1)+1;
 my($costruct, $comfe) = RNA::cofold($seq1 . $seq2);
-ok($costruct, '(((.((....)).)))((((((...))).)))');
+ok($costruct, '(((.(((...))))))((((((...))).)))');
 $cmfe = RNA::energy_of_struct($seq1 . $seq2, $costruct);
 ok(abs($comfe-$cmfe)<1e-5);
 my ($x,$ac,$bc,$fcab,$cf) = RNA::co_pf_fold($seq1. $seq2, $struct);
@@ -71,7 +71,7 @@ $AA/=2e-5;
 $BB/=2e-5;
 $A/=2e-5;
 $B/=2e-5;
-ok((abs($AB-0.0)+abs($AA-0.00579)+abs($BB-0.01111)+abs($A-0.48842)+abs($B-0.47779))<0.0001);
+ok((abs($AB-0.0)+abs($AA-0.00578)+abs($BB-0.01100)+abs($A-0.48843)+abs($B-0.47801))<0.0001);
 $RNA::cut_point=-1;
 
 # pf_fold
@@ -86,7 +86,7 @@ my $T2 = RNA::make_tree($xstruc);
 $RNA::edit_backtrack = 1;
 my $tree_dist = RNA::tree_edit_distance($T1, $T2);
 # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n";
-ok($tree_dist,4);
+ok($tree_dist,2);
 
 # check access to a C array
 #ok(RNA::ptrvalue($RNA::iindx,3),108);
@@ -116,7 +116,7 @@ ok (RNA::unpack_structure($pack), $struc1);
 
 
 RNA::parse_structure($struc1);
-ok(($RNA::loops==2) && ($RNA::pairs==5)&&($RNA::unpaired==6) &&
+ok(($RNA::loops==2) && ($RNA::pairs==6)&&($RNA::unpaired==4) &&
   (RNA::intP_getitem($RNA::loop_degree,1)==2));
 
 
@@ -156,7 +156,7 @@ ok(int($e*100+0.5), 70);
 
 my $duplex = RNA::duplexfold($seq1, $seq2);
 
-ok($duplex->{structure}, ".(((.....(((.&)))))).");
+ok($duplex->{structure}, "(.(.(((.....(((.&))))))...).).");
 undef $duplex;
 
 my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");

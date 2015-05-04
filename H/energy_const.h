@@ -1,23 +1,30 @@
-/*
+#ifndef __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
+#define __VIENNA_RNA_PACKAGE_ENERGY_CONST_H__
 
-   energy constants, formerly defined in
-             energy_par.h
+#include <limits.h>
 
-   customized for use with RNAedit by
-   S.Kopp, IMB-Jena, Germany, Mar 1996
-   
-*/
+/**
+ *  \file energy_const.h
+ *  energy constants
+ */
 
-#ifndef _ENERGY_CONST_H
-#define _ENERGY_CONST_H 1
-
+/** The gas constant */
 #define GASCONST 1.98717  /* in [cal/K] */
+/** 0 deg Celsius in Kelvin */
 #define K0  273.15
-#define INF 1000000
+/** Infinity as used in minimization routines */
+#define INF (INT_MAX/10)
+
+#define EMAX (INF/10)
+/** forbidden */
 #define FORBIDDEN 9999
+/** bonus contribution */
 #define BONUS 10000
+/** The number of distinguishable base pairs */
 #define NBPAIRS 7
+/** The minimum loop length */
 #define TURN 3
+/** The maximum loop length */
 #define MAXLOOP 30
 
 #endif

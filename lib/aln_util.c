@@ -20,29 +20,48 @@ static char rcsid[] = "$Id: aln_util.c,v 1.4 2007/02/02 15:18:13 ivo Exp $";
 #define MAX_NUM_NAMES    500
 int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    char *line, name[100]="", *seq;
-   int  n, nn=0, num_seq = 0;
+   int  n, nn=0, num_seq = 0, i;
 
    if ((line=get_line(clust)) == NULL) {
      fprintf(stderr, "Empty CLUSTAL file\n"); return 0;
    }
 
-   if (strncmp(line,"CLUSTAL", 7) !=0) {
-     fprintf(stderr, "This doesn't look like a CLUSTAL file, sorry\n");
+   if ((strncmp(line,"CLUSTAL", 7) !=0) && (!strstr(line,"STOCKHOLM"))) {
+     fprintf(stderr, "This doesn't look like a CLUSTAL/STOCKHOLM file, sorry\n");
      free(line); return 0;
    }
    free(line);
    line = get_line(clust);
 
    while (line!=NULL) {
-     if (((n=strlen(line))<4) || isspace((int)line[0])) {
-       /* skip non-sequence line */
-       free(line); line = get_line(clust);
-       nn=0; /* reset seqence number */
-       continue;
-     }
+    if(strncmp(line, "//", 2) == 0){
+      free(line);
+      break;
+    }
+
+    if (((n=strlen(line))<4) || isspace((int)line[0])) {
+      /* skip non-sequence line */
+      free(line); line = get_line(clust);
+      nn=0; /* reset seqence number */
+      continue;
+    }
+    /* skip comments */
+    if(line[0] == '#'){
+      free(line);
+      line = get_line(clust);
+      continue;
+    }
 
      seq = (char *) space( (n+1)*sizeof(char) );
      sscanf(line,"%99s %s", name, seq);
+
+    for(i=0;i<strlen(seq);i++){
+      if(seq[i] == '.') seq[i] = '-'; /* replace '.' gaps by '-' */
+      /* comment the next line and think about something more difficult to deal with
+         lowercase sequence letters if you really want to */
+      seq[i] = toupper(seq[i]);
+    }
+
      if (nn == num_seq) { /* first time */
        names[nn] = strdup(name);
        AlignedSeqs[nn] = strdup(seq);
@@ -64,7 +83,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      free(seq);
      free(line);
      if (num_seq>=MAX_NUM_NAMES) {
-       fprintf(stderr, "Too many sequences in CLUSTAL file");
+       fprintf(stderr, "Too many sequences in CLUSTAL/STOCKHOLM file");
        return 0;
      }
 
@@ -74,7 +93,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    AlignedSeqs[num_seq] = NULL;
    names[num_seq] = NULL;
    if (num_seq == 0) {
-     fprintf(stderr, "No sequences found in CLSUATL file\n");
+     fprintf(stderr, "No sequences found in CLUSTAL/STOCKHOLM file\n");
      return 0;
    }
    n = strlen(AlignedSeqs[0]);

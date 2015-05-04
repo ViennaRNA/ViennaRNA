@@ -1,0 +1,120 @@
+# Name of your program
+package "RNAheat" # don't use package if you're using automake
+purpose "calculate specific heat of RNAs"
+usage "RNAheat [options]\n"
+
+# Version of your program
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAheat_cmdl --include-getopt --default-optional --func-name=RNAheat_cmdline_parser --arg-struct-name=RNAheat_args_info"
+
+
+description "Reads RNA sequences from stdin and calculates their specific heat in the temperature range t1\
+ to t2, from the partition function by numeric differentiation. The result is written to stdout as a list\
+ of pairs of temperature in C and specific heat in Kcal/(Mol*K).\nThe program will continue to read new\
+ sequences until a line consisting of the single character \"@\" or an end of file condition is encountered.\n"
+
+# Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "Tmin"  -
+"Lowest temperature\n"
+float
+default = "0"
+typestr="t1"
+
+option  "Tmax"  -
+"Highest temperature\n"
+float
+default = "100"
+typestr="t2"
+
+option "stepsize" -
+"Calculate partition function every stepsize degrees C\n"
+float
+default="1."
+
+option "ipoints" m
+"The program fits a parabola to 2*ipoints+1 data points to calculate 2nd derivatives. Increasing this parameter\
+ produces a smoother curve\n"
+int
+typestr="ipoints"
+default="2"
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Model Details"
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides\
+ in any case\n\n-d0 ignores dangling ends altogether (mostly for debugging).\n"
+int
+default="2"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+optional
+hidden
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+int
+optional
+hidden
+
+text    "References:\n\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n\
+ J.S. McCaskill, (1990), \"The equilibrium partition function and base\
+ pair binding probabilities for RNA secondary structures\", Biopolymers 29: 1105-1119\n\nIf you use\
+ this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary\
+ Structures\", Monatshefte f. Chemie 125: 167-188\n\nD. Adams, (1979), \"The hitchhiker's guide\
+ to the galaxy\", Pan Books, London\n\n"
+
+text    "See also:\n\nRNAfold(1)\n\n"
+text    "Written by:\n\nIvo L Hofacker, Peter F Stadler.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

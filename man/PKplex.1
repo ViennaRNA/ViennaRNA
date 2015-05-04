@@ -1,0 +1,132 @@
+PKplex(1)                          ViennaRNA                         PKplex(1)
+
+
+
+NNAAMMEE
+       PKplex - calculates pseudoknotted secondary structures of RNAs
+
+SSYYNNOOPPSSIISS
+       PPKKpplleexx   [-h|--help]   [--detailed-help]   [-V|--version]  [-c|--cutoff
+       _p_r_o_b___c_o]  [-T|--temp  _t_e_m_p]  [-4|--noTetra]  [-d|--dangles   [0|1|2|3]]
+       [--noLP]  [--noGU] [--noClosingGU] [--noconv] [--nsp _p_a_i_r_s] [-e|--ener-
+       gyCutoff _e_n_e_r___c_o] [-P|--paramFile  _f_i_l_e]  [-v|--verbose]  [-s|--subopts
+       _s_u_b_o_p_t_s]
+
+DDEESSCCRRIIPPTTIIOONN
+       PKplex  reads  RNA  sequences from stdin, calculates their minimum free
+       energy (mfe) structure including pseudoknots and prints the mfe  struc-
+       ture in bracket notation to stdout.
+
+       It  also  produces a PostScript file with a plot of the pseudoknot-free
+       secondary structure graph, in which the bases  forming  the  pseuodknot
+       are marked red.
+
+       Sequences are read in a simple text format where each sequence occupies
+       a single line. Each sequence may be preceded by a line of the form
+       > name
+       to assign a name to the sequence. If a name is given in the input, the
+        PostScript file "name.ps" is produced for the structure graph.  Other-
+       wise  the  file  name defaults to PKplex.ps. Existing files of the same
+       name will be overwritten.
+       The input format is similar to fasta except that  even  long  sequences
+       may  not  be  interrupted  by  line  breaks,  and  the header lines are
+       optional.  The program will continue to read new sequences until a line
+       consisting  of  the  single  character @ or an end of file condition is
+       encountered.
+
+OOPPTTIIOONNSS
+       --hh,, ----hheellpp
+              Print help and exit.
+
+       ----ddeettaaiilleedd--hheellpp
+              Print help, including all details and hidden options, and  exit.
+
+       --VV,, ----vveerrssiioonn
+              Print version and exit.
+
+       --cc,, ----ccuuttooffff _p_r_o_b___c_o
+              Report  only  base pairs with an average probability > cutoff in
+              the dot plot (default=‘0.01’).
+
+       --TT,, ----tteemmpp _t_e_m_p
+              Rescale energy parameters to a temperature of temp C. Default is
+              37C.
+
+       --44,, ----nnooTTeettrraa
+              Do  not  include special stabilizing energies for certain tetra-
+              loops. Mostly for testing (default=off).
+
+       --dd,, ----ddaanngglleess [[00||11||22||33]]
+              How to treat "dangling  end"  energies  for  bases  adjacent  to
+              helices in free ends and multi-loops (default=‘2’)
+
+       ----nnooLLPP Produce  structures  without  lonely pairs (helices of length 1)
+              (default=off).
+
+       ----nnooGGUU Do not allow GU pairs (default=off).
+
+       ----nnooCClloossiinnggGGUU
+              Do not allow GU pairs at the end of helices (default=off).
+
+       ----nnooccoonnvv
+              Do  not  automatically  substitude  nucleotide  "T"   with   "U"
+              (default=off).
+
+       ----nnsspp _p_a_i_r_s
+              Allow  other  pairs  in addition to the usual AU,GC,and GU pairs
+              (default=‘empty’).
+
+       --ee,, ----eenneerrggyyCCuuttooffff _e_n_e_r___c_o
+              Energy cutoff or pseudoknot initiation cost. Minimum energy gain
+              of  a  pseudoknot interaction for it to be returned. Pseudoknots
+              with smaller energy gains are rejected (default=‘-810’).
+
+       --PP,, ----ppaarraammFFiillee _f_i_l_e
+              Read energy parameters from  paramfile,  instead  of  using  the
+              default parameter set.
+
+       --vv,, ----vveerrbboossee
+              Print verbose output (default=off).
+
+       --ss,, ----ssuubbooppttss _s_u_b_o_p_t_s
+              Print suboptimal structures whose energy difference of the pseu-
+              doknot to the optimum  pseudoknot  is  smaller  than  the  given
+              value.
+              NOTE:  The  final energy of a structure is calculated as the sum
+              of the pseudoknot interaction energy, the penalty for initiating
+              a  pseudoknot  and the energy of the pseudoknot-free part of the
+              structure. The ’-s’ option only takes the pseudoknot interaction
+              energy into account, so the final energy differences may be big-
+              ger than the specified value (default=‘0’).
+
+RREEFFEERREENNCCEESS
+       The calculation of mfe structures is based  on  a  dynamic  programming
+       algorithm originally developed by M. Zuker and P. Stiegler.  The parti-
+       tion function algorithm is based on work by J.S. McCaskill.  The energy
+       parameters are taken from:
+       D.H.  Mathews,  J.  Sabina,  M.  Zuker and H. Turner "Expanded Sequence
+       Dependence of Thermodynamic Parameters Provides  Robust  Prediction  of
+       RNA Secondary Structure" JMB, 288, pp 911-940, 1999
+
+       If you use this program in your work you might want to cite:
+
+       I.L.  Hofacker,  W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P.
+       Schuster (1994) Fast Folding and Comparison  of  RNA  Secondary  Struc-
+       tures.  Monatshefte f. Chemie 125: 167-188
+       M.  Zuker,  P.  Stiegler  (1981)  Optimal computer folding of large RNA
+       sequences using thermodynamic and auxiliary information, Nucl Acid  Res
+       9: 133-148
+       J.S.  McCaskill (1990) The equilibrium partition function and base pair
+       binding probabilities for RNA  secondary  structures,  Biopolymers  29:
+       1105-1119
+
+AAUUTTHHOORR
+       Wolfgang Beyer
+
+BBUUGGSS
+       If you have any comments or suggestions, please do not hesitate to con-
+       tact me at wolfgang@tbi.univie.ac.at.
+
+
+
+Wolfgang Beyer                   October 2010                        PKplex(1)

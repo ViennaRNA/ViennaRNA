@@ -8,9 +8,6 @@
 #define  PUBLIC
 #define  PRIVATE         static
 #define  MAXSEQS         1000
-#define  MIN(A, B)       ((A) < (B) ? (A) : (B))   
-#define  MIN3(A,B,C)     (MIN((MIN((A),(B))),(C)))
-#define  MAX(A, B)       ((A) > (B) ? (A) : (B))
 
 PUBLIC   float **read_distance_matrix(char type[]);
 PUBLIC   char  **read_sequence_list(int *n_of_seqs, char *mask);
@@ -432,9 +429,9 @@ PUBLIC float StrEdit_GotohDist(char *str1, char *str2 )
    }
    for(i=1;i<=length1;i++) {
       for(j=1;j<=length2;j++) {
-         E[i][j] = MIN(  (D[i][j-1]+StrEdit_GotohAlpha), 
+         E[i][j] = MIN2(  (D[i][j-1]+StrEdit_GotohAlpha), 
                          (E[i][j-1]+StrEdit_GotohBeta)  );
-         F[i][j] = MIN(  (D[i-1][j]+StrEdit_GotohAlpha),
+         F[i][j] = MIN2(  (D[i-1][j]+StrEdit_GotohAlpha),
                          (F[i-1][j]+StrEdit_GotohBeta)  );
          D[i][j] = MIN3(  E[i][j], F[i][j], 
                          (D[i-1][j-1]+StrEditCost(i,j,str1,str2)) );
@@ -505,7 +502,7 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
         for(i=1;i<=20;i++) { 
            for(j=1;j<=20;j++) {
               StrEdit_CostMatrix[i][j] = 
-                 MAX(StrEdit_DayhoffM[i][i],StrEdit_DayhoffM[j][j])-
+                 MAX2(StrEdit_DayhoffM[i][i],StrEdit_DayhoffM[j][j])-
                                                 StrEdit_DayhoffM[i][j];
            }
            StrEdit_CostMatrix[i][0] = StrEdit_DayhoffM[i][i];

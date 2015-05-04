@@ -26,23 +26,16 @@
 #include "fold_vars.h"
 #include "part_func.h"
 #include "utils.h"
+#include "ProfileDist.h"
+#include "ProfileAln.h"
+
+
 /*@unused@*/
 static char rcsid[] = "$Id: ProfileAln.c,v 1.5 2006/01/18 13:00:30 ivo Exp $";
 
-#define PUBLIC
-#define PRIVATE        static
-#define MIN(x,y)       (((x)<(y)) ? (x) : (y))
-#define MAX(x,y)       (((x)>(y)) ? (x) : (y))
-#define MAX3(x,y,z)    (MAX(  (MAX((x),(y))) ,(z)))
 #define EQUAL(x,y)     (fabs((x)-(y)) <= fabs(x)*2*FLT_EPSILON)
 
 PRIVATE int *alignment[2];
-
-PUBLIC float    profile_aln(const float *T1, const char *seq1,
-			    const float *T2, const char *seq2);
-
-PUBLIC int set_paln_params(double gap_open, double gap_ext,
-			   double seqweight, int free_ends);
 
 PRIVATE void    sprint_aligned_bppm(const float *T1, const char *seq1,
 				    const float *T2, const char *seq2);
@@ -53,7 +46,6 @@ PRIVATE double  average(double x, double y);
 PRIVATE double  open=-1.5, ext=-0.666;  /* defaults from clustalw */
 PRIVATE double  seqw=0.5;
 PRIVATE int     free_ends=1;            /* whether to use free end gaps */
-extern float    *Make_bp_profile(int length);
 
 /*---------------------------------------------------------------------------*/
 
@@ -93,8 +85,8 @@ PUBLIC float profile_aln(const float *T1, const char *seq1,
   for (i=1; i<=length1; i++) {
     for (j=1; j<=length2; j++) {
       float M;
-      E[i][j] = MAX(E[i-1][j]+ext, S[i-1][j]+open);
-      F[i][j] = MAX(F[i][j-1]+ext, S[i][j-1]+open);
+      E[i][j] = MAX2(E[i-1][j]+ext, S[i-1][j]+open);
+      F[i][j] = MAX2(F[i][j-1]+ext, S[i][j-1]+open);
       M = S[i-1][j-1] + PrfEditScore(T1+3*i,T2+3*j, seq1[i-1], seq2[j-1]);
       S[i][j] = MAX3(M, E[i][j], F[i][j]);
     }

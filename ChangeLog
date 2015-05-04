@@ -1,3 +1,14 @@
+2011-03-10  Ronny Lorenz  <ronny@tbi.univie.ac.at>
+	* new naming scheme for all shipped energy parameter files
+	* fixed bugs that appear while compiling with gcc under MacOS X
+	* fixed bug in RNAup --interaction-first where the longer of the first two
+	  sequences was taken as target
+	* added full FASTA input support to RNAfold, RNAcofold, RNAheat, RNAplfold
+	  RNALfoldz, RNAsubopt and RNALfold
+
+2010-11-24  Ronny Lorenz  <ronny@tbi.univie.ac.at>
+	* first full pre-release of version 2.0
+
 2009-11-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 	* Fix memory corruption in PS_color_aln()
 
@@ -5,10 +16,12 @@
 	* Fix bug in RNAplfold when -u and -L parameters are equal
 	* Fix double call to free_arrays() in RNAfold.c
 	* Improve drawing of cofolded structures
+	
 
 2009-05-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Fix occasional segfault in RNAalifold's print_aliout()
+ * Fix occasional segfault in RNAalifold's print_aliout() 
+
 
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 

@@ -1,42 +1,26 @@
-# barriers.spec
+# ViennaRNA.spec
 #
 # Copyright (c) 2001 Ivo Hofacker, Peter Stadler, ivo@tbi.univie.ac.at
 #
-%define name ViennaRNA
-%define version @VERSION@
-%define release 1
+Name:           ViennaRNA
+Version:        @VERSION@
+Release:        1%{?dist}
+Summary:        RNA Secondary Structure Prediction and Comparison
+
+Vendor:         Ivo Hofacker, TBI - University of Vienna
+Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
+
+Group:          Applications/Engineering
+License:        Free for non commercial use.
+URL:            http://www.tbi.univie.ac.at/~ivo/RNA/
+Source0:        %{name}-%{version}.tar.gz
+BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+BuildRequires:  perl gcc glibc-devel gd-devel info
+Requires:       perl libstdc++ glibc gd info
+Provides:       libRNA.a
+
 %define manifest %{_builddir}/%{name}-%{version}-%{release}.manifest
-
-# required items
-Name: %{name}
-Version: %{version}
-Release: %{release}
-Copyright: free to use
-Group: Application/Misc
-
-# optional items
-Vendor: Ivo Hofacker, Peter Stadler, TBI
-#Distribution:
-#Icon:
-URL: http://www.tbi.univie.ac.at/~ivo/RNA/
-Packager: Ivo Hofacker, ivo@tbi.univie.ac.at
-
-# source + patches
-Source: %{name}-%{version}.tar.gz
-#Source1:
-#Patch:
-#Patch1:
-
-# RPM info
-Provides: libRNA.a
-#Requires:
-#Conflicts:
-#Prereq:
-
-#Prefix: /usr
-BuildRoot: /var/tmp/%{name}-%{version}
-
-Summary: RNA secondary structure prediction and analysis.
 
 %description
 The ViennaRNA package consists of a library and several standalone
@@ -44,52 +28,47 @@ programs for RNA secondary structure analysis. It includes algorithms
 for predicting optimal and suboptimal secondary structures, base pair
 probabilities and partition functions, for comparing secondary
 structures, and the design of RNA sequences with a desired structure.
- 
 
 %prep
 %setup -q
-#%patch0 -p1
 
 %build
-%configure
-make
+%configure --with-cluster --without-forester --prefix=$RPM_BUILD_ROOT/usr/
+cd Perl
+perl Makefile.PL INSTALLDIRS=vendor
+cd ..
+make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT
-%makeinstall
+make install DESTDIR=$RPM_BUILD_ROOT
 
-# __os_install_post is implicitly expanded after the
-# %install section... do it now, and then disable it,
-# so all work is done before building manifest.
+# crude bugfix for info clash
+rm -f $RPM_BUILD_ROOT/usr/share/info/dir
 
-%{?__os_install_post}
-%define __os_install_post %{nil}
-
-# build the file list automagically into %{manifest}
-
-cd $RPM_BUILD_ROOT
+# build filelist the lazy way
 rm -f %{manifest}
-find . -type d \
-        | sed '1,2d;s,^\.,\%attr(-\,root\,root) \%dir ,' >> %{manifest}
+cd %{buildroot}
+# crude sed bugfix due to man/info compression
 find . -type f \
-        | sed 's,^\.,\%attr(-\,root\,root) ,' >> %{manifest}
+        | sed -e 's/^\.//' -e 's/\(.*\/man\/man.*\)/\1.gz/' -e 's/\(.*\/share\/info.*\)/\1.gz/'>> %{manifest}
 find . -type l \
-        | sed 's,^\.,\%attr(-\,root\,root) ,' >> %{manifest}
+        | sed -e 's/^\.//' >> %{manifest}
 
-#%pre
-#%post
-#%preun
-#%postun
 
 %clean
-rm -f %{manifest}
 rm -rf $RPM_BUILD_ROOT
 
+
 %files -f %{manifest}
-%defattr(-,root,root)
-#%doc README
-#%docdir
-#%config
+%defattr(-,root,root,-)
 
 %changelog
+* Tue Jan 18 2011 Ronny Lorenz <ronny@tbi.univie.ac.at>
+- created first rpm version of Vienna RNA Package 2.0
+- Energy model for all secondary structure folding algorithms has changed!
+- More programs that interface the RNAlib included
+* Tue Jan 26 2010 Richard Neuboeck <hawk@tbi.univie.ac.at>
+- install perl stuff to vendor dir instead of default
+* Tue Jan 26 2010 Richard Neuboeck <hawk@tbi.univie.ac.at>
+- Removed forester from install due to compile problems in F12

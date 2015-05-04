@@ -1,10 +1,10 @@
-#ifndef PROFILEALN_H
-#define PROFILEALN_H
+#ifndef __VIENNA_RNA_PACKAGE_PROFILEALN_H__
+#define __VIENNA_RNA_PACKAGE_PROFILEALN_H__
 
-extern float profile_aln(const float *T1, const char *seq1, 
-			 const float *T2, const char *seq2);
+float profile_aln(const float *T1, const char *seq1,
+                  const float *T2, const char *seq2);
 
-extern int set_paln_params(double gap_open, double gap_ext, 
-			   double seqweight, int free_ends);
+int set_paln_params(double gap_open, double gap_ext,
+                    double seqweight, int free_ends);
 
 #endif

@@ -1,0 +1,204 @@
+# Name of your program
+package "RNAup" # don't use package if you're using automake
+purpose "Calculate the thermodynamics of RNA-RNA interactions"
+#usage "RNAup" [options]\n"
+
+# Version of your program
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAup_cmdl --include-getopt --default-optional --func-name=RNAup_cmdline_parser --arg-struct-name=RNAup_args_info"
+
+
+description "RNAup calculates the thermodynamics of RNA-RNA interactions, by decomposing the\
+ binding into two stages. (1) First the probability that a potential binding sites remains\
+ unpaired (equivalent to the free energy needed to open the site) is computed. (2) Then this\
+ accessibility is combined with the interaction energy to obtain the total binding energy.\
+ All calculations are done by computing partition functions over all possible conformations.\n"
+
+# Options
+
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n"
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence(s), then a string containing constraints on the structure encoded with the symbols:\n\
+ . (no constraint for this base)\n
+ x (the base is unpaired)\n\
+ < (base i is paired with a base j>i) (solely used for calculation of unpaired regions)\n\
+ > (base i is paired with a base j<i) (solely used for calculation of unpaired regions)\n\
+ ( ) (base i pairs base j)\n\
+ | (the corresponding base has to be paired intermolecularily (works only in interaction mode)\n"
+flag
+off
+
+option  "no_output_file" o
+"Do not produce an output file\n"
+flag
+off
+
+option  "no_header" -
+"Do not produce a header with the command line parameters used in the outputfile\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+flag
+off
+
+section "Calculations of opening energies"
+
+option  "ulength"   u
+"specifies the length of the unstructured region in the output.\n"
+details="The probability of being unpaired is plotted on the right border\
+ of the unpaired region. You can specify up to 20 different length values:\
+ use \"-\" to specify a range of continuous values (e.g. -u 4-8) or specify\
+ a list of comma separated values (e.g. -u 4,8,15).\n"
+string
+multiple
+typestr="length"
+default="4"
+optional
+
+option "contributions"  c
+"Specify the contributions listed in the output\n"
+details="By default only the full probability of being unpaired is plotted.\
+ The -c option allows to get the different contributions (c) to the probability\
+ of being unpaired: The full probability of being unpaired (\"S\" is the sum of\
+ the probability of being unpaired in the exterior loop (\"E\"), within a\
+ hairpin loop (\"H\"), within an interior loop (\"I\") and within a multiloop\
+ (\"M\"). Any combination of these letters may be given.\n"
+string
+typestr="SHIME"
+default="S"
+optional
+
+section "Calculations of RNA-RNA interactions"
+option  "window"  w
+"Determine the maximal length of the region of interaction\n"
+int
+default="25"
+optional
+
+option  "include_both"  b
+"Include the probability of unpaired regions in both (b) RNAs. By default
+only the probability of being unpaired in the longer RNA (target) is used.\n"
+flag
+off
+
+option  "extend5" 5
+"Extend the region of interaction in the target to some residues on the 5' side\n"
+details="The underlying assumption is that it is favorable for an interaction if\
+ not only the direct region of contact is unpaired but also a few residues 5'\n"
+int
+optional
+
+option  "extend3" 3
+"Extend the region of interaction in the target to some residues on the 3' side\n"
+details="The underlying assumption is that it is favorable for an interaction if\
+ not only the direct region of contact is unpaired but also a few residues 3'\n"
+int
+optional
+
+option  "interaction_pairwise"  -
+"Activate pairwise interaction mode\n"
+details="The first sequence interacts with the 2nd, the third with the 4th etc.\
+ If activated, two interacting sequences may be given in a single line separated\
+ by \"&\" or each sequence may be given on an extra line.\n"
+flag
+off
+
+option  "interaction_first" -
+"Activate interaction mode using first sequence only\n"
+details="The interaction of each sequence with the first one is calculated\
+ (e.g. interaction of one mRNA with many small RNAs). Each sequence has to be\
+ given on an extra line\n"
+flag
+off
+
+section "Model Details"
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+double
+optional
+hidden
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+double
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides in any case.\n\
+ The option -d0 ignores dangling ends altogether (mostly for debugging).\n"
+int
+default="2"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n"
+flag
+off
+
+option  "noGU"  -
+"Do not allow GU pairs\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n"
+flag
+off
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n"
+string
+typestr="paramfile"
+optional
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n"
+string
+optional
+hidden
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+int
+optional
+hidden
+
+text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally\
+ developed by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\n\n
+ The energy parameters are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded\
+ Sequence Dependence of Thermodynamic Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp\
+ 911-940, 1999\n\n If you use this program in your work you might want to cite:\n\nI.L. Hofacker, W. Fontana, P.F. Stadler,\
+ S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary Structures\", Monatshefte f.\
+ Chemie 125: 167-188\n\nU.Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and I.L. Hofacker (2006)\
+ \"Thermodynamics of RNA-RNA Binding\", Bioinformatics, doi:10.1093/bioinformatics/btl024\n\n"
+
+text    "Written by:\n\nIvo L Hofacker, Peter F Stadler, Ulrike Mueckstein.\n\n"
+text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

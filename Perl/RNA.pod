@@ -101,10 +101,10 @@ structure and energy. E.g:
   $seq2 ="GCGCCCAUAGGGACGC";
   $dup  = RNA::duplexfold($seq1, $seq2);
   print "Region ", $dup->{i}+1-length($seq1), " to ",
-	$dup->{i}, " of seq1 ",
-	"pairs up with ", $dup->{j}, " to ",
-	$dup->{j}+length($dup->{structure})-length($seq1)-2,
-	" of seq2\n";
+        $dup->{i}, " of seq1 ",
+        "pairs up with ", $dup->{j}, " to ",
+        $dup->{j}+length($dup->{structure})-length($seq1)-2,
+        " of seq2\n";
 
 =back
 
@@ -143,8 +143,6 @@ frees memory allocated for pf_fold
 recalculate energy parameters for pf_fold. In most cases (such as
 simple changes to L<$temperature|/$temperature>) C<pf_fold>
 will take appropriate action automatically.
-
-
 
 =item pbacktrack SEQUENCE
 
@@ -678,8 +676,8 @@ substituting C<intP> with C<floatP>, C<doubleP>, C<ushortP>,
 C<shortP>, gives the corresponding functions for arrays of float or
 double, unsigned short, and short. You need to know the correct C
 type however, and the functions work only for arrays of simple types.
-Note, that the shortP... functions were used for unsigned short in previous 
-versions, while starting with v1.8.3 it can only access signed short arrays. 
+Note, that the shortP... functions were used for unsigned short in previous
+versions, while starting with v1.8.3 it can only access signed short arrays.
 
 On the lowest level the C<cdata> function gives direct access to any data
 in the form of a Perl string.

@@ -13,36 +13,26 @@
 #include <ctype.h>
 #include "utils.h"
 #include "fold_vars.h"
+#include "naview.h"
 #include "PS_dot.h"
+#include "pair_mat.h"
+#include "aln_util.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 
 static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $";
 
-#define PUBLIC
-#define  PRIVATE   static
-#define  MAX(A,B)    (A)>(B)?(A):(B)
 #ifndef PI
 #define  PI       3.141592654
 #endif
 #define  PIHALF       PI/2.
-
-PUBLIC int   gmlRNA(char *string, char *structure, char *ssfile, char option);
-PUBLIC int   PS_rna_plot_a(char *string, char *structure, char *ssfile,
-			   char *pre, char *post);
-PUBLIC int   PS_rna_plot(char *string, char *structure, char *ssfile);
-PUBLIC int   ssv_rna_plot(char *string, char *structure, char *ssfile);
-PUBLIC int   xrna_plot(char *string, char *structure, char *ssfile);
-
-PUBLIC int   simple_xy_coordinates(short *pair_table, float *X, float *Y);
-extern int   naview_xy_coordinates(short *pair_table, float *X, float *Y);
+#define SIZE 452.
+#define PMIN 0.00001
 
 PUBLIC int   rna_plot_type = 1;  /* 0 = simple, 1 = naview */
-
-PUBLIC int   PS_dot_plot(char *string, char *wastlfile);
-PUBLIC int   PS_color_dot_plot(char *seq, cpair *pi, char *wastlfile);
-PUBLIC int   PS_dot_plot_list(char *string, char *wastlfile, struct plist *pl,
-			      struct plist *mf, char *comment);
-PUBLIC int   PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile,
-			      int winSize);
 
 /* local functions */
 PRIVATE void   loop(int i, int j, short *pair_table);
@@ -54,7 +44,10 @@ PRIVATE float  *angle;
 PRIVATE int    *loop_size, *stack_size;
 PRIVATE int     lp, stk;
 
-extern  int cut_point;   /* set to first pos of second seq for cofolding */
+#ifdef _OPENMP
+/* NOTE: all threadprivate variables are uninitialized when entering a thread! */
+#pragma omp threadprivate(angle, loop_size, stack_size, lp, stk)
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -313,7 +306,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   float *X, *Y;
   FILE  *xyplot;
   short *pair_table;
-  char  *c;
+  char *c;
 
   length = strlen(string);
 
@@ -341,7 +334,7 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
      ymin = Y[i] < ymin ? Y[i] : ymin;
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
-  size = MAX((xmax-xmin),(ymax-ymin));
+  size = MAX2((xmax-xmin),(ymax-ymin));
 
   fprintf(xyplot,
 	  "%%!PS-Adobe-3.0 EPSF-3.0\n"
@@ -365,12 +358,14 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
   fprintf(xyplot, "RNAplot begin\n"
 	  "%% data start here\n");
 
+  /* cut_point */
   if ((c = strchr(structure, '&'))) {
     int cutpoint;
     cutpoint = c - structure;
     string[cutpoint] = ' '; /* replace & with space */
     fprintf(xyplot, "/cutpoint %d def\n", cutpoint);
   }
+
   /* sequence */
   fprintf(xyplot,"/sequence (\\\n");
   i=0;
@@ -422,7 +417,6 @@ int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *
 
 /*--------------------------------------------------------------------------*/
 
-#define SIZE 452.
 
 int svg_rna_plot(char *string, char *structure, char *ssfile)
 {
@@ -462,7 +456,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
   for (i = 0; i < length; i++)
     Y[i] = ymin+ymax - Y[i]; /* mirror coordinates so they look as in PS */
 
-  size = MAX((xmax-xmin),(ymax-ymin));
+  size = MAX2((xmax-xmin),(ymax-ymin));
   size += 10; /* add some so the bounding box isn't too tight */
 
   fprintf(xyplot,
@@ -572,7 +566,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
     float size, xoff, yoff;
     float JSIZE = 500; /* size of the java applet window */
     /* rescale coordinates, center on square of size HSIZE */
-    size = MAX((xmax-xmin),(ymax-ymin));
+    size = MAX2((xmax-xmin),(ymax-ymin));
     xoff = (size - xmax + xmin)/2;
     yoff = (size - ymax + ymin)/2;
     for (i = 0; i <= length; i++) {
@@ -648,7 +642,6 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 
 
 /*---------------------------------------------------------------------------*/
-#define PMIN 0.00001
 const char *RNAdp_prolog =
 "%This file contains the square roots of the base pair probabilities in the form\n"
 "% i  j  sqrt(p(i,j)) ubox\n\n"
@@ -910,8 +903,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
 /*---------------------------------------------------------------------------*/
 
 
-PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile,
-			    struct plist *pl, struct plist *mf, char *comment) {
+PUBLIC int PS_dot_plot_list(char *seq, char *wastlfile, plist *pl, plist *mf, char *comment) {
   FILE *wastl;
   int length;
   double tmp;
@@ -1130,8 +1122,6 @@ static FILE * PS_dot_common(char *seq, char *wastlfile,
   return(wastl);
 }
 
-#include "pair_mat.h"
-#include "aln_util.h"
 int PS_color_aln(const char *structure, const char *filename,
 		 const char *seqs[], const char *names[]) {
   /* produce PS sequence alignment color-annotated by consensus structure */
@@ -1209,7 +1199,7 @@ int PS_color_aln(const char *structure, const char *filename,
 
   /* Allocate memory for various strings, length*2 is (more than)
 	 enough for all of them */
-  tmpBuffer = (char *) space((unsigned) MAX(length*2,columnWidth)+1);
+  tmpBuffer = (char *) space((unsigned) MAX2(length*2,columnWidth)+1);
   ssEscaped=(char *) space((unsigned) length*2);
   ruler=(char *) space((unsigned) length*2);
 
@@ -1394,4 +1384,5 @@ int PS_color_aln(const char *structure, const char *filename,
   free(ssEscaped);free(ruler);
 
   return 0;
+
 }

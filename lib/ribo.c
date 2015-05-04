@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "utils.h"
+#include "ribo.h"
+
 float dm_12_5[7][7]={{0,0,0,0,0,0,0},
 {0, 3.092536, 3.375764, 1.374085, 0.681999, 2.357501, 2.759147},
 {0, 3.375764, 3.223949, 1.077220, 0.713622, 2.742085, 2.325847},
@@ -696,7 +698,7 @@ float dm_20_19[7][7]={{0,0,0,0,0,0,0},
 {0, 2.356499, 2.304699, 1.714175, 0.194186, 1.898882, 0.292298}};
 
 
-float **get_ribosum(char *Alseq[], int n_seq, int length) {
+float **get_ribosum(const char **Alseq, int n_seq, int length){
   int i, j,k;
   float ident=0;
   int pairnum=0;
@@ -713,14 +715,20 @@ float **get_ribosum(char *Alseq[], int n_seq, int length) {
   for(j=0; j<n_seq-1; j++)
     for(k=j+1; k<n_seq; k++) {
       ident=length-hamming(Alseq[k],Alseq[j]);
-      if ((ident/length)<minimum) minimum=ident/(float)length;
-      if ((ident/length)>maximum) maximum=ident/(float)length;
+      if ((ident/(length))<minimum) minimum=ident/(float)(length);
+      if ((ident/(length))>maximum) maximum=ident/(float)(length);
     }
   /*+2.5 for ALWAYS round up*/
   minimum*=100;
   maximum*=100;
   minimum+=0.5;
   maximum+=0.5;
+  if (n_seq==1 || minimum>100.45){
+    for (i=0; i<7; i++)
+      for (j=0; j<7;j++)
+        ribo[i][j]= 0.;
+    return ribo;
+  }
   min=(int) minimum/5;
   max=(int) maximum/5;
 

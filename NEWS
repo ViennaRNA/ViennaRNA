@@ -1,5 +1,30 @@
 See Changelog for details.
 
+Version 2.0
+------------
+- yeeeehaa, its almost done...
+
+- All algorithms use the Turner'04 nearest neighbor model
+- The RNAlib provides (OpenMP) threadsafe folding routines per default. This is
+  enables concurrent calls to the folding routines in parallel. The feature
+  can be disabled by passing '--disable-openmp' to the configure script
+- serious changes in command line parameters. Everything complies with
+  GNU standard from now on (short options with preceding '-', long options
+  with preceding '--'.
+- FASTA file support for RNAfold. RNA sequences do not need to be passed
+  on a single line anymore when a FASTA header is provided.
+- The new program RNA2Dfold computes MFE, partition function and
+  stochastically sampled secondary structures in a partitioning of the secondary
+  structure space according to the base pair distance to two reference structures
+- The new program PKplex computes...
+- The new program RNALfoldz computes locally stable secondary structures
+  together with a z-score
+- The new program RNALalifold computes locally stable consensus structures for
+  alignments
+- The new program RNAparconv enables the conversion of 'old' energy parameter files
+  (v1.4-v1.8) to the new format used in version 2.x
+
+
 Version 1.8
 ------------
 - new RNAalifold has better treatment of gaps and ribosum based covariance

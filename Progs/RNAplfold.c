@@ -1,9 +1,9 @@
 /* Last changed Time-stamp: <2008-07-02 17:10:04 berni> */
 /*
-		  Ineractive Access to folding Routines
+                  Ineractive Access to folding Routines
 
-		  c Ivo L Hofacker
-		  Vienna RNA package
+                  c Ivo L Hofacker
+                  Vienna RNA package
 */
 
 #include <stdio.h>
@@ -18,147 +18,100 @@
 #include "utils.h"
 #include "PS_dot.h"
 #include "energy_const.h"
+#include "read_epars.h"
 #include "LPfold.h"
-
-extern float Lfold(char *string, char *structure, int winsize);
-extern void  read_parameter_file(const char fname[]);
+#include "RNAplfold_cmdl.h"
 
 /*@unused@*/
 static char rcsid[] = "$Id: RNAplfold.c,v 1.10 2008/07/02 15:34:24 ivo Exp $";
 
-#define PRIVATE static
-
-static char  scale[] = "....,....1....,....2....,....3....,....4"
-	"....,....5....,....6....,....7....,....8";
-
-PRIVATE void usage(void);
+int unpaired;
 PRIVATE void putout_pup(double *pup,int length, int winsize, char *name);
 PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp);
-int unpaired;
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
-/*--------------------------------------------------------------------------*/
 
-int main(int argc, char *argv[])
-{
-  char *string, *line;
-  char *structure=NULL, *cstruc=NULL;
-  char  fname[80], ffname[100];
-  char  *ParamFile=NULL;
-  char  *ns_bases=NULL, *c;
-  int   i, length, l, sym,r;
-  int   istty;
-  int noconv=0;
-  int winsize=70;
-  int pairdist=0;
-  float cutoff=0.01;
-  int tempwin=0;
-  int temppair=0;
-  int tempunpaired=0;
-  FILE *pUfp=NULL;
-  FILE *spup=NULL;
-  double **pup=NULL; /*prob of being unpaired, lengthwise*/
-  int plexoutput=0;
-  plist *dpp=NULL;
-  plist *pl;
-  int simply_putout=0;
-  int openenergies=0;
-  string=NULL;
-  dangles=2;
-  unpaired=0;
-  for (i=1; i<argc; i++) {
-    if (argv[i][0]=='-')
-      switch ( argv[i][1] )
-	{
-	case 'T':  if (argv[i][2]!='\0') usage();
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i], "%lf", &temperature);
-	  if (!r) usage();
-	  break;
-	case 'n':
-	  if ( strcmp(argv[i], "-noGU")==0) noGU=1;
-	  if ( strcmp(argv[i], "-noCloseGU")==0) no_closingGU=1;
-	  if ( strcmp(argv[i], "-noLP")==0) noLonelyPairs=1;
-	  if ( strcmp(argv[i], "-nsp") ==0) {
-	    if (i==argc-1) usage();
-	    ns_bases = argv[++i];
-	  }
-	  if ( strcmp(argv[i], "-noconv")==0) noconv=1;
-	  break;
-	case '4':
-	  tetra_loop=0;
-	  break;
-	case 'e':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%d", &energy_set);
-	  if (!r) usage();
-	  break;
-	case 'c':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%f", &cutoff);
-	  if (!r) usage();
-	  break;
-/*	case 'C':
-	  fold_constrained=1;
-	  break;
-	case 'S':
-	  if(i==argc-1) usage();
-	  r=sscanf(argv[++i],"%lf", &sfact);
-	  if (!r) usage();
-	  break;
-*/
-	case 'd': dangles=0;
-	  if (argv[i][2]!='\0') {
-	    r=sscanf(argv[i]+2, "%d", &dangles);
-	    if (r!=1) usage();
-	    if (!dangles%2) usage(); /*1,3 not possible*/
-	  }
-	  break;
-	case 'P':
-	  if (i==argc-1) usage();
-	  ParamFile = argv[++i];
-	  break;
-	case 'O':
-	  openenergies=1;
-	   break;
-	case 'W':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%d", &winsize);
-	  if (r!=1) usage();
-	  break;
-	case 'u':
-	  /*default = 31*/
-	  if (i==argc-1) {
-	    unpaired=31;
-	    fprintf(stderr,"Computing unpaired probabilities with default parameters: unpaired length=%d\n", unpaired);
-	  }
-	  else {
-	    r=sscanf(argv[i+1], "%d", &unpaired);
-	    if (r!=1){
-	      unpaired=31;
-	      fprintf(stderr,"Computing unpaired probabilities with default parameters: unpaired length=%d\n", unpaired);
-	    }
-	    else {
-	      i++;
-	    }
-	  }
-	  if (unpaired<0) usage();
-	
-	  break;
-	case 'L':
-	  if (i==argc-1) usage();
-	  r=sscanf(argv[++i], "%d", &pairdist);
-	  if (r!=1) usage();
-	  break;
-	case 'o':
-	  simply_putout=1;
-	  break;
-	case 'p':
-	  plexoutput=1;
-	  break;
-	default: usage();
-	}
+/*--------------------------------------------------------------------------*/
+int main(int argc, char *argv[]){
+  struct        RNAplfold_args_info args_info;
+  unsigned int  error = 0;
+  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
+  unsigned int  input_type;
+  int           i, length, l, sym, r, istty, winsize, pairdist;
+  float         cutoff;
+  int           tempwin, temppair, tempunpaired;
+  FILE          *pUfp = NULL, *spup = NULL;
+  double        **pup = NULL; /*prob of being unpaired, lengthwise*/
+  int           noconv, plexoutput, simply_putout, openenergies;
+  plist         *pl, *dpp = NULL;
+  unsigned int  rec_type, read_opt;
+
+  dangles       = 2;
+  cutoff        = 0.01;
+  winsize       = 70;
+  pairdist      = 0;
+  unpaired      = 0;
+  simply_putout = plexoutput = openenergies = noconv = 0;
+  tempwin       = temppair = tempunpaired = 0;
+  structure     = ParamFile = ns_bases = NULL;
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
+
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
+  if(RNAplfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  /* temperature */
+  if(args_info.temp_given)              temperature = args_info.temp_arg;
+  /* do not take special tetra loop energies into account */
+  if(args_info.noTetra_given)           tetra_loop=0;
+  /* set dangle model */
+  if(args_info.dangles_given)           dangles = args_info.dangles_arg;
+  /* do not allow weak pairs */
+  if(args_info.noLP_given)              noLonelyPairs = 1;
+  /* do not allow wobble pairs (GU) */
+  if(args_info.noGU_given)              noGU = 1;
+  /* do not allow weak closing pairs (AU,GU) */
+  if(args_info.noClosingGU_given)       no_closingGU = 1;
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if(args_info.noconv_given)            noconv = 1;
+  /* set energy model */
+  if(args_info.energyModel_given)       energy_set = args_info.energyModel_arg;
+  /* take another energy parameter set */
+  if(args_info.paramFile_given)         ParamFile = strdup(args_info.paramFile_arg);
+  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
+  if(args_info.nsp_given)               ns_bases = strdup(args_info.nsp_arg);
+  /* set the maximum base pair span */
+  if(args_info.span_given)              pairdist = args_info.span_arg;
+  /* set the pair probability cutoff */
+  if(args_info.cutoff_given)            cutoff = args_info.cutoff_arg;
+  /* set the windowsize */
+  if(args_info.winsize_given)           winsize = args_info.winsize_arg;
+  /* set the length of unstructured region */
+  if(args_info.ulength_given)           unpaired = args_info.ulength_arg;
+  /* compute opening energies */
+  if(args_info.opening_energies_given)  openenergies = 1;
+  /* print output on the fly */
+  if(args_info.print_onthefly_given)    simply_putout = 1;
+  /* turn on RNAplex output */
+  if(args_info.plex_output_given)       plexoutput = 1;
+
+  /* check for errorneous parameter options */
+  if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
+    RNAplfold_cmdline_parser_print_help();
+    exit(EXIT_FAILURE);
   }
 
+  /* free allocated memory of command line data structure */
+  RNAplfold_cmdline_parser_free(&args_info);
+
+  /*
+  #############################################
+  # begin initializing
+  #############################################
+  */
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -171,200 +124,192 @@ int main(int argc, char *argv[])
     }
     while (*c!='\0') {
       if (*c!=',') {
-	nonstandards[i++]=*c++;
-	nonstandards[i++]=*c;
-	if ((sym)&&(*c!=*(c-1))) {
-	  nonstandards[i++]=*c;
-	  nonstandards[i++]=*(c-1);
-	}
+        nonstandards[i++]=*c++;
+        nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          nonstandards[i++]=*c;
+          nonstandards[i++]=*(c-1);
+        }
       }
       c++;
     }
   }
-  if ((openenergies) &&(unpaired==0)) unpaired=31;
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-   if (pairdist==0) pairdist=winsize;
-  if (pairdist>winsize) {
+
+  /* check parameter options again and reset to reasonable values if needed */
+  if(openenergies && !unpaired) unpaired  = 31;
+  if(pairdist == 0)             pairdist  = winsize;
+  if(pairdist > winsize){
     fprintf(stderr, "pairdist (-L %d) should be <= winsize (-W %d);"
-	    "Setting pairdist=winsize\n",pairdist, winsize);
-    pairdist=winsize;
+            "Setting pairdist=winsize\n",pairdist, winsize);
+    pairdist = winsize;
   }
-  do {				/* main loop: continue until end of file */
-   if (istty) {
-      printf("\nInput string (upper or lower case); @ to quit\n");
-      printf("%s\n", scale);
-    }
-    fname[0]='\0';
-    if ((line = get_line(stdin))==NULL) break;
+  if(dangles % 2){
+    warn_user("using default dangles = 2");
+    dangles = 2;
+  }
 
-    if (tempwin!=0) {
-      winsize=tempwin;
-      tempwin=0;
-    }
-    if (temppair!=0) {
-      pairdist=temppair;
-      temppair=0;
-    }
-    if (tempunpaired!=0){
-      unpaired=tempunpaired;
-      tempunpaired=0;
-    }
-    /* skip comment lines and get filenames */
-    while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-      if (*line=='>')
-	(void) sscanf(line, ">%42s", fname);
-      printf("%s\n", line);
-      free(line);
-      if ((line = get_line(stdin))==NULL) break;
-    }
+  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  read_opt |= VRNA_INPUT_NO_REST;
+  if(istty){
+    print_tty_input_seq();
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  }
 
-    if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+  /*
+  #############################################
+  # main loop: continue until end of file
+  #############################################
+  */
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
-    string = (char *) space(strlen(line)+1);
-    (void) sscanf(line,"%s",string);
-    free(line);
-    length = (int) strlen(string);
-   if (unpaired) {
-      pup=(double **)space((length+1)*sizeof(double *));
-      pup[0]=(double *)space(sizeof(double)); /*I only need entry 0*/
-      pup[0][0]=unpaired;
+    /*
+    ########################################################
+    # init everything according to the data we've read
+    ########################################################
+    */
+    if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
+      (void) sscanf(rec_id, ">%42s", fname);
     }
+    else fname[0] = '\0';
 
+    length    = (int)strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    for (l = 0; l < length; l++) {
-      string[l] = toupper(string[l]);
-      if (!noconv && string[l] == 'T') string[l] = 'U';
-    }
-    if (istty)
-      printf("length = %d\n", length);
+    if(noconv)  str_RNA2RNA(rec_sequence);
+    else        str_DNA2RNA(rec_sequence);
 
-    if (length>1000000) {
+    if(istty) printf("length = %d\n", length);
 
-      if (!simply_putout&&!unpaired) {
-	printf("Switched to simple output mode!!!\n");
+    /*
+    ########################################################
+    # done with 'stdin' handling
+    ########################################################
+    */
+
+    if(length > 1000000){
+      if(!simply_putout)  printf("Switched to simple output mode!!!\n");
       simply_putout=1;
+    }
+
+    /* restore winsize if altered before */
+    if(tempwin != 0){
+      winsize = tempwin;
+      tempwin = 0;
+    }
+    /* restore pairdist if altered before */
+    if(temppair != 0){
+      pairdist = temppair;
+      temppair = 0;
+    }
+    /* restore ulength if altered before */
+    if(tempunpaired != 0){
+      unpaired      = tempunpaired;
+      tempunpaired  = 0;
+    }
+
+    /* adjust winsize, pairdist and ulength if necessary */
+    if(length < winsize){
+      fprintf(stderr, "WARN: window size %d larger than sequence length %d\n", winsize, length);
+      tempwin = winsize;
+      winsize = length;
+      if (pairdist>winsize) {
+        temppair=pairdist;
+        pairdist=winsize;
+      }
+      if (unpaired>winsize) {
+        tempunpaired=unpaired;
+        unpaired=winsize;
       }
     }
-    if (unpaired && simply_putout) {
-      printf("Output simplification not possible if unpaired is switched on\n");
-      simply_putout=0;
-    }
-    /* initialize_fold(length); */
-    update_fold_params();
-    if (length<winsize) {
-      fprintf(stderr, "WARN: window size %d larger than sequence length %d\n",
-	      winsize, length);
-      tempwin=winsize;
-	winsize=length;
-	if (pairdist>winsize) {	  
-	  temppair=pairdist;
-	  pairdist=winsize;
-	}
-	if (unpaired>winsize) {
-	  tempunpaired=unpaired;
-	  unpaired=winsize;
-	}
-    }
-    if (length >= 5) {
-      pf_scale = -1;
-      pUfp=NULL;
-      if (simply_putout) /**/ {
-	char oname[50];
-	if (unpaired!=0) {
-	  char aname[50];
-	  if (fname[0]!='\0') {
-	    strcpy(aname, fname);
-	    strcat(aname, "_lunp");
-	  }
-	  else strcpy(aname, "plfold_lunp");
-	pUfp=fopen(aname,"w");
-	}
-	if (fname[0]!='\0') {
-	  strcpy(oname, fname);
-	  strcat(oname, "_basepairs");
-	}
-	else strcpy(oname, "plfold_basepairs");
-	spup=fopen(oname,"w");
+
+    /*
+    ########################################################
+    # begin actual computations
+    ########################################################
+    */
+
+    if (length >= 5){
+      /* construct output file names */
+      char fname1[60], fname2[60], fname3[60], fname4[60], fname_t[60];
+
+      strcpy(fname_t, (fname[0] != '\0') ? fname : "plfold");
+
+      strcpy(fname1, fname_t);
+      strcpy(fname2, fname_t);
+      strcpy(fname3, fname_t);
+      strcpy(fname4, fname_t);
+      strcpy(ffname, fname_t);
+
+      strcat(fname1, "_lunp");
+      strcat(fname2, "_basepairs");
+      strcat(fname3, "_uplex");
+      strcat(fname4, "_openen");
+      strcat(ffname, "_dp.ps");
+
+      pf_scale  = -1;
+
+      if(unpaired > 0){
+        pup       =(double **)  space((length+1)*sizeof(double *));
+        pup[0]    =(double *)   space(sizeof(double)); /*I only need entry 0*/
+        pup[0][0] = unpaired;
       }
-     
-      pl=pfl_fold(string, winsize, pairdist, cutoff, pup, &dpp, pUfp,spup);
-      if (pUfp!=NULL) fclose(pUfp);
-      if (spup!=NULL)  fclose(spup);
-     if (!simply_putout) {
-	if (fname[0]!='\0') {
-	  strcpy(ffname, fname);
-	  strcat(ffname, "_dp.ps");
-	}
-	else strcpy(ffname, "plfold_dp.ps");
-	PS_dot_plot_turn(string, pl, ffname, pairdist);
-	free(pl);
-	if (unpaired){
-	  char aname[50];
-	  if(plexoutput) {
-	    FILE *POP;
-	    char oname[50];
-	    if (fname[0]!='\0') {
-	      strcpy(oname, fname);
-	      strcat(oname, "_uplex");
-	    } 
-	    else strcpy(oname, "plfold_uplex");
-	    POP=fopen(oname,"w");
- 	    putoutphakim_u(pup,length, unpaired, POP);
-	    fclose(POP);
-	  }
-	  if (openenergies) {
-	    if (fname[0]!='\0') {
-	      strcpy(aname, fname);
-	      strcat(aname, "_openen");
-	    }
-	    else strcpy(aname, "plfold_openen");
-	  }
-	  else {
-	    if (fname[0]!='\0') {
-	      strcpy(aname, fname);
-	      strcat(aname, "_lunp");
-	    }
-	    else strcpy(aname, "plfold_lunp");
-	  }
-	  pUfp=fopen(aname,"w");
-	  putoutpU_prob(pup, length, unpaired, pUfp,openenergies);
-	  fclose(pUfp);
-	   
-	}
-	
+
+      pUfp = spup = NULL;
+      if(simply_putout){
+        spup = fopen(fname2, "w");
+        pUfp = (unpaired > 0) ? fopen(fname1, "w") : NULL;
+
+        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp,spup);
+
+        if(pUfp != NULL)  fclose(pUfp);
+        if(spup != NULL)  fclose(spup);
       }
-     else {
-       free(pl);
-       if (unpaired) {
-	 free(pup[0]);
-	 free(pup);
-       }
-      
-     }
-      if (cstruc!=NULL) free(cstruc);
+      else{
+        pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
+        PS_dot_plot_turn(rec_sequence, pl, ffname, pairdist);
+        if (unpaired > 0){
+          if(plexoutput){
+            pUfp = fopen(fname3, "w");
+            putoutphakim_u(pup,length, unpaired, pUfp);
+            fclose(pUfp);
+          }
+          pUfp = fopen(openenergies ? fname4 : fname1, "w");
+          putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+          fclose(pUfp);
+        }
+      }
+      if(pl) free(pl);
+      if(unpaired > 0){
+        free(pup[0]);
+        free(pup);
+      }
+    }
     (void) fflush(stdout);
-    }
-    free(string);
+
+    /* clean up */
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
     free(structure);
-  } while (1);
-  return 0;
+    rec_id = rec_sequence = NULL;
+    rec_rest = NULL;
+    /* print user help for the next round if we get input from tty */
+
+    if(istty) print_tty_input_seq();
+  }
+  return EXIT_SUCCESS;
 }
 
-PRIVATE void usage(void)
-{
-  nrerror("usage:\n"
-	  "RNAplfold [-L span] [-W winsize] [-u size of unpaired region]\n"
-	  "          [-T temp] [-4] [-o] [-d[0|1|2]] [-noGU] [-noCloseGU]\n"
-	  "          [-noLP] [-P paramfile] [-nsp pairs] [-noconv] [-O]\n");
-}
+/* additional output functions */
 
 PRIVATE void putout_pup(double *pup,int length, int winsize, char *name) {
   int i;
   float factor;
   float tfact;
   FILE *FP;
-  
+
   FP=fopen(name,"w");
   fprintf(FP,"&prob of being unpaired between i-%d and i\n",unpaired);
   fflush(NULL);
@@ -376,14 +321,14 @@ PRIVATE void putout_pup(double *pup,int length, int winsize, char *name) {
     if (i>length-winsize+unpaired-1) {
       tfact=1./(length-i+1);
       if (tfact>factor) {
-	factor=tfact;
+        factor=tfact;
       }
-     
+
     }
     else {
       tfact=1./(winsize-unpaired+1);
       if (tfact>factor) {
-	factor=tfact;
+        factor=tfact;
       }
     }
     fprintf(FP,"%d %.6f\n",i,pup[i]*factor);
@@ -412,18 +357,18 @@ PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp) {
   fflush(fp);
 }
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
-  /*put out Fopen in dekacalories per mol, and F(cond,open) also ind dekacal*/
+  /*put out Fopen in dekacalories per mol, and F(cond,open) also in dekacal*/
   int k;
-  
+
   float RT = (temperature+K0)*GASCONST;
   float p0;
   float pdep;
   int f0;
   int fdep;
-  
+
   fprintf(fp,"#energy necessary to unpair as well as to unpair if i-1 is unpaired also, if i+1 is unpaired also in dekacal/mol\n");
   for (k=1; k<=length; k++){
-    fprintf(fp,"%d\t",k);   
+    fprintf(fp,"%d\t",k);
     p0=pU[k][1];
     f0=(int) -RT*log(p0)/10;
     fprintf(fp,"%d\t", f0);
@@ -443,7 +388,7 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
     else  fprintf(fp,"-0\t");
     fprintf(fp,"\n");
   }
- 
+
   fflush(fp);
 }
 
