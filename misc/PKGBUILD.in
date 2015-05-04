@@ -15,7 +15,7 @@ conflicts=('viennarna')
 makedepends=()
 provides=('Kinfold=1.3')
 source=(http://www.tbi.univie.ac.at/~ronny/RNA/packages/source/ViennaRNA-${pkgver}.tar.gz)
-
+options=('staticlibs')
 md5sums=('')
 
 build() {

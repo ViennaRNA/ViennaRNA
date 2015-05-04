@@ -6,11 +6,11 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include <ViennaRNA/fold_vars.h>
-#include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/part_func.h>
-#include <ViennaRNA/utils.h>
-#include <ViennaRNA/params.h>
+#include "fold_vars.h"
+#include "data_structures.h"
+#include "part_func.h"
+#include "utils.h"
+#include "params.h"
 #include "ct2db_cmdl.h"
 
 static  char *

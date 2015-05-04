@@ -60,7 +60,7 @@ extern  int st_back;
  *  denote base pairs, all other characters are ignored. Any pairs
  *  conflicting with the constraint will be forbidden. This is usually sufficient
  *  to ensure the constraints are honored.
- *  If tha parameter calculate_bppm is set to 0 base pairing probabilities will not
+ *  If the parameter calculate_bppm is set to 0 base pairing probabilities will not
  *  be computed (saving CPU time), otherwise after calculations took place #pr will
  *  contain the probability that bases \a i and \a j pair.
  * 
@@ -178,7 +178,8 @@ char    *pbacktrack(char *sequence);
  *  This function does the same as \ref pbacktrack() but assumes the RNA molecule to be circular
  *
  *  \ingroup subopt_stochbt
- *  \pre    pf_fold_par() or pf_fold_circ() have to be called first to fill the partition function matrices
+ *  \pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
+ *  \pre    pf_fold_par() or pf_circ_fold() have to be called first to fill the partition function matrices
  *
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation

@@ -2232,6 +2232,7 @@ double probcompute_sug_95(char *s1, double na_concentration, double probe_concen
   int converted=encode_char(toupper(s1[posst]))-1;
   int seqlen=strlen(s1);
   double Tm;
+  /*  salt entropy correction von Ahsen 1999 */
   /* terminal correction */
   if(s1[0]=='G' || s1[0]=='C'){dH+=0.95; dS+=-1.95;}
   if(s1[0]=='A' || s1[0]=='T' || s1[0]=='U'){dH+=0.95; dS+=-1.95;}

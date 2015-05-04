@@ -60,12 +60,6 @@ int main(int argc, char *argv[]){
     print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
   }
 
-  /* print user help if we get input from tty */
-  if(istty){
-    print_tty_input_seq();
-    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-  }
-
   /*
   #############################################
   # main loop: continue until end of file

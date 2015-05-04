@@ -2294,6 +2294,25 @@ PUBLIC int energy_of_move_pt(short *pt, short *s, short *s1, int m1, int m2) {
     pt[k]=0;
     pt[l]=0;
   }
+
+  /* Cofolding -- Check if move changes COFOLD-Penalty */
+  if (!SAME_STRAND(k,l)) {
+    int p, c; p=c=0;
+    for (p=1; p < cut_point; ) { /* Count basepairs between two strands */
+      if (pt[p] != 0) {
+        if (SAME_STRAND(p,pt[p])) /* Skip stuff */
+          p=pt[p];
+        else if (++c > 1) break; /* Count a basepair, break if we have more than one */
+      }
+      p++;
+    }
+    if (m1<0 && c==1) /* First and only inserted basepair */
+      return (en_post - en_pre - P->DuplexInit);
+    else
+      if (c==0) /* Must have been a delete move */
+        return (en_post - en_pre + P->DuplexInit);
+  }
+
   return (en_post - en_pre);
 }
 

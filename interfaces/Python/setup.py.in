@@ -9,7 +9,7 @@ new_filename = "__init__.py"
 if os.path.exists(old_filename):
     os.rename(old_filename, new_filename)
  
-extra_link_args = ['@OPENMP_CFLAGS@', '-shared', '-lstdc++']
+extra_link_args = ['@OPENMP_CFLAGS@', '-lstdc++']
 extra_compile_args=['@OPENMP_CFLAGS@']
 
 if sys.platform != 'darwin':
