@@ -1,0 +1,36 @@
+# ignore other autotools generated content
+Makefile
+Makefile.in
+configure
+aclocal.m4
+autom4te.cache
+autoscan.log
+depcomp
+missing
+compile
+install-sh
+config.*
+.deps
+stamp-h1
+
+# ignore document directory and doxygen config
+doc
+doxygen.conf
+
+# ignore all tar.gz archives
+*.tar.gz
+# except the libsvm sources
+!libsvm*.tar.gz
+
+# ignore Readseq directory
+Readseq
+
+# ignore Fedora RPM spec file
+ViennaRNA.spec
+
+# ignore pkg-config file
+RNAlib2.pc
+
+# ignore all postscript files that might be generated
+*.ps
+

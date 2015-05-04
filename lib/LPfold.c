@@ -162,6 +162,7 @@ PRIVATE void get_arrays_L(unsigned int length){
     q2l = (FLT_OR_DBL **) space((length+1)*sizeof(FLT_OR_DBL *));
   }
   my_iindx  = get_iindx(length);
+  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
 }
 
@@ -183,6 +184,7 @@ PRIVATE void free_pf_arrays_L(void){
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
   if(my_iindx)  free(my_iindx);
+  if(iindx)     free(iindx); /* for backward compatibility and Perl wrapper */
   if(jindx)     free(jindx);
   if(ptype)     free(ptype);
   if(QI5)       free(QI5);
@@ -192,7 +194,7 @@ PRIVATE void free_pf_arrays_L(void){
 
   q = qb = qm = pR = QI5 = qmb = qm2 = q2l = NULL;
   qq = qq1 = qqm = qqm1 = q1k = qln = prml = prm_l = prm_l1 = expMLbase = NULL;
-  my_iindx = jindx = NULL;
+  my_iindx = jindx = iindx = NULL;
   pf_params = NULL;
   ptype     = NULL;
   scale = NULL;
@@ -609,6 +611,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
     scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
     if (scaling_factor<1) scaling_factor=1;
+    pf_params->pf_scale = scaling_factor;
   }
   scale[0] = 1.;
   scale[1] = 1./scaling_factor;

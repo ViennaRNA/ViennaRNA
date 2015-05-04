@@ -235,6 +235,11 @@ int get_pf_arrays(short **S_p,
                   FLT_OR_DBL **qln_p);
 
 /**
+ *  \brief Get the free energy of a subsequence from the q[] array
+ */
+double get_subseq_F(int i, int j);
+
+/**
  *  \brief Get the centroid structure of the ensemble
  * 
  *  This function is a threadsafe replacement for \ref centroid() with a 'plist' input

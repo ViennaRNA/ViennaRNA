@@ -1,0 +1,7 @@
+# ignore all generated manpages
+*.1
+
+# ignore autotools generated files
+cmdlopt.sh
+RNAlib.info
+texinfo.tex

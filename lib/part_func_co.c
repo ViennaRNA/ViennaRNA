@@ -197,6 +197,7 @@ PRIVATE void get_arrays(unsigned int length){
   scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   ptype     = (char *) space(sizeof(char)*((length+1)*(length+2)/2));
   my_iindx  = get_iindx(length);
+  iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
 }
 
@@ -219,6 +220,7 @@ PUBLIC void free_co_pf_arrays(void){
   if(expMLbase) free(expMLbase);
   if(scale)     free(scale);
   if(my_iindx)  free(my_iindx);
+  if(iindx)     free(iindx); /* for backward compatibility and Perl wrapper */
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
@@ -227,7 +229,7 @@ PUBLIC void free_co_pf_arrays(void){
   q = qb = qm = qm1 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = probs = NULL;
   ptype = NULL;
   S = S1 = NULL;
-  my_iindx = jindx = NULL;
+  my_iindx = jindx = iindx = NULL;
 
 #ifdef SUN4
   standard_arithmetic();
@@ -264,7 +266,7 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
 #else
   if(parameters) init_partfunc_co(n, parameters);
   else if (n > init_length) init_partfunc_co(n, parameters);
-  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n, parameters);
+  else if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params_par(n, parameters);
 #endif
 
  /* printf("mirnatog=%d\n",mirnatog); */
@@ -305,11 +307,11 @@ PUBLIC cofoldF co_pf_fold_par(char *sequence,
 
     QToT=q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]+QAB;
     pbound=1-(q[my_iindx[1]-(cut_point-1)]*q[my_iindx[cut_point]-n]/QToT);
-     X.FAB  = -kT*(log(QToT)+n*log(pf_scale));
-    X.F0AB = -kT*(log(Qzero)+n*log(pf_scale));
-    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_scale)) : 999;
-    X.FA = -kT*(log(q[my_iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_scale));
-    X.FB = -kT*(log(q[my_iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_scale));
+     X.FAB  = -kT*(log(QToT)+n*log(pf_params->pf_scale));
+    X.F0AB = -kT*(log(Qzero)+n*log(pf_params->pf_scale));
+    X.FcAB = (QAB>1e-17) ? -kT*(log(QAB)+n*log(pf_params->pf_scale)) : 999;
+    X.FA = -kT*(log(q[my_iindx[1]-(cut_point-1)]) + (cut_point-1)*log(pf_params->pf_scale));
+    X.FB = -kT*(log(q[my_iindx[cut_point]-n]) + (n-cut_point+1)*log(pf_params->pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]);*/
   }
@@ -682,7 +684,7 @@ PRIVATE void pf_co_bppm(const char *sequence, char *structure){
 
   if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
                     "you might try a smaller pf_scale than %g\n",
-                    ov, pf_scale);
+                    ov, pf_params->pf_scale);
 }
 
 
@@ -707,6 +709,7 @@ PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   if (scaling_factor == -1) { /* mean energy for random sequences: 184.3*length cal */
     scaling_factor = exp(-(-185+(pf_params->temperature-37.)*7.27)/kT);
     if (scaling_factor<1) scaling_factor=1;
+    pf_params->pf_scale = scaling_factor;
   }
   scale[0] = 1.;
   scale[1] = 1./scaling_factor;
@@ -929,8 +932,8 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
       if(lp1->p < 0.){
+        warn_user("part_func_co: numeric instability detected, probability below zero!");
         lp1->p = 0.;
-        warn_user("part_func_co: probability below zero!");
       }
     }
   return;

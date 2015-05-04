@@ -230,8 +230,8 @@ PUBLIC float cofold_par(const char *string,
   init_cofold(length, parameters);
 #else
   if(parameters) init_cofold(length, parameters);
-  else if (length>init_length) init_cofold(length);
-  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params();
+  else if (length>init_length) init_cofold(length, parameters);
+  else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
 #endif
 
   S   = encode_sequence(string, 0);
@@ -1249,7 +1249,7 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   init_cofold(2 * length, parameters);
 #else
   if(parameters) init_cofold(2 * length, parameters);
-  else if ((2 * length) > init_length) init_cofold(2 * length);
+  else if ((2 * length) > init_length) init_cofold(2 * length, parameters);
   else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
 #endif
 
