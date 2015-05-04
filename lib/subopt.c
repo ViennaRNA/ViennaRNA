@@ -1267,6 +1267,7 @@ repeat_gquad( int i,
       int *l;
       /* find out how many gquads we might expect in the interval [i,j] */
       int num_gquads = get_gquad_count(S1, i, j);
+      num_gquads++;
       L = (int *)space(sizeof(int) * num_gquads);
       l = (int *)space(sizeof(int) * num_gquads * 3);
       L[0] = -1;
