@@ -40,7 +40,7 @@ sectiondesc="Select additional algorithms which should be included in the calcul
  (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "zscore"  z
-"Activate z-score computation. An optional argument may be supplied to set the threshold\nDue to parsing the
+"Activate z-score computation. An optional argument may be supplied to set the threshold\nDue to parsing the\
  commandline parameters a negative value should be given immediately after \"z\" without spaces e.g. -z-4.9\n\n"
 double
 default="-2"

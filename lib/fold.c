@@ -435,6 +435,8 @@ PRIVATE int fill_arrays(const char *string) {
       if (uniq_ML) fM1[indx[j]+i] = INF;
     }
 
+  if (length <= TURN) return 0;
+
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
 
     for (j = i+TURN+1; j <= length; j++) {
