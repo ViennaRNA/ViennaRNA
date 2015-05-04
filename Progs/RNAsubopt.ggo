@@ -34,6 +34,12 @@ details="The program reads first the\
 flag
 off
 
+option  "canonicalBPonly" -
+"Remove non-canonical base pairs from the structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
 option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag

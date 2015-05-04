@@ -57,6 +57,8 @@ char        backtrack_type = 'F'; /* 'C' require (1,N) to be bonded;
 
 int         *cut_points;
 
+int         canonicalBPonly = 0;  /* remove non-canonical base pairs from structure constraint */
+
 int         *strand;
 
 int         gquad = 0;            /* consider g-qudruplexes in the calculations */
@@ -77,12 +79,13 @@ PUBLIC char * option_string(void){
 
 PUBLIC void set_model_details(model_detailsT *md){
   if(md){
-    md->dangles     = dangles;
-    md->special_hp  = tetra_loop;
-    md->noLP        = noLonelyPairs;
-    md->noGU        = noGU;
-    md->noGUclosure = no_closingGU;
-    md->logML       = logML;
-    md->gquad       = gquad;
+    md->dangles         = dangles;
+    md->special_hp      = tetra_loop;
+    md->noLP            = noLonelyPairs;
+    md->noGU            = noGU;
+    md->noGUclosure     = no_closingGU;
+    md->logML           = logML;
+    md->gquad           = gquad;
+    md->canonicalBPonly = canonicalBPonly;
   }
 }

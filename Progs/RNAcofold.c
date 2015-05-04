@@ -125,6 +125,8 @@ int main(int argc, char *argv[])
   if(args_info.noClosingGU_given)     md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
   if(args_info.gquad_given)           md.gquad = gquad = 1;
+  /* enforce canonical base pairs in any case? */
+  if(args_info.canonicalBPonly_given) md.canonicalBPonly = canonicalBPonly = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)          noconv = 1;
   /* set energy model */

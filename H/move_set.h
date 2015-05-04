@@ -15,6 +15,8 @@ void print_str(FILE *out, short *str);
 void copy_arr(short *dest, short *src); /*just copy*/
 short *allocopy(short *src);            /*copy and make space*/
 
+enum MOVE_TYPE {GRADIENT, FIRST, ADAPTIVE};
+
 /* walking methods (verbose_lvl 0-2, shifts = use shift moves? noLP = no lone pairs? (not compatible with shifts))
     input:    seq - sequence
               ptable - structure encoded with make_pair_table() from pair_mat.h
@@ -24,7 +26,7 @@ short *allocopy(short *src);            /*copy and make space*/
               rand - random lower energy structure is used
     returns local minima structure in ptable and its energy in 10kcal/mol as output */
 
-int move_deepest( char *seq,
+int move_gradient( char *seq,
                   short *ptable,
                   short *s,
                   short *s1,
@@ -38,20 +40,34 @@ int move_first( char *seq,
                 int verbosity_level,
                 int shifts,
                 int noLP);
-int move_rand(  char *seq,
+int move_adaptive(  char *seq,
                 short *ptable,
                 short *s,
                 short *s1,
                 int verbosity_level);
 
+/* standardized method that encapsulates above "_pt" methods
+  input:  seq - sequence
+          struc - structure in dot-bracket notation
+          type - type of move selection according to MOVE_TYPE enum
+  return: energy of LM
+          structure of LM in struc in bracket-dot notation
+*/
+int move_standard(char *seq,
+                  char *struc,
+                  enum MOVE_TYPE type,
+                  int verbosity_level,
+                  int shifts,
+                  int noLP);
 
-/* browse_neighbours and do funct function on each of them (used mainly for user specified flooding)
+
+/* browse_neighbours and perform funct function on each of them (used mainly for user specified flooding)
     input:    seq - sequence
               ptable - structure encoded with make_pair_table() from pair_mat.h
               s, s1 - sequence encoded with encode_sequence from pair_mat.h
-              funct - function (moved structure, current structure (or altered by funct)) to do with every structure in neigbourhood
+              funct - function (structure from neighbourhood, structure from input) toperform on every structure in neigbourhood (if the function returns non-zero, the iteration through neighbourhood stops.)
     returns energy of the structure funct sets as second argument*/
-int browse_neighs( char *seq,
+int browse_neighs_pt( char *seq,
                    short *ptable,
                    short *s,
                    short *s1,
@@ -60,4 +76,14 @@ int browse_neighs( char *seq,
                    int noLP,
                    int (*funct) (struct_en*, struct_en*));
 
+int browse_neighs( char *seq,
+                   char *struc,
+                   int verbosity_level,
+                   int shifts,
+                   int noLP,
+                   int (*funct) (struct_en*, struct_en*));
+
 #endif
+
+
+

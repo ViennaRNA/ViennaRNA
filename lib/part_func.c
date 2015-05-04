@@ -995,8 +995,16 @@ PRIVATE void make_ptypes(const short *S, const char *structure){
       }
     }
 
-  if (struct_constrained && (structure != NULL))
+  if (struct_constrained && (structure != NULL)){
     constrain_ptypes(structure, (unsigned int)n, ptype, NULL, TURN, 1);
+    if(pf_params->model_details.canonicalBPonly)
+      for(i=1;i<n;i++)
+        for(j=i+1;j<=n;j++)
+          if(ptype[my_iindx[i]+j] == 7){
+            warn_user("removing non-canonical base pair from constraint");
+            ptype[my_iindx[i]+j] = 0;
+          }
+  }
 }
 
 /*
